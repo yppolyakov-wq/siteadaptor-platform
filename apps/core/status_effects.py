@@ -183,6 +183,9 @@ def restore_stock_for(kind: str, instance, src_role: str | None = None) -> None:
         Promotion.objects.filter(id=instance.promotion_id, available_quantity__isnull=False).update(
             available_quantity=F("available_quantity") + instance.quantity
         )
+        from apps.aggregator.stock_sync import touch_promotion
+
+        touch_promotion(instance.promotion_id)  # T-8.26 п.3
         # T-8.23f: свой статус с ролью «отменено» возвращает и остаток товара.
         from apps.promotions.services import release_product_stock
 

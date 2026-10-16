@@ -12,6 +12,7 @@ from django.db import transaction
 from django.db.models import F, Sum
 from django.utils import timezone
 
+from apps.aggregator.stock_sync import touch_promotion
 from apps.loyalty.models import Voucher
 
 from .models import Customer, Promotion, Reservation, WaitlistEntry
@@ -130,6 +131,7 @@ def _reserve_locked(promotion, *, customer, quantity, note, source_channel):
         ).update(available_quantity=F("available_quantity") - quantity)
         if rows == 0:
             raise OutOfStock()
+        touch_promotion(promotion.id)  # T-8.26 п.3
     elif promotion.status != "active":
         # без лимита остатка, но акция должна быть активной
         raise OutOfStock()
@@ -272,6 +274,7 @@ def purchase(
         ).update(available_quantity=F("available_quantity") - quantity)
         if rows == 0:
             raise OutOfStock()
+        touch_promotion(promotion.id)  # T-8.26 п.3
     elif promotion.status != "active":
         raise OutOfStock()
 
@@ -458,6 +461,8 @@ def issue_coupon(promotion, *, name="", email="", phone="", existing_code="", so
             available_quantity=F("available_quantity") - 1
         ):
             raise CouponUnavailable
+        else:
+            touch_promotion(promotion.id)  # T-8.26 п.3
         voucher = Voucher.objects.create(
             code=_unique_voucher_code("C-"),
             label=(promotion.title_text or "Coupon")[:120],

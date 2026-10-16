@@ -97,3 +97,19 @@ class AggregatorConfig(AppConfig):
         post_delete.connect(
             resync_on_service_save, sender=Service, dispatch_uid="agg_resync_service_delete"
         )
+
+        # T-8.26 п.3: остаток мимо save() (леджер) и места событий (билеты) → снимок.
+        from apps.events.models import Ticket
+        from apps.inventory.models import StockMovement
+
+        from .stock_sync import resync_on_stock_movement, resync_on_ticket_change
+
+        post_save.connect(
+            resync_on_stock_movement, sender=StockMovement, dispatch_uid="agg_resync_stock_movement"
+        )
+        post_save.connect(
+            resync_on_ticket_change, sender=Ticket, dispatch_uid="agg_resync_ticket_save"
+        )
+        post_delete.connect(
+            resync_on_ticket_change, sender=Ticket, dispatch_uid="agg_resync_ticket_delete"
+        )

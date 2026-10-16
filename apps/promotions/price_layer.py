@@ -13,6 +13,7 @@ from django.db.models import F
 from django.utils import translation
 from django.utils.translation import gettext as _
 
+from apps.aggregator.stock_sync import touch_promotion
 from apps.notifications.services import tenant_locale
 
 from .models import Promotion
@@ -32,6 +33,7 @@ def claim_units(promotion, quantity: int) -> None:
         ).update(available_quantity=F("available_quantity") - quantity)
         if rows == 0:
             raise OutOfStock()
+        touch_promotion(promotion.id)  # T-8.26 п.3: «Ausverkauft» в каталоге города
     elif promotion.status != "active":
         raise OutOfStock()
 
@@ -44,6 +46,7 @@ def return_units(promotion_id, quantity: int) -> None:
     Promotion.objects.filter(id=promotion_id, available_quantity__isnull=False).update(
         available_quantity=F("available_quantity") + quantity
     )
+    touch_promotion(promotion_id)  # T-8.26 п.3
     promo = Promotion.objects.filter(id=promotion_id).first()
     if promo is not None:
         notify_waitlist_available(promo)

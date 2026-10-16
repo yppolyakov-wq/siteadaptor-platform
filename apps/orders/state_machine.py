@@ -157,10 +157,13 @@ def _restore_promo_limits(instance):
             promo_id = isinstance(mod, dict) and mod.get("promo")
             if promo_id:
                 per_promo[promo_id] = per_promo.get(promo_id, 0) + item.qty
+    from apps.aggregator.stock_sync import touch_promotion
+
     for promo_id, qty in per_promo.items():
         Promotion.objects.filter(id=promo_id, available_quantity__isnull=False).update(
             available_quantity=F("available_quantity") + qty
         )
+        touch_promotion(promo_id)  # T-8.26 п.3
         promo = Promotion.objects.filter(id=promo_id).first()
         if promo is not None:
             notify_waitlist_available(promo)

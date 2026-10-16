@@ -319,6 +319,8 @@ CUSTOM_DOMAIN_TARGET_IP = env("CUSTOM_DOMAIN_TARGET_IP", default="")
 # Кэш публичной выдачи агрегатора/порталов, сек (apps.core.pagecache);
 # 0 — выключен (так в тестах, см. settings/test.py).
 PUBLIC_PAGE_CACHE_TTL = env.int("PUBLIC_PAGE_CACHE_TTL", default=120)
+# T-8.26 п.3: разброс ночной сверки агрегатора между схемами, секунд на схему.
+AGG_RECONCILE_SPREAD_S = env.int("AGG_RECONCILE_SPREAD_S", default=20)
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 # Открытая allauth-регистрация закрыта: бизнес регистрируется только через
@@ -505,6 +507,11 @@ CELERY_BEAT_SCHEDULE = {
     },
     "purge-follow-digests": {
         "task": "apps.aggregator.tasks.purge_follow_digests",
+        "schedule": 86400.0,
+    },
+    # T-8.26 п.3: ночная полная сверка снимка каталога города по всем схемам (с разбросом).
+    "reconcile-aggregator-nightly": {
+        "task": "apps.aggregator.tasks.reconcile_aggregator_nightly",
         "schedule": 86400.0,
     },
     "purge-expired-documents": {

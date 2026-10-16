@@ -132,6 +132,8 @@ def test_stay_offer_has_unit_price_per_day():
         ("product", "on_request", "https://schema.org/MadeToOrder"),
         ("product", "", "https://schema.org/InStock"),
         ("promotion", "", "https://schema.org/InStock"),
+        ("promotion", "sold_out", "https://schema.org/SoldOut"),  # T-8.26 п.3
+        ("event", "sold_out", "https://schema.org/SoldOut"),
         ("stay", "", None),
         ("service", "", None),
     ],

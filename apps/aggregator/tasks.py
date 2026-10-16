@@ -14,6 +14,9 @@ from django_tenants.utils import schema_context
 
 from apps.core.jobs import idempotent_task
 
+# = AggregatorListing.AVAILABILITY_SOLD_OUT (модель импортируется в задачах лениво).
+AVAILABILITY_SOLD_OUT = "sold_out"
+
 
 def _scheme() -> str:
     return "http" if getattr(settings, "DEBUG", False) else "https"
@@ -42,6 +45,8 @@ def _snapshot(promotion_id):
         "starts_at": promo.starts_at,
         "ends_at": promo.ends_at,
         "is_surprise": promo.is_surprise,
+        # T-8.26 п.3: распроданность лимита — честно и у mystery (скрыта цена, не остаток).
+        "availability": AVAILABILITY_SOLD_OUT if promo.is_sold_out else "",
         # T-8.13a: категория/признаки каталога города + диеты товара-цели (данные
         # товара — честный источник «vegan/bio», подсказка их не выдумывает).
         "city_category": promo.city_category or "",
@@ -185,6 +190,7 @@ def sync_listing(tenant_schema, promotion_id) -> str:
             "ends_at": snap["ends_at"],
             "detail_url": f"{_site(tenant)}/p/{promotion_id}/",
             "is_surprise": snap["is_surprise"],
+            "availability": snap.get("availability", ""),
             **_city_fields("promotion", tenant, snap),
             "is_active": True,
         },
@@ -289,6 +295,8 @@ def _event_snapshot(event_id):
         "ends_at": event.ends_at,
         "category": event.category or "",  # R2b направление для фильтра агрегатора
         "city": event.city or "",  # R2b город события (точнее, чем город бизнеса)
+        # T-8.26 п.3: мест нет (ёмкость или все тиры) → «Ausverkauft» в каталоге города
+        "availability": AVAILABILITY_SOLD_OUT if event.is_sold_out else "",
     }
 
 
@@ -334,6 +342,15 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
                 tour_slug = nearest.tour.slug
                 tour_title = nearest.tour.title
         snap = _event_snapshot(nearest_id) if nearest_id else None
+        if snap is not None:
+            # T-8.26 п.3: группа распродана, только если распроданы ВСЕ будущие заезды —
+            # ближайший без мест при свободных следующих не делает тур «Ausverkauft».
+            departures = list(qs.order_by("starts_at")[:50])
+            snap["availability"] = (
+                AVAILABILITY_SOLD_OUT
+                if departures and all(e.is_sold_out for e in departures)
+                else ""
+            )
 
     if snap is None or tenant is None or _withheld(tenant) or not tenant.is_module_active("events"):
         AggregatorListing.objects.filter(**key).delete()
@@ -362,6 +379,7 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
             "ends_at": snap["ends_at"],
             "detail_url": detail,
             "is_surprise": False,
+            "availability": snap.get("availability", ""),
             **_city_fields("tour" if tour_slug else "event", tenant, snap),
             "is_active": True,
         },
@@ -425,6 +443,7 @@ def sync_event_listing(tenant_schema, event_id) -> str:
             "ends_at": snap["ends_at"],
             "detail_url": f"{_site(tenant)}/veranstaltung/{event_id}/",
             "is_surprise": False,
+            "availability": snap.get("availability", ""),
             **_city_fields("event", tenant, snap),
             "is_active": True,
         },
@@ -593,6 +612,44 @@ def resync_on_event_save(sender, instance, **kwargs):
 def reconcile_aggregator_schema(tenant_schema):
     """T-8.6: реконсиляция всех видов листингов одной схемы (после возврата в каталог)."""
     return reconcile_schema(tenant_schema)
+
+
+@idempotent_task()
+def reconcile_aggregator_schema_job(*, tenant_schema):
+    """Та же полная реконсиляция, но с dedupe_key (ночная сверка T-8.26 п.3)."""
+    return {"result": reconcile_schema(tenant_schema)}
+
+
+@shared_task
+def reconcile_aggregator_nightly():
+    """T-8.26 п.3 (Р-5): плановая сверка снимка по ВСЕМ схемам раз в сутки.
+
+    Полная (`reconcile_schema`), не инкрементальная: надёжного признака «тенант менялся»
+    нет — дрейф возникает как раз там, где `updated_at` не тронут (массовые `.update()`).
+    Разброс `i × AGG_RECONCILE_SPREAD_S` (по умолчанию 20 с): сотня схем растягивается на
+    ~35 минут и не забивает воркер; ключ с датой — повтор за сутки не делает работу дважды.
+    Демо включены: их показывает портал-превью. Возвращает число поставленных задач.
+    """
+    from django.utils import timezone
+
+    from apps.tenants.models import Tenant
+
+    spread = int(getattr(settings, "AGG_RECONCILE_SPREAD_S", 20))
+    today = timezone.localdate().isoformat()
+    schemas = (
+        Tenant.objects.exclude(schema_name="public")
+        .filter(is_active=True)
+        .order_by("pk")
+        .values_list("schema_name", flat=True)
+    )
+    n = 0
+    for i, schema in enumerate(schemas):
+        reconcile_aggregator_schema_job.apply_async(
+            kwargs={"dedupe_key": f"agg-nightly:{schema}:{today}", "tenant_schema": schema},
+            countdown=i * spread,
+        )
+        n += 1
+    return {"queued": n}
 
 
 def reconcile_schema(tenant_schema) -> int:
