@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("aggregator", "0026_t8_7_follow"),
+        ("aggregator", "0027_t8_26_variant_terms"),
     ]
 
     operations = [
