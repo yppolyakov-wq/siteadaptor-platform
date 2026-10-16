@@ -223,6 +223,47 @@ _PRIMARY_URL = {
 }
 
 
+_SECTION_LIMITS = {"products": 8, "promotions": 9, "events": 6, "categories": 30}
+_COLS_PREFERENCE = (4, 3, 2, 5, 6)
+
+
+def _full_row_preset(n: int, default_cols: int) -> str | None:
+    """DL-11: пресет колонок, при котором n карточек заполняют ряды десктопа без
+    остатка (или помещаются в один ряд). None — делителя нет (простое n > 6):
+    это дефект ДАННЫХ спеки, его ловит замок test_demo_kits_rows_full_on_desktop."""
+    if n <= 1:
+        return None
+    if n < default_cols or n % default_cols == 0:
+        return None  # дефолт секции уже даёт полные ряды
+    for cols in _COLS_PREFERENCE:
+        if n % cols == 0:
+            return f"cols{cols}"
+    return f"cols{n}" if n <= 6 else None
+
+
+def section_layouts_for(biz: Biz) -> dict:
+    """Раскладки секций главной под число элементов спеки (полные ряды, DL-11)."""
+    from apps.tenants import siteconfig
+
+    counts = {
+        "categories": len(biz.shelves),
+        "products": sum(len(sh.items) for sh in biz.shelves),
+        "services": len(biz.services),
+        "promotions": len(biz.offers),
+        "events": len(biz.events),
+        "stay_rooms": len(biz.rooms),
+    }
+    out: dict = {}
+    for key, n in counts.items():
+        n = min(n, _SECTION_LIMITS.get(key, n))
+        default = siteconfig.GRID_SECTION_DEFAULTS.get(key, {"preset": "cols3"})
+        default_cols = siteconfig.LAYOUT_PRESETS[default["preset"]]["cols"]
+        preset = _full_row_preset(n, default_cols)
+        if preset:
+            out[key] = {"preset": preset}
+    return out
+
+
 def build_kit(biz: Biz):
     """Спека → DemoKit (общие поля — из библиотек; профиль A = «Nur Aktionen»)."""
     from apps.tenants import demo_kits as dk
@@ -271,7 +312,8 @@ def build_kit(biz: Biz):
         "heroes": heroes,
     }
     if biz.profile == "A":
-        return DemoKit(**{**common, **dk._LITE_COMMON, "menus": dk._lite_menus(), **biz.extra})
+        lite = {**common, **dk._LITE_COMMON, "menus": dk._lite_menus()}
+        return DemoKit(**{**lite, "section_layouts": section_layouts_for(biz), **biz.extra})
     categories = []
     city_categories: dict[str, str] = {}
     for si, shelf in enumerate(biz.shelves):
@@ -341,7 +383,7 @@ def build_kit(biz: Biz):
         ],
         menus=dk._solingen_menus(*menu_targets),
         enable_categories_section=len(biz.shelves) >= 2,
-        section_layouts={"products": {"preset": "cols3"}} if biz.shelves else {},
+        section_layouts=section_layouts_for(biz),
     )
     kit_kwargs = {**common, **dk._SOLINGEN_COMMON, **kit_kwargs, "promo_count": len(offers) or 2}
     if biz.anfrage:

@@ -85,6 +85,7 @@ PROPER_NAMES = frozenset(
         "Risotto ai Funghi",
         "Saltimbocca alla Romana",
         "Panna Cotta",
+        "Tiramisu",
         # DCC: топонимы Золингена/Бергского края — на en/tr пишутся так же.
         "Solingen",
         "Solingen-Gräfrath",
