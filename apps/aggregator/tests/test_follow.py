@@ -11,6 +11,7 @@ from unittest import mock
 import pytest
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core import mail, signing
+from django.http import Http404
 from django.test import RequestFactory, override_settings
 from django.urls import resolve, reverse
 from django.utils import timezone
@@ -330,9 +331,16 @@ def test_business_page_button_and_following_state_hidden_for_demo():
     )
     assert 'data-follow-button="on"' in resp.content.decode()
     demo = _tenant(is_demo=True)
+    # T-8.26 S1: демо-бизнес виден только на портале-превью (show_demo)…
+    with pytest.raises(Http404):
+        reviews_views.business_page(
+            _req("get", f"/unternehmen/{demo.slug}/", portal=portal), demo.slug
+        )
+    preview = _portal(show_demo=True)
     resp = reviews_views.business_page(
-        _req("get", f"/unternehmen/{demo.slug}/", portal=portal), demo.slug
+        _req("get", f"/unternehmen/{demo.slug}/", portal=preview), demo.slug
     )
+    # …и даже там без кнопки «Folgen».
     assert "data-follow-button" not in resp.content.decode()
 
 

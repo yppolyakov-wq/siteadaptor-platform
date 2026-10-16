@@ -26,10 +26,27 @@ def _portal_or_404(request):
     return portal
 
 
-def _business_or_404(slug):
-    tenant = Tenant.objects.filter(slug=slug, is_active=True).exclude(schema_name="public").first()
-    if tenant is None:
+def _business_or_404(request, slug):
+    """T-8.26 S1: карточка бизнеса подчиняется тем же правилам, что его листинги.
+
+    Одна точка истины — `visibility.listable` (приостановка, почта, согласие); демо —
+    только на портале с `show_demo` (на `/entdecken/` демо не бывает, зеркало
+    `views.py` ленты); городской/вертикальный портал показывает только свой город и
+    тип (зеркало `_offer_in_scope` T-8.24). Гейт наследуют все приёмники страницы.
+    """
+    from .visibility import listable
+
+    tenant = Tenant.objects.filter(slug=slug).exclude(schema_name="public").first()
+    if tenant is None or not listable(tenant):
         raise Http404
+    portal = getattr(request, "portal", None)
+    if tenant.is_demo and not (portal is not None and portal.show_demo):
+        raise Http404
+    if portal is not None:
+        if portal.city and (tenant.city or "").lower() != portal.city.lower():
+            raise Http404
+        if portal.business_type and tenant.business_type != portal.business_type:
+            raise Http404
     return tenant
 
 
@@ -37,7 +54,7 @@ def business_page(request, slug):
     # A8/E-2: страница бизнеса работает и на главном /entdecken (portal=None):
     # там read-only отзывы (портальный логин — только на портальных хостах).
     portal = getattr(request, "portal", None)
-    business = _business_or_404(slug)
+    business = _business_or_404(request, slug)
     user = auth.current_portal_user(request) if portal else None
     rating = BusinessRating.objects.filter(tenant_schema=business.schema_name).first()
     # G8: LocalBusiness + AggregateRating в <head> — звёзды бизнеса в сниппете.
@@ -99,7 +116,7 @@ def submit_review(request, slug):
     # защита (верификация визита/модерация) — отдельным продуктовым решением владельца.
     if ratelimit.hit("biz_review", ratelimit.client_ip(request), limit=10, window=3600):
         return HttpResponse(status=429)
-    business = _business_or_404(slug)
+    business = _business_or_404(request, slug)
     try:
         rating = int(request.POST.get("rating", ""))
     except (TypeError, ValueError):

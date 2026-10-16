@@ -8,7 +8,7 @@ import pytest
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import Http404
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 
 from apps.aggregator import auth, portal_views, reviews, reviews_views, views
 from apps.aggregator.models import (
@@ -229,3 +229,68 @@ def test_business_page_renders_on_main_domain_without_portal(settings):
     assert "TopService" in body  # отзывы читаются
     assert "portal-login" not in body and "Log in" not in body  # логина нет
     assert "Stadtportal" in body  # хинт про сабмит на портале
+
+
+# --- T-8.26 S1: гейт видимости страницы бизнеса ------------------------------------
+
+
+def _req_without_portal(path="/entdecken/unternehmen/x/"):
+    request = RequestFactory().get(path)
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    return request
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("subscription_status", "suspended"),
+        ("email_pending", True),
+        ("in_city_catalog", False),
+        ("is_active", False),
+    ],
+)
+def test_business_page_hidden_when_tenant_not_listable(field, value, isolated_ratelimit):
+    business = _business(slug=f"gate-{field}")
+    setattr(business, field, value)
+    business.save(update_fields=[field])
+    with pytest.raises(Http404):
+        reviews_views.business_page(_req(), slug=business.slug)
+    # приёмник отзыва идёт через тот же гейт
+    with pytest.raises(Http404):
+        reviews_views.submit_review(
+            _req("post", data={"rating": "5"}, user=_user()), slug=business.slug
+        )
+
+
+def test_demo_business_page_only_on_preview_portal():
+    business = _business(slug="demo-biz")
+    business.is_demo = True
+    business.save(update_fields=["is_demo"])
+    portal = _portal()
+    assert portal.show_demo is False
+    with pytest.raises(Http404):
+        reviews_views.business_page(_req(), slug=business.slug)
+    # /entdecken/ (без портала) демо не показывает никогда
+    with pytest.raises(Http404):
+        reviews_views.business_page(_req_without_portal(), slug=business.slug)
+    portal.show_demo = True
+    portal.save(update_fields=["show_demo"])
+    assert reviews_views.business_page(_req(), slug=business.slug).status_code == 200
+
+
+def test_business_page_scoped_to_portal_city_and_type():
+    other_city = TenantFactory(slug="koelner", name="Kölner Laden", city="Köln")
+    with pytest.raises(Http404):
+        reviews_views.business_page(_req(), slug=other_city.slug)
+    # на главном домене (без портала, urls_public) город не ограничивает
+    with override_settings(ROOT_URLCONF="config.urls_public"):
+        resp = reviews_views.business_page(_req_without_portal(), slug=other_city.slug)
+    assert resp.status_code == 200
+    # вертикальный портал: чужой тип бизнеса → 404
+    portal = _portal()
+    portal.business_type = "hotel"
+    portal.save(update_fields=["business_type"])
+    business = _business(slug="werkstatt-typ")
+    with pytest.raises(Http404):
+        reviews_views.business_page(_req(), slug=business.slug)

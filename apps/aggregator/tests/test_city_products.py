@@ -251,3 +251,25 @@ def test_settings_form_offers_city_category():
     tenant = _tenant(business_type="other")
     field = BusinessSettingsForm(instance=tenant).fields["city_category"]
     assert field.choices[0][0] == "" and "Automatisch" in str(field.choices[0][1])
+
+
+# --- T-8.26 S2: Category.is_active + пересинк при правке категории ---------------
+
+
+def test_inactive_parent_category_hides_whole_branch():
+    _tenant()
+    parent = Category.objects.create(name={"de": "Archiv"}, slug="archiv", is_active=False)
+    child = Category.objects.create(name={"de": "Alt"}, slug="alt", parent=parent)
+    product = _product(category=child)
+    assert tasks.sync_product_listing("public", product.pk) == "removed"
+
+
+def test_category_save_queues_schema_reconcile(django_capture_on_commit_callbacks, monkeypatch):
+    _tenant()
+    category = Category.objects.create(name={"de": "Jacken"}, slug="jacken")
+    calls = []
+    monkeypatch.setattr(tasks.reconcile_city_catalog, "delay", lambda **kw: calls.append(kw))
+    with django_capture_on_commit_callbacks(execute=True):
+        category.hide_in_city = True
+        category.save()
+    assert calls and calls[0]["tenant_schema"] == "public"

@@ -63,9 +63,21 @@ class AggregatorConfig(AppConfig):
 
         # T-8.11: товары/варианты/услуги → листинги каталога города.
         from apps.booking.models import Service
-        from apps.catalog.models import Product, ProductVariant
+        from apps.catalog.models import Category, Product, ProductVariant
 
-        from .tasks import resync_on_product_save, resync_on_service_save, resync_on_variant_save
+        from .tasks import (
+            resync_on_category_save,
+            resync_on_product_save,
+            resync_on_service_save,
+            resync_on_variant_save,
+        )
+
+        post_save.connect(
+            resync_on_category_save, sender=Category, dispatch_uid="agg_resync_category_save"
+        )
+        post_delete.connect(
+            resync_on_category_save, sender=Category, dispatch_uid="agg_resync_category_delete"
+        )
 
         post_save.connect(
             resync_on_product_save, sender=Product, dispatch_uid="agg_resync_product_save"

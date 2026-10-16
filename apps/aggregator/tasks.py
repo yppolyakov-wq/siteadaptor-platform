@@ -876,7 +876,11 @@ def _category_hidden(category) -> bool:
     """Скрыта ли категория или кто-то из её предков (до 10 уровней)."""
     node, depth = category, 0
     while node is not None and depth < 10:
-        if getattr(node, "hide_in_city", False) or getattr(node, "deleted_at", None):
+        if (
+            getattr(node, "hide_in_city", False)
+            or getattr(node, "deleted_at", None)
+            or not getattr(node, "is_active", True)  # T-8.26 S2: выключенная ветка
+        ):
             return True
         node, depth = node.parent, depth + 1
     return False
@@ -1159,6 +1163,18 @@ def _reconcile_city_kinds(tenant_schema, tenant) -> int:
 
 
 @idempotent_task()
+def reconcile_city_catalog(*, tenant_schema):
+    """T-8.26 S2: реконсиляция видов T-8.11 (товары/услуги/бизнес) одной схемы —
+    после правки категории (видимость ветки меняется целиком)."""
+    from apps.tenants.models import Tenant
+
+    tenant = Tenant.objects.filter(schema_name=tenant_schema).first()
+    if tenant is None:
+        return {"result": "no-tenant"}
+    return {"result": _reconcile_city_kinds(tenant_schema, tenant)}
+
+
+@idempotent_task()
 def sync_aggregator_product(*, tenant_schema, product_id):
     return {"result": sync_product_listing(tenant_schema, product_id)}
 
@@ -1184,6 +1200,19 @@ def resync_on_product_save(sender, instance, **kwargs):
         f"agg-product:{instance.id}:{stamp}",
         tenant_schema=connection.schema_name,
         product_id=str(instance.id),
+    )
+
+
+def resync_on_category_save(sender, instance, **kwargs):
+    """T-8.26 S2: правка категории (is_active / hide_in_city / родитель) меняет видимость
+    ВСЕЙ ветки товаров → реконсиляция видов каталога, а не точечный синк (детей не перечисляем)."""
+    from django.db import connection
+
+    stamp = instance.updated_at.timestamp() if getattr(instance, "updated_at", None) else 0
+    _on_commit_sync(
+        reconcile_city_catalog,
+        f"agg-category:{instance.id}:{stamp}",
+        tenant_schema=connection.schema_name,
     )
 
 
