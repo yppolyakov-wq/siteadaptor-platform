@@ -24596,3 +24596,9 @@ msgstr "Detected:"
 #, python-format
 msgid "Größe %(s)s"
 msgstr "Size %(s)s"
+msgid "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion."
+msgstr "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion."
+
+#, python-format
+msgid "Comparison price limited to %(price)s € (lowest price of the last 30 days)"
+msgstr "Comparison price limited to %(price)s € (lowest price of the last 30 days)"

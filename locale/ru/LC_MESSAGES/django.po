@@ -24833,3 +24833,9 @@ msgstr "Распознано:"
 #, python-format
 msgid "Größe %(s)s"
 msgstr "Размер %(s)s"
+msgid "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion."
+msgstr "§ 11 PAngV: снижение цены можно объявлять только относительно самой низкой цены за последние 30 дней до акции."
+
+#, python-format
+msgid "Comparison price limited to %(price)s € (lowest price of the last 30 days)"
+msgstr "Цена сравнения ограничена %(price)s € (самая низкая цена за последние 30 дней)"

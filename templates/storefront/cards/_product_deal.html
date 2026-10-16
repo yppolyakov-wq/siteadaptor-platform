@@ -15,7 +15,7 @@
       </div>
       <div class="mt-0.5 flex items-baseline gap-2 flex-wrap">
         <span class="text-xl leading-none font-extrabold {% if p.promo_price %}text-red-600{% endif %}">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% elif p.promo_price %}{{ p.promo_price }}{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %} {{ p.currency|cursym }}</span>
-        {% if p.promo_price %}<span class="text-xs text-gray-400 line-through">{{ p.base_price }} {{ p.currency|cursym }}</span>{% endif %}
+        {% if p.promo_old %}<span class="text-xs text-gray-400 line-through">{{ p.promo_old }} {{ p.currency|cursym }}</span>{% endif %}
         {% if p.promo_savings %}<span class="text-xs font-medium text-emerald-700 dark:text-emerald-400" data-savings>{% blocktrans with amount=p.promo_savings %}You save {{ amount }} €{% endblocktrans %}</span>{% endif %}
       </div>
       <p class="mt-0.5 text-[11px] leading-tight text-gray-500 dark:text-gray-400 flex flex-wrap items-baseline gap-x-2">

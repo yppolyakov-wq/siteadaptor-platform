@@ -17,7 +17,7 @@
         {% elif p.badge_label %}<span class="bg-amber-400 text-amber-950 text-xs font-bold px-2 py-0.5 rounded-full shadow">{{ p.badge_label }}</span>{% endif %}
       </div>
       <p class="mt-0.5 text-[11px] leading-tight text-gray-500 dark:text-gray-400 flex flex-wrap items-baseline gap-x-2">
-        {% if p.promo_price %}<span class="line-through">{{ p.base_price }} {{ p.currency|cursym }}</span>{% endif %}
+        {% if p.promo_old %}<span class="line-through">{{ p.promo_old }} {{ p.currency|cursym }}</span>{% endif %}
         {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<span>{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</span>{% endif %}{% endwith %}{% endif %}
       </p>
       <h3 class="mt-1 font-semibold leading-tight line-clamp-2" data-edit-model="product" data-edit-pk="{{ p.pk }}" data-edit-field="name">{{ p }}</h3>

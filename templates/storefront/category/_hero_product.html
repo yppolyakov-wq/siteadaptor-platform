@@ -20,7 +20,7 @@
     <div class="mt-auto pt-3 flex items-end justify-between gap-3 flex-wrap">
       <div class="min-w-0">
         <div class="text-2xl font-extrabold leading-none {% if p.promo_price %}text-red-600{% endif %}">{% if p.has_variants %}<span class="text-sm font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% elif p.promo_price %}{{ p.promo_price }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency|cursym }}</div>
-        {% if p.promo_price %}<div class="text-xs text-gray-400 line-through mt-0.5">{{ p.base_price }} {{ p.currency|cursym }}</div>{% endif %}
+        {% if p.promo_old %}<div class="text-xs text-gray-400 line-through mt-0.5">{{ p.promo_old }} {{ p.currency|cursym }}</div>{% endif %}
         {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-[11px] text-gray-400 leading-tight">{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}
         {% if p.promo_price and p.promo_lowest is not None %}<p class="mt-0.5 text-[10px] leading-tight text-gray-400">{% blocktrans with p=p.promo_lowest %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>{% endif %}
       </div>

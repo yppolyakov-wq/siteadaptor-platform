@@ -33,7 +33,7 @@
     {% comment %}SF-4b (вариант A): активная акция-цель — промо-цена крупно,
     база зачёркнута. data-price-edit остаётся на элементе ТОЛЬКО с базовой
     ценой (канва-правка пишет base_price; промо — производная).{% endcomment %}
-    {% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% elif target_promo and target_promo.new_price is not None %}<span class="text-rose-600">{{ target_promo.new_price }}</span> <span class="text-base font-normal text-gray-400 line-through" data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ product.base_price }}</span>{% else %}<span data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ product.base_price }}</span>{% endif %} {{ product.currency|cursym }}
+    {% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% elif target_promo and target_promo.new_price is not None %}<span class="text-rose-600">{{ target_promo.new_price }}</span>{% if target_promo.has_discount %} <span class="text-base font-normal text-gray-400 line-through" data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ target_promo.old_price }}</span>{% endif %}{% else %}<span data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ product.base_price }}</span>{% endif %} {{ product.currency|cursym }}
   </div>
   {% comment %}O-1: UVP-Streichpreis + Ersparnis. Nur wenn KEINE Aktion läuft —
   sonst stünden zwei Referenzpreise nebeneinander und der Kunde weiß nicht, worauf
@@ -65,7 +65,7 @@
   <a href="{% url 'storefront-promotion' target_promo.pk %}" class="mt-3 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-100 px-3 py-2.5 text-sm hover:border-rose-300 transition">
     <span class="bg-rose-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shrink-0">{% if target_promo.discount_percent_display %}−{{ target_promo.discount_percent_display }} %{% else %}{% trans "Aktion" %}{% endif %}</span>
     <span class="font-bold text-rose-700">{{ target_promo.new_price }} {{ target_promo.currency|cursym }}</span>
-    {% if target_promo.old_price %}<span class="text-gray-400 line-through">{{ target_promo.old_price }} {{ target_promo.currency|cursym }}</span>{% endif %}
+    {% if target_promo.has_discount %}<span class="text-gray-400 line-through">{{ target_promo.old_price }} {{ target_promo.currency|cursym }}</span>{% endif %}
     <span class="ml-auto text-rose-700 font-medium whitespace-nowrap">{% trans "Zum Angebot" %} →</span>
   </a>
   {% if target_promo_lowest is not None %}
