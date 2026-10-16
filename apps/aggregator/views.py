@@ -903,8 +903,7 @@ def _offer_pool(portal):
     )
 
 
-# Блок Б3: сколько кандидатов сортировать по расстоянию и радиус «рядом».
-_NEIGHBOUR_CANDIDATES = 200
+# Блок Б3: радиус блока «Weitere Angebote in der Nähe».
 _NEARBY_KM = 2
 
 
@@ -912,39 +911,37 @@ def _offer_neighbours(listing, pool, *, shown) -> tuple[list, list]:
     """(«Ähnliches», «Weitere Angebote in der Nähe») для страницы предложения.
 
     «Ähnliches» — тот же вид и раздел каталога по всему городу (не «тот же район»:
-    свечи соседа не похожи на iPhone), ближайшие первыми; без раздела блока нет.
-    «Рядом» — любые предложения других бизнесов в радиусе 2 км или в том же районе (у
-    бизнеса без координат), без уже показанных. Не больше двух запросов, срезы ограничены."""
+    свечи соседа не похожи на iPhone); без раздела блока нет. «Рядом» — предложения других
+    бизнесов в радиусе ~2 км или в том же районе, без уже показанных. Ближайшие первыми —
+    сортировка в SQL по квадрату разницы координат (без координат — в конце, затем свежие).
+    Два запроса по 4 строки."""
+    from django.db.models import ExpressionWrapper, F, FloatField, Q
+    from django.db.models.functions import Cast
+
     from . import geo
 
     others = pool.exclude(tenant_schema=listing.tenant_schema)
     lat, lng = listing.latitude, listing.longitude
     has_point = lat is not None and lng is not None
 
-    def by_distance(items):
+    def nearest_first(qs):
         if not has_point:
-            return items
-        far = float("inf")
-        return sorted(
-            items,
-            key=lambda c: (
-                geo.haversine_km(float(lat), float(lng), float(c.latitude), float(c.longitude))
-                if c.latitude is not None and c.longitude is not None
-                else far
-            ),
-        )
+            return qs.order_by("-updated_at")
+        dlat = Cast("latitude", FloatField()) - float(lat)
+        dlng = Cast("longitude", FloatField()) - float(lng)
+        dist = ExpressionWrapper(dlat * dlat + dlng * dlng, output_field=FloatField())
+        return qs.annotate(_dist=dist).order_by(F("_dist").asc(nulls_last=True), "-updated_at")
 
     similar = []
     if listing.city_category:
-        cands = list(
-            others.filter(
-                listing_kind=listing.listing_kind, city_category=listing.city_category
-            ).order_by("-updated_at")[:_NEIGHBOUR_CANDIDATES]
+        similar = list(
+            nearest_first(
+                others.filter(
+                    listing_kind=listing.listing_kind, city_category=listing.city_category
+                )
+            )[:4]
         )
-        similar = by_distance(cands)[:4]
     skip = set(shown) | {c.pk for c in similar}
-    from django.db.models import Q
-
     near_q = Q()
     if has_point:
         lat_min, lat_max, lng_min, lng_max = geo.bbox(float(lat), float(lng), _NEARBY_KM)
@@ -958,11 +955,8 @@ def _offer_neighbours(listing, pool, *, shown) -> tuple[list, list]:
         near_q |= Q(district=listing.district)
     if not near_q:
         return similar, []
-    near_qs = others.filter(near_q)
-    cands = [
-        c for c in near_qs.exclude(pk__in=skip).order_by("-updated_at")[:_NEIGHBOUR_CANDIDATES]
-    ]
-    return similar, by_distance(cands)[:4]
+    nearby = list(nearest_first(others.filter(near_q).exclude(pk__in=skip))[:4])
+    return similar, nearby
 
 
 @cache_public_page

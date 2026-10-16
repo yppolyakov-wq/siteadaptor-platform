@@ -51,16 +51,16 @@
 
 {% include "aggregator/_map.html" %}
 
-{% for g in firm_groups %}
+{% if firm_group %}
 {% comment %}Блок Б5: запрос — имя фирмы; её позиции, совпавшие только по имени, — здесь.{% endcomment %}
 <section class="mb-8" data-firm-group>
   <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-    <h2 class="text-lg font-bold">{% blocktrans with firm=g.name %}Von {{ firm }}{% endblocktrans %}</h2>
-    <a href="{% url 'portal-business' slug=g.slug %}" class="text-sm font-medium hover:underline" style="color: var(--portal-color)">{% blocktrans with firm=g.name %}Alle Angebote von {{ firm }}{% endblocktrans %} →</a>
+    <h2 class="text-lg font-bold">{% blocktrans with firm=firm_group.name %}Von {{ firm }}{% endblocktrans %}</h2>
+    <a href="{% url 'portal-business' slug=firm_group.slug %}" class="text-sm font-medium hover:underline" style="color: var(--portal-color)">{% blocktrans with firm=firm_group.name %}Alle Angebote von {{ firm }}{% endblocktrans %} →</a>
   </div>
-  {% include "aggregator/_cards.html" with items=g.items %}
+  {% include "aggregator/_cards.html" with items=firm_group.items %}
 </section>
-{% endfor %}
+{% endif %}
 
 {% if cards %}
 {% include "aggregator/_cards.html" with items=cards %}

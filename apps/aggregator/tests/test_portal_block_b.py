@@ -312,3 +312,39 @@ def test_plain_word_query_keeps_firm_items_in_main_feed():
     html = _html(p, "/?q=Salat")
     assert "data-firm-group" not in html
     assert "Caesar Salat" in html and "Salat Caprese" in html
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_umlaut_title_hit_stays_in_main_feed():
+    """django-ревью: свёрнутое слово запроса не совпадало с заголовком «Müller …»."""
+    p = _portal()
+    common = {"tenant_schema": "mu", "tenant_slug": "mueller", "business_name": "Bäckerei Müller"}
+    _listing(**common, title={"de": "Müller Brot"})
+    _listing(**common, title={"de": "Croissant"})
+    html = _html(p, "/?q=Müller")
+    group = html.split("data-firm-group", 1)[1].split("</section>", 1)[0]
+    assert "Croissant" in group and "Müller Brot" not in group
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_generic_word_matching_several_firms_does_not_group():
+    """django-ревью: «Pizza» в именах двух пиццерий — выдача не трогается."""
+    p = _portal()
+    _listing(
+        tenant_schema="a", tenant_slug="a", business_name="Pizza Roma", title={"de": "Tiramisu"}
+    )
+    _listing(
+        tenant_schema="b", tenant_slug="b", business_name="Pizza Napoli", title={"de": "Lasagne"}
+    )
+    html = _html(p, "/?q=Pizza")
+    assert "data-firm-group" not in html
+    assert "Tiramisu" in html and "Lasagne" in html
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_firm_group_counted_in_hits_and_only_on_first_page():
+    p = _portal()
+    _pizzabote()
+    html = _html(p, "/?q=Pizzabote")
+    assert "4 Treffer" in html  # фирма + 3 позиции группы
+    assert "data-firm-group" not in _html(p, "/?q=Pizzabote&cursor=24")

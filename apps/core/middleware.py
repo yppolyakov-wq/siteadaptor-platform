@@ -78,6 +78,8 @@ class StorefrontLocaleClampMiddleware:
                 translation.activate(hl)
                 request.LANGUAGE_CODE = hl
                 response = self.get_response(request)
+                if request.method != "GET" or response.status_code != 200:
+                    return response  # 404/ошибки/POST языковую куку не ставят
                 from django.conf import settings
 
                 response.set_cookie(

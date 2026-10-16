@@ -267,7 +267,10 @@ def portal_home(request, facet=None, district=None):
     pool = search_engine.apply_filters(
         base_pool, search_engine.SearchFilters(kats=filters_eff.kats, tags=filters_eff.tags)
     )
-    pool, firm_groups = _split_firm_matches(pool, q_eff)  # блок Б5
+    # Блок Б5: группа «Von <Firma>» — только на первой странице выдачи.
+    pool, firm_group, firm_total = _split_firm_matches(pool, q_eff)
+    if request.GET.get("cursor"):
+        firm_group = None
     from . import query_intent
 
     # Блок Б1: при поиске — сначала «N Treffer» и карточки, уточнение (районы/отрасли/
@@ -275,20 +278,17 @@ def portal_home(request, facet=None, district=None):
     searching = bool(q or filters.active)
     hits = hits_capped = None
     if searching:
+        # один DISTINCT по паре вместо двух отдельных (database-ревью)
+        pairs = set(whole_pool.order_by().values_list("district", "business_type").distinct())
         if not district:
-            used = set(
-                whole_pool.order_by()
-                .exclude(district="")
-                .values_list("district", flat=True)
-                .distinct()
-            )
+            used = {d for d, _t in pairs if d}
             district_chips = [(slug, name) for slug, name in district_chips if slug in used]
         if not facet and axis == "business_type":
-            types = set(whole_pool.order_by().values_list("business_type", flat=True).distinct())
+            types = {t for _d, t in pairs}
             facets = [(v, label) for v, label in facets if v in types]
         if not (point is not None and filters.sort in ("", "naehe")):
             cap = settings.AGGREGATOR_SEARCH["max_results"]
-            hits = search_engine.count_capped(pool, cap)
+            hits = search_engine.count_capped(pool, cap) + firm_total  # группа — тоже найдено
             hits_capped = hits > cap
             hits = min(hits, cap)
     search_engine.record(
@@ -402,7 +402,7 @@ def portal_home(request, facet=None, district=None):
             "district_label": district_label,
             "district_chips": district_chips,
             "chip_carry": chip_carry,  # блок А2
-            "firm_groups": firm_groups,  # блок Б5
+            "firm_group": firm_group,  # блок Б5
             "searching": searching,  # блок Б1
             "hits": hits,
             "hits_capped": hits_capped,
@@ -486,53 +486,61 @@ def for_business(request):
 # Блок Б5: запрос — это имя фирмы («Pizzabote»)? Её позиции, совпавшие ТОЛЬКО по имени
 # (салат у пиццерии), не забивают выдачу, а уходят в группу «Von <Firma>».
 _FIRM_GROUP_LIMIT = 8
-_FIRM_MAX = 3
 _FIRM_SCAN = 50
 
 
 def _split_firm_matches(pool, q: str):
-    """(выдача без «совпавших по имени фирмы» позиций, [группы]). Группа — фирма, в имени
-    которой есть все значимые слова запроса; в группу уходят её позиции, в заголовке
-    которых нет ни одного слова запроса (карточка самой фирмы остаётся в выдаче)."""
-    from django.db.models import Q, TextField
-    from django.db.models.functions import Cast
+    """(выдача без «совпавших по имени фирмы» позиций, группа | None, всего в группе).
 
+    Срабатывает, только когда запрос однозначно называет ОДНУ фирму: все значимые слова
+    запроса есть в её имени, и такая фирма в выдаче единственная. Общий запрос («Pizza»,
+    «Bäckerei»), совпавший с именами нескольких фирм, выдачу не трогает. В группу уходят
+    позиции фирмы, в заголовке которых нет ни одного слова запроса (ни в исходном, ни в
+    свёрнутом виде — «Müller»/«muller»); карточка самой фирмы остаётся в выдаче."""
+    from django.db.models import Q, TextField, Value
+    from django.db.models.functions import Cast, Coalesce
+
+    from .search import SEARCH_MAX, count_capped
     from .search_index import fold
 
-    tokens = [t for t in fold(q or "").split() if len(t) >= 3]
-    if not tokens:
-        return pool, []
-    firms = []
-    for schema, slug, name in (
-        pool.order_by()
+    # Управляющие символы (NUL и др.) в SQL не пускаем — Postgres отвергает NUL в тексте.
+    q = "".join(ch for ch in (q or "")[:SEARCH_MAX] if ch.isprintable())
+    words = [w for w in q.lower().split() if len(w) >= 3]
+    tokens = [t for t in fold(q).split() if len(t) >= 3]
+    if not tokens or not words:
+        return pool, None, 0
+    # Кандидаты — в SQL по свёрнутому `search_text` (в нём есть имя фирмы; trigram-индекс),
+    # точная проверка «все слова в ИМЕНИ» — по свёрнутому имени.
+    name_q = Q()
+    for t in tokens:
+        name_q &= Q(search_text__contains=t)
+    firms = [
+        row
+        for row in pool.order_by("business_name")
+        .filter(name_q)
         .values_list("tenant_schema", "tenant_slug", "business_name")
         .distinct()[:_FIRM_SCAN]
-    ):
-        if all(t in fold(name or "") for t in tokens):
-            firms.append((schema, slug, name))
-        if len(firms) >= _FIRM_MAX:
-            break
-    if not firms:
-        return pool, []
-    pool = pool.annotate(_title_txt=Cast("title", TextField()))
-    title_hit = Q()
-    for t in tokens:
-        title_hit |= Q(_title_txt__icontains=t)
-    name_only = (
-        Q(tenant_schema__in=[f[0] for f in firms])
-        & ~Q(listing_kind=AggregatorListing.KIND_BUSINESS)
-        & ~title_hit
+        if all(t in fold(row[2] or "") for t in tokens)
+    ]
+    if len({f[0] for f in firms}) != 1:  # нет фирмы или запрос не однозначен
+        return pool, None, 0
+    schema, slug, name = firms[0]
+    pool = pool.annotate(
+        _title_txt=Coalesce(Cast("title", TextField()), Value(""), output_field=TextField())
     )
-    groups = []
-    for schema, slug, name in firms:
-        items = list(
-            pool.filter(name_only, tenant_schema=schema).order_by("-updated_at")[:_FIRM_GROUP_LIMIT]
-        )
-        if items:
-            groups.append({"name": name, "slug": slug, "items": items})
-    if not groups:
-        return pool, []
-    return pool.exclude(name_only), groups
+    title_hit = Q()
+    for w in {*words, *tokens}:
+        title_hit |= Q(_title_txt__icontains=w)
+    name_only = (
+        Q(tenant_schema=schema) & ~Q(listing_kind=AggregatorListing.KIND_BUSINESS) & ~title_hit
+    )
+    grouped = pool.filter(name_only)
+    items = list(grouped.order_by("-updated_at")[:_FIRM_GROUP_LIMIT])
+    if not items:
+        return pool, None, 0
+    total = count_capped(grouped, settings.AGGREGATOR_SEARCH["max_results"])
+    group = {"name": name, "slug": slug, "items": items, "total": total}
+    return pool.exclude(name_only), group, total
 
 
 def _scope_pairs(scope) -> list[tuple[str, str]]:
