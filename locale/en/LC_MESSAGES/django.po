@@ -24756,3 +24756,6 @@ msgstr "With a condition there is no fixed deal price — please leave empty."
 
 msgid "Preis gilt nur: %(c)s"
 msgstr "Price applies only: %(c)s"
+
+msgid "Überraschungspreis und Bedingung passen nicht zusammen."
+msgstr "A surprise price and a condition cannot be combined."

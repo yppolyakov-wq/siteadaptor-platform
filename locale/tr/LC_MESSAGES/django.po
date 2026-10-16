@@ -24883,3 +24883,6 @@ msgstr "Koşul varken sabit kampanya fiyatı geçerli değildir — lütfen boş
 
 msgid "Preis gilt nur: %(c)s"
 msgstr "Fiyat yalnızca şu koşulla: %(c)s"
+
+msgid "Überraschungspreis und Bedingung passen nicht zusammen."
+msgstr "Sürpriz fiyat ile koşul birlikte kullanılamaz."

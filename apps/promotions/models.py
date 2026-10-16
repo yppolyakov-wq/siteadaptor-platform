@@ -402,6 +402,8 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     def price_condition_label(self) -> str:
         from apps.core import price_conditions
 
+        if self.discount_style == "mystery":
+            return ""  # подпись раскрыла бы скидку; цена штуки всё равно обычная
         return price_conditions.label(self.price_condition, self.discount_percent)
 
     @property

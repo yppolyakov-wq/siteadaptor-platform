@@ -24802,3 +24802,6 @@ msgstr "Mit einer Bedingung gilt kein fester Aktionspreis — bitte leer lassen.
 
 msgid "Preis gilt nur: %(c)s"
 msgstr "Preis gilt nur: %(c)s"
+
+msgid "Überraschungspreis und Bedingung passen nicht zusammen."
+msgstr "Überraschungspreis und Bedingung passen nicht zusammen."

@@ -314,6 +314,11 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             self.add_error(
                 "discount_percent", _("Für diese Bedingung bitte den Rabatt in Prozent angeben.")
             )
+        if cleaned.get("discount_style") == "mystery":
+            self.add_error(
+                "discount_style",
+                _("Überraschungspreis und Bedingung passen nicht zusammen."),
+            )
         if cleaned.get("price_override") is not None:
             self.add_error(
                 "price_override",

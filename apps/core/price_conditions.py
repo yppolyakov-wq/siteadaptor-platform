@@ -44,7 +44,7 @@ _N_RANGE = {NTH: (2, 10), X_FOR_Y: (2, 10), MIN_QTY: (2, 99)}
 def _int(value):
     try:
         return int(value)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return None
 
 
@@ -84,9 +84,9 @@ def normalize(raw) -> dict | None:
 
 
 def of(promo) -> dict | None:
-    """Условие акции (None — нет). Mystery сильнее: условие раскрыло бы скидку."""
-    if getattr(promo, "discount_style", "") == "mystery":
-        return None
+    """Условие акции (None — нет). Действует на ДЕНЬГИ всегда, в т.ч. у mystery:
+    иначе смена стиля молча вернула бы скидку на каждую штуку (security-ревью).
+    Подпись у mystery скрыта — см. `Promotion.price_condition_label`."""
     meta = getattr(promo, "metadata", None)
     if not isinstance(meta, dict):
         return None

@@ -68,7 +68,10 @@ def response_for(promo, tenant) -> str:
     """Отклик акции для этого тенанта (см. модульный docstring)."""
     if getattr(promo, "target_kind", "") in ("service", "stay"):
         return BOOKING
+    conditional = bool(getattr(promo, "price_condition", None))
     if tenant is None:
+        if conditional:
+            return RESERVE  # В2: условную акцию онлайн не продаём
         # Нет тенанта в запросе (рендер без витрины) — прежнее поведение.
         return BUY
     wanted = chosen(promo)
@@ -80,7 +83,7 @@ def response_for(promo, tenant) -> str:
         return COUPON
     if wanted == INQUIRE and can_inquire(tenant):
         return INQUIRE
-    if getattr(promo, "price_condition", None):
+    if conditional:
         # В2: условие («2. Stück −50 %») онлайн-заказ не исполнит — цена штуки
         # обычная, скидка за n-ю штуку применяется на месте.
         return INQUIRE if wanted == BUY and can_inquire(tenant) else RESERVE

@@ -24978,3 +24978,6 @@ msgstr "За умови фіксованої акційної ціни нема�
 
 msgid "Preis gilt nur: %(c)s"
 msgstr "Ціна діє лише: %(c)s"
+
+msgid "Überraschungspreis und Bedingung passen nicht zusammen."
+msgstr "Ціну-сюрприз не можна поєднувати з умовою."

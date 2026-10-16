@@ -104,9 +104,34 @@ def test_free_conditional_promo_has_no_percent_badge():
     assert promo.price_condition_label  # подпись есть
 
 
-def test_mystery_beats_condition():
-    promo = _promo(_product(), discount_style="mystery")
-    assert promo.price_condition is None
+def test_mystery_hides_label_but_keeps_money_gate():
+    """Security-ревью: смена стиля на mystery не возвращает скидку на каждую штуку."""
+    product = _product()
+    promo = _promo(product, discount_style="mystery")
+    assert promo.price_condition_label == ""
+    assert promo.new_price == Decimal("9.00")
+    assert price_layer.product_promo_map([product.pk]) == {}
+    assert response.response_for(promo, None) != response.BUY
+
+
+def test_huge_number_in_metadata_does_not_crash():
+    assert pc.normalize({"kind": "nth", "n": float("inf")}) is None
+
+
+def test_form_rejects_mystery_with_condition():
+    tenant = TenantFactory(schema_name="public", slug="v2m", business_type="restaurant")
+    form = PromotionForm(
+        _form_data(
+            price_condition_present="1",
+            price_condition_kind="x_for_y",
+            price_condition_n="2",
+            price_condition_pay="1",
+            discount_style="mystery",
+        ),
+        tenant=tenant,
+    )
+    assert not form.is_valid()
+    assert "discount_style" in form.errors
 
 
 def test_conditional_promo_never_resolves_to_buy():

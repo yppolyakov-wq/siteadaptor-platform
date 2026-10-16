@@ -24997,3 +24997,6 @@ msgstr "При условии фиксированной акционной це
 
 msgid "Preis gilt nur: %(c)s"
 msgstr "Цена действует только: %(c)s"
+
+msgid "Überraschungspreis und Bedingung passen nicht zusammen."
+msgstr "Цену-сюрприз нельзя совмещать с условием."
