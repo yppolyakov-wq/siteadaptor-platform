@@ -51,7 +51,7 @@ def test_expired_listing_is_not_public_before_beat_removes_it():
 
 
 @pytest.mark.urls("config.urls_public")
-def test_search_is_rate_limited_per_ip(monkeypatch):
+def test_search_is_rate_limited_per_ip(monkeypatch, isolated_ratelimit):
     monkeypatch.setattr(views, "SEARCH_RATE_LIMIT", 2)
 
     def search():

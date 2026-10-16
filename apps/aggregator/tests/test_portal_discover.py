@@ -323,7 +323,7 @@ def test_search_finds_products_and_carries_query():
     assert 'value="winterjacke"' in html
 
 
-def test_search_is_rate_limited(settings):
+def test_search_is_rate_limited(settings, isolated_ratelimit):
     from apps.core import ratelimit
 
     portal = _portal()

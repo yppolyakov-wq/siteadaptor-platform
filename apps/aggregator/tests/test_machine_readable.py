@@ -447,7 +447,7 @@ def test_feed_etag_304_also_on_cache_hit(monkeypatch):
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
-def test_feed_rate_limit_own_scope(monkeypatch):
+def test_feed_rate_limit_own_scope(monkeypatch, isolated_ratelimit):
     portal = _portal()
     monkeypatch.setattr(open_feed, "OPEN_FEED_RATE_LIMIT", 2)
     ip = {"REMOTE_ADDR": "10.9.9.9"}

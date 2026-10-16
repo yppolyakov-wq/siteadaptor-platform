@@ -346,7 +346,7 @@ def test_record_seam_called_once_per_search():
 
 
 @pytest.mark.urls("config.urls_portal")
-def test_filter_without_query_is_rate_limited():
+def test_filter_without_query_is_rate_limited(isolated_ratelimit):
     from apps.core import ratelimit
 
     ip = "10.3.3.3"
