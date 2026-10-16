@@ -37,6 +37,18 @@ _KIND_LABELS = [
 ]
 
 
+def demo_flags(cards) -> dict:
+    """T-8.26: признаки демо для страницы-списка.
+
+    `shows_demo` — есть хоть одна демо-карточка → плашка «Vorschau…» (тот же текст, что
+    на портале-превью); `robots_noindex` — карточки есть и ВСЕ демо → страница из одних
+    выдуманных предложений не индексируется (смешанная — индексируется, демо помечено).
+    """
+    cards = list(cards)
+    demo = [bool(getattr(c, "is_demo", False)) for c in cards]
+    return {"shows_demo": any(demo), "robots_noindex": bool(demo) and all(demo)}
+
+
 def _money(raw):
     """MEN-5: «45» / «45,50» → Decimal (мусор → None). Образец — CatalogFacets."""
     from decimal import Decimal, InvalidOperation
@@ -311,7 +323,9 @@ def platform_finder(request):
     if state.get("results"):
         reviews.attach_ratings(state["results"])
         _attach_open_status(state["results"])
-    return render(request, "aggregator/finder.html", state)
+    return render(
+        request, "aggregator/finder.html", {**state, **demo_flags(state.get("results") or [])}
+    )
 
 
 def _city_category_choices():
@@ -529,6 +543,7 @@ def discover_index(request):
                     if k != "naehe" or point is not None
                 ],
                 "canonical": request.build_absolute_uri(request.path),
+                **demo_flags(cards),
             },
         )
     from . import recommendations, reviews
@@ -545,6 +560,8 @@ def discover_index(request):
             "city_category_choices": _city_category_choices(),
             "kinds": _KIND_LABELS,
             "ending_soon": ending,
+            # главная /entdecken/ — обзор городов, индексируется всегда; плашка — по карточкам
+            "shows_demo": demo_flags(ending)["shows_demo"],
         },
     )
 
@@ -648,6 +665,7 @@ def city_listing(request, city, business_type=None):
             # A8/E-2: страница бизнеса теперь есть и на главном домене —
             # звёзды на карточках ведут на неё (как на порталах).
             "business_link": True,
+            **demo_flags(cards),
         },
     )
     if not cards:
@@ -862,5 +880,6 @@ def offer_page(request, pk):
             # Стратегия А: основная страница — у бизнеса; портал — промежуточный шаг.
             "canonical": listing.detail_url,
             "offer_jsonld": _dumps(ld),
+            **demo_flags([listing]),
         },
     )

@@ -84,6 +84,9 @@ def business_page(request, slug):
             "base_template": "aggregator/portal_base.html" if portal else "aggregator/_base.html",
             "business": business,
             "business_jsonld": business_jsonld,
+            # T-8.26: страница демо-бизнеса — плашка + noindex (на любом хосте)
+            "shows_demo": bool(business.is_demo),
+            "robots_noindex": bool(business.is_demo),
             "listings": AggregatorListing.objects.public()
             .filter(tenant_slug=slug)
             .order_by("-updated_at"),

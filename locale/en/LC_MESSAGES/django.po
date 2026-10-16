@@ -24557,3 +24557,19 @@ msgstr "≤ %(km)s km"
 
 msgid "Alle Abonnements beenden"
 msgstr "End all subscriptions"
+
+msgid "Vorschau — noch keine echten Angebote."
+msgstr "Preview — no real offers yet."
+
+msgid "Stadtkatalog"
+msgstr "City catalog"
+
+msgid "Als intern markieren (nie im Stadtkatalog)"
+msgstr "Mark as internal (never in the city catalog)"
+
+msgid ""
+"Intern = Test-/Teamregistrierung: erscheint nie im Stadtkatalog. Zustimmung "
+"und E-Mail-Status setzt sonst der Betrieb selbst."
+msgstr ""
+"Internal = test/team registration: never appears in the city catalog. "
+"Consent and e-mail status are otherwise set by the business itself."

@@ -60,4 +60,10 @@ class AggregatorPortalMiddleware:
         request.portal = resolve_portal(request)
         if request.portal is not None:
             request.urlconf = "config.urls_portal"
-        return self.get_response(request)
+        response = self.get_response(request)
+        # T-8.26 (Р-1): портал-превью с демо целиком вне индекса. Заголовок ставится
+        # ЗДЕСЬ, снаружи кэша страниц (pagecache хранит тело, не заголовки) — он
+        # накрывает и фид, и llms, и закэшированные страницы.
+        if request.portal is not None and request.portal.show_demo:
+            response["X-Robots-Tag"] = "noindex, follow"
+        return response

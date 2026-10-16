@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 
 from .models import Domain, SignupRequest, Tenant
@@ -15,7 +16,11 @@ class TenantAdmin(ModelAdmin):
         "created_at",
     )
     search_fields = ("name", "slug", "schema_name")
-    list_filter = ("business_type", "subscription_status", "country", "is_demo")
+    list_filter = ("business_type", "subscription_status", "country", "is_demo", "is_internal")
+    actions = ("mark_internal",)
+    # T-8.26: поля, от которых зависит присутствие в каталоге города — правка в админке
+    # действует сразу (снимки удаляются / реконсилируются), без ресинка.
+    VISIBILITY_FIELDS = ("is_active", "is_demo", "is_internal", "in_city_catalog", "email_pending")
     readonly_fields = ("schema_name", "created_at", "updated_at")
     ordering = ("-created_at",)
 
@@ -23,6 +28,16 @@ class TenantAdmin(ModelAdmin):
         (
             None,
             {"fields": ("name", "slug", "schema_name", "business_type", "is_active", "is_demo")},
+        ),
+        (
+            _("Stadtkatalog"),
+            {
+                "fields": ("is_internal", "in_city_catalog", "email_pending"),
+                "description": _(
+                    "Intern = Test-/Teamregistrierung: erscheint nie im Stadtkatalog. "
+                    "Zustimmung und E-Mail-Status setzt sonst der Betrieb selbst."
+                ),
+            },
         ),
         (
             "Location",
@@ -48,6 +63,22 @@ class TenantAdmin(ModelAdmin):
         ("Owner contact", {"fields": ("owner_email", "owner_phone")}),
         ("Timestamps", {"fields": ("created_at", "updated_at")}),
     )
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if change and set(getattr(form, "changed_data", ())) & set(self.VISIBILITY_FIELDS):
+            from apps.aggregator.visibility import apply_visibility
+
+            apply_visibility(obj)
+
+    @admin.action(description=_("Als intern markieren (nie im Stadtkatalog)"))
+    def mark_internal(self, request, queryset):
+        from apps.aggregator.visibility import apply_visibility
+
+        for tenant in queryset.exclude(schema_name="public"):
+            tenant.is_internal = True
+            tenant.save(update_fields=["is_internal"])
+            apply_visibility(tenant)
 
 
 @admin.register(Domain)

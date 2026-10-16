@@ -49,6 +49,7 @@ def _listing(schema="biz_a", **kw):
         {"subscription_status": "suspended"},
         {"email_pending": True},
         {"in_city_catalog": False},
+        {"is_internal": True},  # T-8.26 п.2 (Р-5): тестовая регистрация
     ],
 )
 def test_each_condition_withholds(fields):

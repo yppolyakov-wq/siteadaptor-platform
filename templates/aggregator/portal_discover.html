@@ -14,9 +14,7 @@
 {% include "aggregator/_portal_search.html" %}
 {% include "aggregator/_portal_tabs.html" with tabs=portal_tabs %}
 
-{% if shows_demo %}
-<p data-demo-notice class="mb-6 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm px-4 py-3">{% trans "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird." %}</p>
-{% endif %}
+{% include "aggregator/_demo_notice.html" %}
 
 {% if featured %}
 <section data-home-featured class="mb-10" aria-labelledby="home-featured">

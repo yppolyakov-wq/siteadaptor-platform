@@ -22,6 +22,7 @@
   {# TG2: Mini App SDK. SF-1.6: defer — не блокирует рендер; потребитель ждёт DOMContentLoaded. #}
   <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
   <title>{% block title %}{% if seo_meta.title %}{{ seo_meta.title }}{% else %}{{ request.tenant.name|default:"Shop" }}{% endif %}{% endblock %}</title>
+  {% if request.tenant.is_demo %}<meta name="robots" content="noindex,follow">{% endif %}{# T-8.26: витрина демо-бизнеса вне индекса #}
   <meta name="description" content="{% block meta_description %}{% if seo_meta.description %}{{ seo_meta.description }}{% else %}{{ request.tenant.name|default:'' }}{% endif %}{% endblock %}">
   {% block canonical %}{% canonical_link %}{% endblock %}
   {% block og %}{% endblock %}

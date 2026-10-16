@@ -2966,9 +2966,12 @@ def robots_txt(request):
 
     SEO-3b: если владелец выключил ИИ-индексацию (site_config["seo"]["allow_ai"]
     == False) — добавляем Disallow для известных AI-краулеров (GEO-контроль)."""
+    tenant = getattr(request, "tenant", None)
+    if getattr(tenant, "is_demo", False):
+        # T-8.26: витрина демо-бизнеса — выдуманные адреса и предложения, не индексируем.
+        return HttpResponse("User-agent: *\nDisallow: /\n", content_type="text/plain")
     sitemap = request.build_absolute_uri(reverse("storefront-sitemap"))
     body = f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n"
-    tenant = getattr(request, "tenant", None)
     cfg = tenant.site_config if isinstance(getattr(tenant, "site_config", None), dict) else {}
     if (cfg.get("seo") or {}).get("allow_ai") is False:
         from apps.core.seo import AI_CRAWLERS

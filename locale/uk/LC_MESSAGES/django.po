@@ -24775,3 +24775,19 @@ msgstr "≤ %(km)s км"
 
 msgid "Alle Abonnements beenden"
 msgstr "Скасувати всі підписки"
+
+msgid "Vorschau — noch keine echten Angebote."
+msgstr "Попередній перегляд — справжніх пропозицій поки немає."
+
+msgid "Stadtkatalog"
+msgstr "Каталог міста"
+
+msgid "Als intern markieren (nie im Stadtkatalog)"
+msgstr "Позначити як внутрішній (ніколи в каталозі міста)"
+
+msgid ""
+"Intern = Test-/Teamregistrierung: erscheint nie im Stadtkatalog. Zustimmung "
+"und E-Mail-Status setzt sonst der Betrieb selbst."
+msgstr ""
+"Внутрішній = тестова/командна реєстрація: ніколи не з'являється в каталозі "
+"міста. Згоду та статус e-mail в інших випадках задає сам бізнес."

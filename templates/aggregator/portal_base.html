@@ -6,6 +6,7 @@
   <title>{% block title %}{{ portal.title_text }}{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}{{ portal.tagline_text|default:portal.intro_text|default:portal.title_text }}{% endblock %}">
   {% if canonical %}<link rel="canonical" href="{{ canonical }}">{% endif %}
+  {% if portal.show_demo or robots_noindex %}<meta name="robots" content="noindex,follow">{% endif %}{# T-8.26: превью с демо / страница демо — не индексировать #}
   {# OpenGraph/Twitter (P2.2a): превью при шаринге портала в мессенджерах/соцсетях. #}
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="{{ portal.title_text }}">

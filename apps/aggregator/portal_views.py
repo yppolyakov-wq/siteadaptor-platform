@@ -559,10 +559,14 @@ def _sitemap_urls(request, portal) -> list[tuple[str, object]]:
     sitemap-index — когда упрёмся (roadmap §Отложено)."""
     from django.db.models import Max
 
+    if portal.show_demo:
+        # T-8.26 (Р-1): превью целиком noindex → sitemap пустой (иначе Search Console:
+        # «Submitted URL marked noindex»).
+        return []
     pool = listings_for(
         city=portal.city or None,
         business_type=portal.business_type or None,
-        include_demo=portal.show_demo,
+        include_demo=False,
     )
     abs_ = request.build_absolute_uri
     urls: list[tuple[str, object]] = [
@@ -626,10 +630,13 @@ PORTAL_DISALLOW = ("/klick/", "/melden/", "/konto/", "/tg/", "/sprache/", "/folg
 @static_resource
 def portal_robots_txt(request):
     """robots.txt портала: всё открыто, кроме технических путей + sitemap хоста."""
-    sitemap = request.build_absolute_uri(reverse("portal-sitemap"))
     lines = ["User-agent: *", "Allow: /"]
     lines += [f"Disallow: {p}" for p in PORTAL_DISALLOW]
-    lines += [f"Sitemap: {sitemap}", ""]
+    portal = getattr(request, "portal", None)
+    # T-8.26 (Р-1): превью — Allow остаётся (иначе робот не увидит noindex), но без Sitemap.
+    if portal is None or not portal.show_demo:
+        lines.append(f"Sitemap: {request.build_absolute_uri(reverse('portal-sitemap'))}")
+    lines.append("")
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
 
@@ -646,7 +653,8 @@ def _feed(request, fmt: str):
         home_url=request.build_absolute_uri(reverse("portal-home")),
         city=portal.city or "",
         business_type=portal.business_type or "",
-        include_demo=portal.show_demo,
+        include_demo=False,  # T-8.26 (Р-3): демо в фид не уходит никогда
+        preview=portal.show_demo,
     )
 
 

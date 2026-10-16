@@ -58,6 +58,10 @@ class Tenant(TenantMixin):
     # По умолчанию да (живые бизнесы не выпадают молча); действует вместе с
     # подтверждённой почтой — решает aggregator.visibility.listable.
     in_city_catalog = models.BooleanField(default=True)
+    # T-8.26 (Р-5): внутренний/тестовый тенант (регистрация команды, пробы) — в каталог
+    # города не попадает НИКОГДА; ставится только в админке, владелец его не видит и
+    # снять не может (в отличие от согласия `in_city_catalog`).
+    is_internal = models.BooleanField(default=False)
     # T-8.22: основная категория бизнеса в каталоге города (слаг core/city_categories).
     # Пусто = подсказка по типу бизнеса; нужна там, где тип ничего не говорит («Sonstiges»).
     city_category = models.CharField(max_length=40, blank=True, default="")

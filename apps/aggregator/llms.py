@@ -93,13 +93,15 @@ def build_portal(request, portal) -> str:
     pool = listings_for(
         city=portal.city or None,
         business_type=portal.business_type or None,
-        include_demo=portal.show_demo,
+        include_demo=False,  # T-8.26 (Р-3): выдуманные предложения ассистентам не отдаём
     )
     abs_ = request.build_absolute_uri
     lines = [f"# {portal.title_text}", ""]
     intro = portal.tagline_text or portal.intro_text
     if intro:
         lines += ["> " + " ".join(intro.split()), ""]
+    if portal.show_demo:
+        lines += [_("Vorschau — noch keine echten Angebote."), ""]
     if portal.city:
         lines += [_("Stadt: %(city)s") % {"city": portal.city}, ""]
     sections = _sections_present(pool)

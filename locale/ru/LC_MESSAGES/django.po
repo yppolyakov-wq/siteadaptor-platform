@@ -24793,3 +24793,20 @@ msgstr "≤ %(km)s км"
 
 msgid "Alle Abonnements beenden"
 msgstr "Отменить все подписки"
+
+msgid "Vorschau — noch keine echten Angebote."
+msgstr "Предпросмотр — настоящих предложений пока нет."
+
+msgid "Stadtkatalog"
+msgstr "Каталог города"
+
+msgid "Als intern markieren (nie im Stadtkatalog)"
+msgstr "Пометить как внутренний (никогда в каталоге города)"
+
+msgid ""
+"Intern = Test-/Teamregistrierung: erscheint nie im Stadtkatalog. Zustimmung "
+"und E-Mail-Status setzt sonst der Betrieb selbst."
+msgstr ""
+"Внутренний = тестовая/командная регистрация: никогда не появляется в "
+"каталоге города. Согласие и статус e-mail в остальных случаях задаёт сам "
+"бизнес."

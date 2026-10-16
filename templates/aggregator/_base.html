@@ -6,6 +6,7 @@
   <title>{% block title %}{% trans "Local offers near you" %} — siteadaptor{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}{% trans "Discover current offers from local shops near you." %}{% endblock %}">
   {% if canonical %}<link rel="canonical" href="{{ canonical }}">{% endif %}
+  {% if robots_noindex %}<meta name="robots" content="noindex,follow">{% endif %}{# T-8.26: страница только с демо — не индексировать #}
   {# OpenGraph/Twitter (P2.2a): превью при шаринге городских страниц. #}
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="siteadaptor">

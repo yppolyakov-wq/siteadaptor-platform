@@ -23,6 +23,7 @@ def listable(tenant) -> bool:
         and getattr(tenant, "subscription_status", "") != SUSPENDED
         and not getattr(tenant, "email_pending", False)
         and getattr(tenant, "in_city_catalog", True)
+        and not getattr(tenant, "is_internal", False)  # T-8.26: тестовая регистрация
     )
 
 
@@ -37,6 +38,7 @@ def withheld_schemas():
         | Q(subscription_status=SUSPENDED)
         | Q(email_pending=True)
         | Q(in_city_catalog=False)
+        | Q(is_internal=True)
     ).values("schema_name")
 
 

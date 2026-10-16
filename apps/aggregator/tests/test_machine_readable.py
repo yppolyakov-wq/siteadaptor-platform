@@ -459,12 +459,16 @@ def test_feed_rate_limit_own_scope(monkeypatch, isolated_ratelimit):
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
-def test_preview_portal_marks_demo():
+def test_preview_portal_marks_preview_but_never_ships_demo():
+    """T-8.26 п.2 (Р-3): ассистенты флаг `demo` игнорируют — демо в фид не попадает,
+    превью честно помечено `preview: true`."""
     portal = _portal(show_demo=True)
     _listing(is_demo=True)
+    real = _listing(source_ref="echt")
     _, data = _feed(portal=portal)
     assert data["_siteadaptor"]["preview"] is True
-    assert data["items"][0]["_siteadaptor"]["demo"] is True
+    assert [it["id"].rsplit(":", 1)[1] for it in data["items"]] == [str(real.pk)]
+    assert "demo" not in data["items"][0]["_siteadaptor"]
 
 
 @override_settings(ROOT_URLCONF="config.urls_public")

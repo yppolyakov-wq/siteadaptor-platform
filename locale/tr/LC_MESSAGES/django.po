@@ -24684,3 +24684,19 @@ msgstr "≤ %(km)s km"
 
 msgid "Alle Abonnements beenden"
 msgstr "Tüm abonelikleri sonlandır"
+
+msgid "Vorschau — noch keine echten Angebote."
+msgstr "Önizleme — henüz gerçek teklif yok."
+
+msgid "Stadtkatalog"
+msgstr "Şehir kataloğu"
+
+msgid "Als intern markieren (nie im Stadtkatalog)"
+msgstr "Dahili olarak işaretle (şehir kataloğunda asla)"
+
+msgid ""
+"Intern = Test-/Teamregistrierung: erscheint nie im Stadtkatalog. Zustimmung "
+"und E-Mail-Status setzt sonst der Betrieb selbst."
+msgstr ""
+"Dahili = test/ekip kaydı: şehir kataloğunda asla görünmez. Onay ve e-posta "
+"durumunu aksi hâlde işletme kendisi belirler."

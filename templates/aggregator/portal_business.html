@@ -5,6 +5,7 @@
 {% block structured_data %}{% if business_jsonld %}<script type="application/ld+json">{{ business_jsonld|safe }}</script>{% endif %}{% endblock %}
 
 {% block content %}
+{% include "aggregator/_demo_notice.html" %}
 {% if portal %}
   <a href="{% url 'portal-home' %}" class="text-sm text-gray-500 hover:underline">← {{ portal.title_text }}</a>
 {% else %}

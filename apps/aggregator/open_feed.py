@@ -170,8 +170,6 @@ def feed_item(listing, *, request, preview: bool) -> dict:
         },
         "sponsored": bool(listing.is_featured_now),
     }
-    if preview:
-        ext["demo"] = bool(listing.is_demo)
     item = {
         "id": tag_uri(listing),
         "url": request.build_absolute_uri(reverse("aggregator-offer", args=[listing.pk])),
@@ -296,8 +294,12 @@ def render_feed(
     city: str,
     business_type: str,
     include_demo: bool,
+    preview: bool = False,
 ):
-    """Общее тело обеих вьюх (портал/основной домен) и обоих форматов."""
+    """Общее тело обеих вьюх (портал/основной домен) и обоих форматов.
+
+    `preview` — портал ещё в режиме превью (T-8.26 Р-3: демо в фид не попадает, но
+    мета `preview: true` честно говорит, что настоящей ленты пока нет)."""
     limited = rate_limited(request)
     if limited is not None:
         return limited
@@ -306,7 +308,7 @@ def render_feed(
         city=city, business_type=business_type, include_demo=include_demo, params=params
     )
     page = paginate(pool, order_field="created_at", limit=params.limit, cursor=params.cursor)
-    preview = bool(include_demo)
+    preview = bool(preview or include_demo)
     if fmt == "atom":
         body = atom_feed(request, title=title, home_url=home_url, page=page, preview=preview)
         return HttpResponse(body, content_type=ATOM_CT)
