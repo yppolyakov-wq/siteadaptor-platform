@@ -56,14 +56,21 @@ def _entdecken_intent_links(request, chips, filters, keep, geo_carry) -> list[di
     from . import search as search_engine
 
     base = [(k, v) for k, v in keep.items() if v and k not in ("q",)]
+    roh = [("roh", v) for v in request.GET.getlist("roh") if v == query_intent.ROH_ORT]
     out = []
     for c in chips:
         if c.key == query_intent.KEY_DISTRICT:
             params = base + [("q", request.GET.get("q", "")), ("roh", query_intent.ROH_ORT)]
-        else:
-            params = base + [
-                (k, v) for k, v in search_engine.carry(c.q_without, filters) if k not in dict(base)
-            ]
+        else:  # `roh=ort` переживает ✕ других пилюль — иначе район вернулся бы сам
+            params = (
+                base
+                + [
+                    (k, v)
+                    for k, v in search_engine.carry(c.q_without, filters)
+                    if k not in dict(base)
+                ]
+                + roh
+            )
         params = [(k, v) for k, v in params + list(geo_carry) if v]
         out.append({"key": c.key, "label": c.label, "url": f"{request.path}?{urlencode(params)}"})
     return out
@@ -74,11 +81,17 @@ def _entdecken_hint_links(request, hints, pool, q, filters, keep, geo_carry) -> 
 
     from apps.core import city_categories as cc
 
+    from . import query_intent
+    from . import search as search_engine
+
     out = []
-    for key in hints:
+    for key in hints[: query_intent.HINTS_MAX]:
         if key in filters.tags or not pool.filter(city_tags__contains=[key]).exists():
             continue
-        params = [(k, v) for k, v in keep.items() if v] + [("merkmal", key)] + list(geo_carry)
+        # keep без kat/merkmal (так построены чипы категорий) — вернём их из явных фильтров
+        params = [(k, v) for k, v in keep.items() if v]
+        params += [(k, v) for k, v in search_engine.carry("", filters) if k in ("kat", "merkmal")]
+        params += [("merkmal", key)] + list(geo_carry)
         out.append(
             {
                 "key": key,
@@ -390,7 +403,9 @@ def discover_index(request):
     # P2.7: поиск/фильтры. При q/city/type — страница результатов (cache_public_page
     # кэширует только GET без query, поэтому результаты не кэшируются); иначе —
     # индекс городов.
-    q = (request.GET.get("q") or "").strip()
+    from .search import SEARCH_MAX
+
+    q = (request.GET.get("q") or "").strip()[:SEARCH_MAX]  # как портал (парсер ДО лимитера)
     city = (request.GET.get("city") or "").strip()
     btype = (request.GET.get("type") or "").strip()
     kind = (request.GET.get("kind") or "").strip()
@@ -504,7 +519,11 @@ def discover_index(request):
             "preis_bis": preis_bis,
         }
         chips_base = search.execute(
-            pool_base, q, replace(filters, kats=(), tags=()), surface="entdecken", track=False
+            pool_base,
+            q_eff,
+            replace(filters_eff, kats=(), tags=()),
+            surface="entdecken",
+            track=False,
         ).qs
         # T-8.20: фильтры единого поиска не теряются при клике по чипу категории.
         keep.update({k: v for k, v in search.carry("", filters) if k not in ("kat", "merkmal")})

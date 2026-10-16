@@ -387,6 +387,7 @@ def portal_home(request, facet=None, district=None):
                 ]
                 + search_engine.carry("", filters)
                 + geo_carry
+                + [("roh", v) for v in request.GET.getlist("roh") if v == "ort"]
                 if v
             ],
             # T-8.20: блок фильтров и пилюли активных фильтров (только у городского портала).
@@ -433,14 +434,15 @@ def _intent_chip_links(request, chips, filters, geo_carry, scope) -> list[dict]:
     from . import query_intent
     from . import search as search_engine
 
+    roh = [("roh", v) for v in request.GET.getlist("roh") if v == query_intent.ROH_ORT]
     out = []
     for c in chips:
         if c.key == query_intent.KEY_DISTRICT:
             raw_q = request.GET.get("q", "")
             params = _scope_pairs(scope) + search_engine.carry(raw_q, filters)
             params.append(("roh", query_intent.ROH_ORT))
-        else:
-            params = _scope_pairs(scope) + search_engine.carry(c.q_without, filters)
+        else:  # `roh=ort` переживает ✕ других пилюль — иначе район вернулся бы сам
+            params = _scope_pairs(scope) + search_engine.carry(c.q_without, filters) + roh
         params = [(k, v) for k, v in params + list(geo_carry) if v]
         out.append(
             {
@@ -456,10 +458,11 @@ def _intent_hint_links(request, hints, pool, q, filters, geo_carry, scope) -> li
     """Подсказка «Nur mit Merkmal …» — только если в выдаче есть хоть один такой листинг."""
     from apps.core import city_categories as cc
 
+    from . import query_intent
     from . import search as search_engine
 
     out = []
-    for key in hints:
+    for key in hints[: query_intent.HINTS_MAX]:
         if key in filters.tags or not pool.filter(city_tags__contains=[key]).exists():
             continue
         params = (

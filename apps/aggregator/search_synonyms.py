@@ -114,6 +114,8 @@ def expand(token: str) -> tuple[str, ...]:
 # словами — И; ранг держит точное первым (вес A у заголовка).
 HEADS: frozenset[str] = frozenset(
     {
+        # без generic-суффиксов zeug/spiel/studio/service/pflege (ревью: «Werkzeug» →
+        # все Spielzeug/Fahrzeug, «Beispiel» → «spiel», «Fotostudio» → все студии)
         "jacke",
         "hose",
         "schuhe",
@@ -141,9 +143,6 @@ HEADS: frozenset[str] = frozenset(
         "touren",
         "aktivität",
         "aktivitäten",
-        "spiel",
-        "spiele",
-        "zeug",
         "rad",
         "lampe",
         "möbel",
@@ -154,9 +153,6 @@ HEADS: frozenset[str] = frozenset(
         "fleisch",
         "gemüse",
         "obst",
-        "pflege",
-        "studio",
-        "service",
         "verleih",
         "vermietung",
         "beratung",

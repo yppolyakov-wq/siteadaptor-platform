@@ -36,19 +36,27 @@ KEY_PRICE_TO, KEY_PRICE_FROM, KEY_DATE, KEY_OPEN, KEY_DISTRICT, KEY_SIZE = (
     "groesse",
 )
 ROH_ORT = "ort"  # ?roh=ort — «район — просто слово»
+HINTS_MAX = 3  # подсказок признаков на запрос (каждая — один .exists())
 
-_NUM = r"(\d{1,5}(?:[.,]\d{1,2})?)"
+# число: «100», «12,50», «1.000» (тысячи точкой) — без хвоста «:30»/«.30» (время)
+_NUM = r"(\d{1,3}(?:\.\d{3})+|\d{1,5}(?:,\d{1,2})?)(?![.:,]\d)"
 _CUR = r"(?:€|euro|eur)"
-_NOT_TIME = r"(?!\s*(?:uhr|h\b|%|personen|pers\.?|stück|stk\.?|kg|g\b|cm|mm))"
+# не цена: время, доли, счётчики, расстояния, возраст, рейтинг
+_NOT_UNIT = (
+    r"(?!\s*(?:uhr|h\b|%|personen|pers\.?|teilnehmer|stück|stk\.?|kg|g\b|cm|mm|km|m\b|"
+    r"tage?n?|jahren?|sterne?|min\.?|minuten|std\.?|stunden|plätze?|gäste))"
+)
 _RE_OPEN = re.compile(
-    r"\b(?:(?:jetzt|heute|gerade)\s+)?(?:geöffnet|geoeffnet)\b"
-    r"|\b(?:jetzt|heute|gerade)\s+(?:offen|auf)\b"
-    r"|\bhat\s+offen\b|\boffen\b",
+    r"\b(?:(?:jetzt|heute|gerade)\s+)?(?:geöffnet|geoeffnet|offen)(?:\s+(?:heute|jetzt))?\b"
+    r"|\bhat\s+offen\b",
     re.I,
 )
 _RE_RANGE = re.compile(rf"\b{_NUM}\s*(?:-|–|bis)\s*{_NUM}\s*{_CUR}", re.I)
+# «unter N» — валюта необязательна (но не единица); «bis/max/höchstens N» — ТОЛЬКО с валютой
+# (иначе «für 2 bis 4», «bis 18:30», «max 10 Teilnehmer» становились ценой)
 _RE_TO = re.compile(
-    rf"\b(?:unter|bis|max(?:imal)?|höchstens|hoechstens)\s+{_NUM}{_NOT_TIME}\s*{_CUR}?(?!\w)",
+    rf"\bunter\s+{_NUM}{_NOT_UNIT}\s*{_CUR}?(?!\w)"
+    rf"|\b(?:bis|max(?:imal)?|höchstens|hoechstens)\s+{_NUM}\s*{_CUR}(?!\w)",
     re.I,
 )
 _RE_FROM = re.compile(rf"\b(?:ab|von|mindestens)\s+{_NUM}\s*{_CUR}(?!\w)", re.I)
@@ -99,9 +107,16 @@ def _fmt(value: Decimal) -> str:
     return number_format(value, len(digits))
 
 
+def _grp(m) -> str:
+    """Первая непустая группа (у _RE_TO две альтернативы, каждая со своим числом)."""
+    return next((g for g in m.groups() if g), "")
+
+
 def _money(raw: str) -> Decimal | None:
+    """«1.000» → 1000 (тысячи точкой), «12,50» → 12.50."""
     try:
-        return Decimal(raw.replace(",", "."))
+        text = raw.replace(".", "") if re.fullmatch(r"\d{1,3}(?:\.\d{3})+", raw) else raw
+        return Decimal(text.replace(",", "."))
     except (InvalidOperation, AttributeError):
         return None
 
@@ -128,10 +143,10 @@ def _district(text: str, city: str) -> tuple[str, tuple[int, int]] | None:
     m = re.search(rf"\b(?:in\s+)?{re.escape(ck)}-([^\W\d_]+(?:/[^\W\d_]+)?)", text, re.I)
     if m and districts.normalize(city, m.group(1)):
         return districts.normalize(city, m.group(1)), m.span()
-    # «in Wald», «in Gräfrath»
-    m = re.search(r"\bin\s+([^\W\d_]+(?:[/-][^\W\d_]+)?)\b", text, re.I)
-    if m and districts.normalize(city, m.group(1)):
-        return districts.normalize(city, m.group(1)), m.span()
+    # «in Wald», «in Gräfrath» — каждое «in X», не только первое («Jacke in Blau in Wald»)
+    for m in re.finditer(r"\bin\s+([^\W\d_]+(?:[/-][^\W\d_]+)?)\b", text, re.I):
+        if districts.normalize(city, m.group(1)):
+            return districts.normalize(city, m.group(1)), m.span()
     # однозначное имя/алиас одним словом («Ohligs», «Höhscheid»), многозначные — нет
     for m in re.finditer(r"[^\W\d_]+", text):
         word = m.group(0)
@@ -198,7 +213,7 @@ def parse(q: str, *, city: str = "", today: date | None = None, roh=frozenset())
             text = _cut(text, m.span())
     if "price_to" not in delta:
         m = _RE_TO.search(text)
-        if m and (val := _money(m.group(1))) is not None:
+        if m and (val := _money(_grp(m))) is not None:
             take(KEY_PRICE_TO, _("bis %(p)s €") % {"p": _fmt(val)}, val, m.span(), price_to=val)
     if "price_from" not in delta:
         m = _RE_FROM.search(text)
@@ -269,7 +284,14 @@ def apply(intent: Intent, explicit):
     eff = explicit
     chips = []
     overridden = set()
-    for name, value in intent.delta.items():
+    delta = dict(intent.delta)
+    # диапазон цен — одно решение: явная ЛЮБАЯ граница снимает вывод обеих (иначе
+    # невидимый «von 50 bis 30» без пилюли)
+    if "price_from" in delta and "price_to" in delta:
+        if _is_set(explicit.price_from) or _is_set(explicit.price_to):
+            overridden.update({"price_from", "price_to"})
+            delta.pop("price_from"), delta.pop("price_to")
+    for name, value in delta.items():
         if _is_set(getattr(explicit, name)):
             overridden.add(name)
             continue
@@ -290,7 +312,9 @@ def apply(intent: Intent, explicit):
 
 
 def _is_set(value) -> bool:
-    return value not in (None, "", False, ())
+    if value is None or value is False:
+        return False
+    return value != "" and value != ()  # Decimal(0) — задано (0 == False — ловушка)
 
 
 def auto_keys(chips) -> str:

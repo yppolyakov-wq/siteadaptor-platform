@@ -118,8 +118,11 @@ def _match_words(qs, words):
         cond = Q(search_vector=word)
         if len(token) >= SUBSTRING_MIN:
             cond |= Q(search_text__contains=fold(token))
-        for part in search_synonyms.split_compound(token):  # T-8.26 п.5b: голова как часть слова
-            if len(part) >= SUBSTRING_MIN:
+        # T-8.26 п.5b: ГОЛОВА составного слова — ещё и как часть слова («Winterjacke» →
+        # «Regenjacke»); модификатор только целым словом в FTS-ветке (подстрока «winter»
+        # тянула бы «Winterreifen», «hand» — «Handy»).
+        for part in search_synonyms.split_compound(token):
+            if len(part) >= SUBSTRING_MIN and part in search_synonyms.HEADS:
                 cond |= Q(search_text__contains=fold(part))
         qs = qs.filter(cond)
     return qs
