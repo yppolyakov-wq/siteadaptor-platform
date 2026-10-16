@@ -98,9 +98,10 @@ def filters_key(f, extra: dict | None = None) -> tuple[str, dict]:
 
 
 def _count_capped(qs, cap: int) -> int:
-    """Число результатов с потолком: `cap + 1` = «больше cap» (Р-5). Один простой SELECT:
-    `values_list("pk")` отбрасывает аннотации ранга, `order_by()` — сортировку."""
-    return len(qs.order_by().values_list("pk", flat=True)[: cap + 1])
+    """Число результатов с потолком (Р-5) — общий счётчик поиска (блок Б1)."""
+    from .search import count_capped
+
+    return count_capped(qs, cap)
 
 
 def log(

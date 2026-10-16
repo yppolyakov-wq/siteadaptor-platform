@@ -40,6 +40,10 @@ def _free_axis(portal) -> str | None:
     return None
 
 
+# Блок Б1: «N Treffer» считается до потолка выдачи (`AGGREGATOR_SEARCH.max_results` —
+# столько посетитель может пролистать); больше показываем как «240+».
+
+
 def _facet_choices(portal, district=None) -> tuple[str | None, list[tuple[str, str]]]:
     """(ось, [(значение, подпись), …]) — значения свободной оси в пуле портала."""
     axis = _free_axis(portal)
@@ -265,6 +269,27 @@ def portal_home(request, facet=None, district=None):
     )
     from . import query_intent
 
+    # Блок Б1: при поиске — сначала «N Treffer» и карточки, уточнение (районы/отрасли/
+    # категории) свёрнуто и строится по НАЙДЕННОМУ, а не по всему порталу.
+    searching = bool(q or filters.active)
+    hits = hits_capped = None
+    if searching:
+        if not district:
+            used = set(
+                whole_pool.order_by()
+                .exclude(district="")
+                .values_list("district", flat=True)
+                .distinct()
+            )
+            district_chips = [(slug, name) for slug, name in district_chips if slug in used]
+        if not facet and axis == "business_type":
+            types = set(whole_pool.order_by().values_list("business_type", flat=True).distinct())
+            facets = [(v, label) for v, label in facets if v in types]
+        if not (point is not None and filters.sort in ("", "naehe")):
+            cap = settings.AGGREGATOR_SEARCH["max_results"]
+            hits = search_engine.count_capped(pool, cap)
+            hits_capped = hits > cap
+            hits = min(hits, cap)
     search_engine.record(
         search_engine.SearchOutcome(pool, broad.mode, q, broad.ranked, filters, lang=broad.lang),
         surface="portal",
@@ -376,6 +401,10 @@ def portal_home(request, facet=None, district=None):
             "district_label": district_label,
             "district_chips": district_chips,
             "chip_carry": chip_carry,  # блок А2
+            "searching": searching,  # блок Б1
+            "hits": hits,
+            "hits_capped": hits_capped,
+            "map_view": geo.map_view(request),  # блок Б2
             "category_chips": category_chips,  # T-8.13a
             "kind_chips": kind_chips,  # T-8.11
             "portal_tabs": portal_tabs,  # T-8.19
@@ -413,6 +442,7 @@ def portal_home(request, facet=None, district=None):
                 ]
                 + search_engine.carry(q, filters)
                 + geo_carry
+                + ([("ansicht", "karte")] if request.GET.get("ansicht") == "karte" else [])
             ),
             # T-8.15: портал показывает демо-бизнесы — честная полоса «Vorschau».
             "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),

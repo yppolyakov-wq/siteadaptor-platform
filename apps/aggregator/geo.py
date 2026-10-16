@@ -133,3 +133,19 @@ def map_points(cards) -> list:
         for card in cards
         if card.latitude is not None and card.longitude is not None
     ]
+
+
+def map_view(request) -> dict:
+    """Блок Б2: список по умолчанию, карта — по кнопке или `?ansicht=karte`.
+
+    Ссылки переключателя сохраняют текущий запрос (без курсора листания);
+    признаётся только значение `karte`, мусор = список."""
+    from urllib.parse import urlencode
+
+    params = [(k, x) for k, values in request.GET.lists() for x in values]
+    keep = [(k, v) for k, v in params if k not in ("ansicht", "cursor")]
+    return {
+        "open": request.GET.get("ansicht") == "karte",
+        "list_url": "?" + urlencode(keep) if keep else "?",
+        "map_url": "?" + urlencode(keep + [("ansicht", "karte")]),
+    }

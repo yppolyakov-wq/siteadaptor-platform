@@ -24909,3 +24909,16 @@ msgstr "На сайт"
 
 msgid "Karte nicht verfügbar"
 msgstr "Карта недоступна"
+
+msgid "Eingrenzen"
+msgstr "Уточнить"
+
+msgid "%(n)s+ Treffer"
+msgstr "%(n)s+ результатов"
+
+msgid "%(n)s Treffer"
+msgid_plural "%(n)s Treffer"
+msgstr[0] "%(n)s результат"
+msgstr[1] "%(n)s результата"
+msgstr[2] "%(n)s результатов"
+msgstr[3] "%(n)s результатов"

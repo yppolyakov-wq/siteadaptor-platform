@@ -728,6 +728,7 @@ def city_listing(request, city, business_type=None):
             "cards": cards,
             "near_active": near_lat is not None,  # G8c
             "map_points": geo.map_points(cards),
+            "map_view": geo.map_view(request),  # блок Б2
             "canonical": request.build_absolute_uri(request.path),
             "other_cities": other_cities,
             "city_portal_url": f"{request.scheme}://{city_portal.host}/" if city_portal else "",

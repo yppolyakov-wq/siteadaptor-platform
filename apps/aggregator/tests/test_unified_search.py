@@ -365,7 +365,8 @@ def test_query_count_does_not_grow(django_assert_max_num_queries):
     req = _req(q="Messer", stadtteil="graefrath", sort="neu")
     req.portal = portal
     # T-8.21: +2 на журнал поиска (подсчёт с потолком + UPDATE/INSERT агрегата).
-    with django_assert_max_num_queries(22) as ctx:
+    # Блок Б1: +3 постоянных (районы и отрасли найденного, «N Treffer»).
+    with django_assert_max_num_queries(25) as ctx:
         portal_views.portal_home(req)
     small = len(ctx.captured_queries)
     for i in range(30):

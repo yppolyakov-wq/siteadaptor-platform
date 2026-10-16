@@ -24716,3 +24716,14 @@ msgstr "Zur Website"
 
 msgid "Karte nicht verfügbar"
 msgstr "Karte nicht verfügbar"
+
+msgid "Eingrenzen"
+msgstr "Eingrenzen"
+
+msgid "%(n)s+ Treffer"
+msgstr "%(n)s+ Treffer"
+
+msgid "%(n)s Treffer"
+msgid_plural "%(n)s Treffer"
+msgstr[0] "%(n)s Treffer"
+msgstr[1] "%(n)s Treffer"

@@ -24670,3 +24670,14 @@ msgstr "Visit website"
 
 msgid "Karte nicht verfügbar"
 msgstr "Map not available"
+
+msgid "Eingrenzen"
+msgstr "Refine"
+
+msgid "%(n)s+ Treffer"
+msgstr "%(n)s+ results"
+
+msgid "%(n)s Treffer"
+msgid_plural "%(n)s Treffer"
+msgstr[0] "%(n)s result"
+msgstr[1] "%(n)s results"

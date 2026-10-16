@@ -1,13 +1,19 @@
-{% load i18n %}{# Карта листингов (G8c): ожидает map_points (list) + near_active. Leaflet/OSM, без API-ключа. #}
-<div class="mb-4 flex items-center gap-3">
+{% load i18n %}{# Карта листингов (G8c): ожидает map_points (list) + near_active + map_view (блок Б2). Leaflet/OSM, без API-ключа. #}
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  {% if map_points and map_view %}
+  {% comment %}Блок Б2: список по умолчанию, карта — по кнопке (без JS — ссылкой ?ansicht=karte).
+  Leaflet грузится только когда карту открыли.{% endcomment %}
+  <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm font-medium" role="group" data-map-toggle>
+    <a href="{{ map_view.list_url }}" data-map-list class="px-3 py-2 {% if map_view.open %}bg-white text-gray-700{% else %}bg-gray-900 text-white{% endif %}">☰ {% trans "Liste" %}</a>
+    <a href="{{ map_view.map_url }}" data-map-show class="px-3 py-2 {% if map_view.open %}bg-gray-900 text-white{% else %}bg-white text-gray-700{% endif %}">🗺 {% trans "Map" %}</a>
+  </div>
+  {% endif %}
   <button type="button" id="agg-near-me" class="hidden text-sm font-medium rounded-lg px-4 py-2 bg-white border border-gray-300 hover:border-indigo-400">📍 {% trans "Near me" %}</button>
   {% if near_active %}<a href="?" class="text-sm text-gray-500 hover:underline">{% trans "Reset" %}</a>{% endif %}
 </div>
 {% if map_points %}
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <div id="agg-map" class="w-full h-72 rounded-2xl overflow-hidden mb-6 relative z-0" data-down-text="{% trans "Karte nicht verfügbar" %}"></div>
+  <div id="agg-map" class="{% if map_view and not map_view.open %}hidden {% endif %}w-full h-72 rounded-2xl overflow-hidden mb-6 relative z-0" data-down-text="{% trans "Karte nicht verfügbar" %}"{% if not map_view or map_view.open %} data-map-open{% endif %}></div>
   {{ map_points|json_script:"agg-map-data" }}
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 {% endif %}
 <script>
 (function () {
@@ -38,8 +44,10 @@
     box.appendChild(note);
   };
   var tilesOk = false;
-  if (dataEl && !window.L) mapDown();
-  if (dataEl && window.L) {
+  var started = false;
+  var initMap = function () {
+    if (started || !window.L) { if (!window.L) mapDown(); return; }
+    started = true;
     var pts = JSON.parse(dataEl.textContent || "[]");
     if (pts.length) {
       // title/url — свободно редактируемые поля тенанта: попап строим через DOM
@@ -75,6 +83,35 @@
       })).addTo(map);
       // T-8.17: один бизнес в районе — без потолка карта уходила в уровень дома.
       map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 15 });
+    }
+  };
+  // Блок Б2: Leaflet подгружается по требованию (первый экран — список, без чужих скриптов).
+  var loadLeaflet = function (done) {
+    if (window.L) return done();
+    var css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(css);
+    var js = document.createElement("script");
+    js.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    js.onload = done;
+    js.onerror = mapDown;
+    document.head.appendChild(js);
+  };
+  var box = document.getElementById("agg-map");
+  if (dataEl && box) {
+    if (box.dataset.mapOpen !== undefined) loadLeaflet(initMap);
+    var show = document.querySelector("[data-map-show]");
+    var list = document.querySelector("[data-map-list]");
+    if (show) {
+      show.addEventListener("click", function (e) {
+        e.preventDefault();
+        box.classList.remove("hidden");
+        if (list) list.className = list.className.replace("bg-gray-900 text-white", "bg-white text-gray-700");
+        show.className = show.className.replace("bg-white text-gray-700", "bg-gray-900 text-white");
+        if (window.history && history.replaceState) history.replaceState(null, "", show.href);
+        loadLeaflet(initMap);
+      });
     }
   }
 })();

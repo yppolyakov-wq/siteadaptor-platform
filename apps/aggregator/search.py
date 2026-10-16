@@ -448,6 +448,12 @@ def resolve_intent(
     return q_eff, eff, chips, intent.hints
 
 
+def count_capped(qs, cap: int) -> int:
+    """Число результатов с потолком: `cap + 1` = «больше cap». Один простой SELECT:
+    `values_list("pk")` отбрасывает аннотации ранга, `order_by()` — сортировку."""
+    return len(qs.order_by().values_list("pk", flat=True)[: cap + 1])
+
+
 def carry(q: str, f: SearchFilters) -> list[tuple[str, str]]:
     """Параметры поиска и фильтров для «Weitere»/форм — тем же форматом, что parse_filters."""
     out: list[tuple[str, str]] = []

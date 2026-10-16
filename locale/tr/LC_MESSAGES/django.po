@@ -24797,3 +24797,14 @@ msgstr "Web sitesine git"
 
 msgid "Karte nicht verfügbar"
 msgstr "Harita kullanılamıyor"
+
+msgid "Eingrenzen"
+msgstr "Daralt"
+
+msgid "%(n)s+ Treffer"
+msgstr "%(n)s+ sonuç"
+
+msgid "%(n)s Treffer"
+msgid_plural "%(n)s Treffer"
+msgstr[0] "%(n)s sonuç"
+msgstr[1] "%(n)s sonuç"
