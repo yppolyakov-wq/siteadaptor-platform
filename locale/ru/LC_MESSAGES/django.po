@@ -24811,6 +24811,28 @@ msgstr ""
 "каталоге города. Согласие и статус e-mail в остальных случаях задаёт сам "
 "бизнес."
 
+msgid "Nur mit Merkmal %(t)s"
+msgstr "Только с признаком «%(t)s»"
+
+msgid "Morgen"
+msgstr "Завтра"
+
+msgid "Größe %(s)s — Größenfilter noch nicht verfügbar"
+msgstr "Размер %(s)s — фильтр по размеру пока недоступен"
+
+msgid "Stadtteil %(d)s"
+msgstr "Район %(d)s"
+
+msgid "%(a)s – %(b)s €"
+msgstr "%(a)s – %(b)s €"
+
+msgid "Erkannt:"
+msgstr "Распознано:"
+
+#: apps/aggregator/query_intent.py
+#, python-format
+msgid "Größe %(s)s"
+msgstr "Размер %(s)s"
 msgid "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion."
 msgstr "§ 11 PAngV: снижение цены можно объявлять только относительно самой низкой цены за последние 30 дней до акции."
 

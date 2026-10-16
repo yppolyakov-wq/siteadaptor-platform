@@ -24620,6 +24620,28 @@ msgstr ""
 "Intern = Test-/Teamregistrierung: erscheint nie im Stadtkatalog. Zustimmung "
 "und E-Mail-Status setzt sonst der Betrieb selbst."
 
+msgid "Nur mit Merkmal %(t)s"
+msgstr "Nur mit Merkmal %(t)s"
+
+msgid "Morgen"
+msgstr "Morgen"
+
+msgid "Größe %(s)s — Größenfilter noch nicht verfügbar"
+msgstr "Größe %(s)s — Größenfilter noch nicht verfügbar"
+
+msgid "Stadtteil %(d)s"
+msgstr "Stadtteil %(d)s"
+
+msgid "%(a)s – %(b)s €"
+msgstr "%(a)s – %(b)s €"
+
+msgid "Erkannt:"
+msgstr "Erkannt:"
+
+#: apps/aggregator/query_intent.py
+#, python-format
+msgid "Größe %(s)s"
+msgstr "Größe %(s)s"
 msgid "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion."
 msgstr "§ 11 PAngV: Eine Preisermäßigung darf nur gegenüber dem niedrigsten Preis der letzten 30 Tage vor der Aktion beworben werden."
 

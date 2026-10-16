@@ -34,6 +34,7 @@ INDEXED_FIELDS = frozenset(
         "teaser",
         "business_name",
         "dish_names",
+        "variant_terms",
         "city",
         "district",
         "city_category",
@@ -78,6 +79,7 @@ def _parts(listing) -> list[tuple[str, str, str]]:
     title, teaser = listing.title or {}, listing.teaser or {}
     dishes = " ".join(str(d) for d in (listing.dish_names or []))
     tags = " ".join(str(t) for t in (listing.city_tags or []))
+    variants = " ".join(str(v) for v in (listing.variant_terms or []))
     parts: list[tuple[str, str, str]] = []
     for code, _name in settings.LANGUAGES:
         if title.get(code):
@@ -92,6 +94,7 @@ def _parts(listing) -> list[tuple[str, str, str]]:
         ("german", dishes, "B"),
         ("german", _labels(listing), "C"),
         ("simple", tags, "C"),
+        ("simple", variants, "C"),
         ("simple", listing.city or "", "D"),
     ]
     return [p for p in parts if p[1].strip()]
@@ -100,7 +103,10 @@ def _parts(listing) -> list[tuple[str, str, str]]:
 def search_text(listing) -> str:
     title = listing.title or {}
     dishes = " ".join(str(d) for d in (listing.dish_names or []))
-    return fold(" ".join([*(str(v) for v in title.values() if v), listing.business_name, dishes]))
+    variants = " ".join(str(v) for v in (listing.variant_terms or []))
+    return fold(
+        " ".join([*(str(v) for v in title.values() if v), listing.business_name, dishes, variants])
+    )
 
 
 def refresh_listing(listing, *, using: str = DEFAULT_DB_ALIAS) -> None:
@@ -131,6 +137,7 @@ def refresh(qs) -> int:
         "teaser",
         "business_name",
         "dish_names",
+        "variant_terms",
         "city",
         "district",
         "city_category",

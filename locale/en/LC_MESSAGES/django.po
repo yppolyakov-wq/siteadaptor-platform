@@ -24574,6 +24574,28 @@ msgstr ""
 "Internal = test/team registration: never appears in the city catalog. "
 "Consent and e-mail status are otherwise set by the business itself."
 
+msgid "Nur mit Merkmal %(t)s"
+msgstr "Only with %(t)s"
+
+msgid "Morgen"
+msgstr "Tomorrow"
+
+msgid "Größe %(s)s — Größenfilter noch nicht verfügbar"
+msgstr "Size %(s)s — size filter not available yet"
+
+msgid "Stadtteil %(d)s"
+msgstr "District %(d)s"
+
+msgid "%(a)s – %(b)s €"
+msgstr "%(a)s – %(b)s €"
+
+msgid "Erkannt:"
+msgstr "Detected:"
+
+#: apps/aggregator/query_intent.py
+#, python-format
+msgid "Größe %(s)s"
+msgstr "Size %(s)s"
 msgid "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion."
 msgstr "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion."
 

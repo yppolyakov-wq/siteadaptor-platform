@@ -24792,6 +24792,28 @@ msgstr ""
 "Внутрішній = тестова/командна реєстрація: ніколи не з'являється в каталозі "
 "міста. Згоду та статус e-mail в інших випадках задає сам бізнес."
 
+msgid "Nur mit Merkmal %(t)s"
+msgstr "Лише з ознакою «%(t)s»"
+
+msgid "Morgen"
+msgstr "Завтра"
+
+msgid "Größe %(s)s — Größenfilter noch nicht verfügbar"
+msgstr "Розмір %(s)s — фільтр за розміром поки недоступний"
+
+msgid "Stadtteil %(d)s"
+msgstr "Район %(d)s"
+
+msgid "%(a)s – %(b)s €"
+msgstr "%(a)s – %(b)s €"
+
+msgid "Erkannt:"
+msgstr "Розпізнано:"
+
+#: apps/aggregator/query_intent.py
+#, python-format
+msgid "Größe %(s)s"
+msgstr "Розмір %(s)s"
 msgid "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion."
 msgstr "§ 11 PAngV: зниження ціни можна оголошувати лише відносно найнижчої ціни за останні 30 днів до акції."
 

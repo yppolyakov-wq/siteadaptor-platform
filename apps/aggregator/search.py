@@ -85,7 +85,13 @@ def _words(q: str, lang: str) -> list[tuple[str, SearchQuery]]:
     for i, token in enumerate(tokens):
         prefix = i == len(tokens) - 1 and len(token) >= _cfg("prefix_min_len")
         word = None
-        for variant in dict.fromkeys([token, fold(token), *search_synonyms.expand(token)]):
+        # T-8.26 п.5b: части составного слова («winterjacke» → «winter», «jacke») и их
+        # синонимы — ветки ИЛИ того же слова, ПОСЛЕ самого слова (ранг: точное первым).
+        parts = search_synonyms.split_compound(token)
+        variants = [token, fold(token), *search_synonyms.expand(token)]
+        for part in parts:
+            variants += [part, *search_synonyms.expand(part)]
+        for variant in dict.fromkeys(variants):
             if word is not None and budget < len(configs):
                 break  # само слово — всегда; синонимы — пока хватает бюджета
             raw = f"{variant}:*" if prefix else variant
@@ -112,6 +118,12 @@ def _match_words(qs, words):
         cond = Q(search_vector=word)
         if len(token) >= SUBSTRING_MIN:
             cond |= Q(search_text__contains=fold(token))
+        # T-8.26 п.5b: ГОЛОВА составного слова — ещё и как часть слова («Winterjacke» →
+        # «Regenjacke»); модификатор только целым словом в FTS-ветке (подстрока «winter»
+        # тянула бы «Winterreifen», «hand» — «Handy»).
+        for part in search_synonyms.split_compound(token):
+            if len(part) >= SUBSTRING_MIN and part in search_synonyms.HEADS:
+                cond |= Q(search_text__contains=fold(part))
         qs = qs.filter(cond)
     return qs
 
@@ -232,6 +244,7 @@ class SearchFilters:
     open_now: bool = False  # ?offen=1
     sort: str = ""  # "" (релевантность / новые) | SORTS (T-8.7 Р-6)
     radius_km: int | None = None  # ?umkreis= (T-8.7 Р-5) — действует только при точке
+    size: str = ""  # ?groesse=M (T-8.26 п.5c) — только товары с таким размером варианта
 
     @property
     def active(self) -> bool:
@@ -245,6 +258,7 @@ class SearchFilters:
             or self.available
             or self.open_now
             or self.radius_km is not None
+            or self.size
         )
 
 
@@ -257,7 +271,11 @@ FILTER_PARAMS = (
     "offen",
     "sort",
     "umkreis",
+    "groesse",
 )
+
+# T-8.26 п.5c: допустимые размеры фильтра — буквенные и числовые (38, 104), как в _RE_SIZE.
+_RE_FILTER_SIZE = re.compile(r"(?:XXS|XS|S|M|L|XL|XXL|XXXL|[0-9]{2,3})", re.ASCII)
 
 # T-8.7 Р-6: сортировки обеих поверхностей. "" = релевантность при q, иначе новые.
 SORTS = ("", "neu", "endet", "offen", "naehe")
@@ -328,6 +346,9 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
     date = (get.get("datum") or "").strip()
     if date not in ("heute", "wochenende") and _parse_day(date) is None:
         date = ""
+    size = (get.get("groesse") or "").strip().upper()
+    if not _RE_FILTER_SIZE.fullmatch(size):
+        size = ""
     return SearchFilters(
         kats=kats,
         tags=tags,
@@ -339,6 +360,7 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
         open_now=get.get("offen") == "1",
         sort=sort,
         radius_km=radius_km,
+        size=size,
     )
 
 
@@ -399,12 +421,31 @@ def apply_filters(qs, f: SearchFilters, *, now=None, point=None):
             )
     if f.available:
         qs = qs.exclude(availability=L.AVAILABILITY_SOLD_OUT)
+    if f.size:  # T-8.26 п.5c: размер есть только у товаров — прочие виды отпадают
+        qs = qs.filter(listing_kind=L.KIND_PRODUCT, variant_terms__contains=[f.size])
     if f.open_now:
         from .views import _open_now_schemas
 
         schemas = set(qs.order_by().values_list("tenant_schema", flat=True).distinct())
         qs = qs.filter(tenant_schema__in=_open_now_schemas(schemas))
     return qs
+
+
+def resolve_intent(
+    q: str, explicit: SearchFilters, *, city: str, roh=(), path_district: bool = False
+):
+    """T-8.26 п.5a: текст → фильтры (ДО поиска). → (q_eff, filters_eff, chips, hints).
+
+    `explicit` — фильтры из GET (сильнее вывода); `path_district` — район задан путём
+    `/stadtteil/<slug>/` (вывод района блокируется); `roh` — `?roh=ort` и т.п."""
+    from . import query_intent
+
+    roh = set(roh or ())
+    if path_district:  # район уже задан путём — слово района остаётся текстом
+        roh.add(query_intent.ROH_ORT)
+    intent = query_intent.parse(q, city=city or "", roh=frozenset(roh))
+    q_eff, eff, chips = query_intent.apply(intent, explicit)
+    return q_eff, eff, chips, intent.hints
 
 
 def carry(q: str, f: SearchFilters) -> list[tuple[str, str]]:
@@ -423,6 +464,7 @@ def carry(q: str, f: SearchFilters) -> list[tuple[str, str]]:
         ("offen", "1" if f.open_now else ""),
         ("sort", f.sort),
         ("umkreis", str(f.radius_km) if f.radius_km else ""),
+        ("groesse", f.size),
     ):
         if value:
             out.append((key, value))
@@ -454,6 +496,7 @@ def execute(
     portal_host: str = "",
     extra: dict | None = None,
     point=None,
+    log_query: str | None = None,
 ) -> SearchOutcome:
     """Единственная точка поиска обеих поверхностей (портал, /entdecken/).
 
@@ -510,7 +553,12 @@ def execute(
         qs = qs.order_by(*order)
         outcome = SearchOutcome(qs, mode, q, ranked=True, filters=filters, lang=lang)
     if track:
-        record(outcome, surface=surface, city=city, portal_host=portal_host, extra=extra)
+        logged = outcome
+        if log_query is not None and log_query != q:  # T-8.26 п.5a: в журнал — сырой запрос
+            from dataclasses import replace as _replace
+
+            logged = _replace(outcome, query=log_query)
+        record(logged, surface=surface, city=city, portal_host=portal_host, extra=extra)
     return outcome
 
 

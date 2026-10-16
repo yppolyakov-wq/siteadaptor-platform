@@ -135,6 +135,9 @@ class AggregatorListing(I18nMixin, models.Model):
     # Названия блюд состава — «блюда наружу»: `?q=Rinderfilet` находит карточку
     # набора, не плодя отдельный kind="dish".
     dish_names = models.JSONField(default=list, blank=True)
+    # T-8.26 п.5c: размеры (UPPER) и цвета активных вариантов товара — поиск по «Koralle»
+    # и фильтр «Größe» (?groesse=M → variant_terms__contains). Только kind=product.
+    variant_terms = models.JSONField(default=list, blank=True)
 
     # T-8.11: наличие товара («" — есть или не учитывается) и бейдж «Neu».
     availability = models.CharField(max_length=20, blank=True, default="")

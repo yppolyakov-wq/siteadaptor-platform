@@ -618,3 +618,117 @@ def test_entdecken_marks_fuzzy_results(isolated_ratelimit):
         _req("/entdecken/", q="Messer", city="Solingen", ip="10.1.1.2")
     ).content.decode()
     assert "data-search-fuzzy" not in html
+
+
+# --- T-8.26 п.5a: намерение запроса на обеих поверхностях -------------------------------
+
+
+def _portal_html(q, isolated=True, **params):
+    portal = _portal()
+    req = RequestFactory().get("/", {"q": q, **params}, REMOTE_ADDR="10.5.5.5")
+    req.portal = portal
+    return portal_views.portal_home(req).content.decode()
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_winterjacke_unter_100_filters_price_and_shows_removable_chip(isolated_ratelimit):
+    _listing("Jacke Basic", kind="product", new_price=Decimal("80"))
+    _listing("Jacke Premium", kind="product", new_price=Decimal("150"))
+    html = _portal_html("Jacke unter 100 Euro")
+    assert "Jacke Basic" in html and "Jacke Premium" not in html
+    assert 'data-intent-chip="preis_bis"' in html
+    # выведенное НЕ прилипает к форме: скрытых полей preis_bis нет, q остаётся сырым
+    assert 'type="hidden" name="preis_bis"' not in html
+    assert 'name="preis_bis" value="100' not in html  # панель фильтров показывает ЯВНЫЕ
+    assert 'value="Jacke unter 100 Euro"' in html
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_friseur_in_wald_filters_district_and_roh_ort_undoes_it(isolated_ratelimit):
+    _listing("Herrenschnitt Wald", business_name="Friseur Wald", district="wald")
+    _listing("Herrenschnitt Mitte", business_name="Friseur Mitte", district="mitte")
+    html = _portal_html("Friseur in Solingen-Wald")
+    assert "Herrenschnitt Wald" in html and "Herrenschnitt Mitte" not in html
+    assert 'data-intent-chip="stadtteil"' in html and "roh=ort" in html
+    html = _portal_html("Friseur in Solingen-Wald", roh="ort")
+    assert "Herrenschnitt Wald" in html and "Herrenschnitt Mitte" in html
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_heute_geoeffnet_equals_offen_param(isolated_ratelimit, monkeypatch):
+    a = _listing("Trattoria Sole", business_name="Trattoria")
+    _listing("Bistro Luna", business_name="Bistro")
+    monkeypatch.setattr(views, "_open_now_schemas", lambda schemas: {a.tenant_schema})
+    by_text = _titles(_portal_html("Trattoria heute geöffnet"))
+    by_param = _titles(_portal_html("Trattoria", offen="1"))
+    assert by_text == by_param == {"Trattoria Sole"}
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_entdecken_intent_chips_and_journal_raw_query(isolated_ratelimit):
+    from apps.aggregator.models import SearchQueryLog
+
+    _listing("Jacke Basic", kind="product", new_price=Decimal("80"))
+    html = views.discover_index(
+        _req("/entdecken/", q="Jacke unter 100 euro", city="Solingen", ip="10.5.5.6")
+    ).content.decode()
+    assert 'data-intent-chip="preis_bis"' in html and "Jacke Basic" in html
+    row = SearchQueryLog.objects.get()
+    assert row.query_norm == "jacke unter 100 euro"  # сырой запрос жителя
+    assert "auto" in row.filters and "preis" in str(row.filters["auto"])
+
+
+# --- T-8.26 п.5b: составные слова (закрытый словарь голов) + синонимы --------------------
+
+
+def test_compound_finds_head_and_ranks_exact_first():
+    _listing("Jacke Basic", kind="product")
+    _listing("Winterjacke Alpin", kind="product")
+    out, titles = _found("Winterjacke", city="Solingen")
+    assert out.mode == "fts" and titles[0] == "Winterjacke Alpin" and "Jacke Basic" in titles
+
+
+def test_modifier_prefix_is_an_or_branch_of_the_same_word():
+    _listing("Kinder Basteln")
+    _listing("Aktivitäten für alle")
+    _, titles = _found("Kinderaktivitäten", city="Solingen")
+    assert set(titles) == {"Kinder Basteln", "Aktivitäten für alle"}
+
+
+def test_heads_stoplist_nachtisch_is_not_tisch():
+    assert "tisch" not in search_synonyms.HEADS and "haus" not in search_synonyms.HEADS
+    _listing("Tisch aus Eiche", kind="product")
+    out, titles = _found("Nachtisch", city="Solingen")
+    # точного совпадения нет (голова «tisch» не раскрывается); если что-то и находится,
+    # то только фолбэком опечаток — и подписано «ähnliche», а не как точный результат
+    assert out.mode != "fts"
+
+
+def test_split_compound_rules():
+    sc = search_synonyms.split_compound
+    assert sc("winterjacke") == ("winter", "jacke")
+    assert sc("kinderaktivitäten") == ("kinder", "aktivitäten")
+    assert sc("jacke") == ()  # короткое / само в словаре
+    assert sc("zahnbürste") == ()  # неизвестная голова и модификатор
+    assert sc("nachtisch") == ()  # стоп-лист
+    assert sc("bioladen") == ("bio",)  # только модификатор, остаток ≥ 3
+
+
+def test_new_synonym_groups():
+    _listing("Vegetarische Bowl")
+    _, titles = _found("veggie", city="Solingen")
+    assert titles == ["Vegetarische Bowl"]
+    _listing("Jeans Slim", kind="product")
+    _, titles = _found("Hose", city="Solingen")
+    assert "Jeans Slim" in titles
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_kinderaktivitaeten_am_wochenende_equals_manual(isolated_ratelimit):
+    soon = timezone.now() + timedelta(days=1)
+    _listing("Kinder Zirkus", kind="event", starts_at=soon, ends_at=soon + timedelta(hours=2))
+    _listing("Kinder Theater", kind="event", starts_at=soon + timedelta(days=30))
+    with mock.patch("apps.aggregator.search.timezone.now", return_value=soon - timedelta(days=1)):
+        by_text = _titles(_portal_html("Kinderaktivitäten am Wochenende"))
+        by_param = _titles(_portal_html("Kinder", datum="wochenende"))
+    assert by_text == by_param
