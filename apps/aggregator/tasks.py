@@ -62,12 +62,17 @@ def _product_city_category(promo) -> str:
     return city.resolve(promo.product.category)
 
 
+# DCC Р-3: номера в каталоге города — только категории размещения (НЕ весь раздел
+# «Reisen & Übernachten»: тур-оператор с койками не должен класть номера в «Touren»).
+_ACCOMMODATION_CATEGORIES = ("hotels", "ferienwohnungen")
+
+
 def _city_fields(kind: str, tenant, snap: dict | None = None) -> dict:
     """T-8.13a: единая категория и признаки каталога города для листинга.
 
     Акция — своя категория → категория её товара (T-8.13b) → категория бизнеса
     (T-8.22) → подсказка по типу;
-    номер — категория бизнеса из раздела «Reisen & Übernachten», иначе Hotels & Pensionen;
+    номер — Ferienwohnungen у такого бизнеса, иначе Hotels & Pensionen;
     событие — по теме; меню — Catering. Признаки — из данных (свои/диеты/тема).
     """
     from apps.core import city_categories as cc
@@ -85,10 +90,9 @@ def _city_fields(kind: str, tenant, snap: dict | None = None) -> dict:
         )
         tags = cc.normalize_tags([*snap.get("city_tags", []), *snap.get("product_diets", [])])
     elif kind == "stay":
-        # DCC Р-3: категория номера — основная категория бизнеса, если она из раздела
-        # «Reisen & Übernachten» (Ferienwohnungen), иначе Hotels & Pensionen.
-        by_cat = cc.category(by_type)
-        cat = by_type if by_cat and by_cat.section == "reisen-uebernachten" else "hotels"
+        # DCC Р-3: категория номера — Ferienwohnungen, если это основная категория
+        # бизнеса, иначе Hotels & Pensionen.
+        cat = by_type if by_type in _ACCOMMODATION_CATEGORIES else "hotels"
         tags = []
     elif kind in ("event", "tour"):
         theme = snap.get("category") or ""

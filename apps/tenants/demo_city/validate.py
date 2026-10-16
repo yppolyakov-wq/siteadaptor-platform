@@ -15,6 +15,22 @@ CITY_BOX = (51.12, 51.23, 6.98, 7.17)
 _PHONE = re.compile(r"^\+49 212 555\d{4}$")
 _HOST = re.compile(r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$")
 FOOD_TYPES = {"bakery", "butcher", "grocery", "restaurant", "cafe", "catering"}
+# 7 % НДС без LMIV — печатное (книги/альбомы), живые растения, корм для животных
+# (Futtermittelrecht); всё остальное с 7 % считаем едой для людей.
+_NON_FOOD_7 = (
+    "buch",
+    "bildband",
+    "roman",
+    "erstleser",
+    "lesetagebuch",
+    "bücher",
+    "pflanze",
+    "topf",
+    "staude",
+    "kräuterset",
+    "futter",
+    "kauknochen",
+)
 
 
 def _money(value: str) -> Decimal | None:
@@ -79,7 +95,10 @@ def validate(biz: Biz, *, section: str = "") -> list[str]:
                 errs.append(f"{it.name}: цена {it.price!r}")
             if not it.photo:
                 errs.append(f"{it.name}: нет фото-ключа")
-            if biz.btype in FOOD_TYPES and not it.allergens and not it.ingredients:
+            food = biz.btype in FOOD_TYPES or (
+                it.vat == "7.00" and not any(w in it.name.lower() for w in _NON_FOOD_7)
+            )
+            if food and not it.allergens and not it.ingredients:
                 errs.append(f"{it.name}: еда без аллергенов/состава (LMIV)")
             if it.unit and not it.content:
                 errs.append(f"{it.name}: unit без content (PAngV)")
@@ -89,6 +108,8 @@ def validate(biz: Biz, *, section: str = "") -> list[str]:
             errs.append(f"акция {o.title}: цена {o.price!r}")
         if w is not None and (p is None or w <= p):
             errs.append(f"акция {o.title}: compare_at {o.was} не выше цены (UWG)")
+        if w is not None and o.ends == "none":
+            errs.append(f"акция {o.title}: бессрочная акция со Streichpreis (UWG)")
         if o.ends not in ("today", "week", "none") and not re.match(r"^\d+d$", o.ends):
             errs.append(f"акция {o.title}: ends {o.ends!r}")
         if o.city_category and cc.category(o.city_category) is None:
@@ -132,8 +153,7 @@ def predicted_categories(biz: Biz) -> set[str]:
     for shelf in biz.shelves:
         out.add(shelf.city_category)
     if biz.rooms:
-        cat = cc.category(biz.category)
-        out.add(biz.category if cat and cat.section == "reisen-uebernachten" else "hotels")
+        out.add(biz.category if biz.category in ("hotels", "ferienwohnungen") else "hotels")
     for e in biz.events:
         out.add(cc.BY_EVENT_THEME.get(e.theme, "events") if e.theme else "events")
     for o in biz.offers:

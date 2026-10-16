@@ -61,7 +61,6 @@ MESSERSCHARF = Biz(
             "Vater & Sohn 36 €",
             "Herrenhaarschnitt plus Kinderhaarschnitt zusammen.",
             price="36.00",
-            was="40.00",
             ends="none",
             response="show",
             photo="sg-kinderhaarschnitt",
@@ -144,7 +143,7 @@ PERLMUTT = Biz(
     phone="+49 212 5551703",
     accent="#db2777",
     hero_photo="sg-nagelstudio",
-    tagline="Maniküre, Gel und Pediküre — mit vegetarischen Lacken und sauberer Technik.",
+    tagline="Maniküre, Gel und Pediküre — mit veganen Lacken und sauberer Technik.",
     about=(
         "Drei Arbeitsplätze in Wald, Termine bis 20 Uhr. Wir sterilisieren jedes Werkzeug "
         "im Autoklav, arbeiten ohne Acrylgeruch und zeigen Ihnen die Farbe vorher am Nagel."
@@ -215,7 +214,6 @@ RUHEPOL = Biz(
             "Gutschein Ganzkörpermassage 59 €",
             "Zum Verschenken — ein Jahr gültig.",
             price="59.00",
-            was="65.00",
             ends="none",
             response="show",
             photo="sg-massage",
@@ -247,7 +245,7 @@ SCHAUMKRONE = Biz(
     phone="+49 212 5551705",
     accent="#0891b2",
     hero_photo="pflege-bad-uebersicht",
-    tagline="Seifen, feste Shampoos und Öle — von Hand gesiedet in Gräfrath.",
+    tagline="Seifen, feste Shampoos und Öle — von Hand gerührt in Gräfrath.",
     about=(
         "Kleine Siederei mit Laden: kaltgerührte Seifen aus Pflanzenölen, feste Shampoos ohne "
         "Plastik, Bartöl und Körperöl. Alles vegan, Düfte aus ätherischen Ölen."

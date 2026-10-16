@@ -158,7 +158,6 @@ KLINGENQUELLE = Biz(
                     ingredients="Natürliches Mineralwasser, Kohlensäure",
                     unit="l",
                     content="8.4",
-                    vat="7.00",
                     origin="Bergisches Land",
                 ),
                 Item(
@@ -169,7 +168,6 @@ KLINGENQUELLE = Biz(
                     ingredients="Orangensaft",
                     unit="l",
                     content="6",
-                    vat="7.00",
                 ),
                 Item(
                     "Pils, 20 × 0,5 l",
@@ -200,7 +198,6 @@ KLINGENQUELLE = Biz(
                     ingredients="Wasser, Zucker, Zitronensaft, Kohlensäure",
                     unit="l",
                     content="3.96",
-                    vat="7.00",
                 ),
             ),
         ),
@@ -218,7 +215,6 @@ KLINGENQUELLE = Biz(
             "Fassbier-Verleih: Zapfanlage 19 €",
             "Zapfanlage mit CO₂ für Ihre Feier — zum 30-l-Fass dazu.",
             price="19.00",
-            was="29.00",
             ends="none",
             response="inquire",
             photo="cola-glass",
@@ -325,7 +321,7 @@ OBSTHOF_AM_HANG = Biz(
         ),
         Offer(
             "Selbstpflücke Äpfel: 1,50 €/kg",
-            "Körbe gibt es am Stand — Wochenende 10–17 Uhr.",
+            "Körbe gibt es am Stand — Samstag 10–16 Uhr.",
             price="1.50",
             was="2.90",
             ends="14d",
@@ -454,7 +450,7 @@ BERGBOHNE = Biz(
     tagline="Trommelgeröstet in Solingen — jede Woche frisch.",
     about=(
         "Kleine Rösterei mit Laden und drei Tischen. Wir rösten dienstags und freitags, "
-        "verkaufen ab 250 g und erklären gern, warum die Bohne so schmeckt, wie sie schmeckt."
+        "verkaufen ab 100 g und erklären gern, warum die Bohne so schmeckt, wie sie schmeckt."
     ),
     hours="laden",
     usp=("hausgemacht", "beratung", "versand"),
@@ -538,7 +534,6 @@ BERGBOHNE = Biz(
             "Probierpaket 3 × 100 g für 9,90 €",
             "Espresso, Filter und Entkoffeiniert zum Kennenlernen.",
             price="9.90",
-            was="12.00",
             ends="none",
             response="show",
             photo="kaffee-tee-uebersicht",

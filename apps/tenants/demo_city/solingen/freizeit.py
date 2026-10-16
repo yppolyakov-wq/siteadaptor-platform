@@ -47,6 +47,7 @@ LICHTSPIEL = Biz(
             80,
             "Sonntagnachmittag für Familien — Popcorn klein inklusive.",
             "sg-kino-kinder",
+            weekday=6,
         ),
         Ev(
             "Klassiker am Sonntag: Stummfilm mit Live-Piano",
@@ -56,6 +57,7 @@ LICHTSPIEL = Biz(
             80,
             "Begleitet am Flügel — ein Abend wie 1925.",
             "sg-kino-piano",
+            weekday=6,
         ),
         Ev(
             "Dokumentarfilm & Regiegespräch",
@@ -83,7 +85,6 @@ LICHTSPIEL = Biz(
             "5er-Karte 40 €",
             "Fünf Vorstellungen nach Wahl, übertragbar, ein Jahr gültig.",
             price="40.00",
-            was="47.50",
             ends="none",
             response="show",
             photo="sg-kino-karten",
@@ -99,7 +100,7 @@ STEILWAND = Biz(
     category="sport",
     district="burg-hoehscheid",
     street="Mühlensteig",
-    house="8",
+    house="10",
     lat="51.1500",
     lng="7.1050",
     phone="+49 212 5551902",
@@ -108,7 +109,7 @@ STEILWAND = Biz(
     tagline="Bouldern und Seilklettern bis 14 Meter — Einsteigerkurse jedes Wochenende.",
     about=(
         "Halle in einer alten Schleiferei: 900 m² Kletterfläche, Boulderbereich, Kinderwand, "
-        "Café mit Blick auf die Wand. Leihausrüstung vor Ort, Kurse mit DAV-Trainern."
+        "Café mit Blick auf die Wand. Leihausrüstung vor Ort, Kurse mit lizenzierten Trainerinnen und Trainern."
     ),
     hours="freizeit",
     usp=("kinder", "parken", "zahlung"),
@@ -198,13 +199,14 @@ DREHSCHEIBE = Biz(
         Ev(
             "Anfängerkurs Drehscheibe (4 Abende)",
             8,
-            18,
+            17,
             "149.00",
             6,
             "Vier Dienstagabende, Ton und Brand inklusive.",
             "sg-toepferscheibe",
             theme="klang",
             duration_hours=3,
+            weekday=1,
         ),
         Ev(
             "Töpfern für Kinder (ab 7)",
@@ -226,6 +228,7 @@ DREHSCHEIBE = Biz(
             "sg-toepfer-werkstatt",
             theme="klang",
             duration_hours=3,
+            weekday=4,
         ),
     ),
     offers=(
@@ -233,7 +236,6 @@ DREHSCHEIBE = Biz(
             "Gutschein Anfängerkurs 139 €",
             "Zum Verschenken — Termin frei wählbar, ein Jahr gültig.",
             price="139.00",
-            was="149.00",
             ends="none",
             response="show",
             photo="sg-toepfer-becher",
@@ -375,7 +377,6 @@ FUNKENSCHLAG = Biz(
             "Kulturabo: 4 Abende 50 €",
             "Vier Veranstaltungen nach Wahl in dieser Saison.",
             price="50.00",
-            was="58.00",
             ends="none",
             response="show",
             photo="sg-buehne-keller",
@@ -414,6 +415,7 @@ ABENTEUERWIESE = Biz(
             "Tiere füttern, Traktor fahren, Waffeln — Kinder bis 3 frei.",
             "bbq-family",
             duration_hours=6,
+            weekday=6,
         ),
         Ev(
             "Laternenabend auf dem Hof",

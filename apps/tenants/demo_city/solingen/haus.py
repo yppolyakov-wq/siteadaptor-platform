@@ -259,7 +259,7 @@ GRUENSPROSS = Biz(
     tagline="Stauden, Kräuter und Gemüsejungpflanzen aus eigener Anzucht.",
     about=(
         "Gärtnerei mit Gewächshäusern in Wald: Stauden für den bergischen Boden, "
-        "Kräuter in Bio-Qualität, im Frühjahr Tomaten- und Paprikajungpflanzen. Beratung am Beet."
+        "Kräuter ungespritzt, im Frühjahr Tomaten- und Paprikajungpflanzen. Beratung am Beet."
     ),
     hours="lebensmittel",
     usp=("regional", "bio", "beratung"),
@@ -274,20 +274,29 @@ GRUENSPROSS = Biz(
                     "4.90",
                     "Winterhart, für Sonne.",
                     "sg-lavendel-pflanze",
+                    vat="7.00",
                 ),
                 Item(
                     "Kräuterset 6 Töpfe",
                     "14.90",
                     "Basilikum, Schnittlauch, Petersilie, Thymian, Minze, Rosmarin.",
                     "sg-kraeuter-pflanze",
+                    vat="7.00",
                 ),
                 Item(
                     "Tomatenjungpflanze",
                     "2.90",
                     "Sorte nach Saison, veredelt.",
                     "sg-tomaten-pflanze",
+                    vat="7.00",
                 ),
-                Item("Staude Sonnenhut", "6.50", "Echinacea, 1-l-Topf.", "sg-staude-pflanze"),
+                Item(
+                    "Staude Sonnenhut",
+                    "6.50",
+                    "Echinacea, 1-l-Topf.",
+                    "sg-staude-pflanze",
+                    vat="7.00",
+                ),
                 Item(
                     "Blumenerde torffrei, 40 l",
                     "9.90",

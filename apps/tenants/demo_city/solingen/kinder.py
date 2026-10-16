@@ -16,8 +16,8 @@ WOLKE7 = Biz(
     district="ohligs-aufderhoehe-merscheid",
     street="Merscheider Weg",
     house="11",
-    lat="51.1700",
-    lng="7.0300",
+    lat="51.1710",
+    lng="7.0280",
     phone="+49 212 5552001",
     accent="#be185d",
     hero_photo="mode-kat-baby",
@@ -36,13 +36,13 @@ WOLKE7 = Biz(
             "babybedarf",
             (
                 Item(
-                    "Babybody Muschel, 3er-Pack",
+                    "Babybody Wölkchen, 3er-Pack",
                     "24.90",
                     "Bio-Baumwolle, Gr. 56–80.",
                     "sg-babybody",
                 ),
                 Item(
-                    "Strickjacke Wolke",
+                    "Strickjäckchen Himmelblau",
                     "34.90",
                     "Merinowolle, Gr. 62–86.",
                     "sg-babyjacke-strick",
@@ -78,7 +78,7 @@ WOLKE7 = Biz(
             response="show",
             photo="mode-set-erstausstattung",
             group="Saison",
-            item="Babybody Muschel, 3er-Pack",
+            item="Babybody Wölkchen, 3er-Pack",
             tags=("nachhaltig",),
         ),
         Offer(
@@ -152,7 +152,6 @@ PURZELBAUM = Biz(
             "10er-Karte Kinderkurs 79 €",
             "Zehn Stunden, für Geschwister übertragbar.",
             price="79.00",
-            was="90.00",
             ends="none",
             response="show",
             photo="sg-kinder-bewegung",
@@ -178,7 +177,7 @@ KREISEL = Biz(
     tagline="Holzspielzeug, Brettspiele und Bastelbedarf — mit Spieletisch zum Ausprobieren.",
     about=(
         "Spielwarenladen am Lindenplatz: Holzspielzeug europäischer Hersteller, Brettspiele "
-        "für jedes Alter, Puzzle, Bastelmaterial. Jeden Samstag Spielenachmittag."
+        "für jedes Alter, Puzzle, Bastelmaterial. Jeden Samstagvormittag Spielerunde."
     ),
     hours="laden",
     usp=("beratung", "geschenk", "zahlung"),
@@ -218,14 +217,15 @@ KREISEL = Biz(
     ),
     events=(
         Ev(
-            "Spielenachmittag für Familien",
+            "Spielerunde für Familien",
             4,
-            15,
+            10,
             "0.00",
             16,
             "Neue Brettspiele erklärt und ausprobiert — kostenlos.",
             "sg-brettspiel",
             duration_hours=3,
+            weekday=5,
         ),
     ),
     offers=(
@@ -249,9 +249,9 @@ LESERATTE = Biz(
     category="kinder-aktivitaeten",
     district="burg-hoehscheid",
     street="Schlossblick",
-    house="2",
-    lat="51.1380",
-    lng="7.1500",
+    house="4",
+    lat="51.1390",
+    lng="7.1480",
     phone="+49 212 5552004",
     accent="#0f766e",
     hero_photo="sg-kinderbuch-regal",
@@ -308,6 +308,7 @@ LESERATTE = Biz(
             "Jeden Mittwoch — 45 Minuten Geschichten, kostenlos.",
             "sg-kinderbuch-bilder",
             duration_hours=1,
+            weekday=2,
         ),
         Ev(
             "Autorenlesung für Kinder",
@@ -322,8 +323,8 @@ LESERATTE = Biz(
     ),
     offers=(
         Offer(
-            "Schulanfang: Erstleser 3 für 2",
-            "Drei Erstlesebücher kaufen, das günstigste geschenkt.",
+            "Schulanfang: Lesetagebuch geschenkt",
+            "Ab drei Erstlesebüchern gibt es das Lesetagebuch mit Stickern dazu.",
             ends="14d",
             response="show",
             photo="sg-kinderbuch-erstleser",

@@ -12,8 +12,8 @@ NETZKNOTEN = Biz(
     district="ohligs-aufderhoehe-merscheid",
     street="Bahnhofsgasse",
     house="33",
-    lat="51.1655",
-    lng="7.0050",
+    lat="51.1665",
+    lng="7.0030",
     phone="+49 212 5552301",
     accent="#1d4ed8",
     hero_photo="sg-it-service",
@@ -95,7 +95,7 @@ WAERMEWENDE = Biz(
             "Sanierungsfahrplan",
             480,
             "1290.00",
-            "Förderfähig — Zuschuss bis 80 % möglich.",
+            "Förderfähig — Zuschuss möglich.",
             "sg-sanierungsplan",
         ),
     ),
@@ -129,7 +129,7 @@ BLUETENWEISS = Biz(
     tagline="Hemden, Anzüge, Daunen und Gardinen — gereinigt in eigener Werkstatt, nicht verschickt.",
     about=(
         "Reinigung in der Innenstadt mit eigener Maschine im Haus: Express bis 17 Uhr, "
-        "Hemdenservice, Lederpflege, Teppichwäsche. Umweltfreundliches Lösemittel seit 2015."
+        "Hemdenservice, Lederpflege, Teppichwäsche. Lösemittel im geschlossenen Kreislauf seit 2015."
     ),
     hours="laden",
     usp=("schnell", "nachhaltig", "zahlung"),

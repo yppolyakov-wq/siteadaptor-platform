@@ -100,6 +100,19 @@ def test_no_photo_file_shared_by_two_solingen_businesses():
     assert not shared, shared
 
 
+def test_addresses_and_coordinates_unique_in_city():
+    """Ревью DCC: два бизнеса в одном доме / одной точке карты — дефект данных
+    (на карте портала они слипаются, в адресах демо выглядят подделкой)."""
+    seen_addr, seen_geo = {}, {}
+    for biz in businesses():
+        addr = (biz.district, biz.street, biz.house)
+        geo = (biz.lat, biz.lng)
+        assert addr not in seen_addr, (biz.key, seen_addr[addr], addr)
+        assert geo not in seen_geo, (biz.key, seen_geo[geo], geo)
+        seen_addr[addr] = biz.key
+        seen_geo[geo] = biz.key
+
+
 def test_predicted_categories_known():
     for biz in BIZ.values():
         for key in validate.predicted_categories(biz):

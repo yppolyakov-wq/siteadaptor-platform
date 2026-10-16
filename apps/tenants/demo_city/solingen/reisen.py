@@ -310,9 +310,9 @@ WUPPERAUE = Biz(
     offers=(
         Offer(
             "Wanderwochenende: 2 Nächte + Lunchpaket 169 €",
-            "Pro Person im Doppelzimmer, Frühstück inklusive.",
+            "Pro Doppelzimmer, Frühstück und Lunchpakete inklusive.",
             price="169.00",
-            was="198.00",
+            was="178.00",
             ends="14d",
             response="show",
             photo="sg-zimmer-wald",

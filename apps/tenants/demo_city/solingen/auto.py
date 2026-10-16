@@ -267,7 +267,7 @@ KLINGENMOBIL = Biz(
     offers=(
         Offer(
             "Umzugs-Wochenende: Transporter Fr–Mo 199 €",
-            "Freitag 14 Uhr bis Montag 9 Uhr — statt 267 €.",
+            "Freitag 14 Uhr bis Montag 10 Uhr — statt 267 €.",
             price="199.00",
             was="267.00",
             ends="14d",

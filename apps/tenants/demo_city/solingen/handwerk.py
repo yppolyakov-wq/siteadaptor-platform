@@ -115,7 +115,7 @@ FARBENFROH = Biz(
     offers=(
         Offer(
             "Winterpreis: Innenanstrich −10 %",
-            "Für alle Aufträge mit Ausführung bis Ende Februar.",
+            "Für alle Aufträge, die bis Ende des Monats beauftragt werden.",
             percent=10,
             ends="14d",
             response="inquire",
@@ -171,8 +171,8 @@ SCHRAUBGUT = Biz(
     ),
     offers=(
         Offer(
-            "Samstagsmontage ohne Aufschlag",
-            "Diesen Monat samstags zum Wochentagspreis.",
+            "Abendmontage ohne Aufschlag",
+            "Diesen Monat auch nach 16 Uhr zum Tagespreis.",
             ends="14d",
             response="inquire",
             photo="handyman-tools",

@@ -84,6 +84,7 @@ class Ev:
     photo: str = ""
     theme: str = ""
     duration_hours: int = 2
+    weekday: int | None = None  # 0=Mo…6=So: дата сдвигается к ближайшему такому дню ≥ in_days
 
 
 @dataclass(frozen=True)

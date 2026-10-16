@@ -34,7 +34,7 @@ LOTUSBLICK = Biz(
             "Yin Yoga (Gruppe)",
             75,
             "14.00",
-            "Ruhig, lange gehaltene Haltungen — Mi 19:30.",
+            "Ruhig, lange gehaltene Haltungen — Mi 18:30.",
             "yoga-nature",
         ),
         Svc("Einzelstunde", 60, "65.00", "Auf Ihre Fragen zugeschnitten.", "yoga-teacher-woman"),
@@ -50,6 +50,7 @@ LOTUSBLICK = Biz(
             "yoga-forest",
             theme="yoga",
             duration_hours=3,
+            weekday=6,
         ),
         Ev(
             "Einführung Meditation",
@@ -76,7 +77,6 @@ LOTUSBLICK = Biz(
             "10er-Karte 119 €",
             "Zehn Gruppenstunden, kein Ablaufdatum.",
             price="119.00",
-            was="140.00",
             ends="none",
             response="show",
             photo="yoga-products",
@@ -101,7 +101,7 @@ BEWEGUNGSRAUM = Biz(
     tagline="Physiotherapie mit Rezept und als Selbstzahler — Termine auch am frühen Morgen.",
     about=(
         "Praxis mit vier Behandlungsräumen und Trainingsfläche in der Innenstadt. Alle "
-        "Kassen, Termine ab 7 Uhr, barrierefrei im Erdgeschoss."
+        "Kassen, Termine ab 8 Uhr, barrierefrei im Erdgeschoss."
     ),
     hours="praxis",
     usp=("termin", "barrierefrei", "parken"),
@@ -130,7 +130,7 @@ BEWEGUNGSRAUM = Biz(
     ),
     offers=(
         Offer(
-            "Frühtermine 7–8 Uhr frei",
+            "Frühtermine 8–9 Uhr frei",
             "Diese Woche noch Plätze vor der Arbeit — anrufen oder online buchen.",
             ends="week",
             response="show",
@@ -258,7 +258,7 @@ LINDENBLUETE = Biz(
                 Item(
                     "Energy Balls Dattel-Kakao, 6 Stück",
                     "4.50",
-                    "Ohne Zuckerzusatz, vegan.",
+                    "Ohne Zuckerzusatz (enthält von Natur aus Zucker), vegan.",
                     "energy-balls",
                     diets=("vegan",),
                     allergens=("h",),
@@ -346,8 +346,8 @@ WUPPERWELLE = Biz(
     ),
     offers=(
         Offer(
-            "Mittwoch ist Damentag",
-            "Mittwochs 10–15 Uhr Eintritt 22 € statt 29 €.",
+            "Mittwoch-Vormittag 22 €",
+            "Mittwochs 10–15 Uhr Eintritt 22 € statt 29 € — für alle.",
             price="22.00",
             was="29.00",
             ends="week",

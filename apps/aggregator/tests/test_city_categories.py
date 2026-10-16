@@ -127,6 +127,28 @@ def test_other_kinds_follow_rules(kind, snap, expected):
     assert (out["city_category"], out["city_tags"]) == expected
 
 
+@pytest.mark.parametrize(
+    ("city_category", "business_type", "expected"),
+    [
+        ("ferienwohnungen", "hotel", "ferienwohnungen"),  # DCC Р-3
+        ("hotels", "hotel", "hotels"),
+        ("touren", "tour_operator", "hotels"),  # койки тур-оператора — НЕ «Touren»
+        ("", "tour_operator", "hotels"),
+        ("yoga", "other", "hotels"),
+    ],
+)
+def test_stay_category_only_accommodation_follows_business(city_category, business_type, expected):
+    """DCC Р-3: номер уходит в категорию бизнеса ТОЛЬКО если это размещение
+    (Ferienwohnungen); любой другой раздел — Hotels & Pensionen, как раньше."""
+    tenant = TenantFactory(
+        schema_name="cat_stay",
+        slug="cat-stay",
+        city_category=city_category,
+        business_type=business_type,
+    )
+    assert tasks._city_fields("stay", tenant)["city_category"] == expected
+
+
 # --- фильтры -------------------------------------------------------------------------
 
 

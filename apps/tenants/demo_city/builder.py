@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from apps.core import districts
 
-from .spec import Biz, Offer
+from .spec import Biz, Ev, Offer
 
 ORIGIN = "city:solingen"
 CITY = "Solingen"
@@ -241,6 +241,19 @@ def _full_row_preset(n: int, default_cols: int) -> str | None:
     return f"cols{n}" if n <= 6 else None
 
 
+def _snap_in_days(e: Ev) -> int:
+    """Событие «am Sonntag»/«jeden Mittwoch»: сидер считает дату как now + in_days, поэтому
+    день недели в тексте совпадал бы только в удачный день сидинга. Сдвигаем к ближайшему
+    дню недели ≥ in_days (считается при сборке кита = при сидинге)."""
+    if e.weekday is None:
+        return e.in_days
+    from django.utils import timezone
+
+    today = timezone.localdate().weekday()
+    shift = (e.weekday - (today + e.in_days)) % 7
+    return e.in_days + shift
+
+
 def section_layouts_for(biz: Biz) -> dict:
     """Раскладки секций главной под число элементов спеки (полные ряды, DL-11)."""
     from apps.tenants import siteconfig
@@ -357,7 +370,7 @@ def build_kit(biz: Biz):
         events=[
             {
                 "title": e.title,
-                "in_days": e.in_days,
+                "in_days": _snap_in_days(e),
                 "hour": e.hour,
                 "duration_hours": e.duration_hours,
                 "capacity": e.capacity,

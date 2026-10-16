@@ -71,7 +71,7 @@ NADELSTREIF = Biz(
     offers=(
         Offer(
             "Zwei Hemden 119 €",
-            "Alle Oxford- und Flanellhemden — zwei zum Paketpreis.",
+            "Zwei Oxfordhemden zum Paketpreis.",
             price="119.00",
             was="138.00",
             ends="week",
@@ -307,7 +307,6 @@ RIEMENWERK = Biz(
             "Gürtel nach Maß 59 €",
             "Länge und Schnalle nach Wunsch — fertig in drei Tagen.",
             price="59.00",
-            was="69.00",
             ends="none",
             response="inquire",
             photo="leather-belt",
@@ -318,8 +317,8 @@ RIEMENWERK = Biz(
 )
 
 KLEIDERKREISEL = Biz(
-    key="sg_kleiderkreisel",
-    label="Second-Hand Kleiderkreisel",
+    key="sg_zweitschrank",
+    label="Second-Hand Zweitschrank",
     btype="clothing",
     category="damenmode",
     district="ohligs-aufderhoehe-merscheid",

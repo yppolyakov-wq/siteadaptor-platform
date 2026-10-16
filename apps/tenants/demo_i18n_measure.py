@@ -145,6 +145,11 @@ def _collect_models(kit, c: Collector, kk: str) -> None:
     for i, svc in enumerate(kit.services or []):
         if isinstance(svc, (tuple, list)) and svc:
             c.add("services", svc[0], f"{kk}:services[{i}].name")
+            # (name, minutes, price, desc, photo) — описание тоже переводится при сидинге
+            # (translate_tenant_content → Service.description_i18n); DCC-ревью нашло
+            # ~50 описаний услуг, невидимых замеру.
+            if len(svc) > 3 and isinstance(svc[3], str):
+                c.add("services", svc[3], f"{kk}:services[{i}].description")
         elif isinstance(svc, dict):
             c.add("services", svc.get("name"), f"{kk}:services[{i}].name")
             c.add("services", svc.get("description"), f"{kk}:services[{i}].description")
