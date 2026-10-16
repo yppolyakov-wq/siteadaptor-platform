@@ -903,6 +903,68 @@ def _offer_pool(portal):
     )
 
 
+# Блок Б3: сколько кандидатов сортировать по расстоянию и радиус «рядом».
+_NEIGHBOUR_CANDIDATES = 200
+_NEARBY_KM = 2
+
+
+def _offer_neighbours(listing, pool, *, shown) -> tuple[list, list]:
+    """(«Ähnliches», «Weitere Angebote in der Nähe») для страницы предложения.
+
+    «Ähnliches» — тот же вид и раздел каталога по всему городу (не «тот же район»:
+    свечи соседа не похожи на iPhone), ближайшие первыми; без раздела блока нет.
+    «Рядом» — любые предложения других бизнесов в радиусе 2 км или в том же районе (у
+    бизнеса без координат), без уже показанных. Не больше двух запросов, срезы ограничены."""
+    from . import geo
+
+    others = pool.exclude(tenant_schema=listing.tenant_schema)
+    lat, lng = listing.latitude, listing.longitude
+    has_point = lat is not None and lng is not None
+
+    def by_distance(items):
+        if not has_point:
+            return items
+        far = float("inf")
+        return sorted(
+            items,
+            key=lambda c: (
+                geo.haversine_km(float(lat), float(lng), float(c.latitude), float(c.longitude))
+                if c.latitude is not None and c.longitude is not None
+                else far
+            ),
+        )
+
+    similar = []
+    if listing.city_category:
+        cands = list(
+            others.filter(
+                listing_kind=listing.listing_kind, city_category=listing.city_category
+            ).order_by("-updated_at")[:_NEIGHBOUR_CANDIDATES]
+        )
+        similar = by_distance(cands)[:4]
+    skip = set(shown) | {c.pk for c in similar}
+    from django.db.models import Q
+
+    near_q = Q()
+    if has_point:
+        lat_min, lat_max, lng_min, lng_max = geo.bbox(float(lat), float(lng), _NEARBY_KM)
+        near_q |= Q(
+            latitude__gte=lat_min,
+            latitude__lte=lat_max,
+            longitude__gte=lng_min,
+            longitude__lte=lng_max,
+        )
+    if listing.district:  # бизнес без координат в своём районе — тоже «рядом»
+        near_q |= Q(district=listing.district)
+    if not near_q:
+        return similar, []
+    near_qs = others.filter(near_q)
+    cands = [
+        c for c in near_qs.exclude(pk__in=skip).order_by("-updated_at")[:_NEIGHBOUR_CANDIDATES]
+    ]
+    return similar, by_distance(cands)[:4]
+
+
 @cache_public_page
 def offer_page(request, pk):
     """T-8.24: страница одного предложения внутри портала (план t8-24-portal-offer-page-plan).
@@ -928,19 +990,9 @@ def offer_page(request, pk):
         return HttpResponsePermanentRedirect(f"{target}?{query}" if query else target)
     pool = _offer_pool(portal).exclude(pk=listing.pk)
     more = list(pool.filter(tenant_schema=listing.tenant_schema).order_by("-updated_at")[:4])
-    similar_qs = pool.exclude(tenant_schema=listing.tenant_schema)
-    if listing.district:
-        near = similar_qs.filter(district=listing.district)
-        if near.exists():
-            similar_qs = near
-    if listing.city_category:
-        same = similar_qs.filter(city_category=listing.city_category)
-        similar_qs = same if same.exists() else similar_qs.filter(listing_kind=listing.listing_kind)
-    else:
-        similar_qs = similar_qs.filter(listing_kind=listing.listing_kind)
-    similar = list(similar_qs.order_by("-updated_at")[:4])
-    attach_ratings([listing, *more, *similar])
-    _attach_open_status([listing, *more, *similar])
+    similar, nearby = _offer_neighbours(listing, pool, shown={c.pk for c in more})
+    attach_ratings([listing, *more, *similar, *nearby])
+    _attach_open_status([listing, *more, *similar, *nearby])
 
     # T-8.8: тип по виду листинга, продавец — полный LocalBusiness из публичных полей
     # тенанта (+1 запрос; страница кэшируется). Сирота без тенанта → фолбэк.
@@ -961,6 +1013,7 @@ def offer_page(request, pk):
             "listing": listing,
             "more": more,
             "similar": similar,
+            "nearby": nearby,  # блок Б3
             # Стратегия А: основная страница — у бизнеса; портал — промежуточный шаг.
             "canonical": listing.detail_url,
             "offer_jsonld": _dumps(ld),

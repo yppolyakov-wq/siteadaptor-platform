@@ -69,7 +69,8 @@ def test_offer_page_renders_with_cta_canonical_and_jsonld():
     assert resp.status_code == 200
     assert "Brotkorb" in html and "Frisch vom Morgen" in html
     # Кнопка ведёт на сайт бизнеса с атрибуцией портала.
-    assert 'href="https://baeckerei.siteadaptor.de/p/1/?ch=portal" data-offer-cta' in html
+    # Блок Б4: + язык портала (`&hl=`), в HTML амперсанд экранирован.
+    assert 'href="https://baeckerei.siteadaptor.de/p/1/?ch=portal&amp;hl=de" data-offer-cta' in html
     # Стратегия А: canonical — страница бизнеса.
     assert '<link rel="canonical" href="https://baeckerei.siteadaptor.de/p/1/">' in html
     assert '"@type":"Offer"' in html and '"price":"4.50"' in html
@@ -133,4 +134,6 @@ def test_feed_cards_fall_back_to_business_site_without_route():
     # Тенантный urlconf (роута нет) — карточка ведёт на сайт бизнеса, как раньше.
     listing = _listing()
     html = render_to_string("aggregator/_cards.html", {"items": [listing]})
-    assert listing.portal_url in html
+    from django.utils.html import escape
+
+    assert escape(listing.portal_url) in html

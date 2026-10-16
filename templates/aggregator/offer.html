@@ -71,8 +71,14 @@
 {% endif %}
 {% if similar %}
   <section class="mt-10" data-offer-similar>
-    <h2 class="text-lg font-bold mb-3">{% trans "Ähnliches in der Nähe" %}</h2>
+    <h2 class="text-lg font-bold mb-3">{% trans "Ähnliche Angebote" %}</h2>
     {% include "aggregator/_cards.html" with items=similar %}
+  </section>
+{% endif %}
+{% if nearby %}
+  <section class="mt-10" data-offer-nearby>
+    <h2 class="text-lg font-bold mb-3">{% trans "Weitere Angebote in der Nähe" %}</h2>
+    {% include "aggregator/_cards.html" with items=nearby %}
   </section>
 {% endif %}
 {% endblock %}

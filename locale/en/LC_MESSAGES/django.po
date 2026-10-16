@@ -24681,3 +24681,15 @@ msgid "%(n)s Treffer"
 msgid_plural "%(n)s Treffer"
 msgstr[0] "%(n)s result"
 msgstr[1] "%(n)s results"
+
+msgid "Ähnliche Angebote"
+msgstr "Similar offers"
+
+msgid "Weitere Angebote in der Nähe"
+msgstr "More offers nearby"
+
+msgid "Von %(firm)s"
+msgstr "From %(firm)s"
+
+msgid "Alle Angebote von %(firm)s"
+msgstr "All offers from %(firm)s"

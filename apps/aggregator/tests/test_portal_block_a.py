@@ -202,7 +202,7 @@ def test_business_page_has_website_and_excludes_itself_from_offers():
     html = reviews_views.business_page(_get(p, "/unternehmen/brot/"), "brot").content.decode()
     assert "Firmenkarte" not in html  # компания не среди своих предложений
     assert "Brotkorb" in html
-    assert "https://brot.siteadaptor.de/?ch=portal" in html  # «Zur Website»
+    assert "https://brot.siteadaptor.de/?ch=portal&amp;hl=de" in html  # «Zur Website» (+Б4 язык)
     assert "Handwerksbäckerei seit 1950" in html
     assert "Mo–Fr 7–18 Uhr" in html
     assert "application/ld+json" in html  # LocalBusiness-разметка (тип уточняется по виду бизнеса)
@@ -235,7 +235,7 @@ def test_with_channel_refuses_non_http_urls():
     lst = AggregatorListing(detail_url="javascript:alert(1)")
     assert lst.portal_url == ""
     assert (
-        AggregatorListing(detail_url="https://x.de/p/1/").portal_url
+        AggregatorListing(detail_url="https://x.de/p/1/").with_channel("portal")
         == "https://x.de/p/1/?ch=portal"
     )
 

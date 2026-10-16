@@ -267,6 +267,7 @@ def portal_home(request, facet=None, district=None):
     pool = search_engine.apply_filters(
         base_pool, search_engine.SearchFilters(kats=filters_eff.kats, tags=filters_eff.tags)
     )
+    pool, firm_groups = _split_firm_matches(pool, q_eff)  # блок Б5
     from . import query_intent
 
     # Блок Б1: при поиске — сначала «N Treffer» и карточки, уточнение (районы/отрасли/
@@ -401,6 +402,7 @@ def portal_home(request, facet=None, district=None):
             "district_label": district_label,
             "district_chips": district_chips,
             "chip_carry": chip_carry,  # блок А2
+            "firm_groups": firm_groups,  # блок Б5
             "searching": searching,  # блок Б1
             "hits": hits,
             "hits_capped": hits_capped,
@@ -479,6 +481,58 @@ def for_business(request):
             "free_promos": getattr(settings, "LITE_FREE_ACTIVE_PROMOS", 5),
         },
     )
+
+
+# Блок Б5: запрос — это имя фирмы («Pizzabote»)? Её позиции, совпавшие ТОЛЬКО по имени
+# (салат у пиццерии), не забивают выдачу, а уходят в группу «Von <Firma>».
+_FIRM_GROUP_LIMIT = 8
+_FIRM_MAX = 3
+_FIRM_SCAN = 50
+
+
+def _split_firm_matches(pool, q: str):
+    """(выдача без «совпавших по имени фирмы» позиций, [группы]). Группа — фирма, в имени
+    которой есть все значимые слова запроса; в группу уходят её позиции, в заголовке
+    которых нет ни одного слова запроса (карточка самой фирмы остаётся в выдаче)."""
+    from django.db.models import Q, TextField
+    from django.db.models.functions import Cast
+
+    from .search_index import fold
+
+    tokens = [t for t in fold(q or "").split() if len(t) >= 3]
+    if not tokens:
+        return pool, []
+    firms = []
+    for schema, slug, name in (
+        pool.order_by()
+        .values_list("tenant_schema", "tenant_slug", "business_name")
+        .distinct()[:_FIRM_SCAN]
+    ):
+        if all(t in fold(name or "") for t in tokens):
+            firms.append((schema, slug, name))
+        if len(firms) >= _FIRM_MAX:
+            break
+    if not firms:
+        return pool, []
+    pool = pool.annotate(_title_txt=Cast("title", TextField()))
+    title_hit = Q()
+    for t in tokens:
+        title_hit |= Q(_title_txt__icontains=t)
+    name_only = (
+        Q(tenant_schema__in=[f[0] for f in firms])
+        & ~Q(listing_kind=AggregatorListing.KIND_BUSINESS)
+        & ~title_hit
+    )
+    groups = []
+    for schema, slug, name in firms:
+        items = list(
+            pool.filter(name_only, tenant_schema=schema).order_by("-updated_at")[:_FIRM_GROUP_LIMIT]
+        )
+        if items:
+            groups.append({"name": name, "slug": slug, "items": items})
+    if not groups:
+        return pool, []
+    return pool.exclude(name_only), groups
 
 
 def _scope_pairs(scope) -> list[tuple[str, str]]:

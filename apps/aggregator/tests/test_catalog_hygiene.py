@@ -216,11 +216,15 @@ def test_portal_route_is_not_eaten_by_catch_all():
 def test_portal_links_carry_channel():
     TenantFactory(schema_name="biz_p", slug="biz-p")
     listing = _listing("biz_p")
-    assert listing.portal_url.endswith("/p/x/?ch=portal")
-    listing.detail_url = "https://x.siteadaptor.de/unterkunft/1/?von=2026-10-11"
-    assert listing.portal_url.endswith("&ch=portal")
-    listing.detail_url = "https://x.siteadaptor.de/p/1/?ch=flyer"
-    assert listing.portal_url.endswith("?ch=flyer")  # чужой канал не перезаписываем
+    from django.utils import translation
+
+    # Блок Б4: к каналу добавляется язык портала (`hl`) — здесь немецкий.
+    with translation.override("de"):
+        assert listing.portal_url.endswith("/p/x/?ch=portal&hl=de")
+        listing.detail_url = "https://x.siteadaptor.de/unterkunft/1/?von=2026-10-11"
+        assert listing.portal_url.endswith("&ch=portal&hl=de")
+        listing.detail_url = "https://x.siteadaptor.de/p/1/?ch=flyer"
+        assert listing.portal_url.endswith("?ch=flyer&hl=de")  # чужой канал не перезаписываем
 
 
 @pytest.mark.urls("config.urls_public")

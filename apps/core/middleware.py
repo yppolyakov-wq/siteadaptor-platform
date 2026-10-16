@@ -71,6 +71,26 @@ class StorefrontLocaleClampMiddleware:
             from django.utils import translation
 
             allowed = list(getattr(tenant, "active_locales", None) or [])
+            # Блок Б4: язык, переданный порталом города (`?hl=`), — только из включённых
+            # у бизнеса; запоминаем его кукой переключателя (следующие страницы — на нём).
+            hl = request.GET.get("hl", "")
+            if hl and hl in allowed:
+                translation.activate(hl)
+                request.LANGUAGE_CODE = hl
+                response = self.get_response(request)
+                from django.conf import settings
+
+                response.set_cookie(
+                    settings.LANGUAGE_COOKIE_NAME,
+                    hl,
+                    max_age=settings.LANGUAGE_COOKIE_AGE,
+                    path=settings.LANGUAGE_COOKIE_PATH,
+                    domain=settings.LANGUAGE_COOKIE_DOMAIN,
+                    secure=settings.LANGUAGE_COOKIE_SECURE,
+                    httponly=settings.LANGUAGE_COOKIE_HTTPONLY,
+                    samesite=settings.LANGUAGE_COOKIE_SAMESITE,
+                )
+                return response
             active = translation.get_language() or ""
             if allowed and active not in allowed:
                 default = getattr(tenant, "default_locale", "") or ""

@@ -24922,3 +24922,15 @@ msgstr[0] "%(n)s результат"
 msgstr[1] "%(n)s результата"
 msgstr[2] "%(n)s результатов"
 msgstr[3] "%(n)s результатов"
+
+msgid "Ähnliche Angebote"
+msgstr "Похожие предложения"
+
+msgid "Weitere Angebote in der Nähe"
+msgstr "Другие предложения рядом"
+
+msgid "Von %(firm)s"
+msgstr "От %(firm)s"
+
+msgid "Alle Angebote von %(firm)s"
+msgstr "Все предложения %(firm)s"

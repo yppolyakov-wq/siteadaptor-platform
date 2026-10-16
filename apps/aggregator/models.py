@@ -246,7 +246,7 @@ class AggregatorListing(I18nMixin, models.Model):
 
         return districts.label(self.city, self.district)
 
-    def with_channel(self, ch: str) -> str:
+    def with_channel(self, ch: str, lang: str = "") -> str:
         """T-8.8: ссылка на сайт бизнеса с атрибуцией канала `?ch=<ch>`.
 
         Витрина кладёт канал в сессию (`_capture_channel`), он доезжает до резерва,
@@ -261,15 +261,21 @@ class AggregatorListing(I18nMixin, models.Model):
         if parts.scheme not in ("http", "https"):
             return ""  # защита в глубину: в href уходит только http(s)
         query = parse_qsl(parts.query, keep_blank_values=True)
-        if any(k == "ch" for k, _v in query):
-            return url
-        query.append(("ch", ch))
+        if not any(k == "ch" for k, _v in query):
+            query.append(("ch", ch))
+        # Блок Б4: язык портала едет на сайт продавца (`hl`, не `lang` — тот занят
+        # фильтром языка событий); витрина примет его, только если он у бизнеса включён.
+        if lang and not any(k == "hl" for k, _v in query):
+            query.append(("hl", lang))
         return urlunsplit(parts._replace(query=urlencode(query)))
 
     @property
     def portal_url(self) -> str:
-        """T-8.6: ссылка с каталога города на бизнес с атрибуцией `?ch=portal`."""
-        return self.with_channel("portal")
+        """T-8.6: ссылка с каталога города на бизнес с атрибуцией `?ch=portal`;
+        блок Б4 — плюс язык, на котором открыт портал (`&hl=`)."""
+        from django.utils import translation
+
+        return self.with_channel("portal", lang=translation.get_language() or "")
 
     @property
     def is_featured_now(self) -> bool:

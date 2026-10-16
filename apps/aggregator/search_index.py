@@ -89,8 +89,10 @@ def _parts(listing) -> list[tuple[str, str, str]]:
         if teaser.get(code):
             parts.append((ts_config(code), str(teaser[code]), "C"))
     parts += [
-        ("german", listing.business_name or "", "B"),
-        ("simple", listing.business_name or "", "B"),
+        # Блок Б5: имя бизнеса — вес D (как город): совпадение по заголовку ранжируется
+        # выше, чем «нашлось потому, что так зовут фирму». Поиск по имени по-прежнему находит.
+        ("german", listing.business_name or "", "D"),
+        ("simple", listing.business_name or "", "D"),
         ("german", dishes, "B"),
         ("german", _labels(listing), "C"),
         ("simple", tags, "C"),

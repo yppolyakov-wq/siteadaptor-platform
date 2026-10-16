@@ -143,3 +143,172 @@ def test_entdecken_city_page_also_lists_first():
     html = views.city_listing(req, "Solingen").content.decode()
     assert 'src="https://unpkg.com/leaflet' not in html
     assert "data-map-toggle" in html
+
+
+# --- Б3: «Ähnliches» — тот же вид и категория по городу, ближайшие первыми ----------
+
+
+def _offer_html(portal, listing):
+    req = RequestFactory().get(f"/angebot/{listing.pk}/", HTTP_HOST=_HOST)
+    req.portal = portal
+    return views.offer_page(req, listing.pk).content.decode()
+
+
+def _section(html, marker):
+    if marker not in html:
+        return ""
+    part = html.split(marker, 1)[1]
+    return part.split("</section>", 1)[0]
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_similar_is_same_kind_and_category_not_same_district():
+    p = _portal()
+    phone = _listing(
+        listing_kind="product",
+        promo_uuid=None,
+        source_ref="iphone",
+        title={"de": "iPhone refurbished"},
+        city_category="smartphones",
+        district="wald",
+        latitude=51.170,
+        longitude=7.080,
+    )
+    _listing(
+        tenant_schema="t2",
+        listing_kind="product",
+        promo_uuid=None,
+        source_ref="kerzen",
+        title={"de": "Kerzen-Set"},
+        city_category="dekoration",
+        district="wald",
+    )
+    _listing(
+        tenant_schema="t3",
+        listing_kind="product",
+        promo_uuid=None,
+        source_ref="far",
+        title={"de": "Smartphone weit"},
+        city_category="smartphones",
+        district="mitte",
+        latitude=51.300,
+        longitude=7.200,
+    )
+    _listing(
+        tenant_schema="t4",
+        listing_kind="product",
+        promo_uuid=None,
+        source_ref="near",
+        title={"de": "Smartphone nah"},
+        city_category="smartphones",
+        district="mitte",
+        latitude=51.171,
+        longitude=7.081,
+    )
+    html = _offer_html(p, phone)
+    similar = _section(html, "data-offer-similar")
+    assert "Kerzen-Set" not in similar  # тот же район, но чужая категория
+    assert similar.index("Smartphone nah") < similar.index("Smartphone weit")
+    near = _section(html, "data-offer-nearby")
+    assert "Kerzen-Set" in near  # соседи по месту — отдельным блоком
+    assert "Smartphone nah" not in near  # уже показан в «Ähnliches»
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_no_similar_block_without_matches():
+    p = _portal()
+    lone = _listing(city_category="smartphones", district="wald")
+    _listing(tenant_schema="t2", title={"de": "Kerzen"}, city_category="dekoration")
+    html = _offer_html(p, lone)
+    assert "data-offer-similar" not in html
+
+
+# --- Б4: язык портала едет на сайт продавца ------------------------------------------
+
+
+def test_portal_url_carries_portal_language_but_feed_does_not():
+    from django.utils import translation
+
+    lst = AggregatorListing(detail_url="https://brot.siteadaptor.de/p/1/")
+    with translation.override("ru"):
+        assert lst.portal_url == "https://brot.siteadaptor.de/p/1/?ch=portal&hl=ru"
+    assert "hl=" not in lst.with_channel("feed")
+
+
+def _storefront_get(path, tenant):
+    from apps.core.middleware import StorefrontLocaleClampMiddleware
+
+    seen = {}
+
+    def view(request):
+        from django.http import HttpResponse
+        from django.utils import translation
+
+        seen["lang"] = translation.get_language()
+        return HttpResponse("ok")
+
+    req = RequestFactory().get(path)
+    req.tenant = tenant
+    return StorefrontLocaleClampMiddleware(view)(req), seen
+
+
+def test_storefront_accepts_hl_only_from_enabled_locales():
+    from types import SimpleNamespace
+
+    from django.conf import settings
+    from django.utils import translation
+
+    tenant = SimpleNamespace(schema_name="t1", active_locales=["de", "en"], default_locale="de")
+    with translation.override("de"):
+        resp, seen = _storefront_get("/p/1/?hl=en", tenant)
+        assert seen["lang"] == "en"
+        assert resp.cookies[settings.LANGUAGE_COOKIE_NAME].value == "en"
+    with translation.override("de"):
+        resp, seen = _storefront_get("/p/1/?hl=ru", tenant)  # у бизнеса нет русского
+        assert seen["lang"] == "de"
+        assert settings.LANGUAGE_COOKIE_NAME not in resp.cookies
+
+
+# --- Б5: позиции фирмы, найденные только по её имени, — группой «Von <Firma>» ----------
+
+
+def _pizzabote():
+    common = {"tenant_schema": "pb", "tenant_slug": "pizzabote", "business_name": "Pizzabote Wald"}
+    _listing(
+        **common,
+        listing_kind="business",
+        promo_uuid=None,
+        source_ref="biz",
+        title={"de": "Pizzabote Wald"},
+    )
+    _listing(**common, title={"de": "Caesar Salat"})
+    _listing(**common, title={"de": "Pasta Arrabbiata"})
+    _listing(**common, title={"de": "Pizza Funghi"})
+    _listing(
+        tenant_schema="other",
+        tenant_slug="o",
+        business_name="Trattoria",
+        title={"de": "Salat Caprese"},
+    )
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_firm_name_query_groups_items_matched_only_by_name():
+    p = _portal()
+    _pizzabote()
+    html = _html(p, "/?q=Pizzabote")
+    group = html.split("data-firm-group", 1)[1].split("</section>", 1)[0]
+    assert "Caesar Salat" in group and "Pasta Arrabbiata" in group
+    main = html.split("data-firm-group", 1)[1].split("</section>", 1)[1]  # лента после группы
+    assert "Caesar Salat" not in main and "Pasta Arrabbiata" not in main
+    assert "Pizzabote Wald" in main  # карточка самой фирмы — в выдаче
+    assert "/unternehmen/pizzabote/" in group  # «Alle Angebote von …»
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_plain_word_query_keeps_firm_items_in_main_feed():
+    p = _portal()
+    _pizzabote()
+    html = _html(p, "/?q=Salat")
+    assert "data-firm-group" not in html
+    assert "Caesar Salat" in html and "Salat Caprese" in html

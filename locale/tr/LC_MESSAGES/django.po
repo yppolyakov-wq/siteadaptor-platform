@@ -24808,3 +24808,15 @@ msgid "%(n)s Treffer"
 msgid_plural "%(n)s Treffer"
 msgstr[0] "%(n)s sonuç"
 msgstr[1] "%(n)s sonuç"
+
+msgid "Ähnliche Angebote"
+msgstr "Benzer teklifler"
+
+msgid "Weitere Angebote in der Nähe"
+msgstr "Yakındaki diğer teklifler"
+
+msgid "Von %(firm)s"
+msgstr "İşletme: %(firm)s"
+
+msgid "Alle Angebote von %(firm)s"
+msgstr "Tüm teklifler: %(firm)s"

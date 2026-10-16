@@ -24903,3 +24903,15 @@ msgstr[0] "%(n)s результат"
 msgstr[1] "%(n)s результати"
 msgstr[2] "%(n)s результатів"
 msgstr[3] "%(n)s результатів"
+
+msgid "Ähnliche Angebote"
+msgstr "Схожі пропозиції"
+
+msgid "Weitere Angebote in der Nähe"
+msgstr "Інші пропозиції поруч"
+
+msgid "Von %(firm)s"
+msgstr "Від %(firm)s"
+
+msgid "Alle Angebote von %(firm)s"
+msgstr "Усі пропозиції %(firm)s"

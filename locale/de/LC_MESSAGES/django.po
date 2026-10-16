@@ -24727,3 +24727,15 @@ msgid "%(n)s Treffer"
 msgid_plural "%(n)s Treffer"
 msgstr[0] "%(n)s Treffer"
 msgstr[1] "%(n)s Treffer"
+
+msgid "Ähnliche Angebote"
+msgstr "Ähnliche Angebote"
+
+msgid "Weitere Angebote in der Nähe"
+msgstr "Weitere Angebote in der Nähe"
+
+msgid "Von %(firm)s"
+msgstr "Von %(firm)s"
+
+msgid "Alle Angebote von %(firm)s"
+msgstr "Alle Angebote von %(firm)s"
