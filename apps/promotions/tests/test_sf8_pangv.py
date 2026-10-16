@@ -287,10 +287,13 @@ def test_demo_surprise_bags_carry_perishable_flag():
     assert demo_kits.apply_kit(tenant, "aktionsmarkt") is True
     bags = Promotion.objects.filter(is_surprise=True)
     assert bags.exists()
-    assert all(p.is_perishable for p in bags)
+    # Флаг владельца лежит у всех; действует (`is_perishable`) только у товарных —
+    # у свободной Überraschungstüte 30-дневного минимума нет и так (security M1).
+    assert all(p.metadata.get("perishable") is True for p in bags)
+    assert all(p.is_perishable == bool(p.product_id or p.combo_id) for p in bags)
     # exclude по отсутствующему JSON-ключу = NULL-семантика → сверяем в Python.
     others = Promotion.objects.filter(is_surprise=False)
-    assert others.exists() and not any(p.is_perishable for p in others)
+    assert others.exists() and not any(p.metadata.get("perishable") for p in others)
 
 
 def test_flag_is_inert_on_non_goods():

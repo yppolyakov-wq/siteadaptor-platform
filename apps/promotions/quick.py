@@ -303,8 +303,11 @@ def initial_from(promo) -> dict:
     }
     if promo.available_quantity:
         initial["quantity"] = promo.available_quantity
-    if promo.is_perishable:
-        initial["perishable"] = True  # SF-8b: «Wiederholen» переносит исключение Abs. 4
+    meta = promo.metadata if isinstance(promo.metadata, dict) else {}
+    if meta.get("perishable"):
+        # SF-8b: «Wiederholen» переносит выбор владельца как есть (действует он только
+        # у товара — `is_perishable`; у свободной акции флаг хранится, но инертен).
+        initial["perishable"] = True
     chosen = resp.chosen(promo)
     if chosen:
         initial["customer_response"] = chosen
