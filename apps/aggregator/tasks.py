@@ -1203,16 +1203,41 @@ def resync_on_product_save(sender, instance, **kwargs):
     )
 
 
-def resync_on_category_save(sender, instance, **kwargs):
-    """T-8.26 S2: правка категории (is_active / hide_in_city / родитель) меняет видимость
-    ВСЕЙ ветки товаров → реконсиляция видов каталога, а не точечный синк (детей не перечисляем)."""
-    from django.db import connection
+# T-8.26 S2: поля категории, от которых зависит видимость ветки в каталоге города.
+_CATEGORY_VISIBILITY_FIELDS = frozenset(
+    {"is_active", "hide_in_city", "parent", "parent_id", "deleted_at", "city_category"}
+)
+_CATEGORY_RECONCILE_BUCKET = 30  # с: все правки окна коалесцируются в ОДНУ реконсиляцию
 
-    stamp = instance.updated_at.timestamp() if getattr(instance, "updated_at", None) else 0
-    _on_commit_sync(
-        reconcile_city_catalog,
-        f"agg-category:{instance.id}:{stamp}",
-        tenant_schema=connection.schema_name,
+
+def resync_on_category_save(sender, instance, created=False, update_fields=None, **kwargs):
+    """post_save/post_delete Category: правка категории меняет видимость ВСЕЙ ветки
+    товаров → реконсиляция видов каталога схемы, а не точечный синк (детей не
+    перечисляем).
+
+    Троттлинг (ревью): ключ — схема + окно 30 с, задача ставится с countdown на ширину
+    окна, поэтому к моменту запуска все правки окна уже закоммичены и N сохранений
+    категорий (импорт, сидинг, перетаскивание) дают ОДНУ реконсиляцию, а не N полных
+    проходов по товарам. Удаление не несёт нового `updated_at` — ключ от него не зависит.
+    Новая категория товаров не имеет; правка не-видимостных полей (фото, сортировка,
+    шаблон) каталог города не меняет — такие сохранения пропускаются.
+    """
+    import time
+
+    from django.db import connection, transaction
+
+    if created:
+        return
+    if update_fields is not None and not (set(update_fields) & _CATEGORY_VISIBILITY_FIELDS):
+        return
+    schema = connection.schema_name
+    bucket = int(time.time() // _CATEGORY_RECONCILE_BUCKET)
+    dedupe = f"agg-category-reconcile:{schema}:{bucket}"
+    transaction.on_commit(
+        lambda: reconcile_city_catalog.apply_async(
+            kwargs={"dedupe_key": dedupe, "tenant_schema": schema},
+            countdown=_CATEGORY_RECONCILE_BUCKET,
+        )
     )
 
 

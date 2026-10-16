@@ -264,12 +264,81 @@ def test_inactive_parent_category_hides_whole_branch():
     assert tasks.sync_product_listing("public", product.pk) == "removed"
 
 
-def test_category_save_queues_schema_reconcile(django_capture_on_commit_callbacks, monkeypatch):
+def _capture_category_reconcile(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        tasks.reconcile_city_catalog,
+        "apply_async",
+        lambda kwargs=None, countdown=None, **kw: calls.append((kwargs, countdown)),
+    )
+    return calls
+
+
+def test_category_visibility_change_queues_one_reconcile_per_window(
+    django_capture_on_commit_callbacks, monkeypatch
+):
+    _tenant()
+    calls = _capture_category_reconcile(monkeypatch)
+    with django_capture_on_commit_callbacks(execute=True):
+        a = Category.objects.create(name={"de": "Jacken"}, slug="jacken")
+        b = Category.objects.create(name={"de": "Hosen"}, slug="hosen")
+    assert calls == []  # новая категория товаров не имеет — реконсилировать нечего
+    with django_capture_on_commit_callbacks(execute=True):
+        a.hide_in_city = True
+        a.save()
+        b.is_active = False
+        b.save()
+    assert len(calls) == 2
+    kwargs, countdown = calls[0]
+    assert kwargs["tenant_schema"] == "public" and kwargs["dedupe_key"].startswith(
+        "agg-category-reconcile:public:"
+    )
+    # одно окно → один dedupe-ключ → idempotent_task выполнит ровно одну реконсиляцию,
+    # и она стартует после закрытия окна (все правки уже закоммичены)
+    assert calls[0][0]["dedupe_key"] == calls[1][0]["dedupe_key"]
+    assert countdown == tasks._CATEGORY_RECONCILE_BUCKET
+
+
+def test_category_cosmetic_save_does_not_queue_reconcile(
+    django_capture_on_commit_callbacks, monkeypatch
+):
     _tenant()
     category = Category.objects.create(name={"de": "Jacken"}, slug="jacken")
-    calls = []
-    monkeypatch.setattr(tasks.reconcile_city_catalog, "delay", lambda **kw: calls.append(kw))
+    calls = _capture_category_reconcile(monkeypatch)
+    with django_capture_on_commit_callbacks(execute=True):
+        category.sort_order = 5
+        category.save(update_fields=["sort_order"])
+    assert calls == []
+
+
+def test_category_hard_delete_queues_reconcile_even_after_recent_save(
+    django_capture_on_commit_callbacks, monkeypatch
+):
+    """Ревью: ключ от `updated_at` делал удаление дублем последнего сохранения."""
+    _tenant()
+    category = Category.objects.create(name={"de": "Jacken"}, slug="jacken")
+    calls = _capture_category_reconcile(monkeypatch)
     with django_capture_on_commit_callbacks(execute=True):
         category.hide_in_city = True
         category.save()
-    assert calls and calls[0]["tenant_schema"] == "public"
+        category.hard_delete()
+    assert len(calls) == 2 and all(c[0]["tenant_schema"] == "public" for c in calls)
+
+
+def test_reconcile_city_catalog_removes_branch_and_restores_it():
+    _tenant()
+    parent = Category.objects.create(name={"de": "Lager"}, slug="lager")
+    product = _product(category=parent)
+    assert tasks.sync_product_listing("public", product.pk) == "upserted"
+    parent.is_active = False
+    parent.save()
+    tasks.reconcile_city_catalog(tenant_schema="public")
+    assert not AggregatorListing.objects.filter(
+        listing_kind="product", source_ref=str(product.pk)
+    ).exists()
+    parent.is_active = True
+    parent.save()
+    tasks.reconcile_city_catalog(tenant_schema="public")
+    assert AggregatorListing.objects.filter(
+        listing_kind="product", source_ref=str(product.pk)
+    ).exists()

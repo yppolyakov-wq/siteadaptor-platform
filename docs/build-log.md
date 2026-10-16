@@ -17694,3 +17694,14 @@ NUL в запросе → шторм WARNING (управляющие симво�
   (`aggregator/tests/conftest.py`, приватный LocMem) на всех четырёх тестах лимита частоты
   агрегатора. Урок процесса: два хотфикса (`51b62a8`, `a0ad0e4`) ушли в `main` напрямую,
   минуя ветку — красный #2683 оказался флаком, но порядок «ветка → CI → FF» нарушать нельзя.
+
+## 2026-10-16 — T-8.26 S1+S2: исправления по аудиту портала Solingen (без миграций)
+Отчёт соседней сессии `docs/audits/siteadaptor-solingen-audit.md` перепроверен против
+`main` и влит; план очереди — `docs/t8-26-audit-fixes-plan-2026-10-16.md`. **S1:**
+`/unternehmen/<slug>/` и приёмник отзыва идут через `visibility.listable` + область
+портала как у `_offer_in_scope` (демо только с `show_demo`, свой город/тип; `/entdecken/`
+без ограничений). **S2:** `Category.is_active` скрывает ветку в каталоге города; хук
+`post_save/post_delete Category` → идемпотентная `reconcile_city_catalog` с троттлингом
+(схема + окно 30 с + countdown; ревью поймало N-кратную реконсиляцию и пропуск удаления
+по ключу от `updated_at`). Замки: test_reviews +3, test_city_products +5, test_follow
+переписан осознанно. Ревью django/security перед мержем — по требованию владельца.

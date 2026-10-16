@@ -29,10 +29,11 @@ def _portal_or_404(request):
 def _business_or_404(request, slug):
     """T-8.26 S1: карточка бизнеса подчиняется тем же правилам, что его листинги.
 
-    Одна точка истины — `visibility.listable` (приостановка, почта, согласие); демо —
-    только на портале с `show_demo` (на `/entdecken/` демо не бывает, зеркало
-    `views.py` ленты); городской/вертикальный портал показывает только свой город и
-    тип (зеркало `_offer_in_scope` T-8.24). Гейт наследуют все приёмники страницы.
+    Одна точка истины — `visibility.listable` (приостановка, почта, согласие); правило
+    области = `_offer_in_scope` (T-8.24): настоящий портал без `show_demo` демо не
+    показывает, городской/вертикальный портал — только свой город и тип; на главном
+    домене (`/entdecken/`, portal=None) ограничений нет, как у его ленты
+    (`include_demo=True`). Гейт наследуют все приёмники страницы.
     """
     from .visibility import listable
 
@@ -40,9 +41,9 @@ def _business_or_404(request, slug):
     if tenant is None or not listable(tenant):
         raise Http404
     portal = getattr(request, "portal", None)
-    if tenant.is_demo and not (portal is not None and portal.show_demo):
-        raise Http404
     if portal is not None:
+        if tenant.is_demo and not portal.show_demo:
+            raise Http404
         if portal.city and (tenant.city or "").lower() != portal.city.lower():
             raise Http404
         if portal.business_type and tenant.business_type != portal.business_type:

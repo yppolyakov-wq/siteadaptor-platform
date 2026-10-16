@@ -271,9 +271,12 @@ def test_demo_business_page_only_on_preview_portal():
     assert portal.show_demo is False
     with pytest.raises(Http404):
         reviews_views.business_page(_req(), slug=business.slug)
-    # /entdecken/ (без портала) демо не показывает никогда
-    with pytest.raises(Http404):
-        reviews_views.business_page(_req_without_portal(), slug=business.slug)
+    # /entdecken/ (без портала) показывает демо — как его лента (include_demo=True)
+    with override_settings(ROOT_URLCONF="config.urls_public"):
+        assert (
+            reviews_views.business_page(_req_without_portal(), slug=business.slug).status_code
+            == 200
+        )
     portal.show_demo = True
     portal.save(update_fields=["show_demo"])
     assert reviews_views.business_page(_req(), slug=business.slug).status_code == 200
@@ -294,3 +297,7 @@ def test_business_page_scoped_to_portal_city_and_type():
     business = _business(slug="werkstatt-typ")
     with pytest.raises(Http404):
         reviews_views.business_page(_req(), slug=business.slug)
+    # …а свой тип — виден (гейт не «всегда 404» при заданном типе)
+    business.business_type = "hotel"
+    business.save(update_fields=["business_type"])
+    assert reviews_views.business_page(_req(), slug=business.slug).status_code == 200
