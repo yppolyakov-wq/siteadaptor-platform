@@ -346,8 +346,9 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         return self.product.currency if self.product_id and self.product else "EUR"
 
     @property
-    def old_price(self):
-        """Старая цена: compare_at_price, иначе base_price товара, иначе None."""
+    def regular_price(self):
+        """Обычная цена — база расчёта акционной: compare_at_price, иначе base_price
+        товара, иначе None. Для ОБЪЯВЛЕНИЯ снижения не годится — см. `old_price`."""
         if self.compare_at_price is not None:
             return self._dec(self.compare_at_price)
         if self.product_id and self.product:
@@ -355,18 +356,55 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         return None
 
     @property
+    def prior_lowest_price(self):
+        """SF-7 (§11 PAngV): низшая цена товара/набора за 30 дней до старта акции
+        (история цены + прошлые акции) или None — `reference_price.prior_low`."""
+        from . import reference_price
+
+        return reference_price.prior_low(self)
+
+    @property
+    def old_price(self):
+        """Цена СРАВНЕНИЯ для витрины (зачёркнутая, «statt», база процента и
+        «Sie sparen»). SF-7: по EuGH C-330/23 / BGH I ZR 183/24 — не выше низшей
+        цены 30 дней до снижения; у товаров/наборов обычная цена ограничивается
+        `prior_lowest_price`. Услуги, номера, свободные акции — как прежде."""
+        regular = self.regular_price
+        if regular is None:
+            return None
+        low = self.prior_lowest_price
+        if low is not None and low < regular:
+            return self._dec(low)
+        return regular
+
+    @property
+    def reference_capped(self) -> bool:
+        """SF-7: цена сравнения урезана 30-дневным минимумом (подсказка владельцу)."""
+        regular = self.regular_price
+        return regular is not None and self.old_price is not None and self.old_price < regular
+
+    @property
     def new_price(self):
-        """Новая цена: price_override, иначе old_price со скидкой %, иначе old_price."""
-        old = self.old_price
+        """Новая цена: price_override, иначе обычная цена со скидкой %, иначе обычная."""
+        regular = self.regular_price
         if self.price_override is not None:
             return self._dec(self.price_override)
-        if self.discount_percent and old is not None:
+        if self.discount_percent and regular is not None:
             factor = (Decimal(100) - Decimal(int(self.discount_percent))) / Decimal(100)
-            return (old * factor).quantize(_CENTS, rounding=ROUND_HALF_UP)
-        return old
+            return (regular * factor).quantize(_CENTS, rounding=ROUND_HALF_UP)
+        return regular
+
+    @property
+    def lowers_price(self) -> bool:
+        """Ценовой слой: акционная цена ниже обычной — акция применяется к цене
+        (корзина, баннер товара). Объявлять ли СНИЖЕНИЕ — решает `has_discount`."""
+        regular, new = self.regular_price, self.new_price
+        return regular is not None and new is not None and new < regular
 
     @property
     def has_discount(self) -> bool:
+        """Можно ли объявить снижение (зачёркнутая цена, бейдж, «Sie sparen»):
+        акционная цена ниже цены сравнения `old_price` (SF-7)."""
         old, new = self.old_price, self.new_price
         return old is not None and new is not None and new < old
 
@@ -389,12 +427,29 @@ class Promotion(SoftDeleteMixin, I18nMixin):
 
     @property
     def discount_percent_display(self):
-        """Целый процент скидки для бейджа (−XX %)."""
-        if self.discount_percent:
+        """Целый процент скидки для бейджа (−XX %) — от цены сравнения (SF-7).
+        Введённый владельцем процент показывается как есть, только пока цена
+        сравнения равна обычной; урезанная — процент пересчитывается. Акция без
+        цены вовсе («−20 % auf alles») — процент владельца, как прежде."""
+        if self.discount_percent and self.regular_price is None:
             return int(self.discount_percent)
-        if self.has_discount and self.old_price > 0:
-            pct = (Decimal(1) - (self.new_price / self.old_price)) * Decimal(100)
-            return int(pct.to_integral_value(rounding=ROUND_HALF_UP))
+        if not self.has_discount:
+            return None
+        old = self.old_price
+        if self.discount_percent and self.price_override is None and old == self.regular_price:
+            return int(self.discount_percent)
+        if old > 0:
+            pct = (Decimal(1) - (self.new_price / old)) * Decimal(100)
+            return int(pct.to_integral_value(rounding=ROUND_HALF_UP)) or None
+        return None
+
+    @property
+    def lowest_30d_display(self):
+        """§11 PAngV: строка «Niedrigster Preis der letzten 30 Tage» — та же цена
+        сравнения; показываем, только когда история цены известна и снижение
+        объявлено (иначе честнее промолчать)."""
+        if self.has_discount and self.prior_lowest_price is not None:
+            return self.old_price
         return None
 
     # --- витрина: медиа и таймер ---------------------------------------

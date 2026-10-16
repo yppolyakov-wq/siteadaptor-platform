@@ -24700,3 +24700,10 @@ msgid ""
 msgstr ""
 "Dahili = test/ekip kaydı: şehir kataloğunda asla görünmez. Onay ve e-posta "
 "durumunu aksi hâlde işletme kendisi belirler."
+
+msgid "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion."
+msgstr "§ 11 PAngV: Fiyat indirimi yalnızca kampanyadan önceki son 30 günün en düşük fiyatına göre duyurulabilir."
+
+#, python-format
+msgid "Comparison price limited to %(price)s € (lowest price of the last 30 days)"
+msgstr "Karşılaştırma fiyatı %(price)s € ile sınırlandı (son 30 günün en düşük fiyatı)"

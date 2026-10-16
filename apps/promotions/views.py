@@ -179,6 +179,10 @@ def promotion_list(request):
 
     featured_enabled = billing_featured.is_enabled()
     promos = list(promos)
+    # SF-7: цена сравнения (§11 PAngV) — батчем, список показывает «statt» и подсказку.
+    from . import reference_price
+
+    reference_price.attach(promos)
     if featured_enabled and promos:
         from django.db import connection
         from django.utils import timezone as tz

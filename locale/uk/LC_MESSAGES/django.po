@@ -24791,3 +24791,10 @@ msgid ""
 msgstr ""
 "Внутрішній = тестова/командна реєстрація: ніколи не з'являється в каталозі "
 "міста. Згоду та статус e-mail в інших випадках задає сам бізнес."
+
+msgid "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion."
+msgstr "§ 11 PAngV: зниження ціни можна оголошувати лише відносно найнижчої ціни за останні 30 днів до акції."
+
+#, python-format
+msgid "Comparison price limited to %(price)s € (lowest price of the last 30 days)"
+msgstr "Ціну порівняння обмежено до %(price)s € (найнижча ціна за останні 30 днів)"
