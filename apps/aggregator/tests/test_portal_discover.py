@@ -462,7 +462,7 @@ def _tab_hrefs(html):
     return dict(re.findall(r'href="([^"]+)" data-portal-tab="([^"]+)"', html))
 
 
-def test_tabs_keep_kat_and_alle_does_not_leave_the_section():
+def test_tabs_keep_kat_and_alle_does_not_leave_the_section(isolated_ratelimit):
     portal = _portal()
     _seed_everything()
     # вкладки рисуются от двух групп видов в разделе → добавим услугу к товару «Brot»
@@ -473,7 +473,7 @@ def test_tabs_keep_kat_and_alle_does_not_leave_the_section():
     assert hrefs["alle"] != "/" and "kind=alle" in hrefs["alle"]
 
 
-def test_tab_hidden_when_section_has_no_such_kind():
+def test_tab_hidden_when_section_has_no_such_kind(isolated_ratelimit):
     portal = _portal()
     _seed_everything()  # события есть в разделе «Freizeit», но не в «Lebensmittel»
     _listing("service", "Backkurs", city_category="brot-backwaren")
@@ -481,7 +481,7 @@ def test_tab_hidden_when_section_has_no_such_kind():
     assert hrefs and "event" not in hrefs and "veranstaltungen" not in hrefs
 
 
-def test_section_entry_without_kind_shows_all_kinds_like_the_tile_count():
+def test_section_entry_without_kind_shows_all_kinds_like_the_tile_count(isolated_ratelimit):
     """Аудит §7.3-3: плитка «10», по ссылке 1 — вход в раздел без вида показывал только
     предложения. Теперь раздел без вида = все виды, то есть ровно то, что посчитала плитка."""
     portal = _portal()

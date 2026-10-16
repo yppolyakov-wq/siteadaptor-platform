@@ -545,7 +545,36 @@ def test_toponyms_only_query_finds_nothing_fuzzy():
     _listing("Messer aus Solingen")
     _listing("Burg Solingen Tour")
     out, titles = _found("Solingen-Wald", city="Solingen")
+    assert out.mode == "trigram" and titles == []
+
+
+def test_toponyms_apply_only_to_registry_cities():
+    """Ревью: в городе вне реестра «Burg»/«Wald» — обычные слова, фолбэк их не теряет."""
+    from apps.core import districts
+
+    assert districts.toponym_tokens("Hilden") == frozenset()
+    _listing("Burgführung am Abend", city="Hilden")
+    base = views.listings_for(city="Hilden")
+    out = search.execute(base, "Burgfuehrung", surface="test", city="Hilden")
+    assert [x.title["de"] for x in out.qs] == ["Burgführung am Abend"]
+
+
+def test_need_boundary_three_terms_one_hit_is_excluded():
+    _listing("Messer Santoku")
+    _, titles = _found("Mesesr Qqqqq Zzzzz", city="Solingen")  # n=3, совпало 1 < need=2
     assert titles == []
+
+
+def test_soft_step_runs_only_when_toponym_or_hyphen_changed_the_terms():
+    """Опечатка + топоним → мягкий точный поиск по оставшимся словам не поможет
+    (слово с опечаткой), дальше триграммы по значимым словам находят предмет."""
+    _listing("Herrenschnitt", business_name="Friseur Kamm")
+    _listing("Burg Solingen Tour")
+    out, titles = _found("Frisur in Solingen-Wald", city="Solingen")
+    assert out.mode == "trigram" and titles == ["Herrenschnitt"]
+    # цифра не «меняет состав»: «Messer 2000» → фолбэк по «messer», без мягкого шага
+    _listing("Messer Santoku")
+    assert search._significant(["messer", "2000"]) == {"messer"}
 
 
 def test_per_word_threshold_with_ballast_word():

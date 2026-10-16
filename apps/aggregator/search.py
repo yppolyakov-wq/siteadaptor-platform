@@ -38,6 +38,10 @@ SEARCH_MAX = 100  # символов запроса
 TOKEN_MAX = 30  # символов слова
 TERMS_MAX = 40  # подзапросов tsquery на весь поиск (слова × синонимы × конфигурации)
 SUBSTRING_MIN = 4  # слово от 4 букв ищется ещё и как часть слова («brot» → «Roggenbrot»)
+FALLBACK_MAX_TERMS = (
+    6  # слов в фолбэке опечаток (database-reviewer: стоимость ~ терминов × кандидатов)
+)
+FALLBACK_TIMEOUT_MS = 2000  # SET LOCAL statement_timeout на запрос фолбэка (security: страховка)
 _STOP_CACHE: dict[tuple[str, str], bool] = {}
 
 
@@ -136,7 +140,14 @@ def _fallback_terms(q: str, lang: str, city: str) -> list[str]:
             continue
         if ft not in out:
             out.append(ft)
-    return out
+    return out[:FALLBACK_MAX_TERMS]
+
+
+def _significant(tokens: list[str]) -> set[str]:
+    """Те же правила значимости, что у фолбэка (длина, не число), без топонимов —
+    чтобы мягкий поиск запускался ТОЛЬКО когда состав изменил топоним/дефис, а не
+    отброшенная цифра («Messer 2000») или короткое слово."""
+    return {fold(t) for t in tokens if len(t) >= SUBSTRING_MIN and not t.isdigit()}
 
 
 def _trigram_pks(qs, terms: list[str]) -> list[int]:
@@ -172,24 +183,33 @@ def _trigram_pks(qs, terms: list[str]) -> list[int]:
         ],
     )
     simsum = reduce(lambda a, b: a + b, [F(f"sim{i}") for i in range(n)])
-    # Порог — SET LOCAL внутри транзакции: иначе он остаётся на соединении
-    # (CONN_MAX_AGE) и достаётся чужому коду с pg_trgm (ревью database-reviewer).
-    with transaction.atomic():
-        with connection.cursor() as cur:
-            cur.execute(
-                "SELECT set_config('pg_trgm.word_similarity_threshold', %s, true)", [str(thr)]
+    from django.db import OperationalError
+
+    # Порог и таймаут — SET LOCAL внутри транзакции: иначе они остаются на соединении
+    # (CONN_MAX_AGE) и достаются чужому коду (ревью database-reviewer). Таймаут —
+    # страховка от дорогого фолбэка на мусорных словах: превысили → честный ноль.
+    try:
+        with transaction.atomic():
+            with connection.cursor() as cur:
+                cur.execute(
+                    "SELECT set_config('pg_trgm.word_similarity_threshold', %s, true)", [str(thr)]
+                )
+                cur.execute(
+                    "SELECT set_config('statement_timeout', %s, true)", [str(FALLBACK_TIMEOUT_MS)]
+                )
+            return list(
+                qs.filter(cond)
+                .annotate(**sims)
+                .annotate(
+                    hits=ExpressionWrapper(hits, output_field=IntegerField()),
+                    simsum=ExpressionWrapper(simsum, output_field=FloatField()),
+                )
+                .filter(hits__gte=need)
+                .order_by("-hits", "-simsum", "-created_at", "-pk")
+                .values_list("pk", flat=True)[: _cfg("max_results")]
             )
-        return list(
-            qs.filter(cond)
-            .annotate(**sims)
-            .annotate(
-                hits=ExpressionWrapper(hits, output_field=IntegerField()),
-                simsum=ExpressionWrapper(simsum, output_field=FloatField()),
-            )
-            .filter(hits__gte=need)
-            .order_by("-hits", "-simsum", "-created_at", "-pk")
-            .values_list("pk", flat=True)[: _cfg("max_results")]
-        )
+    except OperationalError:  # statement_timeout — фолбэк не нашёл за отведённое время
+        return []
 
 
 def _weights() -> list[float]:
@@ -465,7 +485,7 @@ def execute(
             # топоним, разрезан дефис) — сначала мягкий точный поиск по ним (Р-2):
             # «Friseur in Solingen-Wald» → все Friseur; режим остаётся «неточно».
             terms = _fallback_terms(q, lang, city)
-            exact = {fold(t) for t in _drop_stopwords(tokenize(q), lang) if len(t) >= SUBSTRING_MIN}
+            exact = _significant(_drop_stopwords(tokenize(q), lang))
             soft = None
             if terms and set(terms) != exact:
                 soft = _match_words(qs, _words(" ".join(terms), lang))

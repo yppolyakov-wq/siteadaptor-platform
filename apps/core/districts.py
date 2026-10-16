@@ -10,6 +10,7 @@ PLZ — только ПОДСКАЗКА при заполнении: в Solingen
 
 from __future__ import annotations
 
+import functools
 import re
 from dataclasses import dataclass, field
 
@@ -76,8 +77,16 @@ def toponym_tokens(city: str) -> frozenset[str]:
     """T-8.26 п.4: слова-топонимы (город, районы, алиасы) в ОБЕИХ свёртках — «ö→oe» (как
     `_key`) и «ö→o» (как `aggregator.search.fold`). Фолбэк опечаток исключает их из
     значимых слов запроса: «Friseur in Solingen-Wald» ищет парикмахера, а не всё
-    «Solingen…». Пустой город → объединение по реестру (главный домен без `?city=`)."""
-    keys = [city_key(city)] if city_key(city) else list(CITIES)
+    «Solingen…». Пустой город → объединение по реестру (главный домен без `?city=`);
+    город ЕСТЬ, но вне реестра → пусто (иначе «Burg»/«Wald» в Хильдене молча пропадали бы)."""
+    return _toponym_tokens(city_key(city) if (city or "").strip() else None)
+
+
+@functools.lru_cache(maxsize=64)
+def _toponym_tokens(key: str | None) -> frozenset[str]:
+    if key == "":
+        return frozenset()
+    keys = [key] if key else list(CITIES)
     out: set[str] = set()
     for key in keys:
         words = [key, CITY_NAMES.get(key, "")]
