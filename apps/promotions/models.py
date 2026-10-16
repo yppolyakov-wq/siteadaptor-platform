@@ -378,6 +378,13 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         return regular
 
     @property
+    def is_perishable(self) -> bool:
+        """SF-8b: исключение § 11 Abs. 4 PAngV по флагу владельца (и выключателю)."""
+        from . import reference_price
+
+        return reference_price.is_perishable(self)
+
+    @property
     def reference_capped(self) -> bool:
         """SF-7: цена сравнения урезана 30-дневным минимумом (подсказка владельцу)."""
         regular = self.regular_price
@@ -451,6 +458,12 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         if self.has_discount and self.prior_lowest_price is not None:
             return self.old_price
         return None
+
+    @property
+    def price_reference(self) -> str:
+        """SF-8a: что за референс у зачёркнутой цены — для снимка каталога города.
+        "lowest30" = низшая цена 30 дней (SF-7); "" = референса нет/не объявляем."""
+        return "lowest30" if self.lowest_30d_display is not None else ""
 
     # --- витрина: медиа и таймер ---------------------------------------
 

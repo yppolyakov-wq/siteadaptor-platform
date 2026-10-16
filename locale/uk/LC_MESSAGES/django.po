@@ -24798,3 +24798,18 @@ msgstr "§ 11 PAngV: зниження ціни можна оголошувати
 #, python-format
 msgid "Comparison price limited to %(price)s € (lowest price of the last 30 days)"
 msgstr "Ціну порівняння обмежено до %(price)s € (найнижча ціна за останні 30 днів)"
+
+msgid "Schnell verderblich / kurze Haltbarkeit"
+msgstr "Швидкопсувне / короткий термін придатності"
+
+msgid "§ 11 Abs. 4 PAngV: Preissenkung wegen drohenden Verderbs oder ablaufender Haltbarkeit — der niedrigste Preis der letzten 30 Tage wird dann nicht angewendet."
+msgstr "§ 11 Abs. 4 PAngV: зниження ціни через загрозу псування або закінчення терміну придатності — найнижча ціна за останні 30 днів тоді не застосовується."
+
+msgid "Brot vom Tag, Ware kurz vor dem MHD: der niedrigste Preis der letzten 30 Tage gilt dann nicht (§ 11 Abs. 4 PAngV)."
+msgstr "Хліб дня, товар із близьким терміном придатності: найнижча ціна за останні 30 днів тоді не діє (§ 11 Abs. 4 PAngV)."
+
+msgid "Reduziert wegen kurzer Haltbarkeit (§ 11 Abs. 4 PAngV)"
+msgstr "Знижено через короткий термін придатності (§ 11 Abs. 4 PAngV)"
+
+msgid "Lowest price in the last 30 days"
+msgstr "Найнижча ціна за останні 30 днів"

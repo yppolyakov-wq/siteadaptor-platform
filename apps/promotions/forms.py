@@ -177,6 +177,23 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 "wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
             ),
         )
+        # SF-8b: исключение § 11 Abs. 4 PAngV — флаг владельца в metadata (без миграции);
+        # при выключенном исключении (settings) поля в форме нет вовсе.
+        from . import reference_price
+
+        if reference_price.exemption_enabled():
+            self.fields["perishable"] = forms.BooleanField(
+                label=_("Schnell verderblich / kurze Haltbarkeit"),
+                required=False,
+                initial=bool((self.instance.metadata or {}).get("perishable"))
+                if isinstance(self.instance.metadata, dict)
+                else False,
+                help_text=_(
+                    "§ 11 Abs. 4 PAngV: Preissenkung wegen drohenden Verderbs oder ablaufender "
+                    "Haltbarkeit — der niedrigste Preis der letzten 30 Tage wird dann nicht "
+                    "angewendet."
+                ),
+            )
         # T-8.13a: категория каталога города + признаки. Новая акция — подсказка по типу
         # бизнеса уже выбрана; пусто = подсказка в момент выкладки.
         from apps.core import city_categories as cc
@@ -254,6 +271,15 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 meta["response"] = value
             else:
                 meta.pop("response", None)
+            promo.metadata = meta
+        # SF-8b: сентинел `perishable_present` — снятый чекбокс браузер не шлёт (W0),
+        # поэтому чужой POST без него флаг не стирает.
+        if "perishable_present" in self.data and "perishable" in self.fields:
+            meta = dict(promo.metadata) if isinstance(promo.metadata, dict) else {}
+            if self.cleaned_data.get("perishable"):
+                meta["perishable"] = True
+            else:
+                meta.pop("perishable", None)
             promo.metadata = meta
         if commit:
             promo.save()

@@ -586,6 +586,10 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@platform.local")
 # больше N активных акций одновременно; на N+1 — «Mehr Aktionen? Schreiben Sie uns».
 LITE_FREE_ACTIVE_PROMOS = env.int("LITE_FREE_ACTIVE_PROMOS", default=5)
 PLATFORM_CONTACT_EMAIL = env("PLATFORM_CONTACT_EMAIL", default="kontakt@siteadaptor.de")
+# SF-8b: исключение § 11 Abs. 4 PAngV (schnell verderblich / kurze Haltbarkeit) — акция
+# с флагом владельца НЕ ограничивается 30-дневным минимумом. Выключатель для отката по
+# решению юриста: False → флаг игнорируется целиком (данные владельцев не трогаются).
+PANGV_PERISHABLE_EXEMPTION = env.bool("PANGV_PERISHABLE_EXEMPTION", default=True)
 
 # ---------------------------------------------------------------------------
 # Stripe (dj-stripe)

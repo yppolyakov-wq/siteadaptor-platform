@@ -104,6 +104,9 @@
       {% if lowest_30d is not None %}
         {# §11 PAngV (M1): референс зачёркнутой цены — низшая цена последних 30 дней. #}
         <p class="mt-1 text-xs text-gray-400">{% blocktrans with p=lowest_30d %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
+      {% elif promotion.is_perishable and promotion.has_discount %}
+        {# SF-8b: исключение § 11 Abs. 4 — честная подпись вместо 30-дневного минимума. #}
+        <p class="mt-1 text-xs text-gray-400" data-perishable-note>{% trans "Reduziert wegen kurzer Haltbarkeit (§ 11 Abs. 4 PAngV)" %}</p>
       {% endif %}
       {% include "storefront/_discount_display.html" with promo=promotion part="savings" %}
       {% comment %}DL-13 C5 (PAngV): Grundpreis по промо-цене — как на детали товара;

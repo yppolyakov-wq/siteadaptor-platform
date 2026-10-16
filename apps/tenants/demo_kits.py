@@ -24649,7 +24649,12 @@ def apply_kit(tenant, key: str) -> bool:
             "show_countdown": bool(spec.get("countdown")),
             "is_surprise": bool(spec.get("surprise")),
             "recurrence": spec.get("recurrence", ""),
-            "metadata": {"demo": True},
+            # SF-8b: `perishable` — исключение § 11 Abs. 4 PAngV (хлеб вечером, MHD);
+            # Überraschungstüte (surprise) — остатки дня по определению → флаг автоматом.
+            "metadata": {
+                "demo": True,
+                **({"perishable": True} if spec.get("perishable") or spec.get("surprise") else {}),
+            },
         }
         if spec.get("percent"):
             fields["discount_percent"] = spec["percent"]

@@ -44,8 +44,12 @@
     {% if listing.new_price is not None %}
       <div class="mt-4 flex items-baseline gap-3" data-offer-price>
         <span class="text-3xl font-bold">{{ listing.new_price }} {{ listing.currency }}</span>
-        {% if listing.old_price and listing.old_price > listing.new_price %}<span class="text-lg text-gray-400 line-through">{{ listing.old_price }} {{ listing.currency }}</span>{% endif %}
+        {% if listing.old_price and listing.old_price > listing.new_price %}{% if listing.price_reference == "uvp" %}<span class="text-sm text-gray-400">{% trans "UVP" %}</span> {% endif %}<span class="text-lg text-gray-400 line-through">{{ listing.old_price }} {{ listing.currency }}</span>{% endif %}
       </div>
+      {% if listing.price_reference == "lowest30" and listing.old_price %}
+        {# SF-8a (§ 11 PAngV): референс зачёркнутой цены — как на витрине бизнеса. #}
+        <p class="mt-1 text-xs text-gray-400">{% blocktrans with p=listing.old_price %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
+      {% endif %}
     {% endif %}
     {% if listing.listing_kind == 'event' and listing.starts_at %}<p class="mt-2 text-sm text-gray-600">📅 {{ listing.starts_at|date:"D, d.m.Y · H:i" }}</p>{% endif %}
     {% if listing.ends_at and listing.listing_kind != 'event' %}<p class="mt-2 text-sm text-gray-600">⏳ {% blocktrans with d=listing.ends_at|date:"d.m.Y" %}bis {{ d }}{% endblocktrans %}</p>{% endif %}

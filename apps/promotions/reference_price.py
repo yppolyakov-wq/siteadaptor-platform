@@ -43,6 +43,20 @@ def _is_goods(promo) -> bool:
     return bool(promo.product_id or promo.combo_id)
 
 
+def exemption_enabled() -> bool:
+    """SF-8b: выключатель исключения § 11 Abs. 4 (settings/env, default True)."""
+    from django.conf import settings
+
+    return bool(getattr(settings, "PANGV_PERISHABLE_EXEMPTION", True))
+
+
+def is_perishable(promo) -> bool:
+    """Флаг владельца «schnell verderblich / kurze Haltbarkeit» (metadata, без миграции)
+    — действует только при включённом исключении."""
+    meta = promo.metadata if isinstance(getattr(promo, "metadata", None), dict) else {}
+    return bool(meta.get("perishable")) and exemption_enabled()
+
+
 def attach(promos) -> list:
     """Проставить `_prior_low` (Decimal | None) всем акциям списка; вернуть список."""
     from apps.catalog.models import PriceLog
@@ -53,7 +67,9 @@ def attach(promos) -> list:
     todo = [p for p in promos if not hasattr(p, "_prior_low")]
     goods = []
     for p in todo:
-        if _is_goods(p):
+        # SF-8b: § 11 Abs. 4 — у скоропортящегося минимум не считается вовсе
+        # (цена сравнения = обычная цена, как у услуг).
+        if _is_goods(p) and not is_perishable(p):
             goods.append(p)
         else:
             p._prior_low = None

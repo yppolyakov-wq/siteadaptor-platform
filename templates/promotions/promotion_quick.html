@@ -131,6 +131,15 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
         <input type="number" name="quantity" value="{{ form.quantity.value|default_if_none:'' }}" min="1" inputmode="numeric"
                class="w-28 rounded-xl border border-gray-300 px-3 py-2.5 text-base">
       </label>
+      {% if perishable_enabled %}
+      <label class="flex items-start gap-3 rounded-xl border border-gray-200 p-3 cursor-pointer has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50">
+        <input type="checkbox" name="perishable" value="on" class="mt-1" {% if form.perishable.value %}checked{% endif %}>
+        <span>
+          <span class="block text-sm font-medium">{{ form.perishable.label }}</span>
+          <span class="block text-xs text-gray-500">{% trans "Brot vom Tag, Ware kurz vor dem MHD: der niedrigste Preis der letzten 30 Tage gilt dann nicht (§ 11 Abs. 4 PAngV)." %}</span>
+        </span>
+      </label>
+      {% endif %}
     </section>
 
     <section class="bg-white rounded-2xl shadow-sm p-4 mb-3 space-y-3" data-quick-step="3">

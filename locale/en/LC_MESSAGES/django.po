@@ -24580,3 +24580,18 @@ msgstr "§ 11 PAngV: a price reduction may only be advertised against the lowest
 #, python-format
 msgid "Comparison price limited to %(price)s € (lowest price of the last 30 days)"
 msgstr "Comparison price limited to %(price)s € (lowest price of the last 30 days)"
+
+msgid "Schnell verderblich / kurze Haltbarkeit"
+msgstr "Perishable / short shelf life"
+
+msgid "§ 11 Abs. 4 PAngV: Preissenkung wegen drohenden Verderbs oder ablaufender Haltbarkeit — der niedrigste Preis der letzten 30 Tage wird dann nicht angewendet."
+msgstr "§ 11 (4) PAngV: price reduction because of imminent spoilage or expiring shelf life — the lowest price of the last 30 days is then not applied."
+
+msgid "Brot vom Tag, Ware kurz vor dem MHD: der niedrigste Preis der letzten 30 Tage gilt dann nicht (§ 11 Abs. 4 PAngV)."
+msgstr "Day-old bread, goods close to the best-before date: the lowest price of the last 30 days then does not apply (§ 11 (4) PAngV)."
+
+msgid "Reduziert wegen kurzer Haltbarkeit (§ 11 Abs. 4 PAngV)"
+msgstr "Reduced because of short shelf life (§ 11 (4) PAngV)"
+
+msgid "Lowest price in the last 30 days"
+msgstr "Lowest price in the last 30 days"

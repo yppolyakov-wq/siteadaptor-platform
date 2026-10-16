@@ -148,6 +148,10 @@ class QuickPromotionForm(forms.Form):
         label=_("Bis"), required=False, widget=forms.DateInput(attrs={"type": "date"})
     )
     quantity = forms.IntegerField(label=_("Stückzahl (optional)"), required=False, min_value=1)
+    # SF-8b: исключение § 11 Abs. 4 PAngV (кнопка-флаг рядом с ценой).
+    perishable = forms.BooleanField(
+        label=_("Schnell verderblich / kurze Haltbarkeit"), required=False
+    )
     customer_response = forms.ChoiceField(label=_("Was tun Kund:innen?"), widget=forms.RadioSelect)
     group = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput)
     # T-8.23d: товар — основа акции. Пусто = новый товар из этих же данных.
@@ -203,11 +207,13 @@ class QuickPromotionForm(forms.Form):
 
     def build(self):
         """Несохранённая ``Promotion`` из ввода (без фото и без статуса)."""
+        from . import city_fields, reference_price
         from .models import Promotion
 
         data = self.cleaned_data
         meta = {"response": data["customer_response"]} if data.get("customer_response") else {}
-        from . import city_fields
+        if data.get("perishable") and reference_price.exemption_enabled():
+            meta["perishable"] = True
 
         city_category, city_tags = city_fields.cleaned(self)
         return Promotion(
@@ -297,6 +303,8 @@ def initial_from(promo) -> dict:
     }
     if promo.available_quantity:
         initial["quantity"] = promo.available_quantity
+    if promo.is_perishable:
+        initial["perishable"] = True  # SF-8b: «Wiederholen» переносит исключение Abs. 4
     chosen = resp.chosen(promo)
     if chosen:
         initial["customer_response"] = chosen

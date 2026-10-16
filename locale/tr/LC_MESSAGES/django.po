@@ -24707,3 +24707,18 @@ msgstr "§ 11 PAngV: Fiyat indirimi yalnızca kampanyadan önceki son 30 günün
 #, python-format
 msgid "Comparison price limited to %(price)s € (lowest price of the last 30 days)"
 msgstr "Karşılaştırma fiyatı %(price)s € ile sınırlandı (son 30 günün en düşük fiyatı)"
+
+msgid "Schnell verderblich / kurze Haltbarkeit"
+msgstr "Çabuk bozulan / kısa raf ömrü"
+
+msgid "§ 11 Abs. 4 PAngV: Preissenkung wegen drohenden Verderbs oder ablaufender Haltbarkeit — der niedrigste Preis der letzten 30 Tage wird dann nicht angewendet."
+msgstr "§ 11 Abs. 4 PAngV: bozulma tehlikesi veya dolmak üzere olan raf ömrü nedeniyle fiyat indirimi — son 30 günün en düşük fiyatı bu durumda uygulanmaz."
+
+msgid "Brot vom Tag, Ware kurz vor dem MHD: der niedrigste Preis der letzten 30 Tage gilt dann nicht (§ 11 Abs. 4 PAngV)."
+msgstr "Günlük ekmek, son kullanma tarihi yaklaşan ürünler: son 30 günün en düşük fiyatı bu durumda geçerli değildir (§ 11 Abs. 4 PAngV)."
+
+msgid "Reduziert wegen kurzer Haltbarkeit (§ 11 Abs. 4 PAngV)"
+msgstr "Kısa raf ömrü nedeniyle indirimli (§ 11 Abs. 4 PAngV)"
+
+msgid "Lowest price in the last 30 days"
+msgstr "Son 30 günün en düşük fiyatı"

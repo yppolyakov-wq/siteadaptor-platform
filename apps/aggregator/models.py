@@ -139,6 +139,17 @@ class AggregatorListing(I18nMixin, models.Model):
     # T-8.11: наличие товара («" — есть или не учитывается) и бейдж «Neu».
     availability = models.CharField(max_length=20, blank=True, default="")
     is_new = models.BooleanField(default=False)
+    # SF-8a: что за референс у зачёркнутой `old_price` — чтобы портал/фид печатали
+    # то же, что витрина: «UVP» (чужая рекомендация производителя) или низшая цена
+    # 30 дней до акции (§ 11 PAngV, SF-7). "" = референса нет / не объявляем.
+    PRICE_REFERENCES = [
+        ("", ""),
+        ("uvp", "UVP"),
+        ("lowest30", _("Lowest price in the last 30 days")),
+    ]
+    price_reference = models.CharField(
+        max_length=10, blank=True, default="", choices=PRICE_REFERENCES
+    )
 
     is_surprise = models.BooleanField(default=False)  # Überraschungstüte (Track B2)
     # Платное продвижение (P2.4a): до этого момента листинг закреплён сверху

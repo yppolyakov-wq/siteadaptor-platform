@@ -104,7 +104,8 @@
 
     {# Rabatt: тип, старая/новая цена, %, стиль отображения, Überraschungstüte #}
     <div data-pf-panel="rabatt" class="space-y-3 pt-2 hidden">
-      {% for field in form %}{% if field.name == 'promo_type' or field.name == 'customer_response' or field.name == 'compare_at_price' or field.name == 'discount_percent' or field.name == 'price_override' or field.name == 'discount_style' or field.name == 'is_surprise' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% for field in form %}{% if field.name == 'promo_type' or field.name == 'customer_response' or field.name == 'compare_at_price' or field.name == 'discount_percent' or field.name == 'price_override' or field.name == 'discount_style' or field.name == 'is_surprise' or field.name == 'perishable' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% if form.perishable %}<input type="hidden" name="perishable_present" value="1">{% endif %}
     </div>
 
     {# Menge & Zeit #}

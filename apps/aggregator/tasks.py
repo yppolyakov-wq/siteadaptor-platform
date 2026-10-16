@@ -43,6 +43,8 @@ def _snapshot(promotion_id):
         "old_price": None if mystery or not promo.has_discount else promo.old_price,
         "new_price": None if mystery else promo.new_price,
         "discount_percent": None if mystery else promo.discount_percent_display,
+        # SF-8a: референс зачёркнутой цены (lowest30 при известной истории; mystery — нет).
+        "price_reference": "" if mystery or not promo.has_discount else promo.price_reference,
         "starts_at": promo.starts_at,
         "ends_at": promo.ends_at,
         "is_surprise": promo.is_surprise,
@@ -203,6 +205,7 @@ def sync_listing(tenant_schema, promotion_id) -> str:
             "old_price": snap["old_price"],
             "new_price": snap["new_price"],
             "discount_percent": snap["discount_percent"],
+            "price_reference": snap.get("price_reference", ""),
             "starts_at": snap["starts_at"],
             "ends_at": snap["ends_at"],
             "detail_url": f"{_site(tenant)}/p/{promotion_id}/",
@@ -273,6 +276,7 @@ def sync_stay_listing(tenant_schema, unit_id) -> str:
             "image": _logo_image(tenant),
             "new_price": snap["new_price"],
             "old_price": None,
+            "price_reference": "",  # SF-8a: смена вида не оставляет старое значение
             "discount_percent": None,
             "starts_at": None,
             "ends_at": None,
@@ -392,6 +396,7 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
             "image": _logo_image(tenant),
             "new_price": snap["new_price"],
             "old_price": None,
+            "price_reference": "",  # SF-8a: смена вида не оставляет старое значение
             "discount_percent": None,
             "starts_at": snap["starts_at"],
             "ends_at": snap["ends_at"],
@@ -456,6 +461,7 @@ def sync_event_listing(tenant_schema, event_id) -> str:
             "image": _logo_image(tenant),
             "new_price": snap["new_price"],
             "old_price": None,
+            "price_reference": "",  # SF-8a: смена вида не оставляет старое значение
             "discount_percent": None,
             "starts_at": snap["starts_at"],
             "ends_at": snap["ends_at"],
@@ -856,6 +862,7 @@ def sync_menu_listing(tenant_schema, combo_id) -> str:
             "currency": snap["currency"],
             "new_price": snap["new_price"],
             "old_price": None,
+            "price_reference": "",  # SF-8a: смена вида не оставляет старое значение
             "discount_percent": None,
             "starts_at": None,
             "ends_at": None,
@@ -1025,6 +1032,7 @@ def _product_snapshot(product_id):
         "new_price": price,
         "old_price": product.list_price if savings else None,
         "discount_percent": savings,
+        "price_reference": "uvp" if savings else "",  # SF-8a: это UVP, не своя прежняя цена
         "path": path,
         "availability": availability,
         "is_new": product.badge == "neu" or bool(fresh),
@@ -1065,6 +1073,7 @@ def sync_product_listing(tenant_schema, product_id) -> str:
             "new_price": snap["new_price"],
             "old_price": snap["old_price"],
             "discount_percent": snap["discount_percent"],
+            "price_reference": snap.get("price_reference", ""),
             "starts_at": None,
             "ends_at": None,
             "detail_url": _site(tenant) + snap["path"],
@@ -1137,6 +1146,7 @@ def sync_service_listing(tenant_schema, service_id) -> str:
             "currency": "EUR",
             "new_price": snap["new_price"],
             "old_price": None,
+            "price_reference": "",  # SF-8a: смена вида не оставляет старое значение
             "discount_percent": None,
             "starts_at": None,
             "ends_at": None,
@@ -1187,6 +1197,7 @@ def sync_business_listing(tenant_schema) -> str:
             "currency": "EUR",
             "new_price": None,
             "old_price": None,
+            "price_reference": "",  # SF-8a: смена вида не оставляет старое значение
             "discount_percent": None,
             "starts_at": None,
             "ends_at": None,

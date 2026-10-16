@@ -23,7 +23,7 @@ from apps.core.fsm import IllegalTransition
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
 from apps.promotions import channels as promo_channels
 
-from . import group_styles, limits, services
+from . import group_styles, limits, reference_price, services
 from .forms import LoyaltyProgramForm, PromotionForm, VoucherCreateForm
 from .models import Customer, Promotion, Reservation
 from .poster import build_shop_poster_pdf
@@ -700,6 +700,7 @@ def promotion_quick(request):
             "form": form,
             "source": source,
             "max_photos": quick.MAX_PHOTOS,
+            "perishable_enabled": reference_price.exemption_enabled(),  # SF-8b
             "title_suggestions": [
                 str(p["initial"].get("title_de", ""))
                 for p in presets_for(getattr(tenant, "business_type", "") or "")

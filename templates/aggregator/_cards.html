@@ -71,10 +71,15 @@
             {% else %}
               <span class="font-bold">{{ l.new_price }} {{ l.currency }}</span>
               {% if l.old_price and l.old_price > l.new_price %}
+                {% if l.price_reference == "uvp" %}<span class="text-xs text-gray-400">{% trans "UVP" %}</span>{% endif %}
                 <span class="text-sm text-gray-400 line-through">{{ l.old_price }} {{ l.currency }}</span>
               {% endif %}
             {% endif %}
           </div>
+          {% if l.price_reference == "lowest30" and l.old_price %}
+            {# SF-8a (§ 11 PAngV): та же строка, что на витрине бизнеса. #}
+            <p class="mt-0.5 text-[10px] leading-tight text-gray-400">{% blocktrans with p=l.old_price %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
+          {% endif %}
         {% endif %}
       </div>
     </a>
