@@ -23,3 +23,13 @@
 - **Миграции (django-tenants):** `migrate_schemas`/`./scripts/deploy.sh`; без согласия владельца
   НЕ делать `migrate <app> zero`, `--fake`, `makemigrations --merge`, удаление миграций.
 - **Процессы:** не убивать чужие процессы (`kill -9`) и не чистить кэши/окружение «на всякий случай».
+- **Инструменты из новых скиллов/агентов ECC (2026-10-16):** `django-verification` упоминает
+  black/isort/mypy/pip-audit/bandit — у нас гейт = `ruff check` + `ruff format --check` + pytest
+  + `scripts/i18n_quickcheck.py` + `template_comments`; mypy/black не вводим. `e2e-runner`/
+  `e2e-testing` — Playwright, но у нас Python-Playwright стендами (Chromium в `/opt/pw-browsers`,
+  `playwright install` НЕ запускать, `agent-browser`/npm-пакеты не ставить). `doc-updater` —
+  без npx-codemap-утилит: обновляет `docs/build-log.md`, `docs/task-catalog.md` и §3 `CLAUDE.md`
+  по конвенции памяти. `docker-patterns`/`deployment-patterns` — справка; деплой только
+  `./scripts/deploy.sh`. `database-migrations` — поверх правила миграций django-tenants выше.
+  `api-design` — для открытых API (фид T-8.8, будущий MCP/JSON-слой); существующие эндпоинты
+  под «конверты» не переписываем.

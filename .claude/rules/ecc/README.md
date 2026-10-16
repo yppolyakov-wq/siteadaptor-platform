@@ -15,6 +15,20 @@
 - скиллы — `.claude/skills/`: django-patterns, django-security, django-tdd, django-celery,
   python-patterns, python-testing, postgres-patterns, redis-patterns.
 
+Дополнено 2026-10-16 (ECC коммит `76aaa77df6adc5b889e689007bf99b9a4f74af34`; прежние 17 файлов
+сверены — идентичны новой версии):
+- агенты: e2e-runner, doc-updater, silent-failure-hunter, seo-specialist, a11y-architect;
+- скиллы: api-design, e2e-testing, database-migrations, deployment-patterns, docker-patterns,
+  django-verification, seo, accessibility, error-handling.
+
+Осознанно НЕ взято (весь каталог: 71 агент, 311 скиллов — сверено 2026-10-16): ревьюеры/
+резолверы других языков и фреймворков (JS/TS/React/Vue/Go/Rust/Java/Kotlin/Swift/C#/PHP/Ruby/
+Laravel/Spring/FastAPI…), refactor-cleaner и performance-optimizer (заточены под npm-инструменты),
+i18n-sync (JSON-локали, у нас gettext `.po`), mcp-server-patterns (Node SDK), security-scan
+(требует npx AgentShield), агентные/маркетинговые/сетевые/медицинские/научные наборы.
+Кандидаты на потом: mcp-server-patterns — к MCP-приложению каталога (T-8.10f);
+marketing-agent/market-research — к анализу рынка.
+
 Имена агентов БЕЗ префикса `ecc:` (в правилах ECC упоминается `ecc:planner` — у нас `planner`).
 Хуки ECC не перенесены. Обновление: склонировать ECC и заново скопировать эти файлы.
 

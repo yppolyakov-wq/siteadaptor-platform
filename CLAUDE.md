@@ -3475,8 +3475,9 @@ Python 3.12, менеджер uv.
 - Замечания «на будущее»/отложенные решения — сразу в `docs/roadmap-next-sprints.md`
   §«Отложено / заметки на будущее» (чтобы не терять между сессиями).
 - **Everything Claude Code (ECC)** — копией в репозитории (2026-10-15): правила `common`+`python`
-  в `.claude/rules/ecc/`, 9 агентов в `.claude/agents/`, 8 скиллов в `.claude/skills/` (набор под
-  Django). Плагином НЕ подключаем — облачные сессии плагины не загружают. При расхождении с
+  в `.claude/rules/ecc/`, 14 агентов в `.claude/agents/`, 17 скиллов в `.claude/skills/` (набор под
+  Django; дополнен 2026-10-16: API-дизайн, E2E/Playwright, миграции, деплой/Docker, SEO,
+  доступность, ошибки). Плагином НЕ подключаем — облачные сессии плагины не загружают. При расхождении с
   проектом действуют `.claude/rules/project-overrides.md` и этот файл; состав — `rules/ecc/README.md`.
 - Локальные службы для фолбэка: `bash scripts/dev-services.sh` (Postgres + Redis +
   роль/БД). Автоматически — SessionStart-хук (`.claude/hooks/session-start.sh`).
