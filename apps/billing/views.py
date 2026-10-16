@@ -121,9 +121,6 @@ def payments_methods(request):
 @require_POST
 def payments_connect(request):
     """Старт Connect OAuth: state в сессию → редирект на Stripe."""
-    if getattr(request.tenant, "is_demo", False):  # В1: в демо денег не принимаем
-        messages.error(request, _("Online-Zahlung ist im Demo-Geschäft ausgeschaltet."))
-        return redirect("billing-payments")
     if not connect.is_connect_configured():
         messages.error(request, _("Online payments are not available yet."))
         return redirect("billing-payments")

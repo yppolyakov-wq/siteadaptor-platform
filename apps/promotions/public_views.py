@@ -2861,7 +2861,7 @@ def _deliver_withdrawal(request, tenant, data):
             pass
     # 2) письмо продавцу (фиксирует Widerruf независимо от inbox).
     to = tenant.public_email or tenant.contact_email
-    if to and not getattr(tenant, "is_demo", False):  # В1: из демо писем нет
+    if to:
         try:
             from django.core.mail import send_mail
 

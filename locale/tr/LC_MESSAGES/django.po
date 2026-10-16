@@ -24821,11 +24821,8 @@ msgstr "İşletme: %(firm)s"
 msgid "Alle Angebote von %(firm)s"
 msgstr "Tüm teklifler: %(firm)s"
 
-msgid "Demo-Geschäft — Bestellungen sind nicht echt."
-msgstr "Demo mağaza — siparişler gerçek değil."
+msgid "Demo-Geschäft"
+msgstr "Demo mağaza"
 
-msgid "Bitte keine echten Daten eingeben. In der Demo werden keine E-Mails verschickt und es wird nichts bezahlt."
-msgstr "Lütfen gerçek veri girmeyin. Demoda e-posta gönderilmez ve hiçbir ödeme alınmaz."
-
-msgid "Online-Zahlung ist im Demo-Geschäft ausgeschaltet."
-msgstr "Demo mağazada çevrimiçi ödeme kapalıdır."
+msgid "dies ist ein Beispiel-Shop zum Ausprobieren."
+msgstr "bu, denemeniz için örnek bir mağazadır."

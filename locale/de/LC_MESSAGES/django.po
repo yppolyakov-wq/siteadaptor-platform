@@ -24740,11 +24740,8 @@ msgstr "Von %(firm)s"
 msgid "Alle Angebote von %(firm)s"
 msgstr "Alle Angebote von %(firm)s"
 
-msgid "Demo-Geschäft — Bestellungen sind nicht echt."
-msgstr "Demo-Geschäft — Bestellungen sind nicht echt."
+msgid "Demo-Geschäft"
+msgstr "Demo-Geschäft"
 
-msgid "Bitte keine echten Daten eingeben. In der Demo werden keine E-Mails verschickt und es wird nichts bezahlt."
-msgstr "Bitte keine echten Daten eingeben. In der Demo werden keine E-Mails verschickt und es wird nichts bezahlt."
-
-msgid "Online-Zahlung ist im Demo-Geschäft ausgeschaltet."
-msgstr "Online-Zahlung ist im Demo-Geschäft ausgeschaltet."
+msgid "dies ist ein Beispiel-Shop zum Ausprobieren."
+msgstr "dies ist ein Beispiel-Shop zum Ausprobieren."

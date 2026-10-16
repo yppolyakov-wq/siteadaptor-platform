@@ -24935,11 +24935,8 @@ msgstr "От %(firm)s"
 msgid "Alle Angebote von %(firm)s"
 msgstr "Все предложения %(firm)s"
 
-msgid "Demo-Geschäft — Bestellungen sind nicht echt."
-msgstr "Демо-магазин — заказы ненастоящие."
+msgid "Demo-Geschäft"
+msgstr "Демо-магазин"
 
-msgid "Bitte keine echten Daten eingeben. In der Demo werden keine E-Mails verschickt und es wird nichts bezahlt."
-msgstr "Пожалуйста, не вводите настоящие данные. В демо не отправляются письма и ничего не оплачивается."
-
-msgid "Online-Zahlung ist im Demo-Geschäft ausgeschaltet."
-msgstr "В демо-магазине онлайн-оплата отключена."
+msgid "dies ist ein Beispiel-Shop zum Ausprobieren."
+msgstr "это пример магазина, чтобы всё попробовать."

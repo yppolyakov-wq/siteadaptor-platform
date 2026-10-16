@@ -1,5 +1,5 @@
-{% load i18n %}{% if request.tenant.is_demo %}{% comment %}В1: демо-бизнес — честно говорим, что здесь ничего не настоящее.{% endcomment %}
+{% load i18n %}{% if request.tenant.is_demo %}{% comment %}В1: витрина демо-бизнеса — честно говорим, что это пример.{% endcomment %}
 <div class="bg-amber-50 border-b border-amber-200 text-amber-900 text-sm" role="note" data-demo-banner>
-  <div class="max-w-7xl mx-auto px-4 py-2"><strong>{% trans "Demo-Geschäft — Bestellungen sind nicht echt." %}</strong> {% trans "Bitte keine echten Daten eingeben. In der Demo werden keine E-Mails verschickt und es wird nichts bezahlt." %}</div>
+  <div class="max-w-7xl mx-auto px-4 py-2"><strong>{% trans "Demo-Geschäft" %}</strong> — {% trans "dies ist ein Beispiel-Shop zum Ausprobieren." %}</div>
 </div>
 {% endif %}

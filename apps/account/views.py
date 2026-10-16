@@ -47,10 +47,7 @@ def login_view(request):
         ):
             email = form.cleaned_data["email"].lower()
             token = auth.issue_magic_link(email)
-            from apps.core import demo_mode
-
-            # В1: из демо-бизнеса писем нет — вход в Konto там не работает (плашка говорит).
-            if token and not demo_mode.is_demo(request.tenant):
+            if token:
                 url = request.build_absolute_uri(reverse("account-verify") + f"?t={token}")
                 send_customer_magic_link.delay(
                     dedupe_key=f"acct_ml:{auth._hash(token)}",
