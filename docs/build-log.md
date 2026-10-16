@@ -17869,3 +17869,15 @@ updated_at) WHERE is_active`. FF в main `cf6f4452`.
 «не трогать готовый функционал» — осталась только плашка на витрине демо-бизнеса
 «Demo-Geschäft — dies ist ein Beispiel-Shop zum Ausprobieren.» (`storefront/_demo_banner.html`,
 в `_base`/`_embed_base`); 2 msgid × 5 каталогов.
+
+## 2026-10-16 — В2-0 «условие цены акции» (сайт бизнеса), БЕЗ миграций
+План `v2-v4-conditions-condition-plan-2026-10-16.md` (planner). «zweite Pizza −50 %»
+считалась как цена штуки × 0,5 — на витрине, в каталоге и В КОРЗИНЕ (каждая пицца за
+полцены). Теперь условие (каждая n-я · «n für m» · «ab n Stück» · свой текст) хранится
+в `Promotion.metadata["price_condition"]` (`apps/core/price_conditions.py`): цена штуки
+обычная, корзина/услуга/номер не удешевляются, онлайн-покупка закрыта (отклик, вьюха
+`/kaufen/`, `services.purchase`, `purchase_service`), бейдж и плашка на странице акции
+показывают подпись условия, «Bedingungen» и флаер — тоже. Форма акции: вид + n/m +
+заметка (переводы заметки не стираются), сентинел W0, запрет фикс-цены и mystery.
+Ревью django + security: HIGH (mystery снимал условие с денег) закрыт; LOW — в roadmap
+§Отложено. 32 замка. 21 msgid × 5. Дальше: В2/В4-1 (миграция листинга).
