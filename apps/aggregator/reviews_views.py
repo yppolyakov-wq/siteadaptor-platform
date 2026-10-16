@@ -8,6 +8,7 @@
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -87,9 +88,17 @@ def business_page(request, slug):
             # T-8.26: страница демо-бизнеса — плашка + noindex (на любом хосте)
             "shows_demo": bool(business.is_demo),
             "robots_noindex": bool(business.is_demo),
+            # Блок А4: сама компания — не «своё предложение»; её карточка даёт
+            # описание и «Zur Website».
             "listings": AggregatorListing.objects.public()
             .filter(tenant_slug=slug)
+            .exclude(listing_kind=AggregatorListing.KIND_BUSINESS)
             .order_by("-updated_at"),
+            "business_card": AggregatorListing.objects.public()
+            .filter(tenant_slug=slug, listing_kind=AggregatorListing.KIND_BUSINESS)
+            .first(),
+            "open_status": business.open_status(),
+            "opening_hours": business.opening_hours_localized(get_language()),
             "reviews": review_list,
             # G8: «Verifizierter Gast» — у автора есть реальная сделка в бизнесе.
             "verified_emails": reviews.verified_emails(

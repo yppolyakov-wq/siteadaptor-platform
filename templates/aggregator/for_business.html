@@ -1,0 +1,25 @@
+{% extends "aggregator/portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Für Unternehmen" %} — {{ portal.title_text }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'portal-home' %}" class="text-sm text-gray-500 hover:underline">← {{ portal.title_text }}</a>
+<div class="mt-2 max-w-2xl">
+  <h1 class="text-2xl md:text-3xl font-bold">{% blocktrans with city=portal.city %}Ihr Geschäft im Stadtkatalog {{ city }}{% endblocktrans %}</h1>
+  <p class="mt-2 text-gray-600">{% trans "Zeigen Sie Ihre Angebote den Menschen in Ihrer Nähe — einfach vom Handy aus." %}</p>
+</div>
+
+<ul class="mt-6 grid gap-3 sm:grid-cols-2" data-business-benefits>
+  <li class="bg-white rounded-2xl shadow-sm p-4"><p class="font-medium">⚡ {% trans "Aktion in 3 Klicks" %}</p><p class="text-sm text-gray-500 mt-1">{% trans "Foto, Preis, fertig — ohne Passwort, direkt vom Handy." %}</p></li>
+  <li class="bg-white rounded-2xl shadow-sm p-4"><p class="font-medium">💶 {% blocktrans count n=free_promos %}Kostenlos bis {{ n }} aktive Aktion{% plural %}Kostenlos bis {{ n }} aktive Aktionen{% endblocktrans %}</p><p class="text-sm text-gray-500 mt-1">{% trans "Sie erscheinen im Stadtkatalog, sobald Ihre E-Mail bestätigt ist." %}</p></li>
+  <li class="bg-white rounded-2xl shadow-sm p-4"><p class="font-medium">🛍 {% trans "Zurücklegen oder Coupon" %}</p><p class="text-sm text-gray-500 mt-1">{% trans "Kundschaft reserviert oder holt einen Coupon — Sie sehen es sofort." %}</p></li>
+  <li class="bg-white rounded-2xl shadow-sm p-4"><p class="font-medium">🖨 {% trans "Aushang mit QR-Code" %}</p><p class="text-sm text-gray-500 mt-1">{% trans "Flyer für Schaufenster und Theke, als PDF." %}</p></li>
+  <li class="bg-white rounded-2xl shadow-sm p-4 sm:col-span-2"><p class="font-medium">🔔 {% trans "Stammkundschaft folgt Ihnen" %}</p><p class="text-sm text-gray-500 mt-1">{% trans "Wer Ihrem Geschäft folgt, erfährt per E-Mail von neuen Angeboten." %}</p></li>
+</ul>
+
+{% if quick_start_url %}
+<div class="mt-8">
+  <a href="{{ quick_start_url }}" class="inline-block rounded-xl px-5 py-3 font-medium text-white" style="background: var(--portal-color)" data-quick-start>{% trans "Jetzt Aktion starten" %}</a>
+</div>
+{% endif %}
+{% endblock %}

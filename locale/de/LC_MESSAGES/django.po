@@ -24663,3 +24663,56 @@ msgstr "Reduziert wegen kurzer Haltbarkeit (§ 11 Abs. 4 PAngV)"
 
 msgid "Lowest price in the last 30 days"
 msgstr "Niedrigster Preis der letzten 30 Tage"
+
+msgid "Open until %(t)s"
+msgstr "Geöffnet bis %(t)s"
+
+msgid "New in store"
+msgstr "Neu im Sortiment"
+
+msgid "Für Unternehmen"
+msgstr "Für Unternehmen"
+
+msgid "Ihr Geschäft im Stadtkatalog %(city)s"
+msgstr "Ihr Geschäft im Stadtkatalog %(city)s"
+
+msgid "Zeigen Sie Ihre Angebote den Menschen in Ihrer Nähe — einfach vom Handy aus."
+msgstr "Zeigen Sie Ihre Angebote den Menschen in Ihrer Nähe — einfach vom Handy aus."
+
+msgid "Foto, Preis, fertig — ohne Passwort, direkt vom Handy."
+msgstr "Foto, Preis, fertig — ohne Passwort, direkt vom Handy."
+
+msgid "Kostenlos bis %(n)s aktive Aktion"
+msgid_plural "Kostenlos bis %(n)s aktive Aktionen"
+msgstr[0] "Kostenlos bis %(n)s aktive Aktion"
+msgstr[1] "Kostenlos bis %(n)s aktive Aktionen"
+
+msgid "Sie erscheinen im Stadtkatalog, sobald Ihre E-Mail bestätigt ist."
+msgstr "Sie erscheinen im Stadtkatalog, sobald Ihre E-Mail bestätigt ist."
+
+msgid "Zurücklegen oder Coupon"
+msgstr "Zurücklegen oder Coupon"
+
+msgid "Kundschaft reserviert oder holt einen Coupon — Sie sehen es sofort."
+msgstr "Kundschaft reserviert oder holt einen Coupon — Sie sehen es sofort."
+
+msgid "Aushang mit QR-Code"
+msgstr "Aushang mit QR-Code"
+
+msgid "Flyer für Schaufenster und Theke, als PDF."
+msgstr "Flyer für Schaufenster und Theke, als PDF."
+
+msgid "Stammkundschaft folgt Ihnen"
+msgstr "Stammkundschaft folgt Ihnen"
+
+msgid "Wer Ihrem Geschäft folgt, erfährt per E-Mail von neuen Angeboten."
+msgstr "Wer Ihrem Geschäft folgt, erfährt per E-Mail von neuen Angeboten."
+
+msgid "Jetzt Aktion starten"
+msgstr "Jetzt Aktion starten"
+
+msgid "Zur Website"
+msgstr "Zur Website"
+
+msgid "Karte nicht verfügbar"
+msgstr "Karte nicht verfügbar"

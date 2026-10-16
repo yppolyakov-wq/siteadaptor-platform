@@ -233,6 +233,12 @@ def portal_home(request, facet=None, district=None):
     # T-8.26 п.4 (Р-5): вкладки НЕ сбрасывают раздел/признак, а их видимость считается
     # по пулу С разделом — показанная вкладка ⇒ непустая выдача.
     tab_carry = list(search_engine.carry(q, filters)) + geo_carry
+    # Блок А2: чипы района и отрасли меняют только район/отрасль — запрос, фильтры,
+    # сортировка и вкладка остаются. `stadtteil` задаёт сам чип (путём), курсор —
+    # позиция в старой выдаче, его не переносим.
+    chip_carry = urlencode(
+        [(k, v) for k, v in _scope_pairs(scope) + tab_carry if k not in ("stadtteil", "cursor")]
+    )
     city_home = home.has_home(portal)
     if city_home:  # T-8.19: вкладки главной вместо чипов видов
         kind_chips = []
@@ -369,6 +375,7 @@ def portal_home(request, facet=None, district=None):
             "district": district,
             "district_label": district_label,
             "district_chips": district_chips,
+            "chip_carry": chip_carry,  # блок А2
             "category_chips": category_chips,  # T-8.13a
             "kind_chips": kind_chips,  # T-8.11
             "portal_tabs": portal_tabs,  # T-8.19
@@ -420,6 +427,26 @@ def portal_home(request, facet=None, district=None):
                 url=canonical,
                 items=[(it.title_text, it.detail_url) for it in cards],
             ),
+        },
+    )
+
+
+@cache_public_page
+def for_business(request):
+    """Блок А3: «Für Unternehmen» — что даёт каталог города бизнесу и вход в
+    «Aktion in 3 Klicks» (T-8.5). Только реализованные возможности."""
+    portal = getattr(request, "portal", None)
+    if portal is None:
+        raise Http404
+    from .platform_links import platform_url
+
+    return render(
+        request,
+        "aggregator/for_business.html",
+        {
+            "portal": portal,
+            "quick_start_url": platform_url("quick-start"),
+            "free_promos": getattr(settings, "LITE_FREE_ACTIVE_PROMOS", 5),
         },
     )
 

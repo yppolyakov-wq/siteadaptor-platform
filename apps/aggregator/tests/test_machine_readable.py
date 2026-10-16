@@ -91,7 +91,8 @@ def _ld(html: str) -> dict:
         ("stay", "HotelRoom"),
         ("service", "Service"),
         ("event", "Event"),
-        ("business", "LocalBusiness"),
+        # «business» — блок А4: страница предложения компании отдаёт 301 на её страницу
+        # (/unternehmen/<slug>/), а там LocalBusiness-разметка G8.
     ],
 )
 @override_settings(ROOT_URLCONF="config.urls_portal")

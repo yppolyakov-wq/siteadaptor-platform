@@ -32,6 +32,7 @@
       <div class="flex items-center gap-4 ml-4 shrink-0">
         {% if ui_languages %}<span class="hidden sm:inline-flex">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
         {% if portal.tagline_text %}<span class="hidden sm:block text-sm text-gray-500 truncate">{{ portal.tagline_text }}</span>{% endif %}
+        <a href="{% url 'portal-for-business' %}" class="hidden sm:inline text-sm text-gray-500 hover:underline">{% trans "Für Unternehmen" %}</a>
         {% if portal_user %}
           <a href="{% url 'portal-account' %}" class="text-sm font-medium hover:underline" style="color: var(--portal-color)">{% trans "My account" %}</a>
         {% else %}
@@ -50,6 +51,7 @@
       <span>© {% now "Y" %} {{ portal.title_text }} · siteadaptor</span>
       {# T-8.8: Impressum/Datenschutz платформы (DDG §5) — страницы живут на основном домене. #}
       <span class="flex items-center gap-3">
+        <a href="{% url 'portal-for-business' %}" class="hover:text-gray-600">{% trans "Für Unternehmen" %}</a>
         {% if platform_legal.impressum %}<a href="{{ platform_legal.impressum }}" class="hover:text-gray-600">{% trans "Impressum" %}</a>{% endif %}
         {% if platform_legal.datenschutz %}<a href="{{ platform_legal.datenschutz }}" class="hover:text-gray-600">{% trans "Datenschutz" %}</a>{% endif %}
       </span>

@@ -690,7 +690,7 @@ msgstr "Спецпредложения"
 #: apps/core/context.py:54 apps/core/views.py:1563
 #: templates/storefront/_base.html:109
 msgid "Cart"
-msgstr "Карта"
+msgstr "Корзина"
 
 #: apps/core/context.py:56 apps/tenants/siteconfig.py:1197
 #: templates/storefront/service_detail.html:62
@@ -24854,3 +24854,58 @@ msgstr "Уценено из-за короткого срока годности 
 
 msgid "Lowest price in the last 30 days"
 msgstr "Самая низкая цена за последние 30 дней"
+
+msgid "Open until %(t)s"
+msgstr "Открыто до %(t)s"
+
+msgid "New in store"
+msgstr "Новинка"
+
+msgid "Für Unternehmen"
+msgstr "Для бизнеса"
+
+msgid "Ihr Geschäft im Stadtkatalog %(city)s"
+msgstr "Ваш бизнес в каталоге города %(city)s"
+
+msgid "Zeigen Sie Ihre Angebote den Menschen in Ihrer Nähe — einfach vom Handy aus."
+msgstr "Показывайте свои предложения людям поблизости — прямо с телефона."
+
+msgid "Foto, Preis, fertig — ohne Passwort, direkt vom Handy."
+msgstr "Фото, цена, готово — без пароля, прямо с телефона."
+
+msgid "Kostenlos bis %(n)s aktive Aktion"
+msgid_plural "Kostenlos bis %(n)s aktive Aktionen"
+msgstr[0] "Бесплатно до %(n)s активной акции"
+msgstr[1] "Бесплатно до %(n)s активных акций"
+msgstr[2] "Бесплатно до %(n)s активных акций"
+msgstr[3] "Бесплатно до %(n)s активных акций"
+
+msgid "Sie erscheinen im Stadtkatalog, sobald Ihre E-Mail bestätigt ist."
+msgstr "Вы появитесь в каталоге города, как только подтвердите e-mail."
+
+msgid "Zurücklegen oder Coupon"
+msgstr "Отложить или купон"
+
+msgid "Kundschaft reserviert oder holt einen Coupon — Sie sehen es sofort."
+msgstr "Покупатели откладывают товар или берут купон — вы сразу это видите."
+
+msgid "Aushang mit QR-Code"
+msgstr "Объявление с QR-кодом"
+
+msgid "Flyer für Schaufenster und Theke, als PDF."
+msgstr "Листовка для витрины и прилавка в PDF."
+
+msgid "Stammkundschaft folgt Ihnen"
+msgstr "Постоянные клиенты подписываются на вас"
+
+msgid "Wer Ihrem Geschäft folgt, erfährt per E-Mail von neuen Angeboten."
+msgstr "Подписчики вашего бизнеса узнают о новых предложениях по e-mail."
+
+msgid "Jetzt Aktion starten"
+msgstr "Запустить акцию"
+
+msgid "Zur Website"
+msgstr "На сайт"
+
+msgid "Karte nicht verfügbar"
+msgstr "Карта недоступна"

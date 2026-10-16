@@ -5,7 +5,7 @@
 </div>
 {% if map_points %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <div id="agg-map" class="w-full h-72 rounded-2xl overflow-hidden mb-6 relative z-0"></div>
+  <div id="agg-map" class="w-full h-72 rounded-2xl overflow-hidden mb-6 relative z-0" data-down-text="{% trans "Karte nicht verfügbar" %}"></div>
   {{ map_points|json_script:"agg-map-data" }}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 {% endif %}
@@ -26,6 +26,19 @@
     });
   }
   var dataEl = document.getElementById("agg-map-data");
+  // Блок А6: подложка не грузится (403 у тайл-сервера, нет Leaflet) — честная
+  // надпись поверх карты; список карточек от карты не зависит.
+  var mapDown = function () {
+    var box = document.getElementById("agg-map");
+    if (!box || box.querySelector("[data-map-down]")) return;
+    var note = document.createElement("div");
+    note.setAttribute("data-map-down", "");
+    note.textContent = box.getAttribute("data-down-text") || "";
+    note.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#6b7280;font-size:14px;z-index:1000;";
+    box.appendChild(note);
+  };
+  var tilesOk = false;
+  if (dataEl && !window.L) mapDown();
   if (dataEl && window.L) {
     var pts = JSON.parse(dataEl.textContent || "[]");
     if (pts.length) {
@@ -52,8 +65,11 @@
         return wrap;
       };
       var map = L.map("agg-map");
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        { maxZoom: 19, attribution: "© OpenStreetMap" })
+        .on("tileload", function () { tilesOk = true; })
+        .on("tileerror", function () { if (!tilesOk) mapDown(); })
+        .addTo(map);
       var group = L.featureGroup(pts.map(function (p) {
         return L.marker([p.lat, p.lng]).bindPopup(popupContent(p));
       })).addTo(map);

@@ -83,6 +83,8 @@ urlpatterns = [
     ),
     # Переключатель языка (тот же, что на публичном хосте) — до catch-all <facet>.
     path("sprache/", set_public_language, name="portal-set-language"),
+    # Блок А3: «Für Unternehmen» — до catch-all <facet>.
+    path("fuer-unternehmen/", portal_views.for_business, name="portal-for-business"),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]
 

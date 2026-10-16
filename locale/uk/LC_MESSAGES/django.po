@@ -24835,3 +24835,58 @@ msgstr "Знижено через короткий термін придатно
 
 msgid "Lowest price in the last 30 days"
 msgstr "Найнижча ціна за останні 30 днів"
+
+msgid "Open until %(t)s"
+msgstr "Відчинено до %(t)s"
+
+msgid "New in store"
+msgstr "Новинка"
+
+msgid "Für Unternehmen"
+msgstr "Для бізнесу"
+
+msgid "Ihr Geschäft im Stadtkatalog %(city)s"
+msgstr "Ваш бізнес у каталозі міста %(city)s"
+
+msgid "Zeigen Sie Ihre Angebote den Menschen in Ihrer Nähe — einfach vom Handy aus."
+msgstr "Показуйте свої пропозиції людям поблизу — просто з телефона."
+
+msgid "Foto, Preis, fertig — ohne Passwort, direkt vom Handy."
+msgstr "Фото, ціна, готово — без пароля, просто з телефона."
+
+msgid "Kostenlos bis %(n)s aktive Aktion"
+msgid_plural "Kostenlos bis %(n)s aktive Aktionen"
+msgstr[0] "Безкоштовно до %(n)s активної акції"
+msgstr[1] "Безкоштовно до %(n)s активних акцій"
+msgstr[2] "Безкоштовно до %(n)s активних акцій"
+msgstr[3] "Безкоштовно до %(n)s активних акцій"
+
+msgid "Sie erscheinen im Stadtkatalog, sobald Ihre E-Mail bestätigt ist."
+msgstr "Ви з'явитеся в каталозі міста, щойно підтвердите e-mail."
+
+msgid "Zurücklegen oder Coupon"
+msgstr "Відкласти або купон"
+
+msgid "Kundschaft reserviert oder holt einen Coupon — Sie sehen es sofort."
+msgstr "Покупці відкладають товар або беруть купон — ви одразу це бачите."
+
+msgid "Aushang mit QR-Code"
+msgstr "Оголошення з QR-кодом"
+
+msgid "Flyer für Schaufenster und Theke, als PDF."
+msgstr "Листівка для вітрини та прилавка в PDF."
+
+msgid "Stammkundschaft folgt Ihnen"
+msgstr "Постійні клієнти підписуються на вас"
+
+msgid "Wer Ihrem Geschäft folgt, erfährt per E-Mail von neuen Angeboten."
+msgstr "Підписники вашого бізнесу дізнаються про нові пропозиції з e-mail."
+
+msgid "Jetzt Aktion starten"
+msgstr "Запустити акцію"
+
+msgid "Zur Website"
+msgstr "На сайт"
+
+msgid "Karte nicht verfügbar"
+msgstr "Мапа недоступна"

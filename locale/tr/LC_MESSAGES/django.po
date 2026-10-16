@@ -24744,3 +24744,56 @@ msgstr "Kısa raf ömrü nedeniyle indirimli (§ 11 Abs. 4 PAngV)"
 
 msgid "Lowest price in the last 30 days"
 msgstr "Son 30 günün en düşük fiyatı"
+
+msgid "Open until %(t)s"
+msgstr "%(t)s saatine kadar açık"
+
+msgid "New in store"
+msgstr "Yeni ürün"
+
+msgid "Für Unternehmen"
+msgstr "İşletmeler için"
+
+msgid "Ihr Geschäft im Stadtkatalog %(city)s"
+msgstr "İşletmeniz %(city)s şehir kataloğunda"
+
+msgid "Zeigen Sie Ihre Angebote den Menschen in Ihrer Nähe — einfach vom Handy aus."
+msgstr "Tekliflerinizi yakınınızdaki insanlara gösterin — doğrudan telefonunuzdan."
+
+msgid "Foto, Preis, fertig — ohne Passwort, direkt vom Handy."
+msgstr "Fotoğraf, fiyat, bitti — şifresiz, doğrudan telefondan."
+
+msgid "Kostenlos bis %(n)s aktive Aktion"
+msgid_plural "Kostenlos bis %(n)s aktive Aktionen"
+msgstr[0] "%(n)s aktif kampanyaya kadar ücretsiz"
+msgstr[1] "%(n)s aktif kampanyaya kadar ücretsiz"
+
+msgid "Sie erscheinen im Stadtkatalog, sobald Ihre E-Mail bestätigt ist."
+msgstr "E-postanız onaylanır onaylanmaz şehir kataloğunda görünürsünüz."
+
+msgid "Zurücklegen oder Coupon"
+msgstr "Ayırt veya kupon"
+
+msgid "Kundschaft reserviert oder holt einen Coupon — Sie sehen es sofort."
+msgstr "Müşteriler ayırtır veya kupon alır — hemen görürsünüz."
+
+msgid "Aushang mit QR-Code"
+msgstr "QR kodlu afiş"
+
+msgid "Flyer für Schaufenster und Theke, als PDF."
+msgstr "Vitrin ve tezgah için PDF el ilanı."
+
+msgid "Stammkundschaft folgt Ihnen"
+msgstr "Sadık müşteriler sizi takip eder"
+
+msgid "Wer Ihrem Geschäft folgt, erfährt per E-Mail von neuen Angeboten."
+msgstr "İşletmenizi takip edenler yeni tekliflerden e-postayla haberdar olur."
+
+msgid "Jetzt Aktion starten"
+msgstr "Şimdi kampanya başlat"
+
+msgid "Zur Website"
+msgstr "Web sitesine git"
+
+msgid "Karte nicht verfügbar"
+msgstr "Harita kullanılamıyor"

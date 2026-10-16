@@ -32,6 +32,17 @@
     {% if business.public_phone %}<a href="tel:{{ business.public_phone }}" class="hover:underline">📞 {{ business.public_phone }}</a>{% endif %}
     {% if business.map_url %}<a href="{{ business.map_url }}" target="_blank" rel="noopener" class="hover:underline">🗺 {% trans "Map" %}</a>{% endif %}
   </div>
+  {# Блок А4: профиль компании — описание, часы и вход на её сайт (с атрибуцией ch=portal). #}
+  {% if business_card.teaser_text %}<p class="mt-3 text-gray-700 max-w-2xl" data-business-about>{{ business_card.teaser_text }}</p>{% endif %}
+  {% if opening_hours or open_status %}
+    <div class="mt-3 text-sm text-gray-600" data-business-hours>
+      {% if open_status %}{% if open_status.open %}<span class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full">🟢 {% if open_status.until %}{% blocktrans with t=open_status.until %}Open until {{ t }}{% endblocktrans %}{% else %}{% trans "Open now" %}{% endif %}</span>{% else %}<span class="inline-block bg-gray-100 text-gray-500 text-xs font-medium px-2 py-0.5 rounded-full">{% trans "Closed" %}</span>{% endif %}{% endif %}
+      {% if opening_hours %}<p class="mt-1 whitespace-pre-line"><span class="font-medium">{% trans "Öffnungszeiten" %}:</span> {{ opening_hours }}</p>{% endif %}
+    </div>
+  {% endif %}
+  {% if business_card.detail_url %}
+    <a href="{{ business_card.portal_url }}" class="mt-4 inline-block rounded-xl px-4 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-700" data-business-website>{% trans "Zur Website" %} →</a>
+  {% endif %}
 </div>
 
 {# активные предложения бизнеса #}

@@ -13,7 +13,7 @@
   var lat = parseFloat(el.dataset.lat), lng = parseFloat(el.dataset.lng);
   if (isNaN(lat) || isNaN(lng)) return;
   var map = L.map("sf-contact-map").setView([lat, lng], 16);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
     { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
   L.marker([lat, lng]).addTo(map);
 })();

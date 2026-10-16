@@ -24617,3 +24617,56 @@ msgstr "Reduced because of short shelf life (§ 11 (4) PAngV)"
 
 msgid "Lowest price in the last 30 days"
 msgstr "Lowest price in the last 30 days"
+
+msgid "Open until %(t)s"
+msgstr "Open until %(t)s"
+
+msgid "New in store"
+msgstr "New in store"
+
+msgid "Für Unternehmen"
+msgstr "For businesses"
+
+msgid "Ihr Geschäft im Stadtkatalog %(city)s"
+msgstr "Your business in the %(city)s city catalogue"
+
+msgid "Zeigen Sie Ihre Angebote den Menschen in Ihrer Nähe — einfach vom Handy aus."
+msgstr "Show your offers to people nearby — right from your phone."
+
+msgid "Foto, Preis, fertig — ohne Passwort, direkt vom Handy."
+msgstr "Photo, price, done — no password, straight from your phone."
+
+msgid "Kostenlos bis %(n)s aktive Aktion"
+msgid_plural "Kostenlos bis %(n)s aktive Aktionen"
+msgstr[0] "Free for up to %(n)s active promotion"
+msgstr[1] "Free for up to %(n)s active promotions"
+
+msgid "Sie erscheinen im Stadtkatalog, sobald Ihre E-Mail bestätigt ist."
+msgstr "You appear in the city catalogue as soon as your email is confirmed."
+
+msgid "Zurücklegen oder Coupon"
+msgstr "Reserve or coupon"
+
+msgid "Kundschaft reserviert oder holt einen Coupon — Sie sehen es sofort."
+msgstr "Customers reserve or grab a coupon — you see it right away."
+
+msgid "Aushang mit QR-Code"
+msgstr "Poster with QR code"
+
+msgid "Flyer für Schaufenster und Theke, als PDF."
+msgstr "Flyer for your shop window and counter, as a PDF."
+
+msgid "Stammkundschaft folgt Ihnen"
+msgstr "Regulars follow you"
+
+msgid "Wer Ihrem Geschäft folgt, erfährt per E-Mail von neuen Angeboten."
+msgstr "Followers of your business hear about new offers by email."
+
+msgid "Jetzt Aktion starten"
+msgstr "Start a promotion now"
+
+msgid "Zur Website"
+msgstr "Visit website"
+
+msgid "Karte nicht verfügbar"
+msgstr "Map not available"

@@ -917,6 +917,13 @@ def offer_page(request, pk):
     listing = AggregatorListing.objects.public().filter(pk=pk).first()
     if listing is None or not _offer_in_scope(listing, portal):
         raise Http404
+    if listing.listing_kind == AggregatorListing.KIND_BUSINESS:
+        # Блок А4: у компании своя страница — старый адрес карточки ведёт туда (301).
+        from django.http import HttpResponsePermanentRedirect
+
+        return HttpResponsePermanentRedirect(
+            reverse("portal-business", kwargs={"slug": listing.tenant_slug})
+        )
     pool = _offer_pool(portal).exclude(pk=listing.pk)
     more = list(pool.filter(tenant_schema=listing.tenant_schema).order_by("-updated_at")[:4])
     similar_qs = pool.exclude(tenant_schema=listing.tenant_schema)

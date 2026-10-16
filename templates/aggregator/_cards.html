@@ -5,7 +5,7 @@
     {# D2.3: клик по оплаченной позиции считаем редирект-счётчиком (+rel=sponsored) #}
     {% comment %}T-8.24: обычная карточка ведёт на страницу предложения внутри портала
     (фолбэк — сайт бизнеса, если роута нет); оплаченная — счётчиком на сайт бизнеса.{% endcomment %}
-    {% url 'aggregator-offer' l.pk as offer_url %}
+    {% if l.listing_kind == 'business' %}{% url 'portal-business' slug=l.tenant_slug as offer_url %}{% else %}{% url 'aggregator-offer' l.pk as offer_url %}{% endif %}
     <a href="{% if l.is_featured_now %}{% url 'aggregator-featured-click' l.pk %}{% else %}{{ offer_url|default:l.portal_url }}{% endif %}"{% if l.is_featured_now %} rel="sponsored nofollow"{% endif %}
        class="group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
       <div class="relative aspect-square bg-gray-100">
@@ -35,7 +35,7 @@
         {% comment %}A8: live-статус «Jetzt geöffnet» на карточке города (богатая карточка
         бизнеса). Виден только при заданных часах (has_hours); открыт → зелёный «bis HH:MM»,
         закрыт → серый с ближайшим открытием.{% endcomment %}
-        {% if l.has_hours %}{% if l.open_now %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🟢 {% trans "Open" %}{% if l.open_until %} · {% trans "until" %} {{ l.open_until }}{% endif %}</span>{% else %}<span class="inline-block mb-1 bg-gray-100 text-gray-500 text-[11px] font-medium px-2 py-0.5 rounded-full">{% trans "Closed" %}{% if l.opens_next %} · {% trans "opens" %} {{ l.opens_next }}{% endif %}</span>{% endif %}{% endif %}
+        {% if l.has_hours %}{% if l.open_now %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🟢 {% if l.open_until %}{% blocktrans with t=l.open_until %}Open until {{ t }}{% endblocktrans %}{% else %}{% trans "Open now" %}{% endif %}</span>{% else %}<span class="inline-block mb-1 bg-gray-100 text-gray-500 text-[11px] font-medium px-2 py-0.5 rounded-full">{% trans "Closed" %}{% if l.opens_next %} · {% trans "opens" %} {{ l.opens_next }}{% endif %}</span>{% endif %}{% endif %}
         {% if l.is_surprise %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🌱 {% trans "Überraschungstüte" %}</span>{% endif %}
         {% if l.listing_kind == 'stay' %}<span class="inline-block mb-1 bg-sky-100 text-sky-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🛏 {% trans "Übernachten" %}</span>{% endif %}
         {% if l.room_count and l.room_count > 1 %}<span class="inline-block mb-1 ml-1 text-[11px] text-gray-500">· {% blocktrans count n=l.room_count %}{{ n }} room type{% plural %}{{ n }} room types{% endblocktrans %}</span>{% endif %}
@@ -46,7 +46,7 @@
         {% if l.listing_kind == 'product' %}<span class="inline-block mb-1 bg-amber-100 text-amber-800 text-[11px] font-medium px-2 py-0.5 rounded-full" data-kind-badge="product">🛍 {% trans "Produkt" %}</span>{% endif %}
         {% if l.listing_kind == 'service' %}<span class="inline-block mb-1 bg-teal-100 text-teal-800 text-[11px] font-medium px-2 py-0.5 rounded-full" data-kind-badge="service">🛠 {% trans "Dienstleistung" %}</span>{% endif %}
         {% if l.listing_kind == 'business' %}<span class="inline-block mb-1 bg-gray-100 text-gray-700 text-[11px] font-medium px-2 py-0.5 rounded-full" data-kind-badge="business">🏪 {% trans "Unternehmen" %}</span>{% endif %}
-        {% if l.is_new %}<span class="inline-block mb-1 ml-1 bg-indigo-100 text-indigo-800 text-[11px] font-medium px-2 py-0.5 rounded-full" data-new-badge>{% trans "Neu" %}</span>{% endif %}
+        {% if l.is_new %}<span class="inline-block mb-1 ml-1 bg-indigo-100 text-indigo-800 text-[11px] font-medium px-2 py-0.5 rounded-full" data-new-badge>{% trans "New in store" %}</span>{% endif %}
         {% if l.availability == 'on_request' %}<span class="inline-block mb-1 ml-1 bg-gray-100 text-gray-700 text-[11px] font-medium px-2 py-0.5 rounded-full" data-availability="on_request">{% trans "Auf Bestellung" %}</span>{% elif l.availability == 'sold_out' %}<span class="inline-block mb-1 ml-1 bg-red-50 text-red-700 text-[11px] font-medium px-2 py-0.5 rounded-full" data-availability="sold_out">{% trans "Ausverkauft" %}</span>{% endif %}
         <h2 class="font-semibold leading-tight line-clamp-2">{{ l.title_text }}</h2>
         {% if l.listing_kind == 'event' and l.starts_at %}
