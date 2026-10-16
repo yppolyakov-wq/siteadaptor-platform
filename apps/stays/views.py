@@ -1219,12 +1219,18 @@ def _market_position(tenant):
     schema = getattr(tenant, "schema_name", "")
     if not city:
         return None
-    listings = AggregatorListing.objects.filter(
-        listing_kind=AggregatorListing.KIND_STAY,
-        is_active=True,
-        city__iexact=city,
-        new_price__isnull=False,
-    ).values("tenant_schema", "business_name", "new_price")
+    # T-8.26: тот же пул, что видит житель (без приостановленных/внутренних/демо-скрытых) —
+    # иначе тестовые отели попадали бы в бенчмарк настоящего владельца.
+    listings = (
+        AggregatorListing.objects.public()
+        .filter(
+            listing_kind=AggregatorListing.KIND_STAY,
+            is_demo=False,
+            city__iexact=city,
+            new_price__isnull=False,
+        )
+        .values("tenant_schema", "business_name", "new_price")
+    )
     per_hotel = {}
     for row in listings:
         cur = per_hotel.get(row["tenant_schema"])

@@ -17705,3 +17705,19 @@ NUL в запросе → шторм WARNING (управляющие симво�
 (схема + окно 30 с + countdown; ревью поймало N-кратную реконсиляцию и пропуск удаления
 по ключу от `updated_at`). Замки: test_reviews +3, test_city_products +5, test_follow
 переписан осознанно. Ревью django/security перед мержем — по требованию владельца.
+
+## 2026-10-16 — T-8.26 п.2: noindex демо · машинные поверхности без демо · плашка · `is_internal` (⚠️ `tenants/0037`)
+План агента planner — `docs/t8-26-2-demo-hygiene-plan-2026-10-16.md`. **2a** превью-портал
+(`show_demo`) целиком `noindex,follow` (`<meta>` + `X-Robots-Tag` из middleware СНАРУЖИ кэша —
+pagecache хранит тело без заголовков), sitemap превью пустой, robots без `Sitemap:` (Allow
+остаётся — иначе робот не увидит noindex), фид и llms без демо ВСЕГДА (ассистенты флаг
+игнорируют; `preview: true` остаётся), `/entdecken/` — noindex постранично (демо-предложение/
+бизнес; списки только из демо), витрина демо-тенанта noindex + robots без Sitemap + пустой
+sitemap. **2b** плашка «Vorschau…» одним партиалом `_demo_notice.html` на 8 поверхностях
+(`demo_flags(cards)` во вьюхах). **2c** `Tenant.is_internal` (SHARED, аддитивно): тестовая
+регистрация никогда не в каталоге; только админка (fieldset «Stadtkatalog», фильтр, action с
+`permissions=["change"]`, `save_model` → `apply_visibility`, public-тенант исключён). Ревью
+нашли противоречие robots↔noindex у демо-витрины, дыру прав action и CP-1 мимо `public()` —
+закрыто. Замки `test_demo_hygiene` (15) + 2 переписаны осознанно; 4 msgid × 5. ⚠️ ops: деплой
+миграции; в админке пометить «rest» как intern; снять `show_demo` с `solingen.<base>` в день
+запуска — это включит индексацию (сейчас ВСЕ прод-порталы = превью, миграция `aggregator/0019`).

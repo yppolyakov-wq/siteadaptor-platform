@@ -2905,7 +2905,10 @@ def sitemap_xml(request):
     """
     from xml.sax.saxutils import escape
 
-    urls = [request.build_absolute_uri(reverse("storefront-home"))]
+    if getattr(getattr(request, "tenant", None), "is_demo", False):
+        urls = []  # T-8.26: демо-витрина noindex → пустой sitemap
+    else:
+        urls = [request.build_absolute_uri(reverse("storefront-home"))]
     urls += [
         request.build_absolute_uri(reverse("storefront-promotion", args=[pk]))
         for pk in Promotion.objects.filter(status="active").values_list("pk", flat=True)
@@ -2968,8 +2971,9 @@ def robots_txt(request):
     == False) — добавляем Disallow для известных AI-краулеров (GEO-контроль)."""
     tenant = getattr(request, "tenant", None)
     if getattr(tenant, "is_demo", False):
-        # T-8.26: витрина демо-бизнеса — выдуманные адреса и предложения, не индексируем.
-        return HttpResponse("User-agent: *\nDisallow: /\n", content_type="text/plain")
+        # T-8.26: витрина демо-бизнеса вне индекса через <meta noindex>; robots остаётся
+        # Allow (Disallow спрятал бы от робота сам noindex), но без Sitemap.
+        return HttpResponse("User-agent: *\nAllow: /\n", content_type="text/plain")
     sitemap = request.build_absolute_uri(reverse("storefront-sitemap"))
     body = f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n"
     cfg = tenant.site_config if isinstance(getattr(tenant, "site_config", None), dict) else {}

@@ -50,7 +50,7 @@ def _listing(**kw):
         "is_active": True,
         "listing_kind": AggregatorListing.KIND_PROMOTION,
         "source_ref": uuid.uuid4().hex,
-        "city_category": "baeckereien",
+        "city_category": "cafes",
     }
     defaults.update(kw)
     return AggregatorListing.objects.create(**defaults)
@@ -113,7 +113,11 @@ def test_preview_feed_and_llms_never_carry_demo():
     assert data["_siteadaptor"]["preview"] is True
     assert data["items"] == []
     text = llms.build_portal(_get("/llms.txt", preview), preview)
-    assert "Rubriken" not in text and "DemoDeal" not in text
+    assert "Rubriken" not in text and "noch keine echten Angebote" in text
+    # появилось настоящее — разделы строятся из него, оговорка «пока пусто» исчезает
+    _listing(title={"de": "Echt"})
+    text = llms.build_portal(_get("/llms.txt", preview), preview)
+    assert "Rubriken" in text and "noch keine echten Angebote" not in text
 
 
 # --- 2a/2b: /entdecken/ --------------------------------------------------------------
@@ -172,22 +176,78 @@ def test_entdecken_search_index_and_finder_show_notice_only_with_demo_cards():
     _listing(title={"de": "Echt"})
     cache.clear()
     html = _html(views.platform_finder(_get("/entdecken/finder/?typ=bakery&stadt=Solingen")))
-    assert "data-demo-notice" not in html
+    assert "Echt" in html and "data-demo-notice" not in html  # шаг 3 с результатами
 
 
 # --- 2a: витрина демо-тенанта -------------------------------------------------------
 
 
-def test_demo_storefront_robots_disallows_everything():
+def test_demo_storefront_robots_without_sitemap_and_empty_sitemap():
+    """Как у портала-превью: Allow (робот должен увидеть noindex), без Sitemap, sitemap пуст."""
     from apps.promotions import public_views
 
     req = RequestFactory().get("/robots.txt")
     req.tenant = TenantFactory(is_demo=True)
     body = _html(public_views.robots_txt(req))
-    assert "Disallow: /" in body and "Sitemap:" not in body
+    assert "Allow: /" in body and "Disallow" not in body and "Sitemap:" not in body
     req.tenant = TenantFactory()
     body = _html(public_views.robots_txt(req))
-    assert "Disallow: /\n" not in body and "Sitemap:" in body
+    assert "Sitemap:" in body
+
+
+def test_demo_storefront_sitemap_is_empty():
+    from apps.promotions import public_views
+
+    req = RequestFactory().get("/sitemap.xml")
+    req.tenant = TenantFactory(is_demo=True)
+    xml = _html(public_views.sitemap_xml(req))
+    assert "<urlset" in xml and "<url>" not in xml
+
+
+def test_mark_internal_action_requires_change_permission_and_skips_public():
+    from django.contrib.admin.sites import AdminSite
+
+    from apps.tenants.admin import TenantAdmin
+    from apps.tenants.models import Tenant
+
+    assert "change" in TenantAdmin.mark_internal.allowed_permissions
+    biz = TenantFactory(slug="probe2", name="Probe2", city="Solingen")
+    _listing(schema=biz.schema_name, slug="probe2")
+    public, _ = Tenant.objects.get_or_create(
+        schema_name="public", defaults={"name": "Platform", "slug": "public"}
+    )
+    admin = TenantAdmin(Tenant, AdminSite())
+    admin.mark_internal(
+        RequestFactory().post("/admin/"), Tenant.objects.filter(pk__in=[biz.pk, public.pk])
+    )
+    biz.refresh_from_db()
+    public.refresh_from_db()
+    assert biz.is_internal and not public.is_internal
+    assert not AggregatorListing.objects.filter(tenant_schema=biz.schema_name).exists()
+
+
+def test_admin_save_without_visibility_change_does_not_touch_snapshots(monkeypatch):
+    from django.contrib.admin.sites import AdminSite
+
+    from apps.tenants import admin as tenants_admin
+    from apps.tenants.models import Tenant
+
+    biz = TenantFactory(slug="probe3", name="Probe3", city="Solingen")
+    called = []
+    monkeypatch.setattr(
+        "apps.aggregator.visibility.apply_visibility", lambda t: called.append(t.schema_name)
+    )
+    admin = tenants_admin.TenantAdmin(Tenant, AdminSite())
+    form = type("F", (), {"changed_data": ["name"]})()
+    admin.save_model(RequestFactory().post("/admin/"), biz, form, change=True)
+    assert called == []
+    # а правка видимостного поля у public-тенанта — тоже не трогает (схема без tenant-таблиц)
+    public, _ = Tenant.objects.get_or_create(
+        schema_name="public", defaults={"name": "Platform", "slug": "public"}
+    )
+    form = type("F", (), {"changed_data": ["is_active"]})()
+    admin.save_model(RequestFactory().post("/admin/"), public, form, change=True)
+    assert called == []
 
 
 # --- 2c: внутренние (тестовые) тенанты ----------------------------------------------

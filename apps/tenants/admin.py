@@ -66,12 +66,18 @@ class TenantAdmin(ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        if change and set(getattr(form, "changed_data", ())) & set(self.VISIBILITY_FIELDS):
+        if (
+            change
+            and obj.schema_name != "public"
+            and set(getattr(form, "changed_data", ())) & set(self.VISIBILITY_FIELDS)
+        ):
             from apps.aggregator.visibility import apply_visibility
 
             apply_visibility(obj)
 
-    @admin.action(description=_("Als intern markieren (nie im Stadtkatalog)"))
+    @admin.action(
+        description=_("Als intern markieren (nie im Stadtkatalog)"), permissions=["change"]
+    )
     def mark_internal(self, request, queryset):
         from apps.aggregator.visibility import apply_visibility
 

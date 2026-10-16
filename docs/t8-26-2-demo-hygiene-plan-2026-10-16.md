@@ -60,3 +60,16 @@ Disallow · `is_internal`: listable False, `public()` исключает, стр
 2a/2b — без миграций и пересева. 2c — `./scripts/deploy.sh single`; в админке пометить
 «rest» как intern (до деплоя — shell: `in_city_catalog=False` + `apply_visibility`).
 Снять `show_demo` с `solingen.<base>` в день запуска.
+
+## Ревью перед мержем (django-reviewer + security-reviewer)
+Оба сошлись: (1) robots `Disallow: /` у демо-витрины ПРОТИВОРЕЧИЛ собственному `noindex`
+(робот, которому запрещён обход, мету не увидит, адрес останется в индексе по внешним
+ссылкам) → как у портала: `Allow` + мета, без `Sitemap:`, sitemap пустой; (2) action
+«Als intern markieren» без `permissions=["change"]` — мог бы запустить view-only staff;
+(3) `save_model` звал `apply_visibility` и для `public`-тенанта (реконсиляция схемы без
+tenant-таблиц упала бы в Celery). Плюс: строка llms «noch keine echten Angebote» только при
+пустом пуле (иначе могла врать); CP-1 «Marktposition» читал листинги мимо `public()` —
+внутренние/приостановленные отели попадали в бенчмарк владельца. Слабые ассерты усилены
+(Finder шаг 3 с результатом, llms в обе стороны), +3 замка (action, no-op save, public).
+Принято LOW без правки: `<meta>` в кэше страниц живёт до 120 с после снятия `show_demo`
+(заголовок из middleware — сразу); noindex по срезу страницы cursor-пагинации.

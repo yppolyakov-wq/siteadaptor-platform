@@ -100,7 +100,8 @@ def build_portal(request, portal) -> str:
     intro = portal.tagline_text or portal.intro_text
     if intro:
         lines += ["> " + " ".join(intro.split()), ""]
-    if portal.show_demo:
+    if portal.show_demo and not pool.exists():
+        # превью без единого настоящего предложения — честно сказать ассистенту почему пусто
         lines += [_("Vorschau — noch keine echten Angebote."), ""]
     if portal.city:
         lines += [_("Stadt: %(city)s") % {"city": portal.city}, ""]
