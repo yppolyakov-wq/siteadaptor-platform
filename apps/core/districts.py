@@ -69,6 +69,28 @@ def districts_for(city: str) -> tuple[District, ...]:
     return CITIES.get(city_key(city), ())
 
 
+_DIACRITICS = str.maketrans({"ä": "a", "ö": "o", "ü": "u", "ß": "ss"})
+
+
+def toponym_tokens(city: str) -> frozenset[str]:
+    """T-8.26 п.4: слова-топонимы (город, районы, алиасы) в ОБЕИХ свёртках — «ö→oe» (как
+    `_key`) и «ö→o» (как `aggregator.search.fold`). Фолбэк опечаток исключает их из
+    значимых слов запроса: «Friseur in Solingen-Wald» ищет парикмахера, а не всё
+    «Solingen…». Пустой город → объединение по реестру (главный домен без `?city=`)."""
+    keys = [city_key(city)] if city_key(city) else list(CITIES)
+    out: set[str] = set()
+    for key in keys:
+        words = [key, CITY_NAMES.get(key, "")]
+        for d in CITIES[key]:
+            words += [d.slug, d.name, *d.aliases]
+        for w in words:
+            for part in re.split(r"[\s/_-]+", w or ""):
+                if part:
+                    out.add(_key(part))
+                    out.add(part.casefold().translate(_DIACRITICS))
+    return frozenset(out)
+
+
 def choices_for(city: str) -> list[tuple[str, str]]:
     return [(d.slug, d.name) for d in districts_for(city)]
 

@@ -3,6 +3,7 @@
 План — docs/t8-19-portal-home-plan-2026-10-15.md §4.
 """
 
+import html as html_mod
 import re
 from datetime import timedelta
 from decimal import Decimal
@@ -452,3 +453,51 @@ def test_uncached_renders_are_rate_limited():
         ratelimit.hit("portal-feed", ip, limit=10_000, window=60)
     assert portal_views.portal_home(_get(portal, ip=ip, x="1")).status_code == 429
     assert portal_views.portal_home(_get(portal, ip=ip)).status_code == 200  # чистый корень
+
+
+# --- T-8.26 п.4: вкладки несут раздел, счётчик плитки = выдача --------------------------
+
+
+def _tab_hrefs(html):
+    return dict(re.findall(r'href="([^"]+)" data-portal-tab="([^"]+)"', html))
+
+
+def test_tabs_keep_kat_and_alle_does_not_leave_the_section():
+    portal = _portal()
+    _seed_everything()
+    # вкладки рисуются от двух групп видов в разделе → добавим услугу к товару «Brot»
+    _listing("service", "Backkurs", city_category="brot-backwaren")
+    hrefs = {k: v for v, k in _tab_hrefs(_html(portal, kat="lebensmittel-getraenke")).items()}
+    assert hrefs, "вкладки не отрисованы"
+    assert all("kat=lebensmittel-getraenke" in url for url in hrefs.values()), hrefs
+    assert hrefs["alle"] != "/" and "kind=alle" in hrefs["alle"]
+
+
+def test_tab_hidden_when_section_has_no_such_kind():
+    portal = _portal()
+    _seed_everything()  # события есть в разделе «Freizeit», но не в «Lebensmittel»
+    _listing("service", "Backkurs", city_category="brot-backwaren")
+    hrefs = {k: v for v, k in _tab_hrefs(_html(portal, kat="lebensmittel-getraenke")).items()}
+    assert hrefs and "event" not in hrefs and "veranstaltungen" not in hrefs
+
+
+def test_section_entry_without_kind_shows_all_kinds_like_the_tile_count():
+    """Аудит §7.3-3: плитка «10», по ссылке 1 — вход в раздел без вида показывал только
+    предложения. Теперь раздел без вида = все виды, то есть ровно то, что посчитала плитка."""
+    portal = _portal()
+    _seed_everything()
+    html = _html(portal)
+    tiles = re.findall(
+        r'href="([^"]+)" data-section-tile="([^"]+)".*?<span class="text-xs text-gray-400">(\d+)</span>',
+        html,
+        re.S,
+    )
+    assert tiles
+    for url, key, count in tiles:
+        params = dict(p.split("=") for p in html_mod.unescape(url).split("?", 1)[1].split("&"))
+        by_tile = _html(portal, **params)
+        by_chip = _html(portal, kat=key)  # вход без вида (чип раздела / вкладка)
+        card = r'<h2 class="font-semibold leading-tight line-clamp-2">'
+        n_tile = len(re.findall(card, by_tile))
+        n_chip = len(re.findall(card, by_chip))
+        assert n_tile == n_chip == int(count), (key, n_tile, n_chip, count)

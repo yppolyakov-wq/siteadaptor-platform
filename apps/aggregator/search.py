@@ -17,7 +17,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank, TrigramWordSimilarity
-from django.db.models import Case, F, IntegerField, Q, Value, When
+from django.db.models import Case, ExpressionWrapper, F, IntegerField, Q, Value, When
 from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
 
@@ -120,29 +120,74 @@ def match(qs, q: str, *, lang: str | None = None):
     return _match_words(qs, words)
 
 
-def _trigram_pks(qs, q: str) -> list[int]:
-    """Опечатки: похожее написание по trigram-индексу (оператор %>) — один проход,
-    дальше выдача фильтруется по готовому списку. Слова короче 4 букв не участвуют
-    (иначе «der» находил бы всё подряд)."""
-    from django.db import connection
+def _fallback_terms(q: str, lang: str, city: str) -> list[str]:
+    """T-8.26 п.4 (Р-1): ЗНАЧИМЫЕ слова для фолбэка — без склейки дефиса («Solingen-Wald» →
+    два слова), без стоп-слов, без топонимов города/районов (`districts.toponym_tokens`),
+    только от SUBSTRING_MIN букв и не числа. Точный FTS-этап этого не касается."""
+    from apps.core import districts
 
-    folded = " ".join(fold(t) for t in tokenize(q) if len(t) >= SUBSTRING_MIN)
-    if not folded:
+    raw = [t[:TOKEN_MAX] for t in _TOKEN.findall((q or "")[:SEARCH_MAX].lower())]
+    raw = raw[: _cfg("max_tokens")]
+    topo = districts.toponym_tokens(city)
+    out = []
+    for t in _drop_stopwords(raw, lang):
+        ft = fold(t)
+        if len(t) < SUBSTRING_MIN or t.isdigit() or t in topo or ft in topo:
+            continue
+        if ft not in out:
+            out.append(ft)
+    return out
+
+
+def _trigram_pks(qs, terms: list[str]) -> list[int]:
+    """Опечатки по ЗНАЧИМЫМ словам (Р-3): один запрос — кандидаты по ИЛИ слов (`%>`,
+    GIN BitmapOr), у каждого слова свой `word_similarity`, засчитываются слова выше
+    порога; нужно `n` совпавших при n ≤ 2 и `n−1` при n ≥ 3 (одно лишнее слово допустимо).
+    Раньше сравнивалась склеенная фраза целиком — длинное «solingen» вытягивало её выше
+    порога без предмета поиска (аудит §7.3-1)."""
+    from functools import reduce
+
+    from django.db import connection, transaction
+    from django.db.models import FloatField
+
+    if not terms:
         return []
-    from django.db import transaction
-
+    n = len(terms)
+    need = n if n <= 2 else n - 1
+    thr = float(_cfg("trigram_threshold"))
+    cond = Q()
+    sims = {}
+    for i, term in enumerate(terms):
+        cond |= Q(search_text__trigram_word_similar=term)
+        sims[f"sim{i}"] = TrigramWordSimilarity(term, "search_text")
+    hits = reduce(
+        lambda a, b: a + b,
+        [
+            Case(
+                When(**{f"sim{i}__gte": thr}, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+            for i in range(n)
+        ],
+    )
+    simsum = reduce(lambda a, b: a + b, [F(f"sim{i}") for i in range(n)])
     # Порог — SET LOCAL внутри транзакции: иначе он остаётся на соединении
     # (CONN_MAX_AGE) и достаётся чужому коду с pg_trgm (ревью database-reviewer).
     with transaction.atomic():
         with connection.cursor() as cur:
             cur.execute(
-                "SELECT set_config('pg_trgm.word_similarity_threshold', %s, true)",
-                [str(_cfg("trigram_threshold"))],
+                "SELECT set_config('pg_trgm.word_similarity_threshold', %s, true)", [str(thr)]
             )
         return list(
-            qs.filter(search_text__trigram_word_similar=folded)
-            .annotate(similarity=TrigramWordSimilarity(folded, "search_text"))
-            .order_by("-similarity", "-created_at", "-pk")
+            qs.filter(cond)
+            .annotate(**sims)
+            .annotate(
+                hits=ExpressionWrapper(hits, output_field=IntegerField()),
+                simsum=ExpressionWrapper(simsum, output_field=FloatField()),
+            )
+            .filter(hits__gte=need)
+            .order_by("-hits", "-simsum", "-created_at", "-pk")
             .values_list("pk", flat=True)[: _cfg("max_results")]
         )
 
@@ -416,15 +461,29 @@ def execute(
             mode = "fts"
             order = ["-rank", "-created_at", "-pk"]
         else:
-            pks = _trigram_pks(qs, q) or [0]  # [0] — пустой список без пустого CASE
-            position = Case(
-                *[When(pk=pk, then=Value(i)) for i, pk in enumerate(pks)],
-                default=Value(len(pks)),
-                output_field=IntegerField(),
-            )
-            qs = qs.filter(pk__in=pks).annotate(similarity_pos=position)
+            # T-8.26 п.4: фолбэк по ЗНАЧИМЫМ словам. Если состав слов изменился (снят
+            # топоним, разрезан дефис) — сначала мягкий точный поиск по ним (Р-2):
+            # «Friseur in Solingen-Wald» → все Friseur; режим остаётся «неточно».
+            terms = _fallback_terms(q, lang, city)
+            exact = {fold(t) for t in _drop_stopwords(tokenize(q), lang) if len(t) >= SUBSTRING_MIN}
+            soft = None
+            if terms and set(terms) != exact:
+                soft = _match_words(qs, _words(" ".join(terms), lang))
+                if not soft.exists():
+                    soft = None
+            if soft is not None:
+                qs = soft
+                order = ["-created_at", "-pk"]
+            else:
+                pks = _trigram_pks(qs, terms) or [0]  # [0] — пустой список без пустого CASE
+                position = Case(
+                    *[When(pk=pk, then=Value(i)) for i, pk in enumerate(pks)],
+                    default=Value(len(pks)),
+                    output_field=IntegerField(),
+                )
+                qs = qs.filter(pk__in=pks).annotate(similarity_pos=position)
+                order = ["similarity_pos", "-created_at", "-pk"]
             mode = "trigram"
-            order = ["similarity_pos", "-created_at", "-pk"]
         # T-8.7: явный сорт (кроме «Nähe») перекрывает ранг релевантности.
         if filters.sort in ("neu", "endet", "offen"):
             order = order_for(filters.sort, qs)

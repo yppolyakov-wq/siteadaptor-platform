@@ -526,3 +526,66 @@ def test_migration_rollback_keeps_pg_trgm_extension():
     sql_ops = [op for op in mod.Migration.operations if isinstance(op, migrations.RunSQL)]
     assert sql_ops and "pg_trgm" in sql_ops[0].sql
     assert sql_ops[0].reverse_sql == migrations.RunSQL.noop
+
+
+# --- T-8.26 п.4: фолбэк по значимым словам, топонимы, пометка на /entdecken/ ----------------
+
+
+def test_fallback_ignores_toponyms_and_needs_the_subject():
+    """Аудит §7.3-1: «Friseur in Solingen-Wald» давал 18 мусорных «ähnliche» — длинное
+    «solingen» вытягивало склеенную фразу выше порога, хотя предмета в тексте нет."""
+    _listing("Fahrrad-Check", business_name="Rad & Tat Solingen")
+    _listing("Burg Solingen Tour")
+    _listing("Herrenschnitt", business_name="Friseur Kamm")
+    out, titles = _found("Friseur in Solingen-Wald", city="Solingen")
+    assert out.mode == "trigram" and titles == ["Herrenschnitt"]
+
+
+def test_toponyms_only_query_finds_nothing_fuzzy():
+    _listing("Messer aus Solingen")
+    _listing("Burg Solingen Tour")
+    out, titles = _found("Solingen-Wald", city="Solingen")
+    assert titles == []
+
+
+def test_per_word_threshold_with_ballast_word():
+    _listing("Messer Santoku")
+    _, titles = _found("Mesesr Santoku Zzzz", city="Solingen")  # n=3 → хватит 2 совпавших
+    assert titles == ["Messer Santoku"]
+    _, titles = _found("Mesesr Zzzz", city="Solingen")  # n=2 → нужны оба
+    assert titles == []
+
+
+def test_hyphen_still_glued_for_exact_search():
+    """Регресс-замок tokenize: «E-Bike» ищется точно как «ebike» (синонимы), фолбэк не нужен."""
+    _listing("E-Bike Verleih")
+    _, titles = _found("E-Bike", city="Solingen")
+    assert titles == ["E-Bike Verleih"]
+
+
+def test_toponym_tokens_registry():
+    from apps.core import districts
+
+    toks = districts.toponym_tokens("Solingen")
+    assert {
+        "solingen",
+        "wald",
+        "graefrath",
+        "grafrath",
+        "hoehscheid",
+        "hohscheid",
+        "ohligs",
+    } <= toks
+    assert "" not in toks and "friseur" not in toks
+    assert toks <= districts.toponym_tokens("")  # без города — объединение по реестру
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_entdecken_marks_fuzzy_results(isolated_ratelimit):
+    _listing("Messer Santoku")
+    html = views.discover_index(_req("/entdecken/", q="Mesesr", city="Solingen")).content.decode()
+    assert "data-search-fuzzy" in html and "Messer Santoku" in html
+    html = views.discover_index(
+        _req("/entdecken/", q="Messer", city="Solingen", ip="10.1.1.2")
+    ).content.decode()
+    assert "data-search-fuzzy" not in html

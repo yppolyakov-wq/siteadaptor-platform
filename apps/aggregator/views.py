@@ -543,6 +543,8 @@ def discover_index(request):
                     if k != "naehe" or point is not None
                 ],
                 "canonical": request.build_absolute_uri(request.path),
+                "search_q": q,
+                "search_mode": outcome.mode,  # T-8.26 п.4: пометка «ähnliche Ergebnisse»
                 **demo_flags(cards),
             },
         )

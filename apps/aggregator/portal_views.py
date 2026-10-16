@@ -195,7 +195,9 @@ def portal_home(request, facet=None, district=None):
     # T-8.11/T-8.19: вид — лента предложений по умолчанию (акции/номера/события/меню);
     # вкладки `?kind=` — группы (alle/angebote) или один вид. Поиск без вида — по всем
     # видам: «Brot» обязан находить товары.
-    kind = scope.kind_key or ("alle" if q else "")
+    # T-8.26 п.4 (Р-6): вход в раздел/признак без вида — все виды: ровно то, что
+    # посчитала плитка раздела (иначе «10 на плитке, 1 в выдаче»).
+    kind = scope.kind_key or ("alle" if (q or filters.kats or filters.tags) else "")
     kinds = home.kinds_for(kind) or AggregatorListing.OFFER_KINDS
     # T-8.20: единый поиск — режим (полнотекст/опечатки) решается ОДИН раз по пулу без
     # вида и категорий; от него же вкладки, чипы и выдача (иначе вкладка «0», а лента нашла).
@@ -210,6 +212,7 @@ def portal_home(request, facet=None, district=None):
         replace(filters, kats=(), tags=()),
         surface="portal",
         track=False,
+        city=city or "",  # T-8.26 п.4: топонимы города не участвуют в фолбэке опечаток
         point=point,
     )
     whole_pool = broad.qs
@@ -220,10 +223,16 @@ def portal_home(request, facet=None, district=None):
     carry = [
         (k, v) for k, v in search_engine.carry(q, filters) if k not in ("kat", "merkmal")
     ] + geo_carry
+    # T-8.26 п.4 (Р-5): вкладки НЕ сбрасывают раздел/признак, а их видимость считается
+    # по пулу С разделом — показанная вкладка ⇒ непустая выдача.
+    tab_carry = list(search_engine.carry(q, filters)) + geo_carry
     city_home = home.has_home(portal)
     if city_home:  # T-8.19: вкладки главной вместо чипов видов
         kind_chips = []
-        portal_tabs = home.tabs(home.presence(whole_pool), kind, request.path, carry=carry)
+        tab_pool = search_engine.apply_filters(
+            whole_pool, search_engine.SearchFilters(kats=filters.kats, tags=filters.tags)
+        )
+        portal_tabs = home.tabs(home.presence(tab_pool), kind, request.path, carry=tab_carry)
     else:
         kind_chips = _kind_chips(whole_pool.order_by(), request.path, kind)
         portal_tabs = []
