@@ -131,3 +131,29 @@ def test_city_i18n_coverage():
     for row in rows:
         for loc in ("en", "ru", "uk", "tr"):
             assert row[loc] >= row["routed"] * 0.95, (row["kit"], loc, row[loc], row["routed"])
+
+
+# Блок А5: позиция не лежит на полке чужой категории (планшет/наушники среди
+# смартфонов). Чёрный список, а не белый: короткий и не ломается на новых позициях.
+_SHELF_FORBIDDEN = {
+    "smartphones": ("tablet", "ohrhoerer", "kopfhoerer", "laptop", "notebook", "fernseher"),
+    "computer": ("smartphone", "fernseher", "ohrhoerer", "kopfhoerer"),
+    "tv-audio": ("laptop", "notebook", "smartphone", "tablet"),
+}
+
+
+def _fold(text: str) -> str:
+    return text.lower().replace("ö", "oe").replace("ä", "ae").replace("ü", "ue").replace("ß", "ss")
+
+
+def test_items_sit_on_a_shelf_of_their_category():
+    wrong = []
+    for b in BIZ.values():
+        for shelf in b.shelves:
+            for word in _SHELF_FORBIDDEN.get(shelf.city_category, ()):
+                wrong += [
+                    f"{b.key}/{shelf.slug}: {it.name}"
+                    for it in shelf.items
+                    if word in _fold(it.name)
+                ]
+    assert not wrong, wrong

@@ -168,7 +168,7 @@ def test_same_response_for_any_outcome(monkeypatch):
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
-def test_rate_limit_per_email(monkeypatch):
+def test_rate_limit_per_email(monkeypatch, isolated_ratelimit):
     sent = []
     monkeypatch.setattr(tasks.send_follow_confirm_email, "delay", lambda **kw: sent.append(kw))
     portal = _portal()
@@ -570,13 +570,15 @@ def test_one_mail_per_day_for_daily_plus_weekly_and_instant_excluded():
     FollowSubscription.objects.filter(pk__in=[weekly.pk, instant.pk]).update(
         confirmed_at=timezone.now() - timedelta(days=3)
     )
-    _listing(tenant, title={"de": "T1"})
-    _listing(other, title={"de": "T2"})
-    _listing(third, title={"de": "T3"})
+    _listing(tenant, title={"de": "Angebot täglich"})
+    _listing(other, title={"de": "Angebot wöchentlich"})
+    _listing(third, title={"de": "Angebot sofort"})
     assert follow_digest.digest_for_user(user, now=_at(9)) is True
     assert len(mail.outbox) == 1
     body = mail.outbox[0].body
-    assert "T1" in body and "T2" in body and "T3" not in body
+    # Блок Е6: пробные заголовки с пробелом/умлаутом — в URL-safe токене отписки их не бывает.
+    assert "Angebot täglich" in body and "Angebot wöchentlich" in body
+    assert "Angebot sofort" not in body
 
 
 def test_digest_dedupe_period_unique_and_smtp_failure_rolls_back():
@@ -770,7 +772,10 @@ def test_business_digest_excludes_business_card_itself():
     assert follow_digest.build_digest(user, [sub], now=_at(9)) is None
 
 
-def test_stamp_is_single_use(monkeypatch):
+def test_stamp_is_single_use(monkeypatch, isolated_ratelimit):
+    # Блок Е6: одноразовость метки держит кэш — приватный, иначе чужой воркер (`-n auto`,
+    # один Redis, cache.clear()) стирал ключ между двумя POST.
+    monkeypatch.setattr(follow_views, "cache", isolated_ratelimit)
     sent = []
     monkeypatch.setattr(tasks.send_follow_confirm_email, "delay", lambda **kw: sent.append(kw))
     portal = _portal()

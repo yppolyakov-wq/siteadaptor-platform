@@ -368,8 +368,8 @@ ZWEITAKKU = Biz(
     usp=("garantie", "nachhaltig", "beratung"),
     shelves=(
         Shelf(
-            "Refurbished",
-            "refurbished",
+            "Smartphones & Uhren",
+            "refurbished-handys",
             "smartphones",
             (
                 Item(
@@ -379,17 +379,31 @@ ZWEITAKKU = Biz(
                     "sg-smartphone-refurbished",
                 ),
                 Item(
-                    "Tablet 10,9″ refurbished, 64 GB",
-                    "279.00",
-                    "Zustand gut, mit Ladegerät.",
-                    "sg-tablet-refurbished",
-                ),
-                Item(
                     "Smartwatch refurbished",
                     "149.00",
                     "Neues Armband, Akku geprüft.",
                     "sg-smartwatch",
                 ),
+            ),
+        ),
+        Shelf(
+            "Tablets",
+            "refurbished-tablets",
+            "computer",
+            (
+                Item(
+                    "Tablet 10,9″ refurbished, 64 GB",
+                    "279.00",
+                    "Zustand gut, mit Ladegerät.",
+                    "sg-tablet-refurbished",
+                ),
+            ),
+        ),
+        Shelf(
+            "Audio",
+            "refurbished-audio",
+            "tv-audio",
+            (
                 Item(
                     "Kabellose Ohrhörer refurbished",
                     "89.00",

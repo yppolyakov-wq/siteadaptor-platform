@@ -104,7 +104,7 @@ def test_login_response_identical_for_honeypot(monkeypatch):
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
-def test_login_ip_rate_limit_silent(monkeypatch):
+def test_login_ip_rate_limit_silent(monkeypatch, isolated_ratelimit):
     sent = []
     monkeypatch.setattr(tasks.send_magic_link_email, "delay", lambda **kw: sent.append(kw))
     portal = _portal(host="rl.siteadaptor.de")

@@ -197,7 +197,8 @@ def listings_for(
         from . import search
 
         qs = search.match(qs, q)
-    # Истёкшие события вон (у прочих видов starts_at либо null, либо окно акции).
+    # Лента строже public(): начавшееся событие (даже многодневное) уже не «предстоящее».
+    # Событие без конца с прошедшим стартом отсекает сам public() (блок Е1).
     qs = qs.exclude(listing_kind=AggregatorListing.KIND_EVENT, starts_at__lt=timezone.now())
     return qs
 
@@ -921,9 +922,9 @@ def offer_page(request, pk):
         # Блок А4: у компании своя страница — старый адрес карточки ведёт туда (301).
         from django.http import HttpResponsePermanentRedirect
 
-        return HttpResponsePermanentRedirect(
-            reverse("portal-business", kwargs={"slug": listing.tenant_slug})
-        )
+        target = reverse("portal-business", kwargs={"slug": listing.tenant_slug})
+        query = request.META.get("QUERY_STRING", "")  # ?ch=feed|portal — атрибуция цела
+        return HttpResponsePermanentRedirect(f"{target}?{query}" if query else target)
     pool = _offer_pool(portal).exclude(pk=listing.pk)
     more = list(pool.filter(tenant_schema=listing.tenant_schema).order_by("-updated_at")[:4])
     similar_qs = pool.exclude(tenant_schema=listing.tenant_schema)

@@ -51,9 +51,14 @@ class ListingQuerySet(models.QuerySet):
 
         # Истёкшее не показываем в момент запроса: beat снимает листинг с задержкой
         # до нескольких минут (а при сбое — дольше), ТЗ 2.0 §8 требует проверки сразу.
+        now = timezone.now()
         return (
             self.filter(is_active=True, hidden_at__isnull=True)
-            .filter(Q(ends_at__isnull=True) | Q(ends_at__gt=timezone.now()))
+            .filter(Q(ends_at__isnull=True) | Q(ends_at__gt=now))
+            # Блок Е1 (T-8.26 S4): событие без конца с прошедшим стартом — вон на ВСЕХ
+            # путях (страница бизнеса, избранное, shortlist). С `ends_at` идущее событие
+            # отсекает фильтр выше по концу. У прочих видов starts_at — начало окна.
+            .exclude(listing_kind=self.model.KIND_EVENT, starts_at__lt=now, ends_at__isnull=True)
             .exclude(tenant_schema__in=withheld_schemas())
         )
 
@@ -253,6 +258,8 @@ class AggregatorListing(I18nMixin, models.Model):
         if not url:
             return url
         parts = urlsplit(url)
+        if parts.scheme not in ("http", "https"):
+            return ""  # защита в глубину: в href уходит только http(s)
         query = parse_qsl(parts.query, keep_blank_values=True)
         if any(k == "ch" for k, _v in query):
             return url

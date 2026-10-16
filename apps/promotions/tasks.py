@@ -57,13 +57,15 @@ def roll_due_promotions(now=None) -> dict:
 
     sm = PromotionSM()
     activated = ended = 0
+    tenant = limits.tenant_for_current_schema()
+    if getattr(tenant, "is_demo", False):
+        extend_demo_promotions(now)
 
     # Сначала завершаем истёкшие: они освобождают места лимита бесплатной ступени.
     for promo in Promotion.objects.filter(status="active", ends_at__isnull=False, ends_at__lte=now):
         sm.apply(promo, "ended")
         ended += 1
 
-    tenant = limits.tenant_for_current_schema()
     for promo in Promotion.objects.filter(
         status="scheduled", starts_at__isnull=False, starts_at__lte=now
     ).order_by("starts_at"):
@@ -79,6 +81,29 @@ def roll_due_promotions(now=None) -> dict:
         activated += 1
 
     return {"activated": activated, "ended": ended}
+
+
+# Блок Е2: за сколько до конца демо-акция продлевается (раньше beat'а «ended»).
+DEMO_EXTEND_LEAD = timedelta(hours=1)
+
+
+def extend_demo_promotions(now=None) -> int:
+    """Демо-витрина не «умирает»: засеянные акции (`metadata.demo`) перед концом
+    сдвигаются на целое число дней (время суток сохраняется). Только в демо-схеме —
+    вызывающий проверяет `tenant.is_demo`; акции, которые посетитель демо-кабинета
+    завёл сам, не трогаем. Идемпотентно: сдвинутая акция выпадает из выборки.
+    Листинг каталога пересинхронизирует post_save акции."""
+    now = now or timezone.now()
+    edge = now + DEMO_EXTEND_LEAD
+    count = 0
+    for promo in Promotion.objects.filter(
+        status="active", ends_at__isnull=False, ends_at__lte=edge, metadata__demo=True
+    ):
+        days = (edge - promo.ends_at).days + 1
+        promo.ends_at += timedelta(days=days)
+        promo.save(update_fields=["ends_at", "updated_at"])
+        count += 1
+    return count
 
 
 @idempotent_task()

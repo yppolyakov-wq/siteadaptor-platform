@@ -70,3 +70,46 @@ def test_roll_skips_not_yet_started():
     assert out["activated"] == 0
     promo.refresh_from_db()
     assert promo.status == "scheduled"
+
+
+# --- Блок Е2: демо-акции не истекают ---------------------------------------------
+
+
+@pytest.mark.django_db
+def test_demo_promotion_is_extended_instead_of_ended(monkeypatch):
+    from types import SimpleNamespace
+
+    from apps.promotions import limits
+
+    now = timezone.now()
+    soon = now + timedelta(minutes=30)
+    demo = PromotionFactory(status="active", ends_at=soon, metadata={"demo": True})
+    own = PromotionFactory(status="active", ends_at=soon, metadata={})
+    gone = PromotionFactory(status="active", ends_at=now - timedelta(minutes=1), metadata={})
+    monkeypatch.setattr(limits, "tenant_for_current_schema", lambda: SimpleNamespace(is_demo=True))
+    roll_due_promotions(now)
+    demo.refresh_from_db()
+    own.refresh_from_db()
+    gone.refresh_from_db()
+    assert demo.status == "active"
+    assert demo.ends_at == soon + timedelta(days=1)  # время суток сохранено
+    assert own.ends_at == soon  # владелец сам добавил акцию в демо — не трогаем
+    assert gone.status == "ended"
+    roll_due_promotions(now)  # идемпотентно: повтор ничего не сдвигает
+    demo.refresh_from_db()
+    assert demo.ends_at == soon + timedelta(days=1)
+
+
+@pytest.mark.django_db
+def test_demo_extension_only_for_demo_tenants(monkeypatch):
+    from types import SimpleNamespace
+
+    from apps.promotions import limits
+
+    now = timezone.now()
+    soon = now + timedelta(minutes=30)
+    promo = PromotionFactory(status="active", ends_at=soon, metadata={"demo": True})
+    monkeypatch.setattr(limits, "tenant_for_current_schema", lambda: SimpleNamespace(is_demo=False))
+    roll_due_promotions(now)
+    promo.refresh_from_db()
+    assert promo.ends_at == soon

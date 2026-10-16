@@ -174,6 +174,8 @@ def test_business_card_links_to_business_page_and_old_url_redirects():
     assert 'href="/unternehmen/brot/"' in html
     resp = views.offer_page(_get(p, f"/angebot/{biz.pk}/"), biz.pk)
     assert resp.status_code == 301 and resp["Location"] == "/unternehmen/brot/"
+    resp = views.offer_page(_get(p, f"/angebot/{biz.pk}/?ch=feed"), biz.pk)
+    assert resp["Location"] == "/unternehmen/brot/?ch=feed"  # атрибуция канала цела
     promo = _listing()
     assert views.offer_page(_get(p, f"/angebot/{promo.pk}/"), promo.pk).status_code == 200
 
@@ -203,7 +205,7 @@ def test_business_page_has_website_and_excludes_itself_from_offers():
     assert "https://brot.siteadaptor.de/?ch=portal" in html  # «Zur Website»
     assert "Handwerksbäckerei seit 1950" in html
     assert "Mo–Fr 7–18 Uhr" in html
-    assert 'application/ld+json' in html  # LocalBusiness-разметка (тип уточняется по виду бизнеса)
+    assert "application/ld+json" in html  # LocalBusiness-разметка (тип уточняется по виду бизнеса)
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
@@ -227,3 +229,40 @@ def test_map_uses_current_osm_host_and_handles_tile_errors(tpl):
     assert "tile.openstreetmap.org" in src
     if tpl.startswith("templates/aggregator/"):
         assert "tileerror" in src and "Karte nicht verfügbar" in src
+
+
+def test_with_channel_refuses_non_http_urls():
+    lst = AggregatorListing(detail_url="javascript:alert(1)")
+    assert lst.portal_url == ""
+    assert (
+        AggregatorListing(detail_url="https://x.de/p/1/").portal_url
+        == "https://x.de/p/1/?ch=portal"
+    )
+
+
+# --- Е1: прошедшее событие без ends_at не видно НИГДЕ (правило в public()) ----------
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_past_event_without_end_is_gone_from_every_public_path():
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    p = _portal()
+    TenantFactory(schema_name="t1", slug="brot", name="Brot & Co", city="Solingen")
+    past = _listing(
+        listing_kind="event",
+        promo_uuid=None,
+        source_ref="e1",
+        title={"de": "Vorbei-Konzert"},
+        starts_at=timezone.now() - timedelta(days=1),
+    )
+    promo = _listing(title={"de": "Laufende Aktion"}, starts_at=timezone.now() - timedelta(days=1))
+    public = AggregatorListing.objects.public()
+    assert not public.filter(pk=past.pk).exists()
+    assert public.filter(pk=promo.pk).exists()  # у акции starts_at — начало окна
+    html = reviews_views.business_page(_get(p, "/unternehmen/brot/"), "brot").content.decode()
+    assert "Vorbei-Konzert" not in html and "Laufende Aktion" in html
+    with pytest.raises(Http404):
+        views.offer_page(_get(p, f"/angebot/{past.pk}/"), past.pk)

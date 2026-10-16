@@ -109,10 +109,11 @@ def test_jsonld_type_per_kind(kind, expected):
 @override_settings(ROOT_URLCONF="config.urls_portal")
 def test_event_has_start_and_location_city():
     portal = _portal()
-    now = timezone.now()
-    lst = _listing(listing_kind="event", starts_at=now, district="graefrath")
+    # Блок Е1: событие без конца с прошедшим стартом скрыто — берём предстоящее.
+    start = timezone.now() + timedelta(minutes=5)
+    lst = _listing(listing_kind="event", starts_at=start, district="graefrath")
     ld = _ld(views.offer_page(_get(portal=portal), lst.pk).content.decode())
-    assert ld["startDate"].startswith(now.date().isoformat())
+    assert ld["startDate"].startswith(timezone.localtime(start).date().isoformat())
     assert ld["location"]["address"]["addressLocality"] == "Solingen"
     assert ld["eventStatus"].endswith("EventScheduled")
 
