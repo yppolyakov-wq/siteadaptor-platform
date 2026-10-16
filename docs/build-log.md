@@ -17860,3 +17860,12 @@ security/database: HIGH в Б5 (скрытие результатов, умла�
 поиска 22 → 26 (постоянные, не растут с данными). ⚠️ ops: после деплоя `sync_aggregator` →
 `rebuild_search_index` (вне часов пик). Отложено в Е4: индекс `(city_category, listing_kind,
 updated_at) WHERE is_active`. FF в main `cf6f4452`.
+
+## 2026-10-16 — В6 «скоропортящееся только у еды» + В1 плашка демо-магазина, БЕЗ миграций
+В6: галочка § 11 Abs. 4 PAngV (SF-8) показывается и действует только у бизнесов с продуктами
+питания (`FOOD_BUSINESS_TYPES`): поле убрано из форм акции и быстрого ассистента у прочих типов,
+сохранённый флаг у не-еды не действует (`reference_price.food_allowed`/`is_perishable`).
+В1: первая версия (без онлайн-оплаты, писем и Telegram у демо) откатана по решению владельца
+«не трогать готовый функционал» — осталась только плашка на витрине демо-бизнеса
+«Demo-Geschäft — dies ist ein Beispiel-Shop zum Ausprobieren.» (`storefront/_demo_banner.html`,
+в `_base`/`_embed_base`); 2 msgid × 5 каталогов.
