@@ -26,8 +26,10 @@
 Laravel/Spring/FastAPI…), refactor-cleaner и performance-optimizer (заточены под npm-инструменты),
 i18n-sync (JSON-локали, у нас gettext `.po`), mcp-server-patterns (Node SDK), security-scan
 (требует npx AgentShield), агентные/маркетинговые/сетевые/медицинские/научные наборы.
-Кандидаты на потом: mcp-server-patterns — к MCP-приложению каталога (T-8.10f);
-marketing-agent/market-research — к анализу рынка.
+Дополнено 2026-10-16 (второй батч, тот же коммит ECC): агент marketing-agent; скиллы
+market-research, marketing-campaign, competitive-platform-analysis → benchmark-methodology →
+competitive-report-structure (цепочка конкурентного анализа), product-lens, mcp-server-patterns
+(к MCP-приложению каталога T-8.10f; SDK в нём Node — у нас Python, см. project-overrides).
 
 Имена агентов БЕЗ префикса `ecc:` (в правилах ECC упоминается `ecc:planner` — у нас `planner`).
 Хуки ECC не перенесены. Обновление: склонировать ECC и заново скопировать эти файлы.

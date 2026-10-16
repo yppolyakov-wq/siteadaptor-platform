@@ -33,3 +33,9 @@
   `./scripts/deploy.sh`. `database-migrations` — поверх правила миграций django-tenants выше.
   `api-design` — для открытых API (фид T-8.8, будущий MCP/JSON-слой); существующие эндпоинты
   под «конверты» не переписываем.
+- **Маркетинг/рынок (ECC, 2026-10-16):** `market-research`/`competitive-*`/`benchmark-methodology`/
+  `product-lens` — результаты пишем в `docs/` (как прежние `market-gap-*`/`archetype-market-analysis`),
+  с источниками; рынок по умолчанию — DACH, тексты витрин — на немецком с учётом UWG/PAngV.
+  `marketing-campaign`/`marketing-agent` — копирайт и планы, без отправки писем/постов наружу.
+  `product-lens` пишет PRODUCT-BRIEF.md — у нас в `docs/` с датой в имени.
+  `mcp-server-patterns` — принципы (tools/resources/валидация/транспорт); реализация на Python SDK.
