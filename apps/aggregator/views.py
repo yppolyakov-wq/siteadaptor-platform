@@ -49,6 +49,46 @@ def demo_flags(cards) -> dict:
     return {"shows_demo": any(demo), "robots_noindex": bool(demo) and all(demo)}
 
 
+def _entdecken_intent_links(request, chips, filters, keep, geo_carry) -> list[dict]:
+    from urllib.parse import urlencode
+
+    from . import query_intent
+    from . import search as search_engine
+
+    base = [(k, v) for k, v in keep.items() if v and k not in ("q",)]
+    out = []
+    for c in chips:
+        if c.key == query_intent.KEY_DISTRICT:
+            params = base + [("q", request.GET.get("q", "")), ("roh", query_intent.ROH_ORT)]
+        else:
+            params = base + [
+                (k, v) for k, v in search_engine.carry(c.q_without, filters) if k not in dict(base)
+            ]
+        params = [(k, v) for k, v in params + list(geo_carry) if v]
+        out.append({"key": c.key, "label": c.label, "url": f"{request.path}?{urlencode(params)}"})
+    return out
+
+
+def _entdecken_hint_links(request, hints, pool, q, filters, keep, geo_carry) -> list[dict]:
+    from urllib.parse import urlencode
+
+    from apps.core import city_categories as cc
+
+    out = []
+    for key in hints:
+        if key in filters.tags or not pool.filter(city_tags__contains=[key]).exists():
+            continue
+        params = [(k, v) for k, v in keep.items() if v] + [("merkmal", key)] + list(geo_carry)
+        out.append(
+            {
+                "key": key,
+                "label": _("Nur mit Merkmal %(t)s") % {"t": cc.tag_label(key)},
+                "url": f"{request.path}?{urlencode(params)}",
+            }
+        )
+    return out
+
+
 def _money(raw):
     """MEN-5: «45» / «45,50» → Decimal (мусор → None). Образец — CatalogFacets."""
     from decimal import Decimal, InvalidOperation
@@ -375,6 +415,10 @@ def discover_index(request):
     near_lat, near_lng = geo.parse_latlng(request)
     point = (near_lat, near_lng) if near_lat is not None else None
     filters = search.parse_filters(request, city=city, point=point)
+    # T-8.26 п.5a: намерение из текста → фильтры выборки; форма/carry держат явные.
+    q_eff, filters_eff, intent_chips, intent_hints = search.resolve_intent(
+        q, filters, city=city or "", roh=request.GET.getlist("roh")
+    )
     geo_carry = geo.carry(near_lat, near_lng)
     if (
         filters.active
@@ -422,10 +466,12 @@ def discover_index(request):
             diet=diet or None,
         )
         cursor = request.GET.get("cursor")
+        from . import query_intent
+
         outcome = search.execute(
             pool_base,
-            q,
-            filters,
+            q_eff,
+            filters_eff,
             surface="entdecken",
             city=city,
             track=not cursor,
@@ -438,8 +484,10 @@ def discover_index(request):
                 "gaeste": guests,
                 "anlass": anlass,
                 "diet": diet,
+                "auto": query_intent.auto_keys(intent_chips),
             },
             point=point,
+            log_query=q,  # журнал — сырой запрос жителя
         )
         pool = outcome.qs
         keep = {
@@ -545,6 +593,12 @@ def discover_index(request):
                 "canonical": request.build_absolute_uri(request.path),
                 "search_q": q,
                 "search_mode": outcome.mode,  # T-8.26 п.4: пометка «ähnliche Ergebnisse»
+                "intent_chips": _entdecken_intent_links(
+                    request, intent_chips, filters, keep, geo_carry
+                ),
+                "intent_hints": _entdecken_hint_links(
+                    request, intent_hints, pool, q, filters, keep, geo_carry
+                ),
                 **demo_flags(cards),
             },
         )

@@ -24700,3 +24700,21 @@ msgid ""
 msgstr ""
 "Dahili = test/ekip kaydı: şehir kataloğunda asla görünmez. Onay ve e-posta "
 "durumunu aksi hâlde işletme kendisi belirler."
+
+msgid "Nur mit Merkmal %(t)s"
+msgstr "Yalnızca %(t)s özellikli"
+
+msgid "Morgen"
+msgstr "Yarın"
+
+msgid "Größe %(s)s — Größenfilter noch nicht verfügbar"
+msgstr "Beden %(s)s — beden filtresi henüz yok"
+
+msgid "Stadtteil %(d)s"
+msgstr "%(d)s semti"
+
+msgid "%(a)s – %(b)s €"
+msgstr "%(a)s – %(b)s €"
+
+msgid "Erkannt:"
+msgstr "Algılandı:"

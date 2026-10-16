@@ -1,0 +1,7 @@
+{% load i18n %}{% comment %}T-8.26 п.5a: фильтры, выведенные из текста запроса, — честно показаны и снимаются ✕ (район: слово остаётся текстом). Подсказки признаков — ссылки, не фильтры.{% endcomment %}{% if intent_chips or intent_hints %}
+<div data-intent-chips class="mb-4 flex flex-wrap items-center gap-2 text-sm">
+  {% if intent_chips %}<span class="text-gray-500">{% trans "Erkannt:" %}</span>
+  {% for c in intent_chips %}<a href="{{ c.url }}" data-intent-chip="{{ c.key }}" class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 text-amber-900 px-3 py-1 hover:border-amber-400" title="{% trans "Filter entfernen" %}">{{ c.label }} <span aria-hidden="true">✕</span></a>{% endfor %}{% endif %}
+  {% for h in intent_hints %}<a href="{{ h.url }}" data-intent-hint="{{ h.key }}" class="inline-flex items-center rounded-full border border-gray-200 bg-white text-gray-700 px-3 py-1 hover:border-gray-400">{{ h.label }}</a>{% endfor %}
+</div>
+{% endif %}

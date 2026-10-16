@@ -407,6 +407,23 @@ def apply_filters(qs, f: SearchFilters, *, now=None, point=None):
     return qs
 
 
+def resolve_intent(
+    q: str, explicit: SearchFilters, *, city: str, roh=(), path_district: bool = False
+):
+    """T-8.26 п.5a: текст → фильтры (ДО поиска). → (q_eff, filters_eff, chips, hints).
+
+    `explicit` — фильтры из GET (сильнее вывода); `path_district` — район задан путём
+    `/stadtteil/<slug>/` (вывод района блокируется); `roh` — `?roh=ort` и т.п."""
+    from . import query_intent
+
+    roh = set(roh or ())
+    if path_district:  # район уже задан путём — слово района остаётся текстом
+        roh.add(query_intent.ROH_ORT)
+    intent = query_intent.parse(q, city=city or "", roh=frozenset(roh))
+    q_eff, eff, chips = query_intent.apply(intent, explicit)
+    return q_eff, eff, chips, intent.hints
+
+
 def carry(q: str, f: SearchFilters) -> list[tuple[str, str]]:
     """Параметры поиска и фильтров для «Weitere»/форм — тем же форматом, что parse_filters."""
     out: list[tuple[str, str]] = []
@@ -454,6 +471,7 @@ def execute(
     portal_host: str = "",
     extra: dict | None = None,
     point=None,
+    log_query: str | None = None,
 ) -> SearchOutcome:
     """Единственная точка поиска обеих поверхностей (портал, /entdecken/).
 
@@ -510,7 +528,12 @@ def execute(
         qs = qs.order_by(*order)
         outcome = SearchOutcome(qs, mode, q, ranked=True, filters=filters, lang=lang)
     if track:
-        record(outcome, surface=surface, city=city, portal_host=portal_host, extra=extra)
+        logged = outcome
+        if log_query is not None and log_query != q:  # T-8.26 п.5a: в журнал — сырой запрос
+            from dataclasses import replace as _replace
+
+            logged = _replace(outcome, query=log_query)
+        record(logged, surface=surface, city=city, portal_host=portal_host, extra=extra)
     return outcome
 
 

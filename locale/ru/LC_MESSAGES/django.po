@@ -24810,3 +24810,21 @@ msgstr ""
 "Внутренний = тестовая/командная регистрация: никогда не появляется в "
 "каталоге города. Согласие и статус e-mail в остальных случаях задаёт сам "
 "бизнес."
+
+msgid "Nur mit Merkmal %(t)s"
+msgstr "Только с признаком «%(t)s»"
+
+msgid "Morgen"
+msgstr "Завтра"
+
+msgid "Größe %(s)s — Größenfilter noch nicht verfügbar"
+msgstr "Размер %(s)s — фильтр по размеру пока недоступен"
+
+msgid "Stadtteil %(d)s"
+msgstr "Район %(d)s"
+
+msgid "%(a)s – %(b)s €"
+msgstr "%(a)s – %(b)s €"
+
+msgid "Erkannt:"
+msgstr "Распознано:"

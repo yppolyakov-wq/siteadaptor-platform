@@ -180,6 +180,11 @@ def portal_home(request, facet=None, district=None):
         filters = replace(filters, sort="naehe")
     if district:  # путь /stadtteil/<slug>/ сильнее параметра
         filters = replace(filters, district="")
+    # T-8.26 п.5a: намерение из текста («unter 100 €», «heute geöffnet», «in Wald») → фильтры
+    # поиска; `filters` (явные) остаются источником формы/carry/пилюль, `filters_eff` — выборки.
+    q_eff, filters_eff, intent_chips, intent_hints = search_engine.resolve_intent(
+        q, filters, city=city or "", roh=request.GET.getlist("roh"), path_district=bool(district)
+    )
     if q or filters.active:
         from apps.core import ratelimit
 
@@ -208,8 +213,8 @@ def portal_home(request, facet=None, district=None):
             district=district,
             include_demo=portal.show_demo,
         ),
-        q,
-        replace(filters, kats=(), tags=()),
+        q_eff,
+        replace(filters_eff, kats=(), tags=()),
         surface="portal",
         track=False,
         city=city or "",  # T-8.26 п.4: топонимы города не участвуют в фолбэке опечаток
@@ -230,7 +235,7 @@ def portal_home(request, facet=None, district=None):
     if city_home:  # T-8.19: вкладки главной вместо чипов видов
         kind_chips = []
         tab_pool = search_engine.apply_filters(
-            whole_pool, search_engine.SearchFilters(kats=filters.kats, tags=filters.tags)
+            whole_pool, search_engine.SearchFilters(kats=filters_eff.kats, tags=filters_eff.tags)
         )
         portal_tabs = home.tabs(home.presence(tab_pool), kind, request.path, carry=tab_carry)
     else:
@@ -248,8 +253,10 @@ def portal_home(request, facet=None, district=None):
         extra={"kind": scope.kind_key, "neu": "1" if scope.new_only else "", **dict(carry)},
     )
     pool = search_engine.apply_filters(
-        base_pool, search_engine.SearchFilters(kats=filters.kats, tags=filters.tags)
+        base_pool, search_engine.SearchFilters(kats=filters_eff.kats, tags=filters_eff.tags)
     )
+    from . import query_intent
+
     search_engine.record(
         search_engine.SearchOutcome(pool, broad.mode, q, broad.ranked, filters, lang=broad.lang),
         surface="portal",
@@ -262,6 +269,7 @@ def portal_home(request, facet=None, district=None):
             "neu": "1" if scope.new_only else "",
             "stadtteil": district or "",
             "type": business_type or "",
+            "auto": query_intent.auto_keys(intent_chips),  # T-8.26 п.5a: что выведено из текста
         },
     )
     # G8c/T-8.7: «рядом» — ближайшие сверху, без пагинации; точка без явного сорта =
@@ -365,6 +373,11 @@ def portal_home(request, facet=None, district=None):
             "search_q": q,
             "search_kind": scope.kind_key,
             "search_mode": broad.mode,
+            # T-8.26 п.5a: пилюли «Erkannt: …» (✕ = запрос без фразы / roh=ort у района)
+            "intent_chips": _intent_chip_links(request, intent_chips, filters, geo_carry, scope),
+            "intent_hints": _intent_hint_links(
+                request, intent_hints, pool, q, filters, geo_carry, scope
+            ),
             # T-8.20: новый запрос не сбрасывает вкладку и фильтры.
             "search_hidden": [
                 (k, v)
@@ -406,6 +419,63 @@ def portal_home(request, facet=None, district=None):
             ),
         },
     )
+
+
+def _scope_pairs(scope) -> list[tuple[str, str]]:
+    return [
+        (k, v) for k, v in (("kind", scope.kind_key), ("neu", "1" if scope.new_only else "")) if v
+    ]
+
+
+def _intent_chip_links(request, chips, filters, geo_carry, scope) -> list[dict]:
+    """T-8.26 п.5a: пилюля выведенного фильтра → ссылка-✕. Район: слово остаётся в тексте
+    (`roh=ort`); прочие: запрос без своей фразы. Явные фильтры и область сохраняются."""
+    from . import query_intent
+    from . import search as search_engine
+
+    out = []
+    for c in chips:
+        if c.key == query_intent.KEY_DISTRICT:
+            raw_q = request.GET.get("q", "")
+            params = _scope_pairs(scope) + search_engine.carry(raw_q, filters)
+            params.append(("roh", query_intent.ROH_ORT))
+        else:
+            params = _scope_pairs(scope) + search_engine.carry(c.q_without, filters)
+        params = [(k, v) for k, v in params + list(geo_carry) if v]
+        out.append(
+            {
+                "key": c.key,
+                "label": c.label,
+                "url": f"{request.path}?{urlencode(params)}" if params else request.path,
+            }
+        )
+    return out
+
+
+def _intent_hint_links(request, hints, pool, q, filters, geo_carry, scope) -> list[dict]:
+    """Подсказка «Nur mit Merkmal …» — только если в выдаче есть хоть один такой листинг."""
+    from apps.core import city_categories as cc
+
+    from . import search as search_engine
+
+    out = []
+    for key in hints:
+        if key in filters.tags or not pool.filter(city_tags__contains=[key]).exists():
+            continue
+        params = (
+            _scope_pairs(scope)
+            + search_engine.carry(q, filters)
+            + [("merkmal", key)]
+            + list(geo_carry)
+        )
+        out.append(
+            {
+                "key": key,
+                "label": _("Nur mit Merkmal %(t)s") % {"t": cc.tag_label(key)},
+                "url": f"{request.path}?{urlencode(params)}",
+            }
+        )
+    return out
 
 
 def _filter_panel(request, portal, filters, q: str, scope, district, point=None) -> dict:

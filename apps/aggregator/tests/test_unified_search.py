@@ -618,3 +618,61 @@ def test_entdecken_marks_fuzzy_results(isolated_ratelimit):
         _req("/entdecken/", q="Messer", city="Solingen", ip="10.1.1.2")
     ).content.decode()
     assert "data-search-fuzzy" not in html
+
+
+# --- T-8.26 п.5a: намерение запроса на обеих поверхностях -------------------------------
+
+
+def _portal_html(q, isolated=True, **params):
+    portal = _portal()
+    req = RequestFactory().get("/", {"q": q, **params}, REMOTE_ADDR="10.5.5.5")
+    req.portal = portal
+    return portal_views.portal_home(req).content.decode()
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_winterjacke_unter_100_filters_price_and_shows_removable_chip(isolated_ratelimit):
+    _listing("Jacke Basic", kind="product", new_price=Decimal("80"))
+    _listing("Jacke Premium", kind="product", new_price=Decimal("150"))
+    html = _portal_html("Jacke unter 100 Euro")
+    assert "Jacke Basic" in html and "Jacke Premium" not in html
+    assert 'data-intent-chip="preis_bis"' in html
+    # выведенное НЕ прилипает к форме: скрытых полей preis_bis нет, q остаётся сырым
+    assert 'type="hidden" name="preis_bis"' not in html
+    assert 'name="preis_bis" value="100' not in html  # панель фильтров показывает ЯВНЫЕ
+    assert 'value="Jacke unter 100 Euro"' in html
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_friseur_in_wald_filters_district_and_roh_ort_undoes_it(isolated_ratelimit):
+    _listing("Herrenschnitt Wald", business_name="Friseur Wald", district="wald")
+    _listing("Herrenschnitt Mitte", business_name="Friseur Mitte", district="mitte")
+    html = _portal_html("Friseur in Solingen-Wald")
+    assert "Herrenschnitt Wald" in html and "Herrenschnitt Mitte" not in html
+    assert 'data-intent-chip="stadtteil"' in html and "roh=ort" in html
+    html = _portal_html("Friseur in Solingen-Wald", roh="ort")
+    assert "Herrenschnitt Wald" in html and "Herrenschnitt Mitte" in html
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_heute_geoeffnet_equals_offen_param(isolated_ratelimit, monkeypatch):
+    a = _listing("Trattoria Sole", business_name="Trattoria")
+    _listing("Bistro Luna", business_name="Bistro")
+    monkeypatch.setattr(views, "_open_now_schemas", lambda schemas: {a.tenant_schema})
+    by_text = _titles(_portal_html("Trattoria heute geöffnet"))
+    by_param = _titles(_portal_html("Trattoria", offen="1"))
+    assert by_text == by_param == {"Trattoria Sole"}
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_entdecken_intent_chips_and_journal_raw_query(isolated_ratelimit):
+    from apps.aggregator.models import SearchQueryLog
+
+    _listing("Jacke Basic", kind="product", new_price=Decimal("80"))
+    html = views.discover_index(
+        _req("/entdecken/", q="Jacke unter 100 euro", city="Solingen", ip="10.5.5.6")
+    ).content.decode()
+    assert 'data-intent-chip="preis_bis"' in html and "Jacke Basic" in html
+    row = SearchQueryLog.objects.get()
+    assert row.query_norm == "jacke unter 100 euro"  # сырой запрос жителя
+    assert "auto" in row.filters and "preis" in str(row.filters["auto"])
