@@ -25320,3 +25320,43 @@ msgstr "Suggestion from the photo"
 #. Д1
 msgid "Wird erkannt…"
 msgstr "Recognising…"
+
+#. Д1
+#, python-format
+msgid "%(name)s läuft am %(date)s ab (%(qty)s Stk.) — Rettungs-Deal?"
+msgstr "%(name)s expires on %(date)s (%(qty)s pcs.) — rescue deal?"
+
+#. Д1
+#, python-format
+msgid "%(name)s – Happy Hour"
+msgstr "%(name)s – Happy Hour"
+
+#. Д1
+#, python-format
+msgid "%(name)s – Last Minute"
+msgstr "%(name)s – last minute"
+
+#. Д1
+#, python-format
+msgid "Lücke %(start)s–%(end)s in „%(name)s“ — Last-Minute-Angebot?"
+msgstr "Gap %(start)s–%(end)s in “%(name)s” — last-minute offer?"
+
+#. Д1
+#, python-format
+msgid "Morgen %(start)s–%(end)s Uhr noch frei: %(name)s — Happy Hour?"
+msgstr "Tomorrow %(start)s–%(end)s still free: %(name)s — happy hour?"
+
+#. Д1
+#, python-format
+msgid "Noch %(n)s Plätze bei „%(name)s“ am %(date)s — teilen?"
+msgstr "%(n)s places left at “%(name)s” on %(date)s — share?"
+
+#. Д1
+#, python-format
+msgid "„%(title)s“ kam gut an — wiederholen?"
+msgstr "“%(title)s” went down well — repeat it?"
+
+#. Д1
+#, python-format
+msgid "„%(title)s“ lief am %(weekday)s am besten — wiederholen?"
+msgstr "“%(title)s” did best on %(weekday)s — repeat it?"

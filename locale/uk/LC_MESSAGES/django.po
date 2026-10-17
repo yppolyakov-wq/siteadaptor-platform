@@ -25558,3 +25558,43 @@ msgstr "Пропозиція за фото"
 #. Д1
 msgid "Wird erkannt…"
 msgstr "Розпізнаємо…"
+
+#. Д1
+#, python-format
+msgid "%(name)s läuft am %(date)s ab (%(qty)s Stk.) — Rettungs-Deal?"
+msgstr "Термін «%(name)s» спливає %(date)s (%(qty)s шт.) — рятівна акція?"
+
+#. Д1
+#, python-format
+msgid "%(name)s – Happy Hour"
+msgstr "%(name)s – щасливі години"
+
+#. Д1
+#, python-format
+msgid "%(name)s – Last Minute"
+msgstr "%(name)s – в останню хвилину"
+
+#. Д1
+#, python-format
+msgid "Lücke %(start)s–%(end)s in „%(name)s“ — Last-Minute-Angebot?"
+msgstr "Вікно %(start)s–%(end)s у «%(name)s» — пропозиція в останню хвилину?"
+
+#. Д1
+#, python-format
+msgid "Morgen %(start)s–%(end)s Uhr noch frei: %(name)s — Happy Hour?"
+msgstr "Завтра %(start)s–%(end)s год ще вільно: %(name)s — щасливі години?"
+
+#. Д1
+#, python-format
+msgid "Noch %(n)s Plätze bei „%(name)s“ am %(date)s — teilen?"
+msgstr "Залишилося %(n)s місць на «%(name)s» %(date)s — поділитися?"
+
+#. Д1
+#, python-format
+msgid "„%(title)s“ kam gut an — wiederholen?"
+msgstr "«%(title)s» добре спрацювала — повторити?"
+
+#. Д1
+#, python-format
+msgid "„%(title)s“ lief am %(weekday)s am besten — wiederholen?"
+msgstr "«%(title)s» найкраще йшла в %(weekday)s — повторити?"

@@ -25444,3 +25444,46 @@ msgstr "Fotoğraftan öneri"
 #. Д1
 msgid "Wird erkannt…"
 msgstr "Tanınıyor…"
+
+#. Д1
+#, python-format
+msgid "%(name)s läuft am %(date)s ab (%(qty)s Stk.) — Rettungs-Deal?"
+msgstr ""
+"%(name)s ürününün son tüketim tarihi %(date)s (%(qty)s adet) — kurtarma "
+"fırsatı?"
+
+#. Д1
+#, python-format
+msgid "%(name)s – Happy Hour"
+msgstr "%(name)s – Happy Hour"
+
+#. Д1
+#, python-format
+msgid "%(name)s – Last Minute"
+msgstr "%(name)s – son dakika"
+
+#. Д1
+#, python-format
+msgid "Lücke %(start)s–%(end)s in „%(name)s“ — Last-Minute-Angebot?"
+msgstr "“%(name)s” için %(start)s–%(end)s boşluk — son dakika teklifi?"
+
+#. Д1
+#, python-format
+msgid "Morgen %(start)s–%(end)s Uhr noch frei: %(name)s — Happy Hour?"
+msgstr "Yarın saat %(start)s–%(end)s hâlâ boş: %(name)s — happy hour?"
+
+#. Д1
+#, python-format
+msgid "Noch %(n)s Plätze bei „%(name)s“ am %(date)s — teilen?"
+msgstr ""
+"%(date)s tarihindeki “%(name)s” için %(n)s yer kaldı — paylaşılsın mı?"
+
+#. Д1
+#, python-format
+msgid "„%(title)s“ kam gut an — wiederholen?"
+msgstr "“%(title)s” iyi karşılandı — tekrarlansın mı?"
+
+#. Д1
+#, python-format
+msgid "„%(title)s“ lief am %(weekday)s am besten — wiederholen?"
+msgstr "“%(title)s” en iyi %(weekday)s günü gitti — tekrarlansın mı?"

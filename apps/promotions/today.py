@@ -1,0 +1,396 @@
+"""T-8.10c: «Was heute starten?» — подсказки акции из СВОИХ данных бизнеса.
+
+План — docs/d1-ai-photo-promo-today-plan-2026-10-17.md §4. Движок правил без ИИ:
+каждая подсказка выводится из БД (партия с близким MHD, свободные слоты завтра, короткая
+«дыра» между бронями номера, удачная прошлая акция, свободные места события). Тап по
+подсказке открывает ЗАПОЛНЕННЫЙ ассистент «Schnell-Aktion» — публикует по-прежнему
+владелец. Ссылке не верим: подсказка пересчитывается при открытии (`resolve`).
+
+Цифры — из данных или редактируемые дефолты (лестница скидок): ИИ их не придумывает.
+Упавшее правило не роняет остальные (как блоки дайджеста)."""
+
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass, field
+from datetime import timedelta
+
+from django.core.cache import cache
+from django.db import connection
+from django.utils import timezone, translation
+from django.utils.formats import date_format
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_noop
+
+logger = logging.getLogger(__name__)
+
+LIMIT = 3
+CACHE_TTL = 15 * 60
+DISMISS_TTL = 7 * 24 * 3600
+
+MHD_WITHIN_DAYS = 3
+SLOT_SERVICES_MAX = 5
+SLOT_MIN_RUN = 3  # столько свободных стартов подряд завтра — повод для Happy Hour
+SLOT_MAX_STEP = timedelta(minutes=60)
+GAP_MAX_NIGHTS = 3
+GAP_HORIZON_DAYS = 21
+REPEAT_WINDOW_DAYS = 60
+REPEAT_SCAN = 20
+EVENT_WINDOW_DAYS = 7
+EVENT_FREE_SHARE = 0.4
+
+# Дефолты скидок — владелец меняет их в форме (решение В-8).
+MHD_PERCENT_SOON = 50  # 0–1 день до MHD
+MHD_PERCENT = 30  # 2–3 дня
+SLOT_PERCENT = 20
+GAP_PERCENT = 15
+
+ACTIVE = ("active", "scheduled")
+
+
+@dataclass(frozen=True)
+class Suggestion:
+    key: str
+    rule: str
+    icon: str
+    text: str
+    priority: int
+    initial: dict = field(default_factory=dict)
+    target: tuple | None = None  # ("product"|"service"|"stay_unit", pk)
+    target_rules: dict = field(default_factory=dict)
+    action: str = "promo"  # promo | repeat | share
+    url: str = ""  # repeat: ?von=…; share: публичная страница события
+
+
+def _safe(fn):
+    try:
+        return list(fn())
+    except Exception:  # noqa: BLE001 — одно правило не роняет остальные
+        logger.warning("today suggestion rule failed", exc_info=True)
+        return []
+
+
+def _module(tenant, key: str) -> bool:
+    try:
+        return bool(tenant is not None and tenant.is_module_active(key))
+    except Exception:  # noqa: BLE001 — стаб тенанта
+        return False
+
+
+def _busy(**target) -> bool:
+    from .models import Promotion
+
+    return Promotion.objects.filter(status__in=ACTIVE, **target).exists()
+
+
+def _base_title(message: str, name: str) -> str:
+    """Заголовок черновика — на БАЗОВОМ языке (так пишет ассистент), а не языке кабинета."""
+    from django.conf import settings
+
+    with translation.override(settings.LANGUAGE_CODE):
+        return _(message) % {"name": name}
+
+
+def _day(value) -> str:
+    return date_format(value, "D d.m.")
+
+
+# --- R1 · MHD -------------------------------------------------------------------------
+
+
+def _rule_mhd(tenant, today):
+    from apps.inventory import services as inventory
+
+    if not inventory.lots_enabled(tenant):  # склад — часть каталога (core); гейт — партии
+        return
+    seen = set()
+    for lot in inventory.expiring_lots(within_days=MHD_WITHIN_DAYS, include_expired=False)[:20]:
+        product = lot.product
+        if product is None or product.pk in seen or not product.is_active:
+            continue
+        seen.add(product.pk)
+        if _busy(product=product):
+            continue
+        days = (lot.mhd - today).days
+        qty = int(lot.qty_remaining or 0)
+        name = product.name_text or str(product)
+        yield Suggestion(
+            key=f"mhd:{lot.pk}",
+            rule="mhd",
+            icon="⏳",
+            text=_("%(name)s läuft am %(date)s ab (%(qty)s Stk.) — Rettungs-Deal?")
+            % {"name": name, "date": _day(lot.mhd), "qty": qty},
+            priority=100 - days,
+            initial={
+                "title": name,
+                "percent": MHD_PERCENT_SOON if days <= 1 else MHD_PERCENT,
+                "quantity": qty or None,
+                "term": "date",
+                "until": lot.mhd,
+                "perishable": True,
+                "product": product.pk,
+            },
+            target=("product", product.pk),
+        )
+
+
+# --- R2 · freie Termine morgen ---------------------------------------------------------
+
+
+def _free_run(starts):
+    """Самая длинная серия стартов с шагом ≤ SLOT_MAX_STEP: (первый, последний, длина)."""
+    best = (None, None, 0)
+    run_start, prev, length = None, None, 0
+    for start in starts:
+        if prev is not None and start - prev <= SLOT_MAX_STEP:
+            length += 1
+        else:
+            run_start, length = start, 1
+        prev = start
+        if length > best[2]:
+            best = (run_start, start, length)
+    return best
+
+
+def _rule_slots(tenant, today):
+    from apps.booking.availability import service_slots
+    from apps.booking.models import Service
+
+    if not _module(tenant, "booking"):
+        return
+    tomorrow = today + timedelta(days=1)
+    for service in Service.objects.filter(is_active=True).order_by("pk")[:SLOT_SERVICES_MAX]:
+        if _busy(service=service):
+            continue
+        starts = [timezone.localtime(s) for s in service_slots(service, tomorrow)]
+        first, last, length = _free_run(starts)
+        if length < SLOT_MIN_RUN:
+            continue
+        hour_from, hour_to = first.hour, min(last.hour + 1, 24)
+        name = service.name_localized()
+        yield Suggestion(
+            key=f"slots:{service.pk}:{tomorrow.isoformat()}",
+            rule="slots",
+            icon="🕑",
+            text=_("Morgen %(start)s–%(end)s Uhr noch frei: %(name)s — Happy Hour?")
+            % {"start": hour_from, "end": hour_to, "name": name},
+            priority=80,
+            initial={
+                "title": _base_title(gettext_noop("%(name)s – Happy Hour"), name),
+                "percent": SLOT_PERCENT,
+                "term": "date",
+                "until": tomorrow,
+            },
+            target=("service", service.pk),
+            target_rules={
+                "weekdays": [tomorrow.weekday()],
+                "hour_from": hour_from,
+                "hour_to": hour_to,
+            },
+        )
+
+
+# --- R3 · Lücken zwischen Buchungen -----------------------------------------------------
+
+
+def _rule_gaps(tenant, today):
+    from apps.stays import pricing
+    from apps.stays.gaps import short_gaps
+    from apps.stays.models import StaySettings, StayUnit
+
+    if not _module(tenant, "stays"):
+        return
+    units = list(StayUnit.objects.filter(is_active=True).order_by("pk")[:10])
+    stay_settings = StaySettings.load()
+    seen = set()
+    for unit, start, nights in short_gaps(
+        units, max_nights=GAP_MAX_NIGHTS, horizon=GAP_HORIZON_DAYS
+    ):
+        if unit.pk in seen:
+            continue
+        end = start + timedelta(days=nights)
+        # Lücken-Deal уже даёт скидку на эту дыру — скидки не суммируются (max), не дублируем.
+        if pricing.gap_discount(unit, start, end, stay_settings, today=today)[0]:
+            continue
+        if _busy(stay_unit=unit):
+            continue
+        seen.add(unit.pk)
+        name = unit.name_localized()
+        yield Suggestion(
+            key=f"gap:{unit.pk}:{start.isoformat()}",
+            rule="gap",
+            icon="🛏",
+            text=_("Lücke %(start)s–%(end)s in „%(name)s“ — Last-Minute-Angebot?")
+            % {"start": _day(start), "end": _day(end), "name": name},
+            priority=70,
+            initial={
+                "title": _base_title(gettext_noop("%(name)s – Last Minute"), name),
+                "percent": GAP_PERCENT,
+                "term": "date",
+                "until": start,
+            },
+            target=("stay_unit", unit.pk),
+            target_rules={"stay_from": start.isoformat(), "stay_to": start.isoformat()},
+        )
+
+
+# --- R4 · erfolgreiche Aktion wiederholen ------------------------------------------------
+
+
+def _rule_repeat(tenant, today):
+    from django.db.models import Sum
+    from django.urls import reverse
+
+    from apps.loyalty.models import Voucher
+
+    from .models import Promotion, PromotionDailyView
+    from .price_layer import deal_counts
+
+    now = timezone.now()
+    ended = list(
+        Promotion.objects.filter(
+            status="ended", ends_at__gte=now - timedelta(days=REPEAT_WINDOW_DAYS)
+        ).order_by("-ends_at")[:REPEAT_SCAN]
+    )
+    if not ended:
+        return
+    views = dict(
+        PromotionDailyView.objects.filter(promotion__in=ended)
+        .values("promotion")
+        .annotate(n=Sum("views"))
+        .values_list("promotion", "n")
+    )
+    redeemed = dict(
+        Voucher.objects.filter(promotion__in=ended, used_count__gt=0)
+        .values("promotion")
+        .annotate(n=Sum("used_count"))
+        .values_list("promotion", "n")
+    )
+    best, best_score = None, 0
+    for promo in ended:
+        deals = deal_counts(promo)
+        score = (views.get(promo.pk) or 0) + 3 * sum(deals.values()) + (redeemed.get(promo.pk) or 0)
+        if score > best_score:
+            best, best_score = promo, score
+    if best is None:
+        return
+    title = best.title_text
+    if Promotion.objects.filter(status__in=ACTIVE, title=best.title).exists():
+        return
+    by_day: dict[int, int] = {}
+    for day, n in best.daily_views.values_list("day", "views"):
+        by_day[day.weekday()] = by_day.get(day.weekday(), 0) + n
+    if by_day:
+        weekday = max(by_day, key=by_day.get)
+        some_day = today + timedelta(days=(weekday - today.weekday()) % 7)
+        text = _("„%(title)s“ lief am %(weekday)s am besten — wiederholen?") % {
+            "title": title,
+            "weekday": date_format(some_day, "l"),
+        }
+    else:
+        text = _("„%(title)s“ kam gut an — wiederholen?") % {"title": title}
+    yield Suggestion(
+        key=f"repeat:{best.pk}",
+        rule="repeat",
+        icon="↻",
+        text=text,
+        priority=50,
+        action="repeat",
+        url=reverse("promotions:promotion-quick") + f"?von={best.pk}",
+    )
+
+
+# --- R5 · Restplätze teilen ------------------------------------------------------------
+
+
+def _rule_events(tenant, today):
+    from django.urls import reverse
+
+    from apps.events.models import Event
+
+    if not _module(tenant, "events"):
+        return
+    now = timezone.now()
+    events = Event.objects.filter(
+        status=Event.STATUS_PUBLISHED,
+        starts_at__gte=now,
+        starts_at__lte=now + timedelta(days=EVENT_WINDOW_DAYS),
+        capacity__gt=0,
+    ).order_by("starts_at")[:10]
+    for event in events:
+        left = event.seats_left
+        if not left or left / event.capacity < EVENT_FREE_SHARE:
+            continue
+        yield Suggestion(
+            key=f"event:{event.pk}",
+            rule="event",
+            icon="🎟",
+            text=_("Noch %(n)s Plätze bei „%(name)s“ am %(date)s — teilen?")
+            % {
+                "n": left,
+                "name": event.title_text,
+                "date": _day(timezone.localtime(event.starts_at)),
+            },
+            priority=60,
+            action="share",
+            url=reverse("storefront-event", args=[event.pk]),
+        )
+        return  # одна подсказка «teilen» за раз
+
+
+RULES = (_rule_mhd, _rule_slots, _rule_gaps, _rule_events, _rule_repeat)
+
+
+def _schema() -> str:
+    return getattr(connection, "schema_name", "") or ""
+
+
+def _dismiss_key(key: str) -> str:
+    return f"today-dismiss:{_schema()}:{key}"
+
+
+def compute(tenant, *, today=None) -> list[Suggestion]:
+    """Все подсказки по приоритету (без кэша и без «Nicht jetzt»)."""
+    today = today or timezone.localdate()
+    found: list[Suggestion] = []
+    for rule in RULES:
+        found.extend(_safe(lambda rule=rule: rule(tenant, today)))
+    return sorted(found, key=lambda s: -s.priority)
+
+
+def suggestions(tenant, *, today=None, limit=LIMIT) -> list[Suggestion]:
+    """Подсказки для карточки: кэш 15 мин на (схема, день, язык), минус «Nicht jetzt»."""
+    today = today or timezone.localdate()
+    key = f"today:{_schema()}:{today.isoformat()}:{translation.get_language() or ''}"
+    try:
+        found = cache.get(key)
+    except Exception:  # noqa: BLE001 — кэш недоступен: считаем напрямую
+        found = None
+    if found is None:
+        found = compute(tenant, today=today)
+        try:
+            cache.set(key, found, CACHE_TTL)
+        except Exception:  # noqa: BLE001
+            pass
+    try:
+        hidden = cache.get_many([_dismiss_key(s.key) for s in found])
+    except Exception:  # noqa: BLE001
+        hidden = {}
+    return [s for s in found if _dismiss_key(s.key) not in hidden][:limit]
+
+
+def resolve(tenant, key: str) -> Suggestion | None:
+    """Подсказка по ключу из ссылки — пересчитанная из БД (ссылке не верим)."""
+    if not key or len(key) > 120:
+        return None
+    for item in compute(tenant):
+        if item.key == key and item.action == "promo":
+            return item
+    return None
+
+
+def dismiss(key: str) -> None:
+    try:
+        cache.set(_dismiss_key(key[:120]), 1, DISMISS_TTL)
+    except Exception:  # noqa: BLE001
+        pass

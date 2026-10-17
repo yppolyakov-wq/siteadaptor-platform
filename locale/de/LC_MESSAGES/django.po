@@ -25375,3 +25375,43 @@ msgstr "Vorschlag aus dem Foto"
 #. Д1
 msgid "Wird erkannt…"
 msgstr "Wird erkannt…"
+
+#. Д1
+#, python-format
+msgid "%(name)s läuft am %(date)s ab (%(qty)s Stk.) — Rettungs-Deal?"
+msgstr "%(name)s läuft am %(date)s ab (%(qty)s Stk.) — Rettungs-Deal?"
+
+#. Д1
+#, python-format
+msgid "%(name)s – Happy Hour"
+msgstr "%(name)s – Happy Hour"
+
+#. Д1
+#, python-format
+msgid "%(name)s – Last Minute"
+msgstr "%(name)s – Last Minute"
+
+#. Д1
+#, python-format
+msgid "Lücke %(start)s–%(end)s in „%(name)s“ — Last-Minute-Angebot?"
+msgstr "Lücke %(start)s–%(end)s in „%(name)s“ — Last-Minute-Angebot?"
+
+#. Д1
+#, python-format
+msgid "Morgen %(start)s–%(end)s Uhr noch frei: %(name)s — Happy Hour?"
+msgstr "Morgen %(start)s–%(end)s Uhr noch frei: %(name)s — Happy Hour?"
+
+#. Д1
+#, python-format
+msgid "Noch %(n)s Plätze bei „%(name)s“ am %(date)s — teilen?"
+msgstr "Noch %(n)s Plätze bei „%(name)s“ am %(date)s — teilen?"
+
+#. Д1
+#, python-format
+msgid "„%(title)s“ kam gut an — wiederholen?"
+msgstr "„%(title)s“ kam gut an — wiederholen?"
+
+#. Д1
+#, python-format
+msgid "„%(title)s“ lief am %(weekday)s am besten — wiederholen?"
+msgstr "„%(title)s“ lief am %(weekday)s am besten — wiederholen?"
