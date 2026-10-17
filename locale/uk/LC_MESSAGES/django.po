@@ -24984,3 +24984,36 @@ msgstr "Ціну-сюрприз не можна поєднувати з умов
 
 msgid "Höchstens %(max)s Stück."
 msgstr "Не більше %(max)s шт."
+
+msgid "In Listen gesehen"
+msgstr "Показано у списках"
+
+msgid "Angebot geöffnet"
+msgstr "Пропозицію відкрито"
+
+msgid "Weiter zu Ihnen"
+msgstr "Перейшли до вас"
+
+msgid "Kontakt aufgenommen"
+msgstr "Зв'язалися з вами"
+
+msgid "Bestellungen & Anfragen"
+msgstr "Замовлення та заявки"
+
+msgid "Betrieb"
+msgstr "Бізнес"
+
+msgid "Anzahl"
+msgstr "Кількість"
+
+msgid "Besuch aus dem Stadtportal"
+msgstr "Візит з міського порталу"
+
+msgid "Besuche aus dem Stadtportal"
+msgstr "Візити з міського порталу"
+
+msgid "Nur Demo"
+msgstr "Лише демо"
+
+msgid "Ohne Demo"
+msgstr "Без демо"

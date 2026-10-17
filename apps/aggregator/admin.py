@@ -24,6 +24,7 @@ from .models import (
     FollowSubscription,
     ListingReport,
     PortalBot,
+    PortalStat,
     PortalUser,
     SearchQueryLog,
 )
@@ -431,3 +432,86 @@ class PortalBotAdmin(ModelAdmin):
         for bot in queryset:
             disconnect_bot(bot)
         self.message_user(request, "Disconnected.", messages.SUCCESS)
+
+
+class PortalStatDemoFilter(admin.SimpleListFilter):
+    """В5: демо-трафик по умолчанию скрыт — сводки платформы без демо (решение В5)."""
+
+    title = _("Demo")
+    parameter_name = "demo"
+
+    def lookups(self, request, model_admin):
+        return [("ja", _("Nur Demo")), ("alle", _("Alle"))]
+
+    def choices(self, changelist):
+        yield {
+            "selected": self.value() is None,
+            "query_string": changelist.get_query_string(remove=[self.parameter_name]),
+            "display": _("Ohne Demo"),
+        }
+        for lookup, title in self.lookup_choices:
+            yield {
+                "selected": self.value() == lookup,
+                "query_string": changelist.get_query_string({self.parameter_name: lookup}),
+                "display": title,
+            }
+
+    def queryset(self, request, queryset):
+        if self.value() == "ja":
+            return queryset.filter(is_demo=True)
+        if self.value() == "alle":
+            return queryset
+        return queryset.filter(is_demo=False)
+
+
+@admin.register(PortalStat)
+class PortalStatAdmin(ModelAdmin):
+    """В5: сводка учёта каталога города по всем бизнесам — только платформе
+    (суперпользователь). Агрегат по дням без персональных данных."""
+
+    list_display = (
+        "day",
+        "tenant_schema",
+        "listing_kind",
+        "source_ref",
+        "action",
+        "channel",
+        "count",
+        "is_demo",
+    )
+    list_filter = (PortalStatDemoFilter, SearchPeriodFilter, "action", "channel")
+    date_hierarchy = "day"
+    search_fields = ("tenant_schema", "source_ref")
+    ordering = ("-day", "-count")
+    actions = ("export_csv",)
+
+    def has_module_permission(self, request):
+        return bool(request.user.is_superuser)
+
+    def has_view_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
+
+    @admin.action(description=_("CSV exportieren"))
+    def export_csv(self, request, queryset):
+        fields = (
+            "day",
+            "tenant_schema",
+            "listing_kind",
+            "source_ref",
+            "action",
+            "channel",
+            "is_demo",
+            "count",
+        )
+        return _csv_response(
+            "stadtportal-besuche.csv", list(fields), queryset.values_list(*fields).order_by("-day")
+        )

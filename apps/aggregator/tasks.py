@@ -1462,6 +1462,14 @@ def purge_search_log():
     return search_log.purge()
 
 
+@idempotent_task()
+def purge_portal_stats():
+    """Beat (раз в сутки): удалить агрегаты учёта портала старше retention (В5)."""
+    from . import portal_stats
+
+    return portal_stats.purge()
+
+
 # --- T-8.7 «Folgen»: сводки жителям портала ------------------------------------------------
 
 

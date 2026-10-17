@@ -24889,3 +24889,36 @@ msgstr "Sürpriz fiyat ile koşul birlikte kullanılamaz."
 
 msgid "Höchstens %(max)s Stück."
 msgstr "En fazla %(max)s adet."
+
+msgid "In Listen gesehen"
+msgstr "Listelerde görüldü"
+
+msgid "Angebot geöffnet"
+msgstr "Teklif açıldı"
+
+msgid "Weiter zu Ihnen"
+msgstr "Size yönlendi"
+
+msgid "Kontakt aufgenommen"
+msgstr "İletişime geçti"
+
+msgid "Bestellungen & Anfragen"
+msgstr "Siparişler ve talepler"
+
+msgid "Betrieb"
+msgstr "İşletme"
+
+msgid "Anzahl"
+msgstr "Adet"
+
+msgid "Besuch aus dem Stadtportal"
+msgstr "Şehir portalından ziyaret"
+
+msgid "Besuche aus dem Stadtportal"
+msgstr "Şehir portalından ziyaretler"
+
+msgid "Nur Demo"
+msgstr "Yalnızca demo"
+
+msgid "Ohne Demo"
+msgstr "Demo hariç"

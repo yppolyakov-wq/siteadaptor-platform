@@ -434,6 +434,59 @@ class SearchQueryLog(models.Model):
         return f"{self.day} «{self.query_norm}» ×{self.searches}"
 
 
+class PortalStat(models.Model):
+    """В5: учёт результатов каталога города — АГРЕГАТ «день × бизнес × предложение ×
+    действие × канал» (план docs/v5-portal-analytics-plan-2026-10-17.md).
+
+    Без персональных данных: ни IP, ни UA, ни сессии, ни времени внутри дня (замок
+    `test_model_has_no_personal_fields`). Повторы одного посетителя за день отсекает
+    `portal_stats` суточной солью в кэше — в БД она не попадает. Ключ листинга —
+    строка `(tenant_schema, listing_kind, source_ref)`, а не FK: листинг пересоздаётся
+    синком, история переживает; `listing_kind=""` — строка бизнеса целиком.
+    """
+
+    ACTIONS = [
+        ("impression", _("In Listen gesehen")),
+        ("view", _("Angebot geöffnet")),
+        ("click", _("Weiter zu Ihnen")),
+        ("contact", _("Kontakt aufgenommen")),
+        ("deal", _("Bestellungen & Anfragen")),
+    ]
+    ACTIONS_CODES = [code for code, _label in ACTIONS]
+    CHANNELS = [("portal", _("Stadtportal")), ("entdecken", _("Entdecken"))]
+    CHANNEL_CODES = [code for code, _label in CHANNELS]
+
+    day = models.DateField(verbose_name=_("Tag"))
+    tenant_schema = models.CharField(max_length=63, verbose_name=_("Betrieb"))
+    listing_kind = models.CharField(max_length=20, blank=True, default="")
+    source_ref = models.CharField(max_length=64, blank=True, default="")
+    # Только для заголовка на экране — НЕ FK (листинг пересоздаётся синком).
+    listing_id = models.IntegerField(null=True, blank=True)
+    action = models.CharField(max_length=12, choices=ACTIONS, verbose_name=_("Aktion"))
+    channel = models.CharField(max_length=12, choices=CHANNELS, verbose_name=_("Kanal"))
+    is_demo = models.BooleanField(default=False, verbose_name=_("Demo"))
+    count = models.PositiveIntegerField(default=0, verbose_name=_("Anzahl"))
+
+    class Meta:
+        verbose_name = _("Besuch aus dem Stadtportal")
+        verbose_name_plural = _("Besuche aus dem Stadtportal")
+        ordering = ["-day", "-count"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["day", "tenant_schema", "listing_kind", "source_ref", "action", "channel"],
+                name="agg_pstat_uniq",
+            )
+        ]
+        # `count` ни в одном индексе — инкременты остаются HOT-апдейтами.
+        indexes = [
+            models.Index(fields=["tenant_schema", "-day"], name="agg_pstat_tenant_day_idx"),
+            models.Index(fields=["-day"], name="agg_pstat_day_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.day} {self.tenant_schema} {self.action} ×{self.count}"
+
+
 class AggregatorPortal(I18nMixin, models.Model):
     """Брендированный мульти-доменный портал над пулом AggregatorListing (P2.1).
 

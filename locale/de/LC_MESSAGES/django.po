@@ -24808,3 +24808,36 @@ msgstr "Überraschungspreis und Bedingung passen nicht zusammen."
 
 msgid "Höchstens %(max)s Stück."
 msgstr "Höchstens %(max)s Stück."
+
+msgid "In Listen gesehen"
+msgstr "In Listen gesehen"
+
+msgid "Angebot geöffnet"
+msgstr "Angebot geöffnet"
+
+msgid "Weiter zu Ihnen"
+msgstr "Weiter zu Ihnen"
+
+msgid "Kontakt aufgenommen"
+msgstr "Kontakt aufgenommen"
+
+msgid "Bestellungen & Anfragen"
+msgstr "Bestellungen & Anfragen"
+
+msgid "Betrieb"
+msgstr "Betrieb"
+
+msgid "Anzahl"
+msgstr "Anzahl"
+
+msgid "Besuch aus dem Stadtportal"
+msgstr "Besuch aus dem Stadtportal"
+
+msgid "Besuche aus dem Stadtportal"
+msgstr "Besuche aus dem Stadtportal"
+
+msgid "Nur Demo"
+msgstr "Nur Demo"
+
+msgid "Ohne Demo"
+msgstr "Ohne Demo"

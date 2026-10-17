@@ -276,6 +276,15 @@ AGGREGATOR_SEARCH_LOG = {
     "min_len": 2,
 }
 
+# В5: учёт результатов каталога города — агрегат по дням без персональных данных;
+# экран владельца «Besuche aus dem Stadtportal». Чистка — beat `purge-portal-stats`.
+AGGREGATOR_PORTAL_STATS = {
+    "enabled": env.bool("PORTAL_STATS_ENABLED", default=True),
+    "retention_days": env.int("PORTAL_STATS_RETENTION_DAYS", default=400),
+    # счётных событий на IP за час — сверх лимита молча не считаем (страница отвечает)
+    "rate_limit": env.int("PORTAL_STATS_RATE_LIMIT", default=300),
+}
+
 # T1-c (FB-12): django-rosetta — веб-редактор переводов .po (на /rosetta/, public-схема).
 # ⚠️ Правит .po НА ДИСКЕ; в проде ФС эфемерна (образ) → изменения теряются на деплое,
 # пока не закоммичены в git. Рабочий цикл: править в dev/staging → скачать/закоммитить
@@ -490,6 +499,10 @@ CELERY_BEAT_SCHEDULE = {
     "purge-old-registrations": {
         "task": "apps.stays.tasks.purge_old_registrations",
         "schedule": 86400.0,  # раз в сутки — удаление Meldescheine >1 года (G6/DSGVO)
+    },
+    "purge-portal-stats": {
+        "task": "apps.aggregator.tasks.purge_portal_stats",
+        "schedule": 86400.0,  # раз в сутки — учёт портала старше PORTAL_STATS_RETENTION_DAYS (В5)
     },
     "purge-search-log": {
         "task": "apps.aggregator.tasks.purge_search_log",

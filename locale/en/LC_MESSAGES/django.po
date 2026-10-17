@@ -24762,3 +24762,36 @@ msgstr "A surprise price and a condition cannot be combined."
 
 msgid "Höchstens %(max)s Stück."
 msgstr "At most %(max)s items."
+
+msgid "In Listen gesehen"
+msgstr "Seen in lists"
+
+msgid "Angebot geöffnet"
+msgstr "Offer opened"
+
+msgid "Weiter zu Ihnen"
+msgstr "Went on to you"
+
+msgid "Kontakt aufgenommen"
+msgstr "Got in touch"
+
+msgid "Bestellungen & Anfragen"
+msgstr "Orders & requests"
+
+msgid "Betrieb"
+msgstr "Business"
+
+msgid "Anzahl"
+msgstr "Count"
+
+msgid "Besuch aus dem Stadtportal"
+msgstr "Visit from the city portal"
+
+msgid "Besuche aus dem Stadtportal"
+msgstr "Visits from the city portal"
+
+msgid "Nur Demo"
+msgstr "Demo only"
+
+msgid "Ohne Demo"
+msgstr "Without demo"

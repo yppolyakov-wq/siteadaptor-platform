@@ -25003,3 +25003,36 @@ msgstr "Цену-сюрприз нельзя совмещать с услови�
 
 msgid "Höchstens %(max)s Stück."
 msgstr "Не больше %(max)s шт."
+
+msgid "In Listen gesehen"
+msgstr "Показано в списках"
+
+msgid "Angebot geöffnet"
+msgstr "Предложение открыто"
+
+msgid "Weiter zu Ihnen"
+msgstr "Перешли к вам"
+
+msgid "Kontakt aufgenommen"
+msgstr "Связались с вами"
+
+msgid "Bestellungen & Anfragen"
+msgstr "Заказы и заявки"
+
+msgid "Betrieb"
+msgstr "Бизнес"
+
+msgid "Anzahl"
+msgstr "Количество"
+
+msgid "Besuch aus dem Stadtportal"
+msgstr "Визит с городского портала"
+
+msgid "Besuche aus dem Stadtportal"
+msgstr "Визиты с городского портала"
+
+msgid "Nur Demo"
+msgstr "Только демо"
+
+msgid "Ohne Demo"
+msgstr "Без демо"
