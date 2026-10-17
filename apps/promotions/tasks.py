@@ -273,7 +273,22 @@ def purge_reservation_pii():
     for schema in _iter_tenant_schemas():
         with schema_context(schema):
             total += purge_due_customers(now)
+            purge_daily_views(now)
     return {"purged": total}
+
+
+# Г4-1: дневные просмотры нужны недельному дайджесту; держим с запасом (год+).
+DAILY_VIEWS_RETENTION_DAYS = 400
+
+
+def purge_daily_views(now=None) -> int:
+    """Удалить дневные просмотры акций старше срока (текущая схема)."""
+    from .models import PromotionDailyView
+
+    now = now or timezone.now()
+    cutoff = timezone.localdate(now) - timedelta(days=DAILY_VIEWS_RETENTION_DAYS)
+    deleted, _ = PromotionDailyView.objects.filter(day__lt=cutoff).delete()
+    return deleted
 
 
 def send_due_winback_coupons(now=None, base_url=None) -> int:

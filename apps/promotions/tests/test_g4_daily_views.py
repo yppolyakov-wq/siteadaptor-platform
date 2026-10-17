@@ -75,3 +75,14 @@ def test_redeem_stamps_the_moment():
     voucher.refresh_from_db()
     assert voucher.used_count == 1
     assert timezone.now() - voucher.updated_at < timedelta(minutes=1)
+
+
+def test_old_daily_views_are_purged():
+    from apps.promotions import tasks
+
+    promo = _promo()
+    today = timezone.localdate()
+    PromotionDailyView.objects.create(promotion=promo, day=today - timedelta(days=401), views=1)
+    PromotionDailyView.objects.create(promotion=promo, day=today - timedelta(days=10), views=1)
+    assert tasks.purge_daily_views() == 1
+    assert PromotionDailyView.objects.count() == 1
