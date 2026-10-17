@@ -1,15 +1,16 @@
 {% comment %}В3: общий загрузчик карт (apps/core/templatetags/sf_map.py). Определяет
-window.sfMap один раз на страницу; скрипты карты грузит только по вызову (лениво).
-Подложка — векторный стиль MapLibre поверх Leaflet: маркеры/попапы/линии карт
-остаются на API Leaflet. Отказ (нет WebGL, не загрузился скрипт, стиль не пришёл)
-даёт честную надпись из data-down-text, а не пустой серый прямоугольник.{% endcomment %}
-{{ sf_map_config|json_script:"sf-map-config" }}
-<style>@media print{[data-sf-map]{display:none!important}}</style>
-<script>
+window.sfMap один раз на страницу (повторный include — пустой no-op, без дублей id);
+скрипты карты грузит только по вызову (лениво). Подложка — векторный стиль MapLibre
+поверх Leaflet: маркеры/попапы/линии остаются на API Leaflet. Отказ подложки даёт
+честную надпись из data-down-text; там, где уже есть маркеры, надпись не закрывает их.{% endcomment %}
+<script data-sf-map-config="{{ sf_map_config_json }}">
 (function () {
   if (window.sfMap) return;
-  var cfgEl = document.getElementById("sf-map-config");
-  var cfg = cfgEl ? JSON.parse(cfgEl.textContent || "{}") : {};
+  var cfg = {};
+  try { cfg = JSON.parse(document.currentScript.getAttribute("data-sf-map-config") || "{}"); } catch (e) {}
+  var printCss = document.createElement("style");
+  printCss.textContent = "@media print{[data-sf-map]{display:none!important}}";
+  document.head.appendChild(printCss);
   var state = "idle", waiting = [];
   var finish = function (ok) {
     state = ok ? "ready" : "failed";
@@ -28,7 +29,7 @@ window.sfMap один раз на страницу; скрипты карты г
     }
     el.integrity = a.integrity;
     el.crossOrigin = "anonymous";
-    if (a.kind === "css") { document.head.appendChild(el); return next(true); }
+    // CSS тоже ждём: без стилей Leaflet маркеры теряют иконки, без стилей MapLibre — канвас.
     el.onload = function () { next(true); };
     el.onerror = function () { next(false); };
     document.head.appendChild(el);
@@ -57,32 +58,38 @@ window.sfMap один раз на страницу; скрипты карты г
       };
       step(true);
     },
-    down: function (box) {
+    // soft — подложки нет, но маркеры/линия на месте: полоса сверху, а не заслонка.
+    down: function (box, soft) {
       if (!box || box.querySelector("[data-map-down]")) return;
       var note = document.createElement("div");
       note.setAttribute("data-map-down", "");
       note.textContent = box.getAttribute("data-down-text") || "";
-      note.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#6b7280;font-size:14px;z-index:1000;";
+      note.style.cssText = soft
+        ? "position:absolute;left:0;right:0;top:0;padding:4px 8px;text-align:center;background:rgba(243,244,246,.92);color:#6b7280;font-size:12px;z-index:1000;"
+        : "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#6b7280;font-size:14px;z-index:1000;";
       box.appendChild(note);
     },
+    up: function (box) {
+      var note = box && box.querySelector("[data-map-down]");
+      if (note) note.remove();
+    },
     base: function (map, box) {
-      if (!sfMap.webgl()) return sfMap.down(box);
+      if (!sfMap.webgl()) return sfMap.down(box, true);
       var layer = L.maplibreGL({
         style: cfg.style,
         attributionControl: { customAttribution: cfg.attribution }
       }).addTo(map);
       var gl = layer.getMaplibreMap();
       var ok = false;
-      if (!gl) return sfMap.down(box);
-      gl.on("load", function () {
-        ok = true;
-        // Стиль пришёл после таймаута — снять надпись, карта уже работает.
-        var note = box && box.querySelector("[data-map-down]");
-        if (note) note.remove();
-      });
-      gl.on("error", function () { if (!ok) sfMap.down(box); });
+      if (!gl) return sfMap.down(box, true);
       // Стиль так и не пришёл (провайдер молчит) — не оставлять пустую рамку.
-      setTimeout(function () { if (!ok) sfMap.down(box); }, 10000);
+      var timer = setTimeout(function () { if (!ok) sfMap.down(box, true); }, 10000);
+      gl.on("load", function () { ok = true; clearTimeout(timer); sfMap.up(box); });
+      // Фатальна только ошибка самого стиля; отказ отдельного тайла/шрифта/спрайта
+      // карту не ломает и надписи не стоит.
+      gl.on("error", function (e) {
+        if (!ok && !(e && (e.sourceId || e.tile))) sfMap.down(box, true);
+      });
     },
     lazy: function (box, init) {
       if (!box) return;

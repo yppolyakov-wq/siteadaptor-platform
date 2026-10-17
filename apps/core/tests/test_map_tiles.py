@@ -115,6 +115,6 @@ def test_attribution_from_env_is_sanitized():
     """Ревью В3: атрибуция рисуется innerHTML — из env проходят только https-ссылки."""
     from apps.core.templatetags.sf_map import sf_map_loader
 
-    attr = sf_map_loader()["sf_map_config"]["attribution"]
+    attr = sf_map_loader({})["sf_map_config"]["attribution"]
     assert "onerror" not in attr and "<img" not in attr and "javascript:" not in attr
     assert 'href="https://ok.test"' in attr

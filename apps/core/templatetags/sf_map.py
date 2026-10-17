@@ -59,12 +59,15 @@ def _attribution() -> str:
     )
 
 
-@register.inclusion_tag("core/_map_loader.html")
-def sf_map_loader():
-    return {
-        "sf_map_config": {
-            "style": settings.MAP_STYLE_URL,
-            "attribution": _attribution(),
-            "assets": list(MAP_ASSETS),
-        }
+@register.inclusion_tag("core/_map_loader.html", takes_context=True)
+def sf_map_loader(context):
+    """Конфиг — атрибутом скрипта (экранируется шаблоном), а не json_script с id: на
+    странице может быть несколько карт, и второй include не должен плодить дубли id."""
+    import json
+
+    config = {
+        "style": settings.MAP_STYLE_URL,
+        "attribution": _attribution(),
+        "assets": list(MAP_ASSETS),
     }
+    return {"sf_map_config": config, "sf_map_config_json": json.dumps(config)}

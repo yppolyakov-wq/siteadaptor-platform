@@ -66,7 +66,7 @@
         wrap.appendChild(popupLink(p.url, p.title));
         return wrap;
       };
-      var map = L.map("agg-map");
+      var map = L.map("agg-map", { maxZoom: 19 });
       var group = L.featureGroup(pts.map(function (p) {
         return L.marker([p.lat, p.lng]).bindPopup(popupContent(p));
       })).addTo(map);
@@ -83,7 +83,8 @@
   };
   var box = document.getElementById("agg-map");
   if (dataEl && box) {
-    if (box.dataset.mapOpen !== undefined) loadLeaflet(initMap);
+    // открытая сразу карта (?ansicht=karte / без переключателя) — тоже лениво, по видимости
+    if (box.dataset.mapOpen !== undefined && window.sfMap) sfMap.lazy(box, function () { loadLeaflet(initMap); });
     var show = document.querySelector("[data-map-show]");
     var list = document.querySelector("[data-map-list]");
     if (show) {
