@@ -6,7 +6,7 @@ import json
 import re
 import uuid
 import xml.etree.ElementTree as ET
-from datetime import UTC, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from django.core.cache import cache
@@ -113,7 +113,9 @@ def test_event_has_start_and_location_city():
     start = timezone.now() + timedelta(minutes=5)
     lst = _listing(listing_kind="event", starts_at=start, district="graefrath")
     ld = _ld(views.offer_page(_get(portal=portal), lst.pk).content.decode())
-    assert ld["startDate"].startswith(timezone.localtime(start).date().isoformat())
+    # Сравниваем МОМЕНТ, а не дату: ISO со смещением (UTC) и местная дата расходятся
+    # после полуночи по Берлину — тест падал на CI в 00:41.
+    assert abs(datetime.fromisoformat(ld["startDate"]) - start) < timedelta(seconds=1)
     assert ld["location"]["address"]["addressLocality"] == "Solingen"
     assert ld["eventStatus"].endswith("EventScheduled")
 
