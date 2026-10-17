@@ -25122,3 +25122,15 @@ msgstr "Artık web sitenizde bulunamadı — ürün gizlensin mi?"
 
 msgid "Unverändert — bestätigen"
 msgstr "Değişmedi — onayla"
+
+msgid "Ihre Seite bei uns wird zur Visitenkarte mit Öffnungszeiten, Kontakt und Aktionen. Ihre Artikel erscheinen im Stadtkatalog und verlinken direkt auf Ihre Website."
+msgstr "Bizdeki sayfanız çalışma saatleri, iletişim ve kampanyalarla bir kartvizite dönüşür. Ürünleriniz şehir kataloğunda görünür ve doğrudan web sitenize bağlanır."
+
+msgid "Nur Eintrag statt eigenem Shop?"
+msgstr "Kendi mağazanız yerine yalnızca bir kayıt mı?"
+
+msgid "Visitenkarte aktivieren"
+msgstr "Kartviziti etkinleştir"
+
+msgid "Visitenkarte aktiviert: Ihre Artikel verlinken auf Ihre Website."
+msgstr "Kartvizit etkinleştirildi: ürünleriniz web sitenize bağlanıyor."

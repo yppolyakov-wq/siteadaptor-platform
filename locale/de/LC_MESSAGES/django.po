@@ -25041,3 +25041,15 @@ msgstr "Nicht mehr auf Ihrer Website gefunden — Artikel ausblenden?"
 
 msgid "Unverändert — bestätigen"
 msgstr "Unverändert — bestätigen"
+
+msgid "Ihre Seite bei uns wird zur Visitenkarte mit Öffnungszeiten, Kontakt und Aktionen. Ihre Artikel erscheinen im Stadtkatalog und verlinken direkt auf Ihre Website."
+msgstr "Ihre Seite bei uns wird zur Visitenkarte mit Öffnungszeiten, Kontakt und Aktionen. Ihre Artikel erscheinen im Stadtkatalog und verlinken direkt auf Ihre Website."
+
+msgid "Nur Eintrag statt eigenem Shop?"
+msgstr "Nur Eintrag statt eigenem Shop?"
+
+msgid "Visitenkarte aktivieren"
+msgstr "Visitenkarte aktivieren"
+
+msgid "Visitenkarte aktiviert: Ihre Artikel verlinken auf Ihre Website."
+msgstr "Visitenkarte aktiviert: Ihre Artikel verlinken auf Ihre Website."

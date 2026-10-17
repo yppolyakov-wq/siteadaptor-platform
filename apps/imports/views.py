@@ -298,6 +298,18 @@ def website_run(request, pk):
     run = get_object_or_404(SiteImportRun, pk=pk)
     tenant = request.tenant
     items = list(run.items.all())
+    if request.method == "POST" and request.POST.get("action") == "eintrag":
+        # T-8.27d (Р-A): визитка — витрина без каталога, позиции ведут на сайт владельца.
+        from apps.core import storefront_profile
+
+        config = dict(tenant.site_config or {})
+        config["profile"] = storefront_profile.EINTRAG
+        tenant.site_config = config
+        tenant.save(update_fields=["site_config"])
+        messages.success(
+            request, _("Visitenkarte aktiviert: Ihre Artikel verlinken auf Ihre Website.")
+        )
+        return redirect("imports:website-run", pk=run.pk)
     if request.method == "POST" and run.status == SiteImportRun.STATUS_READY:
         decisions = {
             str(item.pk): {
@@ -333,7 +345,19 @@ def website_run(request, pk):
             "usage": apply.usage(tenant),
             "contact_email": _contact_email(),
             "ai_label": AI_LABEL,
+            "can_eintrag": _can_eintrag(tenant, run),
         },
+    )
+
+
+def _can_eintrag(tenant, run) -> bool:
+    """Предложить визитку: импорт применён, сайт владельца https, профиль ещё не лёгкий."""
+    from apps.core import storefront_profile
+
+    return (
+        run.status == run.STATUS_APPLIED
+        and (tenant.website_url or "").startswith("https://")
+        and not storefront_profile.is_aktionen(tenant)
     )
 
 

@@ -24995,3 +24995,15 @@ msgstr "No longer found on your website — hide the item?"
 
 msgid "Unverändert — bestätigen"
 msgstr "Unchanged — confirm"
+
+msgid "Ihre Seite bei uns wird zur Visitenkarte mit Öffnungszeiten, Kontakt und Aktionen. Ihre Artikel erscheinen im Stadtkatalog und verlinken direkt auf Ihre Website."
+msgstr "Your page with us becomes a business card with opening hours, contact and offers. Your items appear in the city catalogue and link directly to your website."
+
+msgid "Nur Eintrag statt eigenem Shop?"
+msgstr "Just a listing instead of your own shop?"
+
+msgid "Visitenkarte aktivieren"
+msgstr "Activate business card"
+
+msgid "Visitenkarte aktiviert: Ihre Artikel verlinken auf Ihre Website."
+msgstr "Business card activated: your items link to your website."

@@ -22,6 +22,15 @@
   {% endif %}
 </div>
 
+{% if can_eintrag %}
+<form method="post" class="bg-white border border-gray-200 rounded-xl p-6 mb-6" data-site-eintrag>
+  {% csrf_token %}<input type="hidden" name="action" value="eintrag">
+  <h2 class="font-medium mb-2">{% trans "Nur Eintrag statt eigenem Shop?" %}</h2>
+  <p class="text-sm text-gray-600 mb-3">{% trans "Ihre Seite bei uns wird zur Visitenkarte mit Öffnungszeiten, Kontakt und Aktionen. Ihre Artikel erscheinen im Stadtkatalog und verlinken direkt auf Ihre Website." %}</p>
+  <button type="submit" class="border border-gray-300 text-sm px-4 py-2 rounded-lg hover:bg-gray-50">{% trans "Visitenkarte aktivieren" %}</button>
+</form>
+{% endif %}
+
 {% if run.status == "ready" and items or run.status == "ready" and profile_rows %}
 <form method="post" data-site-review>
   {% csrf_token %}

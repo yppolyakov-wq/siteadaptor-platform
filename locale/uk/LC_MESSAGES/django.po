@@ -25219,3 +25219,15 @@ msgstr "Більше не знайдено на вашому сайті — пр
 
 msgid "Unverändert — bestätigen"
 msgstr "Без змін — підтвердити"
+
+msgid "Ihre Seite bei uns wird zur Visitenkarte mit Öffnungszeiten, Kontakt und Aktionen. Ihre Artikel erscheinen im Stadtkatalog und verlinken direkt auf Ihre Website."
+msgstr "Ваша сторінка в нас стане візиткою з годинами роботи, контактами й акціями. Ваші позиції з'являться в каталозі міста й вестимуть просто на ваш сайт."
+
+msgid "Nur Eintrag statt eigenem Shop?"
+msgstr "Лише запис замість власного магазину?"
+
+msgid "Visitenkarte aktivieren"
+msgstr "Увімкнути візитку"
+
+msgid "Visitenkarte aktiviert: Ihre Artikel verlinken auf Ihre Website."
+msgstr "Візитку ввімкнено: ваші позиції ведуть на ваш сайт."

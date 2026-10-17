@@ -202,3 +202,21 @@ def test_review_get_renders_form_with_usage(owner):
     html_out = views.website_run(request, run.pk).content.decode()
     assert "data-site-review" in html_out and "Honig" in html_out
     assert "data-site-usage" in html_out
+
+
+def test_eintrag_profile_offered_after_apply_and_set(owner):
+    run = SiteImportRun.objects.create(
+        start_url=ROOT + "/",
+        host="laden.example",
+        consent_at="2026-10-17T10:00Z",
+        consent_version="x",
+        status=SiteImportRun.STATUS_APPLIED,
+    )
+    tenant = TenantFactory.build(schema_name="laden", website_url=ROOT + "/", site_config={})
+    request = RequestFactory().get("/")
+    request.user, request.tenant = owner, tenant
+    assert "data-site-eintrag" in views.website_run(request, run.pk).content.decode()
+    request = _post(owner, {"action": "eintrag"}, tenant)
+    with mock.patch.object(views, "messages"), mock.patch.object(type(tenant), "save"):
+        resp = views.website_run(request, run.pk)
+    assert resp.status_code == 302 and tenant.site_config["profile"] == "eintrag"
