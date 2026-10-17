@@ -44,12 +44,27 @@ MAP_ASSETS = (
 )
 
 
+def _attribution() -> str:
+    """Атрибуция уходит в innerHTML контрола карты — пропускаем только ссылки (ревью В3:
+    значение приходит из env, и подменённая переменная не должна давать XSS на всех
+    витринах и порталах)."""
+    import nh3
+
+    return nh3.clean(
+        settings.MAP_ATTRIBUTION or "",
+        tags={"a"},
+        attributes={"a": {"href", "target"}},
+        url_schemes={"https"},
+        link_rel="noopener",
+    )
+
+
 @register.inclusion_tag("core/_map_loader.html")
 def sf_map_loader():
     return {
         "sf_map_config": {
             "style": settings.MAP_STYLE_URL,
-            "attribution": settings.MAP_ATTRIBUTION,
+            "attribution": _attribution(),
             "assets": list(MAP_ASSETS),
         }
     }

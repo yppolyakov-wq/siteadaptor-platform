@@ -74,7 +74,12 @@ window.sfMap один раз на страницу; скрипты карты г
       var gl = layer.getMaplibreMap();
       var ok = false;
       if (!gl) return sfMap.down(box);
-      gl.on("load", function () { ok = true; });
+      gl.on("load", function () {
+        ok = true;
+        // Стиль пришёл после таймаута — снять надпись, карта уже работает.
+        var note = box && box.querySelector("[data-map-down]");
+        if (note) note.remove();
+      });
       gl.on("error", function () { if (!ok) sfMap.down(box); });
       // Стиль так и не пришёл (провайдер молчит) — не оставлять пустую рамку.
       setTimeout(function () { if (!ok) sfMap.down(box); }, 10000);

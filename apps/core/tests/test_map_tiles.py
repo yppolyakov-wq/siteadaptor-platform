@@ -105,3 +105,16 @@ def test_every_map_has_fallback_text_and_no_eager_cdn(tpl):
     assert '<script src="https://unpkg.com/leaflet' not in text
     assert '<link rel="stylesheet" href="https://unpkg.com/leaflet' not in text
     assert "sfMap" in text
+
+
+@override_settings(
+    MAP_ATTRIBUTION='<a href="https://ok.test">OK</a><img src=x onerror=alert(1)>'
+    '<a href="javascript:alert(2)">bad</a>'
+)
+def test_attribution_from_env_is_sanitized():
+    """Ревью В3: атрибуция рисуется innerHTML — из env проходят только https-ссылки."""
+    from apps.core.templatetags.sf_map import sf_map_loader
+
+    attr = sf_map_loader()["sf_map_config"]["attribution"]
+    assert "onerror" not in attr and "<img" not in attr and "javascript:" not in attr
+    assert 'href="https://ok.test"' in attr
