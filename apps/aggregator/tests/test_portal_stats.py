@@ -413,13 +413,51 @@ def test_offer_view_not_counted_for_bot_head_404_and_business_redirect(
         assert (
             views.offer_page(_page(path, portal, ua="Googlebot/2.1"), listing.pk).status_code == 200
         )
+    assert PortalStat.objects.count() == 0
     views.offer_page(_page(path, portal, method="head"), listing.pk)
+    assert PortalStat.objects.count() == 0
     demo = _listing(is_demo=True, tenant_schema="t_demo", source_ref="d1")
     with pytest.raises(Http404):
         views.offer_page(_page(f"/angebot/{demo.pk}/", portal), demo.pk)
+    assert PortalStat.objects.count() == 0
     biz = _listing(listing_kind="business", source_ref="business", tenant_schema="t_biz")
     assert views.offer_page(_page(f"/angebot/{biz.pk}/", portal), biz.pk).status_code == 301
     assert PortalStat.objects.count() == 0
+    page_cache.clear()
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal", CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_offer_view_hidden_after_caching_is_not_counted():
+    from django.core.cache import cache as page_cache
+
+    from apps.aggregator import views
+
+    page_cache.clear()
+    portal = _portal()
+    listing = _listing()
+    path = f"/angebot/{listing.pk}/"
+    views.offer_page(_page(path, portal, ua="Googlebot/2.1"), listing.pk)  # прогрев кэша
+    AggregatorListing.objects.filter(pk=listing.pk).update(hidden_at=timezone.now())
+    assert views.offer_page(_page(path, portal), listing.pk).status_code == 200  # из кэша
+    assert PortalStat.objects.count() == 0
+    page_cache.clear()
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal", CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_repeat_view_on_cache_hit_costs_no_query(django_assert_num_queries):
+    """Ревью V5-2: повторный просмотр тем же посетителем — без запроса в БД."""
+    from django.core.cache import cache as page_cache
+
+    from apps.aggregator import views
+
+    page_cache.clear()
+    portal = _portal()
+    listing = _listing()
+    path = f"/angebot/{listing.pk}/"
+    views.offer_page(_page(path, portal), listing.pk)
+    with django_assert_num_queries(0):
+        assert views.offer_page(_page(path, portal), listing.pk).status_code == 200
+    assert _count(action="view") == 1
     page_cache.clear()
 
 

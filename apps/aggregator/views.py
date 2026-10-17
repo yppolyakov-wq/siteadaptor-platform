@@ -316,6 +316,7 @@ def split_featured(qs, *, first_page: bool, limit: int = 6, count_impressions: b
     return featured, rest
 
 
+@require_safe
 def featured_click(request, pk):
     """D2.3: клик по featured-позиции — счётчик + редирект на листинг.
 
@@ -329,7 +330,11 @@ def featured_click(request, pk):
     listing = AggregatorListing.objects.public().filter(pk=pk).first()
     if listing is None:
         return redirect("/")  # корень валиден и на /entdecken-домене, и на портале
-    if listing.is_featured_now:
+    from . import portal_stats
+
+    # В5 V5-2 (ревью): платный счётчик — только люди и только GET (боты/HEAD/предзагрузка
+    # не накручивают оплаченную позицию; тот же гейт, что у статистики портала).
+    if listing.is_featured_now and portal_stats.should_count(request):
         AggregatorListing.objects.filter(pk=pk).update(featured_clicks=F("featured_clicks") + 1)
     # В5 V5-2: тот же клик — в статистику портала (демо на настоящем портале не пишем).
     if _offer_in_scope(listing, getattr(request, "portal", None)):
@@ -1035,7 +1040,11 @@ def count_offer_view(view):
         try:
             from . import portal_stats
 
-            if response.status_code == 200 and portal_stats.should_count(request):
+            if (
+                response.status_code == 200
+                and portal_stats.should_count(request)
+                and portal_stats.first_sight(request, "view", pk)
+            ):
                 listing = _scoped_listing(request, pk)
                 if listing is not None:
                     portal_stats.record(

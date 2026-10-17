@@ -136,9 +136,14 @@ def test_impressions_counted_on_first_page_only():
     assert feat.featured_impressions == 1
 
 
+def _click_req(**extra):
+    # Живой браузер: пустой UA — бот, его клик платный счётчик не засчитывает (В5 V5-2).
+    return RequestFactory().get("/entdecken/klick/x/", HTTP_USER_AGENT="Mozilla/5.0", **extra)
+
+
 def test_featured_click_counts_and_redirects():
     feat = _listing(featured_hours=24)
-    resp = views.featured_click(RequestFactory().get("/entdecken/klick/x/"), feat.pk)
+    resp = views.featured_click(_click_req(), feat.pk)
     # В5 V5-2 (D-1): редирект несёт и листинг (`cl`) — для атрибуции сделок.
     assert resp.status_code == 302
     assert resp["Location"] == feat.with_channel("portal", lang="de", listing_ref=True)
@@ -148,7 +153,7 @@ def test_featured_click_counts_and_redirects():
 
 def test_click_after_expiry_redirects_without_count():
     stale = _listing(featured_hours=-1)
-    resp = views.featured_click(RequestFactory().get("/entdecken/klick/x/"), stale.pk)
+    resp = views.featured_click(_click_req(), stale.pk)
     assert resp.status_code == 302
     assert resp["Location"] == stale.with_channel("portal", lang="de", listing_ref=True)
     stale.refresh_from_db()
@@ -156,5 +161,15 @@ def test_click_after_expiry_redirects_without_count():
 
 
 def test_click_unknown_listing_is_safe():
-    resp = views.featured_click(RequestFactory().get("/entdecken/klick/x/"), 999999)
+    resp = views.featured_click(_click_req(), 999999)
     assert resp.status_code == 302 and resp["Location"] == "/"
+
+
+def test_featured_click_ignores_bots_and_rejects_post():
+    feat = _listing(featured_hours=24)
+    views.featured_click(RequestFactory().get("/entdecken/klick/x/"), feat.pk)  # без UA
+    views.featured_click(_click_req(HTTP_SEC_PURPOSE="prefetch"), feat.pk)
+    req = RequestFactory().post("/entdecken/klick/x/", HTTP_USER_AGENT="Mozilla/5.0")
+    assert views.featured_click(req, feat.pk).status_code == 405
+    feat.refresh_from_db()
+    assert feat.featured_clicks == 0

@@ -56,6 +56,22 @@ def should_count(request) -> bool:
         return False
 
 
+def first_sight(request, action: str, pk) -> bool:
+    """Пред-гейт БЕЗ БД для страниц под кэшем: повторный просмотр тем же посетителем за
+    день и превышение лимита частоты отсекаются до запроса листинга — иначе кэш страницы
+    перестал бы беречь БД (ревью V5-2). Отдельный бакет: основной лимит `record` не
+    расходуется дважды. Любой сбой → False (не считаем, страницу не трогаем)."""
+    try:
+        limit = _cfg("rate_limit") or 300
+        if ratelimit.hit("pstat-pre", ratelimit.client_ip(request), limit=limit, window=3600):
+            return False
+        day = timezone.localdate()
+        key = f"pstat:pre:{day.isoformat()}:{action}:{int(pk)}:{_visitor(request, day)}"
+        return bool(cache.add(key, 1, SEEN_TTL))
+    except Exception:  # noqa: BLE001 — учёт не смеет ронять страницу
+        return False
+
+
 def _salt(day) -> bytes:
     key = f"pstat:salt:{day.isoformat()}"
     cache.add(key, secrets.token_hex(32), SALT_TTL)  # гонка воркеров: побеждает первый
