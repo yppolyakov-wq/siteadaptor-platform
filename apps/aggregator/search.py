@@ -503,6 +503,7 @@ def execute(
     extra: dict | None = None,
     point=None,
     log_query: str | None = None,
+    fuzzy: bool = True,
 ) -> SearchOutcome:
     """Единственная точка поиска обеих поверхностей (портал, /entdecken/).
 
@@ -525,7 +526,9 @@ def execute(
     else:
         query = build_query(q, lang=lang)
         fts = _match_words(qs, words)
-        if fts.exists():
+        # Г5: `fuzzy=False` — только точный полнотекст, без фолбэка опечаток и без лишнего
+        # `exists()` (хвост соседей не множит trigram-сканы на некэшируемых рендерах).
+        if not fuzzy or fts.exists():
             qs = fts.annotate(rank=SearchRank(F("search_vector"), query, weights=_weights()))
             mode = "fts"
             order = ["-rank", "-created_at", "-pk"]

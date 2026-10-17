@@ -369,3 +369,46 @@ def test_feed_and_follow_digest_stay_exact():
     )
     got = follow.items_for(sub, since=timezone.now() - timedelta(days=1))
     assert [x.title["de"] for x in got] == ["Hier"]
+
+
+@override_settings(PORTAL_DISTRICT_MIN_BUSINESSES=5)
+def test_tail_never_runs_typo_fallback():
+    """Ревью Г5: хвост ищет только точно — опечатка не множит trigram-сканы по соседям,
+    а «ähnliche» выдача самого района хвоста не зовёт."""
+    p = _portal()
+    _listing("Messer Hier", "graefrath")
+    _listing("Messer Nachbar", "wald")
+    with mock.patch.object(search_engine, "_trigram_pks", wraps=search_engine._trigram_pks) as tri:
+        html = _html(p, q="Mesesr")
+    assert tri.call_count == 1  # только основной поиск района
+    assert _tail_slugs(html) == []
+    html = _html(p, q="Messer")
+    assert _tail_slugs(html) == ["wald"]
+
+
+@override_settings(PORTAL_DISTRICT_MIN_BUSINESSES=5)
+def test_empty_neighbors_cost_no_queries(django_assert_max_num_queries):
+    p = _portal()
+    _listing("Hier", "mitte")
+    _listing("Nachbar", "ohligs-aufderhoehe-merscheid")  # 4-й сосед Mitte; первые три пусты
+    calls = []
+    real = portal_views._district_pool
+
+    def spy(*a, **kw):
+        calls.append(a[3])
+        return real(*a, **kw)
+
+    with mock.patch.object(portal_views, "_district_pool", side_effect=spy):
+        html = _html(p, path="/stadtteil/mitte/", district="mitte")
+    assert _tail_slugs(html) == ["ohligs-aufderhoehe-merscheid"]
+    assert calls == ["mitte", "ohligs-aufderhoehe-merscheid"]
+
+
+@override_settings(PORTAL_DISTRICT_MIN_BUSINESSES=5)
+def test_tail_failure_never_breaks_district_page():
+    p = _portal()
+    _listing("Hier", "graefrath")
+    _listing("Nachbar", "wald")
+    with mock.patch.object(district_liveness, "neighbor_tail", side_effect=RuntimeError("db")):
+        html = _html(p)
+    assert "Hier" in html and _tail_slugs(html) == []

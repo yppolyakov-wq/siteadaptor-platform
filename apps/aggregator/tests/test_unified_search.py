@@ -358,6 +358,7 @@ def test_filter_without_query_is_rate_limited(isolated_ratelimit):
 
 
 @pytest.mark.urls("config.urls_portal")
+@override_settings(PORTAL_DISTRICT_MIN_BUSINESSES=0)  # Г5 выкл.: хвост — свой замок счёта
 def test_query_count_does_not_grow(django_assert_max_num_queries):
     portal = _portal()
     for i in range(3):
@@ -644,7 +645,8 @@ def test_winterjacke_unter_100_filters_price_and_shows_removable_chip(isolated_r
     assert 'value="Jacke unter 100 Euro"' in html
 
 
-@override_settings(ROOT_URLCONF="config.urls_portal")
+# Г5 выкл.: замок точности района (хвост соседей — test_district_threshold).
+@override_settings(ROOT_URLCONF="config.urls_portal", PORTAL_DISTRICT_MIN_BUSINESSES=0)
 def test_friseur_in_wald_filters_district_and_roh_ort_undoes_it(isolated_ratelimit):
     _listing("Herrenschnitt Wald", business_name="Friseur Wald", district="wald")
     _listing("Herrenschnitt Mitte", business_name="Friseur Mitte", district="mitte")

@@ -5,7 +5,6 @@
     <h2 class="text-lg font-bold">{% blocktrans with name=group.label %}Auch in der Nähe: {{ name }}{% endblocktrans %}</h2>
     <a href="{{ group.more_url }}" class="text-sm font-medium hover:underline" style="color: var(--portal-color)" data-district-tail-more>{% blocktrans with name=group.label %}Alle in {{ name }} anzeigen{% endblocktrans %} →</a>
   </div>
-  {% if group.fuzzy %}<p class="mb-3 text-xs text-gray-500">{% trans "Ähnliche Schreibweise" %}</p>{% endif %}
   {% include "aggregator/_cards.html" with items=group.items %}
 </section>
 {% endfor %}

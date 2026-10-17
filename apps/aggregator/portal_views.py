@@ -115,7 +115,7 @@ def _collapse_hotels(cards):
 
 
 def _district_pool(
-    portal, city, business_type, district, q_eff, filters_eff, kinds, new_only, point
+    portal, city, business_type, district, q_eff, filters_eff, kinds, new_only, point, fuzzy=True
 ):
     """Цепочка выборки страницы портала: (outcome, весь пул, пул вида/«Neu», выдача).
 
@@ -141,6 +141,7 @@ def _district_pool(
         track=False,
         city=city or "",  # T-8.26 п.4: топонимы города не участвуют в фолбэке опечаток
         point=point,
+        fuzzy=fuzzy,
     )
     whole_pool = broad.qs
     base_pool = home.apply_scope(
@@ -168,6 +169,7 @@ def _district_tail(
     page,
     collapse,
     dated_search,
+    main_fuzzy=False,
 ):
     """Г5: группы «Auch in der Nähe» + подпись района, или ([], "").
 
@@ -188,6 +190,7 @@ def _district_tail(
         or page is None
         or page.has_more
         or dated_search
+        or main_fuzzy
         or district_liveness.is_live(portal, district, business_type)
     ):
         return [], ""
@@ -202,7 +205,16 @@ def _district_tail(
 
     def pool_for(slug):
         outcome, _whole, _base, pool = _district_pool(
-            portal, city, business_type, slug, q_eff, tail_filters, kinds, scope.new_only, point
+            portal,
+            city,
+            business_type,
+            slug,
+            q_eff,
+            tail_filters,
+            kinds,
+            scope.new_only,
+            point,
+            fuzzy=False,  # точный полнотекст: хвост не множит trigram-сканы
         )
         return pool, outcome
 
@@ -211,7 +223,12 @@ def _district_tail(
         return f"{path}?{carry}" if carry else path
 
     groups = district_liveness.neighbor_tail(
-        portal, district, pool_for=pool_for, more_url_for=more_url_for, collapse=collapse
+        portal,
+        district,
+        pool_for=pool_for,
+        more_url_for=more_url_for,
+        collapse=collapse,
+        business_type=business_type,
     )
     if not groups:
         return [], ""
@@ -432,27 +449,35 @@ def portal_home(request, facet=None, district=None):
                     kept.append(c)
             cards = kept
     # Г5: район с малым числом бизнесов — под его выдачей подписанный хвост соседей.
-    district_tail, tail_label = _district_tail(
-        portal,
-        district or filters_eff.district,
-        city=city,
-        business_type=business_type,
-        facet=facet,
-        q_eff=q_eff,
-        filters_eff=filters_eff,
-        kinds=kinds,
-        scope=scope,
-        point=point,
-        geo_carry=geo_carry,
-        page=page,
-        collapse=_collapse_hotels if hotel_portal else None,
-        dated_search=search is not None,
-    )
+    # Хвост необязателен: ошибка его выборки (таймаут, БД) не роняет страницу района.
+    try:
+        district_tail, tail_label = _district_tail(
+            portal,
+            district or filters_eff.district,
+            city=city,
+            business_type=business_type,
+            facet=facet,
+            q_eff=q_eff,
+            filters_eff=filters_eff,
+            kinds=kinds,
+            scope=scope,
+            point=point,
+            geo_carry=geo_carry,
+            page=page,
+            collapse=_collapse_hotels if hotel_portal else None,
+            dated_search=search is not None,
+            main_fuzzy=broad.mode == "trigram",  # «ähnliche» выдача района — соседей не зовём
+        )
+    except Exception:  # noqa: BLE001
+        import logging
+
+        logging.getLogger(__name__).warning("g5: district tail failed", exc_info=True)
+        district_tail, tail_label = [], ""
     from . import reviews
 
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
-    for group in district_tail:
-        reviews.attach_ratings(group["items"])
+    if district_tail:
+        reviews.attach_ratings([i for g in district_tail for i in g["items"]])
     canonical = request.build_absolute_uri(request.path)
     heading = " · ".join(
         str(p) for p in (district_label, facet_label, category_chips["label"]) if p

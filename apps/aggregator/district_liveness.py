@@ -112,14 +112,18 @@ def _pick(pool, ranked: bool) -> list:
     return out
 
 
-def neighbor_tail(portal, district: str, *, pool_for, more_url_for, collapse=None) -> list[dict]:
-    """Группы хвоста: [{slug, label, items, more_url, fuzzy}], ≤ TAIL_NEIGHBORS.
+def neighbor_tail(
+    portal, district: str, *, pool_for, more_url_for, collapse=None, business_type=None
+) -> list[dict]:
+    """Группы хвоста: [{slug, label, items, more_url}], ≤ TAIL_NEIGHBORS.
 
     ``pool_for(slug) -> (pool, outcome)`` — та же цепочка выборки, что у страницы соседа
     (поэтому группа ⊆ выдачи по ``more_url``); ``more_url_for(slug)`` — ссылка на соседа с
     той же областью. Сосед без карточек пропускается, берётся следующий по реестру."""
     out: list[dict] = []
     for slug in districts.neighbors(portal.city or "", district):
+        if not count_for(portal, slug, business_type):
+            continue  # у соседа нет бизнесов в области — без запроса (кэш подсчёта)
         pool, outcome = pool_for(slug)
         items = _pick(pool, outcome.ranked)
         if collapse is not None:
@@ -132,7 +136,6 @@ def neighbor_tail(portal, district: str, *, pool_for, more_url_for, collapse=Non
                 "label": districts.label(portal.city or "", slug),
                 "items": items,
                 "more_url": more_url_for(slug),
-                "fuzzy": outcome.mode == "trigram",
             }
         )
         if len(out) >= TAIL_NEIGHBORS:
