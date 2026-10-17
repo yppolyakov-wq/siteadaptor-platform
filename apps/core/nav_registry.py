@@ -516,6 +516,15 @@ ENTRIES: tuple[NavEntry, ...] = (
         "reviews",
         search="rezension antworten",
     ),
+    # В5 V5-3: «Stadtportal» — учёт результатов каталога города. Модуль None: каталог
+    # города есть у всех типов; пустые состояния экрана объясняют, почему цифр нет.
+    _e(
+        "marketing",
+        "portal-stats",
+        _("Stadtportal"),
+        "portal-stats",
+        search="stadtportal besuche klicks statistik portal aufrufe",
+    ),
     _e("marketing", "promotions:voucher-list", _("Gutscheine"), "vouchers", "loyalty"),
     # W11-1 (Р-2): Kunden влит в Marketing — Kontakte/Nachrichten прямыми табами
     # («Ruf & Dialog»), Telegram остаётся в Erweitert.

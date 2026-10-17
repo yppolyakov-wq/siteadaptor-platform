@@ -123,6 +123,18 @@ def results_panel(tenant):
             "url": reverse("promotions:promotion-list"),
         }
 
+    def _portal():
+        from apps.aggregator import owner_stats
+
+        views, clicks = owner_stats.portal_totals(tenant, 30)
+        if not (views or clicks):
+            return None
+        return {
+            "label": _("Stadtportal (%(n)s Tage): Aufrufe · Klicks") % {"n": 30},
+            "value": f"{views} · {clicks}",
+            "url": reverse("portal-stats"),
+        }
+
     def _campaigns():
         from django.db.models import Count, Sum
 
@@ -155,6 +167,9 @@ def results_panel(tenant):
     if tenant.is_module_active("promotions"):
         metrics.append(_safe(_views, None))
         metrics.append(_safe(_featured, None))
+    # В5 V5-3: каталог города — у всех типов, вне гейта модуля акций (отель без акций
+    # тоже в портале). После _views: замок панели ищет первое «Aufrufe».
+    metrics.append(_safe(_portal, None))
     if tenant.is_module_active("crm"):
         metrics.append(_safe(_campaigns, None))
     if tenant.is_module_active("reviews"):

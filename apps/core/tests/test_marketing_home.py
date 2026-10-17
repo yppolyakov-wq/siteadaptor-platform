@@ -86,3 +86,29 @@ def test_reminder_overview_includes_winback_row():
 
 # X2a: плитка «Marketing» удалена вместе с хаб-плитками главной (дубль якоря);
 # вход в центр держат замки сайдбара (test_sidebar_st4b) и палитра.
+
+
+def test_results_panel_portal_metric():
+    """В5 V5-3: «Stadtportal (30 Tage): Aufrufe · Klicks» — вне гейта акций, после
+    метрики акций (замок выше ищет ПЕРВОЕ «Aufrufe»), только при данных."""
+    from django.urls import reverse
+    from django.utils import timezone
+
+    from apps.aggregator.models import PortalStat
+
+    t = TenantFactory(slug="mh-portal", name="MhPortal", schema_name="t_mh_portal")
+    assert not any("Stadtportal" in str(m["label"]) for m in mh.results_panel(t))
+    for action, n in (("view", 3), ("click", 1)):
+        PortalStat.objects.create(
+            day=timezone.localdate(),
+            tenant_schema=t.schema_name,
+            listing_kind="promotion",
+            source_ref="p1",
+            action=action,
+            channel="portal",
+            count=n,
+        )
+    t.disabled_modules = ["promotions"]
+    t.enabled_modules = [m for m in t.enabled_modules if m != "promotions"]
+    metric = next(m for m in mh.results_panel(t) if "Stadtportal" in str(m["label"]))
+    assert metric["value"] == "3 · 1" and metric["url"] == reverse("portal-stats")

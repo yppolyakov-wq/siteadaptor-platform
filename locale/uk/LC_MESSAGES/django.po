@@ -25017,3 +25017,65 @@ msgstr "Лише демо"
 
 msgid "Ohne Demo"
 msgstr "Без демо"
+
+msgid "Ein Klick ist kein Verkauf."
+msgstr "Клік — ще не продаж."
+
+msgid "Bestellungen zählen nur, wenn sie im selben Besuch nach dem Stadtportal entstanden sind."
+msgstr "Замовлення зараховуються, лише якщо їх зроблено в тому ж візиті після міського порталу."
+
+msgid "Besuche von Suchmaschinen und Bots zählen wir nicht."
+msgstr "Відвідування пошукових систем і ботів ми не рахуємо."
+
+msgid "Jeder Besucher zählt höchstens einmal pro Tag und Angebot."
+msgstr "Кожен відвідувач зараховується не більше одного разу на день на пропозицію."
+
+msgid "Top-Angebote"
+msgstr "Найкращі пропозиції"
+
+msgid "Eintrag im Stadtportal"
+msgstr "Запис у міському порталі"
+
+msgid "(nicht mehr im Stadtportal)"
+msgstr "(більше немає в міському порталі)"
+
+msgid "Ihr Unternehmensprofil"
+msgstr "Профіль вашої компанії"
+
+msgid "Demo-Daten"
+msgstr "Демо-дані"
+
+msgid "Dieses Geschäft ist ein Demo — die Zahlen stammen aus Testbesuchen."
+msgstr "Це демо-бізнес — цифри отримано з тестових відвідувань."
+
+msgid "Ihr Angebot ist nicht im Stadtkatalog"
+msgstr "Ваших пропозицій немає в каталозі міста"
+
+msgid "Ihr Geschäft ist derzeit nicht im Stadtportal sichtbar."
+msgstr "Зараз ваш бізнес не видно в міському порталі."
+
+msgid "Noch keine Besuche"
+msgstr "Відвідувань поки немає"
+
+msgid "Sobald jemand Ihr Angebot im Stadtportal öffnet, erscheint es hier."
+msgstr "Щойно хтось відкриє вашу пропозицію в міському порталі, це з'явиться тут."
+
+msgid "Wird bald gezählt"
+msgstr "Скоро рахуватимемо"
+
+#, python-format
+msgid "%(arrow)s %(delta)s %% vs. Vorperiode"
+msgstr "%(arrow)s %(delta)s %% до попереднього періоду"
+
+msgid "neu vs. Vorperiode"
+msgstr "нове до попереднього періоду"
+
+msgid "Aufrufe & Klicks pro Tag"
+msgstr "Перегляди й переходи за днями"
+
+msgid "seit Beginn der Anzeige"
+msgstr "з початку реклами"
+
+#, python-format
+msgid "Stadtportal (%(n)s Tage): Aufrufe · Klicks"
+msgstr "Міський портал (%(n)s дн.): перегляди · переходи"

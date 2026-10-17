@@ -24841,3 +24841,65 @@ msgstr "Nur Demo"
 
 msgid "Ohne Demo"
 msgstr "Ohne Demo"
+
+msgid "Ein Klick ist kein Verkauf."
+msgstr "Ein Klick ist kein Verkauf."
+
+msgid "Bestellungen zählen nur, wenn sie im selben Besuch nach dem Stadtportal entstanden sind."
+msgstr "Bestellungen zählen nur, wenn sie im selben Besuch nach dem Stadtportal entstanden sind."
+
+msgid "Besuche von Suchmaschinen und Bots zählen wir nicht."
+msgstr "Besuche von Suchmaschinen und Bots zählen wir nicht."
+
+msgid "Jeder Besucher zählt höchstens einmal pro Tag und Angebot."
+msgstr "Jeder Besucher zählt höchstens einmal pro Tag und Angebot."
+
+msgid "Top-Angebote"
+msgstr "Top-Angebote"
+
+msgid "Eintrag im Stadtportal"
+msgstr "Eintrag im Stadtportal"
+
+msgid "(nicht mehr im Stadtportal)"
+msgstr "(nicht mehr im Stadtportal)"
+
+msgid "Ihr Unternehmensprofil"
+msgstr "Ihr Unternehmensprofil"
+
+msgid "Demo-Daten"
+msgstr "Demo-Daten"
+
+msgid "Dieses Geschäft ist ein Demo — die Zahlen stammen aus Testbesuchen."
+msgstr "Dieses Geschäft ist ein Demo — die Zahlen stammen aus Testbesuchen."
+
+msgid "Ihr Angebot ist nicht im Stadtkatalog"
+msgstr "Ihr Angebot ist nicht im Stadtkatalog"
+
+msgid "Ihr Geschäft ist derzeit nicht im Stadtportal sichtbar."
+msgstr "Ihr Geschäft ist derzeit nicht im Stadtportal sichtbar."
+
+msgid "Noch keine Besuche"
+msgstr "Noch keine Besuche"
+
+msgid "Sobald jemand Ihr Angebot im Stadtportal öffnet, erscheint es hier."
+msgstr "Sobald jemand Ihr Angebot im Stadtportal öffnet, erscheint es hier."
+
+msgid "Wird bald gezählt"
+msgstr "Wird bald gezählt"
+
+#, python-format
+msgid "%(arrow)s %(delta)s %% vs. Vorperiode"
+msgstr "%(arrow)s %(delta)s %% vs. Vorperiode"
+
+msgid "neu vs. Vorperiode"
+msgstr "neu vs. Vorperiode"
+
+msgid "Aufrufe & Klicks pro Tag"
+msgstr "Aufrufe & Klicks pro Tag"
+
+msgid "seit Beginn der Anzeige"
+msgstr "seit Beginn der Anzeige"
+
+#, python-format
+msgid "Stadtportal (%(n)s Tage): Aufrufe · Klicks"
+msgstr "Stadtportal (%(n)s Tage): Aufrufe · Klicks"

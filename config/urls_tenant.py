@@ -8,6 +8,7 @@
 from django.conf import settings
 from django.urls import include, path
 
+from apps.aggregator.owner_views import portal_stats as portal_stats_view
 from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
@@ -179,6 +180,8 @@ urlpatterns = [
     # ST-6a: Marketing-центр (лендинг: карточки ROI-порядка + обзор напоминаний
     # + панель результатов).
     path("dashboard/marketing/", marketing_home, name="marketing-home"),
+    # В5 V5-3: результаты каталога города для владельца.
+    path("dashboard/stadtportal/", portal_stats_view, name="portal-stats"),
     # R7-3: оплаты отдельной поверхностью (фидбэк владельца 2026-08-24)
     path("dashboard/zahlungen/", payments_page, name="payments-page"),
     path("dashboard/cabinet-lang/", set_cabinet_lang_view, name="set-cabinet-lang"),

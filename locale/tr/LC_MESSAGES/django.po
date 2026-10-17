@@ -24922,3 +24922,65 @@ msgstr "Yalnızca demo"
 
 msgid "Ohne Demo"
 msgstr "Demo hariç"
+
+msgid "Ein Klick ist kein Verkauf."
+msgstr "Bir tıklama satış değildir."
+
+msgid "Bestellungen zählen nur, wenn sie im selben Besuch nach dem Stadtportal entstanden sind."
+msgstr "Siparişler yalnızca şehir portalından sonra aynı ziyarette verildiyse sayılır."
+
+msgid "Besuche von Suchmaschinen und Bots zählen wir nicht."
+msgstr "Arama motorlarının ve botların ziyaretlerini saymıyoruz."
+
+msgid "Jeder Besucher zählt höchstens einmal pro Tag und Angebot."
+msgstr "Her ziyaretçi teklif başına günde en fazla bir kez sayılır."
+
+msgid "Top-Angebote"
+msgstr "En iyi teklifler"
+
+msgid "Eintrag im Stadtportal"
+msgstr "Şehir portalındaki kayıt"
+
+msgid "(nicht mehr im Stadtportal)"
+msgstr "(artık şehir portalında değil)"
+
+msgid "Ihr Unternehmensprofil"
+msgstr "İşletme profiliniz"
+
+msgid "Demo-Daten"
+msgstr "Demo verileri"
+
+msgid "Dieses Geschäft ist ein Demo — die Zahlen stammen aus Testbesuchen."
+msgstr "Bu işletme bir demodur — rakamlar test ziyaretlerinden gelir."
+
+msgid "Ihr Angebot ist nicht im Stadtkatalog"
+msgstr "Teklifiniz şehir kataloğunda yok"
+
+msgid "Ihr Geschäft ist derzeit nicht im Stadtportal sichtbar."
+msgstr "İşletmeniz şu anda şehir portalında görünmüyor."
+
+msgid "Noch keine Besuche"
+msgstr "Henüz ziyaret yok"
+
+msgid "Sobald jemand Ihr Angebot im Stadtportal öffnet, erscheint es hier."
+msgstr "Biri teklifinizi şehir portalında açtığında burada görünecek."
+
+msgid "Wird bald gezählt"
+msgstr "Yakında sayılacak"
+
+#, python-format
+msgid "%(arrow)s %(delta)s %% vs. Vorperiode"
+msgstr "önceki döneme göre %(arrow)s %(delta)s %%"
+
+msgid "neu vs. Vorperiode"
+msgstr "önceki döneme göre yeni"
+
+msgid "Aufrufe & Klicks pro Tag"
+msgstr "Günlük görüntüleme ve tıklama"
+
+msgid "seit Beginn der Anzeige"
+msgstr "reklam başladığından beri"
+
+#, python-format
+msgid "Stadtportal (%(n)s Tage): Aufrufe · Klicks"
+msgstr "Şehir portalı (%(n)s gün): görüntüleme · tıklama"

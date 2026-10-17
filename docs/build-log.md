@@ -17955,3 +17955,14 @@ row a second time» и взаимоблокировки), соль не доль
 CI-урок (#g1): фикстура `settings` pytest-django внутри теста с `@override_settings(ROOT_URLCONF=…)`
 при выходе восстанавливает ROOT_URLCONF ДЕКОРАТОРА — он утёк в следующие тесты процесса
 (23 падения `NoReverseMatch` в core). Правило: в таких тестах настройки менять monkeypatch'ем.
+
+## 2026-10-17 — В5 V5-3 «экран владельца Stadtportal» (без миграций)
+
+План — planner, `docs/v5-portal-analytics-plan-2026-10-17.md §16`. `/dashboard/stadtportal/`
+(подпункт Marketing после «Bewertungen», Ctrl+K): воронка из 5 действий за период 7/30/90/365 дней
+со сравнением «▲/▼ vs. Vorperiode», спарклайн просмотров+переходов, топ-10 записей (заголовок по
+ключу листинга — синк меняет pk), строка «★ Anzeige» отдельно (иная семантика), честные пустые
+состояния и плашка «Demo-Daten». Ещё не считаемые действия (показы — V5-4, обращения/сделки —
+V5-5) показаны «—» + «Wird bald gezählt», а не нулём. Метрика «Stadtportal (30 Tage)» в панели
+Marketing — у всех типов, вне гейта акций. Четыре запроса, схема только из `request.tenant`.
+Замки `test_owner_stats.py` (17) + метрика в `test_marketing_home`; 20 msgid × 5 каталогов.

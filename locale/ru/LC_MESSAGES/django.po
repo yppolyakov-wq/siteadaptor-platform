@@ -25036,3 +25036,65 @@ msgstr "Только демо"
 
 msgid "Ohne Demo"
 msgstr "Без демо"
+
+msgid "Ein Klick ist kein Verkauf."
+msgstr "Клик — ещё не продажа."
+
+msgid "Bestellungen zählen nur, wenn sie im selben Besuch nach dem Stadtportal entstanden sind."
+msgstr "Заказы засчитываются, только если они сделаны в том же визите после городского портала."
+
+msgid "Besuche von Suchmaschinen und Bots zählen wir nicht."
+msgstr "Посещения поисковиков и ботов мы не считаем."
+
+msgid "Jeder Besucher zählt höchstens einmal pro Tag und Angebot."
+msgstr "Каждый посетитель засчитывается не больше одного раза в день на предложение."
+
+msgid "Top-Angebote"
+msgstr "Лучшие предложения"
+
+msgid "Eintrag im Stadtportal"
+msgstr "Запись в городском портале"
+
+msgid "(nicht mehr im Stadtportal)"
+msgstr "(больше нет в городском портале)"
+
+msgid "Ihr Unternehmensprofil"
+msgstr "Профиль вашей компании"
+
+msgid "Demo-Daten"
+msgstr "Демо-данные"
+
+msgid "Dieses Geschäft ist ein Demo — die Zahlen stammen aus Testbesuchen."
+msgstr "Это демо-бизнес — цифры получены из тестовых посещений."
+
+msgid "Ihr Angebot ist nicht im Stadtkatalog"
+msgstr "Ваших предложений нет в каталоге города"
+
+msgid "Ihr Geschäft ist derzeit nicht im Stadtportal sichtbar."
+msgstr "Сейчас ваш бизнес не виден в городском портале."
+
+msgid "Noch keine Besuche"
+msgstr "Посещений пока нет"
+
+msgid "Sobald jemand Ihr Angebot im Stadtportal öffnet, erscheint es hier."
+msgstr "Как только кто-то откроет ваше предложение в городском портале, это появится здесь."
+
+msgid "Wird bald gezählt"
+msgstr "Скоро будем считать"
+
+#, python-format
+msgid "%(arrow)s %(delta)s %% vs. Vorperiode"
+msgstr "%(arrow)s %(delta)s %% к прошлому периоду"
+
+msgid "neu vs. Vorperiode"
+msgstr "новое к прошлому периоду"
+
+msgid "Aufrufe & Klicks pro Tag"
+msgstr "Просмотры и переходы по дням"
+
+msgid "seit Beginn der Anzeige"
+msgstr "с начала рекламы"
+
+#, python-format
+msgid "Stadtportal (%(n)s Tage): Aufrufe · Klicks"
+msgstr "Городской портал (%(n)s дн.): просмотры · переходы"
