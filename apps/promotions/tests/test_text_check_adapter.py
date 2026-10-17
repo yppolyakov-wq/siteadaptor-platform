@@ -47,3 +47,22 @@ def test_food_flag_from_tenant_type():
 
     data = ptc.input_from_promotion(Promotion(title={"de": "x"}), tenant=T())
     assert data.is_food is True
+
+
+def test_variant_product_does_not_claim_missing_grundpreis(monkeypatch):
+    from apps.catalog.models import Product
+
+    product = Product(name={"de": "Kaffee"}, base_price=Decimal("5"), unit="g")
+    monkeypatch.setattr(Product, "has_variants", property(lambda self: True))
+    promo = Promotion(title={"de": "Kaffee"}, product=product, price_override=Decimal("4"))
+    data = ptc.input_from_promotion(promo, tenant=None)
+    assert data.grundpreis_ok is None
+
+
+def test_unhashable_allergens_do_not_raise():
+    from apps.catalog.models import Product
+
+    product = Product(name={"de": "Kuchen"}, base_price=Decimal("3"), allergens=[{"x": 1}])
+    promo = Promotion(title={"de": "Kuchen"}, product=product)
+    data = ptc.input_from_promotion(promo, tenant=None)
+    assert data.allergens == frozenset()

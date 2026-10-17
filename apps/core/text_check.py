@@ -17,8 +17,9 @@ from __future__ import annotations
 import logging
 import re
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass, field
-from datetime import date, datetime
+from dataclasses import dataclass
+from dataclasses import field as dc_field
+from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
@@ -30,6 +31,14 @@ logger = logging.getLogger(__name__)
 SEVERITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 OWNER, CATALOG = "owner", "catalog"
 MAX_TEXT = 2000  # на поле: подсказки к объявлению, а не к роману
+# Ревью безопасности D2a-1: форма входа приходит и из POST — потолки по числу текстов,
+# попаданий и подсказок, длина цитаты; ключи поля/локали — короткие слова.
+MAX_TEXTS = 12
+MAX_HITS = 5  # на (правило, поле, локаль)
+MAX_FINDINGS = 50
+QUOTE_MAX = 80
+_KEY_RE = re.compile(r"^[a-z_]{1,20}$")
+_LOCALE_RE = re.compile(r"^[a-z]{2}(?:-[a-z]{2,4})?$", re.I)
 
 # --- общие регулярки (переехали из Д1 `ai_draft`, имена там — реэкспорты) ------------
 
@@ -56,7 +65,7 @@ NUMBER_WORDS = (
     "halber",
 )
 FOR = "für"
-NUM = r"\d{1,3}(?:[ . ]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?"
+NUM = r"\d{1,3}(?:[ .\u00a0]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?"
 AMOUNT = (
     r"(?:[−\-–]\s?)?(?:" + NUM + r")\s?(?:€|eur\b|euro\b|%|％|prozent\b|,-|\.-)"
     r"|(?:€|\beur\b|\beuro\b)\s?(?:" + NUM + r")"
@@ -128,27 +137,43 @@ MONEY_RE = re.compile(
 PERCENT_RE = re.compile(r"(?i)(?<![\w.,])(" + NUM + r")\s?(?:%|％|prozent\b)")
 _MONEY_PLAIN = r"(?:(?:" + NUM + r")\s?" + _CUR + r"|(?:€|\beur\b|\beuro\b)\s?(?:" + NUM + r"))"
 
-STATT_WORDS = ("statt", "uvp", "vorher", "früher", "regulär", "normalpreis", "sonst")
+STATT_WORDS = ("statt", "uvp", "regulär", "normalpreis")
+STATT_BRIDGE = ("nur", "bisher", "sonst", "vorher", "früher")
 _STATT_RE = re.compile(
-    r"(?i)(?<!\w)(?:" + "|".join(STATT_WORDS) + r")(?!\w)[^.!?\n]{0,30}?" + _MONEY_PLAIN
+    r"(?i)(?<!\w)(?:" + "|".join(STATT_WORDS) + r")(?!\w):?\s*"
+    r"(?:(?:" + "|".join(STATT_BRIDGE) + r")\s+)?" + _MONEY_PLAIN
 )
 FREE_WORDS = ("gratis", r"kostenlos\w*", "umsonst", "geschenkt")
 # «kostenlose Lieferung», «gratis dazu» — законные формулировки, не «бесплатный товар».
 FREE_OK_AFTER = (
-    "lieferung",
-    "versand",
-    "zustellung",
+    r"lieferung\w*",
+    r"anlieferung\w*",
+    r"versand\w*",
+    r"zustellung\w*",
     r"park\w*",
     "wlan",
     "wifi",
-    "beratung",
+    r"beratung\w*",
     r"probe\w*",
-    "verkostung",
+    r"verkostung\w*",
+    r"stornierung\w*",
+    r"abholung\w*",
+    r"rückgabe\w*",
+    r"umtausch\w*",
+    r"montage\w*",
+    r"aufbau\w*",
+    r"geschenkverpackung\w*",
+    r"verpackung\w*",
+    r"anfahrt\w*",
     "dazu",
 )
 _FREE_RE = re.compile(
     r"(?i)(?<!\w)(?:" + "|".join(FREE_WORDS) + r")(?!\w)"
     r"(?!\s+(?:" + "|".join(FREE_OK_AFTER) + r")(?!\w))"
+)
+# «Lieferung kostenlos», «Versand ist gratis» — то же существительное ПЕРЕД словом.
+_FREE_OK_BEFORE = re.compile(
+    r"(?i)(?<!\w)(?:" + "|".join(FREE_OK_AFTER) + r")\s+(?:(?:ist|sind|immer)\s+)?$"
 )
 TODAY_PHRASES = (
     r"nur\s+noch\s+heute",
@@ -159,7 +184,27 @@ TODAY_PHRASES = (
 )
 _TODAY_RE = re.compile(r"(?i)(?<!\w)(?:" + "|".join(TODAY_PHRASES) + r")(?!\w)")
 UNTIL_WORDS = ("nur", "bis")
-_STOCK_RE = re.compile(r"(?i)(?<!\w)nur\s+noch\s+(\d{1,5})(?!\d)")
+STOCK_UNITS = (
+    r"stück\w*",
+    r"stk\.?",
+    r"portion\w*",
+    r"plätze",
+    "platz",
+    "exemplare",
+    r"packung\w*",
+    r"flasche\w*",
+    r"gläser",
+    r"tüte\w*",
+    r"box\w*",
+    r"kiste\w*",
+    "paar",
+    r"ticket\w*",
+    r"karte\w*",
+    "teile",
+)
+_STOCK_RE = re.compile(
+    r"(?i)(?<!\w)nur\s+noch\s+(\d{1,5})\s+(?:" + "|".join(STOCK_UNITS) + r")(?!\w)"
+)
 SUPERLATIVES = (
     r"beste[nrsm]?",
     r"billigste[nrsm]?",
@@ -173,19 +218,25 @@ SUPERLATIVES = (
 )
 _SUPERLATIVE_RE = re.compile(r"(?i)(?<!\w)(?:" + "|".join(SUPERLATIVES) + r")(?!\w)")
 HEALTH = (
-    r"gesund\w*",
+    r"gesund(?:e[nrsm]?)?",
+    r"gesundheitsfördernd\w*",
+    r"für\s+die\s+gesundheit",
     "heilt",
     r"heilend\w*",
     r"heilwirkung\w*",
     r"heilkr[aä]ft\w*",
     r"gegen\s+(?:erkältung\w*|schmerz\w*|kopfschmerz\w*|grippe|husten|stress)",
-    r"immun\w*",
+    "immunsystem",
+    "immunabwehr",
+    r"immunstärk\w*",
     r"entgift\w*",
     r"detox\w*",
     r"entschlack\w*",
     r"macht\s+schlank",
     r"schlank\s+(?:machen|werden)",
-    r"abnehm\w*",
+    "abnehmen",
+    r"abnehmkur\w*",
+    r"abnehmprodukt\w*",
     "fatburner",
     r"fettverbrenn\w*",
     r"superfood\w*",
@@ -198,7 +249,6 @@ DIET_CONFLICTS = (
     (r"vegan\w*", frozenset({"milch", "eier", "fisch", "krebstiere", "weichtiere"})),
     (r"vegetar\w*", frozenset({"fisch", "krebstiere", "weichtiere"})),
     (r"glutenfrei\w*", frozenset({"gluten"})),
-    (r"laktosefrei\w*", frozenset({"milch"})),
 )
 _DIET_RES = tuple(
     (re.compile(r"(?i)(?<!\w)" + stem + r"(?!\w)"), allergens) for stem, allergens in DIET_CONFLICTS
@@ -231,12 +281,26 @@ class Finding:
     suggestion: str | None = None  # None — нет предложения, "" — «слово убрать»
     source: str = "rule"
 
+    def as_dict(self) -> dict:
+        """Для JSON: ленивые переводы — строкой (json.dumps не знает proxy)."""
+        return {
+            "code": self.code,
+            "severity": self.severity,
+            "field": self.field,
+            "locale": self.locale,
+            "quote": self.quote,
+            "message": str(self.message),
+            "norm": self.norm,
+            "suggestion": self.suggestion,
+            "source": self.source,
+        }
+
 
 @dataclass(frozen=True)
 class CheckInput:
     """Тексты ({поле: {локаль: текст}}) и факты из полей формы — не из текста."""
 
-    texts: dict = field(default_factory=dict)
+    texts: dict = dc_field(default_factory=dict)
     new_price: Decimal | None = None
     old_price: Decimal | None = None  # цена сравнения, которую витрина ПОКАЗЫВАЕТ
     percent: int | None = None
@@ -282,12 +346,18 @@ class Rule:
 
 def _texts(inp: CheckInput, *, german: bool):
     texts = inp.texts if isinstance(inp.texts, dict) else {}
+    seen = 0
     for name, by_locale in texts.items():
-        if not isinstance(by_locale, dict):
+        if not isinstance(by_locale, dict) or not _KEY_RE.match(str(name)):
             continue
         for locale, text in by_locale.items():
             if not isinstance(text, str) or not text.strip():
                 continue
+            if not _LOCALE_RE.match(str(locale)):
+                continue
+            seen += 1
+            if seen > MAX_TEXTS:
+                return
             if german and str(locale).split("-")[0] != "de":
                 continue
             yield name, str(locale), text[:MAX_TEXT]
@@ -295,7 +365,7 @@ def _texts(inp: CheckInput, *, german: bool):
 
 def to_decimal(raw: str) -> Decimal | None:
     """«1.299,00» / «2,99» / «2.99» / «1 299» → Decimal (немецкая запятая)."""
-    s = (raw or "").replace(" ", " ").strip()
+    s = (raw or "").replace("\u00a0", " ").strip()
     if re.fullmatch(r"\d{1,3}(?:[ .]\d{3})+(?:,\d+)?", s):
         s = s.replace(".", "").replace(" ", "").replace(",", ".")
     else:
@@ -332,7 +402,10 @@ def _ends_after_today(inp: CheckInput) -> bool:
     end = inp.ends_at
     if timezone.is_aware(end):
         end = timezone.localtime(end)
-    return end.date() > _today(inp)
+    day = end.date()
+    if (end.hour, end.minute, end.second, end.microsecond) == (0, 0, 0, 0):
+        day -= timedelta(days=1)  # «bis 00:00» — это конец предыдущего дня
+    return day > _today(inp)
 
 
 def _scan(regex, inp: CheckInput, *, german=True, suggestion=None):
@@ -350,6 +423,44 @@ def _statt(inp):
     return _scan(_STATT_RE, inp)
 
 
+# Суммы и проценты, которые законно стоят рядом с ценой акции: порог доставки, ваучер,
+# залог, НДС, жирность/алкоголь. Слово в том же отрывке ДО или сразу ПОСЛЕ числа.
+CONTEXT_WORDS = (
+    "ab",
+    r"mindest\w*",
+    r"bestellwert\w*",
+    r"gutschein\w*",
+    r"wertgutschein\w*",
+    "pfand",
+    r"versand\w*",
+    r"liefer\w*",
+    r"einkauf\w*",
+    r"einkaufswert\w*",
+    "mwst",
+    "ust",
+    "inkl",
+    "zzgl",
+    "fett",
+    "vol",
+    r"alkohol\w*",
+    "alc",
+    "kakao",
+    "frucht",
+    "kakaoanteil",
+)
+_CONTEXT_BEFORE = re.compile(
+    r"(?i)(?<!\w)(?:" + "|".join(CONTEXT_WORDS) + r")\.?\s*[^\s.!?;]{0,12}\s*$"
+)
+_CONTEXT_AFTER = re.compile(r"(?i)^\s*(?:" + "|".join(CONTEXT_WORDS) + r")(?!\w)")
+
+
+def _in_context(text: str, start: int, end: int) -> bool:
+    return bool(
+        _CONTEXT_BEFORE.search(text[max(0, start - 30) : start])
+        or _CONTEXT_AFTER.match(text[end : end + 20])
+    )
+
+
 def _price_conflict(inp):
     if inp.price_condition or inp.mystery:
         return []
@@ -361,11 +472,15 @@ def _price_conflict(inp):
     for name, locale, text in _texts(inp, german=False):
         if money_ok:
             for m in MONEY_RE.finditer(text):
+                if _in_context(text, m.start(), m.end()):
+                    continue
                 value = to_decimal(m.group(1) or m.group(2) or "")
                 if value is not None and all(abs(value - ok) > Decimal("0.01") for ok in money_ok):
                     hits.append(Hit(name, locale, m.group(0).strip()))
         if percents:
             for m in PERCENT_RE.finditer(text):
+                if _in_context(text, m.start(), m.end()):
+                    continue
                 value = to_decimal(m.group(1))
                 if value is not None and all(abs(value - p) > 1 for p in percents):
                     hits.append(Hit(name, locale, m.group(0).strip()))
@@ -392,7 +507,12 @@ def _free(inp):
     price = _num(inp.new_price)
     if inp.price_condition or price is None or price <= 0:
         return []
-    return _scan(_FREE_RE, inp, suggestion="")
+    hits = []
+    for name, locale, text in _texts(inp, german=True):
+        for m in _FREE_RE.finditer(text):
+            if not _FREE_OK_BEFORE.search(text[max(0, m.start() - 40) : m.start()]):
+                hits.append(Hit(name, locale, m.group(0).strip(), ""))
+    return hits
 
 
 def _urgency_today(inp):
@@ -473,7 +593,14 @@ def _mystery(inp):
 
 
 def _contact(inp):
-    return _scan(CONTACT_RE, inp, german=False, suggestion="")
+    # Телефон — от 8 цифр: «Mo-Fr 9-12 / 14-18» по форме похоже, но это часы работы.
+    return [
+        hit
+        for hit in _scan(CONTACT_RE, inp, german=False, suggestion="")
+        if not hit.quote[:1].isdigit()
+        and not hit.quote.startswith("+")
+        or sum(c.isdigit() for c in hit.quote) >= 8
+    ]
 
 
 def _shouting(inp):
@@ -515,7 +642,7 @@ RULES: tuple[Rule, ...] = (
     ),
     Rule(
         "preis_widerspruch",
-        "high",
+        "medium",
         _price_conflict,
         _("Ein Preis oder Prozentsatz im Text passt nicht zu den Preisfeldern."),
         "UWG § 5",
@@ -665,22 +792,29 @@ def run(inp: CheckInput, *, scope: str = OWNER) -> list[Finding]:
         except Exception:  # noqa: BLE001 — сломанное правило = нет подсказки, не 500
             logger.exception("text_check: rule %s failed", rule.code)
             continue
+        per_text: dict[tuple, int] = {}
         for hit in hits:
             key = (rule.code, hit.field, hit.locale, hit.quote.casefold())
-            if key in seen:
+            slot = (hit.field, hit.locale)
+            if key in seen or per_text.get(slot, 0) >= MAX_HITS:
                 continue
             seen.add(key)
+            per_text[slot] = per_text.get(slot, 0) + 1
+            quote, suggestion = hit.quote, hit.suggestion
+            if len(quote) > QUOTE_MAX:
+                # Обрезанная цитата не найдётся в тексте — замену по ней не предлагаем.
+                quote, suggestion = quote[: QUOTE_MAX - 1] + "…", None
             found.append(
                 Finding(
                     code=rule.code,
                     severity=severity,
                     field=hit.field,
                     locale=hit.locale,
-                    quote=hit.quote,
+                    quote=quote,
                     message=rule.message,
                     norm=rule.norm,
-                    suggestion=hit.suggestion,
+                    suggestion=suggestion,
                 )
             )
     found.sort(key=lambda f: SEVERITY_ORDER.get(f.severity, 9))
-    return found
+    return found[:MAX_FINDINGS]

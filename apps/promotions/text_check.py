@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import logging
 
+from django.db import DatabaseError
+
 from apps.core import text_check as tc
 
 logger = logging.getLogger(__name__)
@@ -16,6 +18,9 @@ logger = logging.getLogger(__name__)
 def _safe(fn, default=None):
     try:
         return fn()
+    except DatabaseError:
+        # Внутри atomic проглоченная ошибка БД сломала бы транзакцию — пусть всплывёт.
+        raise
     except Exception:  # noqa: BLE001 — свойство цены не должно ронять проверку
         logger.exception("text_check: promotion property failed")
         return default
@@ -31,6 +36,13 @@ def _locale_texts(value) -> dict:
         for loc, text in value.items()
         if isinstance(text, str) and text.strip()
     }
+
+
+def _codes(value) -> frozenset:
+    """Коды аллергенов/диет: только строки (JSON-поле может хранить что угодно)."""
+    if not isinstance(value, (list, tuple, set, frozenset)):
+        return frozenset()
+    return frozenset(v for v in value if isinstance(v, str))
 
 
 def _is_food(tenant) -> bool:
@@ -60,11 +72,12 @@ def input_from_promotion(promo, tenant) -> tc.CheckInput:
     ingredients = False
     grundpreis_ok = None
     if product is not None:
-        allergens = frozenset(getattr(product, "allergens", None) or ())
-        diets = frozenset(getattr(product, "diets", None) or ())
+        allergens = _codes(getattr(product, "allergens", None))
+        diets = _codes(getattr(product, "diets", None))
         unit = getattr(product, "unit", "") or ""
         ingredients = bool((getattr(product, "ingredients", "") or "").strip())
-        if unit:
+        # У товара с вариантами Grundpreis у каждого варианта свой — акция его не считает.
+        if unit and not _safe(lambda: product.has_variants, False):
             grundpreis_ok = _safe(lambda: promo.grundpreis) is not None
 
     return tc.CheckInput(
@@ -77,7 +90,7 @@ def input_from_promotion(promo, tenant) -> tc.CheckInput:
         price_condition=condition,
         mystery=bool(promo.is_surprise or promo.discount_style == "mystery"),
         perishable=bool(_safe(lambda: promo.is_perishable, False)),
-        is_food=_is_food(tenant),
+        is_food=bool(_safe(lambda: _is_food(tenant), False)),
         has_product=product is not None,
         allergens=allergens,
         diets=diets,

@@ -305,3 +305,97 @@ def test_regex_linear_on_long_input():
 def test_garbage_input_does_not_raise():
     data = tc.CheckInput(texts={"title": {"de": None}, "x": "nope"}, today=TODAY)  # type: ignore[dict-item]
     assert tc.run(data) == []
+
+
+# --- регрессии ревью D2a-1: обычные фразы объявлений не должны давать подсказок ---------
+
+
+@pytest.mark.parametrize(
+    "text,code",
+    [
+        ("Jetzt nur noch 1,99 €", "dringlichkeit_menge"),
+        ("Nur noch 5 € für das Brot", "dringlichkeit_menge"),
+        ("Nur noch 2 Tage!", "dringlichkeit_menge"),
+        ("Lieferung kostenlos", "gratis_mit_preis"),
+        ("Parken kostenlos, Versand gratis", "gratis_mit_preis"),
+        ("Kostenlose Stornierung und kostenlose Abholung", "gratis_mit_preis"),
+        ("Kostenlose Lieferung ab 20 €", "preis_widerspruch"),
+        ("Dazu ein 10 € Gutschein", "preis_widerspruch"),
+        ("Milch 3,5 % Fett", "preis_widerspruch"),
+        ("Preise inkl. 7 % MwSt", "preis_widerspruch"),
+        ("Pfand 0,25 €", "preis_widerspruch"),
+        ("Vorher anrufen, 10 € Gutschein", "statt_ohne_referenz"),
+        ("Wochenmarkt statt Supermarkt: Brot 3 €", "statt_ohne_referenz"),
+        ("Brotdose mit abnehmbarem Deckel", "gesundheit"),
+        ("Kontrolle durch das Gesundheitsamt", "gesundheit"),
+        ("Geöffnet Mo-Fr 9-12 / 14-18 Uhr", "kontakt_im_text"),
+    ],
+)
+def test_common_offer_phrases_do_not_fire(text, code):
+    data = inp(
+        text, new_price=Decimal("2.99"), percent=30, quantity=10, ends_at=_end(3), is_food=True
+    )
+    assert code not in codes(tc.run(data)), text
+
+
+def test_stock_rule_still_fires_with_stock_noun():
+    assert "dringlichkeit_menge" in codes(tc.run(inp("Nur noch 3 Stück", quantity=12)))
+
+
+def test_statt_still_fires_on_direct_amount_forms():
+    for text in ("statt bisher 4,99 €", "UVP: 49 €", "Regulär 5 €"):
+        assert "statt_ohne_referenz" in codes(tc.run(inp(text, new_price=Decimal("2")))), text
+
+
+def test_lactose_free_milk_is_not_a_diet_conflict():
+    data = inp("Laktosefreie Milch", has_product=True, allergens=frozenset({"milch"}))
+    assert "diaet_widerspruch" not in codes(tc.run(data))
+
+
+def test_health_still_fires_on_real_claims():
+    for text in ("Hilft beim Abnehmen", "Stärkt die Immunabwehr", "Gesunde Snacks"):
+        assert "gesundheit" in codes(tc.run(inp(text, is_food=True))), text
+
+
+def test_midnight_end_counts_as_previous_day():
+    midnight = datetime(2026, 10, 18, 0, 0, tzinfo=BERLIN)
+    assert "dringlichkeit_heute" not in codes(tc.run(inp("Nur heute", ends_at=midnight)))
+
+
+def test_real_phone_number_still_fires():
+    assert "kontakt_im_text" in codes(tc.run(inp("Bestellen: 0212 1234567")))
+
+
+def test_input_shape_is_capped():
+    texts = {f"f{i}": {f"de{j}": "Nur heute! " * 50 for j in range(50)} for i in range(50)}
+    data = tc.CheckInput(texts=texts, today=TODAY, ends_at=_end(6))
+    started = time.perf_counter()
+    found = tc.run(data)
+    assert time.perf_counter() - started < 1.0
+    assert len(found) <= tc.MAX_FINDINGS
+
+
+def test_hits_per_rule_and_text_are_capped():
+    data = inp("1 % " * 400, mystery=True)
+    mystery = [f for f in tc.run(data) if f.code == "mystery_verraten"]
+    assert len(mystery) <= tc.MAX_HITS
+
+
+def test_odd_keys_are_ignored():
+    data = tc.CheckInput(
+        texts={"<b>x</b>" * 10: {"de": "Nur heute"}, "title": {"x" * 50: "Nur heute"}}, today=TODAY
+    )
+    assert tc.run(data) == []
+
+
+def test_quote_is_truncated():
+    data = inp("Bestellen unter https://example.de/" + "a" * 500)
+    (f,) = [x for x in tc.run(data) if x.code == "kontakt_im_text"]
+    assert len(f.quote) <= tc.QUOTE_MAX
+
+
+def test_findings_are_json_serialisable_via_str():
+    import json
+
+    found = tc.run(inp("Gratis Kaffee nur heute", new_price=Decimal("2"), ends_at=_end(5)))
+    json.dumps([f.as_dict() for f in found])
