@@ -25722,3 +25722,42 @@ msgstr ""
 
 msgid "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."
 msgstr "Если упоминается «гарантия», нужно указать её содержание и срок."
+
+msgid "Automatische Hinweise – keine Rechtsberatung."
+msgstr "Автоматические подсказки — не юридическая консультация."
+
+msgid "Bitte prüfen"
+msgstr "Проверьте"
+
+msgid "Die Prüfung ist gerade nicht verfügbar."
+msgstr "Проверка сейчас недоступна."
+
+msgid "Hinweis"
+msgstr "Подсказка"
+
+msgid "Hinweise zum Text"
+msgstr "Подсказки к тексту"
+
+msgid "Jetzt bearbeiten"
+msgstr "Исправить сейчас"
+
+msgid "Keine Auffälligkeiten gefunden."
+msgstr "Замечаний нет."
+
+msgid "Text prüfen"
+msgstr "Проверить текст"
+
+msgid "Vor dem Veröffentlichen prüfen"
+msgstr "Проверка перед публикацией"
+
+msgid "Vorschlag übernehmen"
+msgstr "Применить предложение"
+
+msgid "Warum?"
+msgstr "Почему?"
+
+msgid "Wichtig"
+msgstr "Важно"
+
+msgid "Wort entfernen"
+msgstr "Убрать слово"

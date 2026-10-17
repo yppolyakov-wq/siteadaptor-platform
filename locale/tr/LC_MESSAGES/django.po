@@ -25594,3 +25594,42 @@ msgstr "Çok fazla büyük harf, ünlem işareti veya emoji spam gibi görünür
 msgid "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."
 msgstr ""
 "“Garanti” ifadesi kullanılırsa garantinin kapsamı ve süresi belirtilmelidir."
+
+msgid "Automatische Hinweise – keine Rechtsberatung."
+msgstr "Otomatik ipuçları – hukuki danışmanlık değildir."
+
+msgid "Bitte prüfen"
+msgstr "Lütfen kontrol edin"
+
+msgid "Die Prüfung ist gerade nicht verfügbar."
+msgstr "Kontrol şu anda kullanılamıyor."
+
+msgid "Hinweis"
+msgstr "Not"
+
+msgid "Hinweise zum Text"
+msgstr "Metinle ilgili notlar"
+
+msgid "Jetzt bearbeiten"
+msgstr "Şimdi düzenle"
+
+msgid "Keine Auffälligkeiten gefunden."
+msgstr "Dikkat çeken bir şey bulunamadı."
+
+msgid "Text prüfen"
+msgstr "Metni kontrol et"
+
+msgid "Vor dem Veröffentlichen prüfen"
+msgstr "Yayınlamadan önce kontrol"
+
+msgid "Vorschlag übernehmen"
+msgstr "Öneriyi uygula"
+
+msgid "Warum?"
+msgstr "Neden?"
+
+msgid "Wichtig"
+msgstr "Önemli"
+
+msgid "Wort entfernen"
+msgstr "Kelimeyi kaldır"

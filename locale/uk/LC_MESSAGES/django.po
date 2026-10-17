@@ -25702,3 +25702,42 @@ msgstr "Багато великих літер, знаків оклику чи �
 
 msgid "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."
 msgstr "Якщо згадано «гарантію», треба вказати її зміст і строк."
+
+msgid "Automatische Hinweise – keine Rechtsberatung."
+msgstr "Автоматичні підказки — не юридична консультація."
+
+msgid "Bitte prüfen"
+msgstr "Перевірте"
+
+msgid "Die Prüfung ist gerade nicht verfügbar."
+msgstr "Перевірка зараз недоступна."
+
+msgid "Hinweis"
+msgstr "Підказка"
+
+msgid "Hinweise zum Text"
+msgstr "Підказки до тексту"
+
+msgid "Jetzt bearbeiten"
+msgstr "Виправити зараз"
+
+msgid "Keine Auffälligkeiten gefunden."
+msgstr "Зауважень немає."
+
+msgid "Text prüfen"
+msgstr "Перевірити текст"
+
+msgid "Vor dem Veröffentlichen prüfen"
+msgstr "Перевірка перед публікацією"
+
+msgid "Vorschlag übernehmen"
+msgstr "Застосувати пропозицію"
+
+msgid "Warum?"
+msgstr "Чому?"
+
+msgid "Wichtig"
+msgstr "Важливо"
+
+msgid "Wort entfernen"
+msgstr "Прибрати слово"

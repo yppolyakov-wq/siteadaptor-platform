@@ -1,0 +1,24 @@
+{% load i18n %}{% comment %}D2a-2 (T-8.10e): список подсказок «Text-Check». Цитаты — текст владельца,
+только через автоэкранирование. tc_readonly — без кнопок (экран «Fertig»).{% endcomment %}
+{% if text_findings %}
+<ul class="space-y-2" data-tc-list>
+  {% for f in text_findings %}
+  <li class="rounded-xl border p-3 text-sm {% if f.severity == 'high' %}border-red-200 bg-red-50{% elif f.severity == 'medium' %}border-amber-200 bg-amber-50{% else %}border-gray-200 bg-gray-50{% endif %}" data-tc-item data-tc-code="{{ f.code }}" data-tc-severity="{{ f.severity }}">
+    <div class="flex items-start gap-2">
+      <span class="shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold {% if f.severity == 'high' %}bg-red-600 text-white{% elif f.severity == 'medium' %}bg-amber-500 text-white{% else %}bg-gray-200 text-gray-700{% endif %}">{% if f.severity == 'high' %}{% trans "Wichtig" %}{% elif f.severity == 'medium' %}{% trans "Bitte prüfen" %}{% else %}{% trans "Hinweis" %}{% endif %}</span>
+      <p class="flex-1">{{ f.message }}</p>
+    </div>
+    {% if f.quote %}<p class="mt-1 text-xs text-gray-600">„{{ f.quote }}“</p>{% endif %}
+    <div class="mt-2 flex flex-wrap items-center gap-3 text-xs">
+      {% if not tc_readonly and f.quote and f.suggestion is not None %}
+        <button type="button" class="rounded-full border border-indigo-300 bg-white px-3 py-1 text-indigo-700 hover:bg-indigo-50" data-tc-apply data-field="{{ f.field }}" data-locale="{{ f.locale }}" data-quote="{{ f.quote }}" data-replace="{{ f.suggestion }}">{% if f.suggestion %}{% trans "Vorschlag übernehmen" %}: „{{ f.suggestion }}“{% else %}{% trans "Wort entfernen" %}{% endif %}</button>
+      {% endif %}
+      <details><summary class="cursor-pointer text-gray-500">{% trans "Warum?" %}</summary><span class="text-gray-500">{{ f.norm }}</span></details>
+      {% if not tc_readonly %}<button type="button" class="text-gray-500 hover:underline" data-tc-hide>{% trans "Ausblenden" %}</button>{% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% elif text_checked %}
+<p class="text-sm text-emerald-700" data-tc-empty>✓ {% trans "Keine Auffälligkeiten gefunden." %}</p>
+{% endif %}

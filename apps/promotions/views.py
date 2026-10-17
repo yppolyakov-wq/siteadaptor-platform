@@ -4,12 +4,15 @@
 (confirm/fulfill/cancel) поверх ReservationSM. Все вьюхи требуют логина.
 """
 
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import translation
 from django.utils.translation import gettext as _
@@ -35,6 +38,8 @@ PROMO_STATUSES = ["draft", "scheduled", "active", "paused", "ended", "archived"]
 RESERVATION_STATUSES = ["pending", "confirmed", "fulfilled", "cancelled", "expired"]
 # T-8.4: «↻ Wiederholen» — у прошлых акций (то же предложение, новый срок).
 REPEATABLE_STATUSES = ("ended", "archived", "paused")
+
+logger = logging.getLogger(__name__)
 
 
 def _bump_storefront(request):
@@ -840,6 +845,46 @@ def promotion_quick_ai_result(request, job):
     return JsonResponse(state)
 
 
+def _text_findings(promo, request) -> list:
+    """D2a-2: подсказки «Text-Check» к сохранённой акции; сбой — без подсказок."""
+    from . import text_check as ptc
+
+    try:
+        return ptc.for_promotion(promo, getattr(request, "tenant", None))
+    except Exception:  # noqa: BLE001 — подсказки не стоят ошибки на странице
+        logger.exception("text_check: findings for promotion %s failed", promo.pk)
+        return []
+
+
+@login_required
+@require_POST
+def promotion_text_check(request):
+    """D2a-2 (T-8.10e): «Vor dem Veröffentlichen prüfen» — подсказки к тексту акции.
+
+    Принимает поля ассистента или полной формы, собирает НЕСОХРАНЁННУЮ акцию и отдаёт
+    HTML-фрагмент подсказок. Ничего не пишет и ничего не блокирует — только советы
+    (docs/d2-ai-text-check-plan-2026-10-17.md §5)."""
+    from django.conf import settings as dj_settings
+
+    from apps.core import ratelimit
+
+    from . import text_check as ptc
+
+    limit = getattr(dj_settings, "TEXT_CHECK_RATE_LIMIT", 120)
+    if ratelimit.hit(
+        "text-check", f"{_ai_schema(request)}:{request.user.pk}", limit=limit, window=600
+    ):
+        return HttpResponse(status=429)
+    tenant = getattr(request, "tenant", None)
+    promo = ptc.promotion_from_payload(request.POST, tenant)
+    # Фрагмент без контекст-процессоров кабинета (меню/членство — лишние запросы).
+    html = render_to_string(
+        "promotions/_text_check_results.html",
+        {"text_findings": ptc.for_promotion(promo, tenant), "text_checked": True},
+    )
+    return HttpResponse(html)
+
+
 def _translate_locales(tenant) -> list[tuple[str, str]]:
     """Языки витрины, кроме базового: куда переводить текст акции (T-8.5b)."""
     from django.conf import settings as dj_settings
@@ -883,6 +928,10 @@ def promotion_quick_done(request, pk):
             **owner_login.pending_context(request),  # T-8.5
             # В5 V5-3: «что принесла акция» — вход в статистику Stadtportal (только владельцу).
             "portal_stats_link": is_owner(request.user),
+            # D2a-2: важные подсказки к тексту (high/medium) — исправить в форме.
+            "text_findings": [
+                f for f in _text_findings(promo, request) if f.severity in ("high", "medium")
+            ],
         },
     )
 
@@ -927,6 +976,9 @@ def promotion_edit(request, pk):
             "featured_listing": _featured_listing(promo),
             "featured_enabled": billing_featured.is_enabled(),
             "nav": "promotions",
+            # D2a-2: подсказки к сохранённому тексту — сразу, без JS.
+            "text_findings": _text_findings(promo, request),
+            "text_checked": True,
             **_promo_i18n_groups(form, request),
         },
     )

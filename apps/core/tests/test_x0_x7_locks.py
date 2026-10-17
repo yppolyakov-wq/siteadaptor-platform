@@ -109,6 +109,8 @@ EXPECTED_UNLISTED = frozenset(
         "promotions:promotion-quick-ai",
         # [POST] Д1: «Nicht jetzt» у подсказки «Was heute starten?».
         "promotions:today-dismiss",
+        # [POST] D2a-2: «Text prüfen» — HTML-фрагмент подсказок внутри формы акции.
+        "promotions:promotion-text-check",
         "site-cblock-photo-edit",
         "site-inline-edit",
         "site-preview-draft",

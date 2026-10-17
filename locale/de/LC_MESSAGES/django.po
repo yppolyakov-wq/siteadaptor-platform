@@ -25521,3 +25521,42 @@ msgstr "Viele Großbuchstaben, Ausrufezeichen oder Emojis wirken wie Werbung."
 
 msgid "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."
 msgstr "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."
+
+msgid "Automatische Hinweise – keine Rechtsberatung."
+msgstr "Automatische Hinweise – keine Rechtsberatung."
+
+msgid "Bitte prüfen"
+msgstr "Bitte prüfen"
+
+msgid "Die Prüfung ist gerade nicht verfügbar."
+msgstr "Die Prüfung ist gerade nicht verfügbar."
+
+msgid "Hinweis"
+msgstr "Hinweis"
+
+msgid "Hinweise zum Text"
+msgstr "Hinweise zum Text"
+
+msgid "Jetzt bearbeiten"
+msgstr "Jetzt bearbeiten"
+
+msgid "Keine Auffälligkeiten gefunden."
+msgstr "Keine Auffälligkeiten gefunden."
+
+msgid "Text prüfen"
+msgstr "Text prüfen"
+
+msgid "Vor dem Veröffentlichen prüfen"
+msgstr "Vor dem Veröffentlichen prüfen"
+
+msgid "Vorschlag übernehmen"
+msgstr "Vorschlag übernehmen"
+
+msgid "Warum?"
+msgstr "Warum?"
+
+msgid "Wichtig"
+msgstr "Wichtig"
+
+msgid "Wort entfernen"
+msgstr "Wort entfernen"

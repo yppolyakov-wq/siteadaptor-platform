@@ -43,6 +43,16 @@
     </div>
   {% endif %}
 
+  {% if text_findings %}
+    {% comment %}D2a-2 (T-8.10e): важные подсказки к тексту — исправить можно в форме акции.{% endcomment %}
+    <div class="bg-white rounded-2xl shadow-sm p-4 space-y-2" data-done-text-check>
+      <p class="text-sm font-semibold">🔎 {% trans "Hinweise zum Text" %}</p>
+      <p class="text-xs text-gray-500">{% trans "Automatische Hinweise – keine Rechtsberatung." %}</p>
+      {% include "promotions/_text_check_results.html" with tc_readonly=True %}
+      <a href="{% url 'promotions:promotion-edit' promotion.pk %}" class="inline-block rounded-full border border-gray-300 px-3 py-1 text-xs hover:bg-gray-50">{% trans "Jetzt bearbeiten" %} →</a>
+    </div>
+  {% endif %}
+
   {% if translate_locales %}
     {% comment %}T-8.5b: ассистент и «Aktion in 3 Klicks» пишут текст на базовом языке;
     переводы — в обычной форме акции, ссылка открывает её сразу на нужном языке.{% endcomment %}

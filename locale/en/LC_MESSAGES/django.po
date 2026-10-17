@@ -25464,3 +25464,42 @@ msgstr "Lots of capital letters, exclamation marks or emojis look like spam."
 
 msgid "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."
 msgstr "When mentioning a “guarantee”, its scope and duration must be stated."
+
+msgid "Automatische Hinweise – keine Rechtsberatung."
+msgstr "Automatic hints – not legal advice."
+
+msgid "Bitte prüfen"
+msgstr "Please check"
+
+msgid "Die Prüfung ist gerade nicht verfügbar."
+msgstr "The check is not available right now."
+
+msgid "Hinweis"
+msgstr "Note"
+
+msgid "Hinweise zum Text"
+msgstr "Notes on the text"
+
+msgid "Jetzt bearbeiten"
+msgstr "Edit now"
+
+msgid "Keine Auffälligkeiten gefunden."
+msgstr "Nothing noticeable found."
+
+msgid "Text prüfen"
+msgstr "Check text"
+
+msgid "Vor dem Veröffentlichen prüfen"
+msgstr "Check before publishing"
+
+msgid "Vorschlag übernehmen"
+msgstr "Apply suggestion"
+
+msgid "Warum?"
+msgstr "Why?"
+
+msgid "Wichtig"
+msgstr "Important"
+
+msgid "Wort entfernen"
+msgstr "Remove word"
