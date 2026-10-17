@@ -35,10 +35,25 @@ TASK = "promo_text_check"
 MAX_AI_FINDINGS = 6
 QUOTE_MAX = 120
 HINT_MAX = 200
+PROMPT_TEXT_MAX = 1500  # на поле в промпте: 3 поля + факты укладываются в лимит задачи
+# Слова, которыми предложение может СМЯГЧИТЬ цитату (остальные слова — только из цитаты).
+SOFTENERS = (
+    "oft",
+    "häufig",
+    "meist",
+    "eventuell",
+    "kann",
+    "können",
+    "auch",
+    "gern",
+    "gerne",
+    "ca",
+    "etwa",
+)
 
 registry.register(
     TASK,
-    registry.TaskSpec(tier="strong", max_tokens=700, timeout_s=30, max_input_chars=6000),
+    registry.TaskSpec(tier="strong", max_tokens=700, timeout_s=30, max_input_chars=8000),
 )
 
 # Первый код — безопасный дефолт фейка; коды ИИ получают префикс «ai_» в подсказке.
@@ -121,7 +136,7 @@ def build_prompt(inp: tc.CheckInput, *, tenant, marker: str) -> str:
         text = (inp.texts.get(field) or {}).get(base) if isinstance(inp.texts, dict) else None
         if not isinstance(text, str) or not text.strip():
             continue
-        text = text[: tc.MAX_TEXT].replace(marker, "")
+        text = text[:PROMPT_TEXT_MAX].replace(marker, "")
         lines.append(f"<<<TEXT {field} {marker}>>>\n{text}\n<<<END {marker}>>>")
     return "\n".join(lines)
 
@@ -138,16 +153,27 @@ def _locate(quote: str, inp: tc.CheckInput, field: str):
     by_locale = inp.texts.get(field) if isinstance(inp.texts, dict) else None
     if not isinstance(by_locale, dict):
         return None
-    for locale, text in by_locale.items():
+    base = settings.LANGUAGE_CODE
+    ordered = sorted(by_locale.items(), key=lambda kv: kv[0] != base)  # базовая — первой
+    for locale, text in ordered:
         if isinstance(text, str) and (m := pattern.search(text[: tc.MAX_TEXT])):
             return str(locale), m.group(0)
     return None
 
 
+_WORD_RE = re.compile(r"\w+")
+
+
 def _safe_suggestion(suggestion: str, quote: str) -> str | None:
-    """Предложение только убирает/смягчает: без новых чисел, утверждений и контактов."""
+    """Предложение только УБИРАЕТ или смягчает слова цитаты: каждое его слово — из
+    цитаты или из короткого списка смягчающих; без новых чисел, утверждений, контактов.
+    Иначе подсказка остаётся, но без кнопки замены (ревью безопасности D2a-3)."""
     if not suggestion:
         return None
+    quote_words = {w.casefold() for w in _WORD_RE.findall(quote)}
+    for word in _WORD_RE.findall(suggestion):
+        if word.casefold() not in quote_words and word.casefold() not in SOFTENERS:
+            return None
     new_numbers = set(tc.NUMBER_RE.findall(suggestion)) - set(tc.NUMBER_RE.findall(quote))
     old_claims = {c.lower() for c in tc_claims(quote)}
     new_claims = {c.lower() for c in tc_claims(suggestion)} - old_claims
@@ -163,8 +189,13 @@ def tc_claims(text: str) -> list[str]:
 
 
 def _overlaps(a: str, b: str) -> bool:
-    a, b = a.casefold(), b.casefold()
-    return bool(a and b) and (a in b or b in a)
+    a, b = a.casefold().strip(), b.casefold().strip()
+    if not a or not b:
+        return False
+    short, long_ = (a, b) if len(a) <= len(b) else (b, a)
+    if len(short) < 3:
+        return short == long_
+    return re.search(r"(?<!\w)" + re.escape(short) + r"(?!\w)", long_) is not None
 
 
 def clean_ai_findings(raw, inp: tc.CheckInput, rule_findings: list) -> list[tc.Finding]:
@@ -191,8 +222,8 @@ def clean_ai_findings(raw, inp: tc.CheckInput, rule_findings: list) -> list[tc.F
         if any(o.field == field and o.quote.casefold() == exact.casefold() for o in out):
             continue
         hint = strip_tags(str(item.get("hint") or "")).strip()[:HINT_MAX]
-        if not hint:
-            continue
+        if not hint or tc.CONTACT_RE.search(hint):
+            continue  # ссылка/телефон в подсказке — не показываем (непрямая инъекция)
         suggestion = strip_tags(str(item.get("suggestion") or "")).strip()[:HINT_MAX]
         out.append(
             tc.Finding(
@@ -210,7 +241,7 @@ def clean_ai_findings(raw, inp: tc.CheckInput, rule_findings: list) -> list[tc.F
     return out
 
 
-def check_text(inp: tc.CheckInput, *, tenant) -> tuple[list[tc.Finding] | None, str]:
+def check_text(inp: tc.CheckInput, *, tenant, rules=None) -> tuple[list[tc.Finding] | None, str]:
     """(подсказки ИИ | None, код ''|ошибка). Вызывать ВНЕ atomic (контракт AI-0)."""
     if not is_enabled():
         return None, "disabled"
@@ -231,7 +262,7 @@ def check_text(inp: tc.CheckInput, *, tenant) -> tuple[list[tc.Finding] | None, 
     except AIError as exc:
         logger.info("promo text check skipped: %s", exc.code)
         return None, exc.code
-    return clean_ai_findings(result.data, inp, tc.run(inp)), ""
+    return clean_ai_findings(result.data, inp, tc.run(inp) if rules is None else rules), ""
 
 
 # --- фоновая задача + кэш по хешу ---------------------------------------------------------
@@ -335,6 +366,8 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
     entry = cache.get(key)
     if not isinstance(entry, dict) or entry.get("state") != "pending":
         return
+    if not cache.add(f"{key}:lock", 1, JOB_TTL):
+        return  # повторная доставка задачи: модель второй раз не зовём
     outcome = {"state": "error", "code": "error"}
     try:
         tenant = Tenant.objects.filter(schema_name=schema).first()
@@ -342,19 +375,28 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
             promo = ptc.promotion_from_payload(entry.get("payload") or {}, tenant)
             inp = ptc.input_from_promotion(promo, tenant)
             rules = tc.run(inp)
-            ai, code = check_text(inp, tenant=tenant)
+            ai, code = check_text(inp, tenant=tenant, rules=rules)
+            if ai is not None:
+                # Строки — в языке владельца: ленивые переводы вычисляются ВНУТРИ override.
+                ai_dicts = [f.as_dict() for f in ai]
+                findings = merge([f.as_dict() for f in rules], ai_dicts)
         if ai is None:
             outcome = {"state": "error", "code": code or "error"}
         else:
-            findings = [f.as_dict() for f in (*rules, *ai)]
-            findings.sort(key=lambda f: tc.SEVERITY_ORDER.get(f["severity"], 9))
             outcome = {"state": "done", "findings": findings}
             if entry.get("digest"):
-                cache.set(_cache_key(schema, entry["digest"]), findings, CACHE_TTL)
+                # В кэш — только часть ИИ: правила дешёвые и пересчитываются свежими.
+                cache.set(_cache_key(schema, entry["digest"]), ai_dicts, CACHE_TTL)
     except Exception:  # noqa: BLE001 — сбой задачи не должен висеть «pending»
         logger.exception("promo text check job failed")
     finally:
         cache.set(key, outcome, RESULT_TTL)  # перезапись: текст владельца уходит из кэша
+
+
+def merge(rule_dicts: list, ai_dicts: list) -> list:
+    findings = [*rule_dicts, *ai_dicts]
+    findings.sort(key=lambda f: tc.SEVERITY_ORDER.get(f.get("severity"), 9))
+    return findings
 
 
 def job_state(*, schema: str, user_pk, job: str) -> dict | None:

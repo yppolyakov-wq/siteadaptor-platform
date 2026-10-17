@@ -215,8 +215,8 @@ def test_suggestion_with_new_claim_or_contact_dropped():
     for bad in ("jetzt bio", "jetzt vegan", "jetzt unter www.x.de"):
         (f,) = _clean([_item(quote="jetzt günstig", suggestion=bad)], inp)
         assert f.suggestion is None, bad
-    (ok,) = _clean([_item(quote="jetzt günstig", suggestion="jetzt im Angebot")], inp)
-    assert ok.suggestion == "jetzt im Angebot"
+    (ok,) = _clean([_item(quote="jetzt günstig", suggestion="jetzt oft günstig")], inp)
+    assert ok.suggestion == "jetzt oft günstig"
 
 
 def test_ai_finding_duplicating_rule_hidden():
@@ -263,3 +263,65 @@ def test_prompt_contains_facts_from_fields_only():
     inp = _inp("Kaffee", new_price=Decimal("2.50"), old_price=Decimal("3.50"), quantity=5)
     prompt = atc.build_prompt(inp, tenant=None, marker="m1")
     assert "2.50" in prompt and "3.50" in prompt and "5" in prompt
+
+
+def test_suggestion_may_only_remove_or_soften_words():
+    inp = _inp("Ingwershot hilft immer")
+    for bad in ("Ingwershot jetzt gratis testen", "Ingwershot zum halben Preis", "hilft zehn Mal"):
+        (f,) = _clean([_item(quote="Ingwershot hilft immer", suggestion=bad)], inp)
+        assert f.suggestion is None, bad
+    (ok,) = _clean([_item(quote="Ingwershot hilft immer", suggestion="Ingwershot hilft oft")], inp)
+    assert ok.suggestion == "Ingwershot hilft oft"
+
+
+def test_hint_with_contact_dropped():
+    inp = _inp("Kaffee")
+    assert _clean([_item(quote="Kaffee", hint="Mehr unter www.evil.example")], inp) == []
+    assert _clean([_item(quote="Kaffee", hint="Rufen Sie 0212 1234567 an")], inp) == []
+
+
+def test_short_rule_quote_does_not_swallow_ai_finding():
+    inp = _inp("Bio-Saft macht wach und schlank")
+    rules = [f for f in tc.run(inp) if f.code == "bio_claim"]
+    assert rules and rules[0].quote.lower() == "bio"
+    (f,) = _clean([_item(quote="macht wach und schlank")], inp, rules)
+    assert f.quote == "macht wach und schlank"
+
+
+def test_base_locale_preferred_when_quote_in_several_locales():
+    data = tc.CheckInput(texts={"title": {"en": "Kaffee", "de": "Kaffee"}})
+    (f,) = _clean([_item(quote="Kaffee")], data)
+    assert f.locale == "de"
+
+
+def test_invalid_job_id_404(user):
+    with pytest.raises(Http404):
+        views.promotion_text_check_ai_result(_req("get", START, user), "../../etc")
+
+
+def test_cache_hit_recomputes_rules(ai_on, user, jobs_cache, isolated_ratelimit):
+    data = {"title": "Gratis Kaffee", "new_price": "2"}
+    payload = atc.payload_from(data)
+    digest = atc.payload_hash(payload, tenant=_req("post", START, user).tenant, language="de")
+    jobs_cache.set(atc._cache_key(views._ai_schema(None), digest), [], 60)
+    from django.utils import translation
+
+    with translation.override("de"):
+        resp = _json(views.promotion_text_check_ai_start(_req("post", START, user, data)))
+    assert resp["state"] == "done"
+    assert 'data-tc-code="gratis_mit_preis"' in resp["html"]
+
+
+def test_job_result_rule_hints_in_owner_language(ai_on, user, jobs_cache, isolated_ratelimit):
+    from django.utils import translation
+
+    with translation.override("ru"), _inline():
+        job = _json(
+            views.promotion_text_check_ai_start(
+                _req("post", START, user, {"title": "Gratis Kaffee", "new_price": "2"})
+            )
+        )["job"]
+    with translation.override("de"):
+        state = atc.job_state(schema=views._ai_schema(None), user_pk=user.pk, job=job)
+    (rule,) = [f for f in state["findings"] if f["code"] == "gratis_mit_preis"]
+    assert rule["message"].startswith("«Бесплатно»"), rule["message"]

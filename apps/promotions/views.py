@@ -918,13 +918,28 @@ def promotion_text_check_ai_start(request):
 
     if not is_enabled():
         return JsonResponse({"code": "disabled"})
+    from django.conf import settings as conf
+
+    from . import text_check as ptc
+
     schema = _ai_schema(request)
     tenant = getattr(request, "tenant", None)
+    # Щедрый общий лимит — и на путь из кэша (CPU разбора/рендера), как у проверки правил.
+    if ratelimit.hit(
+        "text-check",
+        f"{schema}:{request.user.pk}",
+        limit=getattr(conf, "TEXT_CHECK_RATE_LIMIT", 120),
+        window=600,
+    ):
+        return JsonResponse({"code": "quota"})
     payload = atc.payload_from(request.POST)
     digest = atc.payload_hash(payload, tenant=tenant, language=translation.get_language() or "")
     hit = atc.cached(schema, digest)
     if hit is not None:
-        return JsonResponse({"state": "done", "html": _text_check_html(hit)})
+        # Тот же текст уже проверен ИИ: правила — свежие (товар/срок могли измениться).
+        rules = ptc.for_promotion(ptc.promotion_from_payload(payload, tenant), tenant)
+        merged = atc.merge([f.as_dict() for f in rules], hit)
+        return JsonResponse({"state": "done", "html": _text_check_html(merged)})
     if ratelimit.hit(
         "ai-text-user", f"{schema}:{request.user.pk}", limit=atc.RATE_LIMIT, window=atc.RATE_WINDOW
     ) or ratelimit.hit("ai-text", schema, limit=atc.RATE_LIMIT_TENANT, window=atc.RATE_WINDOW):
@@ -939,10 +954,14 @@ def promotion_text_check_ai_start(request):
 @login_required
 def promotion_text_check_ai_result(request, job):
     """D2a-3: состояние задачи «Text prüfen lassen». Чужая задача — 404."""
+    import re
+
     from django.http import JsonResponse
 
     from . import ai_text_check as atc
 
+    if not re.fullmatch(r"[0-9a-f]{32}", job or ""):
+        raise Http404
     state = atc.job_state(schema=_ai_schema(request), user_pk=request.user.pk, job=job)
     if state is None:
         raise Http404
