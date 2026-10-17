@@ -26,15 +26,18 @@ def test_channel_qr_encodes_ch_param():
 
 
 @pytest.mark.django_db
-def test_capture_channel_persists_in_session():
+def test_landing_channel_is_read_but_not_written_to_session():
+    """В5 V5-5 (решение владельца §13): посадка с ?ch= сессию НЕ пишет (TTDSG §25)."""
     req = RequestFactory().get("/", {"ch": "schaufenster"})
     req.session = {}
-    assert public_views._capture_channel(req) == "schaufenster"
-    assert req.session["src_ch"] == "schaufenster"
-    # без ?ch берём из сессии
+    assert public_views._channel(req) == "schaufenster"
+    assert req.session == {}
+    # корзинная сессия (attribution.remember) — читается в том же визите
+    import time
+
     req2 = RequestFactory().get("/")
-    req2.session = {"src_ch": "schaufenster"}
-    assert public_views._capture_channel(req2) == "schaufenster"
+    req2.session = {"src_attr": {"ch": "schaufenster", "cl": "", "at": time.time()}}
+    assert public_views._channel(req2) == "schaufenster"
 
 
 @pytest.mark.django_db

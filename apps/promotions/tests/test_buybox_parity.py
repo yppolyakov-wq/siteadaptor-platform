@@ -44,7 +44,7 @@ def test_reserve_form_exact_fields():
         "csrfmiddlewaretoken",
         "website",  # honeypot (offscreen)
         "form_token",  # идемпотентность сабмита (hidden)
-        "channel",  # атрибуция ?ch= (hidden)
+        # В5 V5-5: атрибуция ch/cl появляется ТОЛЬКО при ?ch= (замок ниже)
         "name",
         "email",
         "phone",
@@ -55,6 +55,18 @@ def test_reserve_form_exact_fields():
         "fulfillment",
     }
     assert f"/p/{promo.pk}/waitlist/" not in body  # waitlist только при sold-out
+
+
+def test_reserve_form_carries_portal_attribution_only_when_present():
+    """В5 V5-5: пришёл из каталога города → форма несёт ch/cl скрытыми полями."""
+    promo = PromotionFactory(status="active", available_quantity=5)
+    request = RequestFactory().get(f"/p/{promo.pk}/", {"ch": "portal", "cl": "5"})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    body = public_views.promotion_detail(request, pk=promo.pk).content.decode()
+    form = form_block(body, f'action="/p/{promo.pk}/kaufen/"')
+    assert {"ch", "cl"} <= field_names(form)
+    assert 'name="ch" value="portal"' in form and 'name="cl" value="5"' in form
 
 
 def test_reserve_form_offers_delivery_when_the_business_delivers():

@@ -112,7 +112,6 @@ def test_reserve_page_posts_to_reserve_without_delivery_or_payment():
         "csrfmiddlewaretoken",
         "website",
         "form_token",
-        "channel",
         "name",
         "email",
         "phone",

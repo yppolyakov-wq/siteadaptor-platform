@@ -110,7 +110,11 @@ def _detail_ctx(request, promo, form) -> dict:
     tenant = getattr(request, "tenant", None)
     resp = promo_response.response_for(promo, tenant)
 
+    from apps.core import attribution
+
     return {
+        # В5 V5-5: канал/карточка каталога — скрытыми полями форм (страница не кэшируется)
+        "attr": attribution.context(request),
         "promotion": promo,
         "promo_response": resp,
         "promo_detail_style": detail_style,
@@ -139,12 +143,14 @@ def _detail_ctx(request, promo, form) -> dict:
     }
 
 
-def _capture_channel(request) -> str:
-    """Канал из ?ch= запоминаем в сессии, чтобы донести до момента брони."""
-    ch = (request.GET.get("ch") or "").strip()[:50]
-    if ch:
-        request.session["src_ch"] = ch
-    return ch or request.session.get("src_ch", "")
+def _channel(request) -> str:
+    """Канал посадки (?ch=, скрытое поле, Referer этого сайта, сессия корзины).
+
+    В5 V5-5: раньше `_capture_channel` клал канал в сессию ПРИ ПОСАДКЕ — это создавало
+    сессию и cookie каждому пришедшему по ссылке (TTDSG §25). Теперь — без записи."""
+    from apps.core import attribution
+
+    return attribution.resolve(request).channel
 
 
 def _attach_lowest_30d(promos) -> list:
@@ -167,7 +173,6 @@ def _attach_lowest_30d(promos) -> list:
 @xframe_options_sameorigin
 @cache_storefront_page
 def storefront_home(request):
-    _capture_channel(request)
     # Конструктор витрины v1 (Track C2): главная собирается из секций конфига.
     from apps.tenants import siteconfig
 
@@ -2250,13 +2255,13 @@ def promotion_detail(request, pk):
         if promo.status != "paused":
             response.status_code = 410
         return response
-    ch = _capture_channel(request)
+    ch = _channel(request)
     # аналитика: атомарный счётчик просмотров (не блокирует рендер)
     Promotion.objects.filter(pk=promo.pk).update(views=F("views") + 1)
     from . import channels
 
     channels.count_view(promo, ch)  # T-8.6: и по каналу (portal/flyer/…/direkt)
-    form = PublicReservationForm(initial={"form_token": uuid.uuid4().hex, "channel": ch})
+    form = PublicReservationForm(initial={"form_token": uuid.uuid4().hex})
     return render(request, "storefront/promotion_detail.html", _detail_ctx(request, promo, form))
 
 
@@ -2359,7 +2364,11 @@ def reservation_create(request, pk):
     if token_key and not cache.add(token_key, "1", TOKEN_TTL):
         return redirect("storefront-promotion", pk=pk)  # дубль сабмита
 
-    channel = (form.cleaned_data.get("channel") or request.session.get("src_ch") or "").strip()
+    from apps.aggregator import conversions
+    from apps.core import attribution
+
+    found = attribution.resolve(request)
+    channel = found.channel
     try:
         res = reserve(
             promo,
@@ -2380,6 +2389,7 @@ def reservation_create(request, pk):
         messages.error(request, _("Limit pro Kunde erreicht."))
         return render(request, "storefront/promotion_detail.html", ctx)
 
+    conversions.count(request, "deal", "reservation", res, attribution=found)  # В5 V5-5
     return redirect("storefront-confirmation", code=res.reference_code)
 
 
@@ -2458,17 +2468,23 @@ def coupon_create(request, pk):
         except ValidationError:
             messages.error(request, _("Bitte eine gültige E-Mail-Adresse angeben."))
             return redirect("storefront-promotion", pk=pk)
+    from apps.aggregator import conversions
+    from apps.core import attribution
+
+    found = attribution.resolve(request)
     try:
         voucher, _created = issue_coupon(
             promo,
             name=(request.POST.get("name") or "")[:200],
             email=email,
             phone=(request.POST.get("phone") or "")[:40],
-            source_channel=request.session.get("src_ch", ""),
+            source_channel=found.channel,
         )
     except CouponUnavailable:
         messages.error(request, _("Alle Coupons sind leider vergeben."))
         return redirect("storefront-promotion", pk=pk)
+    if _created:  # В5 V5-5: купон — отклик акции = сделка; повторный заход не считаем
+        conversions.count(request, "deal", "coupon", voucher, attribution=found)
     return _remember_coupon(
         redirect("storefront-coupon", code=voucher.code), request, promo, voucher.code
     )
@@ -2550,8 +2566,11 @@ def promotion_purchase(request, pk):
     if token_key and not cache.add(token_key, "1", TOKEN_TTL):
         return redirect("storefront-promotion", pk=pk)  # дубль сабмита
 
-    channel = (form.cleaned_data.get("channel") or request.session.get("src_ch") or "").strip()
+    from apps.aggregator import conversions
+    from apps.core import attribution
     from apps.orders import delivery_choice
+
+    found = attribution.resolve(request)
 
     from . import services as promo_services
 
@@ -2572,7 +2591,9 @@ def promotion_purchase(request, pk):
             name=form.cleaned_data["name"],
             email=form.cleaned_data.get("email", ""),
             phone=form.cleaned_data.get("phone", ""),
-            source_channel=channel,
+            # В5 V5-5: заказ по акции всегда «promo» (бейдж 🏷 Aktion в кабинете) —
+            # канал раньше перетирал его; канал теперь идёт в статистику каталога.
+            source_channel="",
             fulfillment="delivery" if choice.delivery else "pickup",
             shipping_cents=choice.shipping_cents,
             shipping_address=choice.shipping_address,
@@ -2587,6 +2608,9 @@ def promotion_purchase(request, pk):
         messages.error(request, _("Leider ausverkauft."))
         return render(request, "storefront/promotion_detail.html", ctx)
 
+    conversions.count(
+        request, "deal", "promo_order", promo, attribution=found, once_key=f"order:{order.pk}"
+    )
     return redirect("storefront-order", code=order.reference_code)
 
 

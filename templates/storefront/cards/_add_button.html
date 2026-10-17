@@ -1,4 +1,4 @@
-{% load i18n %}{% comment %}DL-19: кнопка «в корзину» для НОВЫХ форм карточки. Прежние
+{% load i18n attribution %}{% comment %}DL-19: кнопка «в корзину» для НОВЫХ форм карточки. Прежние
 ветки держат свою инлайн-копию (паритет разметки), поэтому партиал — только для
 regal/lookbook/deal. Параметры: p, cls (позиционирование).{% endcomment %}
 {% if storefront_quick_add and p.in_stock %}
@@ -10,7 +10,7 @@ regal/lookbook/deal. Параметры: p, cls (позиционировани�
     </button>
   {% else %}
     <form method="post" action="{% url 'storefront-cart-add' %}" class="js-add-form {{ cls }}">
-      {% csrf_token %}
+      {% csrf_token %}{% portal_attribution_fields %}
       <input type="hidden" name="product" value="{{ p.pk }}">
       <input type="hidden" name="qty" value="1">
       <button type="submit"

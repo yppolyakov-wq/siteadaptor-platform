@@ -1,4 +1,4 @@
-{% load i18n widget_tweaks %}{% load siteui %}
+{% load i18n widget_tweaks %}{% load siteui attribution %}
 {% comment %}UA3-1 слайс 2: ЕДИНЫЙ buy-box деталей витрины. Диспатч по purchase_mode
 контракта SellableEntity (cart/reserve/request/booking); mode можно передать явно
 через buybox_mode — для promotion (вне реестра sellable) и для override услуги
@@ -74,7 +74,7 @@ test_public (порядок CTA/точные href). Двухшаговость (
       {% csrf_token %}
       <div style="position:absolute;left:-9999px" aria-hidden="true">{{ form.website }}</div>
       {{ form.form_token }}
-      {{ form.channel }}
+      {% portal_attribution_fields %}
       {% for field in form %}
         {% if field.name != 'website' and field.name != 'form_token' and field.name != 'channel' %}
           <div>
@@ -102,7 +102,7 @@ test_public (порядок CTA/точные href). Двухшаговость (
       {% csrf_token %}
       <div style="position:absolute;left:-9999px" aria-hidden="true">{{ form.website }}</div>
       {{ form.form_token }}
-      {{ form.channel }}
+      {% portal_attribution_fields %}
       {% for field in form %}
         {% if field.name != 'website' and field.name != 'form_token' and field.name != 'channel' %}
           <div>

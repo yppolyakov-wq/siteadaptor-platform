@@ -340,7 +340,7 @@ def featured_click(request, pk):
     # В5 V5-2: тот же клик — в статистику портала (демо на настоящем портале не пишем).
     if _offer_in_scope(listing, getattr(request, "portal", None)):
         _record_click(request, listing)
-    return _seller_redirect(listing)
+    return _seller_redirect(request, listing)
 
 
 def _record_click(request, listing) -> None:
@@ -355,13 +355,21 @@ def _record_click(request, listing) -> None:
         )
 
 
-def _seller_redirect(listing):
+def _seller_redirect(request, listing):
     """В5 V5-2: редирект к продавцу. Цель — только из листинга в БД (detail_url пишет
-    синк), из запроса ничего не берётся → open redirect исключён; схема — только http(s)."""
+    синк), из запроса ничего не берётся → open redirect исключён; схема — только http(s).
+    V5-5: канал = поверхность (`portal`/`entdecken`) — сделка с `/entdecken/` не должна
+    числиться за порталом."""
     from django.http import HttpResponseRedirect
     from django.utils import translation
 
-    url = listing.with_channel("portal", lang=translation.get_language() or "", listing_ref=True)
+    from . import portal_stats
+
+    url = listing.with_channel(
+        portal_stats.channel_for(request),
+        lang=translation.get_language() or "",
+        listing_ref=True,
+    )
     if not url.startswith(("http://", "https://")):
         return redirect("/")
     resp = HttpResponseRedirect(url)
@@ -479,7 +487,7 @@ def outbound_click(request, pk):
     if listing is None:
         return redirect("/")
     _record_click(request, listing)
-    return _seller_redirect(listing)
+    return _seller_redirect(request, listing)
 
 
 def _distinct_cities():

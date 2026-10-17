@@ -579,7 +579,8 @@ def test_featured_click_records_click_and_keeps_featured_counter():
 
     listing = _listing(featured_until=timezone.now() + timedelta(hours=5))
     resp = views.featured_click(_page(f"/entdecken/klick/{listing.pk}/"), listing.pk)
-    assert resp["Location"] == listing.with_channel("portal", lang="de", listing_ref=True)
+    # V5-5 (D-9): ссылка несёт канал ТОЙ поверхности, где был клик.
+    assert resp["Location"] == listing.with_channel("entdecken", lang="de", listing_ref=True)
     listing.refresh_from_db()
     assert listing.featured_clicks == 1
     assert _count(action="click", channel="entdecken") == 1

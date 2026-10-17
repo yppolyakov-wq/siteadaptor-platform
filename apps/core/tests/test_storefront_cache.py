@@ -481,9 +481,9 @@ def test_real_storefront_home_is_still_cached_by_default():
     # и хит действительно обслуживается кэшем — без повторного рендера
     from unittest.mock import patch
 
-    with patch.object(
-        public_views, "_capture_channel", side_effect=AssertionError("вьюха вызвана")
-    ):
+    from apps.tenants import siteconfig
+
+    with patch.object(siteconfig, "normalize", side_effect=AssertionError("вьюха вызвана")):
         assert "Brot" in public_views.storefront_home(req()).content.decode()
 
 

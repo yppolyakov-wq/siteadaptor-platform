@@ -144,9 +144,10 @@ def _click_req(**extra):
 def test_featured_click_counts_and_redirects():
     feat = _listing(featured_hours=24)
     resp = views.featured_click(_click_req(), feat.pk)
-    # В5 V5-2 (D-1): редирект несёт и листинг (`cl`) — для атрибуции сделок.
+    # В5 V5-2 (D-1): редирект несёт и листинг (`cl`) — для атрибуции сделок;
+    # V5-5 (D-9): канал — по поверхности (без request.portal это /entdecken/).
     assert resp.status_code == 302
-    assert resp["Location"] == feat.with_channel("portal", lang="de", listing_ref=True)
+    assert resp["Location"] == feat.with_channel("entdecken", lang="de", listing_ref=True)
     feat.refresh_from_db()
     assert feat.featured_clicks == 1
 
@@ -155,7 +156,7 @@ def test_click_after_expiry_redirects_without_count():
     stale = _listing(featured_hours=-1)
     resp = views.featured_click(_click_req(), stale.pk)
     assert resp.status_code == 302
-    assert resp["Location"] == stale.with_channel("portal", lang="de", listing_ref=True)
+    assert resp["Location"] == stale.with_channel("entdecken", lang="de", listing_ref=True)
     stale.refresh_from_db()
     assert stale.featured_clicks == 0
 

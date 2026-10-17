@@ -294,8 +294,9 @@ class AggregatorListing(I18nMixin, models.Model):
     def with_channel(self, ch: str, lang: str = "", listing_ref: bool = False) -> str:
         """T-8.8: ссылка на сайт бизнеса с атрибуцией канала `?ch=<ch>`.
 
-        Витрина кладёт канал в сессию (`_capture_channel`), он доезжает до резерва,
-        купона и счётчика просмотров по каналам. Уже заданный канал не дублируем.
+        Витрина несёт канал скрытыми полями форм и Referer'ом (V5-5, `core.attribution`,
+        без cookie) до резерва, купона, заказа и счётчика просмотров по каналам.
+        Уже заданный канал не дублируем.
         Для JSON-LD/SEO — чистый detail_url."""
         from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 

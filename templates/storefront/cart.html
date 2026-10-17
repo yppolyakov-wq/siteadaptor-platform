@@ -1,5 +1,5 @@
 {% extends "storefront/_base.html" %}
-{% load i18n siteui %}{% load siteui %}
+{% load i18n siteui attribution %}{% load siteui %}
 {% block title %}{% trans "Your order" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
@@ -63,7 +63,7 @@
     </div>
 
     <form id="checkout-form" method="post" action="{% url 'storefront-checkout' %}" class="sf-card bg-white rounded-2xl shadow-sm p-5 space-y-4">
-      {% csrf_token %}
+      {% csrf_token %}{% portal_attribution_fields %}
       <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
 
       {% if storefront_table %}

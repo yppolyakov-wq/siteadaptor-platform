@@ -99,6 +99,9 @@ def contact(request):
             priority=Conversation.PRIORITY_HIGH if problem else "",
             **ref,
         )
+        from apps.aggregator import conversions
+
+        conversions.count(request, "contact", "conversation", conversation)  # В5 V5-5
         return redirect("storefront-message-thread", token=conversation.public_token)
 
     # LS-4 «Слой доверия»: публичный бейдж времени ответа — только при ХОРОШЕМ
@@ -106,6 +109,8 @@ def contact(request):
     from .views import avg_reaction_minutes
 
     minutes = avg_reaction_minutes()
+    from apps.core import attribution
+
     return render(
         request,
         "storefront/message_contact.html",
@@ -114,6 +119,7 @@ def contact(request):
             "prefill_subject": request.GET.get("subject", ""),
             "problem": request.GET.get("problem", ""),
             "reaction_minutes": minutes if minutes is not None and minutes <= 120 else None,
+            "attr": attribution.context(request),  # В5 V5-5: канал → скрытые поля
         },
     )
 

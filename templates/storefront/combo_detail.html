@@ -1,5 +1,5 @@
 {% extends "storefront/_base.html" %}
-{% load i18n %}{% load l10n %}{% load siteui %}
+{% load i18n attribution %}{% load l10n %}{% load siteui %}
 {% block title %}{{ combo.name_localized }} · {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
@@ -34,7 +34,7 @@
     {% if combo_orders_active %}
     {% comment %}MEN-1: имена полей выбора скоуплены per-группа (`opt-<g.pk>`) — с общим `name="opt"` браузер схлопывал radio ВСЕХ групп в один выбор. Сервер принимает opt И opt-* (combo_add).{% endcomment %}
     <form method="post" action="{% url 'storefront-combo-add' %}" data-combo-form data-base="{{ combo.price|unlocalize }}" data-cur="{{ combo.currency|cursym }}">
-      {% csrf_token %}
+      {% csrf_token %}{% portal_attribution_fields %}
       <input type="hidden" name="combo" value="{{ combo.pk }}">
       {% if combo.free_pool %}{% include "storefront/_combo_pool.html" with show_inputs=True %}{% else %}{% include "storefront/_combo_groups.html" with show_inputs=True %}{% endif %}
       {% if show_prices %}<p class="mt-5 text-sm text-gray-600">{% trans "Total" %}: <b data-combo-total>{{ combo.price }} {{ combo.currency|cursym }}</b></p>{% endif %}

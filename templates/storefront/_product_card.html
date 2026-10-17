@@ -1,4 +1,4 @@
-{% load i18n %}{% load siteui %}{# Карточка товара витрины (Track C1): ожидает p (Product). T2c/R5: цена+кнопка в одну линию. #}
+{% load i18n attribution %}{% load siteui %}{# Карточка товара витрины (Track C1): ожидает p (Product). T2c/R5: цена+кнопка в одну линию. #}
 {% comment %}ST-7c: глобальная ФОРМА карточки storefront_card_style — "" прежняя
 вертикальная | compact — строка-прайс (фото слева) | overlay — текст поверх фото.
 "" обязана рендерить прежнюю разметку байт-в-байт (замки test_card_style).
@@ -46,7 +46,7 @@ DL-19: `storefront_card_style` ниже — ДЕЙСТВУЮЩАЯ форма э
       </button>
     {% else %}
       <form method="post" action="{% url 'storefront-cart-add' %}" class="js-add-form shrink-0">
-        {% csrf_token %}
+        {% csrf_token %}{% portal_attribution_fields %}
         <input type="hidden" name="product" value="{{ p.pk }}">
         <input type="hidden" name="qty" value="1">
         <button type="submit"
@@ -104,7 +104,7 @@ DL-19: `storefront_card_style` ниже — ДЕЙСТВУЮЩАЯ форма э
       </button>
     {% else %}
       <form method="post" action="{% url 'storefront-cart-add' %}" class="js-add-form absolute bottom-3 right-3 z-10">
-        {% csrf_token %}
+        {% csrf_token %}{% portal_attribution_fields %}
         <input type="hidden" name="product" value="{{ p.pk }}">
         <input type="hidden" name="qty" value="1">
         <button type="submit"
@@ -200,7 +200,7 @@ DL-19: `storefront_card_style` ниже — ДЕЙСТВУЮЩАЯ форма э
         </button>
       {% else %}
         <form method="post" action="{% url 'storefront-cart-add' %}" class="js-add-form shrink-0">
-          {% csrf_token %}
+          {% csrf_token %}{% portal_attribution_fields %}
           <input type="hidden" name="product" value="{{ p.pk }}">
           <input type="hidden" name="qty" value="1">
           <button type="submit"

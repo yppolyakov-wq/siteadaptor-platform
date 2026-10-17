@@ -1,4 +1,4 @@
-{% load i18n siteui %}
+{% load i18n siteui attribution %}
 {% comment %}AF-2b: встраиваемый блок формы заявки (anfrage_ref) — на любой из
 PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключен → пусто (паттерн «пустой
 референс рендерит ничего»). Состав событийных полей — глобальный site.anfrage
@@ -13,7 +13,7 @@ PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключе
   <h2 class="text-xl md:text-2xl font-bold">{% trans "Planen Sie Ihr nächstes Event?" %}</h2>
   <p class="text-white/80 text-sm mb-4">{% trans "Tell us what you need — we'll send you a quote." %}</p>
   <form method="post" action="{% url 'storefront-anfrage' %}" class="flex flex-wrap items-end gap-3">
-    {% csrf_token %}
+    {% csrf_token %}{% portal_attribution_fields %}
     <input type="hidden" name="title" value="{% trans 'Event-Anfrage' %}">
     <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
     {% if "date" in site.anfrage.fields %}

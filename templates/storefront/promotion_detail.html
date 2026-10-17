@@ -1,5 +1,5 @@
 {% extends "storefront/_base.html" %}
-{% load i18n siteui widget_tweaks %}
+{% load i18n siteui widget_tweaks attribution %}
 {% block title %}{{ promotion.title_text }} — {{ request.tenant.name|default:"Shop" }}{% endblock %}
 {% block meta_description %}{{ promotion.description_text|default:promotion.title_text }}{% endblock %}
 
@@ -181,7 +181,7 @@
       <p class="mt-4 text-sm text-gray-600" data-coupon-gone>{% trans "Alle Coupons sind leider vergeben." %}</p>
       {% else %}
       <form method="post" action="{% url 'storefront-coupon-create' promotion.pk %}" class="mt-4" data-promo-coupon>
-        {% csrf_token %}
+        {% csrf_token %}{% portal_attribution_fields %}
         <div style="position:absolute;left:-9999px" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
         <button type="submit" class="w-full text-white rounded-xl px-4 py-3 font-semibold shadow-sm hover:opacity-90 focus:ring-2 focus:ring-offset-1 focus:ring-red-400"
                 style="background: var(--accent, #dc2626);">🎟 {% trans "Coupon holen" %}</button>

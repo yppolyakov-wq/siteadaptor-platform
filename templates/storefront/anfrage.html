@@ -1,5 +1,5 @@
 {% extends "storefront/_base.html" %}
-{% load siteui %}
+{% load siteui attribution %}
 {% load i18n %}
 {% block title %}{% trans "Request a quote" %} — {{ request.tenant.name }}{% endblock %}
 
@@ -31,7 +31,7 @@ PLZ; показываем только если бизнес её задал (Ha
   <h2 class="font-semibold">{% trans "Prefer a callback?" %}</h2>
   <p class="text-sm text-gray-500 mb-3">{% trans "Leave your number — we'll call you back." %}</p>
   <form method="post" action="{% url 'storefront-rueckruf' %}" class="grid sm:grid-cols-3 gap-3 items-end">
-    {% csrf_token %}
+    {% csrf_token %}{% portal_attribution_fields %}
     <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
     <div>
       <label class="block text-sm font-medium mb-1" for="id_rc_name">{% trans "Name" %} *</label>

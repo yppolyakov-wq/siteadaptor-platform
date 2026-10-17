@@ -1,10 +1,10 @@
-{% load i18n siteui %}
+{% load i18n siteui attribution %}
 {% comment %}AF-2a: форма заявки — общий партиал страницы /anfrage/ и
 встраиваемого блока anfrage_ref (sections/_anfrage.html). Контекст: betreff,
 anfrage_cfg (site_config["anfrage"]), jobs_vehicle, has_service_area; POST
 всегда в /anfrage/ (action) — встроенная форма работает с любой страницы.{% endcomment %}
 <form method="post" action="{% url 'storefront-anfrage' %}" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-2xl mx-auto">
-  {% csrf_token %}
+  {% csrf_token %}{% portal_attribution_fields %}
   <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
   <div>
     <label class="block text-sm font-medium mb-1" for="id_title">{% trans "What do you need?" %} *</label>

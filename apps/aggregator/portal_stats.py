@@ -132,19 +132,34 @@ def record(
     ref: str = "",
     listing_id: int | None = None,
     is_demo: bool = False,
+    once_key: str = "",
 ) -> int:
     """Засчитать событие для листингов (или для бизнеса целиком). Возвращает число
-    засчитанных строк; любое исключение глотается и пишется в лог только типом."""
+    засчитанных строк; любое исключение глотается и пишется в лог только типом.
+
+    `once_key` (V5-5, обращения/сделки): дедуп по ОБЪЕКТУ, а не «посетитель за день» —
+    два заказа одного человека = две сделки, повтор того же заказа = одна."""
     try:
         return _record(
-            request, action, channel, listings, tenant_schema, kind, ref, listing_id, is_demo
+            request,
+            action,
+            channel,
+            listings,
+            tenant_schema,
+            kind,
+            ref,
+            listing_id,
+            is_demo,
+            once_key,
         )
     except Exception as exc:  # noqa: BLE001 — учёт не смеет ронять страницу
         logger.warning("portal stats write failed: %s", type(exc).__name__)
         return 0
 
 
-def _record(request, action, channel, listings, tenant_schema, kind, ref, listing_id, is_demo):
+def _record(
+    request, action, channel, listings, tenant_schema, kind, ref, listing_id, is_demo, once_key=""
+):
     from .models import PortalStat
 
     if not _cfg("enabled"):
@@ -161,6 +176,16 @@ def _record(request, action, channel, listings, tenant_schema, kind, ref, listin
     if ratelimit.hit("pstat", ratelimit.client_ip(request), limit=limit, window=3600):
         return 0
     day = timezone.localdate()
+    if once_key:
+        key = f"pstat:once:{action}:{rows[0][0]}:{once_key}"[:240]
+        if not cache.add(key, 1, SEEN_TTL):
+            return 0
+        try:
+            _bump(day, action, channel, rows[:1])
+        except Exception:
+            cache.delete(key)
+            raise
+        return 1
     visitor = _visitor(request, day)
     fresh = [row for row in rows if _first_today(day, visitor, action, row[:3])]
     if not fresh:

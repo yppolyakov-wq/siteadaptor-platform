@@ -90,6 +90,10 @@ def anfrage(request):
             messages.error(request, _("Please tell us your name and what you need."))
             return redirect("storefront-anfrage")
         site_plz = request.POST.get("site_plz", "").strip()
+        from apps.aggregator import conversions
+        from apps.core import attribution
+
+        found = attribution.resolve(request)
         job = services.create_job(
             title=title,
             name=name,
@@ -98,7 +102,7 @@ def anfrage(request):
             description=request.POST.get("description", "").strip(),
             site_address=request.POST.get("site_address", "").strip(),
             site_plz=site_plz,  # A7: PLZ объекта (Einzugsgebiet)
-            source_channel=(request.GET.get("ch") or "")[:50],
+            source_channel=found.channel[:50],  # В5 V5-5
             vehicle=request.POST.get("vehicle", "").strip(),
             # A9: структурные данные авто (только если включён режим Kfz-Werkstatt).
             vehicle_plate=request.POST.get("vehicle_plate", "").strip(),
@@ -110,6 +114,7 @@ def anfrage(request):
             fulfillment=_parse_fulfillment(request.POST, request.tenant),
         )
         services.add_job_photos(job, request.FILES.getlist("photos"))  # A7b
+        conversions.count(request, "deal", "job", job, attribution=found)  # В5 V5-5: заявка
         enqueue_job_email(job, "new")  # владельцу — новый лид
         # A7: мягкий чек зоны — заявку принимаем всегда, но если PLZ вне списка зоны,
         # сообщаем клиенту (управление ожиданиями), не блокируя.
@@ -138,11 +143,15 @@ def anfrage(request):
             url=request.build_absolute_uri(reverse("storefront-anfrage")),
             schema_type="AutoRepair",
         )
+    from apps.core import attribution
+
     return render(
         request,
         "storefront/anfrage.html",
         {
             "betreff": (request.GET.get("betreff") or "")[:200],
+            # В5 V5-5: канал каталога города (ссылка/Referer) → скрытые поля заявки
+            "attr": attribution.context(request),
             # DF-2: состав запроса (конфигуратор набора) — в описание, не в тему.
             "details": (request.GET.get("details") or "")[:2000],
             "anfrage_cfg": anfrage_cfg,  # AF-1: событийные поля (Wunschdatum/Personen/Art)
@@ -178,14 +187,20 @@ def rueckruf(request):
     desc = _("Callback requested.")
     if best_time:
         desc += " " + _("Preferred time: %(t)s") % {"t": best_time[:100]}
+    from apps.aggregator import conversions
+    from apps.core import attribution
+
+    found = attribution.resolve(request)
     job = services.create_job(
         title=_("Rückrufbitte"),
         name=name,
         phone=phone,
         email=request.POST.get("email", "").strip(),
         description=desc,
-        source_channel=(request.GET.get("ch") or "")[:50],
+        source_channel=found.channel[:50],  # В5 V5-5
     )
+    # В5 V5-5: «перезвоните» — обращение, а не заявка (план §2.4)
+    conversions.count(request, "contact", "job", job, attribution=found)
     enqueue_job_email(job, "new")  # владельцу — новый лид (как Anfrage)
     messages.success(request, _("Thank you! We'll call you back shortly."))
     return redirect("storefront-anfrage")
@@ -324,6 +339,7 @@ def anfrage_modal(request):
     `storefront-anfrage`, новых анонимных эндпоинтов не заводим).
     """
     _require_jobs_active(request)
+    from apps.core import attribution
     from apps.tenants import siteconfig
 
     return render(
@@ -331,6 +347,7 @@ def anfrage_modal(request):
         "storefront/_anfrage_modal.html",
         {
             "betreff": (request.GET.get("betreff") or "")[:200],
+            "attr": attribution.context(request),  # В5 V5-5: Referer страницы-источника
             # DF-2: состав запроса (конфигуратор набора) — в описание, не в тему.
             "details": (request.GET.get("details") or "")[:2000],
             "anfrage_cfg": _anfrage_config(request.tenant),

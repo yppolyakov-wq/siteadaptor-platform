@@ -1,5 +1,5 @@
 {% extends "storefront/detail.html" %}
-{% load i18n siteui %}
+{% load i18n siteui attribution %}
 {% block title %}{{ event.title_text }} — {{ request.tenant.name }}{% endblock %}
 
 {% block detail_back %}{% funnel_steps "event" 2 %}<a href="{% url 'storefront-events' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All events" %}</a>{% endblock %}
@@ -98,7 +98,7 @@
       Прогрессивное улучшение: без JS оба шага видимы и кнопки-навигация спрятаны
       (обычная одностраничная форма); JS включает пошаговый режим.{% endcomment %}
       <form method="post" action="{% url 'storefront-event-book' event.pk %}" class="space-y-3 mt-3" data-rv1>
-        {% csrf_token %}
+        {% csrf_token %}{% portal_attribution_fields %}
         <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
 
         {# ——— Schritt 1: Auswahl ——— #}

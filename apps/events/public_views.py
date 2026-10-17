@@ -509,6 +509,10 @@ def veranstaltung_book(request, pk):
     # itog к оплате = брутто − скидка → auto-confirm при нулевом итоге.
     order_total = max(0, gross - discount_quote)
 
+    from apps.aggregator import conversions
+    from apps.core import attribution
+
+    found = attribution.resolve(request)
     try:
         ticket = services.book_ticket(
             event,
@@ -517,7 +521,7 @@ def veranstaltung_book(request, pk):
             phone=request.POST.get("phone", "").strip(),
             quantity=qty,
             answers=answers,
-            source_channel=(request.GET.get("ch") or "")[:50],
+            source_channel=found.channel[:50],  # В5 V5-5 (было GET POST-а — всегда пусто)
             auto_confirm=(order_total == 0),  # бесплатно (билет + Extras + номер − код) — сразу
             tier_label=tier_label,
             extras=extras_snap,
@@ -561,6 +565,7 @@ def veranstaltung_book(request, pk):
         messages.error(request, _("This event is not available."))
         return redirect("storefront-event", pk=pk)
 
+    conversions.count(request, "deal", "ticket", ticket, attribution=found)  # В5 V5-5
     # Платный билет + подключённая оплата → Stripe Checkout (на счёт бизнеса).
     tenant = getattr(request, "tenant", None)
     payments_ready = getattr(tenant, "payments_enabled", False) and connect.is_connect_configured()

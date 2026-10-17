@@ -490,6 +490,7 @@ def combo_add(request):
     cc = _combo_cart(request)
     cc[key] = min(cc.get(key, 0) + qty, qty_cap)
     request.session[COMBO_SESSION_KEY] = cc
+    _remember_attribution(request)
     messages.success(request, _("Added to your order."))
     return redirect("storefront-cart")
 
@@ -698,7 +699,16 @@ def cart_add(request):
     cart = _cart(request)
     cart[key] = min(cart.get(key, 0) + qty, MAX_QTY)
     request.session[CART_SESSION_KEY] = cart
+    _remember_attribution(request)
     return _added_response(request)
+
+
+def _remember_attribution(request) -> None:
+    """В5 V5-5: канал каталога города переживает многошаговую корзину — в ТОЙ ЖЕ сессии,
+    которую и так пишет добавление в корзину (новой cookie нет)."""
+    from apps.core import attribution
+
+    attribution.remember(request)
 
 
 @require_POST
@@ -847,6 +857,9 @@ def cart_view(request):
         if ctx["quote_cart"]
         else ([{"code": m, "label": _labels[m]} for m in _methods] if len(_methods) > 1 else [])
     )
+    from apps.core import attribution
+
+    ctx["attr"] = attribution.context(request)  # В5 V5-5: канал корзины → поля чекаута
     return render(request, "storefront/cart.html", ctx)
 
 
@@ -1004,6 +1017,10 @@ def checkout(request):
             )
             for combo, dishes, qty, _ok, _k in pool_items
         ]
+        from apps.aggregator import conversions
+        from apps.core import attribution
+
+        found = attribution.resolve(request)
         order = create_order(
             items=order_items,
             combos=order_combos,
@@ -1014,7 +1031,8 @@ def checkout(request):
             note=request.POST.get("note", "").strip()[:2000],
             table_number="" if delivery else request.session.get("table", ""),
             pickup_location=pickup_location,
-            source_channel=("quote" if quote_mode else (request.GET.get("ch") or "")[:50]),
+            # В5 V5-5: раньше канал читался из GET POST-а чекаута — всегда пусто.
+            source_channel=("quote" if quote_mode else found.channel[:50]),
             fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
             shipping_address=shipping_address,
             shipping_cents=shipping_cents,
@@ -1050,6 +1068,10 @@ def checkout(request):
     request.session[CART_SESSION_KEY] = {}
     request.session[COMBO_SESSION_KEY] = {}
     request.session.pop(PROMO_SESSION_KEY, None)
+    # В5 V5-5: смета без цены — запрос, а не продажа → обращение
+    action = "contact" if quote_mode else "deal"
+    conversions.count(request, action, "order", order, attribution=found)
+    attribution.forget(request)  # окно «тот же визит» закрыто покупкой
 
     # SH-23b (Р-1): счёт юрлицу выпускается АВТОМАТИЧЕСКИ — с письмом и PDF.
     # Сбой счёта не отменяет заказ: клиент уже оформил покупку, а владелец видит
