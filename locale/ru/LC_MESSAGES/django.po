@@ -25226,3 +25226,15 @@ msgstr "заменит текущее значение"
 
 msgid "übernehmen"
 msgstr "перенести"
+
+msgid "Geändert auf Ihrer Website"
+msgstr "Изменено на вашем сайте"
+
+msgid "Neu auf Ihrer Website"
+msgstr "Новое на вашем сайте"
+
+msgid "Nicht mehr auf Ihrer Website gefunden — Artikel ausblenden?"
+msgstr "Больше не найдено на вашем сайте — скрыть позицию?"
+
+msgid "Unverändert — bestätigen"
+msgstr "Без изменений — подтвердить"

@@ -45,16 +45,11 @@ def free_limit(tenant) -> int | None:
 
 
 def used_count() -> int:
-    """Импортированные позиции, которые сейчас живут в каталоге (разные цели)."""
-    from ..models import SiteImportItem
+    """Импортированные позиции, которые сейчас живут в каталоге: последнее применённое
+    состояние без отключённых как пропавшие (T-8.27f)."""
+    from .service import applied_state
 
-    return (
-        SiteImportItem.objects.filter(applied_at__isnull=False)
-        .exclude(target_id="")
-        .values("target_kind", "target_id")
-        .distinct()
-        .count()
-    )
+    return len({(v["target_kind"], v["target_id"]) for v in applied_state().values()})
 
 
 def usage(tenant) -> dict | None:
@@ -182,13 +177,25 @@ def apply_items(run, tenant, decisions: dict) -> ApplyResult:
     with transaction.atomic():
         _lock_schema()
         used = used_count()
-        items = list(run.items.select_for_update().order_by("created_at"))
+        # Сначала отключения/подтверждения: место, освобождённое пропавшей позицией,
+        # доступно новой в том же «Veröffentlichen» (лимит считается по живым).
+        order = {"removed": 0, "unchanged": 1, "changed": 2, "new": 3}
+        items = sorted(
+            run.items.select_for_update().order_by("created_at"),
+            key=lambda i: order.get(i.diff, 9),
+        )
         for item in items:
             edits = decisions.get(str(item.pk))
             if edits is None:
                 if item.decision == "pending":
                     item.decision = "skipped"
                     item.save(update_fields=["decision", "updated_at"])
+                continue
+            if item.diff in (item.DIFF_REMOVED, item.DIFF_UNCHANGED):
+                _confirm(item, deactivate=item.diff == item.DIFF_REMOVED)
+                if item.diff == item.DIFF_REMOVED:
+                    used = used_count()
+                result.updated += 1
                 continue
             target_kind, target_id = item.target_kind, item.target_id
             if not target_id:
@@ -230,6 +237,26 @@ def apply_items(run, tenant, decisions: dict) -> ApplyResult:
         schema = connection.schema_name
         transaction.on_commit(lambda: _enqueue_images(schema, run.pk))
     return result
+
+
+def _confirm(item, *, deactivate: bool) -> None:
+    """«Bestätigen» без перезаписи каталога: без изменений — только отметка (шов Г3);
+    пропавшая с сайта — позиция отключается (не удаляется: история заказов цела)."""
+    from apps.booking.models import Service
+    from apps.catalog.models import Product
+
+    if not item.target_id:
+        kind, target_id = _previous_target(item)
+        item.target_kind, item.target_id = kind, target_id
+    if deactivate and item.target_id:
+        model = Service if item.target_kind == "service" else Product
+        obj = model.objects.filter(pk=item.target_id).first()
+        if obj is not None and obj.is_active:
+            obj.is_active = False
+            obj.save()  # через save: хук post_save снимет листинг из каталога города
+    item.decision = "accepted"
+    item.applied_at = item.confirmed_at = timezone.now()
+    item.save()
 
 
 def apply_profile(run, tenant, fields) -> list:

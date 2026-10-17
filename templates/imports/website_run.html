@@ -48,7 +48,17 @@
   <div class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6">
     <ul class="divide-y divide-gray-100">
       {% for item in items %}
-      <li class="p-4 flex gap-4" data-site-item>
+      {% if item.diff == "removed" or item.diff == "unchanged" %}
+      <li class="p-4 flex gap-4 items-start" data-site-item data-site-diff="{{ item.diff }}">
+        <input type="checkbox" name="take_{{ item.pk }}" value="1" {% if item.diff == "unchanged" %}checked{% endif %} class="mt-1" aria-label="{% trans 'übernehmen' %}">
+        <div class="text-sm">
+          <p class="font-medium">{{ item.data.name }}{% if item.data.price %} · {{ item.data.price }} €{% endif %}</p>
+          {% if item.diff == "removed" %}<p class="text-amber-700">{% trans "Nicht mehr auf Ihrer Website gefunden — Artikel ausblenden?" %}</p>
+          {% else %}<p class="text-gray-500">{% trans "Unverändert — bestätigen" %}</p>{% endif %}
+        </div>
+      </li>
+      {% else %}
+      <li class="p-4 flex gap-4" data-site-item data-site-diff="{{ item.diff }}">
         <input type="checkbox" name="take_{{ item.pk }}" value="1" checked class="mt-2" aria-label="{% trans 'übernehmen' %}">
         {% if item.data.image_url %}<img src="{{ item.data.image_url }}" alt="" referrerpolicy="no-referrer" loading="lazy" class="w-16 h-16 object-cover rounded-lg">{% endif %}
         <div class="flex-1 space-y-2 text-sm">
@@ -70,8 +80,15 @@
             {% if not item.data.image_url or not item.data.price %} · <span class="text-amber-700">{% trans "Erscheint nicht im Stadtkatalog: Foto oder Preis fehlt." %}</span>{% endif %}
             {% if not item.data.price %} · {% trans "Ohne Preis wird der Artikel als „Nur auf Anfrage“ angelegt." %}{% endif %}
           </p>
+          {% if item.diff == "changed" and item.data.previous %}
+          <p class="text-xs text-amber-700" data-site-changed>{% trans "Geändert auf Ihrer Website" %}:
+            {% if "price" in item.data.previous %}{% trans "Preis" %} {{ item.data.previous.price|default:"–" }} → {{ item.data.price|default:"–" }}{% endif %}
+            {% if item.data.previous.name %} · {% trans "Name" %}: {{ item.data.previous.name }}{% endif %}
+          </p>
+          {% elif item.diff == "new" and run.previous_run_id %}<p class="text-xs text-emerald-700">{% trans "Neu auf Ihrer Website" %}</p>{% endif %}
         </div>
       </li>
+      {% endif %}
       {% endfor %}
     </ul>
   </div>

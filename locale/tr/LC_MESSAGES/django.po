@@ -25110,3 +25110,15 @@ msgstr "mevcut girişinizin yerine geçer"
 
 msgid "übernehmen"
 msgstr "aktar"
+
+msgid "Geändert auf Ihrer Website"
+msgstr "Web sitenizde değişti"
+
+msgid "Neu auf Ihrer Website"
+msgstr "Web sitenizde yeni"
+
+msgid "Nicht mehr auf Ihrer Website gefunden — Artikel ausblenden?"
+msgstr "Artık web sitenizde bulunamadı — ürün gizlensin mi?"
+
+msgid "Unverändert — bestätigen"
+msgstr "Değişmedi — onayla"

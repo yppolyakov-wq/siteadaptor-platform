@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from . import crawl as crawl_mod
+from . import diff as diff_mod
 from . import structured
 
 logger = logging.getLogger(__name__)
@@ -102,22 +103,49 @@ def execute(run, *, fetch=None) -> None:
         extracted["items"] += added
         run.ai_used = True
         run.method = "mixed" if len(added) < len(extracted["items"]) else "ai"
+    candidates = [
+        {
+            "identity_key": identity_key(item["identity"]),
+            "fingerprint": fingerprint(item),
+            "data": item,
+        }
+        for item in extracted["items"]
+    ]
+    compared, removed = diff_mod.compare(candidates, applied_state(exclude_run=run))
     with transaction.atomic():
         run.items.all().delete()
-        SiteImportItem.objects.bulk_create(
-            [
+        rows = []
+        for cand in compared:
+            item = cand["data"]
+            if cand["previous"]:
+                item = {**item, "previous": cand["previous"]}
+            rows.append(
                 SiteImportItem(
                     run=run,
                     kind=item["kind"],
+                    diff=cand["diff"],
                     source_url=(item.get("page_url") or "")[:500],
                     data=item,
-                    fingerprint=fingerprint(item),
-                    identity_key=identity_key(item["identity"]),
+                    fingerprint=cand["fingerprint"],
+                    identity_key=cand["identity_key"],
                     ai_generated=item.get("method") == "ai",
                 )
-                for item in extracted["items"]
-            ]
-        )
+            )
+        for gone in removed:
+            rows.append(
+                SiteImportItem(
+                    run=run,
+                    kind=gone["data"].get("kind", "product"),
+                    diff=SiteImportItem.DIFF_REMOVED,
+                    source_url=(gone["data"].get("page_url") or "")[:500],
+                    data=gone["data"],
+                    fingerprint=gone["fingerprint"],
+                    identity_key=gone["identity_key"],
+                    target_kind=gone["target_kind"],
+                    target_id=gone["target_id"],
+                )
+            )
+        SiteImportItem.objects.bulk_create(rows)
         run.stats = {
             "pages": len(result.pages),
             "items": len(extracted["items"]),
@@ -126,3 +154,23 @@ def execute(run, *, fetch=None) -> None:
         run.status = SiteImportRun.STATUS_READY
         run.finished_at = timezone.now()
         run.save()
+
+
+def applied_state(*, exclude_run=None) -> dict:
+    """Последнее применённое состояние каждой позиции: {identity_key: {...}}. Позиция,
+    которую владелец отключил как пропавшую, в состояние не входит — вернётся «новой»."""
+    from ..models import SiteImportItem
+
+    qs = SiteImportItem.objects.filter(applied_at__isnull=False).exclude(target_id="")
+    if exclude_run is not None:
+        qs = qs.exclude(run=exclude_run)
+    state = {}
+    for item in qs.order_by("applied_at"):
+        state[item.identity_key] = {
+            "fingerprint": item.fingerprint,
+            "data": item.data,
+            "target_kind": item.target_kind,
+            "target_id": item.target_id,
+            "removed": item.diff == SiteImportItem.DIFF_REMOVED,
+        }
+    return {k: v for k, v in state.items() if not v.pop("removed")}

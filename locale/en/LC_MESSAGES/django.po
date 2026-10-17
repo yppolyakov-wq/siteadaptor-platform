@@ -24983,3 +24983,15 @@ msgstr "replaces your current entry"
 
 msgid "übernehmen"
 msgstr "take over"
+
+msgid "Geändert auf Ihrer Website"
+msgstr "Changed on your website"
+
+msgid "Neu auf Ihrer Website"
+msgstr "New on your website"
+
+msgid "Nicht mehr auf Ihrer Website gefunden — Artikel ausblenden?"
+msgstr "No longer found on your website — hide the item?"
+
+msgid "Unverändert — bestätigen"
+msgstr "Unchanged — confirm"

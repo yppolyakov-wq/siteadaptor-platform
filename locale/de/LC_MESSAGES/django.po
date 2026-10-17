@@ -25029,3 +25029,15 @@ msgstr "ersetzt Ihren bisherigen Eintrag"
 
 msgid "übernehmen"
 msgstr "übernehmen"
+
+msgid "Geändert auf Ihrer Website"
+msgstr "Geändert auf Ihrer Website"
+
+msgid "Neu auf Ihrer Website"
+msgstr "Neu auf Ihrer Website"
+
+msgid "Nicht mehr auf Ihrer Website gefunden — Artikel ausblenden?"
+msgstr "Nicht mehr auf Ihrer Website gefunden — Artikel ausblenden?"
+
+msgid "Unverändert — bestätigen"
+msgstr "Unverändert — bestätigen"
