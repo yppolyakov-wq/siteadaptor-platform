@@ -669,6 +669,8 @@ def promotion_quick(request):
             product = None
         if product is not None:
             initial = quick.initial_for_product(product)
+    if request.method == "GET" and "term" not in initial:
+        initial["term"] = quick.default_term(tenant)  # Д1: срок — правило, а не ИИ
     form = quick.QuickPromotionForm(
         request.POST or None, request.FILES or None, initial=initial or None, tenant=tenant
     )
@@ -712,8 +714,70 @@ def promotion_quick(request):
             "limit_usage": limits.usage(tenant),
             "contact_email": limits.contact_email(),
             "nav": "promotions",
+            "ai_photo_enabled": _ai_photo_enabled(),
         },
     )
+
+
+def _ai_schema(request) -> str:
+    from django.db import connection
+
+    return getattr(connection, "schema_name", "") or ""
+
+
+def _ai_photo_enabled() -> bool:
+    from apps.ai.api import is_enabled
+
+    return is_enabled()
+
+
+@login_required
+@require_POST
+def promotion_quick_ai_start(request):
+    """Д1 (T-8.10a): первое фото → копия без EXIF в кэш → фоновая задача ИИ.
+
+    Ответ — JSON ``{"job": id}`` или ``{"code": …}`` (disabled · quota · config).
+    Ничего не публикуется и в БД не пишется: черновик заполняет поля формы."""
+    from django.http import JsonResponse
+
+    from apps.ai.errors import AIConfigError
+    from apps.ai.images import reencode
+    from apps.core import ratelimit
+
+    from . import ai_draft
+
+    if not _ai_photo_enabled():
+        return JsonResponse({"code": "disabled"})
+    upload = request.FILES.get("photo")
+    if upload is None or upload.size > ai_draft.RAW_MAX_BYTES:
+        return JsonResponse({"code": "config"})
+    schema = _ai_schema(request)
+    if ratelimit.hit("ai-photo", schema, limit=ai_draft.RATE_LIMIT, window=ai_draft.RATE_WINDOW):
+        return JsonResponse({"code": "quota"})
+    try:
+        photo = reencode(upload.read())
+    except AIConfigError:
+        return JsonResponse({"code": "config"})
+    job = ai_draft.start_job(
+        schema=schema,
+        user_pk=request.user.pk,
+        photo=photo,
+        hint=(request.POST.get("title") or "").strip(),
+    )
+    return JsonResponse({"job": job})
+
+
+@login_required
+def promotion_quick_ai_result(request, job):
+    """Д1: состояние задачи «Vorschlag aus dem Foto». Чужая задача — 404."""
+    from django.http import JsonResponse
+
+    from . import ai_draft
+
+    state = ai_draft.job_state(schema=_ai_schema(request), user_pk=request.user.pk, job=job)
+    if state is None:
+        raise Http404
+    return JsonResponse(state)
 
 
 def _translate_locales(tenant) -> list[tuple[str, str]]:

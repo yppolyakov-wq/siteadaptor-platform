@@ -25517,3 +25517,44 @@ msgstr "Також поблизу: %(name)s"
 #, python-format
 msgid "Alle in %(name)s anzeigen"
 msgstr "Показати все в районі %(name)s"
+
+#. Д1
+msgid "Allergene bitte selbst prüfen."
+msgstr "Перевірте алергени самостійно."
+
+#. Д1
+msgid "Auf dem Foto ist kein Angebot zu erkennen — bitte selbst ausfüllen."
+msgstr "На фото не вдалося розпізнати пропозицію — заповніть самостійно."
+
+#. Д1
+msgid "Aus Ihrem Sortiment:"
+msgstr "З вашого асортименту:"
+
+#. Д1
+msgid "Bitte prüfen:"
+msgstr "Перевірте:"
+
+#. Д1
+msgid "Der Vorschlag ist gerade nicht möglich — bitte selbst ausfüllen."
+msgstr "Пропозиція зараз недоступна — заповніть самостійно."
+
+#. Д1
+msgid "Für heute sind die KI-Vorschläge aufgebraucht."
+msgstr "ШІ-підказки на сьогодні закінчилися."
+
+#. Д1
+msgid ""
+"Preis und Dauer bestimmen Sie selbst. Bitte keine Personen fotografieren."
+msgstr "Ціну й термін ви задаєте самі. Будь ласка, не фотографуйте людей."
+
+#. Д1
+msgid "Rückgängig"
+msgstr "Скасувати"
+
+#. Д1
+msgid "Vorschlag aus dem Foto"
+msgstr "Пропозиція за фото"
+
+#. Д1
+msgid "Wird erkannt…"
+msgstr "Розпізнаємо…"

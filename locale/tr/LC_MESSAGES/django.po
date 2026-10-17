@@ -25402,3 +25402,45 @@ msgstr "Yakında ayrıca: %(name)s"
 #, python-format
 msgid "Alle in %(name)s anzeigen"
 msgstr "%(name)s bölgesindekilerin tümünü göster"
+
+#. Д1
+msgid "Allergene bitte selbst prüfen."
+msgstr "Alerjenleri lütfen kendiniz kontrol edin."
+
+#. Д1
+msgid "Auf dem Foto ist kein Angebot zu erkennen — bitte selbst ausfüllen."
+msgstr "Fotoğrafta bir teklif tanınamadı — lütfen kendiniz doldurun."
+
+#. Д1
+msgid "Aus Ihrem Sortiment:"
+msgstr "Ürün yelpazenizden:"
+
+#. Д1
+msgid "Bitte prüfen:"
+msgstr "Lütfen kontrol edin:"
+
+#. Д1
+msgid "Der Vorschlag ist gerade nicht möglich — bitte selbst ausfüllen."
+msgstr "Öneri şu anda mümkün değil — lütfen kendiniz doldurun."
+
+#. Д1
+msgid "Für heute sind die KI-Vorschläge aufgebraucht."
+msgstr "Bugünlük yapay zekâ önerileri tükendi."
+
+#. Д1
+msgid ""
+"Preis und Dauer bestimmen Sie selbst. Bitte keine Personen fotografieren."
+msgstr ""
+"Fiyatı ve süreyi siz belirlersiniz. Lütfen kişilerin fotoğrafını çekmeyin."
+
+#. Д1
+msgid "Rückgängig"
+msgstr "Geri al"
+
+#. Д1
+msgid "Vorschlag aus dem Foto"
+msgstr "Fotoğraftan öneri"
+
+#. Д1
+msgid "Wird erkannt…"
+msgstr "Tanınıyor…"

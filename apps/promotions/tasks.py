@@ -436,3 +436,11 @@ def auto_tag_customers():
         with schema_context(schema):
             total += tag_regular_customers()
     return {"tagged": total}
+
+
+@idempotent_task()
+def ai_photo_draft(*, schema: str, user_pk, job: str) -> None:
+    """Д1 (T-8.10a): черновик акции из фото — вне веб-воркера (план §3.3)."""
+    from . import ai_draft
+
+    ai_draft.run_job(schema=schema, user_pk=user_pk, job=job)

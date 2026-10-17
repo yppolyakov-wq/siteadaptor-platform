@@ -25278,3 +25278,45 @@ msgstr "Also nearby: %(name)s"
 #, python-format
 msgid "Alle in %(name)s anzeigen"
 msgstr "Show all in %(name)s"
+
+#. Д1
+msgid "Allergene bitte selbst prüfen."
+msgstr "Please check allergens yourself."
+
+#. Д1
+msgid "Auf dem Foto ist kein Angebot zu erkennen — bitte selbst ausfüllen."
+msgstr "No offer can be recognised in the photo — please fill in yourself."
+
+#. Д1
+msgid "Aus Ihrem Sortiment:"
+msgstr "From your range:"
+
+#. Д1
+msgid "Bitte prüfen:"
+msgstr "Please check:"
+
+#. Д1
+msgid "Der Vorschlag ist gerade nicht möglich — bitte selbst ausfüllen."
+msgstr "A suggestion is not possible right now — please fill in yourself."
+
+#. Д1
+msgid "Für heute sind die KI-Vorschläge aufgebraucht."
+msgstr "The AI suggestions for today have been used up."
+
+#. Д1
+msgid ""
+"Preis und Dauer bestimmen Sie selbst. Bitte keine Personen fotografieren."
+msgstr ""
+"You set the price and duration yourself. Please do not photograph people."
+
+#. Д1
+msgid "Rückgängig"
+msgstr "Undo"
+
+#. Д1
+msgid "Vorschlag aus dem Foto"
+msgstr "Suggestion from the photo"
+
+#. Д1
+msgid "Wird erkannt…"
+msgstr "Recognising…"

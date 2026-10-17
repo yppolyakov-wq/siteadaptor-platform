@@ -25537,3 +25537,44 @@ msgstr "Также поблизости: %(name)s"
 #, python-format
 msgid "Alle in %(name)s anzeigen"
 msgstr "Показать всё в районе %(name)s"
+
+#. Д1
+msgid "Allergene bitte selbst prüfen."
+msgstr "Проверьте аллергены сами."
+
+#. Д1
+msgid "Auf dem Foto ist kein Angebot zu erkennen — bitte selbst ausfüllen."
+msgstr "На фото не удалось распознать предложение — заполните сами."
+
+#. Д1
+msgid "Aus Ihrem Sortiment:"
+msgstr "Из вашего ассортимента:"
+
+#. Д1
+msgid "Bitte prüfen:"
+msgstr "Проверьте:"
+
+#. Д1
+msgid "Der Vorschlag ist gerade nicht möglich — bitte selbst ausfüllen."
+msgstr "Предложение сейчас недоступно — заполните сами."
+
+#. Д1
+msgid "Für heute sind die KI-Vorschläge aufgebraucht."
+msgstr "ИИ-подсказки на сегодня закончились."
+
+#. Д1
+msgid ""
+"Preis und Dauer bestimmen Sie selbst. Bitte keine Personen fotografieren."
+msgstr "Цену и срок вы задаёте сами. Пожалуйста, не фотографируйте людей."
+
+#. Д1
+msgid "Rückgängig"
+msgstr "Отменить"
+
+#. Д1
+msgid "Vorschlag aus dem Foto"
+msgstr "Предложение по фото"
+
+#. Д1
+msgid "Wird erkannt…"
+msgstr "Распознаём…"

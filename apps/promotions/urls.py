@@ -19,6 +19,13 @@ urlpatterns = [
     path("new/", views.promotion_create, name="promotion-create"),
     # T-8.4: «Schnell-Aktion» — ассистент с телефона + экран «Fertig».
     path("schnell/", views.promotion_quick, name="promotion-quick"),
+    # Д1 (T-8.10a): «✨ Vorschlag aus dem Foto» — старт фоновой задачи + опрос результата.
+    path("schnell/ki/", views.promotion_quick_ai_start, name="promotion-quick-ai"),
+    path(
+        "schnell/ki/<str:job>/",
+        views.promotion_quick_ai_result,
+        name="promotion-quick-ai-result",
+    ),
     path("<uuid:pk>/fertig/", views.promotion_quick_done, name="promotion-quick-done"),
     # T-8.9: флаер на одну акцию (A4 / A6 / 4×A6) с QR.
     path("<uuid:pk>/aushang.pdf", views.promotion_flyer, name="promotion-flyer"),

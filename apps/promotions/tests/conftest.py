@@ -22,3 +22,15 @@ def ai_on(settings, monkeypatch):
     settings.AI_FAKE_MODE = "ok"
     yield settings
     fake.reset()
+
+
+@pytest.fixture
+def isolated_ratelimit(monkeypatch):
+    """Счётчик лимита частоты — в приватном LocMem-кэше теста (xdist делит один Redis)."""
+    from django.core.cache.backends.locmem import LocMemCache
+
+    from apps.core import ratelimit
+
+    store = LocMemCache("rl-test-promotions", {})
+    monkeypatch.setattr(ratelimit, "cache", store)
+    return store

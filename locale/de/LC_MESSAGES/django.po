@@ -25333,3 +25333,45 @@ msgstr "Auch in der Nähe: %(name)s"
 #, python-format
 msgid "Alle in %(name)s anzeigen"
 msgstr "Alle in %(name)s anzeigen"
+
+#. Д1
+msgid "Allergene bitte selbst prüfen."
+msgstr "Allergene bitte selbst prüfen."
+
+#. Д1
+msgid "Auf dem Foto ist kein Angebot zu erkennen — bitte selbst ausfüllen."
+msgstr "Auf dem Foto ist kein Angebot zu erkennen — bitte selbst ausfüllen."
+
+#. Д1
+msgid "Aus Ihrem Sortiment:"
+msgstr "Aus Ihrem Sortiment:"
+
+#. Д1
+msgid "Bitte prüfen:"
+msgstr "Bitte prüfen:"
+
+#. Д1
+msgid "Der Vorschlag ist gerade nicht möglich — bitte selbst ausfüllen."
+msgstr "Der Vorschlag ist gerade nicht möglich — bitte selbst ausfüllen."
+
+#. Д1
+msgid "Für heute sind die KI-Vorschläge aufgebraucht."
+msgstr "Für heute sind die KI-Vorschläge aufgebraucht."
+
+#. Д1
+msgid ""
+"Preis und Dauer bestimmen Sie selbst. Bitte keine Personen fotografieren."
+msgstr ""
+"Preis und Dauer bestimmen Sie selbst. Bitte keine Personen fotografieren."
+
+#. Д1
+msgid "Rückgängig"
+msgstr "Rückgängig"
+
+#. Д1
+msgid "Vorschlag aus dem Foto"
+msgstr "Vorschlag aus dem Foto"
+
+#. Д1
+msgid "Wird erkannt…"
+msgstr "Wird erkannt…"

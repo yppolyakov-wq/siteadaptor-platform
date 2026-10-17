@@ -37,6 +37,7 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
     <section class="bg-white rounded-2xl shadow-sm p-4 mb-3 space-y-4" data-quick-step="1">
       <h2 class="text-sm font-semibold text-gray-500">1 · {% trans "Was gibt es?" %}</h2>
       {% include "promotions/_photo_picker.html" with errors=form.photo.errors source_images=source.images %}
+      {% if ai_photo_enabled %}{% include "promotions/_ai_photo_draft.html" %}{% endif %}
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.title.label }}</span>
         <input type="text" name="title" value="{{ form.title.value|default:'' }}" maxlength="200" required list="quick-title-options"

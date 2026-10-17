@@ -105,6 +105,8 @@ EXPECTED_UNLISTED = frozenset(
         "promotions:promotion-page-mode",
         # PT-5: POST-only приёмник экрана «Aktionstypen» (сам экран в реестре есть).
         "promotions:promo-type-save",
+        # [POST] Д1: старт «Vorschlag aus dem Foto» — JSON-приёмник кнопки ассистента.
+        "promotions:promotion-quick-ai",
         "site-cblock-photo-edit",
         "site-inline-edit",
         "site-preview-draft",

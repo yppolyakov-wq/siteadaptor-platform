@@ -1,0 +1,127 @@
+{% load i18n %}{% comment %}Д1 (T-8.10a): «✨ Vorschlag aus dem Foto». Кнопка появляется, когда выбрано фото;
+ИИ заполняет ТОЛЬКО пустые поля (категорию — если владелец её не менял), цену не трогает.
+Каждое заполненное поле помечено «KI-generiert, bitte prüfen» и «Rückgängig». Без JS блока нет.{% endcomment %}
+<input type="hidden" name="ai_draft" value="" data-ai-draft-flag>
+<div class="hidden rounded-xl bg-indigo-50 p-3 space-y-2" data-ai-photo
+     data-start-url="{% url 'promotions:promotion-quick-ai' %}"
+     data-result-url="{% url 'promotions:promotion-quick-ai-result' 'JOB' %}"
+     data-label="{% trans 'KI-generiert, bitte prüfen' %}"
+     data-undo="{% trans 'Rückgängig' %}"
+     data-check="{% trans 'Bitte prüfen:' %}"
+     data-allergens="{% trans 'Allergene bitte selbst prüfen.' %}"
+     data-own="{% trans 'Aus Ihrem Sortiment:' %}"
+     data-msg-none="{% trans 'Auf dem Foto ist kein Angebot zu erkennen — bitte selbst ausfüllen.' %}"
+     data-msg-quota="{% trans 'Für heute sind die KI-Vorschläge aufgebraucht.' %}"
+     data-msg-error="{% trans 'Der Vorschlag ist gerade nicht möglich — bitte selbst ausfüllen.' %}">
+  <button type="button" class="inline-flex items-center gap-1 rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm font-medium hover:bg-indigo-700" data-ai-photo-go>✨ {% trans "Vorschlag aus dem Foto" %}</button>
+  <span class="hidden text-sm text-gray-600" data-ai-photo-busy>{% trans "Wird erkannt…" %}</span>
+  <p class="text-xs text-gray-600" data-ai-photo-msg></p>
+  <p class="text-xs text-gray-500">{% trans "Preis und Dauer bestimmen Sie selbst. Bitte keine Personen fotografieren." %}</p>
+</div>
+<script>
+(function () {
+  var box = document.querySelector("[data-ai-photo]");
+  if (!box) return;
+  var form = box.closest("form");
+  var catSel = form.querySelector('select[name="city_category"]');
+  var catInitial = catSel ? catSel.value : "";
+  function firstPhoto() {
+    var inputs = form.querySelectorAll("[data-photo-input]");
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].files && inputs[i].files.length) return inputs[i].files[0];
+    }
+    return null;
+  }
+  function say(text) { box.querySelector("[data-ai-photo-msg]").textContent = text || ""; }
+  function busy(on) {
+    box.querySelector("[data-ai-photo-go]").disabled = on;
+    box.querySelector("[data-ai-photo-busy]").classList.toggle("hidden", !on);
+  }
+  function mark(field, before) {
+    var tag = document.createElement("span");
+    tag.className = "block text-xs text-indigo-700 mt-1";
+    tag.setAttribute("data-ai-mark", "");
+    tag.textContent = box.dataset.label + " · ";
+    var undo = document.createElement("button");
+    undo.type = "button";
+    undo.className = "underline";
+    undo.textContent = box.dataset.undo;
+    undo.addEventListener("click", function () {
+      field.value = before;
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+      tag.remove();
+    });
+    tag.appendChild(undo);
+    field.insertAdjacentElement("afterend", tag);
+  }
+  function fill(field, value, replaceable) {
+    if (!field || !value) return false;
+    if (field.value.trim() && !replaceable) return false;
+    var before = field.value;
+    if (field.tagName === "SELECT" && !field.querySelector('option[value="' + CSS.escape(value) + '"]')) return false;
+    field.value = value;
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+    mark(field, before);
+    return true;
+  }
+  function apply(d) {
+    form.querySelectorAll("[data-ai-mark]").forEach(function (m) { m.remove(); });
+    if (!d || !d.recognised) { say(box.dataset.msgNone); return; }
+    var used = false;
+    used = fill(form.querySelector('input[name="title"]'), d.title) || used;
+    used = fill(form.querySelector('textarea[name="description"]'), d.description) || used;
+    used = fill(catSel, d.city_category, catSel && catSel.value === catInitial) || used;
+    var tags = form.querySelectorAll('input[name="city_tags"]');
+    var anyChecked = Array.prototype.some.call(tags, function (t) { return t.checked; });
+    if (!anyChecked) {
+      (d.city_tags || []).forEach(function (key) {
+        var box2 = form.querySelector('input[name="city_tags"][value="' + CSS.escape(key) + '"]');
+        if (box2) { box2.checked = true; used = true; }
+      });
+    }
+    var notes = [];
+    var prod = form.querySelector('select[name="product"]');
+    if (d.product && prod && !prod.value) {
+      used = fill(prod, String(d.product.pk)) || used;
+      notes.push(box.dataset.own + " " + d.product.name);
+    } else if (d.candidates && d.candidates.length) {
+      notes.push(box.dataset.own + " " + d.candidates.map(function (c) { return c.name; }).join(", "));
+    }
+    (d.warnings || []).forEach(function (w) { notes.push(box.dataset.check + " „" + w + "“"); });
+    if (d.check_allergens) notes.push(box.dataset.allergens);
+    if (used) form.querySelector("[data-ai-draft-flag]").value = "on";
+    say(notes.join(" · "));
+  }
+  function poll(url, tries) {
+    fetch(url, { credentials: "same-origin" }).then(function (r) { return r.ok ? r.json() : { state: "error" }; })
+      .then(function (s) {
+        if (s.state === "pending" && tries > 0) { setTimeout(function () { poll(url, tries - 1); }, 1500); return; }
+        busy(false);
+        if (s.state === "done") { apply(s.draft); return; }
+        say(s.code === "quota" ? box.dataset.msgQuota : box.dataset.msgError);
+      })
+      .catch(function () { busy(false); say(box.dataset.msgError); });
+  }
+  document.addEventListener("change", function (e) {
+    if (e.target.matches && e.target.matches("[data-photo-input]")) box.classList.toggle("hidden", !firstPhoto());
+  });
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest || !e.target.closest("[data-ai-photo-go]")) return;
+    var file = firstPhoto();
+    if (!file) return;
+    var data = new FormData();
+    data.append("photo", file);
+    data.append("title", (form.querySelector('input[name="title"]') || {}).value || "");
+    data.append("csrfmiddlewaretoken", form.querySelector('input[name="csrfmiddlewaretoken"]').value);
+    busy(true);
+    say("");
+    fetch(box.dataset.startUrl, { method: "POST", body: data, credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : { code: "error" }; })
+      .then(function (s) {
+        if (!s.job) { busy(false); say(s.code === "quota" ? box.dataset.msgQuota : box.dataset.msgError); return; }
+        poll(box.dataset.resultUrl.replace("JOB", s.job), 40);
+      })
+      .catch(function () { busy(false); say(box.dataset.msgError); });
+  });
+})();
+</script>

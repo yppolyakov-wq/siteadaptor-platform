@@ -171,6 +171,8 @@ class QuickPromotionForm(forms.Form):
     sku = forms.CharField(label=_("Artikelnummer (optional)"), required=False, max_length=100)
     category = forms.ModelChoiceField(label=_("Kategorie"), queryset=None, required=False)
     new_category = forms.CharField(label=_("Neue Kategorie"), required=False, max_length=100)
+    # Д1: владелец принял черновик ИИ (ставит скрипт кнопки) — для замера принятия.
+    ai_draft = forms.BooleanField(required=False, widget=forms.HiddenInput)
 
     def __init__(self, *args, tenant=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -231,6 +233,8 @@ class QuickPromotionForm(forms.Form):
         meta = {"response": data["customer_response"]} if data.get("customer_response") else {}
         if data.get("perishable") and "perishable" in self.fields:
             meta["perishable"] = True
+        if data.get("ai_draft"):
+            meta["ai_draft"] = True
 
         city_category, city_tags = city_fields.cleaned(self)
         return Promotion(
