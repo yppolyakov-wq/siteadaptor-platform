@@ -112,6 +112,11 @@ def test_prices_and_percents_are_stripped_and_extra_keys_ignored():
     }
 
 
+def test_price_phrase_leaves_no_dangling_words():
+    draft = ai_draft.clean_draft(_ok(title="Santoku-Messer, 18 cm, nur 49 €"))
+    assert draft["title"] == "Santoku-Messer, 18 cm"
+
+
 def test_diet_tags_never_set_and_claims_flagged():
     draft = ai_draft.clean_draft(
         _ok(tags=["vegan", "bio", "handgemacht"], description="Bio und vegan, die beste Wahl")

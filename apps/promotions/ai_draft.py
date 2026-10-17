@@ -69,9 +69,13 @@ SYSTEM = (
 )
 
 # Цифры у денег/процентов, «statt»/«gratis» — их ставит только владелец (UWG/PAngV).
+# Слова перед ценой («nur 49 €») уходят вместе с ней — иначе в заголовке висит «nur».
+_PRICE_LEAD = ("nur", "ab", "für", "jetzt", "statt")
+_PRICE_WORDS = ("statt", "gratis", "kostenlos", "umsonst")
+_AMOUNT = r"(?:[−\-–]\s?)?\d+(?:[.,]\d+)?\s?(?:€|eur\b|euro\b|%|prozent\b)|€\s?\d+(?:[.,]\d+)?"
 _PRICE_RE = re.compile(
-    r"(?i)(?:[−\-–]\s?)?\d+(?:[.,]\d+)?\s?(?:€|eur\b|euro\b|%|prozent\b)"
-    r"|€\s?\d+(?:[.,]\d+)?|\b(?:statt|gratis|kostenlos|umsonst)\b"
+    r"(?i)(?:\b(?:" + "|".join(_PRICE_LEAD) + r")\s+)?(?:" + _AMOUNT + r")"
+    r"|\b(?:" + "|".join(_PRICE_WORDS) + r")\b"
 )
 # Слова-утверждения: подсказка «Bitte prüfen», не блокировка.
 CLAIM_WORDS = (
