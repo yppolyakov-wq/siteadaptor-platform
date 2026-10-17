@@ -222,6 +222,12 @@ class QuickPromotionForm(forms.Form):
 
     def clean(self):
         cleaned = super().clean()
+        if self.booking_target:
+            # Услуга/номер считают скидку ТОЛЬКО процентом (price_layer): цена «Aktionspreis/
+            # statt» молча не действовала бы — акция вышла бы без скидки.
+            cleaned["new_price"] = cleaned["old_price"] = None
+            if not cleaned.get("percent"):
+                self.add_error("percent", _("Bitte einen Rabatt in Prozent angeben."))
         if cleaned.get("new_price") is not None and cleaned.get("percent"):
             self.add_error("percent", _("Bitte entweder einen Preis oder einen Rabatt angeben."))
         old, new = cleaned.get("old_price"), cleaned.get("new_price")

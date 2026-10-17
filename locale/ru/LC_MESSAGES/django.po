@@ -25646,3 +25646,7 @@ msgstr "Подсказки на сегодня"
 #. Д1
 msgid "Was heute starten?"
 msgstr "Что запустить сегодня?"
+
+#. Д1
+msgid "Bitte einen Rabatt in Prozent angeben."
+msgstr "Укажите скидку в процентах."

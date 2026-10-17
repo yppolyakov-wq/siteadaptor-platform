@@ -25516,3 +25516,7 @@ msgstr "Bugün için öneriler"
 #. Д1
 msgid "Was heute starten?"
 msgstr "Bugün ne başlatılsın?"
+
+#. Д1
+msgid "Bitte einen Rabatt in Prozent angeben."
+msgstr "Lütfen yüzde olarak bir indirim girin."

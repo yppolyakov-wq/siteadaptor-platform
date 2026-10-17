@@ -708,6 +708,11 @@ def promotion_quick(request):
             if not quick.apply_suggestion(form, promo, images):
                 quick.attach_product(form, promo, images)  # T-8.23d: акция от товара
             promo.save()
+            # Использованная подсказка не висит на карточке до истечения кэша.
+            if suggestion is not None:
+                today.dismiss(suggestion.key)
+            elif source is not None:
+                today.dismiss(f"repeat:{source.pk}")
             if request.POST.get("publish") != "draft":
                 try:
                     limits.activate(promo, tenant, actor=request.user)
@@ -797,18 +802,28 @@ def promotion_quick_ai_start(request):
     if upload is None or upload.size > ai_draft.RAW_MAX_BYTES:
         return JsonResponse({"code": "config"})
     schema = _ai_schema(request)
-    if ratelimit.hit("ai-photo", schema, limit=ai_draft.RATE_LIMIT, window=ai_draft.RATE_WINDOW):
-        return JsonResponse({"code": "quota"})
     try:
         photo = reencode(upload.read())
     except AIConfigError:
         return JsonResponse({"code": "config"})
-    job = ai_draft.start_job(
-        schema=schema,
-        user_pk=request.user.pk,
-        photo=photo,
-        hint=(request.POST.get("title") or "").strip(),
-    )
+    # Лимит — после проверки файла (битая загрузка не съедает лимит), по пользователю И
+    # по бизнесу: сотрудник не выбирает весь лимит владельца, бизнес — бюджет платформы.
+    per_user = f"{schema}:{request.user.pk}"
+    if ratelimit.hit(
+        "ai-photo-user", per_user, limit=ai_draft.RATE_LIMIT, window=ai_draft.RATE_WINDOW
+    ) or ratelimit.hit(
+        "ai-photo", schema, limit=ai_draft.RATE_LIMIT_TENANT, window=ai_draft.RATE_WINDOW
+    ):
+        return JsonResponse({"code": "quota"})
+    try:
+        job = ai_draft.start_job(
+            schema=schema,
+            user_pk=request.user.pk,
+            photo=photo,
+            hint=(request.POST.get("title") or "").strip(),
+        )
+    except Exception:  # noqa: BLE001 — очередь недоступна: спокойная ошибка, форма живёт
+        return JsonResponse({"code": "unavailable"})
     return JsonResponse({"job": job})
 
 

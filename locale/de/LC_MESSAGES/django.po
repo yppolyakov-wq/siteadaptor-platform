@@ -25443,3 +25443,7 @@ msgstr "Vorschläge für heute"
 #. Д1
 msgid "Was heute starten?"
 msgstr "Was heute starten?"
+
+#. Д1
+msgid "Bitte einen Rabatt in Prozent angeben."
+msgstr "Bitte einen Rabatt in Prozent angeben."

@@ -8,6 +8,7 @@ from .providers.base import Image
 MAX_BYTES = 5 * 1024 * 1024
 MAX_COUNT = 4
 MAX_TOTAL_BYTES = 10 * 1024 * 1024  # base64 ×4/3 и повторы умножают трафик
+MAX_PIXELS = 40_000_000  # reencode: больше — не фото с телефона, а бомба по памяти
 
 
 def sniff(data: bytes) -> str | None:
@@ -52,11 +53,33 @@ def reencode(data: bytes, *, max_side: int = 1568, quality: int = 85) -> bytes:
         raise AIConfigError("unsupported image type")
     try:
         with PILImage.open(io.BytesIO(data)) as img:
+            # Размер — из заголовка, ДО декодирования: маленький файл с огромной картинкой
+            # иначе съел бы память веб-воркера (Pillow сам бросает лишь выше ~178 MP).
+            width, height = img.size
+            if width * height > MAX_PIXELS:
+                raise AIConfigError("image too large")
+            if img.format == "JPEG":
+                img.draft("RGB", (max_side, max_side))  # JPEG декодируется уже уменьшенным
             img = ImageOps.exif_transpose(img)
+            if img.mode in ("RGBA", "LA", "P"):
+                # Прозрачный фон → белый, а не чёрный (так фото товара узнаётся лучше).
+                img = img.convert("RGBA")
+                canvas = PILImage.new("RGB", img.size, (255, 255, 255))
+                canvas.paste(img, mask=img.split()[-1])
+                img = canvas
             img = img.convert("RGB")
             img.thumbnail((max_side, max_side))
             out = io.BytesIO()
             img.save(out, format="JPEG", quality=quality, optimize=True)
-    except (UnidentifiedImageError, OSError, PILImage.DecompressionBombError) as exc:
+    except AIConfigError:
+        raise
+    except (
+        UnidentifiedImageError,
+        OSError,
+        SyntaxError,  # Pillow: «broken PNG file»
+        ValueError,
+        MemoryError,
+        PILImage.DecompressionBombError,
+    ) as exc:
         raise AIConfigError("unsupported image type") from exc
     return out.getvalue()

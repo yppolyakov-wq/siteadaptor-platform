@@ -12,10 +12,12 @@
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import timedelta
 
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.db import connection
 from django.utils import timezone, translation
 from django.utils.formats import date_format
@@ -35,7 +37,7 @@ SLOT_MAX_STEP = timedelta(minutes=60)
 GAP_MAX_NIGHTS = 3
 GAP_HORIZON_DAYS = 21
 REPEAT_WINDOW_DAYS = 60
-REPEAT_SCAN = 20
+REPEAT_SCAN = 5  # deal_counts — 3 запроса на акцию: смотрим только последние
 EVENT_WINDOW_DAYS = 7
 EVENT_FREE_SHARE = 0.4
 
@@ -159,23 +161,20 @@ def _free_run(starts):
     return best
 
 
-def _rule_slots(tenant, today):
+def _slot_suggestion(service, tomorrow):
+    """(подсказка, длина серии) для одной услуги или (None, 0)."""
     from apps.booking.availability import service_slots
-    from apps.booking.models import Service
 
-    if not _module(tenant, "booking"):
-        return
-    tomorrow = today + timedelta(days=1)
-    for service in Service.objects.filter(is_active=True).order_by("pk")[:SLOT_SERVICES_MAX]:
-        if _busy(service=service):
-            continue
-        starts = [timezone.localtime(s) for s in service_slots(service, tomorrow)]
-        first, last, length = _free_run(starts)
-        if length < SLOT_MIN_RUN:
-            continue
-        hour_from, hour_to = first.hour, min(last.hour + 1, 24)
-        name = service.name_localized()
-        yield Suggestion(
+    if _busy(service=service):
+        return None, 0
+    starts = [timezone.localtime(s) for s in service_slots(service, tomorrow)]
+    first, last, length = _free_run(starts)
+    if length < SLOT_MIN_RUN:
+        return None, 0
+    hour_from, hour_to = first.hour, min(last.hour + 1, 24)
+    name = service.name_localized()
+    return (
+        Suggestion(
             key=f"slots:{service.pk}:{tomorrow.isoformat()}",
             rule="slots",
             icon="🕑",
@@ -194,7 +193,31 @@ def _rule_slots(tenant, today):
                 "hour_from": hour_from,
                 "hour_to": hour_to,
             },
-        )
+        ),
+        length,
+    )
+
+
+def _rule_slots(tenant, today, *, service_pk=None):
+    from apps.booking.models import Service
+
+    if not _module(tenant, "booking"):
+        return
+    tomorrow = today + timedelta(days=1)
+    services = Service.objects.filter(is_active=True).order_by("pk")
+    if service_pk is not None:
+        try:
+            services = services.filter(pk=service_pk)
+            services.exists()
+        except (ValueError, ValidationError):
+            return
+    best, best_len = None, 0  # на карточке — одна Happy Hour, по самой длинной серии
+    for service in services[:SLOT_SERVICES_MAX]:
+        item, length = _slot_suggestion(service, tomorrow)
+        if item is not None and length > best_len:
+            best, best_len = item, length
+    if best is not None:
+        yield best
 
 
 # --- R3 · Lücken zwischen Buchungen -----------------------------------------------------
@@ -324,6 +347,10 @@ def _rule_events(tenant, today):
         starts_at__lte=now + timedelta(days=EVENT_WINDOW_DAYS),
         capacity__gt=0,
     ).order_by("starts_at")[:10]
+    events = list(events)
+    from apps.events.listing import attach_seat_counts
+
+    attach_seat_counts(events)  # проданные места одним запросом, без N+1
     for event in events:
         left = event.seats_left
         if not left or left / event.capacity < EVENT_FREE_SHARE:
@@ -386,19 +413,41 @@ def suggestions(tenant, *, today=None, limit=LIMIT) -> list[Suggestion]:
     return [s for s in found if _dismiss_key(s.key) not in hidden][:limit]
 
 
+_KEY_RE = re.compile(r"^(mhd|slots|gap|repeat|event):[0-9A-Za-z:-]{1,100}$")
+_PROMO_RULES = {"mhd": "_rule_mhd", "slots": "_rule_slots", "gap": "_rule_gaps"}
+
+
+def valid_key(key: str) -> bool:
+    return bool(_KEY_RE.match(key or ""))
+
+
 def resolve(tenant, key: str) -> Suggestion | None:
-    """Подсказка по ключу из ссылки — пересчитанная из БД (ссылке не верим)."""
-    if not key or len(key) > 120:
+    """Подсказка по ключу из ссылки — пересчитанная из БД (ссылке не верим).
+
+    Считается только правило из префикса ключа (не все пять)."""
+    if not valid_key(key):
         return None
-    for item in compute(tenant):
+    rule_name = _PROMO_RULES.get(key.split(":", 1)[0])
+    if rule_name is None:
+        return None
+    rule = globals()[rule_name]
+    kwargs = {}
+    if rule_name == "_rule_slots":
+        parts = key.split(":")
+        if len(parts) < 3:
+            return None
+        kwargs["service_pk"] = parts[1]  # именно эта услуга, не «лучшая»
+    for item in _safe(lambda: rule(tenant, timezone.localdate(), **kwargs)):
         if item.key == key and item.action == "promo":
             return item
     return None
 
 
 def dismiss(key: str) -> None:
+    if not valid_key(key):
+        return
     try:
-        cache.set(_dismiss_key(key[:120]), 1, DISMISS_TTL)
+        cache.set(_dismiss_key(key), 1, DISMISS_TTL)
     except Exception:  # noqa: BLE001
         pass
 

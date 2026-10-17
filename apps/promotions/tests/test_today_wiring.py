@@ -204,3 +204,54 @@ def test_dismiss_hides_card_and_rejects_foreign_next(user):
 def test_dismiss_is_post_only(user):
     tenant = _tenant()
     assert views.today_dismiss(_req("get", "/x/", user, tenant)).status_code == 405
+
+
+def test_used_suggestion_leaves_the_card(user):
+    tenant = _tenant()
+    _product, lot = _mhd_lot()
+    assert today.suggestions(tenant)  # карточка закэширована с подсказкой
+    data = {
+        "vorschlag": f"mhd:{lot.pk}",
+        "title": "Joghurt",
+        "percent": "50",
+        "term": "week",
+        "customer_response": "reserve",
+        "publish": "draft",
+    }
+    views.promotion_quick(_req("post", "/promotions/schnell/", user, tenant, data))
+    assert today.suggestions(tenant) == []
+
+
+def test_junk_dismiss_keys_are_ignored():
+    today.dismiss("x" * 100)
+    today.dismiss("mhd:../../etc")
+    assert today_mod.cache.get(today_mod._dismiss_key("x" * 100)) is None
+
+
+def test_resolve_runs_only_the_rule_of_the_key(user):
+    tenant = _tenant()
+    _product, lot = _mhd_lot()
+    with mock.patch.object(today_mod, "_rule_repeat", side_effect=AssertionError("called")):
+        with mock.patch.object(today_mod, "_rule_slots", side_effect=AssertionError("called")):
+            assert today_mod.resolve(tenant, f"mhd:{lot.pk}") is not None
+
+
+def test_booking_target_needs_percent_and_ignores_prices(user):
+    tenant = _tenant()
+    service = _service()
+    key = f"slots:{service.pk}:{(TODAY + timedelta(days=1)).isoformat()}"
+    data = {
+        "vorschlag": key,
+        "title": "Haarschnitt",
+        "new_price": "19",
+        "term": "week",
+        "publish": "draft",
+    }
+    with mock.patch("apps.booking.availability.service_slots", return_value=_slots()):
+        views.promotion_quick(_req("post", "/promotions/schnell/", user, tenant, data))
+        assert not Promotion.objects.exists()  # без процента — не сохраняем
+        views.promotion_quick(
+            _req("post", "/promotions/schnell/", user, tenant, {**data, "percent": "20"})
+        )
+    promo = Promotion.objects.get()
+    assert promo.price_override is None and promo.discount_percent == 20

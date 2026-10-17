@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 import re
 import secrets
+import uuid
 
 from django.conf import settings
 from django.utils.html import strip_tags
@@ -71,35 +72,93 @@ SYSTEM = (
 # Цифры у денег/процентов, «statt»/«gratis» — их ставит только владелец (UWG/PAngV).
 # Слова перед ценой («nur 49 €») уходят вместе с ней — иначе в заголовке висит «nur».
 _PRICE_LEAD = ("nur", "ab", "für", "jetzt", "statt")
-_PRICE_WORDS = ("statt", "gratis", "kostenlos", "umsonst")
-_AMOUNT = r"(?:[−\-–]\s?)?\d+(?:[.,]\d+)?\s?(?:€|eur\b|euro\b|%|prozent\b)|€\s?\d+(?:[.,]\d+)?"
-_PRICE_RE = re.compile(
-    r"(?i)(?:\b(?:" + "|".join(_PRICE_LEAD) + r")\s+)?(?:" + _AMOUNT + r")"
-    r"|\b(?:" + "|".join(_PRICE_WORDS) + r")\b"
+_NUMBER_WORDS = (
+    "ein",
+    "eine",
+    "einen",
+    "zwei",
+    "drei",
+    "vier",
+    "fünf",
+    "sechs",
+    "sieben",
+    "acht",
+    "neun",
+    "zehn",
+    "zwanzig",
+    "fünfzig",
+    "hundert",
+    "halbe",
+    "halben",
+    "halber",
 )
-# Слова-утверждения: подсказка «Bitte prüfen», не блокировка.
-CLAIM_WORDS = (
+_FOR = "für"
+_NUM = r"\d{1,3}(?:[ .\u00a0]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?"
+_AMOUNT = (
+    r"(?:[−\-–]\s?)?(?:" + _NUM + r")\s?(?:€|eur\b|euro\b|%|％|prozent\b|,-|\.-)"
+    r"|(?:€|\beur\b|\beuro\b)\s?(?:" + _NUM + r")"
+    r"|\b\d+\s?(?:\+|" + _FOR + r")\s?\d+\b"  # «2 für 1», «1+1»
+    r"|\b(?:" + "|".join(_NUMBER_WORDS) + r")\s+(?:euro|prozent|preis)\b"
+)
+_PRICE_RE = re.compile(r"(?i)(?:\b(?:" + "|".join(_PRICE_LEAD) + r")\s+)?(?:" + _AMOUNT + r")")
+# Слова скидки без цифр («Rabatt», «Sale», «reduziert») — тоже обещание цены: фраза с ними
+# из текста ИИ уходит целиком (UWG § 5: скидку заявляет только владелец).
+DISCOUNT_STEMS = (
+    "statt",
+    "gratis",
+    "kostenlos",
+    "umsonst",
+    "geschenkt",
+    "rabatt",
+    "reduziert",
+    "sale",
+    "aktionspreis",
+    "angebotspreis",
+    "sonderpreis",
+    "schnäppchen",
+    "preiswert",
+    "billig",
+    "günstig",
+    "spar",
+    "deal",
+)
+_DISCOUNT_RE = re.compile(r"(?i)(?<!\w)(?:" + "|".join(DISCOUNT_STEMS) + r")\w*")
+# Ссылки/почта/телефоны с фото («visit …», «call 0900 …») — не текст объявления.
+_CONTACT_RE = re.compile(
+    r"(?i)https?://\S+|\bwww\.\S+|[\w.+-]+@[\w-]+\.[\w.]+|\+?\d[\d\s/()-]{6,}\d"
+)
+# Слова-утверждения (основы — ловят и «vegane», «biologisch», «glutenfreies»):
+# подсказка «Bitte prüfen», не блокировка.
+CLAIM_STEMS = (
     "bio",
     "öko",
     "vegan",
-    "vegetarisch",
+    "vegetar",
     "glutenfrei",
     "laktosefrei",
     "halal",
     "gesund",
-    "garantiert",
+    "garantier",
     "regional",
     "nachhaltig",
     "beste",
-    "billigste",
-    "günstigste",
+    "billigst",
+    "günstigst",
     "nur heute",
 )
-_CLAIM_RE = re.compile(r"(?i)(?<!\w)(" + "|".join(re.escape(w) for w in CLAIM_WORDS) + r")(?!\w)")
+_CLAIM_RE = re.compile(r"(?i)(?<!\w)((?:" + "|".join(re.escape(w) for w in CLAIM_STEMS) + r")\w*)")
+_SENTENCE_RE = re.compile(r"(?<=[.!?;])\s+")
 
 
 def clean_text(value, limit: int) -> str:
     text = strip_tags(str(value or ""))
+    text = _CONTACT_RE.sub("", text)
+    # Фраза со словом скидки уходит целиком (описание); в заголовке — одно слово.
+    parts = _SENTENCE_RE.split(text)
+    if len(parts) > 1:
+        text = " ".join(p for p in parts if not _DISCOUNT_RE.search(p))
+    else:
+        text = _DISCOUNT_RE.sub("", text)
     text = _PRICE_RE.sub("", text)
     text = re.sub(r"\s+", " ", text).strip(" ,.;:–-")
     return text[:limit].strip()
@@ -122,7 +181,9 @@ def _lang_field() -> str:
 def match_own_product(item_noun: str, title: str = ""):
     """Свой товар по родовому названию: (товар | None, кандидаты [(pk, имя)]).
 
-    Подстановка — только при ЕДИНСТВЕННОМ совпадении; цена берётся из БД, не от модели."""
+    Подстановка — только когда название ЦЕЛЫМ словом совпало у ЕДИНСТВЕННОГО товара
+    («Brot» не выбирает «Brotaufstrich»); цена берётся из БД, не от модели. Совпадение
+    частью слова — только подсказка «Aus Ihrem Sortiment», без выбора в форме."""
     from apps.catalog.models import Product
 
     for query in (item_noun, title):
@@ -132,11 +193,20 @@ def match_own_product(item_noun: str, title: str = ""):
         found = list(
             Product.objects.filter(is_active=True, **{_lang_field(): query}).order_by("pk")[:4]
         )
-        if found:
-            if len(found) == 1:
-                return found[0], []
-            return None, [(p.pk, str(p)) for p in found]
+        if not found:
+            continue
+        word = re.compile(r"(?i)(?<!\w)" + re.escape(query) + r"(?!\w)")
+        exact = [p for p in found if word.search(_base_name(p.name))]
+        if len(exact) == 1 and len(found) == 1:
+            return exact[0], []
+        return None, [(p.pk, str(p)) for p in found]
     return None, []
+
+
+def _base_name(value) -> str:
+    if isinstance(value, dict):
+        return str(value.get(settings.LANGUAGE_CODE) or "")
+    return str(value or "")
 
 
 def clean_draft(raw) -> dict:
@@ -207,7 +277,8 @@ def draft_from_photo(photo: bytes, *, hint: str = "", tenant=None) -> tuple[dict
 JOB_TTL = 300  # фото ждёт воркер не дольше 5 минут
 RESULT_TTL = 600
 RAW_MAX_BYTES = 15 * 1024 * 1024  # исходник с телефона; провайдеру уходит уменьшенная копия
-RATE_LIMIT = 10  # нажатий кнопки на бизнес за окно (поверх дневного бюджета AI-0)
+RATE_LIMIT = 10  # нажатий кнопки на пользователя за окно (поверх дневного бюджета AI-0)
+RATE_LIMIT_TENANT = 30  # и на бизнес целиком
 RATE_WINDOW = 600
 
 
@@ -217,8 +288,6 @@ def _job_key(schema: str, user_pk, job: str) -> str:
 
 def start_job(*, schema: str, user_pk, photo: bytes, hint: str) -> str:
     """Положить фото в кэш и поставить задачу. Возвращает id задачи."""
-    import uuid
-
     from django.core.cache import cache
 
     from . import tasks
@@ -229,7 +298,11 @@ def start_job(*, schema: str, user_pk, photo: bytes, hint: str) -> str:
         {"state": "pending", "photo": photo, "hint": hint[:HINT_MAX]},
         JOB_TTL,
     )
-    tasks.ai_photo_draft.delay(schema=schema, user_pk=user_pk, job=job)
+    try:
+        tasks.ai_photo_draft.delay(schema=schema, user_pk=user_pk, job=job)
+    except Exception:  # noqa: BLE001 — брокер недоступен: фото не должно висеть в кэше
+        cache.delete(_job_key(schema, user_pk, job))
+        raise
     return job
 
 

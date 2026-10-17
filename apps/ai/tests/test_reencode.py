@@ -41,3 +41,27 @@ def test_reencode_rejects_non_image():
         images.reencode(b"%PDF-1.4 not an image")
     with pytest.raises(AIConfigError):
         images.reencode(b"\xff\xd8\xff" + b"garbage" * 10)  # сигнатура есть, тело битое
+
+
+def test_huge_pixel_count_rejected_before_decode(monkeypatch):
+    monkeypatch.setattr(images, "MAX_PIXELS", 100)
+    buf = io.BytesIO()
+    Image.new("RGB", (20, 20)).save(buf, format="PNG")
+    with pytest.raises(AIConfigError):
+        images.reencode(buf.getvalue())
+
+
+def test_broken_png_is_config_error_not_500():
+    buf = io.BytesIO()
+    Image.new("RGB", (20, 20)).save(buf, format="PNG")
+    data = buf.getvalue()
+    with pytest.raises(AIConfigError):
+        images.reencode(data[:40] + b"\x00" * 20 + data[60:])
+
+
+def test_transparent_background_becomes_white():
+    buf = io.BytesIO()
+    Image.new("RGBA", (10, 10), (0, 0, 0, 0)).save(buf, format="PNG")
+    out = images.reencode(buf.getvalue())
+    with Image.open(io.BytesIO(out)) as img:
+        assert img.getpixel((5, 5))[0] > 240

@@ -166,3 +166,30 @@ def test_default_term_preselected_by_business_type(settings, user):
         )
     ).content.decode()
     assert 'name="term" value="today" class="peer sr-only" checked' in html
+
+
+def test_rate_limit_is_per_user_too(ai_on, user, isolated_ratelimit):
+    other = get_user_model().objects.create_user(username="kollege", password="pw12345678")
+    with _run_inline():
+        for _i in range(ai_draft.RATE_LIMIT):
+            views.promotion_quick_ai_start(
+                _req("post", "/promotions/schnell/ki/", other, {"photo": _jpeg()})
+            )
+        resp = views.promotion_quick_ai_start(
+            _req("post", "/promotions/schnell/ki/", user, {"photo": _jpeg()})
+        )
+    assert "job" in _json(resp)  # сотрудник не выбрал лимит владельца
+
+
+def test_broker_down_is_quiet_and_photo_not_left_in_cache(ai_on, user, isolated_ratelimit):
+    with (
+        mock.patch.object(tasks.ai_photo_draft, "delay", side_effect=ConnectionError("x")),
+        mock.patch.object(ai_draft.uuid, "uuid4") as uid,
+        mock.patch.object(views, "_ai_schema", return_value="public"),
+    ):
+        uid.return_value.hex = "deadbeef"
+        resp = views.promotion_quick_ai_start(
+            _req("post", "/promotions/schnell/ki/", user, {"photo": _jpeg()})
+        )
+    assert _json(resp) == {"code": "unavailable"}
+    assert cache.get(ai_draft._job_key("public", user.pk, "deadbeef")) is None

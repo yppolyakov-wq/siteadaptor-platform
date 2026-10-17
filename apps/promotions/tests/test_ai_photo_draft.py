@@ -173,3 +173,50 @@ def test_quota_degrades_quietly(settings):
 )
 def test_default_term_is_a_rule_not_ai(btype, term):
     assert quick.default_term(TenantFactory.build(business_type=btype)) == term
+
+
+# --- ревью Д1 ----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Brot EUR 5",
+        "Brot 5,- das Stück",
+        "Brot für 1 000 €",
+        "2 für 1 beim Brot",
+        "Brot 1+1",
+        "Brot für zwei Euro",
+        "Brot ab 3 ％",
+    ],
+)
+def test_more_price_forms_are_stripped(text):
+    cleaned = ai_draft.clean_text(text, 200)
+    assert not any(ch.isdigit() for ch in cleaned) and "euro" not in cleaned.lower()
+
+
+def test_discount_sentence_dropped_and_contacts_removed():
+    draft = ai_draft.clean_draft(
+        _ok(
+            title="Sale: Brot reduziert",
+            description="Frisch gebacken. Heute 30 Rabatt! Mehr auf www.evil.example "
+            "oder 0900 123 456 78, mail@evil.example",
+        )
+    )
+    text = draft["title"] + " " + draft["description"]
+    for bad in ("Sale", "reduziert", "Rabatt", "evil", "0900", "@"):
+        assert bad not in text
+    assert "Frisch gebacken" in draft["description"]
+
+
+def test_claim_stems_catch_inflections():
+    words = {
+        w.lower() for w in ai_draft.claims_in("Vegane Brötchen, biologisch, glutenfreies Mehl")
+    }
+    assert {"vegane", "biologisch", "glutenfreies"} <= words
+
+
+def test_partial_name_match_is_only_a_candidate():
+    Product.objects.create(name={"de": "Brotaufstrich"}, base_price=Decimal("3"))
+    product, candidates = ai_draft.match_own_product("Brot")
+    assert product is None and len(candidates) == 1
