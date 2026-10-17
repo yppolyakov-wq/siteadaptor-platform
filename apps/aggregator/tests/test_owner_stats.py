@@ -1,7 +1,7 @@
 """В5 V5-3 (план docs/v5-portal-analytics-plan-2026-10-17.md §16): экран владельца
 «Besuche aus dem Stadtportal». Замки написаны ДО кода."""
 
-from datetime import date
+from datetime import date, timedelta
 from uuid import uuid4
 
 import pytest
@@ -168,7 +168,10 @@ def test_sparkline_points():
     t = _tenant()
     _stat(t, n=2)
     assert len(owner_stats.summary(t, 7, today=TODAY)["sparkline"].split()) == 7
-    assert len(owner_stats.summary(t, 365, today=TODAY)["sparkline"].split()) in (52, 53)
+    _stat(t, n=1, day=TODAY - timedelta(days=6))
+    spark = owner_stats.summary(t, 365, today=TODAY)["sparkline"].split()
+    assert len(spark) == 52  # недели от сегодня назад, без обрубка
+    assert spark[-1].split(",")[1] == "2.0"  # последняя неделя — максимум (3 визита), не пусто
 
 
 def test_top_offers_titles_and_fallback():
@@ -246,3 +249,20 @@ def test_nav_entry_under_marketing_after_reviews():
     names = [e.url_name for e in nav_registry.sidebar_children(anchor)]
     assert names.index("portal-stats") == names.index("reviews:list") + 1
     assert any(p.get("url_name") == "portal-stats" for p in nav_registry.palette_entries())
+
+
+def test_top_ordering_ignores_impression_only_rows_and_merges_business():
+    """Ревью V5-3: строка «только показы» не обгоняет открытые предложения (NULL на
+    DESC в Postgres — первый); профиль компании и «бизнес целиком» — одна строка."""
+    t = _tenant()
+    _stat(t, "impression", 500, ref="seen-only")
+    _listing(t, source_ref="opened", title={"de": "Geöffnet"})
+    _stat(t, "view", 1, ref="opened")
+    _stat(t, "view", 2, kind="business", ref="business")
+    _stat(t, "view", 1, kind="", ref="")
+    top = owner_stats.summary(t, 30, today=TODAY)["top"]
+    titles = [row["title"] for row in top]
+    assert titles[0] == "Ihr Unternehmensprofil" and top[0]["values"]["view"] == 3
+    assert titles.count("Ihr Unternehmensprofil") == 1
+    assert titles[1] == "Geöffnet"  # открытое раньше «только показов»
+    assert titles[2] == "(nicht mehr im Stadtportal)"

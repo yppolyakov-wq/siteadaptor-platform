@@ -12,7 +12,8 @@ from datetime import timedelta
 from functools import reduce
 from operator import or_
 
-from django.db.models import Max, Q, Sum
+from django.db.models import Case, F, Q, Sum, Value, When
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -89,7 +90,10 @@ def summary(tenant, days: int, *, today=None) -> dict:
 
     series = [per_day.get(cur_start + timedelta(days=i), 0) for i in range(days)]
     if days >= _WEEKLY_FROM:
-        series = [sum(series[i : i + 7]) for i in range(0, len(series), 7)]
+        # Недели от СЕГОДНЯ назад: последняя точка — полная неделя (иначе правый край
+        # падал бы обрубком в один день); лишние дни в начале года отбрасываются.
+        tail = len(series) % 7
+        series = [sum(series[i : i + 7]) for i in range(tail, len(series), 7)]
     funnel = []
     for code in PortalStat.ACTIONS_CODES:
         tracked = code in TRACKED_ACTIONS
@@ -115,17 +119,28 @@ def summary(tenant, days: int, *, today=None) -> dict:
 
 
 def _top(schema: str, start, end) -> list:
-    sums = {code: Sum("count", filter=Q(action=code)) for code in PortalStat.ACTIONS_CODES}
+    # Coalesce: Sum с filter без совпадений = NULL, а в Postgres NULL на DESC идёт ПЕРВЫМ —
+    # строка «только показы» (V5-4) обогнала бы реально открытые предложения.
+    sums = {
+        code: Coalesce(Sum("count", filter=Q(action=code)), 0) for code in PortalStat.ACTIONS_CODES
+    }
+    # Профиль компании («business») и обращение без предложения ("", V5-5) — одна строка.
+    is_business = Q(listing_kind__in=BUSINESS_KINDS)
     rows = list(
         PortalStat.objects.filter(tenant_schema=schema, day__gte=start, day__lte=end)
-        .values("listing_kind", "source_ref")
+        .annotate(
+            gk=Case(When(is_business, then=Value("business")), default=F("listing_kind")),
+            gr=Case(When(is_business, then=Value("business")), default=F("source_ref")),
+        )
+        .values("gk", "gr")
         .annotate(
             **sums,
-            hot=Sum("count", filter=Q(action__in=("view", "click"))),
-            lid=Max("listing_id"),
+            hot=Coalesce(Sum("count", filter=Q(action__in=("view", "click"))), 0),
         )
-        .order_by("-hot", "-impression", "listing_kind", "source_ref")[:TOP_LIMIT]
+        .order_by("-hot", "-impression", "gk", "gr")[:TOP_LIMIT]
     )
+    for r in rows:
+        r["listing_kind"], r["source_ref"] = r["gk"], r["gr"]
     keys = [
         (r["listing_kind"], r["source_ref"])
         for r in rows
