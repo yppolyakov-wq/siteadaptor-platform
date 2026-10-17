@@ -18031,3 +18031,22 @@ OpenFreeMap через MapLibre GL поверх Leaflet (плагин — мар
 расчёт SRI взял хеш тела 404 (стенд показал CORS-ошибку) — хеши пересчитаны с проверкой статуса.
 Замки `test_map_tiles` (10), 2 переписаны осознанно; стенд Playwright: тайлы реально рисуются,
 аварийные сценарии дают надпись. Владельцу: строка про OpenFreeMap в Datenschutz.
+
+## 2026-10-17 — AI-0 «общий ИИ-слой» (⚠️ миграция `ai/0001`)
+План — агент planner, `docs/ai0-layer-plan-2026-10-17.md`. Новый SHARED-апп `apps/ai/`:
+`generate(task, prompt, schema=, images=, tenant=)` → `AIResult` (+ `ai_generated`, `AI_LABEL`
+«KI-generiert, bitte prüfen»); реестр задач; маршруты `AI_ROUTE_FAST/STRONG` с резервом;
+**правило ЕС fail-closed** — `AI_REQUIRE_EU` (дефолт в production.py) вырезает прямые
+Anthropic/OpenAI и фейк ДО вызова. Адаптеры без новых SDK: Bedrock (boto3 Converse), Azure
+OpenAI / Mistral / прямые Anthropic и OpenAI — HTTP через requests (под личные dev-ключи
+владельца). Ключи — шифрованный стор `apps.secrets` или env. Учёт `AIUsage` (одна строка на
+попытку, без текста/хешей/пользователя), мягкие дневные лимиты (50 вызовов или 1 € на бизнес,
+10 € платформе), чистка через 400 дней, админка суперпользователю, `manage.py ai_smoke`.
+`scrub` вынесен в `core/pii.py`. **Три ревью (django/security/database) нашли и закрыли:**
+system check E001 ломал бы деплой при выключенном ИИ; ReDoS в регулярках `scrub` (50 000
+символов без пробелов ≈ 5 с — квадратично; раньше вход журнала поиска резался до 100);
+Bedrock-ЕС по списку «плохих» префиксов пропускал ARN → allowlist; Azure считался ЕС
+безусловно → только при `AZURE_OPENAI_EU_DATA_ZONE` и хосте Azure; редирект уводил бы
+`x-api-key` на чужой хост → без редиректов, только https; без таблицы цен бюджет был нулевым →
+пессимистичная `AI_DEFAULT_PRICE`; Sentry получал бы промпты из locals → выключено. 104 замка.
+Владельцу: ключи — `docs/ai-providers-setup-2026-10-16.md`; живая проверка `ai_smoke`.

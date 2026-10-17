@@ -214,3 +214,37 @@ def test_bedrock_without_credentials_is_config_error(settings):
     settings.AWS_BEDROCK_ACCESS_KEY_ID = ""
     with pytest.raises(AIConfigError):
         bedrock.BedrockProvider().call(_req())
+
+
+def test_http_rejects_non_https():
+    with mock.patch.object(http.requests, "post") as post:
+        with pytest.raises(AIConfigError):
+            http.post_json("http://api.mistral.ai/v1", headers={}, payload={}, timeout_s=1)
+    post.assert_not_called()
+
+
+@pytest.mark.parametrize("status", [301, 302, 307, 308])
+def test_http_does_not_follow_redirects(status):
+    """Ревью AI-0 (M-3): редирект увёл бы `x-api-key`/`api-key` и промпт на чужой хост."""
+    resp = mock.Mock(status_code=status)
+    with mock.patch.object(http.requests, "post", return_value=resp) as post:
+        with pytest.raises(AIConfigError):
+            http.post_json("https://x.test", headers={}, payload={}, timeout_s=1)
+    assert post.call_args.kwargs["allow_redirects"] is False
+
+
+def test_azure_deployment_quoted_in_path(settings):
+    settings.AZURE_OPENAI_API_KEY = "k"
+    settings.AZURE_OPENAI_ENDPOINT = "https://res.openai.azure.com"
+    reply = {"choices": [{"message": {"content": "OK"}}]}
+    with mock.patch.object(http, "post_json", return_value=reply) as post:
+        openai_chat.AzureOpenAIProvider().call(_req(model="dep/../x?y"))
+    assert "/deployments/dep%2F..%2Fx%3Fy/chat" in post.call_args.args[0]
+
+
+def test_bedrock_endpoint_is_explicit(settings):
+    settings.AWS_BEDROCK_ACCESS_KEY_ID = "a"
+    settings.AWS_BEDROCK_SECRET_ACCESS_KEY = "b"
+    settings.AWS_BEDROCK_REGION = "eu-central-1"
+    client = bedrock.BedrockProvider()._client(5)
+    assert client.meta.endpoint_url == "https://bedrock-runtime.eu-central-1.amazonaws.com"

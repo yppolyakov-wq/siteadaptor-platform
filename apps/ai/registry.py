@@ -1,5 +1,7 @@
 """Реестр задач ИИ: каждая задача объявлена здесь (класс модели, схема, лимиты).
-Вызова в обход реестра нет — потребитель регистрирует свою задачу через `register`."""
+Вызова в обход реестра нет — потребитель регистрирует свою задачу через `register`
+в `AppConfig.ready()` своего приложения: регистрация при импорте вьюхи/сервиса не
+дойдёт до Celery-воркера, который этот модуль не импортировал."""
 
 from __future__ import annotations
 
@@ -18,6 +20,7 @@ class TaskSpec:
     timeout_s: int = 30
     allow_images: bool = False
     pii_scrub: bool = True
+    max_input_chars: int | None = None  # None = общий AI_MAX_PROMPT_CHARS
 
     def __post_init__(self):
         if self.tier not in TIERS:

@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 from decimal import Decimal
+from unittest import mock
 
 import pytest
 from django.utils import timezone
@@ -30,10 +31,13 @@ def test_tenant_daily_calls_limit(ai_on):
     api.generate("smoke", "x", tenant="metzgerei")  # другой бизнес не затронут
 
 
-def test_failed_calls_do_not_count_as_calls(ai_on):
+def test_failed_attempts_count_toward_calls(ai_on):
+    """Ревью AI-0 (M-5): отказ/ошибка провайдера тоже стоит денег — в лимит входят
+    все попытки, иначе вход, провоцирующий отказ, лимит не тратил бы."""
     ai_on.AI_TENANT_DAILY_CALLS = 1
-    _row(ok=False, error_code="unavailable")
-    api.generate("smoke", "x", tenant="baeckerei")
+    _row(ok=False, error_code="refused")
+    with pytest.raises(AIQuotaExceeded):
+        api.generate("smoke", "x", tenant="baeckerei")
 
 
 def test_tenant_daily_eur_limit(ai_on):
@@ -59,16 +63,25 @@ def test_limits_reset_next_day(ai_on):
 
 
 def test_cost_from_prices(ai_on):
-    ai_on.AI_PRICES = {"fake": [100_000, 400_000]}  # 1 000 € / 4 000 € за 1M (для арифметики)
-    r = api.generate("smoke", "x" * 400, tenant="baeckerei")
-    expected = (Decimal(100_000) * r.tokens_in + Decimal(400_000) * r.tokens_out) / 1_000_000
-    assert r.cost_cents == expected.quantize(Decimal("0.0001"))
+    ai_on.AI_ROUTE_FAST = ["mistral"]
+    ai_on.MISTRAL_API_KEY = "k"
+    ai_on.AI_PRICES = {"mistral-small-latest": [10_000, 30_000]}
+    reply = {
+        "choices": [{"message": {"content": "OK"}}],
+        "usage": {"prompt_tokens": 2_000, "completion_tokens": 1_000},
+    }
+    with mock.patch("apps.ai.providers.http.post_json", return_value=reply):
+        r = api.generate("smoke", "x", tenant="baeckerei")
+    assert r.cost_cents == Decimal("50.0000")  # 2000×10000/1M + 1000×30000/1M
     assert AIUsage.objects.get().cost_cents == r.cost_cents
 
 
-def test_unknown_price_counts_zero(settings):
+def test_unknown_price_uses_pessimistic_default(settings):
+    """Ревью AI-0 (M3): без таблицы цен денежный лимит всё равно работает."""
     settings.AI_PRICES = {}
-    assert pricing.cost_cents("whatever", 1000, 1000) == 0
+    settings.AI_DEFAULT_PRICE = [1500, 7500]
+    assert pricing.cost_cents("whatever", 1_000_000, 0) == Decimal(1500)
+    assert pricing.cost_cents("fake", 1_000_000, 1_000_000) == 0
 
 
 def test_usage_record_is_fail_safe(monkeypatch, caplog):

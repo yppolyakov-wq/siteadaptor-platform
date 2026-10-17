@@ -63,3 +63,57 @@ def test_search_log_scrub_still_reexported():
     from apps.core import pii
 
     assert search_log.scrub is pii.scrub
+
+
+def test_scrub_is_linear_on_long_text_without_spaces():
+    """Ревью AI-0 (H-1, ReDoS): раньше 50 000 символов без пробелов ≈ 5 с."""
+    import time
+
+    from apps.core.pii import scrub
+
+    for text in ("a" * 200_000, "1-" * 100_000, "a@" * 100_000):
+        started = time.monotonic()
+        scrub(text)
+        assert time.monotonic() - started < 2
+
+
+def test_prompt_too_large_rejected_before_provider(ai_on):
+    ai_on.AI_MAX_PROMPT_CHARS = 100
+    with pytest.raises(AIConfigError):
+        api.generate("smoke", "x" * 101)
+    assert fake.CALLS == [] and AIUsage.objects.count() == 0
+
+
+def test_unexpected_adapter_error_is_normalized_and_falls_back(ai_on):
+    """Ревью AI-0 (M-6): сбой адаптера без цепочки исключений (её кадры несут промпт/ключ)
+    и с резервом на следующий маршрут."""
+    from apps.ai.errors import AIUnavailable
+    from apps.ai.providers import get
+
+    ai_on.AI_ROUTE_FAST = ["fake"]
+    with mock.patch.object(get("fake"), "call", side_effect=ValueError(f"boom {MARK}")):
+        with pytest.raises(AIUnavailable) as exc:
+            api.generate("smoke", "x")
+    assert MARK not in str(exc.value) and exc.value.__suppress_context__ is True
+    assert set(AIUsage.objects.values_list("error_code", flat=True)) == {"provider_error"}
+
+    ai_on.AI_ROUTE_FAST = ["fake", "fake_b"]
+    with mock.patch.object(get("fake"), "call", side_effect=ValueError("boom")):
+        assert api.generate("smoke", "x").route == "fake_b"
+
+
+def test_overall_deadline_stops_chain(ai_on, monkeypatch):
+    from apps.ai.errors import AIUnavailable
+
+    ai_on.AI_ROUTE_FAST = ["fake", "fake_b"]
+    clock = iter([0.0] + [10_000.0] * 50)
+    monkeypatch.setattr("apps.ai.api.time.monotonic", lambda: next(clock))
+    with pytest.raises(AIUnavailable):
+        api.generate("smoke", "x")
+    assert fake.CALLS == []
+
+
+def test_images_total_size_capped(ai_on):
+    img = b"\xff\xd8\xff" + b"0" * (3 * 1024 * 1024)
+    with pytest.raises(AIConfigError):
+        api.generate("smoke", "x", images=[img] * 4)

@@ -15,8 +15,6 @@ from .base import Provider, ProviderRequest, ProviderResponse
 
 _SCRIPTS: dict[str, list[str]] = {}
 CALLS: list[tuple[str, ProviderRequest]] = []
-# Схема текущего вызова: фейку нужна, чтобы собрать валидный пример (api ставит её).
-SCHEMAS: dict[str, dict] = {}
 
 
 def script(name: str, modes: list[str]) -> None:
@@ -26,7 +24,6 @@ def script(name: str, modes: list[str]) -> None:
 def reset() -> None:
     _SCRIPTS.clear()
     CALLS.clear()
-    SCHEMAS.clear()
 
 
 def example_for(schema: dict | None):
@@ -79,7 +76,7 @@ class FakeProvider(Provider):
         if mode == "bad_json":
             text = "not json {"
         elif req.json_mode:
-            text = json.dumps(example_for(SCHEMAS.get(req.task)))
+            text = json.dumps(example_for(req.schema))
         else:
             text = f"fake:{req.task}"
         return ProviderResponse(

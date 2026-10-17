@@ -688,7 +688,13 @@ AI_TENANT_DAILY_EUR = env.float("AI_TENANT_DAILY_EUR", default=1.0)
 AI_DAILY_BUDGET_EUR = env.float("AI_DAILY_BUDGET_EUR", default=10.0)
 # {"<модель>": [центов за 1M входных токенов, центов за 1M выходных]} — для оценки бюджета.
 AI_PRICES = env.json("AI_PRICES", default={})
+# Цена модели, которой нет в AI_PRICES: пессимистично (уровень сильнейших моделей, ≈15/75 €
+# за 1M), чтобы денежные лимиты работали и без таблицы цен.
+AI_DEFAULT_PRICE = env.list("AI_DEFAULT_PRICE", cast=float, default=[1500, 7500])
 AI_USAGE_RETENTION_DAYS = env.int("AI_USAGE_RETENTION_DAYS", default=400)
+# Потолок длины текста запроса (prompt + system): защита воркера и бюджета от огромного
+# внешнего текста; задача может задать свой меньший предел (TaskSpec.max_input_chars).
+AI_MAX_PROMPT_CHARS = env.int("AI_MAX_PROMPT_CHARS", default=60_000)
 # Прямой Anthropic API (dev, личный ключ).
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 ANTHROPIC_BASE_URL = env("ANTHROPIC_BASE_URL", default="https://api.anthropic.com")
@@ -712,6 +718,8 @@ AZURE_OPENAI_API_KEY = env("AZURE_OPENAI_API_KEY", default="")
 AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-10-21")
 AZURE_OPENAI_DEPLOYMENT_FAST = env("AZURE_OPENAI_DEPLOYMENT_FAST", default="")
 AZURE_OPENAI_DEPLOYMENT_STRONG = env("AZURE_OPENAI_DEPLOYMENT_STRONG", default="")
+# Владелец подтверждает тип развёртывания «Data Zone Standard (EU)» — без этого Azure не ЕС.
+AZURE_OPENAI_EU_DATA_ZONE = env.bool("AZURE_OPENAI_EU_DATA_ZONE", default=False)
 # Mistral (Франция): ЕС только при адресе api.mistral.ai.
 MISTRAL_API_KEY = env("MISTRAL_API_KEY", default="")
 MISTRAL_BASE_URL = env("MISTRAL_BASE_URL", default="https://api.mistral.ai")
@@ -809,6 +817,10 @@ LOGGING = {
             "propagate": False,
         },
         "audit": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        # AI-0: на DEBUG эти библиотеки пишут тела запросов (промпты) и адреса — держим выше.
+        "botocore": {"level": "WARNING"},
+        "boto3": {"level": "WARNING"},
+        "urllib3": {"level": "WARNING"},
     },
 }
 

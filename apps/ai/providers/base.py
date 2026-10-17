@@ -25,6 +25,7 @@ class ProviderRequest:
     temperature: float | None = None
     timeout_s: int = 30
     json_mode: bool = False
+    schema: dict | None = None  # для фейка (валидный пример); реальным API не отправляется
     task: str = ""  # только для фейка/учёта, наружу не уходит
 
 

@@ -47,6 +47,8 @@ dependencies = [
     "django-rosetta>=0.10.3",
     "nh3>=0.3.7",
     "jsonschema>=4.23",
+    "requests>=2.32",
+    "boto3>=1.35",
 ]
 
 [project.optional-dependencies]

@@ -1,7 +1,9 @@
 """AWS Bedrock (Claude/Mistral) через Converse API — прод-маршрут ЕС.
 
-ЕС = регион `eu-*` и модель не на глобальном/американском профиле (`global.`, `us.`, …):
-такие профили перебрасывают запрос за пределы ЕС."""
+ЕС — ALLOWLIST (ревью AI-0: список «плохих» префиксов пропускал ARN и будущие
+геопрофили): регион `eu-*` и модель либо EU-профиль `eu.<провайдер>.…`, либо голый ID
+`<провайдер>.…` (обрабатывается в регионе вызова). ARN, `global.`, `us.` и любой
+неизвестный префикс — вне ЕС."""
 
 from __future__ import annotations
 
@@ -12,7 +14,7 @@ from apps.secrets.store import get_or_setting
 from ..errors import AIConfigError, AIRateLimited, AIRefused, AIUnavailable
 from .base import Provider, ProviderRequest, ProviderResponse
 
-NON_EU_PROFILES = ("global.", "us.", "us-gov.", "apac.", "jp.", "au.", "ca.")
+MODEL_PROVIDERS = ("anthropic.", "mistral.", "amazon.", "meta.", "cohere.")
 _THROTTLE = {"ThrottlingException", "TooManyRequestsException", "ServiceQuotaExceededException"}
 _UNAVAILABLE = {
     "ServiceUnavailableException",
@@ -56,7 +58,11 @@ class BedrockProvider(Provider):
 
     def eu_for(self, model: str) -> bool:
         region = settings.AWS_BEDROCK_REGION or ""
-        return region.startswith("eu-") and not (model or "").startswith(NON_EU_PROFILES)
+        model = model or ""
+        if not region.startswith("eu-"):
+            return False
+        bare = model[3:] if model.startswith("eu.") else model
+        return bare.startswith(MODEL_PROVIDERS)
 
     def _client(self, timeout_s: int):
         import boto3
@@ -69,6 +75,8 @@ class BedrockProvider(Provider):
         return boto3.client(
             "bedrock-runtime",
             region_name=settings.AWS_BEDROCK_REGION,
+            # Явный адрес: boto3 иначе берёт AWS_ENDPOINT_URL* из окружения процесса.
+            endpoint_url=f"https://bedrock-runtime.{settings.AWS_BEDROCK_REGION}.amazonaws.com",
             aws_access_key_id=key_id,
             aws_secret_access_key=secret,
             config=Config(

@@ -7,6 +7,7 @@ from .providers.base import Image
 
 MAX_BYTES = 5 * 1024 * 1024
 MAX_COUNT = 4
+MAX_TOTAL_BYTES = 10 * 1024 * 1024  # base64 ×4/3 и повторы умножают трафик
 
 
 def sniff(data: bytes) -> str | None:
@@ -24,9 +25,11 @@ def prepare(images) -> tuple[Image, ...]:
     if len(images) > MAX_COUNT:
         raise AIConfigError("too many images")
     out = []
+    total = 0
     for data in images:
         data = bytes(data)
-        if len(data) > MAX_BYTES:
+        total += len(data)
+        if len(data) > MAX_BYTES or total > MAX_TOTAL_BYTES:
             raise AIConfigError("image too large")
         mime = sniff(data)
         if mime is None:

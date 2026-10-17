@@ -1098,6 +1098,7 @@ name = "platform"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "boto3" },
     { name = "celery", extra = ["redis"] },
     { name = "dj-stripe" },
     { name = "django" },
@@ -1124,6 +1125,7 @@ dependencies = [
     { name = "psycopg", extra = ["binary"] },
     { name = "redis" },
     { name = "reportlab" },
+    { name = "requests" },
     { name = "segno" },
     { name = "sentry-sdk" },
     { name = "whitenoise" },
@@ -1144,6 +1146,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "boto3", specifier = ">=1.35" },
     { name = "celery", extras = ["redis"], specifier = ">=5.4" },
     { name = "dj-stripe", specifier = ">=2.9" },
     { name = "django", specifier = ">=5.1,<5.2" },
@@ -1178,6 +1181,7 @@ requires-dist = [
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.6" },
     { name = "redis", specifier = ">=5.0" },
     { name = "reportlab", specifier = ">=4.2" },
+    { name = "requests", specifier = ">=2.32" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.7" },
     { name = "segno", specifier = ">=1.6" },
     { name = "sentry-sdk", specifier = ">=2.15" },

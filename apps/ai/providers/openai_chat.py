@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import base64
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 from django.conf import settings
 
@@ -17,6 +17,7 @@ from . import http
 from .base import Provider, ProviderRequest, ProviderResponse
 
 MISTRAL_EU_HOSTS = frozenset({"api.mistral.ai"})
+AZURE_HOST_SUFFIXES = (".openai.azure.com", ".cognitiveservices.azure.com")
 
 
 def chat_payload(req: ProviderRequest, *, tokens_field: str, image_as_object: bool) -> dict:
@@ -82,13 +83,18 @@ class OpenAIProvider(Provider):
 class AzureOpenAIProvider(Provider):
     """Azure OpenAI: модель = имя развёртывания. ЕС гарантирует тип развёртывания
     «Data Zone Standard (EU)» — его выбирает владелец (docs/ai-providers-setup §3.2);
-    проверить тип из кода нельзя, поэтому маршрут считается ЕС по документированной
-    настройке."""
+    проверить тип из кода нельзя, поэтому ЕС только при ЯВНОМ подтверждении
+    `AZURE_OPENAI_EU_DATA_ZONE=True` и адресе https://*.openai.azure.com (ревью AI-0)."""
 
     name = "azure"
 
     def eu_for(self, model: str) -> bool:
-        return True
+        parts = urlsplit(settings.AZURE_OPENAI_ENDPOINT or "")
+        return (
+            bool(settings.AZURE_OPENAI_EU_DATA_ZONE)
+            and parts.scheme == "https"
+            and (parts.hostname or "").endswith(AZURE_HOST_SUFFIXES)
+        )
 
     def call(self, req: ProviderRequest) -> ProviderResponse:
         key = get_or_setting("azure_openai_api_key", "AZURE_OPENAI_API_KEY")
@@ -96,7 +102,7 @@ class AzureOpenAIProvider(Provider):
         if not key or not endpoint or not req.model:
             raise AIConfigError("azure endpoint/key/deployment missing")
         url = (
-            f"{endpoint.rstrip('/')}/openai/deployments/{req.model}/chat/completions"
+            f"{endpoint.rstrip('/')}/openai/deployments/{quote(req.model, safe='')}/chat/completions"
             f"?api-version={settings.AZURE_OPENAI_API_VERSION}"
         )
         body = chat_payload(req, tokens_field="max_completion_tokens", image_as_object=True)
@@ -111,7 +117,8 @@ class MistralProvider(Provider):
     name = "mistral"
 
     def eu_for(self, model: str) -> bool:
-        return (urlsplit(settings.MISTRAL_BASE_URL).hostname or "") in MISTRAL_EU_HOSTS
+        parts = urlsplit(settings.MISTRAL_BASE_URL or "")
+        return parts.scheme == "https" and (parts.hostname or "") in MISTRAL_EU_HOSTS
 
     def call(self, req: ProviderRequest) -> ProviderResponse:
         key = get_or_setting("mistral_api_key", "MISTRAL_API_KEY")

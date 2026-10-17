@@ -56,5 +56,8 @@ if SENTRY_DSN:
         integrations=[DjangoIntegration(), CeleryIntegration()],
         traces_sample_rate=0.1,
         send_default_pii=False,
+        # AI-0: локальные переменные кадров несут промпты ИИ и заголовки с ключами
+        # провайдеров — в Sentry не отправляем.
+        include_local_variables=False,
         environment=env("SENTRY_ENVIRONMENT", default="production"),
     )

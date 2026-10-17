@@ -18,7 +18,8 @@ def check_ai_routes(app_configs=None, **kwargs):
                 )
                 continue
             route = routing.describe(name, tier)
-            if settings.AI_REQUIRE_EU and not routing.allowed(route):
+            # При выключенном слое маршрут не вызывается — не ломаем деплой (check --deploy).
+            if settings.AI_ENABLED and settings.AI_REQUIRE_EU and not routing.allowed(route):
                 problems.append(
                     Error(
                         f"AI_REQUIRE_EU: маршрут {name!r} ({tier}) вне ЕС или фейк — "
@@ -27,16 +28,31 @@ def check_ai_routes(app_configs=None, **kwargs):
                         id="ai.E001",
                     )
                 )
-            if (
+            if settings.AI_ENABLED and name not in providers.FAKE_ROUTES and not route.model:
+                problems.append(
+                    Error(
+                        f"AI_ROUTE_{tier.upper()}: у маршрута {name!r} не задана модель.",
+                        id="ai.E003",
+                    )
+                )
+            elif (
                 settings.AI_ENABLED
                 and name not in providers.FAKE_ROUTES
-                and route.model
                 and not (getattr(settings, "AI_PRICES", None) or {}).get(route.model)
             ):
                 problems.append(
                     Warning(
-                        f"AI_PRICES: нет цены для модели {route.model!r} — бюджет её не учтёт.",
+                        f"AI_PRICES: нет цены для модели {route.model!r} — бюджет считает по "
+                        "пессимистичной AI_DEFAULT_PRICE.",
                         id="ai.W002",
                     )
                 )
+    if settings.AI_ENABLED and not settings.AI_REQUIRE_EU and not settings.DEBUG:
+        problems.append(
+            Warning(
+                "AI_REQUIRE_EU=False на сервере без DEBUG: прямые API вне ЕС разрешены. "
+                "Допустимо только с демо-данными, без реальных клиентов.",
+                id="ai.W004",
+            )
+        )
     return problems
