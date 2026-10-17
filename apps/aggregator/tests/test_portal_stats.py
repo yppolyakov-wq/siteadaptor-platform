@@ -260,3 +260,62 @@ def test_admin_hides_demo_by_default_and_is_superuser_only():
     req.user = mock.Mock(is_superuser=False)
     assert not admin.has_module_permission(req)
     assert not admin.has_add_permission(req) and not admin.has_change_permission(req)
+
+
+# --- ревью V5-1 ---------------------------------------------------------------------
+
+
+def test_sql_failure_inside_outer_transaction_does_not_poison_it():
+    """Учёт зовут из on_commit/атомиков сделки: сбой INSERT не смеет оборвать внешнюю
+    транзакцию (savepoint в `_bump`)."""
+    from django.db import transaction
+
+    lst = _listing()
+    with transaction.atomic():
+        with mock.patch.object(PortalStat._meta, "db_table", "agg_no_such_table"):
+            assert portal_stats.record(_req(), listings=[lst], action="view", channel="portal") == 0
+        assert AggregatorListing.objects.filter(pk=lst.pk).exists()  # транзакция жива
+
+
+def test_duplicate_rows_in_one_batch_count_once():
+    lst = _listing()
+    assert (
+        portal_stats.record(_req(), listings=[lst, lst], action="impression", channel="portal") == 1
+    )
+    assert _count(action="impression") == 1
+
+
+def test_batch_is_capped():
+    lsts = [_listing(source_ref=f"p{i}") for i in range(portal_stats.MAX_BATCH + 5)]
+    assert (
+        portal_stats.record(_req(), listings=lsts, action="impression", channel="portal")
+        == portal_stats.MAX_BATCH
+    )
+
+
+def test_rate_limit_is_checked_before_dedupe_keys_are_written(_private_cache):
+    """Ротация UA не должна раздувать Redis: при превышении лимита ключи дедупа не пишутся."""
+    lst = [_listing(source_ref=f"p{i}") for i in range(3)]
+    cfg = {**portal_stats.settings.AGGREGATOR_PORTAL_STATS, "rate_limit": 1}
+    with override_settings(AGGREGATOR_PORTAL_STATS=cfg):
+        portal_stats.record(_req(ua=UA + " a"), listings=lst, action="view", channel="portal")
+        before = len(_private_cache._cache)
+        portal_stats.record(_req(ua=UA + " b"), listings=lst, action="view", channel="portal")
+    assert len(_private_cache._cache) == before
+    assert _count(action="view") == 3
+
+
+def test_salt_lives_no_longer_than_dedupe_keys():
+    assert portal_stats.SALT_TTL == portal_stats.SEEN_TTL
+
+
+def test_purge_deletes_in_batches():
+    today = timezone.localdate()
+    old = today - timedelta(days=500)
+    for i in range(7):
+        PortalStat.objects.create(
+            day=old, tenant_schema=f"t{i}", action="view", channel="portal", count=1
+        )
+    with mock.patch.object(portal_stats, "PURGE_BATCH", 3):
+        assert portal_stats.purge(today=today) == 7
+    assert not PortalStat.objects.exists()

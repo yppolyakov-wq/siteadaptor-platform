@@ -1,10 +1,14 @@
 """В5: учёт результатов каталога города — агрегат «день × бизнес × предложение ×
 действие × канал» (план docs/v5-portal-analytics-plan-2026-10-17.md).
 
-Порядок для каждого события: робот? → тот же посетитель уже засчитан сегодня? → лимит
-частоты → запись. Посетителя различает HMAC(суточная соль, IP|UA) — соль живёт в кэше
-48 часов и в БД не попадает, поэтому через двое суток хэш не восстановить, а в таблице
-только числа. Недоступный кэш = событие не считаем (недосчёт честнее накрутки).
+Порядок для каждого события: робот? → лимит частоты → тот же посетитель уже засчитан
+сегодня? → запись. Посетителя различает HMAC(суточная соль, IP|UA). В БД попадают только
+числа; в кэше же метка посетителя (псевдоним) живёт до 25 часов вместе с солью — потом
+обе истекают и метку не восстановить (строка для Datenschutzerklärung: «kurzzeitig
+pseudonymisiert im Cache, ohne Cookies»). Недоступный кэш = событие не считаем.
+
+Цифры ориентировочные: без cookie дедуп обходится сменой UA/IP, поэтому учёт НЕ годится
+для биллинга или цены featured-размещения.
 
 Запись — один `INSERT … ON CONFLICT DO UPDATE` на пачку (маячок шлёт до 48 карточек),
 без буфера: штатный RedisCache Django не умеет HINCRBY/RENAME, а дедуп и так сводит
@@ -21,15 +25,17 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import connection
+from django.db import connection, transaction
 from django.utils import timezone
 
 from apps.core import bots, ratelimit
 
 logger = logging.getLogger(__name__)
 
-SALT_TTL = 48 * 3600
 SEEN_TTL = 25 * 3600
+SALT_TTL = SEEN_TTL  # соль не переживает метки, которые она защищает
+MAX_BATCH = 48  # карточек в одной пачке маячка
+PURGE_BATCH = 10_000
 
 
 def _cfg(key: str):
@@ -57,11 +63,28 @@ def _first_today(day, visitor: str, action: str, row: tuple) -> bool:
 
 
 def _rows(listings, tenant_schema, kind, ref, listing_id, is_demo):
+    """Строки к записи, уже обрезанные под поля и без повторов ключа: дубль в одном
+    `INSERT … ON CONFLICT` — ошибка «cannot affect row a second time». Сортировка даёт
+    параллельным пачкам один порядок блокировок (без взаимоблокировок).
+
+    `tenant_schema`/`kind`/`ref` — только серверные значения (листинг из БД или схема
+    текущего запроса), никогда не из параметров запроса: иначе мусор в общей таблице."""
+    raw = []
     if listings:
         for lst in listings:
-            yield (lst.tenant_schema, lst.listing_kind, lst.source_ref, lst.pk, bool(lst.is_demo))
+            raw.append((lst.tenant_schema, lst.listing_kind, lst.source_ref, lst.pk, lst.is_demo))
     elif tenant_schema:
-        yield (tenant_schema, kind or "", ref or "", listing_id, bool(is_demo))
+        raw.append((tenant_schema, kind or "", ref or "", listing_id, is_demo))
+    seen, out = set(), []
+    for schema, k, r, pk, demo in raw:
+        key = ((schema or "")[:63], (k or "")[:20], (r or "")[:64])
+        if key in seen or not key[0]:
+            continue
+        seen.add(key)
+        out.append((*key, pk, bool(demo)))
+        if len(out) >= MAX_BATCH:
+            break
+    return sorted(out, key=lambda row: row[:3])
 
 
 def record(
@@ -96,17 +119,17 @@ def _record(request, action, channel, listings, tenant_schema, kind, ref, listin
         return 0
     if request is None or bots.is_bot(request):
         return 0
-    day = timezone.localdate()
-    visitor = _visitor(request, day)
-    fresh = [
-        row
-        for row in _rows(listings, tenant_schema, kind, ref, listing_id, is_demo)
-        if _first_today(day, visitor, action, row[:3])
-    ]
-    if not fresh:
+    rows = _rows(listings, tenant_schema, kind, ref, listing_id, is_demo)
+    if not rows:
         return 0
+    # Лимит ДО дедупа: иначе смена UA плодила бы ключи дедупа в кэше без всякого лимита.
     limit = _cfg("rate_limit") or 300
     if ratelimit.hit("pstat", ratelimit.client_ip(request), limit=limit, window=3600):
+        return 0
+    day = timezone.localdate()
+    visitor = _visitor(request, day)
+    fresh = [row for row in rows if _first_today(day, visitor, action, row[:3])]
+    if not fresh:
         return 0
     _bump(day, action, channel, fresh)
     return len(fresh)
@@ -121,15 +144,16 @@ def _bump(day, action: str, channel: str, rows) -> None:
     values, params = [], []
     for schema, kind, ref, listing_id, demo in rows:
         values.append("(%s, %s, %s, %s, %s, %s, %s, %s, 1)")
-        params += [day, schema[:63], kind[:20], ref[:64], listing_id, action, channel, demo]
+        params += [day, schema, kind, ref, listing_id, action, channel, demo]
     sql = (
         f"INSERT INTO {table} (day, tenant_schema, listing_kind, source_ref, listing_id, "  # noqa: S608
         "action, channel, is_demo, count) VALUES " + ", ".join(values) + " "
-        "ON CONFLICT (day, tenant_schema, listing_kind, source_ref, action, channel) "
+        "ON CONFLICT (tenant_schema, day, action, channel, listing_kind, source_ref) "
         "DO UPDATE SET count = " + table + ".count + EXCLUDED.count, "
         "listing_id = COALESCE(EXCLUDED.listing_id, " + table + ".listing_id)"
     )
-    with connection.cursor() as cur:
+    # Savepoint: учёт зовут и изнутри атомика сделки — сбой INSERT не обрывает её.
+    with transaction.atomic(), connection.cursor() as cur:
         cur.execute(sql, params)
 
 
@@ -139,5 +163,11 @@ def purge(*, today=None) -> int:
 
     today = today or timezone.localdate()
     cutoff = today - timedelta(days=_cfg("retention_days") or 400)
-    deleted, _ = PortalStat.objects.filter(day__lt=cutoff).delete()
-    return deleted
+    old = PortalStat.objects.filter(day__lt=cutoff)
+    total = 0
+    while True:  # пачками: первый прогон после простоя не держит одну длинную транзакцию
+        batch = list(old.order_by().values_list("pk", flat=True)[:PURGE_BATCH])
+        if not batch:
+            return total
+        deleted, _ = PortalStat.objects.filter(pk__in=batch).delete()
+        total += deleted

@@ -471,17 +471,17 @@ class PortalStat(models.Model):
         verbose_name = _("Besuch aus dem Stadtportal")
         verbose_name_plural = _("Besuche aus dem Stadtportal")
         ordering = ["-day", "-count"]
+        # Ключ начинается с бизнеса — он же обслуживает экран владельца
+        # (`tenant_schema = ? AND day >= ?`), отдельный индекс не нужен (database-ревью).
         constraints = [
             models.UniqueConstraint(
-                fields=["day", "tenant_schema", "listing_kind", "source_ref", "action", "channel"],
+                fields=["tenant_schema", "day", "action", "channel", "listing_kind", "source_ref"],
                 name="agg_pstat_uniq",
             )
         ]
-        # `count` ни в одном индексе — инкременты остаются HOT-апдейтами.
-        indexes = [
-            models.Index(fields=["tenant_schema", "-day"], name="agg_pstat_tenant_day_idx"),
-            models.Index(fields=["-day"], name="agg_pstat_day_idx"),
-        ]
+        # `count` не в индексе, но HOT ещё требует места на странице — его даёт fillfactor
+        # 75 в миграции 0030. Индекс по дню — для чистки и фильтров админки.
+        indexes = [models.Index(fields=["day"], name="agg_pstat_day_idx")]
 
     def __str__(self):
         return f"{self.day} {self.tenant_schema} {self.action} ×{self.count}"
