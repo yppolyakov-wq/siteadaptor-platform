@@ -92,6 +92,16 @@ def execute(run, *, fetch=None) -> None:
     run.html_lang = extracted["lang"][:8]
     run.profile = extracted["profile"]
     run.method = "structured"
+    # T-8.27e: ИИ — только для страниц без структурированных позиций; вызов вне atomic.
+    from . import ai_extract
+
+    ai_items, ai_code = ai_extract.extract(result.pages)
+    known = {i["identity"] for i in extracted["items"]}
+    added = [i for i in ai_items if i["identity"] not in known]
+    if added:
+        extracted["items"] += added
+        run.ai_used = True
+        run.method = "mixed" if len(added) < len(extracted["items"]) else "ai"
     with transaction.atomic():
         run.items.all().delete()
         SiteImportItem.objects.bulk_create(
@@ -108,7 +118,11 @@ def execute(run, *, fetch=None) -> None:
                 for item in extracted["items"]
             ]
         )
-        run.stats = {"pages": len(result.pages), "items": len(extracted["items"])}
+        run.stats = {
+            "pages": len(result.pages),
+            "items": len(extracted["items"]),
+            "ai": ai_code or ("used" if added else ""),
+        }
         run.status = SiteImportRun.STATUS_READY
         run.finished_at = timezone.now()
         run.save()
