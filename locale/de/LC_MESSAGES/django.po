@@ -25314,3 +25314,22 @@ msgstr[0] ""
 msgstr[1] ""
 "%(n)s Positionen verschwinden bald aus dem Stadtkatalog — bitte im Dashboard"
 " bestätigen."
+
+#. Г5
+#, python-format
+msgid ""
+"Noch wenige Geschäfte in %(name)s — Angebote aus der Nähe finden Sie weiter "
+"unten."
+msgstr ""
+"Noch wenige Geschäfte in %(name)s — Angebote aus der Nähe finden Sie weiter "
+"unten."
+
+#. Г5
+#, python-format
+msgid "Auch in der Nähe: %(name)s"
+msgstr "Auch in der Nähe: %(name)s"
+
+#. Г5
+#, python-format
+msgid "Alle in %(name)s anzeigen"
+msgstr "Alle in %(name)s anzeigen"

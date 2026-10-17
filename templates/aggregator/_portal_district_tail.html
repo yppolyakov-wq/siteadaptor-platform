@@ -1,0 +1,11 @@
+{% load i18n %}{# Г5: «Auch in der Nähe» — соседние районы под выдачей района, где мало бизнесов; группа на соседа, ссылка на его страницу с той же областью. #}
+{% for group in district_tail %}
+<section class="mt-10" data-district-tail="{{ group.slug }}">
+  <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+    <h2 class="text-lg font-bold">{% blocktrans with name=group.label %}Auch in der Nähe: {{ name }}{% endblocktrans %}</h2>
+    <a href="{{ group.more_url }}" class="text-sm font-medium hover:underline" style="color: var(--portal-color)" data-district-tail-more>{% blocktrans with name=group.label %}Alle in {{ name }} anzeigen{% endblocktrans %} →</a>
+  </div>
+  {% if group.fuzzy %}<p class="mb-3 text-xs text-gray-500">{% trans "Ähnliche Schreibweise" %}</p>{% endif %}
+  {% include "aggregator/_cards.html" with items=group.items %}
+</section>
+{% endfor %}

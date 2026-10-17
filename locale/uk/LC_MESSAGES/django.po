@@ -25500,3 +25500,20 @@ msgstr[2] ""
 "%(n)s позицій скоро зникнуть з каталогу міста — підтвердьте їх у кабінеті."
 msgstr[3] ""
 "%(n)s позиції скоро зникнуть з каталогу міста — підтвердьте їх у кабінеті."
+
+#. Г5
+#, python-format
+msgid ""
+"Noch wenige Geschäfte in %(name)s — Angebote aus der Nähe finden Sie weiter "
+"unten."
+msgstr "У районі %(name)s поки мало закладів — пропозиції поблизу нижче."
+
+#. Г5
+#, python-format
+msgid "Auch in der Nähe: %(name)s"
+msgstr "Також поблизу: %(name)s"
+
+#. Г5
+#, python-format
+msgid "Alle in %(name)s anzeigen"
+msgstr "Показати все в районі %(name)s"

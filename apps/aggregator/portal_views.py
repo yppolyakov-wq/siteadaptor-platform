@@ -114,6 +114,110 @@ def _collapse_hotels(cards):
     return out
 
 
+def _district_pool(
+    portal, city, business_type, district, q_eff, filters_eff, kinds, new_only, point
+):
+    """Цепочка выборки страницы портала: (outcome, весь пул, пул вида/«Neu», выдача).
+
+    Одна функция для основной выдачи и групп Г5 «Auch in der Nähe» — на этом держится
+    «группа ⊆ выдачи по своей ссылке»: страница соседа строит пул ровно так же."""
+    from dataclasses import replace
+
+    from . import portal_home_blocks as home
+    from . import search as search_engine
+
+    # T-8.20: единый поиск — режим (полнотекст/опечатки) решается ОДИН раз по пулу без
+    # вида и категорий; от него же вкладки, чипы и выдача (иначе вкладка «0», а лента нашла).
+    broad = search_engine.execute(
+        listings_for(
+            city=city,
+            business_type=business_type,
+            district=district,
+            include_demo=portal.show_demo,
+        ),
+        q_eff,
+        replace(filters_eff, kats=(), tags=()),
+        surface="portal",
+        track=False,
+        city=city or "",  # T-8.26 п.4: топонимы города не участвуют в фолбэке опечаток
+        point=point,
+    )
+    whole_pool = broad.qs
+    base_pool = home.apply_scope(
+        whole_pool.filter(listing_kind__in=kinds), home.FeedScope(new_only=new_only)
+    )
+    pool = search_engine.apply_filters(
+        base_pool, search_engine.SearchFilters(kats=filters_eff.kats, tags=filters_eff.tags)
+    )
+    return broad, whole_pool, base_pool, pool
+
+
+def _district_tail(
+    portal,
+    district,
+    *,
+    city,
+    business_type,
+    facet,
+    q_eff,
+    filters_eff,
+    kinds,
+    scope,
+    point,
+    geo_carry,
+    page,
+    collapse,
+    dated_search,
+):
+    """Г5: группы «Auch in der Nähe» + подпись района, или ([], "").
+
+    Только на последней странице выдачи района, только если район не «живой». Не для
+    сорта «Nähe» (там нет страницы — близость уже задана точкой) и не для поиска отеля
+    по датам (доступность соседей не проверяем)."""
+    from dataclasses import replace
+    from urllib.parse import quote
+
+    from apps.core import districts
+
+    from . import district_liveness
+    from . import search as search_engine
+
+    if (
+        not district
+        or not portal.city
+        or page is None
+        or page.has_more
+        or dated_search
+        or district_liveness.is_live(portal, district, business_type)
+    ):
+        return [], ""
+    tail_filters = replace(filters_eff, district="")
+    # Та же область, что у страницы района: вид/«Neu», запрос (уже без фразы района),
+    # фильтры и точка; курсор — позиция в чужой выдаче, его не переносим.
+    carry = urlencode(
+        [(k, v) for k, v in _scope_pairs(scope) + search_engine.carry(q_eff, tail_filters)]
+        + list(geo_carry)
+    )
+    facet_part = f"{quote(facet, safe='')}/" if facet else ""
+
+    def pool_for(slug):
+        outcome, _whole, _base, pool = _district_pool(
+            portal, city, business_type, slug, q_eff, tail_filters, kinds, scope.new_only, point
+        )
+        return pool, outcome
+
+    def more_url_for(slug):
+        path = f"/stadtteil/{slug}/{facet_part}"
+        return f"{path}?{carry}" if carry else path
+
+    groups = district_liveness.neighbor_tail(
+        portal, district, pool_for=pool_for, more_url_for=more_url_for, collapse=collapse
+    )
+    if not groups:
+        return [], ""
+    return groups, districts.label(portal.city, district)
+
+
 def _with_dates(url, von, bis, guests):
     """Добавить даты/гостей к ссылке на отель (H8b) — глубокая ссылка в прямое
     бронирование с предзаполненным диапазоном."""
@@ -210,23 +314,9 @@ def portal_home(request, facet=None, district=None):
     # в ленту предложений (OFFER_KINDS без товара) и дал пустую выдачу.
     kind = scope.kind_key or ("alle" if (q or filters.kats or filters.tags or filters.size) else "")
     kinds = home.kinds_for(kind) or AggregatorListing.OFFER_KINDS
-    # T-8.20: единый поиск — режим (полнотекст/опечатки) решается ОДИН раз по пулу без
-    # вида и категорий; от него же вкладки, чипы и выдача (иначе вкладка «0», а лента нашла).
-    broad = search_engine.execute(
-        listings_for(
-            city=city,
-            business_type=business_type,
-            district=district,
-            include_demo=portal.show_demo,
-        ),
-        q_eff,
-        replace(filters_eff, kats=(), tags=()),
-        surface="portal",
-        track=False,
-        city=city or "",  # T-8.26 п.4: топонимы города не участвуют в фолбэке опечаток
-        point=point,
+    broad, whole_pool, base_pool, pool = _district_pool(
+        portal, city, business_type, district, q_eff, filters_eff, kinds, scope.new_only, point
     )
-    whole_pool = broad.qs
     # Параметры поиска/фильтров (кроме категорий) — в ссылках вкладок, чипов и формы.
     # T-8.7: координаты посетителя едут в ссылках отдельно (geo.carry), НЕ в search.carry —
     # иначе они попали бы в журнал поиска T-8.21.
@@ -253,19 +343,12 @@ def portal_home(request, facet=None, district=None):
     else:
         kind_chips = _kind_chips(whole_pool.order_by(), request.path, kind)
         portal_tabs = []
-    base_pool = home.apply_scope(
-        whole_pool.filter(listing_kind__in=kinds),
-        home.FeedScope(new_only=scope.new_only),
-    )
     category_chips = category_facets.chips(
         base_pool.order_by(),  # без ранга: чипам нужен только состав
         request.path,
         kat,
         tag,
         extra={"kind": scope.kind_key, "neu": "1" if scope.new_only else "", **dict(carry)},
-    )
-    pool = search_engine.apply_filters(
-        base_pool, search_engine.SearchFilters(kats=filters_eff.kats, tags=filters_eff.tags)
     )
     # Блок Б5: группа «Von <Firma>» — только на первой странице выдачи.
     pool, firm_group, firm_total = _split_firm_matches(pool, q_eff)
@@ -348,9 +431,28 @@ def portal_home(request, facet=None, district=None):
                     c.detail_url = _with_dates(c.detail_url, von, bis, g)
                     kept.append(c)
             cards = kept
+    # Г5: район с малым числом бизнесов — под его выдачей подписанный хвост соседей.
+    district_tail, tail_label = _district_tail(
+        portal,
+        district or filters_eff.district,
+        city=city,
+        business_type=business_type,
+        facet=facet,
+        q_eff=q_eff,
+        filters_eff=filters_eff,
+        kinds=kinds,
+        scope=scope,
+        point=point,
+        geo_carry=geo_carry,
+        page=page,
+        collapse=_collapse_hotels if hotel_portal else None,
+        dated_search=search is not None,
+    )
     from . import reviews
 
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
+    for group in district_tail:
+        reviews.attach_ratings(group["items"])
     canonical = request.build_absolute_uri(request.path)
     heading = " · ".join(
         str(p) for p in (district_label, facet_label, category_chips["label"]) if p
@@ -447,7 +549,13 @@ def portal_home(request, facet=None, district=None):
                 + ([("ansicht", "karte")] if request.GET.get("ansicht") == "karte" else [])
             ),
             # T-8.15: портал показывает демо-бизнесы — честная полоса «Vorschau».
-            "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
+            "shows_demo": portal.show_demo
+            and any(
+                getattr(c, "is_demo", False)
+                for c in [*cards, *(i for g in district_tail for i in g["items"])]
+            ),
+            "district_tail": district_tail,  # Г5
+            "tail_district_label": tail_label,
             "business_link": True,  # G8b: на порталах звёзды ведут на страницу бизнеса
             "near_active": point is not None and filters.sort in ("", "naehe"),  # G8c
             "map_points": geo.map_points(cards),

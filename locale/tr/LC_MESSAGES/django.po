@@ -25384,3 +25384,21 @@ msgstr[0] ""
 "%(n)s öğe yakında şehir kataloğundan kalkacak — lütfen panelden onaylayın."
 msgstr[1] ""
 "%(n)s öğe yakında şehir kataloğundan kalkacak — lütfen panelden onaylayın."
+
+#. Г5
+#, python-format
+msgid ""
+"Noch wenige Geschäfte in %(name)s — Angebote aus der Nähe finden Sie weiter "
+"unten."
+msgstr ""
+"%(name)s bölgesinde henüz az işletme var — yakındaki teklifler aşağıda."
+
+#. Г5
+#, python-format
+msgid "Auch in der Nähe: %(name)s"
+msgstr "Yakında ayrıca: %(name)s"
+
+#. Г5
+#, python-format
+msgid "Alle in %(name)s anzeigen"
+msgstr "%(name)s bölgesindekilerin tümünü göster"

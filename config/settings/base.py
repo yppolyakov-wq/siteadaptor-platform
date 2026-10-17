@@ -302,6 +302,11 @@ AGGREGATOR_PORTAL_STATS = {
     "beacon_limit": env.int("PORTAL_STATS_BEACON_LIMIT", default=120),
 }
 
+# Г5: «живой» район портала — сколько РАЗНЫХ бизнесов нужно району, чтобы не добавлять
+# под его выдачей «Auch in der Nähe» (соседние районы). 0 = функция выключена.
+PORTAL_DISTRICT_MIN_BUSINESSES = env.int("PORTAL_DISTRICT_MIN_BUSINESSES", default=10)
+PORTAL_DISTRICT_COUNT_TTL = env.int("PORTAL_DISTRICT_COUNT_TTL", default=300)  # сек, кэш подсчёта
+
 # T1-c (FB-12): django-rosetta — веб-редактор переводов .po (на /rosetta/, public-схема).
 # ⚠️ Правит .po НА ДИСКЕ; в проде ФС эфемерна (образ) → изменения теряются на деплое,
 # пока не закоммичены в git. Рабочий цикл: править в dev/staging → скачать/закоммитить

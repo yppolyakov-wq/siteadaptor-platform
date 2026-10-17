@@ -45,6 +45,19 @@ CITIES: dict[str, tuple[District, ...]] = {
     ),
 }
 
+# Г5: соседние Stadtbezirke (общая граница) — откуда брать «Auch in der Nähe», когда в
+# районе мало бизнесов. Порядок = кого показывать первым. Явный список, а не расстояние по
+# координатам: координаты есть не у всех, а подпись «aus Mitte» обязана быть стабильной.
+NEIGHBORS: dict[str, dict[str, tuple[str, ...]]] = {
+    "solingen": {
+        "graefrath": ("wald", "mitte"),
+        "wald": ("graefrath", "mitte", "ohligs-aufderhoehe-merscheid"),
+        "mitte": ("graefrath", "wald", "burg-hoehscheid", "ohligs-aufderhoehe-merscheid"),
+        "burg-hoehscheid": ("mitte", "ohligs-aufderhoehe-merscheid"),
+        "ohligs-aufderhoehe-merscheid": ("wald", "mitte", "burg-hoehscheid"),
+    },
+}
+
 # Как город пишется для людей (ключ реестра → название).
 CITY_NAMES: dict[str, str] = {"solingen": "Solingen"}
 
@@ -117,6 +130,11 @@ def normalize(city: str, value: str) -> str:
     if prefix and want.startswith(prefix + "-"):
         return normalize(city, want[len(prefix) + 1 :])
     return ""
+
+
+def neighbors(city: str, slug: str) -> tuple[str, ...]:
+    """Г5: соседние районы по реестру; город вне реестра или незнакомый slug → ()."""
+    return NEIGHBORS.get(city_key(city), {}).get(slug or "", ())
 
 
 def label(city: str, slug: str) -> str:
