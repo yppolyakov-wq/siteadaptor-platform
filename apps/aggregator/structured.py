@@ -98,6 +98,10 @@ def offer_data(listing, *, url: str) -> dict | None:
     availability = availability_iri(listing)
     if availability:
         offer["availability"] = availability
+    # В4: состояние товара — только заявленное владельцем (пусто ≠ «новое»).
+    condition = getattr(listing, "item_condition_iri", "")
+    if condition and listing.listing_kind in ("product", "promotion"):
+        offer["itemCondition"] = condition
     # Без цены (mystery, номер/услуга «на запрос») Offer имеет смысл только при ЯВНОМ
     # наличии (sold_out/on_request); «InStock» по умолчанию без цены — пустой шум.
     explicit = (getattr(listing, "availability", "") or "") in AVAILABILITY

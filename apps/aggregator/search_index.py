@@ -40,6 +40,7 @@ INDEXED_FIELDS = frozenset(
         "city_category",
         "city_tags",
         "category",
+        "item_condition",
     }
 )
 
@@ -59,8 +60,11 @@ def _labels(listing) -> str:
     from apps.core import districts
 
     parts = []
+    condition = getattr(listing, "item_condition", "") or ""
     for lang in ("de", "en"):
         with translation.override(lang):
+            if condition:  # В4: «gebraucht», «Retoure» находят товары в таком состоянии
+                parts.append(listing.item_condition_label)
             cat = cc.category(listing.city_category) if listing.city_category else None
             if cat:
                 parts.append(str(cat.label))
@@ -145,6 +149,7 @@ def refresh(qs) -> int:
         "city_category",
         "city_tags",
         "category",
+        "item_condition",
     ).iterator():
         refresh_listing(listing)
         n += 1

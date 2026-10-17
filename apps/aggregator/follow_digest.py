@@ -145,6 +145,8 @@ def _prepare(item) -> bool:
     item.digest_url = url
     item.digest_title = _clean_line(item.title_text)
     item.digest_business = _clean_line(item.business_name)
+    # В2: условие цены одной строкой (текст владельца — без управляющих символов).
+    item.digest_condition = _clean_line(item.price_condition_label)
     return True
 
 

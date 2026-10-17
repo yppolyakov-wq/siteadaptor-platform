@@ -159,6 +159,14 @@ class AggregatorListing(I18nMixin, models.Model):
         max_length=10, blank=True, default="", choices=PRICE_REFERENCES
     )
 
+    # В2: условие цены акции («2. Stück −50 %») — {kind, n, pay, percent, note}; {} = цена
+    # штуки честная. Пока условие есть, new_price — обычная цена штуки, без скидки.
+    price_condition = models.JSONField(default=dict, blank=True)
+    # В4: состояние товара (код `catalog.Product.CONDITION_CHOICES`; "" = не указано) и
+    # примечание {locale: text}. Без choices: расширение каталога не трогает общую таблицу.
+    item_condition = models.CharField(max_length=20, blank=True, default="")
+    item_condition_note = models.JSONField(default=dict, blank=True)
+
     is_surprise = models.BooleanField(default=False)  # Überraschungstüte (Track B2)
     # Платное продвижение (P2.4a): до этого момента листинг закреплён сверху
     # выдачи с бейджем «Empfohlen». Срок ставит супер-админ (P2.4b добавит
@@ -245,6 +253,43 @@ class AggregatorListing(I18nMixin, models.Model):
         from apps.core import districts
 
         return districts.label(self.city, self.district)
+
+    @property
+    def price_condition_label(self) -> str:
+        """В2: подпись условия цены на языке посетителя («2. Stück −50 %») или ""."""
+        cond = self.price_condition if isinstance(self.price_condition, dict) else {}
+        if not cond:
+            return ""
+        from apps.core import price_conditions
+
+        return price_conditions.label(cond, cond.get("percent"))
+
+    @property
+    def item_condition_label(self) -> str:
+        """В4: подпись состояния товара («Retoure – geprüft») или ""."""
+        if not self.item_condition:
+            return ""
+        from apps.catalog.models import Product
+
+        return str(dict(Product.CONDITION_CHOICES).get(self.item_condition, ""))
+
+    @property
+    def item_condition_note_text(self) -> str:
+        from django.conf import settings
+        from django.utils import translation
+
+        note = self.item_condition_note if isinstance(self.item_condition_note, dict) else {}
+        lang = translation.get_language() or settings.LANGUAGE_CODE
+        return note.get(lang) or note.get(settings.LANGUAGE_CODE) or ""
+
+    @property
+    def item_condition_iri(self) -> str:
+        """В4: schema.org itemCondition; пусто = «не указано» (не заявляем «новое»)."""
+        if not self.item_condition:
+            return ""
+        from apps.core.sellable import ITEM_CONDITION
+
+        return ITEM_CONDITION.get(self.item_condition, "")
 
     def with_channel(self, ch: str, lang: str = "") -> str:
         """T-8.8: ссылка на сайт бизнеса с атрибуцией канала `?ch=<ch>`.

@@ -18,6 +18,38 @@ from apps.core.jobs import idempotent_task
 AVAILABILITY_SOLD_OUT = "sold_out"
 
 
+# В2/В4: поля, которые пишет КАЖДЫЙ построитель снимка. `_upsert_listing` сравнивает только
+# ключи из `defaults` — поле, забытое в одном виде, у этого вида никогда не обновится.
+def _neutral_v2v4() -> dict:
+    return {"price_condition": {}, "item_condition": "", "item_condition_note": {}}
+
+
+def _item_condition(product) -> dict:
+    """В4: состояние товара и примечание {locale: text} для снимка (пусто — не указано)."""
+    code = (getattr(product, "condition", "") or "") if product is not None else ""
+    if not code:
+        return {"item_condition": "", "item_condition_note": {}}
+    note = {}
+    base = (product.condition_note or "").strip()
+    if base:
+        note[settings.LANGUAGE_CODE] = base[:255]
+    overlay = product.condition_note_i18n if isinstance(product.condition_note_i18n, dict) else {}
+    for loc, text in sorted(overlay.items()):
+        text = str(text or "").strip()
+        if loc != settings.LANGUAGE_CODE and text:
+            note[loc] = text[:255]
+    return {"item_condition": code, "item_condition_note": note}
+
+
+def _price_condition(promo, mystery: bool) -> dict:
+    """В2: снимок условия цены; у mystery пусто — подпись раскрыла бы скидку."""
+    cond = None if mystery else promo.price_condition
+    if not cond:
+        return {}
+    percent = int(promo.discount_percent) if promo.discount_percent else None
+    return {**cond, "percent": percent}
+
+
 def _scheme() -> str:
     return "http" if getattr(settings, "DEBUG", False) else "https"
 
@@ -59,6 +91,8 @@ def _snapshot(promotion_id):
         else [],
         # T-8.13b: своя категория товара-цели, сопоставленная с категорией города.
         "product_city_category": _product_city_category(promo),
+        "price_condition": _price_condition(promo, mystery),
+        **_item_condition(promo.product if promo.product_id else None),
     }
 
 
@@ -197,6 +231,7 @@ def sync_listing(tenant_schema, promotion_id) -> str:
         key,
         {
             **_tenant_base_defaults(tenant),
+            **_neutral_v2v4(),
             "promo_uuid": promotion_id,
             "title": snap["title"],
             "teaser": snap["teaser"],
@@ -211,6 +246,9 @@ def sync_listing(tenant_schema, promotion_id) -> str:
             "detail_url": f"{_site(tenant)}/p/{promotion_id}/",
             "is_surprise": snap["is_surprise"],
             "availability": snap.get("availability", ""),
+            "price_condition": snap.get("price_condition", {}),
+            "item_condition": snap.get("item_condition", ""),
+            "item_condition_note": snap.get("item_condition_note", {}),
             **_city_fields("promotion", tenant, snap),
             "is_active": True,
         },
@@ -270,6 +308,7 @@ def sync_stay_listing(tenant_schema, unit_id) -> str:
         key,
         {
             **_tenant_base_defaults(tenant),
+            **_neutral_v2v4(),
             "promo_uuid": None,
             "title": snap["title"],
             "teaser": snap["teaser"],
@@ -386,6 +425,7 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
         key,
         {
             **_tenant_base_defaults(tenant),
+            **_neutral_v2v4(),
             "city": snap["city"] or _tenant_base_defaults(tenant)["city"],
             # T-8.17: выездное событие в другом городе — район бизнеса к нему не относится
             "district": _event_district(tenant, snap["city"]),
@@ -450,6 +490,7 @@ def sync_event_listing(tenant_schema, event_id) -> str:
         key,
         {
             **_tenant_base_defaults(tenant),
+            **_neutral_v2v4(),
             # город события точнее города бизнеса (выездной/филиал) — если задан
             "city": snap["city"] or _tenant_base_defaults(tenant)["city"],
             # T-8.17: выездное событие в другом городе — район бизнеса к нему не относится
@@ -855,6 +896,7 @@ def sync_menu_listing(tenant_schema, combo_id) -> str:
         key,
         {
             **_tenant_base_defaults(tenant),
+            **_neutral_v2v4(),
             "promo_uuid": None,
             "title": snap["title"],
             "teaser": snap["teaser"],
@@ -1053,6 +1095,7 @@ def _product_snapshot(product_id):
         "is_new": product.badge == "neu" or bool(fresh),
         "diets": list(product.diets or []),
         "city_category": city.resolve(product.category) if product.category_id else "",
+        **_item_condition(product),
     }
 
 
@@ -1080,6 +1123,7 @@ def sync_product_listing(tenant_schema, product_id) -> str:
         key,
         {
             **_tenant_base_defaults(tenant),
+            **_neutral_v2v4(),
             "promo_uuid": None,
             "title": snap["title"],
             "teaser": snap["teaser"],
@@ -1096,6 +1140,8 @@ def sync_product_listing(tenant_schema, product_id) -> str:
             "is_new": snap["is_new"],
             "diets": snap["diets"],
             "variant_terms": snap["variant_terms"],
+            "item_condition": snap["item_condition"],
+            "item_condition_note": snap["item_condition_note"],
             "is_surprise": False,
             **_city_fields("product", tenant, snap),
             "is_active": True,
@@ -1155,6 +1201,7 @@ def sync_service_listing(tenant_schema, service_id) -> str:
         key,
         {
             **_tenant_base_defaults(tenant),
+            **_neutral_v2v4(),
             "promo_uuid": None,
             "title": snap["title"],
             "teaser": snap["teaser"],
@@ -1206,6 +1253,7 @@ def sync_business_listing(tenant_schema) -> str:
         key,
         {
             **_tenant_base_defaults(tenant),
+            **_neutral_v2v4(),
             "promo_uuid": None,
             "title": {"de": tenant.name},
             "teaser": _business_text(tenant),
@@ -1313,6 +1361,21 @@ def resync_on_product_save(sender, instance, **kwargs):
         tenant_schema=connection.schema_name,
         product_id=str(instance.id),
     )
+    # В4: состояние товара живёт и в листинге акции на этот товар.
+    from apps.promotions.models import Promotion
+
+    from . import stock_sync
+
+    try:
+        ids = list(
+            Promotion.objects.filter(product_id=instance.id, status="active").values_list(
+                "id", flat=True
+            )
+        )
+    except Exception:  # noqa: BLE001 — удаление товара/схема без таблицы
+        ids = []
+    for promo_id in ids:
+        stock_sync.touch_promotion(promo_id)
 
 
 # T-8.26 S2: поля категории, от которых зависит видимость ветки в каталоге города.

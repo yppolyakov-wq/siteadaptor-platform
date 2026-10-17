@@ -139,6 +139,19 @@ def _origin(url: str) -> str:
     return f"{parts.scheme}://{parts.netloc}/" if parts.scheme and parts.netloc else ""
 
 
+def _condition_ext(listing) -> dict | None:
+    cond = listing.price_condition if isinstance(listing.price_condition, dict) else {}
+    if not cond.get("kind"):
+        return None
+    return {
+        "kind": cond.get("kind"),
+        "n": cond.get("n"),
+        "pay": cond.get("pay"),
+        "percent": cond.get("percent"),
+        "label": listing.price_condition_label or None,
+    }
+
+
 def feed_item(listing, *, request, preview: bool) -> dict:
     """Элемент JSON Feed 1.1 + расширение `_siteadaptor` (цена/срок/категория/бизнес)."""
     from .structured import availability_iri, price_visible
@@ -175,6 +188,12 @@ def feed_item(listing, *, request, preview: bool) -> dict:
             "website": _origin(listing.detail_url),
         },
         "sponsored": bool(listing.is_featured_now),
+        # В2: цена действует только при условии («2. Stück −50 %»); price — цена ШТУКИ.
+        "price_condition": _condition_ext(listing),
+        # В4: заявленное состояние товара (код + schema.org), пусто = не указано.
+        "item_condition": listing.item_condition or None,
+        "item_condition_iri": listing.item_condition_iri or None,
+        "item_condition_note": listing.item_condition_note_text or None,
     }
     item = {
         "id": tag_uri(listing),
@@ -257,6 +276,8 @@ def atom_feed(request, *, title: str, home_url: str, page, preview: bool) -> str
     )
     for it in items:
         summary = _xml_safe(it.teaser_text or it.title_text)
+        if it.price_condition_label:
+            summary = f"{it.price_condition_label} · {summary}"
         if price_visible(it):
             summary = f"{it.new_price:.2f} {it.currency or 'EUR'} · {summary}"
         categories = [it.city_category] if it.city_category else []
