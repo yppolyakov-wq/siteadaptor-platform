@@ -5660,6 +5660,7 @@ def marketing_home(request):
     чтение). Новая страница (ничего не заменяет)
     (прецедент integrations_home)."""
     from apps.core import marketing_home as mh
+    from apps.core.roles import is_owner
 
     tenant = request.tenant
 
@@ -5682,7 +5683,7 @@ def marketing_home(request):
             "nav": "promotions",
             "cards": mh.cards(tenant),
             "reminders": mh.reminder_overview(tenant),
-            "metrics": mh.results_panel(tenant),
+            "metrics": mh.results_panel(tenant, owner=is_owner(request.user)),
             "inbox_unread": inbox_unread,
         },
     )

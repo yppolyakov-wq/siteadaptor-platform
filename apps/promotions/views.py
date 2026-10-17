@@ -20,6 +20,7 @@ from apps.catalog.images import delete_stored_image, save_product_image
 from apps.core import owner_login
 from apps.core.documents import document_language
 from apps.core.fsm import IllegalTransition
+from apps.core.roles import is_owner
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
 from apps.promotions import channels as promo_channels
 
@@ -756,6 +757,8 @@ def promotion_quick_done(request, pk):
             "missing_hours": tenant is not None
             and not (tenant.opening_hours_structured or (tenant.opening_hours or "").strip()),
             **owner_login.pending_context(request),  # T-8.5
+            # В5 V5-3: «что принесла акция» — вход в статистику Stadtportal (только владельцу).
+            "portal_stats_link": is_owner(request.user),
         },
     )
 

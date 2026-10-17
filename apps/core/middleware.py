@@ -161,7 +161,13 @@ class CabinetOwnerAccessMiddleware:
     # Team. Приглашённый admin/staff сюда не попадает («пригласить сотрудника»
     # ≠ «отдать бизнес»). Прямые вызовы вьюх в тестах идут мимо middleware —
     # реальный HTTP закрыт здесь fail-closed.
-    _OWNER_ONLY = ("/dashboard/billing/", "/dashboard/recht/", "/dashboard/settings/team/")
+    # В5 V5-3 (решение владельца): статистика Stadtportal — только владельцу.
+    _OWNER_ONLY = (
+        "/dashboard/billing/",
+        "/dashboard/recht/",
+        "/dashboard/settings/team/",
+        "/dashboard/stadtportal/",
+    )
 
     def __init__(self, get_response):
         self.get_response = get_response

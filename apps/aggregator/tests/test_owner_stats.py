@@ -266,3 +266,61 @@ def test_top_ordering_ignores_impression_only_rows_and_merges_business():
     assert titles.count("Ihr Unternehmensprofil") == 1
     assert titles[1] == "Geöffnet"  # открытое раньше «только показов»
     assert titles[2] == "(nicht mehr im Stadtportal)"
+
+
+# --- решения владельца после V5-3: только владельцу + вход с экрана «Fertig» -----
+
+
+def _member(role):
+    from apps.core.models import Membership
+
+    o = uuid4().hex[:8]
+    user = get_user_model().objects.create_user(
+        username=f"m-{o}@t.de", email=f"m-{o}@t.de", password="pw12345678"
+    )
+    Membership.objects.create(user=user, role=role)
+    return user
+
+
+def test_screen_is_owner_only():
+    from django.http import HttpResponse
+
+    from apps.core.middleware import CabinetOwnerAccessMiddleware
+    from apps.core.models import Membership
+
+    mw = CabinetOwnerAccessMiddleware(lambda r: HttpResponse("ok"))
+    t = _tenant()
+    for role, status in ((Membership.ROLE_STAFF, 403), (Membership.ROLE_OWNER, 200)):
+        req = _req(t)
+        req.user = _member(role)
+        assert mw(req).status_code == status, role
+    from apps.core import nav_registry
+
+    assert nav_registry.entry_for("marketing", "portal-stats").owner_only is True
+
+
+def test_marketing_metric_only_for_owner():
+    from apps.core import marketing_home as mh
+
+    t = _tenant()
+    from django.utils import timezone
+
+    _stat(t, "view", 2, day=timezone.localdate())
+    labels = [str(m["label"]) for m in mh.results_panel(t, owner=True)]
+    assert any("Stadtportal" in lbl for lbl in labels)
+    labels = [str(m["label"]) for m in mh.results_panel(t, owner=False)]
+    assert not any("Stadtportal" in lbl for lbl in labels)
+
+
+def test_quick_done_links_portal_stats_for_owner_only():
+    from apps.core.models import Membership
+    from apps.promotions.models import Promotion
+    from apps.promotions.views import promotion_quick_done
+
+    t = _tenant()
+    promo = Promotion.objects.create(status="active", title={"de": "Brot"})
+    for role, shown in ((Membership.ROLE_OWNER, True), (Membership.ROLE_STAFF, False)):
+        req = _req(t)
+        req.user = _member(role)
+        html = promotion_quick_done(req, promo.pk).content.decode()
+        assert ('href="/dashboard/stadtportal/"' in html) is shown, role

@@ -524,6 +524,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Stadtportal"),
         "portal-stats",
         search="stadtportal besuche klicks statistik portal aufrufe",
+        owner_only=True,  # решение владельца: статистику видит только владелец
     ),
     _e("marketing", "promotions:voucher-list", _("Gutscheine"), "vouchers", "loyalty"),
     # W11-1 (Р-2): Kunden влит в Marketing — Kontakte/Nachrichten прямыми табами

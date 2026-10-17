@@ -86,7 +86,7 @@ def reminder_overview(tenant):
     return {"rows": rows, "winback": _safe(_winback, None)}
 
 
-def results_panel(tenant):
+def results_panel(tenant, *, owner=True):
     """Сводная панель результатов — 4 готовых источника, только чтение."""
     metrics = []
 
@@ -169,7 +169,8 @@ def results_panel(tenant):
         metrics.append(_safe(_featured, None))
     # В5 V5-3: каталог города — у всех типов, вне гейта модуля акций (отель без акций
     # тоже в портале). После _views: замок панели ищет первое «Aufrufe».
-    metrics.append(_safe(_portal, None))
+    if owner:  # экран Stadtportal — только владельцу, метрика без входа не нужна
+        metrics.append(_safe(_portal, None))
     if tenant.is_module_active("crm"):
         metrics.append(_safe(_campaigns, None))
     if tenant.is_module_active("reviews"):
