@@ -27,6 +27,17 @@ def route_url(tenant) -> str:
     return ""
 
 
+def external_site(tenant) -> str:
+    """T-8.27d: сайт владельца для кнопки «Zur Website» — только у визитки «eintrag»
+    и только https (адрес задаёт владелец, в href уходит проверенная схема)."""
+    from apps.core.storefront_profile import is_eintrag
+
+    url = (getattr(tenant, "website_url", "") or "").strip()
+    if tenant is None or not is_eintrag(tenant) or not url.startswith("https://"):
+        return ""
+    return url
+
+
 def card_context(tenant, *, subject: str = "") -> dict | None:
     """Данные карточки или None. `subject` — тема WhatsApp-сообщения (акция)."""
     if tenant is None:
@@ -46,4 +57,5 @@ def card_context(tenant, *, subject: str = "") -> dict | None:
         "phone": phone,
         "route_url": route_url(tenant),
         "whatsapp_url": wa_link(getattr(tenant, "whatsapp_number", "") or "", text),
+        "website_url": external_site(tenant),
     }

@@ -2244,7 +2244,9 @@ CATALOG_SORT_KEYS = ("newest", "price_asc", "price_desc")
 
 #: T-8.1: профили витрины (ключ `profile`). "aktionen" = «Nur Aktionen»: визитка + акции,
 #: каталог/корзина скрыты (`apps/core/storefront_profile.py`).
-STOREFRONT_PROFILES = ("aktionen",)
+# T-8.27d: "eintrag" = «Nur Eintrag» — визитка, позиции в каталоге города ведут на
+# сайт владельца.
+STOREFRONT_PROFILES = ("aktionen", "eintrag")
 
 # STU-15c: ДЕФОЛТ СОРТИРОВКИ листингов услуг/номеров/событий. У каталога такая
 # настройка есть с UB2-2 (`catalog_sort`), а на трёх других листингах владелец мог

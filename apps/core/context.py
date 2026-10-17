@@ -181,6 +181,10 @@ def _storefront_bottom_nav(request, tenant):
     aktionen = storefront_profile.is_aktionen(tenant)
     if not aktionen:
         add("storefront-products", _("Menu"), "🍽")
+    from apps.core.business_card import external_site
+
+    if external_site(tenant):  # T-8.27d: визитка — сортимент живёт на сайте владельца
+        add(external_site(tenant), _("Website"), "🌐", is_url=True)
     if modules.is_module_active(tenant, "promotions"):
         if aktionen:
             add("storefront-aktionen", _("Deals"), "🔥", kind="primary")

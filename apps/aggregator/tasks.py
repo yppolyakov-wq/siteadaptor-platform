@@ -1011,6 +1011,29 @@ def _site(tenant) -> str:
     return public_base_url(tenant)
 
 
+def _external_url(tenant, url: str) -> str:
+    """T-8.27d: адрес позиции на сайте владельца — только https и только хост его же
+    сайта (`Tenant.website_url`, без www.). Иначе '' — листинг не уведёт на чужой сайт,
+    даже если кто-то подменил ссылку в карточке товара."""
+    from urllib.parse import urlsplit
+
+    def site(raw):
+        try:
+            host = (urlsplit(raw or "").hostname or "").lower()
+        except ValueError:
+            return ""
+        return host[4:] if host.startswith("www.") else host
+
+    try:
+        scheme = urlsplit(url or "").scheme
+    except ValueError:
+        return ""
+    own = site(getattr(tenant, "website_url", ""))
+    if scheme != "https" or not own or site(url) != own:
+        return ""
+    return url
+
+
 def _category_hidden(category) -> bool:
     """Скрыта ли категория или кто-то из её предков (до 10 уровней)."""
     node, depth = category, 0
@@ -1086,6 +1109,7 @@ def _product_snapshot(product_id):
     )
     savings = product.savings_percent if not product.has_variants else None
     return {
+        "external_url": product.external_url,
         "variant_terms": _variant_terms(product),
         "title": {**(product.name or {})},
         "teaser": {k: str(v)[:300] for k, v in (product.description or {}).items() if v},
@@ -1106,7 +1130,7 @@ def _product_snapshot(product_id):
 
 def sync_product_listing(tenant_schema, product_id) -> str:
     """T-8.11: upsert/remove листинга товара в каталоге города."""
-    from apps.core.storefront_profile import is_aktionen
+    from apps.core.storefront_profile import is_aktionen, is_eintrag
     from apps.tenants.models import Tenant
 
     from .models import AggregatorListing
@@ -1120,8 +1144,17 @@ def sync_product_listing(tenant_schema, product_id) -> str:
         "source_ref": str(product_id),
     }
     # Профиль «Nur Aktionen» выключает каталог на сайте (302 на главную) — карточка
-    # товара вела бы в никуда.
-    if snap is None or tenant is None or _withheld(tenant) or is_aktionen(tenant):
+    # товара вела бы в никуда. T-8.27d: у визитки «eintrag» карточка ведёт на сайт
+    # владельца — листинг жив, только если такой адрес есть и проверен.
+    external = ""
+    if snap is not None and tenant is not None and is_eintrag(tenant):
+        external = _external_url(tenant, snap.get("external_url", ""))
+    if (
+        snap is None
+        or tenant is None
+        or _withheld(tenant)
+        or (is_aktionen(tenant) and not external)
+    ):
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
     _upsert_listing(
@@ -1140,7 +1173,7 @@ def sync_product_listing(tenant_schema, product_id) -> str:
             "price_reference": snap.get("price_reference", ""),
             "starts_at": None,
             "ends_at": None,
-            "detail_url": _site(tenant) + snap["path"],
+            "detail_url": external or (_site(tenant) + snap["path"]),
             "availability": snap["availability"],
             "is_new": snap["is_new"],
             "diets": snap["diets"],
@@ -1177,11 +1210,13 @@ def _service_snapshot(service_id):
         ),
         "price_per_person": service.pricing_mode == "per_person",
         "path": reverse("storefront-service-detail", args=[service.pk], urlconf=TENANT_URLCONF),
+        "external_url": service.external_url,
     }
 
 
 def sync_service_listing(tenant_schema, service_id) -> str:
     """T-8.11: upsert/remove листинга услуги в каталоге города."""
+    from apps.core.storefront_profile import is_eintrag
     from apps.tenants.models import Tenant
 
     from .models import AggregatorListing
@@ -1218,7 +1253,11 @@ def sync_service_listing(tenant_schema, service_id) -> str:
             "discount_percent": None,
             "starts_at": None,
             "ends_at": None,
-            "detail_url": _site(tenant) + snap["path"],
+            # T-8.27d: у визитки «eintrag» — страница услуги на сайте владельца.
+            "detail_url": (
+                (is_eintrag(tenant) and _external_url(tenant, snap.get("external_url", "")))
+                or _site(tenant) + snap["path"]
+            ),
             "price_per_person": snap["price_per_person"],
             "availability": "",
             "is_new": False,

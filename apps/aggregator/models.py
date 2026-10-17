@@ -63,6 +63,21 @@ class ListingQuerySet(models.QuerySet):
         )
 
 
+def _is_platform_host(host) -> bool:
+    """Хост наш (поддомен платформы или подтверждённый домен бизнеса)? Fail-open: без
+    реестра хостов считаем своим — прежнее поведение ссылок не меняется."""
+    from django.conf import settings
+
+    from apps.tenants.hosts import known_hosts
+
+    host = (host or "").lower()
+    base = (getattr(settings, "TENANT_DOMAIN_BASE", "") or "").lower()
+    if base and (host == base or host.endswith("." + base)):
+        return True
+    hosts = known_hosts()
+    return not hosts or host in hosts
+
+
 class AggregatorListing(I18nMixin, models.Model):
     # Вид листинга (A5/A6): акция / размещение по ночам / событие. Один пул, один
     # шаблон карточки; цена/дата/detail_url наполняются по-разному в sync-задачах.
@@ -309,6 +324,10 @@ class AggregatorListing(I18nMixin, models.Model):
         query = parse_qsl(parts.query, keep_blank_values=True)
         if not any(k == "ch" for k, _v in query):
             query.append(("ch", ch))
+        # T-8.27d: позиция визитки ведёт на ЧУЖОЙ сайт владельца — туда только канал
+        # (он видит источник в своей аналитике), без языка портала и номера листинга.
+        if not _is_platform_host(parts.hostname):
+            return urlunsplit(parts._replace(query=urlencode(query)))
         # Блок Б4: язык портала едет на сайт продавца (`hl`, не `lang` — тот занят
         # фильтром языка событий); витрина примет его, только если он у бизнеса включён.
         if lang and not any(k == "hl" for k, _v in query):

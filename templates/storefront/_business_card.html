@@ -16,6 +16,7 @@
     <div class="flex flex-col gap-2">
       {% if bc.route_url %}<a href="{{ bc.route_url }}" target="_blank" rel="noopener" data-route class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-semibold text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">📍 {% trans "Route planen" %}</a>{% endif %}
       {% if bc.phone %}<a href="tel:{{ bc.phone }}" class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium border border-gray-300 hover:bg-gray-50">📞 {% trans "Anrufen" %}</a>{% endif %}
+      {% if bc.website_url %}<a href="{{ bc.website_url }}" target="_blank" rel="noopener" data-external-site class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium border border-gray-300 hover:bg-gray-50">🌐 {% trans "Zur Website" %}</a>{% endif %}
       {% if bc.whatsapp_url %}<a href="{{ bc.whatsapp_url }}" target="_blank" rel="noopener" data-whatsapp class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium border border-gray-300 hover:bg-gray-50">💬 WhatsApp</a>{% endif %}
     </div>
   </div>

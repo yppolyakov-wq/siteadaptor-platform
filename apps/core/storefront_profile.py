@@ -15,6 +15,12 @@ from functools import wraps
 from django.shortcuts import redirect
 
 AKTIONEN = "aktionen"
+#: T-8.27d (Р-A): «Nur Eintrag» — визитка бизнеса без своей витрины у нас. Каталог
+#: скрыт так же, как у «Nur Aktionen», но позиции живут в каталоге города со ссылкой
+#: на сайт владельца (`Product.external_url`).
+EINTRAG = "eintrag"
+#: Лёгкие профили: каталог/корзина на витрине скрыты, ступень бесплатного старта.
+LITE_PROFILES = frozenset({AKTIONEN, EINTRAG})
 
 #: Секции главной, которые при профиле не рендерятся (каталог/наборы).
 HIDDEN_HOME_SECTIONS = frozenset({"products", "categories", "combos"})
@@ -38,12 +44,22 @@ def _config(obj) -> dict:
     return cfg if isinstance(cfg, dict) else {}
 
 
-def is_aktionen(obj) -> bool:
-    """Профиль «Nur Aktionen» включён? Принимает тенанта, запрос или dict конфига."""
+def _profile(obj) -> str:
     tenant = getattr(obj, "tenant", None) if hasattr(obj, "META") else obj
     if tenant is None:
-        return False
-    return _config(tenant).get("profile") == AKTIONEN
+        return ""
+    return _config(tenant).get("profile") or ""
+
+
+def is_aktionen(obj) -> bool:
+    """Лёгкий профиль витрины («Nur Aktionen» или «Nur Eintrag»): каталог и корзина
+    скрыты. Принимает тенанта, запрос или dict конфига."""
+    return _profile(obj) in LITE_PROFILES
+
+
+def is_eintrag(obj) -> bool:
+    """T-8.27d: визитка «Nur Eintrag» — позиции ведут на сайт владельца."""
+    return _profile(obj) == EINTRAG
 
 
 def redirect_if_aktionen(view):
