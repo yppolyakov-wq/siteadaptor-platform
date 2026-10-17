@@ -62,7 +62,9 @@ def purge() -> int:
     total = 0
     while True:
         ids = list(
-            AIUsage.objects.filter(day__lt=cutoff).values_list("pk", flat=True)[:PURGE_BATCH]
+            AIUsage.objects.filter(day__lt=cutoff)
+            .order_by("pk")
+            .values_list("pk", flat=True)[:PURGE_BATCH]
         )
         if not ids:
             return total

@@ -27,7 +27,7 @@ class AIUsage(models.Model):
     class Meta:
         verbose_name = "KI-Nutzung"
         verbose_name_plural = "KI-Nutzung"
-        ordering = ("-created_at",)
+        ordering = ("-id",)  # PK-индекс, без сортировки по created_at
         indexes = [
             models.Index(fields=["day", "tenant_schema"], name="ai_usage_day_tenant"),
         ]
