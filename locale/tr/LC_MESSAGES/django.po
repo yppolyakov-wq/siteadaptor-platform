@@ -24994,3 +24994,16 @@ msgstr "Görüntülemeler ve tıklamalar ziyaretçi, gün ve teklif başına en 
 
 msgid "KI-generiert, bitte prüfen"
 msgstr "Yapay zekâ tarafından oluşturuldu, lütfen kontrol edin"
+
+#, python-format
+msgid "Port %(port)s ist nicht erlaubt."
+msgstr "%(port)s bağlantı noktasına izin verilmiyor."
+
+msgid "Zeitlimit überschritten."
+msgstr "Zaman sınırı aşıldı."
+
+msgid "Inhaltstyp nicht erlaubt."
+msgstr "İçerik türüne izin verilmiyor."
+
+msgid "Zu viele Weiterleitungen."
+msgstr "Çok fazla yönlendirme."

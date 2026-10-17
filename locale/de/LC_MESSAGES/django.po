@@ -24913,3 +24913,16 @@ msgstr "Ansichten und Klicks zählen pro Besucher höchstens einmal am Tag und A
 
 msgid "KI-generiert, bitte prüfen"
 msgstr "KI-generiert, bitte prüfen"
+
+#, python-format
+msgid "Port %(port)s ist nicht erlaubt."
+msgstr "Port %(port)s ist nicht erlaubt."
+
+msgid "Zeitlimit überschritten."
+msgstr "Zeitlimit überschritten."
+
+msgid "Inhaltstyp nicht erlaubt."
+msgstr "Inhaltstyp nicht erlaubt."
+
+msgid "Zu viele Weiterleitungen."
+msgstr "Zu viele Weiterleitungen."

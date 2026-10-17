@@ -24867,3 +24867,16 @@ msgstr "Views and clicks count at most once per visitor, day and offer; every en
 
 msgid "KI-generiert, bitte prüfen"
 msgstr "AI-generated, please check"
+
+#, python-format
+msgid "Port %(port)s ist nicht erlaubt."
+msgstr "Port %(port)s is not allowed."
+
+msgid "Zeitlimit überschritten."
+msgstr "Time limit exceeded."
+
+msgid "Inhaltstyp nicht erlaubt."
+msgstr "Content type not allowed."
+
+msgid "Zu viele Weiterleitungen."
+msgstr "Too many redirects."

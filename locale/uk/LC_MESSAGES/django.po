@@ -25089,3 +25089,16 @@ msgstr "Перегляди й кліки рахуються не частіше 
 
 msgid "KI-generiert, bitte prüfen"
 msgstr "Створено ШІ, перевірте"
+
+#, python-format
+msgid "Port %(port)s ist nicht erlaubt."
+msgstr "Порт %(port)s не дозволено."
+
+msgid "Zeitlimit überschritten."
+msgstr "Перевищено час очікування."
+
+msgid "Inhaltstyp nicht erlaubt."
+msgstr "Тип вмісту не дозволено."
+
+msgid "Zu viele Weiterleitungen."
+msgstr "Забагато перенаправлень."
