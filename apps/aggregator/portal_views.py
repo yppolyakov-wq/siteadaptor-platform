@@ -829,7 +829,7 @@ def portal_sitemap_xml(request):
 
 
 #: T-8.8 (Р-6): технические GET-пути портала — не для индексации. AI-краулеры открыты.
-PORTAL_DISALLOW = ("/klick/", "/melden/", "/konto/", "/tg/", "/sprache/", "/folgen/")
+PORTAL_DISALLOW = ("/klick/", "/weiter/", "/melden/", "/konto/", "/tg/", "/sprache/", "/folgen/")
 
 
 @static_resource

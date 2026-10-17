@@ -68,9 +68,9 @@ def test_offer_page_renders_with_cta_canonical_and_jsonld():
     html = resp.content.decode()
     assert resp.status_code == 200
     assert "Brotkorb" in html and "Frisch vom Morgen" in html
-    # Кнопка ведёт на сайт бизнеса с атрибуцией портала.
-    # Блок Б4: + язык портала (`&hl=`), в HTML амперсанд экранирован.
-    assert 'href="https://baeckerei.siteadaptor.de/p/1/?ch=portal&amp;hl=de" data-offer-cta' in html
+    # Кнопка ведёт к продавцу через счётчик перехода (В5 V5-2); атрибуцию `?ch=portal`
+    # и язык добавляет редирект (замки — test_portal_stats).
+    assert f'href="/weiter/{listing.pk}/" rel="nofollow" data-offer-cta' in html
     # Стратегия А: canonical — страница бизнеса.
     assert '<link rel="canonical" href="https://baeckerei.siteadaptor.de/p/1/">' in html
     assert '"@type":"Offer"' in html and '"price":"4.50"' in html

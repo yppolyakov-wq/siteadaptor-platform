@@ -70,6 +70,8 @@ urlpatterns = [
     path("tg/<str:secret>/", portal_telegram.webhook, name="portal-telegram-webhook"),
     # D2.3: клик-счётчик featured (то же имя, что в urls_public) — до catch-all.
     path("klick/<int:pk>/", aggregator_views.featured_click, name="aggregator-featured-click"),
+    # В5 V5-2: переход «к продавцу» через счётчик (то же имя, что в urls_public).
+    path("weiter/<int:pk>/", aggregator_views.outbound_click, name="aggregator-outbound"),
     # T-8.6 «Melden» (то же имя, что в urls_public) — до catch-all.
     path("melden/<int:pk>/", aggregator_reports.report_listing, name="aggregator-report"),
     # T-8.24: страница предложения внутри портала (то же имя, что в urls_public).

@@ -41,7 +41,8 @@
     </div>
   {% endif %}
   {% if business_card.portal_url %}
-    <a href="{{ business_card.portal_url }}" class="mt-4 inline-block rounded-xl px-4 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-700" data-business-website>{% trans "Zur Website" %} →</a>
+    {% url 'aggregator-outbound' business_card.pk as out_url %}
+    <a href="{{ out_url|default:business_card.portal_url }}" rel="nofollow" class="mt-4 inline-block rounded-xl px-4 py-2 text-sm font-medium text-white bg-gray-900 hover:bg-gray-700" data-business-website>{% trans "Zur Website" %} →</a>
   {% endif %}
 </div>
 

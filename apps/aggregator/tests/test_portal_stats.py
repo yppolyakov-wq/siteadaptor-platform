@@ -319,3 +319,287 @@ def test_purge_deletes_in_batches():
     with mock.patch.object(portal_stats, "PURGE_BATCH", 3):
         assert portal_stats.purge(today=today) == 7
     assert not PortalStat.objects.exists()
+
+
+# --- V5-2: просмотр страницы предложения/бизнеса и переход к продавцу ----------------
+# План §15. Счёт живёт СНАРУЖИ кэша страницы (P0-1) и не трогает сессию/cookie.
+
+PORTAL_HOST = "solingen.siteadaptor.de"
+LOCMEM = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
+
+def _portal(**kw):
+    from apps.aggregator.models import AggregatorPortal
+
+    defaults = {
+        "host": PORTAL_HOST,
+        "kind": "city",
+        "city": "Solingen",
+        "title": {"de": "Solingen"},
+        "is_active": True,
+    }
+    defaults.update(kw)
+    return AggregatorPortal.objects.create(**defaults)
+
+
+def _page(path, portal=None, ip="10.1.0.1", ua=UA, method="get", **extra):
+    from django.contrib.sessions.backends.cache import SessionStore
+
+    req = getattr(RequestFactory(), method)(
+        path, HTTP_HOST=PORTAL_HOST, HTTP_USER_AGENT=ua, REMOTE_ADDR=ip, **extra
+    )
+    if portal is not None:
+        req.portal = portal
+    req.session = SessionStore()
+    return req
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal", CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_offer_view_counted_on_miss_and_hit_without_cookies(monkeypatch):
+    from django.core.cache import cache as page_cache
+
+    from apps.aggregator import structured, views
+
+    page_cache.clear()
+    portal = _portal()
+    listing = _listing()
+    calls = []
+    orig = structured.listing_ld
+    monkeypatch.setattr(
+        structured, "listing_ld", lambda *a, **kw: calls.append(1) or orig(*a, **kw)
+    )
+    path = f"/angebot/{listing.pk}/"
+    req1, req2 = _page(path, portal, ip="10.1.0.1"), _page(path, portal, ip="10.1.0.2")
+    r1 = views.offer_page(req1, listing.pk)
+    assert r1.status_code == 200
+    assert page_cache.get(f"pubpage2:{PORTAL_HOST}:{path}:de") is not None
+    r2 = views.offer_page(req2, listing.pk)
+    assert r2.status_code == 200 and len(calls) == 1  # второй ответ — из кэша
+    assert not r1.cookies and not r2.cookies
+    for req in (req1, req2):
+        assert req.session.modified is False and req.session.is_empty()
+    assert _count(action="view", channel="portal", listing_id=listing.pk) == 2
+    views.offer_page(_page(path, portal, ip="10.1.0.1"), listing.pk)  # тот же посетитель
+    assert _count(action="view", channel="portal") == 2
+    page_cache.clear()
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_offer_view_channel_entdecken_on_main_domain():
+    from apps.aggregator import views
+
+    listing = _listing()
+    resp = views.offer_page(_page(f"/entdecken/angebot/{listing.pk}/"), listing.pk)
+    assert resp.status_code == 200
+    assert _count(action="view", channel="entdecken") == 1
+    assert _count(channel="portal") == 0
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal", CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_offer_view_not_counted_for_bot_head_404_and_business_redirect(
+    django_assert_num_queries,
+):
+    from django.core.cache import cache as page_cache
+    from django.http import Http404
+
+    from apps.aggregator import views
+
+    page_cache.clear()
+    portal = _portal()
+    listing = _listing()
+    path = f"/angebot/{listing.pk}/"
+    views.offer_page(_page(path, portal, ua="Googlebot/2.1"), listing.pk)  # прогрев кэша
+    with django_assert_num_queries(0):  # бот на hit не платит запросом
+        assert (
+            views.offer_page(_page(path, portal, ua="Googlebot/2.1"), listing.pk).status_code == 200
+        )
+    views.offer_page(_page(path, portal, method="head"), listing.pk)
+    demo = _listing(is_demo=True, tenant_schema="t_demo", source_ref="d1")
+    with pytest.raises(Http404):
+        views.offer_page(_page(f"/angebot/{demo.pk}/", portal), demo.pk)
+    biz = _listing(listing_kind="business", source_ref="business", tenant_schema="t_biz")
+    assert views.offer_page(_page(f"/angebot/{biz.pk}/", portal), biz.pk).status_code == 301
+    assert PortalStat.objects.count() == 0
+    page_cache.clear()
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_offer_view_demo_on_preview_portal_is_flagged():
+    from apps.aggregator import views
+
+    portal = _portal(show_demo=True)
+    demo = _listing(is_demo=True)
+    assert views.offer_page(_page(f"/angebot/{demo.pk}/", portal), demo.pk).status_code == 200
+    row = PortalStat.objects.get()
+    assert row.is_demo is True and row.action == "view"
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_business_page_view_counts_business_card_or_tenant_row():
+    from apps.aggregator import reviews_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    portal = _portal()
+    TenantFactory(schema_name="t_brot", slug="brot", name="Brot", city="Solingen")
+    card = _listing(
+        tenant_schema="t_brot",
+        tenant_slug="brot",
+        listing_kind="business",
+        source_ref="business",
+        detail_url="https://brot.siteadaptor.de/",
+    )
+    resp = reviews_views.business_page(_page("/unternehmen/brot/", portal), "brot")
+    assert resp.status_code == 200
+    row = PortalStat.objects.get(tenant_schema="t_brot")
+    assert (row.listing_kind, row.source_ref, row.listing_id) == ("business", "business", card.pk)
+    assert row.channel == "portal" and row.action == "view"
+
+    TenantFactory(schema_name="t_demo", slug="demo", name="Demo", city="Solingen", is_demo=True)
+    preview = _portal(host="preview.siteadaptor.de", show_demo=True)
+    reviews_views.business_page(_page("/unternehmen/demo/", preview), "demo")
+    row = PortalStat.objects.get(tenant_schema="t_demo")
+    assert (row.listing_kind, row.source_ref, row.listing_id) == ("business", "business", None)
+    assert row.is_demo is True
+
+
+def _outbound(pk, portal=None, **kw):
+    from apps.aggregator import views
+
+    return views.outbound_click(_page(f"/weiter/{pk}/", portal, **kw), pk)
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_outbound_redirect_counts_click_and_appends_cl():
+    portal = _portal()
+    listing = _listing()
+    resp = _outbound(listing.pk, portal)
+    assert resp.status_code == 302
+    assert resp["Location"] == listing.with_channel("portal", lang="de", listing_ref=True)
+    assert resp["Location"].endswith(f"&cl={listing.pk}")
+    assert "no-store" in resp["Cache-Control"]
+    assert "noindex" in resp["X-Robots-Tag"]
+    assert _count(action="click", channel="portal", listing_id=listing.pk) == 1
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_outbound_unknown_hidden_or_out_of_scope_goes_home_without_count():
+    portal = _portal()
+    hidden = _listing(hidden_at=timezone.now(), source_ref="h")
+    other_city = _listing(city="Hilden", tenant_schema="t_hilden", source_ref="o")
+    demo = _listing(is_demo=True, tenant_schema="t_demo", source_ref="d")
+    for pk in (999999, hidden.pk, other_city.pk, demo.pk):
+        resp = _outbound(pk, portal)
+        assert resp.status_code == 302 and resp["Location"] == "/", pk
+    assert PortalStat.objects.count() == 0
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_outbound_non_http_target_goes_home():
+    portal = _portal()
+    for i, url in enumerate(("ftp://x/", "javascript:alert(1)")):
+        listing = _listing(detail_url=url, source_ref=f"bad{i}")
+        assert _outbound(listing.pk, portal)["Location"] == "/"
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_outbound_rate_limited_still_redirects(settings):
+    settings.AGGREGATOR_PORTAL_STATS = {**settings.AGGREGATOR_PORTAL_STATS, "rate_limit": 1}
+    portal = _portal()
+    listing = _listing()
+    _outbound(listing.pk, portal, ip="10.5.5.5")
+    resp = _outbound(listing.pk, portal, ip="10.5.5.5", ua=UA + " Other")
+    assert resp["Location"].startswith("https://pizza.siteadaptor.de/")
+    assert _count(action="click") == 1
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_outbound_head_redirects_without_count_and_post_is_405():
+    portal = _portal()
+    listing = _listing()
+    resp = _outbound(listing.pk, portal, method="head")
+    assert resp.status_code == 302 and resp["Location"].startswith("https://")
+    assert _outbound(listing.pk, portal, method="post").status_code == 405
+    assert PortalStat.objects.count() == 0
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_featured_click_records_click_and_keeps_featured_counter():
+    from apps.aggregator import views
+
+    listing = _listing(featured_until=timezone.now() + timedelta(hours=5))
+    resp = views.featured_click(_page(f"/entdecken/klick/{listing.pk}/"), listing.pk)
+    assert resp["Location"] == listing.with_channel("portal", lang="de", listing_ref=True)
+    listing.refresh_from_db()
+    assert listing.featured_clicks == 1
+    assert _count(action="click", channel="entdecken") == 1
+
+
+def test_with_channel_listing_ref_is_opt_in():
+    listing = _listing()
+    assert "cl=" not in listing.portal_url
+    url = listing.with_channel("portal", lang="de", listing_ref=True)
+    assert url.count(f"cl={listing.pk}") == 1
+    preset = _listing(detail_url="https://pizza.siteadaptor.de/p/1/?cl=7", source_ref="p2")
+    assert preset.with_channel("portal", listing_ref=True).count("cl=") == 1
+
+
+def test_outbound_routes_resolve_before_catch_all():
+    from django.urls import resolve
+
+    from apps.aggregator import views
+
+    assert resolve("/weiter/7/", urlconf="config.urls_portal").func is views.outbound_click
+    match = resolve("/entdecken/weiter/7/", urlconf="config.urls_public")
+    assert match.func is views.outbound_click
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_seller_links_go_through_outbound():
+    from types import SimpleNamespace
+
+    from apps.aggregator import geo, reviews_views, views
+    from apps.tenants.tests.factories import TenantFactory
+
+    portal = _portal()
+    listing = _listing()
+    html = views.offer_page(_page(f"/angebot/{listing.pk}/", portal), listing.pk).content.decode()
+    assert f'href="/weiter/{listing.pk}/" rel="nofollow" data-offer-cta' in html
+    assert '<link rel="canonical" href="https://pizza.siteadaptor.de/p/1/">' in html
+    assert '"url":"https://pizza.siteadaptor.de/p/1/"' in html  # JSON-LD — чистый detail_url
+
+    TenantFactory(schema_name="t_brot", slug="brot", name="Brot", city="Solingen")
+    card = _listing(
+        tenant_schema="t_brot",
+        tenant_slug="brot",
+        listing_kind="business",
+        source_ref="business",
+        detail_url="https://brot.siteadaptor.de/",
+    )
+    html = reviews_views.business_page(_page("/unternehmen/brot/", portal), "brot").content
+    assert f'href="/weiter/{card.pk}/" rel="nofollow"'.encode() in html
+
+    points = geo.map_points([_listing(latitude=51.1, longitude=7.0, source_ref="m1")])
+    assert points[0]["url"].startswith("/weiter/")
+    dated = SimpleNamespace(
+        pk=1,
+        latitude=51.1,
+        longitude=7.0,
+        title_text="Zimmer",
+        is_featured_now=False,
+        range_nights=2,
+        portal_url="https://hotel.siteadaptor.de/u/1/?von=2026-11-01&ch=portal",
+    )
+    assert geo.map_points([dated])[0]["url"] == dated.portal_url  # даты целы
+
+    with override_settings(ROOT_URLCONF="config.urls_public"):
+        req = _page("/entdecken/merkliste/")
+        req.session["shortlist"] = [listing.pk]
+        shortlist_html = views.shortlist_compare(req).content.decode()
+    assert shortlist_html.count(f'href="/entdecken/weiter/{listing.pk}/" rel="nofollow"') == 2
+
+
+def test_robots_disallow_outbound():
+    from apps.aggregator import portal_views, views
+
+    assert "/weiter/" in portal_views.PORTAL_DISALLOW
+    assert "/entdecken/weiter/" in views.PLATFORM_DISALLOW

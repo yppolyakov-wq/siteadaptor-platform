@@ -120,6 +120,13 @@ def map_points(cards) -> list:
                 return reverse("aggregator-featured-click", args=[card.pk])
             except NoReverseMatch:
                 pass
+        elif not getattr(card, "range_nights", None):
+            # В5 V5-2: переход к продавцу — через счётчик. Отельная выдача с датами
+            # (range_nights) идёт напрямую: редирект взял бы листинг из БД и потерял даты.
+            try:
+                return reverse("aggregator-outbound", args=[card.pk])
+            except NoReverseMatch:
+                pass
         return card.portal_url
 
     return [

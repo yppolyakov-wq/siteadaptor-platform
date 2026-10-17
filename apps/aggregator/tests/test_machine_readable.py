@@ -282,7 +282,7 @@ def test_sitemap_urls_are_self_canonical():
 @override_settings(ROOT_URLCONF="config.urls_portal")
 def test_portal_robots_disallows_technical_paths_but_not_ai():
     body = portal_views.portal_robots_txt(_get("/robots.txt", _portal())).content.decode()
-    for p in ("/klick/", "/melden/", "/konto/", "/tg/", "/sprache/"):
+    for p in ("/klick/", "/weiter/", "/melden/", "/konto/", "/tg/", "/sprache/"):
         assert f"Disallow: {p}" in body
     assert "Allow: /" in body and "Sitemap:" in body
     assert "GPTBot" not in body and "ClaudeBot" not in body

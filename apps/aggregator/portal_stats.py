@@ -42,6 +42,20 @@ def _cfg(key: str):
     return settings.AGGREGATOR_PORTAL_STATS.get(key)
 
 
+def channel_for(request) -> str:
+    """Канал = поверхность: портал города или главный домен `/entdecken/`."""
+    return "portal" if getattr(request, "portal", None) is not None else "entdecken"
+
+
+def should_count(request) -> bool:
+    """Дешёвый пред-гейт ДО запроса в БД: бот на cache hit не платит запросом.
+    HEAD/OPTIONS не считаем — это не просмотр человеком."""
+    try:
+        return request.method == "GET" and bool(_cfg("enabled")) and not bots.is_bot(request)
+    except Exception:  # noqa: BLE001 — учёт не смеет ронять страницу
+        return False
+
+
 def _salt(day) -> bytes:
     key = f"pstat:salt:{day.isoformat()}"
     cache.add(key, secrets.token_hex(32), SALT_TTL)  # гонка воркеров: побеждает первый

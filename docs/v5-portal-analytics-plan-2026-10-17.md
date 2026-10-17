@@ -247,3 +247,160 @@ database-reviewer проверяет: состав и порядок уника�
 после дедупа, ОДНИМ `INSERT … ON CONFLICT DO UPDATE` на пачку (маячок шлёт до 48 карточек =
 один запрос). Замки буфера/flush (§9 п.9) заменены на «сбой БД не роняет страницу» и
 «недоступный кэш — не считаем». Beat один — `purge-portal-stats`.
+
+## §15. V5-2 — детальный план (портал: view + click)
+
+Что сделано перед планом: сверка с кодом на 2026-10-17. Все `file:line` проверены. Миграций нет. Новых msgid нет. Новых экранов кабинета нет.
+
+### 15.1 Факты из кода (опора плана)
+
+| Что | Где | Вывод |
+|---|---|---|
+| страница предложения | `apps/aggregator/views.py:962-1016` — `@cache_public_page def offer_page(request, pk)`. 404: `raise Http404` (:976-977). kind=business → 301 на `portal-business` (:978-984) | 404 — это исключение, оно проходит сквозь внешний декоратор. 301 — статус не 200. Ни то ни другое не считается само собой |
+| кэш | `apps/core/pagecache.py:193-222` `cache_public_page`; hit → `_unpack` (:126-139) возвращает `HttpResponse` со статусом 200; miss → ответ вьюхи. Мимо кэша идут: `request.GET` непуст, не-GET, непустая сессия. `_cacheable` :71-116 | внешний декоратор видит `status_code` и при hit, и при miss. Учёт не трогает ни сессию, ни cookie, поэтому `_cacheable` не меняется |
+| область портала | `views.py:887-895` `_offer_in_scope(listing, portal)`: при portal=None всё в области (включая демо); демо на портале только при `show_demo`; город и тип портала | для учёта используем ту же функцию. Модуль держим в `views.py`, чтобы не было циклического импорта |
+| профиль бизнеса | `apps/aggregator/reviews_views.py:55-117` `business_page(request, slug)`. Гейт `_business_or_404` :30-52 (visibility + область, демо по `tenant.is_demo`). `business_card` = `public()` с kind=business (:97-99). Кэша НЕТ | роуты: портал `config/urls_portal.py:63` `unternehmen/<slug>/`, главный домен `config/urls_public.py:88-92` `entdecken/unternehmen/<slug>/`. Имя одно — `portal-business` |
+| ключ карточки бизнеса | `apps/aggregator/tasks.py:1247-1251`: `(schema, "business", "business")` | строка view бизнеса совпадает с ключом листинга |
+| featured-клик | `views.py:319-337` `featured_click`: `public()` БЕЗ проверки области, редирект на `portal_url`. Роуты `urls_portal.py:72`, `urls_public.py:73-77` | образец; добавляем `record(click)` |
+| атрибуция | `apps/aggregator/models.py:294-315` `with_channel(ch, lang)`: только http(s), иначе `""`; `ch`/`hl` не дублируются. `portal_url` :317-323 = `with_channel("portal", lang=текущий)` | новый kwarg `listing_ref=False` |
+| catch-all | портал: `<str:facet>/` (`urls_portal.py:88`), один сегмент. Главный домен: `entdecken/<city>/<business_type>/` (`urls_public.py:111-115`) **съел бы `entdecken/weiter/7/`** (city="weiter") | на главном домене роут обязан стоять ВЫШЕ :110 (рядом с `klick/`, :73-77). На портале — рядом с :72 |
+| robots | `views.py:796-801` `PLATFORM_DISALLOW`; `portal_views.py:832` `PORTAL_DISALLOW` | дописать `weiter` |
+| боты | `apps/core/bots.py:31-39` метод не проверяет | GET проверяем сами |
+
+**Все ссылки «к продавцу» на поверхностях портала и `/entdecken/`:**
+
+| Ссылка | Место | Решение |
+|---|---|---|
+| CTA «Zum Angebot bei …» | `templates/aggregator/offer.html:63` | **перепривязать** |
+| «Zur Website» | `templates/aggregator/portal_business.html:43-44` | **перепривязать** |
+| shortlist: заголовок и «Zum Angebot» | `templates/aggregator/shortlist.html:19,42` (только `/entdecken/`) | **перепривязать** |
+| попап карты (не featured) | `apps/aggregator/geo.py:117-123` `_url` → `card.portal_url` | **перепривязать** через `reverse("aggregator-outbound")` с `NoReverseMatch` → `portal_url`. **Исключение:** у отельной выдачи с датами (`portal_views.py:340-349`) `c.detail_url` переписан `_with_dates`, а у карточки есть `range_nights`. Такие ссылки оставить прямыми: редирект брал бы листинг из БД и потерял бы даты (известный недосчёт v1) |
+| карточки | `templates/aggregator/_cards.html:8-9`: обычная карточка ведёт на `aggregator-offer`, featured — на `featured-click`; `\|default:l.portal_url` — фолбэк для urlconf без роута (тенант, замок `test_offer_page.py:133`) | не трогаем: внутренние ссылки, featured уже идёт через счётчик |
+| «Alle Angebote von …», блоки главной | `portal_home.html:59`, `_home_block.html:5` | внутренние, не трогаем |
+| фид | `open_feed.py:201,297` `with_channel("feed")` | **оставить** (§13 — v2; `url` фида и так ведёт на `aggregator-offer`, там считается view) |
+| сводка жителю | `follow_digest.py:142` `with_channel("digest")` | **оставить** (v2) |
+| canonical/JSON-LD | `views.py:1012`, `structured.py:116` | **оставить**: чистый `detail_url` |
+
+### 15.2 Изменения (по файлам)
+
+1. **`apps/aggregator/models.py:294`** — `with_channel(self, ch, lang="", listing_ref=False)`: при `listing_ref and self.pk` и отсутствии `cl` в query дописать `("cl", str(self.pk))` после `hl`. Значение по умолчанию False, поэтому `portal_url`, фид и сводка байт-в-байт прежние.
+
+2. **`apps/aggregator/portal_stats.py`** — две вещи:
+   - `channel_for(request) -> str`: `"portal"`, если `getattr(request, "portal", None)`, иначе `"entdecken"`;
+   - `def should_count(request) -> bool`: `request.method == "GET" and _cfg("enabled") and not bots.is_bot(request)`. Это дешёвый пред-гейт ДО запроса в БД, чтобы краулер на cache hit не платил запросом.
+
+3. **`apps/aggregator/views.py`**:
+   - `_scoped_listing(request, pk)`: `AggregatorListing.objects.public().filter(pk=pk).only("pk", "tenant_schema", "listing_kind", "source_ref", "is_demo", "city", "business_type", "detail_url").first()` + `_offer_in_scope(...)` → listing или None.
+   - Декоратор `count_offer_view(view)` (определить перед `offer_page`):
+     - вызывает `view`;
+     - если `response.status_code == 200 and portal_stats.should_count(request)`, берёт `listing = _scoped_listing(request, pk)`;
+     - при `listing` вызывает `portal_stats.record(request, action="view", channel=channel_for(request), listings=[listing])`;
+     - весь учётный блок — в `try/except Exception` (fail-safe, лог только типом), потому что запрос `_scoped_listing` идёт вне `record`;
+     - сессию и cookie не трогает;
+     - порядок: `@count_offer_view` → `@cache_public_page` → `def offer_page`.
+
+     Повторная проверка `public()` и области на hit нужна: листинг мог быть скрыт после записи в кэш (TTL).
+   - `def _seller_redirect(listing)`: `url = listing.with_channel("portal", lang=translation.get_language() or "", listing_ref=True)`. Если `url` не начинается с `http://`/`https://` → `redirect("/")`. Иначе `HttpResponseRedirect(url)`. Плюс `Cache-Control: no-store` и `X-Robots-Tag: noindex, nofollow`. Цель — ТОЛЬКО из БД-листинга (`detail_url` пишет синк), из запроса ничего не берётся → open redirect исключён.
+   - `@require_safe def outbound_click(request, pk)`:
+     - `listing = _scoped_listing(request, pk)`; None → `redirect("/")` без счёта (корень валиден на обоих хостах);
+     - при `portal_stats.should_count(request)` → `record(request, action="click", channel=channel_for(request), listings=[listing])`. Лимит частоты внутри `record`: при превышении редирект всё равно уходит, просто без счёта;
+     - `return _seller_redirect(listing)`.
+   - `featured_click` (:319-337):
+     - `featured_clicks` +1 — как было (замок D2.3);
+     - дополнительно `record(click)`, но только если листинг в области `_offer_in_scope` (на настоящем портале демо не пишем) и `should_count`;
+     - цель — `_seller_redirect(listing)`, то есть тоже с `cl=` и `no-store`. Решение D-1 ниже.
+     - Поведение редиректа для листинга вне области НЕ меняем (минимальная правка).
+
+4. **`apps/aggregator/reviews_views.py:55-117`** — в `business_page` перед `return render(...)`:
+
+   ```python
+   if portal_stats.should_count(request):
+       if card:
+           portal_stats.record(request, action="view", channel=channel_for(request), listings=[card])
+       else:
+           portal_stats.record(
+               request,
+               action="view",
+               channel=channel_for(request),
+               tenant_schema=business.schema_name,
+               kind="business",
+               ref="business",
+               is_demo=business.is_demo,
+           )
+   ```
+
+   `card` — вынести `business_card` в локальную переменную (сейчас он считается внутри dict контекста — :97-99). Почему вызов внутри вьюхи, а не декоратор: страница не кэшируется, тенант и карточка уже загружены, декоратор дублировал бы 2 запроса. Комментарий-предупреждение: «если сюда придёт `@cache_public_page`, учёт выносится в декоратор снаружи (как у offer_page)». Ветки, где страница не отдаётся, считать не нужно: `_business_or_404` бросает `Http404` раньше.
+
+5. **URL**:
+   - `config/urls_portal.py` — после :72: `path("weiter/<int:pk>/", aggregator_views.outbound_click, name="aggregator-outbound")`.
+   - `config/urls_public.py` — после :77, **выше** `entdecken/<str:city>/` (:110): `path("entdecken/weiter/<int:pk>/", aggregator_views.outbound_click, name="aggregator-outbound")`.
+
+6. **Шаблоны** (паттерн «url as var + фолбэк», как в `_cards.html:8`):
+   - `offer.html:63`: `{% url 'aggregator-outbound' listing.pk as out_url %}<a href="{{ out_url|default:listing.portal_url }}" rel="nofollow" data-offer-cta`.
+   - `portal_business.html:44`: то же с `business_card.pk`, `rel="nofollow"`; условие `{% if business_card.portal_url %}` оставить (нет сайта → нет кнопки).
+   - `shortlist.html:19,42`: `{% url 'aggregator-outbound' l.pk %}` + `rel="nofollow"` на обеих ссылках.
+   - `geo.py:117-123`: не-featured и без `getattr(card, "range_nights", None)` → `reverse("aggregator-outbound", args=[card.pk])`, фолбэк `portal_url`. Попап карты рисуется через DOM (`_map.html:54-60`), `rel` там не ставится; заметка: добавить `a.rel = "nofollow"` в `popupLink` — опционально.
+
+7. **robots**: `PORTAL_DISALLOW += ("/weiter/",)` (`portal_views.py:832`), `PLATFORM_DISALLOW += ("/entdecken/weiter/",)` (`views.py:796-801`). Индексируемого контента под ними нет, поэтому урок «Disallow прячет noindex» здесь неприменим.
+
+### 15.3 Решения внутри инкремента
+
+- **D-1.** `cl=` добавляется и у `featured_click`. Без этого сделки с featured-карточек в V5-5 падали бы на «бизнес целиком». Цена — осознанная переписка двух замков D2.3 (`test_featured.py:142,150`: Location = `with_channel(..., listing_ref=True)`). Счётчик `featured_clicks` не меняется.
+- **D-2.** Канал = поверхность: `portal` или `entdecken`. Переходы из фида на страницу предложения считаются view той поверхности (атрибуция фида — v2, §13).
+- **D-3.** На превью-портале (`show_demo`) и на `/entdecken/` демо-листинги в области → строка с `is_demo=True` (берётся из листинга/тенанта в `_rows`). На настоящем портале демо вне области → 404/«/», строки нет.
+
+### 15.4 Замки (написать ДО кода)
+
+В `apps/aggregator/tests/test_portal_stats.py` — новая секция «V5-2». Она переиспользует autouse-фикстуру `_private_cache` (+`isolated_ratelimit`). Запросы — RequestFactory с `HTTP_USER_AGENT=UA`, разными `REMOTE_ADDR`, `req.portal = portal` и `req.session = SessionStore()`.
+
+1. `test_offer_view_counted_on_miss_and_hit_without_cookies` (§9 п.4, P0-1). `@override_settings(ROOT_URLCONF="config.urls_portal", CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)`; spy на `apps.aggregator.structured.listing_ld`.
+   - Два GET от разных IP: оба 200.
+   - После первого `cache.get(f"pubpage2:testserver:/angebot/{pk}/:de")` не None.
+   - Spy вызван 1 раз (второй ответ — из кэша).
+   - `not r1.cookies and not r2.cookies`; у обоих запросов `session.modified is False` и `session.is_empty()`.
+   - `_count(action="view", channel="portal") == 2`.
+   - Третий GET тем же посетителем → по-прежнему 2.
+2. `test_offer_view_channel_entdecken_on_main_domain`: `urls_public`, без portal → `channel="entdecken"`.
+3. `test_offer_view_not_counted_for_bot_head_404_and_business_redirect`:
+   - Googlebot → 0, и при прогретом кэше `django_assert_num_queries(0)` (бот не тратит запрос);
+   - HEAD → 0;
+   - демо на портале без `show_demo` → `Http404`, 0;
+   - kind=business → 301, 0.
+4. `test_offer_view_demo_on_preview_portal_is_flagged`: `show_demo=True` → строка `is_demo=True`.
+5. `test_business_page_view_counts_business_card_or_tenant_row`: с карточкой → строка `(schema, "business", "business")` с `listing_id=card.pk`; без карточки → та же тройка, `listing_id=None`, `is_demo` = флаг тенанта.
+6. `test_outbound_redirect_counts_click_and_appends_cl` (§9 п.6): 302; `Location == listing.with_channel("portal", lang="de", listing_ref=True)` и оканчивается на `&cl=<pk>`; `Cache-Control` содержит `no-store`; `_count(action="click") == 1`.
+7. `test_outbound_unknown_hidden_or_out_of_scope_goes_home_without_count`: 999999 / `hidden_at` / чужой город / демо без `show_demo` → `Location == "/"`, строк нет.
+8. `test_outbound_non_http_target_goes_home`: `detail_url="ftp://x/"` и `"javascript:alert(1)"` → «/».
+9. `test_outbound_rate_limited_still_redirects`: monkeypatch лимита в 1 → второй посетитель с того же IP получает редирект к продавцу, счёт остаётся 1.
+10. `test_outbound_head_redirects_without_count_and_post_is_405`.
+11. `test_featured_click_records_click_and_keeps_featured_counter` (§9 п.7): `featured_clicks == 1` и строка `click` == 1.
+12. `test_with_channel_listing_ref_is_opt_in`: `portal_url` без `cl`; `listing_ref=True` → `cl` ровно один раз; уже заданный `cl` не дублируется.
+13. `test_outbound_routes_resolve_before_catch_all`: `resolve("/weiter/7/", urlconf="config.urls_portal").func is views.outbound_click`; `resolve("/entdecken/weiter/7/", urlconf="config.urls_public").func is views.outbound_click` (а не `city_listing`).
+14. `test_seller_links_go_through_outbound`: CTA offer (`href="/weiter/<pk>/" rel="nofollow" data-offer-cta`), «Zur Website», обе ссылки shortlist (`/entdecken/weiter/<pk>/`), `map_points` без `range_nights` → outbound, с `range_nights` → `portal_url` с датами; canonical и JSON-LD offer-страницы — чистый `detail_url`.
+15. `test_robots_disallow_outbound`: `Disallow: /weiter/` на портале и `Disallow: /entdecken/weiter/` на главном домене.
+
+**Осознанные переписки старых замков:**
+- `test_offer_page.py:73` — href CTA → outbound;
+- `test_portal_block_a.py:205` — «Zur Website» → `/unternehmen/...` на `href="/weiter/<card.pk>/"`;
+- `test_featured.py:124` — карта → outbound;
+- `test_featured.py:142,150` — D-1;
+- `test_machine_readable.py:285` — в цикл добавить `"/weiter/"`.
+
+`test_offer_page.py:133` (фолбэк карточек без роута) и `test_catalog_hygiene.py:223-227` (`portal_url`) не меняются.
+
+### 15.5 i18n, навигация, CSS
+
+- **i18n:** новых строк нет (тексты кнопок прежние). Гейт `scripts/i18n_quickcheck.py` всё равно прогнать — шаблоны правятся.
+- **nav_registry / EXPECTED_UNLISTED:** не нужно. Замки X7 (`apps/core/tests/test_x0_x7_locks.py:158-175`) обходят только `config.urls_tenant`; `test_nav_reachability` — тоже тенантный urlconf.
+- **CSS:** новых Tailwind-классов нет, пересборка `app.css` не нужна. Прогнать `test_template_comments.py`.
+
+### 15.6 Риски
+
+- **Лишний запрос на каждый человеческий cache hit** страницы предложения: один запрос по pk + подзапрос `withheld_schemas`. Боты отсекаются ДО запроса (замок 3). Допустимо.
+- **Общий лимит частоты.** Бакет `pstat` 300/ч на IP общий для view и click; офис за NAT получит недосчёт. Это честный недосчёт, страница не страдает.
+- **Порядок URL на главном домене.** Если роут поставить ниже :110, он молча уйдёт в `city_listing` (200, пустая выдача) → замок 13.
+- **Open redirect.** Цель берётся только из БД-листинга, схемы только http(s) (двойная проверка: `with_channel` + `_seller_redirect`); параметров `next`/`url` нет.
+- **Краулеры и предзагрузка.** `rel=nofollow` + Disallow + `no-store` + `X-Robots-Tag` + `bots.is_bot` (включая `Sec-Purpose: prefetch`).
+- **Отельная выдача с датами на карте** не считается кликом (её не перепривязываем, иначе потеряются даты) — записать в roadmap §Отложено.
+- **Фид и сводка** ведут мимо редиректа — v2 (§13).
+- **Перед мержем:** django-reviewer + security-reviewer (редирект и fail-safe-блок декоратора — в центре).

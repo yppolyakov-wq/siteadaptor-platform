@@ -291,7 +291,7 @@ class AggregatorListing(I18nMixin, models.Model):
 
         return ITEM_CONDITION.get(self.item_condition, "")
 
-    def with_channel(self, ch: str, lang: str = "") -> str:
+    def with_channel(self, ch: str, lang: str = "", listing_ref: bool = False) -> str:
         """T-8.8: ссылка на сайт бизнеса с атрибуцией канала `?ch=<ch>`.
 
         Витрина кладёт канал в сессию (`_capture_channel`), он доезжает до резерва,
@@ -312,6 +312,11 @@ class AggregatorListing(I18nMixin, models.Model):
         # фильтром языка событий); витрина примет его, только если он у бизнеса включён.
         if lang and not any(k == "hl" for k, _v in query):
             query.append(("hl", lang))
+        # В5 V5-2: переход через счётчик портала несёт и листинг (`cl`) — по нему
+        # V5-5 атрибутирует обращение/сделку конкретному предложению. Только по запросу:
+        # фид, сводка и `portal_url` остаются прежними.
+        if listing_ref and self.pk and not any(k == "cl" for k, _v in query):
+            query.append(("cl", str(self.pk)))
         return urlunsplit(parts._replace(query=urlencode(query)))
 
     @property

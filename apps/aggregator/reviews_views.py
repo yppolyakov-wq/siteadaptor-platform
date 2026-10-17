@@ -52,6 +52,29 @@ def _business_or_404(request, slug):
     return tenant
 
 
+def _count_business_view(request, business, card) -> None:
+    """В5 V5-2: просмотр профиля компании. Страница не кэшируется — счёт внутри вьюхи;
+    если сюда придёт `@cache_public_page`, учёт выносится в декоратор СНАРУЖИ кэша
+    (как `views.count_offer_view`). Ключ строки = ключ карточки бизнеса."""
+    from . import portal_stats
+
+    if not portal_stats.should_count(request):
+        return
+    channel = portal_stats.channel_for(request)
+    if card is not None:
+        portal_stats.record(request, action="view", channel=channel, listings=[card])
+    else:
+        portal_stats.record(
+            request,
+            action="view",
+            channel=channel,
+            tenant_schema=business.schema_name,
+            kind=AggregatorListing.KIND_BUSINESS,
+            ref="business",
+            is_demo=bool(business.is_demo),
+        )
+
+
 def business_page(request, slug):
     # A8/E-2: страница бизнеса работает и на главном /entdecken (portal=None):
     # там read-only отзывы (портальный логин — только на портальных хостах).
@@ -75,6 +98,12 @@ def business_page(request, slug):
     from . import follow
 
     follow_target = follow.business_target(business)  # T-8.7: None у демо/скрытых
+    business_card = (
+        AggregatorListing.objects.public()
+        .filter(tenant_slug=slug, listing_kind=AggregatorListing.KIND_BUSINESS)
+        .first()
+    )
+    _count_business_view(request, business, business_card)
     return render(
         request,
         "aggregator/portal_business.html",
@@ -94,9 +123,7 @@ def business_page(request, slug):
             .filter(tenant_slug=slug)
             .exclude(listing_kind=AggregatorListing.KIND_BUSINESS)
             .order_by("-updated_at"),
-            "business_card": AggregatorListing.objects.public()
-            .filter(tenant_slug=slug, listing_kind=AggregatorListing.KIND_BUSINESS)
-            .first(),
+            "business_card": business_card,
             "open_status": business.open_status(),
             "opening_hours": business.opening_hours_localized(get_language()),
             "reviews": review_list,

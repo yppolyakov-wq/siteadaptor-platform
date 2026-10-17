@@ -190,7 +190,7 @@ def test_business_page_has_website_and_excludes_itself_from_offers():
         city="Solingen",
         opening_hours="Mo–Fr 7–18 Uhr",
     )
-    _listing(
+    card = _listing(
         listing_kind="business",
         promo_uuid=None,
         source_ref="biz",
@@ -202,7 +202,7 @@ def test_business_page_has_website_and_excludes_itself_from_offers():
     html = reviews_views.business_page(_get(p, "/unternehmen/brot/"), "brot").content.decode()
     assert "Firmenkarte" not in html  # компания не среди своих предложений
     assert "Brotkorb" in html
-    assert "https://brot.siteadaptor.de/?ch=portal&amp;hl=de" in html  # «Zur Website» (+Б4 язык)
+    assert f'href="/weiter/{card.pk}/" rel="nofollow"' in html  # «Zur Website» через счётчик (В5)
     assert "Handwerksbäckerei seit 1950" in html
     assert "Mo–Fr 7–18 Uhr" in html
     assert "application/ld+json" in html  # LocalBusiness-разметка (тип уточняется по виду бизнеса)

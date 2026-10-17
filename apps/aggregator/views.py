@@ -10,7 +10,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_safe
 
 from apps.core.machine_http import static_resource
 from apps.core.pagecache import cache_public_page
@@ -331,10 +331,72 @@ def featured_click(request, pk):
         return redirect("/")  # корень валиден и на /entdecken-домене, и на портале
     if listing.is_featured_now:
         AggregatorListing.objects.filter(pk=pk).update(featured_clicks=F("featured_clicks") + 1)
-    url = listing.portal_url or ""
-    if not url.startswith(("http://", "https://", "/")):
+    # В5 V5-2: тот же клик — в статистику портала (демо на настоящем портале не пишем).
+    if _offer_in_scope(listing, getattr(request, "portal", None)):
+        _record_click(request, listing)
+    return _seller_redirect(listing)
+
+
+def _record_click(request, listing) -> None:
+    from . import portal_stats
+
+    if portal_stats.should_count(request):
+        portal_stats.record(
+            request,
+            action="click",
+            channel=portal_stats.channel_for(request),
+            listings=[listing],
+        )
+
+
+def _seller_redirect(listing):
+    """В5 V5-2: редирект к продавцу. Цель — только из листинга в БД (detail_url пишет
+    синк), из запроса ничего не берётся → open redirect исключён; схема — только http(s)."""
+    from django.http import HttpResponseRedirect
+    from django.utils import translation
+
+    url = listing.with_channel("portal", lang=translation.get_language() or "", listing_ref=True)
+    if not url.startswith(("http://", "https://")):
         return redirect("/")
-    return redirect(url)
+    resp = HttpResponseRedirect(url)
+    resp["Cache-Control"] = "no-store"
+    resp["X-Robots-Tag"] = "noindex, nofollow"
+    return resp
+
+
+def _scoped_listing(request, pk):
+    """Листинг, который эта поверхность вправе показать (как страница предложения)."""
+    listing = (
+        AggregatorListing.objects.public()
+        .filter(pk=pk)
+        .only(
+            "pk",
+            "tenant_schema",
+            "listing_kind",
+            "source_ref",
+            "is_demo",
+            "city",
+            "business_type",
+            "detail_url",
+        )
+        .first()
+    )
+    if listing is None or not _offer_in_scope(listing, getattr(request, "portal", None)):
+        return None
+    return listing
+
+
+@require_safe
+def outbound_click(request, pk):
+    """В5 V5-2: «к продавцу» с портала/`/entdecken/` — счёт перехода + редирект.
+
+    Вне области/скрытое/неизвестное → корень без счёта. Лимит частоты внутри `record`:
+    при превышении человек всё равно уходит к продавцу, просто без счёта."""
+    listing = _scoped_listing(request, pk)
+    if listing is None:
+        return redirect("/")
+    _record_click(request, listing)
+    return _seller_redirect(listing)
 
 
 def _distinct_cities():
@@ -795,6 +857,7 @@ def sitemap_xml(request):
 #: T-8.8 (Р-6): технические GET-пути основного домена — не для индексации.
 PLATFORM_DISALLOW = (
     "/entdecken/klick/",
+    "/entdecken/weiter/",
     "/entdecken/melden/",
     "/entdecken/merkliste/",
     "/entdecken/folgen/",
@@ -959,6 +1022,36 @@ def _offer_neighbours(listing, pool, *, shown) -> tuple[list, list]:
     return similar, nearby
 
 
+def count_offer_view(view):
+    """В5 V5-2: учёт просмотра СНАРУЖИ кэша страницы — считается и hit, и miss.
+
+    Сессию и cookie не трогает (иначе кэш P0-1 перестал бы отдавать страницу всем).
+    Листинг перепроверяется: его могли скрыть после записи страницы в кэш."""
+    from functools import wraps
+
+    @wraps(view)
+    def wrapper(request, pk, *args, **kwargs):
+        response = view(request, pk, *args, **kwargs)
+        try:
+            from . import portal_stats
+
+            if response.status_code == 200 and portal_stats.should_count(request):
+                listing = _scoped_listing(request, pk)
+                if listing is not None:
+                    portal_stats.record(
+                        request,
+                        action="view",
+                        channel=portal_stats.channel_for(request),
+                        listings=[listing],
+                    )
+        except Exception as exc:  # noqa: BLE001 — учёт не смеет ронять страницу
+            logger.warning("portal offer view count failed: %s", type(exc).__name__)
+        return response
+
+    return wrapper
+
+
+@count_offer_view
 @cache_public_page
 def offer_page(request, pk):
     """T-8.24: страница одного предложения внутри портала (план t8-24-portal-offer-page-plan).

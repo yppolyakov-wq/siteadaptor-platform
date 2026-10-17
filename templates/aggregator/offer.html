@@ -60,7 +60,8 @@
     {% if listing.ends_at and listing.listing_kind != 'event' %}<p class="mt-2 text-sm text-gray-600">⏳ {% blocktrans with d=listing.ends_at|date:"d.m.Y" %}bis {{ d }}{% endblocktrans %}</p>{% endif %}
     {% if listing.teaser_text %}<p class="mt-4 text-gray-700 whitespace-pre-line break-words">{{ listing.teaser_text }}</p>{% endif %}
     <div class="mt-auto pt-6">
-      <a href="{{ listing.portal_url }}" data-offer-cta
+      {% url 'aggregator-outbound' listing.pk as out_url %}
+      <a href="{{ out_url|default:listing.portal_url }}" rel="nofollow" data-offer-cta
          class="block w-full text-center rounded-xl bg-gray-900 text-white px-5 py-3 font-semibold hover:bg-gray-800">{% blocktrans with name=listing.business_name %}Zum Angebot bei {{ name }} →{% endblocktrans %}</a>
       {% url 'aggregator-report' listing.pk as report_url %}
       {% if report_url %}<a href="{{ report_url }}" rel="nofollow" class="block text-right text-xs text-gray-400 hover:text-gray-600 mt-2">⚑ {% trans "Melden" %}</a>{% endif %}

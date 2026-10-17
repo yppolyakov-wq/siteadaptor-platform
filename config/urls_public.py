@@ -75,6 +75,12 @@ urlpatterns = [
         aggregator_views.featured_click,
         name="aggregator-featured-click",
     ),
+    # В5 V5-2: переход «к продавцу» через счётчик — ВЫШЕ catch-all <city>.
+    path(
+        "entdecken/weiter/<int:pk>/",
+        aggregator_views.outbound_click,
+        name="aggregator-outbound",
+    ),
     # T-8.6 «Melden» (имя дублируется в urls_portal — {% url %} везде).
     # T-8.24: страница предложения (до catch-all <city>).
     path("entdecken/angebot/<int:pk>/", aggregator_views.offer_page, name="aggregator-offer"),
