@@ -1,11 +1,11 @@
-{% load i18n %}
+{% load i18n attribution %}
 {% comment %}UA3-2 (A+): ШАГ SUBMIT buy-box номера — POST-форма брони. Разметка 1:1 из
 stay_detail.html; action — из контракта (sellable.submit_url = storefront-unterkunft-book,
 паритет-замок test_buybox_parity). Включается ТОЛЬКО через storefront/_buybox.html при
 sellable.buybox_ready (= quote.available); сервер ре-валидирует наличие в book_stay.{% endcomment %}
 {# id — якорь для form="buybox-form" у полей, уезжающих в портированный диалог. #}
 <form id="buybox-form" method="post" action="{{ sellable.submit_url }}" class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
-  {% csrf_token %}
+  {% csrf_token %}{% portal_attribution_fields %}
   <div class="flex items-baseline justify-between">
     <h2 class="font-semibold">{{ quote.von|date:"d.m.Y" }} → {{ quote.bis|date:"d.m.Y" }}</h2>
     <span class="text-sm text-gray-500">{% blocktrans count n=quote.nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}{% if rooms > 1 %} · {% blocktrans count n=rooms %}{{ n }} room{% plural %}{{ n }} rooms{% endblocktrans %}{% endif %}</span>

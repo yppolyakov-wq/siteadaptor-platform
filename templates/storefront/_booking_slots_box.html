@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n attribution %}
 {% comment %}Багфикс 2026-07-27: динамическая часть страницы слотов РЕСУРСА
 (ресторан «Tisch», групповые курсы) — календарь, навигация по дням, сетка
 времён, форма брони. Полная страница (booking_slots.html) включает её в
@@ -35,7 +35,7 @@
 
 {% if selected %}
 <form method="post" action="{% url 'storefront-termin-book' resource.pk %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-xl mx-auto">
-  {% csrf_token %}
+  {% csrf_token %}{% portal_attribution_fields %}
   {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
   <h2 class="font-semibold">{{ day|date:"d.m.Y" }} · {{ selected.0|time:"H:i" }}–{{ selected.1|time:"H:i" }}</h2>
   <input type="hidden" name="start" value="{{ selected.0.isoformat }}">

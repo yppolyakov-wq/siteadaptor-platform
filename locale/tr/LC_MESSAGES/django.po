@@ -24987,3 +24987,6 @@ msgstr "Şehir portalı (%(n)s gün): görüntüleme · tıklama"
 
 msgid "Als „gesehen“ zählt eine Karte, die mindestens 1 Sekunde zur Hälfte zu sehen war."
 msgstr "Bir kart, en az yarısı en az 1 saniye görünür olduğunda “görüldü” sayılır."
+
+msgid "Ansichten und Klicks zählen pro Besucher höchstens einmal am Tag und Angebot; jede Anfrage und Bestellung zählt einzeln."
+msgstr "Görüntülemeler ve tıklamalar ziyaretçi, gün ve teklif başına en fazla bir kez sayılır; her talep ve sipariş ayrı sayılır."

@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
-from apps.core import listing_composition, option_trackers, ratelimit
+from apps.core import attribution, listing_composition, option_trackers, ratelimit
 from apps.core.fsm import IllegalTransition
 from apps.promotions.services import OutOfStock as PromoSoldOut
 
@@ -120,13 +120,23 @@ def _is_embed(request) -> bool:
     return request.GET.get("embed") == "1" or request.POST.get("embed") == "1"
 
 
+def _flow_qs(request, embed) -> str:
+    """Хвост ссылок многошагового выбора: `embed` (A4) + `ch/cl` каталога города (В5 V5-5b),
+    иначе выбор дня/времени терял бы, откуда пришёл гость."""
+    from urllib.parse import urlencode
+
+    pairs = attribution.query_tail(request)
+    return ("&embed=1" if embed else "") + ("&" + urlencode(pairs) if pairs else "")
+
+
 def _render_embed(request, template, ctx, embed):
     """A4: render витрины записи с минимальным шаблоном и разрешением кадрирования
     при ?embed=1 (iframe-виджет, зеркало stays G10). Иначе — обычная витрина."""
     ctx = {
         **ctx,
         "embed": embed,
-        "embed_qs": "&embed=1" if embed else "",
+        "embed_qs": _flow_qs(request, embed),
+        "attr": attribution.context(request),
         "base_template": "storefront/_embed_base.html" if embed else "storefront/_base.html",
     }
     resp = render(request, template, ctx)
@@ -510,6 +520,7 @@ def service_slots(request, pk):
             other_days,
             embed=_is_embed(request),
             units=units,
+            tail=attribution.query_tail(request),
         ),
         "slot_qs_next": _slot_carry_qs(
             day + timedelta(days=1),
@@ -518,6 +529,7 @@ def service_slots(request, pk):
             other_days,
             embed=_is_embed(request),
             units=units,
+            tail=attribution.query_tail(request),
         ),
         "slot_toggles": _slot_toggles(
             day,
@@ -528,6 +540,7 @@ def service_slots(request, pk):
             duration,
             embed=_is_embed(request),
             units=units,
+            tail=attribution.query_tail(request),
         ),
         # HF-7: выбор длительности — чипы «1× / 2× / …» над сеткой; отрезки
         # (начало-конец) для честного заголовка формы «09:00–12:00».
@@ -536,7 +549,14 @@ def service_slots(request, pk):
         "units": units,
         "unit_minutes": service.duration_minutes,
         "total_minutes": total_minutes,
-        "unit_options": _unit_options(day, chosen, service, units, embed=_is_embed(request)),
+        "unit_options": _unit_options(
+            day,
+            chosen,
+            service,
+            units,
+            embed=_is_embed(request),
+            tail=attribution.query_tail(request),
+        ),
         "max_group_slots": services.MAX_GROUP_SLOTS,
         # Пикер «Choose your specialist» — только при >1 ресурсе И когда ресурсы
         # — ЛЮДИ с профилем (фото/должность/био, A3). Технические ресурсы отеля/
@@ -600,7 +620,12 @@ def service_slots(request, pk):
         return render(
             request,
             "storefront/_service_slots_box.html",
-            {**ctx, "embed": embed, "embed_qs": "&embed=1" if embed else ""},
+            {
+                **ctx,
+                "embed": embed,
+                "embed_qs": _flow_qs(request, embed),
+                "attr": attribution.context(request),
+            },
         )
     # HF-3 (фидбэк владельца #11): страница услуги — как карточка товара (галерея
     # слева, блок цены/выбора справа, описание и прочие секции ниже). Богатый
@@ -741,7 +766,7 @@ def service_review_submit(request, pk):
     )
 
 
-def _unit_options(day, resource, service, units, *, embed=False) -> list[dict]:
+def _unit_options(day, resource, service, units, *, embed=False, tail=()) -> list[dict]:
     """HF-7: чипы длительности («1× 90 Min · 09:00–10:30» … ) — сколько единиц
     услуги подряд. Показываем только те N, для которых в этот день ЕСТЬ старт:
     предлагать заведомо невозможную длину нечестно."""
@@ -761,6 +786,7 @@ def _unit_options(day, resource, service, units, *, embed=False) -> list[dict]:
             pairs.append(("dauer", str(n)))
         if embed:
             pairs.append(("embed", "1"))
+        pairs += list(tail)  # В5 V5-5b: ch/cl каталога города
         rows.append(
             {
                 "n": n,
@@ -772,7 +798,9 @@ def _unit_options(day, resource, service, units, *, embed=False) -> list[dict]:
     return rows if len(rows) > 1 else []
 
 
-def _slot_carry_qs(day, resource, selected_list, other_days, *, embed=False, units=1) -> str:
+def _slot_carry_qs(
+    day, resource, selected_list, other_days, *, embed=False, units=1, tail=()
+) -> str:
     """HF-6c: query-хвост, СОХРАНЯЮЩИЙ выбранные времена при навигации по дням.
 
     Без него переход на соседний день терял уже отмеченные слоты — а гость
@@ -789,11 +817,12 @@ def _slot_carry_qs(day, resource, selected_list, other_days, *, embed=False, uni
         pairs.append(("slot", iso))
     if embed:
         pairs.append(("embed", "1"))
+    pairs += list(tail)  # В5 V5-5b: ch/cl каталога города
     return "?" + urlencode(pairs)
 
 
 def _slot_toggles(
-    day, resource, starts, picked, selected_list, duration, *, embed=False, units=1
+    day, resource, starts, picked, selected_list, duration, *, embed=False, units=1, tail=()
 ) -> list:
     """HF-6c: для каждого старта — ссылка, которая ДОБАВЛЯЕТ или СНИМАЕТ его.
 
@@ -821,6 +850,7 @@ def _slot_toggles(
         pairs += [("slot", x) for x in sorted(keep)]
         if embed:
             pairs.append(("embed", "1"))
+        pairs += list(tail)  # В5 V5-5b: ch/cl каталога города
         rows.append(
             {
                 "start": start,
@@ -918,6 +948,9 @@ def service_book(request, pk):
         if hit is not None and hit[1] * units * persons < price0:
             promo = hit[0]
             slot_plan[0] = (r0, s0, e0, hit[1] * units * persons)
+    from apps.aggregator import conversions
+
+    found = attribution.resolve(request)  # В5 V5-5b: ch/cl скрытыми полями слотов
     try:
         # HF-6c: один период = обычная бронь (байт-в-байт как раньше), несколько —
         # группа в одной транзакции: занятый период откатывает весь набор.
@@ -930,7 +963,7 @@ def service_book(request, pk):
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),
             note=request.POST.get("note", "").strip()[:2000],
-            source_channel=(request.GET.get("ch") or "")[:50],
+            source_channel=found.channel[:50],
             service=service,
             extras=extras_snap,
             voucher_code=request.POST.get("voucher_code", ""),
@@ -960,6 +993,16 @@ def service_book(request, pk):
         # P5: лимит акции исчерпан между показом и отправкой — бронь откатилась.
         messages.error(request, _("Diese Aktion ist leider ausverkauft."))
         return _embed_redirect("storefront-service-slots", embed, pk=pk)
+
+    # В5 V5-5b: группа периодов = одна сделка
+    conversions.count(
+        request,
+        "deal",
+        "booking",
+        booking,
+        attribution=found,
+        once_key=f"booking:{booking.group_code or booking.pk}",
+    )
 
     # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо
     # (прямой opt-in не ставим; подписанным/отписанным — тишина).
@@ -1055,7 +1098,12 @@ def termin_slots(request, pk):
         return render(
             request,
             "storefront/_booking_slots_box.html",
-            {**ctx, "embed": embed, "embed_qs": "&embed=1" if embed else ""},
+            {
+                **ctx,
+                "embed": embed,
+                "embed_qs": _flow_qs(request, embed),
+                "attr": attribution.context(request),
+            },
         )
     return _render_embed(
         request,
@@ -1097,6 +1145,9 @@ def termin_book(request, pk):
     from apps.core import extras as extras_engine
 
     extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "booking")
+    from apps.aggregator import conversions
+
+    found = attribution.resolve(request)  # В5 V5-5b
     try:
         booking = services.book(
             resource,
@@ -1107,7 +1158,7 @@ def termin_book(request, pk):
             phone=request.POST.get("phone", "").strip(),
             party_size=party_size,
             note=request.POST.get("note", "").strip()[:2000],
-            source_channel=(request.GET.get("ch") or "")[:50],
+            source_channel=found.channel[:50],
             extras=extras_snap,
             # SH-23c: способ оплаты и «кто покупает» — общий разбор (счёт юрлицу
             # доступен только фирме, Р-3; срок оплаты по Р-2/Р-4).
@@ -1128,6 +1179,8 @@ def termin_book(request, pk):
             _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
         )
         return _embed_redirect("storefront-termin-slots", embed, pk=pk)
+
+    conversions.count(request, "deal", "booking", booking, attribution=found)  # В5 V5-5b
 
     # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо
     # (прямой opt-in не ставим; подписанным/отписанным — тишина).

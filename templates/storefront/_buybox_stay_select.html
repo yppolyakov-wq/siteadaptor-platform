@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n attribution %}
 {% comment %}UA3-2 (A+) → Батч B (концепт 2026-07-27): ШАГ ВЫБОРА buy-box номера.
 Даты вводятся ОДИН РАЗ: при выбранных датах — компактная дата-полоса («24.07 →
 31.07 · 2 Gäste · ändern») вместо третьей формы; без дат — КАЛЕНДАРЬ как главный
@@ -22,6 +22,7 @@ unterkunft_unit (von/bis/adults/children/rooms/room_choices/embed/…).{% endcom
 
   <form method="get" id="stay-date-form" class="bg-white rounded-2xl shadow-sm p-5 space-y-4 mt-3">
     {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
+    {% portal_attribution_fields %}
     <div class="grid grid-cols-2 gap-3 [&>div]:min-w-0">
       <div>
         <label class="block text-sm font-medium mb-1" for="id_erw">{% trans "Adults" %}</label>

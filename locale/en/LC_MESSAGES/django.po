@@ -24860,3 +24860,6 @@ msgstr "City portal (%(n)s days): views · clicks"
 
 msgid "Als „gesehen“ zählt eine Karte, die mindestens 1 Sekunde zur Hälfte zu sehen war."
 msgstr "A card counts as “seen” when at least half of it was visible for at least 1 second."
+
+msgid "Ansichten und Klicks zählen pro Besucher höchstens einmal am Tag und Angebot; jede Anfrage und Bestellung zählt einzeln."
+msgstr "Views and clicks count at most once per visitor, day and offer; every enquiry and order counts on its own."

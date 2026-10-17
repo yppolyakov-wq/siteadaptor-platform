@@ -24906,3 +24906,6 @@ msgstr "Stadtportal (%(n)s Tage): Aufrufe · Klicks"
 
 msgid "Als „gesehen“ zählt eine Karte, die mindestens 1 Sekunde zur Hälfte zu sehen war."
 msgstr "Als „gesehen“ zählt eine Karte, die mindestens 1 Sekunde zur Hälfte zu sehen war."
+
+msgid "Ansichten und Klicks zählen pro Besucher höchstens einmal am Tag und Angebot; jede Anfrage und Bestellung zählt einzeln."
+msgstr "Ansichten und Klicks zählen pro Besucher höchstens einmal am Tag und Angebot; jede Anfrage und Bestellung zählt einzeln."

@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
-from apps.core import listing_composition, option_trackers, ratelimit
+from apps.core import attribution, listing_composition, option_trackers, ratelimit
 from apps.loyalty.public_views import gift_purchase_active as _gift_purchase_active
 
 from . import availability, payments, pricing, restrictions, services
@@ -522,6 +522,7 @@ def unterkunft_unit(request, pk):
             embed_qs="&embed=1" if _is_embed(request) else "",
         ),
     }
+    ctx["attr"] = attribution.context(request)  # В5 V5-5b: ch/cl в формы дат и брони
     if request.GET.get("buybox") == "1":
         # Батч B: fetch-своп из календаря дат — отдаём ТОЛЬКО фрагмент buy-box
         # (#stay-buybox на детали); партиалы диспатча — те же, что в шаблоне.
@@ -680,6 +681,9 @@ def unterkunft_book(request, pk):
     if active_rates:
         rate_pk = request.POST.get("rate_plan")
         rate_plan = next((r for r in active_rates if str(r.pk) == str(rate_pk)), active_rates[0])
+    from apps.aggregator import conversions
+
+    found = attribution.resolve(request)  # В5 V5-5b
     try:
         booking = services.book_stay(
             unit,
@@ -691,7 +695,7 @@ def unterkunft_book(request, pk):
             adults=adults,
             children=children,
             note=request.POST.get("note", "").strip()[:2000],
-            source_channel=(request.GET.get("ch") or "")[:50],
+            source_channel=found.channel[:50],
             extras=extras_snap,
             rate_plan=rate_plan,
             voucher_code=request.POST.get("voucher_code", "").strip(),
@@ -731,6 +735,8 @@ def unterkunft_book(request, pk):
             request, _("These dates are no longer available. Please pick another range.")
         )
         return redirect(back)
+
+    conversions.count(request, "deal", "stay", booking, attribution=found)  # В5 V5-5b
 
     # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо
     # (прямой opt-in не ставим; уже подписанным/отписанным — тишина).

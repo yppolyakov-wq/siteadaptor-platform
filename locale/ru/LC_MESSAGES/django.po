@@ -25101,3 +25101,6 @@ msgstr "Городской портал (%(n)s дн.): просмотры · п�
 
 msgid "Als „gesehen“ zählt eine Karte, die mindestens 1 Sekunde zur Hälfte zu sehen war."
 msgstr "Карточка считается «увиденной», если не меньше секунды была видна хотя бы наполовину."
+
+msgid "Ansichten und Klicks zählen pro Besucher höchstens einmal am Tag und Angebot; jede Anfrage und Bestellung zählt einzeln."
+msgstr "Просмотры и клики считаются не чаще одного раза в день на посетителя и предложение; каждое обращение и заказ — отдельно."

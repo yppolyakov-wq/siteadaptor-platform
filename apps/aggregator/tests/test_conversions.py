@@ -413,3 +413,105 @@ def test_legacy_session_channel_key_is_not_written_anywhere():
         if "tests" not in p.parts and re.search(r"session\[[\"']src_ch[\"']\]\s*=", p.read_text())
     ]
     assert offenders == []
+
+
+# --- V5-5b: запись по времени и проживание ----------------------------------------
+
+
+def _bookable_service():
+    from apps.booking.models import AvailabilityRule, Resource, Service
+
+    service = Service.objects.create(
+        name=f"Schnitt {uuid.uuid4().hex[:6]}", price_cents=2500, duration_minutes=60
+    )
+    resource = Resource.objects.create(name="Mia", capacity=1)
+    for wd in range(7):
+        AvailabilityRule.objects.create(
+            resource=resource, weekday=wd, start_time="09:00", end_time="18:00", slot_minutes=60
+        )
+    return service
+
+
+def _starts(*hours):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    day = timezone.localdate() + timedelta(days=5)
+    return [
+        timezone.make_aware(timezone.datetime(day.year, day.month, day.day, h, 0)).isoformat()
+        for h in hours
+    ]
+
+
+def test_service_booking_group_is_one_deal_on_service_listing(django_capture_on_commit_callbacks):
+    from apps.booking import public_views
+    from apps.booking.models import Booking
+
+    tenant = _tenant("svc")
+    service = _bookable_service()
+    listing = _listing(tenant.schema_name, listing_kind="service", source_ref=str(service.pk))
+    data = {"start": _starts(10, 12), "name": "Gast", "email": "g@t.de", "ch": "portal"}
+    with django_capture_on_commit_callbacks(execute=True):
+        public_views.service_book(
+            _req("post", f"/termin/{service.pk}/buchen/", data, tenant), pk=service.pk
+        )
+    assert Booking.objects.count() == 2
+    assert {b.source_channel for b in Booking.objects.all()} == {"portal"}
+    assert _deals(action="deal", listing_id=listing.pk) == 1  # группа = одна сделка
+
+
+def test_service_slot_links_and_form_carry_attribution():
+    from apps.booking import public_views
+
+    tenant = _tenant("svclinks")
+    service = _bookable_service()
+    req = _req(
+        "get",
+        f"/termin/{service.pk}/",
+        {"tag": _starts(10)[0][:10], "slot": _starts(10)[0], "ch": "portal", "cl": "5"},
+        tenant,
+    )
+    req.user = SimpleNamespace(is_authenticated=False)
+    body = public_views.service_slots(req, pk=service.pk).content.decode()
+    assert "ch=portal&amp;cl=5" in body  # выбор другого времени/дня не теряет канал
+    assert 'name="ch" value="portal"' in body and 'name="cl" value="5"' in body
+
+
+def test_stay_booking_counts_deal_on_stay_listing(django_capture_on_commit_callbacks):
+    from datetime import timedelta
+
+    from apps.core.tests.dates import future_month_start
+    from apps.stays import public_views
+    from apps.stays.models import StayBooking, StayUnit
+
+    tenant = _tenant("stay")
+    unit = StayUnit.objects.create(name=f"Z {uuid.uuid4().hex[:6]}", price_cents=9000)
+    listing = _listing(tenant.schema_name, listing_kind="stay", source_ref=str(unit.pk))
+    d0 = future_month_start()
+    data = {
+        "von": (d0 + timedelta(days=1)).isoformat(),
+        "bis": (d0 + timedelta(days=3)).isoformat(),
+        "erw": "2",
+        "name": "Gast",
+        "email": "g@t.de",
+        "ch": "portal",
+        "cl": str(listing.pk),
+    }
+    with django_capture_on_commit_callbacks(execute=True):
+        public_views.unterkunft_book(
+            _req("post", f"/unterkunft/{unit.pk}/buchen/", data, tenant), pk=unit.pk
+        )
+    assert StayBooking.objects.get().source_channel == "portal"
+    assert _deals(action="deal", listing_id=listing.pk) == 1
+
+
+def test_stay_date_form_carries_attribution():
+    from apps.stays import public_views
+    from apps.stays.models import StayUnit
+
+    unit = StayUnit.objects.create(name=f"Z {uuid.uuid4().hex[:6]}", price_cents=9000)
+    req = _req("get", f"/unterkunft/{unit.pk}/", {"ch": "portal", "cl": "8"}, _tenant("staysel"))
+    req.user = SimpleNamespace(is_authenticated=False)
+    body = public_views.unterkunft_unit(req, pk=unit.pk).content.decode()
+    assert 'name="ch" value="portal"' in body and 'name="cl" value="8"' in body
