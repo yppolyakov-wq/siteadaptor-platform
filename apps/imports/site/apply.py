@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import io
 import logging
+import uuid
 import zlib
 from dataclasses import dataclass, field
 from decimal import Decimal
@@ -22,7 +23,8 @@ from . import structured
 
 logger = logging.getLogger(__name__)
 IMAGE_TYPES = ("image/jpeg", "image/png", "image/webp")
-MAX_PIXELS = 40_000_000
+MAX_PIXELS = 25_000_000  # ~75 МБ RGB в воркере на одно фото — не больше
+IMAGE_FORMATS = ("JPEG", "PNG", "WEBP")  # парсеры Pillow — только эти (не TIFF/EPS/PSD)
 PROFILE_FIELDS = ("phone", "address", "opening_hours_structured", "description")
 
 
@@ -31,7 +33,11 @@ class ApplyResult:
     created: int = 0
     updated: int = 0
     over_limit: int = 0
-    errors: list = field(default_factory=list)
+    errors: list = field(default_factory=list)  # названия позиций, которые не сохранились
+
+
+class ApplyError(ValueError):
+    """Прогон нельзя применить (не подтверждён, устарел, уже применён)."""
 
 
 def free_limit(tenant) -> int | None:
@@ -95,7 +101,11 @@ def _category(choice: str):
         if existing:
             return existing
         return Category.objects.create(name={"de": name}, slug=unique_slug(Category, name))
-    return Category.objects.filter(pk=choice).first() if choice.isdigit() else None
+    try:
+        pk = uuid.UUID(choice)  # pk категории — UUID (ревью Г1: isdigit() не совпадал никогда)
+    except ValueError:
+        return None
+    return Category.objects.filter(pk=pk).first()
 
 
 def _meta(item):
@@ -117,18 +127,23 @@ def _save_product(item, data, category, target_id):
             **(product.description or {}),
             settings.LANGUAGE_CODE: data["description"],
         }
-    product.base_price = Decimal(price) if price else Decimal("0")
-    product.primary_action = "" if price else "request"
-    product.list_price = None  # PAngV: импорт никогда не создаёт «statt»
-    product.badge = ""
-    if category is not None:
-        product.category = category
     if created:
+        # PAngV: импорт никогда не создаёт «statt»/бейдж; без цены — «Nur auf Anfrage».
+        product.base_price = Decimal(price) if price else Decimal("0")
+        product.primary_action = "" if price else "request"
+        product.list_price = None
+        product.badge = ""
+        product.is_active = True
         product.sku = (data.get("sku") or "")[:100]
         product.gtin = (data.get("gtin") or "")[:14]
+    elif price:
+        # Повторный импорт: правки владельца (скрыт, «statt», бейдж, действие) не трогаем;
+        # цена — только если она есть на сайте (нет цены ≠ «0 €»).
+        product.base_price = Decimal(price)
+    if category is not None:
+        product.category = category
     product.external_url = (data.get("page_url") or "")[:500]
     product.metadata = {**(product.metadata or {}), **_meta(item)}
-    product.is_active = True
     product.save()
     return product, created
 
@@ -144,11 +159,13 @@ def _save_service(item, data, target_id):
     if data.get("description"):
         service.description = data["description"]
     price = data.get("price")
-    service.price_cents = int(Decimal(price) * 100) if price else 0
+    if created or price:
+        service.price_cents = int(Decimal(price) * 100) if price else 0
     if data.get("duration_min"):
         service.duration_minutes = max(5, min(int(data["duration_min"]), 600))
     service.external_url = (data.get("page_url") or "")[:500]
-    service.is_active = True
+    if created:
+        service.is_active = True
     service.save()
     return service, created
 
@@ -166,9 +183,27 @@ def _merge(item, edits: dict) -> dict:
     return data
 
 
+def _locked_run(run):
+    """Прогон под блокировкой: статус перепроверяется уже внутри lock — два «Veröffentlichen»
+    подряд не применят его дважды, а устаревший черновик не перезапишет новый импорт."""
+    from ..models import SiteImportRun
+    from . import verify
+
+    fresh = SiteImportRun.objects.select_for_update().get(pk=run.pk)
+    if fresh.status != SiteImportRun.STATUS_READY:
+        raise ApplyError("not_ready")
+    if SiteImportRun.objects.filter(
+        status=SiteImportRun.STATUS_APPLIED, created_at__gt=fresh.created_at
+    ).exists():
+        raise ApplyError("stale")
+    if not verify.is_verified(fresh):
+        raise ApplyError("unverified")
+    return fresh
+
+
 def apply_items(run, tenant, decisions: dict) -> ApplyResult:
     """decisions: {item_pk(str): {"name", "price", "description", "category"}} — только
-    выбранные владельцем позиции. Остальные помечаются skipped."""
+    выбранные владельцем позиции. Остальные помечаются skipped. Бросает ApplyError."""
     from apps.core.modules import is_module_active
 
     result = ApplyResult()
@@ -176,6 +211,7 @@ def apply_items(run, tenant, decisions: dict) -> ApplyResult:
     limit = free_limit(tenant)
     with transaction.atomic():
         _lock_schema()
+        run = _locked_run(run)
         used = used_count()
         # Сначала отключения/подтверждения: место, освобождённое пропавшей позицией,
         # доступно новой в том же «Veröffentlichen» (лимит считается по живым).
@@ -192,16 +228,16 @@ def apply_items(run, tenant, decisions: dict) -> ApplyResult:
                     item.save(update_fields=["decision", "updated_at"])
                 continue
             if item.diff in (item.DIFF_REMOVED, item.DIFF_UNCHANGED):
-                _confirm(item, deactivate=item.diff == item.DIFF_REMOVED)
-                if item.diff == item.DIFF_REMOVED:
-                    used = used_count()
+                if _confirm(item, deactivate=item.diff == item.DIFF_REMOVED):
+                    used = max(0, used - 1)
                 result.updated += 1
                 continue
             target_kind, target_id = item.target_kind, item.target_id
             if not target_id:
                 target_kind, target_id = _previous_target(item)
-            is_new_target = not target_id
-            if is_new_target and limit is not None and used >= limit:
+            if target_id and not _target_alive(target_kind, target_id):
+                target_kind, target_id = "", ""  # цель удалена владельцем — это новая позиция
+            if not target_id and limit is not None and used >= limit:
                 result.over_limit += 1
                 continue
             data = _merge(item, edits)
@@ -220,7 +256,7 @@ def apply_items(run, tenant, decisions: dict) -> ApplyResult:
                         kind = "product"
             except Exception as exc:  # noqa: BLE001 — одна позиция не роняет остальные
                 logger.warning("site import apply %s: %s", item.pk, type(exc).__name__)
-                result.errors.append(item.pk)
+                result.errors.append(data.get("name") or str(item.pk))
                 continue
             item.data = data
             item.decision = "accepted"
@@ -232,23 +268,39 @@ def apply_items(run, tenant, decisions: dict) -> ApplyResult:
                 used += 1
             else:
                 result.updated += 1
-        run.status = run.STATUS_APPLIED
-        run.save(update_fields=["status", "updated_at"])
-        schema = connection.schema_name
-        transaction.on_commit(lambda: _enqueue_images(schema, run.pk))
+        # Что-то осталось (лимит, ошибка) — прогон остаётся «Bereit»: можно применить
+        # оставшееся позже, без нового обхода.
+        if not result.over_limit and not result.errors:
+            run.status = run.STATUS_APPLIED
+            run.save(update_fields=["status", "updated_at"])
+        if result.created or result.updated:
+            schema = connection.schema_name
+            transaction.on_commit(lambda: _enqueue_images(schema, run.pk))
     return result
 
 
-def _confirm(item, *, deactivate: bool) -> None:
-    """«Bestätigen» без перезаписи каталога: без изменений — только отметка (шов Г3);
-    пропавшая с сайта — позиция отключается (не удаляется: история заказов цела)."""
+def _target_alive(kind: str, target_id: str) -> bool:
     from apps.booking.models import Service
     from apps.catalog.models import Product
 
+    model = Service if kind == "service" else Product
+    try:
+        return model.objects.filter(pk=target_id).exists()  # Product.objects — только живые
+    except Exception:  # noqa: BLE001 — битый id
+        return False
+
+
+def _confirm(item, *, deactivate: bool) -> bool:
+    """«Bestätigen» без перезаписи каталога: без изменений — только отметка (шов Г3);
+    пропавшая с сайта — позиция отключается (не удаляется: история заказов цела).
+    True — позиция ушла из учёта лимита."""
     if not item.target_id:
         kind, target_id = _previous_target(item)
         item.target_kind, item.target_id = kind, target_id
     if deactivate and item.target_id:
+        from apps.booking.models import Service
+        from apps.catalog.models import Product
+
         model = Service if item.target_kind == "service" else Product
         obj = model.objects.filter(pk=item.target_id).first()
         if obj is not None and obj.is_active:
@@ -256,12 +308,26 @@ def _confirm(item, *, deactivate: bool) -> None:
             obj.save()  # через save: хук post_save снимет листинг из каталога города
     item.decision = "accepted"
     item.applied_at = item.confirmed_at = timezone.now()
-    item.save()
+    item.save(
+        update_fields=[
+            "decision", "applied_at", "confirmed_at", "target_kind", "target_id", "updated_at"
+        ]
+    )  # fmt: skip
+    return deactivate
 
 
 def apply_profile(run, tenant, fields) -> list:
-    """Профиль бизнеса: только выбранные поля; пустые поля тенанта — по умолчанию."""
+    """Профиль бизнеса: только выбранные поля; пустые поля тенанта — по умолчанию.
+    Пишется в свежую строку тенанта и только выбранные колонки (W6: request.tenant —
+    снимок начала запроса)."""
+    from apps.tenants.models import Tenant
+
+    from . import verify
+
+    if not verify.is_verified(run):
+        return []
     profile = run.profile or {}
+    fresh = (Tenant.objects.filter(pk=tenant.pk).first() if tenant.pk else None) or tenant
     changed = []
     mapping = {"phone": "contact_phone", "address": "address",
                "opening_hours_structured": "opening_hours_structured"}  # fmt: skip
@@ -270,26 +336,38 @@ def apply_profile(run, tenant, fields) -> list:
         if not value or key not in PROFILE_FIELDS:
             continue
         if key == "description":
-            config = dict(tenant.site_config or {})
+            config = dict(fresh.site_config or {})
             config["about_text"] = structured.plain(value, structured.DESC_MAX)
-            tenant.site_config = config
+            fresh.site_config = config
             changed.append("site_config")
             continue
         attr = mapping[key]
         if attr == "contact_phone":
-            value = structured.plain(value, 30)
-        setattr(tenant, attr, value)
+            value = structured.plain(value, Tenant._meta.get_field("contact_phone").max_length)
+        elif attr == "address":
+            value = structured.plain(value, 300)
+        elif not isinstance(value, dict):
+            continue
+        setattr(fresh, attr, value)
         changed.append(attr)
     if changed:
-        tenant.save(update_fields=sorted(set(changed)))
+        fresh.save(update_fields=sorted(set(changed)))
+        if fresh is not tenant:
+            for attr in set(changed):
+                setattr(tenant, attr, getattr(fresh, attr))
     return changed
 
 
 def _enqueue_images(schema, run_id):
     from ..tasks import fetch_site_import_images
 
+    # Метка времени: второе «Veröffentlichen» того же прогона (оставшиеся позиции)
+    # получает свою задачу, а не «skipped» по замку первой.
+    stamp = int(timezone.now().timestamp())
     fetch_site_import_images.delay(
-        dedupe_key=f"site-import-img:{schema}:{run_id}", schema_name=schema, run_id=str(run_id)
+        dedupe_key=f"site-import-img:{schema}:{run_id}:{stamp}",
+        schema_name=schema,
+        run_id=str(run_id),
     )
 
 
@@ -318,11 +396,11 @@ def fetch_images(run, *, fetch=None) -> int:
             got = fetch(url, accept=IMAGE_TYPES, max_bytes=settings.SITE_IMPORT_MAX_IMAGE_BYTES)
             if not got.ok:
                 continue
-            with Image.open(io.BytesIO(got.body)) as img:
+            with Image.open(io.BytesIO(got.body), formats=IMAGE_FORMATS) as img:
+                if img.width * img.height > MAX_PIXELS or getattr(img, "n_frames", 1) > 1:
+                    continue  # «бомба» ниже порога Pillow / анимация
                 img.verify()
-            with Image.open(io.BytesIO(got.body)) as img:
-                if img.width * img.height > MAX_PIXELS:  # «бомба» ниже порога Pillow
-                    continue
+            with Image.open(io.BytesIO(got.body), formats=IMAGE_FORMATS) as img:
                 img = img.convert("RGB")
                 img.thumbnail((2000, 2000))
                 buf = io.BytesIO()

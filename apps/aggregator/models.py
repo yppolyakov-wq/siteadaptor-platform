@@ -64,8 +64,9 @@ class ListingQuerySet(models.QuerySet):
 
 
 def _is_platform_host(host) -> bool:
-    """Хост наш (поддомен платформы или подтверждённый домен бизнеса)? Fail-open: без
-    реестра хостов считаем своим — прежнее поведение ссылок не меняется."""
+    """Хост наш (поддомен платформы или подтверждённый домен бизнеса)? Fail-closed (ревью
+    Г1): без реестра хостов чужим считаем всё, кроме поддоменов платформы — на сайт
+    владельца (визитка «eintrag») не утекают `hl`/`cl`."""
     from django.conf import settings
 
     from apps.tenants.hosts import known_hosts
@@ -75,7 +76,7 @@ def _is_platform_host(host) -> bool:
     if base and (host == base or host.endswith("." + base)):
         return True
     hosts = known_hosts()
-    return not hosts or host in hosts
+    return host in hosts
 
 
 class AggregatorListing(I18nMixin, models.Model):

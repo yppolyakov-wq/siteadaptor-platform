@@ -15,6 +15,10 @@ _SKIP_TEXT = {"script", "style", "noscript", "template", "nav", "header", "foote
 _MAX_LD_SCRIPTS = 20
 _MAX_LD_BYTES = 300_000
 _MAX_TEXT = 60_000
+# Ревью Г1: страница 2 МБ может нести 100k ссылок — память воркера ограничена.
+_MAX_LINKS = 500
+_MAX_IMAGES = 200
+_MAX_PHONES = 20
 
 
 @dataclass
@@ -58,12 +62,15 @@ class _Parser(HTMLParser):
         elif tag == "a" and a.get("href"):
             href = a["href"].strip()
             if href.lower().startswith("tel:"):
-                self.page.phones.append(href[4:].strip()[:40])
-            elif not href.lower().startswith(("mailto:", "javascript:", "#", "data:")):
+                if len(self.page.phones) < _MAX_PHONES:
+                    self.page.phones.append(href[4:].strip()[:40])
+            elif len(self.page.links) < _MAX_LINKS and not href.lower().startswith(
+                ("mailto:", "javascript:", "#", "data:")
+            ):
                 self.page.links.append(urljoin(self.base, href))
         elif tag == "img":
             src = a.get("src") or a.get("data-src") or ""
-            if src and not src.lower().startswith("data:"):
+            if src and len(self.page.images) < _MAX_IMAGES and not src.lower().startswith("data:"):
                 self.page.images.append(urljoin(self.base, src))
         elif tag == "title":
             self._in_title = True

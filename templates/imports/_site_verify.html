@@ -1,0 +1,16 @@
+{% load i18n %}{% comment %}Ревью Г1: подтверждение владения сайтом. Ожидает verify_meta, verify_file, verify_token; run — опционально (кнопка «Jetzt prüfen»).{% endcomment %}
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6" data-site-verify>
+  <h2 class="font-medium mb-2">{% trans "Website bestätigen" %}</h2>
+  <p class="text-sm text-gray-700 mb-3">{% trans "Damit niemand fremde Websites übernimmt, bestätigen Sie bitte, dass die Website Ihnen gehört. Fügen Sie diese Zeile in den Kopfbereich (head) Ihrer Startseite ein:" %}</p>
+  <code class="block text-xs bg-white border border-gray-200 rounded-lg p-2 mb-3 break-all select-all" data-verify-meta>{{ verify_meta }}</code>
+  <p class="text-sm text-gray-700 mb-1">{% blocktrans with path=verify_file %}Oder legen Sie eine Datei {{ path }} mit diesem Inhalt an:{% endblocktrans %}</p>
+  <code class="block text-xs bg-white border border-gray-200 rounded-lg p-2 mb-3 break-all select-all">{{ verify_token }}</code>
+  {% if run %}
+  <form method="post">
+    {% csrf_token %}<input type="hidden" name="action" value="verify">
+    <button type="submit" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700">{% trans "Jetzt prüfen" %}</button>
+  </form>
+  {% else %}
+  <p class="text-xs text-gray-500">{% trans "Sie können die Website schon vorher auslesen und das Ergebnis ansehen — veröffentlicht wird erst nach der Bestätigung." %}</p>
+  {% endif %}
+</div>

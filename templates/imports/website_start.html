@@ -26,6 +26,9 @@
   </form>
 </div>
 
+{% if not verified_host %}<div class="max-w-xl">{% include "imports/_site_verify.html" %}</div>
+{% else %}<p class="text-sm text-gray-600 mb-6" data-verified-host>{% blocktrans with host=verified_host %}Bestätigte Website: {{ host }}{% endblocktrans %}</p>{% endif %}
+
 {% if runs %}
 <h2 class="font-medium mb-3">{% trans "Letzte Importe" %}</h2>
 <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">

@@ -17,8 +17,10 @@ SITE = "https://laden.example"
 
 @pytest.fixture
 def tenant(db):
+    from apps.imports.tests.site_fakes import verified_run
     from apps.tenants.tests.factories import TenantFactory
 
+    verified_run("laden.example")
     return TenantFactory(
         schema_name="public",
         slug="laden",
@@ -109,9 +111,17 @@ def test_with_channel_custom_domain_is_ours(settings):
 
 def test_external_site_button_only_for_eintrag_https():
     from apps.core.business_card import external_site
+    from apps.imports.tests.site_fakes import verified_run
     from apps.tenants.tests.factories import TenantFactory
 
-    t = TenantFactory.build(website_url=SITE, site_config={"profile": "eintrag"})
+    t = TenantFactory.build(
+        schema_name="public", website_url=SITE, site_config={"profile": "eintrag"}
+    )
+    assert external_site(t) == ""  # сайт не подтверждён — кнопки нет (ревью Г1)
+    verified_run("laden.example")
+    t = TenantFactory.build(
+        schema_name="public", website_url=SITE, site_config={"profile": "eintrag"}
+    )
     assert external_site(t) == SITE
     t.website_url = "http://laden.example"
     assert external_site(t) == ""

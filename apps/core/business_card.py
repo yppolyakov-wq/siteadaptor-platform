@@ -28,12 +28,17 @@ def route_url(tenant) -> str:
 
 
 def external_site(tenant) -> str:
-    """T-8.27d: сайт владельца для кнопки «Zur Website» — только у визитки «eintrag»
-    и только https (адрес задаёт владелец, в href уходит проверенная схема)."""
+    """T-8.27d: сайт владельца для кнопки «Zur Website» — только у визитки «eintrag»,
+    только https и только подтверждённый при импорте сайт (ревью Г1)."""
     from apps.core.storefront_profile import is_eintrag
+    from apps.imports.site.crawl import same_site
+    from apps.imports.site.verify import tenant_verified_host
 
     url = (getattr(tenant, "website_url", "") or "").strip()
     if tenant is None or not is_eintrag(tenant) or not url.startswith("https://"):
+        return ""
+    own = tenant_verified_host(tenant)
+    if not own or not same_site(url, own):
         return ""
     return url
 

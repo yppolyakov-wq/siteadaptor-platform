@@ -5,6 +5,7 @@ from decimal import Decimal
 from unittest import mock
 
 import pytest
+from django.utils import timezone
 from PIL import Image
 
 from apps.catalog.models import Category, Product
@@ -18,6 +19,7 @@ ROOT = "https://laden.example"
 
 
 def _run(**kw):
+    kw.setdefault("verified_at", timezone.now())
     return SiteImportRun.objects.create(
         start_url=ROOT + "/",
         host="laden.example",

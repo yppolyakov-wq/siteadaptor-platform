@@ -56,7 +56,8 @@ class Command(BaseCommand):
     def handle(self, *args, apply=False, **options):
         total = 0
         for tenant in Tenant.objects.exclude(schema_name="public").order_by("slug"):
-            if not storefront_profile.is_aktionen(tenant):
+            # «eintrag» тоже лёгкий, но товар без external_url каталог города не покажет.
+            if not storefront_profile.is_aktionen(tenant) or storefront_profile.is_eintrag(tenant):
                 continue
             off = [m for m in (tenant.disabled_modules or []) if m in QUICK_REQUIRED_MODULES]
             with tenant_context(tenant):

@@ -594,7 +594,7 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
 
     # T-8.23c: лёгкий кабинет «Nur Aktionen» — 4 плоских пункта вместо якорей W8.
     if lite_cabinet.is_lite(tenant):
-        return lite_cabinet.sidebar_items()
+        return lite_cabinet.sidebar_items(tenant)
 
     owner_hidden = frozenset()
     if user is not None:

@@ -1012,24 +1012,23 @@ def _site(tenant) -> str:
 
 
 def _external_url(tenant, url: str) -> str:
-    """T-8.27d: адрес позиции на сайте владельца — только https и только хост его же
-    сайта (`Tenant.website_url`, без www.). Иначе '' — листинг не уведёт на чужой сайт,
-    даже если кто-то подменил ссылку в карточке товара."""
+    """T-8.27d: адрес позиции на сайте владельца — только https и только хост сайта,
+    владение которым подтверждено токеном при импорте (ревью Г1: `website_url` пишет
+    сам владелец, сверять с ним — сверять поле с полем). Иначе '' — листинг не уведёт
+    на чужой сайт, даже если кто-то подменил ссылку в карточке товара."""
     from urllib.parse import urlsplit
 
-    def site(raw):
-        try:
-            host = (urlsplit(raw or "").hostname or "").lower()
-        except ValueError:
-            return ""
-        return host[4:] if host.startswith("www.") else host
+    from apps.imports.site.crawl import same_site
+    from apps.imports.site.verify import tenant_verified_host
 
     try:
         scheme = urlsplit(url or "").scheme
     except ValueError:
         return ""
-    own = site(getattr(tenant, "website_url", ""))
-    if scheme != "https" or not own or site(url) != own:
+    if scheme != "https":
+        return ""
+    own = tenant_verified_host(tenant)
+    if not own or not same_site(url, own):
         return ""
     return url
 

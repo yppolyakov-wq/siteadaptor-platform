@@ -11,8 +11,11 @@ from __future__ import annotations
 import html as html_lib
 import re
 from decimal import Decimal, InvalidOperation
+from urllib.parse import urlsplit
 
 import nh3
+
+from .crawl import same_site
 
 NAME_MAX = 120
 DESC_MAX = 1500
@@ -55,6 +58,8 @@ def price_of(value) -> str | None:
     try:
         amount = Decimal(raw)
     except InvalidOperation:
+        return None
+    if not amount.is_finite():  # "NaN"/"Infinity": сравнение бросило бы InvalidOperation
         return None
     if not (Decimal("0") < amount <= PRICE_MAX):
         return None
@@ -100,6 +105,16 @@ def _first_url(value) -> str:
     return value if value.startswith(("http://", "https://")) else ""
 
 
+def _same_site_url(url: str, page_url: str) -> bool:
+    if not url.startswith(("http://", "https://")):
+        return False
+    try:
+        host = urlsplit(page_url).hostname or ""
+    except ValueError:
+        return False
+    return bool(host) and same_site(url, host)
+
+
 def _offer_price(offers) -> tuple[str | None, str]:
     """Цена из Offer/AggregateOffer (lowPrice → «ab»). Только EUR (или без валюты)."""
     items = offers if isinstance(offers, list) else [offers]
@@ -123,7 +138,7 @@ def _offer_price(offers) -> tuple[str | None, str]:
 def _gtin(node) -> str:
     for key in ("gtin13", "gtin", "gtin14", "gtin12", "gtin8"):
         value = str(node.get(key) or "").strip()
-        if value.isdigit() and 8 <= len(value) <= 14:
+        if value.isascii() and value.isdigit() and 8 <= len(value) <= 14:
             return value
     return ""
 
@@ -144,7 +159,8 @@ def _item(node, kind: str, page_url: str) -> dict | None:
         "price": price,
         "currency": currency,
         "image_url": _first_url(node.get("image")),
-        "page_url": url if url.startswith(("http://", "https://")) else page_url,
+        # Ссылка позиции — только на тот же сайт (ревью Г1: JSON-LD мог увести наружу).
+        "page_url": url if _same_site_url(url, page_url) else page_url,
         "sku": plain(node.get("sku"), 64),
         "gtin": _gtin(node),
         "category_hint": plain(category, CATEGORY_MAX),

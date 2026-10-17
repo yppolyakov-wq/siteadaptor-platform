@@ -9,7 +9,7 @@ from django.urls import reverse
 from apps.imports import views
 from apps.imports.models import SiteImportItem, SiteImportRun
 from apps.imports.site import service
-from apps.imports.tests.site_fakes import FakeSite, html
+from apps.imports.tests.site_fakes import FakeSite, html, verified_run
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -18,7 +18,11 @@ ROOT = "https://laden.example"
 
 @pytest.fixture
 def owner(django_user_model):
-    return django_user_model.objects.create_user(username="inhaber", password="x")
+    from apps.core.models import Membership
+
+    user = django_user_model.objects.create_user(username="inhaber", password="x")
+    Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
+    return user
 
 
 def _post(user, data, tenant):
@@ -39,7 +43,8 @@ def test_consent_required_and_recorded(owner, settings):
     assert resp.status_code == 302
     assert run.consent_by_id == owner.pk and run.consent_version == service.CONSENT_VERSION
     assert run.consent_at is not None and run.host == "laden.example"
-    assert tenant.website_url == ROOT + "/"
+    # Ревью Г1: сайт бизнеса ставится только после подтверждения владения, не на старте.
+    assert tenant.website_url == ""
 
 
 def test_daily_run_limit(owner, settings):
@@ -136,6 +141,7 @@ def test_website_paths_are_owner_only():
 
 
 def test_review_post_applies_selected_items(owner):
+    verified_run()
     from apps.catalog.models import Product
 
     run = SiteImportRun.objects.create(
@@ -182,6 +188,7 @@ def test_review_post_applies_selected_items(owner):
 
 
 def test_review_get_renders_form_with_usage(owner):
+    verified_run()
     run = SiteImportRun.objects.create(
         start_url=ROOT + "/",
         host="laden.example",
@@ -205,6 +212,7 @@ def test_review_get_renders_form_with_usage(owner):
 
 
 def test_eintrag_profile_offered_after_apply_and_set(owner):
+    verified_run()
     run = SiteImportRun.objects.create(
         start_url=ROOT + "/",
         host="laden.example",

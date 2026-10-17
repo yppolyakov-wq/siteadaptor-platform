@@ -35,6 +35,8 @@ HINTS = (
 SITEMAP_MAX_BYTES = 1024 * 1024
 SITEMAP_MAX_LOCS = 5000
 ROBOTS_MAX_BYTES = 200 * 1024
+SEEN_MAX = 5000  # общий кап известных адресов (память воркера)
+CRAWL_DELAY_MAX = 5.0  # Crawl-delay уважаем, но не дольше — иначе бюджет съедят паузы
 
 
 @dataclass
@@ -43,6 +45,8 @@ class CrawlResult:
     log: list = field(default_factory=list)
     robots_blocked: bool = False
     error: str = ""
+    # Обход неполный (бюджет, ошибки страниц, robots): «пропавшее» не значит «удалено».
+    partial: bool = False
 
 
 def _site(host: str) -> str:
@@ -59,6 +63,10 @@ def normalize(url: str) -> str | None:
         return None
     if parts.scheme not in ("http", "https") or not parts.hostname:
         return None
+    try:
+        port = parts.port
+    except ValueError:  # http://site:99999/ — битая ссылка не роняет обход
+        return None
     query = urlencode(
         [
             (k, v)
@@ -66,7 +74,10 @@ def normalize(url: str) -> str | None:
             if not k.lower().startswith(_TRACKING_PREFIXES) and k.lower() not in _TRACKING_KEYS
         ]
     )
-    netloc = parts.hostname.lower() + (f":{parts.port}" if parts.port else "")
+    hostname = parts.hostname.lower()
+    if ":" in hostname:  # IPv6-литерал: скобки обратно, иначе адрес не разобрать
+        hostname = f"[{hostname}]"
+    netloc = hostname + (f":{port}" if port else "")
     return urlunsplit((parts.scheme, netloc, parts.path or "/", query, ""))
 
 
@@ -111,26 +122,50 @@ class Crawler:
         self.pause = settings.SITE_IMPORT_PAUSE_S
         self.result = CrawlResult()
         self.robots = None
+        self.deadline = None
 
     def _get(self, url, *, accept, max_bytes):
-        return self.fetch(url, accept=accept, max_bytes=max_bytes, headers={"User-Agent": self.ua})
+        if self.deadline is not None and self.clock() >= self.deadline:
+            raise SsrfError("time budget")
+        return self.fetch(
+            url,
+            accept=accept,
+            max_bytes=max_bytes,
+            headers={"User-Agent": self.ua},
+            deadline=self.deadline,
+        )
 
     def _note(self, url, status, **extra):
         self.result.log.append({"url": url[:500], "status": status, **extra})
 
     def _load_robots(self, host_root: str):
+        """RFC 9309: 4xx (кроме 401/403) — правил нет; 401/403/5xx/сеть — не обходим.
+        Возвращает (robots|None, blocked)."""
         robots = RobotFileParser()
         try:
             got = self._get(host_root + "/robots.txt", accept=None, max_bytes=ROBOTS_MAX_BYTES)
-        except (SsrfError, requests.RequestException):
-            return None
+        except SsrfError:
+            return None, False  # сам корень проверит политику; robots не дошёл — правил нет
+        except requests.RequestException:
+            return None, True
+        if got.status in (401, 403) or got.status >= 500:
+            return None, True
         if not got.ok:
-            return None  # нет robots.txt — правил нет
+            return None, False  # нет robots.txt — правил нет
         robots.parse(got.text().splitlines())
-        return robots
+        return robots, False
 
     def _allowed(self, url: str) -> bool:
         return self.robots is None or self.robots.can_fetch(self.ua, url)
+
+    def _pause(self) -> float:
+        delay = None
+        if self.robots is not None:
+            try:
+                delay = self.robots.crawl_delay(self.ua)
+            except (TypeError, ValueError):
+                delay = None
+        return min(max(float(delay or 0), self.pause or 0), CRAWL_DELAY_MAX)
 
     def _sitemap_urls(self, host_root: str, host: str) -> list:
         sources = list(self.robots.site_maps() or []) if self.robots else []
@@ -158,16 +193,19 @@ class Crawler:
             self.result.error = "invalid_url"
             return self.result
         started = self.clock()
+        self.deadline = started + self.budget  # один срок на robots, sitemap и страницы
         host = urlsplit(self.start).hostname
         root = f"{urlsplit(self.start).scheme}://{urlsplit(self.start).netloc}"
-        self.robots = self._load_robots(root)
-        if not self._allowed(self.start):
+        self.robots, blocked = self._load_robots(root)
+        if blocked or not self._allowed(self.start):
             self.result.robots_blocked = True
             return self.result
         hinted, other = deque(), deque()
         seen = {self.start}
 
         def enqueue(raw):
+            if len(seen) >= SEEN_MAX:
+                return
             url = normalize(raw)
             if not url or url in seen or not same_site(url, host):
                 return
@@ -180,8 +218,9 @@ class Crawler:
         for url in self._sitemap_urls(root, host):
             enqueue(url)
         while (queue_first or hinted or other) and len(self.result.pages) < self.max_pages:
-            if self.clock() - started > self.budget:
+            if self.clock() >= self.deadline:
                 self._note("", "time_budget")
+                self.result.partial = True
                 break
             url = (queue_first or hinted or other).popleft()
             if not self._allowed(url):
@@ -191,23 +230,33 @@ class Crawler:
                 got = self._get(url, accept=HTML_TYPES, max_bytes=self.max_bytes)
             except SsrfError:
                 self._note(url, "blocked")
+                self.result.partial = True
                 continue
             except requests.RequestException as exc:
                 self._note(url, "error", error=type(exc).__name__)
+                self.result.partial = True
                 continue
             if not got.ok:
                 self._note(url, got.status)
+                if got.status >= 500 or got.status == 429:
+                    self.result.partial = True
                 continue
             if not same_site(got.url, host):
                 self._note(url, "offsite")
+                continue
+            if got.url != url and not self._allowed(got.url):  # цель редиректа — тоже robots
+                self._note(got.url, "robots")
                 continue
             page = htmlparse.parse(got.text(), got.url)
             self.result.pages.append(page)
             self._note(got.url, got.status, bytes=len(got.body), ld=bool(page.jsonld))
             for link in page.links:
                 enqueue(link)
-            if self.pause:
-                self.sleep(self.pause)
+            if (queue_first or hinted or other) and len(self.result.pages) >= self.max_pages:
+                self.result.partial = True  # потолок страниц: остальное не смотрели
+            pause = self._pause()
+            if pause:
+                self.sleep(pause)
         return self.result
 
 

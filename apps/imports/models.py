@@ -96,6 +96,10 @@ class SiteImportRun(TimestampedModel):
     )
     started_at = models.DateTimeField(null=True, blank=True)
     finished_at = models.DateTimeField(null=True, blank=True)
+    # Ревью Г1: владение сайтом подтверждено токеном (мета-тег или файл) — без этого
+    # прогон только «Vorschau». Хранится здесь, а не в site_config: подделать нельзя.
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verified_method = models.CharField(max_length=10, blank=True)  # meta | file | known
 
     class Meta:
         ordering = ["-created_at"]
@@ -122,7 +126,7 @@ class SiteImportItem(TimestampedModel):
     source_url = models.URLField(max_length=500, blank=True)
     data = models.JSONField(default=dict)
     fingerprint = models.CharField(max_length=64)
-    identity_key = models.CharField(max_length=64, db_index=True)
+    identity_key = models.CharField(max_length=64)
     ai_generated = models.BooleanField(default=False)
     target_kind = models.CharField(max_length=20, blank=True)
     target_id = models.CharField(max_length=64, blank=True)
@@ -132,7 +136,20 @@ class SiteImportItem(TimestampedModel):
 
     class Meta:
         ordering = ["created_at"]
-        indexes = [models.Index(fields=["run", "diff"], name="siteitem_run_diff_idx")]
+        indexes = [
+            models.Index(fields=["run", "diff"], name="siteitem_run_diff_idx"),
+            # applied_state(): последнее применённое по позиции, без полного скана.
+            models.Index(
+                fields=["identity_key", "-applied_at"],
+                name="siteitem_applied_idx",
+                condition=models.Q(applied_at__isnull=False),
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["run", "identity_key"], name="siteitem_run_identity_uniq"
+            )
+        ]
 
     def __str__(self):
         return f"{self.kind}: {self.data.get('name', '')}"

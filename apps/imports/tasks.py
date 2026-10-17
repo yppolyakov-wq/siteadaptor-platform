@@ -141,7 +141,7 @@ def run_import(dedupe_key=None, schema_name=None, job_id=None):
         raise
 
 
-@idempotent_task()
+@idempotent_task(soft_time_limit=600, time_limit=660)
 def run_site_import(schema_name=None, run_id=None):
     """T-8.27: обход сайта клиента и черновик импорта. Сбой → failed (без текста ошибки
     в БД: только код — тело чужого ответа и URL с параметрами не храним)."""

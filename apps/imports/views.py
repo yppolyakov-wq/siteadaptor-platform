@@ -235,6 +235,9 @@ def website_start(request):
     from .models import SiteImportRun
     from .site import service
 
+    _owner_only(request)
+    from .site import verify
+
     tenant = request.tenant
     error = ""
     url = request.POST.get("url", "") if request.method == "POST" else tenant.website_url
@@ -247,15 +250,29 @@ def website_start(request):
             except service.StartError as exc:
                 error = str(exc)
             else:
-                if not tenant.website_url:
-                    tenant.website_url = run.start_url
-                    tenant.save(update_fields=["website_url"])
+                # website_url ставится только после подтверждения владения (service).
                 return redirect("imports:website-run", pk=run.pk)
     return render(
         request,
         "imports/website_start.html",
-        {"url": url, "error": error, "runs": SiteImportRun.objects.all()[:10]},
+        {
+            "url": url,
+            "error": error,
+            "runs": SiteImportRun.objects.all()[:10],
+            "verify_meta": verify.meta_tag(),
+            "verify_token": verify.token(),
+            "verify_file": verify.FILE_PATH,
+            "verified_host": verify.verified_host(),
+        },
     )
+
+
+def _owner_only(request) -> None:
+    """Импорт с сайта — только владельцу (защита в глубину поверх middleware)."""
+    from django.core.exceptions import PermissionDenied
+
+    if not is_owner(request.user):
+        raise PermissionDenied
 
 
 PROFILE_LABELS = {
@@ -293,19 +310,31 @@ def website_run(request, pk):
     from apps.catalog.models import Category
 
     from .models import SiteImportRun
-    from .site import apply
+    from .site import apply, verify
 
+    _owner_only(request)
     run = get_object_or_404(SiteImportRun, pk=pk)
     tenant = request.tenant
     items = list(run.items.all())
-    if request.method == "POST" and request.POST.get("action") == "eintrag":
-        # T-8.27d (Р-A): визитка — витрина без каталога, позиции ведут на сайт владельца.
-        from apps.core import storefront_profile
+    action = request.POST.get("action") if request.method == "POST" else None
+    if action == "verify":
+        if verify.ensure(run):
+            from .site.service import _adopt_website
 
-        config = dict(tenant.site_config or {})
-        config["profile"] = storefront_profile.EINTRAG
-        tenant.site_config = config
-        tenant.save(update_fields=["site_config"])
+            _adopt_website(run)
+            messages.success(request, _("Website bestätigt."))
+        else:
+            messages.error(
+                request,
+                _("Der Bestätigungscode wurde auf Ihrer Website nicht gefunden."),
+            )
+        return redirect("imports:website-run", pk=run.pk)
+    if action == "eintrag":
+        # T-8.27d (Р-A): визитка — витрина без каталога, позиции ведут на сайт владельца.
+        if not _can_eintrag(tenant, run):
+            messages.error(request, _("Die Visitenkarte ist für diesen Import nicht möglich."))
+            return redirect("imports:website-run", pk=run.pk)
+        _enable_eintrag(tenant)
         messages.success(
             request, _("Visitenkarte aktiviert: Ihre Artikel verlinken auf Ihre Website.")
         )
@@ -322,7 +351,11 @@ def website_run(request, pk):
             if request.POST.get(f"take_{item.pk}") == "1"
         }
         fields = [k for k in PROFILE_LABELS if request.POST.get(f"profile_{k}") == "1"]
-        result = apply.apply_items(run, tenant, decisions)
+        try:
+            result = apply.apply_items(run, tenant, decisions)
+        except apply.ApplyError as exc:
+            messages.error(request, APPLY_ERRORS.get(str(exc), APPLY_ERRORS["not_ready"]))
+            return redirect("imports:website-run", pk=run.pk)
         apply.apply_profile(run, tenant, fields)
         messages.success(
             request,
@@ -331,6 +364,12 @@ def website_run(request, pk):
         )
         if result.over_limit:
             messages.warning(request, apply_limit_message(result.over_limit))
+        if result.errors:
+            messages.error(
+                request,
+                _("Nicht gespeichert: %(names)s. Bitte prüfen und erneut versuchen.")
+                % {"names": ", ".join(result.errors[:10])},
+            )
         return redirect("imports:website-run", pk=run.pk)
     return render(
         request,
@@ -346,18 +385,60 @@ def website_run(request, pk):
             "contact_email": _contact_email(),
             "ai_label": AI_LABEL,
             "can_eintrag": _can_eintrag(tenant, run),
+            "verified": verify.is_verified(run),
+            "verify_meta": verify.meta_tag(),
+            "verify_file": verify.FILE_PATH,
+            "verify_token": verify.token(),
         },
     )
 
 
+APPLY_ERRORS = {
+    "not_ready": _("Dieser Import wurde bereits übernommen oder ist nicht mehr aktuell."),
+    "stale": _("Es gibt einen neueren Import. Bitte übernehmen Sie den neuesten."),
+    "unverified": _("Bitte bestätigen Sie zuerst, dass die Website Ihnen gehört."),
+}
+
+
 def _can_eintrag(tenant, run) -> bool:
-    """Предложить визитку: импорт применён, сайт владельца https, профиль ещё не лёгкий."""
+    """Предложить визитку: импорт применён, сайт подтверждён, сайт бизнеса — https на
+    подтверждённом хосте, профиль ещё не лёгкий. Проверяется и на POST (сервер)."""
     from apps.core import storefront_profile
 
+    from .site.crawl import same_site
+    from .site.verify import verified_host
+
+    website = tenant.website_url or ""
+    own = verified_host()
     return (
         run.status == run.STATUS_APPLIED
-        and (tenant.website_url or "").startswith("https://")
+        and bool(own)
+        and website.startswith("https://")
+        and same_site(website, own)
         and not storefront_profile.is_aktionen(tenant)
+    )
+
+
+def _enable_eintrag(tenant) -> None:
+    """Профиль «eintrag» — точечной записью свежего конфига, затем пересинхронизация
+    каталога города: листинги сразу ведут на сайт владельца (не ждут ночной сверки)."""
+    from django.db import connection, transaction
+
+    from apps.aggregator.tasks import reconcile_city_catalog
+    from apps.core import storefront_profile
+    from apps.tenants.models import Tenant
+
+    fresh = (Tenant.objects.filter(pk=tenant.pk).first() if tenant.pk else None) or tenant
+    config = dict(fresh.site_config or {})
+    config["profile"] = storefront_profile.EINTRAG
+    fresh.site_config = config
+    fresh.save(update_fields=["site_config"])
+    tenant.site_config = config
+    schema = connection.schema_name
+    transaction.on_commit(
+        lambda: reconcile_city_catalog.delay(
+            dedupe_key=f"city-reconcile:{schema}:eintrag", tenant_schema=schema
+        )
     )
 
 

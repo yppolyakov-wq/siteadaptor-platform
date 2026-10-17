@@ -37,17 +37,44 @@ class SsrfError(ValueError):
 
 
 def _is_blocked(ip: ipaddress._BaseAddress) -> bool:
-    mapped = getattr(ip, "ipv4_mapped", None)  # ::ffff:10.0.0.1 — тот же внутренний адрес
-    if mapped is not None:
-        ip = mapped
+    # Вложенный v4 (::ffff:10.0.0.1, 6to4 2002:0a00::, Teredo) — тот же внутренний адрес.
+    mapped = getattr(ip, "ipv4_mapped", None)
+    if mapped is not None:  # ::ffff:a.b.c.d — это и есть v4-адрес
+        return _is_blocked(mapped)
+    for nested in (
+        getattr(ip, "sixtofour", None),
+        (getattr(ip, "teredo", None) or (None, None))[1],
+    ):
+        if nested is not None and _is_blocked(nested):
+            return True
+    # Ревью Г1: всё, что не «глобально маршрутизируемо», включая CGNAT 100.64.0.0/10
+    # (метаданные некоторых облаков) и TEST-NET; плюс явные флаги — на всякий случай.
     return (
-        ip.is_private
+        not ip.is_global
+        or ip.is_private
         or ip.is_loopback
         or ip.is_link_local
         or ip.is_multicast
         or ip.is_reserved
         or ip.is_unspecified
     )
+
+
+def url_port(parsed) -> int:
+    """Порт URL; битый (>65535, не число) → SsrfError, а не ValueError мимо обработчиков."""
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise SsrfError(_("Ungültige URL.")) from exc
+    return port or (443 if parsed.scheme == "https" else 80)
+
+
+def _ip(raw: str):
+    """IP из сокета/резолвера; scope-id IPv6 (fe80::1%eth0) отбрасывается."""
+    try:
+        return ipaddress.ip_address(raw.split("%", 1)[0])
+    except ValueError as exc:
+        raise SsrfError(_("Ungültige URL.")) from exc
 
 
 def _resolve(host: str, port: int):
@@ -63,7 +90,7 @@ def validate_public_url(raw: str) -> str:
     host = parsed.hostname
     if not host:
         raise SsrfError(_("Ungültige URL."))
-    port = parsed.port or (443 if parsed.scheme == "https" else 80)
+    port = url_port(parsed)
     try:
         infos = _resolve(host, port)
     except OSError as exc:
@@ -71,7 +98,7 @@ def validate_public_url(raw: str) -> str:
     if not infos:
         raise SsrfError(_("Host konnte nicht aufgelöst werden."))
     for info in infos:
-        ip = ipaddress.ip_address(info[4][0])
+        ip = _ip(info[4][0])
         if _is_blocked(ip):
             raise SsrfError(_("Interne Adresse (%(ip)s) ist nicht erlaubt.") % {"ip": ip})
     return raw
@@ -110,7 +137,7 @@ class _PeerCheckMixin:
     def _new_conn(self):
         sock = super()._new_conn()
         try:
-            _check_peer(ipaddress.ip_address(sock.getpeername()[0]))
+            _check_peer(_ip(sock.getpeername()[0]))
         except BaseException:
             sock.close()
             raise
@@ -172,34 +199,46 @@ def safe_fetch(
     allowed_ports=DEFAULT_PORTS,
     headers: dict | None = None,
     session: requests.Session | None = None,
+    deadline: float | None = None,
 ) -> Fetched:
     """GET чужого URL под egress-политикой. Каждый хоп: схема http(s), порт из списка,
     все резолвленные IP публичны, фактический пир публичен. Ответ не-2xx возвращается
     со статусом без тела; 2xx — с телом, если тип из `accept` и размер ≤ `max_bytes`.
-    Бросает SsrfError (политика) или requests-исключения (сеть)."""
+    Бросает SsrfError (политика) или requests-исключения (сеть).
+
+    `deadline` (time.monotonic) — общий срок вызывающего (обход сайта целиком): запрос
+    не переживёт его, а таймаут сокета не больше оставшегося времени."""
     own = session is None
     session = session or _session()
-    deadline = time.monotonic() + timeout * (max_redirects + 1)
+    own_deadline = time.monotonic() + timeout * (max_redirects + 1)
+    deadline = own_deadline if deadline is None else min(deadline, own_deadline)
     try:
         current = url
         for _hop in range(max_redirects + 1):
             parsed = urlparse(current)
-            port = parsed.port or (443 if parsed.scheme == "https" else 80)
+            port = url_port(parsed)
             if allowed_ports is not None and port not in allowed_ports:
                 raise SsrfError(_("Port %(port)s ist nicht erlaubt.") % {"port": port})
             validate_public_url(current)
-            if time.monotonic() > deadline:
+            left = deadline - time.monotonic()
+            if left <= 0:
                 raise SsrfError(_("Zeitlimit überschritten."))
             resp = session.get(
                 current,
-                timeout=timeout,
+                timeout=max(0.5, min(timeout, left)),
                 stream=True,
                 allow_redirects=False,
                 headers=headers or {},
             )
             try:
                 if resp.status_code in _REDIRECTS and resp.headers.get("Location"):
-                    current = urljoin(current, resp.headers["Location"])
+                    nxt = urljoin(current, resp.headers["Location"])
+                    # Ревью Г1: даунгрейд https→http не следуем (подмена в пути).
+                    if parsed.scheme == "https" and urlparse(nxt).scheme == "http":
+                        raise SsrfError(
+                            _("Weiterleitung auf unverschlüsseltes http ist nicht erlaubt.")
+                        )
+                    current = nxt
                     continue
                 content_type = (
                     (resp.headers.get("Content-Type") or "").split(";")[0].strip().lower()

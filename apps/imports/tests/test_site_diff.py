@@ -9,7 +9,7 @@ from apps.catalog.models import Product
 from apps.core.ssrf import Fetched
 from apps.imports.models import SiteImportItem, SiteImportRun
 from apps.imports.site import apply, diff, service
-from apps.imports.tests.site_fakes import html
+from apps.imports.tests.site_fakes import html, verified_run
 from apps.tenants.tests.factories import TenantFactory
 
 ROOT = "https://laden.example/"
@@ -60,6 +60,8 @@ def _site(products):
 
 
 def _crawl(products):
+    if not SiteImportRun.objects.filter(verified_at__isnull=False).exists():
+        verified_run()
     run = SiteImportRun.objects.create(
         start_url=ROOT, host="laden.example", consent_at="2026-10-17T10:00Z", consent_version="x"
     )

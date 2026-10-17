@@ -24,6 +24,9 @@ LITE_NAV = (
     ("lite-business", "settings", "🏪", _("Geschäft")),
     ("lite-share", "site", "🔗", _("Teilen")),
 )
+# Ревью Г1: у визитки «eintrag» сортимент живёт на сайте владельца — повторный импорт
+# должен быть доступен из меню (иначе вход только через прямую ссылку).
+EINTRAG_NAV = (("imports:website", "imports", "🌐", _("Website-Import")),)
 
 
 def is_lite(tenant) -> bool:
@@ -33,8 +36,14 @@ def is_lite(tenant) -> bool:
         return False
 
 
-def sidebar_items() -> list[dict]:
+def sidebar_items(tenant=None) -> list[dict]:
     """Плоский набор пунктов в форме ``modules.sidebar_nav`` (без подменю)."""
+    nav = LITE_NAV
+    try:
+        if tenant is not None and storefront_profile.is_eintrag(tenant):
+            nav = LITE_NAV + EINTRAG_NAV
+    except Exception:  # noqa: BLE001 — хром кабинета не падает из-за профиля
+        pass
     return [
         {
             "url_name": url_name,
@@ -44,7 +53,7 @@ def sidebar_items() -> list[dict]:
             "search": "",
             "children": [],
         }
-        for url_name, nav_key, icon, label in LITE_NAV
+        for url_name, nav_key, icon, label in nav
     ]
 
 

@@ -11,7 +11,7 @@ class FakeSite:
         self.blocked = set(blocked)
         self.calls = []
 
-    def __call__(self, url, *, accept=None, max_bytes=0, headers=None):
+    def __call__(self, url, *, accept=None, max_bytes=0, headers=None, **_kw):
         self.calls.append(url)
         if url in self.blocked:
             raise SsrfError("blocked")
@@ -34,3 +34,20 @@ def html(*, body="", jsonld=None, meta=None, lang="de", title="Seite"):
     for block in jsonld or []:
         head.append(f'<script type="application/ld+json">{json.dumps(block)}</script>')
     return f'<html lang="{lang}"><head>{"".join(head)}</head><body>{body}</body></html>'
+
+
+def verified_run(host="laden.example"):
+    """Ранее подтверждённый сайт тенанта (ревью Г1: без него ничего не применяется)."""
+    from django.utils import timezone
+
+    from apps.imports.models import SiteImportRun
+
+    return SiteImportRun.objects.create(
+        start_url=f"https://{host}/",
+        host=host,
+        consent_at=timezone.now(),
+        consent_version="x",
+        status=SiteImportRun.STATUS_FAILED,
+        verified_at=timezone.now(),
+        verified_method="meta",
+    )

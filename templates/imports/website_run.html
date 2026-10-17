@@ -22,6 +22,9 @@
   {% endif %}
 </div>
 
+{% if run.status == "ready" and not verified %}{% include "imports/_site_verify.html" with run=run %}{% endif %}
+{% if run.stats.partial and run.status == "ready" %}<p class="text-sm text-amber-700 mb-6" data-site-partial>{% trans "Ihre Website konnte nicht vollständig gelesen werden. Artikel, die wir nicht gefunden haben, bleiben unverändert." %}</p>{% endif %}
+
 {% if can_eintrag %}
 <form method="post" class="bg-white border border-gray-200 rounded-xl p-6 mb-6" data-site-eintrag>
   {% csrf_token %}<input type="hidden" name="action" value="eintrag">
@@ -31,7 +34,7 @@
 </form>
 {% endif %}
 
-{% if run.status == "ready" and items or run.status == "ready" and profile_rows %}
+{% if run.status == "ready" and verified and items or run.status == "ready" and verified and profile_rows %}
 <form method="post" data-site-review>
   {% csrf_token %}
   {% if usage %}
@@ -69,7 +72,7 @@
       {% else %}
       <li class="p-4 flex gap-4" data-site-item data-site-diff="{{ item.diff }}">
         <input type="checkbox" name="take_{{ item.pk }}" value="1" checked class="mt-2" aria-label="{% trans 'übernehmen' %}">
-        {% if item.data.image_url %}<img src="{{ item.data.image_url }}" alt="" referrerpolicy="no-referrer" loading="lazy" class="w-16 h-16 object-cover rounded-lg">{% endif %}
+        {% if item.data.image_url|slice:":8" == "https://" %}<img src="{{ item.data.image_url }}" alt="" referrerpolicy="no-referrer" loading="lazy" class="w-16 h-16 object-cover rounded-lg">{% endif %}
         <div class="flex-1 space-y-2 text-sm">
           <input type="text" name="name_{{ item.pk }}" value="{{ item.data.name }}" maxlength="120" class="block w-full border border-gray-300 rounded-lg p-2" aria-label="{% trans 'Name' %}">
           <div class="flex flex-wrap gap-2">
