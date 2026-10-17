@@ -150,8 +150,9 @@ def test_district_chips_only_for_districts_with_offers():
     assert "/stadtteil/mitte/" not in html  # пустой район — мёртвый чип не показываем
 
 
-@override_settings(ROOT_URLCONF="config.urls_portal")
+@override_settings(ROOT_URLCONF="config.urls_portal", PORTAL_DISTRICT_MIN_BUSINESSES=0)
 def test_district_page_filters_and_type_chips_stay_inside_district():
+    # Г5 выключен: замок о точности выдачи района (хвост соседей — test_district_threshold).
     p = _portal()
     _listing(district="graefrath", title={"de": "GraefrathDeal"}, business_type="friseur")
     _listing(district="wald", title={"de": "WaldDeal"}, business_type="bakery")
