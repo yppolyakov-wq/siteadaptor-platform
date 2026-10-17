@@ -1,4 +1,4 @@
-{% load i18n %}{# Карта листингов (G8c): ожидает map_points (list) + near_active + map_view (блок Б2). Leaflet/OSM, без API-ключа. #}
+{% load i18n sf_map %}{# Карта листингов (G8c): ожидает map_points (list) + near_active + map_view (блок Б2). Подложка — В3 sf_map_loader. #}
 <div class="mb-4 flex flex-wrap items-center gap-3">
   {% if map_points and map_view %}
   {% comment %}Блок Б2: список по умолчанию, карта — по кнопке (без JS — ссылкой ?ansicht=karte).
@@ -12,8 +12,9 @@
   {% if near_active %}<a href="?" class="text-sm text-gray-500 hover:underline">{% trans "Reset" %}</a>{% endif %}
 </div>
 {% if map_points %}
-  <div id="agg-map" class="{% if map_view and not map_view.open %}hidden {% endif %}w-full h-72 rounded-2xl overflow-hidden mb-6 relative z-0" data-down-text="{% trans "Karte nicht verfügbar" %}"{% if not map_view or map_view.open %} data-map-open{% endif %}></div>
+  <div id="agg-map" data-sf-map class="{% if map_view and not map_view.open %}hidden {% endif %}w-full h-72 rounded-2xl overflow-hidden mb-6 relative z-0" data-down-text="{% trans "Karte nicht verfügbar" %}"{% if not map_view or map_view.open %} data-map-open{% endif %}></div>
   {{ map_points|json_script:"agg-map-data" }}
+  {% sf_map_loader %}
 {% endif %}
 <script>
 (function () {
@@ -32,18 +33,11 @@
     });
   }
   var dataEl = document.getElementById("agg-map-data");
-  // Блок А6: подложка не грузится (403 у тайл-сервера, нет Leaflet) — честная
-  // надпись поверх карты; список карточек от карты не зависит.
+  // Блок А6 → В3: честная надпись при отказе подложки — общий sfMap.down; список
+  // карточек от карты не зависит.
   var mapDown = function () {
-    var box = document.getElementById("agg-map");
-    if (!box || box.querySelector("[data-map-down]")) return;
-    var note = document.createElement("div");
-    note.setAttribute("data-map-down", "");
-    note.textContent = box.getAttribute("data-down-text") || "";
-    note.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#6b7280;font-size:14px;z-index:1000;";
-    box.appendChild(note);
+    if (window.sfMap) sfMap.down(document.getElementById("agg-map"));
   };
-  var tilesOk = false;
   var started = false;
   var initMap = function () {
     if (started || !window.L) { if (!window.L) mapDown(); return; }
@@ -73,35 +67,19 @@
         return wrap;
       };
       var map = L.map("agg-map");
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        { maxZoom: 19, attribution: "© OpenStreetMap" })
-        .on("tileload", function () { tilesOk = true; })
-        .on("tileerror", function () { if (!tilesOk) mapDown(); })
-        .addTo(map);
       var group = L.featureGroup(pts.map(function (p) {
         return L.marker([p.lat, p.lng]).bindPopup(popupContent(p));
       })).addTo(map);
       // T-8.17: один бизнес в районе — без потолка карта уходила в уровень дома.
       map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 15 });
+      // В3: подложку — после вида (слою MapLibre нужен центр карты).
+      sfMap.base(map, document.getElementById("agg-map"));
     }
   };
-  // Блок Б2: Leaflet подгружается по требованию (первый экран — список, без чужих скриптов).
+  // Блок Б2: скрипты карты подгружаются по требованию (первый экран — список).
   var loadLeaflet = function (done) {
-    if (window.L) return done();
-    var css = document.createElement("link");
-    css.rel = "stylesheet";
-    css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-    // SRI: подмена файла на CDN не исполнится (хеши — опубликованные для 1.9.4).
-    css.integrity = "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=";
-    css.crossOrigin = "";
-    document.head.appendChild(css);
-    var js = document.createElement("script");
-    js.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    js.integrity = "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";
-    js.crossOrigin = "";
-    js.onload = done;
-    js.onerror = mapDown;
-    document.head.appendChild(js);
+    if (!window.sfMap) return mapDown();
+    sfMap.load(done, mapDown);
   };
   var box = document.getElementById("agg-map");
   if (dataEl && box) {

@@ -1,4 +1,4 @@
-"""R6: карта (OSM) на странице события, памятка-PDF, корп/групповой запрос."""
+"""R6: карта на странице события (В3: своя векторная карта вместо iframe osm.org), памятка-PDF, корп/групповой запрос."""
 
 import uuid
 from datetime import timedelta
@@ -40,24 +40,24 @@ def _event(**kw):
 
 
 # --- map -------------------------------------------------------------------
-def test_map_embed_with_event_coords():
+def test_map_with_event_coords():
     ev = _event(latitude="47.965", longitude="7.80")
     body = public_views.veranstaltung_detail(_store(), pk=ev.pk).content.decode()
-    assert "openstreetmap.org/export/embed" in body
-    assert "marker=47.965" in body
+    assert "openstreetmap.org/export/embed" not in body  # В3: без iframe-встройки osm.org
+    assert 'id="sf-event-map"' in body and 'data-lat="47.965"' in body
 
 
 def test_map_fallback_to_tenant_coords():
     ev = _event()  # без координат
     tenant = TenantFactory.build(latitude="48.0", longitude="7.85")
     body = public_views.veranstaltung_detail(_store(tenant=tenant), pk=ev.pk).content.decode()
-    assert "openstreetmap.org/export/embed" in body
+    assert 'id="sf-event-map"' in body and 'data-lat="48.0"' in body
 
 
 def test_no_map_without_coords():
     ev = _event()
     body = public_views.veranstaltung_detail(_store(), pk=ev.pk).content.decode()
-    assert "openstreetmap.org/export/embed" not in body
+    assert 'id="sf-event-map"' not in body
 
 
 # --- corporate inquiry -----------------------------------------------------

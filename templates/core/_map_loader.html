@@ -1,0 +1,99 @@
+{% comment %}В3: общий загрузчик карт (apps/core/templatetags/sf_map.py). Определяет
+window.sfMap один раз на страницу; скрипты карты грузит только по вызову (лениво).
+Подложка — векторный стиль MapLibre поверх Leaflet: маркеры/попапы/линии карт
+остаются на API Leaflet. Отказ (нет WebGL, не загрузился скрипт, стиль не пришёл)
+даёт честную надпись из data-down-text, а не пустой серый прямоугольник.{% endcomment %}
+{{ sf_map_config|json_script:"sf-map-config" }}
+<style>@media print{[data-sf-map]{display:none!important}}</style>
+<script>
+(function () {
+  if (window.sfMap) return;
+  var cfgEl = document.getElementById("sf-map-config");
+  var cfg = cfgEl ? JSON.parse(cfgEl.textContent || "{}") : {};
+  var state = "idle", waiting = [];
+  var finish = function (ok) {
+    state = ok ? "ready" : "failed";
+    var cbs = waiting; waiting = [];
+    cbs.forEach(function (cb) { (ok ? cb[0] : cb[1])(); });
+  };
+  var addAsset = function (a, next) {
+    var el;
+    if (a.kind === "css") {
+      el = document.createElement("link");
+      el.rel = "stylesheet";
+      el.href = a.url;
+    } else {
+      el = document.createElement("script");
+      el.src = a.url;
+    }
+    el.integrity = a.integrity;
+    el.crossOrigin = "anonymous";
+    if (a.kind === "css") { document.head.appendChild(el); return next(true); }
+    el.onload = function () { next(true); };
+    el.onerror = function () { next(false); };
+    document.head.appendChild(el);
+  };
+  var sfMap = {
+    webgl: function () {
+      try {
+        var c = document.createElement("canvas");
+        return !!(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl")));
+      } catch (e) { return false; }
+    },
+    load: function (done, fail) {
+      if (state === "ready") return done();
+      if (state === "failed") return fail();
+      waiting.push([done, fail]);
+      if (state === "loading") return;
+      state = "loading";
+      var assets = (cfg.assets || []).slice();
+      // Leaflet уже на странице (другая карта) — его не грузим второй раз.
+      if (window.L) assets = assets.filter(function (a) { return a.url.indexOf("/leaflet@") < 0; });
+      var step = function (ok) {
+        if (!ok) return finish(false);
+        var a = assets.shift();
+        if (!a) return finish(!!(window.L && L.maplibreGL));
+        addAsset(a, step);
+      };
+      step(true);
+    },
+    down: function (box) {
+      if (!box || box.querySelector("[data-map-down]")) return;
+      var note = document.createElement("div");
+      note.setAttribute("data-map-down", "");
+      note.textContent = box.getAttribute("data-down-text") || "";
+      note.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#6b7280;font-size:14px;z-index:1000;";
+      box.appendChild(note);
+    },
+    base: function (map, box) {
+      if (!sfMap.webgl()) return sfMap.down(box);
+      var layer = L.maplibreGL({
+        style: cfg.style,
+        attributionControl: { customAttribution: cfg.attribution }
+      }).addTo(map);
+      var gl = layer.getMaplibreMap();
+      var ok = false;
+      if (!gl) return sfMap.down(box);
+      gl.on("load", function () { ok = true; });
+      gl.on("error", function () { if (!ok) sfMap.down(box); });
+      // Стиль так и не пришёл (провайдер молчит) — не оставлять пустую рамку.
+      setTimeout(function () { if (!ok) sfMap.down(box); }, 10000);
+    },
+    lazy: function (box, init) {
+      if (!box) return;
+      if (!("IntersectionObserver" in window)) return init();
+      var io = new IntersectionObserver(function (entries) {
+        if (entries.some(function (e) { return e.isIntersecting; })) { io.disconnect(); init(); }
+      }, { rootMargin: "200px" });
+      io.observe(box);
+    },
+    // Ленивая карта целиком: дождаться видимости → загрузить скрипты → построить.
+    start: function (box, build) {
+      sfMap.lazy(box, function () {
+        sfMap.load(function () { build(); }, function () { sfMap.down(box); });
+      });
+    }
+  };
+  window.sfMap = sfMap;
+})();
+</script>

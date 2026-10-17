@@ -1,0 +1,22 @@
+{% load i18n sf_map %}{% comment %}В3: карта одной точки (контакты бизнеса T1/ST-2, место события R6).
+Параметры include: map_id, lat, lng, map_class, route_url (ссылка «Route planen» — видна
+и без JS, и при печати). Скрипты карты грузятся только когда карта видна (sfMap.start).{% endcomment %}
+<div class="{{ map_class|default:'w-full h-64 rounded-2xl overflow-hidden mt-6 relative z-0' }}" data-sf-map
+     id="{{ map_id }}"
+     data-lat="{{ lat|stringformat:'s' }}" data-lng="{{ lng|stringformat:'s' }}"
+     data-down-text="{% trans "Karte nicht verfügbar" %}"></div>
+{% if route_url %}<a href="{{ route_url }}" target="_blank" rel="nofollow noopener" class="inline-block mt-2 text-sm hover:underline" style="color: var(--accent, #4f46e5);" data-map-route>{% trans "Route planen" %} →</a>{% endif %}
+{% sf_map_loader %}
+<script>
+(function () {
+  var el = document.getElementById("{{ map_id|escapejs }}");
+  if (!el || !window.sfMap) return;
+  var lat = parseFloat(el.dataset.lat), lng = parseFloat(el.dataset.lng);
+  if (isNaN(lat) || isNaN(lng)) return;
+  sfMap.start(el, function () {
+    var map = L.map(el).setView([lat, lng], 15);
+    L.marker([lat, lng]).addTo(map);
+    sfMap.base(map, el);
+  });
+})();
+</script>

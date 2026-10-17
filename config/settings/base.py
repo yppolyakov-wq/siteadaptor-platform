@@ -278,6 +278,20 @@ AGGREGATOR_SEARCH_LOG = {
 
 # В5: учёт результатов каталога города — агрегат по дням без персональных данных;
 # экран владельца «Besuche aus dem Stadtportal». Чистка — beat `purge-portal-stats`.
+# В3: подложка карт — векторный стиль MapLibre (OpenFreeMap: бесплатно, без ключа,
+# коммерческое использование разрешено). Смена провайдера (свои PMTiles, Stadia) —
+# эти две переменные; растровые тайлы OSM политикой OSM для нагрузки запрещены.
+MAP_STYLE_URL = env("MAP_STYLE_URL", default="https://tiles.openfreemap.org/styles/liberty")
+MAP_ATTRIBUTION = env(
+    "MAP_ATTRIBUTION",
+    default=(
+        '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> '
+        '© <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> '
+        'Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" '
+        'rel="noopener">OpenStreetMap</a>'
+    ),
+)
+
 AGGREGATOR_PORTAL_STATS = {
     "enabled": env.bool("PORTAL_STATS_ENABLED", default=True),
     "retention_days": env.int("PORTAL_STATS_RETENTION_DAYS", default=400),

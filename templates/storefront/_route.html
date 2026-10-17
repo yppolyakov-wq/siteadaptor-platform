@@ -1,11 +1,11 @@
-{% load i18n %}{% comment %}
+{% load i18n sf_map %}{% comment %}
 MT-1: маршрут тура — карта точек + таймлайн по дням.
 
 Контекст: route_days (itinerary.by_day), route_points (itinerary.map_points),
 route_km, route_hidden. Список УЖЕ отфильтрован под аудиторию во вьюхе
 (itinerary.visible) — здесь фильтрации нет и быть не должно.
 
-Карта — Leaflet/OSM без API-ключа (как templates/aggregator/_map.html); попап
+Карта — Leaflet + векторная подложка В3 (sf_map_loader), лениво; попап
 строится через DOM (textContent), а не innerHTML: названия точек пишет владелец.
 {% endcomment %}
 {% if route_days %}
@@ -18,34 +18,34 @@ route_km, route_hidden. Список УЖЕ отфильтрован под ау
   </div>
 
   {% if route_points %}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <div id="tour-route-map" class="w-full h-72 rounded-2xl overflow-hidden mb-5 relative z-0"></div>
+    <div id="tour-route-map" data-sf-map class="w-full h-72 rounded-2xl overflow-hidden mb-5 relative z-0" data-down-text="{% trans "Karte nicht verfügbar" %}"></div>
     {{ route_points|json_script:"tour-route-data" }}
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    {% sf_map_loader %}
     <script>
     (function () {
       var el = document.getElementById("tour-route-data");
-      if (!el || !window.L) return;
+      var box = document.getElementById("tour-route-map");
+      if (!el || !box || !window.sfMap) return;
       var pts = JSON.parse(el.textContent || "[]");
       if (!pts.length) return;
-      var map = L.map("tour-route-map", { scrollWheelZoom: false });
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap", maxZoom: 17
-      }).addTo(map);
-      var latlngs = [];
-      pts.forEach(function (p) {
-        var ll = [p.lat, p.lng];
-        latlngs.push(ll);
-        var popup = document.createElement("div");
-        var strong = document.createElement("strong");
-        strong.textContent = String(p.title == null ? "" : p.title);
-        popup.appendChild(strong);
-        L.marker(ll).addTo(map).bindPopup(popup);
+      sfMap.start(box, function () {
+        var map = L.map(box, { scrollWheelZoom: false, maxZoom: 17 });
+        var latlngs = [];
+        pts.forEach(function (p) {
+          var ll = [p.lat, p.lng];
+          latlngs.push(ll);
+          var popup = document.createElement("div");
+          var strong = document.createElement("strong");
+          strong.textContent = String(p.title == null ? "" : p.title);
+          popup.appendChild(strong);
+          L.marker(ll).addTo(map).bindPopup(popup);
+        });
+        if (latlngs.length > 1) {
+          L.polyline(latlngs, { color: "#4f46e5", weight: 3, opacity: 0.8 }).addTo(map);
+        }
+        map.fitBounds(L.latLngBounds(latlngs), { padding: [24, 24], maxZoom: 12 });
+        sfMap.base(map, box);
       });
-      if (latlngs.length > 1) {
-        L.polyline(latlngs, { color: "#4f46e5", weight: 3, opacity: 0.8 }).addTo(map);
-      }
-      map.fitBounds(L.latLngBounds(latlngs), { padding: [24, 24], maxZoom: 12 });
     })();
     </script>
   {% endif %}

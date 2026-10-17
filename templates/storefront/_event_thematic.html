@@ -1,7 +1,7 @@
 {% load i18n %}{% comment %}
 M20U-4: одна тематическая секция детальной события по ключу `k`. Разметка взята
 дословно из event_detail.html; рендерится в порядке siteconfig.event_detail_order.
-Контекст: k, event, L (=event.landing), map_embed, map_link — приходят из
+Контекст: k, event, L (=event.landing), map_point, map_link — приходят из
 родительского {% with L=event.landing %} + include.
 {% endcomment %}{% if k == "for_whom" %}{% if L.for_whom %}
   <section class="mt-8">
@@ -42,13 +42,13 @@ M20U-4: одна тематическая секция детальной соб
       {% endfor %}
     </ol>
   </section>
-{% endif %}{% elif k == "venue" %}{% if L.venue or event.images|length > 1 or map_embed %}
+{% endif %}{% elif k == "venue" %}{% if L.venue or event.images|length > 1 or map_point %}
   <section class="mt-8">
     <h2 class="text-xl font-bold mb-3">{% trans "Venue" %}</h2>
     {% if L.venue %}<p class="text-gray-700 whitespace-pre-line mb-3">{{ L.venue }}</p>{% endif %}
-    {% if map_embed %}
+    {% if map_point %}
     <div class="mb-3">
-      <iframe title="{% trans 'Map' %}" loading="lazy" class="w-full h-64 rounded-xl border border-gray-200" src="{{ map_embed }}"></iframe>
+      {% include "storefront/_point_map.html" with map_id="sf-event-map" lat=map_point.lat lng=map_point.lng map_class="w-full h-64 rounded-xl overflow-hidden border border-gray-200 relative z-0" %}
       <a href="{{ map_link }}" target="_blank" rel="nofollow noopener" class="text-sm text-indigo-600 hover:underline">{% trans "Plan route" %} →</a>
     </div>
     {% endif %}

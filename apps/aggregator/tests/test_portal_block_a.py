@@ -221,14 +221,14 @@ def test_business_redirect_respects_scope():
 
 @pytest.mark.parametrize(
     "tpl",
-    ["templates/aggregator/_map.html", "templates/storefront/sections/_contact_map.html"],
+    ["templates/aggregator/_map.html", "templates/storefront/_point_map.html"],
 )
-def test_map_uses_current_osm_host_and_handles_tile_errors(tpl):
+def test_map_has_no_osm_tiles_and_handles_basemap_errors(tpl):
+    # В3 (осознанная переписка замка А6): растровые тайлы OSM политикой OSM для нагрузки
+    # запрещены — подложка идёт через общий загрузчик (OpenFreeMap), отказ = надпись.
     src = (Path(settings.BASE_DIR) / tpl).read_text()
-    assert "{s}.tile.openstreetmap.org" not in src
-    assert "tile.openstreetmap.org" in src
-    if tpl.startswith("templates/aggregator/"):
-        assert "tileerror" in src and "Karte nicht verfügbar" in src
+    assert "tile.openstreetmap.org" not in src
+    assert "sfMap" in src and "Karte nicht verfügbar" in src
 
 
 def test_with_channel_refuses_non_http_urls():

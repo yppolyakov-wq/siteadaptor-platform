@@ -380,7 +380,7 @@ def veranstaltung_detail(request, pk):
         "extras": extras_engine.active_for("events", entity_kind="event", entity_id=str(event.pk)),
         "accommodation": services.accommodation_options(event),  # R5 типы номеров
         "jobs_active": jobs_active,  # R6 корп-запрос (Angebot)
-        "map_embed": "",
+        "map_point": None,
         "map_link": "",
         "installment_offer": _installment_offer(event),  # R10 предпросмотр рассрочки
         # M20U-4: порядок/видимость тематических секций детальной.
@@ -397,11 +397,9 @@ def veranstaltung_detail(request, pk):
     }
     if lat is not None and lng is not None and not event.is_online:  # R6 карта (RT2: не для онлайн)
         lat, lng = float(lat), float(lng)
-        ctx["map_embed"] = (
-            "https://www.openstreetmap.org/export/embed.html?bbox="
-            f"{lng - 0.012}%2C{lat - 0.006}%2C{lng + 0.012}%2C{lat + 0.006}"
-            f"&layer=mapnik&marker={lat}%2C{lng}"
-        )
+        # В3: своя карта точки (векторная подложка) вместо iframe-встройки osm.org —
+        # встройка тянула растровые тайлы OSM, которые для нагрузки запрещены.
+        ctx["map_point"] = {"lat": lat, "lng": lng}
         ctx["map_link"] = f"https://www.openstreetmap.org/?mlat={lat}&mlon={lng}#map=15/{lat}/{lng}"
     return render(request, "storefront/event_detail.html", ctx)
 

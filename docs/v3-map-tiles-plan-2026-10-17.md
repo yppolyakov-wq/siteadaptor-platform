@@ -1,0 +1,47 @@
+# В3 — подложка карт без тайлов OSM (план planner, 2026-10-17)
+
+Решение владельца: «искать бесплатное» (`backlog-portal-direction-2026-10-16.md §10`) →
+**OpenFreeMap** (без ключа, коммерческое использование разрешено, только векторные тайлы).
+
+## Что было
+Четыре места тянули тайлы OSM, что политикой OSM для нагрузки запрещено:
+портал/`/entdecken/` (`aggregator/_map.html`), контакты бизнеса (`sections/_contact_map.html`),
+маршрут тура (`_route.html`) и место события — iframe `openstreetmap.org/export/embed`
+(`events/public_views.py`). Контакты и тур грузили Leaflet сразу и без SRI, фолбэка не было.
+
+## Решение
+- MapLibre GL поверх Leaflet через плагин `@maplibre/maplibre-gl-leaflet` — маркеры, попапы
+  через DOM (XSS-замки), `fitBounds`, `polyline` не переписываются; меняется только слой.
+- Один загрузчик `{% sf_map_loader %}` (`apps/core/templatetags/sf_map.py` +
+  `templates/core/_map_loader.html`): ленивая загрузка по видимости, SRI на всех ассетах,
+  `sfMap.base` (проверка WebGL, ошибка стиля, таймаут 10 с → «Karte nicht verfügbar»),
+  `sfMap.down`, печать прячет карту.
+- Провайдер = две env-переменные: `MAP_STYLE_URL`, `MAP_ATTRIBUTION` (дефолт — OpenFreeMap +
+  OpenMapTiles + OSM contributors). Атрибуция передаётся плагину `customAttribution` → одна строка.
+- Карта одной точки — общий партиал `_point_map.html` (контакты и место события).
+- **maplibre-gl 5.9.0, не 6.x**: с 6.0 пакет только ES-модули (нет `dist/maplibre-gl.js`), а
+  плагин ждёт глобальный `maplibregl`. Хеши SRI считаны по скачанным файлам с проверкой HTTP 200
+  (первый расчёт по 6.x взял хеш ТЕЛА 404 — поймано стендом).
+
+## Замки
+`apps/core/tests/test_map_tiles.py` (10): нет тайлов/встройки OSM в коде · нет `L.tileLayer` и
+литерала провайдера вне settings · стиль из settings · атрибуция трёх сторон · ассеты с точной
+версией и SRI · фолбэки (WebGL/ошибка/таймаут) · загрузчик идемпотентный и ленивый · у каждой
+карты есть текст отказа и нет «жадных» скриптов. Переписаны осознанно: `test_portal_block_a`
+(замок А6 «OSM-хост»), `test_map_memo_corp` (iframe → своя карта).
+
+## Стенд (Playwright, Chromium + SwiftShader, 1440/390)
+Настоящие шаблоны → страница; три карты рисуют подложку OpenFreeMap, маркеры, линию маршрута;
+атрибуция одной строкой; ошибок и cookies нет. Блок тайлов, блок CDN, нет WebGL — везде
+«Karte nicht verfügbar», без JS-ошибок.
+
+## Миграция
+Нет.
+
+## Отложено
+- Свой хостинг PMTiles (Protomaps) как запасной вариант без внешней зависимости; Stadia 20 $/мес,
+  если понадобится SLA.
+- При вводе CSP: `worker-src blob:`, `child-src blob:`, `img-src data: blob:`,
+  `connect-src tiles.openfreemap.org`.
+- Владельцу: строка в Datenschutz про OpenFreeMap (IP уходит провайдеру при открытии карты, как
+  раньше к OSM — сегодня в текстах не упомянут ни один).

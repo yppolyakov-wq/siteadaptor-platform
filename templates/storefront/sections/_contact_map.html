@@ -1,20 +1,4 @@
-{% comment %}T1: встроенная карта Leaflet/OSM (без API-ключа), маркер на адресе
-бизнеса. ST-2: вынесена из _contact.html — позиция/размер зависят от варианта
-секции (map_class от вызывающего include); рендерится максимум раз на страницу.{% endcomment %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<div id="sf-contact-map" class="{{ map_class|default:'w-full h-64 rounded-2xl overflow-hidden mt-6 relative z-0' }}"
-     data-lat="{{ request.tenant.latitude|stringformat:'s' }}"
-     data-lng="{{ request.tenant.longitude|stringformat:'s' }}"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-(function () {
-  var el = document.getElementById("sf-contact-map");
-  if (!el || !window.L) return;
-  var lat = parseFloat(el.dataset.lat), lng = parseFloat(el.dataset.lng);
-  if (isNaN(lat) || isNaN(lng)) return;
-  var map = L.map("sf-contact-map").setView([lat, lng], 16);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-    { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
-  L.marker([lat, lng]).addTo(map);
-})();
-</script>
+{% comment %}T1: встроенная карта с маркером на адресе бизнеса. ST-2: позиция/размер
+зависят от варианта секции (map_class от вызывающего include); рендерится максимум раз
+на страницу. В3: сама карта — общий партиал точки (векторная подложка, лениво).{% endcomment %}
+{% include "storefront/_point_map.html" with map_id="sf-contact-map" lat=request.tenant.latitude lng=request.tenant.longitude %}
