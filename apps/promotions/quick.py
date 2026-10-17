@@ -81,6 +81,18 @@ def term_end(term: str, tenant, *, until=None, now=None) -> datetime | None:
     return _end_of_day(today + timedelta(days=7))
 
 
+def default_term(tenant) -> str:
+    """Д1: срок по умолчанию — правило, а не ИИ. Еда → сегодня, мода/торговля → выходные."""
+    from apps.core.archetypes import FOOD_BUSINESS_TYPES
+
+    btype = getattr(tenant, "business_type", "") or ""
+    if btype in FOOD_BUSINESS_TYPES:
+        return TERM_TODAY
+    if btype in ("clothing", "retail", "online_shop"):
+        return TERM_WEEKEND
+    return TERM_WEEK
+
+
 MAX_PHOTOS = 6
 
 
