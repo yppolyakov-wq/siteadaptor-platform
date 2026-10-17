@@ -195,10 +195,17 @@ def _passes_enabled() -> bool:
     return Pass.objects.filter(is_active=True).exists()
 
 
-def _embed_redirect(name, embed, **kwargs):
-    """A4: redirect на именованный URL c сохранением ?embed=1 (флоу не выходит из iframe)."""
+def _embed_redirect(name, embed, *, request=None, **kwargs):
+    """A4: redirect на именованный URL c сохранением ?embed=1 (флоу не выходит из iframe).
+    С `request` несёт и `ch/cl` каталога города (В5 V5-5b: после ошибки брони гость
+    возвращается на выбор, и канал не должен теряться)."""
+    from urllib.parse import urlencode
+
     url = reverse(name, kwargs=kwargs) if kwargs else reverse(name)
-    return redirect(f"{url}?embed=1" if embed else url)
+    pairs = ([("embed", "1")] if embed else []) + (
+        attribution.query_tail(request) if request is not None else []
+    )
+    return redirect(f"{url}?{urlencode(pairs)}" if pairs else url)
 
 
 def termin_index(request):
@@ -866,10 +873,10 @@ def service_book(request, pk):
     _require_booking_active(request)
     embed = _is_embed(request)  # A4: сохраняем iframe-режим во всём флоу
     if request.method != "POST":
-        return _embed_redirect("storefront-service-slots", embed, pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
     service = get_object_or_404(Service, pk=pk, is_active=True)
     if request.POST.get("website"):  # honeypot
-        return _embed_redirect("storefront-service-slots", embed, pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
     if ratelimit.hit("termin", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
         return HttpResponse(status=429)
     # HF-6c: гость мог отметить НЕСКОЛЬКО времён — приходит список `start`.
@@ -906,13 +913,13 @@ def service_book(request, pk):
             service, one.date(), resource=chosen, duration_minutes=total_minutes
         ):
             messages.error(request, _("This time is no longer available. Please pick another."))
-            return _embed_redirect("storefront-service-slots", embed, pk=pk)
+            return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
         one_resource = availability.assign_resource(
             service, one, resource=chosen, duration_minutes=total_minutes
         )
         if one_resource is None:
             messages.error(request, _("This time is no longer available. Please pick another."))
-            return _embed_redirect("storefront-service-slots", embed, pk=pk)
+            return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
         slot_plan.append(
             (
                 one_resource,
@@ -930,7 +937,7 @@ def service_book(request, pk):
             if resource is None
             else _("Please tell us your name."),
         )
-        return _embed_redirect("storefront-service-slots", embed, pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
     from apps.core import extras as extras_engine
 
     # MX-2: тот же фильтр адресности, что в GET — чужую опцию не подсунуть формой.
@@ -973,26 +980,26 @@ def service_book(request, pk):
     except services.PromoInvalid:
         # B1.2: невалидный промокод/Gutschein — бронь не создаём, слот не занят.
         messages.error(request, _("This voucher code is not valid."))
-        return _embed_redirect("storefront-service-slots", embed, pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This time is no longer available. Please pick another."))
-        return _embed_redirect("storefront-service-slots", embed, pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
     except option_trackers.PoolFull as exc:
         messages.error(
             request,
             _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.") % {"label": exc.label},
         )
-        return _embed_redirect("storefront-service-slots", embed, pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
     except option_trackers.OptionOutOfStock as exc:
         messages.error(
             request,
             _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
         )
-        return _embed_redirect("storefront-service-slots", embed, pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
     except PromoSoldOut:
         # P5: лимит акции исчерпан между показом и отправкой — бронь откатилась.
         messages.error(request, _("Diese Aktion ist leider ausverkauft."))
-        return _embed_redirect("storefront-service-slots", embed, pk=pk)
+        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
 
     # В5 V5-5b: группа периодов = одна сделка
     conversions.count(
@@ -1014,7 +1021,9 @@ def service_book(request, pk):
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
     # HF-6c: гасим визит на КАЖДЫЙ период группы (created), а не только на первый.
     if _redeem_pass_if_code(request, created):
-        return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
+        return _embed_redirect(
+            "storefront-termin-ok", embed, request=request, code=booking.reference_code
+        )
 
     # Депозит услуги (P2.5b): на Stripe Checkout, иначе обычная запись.
     tenant = getattr(request, "tenant", None)
@@ -1044,7 +1053,9 @@ def service_book(request, pk):
             )
         except stripe.error.StripeError:
             pass
-    return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
+    return _embed_redirect(
+        "storefront-termin-ok", embed, request=request, code=booking.reference_code
+    )
 
 
 def termin_slots(request, pk):
@@ -1117,10 +1128,10 @@ def termin_book(request, pk):
     _require_booking_active(request)
     embed = _is_embed(request)  # A4: сохраняем iframe-режим во всём флоу
     if request.method != "POST":
-        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
     resource = get_object_or_404(Resource, pk=pk, is_active=True)
     if request.POST.get("website"):  # honeypot
-        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
     if ratelimit.hit("termin", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
         return HttpResponse(status=429)
 
@@ -1132,12 +1143,12 @@ def termin_book(request, pk):
     # Слот должен существовать в сетке расписания — иначе произвольный интервал.
     if (start, end) not in availability.free_slots(resource, start.date()):
         messages.error(request, _("This slot is no longer available. Please pick another."))
-        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
 
     name = request.POST.get("name", "").strip()
     if not name:
         messages.error(request, _("Please tell us your name."))
-        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
     try:
         party_size = max(1, min(int(request.POST.get("party_size", "1")), 50))
     except (TypeError, ValueError):
@@ -1166,19 +1177,19 @@ def termin_book(request, pk):
         )
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This slot is no longer available. Please pick another."))
-        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
     except option_trackers.PoolFull as exc:
         messages.error(
             request,
             _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.") % {"label": exc.label},
         )
-        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
     except option_trackers.OptionOutOfStock as exc:
         messages.error(
             request,
             _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
         )
-        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
+        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
 
     conversions.count(request, "deal", "booking", booking, attribution=found)  # В5 V5-5b
 
@@ -1191,7 +1202,9 @@ def termin_book(request, pk):
 
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
     if _redeem_pass_if_code(request, [booking]):
-        return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
+        return _embed_redirect(
+            "storefront-termin-ok", embed, request=request, code=booking.reference_code
+        )
 
     # Депозит (P2.5b): если у ресурса задан и бизнес принимает оплату — ведём на
     # Stripe Checkout (на счёт бизнеса). Без депозита/оплаты — обычная бронь.
@@ -1223,7 +1236,9 @@ def termin_book(request, pk):
         except stripe.error.StripeError:
             # оплата временно недоступна — бронь остаётся (pending), не теряем её
             pass
-    return _embed_redirect("storefront-termin-ok", embed, code=booking.reference_code)
+    return _embed_redirect(
+        "storefront-termin-ok", embed, request=request, code=booking.reference_code
+    )
 
 
 def termin_pay(request, code):

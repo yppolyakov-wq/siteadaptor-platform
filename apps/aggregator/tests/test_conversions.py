@@ -515,3 +515,22 @@ def test_stay_date_form_carries_attribution():
     req.user = SimpleNamespace(is_authenticated=False)
     body = public_views.unterkunft_unit(req, pk=unit.pk).content.decode()
     assert 'name="ch" value="portal"' in body and 'name="cl" value="8"' in body
+
+
+def test_error_redirects_keep_attribution():
+    """Ревью V5-5b: после ошибки брони гость возвращается на выбор с тем же каналом."""
+    from apps.booking import public_views as booking_views
+    from apps.stays import public_views as stay_views
+    from apps.stays.models import StayUnit
+
+    tenant = _tenant("errback")
+    service = _bookable_service()
+    data = {"start": _starts(10), "name": "Gast", "email": "g@t.de", "ch": "portal", "cl": "4"}
+    booking_views.service_book(_req("post", "/", data, tenant), pk=service.pk)
+    taken = booking_views.service_book(_req("post", "/", data, tenant), pk=service.pk)
+    assert taken.status_code == 302 and "ch=portal&cl=4" in taken.url
+
+    unit = StayUnit.objects.create(name=f"Z {uuid.uuid4().hex[:6]}", price_cents=9000)
+    bad = {"von": "2020-01-05", "bis": "2020-01-03", "erw": "2", "name": "G", "ch": "portal"}
+    resp = stay_views.unterkunft_book(_req("post", "/", bad, tenant), pk=unit.pk)
+    assert resp.status_code == 302 and "ch=portal" in resp.url

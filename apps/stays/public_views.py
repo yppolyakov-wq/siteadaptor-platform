@@ -634,12 +634,17 @@ def unterkunft_unit_calendar(request, pk):
     return render(request, "storefront/_stay_calendar.html", ctx)
 
 
-def _back_to_unit(pk, von, bis, adults, children, embed=False):
+def _back_to_unit(pk, von, bis, adults, children, embed=False, tail=()):
+    from urllib.parse import urlencode
+
     url = reverse("storefront-unterkunft-unit", args=[pk])
-    if von and bis:
-        url = f"{url}?von={von}&bis={bis}&erw={adults}&kinder={children}"
-        return f"{url}&embed=1" if embed else url
-    return f"{url}?embed=1" if embed else url
+    pairs = (
+        [("von", von), ("bis", bis), ("erw", adults), ("kinder", children)] if von and bis else []
+    )
+    if embed:
+        pairs.append(("embed", "1"))
+    pairs += list(tail)  # В5 V5-5b: ch/cl каталога города переживают ошибку брони
+    return f"{url}?{urlencode(pairs)}" if pairs else url
 
 
 def unterkunft_book(request, pk):
@@ -659,7 +664,9 @@ def unterkunft_book(request, pk):
     embed = _is_embed(request)
     if not (von and bis):
         raise Http404
-    back = _back_to_unit(pk, von, bis, adults, children, embed)
+    back = _back_to_unit(
+        pk, von, bis, adults, children, embed, tail=attribution.query_tail(request)
+    )
 
     name = request.POST.get("name", "").strip()
     if not name:
