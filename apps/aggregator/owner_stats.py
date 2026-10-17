@@ -23,8 +23,8 @@ from .models import AggregatorListing, PortalStat
 
 PERIODS = (7, 30, 90, 365)
 DEFAULT_PERIOD = 30
-#: какие действия уже пишутся; V5-4 добавит "impression", V5-5 — "contact" и "deal".
-TRACKED_ACTIONS = ("view", "click")
+#: какие действия уже пишутся (показы — с V5-4); V5-5 добавит "contact" и "deal".
+TRACKED_ACTIONS = ("impression", "view", "click")
 TOP_LIMIT = 10
 #: строки «бизнес целиком» (профиль компании; V5-5 — обращение без предложения).
 BUSINESS_KINDS = ("business", "")

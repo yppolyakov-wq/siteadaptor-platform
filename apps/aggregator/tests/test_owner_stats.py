@@ -126,20 +126,25 @@ def test_anonymous_redirects_to_login():
 def test_funnel_values_and_honesty_texts(monkeypatch):
     monkeypatch.setattr(owner_stats.timezone, "localdate", lambda: TODAY)
     t = _tenant()
+    _stat(t, "impression", 9)
     _stat(t, "view", 5)
     _stat(t, "click", 2)
     s = owner_stats.summary(t, 30, today=TODAY)
     assert [f["code"] for f in s["funnel"]] == list(PortalStat.ACTIONS_CODES)
     f = _funnel(s)
     assert f["view"]["value"] == 5 and f["click"]["value"] == 2
-    for code in ("impression", "contact", "deal"):  # ещё не пишутся — не «0»
+    # V5-4: показы считаются (осознанная переписка замка V5-3)
+    assert f["impression"]["tracked"] is True and f["impression"]["value"] == 9
+    for code in ("contact", "deal"):  # ещё не пишутся (V5-5) — не «0»
         assert f[code]["tracked"] is False and f[code]["value"] is None
     html = _page(t)
     assert "Ein Klick ist kein Verkauf." in html
     assert "Besuche von Suchmaschinen und Bots zählen wir nicht." in html
     assert "im selben Besuch" in html
     assert "Wird bald gezählt" in html
-    assert "data-funnel-impression data-untracked" in html
+    assert "data-funnel-impression data-untracked" not in html
+    assert "data-funnel-contact data-untracked" in html
+    assert "mindestens 1 Sekunde zur Hälfte zu sehen" in html  # определение показа
 
 
 def test_period_whitelist():

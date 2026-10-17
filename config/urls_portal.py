@@ -72,6 +72,8 @@ urlpatterns = [
     path("klick/<int:pk>/", aggregator_views.featured_click, name="aggregator-featured-click"),
     # В5 V5-2: переход «к продавцу» через счётчик (то же имя, что в urls_public).
     path("weiter/<int:pk>/", aggregator_views.outbound_click, name="aggregator-outbound"),
+    # В5 V5-4: маячок показов карточек (то же имя, что в urls_public).
+    path("stat/sichtbar/", aggregator_views.impression_beacon, name="aggregator-impressions"),
     # T-8.6 «Melden» (то же имя, что в urls_public) — до catch-all.
     path("melden/<int:pk>/", aggregator_reports.report_listing, name="aggregator-report"),
     # T-8.24: страница предложения внутри портала (то же имя, что в urls_public).

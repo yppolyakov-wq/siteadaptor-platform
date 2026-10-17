@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_safe
 
 from apps.core.machine_http import static_resource
@@ -371,9 +372,16 @@ def _seller_redirect(listing):
 
 def _scoped_listing(request, pk):
     """Листинг, который эта поверхность вправе показать (как страница предложения)."""
-    listing = (
+    found = _scoped_listings(request, [pk])
+    return found[0] if found else None
+
+
+def _scoped_listings(request, pks) -> list:
+    """Листинги, которые эта поверхность вправе показать, — одним запросом."""
+    portal = getattr(request, "portal", None)
+    rows = (
         AggregatorListing.objects.public()
-        .filter(pk=pk)
+        .filter(pk__in=list(pks))
         .only(
             "pk",
             "tenant_schema",
@@ -384,11 +392,79 @@ def _scoped_listing(request, pk):
             "business_type",
             "detail_url",
         )
-        .first()
     )
-    if listing is None or not _offer_in_scope(listing, getattr(request, "portal", None)):
-        return None
-    return listing
+    return [lst for lst in rows if _offer_in_scope(lst, portal)]
+
+
+#: В5 V5-4: тело маячка показов — до 48 pk через запятую (≈ 530 байт).
+_BEACON_MAX_BODY = 1024
+
+
+def _same_origin(request) -> bool:
+    """Маячок принимаем только со своих страниц: иначе чужой сайт накручивал бы показы
+    браузерами своих посетителей. Подделку curl'ом закрывают лимит, дедуп и фильтр
+    ботов — цифры ориентировочные, не для биллинга."""
+    from urllib.parse import urlsplit
+
+    try:
+        site = request.META.get("HTTP_SEC_FETCH_SITE", "")
+        if site:
+            return site == "same-origin"
+        origin = request.META.get("HTTP_ORIGIN", "")
+        return bool(origin) and urlsplit(origin).netloc == request.get_host()
+    except Exception:  # noqa: BLE001 — кривой заголовок = чужой
+        return False
+
+
+def _beacon_ids(request) -> list[int]:
+    from . import portal_stats
+
+    try:
+        if int(request.META.get("CONTENT_LENGTH") or 0) > _BEACON_MAX_BODY:
+            return []
+        raw = request.POST.get("p", "")
+    except Exception:  # noqa: BLE001 — мусор в теле
+        return []
+    out = []
+    for token in raw.split(",")[: portal_stats.MAX_BATCH * 2]:
+        token = token.strip()
+        if token.isdigit() and len(token) <= 10 and int(token) > 0 and int(token) not in out:
+            out.append(int(token))
+    return out[: portal_stats.MAX_BATCH]
+
+
+@csrf_exempt
+@require_POST
+def impression_beacon(request):
+    """В5 V5-4: показ карточки в списке (JS-маячок: ≥ 50 % карточки ≥ 1 с). Всегда 204,
+    без cookie и сессии. csrf_exempt — sendBeacon не несёт токен (страницы кэшируются
+    без CSRF, P0-1); вместо токена — same-origin, лимит до БД и белый список pk."""
+    resp = HttpResponse(status=204)
+    resp["Cache-Control"] = "no-store"
+    try:
+        from apps.core import ratelimit
+
+        from . import portal_stats
+
+        if not (portal_stats.should_count(request, method="POST") and _same_origin(request)):
+            return resp
+        ids = _beacon_ids(request)
+        if not ids:
+            return resp
+        limit = portal_stats._cfg("beacon_limit") or 120
+        if ratelimit.hit("pstat-beacon", ratelimit.client_ip(request), limit=limit, window=3600):
+            return resp
+        listings = _scoped_listings(request, ids)
+        if listings:
+            portal_stats.record(
+                request,
+                action="impression",
+                channel=portal_stats.channel_for(request),
+                listings=listings,
+            )
+    except Exception as exc:  # noqa: BLE001 — маячок не смеет отвечать 500
+        logger.warning("portal impression beacon failed: %s", type(exc).__name__)
+    return resp
 
 
 @require_safe
@@ -863,6 +939,7 @@ def sitemap_xml(request):
 PLATFORM_DISALLOW = (
     "/entdecken/klick/",
     "/entdecken/weiter/",
+    "/entdecken/stat/",
     "/entdecken/melden/",
     "/entdecken/merkliste/",
     "/entdecken/folgen/",

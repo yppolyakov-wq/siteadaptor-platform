@@ -431,3 +431,21 @@ database-reviewer проверяет: состав и порядок уника�
   «Fertig»/«Teilen».
 - **D-10.** Разбивка по каналам (портал / `/entdecken/`) — v2.
 - **D-11.** Экран видят и сотрудники (денег нет); owner-only — одной строкой, если владелец решит.
+
+## §17. V5-4 — показы карточек (план planner, 2026-10-17)
+
+- Маячок `POST /stat/sichtbar/` (портал) и `/entdecken/stat/sichtbar/` (главный домен, ВЫШЕ
+  catch-all `<city>/<business_type>`), имя `aggregator-impressions`. Тело form-urlencoded `p=1,2,3`
+  (sendBeacon; JSON не CORS-safelisted), ≤1 КБ, ≤48 pk. Ответ ВСЕГДА 204 без тела, `no-store`,
+  без cookie/сессии; не-POST → 405.
+- `csrf_exempt` (страницы кэшируются без токена, P0-1) → вместо токена same-origin
+  (`Sec-Fetch-Site: same-origin`, фолбэк `Origin` = свой хост), пред-лимит `pstat-beacon`
+  (`beacon_limit`, 120/ч на IP) ДО БД, бот-гейт `should_count(method="POST")`, белый список pk
+  через `public()` + область портала (демо на настоящем портале не пишется).
+- Клиент `_pstat_beacon.html` в обеих базах портала: IntersectionObserver ≥50 % ≥1 с при
+  видимой вкладке, пачка на pagehide/visibilitychange/10 с; без cookie и localStorage.
+  `data-pstat` — в единственном шаблоне карточек `_cards.html` (все поверхности через него).
+- Экран владельца: `impression` в TRACKED_ACTIONS + сноска с определением показа.
+- Не считаются в v1: попапы карты и таблица сравнения (roadmap §Отложено).
+- **Находка стенда:** метки дедупа ставились ДО INSERT — при сбое записи визит пропадал на
+  весь день → `_record` снимает метки при исключении `_bump` (замок).

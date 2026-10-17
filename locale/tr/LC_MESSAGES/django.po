@@ -24984,3 +24984,6 @@ msgstr "reklam başladığından beri"
 #, python-format
 msgid "Stadtportal (%(n)s Tage): Aufrufe · Klicks"
 msgstr "Şehir portalı (%(n)s gün): görüntüleme · tıklama"
+
+msgid "Als „gesehen“ zählt eine Karte, die mindestens 1 Sekunde zur Hälfte zu sehen war."
+msgstr "Bir kart, en az yarısı en az 1 saniye görünür olduğunda “görüldü” sayılır."

@@ -24903,3 +24903,6 @@ msgstr "seit Beginn der Anzeige"
 #, python-format
 msgid "Stadtportal (%(n)s Tage): Aufrufe · Klicks"
 msgstr "Stadtportal (%(n)s Tage): Aufrufe · Klicks"
+
+msgid "Als „gesehen“ zählt eine Karte, die mindestens 1 Sekunde zur Hälfte zu sehen war."
+msgstr "Als „gesehen“ zählt eine Karte, die mindestens 1 Sekunde zur Hälfte zu sehen war."

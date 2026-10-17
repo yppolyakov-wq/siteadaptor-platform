@@ -1,0 +1,46 @@
+{% comment %}В5 V5-4: маячок показов карточек каталога города. Показ = карточка видна хотя бы
+наполовину не меньше секунды при открытой вкладке. Без cookie и localStorage: в браузере
+только список уже засчитанных на этой странице pk. Без роута (urlconf тенанта) скрипта нет.{% endcomment %}
+{% url 'aggregator-impressions' as pstat_url %}{% if pstat_url %}
+<script data-pstat-url="{{ pstat_url }}">
+(function () {
+  var cards = document.querySelectorAll("[data-pstat]");
+  if (!cards.length || !("IntersectionObserver" in window)) return;
+  var url = document.currentScript.getAttribute("data-pstat-url");
+  var MAX = 48, DWELL = 1000;
+  var sent = {}, queue = [], timers = {};
+  function flush() {
+    if (!queue.length) return;
+    var body = new URLSearchParams({p: queue.splice(0, MAX).join(",")});
+    if (navigator.sendBeacon && navigator.sendBeacon(url, body)) return;
+    try { fetch(url, {method: "POST", body: body, keepalive: true, credentials: "same-origin"}); } catch (e) {}
+  }
+  function stop(pk) { if (timers[pk]) { clearTimeout(timers[pk]); delete timers[pk]; } }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      var pk = parseInt(e.target.getAttribute("data-pstat"), 10);
+      if (isNaN(pk) || sent[pk]) return;
+      if (e.isIntersecting && e.intersectionRatio >= 0.5 && document.visibilityState === "visible") {
+        if (!timers[pk]) timers[pk] = setTimeout(function () {
+          delete timers[pk]; sent[pk] = true; queue.push(pk); io.unobserve(e.target);
+          if (queue.length >= MAX) flush();
+        }, DWELL);
+      } else { stop(pk); }
+    });
+  }, {threshold: [0, 0.5]});
+  cards.forEach(function (el) { io.observe(el); });
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") {
+      Object.keys(timers).forEach(stop); flush();
+    } else {
+      cards.forEach(function (el) {
+        var pk = parseInt(el.getAttribute("data-pstat"), 10);
+        if (!sent[pk]) { io.unobserve(el); io.observe(el); }
+      });
+    }
+  });
+  window.addEventListener("pagehide", flush);
+  setInterval(flush, 10000);
+})();
+</script>
+{% endif %}

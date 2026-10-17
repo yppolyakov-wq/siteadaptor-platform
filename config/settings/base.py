@@ -283,6 +283,8 @@ AGGREGATOR_PORTAL_STATS = {
     "retention_days": env.int("PORTAL_STATS_RETENTION_DAYS", default=400),
     # счётных событий на IP за час — сверх лимита молча не считаем (страница отвечает)
     "rate_limit": env.int("PORTAL_STATS_RATE_LIMIT", default=300),
+    # В5 V5-4: пачек маячка показов на IP за час — отсекается ДО запроса в БД
+    "beacon_limit": env.int("PORTAL_STATS_BEACON_LIMIT", default=120),
 }
 
 # T1-c (FB-12): django-rosetta — веб-редактор переводов .po (на /rosetta/, public-схема).

@@ -24857,3 +24857,6 @@ msgstr "since the ad started"
 #, python-format
 msgid "Stadtportal (%(n)s Tage): Aufrufe · Klicks"
 msgstr "City portal (%(n)s days): views · clicks"
+
+msgid "Als „gesehen“ zählt eine Karte, die mindestens 1 Sekunde zur Hälfte zu sehen war."
+msgstr "A card counts as “seen” when at least half of it was visible for at least 1 second."

@@ -47,11 +47,11 @@ def channel_for(request) -> str:
     return "portal" if getattr(request, "portal", None) is not None else "entdecken"
 
 
-def should_count(request) -> bool:
+def should_count(request, method: str = "GET") -> bool:
     """Дешёвый пред-гейт ДО запроса в БД: бот на cache hit не платит запросом.
-    HEAD/OPTIONS не считаем — это не просмотр человеком."""
+    HEAD/OPTIONS не считаем — это не просмотр человеком. Маячок показов (V5-4) — POST."""
     try:
-        return request.method == "GET" and bool(_cfg("enabled")) and not bots.is_bot(request)
+        return request.method == method and bool(_cfg("enabled")) and not bots.is_bot(request)
     except Exception:  # noqa: BLE001 — учёт не смеет ронять страницу
         return False
 
@@ -87,9 +87,13 @@ def _visitor(request, day) -> str:
     return hmac.new(_salt(day), f"{ip}|{ua}".encode(), hashlib.sha256).hexdigest()[:16]
 
 
-def _first_today(day, visitor: str, action: str, row: tuple) -> bool:
+def _seen_key(day, visitor: str, action: str, row: tuple) -> str:
     ident = hashlib.md5("|".join(map(str, row)).encode()).hexdigest()  # noqa: S324 — не крипто
-    return bool(cache.add(f"pstat:seen:{day.isoformat()}:{action}:{ident}:{visitor}", 1, SEEN_TTL))
+    return f"pstat:seen:{day.isoformat()}:{action}:{ident}:{visitor}"
+
+
+def _first_today(day, visitor: str, action: str, row: tuple) -> bool:
+    return bool(cache.add(_seen_key(day, visitor, action, row), 1, SEEN_TTL))
 
 
 def _rows(listings, tenant_schema, kind, ref, listing_id, is_demo):
@@ -161,7 +165,12 @@ def _record(request, action, channel, listings, tenant_schema, kind, ref, listin
     fresh = [row for row in rows if _first_today(day, visitor, action, row[:3])]
     if not fresh:
         return 0
-    _bump(day, action, channel, fresh)
+    try:
+        _bump(day, action, channel, fresh)
+    except Exception:
+        # Метки дедупа уже стоят, а записи нет: без отката этот визит пропал бы на весь день.
+        cache.delete_many([_seen_key(day, visitor, action, row[:3]) for row in fresh])
+        raise
     return len(fresh)
 
 

@@ -25079,3 +25079,6 @@ msgstr "з початку реклами"
 #, python-format
 msgid "Stadtportal (%(n)s Tage): Aufrufe · Klicks"
 msgstr "Міський портал (%(n)s дн.): перегляди · переходи"
+
+msgid "Als „gesehen“ zählt eine Karte, die mindestens 1 Sekunde zur Hälfte zu sehen war."
+msgstr "Картка вважається «побаченою», якщо щонайменше секунду була видна хоча б наполовину."

@@ -1,7 +1,7 @@
 {% load i18n %}{# Грид карточек листингов: ожидает items (AggregatorListing); опц. fav_ids + portal_user (сердечки P2.3b, только на порталах под логином). #}
 <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
   {% for l in items %}
-    <div class="relative">
+    <div class="relative" data-pstat="{{ l.pk }}">{# В5 V5-4: маячок показов считает карточку по этому pk #}
     {# D2.3: клик по оплаченной позиции считаем редирект-счётчиком (+rel=sponsored) #}
     {% comment %}T-8.24: обычная карточка ведёт на страницу предложения внутри портала
     (фолбэк — сайт бизнеса, если роута нет); оплаченная — счётчиком на сайт бизнеса.{% endcomment %}

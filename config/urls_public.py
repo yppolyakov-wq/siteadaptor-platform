@@ -81,6 +81,12 @@ urlpatterns = [
         aggregator_views.outbound_click,
         name="aggregator-outbound",
     ),
+    # В5 V5-4: маячок показов карточек — ВЫШЕ catch-all <city>/<business_type>.
+    path(
+        "entdecken/stat/sichtbar/",
+        aggregator_views.impression_beacon,
+        name="aggregator-impressions",
+    ),
     # T-8.6 «Melden» (имя дублируется в urls_portal — {% url %} везде).
     # T-8.24: страница предложения (до catch-all <city>).
     path("entdecken/angebot/<int:pk>/", aggregator_views.offer_page, name="aggregator-offer"),
