@@ -21,6 +21,11 @@ def _iter_tenants():
         return list(get_tenant_model().objects.exclude(schema_name="public"))
 
 
+def _is_digest_monday(local_now) -> bool:
+    """Г4-2: недельный блок акций — в понедельничном письме."""
+    return local_now.weekday() == 0
+
+
 def send_digest_for_tenant(tenant, force_hour=False) -> bool:
     """Собрать и отправить дайджест ТЕКУЩЕЙ схемы. True = письмо создано."""
     if not tenant.owner_digest_enabled or not tenant.owner_email:
@@ -31,17 +36,22 @@ def send_digest_for_tenant(tenant, force_hour=False) -> bool:
         local_now = timezone.localtime()
     if not force_hour and local_now.hour != digest.DIGEST_HOUR:
         return False
-    data = digest.collect_digest(tenant)
+    data = digest.collect_digest(tenant, weekly=_is_digest_monday(local_now))
     if data is None:
         return False  # пустой день — не шумим
 
     from django.template.loader import render_to_string
+    from django.utils import translation
 
     from apps.notifications.services import notify
 
     ctx = {"tenant": tenant, "d": data}
-    subject = render_to_string("emails/owner_digest_subject.txt", ctx).strip()
-    body = render_to_string("emails/owner_digest.txt", ctx)
+    # Г4-2: письмо — на языке бизнеса, а не воркера (правило I18N-13). Тенант уже в
+    # руках — берём его язык напрямую, без повторного поиска по схеме.
+    locale = getattr(tenant, "default_locale", "") or "de"
+    with translation.override(locale):
+        subject = render_to_string("emails/owner_digest_subject.txt", ctx).strip()
+        body = render_to_string("emails/owner_digest.txt", ctx)
     return (
         notify(
             dedupe_key=f"digest:{tenant.schema_name}:{data['date'].isoformat()}",
@@ -82,6 +92,51 @@ def send_owner_digests() -> int:
         with schema_context(tenant.schema_name):
             try:
                 if send_digest_for_tenant(tenant):
+                    sent += 1
+            except Exception:  # noqa: BLE001 — один тенант не валит обход
+                continue
+    return sent
+
+
+def warn_freshness_for_tenant(tenant) -> bool:
+    """Г3: письмо владельцу, если позиции скоро уйдут из каталога города. True = письмо."""
+    from django.template.loader import render_to_string
+    from django.utils import translation
+
+    from apps.core import freshness
+    from apps.notifications.services import notify
+    from apps.tenants.services import site_url_for
+
+    if not tenant.owner_email:
+        return False
+    info = freshness.banner(tenant)
+    if not info or not info["soon"]:
+        return False  # уже ушедшие видны плашкой; письмо — про то, что ещё можно спасти
+    year, week, _day = timezone.localdate().isocalendar()
+    ctx = {"tenant": tenant, "f": info, "url": f"{site_url_for(tenant)}/dashboard/"}
+    with translation.override(getattr(tenant, "default_locale", "") or "de"):
+        subject = render_to_string("emails/city_freshness_subject.txt", ctx).strip()
+        body = render_to_string("emails/city_freshness.txt", ctx)
+    return (
+        notify(
+            dedupe_key=f"city-fresh:{tenant.schema_name}:{year}-W{week:02d}",
+            type="city_freshness",
+            recipient=tenant.owner_email,
+            subject=subject,
+            body=body,
+        )
+        is not None
+    )
+
+
+@shared_task
+def warn_city_freshness() -> int:
+    """Beat (раз в сутки): предупреждения «срок свежести» по всем схемам."""
+    sent = 0
+    for tenant in _iter_tenants():
+        with schema_context(tenant.schema_name):
+            try:
+                if warn_freshness_for_tenant(tenant):
                     sent += 1
             except Exception:  # noqa: BLE001 — один тенант не валит обход
                 continue

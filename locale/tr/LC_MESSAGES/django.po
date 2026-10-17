@@ -25284,3 +25284,103 @@ msgstr "Web sitesinden içe aktarma"
 
 msgid "Weiterleitung auf unverschlüsseltes http ist nicht erlaubt."
 msgstr "Şifrelenmemiş http'ye yönlendirmeye izin verilmez."
+
+#, python-format
+msgid "Ihre Aktionen letzte Woche:"
+msgstr "Geçen haftaki kampanyalarınız:"
+
+#, python-format
+msgid "%(m)s eingelöst"
+msgstr "%(m)s kullanıldı"
+
+#, python-format
+msgid "%(n)s Aufruf"
+msgid_plural "%(n)s Aufrufe"
+msgstr[0] "%(n)s görüntülenme"
+msgstr[1] "%(n)s görüntülenme"
+
+#, python-format
+msgid "%(n)s× zurückgelegt"
+msgid_plural "%(n)s× zurückgelegt"
+msgstr[0] "%(n)s× ayrıldı"
+msgstr[1] "%(n)s× ayrıldı"
+
+#, python-format
+msgid "%(n)s× ausgegeben"
+msgid_plural "%(n)s× ausgegeben"
+msgstr[0] "%(n)s× teslim edildi"
+msgstr[1] "%(n)s× teslim edildi"
+
+#, python-format
+msgid "%(n)s Coupon"
+msgid_plural "%(n)s Coupons"
+msgstr[0] "%(n)s kupon"
+msgstr[1] "%(n)s kupon"
+
+#, python-format
+msgid "%(n)s Positionen bleiben im Stadtkatalog."
+msgstr "%(n)s öğe şehir kataloğunda kalıyor."
+
+msgid "Alles noch aktuell"
+msgstr "Hepsi hâlâ güncel"
+
+#, python-format
+msgid "%(business)s: Einträge im Stadtkatalog bitte bestätigen"
+msgstr "%(business)s: lütfen şehir kataloğundaki kayıtları onaylayın"
+
+msgid "Guten Tag!"
+msgstr "Merhaba!"
+
+msgid ""
+"So bleibt der Stadtkatalog aktuell. Ein Klick genügt: Öffnen Sie Ihr "
+"Dashboard und wählen Sie „Alles noch aktuell“."
+msgstr ""
+"Böylece şehir kataloğu güncel kalır. Tek tık yeterli: panelinizi açın ve "
+"“Hepsi hâlâ güncel”i seçin."
+
+msgid "Auf Ihrer eigenen Website bleiben alle Artikel sichtbar."
+msgstr "Kendi web sitenizde tüm ürünler görünür kalır."
+
+#, python-format
+msgid ""
+"%(n)s Position ist nicht mehr im Stadtkatalog, weil sie lange nicht "
+"bestätigt wurde."
+msgid_plural ""
+"%(n)s Positionen sind nicht mehr im Stadtkatalog, weil sie lange nicht "
+"bestätigt wurden."
+msgstr[0] ""
+"%(n)s öğe uzun süredir onaylanmadığı için artık şehir kataloğunda değil."
+msgstr[1] ""
+"%(n)s öğe uzun süredir onaylanmadığı için artık şehir kataloğunda değil."
+
+#, python-format
+msgid "%(n)s Position verschwindet ab %(day)s aus dem Stadtkatalog."
+msgid_plural "%(n)s Positionen verschwinden ab %(day)s aus dem Stadtkatalog."
+msgstr[0] "%(n)s öğe %(day)s tarihinden itibaren şehir kataloğundan kalkacak."
+msgstr[1] "%(n)s öğe %(day)s tarihinden itibaren şehir kataloğundan kalkacak."
+
+#, python-format
+msgid ""
+"%(n)s Ihrer Artikel oder Leistungen verschwindet ab %(day)s aus dem "
+"Stadtkatalog, weil sie lange nicht bestätigt wurde."
+msgid_plural ""
+"%(n)s Ihrer Artikel oder Leistungen verschwinden ab %(day)s aus dem "
+"Stadtkatalog, weil sie lange nicht bestätigt wurden."
+msgstr[0] ""
+"Ürün veya hizmetlerinizden %(n)s tanesi uzun süredir onaylanmadığı için "
+"%(day)s tarihinden itibaren şehir kataloğundan kalkacak."
+msgstr[1] ""
+"Ürün veya hizmetlerinizden %(n)s tanesi uzun süredir onaylanmadığı için "
+"%(day)s tarihinden itibaren şehir kataloğundan kalkacak."
+
+#, python-format
+msgid ""
+"%(n)s Position verschwindet bald aus dem Stadtkatalog — bitte im Dashboard "
+"bestätigen."
+msgid_plural ""
+"%(n)s Positionen verschwinden bald aus dem Stadtkatalog — bitte im Dashboard"
+" bestätigen."
+msgstr[0] ""
+"%(n)s öğe yakında şehir kataloğundan kalkacak — lütfen panelden onaylayın."
+msgstr[1] ""
+"%(n)s öğe yakında şehir kataloğundan kalkacak — lütfen panelden onaylayın."

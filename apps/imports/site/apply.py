@@ -144,6 +144,7 @@ def _save_product(item, data, category, target_id):
         product.category = category
     product.external_url = (data.get("page_url") or "")[:500]
     product.metadata = {**(product.metadata or {}), **_meta(item)}
+    product.confirmed_at = timezone.now()  # Г3: применённый импорт подтверждает позицию
     product.save()
     return product, created
 
@@ -166,6 +167,7 @@ def _save_service(item, data, target_id):
     service.external_url = (data.get("page_url") or "")[:500]
     if created:
         service.is_active = True
+    service.confirmed_at = timezone.now()  # Г3
     service.save()
     return service, created
 
@@ -306,6 +308,16 @@ def _confirm(item, *, deactivate: bool) -> bool:
         if obj is not None and obj.is_active:
             obj.is_active = False
             obj.save()  # через save: хук post_save снимет листинг из каталога города
+    elif item.target_id:
+        # Г3 («шов Г3»): «Bestätigen» без изменений = позиция на сайте всё ещё есть.
+        from apps.booking.models import Service
+        from apps.catalog.models import Product
+        from apps.core import freshness
+
+        model = Service if item.target_kind == "service" else Product
+        obj = model.objects.filter(pk=item.target_id).first()
+        if obj is not None:
+            freshness.confirm(obj)
     item.decision = "accepted"
     item.applied_at = item.confirmed_at = timezone.now()
     item.save(

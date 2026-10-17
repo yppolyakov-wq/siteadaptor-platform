@@ -16,7 +16,13 @@
 {% endif %}{% if d.orders_new %}- {% blocktrans count n=d.orders_new %}{{ n }} neue Bestellung{% plural %}{{ n }} neue Bestellungen{% endblocktrans %}
 {% endif %}{% if d.jobs_new %}- {% blocktrans count n=d.jobs_new %}{{ n }} neue Anfrage{% plural %}{{ n }} neue Anfragen{% endblocktrans %}
 {% endif %}{% if d.inbox_unread %}- {% blocktrans count n=d.inbox_unread %}{{ n }} ungelesene Nachricht{% plural %}{{ n }} ungelesene Nachrichten{% endblocktrans %}
-{% endif %}{% endif %}
+{% endif %}{% endif %}{% if d.promo_week %}
+{% trans "Ihre Aktionen letzte Woche:" %}
+- {% blocktrans count n=d.promo_week.views %}{{ n }} Aufruf{% plural %}{{ n }} Aufrufe{% endblocktrans %} · {% blocktrans count n=d.promo_week.held %}{{ n }}× zurückgelegt{% plural %}{{ n }}× zurückgelegt{% endblocktrans %} · {% blocktrans count n=d.promo_week.handed %}{{ n }}× ausgegeben{% plural %}{{ n }}× ausgegeben{% endblocktrans %}{% if d.promo_week.coupons or d.promo_week.coupons_redeemed %} · {% blocktrans count n=d.promo_week.coupons %}{{ n }} Coupon{% plural %}{{ n }} Coupons{% endblocktrans %} / {% blocktrans with m=d.promo_week.coupons_redeemed %}{{ m }} eingelöst{% endblocktrans %}{% endif %}
+{% for t in d.promo_week.top %}  · {{ t.title }}: {% blocktrans count n=t.views %}{{ n }} Aufruf{% plural %}{{ n }} Aufrufe{% endblocktrans %}
+{% endfor %}{% endif %}{% if d.freshness_soon %}
+{% blocktrans count n=d.freshness_soon %}{{ n }} Position verschwindet bald aus dem Stadtkatalog — bitte im Dashboard bestätigen.{% plural %}{{ n }} Positionen verschwinden bald aus dem Stadtkatalog — bitte im Dashboard bestätigen.{% endblocktrans %}
+{% endif %}
 {% trans "Alles Weitere im Dashboard Ihrer Website." %}
 
 {% trans "Diesen Überblick können Sie in den Einstellungen abschalten." %}

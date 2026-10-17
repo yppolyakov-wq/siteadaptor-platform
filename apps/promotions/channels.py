@@ -8,11 +8,13 @@
 
 from __future__ import annotations
 
+import logging
 import re
 
 from django.db import IntegrityError, transaction
 from django.db.models import Count, F
 
+logger = logging.getLogger(__name__)
 DIRECT = "direkt"
 _CLEAN = re.compile(r"[^a-z0-9_-]+")
 
@@ -36,6 +38,27 @@ def count_view(promotion, raw_channel) -> None:
             PromotionChannelView.objects.create(promotion=promotion, channel=channel, views=1)
     except IntegrityError:  # параллельный первый просмотр создал строку раньше
         rows.update(views=F("views") + 1)
+
+
+def count_day(promotion) -> None:
+    """Г4-1: +1 просмотр за сегодняшний день бизнеса. Fail-safe: сбой счётчика не
+    роняет страницу акции (это аналитика, не учёт)."""
+    from django.utils import timezone
+
+    from .models import PromotionDailyView
+
+    try:
+        day = timezone.localdate()
+        rows = PromotionDailyView.objects.filter(promotion=promotion, day=day)
+        if rows.update(views=F("views") + 1):
+            return
+        try:
+            with transaction.atomic():
+                PromotionDailyView.objects.create(promotion=promotion, day=day, views=1)
+        except IntegrityError:  # параллельный первый просмотр дня создал строку раньше
+            rows.update(views=F("views") + 1)
+    except Exception:  # noqa: BLE001 — аналитика не мешает показу акции
+        logger.warning("promo daily view not counted", exc_info=True)
 
 
 def funnel(promotion) -> list[dict]:

@@ -415,6 +415,12 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.core.tasks.send_owner_digests",
         "schedule": 3600.0,
     },
+    # Г3: предупреждение «позиции скоро уйдут из каталога города» — раз в сутки,
+    # письмо не чаще раза в ISO-неделю (dedupe_key).
+    "warn-city-freshness": {
+        "task": "apps.core.tasks.warn_city_freshness",
+        "schedule": 86400.0,
+    },
     # CM-2: отложенные посты контент-календаря + запланированный блог.
     "send-due-content": {
         "task": "apps.publishing.tasks.send_due_content",
@@ -676,6 +682,10 @@ GOOGLE_RATING_REFRESH_DAYS = env.int("GOOGLE_RATING_REFRESH_DAYS", default=7)
 # Р-B: бесплатно до IMPORT_FREE_ITEMS позиций (тенант без подписки); обход — вежливый.
 # ---------------------------------------------------------------------------
 IMPORT_FREE_ITEMS = env.int("IMPORT_FREE_ITEMS", default=50)
+# Г3: товар/услуга без подтверждения владельца N дней уходят из каталога города
+# (0 — механизм выключен); предупреждение — за K дней до этого.
+CITY_FRESHNESS_DAYS = env.int("CITY_FRESHNESS_DAYS", default=60)
+CITY_FRESHNESS_WARN_DAYS = env.int("CITY_FRESHNESS_WARN_DAYS", default=7)
 SITE_IMPORT_MAX_PAGES = env.int("SITE_IMPORT_MAX_PAGES", default=20)
 SITE_IMPORT_MAX_PAGE_BYTES = env.int("SITE_IMPORT_MAX_PAGE_BYTES", default=2 * 1024 * 1024)
 SITE_IMPORT_MAX_IMAGE_BYTES = env.int("SITE_IMPORT_MAX_IMAGE_BYTES", default=5 * 1024 * 1024)

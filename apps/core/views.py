@@ -294,6 +294,8 @@ def dashboard(request):
         if not isinstance(sub, dict):
             return sub
         loop_ctx = sub
+    from apps.core import freshness
+
     ctx = {
         "nav": "dashboard",
         # X2a: ОДИН механизм прогресса — единый чек-лист (реестр шагов мастера +
@@ -309,6 +311,8 @@ def dashboard(request):
         "presence_mode": presence.mode(tenant),
         "presence_now": presence.available_now(tenant),
         "presence_number": getattr(tenant, "whatsapp_number", ""),
+        # Г3: позиции, которые скоро уйдут из каталога города без подтверждения.
+        "freshness": freshness.banner(tenant),
         # Полосы «Heute» здесь НЕТ: X3 поглотил её петлёй архетипа (те же
         # сделки), а kind-агностичный вид живёт на `?view=heute` странице
         # продаж. Вычисление осталось мёртвым грузом в 5-6 запросов — снято.

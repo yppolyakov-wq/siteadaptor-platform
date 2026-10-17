@@ -25396,3 +25396,127 @@ msgstr "Импорт с сайта"
 
 msgid "Weiterleitung auf unverschlüsseltes http ist nicht erlaubt."
 msgstr "Перенаправление на незашифрованный http не допускается."
+
+#, python-format
+msgid "Ihre Aktionen letzte Woche:"
+msgstr "Ваши акции за прошлую неделю:"
+
+#, python-format
+msgid "%(m)s eingelöst"
+msgstr "погашено: %(m)s"
+
+#, python-format
+msgid "%(n)s Aufruf"
+msgid_plural "%(n)s Aufrufe"
+msgstr[0] "%(n)s просмотр"
+msgstr[1] "%(n)s просмотра"
+msgstr[2] "%(n)s просмотров"
+msgstr[3] "%(n)s просмотра"
+
+#, python-format
+msgid "%(n)s× zurückgelegt"
+msgid_plural "%(n)s× zurückgelegt"
+msgstr[0] "%(n)s× отложено"
+msgstr[1] "%(n)s× отложено"
+msgstr[2] "%(n)s× отложено"
+msgstr[3] "%(n)s× отложено"
+
+#, python-format
+msgid "%(n)s× ausgegeben"
+msgid_plural "%(n)s× ausgegeben"
+msgstr[0] "%(n)s× выдано"
+msgstr[1] "%(n)s× выдано"
+msgstr[2] "%(n)s× выдано"
+msgstr[3] "%(n)s× выдано"
+
+#, python-format
+msgid "%(n)s Coupon"
+msgid_plural "%(n)s Coupons"
+msgstr[0] "%(n)s купон"
+msgstr[1] "%(n)s купона"
+msgstr[2] "%(n)s купонов"
+msgstr[3] "%(n)s купона"
+
+#, python-format
+msgid "%(n)s Positionen bleiben im Stadtkatalog."
+msgstr "Позиций остаётся в каталоге города: %(n)s."
+
+msgid "Alles noch aktuell"
+msgstr "Всё ещё актуально"
+
+#, python-format
+msgid "%(business)s: Einträge im Stadtkatalog bitte bestätigen"
+msgstr "%(business)s: подтвердите позиции в каталоге города"
+
+msgid "Guten Tag!"
+msgstr "Здравствуйте!"
+
+msgid ""
+"So bleibt der Stadtkatalog aktuell. Ein Klick genügt: Öffnen Sie Ihr "
+"Dashboard und wählen Sie „Alles noch aktuell“."
+msgstr ""
+"Так каталог города остаётся актуальным. Достаточно одного клика: откройте "
+"кабинет и нажмите «Всё ещё актуально»."
+
+msgid "Auf Ihrer eigenen Website bleiben alle Artikel sichtbar."
+msgstr "На вашем собственном сайте все позиции остаются видимыми."
+
+#, python-format
+msgid ""
+"%(n)s Position ist nicht mehr im Stadtkatalog, weil sie lange nicht "
+"bestätigt wurde."
+msgid_plural ""
+"%(n)s Positionen sind nicht mehr im Stadtkatalog, weil sie lange nicht "
+"bestätigt wurden."
+msgstr[0] ""
+"%(n)s позиция больше не в каталоге города: её давно не подтверждали."
+msgstr[1] ""
+"%(n)s позиции больше не в каталоге города: их давно не подтверждали."
+msgstr[2] ""
+"%(n)s позиций больше не в каталоге города: их давно не подтверждали."
+msgstr[3] ""
+"%(n)s позиции больше не в каталоге города: их давно не подтверждали."
+
+#, python-format
+msgid "%(n)s Position verschwindet ab %(day)s aus dem Stadtkatalog."
+msgid_plural "%(n)s Positionen verschwinden ab %(day)s aus dem Stadtkatalog."
+msgstr[0] "%(n)s позиция пропадёт из каталога города с %(day)s."
+msgstr[1] "%(n)s позиции пропадут из каталога города с %(day)s."
+msgstr[2] "%(n)s позиций пропадут из каталога города с %(day)s."
+msgstr[3] "%(n)s позиции пропадут из каталога города с %(day)s."
+
+#, python-format
+msgid ""
+"%(n)s Ihrer Artikel oder Leistungen verschwindet ab %(day)s aus dem "
+"Stadtkatalog, weil sie lange nicht bestätigt wurde."
+msgid_plural ""
+"%(n)s Ihrer Artikel oder Leistungen verschwinden ab %(day)s aus dem "
+"Stadtkatalog, weil sie lange nicht bestätigt wurden."
+msgstr[0] ""
+"%(n)s ваша позиция пропадёт из каталога города с %(day)s: её давно не "
+"подтверждали."
+msgstr[1] ""
+"%(n)s ваши позиции пропадут из каталога города с %(day)s: их давно не "
+"подтверждали."
+msgstr[2] ""
+"%(n)s ваших позиций пропадут из каталога города с %(day)s: их давно не "
+"подтверждали."
+msgstr[3] ""
+"%(n)s ваши позиции пропадут из каталога города с %(day)s: их давно не "
+"подтверждали."
+
+#, python-format
+msgid ""
+"%(n)s Position verschwindet bald aus dem Stadtkatalog — bitte im Dashboard "
+"bestätigen."
+msgid_plural ""
+"%(n)s Positionen verschwinden bald aus dem Stadtkatalog — bitte im Dashboard"
+" bestätigen."
+msgstr[0] ""
+"%(n)s позиция скоро пропадёт из каталога города — подтвердите её в кабинете."
+msgstr[1] ""
+"%(n)s позиции скоро пропадут из каталога города — подтвердите их в кабинете."
+msgstr[2] ""
+"%(n)s позиций скоро пропадут из каталога города — подтвердите их в кабинете."
+msgstr[3] ""
+"%(n)s позиции скоро пропадут из каталога города — подтвердите их в кабинете."

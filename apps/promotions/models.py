@@ -607,6 +607,28 @@ class PromotionChannelView(models.Model):
         return f"{self.channel}: {self.views}"
 
 
+class PromotionDailyView(models.Model):
+    """Г4-1: просмотры страницы акции по дням (локальная дата бизнеса).
+
+    `Promotion.views` и `PromotionChannelView` — накопительные итоги без дат; из них
+    недельное окно для дайджеста владельцу не посчитать. Одна строка на (акция, день).
+    """
+
+    promotion = models.ForeignKey(
+        "promotions.Promotion", on_delete=models.CASCADE, related_name="daily_views"
+    )
+    day = models.DateField()
+    views = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["promotion", "day"], name="promo_daily_view_uniq")
+        ]
+
+    def __str__(self):
+        return f"{self.day}: {self.views}"
+
+
 class Reservation(TimestampedModel):
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, related_name="reservations")
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="reservations")

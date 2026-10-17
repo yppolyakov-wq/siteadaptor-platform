@@ -109,6 +109,9 @@ class Service(I18nMixin, TimestampedModel):
     hide_in_city = models.BooleanField(default=False)
     # T-8.27: адрес услуги на сайте владельца (импорт с сайта, визитка «eintrag»).
     external_url = models.URLField(max_length=500, blank=True, default="")
+    # Г3: последнее явное подтверждение владельца (не updated_at — его сдвигают продажи
+    # и фоновые записи). default=now: при миграции все позиции получают полный срок.
+    confirmed_at = models.DateTimeField(default=timezone.now)
     # LS-1: видео-консультация (v1 = WhatsApp-видео, wa.me-линк в письмах и на
     # детали; НИКАКОЙ записи разговоров — §201 StGB). Бронь — обычным движком.
     is_video = models.BooleanField(default=False)

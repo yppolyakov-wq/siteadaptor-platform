@@ -2,6 +2,8 @@
 
 from decimal import Decimal, InvalidOperation
 
+from django.utils import timezone
+
 from apps.catalog.models import Category, Product, ProductVariant
 
 from .base import BaseProcessor
@@ -113,6 +115,7 @@ class ProductProcessor(BaseProcessor):
                 for key, value in fields.items():
                     setattr(existing, key, value)
                 existing.sku = sku or existing.sku
+                existing.confirmed_at = timezone.now()  # Г3: CSV-импорт подтверждает
                 existing.save()
                 return existing
 

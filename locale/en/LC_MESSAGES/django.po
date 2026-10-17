@@ -25155,3 +25155,107 @@ msgstr "Website import"
 
 msgid "Weiterleitung auf unverschlüsseltes http ist nicht erlaubt."
 msgstr "Redirects to unencrypted http are not allowed."
+
+#, python-format
+msgid "Ihre Aktionen letzte Woche:"
+msgstr "Your promotions last week:"
+
+#, python-format
+msgid "%(m)s eingelöst"
+msgstr "%(m)s redeemed"
+
+#, python-format
+msgid "%(n)s Aufruf"
+msgid_plural "%(n)s Aufrufe"
+msgstr[0] "%(n)s view"
+msgstr[1] "%(n)s views"
+
+#, python-format
+msgid "%(n)s× zurückgelegt"
+msgid_plural "%(n)s× zurückgelegt"
+msgstr[0] "%(n)s× set aside"
+msgstr[1] "%(n)s× set aside"
+
+#, python-format
+msgid "%(n)s× ausgegeben"
+msgid_plural "%(n)s× ausgegeben"
+msgstr[0] "%(n)s× handed out"
+msgstr[1] "%(n)s× handed out"
+
+#, python-format
+msgid "%(n)s Coupon"
+msgid_plural "%(n)s Coupons"
+msgstr[0] "%(n)s coupon"
+msgstr[1] "%(n)s coupons"
+
+#, python-format
+msgid "%(n)s Positionen bleiben im Stadtkatalog."
+msgstr "%(n)s items stay in the city catalogue."
+
+msgid "Alles noch aktuell"
+msgstr "Everything still current"
+
+#, python-format
+msgid "%(business)s: Einträge im Stadtkatalog bitte bestätigen"
+msgstr "%(business)s: please confirm your city catalogue entries"
+
+msgid "Guten Tag!"
+msgstr "Hello!"
+
+msgid ""
+"So bleibt der Stadtkatalog aktuell. Ein Klick genügt: Öffnen Sie Ihr "
+"Dashboard und wählen Sie „Alles noch aktuell“."
+msgstr ""
+"This keeps the city catalogue up to date. One click is enough: open your "
+"dashboard and choose “Everything still current”."
+
+msgid "Auf Ihrer eigenen Website bleiben alle Artikel sichtbar."
+msgstr "All items remain visible on your own website."
+
+#, python-format
+msgid ""
+"%(n)s Position ist nicht mehr im Stadtkatalog, weil sie lange nicht "
+"bestätigt wurde."
+msgid_plural ""
+"%(n)s Positionen sind nicht mehr im Stadtkatalog, weil sie lange nicht "
+"bestätigt wurden."
+msgstr[0] ""
+"%(n)s item is no longer in the city catalogue because it has not been "
+"confirmed for a long time."
+msgstr[1] ""
+"%(n)s items are no longer in the city catalogue because they have not been "
+"confirmed for a long time."
+
+#, python-format
+msgid "%(n)s Position verschwindet ab %(day)s aus dem Stadtkatalog."
+msgid_plural "%(n)s Positionen verschwinden ab %(day)s aus dem Stadtkatalog."
+msgstr[0] "%(n)s item will disappear from the city catalogue from %(day)s."
+msgstr[1] "%(n)s items will disappear from the city catalogue from %(day)s."
+
+#, python-format
+msgid ""
+"%(n)s Ihrer Artikel oder Leistungen verschwindet ab %(day)s aus dem "
+"Stadtkatalog, weil sie lange nicht bestätigt wurde."
+msgid_plural ""
+"%(n)s Ihrer Artikel oder Leistungen verschwinden ab %(day)s aus dem "
+"Stadtkatalog, weil sie lange nicht bestätigt wurden."
+msgstr[0] ""
+"%(n)s of your items or services will disappear from the city catalogue from "
+"%(day)s because it has not been confirmed for a long time."
+msgstr[1] ""
+"%(n)s of your items or services will disappear from the city catalogue from "
+"%(day)s because they have not been confirmed for a long time."
+
+#, python-format
+msgid ""
+"%(n)s Position verschwindet bald aus dem Stadtkatalog — bitte im Dashboard "
+"bestätigen."
+msgid_plural ""
+"%(n)s Positionen verschwinden bald aus dem Stadtkatalog — bitte im Dashboard"
+" bestätigen."
+msgstr[0] ""
+"%(n)s item will soon disappear from the city catalogue — please confirm it "
+"in the dashboard."
+msgstr[1] ""
+"%(n)s items will soon disappear from the city catalogue — please confirm "
+"them in the dashboard."

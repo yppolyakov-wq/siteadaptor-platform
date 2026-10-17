@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 
 @login_required
@@ -21,6 +21,8 @@ def portal_stats(request):
     if not is_owner(request.user):
         return HttpResponseForbidden(_("Nur für Inhaber."))
 
+    from apps.core import freshness
+
     from . import owner_stats
 
     days = owner_stats.parse_period(request.GET.get("tage"))
@@ -32,6 +34,28 @@ def portal_stats(request):
             "days": days,
             "periods": owner_stats.PERIODS,
             "stats": owner_stats.summary(request.tenant, days),
+            "freshness": freshness.banner(request.tenant),
             **owner_login.pending_context(request),
         },
     )
+
+
+@login_required
+@require_POST
+def freshness_confirm(request):
+    """Г3: «Alles noch aktuell» — подтвердить все товары и услуги для каталога города.
+
+    Подтверждать могут и сотрудники (это не настройка бизнеса); членство держит
+    middleware кабинета. `next` — только относительный путь своего кабинета."""
+    from django.contrib import messages
+    from django.db import connection
+    from django.shortcuts import redirect
+
+    from apps.core import freshness
+
+    n = freshness.confirm_all(connection.schema_name)
+    messages.success(request, _("%(n)s Positionen bleiben im Stadtkatalog.") % {"n": n})
+    nxt = request.POST.get("next") or ""
+    if not nxt.startswith("/") or nxt.startswith("//") or "\\" in nxt:
+        nxt = "/dashboard/"
+    return redirect(nxt)

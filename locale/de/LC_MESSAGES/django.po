@@ -25210,3 +25210,107 @@ msgstr "Website-Import"
 
 msgid "Weiterleitung auf unverschlüsseltes http ist nicht erlaubt."
 msgstr "Weiterleitung auf unverschlüsseltes http ist nicht erlaubt."
+
+#, python-format
+msgid "Ihre Aktionen letzte Woche:"
+msgstr "Ihre Aktionen letzte Woche:"
+
+#, python-format
+msgid "%(m)s eingelöst"
+msgstr "%(m)s eingelöst"
+
+#, python-format
+msgid "%(n)s Aufruf"
+msgid_plural "%(n)s Aufrufe"
+msgstr[0] "%(n)s Aufruf"
+msgstr[1] "%(n)s Aufrufe"
+
+#, python-format
+msgid "%(n)s× zurückgelegt"
+msgid_plural "%(n)s× zurückgelegt"
+msgstr[0] "%(n)s× zurückgelegt"
+msgstr[1] "%(n)s× zurückgelegt"
+
+#, python-format
+msgid "%(n)s× ausgegeben"
+msgid_plural "%(n)s× ausgegeben"
+msgstr[0] "%(n)s× ausgegeben"
+msgstr[1] "%(n)s× ausgegeben"
+
+#, python-format
+msgid "%(n)s Coupon"
+msgid_plural "%(n)s Coupons"
+msgstr[0] "%(n)s Coupon"
+msgstr[1] "%(n)s Coupons"
+
+#, python-format
+msgid "%(n)s Positionen bleiben im Stadtkatalog."
+msgstr "%(n)s Positionen bleiben im Stadtkatalog."
+
+msgid "Alles noch aktuell"
+msgstr "Alles noch aktuell"
+
+#, python-format
+msgid "%(business)s: Einträge im Stadtkatalog bitte bestätigen"
+msgstr "%(business)s: Einträge im Stadtkatalog bitte bestätigen"
+
+msgid "Guten Tag!"
+msgstr "Guten Tag!"
+
+msgid ""
+"So bleibt der Stadtkatalog aktuell. Ein Klick genügt: Öffnen Sie Ihr "
+"Dashboard und wählen Sie „Alles noch aktuell“."
+msgstr ""
+"So bleibt der Stadtkatalog aktuell. Ein Klick genügt: Öffnen Sie Ihr "
+"Dashboard und wählen Sie „Alles noch aktuell“."
+
+msgid "Auf Ihrer eigenen Website bleiben alle Artikel sichtbar."
+msgstr "Auf Ihrer eigenen Website bleiben alle Artikel sichtbar."
+
+#, python-format
+msgid ""
+"%(n)s Position ist nicht mehr im Stadtkatalog, weil sie lange nicht "
+"bestätigt wurde."
+msgid_plural ""
+"%(n)s Positionen sind nicht mehr im Stadtkatalog, weil sie lange nicht "
+"bestätigt wurden."
+msgstr[0] ""
+"%(n)s Position ist nicht mehr im Stadtkatalog, weil sie lange nicht "
+"bestätigt wurde."
+msgstr[1] ""
+"%(n)s Positionen sind nicht mehr im Stadtkatalog, weil sie lange nicht "
+"bestätigt wurden."
+
+#, python-format
+msgid "%(n)s Position verschwindet ab %(day)s aus dem Stadtkatalog."
+msgid_plural "%(n)s Positionen verschwinden ab %(day)s aus dem Stadtkatalog."
+msgstr[0] "%(n)s Position verschwindet ab %(day)s aus dem Stadtkatalog."
+msgstr[1] "%(n)s Positionen verschwinden ab %(day)s aus dem Stadtkatalog."
+
+#, python-format
+msgid ""
+"%(n)s Ihrer Artikel oder Leistungen verschwindet ab %(day)s aus dem "
+"Stadtkatalog, weil sie lange nicht bestätigt wurde."
+msgid_plural ""
+"%(n)s Ihrer Artikel oder Leistungen verschwinden ab %(day)s aus dem "
+"Stadtkatalog, weil sie lange nicht bestätigt wurden."
+msgstr[0] ""
+"%(n)s Ihrer Artikel oder Leistungen verschwindet ab %(day)s aus dem "
+"Stadtkatalog, weil sie lange nicht bestätigt wurde."
+msgstr[1] ""
+"%(n)s Ihrer Artikel oder Leistungen verschwinden ab %(day)s aus dem "
+"Stadtkatalog, weil sie lange nicht bestätigt wurden."
+
+#, python-format
+msgid ""
+"%(n)s Position verschwindet bald aus dem Stadtkatalog — bitte im Dashboard "
+"bestätigen."
+msgid_plural ""
+"%(n)s Positionen verschwinden bald aus dem Stadtkatalog — bitte im Dashboard"
+" bestätigen."
+msgstr[0] ""
+"%(n)s Position verschwindet bald aus dem Stadtkatalog — bitte im Dashboard "
+"bestätigen."
+msgstr[1] ""
+"%(n)s Positionen verschwinden bald aus dem Stadtkatalog — bitte im Dashboard"
+" bestätigen."

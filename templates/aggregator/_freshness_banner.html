@@ -1,0 +1,13 @@
+{% load i18n %}{% comment %}Г3: «срок свежести» каталога города. Ожидает freshness = core.freshness.banner(); next — куда вернуть.{% endcomment %}
+{% if freshness %}
+<div class="mb-4 rounded-2xl bg-amber-50 text-amber-900 px-4 py-3 text-sm flex flex-wrap items-center gap-3" data-freshness-banner>
+  <p class="flex-1 min-w-[12rem]">
+    {% if freshness.gone %}{% blocktrans count n=freshness.gone %}{{ n }} Position ist nicht mehr im Stadtkatalog, weil sie lange nicht bestätigt wurde.{% plural %}{{ n }} Positionen sind nicht mehr im Stadtkatalog, weil sie lange nicht bestätigt wurden.{% endblocktrans %}{% endif %}
+    {% if freshness.soon %}{% blocktrans count n=freshness.soon with day=freshness.first_expiry|date:"d.m.Y" %}{{ n }} Position verschwindet ab {{ day }} aus dem Stadtkatalog.{% plural %}{{ n }} Positionen verschwinden ab {{ day }} aus dem Stadtkatalog.{% endblocktrans %}{% endif %}
+  </p>
+  <form method="post" action="{% url 'city-freshness-confirm' %}">
+    {% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}">
+    <button type="submit" class="rounded-full bg-amber-900 text-white px-4 py-1.5 text-sm font-medium hover:opacity-90">✓ {% trans "Alles noch aktuell" %}</button>
+  </form>
+</div>
+{% endif %}

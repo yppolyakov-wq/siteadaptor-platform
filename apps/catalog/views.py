@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import card_forms, vat
+from apps.core import card_forms, freshness, vat
 from apps.core.archetypes import FOOD_BUSINESS_TYPES as _FOOD_BUSINESS_TYPES
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.inventory.services import log_catalog_change
@@ -202,6 +202,7 @@ def product_edit(request, pk):
         request.POST or None, instance=product, tenant=getattr(request, "tenant", None)
     )
     if request.method == "POST" and form.is_valid():
+        freshness.stamp(form.instance)  # Г3: Save владельца = «позиция актуальна»
         product = form.save()
         _save_product_overlays(product, request)  # Ф2: переводы origin/ingredients
         # T1: правка остатка в каталоге пишет движение (не трогая счётчик) →
@@ -281,6 +282,7 @@ def variant_add(request, pk):
             new=variant.stock_quantity,
             actor=getattr(request.user, "username", ""),
         )
+        freshness.confirm(product)  # Г3: правка варианта подтверждает товар
         messages.success(request, _("Variant added."))
     return redirect("catalog:product-edit", pk=pk)
 
@@ -346,6 +348,7 @@ def variant_update(request, pk, vid):
         new=variant.stock_quantity,
         actor=getattr(request.user, "username", ""),
     )
+    freshness.confirm(variant.product)  # Г3: правка варианта подтверждает товар
     messages.success(request, _("Variant updated."))
     return redirect("catalog:product-edit", pk=pk)
 

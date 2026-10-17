@@ -255,7 +255,13 @@ def toggle_visibility(kind: str, pk):
         raise Http404("kind not toggleable")
     obj = get_object_or_404(_model(kind), pk=pk)
     obj.is_active = not obj.is_active
-    obj.save(update_fields=["is_active"])
+    fields = ["is_active"]
+    if obj.is_active and hasattr(obj, "confirmed_at"):  # Г3: включение = подтверждение
+        from apps.core import freshness
+
+        freshness.stamp(obj)
+        fields += ["confirmed_at", "updated_at"]
+    obj.save(update_fields=fields)
     return obj
 
 

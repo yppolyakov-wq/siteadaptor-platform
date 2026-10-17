@@ -9,6 +9,7 @@
 from decimal import Decimal
 
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import I18nMixin, SoftDeleteMixin, TimestampedModel, resolve_overlay
@@ -252,6 +253,9 @@ class Product(SoftDeleteMixin, I18nMixin):
     # T-8.27: адрес позиции на сайте владельца (импорт с сайта). У визитки «eintrag»
     # листинг каталога города ведёт сюда; иначе — справка «Original».
     external_url = models.URLField(max_length=500, blank=True, default="")
+    # Г3: последнее явное подтверждение владельца (не updated_at — его сдвигают продажи
+    # и фоновые записи). default=now: при миграции все позиции получают полный срок.
+    confirmed_at = models.DateTimeField(default=timezone.now)
 
     # Маркетинговый бейдж на витрине (T1): «Tagesgericht», «Neu», «Beliebt».
     # Пусто = без бейджа. is_featured (популярные на главной) — отдельно.

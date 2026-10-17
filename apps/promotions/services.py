@@ -497,8 +497,12 @@ def redeem_voucher(code):
         raise VoucherError("expired")
     if voucher.max_uses and voucher.used_count >= voucher.max_uses:
         raise VoucherError("used_up")
-    Voucher.objects.filter(pk=voucher.pk).update(used_count=F("used_count") + 1)
-    voucher.refresh_from_db(fields=["used_count"])
+    # Г4-1: `.update()` не трогает auto_now — штамп ставим явно: у купона акции
+    # (max_uses=1) это и есть момент погашения для недельной сводки владельцу.
+    Voucher.objects.filter(pk=voucher.pk).update(
+        used_count=F("used_count") + 1, updated_at=timezone.now()
+    )
+    voucher.refresh_from_db(fields=["used_count", "updated_at"])
     return voucher
 
 

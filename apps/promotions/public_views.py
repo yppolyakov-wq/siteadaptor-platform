@@ -2261,6 +2261,7 @@ def promotion_detail(request, pk):
     from . import channels
 
     channels.count_view(promo, ch)  # T-8.6: и по каналу (portal/flyer/…/direkt)
+    channels.count_day(promo)  # Г4-1: и по дням — для недельного дайджеста владельцу
     form = PublicReservationForm(initial={"form_token": uuid.uuid4().hex})
     return render(request, "storefront/promotion_detail.html", _detail_ctx(request, promo, form))
 

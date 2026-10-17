@@ -22,10 +22,76 @@ def _safe(fn, default=0):
         return default
 
 
-def collect_digest(tenant) -> dict | None:
-    """Метрики для письма или None, если сегодня нечего рассказать."""
+WEEK_DAYS = 7
+TOP_PROMOTIONS = 3
+
+
+def _promo_week(today) -> dict | None:
+    """Г4-2: акции за прошлую неделю `[today−7, today)` — только агрегаты.
+
+    Просмотры — по дневной таблице (Г4-1); «отложено» — резервы, созданные в окне
+    (тот же фильтр статусов, что счётчик списка акций); «выдано» — по `fulfilled_at`;
+    купоны — выданные в окне и погашенные в окне (`updated_at` ставит погашение).
+    Имён, контактов и кодов клиентов здесь нет. Пустая неделя → None.
+    """
+    from datetime import datetime, time
+
+    from django.db.models import Sum
+
+    from apps.loyalty.models import Voucher
+    from apps.promotions.models import Promotion, PromotionDailyView, Reservation
+
+    first = today - timedelta(days=WEEK_DAYS)
+    start = timezone.make_aware(datetime.combine(first, time.min))
+    end = timezone.make_aware(datetime.combine(today, time.min))
+    views = PromotionDailyView.objects.filter(day__gte=first, day__lt=today)
+    week = {
+        "views": views.aggregate(n=Sum("views"))["n"] or 0,
+        "held": Reservation.objects.filter(
+            created_at__gte=start,
+            created_at__lt=end,
+            status__in=["pending", "confirmed", "fulfilled"],
+        ).count(),
+        "handed": Reservation.objects.filter(fulfilled_at__gte=start, fulfilled_at__lt=end).count(),
+        "coupons": Voucher.objects.filter(
+            promotion__isnull=False, created_at__gte=start, created_at__lt=end
+        ).count(),
+        "coupons_redeemed": Voucher.objects.filter(
+            promotion__isnull=False, used_count__gt=0, updated_at__gte=start, updated_at__lt=end
+        ).count(),
+    }
+    if not any(week.values()):
+        return None
+    ranked = list(
+        views.values("promotion")
+        .annotate(n=Sum("views"))
+        .order_by("-n", "promotion")[:TOP_PROMOTIONS]
+    )
+    titles = {
+        p.pk: p.title_text
+        for p in Promotion.objects.filter(pk__in=[r["promotion"] for r in ranked]).only(
+            "pk", "title"
+        )
+    }
+    week["top"] = [
+        {"title": titles.get(r["promotion"], ""), "views": r["n"]}
+        for r in ranked
+        if titles.get(r["promotion"])
+    ]
+    return week
+
+
+def collect_digest(tenant, *, weekly: bool = False) -> dict | None:
+    """Метрики для письма или None, если сегодня нечего рассказать.
+
+    `weekly` — понедельник: добавляется недельный блок акций (Г4-2)."""
     today = timezone.localdate()
     data = {"date": today}
+
+    if weekly and modules.is_module_active(tenant, "promotions"):
+        week = _safe(lambda: _promo_week(today), None)
+        if week:
+            data["promo_week"] = week
 
     if modules.is_module_active(tenant, "finance"):
 
@@ -104,6 +170,13 @@ def collect_digest(tenant) -> dict | None:
                 unread_for_staff=True, status=Conversation.STATUS_OPEN
             ).count()
         )
+
+    # Г3 (В-5): одна строка «скоро уйдут из каталога города».
+    from apps.core import freshness
+
+    fresh = _safe(lambda: freshness.banner(tenant), None)
+    if fresh and fresh["soon"]:
+        data["freshness_soon"] = fresh["soon"]
 
     interesting = [v for k, v in data.items() if k != "date"]
     if not any(interesting):

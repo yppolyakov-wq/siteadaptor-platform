@@ -20,7 +20,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.billing import connect
-from apps.core import deal_links, vat
+from apps.core import deal_links, freshness, vat
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import (
     apply_i18n_overlay,
@@ -755,6 +755,8 @@ def services_view(request, pk=None):
                 service.vat_rate = vat.parse_rate(request.POST.get("vat_rate"), service.vat_rate)
             service.description = request.POST.get("description", "").strip()  # A3
             fields = ["duration_minutes", "price_cents", "vat_rate", "description", "updated_at"]
+            freshness.stamp(service)  # Г3: Save владельца = «услуга актуальна»
+            fields.append("confirmed_at")
             # L3d: name правится тоже — но только если поле явно прислано
             # (presence-guard: старые клиенты формы без name не затронуты).
             new_name = request.POST.get("name")
@@ -787,7 +789,11 @@ def services_view(request, pk=None):
         elif action == "toggle":
             service = get_object_or_404(Service, pk=request.POST.get("service"))
             service.is_active = not service.is_active
-            service.save(update_fields=["is_active", "updated_at"])
+            fields = ["is_active", "updated_at"]
+            if service.is_active:  # Г3: включение — тоже подтверждение
+                freshness.stamp(service)
+                fields.append("confirmed_at")
+            service.save(update_fields=fields)
         elif action == "season_add":  # HF-5: цена услуги на диапазон дат
             service = get_object_or_404(Service, pk=request.POST.get("service"))
             start = _parse_day_or_none(request.POST.get("start_date"))

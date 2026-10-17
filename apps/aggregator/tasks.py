@@ -1001,6 +1001,9 @@ def refresh_tenant_fields(tenant) -> int:
 
 #: Сколько дней товар считается «Neu», если у него нет бейджа «neu».
 NEW_PRODUCT_DAYS = 14
+# Г3-4: бейдж «Neu» владельца действует в каталоге города, только если позиция
+# подтверждалась не дольше этого срока (иначе «Neu» висел бы годами).
+NEW_BADGE_MAX_DAYS = 30
 TENANT_URLCONF = "config.urls_tenant"
 
 
@@ -1065,6 +1068,14 @@ def _variant_terms(product) -> list[str]:
     return list(terms)[:VARIANT_TERMS_MAX]
 
 
+def _stale(tenant, snap) -> bool:
+    """Г3: позиция давно не подтверждалась владельцем → не в каталоге города
+    («показано = проверено»). Снимается ночной сверкой, возвращается подтверждением."""
+    from apps.core import freshness
+
+    return freshness.is_stale(tenant, snap.get("confirmed_at"))
+
+
 def _product_snapshot(product_id):
     """Снимок товара в ТЕКУЩЕЙ схеме → dict, или None (не годится к показу)."""
     from datetime import timedelta
@@ -1108,6 +1119,7 @@ def _product_snapshot(product_id):
     )
     savings = product.savings_percent if not product.has_variants else None
     return {
+        "confirmed_at": product.confirmed_at,
         "external_url": product.external_url,
         "variant_terms": _variant_terms(product),
         "title": {**(product.name or {})},
@@ -1120,7 +1132,12 @@ def _product_snapshot(product_id):
         "price_reference": "uvp" if savings else "",  # SF-8a: это UVP, не своя прежняя цена
         "path": path,
         "availability": availability,
-        "is_new": product.badge == "neu" or bool(fresh),
+        "is_new": bool(fresh)
+        or (
+            product.badge == "neu"
+            and product.confirmed_at is not None
+            and product.confirmed_at >= timezone.now() - timedelta(days=NEW_BADGE_MAX_DAYS)
+        ),
         "diets": list(product.diets or []),
         "city_category": city.resolve(product.category) if product.category_id else "",
         **_item_condition(product),
@@ -1153,6 +1170,7 @@ def sync_product_listing(tenant_schema, product_id) -> str:
         or tenant is None
         or _withheld(tenant)
         or (is_aktionen(tenant) and not external)
+        or _stale(tenant, snap)
     ):
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
@@ -1210,6 +1228,7 @@ def _service_snapshot(service_id):
         "price_per_person": service.pricing_mode == "per_person",
         "path": reverse("storefront-service-detail", args=[service.pk], urlconf=TENANT_URLCONF),
         "external_url": service.external_url,
+        "confirmed_at": service.confirmed_at,
     }
 
 
@@ -1233,6 +1252,7 @@ def sync_service_listing(tenant_schema, service_id) -> str:
         or tenant is None
         or _withheld(tenant)
         or not tenant.is_module_active("booking")
+        or _stale(tenant, snap)
     ):
         AggregatorListing.objects.filter(**key).delete()
         return "removed"

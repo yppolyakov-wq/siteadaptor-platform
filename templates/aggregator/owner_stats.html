@@ -11,6 +11,7 @@
 {% if stats.is_demo %}<p class="text-xs text-gray-500 -mt-2 mb-4">{% trans "Dieses Geschäft ist ein Demo — die Zahlen stammen aus Testbesuchen." %}</p>{% endif %}
 
 {% include "promotions/_email_pending.html" %}
+{% include "aggregator/_freshness_banner.html" %}
 {% if stats.status == "not_in_catalog" %}
 <div class="mb-3 rounded-2xl bg-amber-50 text-amber-900 px-4 py-3 text-sm" data-status-not-in-catalog>
   <p class="font-medium">{% trans "Ihr Angebot ist nicht im Stadtkatalog" %}</p>
