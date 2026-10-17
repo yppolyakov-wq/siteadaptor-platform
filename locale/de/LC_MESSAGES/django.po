@@ -25447,3 +25447,77 @@ msgstr "Was heute starten?"
 #. Д1
 msgid "Bitte einen Rabatt in Prozent angeben."
 msgstr "Bitte einen Rabatt in Prozent angeben."
+
+msgid ""
+"Der Text nennt einen früheren Preis, das Angebot hat aber keinen "
+"Vergleichspreis."
+msgstr ""
+"Der Text nennt einen früheren Preis, das Angebot hat aber keinen "
+"Vergleichspreis."
+
+msgid "Ein Preis oder Prozentsatz im Text passt nicht zu den Preisfeldern."
+msgstr "Ein Preis oder Prozentsatz im Text passt nicht zu den Preisfeldern."
+
+msgid ""
+"Sehr hoher Rabatt: Bitte prüfen, ob der Vergleichspreis wirklich verlangt "
+"wurde."
+msgstr ""
+"Sehr hoher Rabatt: Bitte prüfen, ob der Vergleichspreis wirklich verlangt "
+"wurde."
+
+msgid "Ein durchgestrichener Preis braucht ein Enddatum der Aktion."
+msgstr "Ein durchgestrichener Preis braucht ein Enddatum der Aktion."
+
+msgid "„Gratis“ oder „kostenlos“ passt nicht zu einem Preis über 0 €."
+msgstr "„Gratis“ oder „kostenlos“ passt nicht zu einem Preis über 0 €."
+
+msgid "„Nur heute“ steht im Text, die Aktion läuft aber länger."
+msgstr "„Nur heute“ steht im Text, die Aktion läuft aber länger."
+
+msgid "Die genannte Restmenge passt nicht zur Menge im Angebot."
+msgstr "Die genannte Restmenge passt nicht zur Menge im Angebot."
+
+msgid "Aussagen wie „der beste“ oder „Nr. 1“ müssen belegbar sein."
+msgstr "Aussagen wie „der beste“ oder „Nr. 1“ müssen belegbar sein."
+
+msgid ""
+"Gesundheitsversprechen sind bei Lebensmitteln nur mit zugelassenen Angaben "
+"erlaubt."
+msgstr ""
+"Gesundheitsversprechen sind bei Lebensmitteln nur mit zugelassenen Angaben "
+"erlaubt."
+
+msgid "„Bio“ oder „Öko“ darf nur mit Öko-Kontrollnummer verwendet werden."
+msgstr "„Bio“ oder „Öko“ darf nur mit Öko-Kontrollnummer verwendet werden."
+
+msgid "Die Angabe im Text widerspricht den Allergenen des Produkts."
+msgstr "Die Angabe im Text widerspricht den Allergenen des Produkts."
+
+msgid "Beim Produkt sind weder Allergene noch Zutaten angegeben."
+msgstr "Beim Produkt sind weder Allergene noch Zutaten angegeben."
+
+msgid ""
+"Für Ware nach Gewicht oder Volumen fehlt der Grundpreis (Preis pro kg oder "
+"l)."
+msgstr ""
+"Für Ware nach Gewicht oder Volumen fehlt der Grundpreis (Preis pro kg oder "
+"l)."
+
+msgid ""
+"Räumungsverkauf darf nur bei echter Geschäftsaufgabe angekündigt werden."
+msgstr ""
+"Räumungsverkauf darf nur bei echter Geschäftsaufgabe angekündigt werden."
+
+msgid "Bei einer Überraschungsaktion verrät der Text den Preis."
+msgstr "Bei einer Überraschungsaktion verrät der Text den Preis."
+
+msgid ""
+"Links, E-Mail-Adressen und Telefonnummern gehören nicht in den Angebotstext."
+msgstr ""
+"Links, E-Mail-Adressen und Telefonnummern gehören nicht in den Angebotstext."
+
+msgid "Viele Großbuchstaben, Ausrufezeichen oder Emojis wirken wie Werbung."
+msgstr "Viele Großbuchstaben, Ausrufezeichen oder Emojis wirken wie Werbung."
+
+msgid "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."
+msgstr "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."

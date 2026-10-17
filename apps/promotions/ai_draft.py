@@ -24,6 +24,14 @@ from apps.ai.api import generate, is_enabled
 from apps.ai.errors import AIError
 from apps.core import city_categories as cc
 
+# Регулярки цен/скидок/контактов/утверждений — общие с «Text-Check» (T-8.10e): живут в
+# `apps.core.text_check`, здесь — прежние имена (тесты и `clean_text` Д1 не меняются).
+from apps.core.text_check import CLAIM_RE as _CLAIM_RE
+from apps.core.text_check import CLAIM_STEMS, DISCOUNT_STEMS  # noqa: F401 — реэкспорт
+from apps.core.text_check import CONTACT_RE as _CONTACT_RE
+from apps.core.text_check import DISCOUNT_RE as _DISCOUNT_RE
+from apps.core.text_check import PRICE_RE as _PRICE_RE
+
 logger = logging.getLogger(__name__)
 
 TASK = "promo_photo_draft"
@@ -69,84 +77,6 @@ SYSTEM = (
     "of the item (e.g. 'Sauerteigbrot')."
 )
 
-# Цифры у денег/процентов, «statt»/«gratis» — их ставит только владелец (UWG/PAngV).
-# Слова перед ценой («nur 49 €») уходят вместе с ней — иначе в заголовке висит «nur».
-_PRICE_LEAD = ("nur", "ab", "für", "jetzt", "statt")
-_NUMBER_WORDS = (
-    "ein",
-    "eine",
-    "einen",
-    "zwei",
-    "drei",
-    "vier",
-    "fünf",
-    "sechs",
-    "sieben",
-    "acht",
-    "neun",
-    "zehn",
-    "zwanzig",
-    "fünfzig",
-    "hundert",
-    "halbe",
-    "halben",
-    "halber",
-)
-_FOR = "für"
-_NUM = r"\d{1,3}(?:[ .\u00a0]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?"
-_AMOUNT = (
-    r"(?:[−\-–]\s?)?(?:" + _NUM + r")\s?(?:€|eur\b|euro\b|%|％|prozent\b|,-|\.-)"
-    r"|(?:€|\beur\b|\beuro\b)\s?(?:" + _NUM + r")"
-    r"|\b\d+\s?(?:\+|" + _FOR + r")\s?\d+\b"  # «2 für 1», «1+1»
-    r"|\b(?:" + "|".join(_NUMBER_WORDS) + r")\s+(?:euro|prozent|preis)\b"
-)
-_PRICE_RE = re.compile(r"(?i)(?:\b(?:" + "|".join(_PRICE_LEAD) + r")\s+)?(?:" + _AMOUNT + r")")
-# Слова скидки без цифр («Rabatt», «Sale», «reduziert») — тоже обещание цены: фраза с ними
-# из текста ИИ уходит целиком (UWG § 5: скидку заявляет только владелец).
-DISCOUNT_STEMS = (
-    "statt",
-    "gratis",
-    "kostenlos",
-    "umsonst",
-    "geschenkt",
-    "rabatt",
-    "reduziert",
-    "sale",
-    "aktionspreis",
-    "angebotspreis",
-    "sonderpreis",
-    "schnäppchen",
-    "preiswert",
-    "billig",
-    "günstig",
-    "spar",
-    "deal",
-)
-_DISCOUNT_RE = re.compile(r"(?i)(?<!\w)(?:" + "|".join(DISCOUNT_STEMS) + r")\w*")
-# Ссылки/почта/телефоны с фото («visit …», «call 0900 …») — не текст объявления.
-_CONTACT_RE = re.compile(
-    r"(?i)https?://\S+|\bwww\.\S+|[\w.+-]+@[\w-]+\.[\w.]+|\+?\d[\d\s/()-]{6,}\d"
-)
-# Слова-утверждения (основы — ловят и «vegane», «biologisch», «glutenfreies»):
-# подсказка «Bitte prüfen», не блокировка.
-CLAIM_STEMS = (
-    "bio",
-    "öko",
-    "vegan",
-    "vegetar",
-    "glutenfrei",
-    "laktosefrei",
-    "halal",
-    "gesund",
-    "garantier",
-    "regional",
-    "nachhaltig",
-    "beste",
-    "billigst",
-    "günstigst",
-    "nur heute",
-)
-_CLAIM_RE = re.compile(r"(?i)(?<!\w)((?:" + "|".join(re.escape(w) for w in CLAIM_STEMS) + r")\w*)")
 _SENTENCE_RE = re.compile(r"(?<=[.!?;])\s+")
 
 

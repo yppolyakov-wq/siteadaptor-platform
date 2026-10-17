@@ -96,6 +96,10 @@ SKIP_FILES = (
     # «heute geöffnet», «größe»), это язык запроса жителя, а не текст интерфейса; подписи
     # пилюль в том же файле идут через gettext и в каталогах есть.
     "apps/aggregator/query_intent.py",
+    # T-8.10e: правила «Text-Check» — regex из немецких слов рекламного текста владельца
+    # («nur heute», «gratis», «beste») и ссылки на нормы («EU-Öko-VO 2018/848») — это не
+    # интерфейс; подсказки правил в том же файле идут через gettext и в каталогах есть.
+    "apps/core/text_check.py",
 )
 # DCC: спеки демо-бизнесов города — контент, переводится словарями demo_i18n_*.
 SKIP_DIR_PARTS = ("/migrations/", "/tests/", "/node_modules/", "/.venv/", "/demo_city/")

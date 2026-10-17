@@ -25630,3 +25630,75 @@ msgstr "Що запустити сьогодні?"
 #. Д1
 msgid "Bitte einen Rabatt in Prozent angeben."
 msgstr "Вкажіть знижку у відсотках."
+
+msgid ""
+"Der Text nennt einen früheren Preis, das Angebot hat aber keinen "
+"Vergleichspreis."
+msgstr ""
+"У тексті вказано попередню ціну, але в акції немає ціни для порівняння."
+
+msgid "Ein Preis oder Prozentsatz im Text passt nicht zu den Preisfeldern."
+msgstr "Ціна або відсоток у тексті не збігаються з полями ціни."
+
+msgid ""
+"Sehr hoher Rabatt: Bitte prüfen, ob der Vergleichspreis wirklich verlangt "
+"wurde."
+msgstr ""
+"Дуже велика знижка: перевірте, що ціна для порівняння справді "
+"застосовувалася."
+
+msgid "Ein durchgestrichener Preis braucht ein Enddatum der Aktion."
+msgstr "Для закресленої ціни потрібна дата завершення акції."
+
+msgid "„Gratis“ oder „kostenlos“ passt nicht zu einem Preis über 0 €."
+msgstr "«Безкоштовно» не поєднується з ціною понад 0 €."
+
+msgid "„Nur heute“ steht im Text, die Aktion läuft aber länger."
+msgstr "У тексті сказано «лише сьогодні», але акція триває довше."
+
+msgid "Die genannte Restmenge passt nicht zur Menge im Angebot."
+msgstr "Вказаний залишок не збігається з кількістю в акції."
+
+msgid "Aussagen wie „der beste“ oder „Nr. 1“ müssen belegbar sein."
+msgstr "Твердження на кшталт «найкращий» або «№ 1» мають бути доведені."
+
+msgid ""
+"Gesundheitsversprechen sind bei Lebensmitteln nur mit zugelassenen Angaben "
+"erlaubt."
+msgstr ""
+"Обіцянки користі для здоров’я у продуктів допустимі лише в дозволених "
+"формулюваннях."
+
+msgid "„Bio“ oder „Öko“ darf nur mit Öko-Kontrollnummer verwendet werden."
+msgstr ""
+"«Біо» та «еко» можна писати лише за наявності номера органічного контролю."
+
+msgid "Die Angabe im Text widerspricht den Allergenen des Produkts."
+msgstr "Твердження в тексті суперечить алергенам товару."
+
+msgid "Beim Produkt sind weder Allergene noch Zutaten angegeben."
+msgstr "У товару не вказано ні алергенів, ні складу."
+
+msgid ""
+"Für Ware nach Gewicht oder Volumen fehlt der Grundpreis (Preis pro kg oder "
+"l)."
+msgstr "Для товару на вагу чи об’єм бракує ціни за одиницю (за кг або л)."
+
+msgid ""
+"Räumungsverkauf darf nur bei echter Geschäftsaufgabe angekündigt werden."
+msgstr ""
+"Розпродаж у зв’язку із закриттям можна оголошувати, лише якщо бізнес справді"
+" закривається."
+
+msgid "Bei einer Überraschungsaktion verrät der Text den Preis."
+msgstr "Текст розкриває ціну акції-сюрпризу."
+
+msgid ""
+"Links, E-Mail-Adressen und Telefonnummern gehören nicht in den Angebotstext."
+msgstr "Посиланням, адресам e-mail і телефонам не місце в тексті акції."
+
+msgid "Viele Großbuchstaben, Ausrufezeichen oder Emojis wirken wie Werbung."
+msgstr "Багато великих літер, знаків оклику чи емодзі виглядає як спам."
+
+msgid "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."
+msgstr "Якщо згадано «гарантію», треба вказати її зміст і строк."

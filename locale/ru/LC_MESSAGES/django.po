@@ -25650,3 +25650,75 @@ msgstr "Что запустить сегодня?"
 #. Д1
 msgid "Bitte einen Rabatt in Prozent angeben."
 msgstr "Укажите скидку в процентах."
+
+msgid ""
+"Der Text nennt einen früheren Preis, das Angebot hat aber keinen "
+"Vergleichspreis."
+msgstr "В тексте указана прежняя цена, но у акции нет цены для сравнения."
+
+msgid "Ein Preis oder Prozentsatz im Text passt nicht zu den Preisfeldern."
+msgstr "Цена или процент в тексте не совпадают с полями цены."
+
+msgid ""
+"Sehr hoher Rabatt: Bitte prüfen, ob der Vergleichspreis wirklich verlangt "
+"wurde."
+msgstr ""
+"Очень большая скидка: проверьте, что цена для сравнения действительно "
+"применялась."
+
+msgid "Ein durchgestrichener Preis braucht ein Enddatum der Aktion."
+msgstr "Для зачёркнутой цены нужна дата окончания акции."
+
+msgid "„Gratis“ oder „kostenlos“ passt nicht zu einem Preis über 0 €."
+msgstr "«Бесплатно» не сочетается с ценой выше 0 €."
+
+msgid "„Nur heute“ steht im Text, die Aktion läuft aber länger."
+msgstr "В тексте сказано «только сегодня», но акция длится дольше."
+
+msgid "Die genannte Restmenge passt nicht zur Menge im Angebot."
+msgstr "Указанный остаток не совпадает с количеством в акции."
+
+msgid "Aussagen wie „der beste“ oder „Nr. 1“ müssen belegbar sein."
+msgstr "Утверждения вроде «лучший» или «№ 1» должны быть доказуемы."
+
+msgid ""
+"Gesundheitsversprechen sind bei Lebensmitteln nur mit zugelassenen Angaben "
+"erlaubt."
+msgstr ""
+"Обещания пользы для здоровья у продуктов допустимы только в разрешённых "
+"формулировках."
+
+msgid "„Bio“ oder „Öko“ darf nur mit Öko-Kontrollnummer verwendet werden."
+msgstr ""
+"«Био» и «эко» можно писать только при наличии номера органического контроля."
+
+msgid "Die Angabe im Text widerspricht den Allergenen des Produkts."
+msgstr "Утверждение в тексте противоречит аллергенам товара."
+
+msgid "Beim Produkt sind weder Allergene noch Zutaten angegeben."
+msgstr "У товара не указаны ни аллергены, ни состав."
+
+msgid ""
+"Für Ware nach Gewicht oder Volumen fehlt der Grundpreis (Preis pro kg oder "
+"l)."
+msgstr "Для товара на вес или объём не хватает цены за единицу (за кг или л)."
+
+msgid ""
+"Räumungsverkauf darf nur bei echter Geschäftsaufgabe angekündigt werden."
+msgstr ""
+"Распродажу в связи с закрытием можно объявлять, только если бизнес "
+"действительно закрывается."
+
+msgid "Bei einer Überraschungsaktion verrät der Text den Preis."
+msgstr "Текст раскрывает цену акции-сюрприза."
+
+msgid ""
+"Links, E-Mail-Adressen und Telefonnummern gehören nicht in den Angebotstext."
+msgstr "Ссылкам, адресам e-mail и телефонам не место в тексте акции."
+
+msgid "Viele Großbuchstaben, Ausrufezeichen oder Emojis wirken wie Werbung."
+msgstr ""
+"Много заглавных букв, восклицательных знаков или эмодзи выглядит как спам."
+
+msgid "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."
+msgstr "Если упоминается «гарантия», нужно указать её содержание и срок."

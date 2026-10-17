@@ -1,6 +1,6 @@
 # План: Д2 — «Text-Check vor dem Veröffentlichen» (T-8.10e)
 
-**Дата:** 2026-10-17 · **ID:** T-8.10e (семейство T-8, `task-catalog.md`), инкременты D2a-1…D2b-2 · **Статус:** план, кода нет; решения В-1…В-6 ждут владельца (§8)
+**Дата:** 2026-10-17 · **ID:** T-8.10e (семейство T-8, `task-catalog.md`), инкременты D2a-1…D2b-2 · **Статус:** решения В-1…В-6 приняты владельцем 2026-10-17 «по рекомендации»; D2a-1 в работе
 **Источники:** `docs/backlog-portal-direction-2026-10-16.md` §5 (Д2), `docs/t8-ai-layer-2026-10-09.md` §4–§5, `docs/ai0-layer-plan-2026-10-17.md` §4–§10, `docs/d1-ai-photo-promo-today-plan-2026-10-17.md`, `apps/ai/*`, `apps/promotions/ai_draft.py`, `apps/aggregator/{tasks,reports,admin,models}.py`.
 
 ---

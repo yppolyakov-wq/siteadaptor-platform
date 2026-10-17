@@ -726,6 +726,9 @@ AI_USAGE_RETENTION_DAYS = env.int("AI_USAGE_RETENTION_DAYS", default=400)
 # Потолок длины текста запроса (prompt + system): защита воркера и бюджета от огромного
 # внешнего текста; задача может задать свой меньший предел (TaskSpec.max_input_chars).
 AI_MAX_PROMPT_CHARS = env.int("AI_MAX_PROMPT_CHARS", default=60_000)
+# T-8.10e «Text-Check»: скидка выше этого процента — подсказка «sehr hoher Rabatt»
+# (кроме скоропортящегося, § 11 Abs. 4 PAngV). Только подсказка, не запрет.
+TEXT_CHECK_PLAUSIBLE_DISCOUNT = env.int("TEXT_CHECK_PLAUSIBLE_DISCOUNT", default=70)
 # Прямой Anthropic API (dev, личный ключ).
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 ANTHROPIC_BASE_URL = env("ANTHROPIC_BASE_URL", default="https://api.anthropic.com")

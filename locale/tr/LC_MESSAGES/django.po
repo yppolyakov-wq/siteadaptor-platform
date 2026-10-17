@@ -25520,3 +25520,77 @@ msgstr "Bugün ne başlatılsın?"
 #. Д1
 msgid "Bitte einen Rabatt in Prozent angeben."
 msgstr "Lütfen yüzde olarak bir indirim girin."
+
+msgid ""
+"Der Text nennt einen früheren Preis, das Angebot hat aber keinen "
+"Vergleichspreis."
+msgstr ""
+"Metinde önceki bir fiyat geçiyor, ancak teklifin karşılaştırma fiyatı yok."
+
+msgid "Ein Preis oder Prozentsatz im Text passt nicht zu den Preisfeldern."
+msgstr "Metindeki bir fiyat veya yüzde, fiyat alanlarıyla uyuşmuyor."
+
+msgid ""
+"Sehr hoher Rabatt: Bitte prüfen, ob der Vergleichspreis wirklich verlangt "
+"wurde."
+msgstr ""
+"Çok yüksek indirim: Karşılaştırma fiyatının gerçekten uygulandığını kontrol "
+"edin."
+
+msgid "Ein durchgestrichener Preis braucht ein Enddatum der Aktion."
+msgstr "Üstü çizili fiyat için kampanyanın bitiş tarihi gerekir."
+
+msgid "„Gratis“ oder „kostenlos“ passt nicht zu einem Preis über 0 €."
+msgstr "“Ücretsiz” ifadesi 0 €’nun üzerindeki bir fiyatla uyuşmuyor."
+
+msgid "„Nur heute“ steht im Text, die Aktion läuft aber länger."
+msgstr "Metinde “sadece bugün” yazıyor, ancak kampanya daha uzun sürüyor."
+
+msgid "Die genannte Restmenge passt nicht zur Menge im Angebot."
+msgstr "Belirtilen kalan miktar, kampanyadaki miktarla uyuşmuyor."
+
+msgid "Aussagen wie „der beste“ oder „Nr. 1“ müssen belegbar sein."
+msgstr ""
+"“En iyi” veya “1 numara” gibi iddiaların kanıtlanabilir olması gerekir."
+
+msgid ""
+"Gesundheitsversprechen sind bei Lebensmitteln nur mit zugelassenen Angaben "
+"erlaubt."
+msgstr ""
+"Gıdalarda sağlık vaatleri yalnızca izin verilmiş beyanlarla yapılabilir."
+
+msgid "„Bio“ oder „Öko“ darf nur mit Öko-Kontrollnummer verwendet werden."
+msgstr ""
+"“Organik” ifadesi yalnızca organik kontrol numarasıyla kullanılabilir."
+
+msgid "Die Angabe im Text widerspricht den Allergenen des Produkts."
+msgstr "Metindeki ifade ürünün alerjenleriyle çelişiyor."
+
+msgid "Beim Produkt sind weder Allergene noch Zutaten angegeben."
+msgstr "Ürün için ne alerjen ne de içerik belirtilmiş."
+
+msgid ""
+"Für Ware nach Gewicht oder Volumen fehlt der Grundpreis (Preis pro kg oder "
+"l)."
+msgstr ""
+"Ağırlık veya hacimle satılan ürün için birim fiyat (kg veya l başına) eksik."
+
+msgid ""
+"Räumungsverkauf darf nur bei echter Geschäftsaufgabe angekündigt werden."
+msgstr "Tasfiye satışı yalnızca işletme gerçekten kapanıyorsa duyurulabilir."
+
+msgid "Bei einer Überraschungsaktion verrät der Text den Preis."
+msgstr "Metin, sürpriz kampanyanın fiyatını ele veriyor."
+
+msgid ""
+"Links, E-Mail-Adressen und Telefonnummern gehören nicht in den Angebotstext."
+msgstr ""
+"Bağlantılar, e-posta adresleri ve telefon numaraları kampanya metnine ait "
+"değildir."
+
+msgid "Viele Großbuchstaben, Ausrufezeichen oder Emojis wirken wie Werbung."
+msgstr "Çok fazla büyük harf, ünlem işareti veya emoji spam gibi görünür."
+
+msgid "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."
+msgstr ""
+"“Garanti” ifadesi kullanılırsa garantinin kapsamı ve süresi belirtilmelidir."

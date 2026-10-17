@@ -25392,3 +25392,75 @@ msgstr "What to start today?"
 #. Д1
 msgid "Bitte einen Rabatt in Prozent angeben."
 msgstr "Please enter a discount in percent."
+
+msgid ""
+"Der Text nennt einen früheren Preis, das Angebot hat aber keinen "
+"Vergleichspreis."
+msgstr ""
+"The text mentions an earlier price, but the offer has no comparison price."
+
+msgid "Ein Preis oder Prozentsatz im Text passt nicht zu den Preisfeldern."
+msgstr "A price or percentage in the text does not match the price fields."
+
+msgid ""
+"Sehr hoher Rabatt: Bitte prüfen, ob der Vergleichspreis wirklich verlangt "
+"wurde."
+msgstr ""
+"Very high discount: please check that the comparison price was really "
+"charged."
+
+msgid "Ein durchgestrichener Preis braucht ein Enddatum der Aktion."
+msgstr "A crossed-out price needs an end date for the offer."
+
+msgid "„Gratis“ oder „kostenlos“ passt nicht zu einem Preis über 0 €."
+msgstr "“Free” does not fit a price above €0."
+
+msgid "„Nur heute“ steht im Text, die Aktion läuft aber länger."
+msgstr "The text says “today only”, but the offer runs longer."
+
+msgid "Die genannte Restmenge passt nicht zur Menge im Angebot."
+msgstr ""
+"The remaining quantity in the text does not match the quantity of the offer."
+
+msgid "Aussagen wie „der beste“ oder „Nr. 1“ müssen belegbar sein."
+msgstr "Claims such as “the best” or “No. 1” must be provable."
+
+msgid ""
+"Gesundheitsversprechen sind bei Lebensmitteln nur mit zugelassenen Angaben "
+"erlaubt."
+msgstr "Health promises for food are only allowed with authorised claims."
+
+msgid "„Bio“ oder „Öko“ darf nur mit Öko-Kontrollnummer verwendet werden."
+msgstr "“Organic” may only be used with an organic control number."
+
+msgid "Die Angabe im Text widerspricht den Allergenen des Produkts."
+msgstr "The statement in the text contradicts the allergens of the product."
+
+msgid "Beim Produkt sind weder Allergene noch Zutaten angegeben."
+msgstr "Neither allergens nor ingredients are specified for the product."
+
+msgid ""
+"Für Ware nach Gewicht oder Volumen fehlt der Grundpreis (Preis pro kg oder "
+"l)."
+msgstr ""
+"The unit price (price per kg or l) is missing for goods sold by weight or "
+"volume."
+
+msgid ""
+"Räumungsverkauf darf nur bei echter Geschäftsaufgabe angekündigt werden."
+msgstr ""
+"A clearance sale may only be announced if the business is really closing."
+
+msgid "Bei einer Überraschungsaktion verrät der Text den Preis."
+msgstr "The text reveals the price of a surprise offer."
+
+msgid ""
+"Links, E-Mail-Adressen und Telefonnummern gehören nicht in den Angebotstext."
+msgstr ""
+"Links, e-mail addresses and phone numbers do not belong in the offer text."
+
+msgid "Viele Großbuchstaben, Ausrufezeichen oder Emojis wirken wie Werbung."
+msgstr "Lots of capital letters, exclamation marks or emojis look like spam."
+
+msgid "Bei „Garantie“ müssen Inhalt und Dauer der Garantie genannt werden."
+msgstr "When mentioning a “guarantee”, its scope and duration must be stated."
