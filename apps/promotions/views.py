@@ -620,6 +620,7 @@ def promotion_create(request):
         "promotions/promotion_form.html",
         {
             "text_check_base": dj_settings.LANGUAGE_CODE,  # D2a-2: базовая локаль полей
+            "text_check_ai": _ai_photo_enabled(),  # D2a-3: кнопка «Text prüfen lassen»
             "form": form,
             "is_create": True,
             "nav": "promotions",
@@ -733,6 +734,7 @@ def promotion_quick(request):
         "promotions/promotion_quick.html",
         {
             "text_check_base": dj_settings.LANGUAGE_CODE,  # D2a-2: базовая локаль полей
+            "text_check_ai": _ai_photo_enabled(),  # D2a-3: кнопка «Text prüfen lassen»
             "form": form,
             "source": source,
             "max_photos": quick.MAX_PHOTOS,
@@ -893,6 +895,64 @@ def promotion_text_check(request):
     return HttpResponse(html)
 
 
+def _text_check_html(findings) -> str:
+    return render_to_string(
+        "promotions/_text_check_results.html", {"text_findings": findings, "text_checked": True}
+    )
+
+
+@login_required
+@require_POST
+def promotion_text_check_ai_start(request):
+    """D2a-3 (T-8.10e): «✨ Text prüfen lassen» — задача ИИ поверх правил.
+
+    Ответ — JSON ``{"job": id}``, ``{"state": "done", "html": …}`` (тот же текст уже
+    проверен — из кэша, без вызова модели и без лимита) или ``{"code": …}``
+    (disabled · quota · unavailable). Ничего не пишет в акцию."""
+    from django.http import JsonResponse
+
+    from apps.ai.api import is_enabled
+    from apps.core import ratelimit
+
+    from . import ai_text_check as atc
+
+    if not is_enabled():
+        return JsonResponse({"code": "disabled"})
+    schema = _ai_schema(request)
+    tenant = getattr(request, "tenant", None)
+    payload = atc.payload_from(request.POST)
+    digest = atc.payload_hash(payload, tenant=tenant, language=translation.get_language() or "")
+    hit = atc.cached(schema, digest)
+    if hit is not None:
+        return JsonResponse({"state": "done", "html": _text_check_html(hit)})
+    if ratelimit.hit(
+        "ai-text-user", f"{schema}:{request.user.pk}", limit=atc.RATE_LIMIT, window=atc.RATE_WINDOW
+    ) or ratelimit.hit("ai-text", schema, limit=atc.RATE_LIMIT_TENANT, window=atc.RATE_WINDOW):
+        return JsonResponse({"code": "quota"})
+    try:
+        job = atc.start_job(schema=schema, user_pk=request.user.pk, payload=payload, digest=digest)
+    except Exception:  # noqa: BLE001 — очередь недоступна: спокойная ошибка, форма живёт
+        return JsonResponse({"code": "unavailable"})
+    return JsonResponse({"job": job})
+
+
+@login_required
+def promotion_text_check_ai_result(request, job):
+    """D2a-3: состояние задачи «Text prüfen lassen». Чужая задача — 404."""
+    from django.http import JsonResponse
+
+    from . import ai_text_check as atc
+
+    state = atc.job_state(schema=_ai_schema(request), user_pk=request.user.pk, job=job)
+    if state is None:
+        raise Http404
+    if state.get("state") == "done":
+        return JsonResponse(
+            {"state": "done", "html": _text_check_html(state.get("findings") or [])}
+        )
+    return JsonResponse({k: v for k, v in state.items() if k in ("state", "code")})
+
+
 def _translate_locales(tenant) -> list[tuple[str, str]]:
     """Языки витрины, кроме базового: куда переводить текст акции (T-8.5b)."""
     from django.conf import settings as dj_settings
@@ -970,6 +1030,7 @@ def promotion_edit(request, pk):
         "promotions/promotion_form.html",
         {
             "text_check_base": dj_settings.LANGUAGE_CODE,  # D2a-2: базовая локаль полей
+            "text_check_ai": _ai_photo_enabled(),  # D2a-3: кнопка «Text prüfen lassen»
             "form": form,
             "is_create": False,
             "promotion": promo,

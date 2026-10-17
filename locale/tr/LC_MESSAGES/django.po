@@ -25633,3 +25633,14 @@ msgstr "Önemli"
 
 msgid "Wort entfernen"
 msgstr "Kelimeyi kaldır"
+
+msgid "Text prüfen lassen"
+msgstr "Metni kontrol ettir"
+
+msgid ""
+"Das Limit für KI-Prüfungen ist erreicht. Bitte später erneut versuchen."
+msgstr ""
+"Yapay zekâ kontrol sınırına ulaşıldı. Lütfen daha sonra tekrar deneyin."
+
+msgid "KI prüft den Text …"
+msgstr "Yapay zekâ metni kontrol ediyor …"

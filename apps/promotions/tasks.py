@@ -444,3 +444,11 @@ def ai_photo_draft(*, schema: str, user_pk, job: str) -> None:
     from . import ai_draft
 
     ai_draft.run_job(schema=schema, user_pk=user_pk, job=job)
+
+
+@idempotent_task()
+def ai_text_check(*, schema: str, user_pk, job: str) -> None:
+    """D2a-3 (T-8.10e): ИИ-проверка текста акции — вне веб-воркера."""
+    from . import ai_text_check as atc
+
+    atc.run_job(schema=schema, user_pk=user_pk, job=job)

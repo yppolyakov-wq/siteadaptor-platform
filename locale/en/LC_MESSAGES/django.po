@@ -25503,3 +25503,13 @@ msgstr "Important"
 
 msgid "Wort entfernen"
 msgstr "Remove word"
+
+msgid "Text prüfen lassen"
+msgstr "Have text checked"
+
+msgid ""
+"Das Limit für KI-Prüfungen ist erreicht. Bitte später erneut versuchen."
+msgstr "The limit for AI checks has been reached. Please try again later."
+
+msgid "KI prüft den Text …"
+msgstr "AI is checking the text …"

@@ -25741,3 +25741,13 @@ msgstr "Важливо"
 
 msgid "Wort entfernen"
 msgstr "Прибрати слово"
+
+msgid "Text prüfen lassen"
+msgstr "Перевірити текст з ШІ"
+
+msgid ""
+"Das Limit für KI-Prüfungen ist erreicht. Bitte später erneut versuchen."
+msgstr "Ліміт перевірок ШІ вичерпано. Спробуйте пізніше."
+
+msgid "KI prüft den Text …"
+msgstr "ШІ перевіряє текст …"

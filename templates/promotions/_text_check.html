@@ -5,9 +5,13 @@
 <div class="rounded-2xl border border-gray-200 bg-white p-4 space-y-2" data-text-check data-url="{% url 'promotions:promotion-text-check' %}" data-error="{% trans 'Die Prüfung ist gerade nicht verfügbar.' %}" data-base="{{ text_check_base|default:'de' }}">
   <div class="flex items-center justify-between gap-2">
     <p class="text-sm font-semibold">🔎 {% trans "Vor dem Veröffentlichen prüfen" %}</p>
-    <button type="button" class="rounded-full border border-gray-300 px-3 py-1 text-xs hover:bg-gray-50" data-tc-run>{% trans "Text prüfen" %}</button>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" class="rounded-full border border-gray-300 px-3 py-1 text-xs hover:bg-gray-50" data-tc-run>{% trans "Text prüfen" %}</button>
+      {% if text_check_ai %}<button type="button" class="rounded-full border border-indigo-300 bg-indigo-50 px-3 py-1 text-xs text-indigo-800 hover:bg-indigo-100" data-tc-ai data-url="{% url 'promotions:promotion-text-check-ai' %}" data-quota="{% trans 'Das Limit für KI-Prüfungen ist erreicht. Bitte später erneut versuchen.' %}" data-wait="{% trans 'KI prüft den Text …' %}">✨ {% trans "Text prüfen lassen" %}</button>{% endif %}
+    </div>
   </div>
   <p class="text-xs text-gray-500">{% trans "Automatische Hinweise – keine Rechtsberatung." %}</p>
+  <p class="hidden text-xs text-gray-500" data-tc-status aria-live="polite"></p>
   <div data-tc-results aria-live="polite">{% include "promotions/_text_check_results.html" %}</div>
 </div>
 <script>
@@ -52,8 +56,59 @@
     return form.querySelector('[name="' + name + "_" + locale + '"]') ||
       (locale === base ? form.querySelector('[name="' + name + '"]') : null);
   }
+  function status(container, text) {
+    var el = container.querySelector("[data-tc-status]");
+    if (!el) return;
+    el.textContent = text || "";
+    el.classList.toggle("hidden", !text);
+  }
+  function runAi(btn) {
+    var container = box(btn);
+    var form = container && container.closest("form");
+    var out = container && container.querySelector("[data-tc-results]");
+    if (!form || !out || btn.disabled) return;
+    var data = new FormData(form);
+    var drop = [];
+    data.forEach(function (v, k) { if (typeof v !== "string") drop.push(k); });
+    drop.forEach(function (k) { data.delete(k); });
+    btn.disabled = true;
+    status(container, btn.dataset.wait);
+    function done(html) {
+      out.innerHTML = html;
+      container.dataset.tcRan = "1";
+      container._tcSig = new URLSearchParams(data).toString();
+      btn.disabled = false;
+      status(container, "");
+    }
+    function fail(code) {
+      btn.disabled = false;
+      status(container, code === "quota" ? btn.dataset.quota : container.dataset.error);
+    }
+    fetch(btn.dataset.url, { method: "POST", body: data, credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+      .then(function (res) {
+        if (res.html !== undefined) return done(res.html);
+        if (!res.job) return fail(res.code);
+        var tries = 0;
+        (function poll() {
+          tries += 1;
+          if (tries > 40) return fail("timeout");
+          fetch(btn.dataset.url + encodeURIComponent(res.job) + "/", { credentials: "same-origin" })
+            .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+            .then(function (st) {
+              if (st.state === "done") return done(st.html);
+              if (st.state === "error") return fail(st.code);
+              setTimeout(poll, 1500);
+            })
+            .catch(function () { fail("error"); });
+        })();
+      })
+      .catch(function () { fail("error"); });
+  }
   document.addEventListener("click", function (e) {
     var t = e.target;
+    var aiBtn = t.closest("[data-tc-ai]");
+    if (aiBtn) { runAi(aiBtn); return; }
     if (t.closest("[data-tc-run]")) { run(box(t), true); return; }
     var hide = t.closest("[data-tc-hide]");
     if (hide) { var item = hide.closest("[data-tc-item]"); if (item) item.remove(); return; }

@@ -25560,3 +25560,14 @@ msgstr "Wichtig"
 
 msgid "Wort entfernen"
 msgstr "Wort entfernen"
+
+msgid "Text prüfen lassen"
+msgstr "Text prüfen lassen"
+
+msgid ""
+"Das Limit für KI-Prüfungen ist erreicht. Bitte später erneut versuchen."
+msgstr ""
+"Das Limit für KI-Prüfungen ist erreicht. Bitte später erneut versuchen."
+
+msgid "KI prüft den Text …"
+msgstr "KI prüft den Text …"

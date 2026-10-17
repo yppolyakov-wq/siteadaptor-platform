@@ -20,6 +20,12 @@ urlpatterns = [
     # T-8.4: «Schnell-Aktion» — ассистент с телефона + экран «Fertig».
     path("schnell/", views.promotion_quick, name="promotion-quick"),
     path("pruefen/", views.promotion_text_check, name="promotion-text-check"),
+    path("pruefen/ki/", views.promotion_text_check_ai_start, name="promotion-text-check-ai"),
+    path(
+        "pruefen/ki/<str:job>/",
+        views.promotion_text_check_ai_result,
+        name="promotion-text-check-ai-result",
+    ),
     # Д1 (T-8.10c): «Nicht jetzt» у подсказки «Was heute starten?».
     path("heute/ausblenden/", views.today_dismiss, name="today-dismiss"),
     # Д1 (T-8.10a): «✨ Vorschlag aus dem Foto» — старт фоновой задачи + опрос результата.

@@ -111,6 +111,8 @@ EXPECTED_UNLISTED = frozenset(
         "promotions:today-dismiss",
         # [POST] D2a-2: «Text prüfen» — HTML-фрагмент подсказок внутри формы акции.
         "promotions:promotion-text-check",
+        # [POST] D2a-3: «Text prüfen lassen» — JSON-приёмник кнопки ИИ.
+        "promotions:promotion-text-check-ai",
         "site-cblock-photo-edit",
         "site-inline-edit",
         "site-preview-draft",
