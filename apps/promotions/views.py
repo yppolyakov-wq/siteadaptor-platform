@@ -6,6 +6,7 @@
 
 import logging
 
+from django.conf import settings as dj_settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -618,6 +619,7 @@ def promotion_create(request):
         request,
         "promotions/promotion_form.html",
         {
+            "text_check_base": dj_settings.LANGUAGE_CODE,  # D2a-2: базовая локаль полей
             "form": form,
             "is_create": True,
             "nav": "promotions",
@@ -730,6 +732,7 @@ def promotion_quick(request):
         request,
         "promotions/promotion_quick.html",
         {
+            "text_check_base": dj_settings.LANGUAGE_CODE,  # D2a-2: базовая локаль полей
             "form": form,
             "source": source,
             "max_photos": quick.MAX_PHOTOS,
@@ -876,11 +879,16 @@ def promotion_text_check(request):
     ):
         return HttpResponse(status=429)
     tenant = getattr(request, "tenant", None)
-    promo = ptc.promotion_from_payload(request.POST, tenant)
+    try:
+        promo = ptc.promotion_from_payload(request.POST, tenant)
+        findings = ptc.for_promotion(promo, tenant)
+    except Exception:  # noqa: BLE001 — подсказки не стоят 500: клиент оставит прежние
+        logger.exception("text_check: live check failed")
+        return HttpResponse(status=503)
     # Фрагмент без контекст-процессоров кабинета (меню/членство — лишние запросы).
     html = render_to_string(
         "promotions/_text_check_results.html",
-        {"text_findings": ptc.for_promotion(promo, tenant), "text_checked": True},
+        {"text_findings": findings, "text_checked": True},
     )
     return HttpResponse(html)
 
@@ -961,6 +969,7 @@ def promotion_edit(request, pk):
         request,
         "promotions/promotion_form.html",
         {
+            "text_check_base": dj_settings.LANGUAGE_CODE,  # D2a-2: базовая локаль полей
             "form": form,
             "is_create": False,
             "promotion": promo,

@@ -16,7 +16,7 @@
   window.__textCheckBound = true;
   var timers = new WeakMap();
   function box(el) { return el && el.closest ? el.closest("[data-text-check]") : null; }
-  function run(container) {
+  function run(container, force) {
     var form = container.closest("form");
     var out = container.querySelector("[data-tc-results]");
     if (!form || !out) return;
@@ -24,6 +24,10 @@
     var drop = [];
     data.forEach(function (v, k) { if (typeof v !== "string") drop.push(k); });
     drop.forEach(function (k) { data.delete(k); });
+    // Повтор с тем же содержимым формы не нужен (экономим лимит частоты).
+    var sig = new URLSearchParams(data).toString();
+    if (!force && sig === container._tcSig) return;
+    container._tcSig = sig;
     if (container._tcAbort) container._tcAbort.abort();
     var ctrl = window.AbortController ? new AbortController() : null;
     container._tcAbort = ctrl;
@@ -38,7 +42,9 @@
       container.dataset.tcRan = "1";
     }).catch(function (e) {
       if (e && e.name === "AbortError") return;
-      out.textContent = container.dataset.error;
+      container._tcSig = null;
+      // Уже показанные подсказки не стираем — сообщение только при пустом блоке.
+      if (!out.querySelector("[data-tc-item], [data-tc-empty]")) out.textContent = container.dataset.error;
     });
   }
   function fieldInput(form, field, locale, base) {
@@ -48,7 +54,7 @@
   }
   document.addEventListener("click", function (e) {
     var t = e.target;
-    if (t.closest("[data-tc-run]")) { run(box(t)); return; }
+    if (t.closest("[data-tc-run]")) { run(box(t), true); return; }
     var hide = t.closest("[data-tc-hide]");
     if (hide) { var item = hide.closest("[data-tc-item]"); if (item) item.remove(); return; }
     var apply = t.closest("[data-tc-apply]");
@@ -62,9 +68,10 @@
       if (at < 0) at = value.toLowerCase().indexOf(quote.toLowerCase());
       if (at < 0) return;
       input.value = (value.slice(0, at) + apply.dataset.replace + value.slice(at + quote.length))
-        .replace(/ {2,}/g, " ").replace(/\s+([,.!?;:])/g, "$1").trim();
+        .replace(/[ \t]{2,}/g, " ").replace(/[ \t]+([,.!?;:])/g, "$1").trim();
+      // Событие input само запустит повторную проверку (debounce ниже).
+      container.dataset.tcRan = "1";
       input.dispatchEvent(new Event("input", { bubbles: true }));
-      run(container);
       return;
     }
     // Ассистент: при переходе на шаг с блоком — проверить сразу.
@@ -83,7 +90,7 @@
     var c = form.querySelector("[data-text-check]");
     if (!c || c.dataset.tcRan !== "1") return;
     clearTimeout(timers.get(c));
-    timers.set(c, setTimeout(function () { run(c); }, 500));
+    timers.set(c, setTimeout(function () { run(c); }, 1000));
   }
   document.addEventListener("input", rerun);
   document.addEventListener("change", rerun);

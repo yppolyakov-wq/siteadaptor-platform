@@ -209,3 +209,24 @@ def test_payload_adapter_maps_quick_and_full_names(tenant):
     )
     assert full.title == {"de": "B", "en": "B en"}
     assert full.discount_percent == 20
+
+
+def test_endpoint_failure_returns_503_not_500(user, isolated_ratelimit, monkeypatch):
+    def boom(*a, **k):
+        raise RuntimeError("x")
+
+    monkeypatch.setattr(ptc, "promotion_from_payload", boom)
+    assert views.promotion_text_check(_req("post", URL, user, {"title": "x"})).status_code == 503
+
+
+def test_block_carries_base_locale(user):
+    html = views.promotion_quick(_req("get", "/promotions/schnell/", user)).content.decode()
+    assert 'data-base="de"' in html
+
+
+def test_js_keeps_hints_on_error_and_skips_unchanged_payload():
+    from pathlib import Path
+
+    js = Path("templates/promotions/_text_check.html").read_text()
+    assert "_tcSig" in js  # неизменённая форма не перепроверяется
+    assert 'querySelector("[data-tc-item], [data-tc-empty]")' in js  # ошибка не стирает подсказки
