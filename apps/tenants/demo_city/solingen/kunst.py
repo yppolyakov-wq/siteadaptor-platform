@@ -129,8 +129,16 @@ SCHLEIFCHEN = Biz(
         Offer(
             "Kerzen-Wochen: 2 für 29 €",
             "Zwei Duftkerzen nach Wahl — statt 33,80 €.",
-            price="29.00",
-            was="33.80",
+            cond={
+                "kind": "other",
+                "note": {
+                    "de": "2 Kerzen für 29 €",
+                    "en": "2 candles for €29",
+                    "ru": "2 свечи за 29 €",
+                    "uk": "2 свічки за 29 €",
+                    "tr": "2 mum 29 €",
+                },
+            },
             ends="14d",
             response="show",
             photo="kerze-zeder-salz",

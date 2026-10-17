@@ -203,6 +203,17 @@ SCHARFBLICK = Biz(
             photo="sub-brillen",
             group="Saison",
             item="Fassung Acetat Klassik",
+            cond={
+                "kind": "nth",
+                "n": 2,
+                "note": {
+                    "de": "beim Kauf einer Brille",
+                    "en": "when buying glasses",
+                    "ru": "при покупке очков",
+                    "uk": "при купівлі окулярів",
+                    "tr": "gözlük alımında",
+                },
+            },
         ),
     ),
 )

@@ -336,7 +336,7 @@ KABELSALAT = Biz(
         Offer(
             "Kabel-Dienstag: 2 für 1",
             "Jedes zweite Ladekabel geschenkt — nur dienstags.",
-            percent=50,
+            cond={"kind": "x_for_y", "n": 2, "pay": 1},
             ends="week",
             response="show",
             photo="sg-kabel",

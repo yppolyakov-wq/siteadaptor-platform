@@ -108,3 +108,11 @@ def test_footer_links_city_portal_only_for_listed_business():
     t.in_city_catalog = False
     t.save()
     assert tpl.render(Context({"request": req})) == ""
+
+
+@override_settings(TENANT_DOMAIN_BASE="siteadaptor.de:8000", ALLOWED_HOSTS=["*"], DEBUG=True)
+def test_dev_port_subdomain_without_own_domain_does_not_redirect_to_itself():
+    """Стенд В2/В4: в dev базовый адрес несёт «:8000» — сравнение по хосту без порта,
+    иначе 301 сам на себя (ERR_TOO_MANY_REDIRECTS у любого анонима)."""
+    t = _tenant(custom=False)
+    assert _mw(t, "/aktionen/", host="baecker.siteadaptor.de:8000").status_code == 200

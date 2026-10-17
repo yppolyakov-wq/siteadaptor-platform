@@ -125,6 +125,7 @@ TRATTORIA_LUMETTO = Biz(
             photo="garlic-bread",
             group="Diese Woche",
             item="Pizza Verdure",
+            cond={"kind": "nth", "n": 2},
         ),
     ),
 )

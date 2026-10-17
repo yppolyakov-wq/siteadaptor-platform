@@ -23305,8 +23305,7 @@ KLINGENWERK = DemoKit(
         {
             "title": "Schleifwoche: zweites Messer gratis",
             "desc": "Bringen Sie zwei Messer — das zweite schleifen wir kostenlos.",
-            "new_price": "6.00",
-            "compare_at": "12.00",
+            "price_condition": {"kind": "x_for_y", "n": 2, "pay": 1},
             "ends_in_days": 7,
             "image": "knife-sharpening",
         },
@@ -24679,6 +24678,14 @@ def apply_kit(tenant, key: str) -> bool:
         # T-8.2: отклик акции (что делает кнопка) и срок «отложить» в часах.
         if spec.get("response"):
             fields["metadata"] = {**fields["metadata"], "response": spec["response"]}
+        # В2: условие цены («2. Stück −50 %») — цена штуки остаётся обычной.
+        if spec.get("price_condition"):
+            from apps.core import price_conditions
+
+            cond = price_conditions.normalize(spec["price_condition"])
+            if cond is None:
+                raise ValueError(f"demo kit: bad price_condition in {spec['title']!r}")
+            fields["metadata"] = {**fields["metadata"], "price_condition": cond}
         if spec.get("hold_hours"):
             fields["reservation_ttl_hours"] = int(spec["hold_hours"])
         if spec.get("type") == "reservation":

@@ -277,7 +277,8 @@ def atom_feed(request, *, title: str, home_url: str, page, preview: bool) -> str
     for it in items:
         summary = _xml_safe(it.teaser_text or it.title_text)
         if it.price_condition_label:
-            summary = f"{it.price_condition_label} · {summary}"
+            # подпись несёт свободный текст владельца — тоже через _xml_safe (ревью)
+            summary = f"{_xml_safe(it.price_condition_label)} · {summary}"
         if price_visible(it):
             summary = f"{it.new_price:.2f} {it.currency or 'EUR'} · {summary}"
         categories = [it.city_category] if it.city_category else []

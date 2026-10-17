@@ -87,6 +87,7 @@ class PrimaryDomainRedirectMiddleware:
         from .hosts import public_base_url
 
         primary = public_base_url(tenant)
-        if primary.split("://", 1)[-1] == host:
+        # хост без порта: в dev `public_base_url` несёт «:8000» — иначе 301 сам на себя
+        if primary.split("://", 1)[-1].split("/")[0].split(":")[0].lower() == host:
             return ""  # своего домена нет — основной адрес и есть поддомен
         return primary + request.get_full_path()

@@ -200,6 +200,8 @@ def _offer_spec(o: Offer) -> dict:
         spec["city_tags"] = list(o.tags)
     if o.item:
         spec["product"] = o.item
+    if o.cond:
+        spec["price_condition"] = dict(o.cond)
     return spec
 
 

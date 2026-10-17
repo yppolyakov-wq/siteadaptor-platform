@@ -34,9 +34,10 @@ def _item_condition(product) -> dict:
     if base:
         note[settings.LANGUAGE_CODE] = base[:255]
     overlay = product.condition_note_i18n if isinstance(product.condition_note_i18n, dict) else {}
+    known = {code for code, _name in settings.LANGUAGES}  # мусорные ключи в снимок не идут
     for loc, text in sorted(overlay.items()):
         text = str(text or "").strip()
-        if loc != settings.LANGUAGE_CODE and text:
+        if loc in known and loc != settings.LANGUAGE_CODE and text:
             note[loc] = text[:255]
     return {"item_condition": code, "item_condition_note": note}
 
@@ -92,7 +93,11 @@ def _snapshot(promotion_id):
         # T-8.13b: своя категория товара-цели, сопоставленная с категорией города.
         "product_city_category": _product_city_category(promo),
         "price_condition": _price_condition(promo, mystery),
-        **_item_condition(promo.product if promo.product_id else None),
+        # mystery/surprise прячут товар — его состояние и примечание («Dyson, Akku defekt»)
+        # раскрыли бы его (ревью В2/В4-1).
+        **_item_condition(
+            promo.product if promo.product_id and not (mystery or promo.is_surprise) else None
+        ),
     }
 
 
@@ -1350,6 +1355,9 @@ def _on_commit_sync(task, dedupe, **kwargs):
     transaction.on_commit(lambda: task.delay(dedupe_key=dedupe, **kwargs))
 
 
+_PRODUCT_CONDITION_FIELDS = frozenset({"condition", "condition_note", "condition_note_i18n"})
+
+
 def resync_on_product_save(sender, instance, **kwargs):
     """post_save/post_delete Product: правка → обновить листинг товара."""
     from django.db import connection
@@ -1361,19 +1369,18 @@ def resync_on_product_save(sender, instance, **kwargs):
         tenant_schema=connection.schema_name,
         product_id=str(instance.id),
     )
-    # В4: состояние товара живёт и в листинге акции на этот товар.
+    # В4: состояние товара живёт и в листинге акции на этот товар. Сохранение без полей
+    # состояния (склад, импорт с update_fields) акции не трогает — без лишнего запроса.
+    update_fields = kwargs.get("update_fields")
+    if update_fields is not None and not (set(update_fields) & _PRODUCT_CONDITION_FIELDS):
+        return
     from apps.promotions.models import Promotion
 
     from . import stock_sync
 
-    try:
-        ids = list(
-            Promotion.objects.filter(product_id=instance.id, status="active").values_list(
-                "id", flat=True
-            )
-        )
-    except Exception:  # noqa: BLE001 — удаление товара/схема без таблицы
-        ids = []
+    ids = Promotion.objects.filter(product_id=instance.id, status="active").values_list(
+        "id", flat=True
+    )
     for promo_id in ids:
         stock_sync.touch_promotion(promo_id)
 

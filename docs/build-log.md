@@ -17881,3 +17881,37 @@ updated_at) WHERE is_active`. FF в main `cf6f4452`.
 заметка (переводы заметки не стираются), сентинел W0, запрет фикс-цены и mystery.
 Ревью django + security: HIGH (mystery снимал условие с денег) закрыт; LOW — в roadmap
 §Отложено. 32 замка. 21 msgid × 5. Дальше: В2/В4-1 (миграция листинга).
+
+## 2026-10-17 — В2/В4-1 «условие цены и состояние товара в каталоге города» (⚠️ миграция `aggregator/0029`)
+
+План `docs/v2-v4-conditions-condition-plan-2026-10-16.md` (шаг 2). `AggregatorListing` +=
+`price_condition` (JSON-снимок условия + процент) / `item_condition` (код состояния товара) /
+`item_condition_note` (примечание по языкам) — SHARED, аддитивная. Снимок: КАЖДЫЙ построитель
+передаёт три поля (`_neutral_v2v4`; `_upsert_listing` сравнивает только переданные ключи — замок
+считает вызовы), условная акция держит цену ШТУКИ (не цену × (1−%)), mystery — без условия;
+в `refresh_tenant_fields` поля намеренно не входят (массовый апдейт стёр бы их). Правка товара
+пересинхронизирует его активные акции. Вывод: карточка/страница предложения — подпись условия
+вместо «−N %», бейдж состояния отдельно от «Neu im Sortiment», «Zustand: … — примечание»;
+JSON-LD `itemCondition` (New/Used/Refurbished); фид — ext `price_condition`/`item_condition`/
+`_iri`/`_note` + префикс Atom-summary; сводка «Folgen»; поиск находит по подписи состояния
+(de+en). 18 замков. ⚠️ ops: деплой → `sync_aggregator` → `rebuild_search_index`.
+**Ревью В2/В4-1 (django + security + database):** CRITICAL/HIGH нет. Закрыто: mystery/surprise
+больше не раскрывают состояние и примечание товара (карточка/JSON-LD/фид/поиск); подпись
+условия в Atom через `_xml_safe` (управляющий символ в заметке ломал весь фид); пересинк
+акций при сохранении товара — только при правке полей состояния (склад/импорт без лишнего
+запроса), без глотания ошибок внутри транзакции; в примечание идут только известные локали.
+DB: миграция — fast default, без переписи таблицы; на деплое `lock_timeout`, откат — код,
+потом миграция.
+
+## 2026-10-17 — В2/В4-3 «условия цены в демо» (без миграций) — В2/В4 ЗАКРЫТ
+
+`Offer.cond` (спека DCC) → `price_condition` в metadata акции (кит падает на мусорном условии).
+Носители: Trattoria «2. Stück −50 %» · Handy-Doktor-соседи «Kabel-Dienstag: 2 für 1» ·
+оптика «Zweitbrille» (2-я −50 % · при покупке очков) · Klingenwerk «zweites Messer gratis»
+(2 für 1; фикс-цена/«statt» сняты) · Kerzen-Wochen «2 Kerzen für 29 €» (было: 29 € за ОДНУ
+свечу — нечестно). Заметки условий переведены в спеке (5 языков). Замок
+`test_demo_price_conditions`: текст «zweite / n für m / ab n Stück» без условия — красный.
+Стенд Playwright 8/8 (витрина + портал, 1440/390). Попутно — dev-баг T-8.25: поддомен с
+портом в dev уходил в 301 сам на себя (сравнение хоста без порта, замок). ⚠️ ops: деплой
+→ `sync_aggregator` → `rebuild_search_index`; `seed_demo_tenants --group solingen-dcc
+--recreate` + `--kit klingenwerk --recreate`.

@@ -250,3 +250,56 @@ def test_search_finds_item_by_condition_label():
         )
     )
     assert lst.pk in ids
+
+
+# --- ревью ветки -----------------------------------------------------------------
+
+
+@pytest.mark.parametrize("kw", [{"discount_style": "mystery"}, {"is_surprise": True}])
+def test_hidden_promo_does_not_leak_item_condition(kw):
+    _tenant()
+    product = _product(condition="retoure", condition_note="Dyson V11, Akku defekt")
+    promo = _promo(product, cond=None, **kw)
+    tasks.sync_listing("public", str(promo.id))
+    row = AggregatorListing.objects.get(promo_uuid=promo.id)
+    assert row.item_condition == "" and row.item_condition_note == {}
+
+
+def test_note_keeps_only_known_locales():
+    _tenant()
+    product = _product(
+        condition="gut", condition_note="Kratzer", condition_note_i18n={"en": "Scratch", "xx": "j"}
+    )
+    tasks.sync_product_listing("public", product.pk)
+    row = AggregatorListing.objects.get(listing_kind="product", source_ref=str(product.pk))
+    assert set(row.item_condition_note) == {"de", "en"}
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_atom_summary_strips_control_chars_from_condition_note():
+    from types import SimpleNamespace
+
+    portal = _portal()
+    _listing(price_condition={"kind": "other", "n": None, "pay": None, "note": {"de": "a\x01b"}})
+    page = SimpleNamespace(items=list(AggregatorListing.objects.all()), next_cursor=None)
+    with translation.override("de"):
+        xml = open_feed.atom_feed(
+            _req(portal, "/feed.xml"),
+            title="T",
+            home_url="https://x.test/",
+            page=page,
+            preview=False,
+        )
+    assert "\x01" not in xml and "ab" in xml
+
+
+def test_stock_save_does_not_query_promotions(django_assert_num_queries):
+    _tenant()
+    product = _product()
+    with mock.patch("apps.aggregator.stock_sync.touch_promotion") as touch:
+        tasks.resync_on_product_save(Product, product, update_fields=["stock"])
+        assert not touch.called
+    _promo(product, cond=None)
+    with mock.patch("apps.aggregator.stock_sync.touch_promotion") as touch:
+        tasks.resync_on_product_save(Product, product, update_fields=["condition"])
+        assert touch.called

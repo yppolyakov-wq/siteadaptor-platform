@@ -54,7 +54,9 @@ class Svc:
 class Offer:
     """Акция. `ends`: today | week (повторяется еженедельно) | 14d | none (бессрочно).
     `response` — отклик T-8.2 ("" = по умолчанию, show/coupon/reserve/inquire).
-    `item` — цель по ИМЕНИ товара (STU-18h), не по индексу."""
+    `item` — цель по ИМЕНИ товара (STU-18h), не по индексу.
+    `cond` — условие цены В2 (`core/price_conditions`): «2. Stück −50 %», «2 für 1».
+    Акция «на вторую штуку» без условия была бы нечестной: цена штуки × (1−%)."""
 
     title: str
     desc: str
@@ -69,6 +71,7 @@ class Offer:
     tags: tuple[str, ...] = ()
     item: str = ""
     percent: int = 0
+    cond: dict | None = None
 
 
 @dataclass(frozen=True)
