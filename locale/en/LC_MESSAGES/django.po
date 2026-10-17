@@ -25189,8 +25189,8 @@ msgstr[0] "%(n)s coupon"
 msgstr[1] "%(n)s coupons"
 
 #, python-format
-msgid "%(n)s Positionen bleiben im Stadtkatalog."
-msgstr "%(n)s items stay in the city catalogue."
+msgid "%(n)s Positionen bestätigt."
+msgstr "%(n)s items confirmed."
 
 msgid "Alles noch aktuell"
 msgstr "Everything still current"

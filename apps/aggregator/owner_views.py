@@ -54,8 +54,17 @@ def freshness_confirm(request):
     from apps.core import freshness
 
     n = freshness.confirm_all(connection.schema_name)
-    messages.success(request, _("%(n)s Positionen bleiben im Stadtkatalog.") % {"n": n})
-    nxt = request.POST.get("next") or ""
-    if not nxt.startswith("/") or nxt.startswith("//") or "\\" in nxt:
+    messages.success(request, _("%(n)s Positionen bestätigt.") % {"n": n})
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    nxt = (request.POST.get("next") or "").strip()
+    # Ревью: стандартная проверка (сама режет TAB/CR/LF, «\», «///», схемы) +
+    # только свой кабинет — `next` здесь всегда путь экрана кабинета.
+    if not (
+        nxt.startswith("/dashboard/")
+        and url_has_allowed_host_and_scheme(
+            nxt, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        )
+    ):
         nxt = "/dashboard/"
     return redirect(nxt)

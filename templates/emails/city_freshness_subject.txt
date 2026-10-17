@@ -1,1 +1,1 @@
-{% load i18n %}{% blocktrans with business=tenant.name %}{{ business }}: Einträge im Stadtkatalog bitte bestätigen{% endblocktrans %}
+{% load i18n %}{% autoescape off %}{% blocktrans with business=tenant.name %}{{ business }}: Einträge im Stadtkatalog bitte bestätigen{% endblocktrans %}{% endautoescape %}

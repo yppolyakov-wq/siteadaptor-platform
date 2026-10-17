@@ -99,6 +99,8 @@ EXPECTED_UNLISTED = frozenset(
         "promotions:voucher-redeem",
         "set-cabinet-lang",
         "set-presence",
+        # [POST] Г3: «Alles noch aktuell» — приёмник плашки, не экран.
+        "city-freshness-confirm",
         # DL-13 C3: POST-only targeted-write режима страницы акций (панель в списке акций).
         "promotions:promotion-page-mode",
         # PT-5: POST-only приёмник экрана «Aktionstypen» (сам экран в реестре есть).

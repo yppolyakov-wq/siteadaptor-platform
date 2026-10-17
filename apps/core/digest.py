@@ -178,7 +178,9 @@ def collect_digest(tenant, *, weekly: bool = False) -> dict | None:
     if fresh and fresh["soon"]:
         data["freshness_soon"] = fresh["soon"]
 
-    interesting = [v for k, v in data.items() if k != "date"]
+    # Ревью: «скоро уйдут» — приписка к письму, которое уходит и так; одна она
+    # день «интересным» не делает (для этого есть недельное предупреждение).
+    interesting = [v for k, v in data.items() if k not in ("date", "freshness_soon")]
     if not any(interesting):
         return None
     return data

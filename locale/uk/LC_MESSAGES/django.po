@@ -25418,8 +25418,8 @@ msgstr[2] "%(n)s купонів"
 msgstr[3] "%(n)s купони"
 
 #, python-format
-msgid "%(n)s Positionen bleiben im Stadtkatalog."
-msgstr "Позицій залишається в каталозі міста: %(n)s."
+msgid "%(n)s Positionen bestätigt."
+msgstr "Підтверджено позицій: %(n)s."
 
 msgid "Alles noch aktuell"
 msgstr "Усе ще актуально"

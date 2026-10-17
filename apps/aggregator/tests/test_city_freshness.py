@@ -230,6 +230,16 @@ def test_confirm_endpoint_post_only_and_safe_next(tenant, django_user_model):
     user = django_user_model.objects.create_user(username="staff", password="x")
     assert _post_confirm(user, tenant, "//evil.example/x")["Location"] == "/dashboard/"
     assert _post_confirm(user, tenant, "https://evil.example/")["Location"] == "/dashboard/"
+    for bad in (
+        "/\t/evil.example",
+        "/\n/evil.example",
+        "///evil.example",
+        "/\\evil.example",
+        "javascript:alert(1)",
+        "https:evil.example",
+        "/catalog/",
+    ):
+        assert _post_confirm(user, tenant, bad)["Location"] == "/dashboard/", bad
     assert _post_confirm(user, tenant, "/dashboard/stadtportal/")["Location"] == (
         "/dashboard/stadtportal/"
     )
@@ -285,3 +295,17 @@ def test_neu_badge_fades_without_confirmation(tenant):
             confirmed_at=timezone.now() - timedelta(days=50),
         )  # fmt: skip
         assert tasks._product_snapshot(p.pk)["is_new"] is True  # новинка по дате
+
+
+def test_no_banner_for_aktionen_only_business(tenant):
+    _product(days_ago=55)
+    tenant.site_config = {"profile": "aktionen"}
+    assert freshness.banner(tenant) is None
+
+
+def test_freshness_line_alone_does_not_send_a_digest(tenant):
+    from apps.core import digest
+
+    tenant.disabled_modules = ["finance", "booking", "stays", "events", "orders", "jobs", "inbox"]
+    _product(days_ago=55)
+    assert digest.collect_digest(tenant) is None

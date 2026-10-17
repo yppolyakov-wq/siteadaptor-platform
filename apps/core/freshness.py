@@ -50,7 +50,7 @@ def confirm_all(schema: str) -> int:
     now = timezone.now()
     n = Product.objects.filter(is_active=True, hide_in_city=False).update(confirmed_at=now)
     n += Service.objects.filter(is_active=True, hide_in_city=False).update(confirmed_at=now)
-    stamp_key = int(now.timestamp())
+    stamp_key = int(now.timestamp()) // 60  # ревью: одна реконсиляция в минуту на схему
     transaction.on_commit(
         lambda: reconcile_city_catalog.delay(
             dedupe_key=f"city-fresh-confirm:{schema}:{stamp_key}", tenant_schema=schema
@@ -97,9 +97,14 @@ def expiring(tenant) -> dict:
 def banner(tenant) -> dict | None:
     """Плашка кабинета: что-то скоро уйдёт или уже ушло (только бизнесу из каталога)."""
     from apps.aggregator.visibility import listable
+    from apps.core.storefront_profile import is_aktionen, is_eintrag
 
     try:
         if not listable(tenant):
+            return None
+        # «Nur Aktionen» без визитки: товаров и услуг в каталоге города нет вовсе —
+        # предупреждать не о чем.
+        if is_aktionen(tenant) and not is_eintrag(tenant):
             return None
         info = expiring(tenant)
     except Exception:  # noqa: BLE001 — плашка не роняет главную кабинета

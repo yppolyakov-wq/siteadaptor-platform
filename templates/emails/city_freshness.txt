@@ -1,8 +1,8 @@
-{% load i18n %}{% trans "Guten Tag!" %}
+{% load i18n %}{% autoescape off %}{% trans "Guten Tag!" %}
 
 {% blocktrans count n=f.soon with day=f.first_expiry|date:"d.m.Y" %}{{ n }} Ihrer Artikel oder Leistungen verschwindet ab {{ day }} aus dem Stadtkatalog, weil sie lange nicht bestätigt wurde.{% plural %}{{ n }} Ihrer Artikel oder Leistungen verschwinden ab {{ day }} aus dem Stadtkatalog, weil sie lange nicht bestätigt wurden.{% endblocktrans %}
 
 {% trans "So bleibt der Stadtkatalog aktuell. Ein Klick genügt: Öffnen Sie Ihr Dashboard und wählen Sie „Alles noch aktuell“." %}
 {{ url }}
 
-{% trans "Auf Ihrer eigenen Website bleiben alle Artikel sichtbar." %}
+{% trans "Auf Ihrer eigenen Website bleiben alle Artikel sichtbar." %}{% endautoescape %}

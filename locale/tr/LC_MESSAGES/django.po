@@ -25318,8 +25318,8 @@ msgstr[0] "%(n)s kupon"
 msgstr[1] "%(n)s kupon"
 
 #, python-format
-msgid "%(n)s Positionen bleiben im Stadtkatalog."
-msgstr "%(n)s öğe şehir kataloğunda kalıyor."
+msgid "%(n)s Positionen bestätigt."
+msgstr "%(n)s öğe onaylandı."
 
 msgid "Alles noch aktuell"
 msgstr "Hepsi hâlâ güncel"
