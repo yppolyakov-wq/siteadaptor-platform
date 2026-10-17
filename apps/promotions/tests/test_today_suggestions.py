@@ -8,7 +8,6 @@ from decimal import Decimal
 from unittest import mock
 
 import pytest
-from django.core.cache import cache
 from django.utils import timezone
 
 from apps.ai.providers import fake
@@ -25,10 +24,12 @@ TODAY = timezone.localdate()
 
 
 @pytest.fixture(autouse=True)
-def _clean_cache():
-    cache.clear()
-    yield
-    cache.clear()
+def _private_cache(monkeypatch):
+    """Кэш подсказок — приватный LocMem: CI гоняет тесты параллельно на одном Redis,
+    а ключ `today:public:<дата>` у всех воркеров общий (чужой кэш = чужие подсказки)."""
+    from django.core.cache.backends.locmem import LocMemCache
+
+    monkeypatch.setattr(today_mod, "cache", LocMemCache(f"today-{id(monkeypatch)}", {}))
 
 
 def _tenant(**kw):

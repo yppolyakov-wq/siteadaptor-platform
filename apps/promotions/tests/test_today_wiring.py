@@ -11,13 +11,13 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.core.cache import cache
 from django.test import RequestFactory
 from django.utils import timezone
 
 from apps.catalog.models import Product
 from apps.inventory.models import Lot
 from apps.promotions import today, views
+from apps.promotions import today as today_mod
 from apps.promotions.models import Promotion
 from apps.tenants.tests.factories import TenantFactory
 
@@ -27,10 +27,12 @@ TODAY = timezone.localdate()
 
 
 @pytest.fixture(autouse=True)
-def _clean_cache():
-    cache.clear()
-    yield
-    cache.clear()
+def _private_cache(monkeypatch):
+    """Кэш подсказок — приватный LocMem: CI гоняет тесты параллельно на одном Redis,
+    а ключ `today:public:<дата>` у всех воркеров общий (чужой кэш = чужие подсказки)."""
+    from django.core.cache.backends.locmem import LocMemCache
+
+    monkeypatch.setattr(today_mod, "cache", LocMemCache(f"today-{id(monkeypatch)}", {}))
 
 
 @pytest.fixture
