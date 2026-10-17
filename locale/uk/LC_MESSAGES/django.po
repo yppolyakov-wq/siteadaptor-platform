@@ -25085,3 +25085,7 @@ msgstr "Картка вважається «побаченою», якщо що�
 
 msgid "Ansichten und Klicks zählen pro Besucher höchstens einmal am Tag und Angebot; jede Anfrage und Bestellung zählt einzeln."
 msgstr "Перегляди й кліки рахуються не частіше одного разу на день на відвідувача й пропозицію; кожне звернення й замовлення — окремо."
+
+
+msgid "KI-generiert, bitte prüfen"
+msgstr "Створено ШІ, перевірте"

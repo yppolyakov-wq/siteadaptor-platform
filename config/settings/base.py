@@ -44,6 +44,7 @@ SHARED_APPS = [
     "apps.aggregator",  # Sprint 4 — локальный агрегатор (SHARED, материализованные листинги)
     "apps.support",  # M22c — платформенная техподдержка тенант↔SiteAdaptor (SHARED)
     "apps.partners",  # D3 — партнёрка веб-студий: реф-атрибуция + кабинет /partner/ (SHARED)
+    "apps.ai",  # AI-0 — общий ИИ-слой: провайдеры, маршруты ЕС, учёт и лимиты (SHARED)
     # "apps.global_categories",  # Sprint 5
 ]
 
@@ -520,6 +521,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.aggregator.tasks.purge_portal_stats",
         "schedule": 86400.0,  # раз в сутки — учёт портала старше PORTAL_STATS_RETENTION_DAYS (В5)
     },
+    "purge-ai-usage": {
+        "task": "apps.ai.tasks.purge_ai_usage",
+        "schedule": 86400.0,  # раз в сутки — учёт ИИ старше AI_USAGE_RETENTION_DAYS (AI-0)
+    },
     "purge-search-log": {
         "task": "apps.aggregator.tasks.purge_search_log",
         "schedule": 86400.0,  # раз в сутки — журнал поиска старше SEARCH_LOG_RETENTION_DAYS (T-8.21)
@@ -665,6 +670,53 @@ GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
 # ---------------------------------------------------------------------------
 GOOGLE_PLACES_API_KEY = env("GOOGLE_PLACES_API_KEY", default="")
 GOOGLE_RATING_REFRESH_DAYS = env.int("GOOGLE_RATING_REFRESH_DAYS", default=7)
+
+# ---------------------------------------------------------------------------
+# AI-0: общий ИИ-слой (docs/ai0-layer-plan-2026-10-17.md, docs/ai-providers-setup-2026-10-16.md).
+# Маршруты — списки по классу модели, порядок = резерв: bedrock | azure | mistral (ЕС),
+# anthropic | openai (прямые API, вне ЕС — только dev с демо-данными), fake (без сети).
+# AI_REQUIRE_EU=True (дефолт production.py) вырезает маршруты вне ЕС и фейк ДО вызова.
+# Ключи — шифрованный стор apps.secrets (приоритет) или env ниже.
+# ---------------------------------------------------------------------------
+AI_ENABLED = env.bool("AI_ENABLED", default=False)
+AI_REQUIRE_EU = env.bool("AI_REQUIRE_EU", default=False)
+AI_ROUTE_FAST = env.list("AI_ROUTE_FAST", default=["fake"])
+AI_ROUTE_STRONG = env.list("AI_ROUTE_STRONG", default=["fake"])
+AI_FAKE_MODE = env("AI_FAKE_MODE", default="ok")
+AI_TENANT_DAILY_CALLS = env.int("AI_TENANT_DAILY_CALLS", default=50)
+AI_TENANT_DAILY_EUR = env.float("AI_TENANT_DAILY_EUR", default=1.0)
+AI_DAILY_BUDGET_EUR = env.float("AI_DAILY_BUDGET_EUR", default=10.0)
+# {"<модель>": [центов за 1M входных токенов, центов за 1M выходных]} — для оценки бюджета.
+AI_PRICES = env.json("AI_PRICES", default={})
+AI_USAGE_RETENTION_DAYS = env.int("AI_USAGE_RETENTION_DAYS", default=400)
+# Прямой Anthropic API (dev, личный ключ).
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+ANTHROPIC_BASE_URL = env("ANTHROPIC_BASE_URL", default="https://api.anthropic.com")
+ANTHROPIC_VERSION = env("ANTHROPIC_VERSION", default="2023-06-01")
+ANTHROPIC_MODEL_FAST = env("ANTHROPIC_MODEL_FAST", default="claude-haiku-5-5")
+ANTHROPIC_MODEL_STRONG = env("ANTHROPIC_MODEL_STRONG", default="claude-opus-5-5")
+# Прямой OpenAI API (dev, личный ключ).
+OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
+OPENAI_BASE_URL = env("OPENAI_BASE_URL", default="https://api.openai.com")
+OPENAI_MODEL_FAST = env("OPENAI_MODEL_FAST", default="")
+OPENAI_MODEL_STRONG = env("OPENAI_MODEL_STRONG", default="")
+# AWS Bedrock (Claude, ЕС). Ключи отдельные от S3-хранилища: право только bedrock:InvokeModel.
+AWS_BEDROCK_REGION = env("AWS_BEDROCK_REGION", default="eu-central-1")
+AWS_BEDROCK_ACCESS_KEY_ID = env("AWS_BEDROCK_ACCESS_KEY_ID", default="")
+AWS_BEDROCK_SECRET_ACCESS_KEY = env("AWS_BEDROCK_SECRET_ACCESS_KEY", default="")
+BEDROCK_MODEL_FAST = env("BEDROCK_MODEL_FAST", default="")
+BEDROCK_MODEL_STRONG = env("BEDROCK_MODEL_STRONG", default="")
+# Azure OpenAI (GPT, развёртывание «Data Zone Standard — EU»).
+AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT", default="")
+AZURE_OPENAI_API_KEY = env("AZURE_OPENAI_API_KEY", default="")
+AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION", default="2024-10-21")
+AZURE_OPENAI_DEPLOYMENT_FAST = env("AZURE_OPENAI_DEPLOYMENT_FAST", default="")
+AZURE_OPENAI_DEPLOYMENT_STRONG = env("AZURE_OPENAI_DEPLOYMENT_STRONG", default="")
+# Mistral (Франция): ЕС только при адресе api.mistral.ai.
+MISTRAL_API_KEY = env("MISTRAL_API_KEY", default="")
+MISTRAL_BASE_URL = env("MISTRAL_BASE_URL", default="https://api.mistral.ai")
+MISTRAL_MODEL_FAST = env("MISTRAL_MODEL_FAST", default="mistral-small-latest")
+MISTRAL_MODEL_STRONG = env("MISTRAL_MODEL_STRONG", default="mistral-large-latest")
 
 # ---------------------------------------------------------------------------
 # Meta Graph API (соц-постинг Facebook/Instagram, M23a)

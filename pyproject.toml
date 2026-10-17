@@ -46,6 +46,7 @@ dependencies = [
     "sentry-sdk>=2.15",
     "django-rosetta>=0.10.3",
     "nh3>=0.3.7",
+    "jsonschema>=4.23",
 ]
 
 [project.optional-dependencies]

@@ -45,3 +45,13 @@ MEDIA_ROOT = BASE_DIR / "media"
 # `core.media_views.serve_media` в тестах не резолвится вовсе. Хранилище выше
 # уже файловое — держим и раздачу детерминированно включённой.
 SERVE_MEDIA = True
+
+# AI-0: тесты без сети и без ключей из окружения — только фейковый провайдер.
+AI_ENABLED = False
+AI_REQUIRE_EU = False
+AI_ROUTE_FAST = ["fake"]
+AI_ROUTE_STRONG = ["fake"]
+AI_FAKE_MODE = "ok"
+AI_PRICES = {}
+ANTHROPIC_API_KEY = OPENAI_API_KEY = AZURE_OPENAI_API_KEY = MISTRAL_API_KEY = ""
+AWS_BEDROCK_ACCESS_KEY_ID = AWS_BEDROCK_SECRET_ACCESS_KEY = ""

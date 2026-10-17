@@ -24990,3 +24990,7 @@ msgstr "Bir kart, en az yarısı en az 1 saniye görünür olduğunda “görül
 
 msgid "Ansichten und Klicks zählen pro Besucher höchstens einmal am Tag und Angebot; jede Anfrage und Bestellung zählt einzeln."
 msgstr "Görüntülemeler ve tıklamalar ziyaretçi, gün ve teklif başına en fazla bir kez sayılır; her talep ve sipariş ayrı sayılır."
+
+
+msgid "KI-generiert, bitte prüfen"
+msgstr "Yapay zekâ tarafından oluşturuldu, lütfen kontrol edin"

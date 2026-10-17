@@ -24909,3 +24909,7 @@ msgstr "Als „gesehen“ zählt eine Karte, die mindestens 1 Sekunde zur Hälft
 
 msgid "Ansichten und Klicks zählen pro Besucher höchstens einmal am Tag und Angebot; jede Anfrage und Bestellung zählt einzeln."
 msgstr "Ansichten und Klicks zählen pro Besucher höchstens einmal am Tag und Angebot; jede Anfrage und Bestellung zählt einzeln."
+
+
+msgid "KI-generiert, bitte prüfen"
+msgstr "KI-generiert, bitte prüfen"

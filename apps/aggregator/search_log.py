@@ -22,32 +22,19 @@ from django.db import IntegrityError, transaction
 from django.db.models import F
 from django.utils import timezone
 
+from apps.core.pii import scrub  # noqa: F401 — реэкспорт: общий хелпер (AI-0)
+
 logger = logging.getLogger(__name__)
 
 QUERY_MAX = 100
 CITY_MAX = 100
 FILTERS_KEY_MAX = 255
-_EMAIL = re.compile(r"\S+@\S+")
-_IBAN = re.compile(r"\b[A-Z]{2}\d{2}(?:[ ]?[A-Z0-9]{4}){3,7}(?:[ ]?[A-Z0-9]{1,4})?\b", re.I)
-# Телефон: 7+ цифр с любыми разделителями (пробел, -, /, ., скобки); PLZ (5) и цены целы.
-_PHONE = re.compile(r"\(?\+?[\d][\d \-/().]{5,}\d")
 _WS = re.compile(r"\s+")
 _CTRL = re.compile(r"[\x00-\x1f\x7f]")
 
 
 def _cfg(key: str):
     return settings.AGGREGATOR_SEARCH_LOG[key]
-
-
-def scrub(text: str) -> str:
-    """Убрать из свободного текста то, что похоже на персональные данные (Р-2).
-
-    Регистронезависимо (зовётся ДО casefold и после — IBAN в нижнем регистре тоже ловится)."""
-    text = _EMAIL.sub("‹email›", text or "")
-    text = _IBAN.sub("‹iban›", text)
-    return _PHONE.sub(
-        lambda m: "‹nummer›" if sum(c.isdigit() for c in m.group()) >= 7 else m.group(), text
-    )
 
 
 def normalize_query(q: str) -> str:

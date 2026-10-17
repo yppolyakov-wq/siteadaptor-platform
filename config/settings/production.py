@@ -8,6 +8,11 @@ from .base import env
 DEBUG = False
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
+# AI-0: в проде данные клиентов обрабатываются только в ЕС — маршруты вне ЕС (прямые
+# Anthropic/OpenAI) и фейк не вызываются. Снять можно только явным env на dev-сервере
+# с демо-данными.
+AI_REQUIRE_EU = env.bool("AI_REQUIRE_EU", default=True)
+
 # CSRF: Django требует доверенные origins для HTTPS-POST. Платформенный домен и
 # ВСЕ субдомены арендаторов (`*.siteadaptor.de`) трастим ВСЕГДА — даже при узком
 # env-override — иначе логин/формы на субдомене отдают 403 CSRF. `CsrfViewMiddleware`

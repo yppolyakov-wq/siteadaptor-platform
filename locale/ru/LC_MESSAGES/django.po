@@ -25104,3 +25104,7 @@ msgstr "Карточка считается «увиденной», если н�
 
 msgid "Ansichten und Klicks zählen pro Besucher höchstens einmal am Tag und Angebot; jede Anfrage und Bestellung zählt einzeln."
 msgstr "Просмотры и клики считаются не чаще одного раза в день на посетителя и предложение; каждое обращение и заказ — отдельно."
+
+
+msgid "KI-generiert, bitte prüfen"
+msgstr "Создано ИИ, проверьте"
