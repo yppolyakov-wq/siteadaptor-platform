@@ -86,23 +86,9 @@ def _extras_for_walkin():
 def _has_short_gaps(units, *, max_nights=3, horizon=60) -> bool:
     """Lücken-Deal: есть ли впереди короткие свободные промежутки между
     занятыми ночами (кандидаты на скидку) — для автопредложения владельцу."""
-    today = timezone.localdate()
-    start, end = today + timedelta(days=1), today + timedelta(days=1 + horizon)
-    for unit in units:
-        occ = availability.occupancy_by_day(unit, start, end)
-        run = 0
-        bounded_left = False
-        day = start
-        while day < end:
-            if occ.get(day, 0) < 100:
-                run += 1
-            else:
-                if bounded_left and 0 < run <= max_nights:
-                    return True
-                bounded_left = True
-                run = 0
-            day += timedelta(days=1)
-    return False
+    from .gaps import short_gaps
+
+    return bool(short_gaps(units, max_nights=max_nights, horizon=horizon, first_only=True))
 
 
 def _finance_active(request) -> bool:

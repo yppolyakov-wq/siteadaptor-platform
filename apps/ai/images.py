@@ -36,3 +36,27 @@ def prepare(images) -> tuple[Image, ...]:
             raise AIConfigError("unsupported image type")
         out.append(Image(mime=mime, data=data))
     return tuple(out)
+
+
+def reencode(data: bytes, *, max_side: int = 1568, quality: int = 85) -> bytes:
+    """Копия фото для провайдера: выпрямлена по EXIF, уменьшена, без EXIF/GPS/ICC.
+
+    Т-8.10a: геолокация магазина или дома владельца не уходит наружу, трафик меньше.
+    Не картинка / бомба по пикселям → AIConfigError (спокойная ошибка у потребителя)."""
+    import io
+
+    from PIL import Image as PILImage
+    from PIL import ImageOps, UnidentifiedImageError
+
+    if sniff(bytes(data[:16])) is None:
+        raise AIConfigError("unsupported image type")
+    try:
+        with PILImage.open(io.BytesIO(data)) as img:
+            img = ImageOps.exif_transpose(img)
+            img = img.convert("RGB")
+            img.thumbnail((max_side, max_side))
+            out = io.BytesIO()
+            img.save(out, format="JPEG", quality=quality, optimize=True)
+    except (UnidentifiedImageError, OSError, PILImage.DecompressionBombError) as exc:
+        raise AIConfigError("unsupported image type") from exc
+    return out.getvalue()
