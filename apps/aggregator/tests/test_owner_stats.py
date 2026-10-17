@@ -70,10 +70,13 @@ def _req(tenant, user=True, **params):
     SessionMiddleware(lambda r: None).process_request(req)
     MessageMiddleware(lambda r: None).process_request(req)
     if user:
+        from apps.core.models import Membership
+
         o = uuid4().hex[:8]
         req.user = get_user_model().objects.create_user(
             username=f"o-{o}", email=f"o-{o}@t.de", password="pw12345678"
         )
+        Membership.objects.create(user=req.user, role=Membership.ROLE_OWNER)
     else:
         req.user = AnonymousUser()
     req.tenant = tenant
@@ -329,3 +332,19 @@ def test_quick_done_links_portal_stats_for_owner_only():
         req.user = _member(role)
         html = promotion_quick_done(req, promo.pk).content.decode()
         assert ('href="/dashboard/stadtportal/"' in html) is shown, role
+
+
+def test_view_itself_refuses_non_owner():
+    """Ревью V5-4: защита в глубину — вьюха сама отказывает не-владельцу, даже мимо middleware."""
+    from apps.aggregator.owner_views import portal_stats
+    from apps.core.models import Membership
+
+    t = _tenant()
+    for role, status in (
+        (Membership.ROLE_ADMIN, 403),
+        (Membership.ROLE_STAFF, 403),
+        (Membership.ROLE_OWNER, 200),
+    ):
+        req = _req(t)
+        req.user = _member(role)
+        assert portal_stats(req).status_code == status, role

@@ -420,7 +420,9 @@ def _beacon_ids(request) -> list[int]:
     from . import portal_stats
 
     try:
-        if int(request.META.get("CONTENT_LENGTH") or 0) > _BEACON_MAX_BODY:
+        # sendBeacon всегда шлёт Content-Length; без него (chunked) тело не разбираем.
+        length = int(request.META.get("CONTENT_LENGTH") or 0)
+        if not 0 < length <= _BEACON_MAX_BODY:
             return []
         raw = request.POST.get("p", "")
     except Exception:  # noqa: BLE001 — мусор в теле

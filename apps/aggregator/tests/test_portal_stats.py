@@ -949,3 +949,25 @@ def test_offer_page_with_beacon_still_cached_without_cookies():
     body = r2.content.decode()
     assert 'data-pstat="' in body and "data-pstat-url" in body
     page_cache.clear()
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_beacon_without_content_length_is_ignored():
+    """Ревью V5-4: chunked-тело (без Content-Length) не разбираем — sendBeacon его всегда шлёт."""
+    portal = _portal()
+    a = _listing()
+    from django.contrib.sessions.backends.cache import SessionStore
+
+    from apps.aggregator import views
+
+    req = RequestFactory().post(
+        "/stat/sichtbar/",
+        data=f"p={a.pk}",
+        content_type="application/x-www-form-urlencoded",
+        HTTP_USER_AGENT=UA,
+        HTTP_SEC_FETCH_SITE="same-origin",
+    )
+    del req.META["CONTENT_LENGTH"]
+    req.portal, req.session = portal, SessionStore()
+    assert views.impression_beacon(req).status_code == 204
+    assert PortalStat.objects.count() == 0

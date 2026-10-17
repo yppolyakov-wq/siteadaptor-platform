@@ -8,30 +8,34 @@
   if (!cards.length || !("IntersectionObserver" in window)) return;
   var url = document.currentScript.getAttribute("data-pstat-url");
   var MAX = 48, DWELL = 1000;
-  var sent = {}, queue = [], timers = {};
-  function flush() {
-    if (!queue.length) return;
-    var body = new URLSearchParams({p: queue.splice(0, MAX).join(",")});
+  var sent = {}, queue = [];
+  function send(ids) {
+    var body = new URLSearchParams({p: ids.join(",")});
     if (navigator.sendBeacon && navigator.sendBeacon(url, body)) return;
     try { fetch(url, {method: "POST", body: body, keepalive: true, credentials: "same-origin"}); } catch (e) {}
   }
-  function stop(pk) { if (timers[pk]) { clearTimeout(timers[pk]); delete timers[pk]; } }
+  function flush() { while (queue.length) send(queue.splice(0, MAX)); }
+  {% comment %}Таймер — на элементе, не на pk: две карточки одного предложения не гасят друг друга.{% endcomment %}
+  function stop(el) { if (el._pstatTimer) { clearTimeout(el._pstatTimer); el._pstatTimer = null; } }
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (e) {
       var pk = parseInt(e.target.getAttribute("data-pstat"), 10);
       if (isNaN(pk) || sent[pk]) return;
+      var el = e.target;
       if (e.isIntersecting && e.intersectionRatio >= 0.5 && document.visibilityState === "visible") {
-        if (!timers[pk]) timers[pk] = setTimeout(function () {
-          delete timers[pk]; sent[pk] = true; queue.push(pk); io.unobserve(e.target);
+        if (!el._pstatTimer) el._pstatTimer = setTimeout(function () {
+          el._pstatTimer = null; io.unobserve(el);
+          if (sent[pk]) return;
+          sent[pk] = true; queue.push(pk);
           if (queue.length >= MAX) flush();
         }, DWELL);
-      } else { stop(pk); }
+      } else { stop(el); }
     });
   }, {threshold: [0, 0.5]});
   cards.forEach(function (el) { io.observe(el); });
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "hidden") {
-      Object.keys(timers).forEach(stop); flush();
+      cards.forEach(stop); flush();
     } else {
       cards.forEach(function (el) {
         var pk = parseInt(el.getAttribute("data-pstat"), 10);
