@@ -107,6 +107,8 @@ class Service(I18nMixin, TimestampedModel):
     is_active = models.BooleanField(default=True)
     # T-8.11: владелец не хочет эту услугу в каталоге города.
     hide_in_city = models.BooleanField(default=False)
+    # T-8.27: адрес услуги на сайте владельца (импорт с сайта, визитка «eintrag»).
+    external_url = models.URLField(max_length=500, blank=True, default="")
     # LS-1: видео-консультация (v1 = WhatsApp-видео, wa.me-линк в письмах и на
     # детали; НИКАКОЙ записи разговоров — §201 StGB). Бронь — обычным движком.
     is_video = models.BooleanField(default=False)

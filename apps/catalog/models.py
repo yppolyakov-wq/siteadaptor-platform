@@ -249,6 +249,9 @@ class Product(SoftDeleteMixin, I18nMixin):
     card_style = models.CharField(max_length=16, blank=True, default="")
     # T-8.11: владелец не хочет этот товар в каталоге города (сайт — как прежде).
     hide_in_city = models.BooleanField(default=False)
+    # T-8.27: адрес позиции на сайте владельца (импорт с сайта). У визитки «eintrag»
+    # листинг каталога города ведёт сюда; иначе — справка «Original».
+    external_url = models.URLField(max_length=500, blank=True, default="")
 
     # Маркетинговый бейдж на витрине (T1): «Tagesgericht», «Neu», «Beliebt».
     # Пусто = без бейджа. is_featured (популярные на главной) — отдельно.

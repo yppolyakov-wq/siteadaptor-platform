@@ -24992,3 +24992,40 @@ msgid "Ein Artikel gefunden."
 msgid_plural "%(counter)s Artikel gefunden."
 msgstr[0] "Ein Artikel gefunden."
 msgstr[1] "%(counter)s Artikel gefunden."
+
+#, python-format
+msgid "%(created)s neu, %(updated)s aktualisiert. Fotos werden im Hintergrund geladen."
+msgstr "%(created)s neu, %(updated)s aktualisiert. Fotos werden im Hintergrund geladen."
+
+#, python-format
+msgid "%(n)s Artikel wurden nicht übernommen: Der kostenlose Import umfasst bis zu %(limit)s Artikel. Mehr? Schreiben Sie uns: %(contact)s"
+msgstr "%(n)s Artikel wurden nicht übernommen: Der kostenlose Import umfasst bis zu %(limit)s Artikel. Mehr? Schreiben Sie uns: %(contact)s"
+
+msgid "Aus strukturierten Daten Ihrer Website"
+msgstr "Aus strukturierten Daten Ihrer Website"
+
+msgid "Erscheint nicht im Stadtkatalog: Foto oder Preis fehlt."
+msgstr "Erscheint nicht im Stadtkatalog: Foto oder Preis fehlt."
+
+#, python-format
+msgid "Mehr Artikel? Schreiben Sie uns: %(contact)s"
+msgstr "Mehr Artikel? Schreiben Sie uns: %(contact)s"
+
+#, python-format
+msgid "Noch %(left)s von %(limit)s Artikeln kostenlos."
+msgstr "Noch %(left)s von %(limit)s Artikeln kostenlos."
+
+msgid "Ohne Kategorie"
+msgstr "Ohne Kategorie"
+
+msgid "Ohne Preis wird der Artikel als „Nur auf Anfrage“ angelegt."
+msgstr "Ohne Preis wird der Artikel als „Nur auf Anfrage“ angelegt."
+
+msgid "Preis in €"
+msgstr "Preis in €"
+
+msgid "ersetzt Ihren bisherigen Eintrag"
+msgstr "ersetzt Ihren bisherigen Eintrag"
+
+msgid "übernehmen"
+msgstr "übernehmen"

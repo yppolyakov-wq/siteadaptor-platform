@@ -133,3 +133,72 @@ def test_website_paths_are_owner_only():
     from apps.core.middleware import CabinetOwnerAccessMiddleware
 
     assert reverse("imports:website").startswith(CabinetOwnerAccessMiddleware._OWNER_ONLY)
+
+
+def test_review_post_applies_selected_items(owner):
+    from apps.catalog.models import Product
+
+    run = SiteImportRun.objects.create(
+        start_url=ROOT + "/",
+        host="laden.example",
+        consent_at="2026-10-17T10:00Z",
+        consent_version="x",
+        status=SiteImportRun.STATUS_READY,
+    )
+    data = {
+        "kind": "product",
+        "name": "Brot",
+        "price": "3.10",
+        "identity": "url:x",
+        "page_url": ROOT + "/p",
+        "method": "structured",
+    }
+    item = SiteImportItem.objects.create(
+        run=run, kind="product", data=data, fingerprint="f" * 64, identity_key="i" * 64
+    )
+    other = SiteImportItem.objects.create(
+        run=run,
+        kind="product",
+        data={**data, "name": "Nein", "identity": "url:y"},
+        fingerprint="g" * 64,
+        identity_key="j" * 64,
+    )
+    tenant = TenantFactory.build(schema_name="laden", subscription_status="trial")
+    request = _post(
+        owner,
+        {f"take_{item.pk}": "1", f"name_{item.pk}": "Brot hell", f"price_{item.pk}": "3,30"},
+        tenant,
+    )
+    with (
+        mock.patch.object(views, "messages"),
+        mock.patch("apps.imports.site.apply._enqueue_images"),
+    ):
+        resp = views.website_run(request, run.pk)
+    assert resp.status_code == 302
+    product = Product.objects.get()
+    assert product.name["de"] == "Brot hell" and str(product.base_price) == "3.30"
+    other.refresh_from_db()
+    assert other.decision == "skipped"
+
+
+def test_review_get_renders_form_with_usage(owner):
+    run = SiteImportRun.objects.create(
+        start_url=ROOT + "/",
+        host="laden.example",
+        consent_at="2026-10-17T10:00Z",
+        consent_version="x",
+        status=SiteImportRun.STATUS_READY,
+    )
+    SiteImportItem.objects.create(
+        run=run,
+        kind="product",
+        fingerprint="f" * 64,
+        identity_key="i" * 64,
+        data={"kind": "product", "name": "Honig", "price": None, "identity": "url:h"},
+    )
+    request = RequestFactory().get("/")
+    request.user = owner
+    request.tenant = TenantFactory.build(schema_name="laden", subscription_status="trial")
+    html_out = views.website_run(request, run.pk).content.decode()
+    assert "data-site-review" in html_out and "Honig" in html_out
+    assert "data-site-usage" in html_out

@@ -8,12 +8,14 @@ tenant-контекста.
 import uuid
 from pathlib import Path
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 
+from apps.ai.api import AI_LABEL
 from apps.core.roles import is_owner
 
 from .forms import ImportUploadForm
@@ -256,19 +258,93 @@ def website_start(request):
     )
 
 
+PROFILE_LABELS = {
+    "phone": _("Telefon"),
+    "address": _("Adresse"),
+    "opening_hours_structured": _("Öffnungszeiten"),
+    "description": _("Beschreibung"),
+}
+_PROFILE_TENANT_ATTR = {
+    "phone": "contact_phone",
+    "address": "address",
+    "opening_hours_structured": "opening_hours_structured",
+}
+
+
+def _profile_rows(run, tenant):
+    rows = []
+    for key, label in PROFILE_LABELS.items():
+        value = (run.profile or {}).get(key)
+        if not value:
+            continue
+        if key == "description":
+            current = (tenant.site_config or {}).get("about_text", "")
+        else:
+            current = getattr(tenant, _PROFILE_TENANT_ATTR[key], "")
+        if key == "opening_hours_structured":
+            value = ", ".join(f"{d}: {v[0]}–{v[1]}" for d, v in sorted(value.items()))
+        rows.append({"key": key, "label": label, "value": value, "filled": bool(current)})
+    return rows
+
+
 @login_required
 def website_run(request, pk):
-    """Статус прогона и найденные позиции (проверка и применение — T-8.27c)."""
+    """Статус прогона → «Prüfen & veröffentlichen»: выбор, правка, применение."""
+    from apps.catalog.models import Category
+
     from .models import SiteImportRun
+    from .site import apply
 
     run = get_object_or_404(SiteImportRun, pk=pk)
+    tenant = request.tenant
+    items = list(run.items.all())
+    if request.method == "POST" and run.status == SiteImportRun.STATUS_READY:
+        decisions = {
+            str(item.pk): {
+                "name": request.POST.get(f"name_{item.pk}", ""),
+                "price": request.POST.get(f"price_{item.pk}", ""),
+                "description": request.POST.get(f"desc_{item.pk}", ""),
+                "category": request.POST.get(f"category_{item.pk}", ""),
+            }
+            for item in items
+            if request.POST.get(f"take_{item.pk}") == "1"
+        }
+        fields = [k for k in PROFILE_LABELS if request.POST.get(f"profile_{k}") == "1"]
+        result = apply.apply_items(run, tenant, decisions)
+        apply.apply_profile(run, tenant, fields)
+        messages.success(
+            request,
+            _("%(created)s neu, %(updated)s aktualisiert. Fotos werden im Hintergrund geladen.")
+            % {"created": result.created, "updated": result.updated},
+        )
+        if result.over_limit:
+            messages.warning(request, apply_limit_message(result.over_limit))
+        return redirect("imports:website-run", pk=run.pk)
     return render(
         request,
         "imports/website_run.html",
         {
             "run": run,
-            "items": run.items.all(),
+            "items": items,
             "active": run.status in SiteImportRun.ACTIVE,
             "profile": run.profile or {},
+            "profile_rows": _profile_rows(run, tenant),
+            "categories": Category.objects.filter(is_active=True).order_by("sort_order"),
+            "usage": apply.usage(tenant),
+            "contact_email": _contact_email(),
+            "ai_label": AI_LABEL,
         },
     )
+
+
+def _contact_email() -> str:
+    from apps.promotions.limits import contact_email
+
+    return contact_email()
+
+
+def apply_limit_message(count: int) -> str:
+    return _(
+        "%(n)s Artikel wurden nicht übernommen: Der kostenlose Import umfasst bis zu "
+        "%(limit)s Artikel. Mehr? Schreiben Sie uns: %(contact)s"
+    ) % {"n": count, "limit": settings.IMPORT_FREE_ITEMS, "contact": _contact_email()}

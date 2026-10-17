@@ -161,3 +161,16 @@ def run_site_import(schema_name=None, run_id=None):
             )
             return {"failed": True}
         return {"status": run.status}
+
+
+@idempotent_task()
+def fetch_site_import_images(schema_name=None, run_id=None):
+    """T-8.27c: фото применённых позиций после коммита (сеть — не в транзакции)."""
+    from .models import SiteImportRun
+    from .site import apply
+
+    with schema_context(schema_name):
+        run = SiteImportRun.objects.filter(pk=run_id).first()
+        if run is None:
+            return {"skipped": True}
+        return {"saved": apply.fetch_images(run)}

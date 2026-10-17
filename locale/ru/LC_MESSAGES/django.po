@@ -25189,3 +25189,40 @@ msgstr[0] "Найдена %(counter)s позиция."
 msgstr[1] "Найдено %(counter)s позиции."
 msgstr[2] "Найдено %(counter)s позиций."
 msgstr[3] "Найдено %(counter)s позиции."
+
+#, python-format
+msgid "%(created)s neu, %(updated)s aktualisiert. Fotos werden im Hintergrund geladen."
+msgstr "Новых: %(created)s, обновлено: %(updated)s. Фото загружаются в фоне."
+
+#, python-format
+msgid "%(n)s Artikel wurden nicht übernommen: Der kostenlose Import umfasst bis zu %(limit)s Artikel. Mehr? Schreiben Sie uns: %(contact)s"
+msgstr "Позиций не перенесено: %(n)s. Бесплатный импорт — до %(limit)s позиций. Нужно больше? Напишите нам: %(contact)s"
+
+msgid "Aus strukturierten Daten Ihrer Website"
+msgstr "Из структурированных данных вашего сайта"
+
+msgid "Erscheint nicht im Stadtkatalog: Foto oder Preis fehlt."
+msgstr "Не появится в каталоге города: нет фото или цены."
+
+#, python-format
+msgid "Mehr Artikel? Schreiben Sie uns: %(contact)s"
+msgstr "Нужно больше позиций? Напишите нам: %(contact)s"
+
+#, python-format
+msgid "Noch %(left)s von %(limit)s Artikeln kostenlos."
+msgstr "Бесплатно осталось %(left)s из %(limit)s позиций."
+
+msgid "Ohne Kategorie"
+msgstr "Без категории"
+
+msgid "Ohne Preis wird der Artikel als „Nur auf Anfrage“ angelegt."
+msgstr "Без цены позиция создаётся как «только по запросу»."
+
+msgid "Preis in €"
+msgstr "Цена в €"
+
+msgid "ersetzt Ihren bisherigen Eintrag"
+msgstr "заменит текущее значение"
+
+msgid "übernehmen"
+msgstr "перенести"

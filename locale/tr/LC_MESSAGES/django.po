@@ -25073,3 +25073,40 @@ msgid "Ein Artikel gefunden."
 msgid_plural "%(counter)s Artikel gefunden."
 msgstr[0] "%(counter)s ürün bulundu."
 msgstr[1] "%(counter)s ürün bulundu."
+
+#, python-format
+msgid "%(created)s neu, %(updated)s aktualisiert. Fotos werden im Hintergrund geladen."
+msgstr "%(created)s yeni, %(updated)s güncellendi. Fotoğraflar arka planda yükleniyor."
+
+#, python-format
+msgid "%(n)s Artikel wurden nicht übernommen: Der kostenlose Import umfasst bis zu %(limit)s Artikel. Mehr? Schreiben Sie uns: %(contact)s"
+msgstr "%(n)s ürün aktarılmadı: Ücretsiz içe aktarma en fazla %(limit)s ürünü kapsar. Daha fazlası mı? Bize yazın: %(contact)s"
+
+msgid "Aus strukturierten Daten Ihrer Website"
+msgstr "Web sitenizin yapılandırılmış verilerinden"
+
+msgid "Erscheint nicht im Stadtkatalog: Foto oder Preis fehlt."
+msgstr "Şehir kataloğunda görünmez: fotoğraf veya fiyat eksik."
+
+#, python-format
+msgid "Mehr Artikel? Schreiben Sie uns: %(contact)s"
+msgstr "Daha fazla ürün mü? Bize yazın: %(contact)s"
+
+#, python-format
+msgid "Noch %(left)s von %(limit)s Artikeln kostenlos."
+msgstr "%(limit)s üründen %(left)s tanesi hâlâ ücretsiz."
+
+msgid "Ohne Kategorie"
+msgstr "Kategorisiz"
+
+msgid "Ohne Preis wird der Artikel als „Nur auf Anfrage“ angelegt."
+msgstr "Fiyat olmadan ürün “yalnızca talep üzerine” olarak oluşturulur."
+
+msgid "Preis in €"
+msgstr "Fiyat (€)"
+
+msgid "ersetzt Ihren bisherigen Eintrag"
+msgstr "mevcut girişinizin yerine geçer"
+
+msgid "übernehmen"
+msgstr "aktar"

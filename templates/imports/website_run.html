@@ -22,6 +22,63 @@
   {% endif %}
 </div>
 
+{% if run.status == "ready" and items or run.status == "ready" and profile_rows %}
+<form method="post" data-site-review>
+  {% csrf_token %}
+  {% if usage %}
+  <p class="text-sm text-gray-600 mb-4" data-site-usage>{% blocktrans with left=usage.left limit=usage.limit %}Noch {{ left }} von {{ limit }} Artikeln kostenlos.{% endblocktrans %}
+    {% if usage.left == 0 %}{% blocktrans with contact=contact_email %}Mehr Artikel? Schreiben Sie uns: {{ contact }}{% endblocktrans %}{% endif %}</p>
+  {% endif %}
+
+  {% if profile_rows %}
+  <div class="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+    <h2 class="font-medium mb-3">{% trans "Ihr Geschäft" %}</h2>
+    <ul class="space-y-2 text-sm">
+      {% for row in profile_rows %}
+      <li><label class="flex items-start gap-2">
+        <input type="checkbox" name="profile_{{ row.key }}" value="1" {% if not row.filled %}checked{% endif %} class="mt-1">
+        <span><span class="text-gray-500">{{ row.label }}:</span> {{ row.value }}{% if row.filled %} <span class="text-amber-700">({% trans "ersetzt Ihren bisherigen Eintrag" %})</span>{% endif %}</span>
+      </label></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if items %}
+  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6">
+    <ul class="divide-y divide-gray-100">
+      {% for item in items %}
+      <li class="p-4 flex gap-4" data-site-item>
+        <input type="checkbox" name="take_{{ item.pk }}" value="1" checked class="mt-2" aria-label="{% trans 'übernehmen' %}">
+        {% if item.data.image_url %}<img src="{{ item.data.image_url }}" alt="" referrerpolicy="no-referrer" loading="lazy" class="w-16 h-16 object-cover rounded-lg">{% endif %}
+        <div class="flex-1 space-y-2 text-sm">
+          <input type="text" name="name_{{ item.pk }}" value="{{ item.data.name }}" maxlength="120" class="block w-full border border-gray-300 rounded-lg p-2" aria-label="{% trans 'Name' %}">
+          <div class="flex flex-wrap gap-2">
+            <input type="text" name="price_{{ item.pk }}" value="{{ item.data.price|default_if_none:'' }}" inputmode="decimal" placeholder="{% trans 'Preis in €' %}" class="w-32 border border-gray-300 rounded-lg p-2" aria-label="{% trans 'Preis in €' %}">
+            {% if item.kind == "product" %}
+            <select name="category_{{ item.pk }}" class="border border-gray-300 rounded-lg p-2" aria-label="{% trans 'Kategorie' %}">
+              <option value="">{% trans "Ohne Kategorie" %}</option>
+              {% if item.data.category_hint %}<option value="new:{{ item.data.category_hint }}" selected>{% trans "Neu" %}: {{ item.data.category_hint }}</option>{% endif %}
+              {% for cat in categories %}<option value="{{ cat.pk }}">{{ cat }}</option>{% endfor %}
+            </select>
+            {% endif %}
+          </div>
+          <textarea name="desc_{{ item.pk }}" rows="2" maxlength="1500" class="block w-full border border-gray-300 rounded-lg p-2" aria-label="{% trans 'Beschreibung' %}">{{ item.data.description }}</textarea>
+          <p class="text-xs text-gray-500">
+            {% if item.ai_generated %}<span class="text-amber-700">{{ ai_label }}</span>{% else %}{% trans "Aus strukturierten Daten Ihrer Website" %}{% endif %}
+            {% if item.source_url %} · <a href="{{ item.source_url }}" rel="noopener noreferrer" target="_blank" class="text-indigo-700 hover:underline">{% trans "Original" %}</a>{% endif %}
+            {% if not item.data.image_url or not item.data.price %} · <span class="text-amber-700">{% trans "Erscheint nicht im Stadtkatalog: Foto oder Preis fehlt." %}</span>{% endif %}
+            {% if not item.data.price %} · {% trans "Ohne Preis wird der Artikel als „Nur auf Anfrage“ angelegt." %}{% endif %}
+          </p>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  <button type="submit" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700">{% trans "Veröffentlichen" %}</button>
+</form>
+{% else %}
 {% if profile %}
 <div class="bg-white border border-gray-200 rounded-xl p-6 mb-6">
   <h2 class="font-medium mb-3">{% trans "Ihr Geschäft" %}</h2>
@@ -48,5 +105,6 @@
   <p class="p-6 text-sm text-gray-600">{% trans "Keine Artikel automatisch erkannt. Sie können Artikel von Hand oder per CSV-Import hinzufügen." %}</p>
   {% endif %}
 </div>
+{% endif %}
 {% endif %}
 {% endblock %}
