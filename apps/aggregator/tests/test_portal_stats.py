@@ -540,8 +540,11 @@ def test_outbound_non_http_target_goes_home():
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
-def test_outbound_rate_limited_still_redirects(settings):
-    settings.AGGREGATOR_PORTAL_STATS = {**settings.AGGREGATOR_PORTAL_STATS, "rate_limit": 1}
+def test_outbound_rate_limited_still_redirects(monkeypatch):
+    # Не фикстура `settings`: вместе с @override_settings она при выходе восстанавливает
+    # ROOT_URLCONF портала, и он утекает в следующие тесты процесса (CI g1).
+    cfg = portal_stats._cfg
+    monkeypatch.setattr(portal_stats, "_cfg", lambda key: 1 if key == "rate_limit" else cfg(key))
     portal = _portal()
     listing = _listing()
     _outbound(listing.pk, portal, ip="10.5.5.5")
