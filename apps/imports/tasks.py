@@ -139,3 +139,25 @@ def run_import(dedupe_key=None, schema_name=None, job_id=None):
     except Exception as exc:  # noqa: BLE001
         _mark_failed(schema_name, job_id, f"{exc}\n{traceback.format_exc()}")
         raise
+
+
+@idempotent_task()
+def run_site_import(schema_name=None, run_id=None):
+    """T-8.27: обход сайта клиента и черновик импорта. Сбой → failed (без текста ошибки
+    в БД: только код — тело чужого ответа и URL с параметрами не храним)."""
+    from .models import SiteImportRun
+    from .site import service
+
+    with schema_context(schema_name):
+        run = SiteImportRun.objects.filter(pk=run_id).first()
+        if run is None or run.status not in SiteImportRun.ACTIVE:
+            return {"skipped": True}
+        try:
+            service.execute(run)
+        except Exception as exc:  # noqa: BLE001 — прогон не должен зависнуть в crawling
+            logger.warning("site import %s failed: %s", run_id, type(exc).__name__)
+            SiteImportRun.objects.filter(pk=run.pk).update(
+                status=SiteImportRun.STATUS_FAILED, error_code="internal"
+            )
+            return {"failed": True}
+        return {"status": run.status}

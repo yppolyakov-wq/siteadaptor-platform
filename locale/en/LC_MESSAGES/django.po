@@ -24880,3 +24880,69 @@ msgstr "Content type not allowed."
 
 msgid "Zu viele Weiterleitungen."
 msgstr "Too many redirects."
+
+msgid "Adresse Ihrer Website"
+msgstr "Website address"
+
+msgid "Bereit zur Prüfung"
+msgstr "Ready for review"
+
+msgid "Bitte bestätigen Sie, dass Sie Inhaber der Website sind."
+msgstr "Please confirm that you own the website."
+
+msgid "Bitte eine gültige Website-Adresse (https://…) angeben."
+msgstr "Please enter a valid website address (https://…)."
+
+msgid "Die Texte Ihrer Website sind nicht auf Deutsch — bitte prüfen Sie sie vor dem Veröffentlichen."
+msgstr "The texts on your website are not in German — please check them before publishing."
+
+msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse oder versuchen Sie es später erneut."
+msgstr "The website could not be read. Check the address or try again later."
+
+msgid "Ein Import läuft bereits. Bitte warten Sie, bis er fertig ist."
+msgstr "An import is already running. Please wait until it is finished."
+
+msgid "Fehlgeschlagen"
+msgstr "Failed"
+
+msgid "Für heute sind keine weiteren Importe möglich. Bitte morgen erneut."
+msgstr "No more imports are possible today. Please try again tomorrow."
+
+msgid "Ich bin Inhaber dieser Website bzw. berechtigt, ihre Inhalte zu verwenden. Texte und Fotos dürfen übernommen werden."
+msgstr "I own this website or am authorised to use its content. Texts and photos may be taken over."
+
+msgid "Ihre Website erlaubt das Auslesen nicht (robots.txt). Erlauben Sie unseren Zugriff oder fügen Sie Artikel von Hand bzw. per CSV hinzu."
+msgstr "Your website does not allow reading (robots.txt). Allow our access or add items by hand or via CSV."
+
+msgid "Keine Artikel automatisch erkannt. Sie können Artikel von Hand oder per CSV-Import hinzufügen."
+msgstr "No items were detected automatically. You can add items by hand or via CSV import."
+
+msgid "Letzte Importe"
+msgstr "Recent imports"
+
+msgid "Neuer Import"
+msgstr "New import"
+
+msgid "Von der Website importieren"
+msgstr "Import from website"
+
+msgid "Website auslesen"
+msgstr "Read website"
+
+msgid "Wir lesen bis zu 20 Seiten Ihrer Website und schlagen Ihnen Artikel, Preise, Öffnungszeiten und Kontaktdaten vor. Nichts wird veröffentlicht, bevor Sie es geprüft haben."
+msgstr "We read up to 20 pages of your website and suggest items, prices, opening hours and contact details. Nothing is published before you have checked it."
+
+msgid "Wird ausgelesen …"
+msgstr "Reading …"
+
+msgid "ohne Preis"
+msgstr "no price"
+
+msgid "Übernommen"
+msgstr "Applied"
+
+#, python-format
+msgid "Ein Artikel gefunden."
+msgid_plural "%(counter)s Artikel gefunden."
+msgstr[0] "One item found."
+msgstr[1] "%(counter)s items found."

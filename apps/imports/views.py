@@ -14,6 +14,8 @@ from django.db import connection
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.roles import is_owner
+
 from .forms import ImportUploadForm
 from .models import ImportJob
 from .tabular import read_headers
@@ -126,7 +128,14 @@ def import_start(request):
     return render(
         request,
         "imports/import_start.html",
-        {"form": form, "jobs": jobs, "resources": RESOURCE_CHOICES, "nav": "imports"},
+        {
+            "form": form,
+            "jobs": jobs,
+            "resources": RESOURCE_CHOICES,
+            "nav": "imports",
+            # T-8.27: вход в импорт с сайта — только владельцу (owner-only зона).
+            "is_owner": is_owner(request.user),
+        },
     )
 
 
@@ -213,3 +222,53 @@ def import_status(request, pk):
         else "imports/import_status.html"
     )
     return render(request, template, {"job": job, "nav": "imports"})
+
+
+# --- T-8.27 «Импорт с сайта клиента» -----------------------------------------------------
+
+
+@login_required
+def website_start(request):
+    """Старт: адрес сайта + согласие правообладателя → прогон в Celery."""
+    from .models import SiteImportRun
+    from .site import service
+
+    tenant = request.tenant
+    error = ""
+    url = request.POST.get("url", "") if request.method == "POST" else tenant.website_url
+    if request.method == "POST":
+        if request.POST.get("consent") != "1":
+            error = _("Bitte bestätigen Sie, dass Sie Inhaber der Website sind.")
+        else:
+            try:
+                run = service.start_run(user=request.user, url=url)
+            except service.StartError as exc:
+                error = str(exc)
+            else:
+                if not tenant.website_url:
+                    tenant.website_url = run.start_url
+                    tenant.save(update_fields=["website_url"])
+                return redirect("imports:website-run", pk=run.pk)
+    return render(
+        request,
+        "imports/website_start.html",
+        {"url": url, "error": error, "runs": SiteImportRun.objects.all()[:10]},
+    )
+
+
+@login_required
+def website_run(request, pk):
+    """Статус прогона и найденные позиции (проверка и применение — T-8.27c)."""
+    from .models import SiteImportRun
+
+    run = get_object_or_404(SiteImportRun, pk=pk)
+    return render(
+        request,
+        "imports/website_run.html",
+        {
+            "run": run,
+            "items": run.items.all(),
+            "active": run.status in SiteImportRun.ACTIVE,
+            "profile": run.profile or {},
+        },
+    )

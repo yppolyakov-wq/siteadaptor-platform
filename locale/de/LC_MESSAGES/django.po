@@ -24926,3 +24926,69 @@ msgstr "Inhaltstyp nicht erlaubt."
 
 msgid "Zu viele Weiterleitungen."
 msgstr "Zu viele Weiterleitungen."
+
+msgid "Adresse Ihrer Website"
+msgstr "Adresse Ihrer Website"
+
+msgid "Bereit zur Prüfung"
+msgstr "Bereit zur Prüfung"
+
+msgid "Bitte bestätigen Sie, dass Sie Inhaber der Website sind."
+msgstr "Bitte bestätigen Sie, dass Sie Inhaber der Website sind."
+
+msgid "Bitte eine gültige Website-Adresse (https://…) angeben."
+msgstr "Bitte eine gültige Website-Adresse (https://…) angeben."
+
+msgid "Die Texte Ihrer Website sind nicht auf Deutsch — bitte prüfen Sie sie vor dem Veröffentlichen."
+msgstr "Die Texte Ihrer Website sind nicht auf Deutsch — bitte prüfen Sie sie vor dem Veröffentlichen."
+
+msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse oder versuchen Sie es später erneut."
+msgstr "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse oder versuchen Sie es später erneut."
+
+msgid "Ein Import läuft bereits. Bitte warten Sie, bis er fertig ist."
+msgstr "Ein Import läuft bereits. Bitte warten Sie, bis er fertig ist."
+
+msgid "Fehlgeschlagen"
+msgstr "Fehlgeschlagen"
+
+msgid "Für heute sind keine weiteren Importe möglich. Bitte morgen erneut."
+msgstr "Für heute sind keine weiteren Importe möglich. Bitte morgen erneut."
+
+msgid "Ich bin Inhaber dieser Website bzw. berechtigt, ihre Inhalte zu verwenden. Texte und Fotos dürfen übernommen werden."
+msgstr "Ich bin Inhaber dieser Website bzw. berechtigt, ihre Inhalte zu verwenden. Texte und Fotos dürfen übernommen werden."
+
+msgid "Ihre Website erlaubt das Auslesen nicht (robots.txt). Erlauben Sie unseren Zugriff oder fügen Sie Artikel von Hand bzw. per CSV hinzu."
+msgstr "Ihre Website erlaubt das Auslesen nicht (robots.txt). Erlauben Sie unseren Zugriff oder fügen Sie Artikel von Hand bzw. per CSV hinzu."
+
+msgid "Keine Artikel automatisch erkannt. Sie können Artikel von Hand oder per CSV-Import hinzufügen."
+msgstr "Keine Artikel automatisch erkannt. Sie können Artikel von Hand oder per CSV-Import hinzufügen."
+
+msgid "Letzte Importe"
+msgstr "Letzte Importe"
+
+msgid "Neuer Import"
+msgstr "Neuer Import"
+
+msgid "Von der Website importieren"
+msgstr "Von der Website importieren"
+
+msgid "Website auslesen"
+msgstr "Website auslesen"
+
+msgid "Wir lesen bis zu 20 Seiten Ihrer Website und schlagen Ihnen Artikel, Preise, Öffnungszeiten und Kontaktdaten vor. Nichts wird veröffentlicht, bevor Sie es geprüft haben."
+msgstr "Wir lesen bis zu 20 Seiten Ihrer Website und schlagen Ihnen Artikel, Preise, Öffnungszeiten und Kontaktdaten vor. Nichts wird veröffentlicht, bevor Sie es geprüft haben."
+
+msgid "Wird ausgelesen …"
+msgstr "Wird ausgelesen …"
+
+msgid "ohne Preis"
+msgstr "ohne Preis"
+
+msgid "Übernommen"
+msgstr "Übernommen"
+
+#, python-format
+msgid "Ein Artikel gefunden."
+msgid_plural "%(counter)s Artikel gefunden."
+msgstr[0] "Ein Artikel gefunden."
+msgstr[1] "%(counter)s Artikel gefunden."

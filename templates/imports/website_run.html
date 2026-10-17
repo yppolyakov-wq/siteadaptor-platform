@@ -1,0 +1,52 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Von der Website importieren" %}{% endblock %}
+{% block extra_head %}{{ block.super }}{% if active %}<meta http-equiv="refresh" content="5">{% endif %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl font-semibold">{{ run.host }}</h1>
+  <a href="{% url 'imports:website' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Neuer Import" %}</a>
+</div>
+
+<div class="bg-white border border-gray-200 rounded-xl p-6 mb-6" data-site-run-status="{{ run.status }}">
+  <p class="text-sm font-medium">{% include "imports/_site_run_status.html" with run=run %}</p>
+  {% if run.status == "failed" %}
+    <p class="text-sm text-gray-600 mt-2">
+      {% if run.error_code == "robots" %}{% trans "Ihre Website erlaubt das Auslesen nicht (robots.txt). Erlauben Sie unseren Zugriff oder fügen Sie Artikel von Hand bzw. per CSV hinzu." %}
+      {% else %}{% trans "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse oder versuchen Sie es später erneut." %}{% endif %}
+    </p>
+  {% elif run.status == "ready" or run.status == "applied" %}
+    <p class="text-sm text-gray-600 mt-2">{% blocktrans count counter=items|length %}Ein Artikel gefunden.{% plural %}{{ counter }} Artikel gefunden.{% endblocktrans %}</p>
+    {% if run.html_lang and run.html_lang != "de" %}<p class="text-sm text-amber-700 mt-2">{% trans "Die Texte Ihrer Website sind nicht auf Deutsch — bitte prüfen Sie sie vor dem Veröffentlichen." %}</p>{% endif %}
+  {% endif %}
+</div>
+
+{% if profile %}
+<div class="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+  <h2 class="font-medium mb-3">{% trans "Ihr Geschäft" %}</h2>
+  <dl class="text-sm space-y-1">
+    {% if profile.name %}<div><dt class="inline text-gray-500">{% trans "Name" %}:</dt> <dd class="inline">{{ profile.name }}</dd></div>{% endif %}
+    {% if profile.address %}<div><dt class="inline text-gray-500">{% trans "Adresse" %}:</dt> <dd class="inline">{{ profile.address }}</dd></div>{% endif %}
+    {% if profile.phone %}<div><dt class="inline text-gray-500">{% trans "Telefon" %}:</dt> <dd class="inline">{{ profile.phone }}</dd></div>{% endif %}
+  </dl>
+</div>
+{% endif %}
+
+{% if run.status == "ready" or run.status == "applied" %}
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+  {% if items %}
+  <ul class="divide-y divide-gray-100">
+    {% for item in items %}
+    <li class="p-3 text-sm flex items-center justify-between gap-3" data-site-item>
+      <span>{{ item.data.name }}</span>
+      <span class="text-gray-500">{% if item.data.price %}{{ item.data.price }} €{% else %}{% trans "ohne Preis" %}{% endif %}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="p-6 text-sm text-gray-600">{% trans "Keine Artikel automatisch erkannt. Sie können Artikel von Hand oder per CSV-Import hinzufügen." %}</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

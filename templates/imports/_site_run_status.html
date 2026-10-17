@@ -1,0 +1,1 @@
+{% load i18n %}{% if run.status == "queued" or run.status == "crawling" %}{% trans "Wird ausgelesen …" %}{% elif run.status == "ready" %}{% trans "Bereit zur Prüfung" %}{% elif run.status == "applied" %}{% trans "Übernommen" %}{% else %}{% trans "Fehlgeschlagen" %}{% endif %}

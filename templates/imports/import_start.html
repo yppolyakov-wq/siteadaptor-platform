@@ -6,6 +6,7 @@
 {% block dash_content %}
 <div class="flex items-center justify-between mb-6">
   <h1 class="text-xl font-semibold">{% trans "Product import" %}</h1>
+  {% if is_owner %}<a href="{% url 'imports:website' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Von der Website importieren" %} →</a>{% endif %}
 </div>
 
 <div class="bg-white border border-gray-200 rounded-xl p-6 mb-8 max-w-xl">

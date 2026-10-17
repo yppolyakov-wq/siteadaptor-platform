@@ -25007,3 +25007,69 @@ msgstr "İçerik türüne izin verilmiyor."
 
 msgid "Zu viele Weiterleitungen."
 msgstr "Çok fazla yönlendirme."
+
+msgid "Adresse Ihrer Website"
+msgstr "Web sitenizin adresi"
+
+msgid "Bereit zur Prüfung"
+msgstr "İncelemeye hazır"
+
+msgid "Bitte bestätigen Sie, dass Sie Inhaber der Website sind."
+msgstr "Lütfen web sitesinin sahibi olduğunuzu onaylayın."
+
+msgid "Bitte eine gültige Website-Adresse (https://…) angeben."
+msgstr "Lütfen geçerli bir web sitesi adresi girin (https://…)."
+
+msgid "Die Texte Ihrer Website sind nicht auf Deutsch — bitte prüfen Sie sie vor dem Veröffentlichen."
+msgstr "Web sitenizdeki metinler Almanca değil — lütfen yayınlamadan önce kontrol edin."
+
+msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse oder versuchen Sie es später erneut."
+msgstr "Web sitesi okunamadı. Adresi kontrol edin veya daha sonra tekrar deneyin."
+
+msgid "Ein Import läuft bereits. Bitte warten Sie, bis er fertig ist."
+msgstr "Bir içe aktarma zaten çalışıyor. Lütfen bitmesini bekleyin."
+
+msgid "Fehlgeschlagen"
+msgstr "Başarısız"
+
+msgid "Für heute sind keine weiteren Importe möglich. Bitte morgen erneut."
+msgstr "Bugün başka içe aktarma yapılamaz. Lütfen yarın tekrar deneyin."
+
+msgid "Ich bin Inhaber dieser Website bzw. berechtigt, ihre Inhalte zu verwenden. Texte und Fotos dürfen übernommen werden."
+msgstr "Bu web sitesinin sahibiyim veya içeriğini kullanmaya yetkiliyim. Metinler ve fotoğraflar aktarılabilir."
+
+msgid "Ihre Website erlaubt das Auslesen nicht (robots.txt). Erlauben Sie unseren Zugriff oder fügen Sie Artikel von Hand bzw. per CSV hinzu."
+msgstr "Web siteniz okumaya izin vermiyor (robots.txt). Erişimimize izin verin veya ürünleri elle ya da CSV ile ekleyin."
+
+msgid "Keine Artikel automatisch erkannt. Sie können Artikel von Hand oder per CSV-Import hinzufügen."
+msgstr "Otomatik olarak ürün bulunamadı. Ürünleri elle veya CSV içe aktarma ile ekleyebilirsiniz."
+
+msgid "Letzte Importe"
+msgstr "Son içe aktarmalar"
+
+msgid "Neuer Import"
+msgstr "Yeni içe aktarma"
+
+msgid "Von der Website importieren"
+msgstr "Web sitesinden içe aktar"
+
+msgid "Website auslesen"
+msgstr "Web sitesini oku"
+
+msgid "Wir lesen bis zu 20 Seiten Ihrer Website und schlagen Ihnen Artikel, Preise, Öffnungszeiten und Kontaktdaten vor. Nichts wird veröffentlicht, bevor Sie es geprüft haben."
+msgstr "Web sitenizin en fazla 20 sayfasını okuyup ürünler, fiyatlar, çalışma saatleri ve iletişim bilgileri öneriyoruz. Siz kontrol etmeden hiçbir şey yayınlanmaz."
+
+msgid "Wird ausgelesen …"
+msgstr "Okunuyor …"
+
+msgid "ohne Preis"
+msgstr "fiyatsız"
+
+msgid "Übernommen"
+msgstr "Aktarıldı"
+
+#, python-format
+msgid "Ein Artikel gefunden."
+msgid_plural "%(counter)s Artikel gefunden."
+msgstr[0] "%(counter)s ürün bulundu."
+msgstr[1] "%(counter)s ürün bulundu."

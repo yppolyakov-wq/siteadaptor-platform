@@ -25102,3 +25102,71 @@ msgstr "Тип вмісту не дозволено."
 
 msgid "Zu viele Weiterleitungen."
 msgstr "Забагато перенаправлень."
+
+msgid "Adresse Ihrer Website"
+msgstr "Адреса вашого сайту"
+
+msgid "Bereit zur Prüfung"
+msgstr "Готово до перевірки"
+
+msgid "Bitte bestätigen Sie, dass Sie Inhaber der Website sind."
+msgstr "Підтвердьте, що ви власник сайту."
+
+msgid "Bitte eine gültige Website-Adresse (https://…) angeben."
+msgstr "Вкажіть коректну адресу сайту (https://…)."
+
+msgid "Die Texte Ihrer Website sind nicht auf Deutsch — bitte prüfen Sie sie vor dem Veröffentlichen."
+msgstr "Тексти вашого сайту не німецькою — перевірте їх перед публікацією."
+
+msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse oder versuchen Sie es später erneut."
+msgstr "Не вдалося прочитати сайт. Перевірте адресу або спробуйте пізніше."
+
+msgid "Ein Import läuft bereits. Bitte warten Sie, bis er fertig ist."
+msgstr "Імпорт уже виконується. Дочекайтеся його завершення."
+
+msgid "Fehlgeschlagen"
+msgstr "Не вдалося"
+
+msgid "Für heute sind keine weiteren Importe möglich. Bitte morgen erneut."
+msgstr "Сьогодні більше імпортів не можна. Спробуйте завтра."
+
+msgid "Ich bin Inhaber dieser Website bzw. berechtigt, ihre Inhalte zu verwenden. Texte und Fotos dürfen übernommen werden."
+msgstr "Я власник цього сайту або маю право використовувати його вміст. Тексти й фото можна перенести."
+
+msgid "Ihre Website erlaubt das Auslesen nicht (robots.txt). Erlauben Sie unseren Zugriff oder fügen Sie Artikel von Hand bzw. per CSV hinzu."
+msgstr "Ваш сайт забороняє читання (robots.txt). Дозвольте наш доступ або додайте позиції вручну чи через CSV."
+
+msgid "Keine Artikel automatisch erkannt. Sie können Artikel von Hand oder per CSV-Import hinzufügen."
+msgstr "Позиції автоматично не знайдено. Додайте їх вручну або через імпорт CSV."
+
+msgid "Letzte Importe"
+msgstr "Останні імпорти"
+
+msgid "Neuer Import"
+msgstr "Новий імпорт"
+
+msgid "Von der Website importieren"
+msgstr "Імпорт із сайту"
+
+msgid "Website auslesen"
+msgstr "Прочитати сайт"
+
+msgid "Wir lesen bis zu 20 Seiten Ihrer Website und schlagen Ihnen Artikel, Preise, Öffnungszeiten und Kontaktdaten vor. Nichts wird veröffentlicht, bevor Sie es geprüft haben."
+msgstr "Ми прочитаємо до 20 сторінок вашого сайту й запропонуємо позиції, ціни, години роботи та контакти. Нічого не публікується, доки ви не перевірите."
+
+msgid "Wird ausgelesen …"
+msgstr "Читаємо сайт …"
+
+msgid "ohne Preis"
+msgstr "без ціни"
+
+msgid "Übernommen"
+msgstr "Перенесено"
+
+#, python-format
+msgid "Ein Artikel gefunden."
+msgid_plural "%(counter)s Artikel gefunden."
+msgstr[0] "Знайдено %(counter)s позицію."
+msgstr[1] "Знайдено %(counter)s позиції."
+msgstr[2] "Знайдено %(counter)s позицій."
+msgstr[3] "Знайдено %(counter)s позиції."

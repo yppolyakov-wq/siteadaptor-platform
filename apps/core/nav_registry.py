@@ -632,6 +632,18 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e("sellables", "purchasing", _("Einkauf"), "purchasing", "catalog", True),
     _e("sellables", "catalog:combo-list", _("Kombi"), "combos", "catalog", True),
     _e("sellables", "imports:start", _("Import"), "imports", "catalog", True),
+    _e(
+        "sellables",
+        "imports:website",
+        _("Von der Website importieren"),
+        "imports",
+        "catalog",
+        True,
+        search="website import übernehmen shop seite",
+        owner_only=True,
+        # Вход — со страницы «Import» и из Ctrl+K; состав подменю «Sortiment» не трогаем.
+        palette_only=True,
+    ),
     # X4: сироты-сущности — вход через Ctrl+K (x4-navigation-plan §4).
     _e(
         "sellables",

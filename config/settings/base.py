@@ -672,6 +672,22 @@ GOOGLE_PLACES_API_KEY = env("GOOGLE_PLACES_API_KEY", default="")
 GOOGLE_RATING_REFRESH_DAYS = env.int("GOOGLE_RATING_REFRESH_DAYS", default=7)
 
 # ---------------------------------------------------------------------------
+# T-8.27 «Импорт с сайта клиента» (docs/t8-27-site-import-plan-2026-10-17.md).
+# Р-B: бесплатно до IMPORT_FREE_ITEMS позиций (тенант без подписки); обход — вежливый.
+# ---------------------------------------------------------------------------
+IMPORT_FREE_ITEMS = env.int("IMPORT_FREE_ITEMS", default=50)
+SITE_IMPORT_MAX_PAGES = env.int("SITE_IMPORT_MAX_PAGES", default=20)
+SITE_IMPORT_MAX_PAGE_BYTES = env.int("SITE_IMPORT_MAX_PAGE_BYTES", default=2 * 1024 * 1024)
+SITE_IMPORT_MAX_IMAGE_BYTES = env.int("SITE_IMPORT_MAX_IMAGE_BYTES", default=5 * 1024 * 1024)
+SITE_IMPORT_TIME_BUDGET_S = env.int("SITE_IMPORT_TIME_BUDGET_S", default=120)
+SITE_IMPORT_PAUSE_S = env.float("SITE_IMPORT_PAUSE_S", default=0.5)
+SITE_IMPORT_DAILY_RUNS = env.int("SITE_IMPORT_DAILY_RUNS", default=3)
+SITE_IMPORT_USER_AGENT = env(
+    "SITE_IMPORT_USER_AGENT",
+    default="SiteadaptorImport/1.0 (+https://siteadaptor.de/import-bot)",
+)
+
+# ---------------------------------------------------------------------------
 # AI-0: общий ИИ-слой (docs/ai0-layer-plan-2026-10-17.md, docs/ai-providers-setup-2026-10-16.md).
 # Маршруты — списки по классу модели, порядок = резерв: bedrock | azure | mistral (ЕС),
 # anthropic | openai (прямые API, вне ЕС — только dev с демо-данными), fake (без сети).

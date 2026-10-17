@@ -167,6 +167,8 @@ class CabinetOwnerAccessMiddleware:
         "/dashboard/recht/",
         "/dashboard/settings/team/",
         "/dashboard/stadtportal/",
+        # T-8.27: импорт с сайта — согласие правообладателя даёт только владелец.
+        "/imports/website/",
     )
 
     def __init__(self, get_response):
