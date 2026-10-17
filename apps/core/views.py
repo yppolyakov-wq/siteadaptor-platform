@@ -313,11 +313,21 @@ def dashboard(request):
         "presence_number": getattr(tenant, "whatsapp_number", ""),
         # Г3: позиции, которые скоро уйдут из каталога города без подтверждения.
         "freshness": freshness.banner(tenant),
+        # Д1 (T-8.10c): «Was heute starten?» — подсказки акции из своих данных.
+        "today_suggestions": _today_suggestions(request),
         # Полосы «Heute» здесь НЕТ: X3 поглотил её петлёй архетипа (те же
         # сделки), а kind-агностичный вид живёт на `?view=heute` странице
         # продаж. Вычисление осталось мёртвым грузом в 5-6 запросов — снято.
     }
     return render(request, "tenant/dashboard.html", {**loop_ctx, **ctx})
+
+
+def _today_suggestions(request) -> list:
+    from apps.promotions import today
+
+    if not request.tenant.is_module_active("promotions"):
+        return []
+    return today.card_context(request)
 
 
 @login_required

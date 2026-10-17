@@ -198,6 +198,18 @@ def test_no_ai_involved(ai_on):
     assert fake.CALLS == []
 
 
+def test_product_title_in_base_language_even_in_foreign_cabinet():
+    from django.utils import translation
+
+    product = Product.objects.create(
+        name={"de": "Messerset", "en": "Knife set"}, base_price=Decimal("9")
+    )
+    _lot(product, 1)
+    with translation.override("en"):
+        [s] = _rules(today_mod.compute(_tenant()), "mhd")
+    assert s.initial["title"] == "Messerset"
+
+
 def test_titles_stay_in_base_language(settings):
     from django.utils import translation
 

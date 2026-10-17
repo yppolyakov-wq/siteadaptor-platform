@@ -25487,3 +25487,32 @@ msgstr "“%(title)s” iyi karşılandı — tekrarlansın mı?"
 #, python-format
 msgid "„%(title)s“ lief am %(weekday)s am besten — wiederholen?"
 msgstr "“%(title)s” en iyi %(weekday)s günü gitti — tekrarlansın mı?"
+
+#. Д1
+msgid "Aktion vorbereiten"
+msgstr "Kampanya hazırla"
+
+#. Д1
+msgid "Die Aktion gilt für dieses Angebot — Kund:innen buchen online."
+msgstr ""
+"Kampanya bu teklif için geçerlidir — müşteriler çevrimiçi rezervasyon yapar."
+
+#. Д1
+msgid "Dieser Vorschlag ist nicht mehr aktuell."
+msgstr "Bu öneri artık güncel değil."
+
+#. Д1
+msgid "Kund:innen buchen online"
+msgstr "Müşteriler çevrimiçi rezervasyon yapar"
+
+#. Д1
+msgid "Nicht jetzt"
+msgstr "Şimdi değil"
+
+#. Д1
+msgid "Vorschläge für heute"
+msgstr "Bugün için öneriler"
+
+#. Д1
+msgid "Was heute starten?"
+msgstr "Bugün ne başlatılsın?"

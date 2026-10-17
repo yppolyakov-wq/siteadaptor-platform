@@ -25360,3 +25360,31 @@ msgstr "“%(title)s” went down well — repeat it?"
 #, python-format
 msgid "„%(title)s“ lief am %(weekday)s am besten — wiederholen?"
 msgstr "“%(title)s” did best on %(weekday)s — repeat it?"
+
+#. Д1
+msgid "Aktion vorbereiten"
+msgstr "Prepare promotion"
+
+#. Д1
+msgid "Die Aktion gilt für dieses Angebot — Kund:innen buchen online."
+msgstr "The promotion applies to this offer — customers book online."
+
+#. Д1
+msgid "Dieser Vorschlag ist nicht mehr aktuell."
+msgstr "This suggestion is no longer current."
+
+#. Д1
+msgid "Kund:innen buchen online"
+msgstr "Customers book online"
+
+#. Д1
+msgid "Nicht jetzt"
+msgstr "Not now"
+
+#. Д1
+msgid "Vorschläge für heute"
+msgstr "Suggestions for today"
+
+#. Д1
+msgid "Was heute starten?"
+msgstr "What to start today?"

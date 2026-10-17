@@ -218,6 +218,8 @@ def promotion_list(request):
             "limit_usage": limits.usage(getattr(request, "tenant", None)),
             "contact_email": limits.contact_email(),
             "repeatable": REPEATABLE_STATUSES,
+            # Д1 (T-8.10c): «Was heute starten?» — в лёгком кабинете это и есть главная.
+            "today_suggestions": _today_card(request),
             **owner_login.pending_context(request),  # T-8.5: «E-Mail bestätigen»
             "featured_enabled": featured_enabled,
             "nav": "promotions",
@@ -669,12 +671,29 @@ def promotion_quick(request):
             product = None
         if product is not None:
             initial = quick.initial_for_product(product)
+    # Д1 (T-8.10c): «Was heute starten?» — подсказка пересчитывается из БД (ссылке не верим).
+    from . import today
+
+    key = (request.GET if request.method == "GET" else request.POST).get("vorschlag", "")
+    suggestion = today.resolve(tenant, key) if key else None
+    stale_suggestion = bool(key) and suggestion is None
+    if request.method == "GET" and suggestion is not None:
+        initial = {**suggestion.initial, "vorschlag": suggestion.key}
+    if request.method == "GET" and stale_suggestion:
+        messages.info(request, _("Dieser Vorschlag ist nicht mehr aktuell."))
     if request.method == "GET" and "term" not in initial:
         initial["term"] = quick.default_term(tenant)  # Д1: срок — правило, а не ИИ
     form = quick.QuickPromotionForm(
-        request.POST or None, request.FILES or None, initial=initial or None, tenant=tenant
+        request.POST or None,
+        request.FILES or None,
+        initial=initial or None,
+        tenant=tenant,
+        suggestion=suggestion,
     )
-    if request.method == "POST" and form.is_valid():
+    if request.method == "POST" and stale_suggestion:
+        form.is_valid()
+        form.add_error(None, _("Dieser Vorschlag ist nicht mehr aktuell."))
+    if request.method == "POST" and not stale_suggestion and form.is_valid():
         promo = form.build()
         uploads = form.cleaned_data.get("photo") or []
         images: list[dict] = []
@@ -686,7 +705,8 @@ def promotion_quick(request):
         elif source is not None:
             images = quick.copy_images(source)
         if not form.errors:
-            quick.attach_product(form, promo, images)  # T-8.23d: акция от товара
+            if not quick.apply_suggestion(form, promo, images):
+                quick.attach_product(form, promo, images)  # T-8.23d: акция от товара
             promo.save()
             if request.POST.get("publish") != "draft":
                 try:
@@ -715,8 +735,33 @@ def promotion_quick(request):
             "contact_email": limits.contact_email(),
             "nav": "promotions",
             "ai_photo_enabled": _ai_photo_enabled(),
+            "today_chips": [] if (source or suggestion) else today.card_context(request),
         },
     )
+
+
+def _today_card(request) -> list:
+    from . import today
+
+    return today.card_context(request)
+
+
+@login_required
+@require_POST
+def today_dismiss(request):
+    """Д1 (T-8.10c): «Nicht jetzt» — подсказка скрыта на 7 дней (только кэш)."""
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    from . import today
+
+    today.dismiss((request.POST.get("key") or "").strip())
+    nxt = request.POST.get("next") or ""
+    if not (
+        nxt.startswith("/")
+        and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()})
+    ):
+        nxt = reverse("promotions:promotion-list")
+    return redirect(nxt)
 
 
 def _ai_schema(request) -> str:

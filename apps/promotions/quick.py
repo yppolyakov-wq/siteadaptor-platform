@@ -173,10 +173,13 @@ class QuickPromotionForm(forms.Form):
     new_category = forms.CharField(label=_("Neue Kategorie"), required=False, max_length=100)
     # Д1: владелец принял черновик ИИ (ставит скрипт кнопки) — для замера принятия.
     ai_draft = forms.BooleanField(required=False, widget=forms.HiddenInput)
+    # Д1 (T-8.10c): подсказка «Was heute starten?» — ключ; цель берётся из пересчёта БД.
+    vorschlag = forms.CharField(required=False, max_length=120, widget=forms.HiddenInput)
 
-    def __init__(self, *args, tenant=None, **kwargs):
+    def __init__(self, *args, tenant=None, suggestion=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.tenant = tenant
+        self.suggestion = suggestion
         from . import reference_price
 
         # В6: исключение § 11 Abs. 4 — только у бизнесов с продуктами питания.
@@ -199,6 +202,9 @@ class QuickPromotionForm(forms.Form):
             (k, label) for k, label, _h in self.response_options
         ]
         self.fields["customer_response"].initial = default_response(tenant)
+        if self.booking_target:
+            # Цель — услуга/номер: отклик всегда онлайн-бронь (response.py), выбора нет.
+            self.fields["customer_response"].required = False
         from apps.core import city_categories as cc
 
         from . import city_fields
@@ -208,6 +214,11 @@ class QuickPromotionForm(forms.Form):
             cc.suggest_for_business_type(getattr(tenant, "business_type", "")) if tenant else ""
         )
         city_fields.add_fields(self, category=suggestion)
+
+    @property
+    def booking_target(self) -> bool:
+        target = getattr(self.suggestion, "target", None)
+        return bool(target and target[0] in ("service", "stay_unit"))
 
     def clean(self):
         cleaned = super().clean()
@@ -235,6 +246,10 @@ class QuickPromotionForm(forms.Form):
             meta["perishable"] = True
         if data.get("ai_draft"):
             meta["ai_draft"] = True
+        if self.suggestion is not None:
+            meta["suggestion"] = self.suggestion.rule
+        if self.booking_target:
+            meta.pop("response", None)
 
         city_category, city_tags = city_fields.cleaned(self)
         return Promotion(
@@ -256,6 +271,28 @@ class QuickPromotionForm(forms.Form):
             city_tags=city_tags,
             metadata=meta,
         )
+
+
+def apply_suggestion(form, promo, images: list[dict]) -> bool:
+    """Д1 (T-8.10c): цель и правила подсказки — из ПЕРЕСЧИТАННОЙ подсказки, не из POST.
+
+    True — цель привязана здесь (товар/услуга/номер), `attach_product` не нужен: для
+    услуги и номера он создал бы лишний товар из цены."""
+    suggestion = getattr(form, "suggestion", None)
+    if suggestion is None or not suggestion.target:
+        return False
+    kind, pk = suggestion.target
+    if kind == "product":
+        promo.product_id = pk
+    elif kind == "service":
+        promo.service_id = pk
+    elif kind == "stay_unit":
+        promo.stay_unit_id = pk
+    else:
+        return False
+    promo.target_rules = dict(suggestion.target_rules or {})
+    promo.images = images
+    return True
 
 
 def attach_product(form, promo, images: list[dict]) -> None:

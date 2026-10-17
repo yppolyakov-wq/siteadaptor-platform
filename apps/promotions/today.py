@@ -91,6 +91,12 @@ def _base_title(message: str, name: str) -> str:
         return _(message) % {"name": name}
 
 
+def _base_name(value) -> str:
+    from django.conf import settings
+
+    return (value or {}).get(settings.LANGUAGE_CODE, "") if isinstance(value, dict) else ""
+
+
 def _day(value) -> str:
     return date_format(value, "D d.m.")
 
@@ -113,7 +119,8 @@ def _rule_mhd(tenant, today):
             continue
         days = (lot.mhd - today).days
         qty = int(lot.qty_remaining or 0)
-        name = product.name_text or str(product)
+        name = product.name_text or str(product)  # подпись карточки — язык кабинета
+        base_name = _base_name(product.name) or name  # заголовок черновика — базовый язык
         yield Suggestion(
             key=f"mhd:{lot.pk}",
             rule="mhd",
@@ -122,7 +129,7 @@ def _rule_mhd(tenant, today):
             % {"name": name, "date": _day(lot.mhd), "qty": qty},
             priority=100 - days,
             initial={
-                "title": name,
+                "title": base_name,
                 "percent": MHD_PERCENT_SOON if days <= 1 else MHD_PERCENT,
                 "quantity": qty or None,
                 "term": "date",
@@ -176,7 +183,7 @@ def _rule_slots(tenant, today):
             % {"start": hour_from, "end": hour_to, "name": name},
             priority=80,
             initial={
-                "title": _base_title(gettext_noop("%(name)s – Happy Hour"), name),
+                "title": _base_title(gettext_noop("%(name)s – Happy Hour"), service.name),
                 "percent": SLOT_PERCENT,
                 "term": "date",
                 "until": tomorrow,
@@ -224,7 +231,7 @@ def _rule_gaps(tenant, today):
             % {"start": _day(start), "end": _day(end), "name": name},
             priority=70,
             initial={
-                "title": _base_title(gettext_noop("%(name)s – Last Minute"), name),
+                "title": _base_title(gettext_noop("%(name)s – Last Minute"), unit.name),
                 "percent": GAP_PERCENT,
                 "term": "date",
                 "until": start,
@@ -394,3 +401,35 @@ def dismiss(key: str) -> None:
         cache.set(_dismiss_key(key[:120]), 1, DISMISS_TTL)
     except Exception:  # noqa: BLE001
         pass
+
+
+def card_context(request) -> list[dict]:
+    """Карточка «Was heute starten?» для главной кабинета и списка акций.
+
+    Fail-safe: сбой движка = карточки нет, страница живёт."""
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    from apps.core.share_links import share_targets
+
+    tenant = getattr(request, "tenant", None)
+    try:
+        items = suggestions(tenant)
+    except Exception:  # noqa: BLE001
+        logger.warning("today card failed", exc_info=True)
+        return []
+    out = []
+    quick = reverse("promotions:promotion-quick")
+    for item in items:
+        href, share = "", []
+        if item.action == "promo":
+            href = f"{quick}?{urlencode({'vorschlag': item.key})}"
+        elif item.action == "repeat":
+            href = item.url
+        elif item.action == "share":
+            share = share_targets(item.text, request.build_absolute_uri(item.url))
+        out.append(
+            {"key": item.key, "icon": item.icon, "text": item.text, "href": href, "share": share}
+        )
+    return out

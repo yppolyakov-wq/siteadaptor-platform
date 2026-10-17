@@ -107,6 +107,8 @@ EXPECTED_UNLISTED = frozenset(
         "promotions:promo-type-save",
         # [POST] Д1: старт «Vorschlag aus dem Foto» — JSON-приёмник кнопки ассистента.
         "promotions:promotion-quick-ai",
+        # [POST] Д1: «Nicht jetzt» у подсказки «Was heute starten?».
+        "promotions:today-dismiss",
         "site-cblock-photo-edit",
         "site-inline-edit",
         "site-preview-draft",

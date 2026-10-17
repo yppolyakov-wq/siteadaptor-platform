@@ -25598,3 +25598,31 @@ msgstr "«%(title)s» добре спрацювала — повторити?"
 #, python-format
 msgid "„%(title)s“ lief am %(weekday)s am besten — wiederholen?"
 msgstr "«%(title)s» найкраще йшла в %(weekday)s — повторити?"
+
+#. Д1
+msgid "Aktion vorbereiten"
+msgstr "Підготувати акцію"
+
+#. Д1
+msgid "Die Aktion gilt für dieses Angebot — Kund:innen buchen online."
+msgstr "Акція діє для цієї пропозиції — клієнти бронюють онлайн."
+
+#. Д1
+msgid "Dieser Vorschlag ist nicht mehr aktuell."
+msgstr "Ця пропозиція вже неактуальна."
+
+#. Д1
+msgid "Kund:innen buchen online"
+msgstr "Клієнти бронюють онлайн"
+
+#. Д1
+msgid "Nicht jetzt"
+msgstr "Не зараз"
+
+#. Д1
+msgid "Vorschläge für heute"
+msgstr "Підказки на сьогодні"
+
+#. Д1
+msgid "Was heute starten?"
+msgstr "Що запустити сьогодні?"
