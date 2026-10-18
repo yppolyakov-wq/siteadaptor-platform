@@ -25646,3 +25646,7 @@ msgstr "Yes, take over these hours"
 
 msgid "Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
 msgstr "Manage the location and opening hours of your Google Business Profile. Your promotions go to Google automatically when the channel is switched on."
+
+#: apps/catalog/forms.py
+msgid "Nicht an Google senden"
+msgstr "Do not send to Google"

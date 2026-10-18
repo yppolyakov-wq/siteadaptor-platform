@@ -3073,6 +3073,78 @@ def product_feed_xml(request):
     return HttpResponse(xml, content_type="application/xml")
 
 
+MERCHANT_FEED_RATE_LIMIT = 30  # запросов в час с одного IP: Google тянет фид раз в сутки
+MERCHANT_FEED_RATE_WINDOW = 3600
+
+
+def _merchant_feed_config():
+    """config["merchant_feed"] канала Google Business Profile или None."""
+    from apps.publishing.models import Channel
+
+    channel = Channel.objects.filter(type=Channel.GOOGLE_BUSINESS).first()
+    cfg = (channel.config or {}).get("merchant_feed") if channel else None
+    return cfg if isinstance(cfg, dict) else None
+
+
+def merchant_feed_xml(request, token):
+    """M23b.1: фид товаров для Google Merchant Center по секретному адресу (план
+    docs/m23b-merchant-feed-plan-2026-10-18.md, В-1).
+
+    Неизвестный токен — 404; выключенный фид — пустой валидный фид (Google снимет товары
+    быстрее, чем после 404). В фиде только товары, прошедшие `catalog.google.eligibility`."""
+    import hashlib
+    import hmac
+
+    from apps.catalog import google
+    from apps.catalog.feed import build_google_feed
+
+    tenant = getattr(request, "tenant", None)
+    schema = getattr(tenant, "schema_name", "") or "-"
+    # Лимит ДО проверки токена: перебор адреса упирается в тот же счётчик.
+    if ratelimit.hit(
+        "merchant-feed",
+        f"{schema}:{ratelimit.client_ip(request)}",
+        limit=MERCHANT_FEED_RATE_LIMIT,
+        window=MERCHANT_FEED_RATE_WINDOW,
+    ):
+        return HttpResponse(status=429)
+    cfg = _merchant_feed_config()
+    stored = cfg.get("token") if cfg else None
+    if not (
+        isinstance(stored, str)
+        and stored
+        and isinstance(token, str)
+        and hmac.compare_digest(stored.encode(), token.encode())
+    ):
+        return HttpResponse(status=404)  # без шаблона 404: адрес дёргают роботы
+    name = getattr(tenant, "name", "") or "Shop"
+    products = google.merchant_products() if cfg.get("enabled") else []
+    xml = build_google_feed(
+        products=products,
+        title=name,
+        link=request.build_absolute_uri(reverse("storefront-home")),
+        description=_("Products from %(name)s") % {"name": name},
+        product_url=lambda p: request.build_absolute_uri(p.get_absolute_url()),
+        absolutize=request.build_absolute_uri,
+        merchant=True,
+    )
+    etag = '"' + hashlib.sha256(xml.encode()).hexdigest()[:32] + '"'
+    sent = {
+        t.strip().removeprefix("W/") for t in request.headers.get("If-None-Match", "").split(",")
+    }
+    response = (
+        HttpResponse(status=304)
+        if etag in sent
+        else HttpResponse(xml, content_type="application/xml; charset=utf-8")
+    )
+    response["ETag"] = etag
+    # Адрес секретный: ни в поиск, ни в общие кэши (ETag — для повторной проверки).
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    response["Cache-Control"] = "private, no-cache"
+    response.no_store = True
+    return response
+
+
 def _promo_payment_kwargs(request):
     """SH-23d: платёжные поля покупки по акции из POST (общий реестр + Р-2/Р-4)."""
     from datetime import timedelta

@@ -25904,3 +25904,7 @@ msgstr "Да, перенести эти часы"
 
 msgid "Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
 msgstr "Управление филиалом и часами работы вашего профиля Google. Ваши акции уходят в Google автоматически, когда канал включён."
+
+#: apps/catalog/forms.py
+msgid "Nicht an Google senden"
+msgstr "Не отправлять в Google"

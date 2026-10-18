@@ -25884,3 +25884,7 @@ msgstr "Так, перенести ці години"
 
 msgid "Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
 msgstr "Керування філією та годинами роботи вашого профілю Google. Ваші акції надходять у Google автоматично, коли канал увімкнено."
+
+#: apps/catalog/forms.py
+msgid "Nicht an Google senden"
+msgstr "Не надсилати в Google"

@@ -64,6 +64,8 @@ class Category(SoftDeleteMixin, I18nMixin):
 
     # T-8.11: владелец убирает категорию (со всей веткой) из каталога города.
     hide_in_city = models.BooleanField(default=False)
+    # M23b.1: ветка не уходит в фид Google Merchant Center (сайт/город — как прежде).
+    hide_in_google = models.BooleanField(default=False)
 
     # T-8.13b: сопоставление со справочником каталога города (core.city_categories).
     # Пусто = как у родителя, у корня — подсказка по названию (catalog/city.py).
@@ -250,6 +252,8 @@ class Product(SoftDeleteMixin, I18nMixin):
     card_style = models.CharField(max_length=16, blank=True, default="")
     # T-8.11: владелец не хочет этот товар в каталоге города (сайт — как прежде).
     hide_in_city = models.BooleanField(default=False)
+    # M23b.1: товар не уходит в фид Google Merchant Center.
+    hide_in_google = models.BooleanField(default=False)
     # T-8.27: адрес позиции на сайте владельца (импорт с сайта). У визитки «eintrag»
     # листинг каталога города ведёт сюда; иначе — справка «Original».
     external_url = models.URLField(max_length=500, blank=True, default="")

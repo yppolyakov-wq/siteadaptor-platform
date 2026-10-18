@@ -25778,3 +25778,7 @@ msgstr "Evet, bu saatleri al"
 
 msgid "Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
 msgstr "Google İşletme Profilinizin konumunu ve çalışma saatlerini yönetin. Kanal açıkken kampanyalarınız otomatik olarak Google'a gider."
+
+#: apps/catalog/forms.py
+msgid "Nicht an Google senden"
+msgstr "Google'a gönderme"

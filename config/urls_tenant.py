@@ -690,6 +690,11 @@ urlpatterns = [
     path("llms.txt", public_views.llms_txt, name="storefront-llms"),
     # Каталог-фид (M23b): Google Merchant / Meta Commerce — загрузка по URL.
     path("feed/google.xml", public_views.product_feed_xml, name="storefront-product-feed"),
+    path(
+        "feed/merchant/<str:token>/products.xml",
+        public_views.merchant_feed_xml,
+        name="storefront-merchant-feed",
+    ),
     # Telegram-бот (M23/TG1): кабинет + публичный webhook на домене арендатора.
     path("dashboard/telegram/", telegram_views.settings_view, name="telegram-settings"),
     path("dashboard/telegram/connect/", telegram_views.connect, name="telegram-connect"),
