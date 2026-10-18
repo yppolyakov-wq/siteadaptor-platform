@@ -136,6 +136,21 @@ def test_variants_listed_with_own_stock():
     assert f"<g:item_group_id>{p.pk}</g:item_group_id>" in xml
 
 
+def test_zero_price_variant_not_emitted():
+    p = _product()
+    ProductVariant.objects.create(product=p, label="Gratis", price=Decimal("0"))
+    ProductVariant.objects.create(product=p, label="M", price=Decimal("6"))
+    xml = _merchant_xml(google.merchant_products())
+    assert xml.count("<item>") == 1 and "Gratis" not in xml
+
+
+def test_category_cycle_is_hidden():
+    a = CategoryFactory()
+    b = CategoryFactory(parent=a)
+    type(a).all_objects.filter(pk=a.pk).update(parent=b)
+    assert "category_hidden" in google.eligibility(_product(category=b))[1]
+
+
 # --- публичная вьюха ----------------------------------------------------------------------
 
 
@@ -161,6 +176,11 @@ def test_no_channel_or_no_token_404(isolated_ratelimit):
     assert _get().status_code == 404
     _channel(token="")
     assert _get(token="").status_code == 404
+
+
+def test_short_stored_token_never_matches(isolated_ratelimit):
+    _channel(token="kurz")
+    assert _get(token="kurz").status_code == 404
 
 
 def test_disabled_returns_valid_empty_feed(isolated_ratelimit):

@@ -3075,6 +3075,7 @@ def product_feed_xml(request):
 
 MERCHANT_FEED_RATE_LIMIT = 30  # запросов в час с одного IP: Google тянет фид раз в сутки
 MERCHANT_FEED_RATE_WINDOW = 3600
+MERCHANT_FEED_MIN_TOKEN = 32  # короче — не принимаем даже совпадающий (ручная правка конфига)
 
 
 def _merchant_feed_config():
@@ -3112,7 +3113,7 @@ def merchant_feed_xml(request, token):
     stored = cfg.get("token") if cfg else None
     if not (
         isinstance(stored, str)
-        and stored
+        and len(stored) >= MERCHANT_FEED_MIN_TOKEN
         and isinstance(token, str)
         and hmac.compare_digest(stored.encode(), token.encode())
     ):

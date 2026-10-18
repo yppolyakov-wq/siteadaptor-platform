@@ -30,13 +30,15 @@ def _hidden_category_ids() -> set:
     }
     hidden = set()
     for pk in rows:
-        current, depth = pk, 0
-        while current is not None and depth <= _MAX_DEPTH:
+        current, seen = pk, set()
+        while current is not None:
             row = rows.get(current)
-            if row is None or row[1]:
+            # Нет строки, своя галочка или цикл parent в данных — ветку не отдаём (fail-closed).
+            if row is None or row[1] or current in seen or len(seen) > _MAX_DEPTH:
                 hidden.add(pk)
                 break
-            current, depth = row[0], depth + 1
+            seen.add(current)
+            current = row[0]
     return hidden
 
 
@@ -54,7 +56,10 @@ def _positive(value) -> bool:
 
 def eligibility(product, *, hidden_categories: set | None = None) -> tuple[bool, list, list]:
     """(уходит ли в фид, причины исключения, предупреждения). У исключённого товара
-    предупреждений нет — экран показывает ему только то, что его исключило."""
+    предупреждений нет — экран показывает ему только то, что его исключило.
+
+    В цикле передавайте `hidden_categories=_hidden_category_ids()` один раз — без него
+    каждый вызов читает категории заново."""
     if product.hide_in_google:
         return False, ["hidden"], []
     if hidden_categories is None:

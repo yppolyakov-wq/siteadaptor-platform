@@ -15,7 +15,7 @@ from xml.sax.saxutils import escape as _escape
 
 # M23b.1: управляющие символы (кроме \t \n \r) запрещены в XML 1.0 — один такой символ
 # в названии товара делал весь фид нечитаемым для площадки.
-_XML_ILLEGAL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+_XML_ILLEGAL = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\ufffe\uffff]")
 
 # M23b.1 (В-3): состояние товара (O-1) → g:condition. Пусто/новое → new, прочее → used.
 _NEW_CONDITIONS = {"", "neu", "neu_ohne_ovp"}
@@ -77,6 +77,8 @@ def _entries(product, *, product_url, absolutize, merchant=False):
 
     cached = getattr(product, "feed_variants", None) if merchant else None
     variants = list(cached) if cached is not None else list(product.active_variants)
+    if merchant:  # вариант за 0,00 € Google отклоняет — в фид не выводим (отбор: google.py)
+        variants = [v for v in variants if Decimal(str(v.price_value or 0)) > 0]
     if variants:
         return [
             {
