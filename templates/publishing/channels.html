@@ -6,7 +6,8 @@
 <h1 class="text-2xl font-bold mb-1">{% trans "Publishing channels" %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "Active promotions are published to enabled channels automatically." %}</p>
 
-<div class="space-y-3 max-w-xl">
+{% if not can_manage %}<p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mb-4 max-w-xl" data-channels-readonly>{% trans "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten." %}</p>{% endif %}
+<fieldset class="space-y-3 max-w-xl"{% if not can_manage %} disabled{% endif %}>
   {% for ch in channels %}
     <div class="bg-white border border-gray-200 rounded-lg p-4">
       <div class="flex items-center justify-between">
@@ -31,10 +32,12 @@
             {% trans "Configuration" %}
             {% if ch.config.location and ch.config.refresh_token %}<span class="text-green-600">· {% trans "connected" %}</span>{% endif %}
           </summary>
+          {% if can_manage %}
           <a href="{% url 'channel-oauth-start' ch.type %}"
              class="inline-block mt-3 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
             🔗 {% trans "Connect with Google" %}
           </a>
+          {% endif %}
           <a href="{% url 'gbp-sync' %}" class="block mt-2 text-sm text-indigo-700 hover:underline">{% trans "Google-Profil synchronisieren" %} →</a>
           <p class="text-xs text-gray-400 mt-1">{% trans "Or enter the location and token manually:" %}</p>
           <form method="post" action="{% url 'channel-config' %}" class="mt-2 space-y-2">
@@ -58,10 +61,12 @@
             {% trans "Configuration" %}
             {% if ch.config.page_id and ch.config.access_token %}<span class="text-green-600">· {% trans "connected" %}</span>{% endif %}
           </summary>
+          {% if can_manage %}
           <a href="{% url 'channel-oauth-start' 'facebook' %}"
              class="inline-block mt-3 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
             🔗 {% trans "Connect with Facebook (also links Instagram)" %}
           </a>
+          {% endif %}
           <p class="text-xs text-gray-400 mt-1">{% trans "Or enter the page and token manually:" %}</p>
           <form method="post" action="{% url 'channel-config' %}" class="mt-2 space-y-2">
             {% csrf_token %}
@@ -128,10 +133,12 @@
             {% trans "Configuration" %}
             {% if ch.config.access_token and ch.config.board_id %}<span class="text-green-600">· {% trans "connected" %}</span>{% endif %}
           </summary>
+          {% if can_manage %}
           <a href="{% url 'channel-oauth-start' ch.type %}"
              class="inline-block mt-3 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
             🔗 {% trans "Connect with Pinterest" %}
           </a>
+          {% endif %}
           <p class="text-xs text-gray-400 mt-1">{% trans "Or enter the board and token manually:" %}</p>
           <form method="post" action="{% url 'channel-config' %}" class="mt-2 space-y-2">
             {% csrf_token %}
@@ -152,7 +159,7 @@
       {% endif %}
     </div>
   {% endfor %}
-</div>
+</fieldset>
 
 {% comment %}Фидбэк владельца 2026-08-25: «на странице каналов добавить соцсети,
 телеграм и т.д. — всё, где можем коммуницировать персонально с клиентом».

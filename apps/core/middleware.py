@@ -174,6 +174,7 @@ class CabinetOwnerAccessMiddleware:
         "/dashboard/channels/google/",
         "/dashboard/channels/config/",
         "/dashboard/channels/connect/",
+        "/dashboard/channels/toggle/",
     )
 
     def __init__(self, get_response):

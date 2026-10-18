@@ -26,6 +26,7 @@ def _ensure_channels():
 @login_required
 def channels(request):
     from apps.core.personal_channels import personal_channels
+    from apps.core.roles import is_owner
 
     _ensure_channels()
     return render(
@@ -37,6 +38,8 @@ def channels(request):
             # Фидбэк владельца 2026-08-25: рядом с каналами публикации — личные
             # каналы связи (WhatsApp, Telegram, e-mail, чат сайта, соцпрофили).
             "personal_channels": personal_channels(getattr(request, "tenant", None)),
+            # Д3 (В-7): подключение/ключи/тумблеры — только владельцу (middleware).
+            "can_manage": is_owner(request.user),
             "publications": (Publication.objects.select_related("channel", "promotion").all()[:20]),
         },
     )
@@ -74,14 +77,13 @@ def channel_config(request):
 
         from .secrets import SECRET_KEYS
 
-        config = dict(channel.config or {})
+        updates = {}
         for key in fields:
             value = request.POST.get(key, "").strip()
             if value:
                 # секретные подключи шифруем at-rest; неизменённые остаются как есть
-                config[key] = crypto.encrypt(value) if key in SECRET_KEYS else value
-        channel.config = config
-        channel.save(update_fields=["config", "updated_at"])
+                updates[key] = crypto.encrypt(value) if key in SECRET_KEYS else value
+        Channel.update_config(channel.pk, lambda config: config.update(updates))
         messages.success(request, _("Channel configuration saved."))
     return redirect("channels")
 
@@ -232,18 +234,15 @@ def _gbp_channel():
 
 def _gbp_sync_update(channel_pk, **fields) -> None:
     """Точечная запись `config["gbp_sync"]` под блокировкой строки — чужие ключи целы."""
-    from django.db import transaction
     from django.utils import timezone
 
-    with transaction.atomic():
-        channel = Channel.objects.select_for_update().get(pk=channel_pk)
-        config = dict(channel.config or {})
+    def mutate(config):
         state = dict(config.get("gbp_sync") or {})
         state.update(fields)
         state["checked_at"] = timezone.now().isoformat()
         config["gbp_sync"] = state
-        channel.config = config
-        channel.save(update_fields=["config", "updated_at"])
+
+    Channel.update_config(channel_pk, mutate)
 
 
 @login_required
@@ -258,20 +257,23 @@ def gbp_sync(request):
     config = decrypted_config(channel)
     locations = None
     error_code = ""
+    rate_limited = False
     if request.method == "POST" and request.POST.get("action") == "load":
         schema = getattr(connection, "schema_name", "") or ""
         if ratelimit.hit("gbp-sync", schema, limit=GBP_LOAD_LIMIT, window=GBP_LOAD_WINDOW):
+            rate_limited = True
             messages.error(request, _("Bitte einen Moment warten und erneut versuchen."))
         else:
             try:
                 locations = gbp.all_locations(config)
-                _gbp_sync_update(channel.pk, last_error_code="")
+                _gbp_sync_update(channel.pk, last_error_code="", last_status=0)
             except gbp.GbpError as exc:
                 error_code = exc.code
                 _gbp_sync_update(channel.pk, last_error_code=exc.code, last_status=exc.status)
             channel.refresh_from_db()
     state = (channel.config or {}).get("gbp_sync") or {}
-    error_code = error_code or state.get("last_error_code") or ""
+    if not rate_limited:  # иначе рядом с «подождите» висел бы старый баннер
+        error_code = error_code or state.get("last_error_code") or ""
     return render(
         request,
         "publishing/gbp_sync.html",
@@ -291,20 +293,13 @@ def gbp_sync(request):
 @require_POST
 def gbp_location(request):
     """Сохранить выбранную локацию (v4-имя). Чужие ключи конфига (токен) не трогаются."""
-    from django.db import transaction
-
     from . import gbp
 
     location = (request.POST.get("location") or "").strip()
-    if not gbp.LOCATION_RE.match(location):
+    if not gbp.LOCATION_RE.fullmatch(location):
         messages.error(request, _("Bitte zuerst einen Standort wählen"))
         return redirect("gbp-sync")
     channel = _gbp_channel()
-    with transaction.atomic():
-        channel = Channel.objects.select_for_update().get(pk=channel.pk)
-        config = dict(channel.config or {})
-        config["location"] = location
-        channel.config = config
-        channel.save(update_fields=["config", "updated_at"])
+    Channel.update_config(channel.pk, lambda config: config.__setitem__("location", location))
     messages.success(request, _("Standort gespeichert."))
     return redirect("gbp-sync")

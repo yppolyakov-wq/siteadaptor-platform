@@ -143,10 +143,8 @@ def store_token(provider: str, schema: str, token: str) -> None:
 
     with schema_context(schema):
         channel, _ = Channel.objects.get_or_create(type=provider)
-        config = dict(channel.config or {})
-        config[PROVIDERS[provider]["config_field"]] = crypto.encrypt(token)
-        channel.config = config
-        channel.save(update_fields=["config", "updated_at"])
+        field, value = PROVIDERS[provider]["config_field"], crypto.encrypt(token)
+        Channel.update_config(channel.pk, lambda config: config.__setitem__(field, value))
 
 
 def complete(provider: str, schema: str, code: str) -> None:
@@ -170,11 +168,11 @@ def _store_meta_channel(schema: str, channel_type: str, values: dict) -> None:
 
     with schema_context(schema):
         channel, _ = Channel.objects.get_or_create(type=channel_type)
-        config = dict(channel.config or {})
-        for key, value in values.items():
-            config[key] = crypto.encrypt(value) if key == "access_token" else value
-        channel.config = config
-        channel.save(update_fields=["config", "updated_at"])
+        updates = {
+            key: crypto.encrypt(value) if key == "access_token" else value
+            for key, value in values.items()
+        }
+        Channel.update_config(channel.pk, lambda config: config.update(updates))
 
 
 def _meta_complete(schema: str, code: str) -> None:

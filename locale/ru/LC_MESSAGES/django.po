@@ -25838,3 +25838,6 @@ msgstr "Подключение"
 msgid ""
 "Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen."
 msgstr "Сверка часов работы и предложений с профилем компании в Google."
+
+msgid "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten."
+msgstr "Подключать, включать и выключать каналы может только владелец."

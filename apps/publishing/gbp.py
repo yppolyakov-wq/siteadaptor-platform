@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 
 import requests
 from django.conf import settings
@@ -23,10 +24,13 @@ INFO_API = "https://mybusinessbusinessinformation.googleapis.com/v1"
 V4_API = "https://mybusiness.googleapis.com/v4"
 
 # v4-имя локации (так оно хранится в Channel.config["location"]).
-LOCATION_RE = re.compile(r"^accounts/\d+/locations/\d+$")
-ACCOUNT_RE = re.compile(r"^accounts/\d+$")
+# ASCII + fullmatch: `\d` без re.ASCII пропускает цифры других письменностей, `$` — \n.
+LOCATION_RE = re.compile(r"accounts/[0-9]+/locations/[0-9]+", re.ASCII)
+ACCOUNT_RE = re.compile(r"accounts/[0-9]+", re.ASCII)
 MAX_ACCOUNTS = 20
 MAX_LOCATIONS = 200
+MAX_PAGES = 5  # на один список; страница локаций — 100
+LIST_DEADLINE_S = 45  # общий бюджет загрузки локаций в веб-запросе
 
 CODES = ("not_configured", "not_approved", "auth", "quota", "not_found", "network", "bad_response")
 
@@ -67,23 +71,36 @@ def _json(response):
     return data
 
 
+def _list(value) -> list:
+    """Список из ответа Google или [] — чужой тип не роняет экран в 500."""
+    return value if isinstance(value, list) else []
+
+
+def _looks_encrypted(value: str) -> bool:
+    # Шифротекст Fernet, который не удалось расшифровать (сменили ключ): слать его
+    # в Google бессмысленно и вредно — это «не подключено», а не «ошибка Google».
+    return value.startswith("gAAAAA")
+
+
 def access_token(config) -> str:
     """refresh_token → access_token (платформенные ключи — из секрет-стора/env)."""
     from apps.secrets import store as secret_store
 
     refresh = (config or {}).get("refresh_token")
-    if not refresh:
+    if not isinstance(refresh, str) or not refresh or _looks_encrypted(refresh):
+        raise GbpError("not_configured")
+    client_id = secret_store.get_or_setting("google_oauth_client_id", "GOOGLE_OAUTH_CLIENT_ID")
+    client_secret = secret_store.get_or_setting(
+        "google_oauth_client_secret", "GOOGLE_OAUTH_CLIENT_SECRET"
+    )
+    if not client_id or not client_secret:
         raise GbpError("not_configured")
     try:
         response = requests.post(
             TOKEN_URL,
             data={
-                "client_id": secret_store.get_or_setting(
-                    "google_oauth_client_id", "GOOGLE_OAUTH_CLIENT_ID"
-                ),
-                "client_secret": secret_store.get_or_setting(
-                    "google_oauth_client_secret", "GOOGLE_OAUTH_CLIENT_SECRET"
-                ),
+                "client_id": client_id,
+                "client_secret": client_secret,
                 "refresh_token": refresh,
                 "grant_type": "refresh_token",
             },
@@ -104,7 +121,7 @@ def access_token(config) -> str:
 def location_ids(config) -> tuple[str, str]:
     """(v4-имя `accounts/A/locations/L`, v1-имя `locations/L`) из конфига канала."""
     location = str((config or {}).get("location") or "").strip()
-    if not LOCATION_RE.match(location):
+    if not LOCATION_RE.fullmatch(location):
         raise GbpError("not_configured")
     return location, "locations/" + location.rsplit("/", 1)[1]
 
@@ -124,39 +141,55 @@ def _get(url: str, token: str, params: dict | None = None) -> dict:
     return _json(response)
 
 
-def list_accounts(token: str) -> list[dict]:
+def _pages(url: str, token: str, params: dict, key: str, cap: int, deadline: float | None):
+    """Строки списка по всем страницам (до `cap` строк / MAX_PAGES страниц / дедлайна)."""
+    rows: list = []
+    params = dict(params)
+    for _page in range(MAX_PAGES):
+        data = _get(url, token, params)
+        rows += [row for row in _list(data.get(key)) if isinstance(row, dict)]
+        page_token = data.get("nextPageToken")
+        if len(rows) >= cap or not isinstance(page_token, str) or not page_token:
+            break
+        if deadline is not None and time.monotonic() > deadline:
+            break
+        params["pageToken"] = page_token
+    return rows[:cap]
+
+
+def list_accounts(token: str, deadline: float | None = None) -> list[dict]:
     """[{name, title}] аккаунтов, к которым у токена есть доступ."""
-    data = _get(ACCOUNTS_URL, token, {"pageSize": MAX_ACCOUNTS})
     out = []
-    for row in data.get("accounts") or []:
-        if not isinstance(row, dict):
-            continue
+    for row in _pages(
+        ACCOUNTS_URL, token, {"pageSize": MAX_ACCOUNTS}, "accounts", MAX_ACCOUNTS, deadline
+    ):
         name = str(row.get("name") or "")
-        if ACCOUNT_RE.match(name):
+        if ACCOUNT_RE.fullmatch(name):
             out.append({"name": name, "title": str(row.get("accountName") or name)[:200]})
-    return out[:MAX_ACCOUNTS]
+    return out
 
 
-def list_locations(token: str, account: str) -> list[dict]:
+def list_locations(token: str, account: str, deadline: float | None = None) -> list[dict]:
     """[{name (v4), title, address}] локаций аккаунта; v1 отдаёт `locations/L`."""
-    if not ACCOUNT_RE.match(account or ""):
+    if not ACCOUNT_RE.fullmatch(account or ""):
         raise GbpError("not_configured")
-    data = _get(
+    rows = _pages(
         f"{INFO_API}/{account}/locations",
         token,
         {"readMask": "name,title,storefrontAddress", "pageSize": 100},
+        "locations",
+        MAX_LOCATIONS,
+        deadline,
     )
     out = []
-    for row in data.get("locations") or []:
-        if not isinstance(row, dict):
-            continue
+    for row in rows:
         tail = str(row.get("name") or "").rsplit("/", 1)[-1]
-        if not tail.isdigit():
+        if not (tail.isascii() and tail.isdigit()):
             continue
-        address = row.get("storefrontAddress") if isinstance(row, dict) else None
+        address = row.get("storefrontAddress")
         lines = []
         if isinstance(address, dict):
-            lines = [str(x) for x in (address.get("addressLines") or []) if isinstance(x, str)]
+            lines = [x for x in _list(address.get("addressLines")) if isinstance(x, str)]
             if isinstance(address.get("locality"), str):
                 lines.append(address["locality"])
         out.append(
@@ -166,16 +199,33 @@ def list_locations(token: str, account: str) -> list[dict]:
                 "address": ", ".join(lines)[:300],
             }
         )
-    return out[:MAX_LOCATIONS]
+    return out
 
 
 def all_locations(config) -> list[dict]:
-    """Все локации всех доступных аккаунтов (для выбора на экране)."""
+    """Все локации всех доступных аккаунтов (для выбора на экране).
+
+    Сбой одного аккаунта (нет прав, таймаут) не прячет остальные; ошибка поднимается,
+    только если не удалось получить ни одного аккаунта. Общий дедлайн держит веб-воркер."""
+    deadline = time.monotonic() + LIST_DEADLINE_S
     token = access_token(config)
-    out = []
-    for account in list_accounts(token):
-        for loc in list_locations(token, account["name"]):
+    out: list[dict] = []
+    first_error: GbpError | None = None
+    accounts = list_accounts(token, deadline)
+    for account in accounts:
+        if time.monotonic() > deadline:
+            break
+        try:
+            locations = list_locations(token, account["name"], deadline)
+        except GbpError as exc:
+            if exc.code in ("auth", "quota"):  # общие для всего токена — дальше бессмысленно
+                raise
+            first_error = first_error or exc
+            continue
+        for loc in locations:
             out.append({**loc, "account": account["title"]})
             if len(out) >= MAX_LOCATIONS:
                 return out
+    if not out and first_error is not None:
+        raise first_error
     return out

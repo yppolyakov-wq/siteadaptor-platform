@@ -25580,3 +25580,6 @@ msgstr "Connection"
 msgid ""
 "Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen."
 msgstr "Sync opening hours and offers with your Google Business Profile."
+
+msgid "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten."
+msgstr "Only the owner can connect channels and switch them on or off."

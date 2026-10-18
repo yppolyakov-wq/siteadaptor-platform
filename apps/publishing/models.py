@@ -43,6 +43,22 @@ class Channel(TimestampedModel):
     def __str__(self):
         return self.name or self.get_type_display()
 
+    @classmethod
+    def update_config(cls, pk, mutate) -> "Channel":
+        """Правка `config` под блокировкой строки: `mutate(config)` меняет копию на месте.
+
+        Все писатели конфига (OAuth, ручные ключи, GBP-синк) идут через это —
+        иначе параллельная запись «прочитал → сохранил целиком» теряет чужие ключи."""
+        from django.db import transaction
+
+        with transaction.atomic():
+            channel = cls.objects.select_for_update().get(pk=pk)
+            config = dict(channel.config or {})
+            mutate(config)
+            channel.config = config
+            channel.save(update_fields=["config", "updated_at"])
+        return channel
+
 
 class SocialPost(TimestampedModel):
     """CM-2: собственный пост контент-календаря — ЧТО постим (текст/фото/ссылка)

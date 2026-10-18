@@ -22,7 +22,8 @@ def _req(method, path, data=None):
     return request
 
 
-def test_channels_page_auto_creates_and_renders():
+def test_channels_page_auto_creates_and_renders(monkeypatch):
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
     resp = views.channels(_req("get", "/dashboard/channels/"))
     assert resp.status_code == 200
     assert Channel.objects.filter(type="log").exists()  # авто-создан на странице

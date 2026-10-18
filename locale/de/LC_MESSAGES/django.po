@@ -25639,3 +25639,6 @@ msgid ""
 "Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen."
 msgstr ""
 "Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen."
+
+msgid "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten."
+msgstr "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten."

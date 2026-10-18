@@ -25712,3 +25712,6 @@ msgid ""
 "Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen."
 msgstr ""
 "Çalışma saatlerini ve teklifleri Google İşletme Profilinizle eşitleyin."
+
+msgid "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten."
+msgstr "Kanalları yalnızca işletme sahibi bağlayabilir ve açıp kapatabilir."
