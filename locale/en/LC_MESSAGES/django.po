@@ -25643,3 +25643,42 @@ msgstr "Please check the changes and confirm the takeover."
 
 msgid "Ja, diese Zeiten übernehmen"
 msgstr "Yes, take over these hours"
+
+msgid "Alle Aktionen aus Google"
+msgstr "All promotions from Google"
+
+msgid "Angebote von Google"
+msgstr "Offers from Google"
+
+msgid "Angebots-Beiträge aus Ihrem Google-Profil werden als Entwürfe übernommen. Sie prüfen und aktivieren sie selbst – erneut bei Google gepostet wird nichts."
+msgstr "Offer posts from your Google profile are imported as drafts. You review and activate them yourself – nothing is posted to Google again."
+
+msgid "Aus Google"
+msgstr "From Google"
+
+msgid "Entwurf verworfen – wird nicht erneut übernommen."
+msgstr "Draft discarded – it will not be imported again."
+
+msgid "Jetzt von Google holen"
+msgstr "Fetch from Google now"
+
+msgid "Keine neuen Angebote bei Google"
+msgstr "No new offers at Google"
+
+msgid "Nicht übernehmen"
+msgstr "Don't import"
+
+msgid "Nur Entwürfe aus Google lassen sich hier verwerfen."
+msgstr "Only drafts from Google can be discarded here."
+
+msgid "Online einlösen"
+msgstr "Redeem online"
+
+msgid "Zuletzt geholt"
+msgstr "Last fetched"
+
+#, python-format
+msgid "%(n)s neuer Entwurf aus Google"
+msgid_plural "%(n)s neue Entwürfe aus Google"
+msgstr[0] "%(n)s new draft from Google"
+msgstr[1] "%(n)s new drafts from Google"

@@ -25881,3 +25881,44 @@ msgstr "Перевірте зміни й підтвердьте перенесе
 
 msgid "Ja, diese Zeiten übernehmen"
 msgstr "Так, перенести ці години"
+
+msgid "Alle Aktionen aus Google"
+msgstr "Усі акції з Google"
+
+msgid "Angebote von Google"
+msgstr "Пропозиції з Google"
+
+msgid "Angebots-Beiträge aus Ihrem Google-Profil werden als Entwürfe übernommen. Sie prüfen und aktivieren sie selbst – erneut bei Google gepostet wird nichts."
+msgstr "Публікації-пропозиції з вашого профілю Google переносяться як чернетки. Ви самі перевіряєте й активуєте їх — повторно в Google нічого не публікується."
+
+msgid "Aus Google"
+msgstr "З Google"
+
+msgid "Entwurf verworfen – wird nicht erneut übernommen."
+msgstr "Чернетку видалено — повторно переноситися не буде."
+
+msgid "Jetzt von Google holen"
+msgstr "Забрати з Google зараз"
+
+msgid "Keine neuen Angebote bei Google"
+msgstr "Нових пропозицій у Google немає"
+
+msgid "Nicht übernehmen"
+msgstr "Не переносити"
+
+msgid "Nur Entwürfe aus Google lassen sich hier verwerfen."
+msgstr "Тут можна видалити лише чернетки з Google."
+
+msgid "Online einlösen"
+msgstr "Використати онлайн"
+
+msgid "Zuletzt geholt"
+msgstr "Останнє отримання"
+
+#, python-format
+msgid "%(n)s neuer Entwurf aus Google"
+msgid_plural "%(n)s neue Entwürfe aus Google"
+msgstr[0] "%(n)s нова чернетка з Google"
+msgstr[1] "%(n)s нові чернетки з Google"
+msgstr[2] "%(n)s нових чернеток з Google"
+msgstr[3] "%(n)s нових чернетки з Google"

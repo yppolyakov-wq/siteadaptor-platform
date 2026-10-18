@@ -25775,3 +25775,42 @@ msgstr "Lütfen değişiklikleri kontrol edip aktarımı onaylayın."
 
 msgid "Ja, diese Zeiten übernehmen"
 msgstr "Evet, bu saatleri al"
+
+msgid "Alle Aktionen aus Google"
+msgstr "Google'dan gelen tüm kampanyalar"
+
+msgid "Angebote von Google"
+msgstr "Google'dan teklifler"
+
+msgid "Angebots-Beiträge aus Ihrem Google-Profil werden als Entwürfe übernommen. Sie prüfen und aktivieren sie selbst – erneut bei Google gepostet wird nichts."
+msgstr "Google profilinizdeki teklif gönderileri taslak olarak aktarılır. Bunları kendiniz kontrol edip etkinleştirirsiniz – Google'a tekrar hiçbir şey gönderilmez."
+
+msgid "Aus Google"
+msgstr "Google'dan"
+
+msgid "Entwurf verworfen – wird nicht erneut übernommen."
+msgstr "Taslak silindi – tekrar aktarılmayacak."
+
+msgid "Jetzt von Google holen"
+msgstr "Şimdi Google'dan al"
+
+msgid "Keine neuen Angebote bei Google"
+msgstr "Google'da yeni teklif yok"
+
+msgid "Nicht übernehmen"
+msgstr "Aktarma"
+
+msgid "Nur Entwürfe aus Google lassen sich hier verwerfen."
+msgstr "Burada yalnızca Google'dan gelen taslaklar silinebilir."
+
+msgid "Online einlösen"
+msgstr "Çevrimiçi kullan"
+
+msgid "Zuletzt geholt"
+msgstr "Son alma"
+
+#, python-format
+msgid "%(n)s neuer Entwurf aus Google"
+msgid_plural "%(n)s neue Entwürfe aus Google"
+msgstr[0] "Google'dan %(n)s yeni taslak"
+msgstr[1] "Google'dan %(n)s yeni taslak"

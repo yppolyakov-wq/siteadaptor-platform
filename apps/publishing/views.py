@@ -6,11 +6,12 @@
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db import connection
 from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext_lazy, ngettext
 from django.views.decorators.http import require_POST
 
 from . import oauth
@@ -303,6 +304,13 @@ def _gbp_render(request, channel, config, *, error_code="", quiet=False, **extra
         "error_code": error_code,
         "error_message": GBP_ERROR_MESSAGES.get(error_code, ""),
     }
+    if context["connected"] and context["location"]:
+        from apps.promotions.models import Promotion
+
+        context["gbp_drafts"] = list(
+            Promotion.objects.filter(metadata__source="gbp").order_by("-created_at")[:20]
+        )
+        context["posts_pulled_at"] = _latest(state.get("posts_pulled_at"))
     context.update(extra)
     return render(request, "publishing/gbp_sync.html", context)
 
@@ -378,6 +386,67 @@ def gbp_hours(request):
         hours_diff=diff,
         hours_confirm=confirm_needed,
     )
+
+
+GBP_IMPORT_LIMIT = 1
+GBP_IMPORT_WINDOW = 60
+
+
+@login_required
+@require_POST
+def gbp_import(request):
+    """Д3-3: «Jetzt von Google holen» — Offer-посты локации → черновики акций."""
+    from apps.core import ratelimit
+
+    from . import gbp
+    from .gbp_import import import_offers
+
+    if not _owner(request):
+        return HttpResponseForbidden(_("Nur für Inhaber."))
+    schema = getattr(connection, "schema_name", "") or ""
+    if ratelimit.hit("gbp-import", schema, limit=GBP_IMPORT_LIMIT, window=GBP_IMPORT_WINDOW):
+        messages.error(request, _("Bitte einen Moment warten und erneut versuchen."))
+        return redirect("gbp-sync")
+    channel = _gbp_channel()
+    try:
+        result = import_offers(channel, request.tenant)
+    except gbp.GbpError as exc:
+        _gbp_sync_update(channel.pk, last_error_code=exc.code, last_status=exc.status)
+        return redirect("gbp-sync")
+    _gbp_sync_update(channel.pk, last_error_code="", last_status=0, posts_pulled_at=_now())
+    if result.created:
+        messages.success(
+            request,
+            ngettext(
+                "%(n)s neuer Entwurf aus Google",
+                "%(n)s neue Entwürfe aus Google",
+                result.created,
+            )
+            % {"n": result.created},
+        )
+    else:
+        messages.info(request, _("Keine neuen Angebote bei Google"))
+    return redirect("gbp-sync")
+
+
+@login_required
+@require_POST
+def gbp_dismiss(request):
+    """Д3-3: «Nicht übernehmen» — удалить черновик из Google и больше не импортировать."""
+    from apps.promotions.models import Promotion
+
+    from .gbp_import import dismiss
+
+    if not _owner(request):
+        return HttpResponseForbidden(_("Nur für Inhaber."))
+    try:
+        promo = Promotion.objects.get(pk=request.POST.get("promotion"))
+        dismiss(_gbp_channel().pk, promo)
+    except (Promotion.DoesNotExist, ValueError, TypeError, ValidationError):
+        messages.error(request, _("Nur Entwürfe aus Google lassen sich hier verwerfen."))
+        return redirect("gbp-sync")
+    messages.success(request, _("Entwurf verworfen – wird nicht erneut übernommen."))
+    return redirect("gbp-sync")
 
 
 def _latest(*stamps):

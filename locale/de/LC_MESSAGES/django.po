@@ -25702,3 +25702,42 @@ msgstr "Bitte die Änderungen prüfen und die Übernahme bestätigen."
 
 msgid "Ja, diese Zeiten übernehmen"
 msgstr "Ja, diese Zeiten übernehmen"
+
+msgid "Alle Aktionen aus Google"
+msgstr "Alle Aktionen aus Google"
+
+msgid "Angebote von Google"
+msgstr "Angebote von Google"
+
+msgid "Angebots-Beiträge aus Ihrem Google-Profil werden als Entwürfe übernommen. Sie prüfen und aktivieren sie selbst – erneut bei Google gepostet wird nichts."
+msgstr "Angebots-Beiträge aus Ihrem Google-Profil werden als Entwürfe übernommen. Sie prüfen und aktivieren sie selbst – erneut bei Google gepostet wird nichts."
+
+msgid "Aus Google"
+msgstr "Aus Google"
+
+msgid "Entwurf verworfen – wird nicht erneut übernommen."
+msgstr "Entwurf verworfen – wird nicht erneut übernommen."
+
+msgid "Jetzt von Google holen"
+msgstr "Jetzt von Google holen"
+
+msgid "Keine neuen Angebote bei Google"
+msgstr "Keine neuen Angebote bei Google"
+
+msgid "Nicht übernehmen"
+msgstr "Nicht übernehmen"
+
+msgid "Nur Entwürfe aus Google lassen sich hier verwerfen."
+msgstr "Nur Entwürfe aus Google lassen sich hier verwerfen."
+
+msgid "Online einlösen"
+msgstr "Online einlösen"
+
+msgid "Zuletzt geholt"
+msgstr "Zuletzt geholt"
+
+#, python-format
+msgid "%(n)s neuer Entwurf aus Google"
+msgid_plural "%(n)s neue Entwürfe aus Google"
+msgstr[0] "%(n)s neuer Entwurf aus Google"
+msgstr[1] "%(n)s neue Entwürfe aus Google"

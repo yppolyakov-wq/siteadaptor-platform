@@ -25901,3 +25901,44 @@ msgstr "Проверьте изменения и подтвердите пере
 
 msgid "Ja, diese Zeiten übernehmen"
 msgstr "Да, перенести эти часы"
+
+msgid "Alle Aktionen aus Google"
+msgstr "Все акции из Google"
+
+msgid "Angebote von Google"
+msgstr "Предложения из Google"
+
+msgid "Angebots-Beiträge aus Ihrem Google-Profil werden als Entwürfe übernommen. Sie prüfen und aktivieren sie selbst – erneut bei Google gepostet wird nichts."
+msgstr "Публикации-предложения из вашего профиля Google переносятся как черновики. Вы сами проверяете и активируете их — повторно в Google ничего не публикуется."
+
+msgid "Aus Google"
+msgstr "Из Google"
+
+msgid "Entwurf verworfen – wird nicht erneut übernommen."
+msgstr "Черновик удалён — повторно переноситься не будет."
+
+msgid "Jetzt von Google holen"
+msgstr "Забрать из Google сейчас"
+
+msgid "Keine neuen Angebote bei Google"
+msgstr "Новых предложений в Google нет"
+
+msgid "Nicht übernehmen"
+msgstr "Не переносить"
+
+msgid "Nur Entwürfe aus Google lassen sich hier verwerfen."
+msgstr "Здесь можно удалить только черновики из Google."
+
+msgid "Online einlösen"
+msgstr "Использовать онлайн"
+
+msgid "Zuletzt geholt"
+msgstr "Последний забор"
+
+#, python-format
+msgid "%(n)s neuer Entwurf aus Google"
+msgid_plural "%(n)s neue Entwürfe aus Google"
+msgstr[0] "%(n)s новый черновик из Google"
+msgstr[1] "%(n)s новых черновика из Google"
+msgstr[2] "%(n)s новых черновиков из Google"
+msgstr[3] "%(n)s новых черновика из Google"

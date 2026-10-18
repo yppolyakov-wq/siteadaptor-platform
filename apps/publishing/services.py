@@ -31,6 +31,10 @@ def _publish_all(promotion) -> None:
                 "status": QUEUED,
             },
         )
+        # Д3-3: журнал импорта поста Google — это пост владельца, а не наш; ни при
+        # активации, ни при повторной активации после паузы он в очередь не уходит.
+        if pub.dedupe_key.startswith("gbp-import:"):
+            continue
         # повторная активация: вернуть removed/failed в очередь
         if pub.status in (REMOVED, FAILED):
             sm.apply(pub, QUEUED)

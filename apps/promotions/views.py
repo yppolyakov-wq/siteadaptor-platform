@@ -179,6 +179,11 @@ def promotion_list(request):
     status = request.GET.get("status", "")
     if status:
         promos = promos.filter(status=status)
+    # Д3-3: фильтр «Aus Google» — черновики/акции, импортированные из Offer-постов.
+    quelle = "gbp" if request.GET.get("quelle") == "gbp" else ""
+    if quelle:
+        promos = promos.filter(metadata__source="gbp")
+    has_gbp_promos = bool(quelle) or Promotion.objects.filter(metadata__source="gbp").exists()
 
     # D2.2: вход в self-serve featured из списка — бейдж «beworben bis …» /
     # «Bewerben ★» на active-акциях (один public-запрос по листингам).
@@ -220,6 +225,8 @@ def promotion_list(request):
             # X6-3: фильтр показывал сырые коды статусов — даём подписи.
             "statuses": [(st, promo_status_label(st)) for st in PROMO_STATUSES],
             "status": status,
+            "quelle": quelle,
+            "has_gbp_promos": has_gbp_promos,
             # T-8.4: «3 von 5 aktiv» — только на бесплатной лёгкой ступени (Р-5).
             "limit_usage": limits.usage(getattr(request, "tenant", None)),
             "contact_email": limits.contact_email(),

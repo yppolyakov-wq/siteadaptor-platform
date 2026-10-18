@@ -347,6 +347,12 @@ urlpatterns = [
     # Д3: Google-Profil — Standort, Öffnungszeiten, Angebote (Owner-only).
     path("dashboard/channels/google/", publishing_views.gbp_sync, name="gbp-sync"),
     path("dashboard/channels/google/zeiten/", publishing_views.gbp_hours, name="gbp-hours"),
+    path("dashboard/channels/google/angebote/", publishing_views.gbp_import, name="gbp-import"),
+    path(
+        "dashboard/channels/google/angebote/ablehnen/",
+        publishing_views.gbp_dismiss,
+        name="gbp-dismiss",
+    ),
     path(
         "dashboard/channels/google/standort/",
         publishing_views.gbp_location,
