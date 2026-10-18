@@ -3087,28 +3087,22 @@ def _merchant_feed_state() -> dict | None:
     return merchant.feed_state(channel) if channel else None
 
 
-def merchant_feed_xml(request, token):
-    """M23b.1: фид товаров для Google Merchant Center по секретному адресу (план
-    docs/m23b-merchant-feed-plan-2026-10-18.md, В-1).
+def _merchant_feed_guard(request, token):
+    """Общая защита адресов Merchant Center: (состояние, None) или (None, ответ 429/404).
 
-    Неизвестный токен — 404; выключенный фид — пустой валидный фид (Google снимет товары
-    быстрее, чем после 404). В фиде только товары, прошедшие `catalog.google.eligibility`."""
-    import hashlib
+    Лимит ДО проверки токена и ОДИН счётчик на оба фида — перебор адреса не получает
+    двойной бюджет. Сравнение — постоянное по времени."""
     import hmac
-
-    from apps.catalog import google
-    from apps.catalog.feed import build_google_feed
 
     tenant = getattr(request, "tenant", None)
     schema = getattr(tenant, "schema_name", "") or "-"
-    # Лимит ДО проверки токена: перебор адреса упирается в тот же счётчик.
     if ratelimit.hit(
         "merchant-feed",
         f"{schema}:{ratelimit.client_ip(request)}",
         limit=MERCHANT_FEED_RATE_LIMIT,
         window=MERCHANT_FEED_RATE_WINDOW,
     ):
-        return HttpResponse(status=429)
+        return None, HttpResponse(status=429)
     state = _merchant_feed_state()
     stored = state["token"] if state else None
     if not (
@@ -3117,18 +3111,14 @@ def merchant_feed_xml(request, token):
         and isinstance(token, str)
         and hmac.compare_digest(stored.encode(), token.encode())
     ):
-        return HttpResponse(status=404)  # без шаблона 404: адрес дёргают роботы
-    name = getattr(tenant, "name", "") or "Shop"
-    products = google.merchant_products() if state["enabled"] else []
-    xml = build_google_feed(
-        products=products,
-        title=name,
-        link=request.build_absolute_uri(reverse("storefront-home")),
-        description=_("Products from %(name)s") % {"name": name},
-        product_url=lambda p: request.build_absolute_uri(p.get_absolute_url()),
-        absolutize=request.build_absolute_uri,
-        merchant=True,
-    )
+        return None, HttpResponse(status=404)  # без шаблона 404: адрес дёргают роботы
+    return state, None
+
+
+def _merchant_feed_response(request, xml: str):
+    """ETag/304 + заголовки секретного адреса (ни в поиск, ни в общие кэши)."""
+    import hashlib
+
     etag = '"' + hashlib.sha256(xml.encode()).hexdigest()[:32] + '"'
     sent = {
         t.strip().removeprefix("W/") for t in request.headers.get("If-None-Match", "").split(",")
@@ -3139,11 +3129,57 @@ def merchant_feed_xml(request, token):
         else HttpResponse(xml, content_type="application/xml; charset=utf-8")
     )
     response["ETag"] = etag
-    # Адрес секретный: ни в поиск, ни в общие кэши (ETag — для повторной проверки).
     response["X-Robots-Tag"] = "noindex, nofollow"
     response["Cache-Control"] = "private, no-cache"
     response.no_store = True
     return response
+
+
+def merchant_feed_xml(request, token):
+    """M23b.1: фид товаров для Google Merchant Center по секретному адресу (план
+    docs/m23b-merchant-feed-plan-2026-10-18.md, В-1).
+
+    Неизвестный токен — 404; выключенный фид — пустой валидный фид (Google снимет товары
+    быстрее, чем после 404). В фиде только товары, прошедшие `catalog.google.eligibility`."""
+    from apps.catalog import google
+    from apps.catalog.feed import build_google_feed
+
+    state, denied = _merchant_feed_guard(request, token)
+    if denied:
+        return denied
+    name = getattr(getattr(request, "tenant", None), "name", "") or "Shop"
+    products = google.merchant_products() if state["enabled"] else []
+    xml = build_google_feed(
+        products=products,
+        title=name,
+        link=request.build_absolute_uri(reverse("storefront-home")),
+        description=_("Products from %(name)s") % {"name": name},
+        product_url=lambda p: request.build_absolute_uri(p.get_absolute_url()),
+        absolutize=request.build_absolute_uri,
+        merchant=True,
+    )
+    return _merchant_feed_response(request, xml)
+
+
+def merchant_local_xml(request, token):
+    """M23b.3: фид наличия в магазине для Merchant Center (те же id, что в фиде товаров).
+
+    Пустой валидный фид, пока фид выключен или не задан код магазина (адрес уже может
+    стоять в Merchant Center — пустой фид снимает наличие чище, чем 404)."""
+    from apps.catalog import google
+    from apps.catalog.feed import build_local_inventory_feed
+
+    state, denied = _merchant_feed_guard(request, token)
+    if denied:
+        return denied
+    store_code = state["store_code"] if state["enabled"] else ""
+    xml = build_local_inventory_feed(
+        products=google.merchant_products() if store_code else [],
+        store_code=store_code,
+        title=getattr(getattr(request, "tenant", None), "name", "") or "Shop",
+        link=request.build_absolute_uri(reverse("storefront-home")),
+    )
+    return _merchant_feed_response(request, xml)
 
 
 def _promo_payment_kwargs(request):

@@ -277,3 +277,78 @@ def test_unreadable_token_offers_new_address_without_confirm(owner, isolated_rat
     assert "data-merchant-unreadable" in body and 'value="rotate"' in body
     _post(owner, action="rotate")
     assert _token() and _feed(_token()).status_code == 200
+
+
+# --- M23b.3: код магазина и второй адрес ------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("  Laden-01 ", "Laden-01"),
+        ("", ""),
+        ("   ", ""),
+        ("mit Leerzeichen", None),
+        ("Bäckerei", None),
+        ("x" * 65, None),
+        ("x" * 64, "x" * 64),
+        (None, None),
+    ],
+)
+def test_clean_store_code(raw, expected):
+    assert merchant.clean_store_code(raw) == expected
+
+
+def _store_code():
+    return _config().get("merchant_feed", {}).get("store_code")
+
+
+def test_store_code_saved_kept_by_actions_and_removed(owner, isolated_ratelimit):
+    _post(owner, action="enable")
+    _post(owner, action="store_code", store_code="Laden-01")
+    assert _store_code() == "Laden-01"
+    for data in ({"action": "rotate", "confirm": "rotate"}, {"action": "disable"}):
+        _post(owner, **data)
+    assert _store_code() == "Laden-01"
+    _post(owner, action="store_code", store_code="Bäckerei 1")
+    assert _store_code() == "Laden-01"  # недопустимое не перезаписывает
+    _post(owner, action="store_code", store_code="")
+    assert _store_code() is None
+
+
+def test_store_code_from_google(owner, isolated_ratelimit, monkeypatch):
+    from apps.publishing import gbp
+
+    Channel.objects.create(type=Channel.GOOGLE_BUSINESS, config={"refresh_token": "enc"})
+    monkeypatch.setattr(gbp, "location_ids", lambda config: ("v4", "locations/2"))
+    monkeypatch.setattr(gbp, "access_token", lambda config: "at")
+    monkeypatch.setattr(gbp, "get_store_code", lambda token, v1: "G-77")
+    _post(owner, action="store_from_google")
+    assert _store_code() == "G-77"
+    monkeypatch.setattr(gbp, "get_store_code", lambda token, v1: "")
+    _post(owner, action="store_from_google")
+    assert _store_code() == "G-77"  # пустой ответ Google код не стирает
+
+
+def test_store_code_from_google_error_changes_nothing(owner, isolated_ratelimit, monkeypatch):
+    from apps.publishing import gbp
+
+    def fail(config):
+        raise gbp.GbpError("not_configured")
+
+    monkeypatch.setattr(gbp, "location_ids", fail)
+    resp = _post(owner, action="store_from_google")
+    assert resp.status_code == 302
+    assert _store_code() is None
+
+
+def test_screen_shows_local_address_and_warning(owner, isolated_ratelimit):
+    _post(owner, action="enable")
+    body = views.merchant_feed(_req("get", owner)).content.decode()
+    assert reverse("storefront-merchant-local-feed", args=[_token()]) in body
+    assert 'data-merchant-copy-group="products"' in body
+    assert 'data-merchant-copy-group="local"' in body
+    assert "data-merchant-no-store-code" in body
+    _post(owner, action="store_code", store_code="Laden-01")
+    body = views.merchant_feed(_req("get", owner)).content.decode()
+    assert "data-merchant-no-store-code" not in body and 'value="Laden-01"' in body

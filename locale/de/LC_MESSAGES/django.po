@@ -25851,3 +25851,93 @@ msgid "%(counter)s Produkt im Feed"
 msgid_plural "%(counter)s Produkte im Feed"
 msgstr[0] "%(counter)s Produkt im Feed"
 msgstr[1] "%(counter)s Produkte im Feed"
+
+#: apps/publishing/merchant_feed
+msgid "Aus Google-Profil übernehmen"
+msgstr "Aus Google-Profil übernehmen"
+
+#: apps/publishing/merchant_feed
+msgid "Bitte zuerst das Google-Profil verbinden und einen Standort wählen."
+msgstr "Bitte zuerst das Google-Profil verbinden und einen Standort wählen."
+
+#: apps/publishing/merchant_feed
+msgid "Denselben Code hier eintragen."
+msgstr "Denselben Code hier eintragen."
+
+#: apps/publishing/merchant_feed
+msgid "Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig sind."
+msgstr "Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig sind."
+
+#: apps/publishing/merchant_feed
+msgid "Google ordnet die Shopcodes bis zu 24 Stunden nach der Verknüpfung zu."
+msgstr "Google ordnet die Shopcodes bis zu 24 Stunden nach der Verknüpfung zu."
+
+#: apps/publishing/merchant_feed
+msgid "Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und müssen in Merchant Center ersetzt werden."
+msgstr "Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und müssen in Merchant Center ersetzt werden."
+
+#: apps/publishing/merchant_feed
+msgid "Im Google-Profil ist kein Shopcode hinterlegt."
+msgstr "Im Google-Profil ist kein Shopcode hinterlegt."
+
+#: apps/publishing/merchant_feed
+msgid "Im Google-Unternehmensprofil unter „Info“ einen Shopcode festlegen."
+msgstr "Im Google-Unternehmensprofil unter „Info“ einen Shopcode festlegen."
+
+#: apps/publishing/merchant_feed
+msgid "In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit geplantem Abruf anlegen und diese Adresse eintragen."
+msgstr "In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit geplantem Abruf anlegen und diese Adresse eintragen."
+
+#: apps/publishing/merchant_feed
+msgid "Lokaler Bestand (Im Geschäft verfügbar)"
+msgstr "Lokaler Bestand (Im Geschäft verfügbar)"
+
+#: apps/publishing/merchant_feed
+msgid "Neue Adressen erzeugt. Bitte beide in Merchant Center ersetzen."
+msgstr "Neue Adressen erzeugt. Bitte beide in Merchant Center ersetzen."
+
+#: apps/publishing/merchant_feed
+msgid "Ohne Shopcode bleibt der lokale Feed leer."
+msgstr "Ohne Shopcode bleibt der lokale Feed leer."
+
+#: apps/publishing/merchant_feed
+msgid "Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den Bestand, damit Google die richtige Verfügbarkeit zeigt."
+msgstr "Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den Bestand, damit Google die richtige Verfügbarkeit zeigt."
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode (Geschäftscode in Merchant Center)"
+msgstr "Shopcode (Geschäftscode in Merchant Center)"
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode aus dem Google-Profil übernommen."
+msgstr "Shopcode aus dem Google-Profil übernommen."
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode entfernt. Der lokale Feed ist jetzt leer."
+msgstr "Shopcode entfernt. Der lokale Feed ist jetzt leer."
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode gespeichert."
+msgstr "Shopcode gespeichert."
+
+#: apps/publishing/merchant_feed
+msgid "Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
+msgstr "Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s Position mit Bestand"
+msgid_plural "%(counter)s Positionen mit Bestand"
+msgstr[0] "%(counter)s Position mit Bestand"
+msgstr[1] "%(counter)s Positionen mit Bestand"
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s ohne Bestandsführung"
+msgid_plural "%(counter)s ohne Bestandsführung"
+msgstr[0] "%(counter)s ohne Bestandsführung"
+msgstr[1] "%(counter)s ohne Bestandsführung"
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s ausverkauft"
+msgid_plural "%(counter)s ausverkauft"
+msgstr[0] "%(counter)s ausverkauft"
+msgstr[1] "%(counter)s ausverkauft"

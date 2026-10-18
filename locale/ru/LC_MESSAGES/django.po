@@ -26052,3 +26052,99 @@ msgstr[0] "%(counter)s товар в фиде"
 msgstr[1] "%(counter)s товара в фиде"
 msgstr[2] "%(counter)s товаров в фиде"
 msgstr[3] "%(counter)s товара в фиде"
+
+#: apps/publishing/merchant_feed
+msgid "Aus Google-Profil übernehmen"
+msgstr "Взять из профиля Google"
+
+#: apps/publishing/merchant_feed
+msgid "Bitte zuerst das Google-Profil verbinden und einen Standort wählen."
+msgstr "Сначала подключите профиль Google и выберите точку."
+
+#: apps/publishing/merchant_feed
+msgid "Denselben Code hier eintragen."
+msgstr "Укажите здесь тот же код."
+
+#: apps/publishing/merchant_feed
+msgid "Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig sind."
+msgstr "Второй фид сообщает Google, какие товары есть в наличии в вашем магазине."
+
+#: apps/publishing/merchant_feed
+msgid "Google ordnet die Shopcodes bis zu 24 Stunden nach der Verknüpfung zu."
+msgstr "Google сопоставляет коды магазинов в течение 24 часов после связывания."
+
+#: apps/publishing/merchant_feed
+msgid "Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und müssen in Merchant Center ersetzt werden."
+msgstr "Понимаю: оба прежних адреса перестанут работать, и их нужно заменить в Merchant Center."
+
+#: apps/publishing/merchant_feed
+msgid "Im Google-Profil ist kein Shopcode hinterlegt."
+msgstr "В профиле Google не задан код магазина."
+
+#: apps/publishing/merchant_feed
+msgid "Im Google-Unternehmensprofil unter „Info“ einen Shopcode festlegen."
+msgstr "В профиле компании в Google в разделе «Сведения» задайте код магазина."
+
+#: apps/publishing/merchant_feed
+msgid "In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit geplantem Abruf anlegen und diese Adresse eintragen."
+msgstr "В Merchant Center добавьте источник данных локального остатка как файл с загрузкой по расписанию и укажите этот адрес."
+
+#: apps/publishing/merchant_feed
+msgid "Lokaler Bestand (Im Geschäft verfügbar)"
+msgstr "Локальный остаток («В наличии в магазине»)"
+
+#: apps/publishing/merchant_feed
+msgid "Neue Adressen erzeugt. Bitte beide in Merchant Center ersetzen."
+msgstr "Новые адреса созданы. Замените оба в Merchant Center."
+
+#: apps/publishing/merchant_feed
+msgid "Ohne Shopcode bleibt der lokale Feed leer."
+msgstr "Без кода магазина локальный фид остаётся пустым."
+
+#: apps/publishing/merchant_feed
+msgid "Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den Bestand, damit Google die richtige Verfügbarkeit zeigt."
+msgstr "Товары без учёта остатка фид сообщает как имеющиеся в наличии. Ведите остатки, чтобы Google показывал верное наличие."
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode (Geschäftscode in Merchant Center)"
+msgstr "Код магазина (как в Merchant Center)"
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode aus dem Google-Profil übernommen."
+msgstr "Код магазина взят из профиля Google."
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode entfernt. Der lokale Feed ist jetzt leer."
+msgstr "Код магазина удалён. Локальный фид теперь пуст."
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode gespeichert."
+msgstr "Код магазина сохранён."
+
+#: apps/publishing/merchant_feed
+msgid "Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
+msgstr "Недопустимый код магазина: не более 64 символов, без пробелов и умлаутов."
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s Position mit Bestand"
+msgid_plural "%(counter)s Positionen mit Bestand"
+msgstr[0] "%(counter)s позиция с остатком"
+msgstr[1] "%(counter)s позиции с остатком"
+msgstr[2] "%(counter)s позиций с остатком"
+msgstr[3] "%(counter)s позиции с остатком"
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s ohne Bestandsführung"
+msgid_plural "%(counter)s ohne Bestandsführung"
+msgstr[0] "%(counter)s без учёта остатка"
+msgstr[1] "%(counter)s без учёта остатка"
+msgstr[2] "%(counter)s без учёта остатка"
+msgstr[3] "%(counter)s без учёта остатка"
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s ausverkauft"
+msgid_plural "%(counter)s ausverkauft"
+msgstr[0] "%(counter)s распродана"
+msgstr[1] "%(counter)s распроданы"
+msgstr[2] "%(counter)s распродано"
+msgstr[3] "%(counter)s распроданы"

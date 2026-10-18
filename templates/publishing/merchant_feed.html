@@ -42,21 +42,69 @@
     <section class="bg-white border border-gray-200 rounded-2xl p-5">
       <h2 class="font-semibold mb-2">{% trans "Feed-Adresse" %}</h2>
       <p class="text-xs text-gray-500 mb-2">{% trans "Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie sie wie ein Passwort." %}</p>
-      <div class="flex gap-2">
-        <input type="text" readonly value="{{ feed_url }}" data-merchant-url
-               class="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono bg-gray-50">
-        <button type="button" data-merchant-copy class="shrink-0 bg-gray-900 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Kopieren" %}</button>
+      <div data-merchant-copy-group="products">
+        <div class="flex gap-2">
+          <input type="text" readonly value="{{ feed_url }}" data-merchant-url
+                 class="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono bg-gray-50">
+          <button type="button" data-merchant-copy class="shrink-0 bg-gray-900 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Kopieren" %}</button>
+        </div>
+        <p class="text-xs text-green-700 mt-1 hidden" data-merchant-copied>{% trans "Kopiert." %}</p>
       </div>
-      <p class="text-xs text-green-700 mt-1 hidden" data-merchant-copied>{% trans "Kopiert." %}</p>
       <form method="post" action="{% url 'gbp-merchant' %}" class="mt-4 border-t border-gray-100 pt-3 space-y-2">
         {% csrf_token %}
         <input type="hidden" name="action" value="rotate">
         <label class="flex items-start gap-2 text-xs text-gray-600">
           <input type="checkbox" name="confirm" value="rotate" required class="mt-0.5">
-          {% trans "Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in Merchant Center ersetzt werden." %}
+          {% trans "Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und müssen in Merchant Center ersetzt werden." %}
         </label>
         <button type="submit" class="border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">{% trans "Neue Adresse erzeugen" %}</button>
       </form>
+    </section>
+
+    <section class="bg-white border border-gray-200 rounded-2xl p-5" data-merchant-local>
+      <h2 class="font-semibold mb-1">{% trans "Lokaler Bestand (Im Geschäft verfügbar)" %}</h2>
+      <p class="text-xs text-gray-500 mb-3">{% trans "Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig sind." %}</p>
+      <form method="post" action="{% url 'gbp-merchant' %}" class="space-y-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="store_code">
+        <label class="block text-xs font-medium text-gray-600" for="merchant-store-code">{% trans "Shopcode (Geschäftscode in Merchant Center)" %}</label>
+        <div class="flex gap-2">
+          <input type="text" id="merchant-store-code" name="store_code" value="{{ store_code }}" maxlength="64"
+                 class="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono">
+          <button type="submit" class="shrink-0 border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">{% trans "Speichern" %}</button>
+        </div>
+      </form>
+      {% if gbp_location_set %}
+        <form method="post" action="{% url 'gbp-merchant' %}" class="mt-2">
+          {% csrf_token %}<input type="hidden" name="action" value="store_from_google">
+          <button type="submit" class="text-sm text-indigo-700 hover:underline">{% trans "Aus Google-Profil übernehmen" %}</button>
+        </form>
+      {% endif %}
+      {% if not store_code %}
+        <p class="text-xs text-amber-700 mt-2" data-merchant-no-store-code>{% trans "Ohne Shopcode bleibt der lokale Feed leer." %}</p>
+      {% endif %}
+      <div class="mt-3" data-merchant-copy-group="local">
+        <div class="flex gap-2">
+          <input type="text" readonly value="{{ local_feed_url }}" data-merchant-url
+                 class="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono bg-gray-50">
+          <button type="button" data-merchant-copy class="shrink-0 bg-gray-900 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Kopieren" %}</button>
+        </div>
+        <p class="text-xs text-green-700 mt-1 hidden" data-merchant-copied>{% trans "Kopiert." %}</p>
+      </div>
+      <p class="text-xs text-gray-600 mt-3" data-merchant-local-counts>
+        {% blocktrans count counter=local.tracked %}{{ counter }} Position mit Bestand{% plural %}{{ counter }} Positionen mit Bestand{% endblocktrans %}
+        · {% blocktrans count counter=local.untracked %}{{ counter }} ohne Bestandsführung{% plural %}{{ counter }} ohne Bestandsführung{% endblocktrans %}
+        · {% blocktrans count counter=local.out_of_stock %}{{ counter }} ausverkauft{% plural %}{{ counter }} ausverkauft{% endblocktrans %}
+      </p>
+      {% if local.untracked %}
+        <p class="text-xs text-gray-400 mt-1">{% trans "Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den Bestand, damit Google die richtige Verfügbarkeit zeigt." %}</p>
+      {% endif %}
+      <ol class="list-decimal pl-5 space-y-1 text-xs text-gray-600 mt-3">
+        <li>{% trans "Im Google-Unternehmensprofil unter „Info“ einen Shopcode festlegen." %}</li>
+        <li>{% trans "Denselben Code hier eintragen." %}</li>
+        <li>{% trans "In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit geplantem Abruf anlegen und diese Adresse eintragen." %}</li>
+        <li>{% trans "Google ordnet die Shopcodes bis zu 24 Stunden nach der Verknüpfung zu." %}</li>
+      </ol>
     </section>
     {% endif %}
 
@@ -67,7 +115,6 @@
         <li>{% trans "Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und die Feed-Adresse oben eintragen." %}</li>
         <li>{% trans "In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann erscheinen die Produkte auch in Ihrem Profil und auf Google Maps." %}</li>
       </ol>
-      <p class="text-xs text-gray-400 mt-3">{% trans "Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand – er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit Google die richtige Verfügbarkeit zeigt." %}</p>
     </section>
   </div>
 
@@ -122,8 +169,9 @@
   document.addEventListener("click", function (event) {
     var button = event.target.closest("[data-merchant-copy]");
     if (!button) return;
-    var input = document.querySelector("[data-merchant-url]");
-    var note = document.querySelector("[data-merchant-copied]");
+    var group = button.closest("[data-merchant-copy-group]") || document;
+    var input = group.querySelector("[data-merchant-url]");
+    var note = group.querySelector("[data-merchant-copied]");
     if (!input) return;
     var done = function () { if (note) note.classList.remove("hidden"); };
     if (navigator.clipboard && window.isSecureContext) {

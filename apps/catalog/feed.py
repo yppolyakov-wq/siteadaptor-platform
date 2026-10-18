@@ -39,6 +39,35 @@ def _item_xml(fields: dict) -> str:
     return "<item>" + "".join(parts) + "</item>"
 
 
+def _merchant_variants(product) -> list:
+    cached = getattr(product, "feed_variants", None)
+    variants = list(cached) if cached is not None else list(product.active_variants)
+    # Вариант за 0,00 € Google отклоняет — в фид не выводим (отбор: google.py).
+    return [v for v in variants if Decimal(str(v.price_value or 0)) > 0]
+
+
+def merchant_item_rows(product) -> list[dict]:
+    """M23b.3: позиции товара в фидах Merchant Center — ОДИН источник id для фида товаров
+    и фида наличия (Google сопоставляет их по id). [{"id", "variant", "stock"}].
+
+    id ≤ 50 знаков (лимит Google): товар — `str(pk)` (36), вариант — `pk.hex` (32);
+    прежний вид «товар:вариант» давал 73 знака."""
+    variants = _merchant_variants(product)
+    if variants:
+        return [{"id": v.pk.hex, "variant": v, "stock": v.stock_quantity} for v in variants]
+    return [{"id": str(product.pk), "variant": None, "stock": product.stock_quantity}]
+
+
+def local_availability(stock) -> tuple[str, int | None]:
+    """Наличие в магазине (В-8: без limited_availability — Google сам считает 1–2 «мало»).
+    Остаток не ведётся → «в наличии» без количества; ноль и меньше → «нет»."""
+    if stock is None:
+        return "in_stock", None
+    if stock > 0:
+        return "in_stock", stock
+    return "out_of_stock", 0
+
+
 def _entries(product, *, product_url, absolutize, merchant=False):
     """Записи фида для товара: по одной на активный вариант, иначе одна на товар.
 
@@ -75,10 +104,26 @@ def _entries(product, *, product_url, absolutize, merchant=False):
             "identifier_exists": "no" if not (eff_gtin or eff_sku or brand) else "",
         }
 
-    cached = getattr(product, "feed_variants", None) if merchant else None
-    variants = list(cached) if cached is not None else list(product.active_variants)
-    if merchant:  # вариант за 0,00 € Google отклоняет — в фид не выводим (отбор: google.py)
-        variants = [v for v in variants if Decimal(str(v.price_value or 0)) > 0]
+    if merchant:
+        rows = merchant_item_rows(product)
+        if rows[0]["variant"] is None:
+            in_stock = product.stock_quantity is None or product.stock_quantity > 0
+            return [base(rows[0]["id"], title, product.base_price, in_stock)]
+        return [
+            {
+                **base(
+                    row["id"],
+                    f"{title} – {row['variant'].label}",
+                    row["variant"].price_value,
+                    row["variant"].in_stock,
+                    gtin=row["variant"].gtin,
+                    sku=row["variant"].sku,
+                ),
+                "item_group_id": str(product.pk),
+            }
+            for row in rows
+        ]
+    variants = list(product.active_variants)
     if variants:
         return [
             {
@@ -96,6 +141,36 @@ def _entries(product, *, product_url, absolutize, merchant=False):
         ]
     in_stock = product.stock_quantity is None or product.stock_quantity > 0
     return [base(str(product.pk), title, product.base_price, in_stock)]
+
+
+def _rss(head: str, items: list[str]) -> str:
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">'
+        f"<channel>{head}{''.join(items)}</channel></rss>"
+    )
+
+
+def build_local_inventory_feed(*, products, store_code, title, link) -> str:
+    """M23b.3: фид наличия в магазине (Merchant Center «Lokales Inventar») — те же id, что в
+    фиде товаров, + store_code из профиля Google. Без кода магазина — пустой валидный фид."""
+    items = []
+    if store_code:
+        for product in products:
+            for row in merchant_item_rows(product):
+                availability, quantity = local_availability(row["stock"])
+                items.append(
+                    _item_xml(
+                        {
+                            "id": row["id"],
+                            "store_code": store_code,
+                            "availability": availability,
+                            "quantity": "" if quantity is None else quantity,
+                        }
+                    )
+                )
+    head = f"<title>{escape(title)}</title><link>{escape(link)}</link>"
+    return _rss(head, items)
 
 
 def build_google_feed(
@@ -119,8 +194,4 @@ def build_google_feed(
         f"<link>{escape(link)}</link>"
         f"<description>{escape(description)}</description>"
     )
-    return (
-        '<?xml version="1.0" encoding="UTF-8"?>'
-        '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">'
-        f"<channel>{head}{''.join(items)}</channel></rss>"
-    )
+    return _rss(head, items)

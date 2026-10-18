@@ -25924,3 +25924,93 @@ msgid "%(counter)s Produkt im Feed"
 msgid_plural "%(counter)s Produkte im Feed"
 msgstr[0] "Feed'de %(counter)s ürün"
 msgstr[1] "Feed'de %(counter)s ürün"
+
+#: apps/publishing/merchant_feed
+msgid "Aus Google-Profil übernehmen"
+msgstr "Google profilinden al"
+
+#: apps/publishing/merchant_feed
+msgid "Bitte zuerst das Google-Profil verbinden und einen Standort wählen."
+msgstr "Lütfen önce Google profilini bağlayın ve bir konum seçin."
+
+#: apps/publishing/merchant_feed
+msgid "Denselben Code hier eintragen."
+msgstr "Aynı kodu buraya girin."
+
+#: apps/publishing/merchant_feed
+msgid "Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig sind."
+msgstr "İkinci bir feed, mağazanızda hangi ürünlerin stokta olduğunu Google'a bildirir."
+
+#: apps/publishing/merchant_feed
+msgid "Google ordnet die Shopcodes bis zu 24 Stunden nach der Verknüpfung zu."
+msgstr "Google mağaza kodlarını bağlantıdan sonraki 24 saat içinde eşleştirir."
+
+#: apps/publishing/merchant_feed
+msgid "Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und müssen in Merchant Center ersetzt werden."
+msgstr "Biliyorum: önceki iki adres de artık çalışmayacak ve Merchant Center'da değiştirilmesi gerekecek."
+
+#: apps/publishing/merchant_feed
+msgid "Im Google-Profil ist kein Shopcode hinterlegt."
+msgstr "Google profilinde mağaza kodu tanımlı değil."
+
+#: apps/publishing/merchant_feed
+msgid "Im Google-Unternehmensprofil unter „Info“ einen Shopcode festlegen."
+msgstr "Google İşletme Profilinizde “Bilgi” altında bir mağaza kodu belirleyin."
+
+#: apps/publishing/merchant_feed
+msgid "In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit geplantem Abruf anlegen und diese Adresse eintragen."
+msgstr "Merchant Center'da yerel stok için zamanlanmış getirmeli bir dosya veri kaynağı ekleyin ve bu adresi girin."
+
+#: apps/publishing/merchant_feed
+msgid "Lokaler Bestand (Im Geschäft verfügbar)"
+msgstr "Yerel stok (mağazada mevcut)"
+
+#: apps/publishing/merchant_feed
+msgid "Neue Adressen erzeugt. Bitte beide in Merchant Center ersetzen."
+msgstr "Yeni adresler oluşturuldu. Lütfen ikisini de Merchant Center'da değiştirin."
+
+#: apps/publishing/merchant_feed
+msgid "Ohne Shopcode bleibt der lokale Feed leer."
+msgstr "Mağaza kodu olmadan yerel feed boş kalır."
+
+#: apps/publishing/merchant_feed
+msgid "Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den Bestand, damit Google die richtige Verfügbarkeit zeigt."
+msgstr "Stok takibi olmayan ürünler feed'de stokta olarak bildirilir. Google'ın doğru durumu göstermesi için stoklarınızı güncel tutun."
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode (Geschäftscode in Merchant Center)"
+msgstr "Mağaza kodu (Merchant Center'daki)"
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode aus dem Google-Profil übernommen."
+msgstr "Mağaza kodu Google profilinden alındı."
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode entfernt. Der lokale Feed ist jetzt leer."
+msgstr "Mağaza kodu kaldırıldı. Yerel feed artık boş."
+
+#: apps/publishing/merchant_feed
+msgid "Shopcode gespeichert."
+msgstr "Mağaza kodu kaydedildi."
+
+#: apps/publishing/merchant_feed
+msgid "Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
+msgstr "Geçersiz mağaza kodu: en fazla 64 karakter, boşluk ve özel harf olmadan."
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s Position mit Bestand"
+msgid_plural "%(counter)s Positionen mit Bestand"
+msgstr[0] "Stoklu %(counter)s kalem"
+msgstr[1] "Stoklu %(counter)s kalem"
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s ohne Bestandsführung"
+msgid_plural "%(counter)s ohne Bestandsführung"
+msgstr[0] "%(counter)s stok takipsiz"
+msgstr[1] "%(counter)s stok takipsiz"
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s ausverkauft"
+msgid_plural "%(counter)s ausverkauft"
+msgstr[0] "%(counter)s tükendi"
+msgstr[1] "%(counter)s tükendi"

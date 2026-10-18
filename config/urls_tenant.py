@@ -700,6 +700,11 @@ urlpatterns = [
         public_views.merchant_feed_xml,
         name="storefront-merchant-feed",
     ),
+    path(
+        "feed/merchant/<str:token>/local.xml",
+        public_views.merchant_local_xml,
+        name="storefront-merchant-local-feed",
+    ),
     # Telegram-бот (M23/TG1): кабинет + публичный webhook на домене арендатора.
     path("dashboard/telegram/", telegram_views.settings_view, name="telegram-settings"),
     path("dashboard/telegram/connect/", telegram_views.connect, name="telegram-connect"),

@@ -242,6 +242,13 @@ def get_hours(token: str, v1_name: str) -> dict:
     return {"periods": periods[:MAX_PERIODS], "special_count": len(days)}
 
 
+def get_store_code(token: str, v1_name: str) -> str:
+    """M23b.3: код магазина локации (`storeCode`) — с ним Merchant Center сопоставляет наличие."""
+    data = _get(f"{INFO_API}/{v1_name}", token, {"readMask": "storeCode"})
+    value = data.get("storeCode") if isinstance(data, dict) else ""
+    return value if isinstance(value, str) else ""
+
+
 def patch_regular_hours(token: str, v1_name: str, periods: list) -> None:
     """Записать ТОЛЬКО обычные часы (`updateMask=regularHours`) — особые часы не трогаем."""
     try:

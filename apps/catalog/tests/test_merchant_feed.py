@@ -238,3 +238,142 @@ def test_forms_expose_hide_in_google():
 
     assert "hide_in_google" in ProductForm().fields
     assert "hide_in_google" in CategoryForm().fields
+
+
+# --- M23b.3: фид наличия в магазине ---------------------------------------------------------
+
+LOCAL_CODE = "Laden-01"
+
+
+def _local(token=TOKEN, ip=None, **headers):
+    request = RequestFactory().get(f"/feed/merchant/{token}/local.xml", **headers)
+    request.META["REMOTE_ADDR"] = ip or f"10.8.{uuid.uuid4().int % 250}.{uuid.uuid4().int % 250}"
+    request.tenant = TenantFactory.build(schema_name="t_mf", name="Laden")
+    return public_views.merchant_local_xml(request, token)
+
+
+def _with_store(code=LOCAL_CODE, enabled=True):
+    channel = _channel(enabled=enabled)
+    Channel.update_config(channel.pk, lambda c: c["merchant_feed"].update({"store_code": code}))
+    return channel
+
+
+def _ids(xml):
+    doc = minidom.parseString(xml.encode())
+    return [n.firstChild.data for n in doc.getElementsByTagName("g:id")]
+
+
+def test_merchant_ids_fit_google_limit_and_match_between_feeds(isolated_ratelimit):
+    _with_store()
+    p = _product()
+    for label in ("S", "M"):
+        ProductVariant.objects.create(product=p, label=label, price=Decimal("5"), stock_quantity=3)
+    _product()  # без вариантов
+    products_ids = _ids(_get().content.decode())
+    local_ids = _ids(_local().content.decode())
+    assert len(products_ids) == 3 and all(len(i) <= 50 for i in products_ids)
+    assert sorted(products_ids) == sorted(local_ids)
+
+
+def test_legacy_feed_keeps_old_variant_ids():
+    from apps.catalog.models import Product
+
+    p = _product()
+    v = ProductVariant.objects.create(product=p, label="S", price=Decimal("5"))
+    xml = build_google_feed(
+        products=Product.objects.filter(pk=p.pk),
+        title="t",
+        link="https://x/",
+        description="d",
+        product_url=lambda _p: "https://x/p",
+        absolutize=lambda u: "https://x" + u,
+    )
+    assert f"<g:id>{p.pk}:{v.pk}</g:id>" in xml
+
+
+@pytest.mark.parametrize(
+    ("stock", "availability", "quantity"),
+    [(None, "in_stock", None), (4, "in_stock", 4), (0, "out_of_stock", 0), (-2, "out_of_stock", 0)],
+)
+def test_local_availability_mapping(stock, availability, quantity):
+    from apps.catalog.feed import local_availability
+
+    assert local_availability(stock) == (availability, quantity)
+
+
+def test_local_feed_lists_stock_and_never_limited(isolated_ratelimit):
+    _with_store()
+    tracked = _product(stock_quantity=7)
+    untracked = _product(stock_quantity=None)
+    sold_out = _product(stock_quantity=0)
+    _product(images=[], stock_quantity=5)  # не годится в фид товаров — и в локальный нет
+    body = _local().content.decode()
+    minidom.parseString(body.encode())
+    assert body.count("<item>") == 3
+    assert body.count(f"<g:store_code>{LOCAL_CODE}</g:store_code>") == 3
+    assert f"<g:id>{tracked.pk}</g:id><g:store_code>{LOCAL_CODE}</g:store_code>" in body
+    assert "<g:quantity>7</g:quantity>" in body and "<g:quantity>0</g:quantity>" in body
+    assert body.count("<g:quantity>") == 2  # без ведения остатка количества нет
+    assert "limited_availability" not in body
+    assert str(untracked.pk) in body and str(sold_out.pk) in body
+
+
+def test_local_feed_escapes_store_code():
+    from apps.catalog.feed import build_local_inventory_feed
+
+    xml = build_local_inventory_feed(
+        products=[_product()], store_code="a<b&c", title="t", link="https://x/"
+    )
+    minidom.parseString(xml.encode())
+    assert "<g:store_code>a&lt;b&amp;c</g:store_code>" in xml
+
+
+@pytest.mark.parametrize(("code", "enabled"), [("", True), (LOCAL_CODE, False)])
+def test_local_feed_empty_without_code_or_disabled(isolated_ratelimit, code, enabled):
+    _with_store(code=code, enabled=enabled)
+    _product()
+    resp = _local()
+    assert resp.status_code == 200
+    minidom.parseString(resp.content)
+    assert b"<item>" not in resp.content
+
+
+def test_local_feed_guard_and_headers(isolated_ratelimit):
+    _with_store()
+    _product()
+    assert _local(token="wrong").status_code == 404
+    resp = _local(ip="10.3.3.3")
+    assert resp.status_code == 200 and resp["Content-Type"].startswith("application/xml")
+    assert "noindex" in resp["X-Robots-Tag"] and resp["Cache-Control"] == "private, no-cache"
+    again = _local(ip="10.3.3.4", HTTP_IF_NONE_MATCH=resp["ETag"])
+    assert again.status_code == 304
+
+
+def test_both_feeds_share_one_rate_limit_bucket(isolated_ratelimit, monkeypatch):
+    monkeypatch.setattr(public_views, "MERCHANT_FEED_RATE_LIMIT", 2)
+    _with_store()
+    codes = [
+        _get(ip="10.4.4.4").status_code,
+        _local(ip="10.4.4.4").status_code,
+        _local(ip="10.4.4.4").status_code,
+    ]
+    assert codes == [200, 200, 429]
+
+
+def test_local_feed_constant_queries(isolated_ratelimit, django_assert_max_num_queries):
+    _with_store()
+    for _ in range(6):
+        p = _product()
+        ProductVariant.objects.create(product=p, label="S", price=Decimal("5"), stock_quantity=1)
+    with django_assert_max_num_queries(6):
+        _local()
+
+
+def test_overview_counts_local_positions():
+    _product(stock_quantity=3)
+    _product(stock_quantity=0)
+    _product(stock_quantity=None)
+    p = _product()
+    ProductVariant.objects.create(product=p, label="S", price=Decimal("5"), stock_quantity=0)
+    ProductVariant.objects.create(product=p, label="M", price=Decimal("5"), stock_quantity=None)
+    assert google.overview()["local"] == {"tracked": 3, "untracked": 2, "out_of_stock": 2}

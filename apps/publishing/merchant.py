@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import re
 import secrets
 
 from django.utils import timezone
@@ -26,6 +27,20 @@ from .models import Channel
 TOKEN_KEY = "merchant_feed_token"
 STATE_KEY = "merchant_feed"
 MIN_TOKEN = 32  # = public_views.MERCHANT_FEED_MIN_TOKEN
+STORE_CODE_MAX = 64  # лимит Google
+# M23b.3: код магазина — печатный ASCII без пробелов, как его отдаёт профиль Google.
+_STORE_CODE_RE = re.compile(r"[\x21-\x7e]{1,64}", re.ASCII)
+
+
+def clean_store_code(value) -> str | None:
+    """Код магазина из ввода: "" — убрать, None — недопустимо. Регистр сохраняем (Google
+    сравнивает его с учётом регистра)."""
+    if not isinstance(value, str):
+        return None
+    value = value.strip()
+    if not value:
+        return ""
+    return value if _STORE_CODE_RE.fullmatch(value) else None
 
 
 def channel() -> Channel:
@@ -51,6 +66,7 @@ def feed_state(obj: Channel | None) -> dict:
         "enabled": bool(state.get("enabled")),
         "issued_at": state.get("token_issued_at") or "",
         "token": _read_token(config),
+        "store_code": clean_store_code(state.get("store_code")) or "",
     }
 
 
@@ -95,5 +111,17 @@ def rotate(channel_pk) -> Channel:
 
     def change(config, state):
         _new_token(config, state)
+
+    return _update(channel_pk, change)
+
+
+def set_store_code(channel_pk, value: str) -> Channel:
+    """Записать код магазина (уже очищенный `clean_store_code`); "" убирает его."""
+
+    def change(config, state):
+        if value:
+            state["store_code"] = value
+        else:
+            state.pop("store_code", None)
 
     return _update(channel_pk, change)

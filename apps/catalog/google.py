@@ -130,12 +130,23 @@ def overview(limit_per_group: int = 50) -> dict:
 
     Исключённый товар группируется по ПЕРВОЙ причине (как `summary`, суммы сходятся),
     но несёт все свои причины; предупреждения — только у товаров, которые в фиде."""
+    from .feed import merchant_item_rows
+
     included = 0
     excluded: dict = {}
     warned: dict = {}
+    # M23b.3: позиции фида наличия — с ведением остатка, без него, распроданные.
+    local = {"tracked": 0, "untracked": 0, "out_of_stock": 0}
     for product, (ok, reasons, warnings) in _evaluated():
         if ok:
             included += 1
+            for row in merchant_item_rows(product):
+                if row["stock"] is None:
+                    local["untracked"] += 1
+                else:
+                    local["tracked"] += 1
+                    if row["stock"] <= 0:
+                        local["out_of_stock"] += 1
             for code in warnings:
                 group = warned.setdefault(code, {"count": 0, "items": []})
                 group["count"] += 1
@@ -146,7 +157,7 @@ def overview(limit_per_group: int = 50) -> dict:
         group["count"] += 1
         if len(group["items"]) < limit_per_group:
             group["items"].append((product, reasons))
-    return {"included": included, "excluded": excluded, "warnings": warned}
+    return {"included": included, "excluded": excluded, "warnings": warned, "local": local}
 
 
 def summary() -> dict:

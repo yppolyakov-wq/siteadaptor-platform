@@ -418,12 +418,56 @@ MERCHANT_ADMIN_LIMIT = 10  # действий с фидом в минуту на
 MERCHANT_ADMIN_WINDOW = 60
 
 
-def _merchant_feed_url(request, token: str) -> str:
+def _merchant_store_code(request, channel, raw) -> None:
+    from . import merchant
+
+    value = merchant.clean_store_code(raw)
+    if value is None:
+        messages.error(
+            request,
+            _("Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."),
+        )
+    elif not value:
+        merchant.set_store_code(channel.pk, "")
+        messages.success(request, _("Shopcode entfernt. Der lokale Feed ist jetzt leer."))
+    else:
+        merchant.set_store_code(channel.pk, value)
+        messages.success(request, _("Shopcode gespeichert."))
+
+
+def _merchant_store_from_google(request, channel) -> None:
+    """Код магазина из профиля Google. Токен и ответ Google в сообщения не попадают."""
+    from . import gbp, merchant
+    from .secrets import decrypted_config
+
+    config = decrypted_config(channel)
+    try:
+        _v4, v1 = gbp.location_ids(config)
+        value = merchant.clean_store_code(gbp.get_store_code(gbp.access_token(config), v1))
+    except gbp.GbpError as exc:
+        if exc.code == "not_configured":
+            messages.error(
+                request,
+                _("Bitte zuerst das Google-Profil verbinden und einen Standort wählen."),
+            )
+        else:
+            messages.error(
+                request, GBP_ERROR_MESSAGES.get(exc.code) or GBP_ERROR_MESSAGES["bad_response"]
+            )
+        return
+    if not value:
+        messages.error(request, _("Im Google-Profil ist kein Shopcode hinterlegt."))
+        return
+    merchant.set_store_code(channel.pk, value)
+    messages.success(request, _("Shopcode aus dem Google-Profil übernommen."))
+
+
+def _merchant_feed_url(request, token: str, name: str = "storefront-merchant-feed") -> str:
     """Адрес фида на ОСНОВНОМ домене бизнеса — он не меняется от того, через какой
     домен владелец открыл кабинет (у своего домена поддомен отвечает 301)."""
     from django.urls import reverse
 
-    path = reverse("storefront-merchant-feed", args=[token])
+    path = reverse(name, args=[token])
     tenant = getattr(request, "tenant", None)
     try:
         primary = tenant.domains.filter(is_primary=True).order_by("pk").first() if tenant else None
@@ -452,14 +496,18 @@ def merchant_feed(request):
     if request.method == "POST":
         action = request.POST.get("action", "")
         schema = getattr(connection, "schema_name", "") or ""
-        if action not in ("enable", "disable", "rotate"):
+        if action not in ("enable", "disable", "rotate", "store_code", "store_from_google"):
             return redirect("gbp-merchant")
         if ratelimit.hit(
             "merchant-feed-admin", schema, limit=MERCHANT_ADMIN_LIMIT, window=MERCHANT_ADMIN_WINDOW
         ):
             messages.error(request, _("Bitte einen Moment warten und erneut versuchen."))
             return redirect("gbp-merchant")
-        if action == "enable":
+        if action == "store_code":
+            _merchant_store_code(request, channel, request.POST.get("store_code", ""))
+        elif action == "store_from_google":
+            _merchant_store_from_google(request, channel)
+        elif action == "enable":
             merchant.enable(channel.pk)
             messages.success(request, _("Der Produktfeed ist eingeschaltet."))
         elif action == "disable":
@@ -472,7 +520,8 @@ def merchant_feed(request):
         ):  # нечитаемый адрес уже не работает — подтверждать нечего
             merchant.rotate(channel.pk)
             messages.success(
-                request, _("Neue Adresse erzeugt. Bitte in Merchant Center eintragen.")
+                request,
+                _("Neue Adressen erzeugt. Bitte beide in Merchant Center ersetzen."),
             )
         else:
             messages.error(request, _("Bitte bestätigen, dass die alte Adresse ungültig wird."))
@@ -506,6 +555,14 @@ def merchant_feed(request):
         "enabled": state["enabled"],
         "issued_at": state["issued_at"],
         "feed_url": _merchant_feed_url(request, state["token"]) if state["token"] else "",
+        "local_feed_url": (
+            _merchant_feed_url(request, state["token"], "storefront-merchant-local-feed")
+            if state["token"]
+            else ""
+        ),
+        "store_code": state["store_code"],
+        "gbp_location_set": bool((channel.config or {}).get("location")),
+        "local": data["local"],
         "token_unreadable": bool(state["enabled"] and not state["token"]),
         "included": data["included"],
         "excluded": excluded,
