@@ -4,6 +4,8 @@
 статусом middleware блокирует POST (read-only) и уводит на биллинг.
 """
 
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -16,6 +18,8 @@ from django.views.decorators.http import require_POST
 
 from . import oauth
 from .models import Channel, Publication
+
+logger = logging.getLogger("publishing")
 
 
 def _ensure_channels():
@@ -234,7 +238,8 @@ def _hint_count(promo, tenant) -> int:
         from apps.promotions.text_check import for_promotion
 
         return len(for_promotion(promo, tenant))
-    except Exception:  # noqa: BLE001 — подсказка не важнее экрана
+    except Exception as exc:  # noqa: BLE001 — подсказка не важнее экрана
+        logger.warning("gbp hint count failed: %s", type(exc).__name__)
         return 0
 
 

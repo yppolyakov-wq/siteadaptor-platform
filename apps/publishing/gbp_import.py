@@ -178,17 +178,33 @@ def post_to_draft_fields(post, tenant, *, now) -> dict | None:
 
 
 def _dt_key(value) -> str:
-    """Дата для хеша — всегда в UTC: при импорте она в Europe/Berlin, из БД — в UTC."""
+    """Дата для хеша — в UTC и до минуты: при импорте она в Europe/Berlin, из БД — в UTC, а
+    поле формы `datetime-local` срезает секунды (23:59:59 → 23:59)."""
     if value is None:
         return ""
-    return value.astimezone(UTC).isoformat()
+    return value.astimezone(UTC).replace(second=0, microsecond=0).isoformat()
+
+
+def _text_key(value) -> dict:
+    """Текст для хеша без шума формы: пустые локали отброшены (форма пишет все включённые
+    языки), переводы строк \r\n → \n, пробелы по краям сняты."""
+    if not isinstance(value, dict):
+        return {}
+    out = {}
+    for locale, text in value.items():
+        if isinstance(text, str):
+            text = text.replace("\r\n", "\n").replace("\r", "\n").strip()
+            if text:
+                out[str(locale)] = text
+    return out
 
 
 def content_hash(fields) -> str:
-    """Отпечаток полей, которые может править владелец («Bei Google geändert»)."""
+    """Отпечаток полей, которые может править владелец («Bei Google geändert»). Нормализован,
+    чтобы пустой Save формы не делал черновик «правленым»."""
     payload = [
-        fields.get("title") or {},
-        fields.get("description") or {},
+        _text_key(fields.get("title")),
+        _text_key(fields.get("description")),
         _dt_key(fields.get("starts_at")),
         _dt_key(fields.get("ends_at")),
     ]
@@ -208,6 +224,8 @@ def _fields_of(promo) -> dict:
 def import_offers(channel, tenant, *, now=None) -> ImportResult:
     """Забрать Offer-посты локации: новые → черновики; изменённые → обновить нетронутый
     черновик или пометить; пропавшие (только при полном проходе) → пометить. Идемпотентно."""
+    from apps.promotions.models import Promotion
+
     from .models import Publication
     from .secrets import decrypted_config
 
@@ -225,6 +243,9 @@ def import_offers(channel, tenant, *, now=None) -> ImportResult:
             channel=channel, dedupe_key__startswith=IMPORT_PREFIX
         ).only("external_ref", "promotion_id")
     }
+    accepted = dict(
+        Promotion.objects.filter(pk__in=imported.values()).values_list("pk", "metadata")
+    )
     own = set(
         Publication.objects.filter(channel=channel, external_ref__in=seen)
         .exclude(dedupe_key__startswith=IMPORT_PREFIX)
@@ -243,6 +264,8 @@ def import_offers(channel, tenant, *, now=None) -> ImportResult:
             result.skipped += 1
             continue
         if name in imported:
+            if _unchanged(accepted.get(imported[name]), fields):
+                continue  # та же версия поста и пометок нет — без блокировки строки
             outcome = _apply_change(imported[name], fields, now)
             if outcome == "updated":
                 result.updated += 1
@@ -294,6 +317,16 @@ def _create(channel, name, fields) -> bool:
 
 
 _CHANGE_KEYS = ("gbp_changed", "gbp_changed_hash", "gbp_changed_at")
+_IMPORT_KEYS = ("gbp_coupon_code", "gbp_redeem_url", "gbp_update_time")
+
+
+def _unchanged(meta, fields) -> bool:
+    """По снимку metadata (без блокировки): версия поста та же и пометок «изменено» нет."""
+    if not isinstance(meta, dict):
+        return False
+    return meta.get("gbp_hash") == fields["metadata"]["gbp_hash"] and not any(
+        k in meta for k in _CHANGE_KEYS
+    )
 
 
 def _apply_change(promotion_pk, fields, now) -> str:
@@ -317,8 +350,8 @@ def _apply_change(promotion_pk, fields, now) -> str:
             return "same"
         untouched = content_hash(_fields_of(promo)) == accepted
         if promo.status == "draft" and untouched:
-            for key in _CHANGE_KEYS:
-                meta.pop(key, None)
+            for key in (*_CHANGE_KEYS, *_IMPORT_KEYS):
+                meta.pop(key, None)  # купон/ссылка, убранные в Google, уходят и у нас
             meta.update(fields["metadata"])
             for attr in ("title", "description", "starts_at", "ends_at"):
                 setattr(promo, attr, fields[attr])
@@ -349,9 +382,17 @@ def _sync_gone(imported: dict, seen: set, now) -> int:
     Google, и снять пометку у вернувшихся. Акция и пост у Google не удаляются (В-6)."""
     from apps.promotions.models import Promotion
 
+    by_pk = {pk: name for name, pk in imported.items()}
+    current = Promotion.objects.filter(pk__in=by_pk).values_list("pk", "metadata")
+    # Один запрос на всё; блокировка — только у тех, чья пометка должна поменяться.
+    todo = [
+        pk
+        for pk, meta in current
+        if (by_pk[pk] not in seen) != bool(isinstance(meta, dict) and meta.get("gbp_gone"))
+    ]
     flagged = 0
-    for name, promotion_pk in imported.items():
-        is_gone = name not in seen
+    for promotion_pk in todo:
+        is_gone = by_pk[promotion_pk] not in seen
         with transaction.atomic():
             promo = Promotion.objects.select_for_update().filter(pk=promotion_pk).first()
             if promo is None:

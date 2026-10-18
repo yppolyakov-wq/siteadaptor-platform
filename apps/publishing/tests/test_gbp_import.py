@@ -778,3 +778,43 @@ def test_promotion_form_shows_gbp_plate_as_text(owner, channel, tenant, google):
     html = promo_views.promotion_edit(request, promo.pk).content.decode()
     assert "data-gbp-plate" in html and "data-gbp-changed" in html
     assert "<b>X1</b>" not in html
+
+
+def test_sync_gone_locks_only_rows_that_change(
+    channel, tenant, google, django_assert_max_num_queries
+):
+    google["posts"] = [_offer(name=f"accounts/1/locations/2/localPosts/{i}") for i in range(8)]
+    _run(channel, tenant)
+    imported = {p.external_ref: p.promotion_id for p in Publication.objects.filter(channel=channel)}
+    seen = set(imported)  # всё на месте — менять нечего
+    with django_assert_max_num_queries(1):
+        assert gbp_import._sync_gone(imported, seen, NOW) == 0
+
+
+def test_noop_form_save_keeps_draft_untouched(channel, tenant, google):
+    """Пустой Save формы: все локали (пустые), \r\n, срезанные секунды — не «правка»."""
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    Promotion.objects.filter(pk=promo.pk).update(
+        title={**promo.title, "en": ""},
+        description={"de": promo.description["de"].replace("\n", "\r\n"), "en": ""},
+        ends_at=promo.ends_at.replace(second=0),
+    )
+    google["posts"] = [_changed()]
+    assert _run(channel, tenant).updated == 1
+
+
+def test_removed_coupon_dropped_on_update(channel, tenant, google):
+    _run(channel, tenant)
+    google["posts"] = [_changed(offer={})]
+    _run(channel, tenant)
+    meta = Promotion.objects.get().metadata
+    assert "gbp_coupon_code" not in meta and meta["gbp_hash"]
+
+
+def test_unchanged_post_takes_no_row_lock(channel, tenant, google, monkeypatch):
+    _run(channel, tenant)
+    calls = []
+    monkeypatch.setattr(gbp_import, "_apply_change", lambda *a, **k: calls.append(a) or "same")
+    _run(channel, tenant)
+    assert calls == []
