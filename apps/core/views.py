@@ -1111,14 +1111,14 @@ def _gbp_hours_link(user) -> bool:
     from apps.core.roles import is_owner
     from apps.publishing.models import Channel
 
-    if not is_owner(user):
-        return False
     config = (
         Channel.objects.filter(type=Channel.GOOGLE_BUSINESS)
         .values_list("config", flat=True)
         .first()
     )
-    return bool(isinstance(config, dict) and config.get("refresh_token") and config.get("location"))
+    if not (isinstance(config, dict) and config.get("refresh_token") and config.get("location")):
+        return False
+    return is_owner(user)
 
 
 def save_payment_settings(request) -> None:

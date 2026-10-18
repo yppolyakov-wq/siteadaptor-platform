@@ -63,9 +63,11 @@ def test_blog_row_offers_channel_choice():
     assert "＋" in html or "New post" in html  # кнопка создания на месте
 
 
-def test_channels_page_lists_personal_channels():
+def test_channels_page_lists_personal_channels(monkeypatch):
     """Страница каналов показывает и личные каналы связи."""
     from apps.publishing import views as pub_views
+
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
 
     tenant = _tenant(whatsapp_number="+4915112345678", instagram="backhaus")
     html = pub_views.channels(_req("/publishing/channels/", tenant)).content.decode()
