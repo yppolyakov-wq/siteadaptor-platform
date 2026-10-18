@@ -100,12 +100,31 @@ class AggregatorListingAdmin(ModelAdmin):
         messages.success(request, _("%(n)s wieder sichtbar.") % {"n": n})
 
 
+class ReportSourceFilter(admin.SimpleListFilter):
+    """D2b-1: машинные пометки «Text-Check» отдельно от жалоб людей."""
+
+    title = _("Quelle")
+    parameter_name = "quelle"
+
+    def lookups(self, request, model_admin):
+        return [("auto", _("Automatisch")), ("meldung", _("Meldung"))]
+
+    def queryset(self, request, queryset):
+        from .moderation import AUTO_MARKER
+
+        if self.value() == "auto":
+            return queryset.filter(ip_hash=AUTO_MARKER)
+        if self.value() == "meldung":
+            return queryset.exclude(ip_hash=AUTO_MARKER)
+        return queryset
+
+
 @admin.register(ListingReport)
 class ListingReportAdmin(ModelAdmin):
     """T-8.6: очередь жалоб «Melden» (постмодерация, автоскрытие при 3 голосах)."""
 
     list_display = ("created_at", "listing", "reason", "status", "listing_hidden")
-    list_filter = ("status", "reason")
+    list_filter = ("status", "reason", ReportSourceFilter)
     search_fields = ("listing__business_name", "message")
     readonly_fields = ("listing", "reason", "message", "created_at")
     fields = ("listing", "reason", "message", "status", "created_at")

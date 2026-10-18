@@ -25513,3 +25513,9 @@ msgstr "The limit for AI checks has been reached. Please try again later."
 
 msgid "KI prüft den Text …"
 msgstr "AI is checking the text …"
+
+msgid "Meldung"
+msgstr "Report"
+
+msgid "Quelle"
+msgstr "Source"

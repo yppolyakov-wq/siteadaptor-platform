@@ -25771,3 +25771,9 @@ msgstr "Лимит проверок ИИ исчерпан. Попробуйте 
 
 msgid "KI prüft den Text …"
 msgstr "ИИ проверяет текст …"
+
+msgid "Meldung"
+msgstr "Жалоба"
+
+msgid "Quelle"
+msgstr "Источник"

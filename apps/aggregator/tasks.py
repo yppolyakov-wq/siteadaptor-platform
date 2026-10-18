@@ -6,6 +6,7 @@ public. Дёргается хуком PromotionSM на переходах (activ
 archived → remove). Резистентна к отсутствию акции/тенанта (просто удаляет листинг).
 """
 
+import logging
 from decimal import Decimal
 
 from celery import shared_task
@@ -13,6 +14,8 @@ from django.conf import settings
 from django_tenants.utils import schema_context
 
 from apps.core.jobs import idempotent_task
+
+logger = logging.getLogger(__name__)
 
 # = AggregatorListing.AVAILABILITY_SOLD_OUT (модель импортируется в задачах лениво).
 AVAILABILITY_SOLD_OUT = "sold_out"
@@ -199,8 +202,39 @@ def _upsert_listing(key: dict, defaults: dict) -> bool:
     obj = AggregatorListing.objects.filter(**key).first()
     if obj is not None and all(getattr(obj, f) == v for f, v in defaults.items()):
         return False
-    AggregatorListing.objects.update_or_create(**key, defaults=defaults)
+    obj, _created = AggregatorListing.objects.update_or_create(**key, defaults=defaults)
+    if not obj.is_demo:  # демо не модерируем: сидинг 79 китов не должен ставить задачи
+        _enqueue_moderation(obj.pk)
     return True
+
+
+def _enqueue_moderation(listing_id) -> None:
+    """D2b-1 (T-8.10e): изменённая карточка → проверка правилами после коммита.
+    Сбой брокера синк не роняет: пометка — подсказка модератору, не гейт."""
+    from django.db import transaction
+
+    def _send():
+        try:
+            moderate_listing.delay(listing_id=listing_id)
+        except Exception:  # noqa: BLE001
+            logger.warning("moderation enqueue failed for listing %s", listing_id)
+
+    transaction.on_commit(_send)
+
+
+@idempotent_task()
+def moderate_listing(*, listing_id) -> None:
+    """D2b-1: правила «Text-Check» (скоуп каталога) + дубли → очередь `ListingReport`."""
+    from . import moderation
+    from .models import AggregatorListing
+
+    listing = AggregatorListing.objects.filter(pk=listing_id).first()
+    if listing is None:
+        return
+    try:
+        moderation.moderate(listing)
+    except Exception:  # noqa: BLE001 — модерация не должна ронять воркер
+        logger.exception("moderation failed for listing %s", listing_id)
 
 
 def _withheld(tenant) -> bool:

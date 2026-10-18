@@ -25571,3 +25571,9 @@ msgstr ""
 
 msgid "KI prüft den Text …"
 msgstr "KI prüft den Text …"
+
+msgid "Meldung"
+msgstr "Meldung"
+
+msgid "Quelle"
+msgstr "Quelle"

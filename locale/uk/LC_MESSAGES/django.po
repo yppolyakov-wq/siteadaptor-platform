@@ -25751,3 +25751,9 @@ msgstr "Ліміт перевірок ШІ вичерпано. Спробуйт�
 
 msgid "KI prüft den Text …"
 msgstr "ШІ перевіряє текст …"
+
+msgid "Meldung"
+msgstr "Скарга"
+
+msgid "Quelle"
+msgstr "Джерело"

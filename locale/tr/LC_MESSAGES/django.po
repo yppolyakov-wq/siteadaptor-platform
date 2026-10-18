@@ -25644,3 +25644,9 @@ msgstr ""
 
 msgid "KI prüft den Text …"
 msgstr "Yapay zekâ metni kontrol ediyor …"
+
+msgid "Meldung"
+msgstr "Bildirim"
+
+msgid "Quelle"
+msgstr "Kaynak"
