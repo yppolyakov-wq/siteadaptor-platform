@@ -25882,3 +25882,7 @@ msgid "%(counter)s ausverkauft"
 msgid_plural "%(counter)s ausverkauft"
 msgstr[0] "%(counter)s sold out"
 msgstr[1] "%(counter)s sold out"
+
+#: apps/publishing/views.py
+msgid "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
+msgstr "The store code in the Google profile contains invalid characters (ASCII only, no spaces, at most 64 characters)."

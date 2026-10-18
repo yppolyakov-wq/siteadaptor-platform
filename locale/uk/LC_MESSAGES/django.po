@@ -26128,3 +26128,7 @@ msgstr[0] "%(counter)s розпродана"
 msgstr[1] "%(counter)s розпродані"
 msgstr[2] "%(counter)s розпродано"
 msgstr[3] "%(counter)s розпродані"
+
+#: apps/publishing/views.py
+msgid "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
+msgstr "Код магазину в профілі Google містить неприпустимі символи (лише ASCII, без пробілів, не більше 64 символів)."

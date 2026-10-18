@@ -443,7 +443,7 @@ def _merchant_store_from_google(request, channel) -> None:
     config = decrypted_config(channel)
     try:
         _v4, v1 = gbp.location_ids(config)
-        value = merchant.clean_store_code(gbp.get_store_code(gbp.access_token(config), v1))
+        raw = gbp.get_store_code(gbp.access_token(config), v1)
     except gbp.GbpError as exc:
         if exc.code == "not_configured":
             messages.error(
@@ -454,6 +454,16 @@ def _merchant_store_from_google(request, channel) -> None:
             messages.error(
                 request, GBP_ERROR_MESSAGES.get(exc.code) or GBP_ERROR_MESSAGES["bad_response"]
             )
+        return
+    value = merchant.clean_store_code(raw)
+    if value is None:
+        messages.error(
+            request,
+            _(
+                "Der Shopcode im Google-Profil enthält unzulässige Zeichen "
+                "(nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
+            ),
+        )
         return
     if not value:
         messages.error(request, _("Im Google-Profil ist kein Shopcode hinterlegt."))

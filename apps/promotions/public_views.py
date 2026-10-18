@@ -3173,11 +3173,13 @@ def merchant_local_xml(request, token):
     if denied:
         return denied
     store_code = state["store_code"] if state["enabled"] else ""
+    name = getattr(getattr(request, "tenant", None), "name", "") or "Shop"
     xml = build_local_inventory_feed(
         products=google.merchant_products() if store_code else [],
         store_code=store_code,
-        title=getattr(getattr(request, "tenant", None), "name", "") or "Shop",
+        title=name,
         link=request.build_absolute_uri(reverse("storefront-home")),
+        description=_("Products from %(name)s") % {"name": name},
     )
     return _merchant_feed_response(request, xml)
 

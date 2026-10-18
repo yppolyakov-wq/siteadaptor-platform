@@ -151,7 +151,7 @@ def _rss(head: str, items: list[str]) -> str:
     )
 
 
-def build_local_inventory_feed(*, products, store_code, title, link) -> str:
+def build_local_inventory_feed(*, products, store_code, title, link, description="") -> str:
     """M23b.3: фид наличия в магазине (Merchant Center «Lokales Inventar») — те же id, что в
     фиде товаров, + store_code из профиля Google. Без кода магазина — пустой валидный фид."""
     items = []
@@ -169,7 +169,11 @@ def build_local_inventory_feed(*, products, store_code, title, link) -> str:
                         }
                     )
                 )
-    head = f"<title>{escape(title)}</title><link>{escape(link)}</link>"
+    # RSS 2.0 требует <description> у канала — пустой фид тоже должен быть валидным.
+    head = (
+        f"<title>{escape(title)}</title><link>{escape(link)}</link>"
+        f"<description>{escape(description or title)}</description>"
+    )
     return _rss(head, items)
 
 

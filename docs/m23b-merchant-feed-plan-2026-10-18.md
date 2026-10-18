@@ -25,6 +25,9 @@ Commerce** (`docs/meta-social-setup.md`) — ломать его нельзя. �
 - **В-6** одна точка (один store code) в v1.
 - **В-7** `hide_in_google` полем с миграцией (`catalog/0039`), как `hide_in_city`.
 - **В-8** `limited_availability` не используем: `in_stock` + `quantity`.
+- **В-9** (planner, M23b.3) id позиции в фиде Merchant ≤ 50 знаков (лимит Google): товар — `str(pk)`,
+  вариант — `pk.hex` (прежний «товар:вариант» — 73 знака, Google отклонял бы). Один источник id
+  для обоих фидов — `feed.merchant_item_rows`. Старый `/feed/google.xml` (Meta) — прежние id.
 
 ## 3. Инкременты
 
@@ -37,9 +40,12 @@ Commerce** (`docs/meta-social-setup.md`) — ломать его нельзя. �
 - **M23b.2 ✅** (2026-10-18) экран `/dashboard/channels/google/merchant/`: тумблер, адрес + копирование,
   перевыпуск токена, «N Produkte im Feed», исключённые по причинам, инструкция связки
   Merchant Center ↔ профиль.
-- **M23b.3** локальный инвентарь `/feed/merchant/<token>/local.xml` (store_code, id, availability,
-  quantity); store code из профиля Google (`storeCode`) или вручную. ⚠️ До кода сверить формат
-  (XML или только TSV) и нужен ли он магазину с одной точкой.
+- **M23b.3 ✅** (2026-10-18, без миграций) локальный инвентарь `/feed/merchant/<token>/local.xml`:
+  id/store_code/availability/quantity, пустой валидный фид без кода магазина или при выключенном фиде;
+  общая защита обоих адресов (один счётчик лимита, `compare_digest`, ETag/304, noindex); код магазина
+  вручную или «Aus Google-Profil übernehmen» (`storeCode`); экран — второй адрес, счётчики позиций,
+  шаги подключения; перевыпуск меняет оба адреса. Допущение: Merchant Center принимает файл наличия
+  как RSS с полями `g:`; если нет — тот же набор строк отдаётся `local.tsv`.
 - **M23b.4** цена акции в фиде (`sale_price` + даты) тем же резолвером, что витрина.
 
 ## 4. Риски

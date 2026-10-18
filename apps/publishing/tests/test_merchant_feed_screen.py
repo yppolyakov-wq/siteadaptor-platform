@@ -328,6 +328,9 @@ def test_store_code_from_google(owner, isolated_ratelimit, monkeypatch):
     monkeypatch.setattr(gbp, "get_store_code", lambda token, v1: "")
     _post(owner, action="store_from_google")
     assert _store_code() == "G-77"  # пустой ответ Google код не стирает
+    monkeypatch.setattr(gbp, "get_store_code", lambda token, v1: "Köln 1")
+    _post(owner, action="store_from_google")
+    assert _store_code() == "G-77"  # недопустимый код из Google не записывается
 
 
 def test_store_code_from_google_error_changes_nothing(owner, isolated_ratelimit, monkeypatch):

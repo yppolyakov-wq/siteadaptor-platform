@@ -268,6 +268,7 @@ def test_merchant_ids_fit_google_limit_and_match_between_feeds(isolated_ratelimi
     p = _product()
     for label in ("S", "M"):
         ProductVariant.objects.create(product=p, label=label, price=Decimal("5"), stock_quantity=3)
+    ProductVariant.objects.create(product=p, label="Gratis", price=Decimal("0"), stock_quantity=1)
     _product()  # без вариантов
     products_ids = _ids(_get().content.decode())
     local_ids = _ids(_local().content.decode())
@@ -334,8 +335,9 @@ def test_local_feed_empty_without_code_or_disabled(isolated_ratelimit, code, ena
     _product()
     resp = _local()
     assert resp.status_code == 200
-    minidom.parseString(resp.content)
+    doc = minidom.parseString(resp.content)
     assert b"<item>" not in resp.content
+    assert doc.getElementsByTagName("channel")[0].getElementsByTagName("description")
 
 
 def test_local_feed_guard_and_headers(isolated_ratelimit):

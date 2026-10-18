@@ -26014,3 +26014,7 @@ msgid "%(counter)s ausverkauft"
 msgid_plural "%(counter)s ausverkauft"
 msgstr[0] "%(counter)s tükendi"
 msgstr[1] "%(counter)s tükendi"
+
+#: apps/publishing/views.py
+msgid "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
+msgstr "Google profilindeki mağaza kodu geçersiz karakterler içeriyor (yalnızca ASCII, boşluksuz, en fazla 64 karakter)."
