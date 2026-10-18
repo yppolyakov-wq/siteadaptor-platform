@@ -40,6 +40,13 @@ _REASONS = {
     "dringlichkeit_heute": ListingReport.REASON_WRONG,
     "raeumung": ListingReport.REASON_WRONG,
     "gesundheit": ListingReport.REASON_WRONG,
+    # D2b-2: причины ИИ-модерации («illegal» — «Anstößig oder rechtswidrig»).
+    "ai_spam": ListingReport.REASON_SPAM,
+    "ai_offensive": ListingReport.REASON_OFFENSIVE,
+    "ai_illegal": ListingReport.REASON_OFFENSIVE,
+    "ai_implausible": ListingReport.REASON_WRONG,
+    "ai_misleading": ListingReport.REASON_WRONG,
+    "ai_off_topic": ListingReport.REASON_OTHER,
 }
 # Приоритет причины, если кодов несколько: спам важнее «неверных данных».
 _REASON_ORDER = (
@@ -154,11 +161,19 @@ def check_listing(listing) -> list[tc.Finding]:
 
 
 def _message(findings, source: str) -> str:
+    """Метка источника — из самих находок (`rule`, `ai`, `ai+rule`): пометка только
+    правилами байт-в-байт прежняя, а общий вызов не даёт ИИ затереть коды правил."""
     codes = sorted({f.code for f in findings})
-    quote = _clean_quote(next((f.quote for f in findings if f.quote), ""))
-    text = f"[auto:{source}] " + ", ".join(codes)
+    label = "+".join(sorted({getattr(f, "source", "") or source for f in findings}))
+    rule_quote = next((f.quote for f in findings if f.quote and f.source != "ai"), "")
+    ai_quote = next((f.quote for f in findings if f.quote and f.source == "ai"), "")
+    quote = _clean_quote(rule_quote or ai_quote)
+    text = f"[auto:{label}] " + ", ".join(codes)
     if quote:
         text += f" — „{quote[:MESSAGE_QUOTE_MAX]}“"
+    ai_quote = _clean_quote(ai_quote)
+    if rule_quote and ai_quote and ai_quote != quote:
+        text += f" · KI: „{ai_quote[:MESSAGE_QUOTE_MAX]}“"
     return text[:1000]
 
 
@@ -197,4 +212,13 @@ def moderate(listing) -> ListingReport | None:
         return None
     if listing.is_demo or _internal(listing.tenant_schema):
         return None
-    return flag(listing, check_listing(listing))
+    rules = check_listing(listing)
+    # D2b-2: ИИ только добавляет находки; любой сбой — путь правил как прежде.
+    from . import ai_moderation
+
+    try:
+        ai = ai_moderation.review(listing)
+    except Exception:
+        logger.exception("catalog ai moderation failed for listing %s", listing.pk)
+        ai = []
+    return flag(listing, rules + ai)

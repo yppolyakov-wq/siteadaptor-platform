@@ -7,9 +7,11 @@ class AggregatorConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
 
     def ready(self):
+        # D2b-2: регистрация задачи ИИ-модерации (Celery-воркер должен её знать).
         # Сброс кэша резолвера host→портал при изменении AggregatorPortal.
         from django.db.models.signals import post_delete, post_save
 
+        from . import ai_moderation  # noqa: F401
         from .middleware import clear_portal_cache
         from .models import AggregatorPortal
 
