@@ -4,22 +4,17 @@
 статусом middleware блокирует POST (read-only) и уводит на биллинг.
 """
 
-import logging
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import connection
 from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy, ngettext
+from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
 
 from . import oauth
 from .models import Channel, Publication
-
-logger = logging.getLogger("publishing")
 
 
 def _ensure_channels():
@@ -232,17 +227,6 @@ GBP_ERROR_MESSAGES = {
 }
 
 
-def _hint_count(promo, tenant) -> int:
-    """Число подсказок «Text-Check» (только правила, без ИИ) у черновика из Google."""
-    try:
-        from apps.promotions.text_check import for_promotion
-
-        return len(for_promotion(promo, tenant))
-    except Exception as exc:  # noqa: BLE001 — подсказка не важнее экрана
-        logger.warning("gbp hint count failed: %s", type(exc).__name__)
-        return 0
-
-
 def _owner(request) -> bool:
     """Вторая линия к owner-only префиксу middleware: экран пишет во внешний профиль."""
     from apps.core.roles import is_owner
@@ -319,18 +303,6 @@ def _gbp_render(request, channel, config, *, error_code="", quiet=False, **extra
         "error_code": error_code,
         "error_message": GBP_ERROR_MESSAGES.get(error_code, ""),
     }
-    if context["connected"] and context["location"]:
-        from apps.promotions.models import Promotion
-
-        drafts = list(Promotion.objects.filter(metadata__source="gbp").order_by("-created_at")[:20])
-        for promo in drafts:
-            promo.hints = (
-                _hint_count(promo, getattr(request, "tenant", None))
-                if promo.status == "draft"
-                else 0
-            )
-        context["gbp_drafts"] = drafts
-        context["posts_pulled_at"] = _latest(state.get("posts_pulled_at"))
     context.update(extra)
     return render(request, "publishing/gbp_sync.html", context)
 
@@ -406,110 +378,6 @@ def gbp_hours(request):
         hours_diff=diff,
         hours_confirm=confirm_needed,
     )
-
-
-GBP_IMPORT_LIMIT = 1
-GBP_IMPORT_WINDOW = 60
-
-
-@login_required
-@require_POST
-def gbp_import(request):
-    """Д3-3: «Jetzt von Google holen» — Offer-посты локации → черновики акций."""
-    from apps.core import ratelimit
-
-    from . import gbp
-    from .gbp_import import import_offers
-
-    if not _owner(request):
-        return HttpResponseForbidden(_("Nur für Inhaber."))
-    schema = getattr(connection, "schema_name", "") or ""
-    if ratelimit.hit("gbp-import", schema, limit=GBP_IMPORT_LIMIT, window=GBP_IMPORT_WINDOW):
-        messages.error(request, _("Bitte einen Moment warten und erneut versuchen."))
-        return redirect("gbp-sync")
-    channel = _gbp_channel()
-    try:
-        result = import_offers(channel, request.tenant)
-    except gbp.GbpError as exc:
-        _gbp_sync_update(channel.pk, last_error_code=exc.code, last_status=exc.status)
-        return redirect("gbp-sync")
-    if result.complete:
-        _gbp_sync_update(channel.pk, last_error_code="", last_status=0, posts_pulled_at=_now())
-    else:
-        messages.warning(
-            request,
-            _("Nicht alle Beiträge konnten geholt werden – bitte später erneut versuchen."),
-        )
-    if result.created:
-        messages.success(
-            request,
-            ngettext(
-                "%(n)s neuer Entwurf aus Google",
-                "%(n)s neue Entwürfe aus Google",
-                result.created,
-            )
-            % {"n": result.created},
-        )
-    if result.updated:
-        messages.success(
-            request,
-            ngettext(
-                "%(n)s Entwurf aktualisiert",
-                "%(n)s Entwürfe aktualisiert",
-                result.updated,
-            )
-            % {"n": result.updated},
-        )
-    if result.flagged_changed:
-        messages.warning(
-            request,
-            ngettext(
-                "%(n)s Angebot bei Google geändert",
-                "%(n)s Angebote bei Google geändert",
-                result.flagged_changed,
-            )
-            % {"n": result.flagged_changed},
-        )
-    if result.deferred:
-        messages.info(request, _("Weitere Angebote beim nächsten Abruf"))
-    if result.complete and not (result.created or result.updated or result.flagged_changed):
-        messages.info(request, _("Keine neuen Angebote bei Google"))
-    return redirect("gbp-sync")
-
-
-@login_required
-@require_POST
-def gbp_dismiss(request):
-    """Д3-3: «Nicht übernehmen» — удалить черновик из Google и больше не импортировать."""
-    from apps.promotions.models import Promotion
-
-    from .gbp_import import dismiss
-
-    if not _owner(request):
-        return HttpResponseForbidden(_("Nur für Inhaber."))
-    try:
-        dismiss(_gbp_channel().pk, request.POST.get("promotion"))
-    except (Promotion.DoesNotExist, ValueError, TypeError, ValidationError):
-        messages.error(request, _("Nur Entwürfe aus Google lassen sich hier verwerfen."))
-        return redirect("gbp-sync")
-    messages.success(request, _("Entwurf verworfen – wird nicht erneut übernommen."))
-    return redirect("gbp-sync")
-
-
-@login_required
-@require_POST
-def gbp_ack(request):
-    """D3-4a: «Ausblenden» — скрыть пометку «Bei Google geändert» до следующей версии."""
-    from .gbp_import import ack_change
-
-    if not _owner(request):
-        return HttpResponseForbidden(_("Nur für Inhaber."))
-    try:
-        ack_change(request.POST.get("promotion"))
-    except (ObjectDoesNotExist, ValueError, TypeError, ValidationError):
-        return redirect("gbp-sync")
-    messages.success(request, _("Hinweis ausgeblendet"))
-    return redirect("gbp-sync")
 
 
 def _latest(*stamps):

@@ -8,17 +8,6 @@
     {% if is_create %}{% trans "New promotion" %}{% else %}{% trans "Edit promotion" %}{% endif %}
   </h1>
 
-  {% if promotion and promotion.metadata.source == "gbp" %}
-    {% comment %}D3-4a: черновик из Google — откуда он, что изменилось у Google; код и ссылка только текстом.{% endcomment %}
-    <div class="mb-4 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900" data-gbp-plate>
-      <span class="font-medium">{% trans "Aus Google" %}</span>
-      {% if promotion.metadata.gbp_changed %}<span class="ml-2 text-amber-800" data-gbp-changed>· {% trans "Bei Google geändert" %}</span>{% endif %}
-      {% if promotion.metadata.gbp_gone %}<span class="ml-2 text-gray-600" data-gbp-gone>· {% trans "Bei Google entfernt" %}</span>{% endif %}
-      {% if promotion.metadata.gbp_coupon_code %}<span class="block text-xs mt-1">{% trans "Code" %}: {{ promotion.metadata.gbp_coupon_code }}</span>{% endif %}
-      {% if promotion.metadata.gbp_redeem_url %}<span class="block text-xs break-all">{% trans "Online einlösen" %}: {{ promotion.metadata.gbp_redeem_url }}</span>{% endif %}
-    </div>
-  {% endif %}
-
   {% if messages %}
     {% for m in messages %}
       <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>

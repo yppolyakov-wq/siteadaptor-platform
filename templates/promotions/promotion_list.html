@@ -57,14 +57,7 @@
         <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
-    {% if quelle %}<input type="hidden" name="quelle" value="{{ quelle }}">{% endif %}
   </form>
-  {% if has_gbp_promos %}
-    {% comment %}Д3-3: фильтр «из Google» — импортированные Offer-посты.{% endcomment %}
-    <a href="?{% if not quelle %}quelle=gbp&amp;{% endif %}status={{ status|urlencode }}"
-       class="rounded-full border px-3 py-1.5 text-sm {% if quelle %}border-indigo-300 bg-indigo-50 text-indigo-800{% else %}border-gray-300 text-gray-700{% endif %}"
-       data-gbp-filter>{% trans "Aus Google" %}{% if quelle %} ✕{% endif %}</a>
-  {% endif %}
   {% if not lite %}
   {% comment %}DL-13 C3: как гл. страница /aktionen/ группирует акции — тематические
   группы владельца (как было) или Prospekt «по времени» (Endet heute/diese Woche…).
@@ -124,7 +117,6 @@
           </p>
           <p class="text-xs mt-0.5">
             <span class="px-1.5 py-0.5 rounded-full {% if p.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-700{% endif %}">{{ p.status_label }}</span>
-            {% if p.metadata.source == "gbp" %}<span class="ml-1 px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-800" data-gbp-badge>{% trans "Aus Google" %}</span>{% endif %}{% if p.metadata.gbp_changed %}<span class="ml-1 px-1.5 py-0.5 rounded-full text-[11px] bg-amber-50 text-amber-800" data-gbp-changed>{% trans "Bei Google geändert" %}</span>{% endif %}{% if p.metadata.gbp_gone %}<span class="ml-1 px-1.5 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-600" data-gbp-gone>{% trans "Bei Google entfernt" %}</span>{% endif %}
             {% if p.ends_at %}<span class="ml-1 text-gray-500">{% trans "bis" %} {{ p.ends_at|date:"d.m. H:i" }}</span>{% endif %}
           </p>
           <p class="text-[11px] text-gray-400 mt-0.5" data-promo-counters>👁 {{ p.views }} · <a href="{% url 'promotions:reservation-list' %}?promotion={{ p.pk }}" class="underline">{% trans "zurückgelegt" %} {{ p.n_held }}</a> · {% trans "ausgegeben" %} {{ p.n_handed }}</p>
@@ -168,7 +160,6 @@
           <td class="py-2">
             <span class="px-2 py-0.5 rounded-full {% if p.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100{% endif %}">{{ p.status_label }}</span>
             {% if p.status != 'active' %}<span class="ml-1 text-[11px] text-amber-700">{% trans "nicht sichtbar" %}</span>{% endif %}
-            {% if p.metadata.source == "gbp" %}<span class="ml-1 px-1.5 py-0.5 rounded-full text-[11px] bg-sky-50 text-sky-800" data-gbp-badge>{% trans "Aus Google" %}</span>{% endif %}{% if p.metadata.gbp_changed %}<span class="ml-1 px-1.5 py-0.5 rounded-full text-[11px] bg-amber-50 text-amber-800" data-gbp-changed>{% trans "Bei Google geändert" %}</span>{% endif %}{% if p.metadata.gbp_gone %}<span class="ml-1 px-1.5 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-600" data-gbp-gone>{% trans "Bei Google entfernt" %}</span>{% endif %}
           </td>
           <td class="py-2">{% if p.available_quantity is None %}∞{% else %}{{ p.available_quantity }}{% endif %}</td>
           <td class="py-2 text-gray-500">{{ p.starts_at|default:"—" }} → {{ p.ends_at|default:"—" }}</td>

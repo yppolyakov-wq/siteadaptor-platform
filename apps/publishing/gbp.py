@@ -256,32 +256,3 @@ def patch_regular_hours(token: str, v1_name: str, periods: list) -> None:
         raise GbpError("network") from exc
     if response.status_code >= 400:
         raise _error_for(response)
-
-
-MAX_POSTS = 500
-
-
-def iter_local_posts(token: str, v4_name: str, *, max_pages: int = MAX_PAGES) -> tuple[list, bool]:
-    """Посты локации (легаси v4). → (посты, complete): complete=False, если прошли не все
-    страницы (ошибка на следующей странице или кап) — по такому проходу нельзя судить, что
-    какого-то поста у Google больше нет. Ошибка ПЕРВОЙ страницы поднимается как GbpError."""
-    if not LOCATION_RE.fullmatch(v4_name or ""):
-        raise GbpError("not_configured")
-    url = f"{V4_API}/{v4_name}/localPosts"
-    params: dict = {"pageSize": 100}
-    posts: list = []
-    for page in range(max_pages):
-        try:
-            data = _get(url, token, params)
-        except GbpError:
-            if page == 0:
-                raise
-            return posts, False
-        posts += [row for row in _list(data.get("localPosts")) if isinstance(row, dict)]
-        page_token = data.get("nextPageToken")
-        if not isinstance(page_token, str) or not page_token:
-            return posts[:MAX_POSTS], len(posts) <= MAX_POSTS
-        if len(posts) >= MAX_POSTS:
-            return posts[:MAX_POSTS], False
-        params["pageToken"] = page_token
-    return posts[:MAX_POSTS], False

@@ -7,7 +7,6 @@
 
 from django.db import connection
 
-from .gbp_import import is_imported
 from .models import Channel, Publication
 from .state_machine import FAILED, QUEUED, REMOVED, PublicationSM
 from .tasks import publish_to_channel, remove_from_channel
@@ -32,10 +31,6 @@ def _publish_all(promotion) -> None:
                 "status": QUEUED,
             },
         )
-        # Д3-3: журнал импорта поста Google — это пост владельца, а не наш; ни при
-        # активации, ни при повторной активации после паузы он в очередь не уходит.
-        if is_imported(pub):
-            continue
         # повторная активация: вернуть removed/failed в очередь
         if pub.status in (REMOVED, FAILED):
             sm.apply(pub, QUEUED)

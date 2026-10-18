@@ -570,7 +570,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Google-Profil"),
         "channels",
         "publishing",
-        search="google profil öffnungszeiten angebote sync standort",
+        search="google profil öffnungszeiten standort sync",
         owner_only=True,
         palette_only=True,
     ),

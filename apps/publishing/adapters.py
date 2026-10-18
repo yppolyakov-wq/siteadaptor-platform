@@ -19,7 +19,6 @@ from django.db import connection
 from django.utils.translation import gettext as _
 from django_tenants.utils import schema_context
 
-from .gbp_import import is_imported
 from .secrets import decrypted_config
 
 logger = logging.getLogger("publishing")
@@ -80,8 +79,6 @@ def _gbp_access_token(config) -> str:
 
 
 def _gbp_publish(publication) -> str:
-    if is_imported(publication):
-        return publication.external_ref  # Д3-3: импортированный пост уже живёт у Google
     config = decrypted_config(publication.channel)
     missing = [key for key in ("location", "refresh_token") if not config.get(key)]
     if missing:
@@ -108,10 +105,6 @@ def _gbp_publish(publication) -> str:
 
 
 def _gbp_remove(publication) -> None:
-    # Д3-3 (В-6): пост, импортированный из Google, принадлежит владельцу — не удаляем,
-    # Google сам снимет оффер по своей дате окончания.
-    if is_imported(publication):
-        return
     config = decrypted_config(publication.channel)
     # нет поста или канал разобран — снятие считаем выполненным (идемпотентно)
     if not publication.external_ref or not config.get("refresh_token"):

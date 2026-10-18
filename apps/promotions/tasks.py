@@ -177,12 +177,6 @@ def _spawn_recurrence(promo, now):
         recurrence=promo.recurrence,
         **{f: getattr(promo, f) for f in _RECUR_CLONE_FIELDS},
     )
-    # Д3-3: наследник — НАША акция, а не импорт из Google: маркеры импорта не наследуются
-    # (иначе бейдж «Aus Google», «Nicht übernehmen» на неимпортированном черновике).
-    meta = dict(heir.metadata or {})
-    if meta.get("source") == "gbp":
-        meta.pop("source")
-    heir.metadata = {k: v for k, v in meta.items() if not k.startswith("gbp_")}
     heir.save()
     PromotionSM().apply(heir, "scheduled")
 
