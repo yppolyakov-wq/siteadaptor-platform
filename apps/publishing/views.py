@@ -411,3 +411,100 @@ def gbp_location(request):
     Channel.update_config(channel.pk, lambda config: config.__setitem__("location", location))
     messages.success(request, _("Standort gespeichert."))
     return redirect("gbp-sync")
+
+
+MERCHANT_ADMIN_LIMIT = 10  # действий с фидом в минуту на бизнес
+MERCHANT_ADMIN_WINDOW = 60
+
+
+def _merchant_feed_url(request, token: str) -> str:
+    """Адрес фида на ОСНОВНОМ домене бизнеса — он не меняется от того, через какой
+    домен владелец открыл кабинет (у своего домена поддомен отвечает 301)."""
+    from django.urls import reverse
+
+    path = reverse("storefront-merchant-feed", args=[token])
+    tenant = getattr(request, "tenant", None)
+    try:
+        primary = tenant.domains.filter(is_primary=True).first() if tenant else None
+    except Exception:  # noqa: BLE001 — без домена отдаём адрес текущего запроса
+        primary = None
+    if primary:
+        return f"{request.scheme}://{primary.domain}{path}"
+    return request.build_absolute_uri(path)
+
+
+@login_required
+def merchant_feed(request):
+    """Экран «Google Merchant Center» (M23b.2): включить фид, адрес, новый адрес, что в фиде.
+
+    Не зависит от подключения Google и от переключателя канала — владелец вносит адрес
+    в Merchant Center сам. Конфиг канала в шаблон не передаём целиком."""
+    from apps.catalog import google
+    from apps.core import ratelimit
+
+    from . import merchant
+
+    if not _owner(request):
+        return HttpResponseForbidden(_("Nur für Inhaber."))
+    channel = merchant.channel()
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        schema = getattr(connection, "schema_name", "") or ""
+        if action not in ("enable", "disable", "rotate"):
+            return redirect("gbp-merchant")
+        if ratelimit.hit(
+            "merchant-feed-admin", schema, limit=MERCHANT_ADMIN_LIMIT, window=MERCHANT_ADMIN_WINDOW
+        ):
+            messages.error(request, _("Bitte einen Moment warten und erneut versuchen."))
+            return redirect("gbp-merchant")
+        if action == "enable":
+            merchant.enable(channel.pk)
+            messages.success(request, _("Der Produktfeed ist eingeschaltet."))
+        elif action == "disable":
+            merchant.disable(channel.pk)
+            messages.success(
+                request, _("Der Produktfeed ist ausgeschaltet. Google erhält einen leeren Feed.")
+            )
+        elif request.POST.get("confirm") == "rotate":
+            merchant.rotate(channel.pk)
+            messages.success(
+                request, _("Neue Adresse erzeugt. Bitte in Merchant Center eintragen.")
+            )
+        else:
+            messages.error(request, _("Bitte bestätigen, dass die alte Adresse ungültig wird."))
+        return redirect("gbp-merchant")
+
+    state = merchant.feed_state(channel)
+    data = google.overview()
+    excluded = [
+        {
+            "code": code,
+            "label": google.REASON_LABELS.get(code, code),
+            "count": group["count"],
+            "items": [
+                {"product": p, "labels": [google.REASON_LABELS.get(r, r) for r in reasons]}
+                for p, reasons in group["items"]
+            ],
+        }
+        for code, group in data["excluded"].items()
+    ]
+    warnings = [
+        {
+            "code": code,
+            "label": google.WARNING_LABELS.get(code, code),
+            "count": group["count"],
+            "items": group["items"],
+        }
+        for code, group in data["warnings"].items()
+    ]
+    context = {
+        "nav": "channels",
+        "enabled": state["enabled"],
+        "issued_at": state["issued_at"],
+        "feed_url": _merchant_feed_url(request, state["token"]) if state["token"] else "",
+        "token_unreadable": bool(state["enabled"] and not state["token"]),
+        "included": data["included"],
+        "excluded": excluded,
+        "warnings": warnings,
+    }
+    return render(request, "publishing/merchant_feed.html", context)

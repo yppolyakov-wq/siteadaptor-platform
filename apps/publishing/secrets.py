@@ -7,7 +7,7 @@ page_id, chat_id, board_id, ig_user_id) не секретны и остаютс�
 
 from apps.secrets import crypto
 
-SECRET_KEYS = ("refresh_token", "access_token", "bot_token")
+SECRET_KEYS = ("refresh_token", "access_token", "bot_token", "merchant_feed_token")
 
 
 def decrypted_config(channel) -> dict:

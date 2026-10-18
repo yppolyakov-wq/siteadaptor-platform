@@ -39,6 +39,7 @@
           </a>
           {% endif %}
           <a href="{% url 'gbp-sync' %}" class="block mt-2 text-sm text-indigo-700 hover:underline">{% trans "Google-Profil synchronisieren" %} →</a>
+          {% if can_manage %}<a href="{% url 'gbp-merchant' %}" class="block mt-1 text-sm text-indigo-700 hover:underline">{% trans "Google Merchant Center" %} →</a>{% endif %}
           <p class="text-xs text-gray-400 mt-1">{% trans "Or enter the location and token manually:" %}</p>
           <form method="post" action="{% url 'channel-config' %}" class="mt-2 space-y-2">
             {% csrf_token %}

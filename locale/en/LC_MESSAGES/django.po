@@ -25650,3 +25650,145 @@ msgstr "Manage the location and opening hours of your Google Business Profile. Y
 #: apps/catalog/forms.py
 msgid "Nicht an Google senden"
 msgstr "Do not send to Google"
+
+#: apps/publishing/merchant_feed
+msgid "Google Merchant Center"
+msgstr "Google Merchant Center"
+
+#: apps/publishing/merchant_feed
+msgid "Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab."
+msgstr "Your products with price and availability are sent to Google via a feed. You switch the feed on or off here – Google fetches it regularly."
+
+#: apps/publishing/merchant_feed
+msgid "Produktfeed"
+msgstr "Product feed"
+
+#: apps/publishing/merchant_feed
+msgid "Eingeschaltet"
+msgstr "Switched on"
+
+#: apps/publishing/merchant_feed
+msgid "Ausgeschaltet – Google erhält einen leeren Feed."
+msgstr "Switched off – Google receives an empty feed."
+
+#: apps/publishing/merchant_feed
+msgid "Feed ausschalten"
+msgstr "Switch feed off"
+
+#: apps/publishing/merchant_feed
+msgid "Feed einschalten"
+msgstr "Switch feed on"
+
+#: apps/publishing/merchant_feed
+msgid "Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal eingeschaltet“ – dieser gilt nur für Aktionen."
+msgstr "The feed does not depend on the Google connection or on the “Channel enabled” switch – that switch only applies to promotions."
+
+#: apps/publishing/merchant_feed
+msgid "Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und in Merchant Center eintragen."
+msgstr "The feed address can no longer be read. Please create a new address and enter it in Merchant Center."
+
+#: apps/publishing/merchant_feed
+msgid "Feed-Adresse"
+msgstr "Feed address"
+
+#: apps/publishing/merchant_feed
+msgid "Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie sie wie ein Passwort."
+msgstr "Enter this address in Merchant Center as a product source. Treat it like a password."
+
+#: apps/publishing/merchant_feed
+msgid "Kopiert."
+msgstr "Copied."
+
+#: apps/publishing/merchant_feed
+msgid "Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in Merchant Center ersetzt werden."
+msgstr "I understand: the previous address will stop working and must be replaced in Merchant Center."
+
+#: apps/publishing/merchant_feed
+msgid "Neue Adresse erzeugen"
+msgstr "Create new address"
+
+#: apps/publishing/merchant_feed
+msgid "So verbinden Sie Merchant Center"
+msgstr "How to connect Merchant Center"
+
+#: apps/publishing/merchant_feed
+msgid "Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website bestätigen."
+msgstr "Create a Google Merchant Center account (free) and verify your website."
+
+#: apps/publishing/merchant_feed
+msgid "Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und die Feed-Adresse oben eintragen."
+msgstr "Under “Products”, add a “File” data source with scheduled fetch and enter the feed address above."
+
+#: apps/publishing/merchant_feed
+msgid "In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann erscheinen die Produkte auch in Ihrem Profil und auf Google Maps."
+msgstr "Link your Google Business Profile in Merchant Center – the products then also appear in your profile and on Google Maps."
+
+#: apps/publishing/merchant_feed
+msgid "Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand – er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit Google die richtige Verfügbarkeit zeigt."
+msgstr "The “Available in store” label also needs local inventory – it follows as a separate feed. Keep your stock levels up to date so Google shows the right availability."
+
+#: apps/publishing/merchant_feed
+msgid "Aktive Produkte mit Foto und Preis, die nicht ausgeblendet sind."
+msgstr "Active products with a photo and price that are not hidden."
+
+#: apps/publishing/merchant_feed
+msgid "Nicht im Feed"
+msgstr "Not in the feed"
+
+#: apps/publishing/merchant_feed
+msgid "Hinweise"
+msgstr "Notes"
+
+#: apps/publishing/merchant_feed
+msgid "Produkte bei Google"
+msgstr "Products on Google"
+
+#: apps/publishing/merchant_feed
+msgid "Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google senden."
+msgstr "Send products with price and availability to Google via Google Merchant Center."
+
+#: apps/publishing/merchant_feed
+msgid "Der Produktfeed ist eingeschaltet."
+msgstr "The product feed is switched on."
+
+#: apps/publishing/merchant_feed
+msgid "Der Produktfeed ist ausgeschaltet. Google erhält einen leeren Feed."
+msgstr "The product feed is switched off. Google receives an empty feed."
+
+#: apps/publishing/merchant_feed
+msgid "Neue Adresse erzeugt. Bitte in Merchant Center eintragen."
+msgstr "New address created. Please enter it in Merchant Center."
+
+#: apps/publishing/merchant_feed
+msgid "Bitte bestätigen, dass die alte Adresse ungültig wird."
+msgstr "Please confirm that the old address will become invalid."
+
+#: apps/publishing/merchant_feed
+msgid "Mit „Nicht an Google senden“ ausgeblendet"
+msgstr "Hidden with “Do not send to Google”"
+
+#: apps/publishing/merchant_feed
+msgid "Kategorie ausgeblendet oder inaktiv"
+msgstr "Category hidden or inactive"
+
+#: apps/publishing/merchant_feed
+msgid "Kein Foto"
+msgstr "No photo"
+
+#: apps/publishing/merchant_feed
+msgid "Kein Preis"
+msgstr "No price"
+
+#: apps/publishing/merchant_feed
+msgid "Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"
+msgstr "No EAN, item number or brand – Google shows the product less often"
+
+#: apps/publishing/merchant_feed
+msgid "Keine Beschreibung"
+msgstr "No description"
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s Produkt im Feed"
+msgid_plural "%(counter)s Produkte im Feed"
+msgstr[0] "%(counter)s product in the feed"
+msgstr[1] "%(counter)s products in the feed"

@@ -120,6 +120,12 @@
   </section>
   {% endif %}
 
+  <section class="bg-white border border-gray-200 rounded-2xl p-5">
+    <h2 class="font-semibold mb-1">{% trans "Produkte bei Google" %}</h2>
+    <p class="text-sm text-gray-600 mb-2">{% trans "Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google senden." %}</p>
+    <a href="{% url 'gbp-merchant' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Google Merchant Center" %} →</a>
+  </section>
+
   <p class="text-xs text-gray-400"><a href="{% url 'channels' %}" class="hover:underline">← {% trans "Publishing channels" %}</a></p>
 </div>
 {% endblock %}

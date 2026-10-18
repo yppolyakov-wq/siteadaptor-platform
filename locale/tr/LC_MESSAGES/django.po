@@ -25782,3 +25782,145 @@ msgstr "Google İşletme Profilinizin konumunu ve çalışma saatlerini yönetin
 #: apps/catalog/forms.py
 msgid "Nicht an Google senden"
 msgstr "Google'a gönderme"
+
+#: apps/publishing/merchant_feed
+msgid "Google Merchant Center"
+msgstr "Google Merchant Center"
+
+#: apps/publishing/merchant_feed
+msgid "Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab."
+msgstr "Fiyat ve stok bilgisiyle ürünleriniz bir feed üzerinden Google'a gider. Feed'i burada açar veya kapatırsınız – Google onu düzenli olarak çeker."
+
+#: apps/publishing/merchant_feed
+msgid "Produktfeed"
+msgstr "Ürün feed'i"
+
+#: apps/publishing/merchant_feed
+msgid "Eingeschaltet"
+msgstr "Açık"
+
+#: apps/publishing/merchant_feed
+msgid "Ausgeschaltet – Google erhält einen leeren Feed."
+msgstr "Kapalı – Google boş bir feed alır."
+
+#: apps/publishing/merchant_feed
+msgid "Feed ausschalten"
+msgstr "Feed'i kapat"
+
+#: apps/publishing/merchant_feed
+msgid "Feed einschalten"
+msgstr "Feed'i aç"
+
+#: apps/publishing/merchant_feed
+msgid "Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal eingeschaltet“ – dieser gilt nur für Aktionen."
+msgstr "Feed, Google bağlantısından ve “Kanal açık” anahtarından bağımsızdır – bu anahtar yalnızca kampanyalar için geçerlidir."
+
+#: apps/publishing/merchant_feed
+msgid "Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und in Merchant Center eintragen."
+msgstr "Feed adresi artık okunamıyor. Lütfen yeni bir adres oluşturup Merchant Center'a girin."
+
+#: apps/publishing/merchant_feed
+msgid "Feed-Adresse"
+msgstr "Feed adresi"
+
+#: apps/publishing/merchant_feed
+msgid "Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie sie wie ein Passwort."
+msgstr "Bu adresi Merchant Center'a ürün kaynağı olarak girin. Ona bir şifre gibi davranın."
+
+#: apps/publishing/merchant_feed
+msgid "Kopiert."
+msgstr "Kopyalandı."
+
+#: apps/publishing/merchant_feed
+msgid "Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in Merchant Center ersetzt werden."
+msgstr "Biliyorum: önceki adres artık çalışmayacak ve Merchant Center'da değiştirilmesi gerekecek."
+
+#: apps/publishing/merchant_feed
+msgid "Neue Adresse erzeugen"
+msgstr "Yeni adres oluştur"
+
+#: apps/publishing/merchant_feed
+msgid "So verbinden Sie Merchant Center"
+msgstr "Merchant Center nasıl bağlanır"
+
+#: apps/publishing/merchant_feed
+msgid "Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website bestätigen."
+msgstr "Google Merchant Center hesabı açın (ücretsiz) ve web sitenizi doğrulayın."
+
+#: apps/publishing/merchant_feed
+msgid "Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und die Feed-Adresse oben eintragen."
+msgstr "“Ürünler” bölümünde zamanlanmış getirmeli bir “Dosya” veri kaynağı ekleyin ve yukarıdaki feed adresini girin."
+
+#: apps/publishing/merchant_feed
+msgid "In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann erscheinen die Produkte auch in Ihrem Profil und auf Google Maps."
+msgstr "Merchant Center'da Google İşletme Profilinizi bağlayın – ürünler profilinizde ve Google Haritalar'da da görünür."
+
+#: apps/publishing/merchant_feed
+msgid "Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand – er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit Google die richtige Verfügbarkeit zeigt."
+msgstr "“Mağazada mevcut” göstergesi ayrıca yerel stok gerektirir – bu ayrı bir feed olarak gelecek. Google'ın doğru stok durumunu göstermesi için stoklarınızı güncel tutun."
+
+#: apps/publishing/merchant_feed
+msgid "Aktive Produkte mit Foto und Preis, die nicht ausgeblendet sind."
+msgstr "Fotoğrafı ve fiyatı olan, gizlenmemiş aktif ürünler."
+
+#: apps/publishing/merchant_feed
+msgid "Nicht im Feed"
+msgstr "Feed'de değil"
+
+#: apps/publishing/merchant_feed
+msgid "Hinweise"
+msgstr "Notlar"
+
+#: apps/publishing/merchant_feed
+msgid "Produkte bei Google"
+msgstr "Google'da ürünler"
+
+#: apps/publishing/merchant_feed
+msgid "Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google senden."
+msgstr "Ürünleri fiyat ve stok bilgisiyle Google Merchant Center üzerinden Google'a gönderin."
+
+#: apps/publishing/merchant_feed
+msgid "Der Produktfeed ist eingeschaltet."
+msgstr "Ürün feed'i açıldı."
+
+#: apps/publishing/merchant_feed
+msgid "Der Produktfeed ist ausgeschaltet. Google erhält einen leeren Feed."
+msgstr "Ürün feed'i kapatıldı. Google boş bir feed alır."
+
+#: apps/publishing/merchant_feed
+msgid "Neue Adresse erzeugt. Bitte in Merchant Center eintragen."
+msgstr "Yeni adres oluşturuldu. Lütfen Merchant Center'a girin."
+
+#: apps/publishing/merchant_feed
+msgid "Bitte bestätigen, dass die alte Adresse ungültig wird."
+msgstr "Lütfen eski adresin geçersiz olacağını onaylayın."
+
+#: apps/publishing/merchant_feed
+msgid "Mit „Nicht an Google senden“ ausgeblendet"
+msgstr "“Google'a gönderme” ile gizlendi"
+
+#: apps/publishing/merchant_feed
+msgid "Kategorie ausgeblendet oder inaktiv"
+msgstr "Kategori gizli veya pasif"
+
+#: apps/publishing/merchant_feed
+msgid "Kein Foto"
+msgstr "Fotoğraf yok"
+
+#: apps/publishing/merchant_feed
+msgid "Kein Preis"
+msgstr "Fiyat yok"
+
+#: apps/publishing/merchant_feed
+msgid "Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"
+msgstr "EAN, ürün numarası veya marka yok – Google ürünü daha seyrek gösterir"
+
+#: apps/publishing/merchant_feed
+msgid "Keine Beschreibung"
+msgstr "Açıklama yok"
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s Produkt im Feed"
+msgid_plural "%(counter)s Produkte im Feed"
+msgstr[0] "Feed'de %(counter)s ürün"
+msgstr[1] "Feed'de %(counter)s ürün"

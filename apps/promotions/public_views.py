@@ -3078,13 +3078,13 @@ MERCHANT_FEED_RATE_WINDOW = 3600
 MERCHANT_FEED_MIN_TOKEN = 32  # короче — не принимаем даже совпадающий (ручная правка конфига)
 
 
-def _merchant_feed_config():
-    """config["merchant_feed"] канала Google Business Profile или None."""
+def _merchant_feed_state() -> dict | None:
+    """Состояние фида канала Google Business Profile (токен расшифрован строго) или None."""
+    from apps.publishing import merchant
     from apps.publishing.models import Channel
 
     channel = Channel.objects.filter(type=Channel.GOOGLE_BUSINESS).first()
-    cfg = (channel.config or {}).get("merchant_feed") if channel else None
-    return cfg if isinstance(cfg, dict) else None
+    return merchant.feed_state(channel) if channel else None
 
 
 def merchant_feed_xml(request, token):
@@ -3109,8 +3109,8 @@ def merchant_feed_xml(request, token):
         window=MERCHANT_FEED_RATE_WINDOW,
     ):
         return HttpResponse(status=429)
-    cfg = _merchant_feed_config()
-    stored = cfg.get("token") if cfg else None
+    state = _merchant_feed_state()
+    stored = state["token"] if state else None
     if not (
         isinstance(stored, str)
         and len(stored) >= MERCHANT_FEED_MIN_TOKEN
@@ -3119,7 +3119,7 @@ def merchant_feed_xml(request, token):
     ):
         return HttpResponse(status=404)  # без шаблона 404: адрес дёргают роботы
     name = getattr(tenant, "name", "") or "Shop"
-    products = google.merchant_products() if cfg.get("enabled") else []
+    products = google.merchant_products() if state["enabled"] else []
     xml = build_google_feed(
         products=products,
         title=name,

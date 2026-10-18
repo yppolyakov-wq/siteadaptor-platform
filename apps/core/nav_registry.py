@@ -574,6 +574,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         owner_only=True,
         palette_only=True,
     ),
+    # M23b.2: фид товаров для Google Merchant Center — вход с «Google-Profil» и «Kanäle».
+    _e(
+        "marketing",
+        "gbp-merchant",
+        _("Google Merchant Center"),
+        "channels",
+        "publishing",
+        search="google merchant produktfeed shopping feed produkte",
+        owner_only=True,
+        palette_only=True,
+    ),
     _e("marketing", "publishing-posts", _("Beiträge"), "posts", "publishing", True, "posting"),
     _e("marketing", "blog-list", _("Blog & News"), "blog", "blog", True),
     _e(

@@ -32,9 +32,17 @@ def _product(**kw):
 
 
 def _channel(enabled=True, token=TOKEN):
+    """M23b.2: токен хранится шифротекстом в `merchant_feed_token` (не в `merchant_feed`)."""
+    from apps.secrets import crypto
+
     return Channel.objects.update_or_create(
         type=Channel.GOOGLE_BUSINESS,
-        defaults={"config": {"merchant_feed": {"enabled": enabled, "token": token}}},
+        defaults={
+            "config": {
+                "merchant_feed": {"enabled": enabled},
+                "merchant_feed_token": crypto.encrypt(token),
+            }
+        },
     )[0]
 
 

@@ -1,0 +1,134 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Google Merchant Center" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-1">{% trans "Google Merchant Center" %}</h1>
+<p class="text-sm text-gray-500 mb-6">{% trans "Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab." %}</p>
+
+<div class="grid gap-4 xl:grid-cols-2 items-start">
+  <div class="space-y-4">
+    <section class="bg-white border border-gray-200 rounded-2xl p-5" data-merchant-status="{% if enabled %}on{% else %}off{% endif %}">
+      <h2 class="font-semibold mb-2">{% trans "Produktfeed" %}</h2>
+      {% if enabled %}
+        <p class="text-sm text-green-700 mb-3">✓ {% trans "Eingeschaltet" %}</p>
+      {% else %}
+        <p class="text-sm text-gray-600 mb-3">{% trans "Ausgeschaltet – Google erhält einen leeren Feed." %}</p>
+      {% endif %}
+      <form method="post" action="{% url 'gbp-merchant' %}">
+        {% csrf_token %}
+        {% if enabled %}
+          <input type="hidden" name="action" value="disable">
+          <button type="submit" class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50">{% trans "Feed ausschalten" %}</button>
+        {% else %}
+          <input type="hidden" name="action" value="enable">
+          <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Feed einschalten" %}</button>
+        {% endif %}
+      </form>
+      <p class="text-xs text-gray-400 mt-3">{% trans "Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal eingeschaltet“ – dieser gilt nur für Aktionen." %}</p>
+    </section>
+
+    {% if token_unreadable %}
+      <div class="rounded-lg border border-amber-200 bg-amber-50 text-amber-800 text-sm px-4 py-3" data-merchant-unreadable>
+        {% trans "Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und in Merchant Center eintragen." %}
+      </div>
+    {% endif %}
+
+    {% if feed_url %}
+    <section class="bg-white border border-gray-200 rounded-2xl p-5">
+      <h2 class="font-semibold mb-2">{% trans "Feed-Adresse" %}</h2>
+      <p class="text-xs text-gray-500 mb-2">{% trans "Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie sie wie ein Passwort." %}</p>
+      <div class="flex gap-2">
+        <input type="text" readonly value="{{ feed_url }}" data-merchant-url
+               class="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono bg-gray-50">
+        <button type="button" data-merchant-copy class="shrink-0 bg-gray-900 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Kopieren" %}</button>
+      </div>
+      <p class="text-xs text-green-700 mt-1 hidden" data-merchant-copied>{% trans "Kopiert." %}</p>
+      <form method="post" action="{% url 'gbp-merchant' %}" class="mt-4 border-t border-gray-100 pt-3 space-y-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="rotate">
+        <label class="flex items-start gap-2 text-xs text-gray-600">
+          <input type="checkbox" name="confirm" value="rotate" required class="mt-0.5">
+          {% trans "Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in Merchant Center ersetzt werden." %}
+        </label>
+        <button type="submit" class="border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">{% trans "Neue Adresse erzeugen" %}</button>
+      </form>
+    </section>
+    {% endif %}
+
+    <section class="bg-white border border-gray-200 rounded-2xl p-5">
+      <h2 class="font-semibold mb-2">{% trans "So verbinden Sie Merchant Center" %}</h2>
+      <ol class="list-decimal pl-5 space-y-1 text-sm text-gray-700">
+        <li>{% trans "Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website bestätigen." %}</li>
+        <li>{% trans "Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und die Feed-Adresse oben eintragen." %}</li>
+        <li>{% trans "In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann erscheinen die Produkte auch in Ihrem Profil und auf Google Maps." %}</li>
+      </ol>
+      <p class="text-xs text-gray-400 mt-3">{% trans "Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand – er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit Google die richtige Verfügbarkeit zeigt." %}</p>
+    </section>
+  </div>
+
+  <div class="space-y-4">
+    <section class="bg-white border border-gray-200 rounded-2xl p-5" data-merchant-included="{{ included }}">
+      <h2 class="font-semibold mb-1">{% blocktrans count counter=included %}{{ counter }} Produkt im Feed{% plural %}{{ counter }} Produkte im Feed{% endblocktrans %}</h2>
+      <p class="text-xs text-gray-500">{% trans "Aktive Produkte mit Foto und Preis, die nicht ausgeblendet sind." %}</p>
+    </section>
+
+    {% if excluded %}
+    <section class="bg-white border border-gray-200 rounded-2xl p-5">
+      <h2 class="font-semibold mb-2">{% trans "Nicht im Feed" %}</h2>
+      <div class="space-y-3">
+        {% for group in excluded %}
+          <div data-merchant-reason="{{ group.code }}">
+            <p class="text-sm font-medium text-gray-800">{{ group.label }} <span class="text-gray-400">· {{ group.count }}</span></p>
+            <ul class="mt-1 space-y-1">
+              {% for item in group.items %}
+                <li class="text-sm"><a href="{% url 'catalog:product-edit' item.product.pk %}" class="text-indigo-700 hover:underline">{{ item.product.name_text|default:item.product }}</a>
+                  {% if item.labels|length > 1 %}<span class="text-xs text-gray-400">({{ item.labels|join:", " }})</span>{% endif %}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if warnings %}
+    <section class="bg-white border border-gray-200 rounded-2xl p-5">
+      <h2 class="font-semibold mb-2">{% trans "Hinweise" %}</h2>
+      <div class="space-y-3">
+        {% for group in warnings %}
+          <div data-merchant-warning="{{ group.code }}">
+            <p class="text-sm font-medium text-gray-800">{{ group.label }} <span class="text-gray-400">· {{ group.count }}</span></p>
+            <ul class="mt-1 space-y-1">
+              {% for product in group.items %}
+                <li class="text-sm"><a href="{% url 'catalog:product-edit' product.pk %}" class="text-indigo-700 hover:underline">{{ product.name_text|default:product }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+</div>
+
+<p class="text-xs text-gray-400 mt-6"><a href="{% url 'gbp-sync' %}" class="hover:underline">← {% trans "Google-Profil" %}</a> · <a href="{% url 'channels' %}" class="hover:underline">{% trans "Publishing channels" %}</a></p>
+
+<script>
+  document.addEventListener("click", function (event) {
+    var button = event.target.closest("[data-merchant-copy]");
+    if (!button) return;
+    var input = document.querySelector("[data-merchant-url]");
+    var note = document.querySelector("[data-merchant-copied]");
+    if (!input) return;
+    var done = function () { if (note) note.classList.remove("hidden"); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(input.value).then(done, function () { input.select(); document.execCommand("copy"); done(); });
+    } else {
+      input.select();
+      document.execCommand("copy");
+      done();
+    }
+  });
+</script>
+{% endblock %}

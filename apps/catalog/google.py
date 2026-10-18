@@ -6,15 +6,27 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from decimal import Decimal, InvalidOperation
 
 from django.db.models import Prefetch
+from django.utils.translation import gettext_lazy as _
 
 _MAX_DEPTH = 10  # предохранитель от цикла parent в данных
 
 REASONS = ("hidden", "category_hidden", "no_image", "no_price")
 WARNINGS = ("no_identifier", "no_description")
+
+# M23b.2: подписи для экрана кабинета (коды наружу не показываем).
+REASON_LABELS = {
+    "hidden": _("Mit „Nicht an Google senden“ ausgeblendet"),
+    "category_hidden": _("Kategorie ausgeblendet oder inaktiv"),
+    "no_image": _("Kein Foto"),
+    "no_price": _("Kein Preis"),
+}
+WARNING_LABELS = {
+    "no_identifier": _("Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"),
+    "no_description": _("Keine Beschreibung"),
+}
 
 
 def _hidden_category_ids() -> set:
@@ -113,13 +125,35 @@ def merchant_products() -> list:
     return [product for product, (ok, _r, _w) in _evaluated() if ok]
 
 
-def summary() -> dict:
-    """{"included": N, "excluded": {причина: N}} — исключённый считается по первой причине,
-    чтобы сумма совпадала с числом товаров."""
-    included, excluded = 0, Counter()
-    for _product, (ok, reasons, _w) in _evaluated():
+def overview(limit_per_group: int = 50) -> dict:
+    """Для экрана кабинета: что в фиде, что исключено и почему, что стоит дополнить.
+
+    Исключённый товар группируется по ПЕРВОЙ причине (как `summary`, суммы сходятся),
+    но несёт все свои причины; предупреждения — только у товаров, которые в фиде."""
+    included = 0
+    excluded: dict = {}
+    warned: dict = {}
+    for product, (ok, reasons, warnings) in _evaluated():
         if ok:
             included += 1
-        else:
-            excluded[reasons[0]] += 1
-    return {"included": included, "excluded": dict(excluded)}
+            for code in warnings:
+                group = warned.setdefault(code, {"count": 0, "items": []})
+                group["count"] += 1
+                if len(group["items"]) < limit_per_group:
+                    group["items"].append(product)
+            continue
+        group = excluded.setdefault(reasons[0], {"count": 0, "items": []})
+        group["count"] += 1
+        if len(group["items"]) < limit_per_group:
+            group["items"].append((product, reasons))
+    return {"included": included, "excluded": excluded, "warnings": warned}
+
+
+def summary() -> dict:
+    """{"included": N, "excluded": {причина: N}} — исключённый считается по первой причине,
+    чтобы сумма совпадала с числом товаров. Те же числа, что у `overview` (выведено из него)."""
+    data = overview(limit_per_group=0)
+    return {
+        "included": data["included"],
+        "excluded": {code: group["count"] for code, group in data["excluded"].items()},
+    }

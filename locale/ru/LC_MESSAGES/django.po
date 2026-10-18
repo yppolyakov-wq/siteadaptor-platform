@@ -25908,3 +25908,147 @@ msgstr "Управление филиалом и часами работы ва�
 #: apps/catalog/forms.py
 msgid "Nicht an Google senden"
 msgstr "Не отправлять в Google"
+
+#: apps/publishing/merchant_feed
+msgid "Google Merchant Center"
+msgstr "Google Merchant Center"
+
+#: apps/publishing/merchant_feed
+msgid "Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab."
+msgstr "Ваши товары с ценой и наличием передаются в Google через фид. Здесь вы включаете или выключаете фид — Google регулярно его загружает."
+
+#: apps/publishing/merchant_feed
+msgid "Produktfeed"
+msgstr "Фид товаров"
+
+#: apps/publishing/merchant_feed
+msgid "Eingeschaltet"
+msgstr "Включён"
+
+#: apps/publishing/merchant_feed
+msgid "Ausgeschaltet – Google erhält einen leeren Feed."
+msgstr "Выключен — Google получает пустой фид."
+
+#: apps/publishing/merchant_feed
+msgid "Feed ausschalten"
+msgstr "Выключить фид"
+
+#: apps/publishing/merchant_feed
+msgid "Feed einschalten"
+msgstr "Включить фид"
+
+#: apps/publishing/merchant_feed
+msgid "Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal eingeschaltet“ – dieser gilt nur für Aktionen."
+msgstr "Фид не зависит от подключения к Google и от переключателя «Канал включён» — он действует только для акций."
+
+#: apps/publishing/merchant_feed
+msgid "Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und in Merchant Center eintragen."
+msgstr "Адрес фида больше не читается. Создайте новый адрес и укажите его в Merchant Center."
+
+#: apps/publishing/merchant_feed
+msgid "Feed-Adresse"
+msgstr "Адрес фида"
+
+#: apps/publishing/merchant_feed
+msgid "Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie sie wie ein Passwort."
+msgstr "Укажите этот адрес в Merchant Center как источник товаров. Храните его как пароль."
+
+#: apps/publishing/merchant_feed
+msgid "Kopiert."
+msgstr "Скопировано."
+
+#: apps/publishing/merchant_feed
+msgid "Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in Merchant Center ersetzt werden."
+msgstr "Понимаю: прежний адрес перестанет работать, и его нужно заменить в Merchant Center."
+
+#: apps/publishing/merchant_feed
+msgid "Neue Adresse erzeugen"
+msgstr "Создать новый адрес"
+
+#: apps/publishing/merchant_feed
+msgid "So verbinden Sie Merchant Center"
+msgstr "Как подключить Merchant Center"
+
+#: apps/publishing/merchant_feed
+msgid "Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website bestätigen."
+msgstr "Создайте аккаунт в Google Merchant Center (бесплатно) и подтвердите свой сайт."
+
+#: apps/publishing/merchant_feed
+msgid "Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und die Feed-Adresse oben eintragen."
+msgstr "В разделе «Товары» добавьте источник данных «Файл» с загрузкой по расписанию и укажите адрес фида выше."
+
+#: apps/publishing/merchant_feed
+msgid "In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann erscheinen die Produkte auch in Ihrem Profil und auf Google Maps."
+msgstr "Свяжите в Merchant Center ваш профиль компании в Google — тогда товары появятся и в профиле, и на Google Картах."
+
+#: apps/publishing/merchant_feed
+msgid "Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand – er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit Google die richtige Verfügbarkeit zeigt."
+msgstr "Для пометки «В наличии в магазине» нужен ещё локальный остаток — он появится отдельным фидом. Поддерживайте остатки актуальными, чтобы Google показывал верное наличие."
+
+#: apps/publishing/merchant_feed
+msgid "Aktive Produkte mit Foto und Preis, die nicht ausgeblendet sind."
+msgstr "Активные товары с фото и ценой, которые не скрыты."
+
+#: apps/publishing/merchant_feed
+msgid "Nicht im Feed"
+msgstr "Не в фиде"
+
+#: apps/publishing/merchant_feed
+msgid "Hinweise"
+msgstr "Подсказки"
+
+#: apps/publishing/merchant_feed
+msgid "Produkte bei Google"
+msgstr "Товары в Google"
+
+#: apps/publishing/merchant_feed
+msgid "Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google senden."
+msgstr "Отправлять товары с ценой и наличием в Google через Google Merchant Center."
+
+#: apps/publishing/merchant_feed
+msgid "Der Produktfeed ist eingeschaltet."
+msgstr "Фид товаров включён."
+
+#: apps/publishing/merchant_feed
+msgid "Der Produktfeed ist ausgeschaltet. Google erhält einen leeren Feed."
+msgstr "Фид товаров выключен. Google получает пустой фид."
+
+#: apps/publishing/merchant_feed
+msgid "Neue Adresse erzeugt. Bitte in Merchant Center eintragen."
+msgstr "Новый адрес создан. Укажите его в Merchant Center."
+
+#: apps/publishing/merchant_feed
+msgid "Bitte bestätigen, dass die alte Adresse ungültig wird."
+msgstr "Подтвердите, что старый адрес станет недействительным."
+
+#: apps/publishing/merchant_feed
+msgid "Mit „Nicht an Google senden“ ausgeblendet"
+msgstr "Скрыт отметкой «Не отправлять в Google»"
+
+#: apps/publishing/merchant_feed
+msgid "Kategorie ausgeblendet oder inaktiv"
+msgstr "Категория скрыта или неактивна"
+
+#: apps/publishing/merchant_feed
+msgid "Kein Foto"
+msgstr "Нет фото"
+
+#: apps/publishing/merchant_feed
+msgid "Kein Preis"
+msgstr "Нет цены"
+
+#: apps/publishing/merchant_feed
+msgid "Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"
+msgstr "Нет EAN, артикула или марки — Google показывает товар реже"
+
+#: apps/publishing/merchant_feed
+msgid "Keine Beschreibung"
+msgstr "Нет описания"
+
+#: templates/publishing/merchant_feed.html
+msgid "%(counter)s Produkt im Feed"
+msgid_plural "%(counter)s Produkte im Feed"
+msgstr[0] "%(counter)s товар в фиде"
+msgstr[1] "%(counter)s товара в фиде"
+msgstr[2] "%(counter)s товаров в фиде"
+msgstr[3] "%(counter)s товара в фиде"
