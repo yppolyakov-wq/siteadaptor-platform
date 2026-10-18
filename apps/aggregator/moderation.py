@@ -220,5 +220,28 @@ def moderate(listing) -> ListingReport | None:
         ai = ai_moderation.review(listing)
     except Exception:
         logger.exception("catalog ai moderation failed for listing %s", listing.pk)
-        ai = []
-    return flag(listing, rules + ai)
+        ai = None
+    if ai is None and _keeps_ai_codes(listing, rules):
+        return None  # вердикта нет — прежние коды ИИ не «теряем» и решённое не всплывает
+    return flag(listing, rules + (ai or []))
+
+
+def _message_codes(message: str) -> set[str]:
+    head = message.split("] ", 1)[-1].split(" — ", 1)[0]
+    return {c.strip() for c in head.split(",") if c.strip()}
+
+
+def _keeps_ai_codes(listing, rules) -> bool:
+    """Последняя машинная пометка несёт коды ИИ, а правила дают те же коды — без нового
+    вердикта ИИ переписывать её нечем (иначе коды ИИ пропали бы, а решённая пометка
+    вернулась бы в очередь). Изменились находки правил — пишем как обычно."""
+    last = (
+        ListingReport.objects.filter(listing=listing, ip_hash=AUTO_MARKER)
+        .order_by("-created_at")
+        .values_list("message", flat=True)
+        .first()
+    )
+    if not last or not last.startswith("[auto:ai"):
+        return False
+    old = {c for c in _message_codes(last) if not c.startswith("ai_")}
+    return old == {f.code for f in rules}

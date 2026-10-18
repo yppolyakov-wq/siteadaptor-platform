@@ -119,7 +119,9 @@ def build_prompt(listing, *, marker: str) -> str:
     frames = []
     for field, locale, text in _texts(listing):
         cap = TITLE_MAX if field == "title" else TEASER_MAX
-        body = text[:cap].replace(marker, "")
+        body = text[:cap]
+        while marker in body:  # вложенная вставка могла бы собрать маркер заново
+            body = body.replace(marker, "")
         frame = f"<<<TEXT {field} {locale} {marker}>>>\n{body}\n<<<END {marker}>>>"
         if len(frame) + 1 > budget:
             break
@@ -141,7 +143,8 @@ def _locate(quote: str, listing):
 
 
 def clean_ai_result(data, listing) -> list[tc.Finding]:
-    """Главный замок: только «review» с известными причинами и найденной цитатой."""
+    """Только «review» с известными причинами и цитатой, найденной в карточке дословно.
+    Это защита от ВЫДУМАННОГО текста, а не доказательство причины: решает модератор."""
     if not isinstance(data, dict) or data.get("verdict") != "review":
         return []
     raw = data.get("reasons")
@@ -207,52 +210,73 @@ def _store(pk, digest: str, findings: list[tc.Finding]) -> None:
     cache.set(_cache_key(pk, digest), value, days * 86400)
 
 
-def _reserve_daily_slot() -> bool:
-    """Атомарный слот потолка на сегодня (INCR до вызова; недорасход при сбое допустим)."""
-    key = f"ai-mod-day:{timezone.localdate().isoformat()}"
+def _reserve_daily_slot(listing) -> str:
+    """Атомарный слот потолков на сегодня (INCR до вызова; недорасход при сбое допустим).
+    Сначала потолок бизнеса — один бизнес правками не выжигает дневной лимит платформы.
+    Возвращает "" (слот есть) или код пропуска."""
+    day = timezone.localdate().isoformat()
+    own = f"ai-mod-day:{day}:{listing.tenant_schema}"
+    cache.add(own, 0, 2 * 86400)
+    if cache.incr(own) > settings.AI_CATALOG_MODERATION_TENANT_DAILY:
+        return "tenant_cap"
+    key = f"ai-mod-day:{day}"
     cache.add(key, 0, 2 * 86400)
-    return cache.incr(key) <= settings.AI_CATALOG_MODERATION_DAILY
+    if cache.incr(key) > settings.AI_CATALOG_MODERATION_DAILY:
+        logger.warning("catalog ai moderation: platform daily cap reached")
+        return "cap"
+    return ""
 
 
-def _skip(listing, code: str) -> list[tc.Finding]:
+def _skip(listing, code: str) -> None:
     logger.info("catalog ai moderation listing=%s outcome=%s", listing.pk, code)
-    return []
+    return None
 
 
-def review(listing) -> list[tc.Finding]:
-    """Находки ИИ для карточки (может быть пусто). Никогда не бросает."""
+def review(listing) -> list[tc.Finding] | None:
+    """Находки ИИ для карточки: список (пусто = «ok») или None — вердикта нет
+    (выключено, занято, потолок, ошибка). None вызывающий трактует как «не знаю»
+    и не переписывает прежние коды ИИ (монотонность). Никогда не бросает."""
     try:
         digest = ai_text_hash(listing)
         cached = _from_cache(listing.pk, digest)
         if cached is not None:
             return cached
         if not enabled():
-            return []
+            return None
         lock = f"ai-mod-run:{listing.pk}:{digest}"
         if not cache.add(lock, 1, RUN_LOCK_TTL):
             return _skip(listing, "busy")
     except Exception as exc:  # кэш недоступен → вызова нет (fail-closed)
         logger.warning("catalog ai moderation cache error: %s", type(exc).__name__)
-        return []
+        return None
     try:
         return _call(listing, digest)
+    except Exception as exc:  # неожиданный сбой адаптера: без трейсбэка (в нём текст)
+        logger.warning("catalog ai moderation failed: %s", type(exc).__name__)
+        return None
     finally:
         # Замок — только от параллельного вызова; после ответа/ошибки следующая
         # проверка (после правки или ретрая) снова может звать модель.
         try:
             cache.delete(lock)
-        except Exception:
-            pass
+        except Exception as exc:  # noqa: BLE001 — замок истечёт сам
+            logger.warning("catalog ai moderation lock release: %s", type(exc).__name__)
 
 
-def _call(listing, digest: str) -> list[tc.Finding]:
+def _call(listing, digest: str) -> list[tc.Finding] | None:
     try:
-        if not _reserve_daily_slot():
-            return _skip(listing, "cap")
+        # Пока ждали замок, соседняя задача могла уже оценить тот же текст.
+        cached = _from_cache(listing.pk, digest)
+        if cached is not None:
+            return cached
+        skipped = _reserve_daily_slot(listing)
     except Exception as exc:  # счётчик недоступен → вызова нет (fail-closed)
         logger.warning("catalog ai moderation cache error: %s", type(exc).__name__)
-        return []
-    marker = secrets.token_hex(6)
+        return None
+    if skipped:
+        return _skip(listing, skipped)
+    # С буквой: маркер из одних цифр съел бы PII-скраб как «телефон».
+    marker = "m" + secrets.token_hex(6)
     try:
         result = generate(
             TASK,
@@ -264,13 +288,17 @@ def _call(listing, digest: str) -> list[tc.Finding]:
     except AIError as exc:
         return _skip(listing, exc.code)
     findings = clean_ai_result(result.data, listing)
-    try:
-        _store(listing.pk, digest, findings)
-    except Exception as exc:
-        logger.warning("catalog ai moderation cache store failed: %s", type(exc).__name__)
+    said_review = isinstance(result.data, dict) and result.data.get("verdict") == "review"
+    # «review», не прошедший проверку цитаты, не кэшируем на 30 дней: перефраз модели
+    # или удачная инъекция не должны закреплять «чисто» до следующей правки текста.
+    if findings or not said_review:
+        try:
+            _store(listing.pk, digest, findings)
+        except Exception as exc:
+            logger.warning("catalog ai moderation cache store failed: %s", type(exc).__name__)
     logger.info(
         "catalog ai moderation listing=%s outcome=%s",
         listing.pk,
-        "review" if findings else "ok",
+        "review" if findings else ("dropped" if said_review else "ok"),
     )
     return findings

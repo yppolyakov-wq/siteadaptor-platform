@@ -730,6 +730,7 @@ AI_MAX_PROMPT_CHARS = env.int("AI_MAX_PROMPT_CHARS", default=60_000)
 # (бюджет платформы); повтор того же текста карточки — из кэша N дней без вызова.
 AI_CATALOG_MODERATION = env.bool("AI_CATALOG_MODERATION", default=False)
 AI_CATALOG_MODERATION_DAILY = env.int("AI_CATALOG_MODERATION_DAILY", default=300)
+AI_CATALOG_MODERATION_TENANT_DAILY = env.int("AI_CATALOG_MODERATION_TENANT_DAILY", default=20)
 AI_CATALOG_MODERATION_DEDUPE_DAYS = env.int("AI_CATALOG_MODERATION_DEDUPE_DAYS", default=30)
 # T-8.10e «Text-Check»: скидка выше этого процента — подсказка «sehr hoher Rabatt»
 # (кроме скоропортящегося, § 11 Abs. 4 PAngV). Только подсказка, не запрет.
