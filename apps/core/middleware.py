@@ -169,6 +169,11 @@ class CabinetOwnerAccessMiddleware:
         "/dashboard/stadtportal/",
         # T-8.27: импорт с сайта — согласие правообладателя даёт только владелец.
         "/imports/website/",
+        # Д3 (В-7): каналы публикации пишут во ВНЕШНИЕ профили бизнеса (Google,
+        # Facebook…) — подключение, ключи и синхронизация только владельцу.
+        "/dashboard/channels/google/",
+        "/dashboard/channels/config/",
+        "/dashboard/channels/connect/",
     )
 
     def __init__(self, get_response):

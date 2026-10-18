@@ -81,6 +81,7 @@ EXPECTED_UNLISTED = frozenset(
         # серверный обход вскрыл 405 при клике из Ctrl+K.
         "jobs:anfrage-form-settings",
         "channel-toggle",
+        "gbp-location",
         "crm:company-create",
         "crm:customer-create",
         "crm:customer-export",

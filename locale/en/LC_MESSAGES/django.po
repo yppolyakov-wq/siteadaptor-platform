@@ -25519,3 +25519,64 @@ msgstr "Report"
 
 msgid "Quelle"
 msgstr "Source"
+
+msgid "Aktueller Standort:"
+msgstr "Current location:"
+
+msgid "Bei Google wurden keine Standorte gefunden."
+msgstr "No locations were found on Google."
+
+msgid "Bitte einen Moment warten und erneut versuchen."
+msgstr "Please wait a moment and try again."
+
+msgid "Bitte zuerst einen Standort wählen"
+msgstr "Please choose a location first"
+
+msgid "Bitte zuerst mit Google verbinden."
+msgstr "Please connect with Google first."
+
+msgid "Google ist gerade nicht erreichbar – später erneut versuchen"
+msgstr "Google is not reachable right now – please try again later"
+
+msgid "Google-API noch nicht freigeschaltet"
+msgstr "Google API not yet approved"
+
+msgid "Google-Kontingent erreicht – später erneut versuchen"
+msgstr "Google quota reached – please try again later"
+
+msgid "Google-Profil"
+msgstr "Google profile"
+
+msgid "Google-Profil synchronisieren"
+msgstr "Sync Google profile"
+
+msgid "Google-Verbindung abgelaufen – bitte neu verbinden"
+msgstr "Google connection expired – please reconnect"
+
+msgid "Mit Google verbunden"
+msgstr "Connected with Google"
+
+msgid "Noch nicht mit Google verbunden."
+msgstr "Not connected with Google yet."
+
+msgid "Standort bei Google nicht gefunden"
+msgstr "Location not found on Google"
+
+msgid "Standort gespeichert."
+msgstr "Location saved."
+
+msgid "Standort wählen"
+msgstr "Choose location"
+
+msgid "Standorte von Google laden"
+msgstr "Load locations from Google"
+
+msgid "Unerwartete Antwort von Google – später erneut versuchen"
+msgstr "Unexpected response from Google – please try again later"
+
+msgid "Verbindung"
+msgstr "Connection"
+
+msgid ""
+"Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen."
+msgstr "Sync opening hours and offers with your Google Business Profile."

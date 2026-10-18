@@ -1,0 +1,68 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Google-Profil" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-1">{% trans "Google-Profil" %}</h1>
+<p class="text-sm text-gray-500 mb-6">{% trans "Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen." %}</p>
+
+<div class="space-y-4 max-w-2xl">
+  {% if error_message %}
+    <div class="rounded-lg border border-amber-200 bg-amber-50 text-amber-800 text-sm px-4 py-3" data-gbp-error="{{ error_code }}">
+      {{ error_message }}
+    </div>
+  {% endif %}
+
+  <section class="bg-white border border-gray-200 rounded-2xl p-5">
+    <h2 class="font-semibold mb-2">{% trans "Verbindung" %}</h2>
+    {% if connected %}
+      <p class="text-sm text-green-700">✓ {% trans "Mit Google verbunden" %}</p>
+    {% else %}
+      <p class="text-sm text-gray-600 mb-3">{% trans "Noch nicht mit Google verbunden." %}</p>
+      <a href="{% url 'channel-oauth-start' 'google_business' %}"
+         class="inline-block bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+        🔗 {% trans "Connect with Google" %}
+      </a>
+    {% endif %}
+  </section>
+
+  {% if connected %}
+  <section class="bg-white border border-gray-200 rounded-2xl p-5">
+    <h2 class="font-semibold mb-2">{% trans "Standort" %}</h2>
+    {% if location %}
+      <p class="text-sm text-gray-700 mb-3">{% trans "Aktueller Standort:" %} <code class="text-xs">{{ location }}</code></p>
+    {% else %}
+      <p class="text-sm text-gray-600 mb-3">{% trans "Bitte zuerst einen Standort wählen" %}</p>
+    {% endif %}
+
+    {% if locations %}
+      <form method="post" action="{% url 'gbp-location' %}" class="space-y-2">
+        {% csrf_token %}
+        <fieldset class="space-y-2">
+          <legend class="sr-only">{% trans "Standort wählen" %}</legend>
+          {% for loc in locations %}
+            <label class="flex items-start gap-2 text-sm border border-gray-200 rounded-lg px-3 py-2">
+              <input type="radio" name="location" value="{{ loc.name }}" {% if loc.name == location %}checked{% endif %} class="mt-1">
+              <span><span class="font-medium">{{ loc.title }}</span>
+                {% if loc.address %}<span class="block text-xs text-gray-500">{{ loc.address }}</span>{% endif %}
+                <span class="block text-xs text-gray-400">{{ loc.account }}</span></span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Standort wählen" %}</button>
+      </form>
+    {% elif locations is not None %}
+      <p class="text-sm text-gray-500">{% trans "Bei Google wurden keine Standorte gefunden." %}</p>
+    {% endif %}
+
+    <form method="post" action="{% url 'gbp-sync' %}" class="mt-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="load">
+      <button type="submit" class="text-sm text-indigo-700 hover:underline">{% trans "Standorte von Google laden" %}</button>
+    </form>
+  </section>
+  {% endif %}
+
+  <p class="text-xs text-gray-400"><a href="{% url 'channels' %}" class="hover:underline">← {% trans "Publishing channels" %}</a></p>
+</div>
+{% endblock %}

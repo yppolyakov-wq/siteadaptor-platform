@@ -25777,3 +25777,64 @@ msgstr "Жалоба"
 
 msgid "Quelle"
 msgstr "Источник"
+
+msgid "Aktueller Standort:"
+msgstr "Текущее место:"
+
+msgid "Bei Google wurden keine Standorte gefunden."
+msgstr "В Google не найдено ни одного места."
+
+msgid "Bitte einen Moment warten und erneut versuchen."
+msgstr "Подождите немного и попробуйте снова."
+
+msgid "Bitte zuerst einen Standort wählen"
+msgstr "Сначала выберите место"
+
+msgid "Bitte zuerst mit Google verbinden."
+msgstr "Сначала подключите Google."
+
+msgid "Google ist gerade nicht erreichbar – später erneut versuchen"
+msgstr "Google сейчас недоступен — попробуйте позже"
+
+msgid "Google-API noch nicht freigeschaltet"
+msgstr "Доступ к API Google ещё не открыт"
+
+msgid "Google-Kontingent erreicht – später erneut versuchen"
+msgstr "Исчерпан лимит запросов Google — попробуйте позже"
+
+msgid "Google-Profil"
+msgstr "Профиль Google"
+
+msgid "Google-Profil synchronisieren"
+msgstr "Синхронизировать профиль Google"
+
+msgid "Google-Verbindung abgelaufen – bitte neu verbinden"
+msgstr "Подключение к Google истекло — подключите заново"
+
+msgid "Mit Google verbunden"
+msgstr "Подключено к Google"
+
+msgid "Noch nicht mit Google verbunden."
+msgstr "Google ещё не подключён."
+
+msgid "Standort bei Google nicht gefunden"
+msgstr "Место не найдено в Google"
+
+msgid "Standort gespeichert."
+msgstr "Место сохранено."
+
+msgid "Standort wählen"
+msgstr "Выбрать место"
+
+msgid "Standorte von Google laden"
+msgstr "Загрузить места из Google"
+
+msgid "Unerwartete Antwort von Google – später erneut versuchen"
+msgstr "Неожиданный ответ Google — попробуйте позже"
+
+msgid "Verbindung"
+msgstr "Подключение"
+
+msgid ""
+"Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen."
+msgstr "Сверка часов работы и предложений с профилем компании в Google."

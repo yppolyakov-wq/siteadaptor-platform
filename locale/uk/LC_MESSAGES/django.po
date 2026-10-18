@@ -25757,3 +25757,64 @@ msgstr "Скарга"
 
 msgid "Quelle"
 msgstr "Джерело"
+
+msgid "Aktueller Standort:"
+msgstr "Поточне місце:"
+
+msgid "Bei Google wurden keine Standorte gefunden."
+msgstr "У Google не знайдено жодного місця."
+
+msgid "Bitte einen Moment warten und erneut versuchen."
+msgstr "Зачекайте трохи й спробуйте знову."
+
+msgid "Bitte zuerst einen Standort wählen"
+msgstr "Спочатку виберіть місце"
+
+msgid "Bitte zuerst mit Google verbinden."
+msgstr "Спочатку підключіть Google."
+
+msgid "Google ist gerade nicht erreichbar – später erneut versuchen"
+msgstr "Google зараз недоступний — спробуйте пізніше"
+
+msgid "Google-API noch nicht freigeschaltet"
+msgstr "Доступ до API Google ще не відкрито"
+
+msgid "Google-Kontingent erreicht – später erneut versuchen"
+msgstr "Вичерпано ліміт запитів Google — спробуйте пізніше"
+
+msgid "Google-Profil"
+msgstr "Профіль Google"
+
+msgid "Google-Profil synchronisieren"
+msgstr "Синхронізувати профіль Google"
+
+msgid "Google-Verbindung abgelaufen – bitte neu verbinden"
+msgstr "Підключення до Google закінчилося — підключіть знову"
+
+msgid "Mit Google verbunden"
+msgstr "Підключено до Google"
+
+msgid "Noch nicht mit Google verbunden."
+msgstr "Google ще не підключено."
+
+msgid "Standort bei Google nicht gefunden"
+msgstr "Місце не знайдено в Google"
+
+msgid "Standort gespeichert."
+msgstr "Місце збережено."
+
+msgid "Standort wählen"
+msgstr "Вибрати місце"
+
+msgid "Standorte von Google laden"
+msgstr "Завантажити місця з Google"
+
+msgid "Unerwartete Antwort von Google – später erneut versuchen"
+msgstr "Неочікувана відповідь Google — спробуйте пізніше"
+
+msgid "Verbindung"
+msgstr "Підключення"
+
+msgid ""
+"Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen."
+msgstr "Звірка годин роботи та пропозицій із профілем компанії в Google."

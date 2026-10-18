@@ -10,6 +10,7 @@ from django.db import connection
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
 
 from . import oauth
@@ -206,3 +207,104 @@ def posts(request):
             "has_channels": Channel.objects.filter(is_enabled=True).exists(),
         },
     )
+
+
+# --- Д3 «GBP-Sync»: экран «Google-Profil» (docs/d3-gbp-sync-plan-2026-10-18.md) --------
+
+GBP_LOAD_LIMIT = 1  # запросов к Google в минуту на бизнес с кнопки
+GBP_LOAD_WINDOW = 60
+
+GBP_ERROR_MESSAGES = {
+    "not_configured": gettext_lazy("Bitte zuerst mit Google verbinden."),
+    "not_approved": gettext_lazy("Google-API noch nicht freigeschaltet"),
+    "auth": gettext_lazy("Google-Verbindung abgelaufen – bitte neu verbinden"),
+    "quota": gettext_lazy("Google-Kontingent erreicht – später erneut versuchen"),
+    "not_found": gettext_lazy("Standort bei Google nicht gefunden"),
+    "network": gettext_lazy("Google ist gerade nicht erreichbar – später erneut versuchen"),
+    "bad_response": gettext_lazy("Unerwartete Antwort von Google – später erneut versuchen"),
+}
+
+
+def _gbp_channel():
+    channel, _created = Channel.objects.get_or_create(type=Channel.GOOGLE_BUSINESS)
+    return channel
+
+
+def _gbp_sync_update(channel_pk, **fields) -> None:
+    """Точечная запись `config["gbp_sync"]` под блокировкой строки — чужие ключи целы."""
+    from django.db import transaction
+    from django.utils import timezone
+
+    with transaction.atomic():
+        channel = Channel.objects.select_for_update().get(pk=channel_pk)
+        config = dict(channel.config or {})
+        state = dict(config.get("gbp_sync") or {})
+        state.update(fields)
+        state["checked_at"] = timezone.now().isoformat()
+        config["gbp_sync"] = state
+        channel.config = config
+        channel.save(update_fields=["config", "updated_at"])
+
+
+@login_required
+def gbp_sync(request):
+    """Экран «Google-Profil»: подключение, выбор локации (Д3-1); часы и офферы — Д3-2/3."""
+    from apps.core import ratelimit
+
+    from . import gbp
+    from .secrets import decrypted_config
+
+    channel = _gbp_channel()
+    config = decrypted_config(channel)
+    locations = None
+    error_code = ""
+    if request.method == "POST" and request.POST.get("action") == "load":
+        schema = getattr(connection, "schema_name", "") or ""
+        if ratelimit.hit("gbp-sync", schema, limit=GBP_LOAD_LIMIT, window=GBP_LOAD_WINDOW):
+            messages.error(request, _("Bitte einen Moment warten und erneut versuchen."))
+        else:
+            try:
+                locations = gbp.all_locations(config)
+                _gbp_sync_update(channel.pk, last_error_code="")
+            except gbp.GbpError as exc:
+                error_code = exc.code
+                _gbp_sync_update(channel.pk, last_error_code=exc.code, last_status=exc.status)
+            channel.refresh_from_db()
+    state = (channel.config or {}).get("gbp_sync") or {}
+    error_code = error_code or state.get("last_error_code") or ""
+    return render(
+        request,
+        "publishing/gbp_sync.html",
+        {
+            "nav": "channels",
+            "channel": channel,
+            "connected": bool(config.get("refresh_token")),
+            "location": config.get("location") or "",
+            "locations": locations,
+            "error_code": error_code,
+            "error_message": GBP_ERROR_MESSAGES.get(error_code, ""),
+        },
+    )
+
+
+@login_required
+@require_POST
+def gbp_location(request):
+    """Сохранить выбранную локацию (v4-имя). Чужие ключи конфига (токен) не трогаются."""
+    from django.db import transaction
+
+    from . import gbp
+
+    location = (request.POST.get("location") or "").strip()
+    if not gbp.LOCATION_RE.match(location):
+        messages.error(request, _("Bitte zuerst einen Standort wählen"))
+        return redirect("gbp-sync")
+    channel = _gbp_channel()
+    with transaction.atomic():
+        channel = Channel.objects.select_for_update().get(pk=channel.pk)
+        config = dict(channel.config or {})
+        config["location"] = location
+        channel.config = config
+        channel.save(update_fields=["config", "updated_at"])
+    messages.success(request, _("Standort gespeichert."))
+    return redirect("gbp-sync")

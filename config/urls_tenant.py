@@ -344,6 +344,13 @@ urlpatterns = [
     path("dashboard/reviews/", include("apps.reviews.urls")),
     path("dashboard/channels/toggle/", publishing_views.channel_toggle, name="channel-toggle"),
     path("dashboard/channels/config/", publishing_views.channel_config, name="channel-config"),
+    # Д3: Google-Profil — Standort, Öffnungszeiten, Angebote (Owner-only).
+    path("dashboard/channels/google/", publishing_views.gbp_sync, name="gbp-sync"),
+    path(
+        "dashboard/channels/google/standort/",
+        publishing_views.gbp_location,
+        name="gbp-location",
+    ),
     # In-app OAuth (OAuth-A): старт из кабинета → провайдер → callback на public.
     path(
         "dashboard/channels/connect/<str:provider>/",

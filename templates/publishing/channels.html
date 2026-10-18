@@ -35,6 +35,7 @@
              class="inline-block mt-3 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
             🔗 {% trans "Connect with Google" %}
           </a>
+          <a href="{% url 'gbp-sync' %}" class="block mt-2 text-sm text-indigo-700 hover:underline">{% trans "Google-Profil synchronisieren" %} →</a>
           <p class="text-xs text-gray-400 mt-1">{% trans "Or enter the location and token manually:" %}</p>
           <form method="post" action="{% url 'channel-config' %}" class="mt-2 space-y-2">
             {% csrf_token %}

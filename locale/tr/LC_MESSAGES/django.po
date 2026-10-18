@@ -25650,3 +25650,65 @@ msgstr "Bildirim"
 
 msgid "Quelle"
 msgstr "Kaynak"
+
+msgid "Aktueller Standort:"
+msgstr "Mevcut konum:"
+
+msgid "Bei Google wurden keine Standorte gefunden."
+msgstr "Google'da konum bulunamadı."
+
+msgid "Bitte einen Moment warten und erneut versuchen."
+msgstr "Lütfen biraz bekleyip tekrar deneyin."
+
+msgid "Bitte zuerst einen Standort wählen"
+msgstr "Lütfen önce bir konum seçin"
+
+msgid "Bitte zuerst mit Google verbinden."
+msgstr "Lütfen önce Google ile bağlanın."
+
+msgid "Google ist gerade nicht erreichbar – später erneut versuchen"
+msgstr "Google şu anda erişilemiyor – lütfen daha sonra tekrar deneyin"
+
+msgid "Google-API noch nicht freigeschaltet"
+msgstr "Google API henüz onaylanmadı"
+
+msgid "Google-Kontingent erreicht – später erneut versuchen"
+msgstr "Google kotası doldu – lütfen daha sonra tekrar deneyin"
+
+msgid "Google-Profil"
+msgstr "Google profili"
+
+msgid "Google-Profil synchronisieren"
+msgstr "Google profilini eşitle"
+
+msgid "Google-Verbindung abgelaufen – bitte neu verbinden"
+msgstr "Google bağlantısının süresi doldu – lütfen yeniden bağlanın"
+
+msgid "Mit Google verbunden"
+msgstr "Google ile bağlı"
+
+msgid "Noch nicht mit Google verbunden."
+msgstr "Henüz Google ile bağlı değil."
+
+msgid "Standort bei Google nicht gefunden"
+msgstr "Konum Google'da bulunamadı"
+
+msgid "Standort gespeichert."
+msgstr "Konum kaydedildi."
+
+msgid "Standort wählen"
+msgstr "Konum seç"
+
+msgid "Standorte von Google laden"
+msgstr "Konumları Google'dan yükle"
+
+msgid "Unerwartete Antwort von Google – später erneut versuchen"
+msgstr "Google'dan beklenmeyen yanıt – lütfen daha sonra tekrar deneyin"
+
+msgid "Verbindung"
+msgstr "Bağlantı"
+
+msgid ""
+"Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen."
+msgstr ""
+"Çalışma saatlerini ve teklifleri Google İşletme Profilinizle eşitleyin."

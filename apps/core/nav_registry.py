@@ -563,6 +563,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         "google facebook instagram",
     ),
+    # Д3: Google-Profil (Standort, Öffnungszeiten, Angebote) — вход с «Kanäle» и палитры.
+    _e(
+        "marketing",
+        "gbp-sync",
+        _("Google-Profil"),
+        "channels",
+        "publishing",
+        search="google profil öffnungszeiten angebote sync standort",
+        owner_only=True,
+        palette_only=True,
+    ),
     _e("marketing", "publishing-posts", _("Beiträge"), "posts", "publishing", True, "posting"),
     _e("marketing", "blog-list", _("Blog & News"), "blog", "blog", True),
     _e(

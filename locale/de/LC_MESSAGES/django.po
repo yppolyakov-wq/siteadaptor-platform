@@ -25577,3 +25577,65 @@ msgstr "Meldung"
 
 msgid "Quelle"
 msgstr "Quelle"
+
+msgid "Aktueller Standort:"
+msgstr "Aktueller Standort:"
+
+msgid "Bei Google wurden keine Standorte gefunden."
+msgstr "Bei Google wurden keine Standorte gefunden."
+
+msgid "Bitte einen Moment warten und erneut versuchen."
+msgstr "Bitte einen Moment warten und erneut versuchen."
+
+msgid "Bitte zuerst einen Standort wählen"
+msgstr "Bitte zuerst einen Standort wählen"
+
+msgid "Bitte zuerst mit Google verbinden."
+msgstr "Bitte zuerst mit Google verbinden."
+
+msgid "Google ist gerade nicht erreichbar – später erneut versuchen"
+msgstr "Google ist gerade nicht erreichbar – später erneut versuchen"
+
+msgid "Google-API noch nicht freigeschaltet"
+msgstr "Google-API noch nicht freigeschaltet"
+
+msgid "Google-Kontingent erreicht – später erneut versuchen"
+msgstr "Google-Kontingent erreicht – später erneut versuchen"
+
+msgid "Google-Profil"
+msgstr "Google-Profil"
+
+msgid "Google-Profil synchronisieren"
+msgstr "Google-Profil synchronisieren"
+
+msgid "Google-Verbindung abgelaufen – bitte neu verbinden"
+msgstr "Google-Verbindung abgelaufen – bitte neu verbinden"
+
+msgid "Mit Google verbunden"
+msgstr "Mit Google verbunden"
+
+msgid "Noch nicht mit Google verbunden."
+msgstr "Noch nicht mit Google verbunden."
+
+msgid "Standort bei Google nicht gefunden"
+msgstr "Standort bei Google nicht gefunden"
+
+msgid "Standort gespeichert."
+msgstr "Standort gespeichert."
+
+msgid "Standort wählen"
+msgstr "Standort wählen"
+
+msgid "Standorte von Google laden"
+msgstr "Standorte von Google laden"
+
+msgid "Unerwartete Antwort von Google – später erneut versuchen"
+msgstr "Unerwartete Antwort von Google – später erneut versuchen"
+
+msgid "Verbindung"
+msgstr "Verbindung"
+
+msgid ""
+"Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen."
+msgstr ""
+"Öffnungszeiten und Angebote mit Ihrem Google-Unternehmensprofil abgleichen."
