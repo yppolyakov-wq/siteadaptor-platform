@@ -129,8 +129,12 @@ def test_own_duplicate_flagged():
 
 def test_duplicate_foreign_tenants_flagged_as_spam():
     for i in range(2):
-        _listing(tenant_schema=f"t_other{i}", title={"de": "Mega Deal Kaffee"})
-    mine = _listing(title={"de": "Mega Deal Kaffee"})
+        _listing(
+            tenant_schema=f"t_other{i}",
+            title={"de": "Mega Deal Kaffee"},
+            teaser={"de": "Nur bei uns"},
+        )
+    mine = _listing(title={"de": "Mega Deal Kaffee"}, teaser={"de": "Nur bei uns"})
     moderation.moderate(mine)
     (report,) = _auto(mine)
     assert "duplikat_fremd" in report.message
@@ -156,7 +160,7 @@ def test_inactive_or_old_duplicates_ignored():
 
 
 def test_changed_listing_enqueues_moderation_on_commit(django_capture_on_commit_callbacks):
-    with mock.patch.object(tasks.moderate_listing, "delay") as delay:
+    with mock.patch.object(tasks.moderate_listing, "apply_async") as delay:
         with django_capture_on_commit_callbacks(execute=True):
             changed = tasks._upsert_listing(
                 {"tenant_schema": "t_q", "listing_kind": "promotion", "source_ref": "x"},
@@ -170,6 +174,9 @@ def test_changed_listing_enqueues_moderation_on_commit(django_capture_on_commit_
             )
     assert changed is True
     assert delay.call_count == 1
+    kwargs = delay.call_args.kwargs
+    assert kwargs["countdown"] >= 10  # серия правок — одна проверка свежего состояния
+    assert kwargs["kwargs"]["dedupe_key"].startswith("moderate:")
 
 
 def test_unchanged_upsert_does_not_enqueue(django_capture_on_commit_callbacks):
@@ -181,9 +188,9 @@ def test_unchanged_upsert_does_not_enqueue(django_capture_on_commit_callbacks):
         "teaser": {},
         "detail_url": "https://q2.siteadaptor.de/p/1/",
     }
-    with mock.patch.object(tasks.moderate_listing, "delay"):
+    with mock.patch.object(tasks.moderate_listing, "apply_async"):
         tasks._upsert_listing(key, defaults)
-    with mock.patch.object(tasks.moderate_listing, "delay") as delay:
+    with mock.patch.object(tasks.moderate_listing, "apply_async") as delay:
         with django_capture_on_commit_callbacks(execute=True):
             assert tasks._upsert_listing(key, defaults) is False
     assert delay.call_count == 0
@@ -222,10 +229,15 @@ def test_admin_source_filter():
 
 
 def test_foreign_duplicate_ignores_case_and_demo_rows():
-    _listing(tenant_schema="t_o1", title={"de": "MEGA DEAL KAFFEE"})
-    _listing(tenant_schema="t_o2", title={"de": "Mega Deal Kaffee"}, is_demo=True)
-    _listing(tenant_schema="t_o3", title={"de": "mega deal kaffee"})
-    mine = _listing(title={"de": "Mega Deal Kaffee"})
+    _listing(tenant_schema="t_o1", title={"de": "MEGA DEAL KAFFEE"}, teaser={"de": "Gleich"})
+    _listing(
+        tenant_schema="t_o2",
+        title={"de": "Mega Deal Kaffee"},
+        teaser={"de": "Gleich"},
+        is_demo=True,
+    )
+    _listing(tenant_schema="t_o3", title={"de": "mega deal kaffee"}, teaser={"de": "gleich"})
+    mine = _listing(title={"de": "Mega Deal Kaffee"}, teaser={"de": "Gleich"})
     moderation.moderate(mine)
     (report,) = _auto(mine)
     assert "duplikat_fremd" in report.message
@@ -234,3 +246,96 @@ def test_foreign_duplicate_ignores_case_and_demo_rows():
     other = _listing(title={"de": "Solo Deal"}, source_ref="solo")
     moderation.moderate(other)
     assert not _auto(other).exists()  # один реальный чужой + демо ≠ спам
+
+
+# --- правки по ревью D2b-1 -------------------------------------------------------------------
+
+
+def test_only_promotions_are_moderated_in_v1():
+    product = _listing(
+        listing_kind="product",
+        title={"de": "Jacke B-Ware"},
+        old_price="200",
+        new_price="40",
+        price_reference="uvp",
+    )
+    moderation.moderate(product)
+    assert not _auto(product).exists()
+
+
+def test_non_promotion_upsert_does_not_enqueue(django_capture_on_commit_callbacks):
+    with mock.patch.object(tasks.moderate_listing, "apply_async") as send:
+        with django_capture_on_commit_callbacks(execute=True):
+            tasks._upsert_listing(
+                {"tenant_schema": "t_p", "listing_kind": "product", "source_ref": "x"},
+                {
+                    "tenant_slug": "p",
+                    "business_name": "P",
+                    "title": {"de": "Gratis"},
+                    "teaser": {},
+                    "detail_url": "https://p.siteadaptor.de/x/",
+                },
+            )
+    assert send.call_count == 0
+
+
+def test_generic_title_with_different_teaser_is_not_foreign_duplicate():
+    for i in range(3):
+        _listing(tenant_schema=f"t_g{i}", title={"de": "Wochenangebot"}, teaser={"de": f"Text {i}"})
+    mine = _listing(title={"de": "Wochenangebot"}, teaser={"de": "Eigener Text"})
+    moderation.moderate(mine)
+    assert not _auto(mine).exists()
+
+
+def test_one_open_auto_report_per_listing_is_updated():
+    listing = _listing(title={"de": "Gratis Kaffee"})
+    moderation.moderate(listing)
+    listing.title = {"de": "Gratis Kaffee – nur heute"}
+    listing.ends_at = timezone.now() + timedelta(days=6)
+    listing.save()
+    moderation.moderate(listing)
+    (report,) = _auto(listing).filter(status=ListingReport.STATUS_OPEN)
+    assert "dringlichkeit_heute" in report.message
+
+
+def test_human_report_copying_auto_message_does_not_suppress_flag():
+    listing = _listing(title={"de": "Gratis Kaffee"})
+    message = moderation._message(moderation.check_listing(listing), "rule")
+    reports.file_report(listing, reason="spam", message=message, ip_hash="h1")
+    moderation.moderate(listing)
+    assert _auto(listing).count() == 1
+
+
+def test_quote_control_characters_stripped():
+    listing = _listing(title={"de": "Gratis\u202e Kaffee\nZeile"})
+    moderation.moderate(listing)
+    (report,) = _auto(listing)
+    assert "\u202e" not in report.message and "\n" not in report.message
+
+
+def test_marker_is_shared_constant():
+    assert moderation.AUTO_MARKER == ListingReport.AUTO_MARKER
+
+
+def test_resolve_keep_on_auto_report_does_not_unhide_or_resolve_human_reports():
+    from django.contrib.admin.sites import AdminSite
+
+    from apps.aggregator.admin import ListingReportAdmin
+
+    listing = _listing(title={"de": "Gratis Kaffee"})
+    for h in ("a", "b", "c"):
+        reports.file_report(listing, reason="spam", ip_hash=h)
+    moderation.moderate(listing)
+    listing.refresh_from_db()
+    assert listing.hidden_at is not None
+    admin = ListingReportAdmin(ListingReport, AdminSite())
+    admin.resolve_keep(None, _auto(listing))
+    listing.refresh_from_db()
+    assert listing.hidden_at is not None  # скрытие людьми не снято
+    assert (
+        ListingReport.objects.filter(listing=listing, status="open")
+        .exclude(ip_hash=moderation.AUTO_MARKER)
+        .count()
+        == 3
+    )
+    assert not _auto(listing).filter(status="open").exists()

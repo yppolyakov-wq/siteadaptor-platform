@@ -32,7 +32,7 @@ def file_report(listing, *, reason: str, message: str = "", ip_hash: str = "") -
     voices = (
         ListingReport.objects.filter(listing=listing, status=ListingReport.STATUS_OPEN)
         # Машинная пометка (D2b, В-3) — не голос: скрывают только люди.
-        .exclude(ip_hash__in=["", "auto"])
+        .exclude(ip_hash__in=["", ListingReport.AUTO_MARKER])
         .values("ip_hash")
         .distinct()
         .count()

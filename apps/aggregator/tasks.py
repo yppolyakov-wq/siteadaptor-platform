@@ -203,9 +203,13 @@ def _upsert_listing(key: dict, defaults: dict) -> bool:
     if obj is not None and all(getattr(obj, f) == v for f, v in defaults.items()):
         return False
     obj, _created = AggregatorListing.objects.update_or_create(**key, defaults=defaults)
-    if not obj.is_demo:  # демо не модерируем: сидинг 79 китов не должен ставить задачи
+    # Демо не модерируем (сидинг 79 китов не должен ставить задачи); v1 — только акции.
+    if not obj.is_demo and obj.listing_kind == AggregatorListing.KIND_PROMOTION:
         _enqueue_moderation(obj.pk)
     return True
+
+
+MODERATION_DELAY = 30
 
 
 def _enqueue_moderation(listing_id) -> None:
@@ -215,7 +219,11 @@ def _enqueue_moderation(listing_id) -> None:
 
     def _send():
         try:
-            moderate_listing.delay(listing_id=listing_id)
+            # Пауза + дедуп: серия правок схлопывается в одну проверку свежего состояния.
+            moderate_listing.apply_async(
+                kwargs={"listing_id": listing_id, "dedupe_key": f"moderate:{listing_id}"},
+                countdown=MODERATION_DELAY,
+            )
         except Exception:  # noqa: BLE001
             logger.warning("moderation enqueue failed for listing %s", listing_id)
 
@@ -223,7 +231,7 @@ def _enqueue_moderation(listing_id) -> None:
 
 
 # rate_limit: массовая сверка/первый синк ставит тысячи задач — не «лавиной» по таблице.
-@idempotent_task(rate_limit="20/s")
+@idempotent_task(rate_limit="20/s", lock_timeout=MODERATION_DELAY)
 def moderate_listing(*, listing_id) -> None:
     """D2b-1: правила «Text-Check» (скоуп каталога) + дубли → очередь `ListingReport`."""
     from . import moderation

@@ -110,12 +110,10 @@ class ReportSourceFilter(admin.SimpleListFilter):
         return [("auto", _("Automatisch")), ("meldung", _("Meldung"))]
 
     def queryset(self, request, queryset):
-        from .moderation import AUTO_MARKER
-
         if self.value() == "auto":
-            return queryset.filter(ip_hash=AUTO_MARKER)
+            return queryset.filter(ip_hash=ListingReport.AUTO_MARKER)
         if self.value() == "meldung":
-            return queryset.exclude(ip_hash=AUTO_MARKER)
+            return queryset.exclude(ip_hash=ListingReport.AUTO_MARKER)
         return queryset
 
 
@@ -140,7 +138,15 @@ class ListingReportAdmin(ModelAdmin):
 
     @admin.action(description=_("Erledigt — Angebot bleibt sichtbar"))
     def resolve_keep(self, request, queryset):
-        ids = list(queryset.values_list("listing_id", flat=True))
+        # D2b: машинная пометка решается сама по себе — скрытие людьми и их жалобы
+        # она не трогает (иначе «Erledigt» по авто-пометке молча снимал бы скрытие).
+        queryset.filter(ip_hash=ListingReport.AUTO_MARKER).update(
+            status=ListingReport.STATUS_RESOLVED
+        )
+        human = queryset.exclude(ip_hash=ListingReport.AUTO_MARKER)
+        ids = list(human.values_list("listing_id", flat=True))
+        if not ids:
+            return
         AggregatorListing.objects.filter(pk__in=ids).update(hidden_at=None, hidden_reason="")
         ListingReport.objects.filter(listing_id__in=ids).update(
             status=ListingReport.STATUS_RESOLVED

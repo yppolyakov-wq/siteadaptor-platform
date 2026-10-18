@@ -21,7 +21,7 @@ from .models import AggregatorListing, ListingReport
 
 logger = logging.getLogger(__name__)
 
-AUTO_MARKER = "auto"
+AUTO_MARKER = ListingReport.AUTO_MARKER
 DUPLICATE_WINDOW_DAYS = 14
 FOREIGN_DUPLICATE_TENANTS = 2  # ещё двое с тем же заголовком → три бизнеса = спам
 DUPLICATE_SCAN = 200
@@ -30,7 +30,6 @@ MESSAGE_QUOTE_MAX = 80
 # Код → причина очереди. Неизвестный код — «Sonstiges».
 _REASONS = {
     "kontakt_im_text": ListingReport.REASON_SPAM,
-    "grossbuchstaben": ListingReport.REASON_SPAM,
     "duplikat_eigen": ListingReport.REASON_SPAM,
     "duplikat_fremd": ListingReport.REASON_SPAM,
     "statt_ohne_referenz": ListingReport.REASON_WRONG,
@@ -51,6 +50,14 @@ _REASON_ORDER = (
 )
 
 
+def _clean_quote(text: str) -> str:
+    """Цитата для очереди: без управляющих символов и bidi-меток, в одну строку."""
+    import unicodedata
+
+    text = "".join(c for c in str(text or "") if not unicodedata.category(c).startswith("C"))
+    return " ".join(text.split())
+
+
 def _norm(text: str) -> str:
     return " ".join(str(text or "").casefold().split())
 
@@ -58,6 +65,11 @@ def _norm(text: str) -> str:
 def _base_title(listing) -> str:
     title = listing.title if isinstance(listing.title, dict) else {}
     return str(title.get(settings.LANGUAGE_CODE) or "")
+
+
+def _base_teaser(listing) -> str:
+    teaser = listing.teaser if isinstance(listing.teaser, dict) else {}
+    return str(teaser.get(settings.LANGUAGE_CODE) or "").strip()
 
 
 def input_from_listing(listing) -> tc.CheckInput:
@@ -87,7 +99,7 @@ def _hit(code: str, quote: str) -> tc.Finding:
         severity="medium",
         field="title",
         locale=settings.LANGUAGE_CODE,
-        quote=quote[:MESSAGE_QUOTE_MAX],
+        quote=_clean_quote(quote)[:MESSAGE_QUOTE_MAX],
         message="",
         norm="",
     )
@@ -109,6 +121,7 @@ def _duplicates(listing) -> list[tc.Finding]:
             created_at__gte=since,
         )
         .exclude(pk=listing.pk)
+        .order_by("-created_at")
         .values_list("title", flat=True)[:DUPLICATE_SCAN]
     )
     if any(isinstance(t, dict) and _norm(t.get(settings.LANGUAGE_CODE)) == title for t in own):
@@ -117,8 +130,11 @@ def _duplicates(listing) -> list[tc.Finding]:
         others = (
             AggregatorListing.objects.filter(
                 city=listing.city,
+                listing_kind=listing.listing_kind,
                 is_active=True,
                 is_demo=False,  # демо не делают чужую карточку «спамом»
+                # Спам = тот же заголовок И тот же тизер: общие имена («Wochenangebot») — нет.
+                **{f"teaser__{settings.LANGUAGE_CODE}__iexact": _base_teaser(listing)},
                 # Без учёта регистра — как у своих дублей (сравнение по _norm).
                 **{f"title__{settings.LANGUAGE_CODE}__iexact": _base_title(listing).strip()},
             )
@@ -139,7 +155,7 @@ def check_listing(listing) -> list[tc.Finding]:
 
 def _message(findings, source: str) -> str:
     codes = sorted({f.code for f in findings})
-    quote = next((f.quote for f in findings if f.quote), "")
+    quote = _clean_quote(next((f.quote for f in findings if f.quote), ""))
     text = f"[auto:{source}] " + ", ".join(codes)
     if quote:
         text += f" — „{quote[:MESSAGE_QUOTE_MAX]}“"
@@ -147,15 +163,22 @@ def _message(findings, source: str) -> str:
 
 
 def flag(listing, findings, *, source: str = "rule") -> ListingReport | None:
-    """Одна машинная пометка на (карточка, набор кодов + цитата); решённая модератором
-    не всплывает снова, пока не изменится текст. Карточку НЕ скрывает."""
+    """Одна ОТКРЫТАЯ машинная пометка на карточку: новый текст обновляет её, а не
+    плодит строки (ревью: правки карточки не должны засорять очередь). Решённая
+    модератором пометка с тем же текстом не всплывает снова. Карточку НЕ скрывает."""
     if not findings:
         return None
     message = _message(findings, source)
-    if ListingReport.objects.filter(listing=listing, message=message).exists():
+    auto = ListingReport.objects.filter(listing=listing, ip_hash=AUTO_MARKER)
+    if auto.filter(message=message).exists():
         return None
     reasons = {_REASONS.get(f.code, ListingReport.REASON_OTHER) for f in findings}
     reason = next(r for r in _REASON_ORDER if r in reasons)
+    current = auto.filter(status=ListingReport.STATUS_OPEN).order_by("-created_at").first()
+    if current is not None:
+        current.message, current.reason = message, reason
+        current.save(update_fields=["message", "reason"])
+        return current
     return ListingReport.objects.create(
         listing=listing, reason=reason, message=message, ip_hash=AUTO_MARKER
     )
@@ -168,6 +191,10 @@ def _internal(schema: str) -> bool:
 
 
 def moderate(listing) -> ListingReport | None:
+    # v1 — только акции (ревью: у товаров old_price = UVP без срока, у услуг/номеров/событий
+    # другие цены — правила давали бы шум); остальные виды — D2c после замеров точности.
+    if listing.listing_kind != AggregatorListing.KIND_PROMOTION:
+        return None
     if listing.is_demo or _internal(listing.tenant_schema):
         return None
     return flag(listing, check_listing(listing))

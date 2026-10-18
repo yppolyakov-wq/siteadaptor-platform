@@ -363,6 +363,8 @@ class ListingReport(models.Model):
     """
 
     AUTO_HIDE_AT = 3
+    # D2b (T-8.10e): машинная пометка «Text-Check» — не голос жалоб (в ip_hash).
+    AUTO_MARKER = "auto"
 
     REASON_WRONG = "wrong"
     REASON_EXPIRED = "expired"
