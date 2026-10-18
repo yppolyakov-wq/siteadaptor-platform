@@ -31,6 +31,10 @@
     {% if token_unreadable %}
       <div class="rounded-lg border border-amber-200 bg-amber-50 text-amber-800 text-sm px-4 py-3" data-merchant-unreadable>
         {% trans "Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und in Merchant Center eintragen." %}
+        <form method="post" action="{% url 'gbp-merchant' %}" class="mt-2">
+          {% csrf_token %}<input type="hidden" name="action" value="rotate">
+          <button type="submit" class="bg-gray-900 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Neue Adresse erzeugen" %}</button>
+        </form>
       </div>
     {% endif %}
 

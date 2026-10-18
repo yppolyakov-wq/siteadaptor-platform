@@ -78,7 +78,8 @@ def _feed(token):
 
 
 def test_owner_sees_screen_staff_does_not(owner, staff):
-    assert views.merchant_feed(_req("get", owner)).status_code == 200
+    resp = views.merchant_feed(_req("get", owner))
+    assert resp.status_code == 200 and "no-store" in resp["Cache-Control"]
     assert views.merchant_feed(_req("get", staff)).status_code == 403
     anon = views.merchant_feed(_req("get", AnonymousUser()))
     assert anon.status_code == 302 and "login" in anon["Location"]
@@ -265,3 +266,14 @@ def test_nav_registry_entry_is_owner_only():
 
     entries = [e for e in nav_registry.ENTRIES if e.url_name == "gbp-merchant"]
     assert entries and entries[0].owner_only
+
+
+def test_unreadable_token_offers_new_address_without_confirm(owner, isolated_ratelimit):
+    Channel.objects.create(
+        type=Channel.GOOGLE_BUSINESS,
+        config={"merchant_feed": {"enabled": True}, merchant.TOKEN_KEY: "gAAAAA" + "x" * 80},
+    )
+    body = views.merchant_feed(_req("get", owner)).content.decode()
+    assert "data-merchant-unreadable" in body and 'value="rotate"' in body
+    _post(owner, action="rotate")
+    assert _token() and _feed(_token()).status_code == 200

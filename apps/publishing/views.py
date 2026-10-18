@@ -6,11 +6,12 @@
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import connection
+from django.db import DatabaseError, connection
 from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
 from . import oauth
@@ -425,14 +426,15 @@ def _merchant_feed_url(request, token: str) -> str:
     path = reverse("storefront-merchant-feed", args=[token])
     tenant = getattr(request, "tenant", None)
     try:
-        primary = tenant.domains.filter(is_primary=True).first() if tenant else None
-    except Exception:  # noqa: BLE001 — без домена отдаём адрес текущего запроса
+        primary = tenant.domains.filter(is_primary=True).order_by("pk").first() if tenant else None
+    except (DatabaseError, ValueError):  # ValueError — тенант без pk (тест/сборка)
         primary = None
     if primary:
         return f"{request.scheme}://{primary.domain}{path}"
     return request.build_absolute_uri(path)
 
 
+@never_cache  # страница несёт секретный адрес фида — не держать в кэше браузера
 @login_required
 def merchant_feed(request):
     """Экран «Google Merchant Center» (M23b.2): включить фид, адрес, новый адрес, что в фиде.
@@ -465,7 +467,9 @@ def merchant_feed(request):
             messages.success(
                 request, _("Der Produktfeed ist ausgeschaltet. Google erhält einen leeren Feed.")
             )
-        elif request.POST.get("confirm") == "rotate":
+        elif (
+            request.POST.get("confirm") == "rotate" or merchant.feed_state(channel)["token"] is None
+        ):  # нечитаемый адрес уже не работает — подтверждать нечего
             merchant.rotate(channel.pk)
             messages.success(
                 request, _("Neue Adresse erzeugt. Bitte in Merchant Center eintragen.")

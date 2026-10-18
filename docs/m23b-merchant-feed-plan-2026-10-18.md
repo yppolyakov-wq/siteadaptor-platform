@@ -28,13 +28,13 @@ Commerce** (`docs/meta-social-setup.md`) — ломать его нельзя. �
 
 ## 3. Инкременты
 
-- **M23b.1** (⚠️ `catalog/0039`): `apps/catalog/google.py` (причины исключения, ветка
+- **M23b.1 ✅** (⚠️ `catalog/0039`): `apps/catalog/google.py` (причины исключения, ветка
   скрытой/неактивной категории, prefetch активных вариантов), фид по адресу
   `/feed/merchant/<token>/products.xml` (токен в `Channel(google_business).config
   ["merchant_feed"]`, `compare_digest`, лимит частоты по IP, no_store + noindex, ETag/304),
   марка/состояние/XML-безопасность, флажок «Nicht an Google senden» в формах товара и категории;
   старый адрес — прежний вывод (кроме безопасных правок).
-- **M23b.2** экран `/dashboard/channels/google/merchant/`: тумблер, адрес + копирование,
+- **M23b.2 ✅** (2026-10-18) экран `/dashboard/channels/google/merchant/`: тумблер, адрес + копирование,
   перевыпуск токена, «N Produkte im Feed», исключённые по причинам, инструкция связки
   Merchant Center ↔ профиль.
 - **M23b.3** локальный инвентарь `/feed/merchant/<token>/local.xml` (store_code, id, availability,
