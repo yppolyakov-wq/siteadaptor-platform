@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 
 from django.utils import timezone
@@ -17,8 +18,10 @@ from apps.tenants import openinghours
 
 from . import gbp
 
+logger = logging.getLogger("publishing")
+
 DAYS = ("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY")
-ACTION_LIMIT = 3  # действий с часами в минуту на бизнес (предпросмотр → применить укладывается)
+ACTION_LIMIT = 6  # действий с часами в минуту на бизнес (предпросмотр → применить укладывается)
 ACTION_WINDOW = 60
 
 
@@ -39,6 +42,7 @@ class HoursDiff:
     special_count: int = 0
     google_empty: bool = False
     google: dict = field(default_factory=dict)  # часы Google в нашем формате (без дней с потерями)
+    closes_at_google: set = field(default_factory=set)  # отправка закроет эти дни у Google
 
 
 def _hhmm(value: str) -> dict:
@@ -62,8 +66,9 @@ def _time(value) -> tuple[int, int] | None:
     if not isinstance(value, dict):
         return None
     hours, minutes = value.get("hours", 0), value.get("minutes", 0)
-    if not isinstance(hours, int) or not isinstance(minutes, int) or isinstance(hours, bool):
-        return None
+    for part in (hours, minutes):
+        if not isinstance(part, int) or isinstance(part, bool):
+            return None
     if not (0 <= hours <= 24 and 0 <= minutes < 60):
         return None
     return hours, minutes
@@ -131,6 +136,8 @@ def diff(ours, periods, special_count: int = 0) -> HoursDiff:
             _google_label(wd, raw[wd]) if is_lossy else ("–".join(theirs) if theirs else "")
         )
         changed = is_lossy or mine != theirs
+        if not mine and (theirs or is_lossy):
+            result.closes_at_google.add(wd)
         result.equal = result.equal and not changed
         result.rows.append(
             {
@@ -161,37 +168,56 @@ def push(tenant, config, *, confirm: bool = False) -> HoursDiff:
     token = gbp.access_token(config)
     data = gbp.get_hours(token, v1)
     current = diff(ours, data["periods"], data["special_count"])
+    # Отправка заменяет часы Google целиком: стереть разрыв в смене или открытый у Google
+    # день можно только явной галочкой (предпросмотр показывает, что именно изменится).
     if current.lossy_days and not confirm:
         raise HoursError("lossy", current)
+    if current.closes_at_google and not confirm:
+        raise HoursError("closes_at_google", current)
     gbp.patch_regular_hours(token, v1, to_periods(ours))
     return current
 
 
-def pull_apply(tenant, config) -> HoursDiff:
-    """Забрать часы из Google. Дни с потерями остаются нашими; пустой Google — отказ.
+def pull_apply(tenant, config, *, confirm: bool = False) -> HoursDiff:
+    """Забрать часы из Google. Дни с потерями остаются нашими; пустой Google — отказ;
+    любое изменение наших часов — только с галочкой после показа диффа.
 
     Пишем только колонку часов (W7a): параллельные записи других полей тенанта целы."""
     current = fetch(tenant, config)
     if current.google_empty:
         raise HoursError("google_empty", current)
-    model = type(tenant)
-    fresh = model.objects.filter(pk=tenant.pk).values_list("opening_hours_structured", flat=True)
-    merged = dict(openinghours.normalize(fresh.first()))
-    google = current.google
-    for row in current.rows:
-        if row["lossy"]:
-            continue
-        key = str(row["wd"])
-        if key in google:
-            merged[key] = google[key]
-        else:
-            merged.pop(key, None)
-    merged = openinghours.normalize(merged)
-    model.objects.filter(pk=tenant.pk).update(
-        opening_hours_structured=merged, updated_at=timezone.now()
-    )
-    tenant.opening_hours_structured = merged
-    from apps.aggregator.tasks import refresh_tenant_fields
+    if current.equal:
+        return current
+    if not confirm:
+        raise HoursError("confirm_pull", current)
+    from django.db import transaction
 
-    refresh_tenant_fields(tenant)
+    model = type(tenant)
+    with transaction.atomic():  # чтение-слияние-запись без окна для параллельного Save настроек
+        fresh = (
+            model.objects.select_for_update()
+            .filter(pk=tenant.pk)
+            .values_list("opening_hours_structured", flat=True)
+        )
+        merged = dict(openinghours.normalize(fresh.first()))
+        google = current.google
+        for row in current.rows:
+            if row["lossy"]:
+                continue
+            key = str(row["wd"])
+            if key in google:
+                merged[key] = google[key]
+            else:
+                merged.pop(key, None)
+        merged = openinghours.normalize(merged)
+        model.objects.filter(pk=tenant.pk).update(
+            opening_hours_structured=merged, updated_at=timezone.now()
+        )
+    tenant.opening_hours_structured = merged
+    try:  # часы уже сохранены — сбой обновления листингов не должен давать 500
+        from apps.aggregator.tasks import refresh_tenant_fields
+
+        refresh_tenant_fields(tenant)
+    except Exception as exc:  # noqa: BLE001 — листинги догонит ночная сверка
+        logger.warning("gbp hours: refresh listings failed: %s", type(exc).__name__)
     return current

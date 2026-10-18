@@ -67,8 +67,8 @@
   <section class="bg-white border border-gray-200 rounded-2xl p-5" id="zeiten">
     <h2 class="font-semibold mb-1">{% trans "Öffnungszeiten" %}</h2>
     <p class="text-xs text-gray-500 mb-3">{% trans "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen." %}</p>
-    {% if gbp_state.hours_pushed_at or gbp_state.hours_pulled_at %}
-      <p class="text-xs text-gray-400 mb-3">{% trans "Zuletzt abgeglichen" %}: {% firstof gbp_state.hours_pushed_at|slice:":10" gbp_state.hours_pulled_at|slice:":10" %}</p>
+    {% if hours_synced_at %}
+      <p class="text-xs text-gray-400 mb-3" data-hours-synced>{% trans "Zuletzt abgeglichen" %}: {{ hours_synced_at|date:"SHORT_DATETIME_FORMAT" }}</p>
     {% endif %}
 
     {% if hours_diff %}
@@ -100,7 +100,7 @@
       </form>
       <form method="post" action="{% url 'gbp-hours' %}">
         {% csrf_token %}<input type="hidden" name="action" value="push">
-        {% if hours_confirm %}
+        {% if hours_confirm == "push" %}
           <label class="flex items-center gap-2 text-xs text-amber-800 mb-1">
             <input type="checkbox" name="confirm" value="overwrite" required> {% trans "Ja, bei Google überschreiben" %}
           </label>
@@ -109,6 +109,11 @@
       </form>
       <form method="post" action="{% url 'gbp-hours' %}">
         {% csrf_token %}<input type="hidden" name="action" value="pull_apply">
+        {% if hours_confirm == "pull" %}
+          <label class="flex items-center gap-2 text-xs text-amber-800 mb-1">
+            <input type="checkbox" name="confirm" value="pull" required> {% trans "Ja, diese Zeiten übernehmen" %}
+          </label>
+        {% endif %}
         <button type="submit" class="border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">{% trans "Von Google übernehmen" %}</button>
       </form>
     </div>

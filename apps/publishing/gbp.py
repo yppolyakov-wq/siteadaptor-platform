@@ -29,6 +29,7 @@ LOCATION_RE = re.compile(r"accounts/[0-9]+/locations/[0-9]+", re.ASCII)
 ACCOUNT_RE = re.compile(r"accounts/[0-9]+", re.ASCII)
 MAX_ACCOUNTS = 20
 MAX_LOCATIONS = 200
+MAX_PERIODS = 50  # периодов часов на неделю — с запасом
 MAX_PAGES = 5  # на один список; страница локаций — 100
 LIST_DEADLINE_S = 45  # общий бюджет загрузки локаций в веб-запросе
 
@@ -238,7 +239,7 @@ def get_hours(token: str, v1_name: str) -> dict:
     special = data.get("specialHours")
     periods = _list(regular.get("periods")) if isinstance(regular, dict) else []
     days = _list(special.get("specialHourPeriods")) if isinstance(special, dict) else []
-    return {"periods": periods, "special_count": len(days)}
+    return {"periods": periods[:MAX_PERIODS], "special_count": len(days)}
 
 
 def patch_regular_hours(token: str, v1_name: str, periods: list) -> None:

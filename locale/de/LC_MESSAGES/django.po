@@ -25693,3 +25693,12 @@ msgstr "Öffnungszeiten von Google übernommen."
 
 msgid "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
 msgstr "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
+
+msgid "Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
+msgstr "Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
+
+msgid "Bitte die Änderungen prüfen und die Übernahme bestätigen."
+msgstr "Bitte die Änderungen prüfen und die Übernahme bestätigen."
+
+msgid "Ja, diese Zeiten übernehmen"
+msgstr "Ja, diese Zeiten übernehmen"

@@ -175,6 +175,55 @@ def test_push_blocked_when_google_has_lossy_days_until_confirmed(api):
     assert api["patched"] == [("locations/2", gbp_hours.to_periods(WEEK))]
 
 
+def test_pull_removes_day_closed_at_google_and_reads_fresh_db(api, monkeypatch):
+    tenant = TenantFactory(schema_name=f"t_h{uuid.uuid4().hex[:6]}", auto_create_schema=False)
+    type(tenant).objects.filter(pk=tenant.pk).update(
+        opening_hours_structured={
+            "0": ["09:00", "18:00"],
+            "1": ["09:00", "18:00"],
+            "6": ["10:00", "12:00"],
+        }
+    )
+    tenant.opening_hours_structured = {
+        "0": ["09:00", "18:00"],
+        "1": ["09:00", "18:00"],
+    }  # снимок устарел
+    api["periods"] = [_p("MONDAY", 9, 0, 18, 0)]
+    monkeypatch.setattr("apps.aggregator.tasks.refresh_tenant_fields", lambda t: None)
+    gbp_hours.pull_apply(tenant, CONFIG, confirm=True)
+    tenant.refresh_from_db()
+    assert tenant.opening_hours_structured == {"0": ["09:00", "18:00"]}
+
+
+def test_pull_equal_is_noop_without_confirm(api, monkeypatch):
+    tenant = TenantFactory.build(opening_hours_structured={"0": ["09:00", "18:00"]})
+    api["periods"] = [_p("MONDAY", 9, 0, 18, 0)]
+    assert gbp_hours.pull_apply(tenant, CONFIG).equal
+
+
+def test_refresh_failure_after_pull_is_not_500(api, monkeypatch):
+    tenant = TenantFactory(schema_name=f"t_h{uuid.uuid4().hex[:6]}", auto_create_schema=False)
+    api["periods"] = [_p("MONDAY", 9, 0, 18, 0)]
+
+    def boom(t):
+        raise RuntimeError("x")
+
+    monkeypatch.setattr("apps.aggregator.tasks.refresh_tenant_fields", boom)
+    gbp_hours.pull_apply(tenant, CONFIG, confirm=True)
+    tenant.refresh_from_db()
+    assert tenant.opening_hours_structured == {"0": ["09:00", "18:00"]}
+
+
+def test_push_closing_a_google_day_needs_confirm(api):
+    api["periods"] = [_p("MONDAY", 9, 0, 18, 0), _p("SUNDAY", 10, 0, 14, 0)]
+    tenant = TenantFactory.build(opening_hours_structured={"0": ["09:00", "18:00"]})
+    with pytest.raises(gbp_hours.HoursError) as exc:
+        gbp_hours.push(tenant, CONFIG)
+    assert exc.value.code == "closes_at_google" and api["patched"] == []
+    gbp_hours.push(tenant, CONFIG, confirm=True)
+    assert len(api["patched"]) == 1
+
+
 def test_pull_with_empty_google_hours_refused(api):
     tenant = TenantFactory.build(opening_hours_structured=WEEK)
     with pytest.raises(gbp_hours.HoursError) as exc:
@@ -198,7 +247,10 @@ def test_apply_pull_writes_only_hours_keeps_lossy_days_and_refreshes(api, monkey
     monkeypatch.setattr(
         "apps.aggregator.tasks.refresh_tenant_fields", lambda t: refreshed.append(t.pk)
     )
-    d = gbp_hours.pull_apply(tenant, CONFIG)
+    with pytest.raises(gbp_hours.HoursError) as exc:
+        gbp_hours.pull_apply(tenant, CONFIG)  # без галочки — ничего не пишем
+    assert exc.value.code == "confirm_pull" and refreshed == []
+    d = gbp_hours.pull_apply(tenant, CONFIG, confirm=True)
     tenant.refresh_from_db()
     assert tenant.opening_hours_structured == {
         "0": ["07:00", "15:00"],
@@ -266,6 +318,30 @@ def test_push_needs_confirm_then_records_state(owner, channel, api, isolated_rat
     channel.refresh_from_db()
     assert channel.config["gbp_sync"]["hours_pushed_at"]
     assert channel.config["refresh_token"]  # чужие ключи целы
+
+
+def test_pull_through_view_needs_confirm(owner, channel, api, isolated_ratelimit, monkeypatch):
+    tenant = TenantFactory(schema_name=f"t_h{uuid.uuid4().hex[:6]}", auto_create_schema=False)
+    api["periods"] = [_p("MONDAY", 7, 0, 15, 0)]
+    monkeypatch.setattr("apps.aggregator.tasks.refresh_tenant_fields", lambda t: None)
+    resp = views.gbp_hours(_req(owner, {"action": "pull_apply"}, tenant=tenant))
+    assert 'value="pull"' in resp.content.decode()
+    tenant.refresh_from_db()
+    assert tenant.opening_hours_structured in ({}, None)
+    views.gbp_hours(_req(owner, {"action": "pull_apply", "confirm": "pull"}, tenant=tenant))
+    tenant.refresh_from_db()
+    assert tenant.opening_hours_structured == {"0": ["07:00", "15:00"]}
+    channel.refresh_from_db()
+    assert channel.config["gbp_sync"]["hours_pulled_at"]
+
+
+def test_staff_forbidden_in_view_itself(django_user_model, channel, api, isolated_ratelimit):
+    from apps.core.models import Membership
+
+    staff = django_user_model.objects.create_user(username=f"s{uuid.uuid4().hex[:6]}", password="x")
+    Membership.objects.create(user=staff, role=Membership.ROLE_STAFF)
+    assert views.gbp_hours(_req(staff, {"action": "preview"})).status_code == 403
+    assert api["gets"] == 0
 
 
 def test_google_error_shows_code_no_500(owner, channel, monkeypatch, isolated_ratelimit):

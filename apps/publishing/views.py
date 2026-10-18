@@ -7,7 +7,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import connection
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -227,6 +227,13 @@ GBP_ERROR_MESSAGES = {
 }
 
 
+def _owner(request) -> bool:
+    """Вторая линия к owner-only префиксу middleware: экран пишет во внешний профиль."""
+    from apps.core.roles import is_owner
+
+    return is_owner(request.user)
+
+
 def _gbp_channel():
     channel, _created = Channel.objects.get_or_create(type=Channel.GOOGLE_BUSINESS)
     return channel
@@ -253,6 +260,8 @@ def gbp_sync(request):
     from . import gbp
     from .secrets import decrypted_config
 
+    if not _owner(request):
+        return HttpResponseForbidden(_("Nur für Inhaber."))
     channel = _gbp_channel()
     config = decrypted_config(channel)
     locations = None
@@ -288,8 +297,9 @@ def _gbp_render(request, channel, config, *, error_code="", quiet=False, **extra
         "location": config.get("location") or "",
         "locations": None,
         "hours_diff": None,
-        "hours_confirm": False,
+        "hours_confirm": "",
         "gbp_state": state,
+        "hours_synced_at": _latest(state.get("hours_pushed_at"), state.get("hours_pulled_at")),
         "error_code": error_code,
         "error_message": GBP_ERROR_MESSAGES.get(error_code, ""),
     }
@@ -305,6 +315,10 @@ GBP_HOURS_MESSAGES = {
     "lossy": gettext_lazy(
         "Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
     ),
+    "closes_at_google": gettext_lazy(
+        "Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
+    ),
+    "confirm_pull": gettext_lazy("Bitte die Änderungen prüfen und die Übernahme bestätigen."),
 }
 
 
@@ -319,6 +333,8 @@ def gbp_hours(request):
     from . import gbp_hours as hours
     from .secrets import decrypted_config
 
+    if not _owner(request):
+        return HttpResponseForbidden(_("Nur für Inhaber."))
     action = request.POST.get("action", "")
     if action not in ("preview", "push", "pull_apply"):
         return redirect("gbp-sync")
@@ -329,7 +345,7 @@ def gbp_hours(request):
         messages.error(request, _("Bitte einen Moment warten und erneut versuchen."))
         return _gbp_render(request, channel, config, quiet=True)
     tenant = request.tenant
-    diff, confirm_needed, error_code = None, False, ""
+    diff, confirm_needed, error_code = None, "", ""
     try:
         if action == "preview":
             diff = hours.fetch(tenant, config)
@@ -338,12 +354,16 @@ def gbp_hours(request):
             _gbp_sync_update(channel.pk, last_error_code="", last_status=0, hours_pushed_at=_now())
             messages.success(request, _("Öffnungszeiten an Google gesendet."))
         else:
-            hours.pull_apply(tenant, config)
+            hours.pull_apply(tenant, config, confirm=request.POST.get("confirm") == "pull")
             _gbp_sync_update(channel.pk, last_error_code="", last_status=0, hours_pulled_at=_now())
             messages.success(request, _("Öffnungszeiten von Google übernommen."))
     except hours.HoursError as exc:
         diff = exc.diff
-        confirm_needed = exc.code == "lossy"
+        confirm_needed = (
+            "pull"
+            if exc.code == "confirm_pull"
+            else ("push" if exc.code in ("lossy", "closes_at_google") else "")
+        )
         messages.error(request, GBP_HOURS_MESSAGES[exc.code])
     except gbp.GbpError as exc:
         error_code = exc.code
@@ -360,6 +380,15 @@ def gbp_hours(request):
     )
 
 
+def _latest(*stamps):
+    """Самая поздняя из ISO-отметок как datetime (для «Zuletzt abgeglichen») или None."""
+    from django.utils.dateparse import parse_datetime
+
+    parsed = [parse_datetime(x) for x in stamps if isinstance(x, str)]
+    parsed = [x for x in parsed if x is not None]
+    return max(parsed) if parsed else None
+
+
 def _now() -> str:
     from django.utils import timezone
 
@@ -372,6 +401,8 @@ def gbp_location(request):
     """Сохранить выбранную локацию (v4-имя). Чужие ключи конфига (токен) не трогаются."""
     from . import gbp
 
+    if not _owner(request):
+        return HttpResponseForbidden(_("Nur für Inhaber."))
     location = (request.POST.get("location") or "").strip()
     if not gbp.LOCATION_RE.fullmatch(location):
         messages.error(request, _("Bitte zuerst einen Standort wählen"))

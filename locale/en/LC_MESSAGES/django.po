@@ -25634,3 +25634,12 @@ msgstr "Opening hours taken over from Google."
 
 msgid "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
 msgstr "Special hours at Google: %(n)s (not changed)"
+
+msgid "Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
+msgstr "Days open at Google would be closed. Please check and confirm."
+
+msgid "Bitte die Änderungen prüfen und die Übernahme bestätigen."
+msgstr "Please check the changes and confirm the takeover."
+
+msgid "Ja, diese Zeiten übernehmen"
+msgstr "Yes, take over these hours"

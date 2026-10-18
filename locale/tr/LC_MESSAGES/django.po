@@ -25766,3 +25766,12 @@ msgstr "Çalışma saatleri Google'dan alındı."
 
 msgid "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
 msgstr "Google'daki özel saatler: %(n)s (değiştirilmez)"
+
+msgid "Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
+msgstr "Google'da açık olan günler kapanacak. Lütfen kontrol edip onaylayın."
+
+msgid "Bitte die Änderungen prüfen und die Übernahme bestätigen."
+msgstr "Lütfen değişiklikleri kontrol edip aktarımı onaylayın."
+
+msgid "Ja, diese Zeiten übernehmen"
+msgstr "Evet, bu saatleri al"

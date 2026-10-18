@@ -25872,3 +25872,12 @@ msgstr "Години роботи перенесено з Google."
 
 msgid "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
 msgstr "Особливі години в Google: %(n)s (не змінюються)"
+
+msgid "Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
+msgstr "Дні, відкриті в Google, стануть зачиненими. Перевірте й підтвердьте."
+
+msgid "Bitte die Änderungen prüfen und die Übernahme bestätigen."
+msgstr "Перевірте зміни й підтвердьте перенесення."
+
+msgid "Ja, diese Zeiten übernehmen"
+msgstr "Так, перенести ці години"
