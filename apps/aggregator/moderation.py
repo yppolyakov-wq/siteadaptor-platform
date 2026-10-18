@@ -118,7 +118,9 @@ def _duplicates(listing) -> list[tc.Finding]:
             AggregatorListing.objects.filter(
                 city=listing.city,
                 is_active=True,
-                **{f"title__{settings.LANGUAGE_CODE}": _base_title(listing).strip()},
+                is_demo=False,  # демо не делают чужую карточку «спамом»
+                # Без учёта регистра — как у своих дублей (сравнение по _norm).
+                **{f"title__{settings.LANGUAGE_CODE}__iexact": _base_title(listing).strip()},
             )
             .exclude(tenant_schema=listing.tenant_schema)
             .values_list("tenant_schema", flat=True)

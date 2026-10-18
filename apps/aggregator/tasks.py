@@ -222,7 +222,8 @@ def _enqueue_moderation(listing_id) -> None:
     transaction.on_commit(_send)
 
 
-@idempotent_task()
+# rate_limit: массовая сверка/первый синк ставит тысячи задач — не «лавиной» по таблице.
+@idempotent_task(rate_limit="20/s")
 def moderate_listing(*, listing_id) -> None:
     """D2b-1: правила «Text-Check» (скоуп каталога) + дубли → очередь `ListingReport`."""
     from . import moderation

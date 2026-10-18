@@ -219,3 +219,18 @@ def test_admin_source_filter():
     human = source(None, {"quelle": ["meldung"]}, ListingReport, admin).queryset(None, qs)
     assert {r.ip_hash for r in auto} == {moderation.AUTO_MARKER}
     assert {r.ip_hash for r in human} == {"human"}
+
+
+def test_foreign_duplicate_ignores_case_and_demo_rows():
+    _listing(tenant_schema="t_o1", title={"de": "MEGA DEAL KAFFEE"})
+    _listing(tenant_schema="t_o2", title={"de": "Mega Deal Kaffee"}, is_demo=True)
+    _listing(tenant_schema="t_o3", title={"de": "mega deal kaffee"})
+    mine = _listing(title={"de": "Mega Deal Kaffee"})
+    moderation.moderate(mine)
+    (report,) = _auto(mine)
+    assert "duplikat_fremd" in report.message
+    _listing(tenant_schema="t_o4", title={"de": "Solo Deal"})
+    _listing(tenant_schema="t_o5", title={"de": "Solo Deal"}, is_demo=True)
+    other = _listing(title={"de": "Solo Deal"}, source_ref="solo")
+    moderation.moderate(other)
+    assert not _auto(other).exists()  # один реальный чужой + демо ≠ спам
