@@ -25945,3 +25945,35 @@ msgstr[3] "%(n)s новых черновика из Google"
 
 msgid "Nicht alle Beiträge konnten geholt werden – bitte später erneut versuchen."
 msgstr "Не все публикации удалось забрать — попробуйте позже."
+
+#, python-format
+msgid "%(n)s Hinweise"
+msgstr "Подсказок: %(n)s"
+
+msgid "Bei Google entfernt"
+msgstr "Удалено в Google"
+
+msgid "Bei Google geändert"
+msgstr "Изменено в Google"
+
+msgid "Hinweis ausgeblendet"
+msgstr "Пометка скрыта"
+
+msgid "Weitere Angebote beim nächsten Abruf"
+msgstr "Остальные предложения — при следующем заборе"
+
+#, python-format
+msgid "%(n)s Entwurf aktualisiert"
+msgid_plural "%(n)s Entwürfe aktualisiert"
+msgstr[0] "%(n)s черновик обновлён"
+msgstr[1] "%(n)s черновика обновлены"
+msgstr[2] "%(n)s черновиков обновлено"
+msgstr[3] "%(n)s черновика обновлены"
+
+#, python-format
+msgid "%(n)s Angebot bei Google geändert"
+msgid_plural "%(n)s Angebote bei Google geändert"
+msgstr[0] "%(n)s предложение изменено в Google"
+msgstr[1] "%(n)s предложения изменены в Google"
+msgstr[2] "%(n)s предложений изменено в Google"
+msgstr[3] "%(n)s предложения изменены в Google"

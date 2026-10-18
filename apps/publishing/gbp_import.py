@@ -19,7 +19,7 @@ import json
 import logging
 import unicodedata
 from dataclasses import dataclass
-from datetime import datetime, time
+from datetime import UTC, datetime, time
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
@@ -46,7 +46,11 @@ IMPORT_PREFIX = "gbp-import:"
 class ImportResult:
     created: int = 0
     skipped: int = 0
-    complete: bool = True
+    complete: bool = True  # Google отдал все посты (иначе «удалено» не помечаем)
+    updated: int = 0
+    flagged_changed: int = 0
+    flagged_gone: int = 0
+    deferred: int = 0  # новые посты сверх лимита — придут следующим проходом
 
 
 def clean_text(value, limit: int) -> str:
@@ -173,22 +177,37 @@ def post_to_draft_fields(post, tenant, *, now) -> dict | None:
     return fields
 
 
+def _dt_key(value) -> str:
+    """Дата для хеша — всегда в UTC: при импорте она в Europe/Berlin, из БД — в UTC."""
+    if value is None:
+        return ""
+    return value.astimezone(UTC).isoformat()
+
+
 def content_hash(fields) -> str:
-    """Отпечаток полей, которые может править владелец (для «Bei Google geändert», D3-4)."""
+    """Отпечаток полей, которые может править владелец («Bei Google geändert»)."""
     payload = [
-        fields.get("title"),
-        fields.get("description"),
-        str(fields.get("starts_at")),
-        str(fields.get("ends_at")),
+        fields.get("title") or {},
+        fields.get("description") or {},
+        _dt_key(fields.get("starts_at")),
+        _dt_key(fields.get("ends_at")),
     ]
     raw = json.dumps(payload, sort_keys=True, ensure_ascii=False, default=str)
     return hashlib.sha256(raw.encode()).hexdigest()[:32]
 
 
-def import_offers(channel, tenant, *, now=None) -> ImportResult:
-    """Забрать Offer-посты локации и создать черновики для новых. Идемпотентно."""
-    from apps.promotions.models import Promotion
+def _fields_of(promo) -> dict:
+    return {
+        "title": promo.title,
+        "description": promo.description,
+        "starts_at": promo.starts_at,
+        "ends_at": promo.ends_at,
+    }
 
+
+def import_offers(channel, tenant, *, now=None) -> ImportResult:
+    """Забрать Offer-посты локации: новые → черновики; изменённые → обновить нетронутый
+    черновик или пометить; пропавшие (только при полном проходе) → пометить. Идемпотентно."""
     from .models import Publication
     from .secrets import decrypted_config
 
@@ -198,16 +217,20 @@ def import_offers(channel, tenant, *, now=None) -> ImportResult:
     posts, complete = gbp.iter_local_posts(gbp.access_token(config), v4)
     result = ImportResult(complete=complete)
     dismissed = set(config.get("gbp_dismissed") or [])
-    names = [p.get("name") for p in posts if isinstance(p, dict) and isinstance(p.get("name"), str)]
-    known = set(
-        Publication.objects.filter(channel=channel, external_ref__in=names).values_list(
-            "external_ref", flat=True
-        )
+    # Все имена ответа — любого типа и статуса: закончившийся или не-LIVE пост не «удалён».
+    seen = {p["name"] for p in posts if isinstance(p, dict) and isinstance(p.get("name"), str)}
+    imported = {
+        pub.external_ref: pub.promotion_id
+        for pub in Publication.objects.filter(
+            channel=channel, dedupe_key__startswith=IMPORT_PREFIX
+        ).only("external_ref", "promotion_id")
+    }
+    own = set(
+        Publication.objects.filter(channel=channel, external_ref__in=seen)
+        .exclude(dedupe_key__startswith=IMPORT_PREFIX)
+        .values_list("external_ref", flat=True)
     )
     for post in posts:
-        if result.created >= MAX_CREATE_PER_RUN:
-            result.complete = False
-            break
         try:
             fields = post_to_draft_fields(post, tenant, now=now)
         except Exception as exc:  # noqa: BLE001 — один кривой пост не блокирует остальные
@@ -216,34 +239,150 @@ def import_offers(channel, tenant, *, now=None) -> ImportResult:
         if fields is None:
             continue
         name = fields["metadata"]["gbp_post"]
-        # Свой пост (опубликованный нами) или уже импортированный — не трогаем.
-        if name in known or name in dismissed:
+        if name in own or name in dismissed:
             result.skipped += 1
             continue
-        try:
-            with transaction.atomic():
-                promo = Promotion.objects.create(
-                    status="draft", promo_type=Promotion.DISCOUNT, **fields
-                )
-                Publication.objects.create(
-                    promotion=promo,
-                    channel=channel,
-                    status="published",
-                    external_ref=name,
-                    dedupe_key=f"{IMPORT_PREFIX}{name}",
-                )
-        except IntegrityError:  # параллельный импорт успел раньше
-            result.skipped += 1
+        if name in imported:
+            outcome = _apply_change(imported[name], fields, now)
+            if outcome == "updated":
+                result.updated += 1
+            elif outcome == "flagged":
+                result.flagged_changed += 1
             continue
-        result.created += 1
+        if result.created >= MAX_CREATE_PER_RUN:
+            result.deferred += 1  # лимит останавливает только создание, обход идёт дальше
+            continue
+        if _create(channel, name, fields):
+            result.created += 1
+        else:
+            result.skipped += 1
+    if complete:
+        result.flagged_gone = _sync_gone(imported, seen, now)
     logger.info(
-        "gbp import: posts=%s created=%s skipped=%s complete=%s",
+        "gbp import: posts=%s created=%s updated=%s changed=%s gone=%s deferred=%s complete=%s",
         len(posts),
         result.created,
-        result.skipped,
+        result.updated,
+        result.flagged_changed,
+        result.flagged_gone,
+        result.deferred,
         complete,
     )
     return result
+
+
+def _create(channel, name, fields) -> bool:
+    from apps.promotions.models import Promotion
+
+    from .models import Publication
+
+    try:
+        with transaction.atomic():
+            promo = Promotion.objects.create(
+                status="draft", promo_type=Promotion.DISCOUNT, **fields
+            )
+            Publication.objects.create(
+                promotion=promo,
+                channel=channel,
+                status="published",
+                external_ref=name,
+                dedupe_key=f"{IMPORT_PREFIX}{name}",
+            )
+    except IntegrityError:  # параллельный импорт успел раньше
+        return False
+    return True
+
+
+_CHANGE_KEYS = ("gbp_changed", "gbp_changed_hash", "gbp_changed_at")
+
+
+def _apply_change(promotion_pk, fields, now) -> str:
+    """Пост уже импортирован. Нетронутый владельцем черновик — обновить; правленый черновик и
+    любая не-черновик акция — только пометка «Bei Google geändert» (содержимое не трогаем).
+    Мягко удалённая акция не находится → «skip»."""
+    from apps.promotions.models import Promotion
+
+    new_hash = fields["metadata"]["gbp_hash"]
+    with transaction.atomic():
+        promo = Promotion.objects.select_for_update().filter(pk=promotion_pk).first()
+        if promo is None:
+            return "skip"
+        meta = dict(promo.metadata) if isinstance(promo.metadata, dict) else {}
+        accepted = meta.get("gbp_hash")
+        if new_hash == accepted:
+            if any(k in meta for k in _CHANGE_KEYS):  # Google вернул принятую версию
+                for key in _CHANGE_KEYS:
+                    meta.pop(key, None)
+                Promotion.objects.filter(pk=promo.pk).update(metadata=meta)
+            return "same"
+        untouched = content_hash(_fields_of(promo)) == accepted
+        if promo.status == "draft" and untouched:
+            for key in _CHANGE_KEYS:
+                meta.pop(key, None)
+            meta.update(fields["metadata"])
+            for attr in ("title", "description", "starts_at", "ends_at"):
+                setattr(promo, attr, fields[attr])
+            promo.metadata = meta
+            promo.save(
+                update_fields=[
+                    "title",
+                    "description",
+                    "starts_at",
+                    "ends_at",
+                    "metadata",
+                    "updated_at",
+                ]
+            )
+            return "updated"
+        if new_hash == meta.get("gbp_ack_hash") or meta.get("gbp_changed_hash") == new_hash:
+            return "same"
+        meta.update(
+            {"gbp_changed": True, "gbp_changed_hash": new_hash, "gbp_changed_at": now.isoformat()}
+        )
+        # .update(): без сигналов (активная акция не пересобирает листинги) и без updated_at.
+        Promotion.objects.filter(pk=promo.pk).update(metadata=meta)
+        return "flagged"
+
+
+def _sync_gone(imported: dict, seen: set, now) -> int:
+    """Только после ПОЛНОГО прохода: пометить импортированные акции, чьих постов больше нет у
+    Google, и снять пометку у вернувшихся. Акция и пост у Google не удаляются (В-6)."""
+    from apps.promotions.models import Promotion
+
+    flagged = 0
+    for name, promotion_pk in imported.items():
+        is_gone = name not in seen
+        with transaction.atomic():
+            promo = Promotion.objects.select_for_update().filter(pk=promotion_pk).first()
+            if promo is None:
+                continue
+            meta = dict(promo.metadata) if isinstance(promo.metadata, dict) else {}
+            if is_gone and not meta.get("gbp_gone"):
+                meta.update({"gbp_gone": True, "gbp_gone_at": now.isoformat()})
+                flagged += 1
+            elif not is_gone and meta.get("gbp_gone"):
+                meta.pop("gbp_gone", None)
+                meta.pop("gbp_gone_at", None)
+            else:
+                continue
+            Promotion.objects.filter(pk=promo.pk).update(metadata=meta)
+    return flagged
+
+
+def ack_change(promotion_pk) -> None:
+    """«Ausblenden»: скрыть пометку «Bei Google geändert» до следующей версии поста."""
+    from apps.promotions.models import Promotion
+
+    with transaction.atomic():
+        promo = Promotion.objects.select_for_update().get(pk=promotion_pk)
+        meta = dict(promo.metadata) if isinstance(promo.metadata, dict) else {}
+        if meta.get("source") != "gbp":
+            raise ValueError("not a gbp promotion")
+        if meta.get("gbp_changed_hash"):
+            meta["gbp_ack_hash"] = meta["gbp_changed_hash"]
+        for key in _CHANGE_KEYS:
+            meta.pop(key, None)
+        Promotion.objects.filter(pk=promo.pk).update(metadata=meta)
 
 
 def is_imported(publication) -> bool:

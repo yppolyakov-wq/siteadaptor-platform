@@ -339,19 +339,54 @@ def test_title_falls_back_to_summary_first_line(channel, tenant, google):
 
 
 @pytest.mark.parametrize(
-    "url", ["http://example.com/x", "javascript:alert(1)", "https://10.0.0.1/"]
+    "url",
+    [
+        "http://example.com/x",
+        "javascript:alert(1)",
+        "https://10.0.0.1/",
+        "https://[::1]/",
+        "https://user@shop.example/",
+        "https://shop.example:8443/",
+        "https://localhost/",
+        "https://shop.example/a b",
+    ],
 )
-def test_bad_redeem_url_dropped(channel, tenant, google, monkeypatch, url):
-    from apps.core import ssrf
-
-    monkeypatch.undo()
-    monkeypatch.setattr(gbp, "access_token", lambda config: "tok")
-    monkeypatch.setattr(
-        gbp, "iter_local_posts", lambda token, v4: ([_offer(offer={"redeemOnlineUrl": url})], True)
-    )
-    assert ssrf  # реальная проверка публичности адреса
+def test_bad_redeem_url_dropped(channel, tenant, google, url):
+    google["posts"] = [_offer(offer={"redeemOnlineUrl": url})]
     _run(channel, tenant)
     assert "gbp_redeem_url" not in Promotion.objects.get().metadata
+
+
+def test_good_redeem_url_kept_as_text(channel, tenant, google):
+    google["posts"] = [_offer(offer={"redeemOnlineUrl": "https://shop.example/deal"})]
+    _run(channel, tenant)
+    assert Promotion.objects.get().metadata["gbp_redeem_url"] == "https://shop.example/deal"
+
+
+def test_absurd_dates_skip_post_not_crash(channel, tenant, google):
+    bad = _offer(name="accounts/1/locations/2/localPosts/1")
+    bad["event"]["schedule"]["startDate"] = {"year": 10**30, "month": 1, "day": 1}
+    bad["event"]["schedule"]["endDate"] = {"year": 10**30, "month": 1, "day": 1}
+    worse = _offer(name="accounts/1/locations/2/localPosts/3")
+    worse["event"]["schedule"]["startTime"] = {"hours": float("inf")}
+    google["posts"] = [bad, worse, _offer()]
+    assert _run(channel, tenant).created == 3
+    assert all(p.starts_at is None or p.starts_at.year < 2101 for p in Promotion.objects.all())
+
+
+def test_title_is_single_line(channel, tenant, google):
+    google["posts"] = [_offer(event={"title": "Eins\nZwei", "schedule": {}})]
+    _run(channel, tenant)
+    assert Promotion.objects.get().title == {"de": "Eins Zwei"}
+
+
+def test_creations_capped_per_run(channel, tenant, google, monkeypatch):
+    monkeypatch.setattr(gbp_import, "MAX_CREATE_PER_RUN", 2)
+    google["posts"] = [_offer(name=f"accounts/1/locations/2/localPosts/{i}") for i in range(5)]
+    result = _run(channel, tenant)
+    assert result.created == 2 and result.deferred == 3
+    assert result.complete is True  # полнота ответа Google, а не «все ли черновики созданы»
+    assert _run(channel, tenant).created == 2  # следующий проход добирает остальные
 
 
 def test_foreign_language_goes_to_default_locale(channel, tenant, google):
@@ -490,3 +525,256 @@ def test_promotion_list_badge_and_filter(owner, channel, tenant, google):
     html = promo_views.promotion_list(request).content.decode()
     assert "data-gbp-badge" in html and "Brötchen-Woche" in html
     assert "Eigene Aktion" not in html
+
+
+# --- D3-4a: изменённые и удалённые посты (замки 16, 17) -----------------------------------
+
+
+def _changed(**over):
+    return _offer(
+        summary="Drei Brötchen zum Preis von zwei.", updateTime="2026-10-18T07:00:00Z", **over
+    )
+
+
+def test_hash_of_reloaded_draft_matches_import(channel, tenant, google):
+    _run(channel, tenant)
+    promo = Promotion.objects.get()  # даты из БД — в UTC, при импорте — Europe/Berlin
+    assert gbp_import.content_hash(gbp_import._fields_of(promo)) == promo.metadata["gbp_hash"]
+
+
+def test_untouched_draft_is_updated(channel, tenant, google):
+    _run(channel, tenant)
+    google["posts"] = [_changed()]
+    result = _run(channel, tenant)
+    promo = Promotion.objects.get()
+    assert result.updated == 1
+    assert "Drei Brötchen" in promo.description["de"]
+    assert promo.metadata["gbp_update_time"] == "2026-10-18T07:00:00Z"
+    assert not promo.metadata.get("gbp_changed")
+    assert gbp_import.content_hash(gbp_import._fields_of(promo)) == promo.metadata["gbp_hash"]
+
+
+def test_owner_edited_draft_only_flagged(channel, tenant, google):
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    Promotion.objects.filter(pk=promo.pk).update(title={"de": "Meine Woche"})
+    google["posts"] = [_changed()]
+    result = _run(channel, tenant)
+    promo.refresh_from_db()
+    assert result.flagged_changed == 1
+    assert promo.title == {"de": "Meine Woche"}
+    assert "Zwei Brötchen" in promo.description["de"]
+    assert promo.metadata["gbp_changed"] is True
+
+
+def test_active_promotion_never_changed_only_flagged(channel, tenant, google):
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    Promotion.objects.filter(pk=promo.pk).update(status="active")
+    google["posts"] = [_changed()]
+    _run(channel, tenant)
+    promo.refresh_from_db()
+    assert promo.status == "active" and "Zwei Brötchen" in promo.description["de"]
+    assert promo.metadata["gbp_changed"] is True
+
+
+def test_flag_on_active_does_not_fire_signals_or_touch_updated_at(channel, tenant, google):
+    from django.db.models.signals import post_save
+
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    Promotion.objects.filter(pk=promo.pk).update(status="active")
+    promo.refresh_from_db()
+    before = promo.updated_at
+    fired = []
+
+    def spy(sender, instance, **kw):
+        fired.append(instance.pk)
+
+    post_save.connect(spy, sender=Promotion)
+    try:
+        google["posts"] = [_changed()]
+        _run(channel, tenant)
+    finally:
+        post_save.disconnect(spy, sender=Promotion)
+    promo.refresh_from_db()
+    assert fired == [] and promo.updated_at == before
+
+
+def test_ack_hides_flag_until_next_change(channel, tenant, google):
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    Promotion.objects.filter(pk=promo.pk).update(status="active")
+    google["posts"] = [_changed()]
+    _run(channel, tenant)
+    gbp_import.ack_change(promo.pk)
+    promo.refresh_from_db()
+    assert not promo.metadata.get("gbp_changed")
+    _run(channel, tenant)  # тот же текст у Google — пометка не возвращается
+    promo.refresh_from_db()
+    assert not promo.metadata.get("gbp_changed")
+    google["posts"] = [_offer(summary="Vier Brötchen.")]  # новая версия — снова
+    _run(channel, tenant)
+    promo.refresh_from_db()
+    assert promo.metadata["gbp_changed"] is True
+
+
+def test_ack_only_for_gbp_promotions(channel, tenant, google):
+    own = Promotion.objects.create(title={"de": "x"}, status="draft")
+    with pytest.raises(ValueError):
+        gbp_import.ack_change(own.pk)
+
+
+def test_soft_deleted_never_updated_or_recreated(channel, tenant, google):
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    promo.delete()
+    google["posts"] = [_changed()]
+    result = _run(channel, tenant)
+    assert result.updated == 0 and result.flagged_changed == 0 and result.created == 0
+    stale = Promotion.all_objects.get(pk=promo.pk)
+    assert "Zwei Brötchen" in stale.description["de"]
+
+
+def test_flag_cleared_when_google_reverts(channel, tenant, google):
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    Promotion.objects.filter(pk=promo.pk).update(status="active")
+    google["posts"] = [_changed()]
+    _run(channel, tenant)
+    google["posts"] = [_offer()]  # Google вернул прежний текст
+    _run(channel, tenant)
+    promo.refresh_from_db()
+    assert not promo.metadata.get("gbp_changed")
+
+
+def test_cap_does_not_block_updates(channel, tenant, google, monkeypatch):
+    _run(channel, tenant)
+    monkeypatch.setattr(gbp_import, "MAX_CREATE_PER_RUN", 2)
+    google["posts"] = [_offer(name=f"accounts/1/locations/2/localPosts/n{i}") for i in range(3)] + [
+        _changed()
+    ]
+    result = _run(channel, tenant)
+    assert result.created == 2 and result.deferred == 1 and result.updated == 1
+    assert result.complete is True
+
+
+def test_gone_flagged_only_after_complete_pass(channel, tenant, google):
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    google["posts"], google["complete"] = [], False
+    assert _run(channel, tenant).flagged_gone == 0
+    promo.refresh_from_db()
+    assert not promo.metadata.get("gbp_gone")
+    google["complete"] = True
+    assert _run(channel, tenant).flagged_gone == 1
+    promo.refresh_from_db()
+    assert promo.metadata["gbp_gone"] is True and promo.status == "draft"
+
+
+@pytest.mark.parametrize("over", [{"state": "PROCESSING"}, {"topicType": "STANDARD"}])
+def test_present_but_not_importable_is_not_gone(channel, tenant, google, over):
+    _run(channel, tenant)
+    google["posts"] = [_offer(**over)]
+    assert _run(channel, tenant).flagged_gone == 0
+
+
+def test_ended_post_still_listed_is_not_gone(channel, tenant, google):
+    _run(channel, tenant)
+    ended = _offer()
+    ended["event"]["schedule"]["endDate"] = {"year": 2026, "month": 10, "day": 1}
+    google["posts"] = [ended]
+    assert _run(channel, tenant).flagged_gone == 0
+
+
+def test_gone_flag_cleared_when_post_returns(channel, tenant, google):
+    _run(channel, tenant)
+    google["posts"] = []
+    _run(channel, tenant)
+    google["posts"] = [_offer()]
+    _run(channel, tenant)
+    assert not Promotion.objects.get().metadata.get("gbp_gone")
+
+
+def test_own_post_never_flagged_gone(channel, tenant, google):
+    own = Promotion.objects.create(title={"de": "Unsere"}, status="active")
+    Publication.objects.create(
+        promotion=own,
+        channel=channel,
+        status="published",
+        external_ref="accounts/1/locations/2/localPosts/5",
+        dedupe_key=f"publish:{own.id}:{channel.id}",
+    )
+    google["posts"] = []
+    _run(channel, tenant)
+    own.refresh_from_db()
+    assert not own.metadata.get("gbp_gone")
+
+
+def test_gone_never_deletes_at_google(channel, tenant, google, monkeypatch):
+    _run(channel, tenant)
+    Promotion.objects.update(status="active")
+
+    def fail(*a, **k):
+        raise AssertionError("no DELETE")
+
+    monkeypatch.setattr(adapters.requests, "delete", fail)
+    google["posts"] = []
+    _run(channel, tenant)
+    assert Promotion.objects.get().status == "active"
+
+
+def test_ack_view_owner_only_and_post_only(owner, channel, tenant, google, django_user_model):
+    from apps.core.models import Membership
+
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    Promotion.objects.filter(pk=promo.pk).update(
+        metadata={**promo.metadata, "gbp_changed": True, "gbp_changed_hash": "h"}
+    )
+    path = "/dashboard/channels/google/angebote/ausblenden/"
+    staff = django_user_model.objects.create_user(username=f"s{uuid.uuid4().hex[:6]}", password="x")
+    Membership.objects.create(user=staff, role=Membership.ROLE_STAFF)
+    assert views.gbp_ack(_req(staff, path, {"promotion": str(promo.pk)}, tenant)).status_code == 403
+    get = RequestFactory().get(path)
+    get.user = owner
+    assert views.gbp_ack(get).status_code == 405
+    views.gbp_ack(_req(owner, path, {"promotion": str(promo.pk)}, tenant))
+    promo.refresh_from_db()
+    assert not promo.metadata.get("gbp_changed")
+
+
+def test_badges_rendered_on_screen_and_list(owner, channel, tenant, google):
+    from apps.promotions import views as promo_views
+
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    Promotion.objects.filter(pk=promo.pk).update(
+        metadata={**promo.metadata, "gbp_changed": True, "gbp_gone": True}
+    )
+    page = views.gbp_sync(_req(owner, "/dashboard/channels/google/", {}, tenant)).content.decode()
+    assert "data-gbp-changed" in page and "data-gbp-gone" in page
+    request = RequestFactory().get("/promotions/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = owner
+    request.tenant = tenant
+    html = promo_views.promotion_list(request).content.decode()
+    assert "data-gbp-changed" in html and "data-gbp-gone" in html
+
+
+def test_promotion_form_shows_gbp_plate_as_text(owner, channel, tenant, google):
+    from apps.promotions import views as promo_views
+
+    google["posts"] = [_offer(offer={"couponCode": "<b>X1</b>"})]
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    Promotion.objects.filter(pk=promo.pk).update(metadata={**promo.metadata, "gbp_changed": True})
+    request = RequestFactory().get(f"/promotions/{promo.pk}/edit/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = owner
+    request.tenant = tenant
+    html = promo_views.promotion_edit(request, promo.pk).content.decode()
+    assert "data-gbp-plate" in html and "data-gbp-changed" in html
+    assert "<b>X1</b>" not in html

@@ -25817,3 +25817,31 @@ msgstr[1] "Google'dan %(n)s yeni taslak"
 
 msgid "Nicht alle Beiträge konnten geholt werden – bitte später erneut versuchen."
 msgstr "Tüm gönderiler alınamadı – lütfen daha sonra tekrar deneyin."
+
+#, python-format
+msgid "%(n)s Hinweise"
+msgstr "%(n)s ipucu"
+
+msgid "Bei Google entfernt"
+msgstr "Google'da kaldırıldı"
+
+msgid "Bei Google geändert"
+msgstr "Google'da değişti"
+
+msgid "Hinweis ausgeblendet"
+msgstr "Uyarı gizlendi"
+
+msgid "Weitere Angebote beim nächsten Abruf"
+msgstr "Diğer teklifler bir sonraki almada"
+
+#, python-format
+msgid "%(n)s Entwurf aktualisiert"
+msgid_plural "%(n)s Entwürfe aktualisiert"
+msgstr[0] "%(n)s taslak güncellendi"
+msgstr[1] "%(n)s taslak güncellendi"
+
+#, python-format
+msgid "%(n)s Angebot bei Google geändert"
+msgid_plural "%(n)s Angebote bei Google geändert"
+msgstr[0] "Google'da %(n)s teklif değişti"
+msgstr[1] "Google'da %(n)s teklif değişti"

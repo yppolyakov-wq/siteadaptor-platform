@@ -6,7 +6,7 @@
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import connection
 from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
@@ -228,6 +228,16 @@ GBP_ERROR_MESSAGES = {
 }
 
 
+def _hint_count(promo, tenant) -> int:
+    """Число подсказок «Text-Check» (только правила, без ИИ) у черновика из Google."""
+    try:
+        from apps.promotions.text_check import for_promotion
+
+        return len(for_promotion(promo, tenant))
+    except Exception:  # noqa: BLE001 — подсказка не важнее экрана
+        return 0
+
+
 def _owner(request) -> bool:
     """Вторая линия к owner-only префиксу middleware: экран пишет во внешний профиль."""
     from apps.core.roles import is_owner
@@ -307,9 +317,14 @@ def _gbp_render(request, channel, config, *, error_code="", quiet=False, **extra
     if context["connected"] and context["location"]:
         from apps.promotions.models import Promotion
 
-        context["gbp_drafts"] = list(
-            Promotion.objects.filter(metadata__source="gbp").order_by("-created_at")[:20]
-        )
+        drafts = list(Promotion.objects.filter(metadata__source="gbp").order_by("-created_at")[:20])
+        for promo in drafts:
+            promo.hints = (
+                _hint_count(promo, getattr(request, "tenant", None))
+                if promo.status == "draft"
+                else 0
+            )
+        context["gbp_drafts"] = drafts
         context["posts_pulled_at"] = _latest(state.get("posts_pulled_at"))
     context.update(extra)
     return render(request, "publishing/gbp_sync.html", context)
@@ -430,7 +445,29 @@ def gbp_import(request):
             )
             % {"n": result.created},
         )
-    elif result.complete:
+    if result.updated:
+        messages.success(
+            request,
+            ngettext(
+                "%(n)s Entwurf aktualisiert",
+                "%(n)s Entwürfe aktualisiert",
+                result.updated,
+            )
+            % {"n": result.updated},
+        )
+    if result.flagged_changed:
+        messages.warning(
+            request,
+            ngettext(
+                "%(n)s Angebot bei Google geändert",
+                "%(n)s Angebote bei Google geändert",
+                result.flagged_changed,
+            )
+            % {"n": result.flagged_changed},
+        )
+    if result.deferred:
+        messages.info(request, _("Weitere Angebote beim nächsten Abruf"))
+    if result.complete and not (result.created or result.updated or result.flagged_changed):
         messages.info(request, _("Keine neuen Angebote bei Google"))
     return redirect("gbp-sync")
 
@@ -451,6 +488,22 @@ def gbp_dismiss(request):
         messages.error(request, _("Nur Entwürfe aus Google lassen sich hier verwerfen."))
         return redirect("gbp-sync")
     messages.success(request, _("Entwurf verworfen – wird nicht erneut übernommen."))
+    return redirect("gbp-sync")
+
+
+@login_required
+@require_POST
+def gbp_ack(request):
+    """D3-4a: «Ausblenden» — скрыть пометку «Bei Google geändert» до следующей версии."""
+    from .gbp_import import ack_change
+
+    if not _owner(request):
+        return HttpResponseForbidden(_("Nur für Inhaber."))
+    try:
+        ack_change(request.POST.get("promotion"))
+    except (ObjectDoesNotExist, ValueError, TypeError, ValidationError):
+        return redirect("gbp-sync")
+    messages.success(request, _("Hinweis ausgeblendet"))
     return redirect("gbp-sync")
 
 

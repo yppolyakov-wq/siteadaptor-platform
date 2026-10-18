@@ -25685,3 +25685,31 @@ msgstr[1] "%(n)s new drafts from Google"
 
 msgid "Nicht alle Beiträge konnten geholt werden – bitte später erneut versuchen."
 msgstr "Not all posts could be fetched – please try again later."
+
+#, python-format
+msgid "%(n)s Hinweise"
+msgstr "%(n)s hints"
+
+msgid "Bei Google entfernt"
+msgstr "Removed at Google"
+
+msgid "Bei Google geändert"
+msgstr "Changed at Google"
+
+msgid "Hinweis ausgeblendet"
+msgstr "Notice hidden"
+
+msgid "Weitere Angebote beim nächsten Abruf"
+msgstr "More offers with the next fetch"
+
+#, python-format
+msgid "%(n)s Entwurf aktualisiert"
+msgid_plural "%(n)s Entwürfe aktualisiert"
+msgstr[0] "%(n)s draft updated"
+msgstr[1] "%(n)s drafts updated"
+
+#, python-format
+msgid "%(n)s Angebot bei Google geändert"
+msgid_plural "%(n)s Angebote bei Google geändert"
+msgstr[0] "%(n)s offer changed at Google"
+msgstr[1] "%(n)s offers changed at Google"

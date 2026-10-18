@@ -354,6 +354,11 @@ urlpatterns = [
         name="gbp-dismiss",
     ),
     path(
+        "dashboard/channels/google/angebote/ausblenden/",
+        publishing_views.gbp_ack,
+        name="gbp-ack",
+    ),
+    path(
         "dashboard/channels/google/standort/",
         publishing_views.gbp_location,
         name="gbp-location",
