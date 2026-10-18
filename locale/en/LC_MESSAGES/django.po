@@ -25682,3 +25682,6 @@ msgid "%(n)s neuer Entwurf aus Google"
 msgid_plural "%(n)s neue Entwürfe aus Google"
 msgstr[0] "%(n)s new draft from Google"
 msgstr[1] "%(n)s new drafts from Google"
+
+msgid "Nicht alle Beiträge konnten geholt werden – bitte später erneut versuchen."
+msgstr "Not all posts could be fetched – please try again later."

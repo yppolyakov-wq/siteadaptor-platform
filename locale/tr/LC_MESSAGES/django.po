@@ -25814,3 +25814,6 @@ msgid "%(n)s neuer Entwurf aus Google"
 msgid_plural "%(n)s neue Entwürfe aus Google"
 msgstr[0] "Google'dan %(n)s yeni taslak"
 msgstr[1] "Google'dan %(n)s yeni taslak"
+
+msgid "Nicht alle Beiträge konnten geholt werden – bitte später erneut versuchen."
+msgstr "Tüm gönderiler alınamadı – lütfen daha sonra tekrar deneyin."

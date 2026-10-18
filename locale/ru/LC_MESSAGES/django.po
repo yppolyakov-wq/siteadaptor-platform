@@ -25942,3 +25942,6 @@ msgstr[0] "%(n)s новый черновик из Google"
 msgstr[1] "%(n)s новых черновика из Google"
 msgstr[2] "%(n)s новых черновиков из Google"
 msgstr[3] "%(n)s новых черновика из Google"
+
+msgid "Nicht alle Beiträge konnten geholt werden – bitte später erneut versuchen."
+msgstr "Не все публикации удалось забрать — попробуйте позже."

@@ -413,7 +413,13 @@ def gbp_import(request):
     except gbp.GbpError as exc:
         _gbp_sync_update(channel.pk, last_error_code=exc.code, last_status=exc.status)
         return redirect("gbp-sync")
-    _gbp_sync_update(channel.pk, last_error_code="", last_status=0, posts_pulled_at=_now())
+    if result.complete:
+        _gbp_sync_update(channel.pk, last_error_code="", last_status=0, posts_pulled_at=_now())
+    else:
+        messages.warning(
+            request,
+            _("Nicht alle Beiträge konnten geholt werden – bitte später erneut versuchen."),
+        )
     if result.created:
         messages.success(
             request,
@@ -424,7 +430,7 @@ def gbp_import(request):
             )
             % {"n": result.created},
         )
-    else:
+    elif result.complete:
         messages.info(request, _("Keine neuen Angebote bei Google"))
     return redirect("gbp-sync")
 
@@ -440,8 +446,7 @@ def gbp_dismiss(request):
     if not _owner(request):
         return HttpResponseForbidden(_("Nur für Inhaber."))
     try:
-        promo = Promotion.objects.get(pk=request.POST.get("promotion"))
-        dismiss(_gbp_channel().pk, promo)
+        dismiss(_gbp_channel().pk, request.POST.get("promotion"))
     except (Promotion.DoesNotExist, ValueError, TypeError, ValidationError):
         messages.error(request, _("Nur Entwürfe aus Google lassen sich hier verwerfen."))
         return redirect("gbp-sync")

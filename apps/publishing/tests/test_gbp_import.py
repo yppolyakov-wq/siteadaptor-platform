@@ -73,7 +73,6 @@ def google(monkeypatch):
     monkeypatch.setattr(
         gbp, "iter_local_posts", lambda token, v4: (list(state["posts"]), state["complete"])
     )
-    monkeypatch.setattr(gbp_import, "_public_url", lambda url: url)
     return state
 
 
@@ -150,12 +149,94 @@ def test_ended_offer_skipped(channel, tenant, google):
 def test_dismissed_post_not_reimported(channel, tenant, google):
     _run(channel, tenant)
     promo = Promotion.objects.get()
-    gbp_import.dismiss(channel.pk, promo)
+    gbp_import.dismiss(channel.pk, promo.pk)
     assert not Promotion.objects.filter(pk=promo.pk).exists()  # черновик удалён (мягко)
     _run(channel, tenant)
     assert Promotion.objects.count() == 0
     channel.refresh_from_db()
     assert promo.metadata["gbp_post"] in channel.config["gbp_dismissed"]
+
+
+def test_dismiss_rechecks_status_under_lock(channel, tenant, google):
+    _run(channel, tenant)
+    stale = Promotion.objects.get()  # загружен как черновик…
+    Promotion.objects.filter(pk=stale.pk).update(
+        status="active"
+    )  # …а в соседней вкладке активирован
+    with pytest.raises(ValueError):
+        gbp_import.dismiss(channel.pk, stale.pk)
+    assert Promotion.objects.filter(pk=stale.pk, status="active").exists()
+    channel.refresh_from_db()
+    assert "gbp_dismissed" not in channel.config
+
+
+def test_dismiss_rolls_back_promotion_if_config_write_fails(channel, tenant, google, monkeypatch):
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+
+    def boom(pk, mutate):
+        raise RuntimeError("db")
+
+    monkeypatch.setattr(Channel, "update_config", boom)
+    with pytest.raises(RuntimeError):
+        gbp_import.dismiss(channel.pk, promo.pk)
+    assert Promotion.objects.filter(pk=promo.pk).exists()
+
+
+def test_owner_deleting_draft_normally_is_not_reimported(channel, tenant, google):
+    _run(channel, tenant)
+    Promotion.objects.get().delete()  # мягкое удаление через обычный UI
+    assert _run(channel, tenant).created == 0
+
+
+def test_own_social_post_and_removed_own_publication_are_excluded(channel, tenant, google):
+    from apps.publishing.models import SocialPost
+
+    post = SocialPost.objects.create(text="hallo")
+    Publication.objects.create(
+        post=post,
+        channel=channel,
+        status="removed",
+        external_ref="accounts/1/locations/2/localPosts/9",
+        dedupe_key=f"publish:post:{post.id}:{channel.id}",
+    )
+    assert _run(channel, tenant).created == 0
+
+
+def test_recurrence_heir_drops_google_markers(channel, tenant, google):
+    from apps.promotions.tasks import _spawn_recurrence
+
+    _run(channel, tenant)
+    promo = Promotion.objects.get()
+    Promotion.objects.filter(pk=promo.pk).update(
+        status="ended", recurrence=Promotion.WEEKLY, metadata={**promo.metadata, "perishable": True}
+    )
+    promo.refresh_from_db()
+    heir = _spawn_recurrence(promo, NOW)
+    assert heir.metadata == {"perishable": True}
+
+
+def test_guards_share_one_prefix():
+    import inspect
+
+    from apps.publishing import adapters, services
+
+    assert gbp_import.IMPORT_PREFIX == "gbp-import:"
+    for module in (adapters, services):
+        assert "gbp-import" not in inspect.getsource(module)  # только через is_imported
+
+
+def test_pause_then_remove_task_keeps_google_post(channel, tenant, google, monkeypatch):
+    from apps.publishing import tasks
+
+    _run(channel, tenant)
+    pub = Publication.objects.get()
+
+    def fail(*a, **k):
+        raise AssertionError("no DELETE at Google for an imported post")
+
+    monkeypatch.setattr(adapters.requests, "delete", fail)
+    assert tasks._do_remove(str(pub.id)) == "removed"
 
 
 def test_dismiss_keeps_non_draft_and_caps_list(channel, tenant, google):
@@ -164,13 +245,13 @@ def test_dismiss_keeps_non_draft_and_caps_list(channel, tenant, google):
     Promotion.objects.filter(pk=promo.pk).update(status="active")
     promo.refresh_from_db()
     with pytest.raises(ValueError):
-        gbp_import.dismiss(channel.pk, promo)
+        gbp_import.dismiss(channel.pk, promo.pk)
     Channel.update_config(
         channel.pk, lambda c: c.__setitem__("gbp_dismissed", [f"x/{i}" for i in range(400)])
     )
     Promotion.objects.filter(pk=promo.pk).update(status="draft")
     promo.refresh_from_db()
-    gbp_import.dismiss(channel.pk, promo)
+    gbp_import.dismiss(channel.pk, promo.pk)
     channel.refresh_from_db()
     assert len(channel.config["gbp_dismissed"]) == gbp_import.DISMISS_MAX
     assert channel.config["gbp_dismissed"][-1] == promo.metadata["gbp_post"]
@@ -368,6 +449,23 @@ def test_dismiss_view_only_gbp_drafts(owner, channel, tenant, google, isolated_r
     assert Promotion.objects.filter(pk=other.pk).exists()
     views.gbp_dismiss(_req(owner, path, {"promotion": str(promo.pk)}, tenant))
     assert not Promotion.objects.filter(pk=promo.pk).exists()
+
+
+def test_partial_import_warns_and_keeps_stamp(
+    owner, channel, tenant, google, isolated_ratelimit, monkeypatch
+):
+    monkeypatch.setattr(timezone, "now", lambda: NOW)
+    google["posts"] = []
+    google["complete"] = False
+    request = _req(owner, "/dashboard/channels/google/angebote/", {}, tenant)
+    views.gbp_import(request)
+    from django.contrib.messages import get_messages
+
+    texts = [str(m) for m in get_messages(request)]
+    assert any("Nicht alle" in t for t in texts)
+    assert not any("Keine neuen" in t for t in texts)
+    channel.refresh_from_db()
+    assert "posts_pulled_at" not in (channel.config.get("gbp_sync") or {})
 
 
 def test_staff_forbidden(django_user_model, channel, tenant, google, isolated_ratelimit):

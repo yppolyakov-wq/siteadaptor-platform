@@ -25922,3 +25922,6 @@ msgstr[0] "%(n)s нова чернетка з Google"
 msgstr[1] "%(n)s нові чернетки з Google"
 msgstr[2] "%(n)s нових чернеток з Google"
 msgstr[3] "%(n)s нових чернетки з Google"
+
+msgid "Nicht alle Beiträge konnten geholt werden – bitte später erneut versuchen."
+msgstr "Не всі публікації вдалося забрати — спробуйте пізніше."

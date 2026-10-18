@@ -14,11 +14,13 @@ docs/d3-gbp-sync-plan-2026-10-18.md §4).
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import json
 import logging
 import unicodedata
 from dataclasses import dataclass
 from datetime import datetime, time
+from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
@@ -34,6 +36,8 @@ TITLE_MAX = 200
 DESCRIPTION_MAX = 4000
 FALLBACK_TITLE_MAX = 80
 DISMISS_MAX = 300
+MAX_CREATE_PER_RUN = 50  # черновиков за одно нажатие; остальные — следующим проходом
+YEAR_MIN, YEAR_MAX = 2000, 2100
 BERLIN = ZoneInfo("Europe/Berlin")
 IMPORT_PREFIX = "gbp-import:"
 
@@ -65,8 +69,11 @@ def _date_time(date, tod, *, end: bool) -> datetime | None:
     if not isinstance(date, dict):
         return None
     try:
-        day = datetime(int(date["year"]), int(date["month"]), int(date["day"])).date()
-    except (KeyError, TypeError, ValueError):
+        year, month, day_n = int(date["year"]), int(date["month"]), int(date["day"])
+        if not YEAR_MIN <= year <= YEAR_MAX:
+            return None
+        day = datetime(year, month, day_n).date()
+    except (KeyError, TypeError, ValueError, OverflowError):
         return None
     clock = time(23, 59, 59) if end else time(0, 0)
     if isinstance(tod, dict) and tod:
@@ -74,21 +81,33 @@ def _date_time(date, tod, *, end: bool) -> datetime | None:
             hours, minutes = int(tod.get("hours", 0)), int(tod.get("minutes", 0))
             if 0 <= hours < 24 and 0 <= minutes < 60:
                 clock = time(hours, minutes)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
             pass
     return datetime.combine(day, clock, tzinfo=BERLIN)
 
 
-def _public_url(url: str) -> str:
-    """https-ссылка на публичный адрес или '' (SSRF/javascript: отбрасываются)."""
-    from apps.core import ssrf
-
-    if not isinstance(url, str) or not url.startswith("https://"):
+def _public_url(url) -> str:
+    """https-ссылка с обычным именем хоста или ''. Ссылка только показывается текстом и
+    никогда не запрашивается сервером, поэтому без DNS (резолв 500 чужих имён в веб-запросе
+    был бы дорог): отбрасываем не-https, userinfo, порты и IP-адреса."""
+    if not isinstance(url, str) or len(url) > 500 or not url.startswith("https://"):
         return ""
     try:
-        return ssrf.validate_public_url(url)
-    except Exception:  # noqa: BLE001 — любая проблема адреса = ссылки нет
+        parts = urlsplit(url)
+        host = parts.hostname or ""
+        port = parts.port
+    except ValueError:
         return ""
+    if not host or "@" in parts.netloc or port is not None or "." not in host:
+        return ""
+    try:
+        ipaddress.ip_address(host)
+        return ""  # голый IP — не адрес бизнеса
+    except ValueError:
+        pass
+    if any(ch.isspace() or unicodedata.category(ch)[0] == "C" for ch in url):
+        return ""
+    return url
 
 
 def _locale(post, tenant) -> str:
@@ -115,8 +134,10 @@ def post_to_draft_fields(post, tenant, *, now) -> dict | None:
     ends = _date_time(schedule.get("endDate"), schedule.get("endTime"), end=True)
     if ends is not None and ends <= now:
         return None
+    if starts is not None and ends is not None and starts > ends:
+        starts = None
     summary = clean_text(post.get("summary"), DESCRIPTION_MAX)
-    title = clean_text(event.get("title"), TITLE_MAX)
+    title = " ".join(clean_text(event.get("title"), TITLE_MAX).split())  # заголовок — одна строка
     if not title:
         title = clean_text(summary.split("\n", 1)[0], FALLBACK_TITLE_MAX)
     if not title:
@@ -184,7 +205,14 @@ def import_offers(channel, tenant, *, now=None) -> ImportResult:
         )
     )
     for post in posts:
-        fields = post_to_draft_fields(post, tenant, now=now)
+        if result.created >= MAX_CREATE_PER_RUN:
+            result.complete = False
+            break
+        try:
+            fields = post_to_draft_fields(post, tenant, now=now)
+        except Exception as exc:  # noqa: BLE001 — один кривой пост не блокирует остальные
+            logger.warning("gbp import: bad post skipped: %s", type(exc).__name__)
+            fields = None
         if fields is None:
             continue
         name = fields["metadata"]["gbp_post"]
@@ -219,23 +247,29 @@ def import_offers(channel, tenant, *, now=None) -> ImportResult:
 
 
 def is_imported(publication) -> bool:
-    """Публикация — журнал импорта поста владельца, а не наш пост."""
-    return bool(publication.dedupe_key.startswith(IMPORT_PREFIX))
+    """Публикация — журнал импорта поста владельца, а не наш пост (её нельзя ни постить,
+    ни удалять у Google). Единая проверка для services и adapters."""
+    return bool((publication.dedupe_key or "").startswith(IMPORT_PREFIX))
 
 
-def dismiss(channel_pk, promotion) -> None:
+def dismiss(channel_pk, promotion_pk) -> None:
     """«Nicht übernehmen»: черновик удаляется (мягко), пост больше не импортируется.
-    Только черновик из Google — активную/чужую акцию так не удалить."""
+    Только черновик из Google — статус перепроверяется под блокировкой строки (владелец мог
+    активировать его в соседней вкладке)."""
+    from apps.promotions.models import Promotion
+
     from .models import Channel
 
-    name = (promotion.metadata or {}).get("gbp_post")
-    if promotion.status != "draft" or (promotion.metadata or {}).get("source") != "gbp" or not name:
-        raise ValueError("not a gbp draft")
-
-    def mutate(config):
-        names = [n for n in (config.get("gbp_dismissed") or []) if n != name]
-        config["gbp_dismissed"] = (names + [name])[-DISMISS_MAX:]
-
     with transaction.atomic():
+        promotion = Promotion.objects.select_for_update().get(pk=promotion_pk)
+        meta = promotion.metadata if isinstance(promotion.metadata, dict) else {}
+        name = meta.get("gbp_post")
+        if promotion.status != "draft" or meta.get("source") != "gbp" or not name:
+            raise ValueError("not a gbp draft")
+
+        def mutate(config):
+            names = [n for n in (config.get("gbp_dismissed") or []) if n != name]
+            config["gbp_dismissed"] = (names + [name])[-DISMISS_MAX:]
+
         Channel.update_config(channel_pk, mutate)
         promotion.delete()
