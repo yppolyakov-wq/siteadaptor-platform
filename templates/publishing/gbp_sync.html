@@ -63,6 +63,58 @@
   </section>
   {% endif %}
 
+  {% if connected and location %}
+  <section class="bg-white border border-gray-200 rounded-2xl p-5" id="zeiten">
+    <h2 class="font-semibold mb-1">{% trans "Öffnungszeiten" %}</h2>
+    <p class="text-xs text-gray-500 mb-3">{% trans "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen." %}</p>
+    {% if gbp_state.hours_pushed_at or gbp_state.hours_pulled_at %}
+      <p class="text-xs text-gray-400 mb-3">{% trans "Zuletzt abgeglichen" %}: {% firstof gbp_state.hours_pushed_at|slice:":10" gbp_state.hours_pulled_at|slice:":10" %}</p>
+    {% endif %}
+
+    {% if hours_diff %}
+      <table class="w-full text-sm mb-3" data-hours-diff>
+        <thead><tr class="text-left text-xs text-gray-500">
+          <th class="py-1 pr-2"></th><th class="py-1 pr-2">{% trans "Bei uns" %}</th><th class="py-1">{% trans "Bei Google" %}</th>
+        </tr></thead>
+        <tbody>
+          {% for r in hours_diff.rows %}
+            <tr class="{% if r.changed %}bg-amber-50{% endif %}">
+              <td class="py-1 pr-2 font-medium text-gray-600">{{ r.label }}</td>
+              <td class="py-1 pr-2">{{ r.ours|default:"–" }}</td>
+              <td class="py-1">{{ r.google|default:"–" }}
+                {% if r.lossy %}<span class="block text-xs text-amber-700">{% trans "Nicht darstellbar – bleibt unverändert" %}</span>{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if hours_diff.equal %}<p class="text-sm text-green-700 mb-3">✓ {% trans "Öffnungszeiten stimmen überein." %}</p>{% endif %}
+      {% if hours_diff.special_count %}
+        <p class="text-xs text-gray-500 mb-3" data-gbp-special>{% blocktrans with n=hours_diff.special_count %}Sonderöffnungszeiten bei Google: {{ n }} (werden nicht geändert){% endblocktrans %}</p>
+      {% endif %}
+    {% endif %}
+
+    <div class="flex flex-wrap gap-2">
+      <form method="post" action="{% url 'gbp-hours' %}">
+        {% csrf_token %}<input type="hidden" name="action" value="preview">
+        <button type="submit" class="border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">{% trans "Vergleichen" %}</button>
+      </form>
+      <form method="post" action="{% url 'gbp-hours' %}">
+        {% csrf_token %}<input type="hidden" name="action" value="push">
+        {% if hours_confirm %}
+          <label class="flex items-center gap-2 text-xs text-amber-800 mb-1">
+            <input type="checkbox" name="confirm" value="overwrite" required> {% trans "Ja, bei Google überschreiben" %}
+          </label>
+        {% endif %}
+        <button type="submit" class="bg-gray-900 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-700">{% trans "An Google senden" %}</button>
+      </form>
+      <form method="post" action="{% url 'gbp-hours' %}">
+        {% csrf_token %}<input type="hidden" name="action" value="pull_apply">
+        <button type="submit" class="border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">{% trans "Von Google übernehmen" %}</button>
+      </form>
+    </div>
+  </section>
+  {% endif %}
+
   <p class="text-xs text-gray-400"><a href="{% url 'channels' %}" class="hover:underline">← {% trans "Publishing channels" %}</a></p>
 </div>
 {% endblock %}

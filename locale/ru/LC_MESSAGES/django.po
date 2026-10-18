@@ -25841,3 +25841,54 @@ msgstr "Сверка часов работы и предложений с про
 
 msgid "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten."
 msgstr "Подключать, включать и выключать каналы может только владелец."
+
+msgid "An Google senden"
+msgstr "Отправить в Google"
+
+msgid "Bei Google"
+msgstr "В Google"
+
+msgid "Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
+msgstr "В Google указаны часы с перерывом. Всё равно перезаписать?"
+
+msgid "Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu übernehmen."
+msgstr "В Google не указаны часы работы — переносить нечего."
+
+msgid "Bei uns"
+msgstr "У нас"
+
+msgid "Bitte zuerst Öffnungszeiten eintragen – leere Zeiten senden wir nicht."
+msgstr "Сначала укажите часы работы — пустые часы мы не отправляем."
+
+msgid "Ja, bei Google überschreiben"
+msgstr "Да, перезаписать в Google"
+
+msgid "Mit Google abgleichen"
+msgstr "Сверить с Google"
+
+msgid "Nicht darstellbar – bleibt unverändert"
+msgstr "Не поддерживается у нас — остаётся без изменений"
+
+msgid "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen."
+msgstr "Ничего не меняется автоматически: сначала сравните, затем перенесите в одну сторону."
+
+msgid "Vergleichen"
+msgstr "Сравнить"
+
+msgid "Von Google übernehmen"
+msgstr "Взять из Google"
+
+msgid "Zuletzt abgeglichen"
+msgstr "Последняя сверка"
+
+msgid "Öffnungszeiten an Google gesendet."
+msgstr "Часы работы отправлены в Google."
+
+msgid "Öffnungszeiten stimmen überein."
+msgstr "Часы работы совпадают."
+
+msgid "Öffnungszeiten von Google übernommen."
+msgstr "Часы работы перенесены из Google."
+
+msgid "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
+msgstr "Особые часы в Google: %(n)s (не меняются)"

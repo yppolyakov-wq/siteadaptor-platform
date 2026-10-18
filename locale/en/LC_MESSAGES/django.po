@@ -25583,3 +25583,54 @@ msgstr "Sync opening hours and offers with your Google Business Profile."
 
 msgid "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten."
 msgstr "Only the owner can connect channels and switch them on or off."
+
+msgid "An Google senden"
+msgstr "Send to Google"
+
+msgid "Bei Google"
+msgstr "At Google"
+
+msgid "Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
+msgstr "Google has split opening hours. Overwrite anyway?"
+
+msgid "Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu übernehmen."
+msgstr "Google has no opening hours – there is nothing to take over."
+
+msgid "Bei uns"
+msgstr "Here"
+
+msgid "Bitte zuerst Öffnungszeiten eintragen – leere Zeiten senden wir nicht."
+msgstr "Please enter opening hours first – we never send empty hours."
+
+msgid "Ja, bei Google überschreiben"
+msgstr "Yes, overwrite at Google"
+
+msgid "Mit Google abgleichen"
+msgstr "Sync with Google"
+
+msgid "Nicht darstellbar – bleibt unverändert"
+msgstr "Cannot be shown here – stays unchanged"
+
+msgid "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen."
+msgstr "Nothing changes automatically: compare first, then sync in one direction."
+
+msgid "Vergleichen"
+msgstr "Compare"
+
+msgid "Von Google übernehmen"
+msgstr "Take over from Google"
+
+msgid "Zuletzt abgeglichen"
+msgstr "Last synced"
+
+msgid "Öffnungszeiten an Google gesendet."
+msgstr "Opening hours sent to Google."
+
+msgid "Öffnungszeiten stimmen überein."
+msgstr "Opening hours match."
+
+msgid "Öffnungszeiten von Google übernommen."
+msgstr "Opening hours taken over from Google."
+
+msgid "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
+msgstr "Special hours at Google: %(n)s (not changed)"

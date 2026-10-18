@@ -82,6 +82,7 @@ EXPECTED_UNLISTED = frozenset(
         "jobs:anfrage-form-settings",
         "channel-toggle",
         "gbp-location",
+        "gbp-hours",
         "crm:company-create",
         "crm:customer-create",
         "crm:customer-export",

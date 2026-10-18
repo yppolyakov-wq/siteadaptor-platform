@@ -1101,8 +1101,24 @@ def settings_view(request):
             # (владелец правил часы и не понимал, почему на витрине нет слотов —
             # это разные вещи; фидбэк 2026-07-30).
             "settings_show_booking_hint": _mod.is_module_active(request.tenant, "booking"),
+            # Д3-2: вход «Mit Google abgleichen» — экран только владельцу, нужен GBP.
+            "settings_gbp_connected": _gbp_hours_link(request.user),
         },
     )
+
+
+def _gbp_hours_link(user) -> bool:
+    from apps.core.roles import is_owner
+    from apps.publishing.models import Channel
+
+    if not is_owner(user):
+        return False
+    config = (
+        Channel.objects.filter(type=Channel.GOOGLE_BUSINESS)
+        .values_list("config", flat=True)
+        .first()
+    )
+    return bool(isinstance(config, dict) and config.get("refresh_token") and config.get("location"))
 
 
 def save_payment_settings(request) -> None:

@@ -74,6 +74,9 @@
           </div>
         {% endfor %}
       </div>
+      {% if settings_gbp_connected %}
+        <p class="mt-3 text-sm"><a href="{% url 'gbp-sync' %}#zeiten" class="text-indigo-600 hover:underline">{% trans "Mit Google abgleichen" %} →</a></p>
+      {% endif %}
       <div class="mt-4 pt-4 border-t border-gray-100">
         <label class="block text-sm font-medium mb-1" for="{{ form.opening_hours.id_for_label }}">{% trans "Display text (optional)" %}</label>
         {% render_field form.opening_hours class="w-full rounded-lg border border-gray-300 px-3 py-2" %}

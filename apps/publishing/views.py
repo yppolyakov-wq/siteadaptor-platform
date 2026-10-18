@@ -271,22 +271,99 @@ def gbp_sync(request):
                 error_code = exc.code
                 _gbp_sync_update(channel.pk, last_error_code=exc.code, last_status=exc.status)
             channel.refresh_from_db()
-    state = (channel.config or {}).get("gbp_sync") or {}
-    if not rate_limited:  # иначе рядом с «подождите» висел бы старый баннер
-        error_code = error_code or state.get("last_error_code") or ""
-    return render(
-        request,
-        "publishing/gbp_sync.html",
-        {
-            "nav": "channels",
-            "channel": channel,
-            "connected": bool(config.get("refresh_token")),
-            "location": config.get("location") or "",
-            "locations": locations,
-            "error_code": error_code,
-            "error_message": GBP_ERROR_MESSAGES.get(error_code, ""),
-        },
+    return _gbp_render(
+        request, channel, config, locations=locations, error_code=error_code, quiet=rate_limited
     )
+
+
+def _gbp_render(request, channel, config, *, error_code="", quiet=False, **extra):
+    """Экран «Google-Profil». `quiet` — не показывать сохранённую ошибку (лимит частоты)."""
+    state = (channel.config or {}).get("gbp_sync") or {}
+    if not quiet:  # иначе рядом с «подождите» висел бы старый баннер
+        error_code = error_code or state.get("last_error_code") or ""
+    context = {
+        "nav": "channels",
+        "channel": channel,
+        "connected": bool(config.get("refresh_token")),
+        "location": config.get("location") or "",
+        "locations": None,
+        "hours_diff": None,
+        "hours_confirm": False,
+        "gbp_state": state,
+        "error_code": error_code,
+        "error_message": GBP_ERROR_MESSAGES.get(error_code, ""),
+    }
+    context.update(extra)
+    return render(request, "publishing/gbp_sync.html", context)
+
+
+GBP_HOURS_MESSAGES = {
+    "empty": gettext_lazy("Bitte zuerst Öffnungszeiten eintragen – leere Zeiten senden wir nicht."),
+    "google_empty": gettext_lazy(
+        "Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu übernehmen."
+    ),
+    "lossy": gettext_lazy(
+        "Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
+    ),
+}
+
+
+@login_required
+@require_POST
+def gbp_hours(request):
+    """Часы ↔ Google (Д3-2): action=preview | push | pull_apply. Каждое действие сначала
+    читает Google заново — решение не опирается на устаревший предпросмотр в браузере."""
+    from apps.core import ratelimit
+
+    from . import gbp
+    from . import gbp_hours as hours
+    from .secrets import decrypted_config
+
+    action = request.POST.get("action", "")
+    if action not in ("preview", "push", "pull_apply"):
+        return redirect("gbp-sync")
+    channel = _gbp_channel()
+    config = decrypted_config(channel)
+    schema = getattr(connection, "schema_name", "") or ""
+    if ratelimit.hit("gbp-hours", schema, limit=hours.ACTION_LIMIT, window=hours.ACTION_WINDOW):
+        messages.error(request, _("Bitte einen Moment warten und erneut versuchen."))
+        return _gbp_render(request, channel, config, quiet=True)
+    tenant = request.tenant
+    diff, confirm_needed, error_code = None, False, ""
+    try:
+        if action == "preview":
+            diff = hours.fetch(tenant, config)
+        elif action == "push":
+            hours.push(tenant, config, confirm=request.POST.get("confirm") == "overwrite")
+            _gbp_sync_update(channel.pk, last_error_code="", last_status=0, hours_pushed_at=_now())
+            messages.success(request, _("Öffnungszeiten an Google gesendet."))
+        else:
+            hours.pull_apply(tenant, config)
+            _gbp_sync_update(channel.pk, last_error_code="", last_status=0, hours_pulled_at=_now())
+            messages.success(request, _("Öffnungszeiten von Google übernommen."))
+    except hours.HoursError as exc:
+        diff = exc.diff
+        confirm_needed = exc.code == "lossy"
+        messages.error(request, GBP_HOURS_MESSAGES[exc.code])
+    except gbp.GbpError as exc:
+        error_code = exc.code
+        _gbp_sync_update(channel.pk, last_error_code=exc.code, last_status=exc.status)
+    channel.refresh_from_db()
+    return _gbp_render(
+        request,
+        channel,
+        config,
+        error_code=error_code,
+        quiet=not error_code,
+        hours_diff=diff,
+        hours_confirm=confirm_needed,
+    )
+
+
+def _now() -> str:
+    from django.utils import timezone
+
+    return timezone.now().isoformat()
 
 
 @login_required

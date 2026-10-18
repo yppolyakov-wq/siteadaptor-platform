@@ -25642,3 +25642,54 @@ msgstr ""
 
 msgid "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten."
 msgstr "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten."
+
+msgid "An Google senden"
+msgstr "An Google senden"
+
+msgid "Bei Google"
+msgstr "Bei Google"
+
+msgid "Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
+msgstr "Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
+
+msgid "Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu übernehmen."
+msgstr "Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu übernehmen."
+
+msgid "Bei uns"
+msgstr "Bei uns"
+
+msgid "Bitte zuerst Öffnungszeiten eintragen – leere Zeiten senden wir nicht."
+msgstr "Bitte zuerst Öffnungszeiten eintragen – leere Zeiten senden wir nicht."
+
+msgid "Ja, bei Google überschreiben"
+msgstr "Ja, bei Google überschreiben"
+
+msgid "Mit Google abgleichen"
+msgstr "Mit Google abgleichen"
+
+msgid "Nicht darstellbar – bleibt unverändert"
+msgstr "Nicht darstellbar – bleibt unverändert"
+
+msgid "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen."
+msgstr "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen."
+
+msgid "Vergleichen"
+msgstr "Vergleichen"
+
+msgid "Von Google übernehmen"
+msgstr "Von Google übernehmen"
+
+msgid "Zuletzt abgeglichen"
+msgstr "Zuletzt abgeglichen"
+
+msgid "Öffnungszeiten an Google gesendet."
+msgstr "Öffnungszeiten an Google gesendet."
+
+msgid "Öffnungszeiten stimmen überein."
+msgstr "Öffnungszeiten stimmen überein."
+
+msgid "Öffnungszeiten von Google übernommen."
+msgstr "Öffnungszeiten von Google übernommen."
+
+msgid "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
+msgstr "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"

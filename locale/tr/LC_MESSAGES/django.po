@@ -25715,3 +25715,54 @@ msgstr ""
 
 msgid "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten."
 msgstr "Kanalları yalnızca işletme sahibi bağlayabilir ve açıp kapatabilir."
+
+msgid "An Google senden"
+msgstr "Google'a gönder"
+
+msgid "Bei Google"
+msgstr "Google'da"
+
+msgid "Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
+msgstr "Google'da bölünmüş çalışma saatleri var. Yine de üzerine yazılsın mı?"
+
+msgid "Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu übernehmen."
+msgstr "Google'da çalışma saati yok – aktarılacak bir şey yok."
+
+msgid "Bei uns"
+msgstr "Bizde"
+
+msgid "Bitte zuerst Öffnungszeiten eintragen – leere Zeiten senden wir nicht."
+msgstr "Lütfen önce çalışma saatlerini girin – boş saatleri göndermiyoruz."
+
+msgid "Ja, bei Google überschreiben"
+msgstr "Evet, Google'da üzerine yaz"
+
+msgid "Mit Google abgleichen"
+msgstr "Google ile eşitle"
+
+msgid "Nicht darstellbar – bleibt unverändert"
+msgstr "Burada gösterilemez – değişmeden kalır"
+
+msgid "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen."
+msgstr "Hiçbir şey otomatik değişmez: önce karşılaştırın, sonra tek yönde eşitleyin."
+
+msgid "Vergleichen"
+msgstr "Karşılaştır"
+
+msgid "Von Google übernehmen"
+msgstr "Google'dan al"
+
+msgid "Zuletzt abgeglichen"
+msgstr "Son eşitleme"
+
+msgid "Öffnungszeiten an Google gesendet."
+msgstr "Çalışma saatleri Google'a gönderildi."
+
+msgid "Öffnungszeiten stimmen überein."
+msgstr "Çalışma saatleri eşleşiyor."
+
+msgid "Öffnungszeiten von Google übernommen."
+msgstr "Çalışma saatleri Google'dan alındı."
+
+msgid "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
+msgstr "Google'daki özel saatler: %(n)s (değiştirilmez)"

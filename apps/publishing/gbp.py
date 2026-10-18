@@ -229,3 +229,29 @@ def all_locations(config) -> list[dict]:
     if not out and first_error is not None:
         raise first_error
     return out
+
+
+def get_hours(token: str, v1_name: str) -> dict:
+    """{"periods": [...], "special_count": N} — обычные часы и число особых дат локации."""
+    data = _get(f"{INFO_API}/{v1_name}", token, {"readMask": "regularHours,specialHours"})
+    regular = data.get("regularHours")
+    special = data.get("specialHours")
+    periods = _list(regular.get("periods")) if isinstance(regular, dict) else []
+    days = _list(special.get("specialHourPeriods")) if isinstance(special, dict) else []
+    return {"periods": periods, "special_count": len(days)}
+
+
+def patch_regular_hours(token: str, v1_name: str, periods: list) -> None:
+    """Записать ТОЛЬКО обычные часы (`updateMask=regularHours`) — особые часы не трогаем."""
+    try:
+        response = requests.patch(
+            f"{INFO_API}/{v1_name}",
+            params={"updateMask": "regularHours"},
+            json={"regularHours": {"periods": periods}},
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=_timeout(),
+        )
+    except requests.RequestException as exc:
+        raise GbpError("network") from exc
+    if response.status_code >= 400:
+        raise _error_for(response)
