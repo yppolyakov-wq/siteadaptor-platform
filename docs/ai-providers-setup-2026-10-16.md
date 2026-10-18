@@ -87,6 +87,10 @@
 `BEDROCK_MODEL_STRONG`, `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`,
 `AZURE_OPENAI_DEPLOYMENT`, `MISTRAL_API_KEY`, `AI_DAILY_BUDGET_EUR`.
 
+ИИ-модерация каталога города (D2b-2) включается ОТДЕЛЬНО и только после ЕС-маршрута fast:
+`AI_CATALOG_MODERATION=True` (потолки `AI_CATALOG_MODERATION_DAILY=300`,
+`AI_CATALOG_MODERATION_TENANT_DAILY=20`; бюджет платформы).
+
 ## 5. Порядок
 
 1. Владелец: аккаунты AWS + Azure (параллельно), доступ к моделям, ключи, бюджеты.
