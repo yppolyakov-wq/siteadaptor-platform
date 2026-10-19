@@ -17,6 +17,7 @@ from apps.billing.webhooks import stripe_webhook
 from apps.core import health
 from apps.core.media_views import serve_media
 from apps.partners import views as partners_views
+from apps.platform_bot import webhook as platform_bot_webhook
 from apps.publishing import views as publishing_views
 from apps.tenants import quickstart_views
 from apps.tenants.views import (
@@ -150,6 +151,7 @@ urlpatterns = [
     # продолжает ловить партнёрский ?ref (исторические ссылки).
     path("registrieren/", BusinessSignupView.as_view(), name="business-signup"),
     # T-8.5 «Aktion in 3 Klicks»: регистрация + первая акция одной страницей.
+    path("tg/plattform/<str:secret>/", platform_bot_webhook.webhook, name="platform-bot-webhook"),
     path("aktion-starten/", quickstart_views.quick_start, name="quick-start"),
     path("aktion-starten/adresse/", quickstart_views.slug_check, name="quick-start-slug"),
     path(

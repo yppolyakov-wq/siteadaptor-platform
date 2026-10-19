@@ -45,6 +45,7 @@ SHARED_APPS = [
     "apps.support",  # M22c — платформенная техподдержка тенант↔SiteAdaptor (SHARED)
     "apps.partners",  # D3 — партнёрка веб-студий: реф-атрибуция + кабинет /partner/ (SHARED)
     "apps.ai",  # AI-0 — общий ИИ-слой: провайдеры, маршруты ЕС, учёт и лимиты (SHARED)
+    "apps.platform_bot",  # T-8.10h — общий Telegram-бот платформы: привязки владельцев (SHARED)
     # "apps.global_categories",  # Sprint 5
 ]
 
@@ -325,6 +326,13 @@ MCP_ACTION_RATE_IP = env.int("MCP_ACTION_RATE_IP", default=20)  # за 10 мин
 MCP_ACTION_RATE_EMAIL = env.int("MCP_ACTION_RATE_EMAIL", default=3)  # писем на адрес в сутки
 MCP_ACTION_RATE_OFFER = env.int("MCP_ACTION_RATE_OFFER", default=50)  # на предложение в сутки
 MCP_ACTION_RATE_GLOBAL = env.int("MCP_ACTION_RATE_GLOBAL", default=300)  # писем в час
+
+# T-8.10h: общий Telegram-бот платформы (старт акций без своего бота). Выключен по
+# умолчанию; токен — PlatformSecret «telegram_platform_bot_token» или env.
+TELEGRAM_PLATFORM_BOT_ENABLED = env.bool("TELEGRAM_PLATFORM_BOT_ENABLED", default=False)
+TELEGRAM_PLATFORM_BOT_TOKEN = env("TELEGRAM_PLATFORM_BOT_TOKEN", default="")
+TELEGRAM_PLATFORM_BOT_USERNAME = env("TELEGRAM_PLATFORM_BOT_USERNAME", default="")
+TELEGRAM_PLATFORM_WEBHOOK_SECRET = env("TELEGRAM_PLATFORM_WEBHOOK_SECRET", default="")
 
 # Г5: «живой» район портала — сколько РАЗНЫХ бизнесов нужно району, чтобы не добавлять
 # под его выдачей «Auch in der Nähe» (соседние районы). 0 = функция выключена.

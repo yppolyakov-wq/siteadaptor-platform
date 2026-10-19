@@ -26617,3 +26617,20 @@ msgstr ""
 
 msgid "Nächste Aktion mit KI"
 msgstr "Следующая акция с ИИ"
+
+msgid "Aktion starten"
+msgstr "Запустить акцию"
+
+msgid ""
+"Hallo! Ich veröffentliche Aktionen für Geschäfte in Ihrer Stadt — mit "
+"eigener Seite, QR-Code und Aushang."
+msgstr ""
+"Здравствуйте! Я публикую акции магазинов вашего города — со своей страницей,"
+" QR-кодом и объявлением."
+
+msgid ""
+"Willkommen zurück! Schicken Sie z. B.: „Brötchen 2,50 € statt 3,90 €, heute "
+"bis 18 Uhr, 20 Stück“ — gern mit Foto."
+msgstr ""
+"С возвращением! Отправьте, например: «Булочки 2,50 € вместо 3,90 €, сегодня "
+"до 18:00, 20 шт.» — можно с фото."

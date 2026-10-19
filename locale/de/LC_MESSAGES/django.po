@@ -26423,3 +26423,20 @@ msgstr ""
 
 msgid "Nächste Aktion mit KI"
 msgstr "Nächste Aktion mit KI"
+
+msgid "Aktion starten"
+msgstr "Aktion starten"
+
+msgid ""
+"Hallo! Ich veröffentliche Aktionen für Geschäfte in Ihrer Stadt — mit "
+"eigener Seite, QR-Code und Aushang."
+msgstr ""
+"Hallo! Ich veröffentliche Aktionen für Geschäfte in Ihrer Stadt — mit "
+"eigener Seite, QR-Code und Aushang."
+
+msgid ""
+"Willkommen zurück! Schicken Sie z. B.: „Brötchen 2,50 € statt 3,90 €, heute "
+"bis 18 Uhr, 20 Stück“ — gern mit Foto."
+msgstr ""
+"Willkommen zurück! Schicken Sie z. B.: „Brötchen 2,50 € statt 3,90 €, heute "
+"bis 18 Uhr, 20 Stück“ — gern mit Foto."

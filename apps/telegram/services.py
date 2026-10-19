@@ -23,6 +23,15 @@ def get_me(token: str) -> dict:
     return response.json().get("result", {})
 
 
+def leave_chat(token: str, chat_id) -> None:
+    """T-8.10h: выйти из группы/канала (общий бот работает только в личных чатах).
+    Ошибка не всплывает: в её тексте URL с токеном бота."""
+    try:
+        requests.post(_endpoint(token, "leaveChat"), data={"chat_id": chat_id}, timeout=10)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def send_message(token: str, chat_id, text: str, reply_markup=None) -> dict:
     data = {"chat_id": chat_id, "text": text}
     if reply_markup is not None:

@@ -75,6 +75,17 @@
  "apps/notifications/adapters.py": [
   "kein aktiver Telegram-Bot"
  ],
+ "apps/platform_bot/apps.py": [
+  "Telegram-Bot der Plattform"
+ ],
+ "apps/platform_bot/management/commands/telegram_platform_setup.py": [
+  "Plattform-Bot aus: TELEGRAM_PLATFORM_BOT_ENABLED=1 und Token setzen.",
+  "TELEGRAM_PLATFORM_WEBHOOK_SECRET fehlt oder ist zu kurz (≥ 24)."
+ ],
+ "apps/platform_bot/models.py": [
+  "Telegram-Verknüpfung",
+  "Telegram-Verknüpfungen"
+ ],
  "apps/promotions/message_parse.py": [
   "\\s+(?:zum\\s+)?("
  ],
