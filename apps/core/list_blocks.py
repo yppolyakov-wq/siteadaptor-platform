@@ -243,7 +243,9 @@ def _promotions(data: dict, limit: int):
         return _upcoming(data, limit)
     provider = PromoFacets()
     items = (
-        Promotion.objects.filter(status="active").select_related("product").order_by("-created_at")
+        Promotion.objects.filter(Promotion.on_sale_q())
+        .select_related("product")
+        .order_by("-created_at")
     )
     items = provider.apply(
         items,
@@ -954,7 +956,7 @@ def promotions_ending_soon(data: dict, days: int = 3, limit: int = 4) -> list:
     if data.get("phase") == "upcoming":
         return []  # у будущих акций срока «Endet …» нет
     items = PromoFacets().apply(
-        Promotion.objects.filter(status="active").order_by("-created_at"),
+        Promotion.objects.filter(Promotion.on_sale_q()).order_by("-created_at"),
         {
             "gruppe": data.get("type", ""),
             "endet": data.get("endet", ""),

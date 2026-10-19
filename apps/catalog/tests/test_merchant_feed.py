@@ -463,15 +463,16 @@ def test_cheaper_mystery_does_not_block_regular_promo():
     assert _items(xml)[str(p.pk)]["sale_price"] == "9.00 EUR" and "6.00" not in xml
 
 
-def test_exhausted_limit_excludes_remaining_limit_sells():
+def test_exhausted_limit_returns_regular_price_remaining_limit_sells():
+    """SF-10: исчерпанная акция снята с витрины — товар в фиде по обычной цене."""
     gone = _product(base_price=Decimal("10.00"))
     _promo(gone, price_override=Decimal("7.00"), available_quantity=0)
     left = _product(base_price=Decimal("10.00"))
     _promo(left, price_override=Decimal("7.00"), available_quantity=3)
     items = _items(_merchant_xml(google.merchant_products()))
-    assert str(gone.pk) not in items
+    assert items[str(gone.pk)]["price"] == "10.00 EUR" and "sale_price" not in items[str(gone.pk)]
     assert items[str(left.pk)]["sale_price"] == "7.00 EUR"
-    assert google.overview()["excluded"]["promo_sold_out"]["count"] == 1
+    assert "promo_sold_out" not in google.overview()["excluded"]
 
 
 def test_promo_above_base_price_charges_promo_price_without_sale():

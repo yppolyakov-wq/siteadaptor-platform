@@ -742,6 +742,9 @@ def cart_view(request):
     ]
     for r in rows:
         r["is_promo"] = r["unit_price"] < r["base_unit_price"]
+    # SF-10: акции, по которым корзина показала цену, — чекаут сверит, что они ещё
+    # в продаже (лимит мог кончиться между корзиной и «Kaufen»).
+    promo_seen = ",".join(sorted({str(pmap[r["product"].pk].pk) for r in rows if r["is_promo"]}))
     # Комбо-наборы (A4): отдельные строки корзины со снимком состава.
     from apps.catalog.combos import combo_price, pool_price
 
@@ -780,6 +783,7 @@ def cart_view(request):
     voucher, discount = _cart_discount(request, total)
     ctx = {
         "rows": rows,
+        "promo_seen": promo_seen,
         "combo_rows": combo_rows,
         # Бургер у строки набора — из общего источника: на магазине с рюкзаками
         # он выглядел ошибкой (фидбэк 2026-09-04).
@@ -933,6 +937,15 @@ def checkout(request):
             return redirect("storefront-combo", pk=combo.pk)
     # SF-4b: минимумы доставки/итог считаем по тем же промо-ценам, что спишет заказ
     pmap = _cart_promo_map(items)
+    # SF-10: цена акции была в корзине, а лимит кончился до «Kaufen» — не списываем
+    # молча полную цену (обещание SF-4b), а возвращаем в корзину с обычной ценой.
+    seen = {x for x in (request.POST.get("promo_seen") or "").split(",") if x}
+    if seen - {str(promo.pk) for promo in pmap.values()}:
+        messages.error(
+            request,
+            _("A promotional price has just sold out. Please check your cart."),
+        )
+        return redirect("storefront-cart")
     subtotal = sum((_line_price(p, v, o, promo_map=pmap) * q for p, v, o, q in items), Decimal("0"))
     subtotal += sum((combo_price(c, o) * q for c, o, q in combo_items), Decimal("0"))
     subtotal += sum((pool_price(c, d) * q for c, d, q, _ok, _k in pool_items), Decimal("0"))

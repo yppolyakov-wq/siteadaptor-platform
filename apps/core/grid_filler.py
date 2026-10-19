@@ -41,7 +41,7 @@ def _promotions(tenant):
         return None
     from apps.promotions.models import Promotion
 
-    if not Promotion.objects.filter(status="active").exists():
+    if not Promotion.objects.filter(Promotion.on_sale_q()).exists():
         return None
     return {
         "key": "promotions",

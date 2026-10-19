@@ -85,7 +85,9 @@ def _detail_ctx(request, promo, form) -> dict:
         except Exception:  # noqa: BLE001 — витрина не падает из-за адаптера
             target_card = None
     # DL-16.3 (AD3): «Weitere Aktionen» — та же группа, иначе другие активные.
-    others = Promotion.objects.filter(status="active").exclude(pk=promo.pk).order_by("-created_at")
+    others = (
+        Promotion.objects.filter(Promotion.on_sale_q()).exclude(pk=promo.pk).order_by("-created_at")
+    )
     related = list(others.filter(group=promo.group)[:8]) if promo.group else []
     if len(related) < 2:
         related = list(others[:8])
@@ -595,7 +597,9 @@ def promotion_list(request):
         raise Http404
     provider = facets_registry.provider_for("promotion")
     base = (
-        Promotion.objects.filter(status="active").select_related("product").order_by("-created_at")
+        Promotion.objects.filter(Promotion.on_sale_q())
+        .select_related("product")
+        .order_by("-created_at")
     )
     q = (request.GET.get("q") or "").strip()
     sort = request.GET.get("sort") or ""
@@ -2243,7 +2247,7 @@ def promotion_detail(request, pk):
         alternatives = []
         if modules.is_module_active(request.tenant, "promotions"):
             alternatives = _attach_lowest_30d(
-                Promotion.objects.filter(status="active")
+                Promotion.objects.filter(Promotion.on_sale_q())
                 .exclude(pk=promo.pk)
                 .select_related("product")
                 .order_by("-created_at")[:3]

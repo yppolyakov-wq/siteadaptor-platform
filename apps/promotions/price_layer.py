@@ -179,7 +179,7 @@ def promo_for_product(product):
     # SF-9: mystery-акция — не часть цены товара (секрет раскрывается и продаётся
     # только на странице акции); иначе баннер/корзина раскрыли бы цену.
     for promo in (
-        Promotion.objects.filter(product=product, status="active")
+        Promotion.objects.filter(Promotion.on_sale_q(), product=product)
         .exclude(discount_style="mystery")
         .order_by("created_at", "pk")
     ):
@@ -198,7 +198,7 @@ def product_promo_map(product_ids):
     # (и вместе с ним фид Merchant: mystery исключает товар) зависел бы от порядка строк.
     # SF-9: без mystery — см. `promo_for_product`.
     for promo in (
-        Promotion.objects.filter(product_id__in=list(product_ids), status="active")
+        Promotion.objects.filter(Promotion.on_sale_q(), product_id__in=list(product_ids))
         .exclude(discount_style="mystery")
         .select_related("product")
         .order_by("created_at", "pk")
@@ -218,7 +218,7 @@ def service_promos(service):
         return []
     return [
         p
-        for p in Promotion.objects.filter(service=service, status="active")
+        for p in Promotion.objects.filter(Promotion.on_sale_q(), service=service)
         if p.new_price is not None and not p.price_condition
     ]
 
@@ -232,7 +232,7 @@ def promo_for_service(service, start, resource_id=None, promos=None):
     if service is None:
         return None
     if promos is None:
-        promos = Promotion.objects.filter(service=service, status="active")
+        promos = Promotion.objects.filter(Promotion.on_sale_q(), service=service)
     best = None
     for promo in promos:
         if promo.price_condition:
@@ -300,7 +300,7 @@ def stay_promo(unit, arrival=None):
     if unit is None:
         return None
     best = None
-    for promo in Promotion.objects.filter(stay_unit=unit, status="active"):
+    for promo in Promotion.objects.filter(Promotion.on_sale_q(), stay_unit=unit):
         if promo.price_condition:
             continue  # В2: условие не применяется ко всей брони
         percent = promo.discount_percent or 0
@@ -331,7 +331,7 @@ def mystery_promo_for_product(product):
     if product is None:
         return None
     return (
-        Promotion.objects.filter(product=product, status="active", discount_style="mystery")
+        Promotion.objects.filter(Promotion.on_sale_q(), product=product, discount_style="mystery")
         .order_by("created_at", "pk")
         .first()
     )

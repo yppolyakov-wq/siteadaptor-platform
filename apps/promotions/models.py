@@ -538,6 +538,17 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         delta = (self.ends_at - timezone.now()).total_seconds()
         return int(delta) if delta > 0 else 0
 
+    @staticmethod
+    def on_sale_q():
+        """SF-10: акция «в продаже» на витрине — действует И лимит не исчерпан.
+
+        Исчерпанная акция уходит из цены товара/услуги/номера и из списков витрины;
+        возврат лимита (отмена) возвращает её сама — без перехода статуса. Страница
+        самой акции живёт дальше (QR, флаер, лист ожидания)."""
+        return models.Q(status="active") & (
+            models.Q(available_quantity__isnull=True) | models.Q(available_quantity__gt=0)
+        )
+
     @property
     def is_sold_out(self) -> bool:
         """Лимитированная акция распродана (остаток 0)."""

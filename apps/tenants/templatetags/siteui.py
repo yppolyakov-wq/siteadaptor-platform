@@ -130,7 +130,7 @@ def deal_of_day():
     from apps.promotions.models import Promotion
 
     return (
-        Promotion.objects.filter(status="active")
+        Promotion.objects.filter(Promotion.on_sale_q())
         .annotate(
             daily_first=Case(
                 When(recurrence=Promotion.DAILY, then=Value(0)),

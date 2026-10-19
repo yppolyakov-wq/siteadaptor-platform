@@ -105,16 +105,19 @@ def test_limit_claim_race_and_rollback():
     product = _saft(stock=30)
     promo = _promo(product, limit=2)
 
-    order = order_services.create_order(items=[(product, 2)], name="A")
+    order = order_services.create_order(items=[(product, 1)], name="A")
     promo.refresh_from_db()
     product.refresh_from_db()
-    assert promo.available_quantity == 0
-    assert product.stock_quantity == 28
+    assert promo.available_quantity == 1
+    assert product.stock_quantity == 29
 
+    # акция ещё в продаже (остаток 1), но заказ больше остатка — клейм отказывает
     with pytest.raises(PromoSoldOut):
-        order_services.create_order(items=[(product, 1)], name="B")
+        order_services.create_order(items=[(product, 2)], name="B")
     product.refresh_from_db()
-    assert product.stock_quantity == 28  # atomic откатил и склад
+    promo.refresh_from_db()
+    assert product.stock_quantity == 29  # atomic откатил и склад
+    assert promo.available_quantity == 1
 
     # отмена возвращает лимит по маркеру (штатный путь PL)
     OrderSM().apply(order, "cancelled")

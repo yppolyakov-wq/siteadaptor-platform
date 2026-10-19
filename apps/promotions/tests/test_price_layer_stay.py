@@ -6,7 +6,6 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from apps.promotions import price_layer
 from apps.promotions.models import Promotion
 from apps.promotions.tests.factories import PromotionFactory
 from apps.stays import services as stay_services
@@ -80,12 +79,13 @@ def test_stay_window_rules_gate_arrival():
     assert booking.promotion_id is None and booking.auto_discount_cents == 0
 
 
-def test_exhausted_limit_rolls_back_whole_booking():
+def test_exhausted_limit_books_regular_price():
+    """SF-10: исчерпанная акция снята с витрины — бронь идёт по обычной цене,
+    без акции и без ошибки (раньше бронь отказывала «лимит исчерпан»)."""
     unit = _unit()
-    promo = _stay_promo(unit, quantity=0)  # лимит уже исчерпан
-    with pytest.raises(price_layer.OutOfStock):
-        _book(unit)
-    assert StayBooking.objects.count() == 0  # брони нет — атомарный откат
+    promo = _stay_promo(unit, quantity=0)
+    booking = _book(unit)
+    assert booking.promotion_id is None
     promo.refresh_from_db()
     assert promo.available_quantity == 0
 

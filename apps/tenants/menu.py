@@ -311,7 +311,7 @@ def _promo_group_url(tenant, group: str):
         return None
     from apps.promotions.models import Promotion
 
-    if not Promotion.objects.filter(status="active", group=group).exists():
+    if not Promotion.objects.filter(Promotion.on_sale_q(), group=group).exists():
         return None
     base = _reverse("storefront-aktionen")
     if not base:

@@ -26180,3 +26180,7 @@ msgstr "Акция-сюрприз"
 #: templates/storefront/product_detail.html
 msgid "Jetzt aufdecken"
 msgstr "Открыть"
+
+#: apps/orders/public_views.py
+msgid "A promotional price has just sold out. Please check your cart."
+msgstr "Цена по акции только что закончилась. Пожалуйста, проверьте корзину."
