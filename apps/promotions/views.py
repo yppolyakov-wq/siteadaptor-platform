@@ -705,6 +705,8 @@ def promotion_quick(request):
                 if k not in ("photo_ids", "warnings") and v not in (None, "")
             }
             initial["entwurf"] = entwurf
+            if source is None and tg_draft.get("photo_from"):
+                source = telegram_promo.source_promo(tg_draft["photo_from"])  # B-3: повтор
     if request.method == "GET" and "term" not in initial:
         initial["term"] = quick.default_term(tenant)  # Д1: срок — правило, а не ИИ
     form = quick.QuickPromotionForm(

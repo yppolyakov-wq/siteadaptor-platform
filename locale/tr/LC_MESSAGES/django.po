@@ -26453,3 +26453,15 @@ msgstr "Bu işe yaramadı — lütfen formda kontrol edin (✏️)."
 
 msgid "Schon als Entwurf gespeichert."
 msgstr "Zaten taslak olarak kaydedildi."
+
+msgid "Diese Aktion gibt es nicht mehr."
+msgstr "Bu kampanya artık mevcut değil."
+
+msgid "Noch keine vergangene Aktion zum Wiederholen."
+msgstr "Henüz tekrarlanacak geçmiş bir kampanya yok."
+
+msgid "Vorschlag aus dem Foto — bitte prüfen."
+msgstr "Fotoğraftan öneri — lütfen kontrol edin."
+
+msgid "Welche Aktion wiederholen?"
+msgstr "Hangi kampanya tekrarlansın?"

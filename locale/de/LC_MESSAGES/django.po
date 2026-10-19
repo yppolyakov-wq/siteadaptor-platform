@@ -26394,3 +26394,15 @@ msgstr "Das hat nicht geklappt — bitte im Formular prüfen (✏️)."
 
 msgid "Schon als Entwurf gespeichert."
 msgstr "Schon als Entwurf gespeichert."
+
+msgid "Diese Aktion gibt es nicht mehr."
+msgstr "Diese Aktion gibt es nicht mehr."
+
+msgid "Noch keine vergangene Aktion zum Wiederholen."
+msgstr "Noch keine vergangene Aktion zum Wiederholen."
+
+msgid "Vorschlag aus dem Foto — bitte prüfen."
+msgstr "Vorschlag aus dem Foto — bitte prüfen."
+
+msgid "Welche Aktion wiederholen?"
+msgstr "Welche Aktion wiederholen?"

@@ -26314,3 +26314,15 @@ msgstr "That didn't work — please check it in the form (✏️)."
 
 msgid "Schon als Entwurf gespeichert."
 msgstr "Already saved as a draft."
+
+msgid "Diese Aktion gibt es nicht mehr."
+msgstr "This promotion no longer exists."
+
+msgid "Noch keine vergangene Aktion zum Wiederholen."
+msgstr "No past promotion to repeat yet."
+
+msgid "Vorschlag aus dem Foto — bitte prüfen."
+msgstr "Suggestion from the photo — please check."
+
+msgid "Welche Aktion wiederholen?"
+msgstr "Which promotion should be repeated?"

@@ -26568,3 +26568,15 @@ msgstr "Не вдалося — будь ласка, перевірте у фо�
 
 msgid "Schon als Entwurf gespeichert."
 msgstr "Уже збережено як чернетку."
+
+msgid "Diese Aktion gibt es nicht mehr."
+msgstr "Цієї акції більше немає."
+
+msgid "Noch keine vergangene Aktion zum Wiederholen."
+msgstr "Поки немає минулої акції, яку можна повторити."
+
+msgid "Vorschlag aus dem Foto — bitte prüfen."
+msgstr "Пропозиція за фото — будь ласка, перевірте."
+
+msgid "Welche Aktion wiederholen?"
+msgstr "Яку акцію повторити?"

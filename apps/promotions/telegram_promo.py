@@ -31,6 +31,9 @@ ALBUM_TTL = 10 * 60
 RATE_LIMIT = 30  # черновиков на чат в час
 TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{16}$")
 CALLBACK_RE = re.compile(r"^tp:(ok|no):([A-Za-z0-9_-]{16})$")
+REPEAT_CALLBACK_RE = re.compile(r"^tp:rp:([0-9a-f-]{36})$")
+REPEAT_COMMAND_RE = re.compile(r"(?i)^/(?:wiederholen|nochmal|repeat)(?:@\w+)?\s*$")
+REPEAT_LIMIT = 3
 WARNING_LIMIT = 3
 
 
@@ -233,6 +236,8 @@ def render_preview(draft: dict, tenant, form, token: str) -> tuple[str, dict]:
         lines.append(" · ".join(facts))
     if draft.get("photo_ids"):
         lines.append(f"📷 {len(draft['photo_ids'])}")
+    if draft.get("ai_draft"):
+        lines.append("✨ " + _("Vorschlag aus dem Foto — bitte prüfen."))
     notes = [_warning(c) for c in draft.get("warnings") or () if _warning(c)]
     if form.is_valid():
         try:
@@ -390,6 +395,8 @@ def _handle(bot, tenant, schema, chat, update) -> str:
     if reason:
         _send(bot, chat, reason)
         return "gated"
+    if REPEAT_COMMAND_RE.match((update.get("text") or "").strip()) and not update.get("photo"):
+        return repeat_menu(bot, chat)
     photo = update.get("photo") or ""
     group = update.get("media_group_id") or ""
     if group and photo:
@@ -437,20 +444,22 @@ def _new_draft(bot, tenant, schema, chat, update, photo, group) -> str:
             ),
         )
         return "hint"
-    if not parsed.title:
+    draft = draft_from_parsed(parsed, tenant, photo_ids=[photo] if photo else [])
+    if photo:
+        # B-2: ИИ — до замка альбома (вызов долгий), и только в ПУСТЫЕ описательные поля.
+        ai_fill(bot, tenant, draft, photo, hint=parsed.title)
+    if not draft.get("title"):
         _send(bot, chat, _("Wie heißt das Angebot? Schreiben Sie es bitte dazu."))
         return "no_title"
-    photo_ids = [photo] if photo else []
     if group:
         with _album_lock(schema, chat, group):
             waiting = cache.get(_album_wait_key(schema, chat, group)) or []
             cache.delete(_album_wait_key(schema, chat, group))
-            photo_ids += [p for p in waiting if p not in photo_ids]
-            draft = draft_from_parsed(parsed, tenant, photo_ids=photo_ids[: quick.MAX_PHOTOS])
+            ids = draft["photo_ids"] + [p for p in waiting if p not in draft["photo_ids"]]
+            draft["photo_ids"] = ids[: quick.MAX_PHOTOS]
             token = store_draft(schema, chat, draft)
             cache.set(_album_key(schema, chat, group), token, ALBUM_TTL)
     else:
-        draft = draft_from_parsed(parsed, tenant, photo_ids=photo_ids)
         token = store_draft(schema, chat, draft)
     form = form_for(draft, tenant)
     text, markup = render_preview(draft, tenant, form, token)
@@ -458,7 +467,121 @@ def _new_draft(bot, tenant, schema, chat, update, photo, group) -> str:
     return "preview"
 
 
+AI_FIELDS = ("title", "description")
+
+
+def ai_fill(bot, tenant, draft: dict, photo_id: str, *, hint: str = "") -> bool:
+    """B-2 (T-8.10a в Telegram): ИИ по фото дописывает ТОЛЬКО пустые описательные поля —
+    название, описание, раздел/признаки каталога города, свой товар. Цены, скидки, сроки и
+    количество приходят только из текста владельца (правила). ИИ выключен / сбой — черновик
+    как без ИИ. Фото уходит провайдеру уменьшенной копией без EXIF."""
+    from apps.ai.api import is_enabled
+    from apps.ai.images import reencode
+    from apps.core import city_categories as cc
+    from apps.telegram import services
+
+    from . import ai_draft
+
+    if not is_enabled():
+        return False
+    # Раздел по типу бизнеса — подстановка, а не выбор владельца: ИИ по фото точнее.
+    guessed = cc.suggest_for_business_type(getattr(tenant, "business_type", ""))
+    category_open = draft.get("city_category") in ("", None, guessed)
+    if all(draft.get(f) for f in AI_FIELDS) and not category_open and draft.get("city_tags"):
+        return False  # заполнять нечего — не тратить вызов
+    data = services.download_file(bot.token, photo_id)
+    if not data:
+        return False
+    try:
+        photo = reencode(data)
+        result, _code = ai_draft.draft_from_photo(photo, hint=hint, tenant=tenant)
+    except Exception as exc:  # noqa: BLE001 — подсказка необязательна
+        logger.info("tg promo ai skipped: %s", type(exc).__name__)
+        return False
+    if not result or not result.get("recognised"):
+        return False
+    used = False
+    for field in AI_FIELDS:
+        if not draft.get(field) and result.get(field):
+            draft[field], used = result[field], True
+    if category_open and result.get("city_category"):
+        if result["city_category"] != draft.get("city_category"):
+            draft["city_category"], used = result["city_category"], True
+    if not draft.get("city_tags") and result.get("city_tags"):
+        draft["city_tags"], used = list(result["city_tags"]), True
+    product = result.get("product")
+    if not draft.get("product") and product:
+        draft["product"], used = str(product["pk"]), True
+    if used:
+        draft["ai_draft"] = "1"
+    return used
+
+
 # --- нажатия кнопок -----------------------------------------------------------------------
+
+
+# --- B-3: повтор прошлой акции ------------------------------------------------------------
+
+
+def repeat_menu(bot, chat) -> str:
+    """`/wiederholen`: три последние прошедшие акции кнопками «🔁 <название>»."""
+    from .models import Promotion
+    from .views import REPEATABLE_STATUSES
+
+    promos = list(
+        Promotion.objects.filter(status__in=REPEATABLE_STATUSES).order_by(
+            "-ends_at", "-created_at"
+        )[:REPEAT_LIMIT]
+    )
+    if not promos:
+        _send(bot, chat, _("Noch keine vergangene Aktion zum Wiederholen."))
+        return "repeat_empty"
+    rows = [
+        [{"text": "🔁 " + (p.title_text or "—")[:40], "callback_data": f"tp:rp:{p.pk}"}]
+        for p in promos
+    ]
+    _send(bot, chat, _("Welche Aktion wiederholen?"), {"inline_keyboard": rows})
+    return "repeat_menu"
+
+
+def draft_from_promotion(promo, tenant) -> dict:
+    """Черновик-повтор: то же предложение (`quick.initial_from`), срок — по умолчанию."""
+    from apps.core import city_categories as cc
+
+    from . import quick
+
+    initial = {
+        "term": quick.default_term(tenant),
+        "customer_response": quick.default_response(tenant),
+        "city_category": cc.suggest_for_business_type(getattr(tenant, "business_type", "")),
+        **quick.initial_from(promo),
+    }
+    data = {}
+    for key, value in initial.items():
+        if key == "city_tags":
+            data[key] = [str(v) for v in value]
+        elif isinstance(value, bool):
+            data[key] = "1" if value else ""
+        else:
+            data[key] = str(value)
+    data.update(photo_ids=[], warnings=[])
+    return data
+
+
+def _repeat(bot, tenant, schema, chat, pk) -> str:
+    from .models import Promotion
+    from .views import REPEATABLE_STATUSES
+
+    promo = Promotion.objects.filter(pk=pk, status__in=REPEATABLE_STATUSES).first()
+    if promo is None:
+        _send(bot, chat, _("Diese Aktion gibt es nicht mehr."))
+        return "repeat_missing"
+    draft = draft_from_promotion(promo, tenant)
+    token = store_draft(schema, chat, draft)
+    form = form_for(draft, tenant)
+    text, markup = render_preview(draft, tenant, form, token)
+    _send(bot, chat, text, markup)
+    return "preview"
 
 
 def handle_callback(bot, callback: dict, tenant) -> str:
@@ -476,15 +599,19 @@ def handle_callback(bot, callback: dict, tenant) -> str:
         if not owner or str(sender.get("id")) != owner or chat != owner:
             services.answer_callback_query(bot.token, cid, _("Nicht erlaubt."))
             return "denied"
-        m = CALLBACK_RE.match(str(callback.get("data") or ""))
-        if not m:
+        data = str(callback.get("data") or "")
+        m = CALLBACK_RE.match(data)
+        rp = None if m else REPEAT_CALLBACK_RE.match(data)
+        if not m and not rp:
             return "skip"
-        action, token = m.groups()
         schema = connection.schema_name
         reason = gate(tenant)
         if reason:
             _send(bot, chat, reason)
             return "gated"
+        if rp:
+            return _repeat(bot, tenant, schema, chat, rp.group(1))
+        action, token = m.groups()
         if action == "no":
             drop_draft(schema, chat, token)
             services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
@@ -539,6 +666,17 @@ def confirm_as_task(bot, tenant, schema, chat, token, message_id, language_code=
             logger.warning("tg promo confirm failed: %s", type(exc).__name__)
             _send(bot, chat, _("Das hat nicht geklappt — bitte im Formular prüfen (✏️)."))
             return "error"
+
+
+def source_promo(pk):
+    from django.core.exceptions import ValidationError
+
+    from .models import Promotion
+
+    try:
+        return Promotion.objects.filter(pk=pk).first()
+    except (ValueError, ValidationError):
+        return None
 
 
 def _promo_url(promo) -> str:
@@ -618,6 +756,8 @@ def _confirm_claimed(bot, tenant, schema, chat, token, message) -> str:
             images = quick.save_photos(uploads)
         except Exception:  # noqa: BLE001 — акция без фото лучше, чем никакой
             failed, images = True, []
+    elif draft.get("photo_from"):
+        images = quick.copy_images(source_promo(draft["photo_from"]))
     try:
         with transaction.atomic():
             promo = form.build()

@@ -26588,3 +26588,15 @@ msgstr "Не получилось — пожалуйста, проверьте �
 
 msgid "Schon als Entwurf gespeichert."
 msgstr "Уже сохранено как черновик."
+
+msgid "Diese Aktion gibt es nicht mehr."
+msgstr "Этой акции больше нет."
+
+msgid "Noch keine vergangene Aktion zum Wiederholen."
+msgstr "Пока нет прошедшей акции, которую можно повторить."
+
+msgid "Vorschlag aus dem Foto — bitte prüfen."
+msgstr "Предложение по фото — пожалуйста, проверьте."
+
+msgid "Welche Aktion wiederholen?"
+msgstr "Какую акцию повторить?"
