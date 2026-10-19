@@ -1,0 +1,7 @@
+{% load i18n %}{% autoescape off %}{% trans "Ihr Coupon" %}: {{ promotion.title_text }}
+
+{% trans "Code" %}: {{ coupon.code }}
+{% if coupon.expires_at %}{% trans "Gültig bis" %}: {{ coupon.expires_at|date:"d.m.Y H:i" }}
+{% endif %}{% if coupon_url %}
+{% trans "Zeigen Sie den Coupon an der Kasse" %}: {{ coupon_url|safe }}
+{% endif %}{% endautoescape %}

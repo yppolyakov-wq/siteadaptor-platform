@@ -317,6 +317,14 @@ MCP_ALLOWED_ORIGINS = env.list("MCP_ALLOWED_ORIGINS", default=[])
 MCP_RATE_PER_IP = env.int("MCP_RATE_PER_IP", default=300)
 MCP_RATE_GLOBAL = env.int("MCP_RATE_GLOBAL", default=3000)
 MCP_MAX_BODY = env.int("MCP_MAX_BODY", default=64 * 1024)
+# T-8.10f F-4: «Zurücklegen»/«Coupon» из ассистента с подтверждением по e-mail. Работает
+# только вместе с настоящей почтой (Resend или SMTP); иначе инструменты скрыты.
+MCP_ACTIONS_ENABLED = env.bool("MCP_ACTIONS_ENABLED", default=False)
+MCP_ACTION_TTL = env.int("MCP_ACTION_TTL", default=60 * 60 * 24)  # срок ссылки, сек
+MCP_ACTION_RATE_IP = env.int("MCP_ACTION_RATE_IP", default=20)  # за 10 минут
+MCP_ACTION_RATE_EMAIL = env.int("MCP_ACTION_RATE_EMAIL", default=3)  # писем на адрес в сутки
+MCP_ACTION_RATE_OFFER = env.int("MCP_ACTION_RATE_OFFER", default=50)  # на предложение в сутки
+MCP_ACTION_RATE_GLOBAL = env.int("MCP_ACTION_RATE_GLOBAL", default=300)  # писем в час
 
 # Г5: «живой» район портала — сколько РАЗНЫХ бизнесов нужно району, чтобы не добавлять
 # под его выдачей «Auch in der Nähe» (соседние районы). 0 = функция выключена.

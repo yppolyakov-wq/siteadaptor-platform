@@ -26095,3 +26095,34 @@ msgid ""
 msgstr ""
 "MCP-Server (Streamable HTTP, ohne Anmeldung): search_offers, get_offer, "
 "get_business, list_categories, list_districts."
+
+msgid "Coupon bestätigen"
+msgstr "Coupon bestätigen"
+
+msgid "Reservierung bestätigen"
+msgstr "Reservierung bestätigen"
+
+msgid "Demo-Geschäft — Beispiel zum Ausprobieren."
+msgstr "Demo-Geschäft — Beispiel zum Ausprobieren."
+
+msgid "Jetzt zurücklegen"
+msgstr "Jetzt zurücklegen"
+
+msgid "Diese Aktion ist nicht mehr verfügbar."
+msgstr "Diese Aktion ist nicht mehr verfügbar."
+
+msgid "Ihre Bestätigung wird gerade bearbeitet."
+msgstr "Ihre Bestätigung wird gerade bearbeitet."
+
+msgid "Der Link ist abgelaufen oder ungültig."
+msgstr "Der Link ist abgelaufen oder ungültig."
+
+msgid ""
+"Bitte fragen Sie Ihren Assistenten erneut oder nutzen Sie die Seite der "
+"Aktion."
+msgstr ""
+"Bitte fragen Sie Ihren Assistenten erneut oder nutzen Sie die Seite der "
+"Aktion."
+
+msgid "Zeigen Sie den Coupon an der Kasse"
+msgstr "Zeigen Sie den Coupon an der Kasse"

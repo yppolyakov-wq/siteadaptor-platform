@@ -86,6 +86,7 @@ from apps.inventory.views_purchasing import maengel_pdf, purchasing_view
 from apps.jobs import public_views as jobs_public
 from apps.loyalty import public_views as loyalty_public
 from apps.orders import public_views as orders_public
+from apps.promotions import assistant_views as promotions_assistant
 from apps.promotions import public_views
 from apps.publishing import views as publishing_views
 from apps.stays import public_views as stays_public
@@ -664,6 +665,12 @@ urlpatterns = [
     path("p/<uuid:pk>/waitlist/", public_views.waitlist_join, name="storefront-waitlist"),
     # T-8.3: «Coupon holen» — выдача, страница купона, QR для кассы.
     path("p/<uuid:pk>/coupon/", public_views.coupon_create, name="storefront-coupon-create"),
+    # T-8.10f F-4: подтверждение действия из ассистента (ссылка из письма)
+    path(
+        "p/<uuid:pk>/ki-bestaetigen/<str:token>/",
+        promotions_assistant.assistant_confirm,
+        name="storefront-assistant-confirm",
+    ),
     path("coupon/<str:code>/", public_views.coupon_page, name="storefront-coupon"),
     path("coupon/<str:code>/qr.svg", public_views.coupon_qr, name="storefront-coupon-qr"),
     path("p/<uuid:pk>/qr.svg", public_views.promotion_qr, name="storefront-promotion-qr"),

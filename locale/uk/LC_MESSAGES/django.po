@@ -26275,3 +26275,32 @@ msgid ""
 msgstr ""
 "MCP-сервер (Streamable HTTP, без входу): search_offers, get_offer, "
 "get_business, list_categories, list_districts."
+
+msgid "Coupon bestätigen"
+msgstr "Підтвердити купон"
+
+msgid "Reservierung bestätigen"
+msgstr "Підтвердити резерв"
+
+msgid "Demo-Geschäft — Beispiel zum Ausprobieren."
+msgstr "Демо-бізнес — приклад, щоб спробувати."
+
+msgid "Jetzt zurücklegen"
+msgstr "Відкласти зараз"
+
+msgid "Diese Aktion ist nicht mehr verfügbar."
+msgstr "Ця акція більше недоступна."
+
+msgid "Ihre Bestätigung wird gerade bearbeitet."
+msgstr "Ваше підтвердження обробляється."
+
+msgid "Der Link ist abgelaufen oder ungültig."
+msgstr "Посилання застаріло або недійсне."
+
+msgid ""
+"Bitte fragen Sie Ihren Assistenten erneut oder nutzen Sie die Seite der "
+"Aktion."
+msgstr "Попросіть асистента ще раз або відкрийте сторінку акції."
+
+msgid "Zeigen Sie den Coupon an der Kasse"
+msgstr "Покажіть купон на касі"

@@ -1,0 +1,1 @@
+{% load i18n %}{% autoescape off %}{% trans "Ihr Coupon" %} — {{ promotion.title_text }}{% endautoescape %}

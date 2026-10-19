@@ -26161,3 +26161,32 @@ msgid ""
 msgstr ""
 "MCP sunucusu (Streamable HTTP, oturum açmadan): search_offers, get_offer, "
 "get_business, list_categories, list_districts."
+
+msgid "Coupon bestätigen"
+msgstr "Kuponu onayla"
+
+msgid "Reservierung bestätigen"
+msgstr "Rezervasyonu onayla"
+
+msgid "Demo-Geschäft — Beispiel zum Ausprobieren."
+msgstr "Demo işletme — denemek için örnek."
+
+msgid "Jetzt zurücklegen"
+msgstr "Şimdi ayırt"
+
+msgid "Diese Aktion ist nicht mehr verfügbar."
+msgstr "Bu kampanya artık mevcut değil."
+
+msgid "Ihre Bestätigung wird gerade bearbeitet."
+msgstr "Onayınız işleniyor."
+
+msgid "Der Link ist abgelaufen oder ungültig."
+msgstr "Bağlantının süresi dolmuş veya geçersiz."
+
+msgid ""
+"Bitte fragen Sie Ihren Assistenten erneut oder nutzen Sie die Seite der "
+"Aktion."
+msgstr "Lütfen asistanınıza tekrar sorun veya kampanya sayfasını kullanın."
+
+msgid "Zeigen Sie den Coupon an der Kasse"
+msgstr "Kuponu kasada gösterin"
