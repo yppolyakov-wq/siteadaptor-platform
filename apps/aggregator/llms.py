@@ -135,8 +135,17 @@ def build_portal(request, portal) -> str:
             + _(
                 "MCP-Server (Streamable HTTP, ohne Anmeldung): search_offers, get_offer, get_business, list_categories, list_districts."
             ),
-            "",
         ]
+        from .mcp import actions
+
+        if actions.enabled():  # F-4: действия — только с подтверждением человеком
+            lines.append(
+                "  "
+                + _(
+                    "Zurücklegen und Coupons: request_reservation, request_coupon — erst nach Bestätigung per E-Mail durch die Person."
+                )
+            )
+        lines.append("")
     lines += _legal_block()
     return "\n".join(lines) + "\n"
 

@@ -14,6 +14,8 @@ import requests
 from django.core.management.base import BaseCommand, CommandError
 
 EXPECTED_TOOLS = {"search_offers", "get_offer", "get_business", "list_categories", "list_districts"}
+#: F-4: «отложить»/«купон» — видны только при MCP_ACTIONS_ENABLED и настоящей почте.
+ACTION_TOOLS = {"request_reservation", "request_coupon"}
 
 
 class Command(BaseCommand):
@@ -95,6 +97,13 @@ class Command(BaseCommand):
         if missing:
             raise CommandError(f"tools/list: нет инструментов {sorted(missing)}")
         self.stdout.write(f"✓ tools/list: инструментов {len(names)}")
+        if ACTION_TOOLS <= names:
+            self.stdout.write("  действия «отложить»/«купон»: включены")
+        else:
+            self.stdout.write(
+                "  действия «отложить»/«купон»: выключены "
+                "(MCP_ACTIONS_ENABLED=1 и настоящая почта — Resend или SMTP)"
+            )
 
         args = {"limit": 5}
         if opts["query"]:

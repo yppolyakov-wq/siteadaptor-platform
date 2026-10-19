@@ -36,6 +36,27 @@ def test_llms_txt_names_mcp_only_when_enabled():
     with override_settings(MCP_ENABLED=True, MCP_PORTAL_HOSTS=[], **PORTAL):
         body = _llms(_portal(host="zwei.siteadaptor.de"))
     assert "## MCP" in body and "/mcp/" in body and "search_offers" in body
+    assert "request_reservation" not in body  # действия выключены по умолчанию
+
+
+def test_llms_txt_names_actions_only_when_enabled():
+    with override_settings(MCP_ENABLED=True, MCP_ACTIONS_ENABLED=True, **PORTAL):
+        body = _llms(_portal(host="drei.siteadaptor.de"))
+    assert "request_reservation" in body and "E-Mail" in body
+
+
+def test_smoke_reports_actions_state(monkeypatch):
+    from io import StringIO
+
+    from django.core.management import call_command
+
+    portal = _portal(host="vier.siteadaptor.de")
+    monkeypatch.setattr("requests.Session.post", _fake_post(portal))
+    for enabled, word in ((False, "выключены"), (True, "включены")):
+        out = StringIO()
+        with override_settings(MCP_ENABLED=True, MCP_ACTIONS_ENABLED=enabled, **PORTAL):
+            call_command("mcp_smoke", url="https://vier.siteadaptor.de/mcp/", stdout=out)
+        assert f"«купон»: {word}" in out.getvalue()
 
 
 def _fake_post(portal):

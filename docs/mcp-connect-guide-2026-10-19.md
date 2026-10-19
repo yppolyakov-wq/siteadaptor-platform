@@ -91,8 +91,50 @@ authentication».
 > Для юриста: сроки хранения взяты из настроек (`SEARCH_LOG_RETENTION_DAYS` 180, `…_SINGLE` 30,
 > `PORTAL_STATS_RETENTION_DAYS` 400); срок хранения access-логов Caddy указать по факту сервера.
 
-## 8. Дальше
+## 8. «Отложить» и «купон» из ассистента (F-4)
 
-F-4 — «отложить» и «купон» прямо из ассистента с подтверждением по e-mail (нужен
-`RESEND_API_KEY` в проде). F-6 — оценка пилота через 4 недели (вызовы, показы, переходы,
-сделки канала «Assistenten (KI)», доля пустых выдач).
+Ассистент может попросить бизнес отложить товар акции («Zurücklegen») или выдать
+купон. Сам он ничего не создаёт: человек получает письмо со ссылкой, открывает страницу
+бизнеса и нажимает кнопку — только тогда появляется резерв или купон (как с витрины,
+канал «Assistenten (KI)»). В письме есть ссылка «Das war ich nicht»: она удаляет запрос
+и 30 дней не присылает такие письма на этот адрес.
+
+Включить — в `.env.prod` и рестарт:
+
+```
+MCP_ACTIONS_ENABLED=1
+```
+
+Работает только с настоящей почтой (Resend — `RESEND_API_KEY`, или SMTP — `EMAIL_HOST`
+и др.). С тестовой (console) почтой инструментов `request_reservation`/`request_coupon`
+у ассистента просто нет. `mcp_smoke` печатает строку «действия … включены/выключены».
+Письмо шлёт фоновая задача — нужен работающий Celery worker (он уже есть в деплое).
+
+Лимиты (меняются переменными, значения по умолчанию разумные): одно письмо в сутки на
+адрес и акцию, 3 в сутки на адрес (`MCP_ACTION_RATE_EMAIL`), 50 в сутки на акцию
+(`MCP_ACTION_RATE_OFFER`), 300 писем в час на всё (`MCP_ACTION_RATE_GLOBAL`), 20
+запросов за 10 минут с адреса платформы ассистента (`MCP_ACTION_RATE_IP`). Ссылка живёт
+не дольше суток и не дольше конца акции (`MCP_ACTION_TTL`).
+
+Демо-бизнесы на превью-портале работают так же (резерв настоящий, с пометкой «Demo»),
+но письмо владельцу демо не уходит. Демо-засев пишет адреса только в `example.com` —
+после деплоя нужен пересев демо, тогда вход в кабинет демо — `<slug>@example.com`.
+
+Для Datenschutzerklärung — дополнение к §7 (черновик для юриста):
+
+> **Reservierung und Coupons über KI-Assistenten.** Bitten Sie einen KI-Assistenten,
+> ein Angebot für Sie zurücklegen zu lassen oder einen Coupon anzufordern, senden wir an
+> die angegebene E-Mail-Adresse einen Bestätigungslink. Bis zur Bestätigung speichern
+> wir die Adresse (und, falls angegeben, Ihren Namen) verschlüsselt und höchstens 24
+> Stunden, ausschließlich für diese Anfrage; ohne Bestätigung wird nichts weiter
+> gespeichert. Erst mit Ihrer Bestätigung entsteht die Reservierung bzw. der Coupon beim
+> jeweiligen Unternehmen (Art. 6 Abs. 1 lit. b DSGVO). Über den Link „Das war ich nicht"
+> löschen Sie die Anfrage; wir senden dann 30 Tage lang keine solchen E-Mails an diese
+> Adresse (dafür speichern wir einen nicht umkehrbaren Kennwert der Adresse). Werbung
+> enthält die E-Mail nicht.
+
+## 9. Дальше
+
+F-6 — оценка пилота через 4 недели (вызовы, показы, переходы, сделки канала
+«Assistenten (KI)», доля пустых выдач). Затем T-8.10g/d/b по плану
+`docs/t8-10-rest-plan-2026-10-19.md`.
