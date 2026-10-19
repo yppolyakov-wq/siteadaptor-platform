@@ -26143,3 +26143,7 @@ msgstr "No suggestion possible – please reply yourself."
 
 msgid "Vorhandenen Text ersetzen?"
 msgstr "Replace the existing text?"
+
+#, python-format
+msgid "Alle von %(brand)s in %(city)s"
+msgstr "All from %(brand)s in %(city)s"

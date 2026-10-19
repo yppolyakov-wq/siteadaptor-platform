@@ -41,6 +41,7 @@ INDEXED_FIELDS = frozenset(
         "city_tags",
         "category",
         "item_condition",
+        "brand",
     }
 )
 
@@ -98,6 +99,9 @@ def _parts(listing) -> list[tuple[str, str, str]]:
         ("german", listing.business_name or "", "D"),
         ("simple", listing.business_name or "", "D"),
         ("german", dishes, "B"),
+        # T-8.10d: марка важнее тизера, ниже заголовка («Bosch» находит товар без «Bosch»
+        # в названии).
+        ("simple", getattr(listing, "brand", "") or "", "B"),
         ("german", _labels(listing), "C"),
         ("simple", tags, "C"),
         ("simple", variants, "C"),
@@ -110,8 +114,11 @@ def search_text(listing) -> str:
     title = listing.title or {}
     dishes = " ".join(str(d) for d in (listing.dish_names or []))
     variants = " ".join(str(v) for v in (listing.variant_terms or []))
+    brand = getattr(listing, "brand", "") or ""
     return fold(
-        " ".join([*(str(v) for v in title.values() if v), listing.business_name, dishes, variants])
+        " ".join(
+            [*(str(v) for v in title.values() if v), listing.business_name, dishes, variants, brand]
+        )
     )
 
 
@@ -150,6 +157,7 @@ def refresh(qs) -> int:
         "city_tags",
         "category",
         "item_condition",
+        "brand",
     ).iterator():
         refresh_listing(listing)
         n += 1

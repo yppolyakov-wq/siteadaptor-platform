@@ -26397,3 +26397,7 @@ msgstr ""
 
 msgid "Vorhandenen Text ersetzen?"
 msgstr "Замінити вже написаний текст?"
+
+#, python-format
+msgid "Alle von %(brand)s in %(city)s"
+msgstr "Усе від %(brand)s у місті %(city)s"

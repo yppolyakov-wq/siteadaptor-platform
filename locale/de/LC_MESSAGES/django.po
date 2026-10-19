@@ -22011,7 +22011,7 @@ msgid "Zustand"
 msgstr ""
 
 msgid "Marke"
-msgstr ""
+msgstr "Marke"
 
 msgid "Nur reduziert"
 msgstr ""
@@ -26222,3 +26222,7 @@ msgstr "Kein Vorschlag möglich – bitte selbst antworten."
 
 msgid "Vorhandenen Text ersetzen?"
 msgstr "Vorhandenen Text ersetzen?"
+
+#, python-format
+msgid "Alle von %(brand)s in %(city)s"
+msgstr "Alle von %(brand)s in %(city)s"

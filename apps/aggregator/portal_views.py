@@ -329,7 +329,8 @@ def portal_home(request, facet=None, district=None):
     # посчитала плитка раздела (иначе «10 на плитке, 1 в выдаче»).
     # T-8.26 п.5c: размер есть только у товаров — явный ?groesse= без q иначе упёрся бы
     # в ленту предложений (OFFER_KINDS без товара) и дал пустую выдачу.
-    kind = scope.kind_key or ("alle" if (q or filters.kats or filters.tags or filters.size) else "")
+    # T-8.10d: правило вынесено в home.default_kind — им же пользуется подписка на поиск.
+    kind = home.default_kind(scope.kind_key, q, filters)
     kinds = home.kinds_for(kind) or AggregatorListing.OFFER_KINDS
     broad, whole_pool, base_pool, pool = _district_pool(
         portal, city, business_type, district, q_eff, filters_eff, kinds, scope.new_only, point

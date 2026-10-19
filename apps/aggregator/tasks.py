@@ -24,7 +24,16 @@ AVAILABILITY_SOLD_OUT = "sold_out"
 # В2/В4: поля, которые пишет КАЖДЫЙ построитель снимка. `_upsert_listing` сравнивает только
 # ключи из `defaults` — поле, забытое в одном виде, у этого вида никогда не обновится.
 def _neutral_v2v4() -> dict:
-    return {"price_condition": {}, "item_condition": "", "item_condition_note": {}}
+    return {"price_condition": {}, "item_condition": "", "item_condition_note": {}, "brand": ""}
+
+
+def _brand(product) -> str:
+    """T-8.10d D-1a: марка товара для снимка (схлопнутые пробелы, ≤ 120)."""
+    if product is None:
+        return ""
+    from .search import clean_brand
+
+    return clean_brand(getattr(product, "brand", "") or "", limit=120)
 
 
 def _item_condition(product) -> dict:
@@ -99,6 +108,10 @@ def _snapshot(promotion_id):
         # mystery/surprise прячут товар — его состояние и примечание («Dyson, Akku defekt»)
         # раскрыли бы его (ревью В2/В4-1).
         **_item_condition(
+            promo.product if promo.product_id and not (mystery or promo.is_surprise) else None
+        ),
+        # T-8.10d: марка товара-цели — по тому же правилу, что состояние товара.
+        "brand": _brand(
             promo.product if promo.product_id and not (mystery or promo.is_surprise) else None
         ),
     }
@@ -297,6 +310,7 @@ def sync_listing(tenant_schema, promotion_id) -> str:
             "price_condition": snap.get("price_condition", {}),
             "item_condition": snap.get("item_condition", ""),
             "item_condition_note": snap.get("item_condition_note", {}),
+            "brand": snap.get("brand", ""),
             **_city_fields("promotion", tenant, snap),
             "is_active": True,
         },
@@ -1184,6 +1198,7 @@ def _product_snapshot(product_id):
         "diets": list(product.diets or []),
         "city_category": city.resolve(product.category) if product.category_id else "",
         **_item_condition(product),
+        "brand": _brand(product),
     }
 
 
@@ -1240,6 +1255,7 @@ def sync_product_listing(tenant_schema, product_id) -> str:
             "variant_terms": snap["variant_terms"],
             "item_condition": snap["item_condition"],
             "item_condition_note": snap["item_condition_note"],
+            "brand": snap["brand"],
             "is_surprise": False,
             **_city_fields("product", tenant, snap),
             "is_active": True,

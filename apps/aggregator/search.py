@@ -245,6 +245,7 @@ class SearchFilters:
     sort: str = ""  # "" (релевантность / новые) | SORTS (T-8.7 Р-6)
     radius_km: int | None = None  # ?umkreis= (T-8.7 Р-5) — действует только при точке
     size: str = ""  # ?groesse=M (T-8.26 п.5c) — только товары с таким размером варианта
+    brand: str = ""  # ?marke=Bosch (T-8.10d) — марка товара, без учёта регистра
 
     @property
     def active(self) -> bool:
@@ -259,6 +260,7 @@ class SearchFilters:
             or self.open_now
             or self.radius_km is not None
             or self.size
+            or self.brand
         )
 
 
@@ -272,7 +274,21 @@ FILTER_PARAMS = (
     "sort",
     "umkreis",
     "groesse",
+    "marke",
 )
+
+BRAND_MAX = 60  # длина значения фильтра ?marke= (в листинге марка до 120)
+_RE_CONTROL = re.compile(r"[\x00-\x1f\x7f-\x9f\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]")
+
+
+def clean_brand(value: str, *, limit: int = BRAND_MAX) -> str:
+    """Марка как текст: NFC, без управляющих и невидимых символов, пробелы схлопнуты."""
+    import unicodedata
+
+    text = unicodedata.normalize("NFC", str(value or ""))
+    text = " ".join(_RE_CONTROL.sub(" ", text).split())
+    return text[:limit].strip()
+
 
 # T-8.26 п.5c: допустимые размеры фильтра — буквенные и числовые (38, 104), как в _RE_SIZE.
 _RE_FILTER_SIZE = re.compile(r"(?:XXS|XS|S|M|L|XL|XXL|XXXL|[0-9]{2,3})", re.ASCII)
@@ -349,6 +365,8 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
     size = (get.get("groesse") or "").strip().upper()
     if not _RE_FILTER_SIZE.fullmatch(size):
         size = ""
+    raw_brand = get.get("marke") or ""
+    brand = clean_brand(raw_brand) if len(raw_brand) <= BRAND_MAX * 2 else ""
     return SearchFilters(
         kats=kats,
         tags=tags,
@@ -361,6 +379,7 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
         sort=sort,
         radius_km=radius_km,
         size=size,
+        brand=brand,
     )
 
 
@@ -423,6 +442,8 @@ def apply_filters(qs, f: SearchFilters, *, now=None, point=None):
         qs = qs.exclude(availability=L.AVAILABILITY_SOLD_OUT)
     if f.size:  # T-8.26 п.5c: размер есть только у товаров — прочие виды отпадают
         qs = qs.filter(listing_kind=L.KIND_PRODUCT, variant_terms__contains=[f.size])
+    if f.brand:
+        qs = qs.filter(brand__iexact=f.brand)
     if f.open_now:
         from .views import _open_now_schemas
 
@@ -471,6 +492,7 @@ def carry(q: str, f: SearchFilters) -> list[tuple[str, str]]:
         ("sort", f.sort),
         ("umkreis", str(f.radius_km) if f.radius_km else ""),
         ("groesse", f.size),
+        ("marke", f.brand),
     ):
         if value:
             out.append((key, value))

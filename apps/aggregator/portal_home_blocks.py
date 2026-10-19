@@ -144,6 +144,19 @@ def kinds_for(kind_key: str) -> tuple[str, ...] | None:
     return None
 
 
+def default_kind(scope_kind: str, q: str, filters) -> str:
+    """Вид выдачи по умолчанию — ОДНО правило для портала и подписок (T-8.10d).
+
+    Без явного ``?kind=`` лента — предложения (акции/номера/события/меню). Поиск,
+    раздел/признак, размер и марка ищут по всем видам: «Brot», «Größe M», «Bosch»
+    обязаны находить товары, иначе выдача пустая (T-8.26 п.4/п.5c, T-8.10d)."""
+    if scope_kind:
+        return scope_kind
+    if q or filters.kats or filters.tags or filters.size or getattr(filters, "brand", ""):
+        return "alle"
+    return ""
+
+
 def search_query(request) -> str:
     return (request.GET.get("q") or "").strip()[:SEARCH_MAX]
 

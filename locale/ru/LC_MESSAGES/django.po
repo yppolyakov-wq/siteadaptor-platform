@@ -26416,3 +26416,7 @@ msgstr "Предложить ответ не получилось — ответ
 
 msgid "Vorhandenen Text ersetzen?"
 msgstr "Заменить уже написанный текст?"
+
+#, python-format
+msgid "Alle von %(brand)s in %(city)s"
+msgstr "Всё от %(brand)s в городе %(city)s"

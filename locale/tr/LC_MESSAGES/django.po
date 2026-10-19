@@ -26283,3 +26283,7 @@ msgstr "Öneri oluşturulamadı – lütfen kendiniz yanıtlayın."
 
 msgid "Vorhandenen Text ersetzen?"
 msgstr "Mevcut metin değiştirilsin mi?"
+
+#, python-format
+msgid "Alle von %(brand)s in %(city)s"
+msgstr "%(city)s içinde tüm %(brand)s ürünleri"
