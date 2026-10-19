@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import logging
 from types import SimpleNamespace
 
 from django.conf import settings
@@ -22,6 +23,8 @@ from apps.core import districts
 
 from ..models import AggregatorListing
 from .tools import Context, Tool, ToolError, register
+
+logger = logging.getLogger(__name__)
 
 LANGS = ("de", "en", "tr", "ru", "uk")
 #: Что человек сделает на странице поставщика (F-3): отклик акции T-8.2 или вид предложения.
@@ -346,19 +349,35 @@ def _default_step(listing) -> str:
 
 
 def next_steps(listings) -> dict[int, str]:
-    """Отклик акций (T-8.2 `response_for`) пачкой: один `schema_context` на тенанта
-    страницы, а не на карточку. Сбой одного тенанта — шаг «open», не ошибка ответа."""
+    """Отклик акций (T-8.2 `response_for`) пачкой: тенанты одним запросом, один
+    `schema_context` на тенанта страницы. Сбой тенанта — шаг «open» (в журнал), не ошибка."""
+    import uuid
+
     from django_tenants.utils import schema_context
 
     from apps.promotions import response
+    from apps.tenants.models import Tenant
 
     by_schema: dict[str, dict[str, int]] = {}
     for listing in listings:
-        if listing.listing_kind == AggregatorListing.KIND_PROMOTION and listing.tenant_schema:
-            by_schema.setdefault(listing.tenant_schema, {})[listing.source_ref] = listing.pk
+        if listing.listing_kind != AggregatorListing.KIND_PROMOTION or not listing.tenant_schema:
+            continue
+        try:
+            ref = str(uuid.UUID(listing.source_ref))
+        except (TypeError, ValueError, AttributeError):
+            continue  # легаси-листинг без ссылки на акцию — шаг по умолчанию
+        by_schema.setdefault(listing.tenant_schema, {})[ref] = listing.pk
+    if not by_schema:
+        return {}
+    tenants = {
+        t.schema_name: t
+        for t in Tenant.objects.filter(schema_name__in=list(by_schema)).exclude(
+            schema_name="public"
+        )
+    }
     out: dict[int, str] = {}
     for schema, refs in by_schema.items():
-        tenant = _tenant(schema)
+        tenant = tenants.get(schema)
         if tenant is None:
             continue
         try:
@@ -368,10 +387,11 @@ def next_steps(listings) -> dict[int, str]:
                 for promo in Promotion.objects.filter(pk__in=list(refs)):
                     code = response.response_for(promo, tenant)
                     step = "visit" if code == response.SHOW else code
-                    if step in NEXT_STEP_TYPES:
-                        out[refs[str(promo.pk)]] = step
-        except Exception:  # noqa: BLE001 — отклик не смеет ронять поиск
-            continue
+                    pk = refs.get(str(promo.pk))
+                    if pk is not None and step in NEXT_STEP_TYPES:
+                        out[pk] = step
+        except Exception as exc:  # noqa: BLE001 — отклик не смеет ронять поиск
+            logger.warning("mcp next_step failed for %s: %s", schema, type(exc).__name__)
     return out
 
 

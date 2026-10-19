@@ -26082,3 +26082,9 @@ msgstr "Unternehmen nicht gefunden."
 
 msgid "Assistenten (KI)"
 msgstr "Assistenten (KI)"
+
+msgid "Assistenten (KI): gezeigt · geöffnet"
+msgstr "Assistenten (KI): gezeigt · geöffnet"
+
+msgid "Anfragen von KI-Assistenten, nicht Personen"
+msgstr "Anfragen von KI-Assistenten, nicht Personen"

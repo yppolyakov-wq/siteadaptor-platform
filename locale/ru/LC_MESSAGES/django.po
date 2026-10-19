@@ -26282,3 +26282,9 @@ msgstr "Компания не найдена."
 
 msgid "Assistenten (KI)"
 msgstr "Ассистенты (ИИ)"
+
+msgid "Assistenten (KI): gezeigt · geöffnet"
+msgstr "Ассистенты (ИИ): показано · открыто"
+
+msgid "Anfragen von KI-Assistenten, nicht Personen"
+msgstr "запросы ИИ-ассистентов, а не людей"

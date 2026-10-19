@@ -215,8 +215,12 @@ def record_machine(request, listings, *, action: str, channel: str) -> int:
         rows = _rows(listings, "", "", "", None, False)
         if not rows:
             return 0
+        # Лимит в СТРОКАХ, а не вызовах: один поиск пишет до 20 показов (security-ревью F-3).
         limit = _cfg("machine_limit") or 3000
-        if ratelimit.hit("pstat-machine", ratelimit.client_ip(request), limit=limit, window=3600):
+        key = f"rl:pstat-machine:{ratelimit.client_ip(request)}"
+        store = ratelimit.cache  # тот же кэш лимитов, что у ratelimit.hit
+        store.add(key, 0, 3600)
+        if store.incr(key, len(rows)) > limit:
             return 0
         _bump(timezone.localdate(), action, channel, rows)
         return len(rows)

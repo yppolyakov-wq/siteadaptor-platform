@@ -9,7 +9,6 @@ import pytest
 from django.test import override_settings
 
 from apps.aggregator import portal_stats
-from apps.aggregator.mcp import handlers
 from apps.aggregator.models import PortalStat
 from apps.aggregator.tests.test_machine_readable import _listing, _portal
 from apps.aggregator.tests.test_mcp_tools import ON, _data
@@ -106,19 +105,32 @@ def test_missing_tenant_falls_back_to_open():
 
 @override_settings(**ON)
 def test_steps_resolved_once_per_tenant(tenant, monkeypatch):
+    import django_tenants.utils as tu
+
     calls = []
-    real = handlers._tenant
+    real = tu.schema_context
 
     def spy(schema):
         calls.append(schema)
         return real(schema)
 
-    monkeypatch.setattr(handlers, "_tenant", spy)
+    monkeypatch.setattr(tu, "schema_context", spy)
     portal = _portal()
     for _ in range(4):
         _promo_listing(PromotionFactory())
     _data(portal, "search_offers", {})
     assert calls == ["t1"]
+
+
+@override_settings(**ON)
+def test_bad_source_ref_does_not_drop_other_steps(tenant):
+    """Ревью F-3: легаси-листинг без UUID не обнуляет шаги остальных акций тенанта."""
+    portal = _portal()
+    coupon = PromotionFactory(metadata={"response": response.COUPON})
+    good = _promo_listing(coupon)
+    _listing(source_ref="", detail_url="https://baeckerei.siteadaptor.de/p/x/")
+    items = {it["id"]: it for it in _data(portal, "search_offers", {})["items"]}
+    assert items[good.pk]["next_step"]["type"] == "coupon"
 
 
 @override_settings(**ON)
@@ -152,3 +164,35 @@ def test_record_machine_never_raises(monkeypatch):
 def test_record_machine_rejects_unknown_channel():
     listing = _listing()
     assert portal_stats.record_machine(None, [listing], action="view", channel="evil") == 0
+
+
+@override_settings(**ON)
+def test_machine_limit_counts_rows_not_calls(settings):
+    settings.AGGREGATOR_PORTAL_STATS = {**settings.AGGREGATOR_PORTAL_STATS, "machine_limit": 3}
+    portal = _portal()
+    for i in range(2):
+        _listing(source_ref=f"r{i}")
+    _data(portal, "search_offers", {})  # 2 строки
+    _data(portal, "search_offers", {})  # ещё 2 → сверх лимита 3, не пишется
+    assert sum(PortalStat.objects.values_list("count", flat=True)) == 2
+
+
+def test_owner_funnel_excludes_assistant_counts_and_shows_them_apart():
+    from django.utils import timezone
+
+    from apps.aggregator import owner_stats
+
+    tenant = TenantFactory(schema_name="t_os", slug="os", city="Solingen")
+    today = timezone.localdate()
+    common = {"tenant_schema": "t_os", "day": today, "listing_kind": "promotion", "source_ref": "a"}
+    PortalStat.objects.create(action="view", channel="portal", count=2, **common)
+    PortalStat.objects.create(action="view", channel="mcp", count=50, **common)
+    PortalStat.objects.create(action="impression", channel="mcp", count=70, **common)
+    PortalStat.objects.create(action="deal", channel="mcp", count=1, **common)
+    stats = owner_stats.summary(tenant, 30)
+    funnel = {row["code"]: row["value"] for row in stats["funnel"]}
+    assert funnel["view"] == 2 and funnel["impression"] == 0
+    assert funnel["deal"] == 1  # сделка по ссылке ассистента — человек, в воронке
+    assert stats["assistants"] == (70, 50)
+    assert owner_stats.portal_totals(tenant) == (2, 0)
+    assert stats["top"][0]["values"]["view"] == 2

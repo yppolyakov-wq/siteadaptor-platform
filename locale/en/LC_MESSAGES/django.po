@@ -26009,3 +26009,9 @@ msgstr "Business not found."
 
 msgid "Assistenten (KI)"
 msgstr "Assistants (AI)"
+
+msgid "Assistenten (KI): gezeigt · geöffnet"
+msgstr "Assistants (AI): shown · opened"
+
+msgid "Anfragen von KI-Assistenten, nicht Personen"
+msgstr "requests by AI assistants, not people"

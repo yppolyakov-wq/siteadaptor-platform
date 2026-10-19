@@ -26148,3 +26148,9 @@ msgstr "İşletme bulunamadı."
 
 msgid "Assistenten (KI)"
 msgstr "Asistanlar (YZ)"
+
+msgid "Assistenten (KI): gezeigt · geöffnet"
+msgstr "Asistanlar (YZ): gösterildi · açıldı"
+
+msgid "Anfragen von KI-Assistenten, nicht Personen"
+msgstr "kişiler değil, YZ asistanlarının istekleri"

@@ -28,6 +28,10 @@ TRACKED_ACTIONS = tuple(PortalStat.ACTIONS_CODES)  # V5-5b: все пять де
 TOP_LIMIT = 10
 #: строки «бизнес целиком» (профиль компании; V5-5 — обращение без предложения).
 BUSINESS_KINDS = ("business", "")
+# T-8.10f F-3: показы/просмотры в ответах ассистентов (MCP) — машинный счёт без дедупа
+# посетителя. В воронку людей не смешиваем (иначе анонимный вызов раздувал бы её) —
+# отдельная строка «Assistenten (KI)». Сделки/обращения по их ссылкам — люди, они в воронке.
+MACHINE_ROWS = Q(channel="mcp", action__in=("impression", "view"))
 _WEEKLY_FROM = 365  # на годе точек по дням 365 — в 120px это шум, берём недели
 
 
@@ -63,6 +67,7 @@ def summary(tenant, days: int, *, today=None) -> dict:
     per_day: dict = {}
     top: list = []
     featured = None
+    assistants: dict = {}
     schema = _schema(tenant)
 
     if schema:
@@ -70,11 +75,16 @@ def summary(tenant, days: int, *, today=None) -> dict:
         daily = (
             PortalStat.objects.filter(tenant_schema=schema, day__gte=prev_start, day__lte=today)
             .values("day", "action")
-            .annotate(n=Sum("count"))
+            .annotate(
+                n=Sum("count", filter=~MACHINE_ROWS),
+                m=Sum("count", filter=MACHINE_ROWS),
+            )
             .order_by()
         )
         for row in daily:
             n = row["n"] or 0
+            if row["m"] and row["day"] >= cur_start:
+                assistants[row["action"]] = assistants.get(row["action"], 0) + row["m"]
             if row["day"] >= cur_start:
                 cur[row["action"]] = cur.get(row["action"], 0) + n
                 if row["action"] in ("view", "click"):
@@ -112,6 +122,12 @@ def summary(tenant, days: int, *, today=None) -> dict:
         "sparkline": _sparkline_points(series) if any(series) else "",
         "top": top,
         "featured": featured,
+        # (показы, просмотры) ассистентов за период; None — их не было
+        "assistants": (
+            (assistants.get("impression") or 0, assistants.get("view") or 0)
+            if any(assistants.values())
+            else None
+        ),
         "has_data": any(cur.values()) or any(prev.values()),
         "status": _status(tenant),
         "is_demo": bool(getattr(tenant, "is_demo", False)),
@@ -128,6 +144,7 @@ def _top(schema: str, start, end) -> list:
     is_business = Q(listing_kind__in=BUSINESS_KINDS)
     rows = list(
         PortalStat.objects.filter(tenant_schema=schema, day__gte=start, day__lte=end)
+        .exclude(MACHINE_ROWS)
         .annotate(
             gk=Case(When(is_business, then=Value("business")), default=F("listing_kind")),
             gr=Case(When(is_business, then=Value("business")), default=F("source_ref")),
@@ -194,6 +211,7 @@ def portal_totals(tenant, days: int = DEFAULT_PERIOD) -> tuple[int, int]:
         PortalStat.objects.filter(
             tenant_schema=schema, day__gte=start, action__in=("view", "click")
         )
+        .exclude(MACHINE_ROWS)
         .values("action")
         .annotate(n=Sum("count"))
         .order_by()
