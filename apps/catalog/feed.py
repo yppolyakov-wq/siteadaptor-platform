@@ -13,6 +13,8 @@ import re
 from decimal import Decimal
 from xml.sax.saxutils import escape as _escape
 
+from django.utils import timezone
+
 # M23b.1: управляющие символы (кроме \t \n \r) запрещены в XML 1.0 — один такой символ
 # в названии товара делал весь фид нечитаемым для площадки.
 _XML_ILLEGAL = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\ufffe\uffff]")
@@ -68,6 +70,53 @@ def local_availability(stock) -> tuple[str, int | None]:
     return "out_of_stock", 0
 
 
+def merchant_row_price(product, row):
+    """Обычная цена позиции фида: цена варианта (своя или базовая) либо base_price."""
+    variant = row["variant"]
+    return variant.price_value if variant is not None else product.base_price
+
+
+def _stamp(dt) -> str:
+    return timezone.localtime(dt).strftime("%Y-%m-%dT%H:%M%z")
+
+
+def _effective_date(promo) -> str:
+    """M23b.4: `g:sale_price_effective_date` — «начало/конец» с часовым поясом.
+
+    Без конца акции — пусто (Google держит цену до следующей загрузки фида). Начало —
+    `starts_at`, иначе `created_at`: значение не меняется между запросами (ETag)."""
+    end = promo.ends_at
+    start = promo.starts_at or promo.created_at
+    if end is None or start is None or start >= end:
+        return ""
+    return f"{_stamp(start)}/{_stamp(end)}"
+
+
+def merchant_sale(product, variant, row_price) -> dict:
+    """M23b.4: поля цены акции для позиции фида — ТЕМ ЖЕ расчётом, что корзина и
+    `create_order` (`price_layer.promo_line_price`): показано в Google = списано.
+
+    Ниже обычной цены → `sale_price` + даты; выше (акция от compare_at дороже
+    base_price) → корзина берёт цену акции, значит она и есть `price`."""
+    from apps.promotions.price_layer import promo_line_price
+
+    promo = getattr(product, "merchant_promo", None)
+    if promo is None or promo.discount_style == "mystery":
+        return {}  # mystery исключён отбором; здесь — вторая линия защиты
+    charged = promo_line_price(promo, product, variant)
+    if charged is None:
+        return {}
+    charged, regular = Decimal(str(charged)), Decimal(str(row_price))
+    if charged < regular:
+        return {
+            "sale_price": _money(charged, product.currency),
+            "sale_price_effective_date": _effective_date(promo),
+        }
+    if charged > regular:
+        return {"price": _money(charged, product.currency)}
+    return {}
+
+
 def _entries(product, *, product_url, absolutize, merchant=False):
     """Записи фида для товара: по одной на активный вариант, иначе одна на товар.
 
@@ -108,7 +157,13 @@ def _entries(product, *, product_url, absolutize, merchant=False):
         rows = merchant_item_rows(product)
         if rows[0]["variant"] is None:
             in_stock = product.stock_quantity is None or product.stock_quantity > 0
-            return [base(rows[0]["id"], title, product.base_price, in_stock)]
+            price = merchant_row_price(product, rows[0])
+            return [
+                {
+                    **base(rows[0]["id"], title, price, in_stock),
+                    **merchant_sale(product, None, price),
+                }
+            ]
         return [
             {
                 **base(
@@ -120,6 +175,7 @@ def _entries(product, *, product_url, absolutize, merchant=False):
                     sku=row["variant"].sku,
                 ),
                 "item_group_id": str(product.pk),
+                **merchant_sale(product, row["variant"], merchant_row_price(product, row)),
             }
             for row in rows
         ]

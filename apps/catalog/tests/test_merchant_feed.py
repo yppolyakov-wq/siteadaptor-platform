@@ -379,3 +379,165 @@ def test_overview_counts_local_positions():
     ProductVariant.objects.create(product=p, label="S", price=Decimal("5"), stock_quantity=0)
     ProductVariant.objects.create(product=p, label="M", price=Decimal("5"), stock_quantity=None)
     assert google.overview()["local"] == {"tracked": 3, "untracked": 2, "out_of_stock": 2}
+
+
+# --- M23b.4: цена акции в фиде Merchant -----------------------------------------------------
+
+
+def _promo(product, **kw):
+    from apps.promotions.tests.factories import PromotionFactory
+
+    kw.setdefault("promo_type", "discount")
+    kw.setdefault("available_quantity", None)
+    return PromotionFactory(product=product, **kw)
+
+
+def _items(xml):
+    doc = minidom.parseString(xml.encode())
+    out = {}
+    for item in doc.getElementsByTagName("item"):
+        fields = {
+            n.tagName[2:]: n.firstChild.data if n.firstChild else ""
+            for n in item.childNodes
+            if n.nodeType == n.ELEMENT_NODE
+        }
+        out[fields["id"]] = fields
+    return out
+
+
+def test_active_promo_adds_sale_price_equal_to_checkout_price():
+    from apps.promotions.price_layer import product_promo_map, promo_line_price
+
+    p = _product(base_price=Decimal("10.00"))
+    promo = _promo(p, price_override=Decimal("7.50"), ends_at=None)
+    item = _items(_merchant_xml(google.merchant_products()))[str(p.pk)]
+    assert item["price"] == "10.00 EUR"
+    assert item["sale_price"] == "7.50 EUR"
+    charged = promo_line_price(product_promo_map([p.pk])[p.pk], p)
+    assert item["sale_price"] == f"{charged:.2f} EUR"
+    assert "sale_price_effective_date" not in item  # без конца акции даты нет
+    assert promo.pk
+
+
+def test_variants_follow_cart_rule():
+    p = _product(base_price=Decimal("10.00"))
+    free = ProductVariant.objects.create(product=p, label="S")
+    own = ProductVariant.objects.create(product=p, label="XL", price=Decimal("12.00"))
+    _promo(p, price_override=Decimal("8.00"))
+    items = _items(_merchant_xml(google.merchant_products()))
+    assert items[free.pk.hex]["sale_price"] == "8.00 EUR"
+    assert "sale_price" not in items[own.pk.hex]
+
+
+@pytest.mark.parametrize(
+    "kw",
+    [
+        {"status": "scheduled"},
+        {"metadata": {"price_condition": {"kind": "nth", "n": 2}}, "discount_percent": 50},
+    ],
+)
+def test_scheduled_or_conditional_promo_has_no_sale_price(kw):
+    p = _product(base_price=Decimal("10.00"))
+    kw.setdefault("price_override", Decimal("5.00"))
+    _promo(p, **kw)
+    item = _items(_merchant_xml(google.merchant_products()))[str(p.pk)]
+    assert "sale_price" not in item and item["price"] == "10.00 EUR"
+
+
+def test_mystery_promo_excludes_product_without_leaking_price():
+    p = _product(base_price=Decimal("10.00"))
+    _promo(p, price_override=Decimal("6.37"), discount_style="mystery")
+    xml = _merchant_xml(google.merchant_products())
+    assert str(p.pk) not in xml and "6.37" not in xml
+    assert google.overview()["excluded"]["promo_mystery"]["count"] == 1
+
+
+def test_cheaper_mystery_wins_like_cart_and_excludes():
+    p = _product(base_price=Decimal("10.00"))
+    _promo(p, price_override=Decimal("9.00"))
+    _promo(p, price_override=Decimal("6.00"), discount_style="mystery")
+    xml = _merchant_xml(google.merchant_products())
+    assert str(p.pk) not in xml and "9.00" not in xml
+
+
+def test_exhausted_limit_excludes_remaining_limit_sells():
+    gone = _product(base_price=Decimal("10.00"))
+    _promo(gone, price_override=Decimal("7.00"), available_quantity=0)
+    left = _product(base_price=Decimal("10.00"))
+    _promo(left, price_override=Decimal("7.00"), available_quantity=3)
+    items = _items(_merchant_xml(google.merchant_products()))
+    assert str(gone.pk) not in items
+    assert items[str(left.pk)]["sale_price"] == "7.00 EUR"
+    assert google.overview()["excluded"]["promo_sold_out"]["count"] == 1
+
+
+def test_promo_above_base_price_charges_promo_price_without_sale():
+    p = _product(base_price=Decimal("9.00"))
+    _promo(p, compare_at_price=Decimal("12.00"), price_override=Decimal("10.00"))
+    item = _items(_merchant_xml(google.merchant_products()))[str(p.pk)]
+    assert item["price"] == "10.00 EUR" and "sale_price" not in item
+
+
+def test_effective_date_format_and_stable():
+    import re
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    p = _product(base_price=Decimal("10.00"))
+    start = timezone.now() - timedelta(days=1)
+    _promo(p, price_override=Decimal("8.00"), starts_at=start, ends_at=start + timedelta(days=5))
+    first = _items(_merchant_xml(google.merchant_products()))[str(p.pk)]
+    second = _items(_merchant_xml(google.merchant_products()))[str(p.pk)]
+    value = first["sale_price_effective_date"]
+    stamp = r"\d{4}-\d\d-\d\dT\d\d:\d\d[+-]\d{4}"
+    assert re.fullmatch(f"{stamp}/{stamp}", value)
+    assert value == second["sale_price_effective_date"]
+
+
+def test_effective_date_falls_back_to_created_at():
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.catalog.feed import _effective_date
+
+    p = _product()
+    promo = _promo(p, price_override=Decimal("1.00"), ends_at=timezone.now() + timedelta(days=2))
+    start = _effective_date(promo).split("/")[0]
+    assert start == timezone.localtime(promo.created_at).strftime("%Y-%m-%dT%H:%M%z")
+
+
+def test_legacy_feed_ignores_promotions():
+    from apps.catalog.models import Product
+
+    p = _product(base_price=Decimal("10.00"))
+    _promo(p, price_override=Decimal("7.50"))
+    xml = build_google_feed(
+        products=Product.objects.filter(pk=p.pk),
+        title="t",
+        link="https://x/",
+        description="d",
+        product_url=lambda _p: "https://x/p",
+        absolutize=lambda u: "https://x" + u,
+    )
+    assert "sale_price" not in xml and "<g:price>10.00 EUR</g:price>" in xml
+
+
+def test_overview_counts_sale_rows_like_feed():
+    for i in range(3):
+        p = _product(base_price=Decimal("10.00"))
+        if i:
+            _promo(p, price_override=Decimal("8.00"))
+    xml = _merchant_xml(google.merchant_products())
+    assert google.overview()["on_sale"] == xml.count("<g:sale_price>") == 2
+
+
+def test_promo_feed_constant_queries(django_assert_max_num_queries):
+    for i in range(12):
+        p = _product()
+        ProductVariant.objects.create(product=p, label="S", price=Decimal("5"), stock_quantity=2)
+        if i % 2:
+            _promo(p, price_override=Decimal("1.00"))
+    with django_assert_max_num_queries(7):
+        _merchant_xml(google.merchant_products())

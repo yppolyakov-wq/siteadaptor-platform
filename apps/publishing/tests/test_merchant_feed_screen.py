@@ -355,3 +355,28 @@ def test_screen_shows_local_address_and_warning(owner, isolated_ratelimit):
     _post(owner, action="store_code", store_code="Laden-01")
     body = views.merchant_feed(_req("get", owner)).content.decode()
     assert "data-merchant-no-store-code" not in body and 'value="Laden-01"' in body
+
+
+# --- M23b.4: цена акции на экране -----------------------------------------------------------
+
+
+def test_screen_counts_sale_rows_and_names_promo_reasons(owner, isolated_ratelimit):
+    from decimal import Decimal
+
+    from apps.promotions.tests.factories import PromotionFactory
+
+    sale = ProductFactory(images=IMG, base_price=Decimal("10.00"))
+    PromotionFactory(product=sale, promo_type="discount", price_override=Decimal("8.00"))
+    secret = ProductFactory(images=IMG, base_price=Decimal("10.00"))
+    PromotionFactory(
+        product=secret,
+        promo_type="discount",
+        price_override=Decimal("6.00"),
+        discount_style="mystery",
+    )
+    _post(owner, action="enable")
+    body = views.merchant_feed(_req("get", owner)).content.decode()
+    assert 'data-merchant-on-sale="1"' in body
+    assert 'data-merchant-reason="promo_mystery"' in body
+    assert "promo_mystery</" not in body  # подпись, а не код
+    assert _feed(_token()).content.count(b"<g:sale_price>") == 1

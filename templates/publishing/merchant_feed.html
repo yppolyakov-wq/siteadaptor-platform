@@ -122,6 +122,10 @@
     <section class="bg-white border border-gray-200 rounded-2xl p-5" data-merchant-included="{{ included }}">
       <h2 class="font-semibold mb-1">{% blocktrans count counter=included %}{{ counter }} Produkt im Feed{% plural %}{{ counter }} Produkte im Feed{% endblocktrans %}</h2>
       <p class="text-xs text-gray-500">{% trans "Aktive Produkte mit Foto und Preis, die nicht ausgeblendet sind." %}</p>
+      {% if on_sale %}
+      <p class="text-sm mt-2" data-merchant-on-sale="{{ on_sale }}">{% blocktrans count counter=on_sale %}Davon {{ counter }} Position mit Aktionspreis{% plural %}Davon {{ counter }} Positionen mit Aktionspreis{% endblocktrans %}</p>
+      <p class="text-xs text-gray-400 mt-1">{% trans "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab." %}</p>
+      {% endif %}
     </section>
 
     {% if excluded %}

@@ -26018,3 +26018,21 @@ msgstr[1] "%(counter)s tükendi"
 #: apps/publishing/views.py
 msgid "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
 msgstr "Google profilindeki mağaza kodu geçersiz karakterler içeriyor (yalnızca ASCII, boşluksuz, en fazla 64 karakter)."
+
+#: apps/catalog/google.py
+msgid "Überraschungsaktion läuft – Preis bleibt geheim"
+msgstr "Sürpriz kampanya sürüyor – fiyat gizli kalır"
+
+#: apps/catalog/google.py
+msgid "Aktionslimit erreicht"
+msgstr "Kampanya limitine ulaşıldı"
+
+#: apps/catalog/google.py
+msgid "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab."
+msgstr "Google kampanya fiyatını feed'in bir sonraki çekilişinde alır. Kampanyalara bir bitiş tarihi verin – ya da bir değişiklikten sonra feed'i Merchant Center'da yeniden çekin."
+
+#: templates/publishing/merchant_feed.html
+msgid "Davon %(counter)s Position mit Aktionspreis"
+msgid_plural "Davon %(counter)s Positionen mit Aktionspreis"
+msgstr[0] "Bunlardan %(counter)s kalem kampanya fiyatlı"
+msgstr[1] "Bunlardan %(counter)s kalem kampanya fiyatlı"

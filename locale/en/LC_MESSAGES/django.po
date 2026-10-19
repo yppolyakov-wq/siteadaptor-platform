@@ -25886,3 +25886,21 @@ msgstr[1] "%(counter)s sold out"
 #: apps/publishing/views.py
 msgid "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
 msgstr "The store code in the Google profile contains invalid characters (ASCII only, no spaces, at most 64 characters)."
+
+#: apps/catalog/google.py
+msgid "Überraschungsaktion läuft – Preis bleibt geheim"
+msgstr "Surprise promotion running – price stays secret"
+
+#: apps/catalog/google.py
+msgid "Aktionslimit erreicht"
+msgstr "Promotion limit reached"
+
+#: apps/catalog/google.py
+msgid "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab."
+msgstr "Google picks up the promotion price on the next feed fetch. Give promotions an end date – or fetch the feed again in Merchant Center after a change."
+
+#: templates/publishing/merchant_feed.html
+msgid "Davon %(counter)s Position mit Aktionspreis"
+msgid_plural "Davon %(counter)s Positionen mit Aktionspreis"
+msgstr[0] "Of which %(counter)s item with a promotion price"
+msgstr[1] "Of which %(counter)s items with a promotion price"

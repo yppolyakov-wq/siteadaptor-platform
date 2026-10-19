@@ -26132,3 +26132,23 @@ msgstr[3] "%(counter)s розпродані"
 #: apps/publishing/views.py
 msgid "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
 msgstr "Код магазину в профілі Google містить неприпустимі символи (лише ASCII, без пробілів, не більше 64 символів)."
+
+#: apps/catalog/google.py
+msgid "Überraschungsaktion läuft – Preis bleibt geheim"
+msgstr "Триває акція-сюрприз — ціна залишається таємницею"
+
+#: apps/catalog/google.py
+msgid "Aktionslimit erreicht"
+msgstr "Ліміт акції вичерпано"
+
+#: apps/catalog/google.py
+msgid "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab."
+msgstr "Google підхопить ціну акції під час наступного завантаження фіду. Задавайте акціям дату завершення — або після зміни завантажте фід у Merchant Center знову."
+
+#: templates/publishing/merchant_feed.html
+msgid "Davon %(counter)s Position mit Aktionspreis"
+msgid_plural "Davon %(counter)s Positionen mit Aktionspreis"
+msgstr[0] "З них %(counter)s позиція з ціною акції"
+msgstr[1] "З них %(counter)s позиції з ціною акції"
+msgstr[2] "З них %(counter)s позицій з ціною акції"
+msgstr[3] "З них %(counter)s позиції з ціною акції"

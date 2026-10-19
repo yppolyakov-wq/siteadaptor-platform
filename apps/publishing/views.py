@@ -575,6 +575,7 @@ def merchant_feed(request):
         "local": data["local"],
         "token_unreadable": bool(state["enabled"] and not state["token"]),
         "included": data["included"],
+        "on_sale": data["on_sale"],
         "excluded": excluded,
         "warnings": warnings,
     }

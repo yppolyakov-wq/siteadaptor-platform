@@ -25945,3 +25945,21 @@ msgstr[1] "%(counter)s ausverkauft"
 #: apps/publishing/views.py
 msgid "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
 msgstr "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
+
+#: apps/catalog/google.py
+msgid "Überraschungsaktion läuft – Preis bleibt geheim"
+msgstr "Überraschungsaktion läuft – Preis bleibt geheim"
+
+#: apps/catalog/google.py
+msgid "Aktionslimit erreicht"
+msgstr "Aktionslimit erreicht"
+
+#: apps/catalog/google.py
+msgid "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab."
+msgstr "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab."
+
+#: templates/publishing/merchant_feed.html
+msgid "Davon %(counter)s Position mit Aktionspreis"
+msgid_plural "Davon %(counter)s Positionen mit Aktionspreis"
+msgstr[0] "Davon %(counter)s Position mit Aktionspreis"
+msgstr[1] "Davon %(counter)s Positionen mit Aktionspreis"
