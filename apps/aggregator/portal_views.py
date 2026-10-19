@@ -511,12 +511,22 @@ def portal_home(request, facet=None, district=None):
             follow_target = follow.parse_target({"stadtteil": district}, portal=portal)
         elif len(filters.kats) == 1:
             follow_target = follow.parse_target({"bereich": filters.kats[0]}, portal=portal)
+    # T-8.10d: подписка на ЭТОТ набор фильтров — ссылка под выдачей (кэш P0-1).
+    search_follow = None
+    if searching and not facet:
+        from . import follow_query
+
+        search_follow = follow_query.follow_link(
+            request.GET, portal=portal, path_district=district or ""
+        )
     return render(
         request,
         "aggregator/portal_home.html",
         {
             "portal": portal,
             "follow_target": follow_target,
+            "search_follow": search_follow[0] if search_follow else None,
+            "search_follow_qs": search_follow[1] if search_follow else "",
             "following": follow.is_following(user, follow_target) if follow_target else False,
             "page": page,
             "cards": cards,

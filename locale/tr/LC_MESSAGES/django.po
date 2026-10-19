@@ -26287,3 +26287,59 @@ msgstr "Mevcut metin değiştirilsin mi?"
 #, python-format
 msgid "Alle von %(brand)s in %(city)s"
 msgstr "%(city)s içinde tüm %(brand)s ürünleri"
+
+msgid "Größe %(size)s"
+msgstr "Beden %(size)s"
+
+msgid "Marke %(brand)s"
+msgstr "Marka %(brand)s"
+
+msgid ""
+"Neue Angebote, die zu dieser Suche passen — als E-Mail-Übersicht. Nur das, "
+"was Sie ausgewählt haben."
+msgstr ""
+"Bu aramaya uyan yeni teklifler — e-posta özeti olarak. Yalnızca "
+"seçtikleriniz."
+
+msgid ""
+"Sie folgen bereits der maximalen Anzahl von Themen. Bitte entfernen Sie "
+"zuerst eines."
+msgstr ""
+"Zaten en fazla sayıda konuyu takip ediyorsunuz. Lütfen önce birini kaldırın."
+
+msgid "Suche"
+msgstr "Arama"
+
+msgid ""
+"Zeitangaben (heute, Wochenende, geöffnet) und „In der Nähe“ gelten nicht für"
+" Benachrichtigungen."
+msgstr ""
+"Zaman filtreleri (bugün, hafta sonu, açık) ve „Yakında“ bildirimler için "
+"geçerli değildir."
+
+msgid "ab %(price)s €"
+msgstr "%(price)s € itibaren"
+
+msgid "bis %(price)s €"
+msgstr "%(price)s € kadar"
+
+msgid "bei %(name)s"
+msgstr "%(name)s'de"
+
+msgid "nur verfügbare"
+msgstr "yalnızca mevcut olanlar"
+
+msgid "Benachrichtigen, wenn es so etwas gibt"
+msgstr "Böyle bir şey olduğunda haber ver"
+
+msgid "Nur bestimmte Angebote?"
+msgstr "Yalnızca belirli teklifler mi?"
+
+msgid "Nur diese folgen"
+msgstr "Yalnızca bunları takip et"
+
+msgid "Stichwort"
+msgstr "Anahtar kelime"
+
+msgid "z. B. Tomaten"
+msgstr "ör. domates"

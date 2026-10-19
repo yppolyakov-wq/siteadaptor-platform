@@ -3,6 +3,6 @@
 {% if following %}
   <a data-follow-button="on" href="{% url 'portal-account' %}#folgen" class="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-sm font-medium text-green-800">✓ {% trans "Sie folgen" %}</a>
 {% else %}
-  <a data-follow-button="off" href="{% url 'aggregator-follow' %}?{% for k, v in follow_target.as_params %}{{ k }}={{ v|urlencode }}{% endfor %}{% if next_url %}&next={{ next_url|urlencode }}{% endif %}" class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium hover:border-gray-500">🔔 {% trans "Folgen" %}</a>
+  <a data-follow-button="off" href="{% url 'aggregator-follow' %}?{{ follow_target.query_string }}{% if next_url %}&next={{ next_url|urlencode }}{% endif %}" class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium hover:border-gray-500">🔔 {% trans "Folgen" %}</a>
 {% endif %}
 {% endif %}

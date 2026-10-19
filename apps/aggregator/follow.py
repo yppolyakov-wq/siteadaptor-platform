@@ -42,11 +42,17 @@ def _cfg(key: str, default):
 # --- цели -------------------------------------------------------------------------------
 
 
+class FollowLimitReached(Exception):
+    """T-8.10d Р-1: у жителя уже максимум подписок (всего или подписок на поиск)."""
+
+
 @dataclass(frozen=True)
 class Target:
     kind: str
     key: str
     city: str = ""
+    # T-8.10d: канонический набор фильтров (кортеж пар) — только у вида «query».
+    query: tuple = ()
 
     @property
     def allows_instant(self) -> bool:
@@ -61,6 +67,10 @@ class Target:
                 Tenant.objects.filter(schema_name=self.key).values_list("name", flat=True).first()
             )
             return name or self.key
+        if self.kind == FollowSubscription.TARGET_QUERY:
+            from . import follow_query
+
+            return follow_query.describe(self.query, city=self.city)
         if self.kind == FollowSubscription.TARGET_SECTION:
             section = cc.section(self.key)
             return str(section.label) if section else self.key
@@ -69,6 +79,13 @@ class Target:
     @property
     def kind_label(self) -> str:
         return str(dict(FollowSubscription.TARGETS).get(self.kind, self.kind))
+
+    @property
+    def query_string(self) -> str:
+        """Query-строка ссылки «Folgen» (все пары, корректно разделённые)."""
+        from urllib.parse import urlencode
+
+        return urlencode(self.as_params())
 
     def as_params(self) -> list[tuple[str, str]]:
         """Параметры ссылки «Folgen» (обратная операция `parse_target`)."""
@@ -79,6 +96,8 @@ class Target:
                 Tenant.objects.filter(schema_name=self.key).values_list("slug", flat=True).first()
             )
             return [("unternehmen", slug or "")]
+        if self.kind == FollowSubscription.TARGET_QUERY:
+            return [("art", "suche"), ("city", self.city), *self.query]
         if self.kind == FollowSubscription.TARGET_SECTION:
             return [("bereich", self.key)]
         return [("stadtteil", self.key)]
@@ -99,8 +118,10 @@ def parse_target(params, *, portal) -> Target | None:
     """`?unternehmen=<slug>` | `?bereich=<раздел|категория>` | `?stadtteil=<slug>` → Target.
 
     Раздел и район требуют города портала (область сводки); категория сворачивается в
-    свой раздел (Р-1b). Незнакомое → None.
+    свой раздел (Р-1b). Незнакомое → None. T-8.10d: `?art=suche&…` — набор фильтров поиска.
     """
+    if (params.get("art") or "") == "suche":
+        return query_target(params, portal=portal)
     slug = (params.get("unternehmen") or "").strip()
     if slug:
         from apps.tenants.models import Tenant
@@ -123,8 +144,51 @@ def parse_target(params, *, portal) -> Target | None:
     return None
 
 
+def query_target(params, *, portal) -> Target | None:
+    """T-8.10d: набор фильтров поиска → цель. Набор из одного старого условия (компания,
+    раздел, район) сводится к прежней цели — двух подписок на одно и то же нет."""
+    from . import follow_query
+
+    city = follow_query.city_for(params, portal)
+    pairs = follow_query.canonical(params, city=city)
+    if not pairs or not follow_query.valid_business(pairs):
+        return None
+    legacy = follow_query.legacy(pairs, city=city)
+    if legacy is not None:
+        kind, key = legacy
+        if kind == FollowSubscription.TARGET_BUSINESS:
+            schema = follow_query.business_schema(key)
+            return Target(kind, schema) if schema else None
+        return Target(kind, key, city)
+    return Target(FollowSubscription.TARGET_QUERY, follow_query.key(pairs), city, query=pairs)
+
+
 def target_from_follow(sub: FollowSubscription) -> Target:
-    return Target(sub.target_kind, sub.target_key, sub.city)
+    from . import follow_query
+
+    query = (
+        follow_query.from_stored(sub.query)
+        if sub.target_kind == FollowSubscription.TARGET_QUERY
+        else ()
+    )
+    return Target(sub.target_kind, sub.target_key, sub.city, query=query)
+
+
+def target_from_payload(payload: dict) -> Target | None:
+    """Цель из DOI-токена. Набор поиска ПЕРЕПРОВЕРЯЕТСЯ белым списком: подпись подписью,
+    но правила канонизации могли измениться, пока письмо лежало."""
+    kind = payload.get("k", "")
+    if kind != FollowSubscription.TARGET_QUERY:
+        return Target(kind, payload.get("t", ""), payload.get("c", ""))
+    from . import follow_query
+
+    city = payload.get("c", "")
+    pairs = follow_query.canonical(follow_query.from_stored(payload.get("q")), city=city)
+    if not pairs or follow_query.key(pairs) != payload.get("t"):
+        return None
+    if not follow_query.valid_business(pairs):
+        return None
+    return Target(kind, follow_query.key(pairs), city, query=pairs)
 
 
 # --- DOI --------------------------------------------------------------------------------
@@ -154,6 +218,8 @@ def make_doi_token(*, email: str, target: Target, frequency: str, portal, locale
         "p": portal.pk if portal is not None else None,
         "l": normalize_locale(locale),
     }
+    if target.query:
+        payload["q"] = [list(p) for p in target.query]
     return signing.dumps(payload, salt=DOI_SALT, compress=True)
 
 
@@ -183,13 +249,31 @@ def ensure_follow_token(user: PortalUser) -> str:
     return user.follow_token
 
 
+def _check_cap(user, target: Target) -> None:
+    """Р-1: не больше `max_follows` подписок, из них не больше `max_query_follows` поисков.
+    Вызывать под блокировкой строки жителя (две вкладки не обойдут лимит)."""
+    if find(user, target) is not None:
+        return  # повтор существующей подписки — не новая
+    follows = FollowSubscription.objects.filter(user=user)
+    if follows.count() >= int(_cfg("max_follows", 20)):
+        raise FollowLimitReached
+    if target.kind == FollowSubscription.TARGET_QUERY and follows.filter(
+        target_kind=FollowSubscription.TARGET_QUERY
+    ).count() >= int(_cfg("max_query_follows", 10)):
+        raise FollowLimitReached
+
+
 def _upsert(user, target: Target, *, frequency: str, portal, source_host: str, now=None):
+    from . import follow_query
+
     now = now or timezone.now()
     defaults = {
         "portal": portal,
         "frequency": normalize_frequency(frequency, target),
     }
     with transaction.atomic():
+        PortalUser.objects.select_for_update().filter(pk=user.pk).first()
+        _check_cap(user, target)
         sub, created = FollowSubscription.objects.get_or_create(
             user=user,
             target_kind=target.kind,
@@ -201,6 +285,7 @@ def _upsert(user, target: Target, *, frequency: str, portal, source_host: str, n
                 "token": _new_token(),
                 "confirmed_at": now,
                 "source_host": (source_host or "")[:253],
+                "query": follow_query.stored(target.query) if target.query else {},
             },
         )
         if not created:
@@ -216,9 +301,10 @@ def _upsert(user, target: Target, *, frequency: str, portal, source_host: str, n
 
 
 def confirm(payload: dict, *, source_host: str = "") -> FollowSubscription | None:
-    """Подтверждение DOI: создать PortalUser (если нет) и подписку. Идемпотентно."""
-    target = Target(payload.get("k", ""), payload.get("t", ""), payload.get("c", ""))
-    if target.kind not in dict(FollowSubscription.TARGETS) or not target.key:
+    """Подтверждение DOI: создать PortalUser (если нет) и подписку. Идемпотентно.
+    T-8.10d: лимит подписок → FollowLimitReached (вид показывает понятный отказ)."""
+    target = target_from_payload(payload)
+    if target is None or target.kind not in dict(FollowSubscription.TARGETS) or not target.key:
         return None
     if target.kind == FollowSubscription.TARGET_BUSINESS:
         from apps.tenants.models import Tenant
@@ -351,6 +437,10 @@ def items_for(sub: FollowSubscription, *, since, now=None):
             .filter(tenant_schema=sub.target_key)
             .exclude(listing_kind=AggregatorListing.KIND_BUSINESS)
         )
+    elif sub.target_kind == FollowSubscription.TARGET_QUERY:
+        from . import follow_query
+
+        qs = follow_query.queryset(sub)
     elif sub.target_kind == FollowSubscription.TARGET_SECTION:
         qs = listings_for(
             city=sub.city,
@@ -406,6 +496,15 @@ def scope_url(sub: FollowSubscription, *, ch: str = "digest") -> str:
         if not slug:
             return base_url(portal)
         return absolute(portal, "portal-business", kwargs={"slug": slug}, params=[("ch", ch)])
+    if sub.target_kind == FollowSubscription.TARGET_QUERY:
+        from . import follow_query
+
+        pairs = follow_query.url_params(follow_query.from_stored(sub.query))
+        if portal is None:
+            return absolute(
+                None, "aggregator-index", params=[("city", sub.city), *pairs, ("ch", ch)]
+            )
+        return absolute(portal, "portal-home", params=[*pairs, ("neu", "1"), ("ch", ch)])
     if portal is None:  # без портала область раздела/района — /entdecken/ по городу
         return absolute(
             None,
@@ -477,6 +576,9 @@ __all__ = [
     "forget_if_empty",
     "ensure_follow_token",
     "items_for",
+    "query_target",
+    "target_from_payload",
+    "FollowLimitReached",
     "since_for",
     "scope_url",
     "IntegrityError",

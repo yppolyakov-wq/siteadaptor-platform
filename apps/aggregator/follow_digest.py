@@ -169,6 +169,13 @@ def build_digest(user: PortalUser, subs: list[FollowSubscription], *, now=None) 
     per_follow = int(_cfg("items_per_follow", ITEMS_PER_FOLLOW))
     portal = next((s.portal for s in subs if s.portal_id), None)
     digest = Digest(user=user, portal=portal)
+    # T-8.10d: узкое первым — компания, затем поиски, затем раздел/район: предложение,
+    # совпавшее с несколькими подписками, встаёт под самую точную подпись (и один раз).
+    order = {
+        FollowSubscription.TARGET_BUSINESS: 0,
+        FollowSubscription.TARGET_QUERY: 1,
+    }
+    subs = sorted(subs, key=lambda s: order.get(s.target_kind, 2))
     for sub in subs[:MAX_FOLLOWS_PER_MAIL]:
         since = follow.since_for(sub, now)
         qs = follow.items_for(sub, since=since, now=now)
@@ -176,13 +183,15 @@ def build_digest(user: PortalUser, subs: list[FollowSubscription], *, now=None) 
         fresh = [item for item in window if follow.item_key(item) not in seen and _prepare(item)]
         if not fresh:
             continue
+        shown = fresh[:per_follow]
+        seen |= {follow.item_key(item) for item in shown}  # дедуп внутри одного письма
         # Точное «Alle anzeigen (N)» — только если окно срезано; иначе N = число свежих.
         total = qs.count() - (len(window) - len(fresh)) if len(window) == OVERFETCH else len(fresh)
         digest.sections.append(
             Section(
                 sub=sub,
                 title=follow.describe(sub),
-                items=fresh[:per_follow],
+                items=shown,
                 total=max(total, len(fresh)),
                 more_url=follow.scope_url(sub),
                 unsubscribe_url=follow.unsubscribe_url(sub),

@@ -31,6 +31,7 @@
 {% comment %}Блок Б1: при поиске — сначала число найденного и карточки; уточнение (районы,
 виды, разделы, отрасли) свёрнуто и построено по найденному.{% endcomment %}
 <p class="mb-3 text-sm font-medium text-gray-700" data-hit-count>{% if hits_capped %}{% blocktrans with n=hits %}{{ n }}+ Treffer{% endblocktrans %}{% elif hits is not None %}{% blocktrans count n=hits %}{{ n }} Treffer{% plural %}{{ n }} Treffer{% endblocktrans %}{% endif %}</p>
+{% include "aggregator/_search_follow.html" %}
 <details class="mb-4 bg-white rounded-2xl border border-gray-100 px-4 py-2" data-portal-refine>
   <summary class="cursor-pointer text-sm font-medium text-gray-700 py-1">{% trans "Eingrenzen" %}</summary>
   <div class="pt-3">

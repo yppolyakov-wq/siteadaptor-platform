@@ -1,0 +1,7 @@
+{% load i18n %}{% comment %}T-8.10d: подписка на набор фильтров выдачи — ССЫЛКА (GET), кэш P0-1. Ожидает search_follow (follow.Target) и search_follow_qs.{% endcomment %}
+{% if search_follow %}
+<p class="mb-4 flex flex-wrap items-center gap-2 text-sm" data-search-follow>
+  <a href="{% url 'aggregator-follow' %}?{{ search_follow_qs }}&next={{ request.get_full_path|urlencode }}" rel="nofollow" class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-white px-3 py-1.5 font-medium hover:border-gray-500">🔔 {% trans "Benachrichtigen, wenn es so etwas gibt" %}</a>
+  <span class="text-gray-500">{{ search_follow.label }}</span>
+</p>
+{% endif %}

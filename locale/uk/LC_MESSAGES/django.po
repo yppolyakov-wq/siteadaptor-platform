@@ -26401,3 +26401,58 @@ msgstr "Замінити вже написаний текст?"
 #, python-format
 msgid "Alle von %(brand)s in %(city)s"
 msgstr "Усе від %(brand)s у місті %(city)s"
+
+msgid "Größe %(size)s"
+msgstr "Розмір %(size)s"
+
+msgid "Marke %(brand)s"
+msgstr "Бренд %(brand)s"
+
+msgid ""
+"Neue Angebote, die zu dieser Suche passen — als E-Mail-Übersicht. Nur das, "
+"was Sie ausgewählt haben."
+msgstr ""
+"Нові пропозиції за цим пошуком — зведенням на e-mail. Лише те, що ви обрали."
+
+msgid ""
+"Sie folgen bereits der maximalen Anzahl von Themen. Bitte entfernen Sie "
+"zuerst eines."
+msgstr ""
+"Ви вже підписані на максимальну кількість тем. Спочатку видаліть одну з них."
+
+msgid "Suche"
+msgstr "Пошук"
+
+msgid ""
+"Zeitangaben (heute, Wochenende, geöffnet) und „In der Nähe“ gelten nicht für"
+" Benachrichtigungen."
+msgstr ""
+"Фільтри часу (сьогодні, вихідні, відчинено) і «Поруч» на сповіщення не "
+"діють."
+
+msgid "ab %(price)s €"
+msgstr "від %(price)s €"
+
+msgid "bis %(price)s €"
+msgstr "до %(price)s €"
+
+msgid "bei %(name)s"
+msgstr "у %(name)s"
+
+msgid "nur verfügbare"
+msgstr "лише в наявності"
+
+msgid "Benachrichtigen, wenn es so etwas gibt"
+msgstr "Повідомити, коли з'явиться таке"
+
+msgid "Nur bestimmte Angebote?"
+msgstr "Лише певні пропозиції?"
+
+msgid "Nur diese folgen"
+msgstr "Підписатися лише на це"
+
+msgid "Stichwort"
+msgstr "Ключове слово"
+
+msgid "z. B. Tomaten"
+msgstr "наприклад, помідори"

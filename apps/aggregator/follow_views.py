@@ -27,7 +27,7 @@ from django.views.decorators.http import require_POST
 from apps.core import ratelimit
 from apps.tenants import quickstart
 
-from . import auth, follow
+from . import auth, follow, follow_query
 from .models import FollowSubscription, PortalUser
 
 IP_RL = (10, 600)
@@ -98,14 +98,21 @@ def follow_page(request):
         "user": user,
         "following": follow.is_following(user, target),
         "back_url": _safe_next(request, _home_url(portal)),
+        # T-8.10d: что из фильтров поиска подписка не переносит (дата, «geöffnet», радиус).
+        "dropped_filters": follow_query.dropped(request.GET)
+        if target.kind == FollowSubscription.TARGET_QUERY
+        else [],
     }
     if request.method == "POST":
         form = FollowForm(request.POST)
         if user is not None:  # вошедший — без DOI
             frequency = request.POST.get("frequency", "")
-            follow.follow_now(
-                user, target, frequency=frequency, portal=portal, source_host=request.get_host()
-            )
+            try:
+                follow.follow_now(
+                    user, target, frequency=frequency, portal=portal, source_host=request.get_host()
+                )
+            except follow.FollowLimitReached:
+                return render(request, "aggregator/follow.html", {**context, "limit_reached": True})
             return render(request, "aggregator/follow_done.html", {**context, "following": True})
         ip = ratelimit.client_ip(request)
         if (
@@ -161,9 +168,22 @@ def follow_confirm(request, token):
         return _token_response(
             render(request, "aggregator/follow_invalid.html", context, status=400)
         )
-    target = follow.Target(payload["k"], payload.get("t", ""), payload.get("c", ""))
+    target = follow.target_from_payload(payload)
+    if target is None:
+        return _token_response(
+            render(request, "aggregator/follow_invalid.html", context, status=400)
+        )
     if request.method == "POST":
-        sub = follow.confirm(payload, source_host=request.get_host())
+        try:
+            sub = follow.confirm(payload, source_host=request.get_host())
+        except follow.FollowLimitReached:
+            return _token_response(
+                render(
+                    request,
+                    "aggregator/follow_confirm.html",
+                    {**context, "target": target, "limit_reached": True},
+                )
+            )
         if sub is None:
             return _token_response(
                 render(request, "aggregator/follow_invalid.html", context, status=400)

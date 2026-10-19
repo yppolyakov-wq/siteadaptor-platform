@@ -26147,3 +26147,60 @@ msgstr "Replace the existing text?"
 #, python-format
 msgid "Alle von %(brand)s in %(city)s"
 msgstr "All from %(brand)s in %(city)s"
+
+msgid "Größe %(size)s"
+msgstr "Size %(size)s"
+
+msgid "Marke %(brand)s"
+msgstr "Brand %(brand)s"
+
+msgid ""
+"Neue Angebote, die zu dieser Suche passen — als E-Mail-Übersicht. Nur das, "
+"was Sie ausgewählt haben."
+msgstr ""
+"New offers matching this search — as an email summary. Only what you "
+"selected."
+
+msgid ""
+"Sie folgen bereits der maximalen Anzahl von Themen. Bitte entfernen Sie "
+"zuerst eines."
+msgstr ""
+"You are already following the maximum number of topics. Please remove one "
+"first."
+
+msgid "Suche"
+msgstr "Search"
+
+msgid ""
+"Zeitangaben (heute, Wochenende, geöffnet) und „In der Nähe“ gelten nicht für"
+" Benachrichtigungen."
+msgstr ""
+"Time filters (today, weekend, open now) and “Nearby” do not apply to "
+"notifications."
+
+msgid "ab %(price)s €"
+msgstr "from €%(price)s"
+
+msgid "bis %(price)s €"
+msgstr "up to €%(price)s"
+
+msgid "bei %(name)s"
+msgstr "at %(name)s"
+
+msgid "nur verfügbare"
+msgstr "available only"
+
+msgid "Benachrichtigen, wenn es so etwas gibt"
+msgstr "Notify me when there is something like this"
+
+msgid "Nur bestimmte Angebote?"
+msgstr "Only certain offers?"
+
+msgid "Nur diese folgen"
+msgstr "Follow only these"
+
+msgid "Stichwort"
+msgstr "Keyword"
+
+msgid "z. B. Tomaten"
+msgstr "e.g. tomatoes"

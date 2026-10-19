@@ -75,6 +75,35 @@ def _count_business_view(request, business, card) -> None:
         )
 
 
+NARROW_MAX = 30
+
+
+def _narrow_choices(slug: str) -> dict:
+    """Разделы/категории и марки, которые есть в выдаче компании (для формы сужения)."""
+    from apps.core import city_categories as cc
+
+    rows = (
+        AggregatorListing.objects.public()
+        .filter(tenant_slug=slug)
+        .exclude(listing_kind=AggregatorListing.KIND_BUSINESS)
+        .order_by()
+        .values_list("city_category", "brand")
+        .distinct()[:500]
+    )
+    kats: dict[str, str] = {}
+    brands: set[str] = set()
+    for key, brand in rows:
+        node = cc.category(key) if key else None
+        if node is not None:
+            kats[key] = str(node.label)
+        if brand:
+            brands.add(brand)
+    return {
+        "kats": sorted(kats.items(), key=lambda kv: kv[1])[:NARROW_MAX],
+        "brands": sorted(brands, key=str.lower)[:NARROW_MAX],
+    }
+
+
 def business_page(request, slug):
     # A8/E-2: страница бизнеса работает и на главном /entdecken (portal=None):
     # там read-only отзывы (портальный логин — только на портальных хостах).
@@ -104,12 +133,18 @@ def business_page(request, slug):
         .first()
     )
     _count_business_view(request, business, business_card)
+    # T-8.10d (Р-4): «Nur bestimmte Angebote?» — сузить подписку на компанию разделом,
+    # маркой или словом. Варианты — только то, что у компании реально есть в каталоге.
+    narrow = None
+    if follow_target is not None:
+        narrow = _narrow_choices(slug)
     return render(
         request,
         "aggregator/portal_business.html",
         {
             "portal": portal,
             "follow_target": follow_target,
+            "follow_narrow": narrow,
             "following": follow.is_following(user, follow_target) if follow_target else False,
             "base_template": "aggregator/portal_base.html" if portal else "aggregator/_base.html",
             "business": business,

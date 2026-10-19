@@ -724,6 +724,10 @@ def discover_index(request):
             + search.carry("", filters)
             + geo_carry
         )
+        # T-8.10d: подписка на этот набор — только с городом (область сводки).
+        from . import follow_query
+
+        search_follow = follow_query.follow_link(request.GET, portal=None)
         return render(
             request,
             "aggregator/search.html",
@@ -772,6 +776,8 @@ def discover_index(request):
                 "intent_hints": _entdecken_hint_links(
                     request, intent_hints, pool, q, filters, keep, geo_carry
                 ),
+                "search_follow": search_follow[0] if search_follow else None,
+                "search_follow_qs": search_follow[1] if search_follow else "",
                 **demo_flags(cards),
             },
         )

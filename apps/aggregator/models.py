@@ -686,10 +686,13 @@ class FollowSubscription(models.Model):
     TARGET_BUSINESS = "business"
     TARGET_SECTION = "section"
     TARGET_DISTRICT = "district"
+    # T-8.10d: подписка на набор фильтров поиска (район, категория, слово, марка, компания…).
+    TARGET_QUERY = "query"
     TARGETS = [
         (TARGET_BUSINESS, _("Unternehmen")),
         (TARGET_SECTION, _("Bereich")),
         (TARGET_DISTRICT, _("Stadtteil")),
+        (TARGET_QUERY, _("Suche")),
     ]
     FREQ_DAILY = "daily"
     FREQ_WEEKLY = "weekly"
@@ -705,8 +708,11 @@ class FollowSubscription(models.Model):
 
     user = models.ForeignKey(PortalUser, on_delete=models.CASCADE, related_name="follows")
     target_kind = models.CharField(max_length=20, choices=TARGETS)
-    # schema_name бизнеса | ключ раздела city_categories | slug района
+    # schema_name бизнеса | ключ раздела city_categories | slug района | sha256 набора (query)
     target_key = models.CharField(max_length=100)
+    # T-8.10d: канонический набор фильтров {"v": 1, "p": [[ключ, значение], …]}; у прочих
+    # видов пусто. Только публичные параметры поиска — без координат и радиуса.
+    query = models.JSONField(default=dict, blank=True)
     # Город области раздела/района (districts.city_label); у бизнеса пусто.
     city = models.CharField(max_length=100, blank=True, default="")
     portal = models.ForeignKey(
@@ -733,6 +739,11 @@ class FollowSubscription(models.Model):
             models.CheckConstraint(
                 condition=~models.Q(frequency="instant") | models.Q(target_kind="business"),
                 name="follow_instant_business_only",
+            ),
+            # T-8.10d: у подписки на поиск набор обязателен (иначе это «всё подряд»).
+            models.CheckConstraint(
+                condition=~models.Q(target_kind="query") | ~models.Q(query={}),
+                name="follow_query_payload",
             ),
         ]
         indexes = [

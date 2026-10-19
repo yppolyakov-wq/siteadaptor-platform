@@ -23,6 +23,25 @@
     <h1 class="text-2xl md:text-3xl font-bold">{{ business.name }}</h1>
     {% include "aggregator/_follow_button.html" with next_url=request.path %}
   </div>
+  {% if follow_target and not following and follow_narrow %}
+  {# T-8.10d (Р-4): сузить подписку на компанию — GET-форма (страница может лежать в кэше P0-1). #}
+  <details class="mt-2 max-w-xl text-sm" data-follow-narrow>
+    <summary class="cursor-pointer text-gray-600 hover:underline">{% trans "Nur bestimmte Angebote?" %}</summary>
+    <form method="get" action="{% url 'aggregator-follow' %}" class="mt-2 grid gap-2 rounded-2xl border border-gray-200 bg-white p-3 sm:grid-cols-2">
+      <input type="hidden" name="art" value="suche">
+      <input type="hidden" name="unternehmen" value="{{ business.slug }}">
+      <input type="hidden" name="city" value="{{ business.city }}">
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <label class="block sm:col-span-2"><span class="text-xs text-gray-500">{% trans "Stichwort" %}</span>
+        <input type="text" name="q" maxlength="60" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-1.5" placeholder="{% trans "z. B. Tomaten" %}"></label>
+      {% if follow_narrow.kats %}<label class="block"><span class="text-xs text-gray-500">{% trans "Kategorie" %}</span>
+        <select name="kat" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5"><option value="">—</option>{% for k, label in follow_narrow.kats %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select></label>{% endif %}
+      {% if follow_narrow.brands %}<label class="block"><span class="text-xs text-gray-500">{% trans "Marke" %}</span>
+        <select name="marke" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5"><option value="">—</option>{% for b in follow_narrow.brands %}<option value="{{ b }}">{{ b }}</option>{% endfor %}</select></label>{% endif %}
+      <button type="submit" class="sm:col-span-2 justify-self-start rounded-full border border-gray-300 px-3 py-1.5 font-medium hover:border-gray-500">🔔 {% trans "Nur diese folgen" %}</button>
+    </form>
+  </details>
+  {% endif %}
   <p class="text-gray-500 mt-1">
     {% if business.city %}{{ business.city }}{% endif %}
     {% if rating and rating.review_count %}<span class="ml-2 text-amber-500 font-medium">★ {{ rating.avg_rating }}</span> <span class="text-gray-400">· {% blocktrans count n=rating.review_count %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</span>{% endif %}

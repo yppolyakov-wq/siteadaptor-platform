@@ -26226,3 +26226,60 @@ msgstr "Vorhandenen Text ersetzen?"
 #, python-format
 msgid "Alle von %(brand)s in %(city)s"
 msgstr "Alle von %(brand)s in %(city)s"
+
+msgid "Größe %(size)s"
+msgstr "Größe %(size)s"
+
+msgid "Marke %(brand)s"
+msgstr "Marke %(brand)s"
+
+msgid ""
+"Neue Angebote, die zu dieser Suche passen — als E-Mail-Übersicht. Nur das, "
+"was Sie ausgewählt haben."
+msgstr ""
+"Neue Angebote, die zu dieser Suche passen — als E-Mail-Übersicht. Nur das, "
+"was Sie ausgewählt haben."
+
+msgid ""
+"Sie folgen bereits der maximalen Anzahl von Themen. Bitte entfernen Sie "
+"zuerst eines."
+msgstr ""
+"Sie folgen bereits der maximalen Anzahl von Themen. Bitte entfernen Sie "
+"zuerst eines."
+
+msgid "Suche"
+msgstr "Suche"
+
+msgid ""
+"Zeitangaben (heute, Wochenende, geöffnet) und „In der Nähe“ gelten nicht für"
+" Benachrichtigungen."
+msgstr ""
+"Zeitangaben (heute, Wochenende, geöffnet) und „In der Nähe“ gelten nicht für"
+" Benachrichtigungen."
+
+msgid "ab %(price)s €"
+msgstr "ab %(price)s €"
+
+msgid "bis %(price)s €"
+msgstr "bis %(price)s €"
+
+msgid "bei %(name)s"
+msgstr "bei %(name)s"
+
+msgid "nur verfügbare"
+msgstr "nur verfügbare"
+
+msgid "Benachrichtigen, wenn es so etwas gibt"
+msgstr "Benachrichtigen, wenn es so etwas gibt"
+
+msgid "Nur bestimmte Angebote?"
+msgstr "Nur bestimmte Angebote?"
+
+msgid "Nur diese folgen"
+msgstr "Nur diese folgen"
+
+msgid "Stichwort"
+msgstr "Stichwort"
+
+msgid "z. B. Tomaten"
+msgstr "z. B. Tomaten"
