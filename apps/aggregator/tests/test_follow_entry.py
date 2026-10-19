@@ -123,24 +123,26 @@ def test_free_text_with_link_or_contact_not_stored():
     assert pairs == (("q", "Tomaten"),)
 
 
-@override_settings(ROOT_URLCONF="config.urls_portal")
-def test_toggle_at_limit_redirects_with_message(settings):
+def test_toggle_at_limit_redirects_with_message():
+    from django.conf import settings
+
     from apps.aggregator import follow_views
     from apps.aggregator.models import PortalUser
     from apps.aggregator.tests.test_follow_query import _email, _query_sub
 
-    settings.AGGREGATOR_FOLLOW = {**getattr(settings, "AGGREGATOR_FOLLOW", {}), "max_follows": 1}
-    portal = _portal()
-    user = PortalUser.objects.create(email=_email())
-    _query_sub(user, portal, {"q": "Brot", "stadtteil": OHLIGS})
-    req = _req(
-        "post",
-        "/konto/folgen/",
-        {"art": "suche", "q": "Tomaten", "stadtteil": OHLIGS},
-        portal=portal,
-        user=user,
-    )
-    resp = follow_views.follow_toggle(req)
+    cfg = {**getattr(settings, "AGGREGATOR_FOLLOW", {}), "max_follows": 1}
+    with override_settings(ROOT_URLCONF="config.urls_portal", AGGREGATOR_FOLLOW=cfg):
+        portal = _portal()
+        user = PortalUser.objects.create(email=_email())
+        _query_sub(user, portal, {"q": "Brot", "stadtteil": OHLIGS})
+        req = _req(
+            "post",
+            "/konto/folgen/",
+            {"art": "suche", "q": "Tomaten", "stadtteil": OHLIGS},
+            portal=portal,
+            user=user,
+        )
+        resp = follow_views.follow_toggle(req)
     assert resp.status_code == 302 and "limit=1" in resp["Location"]
 
 
