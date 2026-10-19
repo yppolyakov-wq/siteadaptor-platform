@@ -73,6 +73,9 @@ def _member(bot, member: dict) -> str:
     if member.get("chat_type") == "private" and member.get("status") == "kicked":
         links.mark_blocked(member.get("from_id") or member.get("chat_id"))
         return "blocked"
+    if member.get("chat_type") == "private" and member.get("status") == "member":
+        links.mark_unblocked(member.get("from_id") or member.get("chat_id"))
+        return "unblocked"
     return "skip"
 
 
@@ -91,6 +94,7 @@ def _start_url() -> str:
 
 def _private(bot, message: dict) -> str:
     chat = message["chat_id"]
+    links.mark_unblocked(message["from_id"])  # пишет боту — значит, не заблокировал
     has_business = links.active_links(message["from_id"]).exists()
     if has_business:
         send(

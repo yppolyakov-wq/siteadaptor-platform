@@ -178,3 +178,61 @@ def test_returning_owner_is_greeted(sent):
     tenant = TenantFactory()
     links.bind(USER, tenant)
     assert handler.handle(webhook.slim(_private("Hallo"))) == "welcome_back"
+
+
+# --- правки ревью Django (2026-10-19) -------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_unblocking_or_writing_again_restores_delivery(sent):
+    tenant = TenantFactory()
+    links.bind(USER, tenant)
+    member = {
+        "update_id": 10,
+        "my_chat_member": {
+            "chat": {"id": USER, "type": "private"},
+            "from": {"id": USER},
+            "new_chat_member": {"status": "kicked"},
+        },
+    }
+    handler.handle(webhook.slim(member))
+    member["my_chat_member"]["new_chat_member"]["status"] = "member"
+    assert handler.handle(webhook.slim(member)) == "unblocked"
+    assert links.is_owner(USER, tenant)
+    member["my_chat_member"]["new_chat_member"]["status"] = "kicked"
+    handler.handle(webhook.slim(member))
+    assert handler.handle(webhook.slim(_private("Hallo"))) == "welcome_back"
+    assert links.is_owner(USER, tenant)
+
+
+@pytest.mark.django_db
+def test_unbind_keeps_owner_of_own_business_bot():
+    """Отключение общего бота не трогает владельца, подключённого к своему боту."""
+    tenant = TenantFactory()
+    tenant.site_config = {"notify": {"owner_chat_id": "42", "owner_bot": "tenant"}}
+    tenant.save()
+    links.unbind(tenant)
+    tenant.refresh_from_db()
+    assert tenant.site_config["notify"] == {"owner_chat_id": "42", "owner_bot": "tenant"}
+
+
+def test_malformed_nested_objects_do_not_crash_slim():
+    bad = {"update_id": 1, "message": {"chat": "x", "from": 5, "photo": "y"}}
+    out = webhook.slim(bad)["message"]
+    assert out["chat_id"] is None and out["from_id"] is None and out["photo"] == ""
+    webhook.slim({"update_id": 2, "callback_query": {"from": [], "message": {"chat": 1}}})
+    webhook.slim({"update_id": 3, "my_chat_member": {"chat": 1, "new_chat_member": "z"}})
+
+
+@pytest.mark.django_db
+def test_handler_failure_releases_dedupe_lock(on, monkeypatch):
+    from django.core.cache import cache
+
+    from apps.platform_bot import tasks
+
+    key = f"job_lock:{tasks.dedupe_key(55)}"
+    cache.delete(key)
+    monkeypatch.setattr(handler, "handle", mock.Mock(side_effect=RuntimeError("db")))
+    with pytest.raises(RuntimeError):
+        tasks.platform_bot_update(dedupe_key=tasks.dedupe_key(55), update={"update_id": 55})
+    assert cache.get(key) is None  # повтор пройдёт мимо дедупа

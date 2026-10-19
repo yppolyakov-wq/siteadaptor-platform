@@ -66,14 +66,24 @@ def bind(tg_user_id: int, tenant, *, via: str = OwnerTelegramLink.VIA_CABINET):
     return link
 
 
+def _mirror_bot(tenant) -> str:
+    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    node = cfg.get("notify") if isinstance(cfg.get("notify"), dict) else {}
+    return str(node.get("owner_bot") or "")
+
+
 def unbind(tenant) -> None:
-    """Снять привязку бизнеса: связи общего бота и зеркало владельца."""
+    """Снять привязку бизнеса к общему боту. Зеркало чистим, только если оно принадлежит
+    общему боту: владелец на своём боте бизнеса этим не отключается."""
     with transaction.atomic():
         locked = _lock(tenant.pk)
         OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True).update(
             is_active=False, updated_at=timezone.now()
         )
-        tenant.site_config = _write_mirror(locked, owner_chat_id=None, owner_bot=None)
+        if _mirror_bot(locked) == OWNER_BOT_PLATFORM:
+            tenant.site_config = _write_mirror(locked, owner_chat_id=None, owner_bot=None)
+        else:
+            tenant.site_config = locked.site_config
 
 
 def _active(tg_user_id):
@@ -96,6 +106,13 @@ def is_owner(tg_user_id, tenant) -> bool:
     """Владелец через общий бот = активная, не заблокированная связь (одна на бизнес —
     ограничение БД). Читаем только таблицу: зеркало в site_config — кэш доставки."""
     return _active(tg_user_id).filter(tenant=tenant).exists()
+
+
+def mark_unblocked(tg_user_id: int) -> int:
+    """Пользователь снова пишет боту (или разблокировал его) — доставка возобновляется."""
+    return OwnerTelegramLink.objects.filter(
+        tg_user_id=int(tg_user_id), blocked_at__isnull=False
+    ).update(blocked_at=None, updated_at=timezone.now())
 
 
 def mark_blocked(tg_user_id: int) -> int:

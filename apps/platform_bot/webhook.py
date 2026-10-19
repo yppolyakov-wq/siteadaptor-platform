@@ -30,14 +30,18 @@ def _int(value):
     return value if isinstance(value, int) and not isinstance(value, bool) else None
 
 
+def _dict(value) -> dict:
+    return value if isinstance(value, dict) else {}
+
+
 def slim(update: dict) -> dict:
     """Только поля, нужные обработчику (в брокер не уходит весь апдейт)."""
     out = {"update_id": update.get("update_id")}
     message = update.get("message")
     if isinstance(message, dict):
-        chat = message.get("chat") or {}
-        sender = message.get("from") or {}
-        photos = message.get("photo") or []
+        chat = _dict(message.get("chat"))
+        sender = _dict(message.get("from"))
+        photos = message.get("photo") if isinstance(message.get("photo"), list) else []
         largest = photos[-1].get("file_id") if photos and isinstance(photos[-1], dict) else ""
         out["message"] = {
             "chat_id": _int(chat.get("id")),
@@ -51,24 +55,24 @@ def slim(update: dict) -> dict:
         }
     callback = update.get("callback_query")
     if isinstance(callback, dict):
-        sender = callback.get("from") or {}
-        cmsg = callback.get("message") or {}
+        sender = _dict(callback.get("from"))
+        cmsg = _dict(callback.get("message"))
         out["callback"] = {
             "id": str(callback.get("id") or "")[:64],
             "from_id": _int(sender.get("id")),
             "language_code": str(sender.get("language_code") or "")[:8],
-            "chat_id": _int((cmsg.get("chat") or {}).get("id")),
+            "chat_id": _int(_dict(cmsg.get("chat")).get("id")),
             "message_id": _int(cmsg.get("message_id")),
             "data": str(callback.get("data") or "")[:64],
         }
     member = update.get("my_chat_member")
     if isinstance(member, dict):
-        chat = member.get("chat") or {}
+        chat = _dict(member.get("chat"))
         out["member"] = {
             "chat_id": _int(chat.get("id")),
             "chat_type": str(chat.get("type") or "")[:16],
-            "from_id": _int((member.get("from") or {}).get("id")),
-            "status": str((member.get("new_chat_member") or {}).get("status") or "")[:16],
+            "from_id": _int(_dict(member.get("from")).get("id")),
+            "status": str(_dict(member.get("new_chat_member")).get("status") or "")[:16],
         }
     return out
 
@@ -96,7 +100,7 @@ def webhook(request):
 
     try:
         tasks.platform_bot_update.delay(
-            dedupe_key=f"tgplat:{update['update_id']}", update=slim(update)
+            dedupe_key=tasks.dedupe_key(update["update_id"]), update=slim(update)
         )
     except Exception as exc:  # noqa: BLE001 — брокер недоступен: Telegram повторит доставку
         logger.warning("platform bot enqueue failed: %s", type(exc).__name__)
