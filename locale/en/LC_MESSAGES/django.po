@@ -26333,3 +26333,13 @@ msgstr "Please check: “%(word)s” is an advertising claim."
 
 msgid "Fotos aus der Vorlage"
 msgstr "Photos from the template"
+
+msgid ""
+"Nach der Registrierung füllt die KI Titel und Beschreibung aus Ihrem Foto "
+"aus – im Konto und per Telegram."
+msgstr ""
+"After signing up, the AI fills in the title and description from your photo "
+"– in your account and via Telegram."
+
+msgid "Nächste Aktion mit KI"
+msgstr "Next promotion with AI"

@@ -26413,3 +26413,13 @@ msgstr "Bitte prüfen: „%(word)s“ ist eine Werbeaussage."
 
 msgid "Fotos aus der Vorlage"
 msgstr "Fotos aus der Vorlage"
+
+msgid ""
+"Nach der Registrierung füllt die KI Titel und Beschreibung aus Ihrem Foto "
+"aus – im Konto und per Telegram."
+msgstr ""
+"Nach der Registrierung füllt die KI Titel und Beschreibung aus Ihrem Foto "
+"aus – im Konto und per Telegram."
+
+msgid "Nächste Aktion mit KI"
+msgstr "Nächste Aktion mit KI"

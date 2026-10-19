@@ -44,7 +44,16 @@ def _context(request, form):
         "max_photos": MAX_PHOTOS,
         "category_suggestions": dict(city_categories.BY_BUSINESS_TYPE),
         "ui_languages": ui_languages(),
+        # ИИ — только после регистрации (расход считается на бизнес и его дневной
+        # лимит; анонимная страница бюджет не тратит) — здесь лишь честная подсказка.
+        "ai_after_signup": _ai_enabled(),
     }
+
+
+def _ai_enabled() -> bool:
+    from apps.ai.api import is_enabled
+
+    return is_enabled()
 
 
 def _district_options() -> list[dict]:

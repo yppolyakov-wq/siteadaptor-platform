@@ -1070,6 +1070,7 @@ def promotion_quick_done(request, pk):
             "missing_hours": tenant is not None
             and not (tenant.opening_hours_structured or (tenant.opening_hours or "").strip()),
             **owner_login.pending_context(request),  # T-8.5
+            "ai_enabled": _ai_photo_enabled(),  # «Nächste Aktion mit KI»
             # В5 V5-3: «что принесла акция» — вход в статистику Stadtportal (только владельцу).
             "portal_stats_link": is_owner(request.user),
             # D2a-2: важные подсказки к тексту (high/medium) — исправить в форме.

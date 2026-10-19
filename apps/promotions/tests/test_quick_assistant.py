@@ -500,3 +500,14 @@ def test_convert_lite_promotions_turns_free_promos_into_products(monkeypatch):
     from apps.catalog.models import Product
 
     assert Product.objects.count() == 1
+
+
+@pytest.mark.parametrize("enabled", [True, False])
+def test_done_screen_offers_next_promo_with_ai_only_when_enabled(user, settings, enabled):
+    settings.AI_ENABLED = enabled
+    tenant = _tenant(f"t-ai-done-{int(enabled)}", status="active")
+    promo = PromotionFactory(status="active", title={"de": "Brot"})
+    body = views.promotion_quick_done(
+        _attach(RequestFactory().get(f"/promotions/{promo.pk}/fertig/"), user, tenant), pk=promo.pk
+    ).content.decode()
+    assert ("Nächste Aktion mit KI" in body) is enabled

@@ -560,3 +560,16 @@ def test_address_and_phone_are_required_and_land_on_the_tenant():
         assert "publishing" not in tenant.disabled_modules
     finally:
         _drop(tenant)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("enabled", [True, False])
+def test_ai_is_promised_only_after_signup_and_only_when_enabled(settings, enabled):
+    """ИИ на анонимной странице не вызывается — только подсказка, и лишь когда он включён."""
+    settings.AI_ENABLED = enabled
+    with mock.patch("apps.ai.api.generate") as generate:
+        html = quickstart_views.quick_start(
+            _session(RequestFactory().get("/aktion-starten/"))
+        ).content.decode()
+    assert ("data-ai-after-signup" in html) is enabled
+    generate.assert_not_called()

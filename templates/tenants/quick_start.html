@@ -32,6 +32,9 @@
     <section class="bg-white rounded-2xl shadow-sm p-4 space-y-4" data-qs-step="1">
       <h2 class="font-semibold text-gray-900">1 · {% trans "Was bieten Sie an?" %}</h2>
       {% include "promotions/_photo_picker.html" with errors=form.photo.errors %}
+      {% if ai_after_signup %}
+        <p class="rounded-xl bg-indigo-50 px-3 py-2 text-xs text-indigo-900" data-ai-after-signup>✨ {% trans "Nach der Registrierung füllt die KI Titel und Beschreibung aus Ihrem Foto aus – im Konto und per Telegram." %}</p>
+      {% endif %}
       <label class="block">
         <span class="block text-sm font-medium mb-1">{% trans "Was gibt es?" %}</span>
         <input type="text" name="title" value="{{ form.title.value|default:'' }}" maxlength="200" required

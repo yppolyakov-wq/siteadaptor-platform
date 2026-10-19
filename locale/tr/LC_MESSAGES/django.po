@@ -26472,3 +26472,13 @@ msgstr "Lütfen kontrol edin: “%(word)s” bir reklam iddiasıdır."
 
 msgid "Fotos aus der Vorlage"
 msgstr "Şablondaki fotoğraflar"
+
+msgid ""
+"Nach der Registrierung füllt die KI Titel und Beschreibung aus Ihrem Foto "
+"aus – im Konto und per Telegram."
+msgstr ""
+"Kayıttan sonra yapay zekâ başlığı ve açıklamayı fotoğrafınızdan doldurur – "
+"hesabınızda ve Telegram üzerinden."
+
+msgid "Nächste Aktion mit KI"
+msgstr "Yapay zekâ ile sonraki kampanya"

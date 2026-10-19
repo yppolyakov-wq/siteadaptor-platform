@@ -73,7 +73,7 @@
     </a>
   {% endif %}
   <div class="flex flex-wrap gap-2">
-    <a href="{% url 'promotions:promotion-quick' %}" class="w-full text-center rounded-xl bg-indigo-600 text-white px-4 py-3 text-sm font-medium">＋ {% trans "Noch eine Aktion" %}</a>
+    <a href="{% url 'promotions:promotion-quick' %}" class="w-full text-center rounded-xl bg-indigo-600 text-white px-4 py-3 text-sm font-medium">＋ {% if ai_enabled %}✨ {% trans "Nächste Aktion mit KI" %}{% else %}{% trans "Noch eine Aktion" %}{% endif %}</a>
     <a href="{% url 'promotions:promotion-edit' promotion.pk %}" class="flex-1 text-center rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700" data-quick-edit>✏️ {% trans "Bearbeiten" %}</a>
     <a href="{% url 'promotions:promotion-list' %}" class="flex-1 text-center rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700">{% trans "Meine Aktionen" %}</a>
   </div>

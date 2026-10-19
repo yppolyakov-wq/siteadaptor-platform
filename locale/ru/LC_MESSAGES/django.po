@@ -26607,3 +26607,13 @@ msgstr "Проверьте: «%(word)s» — рекламное утвержде
 
 msgid "Fotos aus der Vorlage"
 msgstr "Фото из шаблона"
+
+msgid ""
+"Nach der Registrierung füllt die KI Titel und Beschreibung aus Ihrem Foto "
+"aus – im Konto und per Telegram."
+msgstr ""
+"После регистрации ИИ заполнит название и описание по вашему фото — в "
+"кабинете и в Telegram."
+
+msgid "Nächste Aktion mit KI"
+msgstr "Следующая акция с ИИ"
