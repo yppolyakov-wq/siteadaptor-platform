@@ -176,7 +176,9 @@ def promo_for_product(product):
     if product is None:
         return None
     best = None
-    for promo in Promotion.objects.filter(product=product, status="active"):
+    for promo in Promotion.objects.filter(product=product, status="active").order_by(
+        "created_at", "pk"
+    ):
         if not promo.lowers_price:
             continue
         if best is None or promo.new_price < best.new_price:
@@ -188,9 +190,13 @@ def product_promo_map(product_ids):
     """P6: bulk-версия для карточек листинга — {product_id: Promotion} одним
     запросом (без N+1 на странице каталога)."""
     out = {}
-    for promo in Promotion.objects.filter(
-        product_id__in=list(product_ids), status="active"
-    ).select_related("product"):
+    # Стабильный порядок: при равной цене побеждает более ранняя акция — иначе выбор
+    # (и вместе с ним фид Merchant: mystery исключает товар) зависел бы от порядка строк.
+    for promo in (
+        Promotion.objects.filter(product_id__in=list(product_ids), status="active")
+        .select_related("product")
+        .order_by("created_at", "pk")
+    ):
         if not promo.lowers_price:
             continue
         cur = out.get(promo.product_id)

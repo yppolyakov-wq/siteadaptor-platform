@@ -107,14 +107,18 @@ def merchant_sale(product, variant, row_price) -> dict:
     if charged is None:
         return {}
     charged, regular = Decimal(str(charged)), Decimal(str(row_price))
-    if charged < regular:
+    if charged == regular:
+        return {}
+    # Снижение объявляем там же, где витрина: `has_discount` (§11 PAngV — ниже
+    # минимума 30 дней) и пока акция не кончилась. Иначе корзина всё равно
+    # списывает цену акции — она и становится `g:price` (показано = списано).
+    ended = promo.ends_at is not None and promo.ends_at <= timezone.now()
+    if charged < regular and promo.has_discount and not ended:
         return {
             "sale_price": _money(charged, product.currency),
             "sale_price_effective_date": _effective_date(promo),
         }
-    if charged > regular:
-        return {"price": _money(charged, product.currency)}
-    return {}
+    return {"price": _money(charged, product.currency)}
 
 
 def _entries(product, *, product_url, absolutize, merchant=False):

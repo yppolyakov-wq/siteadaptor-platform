@@ -541,3 +541,48 @@ def test_promo_feed_constant_queries(django_assert_max_num_queries):
             _promo(p, price_override=Decimal("1.00"))
     with django_assert_max_num_queries(7):
         _merchant_xml(google.merchant_products())
+
+
+def test_no_sale_when_storefront_announces_no_reduction():
+    """§11 PAngV: цена акции не ниже минимума 30 дней — витрина снижение не объявляет,
+    фид тоже (но корзина списывает цену акции → она и есть g:price)."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.catalog.models import PriceLog
+
+    p = _product(base_price=Decimal("10.00"))
+    log = PriceLog.objects.create(product=p, price=Decimal("7.00"))
+    PriceLog.objects.filter(pk=log.pk).update(created_at=timezone.now() - timedelta(days=5))
+    _promo(p, price_override=Decimal("7.50"), starts_at=timezone.now() - timedelta(days=1))
+    item = _items(_merchant_xml(google.merchant_products()))[str(p.pk)]
+    assert "sale_price" not in item and item["price"] == "7.50 EUR"
+    assert google.overview()["on_sale"] == 0
+
+
+def test_ended_but_still_active_promo_charges_without_sale():
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    p = _product(base_price=Decimal("10.00"))
+    now = timezone.now()
+    _promo(
+        p,
+        price_override=Decimal("8.00"),
+        starts_at=now - timedelta(days=3),
+        ends_at=now - timedelta(minutes=5),
+    )
+    item = _items(_merchant_xml(google.merchant_products()))[str(p.pk)]
+    assert "sale_price" not in item and item["price"] == "8.00 EUR"
+
+
+def test_equal_price_tie_is_stable():
+    from apps.promotions.price_layer import product_promo_map
+
+    p = _product(base_price=Decimal("10.00"))
+    first = _promo(p, price_override=Decimal("8.00"))
+    _promo(p, price_override=Decimal("8.00"), discount_style="mystery")
+    assert product_promo_map([p.pk])[p.pk] == first
+    assert str(p.pk) in _merchant_xml(google.merchant_products())

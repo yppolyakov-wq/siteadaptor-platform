@@ -144,6 +144,12 @@ def _evaluated():
     hidden = _hidden_category_ids()
     products = list(_active_products())
     promos = product_promo_map([p.pk for p in products])
+    if promos:
+        # §11 PAngV (SF-7): «Sie sparen» витрины = `has_discount`; цена сравнения —
+        # одним батчем, как у `attach_promos` (без N+1 на `prior_lowest_price`).
+        from apps.promotions import reference_price
+
+        reference_price.attach(list(promos.values()))
     for product in products:
         product.merchant_promo = promos.get(product.pk)
         yield (
