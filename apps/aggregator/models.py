@@ -408,7 +408,12 @@ class SearchQueryLog(models.Model):
 
     SURFACE_PORTAL = "portal"
     SURFACE_ENTDECKEN = "entdecken"
-    SURFACES = [(SURFACE_PORTAL, _("Stadtportal")), (SURFACE_ENTDECKEN, _("Entdecken"))]
+    SURFACE_MCP = "mcp"  # T-8.10f: ассистенты (Claude/ChatGPT) через MCP-сервер портала
+    SURFACES = [
+        (SURFACE_PORTAL, _("Stadtportal")),
+        (SURFACE_ENTDECKEN, _("Entdecken")),
+        (SURFACE_MCP, _("Assistenten (KI)")),
+    ]
     MODES = [
         ("none", _("Nur Filter")),
         ("fts", _("Volltext")),
@@ -481,7 +486,11 @@ class PortalStat(models.Model):
         ("deal", _("Bestellungen & Anfragen")),
     ]
     ACTIONS_CODES = [code for code, _label in ACTIONS]
-    CHANNELS = [("portal", _("Stadtportal")), ("entdecken", _("Entdecken"))]
+    CHANNELS = [
+        ("portal", _("Stadtportal")),
+        ("entdecken", _("Entdecken")),
+        ("mcp", _("Assistenten (KI)")),  # T-8.10f
+    ]
     CHANNEL_CODES = [code for code, _label in CHANNELS]
 
     day = models.DateField(verbose_name=_("Tag"))

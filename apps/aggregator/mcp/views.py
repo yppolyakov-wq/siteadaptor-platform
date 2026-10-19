@@ -17,7 +17,11 @@ from django.views.decorators.csrf import csrf_exempt
 
 from apps.core import ratelimit
 
-from . import protocol, tools
+from . import (
+    handlers,  # noqa: F401 — регистрирует инструменты в реестре
+    protocol,
+    tools,
+)
 
 logger = logging.getLogger(__name__)
 

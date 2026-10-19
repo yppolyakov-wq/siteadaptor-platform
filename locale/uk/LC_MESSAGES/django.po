@@ -26253,3 +26253,12 @@ msgstr "Ціна-сюрприз недоступна для послуг і но
 #, python-format
 msgid "Ungültige Eingabe — %(problem)s"
 msgstr "Неправильні вхідні дані — %(problem)s"
+
+msgid "Angebot nicht gefunden."
+msgstr "Пропозицію не знайдено."
+
+msgid "Unternehmen nicht gefunden."
+msgstr "Компанію не знайдено."
+
+msgid "Assistenten (KI)"
+msgstr "Асистенти (ШІ)"

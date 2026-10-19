@@ -26000,3 +26000,12 @@ msgstr "A surprise price is not possible for services and rooms."
 #, python-format
 msgid "Ungültige Eingabe — %(problem)s"
 msgstr "Invalid input — %(problem)s"
+
+msgid "Angebot nicht gefunden."
+msgstr "Offer not found."
+
+msgid "Unternehmen nicht gefunden."
+msgstr "Business not found."
+
+msgid "Assistenten (KI)"
+msgstr "Assistants (AI)"

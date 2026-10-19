@@ -26139,3 +26139,12 @@ msgstr "Sürpriz fiyat hizmetler ve odalar için mümkün değildir."
 #, python-format
 msgid "Ungültige Eingabe — %(problem)s"
 msgstr "Geçersiz giriş — %(problem)s"
+
+msgid "Angebot nicht gefunden."
+msgstr "Teklif bulunamadı."
+
+msgid "Unternehmen nicht gefunden."
+msgstr "İşletme bulunamadı."
+
+msgid "Assistenten (KI)"
+msgstr "Asistanlar (YZ)"
