@@ -49,6 +49,7 @@ def _context(request, form):
         "district_options": _district_options(),
         "max_photos": MAX_PHOTOS,
         "category_suggestions": dict(city_categories.BY_BUSINESS_TYPE),
+        "category_allowed": city_categories.allowed_by_type(),
         "ui_languages": ui_languages(),
         # ИИ — только после регистрации (расход считается на бизнес и его дневной
         # лимит; анонимная страница бюджет не тратит) — здесь лишь честная подсказка.

@@ -188,6 +188,14 @@ class QuickStartForm(quick.QuickPromotionForm):
         cleaned["district"] = districts.normalize(
             cleaned.get("city") or "", cleaned.get("district") or ""
         )
+        # Категория каталога города — только из разделов выбранного типа бизнеса; чужая
+        # (подделка или смена типа после выбора) молча становится «Automatisch».
+        from apps.core import city_categories
+
+        if not city_categories.category_allowed(
+            cleaned.get("city_category") or "", cleaned.get("business_type") or ""
+        ):
+            cleaned["city_category"] = ""
         # Флажок действует только у еды — тип известен лишь здесь (шаг «Wer sind Sie?»).
         from types import SimpleNamespace
 

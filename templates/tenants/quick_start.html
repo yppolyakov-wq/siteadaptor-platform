@@ -244,6 +244,7 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
 
 {{ category_suggestions|json_script:"qs-cat-suggest" }}
 {{ food_types|json_script:"qs-food-types" }}
+{{ category_allowed|json_script:"qs-cat-allowed" }}
 <script>
 (function () {
   var root = document.querySelector("[data-quick-start]");
@@ -296,7 +297,25 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
   var catSuggest = JSON.parse(document.getElementById("qs-cat-suggest").textContent);
   var catTouched = !!(catSelect && catSelect.value);
   if (catSelect) catSelect.addEventListener("change", function () { catTouched = true; });
+  // Категории привязаны к типу бизнеса: показываем только его разделы (сервер проверяет сам).
+  var catAllowed = JSON.parse(document.getElementById("qs-cat-allowed").textContent);
+  function filterCategories(type) {
+    if (!catSelect) return;
+    var allowed = catAllowed[type];  // нет записи — универсальный тип: все разделы
+    catSelect.querySelectorAll("option").forEach(function (o) {
+      var ok = !o.value || !allowed || allowed.indexOf(o.value) >= 0;
+      o.hidden = !ok;
+      o.disabled = !ok;
+      if (!ok && o.selected) { catSelect.value = ""; catTouched = false; }
+    });
+    catSelect.querySelectorAll("optgroup").forEach(function (g) {
+      g.hidden = !g.querySelector("option:not([hidden])");
+    });
+  }
+  var checkedType = root.querySelector('input[name="business_type"]:checked');
+  filterCategories(checkedType ? checkedType.value : "");
   root.addEventListener("change", function (e) {
+    if (e.target.name === "business_type") filterCategories(e.target.value);
     if (e.target.name === "business_type" && catSelect && !catTouched && catSuggest[e.target.value]) {
       catSelect.value = catSuggest[e.target.value];
       if (window.cityTagSync) window.cityTagSync();  // T-8.23e: признаки раздела

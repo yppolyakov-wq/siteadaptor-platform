@@ -484,10 +484,12 @@ def test_page_offers_cities_and_districts_grouped_by_city():
 @pytest.mark.django_db
 def test_category_and_tags_travel_in_promo_payload():
     form = quickstart.QuickStartForm(
-        _post_data(city_category="kunst", city_tags=["regional", "zzz"])
+        _post_data(business_type="retail", city_category="kunst", city_tags=["regional", "zzz"])
     )
     assert not form.is_valid() and "city_tags" in form.errors  # неизвестный признак
-    form = quickstart.QuickStartForm(_post_data(city_category="kunst", city_tags=["regional"]))
+    form = quickstart.QuickStartForm(
+        _post_data(business_type="retail", city_category="kunst", city_tags=["regional"])
+    )
     assert form.is_valid(), form.errors
     payload = form.promo_payload()
     assert payload["city_category"] == "kunst" and payload["city_tags"] == ["regional"]
@@ -751,3 +753,25 @@ def test_public_text_check_is_post_only_and_rate_limited(isolated_ratelimit, mon
 
 def test_pruefen_is_not_a_free_address():
     assert quickstart.slug_problem("pruefen")
+
+
+# --- категории привязаны к типу бизнеса (решение владельца 2026-10-19) -----------------
+
+
+@pytest.mark.django_db
+def test_signup_drops_category_outside_the_types_sections():
+    """Пекарня не может попасть в «Kunst & Geschenke» подделкой формы или сменой типа."""
+    payload = _valid_form(business_type="bakery", city_category="kunst").promo_payload()
+    assert "city_category" not in payload
+    payload = _valid_form(business_type="bakery", city_category="brot-backwaren").promo_payload()
+    assert payload["city_category"] == "brot-backwaren"
+    payload = _valid_form(business_type="retail", city_category="kunst").promo_payload()
+    assert payload["city_category"] == "kunst"  # универсальный тип — все разделы
+
+
+@pytest.mark.django_db
+def test_signup_page_ships_allowed_categories_per_type():
+    request = _session(RequestFactory().get("/aktion-starten/"))
+    html = quickstart_views.quick_start(request).content.decode()
+    assert 'id="qs-cat-allowed"' in html
+    assert '"brot-backwaren"' in html.split('id="qs-cat-allowed"', 1)[1]

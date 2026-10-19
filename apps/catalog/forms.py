@@ -100,7 +100,13 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
         self.fields["city_category"] = forms.ChoiceField(
             label=_("Kategorie im Stadtkatalog"),
             required=False,
-            choices=[("", _("Automatisch: %(cat)s") % {"cat": auto_label}), *cc.grouped_choices()],
+            choices=[
+                ("", _("Automatisch: %(cat)s") % {"cat": auto_label}),
+                *cc.grouped_choices(
+                    getattr(tenant, "business_type", None) if tenant else None,
+                    keep=self.instance.city_category or "",
+                ),
+            ],
             help_text=_(
                 "Unter dieser Rubrik erscheinen Angebote mit Produkten dieser Kategorie "
                 "im Stadtportal. Ihre eigene Navigation bleibt unverändert."

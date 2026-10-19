@@ -234,7 +234,11 @@ class QuickPromotionForm(forms.Form):
         suggestion = (
             cc.suggest_for_business_type(getattr(tenant, "business_type", "")) if tenant else ""
         )
-        city_fields.add_fields(self, category=suggestion)
+        city_fields.add_fields(
+            self,
+            category=suggestion,
+            business_type=getattr(tenant, "business_type", None) if tenant else None,
+        )
 
     @property
     def booking_target(self) -> bool:

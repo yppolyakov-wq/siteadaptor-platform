@@ -12,11 +12,16 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import city_categories as cc
 
 
-def category_field(initial: str = "") -> forms.ChoiceField:
+def category_field(
+    initial: str = "", *, business_type: str | None = None, keep: str = ""
+) -> forms.ChoiceField:
     return forms.ChoiceField(
         label=_("Kategorie im Stadtkatalog"),
         required=False,
-        choices=[("", _("Automatisch (nach Art des Geschäfts)")), *cc.grouped_choices()],
+        choices=[
+            ("", _("Automatisch (nach Art des Geschäfts)")),
+            *cc.grouped_choices(business_type, keep=keep),
+        ],
         initial=initial,
         help_text=_("Damit Leute Ihr Angebot im Stadtportal unter der richtigen Rubrik finden."),
     )
@@ -33,10 +38,15 @@ def tags_field(initial=None) -> forms.MultipleChoiceField:
     )
 
 
-def add_fields(form, *, category: str = "", tags=None) -> None:
-    form.fields["city_category"] = category_field(category)
+def add_fields(
+    form, *, category: str = "", tags=None, business_type: str | None = None, keep: str = ""
+) -> None:
+    """``business_type`` — список категорий только разделов этого типа (None = все:
+    тип ещё не выбран, как на странице регистрации); ``keep`` — уже сохранённая
+    категория вне разделов остаётся выбираемой (Save её не сбросит)."""
+    form.fields["city_category"] = category_field(category, business_type=business_type, keep=keep)
     form.fields["city_tags"] = tags_field(tags)
-    form.city_category_groups = cc.grouped_choices()  # для <optgroup> в партиале
+    form.city_category_groups = cc.grouped_choices(business_type, keep=keep)
     form.city_tag_map = cc.tag_map()  # T-8.23e: признаки по категории (фильтр чипов)
 
 

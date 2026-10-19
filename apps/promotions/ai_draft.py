@@ -189,6 +189,10 @@ def draft_from_photo(photo: bytes, *, hint: str = "", tenant=None) -> tuple[dict
         logger.info("promo photo draft skipped: %s", exc.code)
         return None, exc.code
     draft = clean_draft(result.data)
+    # Категории привязаны к типу бизнеса: чужой раздел модели — «Automatisch».
+    if not cc.category_allowed(draft["city_category"], getattr(tenant, "business_type", "")):
+        draft["city_category"] = ""
+        draft["city_tags"] = cc.allowed_tags(draft["city_tags"], "")
     if draft["recognised"]:
         product, candidates = match_own_product(draft["item_noun"], draft["title"])
         draft["product"] = (

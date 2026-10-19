@@ -278,12 +278,72 @@ def keys_for_filter(value: str) -> list[str]:
     return []
 
 
-def grouped_choices() -> list[tuple[str, list[tuple[str, str]]]]:
-    """Для селекта с optgroup: [(раздел, [(ключ, подпись), …]), …]."""
-    return [
-        (f"{s.icon} {s.label}", [(c.key, str(c.label)) for c in CATEGORIES if c.section == s.key])
-        for s in SECTIONS
-    ]
+# Разделы каталога города, доступные типу бизнеса (решение владельца 2026-10-19:
+# «категории привязаны к типу бизнеса»). Первый раздел — главный (там подсказка
+# BY_BUSINESS_TYPE). Нет записи — тип универсальный (Einzelhandel, Online-Shop, Sonstiges):
+# все разделы.
+SECTIONS_BY_BUSINESS_TYPE: dict[str, tuple[str, ...]] = {
+    "bakery": ("lebensmittel-getraenke", "essen-gastronomie"),
+    "butcher": ("lebensmittel-getraenke", "essen-gastronomie"),
+    "grocery": ("lebensmittel-getraenke",),
+    "cafe": ("essen-gastronomie", "lebensmittel-getraenke"),
+    "restaurant": ("essen-gastronomie", "lebensmittel-getraenke"),
+    "catering": ("essen-gastronomie", "lebensmittel-getraenke"),
+    "clothing": ("mode-accessoires", "kinder-familie"),
+    "hotel": ("reisen-uebernachten", "freizeit-erlebnisse"),
+    "tour_operator": ("reisen-uebernachten", "freizeit-erlebnisse"),
+    "friseur": ("beauty-pflege", "gesundheit-fitness"),
+    "handwerker": ("handwerk-reparatur", "haus-garten"),
+    "werkstatt": ("auto-mobilitaet", "handwerk-reparatur"),
+    "events": ("freizeit-erlebnisse", "gesundheit-fitness", "kinder-familie"),
+}
+
+
+def sections_for_type(business_type: str) -> tuple[str, ...]:
+    """Разделы для типа бизнеса; пусто = все (универсальный или неизвестный тип)."""
+    return SECTIONS_BY_BUSINESS_TYPE.get(business_type or "", ())
+
+
+def category_allowed(key: str, business_type: str) -> bool:
+    """Категория допустима для типа (пустая = «Automatisch» — всегда)."""
+    if not key:
+        return True
+    cat = _CATEGORY.get(key)
+    if cat is None:
+        return False
+    sections = sections_for_type(business_type)
+    return not sections or cat.section in sections
+
+
+def allowed_by_type() -> dict[str, list[str]]:
+    """Для фильтра на странице регистрации: тип → допустимые ключи категорий."""
+    return {
+        bt: [c.key for c in CATEGORIES if c.section in sections]
+        for bt, sections in SECTIONS_BY_BUSINESS_TYPE.items()
+    }
+
+
+def grouped_choices(
+    business_type: str | None = None, keep=()
+) -> list[tuple[str, list[tuple[str, str]]]]:
+    """Для селекта с optgroup: [(раздел, [(ключ, подпись), …]), …].
+
+    С типом бизнеса — только его разделы (главный первым). ``keep`` — уже сохранённая
+    категория (или набор) вне этих разделов: остаётся в списке, чтобы Save её молча не сбросил."""
+    sections = sections_for_type(business_type or "") if business_type is not None else ()
+    keep = {keep} if isinstance(keep, str) else set(keep or ())
+    order = list(sections) + [x.key for x in SECTIONS if x.key not in sections]
+    out = []
+    for key in order:
+        sec = _SECTION[key]
+        items = [
+            (c.key, str(c.label))
+            for c in CATEGORIES
+            if c.section == key and (not sections or key in sections or c.key in keep)
+        ]
+        if items:
+            out.append((f"{sec.icon} {sec.label}", items))
+    return out
 
 
 def tags_for(key: str) -> list[str]:

@@ -220,3 +220,15 @@ def test_partial_name_match_is_only_a_candidate():
     Product.objects.create(name={"de": "Brotaufstrich"}, base_price=Decimal("3"))
     product, candidates = ai_draft.match_own_product("Brot")
     assert product is None and len(candidates) == 1
+
+
+def test_category_outside_business_type_falls_back_to_automatic(settings):
+    """Категории привязаны к типу бизнеса: модель не уводит пекарню в «Schuhe»."""
+    settings.AI_ENABLED = True
+    bakery = TenantFactory.build(business_type="bakery")
+    with mock.patch.object(ai_draft, "generate", return_value=_result(_ok(city_category="schuhe"))):
+        draft, _code = ai_draft.draft_from_photo(_photo(), tenant=bakery)
+    assert draft["city_category"] == ""
+    with mock.patch.object(ai_draft, "generate", return_value=_result(_ok())):
+        draft, _code = ai_draft.draft_from_photo(_photo(), tenant=bakery)
+    assert draft["city_category"] == "brot-backwaren"

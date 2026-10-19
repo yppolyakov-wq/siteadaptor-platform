@@ -241,7 +241,13 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         category = "" if is_new else self.instance.city_category
         if is_new and tenant is not None:
             category = cc.suggest_for_business_type(getattr(tenant, "business_type", ""))
-        city_fields.add_fields(form=self, category=category, tags=self.instance.city_tags)
+        city_fields.add_fields(
+            form=self,
+            category=category,
+            tags=self.instance.city_tags,
+            business_type=getattr(tenant, "business_type", None) if tenant else None,
+            keep="" if is_new else self.instance.city_category,
+        )
         self.init_i18n_fields(tenant)  # L3d.5
         # `group` — flat+overlay (плоское значение = ключ фасета `?gruppe=`,
         # переводы = только метка), поэтому НЕ через DynamicI18nFormMixin:

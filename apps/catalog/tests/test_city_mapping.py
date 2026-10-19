@@ -90,13 +90,13 @@ def test_category_form_saves_and_clears_choice():
     assert not bad.is_valid() and "city_category" in bad.errors
 
 
-def _req(data=None):
+def _req(data=None, business_type="retail"):
     user = get_user_model().objects.create_user(username="map", password="pw12345678")
     req = RequestFactory().post("/catalog/categories/", data) if data else RequestFactory().get("/")
     SessionMiddleware(lambda r: None).process_request(req)
     MessageMiddleware(lambda r: None).process_request(req)
     req.user = user
-    req.tenant = TenantFactory(schema_name="public", slug="map-view")
+    req.tenant = TenantFactory(schema_name="public", slug="map-view", business_type=business_type)
     return req
 
 
@@ -123,3 +123,31 @@ def test_bulk_mapping_writes_only_sent_rows_and_ignores_garbage():
     a.refresh_from_db()
     b.refresh_from_db()
     assert (a.city_category, b.city_category) == ("geschenke", "schuhe")
+
+
+def test_bulk_mapping_refuses_section_foreign_to_business_type():
+    """Категории привязаны к типу бизнеса: пекарня не уводит полку в «Schuhe»; уже
+    сохранённая чужая категория при этом не сбрасывается."""
+    a, b = _cat("Alpha"), _cat("Beta", city_category="schuhe")
+    with mock.patch("apps.aggregator.tasks.reconcile_aggregator_schema.delay"):
+        views.category_list(
+            _req(
+                {
+                    "action": "city_map",
+                    "map_id": [str(a.pk), str(b.pk)],
+                    f"map_{a.pk}": "geschenke",
+                    f"map_{b.pk}": "schuhe",
+                },
+                business_type="bakery",
+            )
+        )
+    a.refresh_from_db()
+    b.refresh_from_db()
+    assert (a.city_category, b.city_category) == ("", "schuhe")
+
+
+def test_category_form_offers_only_types_sections():
+    tenant = TenantFactory.build(business_type="bakery")
+    form = CategoryForm(instance=_cat("Gamma"), tenant=tenant)
+    keys = {k for _g, items in form.fields["city_category"].choices[1:] for k, _l in items}
+    assert "brot-backwaren" in keys and "schuhe" not in keys

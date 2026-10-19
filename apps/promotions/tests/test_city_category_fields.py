@@ -49,6 +49,8 @@ def test_full_form_without_field_keeps_stored_choice():
 
 def test_assistant_stores_category_and_tags(user):  # noqa: F811
     tenant = _tenant("t813-a")
+    tenant.business_type = "clothing"  # категории привязаны к типу бизнеса
+    tenant.save()
     _post(
         {"title": "Mantel", "city_category": "damenmode", "city_tags": ["regional"]},
         user,
@@ -88,3 +90,10 @@ def test_form_drops_tags_of_another_section_and_ships_tag_map():
     assert form.is_valid()
     assert city_fields.cleaned(form) == ("damenmode", ["nachhaltig"])
     assert "vegan" not in form.city_tag_map["damenmode"]
+
+
+def test_assistant_refuses_category_foreign_to_business_type(user):  # noqa: F811
+    """Пекарня (тип фабрики) не может выбрать «Damenmode»: акция не создаётся."""
+    tenant = _tenant("t813-x")
+    _post({"title": "Mantel", "city_category": "damenmode"}, user, tenant)
+    assert not Promotion.objects.exists()

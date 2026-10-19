@@ -342,3 +342,17 @@ def test_reconcile_city_catalog_removes_branch_and_restores_it():
     assert AggregatorListing.objects.filter(
         listing_kind="product", source_ref=str(product.pk)
     ).exists()
+
+
+def test_settings_main_category_offers_only_types_sections():
+    """Категории привязаны к типу бизнеса; сохранённая чужая — остаётся в списке."""
+    from apps.tenants.forms import BusinessSettingsForm
+
+    def keys(tenant):
+        field = BusinessSettingsForm(instance=tenant).fields["city_category"]
+        return {k for _g, items in field.choices[1:] for k, _l in items}
+
+    bakery = _tenant(business_type="bakery")
+    assert "brot-backwaren" in keys(bakery) and "schuhe" not in keys(bakery)
+    bakery.city_category = "schuhe"
+    assert "schuhe" in keys(bakery)

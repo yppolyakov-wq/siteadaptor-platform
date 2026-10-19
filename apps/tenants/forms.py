@@ -198,7 +198,12 @@ class BusinessSettingsForm(forms.ModelForm):
         self.fields["city_category"] = forms.ChoiceField(
             label=_("Hauptkategorie im Stadtkatalog"),
             required=False,
-            choices=[("", _("Automatisch: %(cat)s") % {"cat": auto}), *cc.grouped_choices()],
+            choices=[
+                ("", _("Automatisch: %(cat)s") % {"cat": auto}),
+                *cc.grouped_choices(
+                    self.instance.business_type, keep=self.instance.city_category or ""
+                ),
+            ],
             help_text=_(
                 "Unter dieser Rubrik erscheinen Ihr Unternehmen und Ihre Leistungen im Stadtportal."
             ),

@@ -18553,3 +18553,14 @@ chat.id == from.id == owner_chat_id; клиентский чат — прежн�
 снимается после нажатия. Ревью django+security закрыто. Замки `test_telegram_promo_ai` (7),
 `test_telegram_promo_repeat` (9). **T-8.10b ✅ ЦЕЛИКОМ.**
 
+
+- **2026-10-19 — T-8.13c «категории привязаны к типу бизнеса» ✅ (без миграций).** Запрос владельца.
+  `core/city_categories.py`: `SECTIONS_BY_BUSINESS_TYPE` (главный раздел первым; retail/online_shop/
+  other — все 15 разделов), `category_allowed`, `allowed_by_type`, `grouped_choices(type, keep=)`.
+  Списки категорий отфильтрованы в форме акции, ассистенте, «Mein Geschäft» (Hauptkategorie), форме
+  категории каталога и сопоставлении категорий (сохранение чужого раздела отклоняется, уже
+  сохранённое значение остаётся — W0). Регистрация `/aktion-starten/`: тип выбирается в той же
+  форме → JS скрывает чужие разделы и сбрасывает чужой выбор, `clean()` обнуляет чужую категорию.
+  ИИ-черновик по фото: чужая категория → «Automatisch». Стенд Playwright: пекарня 13 категорий,
+  одежда 9, ритейл 76. Замки: `test_city_categories_by_type` + блоки в quick_start/city_mapping/
+  city_category_fields/ai_photo_draft/city_products.

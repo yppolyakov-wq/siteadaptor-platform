@@ -586,7 +586,7 @@ def category_list(request):
             "categories": tree,
             "roots": roots,
             "city_map": _city_map_rows(tree),  # T-8.13b
-            "city_map_groups": _city_map_groups(),
+            "city_map_groups": _city_map_groups(request, tree),
         },
     )
 
@@ -610,10 +610,13 @@ def _city_map_rows(tree) -> list[dict]:
     return rows
 
 
-def _city_map_groups():
+def _city_map_groups(request, tree):
+    """Категории разделов своего типа бизнеса; уже выбранные у строк — сохраняются."""
     from apps.core import city_categories as cc
 
-    return cc.grouped_choices()
+    tenant = getattr(request, "tenant", None)
+    keep = {c.city_category for c in tree if c.city_category}
+    return cc.grouped_choices(getattr(tenant, "business_type", None), keep=keep)
 
 
 def _save_city_map(request):
@@ -622,8 +625,12 @@ def _save_city_map(request):
 
     ids = request.POST.getlist("map_id")
     changed = 0
+    btype = getattr(getattr(request, "tenant", None), "business_type", "")
     for cat in Category.objects.filter(pk__in=[i for i in ids if _is_uuid(i)]):
         value = cc.normalize_category(request.POST.get(f"map_{cat.pk}", ""))
+        # Чужой типу бизнеса раздел не принимаем (прежний выбор строки остаётся).
+        if value != cat.city_category and not cc.category_allowed(value, btype):
+            value = cat.city_category
         # T-8.11: строка несёт и «не в каталоге города» (галочка; строка прислана → снятая
         # галочка значит «показывать»).
         hide = bool(request.POST.get(f"hide_{cat.pk}"))
