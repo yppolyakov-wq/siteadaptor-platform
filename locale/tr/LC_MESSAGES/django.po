@@ -26270,8 +26270,8 @@ msgstr "Yanıt öner"
 msgid "Vorschlag wird erstellt…"
 msgstr "Öneri hazırlanıyor…"
 
-msgid "Tageslimit erreicht – bitte später erneut versuchen."
-msgstr "Sınıra ulaşıldı – lütfen daha sonra tekrar deneyin."
+msgid "Limit erreicht – bitte in einigen Minuten erneut versuchen."
+msgstr "Sınıra ulaşıldı – lütfen birkaç dakika sonra tekrar deneyin."
 
 msgid ""
 "Der Vorschlag enthielt Angaben, die nicht aus Ihren Daten stammen, und wurde"

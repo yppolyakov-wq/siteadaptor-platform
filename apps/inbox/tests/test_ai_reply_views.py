@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.core.cache import cache
 from django.http import Http404
 from django.test import RequestFactory
 from django.urls import reverse
@@ -26,10 +25,8 @@ def _urlconf(settings):
 
 
 @pytest.fixture(autouse=True)
-def _clean_cache():
-    cache.clear()
-    yield
-    cache.clear()
+def _private_cache(ai_cache):
+    return ai_cache
 
 
 def _user():
@@ -119,7 +116,9 @@ def test_cache_hit_bypasses_rate_limit_and_generate(ai_on, isolated_ratelimit, m
     req = _req("post")
     digest = ai_reply.digest_for(conv, ai_facts.facts_for(conv, req.tenant))
     schema = views._ai_schema()
-    cache.set(ai_reply._cache_key(schema, digest), {"draft": "Ja, gern.", "language": "de"}, 60)
+    ai_reply.cache.set(
+        ai_reply._cache_key(schema, digest), {"draft": "Ja, gern.", "language": "de"}, 60
+    )
     for _ in range(ai_reply.RATE_LIMIT + 5):
         data = _json(views.reply_draft_start(_req("post", tenant=req.tenant), pk=conv.pk))
         assert data["state"] == "done" and data["draft"] == "Ja, gern." and data["label"]
@@ -145,7 +144,7 @@ def test_result_done_returns_draft_and_label(ai_on, monkeypatch):
     job = _json(views.reply_draft_start(_req("post", user=user), pk=conv.pk))["job"]
     pending = _json(views.reply_draft_result(_req("get", user=user), job=job))
     assert pending == {"state": "pending"}
-    cache.set(
+    ai_reply.cache.set(
         ai_reply._job_key(views._ai_schema(), user.pk, job),
         {"state": "done", "draft": "Wir prüfen das.", "language": "de"},
         60,
@@ -179,3 +178,15 @@ def test_privacy_text_gets_ai_paragraph_only_when_ai_and_inbox_on(settings):
 
     own = TenantFactory.build(privacy_policy="Eigener Text.", disabled_modules=[])
     assert own.privacy_text() == "Eigener Text."
+
+
+def test_start_facts_failure_returns_unavailable_not_500(ai_on, isolated_ratelimit, monkeypatch):
+    """Ревью T-8.10g: сбой сборки фактов во view — JSON, а не 500."""
+    from apps.inbox import ai_facts
+
+    def boom(*a, **kw):
+        raise RuntimeError("db hiccup")
+
+    monkeypatch.setattr(ai_facts, "facts_for", boom)
+    conv = _conv()
+    assert _json(views.reply_draft_start(_req("post"), pk=conv.pk)) == {"code": "unavailable"}

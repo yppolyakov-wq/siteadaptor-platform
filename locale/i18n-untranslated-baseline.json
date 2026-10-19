@@ -63,6 +63,9 @@
   "Gegenkonto (ohne BU-Schlüssel)",
   "Konto"
  ],
+ "apps/inbox/ai_reply.py": [
+  "(?<!ge)n[uü]ss|(?:^|(?<=[rl]))eier|"
+ ],
  "apps/inventory/models.py": [
   "Signed: +Zugang / −Abgang"
  ],

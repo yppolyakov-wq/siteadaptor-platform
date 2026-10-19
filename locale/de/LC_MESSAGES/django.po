@@ -26207,8 +26207,8 @@ msgstr "Antwort vorschlagen"
 msgid "Vorschlag wird erstellt…"
 msgstr "Vorschlag wird erstellt…"
 
-msgid "Tageslimit erreicht – bitte später erneut versuchen."
-msgstr "Tageslimit erreicht – bitte später erneut versuchen."
+msgid "Limit erreicht – bitte in einigen Minuten erneut versuchen."
+msgstr "Limit erreicht – bitte in einigen Minuten erneut versuchen."
 
 msgid ""
 "Der Vorschlag enthielt Angaben, die nicht aus Ihren Daten stammen, und wurde"

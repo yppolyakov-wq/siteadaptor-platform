@@ -34,3 +34,16 @@ def isolated_ratelimit(monkeypatch):
     store = LocMemCache("rl-test-inbox", {})
     monkeypatch.setattr(ratelimit, "cache", store)
     return store
+
+
+@pytest.fixture
+def ai_cache(monkeypatch):
+    """Кэш задач/черновиков ИИ — приватный LocMem: `cache.clear()` общего Redis под
+    xdist стирал бы задачи соседних тестов."""
+    from django.core.cache.backends.locmem import LocMemCache
+
+    from apps.inbox import ai_reply
+
+    store = LocMemCache(f"ai-reply-test-{id(monkeypatch)}", {})
+    monkeypatch.setattr(ai_reply, "cache", store)
+    return store

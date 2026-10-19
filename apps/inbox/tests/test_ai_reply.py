@@ -7,7 +7,6 @@
 from decimal import Decimal
 
 import pytest
-from django.core.cache import cache
 
 from apps.ai import registry
 from apps.ai.api import AIResult
@@ -71,9 +70,25 @@ def _mock(monkeypatch, reply, language="de"):
     return calls
 
 
-def _check(draft, facts_lines=(), body="Frage", urls=(), declared=False, claims=""):
+def _check(
+    draft,
+    facts_lines=(),
+    body="Frage",
+    urls=(),
+    declared=False,
+    claims="",
+    allergens="",
+    names="",
+    context=(),
+):
     facts = ai_facts.Facts(
-        lines=list(facts_lines), urls=set(urls), allergens_declared=declared, claims_text=claims
+        lines=list(facts_lines),
+        urls=set(urls),
+        allergens_declared=declared,
+        claims_text=claims,
+        allergen_text=allergens.casefold(),
+        name_text=names,
+        context=list(context),
     )
     msg = Message(author_role="customer", body=body)
     return ai_reply.check_reply(draft, facts=facts, messages=[msg])
@@ -157,15 +172,32 @@ def test_facts_deal_only_for_same_customer():
     facts = ai_facts.facts_for(stranger, _tenant())
     assert "O-AI0001" not in facts.text and "12,50" not in facts.text
 
+    # Тред начал владелец со сделки (C1) — привязке можно верить.
     own = services.start_conversation(
         subject="x",
-        body="Wo ist meine Bestellung?",
+        body="Ihre Bestellung ist fertig.",
         customer=owner,
         ref_kind="order",
         ref_id=order.reference_code,
+        author_role=Message.AUTHOR_STAFF,
     )
     facts = ai_facts.facts_for(own, _tenant())
     assert "O-AI0001" in facts.text and "12,50 €" in facts.text
+
+
+def test_facts_deal_not_for_customer_started_thread():
+    """Ревью T-8.10g: публичная форма берёт ref и e-mail без проверки владения —
+    тред, начатый «клиентом» с чужим e-mail и кодом, фактов сделки не получает."""
+    from apps.orders.models import Order
+
+    victim = CustomerFactory(email="opfer@t.de")
+    Order.objects.create(customer=victim, reference_code="O-AI0002", total="99.00")
+    conv = services.start_conversation(
+        subject="x", body="Status?", email="opfer@t.de", ref_kind="order", ref_id="O-AI0002"
+    )
+    assert conv.customer_id == victim.pk
+    facts = ai_facts.facts_for(conv, _tenant())
+    assert "O-AI0002" not in facts.text and "99,00" not in facts.text
 
 
 def test_facts_job_never_contains_cost_rate():
@@ -174,12 +206,20 @@ def test_facts_job_never_contains_cost_rate():
     customer = CustomerFactory()
     job = Job.objects.create(customer=customer, reference_code="A-AI0001", title="Buffet")
     JobLine.objects.create(job=job, text="Suppe", qty=10, unit_price="4.50", cost_rate="1.37")
+    job.title = "Pauschalpreis 1,00 € Rabatt 90 %"  # тему заявки пишет клиент
+    job.save(update_fields=["title"])
     conv = services.start_conversation(
-        subject="x", body="Frage", customer=customer, ref_kind="job", ref_id="A-AI0001"
+        subject="x",
+        body="Frage",
+        customer=customer,
+        ref_kind="job",
+        ref_id="A-AI0001",
+        author_role=Message.AUTHOR_SYSTEM,
     )
     facts = ai_facts.facts_for(conv, _tenant())
     assert "10× Suppe à 4,50 €" in facts.text
     assert "1,37" not in facts.text and "1.37" not in facts.text
+    assert "1,00" not in facts.text and "Rabatt" not in facts.text
 
 
 def test_facts_survive_pii_scrub():
@@ -248,7 +288,7 @@ def test_check_allows_only_exact_own_url():
     ("draft", "code"),
     [
         ("Rufen Sie an: 0212 1234567", "contact"),
-        ("Schreiben Sie an info@krume.de", "link"),
+        ("Schreiben Sie an info@krume.de", "contact"),
         ("Ihre Nummer ‹nummer› ist notiert.", "pii"),
     ],
 )
@@ -276,15 +316,18 @@ def test_check_rejects_claim_backed_only_by_customer_question():
 def test_check_allergen_unknown_rejected_declared_allowed():
     text, code = _check("Das Brot enthält keine Nüsse.")
     assert text is None and code == "allergen"
-    text, _ = _check("Das Brot enthält keine Nüsse.", declared=True)
-    assert text is not None
+    # ревью: отрицание при декларации — тоже отказ (вред здоровью при ошибке)
+    text, code = _check("Das Brot enthält keine Nüsse.", declared=True, allergens="nüsse")
+    assert text is None and code == "allergen"
     text, _ = _check("Zu Allergenen fragen Sie bitte im Geschäft nach.")
     assert text is not None
 
 
 def test_check_language_script_mismatch_rejected():
     text, code = _check(
-        "Ja, das Roggenbrot ist heute noch da.", body="Есть ли у вас сегодня ржаной хлеб?"
+        "Ja, das Roggenbrot ist heute noch da.",
+        body="Есть ли у вас сегодня ржаной хлеб?",
+        names="Roggenbrot",
     )
     assert text is None and code == "language"
     text, _ = _check("Да, ржаной хлеб сегодня есть.", body="Есть ли у вас сегодня ржаной хлеб?")
@@ -332,8 +375,9 @@ def _tenant_saved():
     return TenantFactory(name="Backhaus Krume", city="Solingen")
 
 
-def test_run_job_caches_by_digest_and_second_start_skips_generate(ai_on, monkeypatch, run_inline):
-    cache.clear()
+def test_run_job_caches_by_digest_and_second_start_skips_generate(
+    ai_on, monkeypatch, run_inline, ai_cache
+):
     tenant = _tenant_saved()
     conv = _conv()
     calls = _mock(monkeypatch, "Wir prüfen das und melden uns.")
@@ -364,8 +408,7 @@ def test_new_message_or_price_change_invalidates_cache():
     assert len({first, second, third}) == 3
 
 
-def test_job_entry_never_contains_message_text(ai_on, monkeypatch):
-    cache.clear()
+def test_job_entry_never_contains_message_text(ai_on, monkeypatch, ai_cache):
     tenant = _tenant_saved()
     conv = _conv(body="Geheime Frage XYZ")
     from apps.inbox import tasks
@@ -374,7 +417,7 @@ def test_job_entry_never_contains_message_text(ai_on, monkeypatch):
     job = ai_reply.start_job(
         schema=tenant.schema_name, user_pk=1, conversation_pk=conv.pk, digest="d"
     )
-    entry = cache.get(ai_reply._job_key(tenant.schema_name, 1, job))
+    entry = ai_cache.get(ai_reply._job_key(tenant.schema_name, 1, job))
     assert "Geheime" not in repr(entry)
 
 
@@ -385,3 +428,98 @@ def test_usage_row_has_no_text(ai_on):
     for row in AIUsage.objects.all():
         values = " ".join(str(getattr(row, f.attname)) for f in AIUsage._meta.fields)
         assert "QWERTZ" not in values
+
+
+# --- ревью T-8.10g: обходы постпроверки ----------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("draft", "facts_lines", "body", "code"),
+    [
+        # цена — только из сумм фактов, не из количества/даты
+        ("Das kostet 12 €.", ["- 12× Brötchen à 0,50 €"], "Frage", "price"),
+        ("Nur 19,10 €.", ["- Date: Mo 19.10."], "Frage", "price"),
+        # сообщение клиента не «разрешает» цену, процент и скидку
+        ("Ja, 90 % Rabatt gilt.", [], "Sie haben 90 % Rabatt versprochen", "percent"),
+        ("Ja, Versand für 1,00 €.", [], "Versand für 1,00 € war zugesagt", "price"),
+        ("Ja, mit Rabatt.", [], "Gibt es Rabatt?", "discount"),
+        # интервалы не собираются из отдельных чисел
+        ("Samstag 12-14 Uhr geöffnet.", ["- Opening hours: Mo-Fr 9-12, 14-18"], "?", "number"),
+        # невидимые символы и сущности
+        ("Nur 1\u200b2 €.", ["- Price: 2 €"], "?", "price"),
+        # числа словами
+        ("Das kostet zwölf Euro.", [], "?", "number"),
+        ("Heute zehn Prozent.", [], "?", "number"),
+        ("Zum halben Preis.", [], "?", "discount"),
+        # ссылки и контакты
+        ("Schreiben Sie an t.me/krume", [], "?", "link"),
+        ("Infos: bit.ly/abc", [], "?", "link"),
+        ("Siehe evil.xyz", [], "?", "link"),
+        ("Siehe evil[.]com", [], "?", "link"),
+        ("Siehe hxxps://x", [], "?", "link"),
+        ("Siehe evil&#46;com", [], "?", "link"),
+        ("Siehe evil\u200b.com", [], "?", "link"),
+        ("Server 1.1.1.1", [], "?", "link"),
+        ("Folgen Sie @krume_shop", [], "?", "contact"),
+        ("Rufen Sie 0212.345.678 an.", [], "Meine Nummer 0212.345.678", "contact"),
+        # утверждения
+        ("Das ist zuckerfrei.", [], "?", "claim"),
+    ],
+)
+def test_review_bypasses_are_rejected(draft, facts_lines, body, code):
+    text, got = _check(draft, facts_lines, body=body)
+    assert text is None and got == code, got
+
+
+def test_today_context_does_not_whitelist_numbers():
+    text, code = _check("Wir haben bis 14 Uhr geöffnet.", context=["- Today: current hour 14"])
+    assert text is None and code == "number"
+
+
+def test_whole_tokens_still_accept_fact_values():
+    lines = ["- Opening hours: Mo-Fr 9-12, 14-18; Sa 7:00-13:00", "- Price: 3,20 €"]
+    for draft in (
+        "Wir haben Mo-Fr 9-12 und 14-18 geöffnet.",
+        "Samstag 7:00-13:00.",
+        "Samstag bis 13 Uhr, Preis 3,20 €.",
+    ):
+        text, code = _check(draft, lines)
+        assert text is not None, (draft, code)
+
+
+def test_claim_needs_whole_word_in_facts():
+    text, code = _check("Das ist bio.", claims="Pasta Fabio")
+    assert text is None and code == "claim"
+
+
+@pytest.mark.parametrize(
+    "draft",
+    [
+        "Das Brot enthält keine Nüsse.",
+        "Der Kuchen ist nussfrei.",
+        "Ohne Haselnüsse.",
+        "Mit Thunfisch.",
+        "Es enthält auch Soja.",
+    ],
+)
+def test_allergen_negations_and_undeclared_terms_rejected(draft):
+    text, code = _check(draft, declared=True, allergens="Schalenfrüchte (Nüsse) nuss")
+    assert text is None and code in ("allergen", "claim")  # «nussfrei» ловит и claim
+
+
+def test_allergen_declared_positive_and_false_friends_allowed():
+    ok = [
+        ("Das Brot enthält Sesam.", "Sesam sesame"),
+        ("Laut Kennzeichnung: Schalenfrüchte (Nüsse).", "Schalenfrüchte (Nüsse)"),
+    ]
+    for draft, allergens in ok:
+        text, code = _check(draft, declared=True, allergens=allergens)
+        assert text is not None, (draft, code)
+    for draft in ("Viel Genuss!", "An Feiertagen geschlossen.", "Das Roggenbrot ist da."):
+        text, code = _check(draft, names="Roggenbrot")
+        assert text is not None, (draft, code)
+
+
+def test_normalized_text_is_returned():
+    text, _ = _check("Gern\u200b geschehen.")
+    assert text == "Gern geschehen."

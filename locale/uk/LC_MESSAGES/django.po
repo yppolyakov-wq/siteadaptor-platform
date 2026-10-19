@@ -26383,8 +26383,8 @@ msgstr "Запропонувати відповідь"
 msgid "Vorschlag wird erstellt…"
 msgstr "Готуємо варіант відповіді…"
 
-msgid "Tageslimit erreicht – bitte später erneut versuchen."
-msgstr "Ліміт вичерпано — спробуйте пізніше."
+msgid "Limit erreicht – bitte in einigen Minuten erneut versuchen."
+msgstr "Ліміт вичерпано — спробуйте за кілька хвилин."
 
 msgid ""
 "Der Vorschlag enthielt Angaben, die nicht aus Ihren Daten stammen, und wurde"

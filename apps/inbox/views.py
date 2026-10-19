@@ -207,8 +207,14 @@ def reply_draft_start(request, pk):
         return JsonResponse({"code": "disabled"})
     conversation = get_object_or_404(Conversation, pk=pk)
     schema = _ai_schema()
-    facts = ai_facts.facts_for(conversation, getattr(request, "tenant", None))
-    digest = ai_reply.digest_for(conversation, facts)
+    # Щедрый общий лимит ДО сборки фактов (запросы к БД) — и на путь из кэша.
+    if ratelimit.hit("ai-reply-req", f"{schema}:{request.user.pk}", limit=60, window=600):
+        return JsonResponse({"code": "quota"})
+    try:
+        facts = ai_facts.facts_for(conversation, getattr(request, "tenant", None))
+        digest = ai_reply.digest_for(conversation, facts)
+    except Exception:  # noqa: BLE001 — сбой сборки фактов: спокойная ошибка, тред живёт
+        return JsonResponse({"code": "unavailable"})
     hit = ai_reply.cached(schema, digest)
     if hit is not None:
         return JsonResponse({"state": "done", "label": str(AI_LABEL), **hit})

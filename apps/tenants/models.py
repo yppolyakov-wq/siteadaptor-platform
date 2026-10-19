@@ -441,8 +441,9 @@ class Tenant(TenantMixin):
             return ""
         return (
             "Antworten auf Ihre Nachrichten können wir mit Hilfe von KI-Diensten "
-            "vorbereiten lassen. Dabei werden der Nachrichtenverlauf (ohne E-Mail-"
-            "Adressen, Telefon- und Kontonummern) und Angaben zu unserem Angebot an "
+            "vorbereiten lassen. Dabei werden die Inhalte der Nachrichten (erkennbare "
+            "E-Mail-Adressen, Telefon- und Kontonummern werden vorher entfernt), Angaben "
+            "zu Ihrer Bestellung oder Anfrage und zu unserem Angebot an "
             "Auftragsverarbeiter mit Servern in der EU übermittelt (Art. 28 DSGVO). "
             "Jede Antwort wird von unseren Mitarbeitenden geprüft und selbst versendet.\n\n"
         )
