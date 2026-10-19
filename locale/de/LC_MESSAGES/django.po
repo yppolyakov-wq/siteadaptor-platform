@@ -26088,3 +26088,10 @@ msgstr "Assistenten (KI): gezeigt · geöffnet"
 
 msgid "Anfragen von KI-Assistenten, nicht Personen"
 msgstr "Anfragen von KI-Assistenten, nicht Personen"
+
+msgid ""
+"MCP-Server (Streamable HTTP, ohne Anmeldung): search_offers, get_offer, "
+"get_business, list_categories, list_districts."
+msgstr ""
+"MCP-Server (Streamable HTTP, ohne Anmeldung): search_offers, get_offer, "
+"get_business, list_categories, list_districts."

@@ -26268,3 +26268,10 @@ msgstr "Асистенти (ШІ): показано · відкрито"
 
 msgid "Anfragen von KI-Assistenten, nicht Personen"
 msgstr "запити ШІ-асистентів, а не людей"
+
+msgid ""
+"MCP-Server (Streamable HTTP, ohne Anmeldung): search_offers, get_offer, "
+"get_business, list_categories, list_districts."
+msgstr ""
+"MCP-сервер (Streamable HTTP, без входу): search_offers, get_offer, "
+"get_business, list_categories, list_districts."

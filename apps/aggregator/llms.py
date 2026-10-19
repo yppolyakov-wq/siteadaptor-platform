@@ -125,6 +125,18 @@ def build_portal(request, portal) -> str:
         feed_atom=reverse("portal-feed-atom"),
         sitemap=reverse("portal-sitemap"),
     )
+    from .mcp.views import mcp_available
+
+    if mcp_available(portal):  # T-8.10f F-5: подключаемый MCP-сервер каталога
+        lines += [
+            "## MCP",
+            f"- {abs_(reverse('portal-mcp'))}",
+            "  "
+            + _(
+                "MCP-Server (Streamable HTTP, ohne Anmeldung): search_offers, get_offer, get_business, list_categories, list_districts."
+            ),
+            "",
+        ]
     lines += _legal_block()
     return "\n".join(lines) + "\n"
 
