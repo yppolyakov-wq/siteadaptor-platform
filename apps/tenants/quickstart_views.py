@@ -15,6 +15,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
@@ -53,7 +54,7 @@ def _context(request, form):
         # лимит; анонимная страница бюджет не тратит) — здесь лишь честная подсказка.
         "ai_after_signup": _ai_enabled(),
         # T-8.5e: проверка текста без входа (свой эндпоинт публичного хоста; ИИ-кнопки нет).
-        "text_check_url": "/aktion-starten/pruefen/",
+        "text_check_url": reverse("quick-start-text-check", urlconf="config.urls_public"),
         "food_types": sorted(FOOD_BUSINESS_TYPES),
     }
 
@@ -227,7 +228,8 @@ TEXT_CHECK_FIELDS = (
     "until",
     "perishable",
 )
-TEXT_CHECK_LIMIT = 30  # запросов с одного IP за окно
+# Запросов с одного IP за окно; клиент перепроверяет после правок полей, поэтому с запасом.
+TEXT_CHECK_LIMIT = 60
 TEXT_CHECK_WINDOW = 600
 
 
