@@ -322,11 +322,14 @@ def follow_toggle(request):
     if existing is not None:
         follow.unsubscribe(existing)
     else:
-        follow.follow_now(
-            user,
-            target,
-            frequency=request.POST.get("frequency", ""),
-            portal=portal,
-            source_host=request.get_host(),
-        )
+        try:
+            follow.follow_now(
+                user,
+                target,
+                frequency=request.POST.get("frequency", ""),
+                portal=portal,
+                source_host=request.get_host(),
+            )
+        except follow.FollowLimitReached:  # T-8.10d: лимит — понятное сообщение, не 500
+            return redirect(f"{fallback}?limit=1#folgen")
     return redirect(_safe_next(request, fallback))

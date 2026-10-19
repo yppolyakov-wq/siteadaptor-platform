@@ -27,6 +27,7 @@
   <div id="folgen" class="border-t border-gray-100 pt-4 mb-6">
     <h2 class="font-semibold text-sm mb-1">🔔 {% trans "Ich folge" %}</h2>
     <p class="text-xs text-gray-500 mb-2">{% trans "Neuigkeiten von Unternehmen, Bereichen und Stadtteilen als E-Mail-Übersicht — unabhängig von den Werbe-E-Mails der Unternehmen oben." %}</p>
+    {% if request.GET.limit %}<p class="mb-2 rounded-lg bg-amber-50 p-3 text-xs text-amber-900" data-follow-limit>{% trans "Sie folgen bereits der maximalen Anzahl von Themen. Bitte entfernen Sie zuerst eines." %}</p>{% endif %}
     {% url 'aggregator-follow-toggle' as follow_action %}
     {% include "aggregator/_follow_rows.html" with rows=follow_rows action_url=follow_action next_url=request.path %}
   </div>

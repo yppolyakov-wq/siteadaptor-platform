@@ -82,6 +82,8 @@ def _narrow_choices(slug: str) -> dict:
     """Разделы/категории и марки, которые есть в выдаче компании (для формы сужения)."""
     from apps.core import city_categories as cc
 
+    from .search import BRAND_MAX
+
     rows = (
         AggregatorListing.objects.public()
         .filter(tenant_slug=slug)
@@ -96,7 +98,7 @@ def _narrow_choices(slug: str) -> dict:
         node = cc.category(key) if key else None
         if node is not None:
             kats[key] = str(node.label)
-        if brand:
+        if brand and len(brand) <= BRAND_MAX:  # длиннее фильтр марки не примет — не предлагаем
             brands.add(brand)
     return {
         "kats": sorted(kats.items(), key=lambda kv: kv[1])[:NARROW_MAX],

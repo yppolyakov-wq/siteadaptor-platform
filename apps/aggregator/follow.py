@@ -150,7 +150,7 @@ def query_target(params, *, portal) -> Target | None:
     from . import follow_query
 
     city = follow_query.city_for(params, portal)
-    pairs = follow_query.canonical(params, city=city)
+    pairs = follow_query.canonical(params, city=city, portal=portal is not None)
     if not pairs or not follow_query.valid_business(pairs):
         return None
     legacy = follow_query.legacy(pairs, city=city)
@@ -183,7 +183,12 @@ def target_from_payload(payload: dict) -> Target | None:
     from . import follow_query
 
     city = payload.get("c", "")
-    pairs = follow_query.canonical(follow_query.from_stored(payload.get("q")), city=city)
+    on_portal = payload.get("p") is not None
+    if not on_portal and not follow_query.known_city(city):
+        return None
+    pairs = follow_query.canonical(
+        follow_query.from_stored(payload.get("q")), city=city, portal=on_portal
+    )
     if not pairs or follow_query.key(pairs) != payload.get("t"):
         return None
     if not follow_query.valid_business(pairs):

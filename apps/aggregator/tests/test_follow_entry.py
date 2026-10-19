@@ -113,3 +113,67 @@ def test_business_page_no_narrow_form_for_demo():
         _req("get", f"/unternehmen/{demo.slug}/", portal=portal), demo.slug
     ).content.decode()
     assert "data-follow-narrow" not in html
+
+
+def test_free_text_with_link_or_contact_not_stored():
+    """Подпись набора уходит в DOI-письмо на любой адрес — ссылок/контактов в ней нет."""
+    assert follow_query.canonical(_qd(q="besuche evil.example.com"), city=CITY) is None
+    assert follow_query.canonical(_qd(q="www.spam"), city=CITY) is None
+    pairs = follow_query.canonical(_qd(q="Tomaten", marke="Ruf 0171 1234567"), city=CITY)
+    assert pairs == (("q", "Tomaten"),)
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_toggle_at_limit_redirects_with_message(settings):
+    from apps.aggregator import follow_views
+    from apps.aggregator.models import PortalUser
+    from apps.aggregator.tests.test_follow_query import _email, _query_sub
+
+    settings.AGGREGATOR_FOLLOW = {**getattr(settings, "AGGREGATOR_FOLLOW", {}), "max_follows": 1}
+    portal = _portal()
+    user = PortalUser.objects.create(email=_email())
+    _query_sub(user, portal, {"q": "Brot", "stadtteil": OHLIGS})
+    req = _req(
+        "post",
+        "/konto/folgen/",
+        {"art": "suche", "q": "Tomaten", "stadtteil": OHLIGS},
+        portal=portal,
+        user=user,
+    )
+    resp = follow_views.follow_toggle(req)
+    assert resp.status_code == 302 and "limit=1" in resp["Location"]
+
+
+def test_entdecken_rejects_invented_city():
+    assert follow_query.city_for(_qd(city="Fantasiestadt"), None) == ""
+    assert follow_query.follow_link(_qd(q="Tomaten", city="Fantasiestadt"), portal=None) is None
+    assert follow_query.city_for(_qd(city="solingen"), None) == CITY
+
+
+def test_intent_only_query_keeps_page_kind():
+    """«unter 5 Euro» ищет на странице по всем видам; в набор уходит только цена —
+    вид фиксируется явно, иначе письмо сузилось бы до ленты предложений."""
+    pairs = follow_query.canonical(_qd(q="unter 5 Euro"), city=CITY)
+    assert ("kind", "alle") in pairs and ("preis_bis", "5") in pairs
+    # повторная канонизация (DOI-токен) даёт тот же ключ
+    again = follow_query.canonical(pairs, city=CITY)
+    assert follow_query.key(again) == follow_query.key(pairs)
+
+
+def test_entdecken_kind_group_not_stored():
+    pairs = follow_query.canonical(_qd(q="Tomaten", kind="angebote"), city=CITY, portal=False)
+    assert pairs == (("q", "Tomaten"),)
+    pairs = follow_query.canonical(_qd(q="Tomaten", kind="product"), city=CITY, portal=False)
+    assert ("kind", "product") in pairs
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_narrow_form_skips_overlong_brands():
+    portal = _portal()
+    tenant = _tenant()
+    _listing(tenant, brand="X" * 80)
+    _listing(tenant, brand="Kurz")
+    html = reviews_views.business_page(
+        _req("get", f"/unternehmen/{tenant.slug}/", portal=portal), tenant.slug
+    ).content.decode()
+    assert "Kurz" in html and "X" * 80 not in html

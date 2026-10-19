@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from types import SimpleNamespace
 from urllib.parse import urlencode
 
@@ -54,15 +55,46 @@ def _params(value) -> QueryDict:
     return qd
 
 
+# Ссылка/домен в свободном тексте: подпись набора уходит в DOI-письмо на ЛЮБОЙ адрес —
+# чужой рекламный текст со ссылкой платформа рассылать не должна.
+_LINKISH = re.compile(
+    r"https?:|www\.|[a-z0-9-]+\.(?:de|com|net|org|io|info|eu|at|ch|ru|xyz|app|shop|online|site|biz)\b",
+    re.IGNORECASE,
+)
+
+
+def _free_text(value: str, scrub) -> str:
+    """Свободный текст набора (q, марка): без контактов (scrub) и без ссылок — иначе пусто."""
+    text = " ".join(scrub(value or "").split())[:Q_MAX].strip()
+    if "‹" in text or _LINKISH.search(text):  # адрес/телефон/ссылка — такой текст не храним
+        return ""
+    return text
+
+
+def known_city(city: str) -> bool:
+    """Город из реестра или с живыми листингами каталога — выдуманный `?city=` с
+    /entdecken/ подписку не создаёт (письмо по пустому городу и мусорная подпись)."""
+    from .models import AggregatorListing
+
+    if not city:
+        return False
+    if districts.city_key(city) in districts.CITIES:
+        return True
+    return AggregatorListing.objects.public().filter(city__iexact=city).exists()
+
+
 def city_for(params, portal) -> str:
-    """Город области подписки: портала или `?city=` на /entdecken/."""
-    raw = getattr(portal, "city", "") if portal is not None else params.get("city", "")
-    return districts.city_label(str(raw or "")[:100])
+    """Город области подписки: портала или `?city=` на /entdecken/ (только известный)."""
+    if portal is not None:
+        return districts.city_label(str(getattr(portal, "city", "") or "")[:100])
+    city = districts.city_label(str(params.get("city", "") or "")[:100])
+    return city if known_city(city) else ""
 
 
-def canonical(params, *, city: str) -> tuple[tuple[str, str], ...] | None:
+def canonical(params, *, city: str, portal: bool = True) -> tuple[tuple[str, str], ...] | None:
     """Набор фильтров подписки (кортеж пар в каноничном порядке) или None — подписываться
-    не на что (пустой набор или нет города)."""
+    не на что (пустой набор или нет города). `portal=False` — область /entdecken/: там
+    вид — только ОДИН вид листинга (группы портала страница /entdecken/ не знает)."""
     from apps.core.pii import scrub
 
     from . import portal_home_blocks as home
@@ -75,21 +107,31 @@ def canonical(params, *, city: str) -> tuple[tuple[str, str], ...] | None:
     roh = tuple(v for v in qd.getlist("roh") if v)
     q = (qd.get("q") or "").strip()[: search.SEARCH_MAX]
     q_eff, eff, _chips, _hints = search.resolve_intent(q, explicit, city=city, roh=roh)
-    q_eff = " ".join(scrub(q_eff or "").split())[:Q_MAX].strip()
-    if "‹" in q_eff:  # в запросе был адрес/телефон — такой текст не храним
-        q_eff = ""
+    q_eff = _free_text(q_eff, scrub)
+    brand = _free_text(eff.brand, scrub)
     pairs: list[tuple[str, str]] = []
     if q_eff:
         pairs.append(("q", q_eff))
     kind = (qd.get("kind") or "").strip()
-    if kind and home.kinds_for(kind):
-        pairs.append(("kind", kind))
+    if portal:
+        if not home.kinds_for(kind):
+            kind = ""
+        # Вид выдачи страницы считается по СЫРОМУ запросу: «unter 5 Euro» ищет по всем
+        # видам, а в набор уходит только цена — без явного вида письмо сузилось бы до ленты.
+        page_kind = home.default_kind(kind, q, explicit)
+        kept = SimpleNamespace(
+            kats=eff.kats, tags=eff.tags, size=eff.size, brand=brand, business=eff.business
+        )
+        if page_kind and page_kind != home.default_kind("", q_eff, kept):
+            kind = page_kind
+    elif kind not in home.ALL_KINDS:
+        kind = ""
     pairs += [("kat", k) for k in sorted(eff.kats)[:MAX_KATS]]
     pairs += [("merkmal", t) for t in sorted(eff.tags)[:MAX_TAGS]]
     for key, value in (
         ("stadtteil", eff.district),
         ("unternehmen", eff.business),
-        ("marke", eff.brand),
+        ("marke", brand),
         ("groesse", eff.size),
         ("preis_von", "" if eff.price_from is None else str(eff.price_from)),
         ("preis_bis", "" if eff.price_to is None else str(eff.price_to)),
@@ -97,8 +139,10 @@ def canonical(params, *, city: str) -> tuple[tuple[str, str], ...] | None:
     ):
         if value:
             pairs.append((key, value))
-    if not pairs:
+    if not pairs:  # один лишь вид — «всё подряд», а не выбор жителя: такой подписки нет
         return None
+    if kind:
+        pairs.append(("kind", kind))
     # Без «roh=ort» повторный разбор остатка превратил бы слово района в фильтр, и
     # письмо разошлось бы со ссылкой — флаг храним, но только при живом тексте.
     if q_eff and "ort" in roh:
