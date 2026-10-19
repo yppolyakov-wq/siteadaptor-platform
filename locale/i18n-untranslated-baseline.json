@@ -75,6 +75,9 @@
  "apps/notifications/adapters.py": [
   "kein aktiver Telegram-Bot"
  ],
+ "apps/promotions/message_parse.py": [
+  "\\s+(?:zum\\s+)?("
+ ],
  "apps/promotions/presets.py": [
   "Feierabend-Überraschungstüte",
   "Frühbucher-Rabatt: 10 % bei Buchung 8 Wochen im Voraus",
