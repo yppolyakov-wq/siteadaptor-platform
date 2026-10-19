@@ -358,7 +358,7 @@ def _applied(q: str, filters) -> dict:
     if filters.price_to is not None:
         out["price_max"] = str(filters.price_to)
     if filters.date:
-        out["date"] = filters.date
+        out["date"] = {"heute": "today", "wochenende": "weekend"}.get(filters.date, filters.date)
     if filters.open_now:
         out["open_now"] = True
     if filters.size:
@@ -369,11 +369,19 @@ def _applied(q: str, filters) -> dict:
 
 
 def search_offers(args: dict, ctx: Context) -> dict:
+    from apps.core import ratelimit
     from apps.core.pagination import paginate_ranked
 
     from .. import query_intent
     from .. import search as engine
+    from ..views import SEARCH_RATE_LIMIT
 
+    # Поиск дороже прочих инструментов (полнотекст, опечатки, подсчёт) — свой лимит на IP,
+    # как у поиска портала, а не общий лимит эндпоинта (security/django-ревью F-2).
+    if ratelimit.hit(
+        "mcp-search", ratelimit.client_ip(ctx.request), limit=SEARCH_RATE_LIMIT, window=60
+    ):
+        raise ToolError(_("Zu viele Anfragen — bitte kurz warten."))
     portal = ctx.portal
     city = portal.city or ""
     q = (args.get("query") or "").strip()
@@ -390,15 +398,24 @@ def search_offers(args: dict, ctx: Context) -> dict:
         q_eff,
         filters,
         surface="mcp",
+        track=False,
+    )
+    # Журнал T-8.21: листание (cursor) — не новый поиск, как на портале.
+    from dataclasses import replace as _replace
+
+    engine.record(
+        _replace(outcome, query=q) if q != outcome.query else outcome,
+        surface="mcp",
         city=city,
         portal_host=portal.host,
-        log_query=q,
+        first_page=not args.get("cursor"),
         extra={"auto": query_intent.auto_keys(chips)},
     )
     qs = outcome.qs if outcome.ranked else outcome.qs.order_by("-created_at", "-pk")
     limit = min(int(args.get("limit") or 10), LIMIT_MAX)
     page = paginate_ranked(qs, limit=limit, cursor=args.get("cursor"), max_results=DEPTH_MAX)
-    cap = settings.AGGREGATOR_SEARCH["max_results"]
+    # Ассистенту не обещаем больше, чем он может пролистать (глубина выдачи).
+    cap = min(settings.AGGREGATOR_SEARCH["max_results"], DEPTH_MAX)
     total = engine.count_capped(outcome.qs, cap)
     return {
         "items": [card(listing, ctx) for listing in page.items],
@@ -422,7 +439,12 @@ def _tenant(schema: str):
 def get_offer(args: dict, ctx: Context) -> dict:
     from ..structured import seller_data
 
-    listing = _pool(ctx.portal).filter(pk=args["offer_id"]).first()
+    listing = (
+        _pool(ctx.portal)
+        .exclude(listing_kind=AggregatorListing.KIND_BUSINESS)  # компания — get_business
+        .filter(pk=args["offer_id"])
+        .first()
+    )
     if listing is None:
         raise ToolError(_("Angebot nicht gefunden."))
     return {

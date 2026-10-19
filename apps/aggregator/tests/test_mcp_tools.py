@@ -297,3 +297,53 @@ def test_search_query_count_is_bounded(django_assert_max_num_queries):
     with django_assert_max_num_queries(12):
         data = _data(portal, "search_offers", {"limit": 10})
     assert len(data["items"]) == 10
+
+
+# --- ревью F-2 ----------------------------------------------------------------
+
+
+@override_settings(**ON)
+def test_paging_is_logged_once():
+    portal = _portal()
+    for i in range(3):
+        _listing(source_ref=f"p{i}", title={"de": f"Brotkorb {i}"})
+    first = _data(portal, "search_offers", {"query": "Brotkorb", "limit": 1})
+    _data(
+        portal, "search_offers", {"query": "Brotkorb", "limit": 1, "cursor": first["next_cursor"]}
+    )
+    assert SearchQueryLog.objects.get().searches == 1
+
+
+@override_settings(**ON)
+def test_search_has_own_rate_limit(monkeypatch):
+    from apps.aggregator import views as agg_views
+
+    portal = _portal()
+    monkeypatch.setattr(agg_views, "SEARCH_RATE_LIMIT", 1)
+    assert _call(portal, "search_offers", {})["isError"] is False
+    assert _call(portal, "search_offers", {})["isError"] is True
+    # прочие инструменты лимитом поиска не задеты
+    assert _call(portal, "list_districts", {})["isError"] is False
+
+
+@override_settings(**ON)
+def test_applied_date_uses_input_vocabulary():
+    portal = _portal()
+    data = _data(portal, "search_offers", {"date": "today"})
+    assert data["applied_filters"]["date"] == "today"
+
+
+@override_settings(**ON)
+def test_business_card_is_not_an_offer():
+    portal = _portal()
+    card = _listing(source_ref="firma", listing_kind="business")
+    assert _call(portal, "get_offer", {"offer_id": card.pk})["isError"] is True
+
+
+@override_settings(**ON)
+def test_total_never_promises_more_than_reachable(settings):
+    settings.AGGREGATOR_SEARCH = {**settings.AGGREGATOR_SEARCH, "max_results": 10_000}
+    portal = _portal()
+    _listing()
+    data = _data(portal, "search_offers", {})
+    assert data["total"] <= handlers.DEPTH_MAX
