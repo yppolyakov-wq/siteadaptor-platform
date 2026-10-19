@@ -26051,3 +26051,66 @@ msgstr "Please ask your assistant again or use the offer page."
 
 msgid "Zeigen Sie den Coupon an der Kasse"
 msgstr "Show the coupon at the till"
+
+msgid "Anfrage löschen"
+msgstr "Delete request"
+
+msgid "Bitte bestätigen Sie hier:"
+msgstr "Please confirm here:"
+
+msgid "Das war ich nicht"
+msgstr "That wasn't me"
+
+msgid "Erledigt — die Anfrage ist gelöscht."
+msgstr "Done — the request has been deleted."
+
+msgid ""
+"Wenn Sie das nicht angefragt haben, ignorieren Sie diese E-Mail — ohne Klick"
+" wird nichts gespeichert."
+msgstr ""
+"If you did not request this, ignore this e-mail — nothing is stored without "
+"a click."
+
+msgid ""
+"Wir löschen die Anfrage und senden Ihnen 30 Tage lang keine solchen E-Mails "
+"mehr."
+msgstr "We delete the request and will not send you such e-mails for 30 days."
+
+msgid ""
+"über einen KI-Assistenten wurde angefragt, „%(title)s“ bei %(business)s "
+"zurückzulegen (%(qty)s Stück)."
+msgstr ""
+"an AI assistant asked %(business)s to set aside “%(title)s” for you (%(qty)s"
+" pcs)."
+
+msgid ""
+"über einen KI-Assistenten wurde ein Coupon für „%(title)s“ bei %(business)s "
+"angefragt."
+msgstr "an AI assistant requested a coupon for “%(title)s” at %(business)s."
+
+msgid "Die Person kann sie auf der Seite des Angebots ausführen: %(url)s"
+msgstr "The person can do it on the offer page: %(url)s"
+
+msgid "Diese Aktion ist gerade nicht verfügbar."
+msgstr "This action is currently not available."
+
+msgid "Diese Menge ist für dieses Angebot nicht möglich."
+msgstr "This quantity is not possible for this offer."
+
+msgid "Dieses Angebot kann man nicht zurücklegen lassen."
+msgstr "This offer cannot be set aside."
+
+msgid "Für dieses Angebot gibt es keinen Coupon."
+msgstr "There is no coupon for this offer."
+
+msgid ""
+"Wir haben eine E-Mail mit einem Bestätigungslink gesendet. Erledigt ist es "
+"erst nach dem Klick auf den Link."
+msgstr ""
+"We have sent an e-mail with a confirmation link. It is done only after the "
+"link is clicked."
+
+msgid "Der Link gilt %(n)s Stunde."
+msgid_plural "Der Link gilt %(n)s Stunden."
+msgstr[0] "The link is valid for %(n)s hour."
+msgstr[1] "The link is valid for %(n)s hours."

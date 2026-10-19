@@ -26304,3 +26304,68 @@ msgstr "Попросіть асистента ще раз або відкрий�
 
 msgid "Zeigen Sie den Coupon an der Kasse"
 msgstr "Покажіть купон на касі"
+
+msgid "Anfrage löschen"
+msgstr "Видалити запит"
+
+msgid "Bitte bestätigen Sie hier:"
+msgstr "Будь ласка, підтвердьте тут:"
+
+msgid "Das war ich nicht"
+msgstr "Це був не я"
+
+msgid "Erledigt — die Anfrage ist gelöscht."
+msgstr "Готово — запит видалено."
+
+msgid ""
+"Wenn Sie das nicht angefragt haben, ignorieren Sie diese E-Mail — ohne Klick"
+" wird nichts gespeichert."
+msgstr ""
+"Якщо ви цього не запитували, просто проігноруйте лист — без кліку нічого не "
+"зберігається."
+
+msgid ""
+"Wir löschen die Anfrage und senden Ihnen 30 Tage lang keine solchen E-Mails "
+"mehr."
+msgstr "Ми видалимо запит і 30 днів не надсилатимемо вам такі листи."
+
+msgid ""
+"über einen KI-Assistenten wurde angefragt, „%(title)s“ bei %(business)s "
+"zurückzulegen (%(qty)s Stück)."
+msgstr ""
+"через ШІ-асистента запитано відкласти «%(title)s» у %(business)s (%(qty)s "
+"шт.)."
+
+msgid ""
+"über einen KI-Assistenten wurde ein Coupon für „%(title)s“ bei %(business)s "
+"angefragt."
+msgstr "через ШІ-асистента запитано купон на «%(title)s» у %(business)s."
+
+msgid "Die Person kann sie auf der Seite des Angebots ausführen: %(url)s"
+msgstr "Людина може зробити це на сторінці пропозиції: %(url)s"
+
+msgid "Diese Aktion ist gerade nicht verfügbar."
+msgstr "Ця дія зараз недоступна."
+
+msgid "Diese Menge ist für dieses Angebot nicht möglich."
+msgstr "Така кількість для цієї пропозиції неможлива."
+
+msgid "Dieses Angebot kann man nicht zurücklegen lassen."
+msgstr "Цю пропозицію не можна відкласти."
+
+msgid "Für dieses Angebot gibt es keinen Coupon."
+msgstr "Для цієї пропозиції купона немає."
+
+msgid ""
+"Wir haben eine E-Mail mit einem Bestätigungslink gesendet. Erledigt ist es "
+"erst nach dem Klick auf den Link."
+msgstr ""
+"Ми надіслали лист із посиланням для підтвердження. Готово буде лише після "
+"переходу за посиланням."
+
+msgid "Der Link gilt %(n)s Stunde."
+msgid_plural "Der Link gilt %(n)s Stunden."
+msgstr[0] "Посилання дійсне %(n)s годину."
+msgstr[1] "Посилання дійсне %(n)s години."
+msgstr[2] "Посилання дійсне %(n)s годин."
+msgstr[3] "Посилання дійсне %(n)s години."

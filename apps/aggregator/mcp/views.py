@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.core import ratelimit
 
 from . import (
+    action_tools,  # noqa: F401 — регистрирует инструменты действий (F-4)
     handlers,  # noqa: F401 — регистрирует инструменты в реестре
     protocol,
     tools,

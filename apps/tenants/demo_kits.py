@@ -248,7 +248,7 @@ class DemoKit:
     # Поддомен демо-тенанта (slug). Пусто → «<key>-demo». Pranasy → «pranasy».
     subdomain: str = ""
     # Наполнить кабинет примерами транзакций (заказы/заявки/брони/билеты) по
-    # активным архетипам — чтобы демо было «как настоящее». Адреса @example.de.
+    # активным архетипам — чтобы демо было «как настоящее». Адреса @example.com.
     seed_records: bool = False
     # Тематические заявки/сметы (jobs) для seed_records: список dict'ов
     #   {title, name, email, phone?, description, lines:[{text,qty,unit_price}], vat_rate}.
@@ -857,9 +857,9 @@ RESTAURANT = DemoKit(
         ("payment", "Bar & Karte"),
     ],
     reviews_seed=[  # G8/#6: отзывы на витрине (блок «reviews» включается автоматически)
-        (5, "Bestes Restaurant der Stadt — wir kommen immer wieder!", "rs.schmidt@example.de"),
-        (5, "Die Pizza ist ein Traum, der Service top.", "rs.laura@example.de"),
-        (4, "Gemütliches Ambiente und frische Pasta — sehr zu empfehlen.", "rs.mehmet@example.de"),
+        (5, "Bestes Restaurant der Stadt — wir kommen immer wieder!", "rs.schmidt@example.com"),
+        (5, "Die Pizza ist ein Traum, der Service top.", "rs.laura@example.com"),
+        (4, "Gemütliches Ambiente und frische Pasta — sehr zu empfehlen.", "rs.mehmet@example.com"),
     ],
     # онлайн-заказ+доставка (orders), события (events), кейтеринг-Anfrage (jobs)
     enable_modules=["orders", "events", "jobs"],
@@ -1395,10 +1395,10 @@ PRANASY = DemoKit(
         (
             5,
             "Endlich veganes Essen, das richtig schmeckt — und so liebevoll gemacht.",
-            "pr.jana@example.de",
+            "pr.jana@example.com",
         ),
-        (5, "Der vegane Shop ist ein Traum. Würstchen wie früher!", "pr.tomlisa@example.de"),
-        (4, "Schöne Retreats und nette Leute. Komme gerne wieder.", "pr.sven@example.de"),
+        (5, "Der vegane Shop ist ein Traum. Würstchen wie früher!", "pr.tomlisa@example.com"),
+        (4, "Schöne Retreats und nette Leute. Komme gerne wieder.", "pr.sven@example.com"),
     ],
     enable_modules=["orders", "events", "jobs", "loyalty"],
     promo_count=4,
@@ -1536,7 +1536,7 @@ PRANASY = DemoKit(
             0,
             5,
             "Familie Weber",
-            "pr.weber@example.de",
+            "pr.weber@example.com",
             "Das Klassik-Menü für unsere Feier war rundum gut: Borschtsch heiß, "
             "Ragout würzig, alles pünktlich aufgebaut.",
         ),
@@ -1544,7 +1544,7 @@ PRANASY = DemoKit(
             1,
             5,
             "Team Nordlicht",
-            "pr.nordlicht@example.de",
+            "pr.nordlicht@example.com",
             "Wir konnten für jeden etwas auswählen — vegan, glutenfrei, mild. "
             "Die Kolleginnen reden heute noch vom Kichererbsen-Ragout.",
         ),
@@ -1552,7 +1552,7 @@ PRANASY = DemoKit(
             1,
             4,
             "Sabine H.",
-            "pr.sabine@example.de",
+            "pr.sabine@example.com",
             "Sehr flexibel und gut kalkulierbar. Nur die Lieferung kam zehn Minuten "
             "später als besprochen.",
         ),
@@ -1560,7 +1560,7 @@ PRANASY = DemoKit(
             2,
             5,
             "Yoga-Studio Anahata",
-            "pr.anahata@example.de",
+            "pr.anahata@example.com",
             "Für unser Retreat-Wochenende genau richtig: leicht, mild gewürzt und "
             "trotzdem sättigend. Das Kitchari war der Favorit.",
         ),
@@ -3155,10 +3155,10 @@ HOTEL = DemoKit(
         (
             5,
             "Traumhafte Lage am See, herzliche Gastgeber — wir kommen wieder!",
-            "hotel.bauer@example.de",
+            "hotel.bauer@example.com",
         ),
-        (5, "Sauber, ruhig und das Frühstück ein Gedicht.", "hotel.julia@example.de"),
-        (4, "Schöne Zimmer mit tollem Seeblick, sehr entspannt.", "hotel.klaus@example.de"),
+        (5, "Sauber, ruhig und das Frühstück ein Gedicht.", "hotel.julia@example.com"),
+        (4, "Schöne Zimmer mit tollem Seeblick, sehr entspannt.", "hotel.klaus@example.com"),
     ],
     extras=[  # #7 доп-услуги к брони (per_night=True → за ночь)
         # Ставка 19 %: проживание льготное (7 %), а завтрак, парковка и прочие
@@ -3560,11 +3560,11 @@ HOTEL = DemoKit(
             0,
             5,
             "Familie M.",
-            "familie.m@example.de",
+            "familie.m@example.com",
             "Wunderschönes Zimmer, sehr sauber und ruhig.",
         ),
-        (0, 4, "Petra L.", "petra.l@example.de", "Gemütlich und gut ausgestattet. Frühstück top."),
-        (1, 5, "Jens H.", "jens.h@example.de", "Perfekt für einen erholsamen Kurzurlaub."),
+        (0, 4, "Petra L.", "petra.l@example.com", "Gemütlich und gut ausgestattet. Frühstück top."),
+        (1, 5, "Jens H.", "jens.h@example.com", "Perfekt für einen erholsamen Kurzurlaub."),
     ],
     # UB3-2: подборки номеров → чипы-фасет на /unterkunft/ (индексы — позиции в stay_units).
     collections=[
@@ -3878,9 +3878,9 @@ AKTIONSMARKT = DemoKit(
         ("quality", "Geprüfte Qualität"),
     ],
     reviews_seed=[
-        (5, "Die Überraschungstüten sind unschlagbar günstig!", "am.wagner@example.de"),
-        (5, "Endlich ein Markt, bei dem man jede Woche wirklich spart.", "am.demir@example.de"),
-        (4, "Gute Angebote und freundliches Personal.", "am.petra@example.de"),
+        (5, "Die Überraschungstüten sind unschlagbar günstig!", "am.wagner@example.com"),
+        (5, "Endlich ein Markt, bei dem man jede Woche wirklich spart.", "am.demir@example.com"),
+        (4, "Gute Angebote und freundliches Personal.", "am.petra@example.com"),
     ],
     faq=[
         ("Rabatt in %", "Ein fester Prozent-Rabatt auf den Originalpreis — z. B. −20 % auf Äpfel."),
@@ -4628,9 +4628,9 @@ BAKERY = DemoKit(
         ("Frau Ott", "Samstags sind die Brötchen noch warm — wir kommen extra früh."),
     ],
     reviews_seed=[
-        (5, "Das Sauerteigbrot ist das beste der Stadt!", "bk.albers@example.de"),
-        (5, "Vorbestellen und ohne Schlange abholen — genau so muss das.", "bk.yilmaz@example.de"),
-        (4, "Tolle Torten nach Wunsch, sehr freundliches Team.", "bk.peters@example.de"),
+        (5, "Das Sauerteigbrot ist das beste der Stadt!", "bk.albers@example.com"),
+        (5, "Vorbestellen und ohne Schlange abholen — genau so muss das.", "bk.yilmaz@example.com"),
+        (4, "Tolle Torten nach Wunsch, sehr freundliches Team.", "bk.peters@example.com"),
     ],
     faq=[
         (
@@ -4928,7 +4928,7 @@ BAKERY = DemoKit(
         {
             "title": "Partyservice: Kuchenbuffet zum 60. Geburtstag (30 Gäste)",
             "name": "Familie Winter",
-            "email": "bk.party1@example.de",
+            "email": "bk.party1@example.com",
             "phone": "02103 778899",
             "description": "Jubiläum am Sonntag: Kuchenbuffet aus 4 Torten und "
             "Blechkuchen für 30 Gäste, Lieferung und Aufbau bis 13 Uhr.",
@@ -4942,7 +4942,7 @@ BAKERY = DemoKit(
         {
             "title": "Belegte Brötchen für Firmenfrühstück (35 Personen)",
             "name": "Steuerbüro Hansen",
-            "email": "bk.party2@example.de",
+            "email": "bk.party2@example.com",
             "description": "Monatsmeeting am Freitag: belegte Brötchen gemischt und "
             "Laugengebäck, Anlieferung 8:30 Uhr.",
             "lines": [
@@ -4954,9 +4954,9 @@ BAKERY = DemoKit(
         },
     ],
     product_reviews=[
-        (1, 5, "Anna B.", "bk.rev1@example.de", "Das Bauernbrot hält sich tagelang frisch."),
-        (3, 5, "Jens K.", "bk.rev2@example.de", "Die Kruste ist unschlagbar — wie früher."),
-        (14, 5, "Familie Roth", "bk.rev3@example.de", "Die Erdbeertorte war der Star der Feier!"),
+        (1, 5, "Anna B.", "bk.rev1@example.com", "Das Bauernbrot hält sich tagelang frisch."),
+        (3, 5, "Jens K.", "bk.rev2@example.com", "Die Kruste ist unschlagbar — wie früher."),
+        (14, 5, "Familie Roth", "bk.rev3@example.com", "Die Erdbeertorte war der Star der Feier!"),
     ],
 )
 
@@ -5087,14 +5087,14 @@ BUTCHER = DemoKit(
         (
             5,
             "Beste Bratwurst weit und breit — eigene Herstellung schmeckt man.",
-            "mz.brandt@example.de",
+            "mz.brandt@example.com",
         ),
         (
             5,
             "Grillpaket online vorbestellt, samstags abgeholt — top organisiert.",
-            "mz.kaya@example.de",
+            "mz.kaya@example.com",
         ),
-        (4, "Beratung an der Theke ist erstklassig.", "mz.otto@example.de"),
+        (4, "Beratung an der Theke ist erstklassig.", "mz.otto@example.com"),
     ],
     faq=[
         (
@@ -5364,7 +5364,7 @@ BUTCHER = DemoKit(
         {
             "title": "Partyservice: Geburtstagsbuffet für 25 Gäste",
             "name": "Familie Ott",
-            "email": "mz.party1@example.de",
+            "email": "mz.party1@example.com",
             "phone": "02103 445566",
             "description": "Runder Geburtstag am Samstag: Grillbuffet und kalte Platten "
             "für 25 Gäste, Lieferung und Aufbau bis 17 Uhr.",
@@ -5378,7 +5378,7 @@ BUTCHER = DemoKit(
         {
             "title": "Canapés für Firmenempfang (40 Personen)",
             "name": "Bürotech GmbH",
-            "email": "mz.party2@example.de",
+            "email": "mz.party2@example.com",
             "description": "Empfang zur Geschäftseröffnung: gemischte Canapés und "
             "Fingerfood für ca. 40 Personen, Anlieferung 11 Uhr.",
             "lines": [
@@ -5393,17 +5393,17 @@ BUTCHER = DemoKit(
             6,
             5,
             "Markus D.",
-            "mz.rev1@example.de",
+            "mz.rev1@example.com",
             "Die Bratwurst ist ein Traum — nie wieder Supermarkt.",
         ),
         (
             10,
             5,
             "Sandra E.",
-            "mz.rev2@example.de",
+            "mz.rev2@example.com",
             "Grillpaket für 6: großzügig, frisch, top mariniert.",
         ),
-        (13, 4, "Ralf N.", "mz.rev3@example.de", "Kartoffelsalat wie bei Oma."),
+        (13, 4, "Ralf N.", "mz.rev3@example.com", "Kartoffelsalat wie bei Oma."),
     ],
 )
 
@@ -5538,9 +5538,9 @@ CAFE = DemoKit(
         ("Herr Groß", "Sonntagsfrühstück mit reserviertem Tisch — entspannter geht's nicht."),
     ],
     reviews_seed=[
-        (5, "Der beste Flat White der Stadt!", "cf.lena@example.de"),
-        (5, "Frühstück top, Personal herzlich, Tisch war reserviert.", "cf.gross@example.de"),
-        (4, "Gemütlich und fair — der Kaffeepass lohnt sich.", "cf.mia@example.de"),
+        (5, "Der beste Flat White der Stadt!", "cf.lena@example.com"),
+        (5, "Frühstück top, Personal herzlich, Tisch war reserviert.", "cf.gross@example.com"),
+        (4, "Gemütlich und fair — der Kaffeepass lohnt sich.", "cf.mia@example.com"),
     ],
     faq=[
         (
@@ -5808,9 +5808,9 @@ CAFE = DemoKit(
         ),
     ],
     product_reviews=[
-        (0, 5, "Lena P.", "cf.rev1@example.de", "Cappuccino wie in Mailand."),
-        (9, 5, "Jonas T.", "cf.rev2@example.de", "Käsekuchen ist ein Gedicht."),
-        (6, 4, "Aylin K.", "cf.rev3@example.de", "Avocado-Toast frisch und großzügig."),
+        (0, 5, "Lena P.", "cf.rev1@example.com", "Cappuccino wie in Mailand."),
+        (9, 5, "Jonas T.", "cf.rev2@example.com", "Käsekuchen ist ein Gedicht."),
+        (6, 4, "Aylin K.", "cf.rev3@example.com", "Avocado-Toast frisch und großzügig."),
     ],
 )
 
@@ -6120,9 +6120,9 @@ CLOTHING = DemoKit(
         ("Tom R.", "Größentabelle stimmt auf den Zentimeter — nichts zurückgeschickt."),
     ],
     reviews_seed=[
-        (5, "Qualität, die man sofort spürt.", "nw.meike@example.de"),
-        (5, "Warteliste für meine Größe hat perfekt funktioniert.", "nw.jan@example.de"),
-        (4, "Schneller Versand, schöne Verpackung.", "nw.ines@example.de"),
+        (5, "Qualität, die man sofort spürt.", "nw.meike@example.com"),
+        (5, "Warteliste für meine Größe hat perfekt funktioniert.", "nw.jan@example.com"),
+        (4, "Schneller Versand, schöne Verpackung.", "nw.ines@example.com"),
     ],
     faq=[
         (
@@ -7540,20 +7540,38 @@ CLOTHING = DemoKit(
         ("Basics", {"products": [7, 24, 14, 77]}),
     ],
     product_reviews=[
-        (0, 5, "Meike S.", "nw.rev1@example.de", "Das Kleid sitzt perfekt — Größentabelle stimmt."),
-        (5, 5, "Ines W.", "nw.rev2@example.de", "Leinen knittert schön, nicht schlampig."),
-        (10, 4, "Sarah B.", "nw.rev3@example.de", "Cardigan ist kuschelig, fällt etwas weit aus."),
-        (11, 5, "Anna K.", "nw.rev4@example.de", "Merino kratzt null. Trage ihn jeden Tag."),
-        (14, 5, "Lisa M.", "nw.rev5@example.de", "Endlich eine Jeans, die am Bund nicht klafft."),
-        (21, 5, "Jan H.", "nw.rev6@example.de", "Oxfordhemd wie früher — dicker Stoff, gute Naht."),
-        (24, 5, "Tom R.", "nw.rev7@example.de", "Bestes Basic-Shirt, das ich je hatte."),
-        (29, 5, "Björn L.", "nw.rev8@example.de", "Merino-Pulli hält warm, ohne dick aufzutragen."),
-        (34, 4, "Kai S.", "nw.rev9@example.de", "Sitzt gut, Länge 82 wäre noch schöner."),
-        (40, 5, "Nina P.", "nw.rev10@example.de", "Druckknöpfe halten auch nach 30 Wäschen."),
-        (45, 5, "Julia F.", "nw.rev11@example.de", "Kleid hat drei Kindergartenjahre überlebt."),
-        (55, 5, "Marek D.", "nw.rev12@example.de", "Regenjacke bleibt wirklich dicht."),
-        (61, 4, "Eva N.", "nw.rev13@example.de", "Leder riecht gut und wird schöner."),
-        (67, 5, "Clara W.", "nw.rev14@example.de", "Kaschmir ist federleicht und warm."),
+        (
+            0,
+            5,
+            "Meike S.",
+            "nw.rev1@example.com",
+            "Das Kleid sitzt perfekt — Größentabelle stimmt.",
+        ),
+        (5, 5, "Ines W.", "nw.rev2@example.com", "Leinen knittert schön, nicht schlampig."),
+        (10, 4, "Sarah B.", "nw.rev3@example.com", "Cardigan ist kuschelig, fällt etwas weit aus."),
+        (11, 5, "Anna K.", "nw.rev4@example.com", "Merino kratzt null. Trage ihn jeden Tag."),
+        (14, 5, "Lisa M.", "nw.rev5@example.com", "Endlich eine Jeans, die am Bund nicht klafft."),
+        (
+            21,
+            5,
+            "Jan H.",
+            "nw.rev6@example.com",
+            "Oxfordhemd wie früher — dicker Stoff, gute Naht.",
+        ),
+        (24, 5, "Tom R.", "nw.rev7@example.com", "Bestes Basic-Shirt, das ich je hatte."),
+        (
+            29,
+            5,
+            "Björn L.",
+            "nw.rev8@example.com",
+            "Merino-Pulli hält warm, ohne dick aufzutragen.",
+        ),
+        (34, 4, "Kai S.", "nw.rev9@example.com", "Sitzt gut, Länge 82 wäre noch schöner."),
+        (40, 5, "Nina P.", "nw.rev10@example.com", "Druckknöpfe halten auch nach 30 Wäschen."),
+        (45, 5, "Julia F.", "nw.rev11@example.com", "Kleid hat drei Kindergartenjahre überlebt."),
+        (55, 5, "Marek D.", "nw.rev12@example.com", "Regenjacke bleibt wirklich dicht."),
+        (61, 4, "Eva N.", "nw.rev13@example.com", "Leder riecht gut und wird schöner."),
+        (67, 5, "Clara W.", "nw.rev14@example.com", "Kaschmir ist federleicht und warm."),
     ],
 )
 
@@ -7768,9 +7786,9 @@ TOURS = DemoKit(
         ("Peter M.", "Moselausflug perfekt organisiert: Bus, Burg, Weingut. Jeden Cent wert."),
     ],
     reviews_seed=[
-        (5, "Die beste Stadtführung, die wir je gemacht haben.", "tg.krueger@example.de"),
-        (5, "Moselausflug top organisiert — Buchung und QR-Ticket easy.", "tg.peter@example.de"),
-        (4, "Radtour sehr schön, Tempo entspannt.", "tg.silke@example.de"),
+        (5, "Die beste Stadtführung, die wir je gemacht haben.", "tg.krueger@example.com"),
+        (5, "Moselausflug top organisiert — Buchung und QR-Ticket easy.", "tg.peter@example.com"),
+        (4, "Radtour sehr schön, Tempo entspannt.", "tg.silke@example.com"),
     ],
     faq=[
         (
@@ -7888,15 +7906,21 @@ TOURS = DemoKit(
             0,
             5,
             "Familie Krüger",
-            "tg.rev1@example.de",
+            "tg.rev1@example.com",
             "Kurzweilig, kinderfreundlich, viele Geschichten — absolute Empfehlung.",
         ),
-        (1, 5, "Silke B.", "tg.rev2@example.de", "Wunderschöne Route am Fluss, tolles Tempo."),
-        (0, 4, "Tom R.", "tg.rev3@example.de", "Treffpunkt easy gefunden, Guide klasse."),
+        (1, 5, "Silke B.", "tg.rev2@example.com", "Wunderschöne Route am Fluss, tolles Tempo."),
+        (0, 4, "Tom R.", "tg.rev3@example.com", "Treffpunkt easy gefunden, Guide klasse."),
     ],
     event_reviews=[
-        (0, 5, "Peter M.", "tg.rev4@example.de", "Weinprobe mit Herz — der Winzer war live dabei."),
-        (1, 5, "Anja L.", "tg.rev5@example.de", "Burg Eltz Ausflug: perfekt durchorganisiert."),
+        (
+            0,
+            5,
+            "Peter M.",
+            "tg.rev4@example.com",
+            "Weinprobe mit Herz — der Winzer war live dabei.",
+        ),
+        (1, 5, "Anja L.", "tg.rev5@example.com", "Burg Eltz Ausflug: perfekt durchorganisiert."),
     ],
 )
 
@@ -9117,7 +9141,7 @@ MOTO = DemoKit(
         {
             "title": "Private Reise Ladakh für 5 Freunde (eigene Termine)",
             "name": "Team Rostock",
-            "email": "moto.job1@example.de",
+            "email": "moto.job1@example.com",
             "phone": "0381 445566",
             "description": "Wir sind fünf Fahrer mit eigener Erfahrung und würden die "
             "Ladakh-Runde gern zwei Wochen früher fahren als die Juli-Gruppe. Zwei von "
@@ -9133,7 +9157,7 @@ MOTO = DemoKit(
         {
             "title": "Firmen-Incentive Rajasthan (12 Personen, November)",
             "name": "Hartmann Werkzeuge GmbH",
-            "email": "moto.job2@example.de",
+            "email": "moto.job2@example.com",
             "description": "Incentive-Reise für Vertriebspartner: sechs Fahrer, sechs "
             "Sozius, gehobene Havelis und ein Abend mit Musik im Wüstencamp.",
             "lines": [
@@ -9188,21 +9212,21 @@ MOTO = DemoKit(
             0,
             5,
             "Markus B.",
-            "moto.rev1@example.de",
+            "moto.rev1@example.com",
             "Tanglang La bei Sonnenaufgang — und die Organisation lief wie ein Uhrwerk.",
         ),
         (
             2,
             5,
             "Silke H.",
-            "moto.rev2@example.de",
+            "moto.rev2@example.com",
             "Nepal war staubig, anstrengend und das Beste, was ich je gefahren bin.",
         ),
         (
             3,
             5,
             "Jens W.",
-            "moto.rev6@example.de",
+            "moto.rev6@example.com",
             "Ladakh in zehn Tagen klingt nach Hetze, war es aber nie — kurze Etappen, "
             "viel Zeit für Fotos.",
         ),
@@ -9210,7 +9234,7 @@ MOTO = DemoKit(
             5,
             4,
             "Carola T.",
-            "moto.rev7@example.de",
+            "moto.rev7@example.com",
             "Rajasthan als Sozius: warm, laut, wunderschön. Nur die Havelis waren "
             "unterschiedlich gut.",
         ),
@@ -9218,7 +9242,7 @@ MOTO = DemoKit(
             7,
             5,
             "Familie Brenner",
-            "moto.rev8@example.de",
+            "moto.rev8@example.com",
             "Unsere Tochter (17) durfte selbst Quad fahren — für sie war das die Reise "
             "ihres Lebens.",
         ),
@@ -9227,9 +9251,9 @@ MOTO = DemoKit(
         (
             5,
             "Beste Reiseorganisation, die ich kenne. Alles hielt, was versprochen war.",
-            "moto.rev3@example.de",
+            "moto.rev3@example.com",
         ),
-        (5, "Guides mit echtem Wissen — nicht nur Vorfahren und Winken.", "moto.rev4@example.de"),
+        (5, "Guides mit echtem Wissen — nicht nur Vorfahren und Winken.", "moto.rev4@example.com"),
     ],
 )
 
@@ -9345,9 +9369,13 @@ FRISEUR = DemoKit(
     ],
     trust={"since": "2012", "marks": ["Meisterbetrieb", "Schonende Farben", "Online-Termin"]},
     reviews_seed=[
-        (5, "Bester Schnitt seit Jahren — und so unkompliziert zu buchen!", "fr.sandra@example.de"),
-        (5, "Tolle Beratung, faire Preise, immer pünktlich.", "fr.michael@example.de"),
-        (4, "Sehr freundliches Team, fühle mich immer wohl.", "fr.nina@example.de"),
+        (
+            5,
+            "Bester Schnitt seit Jahren — und so unkompliziert zu buchen!",
+            "fr.sandra@example.com",
+        ),
+        (5, "Tolle Beratung, faire Preise, immer pünktlich.", "fr.michael@example.com"),
+        (4, "Sehr freundliches Team, fühle mich immer wohl.", "fr.nina@example.com"),
     ],
     cta={
         "title": "Zeit für etwas Neues?",
@@ -9553,11 +9581,11 @@ FRISEUR = DemoKit(
             0,
             5,
             "Sabine K.",
-            "sabine.k@example.de",
+            "sabine.k@example.com",
             "Toller Schnitt, genau wie besprochen. Komme wieder!",
         ),
-        (0, 4, "Nadine R.", "nadine.r@example.de", "Sehr freundlich und professionell."),
-        (1, 5, "Thomas B.", "thomas.b@example.de", "Schnell, unkompliziert, top Ergebnis."),
+        (0, 4, "Nadine R.", "nadine.r@example.com", "Sehr freundlich und professionell."),
+        (1, 5, "Thomas B.", "thomas.b@example.com", "Schnell, unkompliziert, top Ergebnis."),
     ],
     resources=[
         {
@@ -9805,10 +9833,10 @@ WERKSTATT = DemoKit(
         (
             5,
             "Schnell, ehrlich und fairer Preis — endlich eine Werkstatt, der man vertraut.",
-            "wk.berger@example.de",
+            "wk.berger@example.com",
         ),
-        (5, "Termin online gebucht, Auto pünktlich fertig. Top Service.", "wk.yilmaz@example.de"),
-        (4, "Kostenvoranschlag transparent, keine versteckten Kosten.", "wk.frank@example.de"),
+        (5, "Termin online gebucht, Auto pünktlich fertig. Top Service.", "wk.yilmaz@example.com"),
+        (4, "Kostenvoranschlag transparent, keine versteckten Kosten.", "wk.frank@example.com"),
     ],
     cta={
         "title": "Klappert, leuchtet oder zieht?",
@@ -9825,7 +9853,7 @@ WERKSTATT = DemoKit(
         {
             "title": "Kostenvoranschlag: Inspektion + Bremsen vorne",
             "name": "Markus Vogel",
-            "email": "vogel@example.de",
+            "email": "vogel@example.com",
             "phone": "0231 1234567",
             "vehicle": "VW Golf VII 1.6 TDI",
             "vehicle_plate": "DO-MV 1234",
@@ -9842,7 +9870,7 @@ WERKSTATT = DemoKit(
         {
             "title": "Kostenvoranschlag: Klimaanlage prüfen & warten",
             "name": "Sabine Koch",
-            "email": "koch@example.de",
+            "email": "koch@example.com",
             "vehicle": "BMW 320d",
             "vehicle_plate": "DO-SK 88",
             "vehicle_hsn": "0005",
@@ -9922,15 +9950,15 @@ WERKSTATT = DemoKit(
             1,
             5,
             "Markus V.",
-            "markus.v@example.de",
+            "markus.v@example.com",
             "Inspektion zum Festpreis, alles sauber dokumentiert — läuft wie neu.",
         ),
-        (1, 4, "Julia H.", "julia.h@example.de", "Termin schnell bekommen, faire Beratung."),
+        (1, 4, "Julia H.", "julia.h@example.com", "Termin schnell bekommen, faire Beratung."),
         (
             3,
             5,
             "Deniz A.",
-            "deniz.a@example.de",
+            "deniz.a@example.com",
             "HU/AU direkt vor Ort und ohne Wartezeit bestanden. Danke!",
         ),
     ],
@@ -10184,10 +10212,10 @@ HANDWERKER = DemoKit(
         (
             5,
             "Bad saniert zum Festpreis — alles sauber und termingerecht. Klare Empfehlung.",
-            "hw.becker@example.de",
+            "hw.becker@example.com",
         ),
-        (5, "Schnelles Angebot, faire Preise, top Handwerk. Gerne wieder.", "hw.acar@example.de"),
-        (4, "Elektrik im Altbau erneuert — kompetent und zuverlässig.", "hw.peters@example.de"),
+        (5, "Schnelles Angebot, faire Preise, top Handwerk. Gerne wieder.", "hw.acar@example.com"),
+        (4, "Elektrik im Altbau erneuert — kompetent und zuverlässig.", "hw.peters@example.com"),
     ],
     cta={
         "title": "Brauchen Sie einen Handwerker?",
@@ -10205,7 +10233,7 @@ HANDWERKER = DemoKit(
         {
             "title": "Angebot: Wohnzimmer & Flur streichen (ca. 60 m²)",
             "name": "Julia Becker",
-            "email": "becker@example.de",
+            "email": "becker@example.com",
             "phone": "0221 9876543",
             "site_address": "Lindenweg 8, 50667 Köln",
             "description": "Wohnzimmer und Flur neu streichen, Wände vorbereiten, "
@@ -10220,7 +10248,7 @@ HANDWERKER = DemoKit(
         {
             "title": "Angebot: Bad modernisieren — Elektrik & Sanitär",
             "name": "Thomas Acar",
-            "email": "acar@example.de",
+            "email": "acar@example.com",
             "site_address": "Rosenstraße 14, 50674 Köln",
             "description": "Gäste-WC modernisieren: neue Leuchten und Steckdosen, "
             "Waschtisch und Armatur tauschen.",
@@ -10940,17 +10968,17 @@ CATERING = DemoKit(
         (
             5,
             "Firmenfeier für 40 Personen — großartiges Buffet, alle waren begeistert.",
-            "ct.mueller@example.de",
+            "ct.mueller@example.com",
         ),
         (
             5,
             "Anfrage abends gestellt, Angebot am Morgen — so einfach kann Catering sein.",
-            "ct.krause@example.de",
+            "ct.krause@example.com",
         ),
         (
             4,
             "Leckeres veganes Fingerfood, pünktliche Lieferung. Gerne wieder.",
-            "ct.lorenz@example.de",
+            "ct.lorenz@example.com",
         ),
     ],
     cta={
@@ -11094,63 +11122,63 @@ CATERING = DemoKit(
             0,
             5,
             "Familie Berger",
-            "berger@example.de",
+            "berger@example.com",
             "Das Klassik-Menü war der Höhepunkt unserer Hochzeit — jeder Gang auf den Punkt, der Service unsichtbar gut.",
         ),
         (
             0,
             5,
             "Jana & Tom",
-            "jana.tom@example.de",
+            "jana.tom@example.com",
             "Aufbau, Ablauf, Geschmack — alles wie besprochen. Unsere Gäste reden heute noch vom Rinderfilet.",
         ),
         (
             0,
             4,
             "K. Albers",
-            "albers@example.de",
+            "albers@example.com",
             "Sehr professionell organisiert. Ein Stern Abzug nur, weil das Dessert etwas spät kam.",
         ),
         (
             1,
             5,
             "Sophie L.",
-            "sophie.l@example.de",
+            "sophie.l@example.com",
             "Toll, dass jeder Gang wählbar war — so hatten auch die Vegetarier unter den Gästen ein volles Menü.",
         ),
         (
             1,
             5,
             "M. und C. Winter",
-            "winter@example.de",
+            "winter@example.com",
             "Die Beratung bei der Zusammenstellung war Gold wert. Preis-Leistung stimmt absolut.",
         ),
         (
             1,
             4,
             "R. Neumann",
-            "neumann@example.de",
+            "neumann@example.com",
             "Sehr flexibel bei Sonderwünschen, das Tartelette ein Traum. Gerne wieder.",
         ),
         (
             2,
             5,
             "Buchhaltung Feldmann GmbH",
-            "feldmann@example.de",
+            "feldmann@example.com",
             "Für unsere Firmenfeier frei zusammengestellt — die Gäste konnten nach Gängen wählen, Abrechnung transparent.",
         ),
         (
             2,
             5,
             "Lisa Q.",
-            "lisa.q@example.de",
+            "lisa.q@example.com",
             "Freie Auswahl klingt kompliziert, war aber kinderleicht. Alles frisch, alles pünktlich.",
         ),
         (
             2,
             4,
             "H. Brandt",
-            "brandt@example.de",
+            "brandt@example.com",
             "Große Auswahl, faire Preise à la carte. Die Antipasti waren das Highlight.",
         ),
     ],
@@ -11158,7 +11186,7 @@ CATERING = DemoKit(
         {
             "title": "Catering Hochzeit (80 Personen)",
             "name": "Anna Sommer",
-            "email": "sommer@example.de",
+            "email": "sommer@example.com",
             "phone": "0211 5551234",
             "description": "Sektempfang, warmes Buffet und Dessertbar für 80 "
             "Gäste, Scheune in Ratingen. Bitte vegetarisch mit veganen Optionen.",
@@ -11182,7 +11210,7 @@ CATERING = DemoKit(
         {
             "title": "Fingerfood Firmenfeier (25 Personen)",
             "name": "Miriam Klein",
-            "email": "klein@example.de",
+            "email": "klein@example.com",
             "description": "Sommerfest im Büro, Fingerfood und Getränke für 25 "
             "Personen, Lieferung bis 17 Uhr.",
             "lines": [
@@ -11442,9 +11470,9 @@ RETREAT = DemoKit(
     ],
     trust={"since": "2016", "marks": ["Kleine Gruppen", "Zertifizierte Leitung", "Naturnah"]},
     reviews_seed=[
-        (5, "Zwei Tage, die mich geerdet haben. Ich komme wieder.", "rt.johanna@example.de"),
-        (5, "Kleine Gruppe, viel Raum, herzliche Begleitung.", "rt.daniel@example.de"),
-        (4, "Genau die Pause, die ich gebraucht habe.", "rt.sandra@example.de"),
+        (5, "Zwei Tage, die mich geerdet haben. Ich komme wieder.", "rt.johanna@example.com"),
+        (5, "Kleine Gruppe, viel Raum, herzliche Begleitung.", "rt.daniel@example.com"),
+        (4, "Genau die Pause, die ich gebraucht habe.", "rt.sandra@example.com"),
     ],
     cta={
         "title": "Zeit für dich.",
@@ -11736,9 +11764,9 @@ RETREAT = DemoKit(
         },
     ],
     event_reviews=[
-        (0, 5, "Anna S.", "anna.s@example.de", "Ein wunderbares Wochenende — sehr bereichernd!"),
-        (0, 5, "Markus T.", "markus.t@example.de", "Tolle Gruppe und achtsame Leitung."),
-        (1, 4, "Lea W.", "lea.w@example.de", "Sehr entspannend, gerne wieder."),
+        (0, 5, "Anna S.", "anna.s@example.com", "Ein wunderbares Wochenende — sehr bereichernd!"),
+        (0, 5, "Markus T.", "markus.t@example.com", "Tolle Gruppe und achtsame Leitung."),
+        (1, 4, "Lea W.", "lea.w@example.com", "Sehr entspannend, gerne wieder."),
     ],
     services=[
         ("Einzel-Yogastunde (1:1)", 60, "55"),
@@ -11953,9 +11981,9 @@ SHOP = DemoKit(
         ("bio", "Bio-zertifiziert"),
     ],
     reviews_seed=[
-        (5, "Frische Bio-Ware, schnell geliefert. Schmeckt wie früher!", "sh.koehler@example.de"),
-        (5, "Super Qualität und nette Kommunikation. Sehr empfehlenswert.", "sh.anke@example.de"),
-        (4, "Tolle Auswahl an regionalen Produkten.", "sh.markus@example.de"),
+        (5, "Frische Bio-Ware, schnell geliefert. Schmeckt wie früher!", "sh.koehler@example.com"),
+        (5, "Super Qualität und nette Kommunikation. Sehr empfehlenswert.", "sh.anke@example.com"),
+        (4, "Tolle Auswahl an regionalen Produkten.", "sh.markus@example.com"),
     ],
     # A1/A2: отзывы о товаре (на первых товарах каталога) — (idx, ★, имя, email, текст).
     product_reviews=[
@@ -11963,15 +11991,15 @@ SHOP = DemoKit(
             0,
             5,
             "Familie Köhler",
-            "sh.koehler@example.de",
+            "sh.koehler@example.com",
             "Knackig frisch und aromatisch — kommt wieder in den Korb.",
         ),
-        (0, 4, "Anke S.", "sh.anke@example.de", "Gute Qualität, etwas klein, aber lecker."),
+        (0, 4, "Anke S.", "sh.anke@example.com", "Gute Qualität, etwas klein, aber lecker."),
         (
             1,
             5,
             "Markus B.",
-            "sh.markus@example.de",
+            "sh.markus@example.com",
             "Top Ware, schnelle Lieferung. Sehr zu empfehlen!",
         ),
     ],
@@ -12387,11 +12415,11 @@ OUTLET = DemoKit(
         (
             5,
             "Zustand war exakt so beschrieben. Genau so soll ein Outlet sein.",
-            "zg.sven@example.de",
+            "zg.sven@example.com",
         ),
-        (5, "Kauf auf Rechnung hat problemlos funktioniert.", "zg.petra@example.de"),
-        (4, "Versand schnell, Verpackung könnte stabiler sein.", "zg.timo@example.de"),
-        (5, "Endlich ein Shop, der Kratzer benennt statt zu verschweigen.", "zg.anke@example.de"),
+        (5, "Kauf auf Rechnung hat problemlos funktioniert.", "zg.petra@example.com"),
+        (4, "Versand schnell, Verpackung könnte stabiler sein.", "zg.timo@example.com"),
+        (5, "Endlich ein Shop, der Kratzer benennt statt zu verschweigen.", "zg.anke@example.com"),
     ],
     faq=[
         (
@@ -12889,58 +12917,58 @@ OUTLET = DemoKit(
             0,
             5,
             "Sven R.",
-            "zg.sven@example.de",
+            "zg.sven@example.com",
             "Akku wirklich bei 97 %, Kratzer war kaum zu finden. Für den Preis top.",
         ),
         (
             0,
             4,
             "Marek P.",
-            "zg.marek@example.de",
+            "zg.marek@example.com",
             "Gerät läuft einwandfrei, Netzteil war ein Nachbau — hätte im Text stehen können.",
         ),
         (
             0,
             5,
             "Julia F.",
-            "zg.julia@example.de",
+            "zg.julia@example.com",
             "Zweites Notebook hier gekauft, wieder alles korrekt.",
         ),
         (
             40,
             5,
             "Timo K.",
-            "zg.timo@example.de",
+            "zg.timo@example.com",
             "300 € gespart, Bild einwandfrei. Die Schramme sieht man nur, wenn man sie sucht.",
         ),
-        (40, 4, "Bea H.", "zg.bea@example.de", "Aufbau allein war schwer, Bild und Ton super."),
+        (40, 4, "Bea H.", "zg.bea@example.com", "Aufbau allein war schwer, Bild und Ton super."),
         (
             20,
             5,
             "Anke L.",
-            "zg.anke@example.de",
+            "zg.anke@example.com",
             "Handy war zurückgesetzt, Akku wie beschrieben. Rechnung lag bei.",
         ),
-        (20, 4, "Ferdi S.", "zg.ferdi@example.de", "Kleine Schleifspur am Rahmen, sonst wie neu."),
+        (20, 4, "Ferdi S.", "zg.ferdi@example.com", "Kleine Schleifspur am Rahmen, sonst wie neu."),
         (
             100,
             5,
             "Petra M.",
-            "zg.petra@example.de",
+            "zg.petra@example.com",
             "Mantel für die Hälfte, ungetragen. Größe fällt normal aus.",
         ),
-        (100, 5, "Lena B.", "zg.lena@example.de", "Verarbeitung deutlich besser als erwartet."),
+        (100, 5, "Lena B.", "zg.lena@example.com", "Verarbeitung deutlich besser als erwartet."),
         (
             60,
             4,
             "Ralf D.",
-            "zg.ralf@example.de",
+            "zg.ralf@example.com",
             "Vollautomat war frisch entkalkt. Milchsystem braucht etwas Übung.",
         ),
-        (140, 5, "Mira T.", "zg.mira@example.de", "Sneaker sahen aus wie aus dem Karton."),
-        (71, 5, "Nils W.", "zg.nils@example.de", "Saugroboter mit neuen Bürsten — läuft täglich."),
-        (45, 4, "Ida K.", "zg.ida@example.de", "Kopfhörer top, Etui hatte eine Delle."),
-        (16, 5, "Ben O.", "zg.ben@example.de", "SSD originalverpackt, Tempo wie angegeben."),
+        (140, 5, "Mira T.", "zg.mira@example.com", "Sneaker sahen aus wie aus dem Karton."),
+        (71, 5, "Nils W.", "zg.nils@example.com", "Saugroboter mit neuen Bürsten — läuft täglich."),
+        (45, 4, "Ida K.", "zg.ida@example.com", "Kopfhörer top, Etui hatte eine Delle."),
+        (16, 5, "Ben O.", "zg.ben@example.com", "SSD originalverpackt, Tempo wie angegeben."),
     ],
     # ST-8: галерея/команда/отзывы отдельными страницами (гейт по наличию контента).
     seed_inbox=True,
@@ -16327,9 +16355,9 @@ STADTFUEHRUNG = DemoKit(
         ("Kölsch-Verkostung zum Abschluss", "4.50", "events", False),
     ],
     reviews_seed=[
-        (5, "Beste Stadtführung, die wir je hatten — witzig und fundiert.", "sf.rev1@example.de"),
-        (5, "Katharina kennt jede Ecke. Die Brauhaustour ist ein Muss.", "sf.rev2@example.de"),
-        (4, "Toller Themenabend, gern mit etwas mehr Zeit am Rhein.", "sf.rev3@example.de"),
+        (5, "Beste Stadtführung, die wir je hatten — witzig und fundiert.", "sf.rev1@example.com"),
+        (5, "Katharina kennt jede Ecke. Die Brauhaustour ist ein Muss.", "sf.rev2@example.com"),
+        (4, "Toller Themenabend, gern mit etwas mehr Zeit am Rhein.", "sf.rev3@example.com"),
     ],
     # LB-4d-3: отзывы о заездах — блок «Stimmen» под списком /touren/ (пресет «termine»)
     event_reviews=[
@@ -16337,21 +16365,21 @@ STADTFUEHRUNG = DemoKit(
             0,
             5,
             "Julia K.",
-            "sf.ev1@example.de",
+            "sf.ev1@example.com",
             "Zwei Stunden Altstadt, kein Moment Langeweile — der Dom war der Höhepunkt.",
         ),
         (
             2,
             5,
             "Tobias R.",
-            "sf.ev2@example.de",
+            "sf.ev2@example.com",
             "Vier Brauhäuser, viele Geschichten und ein Kölsch zu viel. Herrlich!",
         ),
         (
             3,
             4,
             "Miriam S.",
-            "sf.ev3@example.de",
+            "sf.ev3@example.com",
             "Spannender Abend über Kölner Frauen, die man sonst nicht kennt.",
         ),
     ],
@@ -22286,22 +22314,22 @@ ONLINE_SHOP = DemoKit(
         (
             5,
             "Bestellt am Dienstag, Donnerstag da. Die Wolldecke ist genau so schwer, wie beschrieben.",
-            "os.becker@example.de",
+            "os.becker@example.com",
         ),
         (
             5,
             "Retoure ohne Diskussion, Geld nach zwei Tagen zurück. Gerne wieder.",
-            "os.ilyas@example.de",
+            "os.ilyas@example.com",
         ),
         (
             4,
             "Sehr gute Auswahl; bei der Kaffeemühle hätte ich mir mehr Fotos gewünscht.",
-            "os.brandt@example.de",
+            "os.brandt@example.com",
         ),
         (
             5,
             "Endlich ein Shop mit ehrlichen Größentabellen — passt auf Anhieb.",
-            "os.novak@example.de",
+            "os.novak@example.com",
         ),
     ],
     product_reviews=[
@@ -22309,96 +22337,96 @@ ONLINE_SHOP = DemoKit(
             0,
             5,
             "Familie Becker",
-            "os.becker@example.de",
+            "os.becker@example.com",
             "Dritte Bestellung. Läuft nicht ein, verzieht sich nicht.",
         ),
         (
             0,
             4,
             "Nadine H.",
-            "os.nadine@example.de",
+            "os.nadine@example.com",
             "Sitzt gut, Creme ist etwas durchsichtiger als erwartet.",
         ),
-        (81, 5, "Tarek A.", "os.tarek@example.de", "Schwer und warm, kratzt kein bisschen."),
-        (81, 5, "Ines B.", "os.ines@example.de", "Liegt seit Oktober auf dem Sofa und bleibt da."),
+        (81, 5, "Tarek A.", "os.tarek@example.com", "Schwer und warm, kratzt kein bisschen."),
+        (81, 5, "Ines B.", "os.ines@example.com", "Liegt seit Oktober auf dem Sofa und bleibt da."),
         (
             110,
             5,
             "Jörg M.",
-            "os.joerg@example.de",
+            "os.joerg@example.com",
             "Eingebrannt geliefert, Spiegelei rutscht ab Tag eins.",
         ),
         (
             110,
             4,
             "Silke R.",
-            "os.silke@example.de",
+            "os.silke@example.com",
             "Sehr gut, aber wirklich schwer — mit einer Hand nichts.",
         ),
         (
             121,
             5,
             "Peer L.",
-            "os.peer@example.de",
+            "os.peer@example.com",
             "Röstdatum war zehn Tage alt. Genau so soll das sein.",
         ),
         (
             121,
             4,
             "Anja K.",
-            "os.anja@example.de",
+            "os.anja@example.com",
             "Fein säuerlich; für Espresso zu hell, für Filter top.",
         ),
-        (161, 5, "Marc W.", "os.marc@example.de", "Füller schlägt nicht durch, liegt flach auf."),
+        (161, 5, "Marc W.", "os.marc@example.com", "Füller schlägt nicht durch, liegt flach auf."),
         (
             161,
             5,
             "Ute F.",
-            "os.ute@example.de",
+            "os.ute@example.com",
             "Papier ist deutlich besser als bei den bekannten Marken.",
         ),
         (
             181,
             4,
             "Bea S.",
-            "os.bea@example.de",
+            "os.bea@example.com",
             "Dicht und geschmacksneutral, aber nicht isoliert — das steht aber dabei.",
         ),
         (
             101,
             5,
             "Familie Osterloh",
-            "os.osterloh@example.de",
+            "os.osterloh@example.com",
             "Vier Stück seit einem Jahr in der Spülmaschine, kein Kratzer.",
         ),
-        (141, 5, "Lea D.", "os.lea@example.de", "Hält ewig und trocknet die Hände nicht aus."),
-        (191, 4, "Malte P.", "os.malte@example.de", "Guter Rücken, Regenhülle etwas dünn."),
+        (141, 5, "Lea D.", "os.lea@example.com", "Hält ewig und trocknet die Hände nicht aus."),
+        (191, 4, "Malte P.", "os.malte@example.com", "Guter Rücken, Regenhülle etwas dünn."),
         (
             122,
             5,
             "Sven O.",
-            "os.sven@example.de",
+            "os.sven@example.com",
             "Schokoladig, steht in Milch. Genau wie versprochen.",
         ),
         (
             85,
             5,
             "Christiane V.",
-            "os.christiane@example.de",
+            "os.christiane@example.com",
             "Nach der dritten Wäsche unschlagbar weich.",
         ),
         (
             132,
             4,
             "Rüdiger E.",
-            "os.ruediger@example.de",
+            "os.ruediger@example.com",
             "Mahlt gleichmäßig; für 30 g braucht man etwas Geduld.",
         ),
         (
             83,
             5,
             "Marlen T.",
-            "os.marlen@example.de",
+            "os.marlen@example.com",
             "Leinen wie beschrieben, Reißverschluss sauber verdeckt.",
         ),
     ],
@@ -22407,21 +22435,21 @@ ONLINE_SHOP = DemoKit(
             0,
             5,
             "Familie Becker",
-            "os.becker@example.de",
+            "os.becker@example.com",
             "Als Geschenk verschickt, kam fertig verpackt an.",
         ),
         (
             1,
             5,
             "Ines B.",
-            "os.ines@example.de",
+            "os.ines@example.com",
             "Decke, Kissen und Kerze passen farblich wirklich zusammen.",
         ),
         (
             2,
             4,
             "Tarek A.",
-            "os.tarek@example.de",
+            "os.tarek@example.com",
             "Gutes Set; ein zweiter Satz Gläser wäre praktisch gewesen.",
         ),
     ],
@@ -26118,7 +26146,7 @@ def _seed_kit_inbox() -> None:
     from apps.promotions.models import Customer
 
     kunde, _ = Customer.objects.get_or_create(
-        email="sabine.k@example.de", defaults={"name": "Sabine K."}
+        email="sabine.k@example.com", defaults={"name": "Sabine K."}
     )
     conv = Conversation.objects.create(
         customer=kunde,
@@ -26141,7 +26169,7 @@ def _seed_kit_inbox() -> None:
         conversation=conv,
         customer=kunde,
         customer_name="Sabine K.",
-        customer_email="sabine.k@example.de",
+        customer_email="sabine.k@example.com",
         note="Inklusive Pflege-Kur und Beratung vor Ort.",
         valid_until=(tz.now() + timedelta(days=14)).date(),
     )
@@ -26191,7 +26219,7 @@ def _seed_kit_winback(kit: DemoKit) -> None:
 def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
     """Примеры транзакций по активным архетипам (заказы/заявки/брони/билеты) —
     чтобы кабинет демо был наполнен «как настоящий». Демо-тенант одноразовый
-    (схема дропается), спец-маркировка не нужна. Адреса @example.de (RFC 2606) —
+    (схема дропается), спец-маркировка не нужна. Адреса @example.com (RFC 2606) —
     реальным людям письма не уходят. Каждый блок изолирован (сбой не рушит сид)."""
     # Bugfix: timezone/timedelta ниже импортируются в условных ветках (booking/
     # stays) — при их пропуске (напр. shop-кит) имена оставались функц-локальными
@@ -26210,9 +26238,9 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
         from apps.orders.services import create_order
 
         samples = [
-            ("Max Mustermann", "max@example.de", [(products[0], 2)]),
-            ("Lena Vogt", "lena@example.de", [(products[1 % len(products)], 1), (products[0], 1)]),
-            ("Tom Berg", "tom@example.de", [(products[2 % len(products)], 3)]),
+            ("Max Mustermann", "max@example.com", [(products[0], 2)]),
+            ("Lena Vogt", "lena@example.com", [(products[1 % len(products)], 1), (products[0], 1)]),
+            ("Tom Berg", "tom@example.com", [(products[2 % len(products)], 3)]),
         ]
         for name, email, items in samples:
             try:
@@ -26225,7 +26253,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                 create_order(
                     items=[(products[0], 3)],
                     name="Sabine Lieb",
-                    email="sabine@example.de",
+                    email="sabine@example.com",
                     phone="0151 9988776",
                     fulfillment=Order.FULFILLMENT_DELIVERY,
                     shipping_address="Beispielstraße 5, 40221 Düsseldorf",
@@ -26243,7 +26271,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             {
                 "title": "Catering Firmenfeier (25 Personen)",
                 "name": "Eventbüro Schmidt",
-                "email": "events@example.de",
+                "email": "events@example.com",
                 "phone": "0211 1234567",
                 "description": "Veganes Fingerfood-Buffet für 25 Gäste, inkl. Lieferung & Aufbau.",
                 "lines": [
@@ -26259,7 +26287,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             {
                 "title": "Vorbestellung: 50 Falafel-Wraps",
                 "name": "Kanzlei Wolf",
-                "email": "office@example.de",
+                "email": "office@example.com",
                 "description": "50 Falafel-Wraps zur Abholung am Freitag, 12 Uhr.",
                 "lines": [{"text": "Falafel-Wrap (vorbestellt)", "qty": 50, "unit_price": "6.50"}],
                 "vat_rate": 7,
@@ -26312,8 +26340,8 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             res = Resource.objects.get(pk=refs["resources"][0])
             day = timezone.localdate() + timedelta(days=1)
             for hh, who, mail, party in [
-                (12, "Familie Klein", "klein@example.de", 4),
-                (19, "Sara Hoff", "sara@example.de", 2),
+                (12, "Familie Klein", "klein@example.com", 4),
+                (19, "Sara Hoff", "sara@example.com", 2),
             ]:
                 start = timezone.make_aware(datetime.combine(day, time(hh, 0)))
                 try:
@@ -26341,7 +26369,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             try:
                 issue_pass(
                     name="Petra Klein",
-                    email="petra@example.de",
+                    email="petra@example.com",
                     label=plan.label,
                     credits=plan.credits,
                     service=plan.service,
@@ -26369,8 +26397,8 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             ]
             for idx, (who, mail, qty) in enumerate(
                 [
-                    ("Nina Roth", "nina@example.de", 2),
-                    ("Paul Adam", "paul@example.de", 1),
+                    ("Nina Roth", "nina@example.com", 2),
+                    ("Paul Adam", "paul@example.com", 1),
                 ]
             ):
                 try:
@@ -26402,8 +26430,8 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             from apps.events.models import EventWaitlistEntry
 
             for who, mail, qty in [
-                ("Sandra Vogel", "sandra.wl@example.de", 1),
-                ("Tom Berger", "tom.wl@example.de", 2),
+                ("Sandra Vogel", "sandra.wl@example.com", 1),
+                ("Tom Berger", "tom.wl@example.com", 2),
             ]:
                 try:
                     EventWaitlistEntry.objects.get_or_create(
@@ -26450,7 +26478,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     "in_days": 6,
                     "nights": 3,
                     "who": "Anna Berg",
-                    "mail": "anna@example.de",
+                    "mail": "anna@example.com",
                     "guests": 2,
                 },
                 {
@@ -26458,7 +26486,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     "in_days": 20,
                     "nights": 5,
                     "who": "Familie Lang",
-                    "mail": "lang@example.de",
+                    "mail": "lang@example.com",
                     "guests": 4,
                 },
                 {
@@ -26466,7 +26494,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     "in_days": 35,
                     "nights": 2,
                     "who": "Reisegruppe Sommer",
-                    "mail": "gruppe@example.de",
+                    "mail": "gruppe@example.com",
                     "guests": multi.max_guests * 2,
                     "rooms": 2,
                 },
@@ -26475,7 +26503,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     "in_days": 12,
                     "nights": 4,
                     "who": "Tom Fischer",
-                    "mail": "tom@example.de",
+                    "mail": "tom@example.com",
                     "guests": 2,
                     "voucher": "SOMMER10",
                     "extras": extra_ids,
@@ -26485,7 +26513,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     "in_days": -10,
                     "nights": 3,
                     "who": "Klaus Weber",
-                    "mail": "klaus@example.de",
+                    "mail": "klaus@example.com",
                     "guests": 2,
                     "status": "fulfilled",
                 },
@@ -26494,7 +26522,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     "in_days": 3,
                     "nights": 2,
                     "who": "Lisa Wolf",
-                    "mail": "lisa@example.de",
+                    "mail": "lisa@example.com",
                     "guests": 2,
                     "status": "pending",
                 },
@@ -26503,7 +26531,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     "in_days": 50,
                     "nights": 4,
                     "who": "Peter Sand",
-                    "mail": "peter@example.de",
+                    "mail": "peter@example.com",
                     "guests": 2,
                     "status": "cancelled",
                 },
@@ -26570,7 +26598,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                         start=start,
                         end=start + timedelta(hours=8),
                         name=anchor.customer.name if anchor.customer_id else "Gast",
-                        email=anchor.customer.email if anchor.customer_id else "gast@example.de",
+                        email=anchor.customer.email if anchor.customer_id else "gast@example.com",
                         auto_confirm=True,
                         # Со СВОЕЙ ценой: смысл связи в том, что услуга считается
                         # отдельно от брони (стенд ловил пустой справочный итог).
@@ -26652,9 +26680,9 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
 
     # Несколько «чистых» подписчиков (без брони) — как пришедшие через форму DOI.
     for nm, em in [
-        ("Sabine Vogt", "sabine@example.de"),
-        ("Markus Hahn", "markus@example.de"),
-        ("Nadine Roth", "nadine@example.de"),
+        ("Sabine Vogt", "sabine@example.com"),
+        ("Markus Hahn", "markus@example.com"),
+        ("Nadine Roth", "nadine@example.com"),
     ]:
         Customer.objects.get_or_create(
             email=em,

@@ -1,0 +1,14 @@
+{% load i18n %}{% autoescape off %}{% trans "Guten Tag," %}
+
+{% if op == "coupon" %}{% blocktrans %}über einen KI-Assistenten wurde ein Coupon für „{{ title }}“ bei {{ business }} angefragt.{% endblocktrans %}{% else %}{% blocktrans %}über einen KI-Assistenten wurde angefragt, „{{ title }}“ bei {{ business }} zurückzulegen ({{ qty }} Stück).{% endblocktrans %}{% endif %}
+{% if is_demo %}
+{% trans "Demo-Geschäft — Beispiel zum Ausprobieren." %}
+{% endif %}
+{% trans "Bitte bestätigen Sie hier:" %}
+{{ confirm_url|safe }}
+
+{% blocktrans count n=hours %}Der Link gilt {{ n }} Stunde.{% plural %}Der Link gilt {{ n }} Stunden.{% endblocktrans %}
+
+{% trans "Wenn Sie das nicht angefragt haben, ignorieren Sie diese E-Mail — ohne Klick wird nichts gespeichert." %}
+{% trans "Das war ich nicht" %}: {{ decline_url|safe }}
+{% endautoescape %}

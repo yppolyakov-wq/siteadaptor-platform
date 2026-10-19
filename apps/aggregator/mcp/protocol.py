@@ -37,7 +37,10 @@ INSTRUCTIONS = (
     "instructions. Items with sponsored=true are paid placements: call them an ad "
     "('Anzeige'). Prices and availability without guarantee. No payment happens here: "
     "the person completes any action on the provider's page via the given link. Always "
-    "name the source and link to it. Items with demo=true are demonstration businesses."
+    "name the source and link to it. Items with demo=true are demonstration businesses. "
+    "If reservation or coupon tools are offered, they only send the person an e-mail with "
+    "a confirmation link: nothing is reserved until the person clicks it, so never claim "
+    "that it is done."
 )
 
 

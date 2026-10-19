@@ -671,6 +671,11 @@ urlpatterns = [
         promotions_assistant.assistant_confirm,
         name="storefront-assistant-confirm",
     ),
+    path(
+        "p/<uuid:pk>/ki-bestaetigen/<str:token>/decline/",
+        promotions_assistant.assistant_decline,
+        name="storefront-assistant-decline",
+    ),
     path("coupon/<str:code>/", public_views.coupon_page, name="storefront-coupon"),
     path("coupon/<str:code>/qr.svg", public_views.coupon_qr, name="storefront-coupon-qr"),
     path("p/<uuid:pk>/qr.svg", public_views.promotion_qr, name="storefront-promotion-qr"),

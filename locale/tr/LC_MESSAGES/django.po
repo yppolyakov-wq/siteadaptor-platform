@@ -26190,3 +26190,69 @@ msgstr "Lütfen asistanınıza tekrar sorun veya kampanya sayfasını kullanın.
 
 msgid "Zeigen Sie den Coupon an der Kasse"
 msgstr "Kuponu kasada gösterin"
+
+msgid "Anfrage löschen"
+msgstr "Talebi sil"
+
+msgid "Bitte bestätigen Sie hier:"
+msgstr "Lütfen buradan onaylayın:"
+
+msgid "Das war ich nicht"
+msgstr "Bu ben değildim"
+
+msgid "Erledigt — die Anfrage ist gelöscht."
+msgstr "Tamam — talep silindi."
+
+msgid ""
+"Wenn Sie das nicht angefragt haben, ignorieren Sie diese E-Mail — ohne Klick"
+" wird nichts gespeichert."
+msgstr ""
+"Bunu siz talep etmediyseniz bu e-postayı dikkate almayın — tıklamadan hiçbir"
+" şey kaydedilmez."
+
+msgid ""
+"Wir löschen die Anfrage und senden Ihnen 30 Tage lang keine solchen E-Mails "
+"mehr."
+msgstr ""
+"Talebi siliyoruz ve 30 gün boyunca size bu tür e-postalar göndermeyeceğiz."
+
+msgid ""
+"über einen KI-Assistenten wurde angefragt, „%(title)s“ bei %(business)s "
+"zurückzulegen (%(qty)s Stück)."
+msgstr ""
+"bir yapay zekâ asistanı aracılığıyla %(business)s işletmesinden “%(title)s” "
+"ürününün sizin için ayrılması istendi (%(qty)s adet)."
+
+msgid ""
+"über einen KI-Assistenten wurde ein Coupon für „%(title)s“ bei %(business)s "
+"angefragt."
+msgstr ""
+"bir yapay zekâ asistanı aracılığıyla %(business)s işletmesinde “%(title)s” "
+"için kupon istendi."
+
+msgid "Die Person kann sie auf der Seite des Angebots ausführen: %(url)s"
+msgstr "Kişi bunu teklif sayfasında yapabilir: %(url)s"
+
+msgid "Diese Aktion ist gerade nicht verfügbar."
+msgstr "Bu işlem şu anda kullanılamıyor."
+
+msgid "Diese Menge ist für dieses Angebot nicht möglich."
+msgstr "Bu miktar bu teklif için mümkün değil."
+
+msgid "Dieses Angebot kann man nicht zurücklegen lassen."
+msgstr "Bu teklif ayrılamaz."
+
+msgid "Für dieses Angebot gibt es keinen Coupon."
+msgstr "Bu teklif için kupon yok."
+
+msgid ""
+"Wir haben eine E-Mail mit einem Bestätigungslink gesendet. Erledigt ist es "
+"erst nach dem Klick auf den Link."
+msgstr ""
+"Onay bağlantısı içeren bir e-posta gönderdik. İşlem ancak bağlantıya "
+"tıklandıktan sonra tamamlanır."
+
+msgid "Der Link gilt %(n)s Stunde."
+msgid_plural "Der Link gilt %(n)s Stunden."
+msgstr[0] "Bağlantı %(n)s saat geçerlidir."
+msgstr[1] "Bağlantı %(n)s saat geçerlidir."

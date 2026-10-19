@@ -17,6 +17,15 @@
       <button type="submit" class="rounded-lg px-5 py-2.5 text-sm font-medium text-white" style="background: var(--accent, #4f46e5)">{% if op == "coupon" %}{% trans "Coupon holen" %}{% else %}{% trans "Jetzt zurücklegen" %}{% endif %}</button>
     </form>
     <p class="mt-4 text-xs text-gray-400">{% trans "Nichts passiert, bis Sie den Knopf drücken." %}</p>
+  {% elif state == "decline_ask" %}
+    <h1 class="text-xl font-bold mb-2">{% trans "Das war ich nicht" %}</h1>
+    <p class="text-sm text-gray-500">{% trans "Wir löschen die Anfrage und senden Ihnen 30 Tage lang keine solchen E-Mails mehr." %}</p>
+    <form method="post" class="mt-6">
+      {% csrf_token %}
+      <button type="submit" class="rounded-lg px-5 py-2.5 text-sm font-medium text-white bg-gray-800">{% trans "Anfrage löschen" %}</button>
+    </form>
+  {% elif state == "declined" %}
+    <h1 class="text-xl font-bold mb-2">{% trans "Erledigt — die Anfrage ist gelöscht." %}</h1>
   {% elif state == "sold_out" %}
     <h1 class="text-xl font-bold mb-2">{% trans "Leider ausverkauft." %}</h1>
   {% elif state == "limit" %}

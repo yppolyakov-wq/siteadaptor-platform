@@ -265,3 +265,32 @@ def _send_coupon_email(voucher, promo, email, lang=""):
         body=body,
         html=html,
     )
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def assistant_decline(request, pk, token):
+    """«Das war ich nicht»: GET спрашивает, POST гасит ссылку и на 30 дней перестаёт
+    слать письма от ассистентов на этот ящик (`actions.suppress`)."""
+    from apps.core import ratelimit
+
+    tenant = getattr(request, "tenant", None)
+    if tenant is None:
+        raise Http404
+    if ratelimit.hit("mcp-confirm", ratelimit.client_ip(request), limit=RATE_LIMIT, window=600):
+        return _page(request, {"state": "busy"}, status=429)
+    payload = actions.load_pending(token)
+    if payload is None:
+        done = actions.outcome(token) or {}
+        state = "declined" if done.get("result") == "declined" else "invalid"
+        return _page(request, {"state": state}, status=200 if state == "declined" else 410)
+    if payload.get("schema") != tenant.schema_name or payload.get("promo_id") != str(pk):
+        raise Http404
+    with translation.override(_language(payload, tenant) or translation.get_language()):
+        if request.method == "GET":
+            return _page(request, {"state": "decline_ask"})
+        actions.suppress(payload["email"])
+        actions.finish(
+            token, {"schema": tenant.schema_name, "promo_id": str(pk), "result": "declined"}
+        )
+        return _page(request, {"state": "declined"})

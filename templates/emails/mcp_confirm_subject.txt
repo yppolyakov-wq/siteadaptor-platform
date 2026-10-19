@@ -1,0 +1,1 @@
+{% load i18n %}{% autoescape off %}{% if op == "coupon" %}{% trans "Coupon bestätigen" %}{% else %}{% trans "Reservierung bestätigen" %}{% endif %}: {{ title }} — {{ business }}{% endautoescape %}

@@ -405,3 +405,40 @@ def test_headers_forbid_indexing(tenant):
     promo = _promo()
     resp = _get(tenant, promo, _token(promo))
     assert "noindex" in resp["X-Robots-Tag"]
+
+
+# --- «Das war ich nicht» ---------------------------------------------------------------
+
+
+def _decline(method, tenant, promo, token):
+    return assistant_views.assistant_decline(_req(method, tenant), pk=promo.pk, token=token)
+
+
+def test_decline_get_asks_and_changes_nothing(tenant):
+    promo = _promo()
+    token = _token(promo)
+    body = _decline("get", tenant, promo, token).content.decode()
+    assert 'data-state="decline_ask"' in body
+    assert actions.load_pending(token) is not None
+    assert not actions.is_suppressed("anna@example.com")
+
+
+def test_decline_post_kills_link_and_silences_address(tenant):
+    promo = _promo()
+    token = _token(promo)
+    body = _decline("post", tenant, promo, token).content.decode()
+    assert 'data-state="declined"' in body
+    assert actions.is_suppressed("anna@example.com")
+    assert actions.load_pending(token) is None
+    # ссылка подтверждения больше ничего не создаёт
+    _post(tenant, promo, token)
+    assert not Reservation.objects.exists()
+
+
+def test_decline_from_foreign_host_is_404(tenant):
+    promo = _promo()
+    token = _token(promo)
+    other = TenantFactory(schema_name="t2", slug="anders")
+    with pytest.raises(Http404):
+        _decline("post", other, promo, token)
+    assert not actions.is_suppressed("anna@example.com")

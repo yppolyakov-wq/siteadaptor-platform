@@ -393,7 +393,7 @@ def is_suppressed(email: str) -> bool:
         return False
 
 
-def confirm_url(tenant, promo_id, token) -> str:
+def confirm_url(tenant, promo_id, token, *, name="storefront-assistant-confirm") -> str:
     """Ссылка подтверждения на основном домене бизнеса (tenant-urlconf явно, урок T-8.5)."""
     from django.urls import reverse
 
@@ -403,7 +403,7 @@ def confirm_url(tenant, promo_id, token) -> str:
     if not base:
         return ""
     path = reverse(
-        "storefront-assistant-confirm",
+        name,
         kwargs={"pk": promo_id, "token": token},
         urlconf="config.urls_tenant",
     )

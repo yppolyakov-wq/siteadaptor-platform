@@ -40,6 +40,12 @@ class Tool:
     output_schema: dict
     handler: Callable[[dict, Context], dict]
     annotations: dict = field(default_factory=dict)
+    #: Показывать ли инструмент в `tools/list` сейчас (F-4: действия — только при
+    #: настоящей почте). Скрытый инструмент по прямому вызову отвечает своим отказом.
+    available: Callable[[], bool] | None = None
+
+    def is_available(self) -> bool:
+        return self.available is None or bool(self.available())
 
     def describe(self) -> dict:
         out = {
@@ -65,7 +71,7 @@ def register(tool: Tool) -> Tool:
 
 
 def list_tools() -> list[dict]:
-    return [tool.describe() for tool in REGISTRY.values()]
+    return [tool.describe() for tool in REGISTRY.values() if tool.is_available()]
 
 
 def _first_error(schema: dict, value) -> str | None:

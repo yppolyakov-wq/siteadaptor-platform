@@ -254,7 +254,7 @@ class Command(BaseCommand):
             slug=slug,
             business_type=kit.business_type,
             city="Hilden",
-            email=f"{slug}@example.de",
+            email=f"{slug}@example.com",
             password=DEMO_PASSWORD,
         )
         with schema_context(tenant.schema_name):

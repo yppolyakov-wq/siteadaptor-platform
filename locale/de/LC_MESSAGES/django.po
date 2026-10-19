@@ -26126,3 +26126,70 @@ msgstr ""
 
 msgid "Zeigen Sie den Coupon an der Kasse"
 msgstr "Zeigen Sie den Coupon an der Kasse"
+
+msgid "Anfrage löschen"
+msgstr "Anfrage löschen"
+
+msgid "Bitte bestätigen Sie hier:"
+msgstr "Bitte bestätigen Sie hier:"
+
+msgid "Das war ich nicht"
+msgstr "Das war ich nicht"
+
+msgid "Erledigt — die Anfrage ist gelöscht."
+msgstr "Erledigt — die Anfrage ist gelöscht."
+
+msgid ""
+"Wenn Sie das nicht angefragt haben, ignorieren Sie diese E-Mail — ohne Klick"
+" wird nichts gespeichert."
+msgstr ""
+"Wenn Sie das nicht angefragt haben, ignorieren Sie diese E-Mail — ohne Klick"
+" wird nichts gespeichert."
+
+msgid ""
+"Wir löschen die Anfrage und senden Ihnen 30 Tage lang keine solchen E-Mails "
+"mehr."
+msgstr ""
+"Wir löschen die Anfrage und senden Ihnen 30 Tage lang keine solchen E-Mails "
+"mehr."
+
+msgid ""
+"über einen KI-Assistenten wurde angefragt, „%(title)s“ bei %(business)s "
+"zurückzulegen (%(qty)s Stück)."
+msgstr ""
+"über einen KI-Assistenten wurde angefragt, „%(title)s“ bei %(business)s "
+"zurückzulegen (%(qty)s Stück)."
+
+msgid ""
+"über einen KI-Assistenten wurde ein Coupon für „%(title)s“ bei %(business)s "
+"angefragt."
+msgstr ""
+"über einen KI-Assistenten wurde ein Coupon für „%(title)s“ bei %(business)s "
+"angefragt."
+
+msgid "Die Person kann sie auf der Seite des Angebots ausführen: %(url)s"
+msgstr "Die Person kann sie auf der Seite des Angebots ausführen: %(url)s"
+
+msgid "Diese Aktion ist gerade nicht verfügbar."
+msgstr "Diese Aktion ist gerade nicht verfügbar."
+
+msgid "Diese Menge ist für dieses Angebot nicht möglich."
+msgstr "Diese Menge ist für dieses Angebot nicht möglich."
+
+msgid "Dieses Angebot kann man nicht zurücklegen lassen."
+msgstr "Dieses Angebot kann man nicht zurücklegen lassen."
+
+msgid "Für dieses Angebot gibt es keinen Coupon."
+msgstr "Für dieses Angebot gibt es keinen Coupon."
+
+msgid ""
+"Wir haben eine E-Mail mit einem Bestätigungslink gesendet. Erledigt ist es "
+"erst nach dem Klick auf den Link."
+msgstr ""
+"Wir haben eine E-Mail mit einem Bestätigungslink gesendet. Erledigt ist es "
+"erst nach dem Klick auf den Link."
+
+msgid "Der Link gilt %(n)s Stunde."
+msgid_plural "Der Link gilt %(n)s Stunden."
+msgstr[0] "Der Link gilt %(n)s Stunde."
+msgstr[1] "Der Link gilt %(n)s Stunden."
