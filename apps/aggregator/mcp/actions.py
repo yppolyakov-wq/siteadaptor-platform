@@ -19,9 +19,11 @@ import hashlib
 import hmac
 import json
 import logging
+import re
 import secrets
 import uuid
 from dataclasses import dataclass
+from datetime import timedelta
 
 from django.conf import settings
 from django.core.cache import cache
@@ -110,6 +112,18 @@ def clean_input(email, name="", qty=1) -> tuple[str, str, int]:
     return email, name[:NAME_MAX], qty
 
 
+_URL_RE = re.compile(r"(?:https?://|www\.)\S+", re.I)
+TEXT_MAX = 80
+
+
+def plain(text, limit: int = TEXT_MAX) -> str:
+    """Текст бизнеса для письма постороннему человеку: одна строка, без управляющих
+    символов и ссылок, коротко — название акции не должно стать фишинговым письмом."""
+    text = "".join(ch for ch in str(text or "") if ch.isprintable() or ch.isspace())
+    text = " ".join(_URL_RE.sub("…", text).split())
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+
+
 def create_pending(
     *,
     op: str,
@@ -123,6 +137,8 @@ def create_pending(
     lang: str = "de",
     ends_at=None,
     is_demo: bool = False,
+    title: str = "",
+    business: str = "",
 ) -> tuple[str, int] | None:
     """Положить ожидающее действие → (токен, срок в секундах). None — акция уже кончилась
     или кэш недоступен (вызывающий честно отказывает, а не обещает письмо)."""
@@ -145,7 +161,11 @@ def create_pending(
         "qty": int(qty),
         "lang": lang,
         "demo": bool(is_demo),
+        # для письма-подтверждения (его шлёт задача, у неё нет схемы бизнеса)
+        "title": plain(title),
+        "business": plain(business),
         "created": timezone.now().isoformat(),
+        "expires": (timezone.now() + timedelta(seconds=ttl)).isoformat(),
         # человек — только зашифрованным
         "who": crypto.encrypt(json.dumps({"email": email, "name": name})),
     }
@@ -211,6 +231,16 @@ def finish(token, outcome: dict) -> None:
         cache.delete(_PENDING + key)
     except Exception as exc:  # noqa: BLE001
         logger.error("mcp finish: pending not deleted: %s", type(exc).__name__)
+
+
+def discard(token) -> None:
+    """Письмо не ушло: ссылку никто не получит — запись с адресом не храним."""
+    if not _valid_token(token):
+        return
+    try:
+        cache.delete(_PENDING + _hash(token))
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def outcome(token) -> dict | None:
@@ -324,24 +354,17 @@ def address_key(email: str) -> str:
 
 
 def _windows(email: str, listing_id: int):
-    """(scope, ident, предел, окно, код отказа) — всё, что считает отправленные письма."""
+    """(scope, ident, предел, окно, код отказа). Сначала НЕ личные окна (предложение,
+    общий потолок): при их исчерпании известный и новый адрес получают один и тот же
+    честный `LIMIT`, иначе порядок выдавал бы, знаком ли адрес."""
     mail = address_key(email)
     day = 60 * 60 * 24
     return (
-        ("mcp-act-email-offer", f"{mail}:{listing_id}", 1, day, SILENT),
-        ("mcp-act-email", mail, _limit("MCP_ACTION_RATE_EMAIL", 3), day, SILENT),
         ("mcp-act-offer", str(listing_id), _limit("MCP_ACTION_RATE_OFFER", 50), day, LIMIT),
         ("mcp-act-global", "all", _limit("MCP_ACTION_RATE_GLOBAL", 300), 3600, LIMIT),
+        ("mcp-act-email-offer", f"{mail}:{listing_id}", 1, day, SILENT),
+        ("mcp-act-email", mail, _limit("MCP_ACTION_RATE_EMAIL", 3), day, SILENT),
     )
-
-
-def _used(scope: str, ident: str) -> int:
-    from apps.core import ratelimit
-
-    try:
-        return int(ratelimit.cache.get(f"rl:{scope}:{ident}") or 0)
-    except Exception:  # noqa: BLE001 — кэш недоступен: fail-open, как ratelimit.hit
-        return 0
 
 
 def hit_ip(request) -> bool:
@@ -352,26 +375,40 @@ def hit_ip(request) -> bool:
     return ratelimit.hit("mcp-act-ip", ratelimit.client_ip(request), limit=limit, window=600)
 
 
-def check_limits(*, email: str, listing_id: int) -> str | None:
-    """Можно ли отправить письмо (Д-11) — БЕЗ расхода квот: счётчики увеличивает только
-    `consume_limits` после реальной отправки, отказ дальше по цепочке квоту не сжигает.
+def _unhit(scope: str, ident: str) -> None:
+    from apps.core import ratelimit
 
-    Отказ по адресу (повтор, лимит, «это не я») — `SILENT`: ассистенту тот же ответ,
-    что при отправке. Отказ по предложению или общему потолку — честный `LIMIT`."""
+    try:
+        ratelimit.cache.decr(f"rl:{scope}:{ident}")
+    except Exception:  # noqa: BLE001 — ключ истёк: откатывать нечего
+        pass
+
+
+def reserve_slot(*, email: str, listing_id: int) -> str | None:
+    """Занять место под одно письмо (Д-11) — АТОМАРНО, до отправки: инкремент и
+    сравнение в одном шаге (`ratelimit.hit`), поэтому параллельные вызовы с одним
+    адресом не проскакивают все разом. Отказ откатывает уже занятые окна — квота не
+    сгорает. None — можно слать; `LIMIT` — честный отказ; `SILENT` — отказ по адресу
+    (ассистенту тот же ответ, что при отправке)."""
+    from apps.core import ratelimit
+
     if is_suppressed(email):
         return SILENT
-    for scope, ident, limit, _window, code in _windows(email, listing_id):
-        if _used(scope, ident) >= limit:
+    taken = []
+    for scope, ident, limit, window, code in _windows(email, listing_id):
+        over = ratelimit.hit(scope, ident, limit=limit, window=window)
+        taken.append((scope, ident))
+        if over:
+            for t_scope, t_ident in taken:
+                _unhit(t_scope, t_ident)
             return code
     return None
 
 
-def consume_limits(*, email: str, listing_id: int) -> None:
-    """Засчитать отправленное письмо во все окна."""
-    from apps.core import ratelimit
-
-    for scope, ident, limit, window, _code in _windows(email, listing_id):
-        ratelimit.hit(scope, ident, limit=limit, window=window)
+def release_slot(*, email: str, listing_id: int) -> None:
+    """Письмо не удалось поставить в очередь — вернуть занятое место."""
+    for scope, ident, *_rest in _windows(email, listing_id):
+        _unhit(scope, ident)
 
 
 SUPPRESS_TTL = 60 * 60 * 24 * 30

@@ -35,6 +35,21 @@ def store(monkeypatch, isolated_ratelimit):
     return cache
 
 
+@pytest.fixture(autouse=True)
+def run_tasks_inline(monkeypatch):
+    """Письмо шлёт задача Celery — в тестах исполняем её сразу."""
+    from apps.aggregator import tasks
+
+    queued = []
+
+    def delay(**kw):
+        queued.append(kw)
+        return tasks.send_mcp_confirm_email(**kw)
+
+    monkeypatch.setattr(tasks.send_mcp_confirm_email, "delay", delay)
+    return queued
+
+
 @pytest.fixture
 def tenant():
     t = TenantFactory(schema_name="t1", slug="baeckerei", city="Solingen", name="Bäckerei Klinge")
@@ -207,22 +222,104 @@ def test_offer_limit_is_honest(tenant):
 
 
 @override_settings(**ACT)
-def test_failed_mail_burns_no_quota(tenant, monkeypatch):
-    portal = _portal()
-    from apps.aggregator.mcp import action_tools
-
+def test_queue_carries_only_the_token(tenant, run_tasks_inline):
     _promo, listing = _offer()
-    args = {"offer_id": listing.pk, "email": "a@b.com"}
+    _data(_portal(), "request_reservation", {"offer_id": listing.pk, "email": "geheim@x.com"})
+    assert "geheim" not in json.dumps(run_tasks_inline)
+    assert set(run_tasks_inline[0]) == {"dedupe_key", "token"}
 
-    def boom(**kw):
+
+@override_settings(**ACT)
+def test_failed_mail_discards_pending(tenant, monkeypatch):
+    from django.core.mail import EmailMessage
+
+    def boom(self, fail_silently=False):
         raise OSError("smtp down")
 
-    real = action_tools._send
-    monkeypatch.setattr(action_tools, "_send", boom)
+    monkeypatch.setattr(EmailMessage, "send", boom)
+    seen = []
+    real_discard = actions.discard
+    monkeypatch.setattr(actions, "discard", lambda t: seen.append(t) or real_discard(t))
+    _promo, listing = _offer()
+    data = _data(_portal(), "request_reservation", {"offer_id": listing.pk, "email": "a@b.com"})
+    assert data["status"] == "confirmation_sent"  # ассистенту — тот же ответ
+    assert seen and actions.load_pending(seen[0]) is None
+
+
+@override_settings(**ACT)
+def test_enqueue_failure_returns_the_slot(tenant, monkeypatch):
+    from apps.aggregator import tasks
+
+    def broken(**kw):
+        raise ConnectionError("broker down")
+
+    monkeypatch.setattr(tasks.send_mcp_confirm_email, "delay", broken)
+    _promo, listing = _offer()
+    portal = _portal()
+    args = {"offer_id": listing.pk, "email": "a@b.com"}
     assert _call(portal, "request_reservation", args)["isError"] is True
-    monkeypatch.setattr(action_tools, "_send", real)
-    _data(portal, "request_reservation", args)
-    assert len(mail.outbox) == 1
+    assert actions.reserve_slot(email="a@b.com", listing_id=listing.pk) is None
+
+
+@override_settings(**ACT)
+def test_silent_and_sent_answers_have_same_shape(tenant):
+    _promo, listing = _offer()
+    portal = _portal()
+    args = {"offer_id": listing.pk, "email": "a@b.com"}
+    sent = _data(portal, "request_reservation", args)
+    silent = _data(portal, "request_reservation", args)
+    assert set(sent) == set(silent)
+    assert {k: v for k, v in sent.items() if k != "expires_at"} == {
+        k: v for k, v in silent.items() if k != "expires_at"
+    }
+
+
+@override_settings(**ACT)
+def test_coupon_mail_wording(tenant):
+    _promo, listing = _offer(response.COUPON)
+    _data(_portal(), "request_coupon", {"offer_id": listing.pk, "email": "a@b.com"})
+    msg = mail.outbox[0]
+    assert msg.subject.startswith("Coupon bestätigen") and "Coupon" in msg.body
+
+
+@override_settings(**ACT)
+def test_tenant_title_is_cleaned_in_mail(tenant):
+    promo, listing = _offer(title={"de": "Brot\nJetzt Konto prüfen: https://evil.example/x"})
+    _data(_portal(), "request_reservation", {"offer_id": listing.pk, "email": "a@b.com"})
+    body = mail.outbox[0].body
+    assert "evil.example" not in body and "Konto prüfen: …" in body
+
+
+@override_settings(**ACT)
+def test_no_domain_means_no_mail(tenant):
+    from apps.tenants.models import Domain
+
+    Domain.objects.filter(tenant=tenant).delete()
+    _promo, listing = _offer()
+    _data(_portal(), "request_reservation", {"offer_id": listing.pk, "email": "a@b.com"})
+    assert not mail.outbox
+
+
+@override_settings(**ACT, MCP_ACTION_RATE_IP=1)
+def test_ip_guard_before_any_work(tenant, django_assert_num_queries):
+    _promo, listing = _offer()
+    portal = _portal()
+    args = {"offer_id": listing.pk, "email": "a@b.com"}
+    _call(portal, "request_reservation", args)
+    with django_assert_num_queries(0):
+        res = _call(portal, "request_reservation", {**args, "email": "c@d.com"})
+    assert res["isError"] is True
+
+
+@override_settings(**ACT)
+def test_ru_plural_in_mail(tenant):
+    _promo, listing = _offer()
+    _data(
+        _portal(),
+        "request_reservation",
+        {"offer_id": listing.pk, "email": "a@b.com", "language": "ru"},
+    )
+    assert "Ссылка действует 24 часа." in mail.outbox[0].body
 
 
 @override_settings(**ACT)

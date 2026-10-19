@@ -1644,3 +1644,65 @@ def purge_follow_digests():
     from . import follow_digest
 
     return follow_digest.purge()
+
+
+@idempotent_task()
+def send_mcp_confirm_email(*, token):
+    """T-8.10f F-4c: письмо-подтверждение действия из ассистента.
+
+    В очереди — только токен: адрес лежит зашифрованным в ожидающей записи
+    (`mcp.actions`), а в аргументах и результате задачи его нет. Письмо не ушло —
+    запись удаляется: ссылку всё равно никто не получил."""
+    import math
+
+    from django.conf import settings
+    from django.core.mail import EmailMessage
+    from django.template.loader import render_to_string
+    from django.utils import timezone, translation
+    from django.utils.dateparse import parse_datetime
+
+    from apps.tenants.models import Tenant
+
+    from .mcp import actions
+
+    payload = actions.load_pending(token)
+    if payload is None:
+        return {"sent": False, "reason": "gone"}
+    tenant = Tenant.objects.filter(schema_name=payload["schema"]).first()
+    url = actions.confirm_url(tenant, payload["promo_id"], token) if tenant else ""
+    decline = (
+        actions.confirm_url(tenant, payload["promo_id"], token, name="storefront-assistant-decline")
+        if tenant
+        else ""
+    )
+    if not url:
+        actions.discard(token)
+        return {"sent": False, "reason": "no_domain"}
+    expires = parse_datetime(payload.get("expires") or "") or timezone.now()
+    hours = max(1, math.ceil((expires - timezone.now()).total_seconds() / 3600))
+    ctx = {
+        "business": payload.get("business") or "",
+        "title": payload.get("title") or "",
+        "op": payload["op"],
+        "qty": payload.get("qty") or 1,
+        "confirm_url": url,
+        "decline_url": decline,
+        "hours": hours,
+        "is_demo": bool(payload.get("demo")),
+    }
+    with translation.override(payload.get("lang") or "de"):
+        subject = render_to_string("emails/mcp_confirm_subject.txt", ctx)
+        body = render_to_string("emails/mcp_confirm.txt", ctx)
+    message = EmailMessage(
+        subject=" ".join(subject.split()),
+        body=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[payload["email"]],
+    )
+    try:
+        message.send(fail_silently=False)
+    except Exception as exc:  # noqa: BLE001 — адрес/ссылку в журнал не пишем
+        logger.warning("mcp confirm mail failed: %s", type(exc).__name__)
+        actions.discard(token)
+        return {"sent": False, "reason": "mail_error"}
+    return {"sent": True}

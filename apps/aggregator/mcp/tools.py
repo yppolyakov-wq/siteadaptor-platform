@@ -43,6 +43,8 @@ class Tool:
     #: Показывать ли инструмент в `tools/list` сейчас (F-4: действия — только при
     #: настоящей почте). Скрытый инструмент по прямому вызову отвечает своим отказом.
     available: Callable[[], bool] | None = None
+    #: Текст отказа для прямого вызова скрытого инструмента (иначе — общий).
+    unavailable: Callable[[dict, Context], str] | None = None
 
     def is_available(self) -> bool:
         return self.available is None or bool(self.available())
@@ -99,6 +101,10 @@ def call_tool(name: str, arguments, ctx: Context) -> dict:
     problem = _first_error(tool.input_schema, arguments)
     if problem:
         return error_result(_("Ungültige Eingabe — %(problem)s") % {"problem": problem})
+    if not tool.is_available():
+        # скрытый инструмент обработчик не исполняет — даже если тот забыл проверку
+        text = tool.unavailable(arguments, ctx) if tool.unavailable else ""
+        return error_result(text or _("Diese Aktion ist gerade nicht verfügbar."))
     try:
         data = tool.handler(arguments, ctx)
     except ToolError as exc:

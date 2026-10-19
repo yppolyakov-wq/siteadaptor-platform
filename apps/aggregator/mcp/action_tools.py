@@ -13,10 +13,8 @@ docs/t8-10f-f4-plan-2026-10-19.md, Д-7…Д-12).
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 
-from django.conf import settings
-from django.core.mail import EmailMessage
-from django.template.loader import render_to_string
 from django.utils import timezone, translation
 from django.utils.translation import gettext as _
 
@@ -104,36 +102,15 @@ def _unavailable(listing=None) -> ToolError:
     return ToolError(msg)
 
 
-def _send(*, email, url, decline_url, checked, op, qty, lang, ttl) -> None:
-    ctx = {
-        "business": getattr(checked.tenant, "name", "") or "",
-        "title": checked.title,
-        "op": op,
-        "qty": qty,
-        "confirm_url": url,
-        "decline_url": decline_url,
-        "hours": max(1, round(ttl / 3600)),
-        "is_demo": checked.is_demo,
-    }
-    with translation.override(lang):
-        subject = render_to_string("emails/mcp_confirm_subject.txt", ctx)
-        body = render_to_string("emails/mcp_confirm.txt", ctx)
-    message = EmailMessage(
-        subject=" ".join(subject.split()),
-        body=body,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[email],
-    )
-    message.send(fail_silently=False)
-
-
 def _request(op: str, args: dict, ctx: Context) -> dict:
+    from ..tasks import send_mcp_confirm_email
+
+    if actions.hit_ip(ctx.request):  # дёшево и первым — до любых запросов к БД
+        raise ToolError(_("Zu viele Anfragen — bitte kurz warten."))
     lang = _lang(args)
     listing = _pool(ctx.portal).filter(pk=args["offer_id"]).first()
     if not actions.enabled():
         raise _unavailable(listing)
-    if actions.hit_ip(ctx.request):
-        raise ToolError(_("Zu viele Anfragen — bitte kurz warten."))
     try:
         email, name, qty = actions.clean_input(
             args.get("email"), args.get("name", ""), args.get("quantity", 1)
@@ -144,10 +121,11 @@ def _request(op: str, args: dict, ctx: Context) -> dict:
         checked = actions.precheck(listing, op, qty)
     except actions.PrecheckError as err:
         raise ToolError(_refusal(err.code)) from None
-    code = actions.check_limits(email=email, listing_id=listing.pk)
+    business = getattr(checked.tenant, "name", "") or ""
+    ttl = actions.ttl_for(checked.ends_at)
+    code = actions.reserve_slot(email=email, listing_id=listing.pk)
     if code == actions.LIMIT:
         raise ToolError(_("Zu viele Anfragen — bitte kurz warten."))
-    ttl = actions.ttl_for(checked.ends_at)
     if code is None:
         created = actions.create_pending(
             op=op,
@@ -161,47 +139,44 @@ def _request(op: str, args: dict, ctx: Context) -> dict:
             lang=lang,
             ends_at=checked.ends_at,
             is_demo=checked.is_demo,
+            title=checked.title,
+            business=business,
         )
         if created is None:
+            actions.release_slot(email=email, listing_id=listing.pk)
             raise _unavailable(listing)
         token, ttl = created
-        url = actions.confirm_url(checked.tenant, checked.promo_id, token)
-        if not url:
-            raise _unavailable(listing)
-        decline_url = actions.confirm_url(
-            checked.tenant, checked.promo_id, token, name="storefront-assistant-decline"
-        )
         try:
-            _send(
-                email=email,
-                url=url,
-                decline_url=decline_url,
-                checked=checked,
-                op=op,
-                qty=qty,
-                lang=lang,
-                ttl=ttl,
+            # письмо — задачей: ответ одинаково быстрый при отправке и при «молчании»
+            # (Д-10), рабочий процесс не ждёт почтовый сервер; в очереди только токен
+            send_mcp_confirm_email.delay(
+                dedupe_key=f"mcp-confirm:{actions._hash(token)}", token=token
             )
-        except Exception as exc:  # noqa: BLE001 — письмо не ушло: квоту не тратим
-            logger.warning("mcp confirm mail failed: %s", type(exc).__name__)
+        except Exception as exc:  # noqa: BLE001 — очередь недоступна: квоту вернуть
+            logger.warning("mcp confirm enqueue failed: %s", type(exc).__name__)
+            actions.discard(token)
+            actions.release_slot(email=email, listing_id=listing.pk)
             raise _unavailable(listing) from None
-        actions.consume_limits(email=email, listing_id=listing.pk)
     # code == SILENT: ответ тот же, письмо не уходит (Д-10)
-    expires = timezone.now() + timezone.timedelta(seconds=ttl)
+    expires = timezone.now() + timedelta(seconds=ttl)
     return {
         "status": "confirmation_sent",
         "expires_at": expires.isoformat(),
-        "offer": {
-            "id": listing.pk,
-            "title": checked.title,
-            "business": getattr(checked.tenant, "name", "") or "",
-        },
+        "offer": {"id": listing.pk, "title": checked.title, "business": business},
         "demo": checked.is_demo,
         "message": _(
             "Wir haben eine E-Mail mit einem Bestätigungslink gesendet. Erledigt ist es erst "
             "nach dem Klick auf den Link."
         ),
     }
+
+
+def _unavailable_text(args: dict, ctx: Context) -> str:
+    """Скрытый инструмент вызвали напрямую (`tools.call_tool`) — отказ со ссылкой на
+    страницу предложения: человек сделает то же сам."""
+    with translation.override(_lang(args)):
+        listing = _pool(ctx.portal).filter(pk=args.get("offer_id") or 0).first()
+        return str(_unavailable(listing))
 
 
 def request_reservation(args: dict, ctx: Context) -> dict:
@@ -234,6 +209,7 @@ for _tool in (
         handler=_with_language(request_reservation),
         annotations=_ACTION,
         available=actions.enabled,
+        unavailable=_unavailable_text,
     ),
     Tool(
         name="request_coupon",
@@ -248,6 +224,7 @@ for _tool in (
         handler=_with_language(request_coupon),
         annotations=_ACTION,
         available=actions.enabled,
+        unavailable=_unavailable_text,
     ),
 ):
     register(_tool)

@@ -249,23 +249,13 @@ def _req(ip="10.0.0.1"):
 
 
 def _send(email, listing_id):
-    """Как будет звать F-4c: проверка → (письмо) → учёт."""
-    code = actions.check_limits(email=email, listing_id=listing_id)
-    if code is None:
-        actions.consume_limits(email=email, listing_id=listing_id)
-    return code
+    """Как зовёт F-4c: атомарно занять место под письмо."""
+    return actions.reserve_slot(email=email, listing_id=listing_id)
 
 
 def test_same_address_and_offer_is_silent_on_repeat():
     assert _send("a@b.de", 1) is None
     assert _send("A@b.de", 1) == actions.SILENT
-
-
-def test_check_alone_burns_nothing():
-    """Отказ дальше по цепочке (предпроверка, сбой письма) квоту не сжигает."""
-    for _ in range(5):
-        assert actions.check_limits(email="a@b.de", listing_id=1) is None
-    assert _send("a@b.de", 1) is None
 
 
 @pytest.mark.parametrize("alias", ["anna+promo@b.de", "Anna+x@B.de"])
@@ -293,6 +283,28 @@ def test_offer_limit_across_addresses():
     assert _send("p9@b.de", 9) == actions.LIMIT
 
 
+@override_settings(MCP_ACTION_RATE_OFFER=1)
+def test_saturated_offer_answers_known_and_new_address_alike():
+    """Порядок окон не выдаёт, знаком ли адрес: оба получают честный LIMIT."""
+    assert _send("known@b.de", 9) is None
+    assert _send("known@b.de", 9) == actions.LIMIT
+    assert _send("new@b.de", 9) == actions.LIMIT
+
+
+@override_settings(MCP_ACTION_RATE_OFFER=1, MCP_ACTION_RATE_EMAIL=1)
+def test_refusal_rolls_back_taken_windows():
+    """Отказ по адресу откатывает уже занятые окна: предложение не теряет место."""
+    assert _send("a@b.de", 1) is None
+    assert _send("a@b.de", 2) == actions.SILENT  # адрес исчерпан; окно «2» откатилось
+    assert _send("b@b.de", 2) is None
+
+
+def test_release_slot_returns_the_place():
+    assert _send("a@b.de", 1) is None
+    actions.release_slot(email="a@b.de", listing_id=1)
+    assert _send("a@b.de", 1) is None
+
+
 @override_settings(MCP_ACTION_RATE_GLOBAL=1)
 def test_global_mail_ceiling():
     assert _send("a@b.de", 1) is None
@@ -308,8 +320,30 @@ def test_ip_guard():
 
 def test_suppressed_address_gets_silence():
     actions.suppress("Anna+x@b.de")
-    assert actions.check_limits(email="anna@b.de", listing_id=1) == actions.SILENT
-    assert actions.check_limits(email="other@b.de", listing_id=1) is None
+    assert _send("anna@b.de", 1) == actions.SILENT
+    assert _send("other@b.de", 1) is None
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("Brot\nKlicken Sie hier: https://evil.example/x", "Brot Klicken Sie hier: …"),
+        ("www.phish.example ist sicher", "… ist sicher"),
+        ("  viele   Leer\tzeichen ", "viele Leer zeichen"),
+    ],
+)
+def test_plain_text_for_strangers(raw, expected):
+    assert actions.plain(raw) == expected
+
+
+def test_plain_truncates():
+    assert len(actions.plain("x" * 500)) == actions.TEXT_MAX
+
+
+def test_discard_drops_pending():
+    token, _ttl = _pending()
+    actions.discard(token)
+    assert actions.load_pending(token) is None
 
 
 def test_limit_keys_hold_no_address_and_no_plain_hash(isolated_ratelimit):

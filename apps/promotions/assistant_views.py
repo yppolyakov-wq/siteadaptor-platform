@@ -277,7 +277,7 @@ def assistant_decline(request, pk, token):
     tenant = getattr(request, "tenant", None)
     if tenant is None:
         raise Http404
-    if ratelimit.hit("mcp-confirm", ratelimit.client_ip(request), limit=RATE_LIMIT, window=600):
+    if ratelimit.hit("mcp-decline", ratelimit.client_ip(request), limit=RATE_LIMIT, window=600):
         return _page(request, {"state": "busy"}, status=429)
     payload = actions.load_pending(token)
     if payload is None:
