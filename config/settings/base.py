@@ -300,6 +300,8 @@ AGGREGATOR_PORTAL_STATS = {
     "rate_limit": env.int("PORTAL_STATS_RATE_LIMIT", default=300),
     # В5 V5-4: пачек маячка показов на IP за час — отсекается ДО запроса в БД
     "beacon_limit": env.int("PORTAL_STATS_BEACON_LIMIT", default=120),
+    # T-8.10f F-3: учтённых ответов ассистентов (MCP) на адрес платформы за час
+    "machine_limit": env.int("PORTAL_STATS_MACHINE_LIMIT", default=3000),
 }
 
 # T-8.10f: MCP-сервер каталога города для ассистентов (Claude/ChatGPT) — POST /mcp/ на

@@ -534,3 +534,15 @@ def test_error_redirects_keep_attribution():
     bad = {"von": "2020-01-05", "bis": "2020-01-03", "erw": "2", "name": "G", "ch": "portal"}
     resp = stay_views.unterkunft_book(_req("post", "/", bad, tenant), pk=unit.pk)
     assert resp.status_code == 302 and "ch=portal" in resp.url
+
+
+def test_deal_from_assistant_link_counts_under_mcp_channel(django_capture_on_commit_callbacks):
+    """T-8.10f F-3: ссылка next_step несёт `ch=mcp&cl=<pk>` — сделка на витрине
+    засчитывается каналу «Assistenten (KI)» и этому предложению."""
+    tenant = _tenant("mcpdeal")
+    listing = _listing(tenant.schema_name)
+    req = _req("post", "/", {"ch": "mcp", "cl": str(listing.pk)}, tenant)
+    with django_capture_on_commit_callbacks(execute=True):
+        conversions.count(req, "deal", "order", SimpleNamespace(pk=1, items=None))
+    row = PortalStat.objects.get()
+    assert row.channel == "mcp" and row.action == "deal" and row.listing_id == listing.pk

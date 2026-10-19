@@ -199,6 +199,32 @@ def _record(
     return len(fresh)
 
 
+def record_machine(request, listings, *, action: str, channel: str) -> int:
+    """T-8.10f F-3: показы/просмотры в ответах ассистентов (MCP).
+
+    `record` для этого не годится: он отбрасывает роботов по UA, а дедуп «посетитель
+    за день» склеивает всех жителей за адресом платформы ассистента в одного. Здесь —
+    «обращения ассистентов»: без дедупа, под своим лимитом на адрес. Не бросает."""
+    from .models import PortalStat
+
+    try:
+        if not _cfg("enabled") or not listings:
+            return 0
+        if action not in PortalStat.ACTIONS_CODES or channel not in PortalStat.CHANNEL_CODES:
+            return 0
+        rows = _rows(listings, "", "", "", None, False)
+        if not rows:
+            return 0
+        limit = _cfg("machine_limit") or 3000
+        if ratelimit.hit("pstat-machine", ratelimit.client_ip(request), limit=limit, window=3600):
+            return 0
+        _bump(timezone.localdate(), action, channel, rows)
+        return len(rows)
+    except Exception as exc:  # noqa: BLE001 — учёт не смеет ронять ответ
+        logger.warning("portal machine stats write failed: %s", type(exc).__name__)
+        return 0
+
+
 def _bump(day, action: str, channel: str, rows) -> None:
     """Пачка инкрементов одним запросом. Таблица SHARED (public) — имя с схемой, чтобы
     запись из контекста тенанта (витрина: обращение/сделка) шла туда же."""

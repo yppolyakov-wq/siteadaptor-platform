@@ -24,6 +24,8 @@ from ..models import AggregatorListing
 from .tools import Context, Tool, ToolError, register
 
 LANGS = ("de", "en", "tr", "ru", "uk")
+#: Что человек сделает на странице поставщика (F-3): отклик акции T-8.2 или вид предложения.
+NEXT_STEP_TYPES = ("reserve", "coupon", "inquire", "buy", "booking", "visit", "open")
 LIMIT_MAX = 20
 #: Глубина выдачи для ассистента (страниц × limit): полный выгруз — открытый фид.
 DEPTH_MAX = 200
@@ -77,8 +79,16 @@ CARD_SCHEMA = {
         "label": _NULL_STR,
         "demo": {"type": "boolean"},
         "business": _BUSINESS_REF,
+        "next_step": {
+            "type": "object",
+            "properties": {
+                "type": {"type": "string", "enum": list(NEXT_STEP_TYPES)},
+                "url": {"type": "string"},
+            },
+            "required": ["type", "url"],
+        },
     },
-    "required": ["id", "title", "kind", "url", "sponsored", "demo", "business"],
+    "required": ["id", "title", "kind", "url", "sponsored", "demo", "business", "next_step"],
 }
 
 SEARCH_INPUT = {
@@ -266,8 +276,10 @@ def _notice(ctx: Context) -> dict:
     return notice
 
 
-def card(listing, ctx: Context) -> dict:
-    """Карточка предложения: элемент открытого фида, развёрнутый в плоский объект."""
+def card(listing, ctx: Context, steps: dict | None = None) -> dict:
+    """Карточка предложения: элемент открытого фида, развёрнутый в плоский объект.
+
+    `steps` — {pk: тип следующего шага} из `next_steps()` (одна пачка на страницу)."""
     from .. import open_feed
 
     item = open_feed.feed_item(listing, request=ctx.request, preview=bool(ctx.portal.show_demo))
@@ -311,7 +323,56 @@ def card(listing, ctx: Context) -> dict:
     }
     if data["discount_percent"] is not None:
         data["discount_percent"] = int(data["discount_percent"])
+    step = (steps or {}).get(listing.pk) or _default_step(listing)
+    lang = translation.get_language() or ""
+    data["next_step"] = {
+        "type": step,
+        # ссылка на страницу поставщика с каналом `mcp` и номером листинга (V5-5):
+        # резерв/купон/заказ на витрине засчитываются как пришедшие от ассистента
+        "url": listing.with_channel("mcp", lang=lang, listing_ref=True) or data["url"],
+    }
     return data
+
+
+_KIND_STEPS = {
+    AggregatorListing.KIND_STAY: "booking",
+    AggregatorListing.KIND_SERVICE: "booking",
+    AggregatorListing.KIND_BUSINESS: "visit",
+}
+
+
+def _default_step(listing) -> str:
+    return _KIND_STEPS.get(listing.listing_kind, "open")
+
+
+def next_steps(listings) -> dict[int, str]:
+    """Отклик акций (T-8.2 `response_for`) пачкой: один `schema_context` на тенанта
+    страницы, а не на карточку. Сбой одного тенанта — шаг «open», не ошибка ответа."""
+    from django_tenants.utils import schema_context
+
+    from apps.promotions import response
+
+    by_schema: dict[str, dict[str, int]] = {}
+    for listing in listings:
+        if listing.listing_kind == AggregatorListing.KIND_PROMOTION and listing.tenant_schema:
+            by_schema.setdefault(listing.tenant_schema, {})[listing.source_ref] = listing.pk
+    out: dict[int, str] = {}
+    for schema, refs in by_schema.items():
+        tenant = _tenant(schema)
+        if tenant is None:
+            continue
+        try:
+            with schema_context(schema):
+                from apps.promotions.models import Promotion
+
+                for promo in Promotion.objects.filter(pk__in=list(refs)):
+                    code = response.response_for(promo, tenant)
+                    step = "visit" if code == response.SHOW else code
+                    if step in NEXT_STEP_TYPES:
+                        out[refs[str(promo.pk)]] = step
+        except Exception:  # noqa: BLE001 — отклик не смеет ронять поиск
+            continue
+    return out
 
 
 # --- search_offers ----------------------------------------------------------------------
@@ -417,14 +478,22 @@ def search_offers(args: dict, ctx: Context) -> dict:
     # Ассистенту не обещаем больше, чем он может пролистать (глубина выдачи).
     cap = min(settings.AGGREGATOR_SEARCH["max_results"], DEPTH_MAX)
     total = engine.count_capped(outcome.qs, cap)
+    steps = next_steps(page.items)
+    _count(page.items, "impression", ctx)
     return {
-        "items": [card(listing, ctx) for listing in page.items],
+        "items": [card(listing, ctx, steps) for listing in page.items],
         "next_cursor": page.next_cursor,
         "total": min(total, cap),
         "total_capped": total > cap,
         "applied_filters": _applied(q_eff, filters),
         "notice": _notice(ctx),
     }
+
+
+def _count(listings, action: str, ctx: Context) -> None:
+    from .. import portal_stats
+
+    portal_stats.record_machine(ctx.request, listings, action=action, channel="mcp")
 
 
 # --- get_offer --------------------------------------------------------------------------
@@ -447,8 +516,9 @@ def get_offer(args: dict, ctx: Context) -> dict:
     )
     if listing is None:
         raise ToolError(_("Angebot nicht gefunden."))
+    _count([listing], "view", ctx)
     return {
-        "offer": card(listing, ctx),
+        "offer": card(listing, ctx, next_steps([listing])),
         "seller": seller_data(listing, _tenant(listing.tenant_schema), request=ctx.request),
         "notice": _notice(ctx),
     }
@@ -484,9 +554,11 @@ def get_business(args: dict, ctx: Context) -> dict:
         .exclude(listing_kind=AggregatorListing.KIND_BUSINESS)
         .order_by("-updated_at", "-pk")[:BUSINESS_OFFERS_MAX]
     )
+    offers = list(offers)
+    steps = next_steps(offers)
     return {
         "business": data,
-        "offers": [card(listing, ctx) for listing in offers],
+        "offers": [card(listing, ctx, steps) for listing in offers],
         "notice": _notice(ctx),
     }
 
