@@ -26444,3 +26444,12 @@ msgid "%(n)s Foto aus Telegram wird übernommen"
 msgid_plural "%(n)s Fotos aus Telegram werden übernommen"
 msgstr[0] "Telegram'dan %(n)s fotoğraf kullanılacak"
 msgstr[1] "Telegram'dan %(n)s fotoğraf kullanılacak"
+
+msgid "Das hat nicht geklappt — bitte die Nachricht erneut senden."
+msgstr "Bu işe yaramadı — lütfen mesajı tekrar gönderin."
+
+msgid "Das hat nicht geklappt — bitte im Formular prüfen (✏️)."
+msgstr "Bu işe yaramadı — lütfen formda kontrol edin (✏️)."
+
+msgid "Schon als Entwurf gespeichert."
+msgstr "Zaten taslak olarak kaydedildi."

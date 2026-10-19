@@ -12,6 +12,8 @@ from __future__ import annotations
 import logging
 import re
 import secrets
+import time
+from contextlib import contextmanager
 
 from django.conf import settings
 from django.core.cache import cache
@@ -24,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 DRAFT_TTL = 24 * 3600
 DONE_TTL = 7 * 24 * 3600
+CLAIM_TTL = 180  # «pending» живёт коротко: упавший воркер не запирает черновик на неделю
 ALBUM_TTL = 10 * 60
 RATE_LIMIT = 30  # черновиков на чат в час
 TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{16}$")
@@ -125,7 +128,7 @@ def mark_done(schema: str, token: str, pk) -> None:
 
 def claim(schema: str, token: str) -> bool:
     """Атомарный замок публикации (общий для ✅ в Telegram и Save в веб-форме)."""
-    return cache.add(_done_key(schema, token), "pending", DONE_TTL)
+    return cache.add(_done_key(schema, token), "pending", CLAIM_TTL)
 
 
 def done_value(schema: str, token: str):
@@ -154,6 +157,9 @@ def draft_from_parsed(parsed, tenant, *, photo_ids=()) -> dict:
         "term": parsed.term or quick.default_term(tenant),
         "until": parsed.until.isoformat() if parsed.until else "",
         "until_time": parsed.until_time.strftime("%H:%M") if parsed.until_time else "",
+        "until_time_for": quick.until_time_key(parsed.term, parsed.until)
+        if parsed.until_time
+        else "",
         "customer_response": quick.default_response(tenant),
         "city_category": cc.suggest_for_business_type(getattr(tenant, "business_type", "")),
         "product": "",
@@ -262,13 +268,23 @@ def edit_url(token: str) -> str:
     return f"{base}{path}?entwurf={token}"
 
 
-def _send(bot, chat, text: str, markup=None, photo_id: str = "") -> None:
+def _send(bot, chat, text: str, markup=None, photo_id: str = "") -> bool:
+    """Ответ в чат. Ошибка HTTP НЕ уходит наружу: текст requests.HTTPError содержит
+    URL с токеном бота, а вебхук пишет трейсбэк в лог/Sentry."""
     from apps.telegram import services
 
-    if photo_id and len(text) <= services.CAPTION_MAX:
-        services.send_photo(bot.token, chat, photo_id, text, reply_markup=markup)
-    else:
+    try:
+        if photo_id and len(text) <= services.CAPTION_MAX:
+            try:
+                services.send_photo(bot.token, chat, photo_id, text, reply_markup=markup)
+                return True
+            except Exception:  # noqa: BLE001 — фото не ушло: текст важнее картинки
+                pass
         services.send_message(bot.token, chat, text, reply_markup=markup)
+        return True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("tg promo send failed: %s", type(exc).__name__)
+        return False
 
 
 # --- приём сообщения ----------------------------------------------------------------------
@@ -292,7 +308,6 @@ def slim_update(update: dict) -> dict:
 
 def enqueue_owner_message(bot, update: dict, tenant) -> str:
     from apps.core import ratelimit
-    from apps.telegram import services
 
     from . import tasks
 
@@ -302,9 +317,7 @@ def enqueue_owner_message(bot, update: dict, tenant) -> str:
         if ratelimit.hit(
             "tg-promo", f"{connection.schema_name}:{chat}", limit=RATE_LIMIT, window=3600
         ):
-            services.send_message(
-                bot.token, chat, _("Zu viele Entwürfe — bitte später erneut versuchen.")
-            )
+            _send(bot, chat, _("Zu viele Entwürfe — bitte später erneut versuchen."))
             return "limited"
         try:
             tasks.telegram_owner_message.delay(
@@ -314,15 +327,35 @@ def enqueue_owner_message(bot, update: dict, tenant) -> str:
             )
         except Exception as exc:  # брокер недоступен — честно сказать, а не молча потерять
             logger.warning("tg promo enqueue failed: %s", type(exc).__name__)
-            services.send_message(
-                bot.token, chat, _("Gerade nicht möglich — bitte später erneut senden.")
-            )
+            _send(bot, chat, _("Gerade nicht möglich — bitte später erneut senden."))
             return "failed"
     return "queued"
 
 
 def _album_key(schema: str, chat: str, group: str) -> str:
     return f"tgpromo:mg:{schema}:{chat}:{group}"
+
+
+def _album_wait_key(schema: str, chat: str, group: str) -> str:
+    return f"tgpromo:mgw:{schema}:{chat}:{group}"
+
+
+@contextmanager
+def _album_lock(schema: str, chat: str, group: str):
+    """Фото альбома приходят отдельными задачами почти одновременно — без замка
+    read-modify-write списка фото терял бы обновления. Не дождались — работаем без замка."""
+    key = f"tgpromo:mgl:{schema}:{chat}:{group}"
+    got = False
+    for _i in range(30):
+        if cache.add(key, "1", 15):
+            got = True
+            break
+        time.sleep(0.1)
+    try:
+        yield
+    finally:
+        if got:
+            cache.delete(key)
 
 
 def handle_owner_message(schema: str, update: dict) -> str:
@@ -347,12 +380,12 @@ def handle_owner_message(schema: str, update: dict) -> str:
                 return _handle(bot, tenant, schema, chat, update)
             except Exception as exc:  # noqa: BLE001 — без трейсбэка: в нём текст владельца
                 logger.warning("tg promo failed: %s", type(exc).__name__)
+                # Повтор того же update_id задача не возьмёт (дедуп) — сказать честно.
+                _send(bot, chat, _("Das hat nicht geklappt — bitte die Nachricht erneut senden."))
                 return "error"
 
 
 def _handle(bot, tenant, schema, chat, update) -> str:
-    from . import message_parse
-
     reason = gate(tenant)
     if reason:
         _send(bot, chat, reason)
@@ -360,17 +393,40 @@ def _handle(bot, tenant, schema, chat, update) -> str:
     photo = update.get("photo") or ""
     group = update.get("media_group_id") or ""
     if group and photo:
-        token = cache.get(_album_key(schema, chat, group))
-        draft = load_draft(schema, chat, token) if token else None
-        if draft is not None:
-            ids = list(draft.get("photo_ids") or [])
-            from . import quick
+        with _album_lock(schema, chat, group):
+            result = _album_photo(schema, chat, group, photo, update)
+        if result:
+            return result
+    return _new_draft(bot, tenant, schema, chat, update, photo, group)
 
-            if photo not in ids and len(ids) < quick.MAX_PHOTOS:
-                ids.append(photo)
-                draft["photo_ids"] = ids
-                cache.set(_draft_key(schema, chat, token), draft, DRAFT_TTL)
-            return "album"
+
+def _album_photo(schema, chat, group, photo, update) -> str:
+    """Фото альбома: к уже созданному черновику — дописать; подпись ещё не пришла —
+    отложить молча (Telegram кладёт подпись на одно фото, порядок задач не гарантирован)."""
+    from . import quick
+
+    token = cache.get(_album_key(schema, chat, group))
+    draft = load_draft(schema, chat, token) if token else None
+    if draft is not None:
+        ids = list(draft.get("photo_ids") or [])
+        if photo not in ids and len(ids) < quick.MAX_PHOTOS:
+            ids.append(photo)
+            draft["photo_ids"] = ids
+            cache.set(_draft_key(schema, chat, token), draft, DRAFT_TTL)
+        return "album"
+    if not (update.get("text") or "").strip():
+        wait_key = _album_wait_key(schema, chat, group)
+        waiting = list(cache.get(wait_key) or [])
+        if photo not in waiting and len(waiting) < quick.MAX_PHOTOS:
+            waiting.append(photo)
+        cache.set(wait_key, waiting, ALBUM_TTL)
+        return "album_wait"
+    return ""
+
+
+def _new_draft(bot, tenant, schema, chat, update, photo, group) -> str:
+    from . import message_parse, quick
+
     parsed = message_parse.parse(update.get("text") or "")
     if not parsed.signals and not photo:
         _send(
@@ -384,10 +440,18 @@ def _handle(bot, tenant, schema, chat, update) -> str:
     if not parsed.title:
         _send(bot, chat, _("Wie heißt das Angebot? Schreiben Sie es bitte dazu."))
         return "no_title"
-    draft = draft_from_parsed(parsed, tenant, photo_ids=[photo] if photo else [])
-    token = store_draft(schema, chat, draft)
+    photo_ids = [photo] if photo else []
     if group:
-        cache.set(_album_key(schema, chat, group), token, ALBUM_TTL)
+        with _album_lock(schema, chat, group):
+            waiting = cache.get(_album_wait_key(schema, chat, group)) or []
+            cache.delete(_album_wait_key(schema, chat, group))
+            photo_ids += [p for p in waiting if p not in photo_ids]
+            draft = draft_from_parsed(parsed, tenant, photo_ids=photo_ids[: quick.MAX_PHOTOS])
+            token = store_draft(schema, chat, draft)
+            cache.set(_album_key(schema, chat, group), token, ALBUM_TTL)
+    else:
+        draft = draft_from_parsed(parsed, tenant, photo_ids=photo_ids)
+        token = store_draft(schema, chat, draft)
     form = form_for(draft, tenant)
     text, markup = render_preview(draft, tenant, form, token)
     _send(bot, chat, text, markup, photo_id=photo)
@@ -398,7 +462,8 @@ def _handle(bot, tenant, schema, chat, update) -> str:
 
 
 def handle_callback(bot, callback: dict, tenant) -> str:
-    """✅/❌ под превью. Синхронно: сначала снять «часики», потом действие."""
+    """✅/❌ под превью. В вебхуке — только проверка прав и ❌; ✅ (скачивание фото,
+    сохранение) уходит в Celery: иначе запрос висел бы минуты и Telegram слал бы повтор."""
     from apps.telegram import services
 
     cid = str(callback.get("id") or "")
@@ -425,7 +490,55 @@ def handle_callback(bot, callback: dict, tenant) -> str:
             services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
             _send(bot, chat, _("Verworfen."))
             return "dropped"
-        return _confirm(bot, tenant, schema, chat, token, message)
+        return enqueue_confirm(bot, schema, chat, token, message, sender, cid)
+
+
+def enqueue_confirm(bot, schema, chat, token, message, sender, cid) -> str:
+    from . import tasks
+
+    try:
+        tasks.telegram_owner_confirm.delay(
+            dedupe_key=f"tgcb:{schema}:{cid or token}",
+            schema=schema,
+            chat=chat,
+            token=token,
+            message_id=message.get("message_id"),
+            language_code=str(sender.get("language_code") or "")[:8],
+        )
+    except Exception as exc:  # noqa: BLE001 — брокер недоступен
+        logger.warning("tg promo confirm enqueue failed: %s", type(exc).__name__)
+        _send(bot, chat, _("Gerade nicht möglich — bitte später erneut senden."))
+        return "failed"
+    return "queued"
+
+
+def handle_confirm(schema, chat, token, message_id, language_code="") -> str:
+    """Тело Celery-задачи ✅. Права и подписка перепроверяются: задача могла ждать."""
+    from django_tenants.utils import schema_context
+
+    from apps.telegram.models import TelegramBot
+    from apps.tenants.models import Tenant
+
+    with schema_context(schema):
+        tenant = Tenant.objects.filter(schema_name=schema).first()
+        bot = TelegramBot.objects.filter(is_active=True).exclude(token="").first()
+        if tenant is None or bot is None or str(chat) != owner_chat(tenant):
+            return "skip"
+        return confirm_as_task(bot, tenant, schema, chat, token, message_id, language_code)
+
+
+def confirm_as_task(bot, tenant, schema, chat, token, message_id, language_code="") -> str:
+    with translation.override(bot_locale({"language_code": language_code}, tenant)):
+        reason = gate(tenant)
+        if reason:
+            _send(bot, chat, reason)
+            return "gated"
+        try:
+            return _confirm(bot, tenant, schema, chat, token, {"message_id": message_id})
+        except Exception as exc:  # noqa: BLE001 — без трейсбэка: в нём данные владельца
+            logger.warning("tg promo confirm failed: %s", type(exc).__name__)
+            _send(bot, chat, _("Das hat nicht geklappt — bitte im Formular prüfen (✏️)."))
+            return "error"
 
 
 def _promo_url(promo) -> str:
@@ -458,21 +571,36 @@ def photos_from_telegram(token: str, photo_ids) -> tuple[list, bool]:
 
 
 def _confirm(bot, tenant, schema, chat, token, message) -> str:
-    from apps.telegram import services
-
-    from . import limits, quick
-
     if not claim(schema, token):
         value = done_value(schema, token)
         if value and value != "pending":
             from .models import Promotion
 
             promo = Promotion.objects.filter(pk=value).first()
-            if promo is not None:
+            if promo is None:  # акцию удалили — черновика тоже нет
+                _send(bot, chat, _("Entwurf abgelaufen — bitte neu senden."))
+                return "expired"
+            if promo.status == "active":
                 _send(bot, chat, _("Schon veröffentlicht: %(url)s") % {"url": _promo_url(promo)})
-                return "already"
+            else:
+                _send(bot, chat, _("Schon als Entwurf gespeichert."))
+            return "already"
         _send(bot, chat, _("Wird gerade gespeichert …"))
         return "busy"
+    try:
+        return _confirm_claimed(bot, tenant, schema, chat, token, message)
+    except BaseException:
+        # Любой сбой после claim — снять замок, иначе черновик «сохраняется» вечно.
+        if done_value(schema, token) == "pending":
+            release(schema, token)
+        raise
+
+
+def _confirm_claimed(bot, tenant, schema, chat, token, message) -> str:
+    from apps.telegram import services
+
+    from . import limits, quick
+
     draft = load_draft(schema, chat, token)
     if draft is None:
         release(schema, token)
@@ -497,7 +625,10 @@ def _confirm(bot, tenant, schema, chat, token, message) -> str:
                 form, promo, images, tenant=tenant, actor=owner_user(tenant)
             )
     except Exception:
-        release(schema, token)
+        from apps.catalog.images import delete_stored_image
+
+        for ref in images:
+            delete_stored_image(ref)  # откат транзакции — файлы не сироты
         raise
     mark_done(schema, token, promo.pk)
     drop_draft(schema, chat, token)

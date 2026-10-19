@@ -461,3 +461,11 @@ def telegram_owner_message(*, schema, update):
     from . import telegram_promo
 
     return {"result": telegram_promo.handle_owner_message(schema, update)}
+
+
+@idempotent_task(lock_timeout=86400)
+def telegram_owner_confirm(*, schema, chat, token, message_id, language_code=""):
+    """T-8.10b: ✅ под превью в Telegram (скачивание фото + публикация) вне вебхука."""
+    from . import telegram_promo
+
+    return {"result": telegram_promo.handle_confirm(schema, chat, token, message_id, language_code)}

@@ -26305,3 +26305,12 @@ msgid "%(n)s Foto aus Telegram wird übernommen"
 msgid_plural "%(n)s Fotos aus Telegram werden übernommen"
 msgstr[0] "%(n)s photo from Telegram will be used"
 msgstr[1] "%(n)s photos from Telegram will be used"
+
+msgid "Das hat nicht geklappt — bitte die Nachricht erneut senden."
+msgstr "That didn't work — please send the message again."
+
+msgid "Das hat nicht geklappt — bitte im Formular prüfen (✏️)."
+msgstr "That didn't work — please check it in the form (✏️)."
+
+msgid "Schon als Entwurf gespeichert."
+msgstr "Already saved as a draft."

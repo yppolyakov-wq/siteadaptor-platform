@@ -182,3 +182,37 @@ def test_long_text_is_capped_and_never_raises():
     assert len(r.title) <= mp.TITLE_MAX
     for junk in ("", "   ", "€€€", "%%%", "bis bis bis", "0,00 €", "99999999 €"):
         mp.parse(junk, now=NOW)
+
+
+@pytest.mark.parametrize(
+    "text, term, until, tm",
+    [
+        ("Brötchen morgen bis 18 Uhr 2,50 €", "date", date(2026, 10, 22), time(18)),
+        ("Herbstjacken 20% bis Sonntag 18 Uhr", "date", date(2026, 10, 25), time(18)),
+        ("Salat −10 % 3 Tage bis 12:30", "date", date(2026, 10, 24), time(12, 30)),
+        ("Brötchen heute bis 18 Uhr −30 %", "today", None, time(18)),
+    ],
+)
+def test_relative_term_with_time_applies_time_to_that_day(text, term, until, tm):
+    r = P(text)
+    assert (r.term, r.until, r.until_time) == (term, until, tm)
+    assert "morgen" not in r.title and "Uhr" not in r.title
+
+
+def test_time_with_weekend_is_ignored_with_warning():
+    r = P("Kuchen −20 % Wochenende bis 20 Uhr")
+    assert r.term == "weekend" and r.until_time is None and "time_ignored" in r.warnings
+
+
+@pytest.mark.parametrize(
+    "text, title, price, qty",
+    [
+        ("Wein 0,75 l nur heute", "Wein 0,75 l", None, None),
+        ("Brot 3 Euro 50", "Brot", Decimal("3.50"), None),
+        ("Shirt 5 x-large 20 €", "Shirt 5 x-large", Decimal("20.00"), None),
+        ("Käse 500g 1,99 statt 2,49", "Käse 500g", Decimal("1.99"), None),
+    ],
+)
+def test_units_are_not_prices(text, title, price, qty):
+    r = P(text)
+    assert (r.title, r.new_price, r.quantity) == (title, price, qty)

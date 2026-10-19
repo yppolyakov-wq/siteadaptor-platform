@@ -721,7 +721,20 @@ def promotion_quick(request):
         promo = form.build()
         uploads = form.cleaned_data.get("photo") or []
         images: list[dict] = []
-        if uploads:
+        schema = connection.schema_name
+        if tg_draft is not None and not telegram_promo.claim(schema, entwurf):
+            # Замок ДО скачивания фото: два Save подряд не качают их дважды.
+            done = telegram_promo.done_value(schema, entwurf)
+            if done and done != "pending":
+                return redirect("promotions:promotion-quick-done", pk=done)
+            form.add_error(None, _("Wird gerade gespeichert …"))
+            tg_draft, uploads = None, []
+            claimed = False
+        else:
+            claimed = tg_draft is not None
+        if form.errors:
+            pass
+        elif uploads:
             try:
                 images = quick.save_photos(uploads)
             except ValidationError as exc:
@@ -742,26 +755,24 @@ def promotion_quick(request):
                     images = quick.save_photos(uploads)
                 except ValidationError:
                     images = []
-        if not form.errors and tg_draft is not None:
-            schema = connection.schema_name
-            if not telegram_promo.claim(schema, entwurf):
-                done = telegram_promo.done_value(schema, entwurf)
+        if not form.errors:
+            try:
+                quick.publish_built(
+                    form,
+                    promo,
+                    images,
+                    tenant=tenant,
+                    actor=request.user,
+                    publish=request.POST.get("publish") != "draft",
+                )
+            except BaseException:
                 for ref in images:
                     delete_stored_image(ref)
-                if done and done != "pending":
-                    return redirect("promotions:promotion-quick-done", pk=done)
-                form.add_error(None, _("Wird gerade gespeichert …"))
-        if not form.errors:
-            quick.publish_built(
-                form,
-                promo,
-                images,
-                tenant=tenant,
-                actor=request.user,
-                publish=request.POST.get("publish") != "draft",
-            )
-            if tg_draft is not None:
-                telegram_promo.mark_done(connection.schema_name, entwurf, promo.pk)
+                if claimed:
+                    telegram_promo.release(schema, entwurf)
+                raise
+            if claimed:
+                telegram_promo.mark_done(schema, entwurf, promo.pk)
             # Использованная подсказка не висит на карточке до истечения кэша.
             if suggestion is not None:
                 today.dismiss(suggestion.key)
@@ -770,6 +781,8 @@ def promotion_quick(request):
             return redirect("promotions:promotion-quick-done", pk=promo.pk)
         for ref in images:
             delete_stored_image(ref)  # форма вернулась с ошибкой — файлы не сироты
+        if claimed:
+            telegram_promo.release(schema, entwurf)
     return render(
         request,
         "promotions/promotion_quick.html",

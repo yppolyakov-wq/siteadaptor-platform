@@ -41,6 +41,8 @@ _RE_TIME = re.compile(
     r"(uhr\b|h\b|am\b|pm\b|'?[ea]\s+kadar\b)?"
 )
 _RE_TIME_AMPM = re.compile(r"(?i)\b(\d{1,2})\s*(am|pm)\b")
+# «bis Sonntag 18 Uhr»: после дня недели «bis» уже съеден — голое «18 Uhr».
+_RE_TIME_UHR = re.compile(r"(?i)(?<![\d.,])(\d{1,2})(?:[:.](?P<min>\d{2}))?\s*uhr\b")
 
 _WEEKDAYS = {
     0: ("montag", "monday", "понедельник", "понедельника", "понеділка", "pazartesi"),
@@ -79,7 +81,7 @@ _RE_PERCENT = re.compile(
     r"|(?<![\d])(\d{1,2})\s?off\b"
 )
 _RE_QTY = re.compile(
-    r"(?i)(?<![\d.,])(\d{1,5})\s?(?:stück\b|stk\.?|st\.|x\b|portionen\b|tüten\b|pcs\b|"
+    r"(?i)(?<![\d.,])(\d{1,5})\s?(?:stück\b|stk\.?|st\.|x(?![\w-])|portionen\b|tüten\b|pcs\b|"
     r"шт\.?|штук\w*|штуки\b|adet\b)"
     r"|\bnur\s+noch\s+(\d{1,5})\b|\bnoch\s+(\d{1,5})\s+da\b|\bосталось\s+(\d{1,5})\b"
     r"|\bзалишилось\s+(\d{1,5})\b"
@@ -94,7 +96,12 @@ _RE_NEW_MARKED = re.compile(rf"(?i)\b{_NEW_MARK}\s*:?\s*(?:{_CUR}\s?)?({_MONEY})
 _RE_PRICE_CUR = re.compile(
     rf"(?i)(?<![\d.,])({_MONEY})\s?{_CUR}|(?:€|eur\b|euro\b)\s?({_MONEY})(?![\d])"
 )
-_RE_PLAIN_DECIMAL = re.compile(r"(?<![\d.,])(\d{1,5}[.,]\d{2})(?![\d])")
+# «Wein 0,75 l» — объём/вес, не цена.
+_RE_PLAIN_DECIMAL = re.compile(
+    r"(?i)(?<![\d.,])(\d{1,5}[.,]\d{2})(?![\d])(?!\s?(?:l|ml|cl|kg|g|cm|m|liter)\b)"
+)
+# «3 Euro 50» = 3,50 €.
+_RE_EURO_CENT = re.compile(r"(?i)(?<![\d.,])(\d{1,5})\s?(?:€|euro\b|eur\b)\s?(\d{2})\b")
 _RE_ARROW = re.compile(rf"({_MONEY})\s?{_CUR}?\s*(?:→|->|=>|/)\s*({_MONEY})\s?{_CUR}?")
 
 _DANGLING = {
@@ -237,36 +244,7 @@ def parse(text: str, *, now=None) -> Parsed:
         if until:
             term = TERM_DATE
 
-    # 2. Время: только с «Uhr»/двоеточием/am-pm — «bis 18» без них может быть ценой.
-    hour = minute = None
-    m = _RE_TIME.search(t.text)
-    if m and (m.group(2) or m.group(3)):
-        t.take_one(re.compile(re.escape(m.group(0))))
-        hour, minute = int(m.group(1)), int(m.group(2) or 0)
-        suffix = (m.group(3) or "").lower()
-        if suffix == "pm" and hour < 12:
-            hour += 12
-        if suffix == "am" and hour == 12:
-            hour = 0
-    if hour is None:
-        m = t.take_one(_RE_TIME_AMPM)
-        if m:
-            hour, minute = int(m.group(1)), 0
-            if m.group(2).lower() == "pm" and hour < 12:
-                hour += 12
-    if hour is not None:
-        if 0 <= hour <= 23 and 0 <= minute <= 59:
-            until_time = time(hour, minute)
-            day = until or today
-            if datetime.combine(day, until_time) <= now.replace(tzinfo=None):
-                warnings.append("time_past")
-                until_time = None
-            elif not term:
-                term = TERM_TODAY
-        else:
-            warnings.append("time_invalid")
-
-    # 3. Относительный срок
+    # 2. Относительный срок (до времени: «morgen bis 18 Uhr» — время относится к ЭТОМУ дню)
     if not term:
         if t.take_one(_RE_WEEKEND):
             term = TERM_WEEKEND
@@ -284,10 +262,38 @@ def parse(text: str, *, now=None) -> Parsed:
             term = TERM_WEEK
         elif t.take_one(_RE_TODAY):
             term = TERM_TODAY
-    else:
-        t.take(_RE_TODAY)  # «heute bis 18 Uhr» — слово «heute» не в заголовок
-    if term == TERM_TODAY and until_time is None:
-        t.take(_RE_TODAY)
+    t.take(_RE_TODAY)  # «heute bis 18 Uhr» — слово «heute» не в заголовок
+
+    # 3. Время: только с «Uhr»/двоеточием/am-pm — «bis 18» без них может быть ценой.
+    hour = minute = None
+    m = _RE_TIME.search(t.text)
+    if m and (m.group(2) or m.group(3)):
+        t.take_one(re.compile(re.escape(m.group(0))))
+        hour, minute = int(m.group(1)), int(m.group(2) or 0)
+        suffix = (m.group(3) or "").lower()
+        if suffix == "pm" and hour < 12:
+            hour += 12
+        if suffix == "am" and hour == 12:
+            hour = 0
+    if hour is None:
+        m = t.take_one(_RE_TIME_AMPM) or t.take_one(_RE_TIME_UHR)
+        if m:
+            hour, minute = int(m.group(1)), int(m.groupdict().get("min") or 0)
+            if m.re is _RE_TIME_AMPM and m.group(2).lower() == "pm" and hour < 12:
+                hour += 12
+    if hour is not None:
+        if not (0 <= hour <= 23 and 0 <= minute <= 59):
+            warnings.append("time_invalid")
+        elif term in (TERM_WEEKEND, TERM_WEEK):
+            warnings.append("time_ignored")  # конец периода — не время дня
+        else:
+            until_time = time(hour, minute)
+            day = until or today
+            if datetime.combine(day, until_time) <= now.replace(tzinfo=None):
+                warnings.append("time_past")
+                until_time = None
+            elif not term:
+                term = TERM_TODAY
 
     # 4. Условие цены — не разбираем, только предупреждаем
     if t.take(_RE_CONDITION):
@@ -319,7 +325,8 @@ def parse(text: str, *, now=None) -> Parsed:
         old = old or _money(m.group(1) or m.group(2))
     for m in t.take(_RE_NEW_MARKED):
         new = new or _money(m.group(1))
-    bare = [_money(m.group(1) or m.group(2)) for m in t.take(_RE_PRICE_CUR)]
+    bare = [_money(f"{m.group(1)}.{m.group(2)}") for m in t.take(_RE_EURO_CENT)]
+    bare += [_money(m.group(1) or m.group(2)) for m in t.take(_RE_PRICE_CUR)]
     bare = [v for v in bare if v]
     if new is None and not bare:
         bare = [v for v in (_money(m.group(1)) for m in t.take(_RE_PLAIN_DECIMAL)) if v]

@@ -26579,3 +26579,12 @@ msgstr[0] "Будет перенесено %(n)s фото из Telegram"
 msgstr[1] "Будет перенесено %(n)s фото из Telegram"
 msgstr[2] "Будет перенесено %(n)s фото из Telegram"
 msgstr[3] "Будет перенесено %(n)s фото из Telegram"
+
+msgid "Das hat nicht geklappt — bitte die Nachricht erneut senden."
+msgstr "Не получилось — пожалуйста, отправьте сообщение ещё раз."
+
+msgid "Das hat nicht geklappt — bitte im Formular prüfen (✏️)."
+msgstr "Не получилось — пожалуйста, проверьте в форме (✏️)."
+
+msgid "Schon als Entwurf gespeichert."
+msgstr "Уже сохранено как черновик."

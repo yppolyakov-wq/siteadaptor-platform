@@ -7,8 +7,8 @@
 import uuid
 
 import pytest
-from django.utils.translation import gettext
 from django.core.cache.backends.locmem import LocMemCache
+from django.utils.translation import gettext
 
 from apps.promotions import limits
 from apps.promotions import telegram_promo as tp
@@ -48,7 +48,15 @@ def tg(monkeypatch):
     bot = TelegramBot.objects.create(token="t", bot_username="ShopBot", is_active=True)
     tenant = TenantFactory()
     notify._save_notify_node(tenant, {"owner_chat_id": str(OWNER)})
-    return {"bot": bot, "tenant": tenant, "sent": sent, "cache": store}
+    state = {"bot": bot, "tenant": tenant, "sent": sent, "cache": store, "queued": []}
+
+    def _confirm_delay(**kw):  # ✅ уходит в Celery — в тестах исполняем тело сразу
+        state["queued"].append(dict(kw))
+        kw.pop("dedupe_key")
+        state["confirm"] = tp.confirm_as_task(bot, tenant, **kw)
+
+    monkeypatch.setattr("apps.promotions.tasks.telegram_owner_confirm.delay", _confirm_delay)
+    return state
 
 
 def _req(tenant):
@@ -81,7 +89,8 @@ def _draft(tg, text="Brötchen 2,50 € statt 3,90 € heute bis 23 Uhr, 20 Stü
 
 
 def _cb(tg, data, sender=OWNER, chat=OWNER):
-    return tp.handle_callback(
+    tg.pop("confirm", None)
+    out = tp.handle_callback(
         tg["bot"],
         {
             "id": "c1",
@@ -91,6 +100,7 @@ def _cb(tg, data, sender=OWNER, chat=OWNER):
         },
         tg["tenant"],
     )
+    return tg.pop("confirm") if out == "queued" else out
 
 
 # --- маршрутизация --------------------------------------------------------------------
@@ -277,3 +287,121 @@ def test_web_edit_then_late_confirm(tg, monkeypatch):
     assert resp.status_code == 302
     assert _cb(tg, f"tp:ok:{token}") == "already"
     assert Promotion.objects.count() == 1
+
+
+# --- ревью B-1: устойчивость ----------------------------------------------------------
+
+
+def test_confirm_goes_to_celery_with_callback_dedupe(tg):
+    token, _p = _draft(tg)
+    assert _cb(tg, f"tp:ok:{token}") == "published"
+    assert tg["queued"][-1]["dedupe_key"] == "tgcb:public:c1"
+
+
+def test_failure_after_claim_releases_and_tells_owner(tg, monkeypatch):
+    from apps.promotions import quick
+
+    token, _p = _draft(tg)
+
+    def boom(*a, **k):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(quick, "publish_built", boom)
+    assert _cb(tg, f"tp:ok:{token}") == "error"
+    assert tp.done_value("public", token) is None  # замок снят — можно повторить
+    assert "nicht geklappt" in tg["sent"][-1]["text"]
+    monkeypatch.undo()
+
+
+def test_pending_claim_is_short_lived(tg, monkeypatch):
+    seen = {}
+
+    def add(key, value, timeout):
+        seen["ttl"] = timeout
+        return True
+
+    monkeypatch.setattr(tg["cache"], "add", add)
+    tp.claim("public", "x" * 16)
+    assert seen["ttl"] == tp.CLAIM_TTL <= 300
+
+
+def test_send_error_never_raises_token_url(tg, monkeypatch):
+    import requests
+
+    def fail(*a, **k):
+        raise requests.HTTPError("403 for url https://api.telegram.org/botSECRET/sendMessage")
+
+    monkeypatch.setattr(services, "send_message", fail)
+    monkeypatch.setattr(services, "send_photo", fail)
+    assert tp._send(tg["bot"], OWNER, "x", photo_id="p") is False
+
+
+def test_task_error_tells_owner(tg, monkeypatch):
+    monkeypatch.setattr(tp, "_handle", lambda *a: 1 / 0)
+    monkeypatch.setattr(tp, "owner_chat", lambda tenant: str(OWNER))
+    from django_tenants.utils import schema_context
+
+    tg["tenant"].schema_name = "public"
+    tg["tenant"].save()
+    with schema_context("public"):
+        assert tp.handle_owner_message("public", tp.slim_update(_msg("x"))) == "error"
+    assert "nicht geklappt" in tg["sent"][-1]["text"]
+
+
+def test_album_photo_before_caption_is_kept(tg):
+    slim = tp.slim_update(_msg("", media_group_id="g1", photo=[{"file_id": "A"}]))
+    slim["text"] = ""
+    assert tp._handle(tg["bot"], tg["tenant"], "public", str(OWNER), slim) == "album_wait"
+    assert tg["sent"] == []  # без вопроса «Wie heißt…»
+    slim = tp.slim_update(
+        _msg("Brötchen −30 % heute", media_group_id="g1", photo=[{"file_id": "B"}])
+    )
+    assert tp._handle(tg["bot"], tg["tenant"], "public", str(OWNER), slim) == "preview"
+    token = tg["sent"][-1]["markup"]["inline_keyboard"][0][0]["callback_data"].split(":")[2]
+    assert sorted(tp.load_draft("public", str(OWNER), token)["photo_ids"]) == ["A", "B"]
+
+
+def test_web_draft_save_then_confirm_says_draft(tg):
+    token, _p = _draft(tg)
+    promo = Promotion.objects.create(title="X", status="draft")
+    tp.mark_done("public", token, promo.pk)
+    assert _cb(tg, f"tp:ok:{token}") == "already"
+    assert "Entwurf" in tg["sent"][-1]["text"]
+
+
+def test_deleted_promo_is_expired_not_busy(tg):
+    token, _p = _draft(tg)
+    tp.mark_done("public", token, uuid.uuid4())
+    assert _cb(tg, f"tp:ok:{token}") == "expired"
+
+
+def test_time_from_message_does_not_stick_to_changed_date(tg):
+    from datetime import date, timedelta
+
+    from apps.promotions import quick
+
+    tomorrow = date.today() + timedelta(days=1)
+    later = tomorrow + timedelta(days=3)
+    base = {"title": "Brot", "percent": "10", "customer_response": "", "until_time": "18:00"}
+    form = quick.QuickPromotionForm(
+        {
+            **base,
+            "term": "date",
+            "until": later.isoformat(),
+            "until_time_for": tomorrow.isoformat(),
+        },
+        tenant=tg["tenant"],
+    )
+    form.is_valid()
+    assert form.cleaned_data.get("until_time") is None
+    form = quick.QuickPromotionForm(
+        {
+            **base,
+            "term": "date",
+            "until": tomorrow.isoformat(),
+            "until_time_for": tomorrow.isoformat(),
+        },
+        tenant=tg["tenant"],
+    )
+    form.is_valid()
+    assert str(form.cleaned_data.get("until_time")) == "18:00:00"
