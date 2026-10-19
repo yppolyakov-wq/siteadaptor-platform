@@ -472,10 +472,33 @@ def get_business(args: dict, ctx: Context) -> dict:
 # --- list_categories / list_districts ---------------------------------------------------
 
 
+#: Кэш словаря разделов/признаков города (секунды): справочник фиксированный, а пул
+#: города — тысячи строк; ассистенты зовут инструмент часто (database-ревью F-2).
+CATEGORIES_TTL = 300
+
+
+def _used_vocabulary(portal) -> tuple[set[str], set[str]]:
+    pool = _pool(portal).order_by()
+    used = set(pool.exclude(city_category="").values_list("city_category", flat=True).distinct())
+    used_tags: set[str] = set()
+    # DISTINCT по наборам признаков в SQL: различных наборов — десятки, а не тысячи строк
+    for tags in pool.values_list("city_tags", flat=True).distinct():
+        if isinstance(tags, list):
+            used_tags.update(str(t) for t in tags)
+    return used, used_tags
+
+
 def list_categories(args: dict, ctx: Context) -> dict:
     """Только разделы и категории с непустой выдачей в городе (обещание = исполнение)."""
-    pool = _pool(ctx.portal).order_by()
-    used = set(pool.exclude(city_category="").values_list("city_category", flat=True).distinct())
+    from django.core.cache import cache
+
+    key = f"mcp:vocab:{ctx.portal.pk}:{int(bool(ctx.portal.show_demo))}"
+    cached = cache.get(key)
+    if cached is None:
+        used, used_tags = _used_vocabulary(ctx.portal)
+        cached = (sorted(used), sorted(used_tags))
+        cache.set(key, cached, CATEGORIES_TTL)
+    used, used_tags = set(cached[0]), set(cached[1])
     sections = []
     for section in cc.SECTIONS:
         cats = [
@@ -485,9 +508,6 @@ def list_categories(args: dict, ctx: Context) -> dict:
         ]
         if cats:
             sections.append({"key": section.key, "label": str(section.label), "categories": cats})
-    used_tags: set[str] = set()
-    for tags in pool.values_list("city_tags", flat=True):
-        used_tags.update(tags or [])
     tags = [{"key": key, "label": str(label)} for key, label in cc.TAGS if key in used_tags]
     return {"sections": sections, "tags": tags}
 

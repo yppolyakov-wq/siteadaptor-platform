@@ -236,6 +236,24 @@ def test_get_business_out_of_scope_is_not_found():
     assert _call(portal, "get_business", {"slug": "Ungültig!"})["isError"] is True
 
 
+@pytest.fixture(autouse=True)
+def _cache():
+    from django.core.cache import cache
+
+    cache.clear()
+    yield
+    cache.clear()
+
+
+@override_settings(**ON)
+def test_list_categories_is_cached(django_assert_num_queries):
+    portal = _portal()
+    _listing(city_category="brot-backwaren")
+    _data(portal, "list_categories", {})
+    with django_assert_num_queries(0):
+        _data(portal, "list_categories", {"language": "en"})
+
+
 @override_settings(**ON)
 def test_list_categories_only_non_empty():
     portal = _portal()
