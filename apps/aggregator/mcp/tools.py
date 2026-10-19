@@ -69,12 +69,18 @@ def list_tools() -> list[dict]:
 
 
 def _first_error(schema: dict, value) -> str | None:
-    errors = sorted(Draft202012Validator(schema).iter_errors(value), key=lambda e: list(e.path))
+    errors = sorted(
+        Draft202012Validator(schema).iter_errors(value),
+        key=lambda e: [str(p) for p in e.path],
+    )
     if not errors:
         return None
+    from .protocol import clip
+
     err = errors[0]
-    where = ".".join(str(p) for p in err.path)
-    return f"{where}: {err.message}" if where else err.message
+    where = clip(".".join(str(p) for p in err.path))
+    message = clip(err.message)
+    return f"{where}: {message}" if where else message
 
 
 def call_tool(name: str, arguments, ctx: Context) -> dict:
@@ -97,7 +103,7 @@ def call_tool(name: str, arguments, ctx: Context) -> dict:
     if problem:
         raise ValueError(f"output of {name} violates its schema: {problem}")
     return {
-        "content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False)}],
+        "content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False, default=str)}],
         "structuredContent": data,
         "isError": False,
     }

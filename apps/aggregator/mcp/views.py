@@ -65,6 +65,13 @@ def _rate_limited(request) -> bool:
     return ratelimit.hit("mcp-global", "all", limit=overall, window=_WINDOW)
 
 
+def _log_method(message) -> str:
+    """Метод для журнала: только известные значения — ввод клиента в лог не пишем
+    (переводы строк подделали бы записи журнала)."""
+    method = message.get("method") if isinstance(message, dict) else None
+    return method if method in protocol.KNOWN_METHODS else "?"
+
+
 @csrf_exempt
 @never_cache
 def mcp_endpoint(request):
@@ -77,30 +84,35 @@ def mcp_endpoint(request):
         return resp
     if not _origin_allowed(request):
         return HttpResponse(status=403)
-    if _too_large(request):
-        return _rpc_error(protocol.INVALID_REQUEST, "Request too large", 413)
-    if _rate_limited(request):
+    if _rate_limited(request):  # до чтения тела
         resp = _rpc_error(protocol.INTERNAL_ERROR, "Too many requests", 429)
         resp["Retry-After"] = str(_WINDOW)
         return resp
+    if not request.META.get("CONTENT_LENGTH"):
+        # WSGI без Content-Length (chunked) отдаёт Django пустое тело — честный отказ,
+        # а не «Parse error» на корректное сообщение.
+        return _rpc_error(protocol.INVALID_REQUEST, "Content-Length required", 411)
+    if _too_large(request):
+        return _rpc_error(protocol.INVALID_REQUEST, "Request too large", 413)
     header_version = request.META.get("HTTP_MCP_PROTOCOL_VERSION")
     if header_version and header_version not in protocol.PROTOCOL_VERSIONS:
         return _rpc_error(protocol.INVALID_REQUEST, "Unsupported MCP-Protocol-Version", 400)
     try:
         message = json.loads(request.body.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError):
+    except (UnicodeDecodeError, ValueError, RecursionError):
+        # RecursionError — глубокая вложенность («[[[[…» в пределах 64 КБ)
         return _rpc_error(protocol.PARSE_ERROR, "Parse error", 400)
     if isinstance(message, list):
         # JSON-RPC batch в текущих ревизиях MCP убран
         return _rpc_error(protocol.INVALID_REQUEST, "Batch requests are not supported", 400)
 
     ctx = tools.Context(portal=portal, request=request)
-    method = message.get("method") if isinstance(message, dict) else None
+    method = _log_method(message)
     try:
         reply = protocol.dispatch(message, ctx)
     except protocol.ProtocolError as exc:
         logger.info("mcp method=%s rejected code=%s", method, exc.code)
-        return _rpc_error(exc.code, exc.message, exc.status)
+        return _json(protocol.error(exc.msg_id, exc.code, exc.message), status=exc.status)
     except Exception:  # noqa: BLE001 — сбой обработчика не должен уронить эндпоинт в 500 без тела
         logger.exception("mcp method=%s failed", method)
         msg_id = message.get("id") if isinstance(message, dict) else None

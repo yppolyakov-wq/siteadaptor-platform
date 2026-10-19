@@ -340,3 +340,70 @@ def test_logs_never_contain_arguments(portal, echo_tool, caplog):
         _post(portal, _rpc("tools/call", {"name": "echo", "arguments": {"text": secret}}))
     assert caplog.records, "вызов должен оставить строку в журнале"
     assert all(secret not in r.getMessage() for r in caplog.records)
+
+
+# --- security-ревью F-1 -------------------------------------------------------
+
+
+@override_settings(**ON)
+@pytest.mark.parametrize("raw", ["[" * 30000, '{"a":' * 12000])
+def test_deep_nesting_is_parse_error_not_500(portal, raw):
+    resp = _post(portal, None, raw=raw)
+    assert resp.status_code == 400 and _body(resp)["error"]["code"] == protocol.PARSE_ERROR
+
+
+@override_settings(**ON)
+def test_log_never_contains_client_method_text(portal, caplog):
+    forged = "x\nINFO forged line"
+    with caplog.at_level(logging.INFO, logger="apps.aggregator.mcp.views"):
+        _post(portal, _rpc(forged))
+    assert caplog.records
+    assert all("forged" not in r.getMessage() for r in caplog.records)
+
+
+@override_settings(**ON)
+def test_reflected_input_is_clipped(portal, echo_tool):
+    long_name = "n" * 5000
+    body = _body(_post(portal, _rpc("tools/call", {"name": long_name})))
+    assert len(body["error"]["message"]) < protocol.ECHO_MAX + 40
+    res = _body(
+        _post(portal, _rpc("tools/call", {"name": "echo", "arguments": {"text": "y" * 5000}}))
+    )
+    assert len(res["result"]["content"][0]["text"]) < 2 * protocol.ECHO_MAX + 60
+
+
+# --- django-ревью F-1 ---------------------------------------------------------
+
+
+def test_route_without_slash_is_same_endpoint():
+    assert resolve("/mcp", urlconf="config.urls_portal").func is mcp_endpoint
+
+
+@override_settings(**ON)
+def test_missing_content_length_is_411(portal):
+    req = RequestFactory().post(
+        "/mcp/", data="{}", content_type="application/json", HTTP_HOST=_HOST
+    )
+    del req.META["CONTENT_LENGTH"]
+    req.portal = portal
+    assert mcp_endpoint(req).status_code == 411
+
+
+@override_settings(**ON)
+def test_invalid_method_keeps_request_id(portal):
+    body = _body(_post(portal, {"jsonrpc": "2.0", "id": 42, "method": 5}))
+    assert body["id"] == 42 and body["error"]["code"] == protocol.INVALID_REQUEST
+
+
+@override_settings(MCP_RATE_PER_IP=1, **ON)
+def test_rate_limit_runs_before_body_checks(portal):
+    ip = {"REMOTE_ADDR": "10.3.3.3"}
+    assert _post(portal, _rpc("ping"), **ip).status_code == 200
+    # второй запрос — сверхлимит: 429 даже с телом, которое иначе дало бы 400
+    assert _post(portal, None, raw="{nicht json", **ip).status_code == 429
+
+
+@override_settings(**ON)
+def test_old_protocol_version_is_still_accepted(portal):
+    res = _body(_post(portal, _rpc("initialize", {"protocolVersion": "2024-11-05"})))["result"]
+    assert res["protocolVersion"] == "2024-11-05"

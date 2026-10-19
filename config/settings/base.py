@@ -310,8 +310,9 @@ MCP_PORTAL_HOSTS = env.list("MCP_PORTAL_HOSTS", default=[])
 # ассистентов Origin не шлют.
 MCP_ALLOWED_ORIGINS = env.list("MCP_ALLOWED_ORIGINS", default=[])
 # Запросов в минуту: на IP (у MCP это адрес платформы ассистента — общий для жителей,
-# поэтому высокий) и на весь сервер (предохранитель).
-MCP_RATE_PER_IP = env.int("MCP_RATE_PER_IP", default=600)
+# поэтому высокий) и на весь сервер (предохранитель; на IP — десятая часть общего, чтобы
+# один-два адреса не исчерпали общий лимит для платформ ассистентов).
+MCP_RATE_PER_IP = env.int("MCP_RATE_PER_IP", default=300)
 MCP_RATE_GLOBAL = env.int("MCP_RATE_GLOBAL", default=3000)
 MCP_MAX_BODY = env.int("MCP_MAX_BODY", default=64 * 1024)
 

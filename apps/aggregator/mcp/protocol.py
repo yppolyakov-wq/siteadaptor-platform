@@ -9,7 +9,7 @@ from __future__ import annotations
 from . import tools
 
 # Ревизии спецификации MCP, с которыми сервер совместим; первая — предпочтительная.
-PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26")
+PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05")
 SERVER_VERSION = "0.1.0"
 
 PARSE_ERROR = -32700
@@ -17,6 +17,19 @@ INVALID_REQUEST = -32600
 METHOD_NOT_FOUND = -32601
 INVALID_PARAMS = -32602
 INTERNAL_ERROR = -32603
+
+#: Отражение ввода клиента в ответах ограничено (не эхо 64 КБ обратно).
+ECHO_MAX = 120
+
+KNOWN_METHODS = frozenset(
+    {"initialize", "ping", "tools/list", "tools/call", "notifications/initialized"}
+)
+
+
+def clip(value) -> str:
+    text = str(value)
+    return text if len(text) <= ECHO_MAX else text[:ECHO_MAX] + "…"
+
 
 INSTRUCTIONS = (
     "Local offers, products, services and businesses of this city, taken directly from the "
@@ -29,11 +42,16 @@ INSTRUCTIONS = (
 
 
 class ProtocolError(Exception):
-    def __init__(self, code: int, message: str, status: int = 200):
+    def __init__(self, code: int, message: str, status: int = 200, msg_id=None):
         super().__init__(message)
         self.code = code
         self.message = message
         self.status = status
+        self.msg_id = msg_id
+
+
+def _valid_id(value) -> bool:
+    return isinstance(value, str | int) and not isinstance(value, bool)
 
 
 def negotiate(requested) -> str:
@@ -70,12 +88,13 @@ def dispatch(message, ctx: tools.Context) -> dict | None:
             return None
         raise ProtocolError(INVALID_REQUEST, "Invalid Request", status=400)
     method = message.get("method")
+    known_id = message.get("id") if _valid_id(message.get("id")) else None
     if not isinstance(method, str):
-        raise ProtocolError(INVALID_REQUEST, "Invalid Request", status=400)
+        raise ProtocolError(INVALID_REQUEST, "Invalid Request", status=400, msg_id=known_id)
     if is_notification(message):
         return None
     msg_id = message.get("id")
-    if not isinstance(msg_id, str | int) or isinstance(msg_id, bool):
+    if not _valid_id(msg_id):
         raise ProtocolError(INVALID_REQUEST, "Invalid Request", status=400)
     params = message.get("params") or {}
     if not isinstance(params, dict):
@@ -105,5 +124,5 @@ def dispatch(message, ctx: tools.Context) -> dict | None:
         try:
             return result(msg_id, tools.call_tool(name, arguments, ctx))
         except tools.UnknownTool:
-            return error(msg_id, INVALID_PARAMS, f"Unknown tool: {name}")
-    return error(msg_id, METHOD_NOT_FOUND, f"Method not found: {method}")
+            return error(msg_id, INVALID_PARAMS, f"Unknown tool: {clip(name)}")
+    return error(msg_id, METHOD_NOT_FOUND, f"Method not found: {clip(method)}")

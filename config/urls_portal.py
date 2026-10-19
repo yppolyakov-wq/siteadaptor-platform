@@ -33,6 +33,8 @@ urlpatterns = [
     path("llms.txt", portal_views.portal_llms_txt, name="portal-llms"),
     # T-8.10f: MCP-сервер каталога для ассистентов (выключатель MCP_ENABLED) — до <facet>.
     path("mcp/", mcp_views.mcp_endpoint, name="portal-mcp"),
+    # без слэша — тот же эндпоинт: APPEND_SLASH отдал бы 301, а клиент повторил бы его GET'ом
+    path("mcp", mcp_views.mcp_endpoint, name="portal-mcp-noslash"),
     # Клиентский аккаунт (P2.3a): magic-link вход. Тоже до <facet>.
     path("konto/", account_views.account, name="portal-account"),
     path("konto/login/", account_views.login_view, name="portal-login"),
