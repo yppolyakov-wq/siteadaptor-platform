@@ -26200,3 +26200,25 @@ msgid ""
 msgstr ""
 "Zurücklegen und Coupons: request_reservation, request_coupon — erst nach "
 "Bestätigung per E-Mail durch die Person."
+
+msgid "Antwort vorschlagen"
+msgstr "Antwort vorschlagen"
+
+msgid "Vorschlag wird erstellt…"
+msgstr "Vorschlag wird erstellt…"
+
+msgid "Tageslimit erreicht – bitte später erneut versuchen."
+msgstr "Tageslimit erreicht – bitte später erneut versuchen."
+
+msgid ""
+"Der Vorschlag enthielt Angaben, die nicht aus Ihren Daten stammen, und wurde"
+" verworfen."
+msgstr ""
+"Der Vorschlag enthielt Angaben, die nicht aus Ihren Daten stammen, und wurde"
+" verworfen."
+
+msgid "Kein Vorschlag möglich – bitte selbst antworten."
+msgstr "Kein Vorschlag möglich – bitte selbst antworten."
+
+msgid "Vorhandenen Text ersetzen?"
+msgstr "Vorhandenen Text ersetzen?"

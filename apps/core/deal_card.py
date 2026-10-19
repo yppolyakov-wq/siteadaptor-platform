@@ -51,6 +51,12 @@ _CALENDARS = {
 }
 
 
+def _ai_enabled() -> bool:
+    from apps.ai.api import is_enabled
+
+    return is_enabled()
+
+
 def _module_active(tenant, key: str) -> bool:
     try:
         return bool(tenant and tenant.is_module_active(key))
@@ -249,4 +255,6 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "deal_links": links,
         "crm_active": _module_active(tenant, "crm"),
         "inbox_active": _module_active(tenant, "inbox"),
+        # T-8.10g (G-3): «✨ Antwort vorschlagen» у существующего треда сделки.
+        "ai_reply_enabled": thread is not None and _ai_enabled(),
     }

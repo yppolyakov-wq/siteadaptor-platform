@@ -424,10 +424,27 @@ class Tenant(TenantMixin):
             "ausschließlich zur Bearbeitung Ihrer Reservierung gemäß Art. 6 Abs. 1 "
             "lit. b DSGVO. Die Daten werden nicht an Dritte weitergegeben und nach "
             "Ablauf der gesetzlichen Fristen gelöscht bzw. anonymisiert.\n\n"
+            f"{self._privacy_ai_paragraph()}"
             "Sie haben das Recht auf Auskunft, Berichtigung, Löschung und "
             "Widerspruch. Wenden Sie sich dazu an: "
             f"{contact}.\n\n"
             "Hinweis: Bitte passen Sie diesen Text an Ihr Geschäft an."
+        )
+
+    def _privacy_ai_paragraph(self) -> str:
+        """T-8.10g (О-2): абзац про ИИ-черновики ответов — только когда они реально
+        возможны (ИИ платформы включён И модуль «Nachrichten» активен). Иначе пусто:
+        текст байт-в-байт прежний. Собственный текст владельца не трогаем."""
+        from apps.ai.api import is_enabled
+
+        if not (is_enabled() and self.is_module_active("inbox")):
+            return ""
+        return (
+            "Antworten auf Ihre Nachrichten können wir mit Hilfe von KI-Diensten "
+            "vorbereiten lassen. Dabei werden der Nachrichtenverlauf (ohne E-Mail-"
+            "Adressen, Telefon- und Kontonummern) und Angaben zu unserem Angebot an "
+            "Auftragsverarbeiter mit Servern in der EU übermittelt (Art. 28 DSGVO). "
+            "Jede Antwort wird von unseren Mitarbeitenden geprüft und selbst versendet.\n\n"
         )
 
     def withdrawal_text(self) -> str:

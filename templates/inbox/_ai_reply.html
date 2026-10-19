@@ -1,0 +1,66 @@
+{% load i18n %}
+{% comment %}T-8.10g «✨ Antwort vorschlagen»: черновик ИИ только ЗАПОЛНЯЕТ поле ответа
+этой формы — отправляет человек. Метка «KI-generiert» — подсказка владельцу,
+в текст сообщения не вставляется. Скрипт делегирован на document (урок Ф1).{% endcomment %}
+<div class="flex flex-wrap items-center gap-2 mb-2" data-ai-reply-box>
+  <button type="button" class="rounded-full border border-indigo-300 bg-indigo-50 px-3 py-1 text-xs text-indigo-800 hover:bg-indigo-100"
+          data-ai-reply
+          data-url="{% url 'inbox:reply-draft' conv.pk %}"
+          data-result-url="{% url 'inbox:reply-draft-result' 'JOB' %}"
+          data-wait="{% trans 'Vorschlag wird erstellt…' %}"
+          data-quota="{% trans 'Tageslimit erreicht – bitte später erneut versuchen.' %}"
+          data-unsafe="{% trans 'Der Vorschlag enthielt Angaben, die nicht aus Ihren Daten stammen, und wurde verworfen.' %}"
+          data-fail="{% trans 'Kein Vorschlag möglich – bitte selbst antworten.' %}"
+          data-replace="{% trans 'Vorhandenen Text ersetzen?' %}">✨ {% trans "Antwort vorschlagen" %}</button>
+  <span class="text-xs text-gray-500" data-ai-reply-status role="status" aria-live="polite"></span>
+</div>
+<script>
+(function () {
+  if (window.__aiReplyBound) return;
+  window.__aiReplyBound = true;
+  function csrf(form) {
+    var el = (form || document).querySelector("[name=csrfmiddlewaretoken]");
+    return el ? el.value : "";
+  }
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest ? e.target.closest("[data-ai-reply]") : null;
+    if (!btn || btn.disabled) return;
+    e.preventDefault();
+    var form = btn.closest("form");
+    var area = form ? form.querySelector("textarea[name=body]") : null;
+    var box = btn.closest("[data-ai-reply-box]");
+    var status = box ? box.querySelector("[data-ai-reply-status]") : null;
+    if (!area) return;
+    function say(text) { if (status) status.textContent = text || ""; }
+    function finish(d) {
+      btn.disabled = false;
+      if (d && d.state === "done") {
+        if (area.value.trim() && !window.confirm(btn.getAttribute("data-replace"))) { say(""); return; }
+        area.value = d.draft || "";
+        area.dispatchEvent(new Event("input", { bubbles: true }));
+        area.focus();
+        say((d.label || "") + (d.language ? " · " + d.language.toUpperCase() : ""));
+        return;
+      }
+      var code = d && d.code;
+      say(btn.getAttribute(code === "quota" ? "data-quota" : code === "unsafe" ? "data-unsafe" : "data-fail"));
+    }
+    btn.disabled = true;
+    say(btn.getAttribute("data-wait"));
+    var started = Date.now();
+    function poll(job) {
+      fetch(btn.getAttribute("data-result-url").replace("JOB", job), { headers: { "X-Requested-With": "fetch" } })
+        .then(function (r) { return r.ok ? r.json() : { code: "error" }; })
+        .then(function (d) {
+          if (d.state === "pending" && Date.now() - started < 40000) { setTimeout(function () { poll(job); }, 1500); return; }
+          finish(d.state === "pending" ? { code: "error" } : d);
+        })
+        .catch(function () { finish({ code: "error" }); });
+    }
+    fetch(btn.getAttribute("data-url"), { method: "POST", headers: { "X-CSRFToken": csrf(form), "X-Requested-With": "fetch" } })
+      .then(function (r) { return r.ok ? r.json() : { code: "error" }; })
+      .then(function (d) { if (d.job) { poll(d.job); } else { finish(d); } })
+      .catch(function () { finish({ code: "error" }); });
+  });
+})();
+</script>

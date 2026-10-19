@@ -968,3 +968,33 @@ def test_order_totals_follow_the_mockup_order():
     ]
     assert order_of == sorted(order_of), "порядок строк сумм разошёлся с макетом"
     assert "4,90 €" in totals  # доставка: две цифры после запятой и символ €
+
+
+def test_ai_reply_button_only_with_thread_and_ai_on(settings):
+    """T-8.10g (G-3): «✨ Antwort vorschlagen» — у существующего треда сделки и
+    только при включённом ИИ. Композер первого сообщения кнопки не получает:
+    отвечать ещё не на что."""
+    from apps.inbox import services as inbox_services
+    from apps.inbox.models import Message
+    from apps.jobs import views as job_views
+
+    settings.AI_ENABLED = True
+    tenant = _tenant("catering")
+    job = _job()
+    html = job_views.job_detail(_req(tenant=tenant), pk=job.pk).content.decode()
+    assert "data-ai-reply-box" not in html  # треда нет
+
+    conv = inbox_services.start_conversation(
+        subject="A-1",
+        body="Frage",
+        customer=job.customer,
+        ref_kind="job",
+        ref_id=job.reference_code,
+        author_role=Message.AUTHOR_CUSTOMER,
+    )
+    html = job_views.job_detail(_req(tenant=tenant), pk=job.pk).content.decode()
+    assert "data-ai-reply-box" in html and f"/inbox/{conv.pk}/entwurf/" in html
+
+    settings.AI_ENABLED = False
+    html = job_views.job_detail(_req(tenant=tenant), pk=job.pk).content.decode()
+    assert "data-ai-reply-box" not in html

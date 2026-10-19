@@ -141,6 +141,7 @@
 {# ответ владельца #}
 <form method="post" class="bg-white rounded-2xl shadow-sm p-4 max-w-2xl">{% csrf_token %}
   <input type="hidden" name="action" value="reply">
+  {% if ai_reply_enabled %}{% include "inbox/_ai_reply.html" with conv=conversation %}{% endif %}
   <textarea name="body" rows="3" required placeholder="{% trans 'Write a reply…' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
   {% comment %}C3 (план deal-comms-plan-2026-08-25): e-mail уходит всегда, Telegram —
   дополнительный канал и только при живой привязке клиента к боту; WhatsApp —

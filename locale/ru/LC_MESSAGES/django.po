@@ -26396,3 +26396,23 @@ msgid ""
 msgstr ""
 "Отложить и купоны: request_reservation, request_coupon — только после "
 "подтверждения человеком по e-mail."
+
+msgid "Antwort vorschlagen"
+msgstr "Предложить ответ"
+
+msgid "Vorschlag wird erstellt…"
+msgstr "Готовим вариант ответа…"
+
+msgid "Tageslimit erreicht – bitte später erneut versuchen."
+msgstr "Лимит исчерпан — попробуйте позже."
+
+msgid ""
+"Der Vorschlag enthielt Angaben, die nicht aus Ihren Daten stammen, und wurde"
+" verworfen."
+msgstr "В варианте были сведения не из ваших данных — он отброшен."
+
+msgid "Kein Vorschlag möglich – bitte selbst antworten."
+msgstr "Предложить ответ не получилось — ответьте, пожалуйста, сами."
+
+msgid "Vorhandenen Text ersetzen?"
+msgstr "Заменить уже написанный текст?"

@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 
 from apps.core.fsm import IllegalTransition
 
@@ -169,8 +170,92 @@ def thread(request, pk):
             # (отправка через API — external-backlog, платный Business API).
             "telegram_linked": _telegram_linked(conversation.customer),
             "wa_url": _customer_wa_url(conversation),
+            # T-8.10g: «✨ Antwort vorschlagen» — только при включённом ИИ.
+            "ai_reply_enabled": _ai_reply_enabled(),
         },
     )
+
+
+def _ai_reply_enabled() -> bool:
+    from apps.ai.api import is_enabled
+
+    return is_enabled()
+
+
+def _ai_schema() -> str:
+    from django.db import connection
+
+    return getattr(connection, "schema_name", "") or ""
+
+
+@login_required
+@require_POST
+def reply_draft_start(request, pk):
+    """T-8.10g: «✨ Antwort vorschlagen» — фоновая задача черновика ответа.
+
+    JSON: ``{"job": id}`` · ``{"state": "done", …}`` (те же факты и то же последнее
+    сообщение — из кэша, без модели и без лимита) · ``{"code": …}`` (disabled ·
+    quota · unavailable). Ничего не отправляет: черновик заполняет поле ответа."""
+    from django.http import JsonResponse
+
+    from apps.ai.api import AI_LABEL
+    from apps.core import ratelimit
+
+    from . import ai_facts, ai_reply
+
+    if not _ai_reply_enabled():
+        return JsonResponse({"code": "disabled"})
+    conversation = get_object_or_404(Conversation, pk=pk)
+    schema = _ai_schema()
+    facts = ai_facts.facts_for(conversation, getattr(request, "tenant", None))
+    digest = ai_reply.digest_for(conversation, facts)
+    hit = ai_reply.cached(schema, digest)
+    if hit is not None:
+        return JsonResponse({"state": "done", "label": str(AI_LABEL), **hit})
+    if ratelimit.hit(
+        "ai-reply-user",
+        f"{schema}:{request.user.pk}",
+        limit=ai_reply.RATE_LIMIT,
+        window=ai_reply.RATE_WINDOW,
+    ) or ratelimit.hit(
+        "ai-reply", schema, limit=ai_reply.RATE_LIMIT_TENANT, window=ai_reply.RATE_WINDOW
+    ):
+        return JsonResponse({"code": "quota"})
+    try:
+        job = ai_reply.start_job(
+            schema=schema, user_pk=request.user.pk, conversation_pk=conversation.pk, digest=digest
+        )
+    except Exception:  # noqa: BLE001 — очередь недоступна: спокойная ошибка, тред живёт
+        return JsonResponse({"code": "unavailable"})
+    return JsonResponse({"job": job})
+
+
+@login_required
+def reply_draft_result(request, job):
+    """T-8.10g: состояние задачи черновика. Чужая/неизвестная задача — 404."""
+    import re
+
+    from django.http import Http404, JsonResponse
+
+    from apps.ai.api import AI_LABEL
+
+    from . import ai_reply
+
+    if not re.fullmatch(r"[0-9a-f]{32}", job or ""):
+        raise Http404
+    state = ai_reply.job_state(schema=_ai_schema(), user_pk=request.user.pk, job=job)
+    if state is None:
+        raise Http404
+    if state.get("state") == "done":
+        return JsonResponse(
+            {
+                "state": "done",
+                "draft": state.get("draft", ""),
+                "language": state.get("language", ""),
+                "label": str(AI_LABEL),
+            }
+        )
+    return JsonResponse({k: v for k, v in state.items() if k in ("state", "code")})
 
 
 def _telegram_linked(customer) -> bool:

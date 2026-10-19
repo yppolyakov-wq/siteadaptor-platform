@@ -26121,3 +26121,25 @@ msgid ""
 msgstr ""
 "Set-aside and coupons: request_reservation, request_coupon — only after the "
 "person confirms by e-mail."
+
+msgid "Antwort vorschlagen"
+msgstr "Suggest a reply"
+
+msgid "Vorschlag wird erstellt…"
+msgstr "Creating a suggestion…"
+
+msgid "Tageslimit erreicht – bitte später erneut versuchen."
+msgstr "Limit reached – please try again later."
+
+msgid ""
+"Der Vorschlag enthielt Angaben, die nicht aus Ihren Daten stammen, und wurde"
+" verworfen."
+msgstr ""
+"The suggestion contained details that are not from your data and was "
+"discarded."
+
+msgid "Kein Vorschlag möglich – bitte selbst antworten."
+msgstr "No suggestion possible – please reply yourself."
+
+msgid "Vorhandenen Text ersetzen?"
+msgstr "Replace the existing text?"

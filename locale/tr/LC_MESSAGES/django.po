@@ -26263,3 +26263,23 @@ msgid ""
 msgstr ""
 "Ayırtma ve kuponlar: request_reservation, request_coupon — yalnızca kişi "
 "e-postayla onayladıktan sonra."
+
+msgid "Antwort vorschlagen"
+msgstr "Yanıt öner"
+
+msgid "Vorschlag wird erstellt…"
+msgstr "Öneri hazırlanıyor…"
+
+msgid "Tageslimit erreicht – bitte später erneut versuchen."
+msgstr "Sınıra ulaşıldı – lütfen daha sonra tekrar deneyin."
+
+msgid ""
+"Der Vorschlag enthielt Angaben, die nicht aus Ihren Daten stammen, und wurde"
+" verworfen."
+msgstr "Öneri, verilerinizden gelmeyen bilgiler içerdiği için kullanılmadı."
+
+msgid "Kein Vorschlag möglich – bitte selbst antworten."
+msgstr "Öneri oluşturulamadı – lütfen kendiniz yanıtlayın."
+
+msgid "Vorhandenen Text ersetzen?"
+msgstr "Mevcut metin değiştirilsin mi?"

@@ -25,6 +25,7 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="reply">
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        {% if ai_reply_enabled %}{% include "inbox/_ai_reply.html" with conv=deal_thread %}{% endif %}
         <textarea name="body" rows="2" required placeholder="{% trans 'Antwort an den Kunden…' %}"
                   class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
         <div class="flex flex-wrap items-center gap-3">
