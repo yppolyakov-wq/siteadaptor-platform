@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import logging
 import secrets
@@ -44,7 +45,16 @@ NOT_COUPON = "not_coupon"
 SOLD_OUT = "sold_out"
 LIMIT = "limit"
 UNAVAILABLE = "unavailable"
-ALREADY_SENT = "already_sent"
+#: Отказ по АДРЕСУ (лимит, повтор, «это не я»): ассистент получает тот же ответ, что
+#: при отправке, а письмо не уходит — иначе код выдаёт, знают ли адрес (Д-10).
+SILENT = "silent"
+
+#: Сколько штук можно отложить через ассистента за раз.
+QTY_MAX = 10
+NAME_MAX = 80
+#: Сколько держится «занято» на время исполнения (не сутки: упавший процесс не должен
+#: запирать ссылку человека до конца срока).
+CLAIM_TTL = 120
 
 #: Почтовые бэкенды, которые письмо человеку НЕ доставляют (Д-9).
 _FAKE_BACKENDS = ("console", "dummy", "filebased")
@@ -78,6 +88,28 @@ def ttl_for(ends_at, now=None) -> int:
     return max(ttl, 0)
 
 
+def clean_input(email, name="", qty=1) -> tuple[str, str, int]:
+    """Проверка того, что передал ассистент → (email, name, qty). ValueError — мусор."""
+    from django.core.exceptions import ValidationError
+    from django.core.validators import validate_email
+
+    email = str(email or "").strip().lower()
+    if not email or len(email) > 254:
+        raise ValueError("email")
+    try:
+        validate_email(email)
+    except ValidationError:
+        raise ValueError("email") from None
+    name = " ".join("".join(ch for ch in str(name or "") if ch.isprintable()).split())
+    try:
+        qty = int(qty)
+    except (TypeError, ValueError):
+        raise ValueError("qty") from None
+    if not 1 <= qty <= QTY_MAX:
+        raise ValueError("qty")
+    return email, name[:NAME_MAX], qty
+
+
 def create_pending(
     *,
     op: str,
@@ -96,6 +128,7 @@ def create_pending(
     или кэш недоступен (вызывающий честно отказывает, а не обещает письмо)."""
     if op not in OPS:
         raise ValueError(op)
+    email, name, qty = clean_input(email, name, qty)
     ttl = ttl_for(ends_at)
     if ttl <= 0:
         return None
@@ -114,7 +147,7 @@ def create_pending(
         "demo": bool(is_demo),
         "created": timezone.now().isoformat(),
         # человек — только зашифрованным
-        "who": crypto.encrypt(json.dumps({"email": email.strip().lower(), "name": name.strip()})),
+        "who": crypto.encrypt(json.dumps({"email": email, "name": name})),
     }
     try:
         cache.set(_PENDING + _hash(token), payload, ttl)
@@ -152,9 +185,8 @@ def claim(token) -> bool:
     """Занять токен для исполнения. False — уже занят (двойной клик/гонка)."""
     if not _valid_token(token):
         return False
-    ttl = int(getattr(settings, "MCP_ACTION_TTL", 86400))
     try:
-        return bool(cache.add(_CLAIM + _hash(token), 1, ttl))
+        return bool(cache.add(_CLAIM + _hash(token), 1, CLAIM_TTL))
     except Exception:  # noqa: BLE001 — без кэша исполнять нельзя: одноразовость не гарантирована
         return False
 
@@ -173,9 +205,12 @@ def finish(token, outcome: dict) -> None:
     key = _hash(token)
     try:
         cache.set(_DONE + key, dict(outcome), ttl)
+    except Exception as exc:  # noqa: BLE001 — итог потерян: повтор найдёт запись в БД
+        logger.error("mcp finish: outcome not stored: %s", type(exc).__name__)
+    try:
         cache.delete(_PENDING + key)
     except Exception as exc:  # noqa: BLE001
-        logger.warning("mcp finish failed: %s", type(exc).__name__)
+        logger.error("mcp finish: pending not deleted: %s", type(exc).__name__)
 
 
 def outcome(token) -> dict | None:
@@ -223,6 +258,8 @@ def precheck(listing, op: str, qty: int = 1) -> Checked:
     from .. import visibility
     from ..models import AggregatorListing
 
+    if not isinstance(qty, int) or not 1 <= qty <= QTY_MAX:
+        raise PrecheckError(LIMIT)
     if listing is None or listing.listing_kind != AggregatorListing.KIND_PROMOTION:
         raise PrecheckError(NOT_FOUND)
     try:
@@ -268,26 +305,92 @@ def _limit(name: str, default: int) -> int:
     return int(getattr(settings, name, default))
 
 
-def check_limits(request, *, email: str, listing_id: int) -> str | None:
-    """Лимиты на запрос письма (Д-11). Код отказа или None.
+_GMAIL = ("gmail.com", "googlemail.com")
 
-    Адрес в ключах — только sha256. У платформ ассистентов общие IP, поэтому
-    основные пределы — на адрес, на предложение и общий потолок писем."""
-    from apps.core import ratelimit
 
-    mail = hashlib.sha256(email.strip().lower().encode()).hexdigest()
+def canonical_email(email: str) -> str:
+    """Один почтовый ящик = один ключ лимита: без `+метки`, у Gmail ещё и без точек."""
+    local, _at, domain = str(email or "").strip().lower().rpartition("@")
+    local = local.split("+", 1)[0]
+    if domain in _GMAIL:
+        local, domain = local.replace(".", ""), "gmail.com"
+    return f"{local}@{domain}"
+
+
+def address_key(email: str) -> str:
+    """Ключ адреса в лимитах: HMAC, а не голый sha256 — по утечке кэша адрес не подобрать."""
+    secret = settings.SECRET_KEY.encode()
+    return hmac.new(secret, canonical_email(email).encode(), hashlib.sha256).hexdigest()
+
+
+def _windows(email: str, listing_id: int):
+    """(scope, ident, предел, окно, код отказа) — всё, что считает отправленные письма."""
+    mail = address_key(email)
     day = 60 * 60 * 24
-    checks = (
-        ("mcp-act-ip", ratelimit.client_ip(request), _limit("MCP_ACTION_RATE_IP", 20), 600, LIMIT),
-        ("mcp-act-email-offer", f"{mail}:{listing_id}", 1, day, ALREADY_SENT),
-        ("mcp-act-email", mail, _limit("MCP_ACTION_RATE_EMAIL", 3), day, LIMIT),
+    return (
+        ("mcp-act-email-offer", f"{mail}:{listing_id}", 1, day, SILENT),
+        ("mcp-act-email", mail, _limit("MCP_ACTION_RATE_EMAIL", 3), day, SILENT),
         ("mcp-act-offer", str(listing_id), _limit("MCP_ACTION_RATE_OFFER", 50), day, LIMIT),
         ("mcp-act-global", "all", _limit("MCP_ACTION_RATE_GLOBAL", 300), 3600, LIMIT),
     )
-    for scope, ident, limit, window, code in checks:
-        if ratelimit.hit(scope, ident, limit=limit, window=window):
+
+
+def _used(scope: str, ident: str) -> int:
+    from apps.core import ratelimit
+
+    try:
+        return int(ratelimit.cache.get(f"rl:{scope}:{ident}") or 0)
+    except Exception:  # noqa: BLE001 — кэш недоступен: fail-open, как ratelimit.hit
+        return 0
+
+
+def hit_ip(request) -> bool:
+    """Предохранитель на адрес запроса (дёшево, первым). True — отказ."""
+    from apps.core import ratelimit
+
+    limit = _limit("MCP_ACTION_RATE_IP", 20)
+    return ratelimit.hit("mcp-act-ip", ratelimit.client_ip(request), limit=limit, window=600)
+
+
+def check_limits(*, email: str, listing_id: int) -> str | None:
+    """Можно ли отправить письмо (Д-11) — БЕЗ расхода квот: счётчики увеличивает только
+    `consume_limits` после реальной отправки, отказ дальше по цепочке квоту не сжигает.
+
+    Отказ по адресу (повтор, лимит, «это не я») — `SILENT`: ассистенту тот же ответ,
+    что при отправке. Отказ по предложению или общему потолку — честный `LIMIT`."""
+    if is_suppressed(email):
+        return SILENT
+    for scope, ident, limit, _window, code in _windows(email, listing_id):
+        if _used(scope, ident) >= limit:
             return code
     return None
+
+
+def consume_limits(*, email: str, listing_id: int) -> None:
+    """Засчитать отправленное письмо во все окна."""
+    from apps.core import ratelimit
+
+    for scope, ident, limit, window, _code in _windows(email, listing_id):
+        ratelimit.hit(scope, ident, limit=limit, window=window)
+
+
+SUPPRESS_TTL = 60 * 60 * 24 * 30
+_SUPPRESS = "mcp:suppress:"
+
+
+def suppress(email: str) -> None:
+    """«Das war ich nicht»: 30 дней на этот ящик писем от ассистентов не отправляем."""
+    try:
+        cache.set(_SUPPRESS + address_key(email), 1, SUPPRESS_TTL)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("mcp suppress failed: %s", type(exc).__name__)
+
+
+def is_suppressed(email: str) -> bool:
+    try:
+        return bool(cache.get(_SUPPRESS + address_key(email)))
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def confirm_url(tenant, promo_id, token) -> str:

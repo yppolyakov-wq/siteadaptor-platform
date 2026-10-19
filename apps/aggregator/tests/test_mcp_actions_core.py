@@ -207,6 +207,38 @@ def test_precheck_uses_one_schema_context(tenant, monkeypatch):
     assert calls == ["t1"]
 
 
+# --- проверка ввода ------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "email,name,qty",
+    [
+        ("kein-adresse", "A", 1),
+        ("", "A", 1),
+        ("a" * 250 + "@b.de", "A", 1),
+        ("a@b.de", "A", 0),
+        ("a@b.de", "A", 11),
+        ("a@b.de", "A", "viele"),
+    ],
+)
+def test_bad_input_is_rejected(email, name, qty):
+    with pytest.raises(ValueError):
+        _pending(email=email, name=name, qty=qty)
+
+
+def test_name_is_cleaned_and_capped():
+    token, _ttl = _pending(name="Anna\r\nBcc: x@y.de" + "z" * 200)
+    name = actions.load_pending(token)["name"]
+    assert "\n" not in name and "\r" not in name and len(name) <= actions.NAME_MAX
+
+
+def test_precheck_rejects_quantity_out_of_range(tenant):
+    promo = PromotionFactory(metadata={"response": response.RESERVE})
+    listing = _promo_listing(promo)
+    assert _code(listing, actions.OP_RESERVE, 0) == actions.LIMIT
+    assert _code(listing, actions.OP_RESERVE, 99) == actions.LIMIT
+
+
 # --- лимиты --------------------------------------------------------------------------
 
 
@@ -216,40 +248,77 @@ def _req(ip="10.0.0.1"):
     return req
 
 
-def test_same_address_and_offer_gets_already_sent_on_repeat():
-    assert actions.check_limits(_req(), email="a@b.de", listing_id=1) is None
-    assert actions.check_limits(_req(), email="A@b.de", listing_id=1) == actions.ALREADY_SENT
+def _send(email, listing_id):
+    """Как будет звать F-4c: проверка → (письмо) → учёт."""
+    code = actions.check_limits(email=email, listing_id=listing_id)
+    if code is None:
+        actions.consume_limits(email=email, listing_id=listing_id)
+    return code
+
+
+def test_same_address_and_offer_is_silent_on_repeat():
+    assert _send("a@b.de", 1) is None
+    assert _send("A@b.de", 1) == actions.SILENT
+
+
+def test_check_alone_burns_nothing():
+    """Отказ дальше по цепочке (предпроверка, сбой письма) квоту не сжигает."""
+    for _ in range(5):
+        assert actions.check_limits(email="a@b.de", listing_id=1) is None
+    assert _send("a@b.de", 1) is None
+
+
+@pytest.mark.parametrize("alias", ["anna+promo@b.de", "Anna+x@B.de"])
+def test_plus_aliases_share_one_quota(alias):
+    assert _send("anna@b.de", 1) is None
+    assert _send(alias, 1) == actions.SILENT
+
+
+def test_gmail_dots_share_one_quota():
+    assert _send("anna.maria@gmail.com", 1) is None
+    assert _send("annamaria+x@googlemail.com", 1) == actions.SILENT
 
 
 @override_settings(MCP_ACTION_RATE_EMAIL=2)
-def test_address_limit_across_offers():
-    assert actions.check_limits(_req(), email="a@b.de", listing_id=1) is None
-    assert actions.check_limits(_req(), email="a@b.de", listing_id=2) is None
-    assert actions.check_limits(_req(), email="a@b.de", listing_id=3) == actions.LIMIT
+def test_address_limit_across_offers_is_silent():
+    assert _send("a@b.de", 1) is None
+    assert _send("a@b.de", 2) is None
+    assert _send("a@b.de", 3) == actions.SILENT
 
 
 @override_settings(MCP_ACTION_RATE_OFFER=2)
 def test_offer_limit_across_addresses():
     for n in range(2):
-        assert actions.check_limits(_req(), email=f"p{n}@b.de", listing_id=9) is None
-    assert actions.check_limits(_req(), email="p9@b.de", listing_id=9) == actions.LIMIT
+        assert _send(f"p{n}@b.de", 9) is None
+    assert _send("p9@b.de", 9) == actions.LIMIT
 
 
 @override_settings(MCP_ACTION_RATE_GLOBAL=1)
 def test_global_mail_ceiling():
-    assert actions.check_limits(_req(), email="a@b.de", listing_id=1) is None
-    assert actions.check_limits(_req(), email="c@d.de", listing_id=2) == actions.LIMIT
+    assert _send("a@b.de", 1) is None
+    assert _send("c@d.de", 2) == actions.LIMIT
 
 
 @override_settings(MCP_ACTION_RATE_IP=1)
-def test_ip_limit():
-    assert actions.check_limits(_req(), email="a@b.de", listing_id=1) is None
-    assert actions.check_limits(_req(), email="c@d.de", listing_id=2) == actions.LIMIT
+def test_ip_guard():
+    assert actions.hit_ip(_req()) is False
+    assert actions.hit_ip(_req()) is True
+    assert actions.hit_ip(_req("10.0.0.2")) is False
 
 
-def test_limit_keys_hold_no_address(isolated_ratelimit):
-    actions.check_limits(_req(), email="geheim@example.com", listing_id=1)
-    assert "geheim" not in repr(list(isolated_ratelimit._cache))
+def test_suppressed_address_gets_silence():
+    actions.suppress("Anna+x@b.de")
+    assert actions.check_limits(email="anna@b.de", listing_id=1) == actions.SILENT
+    assert actions.check_limits(email="other@b.de", listing_id=1) is None
+
+
+def test_limit_keys_hold_no_address_and_no_plain_hash(isolated_ratelimit):
+    import hashlib
+
+    _send("geheim@example.com", 1)
+    keys = repr(list(isolated_ratelimit._cache))
+    assert "geheim" not in keys
+    assert hashlib.sha256(b"geheim@example.com").hexdigest() not in keys
 
 
 # --- ссылка --------------------------------------------------------------------------

@@ -9,6 +9,8 @@ docs/t8-10f-f4-plan-2026-10-19.md, Д-2…Д-8).
 
 from __future__ import annotations
 
+import logging
+
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.utils import translation
@@ -19,11 +21,16 @@ from apps.aggregator.mcp import actions
 
 from .models import Promotion
 
+logger = logging.getLogger(__name__)
+
 TEMPLATE = "storefront/assistant_confirm.html"
+#: Запросов к странице подтверждения с одного адреса за 10 минут (перебор токенов).
+RATE_LIMIT = 30
 
 
 def _headers(response):
     response["Referrer-Policy"] = "no-referrer"
+    response["X-Robots-Tag"] = "noindex, nofollow"
     return response
 
 
@@ -58,9 +65,13 @@ def _result_redirect(done: dict):
 @never_cache
 @require_http_methods(["GET", "POST"])
 def assistant_confirm(request, pk, token):
+    from apps.core import ratelimit
+
     tenant = getattr(request, "tenant", None)
     if tenant is None:
         raise Http404
+    if ratelimit.hit("mcp-confirm", ratelimit.client_ip(request), limit=RATE_LIMIT, window=600):
+        return _page(request, {"state": "busy"}, status=429)
     done = actions.outcome(token)
     if done is not None:
         if done.get("schema") != tenant.schema_name or done.get("promo_id") != str(pk):
@@ -68,7 +79,8 @@ def assistant_confirm(request, pk, token):
         found = _result_redirect(done)
         if found is not None:
             return found
-        return _page(request, {"state": done.get("result") or "invalid"})
+        with translation.override(done.get("lang") or translation.get_language()):
+            return _page(request, {"state": done.get("result") or "invalid"})
     payload = actions.load_pending(token)
     if payload is None:
         return _page(request, {"state": "invalid"}, status=410)
@@ -77,8 +89,11 @@ def assistant_confirm(request, pk, token):
     lang = _language(payload, tenant)
     with translation.override(lang or translation.get_language()):
         if request.method == "POST":
-            return _confirm(request, tenant, pk, token, payload)
+            return _confirm(request, tenant, pk, token, payload, lang)
         promo = Promotion.objects.filter(pk=pk).first()
+        if not _usable(promo, payload["op"], tenant):
+            # GET ничего не тратит: ссылку не гасим, просто честно говорим
+            return _page(request, {"state": "unavailable"})
         return _page(
             request,
             {
@@ -93,6 +108,8 @@ def assistant_confirm(request, pk, token):
 
 
 def _usable(promo, op, tenant) -> bool:
+    from django.utils import timezone
+
     from apps.aggregator import visibility
 
     from . import response
@@ -100,22 +117,50 @@ def _usable(promo, op, tenant) -> bool:
     return bool(
         promo is not None
         and promo.status == "active"
+        and (promo.ends_at is None or promo.ends_at > timezone.now())
         and promo.target_kind not in ("service", "stay")
         and response.response_for(promo, tenant) == op
         and visibility.listable(tenant)
     )
 
 
-def _confirm(request, tenant, pk, token, payload):
+def _recover(promo, payload) -> dict | None:
+    """Итог потерян (сбой кэша в `finish`), а запись в БД есть — найти её, а не делать
+    вторую. Ищем только среди сделок этого адреса по этой акции через ассистента."""
+    from apps.loyalty.models import Voucher
+
+    from .models import Reservation
+
+    if promo is None:
+        return None
+    email = payload.get("email") or ""
+    if payload["op"] == actions.OP_RESERVE:
+        res = (
+            Reservation.objects.filter(
+                promotion=promo, source_channel="mcp", customer__email__iexact=email
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        return {"result": "reserved", "code": res.reference_code} if res else None
+    voucher = Voucher.objects.filter(promotion=promo, customer__email__iexact=email).first()
+    return {"result": "coupon", "code": voucher.code} if voucher else None
+
+
+def _confirm(request, tenant, pk, token, payload, lang=""):
+    base = {"schema": tenant.schema_name, "promo_id": str(pk), "lang": lang}
+    promo = Promotion.objects.filter(pk=pk).first()
     if not actions.claim(token):
-        # двойной клик: итог уже есть — тот же итог, иначе честное «läuft gerade»
-        done = actions.outcome(token)
-        found = _result_redirect(done or {})
+        # двойной клик: итог уже есть — тот же итог; запись в БД есть — она же;
+        # иначе честное «läuft gerade»
+        found = _result_redirect(actions.outcome(token) or {})
         if found is not None:
             return found
+        recovered = _recover(promo, payload)
+        if recovered is not None:
+            actions.finish(token, {**base, **recovered})
+            return _result_redirect(recovered)
         return _page(request, {"state": "busy"}, status=409)
-    base = {"schema": tenant.schema_name, "promo_id": str(pk)}
-    promo = Promotion.objects.filter(pk=pk).first()
     op = payload["op"]
     if not _usable(promo, op, tenant):
         actions.finish(token, {**base, "result": "unavailable"})
@@ -125,7 +170,9 @@ def _confirm(request, tenant, pk, token, payload):
             return _do_reserve(request, tenant, promo, token, payload, base)
         return _do_coupon(request, tenant, promo, token, payload, base)
     except Exception:
-        actions.release(token)  # сбой ДО итога — человек может нажать ещё раз
+        # `reserve` атомарен (письма — внутри его транзакции), купон идемпотентен по
+        # адресу: после сбоя записи нет или повтор её найдёт — можно нажать ещё раз
+        actions.release(token)
         raise
 
 
@@ -183,7 +230,10 @@ def _do_coupon(request, tenant, promo, token, payload, base):
     actions.finish(token, {**base, "result": "coupon", "code": voucher.code})
     if created:
         conversions.count(request, "deal", "coupon", voucher, attribution=_attribution(payload))
-    _send_coupon_email(voucher, promo, payload["email"], _language(payload, tenant))
+    try:
+        _send_coupon_email(voucher, promo, payload["email"], _language(payload, tenant))
+    except Exception as exc:  # noqa: BLE001 — купон уже выдан; письмо не смеет ронять ответ
+        logger.warning("mcp coupon mail failed: %s", type(exc).__name__)
     return _headers(
         _remember_coupon(
             redirect("storefront-coupon", code=voucher.code), request, promo, voucher.code
@@ -211,7 +261,7 @@ def _send_coupon_email(voucher, promo, email, lang=""):
         dedupe_key=f"coupon:{voucher.pk}:mcp:customer",
         type="coupon_issued",
         recipient=email,
-        subject=subject,
+        subject=" ".join(subject.split()),  # заголовок без переводов строк
         body=body,
         html=html,
     )

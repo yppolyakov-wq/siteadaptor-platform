@@ -11,7 +11,6 @@ import pytest
 from django.conf import settings as dj_settings
 from django.contrib.messages.middleware import MessageMiddleware
 from django.core.cache.backends.locmem import LocMemCache
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from django.test import RequestFactory
 from django.utils import timezone
@@ -20,11 +19,19 @@ from apps.aggregator.mcp import actions
 from apps.loyalty.models import Voucher
 from apps.notifications.models import Notification
 from apps.promotions import assistant_views, response
-from apps.promotions.models import Customer, Reservation
+from apps.promotions.models import Customer, Promotion, Reservation
 from apps.promotions.tests.factories import PromotionFactory
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _rl(monkeypatch):
+    """Лимит частоты — в приватном кэше теста (xdist делит один Redis)."""
+    from apps.core import ratelimit
+
+    monkeypatch.setattr(ratelimit, "cache", LocMemCache(f"rl-confirm-{uuid.uuid4()}", {}))
 
 
 @pytest.fixture(autouse=True)
@@ -63,7 +70,8 @@ def _token(promo, op=actions.OP_RESERVE, schema="t1", **kw):
 
 def _req(method, tenant):
     rf = RequestFactory()
-    request = rf.post("/") if method == "post" else rf.get("/")
+    ua = {"HTTP_USER_AGENT": "Mozilla/5.0 (X11; Linux x86_64) Firefox/120.0"}
+    request = rf.post("/", **ua) if method == "post" else rf.get("/", **ua)
     request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
     MessageMiddleware(lambda r: None).process_request(request)
     request.tenant = tenant
@@ -267,7 +275,7 @@ def test_language_from_assistant_when_enabled(tenant):
 def test_language_not_enabled_falls_back(tenant):
     promo = _promo()
     body = _get(tenant, promo, _token(promo, lang="tr")).content.decode()
-    assert "Rezervasyonu" not in body
+    assert "Reservierung bestätigen" in body
 
 
 def test_failure_before_outcome_releases_claim(tenant, monkeypatch):
@@ -289,5 +297,111 @@ def test_outcome_from_other_tenant_is_404(tenant):
     token = _token(promo)
     _post(tenant, promo, token)
     other = TenantFactory(schema_name="t2", slug="anders")
-    with pytest.raises((Http404, ObjectDoesNotExist)):
+    with pytest.raises(Http404):
         _get(other, promo, token)
+
+
+def test_foreign_host_cannot_burn_pending_token(tenant):
+    promo = _promo()
+    token = _token(promo)
+    other = TenantFactory(schema_name="t2", slug="anders")
+    with pytest.raises(Http404):
+        _post(other, promo, token)
+    assert actions.load_pending(token) is not None
+    assert actions.claim(token)  # не занят чужим хостом
+
+
+def test_get_for_unusable_promo_does_not_spend_link(tenant):
+    promo = _promo()
+    token = _token(promo)
+    promo.metadata = {"response": response.SHOW}
+    promo.save(update_fields=["metadata"])
+    assert 'data-state="unavailable"' in _get(tenant, promo, token).content.decode()
+    promo.metadata = {"response": response.RESERVE}
+    promo.save(update_fields=["metadata"])
+    assert 'data-state="ask"' in _get(tenant, promo, token).content.decode()
+
+
+def test_promo_past_end_is_not_usable_even_before_beat(tenant):
+    promo = _promo()
+    token = _token(promo)
+    Promotion.objects.filter(pk=promo.pk).update(ends_at=timezone.now() - timedelta(minutes=5))
+    assert 'data-state="unavailable"' in _post(tenant, promo, token).content.decode()
+    assert not Reservation.objects.exists()
+
+
+def test_lost_outcome_is_recovered_from_db(tenant, monkeypatch):
+    """Кэш не принял итог: второй клик находит запись в БД, а не создаёт вторую."""
+    promo = _promo()
+    token = _token(promo)
+    real = actions.finish
+    monkeypatch.setattr(actions, "finish", lambda *a, **k: None)
+    _post(tenant, promo, token)
+    res = Reservation.objects.get()
+    monkeypatch.setattr(actions, "finish", real)
+    resp = _post(tenant, promo, token)
+    assert resp.status_code == 302 and res.reference_code in resp["Location"]
+    assert Reservation.objects.count() == 1
+
+
+def test_failure_inside_reserve_rolls_back_and_allows_retry(tenant, monkeypatch):
+    from apps.promotions import services
+
+    promo = _promo()
+    token = _token(promo)
+    real = services.enqueue_reservation_email
+
+    def boom(*a, **k):
+        raise RuntimeError("mail down")
+
+    monkeypatch.setattr(services, "enqueue_reservation_email", boom)
+    with pytest.raises(RuntimeError):
+        _post(tenant, promo, token)
+    assert not Reservation.objects.exists()
+    promo.refresh_from_db()
+    assert promo.available_quantity == 5
+    monkeypatch.setattr(services, "enqueue_reservation_email", real)
+    assert _post(tenant, promo, token).status_code == 302
+    assert Reservation.objects.count() == 1
+
+
+def test_coupon_mail_failure_does_not_break_redirect(tenant, monkeypatch):
+    def boom(*a, **k):
+        raise RuntimeError("smtp down")
+
+    monkeypatch.setattr(assistant_views, "_send_coupon_email", boom)
+    promo = _promo(response.COUPON)
+    resp = _post(tenant, promo, _token(promo, op=actions.OP_COUPON))
+    assert resp.status_code == 302 and Voucher.objects.get().code in resp["Location"]
+
+
+def test_mute_is_restored_and_demo_owner_gets_no_telegram(owner_tenant, monkeypatch):
+    from apps.notifications import prefs
+    from apps.telegram import notify as tg
+
+    sent = []
+    monkeypatch.setattr(tg, "send_to_owner", lambda *a, **k: sent.append(k.get("type")))
+    owner_tenant.is_demo = True
+    owner_tenant.save(update_fields=["is_demo"])
+    promo = _promo()
+    _post(owner_tenant, promo, _token(promo))
+    assert sent == []
+    assert getattr(prefs._mute, "owner", False) is False
+
+
+def test_real_deal_row_for_mcp_channel(tenant, django_capture_on_commit_callbacks):
+    from apps.aggregator.models import PortalStat
+    from apps.aggregator.tests.test_machine_readable import _listing
+
+    promo = _promo()
+    listing = _listing(source_ref=str(promo.pk), tenant_schema="t1")
+    with django_capture_on_commit_callbacks(execute=True):
+        _post(tenant, promo, _token(promo, listing_id=listing.pk))
+    row = PortalStat.objects.get(action="deal")
+    assert row.channel == "mcp" and row.listing_id == listing.pk
+
+
+def test_headers_forbid_indexing(tenant):
+    promo = _promo()
+    resp = _get(tenant, promo, _token(promo))
+    assert "noindex" in resp["X-Robots-Tag"]
