@@ -166,9 +166,15 @@ def test_record_machine_rejects_unknown_channel():
     assert portal_stats.record_machine(None, [listing], action="view", channel="evil") == 0
 
 
-@override_settings(**ON)
-def test_machine_limit_counts_rows_not_calls(settings):
-    settings.AGGREGATOR_PORTAL_STATS = {**settings.AGGREGATOR_PORTAL_STATS, "machine_limit": 3}
+def test_machine_limit_counts_rows_not_calls():
+    from django.conf import settings
+
+    stats = {**settings.AGGREGATOR_PORTAL_STATS, "machine_limit": 3}
+    with override_settings(AGGREGATOR_PORTAL_STATS=stats, **ON):
+        _check_machine_limit()
+
+
+def _check_machine_limit():
     portal = _portal()
     for i in range(2):
         _listing(source_ref=f"r{i}")

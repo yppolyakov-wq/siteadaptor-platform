@@ -340,9 +340,17 @@ def test_business_card_is_not_an_offer():
     assert _call(portal, "get_offer", {"offer_id": card.pk})["isError"] is True
 
 
-@override_settings(**ON)
-def test_total_never_promises_more_than_reachable(settings):
-    settings.AGGREGATOR_SEARCH = {**settings.AGGREGATOR_SEARCH, "max_results": 10_000}
+def test_total_never_promises_more_than_reachable():
+    # не фикстура `settings` вместе с override_settings: её снимок взял бы ROOT_URLCONF
+    # портала и вернул его после теста (утечка urlconf в чужие тесты, CI #2870)
+    from django.conf import settings
+
+    search = {**settings.AGGREGATOR_SEARCH, "max_results": 10_000}
+    with override_settings(AGGREGATOR_SEARCH=search, **ON):
+        _check_total()
+
+
+def _check_total():
     portal = _portal()
     _listing()
     data = _data(portal, "search_offers", {})
