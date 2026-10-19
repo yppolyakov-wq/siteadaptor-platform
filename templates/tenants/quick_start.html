@@ -7,7 +7,8 @@
 {% include "tenants/_public_header.html" %}
 {% comment %}T-8.5 «Aktion in 3 Klicks» (план docs/t8-5-quick-start-plan-2026-10-10.md):
 клик 1 «Weiter», клик 2 «Veröffentlichen», клик 3 «Teilen» на экране «Fertig» поддомена.
-Без JS оба шага видны подряд — форма работает целиком; скрипт показывает по одному.{% endcomment %}
+Без JS все шаги видны подряд — форма работает целиком; скрипт показывает по одному.
+T-8.5e: шаги как у ассистента кабинета (Was · Preis und Dauer · Reaktion) + «Wer sind Sie?».{% endcomment %}
 <main class="max-w-lg mx-auto px-4 pt-8 pb-16" data-quick-start>
   <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 text-center">⚡ {% trans "Ihre Aktion in 3 Klicks" %}</h1>
   <p class="mt-2 text-center text-gray-500">{% trans "Eigene Seite, QR-Code und Aushang — sofort online. Kostenlos, ohne Passwort." %}</p>
@@ -42,6 +43,16 @@
                class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="off">
         {% for e in form.title.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
       </label>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{{ form.description.label }}</span>
+        <textarea name="description" rows="2" maxlength="1000" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm">{{ form.description.value|default:'' }}</textarea>
+        {% for e in form.description.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </label>
+      <button type="button" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700 hidden" data-qs-next>{% trans "Weiter" %} →</button>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm p-4 space-y-4 mt-3" data-qs-step="2">
+      <h2 class="font-semibold text-gray-900">2 · {% trans "Preis und Dauer" %}</h2>
       <div class="grid grid-cols-3 gap-2">
         <label class="block">
           <span class="block text-xs font-medium mb-1">{{ form.new_price.label }}</span>
@@ -76,8 +87,20 @@
           {% for e in form.until.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
         </label>
       </fieldset>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{{ form.quantity.label }}</span>
+        <input type="number" name="quantity" value="{{ form.quantity.value|default_if_none:'' }}" min="1" inputmode="numeric"
+               class="w-28 rounded-xl border border-gray-300 px-3 py-2.5 text-base">
+        {% for e in form.quantity.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </label>
+      <button type="button" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700 hidden" data-qs-next>{% trans "Weiter" %} →</button>
+      <button type="button" class="w-full text-sm text-gray-500 hidden" data-qs-back>← {% trans "Zurück" %}</button>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm p-4 space-y-4 mt-3" data-qs-step="3">
+      <h2 class="font-semibold text-gray-900">3 · {{ form.customer_response.label }}</h2>
       <fieldset>
-        <legend class="block text-sm font-medium mb-2">{{ form.customer_response.label }}</legend>
+        <legend class="sr-only">{{ form.customer_response.label }}</legend>
         <div class="space-y-2">
           {% for key, label, hint in form.response_options %}
           <label class="flex items-start gap-3 rounded-xl border border-gray-200 p-3 cursor-pointer has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50" data-qs-response="{{ key }}">
@@ -89,12 +112,15 @@
           </label>
           {% endfor %}
         </div>
+        {% for e in form.customer_response.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
       </fieldset>
+      {% include "promotions/_text_check.html" %}
       <button type="button" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700 hidden" data-qs-next>{% trans "Weiter" %} →</button>
+      <button type="button" class="w-full text-sm text-gray-500 hidden" data-qs-back>← {% trans "Zurück" %}</button>
     </section>
 
-    <section class="bg-white rounded-2xl shadow-sm p-4 space-y-4 mt-3" data-qs-step="2">
-      <h2 class="font-semibold text-gray-900">2 · {% trans "Wer sind Sie?" %}</h2>
+    <section class="bg-white rounded-2xl shadow-sm p-4 space-y-4 mt-3" data-qs-step="4">
+      <h2 class="font-semibold text-gray-900">4 · {% trans "Wer sind Sie?" %}</h2>
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.business_name.label }}</span>
         <input type="text" name="business_name" value="{{ form.business_name.value|default:'' }}" maxlength="200" required
@@ -126,6 +152,18 @@
         </div>
         {% for e in form.business_type.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
       </fieldset>
+      {% if form.perishable %}
+      {% comment %}Флажок только для еды: тип выбирается здесь, поэтому он под карточками.
+      Скрытие — CSS-классом (атрибут hidden перебивается display-классом); сервер всё равно
+      сбрасывает флажок у не-пищевого типа.{% endcomment %}
+      <label class="flex items-start gap-3 rounded-xl border border-gray-200 p-3 cursor-pointer has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50{% if form.business_type.value not in food_types %} hidden{% endif %}" data-qs-perishable>
+        <input type="checkbox" name="perishable" value="on" class="mt-1" {% if form.perishable.value %}checked{% endif %}>
+        <span>
+          <span class="block text-sm font-medium">{{ form.perishable.label }}</span>
+          <span class="block text-xs text-gray-500">{% trans "Brot vom Tag, Ware kurz vor dem MHD: der niedrigste Preis der letzten 30 Tage gilt dann nicht (§ 11 Abs. 4 PAngV)." %}</span>
+        </span>
+      </label>
+      {% endif %}
       {% include "promotions/_city_category_fields.html" %}
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.city.label }}</span>
@@ -205,24 +243,26 @@
 {% include "tenants/_public_footer.html" %}
 
 {{ category_suggestions|json_script:"qs-cat-suggest" }}
+{{ food_types|json_script:"qs-food-types" }}
 <script>
 (function () {
   var root = document.querySelector("[data-quick-start]");
   if (!root) return;
-  var step1 = root.querySelector('[data-qs-step="1"]');
-  var step2 = root.querySelector('[data-qs-step="2"]');
-  var next = root.querySelector("[data-qs-next]");
-  var back = root.querySelector("[data-qs-back]");
+  var steps = Array.prototype.slice.call(root.querySelectorAll("[data-qs-step]"));
+  var last = steps.length;
+  var current = 1;
   var date = root.querySelector("[data-qs-date]");
   function dots(n) {
+    // Точки — «Angebot · Ihr Geschäft · Teilen»: шаги про акцию = первая точка.
+    var dot = n < last ? 1 : 2;
     root.querySelectorAll("[data-dot]").forEach(function (d) {
-      d.classList.toggle("bg-indigo-600", +d.dataset.dot <= n);
-      d.classList.toggle("bg-gray-200", +d.dataset.dot > n);
+      d.classList.toggle("bg-indigo-600", +d.dataset.dot <= dot);
+      d.classList.toggle("bg-gray-200", +d.dataset.dot > dot);
     });
   }
   function show(n) {
-    step1.hidden = n !== 1;
-    step2.hidden = n !== 2;
+    current = n;
+    steps.forEach(function (s) { s.hidden = +s.dataset.qsStep !== n; });
     dots(n);
     window.scrollTo(0, 0);
   }
@@ -230,14 +270,26 @@
     var checked = root.querySelector('input[name="term"]:checked');
     date.classList.toggle("hidden", !(checked && checked.value === "date"));
   }
-  next.classList.remove("hidden");
-  back.classList.remove("hidden");
-  next.addEventListener("click", function () {
-    var title = root.querySelector('input[name="title"]');
-    if (!title.value.trim()) { title.focus(); title.reportValidity(); return; }
-    show(2);
+  root.querySelectorAll("[data-qs-next], [data-qs-back]").forEach(function (b) {
+    b.classList.remove("hidden");
   });
-  back.addEventListener("click", function () { show(1); });
+  root.addEventListener("click", function (e) {
+    if (e.target.closest("[data-qs-next]")) {
+      var title = root.querySelector('input[name="title"]');
+      if (current === 1 && !title.value.trim()) { title.focus(); title.reportValidity(); return; }
+      show(Math.min(current + 1, last));
+    } else if (e.target.closest("[data-qs-back]")) {
+      show(Math.max(current - 1, 1));
+    }
+  });
+  // «Скоропортящееся» — только у пищевого типа (сервер решает сам, здесь — видимость).
+  var foodTypes = JSON.parse(document.getElementById("qs-food-types").textContent);
+  var perishable = root.querySelector("[data-qs-perishable]");
+  root.addEventListener("change", function (e) {
+    if (e.target.name === "business_type" && perishable) {
+      perishable.classList.toggle("hidden", foodTypes.indexOf(e.target.value) < 0);
+    }
+  });
   root.addEventListener("change", function (e) { if (e.target.name === "term") syncDate(); });
   // T-8.13a: тип бизнеса подсказывает категорию каталога города, пока владелец её не трогал.
   var catSelect = root.querySelector("[data-city-category-select]");
@@ -338,10 +390,9 @@
   }
   cityInput.addEventListener("input", syncDistricts);
   syncDistricts();
-  // Ошибка во втором шаге (или бизнес уже заполнен) — открываем его.
-  var err2 = step2.querySelector(".text-red-600");
-  var err1 = step1.querySelector(".text-red-600");
-  show(err2 && !err1 ? 2 : 1);
+  // Ошибка сервера — открываем первый шаг, где она есть.
+  var withError = steps.filter(function (s) { return s.querySelector(".text-red-600"); })[0];
+  show(withError ? +withError.dataset.qsStep : 1);
 })();
 </script>
 {% endblock %}

@@ -52,7 +52,7 @@ _UMLAUTS = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
 
 SLUG_MIN = 3
 # Заняты собственными путями страницы /aktion-starten/<…>/.
-_QUICK_RESERVED = {"adresse"}
+_QUICK_RESERVED = {"adresse", "pruefen"}
 # Поддомен = имя схемы Postgres (дефисы → подчёркивания): начинается с буквы.
 _SLUG_SHAPE = re.compile(r"^[a-z][a-z0-9-]*[a-z0-9]$")
 

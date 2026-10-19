@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import timedelta
 from urllib.parse import urlencode
 
@@ -16,13 +17,17 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 
 from apps.core import city_categories, ratelimit
+from apps.core.archetypes import FOOD_BUSINESS_TYPES
 from apps.promotions.quick import MAX_PHOTOS
 
 from . import quickstart
 from .models import Tenant
 from .services import login_url_for, site_url_for, start_quick_provisioning
+
+logger = logging.getLogger(__name__)
 
 # Ожидание: схема готова, а ключ акции пропал — через READY_GRACE ведём в список
 # акций; PENDING дольше STALE_AFTER — задача потеряна, круг не крутим вечно.
@@ -47,6 +52,9 @@ def _context(request, form):
         # ИИ — только после регистрации (расход считается на бизнес и его дневной
         # лимит; анонимная страница бюджет не тратит) — здесь лишь честная подсказка.
         "ai_after_signup": _ai_enabled(),
+        # T-8.5e: проверка текста без входа (свой эндпоинт публичного хоста; ИИ-кнопки нет).
+        "text_check_url": "/aktion-starten/pruefen/",
+        "food_types": sorted(FOOD_BUSINESS_TYPES),
     }
 
 
@@ -203,3 +211,59 @@ def quick_waiting(request, slug):
         "tenants/quick_waiting.html",
         {"tenant": tenant, "failed": failed, "stale": stale, "preview": entry},
     )
+
+
+# T-8.5e E3: «Vor dem Veröffentlichen prüfen» без входа — только правила (без ИИ и без БД
+# каталога). Поля — белым списком: товар не принимается (на публичной схеме каталога нет,
+# а ответ стал бы оракулом существования товаров).
+TEXT_CHECK_FIELDS = (
+    "title",
+    "description",
+    "new_price",
+    "old_price",
+    "percent",
+    "quantity",
+    "term",
+    "until",
+    "perishable",
+)
+TEXT_CHECK_LIMIT = 30  # запросов с одного IP за окно
+TEXT_CHECK_WINDOW = 600
+
+
+@require_POST
+def quick_text_check(request):
+    from types import SimpleNamespace
+
+    from django.http import HttpResponse
+    from django.template.loader import render_to_string
+
+    from apps.promotions import text_check as ptc
+
+    if ratelimit.hit(
+        "quick-text-check",
+        ratelimit.client_ip(request),
+        limit=TEXT_CHECK_LIMIT,
+        window=TEXT_CHECK_WINDOW,
+    ):
+        return HttpResponse(status=429)
+    data = {k: request.POST.get(k, "") for k in TEXT_CHECK_FIELDS}
+    btype = request.POST.get("business_type", "")
+    tenant = SimpleNamespace(
+        business_type=btype if btype in quickstart.QUICK_TYPES else "",
+        opening_hours_structured=None,
+        opening_hours="",
+    )
+    try:
+        promo = ptc.promotion_from_payload(data, tenant)
+        findings = ptc.for_promotion(promo, tenant)
+    except Exception:  # noqa: BLE001 — подсказки не стоят 500: клиент оставит прежние
+        logger.exception("quick text check failed")
+        return HttpResponse(status=503)
+    html = render_to_string(
+        "promotions/_text_check_results.html",
+        {"text_findings": findings, "text_checked": True},
+    )
+    response = HttpResponse(html)
+    response["Cache-Control"] = "no-store"
+    return response

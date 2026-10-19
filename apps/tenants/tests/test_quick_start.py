@@ -103,9 +103,11 @@ def test_slug_from_name_transliterates_and_stays_free():
 
 @pytest.mark.django_db
 def test_page_has_both_steps_in_dom_and_no_password():
+    # T-8.5e: шаги как у ассистента кабинета + «Wer sind Sie?» — все в DOM (W0).
     request = _session(RequestFactory().get("/aktion-starten/"))
     html = quickstart_views.quick_start(request).content.decode()
-    assert 'data-qs-step="1"' in html and 'data-qs-step="2"' in html
+    for n in "1234":
+        assert f'data-qs-step="{n}"' in html
     assert 'capture="environment"' in html
     assert 'name="business_name"' in html and 'name="email"' in html
     assert "password" not in html and 'name="slug"' not in html
@@ -652,3 +654,100 @@ def test_payload_roundtrips_through_assistant_form(btype):
     assert not unknown, f"assistant fields missing from signup: {unknown}"
     optional_empty = {"old_price", "percent", "until", "city_tags", "city_category"}
     assert not (lost - optional_empty), f"fields lost on the way: {lost - optional_empty}"
+
+
+# --- T-8.5e E2: одна схема шагов -------------------------------------------------------
+
+
+def _step(html: str, n: int) -> str:
+    start = html.index(f'data-qs-step="{n}"')
+    end = html.find("data-qs-step=", start + 20)
+    return html[start : end if end > 0 else len(html)]
+
+
+@pytest.mark.django_db
+def test_every_field_sits_in_its_step_and_form_is_novalidate():
+    html = quickstart_views.quick_start(
+        _session(RequestFactory().get("/aktion-starten/"))
+    ).content.decode()
+    assert "novalidate" in html  # скрытые обязательные поля не блокируют отправку (Chrome)
+    layout = {
+        1: ("title", "description"),
+        2: ("new_price", "old_price", "percent", "term", "until", "quantity"),
+        3: ("customer_response",),
+        4: ("business_name", "business_type", "city", "street", "postcode", "phone", "email"),
+    }
+    for n, names in layout.items():
+        part = _step(html, n)
+        for name in names:
+            assert f'name="{name}"' in part, (n, name)
+    assert "data-text-check" in _step(html, 3)
+    assert 'data-url="/aktion-starten/pruefen/"' in html
+    assert "data-tc-ai data-url" not in html  # ИИ — только после регистрации
+
+
+@pytest.mark.django_db
+def test_server_error_is_rendered_inside_its_step():
+    html = quickstart_views.quick_start(_post(_post_data(quantity="0"))).content.decode()
+    assert "text-red-600" in _step(html, 2)
+
+
+@pytest.mark.django_db
+def test_perishable_box_only_offered_for_food(settings):
+    settings.PANGV_PERISHABLE_EXEMPTION = True
+    html = quickstart_views.quick_start(
+        _session(RequestFactory().get("/aktion-starten/"))
+    ).content.decode()
+    assert "data-qs-perishable>" in _step(html, 4)
+    assert 'id="qs-food-types"' in html and '"bakery"' in html
+    settings.PANGV_PERISHABLE_EXEMPTION = False
+    html = quickstart_views.quick_start(
+        _session(RequestFactory().get("/aktion-starten/"))
+    ).content.decode()
+    assert "data-qs-perishable>" not in html
+
+
+# --- T-8.5e E3: проверка текста без входа ----------------------------------------------
+
+
+def _tc(data, ip="10.86.0.1"):
+    request = RequestFactory().post("/aktion-starten/pruefen/", data)
+    request.META["REMOTE_ADDR"] = ip
+    return quickstart_views.quick_text_check(request)
+
+
+@pytest.mark.django_db
+def test_public_text_check_gives_hints_without_login(isolated_ratelimit):
+    resp = _tc({"title": "Brot gratis", "new_price": "2"})
+    assert resp.status_code == 200
+    assert resp["Cache-Control"] == "no-store" and "Set-Cookie" not in resp
+    assert "data-tc-item" in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_public_text_check_ignores_product_and_never_touches_catalog(isolated_ratelimit):
+    from apps.promotions import text_check as ptc
+
+    seen = []
+
+    def no_catalog(raw):
+        seen.append(raw)
+        return None
+
+    with mock.patch.object(ptc, "_product", side_effect=no_catalog):
+        resp = _tc({"title": "Brot", "product": "00000000-0000-0000-0000-000000000000"})
+    assert resp.status_code == 200
+    assert not any(seen)  # товар до каталога не доходит
+
+
+@pytest.mark.django_db
+def test_public_text_check_is_post_only_and_rate_limited(isolated_ratelimit, monkeypatch):
+    get = RequestFactory().get("/aktion-starten/pruefen/")
+    assert quickstart_views.quick_text_check(get).status_code == 405
+    monkeypatch.setattr(quickstart_views, "TEXT_CHECK_LIMIT", 2)
+    codes = [_tc({"title": "Brot"}, ip="10.86.0.9").status_code for _ in range(3)]
+    assert codes == [200, 200, 429]
+
+
+def test_pruefen_is_not_a_free_address():
+    assert quickstart.slug_problem("pruefen")
