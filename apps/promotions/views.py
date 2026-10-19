@@ -702,7 +702,7 @@ def promotion_quick(request):
             initial = {
                 k: v
                 for k, v in tg_draft.items()
-                if k not in ("photo_ids", "warnings") and v not in (None, "")
+                if k not in ("photo_ids", "warnings", "bot") and v not in (None, "")
             }
             initial["entwurf"] = entwurf
             if source is None and tg_draft.get("photo_from"):
@@ -744,9 +744,9 @@ def promotion_quick(request):
         elif source is not None:
             images = quick.copy_images(source)
         elif tg_draft is not None and tg_draft.get("photo_ids"):
-            from apps.telegram.notify import active_bot
+            from apps.telegram import bots
 
-            bot = active_bot()
+            bot = bots.for_kind(tg_draft.get("bot"))  # file_id привязан к боту черновика
             uploads, _failed = (
                 telegram_promo.photos_from_telegram(bot.token, tg_draft["photo_ids"])
                 if bot

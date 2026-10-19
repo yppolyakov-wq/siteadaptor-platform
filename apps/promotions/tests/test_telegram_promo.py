@@ -53,6 +53,7 @@ def tg(monkeypatch):
     def _confirm_delay(**kw):  # ✅ уходит в Celery — в тестах исполняем тело сразу
         state["queued"].append(dict(kw))
         kw.pop("dedupe_key")
+        kw.pop("bot_kind", None)
         state["confirm"] = tp.confirm_as_task(bot, tenant, **kw)
 
     monkeypatch.setattr("apps.promotions.tasks.telegram_owner_confirm.delay", _confirm_delay)

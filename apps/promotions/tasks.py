@@ -457,15 +457,19 @@ def ai_text_check(*, schema: str, user_pk, job: str) -> None:
 # T-8.10b: сообщение владельца в Telegram → черновик акции. Дедуп по update_id
 # (Telegram повторяет доставку при медленном ответе); замок — сутки.
 @idempotent_task(lock_timeout=86400)
-def telegram_owner_message(*, schema, update):
+def telegram_owner_message(*, schema, update, bot_kind="tenant"):
     from . import telegram_promo
 
-    return {"result": telegram_promo.handle_owner_message(schema, update)}
+    return {"result": telegram_promo.handle_owner_message(schema, update, bot_kind)}
 
 
 @idempotent_task(lock_timeout=86400)
-def telegram_owner_confirm(*, schema, chat, token, message_id, language_code=""):
+def telegram_owner_confirm(*, schema, chat, token, message_id, language_code="", bot_kind="tenant"):
     """T-8.10b: ✅ под превью в Telegram (скачивание фото + публикация) вне вебхука."""
     from . import telegram_promo
 
-    return {"result": telegram_promo.handle_confirm(schema, chat, token, message_id, language_code)}
+    return {
+        "result": telegram_promo.handle_confirm(
+            schema, chat, token, message_id, language_code, bot_kind
+        )
+    }

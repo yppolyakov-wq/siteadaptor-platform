@@ -186,7 +186,9 @@ def form_for(draft: dict, tenant):
     from . import quick
 
     post = {
-        k: v for k, v in draft.items() if k not in ("photo_ids", "warnings") and v not in (None, "")
+        k: v
+        for k, v in draft.items()
+        if k not in ("photo_ids", "warnings", "bot") and v not in (None, "")
     }
     form = quick.QuickPromotionForm(data=post, files=None, tenant=tenant)
     form.is_valid()
@@ -283,6 +285,13 @@ def edit_url(token: str) -> str:
     return f"{base}{path}?entwurf={token}"
 
 
+def _bot_kind(bot) -> str:
+    """Вид бота (T-8.10h): у своего бота-модели атрибута ``kind`` нет — это свой бот."""
+    from apps.telegram import bots
+
+    return getattr(bot, "kind", bots.TENANT)
+
+
 def _send(bot, chat, text: str, markup=None, photo_id: str = "") -> bool:
     """Ответ в чат. Ошибка HTTP НЕ уходит наружу: текст requests.HTTPError содержит
     URL с токеном бота, а вебхук пишет трейсбэк в лог/Sentry."""
@@ -339,6 +348,7 @@ def enqueue_owner_message(bot, update: dict, tenant) -> str:
                 dedupe_key=f"tgmsg:{connection.schema_name}:{slim['update_id']}",
                 schema=connection.schema_name,
                 update=slim,
+                bot_kind=_bot_kind(bot),
             )
         except Exception as exc:  # брокер недоступен — честно сказать, а не молча потерять
             logger.warning("tg promo enqueue failed: %s", type(exc).__name__)
@@ -373,16 +383,16 @@ def _album_lock(schema: str, chat: str, group: str):
             cache.delete(key)
 
 
-def handle_owner_message(schema: str, update: dict) -> str:
+def handle_owner_message(schema: str, update: dict, bot_kind: str = "tenant") -> str:
     """Тело Celery-задачи: разбор → черновик → превью. Никогда не бросает наружу."""
     from django_tenants.utils import schema_context
 
-    from apps.telegram.models import TelegramBot
+    from apps.telegram import bots
     from apps.tenants.models import Tenant
 
     with schema_context(schema):
         tenant = Tenant.objects.filter(schema_name=schema).first()
-        bot = TelegramBot.objects.filter(is_active=True).exclude(token="").first()
+        bot = bots.for_kind(bot_kind)
         if tenant is None or bot is None:
             return "skip"
         chat = str(update.get("chat_id") or "")
@@ -455,6 +465,7 @@ def _new_draft(bot, tenant, schema, chat, update, photo, group) -> str:
         )
         return "hint"
     draft = draft_from_parsed(parsed, tenant, photo_ids=[photo] if photo else [])
+    draft["bot"] = _bot_kind(bot)  # file_id фото привязан к боту (T-8.10h)
     if photo:
         # B-2: ИИ — до замка альбома (вызов долгий), и только в ПУСТЫЕ описательные поля.
         ai_fill(bot, tenant, draft, photo, hint=parsed.title)
@@ -599,6 +610,7 @@ def _repeat(bot, tenant, schema, chat, pk) -> str:
         _send(bot, chat, _("Diese Aktion gibt es nicht mehr."))
         return "repeat_missing"
     draft = draft_from_promotion(promo, tenant)
+    draft["bot"] = _bot_kind(bot)
     token = store_draft(schema, chat, draft)
     form = form_for(draft, tenant)
     text, markup = render_preview(draft, tenant, form, token)
@@ -661,6 +673,7 @@ def enqueue_confirm(bot, schema, chat, token, message, sender, cid) -> str:
             token=token,
             message_id=message.get("message_id"),
             language_code=str(sender.get("language_code") or "")[:8],
+            bot_kind=_bot_kind(bot),
         )
     except Exception as exc:  # noqa: BLE001 — брокер недоступен
         logger.warning("tg promo confirm enqueue failed: %s", type(exc).__name__)
@@ -669,16 +682,18 @@ def enqueue_confirm(bot, schema, chat, token, message, sender, cid) -> str:
     return "queued"
 
 
-def handle_confirm(schema, chat, token, message_id, language_code="") -> str:
+def handle_confirm(
+    schema, chat, token, message_id, language_code="", bot_kind: str = "tenant"
+) -> str:
     """Тело Celery-задачи ✅. Права и подписка перепроверяются: задача могла ждать."""
     from django_tenants.utils import schema_context
 
-    from apps.telegram.models import TelegramBot
+    from apps.telegram import bots
     from apps.tenants.models import Tenant
 
     with schema_context(schema):
         tenant = Tenant.objects.filter(schema_name=schema).first()
-        bot = TelegramBot.objects.filter(is_active=True).exclude(token="").first()
+        bot = bots.for_kind(bot_kind)
         if tenant is None or bot is None or str(chat) != owner_chat(tenant):
             return "skip"
         return confirm_as_task(bot, tenant, schema, chat, token, message_id, language_code)
@@ -779,7 +794,12 @@ def _confirm_claimed(bot, tenant, schema, chat, token, message) -> str:
         release(schema, token)
         _send(bot, chat, _("Bitte im Formular prüfen (✏️)."))
         return "invalid"
-    uploads, failed = photos_from_telegram(bot.token, draft.get("photo_ids"))
+    photo_bot = bot
+    if draft.get("photo_ids") and draft.get("bot", "tenant") != _bot_kind(bot):
+        from apps.telegram import bots
+
+        photo_bot = bots.for_kind(draft.get("bot")) or bot
+    uploads, failed = photos_from_telegram(photo_bot.token, draft.get("photo_ids"))
     images = []
     if uploads:
         try:
