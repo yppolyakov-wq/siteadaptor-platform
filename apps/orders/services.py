@@ -182,6 +182,7 @@ def create_order(
     custom_lines=(),
     reserve_expires_at=None,
     apply_promotions=True,
+    expected_promos=None,
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
@@ -261,6 +262,18 @@ def create_order(
         claim_totals: dict = {}
         for idx, (product, variant, qty, _options) in enumerate(norm):
             promo = promo_by_product.get(product.pk)
+            # SF-10: вызывающий показал цену акции `expected` (корзина), а к этой
+            # транзакции акция ушла с витрины (последнюю штуку купили) — не продаём
+            # молча по полной цене, а отдаём «лимит исчерпан», как claim_units.
+            expected = (expected_promos or {}).get(product.pk)
+            if (
+                expected is not None
+                and (promo is None or promo.pk != expected.pk)
+                and promo_line_price(expected, product, variant) is not None
+            ):
+                from apps.promotions.services import OutOfStock as PromoSoldOut
+
+                raise PromoSoldOut()
             promo_base = promo_line_price(promo, product, variant)
             if promo_base is None:
                 continue

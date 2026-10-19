@@ -123,3 +123,44 @@ def test_promotion_detail_has_no_target_card():
         _req(path=f"/p/{promo.pk}/", tenant=tenant), pk=promo.pk
     ).content.decode()
     assert "data-promo-target" not in body
+
+
+def test_mystery_on_service_and_room_does_not_touch_price():
+    """Ревью SF-9: сетка слотов услуги и расчёт номера тоже не раскрывают секрет."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.booking.models import Service
+    from apps.promotions import price_layer
+    from apps.stays.models import StayUnit
+
+    service = Service.objects.create(name="Haarschnitt", price_cents=3500)
+    unit = StayUnit.objects.create(name="Zimmer SF9", price_cents=10000)
+    common = dict(title={"de": "Ü"}, status="active", discount_style="mystery")
+    Promotion.objects.create(service=service, price_override=Decimal("9.00"), **common)
+    Promotion.objects.create(stay_unit=unit, discount_percent=40, **common)
+    start = timezone.now() + timedelta(days=1)
+    assert price_layer.service_promos(service) == []
+    assert price_layer.promo_for_service(service, start) is None
+    assert price_layer.stay_promo(unit, timezone.localdate()) is None
+
+
+def test_form_rejects_mystery_on_service():
+    from apps.booking.models import Service
+    from apps.promotions.forms import PromotionForm
+
+    service = Service.objects.create(name="Massage", price_cents=6000)
+    form = PromotionForm(
+        {
+            "title_de": "Ü",
+            "promo_type": "discount",
+            "max_per_customer": 1,
+            "reservation_ttl_hours": 24,
+            "discount_style": "mystery",
+            "service": str(service.pk),
+            "price_override": "9.00",
+        }
+    )
+    assert not form.is_valid()
+    assert "discount_style" in form.errors

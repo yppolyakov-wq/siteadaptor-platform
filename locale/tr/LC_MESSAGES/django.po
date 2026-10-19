@@ -25722,10 +25722,13 @@ msgstr "Google'a gönder"
 msgid "Bei Google"
 msgstr "Google'da"
 
-msgid "Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
+msgid ""
+"Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
 msgstr "Google'da bölünmüş çalışma saatleri var. Yine de üzerine yazılsın mı?"
 
-msgid "Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu übernehmen."
+msgid ""
+"Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu "
+"übernehmen."
 msgstr "Google'da çalışma saati yok – aktarılacak bir şey yok."
 
 msgid "Bei uns"
@@ -25743,8 +25746,11 @@ msgstr "Google ile eşitle"
 msgid "Nicht darstellbar – bleibt unverändert"
 msgstr "Burada gösterilemez – değişmeden kalır"
 
-msgid "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen."
-msgstr "Hiçbir şey otomatik değişmez: önce karşılaştırın, sonra tek yönde eşitleyin."
+msgid ""
+"Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung "
+"abgleichen."
+msgstr ""
+"Hiçbir şey otomatik değişmez: önce karşılaştırın, sonra tek yönde eşitleyin."
 
 msgid "Vergleichen"
 msgstr "Karşılaştır"
@@ -25767,7 +25773,8 @@ msgstr "Çalışma saatleri Google'dan alındı."
 msgid "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
 msgstr "Google'daki özel saatler: %(n)s (değiştirilmez)"
 
-msgid "Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
+msgid ""
+"Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
 msgstr "Google'da açık olan günler kapanacak. Lütfen kontrol edip onaylayın."
 
 msgid "Bitte die Änderungen prüfen und die Übernahme bestätigen."
@@ -25776,8 +25783,12 @@ msgstr "Lütfen değişiklikleri kontrol edip aktarımı onaylayın."
 msgid "Ja, diese Zeiten übernehmen"
 msgstr "Evet, bu saatleri al"
 
-msgid "Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
-msgstr "Google İşletme Profilinizin konumunu ve çalışma saatlerini yönetin. Kanal açıkken kampanyalarınız otomatik olarak Google'a gider."
+msgid ""
+"Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre"
+" Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
+msgstr ""
+"Google İşletme Profilinizin konumunu ve çalışma saatlerini yönetin. Kanal "
+"açıkken kampanyalarınız otomatik olarak Google'a gider."
 
 #: apps/catalog/forms.py
 msgid "Nicht an Google senden"
@@ -25788,8 +25799,12 @@ msgid "Google Merchant Center"
 msgstr "Google Merchant Center"
 
 #: apps/publishing/merchant_feed
-msgid "Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab."
-msgstr "Fiyat ve stok bilgisiyle ürünleriniz bir feed üzerinden Google'a gider. Feed'i burada açar veya kapatırsınız – Google onu düzenli olarak çeker."
+msgid ""
+"Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. "
+"Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab."
+msgstr ""
+"Fiyat ve stok bilgisiyle ürünleriniz bir feed üzerinden Google'a gider. "
+"Feed'i burada açar veya kapatırsınız – Google onu düzenli olarak çeker."
 
 #: apps/publishing/merchant_feed
 msgid "Produktfeed"
@@ -25812,28 +25827,44 @@ msgid "Feed einschalten"
 msgstr "Feed'i aç"
 
 #: apps/publishing/merchant_feed
-msgid "Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal eingeschaltet“ – dieser gilt nur für Aktionen."
-msgstr "Feed, Google bağlantısından ve “Kanal açık” anahtarından bağımsızdır – bu anahtar yalnızca kampanyalar için geçerlidir."
+msgid ""
+"Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal "
+"eingeschaltet“ – dieser gilt nur für Aktionen."
+msgstr ""
+"Feed, Google bağlantısından ve “Kanal açık” anahtarından bağımsızdır – bu "
+"anahtar yalnızca kampanyalar için geçerlidir."
 
 #: apps/publishing/merchant_feed
-msgid "Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und in Merchant Center eintragen."
-msgstr "Feed adresi artık okunamıyor. Lütfen yeni bir adres oluşturup Merchant Center'a girin."
+msgid ""
+"Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und"
+" in Merchant Center eintragen."
+msgstr ""
+"Feed adresi artık okunamıyor. Lütfen yeni bir adres oluşturup Merchant "
+"Center'a girin."
 
 #: apps/publishing/merchant_feed
 msgid "Feed-Adresse"
 msgstr "Feed adresi"
 
 #: apps/publishing/merchant_feed
-msgid "Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie sie wie ein Passwort."
-msgstr "Bu adresi Merchant Center'a ürün kaynağı olarak girin. Ona bir şifre gibi davranın."
+msgid ""
+"Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie "
+"sie wie ein Passwort."
+msgstr ""
+"Bu adresi Merchant Center'a ürün kaynağı olarak girin. Ona bir şifre gibi "
+"davranın."
 
 #: apps/publishing/merchant_feed
 msgid "Kopiert."
 msgstr "Kopyalandı."
 
 #: apps/publishing/merchant_feed
-msgid "Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in Merchant Center ersetzt werden."
-msgstr "Biliyorum: önceki adres artık çalışmayacak ve Merchant Center'da değiştirilmesi gerekecek."
+msgid ""
+"Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in "
+"Merchant Center ersetzt werden."
+msgstr ""
+"Biliyorum: önceki adres artık çalışmayacak ve Merchant Center'da "
+"değiştirilmesi gerekecek."
 
 #: apps/publishing/merchant_feed
 msgid "Neue Adresse erzeugen"
@@ -25844,20 +25875,37 @@ msgid "So verbinden Sie Merchant Center"
 msgstr "Merchant Center nasıl bağlanır"
 
 #: apps/publishing/merchant_feed
-msgid "Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website bestätigen."
-msgstr "Google Merchant Center hesabı açın (ücretsiz) ve web sitenizi doğrulayın."
+msgid ""
+"Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website "
+"bestätigen."
+msgstr ""
+"Google Merchant Center hesabı açın (ücretsiz) ve web sitenizi doğrulayın."
 
 #: apps/publishing/merchant_feed
-msgid "Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und die Feed-Adresse oben eintragen."
-msgstr "“Ürünler” bölümünde zamanlanmış getirmeli bir “Dosya” veri kaynağı ekleyin ve yukarıdaki feed adresini girin."
+msgid ""
+"Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und "
+"die Feed-Adresse oben eintragen."
+msgstr ""
+"“Ürünler” bölümünde zamanlanmış getirmeli bir “Dosya” veri kaynağı ekleyin "
+"ve yukarıdaki feed adresini girin."
 
 #: apps/publishing/merchant_feed
-msgid "In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann erscheinen die Produkte auch in Ihrem Profil und auf Google Maps."
-msgstr "Merchant Center'da Google İşletme Profilinizi bağlayın – ürünler profilinizde ve Google Haritalar'da da görünür."
+msgid ""
+"In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann "
+"erscheinen die Produkte auch in Ihrem Profil und auf Google Maps."
+msgstr ""
+"Merchant Center'da Google İşletme Profilinizi bağlayın – ürünler "
+"profilinizde ve Google Haritalar'da da görünür."
 
 #: apps/publishing/merchant_feed
-msgid "Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand – er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit Google die richtige Verfügbarkeit zeigt."
-msgstr "“Mağazada mevcut” göstergesi ayrıca yerel stok gerektirir – bu ayrı bir feed olarak gelecek. Google'ın doğru stok durumunu göstermesi için stoklarınızı güncel tutun."
+msgid ""
+"Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand –"
+" er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit "
+"Google die richtige Verfügbarkeit zeigt."
+msgstr ""
+"“Mağazada mevcut” göstergesi ayrıca yerel stok gerektirir – bu ayrı bir feed"
+" olarak gelecek. Google'ın doğru stok durumunu göstermesi için stoklarınızı "
+"güncel tutun."
 
 #: apps/publishing/merchant_feed
 msgid "Aktive Produkte mit Foto und Preis, die nicht ausgeblendet sind."
@@ -25876,8 +25924,12 @@ msgid "Produkte bei Google"
 msgstr "Google'da ürünler"
 
 #: apps/publishing/merchant_feed
-msgid "Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google senden."
-msgstr "Ürünleri fiyat ve stok bilgisiyle Google Merchant Center üzerinden Google'a gönderin."
+msgid ""
+"Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google "
+"senden."
+msgstr ""
+"Ürünleri fiyat ve stok bilgisiyle Google Merchant Center üzerinden Google'a "
+"gönderin."
 
 #: apps/publishing/merchant_feed
 msgid "Der Produktfeed ist eingeschaltet."
@@ -25912,7 +25964,8 @@ msgid "Kein Preis"
 msgstr "Fiyat yok"
 
 #: apps/publishing/merchant_feed
-msgid "Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"
+msgid ""
+"Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"
 msgstr "EAN, ürün numarası veya marka yok – Google ürünü daha seyrek gösterir"
 
 #: apps/publishing/merchant_feed
@@ -25938,16 +25991,25 @@ msgid "Denselben Code hier eintragen."
 msgstr "Aynı kodu buraya girin."
 
 #: apps/publishing/merchant_feed
-msgid "Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig sind."
-msgstr "İkinci bir feed, mağazanızda hangi ürünlerin stokta olduğunu Google'a bildirir."
+msgid ""
+"Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig "
+"sind."
+msgstr ""
+"İkinci bir feed, mağazanızda hangi ürünlerin stokta olduğunu Google'a "
+"bildirir."
 
 #: apps/publishing/merchant_feed
 msgid "Google ordnet die Shopcodes bis zu 24 Stunden nach der Verknüpfung zu."
-msgstr "Google mağaza kodlarını bağlantıdan sonraki 24 saat içinde eşleştirir."
+msgstr ""
+"Google mağaza kodlarını bağlantıdan sonraki 24 saat içinde eşleştirir."
 
 #: apps/publishing/merchant_feed
-msgid "Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und müssen in Merchant Center ersetzt werden."
-msgstr "Biliyorum: önceki iki adres de artık çalışmayacak ve Merchant Center'da değiştirilmesi gerekecek."
+msgid ""
+"Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und "
+"müssen in Merchant Center ersetzt werden."
+msgstr ""
+"Biliyorum: önceki iki adres de artık çalışmayacak ve Merchant Center'da "
+"değiştirilmesi gerekecek."
 
 #: apps/publishing/merchant_feed
 msgid "Im Google-Profil ist kein Shopcode hinterlegt."
@@ -25955,11 +26017,16 @@ msgstr "Google profilinde mağaza kodu tanımlı değil."
 
 #: apps/publishing/merchant_feed
 msgid "Im Google-Unternehmensprofil unter „Info“ einen Shopcode festlegen."
-msgstr "Google İşletme Profilinizde “Bilgi” altında bir mağaza kodu belirleyin."
+msgstr ""
+"Google İşletme Profilinizde “Bilgi” altında bir mağaza kodu belirleyin."
 
 #: apps/publishing/merchant_feed
-msgid "In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit geplantem Abruf anlegen und diese Adresse eintragen."
-msgstr "Merchant Center'da yerel stok için zamanlanmış getirmeli bir dosya veri kaynağı ekleyin ve bu adresi girin."
+msgid ""
+"In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit "
+"geplantem Abruf anlegen und diese Adresse eintragen."
+msgstr ""
+"Merchant Center'da yerel stok için zamanlanmış getirmeli bir dosya veri "
+"kaynağı ekleyin ve bu adresi girin."
 
 #: apps/publishing/merchant_feed
 msgid "Lokaler Bestand (Im Geschäft verfügbar)"
@@ -25967,15 +26034,20 @@ msgstr "Yerel stok (mağazada mevcut)"
 
 #: apps/publishing/merchant_feed
 msgid "Neue Adressen erzeugt. Bitte beide in Merchant Center ersetzen."
-msgstr "Yeni adresler oluşturuldu. Lütfen ikisini de Merchant Center'da değiştirin."
+msgstr ""
+"Yeni adresler oluşturuldu. Lütfen ikisini de Merchant Center'da değiştirin."
 
 #: apps/publishing/merchant_feed
 msgid "Ohne Shopcode bleibt der lokale Feed leer."
 msgstr "Mağaza kodu olmadan yerel feed boş kalır."
 
 #: apps/publishing/merchant_feed
-msgid "Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den Bestand, damit Google die richtige Verfügbarkeit zeigt."
-msgstr "Stok takibi olmayan ürünler feed'de stokta olarak bildirilir. Google'ın doğru durumu göstermesi için stoklarınızı güncel tutun."
+msgid ""
+"Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den "
+"Bestand, damit Google die richtige Verfügbarkeit zeigt."
+msgstr ""
+"Stok takibi olmayan ürünler feed'de stokta olarak bildirilir. Google'ın "
+"doğru durumu göstermesi için stoklarınızı güncel tutun."
 
 #: apps/publishing/merchant_feed
 msgid "Shopcode (Geschäftscode in Merchant Center)"
@@ -25994,8 +26066,10 @@ msgid "Shopcode gespeichert."
 msgstr "Mağaza kodu kaydedildi."
 
 #: apps/publishing/merchant_feed
-msgid "Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
-msgstr "Geçersiz mağaza kodu: en fazla 64 karakter, boşluk ve özel harf olmadan."
+msgid ""
+"Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
+msgstr ""
+"Geçersiz mağaza kodu: en fazla 64 karakter, boşluk ve özel harf olmadan."
 
 #: templates/publishing/merchant_feed.html
 msgid "%(counter)s Position mit Bestand"
@@ -26016,8 +26090,12 @@ msgstr[0] "%(counter)s tükendi"
 msgstr[1] "%(counter)s tükendi"
 
 #: apps/publishing/views.py
-msgid "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
-msgstr "Google profilindeki mağaza kodu geçersiz karakterler içeriyor (yalnızca ASCII, boşluksuz, en fazla 64 karakter)."
+msgid ""
+"Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine "
+"Leerzeichen, höchstens 64 Zeichen)."
+msgstr ""
+"Google profilindeki mağaza kodu geçersiz karakterler içeriyor (yalnızca "
+"ASCII, boşluksuz, en fazla 64 karakter)."
 
 #: apps/catalog/google.py
 msgid "Überraschungsaktion läuft – Preis bleibt geheim"
@@ -26028,8 +26106,14 @@ msgid "Aktionslimit erreicht"
 msgstr "Kampanya limitine ulaşıldı"
 
 #: apps/catalog/google.py
-msgid "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab."
-msgstr "Google kampanya fiyatını feed'in bir sonraki çekilişinde alır. Kampanyalara bir bitiş tarihi verin – ya da bir değişiklikten sonra feed'i Merchant Center'da yeniden çekin."
+msgid ""
+"Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie "
+"Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in "
+"Merchant Center neu ab."
+msgstr ""
+"Google kampanya fiyatını feed'in bir sonraki çekilişinde alır. Kampanyalara "
+"bir bitiş tarihi verin – ya da bir değişiklikten sonra feed'i Merchant "
+"Center'da yeniden çekin."
 
 #: templates/publishing/merchant_feed.html
 msgid "Davon %(counter)s Position mit Aktionspreis"
@@ -26048,3 +26132,6 @@ msgstr "Şimdi aç"
 #: apps/orders/public_views.py
 msgid "A promotional price has just sold out. Please check your cart."
 msgstr "Bir kampanya fiyatı az önce tükendi. Lütfen sepetinizi kontrol edin."
+
+msgid "Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."
+msgstr "Sürpriz fiyat hizmetler ve odalar için mümkün değildir."

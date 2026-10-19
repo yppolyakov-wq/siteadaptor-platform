@@ -744,7 +744,10 @@ def cart_view(request):
         r["is_promo"] = r["unit_price"] < r["base_unit_price"]
     # SF-10: акции, по которым корзина показала цену, — чекаут сверит, что они ещё
     # в продаже (лимит мог кончиться между корзиной и «Kaufen»).
-    promo_seen = ",".join(sorted({str(pmap[r["product"].pk].pk) for r in rows if r["is_promo"]}))
+    # Пары «товар:акция» — чтобы удалённый в другой вкладке товар не давал ложного «vergriffen».
+    promo_seen = ",".join(
+        sorted({f"{r['product'].pk}:{pmap[r['product'].pk].pk}" for r in rows if r["is_promo"]})
+    )
     # Комбо-наборы (A4): отдельные строки корзины со снимком состава.
     from apps.catalog.combos import combo_price, pool_price
 
@@ -939,8 +942,10 @@ def checkout(request):
     pmap = _cart_promo_map(items)
     # SF-10: цена акции была в корзине, а лимит кончился до «Kaufen» — не списываем
     # молча полную цену (обещание SF-4b), а возвращаем в корзину с обычной ценой.
-    seen = {x for x in (request.POST.get("promo_seen") or "").split(",") if x}
-    if seen - {str(promo.pk) for promo in pmap.values()}:
+    current = {str(p.pk): "" for p, _v, _o, _q in items}
+    current.update({str(pid): str(promo.pk) for pid, promo in pmap.items()})
+    seen = (x.partition(":") for x in (request.POST.get("promo_seen") or "").split(",")[:200])
+    if any(pid in current and current[pid] != promo_pk for pid, _sep, promo_pk in seen):
         messages.error(
             request,
             _("A promotional price has just sold out. Please check your cart."),
@@ -1058,6 +1063,9 @@ def checkout(request):
             # SH-23 (Р-2/Р-4): срок оплаты считаем ДО создания — письмо `created`
             # рендерится внутри create_order и должно его назвать.
             payment_due_at=_payment_due(tenant, chosen_method),
+            # SF-10: цены акций, которые увидел покупатель, — create_order не
+            # подменит их молча полной ценой, если акция ушла с витрины.
+            expected_promos=pmap,
         )
     except EmptyOrder:
         messages.error(request, _("Your order is empty."))

@@ -25649,17 +25649,24 @@ msgstr "An Google senden"
 msgid "Bei Google"
 msgstr "Bei Google"
 
-msgid "Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
-msgstr "Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
+msgid ""
+"Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
+msgstr ""
+"Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
 
-msgid "Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu übernehmen."
-msgstr "Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu übernehmen."
+msgid ""
+"Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu "
+"übernehmen."
+msgstr ""
+"Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu "
+"übernehmen."
 
 msgid "Bei uns"
 msgstr "Bei uns"
 
 msgid "Bitte zuerst Öffnungszeiten eintragen – leere Zeiten senden wir nicht."
-msgstr "Bitte zuerst Öffnungszeiten eintragen – leere Zeiten senden wir nicht."
+msgstr ""
+"Bitte zuerst Öffnungszeiten eintragen – leere Zeiten senden wir nicht."
 
 msgid "Ja, bei Google überschreiben"
 msgstr "Ja, bei Google überschreiben"
@@ -25670,8 +25677,12 @@ msgstr "Mit Google abgleichen"
 msgid "Nicht darstellbar – bleibt unverändert"
 msgstr "Nicht darstellbar – bleibt unverändert"
 
-msgid "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen."
-msgstr "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen."
+msgid ""
+"Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung "
+"abgleichen."
+msgstr ""
+"Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung "
+"abgleichen."
 
 msgid "Vergleichen"
 msgstr "Vergleichen"
@@ -25694,8 +25705,10 @@ msgstr "Öffnungszeiten von Google übernommen."
 msgid "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
 msgstr "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
 
-msgid "Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
-msgstr "Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
+msgid ""
+"Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
+msgstr ""
+"Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
 
 msgid "Bitte die Änderungen prüfen und die Übernahme bestätigen."
 msgstr "Bitte die Änderungen prüfen und die Übernahme bestätigen."
@@ -25703,8 +25716,12 @@ msgstr "Bitte die Änderungen prüfen und die Übernahme bestätigen."
 msgid "Ja, diese Zeiten übernehmen"
 msgstr "Ja, diese Zeiten übernehmen"
 
-msgid "Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
-msgstr "Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
+msgid ""
+"Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre"
+" Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
+msgstr ""
+"Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre"
+" Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
 
 #: apps/catalog/forms.py
 msgid "Nicht an Google senden"
@@ -25715,8 +25732,12 @@ msgid "Google Merchant Center"
 msgstr "Google Merchant Center"
 
 #: apps/publishing/merchant_feed
-msgid "Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab."
-msgstr "Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab."
+msgid ""
+"Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. "
+"Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab."
+msgstr ""
+"Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. "
+"Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab."
 
 #: apps/publishing/merchant_feed
 msgid "Produktfeed"
@@ -25739,28 +25760,44 @@ msgid "Feed einschalten"
 msgstr "Feed einschalten"
 
 #: apps/publishing/merchant_feed
-msgid "Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal eingeschaltet“ – dieser gilt nur für Aktionen."
-msgstr "Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal eingeschaltet“ – dieser gilt nur für Aktionen."
+msgid ""
+"Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal "
+"eingeschaltet“ – dieser gilt nur für Aktionen."
+msgstr ""
+"Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal "
+"eingeschaltet“ – dieser gilt nur für Aktionen."
 
 #: apps/publishing/merchant_feed
-msgid "Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und in Merchant Center eintragen."
-msgstr "Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und in Merchant Center eintragen."
+msgid ""
+"Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und"
+" in Merchant Center eintragen."
+msgstr ""
+"Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und"
+" in Merchant Center eintragen."
 
 #: apps/publishing/merchant_feed
 msgid "Feed-Adresse"
 msgstr "Feed-Adresse"
 
 #: apps/publishing/merchant_feed
-msgid "Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie sie wie ein Passwort."
-msgstr "Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie sie wie ein Passwort."
+msgid ""
+"Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie "
+"sie wie ein Passwort."
+msgstr ""
+"Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie "
+"sie wie ein Passwort."
 
 #: apps/publishing/merchant_feed
 msgid "Kopiert."
 msgstr "Kopiert."
 
 #: apps/publishing/merchant_feed
-msgid "Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in Merchant Center ersetzt werden."
-msgstr "Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in Merchant Center ersetzt werden."
+msgid ""
+"Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in "
+"Merchant Center ersetzt werden."
+msgstr ""
+"Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in "
+"Merchant Center ersetzt werden."
 
 #: apps/publishing/merchant_feed
 msgid "Neue Adresse erzeugen"
@@ -25771,20 +25808,38 @@ msgid "So verbinden Sie Merchant Center"
 msgstr "So verbinden Sie Merchant Center"
 
 #: apps/publishing/merchant_feed
-msgid "Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website bestätigen."
-msgstr "Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website bestätigen."
+msgid ""
+"Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website "
+"bestätigen."
+msgstr ""
+"Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website "
+"bestätigen."
 
 #: apps/publishing/merchant_feed
-msgid "Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und die Feed-Adresse oben eintragen."
-msgstr "Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und die Feed-Adresse oben eintragen."
+msgid ""
+"Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und "
+"die Feed-Adresse oben eintragen."
+msgstr ""
+"Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und "
+"die Feed-Adresse oben eintragen."
 
 #: apps/publishing/merchant_feed
-msgid "In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann erscheinen die Produkte auch in Ihrem Profil und auf Google Maps."
-msgstr "In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann erscheinen die Produkte auch in Ihrem Profil und auf Google Maps."
+msgid ""
+"In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann "
+"erscheinen die Produkte auch in Ihrem Profil und auf Google Maps."
+msgstr ""
+"In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann "
+"erscheinen die Produkte auch in Ihrem Profil und auf Google Maps."
 
 #: apps/publishing/merchant_feed
-msgid "Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand – er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit Google die richtige Verfügbarkeit zeigt."
-msgstr "Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand – er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit Google die richtige Verfügbarkeit zeigt."
+msgid ""
+"Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand –"
+" er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit "
+"Google die richtige Verfügbarkeit zeigt."
+msgstr ""
+"Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand –"
+" er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit "
+"Google die richtige Verfügbarkeit zeigt."
 
 #: apps/publishing/merchant_feed
 msgid "Aktive Produkte mit Foto und Preis, die nicht ausgeblendet sind."
@@ -25803,8 +25858,12 @@ msgid "Produkte bei Google"
 msgstr "Produkte bei Google"
 
 #: apps/publishing/merchant_feed
-msgid "Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google senden."
-msgstr "Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google senden."
+msgid ""
+"Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google "
+"senden."
+msgstr ""
+"Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google "
+"senden."
 
 #: apps/publishing/merchant_feed
 msgid "Der Produktfeed ist eingeschaltet."
@@ -25839,8 +25898,10 @@ msgid "Kein Preis"
 msgstr "Kein Preis"
 
 #: apps/publishing/merchant_feed
-msgid "Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"
-msgstr "Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"
+msgid ""
+"Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"
+msgstr ""
+"Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"
 
 #: apps/publishing/merchant_feed
 msgid "Keine Beschreibung"
@@ -25865,16 +25926,25 @@ msgid "Denselben Code hier eintragen."
 msgstr "Denselben Code hier eintragen."
 
 #: apps/publishing/merchant_feed
-msgid "Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig sind."
-msgstr "Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig sind."
+msgid ""
+"Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig "
+"sind."
+msgstr ""
+"Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig "
+"sind."
 
 #: apps/publishing/merchant_feed
 msgid "Google ordnet die Shopcodes bis zu 24 Stunden nach der Verknüpfung zu."
-msgstr "Google ordnet die Shopcodes bis zu 24 Stunden nach der Verknüpfung zu."
+msgstr ""
+"Google ordnet die Shopcodes bis zu 24 Stunden nach der Verknüpfung zu."
 
 #: apps/publishing/merchant_feed
-msgid "Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und müssen in Merchant Center ersetzt werden."
-msgstr "Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und müssen in Merchant Center ersetzt werden."
+msgid ""
+"Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und "
+"müssen in Merchant Center ersetzt werden."
+msgstr ""
+"Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und "
+"müssen in Merchant Center ersetzt werden."
 
 #: apps/publishing/merchant_feed
 msgid "Im Google-Profil ist kein Shopcode hinterlegt."
@@ -25885,8 +25955,12 @@ msgid "Im Google-Unternehmensprofil unter „Info“ einen Shopcode festlegen."
 msgstr "Im Google-Unternehmensprofil unter „Info“ einen Shopcode festlegen."
 
 #: apps/publishing/merchant_feed
-msgid "In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit geplantem Abruf anlegen und diese Adresse eintragen."
-msgstr "In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit geplantem Abruf anlegen und diese Adresse eintragen."
+msgid ""
+"In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit "
+"geplantem Abruf anlegen und diese Adresse eintragen."
+msgstr ""
+"In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit "
+"geplantem Abruf anlegen und diese Adresse eintragen."
 
 #: apps/publishing/merchant_feed
 msgid "Lokaler Bestand (Im Geschäft verfügbar)"
@@ -25901,8 +25975,12 @@ msgid "Ohne Shopcode bleibt der lokale Feed leer."
 msgstr "Ohne Shopcode bleibt der lokale Feed leer."
 
 #: apps/publishing/merchant_feed
-msgid "Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den Bestand, damit Google die richtige Verfügbarkeit zeigt."
-msgstr "Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den Bestand, damit Google die richtige Verfügbarkeit zeigt."
+msgid ""
+"Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den "
+"Bestand, damit Google die richtige Verfügbarkeit zeigt."
+msgstr ""
+"Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den "
+"Bestand, damit Google die richtige Verfügbarkeit zeigt."
 
 #: apps/publishing/merchant_feed
 msgid "Shopcode (Geschäftscode in Merchant Center)"
@@ -25921,8 +25999,10 @@ msgid "Shopcode gespeichert."
 msgstr "Shopcode gespeichert."
 
 #: apps/publishing/merchant_feed
-msgid "Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
-msgstr "Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
+msgid ""
+"Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
+msgstr ""
+"Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
 
 #: templates/publishing/merchant_feed.html
 msgid "%(counter)s Position mit Bestand"
@@ -25943,8 +26023,12 @@ msgstr[0] "%(counter)s ausverkauft"
 msgstr[1] "%(counter)s ausverkauft"
 
 #: apps/publishing/views.py
-msgid "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
-msgstr "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
+msgid ""
+"Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine "
+"Leerzeichen, höchstens 64 Zeichen)."
+msgstr ""
+"Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine "
+"Leerzeichen, höchstens 64 Zeichen)."
 
 #: apps/catalog/google.py
 msgid "Überraschungsaktion läuft – Preis bleibt geheim"
@@ -25955,8 +26039,14 @@ msgid "Aktionslimit erreicht"
 msgstr "Aktionslimit erreicht"
 
 #: apps/catalog/google.py
-msgid "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab."
-msgstr "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab."
+msgid ""
+"Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie "
+"Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in "
+"Merchant Center neu ab."
+msgstr ""
+"Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie "
+"Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in "
+"Merchant Center neu ab."
 
 #: templates/publishing/merchant_feed.html
 msgid "Davon %(counter)s Position mit Aktionspreis"
@@ -25974,4 +26064,8 @@ msgstr "Jetzt aufdecken"
 
 #: apps/orders/public_views.py
 msgid "A promotional price has just sold out. Please check your cart."
-msgstr "Ein Aktionspreis ist gerade vergriffen. Bitte prüfen Sie Ihren Warenkorb."
+msgstr ""
+"Ein Aktionspreis ist gerade vergriffen. Bitte prüfen Sie Ihren Warenkorb."
+
+msgid "Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."
+msgstr "Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."

@@ -114,7 +114,7 @@ def test_checkout_rejects_stale_promo_price(isolated_ratelimit):
     co = _req(
         "post",
         "/warenkorb/kasse/",
-        {"name": "Kunde", "website": "", "promo_seen": str(promo.pk)},
+        {"name": "Kunde", "website": "", "promo_seen": f"{product.pk}:{promo.pk}"},
         tenant,
     )
     co.session = add.session
@@ -136,4 +136,41 @@ def test_cart_form_carries_seen_promos():
     cart_req = _req(path="/warenkorb/", tenant=tenant)
     cart_req.session = add.session
     body = orders_public.cart_view(cart_req).content.decode()
-    assert f'name="promo_seen" value="{promo.pk}"' in body
+    assert f'name="promo_seen" value="{product.pk}:{promo.pk}"' in body
+
+
+def test_create_order_refuses_silent_full_price_when_promo_vanished():
+    """Ревью SF-10: последняя штука ушла МЕЖДУ проверкой чекаута и create_order —
+    акции уже нет в слое цены, но покупатель видел её цену → «лимит исчерпан», не полная цена."""
+    from apps.promotions.services import OutOfStock as PromoSoldOut
+
+    product = _saft()
+    promo = _promo(product, limit=1)
+    seen = product_promo_map([product.pk])
+    Promotion.objects.filter(pk=promo.pk).update(available_quantity=0)
+    with pytest.raises(PromoSoldOut):
+        order_services.create_order(items=[(product, 1)], name="Kunde", expected_promos=seen)
+    # без ожиданий (кабинет, импорт) — прежнее поведение: обычная цена
+    order = order_services.create_order(items=[(product, 1)], name="Kunde")
+    assert order.items.get().unit_price == Decimal("2.49")
+
+
+def test_stale_tab_removed_product_does_not_abort(isolated_ratelimit):
+    """Ревью SF-10: товар с акцией удалён из корзины в другой вкладке — это не «vergriffen»."""
+    from apps.orders.models import Order
+
+    tenant = _tenant("sf10e")
+    product = _saft()
+    other = _saft()
+    promo = _promo(other, limit=5)
+    add = _req("post", "/warenkorb/add/", {"product": str(product.pk), "qty": "1"}, tenant)
+    orders_public.cart_add(add)
+    co = _req(
+        "post",
+        "/warenkorb/kasse/",
+        {"name": "Kunde", "website": "", "promo_seen": f"{other.pk}:{promo.pk},garbage"},
+        tenant,
+    )
+    co.session = add.session
+    orders_public.checkout(co)
+    assert Order.objects.count() == 1

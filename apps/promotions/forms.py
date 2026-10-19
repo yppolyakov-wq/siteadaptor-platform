@@ -283,6 +283,15 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         if starts and ends and ends <= starts:
             self.add_error("ends_at", _("End must be after start."))
         self._clean_price_condition(cleaned)
+        # SF-9: у услуги и номера цена акции видна в сетке слотов/расчёте брони — секрет
+        # «сюрприза» не спрятать, поэтому сочетание запрещено (товар — только своя страница).
+        if cleaned.get("discount_style") == "mystery" and (
+            cleaned.get("service") or cleaned.get("stay_unit")
+        ):
+            self.add_error(
+                "discount_style",
+                _("Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."),
+            )
         return cleaned
 
     def _clean_price_condition(self, cleaned):

@@ -25848,10 +25848,13 @@ msgstr "Отправить в Google"
 msgid "Bei Google"
 msgstr "В Google"
 
-msgid "Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
+msgid ""
+"Bei Google sind geteilte Öffnungszeiten hinterlegt. Trotzdem überschreiben?"
 msgstr "В Google указаны часы с перерывом. Всё равно перезаписать?"
 
-msgid "Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu übernehmen."
+msgid ""
+"Bei Google sind keine Öffnungszeiten hinterlegt – es gibt nichts zu "
+"übernehmen."
 msgstr "В Google не указаны часы работы — переносить нечего."
 
 msgid "Bei uns"
@@ -25869,8 +25872,12 @@ msgstr "Сверить с Google"
 msgid "Nicht darstellbar – bleibt unverändert"
 msgstr "Не поддерживается у нас — остаётся без изменений"
 
-msgid "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen."
-msgstr "Ничего не меняется автоматически: сначала сравните, затем перенесите в одну сторону."
+msgid ""
+"Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung "
+"abgleichen."
+msgstr ""
+"Ничего не меняется автоматически: сначала сравните, затем перенесите в одну "
+"сторону."
 
 msgid "Vergleichen"
 msgstr "Сравнить"
@@ -25893,7 +25900,8 @@ msgstr "Часы работы перенесены из Google."
 msgid "Sonderöffnungszeiten bei Google: %(n)s (werden nicht geändert)"
 msgstr "Особые часы в Google: %(n)s (не меняются)"
 
-msgid "Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
+msgid ""
+"Bei Google geöffnete Tage würden geschlossen. Bitte prüfen und bestätigen."
 msgstr "Дни, открытые в Google, станут закрытыми. Проверьте и подтвердите."
 
 msgid "Bitte die Änderungen prüfen und die Übernahme bestätigen."
@@ -25902,8 +25910,12 @@ msgstr "Проверьте изменения и подтвердите пере
 msgid "Ja, diese Zeiten übernehmen"
 msgstr "Да, перенести эти часы"
 
-msgid "Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
-msgstr "Управление филиалом и часами работы вашего профиля Google. Ваши акции уходят в Google автоматически, когда канал включён."
+msgid ""
+"Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre"
+" Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist."
+msgstr ""
+"Управление филиалом и часами работы вашего профиля Google. Ваши акции уходят"
+" в Google автоматически, когда канал включён."
 
 #: apps/catalog/forms.py
 msgid "Nicht an Google senden"
@@ -25914,8 +25926,12 @@ msgid "Google Merchant Center"
 msgstr "Google Merchant Center"
 
 #: apps/publishing/merchant_feed
-msgid "Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab."
-msgstr "Ваши товары с ценой и наличием передаются в Google через фид. Здесь вы включаете или выключаете фид — Google регулярно его загружает."
+msgid ""
+"Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. "
+"Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab."
+msgstr ""
+"Ваши товары с ценой и наличием передаются в Google через фид. Здесь вы "
+"включаете или выключаете фид — Google регулярно его загружает."
 
 #: apps/publishing/merchant_feed
 msgid "Produktfeed"
@@ -25938,28 +25954,44 @@ msgid "Feed einschalten"
 msgstr "Включить фид"
 
 #: apps/publishing/merchant_feed
-msgid "Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal eingeschaltet“ – dieser gilt nur für Aktionen."
-msgstr "Фид не зависит от подключения к Google и от переключателя «Канал включён» — он действует только для акций."
+msgid ""
+"Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal "
+"eingeschaltet“ – dieser gilt nur für Aktionen."
+msgstr ""
+"Фид не зависит от подключения к Google и от переключателя «Канал включён» — "
+"он действует только для акций."
 
 #: apps/publishing/merchant_feed
-msgid "Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und in Merchant Center eintragen."
-msgstr "Адрес фида больше не читается. Создайте новый адрес и укажите его в Merchant Center."
+msgid ""
+"Die Feed-Adresse ist nicht mehr lesbar. Bitte eine neue Adresse erzeugen und"
+" in Merchant Center eintragen."
+msgstr ""
+"Адрес фида больше не читается. Создайте новый адрес и укажите его в Merchant"
+" Center."
 
 #: apps/publishing/merchant_feed
 msgid "Feed-Adresse"
 msgstr "Адрес фида"
 
 #: apps/publishing/merchant_feed
-msgid "Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie sie wie ein Passwort."
-msgstr "Укажите этот адрес в Merchant Center как источник товаров. Храните его как пароль."
+msgid ""
+"Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie "
+"sie wie ein Passwort."
+msgstr ""
+"Укажите этот адрес в Merchant Center как источник товаров. Храните его как "
+"пароль."
 
 #: apps/publishing/merchant_feed
 msgid "Kopiert."
 msgstr "Скопировано."
 
 #: apps/publishing/merchant_feed
-msgid "Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in Merchant Center ersetzt werden."
-msgstr "Понимаю: прежний адрес перестанет работать, и его нужно заменить в Merchant Center."
+msgid ""
+"Ich weiß: Die bisherige Adresse funktioniert danach nicht mehr und muss in "
+"Merchant Center ersetzt werden."
+msgstr ""
+"Понимаю: прежний адрес перестанет работать, и его нужно заменить в Merchant "
+"Center."
 
 #: apps/publishing/merchant_feed
 msgid "Neue Adresse erzeugen"
@@ -25970,20 +26002,38 @@ msgid "So verbinden Sie Merchant Center"
 msgstr "Как подключить Merchant Center"
 
 #: apps/publishing/merchant_feed
-msgid "Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website bestätigen."
-msgstr "Создайте аккаунт в Google Merchant Center (бесплатно) и подтвердите свой сайт."
+msgid ""
+"Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website "
+"bestätigen."
+msgstr ""
+"Создайте аккаунт в Google Merchant Center (бесплатно) и подтвердите свой "
+"сайт."
 
 #: apps/publishing/merchant_feed
-msgid "Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und die Feed-Adresse oben eintragen."
-msgstr "В разделе «Товары» добавьте источник данных «Файл» с загрузкой по расписанию и укажите адрес фида выше."
+msgid ""
+"Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und "
+"die Feed-Adresse oben eintragen."
+msgstr ""
+"В разделе «Товары» добавьте источник данных «Файл» с загрузкой по расписанию"
+" и укажите адрес фида выше."
 
 #: apps/publishing/merchant_feed
-msgid "In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann erscheinen die Produkte auch in Ihrem Profil und auf Google Maps."
-msgstr "Свяжите в Merchant Center ваш профиль компании в Google — тогда товары появятся и в профиле, и на Google Картах."
+msgid ""
+"In Merchant Center Ihr Google-Unternehmensprofil verknüpfen – dann "
+"erscheinen die Produkte auch in Ihrem Profil und auf Google Maps."
+msgstr ""
+"Свяжите в Merchant Center ваш профиль компании в Google — тогда товары "
+"появятся и в профиле, и на Google Картах."
 
 #: apps/publishing/merchant_feed
-msgid "Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand – er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit Google die richtige Verfügbarkeit zeigt."
-msgstr "Для пометки «В наличии в магазине» нужен ещё локальный остаток — он появится отдельным фидом. Поддерживайте остатки актуальными, чтобы Google показывал верное наличие."
+msgid ""
+"Die Anzeige „Im Geschäft verfügbar“ braucht zusätzlich den lokalen Bestand –"
+" er folgt als eigener Feed. Halten Sie Ihre Lagerbestände aktuell, damit "
+"Google die richtige Verfügbarkeit zeigt."
+msgstr ""
+"Для пометки «В наличии в магазине» нужен ещё локальный остаток — он появится"
+" отдельным фидом. Поддерживайте остатки актуальными, чтобы Google показывал "
+"верное наличие."
 
 #: apps/publishing/merchant_feed
 msgid "Aktive Produkte mit Foto und Preis, die nicht ausgeblendet sind."
@@ -26002,8 +26052,11 @@ msgid "Produkte bei Google"
 msgstr "Товары в Google"
 
 #: apps/publishing/merchant_feed
-msgid "Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google senden."
-msgstr "Отправлять товары с ценой и наличием в Google через Google Merchant Center."
+msgid ""
+"Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google "
+"senden."
+msgstr ""
+"Отправлять товары с ценой и наличием в Google через Google Merchant Center."
 
 #: apps/publishing/merchant_feed
 msgid "Der Produktfeed ist eingeschaltet."
@@ -26038,7 +26091,8 @@ msgid "Kein Preis"
 msgstr "Нет цены"
 
 #: apps/publishing/merchant_feed
-msgid "Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"
+msgid ""
+"Keine EAN, Artikelnummer oder Marke – Google zeigt das Produkt seltener"
 msgstr "Нет EAN, артикула или марки — Google показывает товар реже"
 
 #: apps/publishing/merchant_feed
@@ -26066,16 +26120,24 @@ msgid "Denselben Code hier eintragen."
 msgstr "Укажите здесь тот же код."
 
 #: apps/publishing/merchant_feed
-msgid "Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig sind."
-msgstr "Второй фид сообщает Google, какие товары есть в наличии в вашем магазине."
+msgid ""
+"Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig "
+"sind."
+msgstr ""
+"Второй фид сообщает Google, какие товары есть в наличии в вашем магазине."
 
 #: apps/publishing/merchant_feed
 msgid "Google ordnet die Shopcodes bis zu 24 Stunden nach der Verknüpfung zu."
-msgstr "Google сопоставляет коды магазинов в течение 24 часов после связывания."
+msgstr ""
+"Google сопоставляет коды магазинов в течение 24 часов после связывания."
 
 #: apps/publishing/merchant_feed
-msgid "Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und müssen in Merchant Center ersetzt werden."
-msgstr "Понимаю: оба прежних адреса перестанут работать, и их нужно заменить в Merchant Center."
+msgid ""
+"Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und "
+"müssen in Merchant Center ersetzt werden."
+msgstr ""
+"Понимаю: оба прежних адреса перестанут работать, и их нужно заменить в "
+"Merchant Center."
 
 #: apps/publishing/merchant_feed
 msgid "Im Google-Profil ist kein Shopcode hinterlegt."
@@ -26083,11 +26145,16 @@ msgstr "В профиле Google не задан код магазина."
 
 #: apps/publishing/merchant_feed
 msgid "Im Google-Unternehmensprofil unter „Info“ einen Shopcode festlegen."
-msgstr "В профиле компании в Google в разделе «Сведения» задайте код магазина."
+msgstr ""
+"В профиле компании в Google в разделе «Сведения» задайте код магазина."
 
 #: apps/publishing/merchant_feed
-msgid "In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit geplantem Abruf anlegen und diese Adresse eintragen."
-msgstr "В Merchant Center добавьте источник данных локального остатка как файл с загрузкой по расписанию и укажите этот адрес."
+msgid ""
+"In Merchant Center eine Datenquelle für den lokalen Bestand als Datei mit "
+"geplantem Abruf anlegen und diese Adresse eintragen."
+msgstr ""
+"В Merchant Center добавьте источник данных локального остатка как файл с "
+"загрузкой по расписанию и укажите этот адрес."
 
 #: apps/publishing/merchant_feed
 msgid "Lokaler Bestand (Im Geschäft verfügbar)"
@@ -26102,8 +26169,12 @@ msgid "Ohne Shopcode bleibt der lokale Feed leer."
 msgstr "Без кода магазина локальный фид остаётся пустым."
 
 #: apps/publishing/merchant_feed
-msgid "Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den Bestand, damit Google die richtige Verfügbarkeit zeigt."
-msgstr "Товары без учёта остатка фид сообщает как имеющиеся в наличии. Ведите остатки, чтобы Google показывал верное наличие."
+msgid ""
+"Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den "
+"Bestand, damit Google die richtige Verfügbarkeit zeigt."
+msgstr ""
+"Товары без учёта остатка фид сообщает как имеющиеся в наличии. Ведите "
+"остатки, чтобы Google показывал верное наличие."
 
 #: apps/publishing/merchant_feed
 msgid "Shopcode (Geschäftscode in Merchant Center)"
@@ -26122,8 +26193,10 @@ msgid "Shopcode gespeichert."
 msgstr "Код магазина сохранён."
 
 #: apps/publishing/merchant_feed
-msgid "Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
-msgstr "Недопустимый код магазина: не более 64 символов, без пробелов и умлаутов."
+msgid ""
+"Ungültiger Shopcode: höchstens 64 Zeichen, ohne Leerzeichen und Umlaute."
+msgstr ""
+"Недопустимый код магазина: не более 64 символов, без пробелов и умлаутов."
 
 #: templates/publishing/merchant_feed.html
 msgid "%(counter)s Position mit Bestand"
@@ -26150,8 +26223,12 @@ msgstr[2] "%(counter)s распродано"
 msgstr[3] "%(counter)s распроданы"
 
 #: apps/publishing/views.py
-msgid "Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine Leerzeichen, höchstens 64 Zeichen)."
-msgstr "Код магазина в профиле Google содержит недопустимые символы (только ASCII, без пробелов, не более 64 символов)."
+msgid ""
+"Der Shopcode im Google-Profil enthält unzulässige Zeichen (nur ASCII, keine "
+"Leerzeichen, höchstens 64 Zeichen)."
+msgstr ""
+"Код магазина в профиле Google содержит недопустимые символы (только ASCII, "
+"без пробелов, не более 64 символов)."
 
 #: apps/catalog/google.py
 msgid "Überraschungsaktion läuft – Preis bleibt geheim"
@@ -26162,8 +26239,13 @@ msgid "Aktionslimit erreicht"
 msgstr "Лимит акции исчерпан"
 
 #: apps/catalog/google.py
-msgid "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab."
-msgstr "Google подхватит цену акции при следующей загрузке фида. Задавайте акциям дату окончания — или после изменения загрузите фид в Merchant Center заново."
+msgid ""
+"Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie "
+"Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in "
+"Merchant Center neu ab."
+msgstr ""
+"Google подхватит цену акции при следующей загрузке фида. Задавайте акциям "
+"дату окончания — или после изменения загрузите фид в Merchant Center заново."
 
 #: templates/publishing/merchant_feed.html
 msgid "Davon %(counter)s Position mit Aktionspreis"
@@ -26184,3 +26266,6 @@ msgstr "Открыть"
 #: apps/orders/public_views.py
 msgid "A promotional price has just sold out. Please check your cart."
 msgstr "Цена по акции только что закончилась. Пожалуйста, проверьте корзину."
+
+msgid "Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."
+msgstr "Цена-сюрприз недоступна для услуг и номеров."

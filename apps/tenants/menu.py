@@ -593,7 +593,7 @@ def target_sets(tenant) -> dict:
         from apps.promotions.models import Promotion
 
         groups = (
-            Promotion.objects.filter(status="active")
+            Promotion.objects.filter(Promotion.on_sale_q())
             .exclude(group="")
             .values_list("group", flat=True)
             .distinct()

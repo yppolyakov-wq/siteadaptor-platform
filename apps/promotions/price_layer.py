@@ -218,7 +218,9 @@ def service_promos(service):
         return []
     return [
         p
-        for p in Promotion.objects.filter(Promotion.on_sale_q(), service=service)
+        for p in Promotion.objects.filter(Promotion.on_sale_q(), service=service).exclude(
+            discount_style="mystery"
+        )
         if p.new_price is not None and not p.price_condition
     ]
 
@@ -235,6 +237,8 @@ def promo_for_service(service, start, resource_id=None, promos=None):
         promos = Promotion.objects.filter(Promotion.on_sale_q(), service=service)
     best = None
     for promo in promos:
+        if promo.discount_style == "mystery":
+            continue  # SF-9: сетка слотов/форма раскрыли бы секрет
         if promo.price_condition:
             continue  # В2: условие не применяется к одиночной записи
         if not rules_match(promo.target_rules, start, resource_id):
@@ -300,7 +304,10 @@ def stay_promo(unit, arrival=None):
     if unit is None:
         return None
     best = None
-    for promo in Promotion.objects.filter(Promotion.on_sale_q(), stay_unit=unit):
+    # SF-9: mystery — не часть цены номера (quote/«ab …»/бейдж раскрыли бы секрет).
+    for promo in Promotion.objects.filter(Promotion.on_sale_q(), stay_unit=unit).exclude(
+        discount_style="mystery"
+    ):
         if promo.price_condition:
             continue  # В2: условие не применяется ко всей брони
         percent = promo.discount_percent or 0
