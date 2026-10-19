@@ -152,7 +152,14 @@ def default_kind(scope_kind: str, q: str, filters) -> str:
     обязаны находить товары, иначе выдача пустая (T-8.26 п.4/п.5c, T-8.10d)."""
     if scope_kind:
         return scope_kind
-    if q or filters.kats or filters.tags or filters.size or getattr(filters, "brand", ""):
+    if (
+        q
+        or filters.kats
+        or filters.tags
+        or filters.size
+        or getattr(filters, "brand", "")
+        or getattr(filters, "business", "")
+    ):
         return "alle"
     return ""
 

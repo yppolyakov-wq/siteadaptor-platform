@@ -246,6 +246,7 @@ class SearchFilters:
     radius_km: int | None = None  # ?umkreis= (T-8.7 Р-5) — действует только при точке
     size: str = ""  # ?groesse=M (T-8.26 п.5c) — только товары с таким размером варианта
     brand: str = ""  # ?marke=Bosch (T-8.10d) — марка товара, без учёта регистра
+    business: str = ""  # ?unternehmen=<slug> (T-8.10d) — только предложения этой компании
 
     @property
     def active(self) -> bool:
@@ -261,6 +262,7 @@ class SearchFilters:
             or self.radius_km is not None
             or self.size
             or self.brand
+            or self.business
         )
 
 
@@ -275,9 +277,12 @@ FILTER_PARAMS = (
     "umkreis",
     "groesse",
     "marke",
+    "unternehmen",
 )
 
 BRAND_MAX = 60  # длина значения фильтра ?marke= (в листинге марка до 120)
+# Слаг компании: без похода в БД — неизвестный слаг просто даёт пустую выдачу.
+_RE_BUSINESS = re.compile(r"[a-z0-9-]{1,100}", re.ASCII)
 _RE_CONTROL = re.compile(r"[\x00-\x1f\x7f-\x9f\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]")
 
 
@@ -367,6 +372,9 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
         size = ""
     raw_brand = get.get("marke") or ""
     brand = clean_brand(raw_brand) if len(raw_brand) <= BRAND_MAX * 2 else ""
+    business = (get.get("unternehmen") or "").strip().lower()
+    if not _RE_BUSINESS.fullmatch(business):
+        business = ""
     return SearchFilters(
         kats=kats,
         tags=tags,
@@ -380,6 +388,7 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
         radius_km=radius_km,
         size=size,
         brand=brand,
+        business=business,
     )
 
 
@@ -444,6 +453,8 @@ def apply_filters(qs, f: SearchFilters, *, now=None, point=None):
         qs = qs.filter(listing_kind=L.KIND_PRODUCT, variant_terms__contains=[f.size])
     if f.brand:
         qs = qs.filter(brand__iexact=f.brand)
+    if f.business:
+        qs = qs.filter(tenant_slug=f.business)
     if f.open_now:
         from .views import _open_now_schemas
 
@@ -493,6 +504,7 @@ def carry(q: str, f: SearchFilters) -> list[tuple[str, str]]:
         ("umkreis", str(f.radius_km) if f.radius_km else ""),
         ("groesse", f.size),
         ("marke", f.brand),
+        ("unternehmen", f.business),
     ):
         if value:
             out.append((key, value))
