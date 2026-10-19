@@ -215,6 +215,7 @@ def _clean_one(item, *, phrase: str, city: str, tokens: list[str]):
     from apps.core.pii import scrub
 
     from . import follow_query, search
+    from .search_index import fold
 
     if not isinstance(item, dict):
         return None
@@ -257,7 +258,8 @@ def _clean_one(item, *, phrase: str, city: str, tokens: list[str]):
         pairs.append(("groesse", size))
 
     brand = follow_query._free_text(search.clean_brand(item.get("marke") or ""), scrub)
-    if brand and _brand_exists(brand, city):
+    brand_tokens = [fold(t) for t in search.tokenize(brand)] if brand else []
+    if brand and all(t in tokens for t in brand_tokens) and _brand_exists(brand, city):
         pairs.append(("marke", brand))
 
     if not pairs:
@@ -273,8 +275,6 @@ def _clean_one(item, *, phrase: str, city: str, tokens: list[str]):
     pairs = [p for p in pairs if p[0] == "kind" or p in allowed]
     if not pairs:
         return None
-
-    from .search_index import fold
 
     raw_drop = item.get("drop_words") if isinstance(item.get("drop_words"), list) else []
     drop = []
@@ -388,12 +388,26 @@ def slot_context(
     results,
     portal_host: str = "",
     path_district: str = "",
+    business_type: str = "",
 ) -> dict | None:
     """Слот подсказки (URL эндпоинта с подписанным токеном) или None."""
     from django.core import signing
     from django.urls import reverse
 
+    from . import follow_query
+
     if not enabled():
+        return None
+    # Город — только из реестра: свободный `?city=` попал бы в промпт вне рамки маркера
+    # и делил бы ключ кэша с поиском без города (ревью security D-2).
+    raw_city = (city or "").strip()
+    city = districts.city_label(raw_city)
+    if raw_city and not city:
+        return None
+    # Фильтры только /entdecken/ проверка наличия не знает — подсказку не предлагаем.
+    if surface == "entdecken" and any(
+        (request.GET.get(k) or "").strip() for k in follow_query.ENTDECKEN_ONLY
+    ):
         return None
     first_page = not request.GET.get("cursor")
     if not should_suggest(q_eff, lang=lang, results=results, first_page=first_page):
@@ -407,6 +421,7 @@ def slot_context(
         "h": portal_host,
         "p": request.path,
         "pd": path_district,
+        "bt": business_type,
         "q": q,
         "r": q_eff,
         "c": city or "",
@@ -441,6 +456,7 @@ def _suggestion_view(item, payload, *, portal):
 
     from . import follow_query, search
     from . import portal_home_blocks as home
+    from .models import AggregatorListing
     from .views import listings_for
 
     page = QueryDict(mutable=True)
@@ -484,15 +500,22 @@ def _suggestion_view(item, payload, *, portal):
         merged.setlist("stadtteil", [payload["pd"]])
     filters = search.parse_filters(SimpleNamespace(GET=merged), city=city)
     q2, f2, _chips, _hints = search.resolve_intent(q_new, filters, city=city)
-    pool = listings_for(
-        city=city or None,
-        business_type=(getattr(portal, "business_type", "") or None) if portal else None,
-        include_demo=bool(getattr(portal, "show_demo", False)),
-    )
-    kind = merged.get("kind") or ""
-    kinds = home.kinds_for(home.default_kind(kind, q_new, filters)) if portal else None
-    if not portal and kind:
-        kinds = home.kinds_for(kind)
+    if portal is not None:
+        business_type = payload.get("bt") or getattr(portal, "business_type", "") or None
+        pool = listings_for(
+            city=city or None,
+            business_type=business_type,
+            include_demo=bool(getattr(portal, "show_demo", False)),
+        )
+        kind = merged.get("kind") or ""
+        # тот же вид, что у страницы портала: без поиска — лента предложений
+        kinds = home.kinds_for(home.default_kind(kind, q_new, filters)) or (
+            AggregatorListing.OFFER_KINDS
+        )
+    else:
+        pool = listings_for(city=city or None)
+        kind = merged.get("kind") or ""
+        kinds = home.kinds_for(kind) if kind else None
     if kinds:
         pool = pool.filter(listing_kind__in=kinds)
     surface = "portal" if portal else "entdecken"
@@ -536,7 +559,11 @@ def fragment(request, *, portal):
             return _empty()
         if portal is None and payload.get("s") != "entdecken":
             return _empty()
-        key = cache_key(payload.get("r", ""), payload.get("c", ""), payload.get("l", ""))
+        city = districts.city_label(str(payload.get("c") or "")[:100])
+        if (payload.get("c") or "") and not city:
+            return _empty()
+        payload["c"] = city
+        key = cache_key(payload.get("r", ""), city, payload.get("l", ""))
         current = state(key)
         if current is None:
             if ratelimit.hit(
@@ -551,7 +578,7 @@ def fragment(request, *, portal):
             try:
                 tasks.ai_search_suggest.delay(
                     phrase=payload.get("r", ""),
-                    city=payload.get("c", ""),
+                    city=city,
                     lang=payload.get("l", ""),
                     key=key,
                     dedupe_key=key,

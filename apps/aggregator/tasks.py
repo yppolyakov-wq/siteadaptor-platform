@@ -318,7 +318,9 @@ def sync_listing(tenant_schema, promotion_id) -> str:
     return "upserted"
 
 
-@idempotent_task()
+# Замок не дольше «pending» (60 с): после ошибки следующий опрос обязан снова поставить
+# задачу, а не упереться в часовой замок (ревью D-2).
+@idempotent_task(lock_timeout=60)
 def ai_search_suggest(*, phrase, city, lang, key) -> None:
     """T-8.10d D-2: ИИ-подсказка фильтров для фразы поиска (результат — только в кэш)."""
     from . import ai_search
