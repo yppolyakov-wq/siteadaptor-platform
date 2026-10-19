@@ -26600,3 +26600,10 @@ msgstr "Предложение по фото — пожалуйста, пров�
 
 msgid "Welche Aktion wiederholen?"
 msgstr "Какую акцию повторить?"
+
+#, python-format
+msgid "Bitte prüfen: „%(word)s“ ist eine Werbeaussage."
+msgstr "Проверьте: «%(word)s» — рекламное утверждение."
+
+msgid "Fotos aus der Vorlage"
+msgstr "Фото из шаблона"

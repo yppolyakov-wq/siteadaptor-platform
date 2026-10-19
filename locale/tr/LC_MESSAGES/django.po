@@ -26465,3 +26465,10 @@ msgstr "Fotoğraftan öneri — lütfen kontrol edin."
 
 msgid "Welche Aktion wiederholen?"
 msgstr "Hangi kampanya tekrarlansın?"
+
+#, python-format
+msgid "Bitte prüfen: „%(word)s“ ist eine Werbeaussage."
+msgstr "Lütfen kontrol edin: “%(word)s” bir reklam iddiasıdır."
+
+msgid "Fotos aus der Vorlage"
+msgstr "Şablondaki fotoğraflar"

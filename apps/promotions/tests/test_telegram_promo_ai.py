@@ -113,3 +113,11 @@ def test_ai_marker_reaches_promotion_metadata(tg, ai):  # noqa: F811
     finally:
         tp.photos_from_telegram = monkeypatch_photos
     assert Promotion.objects.get().metadata.get("ai_draft") is True
+
+
+def test_ai_claims_show_up_as_warnings(tg, ai, monkeypatch):  # noqa: F811
+    monkeypatch.setattr(
+        ai_draft, "draft_from_photo", lambda *a, **k: ({**AI_RESULT, "warnings": ["Bio"]}, "")
+    )
+    tp._handle(tg["bot"], tg["tenant"], "public", str(OWNER), _photo_update(""))
+    assert "„Bio“" in tg["sent"][-1]["text"]

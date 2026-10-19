@@ -26326,3 +26326,10 @@ msgstr "Suggestion from the photo — please check."
 
 msgid "Welche Aktion wiederholen?"
 msgstr "Which promotion should be repeated?"
+
+#, python-format
+msgid "Bitte prüfen: „%(word)s“ ist eine Werbeaussage."
+msgstr "Please check: “%(word)s” is an advertising claim."
+
+msgid "Fotos aus der Vorlage"
+msgstr "Photos from the template"

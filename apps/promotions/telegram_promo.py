@@ -31,7 +31,9 @@ ALBUM_TTL = 10 * 60
 RATE_LIMIT = 30  # черновиков на чат в час
 TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{16}$")
 CALLBACK_RE = re.compile(r"^tp:(ok|no):([A-Za-z0-9_-]{16})$")
-REPEAT_CALLBACK_RE = re.compile(r"^tp:rp:([0-9a-f-]{36})$")
+REPEAT_CALLBACK_RE = re.compile(
+    r"^tp:rp:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$"
+)
 REPEAT_COMMAND_RE = re.compile(r"(?i)^/(?:wiederholen|nochmal|repeat)(?:@\w+)?\s*$")
 REPEAT_LIMIT = 3
 WARNING_LIMIT = 3
@@ -199,6 +201,8 @@ def _warning(code: str) -> str:
         "old_not_higher": _("Der „statt“-Preis ist nicht höher — weggelassen."),
         "date_rolled": _("Das Datum liegt im nächsten Jahr."),
     }
+    if code.startswith("claim:"):
+        return _("Bitte prüfen: „%(word)s“ ist eine Werbeaussage.") % {"word": code[6:40]}
     return texts.get(code, "")
 
 
@@ -236,6 +240,12 @@ def render_preview(draft: dict, tenant, form, token: str) -> tuple[str, dict]:
         lines.append(" · ".join(facts))
     if draft.get("photo_ids"):
         lines.append(f"📷 {len(draft['photo_ids'])}")
+    elif draft.get("photo_from"):
+        lines.append("📷 " + _("Fotos aus der Vorlage"))
+    product = form.cleaned_data.get("product") if form.is_valid() else None
+    if product is not None:
+        # Свой товар задаёт «обычную» цену витрины — владелец видит его до ✅.
+        lines.append("📦 " + str(product))
     if draft.get("ai_draft"):
         lines.append("✨ " + _("Vorschlag aus dem Foto — bitte prüfen."))
     notes = [_warning(c) for c in draft.get("warnings") or () if _warning(c)]
@@ -514,6 +524,10 @@ def ai_fill(bot, tenant, draft: dict, photo_id: str, *, hint: str = "") -> bool:
         draft["product"], used = str(product["pk"]), True
     if used:
         draft["ai_draft"] = "1"
+        # Подсказки «claims» ИИ-текста (как в веб-ассистенте) — в превью.
+        known = list(draft.get("warnings") or [])
+        claims = [f"claim:{w}" for w in result.get("warnings") or []]
+        draft["warnings"] = known + [c for c in claims if c not in known]
     return used
 
 
@@ -525,14 +539,23 @@ def ai_fill(bot, tenant, draft: dict, photo_id: str, *, hint: str = "") -> bool:
 
 def repeat_menu(bot, chat) -> str:
     """`/wiederholen`: три последние прошедшие акции кнопками «🔁 <название>»."""
+    from django.db.models import F
+
     from .models import Promotion
     from .views import REPEATABLE_STATUSES
 
-    promos = list(
-        Promotion.objects.filter(status__in=REPEATABLE_STATUSES).order_by(
-            "-ends_at", "-created_at"
-        )[:REPEAT_LIMIT]
+    promos, seen = [], set()
+    candidates = Promotion.objects.filter(status__in=REPEATABLE_STATUSES).order_by(
+        F("ends_at").desc(nulls_last=True), "-created_at"
     )
+    for promo in candidates[: REPEAT_LIMIT * 5]:
+        key = (promo.title_text or "").casefold()
+        if key in seen:
+            continue  # каждый повтор — новая прошедшая акция; одинаковые кнопки не нужны
+        seen.add(key)
+        promos.append(promo)
+        if len(promos) == REPEAT_LIMIT:
+            break
     if not promos:
         _send(bot, chat, _("Noch keine vergangene Aktion zum Wiederholen."))
         return "repeat_empty"
@@ -545,13 +568,13 @@ def repeat_menu(bot, chat) -> str:
 
 
 def draft_from_promotion(promo, tenant) -> dict:
-    """Черновик-повтор: то же предложение (`quick.initial_from`), срок — по умолчанию."""
+    """Черновик-повтор: то же предложение (`quick.initial_from`), срок — неделя."""
     from apps.core import city_categories as cc
 
     from . import quick
 
+    # Срок — как у веб «↻ Wiederholen» (`initial_from` ставит неделю).
     initial = {
-        "term": quick.default_term(tenant),
         "customer_response": quick.default_response(tenant),
         "city_category": cc.suggest_for_business_type(getattr(tenant, "business_type", "")),
         **quick.initial_from(promo),
@@ -569,11 +592,10 @@ def draft_from_promotion(promo, tenant) -> dict:
 
 
 def _repeat(bot, tenant, schema, chat, pk) -> str:
-    from .models import Promotion
     from .views import REPEATABLE_STATUSES
 
-    promo = Promotion.objects.filter(pk=pk, status__in=REPEATABLE_STATUSES).first()
-    if promo is None:
+    promo = source_promo(pk)
+    if promo is None or promo.status not in REPEATABLE_STATUSES:
         _send(bot, chat, _("Diese Aktion gibt es nicht mehr."))
         return "repeat_missing"
     draft = draft_from_promotion(promo, tenant)
@@ -610,6 +632,14 @@ def handle_callback(bot, callback: dict, tenant) -> str:
             _send(bot, chat, reason)
             return "gated"
         if rp:
+            from apps.core import ratelimit
+
+            # Повтор считается тем же лимитом черновиков, что сообщения (30/ч на чат).
+            if ratelimit.hit("tg-promo", f"{schema}:{chat}", limit=RATE_LIMIT, window=3600):
+                _send(bot, chat, _("Zu viele Entwürfe — bitte später erneut versuchen."))
+                return "limited"
+            # Меню убрать: двойной тап не плодит два черновика-повтора.
+            services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
             return _repeat(bot, tenant, schema, chat, rp.group(1))
         action, token = m.groups()
         if action == "no":
@@ -757,7 +787,10 @@ def _confirm_claimed(bot, tenant, schema, chat, token, message) -> str:
         except Exception:  # noqa: BLE001 — акция без фото лучше, чем никакой
             failed, images = True, []
     elif draft.get("photo_from"):
-        images = quick.copy_images(source_promo(draft["photo_from"]))
+        source = source_promo(draft["photo_from"])
+        images = quick.copy_images(source)
+        wanted = [i for i in (getattr(source, "images", None) or []) if isinstance(i, dict)]
+        failed = len(images) < len([i for i in wanted if i.get("path")])
     try:
         with transaction.atomic():
             promo = form.build()

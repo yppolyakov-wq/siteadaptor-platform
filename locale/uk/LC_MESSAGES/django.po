@@ -26580,3 +26580,10 @@ msgstr "Пропозиція за фото — будь ласка, переві
 
 msgid "Welche Aktion wiederholen?"
 msgstr "Яку акцію повторити?"
+
+#, python-format
+msgid "Bitte prüfen: „%(word)s“ ist eine Werbeaussage."
+msgstr "Перевірте: «%(word)s» — рекламне твердження."
+
+msgid "Fotos aus der Vorlage"
+msgstr "Фото з шаблону"

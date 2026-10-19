@@ -63,3 +63,36 @@ def test_repeat_callback_rejects_active_or_unknown(tg):  # noqa: F811
 def test_repeat_callback_from_stranger_denied(tg):  # noqa: F811
     old = _promo("Alt")
     assert _cb(tg, f"tp:rp:{old.pk}", sender=1) == "denied"
+
+
+def test_malformed_uuid_is_skipped_not_raised(tg):  # noqa: F811
+    assert _cb(tg, "tp:rp:" + "-" * 36) == "skip"
+
+
+def test_repeat_callbacks_are_rate_limited(tg, monkeypatch):  # noqa: F811
+    old = _promo("Alt")
+    monkeypatch.setattr(tp, "RATE_LIMIT", 2)
+    assert _cb(tg, f"tp:rp:{old.pk}") == "preview"
+    assert _cb(tg, f"tp:rp:{old.pk}") == "preview"
+    assert _cb(tg, f"tp:rp:{old.pk}") == "limited"
+
+
+def test_menu_puts_open_ended_last_and_dedupes_titles(tg):  # noqa: F811
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    now = timezone.now()
+    _promo("Ohne Ende", status="paused")
+    _promo("Kuchen", ends_at=now - timedelta(days=1))
+    _promo("Kuchen", ends_at=now - timedelta(days=2))
+    _promo("Brot", ends_at=now - timedelta(days=3))
+    tp._handle(tg["bot"], tg["tenant"], "public", str(OWNER), tp.slim_update(_msg("/wiederholen")))
+    texts = [r[0]["text"] for r in tg["sent"][-1]["markup"]["inline_keyboard"]]
+    assert texts == ["🔁 Kuchen", "🔁 Brot", "🔁 Ohne Ende"]
+
+
+def test_repeat_preview_mentions_template_photos(tg):  # noqa: F811
+    old = _promo("Alt", images=[{"path": "x.jpg", "is_primary": True}])
+    _cb(tg, f"tp:rp:{old.pk}")
+    assert "📷" in tg["sent"][-1]["text"]
