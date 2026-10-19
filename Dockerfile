@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # Production image: Django (gunicorn) + Celery worker/beat используют один образ.
 FROM python:3.12-slim AS base
 
