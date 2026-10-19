@@ -8,12 +8,16 @@
 check_if_exists.
 """
 
+import logging
+
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django_tenants.utils import tenant_context
 
 from .models import Tenant
+
+logger = logging.getLogger(__name__)
 
 
 def _send_ready_email(tenant, email):
@@ -100,6 +104,11 @@ def provision_quick_logic(tenant_id, email, promo) -> int | None:
         if promo_obj is None:
             form = quick.QuickPromotionForm(data=promo, tenant=tenant)
             if not form.is_valid():
+                # T-8.5e: раньше акция пропадала молча — оставить след (только имена полей:
+                # текст ошибок может нести ввод владельца).
+                logger.warning(
+                    "quick provisioning: promo rejected (%s)", ",".join(sorted(form.errors))
+                )
                 return None
             promo_obj = form.build()
             images = list(promo.get("images") or [])

@@ -11,6 +11,7 @@ import re
 
 from django import forms
 from django.core import signing
+from django.core.validators import MaxLengthValidator
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -28,6 +29,8 @@ FORM_STAMP_SALT = "t85-form"
 
 # Типы для карточек «Wer sind Sie?» — локальные бизнесы лёгкой ступени (остальные
 # доступны обычной регистрацией).
+DESCRIPTION_MAX = 1000
+
 QUICK_TYPES = (
     "bakery",
     "butcher",
@@ -158,6 +161,17 @@ class QuickStartForm(quick.QuickPromotionForm):
         self.fields["customer_response"].initial = promo_response.RESERVE
         type_labels = dict(Tenant.BUSINESS_TYPES)
         self.fields["business_type"].choices = [(v, type_labels[v]) for v in QUICK_TYPES]
+        # T-8.5e: анонимный ввод уходит в брокер — описание ограничено (кабинет не трогаем).
+        self.fields["description"].max_length = DESCRIPTION_MAX
+        self.fields["description"].validators.append(MaxLengthValidator(DESCRIPTION_MAX))
+        # «Скоропортящееся» (§ 11 Abs. 4 PAngV): родитель выкидывает поле без тенанта, а тип
+        # бизнеса здесь выбирается в той же форме — поле есть, решает clean() по типу.
+        from apps.promotions import reference_price
+
+        if reference_price.exemption_enabled():
+            self.fields["perishable"] = forms.BooleanField(
+                label=_("Schnell verderblich / kurze Haltbarkeit"), required=False
+            )
 
     def clean_city(self):
         """Известный город — каноническим написанием, иначе как ввели (без лишних пробелов)."""
@@ -174,6 +188,15 @@ class QuickStartForm(quick.QuickPromotionForm):
         cleaned["district"] = districts.normalize(
             cleaned.get("city") or "", cleaned.get("district") or ""
         )
+        # Флажок действует только у еды — тип известен лишь здесь (шаг «Wer sind Sie?»).
+        from types import SimpleNamespace
+
+        from apps.promotions import reference_price
+
+        if not reference_price.food_allowed(
+            SimpleNamespace(business_type=cleaned.get("business_type") or "")
+        ):
+            cleaned["perishable"] = False
         return cleaned
 
     def clean_subdomain(self):
@@ -230,6 +253,12 @@ class QuickStartForm(quick.QuickPromotionForm):
             payload["percent"] = str(d["percent"])
         if d.get("until"):
             payload["until"] = d["until"].isoformat()
+        # T-8.5e: количество (лимит Zurücklegen/купонов) и «скоропортящееся» раньше
+        # терялись по дороге в фоновую задачу.
+        if d.get("quantity"):
+            payload["quantity"] = str(d["quantity"])
+        if d.get("perishable"):
+            payload["perishable"] = "on"
         return payload
 
 

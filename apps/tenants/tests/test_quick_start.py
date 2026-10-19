@@ -301,6 +301,8 @@ def test_provision_quick_builds_owner_promo_and_skips_wizard():
         "old_price": "12",
         "term": "today",
         "customer_response": "coupon",
+        "quantity": "20",
+        "description": "Frisch aus dem Ofen.",
         "images": [],
     }
     with mock.patch("apps.tenants.tasks.provision_quick.delay"):
@@ -328,6 +330,8 @@ def test_provision_quick_builds_owner_promo_and_skips_wizard():
             promos = list(Promotion.objects.all())
             assert len(promos) == 1 and promos[0].status == "active"
             assert promos[0].metadata.get("response") == "coupon"
+            assert promos[0].available_quantity == 20  # T-8.5e
+            assert promos[0].get_i18n("description") == "Frisch aus dem Ofen."
         confirm = [m for m in mail.outbox if "bestätigen" in m.subject]
         assert len(confirm) == 1 and "/start/bestaetigen/" in confirm[0].body
         assert not [m for m in mail.outbox if "bereit" in m.subject]
@@ -573,3 +577,78 @@ def test_ai_is_promised_only_after_signup_and_only_when_enabled(settings, enable
         ).content.decode()
     assert ("data-ai-after-signup" in html) is enabled
     generate.assert_not_called()
+
+
+# --- T-8.5e E1: поля ассистента доезжают до акции -----------------------------------------
+
+# Поля ассистента кабинета, которых в регистрации НЕТ осознанно (товар/категория/повтор/
+# Telegram/ИИ — у бизнеса без каталога и без истории им неоткуда взяться).
+CABINET_ONLY = {
+    "product",
+    "sku",
+    "category",
+    "new_category",
+    "photo_from",
+    "entwurf",
+    "until_time",
+    "until_time_for",
+    "ai_draft",
+    "vorschlag",
+    "group",
+    "photo",
+}
+
+
+def _valid_form(**kw):
+    form = quickstart.QuickStartForm(data=_post_data(**kw))
+    assert form.is_valid(), form.errors
+    return form
+
+
+@pytest.mark.django_db
+def test_payload_carries_quantity_and_description():
+    payload = _valid_form(quantity="20", description="Frisch aus dem Ofen.").promo_payload()
+    assert payload["quantity"] == "20"
+    assert payload["description"] == "Frisch aus dem Ofen."
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "btype, exemption, expected",
+    [("bakery", True, True), ("clothing", True, False), ("bakery", False, False)],
+)
+def test_perishable_only_for_food_type(settings, btype, exemption, expected):
+    settings.PANGV_PERISHABLE_EXEMPTION = exemption
+    if btype not in quickstart.QUICK_TYPES:
+        pytest.skip(f"{btype} not offered on the signup page")
+    payload = _valid_form(business_type=btype, perishable="on").promo_payload()
+    assert (payload.get("perishable") == "on") is expected
+
+
+@pytest.mark.django_db
+def test_description_is_capped_on_the_anonymous_page():
+    form = quickstart.QuickStartForm(data=_post_data(description="x" * 1001))
+    assert not form.is_valid() and "description" in form.errors
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("btype", quickstart.QUICK_TYPES)
+def test_payload_roundtrips_through_assistant_form(btype):
+    """Класс «поле теряется по дороге»: данные регистрации проходят форму ассистента в
+    фоновой задаче, и каждое поле ассистента либо попадает в данные, либо осознанно в
+    CABINET_ONLY. Новое поле без решения сделает тест красным."""
+    from types import SimpleNamespace
+
+    payload = _valid_form(
+        business_type=btype, quantity="5", description="Text", perishable="on"
+    ).promo_payload()
+    stub = SimpleNamespace(business_type=btype, opening_hours_structured=None, opening_hours="")
+    form = quick.QuickPromotionForm(data=payload, tenant=stub)
+    assert form.is_valid(), form.errors
+    signup_fields = set(quickstart.QuickStartForm().fields)
+    lost = set(form.fields) - set(payload) - CABINET_ONLY
+    # Поле ассистента обязано быть и в форме регистрации (иначе ему неоткуда взяться).
+    unknown = {f for f in lost if f not in signup_fields}
+    assert not unknown, f"assistant fields missing from signup: {unknown}"
+    optional_empty = {"old_price", "percent", "until", "city_tags", "city_category"}
+    assert not (lost - optional_empty), f"fields lost on the way: {lost - optional_empty}"
