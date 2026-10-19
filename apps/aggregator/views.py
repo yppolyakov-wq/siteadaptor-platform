@@ -635,7 +635,10 @@ def discover_index(request):
             diet=diet or None,
         )
         cursor = request.GET.get("cursor")
-        from . import query_intent
+        from . import ai_search, query_intent
+
+        # T-8.10d D-2: пилюли после клика по ИИ-подсказке (флаг проверяется первым).
+        ki_chips = ai_search.landing_chips(request, city=city) if ai_search.enabled() else []
 
         outcome = search.execute(
             pool_base,
@@ -654,6 +657,7 @@ def discover_index(request):
                 "anlass": anlass,
                 "diet": diet,
                 "auto": query_intent.auto_keys(intent_chips),
+                **({"ki": "1"} if ki_chips else {}),
             },
             point=point,
             log_query=q,  # журнал — сырой запрос жителя
@@ -724,6 +728,22 @@ def discover_index(request):
             + search.carry("", filters)
             + geo_carry
         )
+        ki_slot = None
+        if ai_search.enabled() and not cursor:
+            from django.conf import settings
+
+            lang = outcome.lang or "de"
+            if ai_search.should_suggest(q_eff, lang=lang, results=0, first_page=True):
+                results = search.count_capped(pool, settings.AI_SEARCH_MAX_RESULTS)
+                ki_slot = ai_search.slot_context(
+                    request,
+                    surface="entdecken",
+                    q=q,
+                    q_eff=q_eff,
+                    city=city,
+                    lang=lang,
+                    results=results,
+                )
         # T-8.10d: подписка на этот набор — только с городом (область сводки).
         from . import follow_query
 
@@ -776,6 +796,8 @@ def discover_index(request):
                 "intent_hints": _entdecken_hint_links(
                     request, intent_hints, pool, q, filters, keep, geo_carry
                 ),
+                "ki_slot": ki_slot,
+                "ki_chips": ki_chips,
                 "search_follow": search_follow[0] if search_follow else None,
                 "search_follow_qs": search_follow[1] if search_follow else "",
                 **demo_flags(cards),
@@ -959,7 +981,15 @@ PLATFORM_DISALLOW = (
     "/entdecken/melden/",
     "/entdecken/merkliste/",
     "/entdecken/folgen/",
+    "/entdecken/ki-vorschlag/",
 )
+
+
+def discover_ki_suggest(request):
+    """T-8.10d D-2: фрагмент ИИ-подсказки фильтров для /entdecken/."""
+    from . import ai_search
+
+    return ai_search.fragment(request, portal=None)
 
 
 @static_resource

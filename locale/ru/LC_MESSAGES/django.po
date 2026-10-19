@@ -26476,3 +26476,9 @@ msgstr "Ключевое слово"
 
 msgid "z. B. Tomaten"
 msgstr "например, помидоры"
+
+msgid "Aus KI-Vorschlag:"
+msgstr "Из подсказки ИИ:"
+
+msgid "KI-Vorschlag:"
+msgstr "Подсказка ИИ:"

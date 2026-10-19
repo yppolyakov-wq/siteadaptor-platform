@@ -392,6 +392,26 @@ def portal_home(request, facet=None, district=None):
             hits = search_engine.count_capped(pool, cap) + firm_total  # группа — тоже найдено
             hits_capped = hits > cap
             hits = min(hits, cap)
+    # T-8.10d D-2: ИИ-подсказка фильтров (за выключателем; проверяется первой — при
+    # выключенном флаге путь страницы прежний байт-в-байт).
+    ki_slot, ki_chips, ki_landing = None, [], False
+    from . import ai_search
+
+    if ai_search.enabled():
+        if searching:
+            ki_slot = ai_search.slot_context(
+                request,
+                surface="portal",
+                q=q,
+                q_eff=q_eff,
+                city=city or "",
+                lang=broad.lang,
+                results=hits,
+                portal_host=portal.host,
+                path_district=district or "",
+            )
+        ki_chips = ai_search.landing_chips(request, city=city or "")
+        ki_landing = bool(ki_chips)
     search_engine.record(
         search_engine.SearchOutcome(pool, broad.mode, q, broad.ranked, filters, lang=broad.lang),
         surface="portal",
@@ -405,6 +425,7 @@ def portal_home(request, facet=None, district=None):
             "stadtteil": district or "",
             "type": business_type or "",
             "auto": query_intent.auto_keys(intent_chips),  # T-8.26 п.5a: что выведено из текста
+            **({"ki": "1"} if ki_landing else {}),  # T-8.10d D-2: замер принятия подсказки
         },
     )
     # G8c/T-8.7: «рядом» — ближайшие сверху, без пагинации; точка без явного сорта =
@@ -525,6 +546,8 @@ def portal_home(request, facet=None, district=None):
         {
             "portal": portal,
             "follow_target": follow_target,
+            "ki_slot": ki_slot,
+            "ki_chips": ki_chips,
             "search_follow": search_follow[0] if search_follow else None,
             "search_follow_qs": search_follow[1] if search_follow else "",
             "following": follow.is_following(user, follow_target) if follow_target else False,
@@ -983,7 +1006,15 @@ PORTAL_DISALLOW = (
     "/sprache/",
     "/folgen/",
     "/mcp/",
+    "/ki-vorschlag/",
 )
+
+
+def portal_ki_suggest(request):
+    """T-8.10d D-2: фрагмент ИИ-подсказки фильтров (подписанный токен со страницы выдачи)."""
+    from . import ai_search
+
+    return ai_search.fragment(request, portal=getattr(request, "portal", None))
 
 
 @static_resource

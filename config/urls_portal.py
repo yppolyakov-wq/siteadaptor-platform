@@ -94,6 +94,7 @@ urlpatterns = [
     path("sprache/", set_public_language, name="portal-set-language"),
     # Блок А3: «Für Unternehmen» — до catch-all <facet>.
     path("fuer-unternehmen/", portal_views.for_business, name="portal-for-business"),
+    path("ki-vorschlag/", portal_views.portal_ki_suggest, name="portal-ki-suggest"),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]
 

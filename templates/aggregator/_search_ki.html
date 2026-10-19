@@ -1,0 +1,7 @@
+{% load i18n %}{% comment %}T-8.10d D-2: ИИ-подсказка фильтров. Слот заполняет fetch (202 → опрос, 200 → фрагмент, 204 → ничего); без JS подсказки нет. Пилюли «Aus KI-Vorschlag» — после клика, ✕ снимает фильтр.{% endcomment %}
+{% if ki_chips %}<div data-ki-chips class="mb-4 flex flex-wrap items-center gap-2 text-sm">
+  <span class="text-gray-500">{% trans "Aus KI-Vorschlag:" %}</span>
+  {% for c in ki_chips %}<a href="{{ c.url }}" data-ki-chip class="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 text-violet-900 px-3 py-1 hover:border-violet-400" title="{% trans "Filter entfernen" %}">{{ c.label }} <span aria-hidden="true">✕</span></a>{% endfor %}
+</div>{% endif %}
+{% if ki_slot %}<div data-ki-suggest data-url="{{ ki_slot.url }}" class="mb-4 empty:hidden"></div>
+<script>(function(){var el=document.querySelector("[data-ki-suggest]");if(!el||!window.fetch)return;var url=el.getAttribute("data-url"),left=6;function go(){fetch(url,{credentials:"same-origin",headers:{"X-Requested-With":"fetch"}}).then(function(r){if(r.status===200){return r.text().then(function(h){el.innerHTML=h;});}if(r.status===202&&--left>0){setTimeout(go,1500);}}).catch(function(){});}go();})();</script>{% endif %}

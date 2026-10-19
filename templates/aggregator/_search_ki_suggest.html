@@ -1,0 +1,5 @@
+{% load i18n %}<div data-ki-suggestions class="flex flex-wrap items-center gap-2 text-sm">
+  <span class="text-gray-500">✨ {% trans "KI-Vorschlag:" %}</span>
+  {% for s in suggestions %}<a href="{{ s.url }}" rel="nofollow" data-ki-suggestion class="inline-flex flex-wrap items-center gap-1 rounded-full border border-violet-200 bg-white px-3 py-1 hover:border-violet-400">{% for c in s.chips %}<span class="rounded-full bg-violet-50 text-violet-900 px-2">{{ c }}</span>{% endfor %} <span class="font-medium">{% trans "Vorschlag übernehmen" %} →</span></a>{% endfor %}
+  <span class="text-xs text-gray-400">{{ ai_label }}</span>
+</div>

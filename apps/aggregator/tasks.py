@@ -319,6 +319,14 @@ def sync_listing(tenant_schema, promotion_id) -> str:
 
 
 @idempotent_task()
+def ai_search_suggest(*, phrase, city, lang, key) -> None:
+    """T-8.10d D-2: ИИ-подсказка фильтров для фразы поиска (результат — только в кэш)."""
+    from . import ai_search
+
+    ai_search.run(phrase, city, lang, key)
+
+
+@idempotent_task()
 def sync_aggregator_listing(*, tenant_schema, promotion_id):
     """Beat/hook: материализовать листинг акции в агрегаторе."""
     return {"result": sync_listing(tenant_schema, promotion_id)}

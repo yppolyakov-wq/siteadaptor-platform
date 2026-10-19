@@ -756,6 +756,17 @@ AI_CATALOG_MODERATION = env.bool("AI_CATALOG_MODERATION", default=False)
 AI_CATALOG_MODERATION_DAILY = env.int("AI_CATALOG_MODERATION_DAILY", default=300)
 AI_CATALOG_MODERATION_TENANT_DAILY = env.int("AI_CATALOG_MODERATION_TENANT_DAILY", default=20)
 AI_CATALOG_MODERATION_DEDUPE_DAYS = env.int("AI_CATALOG_MODERATION_DEDUPE_DAYS", default=30)
+# T-8.10d D-2: ИИ «фраза → фильтры» в поиске каталога города. Выключено по умолчанию —
+# владелец включает по отчёту `search_log_report` (Р-9: ≥500 поисков и ≥10 % многословных
+# пустых/малых выдач). Подсказка только предлагает фильтры ссылкой, сама ничего не применяет.
+AI_SEARCH_ENABLED = env.bool("AI_SEARCH_ENABLED", default=False)
+AI_SEARCH_DAILY = env.int("AI_SEARCH_DAILY", default=500)  # вызовов ИИ платформе в день
+AI_SEARCH_IP_LIMIT = 10  # новых фраз на IP за 10 минут
+AI_SEARCH_POLL_LIMIT = 120  # обращений к эндпоинту подсказки на IP за 10 минут
+AI_SEARCH_CACHE_HOURS = 24
+AI_SEARCH_ERROR_TTL = 600
+AI_SEARCH_MAX_RESULTS = 3  # «малая выдача» (= LOW_RESULTS отчёта D-0)
+AI_SEARCH_MIN_WORDS = 2  # значимых слов в остатке запроса
 # T-8.10e «Text-Check»: скидка выше этого процента — подсказка «sehr hoher Rabatt»
 # (кроме скоропортящегося, § 11 Abs. 4 PAngV). Только подсказка, не запрет.
 TEXT_CHECK_PLAUSIBLE_DISCOUNT = env.int("TEXT_CHECK_PLAUSIBLE_DISCOUNT", default=70)

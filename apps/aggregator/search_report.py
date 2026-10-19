@@ -46,12 +46,9 @@ def _share(part: int, total: int) -> float:
 
 
 def _significant_words(query: str, lang: str) -> int:
-    from .search import _drop_stopwords, tokenize
+    from .search import significant_word_count
 
-    tokens = tokenize(query)
-    if len(tokens) < 2:
-        return len(tokens)
-    return len(_drop_stopwords(tokens, lang or "de"))
+    return significant_word_count(query, lang)
 
 
 def _top(rows: list[dict], *, top: int, min_searches: int) -> list[dict]:

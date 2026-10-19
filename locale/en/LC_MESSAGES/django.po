@@ -26204,3 +26204,9 @@ msgstr "Keyword"
 
 msgid "z. B. Tomaten"
 msgstr "e.g. tomatoes"
+
+msgid "Aus KI-Vorschlag:"
+msgstr "From AI suggestion:"
+
+msgid "KI-Vorschlag:"
+msgstr "AI suggestion:"

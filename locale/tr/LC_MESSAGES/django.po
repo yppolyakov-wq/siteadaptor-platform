@@ -26343,3 +26343,9 @@ msgstr "Anahtar kelime"
 
 msgid "z. B. Tomaten"
 msgstr "ör. domates"
+
+msgid "Aus KI-Vorschlag:"
+msgstr "YZ önerisinden:"
+
+msgid "KI-Vorschlag:"
+msgstr "YZ önerisi:"

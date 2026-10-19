@@ -75,6 +75,14 @@ def _drop_stopwords(tokens: list[str], lang: str) -> list[str]:
     return [t for t in tokens if not _STOP_CACHE[(key, t)]]
 
 
+def significant_word_count(q: str, lang: str) -> int:
+    """Число значимых слов (без стоп-слов) — одно правило для отчёта D-0 и триггера D-2."""
+    tokens = tokenize(q)
+    if len(tokens) < 2:
+        return len(tokens)
+    return len(_drop_stopwords(tokens, lang or "de"))
+
+
 def _words(q: str, lang: str) -> list[tuple[str, SearchQuery]]:
     """[(слово, tsquery слова)]: ИЛИ по синонимам × конфигурациям (german, simple, язык
     посетителя); у последнего слова — ещё и префикс. Бюджет — TERMS_MAX подзапросов."""

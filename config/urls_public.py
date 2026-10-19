@@ -105,6 +105,11 @@ urlpatterns = [
     # T-8.7 «Folgen» на основном домене (имена общие с urls_portal).
     path("entdecken/folgen/", aggregator_follow_views.follow_page, name="aggregator-follow"),
     path(
+        "entdecken/ki-vorschlag/",
+        aggregator_views.discover_ki_suggest,
+        name="aggregator-ki-suggest",
+    ),
+    path(
         "entdecken/folgen/bestaetigen/<str:token>/",
         aggregator_follow_views.follow_confirm,
         name="aggregator-follow-confirm",
