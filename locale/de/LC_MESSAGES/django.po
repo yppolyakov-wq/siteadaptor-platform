@@ -25963,3 +25963,11 @@ msgid "Davon %(counter)s Position mit Aktionspreis"
 msgid_plural "Davon %(counter)s Positionen mit Aktionspreis"
 msgstr[0] "Davon %(counter)s Position mit Aktionspreis"
 msgstr[1] "Davon %(counter)s Positionen mit Aktionspreis"
+
+#: templates/storefront/product_detail.html
+msgid "Überraschungsaktion"
+msgstr "Überraschungsaktion"
+
+#: templates/storefront/product_detail.html
+msgid "Jetzt aufdecken"
+msgstr "Jetzt aufdecken"

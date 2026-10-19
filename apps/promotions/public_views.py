@@ -2063,7 +2063,7 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
     from apps.catalog import reviews as product_reviews
     from apps.core.sellable import sellable_for
 
-    from .price_layer import promo_for_product
+    from .price_layer import mystery_promo_for_product, promo_for_product
 
     return render(
         request,
@@ -2077,6 +2077,11 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             # (зачёркнутая цена в баннере тоже «Bekanntgabe» снижения).
             "target_promo_lowest": (
                 target_promo.lowest_30d_display if target_promo is not None else None
+            ),
+            # SF-9: акция-сюрприз — нейтральный баннер без цены (только если цены
+            # акции на товар нет: тогда баннер обычной акции важнее).
+            "target_mystery": (
+                mystery_promo_for_product(product) if target_promo is None else None
             ),
             # UA2-1 (U-A): единый контракт продаваемой сущности в контексте детали
             # (шов для buy-box UA3 / секций UA4 / JSON-LD UA4-4b).

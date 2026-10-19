@@ -444,20 +444,23 @@ def test_scheduled_or_conditional_promo_has_no_sale_price(kw):
     assert "sale_price" not in item and item["price"] == "10.00 EUR"
 
 
-def test_mystery_promo_excludes_product_without_leaking_price():
+def test_mystery_promo_keeps_regular_price_without_leaking():
+    """SF-9: сюрприз не часть цены товара — в фиде обычная цена, секрета нет."""
     p = _product(base_price=Decimal("10.00"))
     _promo(p, price_override=Decimal("6.37"), discount_style="mystery")
     xml = _merchant_xml(google.merchant_products())
-    assert str(p.pk) not in xml and "6.37" not in xml
-    assert google.overview()["excluded"]["promo_mystery"]["count"] == 1
+    item = _items(xml)[str(p.pk)]
+    assert item["price"] == "10.00 EUR" and "sale_price" not in item
+    assert "6.37" not in xml
+    assert "promo_mystery" not in google.overview()["excluded"]
 
 
-def test_cheaper_mystery_wins_like_cart_and_excludes():
+def test_cheaper_mystery_does_not_block_regular_promo():
     p = _product(base_price=Decimal("10.00"))
     _promo(p, price_override=Decimal("9.00"))
     _promo(p, price_override=Decimal("6.00"), discount_style="mystery")
     xml = _merchant_xml(google.merchant_products())
-    assert str(p.pk) not in xml and "9.00" not in xml
+    assert _items(xml)[str(p.pk)]["sale_price"] == "9.00 EUR" and "6.00" not in xml
 
 
 def test_exhausted_limit_excludes_remaining_limit_sells():

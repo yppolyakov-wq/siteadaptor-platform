@@ -26036,3 +26036,11 @@ msgid "Davon %(counter)s Position mit Aktionspreis"
 msgid_plural "Davon %(counter)s Positionen mit Aktionspreis"
 msgstr[0] "Bunlardan %(counter)s kalem kampanya fiyatlı"
 msgstr[1] "Bunlardan %(counter)s kalem kampanya fiyatlı"
+
+#: templates/storefront/product_detail.html
+msgid "Überraschungsaktion"
+msgstr "Sürpriz kampanya"
+
+#: templates/storefront/product_detail.html
+msgid "Jetzt aufdecken"
+msgstr "Şimdi aç"

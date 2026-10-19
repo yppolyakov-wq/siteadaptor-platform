@@ -176,8 +176,12 @@ def promo_for_product(product):
     if product is None:
         return None
     best = None
-    for promo in Promotion.objects.filter(product=product, status="active").order_by(
-        "created_at", "pk"
+    # SF-9: mystery-акция — не часть цены товара (секрет раскрывается и продаётся
+    # только на странице акции); иначе баннер/корзина раскрыли бы цену.
+    for promo in (
+        Promotion.objects.filter(product=product, status="active")
+        .exclude(discount_style="mystery")
+        .order_by("created_at", "pk")
     ):
         if not promo.lowers_price:
             continue
@@ -192,8 +196,10 @@ def product_promo_map(product_ids):
     out = {}
     # Стабильный порядок: при равной цене побеждает более ранняя акция — иначе выбор
     # (и вместе с ним фид Merchant: mystery исключает товар) зависел бы от порядка строк.
+    # SF-9: без mystery — см. `promo_for_product`.
     for promo in (
         Promotion.objects.filter(product_id__in=list(product_ids), status="active")
+        .exclude(discount_style="mystery")
         .select_related("product")
         .order_by("created_at", "pk")
     ):
@@ -317,3 +323,15 @@ def stay_promo(unit, arrival=None):
                 label = _("Aktion −%(pct)s%% · %(title)s") % {"pct": percent, "title": title}
             best = (promo, percent, label[:80])
     return best
+
+
+def mystery_promo_for_product(product):
+    """SF-9: активная акция-сюрприз на товар — только для нейтрального баннера
+    «Überraschungsaktion» на детали товара (без цены и процента)."""
+    if product is None:
+        return None
+    return (
+        Promotion.objects.filter(product=product, status="active", discount_style="mystery")
+        .order_by("created_at", "pk")
+        .first()
+    )

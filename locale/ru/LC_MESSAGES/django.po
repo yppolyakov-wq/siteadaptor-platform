@@ -26172,3 +26172,11 @@ msgstr[0] "Из них %(counter)s позиция с ценой акции"
 msgstr[1] "Из них %(counter)s позиции с ценой акции"
 msgstr[2] "Из них %(counter)s позиций с ценой акции"
 msgstr[3] "Из них %(counter)s позиции с ценой акции"
+
+#: templates/storefront/product_detail.html
+msgid "Überraschungsaktion"
+msgstr "Акция-сюрприз"
+
+#: templates/storefront/product_detail.html
+msgid "Jetzt aufdecken"
+msgstr "Открыть"

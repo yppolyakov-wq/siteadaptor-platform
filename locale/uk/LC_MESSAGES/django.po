@@ -26152,3 +26152,11 @@ msgstr[0] "З них %(counter)s позиція з ціною акції"
 msgstr[1] "З них %(counter)s позиції з ціною акції"
 msgstr[2] "З них %(counter)s позицій з ціною акції"
 msgstr[3] "З них %(counter)s позиції з ціною акції"
+
+#: templates/storefront/product_detail.html
+msgid "Überraschungsaktion"
+msgstr "Акція-сюрприз"
+
+#: templates/storefront/product_detail.html
+msgid "Jetzt aufdecken"
+msgstr "Відкрити"

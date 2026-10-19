@@ -72,6 +72,13 @@
     {# SF-3 (§11 PAngV): референс низшей цены рядом с зачёркнутой ценой тизера. #}
     <p class="mt-1 text-xs text-gray-400">{% blocktrans with p=target_promo_lowest %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
   {% endif %}
+  {% elif target_mystery %}
+  {# SF-9: акция-сюрприз — без цены и процента; секрет раскрывается на странице акции. #}
+  <a href="{% url 'storefront-promotion' target_mystery.pk %}" data-mystery-teaser class="mt-3 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-100 px-3 py-2.5 text-sm hover:border-rose-300 transition">
+    <span class="bg-rose-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shrink-0">🎁</span>
+    <span class="font-bold text-rose-700">{% trans "Überraschungsaktion" %}</span>
+    <span class="ml-auto text-rose-700 font-medium whitespace-nowrap">{% trans "Jetzt aufdecken" %} →</span>
+  </a>
   {% endif %}
   {% comment %}DL-16.6 (D2): описание и Kennzeichnung — партиалы; в раскладке «Tabs» они
   уезжают из правой колонки в панели тела (см. detail_body), здесь — «Untereinander».{% endcomment %}

@@ -360,7 +360,7 @@ def test_screen_shows_local_address_and_warning(owner, isolated_ratelimit):
 # --- M23b.4: цена акции на экране -----------------------------------------------------------
 
 
-def test_screen_counts_sale_rows_and_names_promo_reasons(owner, isolated_ratelimit):
+def test_screen_counts_sale_rows(owner, isolated_ratelimit):
     from decimal import Decimal
 
     from apps.promotions.tests.factories import PromotionFactory
@@ -377,6 +377,7 @@ def test_screen_counts_sale_rows_and_names_promo_reasons(owner, isolated_ratelim
     _post(owner, action="enable")
     body = views.merchant_feed(_req("get", owner)).content.decode()
     assert 'data-merchant-on-sale="1"' in body
-    assert 'data-merchant-reason="promo_mystery"' in body
-    assert "promo_mystery</" not in body  # подпись, а не код
-    assert _feed(_token()).content.count(b"<g:sale_price>") == 1
+    # SF-9: сюрприз не исключает товар — он в фиде по обычной цене.
+    assert 'data-merchant-reason="promo_mystery"' not in body
+    feed = _feed(_token()).content
+    assert feed.count(b"<g:sale_price>") == 1 and str(secret.pk).encode() in feed

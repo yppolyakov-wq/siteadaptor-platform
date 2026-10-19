@@ -25904,3 +25904,11 @@ msgid "Davon %(counter)s Position mit Aktionspreis"
 msgid_plural "Davon %(counter)s Positionen mit Aktionspreis"
 msgstr[0] "Of which %(counter)s item with a promotion price"
 msgstr[1] "Of which %(counter)s items with a promotion price"
+
+#: templates/storefront/product_detail.html
+msgid "Überraschungsaktion"
+msgstr "Surprise deal"
+
+#: templates/storefront/product_detail.html
+msgid "Jetzt aufdecken"
+msgstr "Reveal now"
