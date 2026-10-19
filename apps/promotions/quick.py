@@ -58,10 +58,15 @@ def _end_of_day(day) -> datetime:
     return timezone.make_aware(datetime.combine(day, time(23, 59)))
 
 
-def term_end(term: str, tenant, *, until=None, now=None) -> datetime | None:
-    """Конец акции для выбранного чипа срока (в локальной таймзоне проекта)."""
+def term_end(term: str, tenant, *, until=None, until_time=None, now=None) -> datetime | None:
+    """Конец акции для выбранного чипа срока (в локальной таймзоне проекта).
+
+    T-8.10b: ``until_time`` — конкретный час («bis 18 Uhr») для «сегодня»/даты."""
     now = timezone.localtime(now or timezone.now())
     today = now.date()
+    if until_time is not None and term in (TERM_TODAY, TERM_DATE):
+        day = until if (term == TERM_DATE and until) else today
+        return timezone.make_aware(datetime.combine(day, until_time))
     if term == TERM_TODAY:
         from apps.tenants import openinghours
 
@@ -160,6 +165,10 @@ class QuickPromotionForm(forms.Form):
         label=_("Bis"), required=False, widget=forms.DateInput(attrs={"type": "date"})
     )
     quantity = forms.IntegerField(label=_("Stückzahl (optional)"), required=False, min_value=1)
+    # T-8.10b: конкретный час окончания (из сообщения в Telegram); пусто = прежний срок.
+    until_time = forms.TimeField(required=False, widget=forms.HiddenInput)
+    # T-8.10b: токен черновика из Telegram (✏️ «Bearbeiten»).
+    entwurf = forms.CharField(required=False, max_length=32, widget=forms.HiddenInput)
     # SF-8b: исключение § 11 Abs. 4 PAngV (кнопка-флаг рядом с ценой).
     perishable = forms.BooleanField(
         label=_("Schnell verderblich / kurze Haltbarkeit"), required=False
@@ -239,6 +248,13 @@ class QuickPromotionForm(forms.Form):
                 self.add_error("until", _("Bitte ein Datum wählen."))
             elif until < timezone.localdate():
                 self.add_error("until", _("Das Datum liegt in der Vergangenheit."))
+        until_time = cleaned.get("until_time")
+        if until_time is not None and cleaned.get("term") in (TERM_TODAY, TERM_DATE):
+            end = term_end(
+                cleaned["term"], self.tenant, until=cleaned.get("until"), until_time=until_time
+            )
+            if end is not None and end <= timezone.now():
+                self.add_error(None, _("Die Uhrzeit liegt in der Vergangenheit."))
         return cleaned
 
     def build(self):
@@ -271,12 +287,35 @@ class QuickPromotionForm(forms.Form):
             discount_percent=data.get("percent"),
             available_quantity=data.get("quantity"),
             starts_at=timezone.now(),
-            ends_at=term_end(data["term"], self.tenant, until=data.get("until")),
+            ends_at=term_end(
+                data["term"],
+                self.tenant,
+                until=data.get("until"),
+                until_time=data.get("until_time"),
+            ),
             group=(data.get("group") or "").strip(),
             city_category=city_category,
             city_tags=city_tags,
             metadata=meta,
         )
+
+
+def publish_built(form, promo, images: list[dict], *, tenant, actor, publish: bool = True):
+    """Общий хвост «Schnell-Aktion» (веб T-8.4 и Telegram T-8.10b): цель → сохранить →
+    активировать с учётом лимита Р-5. → (promo, activated)."""
+    from . import limits
+
+    if not apply_suggestion(form, promo, images):
+        attach_product(form, promo, images)  # T-8.23d: акция от товара
+    promo.save()
+    activated = False
+    if publish:
+        try:
+            limits.activate(promo, tenant, actor=actor)
+            activated = True
+        except limits.ActivationLimit:
+            pass  # остаётся черновиком — экран «Fertig» / бот объясняют почему
+    return promo, activated
 
 
 def apply_suggestion(form, promo, images: list[dict]) -> bool:

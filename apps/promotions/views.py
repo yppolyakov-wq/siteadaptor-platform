@@ -10,6 +10,7 @@ from django.conf import settings as dj_settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.db import connection
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -689,6 +690,21 @@ def promotion_quick(request):
         initial = {**suggestion.initial, "vorschlag": suggestion.key}
     if request.method == "GET" and stale_suggestion:
         messages.info(request, _("Dieser Vorschlag ist nicht mehr aktuell."))
+    # T-8.10b: ✏️ из Telegram — черновик по токену (chat — текущая привязка владельца).
+    from . import telegram_promo
+
+    entwurf = (request.GET if request.method == "GET" else request.POST).get("entwurf", "")
+    tg_draft = telegram_promo.load_for_web(tenant, entwurf) if entwurf else None
+    if request.method == "GET" and entwurf:
+        if tg_draft is None:
+            messages.info(request, _("Dieser Entwurf ist nicht mehr verfügbar."))
+        else:
+            initial = {
+                k: v
+                for k, v in tg_draft.items()
+                if k not in ("photo_ids", "warnings") and v not in (None, "")
+            }
+            initial["entwurf"] = entwurf
     if request.method == "GET" and "term" not in initial:
         initial["term"] = quick.default_term(tenant)  # Д1: срок — правило, а не ИИ
     form = quick.QuickPromotionForm(
@@ -712,20 +728,45 @@ def promotion_quick(request):
                 form.add_error("photo", "; ".join(exc.messages))
         elif source is not None:
             images = quick.copy_images(source)
+        elif tg_draft is not None and tg_draft.get("photo_ids"):
+            from apps.telegram.notify import active_bot
+
+            bot = active_bot()
+            uploads, _failed = (
+                telegram_promo.photos_from_telegram(bot.token, tg_draft["photo_ids"])
+                if bot
+                else ([], True)
+            )
+            if uploads:
+                try:
+                    images = quick.save_photos(uploads)
+                except ValidationError:
+                    images = []
+        if not form.errors and tg_draft is not None:
+            schema = connection.schema_name
+            if not telegram_promo.claim(schema, entwurf):
+                done = telegram_promo.done_value(schema, entwurf)
+                for ref in images:
+                    delete_stored_image(ref)
+                if done and done != "pending":
+                    return redirect("promotions:promotion-quick-done", pk=done)
+                form.add_error(None, _("Wird gerade gespeichert …"))
         if not form.errors:
-            if not quick.apply_suggestion(form, promo, images):
-                quick.attach_product(form, promo, images)  # T-8.23d: акция от товара
-            promo.save()
+            quick.publish_built(
+                form,
+                promo,
+                images,
+                tenant=tenant,
+                actor=request.user,
+                publish=request.POST.get("publish") != "draft",
+            )
+            if tg_draft is not None:
+                telegram_promo.mark_done(connection.schema_name, entwurf, promo.pk)
             # Использованная подсказка не висит на карточке до истечения кэша.
             if suggestion is not None:
                 today.dismiss(suggestion.key)
             elif source is not None:
                 today.dismiss(f"repeat:{source.pk}")
-            if request.POST.get("publish") != "draft":
-                try:
-                    limits.activate(promo, tenant, actor=request.user)
-                except limits.ActivationLimit:
-                    pass  # остаётся черновиком — экран «Fertig» объясняет почему
             return redirect("promotions:promotion-quick-done", pk=promo.pk)
         for ref in images:
             delete_stored_image(ref)  # форма вернулась с ошибкой — файлы не сироты
@@ -738,6 +779,7 @@ def promotion_quick(request):
             "form": form,
             "source": source,
             "max_photos": quick.MAX_PHOTOS,
+            "tg_photo_count": len((tg_draft or {}).get("photo_ids") or ()),
             # SF-8b + В6: только у бизнесов с продуктами питания.
             "perishable_enabled": reference_price.exemption_enabled()
             and reference_price.food_allowed(tenant),

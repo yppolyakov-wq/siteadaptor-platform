@@ -26462,3 +26462,100 @@ msgstr "З підказки ШІ:"
 
 msgid "KI-Vorschlag:"
 msgstr "Підказка ШІ:"
+
+#, python-format
+msgid "%(n)s Stück"
+msgstr "%(n)s шт."
+
+msgid "Aktionen sind in Ihrem Kabinett nicht aktiv."
+msgstr "Акції у вашому кабінеті не ввімкнені."
+
+msgid "Als Entwurf gespeichert."
+msgstr "Збережено як чернетку."
+
+msgid "Bedingungen wie „2 für 1“ bitte im Formular (✏️) eintragen."
+msgstr "Умови на кшталт «2 за ціною 1» вкажіть, будь ласка, у формі (✏️)."
+
+msgid "Bitte im Formular prüfen (✏️)."
+msgstr "Перевірте, будь ласка, у формі (✏️)."
+
+msgid "Das Datum liegt im nächsten Jahr."
+msgstr "Дата припадає на наступний рік."
+
+msgid "Der „statt“-Preis ist nicht höher — weggelassen."
+msgstr "Ціна «замість» не вища — прибрана."
+
+msgid "Die Uhrzeit liegt in der Vergangenheit."
+msgstr "Цей час уже минув."
+
+msgid "Die Uhrzeit liegt schon in der Vergangenheit — Frist ohne Uhrzeit."
+msgstr "Цей час уже минув — термін без години."
+
+msgid "Entwurf abgelaufen — bitte neu senden."
+msgstr "Чернетка застаріла — надішліть повідомлення знову."
+
+msgid "Foto konnte nicht übernommen werden."
+msgstr "Фото не вдалося перенести."
+
+msgid "Gerade nicht möglich — bitte später erneut senden."
+msgstr "Зараз не вдається — надішліть пізніше ще раз."
+
+msgid "Ihr Konto ist eingeschränkt — bitte im Kabinett die Abrechnung prüfen."
+msgstr "Ваш акаунт обмежено — перевірте оплату в кабінеті."
+
+msgid "Limit erreicht — ✅ speichert als Entwurf."
+msgstr "Ліміт вичерпано — ✅ збереже як чернетку."
+
+msgid "Nicht erlaubt."
+msgstr "Не дозволено."
+
+msgid "Preis und Rabatt zugleich — es zählt der Preis."
+msgstr "Ціна і знижка одночасно — діє ціна."
+
+msgid ""
+"Schicken Sie z. B.: „Brötchen 2,50 € statt 3,90 €, heute bis 18 Uhr, 20 "
+"Stück“ — gern mit Foto."
+msgstr ""
+"Напишіть, наприклад: «Булочки 2,50 € замість 3,90 €, сьогодні до 18:00, 20 "
+"шт.» — можна з фото."
+
+#, python-format
+msgid "Schon veröffentlicht: %(url)s"
+msgstr "Уже опубліковано: %(url)s"
+
+msgid "Verwerfen"
+msgstr "Відхилити"
+
+msgid "Verworfen."
+msgstr "Відхилено."
+
+msgid "Wie heißt das Angebot? Schreiben Sie es bitte dazu."
+msgstr "Як називається пропозиція? Допишіть, будь ласка."
+
+msgid "Wird gerade gespeichert …"
+msgstr "Зберігається …"
+
+msgid "Zu viele Entwürfe — bitte später erneut versuchen."
+msgstr "Забагато чернеток — спробуйте пізніше."
+
+#, python-format
+msgid "bis %(when)s"
+msgstr "до %(when)s"
+
+#, python-format
+msgid "✅ Live: %(url)s"
+msgstr "✅ Опубліковано: %(url)s"
+
+msgid "statt"
+msgstr "замість"
+
+msgid "Dieser Entwurf ist nicht mehr verfügbar."
+msgstr "Ця чернетка більше недоступна."
+
+#, python-format
+msgid "%(n)s Foto aus Telegram wird übernommen"
+msgid_plural "%(n)s Fotos aus Telegram werden übernommen"
+msgstr[0] "Буде перенесено %(n)s фото з Telegram"
+msgstr[1] "Буде перенесено %(n)s фото з Telegram"
+msgstr[2] "Буде перенесено %(n)s фото з Telegram"
+msgstr[3] "Буде перенесено %(n)s фото з Telegram"

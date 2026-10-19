@@ -26289,3 +26289,99 @@ msgstr "Aus KI-Vorschlag:"
 
 msgid "KI-Vorschlag:"
 msgstr "KI-Vorschlag:"
+
+#, python-format
+msgid "%(n)s Stück"
+msgstr "%(n)s Stück"
+
+msgid "Aktionen sind in Ihrem Kabinett nicht aktiv."
+msgstr "Aktionen sind in Ihrem Kabinett nicht aktiv."
+
+msgid "Als Entwurf gespeichert."
+msgstr "Als Entwurf gespeichert."
+
+msgid "Bedingungen wie „2 für 1“ bitte im Formular (✏️) eintragen."
+msgstr "Bedingungen wie „2 für 1“ bitte im Formular (✏️) eintragen."
+
+msgid "Bitte im Formular prüfen (✏️)."
+msgstr "Bitte im Formular prüfen (✏️)."
+
+msgid "Das Datum liegt im nächsten Jahr."
+msgstr "Das Datum liegt im nächsten Jahr."
+
+msgid "Der „statt“-Preis ist nicht höher — weggelassen."
+msgstr "Der „statt“-Preis ist nicht höher — weggelassen."
+
+msgid "Die Uhrzeit liegt in der Vergangenheit."
+msgstr "Die Uhrzeit liegt in der Vergangenheit."
+
+msgid "Die Uhrzeit liegt schon in der Vergangenheit — Frist ohne Uhrzeit."
+msgstr "Die Uhrzeit liegt schon in der Vergangenheit — Frist ohne Uhrzeit."
+
+msgid "Entwurf abgelaufen — bitte neu senden."
+msgstr "Entwurf abgelaufen — bitte neu senden."
+
+msgid "Foto konnte nicht übernommen werden."
+msgstr "Foto konnte nicht übernommen werden."
+
+msgid "Gerade nicht möglich — bitte später erneut senden."
+msgstr "Gerade nicht möglich — bitte später erneut senden."
+
+msgid "Ihr Konto ist eingeschränkt — bitte im Kabinett die Abrechnung prüfen."
+msgstr ""
+"Ihr Konto ist eingeschränkt — bitte im Kabinett die Abrechnung prüfen."
+
+msgid "Limit erreicht — ✅ speichert als Entwurf."
+msgstr "Limit erreicht — ✅ speichert als Entwurf."
+
+msgid "Nicht erlaubt."
+msgstr "Nicht erlaubt."
+
+msgid "Preis und Rabatt zugleich — es zählt der Preis."
+msgstr "Preis und Rabatt zugleich — es zählt der Preis."
+
+msgid ""
+"Schicken Sie z. B.: „Brötchen 2,50 € statt 3,90 €, heute bis 18 Uhr, 20 "
+"Stück“ — gern mit Foto."
+msgstr ""
+"Schicken Sie z. B.: „Brötchen 2,50 € statt 3,90 €, heute bis 18 Uhr, 20 "
+"Stück“ — gern mit Foto."
+
+#, python-format
+msgid "Schon veröffentlicht: %(url)s"
+msgstr "Schon veröffentlicht: %(url)s"
+
+msgid "Verwerfen"
+msgstr "Verwerfen"
+
+msgid "Verworfen."
+msgstr "Verworfen."
+
+msgid "Wie heißt das Angebot? Schreiben Sie es bitte dazu."
+msgstr "Wie heißt das Angebot? Schreiben Sie es bitte dazu."
+
+msgid "Wird gerade gespeichert …"
+msgstr "Wird gerade gespeichert …"
+
+msgid "Zu viele Entwürfe — bitte später erneut versuchen."
+msgstr "Zu viele Entwürfe — bitte später erneut versuchen."
+
+#, python-format
+msgid "bis %(when)s"
+msgstr "bis %(when)s"
+
+#, python-format
+msgid "✅ Live: %(url)s"
+msgstr "✅ Live: %(url)s"
+
+msgid "statt"
+msgstr "statt"
+
+msgid "Dieser Entwurf ist nicht mehr verfügbar."
+msgstr "Dieser Entwurf ist nicht mehr verfügbar."
+
+#, python-format
+msgid "%(n)s Foto aus Telegram wird übernommen"
+msgid_plural "%(n)s Fotos aus Telegram werden übernommen"
+msgstr[0] "%(n)s Foto aus Telegram wird übernommen"
+msgstr[1] "%(n)s Fotos aus Telegram werden übernommen"

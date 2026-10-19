@@ -452,3 +452,12 @@ def ai_text_check(*, schema: str, user_pk, job: str) -> None:
     from . import ai_text_check as atc
 
     atc.run_job(schema=schema, user_pk=user_pk, job=job)
+
+
+# T-8.10b: сообщение владельца в Telegram → черновик акции. Дедуп по update_id
+# (Telegram повторяет доставку при медленном ответе); замок — сутки.
+@idempotent_task(lock_timeout=86400)
+def telegram_owner_message(*, schema, update):
+    from . import telegram_promo
+
+    return {"result": telegram_promo.handle_owner_message(schema, update)}

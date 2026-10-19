@@ -11,6 +11,15 @@ from . import services
 
 
 def handle_update(bot, update: dict, request) -> str:
+    # T-8.10b: нажатие кнопки превью акции (✅/❌) — до общей ветки сообщений.
+    callback = update.get("callback_query")
+    if callback:
+        tenant = getattr(request, "tenant", None)
+        if tenant is None:
+            return "skip"
+        from apps.promotions.telegram_promo import handle_callback
+
+        return handle_callback(bot, callback, tenant)
     message = update.get("message") or {}
     chat = message.get("chat") or {}
     chat_id = chat.get("id")
@@ -22,6 +31,15 @@ def handle_update(bot, update: dict, request) -> str:
     # а не витрина. Обрабатываем до общей ветки, чтобы группе не слать Mini App.
     if (chat.get("type") or "") in ("group", "supergroup"):
         return _handle_group(bot, message, chat_id)
+
+    # T-8.10b: личное сообщение ВЛАДЕЛЬЦА (не /start) — черновик акции. Клиентский чат
+    # отвечает как раньше; знание об акциях живёт в apps/promotions.
+    tenant = getattr(request, "tenant", None)
+    if not text.startswith("/start"):
+        from apps.promotions.telegram_promo import enqueue_owner_message, is_owner_private
+
+        if is_owner_private(message, tenant):
+            return enqueue_owner_message(bot, update, tenant)
 
     shop_url = request.build_absolute_uri(reverse("storefront-home"))
     markup = {"inline_keyboard": [[{"text": _("🛍 Open shop"), "web_app": {"url": shop_url}}]]}

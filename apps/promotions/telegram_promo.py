@@ -1,0 +1,516 @@
+"""T-8.10b: акция из сообщения владельца в Telegram (B-1: правила, без ИИ).
+
+План — docs/t8-10b-telegram-promo-plan-2026-10-19.md. Поток: сообщение владельца в
+личном чате бота → Celery (дедуп по update_id) → `message_parse` → черновик в кэше
+(24 ч, только поля формы и file_id фото) → превью с кнопками ✅/✏️/❌ → ✅ проходит ТУ ЖЕ
+форму и хвост, что веб-ассистент T-8.4 (лимит 5, срок, товар), ✏️ открывает веб-форму с
+префиллом. Только владелец: личный чат, chat.id == from.id == owner_chat_id. Миграций нет.
+"""
+
+from __future__ import annotations
+
+import logging
+import re
+import secrets
+
+from django.conf import settings
+from django.core.cache import cache
+from django.db import connection, transaction
+from django.urls import reverse
+from django.utils import formats, translation
+from django.utils.translation import gettext as _
+
+logger = logging.getLogger(__name__)
+
+DRAFT_TTL = 24 * 3600
+DONE_TTL = 7 * 24 * 3600
+ALBUM_TTL = 10 * 60
+RATE_LIMIT = 30  # черновиков на чат в час
+TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{16}$")
+CALLBACK_RE = re.compile(r"^tp:(ok|no):([A-Za-z0-9_-]{16})$")
+WARNING_LIMIT = 3
+
+
+# --- кто и где ----------------------------------------------------------------------------
+
+
+def owner_chat(tenant) -> str:
+    from apps.telegram.notify import owner_chat_id
+
+    return str(owner_chat_id(tenant) or "") if tenant is not None else ""
+
+
+def is_owner_private(message: dict, tenant) -> bool:
+    """Личный чат ВЛАДЕЛЬЦА: chat.id == from.id == owner_chat_id, не бот."""
+    chat = message.get("chat") or {}
+    sender = message.get("from") or {}
+    owner = owner_chat(tenant)
+    return bool(
+        owner
+        and (chat.get("type") or "") == "private"
+        and str(chat.get("id")) == owner
+        and str(sender.get("id")) == owner
+        and not sender.get("is_bot")
+    )
+
+
+def bot_locale(sender: dict | None, tenant) -> str:
+    """Язык ответов: язык Telegram владельца, если он среди языков кабинета, иначе бизнеса."""
+    from apps.notifications.services import tenant_locale
+
+    code = str((sender or {}).get("language_code") or "")[:2].lower()
+    if code in getattr(settings, "CABINET_LANGUAGES", ()):
+        return code
+    return tenant_locale()
+
+
+def gate(tenant) -> str:
+    """ "" — можно; иначе текст отказа (модуль акций выключен / подписка ограничена)."""
+    from apps.billing.state_machine import GATED_STATUSES
+    from apps.core.modules import is_module_active
+
+    if getattr(tenant, "subscription_status", "") in GATED_STATUSES:
+        return _("Ihr Konto ist eingeschränkt — bitte im Kabinett die Abrechnung prüfen.")
+    if not is_module_active(tenant, "promotions"):
+        return _("Aktionen sind in Ihrem Kabinett nicht aktiv.")
+    return ""
+
+
+def owner_user(tenant):
+    from apps.core.models import Membership
+
+    m = Membership.objects.filter(role=Membership.ROLE_OWNER).select_related("user").first()
+    return m.user if m else None
+
+
+# --- черновики ----------------------------------------------------------------------------
+
+
+def _draft_key(schema: str, chat: str, token: str) -> str:
+    return f"tgpromo:draft:{schema}:{chat}:{token}"
+
+
+def _done_key(schema: str, token: str) -> str:
+    return f"tgpromo:done:{schema}:{token}"
+
+
+def store_draft(schema: str, chat: str, data: dict) -> str:
+    token = secrets.token_urlsafe(12)
+    cache.set(_draft_key(schema, chat, token), data, DRAFT_TTL)
+    return token
+
+
+def load_draft(schema: str, chat: str, token: str) -> dict | None:
+    if not TOKEN_RE.match(token or ""):
+        return None
+    value = cache.get(_draft_key(schema, str(chat), token))
+    return value if isinstance(value, dict) else None
+
+
+def drop_draft(schema: str, chat: str, token: str) -> None:
+    cache.delete(_draft_key(schema, str(chat), token))
+
+
+def load_for_web(tenant, token: str) -> dict | None:
+    """✏️: черновик для веб-формы — chat берётся из ТЕКУЩЕЙ привязки владельца."""
+    chat = owner_chat(tenant)
+    if not chat:
+        return None
+    return load_draft(connection.schema_name, chat, token)
+
+
+def mark_done(schema: str, token: str, pk) -> None:
+    cache.set(_done_key(schema, token), str(pk), DONE_TTL)
+
+
+def claim(schema: str, token: str) -> bool:
+    """Атомарный замок публикации (общий для ✅ в Telegram и Save в веб-форме)."""
+    return cache.add(_done_key(schema, token), "pending", DONE_TTL)
+
+
+def done_value(schema: str, token: str):
+    return cache.get(_done_key(schema, token))
+
+
+def release(schema: str, token: str) -> None:
+    cache.delete(_done_key(schema, token))
+
+
+# --- черновик из сообщения ----------------------------------------------------------------
+
+
+def draft_from_parsed(parsed, tenant, *, photo_ids=()) -> dict:
+    from apps.core import city_categories as cc
+
+    from . import ai_draft, quick
+
+    data = {
+        "title": parsed.title,
+        "description": parsed.description,
+        "new_price": "" if parsed.new_price is None else str(parsed.new_price),
+        "old_price": "" if parsed.old_price is None else str(parsed.old_price),
+        "percent": "" if parsed.percent is None else str(parsed.percent),
+        "quantity": "" if parsed.quantity is None else str(parsed.quantity),
+        "term": parsed.term or quick.default_term(tenant),
+        "until": parsed.until.isoformat() if parsed.until else "",
+        "until_time": parsed.until_time.strftime("%H:%M") if parsed.until_time else "",
+        "customer_response": quick.default_response(tenant),
+        "city_category": cc.suggest_for_business_type(getattr(tenant, "business_type", "")),
+        "product": "",
+        "photo_ids": list(photo_ids)[: quick.MAX_PHOTOS],
+        "warnings": list(parsed.warnings),
+    }
+    # Свой товар — только при единственном совпадении целым словом (иначе каждое
+    # сообщение заводило бы товар-дубль).
+    try:
+        product, _candidates = ai_draft.match_own_product(parsed.title, parsed.title)
+    except Exception:  # noqa: BLE001 — подсказка товара необязательна
+        product = None
+    if product is not None:
+        data["product"] = str(product.pk)
+    return data
+
+
+def form_for(draft: dict, tenant):
+    from . import quick
+
+    post = {
+        k: v for k, v in draft.items() if k not in ("photo_ids", "warnings") and v not in (None, "")
+    }
+    form = quick.QuickPromotionForm(data=post, files=None, tenant=tenant)
+    form.is_valid()
+    return form
+
+
+def _warning(code: str) -> str:
+    texts = {
+        "price_condition": _("Bedingungen wie „2 für 1“ bitte im Formular (✏️) eintragen."),
+        "time_past": _("Die Uhrzeit liegt schon in der Vergangenheit — Frist ohne Uhrzeit."),
+        "price_and_percent": _("Preis und Rabatt zugleich — es zählt der Preis."),
+        "old_not_higher": _("Der „statt“-Preis ist nicht höher — weggelassen."),
+        "date_rolled": _("Das Datum liegt im nächsten Jahr."),
+    }
+    return texts.get(code, "")
+
+
+def _money(value) -> str:
+    return formats.number_format(value, 2, use_l10n=True)
+
+
+def render_preview(draft: dict, tenant, form, token: str) -> tuple[str, dict]:
+    """Текст превью (без parse_mode) + клавиатура ✅/✏️/❌."""
+    from . import limits
+    from . import text_check as ptc
+
+    lines = ["📣 " + _("Entwurf"), draft.get("title") or "—"]
+    facts = []
+    if draft.get("new_price"):
+        price = _money(draft["new_price"]) + " €"
+        if draft.get("old_price"):
+            price += " " + _("statt") + " " + _money(draft["old_price"]) + " €"
+        facts.append(price)
+    elif draft.get("percent"):
+        facts.append(f"−{draft['percent']} %")
+    if form.is_valid():
+        promo = form.build()
+        end = promo.ends_at
+        if end is not None:
+            from django.utils import timezone
+
+            local = timezone.localtime(end)
+            facts.append(
+                _("bis %(when)s") % {"when": formats.date_format(local, "SHORT_DATETIME_FORMAT")}
+            )
+    if draft.get("quantity"):
+        facts.append(_("%(n)s Stück") % {"n": draft["quantity"]})
+    if facts:
+        lines.append(" · ".join(facts))
+    if draft.get("photo_ids"):
+        lines.append(f"📷 {len(draft['photo_ids'])}")
+    notes = [_warning(c) for c in draft.get("warnings") or () if _warning(c)]
+    if form.is_valid():
+        try:
+            for finding in ptc.for_promotion(form.build(), tenant)[:WARNING_LIMIT]:
+                notes.append(str(getattr(finding, "message", "") or ""))
+        except Exception:  # noqa: BLE001 — подсказки необязательны
+            pass
+    else:
+        for errors in form.errors.values():
+            notes.extend(str(e) for e in errors)
+    usage = limits.usage(tenant)
+    if usage and usage.get("full"):
+        notes.append(_("Limit erreicht — ✅ speichert als Entwurf."))
+    lines += ["⚠️ " + n for n in notes if n][: WARNING_LIMIT + 3]
+
+    buttons = []
+    if form.is_valid():
+        buttons.append({"text": "✅ " + _("Veröffentlichen"), "callback_data": f"tp:ok:{token}"})
+    edit = edit_url(token)
+    if edit:
+        buttons.append({"text": "✏️ " + _("Bearbeiten"), "url": edit})
+    buttons.append({"text": "❌ " + _("Verwerfen"), "callback_data": f"tp:no:{token}"})
+    return "\n".join(lines), {"inline_keyboard": [buttons]}
+
+
+def edit_url(token: str) -> str:
+    from apps.telegram.services import tenant_base_url
+
+    base = tenant_base_url()
+    if not base:
+        return ""
+    path = reverse("promotions:promotion-quick", urlconf="config.urls_tenant")
+    return f"{base}{path}?entwurf={token}"
+
+
+def _send(bot, chat, text: str, markup=None, photo_id: str = "") -> None:
+    from apps.telegram import services
+
+    if photo_id and len(text) <= services.CAPTION_MAX:
+        services.send_photo(bot.token, chat, photo_id, text, reply_markup=markup)
+    else:
+        services.send_message(bot.token, chat, text, reply_markup=markup)
+
+
+# --- приём сообщения ----------------------------------------------------------------------
+
+
+def slim_update(update: dict) -> dict:
+    """В брокер — только нужные поля апдейта."""
+    message = update.get("message") or {}
+    photos = message.get("photo") or []
+    largest = photos[-1].get("file_id") if photos and isinstance(photos[-1], dict) else ""
+    sender = message.get("from") or {}
+    return {
+        "update_id": update.get("update_id"),
+        "chat_id": (message.get("chat") or {}).get("id"),
+        "text": str(message.get("text") or message.get("caption") or "")[:2000],
+        "photo": str(largest or "")[:200],
+        "media_group_id": str(message.get("media_group_id") or "")[:64],
+        "language_code": str(sender.get("language_code") or "")[:8],
+    }
+
+
+def enqueue_owner_message(bot, update: dict, tenant) -> str:
+    from apps.core import ratelimit
+    from apps.telegram import services
+
+    from . import tasks
+
+    slim = slim_update(update)
+    chat = str(slim["chat_id"])
+    with translation.override(bot_locale({"language_code": slim["language_code"]}, tenant)):
+        if ratelimit.hit(
+            "tg-promo", f"{connection.schema_name}:{chat}", limit=RATE_LIMIT, window=3600
+        ):
+            services.send_message(
+                bot.token, chat, _("Zu viele Entwürfe — bitte später erneut versuchen.")
+            )
+            return "limited"
+        try:
+            tasks.telegram_owner_message.delay(
+                dedupe_key=f"tgmsg:{connection.schema_name}:{slim['update_id']}",
+                schema=connection.schema_name,
+                update=slim,
+            )
+        except Exception as exc:  # брокер недоступен — честно сказать, а не молча потерять
+            logger.warning("tg promo enqueue failed: %s", type(exc).__name__)
+            services.send_message(
+                bot.token, chat, _("Gerade nicht möglich — bitte später erneut senden.")
+            )
+            return "failed"
+    return "queued"
+
+
+def _album_key(schema: str, chat: str, group: str) -> str:
+    return f"tgpromo:mg:{schema}:{chat}:{group}"
+
+
+def handle_owner_message(schema: str, update: dict) -> str:
+    """Тело Celery-задачи: разбор → черновик → превью. Никогда не бросает наружу."""
+    from django_tenants.utils import schema_context
+
+    from apps.telegram.models import TelegramBot
+    from apps.tenants.models import Tenant
+
+    with schema_context(schema):
+        tenant = Tenant.objects.filter(schema_name=schema).first()
+        bot = TelegramBot.objects.filter(is_active=True).exclude(token="").first()
+        if tenant is None or bot is None:
+            return "skip"
+        chat = str(update.get("chat_id") or "")
+        if not chat or chat != owner_chat(tenant):
+            return "skip"  # владелец перепривязан, пока сообщение ждало в очереди
+        with translation.override(
+            bot_locale({"language_code": update.get("language_code")}, tenant)
+        ):
+            try:
+                return _handle(bot, tenant, schema, chat, update)
+            except Exception as exc:  # noqa: BLE001 — без трейсбэка: в нём текст владельца
+                logger.warning("tg promo failed: %s", type(exc).__name__)
+                return "error"
+
+
+def _handle(bot, tenant, schema, chat, update) -> str:
+    from . import message_parse
+
+    reason = gate(tenant)
+    if reason:
+        _send(bot, chat, reason)
+        return "gated"
+    photo = update.get("photo") or ""
+    group = update.get("media_group_id") or ""
+    if group and photo:
+        token = cache.get(_album_key(schema, chat, group))
+        draft = load_draft(schema, chat, token) if token else None
+        if draft is not None:
+            ids = list(draft.get("photo_ids") or [])
+            from . import quick
+
+            if photo not in ids and len(ids) < quick.MAX_PHOTOS:
+                ids.append(photo)
+                draft["photo_ids"] = ids
+                cache.set(_draft_key(schema, chat, token), draft, DRAFT_TTL)
+            return "album"
+    parsed = message_parse.parse(update.get("text") or "")
+    if not parsed.signals and not photo:
+        _send(
+            bot,
+            chat,
+            _(
+                "Schicken Sie z. B.: „Brötchen 2,50 € statt 3,90 €, heute bis 18 Uhr, 20 Stück“ — gern mit Foto."
+            ),
+        )
+        return "hint"
+    if not parsed.title:
+        _send(bot, chat, _("Wie heißt das Angebot? Schreiben Sie es bitte dazu."))
+        return "no_title"
+    draft = draft_from_parsed(parsed, tenant, photo_ids=[photo] if photo else [])
+    token = store_draft(schema, chat, draft)
+    if group:
+        cache.set(_album_key(schema, chat, group), token, ALBUM_TTL)
+    form = form_for(draft, tenant)
+    text, markup = render_preview(draft, tenant, form, token)
+    _send(bot, chat, text, markup, photo_id=photo)
+    return "preview"
+
+
+# --- нажатия кнопок -----------------------------------------------------------------------
+
+
+def handle_callback(bot, callback: dict, tenant) -> str:
+    """✅/❌ под превью. Синхронно: сначала снять «часики», потом действие."""
+    from apps.telegram import services
+
+    cid = str(callback.get("id") or "")
+    sender = callback.get("from") or {}
+    message = callback.get("message") or {}
+    chat = str((message.get("chat") or {}).get("id") or "")
+    services.answer_callback_query(bot.token, cid)
+    with translation.override(bot_locale(sender, tenant)):
+        owner = owner_chat(tenant)
+        if not owner or str(sender.get("id")) != owner or chat != owner:
+            services.answer_callback_query(bot.token, cid, _("Nicht erlaubt."))
+            return "denied"
+        m = CALLBACK_RE.match(str(callback.get("data") or ""))
+        if not m:
+            return "skip"
+        action, token = m.groups()
+        schema = connection.schema_name
+        reason = gate(tenant)
+        if reason:
+            _send(bot, chat, reason)
+            return "gated"
+        if action == "no":
+            drop_draft(schema, chat, token)
+            services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
+            _send(bot, chat, _("Verworfen."))
+            return "dropped"
+        return _confirm(bot, tenant, schema, chat, token, message)
+
+
+def _promo_url(promo) -> str:
+    from apps.telegram.services import tenant_base_url
+
+    path = reverse("storefront-promotion", args=[promo.pk], urlconf="config.urls_tenant")
+    return tenant_base_url() + path
+
+
+def photos_from_telegram(token: str, photo_ids) -> tuple[list, bool]:
+    """Фото черновика → загрузки для `save_photos` (без EXIF). → (uploads, failed)."""
+    from django.core.files.base import ContentFile
+
+    from apps.ai.images import reencode
+    from apps.telegram import services
+
+    uploads, failed = [], False
+    for i, file_id in enumerate(photo_ids or ()):
+        data = services.download_file(token, file_id)
+        if not data:
+            failed = True
+            continue
+        try:
+            clean = reencode(data, max_side=2000, quality=88)
+        except Exception:  # noqa: BLE001 — не картинка / слишком велика
+            failed = True
+            continue
+        uploads.append(ContentFile(clean, name=f"telegram-{i}.jpg"))
+    return uploads, failed
+
+
+def _confirm(bot, tenant, schema, chat, token, message) -> str:
+    from apps.telegram import services
+
+    from . import limits, quick
+
+    if not claim(schema, token):
+        value = done_value(schema, token)
+        if value and value != "pending":
+            from .models import Promotion
+
+            promo = Promotion.objects.filter(pk=value).first()
+            if promo is not None:
+                _send(bot, chat, _("Schon veröffentlicht: %(url)s") % {"url": _promo_url(promo)})
+                return "already"
+        _send(bot, chat, _("Wird gerade gespeichert …"))
+        return "busy"
+    draft = load_draft(schema, chat, token)
+    if draft is None:
+        release(schema, token)
+        _send(bot, chat, _("Entwurf abgelaufen — bitte neu senden."))
+        return "expired"
+    form = form_for(draft, tenant)
+    if not form.is_valid():
+        release(schema, token)
+        _send(bot, chat, _("Bitte im Formular prüfen (✏️)."))
+        return "invalid"
+    uploads, failed = photos_from_telegram(bot.token, draft.get("photo_ids"))
+    images = []
+    if uploads:
+        try:
+            images = quick.save_photos(uploads)
+        except Exception:  # noqa: BLE001 — акция без фото лучше, чем никакой
+            failed, images = True, []
+    try:
+        with transaction.atomic():
+            promo = form.build()
+            promo, activated = quick.publish_built(
+                form, promo, images, tenant=tenant, actor=owner_user(tenant)
+            )
+    except Exception:
+        release(schema, token)
+        raise
+    mark_done(schema, token, promo.pk)
+    drop_draft(schema, chat, token)
+    services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
+    lines = []
+    if activated:
+        lines.append(_("✅ Live: %(url)s") % {"url": _promo_url(promo)})
+    else:
+        limit = limits.active_limit(tenant)
+        lines.append(_("Als Entwurf gespeichert."))
+        if limit is not None:
+            lines.append(limits.limit_message(limit))
+    if failed:
+        lines.append(_("Foto konnte nicht übernommen werden."))
+    _send(bot, chat, "\n".join(lines))
+    return "published" if activated else "draft"

@@ -26210,3 +26210,98 @@ msgstr "From AI suggestion:"
 
 msgid "KI-Vorschlag:"
 msgstr "AI suggestion:"
+
+#, python-format
+msgid "%(n)s Stück"
+msgstr "%(n)s pcs"
+
+msgid "Aktionen sind in Ihrem Kabinett nicht aktiv."
+msgstr "Promotions are not active in your account."
+
+msgid "Als Entwurf gespeichert."
+msgstr "Saved as a draft."
+
+msgid "Bedingungen wie „2 für 1“ bitte im Formular (✏️) eintragen."
+msgstr "Please enter conditions like “2 for 1” in the form (✏️)."
+
+msgid "Bitte im Formular prüfen (✏️)."
+msgstr "Please check in the form (✏️)."
+
+msgid "Das Datum liegt im nächsten Jahr."
+msgstr "The date is in next year."
+
+msgid "Der „statt“-Preis ist nicht höher — weggelassen."
+msgstr "The “instead of” price is not higher — left out."
+
+msgid "Die Uhrzeit liegt in der Vergangenheit."
+msgstr "The time is in the past."
+
+msgid "Die Uhrzeit liegt schon in der Vergangenheit — Frist ohne Uhrzeit."
+msgstr "The time has already passed — deadline without a time."
+
+msgid "Entwurf abgelaufen — bitte neu senden."
+msgstr "Draft expired — please send it again."
+
+msgid "Foto konnte nicht übernommen werden."
+msgstr "The photo could not be used."
+
+msgid "Gerade nicht möglich — bitte später erneut senden."
+msgstr "Not possible right now — please send again later."
+
+msgid "Ihr Konto ist eingeschränkt — bitte im Kabinett die Abrechnung prüfen."
+msgstr "Your account is restricted — please check billing in your account."
+
+msgid "Limit erreicht — ✅ speichert als Entwurf."
+msgstr "Limit reached — ✅ saves as a draft."
+
+msgid "Nicht erlaubt."
+msgstr "Not allowed."
+
+msgid "Preis und Rabatt zugleich — es zählt der Preis."
+msgstr "Price and discount together — the price counts."
+
+msgid ""
+"Schicken Sie z. B.: „Brötchen 2,50 € statt 3,90 €, heute bis 18 Uhr, 20 "
+"Stück“ — gern mit Foto."
+msgstr ""
+"Send e.g.: “Rolls €2.50 instead of €3.90, today until 6 pm, 20 pcs” — a "
+"photo is welcome."
+
+#, python-format
+msgid "Schon veröffentlicht: %(url)s"
+msgstr "Already published: %(url)s"
+
+msgid "Verwerfen"
+msgstr "Discard"
+
+msgid "Verworfen."
+msgstr "Discarded."
+
+msgid "Wie heißt das Angebot? Schreiben Sie es bitte dazu."
+msgstr "What is the offer called? Please add it."
+
+msgid "Wird gerade gespeichert …"
+msgstr "Saving …"
+
+msgid "Zu viele Entwürfe — bitte später erneut versuchen."
+msgstr "Too many drafts — please try again later."
+
+#, python-format
+msgid "bis %(when)s"
+msgstr "until %(when)s"
+
+#, python-format
+msgid "✅ Live: %(url)s"
+msgstr "✅ Live: %(url)s"
+
+msgid "statt"
+msgstr "instead of"
+
+msgid "Dieser Entwurf ist nicht mehr verfügbar."
+msgstr "This draft is no longer available."
+
+#, python-format
+msgid "%(n)s Foto aus Telegram wird übernommen"
+msgid_plural "%(n)s Fotos aus Telegram werden übernommen"
+msgstr[0] "%(n)s photo from Telegram will be used"
+msgstr[1] "%(n)s photos from Telegram will be used"

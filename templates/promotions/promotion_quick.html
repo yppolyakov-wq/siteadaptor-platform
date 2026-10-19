@@ -43,9 +43,12 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
     {{ form.group }}
     {{ form.photo_from }}
     {{ form.vorschlag }}
+    {{ form.until_time }}
+    {{ form.entwurf }}
 
     <section class="bg-white rounded-2xl shadow-sm p-4 mb-3 space-y-4" data-quick-step="1">
       <h2 class="text-sm font-semibold text-gray-500">1 · {% trans "Was gibt es?" %}</h2>
+      {% if tg_photo_count %}<p class="text-sm text-gray-600" data-tg-photos>📷 {% blocktrans count n=tg_photo_count %}{{ n }} Foto aus Telegram wird übernommen{% plural %}{{ n }} Fotos aus Telegram werden übernommen{% endblocktrans %}</p>{% endif %}
       {% include "promotions/_photo_picker.html" with errors=form.photo.errors source_images=source.images %}
       {% if ai_photo_enabled %}{% include "promotions/_ai_photo_draft.html" %}{% endif %}
       <label class="block">
