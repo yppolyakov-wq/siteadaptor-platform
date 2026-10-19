@@ -23,14 +23,14 @@ def on(settings):
     return settings
 
 
-def _post(body, secret=SECRET, header=SECRET):
+def _post(body, header=SECRET):
     request = RequestFactory().post(
-        f"/tg/plattform/{secret}/",
+        "/tg/plattform/",
         data=json.dumps(body),
         content_type="application/json",
         HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN=header,
     )
-    return webhook.webhook(request, secret)
+    return webhook.webhook(request)
 
 
 def _private(text="/start", uid=USER, update_id=1):
@@ -44,12 +44,28 @@ def _private(text="/start", uid=USER, update_id=1):
     }
 
 
-@pytest.mark.parametrize("secret, header", [("x" * 32, SECRET), (SECRET, ""), (SECRET, "y")])
-def test_wrong_secret_is_404(on, secret, header):
+@pytest.mark.parametrize("header", ["", "y", "x" * 32, "ü" * 32])
+def test_wrong_secret_is_404(on, header):
     from django.http import Http404
 
     with pytest.raises(Http404):
-        _post(_private(), secret=secret, header=header)
+        _post(_private(), header=header)
+
+
+def test_get_and_short_secret_are_404(on):
+    from django.http import Http404
+
+    with pytest.raises(Http404):
+        webhook.webhook(RequestFactory().get("/tg/plattform/"))
+    on.TELEGRAM_PLATFORM_WEBHOOK_SECRET = "short"
+    with pytest.raises(Http404):
+        _post(_private(), header="short")
+
+
+def test_non_int_update_id_is_ignored(on):
+    with mock.patch("apps.platform_bot.tasks.platform_bot_update.delay") as delay:
+        assert _post({"update_id": {"x": 1}}).status_code == 200
+    delay.assert_not_called()
 
 
 def test_disabled_bot_is_404(on):

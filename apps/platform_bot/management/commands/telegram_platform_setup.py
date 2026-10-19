@@ -38,7 +38,7 @@ class Command(BaseCommand):
                 f"warning: TELEGRAM_PLATFORM_BOT_USERNAME={bot.username} ≠ @{username}"
             )
         url = f"https://{domain_base()}" + reverse(
-            "platform-bot-webhook", args=[secret], urlconf="config.urls_public"
+            "platform-bot-webhook", urlconf="config.urls_public"
         )
         if not apply:
             self.stdout.write("dry-run: webhook would be set on the platform host")

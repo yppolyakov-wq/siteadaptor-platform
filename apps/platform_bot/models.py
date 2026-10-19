@@ -30,12 +30,16 @@ class OwnerTelegramLink(TimestampedModel):
         verbose_name = "Telegram-Verknüpfung"
         verbose_name_plural = "Telegram-Verknüpfungen"
         constraints = [
+            # Индекс этого ограничения обслуживает и поиск по tg_user_id (префикс).
             models.UniqueConstraint(
                 fields=["tg_user_id", "tenant"], name="platform_bot_link_user_tenant"
-            )
-        ]
-        indexes = [
-            models.Index(fields=["tg_user_id", "is_active"], name="platform_bot_link_user_idx")
+            ),
+            # У бизнеса один владелец-чат общего бота — на уровне БД, не только кода.
+            models.UniqueConstraint(
+                fields=["tenant"],
+                condition=models.Q(is_active=True),
+                name="platform_bot_one_active_per_tenant",
+            ),
         ]
 
     def __str__(self):

@@ -151,7 +151,7 @@ urlpatterns = [
     # продолжает ловить партнёрский ?ref (исторические ссылки).
     path("registrieren/", BusinessSignupView.as_view(), name="business-signup"),
     # T-8.5 «Aktion in 3 Klicks»: регистрация + первая акция одной страницей.
-    path("tg/plattform/<str:secret>/", platform_bot_webhook.webhook, name="platform-bot-webhook"),
+    path("tg/plattform/", platform_bot_webhook.webhook, name="platform-bot-webhook"),
     path("aktion-starten/", quickstart_views.quick_start, name="quick-start"),
     path("aktion-starten/adresse/", quickstart_views.slug_check, name="quick-start-slug"),
     path(
