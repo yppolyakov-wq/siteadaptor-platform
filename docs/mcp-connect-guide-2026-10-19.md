@@ -16,7 +16,8 @@ MCP_PORTAL_HOSTS=solingen.<ваш домен>
 ```
 
 `MCP_PORTAL_HOSTS` — список хостов пилота через запятую (пусто = все активные порталы;
-для пилота лучше явно). Без `MCP_ENABLED=1` адрес `/mcp/` отвечает 404.
+для пилота лучше явно). Без `MCP_ENABLED=1` адрес `/mcp/` отвечает 404. Строка о MCP в
+`llms.txt` портала появляется/пропадает с задержкой до ~2 минут (кэш страниц).
 
 Необязательно (значения по умолчанию разумные): `MCP_RATE_PER_IP` (300 запросов/мин на
 адрес), `MCP_RATE_GLOBAL` (3000/мин на сервер), `MCP_MAX_BODY` (64 КБ),
@@ -35,7 +36,10 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml --profile single 
 Демо-бизнесы помечены «[демо]», платные размещения — «[реклама]».
 
 С своего компьютера можно открыть MCP Inspector (`npx @modelcontextprotocol/inspector`),
-транспорт «Streamable HTTP», адрес тот же, без авторизации.
+транспорт «Streamable HTTP», адрес тот же, без авторизации. Inspector, работающий в
+браузере, шлёт заголовок `Origin` — сервер отвечает 403, пока этот Origin не добавлен в
+`MCP_ALLOWED_ORIGINS` (например `MCP_ALLOWED_ORIGINS=http://localhost:6274`). Серверные
+клиенты Claude/ChatGPT Origin не шлют — им переменная не нужна.
 
 ## 3. Подключить в Claude
 
@@ -71,11 +75,21 @@ authentication».
 > **KI-Assistenten (MCP-Schnittstelle).** Der Stadtkatalog kann von KI-Assistenten
 > (z. B. Claude, ChatGPT) über eine öffentliche Schnittstelle abgefragt werden. Dabei
 > werden ausschließlich die öffentlich sichtbaren Angebote und Unternehmensprofile
-> übermittelt. Wir speichern zu diesen Abfragen keine personenbezogenen Daten: Suchbegriffe
-> werden nur zusammengefasst und ohne Bezug zu Personen gezählt (E-Mail-Adressen,
-> Telefonnummern und Kontonummern werden vorher entfernt), Aufrufe werden je Angebot und Tag
-> gezählt. Die Verarbeitung Ihrer Anfrage beim jeweiligen Assistenten richtet sich nach
-> dessen Datenschutzbestimmungen.
+> übermittelt. Suchbegriffe speichern wir zusammengefasst je Tag, ohne Kennung der
+> anfragenden Person; E-Mail-Adressen, Telefonnummern und Kontonummern versuchen wir vorher
+> automatisch zu entfernen. Da Suchbegriffe Freitext sind, können sie dennoch
+> personenbezogene Angaben enthalten (z. B. einen Namen), wenn diese eingegeben werden.
+> Diese Suchstatistik wird nach 180 Tagen gelöscht, einmalige Suchbegriffe nach 30 Tagen.
+> Aufrufe und Anzeigen von Angeboten zählen wir je Angebot und Tag ohne Personenbezug;
+> diese Zähler bewahren wir 400 Tage auf. Zum Schutz vor Missbrauch (Begrenzung der
+> Anfragenrate) verarbeiten wir die IP-Adresse des anfragenden Systems kurzzeitig im
+> Arbeitsspeicher (höchstens etwa eine Stunde); zusätzlich protokolliert unser Webserver
+> Zugriffe technisch (Server-Logfiles, siehe oben). Rechtsgrundlage ist Art. 6 Abs. 1
+> lit. f DSGVO. Die Verarbeitung Ihrer Anfrage beim jeweiligen Assistenten richtet sich
+> nach dessen Datenschutzbestimmungen.
+
+> Для юриста: сроки хранения взяты из настроек (`SEARCH_LOG_RETENTION_DAYS` 180, `…_SINGLE` 30,
+> `PORTAL_STATS_RETENTION_DAYS` 400); срок хранения access-логов Caddy указать по факту сервера.
 
 ## 8. Дальше
 

@@ -27,6 +27,12 @@ class Command(BaseCommand):
         parser.add_argument("--timeout", type=float, default=15.0)
 
     def handle(self, *args, **opts):
+        try:
+            self._run(opts)
+        except (KeyError, TypeError, AttributeError) as exc:
+            raise CommandError(f"ответ сервера не той формы: {type(exc).__name__} {exc}") from None
+
+    def _run(self, opts):
         url = opts["url"]
         if not url.startswith(("https://", "http://")):
             raise CommandError("--url должен начинаться с https:// или http://")
@@ -43,14 +49,31 @@ class Command(BaseCommand):
             body = {"jsonrpc": "2.0", "id": msg_id, "method": method}
             if params is not None:
                 body["params"] = params
-            resp = session.post(
-                url, data=json.dumps(body), headers=headers, timeout=opts["timeout"]
-            )
+            try:
+                resp = session.post(
+                    url, data=json.dumps(body), headers=headers, timeout=opts["timeout"]
+                )
+            except requests.RequestException as exc:
+                raise CommandError(
+                    f"{method}: нет соединения — {type(exc).__name__}: {exc}"
+                ) from None
+            if resp.status_code == 404:
+                raise CommandError(
+                    f"{method}: HTTP 404 — MCP выключен на этом хосте "
+                    "(MCP_ENABLED=1 и MCP_PORTAL_HOSTS в .env.prod, затем рестарт)"
+                )
             if resp.status_code != 200:
                 raise CommandError(f"{method}: HTTP {resp.status_code} — {resp.text[:200]}")
-            data = resp.json()
+            try:
+                data = resp.json()
+            except ValueError:
+                raise CommandError(f"{method}: ответ не JSON — {resp.text[:200]}") from None
+            if not isinstance(data, dict):
+                raise CommandError(f"{method}: неожиданный ответ — {str(data)[:200]}")
             if "error" in data:
                 raise CommandError(f"{method}: {data['error']}")
+            if not isinstance(data.get("result"), dict):
+                raise CommandError(f"{method}: в ответе нет result")
             return data["result"]
 
         init = call(

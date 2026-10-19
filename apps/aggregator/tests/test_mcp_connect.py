@@ -78,10 +78,35 @@ def test_smoke_command_fails_loudly_when_disabled(monkeypatch):
         return SimpleNamespace(status_code=404, text="Not Found", json=dict)
 
     monkeypatch.setattr(requests.Session, "post", post)
-    with pytest.raises(CommandError, match="HTTP 404"):
+    with pytest.raises(CommandError, match="MCP_ENABLED"):
         call_command("mcp_smoke", "--url", f"https://{_HOST}/mcp/", stdout=StringIO())
 
 
 def test_smoke_command_rejects_non_http_url():
     with pytest.raises(CommandError):
         call_command("mcp_smoke", "--url", "file:///etc/passwd", stdout=StringIO())
+
+
+@pytest.mark.parametrize(
+    "post",
+    [
+        "conn",
+        "html",
+        "list",
+        "noresult",
+    ],
+)
+def test_smoke_command_turns_bad_answers_into_clean_errors(monkeypatch, post):
+    import requests
+
+    def fake(self, url, **kw):
+        if post == "conn":
+            raise requests.ConnectionError("refused")
+        body = {"html": "<html>Shop</html>", "list": "[1, 2]", "noresult": '{"jsonrpc": "2.0"}'}[
+            post
+        ]
+        return SimpleNamespace(status_code=200, text=body, json=lambda: json.loads(body))
+
+    monkeypatch.setattr(requests.Session, "post", fake)
+    with pytest.raises(CommandError):
+        call_command("mcp_smoke", "--url", f"https://{_HOST}/mcp/", stdout=StringIO())
