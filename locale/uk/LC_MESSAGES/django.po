@@ -26249,3 +26249,7 @@ msgstr "Ціна за акцією щойно закінчилася. Будь �
 
 msgid "Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."
 msgstr "Ціна-сюрприз недоступна для послуг і номерів."
+
+#, python-format
+msgid "Ungültige Eingabe — %(problem)s"
+msgstr "Неправильні вхідні дані — %(problem)s"

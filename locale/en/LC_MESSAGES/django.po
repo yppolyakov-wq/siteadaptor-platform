@@ -25996,3 +25996,7 @@ msgstr "A promotional price has just sold out. Please check your cart."
 
 msgid "Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."
 msgstr "A surprise price is not possible for services and rooms."
+
+#, python-format
+msgid "Ungültige Eingabe — %(problem)s"
+msgstr "Invalid input — %(problem)s"

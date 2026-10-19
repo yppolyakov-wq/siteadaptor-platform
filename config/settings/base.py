@@ -302,6 +302,19 @@ AGGREGATOR_PORTAL_STATS = {
     "beacon_limit": env.int("PORTAL_STATS_BEACON_LIMIT", default=120),
 }
 
+# T-8.10f: MCP-сервер каталога города для ассистентов (Claude/ChatGPT) — POST /mcp/ на
+# хосте портала. Выключен по умолчанию; hosts пусто = все активные порталы.
+MCP_ENABLED = env.bool("MCP_ENABLED", default=False)
+MCP_PORTAL_HOSTS = env.list("MCP_PORTAL_HOSTS", default=[])
+# Origin, которым разрешено звать эндпоинт из браузера (DNS-rebinding); серверные клиенты
+# ассистентов Origin не шлют.
+MCP_ALLOWED_ORIGINS = env.list("MCP_ALLOWED_ORIGINS", default=[])
+# Запросов в минуту: на IP (у MCP это адрес платформы ассистента — общий для жителей,
+# поэтому высокий) и на весь сервер (предохранитель).
+MCP_RATE_PER_IP = env.int("MCP_RATE_PER_IP", default=600)
+MCP_RATE_GLOBAL = env.int("MCP_RATE_GLOBAL", default=3000)
+MCP_MAX_BODY = env.int("MCP_MAX_BODY", default=64 * 1024)
+
 # Г5: «живой» район портала — сколько РАЗНЫХ бизнесов нужно району, чтобы не добавлять
 # под его выдачей «Auch in der Nähe» (соседние районы). 0 = функция выключена.
 PORTAL_DISTRICT_MIN_BUSINESSES = env.int("PORTAL_DISTRICT_MIN_BUSINESSES", default=10)

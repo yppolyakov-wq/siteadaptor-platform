@@ -26069,3 +26069,7 @@ msgstr ""
 
 msgid "Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."
 msgstr "Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."
+
+#, python-format
+msgid "Ungültige Eingabe — %(problem)s"
+msgstr "Ungültige Eingabe — %(problem)s"

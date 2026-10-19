@@ -26135,3 +26135,7 @@ msgstr "Bir kampanya fiyatı az önce tükendi. Lütfen sepetinizi kontrol edin.
 
 msgid "Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."
 msgstr "Sürpriz fiyat hizmetler ve odalar için mümkün değildir."
+
+#, python-format
+msgid "Ungültige Eingabe — %(problem)s"
+msgstr "Geçersiz giriş — %(problem)s"

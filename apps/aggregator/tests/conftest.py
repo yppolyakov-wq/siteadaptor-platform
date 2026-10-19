@@ -1,5 +1,7 @@
 """Фикстуры тестов агрегатора."""
 
+import uuid
+
 import pytest
 from django.core.cache.backends.locmem import LocMemCache
 
@@ -14,6 +16,7 @@ def isolated_ratelimit(monkeypatch):
     """
     from apps.core import ratelimit
 
-    store = LocMemCache("rl-test", {})
+    # имя уникально: LocMem с одинаковым именем делит одно хранилище между тестами
+    store = LocMemCache(f"rl-test-aggregator-{uuid.uuid4()}", {})
     monkeypatch.setattr(ratelimit, "cache", store)
     return store

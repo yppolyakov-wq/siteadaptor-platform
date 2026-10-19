@@ -13,6 +13,7 @@ from apps.aggregator import account_views, follow_views, portal_views, reviews_v
 from apps.aggregator import reports as aggregator_reports
 from apps.aggregator import telegram_bot as portal_telegram
 from apps.aggregator import views as aggregator_views
+from apps.aggregator.mcp import views as mcp_views
 from apps.core import health
 from apps.core.media_views import serve_media
 from apps.tenants.views import set_public_language
@@ -30,6 +31,8 @@ urlpatterns = [
     path("feed.json", portal_views.portal_feed_json, name="portal-feed-json"),
     path("feed.xml", portal_views.portal_feed_atom, name="portal-feed-atom"),
     path("llms.txt", portal_views.portal_llms_txt, name="portal-llms"),
+    # T-8.10f: MCP-сервер каталога для ассистентов (выключатель MCP_ENABLED) — до <facet>.
+    path("mcp/", mcp_views.mcp_endpoint, name="portal-mcp"),
     # Клиентский аккаунт (P2.3a): magic-link вход. Тоже до <facet>.
     path("konto/", account_views.account, name="portal-account"),
     path("konto/login/", account_views.login_view, name="portal-login"),

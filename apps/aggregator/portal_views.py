@@ -971,6 +971,7 @@ PORTAL_DISALLOW = (
     "/tg/",
     "/sprache/",
     "/folgen/",
+    "/mcp/",
 )
 
 
