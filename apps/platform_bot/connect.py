@@ -64,3 +64,9 @@ def consume(raw: str) -> dict | None:
     if not cache.delete(key):
         return None  # кто-то потребил раньше
     return payload
+
+
+def restore(raw: str, payload: dict) -> None:
+    """Вернуть токен после СБОЯ привязки (БД/сеть): повтор апдейта не должен видеть
+    «ссылка недействительна». Короткий срок — повторы Celery/Telegram идут сразу."""
+    cache.set(_key(raw), payload, 5 * 60)

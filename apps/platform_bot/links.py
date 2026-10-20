@@ -40,8 +40,11 @@ def _write_mirror(tenant, **changes) -> dict:
     return cfg
 
 
-def bind(tg_user_id: int, tenant, *, via: str = OwnerTelegramLink.VIA_CABINET):
-    """Привязать пользователя Telegram к бизнесу через общий бот (и сделать текущим)."""
+def bind(tg_user_id: int, tenant, *, via: str = OwnerTelegramLink.VIA_CABINET, user_pk=None):
+    """Привязать пользователя Telegram к бизнесу через общий бот (и сделать текущим).
+
+    ``user_pk`` — пользователь кабинета, выпустивший ссылку: доставка проверяет, что он
+    всё ещё владелец (понизили/удалили из команды — уведомления через общий бот гаснут)."""
     tg_user_id = int(tg_user_id)
     with transaction.atomic():
         locked = _lock(tenant.pk)  # сначала бизнес, потом связи — без взаимоблокировок
@@ -61,7 +64,10 @@ def bind(tg_user_id: int, tenant, *, via: str = OwnerTelegramLink.VIA_CABINET):
         )
         # Вызывающему — свежий site_config (сохранять его объект без update_fields нельзя).
         tenant.site_config = _write_mirror(
-            locked, owner_chat_id=str(tg_user_id), owner_bot=OWNER_BOT_PLATFORM
+            locked,
+            owner_chat_id=str(tg_user_id),
+            owner_bot=OWNER_BOT_PLATFORM,
+            owner_user_pk=user_pk,  # None — ключ снимается
         )
     return link
 
@@ -81,7 +87,9 @@ def unbind(tenant) -> None:
             is_active=False, updated_at=timezone.now()
         )
         if _mirror_bot(locked) == OWNER_BOT_PLATFORM:
-            tenant.site_config = _write_mirror(locked, owner_chat_id=None, owner_bot=None)
+            tenant.site_config = _write_mirror(
+                locked, owner_chat_id=None, owner_bot=None, owner_user_pk=None
+            )
         else:
             tenant.site_config = locked.site_config
 
@@ -135,6 +143,7 @@ def claim_for_tenant_bot(tenant, chat_id, *, rotate_token: str) -> None:
             owner_chat_id=str(chat_id),
             owner_bot=OWNER_BOT_TENANT,
             owner_link_token=rotate_token,
+            owner_user_pk=None,
         )
 
 
@@ -145,7 +154,9 @@ def disconnect(tenant) -> None:
         OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True).update(
             is_active=False, updated_at=timezone.now()
         )
-        tenant.site_config = _write_mirror(locked, owner_chat_id=None, owner_bot=None)
+        tenant.site_config = _write_mirror(
+            locked, owner_chat_id=None, owner_bot=None, owner_user_pk=None
+        )
 
 
 def select(tg_user_id, link_id):
@@ -176,9 +187,36 @@ def owner_route(tenant) -> tuple[str, str]:
             or bots.platform_bot() is None
             or not chat.isdigit()
             or not is_owner(int(chat), tenant)
+            or not still_owner(tenant)
         ):
             return ("", "")
         return (OWNER_BOT_PLATFORM, chat)
     if bots.tenant_bot() is None:
         return ("", "")
     return (OWNER_BOT_TENANT, chat)
+
+
+def still_owner(tenant) -> bool:
+    """Выпустивший ссылку пользователь — всё ещё активный владелец (читается в схеме бизнеса).
+    Связь без пользователя кабинета (регистрация через бот, H-5) — по таблице связей."""
+    from apps.core.models import Membership
+
+    cfg = getattr(tenant, "site_config", None)
+    node = cfg.get("notify") if isinstance(cfg, dict) else None
+    user_pk = node.get("owner_user_pk") if isinstance(node, dict) else None
+    if not user_pk:
+        return True
+    return Membership.objects.filter(
+        user_id=user_pk, user__is_active=True, role=Membership.ROLE_OWNER
+    ).exists()
+
+
+def platform_linked(tenant) -> bool:
+    """Для показа в кабинете: владелец подключён к общему боту И связь жива по таблице
+    (заблокировал бот / связь сменилась — показываем «не подключено», а не ложное «да»)."""
+    cfg = getattr(tenant, "site_config", None)
+    node = cfg.get("notify") if isinstance(cfg, dict) else None
+    if not isinstance(node, dict) or node.get("owner_bot") != OWNER_BOT_PLATFORM:
+        return False
+    chat = str(node.get("owner_chat_id") or "")
+    return chat.isdigit() and is_owner(int(chat), tenant)

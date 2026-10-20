@@ -404,3 +404,74 @@ def test_personal_channels_ready_via_platform_and_default(on):
     tenant.refresh_from_db()
     card = next(r for r in personal_channels(tenant) if r["key"] == "telegram")
     assert card["ready"] is True and "Plattform" in str(card["hint"])
+
+
+# --- правки ревью (2026-10-20) ----------------------------------------------------------
+
+
+def test_network_error_never_puts_bot_token_into_last_error(on, monkeypatch):
+    import requests
+
+    from apps.notifications import adapters
+    from apps.notifications.models import Notification
+    from apps.telegram import notify
+
+    tenant = _tenant("h3x")
+    links.bind(USER, tenant)
+    tenant.refresh_from_db()
+    notify.send_to_owner(tenant, type="t", dedupe_key="h3x-1", text="Hallo")
+    row = Notification.objects.get(dedupe_key="h3x-1")
+
+    def boom(*a, **k):
+        raise requests.ConnectionError("Max retries exceeded with url: /bot123:abc/sendMessage")
+
+    monkeypatch.setattr("apps.telegram.services.send_message", boom)
+    with pytest.raises(RuntimeError) as exc:
+        adapters.send(row)
+    assert "123:abc" not in str(exc.value) and exc.value.__cause__ is None
+
+
+def test_demoted_issuer_stops_platform_delivery(on, sent, mails):
+    from apps.notifications.models import Notification
+    from apps.telegram import notify
+
+    tenant = _tenant("h3y")
+    user = _owner(tenant)
+    raw = _raw(connect.issue(tenant, user))
+    assert handler.handle(_start(raw)) == "connected"
+    tenant.refresh_from_db()
+    Membership.objects.filter(user=user).update(role=Membership.ROLE_STAFF)
+    notify.send_to_owner(tenant, type="t", dedupe_key="h3y-1", text="Hallo")
+    assert not Notification.objects.filter(dedupe_key="h3y-1").exists()
+
+
+def test_staff_cannot_disconnect_owner_telegram(on):
+    tenant = _tenant("h3z")
+    staff = _owner(tenant, role=Membership.ROLE_STAFF, name="staff")
+    links.bind(USER, tenant)
+    tenant.refresh_from_db()
+    req = _cabinet("/dashboard/settings/notifications/", staff, tenant)
+    req.POST = req.POST.copy()
+    req.POST["action"] = "disconnect_owner"
+    views.notifications_settings(req)
+    assert links.is_owner(USER, tenant)
+
+
+def test_bind_failure_keeps_token_for_retry(on, sent, mails, monkeypatch):
+    tenant = _tenant("h3za")
+    raw = _raw(connect.issue(tenant, _owner(tenant)))
+    monkeypatch.setattr(links, "bind", mock.Mock(side_effect=RuntimeError("db")))
+    with pytest.raises(RuntimeError):
+        handler.handle(_start(raw))
+    assert connect.consume(raw) is not None  # повтор апдейта примет ту же ссылку
+
+
+def test_blocked_platform_link_is_not_shown_as_connected(on):
+    tenant = _tenant("h3zb")
+    owner = _owner(tenant)
+    links.bind(USER, tenant)
+    links.mark_blocked(USER)
+    tenant.refresh_from_db()
+    req = _cabinet("/dashboard/settings/notifications/", owner, tenant, "get")
+    html = views.notifications_settings(req).content.decode()
+    assert "data-platform-connect" in html and "Verbunden über Plattform-Bot" not in html

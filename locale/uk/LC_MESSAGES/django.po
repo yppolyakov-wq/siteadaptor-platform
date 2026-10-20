@@ -26675,3 +26675,6 @@ msgstr "Використати власний бот"
 
 msgid "Über Plattform-Bot verbunden"
 msgstr "Підключено через бот платформи"
+
+msgid "Nur der Inhaber kann das ändern."
+msgstr "Змінити це може лише власник."

@@ -156,21 +156,18 @@ def _invalid(bot, chat) -> str:
 
 
 def _owner_in_schema(payload: dict) -> bool:
-    """Право перепроверяется В МОМЕНТ привязки: ссылку мог выпустить уже не владелец."""
+    """Право перепроверяется В МОМЕНТ привязки: ссылку мог выпустить уже не владелец.
+    Ошибка БД не глотается — `_connect` вернёт токен, повтор апдейта пройдёт."""
     from django_tenants.utils import schema_context
 
     from apps.core.models import Membership
 
-    try:
-        with schema_context(payload["schema"]):
-            return Membership.objects.filter(
-                user_id=payload["user_pk"],
-                user__is_active=True,
-                role=Membership.ROLE_OWNER,
-            ).exists()
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("platform bot owner check failed: %s", type(exc).__name__)
-        return False
+    with schema_context(payload["schema"]):
+        return Membership.objects.filter(
+            user_id=payload["user_pk"],
+            user__is_active=True,
+            role=Membership.ROLE_OWNER,
+        ).exists()
 
 
 def _connect(bot, message: dict, raw: str) -> str:
@@ -186,12 +183,21 @@ def _connect(bot, message: dict, raw: str) -> str:
     payload = connect.consume(raw)
     if payload is None:
         return _invalid(bot, chat)
-    tenant = Tenant.objects.filter(
-        schema_name=payload.get("schema") or "", pk=payload.get("tenant_pk")
-    ).first()
-    if tenant is None or not _owner_in_schema(payload):
-        return _invalid(bot, chat)
-    link = links.bind(from_id, tenant, via=links.OwnerTelegramLink.VIA_CABINET)
+    try:
+        tenant = Tenant.objects.filter(
+            schema_name=payload.get("schema") or "", pk=payload.get("tenant_pk")
+        ).first()
+        if tenant is None or not _owner_in_schema(payload):
+            return _invalid(bot, chat)
+        link = links.bind(
+            from_id,
+            tenant,
+            via=links.OwnerTelegramLink.VIA_CABINET,
+            user_pk=payload.get("user_pk"),
+        )
+    except Exception:
+        connect.restore(raw, payload)  # сбой — не вина ссылки: повтор её примет
+        raise
     text = _("✅ Verbunden mit %(name)s. Benachrichtigungen kommen ab jetzt hier.") % {
         "name": tenant.name
     }

@@ -5602,6 +5602,10 @@ def notifications_settings(request):
     tenant = request.tenant
     if request.method == "POST":
         if request.POST.get("action") == "disconnect_owner":
+            # Telegram ВЛАДЕЛЬЦА отключает только владелец (как кнопки общего бота).
+            if not roles.is_owner(request.user):
+                messages.error(request, _("Nur der Inhaber kann das ändern."))
+                return redirect("notifications-settings")
             platform_links.disconnect(tenant)  # T-8.10h: единственный писатель привязки
             messages.success(request, _("Telegram getrennt."))
             return redirect("notifications-settings")
@@ -5622,6 +5626,10 @@ def notifications_settings(request):
 
     node = _notify_node(tenant)
     owner_via = node.get("owner_bot") or ("tenant" if owner_chat_id(tenant) else "")
+    # Общий бот: «подключено» — только при живой связи в таблице (заблокировал бот → нет).
+    owner_linked = bool(owner_chat_id(tenant)) and (
+        owner_via != "platform" or platform_links.platform_linked(tenant)
+    )
     platform = bots.platform_bot()
     return render(
         request,
@@ -5631,8 +5639,8 @@ def notifications_settings(request):
             "matrix": prefs.customer_matrix(tenant),
             "owner": prefs.owner_channels(tenant),
             "owner_deep_link": owner_deep_link(tenant),
-            "owner_linked": bool(owner_chat_id(tenant)),
-            "owner_via": owner_via if owner_chat_id(tenant) else "",
+            "owner_linked": owner_linked,
+            "owner_via": owner_via if owner_linked else "",
             # T-8.10h H-3: подключение к общему боту — только владельцу бизнеса.
             "platform_bot_available": platform is not None
             and bool(platform.username)
@@ -5845,12 +5853,11 @@ def integrations_home(request):
             return (_("E-Mail: Test-Modus (Konsole) — Mails gehen nicht raus"), "warn")
         bot = active_bot()
         notify_node = (tenant.site_config or {}).get("notify") or {}
-        if (
-            isinstance(notify_node, dict)
-            and notify_node.get("owner_bot") == "platform"
-            and owner_chat_id(tenant)
-        ):
-            return (_("Über Plattform-Bot verbunden"), "ok")
+        if isinstance(notify_node, dict) and notify_node.get("owner_bot") == "platform":
+            from apps.platform_bot import links as platform_links
+
+            if platform_links.platform_linked(tenant):
+                return (_("Über Plattform-Bot verbunden"), "ok")
         if bot is None:
             return (_("Kein Telegram-Bot"), "muted")
         # I18N-7b: gettext НЕ в f-строке (xgettext их не извлекает).

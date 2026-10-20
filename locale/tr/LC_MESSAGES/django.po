@@ -26560,3 +26560,6 @@ msgstr "Bunun yerine kendi botunuzu kullanın"
 
 msgid "Über Plattform-Bot verbunden"
 msgstr "Platform botu üzerinden bağlı"
+
+msgid "Nur der Inhaber kann das ändern."
+msgstr "Bunu yalnızca işletme sahibi değiştirebilir."

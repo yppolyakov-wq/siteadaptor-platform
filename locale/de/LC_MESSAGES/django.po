@@ -26500,3 +26500,6 @@ msgstr "Stattdessen den eigenen Bot verwenden"
 
 msgid "Über Plattform-Bot verbunden"
 msgstr "Über Plattform-Bot verbunden"
+
+msgid "Nur der Inhaber kann das ändern."
+msgstr "Nur der Inhaber kann das ändern."

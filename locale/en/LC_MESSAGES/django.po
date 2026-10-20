@@ -26419,3 +26419,6 @@ msgstr "Use your own bot instead"
 
 msgid "Über Plattform-Bot verbunden"
 msgstr "Connected via platform bot"
+
+msgid "Nur der Inhaber kann das ändern."
+msgstr "Only the owner can change this."

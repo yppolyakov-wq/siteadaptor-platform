@@ -72,16 +72,23 @@ def _send_platform(notification) -> None:
         raise RuntimeError("Plattform-Bot nicht aktiv")
     recipient = str(notification.recipient or "")
     tenant = Tenant.objects.filter(schema_name=connection.schema_name).first()
-    if tenant is None or not recipient.isdigit() or not links.is_owner(int(recipient), tenant):
+    if (
+        tenant is None
+        or not recipient.isdigit()
+        or not links.is_owner(int(recipient), tenant)
+        or not links.still_owner(tenant)
+    ):
         raise RuntimeError("Plattform-Bot: Inhaber nicht verbunden")
     try:
         tg_services.send_message(bot.token, recipient, notification.payload.get("body", ""))
     except requests.HTTPError as exc:
-        # Текст исключения содержит URL с токеном — наружу только код.
+        # Текст исключения содержит URL с токеном общего бота — в last_error только код.
         status = getattr(getattr(exc, "response", None), "status_code", None)
         if status == 403:
             links.mark_blocked(int(recipient))
         raise RuntimeError(f"Telegram HTTP {status}") from None
+    except requests.RequestException as exc:
+        raise RuntimeError(f"Telegram {type(exc).__name__}") from None
 
 
 _SENDERS = {

@@ -108,10 +108,10 @@ def personal_channels(tenant) -> list[dict]:
 def _telegram_state(tenant) -> tuple[bool, str]:
     """T-8.10h H-3: чат владельца живёт в site_config["notify"] (общий бот платформы или
     свой бот бизнеса); свой бот без чата владельца — тоже канал (клиентские чаты)."""
+    from apps.platform_bot import links
     from apps.telegram import notify
 
-    node = notify._notify_node(tenant)
-    if node.get("owner_chat_id") and node.get("owner_bot") == "platform":
+    if links.platform_linked(tenant):
         return True, str(_("Über Plattform-Bot verbunden"))
     if notify.active_bot() is not None:
         return True, str(_("Bot für Kundenchats und Benachrichtigungen"))
