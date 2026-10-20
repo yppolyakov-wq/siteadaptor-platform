@@ -3810,7 +3810,7 @@ build-log; планы — `hotel-growth-plan.md` / `hotel-channel-manager-plan.m
 
 **Параллельно — Stage 0 (на владельце, блокер боевого запуска):** Stripe live
 (ключи/Price 39 €/Connect/webhook — `billing-stripe-setup.md`), инфра (отдельный
-Postgres, бэкапы, `SECRETS_ENCRYPTION_KEY`, SENTRY_DSN, RESEND_API_KEY), право DACH
+Postgres, бэкапы, `SECRETS_ENCRYPTION_KEY`, SENTRY_DSN; RESEND_API_KEY — ✅ стоит), право DACH
 (AVV — `dsgvo-review.md`, прогон k6 — `scripts/load/README.md`).
 **⚠️ ВАЖНО (2026-10-15, T-8.20): при переезде на внешний/managed Postgres роль БД обязана
 иметь право `CREATE EXTENSION` (миграция `aggregator/0023` ставит `pg_trgm`; в проде сегодня
@@ -3831,13 +3831,13 @@ Double-Opt-In по UWG §7 до маркетинговых рассылок, б�
 ## 8. Деплой / инфраструктура
 - Сервер Hetzner `siteadaptor-dev` (178.105.206.209), режим single (bundled
   Postgres + Redis + Caddy). Деплой: `git pull origin main && ./scripts/deploy.sh single`.
-- Домен Hostinger (A-записи), Caddy on-demand TLS. Почта Resend (anymail) — пока
-  console-fallback, ключ в проде не прописан.
+- Домен Hostinger (A-записи), Caddy on-demand TLS. Почта Resend (anymail) — РАБОТАЕТ
+  в проде (сверено владельцем 2026-10-20: `EMAIL_BACKEND = anymail.backends.resend`).
 - `.env.prod`, БД и медиа — только на сервере (в git их нет).
 
 ## 9. Заметки
 - Репозиторий: `yppolyakov-wq/siteadaptor-platform` (старый аккаунт adaptor2024
   приостановлен по ToS; история/ветки перенесены).
-- Перед боевым запуском: настроить Resend, вынести Postgres на отдельный сервер,
+- Перед боевым запуском: вынести Postgres на отдельный сервер,
   перегенерировать секреты. **⚠️ При выносе Postgres — роль с правом `CREATE EXTENSION`
   (нужен `pg_trgm` для поиска T-8.20; см. §7 Stage 0).**
