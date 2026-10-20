@@ -259,6 +259,14 @@ class Tenant(TenantMixin):
     def __str__(self):
         return f"{self.name} ({self.schema_name})"
 
+    def delete(self, force_drop=False, *args, **kwargs):
+        """Схему-шаблон (T-10) не удаляет ни откат регистрации, ни админка."""
+        from . import schema_template
+
+        if force_drop and schema_template.is_reserved(self.schema_name):
+            force_drop = False
+        return super().delete(*args, force_drop=force_drop, **kwargs)
+
     def create_schema(self, check_if_exists=False, sync_schema=True, verbosity=1):
         """T-10 D-1: схема копией шаблона (секунды); иначе — миграциями, как раньше.
 

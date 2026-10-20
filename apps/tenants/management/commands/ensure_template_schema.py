@@ -42,9 +42,19 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR(f"Схема {name} принадлежит бизнесу — отказ."))
             sys.exit(1)
         connection.set_schema_to_public()
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT pg_advisory_lock(%s)", [schema_template.LOCK_KEY])
+        from django.db import OperationalError
+
         try:
+            with connection.cursor() as cursor:
+                # Копии держат блокировку до конца СВОЕЙ внешней транзакции — не ждём вечно.
+                cursor.execute("SET lock_timeout = '120s'")
+                cursor.execute("SELECT pg_advisory_lock(%s)", [schema_template.LOCK_KEY])
+                cursor.execute("SET lock_timeout = 0")
+        except OperationalError:
+            self.stderr.write(self.style.ERROR("Шаблон занят копированием — повторите позже."))
+            sys.exit(1)
+        try:
+            schema_template.install_clone_function()
             self._ensure(name, force=options["force"])
         finally:
             connection.set_schema_to_public()

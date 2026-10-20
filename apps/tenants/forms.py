@@ -12,7 +12,8 @@ from django.utils.translation import gettext_lazy as _
 
 from .models import Tenant
 
-_SLUG_RE = re.compile(r"^[a-z0-9-]+$")
+# Начинается с буквы/цифры: «-template» дал бы схему «_template» (шаблон T-10).
+_SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 _RESERVED_SLUGS = {"www", "admin", "api", "app", "static", "media", "public", "mail"}
 
 
@@ -34,7 +35,9 @@ class BusinessSignupForm(forms.Form):
         slug = self.cleaned_data["slug"].lower()
         if not _SLUG_RE.match(slug):
             raise forms.ValidationError(_("Nur Kleinbuchstaben, Ziffern und Bindestrich."))
-        if slug in _RESERVED_SLUGS:
+        from . import schema_template
+
+        if slug in _RESERVED_SLUGS or schema_template.is_reserved(slug.replace("-", "_")):
             raise forms.ValidationError(_("Diese Subdomain ist reserviert."))
         if Tenant.objects.filter(slug=slug).exists():
             raise forms.ValidationError(_("Diese Subdomain ist bereits vergeben."))

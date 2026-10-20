@@ -69,11 +69,13 @@ def _host(slug: str) -> str:
 
 
 def _slug_taken(slug: str) -> bool:
+    from . import schema_template
     from .models import Domain
 
     return (
         slug in _RESERVED_SLUGS
         or slug in _QUICK_RESERVED
+        or schema_template.is_reserved(slug.replace("-", "_"))
         or Tenant.objects.filter(slug=slug).exists()
         or Tenant.objects.filter(schema_name=slug.replace("-", "_")).exists()
         # Порталы городов и демо живут на своих Domain без тенанта-однофамильца.

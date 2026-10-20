@@ -119,6 +119,13 @@ def test_clone_equals_migrations_and_template_is_clean(template):
         with schema_context("zz_clone_a"):
             get_user_model().objects.create(username="owner_clone")
             assert get_user_model().objects.count() == 1
+            # Счётчики служебных таблиц скопированы вместе с данными — новая строка
+            # (тип содержимого / запись миграции) не упирается в дубль ключа.
+            from django.contrib.contenttypes.models import ContentType
+            from django.db.migrations.recorder import MigrationRecorder
+
+            ContentType.objects.create(app_label="zz", model="probe")
+            MigrationRecorder(connection).record_applied("zz", "0001_probe")
         connection.set_schema_to_public()
         assert schema_template.dirty_tables() == []  # копия шаблон не пачкает
     finally:
@@ -227,3 +234,39 @@ def test_migration_state_includes_template(template, capsys):
         assert TPL in capsys.readouterr().out
     finally:
         call_command("ensure_template_schema")
+
+
+def test_reserved_template_schema_survives_failed_signup_cleanup(template):
+    """Ревью безопасности: откат регистрации (`delete(force_drop=True)`) шаблон не сносит."""
+    tenant = Tenant(schema_name=TPL, name="x", slug="zz-tpl-test", business_type="bakery")
+    tenant.auto_create_schema = False
+    tenant.save()
+    tenant.delete(force_drop=True)
+    assert schema_exists(TPL)
+
+
+def test_signup_slug_cannot_map_to_template():
+    from apps.tenants.forms import BusinessSignupForm
+
+    with override_settings(TENANT_TEMPLATE_SCHEMA="_template"):
+        form = BusinessSignupForm(
+            data={
+                "business_name": "X",
+                "slug": "-template",
+                "business_type": "bakery",
+                "city": "Köln",
+                "email": "a@example.com",
+                "password1": "geheim123",
+                "password2": "geheim123",
+            }
+        )
+        assert not form.is_valid() and "slug" in form.errors
+        from apps.tenants import quickstart
+
+        assert quickstart._slug_taken("-template")
+
+
+def test_invalid_template_name_disables_template():
+    with override_settings(TENANT_TEMPLATE_SCHEMA='x"; DROP SCHEMA public; --'):
+        assert schema_template.name() == ""
+        assert not schema_template.enabled()
