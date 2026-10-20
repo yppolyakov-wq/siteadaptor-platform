@@ -27101,3 +27101,62 @@ msgstr ""
 "Fotos: mit der Beschreibung senden (als Album bis zu %(n)s Fotos) oder "
 "später über „📷 Foto hinzufügen“ in der Vorschau nachschicken. Das erste Foto"
 " ist das Titelbild."
+
+#, python-format
+msgid "Aushang (PDF, nach Anmeldung): %(url)s"
+msgstr "Aushang (PDF, nach Anmeldung): %(url)s"
+
+msgid "Demo-Geschäft — nicht im echten Stadtkatalog."
+msgstr "Demo-Geschäft — nicht im echten Stadtkatalog."
+
+msgid "Derzeit nicht sichtbar."
+msgstr "Derzeit nicht sichtbar."
+
+#, python-format
+msgid "Eigene Seite: %(url)s"
+msgstr "Eigene Seite: %(url)s"
+
+msgid "Erst nach Bestätigung Ihrer E-Mail-Adresse (Link in der E-Mail)."
+msgstr "Erst nach Bestätigung Ihrer E-Mail-Adresse (Link in der E-Mail)."
+
+msgid "Fehler"
+msgstr "Fehler"
+
+msgid "Im Stadtkatalog ausgeschaltet (Einstellungen → Mein Geschäft)."
+msgstr "Im Stadtkatalog ausgeschaltet (Einstellungen → Mein Geschäft)."
+
+#, python-format
+msgid "Kanäle: %(list)s"
+msgstr "Kanäle: %(list)s"
+
+msgid "Konto pausiert — bitte im Kabinett unter „Abo“ prüfen."
+msgstr "Konto pausiert — bitte im Kabinett unter „Abo“ prüfen."
+
+#, python-format
+msgid "Stadtkatalog: %(reason)s"
+msgstr "Stadtkatalog: %(reason)s"
+
+#, python-format
+msgid "Stadtkatalog: %(url)s"
+msgstr "Stadtkatalog: %(url)s"
+
+msgid "Stadtkatalog: erst sichtbar, wenn die Aktion aktiv ist."
+msgstr "Stadtkatalog: erst sichtbar, wenn die Aktion aktiv ist."
+
+msgid "Stadtkatalog: nach Meldungen ausgeblendet, wird geprüft."
+msgstr "Stadtkatalog: nach Meldungen ausgeblendet, wird geprüft."
+
+msgid "Stadtkatalog: wird gerade aufgenommen (wenige Minuten)."
+msgstr "Stadtkatalog: wird gerade aufgenommen (wenige Minuten)."
+
+msgid "entfernt"
+msgstr "entfernt"
+
+msgid "in Warteschlange"
+msgstr "in Warteschlange"
+
+msgid "veröffentlicht"
+msgstr "veröffentlicht"
+
+msgid "Wo erscheint die Aktion?"
+msgstr "Wo erscheint die Aktion?"

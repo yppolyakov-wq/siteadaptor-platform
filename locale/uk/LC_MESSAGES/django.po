@@ -27270,3 +27270,62 @@ msgid ""
 msgstr ""
 "Фото: надішліть разом з описом (альбомом до %(n)s фото) або дошліть пізніше "
 "кнопкою «📷 Додати фото» у попередньому перегляді. Перше фото — обкладинка."
+
+#, python-format
+msgid "Aushang (PDF, nach Anmeldung): %(url)s"
+msgstr "Флаєр (PDF, після входу): %(url)s"
+
+msgid "Demo-Geschäft — nicht im echten Stadtkatalog."
+msgstr "Демо-бізнес — не в справжньому каталозі міста."
+
+msgid "Derzeit nicht sichtbar."
+msgstr "Зараз не видно."
+
+#, python-format
+msgid "Eigene Seite: %(url)s"
+msgstr "Власна сторінка: %(url)s"
+
+msgid "Erst nach Bestätigung Ihrer E-Mail-Adresse (Link in der E-Mail)."
+msgstr "Лише після підтвердження e-mail (посилання в листі)."
+
+msgid "Fehler"
+msgstr "Помилка"
+
+msgid "Im Stadtkatalog ausgeschaltet (Einstellungen → Mein Geschäft)."
+msgstr "Вимкнено для каталогу міста (Налаштування → Мій бізнес)."
+
+#, python-format
+msgid "Kanäle: %(list)s"
+msgstr "Канали: %(list)s"
+
+msgid "Konto pausiert — bitte im Kabinett unter „Abo“ prüfen."
+msgstr "Акаунт призупинено — перевірте розділ «Підписка» в кабінеті."
+
+#, python-format
+msgid "Stadtkatalog: %(reason)s"
+msgstr "Каталог міста: %(reason)s"
+
+#, python-format
+msgid "Stadtkatalog: %(url)s"
+msgstr "Каталог міста: %(url)s"
+
+msgid "Stadtkatalog: erst sichtbar, wenn die Aktion aktiv ist."
+msgstr "Каталог міста: з’явиться, коли акція стане активною."
+
+msgid "Stadtkatalog: nach Meldungen ausgeblendet, wird geprüft."
+msgstr "Каталог міста: приховано після скарг, перевіряється."
+
+msgid "Stadtkatalog: wird gerade aufgenommen (wenige Minuten)."
+msgstr "Каталог міста: додається (кілька хвилин)."
+
+msgid "entfernt"
+msgstr "видалено"
+
+msgid "in Warteschlange"
+msgstr "у черзі"
+
+msgid "veröffentlicht"
+msgstr "опубліковано"
+
+msgid "Wo erscheint die Aktion?"
+msgstr "Де видно акцію?"

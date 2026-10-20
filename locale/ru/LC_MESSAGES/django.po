@@ -27290,3 +27290,62 @@ msgid ""
 msgstr ""
 "Фото: отправьте вместе с описанием (альбомом до %(n)s фото) или дошлите "
 "позже кнопкой «📷 Добавить фото» в превью. Первое фото — обложка."
+
+#, python-format
+msgid "Aushang (PDF, nach Anmeldung): %(url)s"
+msgstr "Флаер (PDF, после входа): %(url)s"
+
+msgid "Demo-Geschäft — nicht im echten Stadtkatalog."
+msgstr "Демо-бизнес — не в настоящем каталоге города."
+
+msgid "Derzeit nicht sichtbar."
+msgstr "Сейчас не виден."
+
+#, python-format
+msgid "Eigene Seite: %(url)s"
+msgstr "Своя страница: %(url)s"
+
+msgid "Erst nach Bestätigung Ihrer E-Mail-Adresse (Link in der E-Mail)."
+msgstr "Только после подтверждения e-mail (ссылка в письме)."
+
+msgid "Fehler"
+msgstr "Ошибка"
+
+msgid "Im Stadtkatalog ausgeschaltet (Einstellungen → Mein Geschäft)."
+msgstr "Отключено для каталога города (Настройки → Мой бизнес)."
+
+#, python-format
+msgid "Kanäle: %(list)s"
+msgstr "Каналы: %(list)s"
+
+msgid "Konto pausiert — bitte im Kabinett unter „Abo“ prüfen."
+msgstr "Аккаунт приостановлен — проверьте раздел «Подписка» в кабинете."
+
+#, python-format
+msgid "Stadtkatalog: %(reason)s"
+msgstr "Каталог города: %(reason)s"
+
+#, python-format
+msgid "Stadtkatalog: %(url)s"
+msgstr "Каталог города: %(url)s"
+
+msgid "Stadtkatalog: erst sichtbar, wenn die Aktion aktiv ist."
+msgstr "Каталог города: появится, когда акция станет активной."
+
+msgid "Stadtkatalog: nach Meldungen ausgeblendet, wird geprüft."
+msgstr "Каталог города: скрыто после жалоб, проверяется."
+
+msgid "Stadtkatalog: wird gerade aufgenommen (wenige Minuten)."
+msgstr "Каталог города: добавляется (несколько минут)."
+
+msgid "entfernt"
+msgstr "удалено"
+
+msgid "in Warteschlange"
+msgstr "в очереди"
+
+msgid "veröffentlicht"
+msgstr "опубликовано"
+
+msgid "Wo erscheint die Aktion?"
+msgstr "Где видна акция?"

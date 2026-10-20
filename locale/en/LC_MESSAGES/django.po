@@ -27016,3 +27016,62 @@ msgstr ""
 "Photos: send them with the description (as an album of up to %(n)s photos) "
 "or add them later via “📷 Add photo” in the preview. The first photo is the "
 "cover."
+
+#, python-format
+msgid "Aushang (PDF, nach Anmeldung): %(url)s"
+msgstr "Flyer (PDF, after login): %(url)s"
+
+msgid "Demo-Geschäft — nicht im echten Stadtkatalog."
+msgstr "Demo business — not in the real city catalogue."
+
+msgid "Derzeit nicht sichtbar."
+msgstr "Currently not visible."
+
+#, python-format
+msgid "Eigene Seite: %(url)s"
+msgstr "Own page: %(url)s"
+
+msgid "Erst nach Bestätigung Ihrer E-Mail-Adresse (Link in der E-Mail)."
+msgstr "Only after you confirm your email address (link in the email)."
+
+msgid "Fehler"
+msgstr "Error"
+
+msgid "Im Stadtkatalog ausgeschaltet (Einstellungen → Mein Geschäft)."
+msgstr "Switched off for the city catalogue (Settings → My business)."
+
+#, python-format
+msgid "Kanäle: %(list)s"
+msgstr "Channels: %(list)s"
+
+msgid "Konto pausiert — bitte im Kabinett unter „Abo“ prüfen."
+msgstr "Account paused — please check “Subscription” in the dashboard."
+
+#, python-format
+msgid "Stadtkatalog: %(reason)s"
+msgstr "City catalogue: %(reason)s"
+
+#, python-format
+msgid "Stadtkatalog: %(url)s"
+msgstr "City catalogue: %(url)s"
+
+msgid "Stadtkatalog: erst sichtbar, wenn die Aktion aktiv ist."
+msgstr "City catalogue: visible only once the offer is active."
+
+msgid "Stadtkatalog: nach Meldungen ausgeblendet, wird geprüft."
+msgstr "City catalogue: hidden after reports, under review."
+
+msgid "Stadtkatalog: wird gerade aufgenommen (wenige Minuten)."
+msgstr "City catalogue: being added right now (a few minutes)."
+
+msgid "entfernt"
+msgstr "removed"
+
+msgid "in Warteschlange"
+msgstr "queued"
+
+msgid "veröffentlicht"
+msgstr "published"
+
+msgid "Wo erscheint die Aktion?"
+msgstr "Where does the offer appear?"

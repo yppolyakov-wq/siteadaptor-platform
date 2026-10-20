@@ -27155,3 +27155,64 @@ msgstr ""
 "Fotoğraflar: açıklamayla birlikte gönderin (en fazla %(n)s fotoğraflık albüm"
 " olarak) ya da sonra önizlemedeki „📷 Fotoğraf ekle“ ile ekleyin. İlk "
 "fotoğraf kapak görselidir."
+
+#, python-format
+msgid "Aushang (PDF, nach Anmeldung): %(url)s"
+msgstr "Afiş (PDF, giriş sonrası): %(url)s"
+
+msgid "Demo-Geschäft — nicht im echten Stadtkatalog."
+msgstr "Demo işletme — gerçek şehir kataloğunda değil."
+
+msgid "Derzeit nicht sichtbar."
+msgstr "Şu anda görünmüyor."
+
+#, python-format
+msgid "Eigene Seite: %(url)s"
+msgstr "Kendi sayfa: %(url)s"
+
+msgid "Erst nach Bestätigung Ihrer E-Mail-Adresse (Link in der E-Mail)."
+msgstr ""
+"Yalnızca e-posta adresinizi onayladıktan sonra (e-postadaki bağlantı)."
+
+msgid "Fehler"
+msgstr "Hata"
+
+msgid "Im Stadtkatalog ausgeschaltet (Einstellungen → Mein Geschäft)."
+msgstr "Şehir kataloğunda kapalı (Ayarlar → İşletmem)."
+
+#, python-format
+msgid "Kanäle: %(list)s"
+msgstr "Kanallar: %(list)s"
+
+msgid "Konto pausiert — bitte im Kabinett unter „Abo“ prüfen."
+msgstr ""
+"Hesap duraklatıldı — lütfen paneldeki „Abonelik“ bölümünü kontrol edin."
+
+#, python-format
+msgid "Stadtkatalog: %(reason)s"
+msgstr "Şehir kataloğu: %(reason)s"
+
+#, python-format
+msgid "Stadtkatalog: %(url)s"
+msgstr "Şehir kataloğu: %(url)s"
+
+msgid "Stadtkatalog: erst sichtbar, wenn die Aktion aktiv ist."
+msgstr "Şehir kataloğu: kampanya aktif olunca görünür."
+
+msgid "Stadtkatalog: nach Meldungen ausgeblendet, wird geprüft."
+msgstr "Şehir kataloğu: şikayetler nedeniyle gizlendi, inceleniyor."
+
+msgid "Stadtkatalog: wird gerade aufgenommen (wenige Minuten)."
+msgstr "Şehir kataloğu: şu anda ekleniyor (birkaç dakika)."
+
+msgid "entfernt"
+msgstr "kaldırıldı"
+
+msgid "in Warteschlange"
+msgstr "sırada"
+
+msgid "veröffentlicht"
+msgstr "yayınlandı"
+
+msgid "Wo erscheint die Aktion?"
+msgstr "Kampanya nerede görünüyor?"

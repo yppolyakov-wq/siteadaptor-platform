@@ -32,7 +32,8 @@ ALBUM_TTL = 10 * 60
 RATE_LIMIT = 30  # черновиков на чат в час
 TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{16}$")
 # H-7a: ph — «📷 Foto hinzufügen» (следующие фото — в этот черновик), px — убрать фото.
-CALLBACK_RE = re.compile(r"^tp:(ok|no|ph|px):([A-Za-z0-9_-]{16})$")
+# H-7d: wh — «📍 Wo erscheint sie?» после публикации (токен → pk акции из mark_done).
+CALLBACK_RE = re.compile(r"^tp:(ok|no|ph|px|wh):([A-Za-z0-9_-]{16})$")
 LAST_TTL = 30 * 60  # фото без подписи в течение 30 мин после превью — в последний черновик
 REPEAT_CALLBACK_RE = re.compile(
     r"^tp:rp:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$"
@@ -857,12 +858,56 @@ def _dispatch_callback(bot, callback: dict, tenant, schema: str) -> str:
     action, token = m.groups()
     if action in ("ph", "px"):
         return _photo_button(bot, tenant, schema, chat, token, action)
+    if action == "wh":
+        return _where(bot, tenant, schema, chat, token)
     if action == "no":
         drop_draft(schema, chat, token)
         services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
         _send(bot, chat, _("Verworfen."))
         return "dropped"
     return enqueue_confirm(bot, schema, chat, token, message, sender, cid)
+
+
+WHERE_LIMIT = 20  # проверок «где акция» на чат в час
+
+
+def _where(bot, tenant, schema, chat, token) -> str:
+    """📍 — отчёт «где видна акция» заново (каналы публикуются фоном — статус меняется)."""
+    from django.core.exceptions import ValidationError
+
+    from apps.core import ratelimit
+
+    from . import where
+    from .models import Promotion
+
+    if ratelimit.hit("tg-where", f"{schema}:{chat}", limit=WHERE_LIMIT, window=3600):
+        _send(bot, chat, _("Zu viele Versuche. Bitte später erneut."))
+        return "limited"
+    pk = done_value(schema, token)
+    promo = None
+    if pk and pk != "pending":
+        try:
+            promo = Promotion.objects.filter(pk=pk).first()
+        except (ValueError, ValidationError):
+            promo = None
+    if promo is None:
+        _send(bot, chat, _("Nicht verfügbar."))
+        return "where_missing"
+    _send(bot, chat, "\n".join([promo.get_i18n("title")[:80], *where.report(tenant, promo)]))
+    return "where"
+
+
+def _where_markup(token: str) -> dict:
+    return {
+        "inline_keyboard": [
+            [
+                {
+                    "text": "📍 " + _("Wo erscheint die Aktion?"),
+                    "callback_data": _cbdata(f"tp:wh:{token}"),
+                }
+            ]
+        ]
+    }
 
 
 def _photo_button(bot, tenant, schema, chat, token, action) -> str:
@@ -1069,8 +1114,16 @@ def _confirm_claimed(bot, tenant, schema, chat, token, message) -> str:
     drop_draft(schema, chat, token)
     services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
     lines = [_business_line()] if _business_line() else []
+    markup = None
     if activated:
         lines.append(_("✅ Live: %(url)s") % {"url": _promo_url(promo)})
+        try:
+            from . import where
+
+            lines += where.report(tenant, promo)[1:]  # своя страница — уже строкой выше
+        except Exception as exc:  # noqa: BLE001 — отчёт необязателен, публикация уже есть
+            logger.warning("tg promo where failed: %s", type(exc).__name__)
+        markup = _where_markup(token)
     else:
         limit = limits.active_limit(tenant)
         lines.append(_("Als Entwurf gespeichert."))
@@ -1078,5 +1131,5 @@ def _confirm_claimed(bot, tenant, schema, chat, token, message) -> str:
             lines.append(limits.limit_message(limit))
     if failed:
         lines.append(_("Foto konnte nicht übernommen werden."))
-    _send(bot, chat, "\n".join(lines))
+    _send(bot, chat, "\n".join(lines), markup)
     return "published" if activated else "draft"
