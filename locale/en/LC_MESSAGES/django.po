@@ -26926,3 +26926,93 @@ msgstr "New for you — %(name)s"
 
 msgid "Alle anzeigen (%(n)s): %(url)s"
 msgstr "Show all (%(n)s): %(url)s"
+
+msgid "Fotos entfernen"
+msgstr "Remove photos"
+
+#, python-format
+msgid "Höchstens %(n)s Fotos pro Aktion."
+msgstr "At most %(n)s photos per offer."
+
+#, python-format
+msgid ""
+"Schicken Sie jetzt bis zu %(n)s Fotos (auch als Album) — ohne Text. Sie "
+"kommen zu diesem Entwurf."
+msgstr ""
+"Now send up to %(n)s photos (an album works too) — without text. They will "
+"be added to this draft."
+
+msgid "Der Entwurf ist abgelaufen. Bitte die Aktion erneut senden."
+msgstr "The draft has expired. Please send the offer again."
+
+msgid "So arbeiten Sie mit diesem Bot:"
+msgstr "How to use this bot:"
+
+msgid ""
+"Aktion als Text senden, z. B. „Brötchen 2,50 € statt 3,90 €, heute bis 18 "
+"Uhr“ — ich zeige eine Vorschau, ✅ veröffentlicht."
+msgstr ""
+"Send an offer as text, e.g. “Rolls €2.50 instead of €3.90, today until 6 pm”"
+" — I show a preview, ✅ publishes it."
+
+msgid "eine frühere Aktion erneut starten"
+msgstr "start an earlier offer again"
+
+msgid "Anmeldelink für das Kabinett per E-Mail"
+msgstr "login link for the dashboard by email"
+
+msgid "eigenen Telegram-Bot für Ihr Geschäft einrichten"
+msgstr "set up your own Telegram bot for your business"
+
+msgid "Kabinett"
+msgstr "Dashboard"
+
+msgid "Eigener Bot"
+msgstr "Own bot"
+
+msgid "Kabinett öffnen"
+msgstr "Open dashboard"
+
+#, python-format
+msgid ""
+"Kabinett von %(name)s. ✉️ schickt einen Anmeldelink per E-Mail direkt auf "
+"die Seite; ↗ öffnet sie, wenn Sie im Browser schon angemeldet sind."
+msgstr ""
+"Dashboard of %(name)s. ✉️ emails a login link straight to the page; ↗ opens "
+"it if you are already logged in in your browser."
+
+msgid "Eigener Bot für Ihr Geschäft — so geht’s:"
+msgstr "Your own bot for your business — here is how:"
+
+msgid "Namen wählen — BotFather schickt einen Token."
+msgstr "Choose a name — BotFather sends you a token."
+
+msgid ""
+"Den Token NUR im Kabinett unter „Telegram-Bot“ eintragen — nicht hier im "
+"Chat senden."
+msgstr ""
+"Enter the token ONLY in the dashboard under “Telegram bot” — do not send it "
+"here in the chat."
+
+msgid ""
+"Danach beantwortet Ihr eigener Bot Kundinnen und Kunden; Aktionen gehen "
+"weiter hier."
+msgstr ""
+"After that your own bot answers your customers; offers still go through "
+"here."
+
+msgid "Kabinett „Telegram-Bot“"
+msgstr "Dashboard “Telegram bot”"
+
+msgid "Bearbeiten im Browser — nicht angemeldet? /kabinett"
+msgstr "Edit in the browser — not logged in? /kabinett"
+
+#, python-format
+msgid ""
+"Fotos: mit der Beschreibung senden (als Album bis zu %(n)s Fotos) oder "
+"später über „📷 Foto hinzufügen“ in der Vorschau nachschicken. Das erste Foto"
+" ist das Titelbild."
+msgstr ""
+"Photos: send them with the description (as an album of up to %(n)s photos) "
+"or add them later via “📷 Add photo” in the preview. The first photo is the "
+"cover."

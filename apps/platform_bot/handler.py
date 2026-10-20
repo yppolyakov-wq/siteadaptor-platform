@@ -100,6 +100,11 @@ def _callback(bot, callback: dict) -> str:
             return privacy.on_callback(bot, callback)
     if data.startswith(routing.PREFIX):
         return _promo_callback(bot, callback, data)
+    if data.startswith("pm:"):
+        from . import menu
+
+        with translation.override(locale_for(callback.get("language_code"))):
+            return menu.on_callback(bot, callback)
     if data.startswith("ps:"):
         from . import signup
 
@@ -143,6 +148,12 @@ def _private(bot, message: dict, update_id=None) -> str:
 
         uid = message["from_id"]
         return privacy.ask(bot, uid, chat) if ERASE_RE.match(text) else privacy.info(bot, uid, chat)
+    # H-7b/c/g: меню — тоже раньше регистрации и акций («/hilfe» не текст акции).
+    from . import menu
+
+    routed = menu.on_message(bot, message, text)
+    if routed:
+        return routed
     # H-5b: регистрация (в т. ч. второго бизнеса) — раньше конвейера акций: пока идёт
     # диалог регистрации, сообщения — его шаги, а не текст акции.
     routed = _signup_message(bot, message, text)
@@ -163,10 +174,20 @@ def _private(bot, message: dict, update_id=None) -> str:
             chat,
             _(
                 "Willkommen zurück! Schicken Sie z. B.: „Brötchen 2,50 € statt 3,90 €, heute bis 18 Uhr, 20 Stück“ — gern mit Foto."
-            ),
+            )
+            + "\n"
+            + _photo_tip()
+            + "\n☰ /hilfe",
+            menu.keyboard(),
         )
         return "welcome_back"
     return _private_onboarding(bot, chat)
+
+
+def _photo_tip() -> str:
+    from apps.promotions.telegram_promo import photo_tip
+
+    return photo_tip()
 
 
 def _private_onboarding(bot, chat) -> str:

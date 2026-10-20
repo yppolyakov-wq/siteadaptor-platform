@@ -277,7 +277,7 @@ def test_login_link_only_for_bound_owner(bot, monkeypatch):
     user = get_user_model().objects.create_user(username="ll", email=MAIL, password="pw12345678")
     Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
     mails = []
-    monkeypatch.setattr("apps.core.owner_login.send_login_link", lambda t, e: mails.append(e))
+    monkeypatch.setattr("apps.core.owner_login.send_login_link", lambda t, e, **k: mails.append(e))
     assert handler.handle(_cb(f"ps:l:{tenant.pk}")) == "denied"
     links.bind(USER, tenant, user_pk=user.pk)
     assert handler.handle(_cb(f"ps:l:{tenant.pk}")) == "sent"
@@ -367,8 +367,11 @@ def test_album_photos_after_promo_step_are_added_silently(bot):
 
 def test_unknown_command_is_not_a_promo(bot):
     handler.handle(_msg("/neu"))
-    assert handler.handle(_msg("/hilfe")) == "promo"
+    assert handler.handle(_msg("/unbekannt")) == "promo"
     assert not signup.load(USER)["data"].get("title")
+    # H-7b: «/hilfe» — команда меню, не шаг регистрации; диалог регистрации цел.
+    assert handler.handle(_msg("/hilfe")) == "help"
+    assert signup.load(USER)["step"] == "promo"
 
 
 def test_city_edit_goes_through_district(bot):
@@ -400,7 +403,7 @@ def test_login_link_limited_per_recipient(bot, monkeypatch):
     tenant = TenantFactory(schema_name="public", slug="ll-2")
     user = get_user_model().objects.create_user(username="ll2", email=MAIL, password="pw12345678")
     Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
-    monkeypatch.setattr("apps.core.owner_login.send_login_link", lambda t, e: None)
+    monkeypatch.setattr("apps.core.owner_login.send_login_link", lambda t, e, **k: None)
     links.bind(USER, tenant, user_pk=user.pk)
     assert handler.handle(_cb(f"ps:l:{tenant.pk}")) == "sent"
     assert handler.handle(_cb(f"ps:l:{tenant.pk}")) == "limited"

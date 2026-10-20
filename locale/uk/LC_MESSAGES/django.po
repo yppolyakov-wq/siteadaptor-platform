@@ -27181,3 +27181,92 @@ msgstr "Нове для вас — %(name)s"
 
 msgid "Alle anzeigen (%(n)s): %(url)s"
 msgstr "Показати всі (%(n)s): %(url)s"
+
+msgid "Fotos entfernen"
+msgstr "Видалити фото"
+
+#, python-format
+msgid "Höchstens %(n)s Fotos pro Aktion."
+msgstr "Не більше %(n)s фото на акцію."
+
+#, python-format
+msgid ""
+"Schicken Sie jetzt bis zu %(n)s Fotos (auch als Album) — ohne Text. Sie "
+"kommen zu diesem Entwurf."
+msgstr ""
+"Тепер надішліть до %(n)s фото (можна альбомом) — без тексту. Вони додадуться"
+" до цієї чернетки."
+
+msgid "Der Entwurf ist abgelaufen. Bitte die Aktion erneut senden."
+msgstr "Термін чернетки минув. Надішліть акцію ще раз."
+
+msgid "So arbeiten Sie mit diesem Bot:"
+msgstr "Як працювати з цим ботом:"
+
+msgid ""
+"Aktion als Text senden, z. B. „Brötchen 2,50 € statt 3,90 €, heute bis 18 "
+"Uhr“ — ich zeige eine Vorschau, ✅ veröffentlicht."
+msgstr ""
+"Надішліть акцію текстом, наприклад: «Булочки 2,50 € замість 3,90 €, сьогодні"
+" до 18:00» — я покажу попередній перегляд, ✅ опублікує."
+
+msgid "eine frühere Aktion erneut starten"
+msgstr "запустити попередню акцію знову"
+
+msgid "Anmeldelink für das Kabinett per E-Mail"
+msgstr "посилання для входу в кабінет на e-mail"
+
+msgid "eigenen Telegram-Bot für Ihr Geschäft einrichten"
+msgstr "налаштувати власного Telegram-бота для вашого бізнесу"
+
+msgid "Kabinett"
+msgstr "Кабінет"
+
+msgid "Eigener Bot"
+msgstr "Власний бот"
+
+msgid "Kabinett öffnen"
+msgstr "Відкрити кабінет"
+
+#, python-format
+msgid ""
+"Kabinett von %(name)s. ✉️ schickt einen Anmeldelink per E-Mail direkt auf "
+"die Seite; ↗ öffnet sie, wenn Sie im Browser schon angemeldet sind."
+msgstr ""
+"Кабінет %(name)s. ✉️ надішле посилання для входу на e-mail одразу на "
+"потрібну сторінку; ↗ відкриє її, якщо ви вже увійшли в браузері."
+
+msgid "Eigener Bot für Ihr Geschäft — so geht’s:"
+msgstr "Власний бот для вашого бізнесу — як це зробити:"
+
+msgid "Namen wählen — BotFather schickt einen Token."
+msgstr "Виберіть ім’я — BotFather надішле токен."
+
+msgid ""
+"Den Token NUR im Kabinett unter „Telegram-Bot“ eintragen — nicht hier im "
+"Chat senden."
+msgstr ""
+"Вводьте токен ЛИШЕ в кабінеті в розділі «Telegram-бот» — не надсилайте його "
+"сюди в чат."
+
+msgid ""
+"Danach beantwortet Ihr eigener Bot Kundinnen und Kunden; Aktionen gehen "
+"weiter hier."
+msgstr ""
+"Після цього ваш власний бот відповідає клієнтам; акції, як і раніше, "
+"надсилаються тут."
+
+msgid "Kabinett „Telegram-Bot“"
+msgstr "Кабінет «Telegram-бот»"
+
+msgid "Bearbeiten im Browser — nicht angemeldet? /kabinett"
+msgstr "Редагування в браузері — не увійшли? /kabinett"
+
+#, python-format
+msgid ""
+"Fotos: mit der Beschreibung senden (als Album bis zu %(n)s Fotos) oder "
+"später über „📷 Foto hinzufügen“ in der Vorschau nachschicken. Das erste Foto"
+" ist das Titelbild."
+msgstr ""
+"Фото: надішліть разом з описом (альбомом до %(n)s фото) або дошліть пізніше "
+"кнопкою «📷 Додати фото» у попередньому перегляді. Перше фото — обкладинка."

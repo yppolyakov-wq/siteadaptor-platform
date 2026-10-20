@@ -111,11 +111,28 @@ def tenant_url(tenant) -> str:
     return site_url_for(tenant)
 
 
-def send_login_link(tenant, email: str) -> None:
+def _is_local_path(value: str) -> bool:
+    """Только путь своего сайта: «/…», без «//host», «/\\host» и управляющих символов."""
+    return (
+        bool(value)
+        and value.startswith("/")
+        and not value.startswith(("//", "/\\"))
+        and value.isprintable()
+        and " " not in value
+    )
+
+
+def send_login_link(tenant, email: str, *, next_path: str = "") -> None:
+    """Письмо со ссылкой входа. ``next_path`` (H-7c) — экран кабинета после входа; на
+    поддомене его ещё раз проверяет ``safe_next``."""
+    from urllib.parse import urlencode
+
     from apps.notifications.services import email_locale
 
     token = issue_token(tenant.schema_name, email, ttl=LINK_TTL)
     url = f"{tenant_url(tenant)}{reverse('owner-start', args=[token], urlconf=TENANT_URLCONF)}"
+    if _is_local_path(next_path):
+        url += "?" + urlencode({"next": next_path})
     with translation.override(email_locale()):
         subject = _("Ihr Anmeldelink — %(name)s") % {"name": tenant.name}
         body = _(

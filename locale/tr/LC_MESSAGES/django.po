@@ -27065,3 +27065,93 @@ msgstr "Sizin için yeni — %(name)s"
 
 msgid "Alle anzeigen (%(n)s): %(url)s"
 msgstr "Tümünü göster (%(n)s): %(url)s"
+
+msgid "Fotos entfernen"
+msgstr "Fotoğrafları kaldır"
+
+#, python-format
+msgid "Höchstens %(n)s Fotos pro Aktion."
+msgstr "Kampanya başına en fazla %(n)s fotoğraf."
+
+#, python-format
+msgid ""
+"Schicken Sie jetzt bis zu %(n)s Fotos (auch als Album) — ohne Text. Sie "
+"kommen zu diesem Entwurf."
+msgstr ""
+"Şimdi en fazla %(n)s fotoğraf gönderin (albüm de olur) — metin olmadan. Bu "
+"taslağa eklenecekler."
+
+msgid "Der Entwurf ist abgelaufen. Bitte die Aktion erneut senden."
+msgstr "Taslağın süresi doldu. Lütfen kampanyayı yeniden gönderin."
+
+msgid "So arbeiten Sie mit diesem Bot:"
+msgstr "Bu botla şöyle çalışırsınız:"
+
+msgid ""
+"Aktion als Text senden, z. B. „Brötchen 2,50 € statt 3,90 €, heute bis 18 "
+"Uhr“ — ich zeige eine Vorschau, ✅ veröffentlicht."
+msgstr ""
+"Kampanyayı metin olarak gönderin, örn. „Ekmek 2,50 € yerine 3,90 €, bugün "
+"18:00’e kadar“ — önizleme gösteririm, ✅ yayınlar."
+
+msgid "eine frühere Aktion erneut starten"
+msgstr "önceki bir kampanyayı yeniden başlat"
+
+msgid "Anmeldelink für das Kabinett per E-Mail"
+msgstr "panel için e-postayla giriş bağlantısı"
+
+msgid "eigenen Telegram-Bot für Ihr Geschäft einrichten"
+msgstr "işletmeniz için kendi Telegram botunuzu kurun"
+
+msgid "Kabinett"
+msgstr "Panel"
+
+msgid "Eigener Bot"
+msgstr "Kendi bot"
+
+msgid "Kabinett öffnen"
+msgstr "Paneli aç"
+
+#, python-format
+msgid ""
+"Kabinett von %(name)s. ✉️ schickt einen Anmeldelink per E-Mail direkt auf "
+"die Seite; ↗ öffnet sie, wenn Sie im Browser schon angemeldet sind."
+msgstr ""
+"%(name)s paneli. ✉️ doğrudan sayfaya giriş bağlantısını e-postayla gönderir;"
+" ↗ tarayıcıda zaten giriş yaptıysanız sayfayı açar."
+
+msgid "Eigener Bot für Ihr Geschäft — so geht’s:"
+msgstr "İşletmeniz için kendi bot — şöyle yapılır:"
+
+msgid "Namen wählen — BotFather schickt einen Token."
+msgstr "Bir ad seçin — BotFather size bir token gönderir."
+
+msgid ""
+"Den Token NUR im Kabinett unter „Telegram-Bot“ eintragen — nicht hier im "
+"Chat senden."
+msgstr ""
+"Token’ı YALNIZCA paneldeki „Telegram botu“ bölümüne girin — buraya sohbete "
+"göndermeyin."
+
+msgid ""
+"Danach beantwortet Ihr eigener Bot Kundinnen und Kunden; Aktionen gehen "
+"weiter hier."
+msgstr ""
+"Bundan sonra kendi botunuz müşterilerinize yanıt verir; kampanyalar burada "
+"devam eder."
+
+msgid "Kabinett „Telegram-Bot“"
+msgstr "Panel „Telegram botu“"
+
+msgid "Bearbeiten im Browser — nicht angemeldet? /kabinett"
+msgstr "Tarayıcıda düzenleyin — giriş yapmadınız mı? /kabinett"
+
+#, python-format
+msgid ""
+"Fotos: mit der Beschreibung senden (als Album bis zu %(n)s Fotos) oder "
+"später über „📷 Foto hinzufügen“ in der Vorschau nachschicken. Das erste Foto"
+" ist das Titelbild."
+msgstr ""
+"Fotoğraflar: açıklamayla birlikte gönderin (en fazla %(n)s fotoğraflık albüm"
+" olarak) ya da sonra önizlemedeki „📷 Fotoğraf ekle“ ile ekleyin. İlk "
+"fotoğraf kapak görselidir."

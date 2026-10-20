@@ -914,7 +914,7 @@ def _promo_url(tenant, promo_pk) -> str:
     return site_url_for(tenant) + path
 
 
-def send_login_link(bot, uid, chat, tenant_ref: str) -> str:
+def send_login_link(bot, uid, chat, tenant_ref: str, *, next_path: str = "") -> str:
     """🔑 — ссылка входа в кабинет ПИСЬМОМ (вход только через почту, решение владельца)."""
     from django_tenants.utils import schema_context
 
@@ -952,6 +952,6 @@ def send_login_link(bot, uid, chat, tenant_ref: str) -> str:
     ):
         _send(bot, chat, _("Zu viele Versuche. Bitte später erneut."))
         return "limited"
-    owner_login.send_login_link(tenant, email)
+    owner_login.send_login_link(tenant, email, next_path=next_path)
     _send(bot, chat, _("Anmeldelink an %(mail)s gesendet.") % {"mail": _mask(email)})
     return "sent"

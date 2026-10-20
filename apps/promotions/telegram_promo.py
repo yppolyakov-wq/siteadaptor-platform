@@ -31,7 +31,9 @@ CLAIM_TTL = 180  # «pending» живёт коротко: упавший вор�
 ALBUM_TTL = 10 * 60
 RATE_LIMIT = 30  # черновиков на чат в час
 TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{16}$")
-CALLBACK_RE = re.compile(r"^tp:(ok|no):([A-Za-z0-9_-]{16})$")
+# H-7a: ph — «📷 Foto hinzufügen» (следующие фото — в этот черновик), px — убрать фото.
+CALLBACK_RE = re.compile(r"^tp:(ok|no|ph|px):([A-Za-z0-9_-]{16})$")
+LAST_TTL = 30 * 60  # фото без подписи в течение 30 мин после превью — в последний черновик
 REPEAT_CALLBACK_RE = re.compile(
     r"^tp:rp:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$"
 )
@@ -141,6 +143,29 @@ def owner_user(tenant):
 
 
 # --- черновики ----------------------------------------------------------------------------
+
+
+def _last_key(schema: str, chat: str) -> str:
+    return f"tgpromo:last:{schema}:{chat}"
+
+
+def _arm_key(schema: str, chat: str) -> str:
+    """«📷 Foto hinzufügen» нажата: следующие фото (и альбомы) — в этот черновик."""
+    return f"tgpromo:arm:{schema}:{chat}"
+
+
+def remember_last(schema: str, chat: str, token: str) -> None:
+    cache.set(_last_key(schema, str(chat)), token, LAST_TTL)
+
+
+def photo_tip() -> str:
+    """Как работать с фото — одна строка для приветствия, подсказок и /hilfe."""
+    from . import quick
+
+    return "📷 " + _(
+        "Fotos: mit der Beschreibung senden (als Album bis zu %(n)s Fotos) oder später "
+        "über „📷 Foto hinzufügen“ in der Vorschau nachschicken. Das erste Foto ist das Titelbild."
+    ) % {"n": quick.MAX_PHOTOS}
 
 
 def _draft_key(schema: str, chat: str, token: str) -> str:
@@ -331,8 +356,15 @@ def render_preview(draft: dict, tenant, form, token: str) -> tuple[str, dict]:
     edit = edit_url(token)
     if edit:
         buttons.append({"text": "✏️ " + _("Bearbeiten"), "url": edit})
+        if draft.get("bot") == "platform":
+            lines.append("✏️ " + _("Bearbeiten im Browser — nicht angemeldet? /kabinett"))
     buttons.append({"text": "❌ " + _("Verwerfen"), "callback_data": _cbdata(f"tp:no:{token}")})
-    return "\n".join(lines), {"inline_keyboard": [buttons]}
+    photo_row = [{"text": "📷 " + _("Foto hinzufügen"), "callback_data": _cbdata(f"tp:ph:{token}")}]
+    if draft.get("photo_ids") or draft.get("photo_from"):
+        photo_row.append(
+            {"text": "🗑 " + _("Fotos entfernen"), "callback_data": _cbdata(f"tp:px:{token}")}
+        )
+    return "\n".join(lines), {"inline_keyboard": [buttons, photo_row]}
 
 
 def edit_url(token: str) -> str:
@@ -482,12 +514,73 @@ def _handle(bot, tenant, schema, chat, update) -> str:
         return repeat_menu(bot, chat)
     photo = update.get("photo") or ""
     group = update.get("media_group_id") or ""
+    if photo and not (update.get("text") or "").strip():
+        added = _photo_to_last(bot, tenant, schema, chat, photo, group)
+        if added:
+            return added
     if group and photo:
         with _album_lock(schema, chat, group):
             result = _album_photo(schema, chat, group, photo, update)
         if result:
             return result
     return _new_draft(bot, tenant, schema, chat, update, photo, group)
+
+
+def _photo_to_last(bot, tenant, schema, chat, photo, group) -> str:
+    """H-7a: фото без подписи вскоре после превью — в ПОСЛЕДНИЙ черновик, а не новый.
+
+    Одиночное фото — в последний черновик всегда. Альбом — ТОЛЬКО после «📷 Foto
+    hinzufügen»: подпись альбома может прийти на любом его фото и позже остальных, и без
+    явной кнопки фото нового альбома ушли бы в старый черновик (ревью H-7a). Превью —
+    один раз на альбом (иначе по сообщению на каждое фото)."""
+    from . import quick
+
+    token = cache.get(_arm_key(schema, chat)) if group else cache.get(_last_key(schema, chat))
+    if not token:
+        return ""
+    lock = f"tgpromo:lastlock:{schema}:{chat}"
+    for _attempt in range(30):
+        if cache.add(lock, "1", 15):
+            break
+        import time
+
+        time.sleep(0.1)
+    else:
+        return "photo_busy"  # не новый черновик из одиночного фото: просто пропуск
+    try:
+        draft = load_draft(schema, chat, token)
+        # file_id фото принадлежит боту: фото из своего бота не смешиваем с черновиком
+        # общего бота (и наоборот) — Telegram не отдаст чужой файл.
+        if draft is None or draft.get("bot", "tenant") != _bot_kind(bot):
+            return ""
+        if done_value(schema, token) is not None:
+            return ""  # ✅ уже взял черновик в публикацию — фото к нему не дописать
+        ids = list(draft.get("photo_ids") or [])
+        if photo in ids:
+            return "photo_dup"
+        if len(ids) >= quick.MAX_PHOTOS:
+            if not group or cache.add(f"tgpromo:fullmsg:{schema}:{chat}:{group}", 1, ALBUM_TTL):
+                _send(bot, chat, _("Höchstens %(n)s Fotos pro Aktion.") % {"n": quick.MAX_PHOTOS})
+            return "photo_full"
+        ids.append(photo)
+        draft["photo_ids"] = ids
+        draft.pop("photo_from", None)  # свои фото заменяют фото шаблона-повтора
+        cache.set(_draft_key(schema, chat, token), draft, DRAFT_TTL)
+        if group:
+            cache.set(_album_key(schema, chat, group), token, ALBUM_TTL)
+            if not cache.add(f"tgpromo:albumpreview:{schema}:{chat}:{group}", 1, ALBUM_TTL):
+                return "photo_added"
+    finally:
+        cache.delete(lock)
+    _resend_preview(bot, tenant, schema, chat, token, draft)
+    return "photo_added"
+
+
+def _resend_preview(bot, tenant, schema, chat, token, draft) -> None:
+    form = form_for(draft, tenant)
+    text, markup = render_preview(draft, tenant, form, token)
+    ids = draft.get("photo_ids") or []
+    _send(bot, chat, text, markup, photo_id=ids[0] if ids else "")
 
 
 def _album_photo(schema, chat, group, photo, update) -> str:
@@ -524,7 +617,9 @@ def _new_draft(bot, tenant, schema, chat, update, photo, group) -> str:
             chat,
             _(
                 "Schicken Sie z. B.: „Brötchen 2,50 € statt 3,90 €, heute bis 18 Uhr, 20 Stück“ — gern mit Foto."
-            ),
+            )
+            + "\n"
+            + photo_tip(),
         )
         return "hint"
     draft = draft_from_parsed(parsed, tenant, photo_ids=[photo] if photo else [])
@@ -535,6 +630,7 @@ def _new_draft(bot, tenant, schema, chat, update, photo, group) -> str:
     if not draft.get("title"):
         _send(bot, chat, _("Wie heißt das Angebot? Schreiben Sie es bitte dazu."))
         return "no_title"
+    cache.delete(_arm_key(schema, chat))  # новая акция — «📷» старой больше не действует
     if group:
         with _album_lock(schema, chat, group):
             waiting = cache.get(_album_wait_key(schema, chat, group)) or []
@@ -545,6 +641,7 @@ def _new_draft(bot, tenant, schema, chat, update, photo, group) -> str:
             cache.set(_album_key(schema, chat, group), token, ALBUM_TTL)
     else:
         token = store_draft(schema, chat, draft)
+    remember_last(schema, chat, token)
     form = form_for(draft, tenant)
     text, markup = render_preview(draft, tenant, form, token)
     _send(bot, chat, text, markup, photo_id=photo)
@@ -678,6 +775,7 @@ def _repeat(bot, tenant, schema, chat, pk) -> str:
     draft = draft_from_promotion(promo, tenant)
     draft["bot"] = _bot_kind(bot)
     token = store_draft(schema, chat, draft)
+    remember_last(schema, chat, token)
     form = form_for(draft, tenant)
     text, markup = render_preview(draft, tenant, form, token)
     _send(bot, chat, text, markup)
@@ -757,12 +855,43 @@ def _dispatch_callback(bot, callback: dict, tenant, schema: str) -> str:
         services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
         return _repeat(bot, tenant, schema, chat, rp.group(1))
     action, token = m.groups()
+    if action in ("ph", "px"):
+        return _photo_button(bot, tenant, schema, chat, token, action)
     if action == "no":
         drop_draft(schema, chat, token)
         services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
         _send(bot, chat, _("Verworfen."))
         return "dropped"
     return enqueue_confirm(bot, schema, chat, token, message, sender, cid)
+
+
+def _photo_button(bot, tenant, schema, chat, token, action) -> str:
+    """📷 — следующие фото идут в этот черновик; 🗑 — фото убрать (превью заново)."""
+    from . import quick
+
+    draft = load_draft(schema, chat, token)
+    if draft is None:
+        _send(bot, chat, _("Der Entwurf ist abgelaufen. Bitte die Aktion erneut senden."))
+        return "expired"
+    if action == "ph":
+        remember_last(schema, chat, token)
+        cache.set(_arm_key(schema, chat), token, LAST_TTL)
+        _send(
+            bot,
+            chat,
+            _(
+                "Schicken Sie jetzt bis zu %(n)s Fotos (auch als Album) — ohne Text. "
+                "Sie kommen zu diesem Entwurf."
+            )
+            % {"n": quick.MAX_PHOTOS},
+        )
+        return "photo_wait"
+    draft["photo_ids"] = []
+    draft.pop("photo_from", None)
+    cache.set(_draft_key(schema, chat, token), draft, DRAFT_TTL)
+    remember_last(schema, chat, token)
+    _resend_preview(bot, tenant, schema, chat, token, draft)
+    return "photos_removed"
 
 
 def enqueue_confirm(bot, schema, chat, token, message, sender, cid) -> str:
