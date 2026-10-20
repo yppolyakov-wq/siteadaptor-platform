@@ -62,6 +62,7 @@ EXPECTED_UNLISTED = frozenset(
         "lite-share",
         # [POST] приёмники и action-роуты
         "billing-checkout",
+        "integrations-telegram-activate",  # T-8.29: POST с карточки «Integrationen»
         "billing-payments-callback",
         "billing-payments-connect",
         "billing-payments-methods",
