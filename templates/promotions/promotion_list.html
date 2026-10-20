@@ -108,7 +108,8 @@
           {% if img %}<img src="{{ img.url }}" alt="" class="w-20 h-20 shrink-0 rounded-lg object-cover">{% else %}<div class="w-20 h-20 shrink-0 rounded-lg bg-gray-100 flex items-center justify-center text-2xl">🏷</div>{% endif %}
         {% endwith %}
         <div class="min-w-0 flex-1">
-          <a href="{% url 'promotions:promotion-edit' p.pk %}" class="block font-medium truncate hover:text-indigo-700">{{ p }}</a>
+          {# T-8.31b: заголовок лёгкой карточки → «So sehen Kunden die Aktion» #}
+          <a href="{% url 'promotions:promotion-preview' p.pk %}" class="block font-medium truncate hover:text-indigo-700">{{ p }}</a>
           <p class="text-sm">
             {% if p.new_price is not None %}<span class="font-semibold">{{ p.new_price|floatformat:2 }} €</span>{% endif %}
             {% if p.has_discount %}<span class="ml-1 text-gray-400 line-through">{{ p.old_price|floatformat:2 }} €</span>{% endif %}

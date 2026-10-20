@@ -27693,3 +27693,36 @@ msgstr "Telegram-канал"
 
 msgid "Website · Stadtportal · Kanäle"
 msgstr "Сайт · портал міста · канали"
+
+msgid "Aktion beenden"
+msgstr "Завершити акцію"
+
+msgid "Aushang (QR)"
+msgstr "Листівка (QR)"
+
+msgid "Fortsetzen"
+msgstr "Продовжити"
+
+msgid "Meine Website"
+msgstr "Мій сайт"
+
+msgid "SO SEHEN KUNDEN DIE AKTION"
+msgstr "ТАК КЛІЄНТИ БАЧАТЬ АКЦІЮ"
+
+msgid "Verbinden"
+msgstr "Підключити"
+
+msgid "Vorschau gerade nicht verfügbar."
+msgstr "Попередній перегляд зараз недоступний."
+
+msgid "erst sichtbar, wenn die Aktion aktiv ist."
+msgstr "з’явиться, коли акція стане активною."
+
+msgid "nach Meldungen ausgeblendet, wird geprüft."
+msgstr "приховано після скарг, перевіряється."
+
+msgid "sichtbar"
+msgstr "видно"
+
+msgid "wird gerade aufgenommen (wenige Minuten)."
+msgstr "додається (кілька хвилин)."

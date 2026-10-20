@@ -27713,3 +27713,36 @@ msgstr "Telegram-канал"
 
 msgid "Website · Stadtportal · Kanäle"
 msgstr "Сайт · портал города · каналы"
+
+msgid "Aktion beenden"
+msgstr "Завершить акцию"
+
+msgid "Aushang (QR)"
+msgstr "Листовка (QR)"
+
+msgid "Fortsetzen"
+msgstr "Продолжить"
+
+msgid "Meine Website"
+msgstr "Мой сайт"
+
+msgid "SO SEHEN KUNDEN DIE AKTION"
+msgstr "ТАК КЛИЕНТЫ ВИДЯТ АКЦИЮ"
+
+msgid "Verbinden"
+msgstr "Подключить"
+
+msgid "Vorschau gerade nicht verfügbar."
+msgstr "Предпросмотр сейчас недоступен."
+
+msgid "erst sichtbar, wenn die Aktion aktiv ist."
+msgstr "появится, когда акция станет активной."
+
+msgid "nach Meldungen ausgeblendet, wird geprüft."
+msgstr "скрыто после жалоб, проверяется."
+
+msgid "sichtbar"
+msgstr "видно"
+
+msgid "wird gerade aufgenommen (wenige Minuten)."
+msgstr "добавляется (несколько минут)."

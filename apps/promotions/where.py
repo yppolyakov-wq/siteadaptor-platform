@@ -31,15 +31,17 @@ def _catalog_reason(tenant) -> str:
     return ""
 
 
-def _catalog_line(tenant, promo) -> str:
+def _catalog_state(tenant, promo) -> dict:
+    """Состояние в каталоге города: ``ok`` (видна) + ``detail`` (причина, если нет) +
+    ``urls`` (адреса на порталах). Одна точка для отчёта в чат и для кабинета."""
     from apps.aggregator import follow, portal_scope
     from apps.aggregator.models import AggregatorListing, AggregatorPortal
 
     if promo.status != "active":
-        return _("Stadtkatalog: erst sichtbar, wenn die Aktion aktiv ist.")
+        return {"ok": False, "detail": _("erst sichtbar, wenn die Aktion aktiv ist."), "urls": []}
     reason = _catalog_reason(tenant)
     if reason:
-        return _("Stadtkatalog: %(reason)s") % {"reason": reason}
+        return {"ok": False, "detail": reason, "urls": []}
     key = {
         "tenant_schema": tenant.schema_name,
         "listing_kind": AggregatorListing.KIND_PROMOTION,
@@ -50,8 +52,12 @@ def _catalog_line(tenant, promo) -> str:
     if listing is None:
         raw = AggregatorListing.objects.filter(**key).first()
         if raw is not None and raw.hidden_at is not None:
-            return _("Stadtkatalog: nach Meldungen ausgeblendet, wird geprüft.")
-        return _("Stadtkatalog: wird gerade aufgenommen (wenige Minuten).")
+            return {
+                "ok": False,
+                "detail": _("nach Meldungen ausgeblendet, wird geprüft."),
+                "urls": [],
+            }
+        return {"ok": False, "detail": _("wird gerade aufgenommen (wenige Minuten)."), "urls": []}
     urls = []
     for portal in AggregatorPortal.objects.filter(is_active=True).order_by("pk").iterator():
         if portal_scope.contains(listing, portal):  # у тематического портала — запрос
@@ -60,7 +66,14 @@ def _catalog_line(tenant, promo) -> str:
                 break
     if not urls:
         urls = [follow.absolute(None, "aggregator-offer", args=[listing.pk])]
-    return _("Stadtkatalog: %(url)s") % {"url": " · ".join(urls)}
+    return {"ok": True, "detail": "", "urls": urls}
+
+
+def _catalog_line(tenant, promo) -> str:
+    state = _catalog_state(tenant, promo)
+    if state["ok"]:
+        return _("Stadtkatalog: %(url)s") % {"url": " · ".join(state["urls"])}
+    return _("Stadtkatalog: %(reason)s") % {"reason": state["detail"]}
 
 
 def _status_word(status: str) -> str:
@@ -106,3 +119,51 @@ def report(tenant, promo) -> list[str]:
     if channels:
         lines.append("📣 " + channels)
     return lines
+
+
+def _telegram_channel_on() -> bool:
+    from apps.publishing.models import Channel
+
+    return Channel.objects.filter(type=Channel.TELEGRAM, is_enabled=True).exists()
+
+
+def rows(tenant, promo) -> list[dict]:
+    """T-8.31b: «Wo erscheint die Aktion?» для кабинета — ``{key, label, ok, detail, url}``.
+    ``ok``: True — видна, False — нет (``detail`` — почему), None — не про видимость."""
+    from apps.core import owner_login
+
+    base = owner_login.tenant_url(tenant)
+    catalog = _catalog_state(tenant, promo)
+    page = reverse("storefront-promotion", args=[promo.pk], urlconf=TENANT_URLCONF)
+    return [
+        {
+            "key": "website",
+            "label": _("Meine Website"),
+            "ok": promo.status == "active",
+            "detail": ""
+            if promo.status == "active"
+            else _("erst sichtbar, wenn die Aktion aktiv ist."),
+            "url": base + page,
+        },
+        {
+            "key": "stadtportal",
+            "label": _("Stadtportal"),
+            "ok": catalog["ok"],
+            "detail": catalog["detail"],
+            "url": catalog["urls"][0] if catalog["urls"] else "",
+        },
+        {
+            "key": "telegram",
+            "label": _("Telegram-Kanal"),
+            "ok": _telegram_channel_on(),
+            "detail": "",
+            "url": "",
+        },
+        {
+            "key": "flyer",
+            "label": _("Aushang (QR)"),
+            "ok": None,
+            "detail": "",
+            "url": reverse("promotions:promotion-flyer", args=[promo.pk], urlconf=TENANT_URLCONF),
+        },
+    ]

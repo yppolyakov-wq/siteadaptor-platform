@@ -27442,3 +27442,36 @@ msgstr "Telegram channel"
 
 msgid "Website · Stadtportal · Kanäle"
 msgstr "Website · city portal · channels"
+
+msgid "Aktion beenden"
+msgstr "End promotion"
+
+msgid "Aushang (QR)"
+msgstr "Flyer (QR)"
+
+msgid "Fortsetzen"
+msgstr "Resume"
+
+msgid "Meine Website"
+msgstr "My website"
+
+msgid "SO SEHEN KUNDEN DIE AKTION"
+msgstr "HOW CUSTOMERS SEE THE PROMOTION"
+
+msgid "Verbinden"
+msgstr "Connect"
+
+msgid "Vorschau gerade nicht verfügbar."
+msgstr "Preview not available right now."
+
+msgid "erst sichtbar, wenn die Aktion aktiv ist."
+msgstr "visible only once the offer is active."
+
+msgid "nach Meldungen ausgeblendet, wird geprüft."
+msgstr "hidden after reports, under review."
+
+msgid "sichtbar"
+msgstr "visible"
+
+msgid "wird gerade aufgenommen (wenige Minuten)."
+msgstr "being added right now (a few minutes)."

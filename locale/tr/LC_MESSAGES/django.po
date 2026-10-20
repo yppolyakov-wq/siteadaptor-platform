@@ -27582,3 +27582,36 @@ msgstr "Telegram kanalı"
 
 msgid "Website · Stadtportal · Kanäle"
 msgstr "Web sitesi · şehir portalı · kanallar"
+
+msgid "Aktion beenden"
+msgstr "Kampanyayı bitir"
+
+msgid "Aushang (QR)"
+msgstr "İlan (QR)"
+
+msgid "Fortsetzen"
+msgstr "Devam et"
+
+msgid "Meine Website"
+msgstr "Web sitem"
+
+msgid "SO SEHEN KUNDEN DIE AKTION"
+msgstr "MÜŞTERİLER KAMPANYAYI BÖYLE GÖRÜR"
+
+msgid "Verbinden"
+msgstr "Bağla"
+
+msgid "Vorschau gerade nicht verfügbar."
+msgstr "Önizleme şu anda kullanılamıyor."
+
+msgid "erst sichtbar, wenn die Aktion aktiv ist."
+msgstr "kampanya aktif olunca görünür."
+
+msgid "nach Meldungen ausgeblendet, wird geprüft."
+msgstr "şikayetler nedeniyle gizlendi, inceleniyor."
+
+msgid "sichtbar"
+msgstr "görünür"
+
+msgid "wird gerade aufgenommen (wenige Minuten)."
+msgstr "şu anda ekleniyor (birkaç dakika)."

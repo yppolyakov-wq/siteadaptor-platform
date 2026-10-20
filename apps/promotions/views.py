@@ -1375,6 +1375,11 @@ def promotion_transition(request, pk):
             messages.error(
                 request, _("Transition to %(target)s is not allowed.") % {"target": target}
             )
+        # T-8.31b: страница «So sehen Kunden die Aktion» возвращает на себя. Только
+        # локальный путь (`//host`, схема — отказ); без `next` — как раньше, на правку.
+        nxt = (request.POST.get("next") or "").strip()
+        if nxt and owner_login.safe_next(request, nxt) == nxt:
+            return redirect(nxt)
     return redirect("promotions:promotion-edit", pk=pk)
 
 

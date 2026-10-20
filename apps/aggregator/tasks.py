@@ -267,6 +267,35 @@ def _withheld(tenant) -> bool:
     return not listable(tenant)
 
 
+def promotion_listing_defaults(tenant, snap, promotion_id) -> dict:
+    """Поля листинга акции из снимка — общие для синка и превью в кабинете (T-8.31b):
+    что показал бы портал, то и видит владелец (mystery, §11, условия — одинаково)."""
+    return {
+        **_tenant_base_defaults(tenant),
+        **_neutral_v2v4(),
+        "promo_uuid": promotion_id,
+        "title": snap["title"],
+        "teaser": snap["teaser"],
+        "image": snap["image"],
+        "currency": snap["currency"],
+        "old_price": snap["old_price"],
+        "new_price": snap["new_price"],
+        "discount_percent": snap["discount_percent"],
+        "price_reference": snap.get("price_reference", ""),
+        "starts_at": snap["starts_at"],
+        "ends_at": snap["ends_at"],
+        "detail_url": f"{_site(tenant)}/p/{promotion_id}/",
+        "is_surprise": snap["is_surprise"],
+        "availability": snap.get("availability", ""),
+        "price_condition": snap.get("price_condition", {}),
+        "item_condition": snap.get("item_condition", ""),
+        "item_condition_note": snap.get("item_condition_note", {}),
+        "brand": snap.get("brand", ""),
+        **_city_fields("promotion", tenant, snap),
+        "is_active": True,
+    }
+
+
 def sync_listing(tenant_schema, promotion_id) -> str:
     """Чистая логика (вызывается из задачи и тестов): upsert/remove листинга."""
     from apps.tenants.models import Tenant
@@ -290,30 +319,7 @@ def sync_listing(tenant_schema, promotion_id) -> str:
 
     _upsert_listing(
         key,
-        {
-            **_tenant_base_defaults(tenant),
-            **_neutral_v2v4(),
-            "promo_uuid": promotion_id,
-            "title": snap["title"],
-            "teaser": snap["teaser"],
-            "image": snap["image"],
-            "currency": snap["currency"],
-            "old_price": snap["old_price"],
-            "new_price": snap["new_price"],
-            "discount_percent": snap["discount_percent"],
-            "price_reference": snap.get("price_reference", ""),
-            "starts_at": snap["starts_at"],
-            "ends_at": snap["ends_at"],
-            "detail_url": f"{_site(tenant)}/p/{promotion_id}/",
-            "is_surprise": snap["is_surprise"],
-            "availability": snap.get("availability", ""),
-            "price_condition": snap.get("price_condition", {}),
-            "item_condition": snap.get("item_condition", ""),
-            "item_condition_note": snap.get("item_condition_note", {}),
-            "brand": snap.get("brand", ""),
-            **_city_fields("promotion", tenant, snap),
-            "is_active": True,
-        },
+        promotion_listing_defaults(tenant, snap, promotion_id),
     )
     return "upserted"
 

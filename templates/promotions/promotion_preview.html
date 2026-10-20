@@ -1,0 +1,101 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{{ promo }}{% endblock %}
+
+{% block dash_content %}
+{% comment %}T-8.31b: «So sehen Kunden die Aktion» по макету. Обе панели — настоящие
+партиалы витрины и портала в неактивной обёртке (inert): посмотреть, не нажать.{% endcomment %}
+<div class="max-w-lg mx-auto space-y-3" data-promo-preview>
+  <header class="flex items-center gap-2 pt-1">
+    <a href="{% url 'promotions:promotion-list' %}" aria-label="{% trans "Zurück" %}" class="shrink-0 w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-700">←</a>
+    <h1 class="flex-1 min-w-0 text-xl font-bold truncate">{{ promo }}</h1>
+    <span class="shrink-0 text-xs px-2.5 py-1 rounded-full {% if promo.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-700{% endif %}">{{ promo.get_status_display }}</span>
+  </header>
+
+  <section class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+    <p class="text-xs font-semibold tracking-wide text-gray-500">{% trans "SO SEHEN KUNDEN DIE AKTION" %}</p>
+    <div role="tablist" aria-label="{% trans "Ansicht" %}" class="grid grid-cols-2 gap-1 rounded-xl bg-gray-100 p-1 text-sm font-medium">
+      <button type="button" role="tab" aria-selected="true" data-preview-tab="site" class="rounded-lg py-2 aria-selected:bg-white aria-selected:shadow-sm">{% trans "Meine Website" %}</button>
+      <button type="button" role="tab" aria-selected="false" data-preview-tab="portal" class="rounded-lg py-2 aria-selected:bg-white aria-selected:shadow-sm">{% trans "Stadtportal" %}</button>
+    </div>
+    <div data-preview-pane="site" style="--accent: {{ accent }}; --sf-primary: var(--accent);">
+      <div inert aria-hidden="true" class="pointer-events-none select-none" data-lite-preview>
+        {% include "storefront/_promo_card.html" with p=promo %}
+      </div>
+    </div>
+    <div data-preview-pane="portal" hidden>
+      {% if portal_items %}
+        <div inert aria-hidden="true" class="pointer-events-none select-none" data-lite-preview>
+          {% include "aggregator/_cards.html" with items=portal_items business_link=False portal_user=None shortlist_enabled=False %}
+        </div>
+      {% else %}
+        <p class="text-sm text-gray-500">{% trans "Vorschau gerade nicht verfügbar." %}</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="bg-white rounded-2xl shadow-sm p-4" data-promo-where>
+    <h2 class="text-base font-semibold mb-2">{% trans "Wo erscheint die Aktion?" %}</h2>
+    <ul class="divide-y divide-gray-100 text-sm">
+      {% for r in rows %}
+        <li class="py-2.5 flex items-start justify-between gap-3" data-where-row="{{ r.key }}">
+          <span class="min-w-0">
+            <span class="block">{{ r.label }}</span>
+            {% if r.detail %}<span class="block text-xs text-gray-500">{{ r.detail }}</span>{% endif %}
+          </span>
+          {% if r.key == "flyer" %}
+            <a href="{{ r.url }}" class="shrink-0 font-medium text-indigo-600">PDF</a>
+          {% elif r.ok %}
+            <span class="shrink-0 text-green-700">✓ {% trans "sichtbar" %}</span>
+          {% elif r.key == "telegram" %}
+            <a href="{% url 'integrations-home' %}" class="shrink-0 font-medium text-indigo-600">{% trans "Verbinden" %}</a>
+          {% else %}
+            <span class="shrink-0 text-gray-500">{% trans "nicht sichtbar" %}</span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <div class="grid grid-cols-3 gap-2 text-sm font-medium" data-promo-actions>
+    <a href="{% url 'promotions:promotion-edit' promo.pk %}" class="h-12 rounded-xl bg-white shadow-sm flex items-center justify-center">{% trans "Bearbeiten" %}</a>
+    {% for target in actions %}
+      {% if forloop.first %}
+        <form method="post" action="{% url 'promotions:promotion-transition' promo.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="target" value="{{ target }}">
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <button type="submit" class="w-full h-12 rounded-xl bg-white shadow-sm" data-transition="{{ target }}">{% if target == "paused" %}{% trans "Pausieren" %}{% elif target == "active" %}{% trans "Fortsetzen" %}{% endif %}</button>
+        </form>
+      {% endif %}
+    {% empty %}
+      <span></span>
+    {% endfor %}
+    {% if promo.status == "active" %}
+      <a href="{% url 'promotions:promotion-quick-done' promo.pk %}" class="h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center">{% trans "Teilen" %}</a>
+    {% endif %}
+  </div>
+  {% if "ended" in actions %}
+    <form method="post" action="{% url 'promotions:promotion-transition' promo.pk %}" class="text-center">
+      {% csrf_token %}
+      <input type="hidden" name="target" value="ended">
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <button type="submit" class="text-sm text-red-600 underline" data-transition="ended">{% trans "Aktion beenden" %}</button>
+    </form>
+  {% endif %}
+</div>
+<script>
+  // T-8.31b: делегирование на document (урок Ф1) — панели переключаются без запроса.
+  document.addEventListener("click", function (e) {
+    var tab = e.target.closest("[data-preview-tab]");
+    if (!tab) return;
+    var key = tab.getAttribute("data-preview-tab");
+    document.querySelectorAll("[data-preview-tab]").forEach(function (t) {
+      t.setAttribute("aria-selected", t === tab ? "true" : "false");
+    });
+    document.querySelectorAll("[data-preview-pane]").forEach(function (p) {
+      p.hidden = p.getAttribute("data-preview-pane") !== key;
+    });
+  });
+</script>
+{% endblock %}

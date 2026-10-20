@@ -26,7 +26,7 @@
       <p class="text-sm text-gray-500">{% blocktrans with a=counts.active s=counts.scheduled %}{{ a }} aktiv · {{ s }} geplant{% endblocktrans %}</p>
     </div>
     {% if featured %}
-      <a href="{% url 'promotions:promotion-edit' featured.pk %}" class="flex gap-3 items-center" data-lite-featured>
+      <a href="{% url 'promotions:promotion-preview' featured.pk %}" class="flex gap-3 items-center" data-lite-featured>
         {% with img=featured.primary_image %}
           {% if img %}<img src="{{ img.url }}" alt="" class="w-14 h-14 shrink-0 rounded-xl object-cover">{% else %}<span class="w-14 h-14 shrink-0 rounded-xl bg-amber-100 flex items-center justify-center text-2xl" aria-hidden="true">🏷</span>{% endif %}
         {% endwith %}

@@ -131,3 +131,39 @@ def test_expired_listing_is_not_linked(tg):  # noqa: F811
     )
     text = _text(tenant, promo)
     assert "/angebot/" not in text and "aufgenommen" in text
+
+
+# --- T-8.31b: структурированные строки «где видна» + отчёт байт-в-байт ------------
+
+
+def test_report_golden_lines(tg):  # noqa: F811
+    """Замок до рефакторинга: текст отчёта для Telegram не меняется."""
+    _token, promo = _published(tg)
+    tenant = tg["tenant"]
+    promo.status = "paused"
+    lines = where.report(tenant, promo)
+    assert lines[0].startswith("🔗 Eigene Seite: ") and lines[0].endswith(f"/p/{promo.pk}/")
+    assert lines[1].startswith("📄 Aushang (PDF, nach Anmeldung): ")
+    assert lines[1].endswith(f"/promotions/{promo.pk}/aushang.pdf")
+    assert lines[2] == "🏙 Stadtkatalog: erst sichtbar, wenn die Aktion aktiv ist."
+    promo.status = "active"
+    tenant.email_pending = True
+    assert where.report(tenant, promo)[2] == (
+        "🏙 Stadtkatalog: Erst nach Bestätigung Ihrer E-Mail-Adresse (Link in der E-Mail)."
+    )
+
+
+def test_rows_structure_and_reasons(tg):  # noqa: F811
+    _token, promo = _published(tg)
+    tenant = tg["tenant"]
+    rows = {r["key"]: r for r in where.rows(tenant, promo)}
+    assert list(rows) == ["website", "stadtportal", "telegram", "flyer"]
+    assert rows["website"]["ok"] is True and rows["website"]["url"].endswith(f"/p/{promo.pk}/")
+    assert rows["flyer"]["ok"] is None and rows["flyer"]["url"].endswith("aushang.pdf")
+    assert rows["telegram"]["ok"] is False
+    tenant.email_pending = True
+    sp = {r["key"]: r for r in where.rows(tenant, promo)}["stadtportal"]
+    assert sp["ok"] is False and "E-Mail" in sp["detail"]
+    promo.status = "draft"
+    rows = {r["key"]: r for r in where.rows(tenant, promo)}
+    assert rows["website"]["ok"] is False and "aktiv" in rows["stadtportal"]["detail"]

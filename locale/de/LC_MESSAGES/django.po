@@ -27532,3 +27532,36 @@ msgstr "Telegram-Kanal"
 
 msgid "Website · Stadtportal · Kanäle"
 msgstr "Website · Stadtportal · Kanäle"
+
+msgid "Aktion beenden"
+msgstr "Aktion beenden"
+
+msgid "Aushang (QR)"
+msgstr "Aushang (QR)"
+
+msgid "Fortsetzen"
+msgstr "Fortsetzen"
+
+msgid "Meine Website"
+msgstr "Meine Website"
+
+msgid "SO SEHEN KUNDEN DIE AKTION"
+msgstr "SO SEHEN KUNDEN DIE AKTION"
+
+msgid "Verbinden"
+msgstr "Verbinden"
+
+msgid "Vorschau gerade nicht verfügbar."
+msgstr "Vorschau gerade nicht verfügbar."
+
+msgid "erst sichtbar, wenn die Aktion aktiv ist."
+msgstr "erst sichtbar, wenn die Aktion aktiv ist."
+
+msgid "nach Meldungen ausgeblendet, wird geprüft."
+msgstr "nach Meldungen ausgeblendet, wird geprüft."
+
+msgid "sichtbar"
+msgstr "sichtbar"
+
+msgid "wird gerade aufgenommen (wenige Minuten)."
+msgstr "wird gerade aufgenommen (wenige Minuten)."

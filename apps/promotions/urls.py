@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import lite_views, views
 
 app_name = "promotions"
 
@@ -39,6 +39,8 @@ urlpatterns = [
     # T-8.9: флаер на одну акцию (A4 / A6 / 4×A6) с QR.
     path("<uuid:pk>/aushang.pdf", views.promotion_flyer, name="promotion-flyer"),
     path("<uuid:pk>/edit/", views.promotion_edit, name="promotion-edit"),
+    # T-8.31b: «So sehen Kunden die Aktion» — витрина и каталог города (лёгкий кабинет).
+    path("<uuid:pk>/ansicht/", lite_views.promotion_preview, name="promotion-preview"),
     path("<uuid:pk>/transition/", views.promotion_transition, name="promotion-transition"),
     # Платное продвижение акции в агрегаторе (P2.4b): страница + Stripe-Checkout.
     # ST-6b: экран «Teilen» — публикации по каналам + «überall veröffentlichen».

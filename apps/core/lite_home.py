@@ -51,35 +51,14 @@ def product_counts() -> dict:
     )
 
 
-def _on_portal(tenant, promo) -> bool:
-    from apps.aggregator.models import AggregatorListing
-
-    if promo.status != "active":
-        return False
-    return (
-        AggregatorListing.objects.public()
-        .filter(
-            tenant_schema=tenant.schema_name,
-            listing_kind=AggregatorListing.KIND_PROMOTION,
-            source_ref=str(promo.pk),
-        )
-        .exists()
-    )
-
-
-def _telegram_channel_on() -> bool:
-    from apps.publishing.models import Channel
-
-    return Channel.objects.filter(type=Channel.TELEGRAM, is_enabled=True).exists()
+CHIP_KEYS = ("website", "stadtportal", "telegram")
 
 
 def visibility_chips(tenant, promo) -> list[dict]:
-    """Где акция видна сейчас — по фактам, а не по настройкам."""
-    return [
-        {"key": "website", "ok": promo.status == "active", "label": _("Website")},
-        {"key": "stadtportal", "ok": _on_portal(tenant, promo), "label": _("Stadtportal")},
-        {"key": "telegram", "ok": _telegram_channel_on(), "label": _("Telegram-Kanal")},
-    ]
+    """Где акция видна сейчас — по фактам (те же строки, что «Wo erscheint die Aktion?»)."""
+    from apps.promotions import where
+
+    return [r for r in where.rows(tenant, promo) if r["key"] in CHIP_KEYS]
 
 
 # Реестр «следующего шага»: первое сработавшее правило. Цели — только существующие
