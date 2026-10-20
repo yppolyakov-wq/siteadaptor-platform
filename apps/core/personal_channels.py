@@ -40,17 +40,13 @@ def personal_channels(tenant) -> list[dict]:
         }
     )
 
-    telegram_ready = _safe(
-        lambda: bool((tenant.site_config or {}).get("owner_chat_id")) or _has_bot(tenant), False
-    )
+    telegram_ready, telegram_hint = _safe(lambda: _telegram_state(tenant), (False, ""))
     rows.append(
         {
             "key": "telegram",
             "icon": "✈️",
             "label": _("Telegram"),
-            "hint": _("Bot für Kundenchats und Benachrichtigungen")
-            if telegram_ready
-            else _("Bot verbinden"),
+            "hint": telegram_hint or _("Bot verbinden"),
             "ready": bool(telegram_ready),
             "url": _safe(lambda: reverse("telegram-settings"), "/dashboard/telegram/"),
         }
@@ -109,7 +105,14 @@ def personal_channels(tenant) -> list[dict]:
     return rows
 
 
-def _has_bot(tenant) -> bool:
-    from apps.integrations.telegram.models import TelegramLink  # локально: SHARED-модель
+def _telegram_state(tenant) -> tuple[bool, str]:
+    """T-8.10h H-3: чат владельца живёт в site_config["notify"] (общий бот платформы или
+    свой бот бизнеса); свой бот без чата владельца — тоже канал (клиентские чаты)."""
+    from apps.telegram import notify
 
-    return TelegramLink.objects.exists()
+    node = notify._notify_node(tenant)
+    if node.get("owner_chat_id") and node.get("owner_bot") == "platform":
+        return True, str(_("Über Plattform-Bot verbunden"))
+    if notify.active_bot() is not None:
+        return True, str(_("Bot für Kundenchats und Benachrichtigungen"))
+    return False, ""

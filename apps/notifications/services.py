@@ -46,6 +46,7 @@ def notify(
     headers: dict | None = None,
     channel: str = Notification.EMAIL,
     attachments: list | None = None,
+    telegram_bot: str = "",
 ) -> Notification | None:
     """Создать уведомление (если ещё нет) и поставить доставку. None = дубль.
 
@@ -54,6 +55,9 @@ def notify(
     потому что доставка идёт отдельной задачей и должна пережить перезапуск.
     """
     payload = {"body": body}
+    if telegram_bot:
+        # T-8.10h: каким ботом доставлять ("platform"); без ключа — свой бот бизнеса.
+        payload["bot"] = telegram_bot
     if html:
         payload["html"] = html
     if headers:

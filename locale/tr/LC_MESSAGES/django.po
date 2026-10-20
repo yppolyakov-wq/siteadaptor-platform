@@ -26499,3 +26499,64 @@ msgid ""
 msgstr ""
 "Tekrar hoş geldiniz! Örneğin şunu gönderin: „Simit 2,50 € yerine 3,90 €, "
 "bugün 18:00'e kadar, 20 adet“ — fotoğraf da eklenebilir."
+
+msgid "Nicht verfügbar."
+msgstr "Kullanılamıyor."
+
+#, python-format
+msgid "Aktuelles Geschäft: %(name)s"
+msgstr "Geçerli işletme: %(name)s"
+
+msgid ""
+"Link ungültig oder abgelaufen. Bitte im Kabinett einen neuen Link erzeugen."
+msgstr ""
+"Bağlantı geçersiz veya süresi dolmuş. Lütfen panelde yeni bir bağlantı "
+"oluşturun."
+
+#, python-format
+msgid "✅ Verbunden mit %(name)s. Benachrichtigungen kommen ab jetzt hier."
+msgstr "✅ %(name)s ile bağlandı. Bildirimler artık buraya gelecek."
+
+msgid "Mit /geschaeft wechseln Sie das Geschäft."
+msgstr "İşletme değiştirmek için /geschaeft kullanın."
+
+msgid "Sie haben mehrere Geschäfte. Wählen Sie das aktuelle:"
+msgstr "Birden fazla işletmeniz var. Geçerli olanı seçin:"
+
+#, python-format
+msgid "Telegram verbunden — %(name)s"
+msgstr "Telegram bağlandı — %(name)s"
+
+#, python-format
+msgid ""
+"Hallo,\n"
+"\n"
+"Ihr Geschäft ist jetzt mit dem Telegram-Bot %(bot)s verbunden. Benachrichtigungen kommen ab jetzt dort an.\n"
+"\n"
+"Das waren nicht Sie? Trennen Sie die Verbindung hier:\n"
+"%(url)s"
+msgstr ""
+"Merhaba,\n"
+"\n"
+"işletmeniz artık %(bot)s Telegram botuna bağlı. Bildirimler bundan sonra oraya gelecek.\n"
+"\n"
+"Bu siz değil miydiniz? Bağlantıyı buradan kesin:\n"
+"%(url)s"
+
+msgid "Mit Telegram verbinden"
+msgstr "Telegram ile bağlan"
+
+msgid "Verbunden über Plattform-Bot"
+msgstr "Platform botu üzerinden bağlı"
+
+msgid "Verbunden über eigenen Bot"
+msgstr "Kendi botunuz üzerinden bağlı"
+
+msgid "Öffnet Telegram — tippen Sie auf Start. Der Link gilt 15 Minuten."
+msgstr "Telegram açılır — Başlat'a dokunun. Bağlantı 15 dakika geçerlidir."
+
+msgid "Stattdessen den eigenen Bot verwenden"
+msgstr "Bunun yerine kendi botunuzu kullanın"
+
+msgid "Über Plattform-Bot verbunden"
+msgstr "Platform botu üzerinden bağlı"

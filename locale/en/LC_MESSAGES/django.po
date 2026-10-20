@@ -26360,3 +26360,62 @@ msgid ""
 msgstr ""
 "Welcome back! Send e.g.: “Rolls €2.50 instead of €3.90, today until 6 pm, 20"
 " pieces” — a photo is welcome."
+
+msgid "Nicht verfügbar."
+msgstr "Not available."
+
+#, python-format
+msgid "Aktuelles Geschäft: %(name)s"
+msgstr "Current business: %(name)s"
+
+msgid ""
+"Link ungültig oder abgelaufen. Bitte im Kabinett einen neuen Link erzeugen."
+msgstr "Link invalid or expired. Please create a new link in your dashboard."
+
+#, python-format
+msgid "✅ Verbunden mit %(name)s. Benachrichtigungen kommen ab jetzt hier."
+msgstr "✅ Connected to %(name)s. Notifications will arrive here from now on."
+
+msgid "Mit /geschaeft wechseln Sie das Geschäft."
+msgstr "Use /geschaeft to switch business."
+
+msgid "Sie haben mehrere Geschäfte. Wählen Sie das aktuelle:"
+msgstr "You have several businesses. Choose the current one:"
+
+#, python-format
+msgid "Telegram verbunden — %(name)s"
+msgstr "Telegram connected — %(name)s"
+
+#, python-format
+msgid ""
+"Hallo,\n"
+"\n"
+"Ihr Geschäft ist jetzt mit dem Telegram-Bot %(bot)s verbunden. Benachrichtigungen kommen ab jetzt dort an.\n"
+"\n"
+"Das waren nicht Sie? Trennen Sie die Verbindung hier:\n"
+"%(url)s"
+msgstr ""
+"Hello,\n"
+"\n"
+"your business is now connected to the Telegram bot %(bot)s. Notifications will arrive there from now on.\n"
+"\n"
+"That wasn't you? Disconnect here:\n"
+"%(url)s"
+
+msgid "Mit Telegram verbinden"
+msgstr "Connect with Telegram"
+
+msgid "Verbunden über Plattform-Bot"
+msgstr "Connected via platform bot"
+
+msgid "Verbunden über eigenen Bot"
+msgstr "Connected via your own bot"
+
+msgid "Öffnet Telegram — tippen Sie auf Start. Der Link gilt 15 Minuten."
+msgstr "Opens Telegram — tap Start. The link is valid for 15 minutes."
+
+msgid "Stattdessen den eigenen Bot verwenden"
+msgstr "Use your own bot instead"
+
+msgid "Über Plattform-Bot verbunden"
+msgstr "Connected via platform bot"

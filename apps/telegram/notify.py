@@ -118,25 +118,32 @@ def link_owner_from_start(payload: str, chat_id, tenant) -> bool:
     node = _notify_node(tenant)
     if not token or node.get("owner_link_token") != token:
         return False
-    _save_notify_node(
-        tenant,
-        {**node, "owner_chat_id": str(chat_id), "owner_link_token": secrets.token_urlsafe(16)},
-    )
+    # T-8.10h H-3: единственный писатель привязки владельца — apps.platform_bot.links
+    # (свой бот побеждает: связи общего бота гаснут, owner_bot="tenant").
+    from apps.platform_bot import links
+
+    links.claim_for_tenant_bot(tenant, chat_id, rotate_token=secrets.token_urlsafe(16))
     return True
 
 
 def send_to_owner(tenant, *, type: str, dedupe_key: str, text: str) -> None:
-    """Telegram-уведомление ВЛАДЕЛЬЦУ, если привязан owner_chat_id и бот активен.
+    """Telegram-уведомление ВЛАДЕЛЬЦУ тем ботом, к которому он подключён (свой бот бизнеса
+    или общий бот платформы, T-8.10h H-3).
 
     Тихо no-op без привязки/бота — Telegram дополняет owner-email, не заменяет."""
-    if active_bot() is None:
-        return
-    chat = owner_chat_id(tenant)
+    from apps.platform_bot import links
+
+    kind, chat = links.owner_route(tenant)
     if not chat:
         return
     from apps.notifications.models import Notification
     from apps.notifications.services import notify
 
     notify(
-        dedupe_key=dedupe_key, type=type, recipient=chat, body=text, channel=Notification.TELEGRAM
+        dedupe_key=dedupe_key,
+        type=type,
+        recipient=chat,
+        body=text,
+        channel=Notification.TELEGRAM,
+        telegram_bot=kind if kind == links.OWNER_BOT_PLATFORM else "",
     )

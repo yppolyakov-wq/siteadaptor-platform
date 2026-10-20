@@ -120,3 +120,65 @@ def mark_blocked(tg_user_id: int) -> int:
     return OwnerTelegramLink.objects.filter(
         tg_user_id=int(tg_user_id), blocked_at__isnull=True
     ).update(blocked_at=timezone.now(), updated_at=timezone.now())
+
+
+def claim_for_tenant_bot(tenant, chat_id, *, rotate_token: str) -> None:
+    """Владелец подключил СВОЙ бот бизнеса (`/start owner-…`): связи общего бота гаснут,
+    зеркало переходит на свой бот, токен deep link ротируется (одноразовый)."""
+    with transaction.atomic():
+        locked = _lock(tenant.pk)
+        OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True).update(
+            is_active=False, updated_at=timezone.now()
+        )
+        tenant.site_config = _write_mirror(
+            locked,
+            owner_chat_id=str(chat_id),
+            owner_bot=OWNER_BOT_TENANT,
+            owner_link_token=rotate_token,
+        )
+
+
+def disconnect(tenant) -> None:
+    """«Trennen» в кабинете — какой бы бот ни был подключён."""
+    with transaction.atomic():
+        locked = _lock(tenant.pk)
+        OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True).update(
+            is_active=False, updated_at=timezone.now()
+        )
+        tenant.site_config = _write_mirror(locked, owner_chat_id=None, owner_bot=None)
+
+
+def select(tg_user_id, link_id):
+    """Сделать связь текущей — только СВОЮ активную; чужая/неактивная → None."""
+    link = _active(tg_user_id).filter(pk=link_id).select_related("tenant").first()
+    if link is None:
+        return None
+    link.selected_at = timezone.now()
+    link.save(update_fields=["selected_at", "updated_at"])
+    return link
+
+
+def owner_route(tenant) -> tuple[str, str]:
+    """(вид бота, чат владельца) для уведомления; ('', '') — доставить нечем.
+
+    Общий бот — только при живой связи в ТАБЛИЦЕ (зеркало могло устареть)."""
+    from apps.telegram import bots
+
+    cfg = getattr(tenant, "site_config", None)
+    cfg = cfg if isinstance(cfg, dict) else {}
+    node = cfg.get("notify") if isinstance(cfg.get("notify"), dict) else {}
+    chat = str(node.get("owner_chat_id") or "")
+    if not chat:
+        return ("", "")
+    if node.get("owner_bot") == OWNER_BOT_PLATFORM:
+        if (
+            tenant is None
+            or bots.platform_bot() is None
+            or not chat.isdigit()
+            or not is_owner(int(chat), tenant)
+        ):
+            return ("", "")
+        return (OWNER_BOT_PLATFORM, chat)
+    if bots.tenant_bot() is None:
+        return ("", "")
+    return (OWNER_BOT_TENANT, chat)

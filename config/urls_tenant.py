@@ -49,6 +49,8 @@ from apps.core.views import (
     menu_builder_view,
     modules_view,
     notifications_settings,
+    platform_bot_connect,
+    platform_bot_disconnect,
     pages_view,
     palette_search,
     payment_settings,
@@ -116,6 +118,16 @@ urlpatterns = [
         "dashboard/settings/notifications/",
         notifications_settings,
         name="notifications-settings",
+    ),
+    path(
+        "dashboard/settings/notifications/telegram/connect/",
+        platform_bot_connect,
+        name="platform-bot-connect",
+    ),
+    path(
+        "dashboard/settings/notifications/telegram/disconnect/",
+        platform_bot_disconnect,
+        name="platform-bot-disconnect",
     ),
     # L2 (Волна L): кабинет «Sprachen» — включение языков витрины + дефолт.
     path("dashboard/settings/languages/", languages_view, name="languages"),

@@ -9,6 +9,7 @@ H-2: только каркас — личный чат получает прив
 from __future__ import annotations
 
 import logging
+import re
 
 from django.conf import settings
 from django.utils import translation
@@ -21,6 +22,13 @@ from . import links
 logger = logging.getLogger(__name__)
 
 GROUP_TYPES = ("group", "supergroup", "channel")
+CONNECT_RE = re.compile(r"^/start(?:@\w+)?\s+b-(\S+)\s*$")
+CHOOSE_RE = re.compile(r"^/geschaeft(?:@\w+)?\s*$", re.IGNORECASE)
+CHOOSE_CALLBACK_RE = re.compile(
+    r"^g:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$"
+)
+CHOOSE_MAX = 20
+CONNECT_LIMIT = 10  # попыток привязки на пользователя Telegram в час
 
 
 def locale_for(language_code: str) -> str:
@@ -83,7 +91,19 @@ def _callback(bot, callback: dict) -> str:
     from apps.telegram import services
 
     services.answer_callback_query(bot.token, callback.get("id") or "")
-    return "skip"
+    match = CHOOSE_CALLBACK_RE.match(callback.get("data") or "")
+    if not match:
+        return "skip"
+    from_id = callback.get("from_id")
+    if not from_id or callback.get("chat_id") != from_id:
+        return "skip"
+    with translation.override(locale_for(callback.get("language_code"))):
+        link = links.select(from_id, match.group(1))
+        if link is None:
+            send(bot, from_id, _("Nicht verfügbar."))
+            return "choose_denied"
+        send(bot, from_id, _("Aktuelles Geschäft: %(name)s") % {"name": link.tenant.name})
+    return "chosen"
 
 
 def _start_url() -> str:
@@ -95,6 +115,12 @@ def _start_url() -> str:
 def _private(bot, message: dict) -> str:
     chat = message["chat_id"]
     links.mark_unblocked(message["from_id"])  # пишет боту — значит, не заблокировал
+    text = (message.get("text") or "").strip()
+    match = CONNECT_RE.match(text)
+    if match:
+        return _connect(bot, message, match.group(1))
+    if CHOOSE_RE.match(text):
+        return _choose(bot, message)
     has_business = links.active_links(message["from_id"]).exists()
     if has_business:
         send(
@@ -105,6 +131,10 @@ def _private(bot, message: dict) -> str:
             ),
         )
         return "welcome_back"
+    return _private_onboarding(bot, chat)
+
+
+def _private_onboarding(bot, chat) -> str:
     send(
         bot,
         chat,
@@ -114,3 +144,88 @@ def _private(bot, message: dict) -> str:
         {"inline_keyboard": [[{"text": "⚡ " + _("Aktion starten"), "url": _start_url()}]]},
     )
     return "onboarding"
+
+
+def _invalid(bot, chat) -> str:
+    send(
+        bot,
+        chat,
+        _("Link ungültig oder abgelaufen. Bitte im Kabinett einen neuen Link erzeugen."),
+    )
+    return "connect_invalid"
+
+
+def _owner_in_schema(payload: dict) -> bool:
+    """Право перепроверяется В МОМЕНТ привязки: ссылку мог выпустить уже не владелец."""
+    from django_tenants.utils import schema_context
+
+    from apps.core.models import Membership
+
+    try:
+        with schema_context(payload["schema"]):
+            return Membership.objects.filter(
+                user_id=payload["user_pk"],
+                user__is_active=True,
+                role=Membership.ROLE_OWNER,
+            ).exists()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("platform bot owner check failed: %s", type(exc).__name__)
+        return False
+
+
+def _connect(bot, message: dict, raw: str) -> str:
+    """`/start b-<токен>` из кабинета — привязать бизнес к этому чату."""
+    from apps.core import ratelimit
+    from apps.tenants.models import Tenant
+
+    from . import connect
+
+    chat, from_id = message["chat_id"], message["from_id"]
+    if ratelimit.hit("tgplat-connect", str(from_id), limit=CONNECT_LIMIT, window=3600):
+        return _invalid(bot, chat)
+    payload = connect.consume(raw)
+    if payload is None:
+        return _invalid(bot, chat)
+    tenant = Tenant.objects.filter(
+        schema_name=payload.get("schema") or "", pk=payload.get("tenant_pk")
+    ).first()
+    if tenant is None or not _owner_in_schema(payload):
+        return _invalid(bot, chat)
+    link = links.bind(from_id, tenant, via=links.OwnerTelegramLink.VIA_CABINET)
+    text = _("✅ Verbunden mit %(name)s. Benachrichtigungen kommen ab jetzt hier.") % {
+        "name": tenant.name
+    }
+    if links.active_links(from_id).count() > 1:
+        text += "\n" + _("Mit /geschaeft wechseln Sie das Geschäft.")
+    send(bot, chat, text)
+    from . import tasks
+
+    tasks.enqueue_connected_email(link, payload)
+    return "connected"
+
+
+def _choose(bot, message: dict) -> str:
+    chat, from_id = message["chat_id"], message["from_id"]
+    owned = list(links.active_links(from_id)[:CHOOSE_MAX])
+    if not owned:
+        return _private_onboarding(bot, chat)
+    current = owned[0]
+    if len(owned) == 1:
+        send(bot, chat, _("Aktuelles Geschäft: %(name)s") % {"name": current.tenant.name})
+        return "choose_single"
+    keyboard = [
+        [
+            {
+                "text": ("✓ " if link.pk == current.pk else "") + link.tenant.name[:60],
+                "callback_data": f"g:{link.pk}",
+            }
+        ]
+        for link in owned
+    ]
+    send(
+        bot,
+        chat,
+        _("Sie haben mehrere Geschäfte. Wählen Sie das aktuelle:"),
+        {"inline_keyboard": keyboard},
+    )
+    return "choose_menu"

@@ -26634,3 +26634,64 @@ msgid ""
 msgstr ""
 "С возвращением! Отправьте, например: «Булочки 2,50 € вместо 3,90 €, сегодня "
 "до 18:00, 20 шт.» — можно с фото."
+
+msgid "Nicht verfügbar."
+msgstr "Недоступно."
+
+#, python-format
+msgid "Aktuelles Geschäft: %(name)s"
+msgstr "Текущий бизнес: %(name)s"
+
+msgid ""
+"Link ungültig oder abgelaufen. Bitte im Kabinett einen neuen Link erzeugen."
+msgstr ""
+"Ссылка недействительна или устарела. Создайте новую ссылку в личном "
+"кабинете."
+
+#, python-format
+msgid "✅ Verbunden mit %(name)s. Benachrichtigungen kommen ab jetzt hier."
+msgstr "✅ Подключено к %(name)s. Уведомления теперь будут приходить сюда."
+
+msgid "Mit /geschaeft wechseln Sie das Geschäft."
+msgstr "Сменить бизнес можно командой /geschaeft."
+
+msgid "Sie haben mehrere Geschäfte. Wählen Sie das aktuelle:"
+msgstr "У вас несколько бизнесов. Выберите текущий:"
+
+#, python-format
+msgid "Telegram verbunden — %(name)s"
+msgstr "Telegram подключён — %(name)s"
+
+#, python-format
+msgid ""
+"Hallo,\n"
+"\n"
+"Ihr Geschäft ist jetzt mit dem Telegram-Bot %(bot)s verbunden. Benachrichtigungen kommen ab jetzt dort an.\n"
+"\n"
+"Das waren nicht Sie? Trennen Sie die Verbindung hier:\n"
+"%(url)s"
+msgstr ""
+"Здравствуйте,\n"
+"\n"
+"ваш бизнес подключён к Telegram-боту %(bot)s. Уведомления теперь будут приходить туда.\n"
+"\n"
+"Это были не вы? Отключите здесь:\n"
+"%(url)s"
+
+msgid "Mit Telegram verbinden"
+msgstr "Подключить Telegram"
+
+msgid "Verbunden über Plattform-Bot"
+msgstr "Подключено через бот платформы"
+
+msgid "Verbunden über eigenen Bot"
+msgstr "Подключено через собственный бот"
+
+msgid "Öffnet Telegram — tippen Sie auf Start. Der Link gilt 15 Minuten."
+msgstr "Откроется Telegram — нажмите «Старт». Ссылка действует 15 минут."
+
+msgid "Stattdessen den eigenen Bot verwenden"
+msgstr "Использовать собственный бот"
+
+msgid "Über Plattform-Bot verbunden"
+msgstr "Подключено через бот платформы"

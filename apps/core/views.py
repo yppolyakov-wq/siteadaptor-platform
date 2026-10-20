@@ -5588,10 +5588,12 @@ def notifications_settings(request):
     """UD4-2: матрица каналов per-событие (клиент) + owner-каналы + привязка
     Telegram владельца. Хранение — Tenant.site_config['notify'] (без миграции);
     owner_chat_id/owner_link_token в том же узле НЕ затираем при сохранении."""
+    from apps.core import roles
     from apps.notifications import prefs
+    from apps.platform_bot import links as platform_links
+    from apps.telegram import bots
     from apps.telegram.notify import (
         _notify_node,
-        _save_notify_node,
         active_bot,
         owner_chat_id,
         owner_deep_link,
@@ -5600,38 +5602,27 @@ def notifications_settings(request):
     tenant = request.tenant
     if request.method == "POST":
         if request.POST.get("action") == "disconnect_owner":
-            node = dict(_notify_node(tenant))
-            node.pop("owner_chat_id", None)
-            _save_notify_node(tenant, node)
+            platform_links.disconnect(tenant)  # T-8.10h: единственный писатель привязки
             messages.success(request, _("Telegram getrennt."))
             return redirect("notifications-settings")
-        cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
-        node = dict(cfg.get("notify")) if isinstance(cfg.get("notify"), dict) else {}
-        customer = {}
-        for domain, events in prefs.CUSTOMER_EVENTS.items():
-            if not tenant.is_module_active(prefs.DOMAIN_MODULE[domain]):
-                continue
-            for event, _label in events:
-                customer[f"{domain}:{event}"] = {
-                    "email": bool(request.POST.get(f"c-{domain}-{event}-email")),
-                    "telegram": bool(request.POST.get(f"c-{domain}-{event}-telegram")),
-                }
-        # W7a: мержим, а не заменяем — строки временно выключенных модулей не были
-        # в форме, и их выбор должен пережить Save (иначе включение модуля обратно
-        # тихо вернёт письма, которые владелец отключал).
-        merged = dict(node.get("customer")) if isinstance(node.get("customer"), dict) else {}
-        merged.update(customer)
-        node["customer"] = merged
-        node["owner"] = {
-            "email": bool(request.POST.get("o-email")),
-            "telegram": bool(request.POST.get("o-telegram")),
-        }
-        cfg["notify"] = node
-        tenant.site_config = cfg
-        tenant.save(update_fields=["site_config"])
+        from django.db import transaction
+
+        from apps.tenants.models import Tenant
+
+        # T-8.10h: привязку владельца в том же узле пишет бот (Celery) — перечитываем узел
+        # под замком, иначе устаревший объект запроса воскресил бы отключённый чат.
+        with transaction.atomic():
+            tenant = Tenant.objects.select_for_update().get(pk=tenant.pk)
+            request.tenant = tenant
+            cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+            node = dict(cfg.get("notify")) if isinstance(cfg.get("notify"), dict) else {}
+            _save_notify_matrix(request, tenant, cfg, node)
         messages.success(request, _("Benachrichtigungen gespeichert."))
         return redirect("notifications-settings")
 
+    node = _notify_node(tenant)
+    owner_via = node.get("owner_bot") or ("tenant" if owner_chat_id(tenant) else "")
+    platform = bots.platform_bot()
     return render(
         request,
         "tenant/notifications.html",
@@ -5641,6 +5632,12 @@ def notifications_settings(request):
             "owner": prefs.owner_channels(tenant),
             "owner_deep_link": owner_deep_link(tenant),
             "owner_linked": bool(owner_chat_id(tenant)),
+            "owner_via": owner_via if owner_chat_id(tenant) else "",
+            # T-8.10h H-3: подключение к общему боту — только владельцу бизнеса.
+            "platform_bot_available": platform is not None
+            and bool(platform.username)
+            and roles.is_owner(request.user),
+            "platform_bot_username": platform.username if platform else "",
             # FB-10: КУДА идут owner-письма (и предупреждение, если адрес пуст —
             # частая причина «уведомления не приходят»).
             "owner_email": tenant.owner_email,
@@ -5649,6 +5646,73 @@ def notifications_settings(request):
             "bot": active_bot(),
         },
     )
+
+
+def _save_notify_matrix(request, tenant, cfg, node) -> None:
+    from apps.notifications import prefs
+
+    customer = {}
+    for domain, events in prefs.CUSTOMER_EVENTS.items():
+        if not tenant.is_module_active(prefs.DOMAIN_MODULE[domain]):
+            continue
+        for event, _label in events:
+            customer[f"{domain}:{event}"] = {
+                "email": bool(request.POST.get(f"c-{domain}-{event}-email")),
+                "telegram": bool(request.POST.get(f"c-{domain}-{event}-telegram")),
+            }
+    # W7a: мержим, а не заменяем — строки временно выключенных модулей не были
+    # в форме, и их выбор должен пережить Save (иначе включение модуля обратно
+    # тихо вернёт письма, которые владелец отключал).
+    merged = dict(node.get("customer")) if isinstance(node.get("customer"), dict) else {}
+    merged.update(customer)
+    node["customer"] = merged
+    node["owner"] = {
+        "email": bool(request.POST.get("o-email")),
+        "telegram": bool(request.POST.get("o-telegram")),
+    }
+    cfg["notify"] = node
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config"])
+
+
+@login_required
+@require_POST
+def platform_bot_connect(request):
+    """T-8.10h H-3: «Mit Telegram verbinden» — одноразовая ссылка на общий бот (15 мин)."""
+    from django.http import Http404, HttpResponseForbidden
+    from django.utils import translation
+
+    from apps.core import ratelimit, roles
+    from apps.platform_bot import connect
+    from apps.telegram import bots
+
+    if not roles.is_owner(request.user):
+        return HttpResponseForbidden()
+    if bots.platform_bot() is None:
+        raise Http404
+    tenant = request.tenant
+    if ratelimit.hit("tgplat-issue", tenant.schema_name, limit=10, window=3600):
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+        return redirect("notifications-settings")
+    link = connect.issue(tenant, request.user, lang=translation.get_language() or "")
+    if not link:
+        raise Http404
+    return redirect(link)
+
+
+@login_required
+@require_POST
+def platform_bot_disconnect(request):
+    from django.http import HttpResponseForbidden
+
+    from apps.core import roles
+    from apps.platform_bot import links as platform_links
+
+    if not roles.is_owner(request.user):
+        return HttpResponseForbidden()
+    platform_links.disconnect(request.tenant)
+    messages.success(request, _("Telegram getrennt."))
+    return redirect("notifications-settings")
 
 
 @login_required
@@ -5780,6 +5844,13 @@ def integrations_home(request):
         if "console" in (getattr(dj_settings, "EMAIL_BACKEND", "") or "").lower():
             return (_("E-Mail: Test-Modus (Konsole) — Mails gehen nicht raus"), "warn")
         bot = active_bot()
+        notify_node = (tenant.site_config or {}).get("notify") or {}
+        if (
+            isinstance(notify_node, dict)
+            and notify_node.get("owner_bot") == "platform"
+            and owner_chat_id(tenant)
+        ):
+            return (_("Über Plattform-Bot verbunden"), "ok")
         if bot is None:
             return (_("Kein Telegram-Bot"), "muted")
         # I18N-7b: gettext НЕ в f-строке (xgettext их не извлекает).

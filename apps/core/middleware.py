@@ -175,6 +175,8 @@ class CabinetOwnerAccessMiddleware:
         "/dashboard/channels/config/",
         "/dashboard/channels/connect/",
         "/dashboard/channels/toggle/",
+        # T-8.10h H-3: привязка бизнеса к общему Telegram-боту — только владельцу.
+        "/dashboard/settings/notifications/telegram/",
     )
 
     def __init__(self, get_response):

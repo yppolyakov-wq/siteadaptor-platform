@@ -42,15 +42,46 @@ def _send_telegram(notification) -> None:
     Работает в schema_context арендатора (как и задача доставки), поэтому берёт
     активного TelegramBot текущей схемы. Нет активного бота → ошибка (в failed).
     """
+    from apps.telegram import bots
     from apps.telegram import services as tg_services
-    from apps.telegram.notify import active_bot
 
-    bot = active_bot()
+    if notification.payload.get("bot") == bots.PLATFORM:
+        _send_platform(notification)
+        return
+    bot = bots.tenant_bot()
     if bot is None:
         raise RuntimeError("kein aktiver Telegram-Bot")
     tg_services.send_message(
         bot.token, notification.recipient, notification.payload.get("body", "")
     )
+
+
+def _send_platform(notification) -> None:
+    """T-8.10h: владельцу через общий бот. Связь перепроверяется ПРИ ОТПРАВКЕ по таблице
+    (между постановкой и доставкой владелец мог отключиться); блокировка бота → отметка."""
+    import requests
+    from django.db import connection
+
+    from apps.platform_bot import links
+    from apps.telegram import bots
+    from apps.telegram import services as tg_services
+    from apps.tenants.models import Tenant
+
+    bot = bots.platform_bot()
+    if bot is None:
+        raise RuntimeError("Plattform-Bot nicht aktiv")
+    recipient = str(notification.recipient or "")
+    tenant = Tenant.objects.filter(schema_name=connection.schema_name).first()
+    if tenant is None or not recipient.isdigit() or not links.is_owner(int(recipient), tenant):
+        raise RuntimeError("Plattform-Bot: Inhaber nicht verbunden")
+    try:
+        tg_services.send_message(bot.token, recipient, notification.payload.get("body", ""))
+    except requests.HTTPError as exc:
+        # Текст исключения содержит URL с токеном — наружу только код.
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        if status == 403:
+            links.mark_blocked(int(recipient))
+        raise RuntimeError(f"Telegram HTTP {status}") from None
 
 
 _SENDERS = {

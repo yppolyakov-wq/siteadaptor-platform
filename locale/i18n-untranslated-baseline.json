@@ -73,6 +73,8 @@
   "Datum"
  ],
  "apps/notifications/adapters.py": [
+  "Plattform-Bot nicht aktiv",
+  "Plattform-Bot: Inhaber nicht verbunden",
   "kein aktiver Telegram-Bot"
  ],
  "apps/platform_bot/apps.py": [

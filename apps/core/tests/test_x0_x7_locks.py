@@ -81,6 +81,9 @@ EXPECTED_UNLISTED = frozenset(
         # серверный обход вскрыл 405 при клике из Ctrl+K.
         "jobs:anfrage-form-settings",
         "channel-toggle",
+        # T-8.10h H-3: POST-кнопки «Mit Telegram verbinden»/«Trennen» на «Benachrichtigungen»
+        "platform-bot-connect",
+        "platform-bot-disconnect",
         "gbp-location",
         "gbp-hours",
         "crm:company-create",

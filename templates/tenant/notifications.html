@@ -21,13 +21,23 @@
   {% endif %}
   {% if owner_linked %}
     <div class="flex items-center justify-between gap-3">
-      <span class="text-sm text-green-700">✅ {% trans "Verbunden — Sie erhalten Benachrichtigungen in Telegram." %}</span>
+      <span class="text-sm text-green-700">✅ {% trans "Verbunden — Sie erhalten Benachrichtigungen in Telegram." %}{% if owner_via == "platform" %} <span class="text-xs text-gray-500">({% trans "Verbunden über Plattform-Bot" %}{% if platform_bot_username %} @{{ platform_bot_username }}{% endif %})</span>{% elif owner_via == "tenant" and bot %} <span class="text-xs text-gray-500">({% trans "Verbunden über eigenen Bot" %})</span>{% endif %}</span>
       <form method="post" action="{% url 'notifications-settings' %}">
         {% csrf_token %}
         <input type="hidden" name="action" value="disconnect_owner">
         <button class="text-xs border border-red-200 text-red-600 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Trennen" %}</button>
       </form>
     </div>
+  {% elif platform_bot_available %}
+    {% comment %}T-8.10h H-3: общий бот платформы — одна кнопка, свой бот не нужен.{% endcomment %}
+    <form method="post" action="{% url 'platform-bot-connect' %}" target="_blank" data-platform-connect>
+      {% csrf_token %}
+      <button class="inline-block text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Mit Telegram verbinden" %}</button>
+    </form>
+    <p class="text-xs text-gray-400 mt-1">{% trans "Öffnet Telegram — tippen Sie auf Start. Der Link gilt 15 Minuten." %}</p>
+    {% if owner_deep_link %}
+      <p class="text-xs text-gray-400 mt-2"><a href="{{ owner_deep_link }}" target="_blank" rel="noopener" class="underline">{% trans "Stattdessen den eigenen Bot verwenden" %}</a></p>
+    {% endif %}
   {% elif owner_deep_link %}
     <a href="{{ owner_deep_link }}" target="_blank" rel="noopener" class="inline-block text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Telegram verbinden" %}</a>
     <p class="text-xs text-gray-400 mt-1">{% trans "Öffnet Ihren Bot — tippen Sie auf Start, um Ihr Konto zu verknüpfen." %}</p>
