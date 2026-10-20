@@ -26538,3 +26538,118 @@ msgstr "For: %(name)s"
 
 msgid "Nicht verfügbar — bitte im Kabinett neu verbinden."
 msgstr "Not available — please reconnect in your dashboard."
+
+msgid "Weiter, wo Sie aufgehört haben. Abbrechen: /abbrechen"
+msgstr "Continuing where you left off. Cancel: /abbrechen"
+
+msgid "Abgebrochen. Neu starten: /neu"
+msgstr "Cancelled. Start again: /neu"
+
+msgid "Ihr Geschäft wird gerade angelegt — einen Moment bitte."
+msgstr "Your business is being created — one moment please."
+
+#, python-format
+msgid ""
+"Los geht's! Ihre Angaben speichern wir nur, bis Sie veröffentlichen "
+"(höchstens 2 Stunden). Datenschutz: %(url)s"
+msgstr ""
+"Let's go! We only keep your details until you publish (at most 2 hours). "
+"Privacy: %(url)s"
+
+msgid ""
+"1/8 · Ihre erste Aktion: z. B. „Brötchen 2,50 € statt 3,90 €, heute bis 18 "
+"Uhr, 20 Stück“ — gern mit Foto."
+msgstr ""
+"1/8 · Your first promotion: e.g. “Bread rolls €2.50 instead of €3.90, today "
+"until 6 pm, 20 pieces” — a photo is welcome."
+
+msgid "Auch im Stadtportal zeigen"
+msgstr "Also show on the city portal"
+
+msgid "Was möchten Sie ändern?"
+msgstr "What would you like to change?"
+
+msgid "Das hat nicht geklappt — bitte später erneut versuchen."
+msgstr "That didn't work — please try again later."
+
+msgid "Ihr Geschäft wird angelegt — gleich kommt der Link."
+msgstr "Your business is being created — the link is coming shortly."
+
+msgid "Neue Aktionen: einfach hier schreiben."
+msgstr "New promotions: just write here."
+
+#, python-format
+msgid "Anmeldelink an %(mail)s gesendet."
+msgstr "Login link sent to %(mail)s."
+
+#, python-format
+msgid "Ein weiteres Geschäft legen Sie auf der Website an: %(url)s"
+msgstr "You can create another business on the website: %(url)s"
+
+msgid "2/8 · Was für ein Geschäft haben Sie?"
+msgstr "2/8 · What kind of business do you have?"
+
+msgid "Abgelaufen. Neu starten: /neu"
+msgstr "Expired. Start again: /neu"
+
+msgid "Fertig! Ihr Geschäft ist angelegt."
+msgstr "Done! Your business has been created."
+
+msgid "Die Aktion bitte noch einmal senden — einfach hier schreiben."
+msgstr "Please send the promotion again — just write here."
+
+#, python-format
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — erst dann erscheinen Sie im "
+"Stadtportal."
+msgstr ""
+"Please confirm your e-mail (%(mail)s) — only then will you appear on the "
+"city portal."
+
+msgid "Bitte Ihre eigene Nummer teilen oder eintippen."
+msgstr "Please share or type your own number."
+
+msgid "3/8 · Wie heißt Ihr Geschäft?"
+msgstr "3/8 · What is your business called?"
+
+msgid "Reaktion"
+msgstr "Reaction"
+
+#, python-format
+msgid "Das Anlegen hat nicht geklappt. Bitte /neu oder die Website: %(url)s"
+msgstr ""
+"Creating the business didn't work. Please /neu or the website: %(url)s"
+
+msgid "Anmeldelink per E-Mail"
+msgstr "Login link by e-mail"
+
+msgid "4/8 · In welcher Stadt? (oder eintippen)"
+msgstr "4/8 · Which city? (or type it)"
+
+#, python-format
+msgid "Ihre Aktion: %(url)s"
+msgstr "Your promotion: %(url)s"
+
+msgid "4/8 · Welcher Stadtteil?"
+msgstr "4/8 · Which district?"
+
+msgid "5/8 · Straße und Hausnummer?"
+msgstr "5/8 · Street and house number?"
+
+msgid "Kein Stadtteil"
+msgstr "No district"
+
+msgid "6/8 · Postleitzahl?"
+msgstr "6/8 · Postcode?"
+
+msgid "7/8 · Telefon für Ihre Kundschaft? (eintippen oder Knopf unten)"
+msgstr "7/8 · Phone for your customers? (type it or use the button below)"
+
+msgid "8/8 · Ihre E-Mail? Dorthin kommt der Bestätigungs- und Anmeldelink."
+msgstr "8/8 · Your e-mail? The confirmation and login link will go there."
+
+msgid "Meine Nummer senden"
+msgstr "Send my number"
+
+msgid "Hier im Chat starten"
+msgstr "Start here in the chat"

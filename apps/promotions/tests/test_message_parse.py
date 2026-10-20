@@ -216,3 +216,13 @@ def test_time_with_weekend_is_ignored_with_warning():
 def test_units_are_not_prices(text, title, price, qty):
     r = P(text)
     assert (r.title, r.new_price, r.quantity) == (title, price, qty)
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["Brötchen −30 % diese Woche", "Brötchen −30 % this week", "Brötchen −30 % bu hafta"],
+)
+def test_this_week_is_a_term_not_part_of_title(text):
+    parsed = mp.parse(text)
+    assert parsed.term == "week"
+    assert parsed.title == "Brötchen"

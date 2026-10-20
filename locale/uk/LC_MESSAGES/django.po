@@ -26796,3 +26796,117 @@ msgstr "Для: %(name)s"
 
 msgid "Nicht verfügbar — bitte im Kabinett neu verbinden."
 msgstr "Недоступно — підключіть знову в особистому кабінеті."
+
+msgid "Weiter, wo Sie aufgehört haben. Abbrechen: /abbrechen"
+msgstr "Продовжуємо з того місця, де ви зупинилися. Скасувати: /abbrechen"
+
+msgid "Abgebrochen. Neu starten: /neu"
+msgstr "Скасовано. Почати знову: /neu"
+
+msgid "Ihr Geschäft wird gerade angelegt — einen Moment bitte."
+msgstr "Ваш бізнес створюється — хвилинку."
+
+#, python-format
+msgid ""
+"Los geht's! Ihre Angaben speichern wir nur, bis Sie veröffentlichen "
+"(höchstens 2 Stunden). Datenschutz: %(url)s"
+msgstr ""
+"Почнімо! Ваші дані зберігаються лише до публікації (не довше 2 годин). "
+"Конфіденційність: %(url)s"
+
+msgid ""
+"1/8 · Ihre erste Aktion: z. B. „Brötchen 2,50 € statt 3,90 €, heute bis 18 "
+"Uhr, 20 Stück“ — gern mit Foto."
+msgstr ""
+"1/8 · Ваша перша акція: наприклад, «Булочки 2,50 € замість 3,90 €, сьогодні "
+"до 18:00, 20 штук» — можна з фото."
+
+msgid "Auch im Stadtportal zeigen"
+msgstr "Показувати й на порталі міста"
+
+msgid "Was möchten Sie ändern?"
+msgstr "Що змінити?"
+
+msgid "Das hat nicht geklappt — bitte später erneut versuchen."
+msgstr "Не вдалося — спробуйте пізніше."
+
+msgid "Ihr Geschäft wird angelegt — gleich kommt der Link."
+msgstr "Ваш бізнес створюється — посилання надійде за хвилину."
+
+msgid "Neue Aktionen: einfach hier schreiben."
+msgstr "Нові акції: просто пишіть сюди."
+
+#, python-format
+msgid "Anmeldelink an %(mail)s gesendet."
+msgstr "Посилання для входу надіслано на %(mail)s."
+
+#, python-format
+msgid "Ein weiteres Geschäft legen Sie auf der Website an: %(url)s"
+msgstr "Ще один бізнес можна створити на сайті: %(url)s"
+
+msgid "2/8 · Was für ein Geschäft haben Sie?"
+msgstr "2/8 · Який у вас бізнес?"
+
+msgid "Abgelaufen. Neu starten: /neu"
+msgstr "Термін минув. Почати знову: /neu"
+
+msgid "Fertig! Ihr Geschäft ist angelegt."
+msgstr "Готово! Ваш бізнес створено."
+
+msgid "Die Aktion bitte noch einmal senden — einfach hier schreiben."
+msgstr "Надішліть акцію ще раз — просто напишіть сюди."
+
+#, python-format
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — erst dann erscheinen Sie im "
+"Stadtportal."
+msgstr ""
+"Підтвердьте e-mail (%(mail)s) — лише після цього ви з'явитеся на порталі "
+"міста."
+
+msgid "Bitte Ihre eigene Nummer teilen oder eintippen."
+msgstr "Поділіться своїм номером або введіть його."
+
+msgid "3/8 · Wie heißt Ihr Geschäft?"
+msgstr "3/8 · Як називається ваш бізнес?"
+
+msgid "Reaktion"
+msgstr "Реакція"
+
+#, python-format
+msgid "Das Anlegen hat nicht geklappt. Bitte /neu oder die Website: %(url)s"
+msgstr "Створити не вдалося. Спробуйте /neu або сайт: %(url)s"
+
+msgid "Anmeldelink per E-Mail"
+msgstr "Посилання для входу на e-mail"
+
+msgid "4/8 · In welcher Stadt? (oder eintippen)"
+msgstr "4/8 · У якому місті? (або введіть)"
+
+#, python-format
+msgid "Ihre Aktion: %(url)s"
+msgstr "Ваша акція: %(url)s"
+
+msgid "4/8 · Welcher Stadtteil?"
+msgstr "4/8 · Який район?"
+
+msgid "5/8 · Straße und Hausnummer?"
+msgstr "5/8 · Вулиця і номер будинку?"
+
+msgid "Kein Stadtteil"
+msgstr "Без району"
+
+msgid "6/8 · Postleitzahl?"
+msgstr "6/8 · Поштовий індекс?"
+
+msgid "7/8 · Telefon für Ihre Kundschaft? (eintippen oder Knopf unten)"
+msgstr "7/8 · Телефон для ваших клієнтів? (введіть або кнопка нижче)"
+
+msgid "8/8 · Ihre E-Mail? Dorthin kommt der Bestätigungs- und Anmeldelink."
+msgstr "8/8 · Ваш e-mail? Туди надійде посилання для підтвердження та входу."
+
+msgid "Meine Nummer senden"
+msgstr "Надіслати мій номер"
+
+msgid "Hier im Chat starten"
+msgstr "Почати тут у чаті"

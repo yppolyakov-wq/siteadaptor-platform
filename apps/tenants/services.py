@@ -170,6 +170,7 @@ def start_quick_provisioning(
     phone="",
     partner_code="",
     in_city_catalog=True,
+    telegram=None,
 ):
     """T-8.5 «Aktion in 3 Klicks»: тенант лёгкой ступени + первая акция в фоне.
 
@@ -208,5 +209,10 @@ def start_quick_provisioning(
 
     from .tasks import provision_quick
 
-    transaction.on_commit(lambda: provision_quick.delay(str(tenant.pk), email, promo))
+    if telegram:  # H-5: регистрация через общий бот — задача привяжет чат и сообщит итог
+        transaction.on_commit(
+            lambda: provision_quick.delay(str(tenant.pk), email, promo, telegram=telegram)
+        )
+    else:
+        transaction.on_commit(lambda: provision_quick.delay(str(tenant.pk), email, promo))
     return tenant

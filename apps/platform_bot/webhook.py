@@ -53,6 +53,9 @@ def slim(update: dict) -> dict:
             "text": str(message.get("text") or message.get("caption") or "")[:TEXT_MAX],
             "photo": str(largest or "")[:200],
             "media_group_id": str(message.get("media_group_id") or "")[:64],
+            # H-5: «Meine Nummer senden» при регистрации — только номер и чей он.
+            "contact_phone": str(_dict(message.get("contact")).get("phone_number") or "")[:30],
+            "contact_user_id": _int(_dict(message.get("contact")).get("user_id")),
         }
     callback = update.get("callback_query")
     if isinstance(callback, dict):

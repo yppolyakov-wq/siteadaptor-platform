@@ -136,7 +136,7 @@ def provision_quick_logic(tenant_id, email, promo) -> int | None:
 
 
 @shared_task
-def provision_quick(tenant_id, email, promo):
+def provision_quick(tenant_id, email, promo, telegram=None):
     from django.core.cache import cache
 
     try:
@@ -148,11 +148,26 @@ def provision_quick(tenant_id, email, promo):
             pk=tenant_id, provisioning_status=Tenant.PROVISIONING_READY
         ).exists():
             cache.set(f"quick_promo:{tenant_id}", "none", 24 * 3600)
+        _telegram_finish(tenant_id, telegram, None, ok=False)
         raise
     # Страница ожидания ждёт этот ключ; "none" — акцию собрать не удалось, владелец
     # попадает в ассистент и создаёт её там (страница не крутится вечно).
     cache.set(f"quick_promo:{tenant_id}", str(pk) if pk else "none", 24 * 3600)
+    _telegram_finish(tenant_id, telegram, pk, ok=True)
     return str(pk) if pk else None
+
+
+def _telegram_finish(tenant_id, telegram, promo_pk, *, ok: bool) -> None:
+    """T-8.10h H-5: регистрация через общий бот — привязать чат и сообщить итог. Сбой бота
+    не меняет итог провижининга (только тип ошибки в лог)."""
+    if not telegram:
+        return
+    try:
+        from apps.platform_bot import signup
+
+        signup.finish(tenant_id, telegram, promo_pk, ok)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("platform bot signup finish failed: %s", type(exc).__name__)
 
 
 @shared_task

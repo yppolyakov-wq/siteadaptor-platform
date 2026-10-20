@@ -28,6 +28,8 @@ CHOOSE_CALLBACK_RE = re.compile(
     r"^g:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$"
 )
 START_RE = re.compile(r"^/start(?:@\w+)?(?:\s.*)?$", re.DOTALL)
+NEW_RE = re.compile(r"^/neu(?:@\w+)?\s*$", re.IGNORECASE)
+CANCEL_RE = re.compile(r"^/(?:abbrechen|cancel)(?:@\w+)?\s*$", re.IGNORECASE)
 CHOOSE_MAX = 20
 CONNECT_LIMIT = 10  # попыток привязки на пользователя Telegram в час
 
@@ -96,6 +98,11 @@ def _callback(bot, callback: dict) -> str:
     data = str(callback.get("data") or "")
     if data.startswith(routing.PREFIX):
         return _promo_callback(bot, callback, data)
+    if data.startswith("ps:"):
+        from . import signup
+
+        with translation.override(locale_for(callback.get("language_code"))):
+            return signup.on_callback(bot, callback)
     services.answer_callback_query(bot.token, callback.get("id") or "")
     match = CHOOSE_CALLBACK_RE.match(data)
     if not match:
@@ -128,8 +135,19 @@ def _private(bot, message: dict, update_id=None) -> str:
     if CHOOSE_RE.match(text):
         return _choose(bot, message)
     current = links.active_links(message["from_id"]).first()
+    if current is not None and NEW_RE.match(text):
+        from . import signup
+
+        return signup.start(bot, message["from_id"], message["chat_id"], "")
     if current is not None and not START_RE.match(text):
+        from . import signup
+
+        signup.drop(message["from_id"])  # уже владелец — регистрация не нужна
         return _promo_message(bot, message, current, update_id)
+    if current is None:
+        routed = _signup_message(bot, message, text)
+        if routed:
+            return routed
     if current is not None:
         send(
             bot,
@@ -149,9 +167,31 @@ def _private_onboarding(bot, chat) -> str:
         _(
             "Hallo! Ich veröffentliche Aktionen für Geschäfte in Ihrer Stadt — mit eigener Seite, QR-Code und Aushang."
         ),
-        {"inline_keyboard": [[{"text": "⚡ " + _("Aktion starten"), "url": _start_url()}]]},
+        {
+            "inline_keyboard": [
+                [{"text": "💬 " + _("Hier im Chat starten"), "callback_data": "ps:go"}],
+                [{"text": "⚡ " + _("Aktion starten"), "url": _start_url()}],
+            ]
+        },
     )
     return "onboarding"
+
+
+def _signup_message(bot, message: dict, text: str) -> str:
+    """H-5: регистрация в чате для тех, у кого ещё нет бизнеса ('' — не наш случай)."""
+    from . import signup
+
+    uid, chat = message["from_id"], message["chat_id"]
+    if CANCEL_RE.match(text):
+        return signup.cancel(bot, uid, chat)
+    if NEW_RE.match(text):
+        return signup.start(bot, uid, chat, message.get("language_code") or "")
+    state = signup.load(uid)
+    if state is None:
+        return ""
+    if START_RE.match(text):
+        return signup.resume(bot, uid, chat, state)
+    return signup.on_message(bot, message, state)
 
 
 def _invalid(bot, chat) -> str:

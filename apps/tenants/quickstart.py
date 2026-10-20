@@ -261,6 +261,10 @@ class QuickStartForm(quick.QuickPromotionForm):
             payload["percent"] = str(d["percent"])
         if d.get("until"):
             payload["until"] = d["until"].isoformat()
+        # «bis 18 Uhr» (разбор сообщения) — до фоновой задачи вместе с ключом срока.
+        if d.get("until_time"):
+            payload["until_time"] = d["until_time"].strftime("%H:%M")
+            payload["until_time_for"] = d.get("until_time_for") or ""
         # T-8.5e: количество (лимит Zurücklegen/купонов) и «скоропортящееся» раньше
         # терялись по дороге в фоновую задачу.
         if d.get("quantity"):

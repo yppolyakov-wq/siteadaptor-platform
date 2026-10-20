@@ -106,7 +106,10 @@ def sent(on, monkeypatch):
 @pytest.mark.django_db
 def test_start_without_business_gets_onboarding(sent):
     assert handler.handle(webhook.slim(_private())) == "onboarding"
-    assert sent[-1][2]["inline_keyboard"][0][0]["url"].endswith("/aktion-starten/")
+    # H-5: первая кнопка — регистрация прямо в чате, вторая — веб-форма.
+    rows = sent[-1][2]["inline_keyboard"]
+    assert rows[0][0]["callback_data"] == "ps:go"
+    assert rows[1][0]["url"].endswith("/aktion-starten/")
 
 
 @pytest.mark.django_db

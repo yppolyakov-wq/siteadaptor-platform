@@ -69,6 +69,9 @@ _RE_WEEKEND = re.compile(
 _RE_DAYS = re.compile(r"(?i)\b(\d{1,2})\s*(?:tage|tagen|days|дней|дня|днів|gün)\b")
 _RE_WEEK = re.compile(
     r"(?i)\b(?:eine|1|one|a)\s+(?:woche|week)\b|\bнеделю\b|\bтиждень\b|\bbir\s+hafta\b"
+    # «diese Woche» и аналоги — срок «неделя»; иначе слова оставались в заголовке.
+    r"|\b(?:diese|this)\s+(?:woche|week)\b|\bна\s+этой\s+неделе\b|\bцього\s+тижня\b"
+    r"|\bbu\s+hafta\b"
 )
 
 _RE_CONDITION = re.compile(

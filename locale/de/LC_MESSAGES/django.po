@@ -26620,3 +26620,117 @@ msgstr "Für: %(name)s"
 
 msgid "Nicht verfügbar — bitte im Kabinett neu verbinden."
 msgstr "Nicht verfügbar — bitte im Kabinett neu verbinden."
+
+msgid "Weiter, wo Sie aufgehört haben. Abbrechen: /abbrechen"
+msgstr "Weiter, wo Sie aufgehört haben. Abbrechen: /abbrechen"
+
+msgid "Abgebrochen. Neu starten: /neu"
+msgstr "Abgebrochen. Neu starten: /neu"
+
+msgid "Ihr Geschäft wird gerade angelegt — einen Moment bitte."
+msgstr "Ihr Geschäft wird gerade angelegt — einen Moment bitte."
+
+#, python-format
+msgid ""
+"Los geht's! Ihre Angaben speichern wir nur, bis Sie veröffentlichen "
+"(höchstens 2 Stunden). Datenschutz: %(url)s"
+msgstr ""
+"Los geht's! Ihre Angaben speichern wir nur, bis Sie veröffentlichen "
+"(höchstens 2 Stunden). Datenschutz: %(url)s"
+
+msgid ""
+"1/8 · Ihre erste Aktion: z. B. „Brötchen 2,50 € statt 3,90 €, heute bis 18 "
+"Uhr, 20 Stück“ — gern mit Foto."
+msgstr ""
+"1/8 · Ihre erste Aktion: z. B. „Brötchen 2,50 € statt 3,90 €, heute bis 18 "
+"Uhr, 20 Stück“ — gern mit Foto."
+
+msgid "Auch im Stadtportal zeigen"
+msgstr "Auch im Stadtportal zeigen"
+
+msgid "Was möchten Sie ändern?"
+msgstr "Was möchten Sie ändern?"
+
+msgid "Das hat nicht geklappt — bitte später erneut versuchen."
+msgstr "Das hat nicht geklappt — bitte später erneut versuchen."
+
+msgid "Ihr Geschäft wird angelegt — gleich kommt der Link."
+msgstr "Ihr Geschäft wird angelegt — gleich kommt der Link."
+
+msgid "Neue Aktionen: einfach hier schreiben."
+msgstr "Neue Aktionen: einfach hier schreiben."
+
+#, python-format
+msgid "Anmeldelink an %(mail)s gesendet."
+msgstr "Anmeldelink an %(mail)s gesendet."
+
+#, python-format
+msgid "Ein weiteres Geschäft legen Sie auf der Website an: %(url)s"
+msgstr "Ein weiteres Geschäft legen Sie auf der Website an: %(url)s"
+
+msgid "2/8 · Was für ein Geschäft haben Sie?"
+msgstr "2/8 · Was für ein Geschäft haben Sie?"
+
+msgid "Abgelaufen. Neu starten: /neu"
+msgstr "Abgelaufen. Neu starten: /neu"
+
+msgid "Fertig! Ihr Geschäft ist angelegt."
+msgstr "Fertig! Ihr Geschäft ist angelegt."
+
+msgid "Die Aktion bitte noch einmal senden — einfach hier schreiben."
+msgstr "Die Aktion bitte noch einmal senden — einfach hier schreiben."
+
+#, python-format
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — erst dann erscheinen Sie im "
+"Stadtportal."
+msgstr ""
+"Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — erst dann erscheinen Sie im "
+"Stadtportal."
+
+msgid "Bitte Ihre eigene Nummer teilen oder eintippen."
+msgstr "Bitte Ihre eigene Nummer teilen oder eintippen."
+
+msgid "3/8 · Wie heißt Ihr Geschäft?"
+msgstr "3/8 · Wie heißt Ihr Geschäft?"
+
+msgid "Reaktion"
+msgstr "Reaktion"
+
+#, python-format
+msgid "Das Anlegen hat nicht geklappt. Bitte /neu oder die Website: %(url)s"
+msgstr "Das Anlegen hat nicht geklappt. Bitte /neu oder die Website: %(url)s"
+
+msgid "Anmeldelink per E-Mail"
+msgstr "Anmeldelink per E-Mail"
+
+msgid "4/8 · In welcher Stadt? (oder eintippen)"
+msgstr "4/8 · In welcher Stadt? (oder eintippen)"
+
+#, python-format
+msgid "Ihre Aktion: %(url)s"
+msgstr "Ihre Aktion: %(url)s"
+
+msgid "4/8 · Welcher Stadtteil?"
+msgstr "4/8 · Welcher Stadtteil?"
+
+msgid "5/8 · Straße und Hausnummer?"
+msgstr "5/8 · Straße und Hausnummer?"
+
+msgid "Kein Stadtteil"
+msgstr "Kein Stadtteil"
+
+msgid "6/8 · Postleitzahl?"
+msgstr "6/8 · Postleitzahl?"
+
+msgid "7/8 · Telefon für Ihre Kundschaft? (eintippen oder Knopf unten)"
+msgstr "7/8 · Telefon für Ihre Kundschaft? (eintippen oder Knopf unten)"
+
+msgid "8/8 · Ihre E-Mail? Dorthin kommt der Bestätigungs- und Anmeldelink."
+msgstr "8/8 · Ihre E-Mail? Dorthin kommt der Bestätigungs- und Anmeldelink."
+
+msgid "Meine Nummer senden"
+msgstr "Meine Nummer senden"
+
+msgid "Hier im Chat starten"
+msgstr "Hier im Chat starten"
