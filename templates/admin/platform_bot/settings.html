@@ -12,7 +12,7 @@
     <div class="bg-white p-6 rounded-default shadow-xs border border-base-200 dark:bg-base-900 dark:border-base-800">
         <h2 class="text-font-important-light text-lg font-semibold mb-1 dark:text-font-important-dark">{% trans "Status" %}</h2>
         <ul class="text-sm flex flex-col gap-1 text-font-default-light dark:text-font-default-dark">
-            <li>{% if enabled %}🟢 {% trans "Bot eingeschaltet" %}{% else %}⚪ {% trans "Bot ausgeschaltet" %}{% endif %}</li>
+            <li>{% if enabled %}🟢 {% trans "Bot eingeschaltet" %}{% else %}⚪ {% trans "Bot ausgeschaltet" %}{% endif %}{% if sources.enabled == "env" %} <span class="text-font-subtle-light">(.env)</span>{% endif %}</li>
             <li>{% trans "Token" %}: {% if token_set %}✅ {% trans "gesetzt" %}{% else %}❌ {% trans "fehlt" %}{% endif %}{% if sources.token == "env" %} <span class="text-font-subtle-light">(.env)</span>{% endif %}</li>
             <li>{% trans "Bot" %}: {% if username %}<a class="underline" href="https://t.me/{{ username }}" target="_blank" rel="noopener">@{{ username }}</a>{% else %}—{% endif %}</li>
             <li>{% trans "Webhook" %}:
@@ -23,7 +23,7 @@
                 {% else %}—{% endif %}
             </li>
             {% if info.error and info.ok %}<li class="text-red-600">{% trans "Letzter Fehler bei Telegram" %}: {{ info.error }}</li>{% endif %}
-            <li>{% trans "Letzte Nachricht empfangen" %}: {{ last_update|default:"—" }}</li>
+            <li>{% trans "Letzte Nachricht empfangen" %}: {% if last_update %}{{ last_update|date:"d.m.Y H:i" }}{% else %}—{% endif %}</li>
             <li>{% trans "Verbundene Geschäfte" %}: <a class="underline" href="{% url links_url %}">{{ links_active }}</a></li>
         </ul>
     </div>
@@ -48,8 +48,8 @@
         <h2 class="text-font-important-light text-lg font-semibold dark:text-font-important-dark">{% trans "Webhook" %}</h2>
         <p class="text-sm text-font-subtle-light">{% trans "Adresse" %}: <code>{{ webhook_url }}</code>{% if not secret_set %} · {% trans "Das Secret wird beim Setzen automatisch erzeugt." %}{% endif %}</p>
         <div class="flex gap-2">
-            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="webhook"><button class="bg-primary-600 text-white rounded-default px-4 py-2 text-sm font-medium" {% if not token_set %}disabled{% endif %}>{% trans "Webhook setzen" %}</button></form>
-            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="unhook"><button class="border border-base-200 rounded-default px-4 py-2 text-sm" {% if not token_set %}disabled{% endif %}>{% trans "Webhook entfernen" %}</button></form>
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="webhook"><button class="bg-primary-600 text-white rounded-default px-4 py-2 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed" {% if not token_set %}disabled{% endif %}>{% trans "Webhook setzen" %}</button></form>
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="unhook"><button class="border border-base-200 rounded-default px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed" {% if not token_set %}disabled{% endif %}>{% trans "Webhook entfernen" %}</button></form>
         </div>
     </div>
 

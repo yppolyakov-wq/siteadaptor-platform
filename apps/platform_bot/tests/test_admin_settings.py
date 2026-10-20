@@ -110,8 +110,12 @@ def test_set_webhook_generates_secret_and_uses_it_in_view():
     assert config.webhook_secret() == secret
 
 
-def test_webhook_marks_last_update(settings):
+def test_webhook_marks_last_update(settings, monkeypatch):
     import json
+
+    from django.core.cache.backends.locmem import LocMemCache
+
+    monkeypatch.setattr(config, "cache", LocMemCache("tgplat-last-update-test", {}))
 
     from apps.platform_bot import webhook
 
@@ -127,3 +131,55 @@ def test_webhook_marks_last_update(settings):
     with mock.patch("apps.platform_bot.tasks.platform_bot_update.delay"):
         assert webhook.webhook(req).status_code == 200
     assert config.last_update()
+
+
+def test_real_admin_url_resolves_through_admin_view():
+    """Настоящий URLconf платформы + обёртка admin_view: суперпользователь 200, staff 403."""
+    from django.urls import resolve, reverse
+
+    url = reverse("admin:platform_bot_settings", urlconf="config.urls_public")
+    assert url == "/admin/platform_bot/ownertelegramlink/einstellungen/"
+    view = resolve(url, urlconf="config.urls_public").func
+    with pytest.raises(PermissionDenied):
+        view(_req(superuser=False))
+    resp = view(_req())
+    assert resp.status_code == 200
+
+
+def test_platform_bot_reads_config_in_one_query_then_cached(django_assert_max_num_queries):
+    config.set_enabled(True)
+    config.set_token("7:t")
+    config.reset_cache()
+    with django_assert_max_num_queries(3):  # SET search_path туда/обратно + один SELECT
+        assert bots.platform_bot() is not None
+    with django_assert_max_num_queries(0):
+        assert bots.platform_bot() is not None
+
+
+def test_webhook_rejects_cheaply_without_header_or_post():
+    from django.http import Http404
+
+    from apps.platform_bot import webhook
+
+    for req in (
+        RequestFactory().get("/tg/plattform/"),
+        RequestFactory().post("/tg/plattform/", data="{}", content_type="application/json"),
+    ):
+        with mock.patch.object(config, "_values", side_effect=AssertionError("DB touched")):
+            with pytest.raises(Http404):
+                webhook.webhook(req)
+
+
+def test_unhook_without_token_reports_error():
+    req = _req("post", {"action": "unhook"})
+    _admin().settings_view(req)
+    assert any("fehlgeschlagen" in str(m) or "failed" in str(m) for m in req._messages)
+
+
+def test_secrets_admin_is_superuser_only():
+    from apps.secrets.admin import PlatformSecretAdmin
+
+    adm = PlatformSecretAdmin(PlatformSecret, site)
+    staff = _req(superuser=False)
+    assert not adm.has_module_permission(staff) and not adm.has_change_permission(staff)
+    assert adm.has_change_permission(_req("post"))

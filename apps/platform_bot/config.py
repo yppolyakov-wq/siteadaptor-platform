@@ -21,15 +21,40 @@ LAST_UPDATE_KEY = "tgplat:last-update"
 SECRET_MIN = 24
 
 
-def _get(key: str) -> str | None:
-    """Значение из админки; None — не задано там (тогда действует .env)."""
+KEYS = (KEY_ENABLED, KEY_TOKEN, KEY_USERNAME, KEY_SECRET)
+_CACHE_TTL = 30.0  # с; в процессе (не в Redis: токен не должен лежать там открытым)
+_cache: dict = {"at": 0.0, "values": {}}
+
+
+def _values() -> dict:
+    """Все ключи бота одним запросом, с коротким кэшем в процессе: бот читается на каждом
+    апдейте и при каждой доставке уведомления."""
+    import time
+
+    now = time.monotonic()
+    if now - _cache["at"] < _CACHE_TTL:
+        return _cache["values"]
     from django_tenants.utils import schema_context
 
     from apps.secrets.models import PlatformSecret
 
+    values = {}
     with schema_context("public"):
-        obj = PlatformSecret.objects.filter(key=key).first()
-        return obj.get_value() if obj is not None and obj.is_set else None
+        for obj in PlatformSecret.objects.filter(key__in=KEYS):
+            value = obj.get_value() if obj.is_set else ""
+            if value:  # пустая расшифровка (смена ключа) = «не задано», действует .env
+                values[obj.key] = value
+    _cache.update(at=now, values=values)
+    return values
+
+
+def reset_cache() -> None:
+    _cache.update(at=0.0, values={})
+
+
+def _get(key: str) -> str | None:
+    """Значение из админки; None — не задано там (тогда действует .env)."""
+    return _values().get(key)
 
 
 def _set(key: str, value: str, description: str) -> None:
@@ -43,6 +68,7 @@ def _set(key: str, value: str, description: str) -> None:
         )
         obj.set_value(value)
         obj.save()
+    reset_cache()
 
 
 def enabled() -> bool:
@@ -130,22 +156,22 @@ def remove_webhook() -> None:
 
     bot_token = token()
     if not bot_token:
-        return
+        raise ValueError("kein Token")
     try:
         services.delete_webhook(bot_token)
     except Exception as exc:  # noqa: BLE001
         raise ValueError(type(exc).__name__) from None
 
 
-def webhook_info() -> dict:
+def webhook_info(bot_token: str = "") -> dict:
     """Состояние вебхука у Telegram: {url, pending, error, ok}. Ошибка — {'ok': False}."""
     from apps.telegram import services
 
-    bot_token = token()
+    bot_token = bot_token or token()
     if not bot_token:
         return {"ok": False}
     try:
-        info = services.get_webhook_info(bot_token)
+        info = services.get_webhook_info(bot_token, timeout=5)
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": type(exc).__name__}
     return {
@@ -164,11 +190,15 @@ def mark_update() -> None:
         pass
 
 
-def last_update() -> str:
+def last_update():
+    """Время последнего принятого апдейта (datetime) или None."""
+    from django.utils.dateparse import parse_datetime
+
     try:
-        return cache.get(LAST_UPDATE_KEY) or ""
+        raw = cache.get(LAST_UPDATE_KEY) or ""
     except Exception:  # noqa: BLE001
-        return ""
+        return None
+    return parse_datetime(raw) if raw else None
 
 
 def sources() -> dict:

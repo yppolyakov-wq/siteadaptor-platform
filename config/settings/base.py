@@ -1025,12 +1025,14 @@ UNFOLD = {
                         "title": _("Secrets"),
                         "icon": "key",
                         "link": reverse_lazy("admin:secrets_platformsecret_changelist"),
+                        "permission": "apps.platform_bot.admin.superuser_only",
                     },
                     {
                         # T-8.10h: общий Telegram-бот платформы — включение, токен, вебхук.
                         "title": _("Telegram platform bot"),
                         "icon": "smart_toy",
                         "link": reverse_lazy("admin:platform_bot_settings"),
+                        "permission": "apps.platform_bot.admin.superuser_only",
                     },
                     {
                         "title": _("Audit log"),

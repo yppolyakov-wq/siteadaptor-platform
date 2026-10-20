@@ -135,8 +135,8 @@ def download_file(token: str, file_id: str, max_bytes: int = DOWNLOAD_MAX) -> by
         return None
 
 
-def get_webhook_info(token: str) -> dict:
-    response = requests.get(_endpoint(token, "getWebhookInfo"), timeout=15)
+def get_webhook_info(token: str, timeout: int = 15) -> dict:
+    response = requests.get(_endpoint(token, "getWebhookInfo"), timeout=timeout)
     response.raise_for_status()
     return response.json().get("result", {})
 

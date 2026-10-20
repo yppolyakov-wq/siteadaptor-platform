@@ -41,6 +41,23 @@ class PlatformSecretAdmin(ModelAdmin):
     search_fields = ("key", "description")
     ordering = ("key",)
 
+    # Секреты (токены ботов, ключи OAuth/ИИ) — только суперпользователю: обычный staff с
+    # правом change мог бы подменить токен бота платформы или отключить секрет вебхука.
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
     @admin.display(description=_("Set"), boolean=True)
     def is_set_display(self, obj):
         return obj.is_set

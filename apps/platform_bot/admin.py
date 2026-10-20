@@ -8,6 +8,11 @@ from django.utils.translation import gettext as _
 from .models import OwnerTelegramLink
 
 
+def superuser_only(request) -> bool:
+    """Пункт меню unfold «Telegram platform bot» — только суперпользователю (экран тоже)."""
+    return bool(getattr(request.user, "is_superuser", False))
+
+
 @admin.register(OwnerTelegramLink)
 class OwnerTelegramLinkAdmin(admin.ModelAdmin):
     list_display = ("tg_user_id", "tenant", "via", "is_active", "blocked_at", "created_at")
@@ -45,7 +50,7 @@ class OwnerTelegramLinkAdmin(admin.ModelAdmin):
             "username": config.username(),
             "secret_set": len(config.webhook_secret()) >= config.SECRET_MIN,
             "webhook_url": config.webhook_url(),
-            "info": config.webhook_info() if bots.platform_bot() is not None else {},
+            "info": config.webhook_info(bot.token) if (bot := bots.platform_bot()) else {},
             "last_update": config.last_update(),
             "sources": config.sources(),
             "links_active": OwnerTelegramLink.objects.filter(is_active=True).count(),

@@ -86,10 +86,17 @@ def _same(a: str, b: str) -> bool:
 def webhook(request):
     # Путь без секрета (он попадал бы в логи прокси и Sentry) — секрет только в заголовке
     # X-Telegram-Bot-Api-Secret-Token. Выключенный бот и чужой метод — 404, не 405.
-    expected = _secret()
-    if not bots.platform_enabled() or len(expected) < 24 or request.method != "POST":
+    # Дешёвый отказ ДО обращения к настройкам (БД): чужой метод/без заголовка — сразу 404.
+    header = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+    if request.method != "POST" or not header:
         raise Http404
-    if not _same(request.headers.get("X-Telegram-Bot-Api-Secret-Token", ""), expected):
+    try:
+        expected = _secret()
+        enabled = bots.platform_enabled()
+    except Exception as exc:  # noqa: BLE001 — БД недоступна: 404, Telegram повторит позже
+        logger.warning("platform bot config unavailable: %s", type(exc).__name__)
+        raise Http404 from None
+    if not enabled or len(expected) < 24 or not _same(header, expected):
         raise Http404
     try:
         update = json.loads(request.body.decode() or "{}")
