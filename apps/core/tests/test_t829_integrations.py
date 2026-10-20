@@ -167,3 +167,35 @@ def test_claiming_own_bot_keeps_platform_link():
     node = t.site_config["notify"]
     assert node["owner_bot"] == "tenant" and node["owner_chat_id"] == "555"
     assert links.is_owner(777001, t)
+
+
+def test_claim_keeps_revocation_of_removed_owner():
+    """Ревью T-8.29 (HIGH): после заявки своего бота удалённый из команды владелец НЕ
+    сохраняет доступ к бизнесу через общий бот (метка owner_user_pk не стирается)."""
+    from apps.core.models import Membership
+    from apps.platform_bot import links
+
+    t = _tenant(telegram_off=False)
+    owner = _member(Membership.ROLE_OWNER)
+    links.bind(777002, t, user_pk=owner.pk)
+    links.claim_for_tenant_bot(t, 556, rotate_token="new2")
+    t.refresh_from_db()
+    assert links.still_owner(t)
+    Membership.objects.filter(user=owner).delete()
+    assert not links.still_owner(t)
+
+
+@pytest.mark.parametrize("nav", ["integrations", "telegram"])
+def test_lite_highlights_verbindungen(nav):
+    """Ревью T-8.29: в лёгком кабинете экраны подключений подсвечивают «Verbindungen»,
+    а не «Geschäft»; полный кабинет — карта W8 как раньше."""
+    from types import SimpleNamespace
+
+    from apps.core.templatetags.cabinet import sidebar_anchor
+
+    lite = {"nav": nav, "request": SimpleNamespace(tenant=_tenant())}
+    assert sidebar_anchor(lite) == "integrations"
+    full = {"nav": nav, "request": SimpleNamespace(tenant=_tenant(lite=False))}
+    from apps.core import nav_registry
+
+    assert sidebar_anchor(full) == nav_registry.anchor_for(nav)

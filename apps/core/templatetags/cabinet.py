@@ -168,6 +168,27 @@ def nav_anchor(nav_key):
     return nav_registry.anchor_for(nav_key or "")
 
 
+@register.simple_tag(takes_context=True)
+def sidebar_anchor(context):
+    """Якорь подсветки сайдбара для текущей страницы (W8 + лёгкий кабинет T-8.29).
+
+    В полном кабинете — карта nav_registry; в лёгком «Verbindungen» — свой пункт, а
+    по карте W8 его экраны относились бы к «Einstellungen» (там это «Geschäft»)."""
+    nav = context.get("nav_anchor_override") or context.get("nav") or ""
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    if nav in LITE_CONNECTION_NAVS:
+        from apps.core import lite_cabinet
+
+        if lite_cabinet.is_lite(tenant):
+            return "integrations"
+    return nav_registry.anchor_for(nav)
+
+
+# T-8.29: страницы, которые в лёгком кабинете подсвечивают «Verbindungen».
+LITE_CONNECTION_NAVS = frozenset({"integrations", "telegram"})
+
+
 @register.simple_tag
 def icon(name, css="w-6 h-6"):
     """ST-4a: SVG-иконка из спрайта tenant/_icons.html (<use href="#<name>">)."""

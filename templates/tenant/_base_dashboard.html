@@ -5,6 +5,7 @@
 {% block extra_head %}<script src="https://unpkg.com/htmx.org@1.9.12"></script>{% endblock %}
 
 {% block body %}
+{% sidebar_anchor as sb_anchor %}
 {# ST-4a: SVG-спрайт иконсета кабинета (иконки хабов главной). #}
 {% include "tenant/_icons.html" %}
 {% comment %}R1 (редизайн B, 2026-08-24): фон кабинета — серый холст стиля
@@ -69,24 +70,24 @@
       <div class="flex items-center gap-0.5">
         {% if it.children %}
         <button type="button" data-nav-toggle="{{ it.nav_key }}" data-label="{{ it.search }}"
-                aria-expanded="{% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}true{% else %}false{% endif %}"
-                class="nav-link w-full min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-xl text-left {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-600 text-white font-medium shadow-sm{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+                aria-expanded="{% if sb_anchor == it.nav_key %}true{% else %}false{% endif %}"
+                class="nav-link w-full min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-xl text-left {% if sb_anchor == it.nav_key %}bg-indigo-600 text-white font-medium shadow-sm{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
           <span class="w-5 shrink-0 text-center text-base leading-none" title="{{ it.label }}">{{ it.icon }}</span>
           <span class="sb-label truncate">{{ it.label }}</span>
           {% if it.badge == "inbox" %}
           <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
-          <span data-nav-chevron class="sb-label ml-auto text-[10px] leading-none transition-transform {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}rotate-90{% endif %}" aria-hidden="true">▶</span>
+          <span data-nav-chevron class="sb-label ml-auto text-[10px] leading-none transition-transform {% if sb_anchor == it.nav_key %}rotate-90{% endif %}" aria-hidden="true">▶</span>
         </button>
         {% else %}
         <a href="{% url it.url_name %}" data-label="{{ it.search }}"
-           class="nav-link flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-xl {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-600 text-white font-medium shadow-sm{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+           class="nav-link flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-xl {% if sb_anchor == it.nav_key %}bg-indigo-600 text-white font-medium shadow-sm{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
           <span class="w-5 shrink-0 text-center text-base leading-none" title="{{ it.label }}">{{ it.icon }}</span>
           <span class="sb-label truncate">{{ it.label }}</span>
         </a>
         {% endif %}
       </div>
       {% if it.children %}
-      <div data-nav-children="{{ it.nav_key }}" class="pl-9 pr-1 space-y-0.5{% if nav_anchor_override|default:nav|nav_anchor != it.nav_key %} hidden{% endif %}">
+      <div data-nav-children="{{ it.nav_key }}" class="pl-9 pr-1 space-y-0.5{% if sb_anchor != it.nav_key %} hidden{% endif %}">
         {% for c in it.children %}
         {% comment %}SR-5 (вариант А): под названием подпункта — живая подпись
         (данные — индиго-оттенком); hint участвует в поиске меню (data-label).{% endcomment %}
@@ -196,13 +197,13 @@ billing.context.subscription) и закрывается кнопкой; пост
     {% if it.has_children %}
     <button type="button" data-tabbar-section="{{ it.nav_key }}" title="{{ it.label }}" aria-label="{{ it.label }}"
             class="w-12 h-12 rounded-full grid place-items-center
-                   {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-600 text-white{% else %}text-gray-500 active:bg-gray-100{% endif %}">
+                   {% if sb_anchor == it.nav_key %}bg-indigo-600 text-white{% else %}text-gray-500 active:bg-gray-100{% endif %}">
       <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-{{ it.nav_key }}"></use></svg>
     </button>
     {% else %}
     <a href="{% url it.url_name %}" title="{{ it.label }}" aria-label="{{ it.label }}"
        class="w-12 h-12 rounded-full grid place-items-center
-              {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-600 text-white{% else %}text-gray-500 active:bg-gray-100{% endif %}">
+              {% if sb_anchor == it.nav_key %}bg-indigo-600 text-white{% else %}text-gray-500 active:bg-gray-100{% endif %}">
       <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-{{ it.nav_key }}"></use></svg>
     </a>
     {% endif %}

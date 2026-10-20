@@ -563,11 +563,19 @@ def is_module_active(tenant, key: str) -> bool:
 def enable_module(tenant, key: str) -> bool:
     """T-8.29: включить ОДИН модуль точечной записью (чужие выборы владельца целы).
     True — что-то изменилось."""
-    disabled = list(getattr(tenant, "disabled_modules", None) or [])
-    if key not in disabled:
-        return False
-    tenant.disabled_modules = [m for m in disabled if m != key]
-    tenant.save(update_fields=["disabled_modules", "updated_at"])
+    from django.db import transaction
+
+    with transaction.atomic():
+        # Свежая строка под блокировкой: объект из middleware мог устареть, а список
+        # пишется целиком — иначе параллельный выбор модулей откатился бы.
+        locked = type(tenant).objects.select_for_update().get(pk=tenant.pk)
+        disabled = list(locked.disabled_modules or [])
+        if key not in disabled:
+            tenant.disabled_modules = disabled
+            return False
+        locked.disabled_modules = [m for m in disabled if m != key]
+        locked.save(update_fields=["disabled_modules", "updated_at"])
+    tenant.disabled_modules = locked.disabled_modules
     return True
 
 

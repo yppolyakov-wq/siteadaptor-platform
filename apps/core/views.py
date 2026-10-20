@@ -5994,7 +5994,9 @@ def integrations_telegram_activate(request):
     включение клиентам ничего не меняет, пока не сохранён токен бота."""
     from apps.core import modules
 
-    if modules.enable_module(request.tenant, "telegram"):
+    if modules.enable_module(request.tenant, "telegram") and modules.is_module_active(
+        request.tenant, "telegram"
+    ):
         messages.success(request, _("Eigener Telegram-Bot aktiviert — jetzt Token eintragen."))
     return redirect("telegram-settings")
 

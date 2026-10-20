@@ -151,7 +151,8 @@ def claim_for_tenant_bot(tenant, chat_id, *, rotate_token: str) -> None:
             owner_chat_id=str(chat_id),
             owner_bot=OWNER_BOT_TENANT,
             owner_link_token=rotate_token,
-            owner_user_pk=None,
+            # owner_user_pk НЕ трогаем (ревью T-8.29, HIGH): связь общего бота остаётся,
+            # а still_owner() по этой метке гасит её у удалённого/пониженного владельца.
         )
 
 
