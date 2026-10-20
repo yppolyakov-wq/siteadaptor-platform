@@ -15,70 +15,15 @@ from django.http import Http404, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.telegram import bots
+from apps.telegram.updates import TEXT_MAX, slim  # noqa: F401 — общий разбор (тесты, задачи)
 
 logger = logging.getLogger(__name__)
-
-TEXT_MAX = 2000
 
 
 def _secret() -> str:
     from . import config
 
     return config.webhook_secret()
-
-
-def _int(value):
-    return value if isinstance(value, int) and not isinstance(value, bool) else None
-
-
-def _dict(value) -> dict:
-    return value if isinstance(value, dict) else {}
-
-
-def slim(update: dict) -> dict:
-    """Только поля, нужные обработчику (в брокер не уходит весь апдейт)."""
-    out = {"update_id": update.get("update_id")}
-    message = update.get("message")
-    if isinstance(message, dict):
-        chat = _dict(message.get("chat"))
-        sender = _dict(message.get("from"))
-        photos = message.get("photo") if isinstance(message.get("photo"), list) else []
-        largest = photos[-1].get("file_id") if photos and isinstance(photos[-1], dict) else ""
-        out["message"] = {
-            "chat_id": _int(chat.get("id")),
-            "chat_type": str(chat.get("type") or "")[:16],
-            "from_id": _int(sender.get("id")),
-            "is_bot": bool(sender.get("is_bot")),
-            "language_code": str(sender.get("language_code") or "")[:8],
-            "text": str(message.get("text") or message.get("caption") or "")[:TEXT_MAX],
-            "photo": str(largest or "")[:200],
-            "media_group_id": str(message.get("media_group_id") or "")[:64],
-            # H-5: «Meine Nummer senden» при регистрации — только номер и чей он.
-            "contact_phone": str(_dict(message.get("contact")).get("phone_number") or "")[:30],
-            "contact_user_id": _int(_dict(message.get("contact")).get("user_id")),
-        }
-    callback = update.get("callback_query")
-    if isinstance(callback, dict):
-        sender = _dict(callback.get("from"))
-        cmsg = _dict(callback.get("message"))
-        out["callback"] = {
-            "id": str(callback.get("id") or "")[:64],
-            "from_id": _int(sender.get("id")),
-            "language_code": str(sender.get("language_code") or "")[:8],
-            "chat_id": _int(_dict(cmsg.get("chat")).get("id")),
-            "message_id": _int(cmsg.get("message_id")),
-            "data": str(callback.get("data") or "")[:64],
-        }
-    member = update.get("my_chat_member")
-    if isinstance(member, dict):
-        chat = _dict(member.get("chat"))
-        out["member"] = {
-            "chat_id": _int(chat.get("id")),
-            "chat_type": str(chat.get("type") or "")[:16],
-            "from_id": _int(_dict(member.get("from")).get("id")),
-            "status": str(_dict(member.get("new_chat_member")).get("status") or "")[:16],
-        }
-    return out
 
 
 def _same(a: str, b: str) -> bool:

@@ -454,6 +454,9 @@ c) история броней (email-связка с Customer) → d) наст�
 
 ## Отложено / заметки на будущее
 
+- **(2026-10-20, T-8.28) Токен бота портала шифротекстом** (`PortalBot.token` хранится
+  открытым текстом; B5b — `EncryptedTextField` с data-миграцией, как `doc_number` MT-2).
+
 - **(2026-10-20, T-8.14) GIN-индекс `jsonb_path_ops` на `AggregatorListing.city_tags`** — тема и
   `?merkmal=` дают seq scan; не срочно до ~50k листингов. Отдельной миграцией с
   `AddIndexConcurrently`; перед этим EXPLAIN ANALYZE фида тематического портала.

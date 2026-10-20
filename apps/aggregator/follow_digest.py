@@ -26,12 +26,13 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError, transaction
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Q
 from django.template.loader import render_to_string
 from django.utils import timezone, translation
+from django.utils.translation import gettext as _
 
 from . import follow
-from .models import FollowDigest, FollowSubscription, PortalUser
+from .models import FollowDigest, FollowSubscription, PortalChat, PortalUser
 
 log = logging.getLogger(__name__)
 
@@ -224,6 +225,62 @@ def render(digest: Digest, *, locale: str = "") -> tuple[str, str, str]:
     return subject, text, html
 
 
+TELEGRAM_MAX = 3900  # запас до лимита сообщения Telegram (4096)
+
+
+def render_telegram(digest: Digest, *, locale: str = "") -> str:
+    """T-8.28: сводка одним сообщением Telegram (простой текст, без разметки)."""
+    locale = follow.normalize_locale(locale or digest.user.locale)
+    portal = digest.portal
+    name = portal.title_text if portal is not None else settings.TENANT_DOMAIN_BASE
+    with translation.override(locale):
+        parts = ["🔔 " + _("Neu für Sie — %(name)s") % {"name": _clean_line(name)}]
+        for section in digest.sections:
+            block = [f"\n{_clean_line(section.title)}"]
+            for item in section.items:
+                line = f"• {item.digest_title}"
+                if item.digest_condition:
+                    line += f" — {item.digest_condition}"
+                block.append(f"{line}\n  {item.digest_business}\n  {item.digest_url}")
+            if section.total > len(section.items) and section.more_url:
+                block.append(
+                    _("Alle anzeigen (%(n)s): %(url)s")
+                    % {
+                        "n": section.total,
+                        "url": section.more_url,
+                    }
+                )
+            candidate = "\n".join([*parts, *block])
+            if len(candidate) > TELEGRAM_MAX:
+                break
+            parts.extend(block)
+        parts.append("\n" + _("Abos verwalten: /folgen"))
+    return "\n".join(parts)[:TELEGRAM_MAX]
+
+
+def _send_telegram(digest: Digest) -> bool:
+    """True — ушло; False — чат недоступен (бот заблокирован/выключен). Иное — исключение."""
+    import requests
+
+    from apps.telegram import services
+
+    chat = getattr(digest.user, "portal_chat", None)
+    if chat is None or chat.blocked_at is not None:
+        return False
+    bot = chat.bot
+    if not bot.is_active or not bot.token:
+        return False
+    try:
+        services.send_message(bot.token, chat.chat_id, render_telegram(digest, locale=chat.locale))
+    except requests.HTTPError as exc:
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        if status == 403:  # житель заблокировал бота
+            PortalChat.objects.filter(pk=chat.pk).update(blocked_at=timezone.now())
+            return False
+        raise RuntimeError(f"telegram {status}") from None  # без URL с токеном в логе
+    return True
+
+
 def send(digest: Digest, *, period_key: str, now=None) -> bool:
     """Отправить сводку ровно один раз за период (Р-П8)."""
     now = now or timezone.now()
@@ -236,6 +293,20 @@ def send(digest: Digest, *, period_key: str, now=None) -> bool:
             row = FollowDigest.objects.create(user=digest.user, period_key=period_key, item_keys=[])
     except IntegrityError:
         return False
+    if not digest.user.email:  # T-8.28: житель из Telegram-бота портала
+        try:
+            sent = _send_telegram(digest)
+        except Exception:  # noqa: BLE001 — сеть/429: строку снять, следующий прогон повторит
+            log.warning("follow digest telegram failed user=%s", digest.user.pk)
+            FollowDigest.objects.filter(pk=row.pk).delete()
+            raise
+        if not sent:
+            return False
+        FollowDigest.objects.filter(pk=row.pk).update(item_keys=digest.item_keys)
+        FollowSubscription.objects.filter(pk__in=[s.sub.pk for s in digest.sections]).update(
+            last_sent_at=now, updated_at=now
+        )
+        return True
     subject, text, html = render(digest)
     message = EmailMultiAlternatives(
         subject=subject,
@@ -264,11 +335,24 @@ def send(digest: Digest, *, period_key: str, now=None) -> bool:
 # --- прогоны ------------------------------------------------------------------------------
 
 
+def _channel(user) -> str:
+    """Канал жителя: почта — e-mail; житель бота портала (без почты) — Telegram."""
+    return FollowSubscription.CHANNEL_EMAIL if user.email else FollowSubscription.CHANNEL_TELEGRAM
+
+
 def _email_subs(user, frequencies) -> list[FollowSubscription]:
     return list(
         FollowSubscription.objects.filter(
-            user=user, channel=FollowSubscription.CHANNEL_EMAIL, frequency__in=frequencies
+            user=user, channel=_channel(user), frequency__in=frequencies
         ).select_related("portal")
+    )
+
+
+def _reachable():
+    """Жители, до которых можно достучаться: с почтой или с живым чатом бота портала."""
+    return Q(email__isnull=False) | Q(
+        portal_chat__blocked_at__isnull=True,
+        portal_chat__bot__is_active=True,
     )
 
 
@@ -299,13 +383,13 @@ def daily_candidates(now=None):
     period = period_key_daily(now)
     subs = FollowSubscription.objects.filter(
         user=OuterRef("pk"),
-        channel=FollowSubscription.CHANNEL_EMAIL,
         frequency__in=(FollowSubscription.FREQ_DAILY, FollowSubscription.FREQ_WEEKLY),
     )
     done = FollowDigest.objects.filter(user=OuterRef("pk"), period_key=period)
     # Exists вместо JOIN+DISTINCT: оба подзапроса идут по индексам (FK; unique user+period).
     return (
         PortalUser.objects.filter(is_active=True)
+        .filter(_reachable())
         .filter(Exists(subs))
         .exclude(Exists(done))
         .order_by()
@@ -350,10 +434,14 @@ def instant_for_user(user: PortalUser, *, now=None) -> bool:
 def instant_candidates():
     subs = FollowSubscription.objects.filter(
         user=OuterRef("pk"),
-        channel=FollowSubscription.CHANNEL_EMAIL,
         frequency=FollowSubscription.FREQ_INSTANT,
     )
-    return PortalUser.objects.filter(is_active=True).filter(Exists(subs)).order_by()
+    return (
+        PortalUser.objects.filter(is_active=True)
+        .filter(_reachable())
+        .filter(Exists(subs))
+        .order_by()
+    )
 
 
 def run_instant(now=None) -> int:

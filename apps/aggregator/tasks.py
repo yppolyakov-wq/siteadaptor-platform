@@ -1732,3 +1732,27 @@ def send_mcp_confirm_email(*, token):
         actions.discard(token)
         return {"sent": False, "reason": "mail_error"}
     return {"sent": True}
+
+
+# T-8.28: апдейт бота портала. Дедуп по (бот, update_id) — Telegram повторяет доставку.
+@idempotent_task(lock_timeout=86400)
+def portal_bot_update(*, bot_pk, update):
+    from django.core.cache import cache
+
+    from . import portal_bot
+    from .telegram_bot import dedupe_key
+
+    try:
+        return {"result": portal_bot.handle(bot_pk, update)}
+    except Exception:
+        # Сбой обработки не должен «съесть» апдейт на сутки: повтор проходит мимо дедупа.
+        cache.delete(f"job_lock:{dedupe_key(bot_pk, update.get('update_id'))}")
+        raise
+
+
+@idempotent_task(lock_timeout=3600)
+def purge_portal_chats():
+    """T-8.28: сроки хранения чатов бота портала (раз в сутки)."""
+    from . import portal_bot
+
+    return {"deleted": portal_bot.purge_chats()}

@@ -416,6 +416,7 @@ class SearchQueryLog(models.Model):
         (SURFACE_PORTAL, _("Stadtportal")),
         (SURFACE_ENTDECKEN, _("Entdecken")),
         (SURFACE_MCP, _("Assistenten (KI)")),
+        ("telegram", _("Telegram-Bot")),  # T-8.28
     ]
     MODES = [
         ("none", _("Nur Filter")),
@@ -493,6 +494,7 @@ class PortalStat(models.Model):
         ("portal", _("Stadtportal")),
         ("entdecken", _("Entdecken")),
         ("mcp", _("Assistenten (KI)")),  # T-8.10f
+        ("telegram", _("Telegram-Bot")),  # T-8.28: ссылки из бота портала
     ]
     CHANNEL_CODES = [code for code, _label in CHANNELS]
 
@@ -673,7 +675,8 @@ class PortalUser(models.Model):
     email-связке с per-tenant Customer).
     """
 
-    email = models.EmailField(unique=True)
+    # T-8.28: житель из Telegram-бота портала — без почты (NULL уникальности не мешает).
+    email = models.EmailField(unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     # Центральная отписка от писем бизнесов (P2.3d): источник истины для
     # порталов; синхронизируется в per-tenant Customer.unsubscribed задачей
@@ -691,7 +694,32 @@ class PortalUser(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return self.email
+        return self.email or f"telegram #{self.pk}"
+
+
+class PortalChat(models.Model):
+    """T-8.28: личный чат жителя с ботом портала (SHARED/public).
+
+    Заводится только когда житель подписывается («Folgen») — поиск в чате ничего не
+    хранит. Один `PortalUser` на пару «бот + чат»; сообщения идут только через бот того
+    портала, где подписались. Удаление — `/daten_loeschen` (каскадом подписки и сводки).
+    """
+
+    bot = models.ForeignKey(PortalBot, on_delete=models.CASCADE, related_name="chats")
+    chat_id = models.BigIntegerField()
+    user = models.OneToOneField(PortalUser, on_delete=models.CASCADE, related_name="portal_chat")
+    locale = models.CharField(max_length=10, blank=True, default="")
+    blocked_at = models.DateTimeField(null=True, blank=True)
+    last_seen_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["bot", "chat_id"], name="portal_chat_uniq"),
+        ]
+
+    def __str__(self):
+        return f"{self.bot_id}:{self.pk}"
 
 
 class FavoriteListing(models.Model):

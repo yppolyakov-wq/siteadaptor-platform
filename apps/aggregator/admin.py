@@ -467,7 +467,10 @@ class PortalBotAdmin(ModelAdmin):
                 connect_bot(bot)
                 self.message_user(request, f"{bot.portal.host}: connected.", messages.SUCCESS)
             except Exception as exc:  # noqa: BLE001 — показать ошибку в админке
-                self.message_user(request, f"{bot.portal.host}: {exc}", messages.ERROR)
+                # Текст HTTPError несёт URL с токеном бота — показываем только тип.
+                self.message_user(
+                    request, f"{bot.portal.host}: {type(exc).__name__}", messages.ERROR
+                )
 
     @admin.action(description="Disconnect bot (remove webhook)")
     def disconnect_selected(self, request, queryset):

@@ -268,7 +268,16 @@ def _check_cap(user, target: Target) -> None:
         raise FollowLimitReached
 
 
-def _upsert(user, target: Target, *, frequency: str, portal, source_host: str, now=None):
+def _upsert(
+    user,
+    target: Target,
+    *,
+    frequency: str,
+    portal,
+    source_host: str,
+    now=None,
+    channel: str = FollowSubscription.CHANNEL_EMAIL,
+):
     from . import follow_query
 
     now = now or timezone.now()
@@ -284,7 +293,7 @@ def _upsert(user, target: Target, *, frequency: str, portal, source_host: str, n
             target_kind=target.kind,
             target_key=target.key,
             city=target.city,
-            channel=FollowSubscription.CHANNEL_EMAIL,
+            channel=channel,
             defaults={
                 **defaults,
                 "token": _new_token(),
@@ -334,9 +343,20 @@ def confirm(payload: dict, *, source_host: str = "") -> FollowSubscription | Non
         )
 
 
-def follow_now(user: PortalUser, target: Target, *, frequency: str, portal, source_host: str = ""):
-    """Вошедший житель (почта подтверждена magic-link'ом) подписывается без DOI."""
-    return _upsert(user, target, frequency=frequency, portal=portal, source_host=source_host)
+def follow_now(
+    user: PortalUser,
+    target: Target,
+    *,
+    frequency: str,
+    portal,
+    source_host: str = "",
+    channel: str = FollowSubscription.CHANNEL_EMAIL,
+):
+    """Вошедший житель (почта подтверждена magic-link'ом) подписывается без DOI.
+    T-8.28: житель бота портала — канал Telegram, согласие = кнопка «Ja, folgen»."""
+    return _upsert(
+        user, target, frequency=frequency, portal=portal, source_host=source_host, channel=channel
+    )
 
 
 def is_following(user, target: Target) -> bool:

@@ -26947,3 +26947,121 @@ msgstr "Bilinmeyen bölümler: %(keys)s"
 
 msgid "Erwartet wird eine Liste."
 msgstr "Bir liste bekleniyor."
+
+msgid "Schreiben Sie, was Sie suchen — z. B. „Brot“ oder „Friseur Ohligs“."
+msgstr "Ne aradığınızı yazın — ör. „ekmek“ veya „kuaför Ohligs“."
+
+msgid "Oder stöbern Sie nach Bereichen und Stadtteilen."
+msgstr "Ya da bölümlere ve semtlere göre göz atın."
+
+msgid "Neue Angebote aus diesem Bereich hier bekommen?"
+msgstr "Bu bölümden yeni teklifleri burada almak ister misiniz?"
+
+msgid "Neue Angebote aus diesem Stadtteil hier bekommen?"
+msgstr "Bu semtten yeni teklifleri burada almak ister misiniz?"
+
+msgid "sofort, sobald es etwas Neues gibt"
+msgstr "yeni bir şey olur olmaz hemen"
+
+msgid "einmal täglich"
+msgstr "günde bir kez"
+
+msgid ""
+"Suchen speichern wir nicht mit Ihrer Person. Wenn Sie etwas abonnieren, "
+"speichern wir Ihre Telegram-ID, Ihre Sprache und die Abos."
+msgstr ""
+"Aramaları kişiliğinizle birlikte saklamıyoruz. Bir şeye abone olursanız "
+"Telegram kimliğinizi, dilinizi ve aboneliklerinizi saklarız."
+
+msgid "Diese Schaltfläche ist veraltet."
+msgstr "Bu düğmenin süresi doldu."
+
+msgid "Kein Abo angelegt."
+msgstr "Abonelik oluşturulmadı."
+
+msgid "Mehr finden Sie im Portal."
+msgstr "Daha fazlasını portalda bulabilirsiniz."
+
+msgid ""
+"Dazu gibt es gerade nichts. Versuchen Sie ein anderes Wort oder einen "
+"Bereich."
+msgstr ""
+"Şu anda bununla ilgili bir şey yok. Başka bir kelime veya bölüm deneyin."
+
+msgid "Dazu gibt es gerade nichts."
+msgstr "Şu anda bununla ilgili bir şey yok."
+
+msgid "Das kann man hier leider nicht abonnieren."
+msgstr "Maalesef buna buradan abone olunamaz."
+
+msgid "Abo angelegt. Neue Angebote kommen hier im Chat."
+msgstr "Abone olundu. Yeni teklifler bu sohbete gelecek."
+
+msgid "Sie haben noch keine Abos. Suchen Sie etwas und tippen Sie auf 🔔."
+msgstr "Henüz aboneliğiniz yok. Bir şey arayın ve 🔔'ye dokunun."
+
+msgid "Ihre Abos — tippen zum Beenden:"
+msgstr "Abonelikleriniz — sonlandırmak için dokunun:"
+
+msgid "Abo beendet: %(name)s"
+msgstr "Abonelik sonlandırıldı: %(name)s"
+
+msgid "Gespeicherte Abos: %(count)s"
+msgstr "Kayıtlı abonelikler: %(count)s"
+
+msgid "Gelöscht. Es sind keine Daten mehr gespeichert."
+msgstr "Silindi. Artık hiçbir veri saklanmıyor."
+
+msgid "Angebote nach Bereichen"
+msgstr "Bölümlere göre teklifler"
+
+msgid "Angebote nach Stadtteilen"
+msgstr "Semtlere göre teklifler"
+
+msgid "Meine Abos"
+msgstr "Aboneliklerim"
+
+msgid "Was wir speichern"
+msgstr "Neleri saklıyoruz"
+
+msgid "Willkommen bei %(name)s!"
+msgstr "%(name)s'e hoş geldiniz!"
+
+msgid ""
+"Wir schicken Ihnen neue Angebote hier im Chat — %(frequency)s. Beenden "
+"jederzeit mit /folgen."
+msgstr ""
+"Yeni teklifleri size bu sohbette göndereceğiz — %(frequency)s. İstediğiniz "
+"zaman /folgen ile sonlandırın."
+
+msgid ""
+"Sie haben schon die maximale Zahl an Abos. Beenden Sie eines mit /folgen."
+msgstr ""
+"Zaten azami abonelik sayısına ulaştınız. /folgen ile birini sonlandırın."
+
+msgid "Diese Suche folgen"
+msgstr "Bu aramayı takip et"
+
+msgid "Folgen: %(name)s"
+msgstr "Takip et: %(name)s"
+
+msgid "Ja, folgen"
+msgstr "Evet, takip et"
+
+msgid "Nein"
+msgstr "Hayır"
+
+msgid "Portal öffnen"
+msgstr "Portalı aç"
+
+msgid "Mehr"
+msgstr "Daha fazla"
+
+msgid "Abos verwalten: /folgen"
+msgstr "Abonelikleri yönet: /folgen"
+
+msgid "Neu für Sie — %(name)s"
+msgstr "Sizin için yeni — %(name)s"
+
+msgid "Alle anzeigen (%(n)s): %(url)s"
+msgstr "Tümünü göster (%(n)s): %(url)s"

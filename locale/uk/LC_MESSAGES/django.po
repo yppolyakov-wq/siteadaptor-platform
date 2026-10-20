@@ -27065,3 +27065,119 @@ msgstr "Невідомі розділи: %(keys)s"
 
 msgid "Erwartet wird eine Liste."
 msgstr "Очікується список."
+
+msgid "Schreiben Sie, was Sie suchen — z. B. „Brot“ oder „Friseur Ohligs“."
+msgstr "Напишіть, що шукаєте, — наприклад «хліб» або «перукар Ohligs»."
+
+msgid "Oder stöbern Sie nach Bereichen und Stadtteilen."
+msgstr "Або переглядайте за розділами та районами."
+
+msgid "Neue Angebote aus diesem Bereich hier bekommen?"
+msgstr "Отримувати тут нові пропозиції з цього розділу?"
+
+msgid "Neue Angebote aus diesem Stadtteil hier bekommen?"
+msgstr "Отримувати тут нові пропозиції з цього району?"
+
+msgid "sofort, sobald es etwas Neues gibt"
+msgstr "одразу, щойно з'явиться щось нове"
+
+msgid "einmal täglich"
+msgstr "раз на день"
+
+msgid ""
+"Suchen speichern wir nicht mit Ihrer Person. Wenn Sie etwas abonnieren, "
+"speichern wir Ihre Telegram-ID, Ihre Sprache und die Abos."
+msgstr ""
+"Пошукові запити ми не зберігаємо разом із вашими даними. Якщо ви на щось "
+"підписуєтеся, ми зберігаємо ваш Telegram-ID, мову та підписки."
+
+msgid "Diese Schaltfläche ist veraltet."
+msgstr "Ця кнопка застаріла."
+
+msgid "Kein Abo angelegt."
+msgstr "Підписку не оформлено."
+
+msgid "Mehr finden Sie im Portal."
+msgstr "Більше — на порталі."
+
+msgid ""
+"Dazu gibt es gerade nichts. Versuchen Sie ein anderes Wort oder einen "
+"Bereich."
+msgstr "Зараз за цим нічого немає. Спробуйте інше слово або розділ."
+
+msgid "Dazu gibt es gerade nichts."
+msgstr "Зараз тут нічого немає."
+
+msgid "Das kann man hier leider nicht abonnieren."
+msgstr "На жаль, на це тут не можна підписатися."
+
+msgid "Abo angelegt. Neue Angebote kommen hier im Chat."
+msgstr "Підписку оформлено. Нові пропозиції надходитимуть сюди, у чат."
+
+msgid "Sie haben noch keine Abos. Suchen Sie etwas und tippen Sie auf 🔔."
+msgstr "У вас ще немає підписок. Знайдіть щось і натисніть 🔔."
+
+msgid "Ihre Abos — tippen zum Beenden:"
+msgstr "Ваші підписки — натисніть, щоб скасувати:"
+
+msgid "Abo beendet: %(name)s"
+msgstr "Підписку скасовано: %(name)s"
+
+msgid "Gespeicherte Abos: %(count)s"
+msgstr "Збережені підписки: %(count)s"
+
+msgid "Gelöscht. Es sind keine Daten mehr gespeichert."
+msgstr "Видалено. Дані більше не зберігаються."
+
+msgid "Angebote nach Bereichen"
+msgstr "Пропозиції за розділами"
+
+msgid "Angebote nach Stadtteilen"
+msgstr "Пропозиції за районами"
+
+msgid "Meine Abos"
+msgstr "Мої підписки"
+
+msgid "Was wir speichern"
+msgstr "Що ми зберігаємо"
+
+msgid "Willkommen bei %(name)s!"
+msgstr "Ласкаво просимо до %(name)s!"
+
+msgid ""
+"Wir schicken Ihnen neue Angebote hier im Chat — %(frequency)s. Beenden "
+"jederzeit mit /folgen."
+msgstr ""
+"Ми надсилатимемо нові пропозиції сюди, у чат, — %(frequency)s. Скасувати "
+"можна будь-коли командою /folgen."
+
+msgid ""
+"Sie haben schon die maximale Zahl an Abos. Beenden Sie eines mit /folgen."
+msgstr "У вас уже максимум підписок. Скасуйте одну командою /folgen."
+
+msgid "Diese Suche folgen"
+msgstr "Стежити за цим пошуком"
+
+msgid "Folgen: %(name)s"
+msgstr "Підписка: %(name)s"
+
+msgid "Ja, folgen"
+msgstr "Так, підписатися"
+
+msgid "Nein"
+msgstr "Ні"
+
+msgid "Portal öffnen"
+msgstr "Відкрити портал"
+
+msgid "Mehr"
+msgstr "Ще"
+
+msgid "Abos verwalten: /folgen"
+msgstr "Керувати підписками: /folgen"
+
+msgid "Neu für Sie — %(name)s"
+msgstr "Нове для вас — %(name)s"
+
+msgid "Alle anzeigen (%(n)s): %(url)s"
+msgstr "Показати всі (%(n)s): %(url)s"

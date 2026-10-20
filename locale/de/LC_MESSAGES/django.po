@@ -26892,3 +26892,122 @@ msgstr "Unbekannte Bereiche: %(keys)s"
 
 msgid "Erwartet wird eine Liste."
 msgstr "Erwartet wird eine Liste."
+
+msgid "Schreiben Sie, was Sie suchen — z. B. „Brot“ oder „Friseur Ohligs“."
+msgstr "Schreiben Sie, was Sie suchen — z. B. „Brot“ oder „Friseur Ohligs“."
+
+msgid "Oder stöbern Sie nach Bereichen und Stadtteilen."
+msgstr "Oder stöbern Sie nach Bereichen und Stadtteilen."
+
+msgid "Neue Angebote aus diesem Bereich hier bekommen?"
+msgstr "Neue Angebote aus diesem Bereich hier bekommen?"
+
+msgid "Neue Angebote aus diesem Stadtteil hier bekommen?"
+msgstr "Neue Angebote aus diesem Stadtteil hier bekommen?"
+
+msgid "sofort, sobald es etwas Neues gibt"
+msgstr "sofort, sobald es etwas Neues gibt"
+
+msgid "einmal täglich"
+msgstr "einmal täglich"
+
+msgid ""
+"Suchen speichern wir nicht mit Ihrer Person. Wenn Sie etwas abonnieren, "
+"speichern wir Ihre Telegram-ID, Ihre Sprache und die Abos."
+msgstr ""
+"Suchen speichern wir nicht mit Ihrer Person. Wenn Sie etwas abonnieren, "
+"speichern wir Ihre Telegram-ID, Ihre Sprache und die Abos."
+
+msgid "Diese Schaltfläche ist veraltet."
+msgstr "Diese Schaltfläche ist veraltet."
+
+msgid "Kein Abo angelegt."
+msgstr "Kein Abo angelegt."
+
+msgid "Mehr finden Sie im Portal."
+msgstr "Mehr finden Sie im Portal."
+
+msgid ""
+"Dazu gibt es gerade nichts. Versuchen Sie ein anderes Wort oder einen "
+"Bereich."
+msgstr ""
+"Dazu gibt es gerade nichts. Versuchen Sie ein anderes Wort oder einen "
+"Bereich."
+
+msgid "Dazu gibt es gerade nichts."
+msgstr "Dazu gibt es gerade nichts."
+
+msgid "Das kann man hier leider nicht abonnieren."
+msgstr "Das kann man hier leider nicht abonnieren."
+
+msgid "Abo angelegt. Neue Angebote kommen hier im Chat."
+msgstr "Abo angelegt. Neue Angebote kommen hier im Chat."
+
+msgid "Sie haben noch keine Abos. Suchen Sie etwas und tippen Sie auf 🔔."
+msgstr "Sie haben noch keine Abos. Suchen Sie etwas und tippen Sie auf 🔔."
+
+msgid "Ihre Abos — tippen zum Beenden:"
+msgstr "Ihre Abos — tippen zum Beenden:"
+
+msgid "Abo beendet: %(name)s"
+msgstr "Abo beendet: %(name)s"
+
+msgid "Gespeicherte Abos: %(count)s"
+msgstr "Gespeicherte Abos: %(count)s"
+
+msgid "Gelöscht. Es sind keine Daten mehr gespeichert."
+msgstr "Gelöscht. Es sind keine Daten mehr gespeichert."
+
+msgid "Angebote nach Bereichen"
+msgstr "Angebote nach Bereichen"
+
+msgid "Angebote nach Stadtteilen"
+msgstr "Angebote nach Stadtteilen"
+
+msgid "Meine Abos"
+msgstr "Meine Abos"
+
+msgid "Was wir speichern"
+msgstr "Was wir speichern"
+
+msgid "Willkommen bei %(name)s!"
+msgstr "Willkommen bei %(name)s!"
+
+msgid ""
+"Wir schicken Ihnen neue Angebote hier im Chat — %(frequency)s. Beenden "
+"jederzeit mit /folgen."
+msgstr ""
+"Wir schicken Ihnen neue Angebote hier im Chat — %(frequency)s. Beenden "
+"jederzeit mit /folgen."
+
+msgid ""
+"Sie haben schon die maximale Zahl an Abos. Beenden Sie eines mit /folgen."
+msgstr ""
+"Sie haben schon die maximale Zahl an Abos. Beenden Sie eines mit /folgen."
+
+msgid "Diese Suche folgen"
+msgstr "Diese Suche folgen"
+
+msgid "Folgen: %(name)s"
+msgstr "Folgen: %(name)s"
+
+msgid "Ja, folgen"
+msgstr "Ja, folgen"
+
+msgid "Nein"
+msgstr "Nein"
+
+msgid "Portal öffnen"
+msgstr "Portal öffnen"
+
+msgid "Mehr"
+msgstr "Mehr"
+
+msgid "Abos verwalten: /folgen"
+msgstr "Abos verwalten: /folgen"
+
+msgid "Neu für Sie — %(name)s"
+msgstr "Neu für Sie — %(name)s"
+
+msgid "Alle anzeigen (%(n)s): %(url)s"
+msgstr "Alle anzeigen (%(n)s): %(url)s"

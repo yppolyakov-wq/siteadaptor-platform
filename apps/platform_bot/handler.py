@@ -11,11 +11,11 @@ from __future__ import annotations
 import logging
 import re
 
-from django.conf import settings
 from django.utils import translation
 from django.utils.translation import gettext as _
 
 from apps.telegram import bots
+from apps.telegram.updates import locale_for  # noqa: F401 — реэкспорт для signup/privacy
 
 from . import links
 
@@ -34,11 +34,6 @@ PRIVACY_RE = re.compile(r"^/(?:datenschutz|privacy)(?:@\w+)?\s*$", re.IGNORECASE
 ERASE_RE = re.compile(r"^/(?:daten_loeschen|delete_data)(?:@\w+)?\s*$", re.IGNORECASE)
 CHOOSE_MAX = 20
 CONNECT_LIMIT = 10  # попыток привязки на пользователя Telegram в час
-
-
-def locale_for(language_code: str) -> str:
-    code = str(language_code or "")[:2].lower()
-    return code if code in getattr(settings, "CABINET_LANGUAGES", ()) else "de"
 
 
 def send(bot, chat, text: str, markup=None) -> bool:

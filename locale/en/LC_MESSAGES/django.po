@@ -26809,3 +26809,120 @@ msgstr "Unknown sections: %(keys)s"
 
 msgid "Erwartet wird eine Liste."
 msgstr "A list is expected."
+
+msgid "Schreiben Sie, was Sie suchen — z. B. „Brot“ oder „Friseur Ohligs“."
+msgstr "Type what you are looking for — e.g. “bread” or “hairdresser Ohligs”."
+
+msgid "Oder stöbern Sie nach Bereichen und Stadtteilen."
+msgstr "Or browse by sections and districts."
+
+msgid "Neue Angebote aus diesem Bereich hier bekommen?"
+msgstr "Get new offers from this section here?"
+
+msgid "Neue Angebote aus diesem Stadtteil hier bekommen?"
+msgstr "Get new offers from this district here?"
+
+msgid "sofort, sobald es etwas Neues gibt"
+msgstr "right away, as soon as there is something new"
+
+msgid "einmal täglich"
+msgstr "once a day"
+
+msgid ""
+"Suchen speichern wir nicht mit Ihrer Person. Wenn Sie etwas abonnieren, "
+"speichern wir Ihre Telegram-ID, Ihre Sprache und die Abos."
+msgstr ""
+"We do not store searches with your person. If you subscribe to something, we"
+" store your Telegram ID, your language and the subscriptions."
+
+msgid "Diese Schaltfläche ist veraltet."
+msgstr "This button has expired."
+
+msgid "Kein Abo angelegt."
+msgstr "No subscription created."
+
+msgid "Mehr finden Sie im Portal."
+msgstr "You will find more on the portal."
+
+msgid ""
+"Dazu gibt es gerade nichts. Versuchen Sie ein anderes Wort oder einen "
+"Bereich."
+msgstr "Nothing for that right now. Try another word or a section."
+
+msgid "Dazu gibt es gerade nichts."
+msgstr "Nothing for that right now."
+
+msgid "Das kann man hier leider nicht abonnieren."
+msgstr "Unfortunately this cannot be subscribed to here."
+
+msgid "Abo angelegt. Neue Angebote kommen hier im Chat."
+msgstr "Subscribed. New offers will arrive here in the chat."
+
+msgid "Sie haben noch keine Abos. Suchen Sie etwas und tippen Sie auf 🔔."
+msgstr "You have no subscriptions yet. Search for something and tap 🔔."
+
+msgid "Ihre Abos — tippen zum Beenden:"
+msgstr "Your subscriptions — tap to end:"
+
+msgid "Abo beendet: %(name)s"
+msgstr "Subscription ended: %(name)s"
+
+msgid "Gespeicherte Abos: %(count)s"
+msgstr "Stored subscriptions: %(count)s"
+
+msgid "Gelöscht. Es sind keine Daten mehr gespeichert."
+msgstr "Deleted. No data is stored any more."
+
+msgid "Angebote nach Bereichen"
+msgstr "Offers by section"
+
+msgid "Angebote nach Stadtteilen"
+msgstr "Offers by district"
+
+msgid "Meine Abos"
+msgstr "My subscriptions"
+
+msgid "Was wir speichern"
+msgstr "What we store"
+
+msgid "Willkommen bei %(name)s!"
+msgstr "Welcome to %(name)s!"
+
+msgid ""
+"Wir schicken Ihnen neue Angebote hier im Chat — %(frequency)s. Beenden "
+"jederzeit mit /folgen."
+msgstr ""
+"We will send you new offers here in the chat — %(frequency)s. End anytime "
+"with /folgen."
+
+msgid ""
+"Sie haben schon die maximale Zahl an Abos. Beenden Sie eines mit /folgen."
+msgstr ""
+"You already have the maximum number of subscriptions. End one with /folgen."
+
+msgid "Diese Suche folgen"
+msgstr "Follow this search"
+
+msgid "Folgen: %(name)s"
+msgstr "Follow: %(name)s"
+
+msgid "Ja, folgen"
+msgstr "Yes, follow"
+
+msgid "Nein"
+msgstr "No"
+
+msgid "Portal öffnen"
+msgstr "Open portal"
+
+msgid "Mehr"
+msgstr "More"
+
+msgid "Abos verwalten: /folgen"
+msgstr "Manage subscriptions: /folgen"
+
+msgid "Neu für Sie — %(name)s"
+msgstr "New for you — %(name)s"
+
+msgid "Alle anzeigen (%(n)s): %(url)s"
+msgstr "Show all (%(n)s): %(url)s"
