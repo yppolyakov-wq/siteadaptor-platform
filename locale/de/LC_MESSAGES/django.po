@@ -27222,3 +27222,222 @@ msgstr "Ihre Aktionen: pausieren, starten, beenden, wo sichtbar"
 
 msgid "Abgelaufen — bitte 🔁 Wiederholen nutzen."
 msgstr "Abgelaufen — bitte 🔁 Wiederholen nutzen."
+
+msgid ""
+"Daten Ihres Geschäfts (Aktionen, Kunden, Bestellungen) stehen im Kabinett "
+"und lassen sich dort exportieren: /kabinett"
+msgstr ""
+"Daten Ihres Geschäfts (Aktionen, Kunden, Bestellungen) stehen im Kabinett "
+"und lassen sich dort exportieren: /kabinett"
+
+msgid "Daten berichtigen"
+msgstr "Daten berichtigen"
+
+msgid "Die Datei konnte nicht gesendet werden. Bitte später erneut."
+msgstr "Die Datei konnte nicht gesendet werden. Bitte später erneut."
+
+msgid ""
+"Die Datei unten wird von Telegram gespeichert, solange Sie den Chat "
+"behalten."
+msgstr ""
+"Die Datei unten wird von Telegram gespeichert, solange Sie den Chat "
+"behalten."
+
+msgid "Ihre Daten in diesem Bot"
+msgstr "Ihre Daten in diesem Bot"
+
+msgid "Ja, trennen"
+msgstr "Ja, trennen"
+
+msgid "Keine Erinnerungen"
+msgstr "Keine Erinnerungen"
+
+msgid "Keine KI-Fotoanalyse"
+msgstr "Keine KI-Fotoanalyse"
+
+msgid "Name, Adresse, Telefon Ihres Geschäfts: /profil oder /kabinett."
+msgstr "Name, Adresse, Telefon Ihres Geschäfts: /profil oder /kabinett."
+
+msgid "SiteAdaptor (Plattform-Bot)"
+msgstr "SiteAdaptor (Plattform-Bot)"
+
+msgid "Sprache des Bots wählen oder ein falsch verbundenes Geschäft trennen."
+msgstr "Sprache des Bots wählen oder ein falsch verbundenes Geschäft trennen."
+
+#, python-format
+msgid "Telegram-ID: %(id)s"
+msgstr "Telegram-ID: %(id)s"
+
+msgid "Tippen zum Ein- und Ausschalten. Ganz widersprechen = /daten_loeschen."
+msgstr ""
+"Tippen zum Ein- und Ausschalten. Ganz widersprechen = /daten_loeschen."
+
+#, python-format
+msgid "Trennen: %(name)s"
+msgstr "Trennen: %(name)s"
+
+msgid "Widerspruch"
+msgstr "Widerspruch"
+
+#, python-format
+msgid ""
+"„%(name)s“ von diesem Telegram trennen? Das Geschäft selbst bleibt bestehen."
+msgstr ""
+"„%(name)s“ von diesem Telegram trennen? Das Geschäft selbst bleibt bestehen."
+
+msgid ""
+"⏸ Verarbeitung eingeschränkt: Ich verarbeite Ihre Nachrichten nicht mehr und"
+" sende nichts über diesen Bot. Ihre Daten bleiben gespeichert. Aufheben: "
+"/freigeben"
+msgstr ""
+"⏸ Verarbeitung eingeschränkt: Ich verarbeite Ihre Nachrichten nicht mehr und"
+" sende nichts über diesen Bot. Ihre Daten bleiben gespeichert. Aufheben: "
+"/freigeben"
+
+msgid "▶ Einschränkung aufgehoben — der Bot arbeitet wieder normal."
+msgstr "▶ Einschränkung aufgehoben — der Bot arbeitet wieder normal."
+
+#, python-format
+msgid "✅ Getrennt: %(name)s"
+msgstr "✅ Getrennt: %(name)s"
+
+msgid "✅ Sprache gespeichert."
+msgstr "✅ Sprache gespeichert."
+
+msgid "Sprache gespeichert."
+msgstr "Sprache gespeichert."
+
+msgid ""
+"Die Verarbeitung ist eingeschränkt — Nachrichten werden nicht verarbeitet. "
+"/freigeben"
+msgstr ""
+"Die Verarbeitung ist eingeschränkt — Nachrichten werden nicht verarbeitet. "
+"/freigeben"
+
+msgid ""
+"Ihre Rechte: /meine_daten (Auskunft, Datei), /berichtigen, /einschraenken, "
+"/widerspruch, /daten_loeschen."
+msgstr ""
+"Ihre Rechte: /meine_daten (Auskunft, Datei), /berichtigen, /einschraenken, "
+"/widerspruch, /daten_loeschen."
+
+msgid ""
+"Ihre Rechte: /meine_daten, /berichtigen, /pausieren, /widerspruch, "
+"/daten_loeschen."
+msgstr ""
+"Ihre Rechte: /meine_daten, /berichtigen, /pausieren, /widerspruch, "
+"/daten_loeschen."
+
+msgid "Meine Daten anzeigen"
+msgstr "Meine Daten anzeigen"
+
+msgid "Sprache der Nachrichten wählen. Abos ändern oder beenden: /folgen"
+msgstr "Sprache der Nachrichten wählen. Abos ändern oder beenden: /folgen"
+
+msgid "Ohne Abo speichere ich nichts — die Sprache folgt Telegram."
+msgstr "Ohne Abo speichere ich nichts — die Sprache folgt Telegram."
+
+msgid "Zusammenfassungen laufen wieder."
+msgstr "Zusammenfassungen laufen wieder."
+
+msgid "Alle Abos beenden"
+msgstr "Alle Abos beenden"
+
+#, python-format
+msgid "Alle Abos beendet (%(count)s)."
+msgstr "Alle Abos beendet (%(count)s)."
+
+msgid "Zusammenfassungen pausieren"
+msgstr "Zusammenfassungen pausieren"
+
+msgid ""
+"Zusammenfassungen in Telegram pausiert. Ihre Abos bleiben gespeichert. "
+"Weiter: /fortsetzen"
+msgstr ""
+"Zusammenfassungen in Telegram pausiert. Ihre Abos bleiben gespeichert. "
+"Weiter: /fortsetzen"
+
+msgid ""
+"Ich beende alle Abos in Telegram — Sie bekommen hier keine Nachrichten mehr."
+" Alle Daten löschen: /daten_loeschen"
+msgstr ""
+"Ich beende alle Abos in Telegram — Sie bekommen hier keine Nachrichten mehr."
+" Alle Daten löschen: /daten_loeschen"
+
+msgid "Einstellungen im Kabinett"
+msgstr "Einstellungen im Kabinett"
+
+#, python-format
+msgid "Im Stadtkatalog: %(v)s"
+msgstr "Im Stadtkatalog: %(v)s"
+
+msgid "Ja"
+msgstr "Ja"
+
+msgid ""
+"Name, Adresse, Öffnungszeiten, E-Mail: im Kabinett unter „Einstellungen“."
+msgstr ""
+"Name, Adresse, Öffnungszeiten, E-Mail: im Kabinett unter „Einstellungen“."
+
+#, python-format
+msgid ""
+"Neue %(label)s senden (z. B. +49 212 123456). „-“ löscht sie. /abbrechen "
+"bricht ab."
+msgstr ""
+"Neue %(label)s senden (z. B. +49 212 123456). „-“ löscht sie. /abbrechen "
+"bricht ab."
+
+#, python-format
+msgid "Nicht gespeichert: %(errors)s"
+msgstr "Nicht gespeichert: %(errors)s"
+
+msgid "Stadtkatalog ausschalten"
+msgstr "Stadtkatalog ausschalten"
+
+msgid "Stadtkatalog einschalten"
+msgstr "Stadtkatalog einschalten"
+
+msgid "Telefon ändern"
+msgstr "Telefon ändern"
+
+#, python-format
+msgid "Telefon: %(v)s"
+msgstr "Telefon: %(v)s"
+
+msgid "Ungültig."
+msgstr "Ungültig."
+
+msgid "WhatsApp ändern"
+msgstr "WhatsApp ändern"
+
+#, python-format
+msgid "WhatsApp: %(v)s"
+msgstr "WhatsApp: %(v)s"
+
+msgid "an"
+msgstr "an"
+
+#, python-format
+msgid ""
+"„%(name)s“ aus dem Stadtkatalog nehmen? Ihre Website bleibt unverändert."
+msgstr ""
+"„%(name)s“ aus dem Stadtkatalog nehmen? Ihre Website bleibt unverändert."
+
+#, python-format
+msgid "„%(name)s“ im Stadtkatalog zeigen? Aktive Angebote erscheinen dort."
+msgstr "„%(name)s“ im Stadtkatalog zeigen? Aktive Angebote erscheinen dort."
+
+msgid "✅ Gespeichert."
+msgstr "✅ Gespeichert."
+
+msgid "Mein Profil"
+msgstr "Mein Profil"
+
+msgid "Profil"
+msgstr "Profil"
+
+msgid "Telefon, WhatsApp, Stadtkatalog"
+msgstr "Telefon, WhatsApp, Stadtkatalog"
+
+msgid "Bitte die Nummer als Text senden — oder „-“ zum Löschen."
+msgstr "Bitte die Nummer als Text senden — oder „-“ zum Löschen."

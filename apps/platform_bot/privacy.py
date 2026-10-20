@@ -58,6 +58,10 @@ def info(bot, uid, chat) -> str:
             "24 Stunden)."
         ),
         *_stored_lines(uid),
+        _(
+            "Ihre Rechte: /meine_daten (Auskunft, Datei), /berichtigen, /einschraenken, "
+            "/widerspruch, /daten_loeschen."
+        ),
         _("Mehr: %(url)s") % {"url": _privacy_url()},
     ]
     markup = {"inline_keyboard": [[{"text": "🗑 " + _("Daten löschen"), "callback_data": "pd:ask"}]]}
@@ -132,6 +136,9 @@ def erase(bot, uid, chat) -> str:
             _send(bot, chat, busy)
             return "erase_busy"
         result = links.erase_user(uid)
+        from . import rights
+
+        rights.erase(uid)  # H-7i: настройки прав — тоже персональные данные
         signup.drop(uid)
         cache.delete(f"tgplat:signup-submit:{uid}")
     # Ключи со случайной частью — лучшим усилием; гарантия — TTL ≤ 24 ч и отказ в правах
@@ -141,6 +148,7 @@ def erase(bot, uid, chat) -> str:
         for schema in result["schemas"]:
             cachescan.delete_matching(f"tgpromo:draft:{schema}:{uid}:*")
             cachescan.delete_matching(f"tgpromo:mg*:{schema}:{uid}:*")
+            cache.delete_many([f"tgpromo:last:{schema}:{uid}", f"tgpromo:arm:{schema}:{uid}"])
     except Exception:  # noqa: BLE001
         pass
     _send(

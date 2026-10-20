@@ -171,10 +171,12 @@ def set_commands(bot_token: str) -> None:
                     {"command": "wiederholen", "description": _("Aktion wiederholen")},
                     {"command": "abbrechen", "description": _("Abbrechen")},
                     {"command": "aktionen", "description": _("Meine Aktionen")},
+                    {"command": "profil", "description": _("Mein Profil")},
                     {"command": "hilfe", "description": _("Hilfe")},
                     {"command": "kabinett", "description": _("Kabinett öffnen")},
                     {"command": "eigener_bot", "description": _("Eigener Bot")},
                     {"command": "datenschutz", "description": _("Datenschutz")},
+                    {"command": "meine_daten", "description": _("Meine Daten anzeigen")},
                     {"command": "daten_loeschen", "description": _("Meine Daten löschen")},
                 ]
             services.set_my_commands(bot_token, commands, language_code=lang)

@@ -58,7 +58,10 @@ def _send(bot, chat, text, markup=None):
 def keyboard() -> dict:
     return {
         "inline_keyboard": [
-            [{"text": "📋 " + _("Meine Aktionen"), "callback_data": PREFIX + "a"}],
+            [
+                {"text": "📋 " + _("Meine Aktionen"), "callback_data": PREFIX + "a"},
+                {"text": "🏪 " + _("Profil"), "callback_data": "pp:" + "v"},
+            ],
             [
                 {"text": "🔑 " + _("Kabinett"), "callback_data": PREFIX + "k"},
                 {"text": "🤖 " + _("Eigener Bot"), "callback_data": PREFIX + "b"},
@@ -85,13 +88,15 @@ def help_text() -> str:
             photo_tip(),
             "📋 /aktionen — " + _("Ihre Aktionen: pausieren, starten, beenden, wo sichtbar"),
             "🔁 /wiederholen — " + _("eine frühere Aktion erneut starten"),
+            "🏪 /profil — " + _("Telefon, WhatsApp, Stadtkatalog"),
             "🏪 /geschaeft — "
             + _("Geschäft wechseln")
             + " · /neu — "
             + _("Neues Geschäft anlegen"),
             "🔑 /kabinett — " + _("Anmeldelink für das Kabinett per E-Mail"),
             "🤖 /eigener_bot — " + _("eigenen Telegram-Bot für Ihr Geschäft einrichten"),
-            "🔒 /datenschutz · /daten_loeschen",
+            "🔒 /datenschutz · /meine_daten · /berichtigen · /einschraenken · /widerspruch · "
+            "/daten_loeschen",
         ]
     )
 

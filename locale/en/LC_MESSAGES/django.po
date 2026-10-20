@@ -27136,3 +27136,218 @@ msgstr "your offers: pause, start, end, where visible"
 
 msgid "Abgelaufen — bitte 🔁 Wiederholen nutzen."
 msgstr "Expired — please use 🔁 Repeat."
+
+msgid ""
+"Daten Ihres Geschäfts (Aktionen, Kunden, Bestellungen) stehen im Kabinett "
+"und lassen sich dort exportieren: /kabinett"
+msgstr ""
+"Your business data (offers, customers, orders) is in the dashboard and can "
+"be exported there: /kabinett"
+
+msgid "Daten berichtigen"
+msgstr "Correct data"
+
+msgid "Die Datei konnte nicht gesendet werden. Bitte später erneut."
+msgstr "The file could not be sent. Please try again later."
+
+msgid ""
+"Die Datei unten wird von Telegram gespeichert, solange Sie den Chat "
+"behalten."
+msgstr "Telegram stores the file below as long as you keep the chat."
+
+msgid "Ihre Daten in diesem Bot"
+msgstr "Your data in this bot"
+
+msgid "Ja, trennen"
+msgstr "Yes, disconnect"
+
+msgid "Keine Erinnerungen"
+msgstr "No reminders"
+
+msgid "Keine KI-Fotoanalyse"
+msgstr "No AI photo analysis"
+
+msgid "Name, Adresse, Telefon Ihres Geschäfts: /profil oder /kabinett."
+msgstr "Name, address, phone of your business: /profil or /kabinett."
+
+msgid "SiteAdaptor (Plattform-Bot)"
+msgstr "SiteAdaptor (platform bot)"
+
+msgid "Sprache des Bots wählen oder ein falsch verbundenes Geschäft trennen."
+msgstr "Choose the bot language or disconnect a wrongly connected business."
+
+#, python-format
+msgid "Telegram-ID: %(id)s"
+msgstr "Telegram ID: %(id)s"
+
+msgid "Tippen zum Ein- und Ausschalten. Ganz widersprechen = /daten_loeschen."
+msgstr "Tap to switch on or off. Object entirely = /daten_loeschen."
+
+#, python-format
+msgid "Trennen: %(name)s"
+msgstr "Disconnect: %(name)s"
+
+msgid "Widerspruch"
+msgstr "Objection"
+
+#, python-format
+msgid ""
+"„%(name)s“ von diesem Telegram trennen? Das Geschäft selbst bleibt bestehen."
+msgstr ""
+"Disconnect “%(name)s” from this Telegram? The business itself remains."
+
+msgid ""
+"⏸ Verarbeitung eingeschränkt: Ich verarbeite Ihre Nachrichten nicht mehr und"
+" sende nichts über diesen Bot. Ihre Daten bleiben gespeichert. Aufheben: "
+"/freigeben"
+msgstr ""
+"⏸ Processing restricted: I no longer process your messages and send nothing "
+"via this bot. Your data stays stored. Lift: /freigeben"
+
+msgid "▶ Einschränkung aufgehoben — der Bot arbeitet wieder normal."
+msgstr "▶ Restriction lifted — the bot works normally again."
+
+#, python-format
+msgid "✅ Getrennt: %(name)s"
+msgstr "✅ Disconnected: %(name)s"
+
+msgid "✅ Sprache gespeichert."
+msgstr "✅ Language saved."
+
+msgid "Sprache gespeichert."
+msgstr "Language saved."
+
+msgid ""
+"Die Verarbeitung ist eingeschränkt — Nachrichten werden nicht verarbeitet. "
+"/freigeben"
+msgstr "Processing is restricted — messages are not processed. /freigeben"
+
+msgid ""
+"Ihre Rechte: /meine_daten (Auskunft, Datei), /berichtigen, /einschraenken, "
+"/widerspruch, /daten_loeschen."
+msgstr ""
+"Your rights: /meine_daten (access, file), /berichtigen, /einschraenken, "
+"/widerspruch, /daten_loeschen."
+
+msgid ""
+"Ihre Rechte: /meine_daten, /berichtigen, /pausieren, /widerspruch, "
+"/daten_loeschen."
+msgstr ""
+"Your rights: /meine_daten, /berichtigen, /pausieren, /widerspruch, "
+"/daten_loeschen."
+
+msgid "Meine Daten anzeigen"
+msgstr "Show my data"
+
+msgid "Sprache der Nachrichten wählen. Abos ändern oder beenden: /folgen"
+msgstr "Choose the language of messages. Change or end subscriptions: /folgen"
+
+msgid "Ohne Abo speichere ich nichts — die Sprache folgt Telegram."
+msgstr ""
+"Without a subscription I store nothing — the language follows Telegram."
+
+msgid "Zusammenfassungen laufen wieder."
+msgstr "Summaries are running again."
+
+msgid "Alle Abos beenden"
+msgstr "End all subscriptions"
+
+#, python-format
+msgid "Alle Abos beendet (%(count)s)."
+msgstr "All subscriptions ended (%(count)s)."
+
+msgid "Zusammenfassungen pausieren"
+msgstr "Pause summaries"
+
+msgid ""
+"Zusammenfassungen in Telegram pausiert. Ihre Abos bleiben gespeichert. "
+"Weiter: /fortsetzen"
+msgstr ""
+"Telegram summaries paused. Your subscriptions stay stored. Continue: "
+"/fortsetzen"
+
+msgid ""
+"Ich beende alle Abos in Telegram — Sie bekommen hier keine Nachrichten mehr."
+" Alle Daten löschen: /daten_loeschen"
+msgstr ""
+"I will end all Telegram subscriptions — you will get no more messages here. "
+"Delete all data: /daten_loeschen"
+
+msgid "Einstellungen im Kabinett"
+msgstr "Settings in the dashboard"
+
+#, python-format
+msgid "Im Stadtkatalog: %(v)s"
+msgstr "In the city catalogue: %(v)s"
+
+msgid "Ja"
+msgstr "Yes"
+
+msgid ""
+"Name, Adresse, Öffnungszeiten, E-Mail: im Kabinett unter „Einstellungen“."
+msgstr ""
+"Name, address, opening hours, email: in the dashboard under “Settings”."
+
+#, python-format
+msgid ""
+"Neue %(label)s senden (z. B. +49 212 123456). „-“ löscht sie. /abbrechen "
+"bricht ab."
+msgstr ""
+"Send the new %(label)s (e.g. +49 212 123456). “-” clears it. /abbrechen "
+"cancels."
+
+#, python-format
+msgid "Nicht gespeichert: %(errors)s"
+msgstr "Not saved: %(errors)s"
+
+msgid "Stadtkatalog ausschalten"
+msgstr "Turn off city catalogue"
+
+msgid "Stadtkatalog einschalten"
+msgstr "Turn on city catalogue"
+
+msgid "Telefon ändern"
+msgstr "Change phone"
+
+#, python-format
+msgid "Telefon: %(v)s"
+msgstr "Phone: %(v)s"
+
+msgid "Ungültig."
+msgstr "Invalid."
+
+msgid "WhatsApp ändern"
+msgstr "Change WhatsApp"
+
+#, python-format
+msgid "WhatsApp: %(v)s"
+msgstr "WhatsApp: %(v)s"
+
+msgid "an"
+msgstr "on"
+
+#, python-format
+msgid ""
+"„%(name)s“ aus dem Stadtkatalog nehmen? Ihre Website bleibt unverändert."
+msgstr ""
+"Remove “%(name)s” from the city catalogue? Your website stays unchanged."
+
+#, python-format
+msgid "„%(name)s“ im Stadtkatalog zeigen? Aktive Angebote erscheinen dort."
+msgstr ""
+"Show “%(name)s” in the city catalogue? Active offers will appear there."
+
+msgid "✅ Gespeichert."
+msgstr "✅ Saved."
+
+msgid "Mein Profil"
+msgstr "My profile"
+
+msgid "Profil"
+msgstr "Profile"
+
+msgid "Telefon, WhatsApp, Stadtkatalog"
+msgstr "phone, WhatsApp, city catalogue"
+
+msgid "Bitte die Nummer als Text senden — oder „-“ zum Löschen."
+msgstr "Please send the number as text — or “-” to clear it."

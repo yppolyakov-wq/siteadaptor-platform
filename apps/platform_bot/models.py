@@ -44,3 +44,28 @@ class OwnerTelegramLink(TimestampedModel):
 
     def __str__(self):
         return f"{self.tg_user_id} → {self.tenant_id}"
+
+
+class OwnerBotPrefs(TimestampedModel):
+    """T-8.10h H-7i: права субъекта данных в общем боте (Art. 16/18/21 DSGVO).
+
+    Одна строка на пользователя Telegram; пишет её только `platform_bot/rights.py`.
+    Флаг блокировки бота (`OwnerTelegramLink.blocked_at`) сюда НЕ годится: его снимает
+    каждое сообщение пользователя, а ограничение обработки должно переживать сообщения.
+    """
+
+    tg_user_id = models.BigIntegerField(unique=True)
+    # Язык ответов бота (Art. 16 — «исправить»); пусто = язык клиента Telegram.
+    locale = models.CharField(max_length=8, blank=True)
+    # Art. 18: сообщения не обрабатываются, доставка через общий бот молчит.
+    restricted_at = models.DateTimeField(null=True, blank=True)
+    # Art. 21: возражение против ИИ-разбора фото и против напоминаний.
+    ai_objected_at = models.DateTimeField(null=True, blank=True)
+    reminders_objected_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Telegram-Einstellung (DSGVO)"
+        verbose_name_plural = "Telegram-Einstellungen (DSGVO)"
+
+    def __str__(self):
+        return str(self.tg_user_id)

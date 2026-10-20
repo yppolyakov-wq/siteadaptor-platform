@@ -97,6 +97,22 @@ def edit_message_reply_markup(token: str, chat_id, message_id, reply_markup=None
 CAPTION_MAX = 1024
 
 
+def send_document(token: str, chat_id, filename: str, content: bytes, caption: str = "") -> dict:
+    """T-8.10h H-7i: файл в чат (выгрузка данных Art. 15/20). Telegram хранит файл у себя —
+    это сказано пользователю в тексте рядом."""
+    data = {"chat_id": chat_id}
+    if caption:
+        data["caption"] = caption[:CAPTION_MAX]
+    response = requests.post(
+        _endpoint(token, "sendDocument"),
+        data=data,
+        files={"document": (filename, content, "application/json")},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json().get("result", {})
+
+
 def send_photo(token: str, chat_id, file_id: str, caption: str, reply_markup=None) -> dict:
     """Фото по `file_id` (без повторной загрузки) с подписью ≤ 1024 символов."""
     data = {"chat_id": chat_id, "photo": file_id, "caption": caption[:CAPTION_MAX]}

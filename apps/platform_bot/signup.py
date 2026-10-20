@@ -884,6 +884,10 @@ def resend_confirmation(bot, uid, chat, tenant_ref: str) -> str:
 
 def remind_pending(bot, uid, chat) -> str:
     """Чат с неподтверждёнными бизнесами пишет боту — напомнить про почту."""
+    from . import rights
+
+    if rights.reminders_objected(uid):
+        return ""  # H-7i (Art. 21): возражение против напоминаний
     pending = list(links.pending_for(uid)[:MAX_BOT_BUSINESSES])
     if not pending:
         return ""

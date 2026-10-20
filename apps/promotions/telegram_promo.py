@@ -388,8 +388,13 @@ def _bot_kind(bot) -> str:
 def _send(bot, chat, text: str, markup=None, photo_id: str = "") -> bool:
     """Ответ в чат. Ошибка HTTP НЕ уходит наружу: текст requests.HTTPError содержит
     URL с токеном бота, а вебхук пишет трейсбэк в лог/Sentry."""
-    from apps.telegram import services
+    from apps.telegram import bots, services
 
+    if _bot_kind(bot) == bots.PLATFORM:
+        from apps.platform_bot import rights
+
+        if not rights.may_send(chat):
+            return False  # H-7i (Art. 18): фон (✅ из Celery) ограничившему — молчим
     try:
         if photo_id and len(text) <= services.CAPTION_MAX:
             try:
@@ -633,7 +638,7 @@ def _new_draft(bot, tenant, schema, chat, update, photo, group) -> str:
     draft["bot"] = _bot_kind(bot)  # file_id фото привязан к боту (T-8.10h)
     if photo:
         # B-2: ИИ — до замка альбома (вызов долгий), и только в ПУСТЫЕ описательные поля.
-        ai_fill(bot, tenant, draft, photo, hint=parsed.title)
+        ai_fill(bot, tenant, draft, photo, hint=parsed.title, chat=chat)
     if not draft.get("title"):
         _send(bot, chat, _("Wie heißt das Angebot? Schreiben Sie es bitte dazu."))
         return "no_title"
@@ -658,7 +663,7 @@ def _new_draft(bot, tenant, schema, chat, update, photo, group) -> str:
 AI_FIELDS = ("title", "description")
 
 
-def ai_fill(bot, tenant, draft: dict, photo_id: str, *, hint: str = "") -> bool:
+def ai_fill(bot, tenant, draft: dict, photo_id: str, *, hint: str = "", chat="") -> bool:
     """B-2 (T-8.10a в Telegram): ИИ по фото дописывает ТОЛЬКО пустые описательные поля —
     название, описание, раздел/признаки каталога города, свой товар. Цены, скидки, сроки и
     количество приходят только из текста владельца (правила). ИИ выключен / сбой — черновик
@@ -672,6 +677,11 @@ def ai_fill(bot, tenant, draft: dict, photo_id: str, *, hint: str = "") -> bool:
 
     if not is_enabled():
         return False
+    if chat and str(chat).isdigit():
+        from apps.platform_bot import rights
+
+        if rights.ai_objected(int(chat)):
+            return False  # H-7i (Art. 21): владелец возразил против ИИ-разбора фото
     # Раздел по типу бизнеса — подстановка, а не выбор владельца: ИИ по фото точнее.
     guessed = cc.suggest_for_business_type(getattr(tenant, "business_type", ""))
     category_open = draft.get("city_category") in ("", None, guessed)

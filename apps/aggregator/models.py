@@ -711,6 +711,11 @@ class PortalChat(models.Model):
     locale = models.CharField(max_length=10, blank=True, default="")
     blocked_at = models.DateTimeField(null=True, blank=True)
     last_seen_at = models.DateTimeField(null=True, blank=True)
+    # T-8.10h H-7i (Art. 18): житель приостановил сводки — подписки целы, сообщений нет.
+    paused_at = models.DateTimeField(null=True, blank=True)
+    # H-7i (Art. 16): язык выбран явно в /berichtigen — тогда он сильнее языка Telegram
+    # (иначе `locale` — лишь язык первого контакта и не должен «залипать»).
+    locale_chosen_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

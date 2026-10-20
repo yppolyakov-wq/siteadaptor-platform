@@ -269,7 +269,7 @@ def _send_telegram(digest: Digest) -> bool:
     from apps.telegram import services
 
     chat = getattr(digest.user, "portal_chat", None)
-    if chat is None or chat.blocked_at is not None:
+    if chat is None or chat.blocked_at is not None or chat.paused_at is not None:
         return False
     bot = chat.bot
     if not bot.is_active or not bot.token:
@@ -364,6 +364,7 @@ def _reachable():
     """Жители, до которых можно достучаться: с почтой или с живым чатом бота портала."""
     return (Q(email__isnull=False) & ~Q(email="")) | Q(
         portal_chat__blocked_at__isnull=True,
+        portal_chat__paused_at__isnull=True,  # H-7i: «/pausieren»
         portal_chat__bot__is_active=True,
     )
 

@@ -79,6 +79,11 @@ def _send_platform(notification) -> None:
         or not links.still_owner(tenant)
     ):
         raise RuntimeError("Plattform-Bot: Inhaber nicht verbunden")
+    from apps.platform_bot import rights
+
+    if rights.is_restricted(int(recipient)):
+        # Art. 18: владелец ограничил обработку — общий бот молчит (письмо — свой канал).
+        raise RuntimeError("Plattform-Bot: Verarbeitung eingeschränkt")
     try:
         tg_services.send_message(bot.token, recipient, notification.payload.get("body", ""))
     except requests.HTTPError as exc:

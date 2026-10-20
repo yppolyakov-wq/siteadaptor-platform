@@ -75,6 +75,7 @@
  "apps/notifications/adapters.py": [
   "Plattform-Bot nicht aktiv",
   "Plattform-Bot: Inhaber nicht verbunden",
+  "Plattform-Bot: Verarbeitung eingeschränkt",
   "kein aktiver Telegram-Bot"
  ],
  "apps/platform_bot/config.py": [
@@ -88,6 +89,7 @@
   "Plattform-Bot aus: im Admin unter „Plattform-Bot“ einschalten und Token setzen."
  ],
  "apps/platform_bot/models.py": [
+  "Telegram-Einstellungen (DSGVO)",
   "Telegram-Verknüpfung",
   "Telegram-Verknüpfungen"
  ],
@@ -213,9 +215,17 @@
   "Wir bemühen uns um eine hohe Verfügbarkeit der Plattform; Wartungsfenster und Umstände außerhalb unseres Einflussbereichs bleiben vorbehalten."
  ],
  "templates/tenants/legal_datenschutz.html": [
+  "(Art. 18: der Bot verarbeitet deine Nachrichten nicht und sendet nichts, deine Daten bleiben gespeichert),",
+  "(Auskunft und Datei zum Mitnehmen, Art. 15 und 20 – die Datei speichert Telegram, solange du den Chat behältst),",
+  "(Auskunft und Datei, Art. 15 und 20),",
+  "(Sprache, falsch verbundenes Geschäft trennen; Telefon und WhatsApp mit",
+  "(Sprache; Abos mit",
+  "(alle Abos in Telegram beenden – Art. 21),",
   "4. Registrierung und Kundenkonto",
   "7. Websites unserer Kunden",
   "8. Telegram-Bot für Geschäftsinhaber",
+  "8a. Telegram-Bot der Stadtportale",
+  "; hast du den Bot gesperrt, 30 Tage; ohne Abo und Aktivität 180 Tage.",
   "Datenschutzerklärung",
   "Löschen: jederzeit mit",
   "Speicherdauer: die Verbindung bis zur Trennung, bis zum Befehl",

@@ -27277,3 +27277,217 @@ msgstr "kampanyalarınız: duraklat, başlat, bitir, nerede görünüyor"
 
 msgid "Abgelaufen — bitte 🔁 Wiederholen nutzen."
 msgstr "Süresi doldu — lütfen 🔁 Tekrarla’yı kullanın."
+
+msgid ""
+"Daten Ihres Geschäfts (Aktionen, Kunden, Bestellungen) stehen im Kabinett "
+"und lassen sich dort exportieren: /kabinett"
+msgstr ""
+"İşletme verileriniz (kampanyalar, müşteriler, siparişler) paneldedir ve "
+"oradan dışa aktarılabilir: /kabinett"
+
+msgid "Daten berichtigen"
+msgstr "Verileri düzelt"
+
+msgid "Die Datei konnte nicht gesendet werden. Bitte später erneut."
+msgstr "Dosya gönderilemedi. Lütfen daha sonra tekrar deneyin."
+
+msgid ""
+"Die Datei unten wird von Telegram gespeichert, solange Sie den Chat "
+"behalten."
+msgstr ""
+"Aşağıdaki dosya, sohbeti tuttuğunuz sürece Telegram tarafından saklanır."
+
+msgid "Ihre Daten in diesem Bot"
+msgstr "Bu bottaki verileriniz"
+
+msgid "Ja, trennen"
+msgstr "Evet, bağlantıyı kes"
+
+msgid "Keine Erinnerungen"
+msgstr "Hatırlatma yok"
+
+msgid "Keine KI-Fotoanalyse"
+msgstr "Yapay zekâ fotoğraf analizi yok"
+
+msgid "Name, Adresse, Telefon Ihres Geschäfts: /profil oder /kabinett."
+msgstr "İşletmenizin adı, adresi, telefonu: /profil veya /kabinett."
+
+msgid "SiteAdaptor (Plattform-Bot)"
+msgstr "SiteAdaptor (platform botu)"
+
+msgid "Sprache des Bots wählen oder ein falsch verbundenes Geschäft trennen."
+msgstr ""
+"Bot dilini seçin veya yanlış bağlanmış bir işletmenin bağlantısını kesin."
+
+#, python-format
+msgid "Telegram-ID: %(id)s"
+msgstr "Telegram kimliği: %(id)s"
+
+msgid "Tippen zum Ein- und Ausschalten. Ganz widersprechen = /daten_loeschen."
+msgstr "Açmak/kapatmak için dokunun. Tamamen itiraz = /daten_loeschen."
+
+#, python-format
+msgid "Trennen: %(name)s"
+msgstr "Bağlantıyı kes: %(name)s"
+
+msgid "Widerspruch"
+msgstr "İtiraz"
+
+#, python-format
+msgid ""
+"„%(name)s“ von diesem Telegram trennen? Das Geschäft selbst bleibt bestehen."
+msgstr "„%(name)s“ bu Telegram’dan ayrılsın mı? İşletmenin kendisi kalır."
+
+msgid ""
+"⏸ Verarbeitung eingeschränkt: Ich verarbeite Ihre Nachrichten nicht mehr und"
+" sende nichts über diesen Bot. Ihre Daten bleiben gespeichert. Aufheben: "
+"/freigeben"
+msgstr ""
+"⏸ İşleme kısıtlandı: Mesajlarınızı artık işlemiyorum ve bu bot üzerinden "
+"hiçbir şey göndermiyorum. Verileriniz saklı kalır. Kaldırmak için: "
+"/freigeben"
+
+msgid "▶ Einschränkung aufgehoben — der Bot arbeitet wieder normal."
+msgstr "▶ Kısıtlama kaldırıldı — bot yeniden normal çalışıyor."
+
+#, python-format
+msgid "✅ Getrennt: %(name)s"
+msgstr "✅ Bağlantı kesildi: %(name)s"
+
+msgid "✅ Sprache gespeichert."
+msgstr "✅ Dil kaydedildi."
+
+msgid "Sprache gespeichert."
+msgstr "Dil kaydedildi."
+
+msgid ""
+"Die Verarbeitung ist eingeschränkt — Nachrichten werden nicht verarbeitet. "
+"/freigeben"
+msgstr "İşleme kısıtlı — mesajlar işlenmiyor. /freigeben"
+
+msgid ""
+"Ihre Rechte: /meine_daten (Auskunft, Datei), /berichtigen, /einschraenken, "
+"/widerspruch, /daten_loeschen."
+msgstr ""
+"Haklarınız: /meine_daten (bilgi, dosya), /berichtigen, /einschraenken, "
+"/widerspruch, /daten_loeschen."
+
+msgid ""
+"Ihre Rechte: /meine_daten, /berichtigen, /pausieren, /widerspruch, "
+"/daten_loeschen."
+msgstr ""
+"Haklarınız: /meine_daten, /berichtigen, /pausieren, /widerspruch, "
+"/daten_loeschen."
+
+msgid "Meine Daten anzeigen"
+msgstr "Verilerimi göster"
+
+msgid "Sprache der Nachrichten wählen. Abos ändern oder beenden: /folgen"
+msgstr "Mesaj dilini seçin. Abonelikleri değiştirin veya bitirin: /folgen"
+
+msgid "Ohne Abo speichere ich nichts — die Sprache folgt Telegram."
+msgstr "Abonelik olmadan hiçbir şey saklamıyorum — dil Telegram’ı izler."
+
+msgid "Zusammenfassungen laufen wieder."
+msgstr "Özetler yeniden çalışıyor."
+
+msgid "Alle Abos beenden"
+msgstr "Tüm abonelikleri bitir"
+
+#, python-format
+msgid "Alle Abos beendet (%(count)s)."
+msgstr "Tüm abonelikler bitirildi (%(count)s)."
+
+msgid "Zusammenfassungen pausieren"
+msgstr "Özetleri duraklat"
+
+msgid ""
+"Zusammenfassungen in Telegram pausiert. Ihre Abos bleiben gespeichert. "
+"Weiter: /fortsetzen"
+msgstr ""
+"Telegram özetleri duraklatıldı. Abonelikleriniz saklı kalır. Devam: "
+"/fortsetzen"
+
+msgid ""
+"Ich beende alle Abos in Telegram — Sie bekommen hier keine Nachrichten mehr."
+" Alle Daten löschen: /daten_loeschen"
+msgstr ""
+"Telegram’daki tüm abonelikleri bitiriyorum — burada artık mesaj "
+"almayacaksınız. Tüm verileri sil: /daten_loeschen"
+
+msgid "Einstellungen im Kabinett"
+msgstr "Paneldeki ayarlar"
+
+#, python-format
+msgid "Im Stadtkatalog: %(v)s"
+msgstr "Şehir kataloğunda: %(v)s"
+
+msgid "Ja"
+msgstr "Evet"
+
+msgid ""
+"Name, Adresse, Öffnungszeiten, E-Mail: im Kabinett unter „Einstellungen“."
+msgstr "Ad, adres, çalışma saatleri, e-posta: panelde „Ayarlar“ altında."
+
+#, python-format
+msgid ""
+"Neue %(label)s senden (z. B. +49 212 123456). „-“ löscht sie. /abbrechen "
+"bricht ab."
+msgstr ""
+"Yeni %(label)s gönderin (örn. +49 212 123456). „-“ siler. /abbrechen iptal "
+"eder."
+
+#, python-format
+msgid "Nicht gespeichert: %(errors)s"
+msgstr "Kaydedilmedi: %(errors)s"
+
+msgid "Stadtkatalog ausschalten"
+msgstr "Şehir kataloğunu kapat"
+
+msgid "Stadtkatalog einschalten"
+msgstr "Şehir kataloğunu aç"
+
+msgid "Telefon ändern"
+msgstr "Telefonu değiştir"
+
+#, python-format
+msgid "Telefon: %(v)s"
+msgstr "Telefon: %(v)s"
+
+msgid "Ungültig."
+msgstr "Geçersiz."
+
+msgid "WhatsApp ändern"
+msgstr "WhatsApp’ı değiştir"
+
+#, python-format
+msgid "WhatsApp: %(v)s"
+msgstr "WhatsApp: %(v)s"
+
+msgid "an"
+msgstr "açık"
+
+#, python-format
+msgid ""
+"„%(name)s“ aus dem Stadtkatalog nehmen? Ihre Website bleibt unverändert."
+msgstr "„%(name)s“ şehir kataloğundan çıkarılsın mı? Web siteniz değişmez."
+
+#, python-format
+msgid "„%(name)s“ im Stadtkatalog zeigen? Aktive Angebote erscheinen dort."
+msgstr ""
+"„%(name)s“ şehir kataloğunda gösterilsin mi? Aktif teklifler orada görünür."
+
+msgid "✅ Gespeichert."
+msgstr "✅ Kaydedildi."
+
+msgid "Mein Profil"
+msgstr "Profilim"
+
+msgid "Profil"
+msgstr "Profil"
+
+msgid "Telefon, WhatsApp, Stadtkatalog"
+msgstr "telefon, WhatsApp, şehir kataloğu"
+
+msgid "Bitte die Nummer als Text senden — oder „-“ zum Löschen."
+msgstr "Lütfen numarayı metin olarak gönderin — silmek için „-“."

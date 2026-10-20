@@ -40,6 +40,10 @@ def send(bot, chat, text: str, markup=None) -> bool:
     """Ответ без утечки токена: текст HTTPError содержит URL с токеном бота."""
     from apps.telegram import services
 
+    from . import rights
+
+    if not rights.may_send(chat):
+        return False  # H-7i (Art. 18): фоновое сообщение ограничившему обработку — молчим
     try:
         services.send_message(bot.token, chat, text, reply_markup=markup)
         return True
@@ -49,6 +53,13 @@ def send(bot, chat, text: str, markup=None) -> bool:
 
 
 def handle(update: dict) -> str:
+    from . import rights
+
+    with rights.inbound():
+        return _handle(update)
+
+
+def _handle(update: dict) -> str:
     bot = bots.platform_bot()
     if bot is None:
         return "off"
@@ -65,8 +76,15 @@ def handle(update: dict) -> str:
         return "skip"
     if str(message.get("chat_id")) != str(message.get("from_id")):
         return "skip"  # личный чат: chat.id == from.id
-    with translation.override(locale_for(message.get("language_code"))):
+    with translation.override(_locale(message.get("from_id"), message.get("language_code"))):
         return _private(bot, message, update.get("update_id"))
+
+
+def _locale(uid, language_code) -> str:
+    """H-7i: язык, выбранный в /berichtigen, сильнее языка клиента Telegram."""
+    from . import rights
+
+    return rights.preferred_locale(uid) or locale_for(language_code)
 
 
 def _member(bot, member: dict) -> str:
@@ -93,22 +111,37 @@ def _callback(bot, callback: dict) -> str:
     from . import routing
 
     data = str(callback.get("data") or "")
+    from . import rights
+
+    lang = _locale(callback.get("from_id"), callback.get("language_code"))
+    if data.startswith(rights.PREFIX):
+        with translation.override(lang):
+            return rights.on_callback(bot, callback)
+    if not data.startswith("pd:") and rights.is_restricted(callback.get("from_id")):
+        # Art. 18: при ограничении обработки кнопки (кроме прав и удаления) не исполняются.
+        services.answer_callback_query(bot.token, callback.get("id") or "")
+        return "restricted"
     if data.startswith("pd:"):
         from . import privacy
 
-        with translation.override(locale_for(callback.get("language_code"))):
+        with translation.override(lang):
             return privacy.on_callback(bot, callback)
     if data.startswith(routing.PREFIX):
         return _promo_callback(bot, callback, data)
+    if data.startswith("pp:"):
+        from . import profile
+
+        with translation.override(lang):
+            return profile.on_callback(bot, callback)
     if data.startswith("pm:"):
         from . import menu
 
-        with translation.override(locale_for(callback.get("language_code"))):
+        with translation.override(lang):
             return menu.on_callback(bot, callback)
     if data.startswith("ps:"):
         from . import signup
 
-        with translation.override(locale_for(callback.get("language_code"))):
+        with translation.override(lang):
             return signup.on_callback(bot, callback)
     services.answer_callback_query(bot.token, callback.get("id") or "")
     match = CHOOSE_CALLBACK_RE.match(data)
@@ -117,7 +150,7 @@ def _callback(bot, callback: dict) -> str:
     from_id = callback.get("from_id")
     if not from_id or callback.get("chat_id") != from_id:
         return "skip"
-    with translation.override(locale_for(callback.get("language_code"))):
+    with translation.override(lang):
         link = links.select(from_id, match.group(1))
         if link is None:
             send(bot, from_id, _("Nicht verfügbar."))
@@ -134,13 +167,13 @@ def _start_url() -> str:
 
 def _private(bot, message: dict, update_id=None) -> str:
     chat = message["chat_id"]
-    links.mark_unblocked(message["from_id"])  # пишет боту — значит, не заблокировал
     text = (message.get("text") or "").strip()
-    match = CONNECT_RE.match(text)
-    if match:
-        return _connect(bot, message, match.group(1))
-    if CHOOSE_RE.match(text):
-        return _choose(bot, message)
+    # H-7i: права субъекта данных — раньше всего остального (и при ограничении обработки).
+    from . import rights
+
+    routed = rights.on_message(bot, message, text)
+    if routed:
+        return routed
     # H-6: команды DSGVO — раньше регистрации и акций (иначе «/daten_loeschen» владельца
     # ушло бы текстом акции или шагом регистрации).
     if PRIVACY_RE.match(text) or ERASE_RE.match(text):
@@ -148,6 +181,23 @@ def _private(bot, message: dict, update_id=None) -> str:
 
         uid = message["from_id"]
         return privacy.ask(bot, uid, chat) if ERASE_RE.match(text) else privacy.info(bot, uid, chat)
+    if rights.is_restricted(message["from_id"]):
+        return _restricted_notice(bot, message["from_id"], chat)
+    # После шлюза Art. 18: при ограничении состояние связей не трогаем.
+    links.mark_unblocked(message["from_id"])  # пишет боту — значит, не заблокировал
+    match = CONNECT_RE.match(text)
+    if match:
+        return _connect(bot, message, match.group(1))
+    if CHOOSE_RE.match(text):
+        return _choose(bot, message)
+    # H-7f: ввод телефона/WhatsApp после «ändern» и команда «/profil».
+    from . import profile
+
+    routed = profile.on_message(bot, message, text)
+    if routed:
+        return routed
+    if profile.COMMAND_RE.match(text):
+        return profile.show(bot, message["from_id"], chat)
     # H-7b/c/g: меню — тоже раньше регистрации и акций («/hilfe» не текст акции).
     from . import menu
 
@@ -182,6 +232,21 @@ def _private(bot, message: dict, update_id=None) -> str:
         )
         return "welcome_back"
     return _private_onboarding(bot, chat)
+
+
+def _restricted_notice(bot, uid, chat) -> str:
+    """Art. 18: сообщение не обрабатываем; напоминание «как снять» — не чаще раза в час."""
+    from django.core.cache import cache
+
+    if cache.add(f"tgplat:restricted-note:{int(uid)}", 1, 3600):
+        send(
+            bot,
+            chat,
+            _(
+                "Die Verarbeitung ist eingeschränkt — Nachrichten werden nicht verarbeitet. /freigeben"
+            ),
+        )
+    return "restricted"
 
 
 def _photo_tip() -> str:
