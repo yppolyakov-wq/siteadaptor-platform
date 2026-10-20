@@ -196,6 +196,7 @@ def test_double_ok_creates_one_tenant(bot, monkeypatch):
 
 def test_signup_limit_per_user(bot, monkeypatch):
     monkeypatch.setattr(signup, "LIMIT_SIGNUP", 0)
+    monkeypatch.setattr(signup, "LIMIT_SIGNUP_UNVERIFIED", 0)
     _walk_to_summary()
     assert handler.handle(_cb("ps:ok")) == "limited"
     assert not bot["calls"]
@@ -331,3 +332,97 @@ def test_fast_provisioning_does_not_leave_pending_marker(bot, monkeypatch):
     _walk_to_summary()
     handler.handle(_cb("ps:ok"))
     assert not signup.cache.get(signup._pending_key(USER))
+
+
+# --- правки ревью (2026-10-20) --------------------------------------------------------
+
+
+def test_unverified_phone_gets_stricter_daily_limit(bot):
+    _walk_to_summary()  # телефон введён текстом — не подтверждён
+    assert handler.handle(_cb("ps:ok")) == "submitted"
+    signup.cache.delete(signup._pending_key(USER))
+    signup.cache.delete(f"tgplat:signup-submit:{USER}")  # защита двойного ✅ (5 мин)
+    links.OwnerTelegramLink.objects.all().delete()
+    _walk_to_summary()
+    assert handler.handle(_cb("ps:ok")) == "limited"  # второй за сутки без номера
+
+
+def test_shared_own_number_marks_verified(bot):
+    _walk_to_summary()
+    handler.handle(_cb("ps:e:phone"))
+    handler.handle(_msg("", contact={"phone_number": "+49 212 1", "user_id": USER}))
+    assert signup.load(USER)["data"]["phone_verified"] is True
+
+
+def test_invalid_edit_keeps_previous_value(bot):
+    _walk_to_summary()
+    handler.handle(_cb("ps:e:postcode"))
+    assert handler.handle(_msg("12")) == "postcode"
+    assert signup.load(USER)["data"]["postcode"] == "42651"
+
+
+def test_album_photos_after_promo_step_are_added_silently(bot):
+    handler.handle(_msg("/neu"))
+    handler.handle(_msg("Brot −30 % diese Woche", photo=[{"file_id": "a1"}], media_group_id="g"))
+    before = len(bot["sent"])
+    assert handler.handle(_msg("", photo=[{"file_id": "a2"}], media_group_id="g")) == "photo_added"
+    assert len(bot["sent"]) == before
+    assert signup.load(USER)["data"]["photo_ids"] == ["a1", "a2"]
+
+
+def test_unknown_command_is_not_a_promo(bot):
+    handler.handle(_msg("/neu"))
+    assert handler.handle(_msg("/hilfe")) == "promo"
+    assert not signup.load(USER)["data"].get("title")
+
+
+def test_city_edit_goes_through_district(bot):
+    _walk_to_summary()
+    handler.handle(_cb("ps:e:city"))
+    handler.handle(_msg("Solingen"))
+    assert signup.load(USER)["step"] == "district"
+    handler.handle(_cb("ps:d:-"))
+    assert signup.load(USER)["step"] == "summary"
+
+
+def test_provisioning_crash_keeps_input_and_no_pending(bot, monkeypatch):
+    def boom(**kw):
+        raise RuntimeError("db")
+
+    monkeypatch.setattr("apps.tenants.services.start_quick_provisioning", boom)
+    _walk_to_summary()
+    assert handler.handle(_cb("ps:ok")) == "failed"
+    assert signup.load(USER)["step"] == "summary"
+    assert not signup.cache.get(signup._pending_key(USER))
+
+
+def test_login_link_limited_per_recipient(bot, monkeypatch):
+    from django.contrib.auth import get_user_model
+
+    from apps.core.models import Membership
+
+    monkeypatch.setattr(signup, "LIMIT_LOGIN_MAIL", 1)
+    tenant = TenantFactory(schema_name="public", slug="ll-2")
+    user = get_user_model().objects.create_user(username="ll2", email=MAIL, password="pw12345678")
+    Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
+    monkeypatch.setattr("apps.core.owner_login.send_login_link", lambda t, e: None)
+    links.bind(USER, tenant, user_pk=user.pk)
+    assert handler.handle(_cb(f"ps:l:{tenant.pk}")) == "sent"
+    assert handler.handle(_cb(f"ps:l:{tenant.pk}")) == "limited"
+
+
+def test_promo_failure_with_ready_schema_still_binds(monkeypatch):
+    from apps.tenants import tasks
+
+    tenant = TenantFactory(schema_name="rdy1", slug="rdy1")
+    tenant.provisioning_status = tenant.PROVISIONING_READY
+    tenant.save()
+
+    def boom(*a):
+        raise RuntimeError("promo")
+
+    monkeypatch.setattr(tasks, "provision_quick_logic", boom)
+    with mock.patch("apps.platform_bot.signup.finish") as finish:
+        with pytest.raises(RuntimeError):
+            tasks.provision_quick(str(tenant.pk), MAIL, {}, telegram={"tg_user_id": USER})
+    assert finish.call_args.args[3] is True and finish.call_args.args[2] is None

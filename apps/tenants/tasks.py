@@ -148,7 +148,11 @@ def provision_quick(tenant_id, email, promo, telegram=None):
             pk=tenant_id, provisioning_status=Tenant.PROVISIONING_READY
         ).exists():
             cache.set(f"quick_promo:{tenant_id}", "none", 24 * 3600)
-        _telegram_finish(tenant_id, telegram, None, ok=False)
+            # Схема готова, не собралась только акция — привязать чат и попросить прислать
+            # акцию ещё раз (как веб ведёт в ассистент), а не «не получилось».
+            _telegram_finish(tenant_id, telegram, None, ok=True)
+        else:
+            _telegram_finish(tenant_id, telegram, None, ok=False)
         raise
     # Страница ожидания ждёт этот ключ; "none" — акцию собрать не удалось, владелец
     # попадает в ассистент и создаёт её там (страница не крутится вечно).

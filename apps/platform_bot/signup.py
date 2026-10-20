@@ -55,9 +55,12 @@ STEP_FIELDS = {
 }
 LIMIT_START = 10  # начал регистрацию — в час на пользователя
 LIMIT_STEP = 120  # ответов на шаги — в час
-LIMIT_SIGNUP = 3  # готовых регистраций — в сутки на пользователя
+LIMIT_SIGNUP = 3  # готовых регистраций — в сутки на пользователя (свой номер подтверждён)
+LIMIT_SIGNUP_UNVERIFIED = 1  # без «Meine Nummer senden» — строже (одноразовые аккаунты)
 LIMIT_MAIL = 3  # на один e-mail в сутки (не заваливать чужой ящик письмами)
-LIMIT_GLOBAL = 30  # всего регистраций через бот — в час
+LIMIT_GLOBAL = 30  # всего регистраций через бот — в час (подтверждённые номером)
+LIMIT_GLOBAL_UNVERIFIED = 10  # без подтверждённого номера — отдельная, меньшая корзина
+LIMIT_LOGIN_MAIL = 3  # писем-входа на один адрес в час
 
 
 # --- состояние --------------------------------------------------------------------------
@@ -100,7 +103,7 @@ def _lock(uid):
     key = f"tgplat:signup-lock:{int(uid)}"
     got = False
     for _attempt in range(50):
-        if cache.add(key, 1, 10):
+        if cache.add(key, 1, 60):
             got = True
             break
         time.sleep(0.1)
@@ -147,7 +150,14 @@ def start(bot, uid, chat, lang: str) -> str:
     if _rate("tgplat-signup-start", uid, LIMIT_START, 3600):
         _send(bot, chat, _("Zu viele Versuche. Bitte später erneut."))
         return "limited"
-    state = {"v": 1, "step": "promo", "lang": lang, "started": time.time(), "data": {}}
+    state = {
+        "v": 1,
+        "uid": int(uid),
+        "step": "promo",
+        "lang": lang,
+        "started": time.time(),
+        "data": {},
+    }
     save(uid, state)
     _send(
         bot,
@@ -204,7 +214,11 @@ def _next_step(state: dict, after: str) -> str:
 
 
 def _advance(bot, chat, uid, state, step) -> str:
-    state["step"] = "summary" if state.pop("editing", False) else _next_step(state, step)
+    following = _next_step(state, step)
+    if state.get("editing") and not (step == "city" and following == "district"):
+        state.pop("editing", None)
+        following = "summary"
+    state["step"] = following
     save(uid, state)
     _prompt(bot, chat, state)
     return state["step"]
@@ -221,7 +235,7 @@ def _as_post(data: dict) -> dict:
         "city_category": cc.suggest_for_business_type(data.get("business_type", "")),
     }
     for key, value in data.items():
-        if key in ("photo_ids", "warnings"):
+        if key in ("photo_ids", "warnings", "phone_verified"):
             continue
         if key == "in_city_catalog":
             if value:
@@ -253,12 +267,24 @@ def on_message(bot, message: dict, state: dict) -> str:
     if _rate("tgplat-signup-step", uid, LIMIT_STEP, 3600):
         return "limited"
     text = (message.get("text") or "").strip()
-    with _lock(uid):
+    with _lock(uid) as got:
+        if not got:
+            return "busy"
         state = load(uid) or state
         step = state.get("step")
         data = state["data"]
         if step == "promo":
             return _promo_step(bot, chat, uid, state, message, text)
+        photo = message.get("photo") or ""
+        if photo and not text:
+            # Остальные фото альбома пришли после шага акции — дописать молча.
+            from apps.promotions import quick
+
+            ids = data.setdefault("photo_ids", [])
+            if photo not in ids and len(ids) < quick.MAX_PHOTOS:
+                ids.append(photo)
+            save(uid, state)
+            return "photo_added"
         if step == "phone" and message.get("contact_phone"):
             if message.get("contact_user_id") != uid:
                 _send(bot, chat, _("Bitte Ihre eigene Nummer teilen oder eintippen."))
@@ -273,16 +299,17 @@ def on_message(bot, message: dict, state: dict) -> str:
                 "phone": "phone",
                 "email": "email",
             }[step]
-            data[field] = text[:200]
+            trial = {**data, field: text[:200]}
             if step == "city":
-                data["district"] = ""
-            errors = _step_errors(data, step)
-            if errors:
-                data.pop(field, None)
-                save(uid, state)
+                trial["district"] = ""
+            errors = _step_errors(trial, step)
+            if errors:  # прежнее (верное) значение не теряем
                 _send(bot, chat, "⚠️ " + errors[0])
                 _prompt(bot, chat, state)
                 return step
+            data.update(trial)
+            if step == "phone":
+                data["phone_verified"] = bool(message.get("contact_phone"))
             return _advance(bot, chat, uid, state, step)
         _prompt(bot, chat, state)
         return step or "promo"
@@ -303,6 +330,10 @@ def _promo_step(bot, chat, uid, state, message, text) -> str:
         if photo and not data.get("title"):
             return "promo_photo"  # подпись придёт с другим фото альбома или отдельно
         _prompt(bot, chat, state)
+        return "promo"
+    if text.startswith("/"):
+        save(uid, state)
+        _prompt(bot, chat, state)  # незнакомая команда — не текст акции
         return "promo"
     parsed = message_parse.parse(text)
     if not parsed.title:
@@ -362,6 +393,9 @@ def _prompt(bot, chat, state) -> None:
         _send(bot, chat, _("3/8 · Wie heißt Ihr Geschäft?"))
     elif step == "city":
         cities = known_cities()[:6]
+        state["cities"] = cities  # кнопка несёт индекс в ЭТОТ список (не меняется после показа)
+        if state.get("uid"):
+            save(state["uid"], state)
         markup = (
             {
                 "inline_keyboard": [
@@ -472,7 +506,9 @@ def on_callback(bot, callback: dict) -> str:
         return start(bot, uid, chat, callback.get("language_code") or "")
     if data.startswith("l:"):
         return send_login_link(bot, uid, chat, data[2:])
-    with _lock(uid):
+    with _lock(uid) as got:
+        if not got:
+            return "busy"
         state = load(uid)
         if state is None:
             _send(bot, chat, _("Abgelaufen. Neu starten: /neu"))
@@ -483,7 +519,7 @@ def on_callback(bot, callback: dict) -> str:
 def _on_state_callback(bot, uid, chat, state, data) -> str:
     from apps.core import districts
     from apps.promotions import response as promo_response
-    from apps.tenants.quickstart import QUICK_RESPONSES, QUICK_TYPES, known_cities
+    from apps.tenants.quickstart import QUICK_RESPONSES, QUICK_TYPES
 
     fields = state["data"]
     if data == "x":
@@ -536,7 +572,7 @@ def _on_state_callback(bot, uid, chat, state, data) -> str:
         fields["business_type"] = data[2:]
         return _advance(bot, chat, uid, state, "type")
     if data.startswith("c:") and state.get("step") == "city" and data[2:].isdigit():
-        cities = known_cities()[:6]
+        cities = list(state.get("cities") or [])
         index = int(data[2:])
         if index < len(cities):
             fields["city"], fields["district"] = cities[index], ""
@@ -558,8 +594,6 @@ def submit(bot, uid, chat, state) -> str:
     import hashlib
 
     from apps.promotions import quick, telegram_promo
-    from apps.tenants import quickstart
-    from apps.tenants.services import start_quick_provisioning
 
     data = state["data"]
     if time.time() - float(state.get("started") or 0) < MIN_SECONDS:
@@ -577,17 +611,28 @@ def submit(bot, uid, chat, state) -> str:
                 return f"invalid_{step}"
         _send(bot, chat, _("Bitte prüfen Sie Ihre Angaben und senden Sie erneut."))
         return "invalid"
-    if not cache.add(f"tgplat:signup-submit:{int(uid)}", 1, 300):
+    guard = f"tgplat:signup-submit:{int(uid)}"
+    if cache.get(guard):
         return "busy"  # двойной ✅
     cd = form.cleaned_data
     mail_key = hashlib.sha256(cd["email"].encode()).hexdigest()
-    if (
-        _rate("tgplat-signup", uid, LIMIT_SIGNUP, 86400)
-        or _rate("tgplat-signup-mail", mail_key, LIMIT_MAIL, 86400)
-        or _rate("tgplat-signup-global", "all", LIMIT_GLOBAL, 3600)
+    # Свой номер, подтверждённый кнопкой Telegram, — порог выше; без него (одноразовые
+    # аккаунты) — строже и в отдельной общей корзине, чтобы не блокировать остальных.
+    verified = bool(data.get("phone_verified"))
+    per_user = LIMIT_SIGNUP if verified else LIMIT_SIGNUP_UNVERIFIED
+    global_scope = "tgplat-signup-global" if verified else "tgplat-signup-global-unverified"
+    global_limit = LIMIT_GLOBAL if verified else LIMIT_GLOBAL_UNVERIFIED
+    if _rate("tgplat-signup", uid, per_user, 86400) or _rate(
+        "tgplat-signup-mail", mail_key, LIMIT_MAIL, 86400
     ):
         _send(bot, chat, _("Zu viele Versuche. Bitte später erneut."))
         return "limited"
+    if _rate(global_scope, "all", global_limit, 3600):
+        logger.warning("platform bot signup global cap reached (verified=%s)", verified)
+        _send(bot, chat, _("Zu viele Versuche. Bitte später erneut."))
+        return "limited"
+    if not cache.add(guard, 1, 300):
+        return "busy"
     promo = form.promo_payload()
     if data.get("photo_ids"):
         uploads, failed = telegram_promo.photos_from_telegram(bot.token, data["photo_ids"])
@@ -602,6 +647,28 @@ def submit(bot, uid, chat, state) -> str:
     # метку) раньше, чем мы вернёмся сюда; иначе метка висела бы после готового бизнеса.
     cache.set(_pending_key(uid), 1, PENDING_TTL)
     drop(uid)
+    tenant = None
+    try:
+        tenant = _provision(bot, chat, form, cd, promo, state, uid)
+    except Exception as exc:  # noqa: BLE001 — ввод не теряем, «создаётся» не вешаем
+        logger.warning("platform bot signup provisioning failed: %s", type(exc).__name__)
+        tenant = None
+    if tenant is None:
+        cache.delete(_pending_key(uid))
+        save(uid, state)  # ввод не теряем — можно нажать ✅ ещё раз позже
+        cache.delete(guard)
+        _send(bot, chat, _("Das hat nicht geklappt — bitte später erneut versuchen."))
+        return "failed"
+    if cache.get(_pending_key(uid)):  # задача ещё идёт — итог придёт отдельным сообщением
+        _send(bot, chat, "⏳ " + _("Ihr Geschäft wird angelegt — gleich kommt der Link."))
+    logger.info("platform bot signup submitted")
+    return "submitted"
+
+
+def _provision(bot, chat, form, cd, promo, state, uid):
+    from apps.tenants import quickstart
+    from apps.tenants.services import start_quick_provisioning
+
     tenant = None
     slug = quickstart.suggest_slug(cd["business_name"])
     for _attempt in range(3):
@@ -624,16 +691,7 @@ def submit(bot, uid, chat, state) -> str:
             slug = quickstart.suggest_slug(f"{cd['business_name']} {cd['city']}")
             if _attempt:
                 slug = quickstart.suggest_slug(f"{cd['business_name']} {int(time.time()) % 10000}")
-    if tenant is None:
-        cache.delete(_pending_key(uid))
-        save(uid, state)  # ввод не теряем — можно нажать ✅ ещё раз позже
-        cache.delete(f"tgplat:signup-submit:{int(uid)}")
-        _send(bot, chat, _("Das hat nicht geklappt — bitte später erneut versuchen."))
-        return "failed"
-    if cache.get(_pending_key(uid)):  # задача ещё идёт — итог придёт отдельным сообщением
-        _send(bot, chat, "⏳ " + _("Ihr Geschäft wird angelegt — gleich kommt der Link."))
-    logger.info("platform bot signup submitted")
-    return "submitted"
+    return tenant
 
 
 # --- после провижининга (вызывает задача provision_quick) ---------------------------------
@@ -653,10 +711,11 @@ def finish(tenant_id, telegram: dict, promo_pk, ok: bool) -> str:
     from apps.tenants.models import Tenant
 
     uid = int(telegram.get("tg_user_id") or 0)
+    if uid:
+        cache.delete(_pending_key(uid))  # и без бота: иначе «создаётся» висело бы 30 мин
     bot = bots.platform_bot()
     if not uid or bot is None:
         return "off"
-    cache.delete(_pending_key(uid))
     lang = telegram.get("lang") or ""
     from .handler import locale_for
 
@@ -748,6 +807,14 @@ def send_login_link(bot, uid, chat, tenant_ref: str) -> str:
     if not email:
         _send(bot, chat, _("Nicht verfügbar."))
         return "denied"
+    import hashlib
+
+    # Лимит на получателя: адрес владельца задавал регистрирующий — не заваливать ящик.
+    if _rate(
+        "tgplat-login-mail", hashlib.sha256(email.encode()).hexdigest(), LIMIT_LOGIN_MAIL, 3600
+    ):
+        _send(bot, chat, _("Zu viele Versuche. Bitte später erneut."))
+        return "limited"
     owner_login.send_login_link(tenant, email)
     _send(bot, chat, _("Anmeldelink an %(mail)s gesendet.") % {"mail": _mask(email)})
     return "sent"
