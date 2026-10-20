@@ -319,8 +319,14 @@ def queryset(sub):
     portal = sub.portal
     if portal is not None:
         kinds = home.kinds_for(kind) or AggregatorListing.OFFER_KINDS
+        # Портал без демо (письма не шлют выдуманное), но с его темой (T-8.14).
+        scope_portal = SimpleNamespace(
+            show_demo=False,
+            theme_tags=getattr(portal, "theme_tags", None) or [],
+            theme_categories=getattr(portal, "theme_categories", None) or [],
+        )
         _broad, _whole, _base, pool = _district_pool(
-            SimpleNamespace(show_demo=False),
+            scope_portal,
             portal.city or city or None,
             portal.business_type or None,
             "",

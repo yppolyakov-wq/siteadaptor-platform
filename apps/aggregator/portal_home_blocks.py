@@ -212,7 +212,7 @@ def apply_scope(qs, scope: FeedScope, *, now=None):
 def is_home_request(portal, facet, district, request) -> bool:
     """Корень городского портала без параметров ленты → главная (Р-1 плана)."""
     return (
-        portal.kind == portal.KIND_CITY
+        portal.kind in (portal.KIND_CITY, portal.KIND_THEME)
         and bool(portal.city)
         and not portal.business_type
         and facet is None
@@ -223,7 +223,11 @@ def is_home_request(portal, facet, district, request) -> bool:
 
 def has_home(portal) -> bool:
     """Портал, у которого есть главная с вкладками (городской, без типа бизнеса)."""
-    return portal.kind == portal.KIND_CITY and bool(portal.city) and not portal.business_type
+    return (
+        portal.kind in (portal.KIND_CITY, portal.KIND_THEME)
+        and bool(portal.city)
+        and not portal.business_type
+    )
 
 
 def presence(base_qs) -> dict:

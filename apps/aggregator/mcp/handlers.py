@@ -255,14 +255,9 @@ def _lang(args: dict) -> str:
 
 
 def _pool(portal, *, kinds=None):
-    from ..views import listings_for
+    from .. import portal_scope
 
-    return listings_for(
-        city=portal.city or None,
-        business_type=portal.business_type or None,
-        kinds=kinds,
-        include_demo=bool(portal.show_demo),
-    ).defer("search_vector", "search_text")
+    return portal_scope.pool(portal, kinds=kinds).defer("search_vector", "search_text")
 
 
 def _notice(ctx: Context) -> dict:

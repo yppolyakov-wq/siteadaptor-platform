@@ -27076,3 +27076,9 @@ msgstr "Сменить бизнес"
 
 msgid "Meine Daten löschen"
 msgstr "Удалить мои данные"
+
+msgid "Unbekannte Merkmale: %(keys)s"
+msgstr "Неизвестные признаки: %(keys)s"
+
+msgid "Unbekannte Bereiche: %(keys)s"
+msgstr "Неизвестные разделы: %(keys)s"

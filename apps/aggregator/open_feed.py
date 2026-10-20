@@ -85,10 +85,11 @@ def parse_params(request, *, city: str) -> FeedParams:
     )
 
 
-def feed_pool(*, city, business_type, include_demo: bool, params: FeedParams):
-    from .views import listings_for
+def feed_pool(*, city, business_type, include_demo: bool, params: FeedParams, portal=None):
+    from . import portal_scope
 
-    qs = listings_for(
+    qs = portal_scope.pool(
+        portal,
         city=city or None,
         business_type=business_type or None,
         kinds=params.kinds,
@@ -323,6 +324,7 @@ def render_feed(
     business_type: str,
     include_demo: bool,
     preview: bool = False,
+    portal=None,
 ):
     """Общее тело обеих вьюх (портал/основной домен) и обоих форматов.
 
@@ -333,7 +335,11 @@ def render_feed(
         return limited
     params = parse_params(request, city=city)
     pool = feed_pool(
-        city=city, business_type=business_type, include_demo=include_demo, params=params
+        city=city,
+        business_type=business_type,
+        include_demo=include_demo,
+        params=params,
+        portal=portal,
     )
     page = paginate(pool, order_field="created_at", limit=params.limit, cursor=params.cursor)
     preview = bool(preview or include_demo)

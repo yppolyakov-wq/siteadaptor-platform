@@ -502,11 +502,9 @@ def _suggestion_view(item, payload, *, portal):
     q2, f2, _chips, _hints = search.resolve_intent(q_new, filters, city=city)
     if portal is not None:
         business_type = payload.get("bt") or getattr(portal, "business_type", "") or None
-        pool = listings_for(
-            city=city or None,
-            business_type=business_type,
-            include_demo=bool(getattr(portal, "show_demo", False)),
-        )
+        from . import portal_scope
+
+        pool = portal_scope.pool(portal, city=city or None, business_type=business_type)
         kind = merged.get("kind") or ""
         # тот же вид, что у страницы портала: без поиска — лента предложений
         kinds = home.kinds_for(home.default_kind(kind, q_new, filters)) or (

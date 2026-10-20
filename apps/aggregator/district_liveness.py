@@ -19,7 +19,7 @@ from django.core.cache import cache
 
 from apps.core import districts
 
-from .views import listings_for
+from . import portal_scope
 
 log = logging.getLogger(__name__)
 
@@ -37,17 +37,13 @@ def min_businesses() -> int:
 
 
 def _cache_key(portal) -> str:
-    return f"g5:districts:{portal.pk}:{int(bool(portal.show_demo))}:{portal.business_type or ''}"
+    return f"g5:districts:{portal_scope.fingerprint(portal)}"
 
 
 def _compute(portal) -> dict[tuple[str, str], set[str]]:
     """{(район, отрасль): {схема бизнеса, …}} — ОДИН запрос по пулу портала."""
     rows = (
-        listings_for(
-            city=portal.city or None,
-            business_type=portal.business_type or None,
-            include_demo=portal.show_demo,
-        )
+        portal_scope.pool(portal)
         .exclude(district="")
         .order_by()
         .values_list("district", "business_type", "tenant_schema")

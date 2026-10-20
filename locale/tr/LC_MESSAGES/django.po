@@ -26938,3 +26938,9 @@ msgstr "İşletme değiştir"
 
 msgid "Meine Daten löschen"
 msgstr "Verilerimi sil"
+
+msgid "Unbekannte Merkmale: %(keys)s"
+msgstr "Bilinmeyen özellikler: %(keys)s"
+
+msgid "Unbekannte Bereiche: %(keys)s"
+msgstr "Bilinmeyen bölümler: %(keys)s"

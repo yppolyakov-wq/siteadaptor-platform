@@ -26883,3 +26883,9 @@ msgstr "Geschäft wechseln"
 
 msgid "Meine Daten löschen"
 msgstr "Meine Daten löschen"
+
+msgid "Unbekannte Merkmale: %(keys)s"
+msgstr "Unbekannte Merkmale: %(keys)s"
+
+msgid "Unbekannte Bereiche: %(keys)s"
+msgstr "Unbekannte Bereiche: %(keys)s"

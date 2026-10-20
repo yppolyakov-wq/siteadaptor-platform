@@ -22,8 +22,9 @@ from apps.core.pagination import paginate
 from apps.core.seo import collectionpage_ld
 from apps.tenants.models import Tenant
 
+from . import portal_scope
 from .models import AggregatorListing
-from .views import SEARCH_RATE_LIMIT, listings_for
+from .views import SEARCH_RATE_LIMIT
 
 _BTYPE_LABELS = dict(Tenant.BUSINESS_TYPES)
 
@@ -47,12 +48,7 @@ def _free_axis(portal) -> str | None:
 def _facet_choices(portal, district=None) -> tuple[str | None, list[tuple[str, str]]]:
     """(ось, [(значение, подпись), …]) — значения свободной оси в пуле портала."""
     axis = _free_axis(portal)
-    base = listings_for(
-        city=portal.city or None,
-        business_type=portal.business_type or None,
-        district=district,
-        include_demo=portal.show_demo,
-    )
+    base = portal_scope.pool(portal, district=district)
     if axis == "business_type":
         values = (
             base.exclude(business_type="")
@@ -76,14 +72,7 @@ def _district_choices(portal) -> list[tuple[str, str]]:
     if not known:
         return []
     used = set(
-        listings_for(
-            city=portal.city,
-            business_type=portal.business_type or None,
-            include_demo=portal.show_demo,
-        )
-        .exclude(district="")
-        .values_list("district", flat=True)
-        .distinct()
+        portal_scope.pool(portal).exclude(district="").values_list("district", flat=True).distinct()
     )
     return [(slug, name) for slug, name in known if slug in used]
 
@@ -129,12 +118,7 @@ def _district_pool(
     # T-8.20: единый поиск — режим (полнотекст/опечатки) решается ОДИН раз по пулу без
     # вида и категорий; от него же вкладки, чипы и выдача (иначе вкладка «0», а лента нашла).
     broad = search_engine.execute(
-        listings_for(
-            city=city,
-            business_type=business_type,
-            district=district,
-            include_demo=portal.show_demo,
-        ),
+        portal_scope.pool(portal, city=city, business_type=business_type, district=district),
         q_eff,
         replace(filters_eff, kats=(), tags=()),
         surface="portal",
@@ -875,7 +859,7 @@ def _render_home(request, portal):
     from . import portal_home_blocks as home
     from . import reviews
 
-    base = listings_for(city=portal.city, include_demo=portal.show_demo)
+    base = portal_scope.pool(portal)
     present = home.presence(base)
     # Показы платных позиций считаем только на «чистом» корне (кэшируемый рендер):
     # иначе боты с `?x=<мусор>` накручивали бы метрику, которую видят владельцы.
@@ -936,11 +920,7 @@ def _sitemap_urls(request, portal) -> list[tuple[str, object]]:
         # T-8.26 (Р-1): превью целиком noindex → sitemap пустой (иначе Search Console:
         # «Submitted URL marked noindex»).
         return []
-    pool = listings_for(
-        city=portal.city or None,
-        business_type=portal.business_type or None,
-        include_demo=False,
-    )
+    pool = portal_scope.pool(portal, include_demo=False)
     abs_ = request.build_absolute_uri
     urls: list[tuple[str, object]] = [
         (abs_(reverse("portal-home")), pool.aggregate(m=Max("updated_at"))["m"])
@@ -1046,6 +1026,7 @@ def _feed(request, fmt: str):
         business_type=portal.business_type or "",
         include_demo=False,  # T-8.26 (Р-3): демо в фид не уходит никогда
         preview=portal.show_demo,
+        portal=portal,
     )
 
 

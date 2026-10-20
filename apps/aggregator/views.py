@@ -1077,21 +1077,15 @@ def shortlist_compare(request):
 
 def _offer_in_scope(listing, portal) -> bool:
     """T-8.24: предложение открывается порталом только в его границах (как лента)."""
-    if portal is None:
-        return True
-    if listing.is_demo and not portal.show_demo:
-        return False
-    if portal.city and (listing.city or "").lower() != portal.city.lower():
-        return False
-    return not (portal.business_type and listing.business_type != portal.business_type)
+    from . import portal_scope
+
+    return portal_scope.contains(listing, portal)
 
 
 def _offer_pool(portal):
-    return listings_for(
-        city=portal.city if portal else None,
-        business_type=portal.business_type if portal else None,
-        include_demo=portal.show_demo if portal else True,
-    )
+    from . import portal_scope
+
+    return portal_scope.pool(portal)
 
 
 # Блок Б3: радиус блока «Weitere Angebote in der Nähe».

@@ -26800,3 +26800,9 @@ msgstr "Switch business"
 
 msgid "Meine Daten löschen"
 msgstr "Delete my data"
+
+msgid "Unbekannte Merkmale: %(keys)s"
+msgstr "Unknown features: %(keys)s"
+
+msgid "Unbekannte Bereiche: %(keys)s"
+msgstr "Unknown sections: %(keys)s"

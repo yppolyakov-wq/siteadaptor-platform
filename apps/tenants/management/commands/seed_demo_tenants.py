@@ -100,6 +100,11 @@ def _split(values) -> list[str]:
     return out  # витрина публична; логин владельца — для показа кабинета
 
 
+# T-8.14: демо тематического портала (город и признаки темы).
+THEME_PORTAL_CITY_KEY = "solingen"
+THEME_PORTAL_TAGS = ("vegan", "vegetarisch", "bio", "regional")
+
+
 class Command(BaseCommand):
     help = "Создать/обновить отдельные демо-тенанты по китам (apps.tenants.demo_kits)."
 
@@ -276,6 +281,8 @@ class Command(BaseCommand):
 
         if kit.city and districts.city_key(kit.city):
             self._ensure_city_portal(kit.city)
+            if districts.city_key(kit.city) == THEME_PORTAL_CITY_KEY:
+                self._ensure_theme_portal(kit.city)
         host = (
             Domain.objects.filter(tenant=tenant, is_primary=True)
             .values_list("domain", flat=True)
@@ -323,6 +330,58 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"  hotel-Portal: {'erstellt' if created else 'vorhanden'} · {dom_note} → https://{host}/"
+            )
+        )
+
+    def _ensure_theme_portal(self, city: str):
+        """T-8.14: тематический портал «gesund-<город>.<base>» — vegan/bio/regional.
+
+        Тот же пул, что у портала города, но только предложения с признаками темы
+        (`portal_scope`). Превью с демо (show_demo=True), как портал города.
+        """
+        from django.conf import settings
+        from django_tenants.utils import get_public_schema_name
+
+        from apps.aggregator.models import AggregatorPortal
+        from apps.core import districts
+        from apps.tenants.models import Domain, Tenant
+
+        base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de").split(":")[0]
+        key = districts.city_key(city) or city.strip().lower()
+        host = f"gesund-{key}.{base}"
+        dom = Domain.objects.filter(domain=host).select_related("tenant").first()
+        public = Tenant.objects.filter(schema_name=get_public_schema_name()).first()
+        if public is None or (dom is not None and dom.tenant_id != public.id):
+            self.stdout.write(self.style.WARNING(f"  ⚠ {host}: kein Themenportal"))
+            return
+        _portal, created = AggregatorPortal.objects.get_or_create(
+            host=host,
+            defaults={
+                "kind": AggregatorPortal.KIND_THEME,
+                "city": city,
+                "show_demo": True,
+                "theme_tags": list(THEME_PORTAL_TAGS),
+                "title": {
+                    "de": f"Gesund in {city}",
+                    "en": f"Healthy in {city}",
+                    "ru": f"Здоровое в {city}",
+                    "uk": f"Здорове в {city}",
+                    "tr": f"{city}'de sağlıklı",
+                },
+                "tagline": {
+                    "de": "Vegan, vegetarisch, bio und regional — aus allen Stadtteilen.",
+                    "en": "Vegan, vegetarian, organic and local — from every district.",
+                    "ru": "Веганское, вегетарианское, био и местное — из всех районов.",
+                    "uk": "Веганське, вегетаріанське, біо та місцеве — з усіх районів.",
+                    "tr": "Vegan, vejetaryen, organik ve yerel — tüm semtlerden.",
+                },
+            },
+        )
+        if dom is None:
+            Domain.objects.create(domain=host, tenant=public, is_primary=False)
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"  Themenportal: {'erstellt' if created else 'vorhanden'} → https://{host}/"
             )
         )
 

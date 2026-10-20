@@ -540,10 +540,12 @@ class AggregatorPortal(I18nMixin, models.Model):
     KIND_CITY = "city"
     KIND_VERTICAL = "vertical"
     KIND_COMBO = "combo"
+    KIND_THEME = "theme"  # T-8.14: тематический портал (признаки/разделы)
     KINDS = [
         (KIND_CITY, _("City")),
         (KIND_VERTICAL, _("Vertical")),
         (KIND_COMBO, _("City + type")),
+        (KIND_THEME, _("Thema")),
     ]
 
     host = models.CharField(max_length=253, unique=True)  # полный хост — ключ резолвера
@@ -552,6 +554,10 @@ class AggregatorPortal(I18nMixin, models.Model):
     # Фильтры выдачи. Любой может быть пустым (тогда портал шире по этой оси).
     city = models.CharField(max_length=100, blank=True)
     business_type = models.CharField(max_length=50, blank=True, choices=Tenant.BUSINESS_TYPES)
+    # T-8.14: тема — признаки («любой из») и разделы/категории каталога города («любой
+    # из»); между осями — И, пустая ось не ограничивает. Читает `portal_scope`.
+    theme_tags = models.JSONField(default=list, blank=True)
+    theme_categories = models.JSONField(default=list, blank=True)
 
     # Брендинг (i18n-JSON {"de": "...", "en": "..."}).
     title = models.JSONField(default=dict)
@@ -576,6 +582,37 @@ class AggregatorPortal(I18nMixin, models.Model):
     def __str__(self):
         scope = self.city or (self.get_business_type_display() if self.business_type else "") or "—"
         return f"{self.host} ({scope})"
+
+    def clean(self):
+        """T-8.14: тема — только известные ключи справочника (иначе молча пустая выдача)."""
+        from django.core.exceptions import ValidationError
+
+        from apps.core import city_categories
+
+        errors = {}
+        tags = [str(v).strip() for v in (self.theme_tags or []) if str(v).strip()]
+        known_tags = city_categories.normalize_tags(tags)
+        bad = [t for t in tags if t not in known_tags]
+        if bad:
+            errors["theme_tags"] = _("Unbekannte Merkmale: %(keys)s") % {"keys": ", ".join(bad)}
+        cats = [str(v).strip() for v in (self.theme_categories or []) if str(v).strip()]
+        bad = [c for c in cats if not city_categories.keys_for_filter(c)]
+        if bad:
+            errors["theme_categories"] = _("Unbekannte Bereiche: %(keys)s") % {
+                "keys": ", ".join(bad)
+            }
+        if errors:
+            raise ValidationError(errors)
+        self.theme_tags = list(dict.fromkeys(known_tags))
+        self.theme_categories = list(dict.fromkeys(cats))
+
+    @property
+    def theme_summary(self) -> str:
+        from apps.core import city_categories
+
+        parts = [city_categories.tag_label(t) for t in self.theme_tags or []]
+        parts += [city_categories.label(c) for c in self.theme_categories or []]
+        return ", ".join(str(p) for p in parts)
 
     @property
     def title_text(self) -> str:

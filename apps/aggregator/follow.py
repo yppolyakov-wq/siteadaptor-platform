@@ -432,8 +432,16 @@ def since_for(sub: FollowSubscription, now=None):
 
 
 def items_for(sub: FollowSubscription, *, since, now=None):
-    """ЕДИНСТВЕННАЯ выборка письма — через `listings_for` (видимость T-8.6, без демо)."""
-    from .views import listings_for
+    """ЕДИНСТВЕННАЯ выборка письма — через `portal_scope.pool` (видимость T-8.6, без
+    демо; T-8.14: у подписки портала — его город, тип и тема, как «Alle anzeigen»)."""
+    from . import portal_scope
+
+    portal = getattr(sub, "portal", None)
+
+    def listings_for(**filters):
+        if portal is not None and not filters.get("city"):
+            filters.pop("city", None)
+        return portal_scope.pool(portal, **filters)
 
     if sub.target_kind == FollowSubscription.TARGET_BUSINESS:
         # Все виды предложений бизнеса (Р-2), но не его собственная карточка «Unternehmen».

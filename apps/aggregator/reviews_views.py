@@ -41,14 +41,10 @@ def _business_or_404(request, slug):
     tenant = Tenant.objects.filter(slug=slug).exclude(schema_name="public").first()
     if tenant is None or not listable(tenant):
         raise Http404
-    portal = getattr(request, "portal", None)
-    if portal is not None:
-        if tenant.is_demo and not portal.show_demo:
-            raise Http404
-        if portal.city and (tenant.city or "").lower() != portal.city.lower():
-            raise Http404
-        if portal.business_type and tenant.business_type != portal.business_type:
-            raise Http404
+    from . import portal_scope
+
+    if not portal_scope.contains_tenant(tenant, getattr(request, "portal", None)):
+        raise Http404
     return tenant
 
 

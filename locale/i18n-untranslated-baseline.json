@@ -137,10 +137,13 @@
   "Bäckerei Test"
  ],
  "apps/tenants/management/commands/seed_demo_tenants.py": [
+  ": kein Themenportal",
   "Aktionen, Neuheiten und Angebote aus allen Stadtteilen.",
   "Direkt buchen — ohne Provision.",
   "Fehlt Ihr Kit? Der Container läuft evtl. auf einem alten Image — erst neu bauen:\n      ./scripts/deploy.sh single   (git pull + docker compose build + up -d)",
   "Tüm semtlerden kampanyalar, yenilikler ve teklifler.",
+  "Vegan, vegetarisch, bio und regional — aus allen Stadtteilen.",
+  "Vegan, vejetaryen, organik ve yerel — tüm semtlerden.",
   "Was Geschäfte in",
   "gehört Tenant",
   "heute anbieten — vor Ort abholen, reservieren oder anfragen.",

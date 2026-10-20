@@ -394,7 +394,16 @@ class FollowSubscriptionAdmin(ModelAdmin):
 
 @admin.register(AggregatorPortal)
 class AggregatorPortalAdmin(ModelAdmin):
-    list_display = ("host", "kind", "city", "business_type", "show_demo", "is_active", "updated_at")
+    list_display = (
+        "host",
+        "kind",
+        "city",
+        "business_type",
+        "theme_summary",
+        "show_demo",
+        "is_active",
+        "updated_at",
+    )
     search_fields = ("host", "city")
     list_filter = ("kind", "is_active", "business_type")
     readonly_fields = ("created_at", "updated_at")
@@ -403,6 +412,16 @@ class AggregatorPortalAdmin(ModelAdmin):
     fieldsets = (
         (None, {"fields": ("host", "kind", "is_active")}),
         ("Filters", {"fields": ("city", "business_type", "show_demo")}),
+        (
+            "Theme (T-8.14)",
+            {
+                "fields": ("theme_tags", "theme_categories"),
+                "description": (
+                    "Merkmale and Bereiche/Kategorien of the city catalogue as JSON lists, "
+                    'e.g. ["vegan", "bio"]. Any of the Merkmale AND any of the Bereiche.'
+                ),
+            },
+        ),
         ("Branding", {"fields": ("title", "tagline", "intro", "logo_url", "primary_color")}),
         ("Timestamps", {"fields": ("created_at", "updated_at")}),
     )

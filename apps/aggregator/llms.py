@@ -88,13 +88,10 @@ def _legal_block() -> list[str]:
 
 
 def build_portal(request, portal) -> str:
-    from .views import listings_for
+    from . import portal_scope
 
-    pool = listings_for(
-        city=portal.city or None,
-        business_type=portal.business_type or None,
-        include_demo=False,  # T-8.26 (Р-3): выдуманные предложения ассистентам не отдаём
-    )
+    # T-8.26 (Р-3): выдуманные предложения ассистентам не отдаём
+    pool = portal_scope.pool(portal, include_demo=False)
     abs_ = request.build_absolute_uri
     lines = [f"# {portal.title_text}", ""]
     intro = portal.tagline_text or portal.intro_text
