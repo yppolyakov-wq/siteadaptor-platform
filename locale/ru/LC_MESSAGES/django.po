@@ -27661,3 +27661,55 @@ msgstr "Включить бота может только владелец."
 
 msgid "Verbindungen"
 msgstr "Подключения"
+
+#, python-format
+msgid "%(a)s aktiv · %(s)s geplant"
+msgstr "%(a)s активн. · %(s)s запланир."
+
+#, python-format
+msgid "%(l)s aus"
+msgstr "%(l)s выкл."
+
+#, python-format
+msgid "%(n)s ohne Foto"
+msgstr "%(n)s без фото"
+
+#, python-format
+msgid "%(v)s Aufrufe · %(h)s zurückgelegt"
+msgstr "%(v)s просмотров · %(h)s отложено"
+
+msgid "Aktion anlegen"
+msgstr "Создать акцию"
+
+msgid "Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
+msgstr "У некоторых товаров ещё нет фото. С фото их смотрят чаще."
+
+msgid "Fotos ergänzen"
+msgstr "Добавить фото"
+
+msgid "Gerade läuft keine Aktion."
+msgstr "Сейчас нет активной акции."
+
+msgid "Mein Angebot"
+msgstr "Мой ассортимент"
+
+msgid "Neue Reservierungen sofort in Telegram erfahren."
+msgstr "Узнавайте о новых резервах сразу в Telegram."
+
+msgid "NÄCHSTER SCHRITT"
+msgstr "СЛЕДУЮЩИЙ ШАГ"
+
+msgid "Sichtbarkeit"
+msgstr "Видимость"
+
+msgid "Starten Sie Ihre erste Aktion — Foto, Preis, fertig."
+msgstr "Запустите первую акцию — фото, цена, готово."
+
+msgid "Teilen Sie Ihre Seite — per QR-Code im Laden oder in WhatsApp."
+msgstr "Поделитесь своей страницей — QR-кодом в магазине или в WhatsApp."
+
+msgid "Telegram-Kanal"
+msgstr "Telegram-канал"
+
+msgid "Website · Stadtportal · Kanäle"
+msgstr "Сайт · портал города · каналы"

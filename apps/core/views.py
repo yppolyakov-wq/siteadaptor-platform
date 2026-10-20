@@ -268,11 +268,13 @@ def dashboard(request):
     )
     if untouched:
         return redirect("setup")
-    # T-8.23c: лёгкий кабинет — главная = список акций (план t8-23 §8).
+    # T-8.31a: лёгкий кабинет — своя главная «Start» по макету (было: список акций).
     from apps.core import lite_cabinet
 
     if lite_cabinet.is_lite(request.tenant):
-        return redirect("promotions:promotion-list")
+        from apps.core import lite_home
+
+        return lite_home.render_home(request)
 
     from apps.core import archetypes, sales_page
     from apps.core import dashboard as dash

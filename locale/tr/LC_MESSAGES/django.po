@@ -27530,3 +27530,55 @@ msgstr "Botu yalnızca işletme sahibi etkinleştirebilir."
 
 msgid "Verbindungen"
 msgstr "Bağlantılar"
+
+#, python-format
+msgid "%(a)s aktiv · %(s)s geplant"
+msgstr "%(a)s aktif · %(s)s planlı"
+
+#, python-format
+msgid "%(l)s aus"
+msgstr "%(l)s kapalı"
+
+#, python-format
+msgid "%(n)s ohne Foto"
+msgstr "%(n)s fotoğrafsız"
+
+#, python-format
+msgid "%(v)s Aufrufe · %(h)s zurückgelegt"
+msgstr "%(v)s görüntülenme · %(h)s ayrıldı"
+
+msgid "Aktion anlegen"
+msgstr "Kampanya oluştur"
+
+msgid "Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
+msgstr "Bazı ürünlerin henüz fotoğrafı yok. Fotoğraflı ürünler daha sık görüntülenir."
+
+msgid "Fotos ergänzen"
+msgstr "Fotoğraf ekle"
+
+msgid "Gerade läuft keine Aktion."
+msgstr "Şu anda yürüyen kampanya yok."
+
+msgid "Mein Angebot"
+msgstr "Ürünlerim"
+
+msgid "Neue Reservierungen sofort in Telegram erfahren."
+msgstr "Yeni rezervasyonları anında Telegram'da öğrenin."
+
+msgid "NÄCHSTER SCHRITT"
+msgstr "SONRAKİ ADIM"
+
+msgid "Sichtbarkeit"
+msgstr "Görünürlük"
+
+msgid "Starten Sie Ihre erste Aktion — Foto, Preis, fertig."
+msgstr "İlk kampanyanızı başlatın — fotoğraf, fiyat, tamam."
+
+msgid "Teilen Sie Ihre Seite — per QR-Code im Laden oder in WhatsApp."
+msgstr "Sayfanızı paylaşın — dükkânda QR kodla veya WhatsApp'ta."
+
+msgid "Telegram-Kanal"
+msgstr "Telegram kanalı"
+
+msgid "Website · Stadtportal · Kanäle"
+msgstr "Web sitesi · şehir portalı · kanallar"

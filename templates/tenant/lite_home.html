@@ -1,0 +1,70 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Start" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}T-8.31a: «Start» лёгкого кабинета по макету «Mein Laden — mobil». Заголовок
+с датой и именем — в теле страницы, а не в шапке кабинета (Mini App T-8.30).{% endcomment %}
+<div class="max-w-lg mx-auto space-y-3" data-lite-home>
+  <header class="pt-1">
+    <p class="text-sm text-gray-500">{{ today|date:"l, j. F" }}</p>
+    <div class="flex items-center justify-between gap-3">
+      <h1 class="text-2xl font-bold truncate">{{ request.tenant.name }}</h1>
+      <a href="{% url 'integrations-home' %}" aria-label="{% trans "Verbindungen" %}" class="shrink-0 w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-700">
+        <svg class="w-5 h-5" aria-hidden="true"><use href="#ic-nav-integrations"></use></svg>
+      </a>
+    </div>
+  </header>
+
+  <a href="{% url 'promotions:promotion-quick' %}" class="flex items-center justify-center gap-2 h-14 rounded-2xl bg-indigo-600 text-white text-base font-semibold shadow-sm hover:bg-indigo-700" data-lite-new-promo>
+    <span aria-hidden="true">＋</span> {% trans "Neue Aktion" %}
+  </a>
+
+  <section class="bg-white rounded-2xl shadow-sm p-4 space-y-3" data-lite-promos>
+    <div class="flex items-baseline justify-between gap-2">
+      <h2 class="text-base font-semibold">{% trans "Aktionen" %}</h2>
+      <p class="text-sm text-gray-500">{% blocktrans with a=counts.active s=counts.scheduled %}{{ a }} aktiv · {{ s }} geplant{% endblocktrans %}</p>
+    </div>
+    {% if featured %}
+      <a href="{% url 'promotions:promotion-edit' featured.pk %}" class="flex gap-3 items-center" data-lite-featured>
+        {% with img=featured.primary_image %}
+          {% if img %}<img src="{{ img.url }}" alt="" class="w-14 h-14 shrink-0 rounded-xl object-cover">{% else %}<span class="w-14 h-14 shrink-0 rounded-xl bg-amber-100 flex items-center justify-center text-2xl" aria-hidden="true">🏷</span>{% endif %}
+        {% endwith %}
+        <span class="min-w-0">
+          <span class="block font-semibold truncate">{{ featured }}</span>
+          <span class="block text-sm text-gray-500">{% if featured.ends_at %}{% trans "bis" %} {{ featured.ends_at|date:"d.m. H:i" }} · {% endif %}{% blocktrans with v=featured.views h=featured.n_held %}{{ v }} Aufrufe · {{ h }} zurückgelegt{% endblocktrans %}</span>
+        </span>
+      </a>
+      <div class="flex flex-wrap gap-2 text-xs" data-lite-chips>
+        {% for c in chips %}
+          <span class="px-2.5 py-1 rounded-full {% if c.ok %}bg-green-50 text-green-800{% else %}bg-gray-100 text-gray-600{% endif %}" data-chip="{{ c.key }}">{% if c.ok %}✓ {{ c.label }}{% else %}{% blocktrans with l=c.label %}{{ l }} aus{% endblocktrans %}{% endif %}</span>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-sm text-gray-500">{% trans "Gerade läuft keine Aktion." %}</p>
+    {% endif %}
+    <a href="{% url 'promotions:promotion-list' %}" class="block text-sm font-medium text-indigo-600">{% trans "Alle Aktionen" %} →</a>
+  </section>
+
+  <div class="grid grid-cols-2 gap-3">
+    <a href="{% url 'sellable-manage' %}" class="bg-white rounded-2xl shadow-sm p-4 min-h-[6rem] flex flex-col gap-1" data-lite-tile="angebot">
+      <svg class="w-6 h-6 text-indigo-600" aria-hidden="true"><use href="#ic-nav-sellables"></use></svg>
+      <span class="font-semibold">{% trans "Mein Angebot" %}</span>
+      <span class="text-sm text-gray-500">{% blocktrans count n=products.total %}{{ n }} Produkt{% plural %}{{ n }} Produkte{% endblocktrans %}{% if products.no_photo %} · {% blocktrans with n=products.no_photo %}{{ n }} ohne Foto{% endblocktrans %}{% endif %}</span>
+    </a>
+    <a href="{% url 'integrations-home' %}" class="bg-white rounded-2xl shadow-sm p-4 min-h-[6rem] flex flex-col gap-1" data-lite-tile="sichtbar">
+      <svg class="w-6 h-6 text-indigo-600" aria-hidden="true"><use href="#ic-nav-integrations"></use></svg>
+      <span class="font-semibold">{% trans "Sichtbarkeit" %}</span>
+      <span class="text-sm text-gray-500">{% trans "Website · Stadtportal · Kanäle" %}</span>
+    </a>
+  </div>
+
+  {% if step %}
+    <section class="rounded-2xl bg-indigo-50 p-4 space-y-2" data-lite-next-step="{{ step.key }}">
+      <p class="text-xs font-semibold tracking-wide text-indigo-700">{% trans "NÄCHSTER SCHRITT" %}</p>
+      <p class="text-sm text-gray-800">{{ step.text }}</p>
+      <a href="{{ step.url }}" class="inline-block rounded-xl bg-white px-3 py-2 text-sm font-medium text-indigo-700 shadow-sm">{{ step.cta }}</a>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

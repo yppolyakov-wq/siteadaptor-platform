@@ -27480,3 +27480,55 @@ msgstr "Nur der Inhaber kann den Bot aktivieren."
 
 msgid "Verbindungen"
 msgstr "Verbindungen"
+
+#, python-format
+msgid "%(a)s aktiv · %(s)s geplant"
+msgstr "%(a)s aktiv · %(s)s geplant"
+
+#, python-format
+msgid "%(l)s aus"
+msgstr "%(l)s aus"
+
+#, python-format
+msgid "%(n)s ohne Foto"
+msgstr "%(n)s ohne Foto"
+
+#, python-format
+msgid "%(v)s Aufrufe · %(h)s zurückgelegt"
+msgstr "%(v)s Aufrufe · %(h)s zurückgelegt"
+
+msgid "Aktion anlegen"
+msgstr "Aktion anlegen"
+
+msgid "Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
+msgstr "Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
+
+msgid "Fotos ergänzen"
+msgstr "Fotos ergänzen"
+
+msgid "Gerade läuft keine Aktion."
+msgstr "Gerade läuft keine Aktion."
+
+msgid "Mein Angebot"
+msgstr "Mein Angebot"
+
+msgid "Neue Reservierungen sofort in Telegram erfahren."
+msgstr "Neue Reservierungen sofort in Telegram erfahren."
+
+msgid "NÄCHSTER SCHRITT"
+msgstr "NÄCHSTER SCHRITT"
+
+msgid "Sichtbarkeit"
+msgstr "Sichtbarkeit"
+
+msgid "Starten Sie Ihre erste Aktion — Foto, Preis, fertig."
+msgstr "Starten Sie Ihre erste Aktion — Foto, Preis, fertig."
+
+msgid "Teilen Sie Ihre Seite — per QR-Code im Laden oder in WhatsApp."
+msgstr "Teilen Sie Ihre Seite — per QR-Code im Laden oder in WhatsApp."
+
+msgid "Telegram-Kanal"
+msgstr "Telegram-Kanal"
+
+msgid "Website · Stadtportal · Kanäle"
+msgstr "Website · Stadtportal · Kanäle"

@@ -42,25 +42,28 @@ def _req(method, path, user, tenant, data=None):
 
 def test_lite_sidebar_is_flat_items_full_cabinet_unchanged():
     lite = modules.sidebar_nav(_tenant("lc-nav"))
+    # T-8.31a: «Start» первым, таб-бар макета = первые четыре.
     assert [i["url_name"] for i in lite] == [
+        "dashboard",
         "promotions:promotion-list",
         "sellable-manage",
+        "integrations-home",  # T-8.29: «Verbindungen»
         "lite-business",
         "lite-share",
-        "integrations-home",  # T-8.29: «Verbindungen»
     ]
     assert all(not i["children"] for i in lite)
     full = modules.sidebar_nav(_tenant("lc-full", lite=False))
     assert full[0]["url_name"] == "dashboard" and len(full) > 4
 
 
-def test_lite_dashboard_opens_promotions(user):
+def test_lite_dashboard_opens_start(user):
+    """T-8.31a: главная лёгкого кабинета — своя «Start», а не редирект на акции."""
     from apps.tenants import onboarding
 
     t = _tenant("lc-dash")
     onboarding.mark_complete(t)
     resp = views.dashboard(_req("get", "/dashboard/", user, t))
-    assert resp.status_code == 302 and resp.url == "/promotions/"
+    assert resp.status_code == 200 and "data-lite-home" in resp.content.decode()
 
 
 def test_lite_business_saves_only_its_fields_and_hours(user):
