@@ -240,6 +240,23 @@ def _restore_constraint_names(source: str, target: str) -> None:
             )
 
 
+def _restore_sequence_types(source: str, target: str) -> None:
+    """Функция копирования создаёт часть последовательностей `bigint`, хотя у шаблона
+    (serial Django) они `integer`; возвращаем тип шаблона."""
+    sql = "SELECT sequencename, data_type FROM pg_sequences WHERE schemaname = %s"
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [source])
+        want = dict(cursor.fetchall())
+        cursor.execute(sql, [target])
+        for seq, kind in cursor.fetchall():
+            if (
+                want.get(seq)
+                and want[seq] != kind
+                and want[seq] in {"smallint", "integer", "bigint"}
+            ):
+                cursor.execute(f"ALTER SEQUENCE {_q(target)}.{_q(seq)} AS {want[seq]}")
+
+
 _CLONE_FN = "public.clone_schema(text,text,public.cloneparms[])"
 
 
@@ -293,6 +310,7 @@ def clone_into(schema: str) -> bool:
             connection.set_schema_to_public()
             _clone(name(), schema)
             _restore_constraint_names(name(), schema)
+            _restore_sequence_types(name(), schema)
             diff = structure_diff(schema, name())
             if diff or _sequences_ahead(schema):
                 # Копия не совпала с шаблоном — откат всей транзакции (схемы не будет).
