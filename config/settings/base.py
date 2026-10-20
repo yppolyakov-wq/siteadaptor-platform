@@ -1027,6 +1027,12 @@ UNFOLD = {
                         "link": reverse_lazy("admin:secrets_platformsecret_changelist"),
                     },
                     {
+                        # T-8.10h: общий Telegram-бот платформы — включение, токен, вебхук.
+                        "title": _("Telegram platform bot"),
+                        "icon": "smart_toy",
+                        "link": reverse_lazy("admin:platform_bot_settings"),
+                    },
+                    {
                         "title": _("Audit log"),
                         "icon": "history",
                         "link": reverse_lazy("admin:audit_auditevent_changelist"),

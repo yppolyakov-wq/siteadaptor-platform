@@ -11,7 +11,6 @@ import hmac
 import json
 import logging
 
-from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -23,7 +22,9 @@ TEXT_MAX = 2000
 
 
 def _secret() -> str:
-    return getattr(settings, "TELEGRAM_PLATFORM_WEBHOOK_SECRET", "") or ""
+    from . import config
+
+    return config.webhook_secret()
 
 
 def _int(value):
@@ -96,8 +97,9 @@ def webhook(request):
         return HttpResponse("ok")
     if not isinstance(update, dict) or not isinstance(update.get("update_id"), int):
         return HttpResponse("ok")
-    from . import tasks
+    from . import config, tasks
 
+    config.mark_update()
     try:
         tasks.platform_bot_update.delay(
             dedupe_key=tasks.dedupe_key(update["update_id"]), update=slim(update)

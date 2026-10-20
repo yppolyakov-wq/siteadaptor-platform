@@ -10,6 +10,9 @@ from apps.platform_bot import handler, links, webhook
 from apps.platform_bot.models import OwnerTelegramLink
 from apps.tenants.tests.factories import TenantFactory
 
+# Настройки бота читаются из админки (секреты в БД) — БД нужна и вебхук-тестам.
+pytestmark = pytest.mark.django_db
+
 SECRET = "s" * 32
 USER = 777000111222  # > 2**31
 

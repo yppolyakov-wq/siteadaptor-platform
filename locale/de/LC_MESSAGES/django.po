@@ -26503,3 +26503,110 @@ msgstr "Über Plattform-Bot verbunden"
 
 msgid "Nur der Inhaber kann das ändern."
 msgstr "Nur der Inhaber kann das ändern."
+
+msgid "Bot eingeschaltet"
+msgstr "Bot eingeschaltet"
+
+msgid "Bot ausgeschaltet"
+msgstr "Bot ausgeschaltet"
+
+msgid "Token"
+msgstr "Token"
+
+msgid "gesetzt"
+msgstr "gesetzt"
+
+msgid "fehlt"
+msgstr "fehlt"
+
+msgid "Bot"
+msgstr "Bot"
+
+msgid "Webhook"
+msgstr "Webhook"
+
+msgid "verbunden"
+msgstr "verbunden"
+
+msgid "zeigt auf eine andere Adresse"
+msgstr "zeigt auf eine andere Adresse"
+
+msgid "Telegram nicht erreichbar"
+msgstr "Telegram nicht erreichbar"
+
+msgid "Letzter Fehler bei Telegram"
+msgstr "Letzter Fehler bei Telegram"
+
+msgid "Letzte Nachricht empfangen"
+msgstr "Letzte Nachricht empfangen"
+
+msgid "Verbundene Geschäfte"
+msgstr "Verbundene Geschäfte"
+
+msgid "Plattform-Bot einschalten"
+msgstr "Plattform-Bot einschalten"
+
+msgid "Token von @BotFather"
+msgstr "Token von @BotFather"
+
+msgid "gesetzt — leer lassen, um ihn zu behalten"
+msgstr "gesetzt — leer lassen, um ihn zu behalten"
+
+msgid ""
+"Wird geprüft (getMe) und verschlüsselt gespeichert; der Bot-Name wird "
+"automatisch übernommen."
+msgstr ""
+"Wird geprüft (getMe) und verschlüsselt gespeichert; der Bot-Name wird "
+"automatisch übernommen."
+
+msgid "Das Secret wird beim Setzen automatisch erzeugt."
+msgstr "Das Secret wird beim Setzen automatisch erzeugt."
+
+msgid "Webhook setzen"
+msgstr "Webhook setzen"
+
+msgid "Webhook entfernen"
+msgstr "Webhook entfernen"
+
+msgid "So legen Sie den Bot an"
+msgstr "So legen Sie den Bot an"
+
+msgid "In Telegram @BotFather öffnen und /newbot senden."
+msgstr "In Telegram @BotFather öffnen und /newbot senden."
+
+msgid "Namen und Benutzernamen wählen (endet auf „bot“)."
+msgstr "Namen und Benutzernamen wählen (endet auf „bot“)."
+
+msgid ""
+"Den Token hier einfügen, „Plattform-Bot einschalten“ anhaken, speichern."
+msgstr ""
+"Den Token hier einfügen, „Plattform-Bot einschalten“ anhaken, speichern."
+
+msgid "„Webhook setzen“ drücken — fertig."
+msgstr "„Webhook setzen“ drücken — fertig."
+
+msgid "Telegram-Bot der Plattform"
+msgstr "Telegram-Bot der Plattform"
+
+#, python-format
+msgid "Token ungültig (%(err)s)."
+msgstr "Token ungültig (%(err)s)."
+
+#, python-format
+msgid "Webhook fehlgeschlagen (%(err)s)."
+msgstr "Webhook fehlgeschlagen (%(err)s)."
+
+msgid "Webhook gesetzt."
+msgstr "Webhook gesetzt."
+
+msgid "Webhook entfernt."
+msgstr "Webhook entfernt."
+
+msgid "Telegram platform bot"
+msgstr "Telegram platform bot"
+
+#, python-format
+msgid "%(n)s wartende Nachricht"
+msgid_plural "%(n)s wartende Nachrichten"
+msgstr[0] "%(n)s wartende Nachricht"
+msgstr[1] "%(n)s wartende Nachrichten"

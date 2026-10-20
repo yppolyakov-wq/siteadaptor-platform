@@ -26563,3 +26563,108 @@ msgstr "Platform botu üzerinden bağlı"
 
 msgid "Nur der Inhaber kann das ändern."
 msgstr "Bunu yalnızca işletme sahibi değiştirebilir."
+
+msgid "Bot eingeschaltet"
+msgstr "Bot açık"
+
+msgid "Bot ausgeschaltet"
+msgstr "Bot kapalı"
+
+msgid "Token"
+msgstr "Token"
+
+msgid "gesetzt"
+msgstr "ayarlandı"
+
+msgid "fehlt"
+msgstr "eksik"
+
+msgid "Bot"
+msgstr "Bot"
+
+msgid "Webhook"
+msgstr "Webhook"
+
+msgid "verbunden"
+msgstr "bağlı"
+
+msgid "zeigt auf eine andere Adresse"
+msgstr "başka bir adrese yönleniyor"
+
+msgid "Telegram nicht erreichbar"
+msgstr "Telegram'a ulaşılamıyor"
+
+msgid "Letzter Fehler bei Telegram"
+msgstr "Telegram'daki son hata"
+
+msgid "Letzte Nachricht empfangen"
+msgstr "Son alınan mesaj"
+
+msgid "Verbundene Geschäfte"
+msgstr "Bağlı işletmeler"
+
+msgid "Plattform-Bot einschalten"
+msgstr "Platform botunu aç"
+
+msgid "Token von @BotFather"
+msgstr "@BotFather'dan token"
+
+msgid "gesetzt — leer lassen, um ihn zu behalten"
+msgstr "ayarlandı — korumak için boş bırakın"
+
+msgid ""
+"Wird geprüft (getMe) und verschlüsselt gespeichert; der Bot-Name wird "
+"automatisch übernommen."
+msgstr "Kontrol edilir (getMe) ve şifreli saklanır; bot adı otomatik alınır."
+
+msgid "Das Secret wird beim Setzen automatisch erzeugt."
+msgstr "Gizli anahtar ayarlanırken otomatik oluşturulur."
+
+msgid "Webhook setzen"
+msgstr "Webhook'u ayarla"
+
+msgid "Webhook entfernen"
+msgstr "Webhook'u kaldır"
+
+msgid "So legen Sie den Bot an"
+msgstr "Bot nasıl oluşturulur"
+
+msgid "In Telegram @BotFather öffnen und /newbot senden."
+msgstr "Telegram'da @BotFather'ı açın ve /newbot gönderin."
+
+msgid "Namen und Benutzernamen wählen (endet auf „bot“)."
+msgstr "Bir ad ve kullanıcı adı seçin (“bot” ile biter)."
+
+msgid ""
+"Den Token hier einfügen, „Plattform-Bot einschalten“ anhaken, speichern."
+msgstr ""
+"Token'ı buraya yapıştırın, “Platform botunu aç”ı işaretleyin, kaydedin."
+
+msgid "„Webhook setzen“ drücken — fertig."
+msgstr "“Webhook'u ayarla”ya basın — bitti."
+
+msgid "Telegram-Bot der Plattform"
+msgstr "Platformun Telegram botu"
+
+#, python-format
+msgid "Token ungültig (%(err)s)."
+msgstr "Token geçersiz (%(err)s)."
+
+#, python-format
+msgid "Webhook fehlgeschlagen (%(err)s)."
+msgstr "Webhook başarısız (%(err)s)."
+
+msgid "Webhook gesetzt."
+msgstr "Webhook ayarlandı."
+
+msgid "Webhook entfernt."
+msgstr "Webhook kaldırıldı."
+
+msgid "Telegram platform bot"
+msgstr "Telegram platform botu"
+
+#, python-format
+msgid "%(n)s wartende Nachricht"
+msgid_plural "%(n)s wartende Nachrichten"
+msgstr[0] "%(n)s bekleyen mesaj"
+msgstr[1] "%(n)s bekleyen mesaj"

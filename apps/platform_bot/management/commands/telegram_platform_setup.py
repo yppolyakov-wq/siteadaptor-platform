@@ -4,9 +4,7 @@
 печатаются типом: в URL запроса к Telegram стоит токен бота.
 """
 
-from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.urls import reverse
 
 
 class Command(BaseCommand):
@@ -16,35 +14,26 @@ class Command(BaseCommand):
         parser.add_argument("--apply", action="store_true", help="Call Telegram setWebhook.")
 
     def handle(self, *args, apply=False, **options):
-        from apps.telegram import bots, services
-        from apps.tenants.quickstart import domain_base
+        from apps.platform_bot import config
+        from apps.telegram import bots
 
         bot = bots.platform_bot()
         if bot is None:
             raise CommandError(
-                "Plattform-Bot aus: TELEGRAM_PLATFORM_BOT_ENABLED=1 und Token setzen."
+                "Plattform-Bot aus: im Admin unter „Plattform-Bot“ einschalten und Token setzen."
             )
-        secret = getattr(settings, "TELEGRAM_PLATFORM_WEBHOOK_SECRET", "") or ""
-        if len(secret) < 24:
-            raise CommandError("TELEGRAM_PLATFORM_WEBHOOK_SECRET fehlt oder ist zu kurz (≥ 24).")
         try:
-            me = services.get_me(bot.token)
-        except Exception as exc:  # noqa: BLE001 — токен в URL, печатаем только тип
-            raise CommandError(f"getMe fehlgeschlagen: {type(exc).__name__}") from None
-        username = me.get("username", "")
+            username = config.check_token(bot.token)
+        except ValueError as exc:
+            raise CommandError(f"getMe fehlgeschlagen: {exc}") from None
         self.stdout.write(f"bot: @{username}")
-        if bot.username and username and bot.username.lstrip("@") != username:
-            self.stdout.write(
-                f"warning: TELEGRAM_PLATFORM_BOT_USERNAME={bot.username} ≠ @{username}"
-            )
-        url = f"https://{domain_base()}" + reverse(
-            "platform-bot-webhook", urlconf="config.urls_public"
-        )
+        if bot.username and bot.username != username:
+            self.stdout.write(f"warning: konfigurierter Name @{bot.username} ≠ @{username}")
         if not apply:
             self.stdout.write("dry-run: webhook would be set on the platform host")
             return
         try:
-            services.set_webhook(bot.token, url, secret)
-        except Exception as exc:  # noqa: BLE001
-            raise CommandError(f"setWebhook fehlgeschlagen: {type(exc).__name__}") from None
+            config.apply_webhook()
+        except ValueError as exc:
+            raise CommandError(f"setWebhook fehlgeschlagen: {exc}") from None
         self.stdout.write("applied: webhook set")

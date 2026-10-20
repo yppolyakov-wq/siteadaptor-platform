@@ -26698,3 +26698,111 @@ msgstr "Подключено через бот платформы"
 
 msgid "Nur der Inhaber kann das ändern."
 msgstr "Изменить это может только владелец."
+
+msgid "Bot eingeschaltet"
+msgstr "Бот включён"
+
+msgid "Bot ausgeschaltet"
+msgstr "Бот выключен"
+
+msgid "Token"
+msgstr "Токен"
+
+msgid "gesetzt"
+msgstr "задан"
+
+msgid "fehlt"
+msgstr "не задан"
+
+msgid "Bot"
+msgstr "Бот"
+
+msgid "Webhook"
+msgstr "Вебхук"
+
+msgid "verbunden"
+msgstr "подключён"
+
+msgid "zeigt auf eine andere Adresse"
+msgstr "указывает на другой адрес"
+
+msgid "Telegram nicht erreichbar"
+msgstr "Telegram недоступен"
+
+msgid "Letzter Fehler bei Telegram"
+msgstr "Последняя ошибка в Telegram"
+
+msgid "Letzte Nachricht empfangen"
+msgstr "Последнее сообщение получено"
+
+msgid "Verbundene Geschäfte"
+msgstr "Подключённые бизнесы"
+
+msgid "Plattform-Bot einschalten"
+msgstr "Включить бот платформы"
+
+msgid "Token von @BotFather"
+msgstr "Токен от @BotFather"
+
+msgid "gesetzt — leer lassen, um ihn zu behalten"
+msgstr "задан — оставьте пустым, чтобы сохранить"
+
+msgid ""
+"Wird geprüft (getMe) und verschlüsselt gespeichert; der Bot-Name wird "
+"automatisch übernommen."
+msgstr ""
+"Проверяется (getMe) и хранится зашифрованным; имя бота подставляется "
+"автоматически."
+
+msgid "Das Secret wird beim Setzen automatisch erzeugt."
+msgstr "Секрет создаётся автоматически при установке."
+
+msgid "Webhook setzen"
+msgstr "Установить вебхук"
+
+msgid "Webhook entfernen"
+msgstr "Удалить вебхук"
+
+msgid "So legen Sie den Bot an"
+msgstr "Как создать бота"
+
+msgid "In Telegram @BotFather öffnen und /newbot senden."
+msgstr "Откройте в Telegram @BotFather и отправьте /newbot."
+
+msgid "Namen und Benutzernamen wählen (endet auf „bot“)."
+msgstr "Выберите имя и username (заканчивается на «bot»)."
+
+msgid ""
+"Den Token hier einfügen, „Plattform-Bot einschalten“ anhaken, speichern."
+msgstr "Вставьте токен сюда, отметьте «Включить бот платформы», сохраните."
+
+msgid "„Webhook setzen“ drücken — fertig."
+msgstr "Нажмите «Установить вебхук» — готово."
+
+msgid "Telegram-Bot der Plattform"
+msgstr "Telegram-бот платформы"
+
+#, python-format
+msgid "Token ungültig (%(err)s)."
+msgstr "Токен недействителен (%(err)s)."
+
+#, python-format
+msgid "Webhook fehlgeschlagen (%(err)s)."
+msgstr "Ошибка вебхука (%(err)s)."
+
+msgid "Webhook gesetzt."
+msgstr "Вебхук установлен."
+
+msgid "Webhook entfernt."
+msgstr "Вебхук удалён."
+
+msgid "Telegram platform bot"
+msgstr "Telegram-бот платформы"
+
+#, python-format
+msgid "%(n)s wartende Nachricht"
+msgid_plural "%(n)s wartende Nachrichten"
+msgstr[0] "%(n)s сообщение в очереди"
+msgstr[1] "%(n)s сообщения в очереди"
+msgstr[2] "%(n)s сообщений в очереди"
+msgstr[3] "%(n)s сообщений в очереди"

@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from django.conf import settings
-
 TENANT = "tenant"
 PLATFORM = "platform"
 KINDS = (TENANT, PLATFORM)
@@ -34,19 +32,22 @@ def tenant_bot() -> BotRef | None:
 
 
 def platform_enabled() -> bool:
-    return bool(getattr(settings, "TELEGRAM_PLATFORM_BOT_ENABLED", False))
+    from apps.platform_bot import config
+
+    return config.enabled()
 
 
 def platform_bot() -> BotRef | None:
-    """Общий бот платформы; выключен или без токена — нет бота."""
-    if not platform_enabled():
-        return None
-    from apps.secrets.store import get_or_setting
+    """Общий бот платформы (настройки — админка «Plattform-Bot», иначе .env); выключен или
+    без токена — нет бота."""
+    from apps.platform_bot import config
 
-    token = get_or_setting("telegram_platform_bot_token", "TELEGRAM_PLATFORM_BOT_TOKEN")
+    if not config.enabled():
+        return None
+    token = config.token()
     if not token:
         return None
-    return BotRef(PLATFORM, token, getattr(settings, "TELEGRAM_PLATFORM_BOT_USERNAME", "") or "")
+    return BotRef(PLATFORM, token, config.username())
 
 
 def for_kind(kind: str | None) -> BotRef | None:
