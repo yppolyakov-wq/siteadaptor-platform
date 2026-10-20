@@ -91,8 +91,11 @@ TENANT_ONLY_APPS = [app for app in TENANT_APPS if app not in SHARED_APPS]
 TENANT_MODEL = "tenants.Tenant"
 TENANT_DOMAIN_MODEL = "tenants.Domain"
 # T-10: `migrate_schemas --executor=multiprocessing` — столько схем мигрируется
-# одновременно (деплой: сотня схем по одной шла минутами).
-TENANT_MULTIPROCESSING_MAX_PROCESSES = env.int("TENANT_MIGRATION_PROCESSES", default=4)
+# одновременно (деплой: сотня схем по одной шла минутами). Переменная окружения —
+# TENANT_MIGRATION_PROCESSES.
+# 3, а не больше: миграции с FK на public-таблицы блокируют их, и параллельные
+# ALTER при живом трафике копят очередь (ревью T-10). Значение < 1 → 1.
+TENANT_MULTIPROCESSING_MAX_PROCESSES = max(1, env.int("TENANT_MIGRATION_PROCESSES", default=3))
 
 # ---------------------------------------------------------------------------
 # Database

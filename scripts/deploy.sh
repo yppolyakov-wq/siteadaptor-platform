@@ -52,6 +52,9 @@ step "[2/8] Build images"
 # Один образ (web) на web/worker/beat + caddy; слой зависимостей берётся из кэша,
 # пока не менялся uv.lock (T-10).
 $COMPOSE build
+# Тег образа по коммиту — для отката: `docker tag siteadaptor-app:<sha> siteadaptor-app:latest`
+# и `$COMPOSE up -d` (latest перезаписывается каждой сборкой).
+docker tag siteadaptor-app:latest "siteadaptor-app:$(git rev-parse --short HEAD)" || true
 
 if [ "$MODE" = "single" ]; then
 	step "[3/8] Start local Postgres and wait for healthy"
@@ -82,12 +85,16 @@ $COMPOSE run --rm web python manage.py migrate_schemas --shared
 step "[6/8] Migrate tenant schemas"
 # T-10: если по всем схемам применять нечего — шаг пропускается (раньше сотня схем
 # проходилась по одной на каждом деплое). Иначе — параллельно
-# (TENANT_MIGRATION_PROCESSES, по умолчанию 4). FORCE_MIGRATE=1 — прогнать всегда.
+# (TENANT_MIGRATION_PROCESSES, по умолчанию 3). FORCE_MIGRATE=1 — прогнать всегда.
 if [ "${FORCE_MIGRATE:-0}" != "1" ] \
 	&& $COMPOSE run --rm web python manage.py migration_state --check; then
 	echo "    все схемы на последней миграции — пропуск"
 else
-	$COMPOSE run --rm web python manage.py migrate_schemas --tenant --executor=multiprocessing
+	# Сбой параллельного прогона (взаимная блокировка на public-таблицах и т. п.) —
+	# повтор по одной схеме: миграции атомарны, применённое не повторяется.
+	$COMPOSE run --rm web python manage.py migrate_schemas --tenant --executor=multiprocessing \
+		|| { echo "    параллельно не вышло — повтор по одной схеме"; \
+			$COMPOSE run --rm web python manage.py migrate_schemas --tenant; }
 fi
 # collectstatic делает сам web при старте (compose). Отдельный шаг `run --rm
 # collectstatic` писал во временный контейнер и только тратил время (T-10).
