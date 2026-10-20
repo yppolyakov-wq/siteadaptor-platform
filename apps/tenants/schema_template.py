@@ -296,7 +296,7 @@ def clone_into(schema: str) -> bool:
             diff = structure_diff(schema, name())
             if diff or _sequences_ahead(schema):
                 # Копия не совпала с шаблоном — откат всей транзакции (схемы не будет).
-                raise CloneMismatch(sorted(diff) or _sequences_ahead(schema))
+                raise CloneMismatch(repr(diff)[:2000] if diff else _sequences_ahead(schema))
     except Exception:
         log.warning("schema template clone failed for %s, via migrations", schema, exc_info=True)
         connection.set_schema_to_public()
