@@ -352,6 +352,7 @@ def erase_user(tg_user_id) -> dict:
 
 INACTIVE_KEEP_DAYS = 30
 BLOCKED_KEEP_DAYS = 180
+PURGE_BATCH = 500  # за один проход beat; остаток — на следующий день
 
 
 def purge_stale(now=None) -> dict:
@@ -367,26 +368,36 @@ def purge_stale(now=None) -> dict:
         is_active=False, updated_at__lt=now - timedelta(days=INACTIVE_KEEP_DAYS)
     ).delete()[0]
     blocked = 0
-    old_blocked = OwnerTelegramLink.objects.filter(
-        blocked_at__lt=now - timedelta(days=BLOCKED_KEEP_DAYS)
-    ).values_list("pk", "tenant_id", "tg_user_id")
+    cutoff = now - timedelta(days=BLOCKED_KEEP_DAYS)
+    old_blocked = OwnerTelegramLink.objects.filter(blocked_at__lt=cutoff).values_list(
+        "pk", "tenant_id", "tg_user_id"
+    )[:PURGE_BATCH]
     for pk, tenant_id, uid in list(old_blocked):
         with transaction.atomic():
             try:
                 locked = _lock(tenant_id)
             except Tenant.DoesNotExist:
                 continue
-            _erase_tenant(locked, uid)
-            blocked += OwnerTelegramLink.objects.filter(pk=pk).delete()[0]
+            # Перепроверка под блокировкой: пользователь мог снова написать боту (unblock).
+            deleted = OwnerTelegramLink.objects.filter(pk=pk, blocked_at__lt=cutoff).delete()[0]
+            if deleted:
+                _erase_tenant(locked, uid)
+                blocked += deleted
     markers = 0
     edge = int(time.time() - PENDING_MAX_AGE)
     for pk in list(
         Tenant.objects.filter(site_config__notify__pending_tg_owner__at__lt=edge).values_list(
             "pk", flat=True
-        )
+        )[:PURGE_BATCH]
     ):
         with transaction.atomic():
-            locked = _lock(pk)
+            try:
+                locked = _lock(pk)
+            except Tenant.DoesNotExist:
+                continue
+            marker = ((locked.site_config or {}).get("notify") or {}).get("pending_tg_owner")
+            if not isinstance(marker, dict) or int(marker.get("at") or 0) >= edge:
+                continue  # свежая метка записана после выборки — не трогать
             _write_mirror(locked, pending_tg_owner=None)
             markers += 1
     return {"inactive": inactive, "blocked": blocked, "markers": markers}

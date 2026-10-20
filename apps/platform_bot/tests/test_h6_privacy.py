@@ -134,6 +134,49 @@ def test_erase_refused_while_provisioning(bot):
     assert OwnerTelegramLink.objects.filter(tg_user_id=USER).exists()
 
 
+def test_erase_refused_while_signup_lock_held(bot, monkeypatch):
+    """Регистрация держит замок (submit под ним ставит «создаётся») — удаление ждёт."""
+    links.bind(USER, TenantFactory(schema_name="p9", slug="p9"))
+    handler.handle(_msg("/daten_loeschen"))
+    yes = _yes(bot)
+    bot["cache"].set(f"tgplat:signup-lock:{USER}", 1, 60)
+    monkeypatch.setattr(signup.time, "sleep", lambda s: None)
+    assert handler.handle(_cb(yes)) == "erase_busy"
+    assert OwnerTelegramLink.objects.filter(tg_user_id=USER).exists()
+    assert bot["cache"].get(f"tgplat:signup-lock:{USER}")  # чужой замок не снят
+
+
+def test_purge_skips_unblocked_and_fresh_marker(monkeypatch):
+    """Под блокировкой перепроверяем: разблокированная связь и свежая метка — не трогать."""
+    now = timezone.now()
+    t = TenantFactory(schema_name="pe", slug="pe")
+    link = links.bind(USER + 9, t)
+    OwnerTelegramLink.objects.filter(pk=link.pk).update(blocked_at=now - timedelta(days=181))
+    t2 = TenantFactory(schema_name="pf", slug="pf")
+    t2.site_config = {"notify": {"pending_tg_owner": {"uid": 7, "at": 1}}}
+    t2.save()
+    real_lock = links._lock
+
+    def racing_lock(pk):
+        # Между выборкой и блокировкой пользователь снова пишет боту / регистрация обновила метку.
+        OwnerTelegramLink.objects.filter(pk=link.pk).update(blocked_at=None)
+        from apps.tenants.models import Tenant
+
+        fresh = Tenant.objects.get(pk=t2.pk)
+        fresh.site_config = {"notify": {"pending_tg_owner": {"uid": 7, "at": int(now.timestamp())}}}
+        fresh.save()
+        return real_lock(pk)
+
+    monkeypatch.setattr(links, "_lock", racing_lock)
+    result = links.purge_stale(now)
+    assert OwnerTelegramLink.objects.filter(pk=link.pk).exists()
+    t.refresh_from_db()
+    t2.refresh_from_db()
+    assert str(t.site_config["notify"]["owner_chat_id"]) == str(USER + 9)
+    assert t2.site_config["notify"]["pending_tg_owner"]["uid"] == 7
+    assert result["blocked"] == 0 and result["markers"] == 0
+
+
 def test_erase_drops_signup_state(bot):
     handler.handle(_msg("/neu"))
     assert signup.load(USER) is not None
@@ -217,6 +260,8 @@ def test_apply_webhook_sets_localized_commands(monkeypatch, settings):
     assert "" in langs and set(settings.CABINET_LANGUAGES) <= langs
     names = {c["command"] for c in calls[0][1]}
     assert {"neu", "geschaeft", "daten_loeschen", "datenschutz"} <= names
+    by_lang = {lang: {c["command"]: c["description"] for c in cmds} for lang, cmds in calls}
+    assert by_lang["ru"]["neu"] != by_lang["de"]["neu"]  # описание действительно переведено
     monkeypatch.setattr(
         "apps.telegram.services.set_my_commands", mock.Mock(side_effect=RuntimeError)
     )

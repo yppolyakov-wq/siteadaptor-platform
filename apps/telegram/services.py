@@ -140,7 +140,7 @@ def set_my_commands(token: str, commands: list[dict], language_code: str = "") -
     data = {"commands": json.dumps(commands)}
     if language_code:
         data["language_code"] = language_code
-    response = requests.post(_endpoint(token, "setMyCommands"), data=data, timeout=15)
+    response = requests.post(_endpoint(token, "setMyCommands"), data=data, timeout=5)
     response.raise_for_status()
 
 

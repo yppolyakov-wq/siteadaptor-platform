@@ -124,15 +124,16 @@ def erase(bot, uid, chat) -> str:
     from . import signup
 
     uid = int(uid)
-    if cache.get(signup._pending_key(uid)):
-        # Провижининг идёт — его задача ещё допишет метку; удалить после.
-        _send(bot, chat, _("Ihr Geschäft wird gerade angelegt — bitte in ein paar Minuten erneut."))
-        return "erase_busy"
-    with signup._lock(uid):
+    busy = _("Ihr Geschäft wird gerade angelegt — bitte in ein paar Minuten erneut.")
+    with signup._lock(uid) as got:
+        # Под замком регистрации: submit ставит «создаётся» тоже под ним — иначе задача
+        # провижининга допишет метку/связь уже после удаления.
+        if not got or cache.get(signup._pending_key(uid)):
+            _send(bot, chat, busy)
+            return "erase_busy"
         result = links.erase_user(uid)
         signup.drop(uid)
-        for key in (f"tgplat:signup-lock:{uid}", f"tgplat:signup-submit:{uid}"):
-            cache.delete(key)
+        cache.delete(f"tgplat:signup-submit:{uid}")
     # Ключи со случайной частью — лучшим усилием; гарантия — TTL ≤ 24 ч и отказ в правах
     # (связей уже нет).
     try:

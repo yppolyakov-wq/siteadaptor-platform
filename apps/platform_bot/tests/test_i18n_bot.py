@@ -33,6 +33,8 @@ def test_every_bot_string_is_translated(locale):
     po = polib.pofile(str(ROOT / f"locale/{locale}/LC_MESSAGES/django.po"))
     have = {e.msgid: e for e in po}
     missing = [
-        m for m in _msgids() if m not in have or not (have[m].msgstr or have[m].msgstr_plural)
+        m
+        for m in _msgids()
+        if m not in have or have[m].fuzzy or not (have[m].msgstr or have[m].msgstr_plural)
     ]
     assert not missing, missing[:5]
