@@ -26972,3 +26972,19 @@ msgstr ""
 
 msgid "E-Mail bestätigen"
 msgstr "Підтвердити e-mail"
+
+msgid "Das hat nicht geklappt — bitte noch einmal versuchen."
+msgstr "Не вдалося — спробуйте ще раз."
+
+msgid ""
+"Dieses Geschäft wurde über Telegram angelegt: Mit der Bestätigung wird der "
+"Telegram-Chat verbunden, aus dem es angelegt wurde. Haben Sie sich nicht "
+"registriert? Dann bestätigen Sie bitte nicht."
+msgstr ""
+"Цей бізнес створено через Telegram: підтвердження підключить чат Telegram, з"
+" якого його створено. Ви не реєструвалися? Тоді не підтверджуйте."
+
+msgid ""
+"Haben Sie dieses Geschäft nicht selbst über Telegram angelegt? Dann "
+"bestätigen Sie bitte nicht."
+msgstr "Ви не створювали цей бізнес через Telegram? Тоді не підтверджуйте."

@@ -26714,3 +26714,21 @@ msgstr ""
 
 msgid "E-Mail bestätigen"
 msgstr "Confirm e-mail"
+
+msgid "Das hat nicht geklappt — bitte noch einmal versuchen."
+msgstr "That didn't work — please try again."
+
+msgid ""
+"Dieses Geschäft wurde über Telegram angelegt: Mit der Bestätigung wird der "
+"Telegram-Chat verbunden, aus dem es angelegt wurde. Haben Sie sich nicht "
+"registriert? Dann bestätigen Sie bitte nicht."
+msgstr ""
+"This business was created via Telegram: confirming connects the Telegram "
+"chat it was created from. Didn't you register? Then please do not confirm."
+
+msgid ""
+"Haben Sie dieses Geschäft nicht selbst über Telegram angelegt? Dann "
+"bestätigen Sie bitte nicht."
+msgstr ""
+"Didn't you create this business via Telegram yourself? Then please do not "
+"confirm."

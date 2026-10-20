@@ -238,7 +238,7 @@ def test_finish_awaits_email_and_does_not_bind(bot):
     tenant = TenantFactory(schema_name="public", slug="fin-1", name="Krume")
     tenant.provisioning_status = tenant.PROVISIONING_READY
     tenant.email_pending = True
-    tenant.site_config = {"notify": {"pending_tg_owner": {"uid": USER, "lang": "de"}}}
+    tenant.site_config = {"notify": {"pending_tg_owner": {"uid": USER, "lang": "de", "at": 10**10}}}
     tenant.save()
     user = get_user_model().objects.create_user(username=MAIL, email=MAIL, password="pw12345678")
     Membership.objects.create(user=user, role=Membership.ROLE_OWNER)

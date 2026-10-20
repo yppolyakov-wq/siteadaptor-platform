@@ -70,7 +70,10 @@ def _pending_tenant(slug="pend-1", uid=USER, schema="public"):
     tenant = TenantFactory(schema_name=schema, slug=slug, name=f"Laden {slug}")
     tenant.email_pending = True
     tenant.provisioning_status = tenant.PROVISIONING_READY
-    tenant.site_config = {"notify": {"pending_tg_owner": {"uid": uid, "lang": "de"}}}
+    import time
+
+    marker = {"uid": uid, "lang": "de", "at": int(time.time())}
+    tenant.site_config = {"notify": {"pending_tg_owner": marker}}
     tenant.save()
     user = get_user_model().objects.create_user(
         username=f"o-{slug}", email=MAIL, password="pw12345678"
@@ -187,7 +190,7 @@ def test_confirm_does_not_override_cabinet_choice(bot):
     tenant, _u = _pending_tenant()
     links.bind(USER + 1, tenant)  # владелец подключил другой чат в кабинете
     tenant.refresh_from_db()
-    tenant.site_config["notify"]["pending_tg_owner"] = {"uid": USER}
+    tenant.site_config["notify"]["pending_tg_owner"] = {"uid": USER, "at": 10**10}
     tenant.save()
     result, uid, _lang = links.complete_pending(tenant)
     assert (
@@ -272,10 +275,70 @@ def test_owner_of_confirmed_business_gets_verified_limits(bot, monkeypatch):
         lambda **kw: TenantFactory(schema_name="vt1", slug="vt1"),
     )
     monkeypatch.setattr(signup, "LIMIT_SIGNUP_UNVERIFIED", 0)
-    links.bind(USER, TenantFactory(schema_name="vt0", slug="vt0"))
+    # «Проверенный» — владелец бизнеса, зарегистрированного через бот с подтверждённой почтой.
+    links.bind(USER, TenantFactory(schema_name="vt0", slug="vt0"), via=OwnerTelegramLink.VIA_SIGNUP)
     handler.handle(_cb("ps:go"))
     handler.handle(_msg("Brot −30 % diese Woche", update_id=31))
     handler.handle(_cb("ps:t:bakery"))
     for text in ("Krume", "Musterstadt", "Hauptstraße 5", "42651", "0212 123456", MAIL):
         handler.handle(_msg(text))
     assert handler.handle(_cb("ps:ok")) == "submitted"
+
+
+# --- правки ревью (2026-10-20) ----------------------------------------------------------
+
+
+def test_binding_error_keeps_email_pending_and_asks_retry(bot, monkeypatch):
+    tenant, _u = _pending_tenant()
+    monkeypatch.setattr(links, "complete_pending", mock.Mock(side_effect=RuntimeError("x")))
+    resp = _confirm(tenant)
+    assert b"data-owner-confirm-form" in resp.content
+    tenant.refresh_from_db()
+    assert tenant.email_pending
+
+
+def test_taken_result_does_not_claim_chat_bound(bot):
+    tenant, _u = _pending_tenant()
+    links.bind(USER + 1, tenant)
+    tenant.refresh_from_db()
+    tenant.site_config["notify"]["pending_tg_owner"] = {"uid": USER, "at": 10**10}
+    tenant.save()
+    resp = _confirm(tenant)
+    assert b"Telegram-Chat ist jetzt" not in resp.content
+
+
+def test_stale_marker_is_ignored_and_does_not_block_new_signups(bot, monkeypatch):
+    tenant, _u = _pending_tenant()
+    tenant.site_config["notify"]["pending_tg_owner"]["at"] = 1  # 1970
+    tenant.save()
+    assert links.pending_marker(tenant) is None
+    assert not links.pending_for(USER).exists()
+
+
+def test_failed_provisioning_is_not_pending(bot):
+    tenant, _u = _pending_tenant()
+    tenant.provisioning_status = tenant.PROVISIONING_FAILED
+    tenant.save()
+    assert not links.pending_for(USER).exists()
+
+
+def test_confirmation_mail_mentions_telegram_for_bot_businesses(bot, monkeypatch):
+    tenant, _u = _pending_tenant()
+    mails = []
+    monkeypatch.setattr(owner_login, "send_mail", lambda s, b, f, to, **k: mails.append(b))
+    owner_login.send_confirmation(tenant, MAIL)
+    assert "Telegram" in mails[0]
+
+
+def test_unicode_digit_callback_is_denied_not_crash(bot):
+    assert handler.handle(_cb("ps:m:²")) == "denied"
+    assert handler.handle(_cb("ps:l:²")) == "denied"
+
+
+def test_finish_after_early_confirm_still_sends_promo_link(bot):
+    tenant, _u = _pending_tenant()
+    tenant.email_pending = False
+    tenant.save()
+    pk = uuid.uuid4()
+    signup.finish(tenant.pk, {"tg_user_id": USER, "lang": "de"}, pk, True)
+    assert any(str(pk) in m["text"] for m in bot["sent"])

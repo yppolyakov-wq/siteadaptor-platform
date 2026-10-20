@@ -623,6 +623,13 @@ def submit(bot, uid, chat, state) -> str:
                 return f"invalid_{step}"
         _send(bot, chat, _("Bitte prüfen Sie Ihre Angaben und senden Sie erneut."))
         return "invalid"
+    if links.active_links(uid).count() + links.pending_for(uid).count() >= MAX_BOT_BUSINESSES:
+        _send(
+            bot,
+            chat,
+            _("Ein weiteres Geschäft legen Sie auf der Website an: %(url)s") % {"url": _web_url()},
+        )
+        return "has_business"
     guard = f"tgplat:signup-submit:{int(uid)}"
     if cache.get(guard):
         _send(bot, chat, _("Ihr Geschäft wird gerade angelegt — einen Moment bitte."))
@@ -632,7 +639,10 @@ def submit(bot, uid, chat, state) -> str:
     # Свой номер, подтверждённый кнопкой Telegram, — порог выше; без него (одноразовые
     # аккаунты) — строже и в отдельной общей корзине, чтобы не блокировать остальных.
     # Владелец уже подтверждённого (почтой) бизнеса — проверенный пользователь.
-    verified = bool(data.get("phone_verified")) or links.active_links(uid).exists()
+    verified = (
+        bool(data.get("phone_verified"))
+        or links.active_links(uid).filter(via=links.OwnerTelegramLink.VIA_SIGNUP).exists()
+    )
     per_user = LIMIT_SIGNUP if verified else LIMIT_SIGNUP_UNVERIFIED
     global_scope = "tgplat-signup-global" if verified else "tgplat-signup-global-unverified"
     global_limit = LIMIT_GLOBAL if verified else LIMIT_GLOBAL_UNVERIFIED
@@ -745,11 +755,15 @@ def finish(tenant_id, telegram: dict, promo_pk, ok: bool) -> str:
             )
             return "failed"
         if not tenant.email_pending:
-            # Почту подтвердили раньше, чем задача дошла сюда, — привязать сразу.
+            # Почту подтвердили раньше, чем задача дошла сюда, — привязать сразу и всё же
+            # прислать ссылку на акцию.
             result, bound_uid, bound_lang = links.complete_pending(tenant)
+            url = _promo_url(tenant, promo_pk) if promo_pk else ""
+            if url:
+                _send(bot, uid, _("Ihre Aktion: %(url)s") % {"url": url})
             if result in ("bound", "taken"):
                 bound_message(tenant, bound_uid or uid, result, bound_lang or lang)
-            return "bound"
+            return result
         if not cache.add(f"tgplat:signup-done:{tenant.pk}", 1, 7 * 86400):
             return "already"
         lines = ["🎉 " + _("Fertig! Ihr Geschäft ist angelegt.")]
@@ -771,7 +785,8 @@ def finish(tenant_id, telegram: dict, promo_pk, ok: bool) -> str:
         rows.append(
             [{"text": "✉️ " + _("E-Mail erneut senden"), "callback_data": f"ps:m:{tenant.pk}"}]
         )
-        _send(bot, uid, "\n".join(lines), {"inline_keyboard": rows})
+        if not _send(bot, uid, "\n".join(lines), {"inline_keyboard": rows}):
+            cache.delete(f"tgplat:signup-done:{tenant.pk}")  # повтор задачи пришлёт снова
     return "awaiting_email"
 
 
@@ -803,12 +818,13 @@ def bound_message(tenant, uid: int, result: str, lang: str = "") -> str:
     if not cache.add(f"tgplat:signup-bound-msg:{tenant.pk}", 1, 7 * 86400):
         return "already"
     with translation.override(locale_for(lang)):
+        ok = False
         if result == "bound":
             login = {
                 "text": "🔑 " + _("Anmeldelink per E-Mail"),
                 "callback_data": f"ps:l:{tenant.pk}",
             }
-            _send(
+            ok = _send(
                 bot,
                 uid,
                 _(
@@ -819,7 +835,7 @@ def bound_message(tenant, uid: int, result: str, lang: str = "") -> str:
                 {"inline_keyboard": [[login]]},
             )
         else:
-            _send(
+            ok = _send(
                 bot,
                 uid,
                 _(
@@ -828,6 +844,8 @@ def bound_message(tenant, uid: int, result: str, lang: str = "") -> str:
                 )
                 % {"name": tenant.name},
             )
+    if not ok:
+        cache.delete(f"tgplat:signup-bound-msg:{tenant.pk}")  # повтор задачи пришлёт снова
     return result
 
 
@@ -838,7 +856,11 @@ def resend_confirmation(bot, uid, chat, tenant_ref: str) -> str:
     from apps.core import owner_login
     from apps.tenants.models import Tenant
 
-    tenant = Tenant.objects.filter(pk=tenant_ref).first() if tenant_ref.isdigit() else None
+    tenant = (
+        Tenant.objects.filter(pk=tenant_ref).first()
+        if tenant_ref.isascii() and tenant_ref.isdigit()
+        else None
+    )
     marker = links.pending_marker(tenant) if tenant is not None else None
     if tenant is None or not tenant.email_pending or not marker or int(marker["uid"]) != int(uid):
         _send(bot, chat, _("Nicht verfügbar."))
@@ -900,7 +922,11 @@ def send_login_link(bot, uid, chat, tenant_ref: str) -> str:
     from apps.core.models import Membership
     from apps.tenants.models import Tenant
 
-    tenant = Tenant.objects.filter(pk=tenant_ref).first() if tenant_ref.isdigit() else None
+    tenant = (
+        Tenant.objects.filter(pk=tenant_ref).first()
+        if tenant_ref.isascii() and tenant_ref.isdigit()
+        else None
+    )
     if tenant is None or not links.is_owner(uid, tenant) or not links.still_owner(tenant):
         _send(bot, chat, _("Nicht verfügbar."))
         return "denied"

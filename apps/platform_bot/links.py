@@ -233,11 +233,21 @@ def platform_linked(tenant) -> bool:
 # --- H-5b: привязка регистрации через бот — только после подтверждения почты -------------
 
 
+PENDING_MAX_AGE = 30 * 24 * 3600  # = срок жизни ссылки подтверждения (owner_login)
+
+
 def pending_marker(tenant) -> dict | None:
+    """Метка «чат регистрации ждёт почты»; протухшая (старше ссылки) — как нет."""
+    import time
+
     cfg = getattr(tenant, "site_config", None)
     node = cfg.get("notify") if isinstance(cfg, dict) else None
     marker = node.get("pending_tg_owner") if isinstance(node, dict) else None
-    return marker if isinstance(marker, dict) and marker.get("uid") else None
+    if not isinstance(marker, dict) or not marker.get("uid"):
+        return None
+    if time.time() - float(marker.get("at") or 0) > PENDING_MAX_AGE:
+        return None
+    return marker
 
 
 def complete_pending(tenant) -> tuple[str, int | None, str]:
@@ -284,8 +294,12 @@ def complete_pending(tenant) -> tuple[str, int | None, str]:
 
 def pending_for(tg_user_id):
     """Бизнесы, зарегистрированные этим чатом и ждущие подтверждения почты."""
+    import time
+
     from apps.tenants.models import Tenant
 
     return Tenant.objects.filter(
-        site_config__notify__pending_tg_owner__uid=int(tg_user_id), email_pending=True
-    )
+        site_config__notify__pending_tg_owner__uid=int(tg_user_id),
+        site_config__notify__pending_tg_owner__at__gte=int(time.time() - PENDING_MAX_AGE),
+        email_pending=True,
+    ).exclude(provisioning_status=Tenant.PROVISIONING_FAILED)

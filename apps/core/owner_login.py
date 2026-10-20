@@ -162,6 +162,16 @@ def send_confirmation(tenant, email: str) -> None:
             "Bitte bestätigen Sie Ihre E-Mail-Adresse — dann erscheinen Ihre Aktionen auch "
             "im Stadtportal:\n%(url)s\n\nIhr siteadaptor-Team"
         ) % {"site": tenant_url(tenant), "url": url}
+        from apps.platform_bot import links
+
+        if links.pending_marker(tenant) is not None:
+            # H-5b: бизнес зарегистрирован в Telegram — сказать, что подтверждение
+            # привяжет чат, и что делать, если регистрировали не вы.
+            body += "\n\n" + _(
+                "Dieses Geschäft wurde über Telegram angelegt: Mit der Bestätigung wird der "
+                "Telegram-Chat verbunden, aus dem es angelegt wurde. Haben Sie sich nicht "
+                "registriert? Dann bestätigen Sie bitte nicht."
+            )
     send_mail(subject, body, None, [email], fail_silently=True)
 
 
@@ -197,30 +207,40 @@ def owner_confirm_email(request, signed):
         # только POST (сканер ссылок в почте открывает GET и не должен ничего менять).
         if request.method != "POST":
             return render(request, "account/owner_confirmed.html", {"needs_post": True})
+        result = _complete_bot_binding(tenant)
+        if result == "error":
+            # Привязка не удалась — почту не подтверждаем, чтобы повтор кнопки всё довёл.
+            return render(
+                request, "account/owner_confirmed.html", {"needs_post": True, "retry": True}
+            )
         confirm_tenant_email(tenant)
-        _complete_bot_binding(tenant)
-        return render(request, "account/owner_confirmed.html", {"bot_bound": True})
+        return render(request, "account/owner_confirmed.html", {"bot_bound": result == "bound"})
     confirm_tenant_email(tenant)
     return render(request, "account/owner_confirmed.html", {})
 
 
-def _complete_bot_binding(tenant) -> None:
-    """Привязать чат регистрации и сообщить в бот; сбой бота не ломает страницу."""
+def _complete_bot_binding(tenant) -> str:
+    """Привязать чат регистрации и сообщить в бот → "bound" | "taken" | "none" | "error"."""
     from django.db import transaction
 
     from apps.platform_bot import links, tasks
 
     try:
         result, uid, lang = links.complete_pending(tenant)
-        if result in ("bound", "taken"):
-            pk = tenant.pk
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("bot binding after e-mail confirm failed: %s", type(exc).__name__)
+        return "error"
+    if result in ("bound", "taken"):
+        pk = tenant.pk
+        try:
             transaction.on_commit(
                 lambda: tasks.notify_signup_bound.delay(
                     tenant_pk=pk, uid=uid, result=result, lang=lang
                 )
             )
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("bot binding after e-mail confirm failed: %s", type(exc).__name__)
+        except Exception as exc:  # noqa: BLE001 — сообщение в бот необязательно
+            logger.warning("bot bound notice failed: %s", type(exc).__name__)
+    return result
 
 
 @require_POST

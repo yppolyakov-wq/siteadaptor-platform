@@ -9,6 +9,8 @@
 {% elif needs_post %}
   {% comment %}H-5b: бизнес из Telegram-бота — подтверждение привязывает чат, поэтому кнопкой (POST), а не открытием ссылки.{% endcomment %}
   <p class="text-sm text-gray-600">{% trans "Bitte bestätigen Sie Ihre E-Mail. Danach ist Ihr Telegram-Chat mit diesem Geschäft verbunden." %}</p>
+  <p class="text-xs text-gray-500 mt-2" data-owner-confirm-warning>{% trans "Haben Sie dieses Geschäft nicht selbst über Telegram angelegt? Dann bestätigen Sie bitte nicht." %}</p>
+  {% if retry %}<p class="text-sm text-amber-700 mt-2">{% trans "Das hat nicht geklappt — bitte noch einmal versuchen." %}</p>{% endif %}
   <form method="post" class="mt-4" data-owner-confirm-form>
     {% csrf_token %}
     <button class="inline-block text-sm font-medium bg-indigo-600 text-white rounded-lg px-4 py-2 hover:bg-indigo-700">✅ {% trans "E-Mail bestätigen" %}</button>
