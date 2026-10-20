@@ -313,7 +313,12 @@ class TelegramLiteScopeMiddleware:
         if exp < time.time():
             return "abgelaufen"
         user = getattr(request, "user", None)
-        if not getattr(user, "is_authenticated", False) or tg_login.owner_user(user.pk) is None:
+        # Пользователь уже загружен и активен — хватает одной проверки роли.
+        if not getattr(user, "is_authenticated", False) or not getattr(user, "is_active", False):
+            return "beendet"
+        from .models import Membership
+
+        if not Membership.objects.filter(user_id=user.pk, role=Membership.ROLE_OWNER).exists():
             return "beendet"
         if not tg_login.telegram_allowed(uid, tenant):
             return "beendet"
@@ -326,7 +331,13 @@ class TelegramLiteScopeMiddleware:
         from django.urls import reverse
 
         accept = request.headers.get("Accept", "")
-        if "application/json" in accept or request.headers.get("X-Requested-With"):
+        fetch = request.headers.get("Sec-Fetch-Mode") not in (None, "navigate", "nested-navigate")
+        if (
+            "application/json" in accept
+            or request.headers.get("X-Requested-With")
+            or request.headers.get("HX-Request")
+            or fetch
+        ):
             return JsonResponse({"error": "tg_lite"}, status=403)
         url = reverse("tg-lite-info")
         return redirect(f"{url}?grund={reason}" if reason else url)

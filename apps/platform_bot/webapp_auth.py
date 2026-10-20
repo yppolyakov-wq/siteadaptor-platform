@@ -64,7 +64,7 @@ def verify(init_data: str, bot_token: str, *, now: int, max_age: int = MAX_AGE) 
     pairs = _pairs(init_data)
     data = dict(pairs)
     given = data.get("hash", "")
-    if not given:
+    if not given or not given.isascii():  # compare_digest падает на не-ASCII str → 500
         raise InitDataError("malformed")
     if not hmac.compare_digest(signature(pairs, bot_token), given):
         raise InitDataError("bad_hash")

@@ -62,6 +62,17 @@ TG_LITE_VIEWS = frozenset(
         "catalog:product-edit",
         "catalog:product-image-delete",
         "catalog:product-image-primary",
+        "catalog:product-delete",
+        # подформы карточки товара (Q1: полная форма) — варианты и опции
+        "catalog:variant-add",
+        "catalog:variant-update",
+        "catalog:variant-delete",
+        "catalog:modifier-group-add",
+        "catalog:modifier-group-update",
+        "catalog:modifier-group-delete",
+        "catalog:modifier-option-add",
+        "catalog:modifier-option-update",
+        "catalog:modifier-option-delete",
         # Aktionen
         "promotions:promotion-list",
         "promotions:promotion-quick",
@@ -186,8 +197,8 @@ def drop_flag_on_login(sender, request, user, **kwargs):
     """Любой вход снимает ограничение (e-mail-вход в том же окне = полный кабинет);
     `tg_start` ставит флаг заново уже после своего входа."""
     session = getattr(request, "session", None)
-    if session is not None:
-        session.pop(SESSION_KEY, None)
+    if session is not None and session.pop(SESSION_KEY, None):
+        session.set_expiry(None)  # 12 ч Telegram-сессии к e-mail-входу не относятся
 
 
 def connect():
@@ -195,5 +206,10 @@ def connect():
 
 
 def is_tg_session(request) -> bool:
+    from django.conf import settings
+
+    # Без куки сессии не трогаем: иначе каждый анонимный запрос читал бы сессию.
+    if not request.COOKIES.get(settings.SESSION_COOKIE_NAME):
+        return False
     session = getattr(request, "session", None)
     return bool(session is not None and session.get(SESSION_KEY))

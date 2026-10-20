@@ -54,9 +54,11 @@ def _error(code: str, message: str, status: int = 200, **extra):
 # --- сопоставление «Telegram → бизнес → владелец» -------------------------------------
 
 
-def _owner_pk(tenant):
-    """Владелец в схеме бизнеса: метка ``owner_user_pk`` (только если он ещё владелец),
-    иначе единственный активный владелец; двое и больше без метки — не угадываем."""
+def _owner_pk(tenant, link=None):
+    """Владелец в схеме бизнеса: метка ``owner_user_pk`` (только если он ещё владелец).
+    Без метки — единственный активный владелец, и только для связи из регистрации в боте
+    (H-5: владельца создал сам бот). Связь из кабинета без метки = метку стёрли — не
+    угадываем (иначе чат бывшего владельца вошёл бы под новым)."""
     from apps.core import tg_login
     from apps.core.models import Membership
 
@@ -65,6 +67,8 @@ def _owner_pk(tenant):
     pk = node.get("owner_user_pk")
     if pk:
         return pk if tg_login.owner_user(pk) is not None else None
+    if link is not None and link.via != link.VIA_SIGNUP:
+        return None
     owners = list(
         Membership.objects.filter(role=Membership.ROLE_OWNER, user__is_active=True).values_list(
             "user_id", flat=True
@@ -84,7 +88,7 @@ def handoff(link, uid: int, lang: str):
     tenant = link.tenant
     base = owner_login.tenant_url(tenant)
     with schema_context(tenant.schema_name):
-        user_pk = _owner_pk(tenant)
+        user_pk = _owner_pk(tenant, link)
         if user_pk is None or not links.still_owner(tenant):
             login = base + reverse("owner-login-link", urlconf=TENANT_URLCONF)
             return _error(

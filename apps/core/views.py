@@ -266,7 +266,10 @@ def dashboard(request):
         and not state["skipped"]
         and not state["done"]
     )
-    if untouched:
+    from apps.core import tg_login
+
+    # T-8.30: мастер в Telegram недоступен — без редиректа сразу «Mein Laden».
+    if untouched and not tg_login.is_tg_session(request):
         return redirect("setup")
     # T-8.31a: лёгкий кабинет — своя главная «Start» по макету (было: список акций).
     from apps.core import lite_cabinet

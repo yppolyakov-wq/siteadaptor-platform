@@ -143,3 +143,10 @@ def test_init_data_never_logged(caplog):
     with pytest.raises(InitDataError):
         verify(raw, TOKEN, now=NOW)
     assert "Geheimname" not in caplog.text and GOLDEN not in caplog.text
+
+
+def test_non_ascii_hash_is_malformed_not_500():
+    """Ревью: compare_digest бросает TypeError на не-ASCII str — был бы 500."""
+    with pytest.raises(webapp_auth.InitDataError) as exc:
+        webapp_auth.verify("auth_date=1&hash=%C3%A9", "1:x", now=1)
+    assert exc.value.code == "malformed"

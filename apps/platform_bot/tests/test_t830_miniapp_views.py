@@ -191,3 +191,16 @@ def test_entry_page_frameable_only_by_telegram_web():
     assert getattr(resp, "xframe_options_exempt", False)
     body = resp.content.decode()
     assert "telegram-web-app.js" in body and "data-miniapp" in body
+
+
+def test_cabinet_link_without_marker_does_not_guess_owner():
+    """Ревью M-2: метку стёрли — чат бывшего владельца не входит под новым."""
+    t = _tenant()
+    user = _owner()
+    links.bind(UID, t)  # связь из кабинета, но без метки owner_user_pk
+    assert _auth()[1]["error"] == "no_owner"
+    links.bind(UID, t, via="signup")
+    status, body = _auth()
+    assert "/tg/start/" in body["next"]
+    token = body["next"].rstrip("/").rsplit("/", 1)[-1]
+    assert tg_login.peek(t.schema_name, token)["user_pk"] == user.pk

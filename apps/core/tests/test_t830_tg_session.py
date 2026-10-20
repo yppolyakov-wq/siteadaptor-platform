@@ -56,6 +56,7 @@ def _req(tenant, method="get", path="/tg/start/x/", user=None):
     MessageMiddleware(lambda r: None).process_request(req)
     req.tenant = tenant
     req.user = user or AnonymousUser()
+    req.COOKIES["sessionid"] = "stand-cookie"  # is_tg_session читает сессию только с кукой
     return req
 
 
@@ -316,3 +317,94 @@ def test_info_page_speaks_cabinet_language():
     with translation.override("ru"):
         expected = translation.gettext("Mit E-Mail anmelden")
     assert expected in body
+
+
+# Ссылки лёгких экранов, которые в Telegram ОСОЗНАННО ведут на «nur per E-Mail»:
+# настройки/деньги/интеграции (Р-2) и экраны кассы (Q2 → T-8.30e). Новая ссылка с лёгкого
+# экрана обязана попасть либо в белый список, либо сюда — иначе тест красный.
+EMAIL_ONLY = {
+    "integrations-home",
+    "gbp-sync",
+    "notifications-settings",
+    "payment-settings",
+    "domains",
+    "portal-stats",
+    "settings",
+    "modules",
+    "languages",
+    "site-home",
+    "promotions:reservation-list",
+    "promotions:redeem",
+    "owner-login-link",
+    "telegram-settings",
+}
+
+
+def _links_of(body):
+    import re
+
+    found = set()
+    for raw in re.findall(r'(?:href|action)="(/[^"#?]*)', body):
+        if raw.startswith("//") or raw.startswith(("/static/", "/media/")):
+            continue
+        found.add(raw)
+    return found
+
+
+def test_lite_screens_link_only_to_allowed_or_email_only():
+    """Ревью: каждая ссылка/форма лёгкого экрана в Telegram резолвится в белый список
+    или в осознанный список «только по e-mail» (без немых редиректов на info)."""
+    from django.urls import Resolver404
+
+    from apps.core import views
+    from apps.core.i18n_cabinet import CABINET_PREFIXES
+    from apps.promotions import views as promo_views
+    from apps.tenants import onboarding
+
+    t, user = _linked()
+    t.site_config = {"profile": "aktionen"}
+    t.save()
+    onboarding.mark_complete(t)
+    screens = {
+        "/dashboard/": views.dashboard,
+        "/dashboard/sichtbarkeit/": lite_cabinet.lite_visibility,
+        "/promotions/": promo_views.promotion_list,
+    }
+    stray = set()
+    for path, view in screens.items():
+        body = view(_tg_request(t, user, path)).content.decode()
+        for link in _links_of(body):
+            try:
+                name = resolve(link).view_name
+            except Resolver404:
+                continue
+            if not link.startswith(CABINET_PREFIXES) and name not in tg_login.TG_LITE_VIEWS:
+                continue
+            if name not in tg_login.TG_LITE_VIEWS and name not in EMAIL_ONLY:
+                stray.add((path, name))
+    assert not stray
+
+
+def test_fetch_without_json_header_gets_403_not_html():
+    t, user = _linked()
+    req = _tg_request(t, user, "/dashboard/settings/", HTTP_SEC_FETCH_MODE="cors")
+    assert _scope(req).status_code == 403
+
+
+def test_email_login_after_tg_restores_normal_expiry():
+    t, user = _linked()
+    _token, req, _resp = _start(t, user)
+    from django.contrib.auth import login
+
+    login(req, user, backend="django.contrib.auth.backends.ModelBackend")
+    assert "_session_expiry" not in req.session
+
+
+def test_untouched_wizard_does_not_redirect_tg_session():
+    from apps.core import views
+
+    t, user = _linked()
+    t.site_config = {"profile": "aktionen"}
+    t.save()
+    resp = views.dashboard(_tg_request(t, user, "/dashboard/"))
+    assert resp.status_code == 200

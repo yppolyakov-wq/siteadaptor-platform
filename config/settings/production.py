@@ -52,15 +52,32 @@ X_FRAME_OPTIONS = "DENY"
 _SENTRY_SCRUB_PATHS = ("/tg/",)
 
 
+def _sentry_tg_path(value) -> bool:
+    from urllib.parse import urlsplit
+
+    try:
+        path = urlsplit(str(value or "")).path
+    except ValueError:
+        return False
+    return path.startswith(_SENTRY_SCRUB_PATHS)
+
+
 def _sentry_before_send(event, hint):
     """T-8.30: тело и query входов Mini App/handoff (initData, одноразовые токены) —
-    не в Sentry."""
+    не в Sentry; Referer страницы после входа тоже несёт токен."""
     req = event.get("request") or {}
     url = req.get("url") or ""
-    if any(p in url for p in _SENTRY_SCRUB_PATHS):
+    if _sentry_tg_path(url):
         req.pop("data", None)
         req.pop("query_string", None)
         req["url"] = url.split("/tg/", 1)[0] + "/tg/…"
+    if _sentry_tg_path(event.get("transaction")):
+        event["transaction"] = "/tg/…"
+    headers = req.get("headers")
+    if isinstance(headers, dict):
+        for name in [k for k in headers if k.lower() == "referer"]:
+            if _sentry_tg_path(headers[name]):
+                headers.pop(name)
     return event
 
 
@@ -75,5 +92,6 @@ if SENTRY_DSN:
         # провайдеров — в Sentry не отправляем.
         include_local_variables=False,
         before_send=_sentry_before_send,
+        before_send_transaction=_sentry_before_send,
         environment=env("SENTRY_ENVIRONMENT", default="production"),
     )
