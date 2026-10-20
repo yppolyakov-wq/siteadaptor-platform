@@ -30,16 +30,31 @@ COMPOSE="docker compose --env-file .env.prod -f docker-compose.prod.yml $PROFILE
 
 cd "$REPO_DIR"
 
-echo "==> [1/9] Pull $BRANCH from git"
+# T-10: длительность каждого шага — чтобы видеть, что именно тормозит деплой.
+DEPLOY_START=$SECONDS
+STEP_START=$SECONDS
+STEP_NAME=""
+step() {
+	if [ -n "$STEP_NAME" ]; then
+		echo "    ⏱ $STEP_NAME: $((SECONDS - STEP_START)) с"
+	fi
+	STEP_NAME="$1"
+	STEP_START=$SECONDS
+	echo "==> $1"
+}
+
+step "[1/8] Pull $BRANCH from git"
 git fetch origin "$BRANCH"
 git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
-echo "==> [2/9] Build images"
+step "[2/8] Build images"
+# Один образ (web) на web/worker/beat + caddy; слой зависимостей берётся из кэша,
+# пока не менялся uv.lock (T-10).
 $COMPOSE build
 
 if [ "$MODE" = "single" ]; then
-	echo "==> [3/9] Start local Postgres and wait for healthy"
+	step "[3/8] Start local Postgres and wait for healthy"
 	$COMPOSE up -d db
 	for i in $(seq 1 30); do
 		if $COMPOSE exec -T db pg_isready -U "${DB_USER:-platform}" >/dev/null 2>&1; then
@@ -49,10 +64,10 @@ if [ "$MODE" = "single" ]; then
 		sleep 2
 	done
 else
-	echo "==> [3/9] External Postgres (DB_HOST in .env.prod) — skip local db"
+	step "[3/8] External Postgres (DB_HOST in .env.prod) — skip local db"
 fi
 
-echo "==> [4/9] Preflight: deploy checks (fail-closed)"
+step "[4/8] Preflight: deploy checks (fail-closed)"
 # P0-3 (аудит 2026-09-03): раньше стоял последним шагом под `|| true` — Error
 # secrets.E001 (нет отдельного SECRETS_ENCRYPTION_KEY, ключ выводится из
 # SECRET_KEY) деплой не останавливал. Теперь ДО миграций и рестарта: упал —
@@ -61,22 +76,27 @@ echo "==> [4/9] Preflight: deploy checks (fail-closed)"
 # (MultiFernet), довести до конца — `manage.py rotate_secrets --apply`.
 $COMPOSE run --rm web python manage.py check --deploy
 
-echo "==> [5/9] Migrate shared (public) schema"
+step "[5/8] Migrate shared (public) schema"
 $COMPOSE run --rm web python manage.py migrate_schemas --shared
 
-echo "==> [6/9] Migrate tenant schemas"
-$COMPOSE run --rm web python manage.py migrate_schemas
+step "[6/8] Migrate tenant schemas"
+# T-10: если по всем схемам применять нечего — шаг пропускается (раньше сотня схем
+# проходилась по одной на каждом деплое). Иначе — параллельно
+# (TENANT_MIGRATION_PROCESSES, по умолчанию 4). FORCE_MIGRATE=1 — прогнать всегда.
+if [ "${FORCE_MIGRATE:-0}" != "1" ] \
+	&& $COMPOSE run --rm web python manage.py migration_state --check; then
+	echo "    все схемы на последней миграции — пропуск"
+else
+	$COMPOSE run --rm web python manage.py migrate_schemas --tenant --executor=multiprocessing
+fi
+# collectstatic делает сам web при старте (compose). Отдельный шаг `run --rm
+# collectstatic` писал во временный контейнер и только тратил время (T-10).
+# L4/T1-b: .mo компилируются при СБОРКЕ ОБРАЗА (Dockerfile, msgfmt).
 
-echo "==> [7/9] Collect static"
-$COMPOSE run --rm web python manage.py collectstatic --noinput
-# L4/T1-b: .mo компилируются при СБОРКЕ ОБРАЗА (Dockerfile, msgfmt). Шаг
-# `compose run --rm … compilemessages` убран: он писал .mo в эфемерный
-# контейнер — рабочий web их не видел (в проде переводы не работали).
-
-echo "==> [8/9] Restart services"
+step "[7/8] Restart services"
 $COMPOSE up -d
 
-echo "==> [9/9] Deploy checks"
+step "[8/8] Deploy checks"
 # Сверка миграций ПО ВСЕМ СХЕМАМ: обычный showmigrations видит только public, из-за
 # чего очередь миграций в памяти проекта разъезжалась с реальностью (аудит 01.08).
 # Печатает только отставание — «Всё применено» и есть ожидаемый вывод.
@@ -89,4 +109,5 @@ else
 	exit 1
 fi
 
-echo "==> Deploy complete (mode: $MODE)."
+step "done"
+echo "==> Deploy complete (mode: $MODE) за $((SECONDS - DEPLOY_START)) с."

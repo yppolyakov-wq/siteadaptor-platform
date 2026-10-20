@@ -67,3 +67,12 @@ def test_all_flag_lists_healthy_schemas():
     """Без --all вывод короткий (только проблемы); с --all видно и здоровые."""
     assert "public: ок" not in _run()
     assert "public: ок" in _run("--all")
+
+
+def test_check_flag_exit_code():
+    """T-10: deploy.sh пропускает миграции схем бизнесов, только если `--check` чист."""
+    call_command("migration_state", "--check", stdout=StringIO())  # всё применено — без выхода
+    TenantFactory()  # строка без схемы
+    with pytest.raises(SystemExit) as exc:
+        call_command("migration_state", "--check", stdout=StringIO())
+    assert exc.value.code == 1

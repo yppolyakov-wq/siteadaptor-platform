@@ -8,7 +8,13 @@ public-часть, и очередь миграций в памяти проек
 
 Печатает ТОЛЬКО неприменённое — вывод короткий и его можно целиком вставить в
 переписку. Ничего не меняет в БД: read-only.
+
+T-10 (2026-10-20): `--check` — код выхода 1, если что-то не применено (или схемы нет):
+`deploy.sh` пропускает прогон миграций по сотне схем, когда применять нечего.
+Миграции на диске читаются ОДИН раз, по схеме — только таблица `django_migrations`.
 """
+
+import sys
 
 from django.core.management.base import BaseCommand
 from django.db import connection
@@ -28,6 +34,11 @@ class Command(BaseCommand):
             "--schema",
             default="",
             help="Проверить одну схему вместо всех.",
+        )
+        parser.add_argument(
+            "--check",
+            action="store_true",
+            help="Код выхода 1, если есть неприменённые миграции или нет схемы.",
         )
 
     def handle(self, *args, **options):
@@ -54,6 +65,8 @@ class Command(BaseCommand):
                 .values_list("schema_name", flat=True)
             )
 
+        # Миграции на диске — одни на все схемы: читаем один раз (без соединения).
+        self._disk = set(MigrationLoader(None, ignore_no_migrations=True).disk_migrations)
         # Группируем ПО МИГРАЦИИ, а не по схеме: у тенантов отстаёт обычно один и
         # тот же хвост, и построчный вывод на полсотни схем был бы простынёй.
         by_migration: dict[tuple[str, str], list[str]] = {}
@@ -100,6 +113,8 @@ class Command(BaseCommand):
             )
         else:
             self.stdout.write(self.style.SUCCESS(f"Всё применено ({tail})"))
+        if options["check"] and (by_migration or missing):
+            sys.exit(1)
 
     def _pending(self, schema: str, wanted: set[str]) -> list[tuple[str, str]]:
         """Миграции на диске, которых нет в `django_migrations` этой схемы.
@@ -108,13 +123,15 @@ class Command(BaseCommand):
         и есть весь фокус: одна и та же миграция может быть применена в одной
         схеме и отсутствовать в другой.
         """
+        from django.db.migrations.recorder import MigrationRecorder
         from django_tenants.utils import schema_context
 
         with schema_context(schema):
-            loader = MigrationLoader(connection, ignore_no_migrations=True)
-            applied = set(loader.applied_migrations or ())
+            # Тот же источник, что у MigrationLoader: recorder смотрит таблицу ЭТОЙ
+            # схемы (без неё — пусто), граф с диска не пересобирается на каждую схему.
+            applied = set(MigrationRecorder(connection).applied_migrations())
             return sorted(
                 (app, name)
-                for app, name in loader.disk_migrations
+                for app, name in self._disk
                 if app in wanted and (app, name) not in applied
             )

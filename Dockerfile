@@ -16,16 +16,22 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl gettext fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
-# uv для установки зависимостей.
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+# uv для установки зависимостей. Версия закреплена: `latest` сверялся по сети
+# на каждой сборке (T-10).
+COPY --from=ghcr.io/astral-sh/uv:0.11.32 /uv /usr/local/bin/uv
 
-# Сначала зависимости (слой кэшируется), затем код.
-COPY pyproject.toml ./
+# T-10: сначала ТОЛЬКО зависимости — строго по uv.lock (как в CI), отдельным слоем.
+# Раньше `COPY . .` стоял до установки, и любая правка кода переустанавливала все
+# пакеты на каждом деплое. Теперь слой пересобирается, только когда меняется лок.
+COPY pyproject.toml uv.lock ./
+RUN uv export --frozen --no-dev --no-emit-project --no-hashes -o /tmp/requirements.txt \
+    && uv pip install --system --no-cache -r /tmp/requirements.txt \
+    && rm /tmp/requirements.txt
+
+# Затем код. Сам проект ставится без зависимостей (они уже стоят); PYTHONPATH=/app
+# гарантирует приоритет исходников в /app (templates/static/locale рядом с кодом).
 COPY . .
-
-# Ставит зависимости из pyproject. PYTHONPATH=/app гарантирует, что
-# приоритет у исходников в /app (templates/static/locale рядом с кодом).
-RUN uv pip install --system --no-cache .
+RUN uv pip install --system --no-cache --no-deps .
 
 # T1-b: .mo не в git — компилируем В ОБРАЗ. Раньше deploy.sh делал compilemessages
 # через `compose run --rm` → .mo умирали вместе с временным контейнером, и в проде
