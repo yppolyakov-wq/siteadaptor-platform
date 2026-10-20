@@ -212,8 +212,12 @@
  "templates/tenants/legal_datenschutz.html": [
   "4. Registrierung und Kundenkonto",
   "7. Websites unserer Kunden",
+  "8. Telegram-Bot für Geschäftsinhaber",
   "Datenschutzerklärung",
-  "Stand: [Monat Jahr]. Diese Erklärung wird bei Änderungen der Verarbeitung aktualisiert."
+  "Löschen: jederzeit mit",
+  "Speicherdauer: die Verbindung bis zur Trennung, bis zum Befehl",
+  "Stand: [Monat Jahr]. Diese Erklärung wird bei Änderungen der Verarbeitung aktualisiert.",
+  "im Bot oder „Trennen“ im Kabinett. Deine Geschäftsdaten bleiben bis zur Löschung deines Kontos bestehen."
  ],
  "templates/tenants/legal_impressum.html": [
   ". Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.",

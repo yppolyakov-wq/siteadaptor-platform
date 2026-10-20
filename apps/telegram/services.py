@@ -135,6 +135,15 @@ def download_file(token: str, file_id: str, max_bytes: int = DOWNLOAD_MAX) -> by
         return None
 
 
+def set_my_commands(token: str, commands: list[dict], language_code: str = "") -> None:
+    """Меню команд бота (T-8.10h H-6); описания — на языке пользователя Telegram."""
+    data = {"commands": json.dumps(commands)}
+    if language_code:
+        data["language_code"] = language_code
+    response = requests.post(_endpoint(token, "setMyCommands"), data=data, timeout=15)
+    response.raise_for_status()
+
+
 def get_webhook_info(token: str, timeout: int = 15) -> dict:
     response = requests.get(_endpoint(token, "getWebhookInfo"), timeout=timeout)
     response.raise_for_status()

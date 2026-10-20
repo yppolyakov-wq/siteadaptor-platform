@@ -34,6 +34,15 @@
 Запуск на проде: `docker compose --env-file .env.prod -f docker-compose.prod.yml
 exec web python manage.py dsgvo_customer …`
 
+## Общий Telegram-бот платформы (T-8.10h, SHARED)
+
+- Храним: Telegram-ID владельца, привязку к бизнесам (`platform_bot.OwnerTelegramLink`),
+  зеркало в `site_config["notify"]` бизнеса; черновики акций и регистрации — в кэше ≤ 24 ч / 2 ч.
+- Удаление: `/daten_loeschen` в боте (связи + следы в зеркалах + кэш), «Trennen» в кабинете.
+- Сроки: неактивные связи 30 дней, заблокированные 180 (beat `purge-platform-bot-links`).
+- ⚠️ Раздел 8 Datenschutzerklärung бизнеса — юридическая вычитка; строки уведомлений
+  (`notifications`) хранят chat id без срока — в roadmap §Отложено.
+
 ## Процесс запроса клиента (для владельца)
 
 1. Клиент пишет бизнесу (или нам) с просьбой выдать/удалить данные.

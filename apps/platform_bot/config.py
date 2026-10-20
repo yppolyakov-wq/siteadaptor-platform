@@ -149,6 +149,33 @@ def apply_webhook() -> None:
         services.set_webhook(bot_token, webhook_url(), ensure_secret())
     except Exception as exc:  # noqa: BLE001
         raise ValueError(type(exc).__name__) from None
+    set_commands(bot_token)
+
+
+def set_commands(bot_token: str) -> None:
+    """Меню команд на всех языках кабинета (сбой не ломает установку вебхука)."""
+    import logging
+
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    from apps.telegram import services
+
+    langs = ["", *getattr(settings, "CABINET_LANGUAGES", ())]
+    for lang in langs:
+        try:
+            with translation.override(lang or "de"):
+                commands = [
+                    {"command": "neu", "description": _("Neues Geschäft anlegen")},
+                    {"command": "geschaeft", "description": _("Geschäft wechseln")},
+                    {"command": "wiederholen", "description": _("Aktion wiederholen")},
+                    {"command": "abbrechen", "description": _("Abbrechen")},
+                    {"command": "datenschutz", "description": _("Datenschutz")},
+                    {"command": "daten_loeschen", "description": _("Meine Daten löschen")},
+                ]
+            services.set_my_commands(bot_token, commands, language_code=lang)
+        except Exception as exc:  # noqa: BLE001
+            logging.getLogger(__name__).warning("setMyCommands failed: %s", type(exc).__name__)
 
 
 def remove_webhook() -> None:

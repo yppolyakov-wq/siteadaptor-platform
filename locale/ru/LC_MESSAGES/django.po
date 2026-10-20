@@ -27008,3 +27008,71 @@ msgid ""
 "Haben Sie dieses Geschäft nicht selbst über Telegram angelegt? Dann "
 "bestätigen Sie bitte nicht."
 msgstr "Вы не создавали этот бизнес через Telegram? Тогда не подтверждайте."
+
+msgid ""
+"Wir speichern Ihre Telegram-ID und die Verbindung zu Ihren Geschäften; "
+"Nachrichten nur, um Aktionen anzulegen oder Ihr Geschäft zu registrieren "
+"(Entwürfe höchstens 24 Stunden)."
+msgstr ""
+"Мы храним ваш Telegram-ID и связь с вашими бизнесами; сообщения — только "
+"чтобы создать акцию или зарегистрировать бизнес (черновики — не дольше 24 "
+"часов)."
+
+msgid ""
+"✅ Gelöscht. Telegram ist mit keinem Geschäft mehr verbunden. Ihre Geschäfte "
+"bleiben bestehen; neu verbinden geht im Kabinett."
+msgstr ""
+"✅ Удалено. Telegram больше не подключён ни к одному бизнесу. Бизнесы "
+"остаются; подключить заново можно в кабинете."
+
+msgid "Eine begonnene Registrierung (höchstens 2 Stunden)."
+msgstr "Начатая регистрация (не дольше 2 часов)."
+
+#, python-format
+msgid "Mehr: %(url)s"
+msgstr "Подробнее: %(url)s"
+
+msgid "Es sind keine Daten mehr gespeichert."
+msgstr "Данных больше не хранится."
+
+msgid ""
+"Ihre Geschäfte bleiben bestehen (löschen im Kabinett); Telegram ist danach "
+"nicht mehr verbunden."
+msgstr ""
+"Бизнесы остаются (удаляются в кабинете); Telegram после этого не будет "
+"подключён."
+
+msgid "Nichts gelöscht."
+msgstr "Ничего не удалено."
+
+msgid "Ihr Geschäft wird gerade angelegt — bitte in ein paar Minuten erneut."
+msgstr "Ваш бизнес создаётся — попробуйте через несколько минут."
+
+#, python-format
+msgid "Verbundene Geschäfte: %(names)s"
+msgstr "Подключённые бизнесы: %(names)s"
+
+#, python-format
+msgid "Warten auf E-Mail-Bestätigung: %(names)s"
+msgstr "Ждут подтверждения e-mail: %(names)s"
+
+msgid "Alle Ihre Daten in diesem Bot löschen?"
+msgstr "Удалить все ваши данные в этом боте?"
+
+msgid "Abgelaufen. Bitte /daten_loeschen erneut senden."
+msgstr "Срок истёк. Отправьте /daten_loeschen ещё раз."
+
+msgid "Ja, löschen"
+msgstr "Да, удалить"
+
+msgid "Daten löschen"
+msgstr "Удалить данные"
+
+msgid "Neues Geschäft anlegen"
+msgstr "Создать новый бизнес"
+
+msgid "Geschäft wechseln"
+msgstr "Сменить бизнес"
+
+msgid "Meine Daten löschen"
+msgstr "Удалить мои данные"

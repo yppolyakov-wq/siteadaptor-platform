@@ -79,3 +79,17 @@ def notify_signup_bound(*, tenant_pk, uid, result, lang=""):
     if tenant is None:
         return {"skipped": "no tenant"}
     return {"result": signup.bound_message(tenant, int(uid), result, lang)}
+
+
+@idempotent_task(lock_timeout=3600)
+def purge_stale_links():
+    """H-6: сроки хранения связей общего бота (раз в сутки)."""
+    import logging
+
+    from . import links
+
+    try:
+        return links.purge_stale()
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning("platform bot purge failed: %s", type(exc).__name__)
+        return {"error": type(exc).__name__}

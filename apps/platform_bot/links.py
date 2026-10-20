@@ -303,3 +303,90 @@ def pending_for(tg_user_id):
         site_config__notify__pending_tg_owner__at__gte=int(time.time() - PENDING_MAX_AGE),
         email_pending=True,
     ).exclude(provisioning_status=Tenant.PROVISIONING_FAILED)
+
+
+# --- H-6: DSGVO — удаление по запросу и сроки хранения ---------------------------------
+
+
+def _erase_tenant(locked, uid: int) -> None:
+    """Зеркало и метка регистрации этого пользователя — под замком строки бизнеса.
+    Свой бот бизнеса (owner_bot=tenant) — данные бизнеса, его не трогаем."""
+    cfg = locked.site_config if isinstance(locked.site_config, dict) else {}
+    node = cfg.get("notify") if isinstance(cfg.get("notify"), dict) else {}
+    changes = {}
+    if node.get("owner_bot") == OWNER_BOT_PLATFORM and str(node.get("owner_chat_id")) == str(uid):
+        changes.update(owner_chat_id=None, owner_bot=None, owner_user_pk=None)
+    marker = node.get("pending_tg_owner")
+    if isinstance(marker, dict) and str(marker.get("uid")) == str(uid):
+        changes["pending_tg_owner"] = None
+    if changes:
+        _write_mirror(locked, **changes)
+
+
+def erase_user(tg_user_id) -> dict:
+    """Удалить ВСЕ связи пользователя Telegram (любые) и его следы в зеркалах бизнесов.
+    Сами бизнесы не удаляются. Каждый бизнес — своей транзакцией (порядок «бизнес → связи»)."""
+    from apps.tenants.models import Tenant
+
+    uid = int(tg_user_id)
+    tenant_ids = set(
+        OwnerTelegramLink.objects.filter(tg_user_id=uid).values_list("tenant_id", flat=True)
+    )
+    tenant_ids |= set(
+        Tenant.objects.filter(site_config__notify__pending_tg_owner__uid=uid).values_list(
+            "pk", flat=True
+        )
+    )
+    schemas = []
+    for pk in sorted(tenant_ids):
+        with transaction.atomic():
+            try:
+                locked = _lock(pk)
+            except Tenant.DoesNotExist:
+                continue
+            schemas.append(locked.schema_name)
+            _erase_tenant(locked, uid)
+            OwnerTelegramLink.objects.filter(tg_user_id=uid, tenant=locked).delete()
+    return {"schemas": schemas, "tenants": len(schemas)}
+
+
+INACTIVE_KEEP_DAYS = 30
+BLOCKED_KEEP_DAYS = 180
+
+
+def purge_stale(now=None) -> dict:
+    """Сроки хранения: неактивные связи — 30 дней, заблокировавшие бот — 180 дней,
+    протухшие метки регистрации — снимаются."""
+    import time
+    from datetime import timedelta
+
+    from apps.tenants.models import Tenant
+
+    now = now or timezone.now()
+    inactive = OwnerTelegramLink.objects.filter(
+        is_active=False, updated_at__lt=now - timedelta(days=INACTIVE_KEEP_DAYS)
+    ).delete()[0]
+    blocked = 0
+    old_blocked = OwnerTelegramLink.objects.filter(
+        blocked_at__lt=now - timedelta(days=BLOCKED_KEEP_DAYS)
+    ).values_list("pk", "tenant_id", "tg_user_id")
+    for pk, tenant_id, uid in list(old_blocked):
+        with transaction.atomic():
+            try:
+                locked = _lock(tenant_id)
+            except Tenant.DoesNotExist:
+                continue
+            _erase_tenant(locked, uid)
+            blocked += OwnerTelegramLink.objects.filter(pk=pk).delete()[0]
+    markers = 0
+    edge = int(time.time() - PENDING_MAX_AGE)
+    for pk in list(
+        Tenant.objects.filter(site_config__notify__pending_tg_owner__at__lt=edge).values_list(
+            "pk", flat=True
+        )
+    ):
+        with transaction.atomic():
+            locked = _lock(pk)
+            _write_mirror(locked, pending_tg_owner=None)
+            markers += 1
+    return {"inactive": inactive, "blocked": blocked, "markers": markers}

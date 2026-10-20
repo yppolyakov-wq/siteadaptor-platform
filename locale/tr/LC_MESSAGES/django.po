@@ -26872,3 +26872,69 @@ msgid ""
 msgstr ""
 "Bu işletmeyi Telegram üzerinden kendiniz oluşturmadınız mı? O zaman lütfen "
 "onaylamayın."
+
+msgid ""
+"Wir speichern Ihre Telegram-ID und die Verbindung zu Ihren Geschäften; "
+"Nachrichten nur, um Aktionen anzulegen oder Ihr Geschäft zu registrieren "
+"(Entwürfe höchstens 24 Stunden)."
+msgstr ""
+"Telegram kimliğinizi ve işletmelerinizle bağlantıyı saklarız; mesajları "
+"yalnızca kampanya oluşturmak veya işletmenizi kaydetmek için (taslaklar en "
+"fazla 24 saat)."
+
+msgid ""
+"✅ Gelöscht. Telegram ist mit keinem Geschäft mehr verbunden. Ihre Geschäfte "
+"bleiben bestehen; neu verbinden geht im Kabinett."
+msgstr ""
+"✅ Silindi. Telegram artık hiçbir işletmeye bağlı değil. İşletmeleriniz "
+"kalır; panelde yeniden bağlanabilirsiniz."
+
+msgid "Eine begonnene Registrierung (höchstens 2 Stunden)."
+msgstr "Başlatılmış bir kayıt (en fazla 2 saat)."
+
+#, python-format
+msgid "Mehr: %(url)s"
+msgstr "Daha fazla: %(url)s"
+
+msgid "Es sind keine Daten mehr gespeichert."
+msgstr "Artık hiçbir veri saklanmıyor."
+
+msgid ""
+"Ihre Geschäfte bleiben bestehen (löschen im Kabinett); Telegram ist danach "
+"nicht mehr verbunden."
+msgstr "İşletmeleriniz kalır (panelden silin); Telegram artık bağlı olmaz."
+
+msgid "Nichts gelöscht."
+msgstr "Hiçbir şey silinmedi."
+
+msgid "Ihr Geschäft wird gerade angelegt — bitte in ein paar Minuten erneut."
+msgstr "İşletmeniz oluşturuluyor — lütfen birkaç dakika sonra tekrar deneyin."
+
+#, python-format
+msgid "Verbundene Geschäfte: %(names)s"
+msgstr "Bağlı işletmeler: %(names)s"
+
+#, python-format
+msgid "Warten auf E-Mail-Bestätigung: %(names)s"
+msgstr "E-posta onayı bekleniyor: %(names)s"
+
+msgid "Alle Ihre Daten in diesem Bot löschen?"
+msgstr "Bu bottaki tüm verileriniz silinsin mi?"
+
+msgid "Abgelaufen. Bitte /daten_loeschen erneut senden."
+msgstr "Süresi doldu. Lütfen /daten_loeschen komutunu tekrar gönderin."
+
+msgid "Ja, löschen"
+msgstr "Evet, sil"
+
+msgid "Daten löschen"
+msgstr "Verileri sil"
+
+msgid "Neues Geschäft anlegen"
+msgstr "Yeni işletme oluştur"
+
+msgid "Geschäft wechseln"
+msgstr "İşletme değiştir"
+
+msgid "Meine Daten löschen"
+msgstr "Verilerimi sil"

@@ -564,6 +564,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.aggregator.tasks.purge_portal_stats",
         "schedule": 86400.0,  # раз в сутки — учёт портала старше PORTAL_STATS_RETENTION_DAYS (В5)
     },
+    "purge-platform-bot-links": {
+        "task": "apps.platform_bot.tasks.purge_stale_links",
+        "schedule": 86400.0,  # раз в сутки — сроки хранения связей общего бота (T-8.10h H-6)
+    },
     "purge-ai-usage": {
         "task": "apps.ai.tasks.purge_ai_usage",
         "schedule": 86400.0,  # раз в сутки — учёт ИИ старше AI_USAGE_RETENTION_DAYS (AI-0)

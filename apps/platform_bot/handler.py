@@ -30,6 +30,8 @@ CHOOSE_CALLBACK_RE = re.compile(
 START_RE = re.compile(r"^/start(?:@\w+)?(?:\s.*)?$", re.DOTALL)
 NEW_RE = re.compile(r"^/neu(?:@\w+)?\s*$", re.IGNORECASE)
 CANCEL_RE = re.compile(r"^/(?:abbrechen|cancel)(?:@\w+)?\s*$", re.IGNORECASE)
+PRIVACY_RE = re.compile(r"^/(?:datenschutz|privacy)(?:@\w+)?\s*$", re.IGNORECASE)
+ERASE_RE = re.compile(r"^/(?:daten_loeschen|delete_data)(?:@\w+)?\s*$", re.IGNORECASE)
 CHOOSE_MAX = 20
 CONNECT_LIMIT = 10  # попыток привязки на пользователя Telegram в час
 
@@ -96,6 +98,11 @@ def _callback(bot, callback: dict) -> str:
     from . import routing
 
     data = str(callback.get("data") or "")
+    if data.startswith("pd:"):
+        from . import privacy
+
+        with translation.override(locale_for(callback.get("language_code"))):
+            return privacy.on_callback(bot, callback)
     if data.startswith(routing.PREFIX):
         return _promo_callback(bot, callback, data)
     if data.startswith("ps:"):
@@ -134,6 +141,13 @@ def _private(bot, message: dict, update_id=None) -> str:
         return _connect(bot, message, match.group(1))
     if CHOOSE_RE.match(text):
         return _choose(bot, message)
+    # H-6: команды DSGVO — раньше регистрации и акций (иначе «/daten_loeschen» владельца
+    # ушло бы текстом акции или шагом регистрации).
+    if PRIVACY_RE.match(text) or ERASE_RE.match(text):
+        from . import privacy
+
+        uid = message["from_id"]
+        return privacy.ask(bot, uid, chat) if ERASE_RE.match(text) else privacy.info(bot, uid, chat)
     # H-5b: регистрация (в т. ч. второго бизнеса) — раньше конвейера акций: пока идёт
     # диалог регистрации, сообщения — его шаги, а не текст акции.
     routed = _signup_message(bot, message, text)

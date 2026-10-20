@@ -26732,3 +26732,71 @@ msgid ""
 msgstr ""
 "Didn't you create this business via Telegram yourself? Then please do not "
 "confirm."
+
+msgid ""
+"Wir speichern Ihre Telegram-ID und die Verbindung zu Ihren Geschäften; "
+"Nachrichten nur, um Aktionen anzulegen oder Ihr Geschäft zu registrieren "
+"(Entwürfe höchstens 24 Stunden)."
+msgstr ""
+"We store your Telegram ID and the connection to your businesses; messages "
+"only to create promotions or register your business (drafts at most 24 "
+"hours)."
+
+msgid ""
+"✅ Gelöscht. Telegram ist mit keinem Geschäft mehr verbunden. Ihre Geschäfte "
+"bleiben bestehen; neu verbinden geht im Kabinett."
+msgstr ""
+"✅ Deleted. Telegram is no longer connected to any business. Your businesses "
+"remain; you can reconnect in the dashboard."
+
+msgid "Eine begonnene Registrierung (höchstens 2 Stunden)."
+msgstr "A started registration (at most 2 hours)."
+
+#, python-format
+msgid "Mehr: %(url)s"
+msgstr "More: %(url)s"
+
+msgid "Es sind keine Daten mehr gespeichert."
+msgstr "No data is stored anymore."
+
+msgid ""
+"Ihre Geschäfte bleiben bestehen (löschen im Kabinett); Telegram ist danach "
+"nicht mehr verbunden."
+msgstr ""
+"Your businesses remain (delete them in the dashboard); Telegram will no "
+"longer be connected."
+
+msgid "Nichts gelöscht."
+msgstr "Nothing deleted."
+
+msgid "Ihr Geschäft wird gerade angelegt — bitte in ein paar Minuten erneut."
+msgstr "Your business is being created — please try again in a few minutes."
+
+#, python-format
+msgid "Verbundene Geschäfte: %(names)s"
+msgstr "Connected businesses: %(names)s"
+
+#, python-format
+msgid "Warten auf E-Mail-Bestätigung: %(names)s"
+msgstr "Waiting for e-mail confirmation: %(names)s"
+
+msgid "Alle Ihre Daten in diesem Bot löschen?"
+msgstr "Delete all your data in this bot?"
+
+msgid "Abgelaufen. Bitte /daten_loeschen erneut senden."
+msgstr "Expired. Please send /daten_loeschen again."
+
+msgid "Ja, löschen"
+msgstr "Yes, delete"
+
+msgid "Daten löschen"
+msgstr "Delete data"
+
+msgid "Neues Geschäft anlegen"
+msgstr "Create a new business"
+
+msgid "Geschäft wechseln"
+msgstr "Switch business"
+
+msgid "Meine Daten löschen"
+msgstr "Delete my data"

@@ -26815,3 +26815,71 @@ msgid ""
 msgstr ""
 "Haben Sie dieses Geschäft nicht selbst über Telegram angelegt? Dann "
 "bestätigen Sie bitte nicht."
+
+msgid ""
+"Wir speichern Ihre Telegram-ID und die Verbindung zu Ihren Geschäften; "
+"Nachrichten nur, um Aktionen anzulegen oder Ihr Geschäft zu registrieren "
+"(Entwürfe höchstens 24 Stunden)."
+msgstr ""
+"Wir speichern Ihre Telegram-ID und die Verbindung zu Ihren Geschäften; "
+"Nachrichten nur, um Aktionen anzulegen oder Ihr Geschäft zu registrieren "
+"(Entwürfe höchstens 24 Stunden)."
+
+msgid ""
+"✅ Gelöscht. Telegram ist mit keinem Geschäft mehr verbunden. Ihre Geschäfte "
+"bleiben bestehen; neu verbinden geht im Kabinett."
+msgstr ""
+"✅ Gelöscht. Telegram ist mit keinem Geschäft mehr verbunden. Ihre Geschäfte "
+"bleiben bestehen; neu verbinden geht im Kabinett."
+
+msgid "Eine begonnene Registrierung (höchstens 2 Stunden)."
+msgstr "Eine begonnene Registrierung (höchstens 2 Stunden)."
+
+#, python-format
+msgid "Mehr: %(url)s"
+msgstr "Mehr: %(url)s"
+
+msgid "Es sind keine Daten mehr gespeichert."
+msgstr "Es sind keine Daten mehr gespeichert."
+
+msgid ""
+"Ihre Geschäfte bleiben bestehen (löschen im Kabinett); Telegram ist danach "
+"nicht mehr verbunden."
+msgstr ""
+"Ihre Geschäfte bleiben bestehen (löschen im Kabinett); Telegram ist danach "
+"nicht mehr verbunden."
+
+msgid "Nichts gelöscht."
+msgstr "Nichts gelöscht."
+
+msgid "Ihr Geschäft wird gerade angelegt — bitte in ein paar Minuten erneut."
+msgstr "Ihr Geschäft wird gerade angelegt — bitte in ein paar Minuten erneut."
+
+#, python-format
+msgid "Verbundene Geschäfte: %(names)s"
+msgstr "Verbundene Geschäfte: %(names)s"
+
+#, python-format
+msgid "Warten auf E-Mail-Bestätigung: %(names)s"
+msgstr "Warten auf E-Mail-Bestätigung: %(names)s"
+
+msgid "Alle Ihre Daten in diesem Bot löschen?"
+msgstr "Alle Ihre Daten in diesem Bot löschen?"
+
+msgid "Abgelaufen. Bitte /daten_loeschen erneut senden."
+msgstr "Abgelaufen. Bitte /daten_loeschen erneut senden."
+
+msgid "Ja, löschen"
+msgstr "Ja, löschen"
+
+msgid "Daten löschen"
+msgstr "Daten löschen"
+
+msgid "Neues Geschäft anlegen"
+msgstr "Neues Geschäft anlegen"
+
+msgid "Geschäft wechseln"
+msgstr "Geschäft wechseln"
+
+msgid "Meine Daten löschen"
+msgstr "Meine Daten löschen"
