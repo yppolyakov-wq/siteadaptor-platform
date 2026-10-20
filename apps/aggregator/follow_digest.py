@@ -225,6 +225,10 @@ def render(digest: Digest, *, locale: str = "") -> tuple[str, str, str]:
     return subject, text, html
 
 
+class BotUnavailable(Exception):
+    """Бот портала выключен — сводку отложить, а не пометить отправленной."""
+
+
 TELEGRAM_MAX = 3900  # запас до лимита сообщения Telegram (4096)
 
 
@@ -269,15 +273,16 @@ def _send_telegram(digest: Digest) -> bool:
         return False
     bot = chat.bot
     if not bot.is_active or not bot.token:
-        return False
+        raise BotUnavailable  # бот выключен временно: период не сжигаем
     try:
         services.send_message(bot.token, chat.chat_id, render_telegram(digest, locale=chat.locale))
-    except requests.HTTPError as exc:
+    except requests.RequestException as exc:
         status = getattr(getattr(exc, "response", None), "status_code", None)
-        if status == 403:  # житель заблокировал бота
+        if status in (400, 403):  # бот заблокирован / чат удалён («chat not found»)
             PortalChat.objects.filter(pk=chat.pk).update(blocked_at=timezone.now())
             return False
-        raise RuntimeError(f"telegram {status}") from None  # без URL с токеном в логе
+        # Текст любой ошибки requests несёт URL с токеном бота — наружу только тип/код.
+        raise RuntimeError(f"telegram {status or type(exc).__name__}") from None
     return True
 
 
@@ -296,12 +301,19 @@ def send(digest: Digest, *, period_key: str, now=None) -> bool:
     if not digest.user.email:  # T-8.28: житель из Telegram-бота портала
         try:
             sent = _send_telegram(digest)
+        except BotUnavailable:
+            sent = False
         except Exception:  # noqa: BLE001 — сеть/429: строку снять, следующий прогон повторит
             log.warning("follow digest telegram failed user=%s", digest.user.pk)
             FollowDigest.objects.filter(pk=row.pk).delete()
             raise
         if not sent:
+            # Период не сжигаем: чат вернётся (разблокировка, бот включён) — сводка дойдёт.
+            # Заблокированные чаты в кандидаты и так не попадают.
+            FollowDigest.objects.filter(pk=row.pk).delete()
             return False
+        # Остаточный риск (как у письма): сбой между отправкой и этой строкой — сообщение
+        # ушло, а ключи элементов не записаны; следующий период может их повторить.
         FollowDigest.objects.filter(pk=row.pk).update(item_keys=digest.item_keys)
         FollowSubscription.objects.filter(pk__in=[s.sub.pk for s in digest.sections]).update(
             last_sent_at=now, updated_at=now
@@ -350,7 +362,7 @@ def _email_subs(user, frequencies) -> list[FollowSubscription]:
 
 def _reachable():
     """Жители, до которых можно достучаться: с почтой или с живым чатом бота портала."""
-    return Q(email__isnull=False) | Q(
+    return (Q(email__isnull=False) & ~Q(email="")) | Q(
         portal_chat__blocked_at__isnull=True,
         portal_chat__bot__is_active=True,
     )

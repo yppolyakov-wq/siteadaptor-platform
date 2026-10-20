@@ -32,6 +32,12 @@ ASK_TTL = 10 * 60  # кнопка подтверждения подписки / 
 RATE_LIMIT = 20  # действий жителя в минуту на бот
 MESSAGE_MAX = 3900  # запас до лимита Telegram 4096
 GROUP_TYPES = ("group", "supergroup", "channel")
+NEW_CHATS_PER_HOUR = 300  # новых жителей-подписчиков на бот в час (защита от наплыва)
+
+
+class NewChatsLimited(Exception):
+    pass
+
 
 _CTRL = re.compile(r"[\x00-\x1f\x7f  ]+")
 _TOKEN = r"[A-Za-z0-9_-]{6,24}"
@@ -133,6 +139,7 @@ def handle(bot_pk: int, update: dict) -> str:
         with translation.override(locale_for(callback.get("language_code"))):
             if _limited(bot, uid):
                 return "limited"
+            _touch(bot, uid)
             return _callback(
                 bot, uid, str(callback.get("data") or ""), callback.get("language_code")
             )
@@ -547,9 +554,13 @@ def chat_user(bot, uid, lang="") -> PortalChat:
     """Чат жителя (создаётся при первой подписке) — вместе с `PortalUser` без почты."""
     from django.db import transaction
 
+    from apps.core import ratelimit
+
     chat = PortalChat.objects.filter(bot=bot, chat_id=int(uid)).select_related("user").first()
     if chat is not None:
         return chat
+    if ratelimit.hit("tgportal-new", f"{bot.pk}", limit=NEW_CHATS_PER_HOUR, window=3600):
+        raise NewChatsLimited
     with transaction.atomic():
         user = PortalUser.objects.create(email=None, locale=locale_for(lang))
         chat, created = PortalChat.objects.get_or_create(
@@ -570,10 +581,14 @@ def _follow_confirm(bot, uid, nonce: str, lang) -> str:
         return "stale"
     query = tuple(tuple(p) for p in payload.get("q") or ())
     target = follow.Target(payload["k"], payload["t"], payload.get("c", ""), query=query)
-    if target.kind == FollowSubscription.TARGET_QUERY:
-        if follow_query.key(query) != target.key:
-            return "stale"
-    chat = chat_user(bot, uid, lang)
+    if target.kind == FollowSubscription.TARGET_QUERY and follow_query.key(query) != target.key:
+        send(bot, uid, _("Diese Schaltfläche ist veraltet."))
+        return "stale"
+    try:
+        chat = chat_user(bot, uid, lang)
+    except NewChatsLimited:
+        send(bot, uid, _("Zu viele Anfragen — bitte kurz warten."))
+        return "limited"
     frequency = (
         FollowSubscription.FREQ_INSTANT
         if target.kind == FollowSubscription.TARGET_BUSINESS
@@ -719,12 +734,13 @@ def purge_chats(now=None) -> int:
     from django.db.models import Q
 
     now = now or timezone.now()
-    stale = PortalChat.objects.filter(
+    stale = PortalChat.objects.filter(user__email__isnull=True).filter(
         Q(blocked_at__lt=now - timedelta(days=BLOCKED_KEEP_DAYS))
         | Q(user__follows__isnull=True)
         & Q(created_at__lt=now - timedelta(days=IDLE_KEEP_DAYS))
         & (Q(last_seen_at__isnull=True) | Q(last_seen_at__lt=now - timedelta(days=IDLE_KEEP_DAYS)))
     )
+    # Партия 5000 за проход; остаток — следующий суточный прогон.
     user_ids = list(stale.values_list("user_id", flat=True).distinct()[:5000])
-    count, _deleted = PortalUser.objects.filter(pk__in=user_ids, email__isnull=True).delete()
-    return len(user_ids) if count else 0
+    PortalUser.objects.filter(pk__in=user_ids, email__isnull=True).delete()
+    return len(user_ids)

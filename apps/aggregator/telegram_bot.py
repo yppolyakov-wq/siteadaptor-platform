@@ -63,21 +63,28 @@ def dedupe_key(bot_pk: int, update_id) -> str:
 
 @csrf_exempt
 def webhook(request, secret):
-    # Дешёвый отказ ДО базы: только POST, заголовок обязателен и равен секрету пути
-    # (set_webhook задаёт оба одинаковыми). Затем — бот по секрету.
+    # Дешёвый отказ до чтения бота: только POST и заголовок Telegram. Бот — ТОЛЬКО бот
+    # портала этого хоста (fail-closed без портала); заголовок сверяется с ХРАНИМЫМ
+    # секретом бота (путь — лишь адрес, из логов прокси его подделать нельзя).
     header = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
-    if request.method != "POST" or not header or len(secret) < 24:
+    portal = getattr(request, "portal", None)
+    if request.method != "POST" or len(header) < 24 or portal is None:
         raise Http404
-    if not hmac.compare_digest(header.encode(), str(secret).encode()):
-        raise Http404
+    from apps.core import ratelimit
+
+    if ratelimit.hit("tgportal-hook", ratelimit.client_ip(request), limit=600, window=60):
+        return HttpResponse(status=429)
     bot = (
-        PortalBot.objects.filter(webhook_secret=secret, is_active=True)
+        PortalBot.objects.filter(portal=portal, is_active=True)
         .exclude(token="")
-        .only("pk", "portal_id")
+        .only("pk", "webhook_secret")
         .first()
     )
-    portal = getattr(request, "portal", None)
-    if bot is None or (portal is not None and bot.portal_id != portal.pk):
+    if bot is None or not bot.webhook_secret:
+        raise Http404
+    if not hmac.compare_digest(header.encode(), bot.webhook_secret.encode()):
+        raise Http404
+    if not hmac.compare_digest(str(secret).encode(), bot.webhook_secret.encode()):
         raise Http404
     try:
         update = json.loads(request.body.decode() or "{}")

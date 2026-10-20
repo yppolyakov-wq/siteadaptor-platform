@@ -144,22 +144,34 @@ def _buttons(entry):
 # --- вебхук -------------------------------------------------------------------------------
 
 
-def _post(secret=SECRET, header=SECRET, body=None):
+def _post(secret=SECRET, header=SECRET, body=None, portal=None):
     data = json.dumps(body or {"update_id": 5, "message": {"chat": {"id": UID}}})
     kw = {"HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN": header} if header else {}
     req = RequestFactory().post(f"/tg/{secret}/", data=data, content_type="application/json", **kw)
+    req.portal = portal
     return req
 
 
 def test_webhook_rejects_before_db(django_assert_num_queries):
-    _bot()
+    bot = _bot()
     with django_assert_num_queries(0), pytest.raises(Http404):
-        telegram_bot.webhook(_post(header=""), secret=SECRET)
+        telegram_bot.webhook(_post(header="", portal=bot.portal), secret=SECRET)
     with django_assert_num_queries(0), pytest.raises(Http404):
-        telegram_bot.webhook(_post(header="x" * 32), secret=SECRET)
+        telegram_bot.webhook(_post(portal=None), secret=SECRET)  # без портала — fail-closed
     req = RequestFactory().get(f"/tg/{SECRET}/", HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN=SECRET)
+    req.portal = bot.portal
     with django_assert_num_queries(0), pytest.raises(Http404):
         telegram_bot.webhook(req, secret=SECRET)
+
+
+def test_webhook_checks_header_against_stored_secret():
+    """Путь и заголовок, совпадающие ДРУГ С ДРУГОМ, но не с секретом бота, — 404."""
+    bot = _bot()
+    forged = "f" * 32
+    with pytest.raises(Http404):
+        telegram_bot.webhook(_post(secret=forged, header=forged, portal=bot.portal), secret=forged)
+    with pytest.raises(Http404):
+        telegram_bot.webhook(_post(secret=forged, header=SECRET, portal=bot.portal), secret=forged)
 
 
 def test_webhook_enqueues_with_dedupe(monkeypatch):
@@ -168,7 +180,7 @@ def test_webhook_enqueues_with_dedupe(monkeypatch):
     from apps.aggregator import tasks
 
     monkeypatch.setattr(tasks.portal_bot_update, "delay", lambda **kw: calls.append(kw))
-    resp = telegram_bot.webhook(_post(), secret=SECRET)
+    resp = telegram_bot.webhook(_post(portal=bot.portal), secret=SECRET)
     assert resp.status_code == 200
     assert calls[0]["dedupe_key"] == f"tgportal:{bot.pk}:5"
     assert calls[0]["bot_pk"] == bot.pk
@@ -176,10 +188,8 @@ def test_webhook_enqueues_with_dedupe(monkeypatch):
 
 def test_webhook_rejects_bot_of_other_portal(monkeypatch):
     _bot()
-    req = _post()
-    req.portal = _portal()
     with pytest.raises(Http404):
-        telegram_bot.webhook(req, secret=SECRET)
+        telegram_bot.webhook(_post(portal=_portal()), secret=SECRET)
 
 
 def test_group_is_left_and_group_messages_ignored(sent):
@@ -432,3 +442,53 @@ def test_bot_strings_translated(locale):
         or (locale != "de" and not (have[m].msgstr or have[m].msgstr_plural))
     ]
     assert not missing, missing[:5]
+
+
+def test_purge_keeps_followers_and_drops_idle(sent):
+    bot = _bot()
+    _listing()
+    user = _tg_follower(sent, bot)
+    old = timezone.now() - timedelta(days=200)
+    PortalChat.objects.update(created_at=old, last_seen_at=old)
+    assert portal_bot.purge_chats() == 0  # есть подписка — остаётся
+    FollowSubscription.objects.all().delete()
+    assert portal_bot.purge_chats() == 1
+    assert not PortalUser.objects.filter(pk=user.pk).exists()
+
+
+def test_inactive_bot_does_not_burn_period(sent):
+    bot = _bot()
+    user = _tg_follower(sent, bot)
+    _listing(title={"de": "Neue Bowl"})
+    PortalBot.objects.filter(pk=bot.pk).update(is_active=False)
+    user.refresh_from_db()
+    now = timezone.now()
+    digest = follow_digest.build_digest(user, list(user.follows.all()), now=now)
+    assert follow_digest.send(digest, period_key="t3", now=now) is False
+    assert not FollowDigest.objects.filter(user=user, period_key="t3").exists()
+
+
+def test_chat_not_found_marks_blocked_and_network_error_has_no_token(sent, monkeypatch):
+    bot = _bot()
+    user = _tg_follower(sent, bot)
+    _listing(title={"de": "Neue Bowl"})
+
+    def offline(*a, **k):
+        raise requests.ConnectionError("https://api.telegram.org/bot1:t/sendMessage down")
+
+    monkeypatch.setattr(services, "send_message", offline)
+    now = timezone.now()
+    digest = follow_digest.build_digest(user, list(user.follows.all()), now=now)
+    with pytest.raises(RuntimeError) as exc:
+        follow_digest.send(digest, period_key="t4", now=now)
+    assert "1:t" not in str(exc.value)
+
+    def gone(*a, **k):
+        resp = requests.Response()
+        resp.status_code = 400
+        raise requests.HTTPError(response=resp)
+
+    monkeypatch.setattr(services, "send_message", gone)
+    digest = follow_digest.build_digest(user, list(user.follows.all()), now=now)
+    assert follow_digest.send(digest, period_key="t5", now=now) is False
+    assert PortalChat.objects.get().blocked_at is not None
