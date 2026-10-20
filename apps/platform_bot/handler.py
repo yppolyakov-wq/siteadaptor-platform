@@ -130,8 +130,7 @@ def _private(bot, message: dict, update_id=None) -> str:
     current = links.active_links(message["from_id"]).first()
     if current is not None and not START_RE.match(text):
         return _promo_message(bot, message, current, update_id)
-    has_business = links.active_links(message["from_id"]).exists()
-    if has_business:
+    if current is not None:
         send(
             bot,
             chat,

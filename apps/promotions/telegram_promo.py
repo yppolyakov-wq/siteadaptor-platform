@@ -766,6 +766,8 @@ def _dispatch_callback(bot, callback: dict, tenant, schema: str) -> str:
 
 
 def enqueue_confirm(bot, schema, chat, token, message, sender, cid) -> str:
+    from apps.telegram import bots
+
     from . import tasks
 
     try:
@@ -773,7 +775,7 @@ def enqueue_confirm(bot, schema, chat, token, message, sender, cid) -> str:
             # Счётчики апдейтов у ботов разные — пространство ключей общего бота отдельное.
             dedupe_key=(
                 f"tgcb:{schema}:p:{cid or token}"
-                if _bot_kind(bot) == "platform"
+                if _bot_kind(bot) == bots.PLATFORM
                 else f"tgcb:{schema}:{cid or token}"
             ),
             schema=schema,

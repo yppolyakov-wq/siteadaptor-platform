@@ -207,3 +207,50 @@ def test_tenant_preview_has_no_pb_or_business_line(plat):
         "tp:ok:" + "T" * 16,
         "tp:no:" + "T" * 16,
     ]
+
+
+def test_tap_after_switch_confirms_in_preview_schema(plat, monkeypatch):
+    """После /geschaeft ✅ старого превью идёт в схему ПРЕВЬЮ (ref), не текущего бизнеса."""
+    _p, data = _preview(plat)
+    other = TenantFactory(schema_name="zz_other", slug="plat-b", name="Laden B")
+    links.bind(USER, other)  # текущий — B
+    seen = []
+    real = tp.handle_platform_callback
+    monkeypatch.setattr(
+        tp,
+        "handle_platform_callback",
+        lambda bot, schema, cb, inner: seen.append(schema) or real(bot, schema, cb, inner),
+    )
+    handler.handle(_callback(data[0]))
+    assert seen == ["public"]
+    assert plat["queued"][-1]["schema"] == "public"
+
+
+def test_platform_album_collects_photos(plat, monkeypatch):
+    monkeypatch.setattr(tp, "ai_fill", lambda *a, **k: False)
+    first = _message("", update_id=11, photo=[{"file_id": "p1"}], media_group_id="g1")
+    assert handler.handle(first) == "album_wait"
+    second = _message(
+        "Brot −30 % heute", update_id=12, photo=[{"file_id": "p2"}], media_group_id="g1"
+    )
+    second["message"]["text"] = "Brot −30 % heute"
+    assert handler.handle(second) == "preview"
+    assert "📷 2" in plat["sent"][-1]["text"]
+
+
+def test_platform_rate_limit(plat, monkeypatch):
+    monkeypatch.setattr(tp, "RATE_LIMIT", 1)
+    assert handler.handle(_message("Brot −30 % heute", update_id=21)) == "preview"
+    assert handler.handle(_message("Brot −30 % heute", update_id=22)) == "limited"
+
+
+def test_confirm_task_accepts_platform_kwargs(monkeypatch):
+    """Задача ✅ принимает ровно то, что шлёт enqueue_confirm (вкл. bot_kind)."""
+    from apps.promotions import tasks
+
+    seen = {}
+    monkeypatch.setattr(tp, "handle_confirm", lambda *a, **kw: seen.update(args=a, **kw) or "ok")
+    tasks.telegram_owner_confirm(
+        schema="public", chat="1", token="t", message_id=1, language_code="de", bot_kind="platform"
+    )
+    assert seen.get("bot_kind") == "platform" or "platform" in seen.get("args", ())
