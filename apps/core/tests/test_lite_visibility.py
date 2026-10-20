@@ -178,3 +178,18 @@ def test_integrations_home_output_unchanged_by_extraction():
     html = body.content.decode()
     assert "Nicht verbunden" in html and "Keine eigene Domain" in html
     assert "data-own-bot-token" not in html  # форма токена — только на «Sichtbarkeit»
+
+
+@pytest.mark.parametrize(
+    "path", ["/dashboard/telegram/connect/", "/dashboard/telegram/disconnect/"]
+)
+def test_bot_token_endpoints_owner_only(path):
+    """Ревью T-8.31: сотрудник не подменяет и не снимает бота клиентов."""
+    from django.http import HttpResponse
+
+    from apps.core.middleware import CabinetOwnerAccessMiddleware
+
+    mw = CabinetOwnerAccessMiddleware(lambda r: HttpResponse("ok"))
+    t = _tenant(telegram_off=False)
+    assert mw(_req(t, _staff(), "post", path)).status_code == 403
+    assert mw(_req(t, _owner(), "post", path)).status_code == 200

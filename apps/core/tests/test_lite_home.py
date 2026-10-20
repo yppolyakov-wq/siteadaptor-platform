@@ -181,3 +181,14 @@ def test_start_query_budget(django_assert_max_num_queries):
     req = _req(t)
     with django_assert_max_num_queries(16):
         views.dashboard(req)
+
+
+def test_start_survives_broken_visibility_status():
+    """Ревью T-8.31: сломанный статус каталога не роняет главную лёгкого кабинета."""
+    from unittest import mock
+
+    t = _tenant()
+    PromotionFactory(status="active")
+    with mock.patch("apps.promotions.where._catalog_state", side_effect=RuntimeError("x")):
+        assert lite_home.visibility_chips(t, lite_home.featured_promo()) == []
+        assert views.dashboard(_req(t)).status_code == 200

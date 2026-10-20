@@ -56,9 +56,16 @@ CHIP_KEYS = ("website", "stadtportal", "telegram")
 
 def visibility_chips(tenant, promo) -> list[dict]:
     """Где акция видна сейчас — по фактам (те же строки, что «Wo erscheint die Aktion?»)."""
+    import logging
+
     from apps.promotions import where
 
-    return [r for r in where.rows(tenant, promo) if r["key"] in CHIP_KEYS]
+    try:
+        rows = where.rows(tenant, promo, portal_urls=False)
+    except Exception:  # noqa: BLE001 — главная лёгкого кабинета не падает из-за статуса
+        logging.getLogger(__name__).warning("lite_home: visibility chips failed", exc_info=True)
+        return []
+    return [r for r in rows if r["key"] in CHIP_KEYS]
 
 
 # Реестр «следующего шага»: первое сработавшее правило. Цели — только существующие

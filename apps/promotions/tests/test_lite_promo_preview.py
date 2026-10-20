@@ -161,6 +161,8 @@ def test_accent_only_hex():
     t = _tenant()
     t.primary_color = "red;background:url(x)"
     assert lite_views._accent(t) == "#4f46e5"
+    t.primary_color = "#aabbcc\n"
+    assert lite_views._accent(t) == "#aabbcc"  # strip, затем fullmatch
     t.primary_color = "#aabbcc"
     assert lite_views._accent(t) == "#aabbcc"
 

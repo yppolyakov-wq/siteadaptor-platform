@@ -31,7 +31,7 @@ def _catalog_reason(tenant) -> str:
     return ""
 
 
-def _catalog_state(tenant, promo) -> dict:
+def _catalog_state(tenant, promo, *, with_urls=True) -> dict:
     """Состояние в каталоге города: ``ok`` (видна) + ``detail`` (причина, если нет) +
     ``urls`` (адреса на порталах). Одна точка для отчёта в чат и для кабинета."""
     from apps.aggregator import follow, portal_scope
@@ -58,6 +58,8 @@ def _catalog_state(tenant, promo) -> dict:
                 "urls": [],
             }
         return {"ok": False, "detail": _("wird gerade aufgenommen (wenige Minuten)."), "urls": []}
+    if not with_urls:  # «Start»: нужен только факт — без обхода всех порталов
+        return {"ok": True, "detail": "", "urls": []}
     urls = []
     for portal in AggregatorPortal.objects.filter(is_active=True).order_by("pk").iterator():
         if portal_scope.contains(listing, portal):  # у тематического портала — запрос
@@ -127,13 +129,13 @@ def _telegram_channel_on() -> bool:
     return Channel.objects.filter(type=Channel.TELEGRAM, is_enabled=True).exists()
 
 
-def rows(tenant, promo) -> list[dict]:
+def rows(tenant, promo, *, portal_urls=True) -> list[dict]:
     """T-8.31b: «Wo erscheint die Aktion?» для кабинета — ``{key, label, ok, detail, url}``.
     ``ok``: True — видна, False — нет (``detail`` — почему), None — не про видимость."""
     from apps.core import owner_login
 
     base = owner_login.tenant_url(tenant)
-    catalog = _catalog_state(tenant, promo)
+    catalog = _catalog_state(tenant, promo, with_urls=portal_urls)
     page = reverse("storefront-promotion", args=[promo.pk], urlconf=TENANT_URLCONF)
     return [
         {

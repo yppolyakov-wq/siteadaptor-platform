@@ -179,6 +179,10 @@ class CabinetOwnerAccessMiddleware:
         "/dashboard/settings/notifications/telegram/",
         # T-8.29: включить модуль «свой Telegram-бот» решает владелец.
         "/dashboard/integrationen/telegram-aktivieren/",
+        # Ревью T-8.31 (MEDIUM): токен своего бота подменяет бота для клиентов —
+        # подключать и отключать может только владелец (экран статуса — всем).
+        "/dashboard/telegram/connect/",
+        "/dashboard/telegram/disconnect/",
     )
 
     def __init__(self, get_response):

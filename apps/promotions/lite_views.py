@@ -19,7 +19,7 @@ from .models import Promotion
 
 logger = logging.getLogger(__name__)
 
-_HEX = re.compile(r"^#[0-9a-fA-F]{3,8}$")
+_HEX = re.compile(r"#[0-9a-fA-F]{3,8}")
 # FSM-переходы, которые страница предлагает (остальное — на полной правке).
 _ACTIONS = {"active": ("paused", "ended"), "paused": ("active", "ended")}
 
@@ -46,9 +46,17 @@ def portal_listing(tenant, promo):
     return listing
 
 
+def _rows(where, tenant, promo) -> list:
+    try:
+        return where.rows(tenant, promo)
+    except Exception:  # noqa: BLE001 — список «где видно» не роняет страницу акции
+        logger.warning("promotion_preview: where.rows failed", exc_info=True)
+        return []
+
+
 def _accent(tenant) -> str:
     color = (getattr(tenant, "primary_color", "") or "").strip()
-    return color if _HEX.match(color) else "#4f46e5"
+    return color if _HEX.fullmatch(color) else "#4f46e5"
 
 
 @login_required
@@ -67,7 +75,7 @@ def promotion_preview(request, pk):
             "nav": "promotions",
             "promo": promo,
             "portal_items": [listing] if listing is not None else [],
-            "rows": where.rows(tenant, promo),
+            "rows": _rows(where, tenant, promo),
             "actions": _ACTIONS.get(promo.status, ()),
             # в style-атрибут — только hex (иначе CSS-инъекция через цвет тенанта)
             "accent": _accent(tenant),
