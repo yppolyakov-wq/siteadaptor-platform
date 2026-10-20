@@ -329,11 +329,15 @@ def _promo_message(bot, message: dict, link, update_id) -> str:
     """Текст/фото/альбом/команда владельца → тот же конвейер акций, что у своего бота,
     в схеме ТЕКУЩЕГО бизнеса (права перепроверяются там по таблице связей)."""
     from apps.core import ratelimit
-    from apps.promotions import telegram_promo
+    from apps.promotions import telegram_actions, telegram_promo
 
     schema = link.tenant.schema_name
     chat = str(message["chat_id"])
-    if ratelimit.hit("tg-promo", f"{schema}:{chat}", limit=telegram_promo.RATE_LIMIT, window=3600):
+    # Список акций — не черновик: его лимит (tg-actions) у кнопок; счётчик черновиков не тратим.
+    listing = telegram_actions.COMMAND_RE.match((message.get("text") or "").strip())
+    if not listing and ratelimit.hit(
+        "tg-promo", f"{schema}:{chat}", limit=telegram_promo.RATE_LIMIT, window=3600
+    ):
         send(bot, chat, _("Zu viele Entwürfe — bitte später erneut versuchen."))
         return "limited"
     update = {

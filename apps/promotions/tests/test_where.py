@@ -109,3 +109,25 @@ def test_channels_in_words(tg):  # noqa: F811
 
 def test_callback_regex_accepts_where():
     assert tp.CALLBACK_RE.match("tp:wh:" + "b" * 16)
+
+
+def test_expired_listing_is_not_linked(tg):  # noqa: F811
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    _token, promo = _published(tg)
+    tenant = tg["tenant"]
+    AggregatorListing.objects.update_or_create(
+        tenant_schema=tenant.schema_name,
+        listing_kind=AggregatorListing.KIND_PROMOTION,
+        source_ref=str(promo.pk),
+        defaults={
+            "title": {"de": "Brötchen"},
+            "city": "",
+            "is_active": True,
+            "ends_at": timezone.now() - timedelta(hours=1),
+        },
+    )
+    text = _text(tenant, promo)
+    assert "/angebot/" not in text and "aufgenommen" in text

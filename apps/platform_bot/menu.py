@@ -23,7 +23,7 @@ PREFIX = "pm:"
 HELP_RE = re.compile(r"^/(?:hilfe|help|menu|menue)(?:@\w+)?\s*$", re.IGNORECASE)
 CABINET_RE = re.compile(r"^/(?:kabinett|cabinet|login)(?:@\w+)?\s*$", re.IGNORECASE)
 OWN_BOT_RE = re.compile(r"^/(?:eigener_bot|own_bot)(?:@\w+)?\s*$", re.IGNORECASE)
-CALLBACK_RE = re.compile(r"^pm:(h|k|b|d|l:[aetn])$")
+CALLBACK_RE = re.compile(r"^pm:(h|k|b|d|a|l:[aetn])$")
 TENANT_URLCONF = "config.urls_tenant"
 
 # Экраны кабинета для входа письмом: код → url_name (подписи — `_label`).
@@ -58,6 +58,7 @@ def _send(bot, chat, text, markup=None):
 def keyboard() -> dict:
     return {
         "inline_keyboard": [
+            [{"text": "📋 " + _("Meine Aktionen"), "callback_data": PREFIX + "a"}],
             [
                 {"text": "🔑 " + _("Kabinett"), "callback_data": PREFIX + "k"},
                 {"text": "🤖 " + _("Eigener Bot"), "callback_data": PREFIX + "b"},
@@ -82,6 +83,7 @@ def help_text() -> str:
                 "ich zeige eine Vorschau, ✅ veröffentlicht."
             ),
             photo_tip(),
+            "📋 /aktionen — " + _("Ihre Aktionen: pausieren, starten, beenden, wo sichtbar"),
             "🔁 /wiederholen — " + _("eine frühere Aktion erneut starten"),
             "🏪 /geschaeft — "
             + _("Geschäft wechseln")
@@ -157,6 +159,17 @@ def own_bot(bot, uid, chat) -> str:
     return "own_bot"
 
 
+def my_promotions(bot, uid, chat, language_code: str = "") -> str:
+    """📋 — то же, что «/aktionen» текущего бизнеса (тот же путь прав и лимитов)."""
+    from .handler import _private_onboarding, _promo_message
+
+    current = links.active_links(uid).first()
+    if current is None:
+        return _private_onboarding(bot, chat)
+    message = {"chat_id": chat, "from_id": uid, "text": "/aktionen", "language_code": language_code}
+    return _promo_message(bot, message, current, None)
+
+
 def on_message(bot, message: dict, text: str) -> str:
     """'' — не команда меню."""
     uid, chat = message["from_id"], message["chat_id"]
@@ -190,6 +203,8 @@ def on_callback(bot, callback: dict) -> str:
         from . import privacy
 
         return privacy.info(bot, uid, chat)
+    if code == "a":
+        return my_promotions(bot, uid, chat, callback.get("language_code") or "")
     current = links.active_links(uid).first()
     if current is None:
         _send(bot, chat, _("Nicht verfügbar."))

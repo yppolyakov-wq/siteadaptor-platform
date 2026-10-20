@@ -129,3 +129,14 @@ def test_commands_include_menu_entries(monkeypatch):
     )
     config.set_commands("123:x")
     assert seen and all({"hilfe", "kabinett", "eigener_bot"} <= set(cmds) for cmds in seen)
+
+
+def test_my_promotions_button_goes_through_promo_pipeline(bot, monkeypatch):  # noqa: F811
+    _owner()
+    seen = []
+    monkeypatch.setattr(
+        "apps.promotions.telegram_promo.handle_owner_message",
+        lambda schema, update, bot_kind="tenant": seen.append(update["text"]) or "actions_menu",
+    )
+    assert handler.handle(_cb("pm:a")) == "actions_menu"
+    assert seen == ["/aktionen"]

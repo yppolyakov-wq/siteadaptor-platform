@@ -27075,3 +27075,64 @@ msgstr "published"
 
 msgid "Wo erscheint die Aktion?"
 msgstr "Where does the offer appear?"
+
+#, python-format
+msgid ""
+"Aktion „%(title)s“ wirklich beenden? Das lässt sich nicht rückgängig machen."
+msgstr "Really end the offer “%(title)s”? This cannot be undone."
+
+msgid "Aushang"
+msgstr "Flyer"
+
+msgid "Ihre letzten Aktionen — antippen zum Verwalten:"
+msgstr "Your latest offers — tap to manage:"
+
+msgid "Ja, beenden"
+msgstr "Yes, end it"
+
+msgid "Nicht möglich im aktuellen Status."
+msgstr "Not possible in the current status."
+
+msgid "Noch keine Aktionen. Schicken Sie einfach die erste als Nachricht."
+msgstr "No offers yet. Just send the first one as a message."
+
+msgid "Starten"
+msgstr "Start"
+
+#, python-format
+msgid "Status: %(status)s"
+msgstr "Status: %(status)s"
+
+msgid "archiviert"
+msgstr "archived"
+
+msgid "beendet"
+msgstr "ended"
+
+#, python-format
+msgid "bis %(date)s"
+msgstr "until %(date)s"
+
+msgid "geplant"
+msgstr "scheduled"
+
+msgid "pausiert"
+msgstr "paused"
+
+msgid "⏸ Pausiert — die Aktion ist nicht mehr sichtbar."
+msgstr "⏸ Paused — the offer is no longer visible."
+
+msgid "⏹ Beendet."
+msgstr "⏹ Ended."
+
+msgid "▶ Aktiv."
+msgstr "▶ Active."
+
+msgid "Schon erledigt."
+msgstr "Already done."
+
+msgid "Ihre Aktionen: pausieren, starten, beenden, wo sichtbar"
+msgstr "your offers: pause, start, end, where visible"
+
+msgid "Abgelaufen — bitte 🔁 Wiederholen nutzen."
+msgstr "Expired — please use 🔁 Repeat."

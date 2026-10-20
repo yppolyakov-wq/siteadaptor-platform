@@ -170,6 +170,7 @@ def set_commands(bot_token: str) -> None:
                     {"command": "geschaeft", "description": _("Geschäft wechseln")},
                     {"command": "wiederholen", "description": _("Aktion wiederholen")},
                     {"command": "abbrechen", "description": _("Abbrechen")},
+                    {"command": "aktionen", "description": _("Meine Aktionen")},
                     {"command": "hilfe", "description": _("Hilfe")},
                     {"command": "kabinett", "description": _("Kabinett öffnen")},
                     {"command": "eigener_bot", "description": _("Eigener Bot")},

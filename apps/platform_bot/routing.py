@@ -32,6 +32,7 @@ def wrap(tg_user_id, schema: str, inner: str) -> str:
 
 def resolve(tg_user_id, data: str) -> tuple[str, str] | None:
     """(схема, исходные данные кнопки) — только для того, кому кнопку показали."""
+    from apps.promotions.telegram_actions import CALLBACK_RE as ACTION_RE
     from apps.promotions.telegram_promo import CALLBACK_RE, REPEAT_CALLBACK_RE
 
     match = REF_RE.match(str(data or ""))
@@ -43,6 +44,6 @@ def resolve(tg_user_id, data: str) -> tuple[str, str] | None:
     schema, inner = str(value.get("schema") or ""), str(value.get("data") or "")
     if not SCHEMA_RE.match(schema):
         return None
-    if not (CALLBACK_RE.match(inner) or REPEAT_CALLBACK_RE.match(inner)):
+    if not (CALLBACK_RE.match(inner) or REPEAT_CALLBACK_RE.match(inner) or ACTION_RE.match(inner)):
         return None
     return schema, inner

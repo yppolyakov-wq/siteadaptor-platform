@@ -27329,3 +27329,64 @@ msgstr "опубліковано"
 
 msgid "Wo erscheint die Aktion?"
 msgstr "Де видно акцію?"
+
+#, python-format
+msgid ""
+"Aktion „%(title)s“ wirklich beenden? Das lässt sich nicht rückgängig machen."
+msgstr "Справді завершити акцію «%(title)s»? Це не можна скасувати."
+
+msgid "Aushang"
+msgstr "Флаєр"
+
+msgid "Ihre letzten Aktionen — antippen zum Verwalten:"
+msgstr "Ваші останні акції — натисніть, щоб керувати:"
+
+msgid "Ja, beenden"
+msgstr "Так, завершити"
+
+msgid "Nicht möglich im aktuellen Status."
+msgstr "Неможливо в поточному статусі."
+
+msgid "Noch keine Aktionen. Schicken Sie einfach die erste als Nachricht."
+msgstr "Акцій поки немає. Просто надішліть першу повідомленням."
+
+msgid "Starten"
+msgstr "Запустити"
+
+#, python-format
+msgid "Status: %(status)s"
+msgstr "Статус: %(status)s"
+
+msgid "archiviert"
+msgstr "в архіві"
+
+msgid "beendet"
+msgstr "завершена"
+
+#, python-format
+msgid "bis %(date)s"
+msgstr "до %(date)s"
+
+msgid "geplant"
+msgstr "запланована"
+
+msgid "pausiert"
+msgstr "на паузі"
+
+msgid "⏸ Pausiert — die Aktion ist nicht mehr sichtbar."
+msgstr "⏸ На паузі — акцію більше не видно."
+
+msgid "⏹ Beendet."
+msgstr "⏹ Завершена."
+
+msgid "▶ Aktiv."
+msgstr "▶ Активна."
+
+msgid "Schon erledigt."
+msgstr "Уже зроблено."
+
+msgid "Ihre Aktionen: pausieren, starten, beenden, wo sichtbar"
+msgstr "ваші акції: пауза, запуск, завершення, де видно"
+
+msgid "Abgelaufen — bitte 🔁 Wiederholen nutzen."
+msgstr "Термін минув — скористайтеся 🔁 Повторити."

@@ -40,20 +40,24 @@ def _catalog_line(tenant, promo) -> str:
     reason = _catalog_reason(tenant)
     if reason:
         return _("Stadtkatalog: %(reason)s") % {"reason": reason}
-    listing = AggregatorListing.objects.filter(
-        tenant_schema=tenant.schema_name,
-        listing_kind=AggregatorListing.KIND_PROMOTION,
-        source_ref=str(promo.pk),
-    ).first()
-    if listing is None or not listing.is_active:
+    key = {
+        "tenant_schema": tenant.schema_name,
+        "listing_kind": AggregatorListing.KIND_PROMOTION,
+        "source_ref": str(promo.pk),
+    }
+    # Ссылка — только на то, что портал реально покажет (та же точка чтения, что у него).
+    listing = AggregatorListing.objects.public().filter(**key).first()
+    if listing is None:
+        raw = AggregatorListing.objects.filter(**key).first()
+        if raw is not None and raw.hidden_at is not None:
+            return _("Stadtkatalog: nach Meldungen ausgeblendet, wird geprüft.")
         return _("Stadtkatalog: wird gerade aufgenommen (wenige Minuten).")
-    if listing.hidden_at is not None:
-        return _("Stadtkatalog: nach Meldungen ausgeblendet, wird geprüft.")
-    urls = [
-        follow.absolute(portal, "aggregator-offer", args=[listing.pk])
-        for portal in AggregatorPortal.objects.filter(is_active=True).order_by("pk")
-        if portal_scope.contains(listing, portal)
-    ][:PORTAL_LIMIT]
+    urls = []
+    for portal in AggregatorPortal.objects.filter(is_active=True).order_by("pk").iterator():
+        if portal_scope.contains(listing, portal):  # у тематического портала — запрос
+            urls.append(follow.absolute(portal, "aggregator-offer", args=[listing.pk]))
+            if len(urls) >= PORTAL_LIMIT:
+                break
     if not urls:
         urls = [follow.absolute(None, "aggregator-offer", args=[listing.pk])]
     return _("Stadtkatalog: %(url)s") % {"url": " · ".join(urls)}

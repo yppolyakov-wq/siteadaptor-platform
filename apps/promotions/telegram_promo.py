@@ -513,6 +513,12 @@ def _handle(bot, tenant, schema, chat, update) -> str:
         return "gated"
     if REPEAT_COMMAND_RE.match((update.get("text") or "").strip()) and not update.get("photo"):
         return repeat_menu(bot, chat)
+    from . import telegram_actions
+
+    if telegram_actions.COMMAND_RE.match((update.get("text") or "").strip()) and not update.get(
+        "photo"
+    ):
+        return telegram_actions.list_menu(bot, chat)
     photo = update.get("photo") or ""
     group = update.get("media_group_id") or ""
     if photo and not (update.get("text") or "").strip():
@@ -837,14 +843,19 @@ def _dispatch_callback(bot, callback: dict, tenant, schema: str) -> str:
     message = callback.get("message") or {}
     chat = str((message.get("chat") or {}).get("id") or "")
     data = str(callback.get("data") or "")
+    from . import telegram_actions
+
     m = CALLBACK_RE.match(data)
     rp = None if m else REPEAT_CALLBACK_RE.match(data)
-    if not m and not rp:
+    ta = None if (m or rp) else telegram_actions.CALLBACK_RE.match(data)
+    if not m and not rp and not ta:
         return "skip"
     reason = gate(tenant)
     if reason:
         _send(bot, chat, reason)
         return "gated"
+    if ta:
+        return telegram_actions.on_callback(bot, tenant, schema, chat, data)
     if rp:
         from apps.core import ratelimit
 

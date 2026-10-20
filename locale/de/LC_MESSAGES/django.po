@@ -27160,3 +27160,65 @@ msgstr "veröffentlicht"
 
 msgid "Wo erscheint die Aktion?"
 msgstr "Wo erscheint die Aktion?"
+
+#, python-format
+msgid ""
+"Aktion „%(title)s“ wirklich beenden? Das lässt sich nicht rückgängig machen."
+msgstr ""
+"Aktion „%(title)s“ wirklich beenden? Das lässt sich nicht rückgängig machen."
+
+msgid "Aushang"
+msgstr "Aushang"
+
+msgid "Ihre letzten Aktionen — antippen zum Verwalten:"
+msgstr "Ihre letzten Aktionen — antippen zum Verwalten:"
+
+msgid "Ja, beenden"
+msgstr "Ja, beenden"
+
+msgid "Nicht möglich im aktuellen Status."
+msgstr "Nicht möglich im aktuellen Status."
+
+msgid "Noch keine Aktionen. Schicken Sie einfach die erste als Nachricht."
+msgstr "Noch keine Aktionen. Schicken Sie einfach die erste als Nachricht."
+
+msgid "Starten"
+msgstr "Starten"
+
+#, python-format
+msgid "Status: %(status)s"
+msgstr "Status: %(status)s"
+
+msgid "archiviert"
+msgstr "archiviert"
+
+msgid "beendet"
+msgstr "beendet"
+
+#, python-format
+msgid "bis %(date)s"
+msgstr "bis %(date)s"
+
+msgid "geplant"
+msgstr "geplant"
+
+msgid "pausiert"
+msgstr "pausiert"
+
+msgid "⏸ Pausiert — die Aktion ist nicht mehr sichtbar."
+msgstr "⏸ Pausiert — die Aktion ist nicht mehr sichtbar."
+
+msgid "⏹ Beendet."
+msgstr "⏹ Beendet."
+
+msgid "▶ Aktiv."
+msgstr "▶ Aktiv."
+
+msgid "Schon erledigt."
+msgstr "Schon erledigt."
+
+msgid "Ihre Aktionen: pausieren, starten, beenden, wo sichtbar"
+msgstr "Ihre Aktionen: pausieren, starten, beenden, wo sichtbar"
+
+msgid "Abgelaufen — bitte 🔁 Wiederholen nutzen."
+msgstr "Abgelaufen — bitte 🔁 Wiederholen nutzen."

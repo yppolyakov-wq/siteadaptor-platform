@@ -27216,3 +27216,64 @@ msgstr "yayınlandı"
 
 msgid "Wo erscheint die Aktion?"
 msgstr "Kampanya nerede görünüyor?"
+
+#, python-format
+msgid ""
+"Aktion „%(title)s“ wirklich beenden? Das lässt sich nicht rückgängig machen."
+msgstr "„%(title)s“ kampanyası gerçekten bitirilsin mi? Bu geri alınamaz."
+
+msgid "Aushang"
+msgstr "Afiş"
+
+msgid "Ihre letzten Aktionen — antippen zum Verwalten:"
+msgstr "Son kampanyalarınız — yönetmek için dokunun:"
+
+msgid "Ja, beenden"
+msgstr "Evet, bitir"
+
+msgid "Nicht möglich im aktuellen Status."
+msgstr "Mevcut durumda mümkün değil."
+
+msgid "Noch keine Aktionen. Schicken Sie einfach die erste als Nachricht."
+msgstr "Henüz kampanya yok. İlkini mesaj olarak gönderin."
+
+msgid "Starten"
+msgstr "Başlat"
+
+#, python-format
+msgid "Status: %(status)s"
+msgstr "Durum: %(status)s"
+
+msgid "archiviert"
+msgstr "arşivlendi"
+
+msgid "beendet"
+msgstr "bitti"
+
+#, python-format
+msgid "bis %(date)s"
+msgstr "%(date)s tarihine kadar"
+
+msgid "geplant"
+msgstr "planlandı"
+
+msgid "pausiert"
+msgstr "duraklatıldı"
+
+msgid "⏸ Pausiert — die Aktion ist nicht mehr sichtbar."
+msgstr "⏸ Duraklatıldı — kampanya artık görünmüyor."
+
+msgid "⏹ Beendet."
+msgstr "⏹ Bitti."
+
+msgid "▶ Aktiv."
+msgstr "▶ Aktif."
+
+msgid "Schon erledigt."
+msgstr "Zaten yapıldı."
+
+msgid "Ihre Aktionen: pausieren, starten, beenden, wo sichtbar"
+msgstr "kampanyalarınız: duraklat, başlat, bitir, nerede görünüyor"
+
+msgid "Abgelaufen — bitte 🔁 Wiederholen nutzen."
+msgstr "Süresi doldu — lütfen 🔁 Tekrarla’yı kullanın."

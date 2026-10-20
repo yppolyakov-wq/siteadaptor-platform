@@ -27349,3 +27349,64 @@ msgstr "опубликовано"
 
 msgid "Wo erscheint die Aktion?"
 msgstr "Где видна акция?"
+
+#, python-format
+msgid ""
+"Aktion „%(title)s“ wirklich beenden? Das lässt sich nicht rückgängig machen."
+msgstr "Действительно завершить акцию «%(title)s»? Это нельзя отменить."
+
+msgid "Aushang"
+msgstr "Флаер"
+
+msgid "Ihre letzten Aktionen — antippen zum Verwalten:"
+msgstr "Ваши последние акции — нажмите, чтобы управлять:"
+
+msgid "Ja, beenden"
+msgstr "Да, завершить"
+
+msgid "Nicht möglich im aktuellen Status."
+msgstr "Невозможно в текущем статусе."
+
+msgid "Noch keine Aktionen. Schicken Sie einfach die erste als Nachricht."
+msgstr "Акций пока нет. Просто пришлите первую сообщением."
+
+msgid "Starten"
+msgstr "Запустить"
+
+#, python-format
+msgid "Status: %(status)s"
+msgstr "Статус: %(status)s"
+
+msgid "archiviert"
+msgstr "в архиве"
+
+msgid "beendet"
+msgstr "завершена"
+
+#, python-format
+msgid "bis %(date)s"
+msgstr "до %(date)s"
+
+msgid "geplant"
+msgstr "запланирована"
+
+msgid "pausiert"
+msgstr "на паузе"
+
+msgid "⏸ Pausiert — die Aktion ist nicht mehr sichtbar."
+msgstr "⏸ На паузе — акция больше не видна."
+
+msgid "⏹ Beendet."
+msgstr "⏹ Завершена."
+
+msgid "▶ Aktiv."
+msgstr "▶ Активна."
+
+msgid "Schon erledigt."
+msgstr "Уже сделано."
+
+msgid "Ihre Aktionen: pausieren, starten, beenden, wo sichtbar"
+msgstr "ваши акции: пауза, запуск, завершение, где видны"
+
+msgid "Abgelaufen — bitte 🔁 Wiederholen nutzen."
+msgstr "Срок истёк — используйте 🔁 Повторить."
