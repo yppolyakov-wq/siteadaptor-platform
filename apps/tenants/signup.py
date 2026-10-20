@@ -69,9 +69,24 @@ def send_confirmation_email(request, signup) -> None:
     )
 
 
+def portal_host_taken(slug: str) -> bool:
+    """T-8.14: поддомен занят порталом (Domain без тенанта-однофамильца) или зарезервирован
+    под тематический портал города («gesund-<город>»)."""
+    from apps.core import districts
+
+    from .models import Domain
+    from .quickstart import domain_base
+
+    city = slug[len("gesund-") :] if slug.startswith("gesund-") else slug
+    if districts.city_key(city) == city:  # «solingen» и «gesund-solingen» — порталы
+        return True
+    return Domain.objects.filter(domain=f"{slug}.{domain_base()}").exists()
+
+
 def slug_taken(slug: str) -> bool:
     """Slug/schema могли занять между POST и подтверждением (заявка не резервирует)."""
     return (
         Tenant.objects.filter(slug=slug).exists()
         or Tenant.objects.filter(schema_name=slug.replace("-", "_")).exists()
+        or portal_host_taken(slug)
     )

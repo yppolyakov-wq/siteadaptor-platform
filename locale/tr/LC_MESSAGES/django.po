@@ -26944,3 +26944,6 @@ msgstr "Bilinmeyen özellikler: %(keys)s"
 
 msgid "Unbekannte Bereiche: %(keys)s"
 msgstr "Bilinmeyen bölümler: %(keys)s"
+
+msgid "Erwartet wird eine Liste."
+msgstr "Bir liste bekleniyor."

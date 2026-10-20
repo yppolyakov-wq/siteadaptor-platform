@@ -279,3 +279,74 @@ def test_ensure_theme_portal_is_idempotent(settings):
     assert portal.kind == "theme" and portal.show_demo
     assert portal.theme_tags == ["vegan", "vegetarisch", "bio", "regional"]
     assert Domain.objects.filter(domain=portal.host).count() == 1
+
+
+# --- правки ревью ------------------------------------------------------------------
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_business_page_lists_only_theme_offers():
+    """Компания с одним веганским предложением видна на тематическом портале, но её
+    прочие предложения там не показываются (раньше страница выводила всё)."""
+    from apps.aggregator import reviews_views
+
+    _listing(
+        tenant_schema="veg", tenant_slug="veg", title={"de": "Vegane Bowl"}, city_tags=["vegan"]
+    )
+    _listing(tenant_schema="veg", tenant_slug="veg", title={"de": "Schnitzel"}, city_tags=[])
+    TenantFactory(schema_name="veg", slug="veg", city="Solingen")
+    portal = _theme_portal()
+    titles = [
+        str(it.title_text)
+        for it in reviews_views._business_listings(_get("/unternehmen/veg/", portal), "veg")
+    ]
+    assert "Vegane Bowl" in titles and "Schnitzel" not in titles
+
+
+def test_business_card_survives_search_filter():
+    """Карточка компании входит в тему по её предложениям, а не по совпадению с поиском."""
+    _listing(
+        tenant_schema="veg", tenant_slug="veg", title={"de": "Vegane Bowl"}, city_tags=["vegan"]
+    )
+    card = _listing(
+        tenant_schema="veg",
+        tenant_slug="veg",
+        listing_kind="business",
+        business_name="Grüne Küche",
+        city_tags=[],
+    )
+    pks = set(portal_scope.pool(_theme_portal(), kinds=("business",)).values_list("pk", flat=True))
+    assert card.pk in pks
+    assert portal_scope.contains(card, _theme_portal(host="g2.siteadaptor.de"))
+
+
+def test_non_theme_portal_pool_is_plain_listings_for():
+    _pair()
+    portal = _portal()
+    got = set(portal_scope.pool(portal, kinds=("promotion",)).values_list("pk", flat=True))
+    want = set(
+        views.listings_for(city="Solingen", kinds=("promotion",), include_demo=False).values_list(
+            "pk", flat=True
+        )
+    )
+    assert got == want and len(got) == 2
+
+
+def test_garbage_theme_values_do_not_crash():
+    portal = _portal()
+    portal.theme_tags = 5
+    portal.theme_categories = "x"
+    assert not portal_scope.has_theme(portal)
+    assert list(portal_scope.pool(portal)) is not None
+
+
+@pytest.mark.parametrize("slug", ["solingen", "gesund-solingen"])
+def test_portal_subdomains_are_reserved(slug, settings):
+    from apps.tenants import signup
+    from apps.tenants.forms import BusinessSignupForm
+
+    settings.TENANT_DOMAIN_BASE = "siteadaptor.de"
+    assert signup.slug_taken(slug)
+    form = BusinessSignupForm(data={"slug": slug})
+    form.is_valid()
+    assert "slug" in form.errors

@@ -438,7 +438,8 @@ def items_for(sub: FollowSubscription, *, since, now=None):
 
     portal = getattr(sub, "portal", None)
 
-    def listings_for(**filters):
+    def scoped(**filters):
+        # Пустой город подписки = город портала (pool понял бы "" как «без города»).
         if portal is not None and not filters.get("city"):
             filters.pop("city", None)
         return portal_scope.pool(portal, **filters)
@@ -446,7 +447,7 @@ def items_for(sub: FollowSubscription, *, since, now=None):
     if sub.target_kind == FollowSubscription.TARGET_BUSINESS:
         # Все виды предложений бизнеса (Р-2), но не его собственная карточка «Unternehmen».
         qs = (
-            listings_for(include_demo=False)
+            scoped(include_demo=False)
             .filter(tenant_schema=sub.target_key)
             .exclude(listing_kind=AggregatorListing.KIND_BUSINESS)
         )
@@ -455,14 +456,14 @@ def items_for(sub: FollowSubscription, *, since, now=None):
 
         qs = follow_query.queryset(sub)
     elif sub.target_kind == FollowSubscription.TARGET_SECTION:
-        qs = listings_for(
+        qs = scoped(
             city=sub.city,
             kinds=AggregatorListing.OFFER_KINDS,
             city_category=sub.target_key,
             include_demo=False,
         )
     else:
-        qs = listings_for(
+        qs = scoped(
             city=sub.city,
             district=sub.target_key,
             kinds=AggregatorListing.OFFER_KINDS,

@@ -18,11 +18,14 @@ from django.db.models import Q
 _UNSET = object()
 
 
+def _as_list(value) -> list:
+    return [str(v) for v in value] if isinstance(value, (list, tuple)) else []
+
+
 def theme_tags(portal) -> tuple[str, ...]:
     from apps.core import city_categories
 
-    raw = getattr(portal, "theme_tags", None) or []
-    return tuple(city_categories.normalize_tags(raw))
+    return tuple(city_categories.normalize_tags(_as_list(getattr(portal, "theme_tags", None))))
 
 
 def theme_category_keys(portal) -> tuple[str, ...]:
@@ -30,7 +33,7 @@ def theme_category_keys(portal) -> tuple[str, ...]:
     from apps.core import city_categories
 
     keys: list[str] = []
-    for value in getattr(portal, "theme_categories", None) or []:
+    for value in _as_list(getattr(portal, "theme_categories", None)):
         for key in city_categories.keys_for_filter(str(value)):
             if key not in keys:
                 keys.append(key)
@@ -56,14 +59,20 @@ def _theme_q(portal) -> Q | None:
     return q
 
 
-def apply(qs, portal):
-    """Наложить тему портала на queryset листингов (без темы — тот же queryset)."""
+def apply(qs, portal, base=None):
+    """Наложить тему портала на queryset листингов (без темы — тот же queryset).
+
+    Карточка компании входит в тему по предложениям из `base` — пула портала БЕЗ фильтров
+    выдачи (поиск, вид, раздел): иначе по `?q=Bäckerei` карточка пекарни исчезла бы,
+    потому что её веганское предложение не содержит этого слова. Без `base` — сам `qs`.
+    """
     q = _theme_q(portal)
     if q is None:
         return qs
     from .models import AggregatorListing
 
-    in_theme = qs.filter(q).exclude(listing_kind=AggregatorListing.KIND_BUSINESS)
+    source = qs if base is None else base
+    in_theme = source.filter(q).exclude(listing_kind=AggregatorListing.KIND_BUSINESS)
     schemas = in_theme.order_by().values("tenant_schema")
     return qs.filter(q | Q(listing_kind=AggregatorListing.KIND_BUSINESS, tenant_schema__in=schemas))
 
@@ -80,13 +89,17 @@ def pool(portal, *, city=_UNSET, business_type=_UNSET, include_demo=_UNSET, **fi
             include_demo=True if include_demo is _UNSET else include_demo,
             **filters,
         )
-    qs = listings_for(
-        city=(portal.city or None) if city is _UNSET else city,
-        business_type=(portal.business_type or None) if business_type is _UNSET else business_type,
-        include_demo=bool(portal.show_demo) if include_demo is _UNSET else include_demo,
-        **filters,
-    )
-    return apply(qs, portal)
+    scope = {
+        "city": (portal.city or None) if city is _UNSET else city,
+        "business_type": (portal.business_type or None)
+        if business_type is _UNSET
+        else business_type,
+        "include_demo": bool(portal.show_demo) if include_demo is _UNSET else include_demo,
+    }
+    qs = listings_for(**scope, **filters)
+    if not has_theme(portal):
+        return qs
+    return apply(qs, portal, base=listings_for(**scope) if filters else None)
 
 
 def contains(listing, portal) -> bool:
@@ -101,9 +114,7 @@ def contains(listing, portal) -> bool:
         return False
     if not has_theme(portal):
         return True
-    from .models import AggregatorListing
-
-    return apply(AggregatorListing.objects.filter(pk=listing.pk), portal).exists()
+    return pool(portal).filter(pk=listing.pk).exists()
 
 
 def contains_tenant(tenant, portal) -> bool:
@@ -128,6 +139,7 @@ def fingerprint(portal) -> str:
     parts = [
         str(getattr(portal, "pk", "") or ""),
         "1" if getattr(portal, "show_demo", False) else "0",
+        (getattr(portal, "city", "") or "").lower(),
         getattr(portal, "business_type", "") or "",
         ",".join(theme_tags(portal)),
         ",".join(theme_category_keys(portal)),

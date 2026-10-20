@@ -74,15 +74,23 @@ def _count_business_view(request, business, card) -> None:
 NARROW_MAX = 30
 
 
-def _narrow_choices(slug: str) -> dict:
+def _business_listings(request, slug: str):
+    """Листинги компании в границах портала (T-8.14: на тематическом — только тема)."""
+    from . import portal_scope
+
+    portal = getattr(request, "portal", None)
+    base = portal_scope.pool(portal) if portal is not None else AggregatorListing.objects.public()
+    return base.filter(tenant_slug=slug)
+
+
+def _narrow_choices(request, slug: str) -> dict:
     """Разделы/категории и марки, которые есть в выдаче компании (для формы сужения)."""
     from apps.core import city_categories as cc
 
     from .search import BRAND_MAX
 
     rows = (
-        AggregatorListing.objects.public()
-        .filter(tenant_slug=slug)
+        _business_listings(request, slug)
         .exclude(listing_kind=AggregatorListing.KIND_BUSINESS)
         .order_by()
         .values_list("city_category", "brand")
@@ -135,7 +143,7 @@ def business_page(request, slug):
     # маркой или словом. Варианты — только то, что у компании реально есть в каталоге.
     narrow = None
     if follow_target is not None:
-        narrow = _narrow_choices(slug)
+        narrow = _narrow_choices(request, slug)
     return render(
         request,
         "aggregator/portal_business.html",
@@ -152,8 +160,7 @@ def business_page(request, slug):
             "robots_noindex": bool(business.is_demo),
             # Блок А4: сама компания — не «своё предложение»; её карточка даёт
             # описание и «Zur Website».
-            "listings": AggregatorListing.objects.public()
-            .filter(tenant_slug=slug)
+            "listings": _business_listings(request, slug)
             .exclude(listing_kind=AggregatorListing.KIND_BUSINESS)
             .order_by("-updated_at"),
             "business_card": business_card,

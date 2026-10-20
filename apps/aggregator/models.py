@@ -590,12 +590,18 @@ class AggregatorPortal(I18nMixin, models.Model):
         from apps.core import city_categories
 
         errors = {}
-        tags = [str(v).strip() for v in (self.theme_tags or []) if str(v).strip()]
+        raw_tags = self.theme_tags if isinstance(self.theme_tags, list) else []
+        raw_cats = self.theme_categories if isinstance(self.theme_categories, list) else []
+        if not isinstance(self.theme_tags, list | type(None)):
+            errors["theme_tags"] = _("Erwartet wird eine Liste.")
+        if not isinstance(self.theme_categories, list | type(None)):
+            errors["theme_categories"] = _("Erwartet wird eine Liste.")
+        tags = [str(v).strip() for v in raw_tags if str(v).strip()]
         known_tags = city_categories.normalize_tags(tags)
         bad = [t for t in tags if t not in known_tags]
         if bad:
             errors["theme_tags"] = _("Unbekannte Merkmale: %(keys)s") % {"keys": ", ".join(bad)}
-        cats = [str(v).strip() for v in (self.theme_categories or []) if str(v).strip()]
+        cats = [str(v).strip() for v in raw_cats if str(v).strip()]
         bad = [c for c in cats if not city_categories.keys_for_filter(c)]
         if bad:
             errors["theme_categories"] = _("Unbekannte Bereiche: %(keys)s") % {

@@ -41,6 +41,11 @@ class BusinessSignupForm(forms.Form):
         # schema_name выводится из slug; проверим и его уникальность
         if Tenant.objects.filter(schema_name=slug.replace("-", "_")).exists():
             raise forms.ValidationError(_("Diese Subdomain ist bereits vergeben."))
+        # T-8.14: порталы (город, тема) живут на своём Domain без тенанта-однофамильца.
+        from .signup import portal_host_taken
+
+        if portal_host_taken(slug):
+            raise forms.ValidationError(_("Diese Subdomain ist bereits vergeben."))
         return slug
 
     def clean(self):
