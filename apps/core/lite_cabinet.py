@@ -1,7 +1,7 @@
 """T-8.23c: лёгкий кабинет для магазинов «Nur Aktionen» (план
 docs/t8-23-lite-feedback-plan-2026-10-10.md §8).
 
-Экраны — Start (T-8.31a) · Aktionen · Angebot · Verbindungen (T-8.29) · Geschäft · Teilen. Реестр якорей W8 (мораторий X7)
+Экраны — Start · Aktionen · Angebot · Sichtbar (T-8.31) · Geschäft · Teilen. Реестр якорей W8 (мораторий X7)
 не трогаем: ``modules.sidebar_nav`` отдаёт этот плоский набор только лёгкому режиму.
 Полный кабинет по прямым адресам доступен как раньше — режим упрощает вход, а не запрещает.
 """
@@ -20,12 +20,13 @@ from apps.core import storefront_profile
 # (url_name, nav_key, emoji, подпись) — nav_key существующие: подсветка и иконки даром.
 LITE_NAV = (
     # T-8.31a: первые четыре — мобильный таб-бар макета (Start · Aktionen · Angebot ·
-    # Sichtbar); «Verbindungen» станет «Sichtbarkeit» в 31c.
+    # Sichtbar).
     ("dashboard", "dashboard", "🏠", _("Start")),
     ("promotions:promotion-list", "promotions", "📣", _("Aktionen")),
     ("sellable-manage", "sellables", "📦", _("Angebot")),
-    # T-8.29: свой Telegram-бот, оплата, домен — иначе лёгкому кабинету их не найти.
-    ("integrations-home", "integrations", "🔌", _("Verbindungen")),
+    # T-8.31c: «Sichtbar» — где видно + подключения (свой бот, оплата, домен; T-8.29);
+    # полный список подключений — ссылкой со страницы.
+    ("lite-visibility", "integrations", "👁", _("Sichtbar")),
     ("lite-business", "settings", "🏪", _("Geschäft")),
     ("lite-share", "site", "🔗", _("Teilen")),
 )
@@ -140,5 +141,75 @@ def lite_share(request):
             "site_url": url,
             "qr_svg": _qr_svg(url),
             "share": share_targets(getattr(tenant, "name", ""), url),
+        },
+    )
+
+
+def _is_owner(user) -> bool:
+    from apps.core.roles import is_owner
+
+    try:
+        return is_owner(user)
+    except Exception:  # noqa: BLE001 — нет роли → как сотрудник (меньше видно)
+        return False
+
+
+def _portal_block(tenant, owner: bool) -> dict:
+    """Каталог города: видна ли витрина, сколько предложений, просмотры за 7 дней
+    (только владельцу — те же цифры, что owner-only экран «Stadtportal»)."""
+    from apps.aggregator.models import AggregatorListing
+    from apps.promotions import where
+
+    block = {"reason": where._catalog_reason(tenant), "count": 0, "views": None}
+    block["count"] = (
+        AggregatorListing.objects.public().filter(tenant_schema=tenant.schema_name).count()
+    )
+    if owner:
+        from apps.aggregator import owner_stats
+
+        funnel = owner_stats.summary(tenant, 7)["funnel"]
+        block["views"] = next((f["value"] for f in funnel if f["code"] == "view"), None)
+    return block
+
+
+def _google_connected() -> bool:
+    from apps.publishing.models import Channel
+
+    return Channel.objects.filter(type=Channel.GOOGLE_BUSINESS, is_enabled=True).exists()
+
+
+@login_required
+def lite_visibility(request):
+    """T-8.31c «Sichtbarkeit & Verbindungen» по макету: где клиенты находят бизнес
+    (сайт · каталог города · Google) и подключения (общий бот · свой бот · Stripe ·
+    домен). Только чтение и входы на штатные экраны; owner-only — только владельцу."""
+    from apps.core import integration_status as st
+    from apps.promotions.views import _public_url
+
+    tenant = request.tenant
+    owner = _is_owner(request.user)
+
+    def _block(fn, fallback):
+        try:
+            return fn()
+        except Exception:  # noqa: BLE001 — сломанный блок не роняет страницу
+            return fallback
+
+    return render(
+        request,
+        "tenant/lite_visibility.html",
+        {
+            "nav": "integrations",
+            "is_owner": owner,
+            "site_url": _block(lambda: _public_url(request, "/"), ""),
+            "portal": _block(
+                lambda: _portal_block(tenant, owner), {"reason": "", "count": 0, "views": None}
+            ),
+            "google_on": _block(_google_connected, False),
+            "publishing_on": tenant.is_module_active("publishing"),
+            "platform_bot": st.safe(lambda: st.telegram(tenant)),
+            "own_bot": st.own_bot(tenant),
+            "payments_on": bool(getattr(tenant, "payments_enabled", False)),
+            "domain": st.safe(lambda: st.domain(tenant)),
         },
     )

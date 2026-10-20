@@ -27615,3 +27615,46 @@ msgstr "görünür"
 
 msgid "wird gerade aufgenommen (wenige Minuten)."
 msgstr "şu anda ekleniyor (birkaç dakika)."
+
+#, python-format
+msgid "%(n)s Aufrufe in 7 Tagen"
+msgstr "7 günde %(n)s görüntülenme"
+
+msgid "Alle Verbindungen"
+msgstr "Tüm bağlantılar"
+
+msgid "Ansehen"
+msgstr "Görüntüle"
+
+msgid "Bot-Token"
+msgstr "Bot jetonu"
+
+msgid "Für Zurücklegen nicht nötig"
+msgstr "Ayırtma için gerekli değil"
+
+msgid "In Telegram @BotFather öffnen, /newbot senden."
+msgstr "Telegram'da @BotFather'ı açın, /newbot gönderin."
+
+msgid "Online bezahlen (Stripe)"
+msgstr "Online ödeme (Stripe)"
+
+msgid "Telegram (SiteAdaptor-Bot)"
+msgstr "Telegram (SiteAdaptor botu)"
+
+msgid "Token hier einfügen — nicht im Chat senden."
+msgstr "Jetonu buraya yapıştırın — sohbette göndermeyin."
+
+msgid "VERBINDUNGEN"
+msgstr "BAĞLANTILAR"
+
+msgid "WO KUNDEN SIE FINDEN"
+msgstr "MÜŞTERİLER SİZİ NEREDE BULUR"
+
+msgid "Öffnen"
+msgstr "Aç"
+
+#, python-format
+msgid "%(n)s Angebot"
+msgid_plural "%(n)s Angebote"
+msgstr[0] "%(n)s teklif"
+msgstr[1] "%(n)s teklif"

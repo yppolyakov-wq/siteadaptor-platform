@@ -48,7 +48,7 @@
           {% elif r.ok %}
             <span class="shrink-0 text-green-700">✓ {% trans "sichtbar" %}</span>
           {% elif r.key == "telegram" %}
-            <a href="{% url 'integrations-home' %}" class="shrink-0 font-medium text-indigo-600">{% trans "Verbinden" %}</a>
+            <a href="{% url 'lite-visibility' %}" class="shrink-0 font-medium text-indigo-600">{% trans "Verbinden" %}</a>
           {% else %}
             <span class="shrink-0 text-gray-500">{% trans "nicht sichtbar" %}</span>
           {% endif %}

@@ -81,6 +81,13 @@ def safe_next(request, value: str) -> str:
     return DEFAULT_NEXT
 
 
+def local_next(request) -> str:
+    """POST ``next``, если это локальный путь этого хоста, иначе '' (T-8.31: формы
+    лёгкого кабинета возвращают на свою страницу; `//host`, схема, `/\\` — отказ)."""
+    nxt = (request.POST.get("next") or "").strip()
+    return nxt if nxt and safe_next(request, nxt) == nxt else ""
+
+
 def _owner(email: str):
     """Пользователь с членством в этой схеме (иначе None — вход не даём)."""
     user = get_user_model().objects.filter(username=(email or "").strip().lower()).first()

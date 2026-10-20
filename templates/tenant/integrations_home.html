@@ -20,32 +20,6 @@
       </span>
     </a>
   {% endfor %}
-  {# T-8.29: свой Telegram-бот — модуль выключен по умолчанию, включает владелец здесь #}
-  <div data-own-bot class="bg-white rounded-2xl shadow-sm p-4 flex items-start gap-3">
-    <span class="text-2xl leading-none">🤖</span>
-    <span class="flex-1 min-w-0">
-      <span class="block text-sm font-medium text-gray-800">{% trans "Eigener Telegram-Bot" %}</span>
-      <span class="block text-xs text-gray-400 mt-0.5">{% trans "Kunden schreiben Ihrem Bot und öffnen Ihren Shop in Telegram." %}</span>
-      {% if own_bot.active %}
-        {% if own_bot.username %}
-          <span class="block text-xs mt-1 text-green-700">✅ @{{ own_bot.username }}</span>
-        {% else %}
-          <span class="block text-xs mt-1 text-gray-400">○ {% trans "Nicht verbunden" %}</span>
-        {% endif %}
-        <a href="{% url 'telegram-settings' %}" class="inline-block mt-2 text-sm font-medium text-indigo-600 hover:underline">{% trans "Einrichten" %} →</a>
-      {% elif can_activate %}
-        <details data-own-bot-confirm class="mt-2">
-          <summary class="cursor-pointer text-sm font-medium text-indigo-600">{% trans "Aktivieren" %}</summary>
-          <span class="block text-xs text-gray-600 mt-2">{% trans "Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich." %}</span>
-          <form method="post" action="{% url 'integrations-telegram-activate' %}" class="mt-2">
-            {% csrf_token %}
-            <button type="submit" class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Ja, aktivieren" %}</button>
-          </form>
-        </details>
-      {% else %}
-        <span class="block text-xs mt-1 text-gray-400">○ {% trans "Nur der Inhaber kann den Bot aktivieren." %}</span>
-      {% endif %}
-    </span>
-  </div>
+  {% include "tenant/_own_bot_card.html" %}
 </div>
 {% endblock %}

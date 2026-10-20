@@ -1,0 +1,72 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Sichtbarkeit" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}T-8.31c: «Sichtbarkeit & Verbindungen» по макету. Только статусы и входы на
+штатные экраны; цифры портала и подключение Google — только владельцу.{% endcomment %}
+<div class="max-w-lg mx-auto space-y-3" data-lite-visibility>
+  <header class="flex items-center gap-2 pt-1">
+    <a href="{% url 'dashboard' %}" aria-label="{% trans "Zurück" %}" class="shrink-0 w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-700">←</a>
+    <h1 class="text-xl font-bold">{% trans "Sichtbarkeit" %}</h1>
+  </header>
+
+  <p class="text-xs font-semibold tracking-wide text-gray-500 pt-1">{% trans "WO KUNDEN SIE FINDEN" %}</p>
+  <section class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+    <div class="p-4 flex items-center justify-between gap-3" data-vis="website">
+      <span class="min-w-0">
+        <span class="block font-medium">{% trans "Meine Website" %}</span>
+        <span class="block text-sm text-gray-500 truncate">{{ site_url }}</span>
+      </span>
+      <span class="shrink-0 flex gap-3 text-sm font-medium">
+        {% if site_url %}<a href="{{ site_url }}" target="_blank" rel="noopener" class="text-indigo-600">{% trans "Ansehen" %}</a>{% endif %}
+        <a href="{% url 'lite-share' %}" class="text-indigo-600">{% trans "Teilen" %}</a>
+      </span>
+    </div>
+    <div class="p-4" data-vis="stadtportal">
+      <span class="block font-medium">{% trans "Stadtportal" %}</span>
+      {% if portal.reason %}
+        <span class="block text-sm text-gray-500">{{ portal.reason }}</span>
+      {% else %}
+        <span class="block text-sm text-gray-500">✓ {% trans "sichtbar" %} · {% blocktrans count n=portal.count %}{{ n }} Angebot{% plural %}{{ n }} Angebote{% endblocktrans %}{% if portal.views is not None %} · <span data-portal-views>{% blocktrans with n=portal.views %}{{ n }} Aufrufe in 7 Tagen{% endblocktrans %}</span>{% endif %}</span>
+      {% endif %}
+    </div>
+    {% if is_owner and publishing_on %}
+      <div class="p-4 flex items-center justify-between gap-3" data-vis="google">
+        <span class="min-w-0">
+          <span class="block font-medium">{% trans "Google-Profil" %}</span>
+          <span class="block text-sm text-gray-500">{% if google_on %}✓ {% trans "verbunden" %}{% else %}{% trans "Nicht verbunden" %}{% endif %}</span>
+        </span>
+        <a href="{% url 'gbp-sync' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% if google_on %}{% trans "Öffnen" %}{% else %}{% trans "Verbinden" %}{% endif %}</a>
+      </div>
+    {% endif %}
+  </section>
+
+  <p class="text-xs font-semibold tracking-wide text-gray-500 pt-1">{% trans "VERBINDUNGEN" %}</p>
+  <section class="space-y-3">
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3" data-vis="platform-bot">
+      <span class="min-w-0">
+        <span class="block font-medium">{% trans "Telegram (SiteAdaptor-Bot)" %}</span>
+        {% if platform_bot.0 %}<span class="block text-sm {% if platform_bot.1 == 'ok' %}text-green-700{% else %}text-gray-500{% endif %}">{{ platform_bot.0 }}</span>{% endif %}
+      </span>
+      <a href="{% url 'notifications-settings' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>
+    </div>
+    {% include "tenant/_own_bot_card.html" with inline_token=True can_activate=is_owner %}
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3" data-vis="stripe">
+      <span class="min-w-0">
+        <span class="block font-medium">{% trans "Online bezahlen (Stripe)" %}</span>
+        <span class="block text-sm text-gray-500">{% if payments_on %}✓ {% trans "verbunden" %}{% else %}{% trans "Für Zurücklegen nicht nötig" %}{% endif %}</span>
+      </span>
+      <a href="{% url 'payment-settings' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3" data-vis="domain">
+      <span class="min-w-0">
+        <span class="block font-medium">{% trans "Eigene Domain" %}</span>
+        {% if domain.0 %}<span class="block text-sm {% if domain.1 == 'ok' %}text-green-700{% else %}text-gray-500{% endif %}">{{ domain.0 }}</span>{% endif %}
+      </span>
+      <a href="{% url 'domains' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>
+    </div>
+  </section>
+  <a href="{% url 'integrations-home' %}" class="block text-center text-sm font-medium text-indigo-600 py-2" data-all-connections>{% trans "Alle Verbindungen" %} →</a>
+</div>
+{% endblock %}

@@ -27475,3 +27475,46 @@ msgstr "visible"
 
 msgid "wird gerade aufgenommen (wenige Minuten)."
 msgstr "being added right now (a few minutes)."
+
+#, python-format
+msgid "%(n)s Aufrufe in 7 Tagen"
+msgstr "%(n)s views in 7 days"
+
+msgid "Alle Verbindungen"
+msgstr "All connections"
+
+msgid "Ansehen"
+msgstr "View"
+
+msgid "Bot-Token"
+msgstr "Bot token"
+
+msgid "Für Zurücklegen nicht nötig"
+msgstr "Not needed for reservations"
+
+msgid "In Telegram @BotFather öffnen, /newbot senden."
+msgstr "Open @BotFather in Telegram and send /newbot."
+
+msgid "Online bezahlen (Stripe)"
+msgstr "Online payment (Stripe)"
+
+msgid "Telegram (SiteAdaptor-Bot)"
+msgstr "Telegram (SiteAdaptor bot)"
+
+msgid "Token hier einfügen — nicht im Chat senden."
+msgstr "Paste the token here — do not send it in the chat."
+
+msgid "VERBINDUNGEN"
+msgstr "CONNECTIONS"
+
+msgid "WO KUNDEN SIE FINDEN"
+msgstr "WHERE CUSTOMERS FIND YOU"
+
+msgid "Öffnen"
+msgstr "Open"
+
+#, python-format
+msgid "%(n)s Angebot"
+msgid_plural "%(n)s Angebote"
+msgstr[0] "%(n)s offer"
+msgstr[1] "%(n)s offers"

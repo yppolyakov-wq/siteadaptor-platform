@@ -59,8 +59,9 @@ def _req(method, path, tenant, user=None):
 
 
 def test_lite_nav_has_verbindungen():
+    # T-8.31c: вход — «Sichtbar», полный список подключений — ссылкой оттуда.
     items = [i["url_name"] for i in lite_cabinet.sidebar_items(_tenant())]
-    assert "integrations-home" in items
+    assert "lite-visibility" in items
     # полный кабинет не меняется (якоря заморожены — integrations живёт в настройках)
     full = [i["url_name"] for i in modules.sidebar_nav(_tenant(lite=False))]
     assert "integrations-home" not in full

@@ -170,7 +170,7 @@ def test_lite_nav_is_start_first_and_tabbar_four():
         "dashboard",
         "promotions:promotion-list",
         "sellable-manage",
-        "integrations-home",
+        "lite-visibility",
     ]
     assert "lite-business" in nav and "lite-share" in nav
 

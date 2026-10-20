@@ -10,7 +10,7 @@
     <p class="text-sm text-gray-500">{{ today|date:"l, j. F" }}</p>
     <div class="flex items-center justify-between gap-3">
       <h1 class="text-2xl font-bold truncate">{{ request.tenant.name }}</h1>
-      <a href="{% url 'integrations-home' %}" aria-label="{% trans "Verbindungen" %}" class="shrink-0 w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-700">
+      <a href="{% url 'lite-visibility' %}" aria-label="{% trans "Sichtbarkeit" %}" class="shrink-0 w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-700">
         <svg class="w-5 h-5" aria-hidden="true"><use href="#ic-nav-integrations"></use></svg>
       </a>
     </div>
@@ -52,7 +52,7 @@
       <span class="font-semibold">{% trans "Mein Angebot" %}</span>
       <span class="text-sm text-gray-500">{% blocktrans count n=products.total %}{{ n }} Produkt{% plural %}{{ n }} Produkte{% endblocktrans %}{% if products.no_photo %} · {% blocktrans with n=products.no_photo %}{{ n }} ohne Foto{% endblocktrans %}{% endif %}</span>
     </a>
-    <a href="{% url 'integrations-home' %}" class="bg-white rounded-2xl shadow-sm p-4 min-h-[6rem] flex flex-col gap-1" data-lite-tile="sichtbar">
+    <a href="{% url 'lite-visibility' %}" class="bg-white rounded-2xl shadow-sm p-4 min-h-[6rem] flex flex-col gap-1" data-lite-tile="sichtbar">
       <svg class="w-6 h-6 text-indigo-600" aria-hidden="true"><use href="#ic-nav-integrations"></use></svg>
       <span class="font-semibold">{% trans "Sichtbarkeit" %}</span>
       <span class="text-sm text-gray-500">{% trans "Website · Stadtportal · Kanäle" %}</span>

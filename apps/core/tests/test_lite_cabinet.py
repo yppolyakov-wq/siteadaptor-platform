@@ -47,7 +47,7 @@ def test_lite_sidebar_is_flat_items_full_cabinet_unchanged():
         "dashboard",
         "promotions:promotion-list",
         "sellable-manage",
-        "integrations-home",  # T-8.29: «Verbindungen»
+        "lite-visibility",  # T-8.31c: «Sichtbar» (подключения T-8.29 — там же)
         "lite-business",
         "lite-share",
     ]

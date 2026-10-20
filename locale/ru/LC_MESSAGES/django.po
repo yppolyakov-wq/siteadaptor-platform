@@ -27746,3 +27746,48 @@ msgstr "видно"
 
 msgid "wird gerade aufgenommen (wenige Minuten)."
 msgstr "добавляется (несколько минут)."
+
+#, python-format
+msgid "%(n)s Aufrufe in 7 Tagen"
+msgstr "%(n)s просмотров за 7 дней"
+
+msgid "Alle Verbindungen"
+msgstr "Все подключения"
+
+msgid "Ansehen"
+msgstr "Открыть"
+
+msgid "Bot-Token"
+msgstr "Токен бота"
+
+msgid "Für Zurücklegen nicht nötig"
+msgstr "Для резерва не нужно"
+
+msgid "In Telegram @BotFather öffnen, /newbot senden."
+msgstr "Откройте @BotFather в Telegram и отправьте /newbot."
+
+msgid "Online bezahlen (Stripe)"
+msgstr "Онлайн-оплата (Stripe)"
+
+msgid "Telegram (SiteAdaptor-Bot)"
+msgstr "Telegram (бот SiteAdaptor)"
+
+msgid "Token hier einfügen — nicht im Chat senden."
+msgstr "Вставьте токен сюда — не отправляйте его в чат."
+
+msgid "VERBINDUNGEN"
+msgstr "ПОДКЛЮЧЕНИЯ"
+
+msgid "WO KUNDEN SIE FINDEN"
+msgstr "ГДЕ ВАС НАХОДЯТ КЛИЕНТЫ"
+
+msgid "Öffnen"
+msgstr "Открыть"
+
+#, python-format
+msgid "%(n)s Angebot"
+msgid_plural "%(n)s Angebote"
+msgstr[0] "%(n)s предложение"
+msgstr[1] "%(n)s предложения"
+msgstr[2] "%(n)s предложений"
+msgstr[3] "%(n)s предложения"

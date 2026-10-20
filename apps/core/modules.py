@@ -574,6 +574,9 @@ def enable_module(tenant, key: str) -> bool:
             tenant.disabled_modules = disabled
             return False
         locked.disabled_modules = [m for m in disabled if m != key]
+        # Точечная правка существующего бизнеса: схему не создаём (свежая строка
+        # получает классовый auto_create_schema=True — save() пошёл бы проверять схему).
+        locked.auto_create_schema = False
         locked.save(update_fields=["disabled_modules", "updated_at"])
     tenant.disabled_modules = locked.disabled_modules
     return True

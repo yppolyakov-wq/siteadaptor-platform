@@ -38,18 +38,26 @@ def settings_view(request):
     )
 
 
+def _back(request):
+    """T-8.31c: вернуть туда, откуда ввели токен (лёгкая «Sichtbarkeit»); только
+    локальный путь — иначе на экран бота, как раньше."""
+    from apps.core import owner_login
+
+    return redirect(owner_login.local_next(request) or "telegram-settings")
+
+
 @login_required
 @require_POST
 def connect(request):
     token = (request.POST.get("token") or "").strip()
     if not token:
         messages.error(request, _("Please paste the bot token from @BotFather."))
-        return redirect("telegram-settings")
+        return _back(request)
     try:
         me = services.get_me(token)
     except requests.RequestException:
         messages.error(request, _("Could not verify the token. Please check it."))
-        return redirect("telegram-settings")
+        return _back(request)
 
     bot = _bot()
     bot.token = token
@@ -68,7 +76,7 @@ def connect(request):
             messages.error(request, _("Token saved, but the webhook could not be set."))
     else:
         messages.error(request, _("No domain configured for this business yet."))
-    return redirect("telegram-settings")
+    return _back(request)
 
 
 @login_required

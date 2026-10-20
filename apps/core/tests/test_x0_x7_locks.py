@@ -60,6 +60,7 @@ EXPECTED_UNLISTED = frozenset(
         # [OK] T-8.23c: экраны лёгкого кабинета — вход из ЕГО меню (lite_cabinet.LITE_NAV)
         "lite-business",
         "lite-share",
+        "lite-visibility",  # T-8.31c: «Sichtbar» — из LITE_NAV
         # [POST] приёмники и action-роуты
         "billing-checkout",
         "integrations-telegram-activate",  # T-8.29: POST с карточки «Integrationen»

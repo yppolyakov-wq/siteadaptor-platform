@@ -5830,75 +5830,11 @@ def integrations_home(request):
     read-only статусами подключений на карточках (fail-safe: сломанный блок
     не валит экран — паттерн _safe ST-4a). Сами подключения настраиваются
     на целевых экранах; здесь только вход + честное состояние."""
-    from django.conf import settings as dj_settings
-
-    from apps.telegram.notify import active_bot, owner_chat_id
-
-    def _safe(fn):
-        try:
-            return fn()
-        except Exception:  # noqa: BLE001 — статус одного блока не валит лендинг
-            return ("", "muted")
-
-    tenant = request.tenant
-
-    def _stripe_status():
-        if getattr(tenant, "payments_enabled", False):
-            return (_("Stripe verbunden"), "ok")
-        if getattr(tenant, "vorkasse_enabled", False):
-            return (_("Vorkasse aktiv — Stripe nicht verbunden"), "warn")
-        return (_("Nicht verbunden"), "muted")
-
-    def _telegram_status():
-        # console-бэкенд = письма НЕ уходят наружу (Stage 0 честно на виду).
-        if "console" in (getattr(dj_settings, "EMAIL_BACKEND", "") or "").lower():
-            return (_("E-Mail: Test-Modus (Konsole) — Mails gehen nicht raus"), "warn")
-        bot = active_bot()
-        notify_node = (tenant.site_config or {}).get("notify") or {}
-        if isinstance(notify_node, dict) and notify_node.get("owner_bot") == "platform":
-            from apps.platform_bot import links as platform_links
-
-            if platform_links.platform_linked(tenant):
-                return (_("Über Plattform-Bot verbunden"), "ok")
-        if bot is None:
-            return (_("Kein Telegram-Bot"), "muted")
-        # I18N-7b: gettext НЕ в f-строке (xgettext их не извлекает).
-        label = _("Bot aktiv")
-        if bot.bot_username:
-            label = f"{label} · @{bot.bot_username}"
-        if owner_chat_id(tenant):
-            linked = _("Inhaber verbunden")
-            label = f"{label} · {linked}"
-        return (label, "ok")
-
-    def _domain_status():
-        doms = list(tenant.custom_domains.all()[:5])
-        active = next((d for d in doms if d.is_active), None)
-        if active is not None:
-            return (active.domain, "ok")
-        if any(d.status == d.PENDING for d in doms):
-            return (_("Prüfung ausstehend"), "warn")
-        return (_("Keine eigene Domain"), "muted")
-
-    def _publishing_status():
-        from apps.publishing.models import Channel as PubChannel
-
-        n = PubChannel.objects.filter(is_enabled=True).exclude(type=PubChannel.LOG).count()
-        if n:
-            lbl = _("Verbunden:")
-            return (f"{lbl} {n}", "ok")
-        return (_("Keine Kanäle verbunden"), "muted")
-
-    def _ota_status():
-        from apps.stays.models import Channel as OtaChannel
-
-        n = OtaChannel.objects.count()
-        if n:
-            lbl = _("Verbunden:")
-            return (f"{lbl} {n}", "ok")
-        return (_("Keine Kanäle verbunden"), "muted")
-
+    from apps.core import integration_status as st
     from apps.core.roles import is_owner
+
+    _safe = st.safe
+    tenant = request.tenant
 
     def _is_owner_safe(user):
         try:
@@ -5906,21 +5842,7 @@ def integrations_home(request):
         except Exception:  # noqa: BLE001 — кнопку не показываем, страница цела
             return False
 
-    def _own_bot():
-        # T-8.29: свой бот — отдельной карточкой с действием (модуль выкл у всех по
-        # умолчанию, без неё экран бота был недостижим, а прямой адрес — 404).
-        state = {"active": tenant.is_module_active("telegram"), "username": ""}
-        if state["active"]:
-            from apps.telegram.models import TelegramBot
-
-            bot = TelegramBot.objects.filter(is_active=True).first()
-            state["username"] = getattr(bot, "bot_username", "") if bot else ""
-        return state
-
-    try:
-        own_bot = _own_bot()
-    except Exception:  # noqa: BLE001 — статус блока не валит лендинг
-        own_bot = {"active": False, "username": ""}
+    own_bot = st.own_bot(tenant)
 
     cards = [
         {
@@ -5929,7 +5851,7 @@ def integrations_home(request):
             "hint": _("Online-Zahlung, Vorkasse, Zahlarten"),
             "url_name": "payment-settings",
             "show": True,
-            "status": _safe(_stripe_status),
+            "status": _safe(lambda: st.stripe(tenant)),
         },
         {
             "icon": "📨",
@@ -5937,7 +5859,7 @@ def integrations_home(request):
             "hint": _("E-Mail/Telegram-Kanäle, Telegram verbinden"),
             "url_name": "notifications-settings",
             "show": True,
-            "status": _safe(_telegram_status),
+            "status": _safe(lambda: st.telegram(tenant)),
         },
         {
             "icon": "🌐",
@@ -5945,7 +5867,7 @@ def integrations_home(request):
             "hint": _("Custom-Domain verbinden"),
             "url_name": "domains",
             "show": True,
-            "status": _safe(_domain_status),
+            "status": _safe(lambda: st.domain(tenant)),
         },
         {
             "icon": "📣",
@@ -5953,7 +5875,7 @@ def integrations_home(request):
             "hint": _("Kanäle verbinden und Beiträge planen"),
             "url_name": "channels",
             "show": tenant.is_module_active("publishing"),
-            "status": _safe(_publishing_status),
+            "status": _safe(st.publishing),
         },
         {
             # GK-11: Google-рейтинг (Places API) — плашка «★ X,X · N Google-
@@ -5971,7 +5893,7 @@ def integrations_home(request):
             "hint": _("Buchungen aus Portalen importieren"),
             "url_name": "stays:channels",
             "show": tenant.is_module_active("stays"),
-            "status": _safe(_ota_status),
+            "status": _safe(st.ota),
         },
     ]
     return render(
@@ -6000,7 +5922,10 @@ def integrations_telegram_activate(request):
         request.tenant, "telegram"
     ):
         messages.success(request, _("Eigener Telegram-Bot aktiviert — jetzt Token eintragen."))
-    return redirect("telegram-settings")
+    from apps.core import owner_login
+
+    # T-8.31c: со страницы «Sichtbarkeit» — назад туда (токен вводится там же).
+    return redirect(owner_login.local_next(request) or "telegram-settings")
 
 
 @login_required
