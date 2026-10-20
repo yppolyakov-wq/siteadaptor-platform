@@ -134,20 +134,20 @@ def _private(bot, message: dict, update_id=None) -> str:
         return _connect(bot, message, match.group(1))
     if CHOOSE_RE.match(text):
         return _choose(bot, message)
+    # H-5b: регистрация (в т. ч. второго бизнеса) — раньше конвейера акций: пока идёт
+    # диалог регистрации, сообщения — его шаги, а не текст акции.
+    routed = _signup_message(bot, message, text)
+    if routed:
+        return routed
     current = links.active_links(message["from_id"]).first()
-    if current is not None and NEW_RE.match(text):
-        from . import signup
-
-        return signup.start(bot, message["from_id"], message["chat_id"], "")
     if current is not None and not START_RE.match(text):
-        from . import signup
-
-        signup.drop(message["from_id"])  # уже владелец — регистрация не нужна
         return _promo_message(bot, message, current, update_id)
     if current is None:
-        routed = _signup_message(bot, message, text)
-        if routed:
-            return routed
+        from . import signup
+
+        reminded = signup.remind_pending(bot, message["from_id"], chat)
+        if reminded:
+            return reminded
     if current is not None:
         send(
             bot,
@@ -264,8 +264,14 @@ def _choose(bot, message: dict) -> str:
     if not owned:
         return _private_onboarding(bot, chat)
     current = owned[0]
+    new_row = [{"text": "➕ " + _("Neues Geschäft"), "callback_data": "ps:go"}]
     if len(owned) == 1:
-        send(bot, chat, _("Aktuelles Geschäft: %(name)s") % {"name": current.tenant.name})
+        send(
+            bot,
+            chat,
+            _("Aktuelles Geschäft: %(name)s") % {"name": current.tenant.name},
+            {"inline_keyboard": [new_row]},
+        )
         return "choose_single"
     keyboard = [
         [
@@ -276,6 +282,7 @@ def _choose(bot, message: dict) -> str:
         ]
         for link in owned
     ]
+    keyboard.append(new_row)
     send(
         bot,
         chat,

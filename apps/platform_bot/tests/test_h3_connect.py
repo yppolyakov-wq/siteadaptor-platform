@@ -188,7 +188,10 @@ def test_geschaeft_lists_only_own_links_and_selects(on, sent):
     msg = _start("x")
     msg["message"]["text"] = "/geschaeft"
     assert handler.handle(msg) == "choose_menu"
-    buttons = [row[0] for row in sent[-1][2]["inline_keyboard"]]
+    # H-5b: последняя строка — «➕ Neues Geschäft» (ps:go), выбор — строки g:.
+    rows = sent[-1][2]["inline_keyboard"]
+    assert rows[-1][0]["callback_data"] == "ps:go"
+    buttons = [row[0] for row in rows[:-1]]
     assert len(buttons) == 2
     assert all(re.match(r"^g:[0-9a-f-]{36}$", btn["callback_data"]) for btn in buttons)
     assert all(foreign.name not in btn["text"] for btn in buttons)

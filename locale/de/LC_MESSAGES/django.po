@@ -26734,3 +26734,65 @@ msgstr "Meine Nummer senden"
 
 msgid "Hier im Chat starten"
 msgstr "Hier im Chat starten"
+
+msgid ""
+"Bitte zuerst Ihre E-Mail bestätigen — danach ist der Chat verbunden. Link "
+"erneut senden:"
+msgstr ""
+"Bitte zuerst Ihre E-Mail bestätigen — danach ist der Chat verbunden. Link "
+"erneut senden:"
+
+#, python-format
+msgid "Bestätigungslink an %(mail)s gesendet."
+msgstr "Bestätigungslink an %(mail)s gesendet."
+
+#, python-format
+msgid "Neues Geschäft — Ihr bisheriges (%(name)s) bleibt bestehen."
+msgstr "Neues Geschäft — Ihr bisheriges (%(name)s) bleibt bestehen."
+
+msgid "Die Aktion bitte nach der Bestätigung noch einmal senden."
+msgstr "Die Aktion bitte nach der Bestätigung noch einmal senden."
+
+#, python-format
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — danach ist dieser Chat mit "
+"Ihrem Geschäft verbunden und Sie erscheinen im Stadtportal."
+msgstr ""
+"Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — danach ist dieser Chat mit "
+"Ihrem Geschäft verbunden und Sie erscheinen im Stadtportal."
+
+#, python-format
+msgid ""
+"✅ E-Mail bestätigt — Ihr Geschäft „%(name)s“ ist jetzt hier verbunden. Neue "
+"Aktionen: einfach hier schreiben."
+msgstr ""
+"✅ E-Mail bestätigt — Ihr Geschäft „%(name)s“ ist jetzt hier verbunden. Neue "
+"Aktionen: einfach hier schreiben."
+
+#, python-format
+msgid ""
+"E-Mail bestätigt. Benachrichtigungen für „%(name)s“ laufen über einen "
+"anderen Chat (im Kabinett festgelegt)."
+msgstr ""
+"E-Mail bestätigt. Benachrichtigungen für „%(name)s“ laufen über einen "
+"anderen Chat (im Kabinett festgelegt)."
+
+msgid "Neues Geschäft"
+msgstr "Neues Geschäft"
+
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail. Danach ist Ihr Telegram-Chat mit diesem "
+"Geschäft verbunden."
+msgstr ""
+"Bitte bestätigen Sie Ihre E-Mail. Danach ist Ihr Telegram-Chat mit diesem "
+"Geschäft verbunden."
+
+msgid ""
+"Danke! Ihr Telegram-Chat ist jetzt mit Ihrem Geschäft verbunden, und Ihre "
+"Aktionen erscheinen im Stadtportal."
+msgstr ""
+"Danke! Ihr Telegram-Chat ist jetzt mit Ihrem Geschäft verbunden, und Ihre "
+"Aktionen erscheinen im Stadtportal."
+
+msgid "E-Mail bestätigen"
+msgstr "E-Mail bestätigen"

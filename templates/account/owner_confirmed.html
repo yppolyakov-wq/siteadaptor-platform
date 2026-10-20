@@ -1,11 +1,20 @@
 {% extends "account/base_auth.html" %}
 {% load i18n %}
 {% block title %}{% trans "E-Mail bestätigt" %}{% endblock %}
-{% block auth_title %}{% if invalid %}{% trans "Link ungültig" %}{% else %}✓ {% trans "E-Mail bestätigt" %}{% endif %}{% endblock %}
+{% block auth_title %}{% if invalid %}{% trans "Link ungültig" %}{% elif needs_post %}{% trans "E-Mail bestätigen" %}{% else %}✓ {% trans "E-Mail bestätigt" %}{% endif %}{% endblock %}
 
 {% block auth_content %}
 {% if invalid %}
   <p class="text-sm text-gray-600">{% trans "Dieser Bestätigungslink ist ungültig oder abgelaufen." %}</p>
+{% elif needs_post %}
+  {% comment %}H-5b: бизнес из Telegram-бота — подтверждение привязывает чат, поэтому кнопкой (POST), а не открытием ссылки.{% endcomment %}
+  <p class="text-sm text-gray-600">{% trans "Bitte bestätigen Sie Ihre E-Mail. Danach ist Ihr Telegram-Chat mit diesem Geschäft verbunden." %}</p>
+  <form method="post" class="mt-4" data-owner-confirm-form>
+    {% csrf_token %}
+    <button class="inline-block text-sm font-medium bg-indigo-600 text-white rounded-lg px-4 py-2 hover:bg-indigo-700">✅ {% trans "E-Mail bestätigen" %}</button>
+  </form>
+{% elif bot_bound %}
+  <p class="text-sm text-gray-600" data-owner-confirmed>{% trans "Danke! Ihr Telegram-Chat ist jetzt mit Ihrem Geschäft verbunden, und Ihre Aktionen erscheinen im Stadtportal." %}</p>
 {% else %}
   <p class="text-sm text-gray-600" data-owner-confirmed>{% trans "Danke! Ihre Aktionen erscheinen jetzt auch im Stadtportal." %}</p>
 {% endif %}

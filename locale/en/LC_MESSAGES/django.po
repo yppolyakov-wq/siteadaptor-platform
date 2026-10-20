@@ -26653,3 +26653,64 @@ msgstr "Send my number"
 
 msgid "Hier im Chat starten"
 msgstr "Start here in the chat"
+
+msgid ""
+"Bitte zuerst Ihre E-Mail bestätigen — danach ist der Chat verbunden. Link "
+"erneut senden:"
+msgstr ""
+"Please confirm your e-mail first — then the chat is connected. Resend link:"
+
+#, python-format
+msgid "Bestätigungslink an %(mail)s gesendet."
+msgstr "Confirmation link sent to %(mail)s."
+
+#, python-format
+msgid "Neues Geschäft — Ihr bisheriges (%(name)s) bleibt bestehen."
+msgstr "New business — your existing one (%(name)s) stays as it is."
+
+msgid "Die Aktion bitte nach der Bestätigung noch einmal senden."
+msgstr "Please send the promotion again after confirming."
+
+#, python-format
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — danach ist dieser Chat mit "
+"Ihrem Geschäft verbunden und Sie erscheinen im Stadtportal."
+msgstr ""
+"Please confirm your e-mail (%(mail)s) — then this chat is connected to your "
+"business and you appear on the city portal."
+
+#, python-format
+msgid ""
+"✅ E-Mail bestätigt — Ihr Geschäft „%(name)s“ ist jetzt hier verbunden. Neue "
+"Aktionen: einfach hier schreiben."
+msgstr ""
+"✅ E-mail confirmed — your business “%(name)s” is now connected here. New "
+"promotions: just write here."
+
+#, python-format
+msgid ""
+"E-Mail bestätigt. Benachrichtigungen für „%(name)s“ laufen über einen "
+"anderen Chat (im Kabinett festgelegt)."
+msgstr ""
+"E-mail confirmed. Notifications for “%(name)s” go to another chat (set in "
+"the dashboard)."
+
+msgid "Neues Geschäft"
+msgstr "New business"
+
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail. Danach ist Ihr Telegram-Chat mit diesem "
+"Geschäft verbunden."
+msgstr ""
+"Please confirm your e-mail. Then your Telegram chat is connected to this "
+"business."
+
+msgid ""
+"Danke! Ihr Telegram-Chat ist jetzt mit Ihrem Geschäft verbunden, und Ihre "
+"Aktionen erscheinen im Stadtportal."
+msgstr ""
+"Thank you! Your Telegram chat is now connected to your business, and your "
+"promotions appear on the city portal."
+
+msgid "E-Mail bestätigen"
+msgstr "Confirm e-mail"

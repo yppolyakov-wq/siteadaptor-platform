@@ -26930,3 +26930,65 @@ msgstr "Отправить мой номер"
 
 msgid "Hier im Chat starten"
 msgstr "Начать здесь в чате"
+
+msgid ""
+"Bitte zuerst Ihre E-Mail bestätigen — danach ist der Chat verbunden. Link "
+"erneut senden:"
+msgstr ""
+"Сначала подтвердите e-mail — после этого чат будет подключён. Отправить "
+"ссылку ещё раз:"
+
+#, python-format
+msgid "Bestätigungslink an %(mail)s gesendet."
+msgstr "Ссылка для подтверждения отправлена на %(mail)s."
+
+#, python-format
+msgid "Neues Geschäft — Ihr bisheriges (%(name)s) bleibt bestehen."
+msgstr "Новый бизнес — ваш текущий (%(name)s) остаётся."
+
+msgid "Die Aktion bitte nach der Bestätigung noch einmal senden."
+msgstr "После подтверждения пришлите акцию ещё раз."
+
+#, python-format
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — danach ist dieser Chat mit "
+"Ihrem Geschäft verbunden und Sie erscheinen im Stadtportal."
+msgstr ""
+"Подтвердите e-mail (%(mail)s) — после этого чат будет подключён к вашему "
+"бизнесу, а вы появитесь на портале города."
+
+#, python-format
+msgid ""
+"✅ E-Mail bestätigt — Ihr Geschäft „%(name)s“ ist jetzt hier verbunden. Neue "
+"Aktionen: einfach hier schreiben."
+msgstr ""
+"✅ E-mail подтверждён — ваш бизнес «%(name)s» теперь подключён здесь. Новые "
+"акции: просто пишите сюда."
+
+#, python-format
+msgid ""
+"E-Mail bestätigt. Benachrichtigungen für „%(name)s“ laufen über einen "
+"anderen Chat (im Kabinett festgelegt)."
+msgstr ""
+"E-mail подтверждён. Уведомления для «%(name)s» приходят в другой чат (выбран"
+" в кабинете)."
+
+msgid "Neues Geschäft"
+msgstr "Новый бизнес"
+
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail. Danach ist Ihr Telegram-Chat mit diesem "
+"Geschäft verbunden."
+msgstr ""
+"Подтвердите e-mail. После этого ваш чат Telegram будет подключён к этому "
+"бизнесу."
+
+msgid ""
+"Danke! Ihr Telegram-Chat ist jetzt mit Ihrem Geschäft verbunden, und Ihre "
+"Aktionen erscheinen im Stadtportal."
+msgstr ""
+"Спасибо! Ваш чат Telegram подключён к бизнесу, а акции появятся на портале "
+"города."
+
+msgid "E-Mail bestätigen"
+msgstr "Подтвердить e-mail"

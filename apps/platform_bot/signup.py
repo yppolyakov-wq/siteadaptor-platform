@@ -61,6 +61,8 @@ LIMIT_MAIL = 3  # на один e-mail в сутки (не заваливать 
 LIMIT_GLOBAL = 30  # всего регистраций через бот — в час (подтверждённые номером)
 LIMIT_GLOBAL_UNVERIFIED = 10  # без подтверждённого номера — отдельная, меньшая корзина
 LIMIT_LOGIN_MAIL = 3  # писем-входа на один адрес в час
+LIMIT_CONFIRM_RESEND = 3  # повторных писем подтверждения из бота — в час на пользователя
+MAX_BOT_BUSINESSES = 5  # бизнесов на один чат (подключённые + ждущие почты): иначе обход Р-5
 
 
 # --- состояние --------------------------------------------------------------------------
@@ -133,8 +135,8 @@ def _rate(scope: str, ident, limit: int, window: int) -> bool:
 
 
 def start(bot, uid, chat, lang: str) -> str:
-    if links.active_links(uid).exists():
-        # v1: второй бизнес — через сайт (решение владельца — позже).
+    # H-5b (решение владельца): второй и следующие бизнесы — тоже прямо в чате.
+    if links.active_links(uid).count() + links.pending_for(uid).count() >= MAX_BOT_BUSINESSES:
         _send(
             bot,
             chat,
@@ -158,6 +160,14 @@ def start(bot, uid, chat, lang: str) -> str:
         "started": time.time(),
         "data": {},
     }
+    current = links.active_links(uid).first()
+    if current is not None:
+        _send(
+            bot,
+            chat,
+            _("Neues Geschäft — Ihr bisheriges (%(name)s) bleibt bestehen.")
+            % {"name": current.tenant.name},
+        )
     save(uid, state)
     _send(
         bot,
@@ -506,6 +516,8 @@ def on_callback(bot, callback: dict) -> str:
         return start(bot, uid, chat, callback.get("language_code") or "")
     if data.startswith("l:"):
         return send_login_link(bot, uid, chat, data[2:])
+    if data.startswith("m:"):
+        return resend_confirmation(bot, uid, chat, data[2:])
     with _lock(uid) as got:
         if not got:
             return "busy"
@@ -613,12 +625,14 @@ def submit(bot, uid, chat, state) -> str:
         return "invalid"
     guard = f"tgplat:signup-submit:{int(uid)}"
     if cache.get(guard):
-        return "busy"  # двойной ✅
+        _send(bot, chat, _("Ihr Geschäft wird gerade angelegt — einen Moment bitte."))
+        return "busy"  # двойной ✅ во время отправки
     cd = form.cleaned_data
     mail_key = hashlib.sha256(cd["email"].encode()).hexdigest()
     # Свой номер, подтверждённый кнопкой Telegram, — порог выше; без него (одноразовые
     # аккаунты) — строже и в отдельной общей корзине, чтобы не блокировать остальных.
-    verified = bool(data.get("phone_verified"))
+    # Владелец уже подтверждённого (почтой) бизнеса — проверенный пользователь.
+    verified = bool(data.get("phone_verified")) or links.active_links(uid).exists()
     per_user = LIMIT_SIGNUP if verified else LIMIT_SIGNUP_UNVERIFIED
     global_scope = "tgplat-signup-global" if verified else "tgplat-signup-global-unverified"
     global_limit = LIMIT_GLOBAL if verified else LIMIT_GLOBAL_UNVERIFIED
@@ -659,6 +673,9 @@ def submit(bot, uid, chat, state) -> str:
         cache.delete(guard)
         _send(bot, chat, _("Das hat nicht geklappt — bitte später erneut versuchen."))
         return "failed"
+    # Повторный ✅ уже ловит снятое состояние («abgelaufen»); защиту снимаем сразу, иначе
+    # следующий бизнес этого чата 5 минут молча не создавался бы.
+    cache.delete(guard)
     if cache.get(_pending_key(uid)):  # задача ещё идёт — итог придёт отдельным сообщением
         _send(bot, chat, "⏳ " + _("Ihr Geschäft wird angelegt — gleich kommt der Link."))
     logger.info("platform bot signup submitted")
@@ -703,10 +720,8 @@ def _mask(email: str) -> str:
 
 
 def finish(tenant_id, telegram: dict, promo_pk, ok: bool) -> str:
-    """Схема готова (или нет): привязать чат владельцем и сообщить итог — один раз."""
-    from django_tenants.utils import schema_context
-
-    from apps.core.models import Membership
+    """Схема готова (или нет): сообщить итог — один раз. Чат станет владельцем только после
+    подтверждения почты (H-5b, решение владельца: иначе чужой адрес = чужой бизнес)."""
     from apps.telegram import bots
     from apps.tenants.models import Tenant
 
@@ -729,44 +744,140 @@ def finish(tenant_id, telegram: dict, promo_pk, ok: bool) -> str:
                 % {"url": _web_url()},
             )
             return "failed"
-        with schema_context(tenant.schema_name):
-            owner = (
-                Membership.objects.filter(role=Membership.ROLE_OWNER)
-                .select_related("user")
-                .order_by("created_at")
-                .first()
-            )
-        links.bind(
-            uid,
-            tenant,
-            via=links.OwnerTelegramLink.VIA_SIGNUP,
-            user_pk=owner.user_id if owner else None,
-        )
+        if not tenant.email_pending:
+            # Почту подтвердили раньше, чем задача дошла сюда, — привязать сразу.
+            result, bound_uid, bound_lang = links.complete_pending(tenant)
+            if result in ("bound", "taken"):
+                bound_message(tenant, bound_uid or uid, result, bound_lang or lang)
+            return "bound"
         if not cache.add(f"tgplat:signup-done:{tenant.pk}", 1, 7 * 86400):
             return "already"
         lines = ["🎉 " + _("Fertig! Ihr Geschäft ist angelegt.")]
-        markup = None
+        rows = []
         if promo_pk:
             url = _promo_url(tenant, promo_pk)
             if url:
                 lines.append(_("Ihre Aktion: %(url)s") % {"url": url})
-                markup = {"inline_keyboard": [[{"text": "👀 " + _("Live ansehen"), "url": url}]]}
+                rows.append([{"text": "👀 " + _("Live ansehen"), "url": url}])
         else:
-            lines.append(_("Die Aktion bitte noch einmal senden — einfach hier schreiben."))
+            lines.append(_("Die Aktion bitte nach der Bestätigung noch einmal senden."))
         lines.append(
             _(
-                "Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — erst dann erscheinen Sie im Stadtportal."
+                "Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — danach ist dieser Chat mit Ihrem "
+                "Geschäft verbunden und Sie erscheinen im Stadtportal."
             )
-            % {"mail": _mask(owner.user.email if owner else "")}
+            % {"mail": _mask(_owner_email(tenant))}
         )
-        lines.append(_("Neue Aktionen: einfach hier schreiben."))
-        login = [
-            {"text": "🔑 " + _("Anmeldelink per E-Mail"), "callback_data": f"ps:l:{tenant.pk}"}
-        ]
-        markup = markup or {"inline_keyboard": []}
-        markup["inline_keyboard"].append(login)
-        _send(bot, uid, "\n".join(lines), markup)
-    return "bound"
+        rows.append(
+            [{"text": "✉️ " + _("E-Mail erneut senden"), "callback_data": f"ps:m:{tenant.pk}"}]
+        )
+        _send(bot, uid, "\n".join(lines), {"inline_keyboard": rows})
+    return "awaiting_email"
+
+
+def _owner_email(tenant) -> str:
+    from django_tenants.utils import schema_context
+
+    from apps.core.models import Membership
+
+    with schema_context(tenant.schema_name):
+        owner = (
+            Membership.objects.filter(role=Membership.ROLE_OWNER, user__is_active=True)
+            .select_related("user")
+            .order_by("created_at")
+            .first()
+        )
+        email = owner.user.email if owner else ""
+    return email or (tenant.owner_email or "")
+
+
+def bound_message(tenant, uid: int, result: str, lang: str = "") -> str:
+    """Почта подтверждена → сообщение в чат регистрации (один раз на бизнес)."""
+    from apps.telegram import bots
+
+    from .handler import locale_for
+
+    bot = bots.platform_bot()
+    if bot is None or not uid:
+        return "off"
+    if not cache.add(f"tgplat:signup-bound-msg:{tenant.pk}", 1, 7 * 86400):
+        return "already"
+    with translation.override(locale_for(lang)):
+        if result == "bound":
+            login = {
+                "text": "🔑 " + _("Anmeldelink per E-Mail"),
+                "callback_data": f"ps:l:{tenant.pk}",
+            }
+            _send(
+                bot,
+                uid,
+                _(
+                    "✅ E-Mail bestätigt — Ihr Geschäft „%(name)s“ ist jetzt hier verbunden. "
+                    "Neue Aktionen: einfach hier schreiben."
+                )
+                % {"name": tenant.name},
+                {"inline_keyboard": [[login]]},
+            )
+        else:
+            _send(
+                bot,
+                uid,
+                _(
+                    "E-Mail bestätigt. Benachrichtigungen für „%(name)s“ laufen über einen "
+                    "anderen Chat (im Kabinett festgelegt)."
+                )
+                % {"name": tenant.name},
+            )
+    return result
+
+
+def resend_confirmation(bot, uid, chat, tenant_ref: str) -> str:
+    """✉️ — письмо подтверждения ещё раз: только чату, который этот бизнес регистрировал."""
+    import hashlib
+
+    from apps.core import owner_login
+    from apps.tenants.models import Tenant
+
+    tenant = Tenant.objects.filter(pk=tenant_ref).first() if tenant_ref.isdigit() else None
+    marker = links.pending_marker(tenant) if tenant is not None else None
+    if tenant is None or not tenant.email_pending or not marker or int(marker["uid"]) != int(uid):
+        _send(bot, chat, _("Nicht verfügbar."))
+        return "denied"
+    email = _owner_email(tenant)
+    if not email:
+        _send(bot, chat, _("Nicht verfügbar."))
+        return "denied"
+    mail_key = hashlib.sha256(email.encode()).hexdigest()
+    if (
+        _rate("tgplat-confirm-resend", uid, LIMIT_CONFIRM_RESEND, 3600)
+        or _rate("owner-confirm", tenant.schema_name, 3, 3600)
+        or _rate("tgplat-signup-mail", mail_key, LIMIT_MAIL, 86400)
+    ):
+        _send(bot, chat, _("Zu viele Versuche. Bitte später erneut."))
+        return "limited"
+    owner_login.send_confirmation(tenant, email)
+    _send(bot, chat, _("Bestätigungslink an %(mail)s gesendet.") % {"mail": _mask(email)})
+    return "sent"
+
+
+def remind_pending(bot, uid, chat) -> str:
+    """Чат с неподтверждёнными бизнесами пишет боту — напомнить про почту."""
+    pending = list(links.pending_for(uid)[:MAX_BOT_BUSINESSES])
+    if not pending:
+        return ""
+    rows = [
+        [{"text": "✉️ " + tenant.name[:50], "callback_data": f"ps:m:{tenant.pk}"}]
+        for tenant in pending
+    ]
+    _send(
+        bot,
+        chat,
+        _(
+            "Bitte zuerst Ihre E-Mail bestätigen — danach ist der Chat verbunden. Link erneut senden:"
+        ),
+        {"inline_keyboard": rows},
+    )
+    return "awaiting_email"
 
 
 def _promo_url(tenant, promo_pk) -> str:

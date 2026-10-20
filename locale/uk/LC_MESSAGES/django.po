@@ -26910,3 +26910,65 @@ msgstr "Надіслати мій номер"
 
 msgid "Hier im Chat starten"
 msgstr "Почати тут у чаті"
+
+msgid ""
+"Bitte zuerst Ihre E-Mail bestätigen — danach ist der Chat verbunden. Link "
+"erneut senden:"
+msgstr ""
+"Спочатку підтвердьте e-mail — після цього чат буде підключено. Надіслати "
+"посилання ще раз:"
+
+#, python-format
+msgid "Bestätigungslink an %(mail)s gesendet."
+msgstr "Посилання для підтвердження надіслано на %(mail)s."
+
+#, python-format
+msgid "Neues Geschäft — Ihr bisheriges (%(name)s) bleibt bestehen."
+msgstr "Новий бізнес — ваш поточний (%(name)s) залишається."
+
+msgid "Die Aktion bitte nach der Bestätigung noch einmal senden."
+msgstr "Після підтвердження надішліть акцію ще раз."
+
+#, python-format
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — danach ist dieser Chat mit "
+"Ihrem Geschäft verbunden und Sie erscheinen im Stadtportal."
+msgstr ""
+"Підтвердьте e-mail (%(mail)s) — після цього чат буде підключено до вашого "
+"бізнесу, а ви з'явитеся на порталі міста."
+
+#, python-format
+msgid ""
+"✅ E-Mail bestätigt — Ihr Geschäft „%(name)s“ ist jetzt hier verbunden. Neue "
+"Aktionen: einfach hier schreiben."
+msgstr ""
+"✅ E-mail підтверджено — ваш бізнес «%(name)s» тепер підключено тут. Нові "
+"акції: просто пишіть сюди."
+
+#, python-format
+msgid ""
+"E-Mail bestätigt. Benachrichtigungen für „%(name)s“ laufen über einen "
+"anderen Chat (im Kabinett festgelegt)."
+msgstr ""
+"E-mail підтверджено. Сповіщення для «%(name)s» надходять в інший чат (обрано"
+" в кабінеті)."
+
+msgid "Neues Geschäft"
+msgstr "Новий бізнес"
+
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail. Danach ist Ihr Telegram-Chat mit diesem "
+"Geschäft verbunden."
+msgstr ""
+"Підтвердьте e-mail. Після цього ваш чат Telegram буде підключено до цього "
+"бізнесу."
+
+msgid ""
+"Danke! Ihr Telegram-Chat ist jetzt mit Ihrem Geschäft verbunden, und Ihre "
+"Aktionen erscheinen im Stadtportal."
+msgstr ""
+"Дякуємо! Ваш чат Telegram підключено до бізнесу, а акції з'являться на "
+"порталі міста."
+
+msgid "E-Mail bestätigen"
+msgstr "Підтвердити e-mail"

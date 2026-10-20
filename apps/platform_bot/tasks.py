@@ -66,3 +66,16 @@ def send_connected_email(*, schema, email, lang=""):
         ) % {"bot": username, "url": url}
     send_mail(subject, body, None, [email], fail_silently=True)
     return {"sent": True}
+
+
+@idempotent_task(lock_timeout=7 * 86400)
+def notify_signup_bound(*, tenant_pk, uid, result, lang=""):
+    """H-5b: почта подтверждена — сообщить в чат регистрации итог привязки."""
+    from apps.tenants.models import Tenant
+
+    from . import signup
+
+    tenant = Tenant.objects.filter(pk=tenant_pk).first()
+    if tenant is None:
+        return {"skipped": "no tenant"}
+    return {"result": signup.bound_message(tenant, int(uid), result, lang)}

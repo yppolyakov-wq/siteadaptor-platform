@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import secrets
 
 from django.contrib.auth import get_user_model
@@ -40,6 +41,7 @@ CONFIRM_SALT = "t85-confirm"
 CONFIRM_MAX_AGE = 30 * 24 * 3600
 DEFAULT_NEXT = "/promotions/"
 # Ссылки на поддомен строятся и из Celery (urlconf там публичный) — явно tenant-urlconf.
+logger = logging.getLogger(__name__)
 TENANT_URLCONF = "config.urls_tenant"
 
 
@@ -188,8 +190,37 @@ def owner_confirm_email(request, signed):
     tenant = request.tenant
     if str(payload.get("t")) != str(tenant.pk):
         return render(request, "account/owner_confirmed.html", {"invalid": True}, status=404)
+    from apps.platform_bot import links
+
+    if links.pending_marker(tenant) is not None:
+        # H-5b: бизнес из Telegram-бота — подтверждение привязывает чат владельцем, поэтому
+        # только POST (сканер ссылок в почте открывает GET и не должен ничего менять).
+        if request.method != "POST":
+            return render(request, "account/owner_confirmed.html", {"needs_post": True})
+        confirm_tenant_email(tenant)
+        _complete_bot_binding(tenant)
+        return render(request, "account/owner_confirmed.html", {"bot_bound": True})
     confirm_tenant_email(tenant)
     return render(request, "account/owner_confirmed.html", {})
+
+
+def _complete_bot_binding(tenant) -> None:
+    """Привязать чат регистрации и сообщить в бот; сбой бота не ломает страницу."""
+    from django.db import transaction
+
+    from apps.platform_bot import links, tasks
+
+    try:
+        result, uid, lang = links.complete_pending(tenant)
+        if result in ("bound", "taken"):
+            pk = tenant.pk
+            transaction.on_commit(
+                lambda: tasks.notify_signup_bound.delay(
+                    tenant_pk=pk, uid=uid, result=result, lang=lang
+                )
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("bot binding after e-mail confirm failed: %s", type(exc).__name__)
 
 
 @require_POST

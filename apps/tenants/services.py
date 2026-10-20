@@ -200,6 +200,18 @@ def start_quick_provisioning(
     # переводит в trial_expired → suspended, а кабинет не показывает «Trial: N Tage».
     tenant.trial_ends_at = None
     tenant.site_config = {"profile": "aktionen"}
+    if telegram:
+        # H-5b: чат регистрации станет владельцем только ПОСЛЕ подтверждения почты —
+        # метка пишется при создании строки (раньше любого письма), снимает её links.
+        import time as _time
+
+        tenant.site_config["notify"] = {
+            "pending_tg_owner": {
+                "uid": int(telegram.get("tg_user_id") or 0),
+                "lang": str(telegram.get("lang") or "")[:8],
+                "at": int(_time.time()),
+            }
+        }
     tenant.provisioning_status = Tenant.PROVISIONING_PENDING
     tenant.auto_create_schema = False
     tenant.save()

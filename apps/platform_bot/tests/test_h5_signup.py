@@ -218,12 +218,6 @@ def test_photos_downloaded_with_platform_token(bot, monkeypatch):
     assert seen == {"token": "123:plat", "ids": ["f1", "f2"]}
 
 
-def test_user_with_business_gets_web_link_on_neu(bot):
-    tenant = TenantFactory(schema_name="ex1", slug="ex1")
-    links.bind(USER, tenant)
-    assert handler.handle(_msg("/neu")) == "has_business"
-
-
 def test_no_personal_data_in_logs(bot, caplog):
     with caplog.at_level(logging.DEBUG):
         _walk_to_summary()
@@ -235,27 +229,28 @@ def test_no_personal_data_in_logs(bot, caplog):
 # --- после провижининга --------------------------------------------------------------
 
 
-def test_finish_binds_signup_link_and_messages_once(bot):
+def test_finish_awaits_email_and_does_not_bind(bot):
+    """H-5b (решение владельца): чат станет владельцем только после подтверждения почты."""
     from django.contrib.auth import get_user_model
 
     from apps.core.models import Membership
 
     tenant = TenantFactory(schema_name="public", slug="fin-1", name="Krume")
     tenant.provisioning_status = tenant.PROVISIONING_READY
+    tenant.email_pending = True
+    tenant.site_config = {"notify": {"pending_tg_owner": {"uid": USER, "lang": "de"}}}
     tenant.save()
     user = get_user_model().objects.create_user(username=MAIL, email=MAIL, password="pw12345678")
     Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
     telegram = {"tg_user_id": USER, "lang": "de"}
     pk = uuid.uuid4()
-    assert signup.finish(tenant.pk, telegram, pk, True) == "bound"
+    assert signup.finish(tenant.pk, telegram, pk, True) == "awaiting_email"
     assert signup.finish(tenant.pk, telegram, pk, True) == "already"
-    link = OwnerTelegramLink.objects.get(tenant=tenant)
-    assert link.via == OwnerTelegramLink.VIA_SIGNUP and link.is_active
-    tenant.refresh_from_db()
-    assert tenant.site_config["notify"]["owner_user_pk"] == user.pk
-    texts = [m["text"] for m in bot["sent"]]
-    assert sum("Fertig" in t for t in texts) == 1
-    assert "i***@example.com" in texts[-1] and MAIL not in texts[-1]
+    assert not OwnerTelegramLink.objects.filter(tenant=tenant).exists()
+    last = bot["sent"][-1]
+    assert "bestätigen" in last["text"] and "i***@example.com" in last["text"]
+    data = [b.get("callback_data", "") for row in last["markup"]["inline_keyboard"] for b in row]
+    assert f"ps:m:{tenant.pk}" in data and not any(d.startswith("ps:l:") for d in data)
 
 
 def test_finish_failure_sends_message_and_no_link(bot):

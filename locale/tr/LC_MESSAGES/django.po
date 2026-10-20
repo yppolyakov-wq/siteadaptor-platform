@@ -26792,3 +26792,65 @@ msgstr "Numaramı gönder"
 
 msgid "Hier im Chat starten"
 msgstr "Burada sohbette başla"
+
+msgid ""
+"Bitte zuerst Ihre E-Mail bestätigen — danach ist der Chat verbunden. Link "
+"erneut senden:"
+msgstr ""
+"Lütfen önce e-postanızı onaylayın — ardından sohbet bağlanır. Bağlantıyı "
+"yeniden gönder:"
+
+#, python-format
+msgid "Bestätigungslink an %(mail)s gesendet."
+msgstr "Onay bağlantısı %(mail)s adresine gönderildi."
+
+#, python-format
+msgid "Neues Geschäft — Ihr bisheriges (%(name)s) bleibt bestehen."
+msgstr "Yeni işletme — mevcut işletmeniz (%(name)s) olduğu gibi kalır."
+
+msgid "Die Aktion bitte nach der Bestätigung noch einmal senden."
+msgstr "Lütfen onayladıktan sonra kampanyayı tekrar gönderin."
+
+#, python-format
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail (%(mail)s) — danach ist dieser Chat mit "
+"Ihrem Geschäft verbunden und Sie erscheinen im Stadtportal."
+msgstr ""
+"Lütfen e-postanızı (%(mail)s) onaylayın — ardından bu sohbet işletmenize "
+"bağlanır ve şehir portalında görünürsünüz."
+
+#, python-format
+msgid ""
+"✅ E-Mail bestätigt — Ihr Geschäft „%(name)s“ ist jetzt hier verbunden. Neue "
+"Aktionen: einfach hier schreiben."
+msgstr ""
+"✅ E-posta onaylandı — “%(name)s” işletmeniz artık burada bağlı. Yeni "
+"kampanyalar: buraya yazmanız yeterli."
+
+#, python-format
+msgid ""
+"E-Mail bestätigt. Benachrichtigungen für „%(name)s“ laufen über einen "
+"anderen Chat (im Kabinett festgelegt)."
+msgstr ""
+"E-posta onaylandı. “%(name)s” bildirimleri başka bir sohbete gidiyor "
+"(panelde ayarlandı)."
+
+msgid "Neues Geschäft"
+msgstr "Yeni işletme"
+
+msgid ""
+"Bitte bestätigen Sie Ihre E-Mail. Danach ist Ihr Telegram-Chat mit diesem "
+"Geschäft verbunden."
+msgstr ""
+"Lütfen e-postanızı onaylayın. Ardından Telegram sohbetiniz bu işletmeye "
+"bağlanır."
+
+msgid ""
+"Danke! Ihr Telegram-Chat ist jetzt mit Ihrem Geschäft verbunden, und Ihre "
+"Aktionen erscheinen im Stadtportal."
+msgstr ""
+"Teşekkürler! Telegram sohbetiniz artık işletmenize bağlı ve kampanyalarınız "
+"şehir portalında görünüyor."
+
+msgid "E-Mail bestätigen"
+msgstr "E-postayı onayla"

@@ -40,7 +40,14 @@ def _write_mirror(tenant, **changes) -> dict:
     return cfg
 
 
-def bind(tg_user_id: int, tenant, *, via: str = OwnerTelegramLink.VIA_CABINET, user_pk=None):
+def bind(
+    tg_user_id: int,
+    tenant,
+    *,
+    via: str = OwnerTelegramLink.VIA_CABINET,
+    user_pk=None,
+    clear_pending: bool = False,
+):
     """Привязать пользователя Telegram к бизнесу через общий бот (и сделать текущим).
 
     ``user_pk`` — пользователь кабинета, выпустивший ссылку: доставка проверяет, что он
@@ -68,6 +75,7 @@ def bind(tg_user_id: int, tenant, *, via: str = OwnerTelegramLink.VIA_CABINET, u
             owner_chat_id=str(tg_user_id),
             owner_bot=OWNER_BOT_PLATFORM,
             owner_user_pk=user_pk,  # None — ключ снимается
+            **({"pending_tg_owner": None} if clear_pending else {}),
         )
     return link
 
@@ -220,3 +228,64 @@ def platform_linked(tenant) -> bool:
         return False
     chat = str(node.get("owner_chat_id") or "")
     return chat.isdigit() and is_owner(int(chat), tenant)
+
+
+# --- H-5b: привязка регистрации через бот — только после подтверждения почты -------------
+
+
+def pending_marker(tenant) -> dict | None:
+    cfg = getattr(tenant, "site_config", None)
+    node = cfg.get("notify") if isinstance(cfg, dict) else None
+    marker = node.get("pending_tg_owner") if isinstance(node, dict) else None
+    return marker if isinstance(marker, dict) and marker.get("uid") else None
+
+
+def complete_pending(tenant) -> tuple[str, int | None, str]:
+    """Почта подтверждена: привязать чат регистрации (метка) владельцем.
+
+    → (итог, uid, язык): "bound" | "taken" (в кабинете уже выбран другой чат/свой бот —
+    выбор кабинета не перебиваем, метка снимается) | "none" (метки нет)."""
+    from django_tenants.utils import schema_context
+
+    from apps.core.models import Membership
+
+    with transaction.atomic():
+        locked = _lock(tenant.pk)
+        marker = pending_marker(locked)
+        if marker is None:
+            return ("none", None, "")
+        uid, lang = int(marker["uid"]), str(marker.get("lang") or "")
+        cfg = locked.site_config if isinstance(locked.site_config, dict) else {}
+        node = cfg.get("notify") if isinstance(cfg.get("notify"), dict) else {}
+        other = (
+            OwnerTelegramLink.objects.filter(tenant=locked, is_active=True)
+            .exclude(tg_user_id=uid)
+            .exists()
+        )
+        if other or node.get("owner_bot") == OWNER_BOT_TENANT:
+            tenant.site_config = _write_mirror(locked, pending_tg_owner=None)
+            return ("taken", uid, lang)
+        with schema_context(locked.schema_name):
+            owner = (
+                Membership.objects.filter(role=Membership.ROLE_OWNER, user__is_active=True)
+                .order_by("created_at")
+                .first()
+            )
+        bind(
+            uid,
+            locked,
+            via=OwnerTelegramLink.VIA_SIGNUP,
+            user_pk=owner.user_id if owner else None,
+            clear_pending=True,
+        )
+        tenant.site_config = locked.site_config
+    return ("bound", uid, lang)
+
+
+def pending_for(tg_user_id):
+    """Бизнесы, зарегистрированные этим чатом и ждущие подтверждения почты."""
+    from apps.tenants.models import Tenant
+
+    return Tenant.objects.filter(
+        site_config__notify__pending_tg_owner__uid=int(tg_user_id), email_pending=True
+    )
