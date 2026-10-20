@@ -5896,6 +5896,30 @@ def integrations_home(request):
             return (f"{lbl} {n}", "ok")
         return (_("Keine Kanäle verbunden"), "muted")
 
+    from apps.core.roles import is_owner
+
+    def _is_owner_safe(user):
+        try:
+            return is_owner(user)
+        except Exception:  # noqa: BLE001 — кнопку не показываем, страница цела
+            return False
+
+    def _own_bot():
+        # T-8.29: свой бот — отдельной карточкой с действием (модуль выкл у всех по
+        # умолчанию, без неё экран бота был недостижим, а прямой адрес — 404).
+        state = {"active": tenant.is_module_active("telegram"), "username": ""}
+        if state["active"]:
+            from apps.telegram.models import TelegramBot
+
+            bot = TelegramBot.objects.filter(is_active=True).first()
+            state["username"] = getattr(bot, "bot_username", "") if bot else ""
+        return state
+
+    try:
+        own_bot = _own_bot()
+    except Exception:  # noqa: BLE001 — статус блока не валит лендинг
+        own_bot = {"active": False, "username": ""}
+
     cards = [
         {
             "icon": "💳",
@@ -5952,8 +5976,27 @@ def integrations_home(request):
         request,
         "tenant/integrations_home.html",
         # nav-ключ прежний — подсветку на якорь «Einstellungen» ведёт реестр W8.
-        {"nav": "integrations", "cards": [c for c in cards if c["show"]]},
+        {
+            "nav": "integrations",
+            "cards": [c for c in cards if c["show"]],
+            "own_bot": own_bot,
+            "can_activate": _is_owner_safe(request.user),
+        },
     )
+
+
+@login_required
+@require_POST
+def integrations_telegram_activate(request):
+    """T-8.29: включить модуль «свой Telegram-бот» и открыть его настройку.
+
+    Только владелец (CabinetOwnerAccessMiddleware); пишем ровно этот модуль. Само
+    включение клиентам ничего не меняет, пока не сохранён токен бота."""
+    from apps.core import modules
+
+    if modules.enable_module(request.tenant, "telegram"):
+        messages.success(request, _("Eigener Telegram-Bot aktiviert — jetzt Token eintragen."))
+    return redirect("telegram-settings")
 
 
 @login_required

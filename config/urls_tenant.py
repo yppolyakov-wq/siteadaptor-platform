@@ -41,6 +41,7 @@ from apps.core.views import (
     google_reviews_settings,
     home_builder_view,
     integrations_home,
+    integrations_telegram_activate,
     kanban_action,
     languages_view,
     legal_docs_view,
@@ -189,6 +190,12 @@ urlpatterns = [
     path("dashboard/presence/", set_presence_view, name="set-presence"),
     # ST-4a: лендинг «Integrationen» (карточки-входы; хаб-плитка главной).
     path("dashboard/integrationen/", integrations_home, name="integrations-home"),
+    # T-8.29: путь НЕ под /dashboard/telegram/ — тот гейтит модуль и отдал бы 404.
+    path(
+        "dashboard/integrationen/telegram-aktivieren/",
+        integrations_telegram_activate,
+        name="integrations-telegram-activate",
+    ),
     # X8: поиск по данным для палитры Ctrl+K (JSON; login_required во вьюхе).
     path("dashboard/palette-search/", palette_search, name="palette-search"),
     # ST-6a: Marketing-центр (лендинг: карточки ROI-порядка + обзор напоминаний

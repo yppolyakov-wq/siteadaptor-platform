@@ -139,13 +139,13 @@ def mark_blocked(tg_user_id: int) -> int:
 
 
 def claim_for_tenant_bot(tenant, chat_id, *, rotate_token: str) -> None:
-    """Владелец подключил СВОЙ бот бизнеса (`/start owner-…`): связи общего бота гаснут,
-    зеркало переходит на свой бот, токен deep link ротируется (одноразовый)."""
+    """Владелец подключил СВОЙ бот бизнеса (`/start owner-…`): уведомления владельцу
+    идут своим ботом, токен deep link ротируется (одноразовый).
+
+    T-8.29 (Р-1 владельца): связи общего бота НЕ гаснут — акции через общий бот и
+    Mini App «Mein Laden» продолжают работать; меняется только маршрут уведомлений."""
     with transaction.atomic():
         locked = _lock(tenant.pk)
-        OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True).update(
-            is_active=False, updated_at=timezone.now()
-        )
         tenant.site_config = _write_mirror(
             locked,
             owner_chat_id=str(chat_id),

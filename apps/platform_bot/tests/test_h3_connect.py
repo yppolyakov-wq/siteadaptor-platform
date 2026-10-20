@@ -340,7 +340,8 @@ def test_own_bot_start_takes_over_from_platform(on):
     node = tenant.site_config["notify"]
     assert node["owner_bot"] == "tenant" and node["owner_chat_id"] == "555"
     assert node["owner_link_token"] != "tok"
-    assert not links.is_owner(USER, tenant)
+    # T-8.29 (Р-1): связь с общим ботом остаётся — акции и Mini App работают дальше.
+    assert links.is_owner(USER, tenant)
 
 
 # --- доставка владельцу ---------------------------------------------------------------

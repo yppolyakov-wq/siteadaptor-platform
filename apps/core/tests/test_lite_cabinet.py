@@ -40,13 +40,14 @@ def _req(method, path, user, tenant, data=None):
     return req
 
 
-def test_lite_sidebar_is_four_flat_items_full_cabinet_unchanged():
+def test_lite_sidebar_is_flat_items_full_cabinet_unchanged():
     lite = modules.sidebar_nav(_tenant("lc-nav"))
     assert [i["url_name"] for i in lite] == [
         "promotions:promotion-list",
         "sellable-manage",
         "lite-business",
         "lite-share",
+        "integrations-home",  # T-8.29: «Verbindungen»
     ]
     assert all(not i["children"] for i in lite)
     full = modules.sidebar_nav(_tenant("lc-full", lite=False))

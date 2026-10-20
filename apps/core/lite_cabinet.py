@@ -1,7 +1,7 @@
 """T-8.23c: лёгкий кабинет для магазинов «Nur Aktionen» (план
 docs/t8-23-lite-feedback-plan-2026-10-10.md §8).
 
-Четыре экрана — Aktionen · Produkte · Geschäft · Teilen. Реестр якорей W8 (мораторий X7)
+Экраны — Aktionen · Produkte · Geschäft · Teilen · Verbindungen (T-8.29). Реестр якорей W8 (мораторий X7)
 не трогаем: ``modules.sidebar_nav`` отдаёт этот плоский набор только лёгкому режиму.
 Полный кабинет по прямым адресам доступен как раньше — режим упрощает вход, а не запрещает.
 """
@@ -23,6 +23,8 @@ LITE_NAV = (
     ("sellable-manage", "sellables", "📦", _("Produkte")),
     ("lite-business", "settings", "🏪", _("Geschäft")),
     ("lite-share", "site", "🔗", _("Teilen")),
+    # T-8.29: свой Telegram-бот, оплата, домен — иначе лёгкому кабинету их не найти.
+    ("integrations-home", "integrations", "🔌", _("Verbindungen")),
 )
 # Ревью Г1: у визитки «eintrag» сортимент живёт на сайте владельца — повторный импорт
 # должен быть доступен из меню (иначе вход только через прямую ссылку).

@@ -560,6 +560,17 @@ def is_module_active(tenant, key: str) -> bool:
     return all(is_module_active(tenant, dep) for dep in spec.depends_on)
 
 
+def enable_module(tenant, key: str) -> bool:
+    """T-8.29: включить ОДИН модуль точечной записью (чужие выборы владельца целы).
+    True — что-то изменилось."""
+    disabled = list(getattr(tenant, "disabled_modules", None) or [])
+    if key not in disabled:
+        return False
+    tenant.disabled_modules = [m for m in disabled if m != key]
+    tenant.save(update_fields=["disabled_modules", "updated_at"])
+    return True
+
+
 def active_modules(tenant) -> list[ModuleSpec]:
     return [spec for spec in REGISTRY if is_module_active(tenant, spec.key)]
 

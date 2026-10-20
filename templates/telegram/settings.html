@@ -30,6 +30,8 @@
     <li>{% blocktrans %}Open <b>@BotFather</b> in Telegram and send <b>/newbot</b>.{% endblocktrans %}</li>
     <li>{% trans "Copy the bot token it gives you and paste it below." %}</li>
   </ol>
+  {# T-8.29: токен — секрет; в чате он остался бы в облачной истории Telegram #}
+  <p data-token-not-in-chat class="text-xs text-amber-800 bg-amber-50 rounded-lg px-3 py-2 mb-4">{% trans "Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich." %}</p>
 
   <form method="post" action="{% url 'telegram-connect' %}" class="space-y-2">
     {% csrf_token %}

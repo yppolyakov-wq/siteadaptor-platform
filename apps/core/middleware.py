@@ -177,6 +177,8 @@ class CabinetOwnerAccessMiddleware:
         "/dashboard/channels/toggle/",
         # T-8.10h H-3: привязка бизнеса к общему Telegram-боту — только владельцу.
         "/dashboard/settings/notifications/telegram/",
+        # T-8.29: включить модуль «свой Telegram-бот» решает владелец.
+        "/dashboard/integrationen/telegram-aktivieren/",
     )
 
     def __init__(self, get_response):

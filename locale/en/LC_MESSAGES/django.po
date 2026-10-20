@@ -27351,3 +27351,42 @@ msgstr "phone, WhatsApp, city catalogue"
 
 msgid "Bitte die Nummer als Text senden — oder „-“ zum Löschen."
 msgstr "Please send the number as text — or “-” to clear it."
+
+msgid "Aktivieren"
+msgstr "Activate"
+
+msgid "Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich."
+msgstr "Then enter the token from @BotFather. Until then nothing changes for customers. Promotions via the SiteAdaptor bot remain possible."
+
+msgid "Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ eintragen — nicht hier im Chat senden."
+msgstr "Enter the token ONLY in the dashboard under “Connections” → “Own Telegram bot” — do not send it here in the chat."
+
+msgid "Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich."
+msgstr "Enter the token only here — never send it in a chat. Promotions via the SiteAdaptor bot remain possible with your own bot too."
+
+msgid "Eigenen Telegram-Bot einrichten"
+msgstr "Set up your own Telegram bot"
+
+msgid "Eigener Telegram-Bot"
+msgstr "Own Telegram bot"
+
+msgid "Eigener Telegram-Bot aktiviert — jetzt Token eintragen."
+msgstr "Own Telegram bot activated — now enter the token."
+
+msgid "Einrichten"
+msgstr "Set up"
+
+msgid "Ja, aktivieren"
+msgstr "Yes, activate"
+
+msgid "Kabinett „Verbindungen“"
+msgstr "Dashboard “Connections”"
+
+msgid "Kunden schreiben Ihrem Bot und öffnen Ihren Shop in Telegram."
+msgstr "Customers message your bot and open your shop in Telegram."
+
+msgid "Nur der Inhaber kann den Bot aktivieren."
+msgstr "Only the owner can activate the bot."
+
+msgid "Verbindungen"
+msgstr "Connections"

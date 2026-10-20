@@ -182,9 +182,10 @@ def test_bare_start_greets_and_unlinked_gets_onboarding(plat):
     assert handler.handle(_message("Brötchen −30 % heute", update_id=3)) == "onboarding"
 
 
-def test_tenant_bot_claim_removes_platform_route(plat):
+def test_tenant_bot_claim_keeps_platform_route(plat):
+    """T-8.29 (Р-1): свой бот забирает только уведомления — акции через общий бот живут."""
     links.claim_for_tenant_bot(plat["tenant"], USER, rotate_token="x")
-    assert handler.handle(_message("Brötchen −30 % heute", update_id=4)) == "onboarding"
+    assert handler.handle(_message("Brötchen −30 % heute", update_id=4)) == "preview"
 
 
 def test_load_for_web_finds_platform_draft_with_stale_mirror(plat):

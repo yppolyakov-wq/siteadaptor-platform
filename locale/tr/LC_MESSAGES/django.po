@@ -27491,3 +27491,42 @@ msgstr "telefon, WhatsApp, şehir kataloğu"
 
 msgid "Bitte die Nummer als Text senden — oder „-“ zum Löschen."
 msgstr "Lütfen numarayı metin olarak gönderin — silmek için „-“."
+
+msgid "Aktivieren"
+msgstr "Etkinleştir"
+
+msgid "Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich."
+msgstr "Ardından @BotFather'dan aldığınız token'ı girin. O zamana kadar müşteriler için hiçbir şey değişmez. SiteAdaptor botu üzerinden kampanyalar mümkün olmaya devam eder."
+
+msgid "Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ eintragen — nicht hier im Chat senden."
+msgstr "Token'ı YALNIZCA panelde „Bağlantılar“ → „Kendi Telegram botu“ altına girin — buraya sohbete göndermeyin."
+
+msgid "Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich."
+msgstr "Token'ı yalnızca buraya girin — asla bir sohbette göndermeyin. Kendi botunuz olsa da SiteAdaptor botu üzerinden kampanyalar mümkündür."
+
+msgid "Eigenen Telegram-Bot einrichten"
+msgstr "Kendi Telegram botunuzu kurun"
+
+msgid "Eigener Telegram-Bot"
+msgstr "Kendi Telegram botu"
+
+msgid "Eigener Telegram-Bot aktiviert — jetzt Token eintragen."
+msgstr "Kendi Telegram botu etkinleştirildi — şimdi token'ı girin."
+
+msgid "Einrichten"
+msgstr "Kur"
+
+msgid "Ja, aktivieren"
+msgstr "Evet, etkinleştir"
+
+msgid "Kabinett „Verbindungen“"
+msgstr "Panel „Bağlantılar“"
+
+msgid "Kunden schreiben Ihrem Bot und öffnen Ihren Shop in Telegram."
+msgstr "Müşteriler botunuza yazar ve mağazanızı Telegram'da açar."
+
+msgid "Nur der Inhaber kann den Bot aktivieren."
+msgstr "Botu yalnızca işletme sahibi etkinleştirebilir."
+
+msgid "Verbindungen"
+msgstr "Bağlantılar"

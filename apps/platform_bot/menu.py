@@ -30,7 +30,8 @@ TENANT_URLCONF = "config.urls_tenant"
 TARGETS = {
     "a": "promotions:promotion-list",
     "e": "settings",
-    "t": "telegram-settings",
+    # T-8.29: «Verbindungen» есть всегда; экран бота при выключенном модуле — 404.
+    "t": "integrations-home",
     "n": "notifications-settings",
 }
 
@@ -39,7 +40,7 @@ def _label(code: str) -> str:
     labels = {
         "a": _("Aktionen"),
         "e": _("Einstellungen"),
-        "t": _("Telegram-Bot"),
+        "t": _("Verbindungen"),
         "n": _("Benachrichtigungen"),
     }
     return labels[code]
@@ -145,8 +146,8 @@ def own_bot(bot, uid, chat) -> str:
             "2. " + _("Namen wählen — BotFather schickt einen Token."),
             "3. "
             + _(
-                "Den Token NUR im Kabinett unter „Telegram-Bot“ eintragen — "
-                "nicht hier im Chat senden."
+                "Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ "
+                "eintragen — nicht hier im Chat senden."
             ),
             _(
                 "Danach beantwortet Ihr eigener Bot Kundinnen und Kunden; Aktionen gehen weiter hier."
@@ -157,7 +158,7 @@ def own_bot(bot, uid, chat) -> str:
     if current is not None:
         markup = {
             "inline_keyboard": [
-                [{"text": "✉️ " + _("Kabinett „Telegram-Bot“"), "callback_data": PREFIX + "l:t"}]
+                [{"text": "✉️ " + _("Kabinett „Verbindungen“"), "callback_data": PREFIX + "l:t"}]
             ]
         }
     _send(bot, chat, text, markup)

@@ -27602,3 +27602,42 @@ msgstr "телефон, WhatsApp, каталог міста"
 
 msgid "Bitte die Nummer als Text senden — oder „-“ zum Löschen."
 msgstr "Надішліть номер текстом — або «-», щоб очистити."
+
+msgid "Aktivieren"
+msgstr "Увімкнути"
+
+msgid "Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich."
+msgstr "Потім введіть токен із @BotFather. До того для клієнтів нічого не змінюється. Акції через бот SiteAdaptor залишаються доступними."
+
+msgid "Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ eintragen — nicht hier im Chat senden."
+msgstr "Токен вводьте ЛИШЕ в кабінеті: «Підключення» → «Власний Telegram-бот» — не надсилайте його сюди в чат."
+
+msgid "Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich."
+msgstr "Вводьте токен лише тут — ніколи не надсилайте його в чат. Акції через бот SiteAdaptor залишаються доступними і з власним ботом."
+
+msgid "Eigenen Telegram-Bot einrichten"
+msgstr "Налаштувати власний Telegram-бот"
+
+msgid "Eigener Telegram-Bot"
+msgstr "Власний Telegram-бот"
+
+msgid "Eigener Telegram-Bot aktiviert — jetzt Token eintragen."
+msgstr "Власний Telegram-бот увімкнено — тепер введіть токен."
+
+msgid "Einrichten"
+msgstr "Налаштувати"
+
+msgid "Ja, aktivieren"
+msgstr "Так, увімкнути"
+
+msgid "Kabinett „Verbindungen“"
+msgstr "Кабінет «Підключення»"
+
+msgid "Kunden schreiben Ihrem Bot und öffnen Ihren Shop in Telegram."
+msgstr "Клієнти пишуть вашому боту й відкривають ваш магазин у Telegram."
+
+msgid "Nur der Inhaber kann den Bot aktivieren."
+msgstr "Увімкнути бота може лише власник."
+
+msgid "Verbindungen"
+msgstr "Підключення"
