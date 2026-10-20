@@ -27518,3 +27518,66 @@ msgid "%(n)s Angebot"
 msgid_plural "%(n)s Angebote"
 msgstr[0] "%(n)s offer"
 msgstr[1] "%(n)s offers"
+
+msgid "Bitte melden Sie sich für dieses Geschäft per E-Mail an."
+msgstr "Please sign in to this business by e-mail."
+
+msgid "Bitte öffnen Sie „Mein Laden“ im Bot erneut."
+msgstr "Please open “My shop” in the bot again."
+
+msgid "Bitte öffnen Sie „Mein Laden“ über den Telegram-Bot."
+msgstr "Please open “My shop” via the Telegram bot."
+
+msgid "Der Bot ist gerade nicht verfügbar."
+msgstr "The bot is not available right now."
+
+msgid "Die Verarbeitung ist eingeschränkt. Mit /freigeben im Bot wieder aufheben."
+msgstr "Processing is restricted. Lift it with /freigeben in the bot."
+
+msgid "Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür per E-Mail an."
+msgstr "This page is not available in the Telegram app. Sign in by e-mail to use it."
+
+msgid "Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
+msgstr "This link has expired. Please open “My shop” in the Telegram bot again."
+
+msgid "Einen Moment …"
+msgstr "One moment …"
+
+msgid "Einrichten nach Anmeldung per E-Mail."
+msgstr "Set up after signing in by e-mail."
+
+msgid "Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
+msgstr "Your Telegram session has ended. Please open “My shop” in the Telegram bot again."
+
+msgid "Im Browser öffnen"
+msgstr "Open in browser"
+
+msgid "In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster."
+msgstr "In Telegram Web, “My shop” opens in a new browser window."
+
+msgid "Mein Laden"
+msgstr "My shop"
+
+msgid "Mein Laden öffnen"
+msgstr "Open my shop"
+
+msgid "Mein Laden — Aktionen, Angebot und Sichtbarkeit direkt in Telegram"
+msgstr "My shop — promotions, range and visibility right in Telegram"
+
+msgid "Mit E-Mail anmelden"
+msgstr "Sign in with e-mail"
+
+msgid "Verbinden Sie Ihr Geschäft zuerst im Bot — /hilfe zeigt, wie."
+msgstr "Connect your business in the bot first — /hilfe shows how."
+
+msgid "Welches Geschäft möchten Sie öffnen?"
+msgstr "Which business would you like to open?"
+
+msgid "Zu viele Versuche. Bitte gleich noch einmal."
+msgstr "Too many attempts. Please try again shortly."
+
+msgid "Zum Bot"
+msgstr "To the bot"
+
+msgid "Zurück zu Mein Laden"
+msgstr "Back to my shop"

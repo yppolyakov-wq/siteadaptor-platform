@@ -21,3 +21,8 @@ class CoreConfig(AppConfig):
         )
 
         session_schema.connect()
+
+        # T-8.30: любой вход снимает ограничение сессии Telegram Mini App.
+        from apps.core import tg_login
+
+        tg_login.connect()

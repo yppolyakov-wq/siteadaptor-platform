@@ -160,6 +160,14 @@ def set_my_commands(token: str, commands: list[dict], language_code: str = "") -
     response.raise_for_status()
 
 
+def set_chat_menu_button(token: str, *, url: str, text: str) -> None:
+    """T-8.30: кнопка меню всех личных чатов бота — открывает Mini App (web_app)."""
+    button = {"type": "web_app", "text": text, "web_app": {"url": url}}
+    data = {"menu_button": json.dumps(button)}
+    response = requests.post(_endpoint(token, "setChatMenuButton"), data=data, timeout=5)
+    response.raise_for_status()
+
+
 def get_webhook_info(token: str, timeout: int = 15) -> dict:
     response = requests.get(_endpoint(token, "getWebhookInfo"), timeout=timeout)
     response.raise_for_status()

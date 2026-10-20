@@ -1,0 +1,27 @@
+{% load i18n %}
+{% comment %}T-8.30: мост к Telegram Mini App без SDK (сторонний JS не работает рядом с
+сессией кабинета): готовность, развернуть, закрыть. Кнопка «Schließen» видна, только если
+мост есть (в обычном браузере её нет).{% endcomment %}
+<div class="text-right -mt-1 mb-2" data-tg-close-row hidden>
+  <button type="button" data-tg-close class="rounded-full bg-white shadow-sm px-3 py-1.5 text-sm text-gray-700">✕ {% trans "Schließen" %}</button>
+</div>
+<script>
+(function () {
+  function bridge() {
+    if (window.TelegramWebviewProxy && window.TelegramWebviewProxy.postEvent) {
+      return function (type, data) { window.TelegramWebviewProxy.postEvent(type, JSON.stringify(data || {})); };
+    }
+    if (window.external && typeof window.external.notify === "function") {
+      return function (type, data) { window.external.notify(JSON.stringify({eventType: type, eventData: data || {}})); };
+    }
+    return null;
+  }
+  var post = bridge();
+  if (!post) return;
+  try { post("web_app_ready"); post("web_app_expand"); } catch (e) { return; }
+  document.querySelectorAll("[data-tg-close-row]").forEach(function (b) { b.hidden = false; });
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("[data-tg-close]")) post("web_app_close");
+  });
+})();
+</script>

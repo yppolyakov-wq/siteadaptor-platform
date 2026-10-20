@@ -272,7 +272,7 @@ def _public_url(request, path: str) -> str:
 def _lite(request) -> bool:
     from apps.core import lite_cabinet
 
-    return lite_cabinet.is_lite(getattr(request, "tenant", None))
+    return lite_cabinet.is_lite_request(request)
 
 
 def _promo_grouping(request) -> str:

@@ -252,3 +252,81 @@ class StorefrontFrameOptionsMiddleware:
         if not request.path.startswith(self._BLOCK_PREFIXES):
             response["X-Frame-Options"] = "SAMEORIGIN"
         return response
+
+
+class TelegramLiteScopeMiddleware:
+    """T-8.30 (Р-2): сессия из Telegram Mini App видит ТОЛЬКО лёгкие экраны.
+
+    Действует лишь при флаге сессии ``tg_lite`` (``apps.core.tg_login``). На каждый запрос
+    проверяет срок (12 ч, абсолютный) и что связь с общим ботом жива, ограничения Art. 18
+    нет, пользователь всё ещё владелец — иначе выход и «Mini App neu öffnen». Затем:
+    разрешённый экран — пропуск; прочий экран кабинета — страница «в Telegram недоступно»
+    (fetch — JSON 403); всё остальное (витрина, служебные экраны) видит анонима —
+    deny-by-default для любого входа, о котором этот список не знает.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        from . import tg_login
+
+        if not tg_login.is_tg_session(request):
+            return None
+        tenant = getattr(request, "tenant", None)
+        if tenant is None or getattr(tenant, "schema_name", "public") == "public":
+            return None
+        match = getattr(request, "resolver_match", None)
+        name = getattr(match, "view_name", "") or ""
+        if name in ("tg-start", "tg-lite-info"):
+            return None
+        reason = self._revoked(request, tenant)
+        if reason:
+            from django.contrib.auth import logout
+
+            logout(request)
+            return self._info(request, reason)
+        if name in tg_login.TG_LITE_VIEWS:
+            return None
+        if request.path.startswith(CABINET_PREFIXES):
+            return self._info(request, "")
+        from django.contrib.auth.models import AnonymousUser
+
+        request.user = AnonymousUser()
+        return None
+
+    @staticmethod
+    def _revoked(request, tenant) -> str:
+        import time
+
+        from . import tg_login
+
+        flag = request.session.get(tg_login.SESSION_KEY) or {}
+        try:
+            uid = int(flag.get("uid"))
+            exp = int(flag.get("exp"))
+        except (TypeError, ValueError, AttributeError):
+            return "beendet"
+        if exp < time.time():
+            return "abgelaufen"
+        user = getattr(request, "user", None)
+        if not getattr(user, "is_authenticated", False) or tg_login.owner_user(user.pk) is None:
+            return "beendet"
+        if not tg_login.telegram_allowed(uid, tenant):
+            return "beendet"
+        return ""
+
+    @staticmethod
+    def _info(request, reason: str):
+        from django.http import JsonResponse
+        from django.shortcuts import redirect
+        from django.urls import reverse
+
+        accept = request.headers.get("Accept", "")
+        if "application/json" in accept or request.headers.get("X-Requested-With"):
+            return JsonResponse({"error": "tg_lite"}, status=403)
+        url = reverse("tg-lite-info")
+        return redirect(f"{url}?grund={reason}" if reason else url)

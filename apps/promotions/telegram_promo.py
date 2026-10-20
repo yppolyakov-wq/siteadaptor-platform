@@ -1145,6 +1145,12 @@ def _confirm_claimed(bot, tenant, schema, chat, token, message) -> str:
         except Exception as exc:  # noqa: BLE001 — отчёт необязателен, публикация уже есть
             logger.warning("tg promo where failed: %s", type(exc).__name__)
         markup = _where_markup(token)
+        from apps.telegram import bots as _bots
+
+        if getattr(bot, "kind", "") == _bots.PLATFORM:  # T-8.30: Mini App — только общий бот
+            from apps.platform_bot.menu import miniapp_row
+
+            markup["inline_keyboard"].append(miniapp_row())
     else:
         limit = limits.active_limit(tenant)
         lines.append(_("Als Entwurf gespeichert."))

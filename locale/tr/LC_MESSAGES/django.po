@@ -27658,3 +27658,66 @@ msgid "%(n)s Angebot"
 msgid_plural "%(n)s Angebote"
 msgstr[0] "%(n)s teklif"
 msgstr[1] "%(n)s teklif"
+
+msgid "Bitte melden Sie sich für dieses Geschäft per E-Mail an."
+msgstr "Lütfen bu işletmeye e-posta ile giriş yapın."
+
+msgid "Bitte öffnen Sie „Mein Laden“ im Bot erneut."
+msgstr "Lütfen „Dükkânım“ı bottan yeniden açın."
+
+msgid "Bitte öffnen Sie „Mein Laden“ über den Telegram-Bot."
+msgstr "Lütfen „Dükkânım“ı Telegram botu üzerinden açın."
+
+msgid "Der Bot ist gerade nicht verfügbar."
+msgstr "Bot şu anda kullanılamıyor."
+
+msgid "Die Verarbeitung ist eingeschränkt. Mit /freigeben im Bot wieder aufheben."
+msgstr "İşleme kısıtlandı. Botta /freigeben ile kaldırın."
+
+msgid "Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür per E-Mail an."
+msgstr "Bu sayfa Telegram uygulamasında kullanılamaz. Bunun için e-posta ile giriş yapın."
+
+msgid "Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
+msgstr "Bu bağlantının süresi doldu. Lütfen „Dükkânım“ı Telegram botunda yeniden açın."
+
+msgid "Einen Moment …"
+msgstr "Bir dakika …"
+
+msgid "Einrichten nach Anmeldung per E-Mail."
+msgstr "E-posta ile giriş yaptıktan sonra kurun."
+
+msgid "Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
+msgstr "Telegram oturumunuz sona erdi. Lütfen „Dükkânım“ı Telegram botunda yeniden açın."
+
+msgid "Im Browser öffnen"
+msgstr "Tarayıcıda aç"
+
+msgid "In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster."
+msgstr "Telegram Web'de „Dükkânım“ yeni bir tarayıcı penceresinde açılır."
+
+msgid "Mein Laden"
+msgstr "Dükkânım"
+
+msgid "Mein Laden öffnen"
+msgstr "Dükkânımı aç"
+
+msgid "Mein Laden — Aktionen, Angebot und Sichtbarkeit direkt in Telegram"
+msgstr "Dükkânım — kampanyalar, ürünler ve görünürlük doğrudan Telegram'da"
+
+msgid "Mit E-Mail anmelden"
+msgstr "E-posta ile giriş yap"
+
+msgid "Verbinden Sie Ihr Geschäft zuerst im Bot — /hilfe zeigt, wie."
+msgstr "Önce işletmenizi botta bağlayın — /hilfe nasıl yapılacağını gösterir."
+
+msgid "Welches Geschäft möchten Sie öffnen?"
+msgstr "Hangi işletmeyi açmak istiyorsunuz?"
+
+msgid "Zu viele Versuche. Bitte gleich noch einmal."
+msgstr "Çok fazla deneme. Lütfen birazdan tekrar deneyin."
+
+msgid "Zum Bot"
+msgstr "Bota git"
+
+msgid "Zurück zu Mein Laden"
+msgstr "Dükkânıma dön"

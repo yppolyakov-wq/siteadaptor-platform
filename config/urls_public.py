@@ -17,6 +17,7 @@ from apps.billing.webhooks import stripe_webhook
 from apps.core import health
 from apps.core.media_views import serve_media
 from apps.partners import views as partners_views
+from apps.platform_bot import miniapp as platform_bot_miniapp
 from apps.platform_bot import webhook as platform_bot_webhook
 from apps.publishing import views as publishing_views
 from apps.tenants import quickstart_views
@@ -152,6 +153,10 @@ urlpatterns = [
     path("registrieren/", BusinessSignupView.as_view(), name="business-signup"),
     # T-8.5 «Aktion in 3 Klicks»: регистрация + первая акция одной страницей.
     path("tg/plattform/", platform_bot_webhook.webhook, name="platform-bot-webhook"),
+    # T-8.30: Telegram Mini App «Mein Laden» — вход (подпись Telegram → ссылка на поддомен).
+    path("tg/app/", platform_bot_miniapp.app_entry, name="tg-app"),
+    path("tg/app/auth/", platform_bot_miniapp.app_auth, name="tg-app-auth"),
+    path("tg/app/waehlen/", platform_bot_miniapp.app_choose, name="tg-app-choose"),
     path("aktion-starten/", quickstart_views.quick_start, name="quick-start"),
     path("aktion-starten/adresse/", quickstart_views.slug_check, name="quick-start-slug"),
     path(

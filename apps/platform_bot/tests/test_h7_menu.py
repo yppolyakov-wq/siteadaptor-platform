@@ -34,7 +34,12 @@ def _owner(slug="m-1"):
 
 def _datas(entry):
     rows = (entry["markup"] or {}).get("inline_keyboard", [])
-    return [b.get("callback_data") or b.get("url") for row in rows for b in row]
+    # T-8.30: кнопка Mini App — web_app (адрес в web_app.url)
+    return [
+        b.get("callback_data") or b.get("url") or (b.get("web_app") or {}).get("url")
+        for row in rows
+        for b in row
+    ]
 
 
 def test_help_command_shows_menu_and_photo_tip(bot):  # noqa: F811
@@ -140,3 +145,15 @@ def test_my_promotions_button_goes_through_promo_pipeline(bot, monkeypatch):  # 
     )
     assert handler.handle(_cb("pm:a")) == "actions_menu"
     assert seen == ["/aktionen"]
+
+
+def test_menu_and_cabinet_offer_mini_app(bot):  # noqa: F811
+    """T-8.30: кнопка «Mein Laden» (web_app, https) в меню и в /kabinett."""
+    _owner()
+    assert handler.handle(_msg("/hilfe")) == "help"
+    first = bot["sent"][-1]["markup"]["inline_keyboard"][0][0]
+    assert first["web_app"]["url"].startswith("https://") and first["web_app"]["url"].endswith(
+        "/tg/app/"
+    )
+    assert handler.handle(_msg("/kabinett")) == "cabinet"
+    assert "web_app" in bot["sent"][-1]["markup"]["inline_keyboard"][0][0]

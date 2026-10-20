@@ -150,6 +150,26 @@ def apply_webhook() -> None:
     except Exception as exc:  # noqa: BLE001
         raise ValueError(type(exc).__name__) from None
     set_commands(bot_token)
+    set_menu_button(bot_token)
+
+
+def miniapp_url() -> str:
+    """T-8.30: адрес Mini App «Mein Laden» (Telegram принимает только https)."""
+    from apps.tenants.quickstart import domain_base
+
+    return f"https://{domain_base()}/tg/app/"
+
+
+def set_menu_button(bot_token: str) -> None:
+    """Кнопка меню «Mein Laden» во всех личных чатах (сбой не ломает установку вебхука)."""
+    import logging
+
+    from apps.telegram import services
+
+    try:
+        services.set_chat_menu_button(bot_token, url=miniapp_url(), text="Mein Laden")
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning("setChatMenuButton failed: %s", type(exc).__name__)
 
 
 def set_commands(bot_token: str) -> None:

@@ -27791,3 +27791,66 @@ msgstr[0] "%(n)s предложение"
 msgstr[1] "%(n)s предложения"
 msgstr[2] "%(n)s предложений"
 msgstr[3] "%(n)s предложения"
+
+msgid "Bitte melden Sie sich für dieses Geschäft per E-Mail an."
+msgstr "Пожалуйста, войдите в этот бизнес по e-mail."
+
+msgid "Bitte öffnen Sie „Mein Laden“ im Bot erneut."
+msgstr "Пожалуйста, откройте «Мой магазин» в боте ещё раз."
+
+msgid "Bitte öffnen Sie „Mein Laden“ über den Telegram-Bot."
+msgstr "Пожалуйста, откройте «Мой магазин» через Telegram-бота."
+
+msgid "Der Bot ist gerade nicht verfügbar."
+msgstr "Бот сейчас недоступен."
+
+msgid "Die Verarbeitung ist eingeschränkt. Mit /freigeben im Bot wieder aufheben."
+msgstr "Обработка ограничена. Снять ограничение — /freigeben в боте."
+
+msgid "Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür per E-Mail an."
+msgstr "Эта страница недоступна в приложении Telegram. Для неё войдите по e-mail."
+
+msgid "Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
+msgstr "Срок действия ссылки истёк. Откройте «Мой магазин» в Telegram-боте ещё раз."
+
+msgid "Einen Moment …"
+msgstr "Минутку …"
+
+msgid "Einrichten nach Anmeldung per E-Mail."
+msgstr "Настройка — после входа по e-mail."
+
+msgid "Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
+msgstr "Сеанс из Telegram завершён. Откройте «Мой магазин» в Telegram-боте ещё раз."
+
+msgid "Im Browser öffnen"
+msgstr "Открыть в браузере"
+
+msgid "In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster."
+msgstr "В Telegram Web «Мой магазин» откроется в новом окне браузера."
+
+msgid "Mein Laden"
+msgstr "Мой магазин"
+
+msgid "Mein Laden öffnen"
+msgstr "Открыть «Мой магазин»"
+
+msgid "Mein Laden — Aktionen, Angebot und Sichtbarkeit direkt in Telegram"
+msgstr "Мой магазин — акции, ассортимент и видимость прямо в Telegram"
+
+msgid "Mit E-Mail anmelden"
+msgstr "Войти по e-mail"
+
+msgid "Verbinden Sie Ihr Geschäft zuerst im Bot — /hilfe zeigt, wie."
+msgstr "Сначала подключите бизнес в боте — /hilfe покажет как."
+
+msgid "Welches Geschäft möchten Sie öffnen?"
+msgstr "Какой бизнес открыть?"
+
+msgid "Zu viele Versuche. Bitte gleich noch einmal."
+msgstr "Слишком много попыток. Попробуйте чуть позже."
+
+msgid "Zum Bot"
+msgstr "К боту"
+
+msgid "Zurück zu Mein Laden"
+msgstr "Назад в «Мой магазин»"

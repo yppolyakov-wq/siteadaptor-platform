@@ -1,0 +1,17 @@
+{% extends "account/base_auth.html" %}
+{% load i18n %}
+{% block title %}{% trans "Mein Laden" %}{% endblock %}
+{% block auth_title %}{% trans "Mein Laden" %}{% endblock %}
+
+{% block auth_content %}
+{% comment %}T-8.30 (Р-2): в Telegram — только лёгкие экраны; остальное — после входа по e-mail.{% endcomment %}
+<div data-tg-lite-info="{{ reason }}">
+  {% if reason %}
+    <p class="text-sm text-gray-600">{% trans "Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut." %}</p>
+  {% else %}
+    <p class="text-sm text-gray-600">{% trans "Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür per E-Mail an." %}</p>
+    <a href="{% url 'dashboard' %}" class="inline-block mt-3 text-sm font-medium text-indigo-600 hover:underline">← {% trans "Zurück zu Mein Laden" %}</a>
+  {% endif %}
+  <a href="{% url 'owner-login-link' %}" class="block mt-3 text-sm font-medium text-indigo-600 hover:underline">{% trans "Mit E-Mail anmelden" %} →</a>
+</div>
+{% endblock %}

@@ -49,6 +49,21 @@ SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 
 # Sentry
+_SENTRY_SCRUB_PATHS = ("/tg/",)
+
+
+def _sentry_before_send(event, hint):
+    """T-8.30: тело и query входов Mini App/handoff (initData, одноразовые токены) —
+    не в Sentry."""
+    req = event.get("request") or {}
+    url = req.get("url") or ""
+    if any(p in url for p in _SENTRY_SCRUB_PATHS):
+        req.pop("data", None)
+        req.pop("query_string", None)
+        req["url"] = url.split("/tg/", 1)[0] + "/tg/…"
+    return event
+
+
 SENTRY_DSN = env("SENTRY_DSN", default="")
 if SENTRY_DSN:
     sentry_sdk.init(
@@ -59,5 +74,6 @@ if SENTRY_DSN:
         # AI-0: локальные переменные кадров несут промпты ИИ и заголовки с ключами
         # провайдеров — в Sentry не отправляем.
         include_local_variables=False,
+        before_send=_sentry_before_send,
         environment=env("SENTRY_ENVIRONMENT", default="production"),
     )

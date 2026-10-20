@@ -1,0 +1,18 @@
+{% extends "account/base_auth.html" %}
+{% load i18n %}
+{% block title %}{% trans "Mein Laden" %}{% endblock %}
+{% block auth_title %}{% trans "Mein Laden" %}{% endblock %}
+
+{% block auth_content %}
+{% comment %}T-8.30: вход из Telegram Mini App. GET токен не расходует, POST — расходует и
+логинит (только лёгкие экраны, 12 ч); скрипт жмёт кнопку сам.{% endcomment %}
+{% if invalid %}
+  <p class="text-sm text-gray-600">{% trans "Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut." %}</p>
+{% else %}
+  <form method="post" data-tg-start>
+    {% csrf_token %}
+    <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700">{% trans "Weiter" %}</button>
+  </form>
+  <script>document.querySelector("[data-tg-start]").submit();</script>
+{% endif %}
+{% endblock %}

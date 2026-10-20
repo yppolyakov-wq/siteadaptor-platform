@@ -38,7 +38,11 @@
         </form>
       </details>
     {% else %}
-      <span class="block text-xs mt-1 text-gray-400">○ {% trans "Nur der Inhaber kann den Bot aktivieren." %}</span>
+      {% if tg_lite %}
+        <span class="block text-xs mt-1 text-gray-400" data-own-bot-email-only>🔒 {% trans "Einrichten nach Anmeldung per E-Mail." %}</span>
+      {% else %}
+        <span class="block text-xs mt-1 text-gray-400">○ {% trans "Nur der Inhaber kann den Bot aktivieren." %}</span>
+      {% endif %}
     {% endif %}
   </div>
 </div>

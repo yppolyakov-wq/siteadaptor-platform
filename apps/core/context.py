@@ -253,6 +253,12 @@ def _storefront_nav(tenant):
     return items, nav_cfg["style"], nav_cfg["sticky"]
 
 
+def _lite_cabinet_tg(request) -> bool:
+    from apps.core import tg_login
+
+    return tg_login.is_tg_session(request)
+
+
 def modules_nav(request):
     tenant = getattr(request, "tenant", None)
     if tenant is None or getattr(tenant, "schema_name", "public") == "public":
@@ -409,7 +415,12 @@ def modules_nav(request):
         bottom_nav = _storefront_bottom_nav(request, tenant)
     # Кабинет: плоский список первых пунктов для мобильного таб-бара (нативно).
     # ST-4b/W-CL: таб-бар = первая четвёрка якорей компакт-сайдбара (безусловно).
-    _compact = modules.sidebar_nav(tenant, getattr(request, "user", None))
+    from apps.core import lite_cabinet as _lite_cabinet
+
+    if _lite_cabinet.is_lite_request(request):  # T-8.30 Р-5: Mini App — лёгкое меню
+        _compact = _lite_cabinet.sidebar_items(tenant)
+    else:
+        _compact = modules.sidebar_nav(tenant, getattr(request, "user", None))
     # VF-7a (фидбэк 2026-08-24 «выбелены оба»): активный ПОДПУНКТ определяется
     # по URL страницы, не по nav_key — несколько подпунктов раздела законно
     # делят nav_key (booking, marketing) и подсвечивались парами. Фолбэк для
@@ -517,6 +528,8 @@ def modules_nav(request):
         for code in tenant.active_locales
     ]
     return {
+        # T-8.30: сессия из Telegram Mini App — без хрома кабинета, только лёгкие экраны.
+        "tg_lite": _lite_cabinet_tg(request),
         # ST-4b/W-CL: компактный сайдбар «хабы + Website» — единственный.
         "nav_compact": _compact,
         "nav_primary": nav_primary,  # мобильный таб-бар кабинета

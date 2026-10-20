@@ -180,6 +180,8 @@ def sidebar_anchor(context):
     if nav in LITE_CONNECTION_NAVS:
         from apps.core import lite_cabinet
 
+        if request is not None and lite_cabinet.is_lite_request(request):
+            return "integrations"
         if lite_cabinet.is_lite(tenant):
             return "integrations"
     return nav_registry.anchor_for(nav)

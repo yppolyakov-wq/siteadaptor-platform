@@ -56,9 +56,17 @@ def _send(bot, chat, text, markup=None):
     return send(bot, chat, text, markup)
 
 
+def miniapp_row() -> list[dict]:
+    """T-8.30: «📱 Mein Laden öffnen» — Mini App (только личные чаты общего бота)."""
+    from .config import miniapp_url
+
+    return [{"text": "📱 " + _("Mein Laden öffnen"), "web_app": {"url": miniapp_url()}}]
+
+
 def keyboard() -> dict:
     return {
         "inline_keyboard": [
+            miniapp_row(),
             [
                 {"text": "📋 " + _("Meine Aktionen"), "callback_data": PREFIX + "a"},
                 {"text": "🏪 " + _("Profil"), "callback_data": "pp:" + "v"},
@@ -94,6 +102,7 @@ def help_text() -> str:
             + _("Geschäft wechseln")
             + " · /neu — "
             + _("Neues Geschäft anlegen"),
+            "📱 " + _("Mein Laden — Aktionen, Angebot und Sichtbarkeit direkt in Telegram"),
             "🔑 /kabinett — " + _("Anmeldelink für das Kabinett per E-Mail"),
             "🤖 /eigener_bot — " + _("eigenen Telegram-Bot für Ihr Geschäft einrichten"),
             "🔒 /datenschutz · /meine_daten · /berichtigen · /einschraenken · /widerspruch · "
@@ -118,7 +127,7 @@ def cabinet(bot, uid, chat) -> str:
 
         return _private_onboarding(bot, chat)
     base = owner_login.tenant_url(current.tenant)
-    rows = []
+    rows = [miniapp_row()]
     for code in TARGETS:
         row = [{"text": "✉️ " + _label(code), "callback_data": f"{PREFIX}l:{code}"}]
         if base.startswith(("https://", "http://")):  # иначе Telegram отверг бы всё

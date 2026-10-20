@@ -42,6 +42,14 @@ def is_lite(tenant) -> bool:
         return False
 
 
+def is_lite_request(request) -> bool:
+    """T-8.30 (Р-5): лёгкий кабинет — по профилю бизнеса ИЛИ для сессии из Telegram
+    Mini App (у полного кабинета там те же лёгкие экраны)."""
+    from apps.core import tg_login
+
+    return is_lite(getattr(request, "tenant", None)) or tg_login.is_tg_session(request)
+
+
 def sidebar_items(tenant=None) -> list[dict]:
     """Плоский набор пунктов в форме ``modules.sidebar_nav`` (без подменю)."""
     nav = LITE_NAV
@@ -184,10 +192,13 @@ def lite_visibility(request):
     (сайт · каталог города · Google) и подключения (общий бот · свой бот · Stripe ·
     домен). Только чтение и входы на штатные экраны; owner-only — только владельцу."""
     from apps.core import integration_status as st
+    from apps.core import tg_login
     from apps.promotions.views import _public_url
 
     tenant = request.tenant
     owner = _is_owner(request.user)
+    # T-8.30 (Р-2): из Telegram — только статусы; свой бот подключается по e-mail-входу.
+    can_manage_bot = owner and not tg_login.is_tg_session(request)
 
     def _block(fn, fallback):
         try:
@@ -201,6 +212,7 @@ def lite_visibility(request):
         {
             "nav": "integrations",
             "is_owner": owner,
+            "can_manage_bot": can_manage_bot,
             "site_url": _block(lambda: _public_url(request, "/"), ""),
             "portal": _block(
                 lambda: _portal_block(tenant, owner), {"reason": "", "count": 0, "views": None}

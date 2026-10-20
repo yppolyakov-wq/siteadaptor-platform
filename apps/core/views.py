@@ -271,7 +271,7 @@ def dashboard(request):
     # T-8.31a: лёгкий кабинет — своя главная «Start» по макету (было: список акций).
     from apps.core import lite_cabinet
 
-    if lite_cabinet.is_lite(request.tenant):
+    if lite_cabinet.is_lite_request(request):
         from apps.core import lite_home
 
         return lite_home.render_home(request)

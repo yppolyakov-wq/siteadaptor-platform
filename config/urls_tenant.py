@@ -14,7 +14,7 @@ from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
 from apps.community import views as community_views
-from apps.core import health, lite_cabinet, owner_login
+from apps.core import health, lite_cabinet, owner_login, tg_login
 from apps.core.demo_switch import demo_design_switch
 from apps.core.design_page import design_view
 from apps.core.media_views import serve_media
@@ -160,6 +160,9 @@ urlpatterns = [
     path(
         "start/bestaetigung-senden/", owner_login.owner_confirm_resend, name="owner-confirm-resend"
     ),
+    # T-8.30: вход из Telegram Mini App (только лёгкие экраны, 12 ч).
+    path("tg/start/<str:token>/", tg_login.tg_start, name="tg-start"),
+    path("tg/nur-in-der-app/", tg_login.tg_lite_info, name="tg-lite-info"),
     path("start/<str:token>/", owner_login.owner_start, name="owner-start"),
     path("anmelden/link/", owner_login.owner_link_request, name="owner-login-link"),
     path("dashboard/extras/", extras_view, name="extras"),

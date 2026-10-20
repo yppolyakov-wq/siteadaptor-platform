@@ -1,0 +1,97 @@
+{% load i18n %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'de' }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{% trans "Mein Laden" %}</title>
+{% comment %}T-8.30: вход Mini App. SDK Telegram — ТОЛЬКО на этой странице (на страницах
+бизнеса его нет: сторонний JS не работает рядом с сессией кабинета).{% endcomment %}
+<script src="https://telegram.org/js/telegram-web-app.js" defer referrerpolicy="no-referrer"></script>
+<style>
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#F2F4F7;color:#111827}
+  main{max-width:420px;margin:0 auto;padding:32px 16px}
+  h1{font-size:22px;margin:0 0 8px}
+  p{font-size:15px;line-height:1.45;color:#4B5563}
+  button,a.btn{display:block;width:100%;box-sizing:border-box;margin-top:10px;padding:14px;border:0;border-radius:12px;background:#4F46E5;color:#fff;font-size:16px;font-weight:600;text-align:center;text-decoration:none}
+  button.alt{background:#fff;color:#111827;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main data-miniapp data-auth-url="{{ auth_url }}" data-choose-url="{{ choose_url }}">
+  <h1>{% trans "Mein Laden" %}</h1>
+  <p data-state="loading">{% trans "Einen Moment …" %}</p>
+  <div data-state="outside" hidden>
+    <p>{% trans "Bitte öffnen Sie „Mein Laden“ über den Telegram-Bot." %}</p>
+    {% if bot_username %}<a class="btn" href="https://t.me/{{ bot_username }}" rel="noopener">{% trans "Zum Bot" %}</a>{% endif %}
+  </div>
+  <div data-state="choose" hidden>
+    <p>{% trans "Welches Geschäft möchten Sie öffnen?" %}</p>
+    <div data-choices></div>
+  </div>
+  <div data-state="browser" hidden>
+    <p>{% trans "In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster." %}</p>
+    <button type="button" data-open-browser>{% trans "Im Browser öffnen" %}</button>
+  </div>
+  <div data-state="error" hidden>
+    <p data-message></p>
+    <a class="btn" data-login hidden rel="noopener">{% trans "Mit E-Mail anmelden" %}</a>
+  </div>
+</main>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var root = document.querySelector("[data-miniapp]");
+  var tg = window.Telegram && window.Telegram.WebApp;
+  function show(name) {
+    root.querySelectorAll("[data-state]").forEach(function (el) {
+      el.hidden = el.getAttribute("data-state") !== name;
+    });
+  }
+  if (!tg || !tg.initData) { show("outside"); return; }
+  tg.ready(); tg.expand();
+  var framed = window.self !== window.top || /^web/.test(tg.platform || "");
+  function go(url) {
+    if (framed) {
+      show("browser");
+      root.querySelector("[data-open-browser]").onclick = function () { tg.openLink(url); };
+    } else {
+      window.location.replace(url);
+    }
+  }
+  function post(url, body) {
+    return fetch(url, {
+      method: "POST",
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: new URLSearchParams(body).toString(),
+      credentials: "omit"
+    }).then(function (r) { return r.json(); });
+  }
+  function handle(data) {
+    if (data.next) { go(data.next); return; }
+    if (data.choose) {
+      var box = root.querySelector("[data-choices]");
+      box.textContent = "";
+      data.choose.forEach(function (c) {
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "alt"; b.textContent = c.name;
+        b.onclick = function () {
+          show("loading");
+          post(root.dataset.chooseUrl, {ticket: data.ticket, link: c.id}).then(handle, fail);
+        };
+        box.appendChild(b);
+      });
+      show("choose");
+      return;
+    }
+    root.querySelector("[data-message]").textContent = data.message || "";
+    var login = root.querySelector("[data-login]");
+    if (data.login_url) { login.href = data.login_url; login.hidden = false; }
+    show("error");
+  }
+  function fail() { handle({message: "{{ _('Bitte öffnen Sie „Mein Laden“ im Bot erneut.')|escapejs }}"}); }
+  post(root.dataset.authUrl, {init_data: tg.initData}).then(handle, fail);
+});
+</script>
+</body>
+</html>
