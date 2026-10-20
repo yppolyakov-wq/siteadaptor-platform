@@ -176,14 +176,12 @@ def test_dirty_template_is_not_cloned_and_command_refuses(template):
 
 
 def test_clone_error_leaves_no_schema(template, monkeypatch):
-    from django_tenants import clone
-
-    def boom(self, *args, **kwargs):
+    def boom(source, target):
         with connection.cursor() as cursor:
             cursor.execute('CREATE SCHEMA "zz_err_e"')
         raise RuntimeError("clone failed")
 
-    monkeypatch.setattr(clone.CloneSchema, "clone_schema", boom)
+    monkeypatch.setattr(schema_template, "_clone", boom)
     assert schema_template.clone_into("zz_err_e") is False
     assert not schema_exists("zz_err_e")
 
