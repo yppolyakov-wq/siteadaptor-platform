@@ -180,7 +180,8 @@ def test_blocking_the_bot_stops_links(sent):
 def test_returning_owner_is_greeted(sent):
     tenant = TenantFactory()
     links.bind(USER, tenant)
-    assert handler.handle(webhook.slim(_private("Hallo"))) == "welcome_back"
+    # H-4: обычный текст привязанного владельца идёт в акции; приветствие — на /start.
+    assert handler.handle(webhook.slim(_private("/start"))) == "welcome_back"
 
 
 # --- правки ревью Django (2026-10-19) -------------------------------------------------
@@ -204,7 +205,8 @@ def test_unblocking_or_writing_again_restores_delivery(sent):
     assert links.is_owner(USER, tenant)
     member["my_chat_member"]["new_chat_member"]["status"] = "kicked"
     handler.handle(webhook.slim(member))
-    assert handler.handle(webhook.slim(_private("Hallo"))) == "welcome_back"
+    # H-4: обычный текст привязанного владельца идёт в акции; приветствие — на /start.
+    assert handler.handle(webhook.slim(_private("/start"))) == "welcome_back"
     assert links.is_owner(USER, tenant)
 
 

@@ -26610,3 +26610,13 @@ msgid "%(n)s wartende Nachricht"
 msgid_plural "%(n)s wartende Nachrichten"
 msgstr[0] "%(n)s wartende Nachricht"
 msgstr[1] "%(n)s wartende Nachrichten"
+
+msgid "Abgelaufen."
+msgstr "Abgelaufen."
+
+#, python-format
+msgid "Für: %(name)s"
+msgstr "Für: %(name)s"
+
+msgid "Nicht verfügbar — bitte im Kabinett neu verbinden."
+msgstr "Nicht verfügbar — bitte im Kabinett neu verbinden."

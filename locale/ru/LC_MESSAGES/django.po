@@ -26806,3 +26806,13 @@ msgstr[0] "%(n)s сообщение в очереди"
 msgstr[1] "%(n)s сообщения в очереди"
 msgstr[2] "%(n)s сообщений в очереди"
 msgstr[3] "%(n)s сообщений в очереди"
+
+msgid "Abgelaufen."
+msgstr "Срок истёк."
+
+#, python-format
+msgid "Für: %(name)s"
+msgstr "Для: %(name)s"
+
+msgid "Nicht verfügbar — bitte im Kabinett neu verbinden."
+msgstr "Недоступно — подключите заново в личном кабинете."

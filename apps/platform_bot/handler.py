@@ -27,6 +27,7 @@ CHOOSE_RE = re.compile(r"^/geschaeft(?:@\w+)?\s*$", re.IGNORECASE)
 CHOOSE_CALLBACK_RE = re.compile(
     r"^g:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$"
 )
+START_RE = re.compile(r"^/start(?:@\w+)?(?:\s.*)?$", re.DOTALL)
 CHOOSE_MAX = 20
 CONNECT_LIMIT = 10  # попыток привязки на пользователя Telegram в час
 
@@ -66,7 +67,7 @@ def handle(update: dict) -> str:
     if str(message.get("chat_id")) != str(message.get("from_id")):
         return "skip"  # личный чат: chat.id == from.id
     with translation.override(locale_for(message.get("language_code"))):
-        return _private(bot, message)
+        return _private(bot, message, update.get("update_id"))
 
 
 def _member(bot, member: dict) -> str:
@@ -90,8 +91,13 @@ def _member(bot, member: dict) -> str:
 def _callback(bot, callback: dict) -> str:
     from apps.telegram import services
 
+    from . import routing
+
+    data = str(callback.get("data") or "")
+    if data.startswith(routing.PREFIX):
+        return _promo_callback(bot, callback, data)
     services.answer_callback_query(bot.token, callback.get("id") or "")
-    match = CHOOSE_CALLBACK_RE.match(callback.get("data") or "")
+    match = CHOOSE_CALLBACK_RE.match(data)
     if not match:
         return "skip"
     from_id = callback.get("from_id")
@@ -112,7 +118,7 @@ def _start_url() -> str:
     return f"https://{domain_base()}/aktion-starten/"
 
 
-def _private(bot, message: dict) -> str:
+def _private(bot, message: dict, update_id=None) -> str:
     chat = message["chat_id"]
     links.mark_unblocked(message["from_id"])  # пишет боту — значит, не заблокировал
     text = (message.get("text") or "").strip()
@@ -121,6 +127,9 @@ def _private(bot, message: dict) -> str:
         return _connect(bot, message, match.group(1))
     if CHOOSE_RE.match(text):
         return _choose(bot, message)
+    current = links.active_links(message["from_id"]).first()
+    if current is not None and not START_RE.match(text):
+        return _promo_message(bot, message, current, update_id)
     has_business = links.active_links(message["from_id"]).exists()
     if has_business:
         send(
@@ -235,3 +244,53 @@ def _choose(bot, message: dict) -> str:
         {"inline_keyboard": keyboard},
     )
     return "choose_menu"
+
+
+# --- H-4: акции через общий бот -----------------------------------------------------------
+
+
+def _promo_message(bot, message: dict, link, update_id) -> str:
+    """Текст/фото/альбом/команда владельца → тот же конвейер акций, что у своего бота,
+    в схеме ТЕКУЩЕГО бизнеса (права перепроверяются там по таблице связей)."""
+    from apps.core import ratelimit
+    from apps.promotions import telegram_promo
+
+    schema = link.tenant.schema_name
+    chat = str(message["chat_id"])
+    if ratelimit.hit("tg-promo", f"{schema}:{chat}", limit=telegram_promo.RATE_LIMIT, window=3600):
+        send(bot, chat, _("Zu viele Entwürfe — bitte später erneut versuchen."))
+        return "limited"
+    update = {
+        "update_id": update_id,
+        "chat_id": message["chat_id"],
+        "text": message.get("text") or "",
+        "photo": message.get("photo") or "",
+        "media_group_id": message.get("media_group_id") or "",
+        "language_code": message.get("language_code") or "",
+    }
+    result = telegram_promo.handle_owner_message(schema, update, bot_kind=bots.PLATFORM)
+    if result == "skip":
+        send(bot, chat, _("Nicht verfügbar — bitte im Kabinett neu verbinden."))
+        return "denied"
+    return result
+
+
+def _promo_callback(bot, callback: dict, data: str) -> str:
+    """Кнопка превью `pb:` → схема превью из кэша (только для того, кому её показали)."""
+    from apps.promotions import telegram_promo
+    from apps.telegram import services
+
+    from . import routing
+
+    from_id = callback.get("from_id")
+    cid = callback.get("id") or ""
+    if not from_id or callback.get("chat_id") != from_id:
+        services.answer_callback_query(bot.token, cid)
+        return "skip"
+    resolved = routing.resolve(from_id, data)
+    if resolved is None:
+        with translation.override(locale_for(callback.get("language_code"))):
+            services.answer_callback_query(bot.token, cid, _("Abgelaufen."))
+        return "expired"
+    schema, inner = resolved
+    return telegram_promo.handle_platform_callback(bot, schema, callback, inner)

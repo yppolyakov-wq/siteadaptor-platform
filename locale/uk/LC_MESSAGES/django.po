@@ -26786,3 +26786,13 @@ msgstr[0] "%(n)s повідомлення в черзі"
 msgstr[1] "%(n)s повідомлення в черзі"
 msgstr[2] "%(n)s повідомлень у черзі"
 msgstr[3] "%(n)s повідомлень у черзі"
+
+msgid "Abgelaufen."
+msgstr "Термін минув."
+
+#, python-format
+msgid "Für: %(name)s"
+msgstr "Для: %(name)s"
+
+msgid "Nicht verfügbar — bitte im Kabinett neu verbinden."
+msgstr "Недоступно — підключіть знову в особистому кабінеті."

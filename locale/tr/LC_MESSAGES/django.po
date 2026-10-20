@@ -26668,3 +26668,13 @@ msgid "%(n)s wartende Nachricht"
 msgid_plural "%(n)s wartende Nachrichten"
 msgstr[0] "%(n)s bekleyen mesaj"
 msgstr[1] "%(n)s bekleyen mesaj"
+
+msgid "Abgelaufen."
+msgstr "Süresi doldu."
+
+#, python-format
+msgid "Für: %(name)s"
+msgstr "İşletme: %(name)s"
+
+msgid "Nicht verfügbar — bitte im Kabinett neu verbinden."
+msgstr "Kullanılamıyor — lütfen panelde yeniden bağlanın."

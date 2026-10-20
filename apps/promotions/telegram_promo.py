@@ -14,6 +14,7 @@ import re
 import secrets
 import time
 from contextlib import contextmanager
+from contextvars import ContextVar
 
 from django.conf import settings
 from django.core.cache import cache
@@ -40,6 +41,54 @@ WARNING_LIMIT = 3
 
 
 # --- кто и где ----------------------------------------------------------------------------
+
+
+# T-8.10h H-4: превью/меню в ОБЩЕМ боте — кнопки заворачиваются в `pb:<ref>` (схема в
+# кэше), сверху «Für: <бизнес>». Вне общего бота значения пустые → вывод байт-в-байт.
+_CALLBACK_WRAP: ContextVar = ContextVar("tp_callback_wrap", default=None)
+_BUSINESS: ContextVar = ContextVar("tp_business", default="")
+
+
+def _cbdata(data: str) -> str:
+    wrap = _CALLBACK_WRAP.get()
+    return wrap(data) if wrap else data
+
+
+@contextmanager
+def platform_scope(schema: str, chat, tenant):
+    """Контекст ответа через общий бот: кнопки `pb:`, адресат-бизнес в тексте."""
+    from apps.platform_bot import routing
+
+    tokens = (
+        _CALLBACK_WRAP.set(lambda data: routing.wrap(int(chat), schema, data)),
+        _BUSINESS.set(getattr(tenant, "name", "") or ""),
+    )
+    try:
+        yield
+    finally:
+        _CALLBACK_WRAP.reset(tokens[0])
+        _BUSINESS.reset(tokens[1])
+
+
+def _business_line() -> str:
+    name = _BUSINESS.get()
+    return "🏪 " + _("Für: %(name)s") % {"name": name} if name else ""
+
+
+def owner_ok(tenant, chat, bot_kind: str = "tenant") -> bool:
+    """Право писать от имени бизнеса. Свой бот — чат владельца из настроек (как было);
+    общий бот — живая связь в ТАБЛИЦЕ + выпустивший ссылку всё ещё владелец."""
+    from apps.telegram import bots
+
+    if tenant is None or not chat:
+        return False
+    if bot_kind == bots.PLATFORM:
+        from apps.platform_bot import links
+
+        return (
+            str(chat).isdigit() and links.is_owner(int(chat), tenant) and links.still_owner(tenant)
+        )
+    return str(chat) == owner_chat(tenant)
 
 
 def owner_chat(tenant) -> str:
@@ -122,9 +171,15 @@ def drop_draft(schema: str, chat: str, token: str) -> None:
 def load_for_web(tenant, token: str) -> dict | None:
     """✏️: черновик для веб-формы — chat берётся из ТЕКУЩЕЙ привязки владельца."""
     chat = owner_chat(tenant)
-    if not chat:
-        return None
-    return load_draft(connection.schema_name, chat, token)
+    draft = load_draft(connection.schema_name, chat, token) if chat else None
+    if draft is None:
+        # Общий бот: зеркало могло устареть (Save кабинета) — чат из живой связи.
+        from apps.platform_bot.models import OwnerTelegramLink
+
+        link = OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True).first()
+        if link is not None and str(link.tg_user_id) != chat:
+            draft = load_draft(connection.schema_name, str(link.tg_user_id), token)
+    return draft
 
 
 def mark_done(schema: str, token: str, pk) -> None:
@@ -217,7 +272,10 @@ def render_preview(draft: dict, tenant, form, token: str) -> tuple[str, dict]:
     from . import limits
     from . import text_check as ptc
 
-    lines = ["📣 " + _("Entwurf"), draft.get("title") or "—"]
+    lines = ["📣 " + _("Entwurf")]
+    if _business_line():
+        lines.append(_business_line())
+    lines.append(draft.get("title") or "—")
     facts = []
     if draft.get("new_price"):
         price = _money(draft["new_price"]) + " €"
@@ -267,11 +325,13 @@ def render_preview(draft: dict, tenant, form, token: str) -> tuple[str, dict]:
 
     buttons = []
     if form.is_valid():
-        buttons.append({"text": "✅ " + _("Veröffentlichen"), "callback_data": f"tp:ok:{token}"})
+        buttons.append(
+            {"text": "✅ " + _("Veröffentlichen"), "callback_data": _cbdata(f"tp:ok:{token}")}
+        )
     edit = edit_url(token)
     if edit:
         buttons.append({"text": "✏️ " + _("Bearbeiten"), "url": edit})
-    buttons.append({"text": "❌ " + _("Verwerfen"), "callback_data": f"tp:no:{token}"})
+    buttons.append({"text": "❌ " + _("Verwerfen"), "callback_data": _cbdata(f"tp:no:{token}")})
     return "\n".join(lines), {"inline_keyboard": [buttons]}
 
 
@@ -396,12 +456,15 @@ def handle_owner_message(schema: str, update: dict, bot_kind: str = "tenant") ->
         if tenant is None or bot is None:
             return "skip"
         chat = str(update.get("chat_id") or "")
-        if not chat or chat != owner_chat(tenant):
+        if not owner_ok(tenant, chat, bot_kind):
             return "skip"  # владелец перепривязан, пока сообщение ждало в очереди
         with translation.override(
             bot_locale({"language_code": update.get("language_code")}, tenant)
         ):
             try:
+                if bot_kind == bots.PLATFORM:
+                    with platform_scope(schema, chat, tenant):
+                        return _handle(bot, tenant, schema, chat, update)
                 return _handle(bot, tenant, schema, chat, update)
             except Exception as exc:  # noqa: BLE001 — без трейсбэка: в нём текст владельца
                 logger.warning("tg promo failed: %s", type(exc).__name__)
@@ -571,10 +634,13 @@ def repeat_menu(bot, chat) -> str:
         _send(bot, chat, _("Noch keine vergangene Aktion zum Wiederholen."))
         return "repeat_empty"
     rows = [
-        [{"text": "🔁 " + (p.title_text or "—")[:40], "callback_data": f"tp:rp:{p.pk}"}]
+        [{"text": "🔁 " + (p.title_text or "—")[:40], "callback_data": _cbdata(f"tp:rp:{p.pk}")}]
         for p in promos
     ]
-    _send(bot, chat, _("Welche Aktion wiederholen?"), {"inline_keyboard": rows})
+    title = _("Welche Aktion wiederholen?")
+    if _business_line():
+        title = f"{title}\n{_business_line()}"
+    _send(bot, chat, title, {"inline_keyboard": rows})
     return "repeat_menu"
 
 
@@ -633,33 +699,70 @@ def handle_callback(bot, callback: dict, tenant) -> str:
         if not owner or str(sender.get("id")) != owner or chat != owner:
             services.answer_callback_query(bot.token, cid, _("Nicht erlaubt."))
             return "denied"
-        data = str(callback.get("data") or "")
-        m = CALLBACK_RE.match(data)
-        rp = None if m else REPEAT_CALLBACK_RE.match(data)
-        if not m and not rp:
-            return "skip"
-        schema = connection.schema_name
-        reason = gate(tenant)
-        if reason:
-            _send(bot, chat, reason)
-            return "gated"
-        if rp:
-            from apps.core import ratelimit
+        return _dispatch_callback(bot, callback, tenant, connection.schema_name)
 
-            # Повтор считается тем же лимитом черновиков, что сообщения (30/ч на чат).
-            if ratelimit.hit("tg-promo", f"{schema}:{chat}", limit=RATE_LIMIT, window=3600):
-                _send(bot, chat, _("Zu viele Entwürfe — bitte später erneut versuchen."))
-                return "limited"
-            # Меню убрать: двойной тап не плодит два черновика-повтора.
-            services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
-            return _repeat(bot, tenant, schema, chat, rp.group(1))
-        action, token = m.groups()
-        if action == "no":
-            drop_draft(schema, chat, token)
-            services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
-            _send(bot, chat, _("Verworfen."))
-            return "dropped"
-        return enqueue_confirm(bot, schema, chat, token, message, sender, cid)
+
+def handle_platform_callback(bot, schema: str, callback: dict, inner: str) -> str:
+    """T-8.10h H-4: кнопка превью общего бота (`pb:` уже разрешён в схему превью).
+    Плоский callback общего бота → вложенный формат, права — по таблице связей."""
+    from django_tenants.utils import schema_context
+
+    from apps.telegram import bots, services
+    from apps.tenants.models import Tenant
+
+    cid = str(callback.get("id") or "")
+    chat = str(callback.get("chat_id") or "")
+    sender = {"id": callback.get("from_id"), "language_code": callback.get("language_code")}
+    with schema_context(schema):
+        tenant = Tenant.objects.filter(schema_name=schema).first()
+        with translation.override(bot_locale(sender, tenant)):
+            if not owner_ok(tenant, chat, bots.PLATFORM):
+                services.answer_callback_query(bot.token, cid, _("Nicht erlaubt."))
+                return "denied"
+            services.answer_callback_query(bot.token, cid)
+            nested = {
+                "id": cid,
+                "from": sender,
+                "message": {"chat": {"id": chat}, "message_id": callback.get("message_id")},
+                "data": inner,
+            }
+            with platform_scope(schema, chat, tenant):
+                return _dispatch_callback(bot, nested, tenant, schema)
+
+
+def _dispatch_callback(bot, callback: dict, tenant, schema: str) -> str:
+    from apps.telegram import services
+
+    cid = str(callback.get("id") or "")
+    sender = callback.get("from") or {}
+    message = callback.get("message") or {}
+    chat = str((message.get("chat") or {}).get("id") or "")
+    data = str(callback.get("data") or "")
+    m = CALLBACK_RE.match(data)
+    rp = None if m else REPEAT_CALLBACK_RE.match(data)
+    if not m and not rp:
+        return "skip"
+    reason = gate(tenant)
+    if reason:
+        _send(bot, chat, reason)
+        return "gated"
+    if rp:
+        from apps.core import ratelimit
+
+        # Повтор считается тем же лимитом черновиков, что сообщения (30/ч на чат).
+        if ratelimit.hit("tg-promo", f"{schema}:{chat}", limit=RATE_LIMIT, window=3600):
+            _send(bot, chat, _("Zu viele Entwürfe — bitte später erneut versuchen."))
+            return "limited"
+        # Меню убрать: двойной тап не плодит два черновика-повтора.
+        services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
+        return _repeat(bot, tenant, schema, chat, rp.group(1))
+    action, token = m.groups()
+    if action == "no":
+        drop_draft(schema, chat, token)
+        services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
+        _send(bot, chat, _("Verworfen."))
+        return "dropped"
+    return enqueue_confirm(bot, schema, chat, token, message, sender, cid)
 
 
 def enqueue_confirm(bot, schema, chat, token, message, sender, cid) -> str:
@@ -667,7 +770,12 @@ def enqueue_confirm(bot, schema, chat, token, message, sender, cid) -> str:
 
     try:
         tasks.telegram_owner_confirm.delay(
-            dedupe_key=f"tgcb:{schema}:{cid or token}",
+            # Счётчики апдейтов у ботов разные — пространство ключей общего бота отдельное.
+            dedupe_key=(
+                f"tgcb:{schema}:p:{cid or token}"
+                if _bot_kind(bot) == "platform"
+                else f"tgcb:{schema}:{cid or token}"
+            ),
             schema=schema,
             chat=chat,
             token=token,
@@ -694,8 +802,11 @@ def handle_confirm(
     with schema_context(schema):
         tenant = Tenant.objects.filter(schema_name=schema).first()
         bot = bots.for_kind(bot_kind)
-        if tenant is None or bot is None or str(chat) != owner_chat(tenant):
+        if bot is None or not owner_ok(tenant, chat, bot_kind):
             return "skip"
+        if bot_kind == bots.PLATFORM:
+            with platform_scope(schema, chat, tenant):
+                return confirm_as_task(bot, tenant, schema, chat, token, message_id, language_code)
         return confirm_as_task(bot, tenant, schema, chat, token, message_id, language_code)
 
 
@@ -826,7 +937,7 @@ def _confirm_claimed(bot, tenant, schema, chat, token, message) -> str:
     mark_done(schema, token, promo.pk)
     drop_draft(schema, chat, token)
     services.edit_message_reply_markup(bot.token, chat, message.get("message_id"))
-    lines = []
+    lines = [_business_line()] if _business_line() else []
     if activated:
         lines.append(_("✅ Live: %(url)s") % {"url": _promo_url(promo)})
     else:

@@ -26528,3 +26528,13 @@ msgid "%(n)s wartende Nachricht"
 msgid_plural "%(n)s wartende Nachrichten"
 msgstr[0] "%(n)s pending message"
 msgstr[1] "%(n)s pending messages"
+
+msgid "Abgelaufen."
+msgstr "Expired."
+
+#, python-format
+msgid "Für: %(name)s"
+msgstr "For: %(name)s"
+
+msgid "Nicht verfügbar — bitte im Kabinett neu verbinden."
+msgstr "Not available — please reconnect in your dashboard."
