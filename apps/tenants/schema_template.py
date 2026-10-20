@@ -195,7 +195,7 @@ def _sequences_ahead(schema: str) -> list[str]:
             )
             top, last, called = cursor.fetchone()
             if top and (last < top or (last == top and not called)):
-                behind.append(table)
+                behind.append(f"{table}: max(id)={top} last_value={last} is_called={called}")
     return behind
 
 
@@ -296,7 +296,7 @@ def clone_into(schema: str) -> bool:
             diff = structure_diff(schema, name())
             if diff or _sequences_ahead(schema):
                 # Копия не совпала с шаблоном — откат всей транзакции (схемы не будет).
-                raise CloneMismatch(sorted(diff) or ["sequences"])
+                raise CloneMismatch(sorted(diff) or _sequences_ahead(schema))
     except Exception:
         log.warning("schema template clone failed for %s, via migrations", schema, exc_info=True)
         connection.set_schema_to_public()
