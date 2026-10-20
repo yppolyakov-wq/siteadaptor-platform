@@ -16,6 +16,9 @@ from .base import BASE_DIR, SHARED_APPS, STORAGES, TENANT_APPS
 DEBUG = False
 ALLOWED_HOSTS = ["*"]
 TENANT_DOMAIN_BASE = "siteadaptor.de"
+
+# T-10 D-1: тесты создают схемы миграциями; копирование включают сами тесты шаблона.
+TENANT_TEMPLATE_SCHEMA = ""
 # Кэш публичной выдачи выключен: тесты вьюх иначе перекрёстно загрязняются
 # отрендеренным HTML (общий Redis). Сам кэш тестируется с override_settings.
 PUBLIC_PAGE_CACHE_TTL = 0

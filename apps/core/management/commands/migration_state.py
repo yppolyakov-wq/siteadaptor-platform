@@ -17,8 +17,8 @@ T-10 (2026-10-20): `--check` — код выхода 1, если что-то н�
 import sys
 
 from django.core.management.base import BaseCommand
-from django.db import connection
-from django.db.migrations.loader import MigrationLoader
+
+from apps.core.schema_migrations import disk_migrations
 
 
 class Command(BaseCommand):
@@ -64,9 +64,14 @@ class Command(BaseCommand):
                 .order_by("schema_name")
                 .values_list("schema_name", flat=True)
             )
+            # T-10 D-1: шаблонная схема — источник копий новых схем. Отстающий шаблон
+            # обязан быть виден здесь же, иначе `--check` пропустил бы его молча.
+            template = getattr(settings, "TENANT_TEMPLATE_SCHEMA", "")
+            if template and template not in schemas:
+                schemas.append(template)
 
         # Миграции на диске — одни на все схемы: читаем один раз (без соединения).
-        self._disk = set(MigrationLoader(None, ignore_no_migrations=True).disk_migrations)
+        self._disk = disk_migrations()
         # Группируем ПО МИГРАЦИИ, а не по схеме: у тенантов отстаёт обычно один и
         # тот же хвост, и построчный вывод на полсотни схем был бы простынёй.
         by_migration: dict[tuple[str, str], list[str]] = {}
@@ -117,21 +122,6 @@ class Command(BaseCommand):
             sys.exit(1)
 
     def _pending(self, schema: str, wanted: set[str]) -> list[tuple[str, str]]:
-        """Миграции на диске, которых нет в `django_migrations` этой схемы.
+        from apps.core.schema_migrations import pending
 
-        Загрузчик читает таблицу ТЕКУЩЕГО search_path, поэтому переключение схемы
-        и есть весь фокус: одна и та же миграция может быть применена в одной
-        схеме и отсутствовать в другой.
-        """
-        from django.db.migrations.recorder import MigrationRecorder
-        from django_tenants.utils import schema_context
-
-        with schema_context(schema):
-            # Тот же источник, что у MigrationLoader: recorder смотрит таблицу ЭТОЙ
-            # схемы (без неё — пусто), граф с диска не пересобирается на каждую схему.
-            applied = set(MigrationRecorder(connection).applied_migrations())
-            return sorted(
-                (app, name)
-                for app, name in self._disk
-                if app in wanted and (app, name) not in applied
-            )
+        return pending(schema, wanted, self._disk)

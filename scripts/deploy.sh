@@ -82,7 +82,14 @@ $COMPOSE run --rm web python manage.py check --deploy
 step "[5/8] Migrate shared (public) schema"
 $COMPOSE run --rm web python manage.py migrate_schemas --shared
 
-step "[6/8] Migrate tenant schemas"
+step "[6a/8] Schema template (fast schema creation)"
+# T-10 D-1: шаблон, копией которого создаются новые схемы (регистрация, пересев демо).
+# Идемпотентно; свежий шаблон — секунды. Сбой не валит деплой: без шаблона схемы
+# создаются прежним путём миграциями.
+$COMPOSE run --rm web python manage.py ensure_template_schema \
+	|| echo "    шаблон не готов — новые схемы будут создаваться миграциями"
+
+step "[6b/8] Migrate tenant schemas"
 # T-10: если по всем схемам применять нечего — шаг пропускается (раньше сотня схем
 # проходилась по одной на каждом деплое). Иначе — параллельно
 # (TENANT_MIGRATION_PROCESSES, по умолчанию 3). FORCE_MIGRATE=1 — прогнать всегда.

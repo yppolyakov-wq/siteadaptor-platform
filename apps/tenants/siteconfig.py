@@ -4664,6 +4664,10 @@ def _normalize_impl(config) -> dict:
     # удалил ровно созданное. Тоже переживает сохранение конструктора.
     if isinstance(config.get("demo"), dict):
         normalized["demo"] = config["demo"]
+    # T-10 D-2: отпечаток демо-кита (`apps.tenants.demo_fingerprint`) — пересев только
+    # изменённых демо; сохранение конструктора не должно его стирать.
+    if isinstance(config.get("demo_kit"), dict):
+        normalized["demo_kit"] = config["demo_kit"]
     # W7a (аудит 2026-08-05): операционные узлы, которые пишут ДРУГИЕ экраны
     # кабинета мимо конструктора — уведомления/Telegram владельца
     # (apps.notifications.prefs, apps.telegram.notify), настройки склада

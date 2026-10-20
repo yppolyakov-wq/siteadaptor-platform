@@ -259,6 +259,28 @@ class Tenant(TenantMixin):
     def __str__(self):
         return f"{self.name} ({self.schema_name})"
 
+    def create_schema(self, check_if_exists=False, sync_schema=True, verbosity=1):
+        """T-10 D-1: схема копией шаблона (секунды); иначе — миграциями, как раньше.
+
+        Решение и все проверки — `apps.tenants.schema_template`.
+        """
+        from django_tenants.postgresql_backend.base import _check_schema_name
+        from django_tenants.utils import schema_exists
+
+        from . import schema_template
+
+        _check_schema_name(self.schema_name)
+        if schema_template.is_reserved(self.schema_name):
+            raise ValueError(f"schema {self.schema_name} is the schema template")
+        if sync_schema and schema_template.enabled():
+            if check_if_exists and schema_exists(self.schema_name):
+                return False
+            if schema_template.clone_into(self.schema_name):
+                return None
+        return super().create_schema(
+            check_if_exists=check_if_exists, sync_schema=sync_schema, verbosity=verbosity
+        )
+
     # --- модули кабинета (Track D / D0a, реестр — apps.core.modules) ------
 
     def is_module_active(self, key: str) -> bool:

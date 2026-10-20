@@ -105,6 +105,10 @@ THEME_PORTAL_CITY_KEY = "solingen"
 THEME_PORTAL_TAGS = ("vegan", "vegetarisch", "bio", "regional")
 
 
+# T-10 D-2: advisory-блокировка «идёт пересев --changed» (снимается с концом процесса).
+SEED_CHANGED_LOCK = 7_310_202_610_200_002
+
+
 class Command(BaseCommand):
     help = "Создать/обновить отдельные демо-тенанты по китам (apps.tenants.demo_kits)."
 
@@ -120,6 +124,18 @@ class Command(BaseCommand):
         parser.add_argument("--list", action="store_true", help="показать киты и группы")
         parser.add_argument("--recreate", action="store_true", help="пересоздать существующие")
         parser.add_argument("--delete", action="store_true", help="удалить демо-тенанты китов")
+        parser.add_argument(
+            "--changed",
+            action="store_true",
+            help="T-10: только изменённые киты — нет демо → создать, спека/переводы кита "
+            "изменились → пересоздать, иначе пропустить.",
+        )
+        parser.add_argument(
+            "--stamp",
+            action="store_true",
+            help="T-10: записать отпечатки уже засеянным демо, ничего не пересевая "
+            "(разово перед первым --changed).",
+        )
         parser.add_argument(
             "--jobs",
             type=int,
@@ -155,6 +171,24 @@ class Command(BaseCommand):
             self._print_list()
             return
         keys = self._keys(options)
+        if options.get("stamp"):
+            self._stamp(keys)
+            return
+        if options.get("changed"):
+            # Фоновый пересев после деплоя: два одновременных прогона дрались бы за
+            # одни и те же демо — второй тихо выходит.
+            from django.db import connection
+
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT pg_try_advisory_lock(%s)", [SEED_CHANGED_LOCK])
+                if not cursor.fetchone()[0]:
+                    self.stdout.write("Пересев уже идёт — выход.")
+                    return
+            keys = self._changed(keys)
+            options = {**options, "recreate": True}
+            if not keys:
+                self.stdout.write(self.style.SUCCESS("Изменённых китов нет — пересев не нужен."))
+                return
         done, failed = [], []
         total = len(keys)
         jobs = max(1, int(options.get("jobs") or 1))
@@ -179,6 +213,47 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"Готово: {len(done)} из {total}")
                 + (self.style.ERROR(f" · ошибки: {', '.join(failed)}") if failed else "")
             )
+
+    def _slug(self, key: str) -> str:
+        return demo_kits.KITS[key].subdomain or f"{key}-demo"
+
+    def _changed(self, keys: list[str]) -> list[str]:
+        """Киты, которые надо (пере)сеять: демо нет или отпечаток разошёлся."""
+        from apps.tenants import demo_fingerprint
+
+        out = []
+        for key in keys:
+            if key not in demo_kits.KITS:
+                out.append(key)  # _seed_one сообщит об опечатке
+                continue
+            tenant = Tenant.objects.filter(slug=self._slug(key)).first()
+            fingerprint = demo_fingerprint.kit_fingerprint(demo_kits.KITS[key])
+            if tenant is None:
+                reason = "нет демо"
+            elif demo_fingerprint.stored(tenant) != fingerprint:
+                reason = "изменён"
+            else:
+                continue
+            self.stdout.write(f"  {key}: {reason}")
+            out.append(key)
+        self.stdout.write(f"К пересеву: {len(out)} из {len(keys)}")
+        return out
+
+    def _stamp(self, keys: list[str]) -> None:
+        from apps.tenants import demo_fingerprint
+
+        n = 0
+        for key in keys:
+            if key not in demo_kits.KITS:
+                continue
+            tenant = Tenant.objects.filter(slug=self._slug(key)).first()
+            if tenant is None or not tenant.is_demo:
+                continue
+            demo_fingerprint.stamp(
+                tenant, key, demo_fingerprint.kit_fingerprint(demo_kits.KITS[key])
+            )
+            n += 1
+        self.stdout.write(self.style.SUCCESS(f"Отпечатки записаны: {n}"))
 
     def _seed_parallel(self, keys, options, jobs):
         """DCC §5.2: по подпроцессу `manage.py seed_demo_tenants --kit X` на кит (не fork —
@@ -240,7 +315,7 @@ class Command(BaseCommand):
                 )
             )
             return False
-        slug = demo_kits.KITS[key].subdomain or f"{key}-demo"
+        slug = self._slug(key)
         existing = Tenant.objects.filter(slug=slug).first()
 
         if options["delete"]:
@@ -264,6 +339,11 @@ class Command(BaseCommand):
         )
         with schema_context(tenant.schema_name):
             demo_kits.apply_kit(tenant, key)
+        # T-10 D-2: отпечаток — после успешного засева (сбой выше = отпечатка нет →
+        # следующий --changed пересеет кит).
+        from apps.tenants import demo_fingerprint
+
+        demo_fingerprint.stamp(tenant, key, demo_fingerprint.kit_fingerprint(kit))
         # Материализовать листинги в общий пул агрегатора (акции/номера/события).
         from apps.aggregator.tasks import reconcile_schema
 
