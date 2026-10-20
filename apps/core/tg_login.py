@@ -209,7 +209,7 @@ def is_tg_session(request) -> bool:
     from django.conf import settings
 
     # Без куки сессии не трогаем: иначе каждый анонимный запрос читал бы сессию.
-    if not request.COOKIES.get(settings.SESSION_COOKIE_NAME):
+    if not (getattr(request, "COOKIES", None) or {}).get(settings.SESSION_COOKIE_NAME):
         return False
     session = getattr(request, "session", None)
     return bool(session is not None and session.get(SESSION_KEY))
