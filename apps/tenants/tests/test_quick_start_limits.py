@@ -190,14 +190,14 @@ def test_failed_first_submit_frees_the_form_for_retry():
         quickstart_views, "start_quick_provisioning", side_effect=IntegrityError
     ):
         assert _submit(req).status_code == 200
-    key, done = quickstart_views._claim_submit(stamp)
+    key, done = quickstart_views._claim_submit(_request(), stamp)
     assert done is None and key.startswith("qs-submit:")
 
 
 def test_busy_submit_waits_then_reports_in_progress(monkeypatch):
     stamp = _old_stamp()
     monkeypatch.setattr(quickstart_views, "SUBMIT_WAIT", 0)
-    key, _done = quickstart_views._claim_submit(stamp)
+    key, _done = quickstart_views._claim_submit(_request(), stamp)
     try:
         req = _request()
         req.POST = req.POST.copy()
@@ -208,3 +208,44 @@ def test_busy_submit_waits_then_reports_in_progress(monkeypatch):
         assert not Tenant.objects.filter(slug__startswith="baeckerei-mueller").exists()
     finally:
         quickstart_views.cache.delete(key)
+
+
+def test_duplicate_submit_forgets_telegram_marker_too():
+    stamp = _old_stamp()
+    req1 = _request()
+    req1.POST = req1.POST.copy()
+    req1.POST["stamp"] = stamp
+    req2 = _request(ip="10.87.0.3")
+    req2.POST = req2.POST.copy()
+    req2.POST["stamp"] = stamp
+    try:
+        _submit(req1)
+        _submit(req2)
+        assert web_signup.SESSION_KEY not in req2.session
+    finally:
+        _drop()
+
+
+def test_busy_marker_is_short_lived():
+    assert quickstart_views.BUSY_TTL <= 120 and quickstart_views.SUBMIT_WAIT <= 5
+
+
+def test_result_is_not_handed_to_another_browser():
+    """Ревью: утёкшая метка формы в чужом браузере (другая CSRF-кука) — не результат."""
+    stamp = _old_stamp()
+    req1 = _request()
+    req1.POST = req1.POST.copy()
+    req1.POST["stamp"] = stamp
+    req1.COOKIES["csrftoken"] = "a" * 32
+    req2 = _request(ip="10.87.0.4", subdomain="baeckerei-mueller-andere")
+    req2.POST = req2.POST.copy()
+    req2.POST["stamp"] = stamp
+    req2.COOKIES["csrftoken"] = "b" * 32
+    try:
+        r1 = _submit(req1)
+        r2 = _submit(req2)
+        slug1 = r1["Location"].strip("/").split("/")[-1]
+        assert slug1 not in (req2.session.get(quickstart_views.SESSION_KEY) or {})
+        assert r2.status_code in (200, 302) and r2.get("Location") != r1["Location"]
+    finally:
+        _drop()

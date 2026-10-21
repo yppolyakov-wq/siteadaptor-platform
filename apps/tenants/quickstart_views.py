@@ -10,6 +10,7 @@ import logging
 from datetime import timedelta
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
@@ -136,11 +137,15 @@ def quick_start(request):
 
     # T-8.30k: повторная отправка той же формы (второй тап, пока грузятся фото) — не
     # вторая регистрация и не «Zu viele Versuche», а тот же результат, что у первой.
-    key, done = _claim_submit(stamp)
+    key, done = _claim_submit(request, stamp)
     if done == "busy":
         form.add_error(None, _("Ihr Geschäft wird gerade angelegt — einen Moment bitte."))
         return render(request, "tenants/quick_start.html", _context(request, form))
     if done:
+        if done["entry"].get("tg"):
+            from apps.platform_bot import web_signup
+
+            web_signup.forget(request)  # как у первой отправки: метка Telegram израсходована
         handoff = dict(request.session.get(SESSION_KEY) or {})
         handoff[done["slug"]] = done["entry"]
         request.session[SESSION_KEY] = handoff
@@ -157,34 +162,43 @@ def quick_start(request):
             cache.delete(key)  # не создано — следующая попытка с той же формой свободна
 
 
-SUBMIT_TTL = 10 * 60
-SUBMIT_WAIT = 20  # сек: второй запрос ждёт первый, а не выдаёт ошибку
+SUBMIT_TTL = 10 * 60  # результат опубликованной формы
+BUSY_TTL = 90  # «идёт отправка»: убитый воркер не держит форму дольше
+SUBMIT_WAIT = 5  # сек: второй запрос недолго ждёт первый (sync-воркер не держим)
 
 
-def _claim_submit(stamp: str):
+def _claim_submit(request, stamp: str):
     """(ключ, None) — запрос первый, публикуем; (ключ, dict) — уже опубликовано;
     (ключ, "busy") — первая отправка всё ещё идёт дольше ``SUBMIT_WAIT``.
 
-    Ключ — хэш подписанной метки формы: она своя у каждой отрисовки и известна только
-    этому браузеру, поэтому чужой запрос результата не получит."""
+    Ключ — хэш подписанной метки формы (своя у каждой отрисовки) И CSRF-куки браузера
+    (ревью: утёкшая метка из чужого браузера даёт другой ключ — результата, а с ним
+    входа в кабинет, не получить). Ключ сессии не годится: при двойном тапе до первого
+    ответа сессии ещё нет, а CSRF-кука есть с GET."""
     import hashlib
     import time
 
-    key = "qs-submit:" + hashlib.sha256(stamp.encode()).hexdigest()
+    bind = request.COOKIES.get(settings.CSRF_COOKIE_NAME, "")
+    key = "qs-submit:" + hashlib.sha256(f"{stamp}|{bind}".encode()).hexdigest()
     deadline = time.monotonic() + SUBMIT_WAIT
+    waited = False
     while True:
         try:
-            if cache.add(key, "busy", SUBMIT_TTL):
+            if cache.add(key, "busy", BUSY_TTL):
                 return key, None
             state = cache.get(key)
         except Exception:  # noqa: BLE001 — кэш недоступен: обычная отправка
             return key, None
         if isinstance(state, dict):
             return key, state
-        if state is None:
-            continue  # первая отправка не удалась и освободила ключ — пробуем сами
+        if not waited:
+            waited = True
+            # Ожидание держит воркер — не больше нескольких раз в минуту с одного адреса.
+            if ratelimit.hit("quick-start-wait", ratelimit.client_ip(request), limit=10, window=60):
+                return key, "busy"
         if time.monotonic() > deadline:
             return key, "busy"
+        # state is None — первая отправка не удалась и освободила ключ: пробуем сами.
         time.sleep(0.5)
 
 
