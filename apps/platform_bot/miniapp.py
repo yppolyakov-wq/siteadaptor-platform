@@ -175,8 +175,8 @@ def _first_run(uid: int):
     bot = config.username()
     from apps.tenants.models import Tenant
 
-    creating = links.active_links(uid).exclude(
-        tenant__provisioning_status=Tenant.PROVISIONING_FAILED
+    creating = links.active_links(uid).filter(
+        tenant__provisioning_status=Tenant.PROVISIONING_PENDING
     )
     if creating.exists() or signup.cache.get(signup._pending_key(uid)):
         return _error(

@@ -108,18 +108,21 @@ document.addEventListener("DOMContentLoaded", function () {
     var bot = data.bot ? "https://t.me/" + encodeURIComponent(data.bot) : "";
     function toBot(param) {
       // Сначала ссылка, потом закрытие: закрытое окно ссылку теряет.
-      tg.openTelegramLink(bot + "?start=" + param);
+      var url = bot + "?start=" + param;
+      if (typeof tg.openTelegramLink === "function") { tg.openTelegramLink(url); }
+      else { tg.openLink(url); }  // старые клиенты (Bot API < 6.1)
       tg.close();
     }
     var unlinked = root.querySelector("[data-unlinked]");
     unlinked.hidden = data.error !== "unlinked";
+    root.querySelector("[data-have-business-help]").hidden = true;
     root.querySelector("[data-bot-new]").hidden = !bot;
     root.querySelector("[data-bot-new]").onclick = function () { toBot("neu"); };
     root.querySelector("[data-have-business]").onclick = function () {
       root.querySelector("[data-have-business-help]").hidden = false;
     };
     var web = root.querySelector("[data-web-signup]");
-    web.hidden = !data.web_url;
+    web.hidden = !/^https:\/\//.test(data.web_url || "");
     web.onclick = function () { tg.openLink(data.web_url); };
     var pending = root.querySelector("[data-pending]");
     pending.hidden = data.error !== "pending" || !bot;

@@ -284,13 +284,22 @@ def _signup_message(bot, message: dict, text: str) -> str:
     uid, chat = message["from_id"], message["chat_id"]
     if CANCEL_RE.match(text):
         return signup.cancel(bot, uid, chat)
-    if START_MAIL_RE.match(text):
-        return signup.remind_pending(bot, uid, chat) or _private_onboarding(bot, chat)
-    if START_NEW_RE.match(text) and not links.active_links(uid).exists():
-        # Бизнес уже ждёт почту — напомнить, а не заводить второй до подтверждения.
+    waiting = (START_MAIL_RE.match(text) or START_NEW_RE.match(text)) and (
+        not links.active_links(uid).exists() and links.pending_for(uid).exists()
+    )
+    if waiting:
+        # Бизнес ждёт почту — напомнить, а не заводить второй до подтверждения. При
+        # возражении против напоминаний (Art. 21) — только короткая подсказка.
         reminded = signup.remind_pending(bot, uid, chat)
-        if reminded:
-            return reminded
+        if not reminded:
+            send(
+                bot,
+                chat,
+                _("Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."),
+            )
+        return reminded or "awaiting_email"
+    if START_MAIL_RE.match(text):
+        return _private_onboarding(bot, chat)
     if NEW_RE.match(text) or START_NEW_RE.match(text):
         return signup.start(bot, uid, chat, message.get("language_code") or "")
     state = signup.load(uid)

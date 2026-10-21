@@ -49,7 +49,7 @@ def test_link_to_business_still_provisioning_answers_pending():
 
 def test_page_has_first_run_actions():
     src = TPL.read_text()
-    assert "data-unlinked" in src and "toBot(\"neu\")" in src and "?start=" in src
+    assert "data-unlinked" in src and 'toBot("neu")' in src and "?start=" in src
     assert "openTelegramLink" in src
     assert "data-pending" in src
 
@@ -77,3 +77,32 @@ def handler_uid():
     from apps.platform_bot.tests.test_h5_signup import USER
 
     return USER
+
+
+def _pending_tenant():
+    from apps.platform_bot.tests.test_h5_signup import USER
+
+    t = _tenant()
+    t.email_pending = True
+    t.site_config = {"notify": {"pending_tg_owner": {"uid": USER, "at": int(time.time())}}}
+    t.save()
+    return t
+
+
+def test_start_neu_with_pending_email_does_not_start_second_signup(bot):  # noqa: F811
+    _pending_tenant()
+    handler.handle(_msg("/start neu"))
+    assert signup.load(handler_uid()) is None
+
+
+def test_start_mail_with_reminders_objected_is_not_onboarding(bot, monkeypatch):  # noqa: F811
+    _pending_tenant()
+    monkeypatch.setattr("apps.platform_bot.rights.reminders_objected", lambda uid: True)
+    assert handler.handle(_msg("/start mail")) == "awaiting_email"
+    assert "E-Mail" in bot["sent"][-1]["text"]
+
+
+def test_start_neu_restricted_never_starts_signup(bot, monkeypatch):  # noqa: F811
+    monkeypatch.setattr("apps.platform_bot.rights.is_restricted", lambda uid: True)
+    handler.handle(_msg("/start neu"))
+    assert signup.load(handler_uid()) is None
