@@ -153,12 +153,15 @@ def test_availability_mapping(kind, avail, expected):
 @override_settings(ROOT_URLCONF="config.urls_portal", TIME_ZONE="Europe/Berlin")
 def test_price_valid_until_is_local_date():
     portal = _portal()
-    from datetime import datetime
+    from datetime import datetime, timedelta
 
-    ends = datetime(2026, 10, 20, 23, 30, tzinfo=UTC)  # 21.10 в Берлине
+    # 23:30 UTC = уже следующий день в Берлине. Дата — в будущем: была прошита
+    # 20.10.2026, и 21.10 листинг стал истёкшим (public() его прячет).
+    day = (datetime.now(UTC) + timedelta(days=30)).date()
+    ends = datetime(day.year, day.month, day.day, 23, 30, tzinfo=UTC)
     lst = _listing(ends_at=ends)
     ld = _ld(views.offer_page(_get(portal=portal), lst.pk).content.decode())
-    assert ld["offers"]["priceValidUntil"] == "2026-10-21"
+    assert ld["offers"]["priceValidUntil"] == (day + timedelta(days=1)).isoformat()
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
