@@ -1133,6 +1133,8 @@ def _payment_kwargs(request, kind):
         "customer_type": ctype,
         "billing_company": request.POST.get("billing_company", "").strip()[:200],
         "billing_vat_id": _pm.clean_vat_id(request.POST.get("billing_vat_id", "")),
-        "billing_address": request.POST.get("billing_address", "").strip()[:1000],
+        "billing_address": (
+            request.POST.get("billing_address", "").strip()[:1000] if ctype == _pm.COMPANY else ""
+        ),
         "payment_due_at": (timezone.now() + timedelta(days=days)) if days else None,
     }

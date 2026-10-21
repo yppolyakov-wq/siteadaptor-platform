@@ -85,3 +85,16 @@ def test_clean_vat_id_format():
 
     assert clean_vat_id(" de 123.456.789 ") == "DE123456789"
     assert clean_vat_id("Bitte zahlen Sie an IBAN …") == ""
+
+
+def test_freemail_domain_is_no_proof():
+    Company.objects.create(name="Klein GmbH", vat_id="DE444444444", email="klein@gmail.com")
+    order = _order("DE444444444", email="irgendwer@gmail.com")
+    order.customer.refresh_from_db()
+    assert order.customer.company_id is None
+
+
+def test_swiss_uid_is_kept():
+    from apps.core.payment_methods import clean_vat_id
+
+    assert clean_vat_id("CHE-123.456.789 MWST") == "CHE123456789MWST"

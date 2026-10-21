@@ -16,15 +16,48 @@ def normalize_vat(value: str) -> str:
     return _NOISE.sub("", (value or "").upper())
 
 
+# Общие почтовые сервисы: совпадение домена тут ничего не доказывает (ревью CO-2).
+FREEMAIL = frozenset(
+    {
+        "gmail.com",
+        "googlemail.com",
+        "gmx.de",
+        "gmx.net",
+        "gmx.at",
+        "gmx.ch",
+        "web.de",
+        "t-online.de",
+        "outlook.com",
+        "outlook.de",
+        "hotmail.com",
+        "hotmail.de",
+        "live.com",
+        "yahoo.com",
+        "yahoo.de",
+        "icloud.com",
+        "me.com",
+        "aol.com",
+        "freenet.de",
+        "posteo.de",
+        "mailbox.org",
+        "proton.me",
+        "protonmail.com",
+        "bluewin.ch",
+        "gmx.com",
+    }
+)
+
+
 def _same_mail_domain(customer, company) -> bool:
     """Ревью безопасности CO-2: USt-IdNr публичен — сам по себе он не доказывает, что
     бронирует сотрудник фирмы (иначе посетитель получил бы в счёт адрес из справочника
     владельца). Нужна ещё почта на домене фирмы из справочника."""
-    mail = (getattr(customer, "email", "") or "").lower()
-    known = (getattr(company, "email", "") or "").lower()
+    mail = (getattr(customer, "email", "") or "").strip().lower()
+    known = (getattr(company, "email", "") or "").strip().lower()
     if "@" not in mail or "@" not in known:
         return False
-    return mail.rsplit("@", 1)[1] == known.rsplit("@", 1)[1]
+    domain = mail.rsplit("@", 1)[1]
+    return domain not in FREEMAIL and domain == known.rsplit("@", 1)[1]
 
 
 def link_by_vat(customer, vat_id: str):

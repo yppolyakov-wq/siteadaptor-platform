@@ -110,7 +110,7 @@ def clean_vat_id(raw: str) -> str:
     import re
 
     value = re.sub(r"[\s.\-/]", "", (raw or "").upper())
-    return value if re.fullmatch(r"[A-Z]{2}[0-9A-Z]{2,13}", value) else ""
+    return value if re.fullmatch(r"[A-Z]{2}[0-9A-Z]{2,14}", value) else ""
 
 
 def offline_payment(deal) -> bool:

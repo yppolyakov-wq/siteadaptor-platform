@@ -32,6 +32,7 @@ def on_confirmed(kind: str, deal) -> None:
     def _run():
         from django_tenants.utils import schema_context
 
+        from apps.core import status_registry
         from apps.core.status_registry import cancelled_statuses_for
 
         from .services import issue_invoice_for_deal
@@ -44,10 +45,11 @@ def on_confirmed(kind: str, deal) -> None:
             with schema_context(schema), transaction.atomic():
                 # Блокировка сделки: два быстрых подтверждения не выпустят два счёта.
                 obj = model.objects.select_for_update().filter(pk=pk).first()
-                if obj is None or obj.status == "pending":
+                if obj is None or obj.status in cancelled_statuses_for(kind, tenant):
                     return
-                if obj.status in cancelled_statuses_for(kind, tenant):
-                    return
+                desc = status_registry.resolve(kind, obj.status, tenant)
+                if desc is None or desc.role not in ("active", "done"):
+                    return  # ещё не подтверждена (pending / свой «intake»)
                 issue_invoice_for_deal(kind, obj, tenant)
         except Exception:  # noqa: BLE001
             logger.warning("finance: auto invoice for %s failed", kind, exc_info=True)

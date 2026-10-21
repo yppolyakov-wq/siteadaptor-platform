@@ -5,10 +5,14 @@
 constraint в БД). Ручные записи (source=manual) идут без source_ref.
 """
 
+import logging
+
 from django.utils import timezone
 
 from .models import RevenueEntry
 from .recipient import recipient_for
+
+logger = logging.getLogger(__name__)
 
 
 def record_revenue(
@@ -409,7 +413,13 @@ def issue_invoice_for_deal(kind, obj, tenant, *, send_email=True):
     }.get(kind)
     if builder is None:
         return None
-    invoice = draft or builder(obj, tenant)
+    if draft is not None:
+        # Черновик кнопки мог устареть (допы, скидка, получатель) — выпускаем свежий:
+        # черновик ещё не документ GoBD, выпущенный уже не исправить (ревью CO-2).
+        if hasattr(obj, "invoice_id"):
+            obj.invoice_id = None
+        draft.delete()
+    invoice = builder(obj, tenant)
     if invoice is None:
         return None
     invoice.deal_kind = kind
@@ -422,7 +432,9 @@ def issue_invoice_for_deal(kind, obj, tenant, *, send_email=True):
     invoice.refresh_from_db()
     if send_email:
         email = getattr(getattr(obj, "customer", None), "email", "") or ""
-        if email and _invoice_mail_allowed(email):
+        if email and not _invoice_mail_allowed(email):
+            logger.warning("finance: invoice %s mail throttled", invoice.pk)
+        elif email:
             _send_invoice_email(
                 invoice, tenant, email, schema=connection.schema_name, notify=notify
             )

@@ -115,3 +115,16 @@ def test_next_with_tab_cannot_escape_host():
     stay = _stay()
     resp = _post("stay", stay.pk, {"billing_present": "1", "next": "/\t/evil.example/"})
     assert "evil.example" not in resp["Location"]
+
+
+def test_pick_from_directory_clears_storefront_address():
+    company = Company.objects.create(name="Müller GmbH", vat_id="DE111")
+    stay = _stay()
+    StayBooking.objects.filter(pk=stay.pk).update(billing_address="Alte Straße 1")
+    _post(
+        "stay",
+        stay.pk,
+        {"billing_present": "1", "company": str(company.pk), "billing_address": "x"},
+    )
+    stay.refresh_from_db()
+    assert stay.billing_address == ""

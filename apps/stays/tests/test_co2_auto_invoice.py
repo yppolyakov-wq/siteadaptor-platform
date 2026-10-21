@@ -82,15 +82,18 @@ def test_card_draft_is_issued_not_duplicated(django_capture_on_commit_callbacks)
     booking.save(update_fields=["invoice_id"])
     with django_capture_on_commit_callbacks(execute=True):
         StayBookingSM().apply(booking, "confirmed")
+    # Черновик мог устареть — выпускается свежий, но счёт на сделку ровно один.
     assert Invoice.objects.count() == 1
-    draft.refresh_from_db()
-    assert draft.status == "issued" and draft.deal_kind == "stay"
+    inv = Invoice.objects.get()
+    assert inv.status == "issued" and inv.deal_kind == "stay"
+    booking.refresh_from_db()
+    assert booking.invoice_id == inv.pk
 
 
 def test_invoice_mail_is_throttled_per_address():
-    from apps.finance.services import _invoice_mail_allowed
-
     import uuid
+
+    from apps.finance.services import _invoice_mail_allowed
 
     addr = f"spam-{uuid.uuid4().hex[:8]}@example.com"  # Redis общий между прогонами
     assert [_invoice_mail_allowed(addr) for _ in range(4)] == [True, True, True, False]

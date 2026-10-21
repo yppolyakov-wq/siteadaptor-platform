@@ -5111,6 +5111,8 @@ def deal_billing_edit(request, kind, pk):
             obj.customer_type = payment_methods.COMPANY
             obj.billing_company = company.name[:200]
             obj.billing_vat_id = (company.vat_id or "")[:30]
+            if hasattr(obj, "billing_address"):
+                obj.billing_address = ""  # адрес — из выбранной компании, не из витрины
             if customer is not None and customer.company_id != company.pk:
                 customer.company = company
                 customer.save(update_fields=["company"])
@@ -5121,8 +5123,11 @@ def deal_billing_edit(request, kind, pk):
             obj.billing_company = (request.POST.get("billing_company") or "").strip()[:200]
             obj.billing_vat_id = (request.POST.get("billing_vat_id") or "").strip()[:30]
         fields = ["customer_type", "billing_company", "billing_vat_id", "updated_at"]
-        if hasattr(obj, "billing_address") and "billing_address" in request.POST:
-            obj.billing_address = (request.POST.get("billing_address") or "").strip()[:1000]
+        if hasattr(obj, "billing_address") and (
+            company is not None or "billing_address" in request.POST
+        ):
+            if company is None:
+                obj.billing_address = (request.POST.get("billing_address") or "").strip()[:1000]
             fields.append("billing_address")
         obj.save(update_fields=fields)
         messages.success(request, _("Rechnungsempfänger gespeichert."))
@@ -5156,16 +5161,19 @@ def deal_invoice(request, kind, pk):
     if kind not in builders or not (tenant and tenant.is_module_active("finance")):
         raise Http404("no invoice for this deal")
     obj = get_object_or_404(transactions.model_for(kind), pk=pk)
-    invoice = None
+    ref = str(getattr(obj, "reference_code", "") or obj.pk)[:64]
+    # CO-2 (ревью): у заказа нет `invoice_id` — сначала общий ключ сделки, иначе
+    # клик после автосчёта (SH-23b) создал бы второй счёт на тот же заказ.
+    invoice = Invoice.objects.filter(deal_kind=kind, deal_id=ref).order_by("created_at").first()
     existing = getattr(obj, "invoice_id", None)
-    if existing:
+    if invoice is None and existing:
         invoice = Invoice.objects.filter(pk=existing).first()
     if invoice is None:
         invoice = builders[kind](obj, tenant=tenant)
         # CO-2 (ревью): общий ключ с автосчётом — подтверждение сделки выпустит
         # ЭТОТ черновик, а не второй счёт.
         invoice.deal_kind = kind
-        invoice.deal_id = str(getattr(obj, "reference_code", "") or obj.pk)[:64]
+        invoice.deal_id = ref
         invoice.save(update_fields=["deal_kind", "deal_id", "updated_at"])
         if hasattr(obj, "invoice_id"):
             obj.invoice_id = invoice.pk

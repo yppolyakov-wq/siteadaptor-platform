@@ -79,7 +79,7 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     c.setFillColorRGB(*_INK)
     c.setFont(font, 10)
     recipient = invoice.recipient or (str(invoice.customer) if invoice.customer else "")
-    for line in recipient.splitlines()[:5]:
+    for line in recipient.splitlines()[:8]:  # CO-2: фирма + адрес + USt-IdNr
         c.drawString(x, y, line)
         y -= 5 * mm
 
