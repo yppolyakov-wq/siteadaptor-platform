@@ -1478,6 +1478,9 @@ def reservation_action(request, pk):
         }.get(action)
         if handler is None:
             messages.error(request, _("Unknown action."))
+        elif action == "fulfill" and res.status == "fulfilled":
+            # T-8.30g: двойной тап / «назад» + повтор — уже выдано, не «eingelöst» ещё раз.
+            messages.info(request, _("Already handed out."))
         else:
             try:
                 handler(res, actor=request.user)
@@ -1507,10 +1510,18 @@ def redeem_home(request):
     if request.method == "POST":
         code = (request.POST.get("code") or "").strip().upper()
         if _REDEEM_CODE_RE.fullmatch(code):
-            if request.POST.get("scan") == "1":
-                # T-8.30e: автопогашение — только по POST сканера (с CSRF), а не по
-                # любой ссылке на страницу кода (ревью безопасности).
-                request.session[_SCAN_AUTO_KEY] = code
+            voucher = request.POST.get("kind") == "voucher"
+            if request.POST.get("scan") == "1" and _scan_redeems(request):
+                # T-8.30g: «Sofort einlösen» — гасит сам POST встроенного сканера (CSRF);
+                # страница кода после редиректа только показывает результат.
+                if voucher:
+                    _redeem_voucher_scan(request, code)
+                elif code.startswith("C-") and _coupon_for(code) is not None:
+                    _redeem_coupon(request, code)
+                else:
+                    _auto_fulfill(request, code)
+            if voucher:
+                return redirect(reverse("promotions:voucher-redeem") + f"?code={code}")
             return redirect("promotions:redeem-detail", code=code)
         if code:
             messages.error(request, _("Unbekannter QR-Code."))
@@ -1525,23 +1536,35 @@ def redeem_home(request):
 
 
 _REDEEM_CODE_RE = re.compile(r"[A-Z0-9][A-Z0-9-]{2,31}")
-_SCAN_AUTO_KEY = "redeem_scan_auto"
 
 
-def _auto_redeem_allowed(request, code: str) -> bool:
-    """Автопогашение при открытии кода (настройка бизнеса).
+def _scan_redeems(request) -> bool:
+    """«Sofort einlösen» (настройка бизнеса): встроенный сканер гасит в своём POST.
 
-    T-8.30e: в Telegram-сессии GET-ссылка на код НЕ гасит (её мог подсунуть кто угодно,
-    сессия живёт 12 ч) — только скан из нашего сканера (POST с CSRF, разовый допуск).
-    В обычной сессии прежнее поведение: камера телефона открывает адрес и гасит."""
-    if not getattr(getattr(request, "tenant", None), "auto_redeem_on_scan", False):
-        return False
-    from apps.core import tg_login
+    T-8.30g: GET не гасит НИКОГДА — ни ссылка, ни камера телефона, ни превью/prefetch,
+    ни перезагрузка; там владелец подтверждает одной большой кнопкой (POST)."""
+    return bool(getattr(getattr(request, "tenant", None), "auto_redeem_on_scan", False))
 
-    permit = request.session.pop(_SCAN_AUTO_KEY, None) if hasattr(request, "session") else None
-    if tg_login.is_tg_session(request):
-        return permit == code
-    return True
+
+def _auto_fulfill(request, code: str) -> None:
+    res = Reservation.objects.filter(reference_code=code).first()
+    if res is None or res.status not in ("pending", "confirmed"):
+        return
+    try:
+        if res.status == "pending":
+            services.confirm(res, actor=request.user)
+        services.fulfill(res, actor=request.user)
+        messages.success(request, _("%(code)s: ausgegeben ✓ (Auto)") % {"code": code})
+    except IllegalTransition:
+        pass
+
+
+def _redeem_voucher_scan(request, code: str) -> None:
+    try:
+        voucher = services.redeem_voucher(code)
+        messages.success(request, f"{voucher.code}: {voucher.label} ✓ (Auto)")
+    except services.VoucherError as exc:
+        messages.error(request, _VOUCHER_ERRORS.get(exc.reason, exc.reason))
 
 
 def _coupon_for(code):
@@ -1577,11 +1600,7 @@ def redeem_detail(request, code):
     lite = _lite(request)
     # T-8.3: купон акции гасится тем же экраном, что и резерв.
     coupon = _coupon_for(code) if code.startswith("C-") else None
-    auto = _auto_redeem_allowed(request, code)
     if coupon is not None:
-        if auto and coupon.is_redeemable:
-            _redeem_coupon(request, code)
-            coupon.refresh_from_db()
         return render(
             request,
             "promotions/redeem_detail.html",
@@ -1597,17 +1616,6 @@ def redeem_detail(request, code):
         .filter(reference_code=code)
         .first()
     )
-    # авто-погашение по скану (если включено у бизнеса): сотрудник открыл QR →
-    # бронь сразу выдаётся. Идемпотентно (повторный скан выданной — no-op).
-    if res is not None and auto and res.status in ("pending", "confirmed"):
-        try:
-            if res.status == "pending":
-                services.confirm(res, actor=request.user)
-            services.fulfill(res, actor=request.user)
-            res.refresh_from_db()
-            messages.success(request, _("%(code)s: ausgegeben ✓ (Auto)") % {"code": code})
-        except IllegalTransition:
-            pass
     return render(
         request,
         "promotions/redeem_detail.html",
@@ -1638,6 +1646,9 @@ def redeem_action(request, code):
         }.get(action)
         if handler is None:
             messages.error(request, _("Unknown action."))
+        elif action == "fulfill" and res.status == "fulfilled":
+            # T-8.30g: двойной тап / «назад» + повтор — уже выдано, не «eingelöst» ещё раз.
+            messages.info(request, _("Already handed out."))
         else:
             try:
                 handler(res, actor=request.user)
@@ -1706,8 +1717,14 @@ def voucher_list(request):
 @login_required
 def voucher_redeem(request):
     if request.method == "POST":
+        expect = request.POST.get("expect", "")
         try:
-            voucher = services.redeem_voucher(request.POST.get("code", ""))
+            voucher = services.redeem_voucher(
+                request.POST.get("code", ""),
+                # T-8.30g: кнопка подтверждения несёт счётчик, который видел владелец —
+                # двойной тап по многоразовому ваучеру не списывает дважды.
+                expect_used=int(expect) if expect.isdigit() else None,
+            )
             uses = f" ({voucher.used_count}/{voucher.max_uses})" if voucher.max_uses else ""
             messages.success(request, f"{voucher.code}: {voucher.label} ✓{uses}")
         except services.VoucherError as exc:
@@ -1715,16 +1732,8 @@ def voucher_redeem(request):
         return redirect("promotions:voucher-redeem")
 
     code = (request.GET.get("code") or "").strip().upper()
+    # T-8.30g: GET только показывает ваучер и кнопку — гасит POST.
     voucher = Voucher.objects.filter(code=code).first() if code else None
-    # авто-погашение по скану, если включено у бизнеса (в Telegram — только кнопкой)
-    auto = _auto_redeem_allowed(request, code)
-    if voucher is not None and auto and voucher.is_redeemable:
-        try:
-            voucher = services.redeem_voucher(code)
-            messages.success(request, f"{voucher.code}: {voucher.label} ✓ (Auto)")
-        except services.VoucherError as exc:
-            messages.error(request, _VOUCHER_ERRORS.get(exc.reason, exc.reason))
-            voucher = Voucher.objects.filter(code=code).first()
     return render(
         request,
         "promotions/voucher_redeem.html",

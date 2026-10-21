@@ -485,8 +485,11 @@ def issue_coupon(promotion, *, name="", email="", phone="", existing_code="", so
 
 
 @transaction.atomic
-def redeem_voucher(code):
-    """Погасить ваучер (одно использование). Бросает VoucherError с reason."""
+def redeem_voucher(code, *, expect_used=None):
+    """Погасить ваучер (одно использование). Бросает VoucherError с reason.
+
+    ``expect_used`` — счётчик, который видел подтверждающий (T-8.30g): если ваучер уже
+    погасили после этого, повтор (двойной тап) не списывает второй раз."""
     code = (code or "").strip().upper()
     voucher = Voucher.objects.select_for_update().filter(code=code).first()
     if voucher is None:
@@ -496,6 +499,8 @@ def redeem_voucher(code):
     if voucher.expires_at and voucher.expires_at < timezone.now():
         raise VoucherError("expired")
     if voucher.max_uses and voucher.used_count >= voucher.max_uses:
+        raise VoucherError("used_up")
+    if expect_used is not None and voucher.used_count != expect_used:
         raise VoucherError("used_up")
     # Г4-1: `.update()` не трогает auto_now — штамп ставим явно: у купона акции
     # (max_uses=1) это и есть момент погашения для недельной сводки владельцу.

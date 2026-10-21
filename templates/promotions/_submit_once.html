@@ -1,0 +1,11 @@
+{% comment %}T-8.30g: форма с data-once отправляется один раз — двойной тап у прилавка
+не гасит дважды (сервер всё равно защищён: FSM брони, expect у ваучера).{% endcomment %}
+<script>
+document.addEventListener("submit", function (e) {
+  var f = e.target;
+  if (!f.matches || !f.matches("form[data-once]")) return;
+  if (f.dataset.sent) { e.preventDefault(); return; }
+  f.dataset.sent = "1";
+  f.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
+});
+</script>

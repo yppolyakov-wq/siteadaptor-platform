@@ -27864,3 +27864,11 @@ msgstr "Немає з'єднання. Спробуйте ще раз."
 
 msgid "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
 msgstr "Сеанс минув — закрийте й знову відкрийте «Мій магазин» у боті."
+
+#: apps/tenants/forms.py
+msgid "Sofort einlösen beim Scannen in der Kasse"
+msgstr "Одразу погашати під час сканування на касі"
+
+#: apps/tenants/forms.py
+msgid "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
+msgstr "Якщо увімкнено, сканер на сторінці «Погашення» (у браузері чи Telegram) погашає одразу. Посилання та камера телефона завжди показують кнопку підтвердження."

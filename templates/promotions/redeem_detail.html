@@ -1,6 +1,7 @@
 {% extends "tenant/_base_dashboard.html" %}
 {% load i18n cabinet %}
-{% block dash_title %}{% trans "Redeem" %} {{ code }}{% endblock %}
+{% block dash_title %}{% trans "Redeem" %} {{ code }}{% include "promotions/_submit_once.html" %}
+{% endblock %}
 
 {% block dash_content %}
 <div class="max-w-lg{% if lite %} mx-auto{% endif %}">
@@ -26,7 +27,7 @@
       </dl>
       <div class="mt-5">
         {% if coupon.is_redeemable %}
-          <form method="post" action="{% url 'promotions:redeem-action' coupon.code %}">{% csrf_token %}<input type="hidden" name="action" value="coupon"><button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Einlösen" %}</button></form>
+          <form method="post" action="{% url 'promotions:redeem-action' coupon.code %}" data-once>{% csrf_token %}<input type="hidden" name="action" value="coupon"><button data-redeem-primary autofocus class="w-full h-14 rounded-2xl bg-indigo-600 text-white text-base font-semibold hover:bg-indigo-700 disabled:opacity-60">{% trans "Einlösen" %}</button></form>
         {% elif coupon.max_uses and coupon.used_count >= coupon.max_uses %}
           <p class="text-sm text-green-700">✓ {% blocktrans with d=coupon.updated_at|date:"d.m.Y H:i" %}Bereits eingelöst am {{ d }}.{% endblocktrans %}</p>
         {% else %}
@@ -50,13 +51,14 @@
       </dl>
 
       <div class="mt-5 flex flex-wrap gap-2">
-        {% if reservation.status == 'pending' %}
-          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}">{% csrf_token %}<input type="hidden" name="action" value="confirm"><button class="bg-green-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-green-700">{% trans "Confirm" %}</button></form>
-          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}">{% csrf_token %}<input type="hidden" name="action" value="fulfill"><button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Hand out" %}</button></form>
-          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}">{% csrf_token %}<input type="hidden" name="action" value="cancel"><button class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50">{% trans "Cancel" %}</button></form>
-        {% elif reservation.status == 'confirmed' %}
-          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}">{% csrf_token %}<input type="hidden" name="action" value="fulfill"><button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Hand out" %}</button></form>
-          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}">{% csrf_token %}<input type="hidden" name="action" value="cancel"><button class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50">{% trans "Cancel" %}</button></form>
+        {% if reservation.status == 'pending' or reservation.status == 'confirmed' %}
+          {% comment %}T-8.30g: главное действие — одна большая кнопка в фокусе (выдача сама
+          подтверждает неподтверждённую бронь); GET страницы ничего не гасит.{% endcomment %}
+          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}" class="w-full" data-once>{% csrf_token %}<input type="hidden" name="action" value="fulfill"><button data-redeem-primary autofocus class="w-full h-14 rounded-2xl bg-indigo-600 text-white text-base font-semibold hover:bg-indigo-700 disabled:opacity-60">{% trans "Hand out" %}</button></form>
+          {% if reservation.status == 'pending' %}
+          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}" data-once>{% csrf_token %}<input type="hidden" name="action" value="confirm"><button class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50">{% trans "Confirm" %}</button></form>
+          {% endif %}
+          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}" data-once>{% csrf_token %}<input type="hidden" name="action" value="cancel"><button class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50">{% trans "Cancel" %}</button></form>
         {% elif reservation.status == 'fulfilled' %}
           <p class="text-sm text-green-700">✓ {% trans "Already handed out." %}</p>
         {% else %}

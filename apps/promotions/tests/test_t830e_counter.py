@@ -165,21 +165,20 @@ def test_tg_scanner_post_permits_auto_redeem(user):
     t = _auto_tenant()
     post = _req("post", "/promotions/redeem/", user, t, {"code": code, "scan": "1"}, tg=True)
     views.redeem_home(post)
-    get = _req("get", f"/promotions/redeem/{code}/", user, t, tg=True)
-    get.session = post.session
-    views.redeem_detail(get, code)
+    # T-8.30g: гасит сам POST сканера; страница кода после редиректа — только показ
     assert Reservation.objects.get(pk=res.pk).status == "fulfilled"
-    # разовый допуск: второй заход по ссылке уже ничего не делает
-    assert "redeem_scan_auto" not in get.session
 
 
-def test_browser_get_still_auto_redeems(user):
-    """Прежнее поведение вне Telegram: камера телефона открывает адрес — и гасит."""
+def test_browser_get_shows_confirm_button(user):
+    """T-8.30g: камера телефона открывает адрес — видна большая кнопка, но ничего не гасит."""
     promo = PromotionFactory(status="active", title={"de": "Brot"}, available_quantity=5)
     res = services.reserve(promo, name="Anna", email="anna@test.de")
     code = res.reference_code
-    views.redeem_detail(_req("get", f"/promotions/redeem/{code}/", user, _auto_tenant()), code)
-    assert Reservation.objects.get(pk=res.pk).status == "fulfilled"
+    body = views.redeem_detail(
+        _req("get", f"/promotions/redeem/{code}/", user, _auto_tenant()), code
+    ).content.decode()
+    assert Reservation.objects.get(pk=res.pk).status == "pending"
+    assert "data-redeem-primary" in body and "autofocus" in body
 
 
 def test_tg_voucher_link_does_not_auto_redeem(user):

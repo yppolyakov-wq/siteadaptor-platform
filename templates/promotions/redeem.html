@@ -45,9 +45,9 @@
 </div>
 
 <div hidden data-redeem-prefix="{% url 'promotions:redeem' %}" data-voucher-prefix="{% url 'promotions:voucher-redeem' %}"></div>
-{% comment %}T-8.30e: результат скана уходит POST-ом (CSRF) — только так разрешено
-автопогашение в Telegram; ссылка на код сама по себе ничего не гасит.{% endcomment %}
-<form method="post" hidden data-scan-form>{% csrf_token %}<input type="hidden" name="code"><input type="hidden" name="scan" value="1"></form>
+{% comment %}T-8.30e/g: результат скана уходит POST-ом (CSRF) — только так разрешено
+автопогашение; ссылка на код сама по себе ничего не гасит.{% endcomment %}
+<form method="post" hidden data-scan-form>{% csrf_token %}<input type="hidden" name="code"><input type="hidden" name="scan" value="1"><input type="hidden" name="kind" value=""></form>
 <script>
 (function () {
   // T-8.30e: из QR берём ТОЛЬКО код — голый код или путь «…/redeem/<код>/» (хост любой:
@@ -74,9 +74,10 @@
     return codeRe.test(val) ? {kind: "code", code: val.toUpperCase()} : null;
   }
   function go(r) {
-    if (r.kind === "voucher") { location.href = voucherPrefix + "?code=" + encodeURIComponent(r.code); return; }
+    // T-8.30g: и ваучер уходит POST-ом сканера (kind=voucher), а не GET-переходом.
     var f = document.querySelector("[data-scan-form]");
     f.querySelector("[name=code]").value = r.code;
+    f.querySelector("[name=kind]").value = r.kind === "voucher" ? "voucher" : "";
     f.submit();
   }
   function bad() {

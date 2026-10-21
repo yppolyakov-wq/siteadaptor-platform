@@ -27701,3 +27701,11 @@ msgstr "Keine Verbindung. Bitte erneut versuchen."
 
 msgid "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
 msgstr "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
+
+#: apps/tenants/forms.py
+msgid "Sofort einlösen beim Scannen in der Kasse"
+msgstr "Sofort einlösen beim Scannen in der Kasse"
+
+#: apps/tenants/forms.py
+msgid "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
+msgstr "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."

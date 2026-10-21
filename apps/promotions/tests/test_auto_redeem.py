@@ -35,11 +35,13 @@ def user(db):
 
 
 @pytest.mark.django_db
-def test_reservation_auto_fulfilled_on_scan(user):
+def test_get_never_redeems_even_with_setting(user):
+    """T-8.30g: GET (камера телефона, превью ссылки, перезагрузка) ничего не гасит —
+    подтверждает владелец кнопкой (POST)."""
     promo = PromotionFactory(available_quantity=5, auto_confirm=False)
     res = reserve(promo, name="A", email="a@test.de")  # pending
     views.redeem_detail(_req(True, user), code=res.reference_code)
-    assert Reservation.objects.get(pk=res.pk).status == "fulfilled"
+    assert Reservation.objects.get(pk=res.pk).status == "pending"
 
 
 @pytest.mark.django_db
@@ -51,7 +53,7 @@ def test_reservation_not_auto_when_disabled(user):
 
 
 @pytest.mark.django_db
-def test_voucher_auto_redeemed_on_scan(user):
+def test_voucher_get_never_redeems(user):
     v = generate_vouchers(label="−10 %", count=1, max_uses=1)[0]
     r = RequestFactory().get("/", {"code": v.code})
     SessionMiddleware(lambda x: None).process_request(r)
@@ -59,4 +61,4 @@ def test_voucher_auto_redeemed_on_scan(user):
     r.user = user
     r.tenant = _Tenant(True)
     views.voucher_redeem(r)
-    assert Voucher.objects.get(pk=v.pk).used_count == 1
+    assert Voucher.objects.get(pk=v.pk).used_count == 0

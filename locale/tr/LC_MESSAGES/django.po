@@ -27751,3 +27751,11 @@ msgstr "Bağlantı yok. Lütfen tekrar deneyin."
 
 msgid "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
 msgstr "Oturum süresi doldu — lütfen kapatın ve „Dükkânım“ı botta yeniden açın."
+
+#: apps/tenants/forms.py
+msgid "Sofort einlösen beim Scannen in der Kasse"
+msgstr "Kasada tararken hemen kullan"
+
+#: apps/tenants/forms.py
+msgid "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
+msgstr "Etkinse, „Kullan“ sayfasındaki tarayıcı (tarayıcıda veya Telegram'da) kodu hemen kullanır. Bağlantılar ve telefon kamerası her zaman bir onay düğmesi gösterir."

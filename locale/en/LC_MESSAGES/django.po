@@ -27611,3 +27611,11 @@ msgstr "No connection. Please try again."
 
 msgid "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
 msgstr "Session expired — please close and reopen “My shop” in the bot."
+
+#: apps/tenants/forms.py
+msgid "Sofort einlösen beim Scannen in der Kasse"
+msgstr "Redeem instantly when scanning at the counter"
+
+#: apps/tenants/forms.py
+msgid "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
+msgstr "When on, the scanner on the “Redeem” page (browser or Telegram) redeems immediately. Links and the phone camera always show a confirmation button."

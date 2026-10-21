@@ -133,7 +133,7 @@ class BusinessSettingsForm(forms.ModelForm):
             "service_area_plz": _("Einzugsgebiet (PLZ)"),
             "service_area_note": _("Hinweis zum Einzugsgebiet"),
             "whatsapp_number": _("WhatsApp-Nummer"),
-            "auto_redeem_on_scan": _("Auto-redeem on scan (logged-in staff)"),
+            "auto_redeem_on_scan": _("Sofort einlösen beim Scannen in der Kasse"),
             "owner_digest_enabled": _("Morning digest email"),
             "in_city_catalog": _("Im Stadtportal zeigen"),
             "voucher_max_percent": _("Max. promo-code share of order (%)"),
@@ -156,7 +156,9 @@ class BusinessSettingsForm(forms.ModelForm):
                 "Free text shown to customers (e.g. “Hilden, Solingen and surroundings”)."
             ),
             "auto_redeem_on_scan": _(
-                "When on, opening a redemption QR as logged-in staff redeems immediately."
+                "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder "
+                "Telegram) sofort ein. Links und die Handykamera zeigen immer eine "
+                "Bestätigungs-Schaltfläche."
             ),
             "owner_digest_enabled": _(
                 "A short morning email: yesterday's revenue, today's bookings and "
