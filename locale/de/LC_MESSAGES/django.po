@@ -27735,3 +27735,27 @@ msgstr "Im Browser registrieren"
 #: apps/platform_bot
 msgid "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
 msgstr "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
+
+#: templates/core/_deal_billing_card.html
+msgid "Rechnungsempfänger"
+msgstr "Rechnungsempfänger"
+
+#: templates/core/_deal_billing_card.html
+msgid "Rechnungsempfänger bearbeiten"
+msgstr "Rechnungsempfänger bearbeiten"
+
+#: templates/core/_deal_billing_card.html
+msgid "Rechnungsempfänger gespeichert."
+msgstr "Rechnungsempfänger gespeichert."
+
+#: templates/core/_deal_billing_card.html
+msgid "Aus dem Firmenverzeichnis"
+msgstr "Aus dem Firmenverzeichnis"
+
+#: templates/core/_deal_billing_card.html
+msgid "Ins Firmenverzeichnis übernehmen"
+msgstr "Ins Firmenverzeichnis übernehmen"
+
+#: templates/core/_deal_billing_card.html
+msgid "Firma ins Verzeichnis übernommen."
+msgstr "Firma ins Verzeichnis übernommen."

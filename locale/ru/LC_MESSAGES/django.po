@@ -27918,3 +27918,27 @@ msgstr "Зарегистрироваться в браузере"
 #: apps/platform_bot
 msgid "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
 msgstr "Уже есть бизнес? Нажмите в кабинете «Mit Telegram verbinden»."
+
+#: templates/core/_deal_billing_card.html
+msgid "Rechnungsempfänger"
+msgstr "Получатель счёта"
+
+#: templates/core/_deal_billing_card.html
+msgid "Rechnungsempfänger bearbeiten"
+msgstr "Изменить получателя счёта"
+
+#: templates/core/_deal_billing_card.html
+msgid "Rechnungsempfänger gespeichert."
+msgstr "Получатель счёта сохранён."
+
+#: templates/core/_deal_billing_card.html
+msgid "Aus dem Firmenverzeichnis"
+msgstr "Из справочника компаний"
+
+#: templates/core/_deal_billing_card.html
+msgid "Ins Firmenverzeichnis übernehmen"
+msgstr "Добавить в справочник компаний"
+
+#: templates/core/_deal_billing_card.html
+msgid "Firma ins Verzeichnis übernommen."
+msgstr "Компания добавлена в справочник."

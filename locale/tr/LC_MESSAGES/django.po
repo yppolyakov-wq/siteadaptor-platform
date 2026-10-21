@@ -27785,3 +27785,27 @@ msgstr "Tarayıcıda kaydol"
 #: apps/platform_bot
 msgid "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
 msgstr "Zaten bir işletmeniz mi var? Panelde „Mit Telegram verbinden“ düğmesine dokunun."
+
+#: templates/core/_deal_billing_card.html
+msgid "Rechnungsempfänger"
+msgstr "Fatura alıcısı"
+
+#: templates/core/_deal_billing_card.html
+msgid "Rechnungsempfänger bearbeiten"
+msgstr "Fatura alıcısını düzenle"
+
+#: templates/core/_deal_billing_card.html
+msgid "Rechnungsempfänger gespeichert."
+msgstr "Fatura alıcısı kaydedildi."
+
+#: templates/core/_deal_billing_card.html
+msgid "Aus dem Firmenverzeichnis"
+msgstr "Firma rehberinden"
+
+#: templates/core/_deal_billing_card.html
+msgid "Ins Firmenverzeichnis übernehmen"
+msgstr "Firma rehberine ekle"
+
+#: templates/core/_deal_billing_card.html
+msgid "Firma ins Verzeichnis übernommen."
+msgstr "Firma rehbere eklendi."

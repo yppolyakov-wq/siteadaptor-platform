@@ -5064,6 +5064,71 @@ def deal_customer_edit(request, kind, pk):
 
 @login_required
 @require_POST
+def deal_billing_edit(request, kind, pk):
+    """CO-2b: получатель счёта сделки — Privat/Firma, фирма, USt-IdNr; выбор из
+    справочника компаний или «Ins Firmenverzeichnis übernehmen» (решение В-3: в
+    справочник — только по кнопке владельца, не автоматически с витрины)."""
+    from django.core.exceptions import ValidationError
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import payment_methods, transactions
+    from apps.crm.companies import normalize_vat
+    from apps.crm.models import Company
+
+    if kind not in payment_methods.KINDS or kind not in transactions.TRANSACTION_KINDS:
+        raise Http404("unknown kind")
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    if not hasattr(obj, "customer_type"):
+        raise Http404("deal has no buyer type")
+    customer = getattr(obj, "customer", None)
+    if request.POST.get("action") == "to_directory":
+        name = (obj.billing_company or "").strip()
+        if obj.customer_type == payment_methods.COMPANY and name:
+            key = normalize_vat(obj.billing_vat_id)
+            company = next(
+                (
+                    c
+                    for c in Company.objects.filter(name__iexact=name)
+                    if not key or normalize_vat(c.vat_id) == key
+                ),
+                None,
+            ) or Company.objects.create(name=name[:200], vat_id=(obj.billing_vat_id or "")[:40])
+            if customer is not None and customer.company_id != company.pk:
+                customer.company = company
+                customer.save(update_fields=["company"])
+            messages.success(request, _("Firma ins Verzeichnis übernommen."))
+    elif request.POST.get("billing_present") == "1":  # W0: без сентинела — не трогаем
+        company = None
+        picked = (request.POST.get("company") or "").strip()
+        if picked:
+            try:
+                company = Company.objects.filter(pk=picked).first()
+            except (ValueError, ValidationError):  # мусор вместо pk — ручной ввод
+                company = None
+        if company is not None:
+            obj.customer_type = payment_methods.COMPANY
+            obj.billing_company = company.name[:200]
+            obj.billing_vat_id = (company.vat_id or "")[:30]
+            if customer is not None and customer.company_id != company.pk:
+                customer.company = company
+                customer.save(update_fields=["company"])
+        else:
+            obj.customer_type = payment_methods.customer_type_of(
+                request.POST.get("customer_type", "")
+            )
+            obj.billing_company = (request.POST.get("billing_company") or "").strip()[:200]
+            obj.billing_vat_id = (request.POST.get("billing_vat_id") or "").strip()[:30]
+        obj.save(update_fields=["customer_type", "billing_company", "billing_vat_id", "updated_at"])
+        messages.success(request, _("Rechnungsempfänger gespeichert."))
+    nxt = request.POST.get("next", "")
+    if not (nxt.startswith("/") and not nxt.startswith("//") and "\\" not in nxt):
+        nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
+    return redirect(nxt)
+
+
+@login_required
+@require_POST
 def deal_invoice(request, kind, pk):
     """DC-6: счёт из сделки — один приёмник на все виды.
 

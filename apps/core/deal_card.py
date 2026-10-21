@@ -254,7 +254,27 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "deal_external_code": getattr(obj, "external_code", ""),
         "deal_links": links,
         "crm_active": _module_active(tenant, "crm"),
+        # CO-2b: получатель счёта — у видов с типом покупателя (SH-23).
+        "deal_billing": _billing(obj),
         "inbox_active": _module_active(tenant, "inbox"),
         # T-8.10g (G-3): «✨ Antwort vorschlagen» у существующего треда сделки.
         "ai_reply_enabled": thread is not None and _ai_enabled(),
+    }
+
+
+def _billing(obj):
+    """CO-2b: кому выставляется счёт — для блока «Rechnungsempfänger»."""
+    if not hasattr(obj, "customer_type"):
+        return None
+    from apps.crm.models import Company
+    from apps.finance.recipient import recipient_for
+
+    customer = getattr(obj, "customer", None)
+    return {
+        "is_company": obj.customer_type == "company",
+        "company": obj.billing_company,
+        "vat_id": obj.billing_vat_id,
+        "linked": getattr(customer, "company", None) if customer is not None else None,
+        "recipient": recipient_for(obj),
+        "directory": list(Company.objects.only("pk", "name", "vat_id")[:200]),
     }

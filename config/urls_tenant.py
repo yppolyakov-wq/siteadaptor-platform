@@ -26,6 +26,7 @@ from apps.core.views import (
     board,
     board_settings,
     dashboard,
+    deal_billing_edit,
     deal_customer_edit,
     deal_discount_edit,
     deal_external_edit,
@@ -297,6 +298,12 @@ urlpatterns = [
         "dashboard/kunde/<str:kind>/<uuid:pk>/",
         deal_customer_edit,
         name="deal-customer-edit",
+    ),
+    # CO-2b: получатель счёта сделки (Privat/Firma, справочник компаний).
+    path(
+        "dashboard/rechnungsempfaenger/<str:kind>/<uuid:pk>/",
+        deal_billing_edit,
+        name="deal-billing-edit",
     ),
     # DC-6: счёт из сделки (заказ/бронь/запись) — общий приёмник, черновик реюзится.
     path(
