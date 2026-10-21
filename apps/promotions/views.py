@@ -1388,7 +1388,10 @@ def reservation_list(request):
     qs = Reservation.objects.select_related("promotion", "customer").all()
     status = request.GET.get("status", "")
     promotion_id = request.GET.get("promotion", "")
-    if status:
+    if status == "offen":
+        # T-8.30e: «offen» = ждут продавца (как счётчик «N offen»), ближайший срок первым.
+        qs = qs.filter(status__in=("pending", "confirmed")).order_by("expires_at", "created_at")
+    elif status:
         qs = qs.filter(status=status)
     if promotion_id:
         qs = qs.filter(promotion_id=promotion_id)
@@ -1402,9 +1405,10 @@ def reservation_list(request):
     own = (
         ((getattr(tenant, "site_config", None) or {}).get("status_labels") or {}).get("reservation")
     ) or {}
-    status_choices = [
+    status_choices = [("offen", _("Offen (zu erledigen)"))] + [
         (code, own.get(code) or labels.get(code, code)) for code in RESERVATION_STATUSES
     ]
+    lite = _lite(request)
     return render(
         request,
         "promotions/reservation_list.html",
@@ -1414,7 +1418,15 @@ def reservation_list(request):
             "status": status,
             "promotions": Promotion.objects.all(),
             "selected_promotion": promotion_id,
-            "nav": "reservations",
+            # T-8.30e: лёгкий кабинет — карточки для телефона, подсветка «Aktionen».
+            "lite": lite,
+            "lite_chips": [
+                ("offen", _("Offen")),
+                ("confirmed", own.get("confirmed") or labels.get("confirmed", "confirmed")),
+                ("fulfilled", own.get("fulfilled") or labels.get("fulfilled", "fulfilled")),
+                ("", _("Alle")),
+            ],
+            "nav": "promotions" if lite else "reservations",
         },
     )
 
@@ -1465,7 +1477,10 @@ def reservation_action(request, pk):
                 # X1: было английское f-сообщение со СКЛЕЙКОЙ кода действия и сырого
                 # статуса — единственная английская фраза среди переведённых соседей.
                 messages.error(request, _reservation_failed(action, res.status))
-    return redirect("promotions:reservation-list")
+    from apps.core import owner_login
+
+    # T-8.30e: список с фильтром «offen» после выдачи остаётся тем же списком.
+    return redirect(owner_login.local_next(request) or "promotions:reservation-list")
 
 
 # ---------------------------------------------------------------------------
@@ -1481,7 +1496,12 @@ def redeem_home(request):
         if code:
             return redirect("promotions:redeem-detail", code=code)
         messages.error(request, _("Bitte einen Code eingeben."))
-    return render(request, "promotions/redeem.html", {"nav": "redeem"})
+    lite = _lite(request)
+    return render(
+        request,
+        "promotions/redeem.html",
+        {"lite": lite, "nav": "promotions" if lite else "redeem"},
+    )
 
 
 def _coupon_for(code):
@@ -1524,7 +1544,12 @@ def redeem_detail(request, code):
         return render(
             request,
             "promotions/redeem_detail.html",
-            {"coupon": coupon, "code": code, "nav": "redeem"},
+            {
+                "coupon": coupon,
+                "code": code,
+                "lite_view": _lite(request),
+                "nav": "promotions" if _lite(request) else "redeem",
+            },
         )
     res = (
         Reservation.objects.select_related("promotion", "customer")
@@ -1546,7 +1571,12 @@ def redeem_detail(request, code):
     return render(
         request,
         "promotions/redeem_detail.html",
-        {"reservation": res, "code": code, "nav": "redeem"},
+        {
+            "reservation": res,
+            "code": code,
+            "lite_view": _lite(request),
+            "nav": "promotions" if _lite(request) else "redeem",
+        },
     )
 
 

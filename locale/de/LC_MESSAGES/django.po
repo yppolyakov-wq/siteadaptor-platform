@@ -27671,3 +27671,21 @@ msgstr "Zum Bot"
 
 msgid "Zurück zu Mein Laden"
 msgstr "Zurück zu Mein Laden"
+
+msgid "Offen (zu erledigen)"
+msgstr "Offen (zu erledigen)"
+
+msgid "Ausgeben"
+msgstr "Ausgeben"
+
+msgid "Nächster Code"
+msgstr "Nächster Code"
+
+msgid "Code der Reservierung oder des Coupons"
+msgstr "Code der Reservierung oder des Coupons"
+
+msgid "Kamera öffnet sich nicht? Code unten eintippen."
+msgstr "Kamera öffnet sich nicht? Code unten eintippen."
+
+msgid "Unbekannter QR-Code."
+msgstr "Unbekannter QR-Code."

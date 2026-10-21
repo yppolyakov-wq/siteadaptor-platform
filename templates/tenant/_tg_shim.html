@@ -18,6 +18,26 @@
   }
   var post = bridge();
   if (!post) return;
+  // T-8.30e: приём событий клиента (нативный сканер QR) — тот же протокол, что у SDK:
+  // клиент зовёт window.Telegram.WebView.receiveEvent(type, data). Прежний приёмник
+  // сохраняем и зовём (на случай чужого кода).
+  var handlers = {};
+  function receive(type, data) {
+    (handlers[type] || []).forEach(function (fn) { try { fn(data || {}); } catch (e) {} });
+  }
+  window.Telegram = window.Telegram || {};
+  var prevWeb = window.Telegram.WebView && window.Telegram.WebView.receiveEvent;
+  window.Telegram.WebView = window.Telegram.WebView || {};
+  window.Telegram.WebView.receiveEvent = function (type, data) {
+    receive(type, data);
+    if (prevWeb) { try { prevWeb(type, data); } catch (e) {} }
+  };
+  window.TelegramGameProxy = window.TelegramGameProxy || {};
+  window.TelegramGameProxy.receiveEvent = window.Telegram.WebView.receiveEvent;
+  window.saTgBridge = {
+    post: post,
+    on: function (type, fn) { (handlers[type] = handlers[type] || []).push(fn); }
+  };
   try { post("web_app_ready"); post("web_app_expand"); } catch (e) { return; }
   document.querySelectorAll("[data-tg-close-row]").forEach(function (b) { b.hidden = false; });
   document.addEventListener("click", function (e) {

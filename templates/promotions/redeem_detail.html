@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Redeem" %} {{ code }}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-lg">
+<div class="max-w-lg{% if lite_view %} mx-auto{% endif %}">
   <a href="{% url 'promotions:redeem' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Scan another" %}</a>
 
   {% if messages %}
@@ -68,6 +68,10 @@
     <div class="bg-white rounded-2xl shadow-sm p-6 mt-3 text-center">
       <p class="text-gray-600">{% blocktrans %}No reservation found for code {{ code }}.{% endblocktrans %}</p>
     </div>
+  {% endif %}
+  {% if lite_view %}
+  {% comment %}T-8.30e: у прилавка — следующий клиент: крупная кнопка назад к сканеру.{% endcomment %}
+  <a href="{% url 'promotions:redeem' %}" class="mt-4 flex items-center justify-center gap-2 h-12 rounded-2xl bg-white shadow-sm text-sm font-semibold text-gray-800" data-next-scan>📷 {% trans "Nächster Code" %}</a>
   {% endif %}
 </div>
 {% endblock %}

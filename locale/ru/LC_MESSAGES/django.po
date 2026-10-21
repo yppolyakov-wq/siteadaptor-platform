@@ -27854,3 +27854,21 @@ msgstr "К боту"
 
 msgid "Zurück zu Mein Laden"
 msgstr "Назад в «Мой магазин»"
+
+msgid "Offen (zu erledigen)"
+msgstr "Открытые (ждут выдачи)"
+
+msgid "Ausgeben"
+msgstr "Выдать"
+
+msgid "Nächster Code"
+msgstr "Следующий код"
+
+msgid "Code der Reservierung oder des Coupons"
+msgstr "Код резерва или купона"
+
+msgid "Kamera öffnet sich nicht? Code unten eintippen."
+msgstr "Камера не открывается? Введите код ниже."
+
+msgid "Unbekannter QR-Code."
+msgstr "Неизвестный QR-код."

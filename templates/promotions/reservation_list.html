@@ -13,6 +13,45 @@
   {% endfor %}
 {% endif %}
 
+{% if lite %}
+{% comment %}T-8.30e: касса на телефоне (Mini App) — чипы статуса и карточки с крупными
+кнопками; полный кабинет ниже — прежняя таблица.{% endcomment %}
+<div class="max-w-lg mx-auto space-y-3">
+  <nav class="flex flex-wrap gap-2 text-sm" data-lite-res-chips>
+    {% for code, label in lite_chips %}
+      <a href="?status={{ code }}" class="px-3 py-1.5 rounded-full {% if status == code %}bg-indigo-600 text-white{% else %}bg-white shadow-sm text-gray-700{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </nav>
+  <a href="{% url 'promotions:redeem' %}" class="flex items-center justify-center gap-2 h-12 rounded-2xl bg-white shadow-sm text-sm font-semibold text-gray-800">📷 {% trans "Code scannen" %}</a>
+  {% for r in reservations %}
+    <article class="bg-white rounded-2xl shadow-sm p-4 space-y-2" data-lite-res-card>
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <a href="{% url 'promotions:redeem-detail' r.reference_code %}" class="font-mono font-semibold text-indigo-700">{{ r.reference_code }}</a>
+          <p class="text-sm truncate">{{ r.promotion }}{% if r.quantity > 1 %} · {{ r.quantity }}×{% endif %}</p>
+        </div>
+        <span class="shrink-0 text-xs px-2 py-0.5 rounded-full bg-gray-100">{% status_label r "reservation" %}</span>
+      </div>
+      <p class="text-sm text-gray-600">{{ r.customer }}{% if r.customer.phone %} · <a href="tel:{{ r.customer.phone }}" class="text-indigo-600">{{ r.customer.phone }}</a>{% endif %}</p>
+      {% if r.expires_at %}<p class="text-xs text-gray-500">{% trans "bis" %} {{ r.expires_at|date:"d.m. H:i" }}</p>{% endif %}
+      {% if r.status == 'pending' or r.status == 'confirmed' %}
+        <div class="flex gap-2 pt-1">
+          <form method="post" action="{% url 'promotions:reservation-action' r.pk %}" class="flex-1">
+            {% csrf_token %}<input type="hidden" name="action" value="fulfill"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="w-full min-h-[44px] rounded-xl bg-indigo-600 text-white text-sm font-semibold">{% trans "Ausgeben" %}</button>
+          </form>
+          <form method="post" action="{% url 'promotions:reservation-action' r.pk %}">
+            {% csrf_token %}<input type="hidden" name="action" value="cancel"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="min-h-[44px] px-4 rounded-xl bg-gray-100 text-gray-600 text-sm">{% trans "Stornieren" %}</button>
+          </form>
+        </div>
+      {% endif %}
+    </article>
+  {% empty %}
+    <p class="text-center text-sm text-gray-500 py-8">{% trans "No reservations." %}</p>
+  {% endfor %}
+</div>
+{% else %}
 <div class="bg-white rounded-2xl shadow-sm p-4">
   <form method="get" class="flex flex-wrap gap-3 mb-4">
     <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -83,4 +122,5 @@
   </table>
   </div>
 </div>
+{% endif %}
 {% endblock %}

@@ -27721,3 +27721,21 @@ msgstr "Bota git"
 
 msgid "Zurück zu Mein Laden"
 msgstr "Dükkânıma dön"
+
+msgid "Offen (zu erledigen)"
+msgstr "Açık (yapılacak)"
+
+msgid "Ausgeben"
+msgstr "Teslim et"
+
+msgid "Nächster Code"
+msgstr "Sonraki kod"
+
+msgid "Code der Reservierung oder des Coupons"
+msgstr "Rezervasyon veya kupon kodu"
+
+msgid "Kamera öffnet sich nicht? Code unten eintippen."
+msgstr "Kamera açılmıyor mu? Kodu aşağıya yazın."
+
+msgid "Unbekannter QR-Code."
+msgstr "Bilinmeyen QR kodu."

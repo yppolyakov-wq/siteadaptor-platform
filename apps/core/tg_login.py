@@ -91,6 +91,12 @@ TG_LITE_VIEWS = frozenset(
         "promotions:promotion-quick-ai-result",
         "promotions:today-dismiss",
         "promotions:shop-poster",
+        # T-8.30e: касса — отложенное и погашение кода у прилавка (Q2)
+        "promotions:reservation-list",
+        "promotions:reservation-action",
+        "promotions:redeem",
+        "promotions:redeem-detail",
+        "promotions:redeem-action",
     }
 )
 

@@ -178,6 +178,8 @@ def _scope(req):
         "promotions:promotion-list",
         "promotions:promotion-quick",
         "catalog:product-create",
+        "promotions:reservation-list",  # T-8.30e: касса
+        "promotions:redeem",
     ],
 )
 def test_lite_screens_allowed(name):
@@ -211,6 +213,27 @@ def test_bot_management_post_refused(path):
     t, user = _linked()
     resp = _scope(_tg_request(t, user, path, method="post"))
     assert resp.status_code == 302 and resp.url == reverse("tg-lite-info")
+
+
+@pytest.mark.parametrize(
+    "path,method",
+    [
+        ("/promotions/redeem/R-ABC123/", "get"),
+        ("/promotions/redeem/R-ABC123/action/", "post"),
+        (f"/promotions/reservations/{uuid.uuid4()}/action/", "post"),
+    ],
+)
+def test_counter_screens_with_args_allowed(path, method):
+    """T-8.30e: касса (резервы, погашение) открыта в Telegram."""
+    t, user = _linked()
+    assert _scope(_tg_request(t, user, path, method=method)) is None
+
+
+def test_staff_cannot_use_counter_in_tg():
+    t, user = _linked()
+    Membership.objects.filter(user=user).update(role=Membership.ROLE_STAFF)
+    resp = _scope(_tg_request(t, user, "/promotions/redeem/"))
+    assert resp.url.endswith("?grund=beendet")
 
 
 def test_fetch_gets_json_403():
@@ -320,7 +343,7 @@ def test_info_page_speaks_cabinet_language():
 
 
 # Ссылки лёгких экранов, которые в Telegram ОСОЗНАННО ведут на «nur per E-Mail»:
-# настройки/деньги/интеграции (Р-2) и экраны кассы (Q2 → T-8.30e). Новая ссылка с лёгкого
+# настройки/деньги/интеграции (Р-2); касса с T-8.30e — в белом списке. Новая ссылка с лёгкого
 # экрана обязана попасть либо в белый список, либо сюда — иначе тест красный.
 EMAIL_ONLY = {
     "integrations-home",
@@ -333,8 +356,6 @@ EMAIL_ONLY = {
     "modules",
     "languages",
     "site-home",
-    "promotions:reservation-list",
-    "promotions:redeem",
     "owner-login-link",
     "telegram-settings",
 }
@@ -365,14 +386,32 @@ def test_lite_screens_link_only_to_allowed_or_email_only():
     t.site_config = {"profile": "aktionen"}
     t.save()
     onboarding.mark_complete(t)
+    from apps.loyalty.models import Voucher
+    from apps.promotions import services
+    from apps.promotions.tests.factories import PromotionFactory
+
+    promo = PromotionFactory(status="active", title={"de": "Brot"}, available_quantity=5)
+    res = services.reserve(promo, name="Anna", email="anna@test.de")
+    Voucher.objects.create(code="C-TEST01", label="Brot", promotion=promo, max_uses=1)
     screens = {
         "/dashboard/": views.dashboard,
         "/dashboard/sichtbarkeit/": lite_cabinet.lite_visibility,
         "/promotions/": promo_views.promotion_list,
+        "/promotions/reservations/": promo_views.reservation_list,
+        "/promotions/redeem/": promo_views.redeem_home,
+    }
+    detail = {
+        f"/promotions/redeem/{res.reference_code}/": res.reference_code,
+        "/promotions/redeem/C-TEST01/": "C-TEST01",
+        "/promotions/redeem/R-NOPE00/": "R-NOPE00",
     }
     stray = set()
-    for path, view in screens.items():
-        body = view(_tg_request(t, user, path)).content.decode()
+    bodies = [(p, v(_tg_request(t, user, p)).content.decode()) for p, v in screens.items()]
+    bodies += [
+        (p, promo_views.redeem_detail(_tg_request(t, user, p), c).content.decode())
+        for p, c in detail.items()
+    ]
+    for path, body in bodies:
         for link in _links_of(body):
             try:
                 name = resolve(link).view_name

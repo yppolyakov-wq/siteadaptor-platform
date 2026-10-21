@@ -121,6 +121,12 @@ def next_step(tenant, counts, products) -> dict:
     return {}
 
 
+def open_reservations() -> int:
+    from apps.promotions.models import Reservation
+
+    return Reservation.objects.filter(status__in=("pending", "confirmed")).count()
+
+
 def render_home(request):
     tenant = request.tenant
     counts = promo_counts()
@@ -137,5 +143,7 @@ def render_home(request):
             "chips": visibility_chips(tenant, featured) if featured else [],
             "products": products,
             "step": next_step(tenant, counts, products),
+            # T-8.30e: касса — ждут продавца (pending+confirmed), как на экране акций.
+            "open_reservations": open_reservations(),
         },
     )

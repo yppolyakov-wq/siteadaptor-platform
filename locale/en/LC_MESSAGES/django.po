@@ -27581,3 +27581,21 @@ msgstr "To the bot"
 
 msgid "Zurück zu Mein Laden"
 msgstr "Back to my shop"
+
+msgid "Offen (zu erledigen)"
+msgstr "Open (to do)"
+
+msgid "Ausgeben"
+msgstr "Hand out"
+
+msgid "Nächster Code"
+msgstr "Next code"
+
+msgid "Code der Reservierung oder des Coupons"
+msgstr "Code of the reservation or coupon"
+
+msgid "Kamera öffnet sich nicht? Code unten eintippen."
+msgstr "Camera doesn't open? Type the code below."
+
+msgid "Unbekannter QR-Code."
+msgstr "Unknown QR code."
