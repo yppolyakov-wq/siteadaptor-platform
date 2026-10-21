@@ -90,5 +90,7 @@ def test_card_draft_is_issued_not_duplicated(django_capture_on_commit_callbacks)
 def test_invoice_mail_is_throttled_per_address():
     from apps.finance.services import _invoice_mail_allowed
 
-    addr = "spam-target@example.com"
+    import uuid
+
+    addr = f"spam-{uuid.uuid4().hex[:8]}@example.com"  # Redis общий между прогонами
     assert [_invoice_mail_allowed(addr) for _ in range(4)] == [True, True, True, False]

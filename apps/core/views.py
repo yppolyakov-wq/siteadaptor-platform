@@ -5120,7 +5120,11 @@ def deal_billing_edit(request, kind, pk):
             )
             obj.billing_company = (request.POST.get("billing_company") or "").strip()[:200]
             obj.billing_vat_id = (request.POST.get("billing_vat_id") or "").strip()[:30]
-        obj.save(update_fields=["customer_type", "billing_company", "billing_vat_id", "updated_at"])
+        fields = ["customer_type", "billing_company", "billing_vat_id", "updated_at"]
+        if hasattr(obj, "billing_address") and "billing_address" in request.POST:
+            obj.billing_address = (request.POST.get("billing_address") or "").strip()[:1000]
+            fields.append("billing_address")
+        obj.save(update_fields=fields)
         messages.success(request, _("Rechnungsempfänger gespeichert."))
     nxt = request.POST.get("next", "")
     if not url_has_allowed_host_and_scheme(nxt, allowed_hosts=None) or not nxt.startswith("/"):

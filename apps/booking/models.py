@@ -460,6 +460,8 @@ class Booking(TimestampedModel):
     )
     billing_company = models.CharField(max_length=200, blank=True)
     billing_vat_id = models.CharField(max_length=30, blank=True)
+    # CO-2e (В-2): адрес фирмы для счёта (§ 14 UStG), снимок с витрины/карточки.
+    billing_address = models.TextField(blank=True)
     payment_due_at = models.DateTimeField(null=True, blank=True)
     stripe_payment_intent = models.CharField(max_length=200, blank=True)  # для refund
     # #7: снимок выбранных Extras [{label, price_cents}] — сумма входит в total_cents

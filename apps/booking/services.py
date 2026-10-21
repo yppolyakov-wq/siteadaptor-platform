@@ -121,6 +121,7 @@ def book(
     customer_type="private",
     billing_company="",
     billing_vat_id="",
+    billing_address="",
     payment_due_at=None,
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
@@ -186,6 +187,7 @@ def book(
         customer_type=customer_type or "private",
         billing_company=(billing_company or "").strip()[:200],
         billing_vat_id=(billing_vat_id or "").strip()[:30],
+        billing_address=(billing_address or "").strip()[:1000],
         payment_due_at=payment_due_at,
     )
     from apps.crm.companies import link_deal

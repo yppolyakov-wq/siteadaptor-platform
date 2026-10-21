@@ -178,6 +178,7 @@ def create_order(
     customer_type="private",
     billing_company="",
     billing_vat_id="",
+    billing_address="",
     payment_due_at=None,
     custom_lines=(),
     reserve_expires_at=None,
@@ -318,6 +319,7 @@ def create_order(
         customer_type=customer_type,
         billing_company=(billing_company or "").strip()[:200],
         billing_vat_id=(billing_vat_id or "").strip()[:30],
+        billing_address=(billing_address or "").strip()[:1000],
         # SH-23 (Р-4): срок оплаты — счёт до Zahlungsziel, Vorkasse 3 дня;
         # None = удержание не ограничено (оплата на месте / онлайн).
         payment_due_at=payment_due_at,

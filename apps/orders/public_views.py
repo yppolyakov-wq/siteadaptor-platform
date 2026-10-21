@@ -1060,6 +1060,7 @@ def checkout(request):
             customer_type=customer_type,
             billing_company=request.POST.get("billing_company", "").strip()[:200],
             billing_vat_id=_pm.clean_vat_id(request.POST.get("billing_vat_id", "")),
+            billing_address=request.POST.get("billing_address", "").strip()[:1000],
             # SH-23 (Р-2/Р-4): срок оплаты считаем ДО создания — письмо `created`
             # рендерится внутри create_order и должно его назвать.
             payment_due_at=_payment_due(tenant, chosen_method),

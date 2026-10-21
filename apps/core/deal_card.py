@@ -274,6 +274,8 @@ def _billing(obj):
         "is_company": obj.customer_type == "company",
         "company": obj.billing_company,
         "vat_id": obj.billing_vat_id,
+        "has_address": hasattr(obj, "billing_address"),
+        "address": getattr(obj, "billing_address", ""),
         "linked": getattr(customer, "company", None) if customer is not None else None,
         "recipient": recipient_for(obj),
         "directory": list(Company.objects.only("pk", "name", "vat_id").order_by("name")[:200]),

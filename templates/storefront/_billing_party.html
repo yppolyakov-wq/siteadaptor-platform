@@ -21,6 +21,11 @@
         <label class="block text-sm font-medium mb-1" for="bp-vat">{% trans "VAT ID (optional)" %}</label>
         <input id="bp-vat" name="billing_vat_id" type="text" placeholder="DE123456789" class="w-full rounded-lg border border-gray-300 px-3 py-2">
       </div>
+      <div class="sm:col-span-2">
+        {% comment %}CO-2e (В-2): адрес фирмы для счёта — § 14 UStG.{% endcomment %}
+        <label class="block text-sm font-medium mb-1" for="bp-address">{% trans "Rechnungsadresse" %}</label>
+        <textarea id="bp-address" name="billing_address" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+      </div>
     </div>
   </div>
   <script>
