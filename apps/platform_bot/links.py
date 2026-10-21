@@ -215,9 +215,14 @@ def still_owner(tenant) -> bool:
     user_pk = node.get("owner_user_pk") if isinstance(node, dict) else None
     if not user_pk:
         return True
-    return Membership.objects.filter(
-        user_id=user_pk, user__is_active=True, role=Membership.ROLE_OWNER
-    ).exists()
+    from django_tenants.utils import schema_context
+
+    # Membership живёт в схеме бизнеса (core — TENANT_APPS), а вызывают и из вебхука
+    # бота в public: там таблицы нет → ProgrammingError (/profil, «🔑» входа).
+    with schema_context(tenant.schema_name):
+        return Membership.objects.filter(
+            user_id=user_pk, user__is_active=True, role=Membership.ROLE_OWNER
+        ).exists()
 
 
 def platform_linked(tenant) -> bool:
