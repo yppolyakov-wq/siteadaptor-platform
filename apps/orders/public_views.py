@@ -1059,7 +1059,7 @@ def checkout(request):
             # SH-23: кто покупает + реквизиты фирмы (§14 UStG на счёте).
             customer_type=customer_type,
             billing_company=request.POST.get("billing_company", "").strip()[:200],
-            billing_vat_id=request.POST.get("billing_vat_id", "").strip()[:30],
+            billing_vat_id=_pm.clean_vat_id(request.POST.get("billing_vat_id", "")),
             # SH-23 (Р-2/Р-4): срок оплаты считаем ДО создания — письмо `created`
             # рендерится внутри create_order и должно его назвать.
             payment_due_at=_payment_due(tenant, chosen_method),

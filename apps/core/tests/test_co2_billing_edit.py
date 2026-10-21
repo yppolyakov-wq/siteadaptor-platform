@@ -109,3 +109,9 @@ def test_next_rejects_foreign_host():
 def test_get_not_allowed():
     stay = _stay()
     assert _post("stay", stay.pk, {}, method="get").status_code == 405
+
+
+def test_next_with_tab_cannot_escape_host():
+    stay = _stay()
+    resp = _post("stay", stay.pk, {"billing_present": "1", "next": "/\t/evil.example/"})
+    assert "evil.example" not in resp["Location"]

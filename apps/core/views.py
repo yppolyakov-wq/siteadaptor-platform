@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -5057,7 +5058,7 @@ def deal_customer_edit(request, kind, pk):
         customer.save(update_fields=fields + ["updated_at"])
         messages.success(request, _("Kundendaten gespeichert."))
     nxt = request.POST.get("next", "")
-    if not (nxt.startswith("/") and not nxt.startswith("//")):
+    if not url_has_allowed_host_and_scheme(nxt, allowed_hosts=None) or not nxt.startswith("/"):
         nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
     return redirect(nxt)
 
@@ -5122,7 +5123,7 @@ def deal_billing_edit(request, kind, pk):
         obj.save(update_fields=["customer_type", "billing_company", "billing_vat_id", "updated_at"])
         messages.success(request, _("Rechnungsempfänger gespeichert."))
     nxt = request.POST.get("next", "")
-    if not (nxt.startswith("/") and not nxt.startswith("//") and "\\" not in nxt):
+    if not url_has_allowed_host_and_scheme(nxt, allowed_hosts=None) or not nxt.startswith("/"):
         nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
     return redirect(nxt)
 
@@ -5157,6 +5158,11 @@ def deal_invoice(request, kind, pk):
         invoice = Invoice.objects.filter(pk=existing).first()
     if invoice is None:
         invoice = builders[kind](obj, tenant=tenant)
+        # CO-2 (ревью): общий ключ с автосчётом — подтверждение сделки выпустит
+        # ЭТОТ черновик, а не второй счёт.
+        invoice.deal_kind = kind
+        invoice.deal_id = str(getattr(obj, "reference_code", "") or obj.pk)[:64]
+        invoice.save(update_fields=["deal_kind", "deal_id", "updated_at"])
         if hasattr(obj, "invoice_id"):
             obj.invoice_id = invoice.pk
             obj.save(update_fields=["invoice_id", "updated_at"])

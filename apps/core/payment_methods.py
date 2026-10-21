@@ -104,6 +104,15 @@ def normalize(code: str, tenant, kind: str = "order", *, customer_type: str = PR
     return code if code in allowed else allowed[0]
 
 
+def clean_vat_id(raw: str) -> str:
+    """Ревью безопасности CO-2: USt-IdNr с витрины — только формат «2 буквы + 2–13
+    знаков» (иначе в официальный счёт уходил бы произвольный текст посетителя)."""
+    import re
+
+    value = re.sub(r"[\s.\-/]", "", (raw or "").upper())
+    return value if re.fullmatch(r"[A-Z]{2}[0-9A-Z]{2,13}", value) else ""
+
+
 def offline_payment(deal) -> bool:
     """CO-2d: покупатель выбрал оплату переводом (Rechnung/Vorkasse) — депозит/предоплату
     через Stripe не требуем: выбор покупателя сильнее настройки тарифа."""

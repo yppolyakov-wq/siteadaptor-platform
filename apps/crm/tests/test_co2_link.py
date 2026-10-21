@@ -11,7 +11,7 @@ from apps.crm.models import Company
 pytestmark = pytest.mark.django_db
 
 
-def _order(vat, customer_type="company", email="einkauf@example.com"):
+def _order(vat, customer_type="company", email="einkauf@mueller.example"):
     from apps.catalog.models import Product
     from apps.orders import services
 
@@ -34,7 +34,9 @@ def test_normalize_vat():
 
 
 def test_company_buyer_linked_by_normalized_vat():
-    c = Company.objects.create(name="Müller GmbH", vat_id="DE 123 456 789")
+    c = Company.objects.create(
+        name="Müller GmbH", vat_id="DE 123 456 789", email="info@mueller.example"
+    )
     order = _order("de123456789")
     order.customer.refresh_from_db()
     assert order.customer.company_id == c.pk
@@ -46,8 +48,8 @@ def test_no_match_creates_nothing():
 
 
 def test_existing_link_is_not_overwritten():
-    a = Company.objects.create(name="A", vat_id="DE111")
-    Company.objects.create(name="B", vat_id="DE222")
+    a = Company.objects.create(name="A", vat_id="DE111", email="x@mueller.example")
+    Company.objects.create(name="B", vat_id="DE222", email="x@mueller.example")
     order = _order("DE111")
     customer = order.customer
     assert link_by_vat(customer, "DE222") is None
@@ -68,3 +70,18 @@ def test_ambiguous_vat_links_nothing():
     order = _order("DE555")
     order.customer.refresh_from_db()
     assert order.customer.company_id is None
+
+
+def test_public_vat_without_company_mail_domain_links_nothing():
+    """Ревью безопасности: чужой публичный USt-IdNr не даёт посетителю адрес фирмы."""
+    Company.objects.create(name="Müller GmbH", vat_id="DE123456789", email="info@mueller.example")
+    order = _order("DE123456789", email="fremd@gmail.example")
+    order.customer.refresh_from_db()
+    assert order.customer.company_id is None
+
+
+def test_clean_vat_id_format():
+    from apps.core.payment_methods import clean_vat_id
+
+    assert clean_vat_id(" de 123.456.789 ") == "DE123456789"
+    assert clean_vat_id("Bitte zahlen Sie an IBAN …") == ""

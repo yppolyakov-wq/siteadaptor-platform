@@ -69,3 +69,26 @@ def test_invoice_and_vorkasse_never_go_to_stripe():
     root = Path(__file__).resolve().parents[2]
     for path in (root / "stays" / "public_views.py", root / "booking" / "public_views.py"):
         assert "offline_payment(" in path.read_text(), path
+
+
+def test_card_draft_is_issued_not_duplicated(django_capture_on_commit_callbacks):
+    """Ревью: черновик кнопкой на карточке + подтверждение = один счёт, а не два."""
+    from apps.finance.services import invoice_from_stay
+
+    with django_capture_on_commit_callbacks(execute=True):
+        booking = _book(auto_confirm=False)
+    draft = invoice_from_stay(booking)
+    booking.invoice_id = draft.pk
+    booking.save(update_fields=["invoice_id"])
+    with django_capture_on_commit_callbacks(execute=True):
+        StayBookingSM().apply(booking, "confirmed")
+    assert Invoice.objects.count() == 1
+    draft.refresh_from_db()
+    assert draft.status == "issued" and draft.deal_kind == "stay"
+
+
+def test_invoice_mail_is_throttled_per_address():
+    from apps.finance.services import _invoice_mail_allowed
+
+    addr = "spam-target@example.com"
+    assert [_invoice_mail_allowed(addr) for _ in range(4)] == [True, True, True, False]

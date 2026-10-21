@@ -16,6 +16,17 @@ def normalize_vat(value: str) -> str:
     return _NOISE.sub("", (value or "").upper())
 
 
+def _same_mail_domain(customer, company) -> bool:
+    """Ревью безопасности CO-2: USt-IdNr публичен — сам по себе он не доказывает, что
+    бронирует сотрудник фирмы (иначе посетитель получил бы в счёт адрес из справочника
+    владельца). Нужна ещё почта на домене фирмы из справочника."""
+    mail = (getattr(customer, "email", "") or "").lower()
+    known = (getattr(company, "email", "") or "").lower()
+    if "@" not in mail or "@" not in known:
+        return False
+    return mail.rsplit("@", 1)[1] == known.rsplit("@", 1)[1]
+
+
 def link_by_vat(customer, vat_id: str):
     """→ привязанная компания или None. Сбой не роняет бронирование."""
     from django.db import transaction
@@ -28,12 +39,19 @@ def link_by_vat(customer, vat_id: str):
     try:
         with transaction.atomic():
             # vat_id в справочнике — свободный ввод владельца: сверяем нормализованно.
-            matches = [
-                c
-                for c in Company.objects.exclude(vat_id="").only("pk", "vat_id")
-                if normalize_vat(c.vat_id) == key
-            ]
-            if len(matches) != 1:
+            # Нормализация в БД (без полного скана справочника в Python).
+            from django.db.models import Value
+            from django.db.models.functions import Replace, Upper
+
+            norm = Upper("vat_id")
+            for ch in (" ", ".", "-", "/"):
+                norm = Replace(norm, Value(ch), Value(""))
+            matches = list(
+                Company.objects.annotate(vat_key=norm)
+                .filter(vat_key=key)
+                .only("pk", "vat_id", "email")[:2]
+            )
+            if len(matches) != 1 or not _same_mail_domain(customer, matches[0]):
                 return None
             customer.company_id = matches[0].pk
             customer.save(update_fields=["company"])

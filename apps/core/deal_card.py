@@ -276,5 +276,5 @@ def _billing(obj):
         "vat_id": obj.billing_vat_id,
         "linked": getattr(customer, "company", None) if customer is not None else None,
         "recipient": recipient_for(obj),
-        "directory": list(Company.objects.only("pk", "name", "vat_id")[:200]),
+        "directory": list(Company.objects.only("pk", "name", "vat_id").order_by("name")[:200]),
     }

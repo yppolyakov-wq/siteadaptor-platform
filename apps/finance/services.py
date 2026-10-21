@@ -395,6 +395,13 @@ def issue_invoice_for_deal(kind, obj, tenant, *, send_email=True):
     existing = Invoice.objects.filter(deal_kind=kind, deal_id=ref).first()
     if existing is not None:
         return existing
+    # CO-2 (ревью): черновик, созданный кнопкой на карточке (`obj.invoice_id`), —
+    # тот же документ; второй счёт на сделку не выпускаем.
+    draft = None
+    if getattr(obj, "invoice_id", None):
+        draft = Invoice.objects.filter(pk=obj.invoice_id).first()
+        if draft is not None and draft.status != Invoice.STATUS_DRAFT:
+            return draft
     builder = {
         "order": invoice_from_order,
         "stay": invoice_from_stay,
@@ -402,21 +409,40 @@ def issue_invoice_for_deal(kind, obj, tenant, *, send_email=True):
     }.get(kind)
     if builder is None:
         return None
-    invoice = builder(obj, tenant)
+    invoice = draft or builder(obj, tenant)
     if invoice is None:
         return None
     invoice.deal_kind = kind
     invoice.deal_id = ref[:64]
     invoice.save(update_fields=["deal_kind", "deal_id", "updated_at"])
+    if hasattr(obj, "invoice_id") and obj.invoice_id != invoice.pk:
+        obj.invoice_id = invoice.pk
+        obj.save(update_fields=["invoice_id", "updated_at"])
     issue_invoice(invoice, tenant=tenant)
     invoice.refresh_from_db()
     if send_email:
         email = getattr(getattr(obj, "customer", None), "email", "") or ""
-        if email:
+        if email and _invoice_mail_allowed(email):
             _send_invoice_email(
                 invoice, tenant, email, schema=connection.schema_name, notify=notify
             )
     return invoice
+
+
+def _invoice_mail_allowed(email: str) -> bool:
+    """Ревью безопасности CO-2: адрес вводит посетитель витрины — письма со счётом на
+    один адрес не чаще 3 в час (иначе ротацией IP можно слать «официальные» счета
+    бизнеса на чужой ящик). Сам счёт выпускается в любом случае."""
+    import hashlib
+
+    from django.core.cache import cache
+
+    key = "invoice-mail:" + hashlib.sha256(email.strip().lower().encode()).hexdigest()
+    cache.add(key, 0, 3600)
+    try:
+        return cache.incr(key) <= 3
+    except ValueError:
+        return True
 
 
 def _send_invoice_email(invoice, tenant, email, *, schema, notify):
