@@ -73,6 +73,13 @@ def _owner_pk(tenant, link=None):
     from apps.core.models import Membership
 
     pk = getattr(link, "user_pk", None)
+    if not pk and link is not None and link.via != link.VIA_SIGNUP:
+        # Легаси-связь кабинета без user_pk (бэкфилл её не взял) — тот же фолбэк на
+        # зеркало, что в links.still_owner (убрать вместе с ним через релиз).
+        cfg = getattr(tenant, "site_config", None)
+        node = cfg.get("notify") if isinstance(cfg, dict) else None
+        mirror = node.get("owner_user_pk") if isinstance(node, dict) else None
+        pk = mirror if isinstance(mirror, int) and not isinstance(mirror, bool) else None
     if pk:
         return pk if tg_login.owner_user(pk) is not None else None
     if link is None or link.via != link.VIA_SIGNUP:
@@ -85,7 +92,7 @@ def _owner_pk(tenant, link=None):
     return owners[0] if len(owners) == 1 else None
 
 
-def handoff(link, uid: int, lang: str, issued: list | None = None):
+def handoff(link, uid: int, lang: str, issued: list | None = None, grace: str = ""):
     """→ ``{"next": url}`` или отказ с входом по e-mail. ``issued`` — сюда кладём ключ
     выпущенного токена (повтор гасит прежний)."""
     from django_tenants.utils import schema_context
@@ -105,7 +112,7 @@ def handoff(link, uid: int, lang: str, issued: list | None = None):
                 _("Bitte melden Sie sich für dieses Geschäft per E-Mail an."),
                 login_url=login,
             )
-        token = tg_login.issue(tenant.schema_name, user_pk, uid, lang=lang)
+        token = tg_login.issue(tenant.schema_name, user_pk, uid, lang=lang, grace=grace)
         if issued is not None:
             issued.append(tg_login._key(tenant.schema_name, token))
     return _json({"next": base + reverse("tg-start", args=[token], urlconf=TENANT_URLCONF)})
@@ -129,7 +136,7 @@ def _lang(uid: int, init_lang: str) -> str:
     return rights.preferred_locale(uid) or (init_lang or "")
 
 
-def resolve(uid: int, init_lang: str = "", issued: list | None = None):
+def resolve(uid: int, init_lang: str = "", issued: list | None = None, grace: str = ""):
     from . import rights
 
     if rights.is_restricted(uid):
@@ -145,7 +152,7 @@ def resolve(uid: int, init_lang: str = "", issued: list | None = None):
             _("Verbinden Sie Ihr Geschäft zuerst im Bot — /hilfe zeigt, wie."),
         )
     if len(found) == 1:
-        return handoff(found[0], uid, lang, issued)
+        return handoff(found[0], uid, lang, issued, grace)
     raw = secrets.token_urlsafe(24)
     if issued is not None:
         issued.append(_ticket_key(raw))
@@ -239,6 +246,8 @@ def _with_locale(init_lang: str, fn):
 @csrf_exempt
 @require_POST
 def app_auth(request):
+    from apps.core import tg_login
+
     from . import config
 
     bad = _bad_request(request)
@@ -263,31 +272,48 @@ def app_auth(request):
     uid = data["uid"]
     if ratelimit.hit("tgapp-uid", str(uid), limit=10, window=600):
         return _error("rate", _("Zu viele Versuche. Bitte gleich noch einmal."), status=429)
-    grace_key = GRACE_PREFIX + data["digest"]
+    digest = data["digest"]
+    grace_key = GRACE_PREFIX + digest
+    ttl = webapp_auth.MAX_AGE + 60
     ip = hashlib.sha256(ratelimit.client_ip(request).encode()).hexdigest()
-    if data["replay"]:
-        # Повтор допускаем только с того же IP и не больше GRACE_MAX раз; решение
-        # (связь, Art. 18, владелец) принимается заново — не из кэша.
-        grace = cache.get(grace_key)
-        if not isinstance(grace, dict) or grace.get("ip") != ip:
-            return _error("replay", _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403)
-        try:
-            n = cache.incr(grace_key + ":n")
-        except ValueError:
-            n = GRACE_MAX + 1
-        if n > GRACE_MAX:
-            return _error("replay", _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403)
-        for key in grace.get("last") or []:
-            cache.delete(key)  # живой токен/билет на одну initData — всегда один
-    else:
-        ttl = webapp_auth.MAX_AGE + 60
-        cache.set(grace_key + ":n", 1, ttl)
-        grace = {"ip": ip}
-    issued: list = []
-    resp = _with_locale(data["language_code"], lambda: resolve(uid, data["language_code"], issued))
-    grace["last"] = issued
-    cache.set(grace_key, grace, webapp_auth.MAX_AGE + 60)
-    return resp
+    lock = grace_key + ":lock"
+    if not cache.add(lock, 1, 15):
+        # Параллельный повтор той же initData: иначе оба выпустили бы живой токен.
+        return _error("busy", _("Zu viele Versuche. Bitte gleich noch einmal."), status=409)
+    try:
+        if data["replay"]:
+            # Повтор допускаем только с того же IP и не больше GRACE_MAX раз; решение
+            # (связь, Art. 18, владелец) принимается заново — не из кэша.
+            grace = cache.get(grace_key)
+            if not isinstance(grace, dict) or grace.get("ip") != ip:
+                return _error(
+                    "replay", _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403
+                )
+            try:
+                n = cache.incr(grace_key + ":n")
+            except ValueError:
+                n = GRACE_MAX + 1
+            if n > GRACE_MAX:
+                return _error(
+                    "replay", _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403
+                )
+            for key in grace.get("last") or []:
+                cache.delete(key)  # живой токен/билет на одну initData — всегда один
+            # …и уже открытая по ней сессия (перехвативший initData не сохраняет вход).
+            tg_login.revoke_sessions(digest)
+        else:
+            cache.set(grace_key + ":n", 1, ttl)
+            grace = {"ip": ip, "last": []}
+            cache.set(grace_key, grace, ttl)  # до resolve: ранний повтор видит grace
+        issued: list = []
+        resp = _with_locale(
+            data["language_code"], lambda: resolve(uid, data["language_code"], issued, digest)
+        )
+        grace["last"] = issued
+        cache.set(grace_key, grace, ttl)
+        return resp
+    finally:
+        cache.delete(lock)
 
 
 @csrf_exempt

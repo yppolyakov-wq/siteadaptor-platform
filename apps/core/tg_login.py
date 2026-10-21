@@ -106,9 +106,11 @@ def _key(schema: str, token: str) -> str:
     return f"tg_login:{schema}:{hashlib.sha256(token.encode()).hexdigest()}"
 
 
-def issue(schema: str, user_pk: int, uid: int, *, lang: str = "") -> str:
+def issue(schema: str, user_pk: int, uid: int, *, lang: str = "", grace: str = "") -> str:
+    """``grace`` — отпечаток initData: сессия, открытая этим токеном, гасится повтором."""
     token = secrets.token_urlsafe(32)
-    cache.set(_key(schema, token), {"user_pk": int(user_pk), "uid": int(uid), "lang": lang}, TTL)
+    payload = {"user_pk": int(user_pk), "uid": int(uid), "lang": lang, "grace": grace}
+    cache.set(_key(schema, token), payload, TTL)
     return token
 
 
@@ -151,16 +153,38 @@ def telegram_allowed(uid, tenant, user_pk=None) -> bool:
 
     from apps.platform_bot import links, rights
 
-    if not links.is_owner(uid, tenant) or rights.is_restricted(uid):
+    if rights.is_restricted(uid):
         return False
-    if user_pk is None:
-        return True
-    return (
-        links._active(uid)
-        .filter(tenant=tenant)
-        .filter(Q(user_pk__isnull=True) | Q(user_pk=user_pk))
-        .exists()
-    )
+    qs = links._active(uid).filter(tenant=tenant)  # is_owner — тем же запросом
+    if user_pk is not None:
+        qs = qs.filter(Q(user_pk__isnull=True) | Q(user_pk=user_pk))
+    return qs.exists()
+
+
+_SESS_PREFIX = "tgapp:sess:"
+_SESS_TTL = 360  # окно повтора initData (MAX_AGE 300 + запас)
+
+
+def remember_session(grace: str, session_key) -> None:
+    """Сессия, открытая по этой initData: повторный вход её гасит (ревью T-8.30f)."""
+    if not grace or not session_key:
+        return
+    key = _SESS_PREFIX + grace
+    keys = [k for k in (cache.get(key) or []) if k != session_key][-4:]
+    cache.set(key, [*keys, session_key], _SESS_TTL)
+
+
+def revoke_sessions(grace: str) -> None:
+    from importlib import import_module
+
+    from django.conf import settings
+
+    if not grace:
+        return
+    store = import_module(settings.SESSION_ENGINE).SessionStore
+    for session_key in cache.get(_SESS_PREFIX + grace) or []:
+        store(session_key).delete()
+    cache.delete(_SESS_PREFIX + grace)
 
 
 def _clamp_lang(lang: str) -> str:
@@ -187,6 +211,9 @@ def tg_start(request, token):
             "exp": int(time.time()) + SESSION_TTL,
         }
         request.session.set_expiry(SESSION_TTL)
+        if payload.get("grace"):
+            request.session.save()  # ключ сессии нужен сейчас — повтор initData её гасит
+            remember_session(payload["grace"], request.session.session_key)
         lang = _clamp_lang(payload.get("lang", ""))
         if lang:
             from apps.core.i18n_cabinet import SESSION_KEY as LANG_KEY

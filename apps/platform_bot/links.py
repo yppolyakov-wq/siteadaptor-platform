@@ -59,6 +59,14 @@ def bind(
         OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True).exclude(
             tg_user_id=tg_user_id
         ).update(is_active=False, updated_at=timezone.now())
+        if user_pk is None:
+            # Повтор привязки без пользователя (бот) не стирает закреплённого владельца
+            # той же связи — иначе она снова «легаси» и пускает любого (ревью T-8.30f).
+            user_pk = (
+                OwnerTelegramLink.objects.filter(tg_user_id=tg_user_id, tenant=tenant)
+                .values_list("user_pk", flat=True)
+                .first()
+            )
         link, _created = OwnerTelegramLink.objects.update_or_create(
             tg_user_id=tg_user_id,
             tenant=tenant,
@@ -210,6 +218,7 @@ def link_user_pk(tenant):
     """T-8.30f: пользователь кабинета активной связи бизнеса (None — не известен)."""
     return (
         OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True)
+        .order_by("-selected_at", "-pk")
         .values_list("user_pk", flat=True)
         .first()
     )

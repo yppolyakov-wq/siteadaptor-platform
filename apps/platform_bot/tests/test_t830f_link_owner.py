@@ -31,8 +31,30 @@ def test_bind_writes_and_overwrites_user_pk():
     assert _link(t).user_pk == a.pk
     links.bind(UID, t, user_pk=b.pk)
     assert _link(t).user_pk == b.pk
+    # Ревью T-8.30f (MEDIUM): привязка без пользователя (повтор из бота) не стирает
+    # закреплённого владельца той же связи — иначе связь снова «легаси» и пускает любого.
     links.bind(UID, t)
-    assert _link(t).user_pk is None
+    assert _link(t).user_pk == b.pk
+
+
+def test_bind_other_chat_without_user_starts_empty():
+    t = _tenant()
+    links.bind(UID, t, user_pk=_owner().pk)
+    links.bind(UID + 1, t)
+    assert _link(t).tg_user_id == UID + 1 and _link(t).user_pk is None
+
+
+def test_legacy_cabinet_link_falls_back_to_mirror():
+    """Легаси-связь из кабинета без user_pk (бэкфилл не взял) — владелец из зеркала,
+    как в still_owner; иначе вход в Mini App молча отваливался бы на e-mail."""
+    t = _tenant()
+    owner = _owner()
+    links.bind(UID, t, user_pk=owner.pk)
+    OwnerTelegramLink.objects.filter(tenant=t).update(user_pk=None)
+    status, body = _auth()
+    assert status == 200 and "next" in body
+    token = body["next"].rstrip("/").rsplit("/", 1)[-1]
+    assert tg_login.peek(t.schema_name, token)["user_pk"] == owner.pk
 
 
 def test_stale_mirror_does_not_change_who_logs_in():
@@ -88,8 +110,9 @@ def test_session_ends_when_link_rebound_to_other_user():
     links.bind(UID, t, user_pk=b.pk)
     assert not tg_login.telegram_allowed(UID, t, a.pk)
     assert tg_login.telegram_allowed(UID, t, b.pk)
-    links.bind(UID, t)  # легаси: никого — не ограничивает
-    assert tg_login.telegram_allowed(UID, t, a.pk)
+    links.bind(UID, t)  # повтор без пользователя не снимает закрепление (ревью T-8.30f)
+    assert not tg_login.telegram_allowed(UID, t, a.pk)
+    assert tg_login.telegram_allowed(UID, t, b.pk)
 
 
 def test_tg_start_refuses_token_issued_before_rebind(settings):

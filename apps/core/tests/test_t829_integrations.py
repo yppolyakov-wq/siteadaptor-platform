@@ -173,12 +173,13 @@ def test_claiming_own_bot_keeps_platform_link():
 def test_claim_keeps_revocation_of_removed_owner():
     """Ревью T-8.29 (HIGH): после заявки своего бота удалённый из команды владелец НЕ
     сохраняет доступ к бизнесу через общий бот (метка owner_user_pk не стирается)."""
+    from django_tenants.utils import schema_context
+
     from apps.core.models import Membership
     from apps.platform_bot import links
 
-    from django_tenants.utils import schema_context
-
     t = _tenant(telegram_off=False)
+    links.bind(777002, t)  # в тесте первое сохранение бизнеса создаёт его схему
     # T-8.30f-0: Membership живёт в схеме бизнеса — там его и создаём (как в проде).
     with schema_context(t.schema_name):
         owner = _member(Membership.ROLE_OWNER)
