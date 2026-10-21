@@ -27855,3 +27855,12 @@ msgstr "Невідомий QR-код."
 
 msgid "Weitere %(n)s — bitte nach Aktion filtern."
 msgstr "Ще %(n)s — відфільтруйте за акцією."
+
+msgid "Erneut versuchen"
+msgstr "Повторити"
+
+msgid "Keine Verbindung. Bitte erneut versuchen."
+msgstr "Немає з'єднання. Спробуйте ще раз."
+
+msgid "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
+msgstr "Сеанс минув — закрийте й знову відкрийте «Мій магазин» у боті."

@@ -27602,3 +27602,12 @@ msgstr "Unknown QR code."
 
 msgid "Weitere %(n)s — bitte nach Aktion filtern."
 msgstr "%(n)s more — please filter by promotion."
+
+msgid "Erneut versuchen"
+msgstr "Try again"
+
+msgid "Keine Verbindung. Bitte erneut versuchen."
+msgstr "No connection. Please try again."
+
+msgid "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
+msgstr "Session expired — please close and reopen “My shop” in the bot."

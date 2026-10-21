@@ -54,11 +54,20 @@ def signature(pairs, bot_token: str) -> str:
     return hmac.new(secret, dcs.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
-def verify(init_data: str, bot_token: str, *, now: int, max_age: int = MAX_AGE) -> dict:
-    """Проверить ``initData`` и вернуть ``{uid, language_code, start_param}``.
+def verify(
+    init_data: str,
+    bot_token: str,
+    *,
+    now: int,
+    max_age: int = MAX_AGE,
+    allow_replay: bool = False,
+) -> dict:
+    """Проверить ``initData`` и вернуть ``{uid, language_code, start_param, digest, replay}``.
 
     Порядок: разбор → подпись → время → пользователь → повтор. Повтор отмечается ТОЛЬКО
-    после успешной проверки (провал не «сжигает» чужую подпись)."""
+    после успешной проверки (провал не «сжигает» чужую подпись). T-8.30f: с
+    ``allow_replay`` повтор не бросает, а помечается ``replay=True`` — решение о
+    допуске (тот же IP, лимит) принимает вызывающий."""
     if not bot_token:
         raise InitDataError("no_token")
     pairs = _pairs(init_data)
@@ -81,12 +90,15 @@ def verify(init_data: str, bot_token: str, *, now: int, max_age: int = MAX_AGE) 
     uid = user.get("id") if isinstance(user, dict) else None
     if not isinstance(uid, int) or isinstance(uid, bool) or uid <= 0:
         raise InitDataError("bad_user")
-    seen = SEEN_PREFIX + hashlib.sha256(given.encode("ascii", "ignore")).hexdigest()
-    if not cache.add(seen, 1, timeout=max_age + 60):
+    digest = hashlib.sha256(given.encode("ascii", "ignore")).hexdigest()
+    replay = not cache.add(SEEN_PREFIX + digest, 1, timeout=max_age + 60)
+    if replay and not allow_replay:
         raise InitDataError("replay")
     lang = user.get("language_code")
     return {
         "uid": uid,
         "language_code": lang if isinstance(lang, str) else "",
         "start_param": data.get("start_param", ""),
+        "digest": digest,
+        "replay": replay,
     }

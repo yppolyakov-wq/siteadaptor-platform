@@ -45,7 +45,12 @@ def _signed(fields=None, token=TOKEN, order=None):
 def test_golden_vector():
     assert _ref_hash(FIELDS) == GOLDEN
     out = verify(_signed(), TOKEN, now=NOW)
-    assert out == {"uid": 42, "language_code": "de", "start_param": ""}
+    assert {k: out[k] for k in ("uid", "language_code", "start_param")} == {
+        "uid": 42,
+        "language_code": "de",
+        "start_param": "",
+    }
+    assert out["replay"] is False and len(out["digest"]) == 64
 
 
 def test_order_independent_and_signature_field_included():

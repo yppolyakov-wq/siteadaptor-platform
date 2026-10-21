@@ -152,7 +152,8 @@ def test_bad_signature_and_replay():
     links.bind(UID, t, user_pk=_owner().pk)
     raw = _init_data()
     assert _post(miniapp.app_auth, {"init_data": raw})[0] == 200
-    status, body = _post(miniapp.app_auth, {"init_data": raw})
+    # T-8.30f: повтор с ДРУГОГО адреса — отказ (с того же — см. test_t830f_reopen)
+    status, body = _post(miniapp.app_auth, {"init_data": raw}, REMOTE_ADDR="10.9.9.9")
     assert status == 403 and body["error"] == "replay"
 
 

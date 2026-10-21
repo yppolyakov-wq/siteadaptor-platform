@@ -37,6 +37,10 @@
   <div data-state="error" hidden>
     <p data-message></p>
     <a class="btn" data-login hidden rel="noopener">{% trans "Mit E-Mail anmelden" %}</a>
+    {% comment %}T-8.30f: потерянный ответ / перезагрузка — повтор той же отправки
+    (сервер пускает до трёх раз с того же IP); истёкшее окно — закрыть и открыть заново.{% endcomment %}
+    <button type="button" data-retry hidden>{% trans "Erneut versuchen" %}</button>
+    <button type="button" class="alt" data-close hidden>{% trans "Schließen" %}</button>
   </div>
 </main>
 <script>
@@ -86,11 +90,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     root.querySelector("[data-message]").textContent = data.message || "";
     var login = root.querySelector("[data-login]");
-    if (data.login_url) { login.href = data.login_url; login.hidden = false; }
+    login.hidden = !data.login_url;
+    if (data.login_url) { login.href = data.login_url; }
+    root.querySelector("[data-retry]").hidden = !(data.retry || data.error === "replay" || data.error === "rate");
+    root.querySelector("[data-close]").hidden = data.error !== "expired";
     show("error");
   }
-  function fail() { handle({message: "{{ _('Bitte öffnen Sie „Mein Laden“ im Bot erneut.')|escapejs }}"}); }
-  post(root.dataset.authUrl, {init_data: tg.initData}).then(handle, fail);
+  function fail() { handle({retry: true, message: "{{ _('Keine Verbindung. Bitte erneut versuchen.')|escapejs }}"}); }
+  function auth() {
+    show("loading");
+    post(root.dataset.authUrl, {init_data: tg.initData}).then(handle, fail);
+  }
+  root.querySelector("[data-retry]").onclick = auth;
+  root.querySelector("[data-close]").onclick = function () { tg.close(); };
+  auth();
 });
 </script>
 </body>

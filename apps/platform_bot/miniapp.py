@@ -25,6 +25,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils import translation
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
@@ -37,8 +38,17 @@ logger = logging.getLogger(__name__)
 
 TENANT_URLCONF = "config.urls_tenant"
 TICKET_TTL = 120
+# T-8.30f: повторное открытие той же страницы (перезагрузка, потерянный ответ) — до трёх
+# входов на одну initData, только с того же IP; живым остаётся последний токен/билет.
+GRACE_MAX = 3
+GRACE_PREFIX = "tgapp:grace:"
 MAX_LINKS = 20
 FRAME_ANCESTORS = "frame-ancestors https://web.telegram.org"
+
+
+_EXPIRED_MSG = gettext_lazy(
+    "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
+)
 
 
 def _json(data: dict, status: int = 200):
@@ -77,8 +87,9 @@ def _owner_pk(tenant, link=None):
     return owners[0] if len(owners) == 1 else None
 
 
-def handoff(link, uid: int, lang: str):
-    """→ ``{"next": url}`` или отказ с входом по e-mail."""
+def handoff(link, uid: int, lang: str, issued: list | None = None):
+    """→ ``{"next": url}`` или отказ с входом по e-mail. ``issued`` — сюда кладём ключ
+    выпущенного токена (повтор гасит прежний)."""
     from django_tenants.utils import schema_context
 
     from apps.core import owner_login, tg_login
@@ -97,6 +108,8 @@ def handoff(link, uid: int, lang: str):
                 login_url=login,
             )
         token = tg_login.issue(tenant.schema_name, user_pk, uid, lang=lang)
+        if issued is not None:
+            issued.append(tg_login._key(tenant.schema_name, token))
     return _json({"next": base + reverse("tg-start", args=[token], urlconf=TENANT_URLCONF)})
 
 
@@ -118,7 +131,7 @@ def _lang(uid: int, init_lang: str) -> str:
     return rights.preferred_locale(uid) or (init_lang or "")
 
 
-def resolve(uid: int, init_lang: str = ""):
+def resolve(uid: int, init_lang: str = "", issued: list | None = None):
     from . import rights
 
     if rights.is_restricted(uid):
@@ -134,8 +147,10 @@ def resolve(uid: int, init_lang: str = ""):
             _("Verbinden Sie Ihr Geschäft zuerst im Bot — /hilfe zeigt, wie."),
         )
     if len(found) == 1:
-        return handoff(found[0], uid, lang)
+        return handoff(found[0], uid, lang, issued)
     raw = secrets.token_urlsafe(24)
+    if issued is not None:
+        issued.append(_ticket_key(raw))
     cache.set(
         _ticket_key(raw),
         {"uid": uid, "links": [str(link.pk) for link in found], "lang": lang},
@@ -237,15 +252,44 @@ def app_auth(request):
         return _error("bot_off", _("Der Bot ist gerade nicht verfügbar."), status=503)
     try:
         data = webapp_auth.verify(
-            request.POST.get("init_data", ""), config.token(), now=int(time.time())
+            request.POST.get("init_data", ""),
+            config.token(),
+            now=int(time.time()),
+            allow_replay=True,
         )
     except webapp_auth.InitDataError as exc:
         logger.info("tg mini app: init data rejected (%s)", exc.code)  # только код
+        if exc.code == "expired":
+            return _error(exc.code, _EXPIRED_MSG, status=403)
         return _error(exc.code, _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403)
     uid = data["uid"]
     if ratelimit.hit("tgapp-uid", str(uid), limit=10, window=600):
         return _error("rate", _("Zu viele Versuche. Bitte gleich noch einmal."), status=429)
-    return _with_locale(data["language_code"], lambda: resolve(uid, data["language_code"]))
+    grace_key = GRACE_PREFIX + data["digest"]
+    ip = hashlib.sha256(ratelimit.client_ip(request).encode()).hexdigest()
+    if data["replay"]:
+        # Повтор допускаем только с того же IP и не больше GRACE_MAX раз; решение
+        # (связь, Art. 18, владелец) принимается заново — не из кэша.
+        grace = cache.get(grace_key)
+        if not isinstance(grace, dict) or grace.get("ip") != ip:
+            return _error("replay", _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403)
+        try:
+            n = cache.incr(grace_key + ":n")
+        except ValueError:
+            n = GRACE_MAX + 1
+        if n > GRACE_MAX:
+            return _error("replay", _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403)
+        for key in grace.get("last") or []:
+            cache.delete(key)  # живой токен/билет на одну initData — всегда один
+    else:
+        ttl = webapp_auth.MAX_AGE + 60
+        cache.set(grace_key + ":n", 1, ttl)
+        grace = {"ip": ip}
+    issued: list = []
+    resp = _with_locale(data["language_code"], lambda: resolve(uid, data["language_code"], issued))
+    grace["last"] = issued
+    cache.set(grace_key, grace, webapp_auth.MAX_AGE + 60)
+    return resp
 
 
 @csrf_exempt

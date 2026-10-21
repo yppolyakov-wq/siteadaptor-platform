@@ -27742,3 +27742,12 @@ msgstr "Bilinmeyen QR kodu."
 
 msgid "Weitere %(n)s — bitte nach Aktion filtern."
 msgstr "%(n)s tane daha — lütfen kampanyaya göre filtreleyin."
+
+msgid "Erneut versuchen"
+msgstr "Tekrar dene"
+
+msgid "Keine Verbindung. Bitte erneut versuchen."
+msgstr "Bağlantı yok. Lütfen tekrar deneyin."
+
+msgid "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
+msgstr "Oturum süresi doldu — lütfen kapatın ve „Dükkânım“ı botta yeniden açın."
