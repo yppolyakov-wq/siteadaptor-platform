@@ -1,7 +1,6 @@
 {% extends "tenant/_base_dashboard.html" %}
 {% load i18n cabinet %}
-{% block dash_title %}{% trans "Redeem" %} {{ code }}{% include "promotions/_submit_once.html" %}
-{% endblock %}
+{% block dash_title %}{% trans "Redeem" %} {{ code }}{% endblock %}
 
 {% block dash_content %}
 <div class="max-w-lg{% if lite %} mx-auto{% endif %}">
@@ -76,4 +75,5 @@
   <a href="{% url 'promotions:redeem' %}" class="mt-4 flex items-center justify-center gap-2 h-12 rounded-2xl bg-white shadow-sm text-sm font-semibold text-gray-800" data-next-scan>📷 {% trans "Nächster Code" %}</a>
   {% endif %}
 </div>
+{% include "promotions/_submit_once.html" %}
 {% endblock %}

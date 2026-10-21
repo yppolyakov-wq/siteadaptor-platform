@@ -27709,3 +27709,7 @@ msgstr "Sofort einlösen beim Scannen in der Kasse"
 #: apps/tenants/forms.py
 msgid "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
 msgstr "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
+
+#: apps/promotions/views.py
+msgid "Gerade schon eingelöst — bitte den aktuellen Stand prüfen."
+msgstr "Gerade schon eingelöst — bitte den aktuellen Stand prüfen."

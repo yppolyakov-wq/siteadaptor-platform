@@ -27759,3 +27759,7 @@ msgstr "Kasada tararken hemen kullan"
 #: apps/tenants/forms.py
 msgid "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
 msgstr "Etkinse, „Kullan“ sayfasındaki tarayıcı (tarayıcıda veya Telegram'da) kodu hemen kullanır. Bağlantılar ve telefon kamerası her zaman bir onay düğmesi gösterir."
+
+#: apps/promotions/views.py
+msgid "Gerade schon eingelöst — bitte den aktuellen Stand prüfen."
+msgstr "Az önce kullanıldı — lütfen güncel durumu kontrol edin."

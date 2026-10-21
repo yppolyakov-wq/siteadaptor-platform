@@ -1551,8 +1551,7 @@ def _auto_fulfill(request, code: str) -> None:
     if res is None or res.status not in ("pending", "confirmed"):
         return
     try:
-        if res.status == "pending":
-            services.confirm(res, actor=request.user)
+        # fulfill сам подтверждает pending (без письма «bestätigt» — клиент у прилавка)
         services.fulfill(res, actor=request.user)
         messages.success(request, _("%(code)s: ausgegeben ✓ (Auto)") % {"code": code})
     except IllegalTransition:
@@ -1560,6 +1559,12 @@ def _auto_fulfill(request, code: str) -> None:
 
 
 def _redeem_voucher_scan(request, code: str) -> None:
+    from apps.loyalty.models import Voucher
+
+    # Многоразовый ваучер (абонемент, сертификат) скан сразу НЕ гасит: повторный скан
+    # того же QR списал бы ещё одно использование — только кнопкой (ревью T-8.30g).
+    if Voucher.objects.filter(code=code).values_list("max_uses", flat=True).first() != 1:
+        return
     try:
         voucher = services.redeem_voucher(code)
         messages.success(request, f"{voucher.code}: {voucher.label} ✓ (Auto)")
@@ -1677,6 +1682,7 @@ _VOUCHER_ERRORS = {
     "inactive": gettext_lazy("Voucher deaktiviert."),
     "expired": gettext_lazy("Voucher abgelaufen."),
     "used_up": gettext_lazy("Voucher bereits eingelöst."),
+    "stale": gettext_lazy("Gerade schon eingelöst — bitte den aktuellen Stand prüfen."),
 }
 
 
@@ -1723,7 +1729,7 @@ def voucher_redeem(request):
                 request.POST.get("code", ""),
                 # T-8.30g: кнопка подтверждения несёт счётчик, который видел владелец —
                 # двойной тап по многоразовому ваучеру не списывает дважды.
-                expect_used=int(expect) if expect.isdigit() else None,
+                expect_used=int(expect) if expect.isascii() and expect.isdigit() else None,
             )
             uses = f" ({voucher.used_count}/{voucher.max_uses})" if voucher.max_uses else ""
             messages.success(request, f"{voucher.code}: {voucher.label} ✓{uses}")

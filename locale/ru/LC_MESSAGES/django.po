@@ -27892,3 +27892,7 @@ msgstr "Сразу погашать при сканировании на кас�
 #: apps/tenants/forms.py
 msgid "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
 msgstr "Если включено, сканер на странице «Погашение» (в браузере или Telegram) погашает сразу. Ссылки и камера телефона всегда показывают кнопку подтверждения."
+
+#: apps/promotions/views.py
+msgid "Gerade schon eingelöst — bitte den aktuellen Stand prüfen."
+msgstr "Только что погашено — проверьте текущее состояние."

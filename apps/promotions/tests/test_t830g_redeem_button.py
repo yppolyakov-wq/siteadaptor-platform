@@ -136,3 +136,50 @@ def test_setting_help_no_longer_promises_redeem_on_open():
 
     src = Path(forms.__file__).read_text()
     assert "opening a redemption QR" not in src
+
+
+def test_submit_once_script_is_not_inside_title(user):
+    """Ревью: скрипт попал в {% block dash_title %} → <title> (RCDATA) и не исполнялся."""
+    t = _tenant_auto()
+    body = views.redeem_detail(_req("get", "/", user, t), _res().reference_code).content.decode()
+    title = body[body.index("<title>") : body.index("</title>")]
+    assert "<script" not in title and "form[data-once]" in body
+
+
+def test_garbage_expect_is_not_500(user):
+    t = _tenant_auto(False)
+    v = Voucher.objects.create(code="V-SUP001", label="Kaffee", max_uses=5)
+    resp = views.voucher_redeem(_req("post", "/", user, t, {"code": v.code, "expect": "²"}))
+    assert resp.status_code == 302
+
+
+def test_stale_expect_says_state_changed_not_used_up(user):
+    t = _tenant_auto(False)
+    v = Voucher.objects.create(code="V-STL001", label="Kaffee", max_uses=0)
+    services.redeem_voucher(v.code)
+    req = _req("post", "/", user, t, {"code": v.code, "expect": "0"})
+    views.voucher_redeem(req)
+    texts = [str(m) for m in req._messages]
+    assert any("aktuellen Stand" in m for m in texts)
+    assert not any("bereits eingelöst." == m.split(": ")[-1] for m in texts)
+
+
+def test_scanner_does_not_auto_redeem_multi_use_voucher(user):
+    """Повторный скан многоразового ваучера списал бы ещё раз — только кнопкой."""
+    t = _tenant_auto()
+    v = Voucher.objects.create(code="V-MUL001", label="10er-Karte", max_uses=10)
+    views.redeem_home(_req("post", "/", user, t, {"code": v.code, "scan": "1", "kind": "voucher"}))
+    v.refresh_from_db()
+    assert v.used_count == 0
+
+
+def test_stale_fulfill_does_not_overwrite_cancel():
+    """Ревью: выдача устаревшим объектом после отмены не перезаписывает статус."""
+    from apps.core.fsm import IllegalTransition
+
+    res = _res()
+    stale = Reservation.objects.get(pk=res.pk)
+    services.cancel(res)
+    with pytest.raises(IllegalTransition):
+        services.fulfill(stale)
+    assert Reservation.objects.get(pk=res.pk).status == "cancelled"

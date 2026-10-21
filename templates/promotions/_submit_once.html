@@ -8,4 +8,12 @@ document.addEventListener("submit", function (e) {
   f.dataset.sent = "1";
   f.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
 });
+// «Назад» из bfcache возвращает страницу с заблокированной формой — разблокируем.
+window.addEventListener("pageshow", function (e) {
+  if (!e.persisted) return;
+  document.querySelectorAll("form[data-once]").forEach(function (f) {
+    delete f.dataset.sent;
+    f.querySelectorAll("button").forEach(function (b) { b.disabled = false; });
+  });
+});
 </script>

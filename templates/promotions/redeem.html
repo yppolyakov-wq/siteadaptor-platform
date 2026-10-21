@@ -109,7 +109,7 @@
   if (!("BarcodeDetector" in window)) {
     toggle.disabled = true;
     toggle.classList.add("opacity-50");
-    msg.textContent = "{% trans 'In-app scanner not supported here — use your phone camera or the code field above.' %}";
+    msg.textContent = "{{ _('In-app scanner not supported here — use your phone camera or the code field above.')|escapejs }}";
     return;
   }
 
@@ -118,14 +118,14 @@
       detector = new BarcodeDetector({ formats: ["qr_code"] });
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
       video.srcObject = stream; video.classList.remove("hidden"); await video.play();
-      toggle.textContent = "{% trans 'Stop' %}";
+      toggle.textContent = "{{ _('Stop')|escapejs }}";
       loop();
     } catch (e) { msg.textContent = "" + e; }
   }
   function stop() {
     if (raf) cancelAnimationFrame(raf);
     if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
-    video.classList.add("hidden"); toggle.textContent = "{% trans 'Start camera' %}"; stream = null;
+    video.classList.add("hidden"); toggle.textContent = "{{ _('Start camera')|escapejs }}"; stream = null;
   }
   async function loop() {
     try {

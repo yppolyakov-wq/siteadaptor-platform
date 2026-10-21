@@ -333,10 +333,13 @@ def purchase(
 def confirm(reservation, *, actor=None):
     """pending → confirmed (ручное подтверждение владельцем)."""
     with transaction.atomic():
-        if reservation.status == "pending":
-            reservation.confirmed_at = timezone.now()
-            reservation.save(update_fields=["confirmed_at", "updated_at"])
-        return ReservationSM().apply(reservation, "confirmed", actor=actor)
+        # T-8.30g (ревью): строка под блокировкой — параллельная отмена/выдача не
+        # перезапишет статус устаревшим объектом (как cancel/expire).
+        res = Reservation.objects.select_for_update().get(pk=reservation.pk)
+        if res.status == "pending":
+            res.confirmed_at = timezone.now()
+            res.save(update_fields=["confirmed_at", "updated_at"])
+        return ReservationSM().apply(res, "confirmed", actor=actor)
 
 
 def fulfill(reservation, *, actor=None):
@@ -347,15 +350,18 @@ def fulfill(reservation, *, actor=None):
     Письмо «подтверждено» в этот момент не шлём: клиент уже получает товар.
     """
     with transaction.atomic():
-        if reservation.status == "pending":
+        # T-8.30g (ревью): двойной тап у прилавка и гонка «выдача ↔ отмена» —
+        # решение по статусу принимается на заблокированной строке.
+        res = Reservation.objects.select_for_update().get(pk=reservation.pk)
+        if res.status == "pending":
             from apps.notifications import prefs
 
             with prefs.muted(customer=True):
-                reservation = confirm(reservation, actor=actor)
-        if reservation.status != "fulfilled":
-            reservation.fulfilled_at = timezone.now()
-            reservation.save(update_fields=["fulfilled_at", "updated_at"])
-        return ReservationSM().apply(reservation, "fulfilled", actor=actor)
+                res = confirm(res, actor=actor)
+        if res.status != "fulfilled":
+            res.fulfilled_at = timezone.now()
+            res.save(update_fields=["fulfilled_at", "updated_at"])
+        return ReservationSM().apply(res, "fulfilled", actor=actor)
 
 
 def cancel(reservation, *, actor=None):
@@ -501,7 +507,7 @@ def redeem_voucher(code, *, expect_used=None):
     if voucher.max_uses and voucher.used_count >= voucher.max_uses:
         raise VoucherError("used_up")
     if expect_used is not None and voucher.used_count != expect_used:
-        raise VoucherError("used_up")
+        raise VoucherError("stale")  # погасили после того, как владелец открыл страницу
     # Г4-1: `.update()` не трогает auto_now — штамп ставим явно: у купона акции
     # (max_uses=1) это и есть момент погашения для недельной сводки владельцу.
     Voucher.objects.filter(pk=voucher.pk).update(

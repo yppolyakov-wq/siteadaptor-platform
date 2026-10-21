@@ -27619,3 +27619,7 @@ msgstr "Redeem instantly when scanning at the counter"
 #: apps/tenants/forms.py
 msgid "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
 msgstr "When on, the scanner on the “Redeem” page (browser or Telegram) redeems immediately. Links and the phone camera always show a confirmation button."
+
+#: apps/promotions/views.py
+msgid "Gerade schon eingelöst — bitte den aktuellen Stand prüfen."
+msgstr "Just redeemed — please check the current status."
