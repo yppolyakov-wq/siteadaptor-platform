@@ -758,8 +758,11 @@ def unterkunft_book(request, pk):
     tenant = getattr(request, "tenant", None)
     prepay = pricing.prepayment_cents(booking.total_cents, rate_plan)
     upfront = prepay if prepay > 0 else unit.deposit_cents * rooms  # G5: депозит × номера
+    from apps.core import payment_methods
+
     if (
         upfront > 0
+        and not payment_methods.offline_payment(booking)  # CO-2d: «Rechnung» — без Stripe
         and getattr(tenant, "payments_enabled", False)
         and connect.is_connect_configured()
     ):

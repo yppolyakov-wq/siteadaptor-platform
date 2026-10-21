@@ -319,6 +319,10 @@ def book_stay(
     from apps.crm.companies import link_deal
 
     link_deal(booking)  # CO-2c: фирма → справочник по USt-IdNr
+    if booking.status == "confirmed":  # автоподтверждение — счёт сразу (CO-2d)
+        from apps.finance.auto_invoice import on_confirmed
+
+        on_confirmed("stay", booking)
     # MX-2e: трекеры опций — пул проверяется, склад списывается; исключение
     # откатывает всю бронь (паттерн OutOfStock).
     from apps.core import option_trackers

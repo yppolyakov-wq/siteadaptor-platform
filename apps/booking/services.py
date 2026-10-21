@@ -191,6 +191,10 @@ def book(
     from apps.crm.companies import link_deal
 
     link_deal(booking)  # CO-2c: фирма → справочник по USt-IdNr
+    if booking.status == "confirmed":  # автоподтверждение — счёт сразу (CO-2d)
+        from apps.finance.auto_invoice import on_confirmed
+
+        on_confirmed("booking", booking)
     # MX-2e: трекеры опций записи (пул/склад) — в той же atomic; book_many
     # проходит здесь же (extras несёт только первая бронь группы).
     from apps.core import option_trackers

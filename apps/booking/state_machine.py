@@ -19,6 +19,10 @@ class BookingSM(StateMachine):
     ]
 
     def on_transition(self, instance, t, **kw):
+        if t.dst == "confirmed":
+            from apps.finance.auto_invoice import on_confirmed
+
+            on_confirmed("booking", instance)  # CO-2d: «Kauf auf Rechnung» → счёт
         if t.dst in ("confirmed", "cancelled"):
             from .notifications import enqueue_booking_email
 

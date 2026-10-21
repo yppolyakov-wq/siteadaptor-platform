@@ -104,6 +104,12 @@ def normalize(code: str, tenant, kind: str = "order", *, customer_type: str = PR
     return code if code in allowed else allowed[0]
 
 
+def offline_payment(deal) -> bool:
+    """CO-2d: покупатель выбрал оплату переводом (Rechnung/Vorkasse) — депозит/предоплату
+    через Stripe не требуем: выбор покупателя сильнее настройки тарифа."""
+    return getattr(deal, "payment_method", "") in (INVOICE, VORKASSE)
+
+
 def customer_type_of(raw: str) -> str:
     """Тип покупателя из POST; мусор → частное лицо (fail-closed для счёта)."""
     return COMPANY if (raw or "").strip() == COMPANY else PRIVATE

@@ -1209,8 +1209,11 @@ def termin_book(request, pk):
     # Депозит (P2.5b): если у ресурса задан и бизнес принимает оплату — ведём на
     # Stripe Checkout (на счёт бизнеса). Без депозита/оплаты — обычная бронь.
     tenant = getattr(request, "tenant", None)
+    from apps.core import payment_methods
+
     if (
         resource.deposit_cents > 0
+        and not payment_methods.offline_payment(booking)  # CO-2d: «Rechnung» — без Stripe
         and getattr(tenant, "payments_enabled", False)
         and connect.is_connect_configured()
     ):
