@@ -511,6 +511,7 @@ def stay_to_invoice(booking, *, small_business=False):
     from decimal import ROUND_HALF_UP, Decimal
 
     from apps.finance.models import Invoice
+    from apps.finance.recipient import recipient_for
 
     if booking.invoice_id:
         existing = Invoice.objects.filter(pk=booking.invoice_id).first()
@@ -543,7 +544,7 @@ def stay_to_invoice(booking, *, small_business=False):
         lines.append({"text": kurtaxe_line, "qty": 1, "unit_price": str(kurtaxe)})
     invoice = Invoice.objects.create(
         customer=booking.customer,
-        recipient=str(booking.customer)[:500],
+        recipient=recipient_for(booking)[:500],
         lines=lines,
         vat_rate=rate,
         net=net,

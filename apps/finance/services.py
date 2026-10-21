@@ -8,6 +8,7 @@ constraint в БД). Ручные записи (source=manual) идут без s
 from django.utils import timezone
 
 from .models import RevenueEntry
+from .recipient import recipient_for
 
 
 def record_revenue(
@@ -223,7 +224,7 @@ def invoice_from_stay(booking, tenant=None):
     net, vat, gross = compute_totals(lines, rate, small_business=small)
     return Invoice.objects.create(
         customer=booking.customer,
-        recipient=str(booking.customer)[:1000],
+        recipient=recipient_for(booking),
         lines=lines,
         vat_rate=rate,
         net=net,
@@ -260,7 +261,7 @@ def invoice_from_booking(booking, tenant=None):
     total_net, vat, gross = compute_totals(lines, rate, small_business=small)
     return Invoice.objects.create(
         customer=booking.customer,
-        recipient=str(booking.customer)[:1000],
+        recipient=recipient_for(booking),
         lines=lines,
         vat_rate=rate,
         net=total_net,
@@ -361,12 +362,9 @@ def invoice_from_order(order, tenant=None):
     # давала счёт, не совпадающий с суммой, которую клиент реально заплатил.
     rate = totals["rows"][0]["rate"] if totals["rows"] else Decimal("19.00")
     net, vat, gross = compute_totals(lines, rate, small_business=small)
-    recipient = order.billing_name or str(order.customer)
-    if order.billing_address:
-        recipient = f"{recipient}\n{order.billing_address}"
     return Invoice.objects.create(
         customer=order.customer,
-        recipient=recipient[:1000],
+        recipient=recipient_for(order),
         lines=lines,
         vat_rate=rate,
         net=net,
