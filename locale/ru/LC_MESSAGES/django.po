@@ -27951,3 +27951,15 @@ msgstr "Затем снова откройте «Mein Laden» в боте. Эт�
 #, python-format
 msgid "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
 msgstr "Связано с Telegram «%(name)s»: после подтверждения e-mail «Mein Laden» откроет ваш бизнес."
+
+msgid "Für diese E-Mail-Adresse wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut oder eine andere Adresse verwenden."
+msgstr "С этим адресом e-mail сегодня уже создано несколько бизнесов. Попробуйте завтра или укажите другой адрес."
+
+msgid "Mit diesem Telegram-Konto wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut."
+msgstr "С этим аккаунтом Telegram сегодня уже создано несколько бизнесов. Попробуйте завтра."
+
+msgid "Wird veröffentlicht…"
+msgstr "Публикуется…"
+
+msgid "Zu viele Versuche aus diesem Netzwerk. Bitte in einer Stunde erneut."
+msgstr "Слишком много попыток из этой сети. Попробуйте через час."

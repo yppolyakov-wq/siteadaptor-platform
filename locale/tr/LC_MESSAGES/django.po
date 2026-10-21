@@ -27818,3 +27818,15 @@ msgstr "Ardından „Mein Laden“ı botta yeniden açın. Bu pencereyi kapatabi
 #, python-format
 msgid "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
 msgstr "Telegram „%(name)s“ ile bağlandı: e-postanızı onayladıktan sonra „Mein Laden“ işletmenizi açar."
+
+msgid "Für diese E-Mail-Adresse wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut oder eine andere Adresse verwenden."
+msgstr "Bu e-posta adresiyle bugün zaten birkaç işletme oluşturuldu. Lütfen yarın tekrar deneyin veya başka bir adres kullanın."
+
+msgid "Mit diesem Telegram-Konto wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut."
+msgstr "Bu Telegram hesabıyla bugün zaten birkaç işletme oluşturuldu. Lütfen yarın tekrar deneyin."
+
+msgid "Wird veröffentlicht…"
+msgstr "Yayınlanıyor…"
+
+msgid "Zu viele Versuche aus diesem Netzwerk. Bitte in einer Stunde erneut."
+msgstr "Bu ağdan çok fazla deneme yapıldı. Lütfen bir saat sonra tekrar deneyin."

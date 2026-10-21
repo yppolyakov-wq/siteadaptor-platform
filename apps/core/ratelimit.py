@@ -31,3 +31,19 @@ def hit(scope: str, ident: str, *, limit: int, window: int) -> bool:
     except Exception:  # noqa: BLE001 — кэш недоступен: fail-open
         return False
     return count > limit
+
+
+def refund(scope: str, ident: str) -> None:
+    """Вернуть попытку, засчитанную ``hit`` в этом же запросе (без побочного эффекта).
+
+    Fail-open; ключа нет — ничего не создаём; ниже нуля не уходим (DECR по истёкшему
+    между проверкой и изменением ключу создал бы −1 без TTL — такой ключ удаляем).
+    """
+    key = f"rl:{scope}:{ident}"
+    try:
+        if cache.decr(key) < 0:
+            cache.delete(key)
+    except ValueError:
+        return  # ключа нет (истёк) — возвращать нечего
+    except Exception:  # noqa: BLE001 — кэш недоступен: fail-open
+        return

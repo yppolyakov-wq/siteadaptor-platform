@@ -129,9 +129,70 @@ def quick_start(request):
         return render(request, "tenants/quick_start.html", _context(request, form))
     if not form.is_valid():
         return render(request, "tenants/quick_start.html", _context(request, form))
-    if quickstart.too_fast(request.POST.get("stamp", "")):
+    stamp = request.POST.get("stamp", "")
+    if quickstart.too_fast(stamp):
         form.add_error(None, _("Bitte prüfen Sie Ihre Angaben und senden Sie erneut."))
         return render(request, "tenants/quick_start.html", _context(request, form))
+
+    # T-8.30k: повторная отправка той же формы (второй тап, пока грузятся фото) — не
+    # вторая регистрация и не «Zu viele Versuche», а тот же результат, что у первой.
+    key, done = _claim_submit(stamp)
+    if done == "busy":
+        form.add_error(None, _("Ihr Geschäft wird gerade angelegt — einen Moment bitte."))
+        return render(request, "tenants/quick_start.html", _context(request, form))
+    if done:
+        handoff = dict(request.session.get(SESSION_KEY) or {})
+        handoff[done["slug"]] = done["entry"]
+        request.session[SESSION_KEY] = handoff
+        return redirect(f"/aktion-starten/{done['slug']}/")
+    finished = False
+    try:
+        response, result = _publish(request, form)
+        if result:
+            cache.set(key, result, SUBMIT_TTL)
+            finished = True
+        return response
+    finally:
+        if not finished:
+            cache.delete(key)  # не создано — следующая попытка с той же формой свободна
+
+
+SUBMIT_TTL = 10 * 60
+SUBMIT_WAIT = 20  # сек: второй запрос ждёт первый, а не выдаёт ошибку
+
+
+def _claim_submit(stamp: str):
+    """(ключ, None) — запрос первый, публикуем; (ключ, dict) — уже опубликовано;
+    (ключ, "busy") — первая отправка всё ещё идёт дольше ``SUBMIT_WAIT``.
+
+    Ключ — хэш подписанной метки формы: она своя у каждой отрисовки и известна только
+    этому браузеру, поэтому чужой запрос результата не получит."""
+    import hashlib
+    import time
+
+    key = "qs-submit:" + hashlib.sha256(stamp.encode()).hexdigest()
+    deadline = time.monotonic() + SUBMIT_WAIT
+    while True:
+        try:
+            if cache.add(key, "busy", SUBMIT_TTL):
+                return key, None
+            state = cache.get(key)
+        except Exception:  # noqa: BLE001 — кэш недоступен: обычная отправка
+            return key, None
+        if isinstance(state, dict):
+            return key, state
+        if state is None:
+            continue  # первая отправка не удалась и освободила ключ — пробуем сами
+        if time.monotonic() > deadline:
+            return key, "busy"
+        time.sleep(0.5)
+
+
+def _publish(request, form):
+    """Сама публикация: (ответ, результат). Результат {slug, entry} — бизнес создан."""
+
+    def page(kept=None, signed=""):
+        return render(request, "tenants/quick_start.html", _context(request, form, kept, signed))
 
     cd = form.cleaned_data
     promo = form.promo_payload()
@@ -149,35 +210,40 @@ def quick_start(request):
                 validate_image(upload)
         except ValidationError as exc:
             form.add_error("photo", "; ".join(exc.messages))
-            return render(request, "tenants/quick_start.html", _context(request, form))
-    if ratelimit.hit("quick-start", ratelimit.client_ip(request), limit=5, window=3600):
-        form.add_error(None, _("Zu viele Versuche. Bitte später erneut."))
-        # Подпись не обновляем: срок жизни сохранённых фото считается от первой попытки.
-        return render(
-            request,
-            "tenants/quick_start.html",
-            _context(request, form, kept, request.POST.get("photos_kept", "") if kept else ""),
+            return page(), None
+    ip = ratelimit.client_ip(request)
+    if ratelimit.hit("quick-start", ip, limit=5, window=3600):
+        logger.info("quick-start limited: ip")
+        form.add_error(
+            None, _("Zu viele Versuche aus diesem Netzwerk. Bitte in einer Stunde erneut.")
         )
+        # Подпись не обновляем: срок жизни сохранённых фото считается от первой попытки.
+        return page(kept, request.POST.get("photos_kept", "") if kept else ""), None
+    # Дальше любой отказ без побочного эффекта возвращает засчитанные попытки.
+    hits = [("quick-start", ip)]
     if uploads:
         from apps.promotions.quick import save_photos
 
         try:
             promo["images"] = save_photos(uploads)
         except ValidationError as exc:
+            _refund(hits)
             form.add_error("photo", "; ".join(exc.messages))
-            return render(request, "tenants/quick_start.html", _context(request, form))
+            return page(), None
     elif kept:
         promo["images"] = kept
 
     # Лимиты Telegram-регистрации — после проверки фото: неудачная попытка квоту не жжёт.
     tg = _telegram_gate(request, form, cd["email"])
     if tg is False:
+        _refund(hits)
         # Окончательный отказ (лимит/Art. 18) — повтор не поможет, файлы не держим.
         _drop_photos(promo.get("images"))
-        return render(request, "tenants/quick_start.html", _context(request, form))
+        return page(), None
     if tg:
         from apps.platform_bot import signup
 
+        hits += tg["hits"]
         # Метка «создаётся» — до запуска (как в боте): Mini App сразу отвечает `pending`.
         signup.cache.set(signup._pending_key(tg["uid"]), 1, signup.PENDING_TTL)
     try:
@@ -197,15 +263,13 @@ def quick_start(request):
         )
     except IntegrityError:
         # Гонка: адрес заняли между проверкой и сохранением — просим выбрать другой.
+        # Транзакция откатилась, бизнеса нет — попытки возвращаем.
+        _refund(hits)
         _clear_tg_pending(tg)
         form.add_error("subdomain", _("Diese Adresse ist schon vergeben."))
         # Исправимо (другой адрес) — фото уже сохранены, отдаём их обратно в форму.
         signed = request.POST.get("photos_kept", "") if (kept and not uploads) else ""
-        return render(
-            request,
-            "tenants/quick_start.html",
-            _context(request, form, promo.get("images"), signed),
-        )
+        return page(promo.get("images"), signed), None
     except Exception:
         _clear_tg_pending(tg)  # иначе Mini App полчаса показывал бы «wird angelegt»
         raise
@@ -228,7 +292,12 @@ def quick_start(request):
     handoff[tenant.slug] = entry
     request.session[SESSION_KEY] = handoff
     # Литеральный путь: страницы платформы рендерятся и под tenant-urlconf (тесты).
-    return redirect(f"/aktion-starten/{tenant.slug}/")
+    return redirect(f"/aktion-starten/{tenant.slug}/"), {"slug": tenant.slug, "entry": entry}
+
+
+def _refund(hits) -> None:
+    for scope, ident in hits:
+        ratelimit.refund(scope, ident)
 
 
 def _clear_tg_pending(tg) -> None:
@@ -245,8 +314,9 @@ def _mask(email: str) -> str:
 
 def _telegram_gate(request, form, email):
     """T-8.30i: регистрация из Mini App. None — обычная веб-регистрация; dict
-    (uid, lang) — передать Telegram в провижининг; False — отказ (ошибка уже в форме).
-    Лимиты — те же корзины, что у регистрации в чате бота."""
+    (uid, lang, hits) — передать Telegram в провижининг; False — отказ (ошибка уже в
+    форме). Корзины — те же, что у регистрации в чате бота; ``hits`` — засчитанные в
+    этом запросе (вернуть, если бизнес не создан)."""
     import hashlib
 
     from apps.platform_bot import links, signup, web_signup
@@ -264,18 +334,53 @@ def _telegram_gate(request, form, email):
         )
         return False
     verified = links.active_links(uid).filter(via=links.OwnerTelegramLink.VIA_SIGNUP).exists()
-    per_user = signup.LIMIT_SIGNUP if verified else signup.LIMIT_SIGNUP_UNVERIFIED
+    # T-8.30k: аккаунт Mini App подписан Telegram (HMAC), а веб-путь без Telegram лимита
+    # на аккаунт не имеет вовсе — строгая «1 в сутки» тут ничего не защищала. Глобальная
+    # корзина по-прежнему зависит от подтверждения.
     global_scope = "tgplat-signup-global" if verified else "tgplat-signup-global-unverified"
     global_limit = signup.LIMIT_GLOBAL if verified else signup.LIMIT_GLOBAL_UNVERIFIED
     mail_key = hashlib.sha256(email.encode()).hexdigest()
-    if (
-        signup._rate("tgplat-signup", uid, per_user, 86400)
-        or signup._rate("tgplat-signup-mail", mail_key, signup.LIMIT_MAIL, 86400)
-        or signup._rate(global_scope, "all", global_limit, 3600)
-    ):
-        form.add_error(None, _("Zu viele Versuche. Bitte später erneut."))
-        return False
-    return {"uid": uid, "lang": tg.get("lang") or ""}
+    buckets = (
+        (
+            "tgplat-signup",
+            str(uid),
+            signup.LIMIT_SIGNUP,
+            86400,
+            "account",
+            _(
+                "Mit diesem Telegram-Konto wurden heute schon mehrere Geschäfte angelegt. "
+                "Bitte morgen erneut."
+            ),
+        ),
+        (
+            "tgplat-signup-mail",
+            mail_key,
+            signup.LIMIT_MAIL,
+            86400,
+            "mail",
+            _(
+                "Für diese E-Mail-Adresse wurden heute schon mehrere Geschäfte angelegt. "
+                "Bitte morgen erneut oder eine andere Adresse verwenden."
+            ),
+        ),
+        (
+            global_scope,
+            "all",
+            global_limit,
+            3600,
+            "global",
+            _("Zu viele Versuche. Bitte später erneut."),
+        ),
+    )
+    hits = []
+    for scope, ident, limit, window, label, message in buckets:
+        if signup._rate(scope, ident, limit, window):
+            logger.info("quick-start limited: %s", label)
+            _refund(hits)
+            form.add_error(None, message)
+            return False
+        hits.append((scope, ident))
+    return {"uid": uid, "lang": tg.get("lang") or "", "hits": hits}
 
 
 def slug_check(request):

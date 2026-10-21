@@ -27768,3 +27768,15 @@ msgstr "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie s
 #, python-format
 msgid "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
 msgstr "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
+
+msgid "Für diese E-Mail-Adresse wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut oder eine andere Adresse verwenden."
+msgstr ""
+
+msgid "Mit diesem Telegram-Konto wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut."
+msgstr ""
+
+msgid "Wird veröffentlicht…"
+msgstr ""
+
+msgid "Zu viele Versuche aus diesem Netzwerk. Bitte in einer Stunde erneut."
+msgstr ""

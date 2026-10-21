@@ -226,7 +226,7 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
           <span class="block text-xs text-gray-500">{% trans "Erscheint dort, sobald Sie Ihre E-Mail bestätigt haben. Jederzeit änderbar." %}</span>
         </span>
       </label>
-      <button type="submit" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700" data-qs-publish>🚀 {% trans "Veröffentlichen" %}</button>
+      <button type="submit" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700" data-qs-publish><span data-qs-idle>🚀 {% trans "Veröffentlichen" %}</span><span data-qs-busy hidden>⏳ {% trans "Wird veröffentlicht…" %}</span></button>
       <p class="text-xs text-gray-500 text-center">
         {% trans "Mit dem Veröffentlichen akzeptieren Sie unsere AGB und die Datenschutzhinweise." %}
         <a href="/agb/" class="underline">{% trans "AGB" %}</a> · <a href="/datenschutz/" class="underline">{% trans "Datenschutz" %}</a>
@@ -273,6 +273,27 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
     var checked = root.querySelector('input[name="term"]:checked');
     date.classList.toggle("hidden", !(checked && checked.value === "date"));
   }
+  // T-8.30k: фото из Mini App грузятся долго — кнопка показывает ход и не шлёт форму второй раз.
+  document.addEventListener("submit", function (e) {
+    var btn = e.target.querySelector && e.target.querySelector("[data-qs-publish]");
+    if (!btn) return;
+    if (btn.dataset.sent) { e.preventDefault(); return; }
+    btn.dataset.sent = "1";
+    btn.setAttribute("aria-busy", "true");
+    btn.classList.add("opacity-70");
+    btn.querySelector("[data-qs-idle]").hidden = true;
+    btn.querySelector("[data-qs-busy]").hidden = false;
+  });
+  window.addEventListener("pageshow", function (e) {
+    if (!e.persisted) return;  // «назад» из bfcache — кнопка снова живая
+    var btn = document.querySelector("[data-qs-publish]");
+    if (!btn) return;
+    delete btn.dataset.sent;
+    btn.removeAttribute("aria-busy");
+    btn.classList.remove("opacity-70");
+    btn.querySelector("[data-qs-idle]").hidden = false;
+    btn.querySelector("[data-qs-busy]").hidden = true;
+  });
   root.querySelectorAll("[data-qs-next], [data-qs-back]").forEach(function (b) {
     b.classList.remove("hidden");
   });
