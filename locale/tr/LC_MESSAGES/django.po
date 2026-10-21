@@ -27807,8 +27807,6 @@ msgstr "Firma rehberine ekle"
 msgid "Firma ins Verzeichnis übernommen."
 msgstr "Firma rehbere eklendi."
 
-msgid "Mit Telegram verbunden: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
-msgstr "Telegram'a bağlandı: e-postanızı onayladıktan sonra „Mein Laden“ işletmenizi açar."
 
 #, python-format
 msgid "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
@@ -27817,5 +27815,6 @@ msgstr "Tamam! Lütfen şimdi e-postanızı onaylayın (%(mail)s)."
 msgid "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
 msgstr "Ardından „Mein Laden“ı botta yeniden açın. Bu pencereyi kapatabilirsiniz."
 
-msgid "Weiter zur Registrierung"
-msgstr "Kayda devam et"
+#, python-format
+msgid "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
+msgstr "Telegram „%(name)s“ ile bağlandı: e-postanızı onayladıktan sonra „Mein Laden“ işletmenizi açar."

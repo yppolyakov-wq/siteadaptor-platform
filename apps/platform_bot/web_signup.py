@@ -1,27 +1,19 @@
 """T-8.30i: регистрация нового бизнеса из Mini App в том же окне.
 
-Mini App (``unlinked``) получает одноразовую ссылку ``/aktion-starten/tg/<token>/``.
-Токен знает только сервер (ключ — sha256), живёт 10 минут и гасится POST'ом; после
-этого Telegram-пользователь помнится в сессии публичного хоста (2 ч), и быстрая
+Ссылки-токена НЕТ (ревью: пересланная ссылка привязала бы чужой бизнес к Telegram
+отправителя). Метку ставит сама страница Mini App: тот же адрес, свой заголовок
+(``X-TG-App`` — чужой сайт без CORS-preflight его не пошлёт), подписанный ``initData``.
+После этого Telegram-пользователь помнится в сессии публичного хоста 30 минут, и быстрая
 регистрация передаёт его в провижининг — чат станет владельцем ТОЛЬКО после
 подтверждения почты (H-5b). План — docs/t8-30i-miniapp-signup-plan-2026-10-21.md.
 """
 
 from __future__ import annotations
 
-import hashlib
-import secrets
 import time
 
-from django.core.cache import cache
-
-TOKEN_TTL = 600
 SESSION_KEY = "tg_websignup"
-SESSION_TTL = 2 * 3600
-
-
-def _key(raw: str) -> str:
-    return "tgapp:websignup:" + hashlib.sha256(raw.encode()).hexdigest()
+SESSION_TTL = 30 * 60
 
 
 def allowed(uid: int) -> bool:
@@ -34,41 +26,12 @@ def allowed(uid: int) -> bool:
     return count < signup.MAX_BOT_BUSINESSES
 
 
-def issue(uid: int, lang: str = "") -> str:
-    raw = secrets.token_urlsafe(24)
-    cache.set(_key(raw), {"uid": int(uid), "lang": (lang or "")[:8]}, TOKEN_TTL)
-    return raw
-
-
-def key_of(raw: str) -> str:
-    return _key(raw)
-
-
-def peek(raw: str) -> dict | None:
-    if not raw or len(raw) > 100:
-        return None
-    payload = cache.get(_key(raw))
-    return payload if isinstance(payload, dict) else None
-
-
-def take(raw: str) -> dict | None:
-    """Погасить токен (один раз — побеждает тот, кто удалил ключ)."""
-    payload = peek(raw)
-    if payload is None or not cache.delete(_key(raw)):
-        return None
-    return payload
-
-
-def url_for(raw: str) -> str:
-    from apps.tenants.quickstart import domain_base
-
-    return f"https://{domain_base()}/aktion-starten/tg/{raw}/"
-
-
-def remember(request, payload: dict) -> None:
+def remember(request, *, uid: int, lang: str = "", name: str = "") -> None:
+    request.session.cycle_key()  # новая сессия: подсаженный идентификатор не наследуется
     request.session[SESSION_KEY] = {
-        "uid": int(payload["uid"]),
-        "lang": payload.get("lang") or "",
+        "uid": int(uid),
+        "lang": (lang or "")[:8],
+        "name": (name or "")[:64],
         "exp": int(time.time()) + SESSION_TTL,
     }
 

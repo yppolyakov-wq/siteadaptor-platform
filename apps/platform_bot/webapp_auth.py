@@ -95,8 +95,10 @@ def verify(
     if replay and not allow_replay:
         raise InitDataError("replay")
     lang = user.get("language_code")
+    name = user.get("username") or user.get("first_name") or ""
     return {
         "uid": uid,
+        "name": name[:64] if isinstance(name, str) else "",
         "language_code": lang if isinstance(lang, str) else "",
         "start_param": data.get("start_param", ""),
         "digest": digest,

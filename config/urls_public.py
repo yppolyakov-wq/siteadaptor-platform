@@ -157,6 +157,8 @@ urlpatterns = [
     path("tg/app/", platform_bot_miniapp.app_entry, name="tg-app"),
     path("tg/app/auth/", platform_bot_miniapp.app_auth, name="tg-app-auth"),
     path("tg/app/waehlen/", platform_bot_miniapp.app_choose, name="tg-app-choose"),
+    # T-8.30i: «Neues Geschäft anlegen» — метка Telegram в сессии Mini App.
+    path("tg/app/registrieren/", platform_bot_miniapp.app_signup, name="tg-app-signup"),
     path("aktion-starten/", quickstart_views.quick_start, name="quick-start"),
     path("aktion-starten/adresse/", quickstart_views.slug_check, name="quick-start-slug"),
     path(
@@ -164,8 +166,6 @@ urlpatterns = [
         quickstart_views.quick_text_check,
         name="quick-start-text-check",
     ),
-    # T-8.30i: регистрация из Mini App — одноразовая ссылка (до <slug>).
-    path("aktion-starten/tg/<str:token>/", quickstart_views.quick_start_tg, name="quick-start-tg"),
     path("aktion-starten/<slug:slug>/", quickstart_views.quick_waiting, name="quick-start-waiting"),
     # AB5.1: double-opt-in — тенант создаётся только после клика по ссылке из письма.
     path("registrieren/bestaetigen/<str:token>/", signup_confirm, name="business-signup-confirm"),

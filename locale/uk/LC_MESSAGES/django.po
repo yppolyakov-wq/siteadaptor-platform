@@ -27920,8 +27920,6 @@ msgstr "Додати до довідника компаній"
 msgid "Firma ins Verzeichnis übernommen."
 msgstr "Компанію додано до довідника."
 
-msgid "Mit Telegram verbunden: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
-msgstr "Пов'язано з Telegram: після підтвердження e-mail «Mein Laden» відкриє ваш бізнес."
 
 #, python-format
 msgid "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
@@ -27930,5 +27928,6 @@ msgstr "Готово! Підтвердьте, будь ласка, e-mail (%(mai
 msgid "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
 msgstr "Потім знову відкрийте «Mein Laden» у боті. Це вікно можна закрити."
 
-msgid "Weiter zur Registrierung"
-msgstr "Перейти до реєстрації"
+#, python-format
+msgid "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
+msgstr "Пов'язано з Telegram «%(name)s»: після підтвердження e-mail «Mein Laden» відкриє ваш бізнес."

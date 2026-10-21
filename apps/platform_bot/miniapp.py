@@ -147,7 +147,7 @@ def resolve(uid: int, init_lang: str = "", issued: list | None = None, grace: st
     found = _ready_links(uid)
     lang = _lang(uid, init_lang)
     if not found:
-        return _first_run(uid, lang, issued)
+        return _first_run(uid)
     if len(found) == 1:
         return handoff(found[0], uid, lang, issued, grace)
     raw = secrets.token_urlsafe(24)
@@ -166,10 +166,10 @@ def resolve(uid: int, init_lang: str = "", issued: list | None = None, grace: st
     )
 
 
-def _first_run(uid: int, lang: str = "", issued: list | None = None):
+def _first_run(uid: int):
     """T-8.30h: без готового бизнеса — не тупик. Регистрация идёт (почта не подтверждена
     или бизнес ещё создаётся) → `pending`; иначе `unlinked` с ботом и (T-8.30i)
-    одноразовой ссылкой на регистрацию в том же окне — «Neues Geschäft anlegen» /
+    регистрацией в том же окне (`app_signup`) — «Neues Geschäft anlegen» /
     «Ich habe schon ein Geschäft»."""
     from . import config, links, signup, web_signup
 
@@ -189,17 +189,14 @@ def _first_run(uid: int, lang: str = "", issued: list | None = None):
             _("Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."),
             bot=bot,
         )
-    signup_url = ""
-    if web_signup.allowed(uid):
-        raw = web_signup.issue(uid, lang)
-        if issued is not None:
-            issued.append(web_signup.key_of(raw))  # повтор initData гасит прежнюю ссылку
-        signup_url = web_signup.url_for(raw)
+    from apps.tenants.quickstart import domain_base
+
     return _error(
         "unlinked",
         _("Noch kein Geschäft mit diesem Telegram verbunden."),
         bot=bot,
-        signup_url=signup_url,
+        signup=web_signup.allowed(uid),
+        web_url=f"https://{domain_base()}/aktion-starten/",
     )
 
 
@@ -258,6 +255,7 @@ def app_entry(request):
         {
             "auth_url": reverse("tg-app-auth"),
             "choose_url": reverse("tg-app-choose"),
+            "signup_url": reverse("tg-app-signup"),
             "bot_username": config.username(),
         },
     )
@@ -369,3 +367,42 @@ def app_choose(request):
     if link is None:
         return _error("ticket", _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403)
     return _with_locale(ticket.get("lang", ""), lambda: handoff(link, uid, ticket.get("lang", "")))
+
+
+@csrf_exempt
+@require_POST
+def app_signup(request):
+    """T-8.30i: «Neues Geschäft anlegen» — метка Telegram в сессии этого браузера.
+
+    Ссылки нет: запрос шлёт сама страница Mini App (тот же адрес — проверка Origin, свой
+    заголовок — чужой сайт его без CORS не пошлёт), подписью Telegram. Чужой бизнес к
+    своему Telegram так не привязать: метка ложится в сессию ТОГО, кто открыл Mini App.
+    """
+    from . import config, web_signup
+
+    bad = _bad_request(request)
+    if bad is not None:
+        return bad
+    if request.headers.get("X-TG-App") != "1":
+        return _error("origin", "", status=403)
+    if _limited(request):
+        return _error("rate", _("Zu viele Versuche. Bitte gleich noch einmal."), status=429)
+    if _bot_missing():
+        return _error("bot_off", _("Der Bot ist gerade nicht verfügbar."), status=503)
+    try:
+        data = webapp_auth.verify(
+            request.POST.get("init_data", ""),
+            config.token(),
+            now=int(time.time()),
+            allow_replay=True,  # та же initData уже прошла app_auth
+        )
+    except webapp_auth.InitDataError as exc:
+        logger.info("tg mini app signup: init data rejected (%s)", exc.code)
+        return _error(exc.code, _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403)
+    uid = data["uid"]
+    if not web_signup.allowed(uid):
+        return _error("signup_closed", "", status=403)
+    web_signup.remember(request, uid=uid, lang=data["language_code"], name=data.get("name", ""))
+    resp = _json({"next": "/aktion-starten/"})
+    resp["Cache-Control"] = "no-store"
+    return resp

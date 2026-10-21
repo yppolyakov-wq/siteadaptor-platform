@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_POST
 
 from apps.core import city_categories, ratelimit
 from apps.core.archetypes import FOOD_BUSINESS_TYPES
@@ -45,7 +45,7 @@ def _context(request, form):
     return {
         "form": form,
         # T-8.30i: пришли из Mini App — после почты «Mein Laden» откроет этот бизнес.
-        "tg_linked": web_signup.from_session(request) is not None,
+        "tg_linked": web_signup.from_session(request),
         "type_cards": quickstart.type_cards(request),
         "stamp": quickstart.form_stamp(),
         "domain_base": quickstart.domain_base(),
@@ -98,9 +98,6 @@ def quick_start(request):
         return render(request, "tenants/quick_start.html", _context(request, form))
 
     cd = form.cleaned_data
-    tg = _telegram_gate(request, form, cd["email"])
-    if tg is False:
-        return render(request, "tenants/quick_start.html", _context(request, form))
     promo = form.promo_payload()
     uploads = cd.get("photo") or []
     if uploads:
@@ -112,6 +109,11 @@ def quick_start(request):
             form.add_error("photo", "; ".join(exc.messages))
             return render(request, "tenants/quick_start.html", _context(request, form))
 
+    # Лимиты Telegram-регистрации — после проверки фото: неудачная попытка квоту не жжёт.
+    tg = _telegram_gate(request, form, cd["email"])
+    if tg is False:
+        _drop_photos(promo)
+        return render(request, "tenants/quick_start.html", _context(request, form))
     if tg:
         from apps.platform_bot import signup
 
@@ -197,45 +199,17 @@ def _telegram_gate(request, form, email):
         return False
     verified = links.active_links(uid).filter(via=links.OwnerTelegramLink.VIA_SIGNUP).exists()
     per_user = signup.LIMIT_SIGNUP if verified else signup.LIMIT_SIGNUP_UNVERIFIED
+    global_scope = "tgplat-signup-global" if verified else "tgplat-signup-global-unverified"
+    global_limit = signup.LIMIT_GLOBAL if verified else signup.LIMIT_GLOBAL_UNVERIFIED
     mail_key = hashlib.sha256(email.encode()).hexdigest()
-    if signup._rate("tgplat-signup", uid, per_user, 86400) or signup._rate(
-        "tgplat-signup-mail", mail_key, signup.LIMIT_MAIL, 86400
+    if (
+        signup._rate("tgplat-signup", uid, per_user, 86400)
+        or signup._rate("tgplat-signup-mail", mail_key, signup.LIMIT_MAIL, 86400)
+        or signup._rate(global_scope, "all", global_limit, 3600)
     ):
         form.add_error(None, _("Zu viele Versuche. Bitte später erneut."))
         return False
     return {"uid": uid, "lang": tg.get("lang") or ""}
-
-
-@require_http_methods(["GET", "POST"])
-def quick_start_tg(request, token):
-    """T-8.30i: вход в регистрацию из Mini App. GET ничего не тратит (превью ссылки,
-    prefetch) — страница сама отправляет POST; POST гасит токен и помнит Telegram в
-    сессии, затем ведёт на обычную форму."""
-    from django.conf import settings
-    from django.http import Http404
-
-    from apps.platform_bot import web_signup
-
-    if request.method == "POST":
-        if ratelimit.hit("quick-start-tg", ratelimit.client_ip(request), limit=30, window=3600):
-            raise Http404
-        payload = web_signup.take(token)
-        if payload is None:
-            raise Http404
-        web_signup.remember(request, payload)
-        resp = redirect("/aktion-starten/")
-        lang = payload.get("lang") or ""
-        if lang in getattr(settings, "CABINET_LANGUAGES", []) and not request.COOKIES.get(
-            settings.LANGUAGE_COOKIE_NAME
-        ):
-            resp.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang, max_age=60 * 60 * 24 * 365)
-    else:
-        if web_signup.peek(token) is None:
-            raise Http404
-        resp = render(request, "tenants/quick_start_tg.html", {})
-    resp["Cache-Control"] = "no-store"
-    resp["Referrer-Policy"] = "no-referrer"
-    return resp
 
 
 def _drop_photos(promo: dict) -> None:

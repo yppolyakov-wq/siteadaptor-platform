@@ -27,7 +27,7 @@ def test_unlinked_offers_bot_signup_and_web():
     status, body = _auth(uid=990001)
     assert status == 200 and body["error"] == "unlinked" and "next" not in body
     assert body["bot"] == "PlattformBot"
-    assert "/aktion-starten/tg/" in body["signup_url"]
+    assert body["signup"] is True and body["web_url"].endswith("/aktion-starten/")
     assert "/hilfe" not in body["message"]
 
 
@@ -49,7 +49,7 @@ def test_link_to_business_still_provisioning_answers_pending():
 
 def test_page_has_first_run_actions():
     src = TPL.read_text()
-    assert "data-unlinked" in src and "signup_url" in src and "?start=" in src
+    assert "data-unlinked" in src and "data-signup-url" in src and "?start=" in src
     assert "openTelegramLink" in src
     assert "data-pending" in src
 

@@ -1,26 +1,28 @@
 """T-8.30i: «Neues Geschäft anlegen» в Mini App — регистрация в ТОМ ЖЕ окне.
 
-Фидбэк владельца: кнопка закрывала окно и уводила в чат. Теперь `unlinked` несёт
-одноразовую ссылку на быструю регистрацию; метка в сессии публичного хоста передаёт
-Telegram-пользователя в провижининг (чат станет владельцем после подтверждения почты),
-кабинет до почты не открывается. План — docs/t8-30i-miniapp-signup-plan-2026-10-21.md.
+Фидбэк владельца: кнопка закрывала окно и уводила в чат. Ссылки-токена нет (ревью:
+пересланная ссылка привязала бы чужой бизнес к Telegram отправителя) — метку Telegram в
+сессию кладёт запрос самой страницы Mini App с подписью; быстрая регистрация передаёт её в
+провижининг, кабинет до почты не открывается. План — docs/t8-30i-miniapp-signup-plan-2026-10-21.md.
 """
 
+import json
 from importlib import import_module
 from pathlib import Path
 from unittest import mock
+from urllib.parse import urlencode
 
 import pytest
 from django.conf import settings as dj_settings
 from django.contrib.messages.middleware import MessageMiddleware
 from django.core.cache import cache
-from django.http import Http404
 from django.test import RequestFactory
 
-from apps.platform_bot import links, signup, web_signup
+from apps.platform_bot import links, miniapp, signup, web_signup
 from apps.platform_bot.tests.test_t830_miniapp_views import (  # noqa: F401
     UID,
     _auth,
+    _init_data,
     _tenant,
     on,
 )
@@ -33,10 +35,8 @@ TPL = Path(__file__).resolve().parents[3] / "templates" / "platform_bot" / "mini
 
 
 @pytest.fixture(autouse=True)
-def _cache(on):  # noqa: F811
-    web_signup.cache = on
+def _cleanup():
     yield
-    web_signup.cache = cache
     signup.cache.delete(signup._pending_key(UID))
 
 
@@ -46,15 +46,24 @@ def _session(request):
     return request
 
 
-def _token_from(body) -> str:
-    return body["signup_url"].rstrip("/").rsplit("/", 1)[-1]
+def _signup_req(uid=UID, lang="ru", **headers):
+    hdr = {"HTTP_X_TG_APP": "1"}
+    hdr.update(headers)
+    req = RequestFactory().post(
+        "/tg/app/registrieren/",
+        urlencode({"init_data": _init_data(uid=uid, lang=lang)}),
+        content_type="application/x-www-form-urlencoded",
+        **hdr,
+    )
+    return _session(req)
 
 
-def _linked_session(raw):
-    req = _session(RequestFactory().post(f"/aktion-starten/tg/{raw}/"))
-    req.META["REMOTE_ADDR"] = "10.86.0.1"
-    resp = quickstart_views.quick_start_tg(req, raw)
-    return req, resp
+def _linked_session(uid=UID, lang="ru"):
+    req = _signup_req(uid, lang)
+    resp = miniapp.app_signup(req)
+    assert resp.status_code == 200, resp.content
+    assert json.loads(resp.content)["next"] == "/aktion-starten/"
+    return req
 
 
 def _submit(session, ip="10.86.0.2"):
@@ -72,30 +81,16 @@ def _drop(slug="baeckerei-mueller-soehne"):
         t.delete()
 
 
-def test_unlinked_carries_one_time_signup_url_without_uid():
+def test_unlinked_offers_in_app_signup_without_link_token():
     status, body = _auth(uid=990101)
     assert status == 200 and body["error"] == "unlinked"
-    url = body["signup_url"]
-    assert url.startswith("https://") and "/aktion-starten/tg/" in url
-    assert "990101" not in url and "web_url" not in body
-    assert web_signup.peek(_token_from(body))["uid"] == 990101
+    assert body["signup"] is True and body["web_url"].endswith("/aktion-starten/")
+    assert "signup_url" not in body and "990101" not in body["web_url"]
 
 
-def test_replay_kills_previous_signup_token():
-    from apps.platform_bot import miniapp
-    from apps.platform_bot.tests.test_t830_miniapp_views import _init_data, _post
-
-    init = _init_data(uid=990102)
-    first = _post(miniapp.app_auth, {"init_data": init})[1]
-    second = _post(miniapp.app_auth, {"init_data": init})[1]
-    assert web_signup.peek(_token_from(first)) is None
-    assert web_signup.peek(_token_from(second))["uid"] == 990102
-
-
-def test_no_signup_url_when_cap_reached(monkeypatch):
+def test_no_signup_when_cap_reached(monkeypatch):
     monkeypatch.setattr(web_signup, "allowed", lambda uid: False)
-    body = _auth(uid=990103)[1]
-    assert body["error"] == "unlinked" and not body.get("signup_url")
+    assert _auth(uid=990103)[1]["signup"] is False
 
 
 def test_restricted_user_is_not_allowed(monkeypatch):
@@ -105,35 +100,48 @@ def test_restricted_user_is_not_allowed(monkeypatch):
     assert web_signup.allowed(990104) is False
 
 
-def test_get_does_not_consume_post_consumes_once():
-    raw = web_signup.issue(990105, "ru")
-    get = _session(RequestFactory().get(f"/aktion-starten/tg/{raw}/"))
-    resp = quickstart_views.quick_start_tg(get, raw)
-    assert resp.status_code == 200 and b'method="post"' in resp.content
-    assert resp["Cache-Control"] == "no-store" and resp["Referrer-Policy"] == "no-referrer"
-    assert web_signup.peek(raw) is not None
-    req, resp = _linked_session(raw)
-    assert resp.status_code == 302 and resp.url == "/aktion-starten/"
+def test_signup_marks_this_browser_only_with_app_header_and_signature():
+    req = _linked_session(uid=990105)
     assert req.session[web_signup.SESSION_KEY]["uid"] == 990105
-    assert web_signup.peek(raw) is None
-    with pytest.raises(Http404):
-        _linked_session(raw)
-    with pytest.raises(Http404):
-        quickstart_views.quick_start_tg(_session(RequestFactory().get("/")), "nope")
+    assert req.session[web_signup.SESSION_KEY]["name"] == "A"
+    # Чужой сайт: без заголовка Mini App (нужен CORS-preflight) — отказ.
+    no_hdr = _signup_req(990106, HTTP_X_TG_APP="")
+    assert miniapp.app_signup(no_hdr).status_code == 403
+    assert web_signup.SESSION_KEY not in no_hdr.session
+    # Чужой Origin — отказ.
+    cross = _signup_req(990107, HTTP_ORIGIN="https://evil.example")
+    assert miniapp.app_signup(cross).status_code == 403
+    # Без подписи — отказ.
+    bad = _session(
+        RequestFactory().post(
+            "/tg/app/registrieren/",
+            "init_data=x",
+            content_type="application/x-www-form-urlencoded",
+            HTTP_X_TG_APP="1",
+        )
+    )
+    assert miniapp.app_signup(bad).status_code == 403
 
 
-def test_banner_on_form_when_linked():
-    req, _ = _linked_session(web_signup.issue(UID, "de"))
+def test_signup_refused_over_cap(monkeypatch):
+    monkeypatch.setattr(web_signup, "allowed", lambda uid: False)
+    req = _signup_req(990108)
+    assert miniapp.app_signup(req).status_code == 403
+    assert web_signup.SESSION_KEY not in req.session
+
+
+def test_banner_names_the_linked_telegram_account():
+    req = _linked_session()
     get = _session(RequestFactory().get("/aktion-starten/"))
     get.session = req.session
     html = quickstart_views.quick_start(get).content.decode()
-    assert "data-tg-linked" in html
+    assert "data-tg-linked" in html and "„A“" in html
     plain = quickstart_views.quick_start(_session(RequestFactory().get("/aktion-starten/")))
     assert "data-tg-linked" not in plain.content.decode()
 
 
 def test_linked_submit_passes_telegram_and_no_login_token():
-    req, _ = _linked_session(web_signup.issue(UID, "ru"))
+    req = _linked_session(lang="ru")
     try:
         with mock.patch("apps.core.owner_login.issue_token") as issue:
             sub, resp, delay = _submit(req.session)
@@ -162,7 +170,7 @@ def test_unlinked_submit_unchanged():
 
 
 def test_linked_submit_respects_shared_bot_limit(monkeypatch):
-    req, _ = _linked_session(web_signup.issue(UID, "de"))
+    req = _linked_session(lang="de")
     monkeypatch.setattr(signup, "_rate", lambda *a, **k: True)
     try:
         _sub, resp, delay = _submit(req.session)
@@ -173,7 +181,7 @@ def test_linked_submit_respects_shared_bot_limit(monkeypatch):
 
 
 def test_linked_submit_over_cap_falls_back_to_error(monkeypatch):
-    req, _ = _linked_session(web_signup.issue(UID, "de"))
+    req = _linked_session(lang="de")
     monkeypatch.setattr(web_signup, "allowed", lambda uid: False)
     try:
         sub, resp, _ = _submit(req.session)
@@ -185,7 +193,7 @@ def test_linked_submit_over_cap_falls_back_to_error(monkeypatch):
 
 
 def test_waiting_in_telegram_mode_shows_done_without_cabinet():
-    req, _ = _linked_session(web_signup.issue(UID, "de"))
+    req = _linked_session(lang="de")
     try:
         sub, _resp, _ = _submit(req.session)
         tenant = Tenant.objects.get(slug="baeckerei-mueller-soehne")
@@ -202,7 +210,6 @@ def test_waiting_in_telegram_mode_shows_done_without_cabinet():
         assert resp.status_code == 200 and "data-tg-done" in html
         assert "/start/" not in html and "i***@krume.test" in html
     finally:
-        cache.delete("quick_promo:" + str(tenant.pk)) if "tenant" in dir() else None
         _drop()
 
 
@@ -233,4 +240,35 @@ def test_page_opens_signup_in_same_window():
     src = TPL.read_text()
     assert "data-web-signup" not in src
     assert 'toBot("neu")' not in src
-    assert "signup_url" in src
+    assert '"X-TG-App": "1"' in src and 'credentials: "same-origin"' in src
+
+
+def test_failed_photo_does_not_burn_quota(monkeypatch):
+    """Ревью: лимиты Telegram-регистрации — после проверки фото."""
+    from django.core.exceptions import ValidationError
+
+    req = _linked_session(lang="de")
+    calls = []
+    monkeypatch.setattr(signup, "_rate", lambda *a, **k: calls.append(a) or False)
+
+    def boom(_):
+        raise ValidationError("kaputt")
+
+    monkeypatch.setattr("apps.promotions.quick.save_photos", boom)
+    sub = _session(
+        RequestFactory().post(
+            "/aktion-starten/",
+            {**_post_data(stamp=_old_stamp()), "photo": _jpeg()},
+        )
+    )
+    sub.session = req.session
+    sub.META["REMOTE_ADDR"] = "10.86.0.9"
+    with mock.patch("apps.tenants.tasks.provision_quick.delay"):
+        resp = quickstart_views.quick_start(sub)
+    assert resp.status_code == 200 and b"kaputt" in resp.content and calls == []
+
+
+def _jpeg():
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    return SimpleUploadedFile("a.jpg", b"\xff\xd8\xff" + b"0" * 64, content_type="image/jpeg")

@@ -19,7 +19,7 @@
 </style>
 </head>
 <body>
-<main data-miniapp data-auth-url="{{ auth_url }}" data-choose-url="{{ choose_url }}">
+<main data-miniapp data-auth-url="{{ auth_url }}" data-choose-url="{{ choose_url }}" data-signup-url="{{ signup_url }}">
   <h1>{% trans "Mein Laden" %}</h1>
   <p data-state="loading">{% trans "Einen Moment …" %}</p>
   <div data-state="outside" hidden>
@@ -115,10 +115,22 @@ document.addEventListener("DOMContentLoaded", function () {
     var unlinked = root.querySelector("[data-unlinked]");
     unlinked.hidden = data.error !== "unlinked";
     root.querySelector("[data-have-business-help]").hidden = true;
-    // T-8.30i: регистрация — в ЭТОМ окне (одноразовая ссылка сервера, только https).
-    var signupUrl = /^https:\/\//.test(data.signup_url || "") ? data.signup_url : "";
-    root.querySelector("[data-bot-new]").hidden = !signupUrl;
-    root.querySelector("[data-bot-new]").onclick = function () { show("loading"); go(signupUrl); };
+    // T-8.30i: регистрация — в ЭТОМ окне. Метку Telegram ставит запрос самой страницы
+    // (сессия этого браузера); во фрейме Telegram Web куки нет — обычная регистрация.
+    var webUrl = /^https:\/\//.test(data.web_url || "") ? data.web_url : "";
+    root.querySelector("[data-bot-new]").hidden = !data.signup || !webUrl;
+    root.querySelector("[data-bot-new]").onclick = function () {
+      if (framed) { go(webUrl); return; }
+      show("loading");
+      fetch(root.dataset.signupUrl, {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded", "X-TG-App": "1"},
+        body: new URLSearchParams({init_data: tg.initData}).toString(),
+        credentials: "same-origin"
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d.next) { window.location.replace(d.next); } else { handle(d); }
+      }, fail);
+    };
     root.querySelector("[data-have-business]").onclick = function () {
       root.querySelector("[data-have-business-help]").hidden = false;
     };

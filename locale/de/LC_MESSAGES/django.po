@@ -27757,8 +27757,6 @@ msgstr "Ins Firmenverzeichnis übernehmen"
 msgid "Firma ins Verzeichnis übernommen."
 msgstr "Firma ins Verzeichnis übernommen."
 
-msgid "Mit Telegram verbunden: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
-msgstr "Mit Telegram verbunden: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
 
 #, python-format
 msgid "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
@@ -27767,5 +27765,6 @@ msgstr "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
 msgid "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
 msgstr "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
 
-msgid "Weiter zur Registrierung"
-msgstr "Weiter zur Registrierung"
+#, python-format
+msgid "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
+msgstr "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
