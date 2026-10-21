@@ -97,6 +97,7 @@ TG_LITE_VIEWS = frozenset(
         "promotions:redeem",
         "promotions:redeem-detail",
         "promotions:redeem-action",
+        "promotions:voucher-redeem",  # QR ваучера/подарочного сертификата у прилавка
     }
 )
 

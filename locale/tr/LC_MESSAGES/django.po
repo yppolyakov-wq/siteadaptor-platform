@@ -27739,3 +27739,6 @@ msgstr "Kamera açılmıyor mu? Kodu aşağıya yazın."
 
 msgid "Unbekannter QR-Code."
 msgstr "Bilinmeyen QR kodu."
+
+msgid "Weitere %(n)s — bitte nach Aktion filtern."
+msgstr "%(n)s tane daha — lütfen kampanyaya göre filtreleyin."

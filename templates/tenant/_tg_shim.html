@@ -21,7 +21,7 @@
   // T-8.30e: приём событий клиента (нативный сканер QR) — тот же протокол, что у SDK:
   // клиент зовёт window.Telegram.WebView.receiveEvent(type, data). Прежний приёмник
   // сохраняем и зовём (на случай чужого кода).
-  var handlers = {};
+  var handlers = Object.create(null);
   function receive(type, data) {
     (handlers[type] || []).forEach(function (fn) { try { fn(data || {}); } catch (e) {} });
   }

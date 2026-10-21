@@ -123,8 +123,9 @@ def next_step(tenant, counts, products) -> dict:
 
 def open_reservations() -> int:
     from apps.promotions.models import Reservation
+    from apps.promotions.views import open_reservation_statuses
 
-    return Reservation.objects.filter(status__in=("pending", "confirmed")).count()
+    return Reservation.objects.filter(status__in=open_reservation_statuses()).count()
 
 
 def render_home(request):

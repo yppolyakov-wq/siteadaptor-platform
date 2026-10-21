@@ -27689,3 +27689,6 @@ msgstr "Kamera öffnet sich nicht? Code unten eintippen."
 
 msgid "Unbekannter QR-Code."
 msgstr "Unbekannter QR-Code."
+
+msgid "Weitere %(n)s — bitte nach Aktion filtern."
+msgstr "Weitere %(n)s — bitte nach Aktion filtern."

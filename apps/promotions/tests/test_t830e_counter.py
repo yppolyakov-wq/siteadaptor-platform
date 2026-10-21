@@ -113,12 +113,94 @@ def test_fulfill_pending_on_redeem_detail(user):
 
 def test_lite_pending_card_offers_handout_in_one_tap(user):
     """В списке у pending не было «Ausgeben» — продавцу два нажатия (сервис умеет сразу)."""
+    import re
+
     _promo, a, *_rest = _reservations()
     body = views.reservation_list(
-        _req("get", "/promotions/reservations/?status=pending", user, _tenant())
+        _req("get", "/promotions/reservations/?status=offen", user, _tenant())
     ).content.decode()
-    card = body.split(a.reference_code, 1)[1]
-    assert 'value="fulfill"' in card.split("data-lite-res-card", 1)[0]
+    cards = re.findall(r"<article[^>]*data-lite-res-card.*?</article>", body, re.S)
+    card = next(c for c in cards if a.reference_code in c)
+    fulfill = card.split('value="fulfill"', 1)[0]
+    assert f"/promotions/reservations/{a.pk}/action/" in fulfill.rsplit("<form", 1)[1]
+
+
+def test_lite_chips_keep_promotion_filter(user):
+    promo, *_rest = _reservations()
+    body = views.reservation_list(
+        _req("get", f"/promotions/reservations/?promotion={promo.pk}", user, _tenant())
+    ).content.decode()
+    assert f"?status=confirmed&amp;promotion={promo.pk}" in body
+
+
+def test_redeem_home_rejects_garbage_code_without_500(user):
+    resp = views.redeem_home(
+        _req("post", "/promotions/redeem/", user, _tenant(), {"code": "a/b/../x"})
+    )
+    assert resp.status_code == 200
+
+
+def _auto_tenant():
+    t = _tenant()
+    t.auto_redeem_on_scan = True
+    t.save()
+    return t
+
+
+def test_tg_get_link_does_not_auto_redeem(user):
+    """Ревью: ссылка на код в 12-часовой Telegram-сессии не должна гасить по GET."""
+    promo = PromotionFactory(status="active", title={"de": "Brot"}, available_quantity=5)
+    res = services.reserve(promo, name="Anna", email="anna@test.de")
+    code = res.reference_code
+    views.redeem_detail(
+        _req("get", f"/promotions/redeem/{code}/", user, _auto_tenant(), tg=True), code
+    )
+    assert Reservation.objects.get(pk=res.pk).status == "pending"
+
+
+def test_tg_scanner_post_permits_auto_redeem(user):
+    promo = PromotionFactory(status="active", title={"de": "Brot"}, available_quantity=5)
+    res = services.reserve(promo, name="Anna", email="anna@test.de")
+    code = res.reference_code
+    t = _auto_tenant()
+    post = _req("post", "/promotions/redeem/", user, t, {"code": code, "scan": "1"}, tg=True)
+    views.redeem_home(post)
+    get = _req("get", f"/promotions/redeem/{code}/", user, t, tg=True)
+    get.session = post.session
+    views.redeem_detail(get, code)
+    assert Reservation.objects.get(pk=res.pk).status == "fulfilled"
+    # разовый допуск: второй заход по ссылке уже ничего не делает
+    assert "redeem_scan_auto" not in get.session
+
+
+def test_browser_get_still_auto_redeems(user):
+    """Прежнее поведение вне Telegram: камера телефона открывает адрес — и гасит."""
+    promo = PromotionFactory(status="active", title={"de": "Brot"}, available_quantity=5)
+    res = services.reserve(promo, name="Anna", email="anna@test.de")
+    code = res.reference_code
+    views.redeem_detail(_req("get", f"/promotions/redeem/{code}/", user, _auto_tenant()), code)
+    assert Reservation.objects.get(pk=res.pk).status == "fulfilled"
+
+
+def test_tg_voucher_link_does_not_auto_redeem(user):
+    from apps.loyalty.models import Voucher
+
+    v = Voucher.objects.create(code="V-TG0001", label="Kaffee", max_uses=1)
+    views.voucher_redeem(
+        _req("get", "/promotions/vouchers/redeem/?code=V-TG0001", user, _auto_tenant(), tg=True)
+    )
+    v.refresh_from_db()
+    assert v.used_count == 0
+
+
+def test_lite_cancel_is_behind_disclosure(user):
+    _reservations()
+    body = views.reservation_list(
+        _req("get", "/promotions/reservations/?status=offen", user, _tenant())
+    ).content.decode()
+    assert body.count("data-res-cancel") == 2
+    for chunk in body.split("data-res-cancel")[:-1]:
+        assert chunk.rfind("<details") > chunk.rfind("</details>")
 
 
 def test_redeem_tg_branch_and_browser_branch(user):
@@ -136,7 +218,7 @@ def test_scanner_never_navigates_to_raw_qr_value(user):
             _req("get", "/promotions/redeem/", user, _tenant(), tg=tg)
         ).content.decode()
         assert "location.href = val" not in body
-        assert "data-redeem-prefix" in body
+        assert "data-redeem-prefix" in body and "data-scan-form" in body
 
 
 def test_lite_home_counter_tiles(user):

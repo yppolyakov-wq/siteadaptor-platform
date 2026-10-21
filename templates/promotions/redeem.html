@@ -44,7 +44,10 @@
   {% endif %}
 </div>
 
-<div hidden data-redeem-prefix="{% url 'promotions:redeem' %}"></div>
+<div hidden data-redeem-prefix="{% url 'promotions:redeem' %}" data-voucher-prefix="{% url 'promotions:voucher-redeem' %}"></div>
+{% comment %}T-8.30e: результат скана уходит POST-ом (CSRF) — только так разрешено
+автопогашение в Telegram; ссылка на код сама по себе ничего не гасит.{% endcomment %}
+<form method="post" hidden data-scan-form>{% csrf_token %}<input type="hidden" name="code"><input type="hidden" name="scan" value="1"></form>
 <script>
 (function () {
   // T-8.30e: из QR берём ТОЛЬКО код — голый код или путь «…/redeem/<код>/» (хост любой:
@@ -53,22 +56,33 @@
   var prefix = document.querySelector("[data-redeem-prefix]").getAttribute("data-redeem-prefix");
   var esc = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   var pathRe = new RegExp("^" + esc + "([A-Za-z0-9-]{3,32})/?$");
-  var codeRe = /^[A-Z0-9][A-Z0-9-]{2,31}$/;
-  function codeFrom(raw) {
+  var voucherPrefix = document.querySelector("[data-voucher-prefix]").getAttribute("data-voucher-prefix");
+  var codeRe = /^[A-Z0-9][A-Z0-9-]{2,31}$/i;
+  // → {kind: "code"|"voucher", code} или null.
+  function parse(raw) {
     var val = (raw || "").trim();
     if (/^https?:\/\//i.test(val)) {
-      try { var m = pathRe.exec(new URL(val).pathname); return m ? m[1].toUpperCase() : null; }
-      catch (e) { return null; }
+      try {
+        var u = new URL(val);
+        var m = pathRe.exec(u.pathname);
+        if (m) { return {kind: "code", code: m[1].toUpperCase()}; }
+        var vc = u.searchParams.get("code") || "";
+        if (u.pathname === voucherPrefix && codeRe.test(vc)) { return {kind: "voucher", code: vc.toUpperCase()}; }
+      } catch (e) { /* не URL */ }
+      return null;
     }
-    val = val.toUpperCase();
-    return codeRe.test(val) ? val : null;
+    return codeRe.test(val) ? {kind: "code", code: val.toUpperCase()} : null;
   }
-  function go(code) { location.href = prefix + encodeURIComponent(code) + "/"; }
+  function go(r) {
+    if (r.kind === "voucher") { location.href = voucherPrefix + "?code=" + encodeURIComponent(r.code); return; }
+    var f = document.querySelector("[data-scan-form]");
+    f.querySelector("[name=code]").value = r.code;
+    f.submit();
+  }
   function bad() {
     var el = document.getElementById("scan-error");
     if (el) { el.classList.remove("hidden"); }
   }
-  window.saRedeemCode = codeFrom;
 {% if tg_lite %}
   var subscribed = false;
   document.addEventListener("click", function (e) {
@@ -78,9 +92,9 @@
     if (!subscribed) {
       subscribed = true;
       br.on("qr_text_received", function (d) {
-        var code = codeFrom(d && d.data);
+        var r = parse(d && d.data);
         br.post("web_app_close_scan_qr_popup");
-        if (code) { go(code); } else { bad(); }
+        if (r) { go(r); } else { bad(); }
       });
     }
     br.post("web_app_open_scan_qr_popup", {text: "{{ _('Code der Reservierung oder des Coupons')|escapejs }}"});
@@ -116,9 +130,9 @@
     try {
       var codes = await detector.detect(video);
       if (codes && codes.length) {
-        var code = codeFrom(codes[0].rawValue || "");
+        var r = parse(codes[0].rawValue || "");
         stop();
-        if (code) { go(code); } else { bad(); }
+        if (r) { go(r); } else { bad(); }
         return;
       }
     } catch (e) { /* keep scanning */ }

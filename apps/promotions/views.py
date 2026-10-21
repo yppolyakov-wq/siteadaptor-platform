@@ -5,6 +5,7 @@
 """
 
 import logging
+import re
 
 from django.conf import settings as dj_settings
 from django.contrib import messages
@@ -250,7 +251,7 @@ def promotion_list(request):
             "lite": _lite(request),
             # T-8.23c: открытые резервы — продавец видит их прямо на экране акций.
             "open_reservations": (
-                Reservation.objects.filter(status__in=("pending", "confirmed")).count()
+                Reservation.objects.filter(status__in=open_reservation_statuses()).count()
                 if _lite(request)
                 else 0
             ),
@@ -1383,14 +1384,25 @@ def promotion_transition(request, pk):
     return redirect("promotions:promotion-edit", pk=pk)
 
 
+def open_reservation_statuses() -> tuple:
+    """T-8.30e: статусы резерва, ждущие продавца (pending/confirmed + свои active)."""
+    from apps.core import status_registry
+
+    return status_registry.active_statuses_for("reservation")
+
+
+LITE_RESERVATION_LIMIT = 100
+
+
 @login_required
 def reservation_list(request):
     qs = Reservation.objects.select_related("promotion", "customer").all()
     status = request.GET.get("status", "")
     promotion_id = request.GET.get("promotion", "")
     if status == "offen":
-        # T-8.30e: «offen» = ждут продавца (как счётчик «N offen»), ближайший срок первым.
-        qs = qs.filter(status__in=("pending", "confirmed")).order_by("expires_at", "created_at")
+        # T-8.30e: «offen» = ждут продавца (как счётчик «N offen»: встроенные + свои
+        # статусы, держащие товар), ближайший срок первым.
+        qs = qs.filter(status__in=open_reservation_statuses()).order_by("expires_at", "created_at")
     elif status:
         qs = qs.filter(status=status)
     if promotion_id:
@@ -1409,11 +1421,14 @@ def reservation_list(request):
         (code, own.get(code) or labels.get(code, code)) for code in RESERVATION_STATUSES
     ]
     lite = _lite(request)
+    limit = LITE_RESERVATION_LIMIT if lite else 200
     return render(
         request,
         "promotions/reservation_list.html",
         {
-            "reservations": qs[:200],
+            "reservations": qs[:limit],
+            # T-8.30e: на телефоне — честно «ещё N», а не молча обрезанный список.
+            "more": max(qs.count() - limit, 0) if lite else 0,
             "statuses": status_choices,
             "status": status,
             "promotions": Promotion.objects.all(),
@@ -1477,8 +1492,6 @@ def reservation_action(request, pk):
                 # X1: было английское f-сообщение со СКЛЕЙКОЙ кода действия и сырого
                 # статуса — единственная английская фраза среди переведённых соседей.
                 messages.error(request, _reservation_failed(action, res.status))
-    from apps.core import owner_login
-
     # T-8.30e: список с фильтром «offen» после выдачи остаётся тем же списком.
     return redirect(owner_login.local_next(request) or "promotions:reservation-list")
 
@@ -1493,15 +1506,42 @@ def redeem_home(request):
     """Страница погашения: браузерный сканер + ручной ввод кода."""
     if request.method == "POST":
         code = (request.POST.get("code") or "").strip().upper()
-        if code:
+        if _REDEEM_CODE_RE.fullmatch(code):
+            if request.POST.get("scan") == "1":
+                # T-8.30e: автопогашение — только по POST сканера (с CSRF), а не по
+                # любой ссылке на страницу кода (ревью безопасности).
+                request.session[_SCAN_AUTO_KEY] = code
             return redirect("promotions:redeem-detail", code=code)
-        messages.error(request, _("Bitte einen Code eingeben."))
+        if code:
+            messages.error(request, _("Unbekannter QR-Code."))
+        else:
+            messages.error(request, _("Bitte einen Code eingeben."))
     lite = _lite(request)
     return render(
         request,
         "promotions/redeem.html",
         {"lite": lite, "nav": "promotions" if lite else "redeem"},
     )
+
+
+_REDEEM_CODE_RE = re.compile(r"[A-Z0-9][A-Z0-9-]{2,31}")
+_SCAN_AUTO_KEY = "redeem_scan_auto"
+
+
+def _auto_redeem_allowed(request, code: str) -> bool:
+    """Автопогашение при открытии кода (настройка бизнеса).
+
+    T-8.30e: в Telegram-сессии GET-ссылка на код НЕ гасит (её мог подсунуть кто угодно,
+    сессия живёт 12 ч) — только скан из нашего сканера (POST с CSRF, разовый допуск).
+    В обычной сессии прежнее поведение: камера телефона открывает адрес и гасит."""
+    if not getattr(getattr(request, "tenant", None), "auto_redeem_on_scan", False):
+        return False
+    from apps.core import tg_login
+
+    permit = request.session.pop(_SCAN_AUTO_KEY, None) if hasattr(request, "session") else None
+    if tg_login.is_tg_session(request):
+        return permit == code
+    return True
 
 
 def _coupon_for(code):
@@ -1534,10 +1574,11 @@ _COUPON_ERRORS = {
 @login_required
 def redeem_detail(request, code):
     code = code.strip().upper()
+    lite = _lite(request)
     # T-8.3: купон акции гасится тем же экраном, что и резерв.
     coupon = _coupon_for(code) if code.startswith("C-") else None
+    auto = _auto_redeem_allowed(request, code)
     if coupon is not None:
-        auto = getattr(getattr(request, "tenant", None), "auto_redeem_on_scan", False)
         if auto and coupon.is_redeemable:
             _redeem_coupon(request, code)
             coupon.refresh_from_db()
@@ -1547,8 +1588,8 @@ def redeem_detail(request, code):
             {
                 "coupon": coupon,
                 "code": code,
-                "lite_view": _lite(request),
-                "nav": "promotions" if _lite(request) else "redeem",
+                "lite": lite,
+                "nav": "promotions" if lite else "redeem",
             },
         )
     res = (
@@ -1558,7 +1599,6 @@ def redeem_detail(request, code):
     )
     # авто-погашение по скану (если включено у бизнеса): сотрудник открыл QR →
     # бронь сразу выдаётся. Идемпотентно (повторный скан выданной — no-op).
-    auto = getattr(getattr(request, "tenant", None), "auto_redeem_on_scan", False)
     if res is not None and auto and res.status in ("pending", "confirmed"):
         try:
             if res.status == "pending":
@@ -1574,8 +1614,8 @@ def redeem_detail(request, code):
         {
             "reservation": res,
             "code": code,
-            "lite_view": _lite(request),
-            "nav": "promotions" if _lite(request) else "redeem",
+            "lite": lite,
+            "nav": "promotions" if lite else "redeem",
         },
     )
 
@@ -1676,8 +1716,8 @@ def voucher_redeem(request):
 
     code = (request.GET.get("code") or "").strip().upper()
     voucher = Voucher.objects.filter(code=code).first() if code else None
-    # авто-погашение по скану, если включено у бизнеса
-    auto = getattr(getattr(request, "tenant", None), "auto_redeem_on_scan", False)
+    # авто-погашение по скану, если включено у бизнеса (в Telegram — только кнопкой)
+    auto = _auto_redeem_allowed(request, code)
     if voucher is not None and auto and voucher.is_redeemable:
         try:
             voucher = services.redeem_voucher(code)

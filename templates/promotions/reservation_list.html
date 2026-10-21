@@ -19,7 +19,7 @@
 <div class="max-w-lg mx-auto space-y-3">
   <nav class="flex flex-wrap gap-2 text-sm" data-lite-res-chips>
     {% for code, label in lite_chips %}
-      <a href="?status={{ code }}" class="px-3 py-1.5 rounded-full {% if status == code %}bg-indigo-600 text-white{% else %}bg-white shadow-sm text-gray-700{% endif %}">{{ label }}</a>
+      <a href="?status={{ code }}{% if selected_promotion %}&amp;promotion={{ selected_promotion }}{% endif %}" class="px-3 py-1.5 rounded-full {% if status == code %}bg-indigo-600 text-white{% else %}bg-white shadow-sm text-gray-700{% endif %}">{{ label }}</a>
     {% endfor %}
   </nav>
   <a href="{% url 'promotions:redeem' %}" class="flex items-center justify-center gap-2 h-12 rounded-2xl bg-white shadow-sm text-sm font-semibold text-gray-800">📷 {% trans "Code scannen" %}</a>
@@ -40,16 +40,22 @@
             {% csrf_token %}<input type="hidden" name="action" value="fulfill"><input type="hidden" name="next" value="{{ request.get_full_path }}">
             <button class="w-full min-h-[44px] rounded-xl bg-indigo-600 text-white text-sm font-semibold">{% trans "Ausgeben" %}</button>
           </form>
-          <form method="post" action="{% url 'promotions:reservation-action' r.pk %}">
-            {% csrf_token %}<input type="hidden" name="action" value="cancel"><input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <button class="min-h-[44px] px-4 rounded-xl bg-gray-100 text-gray-600 text-sm">{% trans "Stornieren" %}</button>
-          </form>
         </div>
+        {% comment %}Отмена необратима (терминальный статус) — за раскрытием, чтобы не
+        нажать мимо «Ausgeben» на телефоне (ревью).{% endcomment %}
+        <details class="text-sm">
+          <summary class="cursor-pointer text-gray-500 py-1">{% trans "Mehr" %}</summary>
+          <form method="post" action="{% url 'promotions:reservation-action' r.pk %}" class="pt-1">
+            {% csrf_token %}<input type="hidden" name="action" value="cancel"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="min-h-[44px] w-full rounded-xl border border-red-200 text-red-700 text-sm" data-res-cancel>{% trans "Stornieren" %}</button>
+          </form>
+        </details>
       {% endif %}
     </article>
   {% empty %}
     <p class="text-center text-sm text-gray-500 py-8">{% trans "No reservations." %}</p>
   {% endfor %}
+  {% if more %}<p class="text-center text-xs text-gray-500" data-res-more>{% blocktrans with n=more %}Weitere {{ n }} — bitte nach Aktion filtern.{% endblocktrans %}</p>{% endif %}
 </div>
 {% else %}
 <div class="bg-white rounded-2xl shadow-sm p-4">

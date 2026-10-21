@@ -80,9 +80,16 @@
     try {
       var codes = await detector.detect(video);
       if (codes && codes.length) {
-        var val = codes[0].rawValue || ""; stop();
-        if (/^https?:\/\//.test(val)) { location.href = val; }
-        else { location.href = "{% url 'promotions:voucher-redeem' %}?code=" + encodeURIComponent(val); }
+        var val = (codes[0].rawValue || "").trim(); stop();
+        // T-8.30e: из QR — только код ваучера (свой путь ?code= или голый код); на
+        // чужие адреса не переходим (раньше уходили на любой адрес из QR).
+        var base = "{% url 'promotions:voucher-redeem' %}";
+        if (/^https?:\/\//i.test(val)) {
+          try { var u = new URL(val); val = u.pathname === base ? (u.searchParams.get("code") || "") : ""; }
+          catch (e) { val = ""; }
+        }
+        if (/^[A-Za-z0-9][A-Za-z0-9-]{2,31}$/.test(val)) { location.href = base + "?code=" + encodeURIComponent(val.toUpperCase()); }
+        else { msg.textContent = "{% trans 'Unbekannter QR-Code.' %}"; }
         return;
       }
     } catch (e) {}

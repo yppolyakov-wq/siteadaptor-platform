@@ -27852,3 +27852,6 @@ msgstr "Камера не відкривається? Введіть код ни
 
 msgid "Unbekannter QR-Code."
 msgstr "Невідомий QR-код."
+
+msgid "Weitere %(n)s — bitte nach Aktion filtern."
+msgstr "Ще %(n)s — відфільтруйте за акцією."
