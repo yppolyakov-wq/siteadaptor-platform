@@ -27780,3 +27780,36 @@ msgstr ""
 
 msgid "Zu viele Versuche aus diesem Netzwerk. Bitte in einer Stunde erneut."
 msgstr ""
+
+msgid "Anmeldung über Telegram fehlgeschlagen."
+msgstr ""
+
+msgid "Der Link öffnet sich im Browser. In Telegram melden Sie sich schneller mit „Mit Telegram anmelden“ an."
+msgstr ""
+
+msgid "Kamera konnte nicht gestartet werden. Bitte den Code oben eintippen."
+msgstr ""
+
+msgid "Kamera öffnet sich nicht? Code oben eintippen."
+msgstr ""
+
+msgid "Kamerazugriff verweigert. Bitte in den Einstellungen erlauben oder den Code oben eintippen."
+msgstr ""
+
+msgid "Keine E-Mail? Bitte auch den Spam-Ordner prüfen."
+msgstr ""
+
+msgid "Keine Kamera verfügbar. Bitte den Code oben eintippen."
+msgstr ""
+
+msgid "Mit Telegram anmelden"
+msgstr ""
+
+msgid "Oder mit E-Mail:"
+msgstr ""
+
+msgid "Telegram-Scanner öffnen"
+msgstr ""
+
+msgid "Zu viele Anmeldeversuche. Bitte in ein paar Minuten erneut."
+msgstr ""

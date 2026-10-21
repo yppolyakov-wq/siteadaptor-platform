@@ -27963,3 +27963,36 @@ msgstr "Публикуется…"
 
 msgid "Zu viele Versuche aus diesem Netzwerk. Bitte in einer Stunde erneut."
 msgstr "Слишком много попыток из этой сети. Попробуйте через час."
+
+msgid "Anmeldung über Telegram fehlgeschlagen."
+msgstr "Не удалось войти через Telegram."
+
+msgid "Der Link öffnet sich im Browser. In Telegram melden Sie sich schneller mit „Mit Telegram anmelden“ an."
+msgstr "Ссылка откроется в браузере. В Telegram быстрее войти кнопкой «Войти через Telegram»."
+
+msgid "Kamera konnte nicht gestartet werden. Bitte den Code oben eintippen."
+msgstr "Не удалось включить камеру. Введите код выше."
+
+msgid "Kamera öffnet sich nicht? Code oben eintippen."
+msgstr "Камера не открывается? Введите код выше."
+
+msgid "Kamerazugriff verweigert. Bitte in den Einstellungen erlauben oder den Code oben eintippen."
+msgstr "Доступ к камере запрещён. Разрешите его в настройках или введите код выше."
+
+msgid "Keine E-Mail? Bitte auch den Spam-Ordner prüfen."
+msgstr "Письма нет? Проверьте также папку «Спам»."
+
+msgid "Keine Kamera verfügbar. Bitte den Code oben eintippen."
+msgstr "Камера недоступна. Введите код выше."
+
+msgid "Mit Telegram anmelden"
+msgstr "Войти через Telegram"
+
+msgid "Oder mit E-Mail:"
+msgstr "Или по e-mail:"
+
+msgid "Telegram-Scanner öffnen"
+msgstr "Открыть сканер Telegram"
+
+msgid "Zu viele Anmeldeversuche. Bitte in ein paar Minuten erneut."
+msgstr "Слишком много попыток входа. Попробуйте через несколько минут."

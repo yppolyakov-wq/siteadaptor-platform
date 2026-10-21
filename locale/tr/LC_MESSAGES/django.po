@@ -27830,3 +27830,36 @@ msgstr "Yayınlanıyor…"
 
 msgid "Zu viele Versuche aus diesem Netzwerk. Bitte in einer Stunde erneut."
 msgstr "Bu ağdan çok fazla deneme yapıldı. Lütfen bir saat sonra tekrar deneyin."
+
+msgid "Anmeldung über Telegram fehlgeschlagen."
+msgstr "Telegram ile giriş başarısız oldu."
+
+msgid "Der Link öffnet sich im Browser. In Telegram melden Sie sich schneller mit „Mit Telegram anmelden“ an."
+msgstr "Bağlantı tarayıcıda açılır. Telegram'da „Telegram ile giriş yap“ ile daha hızlı giriş yaparsınız."
+
+msgid "Kamera konnte nicht gestartet werden. Bitte den Code oben eintippen."
+msgstr "Kamera başlatılamadı. Lütfen yukarıdaki kodu yazın."
+
+msgid "Kamera öffnet sich nicht? Code oben eintippen."
+msgstr "Kamera açılmıyor mu? Yukarıdaki kodu yazın."
+
+msgid "Kamerazugriff verweigert. Bitte in den Einstellungen erlauben oder den Code oben eintippen."
+msgstr "Kamera erişimi reddedildi. Lütfen ayarlardan izin verin veya yukarıdaki kodu yazın."
+
+msgid "Keine E-Mail? Bitte auch den Spam-Ordner prüfen."
+msgstr "E-posta gelmedi mi? Lütfen spam klasörünü de kontrol edin."
+
+msgid "Keine Kamera verfügbar. Bitte den Code oben eintippen."
+msgstr "Kamera kullanılamıyor. Lütfen yukarıdaki kodu yazın."
+
+msgid "Mit Telegram anmelden"
+msgstr "Telegram ile giriş yap"
+
+msgid "Oder mit E-Mail:"
+msgstr "Veya e-posta ile:"
+
+msgid "Telegram-Scanner öffnen"
+msgstr "Telegram tarayıcısını aç"
+
+msgid "Zu viele Anmeldeversuche. Bitte in ein paar Minuten erneut."
+msgstr "Çok fazla giriş denemesi. Lütfen birkaç dakika sonra tekrar deneyin."

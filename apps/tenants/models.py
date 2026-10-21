@@ -455,6 +455,7 @@ class Tenant(TenantMixin):
             "lit. b DSGVO. Die Daten werden nicht an Dritte weitergegeben und nach "
             "Ablauf der gesetzlichen Fristen gelöscht bzw. anonymisiert.\n\n"
             f"{self._privacy_ai_paragraph()}"
+            f"{self._privacy_telegram_paragraph()}"
             "Sie haben das Recht auf Auskunft, Berichtigung, Löschung und "
             "Widerspruch. Wenden Sie sich dazu an: "
             f"{contact}.\n\n"
@@ -476,6 +477,29 @@ class Tenant(TenantMixin):
             "zu Ihrer Bestellung oder Anfrage und zu unserem Angebot an "
             "Auftragsverarbeiter mit Servern in der EU übermittelt (Art. 28 DSGVO). "
             "Jede Antwort wird von unseren Mitarbeitenden geprüft und selbst versendet.\n\n"
+        )
+
+    def _privacy_telegram_paragraph(self) -> str:
+        """T-8.30l: абзац о входе в Kundenkonto через Telegram — только когда он
+        возможен (модуль «Kundenkonto» включён И в схеме есть активный бот магазина).
+        Иначе пусто, текст прежний байт-в-байт. Ошибка чтения — тоже пусто."""
+        if not self.is_module_active("customer_account"):
+            return ""
+        try:
+            from apps.telegram.notify import active_bot
+
+            if active_bot() is None:
+                return ""
+        except Exception:  # noqa: BLE001 — не та схема/нет таблицы: абзац не нужен
+            return ""
+        return (
+            "In unserer Telegram-Mini-App können Sie sich mit Telegram in Ihrem "
+            "Kundenkonto anmelden. Dabei erhalten wir von Telegram Ihre numerische "
+            "Telegram-ID und Ihren Vornamen; wir speichern sie, um Ihr Kundenkonto "
+            "zuzuordnen (Art. 6 Abs. 1 lit. b DSGVO). Telegram (Telegram FZ-LLC / "
+            "Telegram Messenger Inc.) verarbeitet Daten auch außerhalb der EU in "
+            "eigener Verantwortung (telegram.org/privacy). Export und Löschung Ihrer "
+            "Daten finden Sie im Kundenkonto unter „Profil“.\n\n"
         )
 
     def withdrawal_text(self) -> str:

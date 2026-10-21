@@ -208,6 +208,13 @@ def test_redeem_tg_branch_and_browser_branch(user):
     assert "data-tg-scan" in tg and 'name="code"' in tg
     plain = views.redeem_home(_req("get", "/promotions/redeem/", user, t)).content.decode()
     assert "data-tg-scan" not in plain and "scan-toggle" in plain
+    # T-8.30l: окно сканера Telegram открывается не во всех клиентах — сканер на
+    # странице есть и в Telegram; без BarcodeDetector (iOS) читает jsQR (лениво).
+    assert "scan-toggle" in tg
+    for body in (tg, plain):
+        assert "vendor/jsqr/jsQR.min.js" in body
+        assert 'data-jsqr-src="' in body  # грузится по нажатию, не тегом <script src>
+        assert "<script src=" not in body.split("vendor/jsqr/jsQR.min.js")[0][-60:]
 
 
 def test_scanner_never_navigates_to_raw_qr_value(user):

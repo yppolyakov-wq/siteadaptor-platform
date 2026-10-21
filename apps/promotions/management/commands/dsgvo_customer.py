@@ -23,14 +23,31 @@ from apps.promotions.models import Customer, Reservation, WaitlistEntry
 from apps.promotions.tasks import _ANONYMIZED_NAME
 
 
-def _export_payload(email: str) -> dict:
-    customers = list(Customer.objects.filter(email__iexact=email))
+def _customers(email: str, customer=None) -> list:
+    """Клиенты по e-mail + (T-8.30l) клиент из сессии ЛК — у входа через Telegram
+    e-mail может не быть, права Art. 15/17 у него те же."""
+    found = list(Customer.objects.filter(email__iexact=email)) if email else []
+    if customer is not None and all(c.pk != customer.pk for c in found):
+        found.append(customer)
+    return found
+
+
+def _export_payload(email: str, customer=None) -> dict:
+    customers = _customers(email, customer)
     reservations = Reservation.objects.filter(customer__in=customers).select_related("promotion")
-    waitlist = WaitlistEntry.objects.filter(email__iexact=email).select_related("promotion")
+    waitlist = (
+        WaitlistEntry.objects.filter(email__iexact=email).select_related("promotion")
+        if email
+        else WaitlistEntry.objects.none()
+    )
 
     from apps.notifications.models import Notification
 
-    notifications = Notification.objects.filter(recipient__iexact=email)
+    notifications = (
+        Notification.objects.filter(recipient__iexact=email)
+        if email
+        else Notification.objects.none()
+    )
 
     return {
         "email": email,
@@ -45,6 +62,7 @@ def _export_payload(email: str) -> dict:
                 "created_source": c.created_source,
                 "unsubscribed": c.unsubscribed,
                 "created_at": c.created_at.isoformat(),
+                "telegram_chat_id": getattr(getattr(c, "telegram_link", None), "chat_id", ""),
                 "loyalty_cards": [
                     {
                         "program": str(card.program),
@@ -87,10 +105,10 @@ def _export_payload(email: str) -> dict:
     }
 
 
-def _erase(email: str) -> dict:
+def _erase(email: str, customer=None) -> dict:
     from apps.notifications.models import Notification
 
-    customers = list(Customer.objects.filter(email__iexact=email))
+    customers = _customers(email, customer)
 
     active = Reservation.objects.filter(
         customer__in=customers, status__in=["pending", "confirmed"]
@@ -124,14 +142,25 @@ def _erase(email: str) -> dict:
                     "updated_at",
                 ]
             )
-        waitlist, _ = WaitlistEntry.objects.filter(email__iexact=email).delete()
-        recipients = Notification.objects.filter(recipient__iexact=email).update(recipient="")
+        from apps.telegram.models import TelegramLink
+
+        links = TelegramLink.objects.filter(customer__in=customers)
+        chats = [c for c in links.values_list("chat_id", flat=True) if c]
+        tg_links, _ = links.delete()
+        waitlist = 0
+        recipients = 0
+        if email:
+            waitlist, _ = WaitlistEntry.objects.filter(email__iexact=email).delete()
+            recipients = Notification.objects.filter(recipient__iexact=email).update(recipient="")
+        if chats:
+            recipients += Notification.objects.filter(recipient__in=chats).update(recipient="")
 
     return {
         "customers_anonymized": len(customers),
         "reservation_notes_cleared": notes,
         "crm_notes_deleted": crm_notes,
         "waitlist_deleted": waitlist,
+        "telegram_links_deleted": tg_links,
         "notification_recipients_cleared": recipients,
     }
 

@@ -20,6 +20,11 @@ from .tasks import send_customer_magic_link
 
 IP_RL_LIMIT = 5
 IP_RL_WINDOW = 600
+# T-8.30l: вход через Telegram — попыток с одного адреса за 10 минут.
+TG_RL_LIMIT = 10
+TG_RL_WINDOW = 600
+# Окно Mini App часто открыто дольше 5 минут до нажатия «Mit Telegram anmelden».
+TG_MAX_AGE = 3600
 
 
 class LoginForm(forms.Form):
@@ -58,6 +63,42 @@ def login_view(request):
         # ответ одинаков при любом исходе (анти-энумерация / тихий rate-limit)
         return render(request, "konto/check_inbox.html", {})
     return render(request, "konto/login.html", {"form": LoginForm()})
+
+
+@require_POST
+def telegram_login(request):
+    """T-8.30l: вход в ЛК по подписанному initData бота ЭТОГО магазина.
+
+    Подписи чужих ботов не принимаем: владелец другого бота знает свой токен и мог бы
+    подписать initData с любым uid. CSRF — штатный (обычная форма на странице входа).
+    """
+    from django.http import HttpResponse
+
+    from apps.platform_bot import webapp_auth
+    from apps.telegram.notify import active_bot
+
+    _require_account_active(request)
+    bot = active_bot()
+    if bot is None:
+        raise Http404
+    ip = ratelimit.client_ip(request)
+    if ratelimit.hit("acct_tg_ip", ip, limit=TG_RL_LIMIT, window=TG_RL_WINDOW):
+        return HttpResponse(
+            _("Zu viele Anmeldeversuche. Bitte in ein paar Minuten erneut."), status=429
+        )
+    try:
+        data = webapp_auth.verify(
+            request.POST.get("init_data", ""),
+            bot.token,
+            now=int(timezone.now().timestamp()),
+            max_age=TG_MAX_AGE,
+            allow_replay=True,  # повтор = то же окно; initData ходит только в теле POST
+        )
+    except webapp_auth.InitDataError:
+        return HttpResponse(_("Anmeldung über Telegram fehlgeschlagen."), status=403)
+    request.session.cycle_key()  # без фиксации сессии
+    auth.login_telegram(request, uid=data["uid"], name=data.get("first_name") or "")
+    return redirect("account-home")
 
 
 def login_verify(request):
@@ -141,7 +182,7 @@ def export_data(request):
     """CA3: экспорт данных клиента (DSGVO Art. 15/20) — JSON-загрузка."""
     _require_account_active(request)
     customer = auth.current_customer(request)
-    if customer is None or not customer.email:
+    if customer is None:
         return redirect("account-login")
     import json
 
@@ -149,7 +190,7 @@ def export_data(request):
 
     from apps.promotions.management.commands.dsgvo_customer import _export_payload
 
-    payload = _export_payload(customer.email)
+    payload = _export_payload(customer.email, customer=customer)
     resp = HttpResponse(
         json.dumps(payload, ensure_ascii=False, indent=2), content_type="application/json"
     )
@@ -200,14 +241,14 @@ def delete_account(request):
     """CA3: удаление/анонимизация данных (DSGVO Art. 17) → выход."""
     _require_account_active(request)
     customer = auth.current_customer(request)
-    if customer is None or not customer.email:
+    if customer is None:
         return redirect("account-login")
     from django.core.management.base import CommandError
 
     from apps.promotions.management.commands.dsgvo_customer import _erase
 
     try:
-        _erase(customer.email)
+        _erase(customer.email, customer=customer)
     except CommandError as exc:
         messages.error(request, str(exc))
         return redirect("account-profile")

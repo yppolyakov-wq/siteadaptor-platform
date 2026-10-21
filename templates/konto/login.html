@@ -6,6 +6,14 @@
   <h1 class="text-2xl font-bold mb-2">{% trans "My account" %}</h1>
   <p class="text-gray-600 mb-6">{% trans "Enter your e-mail — we'll send you a login link. No password needed." %}</p>
   {% if messages %}{% for m in messages %}<div class="mb-3 rounded-lg px-4 py-2 text-sm bg-green-50 text-green-800">{{ m }}</div>{% endfor %}{% endif %}
+  {% comment %}T-8.30l: в Telegram (Mini App магазина) — вход в одно нажатие. Форма видна
+только при initData (её ставит скрипт ниже); ссылка из письма открылась бы в браузере.{% endcomment %}
+  <form method="post" action="{% url 'account-telegram-login' %}" class="mb-4" data-tg-login hidden>
+    {% csrf_token %}
+    <input type="hidden" name="init_data" value="">
+    <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">✈️ {% trans "Mit Telegram anmelden" %}</button>
+    <p class="text-xs text-gray-500 mt-2 text-center">{% trans "Oder mit E-Mail:" %}</p>
+  </form>
   <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
     {% csrf_token %}
     <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
@@ -14,4 +22,13 @@
     <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Send login link" %}</button>
   </form>
 </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var tg = window.Telegram && window.Telegram.WebApp;
+    var form = document.querySelector("[data-tg-login]");
+    if (!form || !tg || !tg.initData) return;
+    form.querySelector("[name=init_data]").value = tg.initData;
+    form.hidden = false;
+  });
+</script>
 {% endblock %}

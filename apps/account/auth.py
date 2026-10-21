@@ -69,6 +69,38 @@ def login(request, email: str) -> Customer:
     return customer
 
 
+def login_telegram(request, *, uid: int, name: str = "") -> Customer:
+    """T-8.30l: вход по проверенной личности Telegram.
+
+    Связь из /start (TelegramLink) уже подтвердила этот чат → её клиент. Иначе —
+    новый клиент только с именем (минимум данных: без username, фото и языка) и
+    связь с этим чатом (личный chat_id = id пользователя Telegram).
+    """
+    import secrets as _secrets
+
+    from apps.telegram.models import TelegramLink
+
+    chat_id = str(int(uid))
+    link = (
+        TelegramLink.objects.filter(chat_id=chat_id)
+        .select_related("customer")
+        .order_by("created_at")
+        .first()
+    )
+    if link is not None:
+        customer = link.customer
+    else:
+        customer = Customer.objects.create(
+            name=(name or "")[:200], email="", created_source=Customer.SOURCE_MANUAL
+        )
+        TelegramLink.objects.create(
+            customer=customer, link_token=_secrets.token_urlsafe(16), chat_id=chat_id
+        )
+    request.session[SESSION_KEY] = str(customer.pk)
+    request.session.set_expiry(SESSION_AGE)
+    return customer
+
+
 def logout(request) -> None:
     request.session.pop(SESSION_KEY, None)
 

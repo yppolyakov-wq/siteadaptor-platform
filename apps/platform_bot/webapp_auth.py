@@ -96,9 +96,12 @@ def verify(
         raise InitDataError("replay")
     lang = user.get("language_code")
     name = user.get("username") or user.get("first_name") or ""
+    first = user.get("first_name")
     return {
         "uid": uid,
         "name": name[:64] if isinstance(name, str) else "",
+        # T-8.30l: клиенту магазина храним только имя (без username) — минимум данных.
+        "first_name": first[:64] if isinstance(first, str) else "",
         "language_code": lang if isinstance(lang, str) else "",
         "start_param": data.get("start_param", ""),
         "digest": digest,
