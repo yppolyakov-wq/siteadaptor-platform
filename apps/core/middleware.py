@@ -320,7 +320,7 @@ class TelegramLiteScopeMiddleware:
 
         if not Membership.objects.filter(user_id=user.pk, role=Membership.ROLE_OWNER).exists():
             return "beendet"
-        if not tg_login.telegram_allowed(uid, tenant):
+        if not tg_login.telegram_allowed(uid, tenant, user.pk):
             return "beendet"
         return ""
 

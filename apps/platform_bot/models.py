@@ -25,6 +25,10 @@ class OwnerTelegramLink(TimestampedModel):
     selected_at = models.DateTimeField(null=True, blank=True)
     # Пользователь заблокировал бот (my_chat_member) — доставка через общий бот прекращается.
     blocked_at = models.DateTimeField(null=True, blank=True)
+    # T-8.30f: пользователь кабинета, за которым закреплена связь (pk в СХЕМЕ бизнеса —
+    # FK невозможен: связь в public). Источник правды вместо зеркала site_config.
+    # NULL — не известен (легаси/недопровиженный бизнес).
+    user_pk = models.PositiveBigIntegerField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Telegram-Verknüpfung"

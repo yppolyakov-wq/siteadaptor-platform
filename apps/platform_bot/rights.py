@@ -140,6 +140,8 @@ def export_data(uid) -> dict:
                 "connected_at": _iso(link.created_at),
                 "selected_at": _iso(link.selected_at),
                 "blocked_at": _iso(link.blocked_at),
+                # T-8.30f: за каким пользователем кабинета закреплена связь
+                "cabinet_user_id": link.user_pk,
             }
             for link in rows.order_by("created_at")[:50]
         ],

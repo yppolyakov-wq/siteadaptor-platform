@@ -67,6 +67,7 @@ def bind(
                 "via": via,
                 "selected_at": timezone.now(),
                 "blocked_at": None,
+                "user_pk": user_pk,  # T-8.30f: владелец — в самой связи
             },
         )
         # Вызывающему — свежий site_config (сохранять его объект без update_fields нельзя).
@@ -205,14 +206,28 @@ def owner_route(tenant) -> tuple[str, str]:
     return (OWNER_BOT_TENANT, chat)
 
 
+def link_user_pk(tenant):
+    """T-8.30f: пользователь кабинета активной связи бизнеса (None — не известен)."""
+    return (
+        OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True)
+        .values_list("user_pk", flat=True)
+        .first()
+    )
+
+
 def still_owner(tenant) -> bool:
     """Выпустивший ссылку пользователь — всё ещё активный владелец (читается в схеме бизнеса).
-    Связь без пользователя кабинета (регистрация через бот, H-5) — по таблице связей."""
+    Связь без пользователя кабинета (регистрация через бот, H-5) — по таблице связей.
+
+    T-8.30f: пользователь берётся из самой связи; зеркало site_config — запасной путь для
+    легаси-связей без `user_pk` (убрать через релиз, roadmap §Отложено)."""
     from apps.core.models import Membership
 
-    cfg = getattr(tenant, "site_config", None)
-    node = cfg.get("notify") if isinstance(cfg, dict) else None
-    user_pk = node.get("owner_user_pk") if isinstance(node, dict) else None
+    user_pk = link_user_pk(tenant)
+    if not user_pk:
+        cfg = getattr(tenant, "site_config", None)
+        node = cfg.get("notify") if isinstance(cfg, dict) else None
+        user_pk = node.get("owner_user_pk") if isinstance(node, dict) else None
     if not user_pk:
         return True
     from django_tenants.utils import schema_context

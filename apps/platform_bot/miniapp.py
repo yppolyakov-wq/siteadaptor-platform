@@ -65,19 +65,17 @@ def _error(code: str, message: str, status: int = 200, **extra):
 
 
 def _owner_pk(tenant, link=None):
-    """Владелец в схеме бизнеса: метка ``owner_user_pk`` (только если он ещё владелец).
-    Без метки — единственный активный владелец, и только для связи из регистрации в боте
-    (H-5: владельца создал сам бот). Связь из кабинета без метки = метку стёрли — не
-    угадываем (иначе чат бывшего владельца вошёл бы под новым)."""
+    """Владелец в схеме бизнеса — пользователь, закреплённый в самой связи (T-8.30f), и
+    только пока он ещё владелец. Без него — единственный активный владелец, и только для
+    связи из регистрации в боте (H-5: владельца создал сам бот). Связь из кабинета без
+    пользователя — не угадываем (иначе чат бывшего владельца вошёл бы под новым)."""
     from apps.core import tg_login
     from apps.core.models import Membership
 
-    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
-    node = cfg.get("notify") if isinstance(cfg.get("notify"), dict) else {}
-    pk = node.get("owner_user_pk")
+    pk = getattr(link, "user_pk", None)
     if pk:
         return pk if tg_login.owner_user(pk) is not None else None
-    if link is not None and link.via != link.VIA_SIGNUP:
+    if link is None or link.via != link.VIA_SIGNUP:
         return None
     owners = list(
         Membership.objects.filter(role=Membership.ROLE_OWNER, user__is_active=True).values_list(

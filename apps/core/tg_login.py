@@ -142,11 +142,25 @@ def owner_user(user_pk):
     return get_user_model().objects.filter(pk=user_pk, is_active=True).first()
 
 
-def telegram_allowed(uid, tenant) -> bool:
-    """Связь с общим ботом жива и обработка не ограничена (Art. 18)."""
+def telegram_allowed(uid, tenant, user_pk=None) -> bool:
+    """Связь с общим ботом жива и обработка не ограничена (Art. 18).
+
+    T-8.30f: с ``user_pk`` — связь ещё и закреплена за этим пользователем кабинета (или за
+    никем — легаси): перепривязали к другому — сессия прежнего заканчивается."""
+    from django.db.models import Q
+
     from apps.platform_bot import links, rights
 
-    return links.is_owner(uid, tenant) and not rights.is_restricted(uid)
+    if not links.is_owner(uid, tenant) or rights.is_restricted(uid):
+        return False
+    if user_pk is None:
+        return True
+    return (
+        links._active(uid)
+        .filter(tenant=tenant)
+        .filter(Q(user_pk__isnull=True) | Q(user_pk=user_pk))
+        .exists()
+    )
 
 
 def _clamp_lang(lang: str) -> str:
@@ -164,7 +178,7 @@ def tg_start(request, token):
             raise Http404
         payload = consume(schema, token)
         user = owner_user(payload.get("user_pk")) if payload else None
-        if user is None or not telegram_allowed(payload["uid"], request.tenant):
+        if user is None or not telegram_allowed(payload["uid"], request.tenant, user.pk):
             raise Http404
         auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
         # ПОСЛЕ логина: приёмник user_logged_in снимает флаг при любом входе.
