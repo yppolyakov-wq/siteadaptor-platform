@@ -176,13 +176,18 @@ def test_claim_keeps_revocation_of_removed_owner():
     from apps.core.models import Membership
     from apps.platform_bot import links
 
+    from django_tenants.utils import schema_context
+
     t = _tenant(telegram_off=False)
-    owner = _member(Membership.ROLE_OWNER)
+    # T-8.30f-0: Membership живёт в схеме бизнеса — там его и создаём (как в проде).
+    with schema_context(t.schema_name):
+        owner = _member(Membership.ROLE_OWNER)
     links.bind(777002, t, user_pk=owner.pk)
     links.claim_for_tenant_bot(t, 556, rotate_token="new2")
     t.refresh_from_db()
     assert links.still_owner(t)
-    Membership.objects.filter(user=owner).delete()
+    with schema_context(t.schema_name):
+        Membership.objects.filter(user=owner).delete()
     assert not links.still_owner(t)
 
 
