@@ -220,7 +220,7 @@ def test_bot_management_post_refused(path):
     [
         ("/promotions/redeem/R-ABC123/", "get"),
         ("/promotions/redeem/R-ABC123/action/", "post"),
-        (f"/promotions/reservations/{uuid.uuid4()}/action/", "post"),
+        ("/promotions/reservations/00000000-0000-4000-8000-000000000001/action/", "post"),
     ],
 )
 def test_counter_screens_with_args_allowed(path, method):
