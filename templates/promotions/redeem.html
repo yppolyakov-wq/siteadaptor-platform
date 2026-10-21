@@ -135,7 +135,7 @@
         detector = new BarcodeDetector({ formats: ["qr_code"] });
         return async function () {
           var codes = await detector.detect(video);
-          return codes && codes.length ? (codes[0].rawValue || "") : null;
+          return codes && codes.length ? (codes[0].rawValue || null) : null;
         };
       } catch (e) { /* формат не поддержан — jsQR */ }
     }
@@ -181,7 +181,7 @@
     if (!stream) return;
     try {
       var raw = await decode();
-      if (raw !== null) {
+      if (raw) {
         var r = parse(raw);
         stop();
         if (r) { go(r); } else { bad(); }

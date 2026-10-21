@@ -35,10 +35,19 @@ def deep_link(customer) -> str:
 
 
 def link_from_start(payload: str, chat_id) -> bool:
-    """Привязать chat_id по токену из /start <payload>. True при успехе."""
+    """Привязать chat_id по токену из /start <payload>. True при успехе.
+
+    T-8.30l (ревью, HIGH): уже привязанную связь другой чат НЕ перехватывает — токен
+    виден на странице подтверждения; токены связей входа через Telegram (``tgl_``) по
+    /start не принимаются вовсе.
+    """
+    if not payload or payload.startswith("tgl_"):
+        return False
     link = TelegramLink.objects.filter(link_token=payload).first()
     if link is None:
         return False
+    if link.chat_id:
+        return link.chat_id == str(chat_id)  # тот же чат — повтор безвреден
     link.chat_id = str(chat_id)
     link.save(update_fields=["chat_id", "updated_at"])
     return True

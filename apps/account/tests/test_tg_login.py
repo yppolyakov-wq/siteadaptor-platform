@@ -67,13 +67,29 @@ def test_new_telegram_user_gets_customer_with_name_only():
     assert req.session.session_key != old_key  # фиксация сессии исключена
 
 
-def test_existing_link_logs_into_its_customer():
+def test_link_from_order_page_does_not_open_the_account():
+    """Ревью (HIGH): связь из /start <token> со страницы подтверждения доказывает лишь
+    знание кода заказа (а e-mail в заказе никто не подтверждал) — входа в ту карточку
+    она не даёт: вход Telegram создаёт СВОЮ карточку."""
     c = Customer.objects.create(name="Max", email="max@test.de")
     TelegramLink.objects.create(customer=c, link_token="tok1", chat_id=str(UID))
     req = _req(_init_data())
     views.telegram_login(req)
-    assert auth.current_customer(req).pk == c.pk
-    assert Customer.objects.count() == 1
+    assert auth.current_customer(req).pk != c.pk
+    assert auth.current_customer(req).email == ""
+
+
+def test_start_cannot_rebind_a_bound_link_or_use_login_tokens():
+    from apps.telegram.notify import link_from_start
+
+    c = Customer.objects.create(name="Max", email="max@test.de")
+    TelegramLink.objects.create(customer=c, link_token="tok1", chat_id="111")
+    assert link_from_start("tok1", 222) is False
+    assert TelegramLink.objects.get(customer=c).chat_id == "111"
+    assert link_from_start("tok1", 111) is True  # тот же чат — повтор безвреден
+    views.telegram_login(_req(_init_data()))
+    login_link = TelegramLink.objects.get(chat_id=str(UID))
+    assert link_from_start(login_link.link_token, 333) is False
 
 
 def test_repeat_login_reuses_customer():
@@ -82,14 +98,23 @@ def test_repeat_login_reuses_customer():
     assert Customer.objects.count() == 1
 
 
-def test_earliest_link_wins_when_chat_is_linked_twice():
-    a = Customer.objects.create(name="A", email="a@test.de")
-    b = Customer.objects.create(name="B", email="b@test.de")
-    TelegramLink.objects.create(customer=a, link_token="t-a", chat_id=str(UID))
-    TelegramLink.objects.create(customer=b, link_token="t-b", chat_id=str(UID))
-    req = _req(_init_data())
-    views.telegram_login(req)
-    assert auth.current_customer(req).pk == a.pk
+def test_replay_from_another_address_is_rejected():
+    data = _init_data()
+    assert views.telegram_login(_req(data, ip="10.91.1.1")).status_code == 302
+    assert views.telegram_login(_req(data, ip="10.91.1.1")).status_code == 302  # двойной тап
+    assert views.telegram_login(_req(data, ip="10.91.1.2")).status_code == 403
+
+
+def test_successful_logins_do_not_burn_the_limit():
+    for i in range(views.TG_RL_LIMIT + 2):
+        resp = views.telegram_login(_req(_init_data(), ip="10.91.2.1"))
+        assert resp.status_code == 302, i
+
+
+def test_failed_logins_are_limited():
+    for _ in range(views.TG_RL_LIMIT):
+        views.telegram_login(_req(_init_data(token="999:OTHER"), ip="10.91.3.1"))
+    assert views.telegram_login(_req(_init_data(), ip="10.91.3.1")).status_code == 429
 
 
 def test_foreign_bot_signature_is_rejected():
@@ -101,12 +126,12 @@ def test_foreign_bot_signature_is_rejected():
 
 
 def test_stale_init_data_is_rejected():
-    req = _req(_init_data(auth_date=int(time.time()) - 2 * 3600))
+    req = _req(_init_data(auth_date=int(time.time()) - 2 * views.TG_MAX_AGE))
     assert views.telegram_login(req).status_code == 403
 
 
-def test_init_data_opened_long_ago_still_works_within_an_hour():
-    req = _req(_init_data(auth_date=int(time.time()) - 20 * 60))
+def test_init_data_opened_minutes_ago_still_works():
+    req = _req(_init_data(auth_date=int(time.time()) - 10 * 60))
     assert views.telegram_login(req).status_code == 302
 
 

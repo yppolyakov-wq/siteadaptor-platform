@@ -69,33 +69,48 @@ def login(request, email: str) -> Customer:
     return customer
 
 
-def login_telegram(request, *, uid: int, name: str = "") -> Customer:
-    """T-8.30l: вход по проверенной личности Telegram.
+# T-8.30l: токен связи, созданной САМИМ входом через Telegram. Связь из /start <token>
+# со страницы подтверждения заказа доказывает лишь знание кода заказа (e-mail в заказе
+# никто не подтверждал) — входа в ту карточку она не даёт (ревью: захват аккаунта).
+TG_LOGIN_TOKEN_PREFIX = "tgl_"
 
-    Связь из /start (TelegramLink) уже подтвердила этот чат → её клиент. Иначе —
-    новый клиент только с именем (минимум данных: без username, фото и языка) и
-    связь с этим чатом (личный chat_id = id пользователя Telegram).
+
+def login_telegram(request, *, uid: int, name: str = "") -> Customer:
+    """T-8.30l: вход по проверенной личности Telegram — в СВОЮ карточку этого чата.
+
+    Есть связь, созданная прежним входом через Telegram → её клиент. Иначе — новый
+    клиент только с именем (минимум данных: без username, фото и языка) и связь с
+    чатом. Под транзакционной блокировкой по chat_id: двойной тап не плодит карточки.
     """
     import secrets as _secrets
+
+    from django.db import transaction
 
     from apps.telegram.models import TelegramLink
 
     chat_id = str(int(uid))
-    link = (
-        TelegramLink.objects.filter(chat_id=chat_id)
-        .select_related("customer")
-        .order_by("created_at")
-        .first()
-    )
-    if link is not None:
-        customer = link.customer
-    else:
-        customer = Customer.objects.create(
-            name=(name or "")[:200], email="", created_source=Customer.SOURCE_MANUAL
+    with transaction.atomic():
+        with connection.cursor() as cur:
+            cur.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [f"acct-tg:{chat_id}"])
+        link = (
+            TelegramLink.objects.filter(
+                chat_id=chat_id, link_token__startswith=TG_LOGIN_TOKEN_PREFIX
+            )
+            .select_related("customer")
+            .order_by("created_at")
+            .first()
         )
-        TelegramLink.objects.create(
-            customer=customer, link_token=_secrets.token_urlsafe(16), chat_id=chat_id
-        )
+        if link is not None:
+            customer = link.customer
+        else:
+            customer = Customer.objects.create(
+                name=(name or "")[:200], email="", created_source=Customer.SOURCE_MANUAL
+            )
+            TelegramLink.objects.create(
+                customer=customer,
+                link_token=TG_LOGIN_TOKEN_PREFIX + _secrets.token_urlsafe(16),
+                chat_id=chat_id,
+            )
     request.session[SESSION_KEY] = str(customer.pk)
     request.session.set_expiry(SESSION_AGE)
     return customer

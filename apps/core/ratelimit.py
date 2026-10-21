@@ -47,3 +47,11 @@ def refund(scope: str, ident: str) -> None:
         return  # ключа нет (истёк) — возвращать нечего
     except Exception:  # noqa: BLE001 — кэш недоступен: fail-open
         return
+
+
+def peek(scope: str, ident: str) -> int:
+    """Сколько попыток уже засчитано в окне — без новой попытки (fail-open: 0)."""
+    try:
+        return int(cache.get(f"rl:{scope}:{ident}") or 0)
+    except Exception:  # noqa: BLE001 — кэш недоступен: fail-open
+        return 0

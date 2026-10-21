@@ -24,7 +24,7 @@ IP_RL_WINDOW = 600
 TG_RL_LIMIT = 10
 TG_RL_WINDOW = 600
 # Окно Mini App часто открыто дольше 5 минут до нажатия «Mit Telegram anmelden».
-TG_MAX_AGE = 3600
+TG_MAX_AGE = 15 * 60
 
 
 class LoginForm(forms.Form):
@@ -82,20 +82,34 @@ def telegram_login(request):
     if bot is None:
         raise Http404
     ip = ratelimit.client_ip(request)
-    if ratelimit.hit("acct_tg_ip", ip, limit=TG_RL_LIMIT, window=TG_RL_WINDOW):
+    # Лимит считает только НЕУДАЧИ: за общим IP мобильного оператора много клиентов.
+    if ratelimit.peek("acct_tg_ip", ip) >= TG_RL_LIMIT:
         return HttpResponse(
             _("Zu viele Anmeldeversuche. Bitte in ein paar Minuten erneut."), status=429
         )
+    failed = HttpResponse(_("Anmeldung über Telegram fehlgeschlagen."), status=403)
     try:
         data = webapp_auth.verify(
             request.POST.get("init_data", ""),
             bot.token,
             now=int(timezone.now().timestamp()),
             max_age=TG_MAX_AGE,
-            allow_replay=True,  # повтор = то же окно; initData ходит только в теле POST
+            allow_replay=True,  # повтор допустим только с того же адреса (ниже)
         )
     except webapp_auth.InitDataError:
-        return HttpResponse(_("Anmeldung über Telegram fehlgeschlagen."), status=403)
+        ratelimit.hit("acct_tg_ip", ip, limit=TG_RL_LIMIT, window=TG_RL_WINDOW)
+        return failed
+    # Повтор той же подписи (двойной тап) — только с адреса первого входа: перехваченная
+    # строка initData с другого адреса не входит (как у Mini App владельца, T-8.30f).
+    from django.core.cache import cache
+
+    seen_key = f"acct_tg_seen:{data['digest']}"
+    if data.get("replay"):
+        if cache.get(seen_key) != ip:
+            ratelimit.hit("acct_tg_ip", ip, limit=TG_RL_LIMIT, window=TG_RL_WINDOW)
+            return failed
+    else:
+        cache.set(seen_key, ip, TG_MAX_AGE + 60)
     request.session.cycle_key()  # без фиксации сессии
     auth.login_telegram(request, uid=data["uid"], name=data.get("first_name") or "")
     return redirect("account-home")
