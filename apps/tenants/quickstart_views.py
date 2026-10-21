@@ -37,13 +37,52 @@ STALE_AFTER = timedelta(minutes=15)
 SESSION_KEY = "quick_handoff"  # {slug: {"token": ..., "title": ..., "price": ...}}
 
 
-def _context(request, form):
+KEPT_PHOTOS_SALT = "quick-start-kept-photos"
+KEPT_PHOTOS_MAX_AGE = 3600
+
+
+def _sign_photos(refs) -> str:
+    from django.core import signing
+
+    return signing.dumps(list(refs or []), salt=KEPT_PHOTOS_SALT, compress=True)
+
+
+def _kept_photos(request) -> list:
+    """Фото прошлой попытки (подписаны сервером — путь чужого файла не подставить)."""
+    from django.core import signing
+
+    raw = request.POST.get("photos_kept", "")
+    if not raw:
+        return []
+    try:
+        refs = signing.loads(raw, salt=KEPT_PHOTOS_SALT, max_age=KEPT_PHOTOS_MAX_AGE)
+    except signing.BadSignature:
+        return []
+    if not isinstance(refs, list):
+        return []
+    ok = [
+        r for r in refs if isinstance(r, dict) and str(r.get("path", "")).startswith("promotions/")
+    ]
+    return ok[:MAX_PHOTOS]
+
+
+def _drop_photos(refs) -> None:
+    from apps.catalog.images import delete_stored_image
+
+    for ref in refs or []:
+        delete_stored_image(ref)
+
+
+def _context(request, form, kept_photos=None, kept_signed=""):
     from apps.platform_bot import web_signup
 
     from .views import ui_languages
 
     return {
         "form": form,
+        # Фото прошлой попытки: показываем и отправляем снова (форма с файлами их теряет).
+        "source_images": kept_photos or [],
+        "photos_kept": kept_signed or (_sign_photos(kept_photos) if kept_photos else ""),
         # T-8.30i: пришли из Mini App — после почты «Mein Laden» откроет этот бизнес.
         "tg_linked": web_signup.from_session(request),
         "type_cards": quickstart.type_cards(request),
@@ -93,13 +132,32 @@ def quick_start(request):
     if quickstart.too_fast(request.POST.get("stamp", "")):
         form.add_error(None, _("Bitte prüfen Sie Ihre Angaben und senden Sie erneut."))
         return render(request, "tenants/quick_start.html", _context(request, form))
-    if ratelimit.hit("quick-start", ratelimit.client_ip(request), limit=5, window=3600):
-        form.add_error(None, _("Zu viele Versuche. Bitte später erneut."))
-        return render(request, "tenants/quick_start.html", _context(request, form))
 
     cd = form.cleaned_data
     promo = form.promo_payload()
     uploads = cd.get("photo") or []
+    kept = _kept_photos(request)
+    if uploads and kept:
+        _drop_photos(kept)  # выбраны новые фото — прежние больше не нужны
+        kept = []
+    # Формат фото проверяем ДО лимита: исправимая ошибка не должна сжигать попытки.
+    if uploads:
+        from apps.catalog.images import validate_image
+
+        try:
+            for upload in uploads:
+                validate_image(upload)
+        except ValidationError as exc:
+            form.add_error("photo", "; ".join(exc.messages))
+            return render(request, "tenants/quick_start.html", _context(request, form))
+    if ratelimit.hit("quick-start", ratelimit.client_ip(request), limit=5, window=3600):
+        form.add_error(None, _("Zu viele Versuche. Bitte später erneut."))
+        # Подпись не обновляем: срок жизни сохранённых фото считается от первой попытки.
+        return render(
+            request,
+            "tenants/quick_start.html",
+            _context(request, form, kept, request.POST.get("photos_kept", "") if kept else ""),
+        )
     if uploads:
         from apps.promotions.quick import save_photos
 
@@ -108,11 +166,14 @@ def quick_start(request):
         except ValidationError as exc:
             form.add_error("photo", "; ".join(exc.messages))
             return render(request, "tenants/quick_start.html", _context(request, form))
+    elif kept:
+        promo["images"] = kept
 
     # Лимиты Telegram-регистрации — после проверки фото: неудачная попытка квоту не жжёт.
     tg = _telegram_gate(request, form, cd["email"])
     if tg is False:
-        _drop_photos(promo)
+        # Окончательный отказ (лимит/Art. 18) — повтор не поможет, файлы не держим.
+        _drop_photos(promo.get("images"))
         return render(request, "tenants/quick_start.html", _context(request, form))
     if tg:
         from apps.platform_bot import signup
@@ -137,9 +198,14 @@ def quick_start(request):
     except IntegrityError:
         # Гонка: адрес заняли между проверкой и сохранением — просим выбрать другой.
         _clear_tg_pending(tg)
-        _drop_photos(promo)
         form.add_error("subdomain", _("Diese Adresse ist schon vergeben."))
-        return render(request, "tenants/quick_start.html", _context(request, form))
+        # Исправимо (другой адрес) — фото уже сохранены, отдаём их обратно в форму.
+        signed = request.POST.get("photos_kept", "") if (kept and not uploads) else ""
+        return render(
+            request,
+            "tenants/quick_start.html",
+            _context(request, form, promo.get("images"), signed),
+        )
     except Exception:
         _clear_tg_pending(tg)  # иначе Mini App полчаса показывал бы «wird angelegt»
         raise
@@ -210,13 +276,6 @@ def _telegram_gate(request, form, email):
         form.add_error(None, _("Zu viele Versuche. Bitte später erneut."))
         return False
     return {"uid": uid, "lang": tg.get("lang") or ""}
-
-
-def _drop_photos(promo: dict) -> None:
-    from apps.catalog.images import delete_stored_image
-
-    for ref in promo.get("images") or []:
-        delete_stored_image(ref)
 
 
 def slug_check(request):

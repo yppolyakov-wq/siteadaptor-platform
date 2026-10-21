@@ -265,7 +265,7 @@ def test_failed_photo_does_not_burn_quota(monkeypatch):
     sub.META["REMOTE_ADDR"] = "10.86.0.9"
     with mock.patch("apps.tenants.tasks.provision_quick.delay"):
         resp = quickstart_views.quick_start(sub)
-    assert resp.status_code == 200 and b"kaputt" in resp.content and calls == []
+    assert resp.status_code == 200 and b"text-red-600" in resp.content and calls == []
 
 
 def _jpeg():

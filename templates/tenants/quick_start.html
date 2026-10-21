@@ -34,6 +34,7 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
     <section class="bg-white rounded-2xl shadow-sm p-4 space-y-4" data-qs-step="1">
       <h2 class="font-semibold text-gray-900">1 · {% trans "Was bieten Sie an?" %}</h2>
       {% include "promotions/_photo_picker.html" with errors=form.photo.errors %}
+      {% if photos_kept %}<input type="hidden" name="photos_kept" value="{{ photos_kept }}">{% endif %}
       {% if ai_after_signup %}
         <p class="rounded-xl bg-indigo-50 px-3 py-2 text-xs text-indigo-900" data-ai-after-signup>✨ {% trans "Nach der Registrierung füllt die KI Titel und Beschreibung aus Ihrem Foto aus – im Konto und per Telegram." %}</p>
       {% endif %}
@@ -411,8 +412,10 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
   cityInput.addEventListener("input", syncDistricts);
   syncDistricts();
   // Ошибка сервера — открываем первый шаг, где она есть.
+  // Общая ошибка (лимит, «später erneut») — на шаге отправки, а не в начале формы.
   var withError = steps.filter(function (s) { return s.querySelector(".text-red-600"); })[0];
-  show(withError ? +withError.dataset.qsStep : 1);
+  var general = document.querySelector("[data-quick-error]");
+  show(withError ? +withError.dataset.qsStep : (general ? last : 1));
 })();
 </script>
 {% endblock %}

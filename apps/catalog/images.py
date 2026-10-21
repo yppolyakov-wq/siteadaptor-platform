@@ -39,6 +39,10 @@ def validate_image(uploaded) -> str:
         raise ValidationError(_("Not a valid image file.")) from exc
     finally:
         uploaded.seek(0)
+    if fmt == "MPO":
+        # Камера iPhone (и многие Android) пишет JPEG с доп. кадром (Multi-Picture Format):
+        # Pillow называет его MPO, браузеры показывают как обычный JPEG.
+        fmt = "JPEG"
     if fmt not in ALLOWED_FORMATS:
         raise ValidationError(_("Allowed formats: JPEG, PNG, WEBP."))
     return fmt
