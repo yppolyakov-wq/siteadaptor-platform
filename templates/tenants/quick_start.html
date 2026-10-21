@@ -12,6 +12,7 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
 <main class="max-w-lg mx-auto px-4 pt-8 pb-16" data-quick-start>
   <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 text-center">⚡ {% trans "Ihre Aktion in 3 Klicks" %}</h1>
   <p class="mt-2 text-center text-gray-500">{% trans "Eigene Seite, QR-Code und Aushang — sofort online. Kostenlos, ohne Passwort." %}</p>
+  {% if tg_linked %}<p class="mt-4 rounded-xl bg-sky-50 px-4 py-3 text-sm text-sky-900" data-tg-linked>✈️ {% trans "Mit Telegram verbunden: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft." %}</p>{% endif %}
 
   <ol class="mt-6 grid grid-cols-3 gap-2 text-xs text-center" data-quick-dots aria-hidden="true">
     <li><span class="block h-1.5 rounded-full bg-indigo-600 mb-1" data-dot="1"></span>{% trans "Angebot" %}</li>

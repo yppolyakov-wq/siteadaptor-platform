@@ -27778,9 +27778,6 @@ msgstr "Zaten bir işletmem var"
 msgid "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen."
 msgstr "Panelde Ayarlar → Bildirimler bölümünde „Mit Telegram verbinden“ düğmesine dokunun."
 
-#: apps/platform_bot
-msgid "Im Browser registrieren"
-msgstr "Tarayıcıda kaydol"
 
 #: apps/platform_bot
 msgid "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
@@ -27809,3 +27806,16 @@ msgstr "Firma rehberine ekle"
 #: templates/core/_deal_billing_card.html
 msgid "Firma ins Verzeichnis übernommen."
 msgstr "Firma rehbere eklendi."
+
+msgid "Mit Telegram verbunden: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
+msgstr "Telegram'a bağlandı: e-postanızı onayladıktan sonra „Mein Laden“ işletmenizi açar."
+
+#, python-format
+msgid "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
+msgstr "Tamam! Lütfen şimdi e-postanızı onaylayın (%(mail)s)."
+
+msgid "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
+msgstr "Ardından „Mein Laden“ı botta yeniden açın. Bu pencereyi kapatabilirsiniz."
+
+msgid "Weiter zur Registrierung"
+msgstr "Kayda devam et"

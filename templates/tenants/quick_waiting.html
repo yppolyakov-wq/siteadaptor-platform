@@ -3,7 +3,7 @@
 {% block title %}{% if failed %}{% trans "Something went wrong" %}{% else %}{% trans "Ihre Aktion geht online…" %}{% endif %}{% endblock %}
 
 {% block extra_head %}
-  {% if not failed and not stale %}<noscript><meta http-equiv="refresh" content="5"></noscript>{% endif %}
+  {% if not failed and not stale and not tg_done %}<noscript><meta http-equiv="refresh" content="5"></noscript>{% endif %}
 {% endblock %}
 
 {% block body %}
@@ -17,6 +17,17 @@
     {% elif failed %}
       <h1 class="text-2xl font-bold mb-2">{% trans "Something went wrong" %} 😕</h1>
       <p class="text-gray-600">{% blocktrans with name=tenant.name %}We couldn't finish setting up "{{ name }}". We're on it — please try again later or contact us.{% endblocktrans %}</p>
+    {% elif tg_done %}
+      <div data-tg-done>
+        {% if preview.image %}
+          <img src="{{ preview.image }}" alt="" class="mx-auto mb-4 w-32 h-32 object-cover rounded-2xl">
+        {% endif %}
+        {% if preview.title %}<p class="text-lg font-semibold text-gray-900 mb-1">{{ preview.title }}</p>{% endif %}
+        <p class="text-sm text-gray-500 mb-5">{{ tenant.name }}</p>
+        <h1 class="text-xl font-bold mb-2">✅ {% blocktrans with mail=preview.mail %}Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail ({{ mail }}).{% endblocktrans %}</h1>
+        <p class="text-gray-600 text-sm">{% trans "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen." %}</p>
+        {% if site_url %}<a href="{{ site_url }}/" class="mt-5 inline-block rounded-xl bg-indigo-600 px-5 py-3 text-white font-semibold">{% trans "Live ansehen" %}</a>{% endif %}
+      </div>
     {% else %}
       {% if preview.image %}
         <img src="{{ preview.image }}" alt="" class="mx-auto mb-4 w-32 h-32 object-cover rounded-2xl">
@@ -30,7 +41,7 @@
     {% endif %}
   </div>
 </div>
-{% if not failed and not stale %}
+{% if not failed and not stale and not tg_done %}
 <script>
 (function () {
   // Тихий опрос статуса вместо перезагрузки страницы: картинка и спиннер не мигают.

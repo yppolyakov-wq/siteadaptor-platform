@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.core import city_categories, ratelimit
 from apps.core.archetypes import FOOD_BUSINESS_TYPES
@@ -38,10 +38,14 @@ SESSION_KEY = "quick_handoff"  # {slug: {"token": ..., "title": ..., "price": ..
 
 
 def _context(request, form):
+    from apps.platform_bot import web_signup
+
     from .views import ui_languages
 
     return {
         "form": form,
+        # T-8.30i: пришли из Mini App — после почты «Mein Laden» откроет этот бизнес.
+        "tg_linked": web_signup.from_session(request) is not None,
         "type_cards": quickstart.type_cards(request),
         "stamp": quickstart.form_stamp(),
         "domain_base": quickstart.domain_base(),
@@ -94,6 +98,9 @@ def quick_start(request):
         return render(request, "tenants/quick_start.html", _context(request, form))
 
     cd = form.cleaned_data
+    tg = _telegram_gate(request, form, cd["email"])
+    if tg is False:
+        return render(request, "tenants/quick_start.html", _context(request, form))
     promo = form.promo_payload()
     uploads = cd.get("photo") or []
     if uploads:
@@ -105,6 +112,11 @@ def quick_start(request):
             form.add_error("photo", "; ".join(exc.messages))
             return render(request, "tenants/quick_start.html", _context(request, form))
 
+    if tg:
+        from apps.platform_bot import signup
+
+        # Метка «создаётся» — до запуска (как в боте): Mini App сразу отвечает `pending`.
+        signup.cache.set(signup._pending_key(tg["uid"]), 1, signup.PENDING_TTL)
     try:
         tenant = start_quick_provisioning(
             business_name=cd["business_name"].strip(),
@@ -118,24 +130,112 @@ def quick_start(request):
             promo=promo,
             partner_code=request.session.get("partner_ref", ""),
             in_city_catalog=cd.get("in_city_catalog", False),
+            telegram={"tg_user_id": tg["uid"], "lang": tg["lang"]} if tg else None,
         )
     except IntegrityError:
         # Гонка: адрес заняли между проверкой и сохранением — просим выбрать другой.
+        _clear_tg_pending(tg)
         _drop_photos(promo)
         form.add_error("subdomain", _("Diese Adresse ist schon vergeben."))
         return render(request, "tenants/quick_start.html", _context(request, form))
+    except Exception:
+        _clear_tg_pending(tg)  # иначе Mini App полчаса показывал бы «wird angelegt»
+        raise
     request.session.pop("partner_ref", None)
     from apps.core import owner_login
 
     handoff = dict(request.session.get(SESSION_KEY) or {})
-    handoff[tenant.slug] = {
-        "token": owner_login.issue_token(tenant.schema_name, cd["email"]),
+    entry = {
         "title": cd["title"],
         "image": (promo.get("images") or [{}])[0].get("url", ""),
     }
+    if tg:
+        # T-8.30i (Р-1): из Telegram кабинет до почты не открываем — только «Fertig».
+        from apps.platform_bot import web_signup
+
+        web_signup.forget(request)
+        entry.update(tg=True, mail=_mask(cd["email"]))
+    else:
+        entry["token"] = owner_login.issue_token(tenant.schema_name, cd["email"])
+    handoff[tenant.slug] = entry
     request.session[SESSION_KEY] = handoff
     # Литеральный путь: страницы платформы рендерятся и под tenant-urlconf (тесты).
     return redirect(f"/aktion-starten/{tenant.slug}/")
+
+
+def _clear_tg_pending(tg) -> None:
+    if tg:
+        from apps.platform_bot import signup
+
+        signup.cache.delete(signup._pending_key(tg["uid"]))
+
+
+def _mask(email: str) -> str:
+    name, _sep, domain = (email or "").partition("@")
+    return f"{name[:1]}***@{domain}" if domain else "***"
+
+
+def _telegram_gate(request, form, email):
+    """T-8.30i: регистрация из Mini App. None — обычная веб-регистрация; dict
+    (uid, lang) — передать Telegram в провижининг; False — отказ (ошибка уже в форме).
+    Лимиты — те же корзины, что у регистрации в чате бота."""
+    import hashlib
+
+    from apps.platform_bot import links, signup, web_signup
+
+    tg = web_signup.from_session(request)
+    if tg is None:
+        return None
+    uid = int(tg["uid"])
+    if not web_signup.allowed(uid):
+        web_signup.forget(request)
+        form.add_error(
+            None,
+            _("Ein weiteres Geschäft legen Sie auf der Website an: %(url)s")
+            % {"url": f"https://{quickstart.domain_base()}/aktion-starten/"},
+        )
+        return False
+    verified = links.active_links(uid).filter(via=links.OwnerTelegramLink.VIA_SIGNUP).exists()
+    per_user = signup.LIMIT_SIGNUP if verified else signup.LIMIT_SIGNUP_UNVERIFIED
+    mail_key = hashlib.sha256(email.encode()).hexdigest()
+    if signup._rate("tgplat-signup", uid, per_user, 86400) or signup._rate(
+        "tgplat-signup-mail", mail_key, signup.LIMIT_MAIL, 86400
+    ):
+        form.add_error(None, _("Zu viele Versuche. Bitte später erneut."))
+        return False
+    return {"uid": uid, "lang": tg.get("lang") or ""}
+
+
+@require_http_methods(["GET", "POST"])
+def quick_start_tg(request, token):
+    """T-8.30i: вход в регистрацию из Mini App. GET ничего не тратит (превью ссылки,
+    prefetch) — страница сама отправляет POST; POST гасит токен и помнит Telegram в
+    сессии, затем ведёт на обычную форму."""
+    from django.conf import settings
+    from django.http import Http404
+
+    from apps.platform_bot import web_signup
+
+    if request.method == "POST":
+        if ratelimit.hit("quick-start-tg", ratelimit.client_ip(request), limit=30, window=3600):
+            raise Http404
+        payload = web_signup.take(token)
+        if payload is None:
+            raise Http404
+        web_signup.remember(request, payload)
+        resp = redirect("/aktion-starten/")
+        lang = payload.get("lang") or ""
+        if lang in getattr(settings, "CABINET_LANGUAGES", []) and not request.COOKIES.get(
+            settings.LANGUAGE_COOKIE_NAME
+        ):
+            resp.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang, max_age=60 * 60 * 24 * 365)
+    else:
+        if web_signup.peek(token) is None:
+            raise Http404
+        resp = render(request, "tenants/quick_start_tg.html", {})
+    resp["Cache-Control"] = "no-store"
+    resp["Referrer-Policy"] = "no-referrer"
+    return resp
 
 
 def _drop_photos(promo: dict) -> None:
@@ -183,6 +283,8 @@ def _target(request, tenant) -> str | None:
     entry = (request.session.get(SESSION_KEY) or {}).get(tenant.slug)
     if not entry:
         return login_url_for(tenant)  # другой браузер — обычный вход
+    if entry.get("tg"):
+        return f"/aktion-starten/{tenant.slug}/?fertig=1"  # T-8.30i: без кабинета до почты
     if done == "list":
         next_url = "/promotions/"
     elif done == "none":
@@ -205,13 +307,21 @@ def quick_waiting(request, slug):
     target = None if failed or stale else _target(request, tenant)
     if request.GET.get("poll"):
         return JsonResponse({"redirect": target or "", "stop": failed or stale})
-    if target:
-        return redirect(target)
     entry = (request.session.get(SESSION_KEY) or {}).get(tenant.slug) or {}
+    tg_done = bool(target and entry.get("tg"))
+    if target and not tg_done:
+        return redirect(target)
     return render(
         request,
         "tenants/quick_waiting.html",
-        {"tenant": tenant, "failed": failed, "stale": stale, "preview": entry},
+        {
+            "tenant": tenant,
+            "failed": failed,
+            "stale": stale,
+            "preview": entry,
+            "tg_done": tg_done,
+            "site_url": site_url_for(tenant) if tg_done else "",
+        },
     )
 
 

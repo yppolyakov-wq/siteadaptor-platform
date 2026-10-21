@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Ihre Aktion in 3 Klicks" %}{% endblock %}
+{% block body %}
+{% comment %}T-8.30i: переход из Mini App. GET токен не тратит — форма уходит POST'ом сама.{% endcomment %}
+<div class="min-h-screen flex items-center justify-center px-4">
+  <form method="post" class="text-center" data-tg-handoff>
+    {% csrf_token %}
+    <div class="mx-auto mb-4 h-10 w-10 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin" aria-hidden="true"></div>
+    <button type="submit" class="rounded-xl bg-indigo-600 px-5 py-3 text-white font-semibold">{% trans "Weiter zur Registrierung" %}</button>
+  </form>
+</div>
+<script>document.querySelector("form[data-tg-handoff]").submit();</script>
+{% endblock %}

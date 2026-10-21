@@ -164,6 +164,8 @@ urlpatterns = [
         quickstart_views.quick_text_check,
         name="quick-start-text-check",
     ),
+    # T-8.30i: регистрация из Mini App — одноразовая ссылка (до <slug>).
+    path("aktion-starten/tg/<str:token>/", quickstart_views.quick_start_tg, name="quick-start-tg"),
     path("aktion-starten/<slug:slug>/", quickstart_views.quick_waiting, name="quick-start-waiting"),
     # AB5.1: double-opt-in — тенант создаётся только после клика по ссылке из письма.
     path("registrieren/bestaetigen/<str:token>/", signup_confirm, name="business-signup-confirm"),

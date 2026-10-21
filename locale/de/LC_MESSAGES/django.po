@@ -27728,9 +27728,6 @@ msgstr "Ich habe schon ein Geschäft"
 msgid "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen."
 msgstr "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen."
 
-#: apps/platform_bot
-msgid "Im Browser registrieren"
-msgstr "Im Browser registrieren"
 
 #: apps/platform_bot
 msgid "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
@@ -27759,3 +27756,16 @@ msgstr "Ins Firmenverzeichnis übernehmen"
 #: templates/core/_deal_billing_card.html
 msgid "Firma ins Verzeichnis übernommen."
 msgstr "Firma ins Verzeichnis übernommen."
+
+msgid "Mit Telegram verbunden: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
+msgstr "Mit Telegram verbunden: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
+
+#, python-format
+msgid "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
+msgstr "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
+
+msgid "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
+msgstr "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
+
+msgid "Weiter zur Registrierung"
+msgstr "Weiter zur Registrierung"

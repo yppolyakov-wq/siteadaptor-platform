@@ -27891,9 +27891,6 @@ msgstr "У мене вже є бізнес"
 msgid "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen."
 msgstr "У кабінеті відкрийте Налаштування → Сповіщення й натисніть «Mit Telegram verbinden»."
 
-#: apps/platform_bot
-msgid "Im Browser registrieren"
-msgstr "Зареєструватися в браузері"
 
 #: apps/platform_bot
 msgid "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
@@ -27922,3 +27919,16 @@ msgstr "Додати до довідника компаній"
 #: templates/core/_deal_billing_card.html
 msgid "Firma ins Verzeichnis übernommen."
 msgstr "Компанію додано до довідника."
+
+msgid "Mit Telegram verbunden: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
+msgstr "Пов'язано з Telegram: після підтвердження e-mail «Mein Laden» відкриє ваш бізнес."
+
+#, python-format
+msgid "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
+msgstr "Готово! Підтвердьте, будь ласка, e-mail (%(mail)s)."
+
+msgid "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
+msgstr "Потім знову відкрийте «Mein Laden» у боті. Це вікно можна закрити."
+
+msgid "Weiter zur Registrierung"
+msgstr "Перейти до реєстрації"

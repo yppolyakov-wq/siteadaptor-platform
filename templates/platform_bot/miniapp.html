@@ -45,7 +45,6 @@
       <button type="button" data-bot-new>{% trans "Neues Geschäft anlegen" %}</button>
       <button type="button" class="alt" data-have-business>{% trans "Ich habe schon ein Geschäft" %}</button>
       <p data-have-business-help hidden>{% trans "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen." %}</p>
-      <button type="button" class="alt" data-web-signup>{% trans "Im Browser registrieren" %}</button>
     </div>
     <div data-pending hidden>
       <button type="button" data-bot-mail>{% trans "Zum Bot" %}</button>
@@ -116,14 +115,13 @@ document.addEventListener("DOMContentLoaded", function () {
     var unlinked = root.querySelector("[data-unlinked]");
     unlinked.hidden = data.error !== "unlinked";
     root.querySelector("[data-have-business-help]").hidden = true;
-    root.querySelector("[data-bot-new]").hidden = !bot;
-    root.querySelector("[data-bot-new]").onclick = function () { toBot("neu"); };
+    // T-8.30i: регистрация — в ЭТОМ окне (одноразовая ссылка сервера, только https).
+    var signupUrl = /^https:\/\//.test(data.signup_url || "") ? data.signup_url : "";
+    root.querySelector("[data-bot-new]").hidden = !signupUrl;
+    root.querySelector("[data-bot-new]").onclick = function () { show("loading"); go(signupUrl); };
     root.querySelector("[data-have-business]").onclick = function () {
       root.querySelector("[data-have-business-help]").hidden = false;
     };
-    var web = root.querySelector("[data-web-signup]");
-    web.hidden = !/^https:\/\//.test(data.web_url || "");
-    web.onclick = function () { tg.openLink(data.web_url); };
     var pending = root.querySelector("[data-pending]");
     pending.hidden = data.error !== "pending" || !bot;
     root.querySelector("[data-bot-mail]").onclick = function () { toBot("mail"); };

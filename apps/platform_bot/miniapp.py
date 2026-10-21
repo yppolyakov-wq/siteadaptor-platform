@@ -147,7 +147,7 @@ def resolve(uid: int, init_lang: str = "", issued: list | None = None, grace: st
     found = _ready_links(uid)
     lang = _lang(uid, init_lang)
     if not found:
-        return _first_run(uid)
+        return _first_run(uid, lang, issued)
     if len(found) == 1:
         return handoff(found[0], uid, lang, issued, grace)
     raw = secrets.token_urlsafe(24)
@@ -166,11 +166,12 @@ def resolve(uid: int, init_lang: str = "", issued: list | None = None, grace: st
     )
 
 
-def _first_run(uid: int):
+def _first_run(uid: int, lang: str = "", issued: list | None = None):
     """T-8.30h: без готового бизнеса — не тупик. Регистрация идёт (почта не подтверждена
-    или бизнес ещё создаётся) → `pending`; иначе `unlinked` с ботом и веб-регистрацией —
-    страница даёт «Neues Geschäft anlegen» / «Ich habe schon ein Geschäft»."""
-    from . import config, handler, links, signup
+    или бизнес ещё создаётся) → `pending`; иначе `unlinked` с ботом и (T-8.30i)
+    одноразовой ссылкой на регистрацию в том же окне — «Neues Geschäft anlegen» /
+    «Ich habe schon ein Geschäft»."""
+    from . import config, links, signup, web_signup
 
     bot = config.username()
     from apps.tenants.models import Tenant
@@ -188,11 +189,17 @@ def _first_run(uid: int):
             _("Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."),
             bot=bot,
         )
+    signup_url = ""
+    if web_signup.allowed(uid):
+        raw = web_signup.issue(uid, lang)
+        if issued is not None:
+            issued.append(web_signup.key_of(raw))  # повтор initData гасит прежнюю ссылку
+        signup_url = web_signup.url_for(raw)
     return _error(
         "unlinked",
         _("Noch kein Geschäft mit diesem Telegram verbunden."),
         bot=bot,
-        web_url=handler._start_url(),
+        signup_url=signup_url,
     )
 
 
