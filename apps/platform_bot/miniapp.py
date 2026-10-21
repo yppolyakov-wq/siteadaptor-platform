@@ -147,10 +147,7 @@ def resolve(uid: int, init_lang: str = "", issued: list | None = None, grace: st
     found = _ready_links(uid)
     lang = _lang(uid, init_lang)
     if not found:
-        return _error(
-            "unlinked",
-            _("Verbinden Sie Ihr Geschäft zuerst im Bot — /hilfe zeigt, wie."),
-        )
+        return _first_run(uid)
     if len(found) == 1:
         return handoff(found[0], uid, lang, issued, grace)
     raw = secrets.token_urlsafe(24)
@@ -166,6 +163,36 @@ def resolve(uid: int, init_lang: str = "", issued: list | None = None, grace: st
             "choose": [{"id": str(link.pk), "name": link.tenant.name} for link in found],
             "ticket": raw,
         }
+    )
+
+
+def _first_run(uid: int):
+    """T-8.30h: без готового бизнеса — не тупик. Регистрация идёт (почта не подтверждена
+    или бизнес ещё создаётся) → `pending`; иначе `unlinked` с ботом и веб-регистрацией —
+    страница даёт «Neues Geschäft anlegen» / «Ich habe schon ein Geschäft»."""
+    from . import config, handler, links, signup
+
+    bot = config.username()
+    from apps.tenants.models import Tenant
+
+    creating = links.active_links(uid).exclude(
+        tenant__provisioning_status=Tenant.PROVISIONING_FAILED
+    )
+    if creating.exists() or signup.cache.get(signup._pending_key(uid)):
+        return _error(
+            "pending", _("Ihr Geschäft wird gerade angelegt — einen Moment bitte."), bot=bot
+        )
+    if links.pending_for(uid).exists():
+        return _error(
+            "pending",
+            _("Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."),
+            bot=bot,
+        )
+    return _error(
+        "unlinked",
+        _("Noch kein Geschäft mit diesem Telegram verbunden."),
+        bot=bot,
+        web_url=handler._start_url(),
     )
 
 

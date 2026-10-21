@@ -29,6 +29,9 @@ CHOOSE_CALLBACK_RE = re.compile(
 )
 START_RE = re.compile(r"^/start(?:@\w+)?(?:\s.*)?$", re.DOTALL)
 NEW_RE = re.compile(r"^/neu(?:@\w+)?\s*$", re.IGNORECASE)
+# T-8.30h: deep-link из Mini App «Mein Laden» (первый запуск) — t.me/<bot>?start=neu|mail
+START_NEW_RE = re.compile(r"^/start(?:@\w+)?\s+neu\s*$")
+START_MAIL_RE = re.compile(r"^/start(?:@\w+)?\s+mail\s*$")
 CANCEL_RE = re.compile(r"^/(?:abbrechen|cancel)(?:@\w+)?\s*$", re.IGNORECASE)
 PRIVACY_RE = re.compile(r"^/(?:datenschutz|privacy)(?:@\w+)?\s*$", re.IGNORECASE)
 ERASE_RE = re.compile(r"^/(?:daten_loeschen|delete_data)(?:@\w+)?\s*$", re.IGNORECASE)
@@ -261,7 +264,9 @@ def _private_onboarding(bot, chat) -> str:
         chat,
         _(
             "Hallo! Ich veröffentliche Aktionen für Geschäfte in Ihrer Stadt — mit eigener Seite, QR-Code und Aushang."
-        ),
+        )
+        + "\n\n"
+        + _("Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."),
         {
             "inline_keyboard": [
                 [{"text": "💬 " + _("Hier im Chat starten"), "callback_data": "ps:go"}],
@@ -279,7 +284,14 @@ def _signup_message(bot, message: dict, text: str) -> str:
     uid, chat = message["from_id"], message["chat_id"]
     if CANCEL_RE.match(text):
         return signup.cancel(bot, uid, chat)
-    if NEW_RE.match(text):
+    if START_MAIL_RE.match(text):
+        return signup.remind_pending(bot, uid, chat) or _private_onboarding(bot, chat)
+    if START_NEW_RE.match(text) and not links.active_links(uid).exists():
+        # Бизнес уже ждёт почту — напомнить, а не заводить второй до подтверждения.
+        reminded = signup.remind_pending(bot, uid, chat)
+        if reminded:
+            return reminded
+    if NEW_RE.match(text) or START_NEW_RE.match(text):
         return signup.start(bot, uid, chat, message.get("language_code") or "")
     state = signup.load(uid)
     if state is None:

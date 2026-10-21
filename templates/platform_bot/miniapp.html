@@ -39,6 +39,17 @@
     <a class="btn" data-login hidden rel="noopener">{% trans "Mit E-Mail anmelden" %}</a>
     {% comment %}T-8.30f: потерянный ответ / перезагрузка — повтор той же отправки
     (сервер пускает до трёх раз с того же IP); истёкшее окно — закрыть и открыть заново.{% endcomment %}
+    {% comment %}T-8.30h: первый запуск без бизнеса — не тупик: регистрация в чате бота,
+    подсказка для уже существующего бизнеса и регистрация в браузере.{% endcomment %}
+    <div data-unlinked hidden>
+      <button type="button" data-bot-new>{% trans "Neues Geschäft anlegen" %}</button>
+      <button type="button" class="alt" data-have-business>{% trans "Ich habe schon ein Geschäft" %}</button>
+      <p data-have-business-help hidden>{% trans "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen." %}</p>
+      <button type="button" class="alt" data-web-signup>{% trans "Im Browser registrieren" %}</button>
+    </div>
+    <div data-pending hidden>
+      <button type="button" data-bot-mail>{% trans "Zum Bot" %}</button>
+    </div>
     <button type="button" data-retry hidden>{% trans "Erneut versuchen" %}</button>
     <button type="button" class="alt" data-close hidden>{% trans "Schließen" %}</button>
   </div>
@@ -94,6 +105,25 @@ document.addEventListener("DOMContentLoaded", function () {
     if (data.login_url) { login.href = data.login_url; }
     root.querySelector("[data-retry]").hidden = !(data.retry || data.error === "replay" || data.error === "rate");
     root.querySelector("[data-close]").hidden = data.error !== "expired";
+    var bot = data.bot ? "https://t.me/" + encodeURIComponent(data.bot) : "";
+    function toBot(param) {
+      // Сначала ссылка, потом закрытие: закрытое окно ссылку теряет.
+      tg.openTelegramLink(bot + "?start=" + param);
+      tg.close();
+    }
+    var unlinked = root.querySelector("[data-unlinked]");
+    unlinked.hidden = data.error !== "unlinked";
+    root.querySelector("[data-bot-new]").hidden = !bot;
+    root.querySelector("[data-bot-new]").onclick = function () { toBot("neu"); };
+    root.querySelector("[data-have-business]").onclick = function () {
+      root.querySelector("[data-have-business-help]").hidden = false;
+    };
+    var web = root.querySelector("[data-web-signup]");
+    web.hidden = !data.web_url;
+    web.onclick = function () { tg.openLink(data.web_url); };
+    var pending = root.querySelector("[data-pending]");
+    pending.hidden = data.error !== "pending" || !bot;
+    root.querySelector("[data-bot-mail]").onclick = function () { toBot("mail"); };
     show("error");
   }
   function fail() { handle({retry: true, message: "{{ _('Keine Verbindung. Bitte erneut versuchen.')|escapejs }}"}); }

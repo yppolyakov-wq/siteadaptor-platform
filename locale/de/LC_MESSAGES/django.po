@@ -27657,8 +27657,6 @@ msgstr "Mein Laden — Aktionen, Angebot und Sichtbarkeit direkt in Telegram"
 msgid "Mit E-Mail anmelden"
 msgstr "Mit E-Mail anmelden"
 
-msgid "Verbinden Sie Ihr Geschäft zuerst im Bot — /hilfe zeigt, wie."
-msgstr "Verbinden Sie Ihr Geschäft zuerst im Bot — /hilfe zeigt, wie."
 
 msgid "Welches Geschäft möchten Sie öffnen?"
 msgstr "Welches Geschäft möchten Sie öffnen?"
@@ -27713,3 +27711,27 @@ msgstr "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser ode
 #: apps/promotions/views.py
 msgid "Gerade schon eingelöst — bitte den aktuellen Stand prüfen."
 msgstr "Gerade schon eingelöst — bitte den aktuellen Stand prüfen."
+
+#: apps/platform_bot
+msgid "Noch kein Geschäft mit diesem Telegram verbunden."
+msgstr "Noch kein Geschäft mit diesem Telegram verbunden."
+
+#: apps/platform_bot
+msgid "Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."
+msgstr "Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."
+
+#: apps/platform_bot
+msgid "Ich habe schon ein Geschäft"
+msgstr "Ich habe schon ein Geschäft"
+
+#: apps/platform_bot
+msgid "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen."
+msgstr "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen."
+
+#: apps/platform_bot
+msgid "Im Browser registrieren"
+msgstr "Im Browser registrieren"
+
+#: apps/platform_bot
+msgid "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
+msgstr "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
