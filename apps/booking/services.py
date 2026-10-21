@@ -188,6 +188,9 @@ def book(
         billing_vat_id=(billing_vat_id or "").strip()[:30],
         payment_due_at=payment_due_at,
     )
+    from apps.crm.companies import link_deal
+
+    link_deal(booking)  # CO-2c: фирма → справочник по USt-IdNr
     # MX-2e: трекеры опций записи (пул/склад) — в той же atomic; book_many
     # проходит здесь же (extras несёт только первая бронь группы).
     from apps.core import option_trackers

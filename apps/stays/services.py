@@ -316,6 +316,9 @@ def book_stay(
         billing_vat_id=(billing_vat_id or "").strip()[:30],
         payment_due_at=payment_due_at,
     )
+    from apps.crm.companies import link_deal
+
+    link_deal(booking)  # CO-2c: фирма → справочник по USt-IdNr
     # MX-2e: трекеры опций — пул проверяется, склад списывается; исключение
     # откатывает всю бронь (паттерн OutOfStock).
     from apps.core import option_trackers

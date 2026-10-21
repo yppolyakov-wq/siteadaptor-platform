@@ -325,6 +325,9 @@ def create_order(
         # enqueue_order_email ремапит его на unverbindlich-текст.
         reserve_expires_at=reserve_expires_at,
     )
+    from apps.crm.companies import link_deal
+
+    link_deal(order)  # CO-2c: фирма → справочник по USt-IdNr
     total = Decimal("0")
     for idx, (product, variant, qty, options) in enumerate(norm):
         # DecimalField не приводит атрибут у не перезагруженных из БД
