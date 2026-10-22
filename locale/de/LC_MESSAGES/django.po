@@ -27813,3 +27813,43 @@ msgstr ""
 
 msgid "Zu viele Anmeldeversuche. Bitte in ein paar Minuten erneut."
 msgstr ""
+
+#: KA-H2
+msgid "The IBAN is not valid — the bank details were not saved."
+msgstr "Die IBAN ist ungültig – die Bankverbindung wurde nicht gespeichert."
+
+#: KA-H2
+msgid "Only the owner can change the bank details."
+msgstr "Nur die Inhaberin oder der Inhaber kann die Bankverbindung ändern."
+
+#: KA-H2
+msgid "Bankverbindung geändert"
+msgstr "Bankverbindung geändert"
+
+#: KA-H2
+msgid "Die Bankverbindung für Überweisungen (Vorkasse) wurde geändert."
+msgstr "Die Bankverbindung für Überweisungen (Vorkasse) wurde geändert."
+
+#: KA-H2
+msgid "Vorher"
+msgstr "Vorher"
+
+#: KA-H2
+msgid "Jetzt"
+msgstr "Jetzt"
+
+#: KA-H2
+msgid "Geändert von"
+msgstr "Geändert von"
+
+#: KA-H2
+msgid "Zeitpunkt"
+msgstr "Zeitpunkt"
+
+#: KA-H2
+msgid "Ihre Kundinnen und Kunden überweisen ab jetzt auf dieses Konto."
+msgstr "Ihre Kundinnen und Kunden überweisen ab jetzt auf dieses Konto."
+
+#: KA-H2
+msgid "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die Bankverbindung."
+msgstr "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die Bankverbindung."

@@ -34,6 +34,7 @@
       <input type="checkbox" name="vorkasse_enabled" {% if vorkasse_enabled %}checked{% endif %}>
       {% trans "Vorkasse (bank transfer) — customer pays in advance to your account" %}
     </label>
+    {% if can_edit_bank %}
     <div class="grid sm:grid-cols-3 gap-3">
       <div>
         <label class="block text-xs text-gray-500 mb-1">{% trans "Account holder" %}</label>
@@ -48,6 +49,14 @@
         <input name="bank_bic" type="text" value="{{ bank_bic }}" maxlength="11" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase">
       </div>
     </div>
+    {% else %}
+    <dl class="grid sm:grid-cols-3 gap-3 text-sm" data-bank-readonly>
+      <div><dt class="text-xs text-gray-500 mb-1">{% trans "Account holder" %}</dt><dd>{{ bank_holder|default:"–" }}</dd></div>
+      <div><dt class="text-xs text-gray-500 mb-1">IBAN</dt><dd class="font-mono">{{ bank_iban_masked|default:"–" }}</dd></div>
+      <div><dt class="text-xs text-gray-500 mb-1">BIC</dt><dd>{{ bank_bic|default:"–" }}</dd></div>
+    </dl>
+    <p class="text-xs text-gray-500">{% trans "Only the owner can change the bank details." %}</p>
+    {% endif %}
     {% if vorkasse_enabled and not bank_iban %}
       <p class="text-xs text-amber-700">{% trans "Enter your IBAN — without it Vorkasse is not offered at checkout." %}</p>
     {% endif %}

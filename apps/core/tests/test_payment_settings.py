@@ -27,7 +27,12 @@ def _req(method, user, tenant, data=None):
 
 
 def _user(n):
-    return get_user_model().objects.create_user(n, f"{n}@test.de", "pw12345678")
+    # KA-H2: банковские реквизиты меняет только владелец — экран открывает владелец.
+    from apps.core.models import Membership
+
+    user = get_user_model().objects.create_user(n, f"{n}@test.de", "pw12345678")
+    Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
+    return user
 
 
 def test_renders_orders_sections(settings):

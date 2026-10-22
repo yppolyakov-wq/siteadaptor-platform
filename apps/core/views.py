@@ -393,8 +393,9 @@ def setup_view(request):
             onboarding.advance(tenant)
             return redirect("setup")
         handler = setup_steps.HANDLERS[onboarding.get_state(tenant)["step"]]
-        if handler.post:
-            handler.post(request)
+        # KA-H2: post-хендлер вправе вернуть False — ошибка ввода, слайд не листаем.
+        if handler.post and handler.post(request) is False and action != "live":
+            return redirect("setup")
         # AB3-v2 «живое превью»: action=live сохраняет поля текущего шага БЕЗ перехода
         # дальше (debounced fetch при вводе) — iframe-превью сразу перечитывает витрину.
         if action == "live":
@@ -1127,7 +1128,7 @@ def _gbp_hours_link(user) -> bool:
     return is_owner(user)
 
 
-def save_payment_settings(request) -> None:
+def save_payment_settings(request) -> list[str]:
     """W4-3: POST-диспетчер оплаты/доставки — секция сохраняется ТОЛЬКО при своём
     скрытом сентинеле `sec_*` (рендерится лишь когда секция показана → скрытая секция
     не затирает свои поля, guard потери). ОБЩИЙ для экрана `payment_settings` и слайда
@@ -1145,13 +1146,15 @@ def save_payment_settings(request) -> None:
         save_stripe_methods(tenant, request)
     if request.POST.get("sec_prepay"):
         save_prepay(tenant, request)
+    errors: list[str] = []
     if request.POST.get("sec_vorkasse"):
-        save_vorkasse(tenant, request)
+        errors += save_vorkasse(tenant, request)
     if request.POST.get("sec_delivery"):
         save_delivery(tenant, request)
     # SH-23: счёт юрлицу (Kauf auf Rechnung) — свой сентинел.
     if request.POST.get("sec_invoice"):
         save_invoice_b2b(tenant, request)
+    return errors
 
 
 def payment_settings_context(request) -> dict:
@@ -1159,7 +1162,9 @@ def payment_settings_context(request) -> dict:
     и слайда мастера «Zahlung» (партиал `_payment_fields.html`/`_payment_connect.html`)."""
     from apps.billing import connect
     from apps.billing.views import STRIPE_METHOD_CHOICES
+    from apps.core import iban as iban_mod
     from apps.core import modules as _mod
+    from apps.core.roles import is_owner
     from apps.orders.views import _zone_rows
 
     tenant = request.tenant
@@ -1185,6 +1190,9 @@ def payment_settings_context(request) -> dict:
         "vorkasse_enabled": tenant.vorkasse_enabled,
         "bank_holder": tenant.bank_holder,
         "bank_iban": tenant.bank_iban,
+        # KA-H2: реквизиты правит только владелец; сотрудник видит маску.
+        "can_edit_bank": is_owner(request.user),
+        "bank_iban_masked": iban_mod.mask_iban(tenant.bank_iban),
         "bank_bic": tenant.bank_bic,
         # Abholung/Prepay.
         "orders_prepay": tenant.orders_prepay,
@@ -1214,8 +1222,11 @@ def payment_settings(request):
     в слайде мастера «Zahlung». Старые экраны billing-payments/orders-settings живы.
     """
     if request.method == "POST":
-        save_payment_settings(request)
-        messages.success(request, _("Gespeichert."))
+        errors = save_payment_settings(request)
+        for error in errors:
+            messages.error(request, error)
+        if not errors:
+            messages.success(request, _("Gespeichert."))
         return redirect("payment-settings")
     return render(
         request,

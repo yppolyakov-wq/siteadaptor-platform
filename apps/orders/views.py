@@ -598,17 +598,45 @@ def save_delivery(tenant, request) -> None:
     )
 
 
-def save_vorkasse(tenant, request) -> None:
+def save_vorkasse(tenant, request) -> list[str]:
     """W4-3: сохранить Vorkasse/Überweisung + банковские реквизиты. IBAN нормализуем
     (без пробелов, верхний регистр); включение без IBAN не активирует способ на витрине
-    (guard в orders.payments.available_methods). Извлечено из order_settings 1:1."""
+    (guard в orders.payments.available_methods). Извлечено из order_settings 1:1.
+
+    KA-H2: реквизиты, на которые клиенты переводят деньги, меняет ТОЛЬКО владелец
+    (сотрудник — лишь тумблер способа оплаты); IBAN проверяется по mod-97; при смене
+    владельцу уходит письмо. Возвращает тексты ошибок для показа."""
+    from django.db import transaction
+
+    from apps.core import iban
+    from apps.core.roles import is_owner
+
+    errors: list[str] = []
+    fields = ["vorkasse_enabled", "updated_at"]
     tenant.vorkasse_enabled = bool(request.POST.get("vorkasse_enabled"))
-    tenant.bank_holder = request.POST.get("bank_holder", "").strip()[:120]
-    tenant.bank_iban = request.POST.get("bank_iban", "").replace(" ", "").upper()[:34]
-    tenant.bank_bic = request.POST.get("bank_bic", "").replace(" ", "").upper()[:11]
-    tenant.save(
-        update_fields=["vorkasse_enabled", "bank_holder", "bank_iban", "bank_bic", "updated_at"]
-    )
+    old = (tenant.bank_holder, tenant.bank_iban, tenant.bank_bic)
+    new = old
+    if is_owner(request.user):
+        new_iban = iban.normalize_iban(request.POST.get("bank_iban", ""))
+        if new_iban and not iban.is_valid_iban(new_iban):
+            errors.append(_("The IBAN is not valid — the bank details were not saved."))
+        else:
+            new = (
+                request.POST.get("bank_holder", "").strip()[:120],
+                new_iban,
+                request.POST.get("bank_bic", "").replace(" ", "").upper()[:11],
+            )
+            tenant.bank_holder, tenant.bank_iban, tenant.bank_bic = new
+            fields += ["bank_holder", "bank_iban", "bank_bic"]
+    elif any(key in request.POST for key in ("bank_holder", "bank_iban", "bank_bic")):
+        errors.append(_("Only the owner can change the bank details."))
+    tenant.save(update_fields=fields)
+    if new != old:
+        from apps.core.bank_notify import notify_bank_change
+
+        actor = getattr(request.user, "email", "") or getattr(request.user, "username", "")
+        transaction.on_commit(lambda: notify_bank_change(tenant, old, new, actor))
+    return errors
 
 
 def save_invoice_b2b(tenant, request) -> None:

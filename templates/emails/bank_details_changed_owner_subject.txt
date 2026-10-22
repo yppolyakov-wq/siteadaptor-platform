@@ -1,0 +1,1 @@
+{% load i18n %}{% trans "Bankverbindung geändert" %}{% if business %} – {{ business }}{% endif %}

@@ -27976,3 +27976,43 @@ msgstr "Відкрити сканер Telegram"
 
 msgid "Zu viele Anmeldeversuche. Bitte in ein paar Minuten erneut."
 msgstr "Забагато спроб входу. Спробуйте за кілька хвилин."
+
+#: KA-H2
+msgid "The IBAN is not valid — the bank details were not saved."
+msgstr "IBAN недійсний — банківські реквізити не збережено."
+
+#: KA-H2
+msgid "Only the owner can change the bank details."
+msgstr "Банківські реквізити може змінити лише власник."
+
+#: KA-H2
+msgid "Bankverbindung geändert"
+msgstr "Банківські реквізити змінено"
+
+#: KA-H2
+msgid "Die Bankverbindung für Überweisungen (Vorkasse) wurde geändert."
+msgstr "Банківські реквізити для переказів (передоплата) змінено."
+
+#: KA-H2
+msgid "Vorher"
+msgstr "Було"
+
+#: KA-H2
+msgid "Jetzt"
+msgstr "Стало"
+
+#: KA-H2
+msgid "Geändert von"
+msgstr "Хто змінив"
+
+#: KA-H2
+msgid "Zeitpunkt"
+msgstr "Час"
+
+#: KA-H2
+msgid "Ihre Kundinnen und Kunden überweisen ab jetzt auf dieses Konto."
+msgstr "Відтепер ваші клієнти переказуватимуть гроші на цей рахунок."
+
+#: KA-H2
+msgid "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die Bankverbindung."
+msgstr "Якщо це були не ви: негайно змініть пароль і перевірте реквізити."

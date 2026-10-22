@@ -27863,3 +27863,43 @@ msgstr "Telegram tarayıcısını aç"
 
 msgid "Zu viele Anmeldeversuche. Bitte in ein paar Minuten erneut."
 msgstr "Çok fazla giriş denemesi. Lütfen birkaç dakika sonra tekrar deneyin."
+
+#: KA-H2
+msgid "The IBAN is not valid — the bank details were not saved."
+msgstr "IBAN geçersiz — banka bilgileri kaydedilmedi."
+
+#: KA-H2
+msgid "Only the owner can change the bank details."
+msgstr "Banka bilgilerini yalnızca işletme sahibi değiştirebilir."
+
+#: KA-H2
+msgid "Bankverbindung geändert"
+msgstr "Banka bilgileri değiştirildi"
+
+#: KA-H2
+msgid "Die Bankverbindung für Überweisungen (Vorkasse) wurde geändert."
+msgstr "Havale (ön ödeme) için banka bilgileri değiştirildi."
+
+#: KA-H2
+msgid "Vorher"
+msgstr "Önce"
+
+#: KA-H2
+msgid "Jetzt"
+msgstr "Şimdi"
+
+#: KA-H2
+msgid "Geändert von"
+msgstr "Değiştiren"
+
+#: KA-H2
+msgid "Zeitpunkt"
+msgstr "Zaman"
+
+#: KA-H2
+msgid "Ihre Kundinnen und Kunden überweisen ab jetzt auf dieses Konto."
+msgstr "Müşterileriniz bundan sonra bu hesaba havale yapacak."
+
+#: KA-H2
+msgid "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die Bankverbindung."
+msgstr "Bunu siz yapmadıysanız: şifrenizi hemen değiştirin ve banka bilgilerini kontrol edin."

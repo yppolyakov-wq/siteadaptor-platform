@@ -16591,7 +16591,7 @@ ONLINE_SHOP = DemoKit(
     payments={
         "vorkasse": True,
         "bank_holder": "Weitwerk Handels GmbH",
-        "bank_iban": "DE02 3005 0110 0000 1234 56",
+        "bank_iban": "DE02 1203 0000 0000 2020 51",
         "bank_bic": "DUSSDEDDXXX",
         "invoice_b2b": True,
     },

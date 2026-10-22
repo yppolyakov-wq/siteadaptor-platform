@@ -343,9 +343,14 @@ def _post_payment(request):
     # AB6.2-payment: сохранить оплату/доставку общим диспетчером (те же sec_*-гейты, что
     # у экрана payment_settings) — секция не затирается без своего сентинела. Сохранение
     # только на «Weiter» (payment-слайд не live — не писать IBAN на каждый ввод).
+    from django.contrib import messages
+
     from apps.core.views import save_payment_settings
 
-    save_payment_settings(request)
+    errors = save_payment_settings(request)
+    for error in errors:
+        messages.error(request, error)
+    return False if errors else None
 
 
 def _ctx_payment(request):

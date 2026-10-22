@@ -230,6 +230,9 @@ def test_vorkasse_settings_save_and_normalize():
         }
     )
     request.tenant = tenant
+    from apps.core.models import Membership
+
+    Membership.objects.create(user=request.user, role=Membership.ROLE_OWNER)  # KA-H2
     # W7a: легаси-ветка vorkasse в order_settings удалена — семантику сохранения
     # держит helper (его зовёт единый экран «Zahlung & Versand»).
     views.save_vorkasse(tenant, request)
