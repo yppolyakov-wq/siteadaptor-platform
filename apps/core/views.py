@@ -4347,6 +4347,7 @@ def modules_view(request):
 
 
 @login_required
+@require_POST
 def set_presence_view(request):
     """LS-2: режим присутствия «Jetzt erreichbar» (auto/on/off).
 
@@ -5477,6 +5478,8 @@ def status_manager(request, kind):
     return render(request, "tenant/status_manager.html", ctx)
 
 
+@login_required
+@require_POST
 def status_manager_save(request, kind):
     """FB-3 Вариант B Phase 5 (+SM-3): сохранить свои статусы (def_from_role) + переходы.
     Targeted-write status_defs/status_edges; normalize + presence-minimal. FSM built-in

@@ -14,6 +14,7 @@ from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 
 from .models import RevenueEntry
 from .services import record_revenue
@@ -340,6 +341,7 @@ def bank_import(request):
 
 
 @login_required
+@require_POST
 def invoice_mahnung(request, pk):
     """ERP-3 Mahnwesen v1: ступень напоминания по выставленному счёту.
 
