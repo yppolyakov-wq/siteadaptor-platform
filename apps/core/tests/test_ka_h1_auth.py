@@ -123,24 +123,22 @@ def _walk(resolver, prefix=""):
             yield prefix + str(p.pattern), p
 
 
-def _guarded(func, seen=None):
-    """Обёрнута ли функция проверкой входа (`login_required` → `user_passes_test`)."""
-    seen = seen if seen is not None else set()
-    if id(func) in seen:
-        return False
-    seen.add(id(func))
-    code = getattr(func, "__code__", None)
-    if code and ("is_authenticated" in code.co_names or "redirect_to_login" in code.co_names):
-        return True
-    for cell in getattr(func, "__closure__", None) or ():
-        try:
-            value = cell.cell_contents
-        except ValueError:  # pragma: no cover — пустая ячейка
-            continue
-        if callable(value) and _guarded(value, seen):
-            return True
-    wrapped = getattr(func, "__wrapped__", None)
-    return bool(wrapped and _guarded(wrapped, seen))
+def _guarded(func):
+    """Обёрнута ли функция `login_required`: в цепочке `__wrapped__` есть обёртка
+    `user_passes_test`, чья проверка — `is_authenticated`.
+
+    Смотрим только цепочку обёрток (и `test_func` самой обёртки), не произвольные
+    замыкания: вьюха, которая лишь зовёт хелпер с `is_authenticated`, защищённой
+    не считается."""
+    while func is not None:
+        code = getattr(func, "__code__", None)
+        if code and "test_func" in code.co_freevars and func.__closure__:
+            cell = func.__closure__[code.co_freevars.index("test_func")]
+            test_code = getattr(cell.cell_contents, "__code__", None)
+            if test_code and "is_authenticated" in test_code.co_names:
+                return True
+        func = getattr(func, "__wrapped__", None)
+    return False
 
 
 def test_guard_detector_sees_login_required():
@@ -156,6 +154,11 @@ def test_guard_detector_sees_login_required():
     assert _guarded(require_POST(login_required(bare)))
     assert _guarded(login_required(require_POST(bare)))
 
+    def calls_helper(request):  # хелпер с is_authenticated — не защита вьюхи
+        return request.user.is_authenticated
+
+    assert not _guarded(calls_helper)
+
 
 def test_every_cabinet_view_requires_login():
     naked = []
@@ -163,7 +166,15 @@ def test_every_cabinet_view_requires_login():
         if not path.startswith(CABINET_PREFIXES):
             continue
         callback = pattern.callback
-        if getattr(callback, "view_class", None):  # RedirectView и т.п. — без данных
+        view_class = getattr(callback, "view_class", None)
+        if view_class is not None:
+            from django.contrib.auth.mixins import LoginRequiredMixin
+            from django.views.generic import RedirectView
+
+            # Класс-вьюха: только редирект без данных или с LoginRequiredMixin.
+            if issubclass(view_class, (RedirectView, LoginRequiredMixin)):
+                continue
+            naked.append(f"{path} ({pattern.name}) — класс без LoginRequiredMixin")
             continue
         if pattern.name in PUBLIC_UNDER_CABINET:
             continue
