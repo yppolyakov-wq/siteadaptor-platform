@@ -493,9 +493,10 @@ def stay_action(request, pk):
             # MX-3: оплаченная бронь + изменившийся итог — владельцу нужна
             # дельта (доплата/возврат вручную; авто-чарджа нет осознанно).
             booking.refresh_from_db()
-            if booking.payment_state == StayBooking.PAYMENT_PAID and (
-                booking.total_cents != old_total
-            ):
+            if booking.payment_state in (
+                StayBooking.PAYMENT_PAID,
+                StayBooking.PAYMENT_DEPOSIT,
+            ) and (booking.total_cents != old_total):
                 diff = (booking.total_cents - old_total) / 100
                 messages.warning(
                     request,
@@ -697,7 +698,7 @@ def _can_delete_booking(booking) -> bool:
     деньгами/документами не удаляются — только отмена, запись остаётся)."""
     return (
         booking.source_channel == "manual"
-        and booking.payment_state != StayBooking.PAYMENT_PAID
+        and booking.payment_state not in (StayBooking.PAYMENT_PAID, StayBooking.PAYMENT_DEPOSIT)
         and not booking.stripe_payment_intent
         and booking.invoice_id is None
     )

@@ -27927,3 +27927,18 @@ msgstr "Betrag (€)"
 #: KA-H9
 msgid "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
 msgstr "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
+
+#: KA-H6
+#, python-format
+msgid "Anzahlung bezahlt · Rest %(eur)s € offen"
+msgstr "Anzahlung bezahlt · Rest %(eur)s € offen"
+
+#: KA-H6
+#, python-format
+msgid "Restbetrag kassieren (%(eur)s €)"
+msgstr "Restbetrag kassieren (%(eur)s €)"
+
+#: KA-H6
+#, python-format
+msgid "Restbetrag vor Ort: %(eur)s €"
+msgstr "Restbetrag vor Ort: %(eur)s €"

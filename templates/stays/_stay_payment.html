@@ -6,6 +6,7 @@
     {% if b.deposit_cents %}{% trans "Anzahlung" %}: {{ b.deposit_eur|floatformat:2 }} € · {% endif %}
     {% trans "Zahlung" %}:
     {% if b.payment_state == 'paid' %}<span class="text-emerald-700 font-medium">✓ {% trans "bezahlt" %}</span>
+    {% elif b.payment_state == 'deposit' %}<span class="text-amber-700 font-medium">{% blocktrans with eur=b.balance_eur|floatformat:2 %}Anzahlung bezahlt · Rest {{ eur }} € offen{% endblocktrans %}</span>
     {% elif b.payment_state == 'pending' %}<span class="text-amber-700 font-medium">{% trans "ausstehend" %}</span>
     {% elif b.payment_state == 'refunded' %}<span class="text-gray-500">{% trans "erstattet" %}</span>
     {% else %}<span class="text-gray-500">{% trans "vor Ort" %}</span>{% endif %}
@@ -15,6 +16,6 @@
   <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="mt-2">
     {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
     <input type="hidden" name="action" value="mark_paid">
-    <button type="submit" class="text-sm border border-emerald-300 text-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-50">💶 {% trans "Als bezahlt markieren" %}</button>
+    <button type="submit" class="text-sm border border-emerald-300 text-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-50">💶 {% if b.payment_state == 'deposit' %}{% blocktrans with eur=b.balance_eur|floatformat:2 %}Restbetrag kassieren ({{ eur }} €){% endblocktrans %}{% else %}{% trans "Als bezahlt markieren" %}{% endif %}</button>
   </form>
   {% endif %}

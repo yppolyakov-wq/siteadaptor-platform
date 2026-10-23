@@ -21,7 +21,7 @@
       <p class="mt-4 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "This booking can no longer be cancelled online. Please contact us." %}</p>
     {% else %}
       <div class="mt-4 text-sm rounded-lg px-3 py-2 {% if state.free %}bg-emerald-50 text-emerald-800{% else %}bg-amber-50 text-amber-800{% endif %}">
-        {% if state.free %}{% trans "Free cancellation — no charge." %}{% if booking.payment_state == 'paid' %} {% trans "Your deposit will be refunded." %}{% endif %}
+        {% if state.free %}{% trans "Free cancellation — no charge." %}{% if booking.payment_state == 'paid' or booking.payment_state == 'deposit' %} {% trans "Your deposit will be refunded." %}{% endif %}
         {% else %}{% trans "This rate is non-refundable — cancelling will not refund any payment." %}{% endif %}
       </div>
       <form method="post" class="mt-5">

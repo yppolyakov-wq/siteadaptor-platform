@@ -11,6 +11,7 @@
 
 {% block deal_head_badges %}
   {% if b.payment_state == 'paid' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">💶 {% trans "Paid" %}</span>
+  {% elif b.payment_state == 'deposit' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">{% blocktrans with eur=b.balance_eur|floatformat:2 %}Anzahlung bezahlt · Rest {{ eur }} € offen{% endblocktrans %}</span>
   {% elif b.payment_state == 'pending' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">{% trans "Deposit pending" %}</span>
   {% elif b.payment_state == 'refunded' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">{% trans "Refunded" %}</span>{% endif %}
   {% if b.group_code %}<span class="text-xs text-gray-400">🔗 {% trans "Part of a multi-slot booking" %}</span>{% endif %}
@@ -89,6 +90,7 @@ Rabatt → Netto → MwSt. → Gesamt); свой набор строк у каж
 {% block deal_payment %}
   <p class="text-sm text-gray-600">{% trans "Status" %}:
     {% if b.payment_state == 'paid' %}{% trans "Paid" %}
+    {% elif b.payment_state == 'deposit' %}{% blocktrans with eur=b.balance_eur|floatformat:2 %}Anzahlung bezahlt · Rest {{ eur }} € offen{% endblocktrans %}
     {% elif b.payment_state == 'pending' %}{% trans "Deposit pending" %}
     {% elif b.payment_state == 'refunded' %}{% trans "Refunded" %}
     {% else %}{% trans "Vor Ort zu zahlen" %}{% endif %}

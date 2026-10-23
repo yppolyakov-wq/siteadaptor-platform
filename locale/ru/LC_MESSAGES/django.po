@@ -28110,3 +28110,18 @@ msgstr "Сумма (€)"
 #: KA-H9
 msgid "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
 msgstr "На эти контактные данные купон уже выдан. Если указан e-mail, мы отправили купон туда."
+
+#: KA-H6
+#, python-format
+msgid "Anzahlung bezahlt · Rest %(eur)s € offen"
+msgstr "Предоплата внесена · остаток %(eur)s € не оплачен"
+
+#: KA-H6
+#, python-format
+msgid "Restbetrag kassieren (%(eur)s €)"
+msgstr "Получить остаток (%(eur)s €)"
+
+#: KA-H6
+#, python-format
+msgid "Restbetrag vor Ort: %(eur)s €"
+msgstr "Остаток на месте: %(eur)s €"

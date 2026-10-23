@@ -278,7 +278,10 @@ def booking_action(request, pk):
         booking.extras = new_snap
         booking.save(update_fields=["extras", "updated_at"])
         messages.success(request, _("Booking updated."))
-        if booking.payment_state == Booking.PAYMENT_PAID and booking.total_cents != old_total:
+        if (
+            booking.payment_state in (Booking.PAYMENT_PAID, Booking.PAYMENT_DEPOSIT)
+            and booking.total_cents != old_total
+        ):
             diff = (booking.total_cents - old_total) / 100
             messages.warning(
                 request,

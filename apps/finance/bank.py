@@ -151,8 +151,8 @@ def import_rows(rows) -> int:
 # месте (не долг), поэтому в открытые не идёт; у заказа unpaid — идёт.
 _OPEN_PAYMENT_STATES = {
     "order": ("unpaid",),
-    "booking": ("pending",),
-    "stay": ("pending",),
+    "booking": ("pending", "deposit"),
+    "stay": ("pending", "deposit"),
     "ticket": ("pending", "deposit"),
 }
 
@@ -177,6 +177,14 @@ def open_items(tenant) -> list[dict]:
             t = transactions.transaction_for(kind, obj)
             if not t.amount_value:
                 continue
+            amount = t.amount_value
+            if getattr(obj, "payment_state", "") == "deposit":
+                # KA-H6: Anzahlung уже пришла — ждём ОСТАТОК (иначе банк не сопоставит).
+                from decimal import Decimal
+
+                amount = Decimal(getattr(obj, "balance_cents", 0) or 0) / 100
+                if not amount:
+                    continue
             out.append(
                 {
                     "kind": kind,
@@ -184,7 +192,7 @@ def open_items(tenant) -> list[dict]:
                     "obj": obj,
                     "code": getattr(obj, "reference_code", str(obj.pk)),
                     "title": t.title,
-                    "amount": t.amount_value,
+                    "amount": amount,
                     "customer": getattr(obj, "customer", None),
                     "age_days": (today - obj.created_at.date()).days,
                     "manage_url": t.manage_url,

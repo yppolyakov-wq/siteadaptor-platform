@@ -44,8 +44,15 @@ def mark_deposit_paid(*, tenant_schema: str, booking_id: str, payment_intent: st
         if booking is None:
             return False
         fields = []
-        if booking.payment_state != Booking.PAYMENT_PAID:
-            booking.payment_state = Booking.PAYMENT_PAID
+        # KA-H6: Anzahlung меньше итога → «deposit» (остаток открыт), иначе «paid».
+        # Уже полностью оплаченную (стойка) бронь вебхук не понижает.
+        target = (
+            Booking.PAYMENT_DEPOSIT
+            if 0 < booking.deposit_cents < booking.total_cents
+            else Booking.PAYMENT_PAID
+        )
+        if booking.payment_state not in (target, Booking.PAYMENT_PAID):
+            booking.payment_state = target
             fields.append("payment_state")
         if payment_intent and booking.stripe_payment_intent != payment_intent:
             booking.stripe_payment_intent = payment_intent

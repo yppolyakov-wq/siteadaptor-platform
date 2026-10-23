@@ -29,8 +29,8 @@ PAID_STATES = {
 }
 OPEN_STATES = {
     "order": ("unpaid",),
-    "booking": ("pending",),
-    "stay": ("pending",),
+    "booking": ("pending", "deposit"),
+    "stay": ("pending", "deposit"),
     "ticket": ("pending", "deposit"),
 }
 REFUNDED_STATES = {k: ("refunded",) for k in PAID_STATES}

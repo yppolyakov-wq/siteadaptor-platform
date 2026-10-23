@@ -387,10 +387,14 @@ class StayBooking(TimestampedModel):
     PAYMENT_NONE = "none"
     PAYMENT_PENDING = "pending"
     PAYMENT_PAID = "paid"
+    # KA-H6: онлайн оплачена только Anzahlung (deposit < итога) — остаток открыт.
+    # Раньше вебхук ставил «paid», и остаток пропадал из виду (кнопка оплаты гасла).
+    PAYMENT_DEPOSIT = "deposit"
     PAYMENT_REFUNDED = "refunded"
     PAYMENT_STATES = [
         (PAYMENT_NONE, _("None")),
         (PAYMENT_PENDING, _("Pending")),
+        (PAYMENT_DEPOSIT, _("Deposit paid")),
         (PAYMENT_PAID, _("Paid")),
         (PAYMENT_REFUNDED, _("Refunded")),
     ]
@@ -480,6 +484,19 @@ class StayBooking(TimestampedModel):
         from decimal import Decimal
 
         return Decimal(self.deposit_cents) / 100
+
+    @property
+    def balance_cents(self) -> int:
+        """KA-H6: остаток после онлайн-Anzahlung (0, если оплачено целиком/не платили)."""
+        if self.payment_state != self.PAYMENT_DEPOSIT:
+            return 0
+        return max(0, int(self.total_cents) - int(self.deposit_cents))
+
+    @property
+    def balance_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.balance_cents) / 100
 
 
 class ICalSource(TimestampedModel):

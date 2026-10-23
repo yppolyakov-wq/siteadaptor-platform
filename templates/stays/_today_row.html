@@ -6,6 +6,7 @@
   <div class="flex items-center justify-between gap-2">
     <a href="{% url 'stays:calendar' %}?von={{ b.arrival|date:'Y-m-d' }}&amp;buchung={{ b.pk }}" class="min-w-0 font-medium text-sm truncate hover:underline">{{ b.customer.name|default:b.customer }}</a>
     {% if b.payment_state == 'paid' %}<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 shrink-0">✓ {% trans "bezahlt" %}</span>
+    {% elif b.payment_state == 'deposit' %}<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 shrink-0">{% blocktrans with eur=b.balance_eur|floatformat:2 %}Anzahlung bezahlt · Rest {{ eur }} € offen{% endblocktrans %}</span>
     {% elif b.payment_state == 'refunded' %}<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 shrink-0">{% trans "erstattet" %}</span>
     {% else %}<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 shrink-0">{% trans "offen" %}</span>{% endif %}
   </div>
