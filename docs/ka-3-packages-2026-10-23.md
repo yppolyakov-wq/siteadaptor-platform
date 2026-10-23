@@ -1,6 +1,7 @@
 # KA-3 · Пакеты: какие экраны и доступы у каждой ступени (спецификация для T-8.32a–e) — 2026-10-23
 
-> Документ на согласование. Кода нет. Основа: концепция `t8-32-tiers-data-ai-setup-concept-2026-10-22.md`
+> **Решения владельца приняты 2026-10-23 (§9).** Кода нет; реализация — после KA-11.
+> Основа: концепция `t8-32-tiers-data-ai-setup-concept-2026-10-22.md`
 > (решения §8, §10), программа `ka-cabinet-audit-program-2026-10-22.md`, `ka-0-inventory-2026-10-22.md`,
 > `ka-1-standards-2026-10-23.md`, `ka-2-market-2026-10-23.md` §3(c). Сверено с кодом на 2026-10-23
 > (`apps/core/modules.py`, `lite_cabinet.py`, `tg_login.py`, `storefront_profile.py`, `nav_registry.py`,
@@ -59,7 +60,7 @@ Core-модули через `is_module_active` закрыть нельзя (`mo
 
 | Пакет | Ключ | Опциональные модули | Области | Профиль витрины | Онлайн-продажа |
 |---|---|---|---|---|---|
-| **Aktionen** | `aktionen` | `promotions`, `inbox`, `publishing`, `telegram` | `lite`, `legal`, `product_edit` (только из акции, §2.3) | `aktionen` (есть) | нет |
+| **Aktionen** | `aktionen` | `promotions`, `inbox`, `jobs` (заявки, В-2), `publishing`, `telegram` | `lite`, `legal`, `product_edit` (только из акции, §2.3) | `aktionen` (есть) | нет |
 | **Eintrag** | `eintrag` | как Aktionen | + `site_import` + `catalog_admin` (импортированные позиции, без CSV) | `eintrag` (есть) | нет, позиции ведут на сайт владельца |
 | **Website-Vitrine** | `website` | + `reviews`, `crm`, `blog`, `jobs`, `analytics`; `booking`/`stays`/`events` **как контент** | всё, кроме `stock`, `finance_*`; `sales_board` — заявки и резервы | **новый `vitrine`** | никогда (гейт закрыт навсегда, §5) |
 | **Laden** | `laden` | все подходящие направлению (`recommended_for` ∪ выбор владельца) | все; `stock`/`finance_erp` — Profi (§2.4) | обычная витрина | да, после гейта |
@@ -76,13 +77,13 @@ Core-модули через `is_module_active` закрыть нельзя (`mo
 - **карточку товара править можно, но только из акции** (`product_edit` в белом списке);
   `catalog:product-create` закрыт — товар появляется только из формы акции;
 - данные не теряются: на ступени выше те же товары сразу видны в «Sortiment».
-Расходится с макетом T-8.31 (там «Angebot» есть) → вопрос **В-1**.
+**В-1 решено:** «Angebot» из меню Aktionen убирается, появляется с Eintrag.
 
 ### 2.4. Планы и лимиты (цены скрыты, пока `PRICING_PUBLIC=False`)
 
 | План | Кому | Активных акций | Товаров | Импорт с сайта | ИИ-действий/мес | Profi |
 |---|---|---|---|---|---|---|
-| `test` | все сейчас | 5 | 50 | 50 | ~20 (значение — владелец) | см. В-3 |
+| `test` | все без подписки, кроме демо (В-4) | 5 | 50 | 50 | ~20 (значение — владелец) | открыты, пока `PRICING_PUBLIC=False` (В-3) |
 | `basis` | после теста; сейчас — `subscription_status="active"` | ∞ | ∞ | ∞ | N (пусто) | нет |
 | `profi_lager` | дополнение | — | — | — | — | `stock` |
 | `profi_finanzen` | дополнение | — | — | — | — | `finance_erp` |
@@ -109,7 +110,7 @@ Aktionen и Eintrag — плоское своё меню (`lite_cabinet.sidebar_
 |---|---|---|---|
 | 🏠 Start | `dashboard` → `lite_home` | «требует действия» (отложено к выдаче, новые сообщения), цифры недели, «Mehr verkaufen» | есть |
 | 📣 Aktionen | `promotions:promotion-list` | quick/create/edit/preview/quick-done/flyer/shop-poster/transition/text-check/quick-ai/today-dismiss/image-* | есть |
-| 💬 Kunden & Nachrichten | **`inbox:list`** | `inbox:thread`, poll, typing, reply-draft, unread-count; отклики: `promotions:reservation-list`, `promotions:redeem*`, `reservation-action` | **нет** (дыра KA-0 §5) |
+| 💬 Kunden & Nachrichten | **`inbox:list`** | `inbox:thread`, poll, typing, reply-draft, unread-count; отклики: `promotions:reservation-list`, `promotions:redeem*`, `reservation-action`; **Anfragen (В-2 → `jobs`)**: список заявок + карточка заявки со сметой | **нет** (дыра KA-0 §5) |
 | 👁 Sichtbar | `lite-visibility` | `lite-share`, привязка общего бота и уведомлений, свой бот (T-8.29), каналы + GBP (owner) — карточками | есть |
 | 🏪 Geschäft | `lite-business` | **+ часы работы** (сейчас только name/address/phone/whatsapp, `lite_cabinet.py:81`); **Recht** → `legal-docs` | часы и Recht — **нет** |
 
@@ -117,8 +118,8 @@ Aktionen и Eintrag — плоское своё меню (`lite_cabinet.sidebar_
 
 **Закрыто по прямому адресу** (страница «nicht enthalten», §4.3): `blog-*`, `publishing-posts`,
 `promotions:newsletter`, `coupon-campaigns`, `promo-type-*`, `analytics`, `crm:*`, `reviews:*`,
-`loyalty`/`vouchers`/`voucher-redeem`, `orders:*`, `booking:*`, `stays:*`, `events:*`, `jobs:*`,
-`verkaeufe*`, `board*`, `ablaeufe`, `status-*`, `deal-*`, `payments-page`, `finance:*`, вся `studio`,
+`loyalty`/`vouchers`/`voucher-redeem`, `orders:*`, `booking:*`, `stays:*`, `events:*`,
+`verkaeufe*` (кроме заявок, см. ниже), `board*`, `ablaeufe`, `status-*`, `deal-*`, `payments-page`, `finance:*`, вся `studio`,
 `catalog_admin`, `catalog:product-create`, `imports:*`, склад, закупки, коллекции, полная форма
 `settings`, `languages`, `payment-settings`, `integrations-home`, `extras`, `modules`, `finder-settings`,
 `team`, `einstellungen-home`, `portal-stats` (блоком на `lite-visibility`), `billing*` без подписки.
@@ -133,10 +134,15 @@ Aktionen и Eintrag — плоское своё меню (`lite_cabinet.sidebar_
 **Витрина** (`aktionen`): главная-визитка, `/aktionen/`, страница акции (reserve, coupon, waitlist,
 confirmation, QR), сообщения, Impressum/Datenschutz/Widerruf, Merkzettel. Каталог/корзина/наборы
 скрыты (`redirect_if_aktionen`); `/termin/`, `/unterkunft/`, `/veranstaltung/`, `/blog/`, `/gutschein/`,
-`/konto/`, `/anfrage/` — потолком модулей (404).
+`/konto/` — потолком модулей (404); `/anfrage/` открыт (В-2).
 
-**Отклик «Anfragen»** сейчас требует `jobs` (`response.py:52`), которого в пакете нет → предлагаем
-заявку по акции в `storefront-message` с темой и ссылкой на акцию (тред inbox) — вопрос **В-2**.
+**Отклик «Anfragen» (В-2 решено: через `jobs`/Aufträge).** `jobs` входит в Aktionen, поэтому
+`response.py:52` (`can_inquire`) работает без изменений: заявка по акции = обычный `Job` с темой
+`?betreff=` акции. В кабинете Aktionen открыты: список заявок (`verkaeufe?tab=job` **в режиме
+только-Liste** [доп.: без доски, вида «Kalender», «Abläufe», вкладок других kind — уточняет planner
+T-8.32b]), карточка заявки (`jobs:detail`: статус, смета, «Angebot senden», переписка), `jobs:new`,
+публичная смета `/angebot/<token>/`. Закрыты: настройки доски и статусов, кастом-статусы, счёт из
+заявки (`finance_basic` с Website/Laden) [доп.]. В Mini App — список и карточка заявки.
 
 ### 3.2. Eintrag
 
@@ -302,8 +308,8 @@ D1, D2, D3, D9 — в KA-4.
 | ID | Что | Замки ДО кода | Риск |
 |---|---|---|---|
 | **T-8.32a** | `packages.py` (пакеты, планы, `package_of`, `plan_of`, `limit`), `PRICING_PUBLIC`, лимиты читают план, `plans.py` без `aggregator`, normalize хранит ключи | вывод пакета (3 случая); **паритет Laden**: `sidebar_nav` и палитра 16 типов байт-в-байт; лимиты = env; normalize/Save не роняют `package` | низкий |
-| **T-8.32b** | честный доступ Aktionen/Eintrag: потолок в `is_module_active`, `PackageScopeMiddleware`, страница «nicht enthalten», меню (Kunden & Nachrichten, Recht, часы), Mini App + inbox, палитра, Anfragen → inbox (В-2), `package_report` | обход резолвера: вне белого списка → 403-страница, внутри → 200; пункты меню reverse'ятся и открыты; палитра ⊆ списка; TG ⊆ пакета; `/blog/`, `/termin/` → 404; owner-only цел | **средний** → отчёт до деплоя |
-| **T-8.32c** | `readiness.py` + «Laden eröffnen» + гейт в 10 точках, проверка документов по виду | каждая точка продажи отказывает при ✗ и пропускает при ✓; Zurücklegen/Coupon/Nachricht/Anfrage не гейтятся; Website `can_sell`=False | **высокий** для живых Laden без AGB → В-5 |
+| **T-8.32b** | честный доступ Aktionen/Eintrag: потолок в `is_module_active`, `PackageScopeMiddleware`, страница «nicht enthalten», меню (Kunden & Nachrichten, Recht, часы), Mini App + inbox, палитра, заявки через `jobs` в режиме «только список + карточка» (В-2), `package_report` | обход резолвера: вне белого списка → 403-страница, внутри → 200; пункты меню reverse'ятся и открыты; палитра ⊆ списка; TG ⊆ пакета; `/blog/`, `/termin/` → 404; owner-only цел | **средний** → отчёт до деплоя |
+| **T-8.32c** | `readiness.py` + «Laden eröffnen» + гейт в 10 точках, проверка документов по виду | каждая точка продажи отказывает при ✗ и пропускает при ✓; Zurücklegen/Coupon/Nachricht/Anfrage не гейтятся; Website `can_sell`=False | **высокий** для живых Laden без AGB → В-5: гейт сразу, `readiness_report` перед деплоем |
 | **T-8.32d** | `packages.switch` вверх/вниз, запрет спуска при открытых сделках, «Mehr verkaufen» (веб + Telegram) | туда-обратно не меняет `disabled_modules` и данные; спуск блокируется будущей бронью | средний |
 | **T-8.32e** | пакет Website (профиль `vitrine`), области Profi с разделением `finance_basic`, видимость `billing` | Laden без Profi: `invoice-pdf` и счёт из сделки работают, `finance:journal` → 403; `vitrine`: все кнопки покупки заменены | средний (GoBD) |
 
@@ -311,7 +317,7 @@ D1, D2, D3, D9 — в KA-4.
 применяется, гейт и лимиты нет; новые экраны (`laden-eroeffnen`, «nicht enthalten») — по чек-листу
 `docs/cabinet-screen-dod.md`, якоря не добавляются (мораторий X7).
 
-## 9. Вопросы владельцу
+## 9. Вопросы владельцу и решения (2026-10-23)
 
 | № | Вопрос | Рекомендация |
 |---|---|---|
@@ -321,3 +327,9 @@ D1, D2, D3, D9 — в KA-4.
 | **В-4** | Лимиты теста (5 акций, 50 товаров) — на всех без подписки или только на лёгких? | **На всех без подписки, кроме демо**; ограничивается только создание нового |
 | **В-5** | Жёсткий гейт для уже продающих: сразу или с переходным периодом? | Отчёт `readiness_report` → 14 дней полосы «Ihr Shop schließt am …, fehlt: AGB» → гейт; для новых — сразу |
 | **В-6** | Website-Vitrine: услуги, номера, события с «Anfragen» вместо брони (модули как контент)? | **Да** — подъём на Laden тогда = включение продажи, а не перенос данных |
+
+**Решения владельца 2026-10-23:** В-1 — да, «Angebot» уходит из Aktionen · В-2 — **через Aufträge
+(`jobs`)**, не через чат · В-3 — да, Profi открыты до объявления тарифов · В-4 — лимиты для всех
+без подписки, кроме демо · В-5 — **гейт сразу, без переходного периода** (перед деплоем T-8.32c
+`readiness_report` показывает владельцу платформы, у каких живых магазинов закроется продажа и
+чего не хватает — чтобы предупредить их заранее) · В-6 — да.
