@@ -5934,8 +5934,9 @@ def palette_search(request):
     from django.http import JsonResponse
 
     from apps.core import palette_search as ps
+    from apps.core.roles import is_owner
 
-    sections = ps.search(request.tenant, request.GET.get("q", ""))
+    sections = ps.search(request.tenant, request.GET.get("q", ""), owner=is_owner(request.user))
     return JsonResponse(
         {
             "sections": [

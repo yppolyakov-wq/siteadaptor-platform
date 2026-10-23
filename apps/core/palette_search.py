@@ -25,7 +25,18 @@ SECTION_LABELS = {
 }
 
 
-def _deals(tenant, q: str) -> list[dict]:
+def mask_email(email: str) -> str:
+    """KA-H11: «•••@beispiel.de» — сотрудник узнаёт клиента, но не видит адрес."""
+    _local, _at, domain = (email or "").partition("@")
+    return f"•••@{domain}" if domain else ("•••" if email else "")
+
+
+def mask_phone(phone: str) -> str:
+    digits = [c for c in phone or "" if c.isdigit()]
+    return "•••" + "".join(digits[-2:]) if digits else ""
+
+
+def _deals(tenant, q: str, owner: bool = False) -> list[dict]:
     from apps.core import sales_page, transactions
 
     out = []
@@ -62,7 +73,10 @@ def _deals(tenant, q: str) -> list[dict]:
             out.append(
                 {
                     "label": _("Angebot · %(who)s")
-                    % {"who": offer.customer_name or offer.customer_email},
+                    % {
+                        "who": offer.customer_name
+                        or (offer.customer_email if owner else mask_email(offer.customer_email))
+                    },
                     "sub": f"{offer.get_status_display()}",
                     "url": url,
                 }
@@ -70,7 +84,7 @@ def _deals(tenant, q: str) -> list[dict]:
     return out
 
 
-def _customers(tenant, q: str) -> list[dict]:
+def _customers(tenant, q: str, owner: bool = False) -> list[dict]:
     if not tenant.is_module_active("crm"):
         return []
     from django.db.models import Q
@@ -81,17 +95,22 @@ def _customers(tenant, q: str) -> list[dict]:
     qs = Customer.objects.filter(
         Q(name__icontains=q) | Q(email__icontains=q) | Q(phone__icontains=q)
     )
-    return [
-        {
-            "label": c.name or c.email,
-            "sub": c.email or c.phone or "",
-            "url": reverse("crm:customer-detail", args=[c.pk]),
-        }
-        for c in qs[:PER_SECTION]
-    ]
+    out = []
+    for c in qs[:PER_SECTION]:
+        # KA-H11: контакт клиента видит только владелец; поиск по нему работает у всех.
+        email = c.email if owner else mask_email(c.email)
+        phone = c.phone if owner else mask_phone(c.phone)
+        out.append(
+            {
+                "label": c.name or email or phone,
+                "sub": email or phone or "",
+                "url": reverse("crm:customer-detail", args=[c.pk]),
+            }
+        )
+    return out
 
 
-def _sellables(tenant, q: str) -> list[dict]:
+def _sellables(tenant, q: str, owner: bool = False) -> list[dict]:
     from apps.core import sellable_manage
 
     out = []
@@ -109,16 +128,17 @@ def _sellables(tenant, q: str) -> list[dict]:
     return out
 
 
-def search(tenant, q: str) -> list[dict]:
+def search(tenant, q: str, owner: bool = False) -> list[dict]:
     """Секции результата: [{key, label, items:[{label, sub, url}]}].
-    Короткий запрос → пустой ответ БЕЗ запросов в БД."""
+    Короткий запрос → пустой ответ БЕЗ запросов в БД. `owner=False` (по умолчанию,
+    fail-closed) — контакты клиентов маскируются (KA-H11)."""
     q = (q or "").strip()
     if len(q) < MIN_QUERY:
         return []
     sections, total = [], 0
     for key, fn in (("deals", _deals), ("customers", _customers), ("sellables", _sellables)):
         try:
-            items = fn(tenant, q)
+            items = fn(tenant, q, owner=owner)
         except Exception:  # noqa: BLE001 — одна секция не валит палитру
             items = []
         items = [i for i in items if i["url"]][: max(0, min(PER_SECTION, TOTAL_CAP - total))]
