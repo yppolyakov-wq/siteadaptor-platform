@@ -568,7 +568,7 @@ def test_one_mail_per_day_for_daily_plus_weekly_and_instant_excluded():
         user, follow.Target("business", third.schema_name), frequency="instant", portal=portal
     )
     FollowSubscription.objects.filter(pk__in=[weekly.pk, instant.pk]).update(
-        confirmed_at=timezone.now() - timedelta(days=3)
+        confirmed_at=_at(9) - timedelta(days=3)  # от часов теста, не от реальной даты
     )
     _listing(tenant, title={"de": "Angebot täglich"})
     _listing(other, title={"de": "Angebot wöchentlich"})
