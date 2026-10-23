@@ -54,6 +54,7 @@
         {% comment %}SH-24: выбор «Abholung | Lieferung» — тот же партиал, что в
         корзине и в покупке по акции.{% endcomment %}
         {% include "storefront/_fulfillment_choice.html" %}
+        {% include "storefront/_pickup_slot_choice.html" %}
         {% if payment_methods %}
           <div>
             <p class="text-sm font-medium mb-1">{% trans "Wie möchten Sie bezahlen?" %}</p>

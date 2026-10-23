@@ -143,6 +143,20 @@ def open_reservations() -> int:
     return Reservation.objects.filter(status__in=open_reservation_statuses()).count()
 
 
+def _order_counters(tenant) -> list:
+    """KA-12 E2.5: счётчики заказов — только когда заказы в пакете и модуль включён."""
+    from apps.core import packages
+
+    if not tenant.is_module_active("orders") or not packages.view_allowed(tenant, "verkaeufe"):
+        return []
+    from apps.orders import counters
+
+    try:
+        return counters.counters()
+    except Exception:  # noqa: BLE001 — главная не падает из-за счётчика
+        return []
+
+
 def render_home(request):
     tenant = request.tenant
     counts = promo_counts()
@@ -161,5 +175,6 @@ def render_home(request):
             "step": next_step(tenant, counts, products),
             # T-8.30e: касса — ждут продавца (pending+confirmed), как на экране акций.
             "open_reservations": open_reservations(),
+            "order_counters": _order_counters(tenant),
         },
     )

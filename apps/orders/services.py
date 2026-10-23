@@ -53,6 +53,9 @@ def _reserve_stock(norm):
         else:
             row = Product.objects.select_for_update().get(pk=product.pk)
             title = str(product)
+        # KA-12 E3.4: «Heute ausverkauft» — заказ не принимается, даже без учёта остатка.
+        if product.sold_out_until and product.is_sold_out_today:
+            raise OutOfStock(title=title, available=0)
         if row.stock_quantity is None:
             continue  # без учёта остатка
         if row.stock_quantity < qty:

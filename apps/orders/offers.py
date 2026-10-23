@@ -128,6 +128,8 @@ def accept_offer(
     fulfillment="",
     shipping_cents=0,
     shipping_address="",
+    pickup_slot=None,
+    pickup_capacity=0,
 ):
     """Принять предложение → обычный Order (custom_lines, цены заморожены).
 
@@ -166,6 +168,9 @@ def accept_offer(
         fulfillment=fulfillment or "pickup",
         shipping_cents=shipping_cents,
         shipping_address=shipping_address,
+        # KA-12 E2.7: время самовывоза — как у корзины.
+        pickup_slot=pickup_slot,
+        pickup_capacity=pickup_capacity,
     )
     OfferSM().apply(offer, Offer.STATUS_ACCEPTED)
     offer.order = order

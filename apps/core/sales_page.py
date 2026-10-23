@@ -403,7 +403,7 @@ def view_descriptors(tenant, kind: str, active_view: str) -> list[dict]:
 # заявок ?status=, виджет «Abholbereit» ?status=ready).
 _VIEW_FILTERS = {
     # SH-14: `versand` (только доставка) исполняет список заказов.
-    ("liste", "order"): frozenset({"q", "status", "versand"}),
+    ("liste", "order"): frozenset({"q", "status", "versand", "abholung", "zahlung"}),
     ("liste", None): frozenset({"q", "status"}),
     ("kalender", "stay"): frozenset({"q"}),  # Belegungsplan ищет сам
 }
@@ -420,7 +420,11 @@ def view_for_filters(kind: str, view: str, params) -> str:
     он kind-агностичен и приходит из deep-link виджетов."""
     if view == "heute":
         return view
-    wanted = {p for p in ("q", "status", "versand") if (params.get(p) or "").strip()}
+    wanted = {
+        p
+        for p in ("q", "status", "versand", "abholung", "zahlung")
+        if (params.get(p) or "").strip()
+    }
     if wanted and not wanted <= honored_filters(kind, view) and "liste" in KIND_VIEWS.get(kind, ()):
         return "liste"
     return view
@@ -494,6 +498,11 @@ def body_context(request, kind: str, view: str) -> dict:
             # is_delivery — свойство модели, не поле: фильтруем по способу выдачи.
             qs = qs.filter(fulfillment=Order.FULFILLMENT_DELIVERY)
         ctx["order_versand"] = versand
+        # KA-12 E2.5: фильтры счётчиков главной (тот же Q, что у счётчика).
+        from apps.orders import counters as order_counters
+
+        qs = order_counters.apply_list_filters(qs, request.GET)
+        ctx["order_counter_filter"] = order_counters.active_label(request.GET)
         # SH-11 (фидбэк владельца 2026-08-20 «в списке позволить менять статус»):
         # к строке заказа привязываем переходы FSM — тот же слой, что у доски
         # (allowed_actions_for + правила владельца FB-3), поэтому список не

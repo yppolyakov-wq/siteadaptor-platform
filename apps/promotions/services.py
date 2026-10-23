@@ -253,6 +253,8 @@ def purchase(
     billing_company="",
     billing_vat_id="",
     payment_due_at=None,
+    pickup_slot=None,
+    pickup_capacity=0,
 ):
     """P2 «ценовой слой»: чекаут акции СТАНДАРТНЫМ заказом (план
     promo-price-layer-plan-2026-08-03).
@@ -310,6 +312,9 @@ def purchase(
         billing_company=billing_company,
         billing_vat_id=billing_vat_id,
         payment_due_at=payment_due_at,
+        # KA-12 E2.7: время самовывоза — та же ёмкость окна, что у корзины.
+        pickup_slot=pickup_slot,
+        pickup_capacity=pickup_capacity,
         custom_lines=[
             (
                 line_title,

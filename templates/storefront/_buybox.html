@@ -115,6 +115,7 @@ test_public (порядок CTA/точные href). Двухшаговость (
       {% comment %}SH-24: тот же выбор «Abholung | Lieferung», что в корзине —
       покупка по акции больше не форсит самовывоз.{% endcomment %}
       {% include "storefront/_fulfillment_choice.html" %}
+      {% include "storefront/_pickup_slot_choice.html" %}
       {% comment %}SH-23d: способ оплаты и «кто покупает» — те же партиалы, что
       на чекауте корзины (раньше покупка по акции способ не спрашивала вовсе).{% endcomment %}
       {% include "storefront/_billing_party.html" %}

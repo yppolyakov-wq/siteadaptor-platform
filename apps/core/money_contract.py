@@ -323,6 +323,18 @@ DELIVERED = {
     "ticket": ("attended",),
 }
 _CASH_METHODS = ("", "on_site")
+#: KA-12 E2.6: способы, при которых деньги приходят ДО выдачи. Счёт (invoice) —
+#: оплата после, его не блокируем.
+PREPAY_METHODS = ("stripe", "vorkasse")
+
+
+def delivery_blocked_unpaid(kind: str, obj) -> bool:
+    """Сделку с предоплатой нельзя выдать/отправить, пока она не оплачена."""
+    method = getattr(obj, "payment_method", "") or ""
+    state = getattr(obj, "payment_state", None)
+    if kind not in DELIVERED or state is None or method not in PREPAY_METHODS:
+        return False
+    return state not in PAID_STATES.get(kind, ("paid",))
 
 
 def settle_on_delivery(kind: str, obj) -> bool:

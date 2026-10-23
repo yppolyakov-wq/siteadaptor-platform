@@ -5,7 +5,7 @@ new → confirmed → ready → picked_up (самовывоз) | shipped (дос
 dedupe); picked_up/shipped пишут выручку (finance).
 """
 
-from apps.core.fsm import StateMachine, Transition
+from apps.core.fsm import PaymentRequired, StateMachine, Transition
 
 
 class OrderSM(StateMachine):
@@ -22,6 +22,18 @@ class OrderSM(StateMachine):
         Transition("picked_up", "returned", "order.returned"),
         Transition("shipped", "returned", "order.returned"),
     ]
+
+    def guard(self, instance, src, dst):
+        # KA-12 E2.6: онлайн-/Vorkasse-заказ выдаётся только после оплаты —
+        # и во встроенные статусы выдачи, и в свои статусы с ролью «done».
+        from apps.core import money_contract, status_registry
+
+        delivering = dst in money_contract.DELIVERED["order"]
+        if not delivering:
+            desc = status_registry.resolve("order", dst)
+            delivering = desc is not None and not desc.builtin and desc.role == "done"
+        if delivering and money_contract.delivery_blocked_unpaid("order", instance):
+            raise PaymentRequired(type(instance).__name__, src, dst)
 
     def on_transition(self, instance, t, **kw):
         # W7c (аудит 2026-08-05): момент отправки фиксируем в FSM — доска зовёт

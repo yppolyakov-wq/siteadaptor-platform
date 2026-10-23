@@ -124,6 +124,25 @@ def home_widgets(tenant) -> list[dict]:
             }
         )
 
+    # KA-12 E2.5: прилавок Click & Collect — «heute abholen / neu / unbezahlt»;
+    # ссылка открывает список с ТЕМ ЖЕ фильтром (apps.orders.counters).
+    if tenant.is_module_active("orders"):
+        from apps.orders import counters as order_counters
+
+        for key, icon, label, count, query in _safe(order_counters.counters, []):
+            widgets.append(
+                {
+                    "key": f"orders_{key}",
+                    "icon": icon,
+                    "label": label,
+                    "value": str(count),
+                    "hint": "",
+                    "url_name": "verkaeufe",
+                    "url_query": query,
+                    "sparkline": "",
+                }
+            )
+
     # 🛎 Anreisen heute (PMS-A2): стойка отеля/пансиона — сегодняшние заезды,
     # в hint выезды; клик ведёт на экран «Heute».
     if tenant.is_module_active("stays"):

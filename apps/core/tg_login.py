@@ -58,6 +58,7 @@ TG_LITE_VIEWS = frozenset(
         # Angebot
         "sellable-manage",
         "sellable-visibility",
+        "sellable-sold-out",  # KA-12 E3.4
         "sortiment-view",
         "catalog:product-create",
         "catalog:product-edit",

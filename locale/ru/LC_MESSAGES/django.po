@@ -28734,3 +28734,24 @@ msgstr "Сторно-счёт"
 #, python-format
 msgid "Stornorechnung Nr. %(n)s"
 msgstr "Сторнирующий счёт № %(n)s"
+
+msgid "Erst nach Zahlungseingang: die Bestellung ist noch nicht bezahlt."
+msgstr "Только после оплаты: заказ ещё не оплачен."
+
+msgid "Heute abholen"
+msgstr "Забрать сегодня"
+
+msgid "Heute ausverkauft"
+msgstr "Сегодня распродано"
+
+msgid "Heute ausverkauft."
+msgstr "Отмечено: сегодня распродано."
+
+msgid "Heute ausverkauft?"
+msgstr "Сегодня распродано?"
+
+msgid "Unbezahlt"
+msgstr "Не оплачено"
+
+msgid "Wieder verfügbar."
+msgstr "Снова в наличии."

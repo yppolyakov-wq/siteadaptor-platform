@@ -28613,3 +28613,24 @@ msgstr "İptal faturası"
 #, python-format
 msgid "Stornorechnung Nr. %(n)s"
 msgstr "İptal faturası no. %(n)s"
+
+msgid "Erst nach Zahlungseingang: die Bestellung ist noch nicht bezahlt."
+msgstr "Yalnızca ödemeden sonra: sipariş henüz ödenmedi."
+
+msgid "Heute abholen"
+msgstr "Bugün teslim alınacak"
+
+msgid "Heute ausverkauft"
+msgstr "Bugün tükendi"
+
+msgid "Heute ausverkauft."
+msgstr "Bugün için tükendi."
+
+msgid "Heute ausverkauft?"
+msgstr "Bugün tükendi mi?"
+
+msgid "Unbezahlt"
+msgstr "Ödenmedi"
+
+msgid "Wieder verfügbar."
+msgstr "Yeniden mevcut."

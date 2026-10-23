@@ -868,14 +868,7 @@ def cart_view(request):
 
     ctx["attr"] = attribution.context(request)  # В5 V5-5: канал корзины → поля чекаута
     # KA-W1: окна самовывоза (опция выключена или заказ за столиком → пусто).
-    ctx["pickup_slot_enabled"] = bool(
-        not request.session.get("table") and pickup_slots.config(tenant)
-    )
-    ctx["pickup_slot_days"] = (
-        pickup_slots.slots_for(tenant, cfg=pickup_slots.config(tenant))
-        if ctx["pickup_slot_enabled"]
-        else []
-    )
+    ctx.update(pickup_slots.context(tenant, table=bool(request.session.get("table"))))
     return render(request, "storefront/cart.html", ctx)
 
 
@@ -998,31 +991,16 @@ def checkout(request):
     # KA-W1: время самовывоза — только при включённой опции, не у доставки и не у
     # заказа за столиком (QR). Выбор обязателен (кроме просчёта MEN-9): заказ без
     # времени нарушил бы обещание «zur Wunschzeit»; значение — строго из сетки.
-    pickup_slot, pickup_capacity = None, 0
-    slot_cfg = None if delivery or request.session.get("table") else pickup_slots.config(tenant)
-    if slot_cfg:
-        optional = bool((tenant.site_config or {}).get("quote_cart"))
-        raw_slot = request.POST.get("pickup_slot", "")
-        pickup_slot = pickup_slots.validate(tenant, raw_slot, cfg=slot_cfg)
-        if pickup_slot is None and (raw_slot or not optional):
-            if not pickup_slots.slots_for(tenant, cfg=slot_cfg):
-                messages.error(request, _("Zurzeit keine Abholzeiten verfügbar."))
-            else:
-                messages.error(request, _("Bitte wählen Sie eine Abholzeit."))
-            return redirect("storefront-cart")
-        pickup_capacity = slot_cfg["capacity"]
-        if (
-            pickup_slot
-            and pickup_capacity
-            and pickup_slots.contact_holds_too_many(
-                request.POST.get("email", ""), request.POST.get("phone", ""), tenant
-            )
-        ):
-            messages.error(
-                request,
-                _("Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."),
-            )
-            return redirect("storefront-cart")
+    pickup_slot, pickup_capacity, slot_error = pickup_slots.resolve_from_post(
+        tenant,
+        request.POST,
+        delivery=delivery,
+        optional=bool((tenant.site_config or {}).get("quote_cart")),
+        table=bool(request.session.get("table")),
+    )
+    if slot_error:
+        messages.error(request, slot_error)
+        return redirect("storefront-cart")
 
     # E7-2: способ оплаты — из пикера (radio `payment`); без/с невалидным POST —
     # первый доступный (= прежнее поведение: stripe при сконфигурированной
@@ -1265,6 +1243,13 @@ def offer_page(request, token):
             if not choice:
                 messages.error(request, choice.error)
                 return redirect("storefront-offer", token=token)
+            # KA-12 E2.7: время самовывоза — тот же разбор, что в корзине.
+            slot, slot_capacity, slot_error = pickup_slots.resolve_from_post(
+                tenant, request.POST, delivery=choice.delivery
+            )
+            if slot_error:
+                messages.error(request, slot_error)
+                return redirect("storefront-offer", token=token)
             try:
                 order = offer_service.accept_offer(
                     offer,
@@ -1275,8 +1260,16 @@ def offer_page(request, token):
                     fulfillment="delivery" if choice.delivery else "pickup",
                     shipping_cents=choice.shipping_cents,
                     shipping_address=choice.shipping_address,
+                    pickup_slot=slot,
+                    pickup_capacity=slot_capacity,
                 )
             except offer_service.OfferUnavailable:
+                return redirect("storefront-offer", token=token)
+            except pickup_slots.SlotFull:
+                messages.error(
+                    request,
+                    _("Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."),
+                )
                 return redirect("storefront-offer", token=token)
             except OutOfStock as exc:
                 messages.error(
@@ -1321,6 +1314,7 @@ def offer_page(request, token):
             else [],
             # SH-24: данные выбора «Abholung | Lieferung» для общего партиала.
             **delivery_choice.context(tenant),
+            **pickup_slots.context(tenant),
         },
     )
 

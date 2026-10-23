@@ -144,7 +144,7 @@ def _evaluated():
 
     hidden = _hidden_category_ids()
     products = list(_active_products())
-    promos = product_promo_map([p.pk for p in products])
+    promos = product_promo_map([p.pk for p in products], timeless_only=True)  # KA-12 E3.6
     if promos:
         # §11 PAngV (SF-7): «Sie sparen» витрины = `has_discount`; цена сравнения —
         # одним батчем, как у `attach_promos` (без N+1 на `prior_lowest_price`).

@@ -38,6 +38,10 @@ active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛА
     сайдбара «Lieferungen»; активный фильтр обязан быть виден и снимаем.{% endcomment %}
     <a href="?tab=order&amp;view=liste{% if order_status %}&amp;status={{ order_status }}{% endif %}{% if order_q %}&amp;q={{ order_q|urlencode }}{% endif %}{% if not order_versand %}&amp;versand=1{% endif %}"
        class="rounded-full px-3.5 py-2 text-sm font-medium {% if order_versand %}bg-gray-900 text-white shadow-sm{% else %}bg-white text-gray-600 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50{% endif %}">🚚 {% trans "Nur Lieferungen" %}{% if order_versand %} ✕{% endif %}</a>
+    {% comment %}KA-12 E2.5: фильтр счётчика главной виден и снимаем.{% endcomment %}
+    {% if order_counter_filter %}
+    <a href="?tab=order&amp;view=liste" data-counter-filter class="rounded-full px-3.5 py-2 text-sm font-medium bg-gray-900 text-white shadow-sm">{{ order_counter_filter }} ✕</a>
+    {% endif %}
     {% comment %}X4 + KA-12 E0.3: KDS — только кухням, Tisch-QR — только залам (те же
     гейты, что в реестре навигации); пекарне и мясной ни то ни другое не нужно.{% endcomment %}
     {% if show_kds %}

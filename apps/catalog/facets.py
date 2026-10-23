@@ -168,13 +168,17 @@ class CatalogFacets(FacetProvider):
 
         active_var = ProductVariant.objects.filter(product=OuterRef("pk"), is_active=True)
         in_stock_var = active_var.filter(Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0))
-        return items.annotate(
-            _has_var=Exists(active_var),
-            _has_stock_var=Exists(in_stock_var),
-        ).filter(
-            Q(_has_var=True, _has_stock_var=True)
-            | (Q(_has_var=False) & (Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0)))
-        )
+        return (
+            items.annotate(
+                _has_var=Exists(active_var),
+                _has_stock_var=Exists(in_stock_var),
+            )
+            .filter(
+                Q(_has_var=True, _has_stock_var=True)
+                | (Q(_has_var=False) & (Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0)))
+            )
+            .exclude(sold_out_until__gte=_today())
+        )  # KA-12 E3.4
 
     @staticmethod
     def _discounted_ids(items):
@@ -377,3 +381,9 @@ class CatalogFacets(FacetProvider):
             ("price_asc", _("Price: low to high")),
             ("price_desc", _("Price: high to low")),
         ]
+
+
+def _today():
+    from django.utils import timezone
+
+    return timezone.localdate()

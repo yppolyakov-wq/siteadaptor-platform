@@ -17,7 +17,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.core import deal_links
-from apps.core.fsm import IllegalTransition
+from apps.core.fsm import IllegalTransition, PaymentRequired
 
 from .models import Order
 from .services import OutOfStock
@@ -471,6 +471,11 @@ def order_action(request, pk):
                 extra=request.POST,
                 tenant=getattr(request, "tenant", None),
             )
+        except PaymentRequired:
+            messages.error(
+                request, _("Erst nach Zahlungseingang: die Bestellung ist noch nicht bezahlt.")
+            )
+            return redirect("orders:order-detail", pk=order.pk)
         except IllegalTransition:
             messages.error(request, _("This step is not possible in the current status."))
             return redirect("orders:order-detail", pk=order.pk)

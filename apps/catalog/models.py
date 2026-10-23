@@ -254,6 +254,9 @@ class Product(SoftDeleteMixin, I18nMixin):
     hide_in_city = models.BooleanField(default=False)
     # M23b.1: товар не уходит в фид Google Merchant Center.
     hide_in_google = models.BooleanField(default=False)
+    # KA-12 E3.4: «Heute ausverkauft» — до этой даты включительно товар не продаётся;
+    # на следующий день снова доступен без записи (ленивый сброс через in_stock).
+    sold_out_until = models.DateField(null=True, blank=True)
     # T-8.27: адрес позиции на сайте владельца (импорт с сайта). У визитки «eintrag»
     # листинг каталога города ведёт сюда; иначе — справка «Original».
     external_url = models.URLField(max_length=500, blank=True, default="")
@@ -427,9 +430,20 @@ class Product(SoftDeleteMixin, I18nMixin):
         return self.active_variants.exists()
 
     @property
+    def is_sold_out_today(self) -> bool:
+        """KA-12 E3.4: владелец отметил «Heute ausverkauft» (на сегодня или дольше)."""
+        if not self.sold_out_until:
+            return False
+        from django.utils import timezone
+
+        return self.sold_out_until >= timezone.localdate()
+
+    @property
     def in_stock(self) -> bool:
         """Доступен ли к заказу (R3). Untracked (null) → всегда True. С вариантами
         — есть ли хоть один доступный вариант."""
+        if self.is_sold_out_today:
+            return False
         if self.has_variants:
             return any(v.in_stock for v in self.active_variants)
         return self.stock_quantity is None or self.stock_quantity > 0
@@ -643,6 +657,8 @@ class ProductVariant(TimestampedModel):
 
     @property
     def in_stock(self) -> bool:
+        if self.product.is_sold_out_today:  # KA-12 E3.4: «Heute ausverkauft» у товара
+            return False
         return self.stock_quantity is None or self.stock_quantity > 0
 
     @property

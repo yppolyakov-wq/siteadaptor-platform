@@ -28718,3 +28718,24 @@ msgstr "Сторно-рахунок"
 #, python-format
 msgid "Stornorechnung Nr. %(n)s"
 msgstr "Сторнувальний рахунок № %(n)s"
+
+msgid "Erst nach Zahlungseingang: die Bestellung ist noch nicht bezahlt."
+msgstr "Лише після оплати: замовлення ще не оплачене."
+
+msgid "Heute abholen"
+msgstr "Забрати сьогодні"
+
+msgid "Heute ausverkauft"
+msgstr "Сьогодні розпродано"
+
+msgid "Heute ausverkauft."
+msgstr "Позначено: сьогодні розпродано."
+
+msgid "Heute ausverkauft?"
+msgstr "Сьогодні розпродано?"
+
+msgid "Unbezahlt"
+msgstr "Не оплачено"
+
+msgid "Wieder verfügbar."
+msgstr "Знову в наявності."

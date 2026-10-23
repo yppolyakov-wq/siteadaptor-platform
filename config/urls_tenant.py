@@ -59,6 +59,7 @@ from apps.core.views import (
     platform_bot_disconnect,
     sections_view,
     sellable_manage,
+    sellable_sold_out,
     sellable_visibility,
     seo_settings_view,
     set_cabinet_lang_view,
@@ -336,6 +337,12 @@ urlpatterns = [
         "dashboard/angebote/<str:kind>/<uuid:pk>/sichtbar/",
         sellable_visibility,
         name="sellable-visibility",
+    ),
+    # KA-12 E3.4: «Heute ausverkauft» одним тапом.
+    path(
+        "dashboard/angebote/product/<uuid:pk>/ausverkauft/",
+        sellable_sold_out,
+        name="sellable-sold-out",
     ),
     # SR-1: персист вида Kacheln ↔ Liste (POST, targeted-write).
     path("dashboard/angebote/ansicht/", sortiment_view_set, name="sortiment-view"),

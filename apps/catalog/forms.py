@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import card_forms
+from apps.core.archetypes import FOOD_BUSINESS_TYPES
 from apps.core.form_fields import MoneyField
 from apps.core.i18n_input import DynamicI18nFormMixin
 
@@ -366,6 +367,14 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             if name in self.fields:
                 self.fields[name].widget.attrs["form"] = "product-form"
         self.fields["category"].required = False
+        # KA-12 E3.3: у пищевых типов новый товар по умолчанию 7 % (Lebensmittel,
+        # Click & Collect «zum Mitnehmen»); у существующего ставка не трогается.
+        self._default_vat = Decimal("19.00")
+        adding = self.instance._state.adding  # pk — UUID с дефолтом, есть и у нового
+        if adding and getattr(tenant, "business_type", "") in FOOD_BUSINESS_TYPES:
+            self._default_vat = Decimal("7.00")
+            self.fields["vat_rate"].initial = "7.00"
+            self.initial["vat_rate"] = "7.00"  # модельный дефолт 19 перебил бы field.initial
         self.init_i18n_fields(tenant)  # L3d.5
         # O-2: вид выбора вариантов — из реестра, с подсказками «когда уместно».
         # Пустой пункт = «как в настройках сайта» (дефолт магазина).
@@ -445,7 +454,9 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         """Пустое поле = не менять: ставка остаётся у товара (или дефолт 19 %)."""
         value = self.cleaned_data.get("vat_rate")
         if value in (None, ""):
-            return getattr(self.instance, "vat_rate", None) or Decimal("19.00")
+            if not self.instance._state.adding:
+                return getattr(self.instance, "vat_rate", None) or Decimal("19.00")
+            return getattr(self, "_default_vat", Decimal("19.00"))
         return value
 
     def clean_base_price(self):

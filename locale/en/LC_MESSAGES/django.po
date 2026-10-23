@@ -28469,3 +28469,24 @@ msgstr "Cancellation invoice"
 #, python-format
 msgid "Stornorechnung Nr. %(n)s"
 msgstr "Cancellation invoice no. %(n)s"
+
+msgid "Erst nach Zahlungseingang: die Bestellung ist noch nicht bezahlt."
+msgstr "Only after payment: the order has not been paid yet."
+
+msgid "Heute abholen"
+msgstr "Pickup today"
+
+msgid "Heute ausverkauft"
+msgstr "Sold out today"
+
+msgid "Heute ausverkauft."
+msgstr "Sold out for today."
+
+msgid "Heute ausverkauft?"
+msgstr "Sold out today?"
+
+msgid "Unbezahlt"
+msgstr "Unpaid"
+
+msgid "Wieder verfügbar."
+msgstr "Available again."

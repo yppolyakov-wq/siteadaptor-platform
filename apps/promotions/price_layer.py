@@ -10,7 +10,7 @@
 
 from django.db import transaction
 from django.db.models import F
-from django.utils import translation
+from django.utils import timezone, translation
 from django.utils.translation import gettext as _
 
 from apps.aggregator.stock_sync import touch_promotion
@@ -178,21 +178,28 @@ def promo_for_product(product):
     best = None
     # SF-9: mystery-акция — не часть цены товара (секрет раскрывается и продаётся
     # только на странице акции); иначе баннер/корзина раскрыли бы цену.
+    now = timezone.now()
     for promo in (
         Promotion.objects.filter(Promotion.on_sale_q(), product=product)
         .exclude(discount_style="mystery")
         .order_by("created_at", "pk")
     ):
-        if not promo.lowers_price:
+        if not promo.lowers_price or not rules_match(promo.target_rules, now):
             continue
         if best is None or promo.new_price < best.new_price:
             best = promo
     return best
 
 
-def product_promo_map(product_ids):
+def product_promo_map(product_ids, *, now=None, timeless_only=False):
     """P6: bulk-версия для карточек листинга — {product_id: Promotion} одним
-    запросом (без N+1 на странице каталога)."""
+    запросом (без N+1 на странице каталога).
+
+    KA-12 E3.6: акция с окном (`target_rules` дни/часы) действует только внутри
+    окна — та же проверка у карточки, корзины и create_order («показано =
+    списано»; момент — время ЗАКАЗА). `timeless_only` — для внешних фидов (Google
+    не знает часовых окон): акции с правилами туда не уходят вовсе."""
+    now = now or timezone.now()
     out = {}
     # Стабильный порядок: при равной цене побеждает более ранняя акция — иначе выбор
     # (и вместе с ним фид Merchant: mystery исключает товар) зависел бы от порядка строк.
@@ -204,6 +211,10 @@ def product_promo_map(product_ids):
         .order_by("created_at", "pk")
     ):
         if not promo.lowers_price:
+            continue
+        if timeless_only and promo.target_rules:
+            continue
+        if not rules_match(promo.target_rules, now):
             continue
         cur = out.get(promo.product_id)
         if cur is None or promo.new_price < cur.new_price:

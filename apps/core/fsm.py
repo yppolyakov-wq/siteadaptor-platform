@@ -17,6 +17,10 @@ class IllegalTransition(Exception):
         self.dst = dst
 
 
+class PaymentRequired(IllegalTransition):
+    """KA-12 E2.6: выдача/отправка онлайн-оплачиваемой сделки до поступления денег."""
+
+
 @dataclass(frozen=True)
 class Transition:
     src: str
@@ -62,6 +66,7 @@ class StateMachine:
             t = self._custom_transition(src, dst)  # FB-3 Вариант B Phase 4: кастом-рёбра тенанта
         if t is None:
             raise IllegalTransition(type(instance).__name__, src, dst)
+        self.guard(instance, src, dst)
 
         setattr(instance, self.field, dst)
         update_fields = [self.field]
@@ -102,6 +107,10 @@ class StateMachine:
             return
         src_desc = status_registry.resolve(self.kind, src)
         status_effects.apply_custom_effects(self.kind, instance, src_desc, dst_desc)
+
+    def guard(self, instance, src: str, dst: str):
+        """Проверка ДО записи статуса (KA-12 E2.6); бросает IllegalTransition-подкласс.
+        По умолчанию — без условий."""
 
     def on_transition(self, instance, t: Transition, **kw):
         """Side-effects конкретного перехода. Переопределяется наследником."""

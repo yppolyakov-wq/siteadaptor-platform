@@ -58,6 +58,17 @@ def _abs_promo_url(request, pk) -> str:
     return request.build_absolute_uri(reverse("storefront-promotion", args=[pk]))
 
 
+def _pickup_ctx(request) -> dict:
+    """KA-12 E2.7: окна самовывоза для buy-box акции (опция выключена → пусто)."""
+    from apps.orders import pickup_slots
+
+    tenant = getattr(request, "tenant", None)
+    try:
+        return pickup_slots.context(tenant) if tenant is not None else {}
+    except Exception:  # noqa: BLE001 — витрина не падает из-за окон
+        return {}
+
+
 def _detail_ctx(request, promo, form) -> dict:
     from apps.core import business_card
 
@@ -127,6 +138,7 @@ def _detail_ctx(request, promo, form) -> dict:
         "waitlist_form": WaitlistForm(),
         # SH-24: данные выбора «Abholung | Lieferung» для общего партиала.
         **delivery_choice.context(getattr(request, "tenant", None)),
+        **_pickup_ctx(request),
         # SH-23d: пикер способа оплаты и блок «Privat/Firma».
         **_pm_picker(getattr(request, "tenant", None)),
         "share_url": share_url,
@@ -2635,6 +2647,18 @@ def promotion_purchase(request, pk):
             cache.delete(token_key)
         messages.error(request, choice.error)
         return render(request, "storefront/promotion_detail.html", ctx)
+    # KA-12 E2.7: время самовывоза — тот же разбор, что в корзине.
+    from apps.orders import pickup_slots
+
+    tenant = getattr(request, "tenant", None)
+    slot, slot_capacity, slot_error = pickup_slots.resolve_from_post(
+        tenant, request.POST, delivery=choice.delivery
+    )
+    if slot_error:
+        if token_key:
+            cache.delete(token_key)
+        messages.error(request, slot_error)
+        return render(request, "storefront/promotion_detail.html", ctx)
 
     try:
         order = promo_services.purchase(
@@ -2653,11 +2677,22 @@ def promotion_purchase(request, pk):
             # раньше заказ по акции всегда шёл «payment_method=пусто» и ни Stripe,
             # ни Vorkasse, ни счёт юрлицу к ней не применялись.
             **_promo_payment_kwargs(request),
+            pickup_slot=slot,
+            pickup_capacity=slot_capacity,
         )
     except OutOfStock:
         if token_key:
             cache.delete(token_key)
         messages.error(request, _("Leider ausverkauft."))
+        return render(request, "storefront/promotion_detail.html", ctx)
+    except pickup_slots.SlotFull:
+        # purchase атомарен: лимит кампании откатился вместе с заказом.
+        if token_key:
+            cache.delete(token_key)
+        messages.error(
+            request,
+            _("Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."),
+        )
         return render(request, "storefront/promotion_detail.html", ctx)
 
     conversions.count(

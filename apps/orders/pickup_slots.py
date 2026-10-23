@@ -184,3 +184,42 @@ def claim(slot, capacity, tenant=None) -> None:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [key])
     if _taken(tenant, slot, slot + timedelta(seconds=1)).get(slot, 0) >= capacity:
         raise SlotFull()
+
+
+def resolve_from_post(tenant, post, *, delivery=False, optional=False, table=False):
+    """KA-12 E2.7: общий разбор выбранного времени самовывоза (корзина, покупка по
+    акции, принятие предложения). → (slot | None, capacity, error | "").
+
+    Опция выключена / доставка / заказ за столиком → (None, 0, "") — форма прежняя."""
+    from django.utils.translation import gettext as _
+
+    cfg = None if delivery or table else config(tenant)
+    if not cfg:
+        return None, 0, ""
+    raw = post.get("pickup_slot", "")
+    slot = validate(tenant, raw, cfg=cfg)
+    if slot is None and (raw or not optional):
+        if not slots_for(tenant, cfg=cfg):
+            return None, 0, _("Zurzeit keine Abholzeiten verfügbar.")
+        return None, 0, _("Bitte wählen Sie eine Abholzeit.")
+    capacity = cfg["capacity"]
+    if (
+        slot
+        and capacity
+        and contact_holds_too_many(post.get("email", ""), post.get("phone", ""), tenant)
+    ):
+        return (
+            None,
+            0,
+            _("Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."),
+        )
+    return slot, capacity, ""
+
+
+def context(tenant, *, table=False) -> dict:
+    """Данные партиала `_pickup_slot_choice.html` (корзина/акция/предложение)."""
+    cfg = None if table else config(tenant)
+    return {
+        "pickup_slot_enabled": bool(cfg),
+        "pickup_slot_days": slots_for(tenant, cfg=cfg) if cfg else [],
+    }

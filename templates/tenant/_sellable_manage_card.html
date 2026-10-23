@@ -34,6 +34,17 @@
     {% elif it.status_label %}
       <span class="text-xs font-medium px-2.5 py-1 rounded-full {% if it.is_visible %}bg-emerald-100 text-emerald-800{% else %}bg-gray-100 text-gray-500{% endif %}">{{ it.status_label }}</span>
     {% else %}<span></span>{% endif %}
+    {% if it.kind == "product" %}
+      {% comment %}KA-12 E3.4: «Heute ausverkauft» — до завтра, сбрасывается само.{% endcomment %}
+      <form method="post" action="{% url 'sellable-sold-out' it.pk %}" data-sold-out-toggle>
+        {% csrf_token %}
+        <input type="hidden" name="sold_out" value="{% if it.sold_out_today %}0{% else %}1{% endif %}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="tap44 text-xs font-medium px-2.5 py-1 rounded-full {% if it.sold_out_today %}bg-red-100 text-red-700 hover:bg-red-200{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+          {% if it.sold_out_today %}{% trans "Heute ausverkauft" %} ✕{% else %}{% trans "Heute ausverkauft?" %}{% endif %}
+        </button>
+      </form>
+    {% endif %}
     {# W11-4: акция на эту сущность (ценовой слой PL) — префилл цели в форме #}
     {% if it.promo_param and promotions_active %}<a href="{% if it.promo_param == 'product' %}{% url 'promotions:promotion-quick' %}{% else %}{% url 'promotions:promotion-create' %}{% endif %}?{{ it.promo_param }}={{ it.pk }}" class="text-sm text-amber-600 hover:underline" title="{% trans 'Aktion für dieses Angebot erstellen' %}">% {% trans "Aktion" %}</a>{% endif %}
   </div>

@@ -160,7 +160,7 @@ def _entries(product, *, product_url, absolutize, merchant=False):
     if merchant:
         rows = merchant_item_rows(product)
         if rows[0]["variant"] is None:
-            in_stock = product.stock_quantity is None or product.stock_quantity > 0
+            in_stock = product.in_stock  # KA-12 E3.4: учитывает «Heute ausverkauft»
             price = merchant_row_price(product, rows[0])
             return [
                 {
@@ -199,7 +199,7 @@ def _entries(product, *, product_url, absolutize, merchant=False):
             }
             for v in variants
         ]
-    in_stock = product.stock_quantity is None or product.stock_quantity > 0
+    in_stock = product.in_stock  # KA-12 E3.4: учитывает «Heute ausverkauft»
     return [base(str(product.pk), title, product.base_price, in_stock)]
 
 
@@ -218,7 +218,9 @@ def build_local_inventory_feed(*, products, store_code, title, link, description
     if store_code:
         for product in products:
             for row in merchant_item_rows(product):
-                availability, quantity = local_availability(row["stock"])
+                availability, quantity = local_availability(
+                    0 if product.is_sold_out_today else row["stock"]  # KA-12 E3.4
+                )
                 items.append(
                     _item_xml(
                         {

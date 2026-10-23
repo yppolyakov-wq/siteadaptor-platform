@@ -172,6 +172,7 @@ def _managed(kind, obj, locale, threshold: int = 5) -> ManagedSellable:
         category_label=category_label,
         stock=stock,
         stock_warn=stock_warn,
+        sold_out_today=kind == "product" and bool(getattr(obj, "is_sold_out_today", False)),
     )
 
 
@@ -297,6 +298,19 @@ def toggle_visibility(kind: str, pk, visible: bool | None = None):
         fields += ["confirmed_at", "updated_at"]
     obj.save(update_fields=fields)
     return obj
+
+
+def toggle_sold_out_today(pk, sold_out: bool):
+    """KA-12 E3.4: «Heute ausverkauft» одним тапом; завтра товар снова доступен сам."""
+    from django.utils import timezone
+
+    from apps.catalog.models import Product
+
+    product = Product.objects.get(pk=pk)
+    product.sold_out_until = timezone.localdate() if sold_out else None
+    # save() целиком — сигналы каталога города/фида видят смену наличия
+    product.save()
+    return product
 
 
 def digital_shelf(tenant) -> list[dict]:

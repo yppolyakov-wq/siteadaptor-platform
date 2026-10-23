@@ -130,6 +130,7 @@ _AKTIONEN_VIEWS = frozenset(
 _EINTRAG_VIEWS = _AKTIONEN_VIEWS | {
     "sellable-manage",
     "sellable-visibility",
+    "sellable-sold-out",  # KA-12 E3.4
     "sortiment-view",
     "catalog:product-create",
     "catalog:product-delete",

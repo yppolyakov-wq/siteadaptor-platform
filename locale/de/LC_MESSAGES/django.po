@@ -28561,3 +28561,24 @@ msgstr "Stornorechnung"
 #, python-format
 msgid "Stornorechnung Nr. %(n)s"
 msgstr "Stornorechnung Nr. %(n)s"
+
+msgid "Erst nach Zahlungseingang: die Bestellung ist noch nicht bezahlt."
+msgstr "Erst nach Zahlungseingang: die Bestellung ist noch nicht bezahlt."
+
+msgid "Heute abholen"
+msgstr "Heute abholen"
+
+msgid "Heute ausverkauft"
+msgstr "Heute ausverkauft"
+
+msgid "Heute ausverkauft."
+msgstr "Heute ausverkauft."
+
+msgid "Heute ausverkauft?"
+msgstr "Heute ausverkauft?"
+
+msgid "Unbezahlt"
+msgstr "Unbezahlt"
+
+msgid "Wieder verfügbar."
+msgstr "Wieder verfügbar."

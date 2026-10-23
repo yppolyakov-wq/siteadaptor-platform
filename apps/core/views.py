@@ -5018,7 +5018,7 @@ def kanban_action(request, kind, pk):
     from django.urls import reverse
 
     from apps.core import transactions
-    from apps.core.fsm import IllegalTransition
+    from apps.core.fsm import IllegalTransition, PaymentRequired
 
     if kind not in transactions.TRANSACTION_KINDS:
         return HttpResponseBadRequest("unknown kind")
@@ -5045,6 +5045,12 @@ def kanban_action(request, kind, pk):
             extra=request.POST,
             tenant=getattr(request, "tenant", None),
         )
+    except PaymentRequired:
+        msg = _("Erst nach Zahlungseingang: die Bestellung ist noch nicht bezahlt.")
+        if is_fetch:
+            return HttpResponse(msg, status=409)
+        messages.error(request, msg)
+        return redirect(back)
     except IllegalTransition:
         if is_fetch:
             return HttpResponse(status=409)
@@ -5818,6 +5824,28 @@ def sellable_visibility(request, kind, pk):
     # следующем экране (одноразово, в сессии; ключ перезаписывается последним действием).
     request.session["sellable_undo"] = {"kind": kind, "pk": str(obj.pk), "visible": not shown}
     messages.success(request, _("Sichtbar.") if shown else _("Ausgeblendet."))
+    nxt = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        nxt, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ) or not nxt.startswith("/"):
+        nxt = reverse("sellable-manage")
+    return redirect(nxt)
+
+
+@login_required
+@require_POST
+def sellable_sold_out(request, pk):
+    """KA-12 E3.4: «Heute ausverkauft» / «Wieder verfügbar» у товара."""
+    from django.urls import reverse
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    from apps.catalog.models import Product
+    from apps.core import sellable_manage as sm
+
+    get_object_or_404(Product, pk=pk)
+    sold_out = request.POST.get("sold_out") == "1"
+    sm.toggle_sold_out_today(pk, sold_out)
+    messages.success(request, _("Heute ausverkauft.") if sold_out else _("Wieder verfügbar."))
     nxt = request.POST.get("next", "")
     if not url_has_allowed_host_and_scheme(
         nxt, allowed_hosts={request.get_host()}, require_https=request.is_secure()
