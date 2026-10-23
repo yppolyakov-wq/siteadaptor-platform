@@ -47,7 +47,7 @@ def _req(path):
 
 def test_plain_csv_respects_period(monkeypatch):
     # KA-H11: выгрузка с персональными данными — только владельцу.
-    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
+    monkeypatch.setattr("apps.core.roles.can_export_finance", lambda user: True)
     _entries()
     response = views.journal_export_csv(_req("/dashboard/finance/export.csv"))
     body = response.content.decode("utf-8-sig")
@@ -59,7 +59,7 @@ def test_plain_csv_respects_period(monkeypatch):
 
 def test_datev_csv_format_and_accounts(monkeypatch):
     # KA-H11: выгрузка с персональными данными — только владельцу.
-    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
+    monkeypatch.setattr("apps.core.roles.can_export_finance", lambda user: True)
     _entries()
     response = views.journal_export_datev(_req("/dashboard/finance/datev.csv"))
     assert "windows-1252" in response["Content-Type"]
