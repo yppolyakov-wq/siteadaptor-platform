@@ -24,6 +24,20 @@
     {% else %}bg-gray-100 text-gray-600{% endif %}">{{ conversation.get_status_display }}</span>
 </div>
 
+{% if customer_threads %}
+<details class="mb-4 max-w-2xl bg-white rounded-2xl shadow-sm" data-customer-threads>
+  <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-gray-700">{% blocktrans count n=customer_threads|length %}{{ n }} frühere Unterhaltung mit diesem Kunden{% plural %}{{ n }} frühere Unterhaltungen mit diesem Kunden{% endblocktrans %}</summary>
+  <div class="divide-y divide-gray-100 border-t border-gray-100">
+    {% for c in customer_threads %}
+      <a href="{% url 'inbox:thread' c.pk %}" class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+        <span class="truncate">{{ c.subject|default:"—" }}</span>
+        <span class="text-xs text-gray-400 shrink-0">{{ c.last_message_at|date:"d.m.Y H:i"|default:"" }} · {{ c.get_status_display }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</details>
+{% endif %}
+
 {# действия: статус + приоритет #}
 <div class="flex flex-wrap items-center gap-2 mb-5">
   {% for target in allowed %}
@@ -71,8 +85,9 @@
   {% for m in messages_list %}
     <div class="flex {% if m.author_role == 'staff' %}justify-end{% endif %}" data-msg-id="{{ m.pk }}">
       <div class="rounded-2xl px-4 py-2 max-w-[80%] {% if m.author_role == 'staff' %}bg-indigo-600 text-white{% elif m.author_role == 'system' %}bg-gray-100 text-gray-500 text-sm italic{% else %}bg-white shadow-sm{% endif %}">
+        <p class="text-[11px] font-medium {% if m.author_role == 'staff' %}text-indigo-100{% else %}text-gray-500{% endif %} mb-0.5" data-msg-author>{{ m.author_label }}</p>
         <p class="whitespace-pre-line">{{ m.body }}</p>
-        <p class="text-xs {% if m.author_role == 'staff' %}text-indigo-200{% else %}text-gray-400{% endif %} mt-1">{{ m.created_at|date:"d.m. H:i" }}</p>
+        <p class="text-xs {% if m.author_role == 'staff' %}text-indigo-200{% else %}text-gray-400{% endif %} mt-1">{{ m.created_at|date:"d.m.Y H:i" }}</p>
       </div>
     </div>
   {% endfor %}
@@ -115,13 +130,16 @@
     var bubble = document.createElement("div");
     bubble.className = "rounded-2xl px-4 py-2 max-w-[80%] " +
       (mine ? "bg-indigo-600 text-white" : sys ? "bg-gray-100 text-gray-500 text-sm italic" : "bg-white shadow-sm");
+    var a = document.createElement("p");
+    a.className = "text-[11px] font-medium mb-0.5 " + (mine ? "text-indigo-100" : "text-gray-500");
+    a.textContent = m.author || "";
     var p = document.createElement("p");
     p.className = "whitespace-pre-line";
     p.textContent = m.body;
     var t = document.createElement("p");
     t.className = "text-xs mt-1 " + (mine ? "text-indigo-200" : "text-gray-400");
     t.textContent = m.created;
-    bubble.appendChild(p); bubble.appendChild(t); row.appendChild(bubble);
+    bubble.appendChild(a); bubble.appendChild(p); bubble.appendChild(t); row.appendChild(bubble);
     list.appendChild(row);
   }
   function poll() {

@@ -255,9 +255,7 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "deal_discount_eur": Decimal(int(getattr(obj, "discount_cents", 0) or 0)) / 100,
         # DF-3: переписка с клиентом — прямо на карточке (тред или композер).
         "deal_thread": thread,
-        "deal_thread_messages": (
-            list(thread.messages.select_related("author_user")) if thread is not None else []
-        ),
+        "deal_thread_messages": (_thread_messages(thread) if thread is not None else []),
         # DC-4: внешний номер правится прямо в голове — там, где поле есть.
         "deal_external_editable": hasattr(obj, "external_code"),
         "deal_external_code": getattr(obj, "external_code", ""),
@@ -289,3 +287,12 @@ def _billing(obj):
         "recipient": recipient_for(obj),
         "directory": list(Company.objects.only("pk", "name", "vat_id").order_by("name")[:200]),
     }
+
+
+def _thread_messages(thread):
+    """Сообщения треда с подписью автора (кто писал) — тот же резолвер, что у
+    страницы беседы в кабинете."""
+    from apps.inbox.display import labelled_messages
+    from apps.inbox.models import Message
+
+    return labelled_messages(thread, viewer=Message.AUTHOR_STAFF)

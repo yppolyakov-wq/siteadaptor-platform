@@ -14,7 +14,7 @@
       <p class="text-sm text-gray-500 mb-1" data-chat-status="closed">⚪ {% if open_status.next %}{% blocktrans with d=open_status.next.0 t=open_status.next.1 %}Currently closed — back {{ d }} {{ t }}{% endblocktrans %}{% else %}{% trans "Currently closed" %}{% endif %}</p>
     {% endif %}
   {% endif %}
-  <p class="text-sm text-gray-500 mb-5">{% trans "Keep this page bookmarked to follow the conversation." %}</p>
+  <p class="text-sm text-gray-500 mb-5">{% trans "Keep this page bookmarked to follow the conversation." %} <a href="{% url 'storefront-message' %}" class="text-indigo-600 hover:underline">{% trans "Alle meine Nachrichten" %}</a></p>
 
   {% if messages %}
     {% for m in messages %}
@@ -41,11 +41,10 @@
     {% for m in messages_list %}
       <div class="flex {% if m.author_role == 'customer' %}justify-end{% endif %}" data-msg-id="{{ m.pk }}">
         <div class="rounded-2xl px-4 py-2 max-w-[80%] {% if m.author_role == 'customer' %}bg-indigo-600 text-white{% elif m.author_role == 'system' %}bg-gray-100 text-gray-500 text-sm italic{% else %}bg-white shadow-sm{% endif %}">
-          {% if m.author_role == 'staff' and m.author_user %}{# LS-4: живое лицо — кто отвечает. #}
-          <p class="text-[11px] font-medium text-indigo-600 mb-0.5">{{ m.author_user.first_name|default:m.author_user.username }}</p>
-          {% endif %}
+          {# LS-4 + чат-фикс: кто писал — «Sie» / имя сотрудника / название бизнеса. #}
+          <p class="text-[11px] font-medium {% if m.author_role == 'customer' %}text-indigo-100{% else %}text-indigo-600{% endif %} mb-0.5" data-msg-author>{{ m.author_label }}</p>
           <p class="whitespace-pre-line">{{ m.body }}</p>
-          <p class="text-xs {% if m.author_role == 'customer' %}text-indigo-200{% else %}text-gray-400{% endif %} mt-1">{{ m.created_at|date:"d.m. H:i" }}</p>
+          <p class="text-xs {% if m.author_role == 'customer' %}text-indigo-200{% else %}text-gray-400{% endif %} mt-1">{{ m.created_at|date:"d.m.Y H:i" }}</p>
         </div>
       </div>
     {% endfor %}
@@ -89,13 +88,16 @@
       var bubble = document.createElement("div");
       bubble.className = "rounded-2xl px-4 py-2 max-w-[80%] " +
         (mine ? "bg-indigo-600 text-white" : sys ? "bg-gray-100 text-gray-500 text-sm italic" : "bg-white shadow-sm");
+      var a = document.createElement("p");
+      a.className = "text-[11px] font-medium mb-0.5 " + (mine ? "text-indigo-100" : "text-indigo-600");
+      a.textContent = m.author || "";
       var p = document.createElement("p");
       p.className = "whitespace-pre-line";
       p.textContent = m.body;
       var t = document.createElement("p");
       t.className = "text-xs mt-1 " + (mine ? "text-indigo-200" : "text-gray-400");
       t.textContent = m.created;
-      bubble.appendChild(p); bubble.appendChild(t); row.appendChild(bubble);
+      bubble.appendChild(a); bubble.appendChild(p); bubble.appendChild(t); row.appendChild(bubble);
       list.appendChild(row);
     }
     function poll() {

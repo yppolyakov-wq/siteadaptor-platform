@@ -359,6 +359,10 @@ class DemoKit:
     # LS-3/4/6: демо-треды «Прямой линии» (вопрос + staff-ответ + открытое
     # Sofort-Angebot; second — high-тред «Etwas stimmt nicht?»). Без писем.
     seed_inbox: bool = False
+    # Чат-фикс 2026-10-23: живая переписка демо (история видна в кабинете, Mini App
+    # и у клиента). [{"subject", "name", "email", "status", "unread",
+    # "messages": [(role, текст, минут назад), …]}]. Без писем.
+    inbox_threads: list = field(default_factory=list)
     # B4/LS-5: активная auto-win-back кампания {"inactive_days", "percent",
     # "subject"} — видна в Kampagnen и в обзоре напоминаний Marketing-центра.
     winback: dict = field(default_factory=dict)
@@ -22531,6 +22535,48 @@ _LITE_COMMON = {
 
 LITE_BAKERY = DemoKit(
     key="klingenbrot",
+    inbox_threads=[
+        {
+            "subject": "Feierabendtüte heute noch da?",
+            "name": "Anna M.",
+            "email": "anna.m@example.com",
+            "status": "open",
+            "unread": True,
+            "messages": [
+                (
+                    "customer",
+                    "Hallo, gibt es heute noch eine Feierabendtüte? Ich wäre gegen 17:30 da.",
+                    190,
+                ),
+                (
+                    "staff",
+                    "Hallo Anna, ja — wir legen Ihnen eine zurück. Bis 18 Uhr abholbereit.",
+                    175,
+                ),
+                ("customer", "Super, danke! Kann ich mit Karte zahlen?", 40),
+            ],
+        },
+        {
+            "subject": "Torte für Samstag",
+            "name": "Peter K.",
+            "email": "peter.k@example.com",
+            "status": "resolved",
+            "unread": False,
+            "messages": [
+                (
+                    "customer",
+                    "Machen Sie auch Geburtstagstorten auf Bestellung? Für Samstag, ca. 12 Stück.",
+                    3000,
+                ),
+                (
+                    "staff",
+                    "Sehr gern! Schoko oder Obst? Bestellung bis Donnerstag 12 Uhr genügt.",
+                    2950,
+                ),
+                ("customer", "Obst, bitte. Ich komme Donnerstag vorbei.", 2900),
+            ],
+        },
+    ],
     subdomain="klingenbrot",
     district="mitte",
     label="Bäckerei Klingenbrot",
@@ -22641,6 +22687,19 @@ LITE_BAKERY = DemoKit(
 
 LITE_CAFE = DemoKit(
     key="ohligser_eck",
+    inbox_threads=[
+        {
+            "subject": "Tisch für 4 am Freitag?",
+            "name": "Lea S.",
+            "email": "lea.s@example.com",
+            "status": "pending",
+            "unread": False,
+            "messages": [
+                ("customer", "Kann man für Freitagabend einen Tisch für 4 reservieren?", 300),
+                ("staff", "Hallo Lea, Freitag ab 19 Uhr ist noch frei. Auf welchen Namen?", 280),
+            ],
+        },
+    ],
     subdomain="ohligser-eck",
     district="ohligs-aufderhoehe-merscheid",
     label="Café Ohligser Eck",
@@ -22752,6 +22811,22 @@ LITE_CAFE = DemoKit(
 
 LITE_MODE = DemoKit(
     key="walder_faden",
+    inbox_threads=[
+        {
+            "subject": "Reißverschluss tauschen",
+            "name": "Jonas B.",
+            "email": "jonas.b@example.com",
+            "status": "open",
+            "unread": True,
+            "messages": [
+                (
+                    "customer",
+                    "Tauschen Sie auch Reißverschlüsse an Winterjacken? Was kostet das ungefähr?",
+                    120,
+                ),
+            ],
+        },
+    ],
     subdomain="walder-faden",
     district="wald",
     label="Modehaus Walder Faden",
@@ -22857,6 +22932,24 @@ LITE_MODE = DemoKit(
 
 LITE_HOFLADEN = DemoKit(
     key="wupperhof",
+    inbox_threads=[
+        {
+            "subject": "Eier diese Woche",
+            "name": "Maria L.",
+            "email": "maria.l@example.com",
+            "status": "open",
+            "unread": True,
+            "messages": [
+                (
+                    "customer",
+                    "Haben Sie diese Woche wieder Freilandeier? 20 Stück zurücklegen wäre toll.",
+                    90,
+                ),
+                ("staff", "Ja, ab Mittwoch. Ich lege Ihnen 20 Stück zurück.", 80),
+                ("customer", "Danke, ich komme Mittwochnachmittag.", 30),
+            ],
+        },
+    ],
     subdomain="wupperhof",
     district="ohligs-aufderhoehe-merscheid",
     label="Hofladen Wupperhof",
@@ -22960,6 +23053,23 @@ LITE_HOFLADEN = DemoKit(
 
 LITE_PENSION = DemoKit(
     key="brueckenblick",
+    inbox_threads=[
+        {
+            "subject": "Zimmer im Mai",
+            "name": "Thomas W.",
+            "email": "thomas.w@example.com",
+            "status": "pending",
+            "unread": False,
+            "messages": [
+                ("customer", "Haben Sie vom 12. bis 14. Mai ein Doppelzimmer frei?", 600),
+                (
+                    "staff",
+                    "Guten Tag, ja — das Doppelzimmer mit Blick auf die Brücke ist frei. Frühstück inklusive.",
+                    560,
+                ),
+            ],
+        },
+    ],
     subdomain="brueckenblick",
     district="burg-hoehscheid",
     label="Pension Brückenblick",
@@ -23073,6 +23183,18 @@ LITE_PENSION = DemoKit(
 # 2026-10-09). Парикмахерская: в плане пилота она есть, а среди демо не было ни одной.
 LITE_FRISEUR = DemoKit(
     key="graefrather_markt",
+    inbox_threads=[
+        {
+            "subject": "Stand am Samstag",
+            "name": "Ulla R.",
+            "email": "ulla.r@example.com",
+            "status": "open",
+            "unread": True,
+            "messages": [
+                ("customer", "Ist der Käsestand am Samstag wieder da?", 150),
+            ],
+        },
+    ],
     subdomain="graefrather-markt",
     district="graefrath",
     label="Salon am Gräfrather Markt",
@@ -24813,6 +24935,8 @@ def apply_kit(tenant, key: str) -> bool:
     _seed_kit_records(tenant, kit, refs, created_products)
     if kit.seed_inbox:  # LS-3/4/6: демо «Прямой линии» + Sofort-Angebot
         _seed_kit_inbox()
+    if kit.inbox_threads:  # чат-фикс: живая переписка с историей
+        _seed_kit_threads(kit)
     if kit.winback:  # B4/LS-5: активная auto-win-back кампания
         _seed_kit_winback(kit)
     _seed_demo_lots(kit, created_products)  # E1.5: демо-партии/MHD (еда)
@@ -26196,6 +26320,37 @@ def _seed_kit_inbox() -> None:
         author_role=Message.AUTHOR_CUSTOMER,
         body="Ich stehe vor dem Salon, aber es ist geschlossen — mein Termin war doch heute?",
     )
+
+
+def _seed_kit_threads(kit: DemoKit) -> None:
+    """Чат-фикс 2026-10-23: переписка демо с историей (кто/когда). Моделями
+    напрямую — без enqueue-хуков, писем демо не шлёт."""
+    from django.utils import timezone as tz
+
+    from apps.inbox.models import Conversation, Message
+    from apps.promotions.models import Customer
+
+    now = tz.now()
+    for spec in kit.inbox_threads:
+        kunde = Customer.objects.filter(email=spec["email"]).first() or (
+            Customer.objects.create(email=spec["email"], name=spec["name"])
+        )
+        msgs = spec.get("messages") or []
+        last = now - timedelta(minutes=min((m[2] for m in msgs), default=0))
+        conv = Conversation.objects.create(
+            customer=kunde,
+            subject=spec["subject"],
+            status=spec.get("status", Conversation.STATUS_OPEN),
+            channel=Conversation.CHANNEL_WEB,
+            unread_for_staff=bool(spec.get("unread")),
+            last_message_at=last,
+        )
+        for role, body, minutes_ago in msgs:
+            msg = Message.objects.create(conversation=conv, author_role=role, body=body)
+            # created_at — auto_now_add: время из спеки ставим вторым шагом.
+            Message.objects.filter(pk=msg.pk).update(
+                created_at=now - timedelta(minutes=minutes_ago)
+            )
 
 
 def _seed_kit_winback(kit: DemoKit) -> None:

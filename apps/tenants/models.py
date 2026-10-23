@@ -456,6 +456,7 @@ class Tenant(TenantMixin):
             f"{self._privacy_processors_sentence()}"
             "Die Daten werden nach Ablauf der gesetzlichen Fristen gelöscht bzw. "
             "anonymisiert.\n\n"
+            f"{self._privacy_chat_paragraph()}"
             f"{self._privacy_ai_paragraph()}"
             f"{self._privacy_telegram_paragraph()}"
             "Sie haben das Recht auf Auskunft, Berichtigung, Löschung und "
@@ -485,6 +486,20 @@ class Tenant(TenantMixin):
             "Zur Erbringung unserer Leistungen setzen wir folgende Dienstleister ein: "
             + "; ".join(items)
             + ". "
+        )
+
+    def _privacy_chat_paragraph(self) -> str:
+        """Чат-фикс 2026-10-23: функциональная кука `sa_threads` страницы «Frage
+        stellen» — только при включённом модуле «Nachrichten»."""
+        if not self.is_module_active("inbox"):
+            return ""
+        return (
+            "Wenn Sie uns über „Frage stellen“ schreiben, merkt sich Ihr Browser in "
+            "einem technisch notwendigen Cookie („sa_threads“, 30 Tage) Ihre "
+            "Unterhaltungen und die von Ihnen eingegebenen Kontaktdaten, damit Sie "
+            "die Unterhaltung fortsetzen können, ohne Ihre Daten erneut einzugeben "
+            "(§ 25 Abs. 2 Nr. 2 TDDDG). Sie können ihn jederzeit über „Auf diesem "
+            "Gerät vergessen“ löschen.\n\n"
         )
 
     def _privacy_ai_paragraph(self) -> str:

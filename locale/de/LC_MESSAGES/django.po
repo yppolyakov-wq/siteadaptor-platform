@@ -27445,14 +27445,26 @@ msgstr "Bitte die Nummer als Text senden — oder „-“ zum Löschen."
 msgid "Aktivieren"
 msgstr "Aktivieren"
 
-msgid "Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich."
-msgstr "Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich."
+msgid ""
+"Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für "
+"Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich."
+msgstr ""
+"Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für "
+"Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich."
 
-msgid "Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ eintragen — nicht hier im Chat senden."
-msgstr "Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ eintragen — nicht hier im Chat senden."
+msgid ""
+"Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ "
+"eintragen — nicht hier im Chat senden."
+msgstr ""
+"Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ "
+"eintragen — nicht hier im Chat senden."
 
-msgid "Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich."
-msgstr "Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich."
+msgid ""
+"Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per "
+"SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich."
+msgstr ""
+"Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per "
+"SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich."
 
 msgid "Eigenen Telegram-Bot einrichten"
 msgstr "Eigenen Telegram-Bot einrichten"
@@ -27500,8 +27512,10 @@ msgstr "%(v)s Aufrufe · %(h)s zurückgelegt"
 msgid "Aktion anlegen"
 msgstr "Aktion anlegen"
 
-msgid "Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
-msgstr "Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
+msgid ""
+"Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
+msgstr ""
+"Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
 
 msgid "Fotos ergänzen"
 msgstr "Fotos ergänzen"
@@ -27621,14 +27635,24 @@ msgstr "Bitte öffnen Sie „Mein Laden“ über den Telegram-Bot."
 msgid "Der Bot ist gerade nicht verfügbar."
 msgstr "Der Bot ist gerade nicht verfügbar."
 
-msgid "Die Verarbeitung ist eingeschränkt. Mit /freigeben im Bot wieder aufheben."
-msgstr "Die Verarbeitung ist eingeschränkt. Mit /freigeben im Bot wieder aufheben."
+msgid ""
+"Die Verarbeitung ist eingeschränkt. Mit /freigeben im Bot wieder aufheben."
+msgstr ""
+"Die Verarbeitung ist eingeschränkt. Mit /freigeben im Bot wieder aufheben."
 
-msgid "Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür per E-Mail an."
-msgstr "Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür per E-Mail an."
+msgid ""
+"Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür "
+"per E-Mail an."
+msgstr ""
+"Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür "
+"per E-Mail an."
 
-msgid "Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
-msgstr "Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
+msgid ""
+"Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot "
+"erneut."
+msgstr ""
+"Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot "
+"erneut."
 
 msgid "Einen Moment …"
 msgstr "Einen Moment …"
@@ -27636,14 +27660,20 @@ msgstr "Einen Moment …"
 msgid "Einrichten nach Anmeldung per E-Mail."
 msgstr "Einrichten nach Anmeldung per E-Mail."
 
-msgid "Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
-msgstr "Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
+msgid ""
+"Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im "
+"Telegram-Bot erneut."
+msgstr ""
+"Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im "
+"Telegram-Bot erneut."
 
 msgid "Im Browser öffnen"
 msgstr "Im Browser öffnen"
 
-msgid "In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster."
-msgstr "In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster."
+msgid ""
+"In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster."
+msgstr ""
+"In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster."
 
 msgid "Mein Laden"
 msgstr "Mein Laden"
@@ -27656,7 +27686,6 @@ msgstr "Mein Laden — Aktionen, Angebot und Sichtbarkeit direkt in Telegram"
 
 msgid "Mit E-Mail anmelden"
 msgstr "Mit E-Mail anmelden"
-
 
 msgid "Welches Geschäft möchten Sie öffnen?"
 msgstr "Welches Geschäft möchten Sie öffnen?"
@@ -27697,16 +27726,24 @@ msgstr "Erneut versuchen"
 msgid "Keine Verbindung. Bitte erneut versuchen."
 msgstr "Keine Verbindung. Bitte erneut versuchen."
 
-msgid "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
-msgstr "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
+msgid ""
+"Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
+msgstr ""
+"Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
 
 #: apps/tenants/forms.py
 msgid "Sofort einlösen beim Scannen in der Kasse"
 msgstr "Sofort einlösen beim Scannen in der Kasse"
 
 #: apps/tenants/forms.py
-msgid "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
-msgstr "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
+msgid ""
+"Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder "
+"Telegram) sofort ein. Links und die Handykamera zeigen immer eine "
+"Bestätigungs-Schaltfläche."
+msgstr ""
+"Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder "
+"Telegram) sofort ein. Links und die Handykamera zeigen immer eine "
+"Bestätigungs-Schaltfläche."
 
 #: apps/promotions/views.py
 msgid "Gerade schon eingelöst — bitte den aktuellen Stand prüfen."
@@ -27717,17 +27754,22 @@ msgid "Noch kein Geschäft mit diesem Telegram verbunden."
 msgstr "Noch kein Geschäft mit diesem Telegram verbunden."
 
 #: apps/platform_bot
-msgid "Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."
-msgstr "Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."
+msgid ""
+"Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."
+msgstr ""
+"Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."
 
 #: apps/platform_bot
 msgid "Ich habe schon ein Geschäft"
 msgstr "Ich habe schon ein Geschäft"
 
 #: apps/platform_bot
-msgid "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen."
-msgstr "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen."
-
+msgid ""
+"Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram "
+"verbinden“ tippen."
+msgstr ""
+"Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram "
+"verbinden“ tippen."
 
 #: apps/platform_bot
 msgid "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
@@ -27757,22 +27799,31 @@ msgstr "Ins Firmenverzeichnis übernehmen"
 msgid "Firma ins Verzeichnis übernommen."
 msgstr "Firma ins Verzeichnis übernommen."
 
-
 #, python-format
 msgid "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
 msgstr "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
 
-msgid "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
-msgstr "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
+msgid ""
+"Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
+msgstr ""
+"Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
 
 #, python-format
-msgid "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
-msgstr "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
+msgid ""
+"Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet "
+"„Mein Laden“ Ihr Geschäft."
+msgstr ""
+"Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet "
+"„Mein Laden“ Ihr Geschäft."
 
-msgid "Für diese E-Mail-Adresse wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut oder eine andere Adresse verwenden."
+msgid ""
+"Für diese E-Mail-Adresse wurden heute schon mehrere Geschäfte angelegt. "
+"Bitte morgen erneut oder eine andere Adresse verwenden."
 msgstr ""
 
-msgid "Mit diesem Telegram-Konto wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut."
+msgid ""
+"Mit diesem Telegram-Konto wurden heute schon mehrere Geschäfte angelegt. "
+"Bitte morgen erneut."
 msgstr ""
 
 msgid "Wird veröffentlicht…"
@@ -27784,7 +27835,9 @@ msgstr ""
 msgid "Anmeldung über Telegram fehlgeschlagen."
 msgstr ""
 
-msgid "Der Link öffnet sich im Browser. In Telegram melden Sie sich schneller mit „Mit Telegram anmelden“ an."
+msgid ""
+"Der Link öffnet sich im Browser. In Telegram melden Sie sich schneller mit "
+"„Mit Telegram anmelden“ an."
 msgstr ""
 
 msgid "Kamera konnte nicht gestartet werden. Bitte den Code oben eintippen."
@@ -27793,7 +27846,9 @@ msgstr ""
 msgid "Kamera öffnet sich nicht? Code oben eintippen."
 msgstr ""
 
-msgid "Kamerazugriff verweigert. Bitte in den Einstellungen erlauben oder den Code oben eintippen."
+msgid ""
+"Kamerazugriff verweigert. Bitte in den Einstellungen erlauben oder den Code "
+"oben eintippen."
 msgstr ""
 
 msgid "Keine E-Mail? Bitte auch den Spam-Ordner prüfen."
@@ -27851,20 +27906,34 @@ msgid "Ihre Kundinnen und Kunden überweisen ab jetzt auf dieses Konto."
 msgstr "Ihre Kundinnen und Kunden überweisen ab jetzt auf dieses Konto."
 
 #: KA-H2
-msgid "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die Bankverbindung."
-msgstr "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die Bankverbindung."
+msgid ""
+"Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die "
+"Bankverbindung."
+msgstr ""
+"Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die "
+"Bankverbindung."
 
 #: apps/core/refunds.py
 msgid "Erstattung nicht bestätigt: %(code)s"
 msgstr "Erstattung nicht bestätigt: %(code)s"
 
 #: apps/core/refunds.py
-msgid "Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort bei Bedarf manuell."
-msgstr "Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort bei Bedarf manuell."
+msgid ""
+"Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde von "
+"Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und"
+" erstatten Sie sie dort bei Bedarf manuell."
+msgstr ""
+"Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde von "
+"Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und"
+" erstatten Sie sie dort bei Bedarf manuell."
 
 #: apps/core/refunds.py
-msgid "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
-msgstr "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
+msgid ""
+"Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-"
+"Dashboard."
+msgstr ""
+"Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-"
+"Dashboard."
 
 #: KA-H5
 msgid "Mehr Personen als Plätze (%(cap)s)."
@@ -27925,8 +27994,12 @@ msgid "Betrag (€)"
 msgstr "Betrag (€)"
 
 #: KA-H9
-msgid "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
-msgstr "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
+msgid ""
+"Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse"
+" hinterlegt ist, haben wir ihn dorthin geschickt."
+msgstr ""
+"Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse"
+" hinterlegt ist, haben wir ihn dorthin geschickt."
 
 #: KA-H6
 #, python-format
@@ -27950,8 +28023,14 @@ msgstr "Überbuchung: %(unit)s"
 
 #: KA-H6
 #, python-format
-msgid "Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte klären Sie die Belegung im Belegungsplan."
-msgstr "Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte klären Sie die Belegung im Belegungsplan."
+msgid ""
+"Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer "
+"vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte"
+" klären Sie die Belegung im Belegungsplan."
+msgstr ""
+"Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer "
+"vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte"
+" klären Sie die Belegung im Belegungsplan."
 
 #: KA-H6
 #, python-format
@@ -27959,12 +28038,20 @@ msgid "Überbuchung bei %(unit)s:"
 msgstr "Überbuchung bei %(unit)s:"
 
 #: KA-H8
-msgid "Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
-msgstr "Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
+msgid ""
+"Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, "
+"Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
+msgstr ""
+"Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, "
+"Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
 
 #: KA-H8
-msgid "Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die Zusammenfassung erhalten Sie per E-Mail."
-msgstr "Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die Zusammenfassung erhalten Sie per E-Mail."
+msgid ""
+"Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die "
+"Zusammenfassung erhalten Sie per E-Mail."
+msgstr ""
+"Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die "
+"Zusammenfassung erhalten Sie per E-Mail."
 
 #: KA-H8
 #, python-format
@@ -27973,25 +28060,45 @@ msgstr "Veranstaltung abgesagt: %(title)s"
 
 #: KA-H8
 #, python-format
-msgid "Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: %(manual)s"
-msgstr "Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: %(manual)s"
+msgid ""
+"Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: "
+"%(manual)s"
+msgstr ""
+"Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: "
+"%(manual)s"
 
 #: KA-H8
-msgid "Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder Fehler bei Stripe):"
-msgstr "Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder Fehler bei Stripe):"
+msgid ""
+"Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder "
+"Fehler bei Stripe):"
+msgstr ""
+"Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder "
+"Fehler bei Stripe):"
 
 #: KA-H8
 #, python-format
-msgid "Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung (%(code)s) ist damit storniert."
-msgstr "Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung (%(code)s) ist damit storniert."
+msgid ""
+"Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung "
+"(%(code)s) ist damit storniert."
+msgstr ""
+"Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung "
+"(%(code)s) ist damit storniert."
 
 #: KA-H8
-msgid "Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen Zahlungen melden wir uns bei Ihnen."
-msgstr "Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen Zahlungen melden wir uns bei Ihnen."
+msgid ""
+"Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen "
+"Zahlungen melden wir uns bei Ihnen."
+msgstr ""
+"Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen "
+"Zahlungen melden wir uns bei Ihnen."
 
 #: KA-H8
-msgid "Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. Teilnehmer melden sich dafür selbst über die Website an."
-msgstr "Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. Teilnehmer melden sich dafür selbst über die Website an."
+msgid ""
+"Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. "
+"Teilnehmer melden sich dafür selbst über die Website an."
+msgstr ""
+"Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. "
+"Teilnehmer melden sich dafür selbst über die Website an."
 
 #: KA-H8
 msgid "Das Ticket ist noch nicht bestätigt."
@@ -28006,8 +28113,12 @@ msgid "Die Veranstaltung wurde abgesagt."
 msgstr "Die Veranstaltung wurde abgesagt."
 
 #: KA-H8
-msgid "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
-msgstr "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
+msgid ""
+"Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht "
+"abgebucht."
+msgstr ""
+"Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht "
+"abgebucht."
 
 #: KA-H8
 msgid "Nur der Inhaber kann eine Veranstaltung absagen."
@@ -28026,12 +28137,17 @@ msgid "Leistungszeitraum"
 msgstr "Leistungszeitraum"
 
 #: KA-H10
-msgid "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen."
-msgstr "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen."
+msgid ""
+"Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag "
+"stornieren und ein neues Angebot erstellen."
+msgstr ""
+"Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag "
+"stornieren und ein neues Angebot erstellen."
 
 #: KA-H10
 msgid "Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden."
-msgstr "Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden."
+msgstr ""
+"Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden."
 
 #: KA-H10
 msgid "Der Rabatt kann nach der Beauftragung nicht mehr geändert werden."
@@ -28062,8 +28178,12 @@ msgid "Zahlungspflichtig buchen"
 msgstr "Zahlungspflichtig buchen"
 
 #, python-format
-msgid "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"
-msgstr "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"
+msgid ""
+"Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen "
+"möchten, schreiben Sie uns bitte: %(mail)s"
+msgstr ""
+"Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen "
+"möchten, schreiben Sie uns bitte: %(mail)s"
 
 msgid "Diese Seite ist bald online."
 msgstr "Diese Seite ist bald online."
@@ -28071,8 +28191,12 @@ msgstr "Diese Seite ist bald online."
 msgid "Auftrag"
 msgstr "Auftrag"
 
-msgid "Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht erstatten."
-msgstr "Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht erstatten."
+msgid ""
+"Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht "
+"erstatten."
+msgstr ""
+"Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht "
+"erstatten."
 
 msgid "Bei Stornierung: Zahlung erstatten?"
 msgstr "Bei Stornierung: Zahlung erstatten?"
@@ -28096,8 +28220,12 @@ msgid "In Ihrem Paket nicht enthalten"
 msgstr "In Ihrem Paket nicht enthalten"
 
 #, python-format
-msgid "Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten und Ihre Sichtbarkeit finden Sie im Start."
-msgstr "Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten und Ihre Sichtbarkeit finden Sie im Start."
+msgid ""
+"Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten"
+" und Ihre Sichtbarkeit finden Sie im Start."
+msgstr ""
+"Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten"
+" und Ihre Sichtbarkeit finden Sie im Start."
 
 msgid "Zurück zum Start"
 msgstr "Zurück zum Start"
@@ -28175,7 +28303,9 @@ msgstr ""
 msgid "Konfiguration in Ordnung."
 msgstr ""
 
-msgid "Leeres Feld oder „wie .env“ — es gilt der Wert aus .env.prod. Schlüssel liegen unter Plattform → Geheimnisse."
+msgid ""
+"Leeres Feld oder „wie .env“ — es gilt der Wert aus .env.prod. Schlüssel "
+"liegen unter Plattform → Geheimnisse."
 msgstr ""
 
 msgid "Limits & Preise"
@@ -28220,7 +28350,8 @@ msgstr ""
 msgid "wie .env"
 msgstr ""
 
-msgid "„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden."
+msgid ""
+"„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden."
 msgstr ""
 
 msgid "Wirklich löschen?"
@@ -28238,8 +28369,10 @@ msgstr "Abholzeit wählen"
 msgid "Bitte wählen Sie eine Abholzeit."
 msgstr "Bitte wählen Sie eine Abholzeit."
 
-msgid "Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
-msgstr "Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
+msgid ""
+"Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
+msgstr ""
+"Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
 
 msgid "Kunden wählen eine Abholzeit"
 msgstr "Kunden wählen eine Abholzeit"
@@ -28265,11 +28398,42 @@ msgstr "Zurzeit keine Abholzeiten verfügbar."
 msgid "noch 1 frei"
 msgstr "noch 1 frei"
 
-msgid "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
-msgstr "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
+msgid ""
+"Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
+msgstr ""
+"Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
 
 msgid "Gesucht auch nach:"
 msgstr "Gesucht auch nach:"
 
 msgid "Nur Zahlungseingänge können zugeordnet werden."
 msgstr ""
+
+msgid "Alle meine Nachrichten"
+msgstr "Alle meine Nachrichten"
+
+msgid "Antwort an %(e)s"
+msgstr "Antwort an %(e)s"
+
+msgid "Ihre bisherigen Nachrichten"
+msgstr "Ihre bisherigen Nachrichten"
+
+msgid "Neue Frage"
+msgstr "Neue Frage"
+
+msgid "Sie"
+msgstr "Sie"
+
+msgid "Weiterschreiben"
+msgstr "Weiterschreiben"
+
+msgid "ändern"
+msgstr "ändern"
+
+msgid "%(n)s frühere Unterhaltung mit diesem Kunden"
+msgid_plural "%(n)s frühere Unterhaltungen mit diesem Kunden"
+msgstr[0] "%(n)s frühere Unterhaltung mit diesem Kunden"
+msgstr[1] "%(n)s frühere Unterhaltungen mit diesem Kunden"
+
+msgid "Auf diesem Gerät vergessen"
+msgstr "Auf diesem Gerät vergessen"

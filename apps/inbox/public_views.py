@@ -47,6 +47,103 @@ def mark_typing(conv_pk, role) -> None:
         pass
 
 
+# Чат-фикс 2026-10-23: память ЭТОГО браузера — подписанная кука со списком
+# public_token бесед, которые посетитель сам начал или в которых писал, и контакт,
+# который он сам ввёл. Только функциональная память («продолжить разговор», не
+# спрашивать почту заново), никакого трекинга. Ревью безопасности: контакт берём
+# ТОЛЬКО из куки или подтверждённого входа в «Konto» — никогда из карточки клиента
+# по совпадению почты (иначе чужая почта открывала бы имя и телефон).
+THREADS_COOKIE = "sa_threads"
+THREADS_COOKIE_SALT = "inbox-threads"
+THREADS_COOKIE_MAX = 10
+THREADS_COOKIE_AGE = 60 * 60 * 24 * 30
+
+
+def _cookie_state(request) -> dict:
+    """{"t": [tokens], "c": {name, email, phone}}; подделка/мусор → пусто."""
+    import json
+    import uuid
+
+    from django.core.signing import BadSignature
+
+    try:
+        raw = request.get_signed_cookie(THREADS_COOKIE, default="{}", salt=THREADS_COOKIE_SALT)
+        data = json.loads(raw)
+    except (BadSignature, ValueError, TypeError):
+        return {"t": [], "c": {}}
+    if not isinstance(data, dict):
+        return {"t": [], "c": {}}
+    tokens = []
+    for item in data.get("t") if isinstance(data.get("t"), list) else []:
+        try:
+            tokens.append(str(uuid.UUID(str(item))))
+        except (ValueError, TypeError):
+            continue
+    raw_contact = data.get("c") if isinstance(data.get("c"), dict) else {}
+    contact = {k: str(raw_contact.get(k) or "")[:200] for k in ("name", "email", "phone")}
+    return {"t": tokens[:THREADS_COOKIE_MAX], "c": contact if contact["email"] else {}}
+
+
+def _remember(response, request, conversation, *, contact=None):
+    """Запомнить беседу (и введённый посетителем контакт) в этом браузере."""
+    import json
+
+    state = _cookie_state(request)
+    token = str(conversation.public_token)
+    tokens = [t for t in state["t"] if t != token]
+    tokens.insert(0, token)
+    if contact and contact.get("email"):
+        state["c"] = {k: (contact.get(k) or "")[:200] for k in ("name", "email", "phone")}
+    response.set_signed_cookie(
+        THREADS_COOKIE,
+        json.dumps({"t": tokens[:THREADS_COOKIE_MAX], "c": state["c"]}),
+        salt=THREADS_COOKIE_SALT,
+        max_age=THREADS_COOKIE_AGE,
+        httponly=True,
+        samesite="Lax",
+        secure=request.is_secure(),
+    )
+    return response
+
+
+def _account_customer(request):
+    """Клиент подтверждённого входа в «Konto» (magic link / Telegram) или None."""
+    from apps.account.auth import current_customer
+
+    return current_customer(request)
+
+
+def known_threads(request):
+    """Беседы этого браузера (только из куки — их токены выдавались ему самому),
+    свежие первыми, с последним сообщением."""
+    from django.db.models import F
+
+    from .display import with_last_message
+
+    tokens = _cookie_state(request)["t"]
+    if not tokens:
+        return []
+    qs = Conversation.objects.filter(public_token__in=tokens).select_related("customer")
+    return list(
+        with_last_message(qs).order_by(F("last_message_at").desc(nulls_last=True), "-created_at")[
+            :THREADS_COOKIE_MAX
+        ]
+    )
+
+
+def known_contact(request) -> dict:
+    """Имя/почта/телефон, которые посетитель уже называл: вход в «Konto» → то, что он
+    сам вводил в этом браузере. Пусто — форма спрашивает как раньше."""
+    customer = _account_customer(request)
+    if customer is not None and customer.email:
+        return {
+            "name": customer.name or "",
+            "email": customer.email,
+            "phone": getattr(customer, "phone", "") or "",
+        }
+    return _cookie_state(request)["c"]
+
+
 def _require_inbox(request):
     tenant = getattr(request, "tenant", None)
     if tenant is None or not tenant.is_module_active("inbox"):
@@ -65,6 +162,11 @@ def contact(request):
     """GET — форма «Frage stellen» (опц. префилл ref из query); POST — создать тред."""
     _require_inbox(request)
     if request.method == "POST":
+        if request.POST.get("action") == "forget":
+            # «Auf diesem Gerät vergessen» — память браузера стирается целиком.
+            response = redirect("storefront-message")
+            response.delete_cookie(THREADS_COOKIE, samesite="Lax")
+            return response
         if request.POST.get("website"):  # honeypot
             return redirect("storefront-message")
         if ratelimit.hit("inbox", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
@@ -80,6 +182,8 @@ def contact(request):
                     **ref,
                     "prefill_subject": request.POST.get("subject", ""),
                     "problem": request.POST.get("problem", ""),
+                    "my_threads": known_threads(request),
+                    "known_contact": known_contact(request),
                 },
             )
         # LS-6: маркер problem-кнопки + непустой ref сделки → приоритет high
@@ -89,12 +193,42 @@ def contact(request):
             and bool(ref.get("ref_kind"))
             and bool(ref.get("ref_id"))
         )
+        threads = known_threads(request)
+        known = known_contact(request)
+        typed = {k: request.POST.get(k, "").strip() for k in ("name", "email", "phone")}
+        contact = {k: typed[k] or known.get(k, "") for k in typed}
+        # Тот же вопрос по той же сделке/акции, пока беседа открыта, — продолжаем её,
+        # а не плодим новую. Только среди бесед ЭТОГО браузера и только если почта не
+        # сменилась (иначе посетитель явно пишет от другого имени).
+        same = None
+        if ref["ref_kind"] and ref["ref_id"] and not problem:
+            for c in threads:
+                if (
+                    c.ref_kind == ref["ref_kind"]
+                    and c.ref_id == ref["ref_id"]
+                    and c.status in (Conversation.STATUS_OPEN, Conversation.STATUS_PENDING)
+                    and (
+                        not typed["email"]
+                        or (c.customer_id and c.customer.email.lower() == typed["email"].lower())
+                    )
+                ):
+                    same = c
+                    break
+        if same is not None:
+            services.post_message(same, body=body[:5000], author_role=Message.AUTHOR_CUSTOMER)
+            messages.success(request, _("Your message was sent."))
+            return _remember(
+                redirect("storefront-message-thread", token=same.public_token),
+                request,
+                same,
+                contact=contact,
+            )
         conversation = services.start_conversation(
             subject=request.POST.get("subject", "").strip()[:200],
             body=body[:5000],
-            name=request.POST.get("name", "").strip(),
-            email=request.POST.get("email", "").strip(),
-            phone=request.POST.get("phone", "").strip(),
+            name=contact["name"],
+            email=contact["email"],
+            phone=contact["phone"],
             channel=Conversation.CHANNEL_WEB,
             priority=Conversation.PRIORITY_HIGH if problem else "",
             **ref,
@@ -102,7 +236,12 @@ def contact(request):
         from apps.aggregator import conversions
 
         conversions.count(request, "contact", "conversation", conversation)  # В5 V5-5
-        return redirect("storefront-message-thread", token=conversation.public_token)
+        return _remember(
+            redirect("storefront-message-thread", token=conversation.public_token),
+            request,
+            conversation,
+            contact=contact,
+        )
 
     # LS-4 «Слой доверия»: публичный бейдж времени ответа — только при ХОРОШЕМ
     # значении (≤ 2 ч; мало данных/медленно → без бейджа, честность важнее).
@@ -111,11 +250,15 @@ def contact(request):
     minutes = avg_reaction_minutes()
     from apps.core import attribution
 
+    threads = known_threads(request)
     return render(
         request,
         "storefront/message_contact.html",
         {
             **_ref(request.GET),
+            # Чат-фикс: прежние беседы — продолжить; известная почта — не спрашивать.
+            "my_threads": threads,
+            "known_contact": known_contact(request),
             "prefill_subject": request.GET.get("subject", ""),
             "problem": request.GET.get("problem", ""),
             "reaction_minutes": minutes if minutes is not None and minutes <= 120 else None,
@@ -138,17 +281,23 @@ def thread(request, token):
                 conversation, body=body[:5000], author_role=Message.AUTHOR_CUSTOMER
             )
             messages.success(request, _("Your message was sent."))
+            # Написал в беседе — она «своя» для этого браузера (вернётся на /nachricht/).
+            return _remember(
+                redirect("storefront-message-thread", token=token), request, conversation
+            )
         return redirect("storefront-message-thread", token=token)
     # M22b: «бизнес на связи» по часам работы — серверный рендер, без поллинга
     # (статус меняется раз в день, гонять его в JSON незачем).
     tenant = getattr(request, "tenant", None)
     open_status = tenant.open_status() if tenant is not None else None
+    from .display import labelled_messages
+
     return render(
         request,
         "storefront/message_thread.html",
         {
             "conversation": conversation,
-            "messages_list": conversation.messages.all(),
+            "messages_list": labelled_messages(conversation, viewer=Message.AUTHOR_CUSTOMER),
             # LS-3: карточки персональных предложений (reverse-FK orders.Offer).
             "offers_list": conversation.offers.prefetch_related("lines"),
             "open_status": open_status,
@@ -161,8 +310,12 @@ def thread_poll(request, token):
     клиента без перезагрузки. Клиент дедупит по id (pk — UUID). Read-only, гейтится
     модулем + public_token."""
     _require_inbox(request)
-    conversation = get_object_or_404(Conversation, public_token=token)
-    msgs = list(conversation.messages.order_by("-created_at")[:50])
+    from .display import author_label
+
+    conversation = get_object_or_404(
+        Conversation.objects.select_related("customer"), public_token=token
+    )
+    msgs = list(conversation.messages.select_related("author_user").order_by("-created_at")[:50])
     msgs.reverse()  # хронологический порядок
     return JsonResponse(
         {
@@ -170,8 +323,9 @@ def thread_poll(request, token):
                 {
                     "id": str(m.pk),
                     "role": m.author_role,
+                    "author": author_label(m, conversation, viewer=Message.AUTHOR_CUSTOMER),
                     "body": m.body,
-                    "created": date_format(m.created_at, "d.m. H:i"),
+                    "created": date_format(m.created_at, "d.m.Y H:i"),
                 }
                 for m in msgs
             ],

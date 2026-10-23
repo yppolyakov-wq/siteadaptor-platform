@@ -27626,14 +27626,26 @@ msgstr "Пришлите номер текстом — или «-», чтобы 
 msgid "Aktivieren"
 msgstr "Включить"
 
-msgid "Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich."
-msgstr "Затем введите токен из @BotFather. До этого для клиентов ничего не меняется. Акции через бот SiteAdaptor остаются доступны."
+msgid ""
+"Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für "
+"Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich."
+msgstr ""
+"Затем введите токен из @BotFather. До этого для клиентов ничего не меняется."
+" Акции через бот SiteAdaptor остаются доступны."
 
-msgid "Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ eintragen — nicht hier im Chat senden."
-msgstr "Токен вводите ТОЛЬКО в кабинете: «Подключения» → «Свой Telegram-бот» — не отправляйте его сюда в чат."
+msgid ""
+"Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ "
+"eintragen — nicht hier im Chat senden."
+msgstr ""
+"Токен вводите ТОЛЬКО в кабинете: «Подключения» → «Свой Telegram-бот» — не "
+"отправляйте его сюда в чат."
 
-msgid "Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich."
-msgstr "Вводите токен только здесь — никогда не отправляйте его в чат. Акции через бот SiteAdaptor остаются доступны и со своим ботом."
+msgid ""
+"Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per "
+"SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich."
+msgstr ""
+"Вводите токен только здесь — никогда не отправляйте его в чат. Акции через "
+"бот SiteAdaptor остаются доступны и со своим ботом."
 
 msgid "Eigenen Telegram-Bot einrichten"
 msgstr "Настроить свой Telegram-бот"
@@ -27681,7 +27693,8 @@ msgstr "%(v)s просмотров · %(h)s отложено"
 msgid "Aktion anlegen"
 msgstr "Создать акцию"
 
-msgid "Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
+msgid ""
+"Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
 msgstr "У некоторых товаров ещё нет фото. С фото их смотрят чаще."
 
 msgid "Fotos ergänzen"
@@ -27804,14 +27817,21 @@ msgstr "Пожалуйста, откройте «Мой магазин» чер�
 msgid "Der Bot ist gerade nicht verfügbar."
 msgstr "Бот сейчас недоступен."
 
-msgid "Die Verarbeitung ist eingeschränkt. Mit /freigeben im Bot wieder aufheben."
+msgid ""
+"Die Verarbeitung ist eingeschränkt. Mit /freigeben im Bot wieder aufheben."
 msgstr "Обработка ограничена. Снять ограничение — /freigeben в боте."
 
-msgid "Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür per E-Mail an."
-msgstr "Эта страница недоступна в приложении Telegram. Для неё войдите по e-mail."
+msgid ""
+"Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür "
+"per E-Mail an."
+msgstr ""
+"Эта страница недоступна в приложении Telegram. Для неё войдите по e-mail."
 
-msgid "Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
-msgstr "Срок действия ссылки истёк. Откройте «Мой магазин» в Telegram-боте ещё раз."
+msgid ""
+"Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot "
+"erneut."
+msgstr ""
+"Срок действия ссылки истёк. Откройте «Мой магазин» в Telegram-боте ещё раз."
 
 msgid "Einen Moment …"
 msgstr "Минутку …"
@@ -27819,13 +27839,17 @@ msgstr "Минутку …"
 msgid "Einrichten nach Anmeldung per E-Mail."
 msgstr "Настройка — после входа по e-mail."
 
-msgid "Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
-msgstr "Сеанс из Telegram завершён. Откройте «Мой магазин» в Telegram-боте ещё раз."
+msgid ""
+"Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im "
+"Telegram-Bot erneut."
+msgstr ""
+"Сеанс из Telegram завершён. Откройте «Мой магазин» в Telegram-боте ещё раз."
 
 msgid "Im Browser öffnen"
 msgstr "Открыть в браузере"
 
-msgid "In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster."
+msgid ""
+"In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster."
 msgstr "В Telegram Web «Мой магазин» откроется в новом окне браузера."
 
 msgid "Mein Laden"
@@ -27839,7 +27863,6 @@ msgstr "Мой магазин — акции, ассортимент и види
 
 msgid "Mit E-Mail anmelden"
 msgstr "Войти по e-mail"
-
 
 msgid "Welches Geschäft möchten Sie öffnen?"
 msgstr "Какой бизнес открыть?"
@@ -27880,7 +27903,8 @@ msgstr "Повторить"
 msgid "Keine Verbindung. Bitte erneut versuchen."
 msgstr "Нет соединения. Попробуйте ещё раз."
 
-msgid "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
+msgid ""
+"Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
 msgstr "Сеанс истёк — закройте и снова откройте «Мой магазин» в боте."
 
 #: apps/tenants/forms.py
@@ -27888,8 +27912,14 @@ msgid "Sofort einlösen beim Scannen in der Kasse"
 msgstr "Сразу погашать при сканировании на кассе"
 
 #: apps/tenants/forms.py
-msgid "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
-msgstr "Если включено, сканер на странице «Погашение» (в браузере или Telegram) погашает сразу. Ссылки и камера телефона всегда показывают кнопку подтверждения."
+msgid ""
+"Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder "
+"Telegram) sofort ein. Links und die Handykamera zeigen immer eine "
+"Bestätigungs-Schaltfläche."
+msgstr ""
+"Если включено, сканер на странице «Погашение» (в браузере или Telegram) "
+"погашает сразу. Ссылки и камера телефона всегда показывают кнопку "
+"подтверждения."
 
 #: apps/promotions/views.py
 msgid "Gerade schon eingelöst — bitte den aktuellen Stand prüfen."
@@ -27900,7 +27930,8 @@ msgid "Noch kein Geschäft mit diesem Telegram verbunden."
 msgstr "Пока ни один бизнес не связан с этим Telegram."
 
 #: apps/platform_bot
-msgid "Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."
+msgid ""
+"Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."
 msgstr "Сначала подтвердите e-mail — после этого откроется «Mein Laden»."
 
 #: apps/platform_bot
@@ -27908,9 +27939,12 @@ msgid "Ich habe schon ein Geschäft"
 msgstr "У меня уже есть бизнес"
 
 #: apps/platform_bot
-msgid "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen."
-msgstr "В кабинете откройте Настройки → Уведомления и нажмите «Mit Telegram verbinden»."
-
+msgid ""
+"Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram "
+"verbinden“ tippen."
+msgstr ""
+"В кабинете откройте Настройки → Уведомления и нажмите «Mit Telegram "
+"verbinden»."
 
 #: apps/platform_bot
 msgid "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
@@ -27940,23 +27974,35 @@ msgstr "Добавить в справочник компаний"
 msgid "Firma ins Verzeichnis übernommen."
 msgstr "Компания добавлена в справочник."
 
-
 #, python-format
 msgid "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
 msgstr "Готово! Подтвердите, пожалуйста, e-mail (%(mail)s)."
 
-msgid "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
+msgid ""
+"Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
 msgstr "Затем снова откройте «Mein Laden» в боте. Это окно можно закрыть."
 
 #, python-format
-msgid "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
-msgstr "Связано с Telegram «%(name)s»: после подтверждения e-mail «Mein Laden» откроет ваш бизнес."
+msgid ""
+"Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet "
+"„Mein Laden“ Ihr Geschäft."
+msgstr ""
+"Связано с Telegram «%(name)s»: после подтверждения e-mail «Mein Laden» "
+"откроет ваш бизнес."
 
-msgid "Für diese E-Mail-Adresse wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut oder eine andere Adresse verwenden."
-msgstr "С этим адресом e-mail сегодня уже создано несколько бизнесов. Попробуйте завтра или укажите другой адрес."
+msgid ""
+"Für diese E-Mail-Adresse wurden heute schon mehrere Geschäfte angelegt. "
+"Bitte morgen erneut oder eine andere Adresse verwenden."
+msgstr ""
+"С этим адресом e-mail сегодня уже создано несколько бизнесов. Попробуйте "
+"завтра или укажите другой адрес."
 
-msgid "Mit diesem Telegram-Konto wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut."
-msgstr "С этим аккаунтом Telegram сегодня уже создано несколько бизнесов. Попробуйте завтра."
+msgid ""
+"Mit diesem Telegram-Konto wurden heute schon mehrere Geschäfte angelegt. "
+"Bitte morgen erneut."
+msgstr ""
+"С этим аккаунтом Telegram сегодня уже создано несколько бизнесов. Попробуйте"
+" завтра."
 
 msgid "Wird veröffentlicht…"
 msgstr "Публикуется…"
@@ -27967,8 +28013,12 @@ msgstr "Слишком много попыток из этой сети. Поп�
 msgid "Anmeldung über Telegram fehlgeschlagen."
 msgstr "Не удалось войти через Telegram."
 
-msgid "Der Link öffnet sich im Browser. In Telegram melden Sie sich schneller mit „Mit Telegram anmelden“ an."
-msgstr "Ссылка откроется в браузере. В Telegram быстрее войти кнопкой «Войти через Telegram»."
+msgid ""
+"Der Link öffnet sich im Browser. In Telegram melden Sie sich schneller mit "
+"„Mit Telegram anmelden“ an."
+msgstr ""
+"Ссылка откроется в браузере. В Telegram быстрее войти кнопкой «Войти через "
+"Telegram»."
 
 msgid "Kamera konnte nicht gestartet werden. Bitte den Code oben eintippen."
 msgstr "Не удалось включить камеру. Введите код выше."
@@ -27976,8 +28026,11 @@ msgstr "Не удалось включить камеру. Введите код
 msgid "Kamera öffnet sich nicht? Code oben eintippen."
 msgstr "Камера не открывается? Введите код выше."
 
-msgid "Kamerazugriff verweigert. Bitte in den Einstellungen erlauben oder den Code oben eintippen."
-msgstr "Доступ к камере запрещён. Разрешите его в настройках или введите код выше."
+msgid ""
+"Kamerazugriff verweigert. Bitte in den Einstellungen erlauben oder den Code "
+"oben eintippen."
+msgstr ""
+"Доступ к камере запрещён. Разрешите его в настройках или введите код выше."
 
 msgid "Keine E-Mail? Bitte auch den Spam-Ordner prüfen."
 msgstr "Письма нет? Проверьте также папку «Спам»."
@@ -28034,7 +28087,9 @@ msgid "Ihre Kundinnen und Kunden überweisen ab jetzt auf dieses Konto."
 msgstr "Теперь ваши клиенты будут переводить деньги на этот счёт."
 
 #: KA-H2
-msgid "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die Bankverbindung."
+msgid ""
+"Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die "
+"Bankverbindung."
 msgstr "Если это были не вы: немедленно смените пароль и проверьте реквизиты."
 
 #: apps/core/refunds.py
@@ -28042,11 +28097,18 @@ msgid "Erstattung nicht bestätigt: %(code)s"
 msgstr "Возврат не подтверждён: %(code)s"
 
 #: apps/core/refunds.py
-msgid "Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort bei Bedarf manuell."
-msgstr "Отмена %(code)s сохранена, но Stripe не подтвердил возврат. Проверьте платёж в панели Stripe и при необходимости верните его там вручную."
+msgid ""
+"Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde von "
+"Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und"
+" erstatten Sie sie dort bei Bedarf manuell."
+msgstr ""
+"Отмена %(code)s сохранена, но Stripe не подтвердил возврат. Проверьте платёж"
+" в панели Stripe и при необходимости верните его там вручную."
 
 #: apps/core/refunds.py
-msgid "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
+msgid ""
+"Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-"
+"Dashboard."
 msgstr "Рассрочка: верните уже оплаченные доли в панели Stripe."
 
 #: KA-H5
@@ -28108,8 +28170,12 @@ msgid "Betrag (€)"
 msgstr "Сумма (€)"
 
 #: KA-H9
-msgid "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
-msgstr "На эти контактные данные купон уже выдан. Если указан e-mail, мы отправили купон туда."
+msgid ""
+"Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse"
+" hinterlegt ist, haben wir ihn dorthin geschickt."
+msgstr ""
+"На эти контактные данные купон уже выдан. Если указан e-mail, мы отправили "
+"купон туда."
 
 #: KA-H6
 #, python-format
@@ -28133,8 +28199,13 @@ msgstr "Овербукинг: %(unit)s"
 
 #: KA-H6
 #, python-format
-msgid "Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte klären Sie die Belegung im Belegungsplan."
-msgstr "Для %(unit)s в эти ночи броней и блокировок больше, чем номеров: %(dates)s. Внешний календарь всё равно принят — разберите занятость в шахматке."
+msgid ""
+"Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer "
+"vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte"
+" klären Sie die Belegung im Belegungsplan."
+msgstr ""
+"Для %(unit)s в эти ночи броней и блокировок больше, чем номеров: %(dates)s. "
+"Внешний календарь всё равно принят — разберите занятость в шахматке."
 
 #: KA-H6
 #, python-format
@@ -28142,12 +28213,20 @@ msgid "Überbuchung bei %(unit)s:"
 msgstr "Овербукинг у %(unit)s:"
 
 #: KA-H8
-msgid "Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
-msgstr "Действительно отменить мероприятие? Все активные регистрации будут отменены, оплаты картой возвращены, участники получат письмо."
+msgid ""
+"Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, "
+"Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
+msgstr ""
+"Действительно отменить мероприятие? Все активные регистрации будут отменены,"
+" оплаты картой возвращены, участники получат письмо."
 
 #: KA-H8
-msgid "Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die Zusammenfassung erhalten Sie per E-Mail."
-msgstr "Мероприятие отменено. Регистрации сейчас отменяются — сводку вы получите по e-mail."
+msgid ""
+"Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die "
+"Zusammenfassung erhalten Sie per E-Mail."
+msgstr ""
+"Мероприятие отменено. Регистрации сейчас отменяются — сводку вы получите по "
+"e-mail."
 
 #: KA-H8
 #, python-format
@@ -28156,25 +28235,44 @@ msgstr "Мероприятие отменено: %(title)s"
 
 #: KA-H8
 #, python-format
-msgid "Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: %(manual)s"
-msgstr "Отменено: %(cancelled)s · Возвращено: %(refunded)s · Проверьте вручную: %(manual)s"
+msgid ""
+"Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: "
+"%(manual)s"
+msgstr ""
+"Отменено: %(cancelled)s · Возвращено: %(refunded)s · Проверьте вручную: "
+"%(manual)s"
 
 #: KA-H8
-msgid "Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder Fehler bei Stripe):"
-msgstr "Проверьте эти регистрации вручную (рассрочка, предоплата или ошибка Stripe):"
+msgid ""
+"Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder "
+"Fehler bei Stripe):"
+msgstr ""
+"Проверьте эти регистрации вручную (рассрочка, предоплата или ошибка Stripe):"
 
 #: KA-H8
 #, python-format
-msgid "Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung (%(code)s) ist damit storniert."
-msgstr "К сожалению, мероприятие «%(title)s» отменено. Ваша регистрация (%(code)s) тем самым отменена."
+msgid ""
+"Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung "
+"(%(code)s) ist damit storniert."
+msgstr ""
+"К сожалению, мероприятие «%(title)s» отменено. Ваша регистрация (%(code)s) "
+"тем самым отменена."
 
 #: KA-H8
-msgid "Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen Zahlungen melden wir uns bei Ihnen."
-msgstr "Суммы, оплаченные картой, мы вернём автоматически; по другим оплатам мы с вами свяжемся."
+msgid ""
+"Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen "
+"Zahlungen melden wir uns bei Ihnen."
+msgstr ""
+"Суммы, оплаченные картой, мы вернём автоматически; по другим оплатам мы с "
+"вами свяжемся."
 
 #: KA-H8
-msgid "Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. Teilnehmer melden sich dafür selbst über die Website an."
-msgstr "Для этого мероприятия нужен подписанный отказ от претензий. Участники регистрируются сами через сайт."
+msgid ""
+"Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. "
+"Teilnehmer melden sich dafür selbst über die Website an."
+msgstr ""
+"Для этого мероприятия нужен подписанный отказ от претензий. Участники "
+"регистрируются сами через сайт."
 
 #: KA-H8
 msgid "Das Ticket ist noch nicht bestätigt."
@@ -28189,7 +28287,9 @@ msgid "Die Veranstaltung wurde abgesagt."
 msgstr "Мероприятие отменено."
 
 #: KA-H8
-msgid "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
+msgid ""
+"Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht "
+"abgebucht."
 msgstr "Рассрочка закрыта как оплаченная — следующие доли не будут списаны."
 
 #: KA-H8
@@ -28209,8 +28309,12 @@ msgid "Leistungszeitraum"
 msgstr "Период оказания услуг"
 
 #: KA-H10
-msgid "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen."
-msgstr "После подтверждения заказа позиции заблокированы. Чтобы изменить их, отмените заказ и создайте новое предложение."
+msgid ""
+"Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag "
+"stornieren und ein neues Angebot erstellen."
+msgstr ""
+"После подтверждения заказа позиции заблокированы. Чтобы изменить их, "
+"отмените заказ и создайте новое предложение."
 
 #: KA-H10
 msgid "Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden."
@@ -28245,8 +28349,12 @@ msgid "Zahlungspflichtig buchen"
 msgstr "Забронировать с обязательством оплаты"
 
 #, python-format
-msgid "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"
-msgstr "Все заведения показываются в каталоге города. Если вы не хотите там быть, напишите нам: %(mail)s"
+msgid ""
+"Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen "
+"möchten, schreiben Sie uns bitte: %(mail)s"
+msgstr ""
+"Все заведения показываются в каталоге города. Если вы не хотите там быть, "
+"напишите нам: %(mail)s"
 
 msgid "Diese Seite ist bald online."
 msgstr "Эта страница скоро откроется."
@@ -28254,8 +28362,11 @@ msgstr "Эта страница скоро откроется."
 msgid "Auftrag"
 msgstr "Заказ-наряд"
 
-msgid "Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht erstatten."
-msgstr "Бронь оплачена. Выберите в карточке брони: вернуть деньги или не возвращать."
+msgid ""
+"Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht "
+"erstatten."
+msgstr ""
+"Бронь оплачена. Выберите в карточке брони: вернуть деньги или не возвращать."
 
 msgid "Bei Stornierung: Zahlung erstatten?"
 msgstr "При отмене: вернуть оплату?"
@@ -28279,8 +28390,12 @@ msgid "In Ihrem Paket nicht enthalten"
 msgstr "Не входит в ваш пакет"
 
 #, python-format
-msgid "Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten und Ihre Sichtbarkeit finden Sie im Start."
-msgstr "Эта функция не входит в пакет «%(name)s». Акции, сообщения и видимость — в разделе «Старт»."
+msgid ""
+"Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten"
+" und Ihre Sichtbarkeit finden Sie im Start."
+msgstr ""
+"Эта функция не входит в пакет «%(name)s». Акции, сообщения и видимость — в "
+"разделе «Старт»."
 
 msgid "Zurück zum Start"
 msgstr "Назад в «Старт»"
@@ -28359,8 +28474,12 @@ msgstr "Нет рабочего маршрута для %(tier)s."
 msgid "Konfiguration in Ordnung."
 msgstr "Конфигурация в порядке."
 
-msgid "Leeres Feld oder „wie .env“ — es gilt der Wert aus .env.prod. Schlüssel liegen unter Plattform → Geheimnisse."
-msgstr "Пустое поле или «как в .env» — действует значение из .env.prod. Ключи — в разделе Платформа → Секреты."
+msgid ""
+"Leeres Feld oder „wie .env“ — es gilt der Wert aus .env.prod. Schlüssel "
+"liegen unter Plattform → Geheimnisse."
+msgstr ""
+"Пустое поле или «как в .env» — действует значение из .env.prod. Ключи — в "
+"разделе Платформа → Секреты."
 
 msgid "Limits & Preise"
 msgstr "Лимиты и цены"
@@ -28404,7 +28523,8 @@ msgstr "одна строка: модель центы-за-1M-ввода цен
 msgid "wie .env"
 msgstr "как в .env"
 
-msgid "„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden."
+msgid ""
+"„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden."
 msgstr "«Только ЕС» включено в .env и здесь не может быть ослаблено."
 
 msgid "Wirklich löschen?"
@@ -28422,7 +28542,8 @@ msgstr "Выберите время самовывоза"
 msgid "Bitte wählen Sie eine Abholzeit."
 msgstr "Пожалуйста, выберите время самовывоза."
 
-msgid "Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
+msgid ""
+"Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
 msgstr "Это время только что заняли. Пожалуйста, выберите другое."
 
 msgid "Kunden wählen eine Abholzeit"
@@ -28449,11 +28570,45 @@ msgstr "Сейчас нет свободного времени для само�
 msgid "noch 1 frei"
 msgstr "осталось 1 место"
 
-msgid "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
-msgstr "У вас уже несколько открытых заказов с самовывозом. Пожалуйста, свяжитесь с нами."
+msgid ""
+"Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
+msgstr ""
+"У вас уже несколько открытых заказов с самовывозом. Пожалуйста, свяжитесь с "
+"нами."
 
 msgid "Gesucht auch nach:"
 msgstr "Также искали по словам:"
 
 msgid "Nur Zahlungseingänge können zugeordnet werden."
 msgstr "Сопоставить можно только входящие платежи."
+
+msgid "Alle meine Nachrichten"
+msgstr "Все мои сообщения"
+
+msgid "Antwort an %(e)s"
+msgstr "Ответ на %(e)s"
+
+msgid "Ihre bisherigen Nachrichten"
+msgstr "Ваши прежние сообщения"
+
+msgid "Neue Frage"
+msgstr "Новый вопрос"
+
+msgid "Sie"
+msgstr "Вы"
+
+msgid "Weiterschreiben"
+msgstr "Продолжить"
+
+msgid "ändern"
+msgstr "изменить"
+
+msgid "%(n)s frühere Unterhaltung mit diesem Kunden"
+msgid_plural "%(n)s frühere Unterhaltungen mit diesem Kunden"
+msgstr[0] "%(n)s прежний разговор с этим клиентом"
+msgstr[1] "%(n)s прежних разговора с этим клиентом"
+msgstr[2] "%(n)s прежних разговоров с этим клиентом"
+msgstr[3] "%(n)s прежних разговоров с этим клиентом"
+
+msgid "Auf diesem Gerät vergessen"
+msgstr "Забыть на этом устройстве"

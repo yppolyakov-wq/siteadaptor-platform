@@ -13,8 +13,9 @@
         {% for m in deal_thread_messages %}
           <div class="flex {% if m.author_role == 'customer' %}justify-start{% else %}justify-end{% endif %}" data-msg-id="{{ m.pk }}">
             <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm {% if m.author_role == 'customer' %}bg-gray-100 text-gray-800{% else %}bg-indigo-50 text-indigo-900{% endif %}">
+              <p class="text-[11px] font-medium text-gray-500 mb-0.5" data-msg-author>{{ m.author_label }}</p>
               <p class="whitespace-pre-line">{{ m.body }}</p>
-              <p class="mt-1 text-[11px] text-gray-400">{{ m.created_at|date:"d.m. H:i" }}</p>
+              <p class="mt-1 text-[11px] text-gray-400">{{ m.created_at|date:"d.m.Y H:i" }}</p>
             </div>
           </div>
         {% empty %}
@@ -65,6 +66,10 @@
         bubble.className =
           "max-w-[85%] rounded-2xl px-3 py-2 text-sm " +
           (mine ? "bg-indigo-50 text-indigo-900" : "bg-gray-100 text-gray-800");
+        var who = document.createElement("p");
+        who.className = "text-[11px] font-medium text-gray-500 mb-0.5";
+        who.textContent = m.author || "";
+        bubble.appendChild(who);
         var body = document.createElement("p");
         body.className = "whitespace-pre-line";
         body.textContent = m.body;

@@ -6,6 +6,7 @@
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
@@ -13,6 +14,7 @@ from django.views.decorators.http import require_POST
 from apps.core.fsm import IllegalTransition
 
 from . import services
+from .display import author_label, labelled_messages, with_last_message
 from .models import Conversation, Message
 from .public_views import is_typing, mark_typing
 from .state_machine import ConversationSM
@@ -79,7 +81,7 @@ def avg_reaction_minutes(days: int = 30, cap: int = 200):
 
 @login_required
 def inbox_list(request):
-    conversations = Conversation.objects.select_related("customer")
+    conversations = with_last_message(Conversation.objects.select_related("customer"))
     status = request.GET.get("status", "")
     if status in dict(Conversation.STATUSES):
         conversations = conversations.filter(status=status)
@@ -163,7 +165,17 @@ def thread(request, pk):
         {
             "nav": "inbox",
             "conversation": conversation,
-            "messages_list": conversation.messages.select_related("author_user"),
+            "messages_list": labelled_messages(conversation, viewer=Message.AUTHOR_STAFF),
+            # Чат-фикс 2026-10-23: история клиента — его прежние беседы рядом.
+            "customer_threads": (
+                list(
+                    Conversation.objects.filter(customer_id=conversation.customer_id)
+                    .exclude(pk=conversation.pk)
+                    .order_by(F("last_message_at").desc(nulls_last=True))[:10]
+                )
+                if conversation.customer_id
+                else []
+            ),
             "allowed": ConversationSM().allowed_targets(conversation.status),
             "priorities": Conversation.PRIORITIES,
             # LS-3: карточки предложений этого треда (reverse-FK orders.Offer).
@@ -456,11 +468,11 @@ def thread_poll(request, pk):
     from django.http import JsonResponse
     from django.utils.formats import date_format
 
-    conversation = get_object_or_404(Conversation, pk=pk)
+    conversation = get_object_or_404(Conversation.objects.select_related("customer"), pk=pk)
     if conversation.unread_for_staff:
         conversation.unread_for_staff = False
         conversation.save(update_fields=["unread_for_staff", "updated_at"])
-    msgs = list(conversation.messages.order_by("-created_at")[:50])
+    msgs = list(conversation.messages.select_related("author_user").order_by("-created_at")[:50])
     msgs.reverse()
     return JsonResponse(
         {
@@ -468,8 +480,9 @@ def thread_poll(request, pk):
                 {
                     "id": str(m.pk),
                     "role": m.author_role,
+                    "author": author_label(m, conversation, viewer=Message.AUTHOR_STAFF),
                     "body": m.body,
-                    "created": date_format(m.created_at, "d.m. H:i"),
+                    "created": date_format(m.created_at, "d.m.Y H:i"),
                 }
                 for m in msgs
             ],

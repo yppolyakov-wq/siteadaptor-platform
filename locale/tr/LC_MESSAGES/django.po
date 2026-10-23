@@ -27495,14 +27495,27 @@ msgstr "Lütfen numarayı metin olarak gönderin — silmek için „-“."
 msgid "Aktivieren"
 msgstr "Etkinleştir"
 
-msgid "Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich."
-msgstr "Ardından @BotFather'dan aldığınız token'ı girin. O zamana kadar müşteriler için hiçbir şey değişmez. SiteAdaptor botu üzerinden kampanyalar mümkün olmaya devam eder."
+msgid ""
+"Danach tragen Sie den Token aus @BotFather ein. Bis dahin ändert sich für "
+"Kunden nichts. Aktionen per SiteAdaptor-Bot bleiben möglich."
+msgstr ""
+"Ardından @BotFather'dan aldığınız token'ı girin. O zamana kadar müşteriler "
+"için hiçbir şey değişmez. SiteAdaptor botu üzerinden kampanyalar mümkün "
+"olmaya devam eder."
 
-msgid "Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ eintragen — nicht hier im Chat senden."
-msgstr "Token'ı YALNIZCA panelde „Bağlantılar“ → „Kendi Telegram botu“ altına girin — buraya sohbete göndermeyin."
+msgid ""
+"Den Token NUR im Kabinett unter „Verbindungen“ → „Eigener Telegram-Bot“ "
+"eintragen — nicht hier im Chat senden."
+msgstr ""
+"Token'ı YALNIZCA panelde „Bağlantılar“ → „Kendi Telegram botu“ altına girin "
+"— buraya sohbete göndermeyin."
 
-msgid "Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich."
-msgstr "Token'ı yalnızca buraya girin — asla bir sohbette göndermeyin. Kendi botunuz olsa da SiteAdaptor botu üzerinden kampanyalar mümkündür."
+msgid ""
+"Den Token nur hier eintragen — nie in einem Chat senden. Aktionen per "
+"SiteAdaptor-Bot bleiben auch mit eigenem Bot möglich."
+msgstr ""
+"Token'ı yalnızca buraya girin — asla bir sohbette göndermeyin. Kendi botunuz"
+" olsa da SiteAdaptor botu üzerinden kampanyalar mümkündür."
 
 msgid "Eigenen Telegram-Bot einrichten"
 msgstr "Kendi Telegram botunuzu kurun"
@@ -27550,8 +27563,11 @@ msgstr "%(v)s görüntülenme · %(h)s ayrıldı"
 msgid "Aktion anlegen"
 msgstr "Kampanya oluştur"
 
-msgid "Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
-msgstr "Bazı ürünlerin henüz fotoğrafı yok. Fotoğraflı ürünler daha sık görüntülenir."
+msgid ""
+"Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."
+msgstr ""
+"Bazı ürünlerin henüz fotoğrafı yok. Fotoğraflı ürünler daha sık "
+"görüntülenir."
 
 msgid "Fotos ergänzen"
 msgstr "Fotoğraf ekle"
@@ -27671,14 +27687,23 @@ msgstr "Lütfen „Dükkânım“ı Telegram botu üzerinden açın."
 msgid "Der Bot ist gerade nicht verfügbar."
 msgstr "Bot şu anda kullanılamıyor."
 
-msgid "Die Verarbeitung ist eingeschränkt. Mit /freigeben im Bot wieder aufheben."
+msgid ""
+"Die Verarbeitung ist eingeschränkt. Mit /freigeben im Bot wieder aufheben."
 msgstr "İşleme kısıtlandı. Botta /freigeben ile kaldırın."
 
-msgid "Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür per E-Mail an."
-msgstr "Bu sayfa Telegram uygulamasında kullanılamaz. Bunun için e-posta ile giriş yapın."
+msgid ""
+"Diese Seite ist in der Telegram-App nicht verfügbar. Melden Sie sich dafür "
+"per E-Mail an."
+msgstr ""
+"Bu sayfa Telegram uygulamasında kullanılamaz. Bunun için e-posta ile giriş "
+"yapın."
 
-msgid "Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
-msgstr "Bu bağlantının süresi doldu. Lütfen „Dükkânım“ı Telegram botunda yeniden açın."
+msgid ""
+"Dieser Link ist abgelaufen. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot "
+"erneut."
+msgstr ""
+"Bu bağlantının süresi doldu. Lütfen „Dükkânım“ı Telegram botunda yeniden "
+"açın."
 
 msgid "Einen Moment …"
 msgstr "Bir dakika …"
@@ -27686,13 +27711,18 @@ msgstr "Bir dakika …"
 msgid "Einrichten nach Anmeldung per E-Mail."
 msgstr "E-posta ile giriş yaptıktan sonra kurun."
 
-msgid "Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im Telegram-Bot erneut."
-msgstr "Telegram oturumunuz sona erdi. Lütfen „Dükkânım“ı Telegram botunda yeniden açın."
+msgid ""
+"Ihre Sitzung aus Telegram ist beendet. Bitte öffnen Sie „Mein Laden“ im "
+"Telegram-Bot erneut."
+msgstr ""
+"Telegram oturumunuz sona erdi. Lütfen „Dükkânım“ı Telegram botunda yeniden "
+"açın."
 
 msgid "Im Browser öffnen"
 msgstr "Tarayıcıda aç"
 
-msgid "In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster."
+msgid ""
+"In Telegram Web öffnet sich „Mein Laden“ in einem neuen Browserfenster."
 msgstr "Telegram Web'de „Dükkânım“ yeni bir tarayıcı penceresinde açılır."
 
 msgid "Mein Laden"
@@ -27706,7 +27736,6 @@ msgstr "Dükkânım — kampanyalar, ürünler ve görünürlük doğrudan Teleg
 
 msgid "Mit E-Mail anmelden"
 msgstr "E-posta ile giriş yap"
-
 
 msgid "Welches Geschäft möchten Sie öffnen?"
 msgstr "Hangi işletmeyi açmak istiyorsunuz?"
@@ -27747,16 +27776,24 @@ msgstr "Tekrar dene"
 msgid "Keine Verbindung. Bitte erneut versuchen."
 msgstr "Bağlantı yok. Lütfen tekrar deneyin."
 
-msgid "Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
-msgstr "Oturum süresi doldu — lütfen kapatın ve „Dükkânım“ı botta yeniden açın."
+msgid ""
+"Sitzung abgelaufen — bitte schließen und „Mein Laden“ im Bot neu öffnen."
+msgstr ""
+"Oturum süresi doldu — lütfen kapatın ve „Dükkânım“ı botta yeniden açın."
 
 #: apps/tenants/forms.py
 msgid "Sofort einlösen beim Scannen in der Kasse"
 msgstr "Kasada tararken hemen kullan"
 
 #: apps/tenants/forms.py
-msgid "Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder Telegram) sofort ein. Links und die Handykamera zeigen immer eine Bestätigungs-Schaltfläche."
-msgstr "Etkinse, „Kullan“ sayfasındaki tarayıcı (tarayıcıda veya Telegram'da) kodu hemen kullanır. Bağlantılar ve telefon kamerası her zaman bir onay düğmesi gösterir."
+msgid ""
+"Wenn aktiv, löst der Scanner auf der Seite „Einlösen“ (Browser oder "
+"Telegram) sofort ein. Links und die Handykamera zeigen immer eine "
+"Bestätigungs-Schaltfläche."
+msgstr ""
+"Etkinse, „Kullan“ sayfasındaki tarayıcı (tarayıcıda veya Telegram'da) kodu "
+"hemen kullanır. Bağlantılar ve telefon kamerası her zaman bir onay düğmesi "
+"gösterir."
 
 #: apps/promotions/views.py
 msgid "Gerade schon eingelöst — bitte den aktuellen Stand prüfen."
@@ -27767,7 +27804,8 @@ msgid "Noch kein Geschäft mit diesem Telegram verbunden."
 msgstr "Bu Telegram'a henüz bağlı bir işletme yok."
 
 #: apps/platform_bot
-msgid "Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."
+msgid ""
+"Bitte bestätigen Sie zuerst Ihre E-Mail — danach öffnet sich „Mein Laden“."
 msgstr "Lütfen önce e-postanızı onaylayın — ardından „Mein Laden“ açılır."
 
 #: apps/platform_bot
@@ -27775,13 +27813,18 @@ msgid "Ich habe schon ein Geschäft"
 msgstr "Zaten bir işletmem var"
 
 #: apps/platform_bot
-msgid "Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram verbinden“ tippen."
-msgstr "Panelde Ayarlar → Bildirimler bölümünde „Mit Telegram verbinden“ düğmesine dokunun."
-
+msgid ""
+"Im Kabinett unter Einstellungen → Benachrichtigungen auf „Mit Telegram "
+"verbinden“ tippen."
+msgstr ""
+"Panelde Ayarlar → Bildirimler bölümünde „Mit Telegram verbinden“ düğmesine "
+"dokunun."
 
 #: apps/platform_bot
 msgid "Schon ein Geschäft? Im Kabinett auf „Mit Telegram verbinden“ tippen."
-msgstr "Zaten bir işletmeniz mi var? Panelde „Mit Telegram verbinden“ düğmesine dokunun."
+msgstr ""
+"Zaten bir işletmeniz mi var? Panelde „Mit Telegram verbinden“ düğmesine "
+"dokunun."
 
 #: templates/core/_deal_billing_card.html
 msgid "Rechnungsempfänger"
@@ -27807,35 +27850,53 @@ msgstr "Firma rehberine ekle"
 msgid "Firma ins Verzeichnis übernommen."
 msgstr "Firma rehbere eklendi."
 
-
 #, python-format
 msgid "Fertig! Bitte bestätigen Sie jetzt Ihre E-Mail (%(mail)s)."
 msgstr "Tamam! Lütfen şimdi e-postanızı onaylayın (%(mail)s)."
 
-msgid "Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
-msgstr "Ardından „Mein Laden“ı botta yeniden açın. Bu pencereyi kapatabilirsiniz."
+msgid ""
+"Danach „Mein Laden“ im Bot neu öffnen. Dieses Fenster können Sie schließen."
+msgstr ""
+"Ardından „Mein Laden“ı botta yeniden açın. Bu pencereyi kapatabilirsiniz."
 
 #, python-format
-msgid "Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet „Mein Laden“ Ihr Geschäft."
-msgstr "Telegram „%(name)s“ ile bağlandı: e-postanızı onayladıktan sonra „Mein Laden“ işletmenizi açar."
+msgid ""
+"Verbunden mit Telegram „%(name)s“: Nach der Bestätigung Ihrer E-Mail öffnet "
+"„Mein Laden“ Ihr Geschäft."
+msgstr ""
+"Telegram „%(name)s“ ile bağlandı: e-postanızı onayladıktan sonra „Mein "
+"Laden“ işletmenizi açar."
 
-msgid "Für diese E-Mail-Adresse wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut oder eine andere Adresse verwenden."
-msgstr "Bu e-posta adresiyle bugün zaten birkaç işletme oluşturuldu. Lütfen yarın tekrar deneyin veya başka bir adres kullanın."
+msgid ""
+"Für diese E-Mail-Adresse wurden heute schon mehrere Geschäfte angelegt. "
+"Bitte morgen erneut oder eine andere Adresse verwenden."
+msgstr ""
+"Bu e-posta adresiyle bugün zaten birkaç işletme oluşturuldu. Lütfen yarın "
+"tekrar deneyin veya başka bir adres kullanın."
 
-msgid "Mit diesem Telegram-Konto wurden heute schon mehrere Geschäfte angelegt. Bitte morgen erneut."
-msgstr "Bu Telegram hesabıyla bugün zaten birkaç işletme oluşturuldu. Lütfen yarın tekrar deneyin."
+msgid ""
+"Mit diesem Telegram-Konto wurden heute schon mehrere Geschäfte angelegt. "
+"Bitte morgen erneut."
+msgstr ""
+"Bu Telegram hesabıyla bugün zaten birkaç işletme oluşturuldu. Lütfen yarın "
+"tekrar deneyin."
 
 msgid "Wird veröffentlicht…"
 msgstr "Yayınlanıyor…"
 
 msgid "Zu viele Versuche aus diesem Netzwerk. Bitte in einer Stunde erneut."
-msgstr "Bu ağdan çok fazla deneme yapıldı. Lütfen bir saat sonra tekrar deneyin."
+msgstr ""
+"Bu ağdan çok fazla deneme yapıldı. Lütfen bir saat sonra tekrar deneyin."
 
 msgid "Anmeldung über Telegram fehlgeschlagen."
 msgstr "Telegram ile giriş başarısız oldu."
 
-msgid "Der Link öffnet sich im Browser. In Telegram melden Sie sich schneller mit „Mit Telegram anmelden“ an."
-msgstr "Bağlantı tarayıcıda açılır. Telegram'da „Telegram ile giriş yap“ ile daha hızlı giriş yaparsınız."
+msgid ""
+"Der Link öffnet sich im Browser. In Telegram melden Sie sich schneller mit "
+"„Mit Telegram anmelden“ an."
+msgstr ""
+"Bağlantı tarayıcıda açılır. Telegram'da „Telegram ile giriş yap“ ile daha "
+"hızlı giriş yaparsınız."
 
 msgid "Kamera konnte nicht gestartet werden. Bitte den Code oben eintippen."
 msgstr "Kamera başlatılamadı. Lütfen yukarıdaki kodu yazın."
@@ -27843,8 +27904,12 @@ msgstr "Kamera başlatılamadı. Lütfen yukarıdaki kodu yazın."
 msgid "Kamera öffnet sich nicht? Code oben eintippen."
 msgstr "Kamera açılmıyor mu? Yukarıdaki kodu yazın."
 
-msgid "Kamerazugriff verweigert. Bitte in den Einstellungen erlauben oder den Code oben eintippen."
-msgstr "Kamera erişimi reddedildi. Lütfen ayarlardan izin verin veya yukarıdaki kodu yazın."
+msgid ""
+"Kamerazugriff verweigert. Bitte in den Einstellungen erlauben oder den Code "
+"oben eintippen."
+msgstr ""
+"Kamera erişimi reddedildi. Lütfen ayarlardan izin verin veya yukarıdaki kodu"
+" yazın."
 
 msgid "Keine E-Mail? Bitte auch den Spam-Ordner prüfen."
 msgstr "E-posta gelmedi mi? Lütfen spam klasörünü de kontrol edin."
@@ -27901,19 +27966,30 @@ msgid "Ihre Kundinnen und Kunden überweisen ab jetzt auf dieses Konto."
 msgstr "Müşterileriniz bundan sonra bu hesaba havale yapacak."
 
 #: KA-H2
-msgid "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die Bankverbindung."
-msgstr "Bunu siz yapmadıysanız: şifrenizi hemen değiştirin ve banka bilgilerini kontrol edin."
+msgid ""
+"Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die "
+"Bankverbindung."
+msgstr ""
+"Bunu siz yapmadıysanız: şifrenizi hemen değiştirin ve banka bilgilerini "
+"kontrol edin."
 
 #: apps/core/refunds.py
 msgid "Erstattung nicht bestätigt: %(code)s"
 msgstr "İade onaylanmadı: %(code)s"
 
 #: apps/core/refunds.py
-msgid "Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort bei Bedarf manuell."
-msgstr "%(code)s iptali kaydedildi, ancak Stripe iadeyi onaylamadı. Lütfen ödemeyi Stripe panelinde kontrol edin ve gerekirse iadeyi orada elle yapın."
+msgid ""
+"Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde von "
+"Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und"
+" erstatten Sie sie dort bei Bedarf manuell."
+msgstr ""
+"%(code)s iptali kaydedildi, ancak Stripe iadeyi onaylamadı. Lütfen ödemeyi "
+"Stripe panelinde kontrol edin ve gerekirse iadeyi orada elle yapın."
 
 #: apps/core/refunds.py
-msgid "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
+msgid ""
+"Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-"
+"Dashboard."
 msgstr "Taksitli ödeme: Lütfen ödenmiş taksitleri Stripe panelinde iade edin."
 
 #: KA-H5
@@ -27975,8 +28051,12 @@ msgid "Betrag (€)"
 msgstr "Tutar (€)"
 
 #: KA-H9
-msgid "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
-msgstr "Bu iletişim bilgileri için zaten bir kupon var. Kayıtlı bir e-posta adresi varsa kuponu oraya gönderdik."
+msgid ""
+"Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse"
+" hinterlegt ist, haben wir ihn dorthin geschickt."
+msgstr ""
+"Bu iletişim bilgileri için zaten bir kupon var. Kayıtlı bir e-posta adresi "
+"varsa kuponu oraya gönderdik."
 
 #: KA-H6
 #, python-format
@@ -28000,8 +28080,14 @@ msgstr "Fazla rezervasyon: %(unit)s"
 
 #: KA-H6
 #, python-format
-msgid "Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte klären Sie die Belegung im Belegungsplan."
-msgstr "%(unit)s için bu gecelerde oda sayısından fazla rezervasyon ve blokaj var: %(dates)s. Harici takvim yine de alındı — lütfen doluluk planında durumu netleştirin."
+msgid ""
+"Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer "
+"vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte"
+" klären Sie die Belegung im Belegungsplan."
+msgstr ""
+"%(unit)s için bu gecelerde oda sayısından fazla rezervasyon ve blokaj var: "
+"%(dates)s. Harici takvim yine de alındı — lütfen doluluk planında durumu "
+"netleştirin."
 
 #: KA-H6
 #, python-format
@@ -28009,12 +28095,20 @@ msgid "Überbuchung bei %(unit)s:"
 msgstr "%(unit)s için fazla rezervasyon:"
 
 #: KA-H8
-msgid "Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
-msgstr "Etkinlik gerçekten iptal edilsin mi? Tüm aktif kayıtlar iptal edilir, kart ödemeleri iade edilir ve katılımcılara e-posta ile bilgi verilir."
+msgid ""
+"Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, "
+"Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
+msgstr ""
+"Etkinlik gerçekten iptal edilsin mi? Tüm aktif kayıtlar iptal edilir, kart "
+"ödemeleri iade edilir ve katılımcılara e-posta ile bilgi verilir."
 
 #: KA-H8
-msgid "Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die Zusammenfassung erhalten Sie per E-Mail."
-msgstr "Etkinlik iptal edildi. Kayıtlar şimdi iptal ediliyor — özeti e-posta ile alacaksınız."
+msgid ""
+"Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die "
+"Zusammenfassung erhalten Sie per E-Mail."
+msgstr ""
+"Etkinlik iptal edildi. Kayıtlar şimdi iptal ediliyor — özeti e-posta ile "
+"alacaksınız."
 
 #: KA-H8
 #, python-format
@@ -28023,25 +28117,44 @@ msgstr "Etkinlik iptal edildi: %(title)s"
 
 #: KA-H8
 #, python-format
-msgid "Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: %(manual)s"
-msgstr "İptal: %(cancelled)s · İade: %(refunded)s · Lütfen elle kontrol edin: %(manual)s"
+msgid ""
+"Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: "
+"%(manual)s"
+msgstr ""
+"İptal: %(cancelled)s · İade: %(refunded)s · Lütfen elle kontrol edin: "
+"%(manual)s"
 
 #: KA-H8
-msgid "Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder Fehler bei Stripe):"
-msgstr "Lütfen bu kayıtları elle kontrol edin (taksit, ön ödeme veya Stripe hatası):"
+msgid ""
+"Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder "
+"Fehler bei Stripe):"
+msgstr ""
+"Lütfen bu kayıtları elle kontrol edin (taksit, ön ödeme veya Stripe hatası):"
 
 #: KA-H8
 #, python-format
-msgid "Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung (%(code)s) ist damit storniert."
-msgstr "Maalesef „%(title)s“ etkinliği iptal edildi. Kaydınız (%(code)s) bu nedenle iptal edildi."
+msgid ""
+"Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung "
+"(%(code)s) ist damit storniert."
+msgstr ""
+"Maalesef „%(title)s“ etkinliği iptal edildi. Kaydınız (%(code)s) bu nedenle "
+"iptal edildi."
 
 #: KA-H8
-msgid "Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen Zahlungen melden wir uns bei Ihnen."
-msgstr "Kartla ödenen tutarları otomatik olarak iade ediyoruz; diğer ödemeler için sizinle iletişime geçeceğiz."
+msgid ""
+"Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen "
+"Zahlungen melden wir uns bei Ihnen."
+msgstr ""
+"Kartla ödenen tutarları otomatik olarak iade ediyoruz; diğer ödemeler için "
+"sizinle iletişime geçeceğiz."
 
 #: KA-H8
-msgid "Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. Teilnehmer melden sich dafür selbst über die Website an."
-msgstr "Bu etkinlik imzalı bir sorumluluk feragatnamesi gerektirir. Katılımcılar bunun için web sitesinden kendileri kaydolur."
+msgid ""
+"Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. "
+"Teilnehmer melden sich dafür selbst über die Website an."
+msgstr ""
+"Bu etkinlik imzalı bir sorumluluk feragatnamesi gerektirir. Katılımcılar "
+"bunun için web sitesinden kendileri kaydolur."
 
 #: KA-H8
 msgid "Das Ticket ist noch nicht bestätigt."
@@ -28056,7 +28169,9 @@ msgid "Die Veranstaltung wurde abgesagt."
 msgstr "Etkinlik iptal edildi."
 
 #: KA-H8
-msgid "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
+msgid ""
+"Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht "
+"abgebucht."
 msgstr "Taksit planı ödendi olarak kapatıldı — başka taksit çekilmeyecek."
 
 #: KA-H8
@@ -28076,8 +28191,12 @@ msgid "Leistungszeitraum"
 msgstr "Hizmet dönemi"
 
 #: KA-H10
-msgid "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen."
-msgstr "Sipariş onaylandıktan sonra kalemler kilitlenir. Değiştirmek için işi iptal edip yeni bir teklif oluşturun."
+msgid ""
+"Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag "
+"stornieren und ein neues Angebot erstellen."
+msgstr ""
+"Sipariş onaylandıktan sonra kalemler kilitlenir. Değiştirmek için işi iptal "
+"edip yeni bir teklif oluşturun."
 
 #: KA-H10
 msgid "Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden."
@@ -28112,8 +28231,12 @@ msgid "Zahlungspflichtig buchen"
 msgstr "Ödeme yükümlülüğüyle rezervasyon yap"
 
 #, python-format
-msgid "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"
-msgstr "Tüm işletmeler şehir kataloğunda görünür. Listelenmek istemiyorsanız lütfen bize yazın: %(mail)s"
+msgid ""
+"Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen "
+"möchten, schreiben Sie uns bitte: %(mail)s"
+msgstr ""
+"Tüm işletmeler şehir kataloğunda görünür. Listelenmek istemiyorsanız lütfen "
+"bize yazın: %(mail)s"
 
 msgid "Diese Seite ist bald online."
 msgstr "Bu sayfa yakında yayında olacak."
@@ -28121,8 +28244,11 @@ msgstr "Bu sayfa yakında yayında olacak."
 msgid "Auftrag"
 msgstr "İş"
 
-msgid "Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht erstatten."
-msgstr "Bu rezervasyon ödenmiş. Lütfen rezervasyonda seçin: iade et veya iade etme."
+msgid ""
+"Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht "
+"erstatten."
+msgstr ""
+"Bu rezervasyon ödenmiş. Lütfen rezervasyonda seçin: iade et veya iade etme."
 
 msgid "Bei Stornierung: Zahlung erstatten?"
 msgstr "İptal durumunda: ödeme iade edilsin mi?"
@@ -28146,8 +28272,12 @@ msgid "In Ihrem Paket nicht enthalten"
 msgstr "Paketinize dahil değil"
 
 #, python-format
-msgid "Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten und Ihre Sichtbarkeit finden Sie im Start."
-msgstr "Bu özellik „%(name)s“ paketine dahil değil. Kampanyalarınızı, mesajlarınızı ve görünürlüğünüzü Başlangıç bölümünde bulabilirsiniz."
+msgid ""
+"Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten"
+" und Ihre Sichtbarkeit finden Sie im Start."
+msgstr ""
+"Bu özellik „%(name)s“ paketine dahil değil. Kampanyalarınızı, mesajlarınızı "
+"ve görünürlüğünüzü Başlangıç bölümünde bulabilirsiniz."
 
 msgid "Zurück zum Start"
 msgstr "Başlangıca dön"
@@ -28196,7 +28326,8 @@ msgid "Außerhalb des erlaubten Bereichs: %(name)s"
 msgstr "İzin verilen aralığın dışında: %(name)s"
 
 msgid "Daten gehen an Dienste außerhalb der EU — nur mit Demo-Daten zulässig."
-msgstr "Veriler AB dışındaki hizmetlere gider — yalnızca demo verilerle izinli."
+msgstr ""
+"Veriler AB dışındaki hizmetlere gider — yalnızca demo verilerle izinli."
 
 msgid "Erste Wahl, dann Reserven."
 msgstr "Önce ilk tercih, sonra yedekler."
@@ -28225,8 +28356,12 @@ msgstr "%(tier)s için kullanılabilir rota yok."
 msgid "Konfiguration in Ordnung."
 msgstr "Yapılandırma uygun."
 
-msgid "Leeres Feld oder „wie .env“ — es gilt der Wert aus .env.prod. Schlüssel liegen unter Plattform → Geheimnisse."
-msgstr "Boş alan veya “.env'deki gibi” — .env.prod'daki değer geçerlidir. Anahtarlar Platform → Gizli anahtarlar altında."
+msgid ""
+"Leeres Feld oder „wie .env“ — es gilt der Wert aus .env.prod. Schlüssel "
+"liegen unter Plattform → Geheimnisse."
+msgstr ""
+"Boş alan veya “.env'deki gibi” — .env.prod'daki değer geçerlidir. Anahtarlar"
+" Platform → Gizli anahtarlar altında."
 
 msgid "Limits & Preise"
 msgstr "Limitler ve fiyatlar"
@@ -28270,7 +28405,8 @@ msgstr "bir satır: model 1M-girdi-başına-sent 1M-çıktı-başına-sent"
 msgid "wie .env"
 msgstr ".env'deki gibi"
 
-msgid "„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden."
+msgid ""
+"„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden."
 msgstr "“Yalnızca AB” .env'de açık ve burada gevşetilemez."
 
 msgid "Wirklich löschen?"
@@ -28288,7 +28424,8 @@ msgstr "Teslim alma saatini seçin"
 msgid "Bitte wählen Sie eine Abholzeit."
 msgstr "Lütfen bir teslim alma saati seçin."
 
-msgid "Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
+msgid ""
+"Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
 msgstr "Bu zaman aralığı az önce doldu. Lütfen başka bir tane seçin."
 
 msgid "Kunden wählen eine Abholzeit"
@@ -28315,11 +28452,42 @@ msgstr "Şu anda uygun teslim alma saati yok."
 msgid "noch 1 frei"
 msgstr "1 yer kaldı"
 
-msgid "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
-msgstr "Zaten birkaç açık teslim alma saatiniz var. Lütfen bizimle iletişime geçin."
+msgid ""
+"Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
+msgstr ""
+"Zaten birkaç açık teslim alma saatiniz var. Lütfen bizimle iletişime geçin."
 
 msgid "Gesucht auch nach:"
 msgstr "Ayrıca şunlar için arandı:"
 
 msgid "Nur Zahlungseingänge können zugeordnet werden."
 msgstr "Yalnızca gelen ödemeler eşleştirilebilir."
+
+msgid "Alle meine Nachrichten"
+msgstr "Tüm mesajlarım"
+
+msgid "Antwort an %(e)s"
+msgstr "Yanıt adresi: %(e)s"
+
+msgid "Ihre bisherigen Nachrichten"
+msgstr "Önceki mesajlarınız"
+
+msgid "Neue Frage"
+msgstr "Yeni soru"
+
+msgid "Sie"
+msgstr "Siz"
+
+msgid "Weiterschreiben"
+msgstr "Devam et"
+
+msgid "ändern"
+msgstr "değiştir"
+
+msgid "%(n)s frühere Unterhaltung mit diesem Kunden"
+msgid_plural "%(n)s frühere Unterhaltungen mit diesem Kunden"
+msgstr[0] "Bu müşteriyle %(n)s önceki görüşme"
+msgstr[1] "Bu müşteriyle %(n)s önceki görüşme"
+
+msgid "Auf diesem Gerät vergessen"
+msgstr "Bu cihazda unut"
