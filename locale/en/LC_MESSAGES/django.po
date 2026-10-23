@@ -27763,3 +27763,11 @@ msgstr "From now on your customers will transfer money to this account."
 #: KA-H2
 msgid "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die Bankverbindung."
 msgstr "If this wasn't you: change your password immediately and check the bank details."
+
+#: apps/core/refunds.py
+msgid "Erstattung fehlgeschlagen: %(code)s"
+msgstr "Refund failed: %(code)s"
+
+#: apps/core/refunds.py
+msgid "Die Stornierung von %(code)s ist gespeichert, aber Stripe hat die Erstattung abgelehnt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort manuell."
+msgstr "The cancellation of %(code)s has been saved, but Stripe declined the refund. Please check the payment in the Stripe dashboard and refund it there manually."

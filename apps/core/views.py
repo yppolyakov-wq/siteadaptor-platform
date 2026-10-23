@@ -4966,12 +4966,23 @@ def kanban_action(request, kind, pk):
     try:
         # W10-5: единая точка — спец-поля поверхности (tracking_code при
         # «Versendet» заказа-доставки) едут в extra и пишутся ДО apply.
-        transactions.apply_action(kind, obj, target, actor=request.user, extra=request.POST)
+        refund = transactions.apply_action(
+            kind,
+            obj,
+            target,
+            actor=request.user,
+            extra=request.POST,
+            tenant=getattr(request, "tenant", None),
+        )
     except IllegalTransition:
         if is_fetch:
             return HttpResponse(status=409)
         messages.error(request, _("Dieser Schritt ist im aktuellen Status nicht möglich."))
         return redirect(back)
+    # KA-H4: отмена оплаченной сделки вернула деньги (или Stripe отказал).
+    from apps.core import refunds
+
+    refunds.flash(request, refund, kind)
     obj.refresh_from_db()
     # FB-4a/b имена + FB-3 правила переходов — на перерисованной карточке (доска кабинета).
     from apps.core import status_labels, transition_rules

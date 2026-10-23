@@ -9,7 +9,6 @@
 from datetime import datetime, time, timedelta
 from decimal import Decimal
 
-import stripe
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -19,8 +18,8 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.billing import connect
-from apps.core import deal_links, freshness, vat
+from apps.core import deal_links, freshness, refunds, vat
+from apps.core import transactions as core_transactions
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import (
     apply_i18n_overlay,
@@ -31,7 +30,6 @@ from apps.core.i18n_input import (
 
 from . import services
 from .models import AvailabilityRule, Booking, ClosedDate, Resource, ServiceSeasonRate
-from .state_machine import BookingSM
 
 
 def _eur_to_cents(raw) -> int:
@@ -55,20 +53,6 @@ def _uploaded_image_ref(request, field="image", folder="services") -> dict | Non
         return save_product_image(uploaded, is_primary=True, folder=folder)
     except Exception:  # noqa: BLE001 — кривой файл не должен ронять CRUD
         return None
-
-
-def _refund_deposit(request, booking):
-    """Анти-фрод: вернуть депозит при отмене оплаченной брони (Stripe Connect)."""
-    try:
-        connect.refund(
-            connect_id=request.tenant.stripe_connect_id,
-            payment_intent=booking.stripe_payment_intent,
-        )
-        booking.payment_state = Booking.PAYMENT_REFUNDED
-        booking.save(update_fields=["payment_state", "updated_at"])
-        messages.success(request, _("Deposit refunded."))
-    except stripe.error.StripeError:
-        messages.error(request, _("Refund failed — please check Stripe."))
 
 
 @login_required
@@ -297,18 +281,19 @@ def booking_action(request, pk):
         return redirect(back)
     if action in ("confirmed", "fulfilled", "no_show", "cancelled"):
         try:
-            BookingSM().apply(booking, action, actor=request.user)
+            refund = core_transactions.apply_action(
+                "booking",
+                booking,
+                action,
+                actor=request.user,
+                tenant=getattr(request, "tenant", None),
+            )
         except IllegalTransition:
             messages.error(request, _("This step is not possible in the current status."))
             return redirect(back)
         messages.success(request, _("Booking updated."))
-        # анти-фрод: отмена оплаченной брони возвращает депозит
-        if (
-            action == "cancelled"
-            and booking.payment_state == Booking.PAYMENT_PAID
-            and booking.stripe_payment_intent
-        ):
-            _refund_deposit(request, booking)
+        # KA-H4: возврат депозита при отмене — в apply_action (одна точка).
+        refunds.flash(request, refund, "booking")
     else:
         messages.error(request, _("Unknown action."))
     return redirect(back)

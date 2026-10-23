@@ -173,9 +173,14 @@ def connected_checkout_session(
     return session["url"]
 
 
-def refund(*, connect_id: str, payment_intent: str) -> None:
-    """Полный возврат платежа на connected account (анти-фрод при отмене)."""
-    _client().Refund.create(payment_intent=payment_intent, stripe_account=connect_id)
+def refund(*, connect_id: str, payment_intent: str, idempotency_key: str = "") -> None:
+    """Полный возврат платежа на connected account (анти-фрод при отмене).
+
+    KA-H4: `idempotency_key` — повтор того же возврата Stripe не исполнит дважды."""
+    kwargs = {"payment_intent": payment_intent, "stripe_account": connect_id}
+    if idempotency_key:
+        kwargs["idempotency_key"] = idempotency_key
+    _client().Refund.create(**kwargs)
 
 
 # --- Рассрочка (R10): мандат + off-session списания -----------------------

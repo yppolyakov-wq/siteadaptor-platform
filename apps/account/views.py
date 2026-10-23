@@ -231,21 +231,11 @@ def cancel_booking(request, code):
     except IllegalTransition:
         messages.error(request, _("This booking can no longer be cancelled."))
         return redirect("account-home")
-    # Возврат депозита (анти-фрод, как в кабинете), если был оплачен.
-    if booking.payment_state == Booking.PAYMENT_PAID and booking.stripe_payment_intent:
-        import stripe
+    # Возврат депозита (анти-фрод, как в кабинете), если был оплачен. KA-H4:
+    # общая функция — захват + ключ идемпотентности, при отказе Stripe письмо владельцу.
+    from apps.core import refunds
 
-        from apps.billing import connect
-
-        try:
-            connect.refund(
-                connect_id=request.tenant.stripe_connect_id,
-                payment_intent=booking.stripe_payment_intent,
-            )
-            booking.payment_state = Booking.PAYMENT_REFUNDED
-            booking.save(update_fields=["payment_state", "updated_at"])
-        except stripe.error.StripeError:
-            pass  # отмена состоялась; возврат владелец доведёт вручную в Stripe
+    refunds.refund_payment("booking", booking, getattr(request, "tenant", None))
     messages.success(request, _("Your booking was cancelled."))
     return redirect("account-home")
 

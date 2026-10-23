@@ -10,7 +10,6 @@ import uuid
 from datetime import date, timedelta
 from decimal import Decimal
 
-import stripe
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -20,8 +19,8 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.billing import connect
-from apps.core import deal_card, deal_links, vat
+from apps.core import deal_card, deal_links, refunds, vat
+from apps.core import transactions as core_transactions
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 
@@ -39,7 +38,6 @@ from .models import (
     UnitBlock,
 )
 from .public_views import ical_token
-from .state_machine import StayBookingSM
 
 HORIZON_DAYS = 30  # ширина окна календаря загрузки
 
@@ -130,20 +128,6 @@ def _is_uuid(raw) -> bool:
         return True
     except (TypeError, ValueError, AttributeError):
         return False
-
-
-def _refund_deposit(request, booking):
-    """Анти-фрод: вернуть депозит при отмене оплаченной брони (Stripe Connect)."""
-    try:
-        connect.refund(
-            connect_id=request.tenant.stripe_connect_id,
-            payment_intent=booking.stripe_payment_intent,
-        )
-        booking.payment_state = StayBooking.PAYMENT_REFUNDED
-        booking.save(update_fields=["payment_state", "updated_at"])
-        messages.success(request, _("Deposit refunded."))
-    except stripe.error.StripeError:
-        messages.error(request, _("Refund failed — please check Stripe."))
 
 
 @login_required
@@ -547,18 +531,19 @@ def stay_action(request, pk):
         return redirect(f"{back}&buchung={booking.pk}")
     if action in ("confirmed", "fulfilled", "no_show", "cancelled"):
         try:
-            StayBookingSM().apply(booking, action, actor=request.user)
+            refund = core_transactions.apply_action(
+                "stay",
+                booking,
+                action,
+                actor=request.user,
+                tenant=getattr(request, "tenant", None),
+            )
         except IllegalTransition:
             messages.error(request, _("This step is not possible in the current status."))
             return redirect(back)
         messages.success(request, _("Stay updated."))
-        # анти-фрод: отмена оплаченной брони возвращает депозит (E4 wires Stripe)
-        if (
-            action == "cancelled"
-            and booking.payment_state == StayBooking.PAYMENT_PAID
-            and booking.stripe_payment_intent
-        ):
-            _refund_deposit(request, booking)
+        # KA-H4: возврат депозита при отмене — в apply_action (одна точка).
+        refunds.flash(request, refund, "stay")
     else:
         messages.error(request, _("Unknown action."))
     return redirect(back)

@@ -271,14 +271,16 @@ def test_cancel_paid_booking_refunds(monkeypatch):
     booking.stripe_payment_intent = "pi_x"
     booking.save(update_fields=["payment_state", "stripe_payment_intent"])
     captured = {}
-    monkeypatch.setattr(views.connect, "refund", lambda **kw: captured.update(kw))
+    monkeypatch.setattr("apps.billing.connect.refund", lambda **kw: captured.update(kw))
     request = _req("post", data={"action": "cancelled"})
     request.tenant = TenantFactory.build(stripe_connect_id="acct_1")
     views.booking_action(request, pk=booking.pk)
     booking.refresh_from_db()
     assert booking.status == "cancelled"
     assert booking.payment_state == Booking.PAYMENT_REFUNDED
-    assert captured == {"connect_id": "acct_1", "payment_intent": "pi_x"}
+    # KA-H4: возврат через общую функцию — с ключом идемпотентности Stripe.
+    assert captured["connect_id"] == "acct_1" and captured["payment_intent"] == "pi_x"
+    assert captured["idempotency_key"].startswith("refund:")
 
 
 def test_resource_settings_saves_deposit():

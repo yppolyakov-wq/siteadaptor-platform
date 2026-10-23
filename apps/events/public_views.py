@@ -935,21 +935,12 @@ def veranstaltung_cancel(request, token):
         services.notify_event_waitlist(ticket.event)
         # Возврат: только при бесплатной отмене и онлайн-оплате (депозит/полная).
         tenant = getattr(request, "tenant", None)
-        if (
-            state["free"]
-            and ticket.payment_state in (Ticket.PAYMENT_PAID, Ticket.PAYMENT_DEPOSIT)
-            and ticket.stripe_payment_intent
-            and getattr(tenant, "stripe_connect_id", "")
-        ):
-            try:
-                connect.refund(
-                    connect_id=tenant.stripe_connect_id,
-                    payment_intent=ticket.stripe_payment_intent,
-                )
-                ticket.payment_state = Ticket.PAYMENT_REFUNDED
-                ticket.save(update_fields=["payment_state", "updated_at"])
-            except stripe.error.StripeError:
-                pass  # отмена состоялась; возврат можно довести вручную в кабинете
+        if state["free"]:
+            # KA-H4: общая функция возврата (захват + идемпотентность + письмо
+            # владельцу при отказе Stripe). Платная отмена оплату не возвращает.
+            from apps.core import refunds
+
+            refunds.refund_payment("ticket", ticket, tenant)
         messages.success(request, _("Your ticket has been cancelled."))
         return redirect(reverse("storefront-ticket-cancel", args=[token]))
 

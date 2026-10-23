@@ -9,6 +9,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core import refunds
+from apps.core import transactions as core_transactions
 from apps.core.csv_safe import csv_safe
 
 from . import itinerary, registration
@@ -286,8 +288,16 @@ def ticket_action(request, pk, tid):
         messages.success(request, _("Marked as paid."))
     else:
         try:
-            TicketSM().apply(ticket, target)
+            refund = core_transactions.apply_action(
+                "ticket",
+                ticket,
+                target,
+                actor=request.user,
+                tenant=getattr(request, "tenant", None),
+            )
             messages.success(request, _("Ticket updated."))
+            # KA-H4: отмена оплаченного билета возвращает оплату.
+            refunds.flash(request, refund, "ticket")
             if target == Ticket.STATUS_CANCELLED:
                 # R5/MX-0: номер освобождает TicketSM-хук (единый узел).
                 # Отмена освободила место → уведомить лист ожидания (R1).

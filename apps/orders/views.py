@@ -8,7 +8,6 @@ ModuleGatingMiddleware по префиксу из реестра.
 
 from decimal import Decimal, InvalidOperation
 
-import stripe
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -17,27 +16,12 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.billing import connect
 from apps.core import deal_links
 from apps.core.fsm import IllegalTransition
 
 from .models import Order
 from .services import OutOfStock
 from .state_machine import OrderSM
-
-
-def _refund_order(request, order):
-    """Анти-фрод: вернуть оплату при отмене оплаченного заказа (Stripe Connect)."""
-    try:
-        connect.refund(
-            connect_id=request.tenant.stripe_connect_id,
-            payment_intent=order.stripe_payment_intent,
-        )
-        order.payment_state = Order.PAYMENT_REFUNDED
-        order.save(update_fields=["payment_state", "updated_at"])
-        messages.success(request, _("Payment refunded."))
-    except stripe.error.StripeError:
-        messages.error(request, _("Refund failed — please check Stripe."))
 
 
 def auftragsbuch_context(request):
@@ -470,20 +454,22 @@ def order_action(request, pk):
         from apps.core import transactions as core_transactions
 
         try:
-            core_transactions.apply_action(
-                "order", order, action, actor=request.user, extra=request.POST
+            refund = core_transactions.apply_action(
+                "order",
+                order,
+                action,
+                actor=request.user,
+                extra=request.POST,
+                tenant=getattr(request, "tenant", None),
             )
         except IllegalTransition:
             messages.error(request, _("This step is not possible in the current status."))
             return redirect("orders:order-detail", pk=order.pk)
         messages.success(request, _("Order updated."))
-        # Отмена/возврат оплаченного заказа возвращает оплату (Widerruf/анти-фрод).
-        if (
-            action in ("cancelled", "returned")
-            and order.payment_state == Order.PAYMENT_PAID
-            and order.stripe_payment_intent
-        ):
-            _refund_order(request, order)
+        # KA-H4: возврат оплаты при отмене/возврате — в apply_action (одна точка).
+        from apps.core import refunds
+
+        refunds.flash(request, refund, "order")
     else:
         messages.error(request, _("Unknown action."))
     return redirect("orders:order-detail", pk=order.pk)

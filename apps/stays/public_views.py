@@ -906,21 +906,12 @@ def unterkunft_cancel(request, token):
             return redirect(reverse("storefront-stay-cancel", args=[token]))
         # Возврат депозита: только при бесплатной отмене и оплаченном депозите.
         tenant = getattr(request, "tenant", None)
-        if (
-            state["free"]
-            and booking.payment_state == StayBooking.PAYMENT_PAID
-            and booking.stripe_payment_intent
-            and getattr(tenant, "stripe_connect_id", "")
-        ):
-            try:
-                connect.refund(
-                    connect_id=tenant.stripe_connect_id,
-                    payment_intent=booking.stripe_payment_intent,
-                )
-                booking.payment_state = StayBooking.PAYMENT_REFUNDED
-                booking.save(update_fields=["payment_state", "updated_at"])
-            except stripe.error.StripeError:
-                pass  # отмена состоялась; возврат можно довести вручную в кабинете
+        if state["free"]:
+            # KA-H4: общая функция возврата (захват + идемпотентность + письмо
+            # владельцу при отказе Stripe). Платная отмена депозит не возвращает.
+            from apps.core import refunds
+
+            refunds.refund_payment("stay", booking, tenant)
         messages.success(request, _("Your booking has been cancelled."))
         return redirect(reverse("storefront-stay-cancel", args=[token]))
 

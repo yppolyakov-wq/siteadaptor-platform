@@ -412,11 +412,18 @@ def _save_lines(request, job):
 
 
 def _transition(request, job, dst):
+    from apps.core import refunds
+    from apps.core import transactions as core_transactions
+
     try:
-        JobSM().apply(job, dst, actor=request.user)
+        refund = core_transactions.apply_action(
+            "job", job, dst, actor=request.user, tenant=getattr(request, "tenant", None)
+        )
     except IllegalTransition:
         messages.error(request, _("This step is not possible in the current status."))
         return redirect("jobs:detail", pk=job.pk)
+    # KA-H4: отмена/отказ после оплаченного депозита возвращает его.
+    refunds.flash(request, refund, "job")
     now = timezone.now()
     if dst == "quoted" and job.quoted_at is None:
         job.quoted_at = now

@@ -27903,3 +27903,11 @@ msgstr "Müşterileriniz bundan sonra bu hesaba havale yapacak."
 #: KA-H2
 msgid "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die Bankverbindung."
 msgstr "Bunu siz yapmadıysanız: şifrenizi hemen değiştirin ve banka bilgilerini kontrol edin."
+
+#: apps/core/refunds.py
+msgid "Erstattung fehlgeschlagen: %(code)s"
+msgstr "İade başarısız: %(code)s"
+
+#: apps/core/refunds.py
+msgid "Die Stornierung von %(code)s ist gespeichert, aber Stripe hat die Erstattung abgelehnt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort manuell."
+msgstr "%(code)s iptali kaydedildi, ancak Stripe iadeyi reddetti. Lütfen ödemeyi Stripe panelinde kontrol edin ve iadeyi orada elle yapın."

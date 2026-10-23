@@ -142,14 +142,16 @@ def test_cancel_paid_order_refunds(monkeypatch):
     order.stripe_payment_intent = "pi_x"
     order.save(update_fields=["payment_state", "stripe_payment_intent"])
     captured = {}
-    monkeypatch.setattr(views.connect, "refund", lambda **kw: captured.update(kw))
+    monkeypatch.setattr("apps.billing.connect.refund", lambda **kw: captured.update(kw))
     request = _cab_req({"action": "cancelled"})
     request.tenant = TenantFactory.build(stripe_connect_id="acct_1")
     views.order_action(request, pk=order.pk)
     order.refresh_from_db()
     assert order.status == "cancelled"
     assert order.payment_state == "refunded"
-    assert captured == {"connect_id": "acct_1", "payment_intent": "pi_x"}
+    # KA-H4: возврат через общую функцию — с ключом идемпотентности Stripe.
+    assert captured["connect_id"] == "acct_1" and captured["payment_intent"] == "pi_x"
+    assert captured["idempotency_key"].startswith("refund:")
 
 
 def test_order_settings_toggle():

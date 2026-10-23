@@ -446,15 +446,22 @@ def transaction_for(
     )
 
 
-def apply_action(kind: str, obj, target: str, actor=None, extra=None):
+def apply_action(kind: str, obj, target: str, actor=None, extra=None, tenant=None):
     """W10-5: ЕДИНАЯ точка применения статуса со всех поверхностей (доска/
     Verkäufe/карточка/per-app вьюхи) — закрывает расхождения спец-полей.
 
     `extra` — поля поверхности (обычно request.POST): сейчас — `tracking_code`
     у заказа при переходе shipped; пишется ДО apply, чтобы письмо FSM ушло уже
     с Sendungsnummer (shipped_at ставит FSM сам — W7c). Прочие эффекты
-    (письма/склад/деньги/таймстемпы) остаются в FSM on_transition."""
+    (письма/склад/деньги/таймстемпы) остаются в FSM on_transition.
+
+    KA-H4: после перехода в отмену (роль cancelled, кроме неявки) возвращает
+    оплату картой — со ВСЕХ кабинетных поверхностей одинаково. Возвращает
+    `refunds.RefundResult` (для сообщения владельцу)."""
+    from apps.core import refunds
+
     extra = extra or {}
+    source = getattr(obj, "status", "")
     if kind == "order" and target == "shipped":
         code = (extra.get("tracking_code") or "").strip()[:100]
         if code and code != (getattr(obj, "tracking_code", "") or ""):
@@ -471,8 +478,10 @@ def apply_action(kind: str, obj, target: str, actor=None, extra=None):
         from apps.notifications.prefs import muted
 
         with muted(customer=mute_customer, owner=mute_owner):
-            return sm_for(kind).apply(obj, target, actor=actor)
-    return sm_for(kind).apply(obj, target, actor=actor)
+            sm_for(kind).apply(obj, target, actor=actor)
+    else:
+        sm_for(kind).apply(obj, target, actor=actor)
+    return refunds.refund_on_cancel(kind, obj, target, source, tenant)
 
 
 # --- UD1-3: кабинетный резолвер транзакций (фундамент доски) ------------------
