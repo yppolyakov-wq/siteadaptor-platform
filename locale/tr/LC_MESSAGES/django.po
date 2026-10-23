@@ -28679,3 +28679,21 @@ msgstr "Yasal olarak saklananlar"
 
 msgid "Zur Bestätigung bitte LÖSCHEN eingeben."
 msgstr "Onaylamak için LÖSCHEN yazın."
+
+msgid "Bitte geben Sie Ihre E-Mail-Adresse an."
+msgstr "Lütfen e-posta adresinizi girin."
+
+msgid "Coupon nur an E-Mail senden"
+msgstr "Kuponu yalnızca e-postayla gönder"
+
+msgid "Für begrenzte Coupons: der Code kommt nur per E-Mail, nicht im Browser — so holt sich niemand alle Coupons mit erfundenen Adressen."
+msgstr "Sınırlı kuponlar için: kod tarayıcıda değil yalnızca e-postayla gelir — böylece kimse uydurma adreslerle tüm kuponları alamaz."
+
+msgid "Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt."
+msgstr "Kuponunuz yolda: %(email)s adresine gönderdik."
+
+msgid "Sie haben bereits mehrere Reservierungen offen. Bitte holen Sie diese zuerst ab oder melden Sie sich bei uns."
+msgstr "Zaten birkaç açık rezervasyonunuz var. Lütfen önce bunları teslim alın veya bizimle iletişime geçin."
+
+msgid "unbestätigt · läuft ab"
+msgstr "onaylanmadı · sona eriyor"

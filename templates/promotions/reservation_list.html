@@ -33,7 +33,7 @@
         <span class="shrink-0 text-xs px-2 py-0.5 rounded-full bg-gray-100">{% status_label r "reservation" %}</span>
       </div>
       <p class="text-sm text-gray-600">{{ r.customer }}{% if r.customer.phone %} · <a href="tel:{{ r.customer.phone }}" class="text-indigo-600">{{ r.customer.phone }}</a>{% endif %}</p>
-      {% if r.expires_at %}<p class="text-xs text-gray-500">{% trans "bis" %} {{ r.expires_at|date:"d.m. H:i" }}</p>{% endif %}
+      {% if r.expires_at %}<p class="text-xs {% if r.status == 'pending' %}text-amber-700{% else %}text-gray-500{% endif %}" {% if r.status == 'pending' %}data-resv-unconfirmed{% endif %}>{% if r.status == 'pending' %}{% trans "unbestätigt · läuft ab" %}{% else %}{% trans "bis" %}{% endif %} {{ r.expires_at|date:"d.m. H:i" }}</p>{% endif %}
       {% if r.status == 'pending' or r.status == 'confirmed' %}
         <div class="flex gap-2 pt-1">
           <form method="post" action="{% url 'promotions:reservation-action' r.pk %}" class="flex-1">

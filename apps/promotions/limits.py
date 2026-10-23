@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 from django.conf import settings
+from django.db import transaction
 from django.utils.translation import gettext as _
 
 from .state_machine import PromotionSM
@@ -56,12 +57,41 @@ def can_activate(promo, tenant) -> bool:
     return active_count(exclude=promo) < limit
 
 
+def _lock_limit():
+    """KA-12 E6.6 (L10): проверка «сколько активно» и переход — под одной блокировкой.
+
+    Advisory, а не строка Tenant в public: не мешает сохранению настроек бизнеса.
+    Ключ несёт схему — advisory-блокировки общие на всю БД."""
+    from django.db import connection
+
+    schema = getattr(connection, "schema_name", "") or "public"
+    with connection.cursor() as cur:
+        cur.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [f"promo-limit:{schema}"])
+
+
 def activate(promo, tenant, *, actor=None):
-    """Активировать акцию с проверкой лимита; ``ActivationLimit`` при отказе."""
+    """Активировать акцию с проверкой лимита; ``ActivationLimit`` при отказе.
+
+    Два параллельных включения (кабинет, ассистент, Telegram, beat) не проходят оба:
+    при ограниченном тенанте пара «посчитать → перевести» идёт под блокировкой."""
     limit = active_limit(tenant)
-    if not can_activate(promo, tenant):
-        raise ActivationLimit(limit)
-    return PromotionSM().apply(promo, "active", actor=actor)
+    if limit is None:
+        return PromotionSM().apply(promo, "active", actor=actor)
+    with transaction.atomic():
+        _lock_limit()
+        promo.refresh_from_db(fields=["status"])
+        if not can_activate(promo, tenant):
+            raise ActivationLimit(limit)
+        return PromotionSM().apply(promo, "active", actor=actor)
+
+
+def try_activate(promo, tenant, *, actor=None) -> bool:
+    """То же, что ``activate``, но ``False`` вместо исключения (beat расписания)."""
+    try:
+        activate(promo, tenant, actor=actor)
+    except ActivationLimit:
+        return False
+    return True
 
 
 def usage(tenant) -> dict | None:

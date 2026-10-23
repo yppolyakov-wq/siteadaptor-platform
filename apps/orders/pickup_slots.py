@@ -163,7 +163,12 @@ def contact_holds_too_many(email: str, phone: str, tenant=None, now=None) -> boo
     if email:
         who |= Q(customer__email__iexact=email)
     if phone:
-        who |= Q(customer__phone=phone)
+        # KA-12 E6.6: «0171 …» и «+49 171 …» — один контакт.
+        from apps.core.contacts import phone_candidates_regex
+
+        regex = phone_candidates_regex(phone)
+        if regex:
+            who |= Q(customer__phone__regex=regex)
     held = (
         Order.objects.filter(who, pickup_slot__gte=now or timezone.now())
         .exclude(status__in=status_registry.cancelled_statuses_for("order", tenant))

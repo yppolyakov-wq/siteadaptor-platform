@@ -77,9 +77,9 @@ def roll_due_promotions(now=None) -> dict:
             continue
         # T-8.4 (Р-5): при полном лимите акция остаётся запланированной и включится
         # на следующем проходе, когда место освободится.
-        if not limits.can_activate(promo, tenant):
+        # KA-12 E6.6: проверка и переход под той же блокировкой, что кабинет.
+        if not limits.try_activate(promo, tenant):
             continue
-        sm.apply(promo, "active")
         activated += 1
 
     return {"activated": activated, "ended": ended}

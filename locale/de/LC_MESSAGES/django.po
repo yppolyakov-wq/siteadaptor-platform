@@ -28627,3 +28627,21 @@ msgstr "Was gesetzlich gespeichert bleibt"
 
 msgid "Zur Bestätigung bitte LÖSCHEN eingeben."
 msgstr "Zur Bestätigung bitte LÖSCHEN eingeben."
+
+msgid "Bitte geben Sie Ihre E-Mail-Adresse an."
+msgstr "Bitte geben Sie Ihre E-Mail-Adresse an."
+
+msgid "Coupon nur an E-Mail senden"
+msgstr "Coupon nur an E-Mail senden"
+
+msgid "Für begrenzte Coupons: der Code kommt nur per E-Mail, nicht im Browser — so holt sich niemand alle Coupons mit erfundenen Adressen."
+msgstr "Für begrenzte Coupons: der Code kommt nur per E-Mail, nicht im Browser — so holt sich niemand alle Coupons mit erfundenen Adressen."
+
+msgid "Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt."
+msgstr "Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt."
+
+msgid "Sie haben bereits mehrere Reservierungen offen. Bitte holen Sie diese zuerst ab oder melden Sie sich bei uns."
+msgstr "Sie haben bereits mehrere Reservierungen offen. Bitte holen Sie diese zuerst ab oder melden Sie sich bei uns."
+
+msgid "unbestätigt · läuft ab"
+msgstr "unbestätigt · läuft ab"

@@ -181,6 +181,17 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 "wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
             ),
         )
+        # KA-12 E6.6 (Р-3): код купона — только письмом (проверка владения адресом).
+        meta0 = self.instance.metadata if isinstance(self.instance.metadata, dict) else {}
+        self.fields["coupon_by_email"] = forms.BooleanField(
+            label=_("Coupon nur an E-Mail senden"),
+            required=False,
+            initial=meta0.get("coupon_delivery") == "email",
+            help_text=_(
+                "Für begrenzte Coupons: der Code kommt nur per E-Mail, nicht im Browser — "
+                "so holt sich niemand alle Coupons mit erfundenen Adressen."
+            ),
+        )
         # SF-8b: исключение § 11 Abs. 4 PAngV — флаг владельца в metadata (без миграции);
         # при выключенном исключении (settings) поля в форме нет вовсе.
         from . import reference_price
@@ -391,6 +402,14 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 meta["response"] = value
             else:
                 meta.pop("response", None)
+            promo.metadata = meta
+        # KA-12 E6.6: сентинел `coupon_by_email_present` — снятый чекбокс браузер не шлёт.
+        if "coupon_by_email_present" in self.data:
+            meta = dict(promo.metadata) if isinstance(promo.metadata, dict) else {}
+            if self.cleaned_data.get("coupon_by_email"):
+                meta["coupon_delivery"] = "email"
+            else:
+                meta.pop("coupon_delivery", None)
             promo.metadata = meta
         # В2: сентинел `price_condition_present` — чужой POST условие не стирает (W0).
         if "price_condition_present" in self.data:

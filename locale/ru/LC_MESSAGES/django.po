@@ -28800,3 +28800,21 @@ msgstr "Что хранится по закону"
 
 msgid "Zur Bestätigung bitte LÖSCHEN eingeben."
 msgstr "Для подтверждения введите LÖSCHEN."
+
+msgid "Bitte geben Sie Ihre E-Mail-Adresse an."
+msgstr "Пожалуйста, укажите ваш e-mail."
+
+msgid "Coupon nur an E-Mail senden"
+msgstr "Отправлять купон только на e-mail"
+
+msgid "Für begrenzte Coupons: der Code kommt nur per E-Mail, nicht im Browser — so holt sich niemand alle Coupons mit erfundenen Adressen."
+msgstr "Для ограниченных купонов: код приходит только на e-mail, а не в браузере — так никто не заберёт все купоны с выдуманными адресами."
+
+msgid "Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt."
+msgstr "Купон уже в пути: мы отправили его на %(email)s."
+
+msgid "Sie haben bereits mehrere Reservierungen offen. Bitte holen Sie diese zuerst ab oder melden Sie sich bei uns."
+msgstr "У вас уже несколько открытых резервов. Сначала заберите их или свяжитесь с нами."
+
+msgid "unbestätigt · läuft ab"
+msgstr "не подтверждено · истекает"

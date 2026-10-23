@@ -8,6 +8,7 @@ ReservationSM. Возврат остатка при отмене/истечен�
 import secrets
 from datetime import timedelta
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import F, Sum
 from django.utils import timezone
@@ -55,8 +56,12 @@ def _get_or_create_customer(*, name, email, phone) -> Customer:
         customer = Customer.objects.filter(email__iexact=email).order_by("created_at").first()
     elif phone and phone.strip():
         # T-8.2: «отложить» принимает телефон без почты — иначе каждый повтор создавал
-        # нового клиента и лимит «N pro Kunde» не работал.
-        customer = Customer.objects.filter(phone=phone.strip()).order_by("created_at").first()
+        # нового клиента и лимит «N pro Kunde» не работал. KA-12 E6.6: «0171 …» и
+        # «+49 171 …» — один человек (сравнение по ключу из цифр).
+        from apps.core.contacts import find_by_phone
+
+        matches = find_by_phone(Customer.objects.order_by("created_at"), phone)
+        customer = matches[0] if matches else None
     if customer is not None:
         # дозаполняем пустые контакты, имя не перетираем
         updates = []
@@ -85,13 +90,15 @@ def reserve(promotion, *, name, email="", phone="", quantity=1, note="", source_
     promo_id = getattr(promotion, "id", promotion)
     promotion = Promotion.objects.get(id=promo_id)
 
+    # KA-12 E6.6: один человек — по очереди (поиск клиента, лимит на клиента, бронь).
+    # Advisory по контакту, а не строка клиента: UPDATE остатка акции не блокируется,
+    # anti-oversell между РАЗНЫМИ людьми идёт параллельно, как раньше.
+    from apps.core.contacts import advisory_lock, contact_lock_key
+
+    advisory_lock(contact_lock_key(f"resv:{promotion.id}", email, phone))
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
 
     # лимит на клиента по этой акции (по сумме активных броней)
-    # NB: неблокирующий Sum — известный LOW-MEDIUM гонок soft-cap (параллельные брони
-    # одного клиента могут превысить max_per_customer; СКЛАД при этом НЕ переполняется —
-    # его держит атомарный UPDATE ниже). Лок клиента здесь ломал anti-oversell-инвариант
-    # (см. test_concurrency) — фикс выносится в отдельную, аккуратно оттестированную задачу.
     if promotion.max_per_customer:
         # SM-3: «активные» через реестр — резерв в кастом-active статусе владельца
         # тоже считается (литерал позволял обойти лимит на клиента).
@@ -140,10 +147,11 @@ def _reserve_locked(promotion, *, customer, quantity, note, source_channel):
 
     initial_status = "confirmed" if promotion.auto_confirm else "pending"
     now = timezone.now()
-    expires_at = now + timedelta(hours=promotion.reservation_ttl_hours)
-    if promotion.ends_at and now < promotion.ends_at < expires_at:
-        # T-8.2: отложенное держится не дольше самой акции.
-        expires_at = promotion.ends_at
+    expires_at = full_hold_until(promotion, now)
+    if initial_status == "pending":
+        # KA-12 E6.6 (Р-2): неподтверждённый резерв держит товар недолго — выдуманные
+        # контакты не «выкупят витрину» на сутки; подтверждение продлевает до полного срока.
+        expires_at = min(expires_at, now + timedelta(hours=pending_hold_hours()))
     reservation = Reservation.objects.create(
         promotion=promotion,
         customer=customer,
@@ -157,6 +165,51 @@ def _reserve_locked(promotion, *, customer, quantity, note, source_channel):
     )
     hold_product_stock(reservation)
     return reservation
+
+
+def open_reservations_for_contact(email="", phone="") -> int:
+    """KA-12 E6.6 (Р-4): сколько открытых резервов у этого контакта по всему бизнесу."""
+    from django.db.models import Q
+
+    from apps.core import status_registry
+    from apps.core.contacts import phone_candidates_regex, phone_key
+
+    email, phone = (email or "").strip(), (phone or "").strip()
+    who = Q()
+    if email:
+        who |= Q(customer__email__iexact=email)
+    regex = phone_candidates_regex(phone) if phone else ""
+    if regex:
+        who |= Q(customer__phone__regex=regex)
+    if not who:
+        return 0
+    rows = Reservation.objects.filter(
+        who, status__in=status_registry.active_statuses_for("reservation")
+    ).values_list("customer__email", "customer__phone")
+    key = phone_key(phone)
+    return sum(
+        1
+        for row_email, row_phone in rows
+        if (email and (row_email or "").lower() == email.lower())
+        or (key and phone_key(row_phone) == key)
+    )
+
+
+def coupon_by_email_only(promotion) -> bool:
+    """KA-12 E6.6 (Р-3): код купона — только письмом (проверка владения адресом)."""
+    return (getattr(promotion, "metadata", None) or {}).get("coupon_delivery") == "email"
+
+
+def pending_hold_hours() -> int:
+    return int(getattr(settings, "PROMO_PENDING_HOLD_HOURS", 4) or 4)
+
+
+def full_hold_until(promotion, start):
+    """Полный срок резерва от ``start``: TTL акции, но не дольше самой акции (T-8.2)."""
+    until = start + timedelta(hours=promotion.reservation_ttl_hours)
+    if promotion.ends_at and start < promotion.ends_at < until:
+        until = promotion.ends_at
+    return until
 
 
 def _stock_target(promotion):
@@ -483,6 +536,23 @@ def issue_coupon(
         return existing, False
     email = (email or "").strip()
     phone = (phone or "").strip()
+    # KA-12 E6.6: два параллельных запроса одного человека не выпускают два купона —
+    # поиск выданного и выпуск под одной блокировкой по контакту.
+    with transaction.atomic():
+        from apps.core.contacts import advisory_lock, contact_lock_key
+
+        advisory_lock(contact_lock_key(f"coupon:{promotion.id}", email, phone))
+        return _issue_coupon_locked(
+            promotion,
+            name=name,
+            email=email,
+            phone=phone,
+            source_channel=source_channel,
+            reveal_existing=reveal_existing,
+        )
+
+
+def _issue_coupon_locked(promotion, *, name, email, phone, source_channel, reveal_existing):
     customer = None
     if email or phone:
         customer = _get_or_create_customer(

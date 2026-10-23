@@ -79,6 +79,16 @@ class ReservationSM(StateMachine):
             setattr(instance, ts_field, timezone.now())
             instance.save(update_fields=[ts_field])
 
+        # KA-12 E6.6 (Р-2): подтверждённый владельцем резерв держится полный срок
+        # (неподтверждённый — коротко, см. services._reserve_locked).
+        if t.dst == "confirmed":
+            from .services import full_hold_until
+
+            full = full_hold_until(instance.promotion, instance.created_at)
+            if instance.expires_at is None or instance.expires_at < full:
+                instance.expires_at = full
+                instance.save(update_fields=["expires_at"])
+
         # Возврат остатка при отмене/истечении — в той же транзакции, что и смена
         # статуса (см. anti-oversell.md::cancel). Только у акций с лимитом.
         if t.dst in ("cancelled", "expired"):

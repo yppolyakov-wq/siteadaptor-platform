@@ -15,6 +15,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.db import connection
 from django.db.models import F, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -2382,6 +2383,31 @@ def reservation_create(request, pk):
         messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
         return render(request, "storefront/promotion_detail.html", ctx)
 
+    # KA-12 E6.6 (Р-4): потолки против «выкупа витрины» выдуманными контактами —
+    # открытые резервы на контакт и резервы в сутки с одного IP по всему бизнесу.
+    from .services import open_reservations_for_contact
+
+    if open_reservations_for_contact(
+        form.cleaned_data.get("email", ""), form.cleaned_data.get("phone", "")
+    ) >= int(getattr(settings, "PROMO_OPEN_RESERVATIONS_PER_CONTACT", 3)):
+        messages.error(
+            request,
+            _(
+                "Sie haben bereits mehrere Reservierungen offen. Bitte holen Sie diese "
+                "zuerst ab oder melden Sie sich bei uns."
+            ),
+        )
+        return render(request, "storefront/promotion_detail.html", ctx)
+    day_ident = f"{connection.schema_name}:{ratelimit.client_ip(request)}"
+    if ratelimit.hit(
+        "resv-day",
+        day_ident,
+        limit=int(getattr(settings, "PROMO_RESERVATIONS_PER_IP_DAY", 10)),
+        window=86400,
+    ):
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+        return render(request, "storefront/promotion_detail.html", ctx)
+
     # идемпотентность: токен «занимаем» на время попытки, на успехе оставляем,
     # на ошибке освобождаем (чтобы клиент мог повторить с другими данными)
     token = form.cleaned_data.get("form_token")
@@ -2406,11 +2432,13 @@ def reservation_create(request, pk):
     except OutOfStock:
         if token_key:
             cache.delete(token_key)
+        ratelimit.refund("resv-day", day_ident)  # отказ без брони не расходует сутки
         messages.error(request, _("Leider ausverkauft."))
         return render(request, "storefront/promotion_detail.html", ctx)
     except ReservationLimitReached:
         if token_key:
             cache.delete(token_key)
+        ratelimit.refund("resv-day", day_ident)
         messages.error(request, _("Limit pro Kunde erreicht."))
         return render(request, "storefront/promotion_detail.html", ctx)
 
@@ -2462,7 +2490,13 @@ def _remember_coupon(response, request, promo, code):
 def coupon_create(request, pk):
     """T-8.3: выдать купон акции (POST со страницы акции) → страница купона."""
     from . import response as promo_response
-    from .services import CouponExists, CouponUnavailable, find_coupon, issue_coupon
+    from .services import (
+        CouponExists,
+        CouponUnavailable,
+        coupon_by_email_only,
+        find_coupon,
+        issue_coupon,
+    )
 
     promo = get_object_or_404(Promotion, pk=pk, status="active")
     tenant = getattr(request, "tenant", None)
@@ -2485,6 +2519,11 @@ def coupon_create(request, pk):
         return redirect("storefront-promotion", pk=pk)
 
     email = (request.POST.get("email") or "").strip()[:254]
+    by_email = coupon_by_email_only(promo)
+    if by_email and not email:
+        # KA-12 E6.6 (Р-3): код приходит только письмом — адрес обязателен.
+        messages.error(request, _("Bitte geben Sie Ihre E-Mail-Adresse an."))
+        return redirect("storefront-promotion", pk=pk)
     if email:
         from django.core.validators import validate_email
 
@@ -2493,6 +2532,18 @@ def coupon_create(request, pk):
         except ValidationError:
             messages.error(request, _("Bitte eine gültige E-Mail-Adresse angeben."))
             return redirect("storefront-promotion", pk=pk)
+    # KA-12 E6.6 (Р-4): ограниченный купон — не больше N в сутки с одного IP; новая кука
+    # и новый адрес больше не выбирают весь лимит. Неограниченным купонам потолок не нужен.
+    day_ident = f"{ratelimit.client_ip(request)}:{pk}"
+    day_counted = promo.available_quantity is not None
+    if day_counted and ratelimit.hit(
+        "coupon-day",
+        day_ident,
+        limit=int(getattr(settings, "PROMO_COUPONS_PER_IP_DAY", 3)),
+        window=86400,
+    ):
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+        return redirect("storefront-promotion", pk=pk)
     from apps.aggregator import conversions
     from apps.core import attribution
 
@@ -2507,9 +2558,13 @@ def coupon_create(request, pk):
             reveal_existing=False,
         )
     except CouponUnavailable:
+        if day_counted:
+            ratelimit.refund("coupon-day", day_ident)
         messages.error(request, _("Alle Coupons sind leider vergeben."))
         return redirect("storefront-promotion", pk=pk)
     except CouponExists as exc:
+        if day_counted:
+            ratelimit.refund("coupon-day", day_ident)  # новый купон не выпущен
         # KA-H9: контакт в форме — не доказательство владения. Код уходит на адрес
         # ИЗ КАРТОЧКИ клиента (не из формы), не чаще раза в день; браузер его не видит.
         stored = getattr(exc.voucher.customer, "email", "") or ""
@@ -2544,6 +2599,19 @@ def coupon_create(request, pk):
         return redirect("storefront-promotion", pk=pk)
     if _created:  # В5 V5-5: купон — отклик акции = сделка; повторный заход не считаем
         conversions.count(request, "deal", "coupon", voucher, attribution=found)
+    if by_email:
+        # KA-12 E6.6 (Р-3): браузер код не видит и не запоминает — только письмо.
+        from .notifications import send_coupon_email
+
+        try:
+            send_coupon_email(voucher, promo, email, dedupe="issue")
+        except Exception:  # письмо не должно ронять витрину
+            logger.exception("coupon email failed for %s", voucher.pk)
+        messages.success(
+            request,
+            _("Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt.") % {"email": email},
+        )
+        return redirect("storefront-promotion", pk=pk)
     return _remember_coupon(
         redirect("storefront-coupon", code=voucher.code), request, promo, voucher.code
     )

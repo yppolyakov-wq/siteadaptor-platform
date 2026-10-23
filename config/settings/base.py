@@ -690,6 +690,11 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@platform.local")
 # T-8.4 (Р-5): бесплатная лёгкая ступень («Nur Aktionen» без подписки) держит не
 # больше N активных акций одновременно; на N+1 — «Mehr Aktionen? Schreiben Sie uns».
 LITE_FREE_ACTIVE_PROMOS = env.int("LITE_FREE_ACTIVE_PROMOS", default=5)
+# KA-12 E6.6: потолки против «выкупа витрины» резервами и купонами (Р-2/Р-4).
+PROMO_PENDING_HOLD_HOURS = env.int("PROMO_PENDING_HOLD_HOURS", default=4)
+PROMO_RESERVATIONS_PER_IP_DAY = env.int("PROMO_RESERVATIONS_PER_IP_DAY", default=10)
+PROMO_OPEN_RESERVATIONS_PER_CONTACT = env.int("PROMO_OPEN_RESERVATIONS_PER_CONTACT", default=3)
+PROMO_COUPONS_PER_IP_DAY = env.int("PROMO_COUPONS_PER_IP_DAY", default=3)
 PLATFORM_CONTACT_EMAIL = env("PLATFORM_CONTACT_EMAIL", default="kontakt@siteadaptor.de")
 # SF-8b: исключение § 11 Abs. 4 PAngV (schnell verderblich / kurze Haltbarkeit) — акция
 # с флагом владельца НЕ ограничивается 30-дневным минимумом. Выключатель для отката по
