@@ -134,7 +134,7 @@ def _is_visible(kind, obj) -> bool:
 _PROMO_PARAM = {"product": "product", "service": "service", "stay": "stay_unit", "combo": "combo"}
 
 
-def _managed(kind, obj, locale) -> ManagedSellable:
+def _managed(kind, obj, locale, threshold: int = 5) -> ManagedSellable:
     cfg = _MANAGE[kind]
     f = sellable.display_fields(kind, obj, locale)
     status_label = obj.get_status_display() if kind == "event" else ""
@@ -150,7 +150,10 @@ def _managed(kind, obj, locale) -> ManagedSellable:
         stock = obj.stock_quantity
         if stock is not None:
             try:
-                stock_warn = stock <= (obj.effective_reorder_point or 0)
+                # KA-10: это МЕТОД (порог артикула или общий) — раньше сравнивали с
+                # самим методом, исключение глушилось, и предупреждения не было никогда.
+                point = obj.effective_reorder_point(threshold)
+                stock_warn = point is not None and stock <= point
             except Exception:  # noqa: BLE001 — подпись не роняет обзор
                 stock_warn = False
     return ManagedSellable(
@@ -192,6 +195,9 @@ def sellable_manage_sections_for(
     from apps.core.facets import i18n_icontains_q
 
     locale = _locale(tenant)
+    from apps.inventory.views import _threshold
+
+    threshold = _threshold(tenant)
     q = (q or "").strip()
     out = []
     for kind in MANAGE_KINDS:
@@ -223,7 +229,7 @@ def sellable_manage_sections_for(
             if cfg["toggle"]
             else qs.order_by("-created_at")
         )
-        items = [_managed(kind, obj, locale) for obj in qs[:limit]]
+        items = [_managed(kind, obj, locale, threshold) for obj in qs[:limit]]
         if not items:
             continue
         out.append({"kind": kind, "label": cfg["label"], "items": items, "count": len(items)})

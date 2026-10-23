@@ -162,3 +162,14 @@ def test_view_renders_cards_by_default():
     assert "grid grid-cols-2" in body and "aspect-video" in body
     assert "divide-y divide-gray-100" not in body  # старый список скрыт
     assert "sellable-visibility" in body or "Sichtbar" in body  # тумблер жив
+
+
+def test_product_row_warns_on_low_stock():
+    """KA-10: предупреждение о низком остатке реально срабатывает (раньше сравнение
+    с самим методом падало молча, и предупреждения не было никогда)."""
+    t = TenantFactory(enabled_modules=["catalog"])
+    low = ProductFactory(stock_quantity=2)
+    ok = ProductFactory(stock_quantity=50)
+    rows = {r.pk: r for s in sm.sellable_manage_sections_for(t) for r in s["items"]}
+    assert rows[low.pk].stock_warn is True
+    assert rows[ok.pk].stock_warn is False
