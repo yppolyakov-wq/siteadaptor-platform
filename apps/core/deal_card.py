@@ -54,7 +54,7 @@ _CALENDARS = {
 def _ai_enabled() -> bool:
     from apps.ai.api import is_enabled
 
-    return is_enabled()
+    return is_enabled("inbox_reply_draft")  # кнопка «Antwort vorschlagen» в переписке
 
 
 def _module_active(tenant, key: str) -> bool:

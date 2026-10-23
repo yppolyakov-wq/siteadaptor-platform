@@ -675,7 +675,7 @@ def ai_fill(bot, tenant, draft: dict, photo_id: str, *, hint: str = "", chat="")
 
     from . import ai_draft
 
-    if not is_enabled():
+    if not is_enabled(ai_draft.TASK):
         return False
     if chat and str(chat).isdigit():
         from apps.platform_bot import rights

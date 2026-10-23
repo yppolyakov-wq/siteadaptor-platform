@@ -493,7 +493,7 @@ class Tenant(TenantMixin):
         текст байт-в-байт прежний. Собственный текст владельца не трогаем."""
         from apps.ai.api import is_enabled
 
-        if not (is_enabled() and self.is_module_active("inbox")):
+        if not (is_enabled("inbox_reply_draft") and self.is_module_active("inbox")):
             return ""
         return (
             "Antworten auf Ihre Nachrichten können wir mit Hilfe von KI-Diensten "

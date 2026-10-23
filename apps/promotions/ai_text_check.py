@@ -243,7 +243,7 @@ def clean_ai_findings(raw, inp: tc.CheckInput, rule_findings: list) -> list[tc.F
 
 def check_text(inp: tc.CheckInput, *, tenant, rules=None) -> tuple[list[tc.Finding] | None, str]:
     """(подсказки ИИ | None, код ''|ошибка). Вызывать ВНЕ atomic (контракт AI-0)."""
-    if not is_enabled():
+    if not is_enabled(TASK):
         return None, "disabled"
     marker = secrets.token_hex(6)
     names = dict(settings.LANGUAGES)

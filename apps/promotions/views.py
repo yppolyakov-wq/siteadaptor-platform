@@ -624,7 +624,7 @@ def promotion_create(request):
         "promotions/promotion_form.html",
         {
             "text_check_base": dj_settings.LANGUAGE_CODE,  # D2a-2: базовая локаль полей
-            "text_check_ai": _ai_photo_enabled(),  # D2a-3: кнопка «Text prüfen lassen»
+            "text_check_ai": _ai_text_check_enabled(),  # D2a-3: кнопка «Text prüfen lassen»
             "form": form,
             "is_create": True,
             "nav": "promotions",
@@ -793,7 +793,7 @@ def promotion_quick(request):
         "promotions/promotion_quick.html",
         {
             "text_check_base": dj_settings.LANGUAGE_CODE,  # D2a-2: базовая локаль полей
-            "text_check_ai": _ai_photo_enabled(),  # D2a-3: кнопка «Text prüfen lassen»
+            "text_check_ai": _ai_text_check_enabled(),  # D2a-3: кнопка «Text prüfen lassen»
             "form": form,
             "source": source,
             "max_photos": quick.MAX_PHOTOS,
@@ -848,7 +848,14 @@ def _ai_schema(request) -> str:
 def _ai_photo_enabled() -> bool:
     from apps.ai.api import is_enabled
 
-    return is_enabled()
+    return is_enabled("promo_photo_draft")
+
+
+def _ai_text_check_enabled() -> bool:
+    """AI-1: проверка текста — своя задача (раньше висела на флаге фото)."""
+    from apps.ai.api import is_enabled
+
+    return is_enabled("promo_text_check")
 
 
 @login_required
@@ -976,7 +983,7 @@ def promotion_text_check_ai_start(request):
 
     from . import ai_text_check as atc
 
-    if not is_enabled():
+    if not is_enabled(atc.TASK):
         return JsonResponse({"code": "disabled"})
     from django.conf import settings as conf
 
@@ -1110,7 +1117,7 @@ def promotion_edit(request, pk):
         "promotions/promotion_form.html",
         {
             "text_check_base": dj_settings.LANGUAGE_CODE,  # D2a-2: базовая локаль полей
-            "text_check_ai": _ai_photo_enabled(),  # D2a-3: кнопка «Text prüfen lassen»
+            "text_check_ai": _ai_text_check_enabled(),  # D2a-3: кнопка «Text prüfen lassen»
             "form": form,
             "is_create": False,
             "promotion": promo,

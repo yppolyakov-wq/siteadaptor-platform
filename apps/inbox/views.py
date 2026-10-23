@@ -179,7 +179,7 @@ def thread(request, pk):
 def _ai_reply_enabled() -> bool:
     from apps.ai.api import is_enabled
 
-    return is_enabled()
+    return is_enabled("inbox_reply_draft")
 
 
 def _ai_schema() -> str:

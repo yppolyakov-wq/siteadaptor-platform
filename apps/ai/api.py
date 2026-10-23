@@ -56,8 +56,17 @@ class AIResult:
     ai_generated: bool = True
 
 
-def is_enabled() -> bool:
-    return bool(getattr(settings, "AI_ENABLED", False))
+ALWAYS_ALLOWED = frozenset({"smoke", "smoke_strong"})  # проверка маршрута (ai_smoke)
+
+
+def is_enabled(task: str | None = None) -> bool:
+    """ИИ включён платформой; с `task` — ещё и эта задача в `AI_TASKS_ENABLED` (AI-1).
+    Экраны зовут с именем своей задачи, чтобы кнопка пропадала, а не ломалась."""
+    if not getattr(settings, "AI_ENABLED", False):
+        return False
+    if task is None or task in ALWAYS_ALLOWED:
+        return True
+    return task in set(getattr(settings, "AI_TASKS_ENABLED", ()) or ())
 
 
 def _sleep(attempt: int) -> None:
@@ -88,7 +97,9 @@ def generate(
 ) -> AIResult:
     if not is_enabled():
         raise AIDisabled()
-    spec = registry.get(task)
+    spec = registry.get(task)  # неизвестная задача — ошибка конфигурации, не «выключено»
+    if not is_enabled(task):
+        raise AIDisabled()
     if images and not spec.allow_images:
         raise AIConfigError("images not allowed for task")
     limit = spec.max_input_chars or settings.AI_MAX_PROMPT_CHARS

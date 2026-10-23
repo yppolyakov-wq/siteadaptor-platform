@@ -116,7 +116,7 @@ def test_objection_toggles_and_ai_fill_respects_it(bot, monkeypatch):  # noqa: F
     assert rights.ai_objected(USER)
     from apps.promotions import telegram_promo
 
-    monkeypatch.setattr("apps.ai.api.is_enabled", lambda: True)
+    monkeypatch.setattr("apps.ai.api.is_enabled", lambda *a, **k: True)
     assert telegram_promo.ai_fill(None, None, {}, "P1", chat=str(USER)) is False
     handler.handle(_cb("pr:o:ai"))
     assert not rights.ai_objected(USER)

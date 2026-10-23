@@ -66,7 +66,7 @@ registry.register(
 
 
 def enabled() -> bool:
-    return bool(getattr(settings, "AI_CATALOG_MODERATION", False)) and is_enabled()
+    return bool(getattr(settings, "AI_CATALOG_MODERATION", False)) and is_enabled(TASK)
 
 
 def _texts(listing) -> list[tuple[str, str, str]]:

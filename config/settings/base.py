@@ -765,6 +765,20 @@ SITE_IMPORT_USER_AGENT = env(
 # Ключи — шифрованный стор apps.secrets (приоритет) или env ниже.
 # ---------------------------------------------------------------------------
 AI_ENABLED = env.bool("AI_ENABLED", default=False)
+# AI-1 (2026-10-23): белый список задач — задача не из списка не выполняется, новая
+# задача выключена, пока её не внесут. Переписка с клиентом (inbox_reply_draft) по
+# решению владельца выключена, пока ключ ИИ не европейский. Правила —
+# docs/ai-usage-policy-2026-10-23.md.
+AI_TASKS_ENABLED = env.list(
+    "AI_TASKS_ENABLED",
+    default=[
+        "site_import_extract",
+        "promo_photo_draft",
+        "promo_text_check",
+        "catalog_moderation",
+        "search_phrase_filters",
+    ],
+)
 AI_REQUIRE_EU = env.bool("AI_REQUIRE_EU", default=False)
 AI_ROUTE_FAST = env.list("AI_ROUTE_FAST", default=["fake"])
 AI_ROUTE_STRONG = env.list("AI_ROUTE_STRONG", default=["fake"])

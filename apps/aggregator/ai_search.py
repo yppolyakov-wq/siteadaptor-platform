@@ -65,7 +65,7 @@ SYSTEM = (
 
 
 def enabled() -> bool:
-    return bool(getattr(settings, "AI_SEARCH_ENABLED", False)) and is_enabled()
+    return bool(getattr(settings, "AI_SEARCH_ENABLED", False)) and is_enabled(TASK)
 
 
 def _kinds() -> list[str]:

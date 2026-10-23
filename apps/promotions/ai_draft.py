@@ -172,7 +172,7 @@ def _prompt(tenant, hint: str, marker: str) -> str:
 
 def draft_from_photo(photo: bytes, *, hint: str = "", tenant=None) -> tuple[dict | None, str]:
     """(поля черновика | None, код ''|ошибка). Фото уже перекодировано (без EXIF)."""
-    if not is_enabled():
+    if not is_enabled(TASK):
         return None, "disabled"
     marker = secrets.token_hex(6)
     system = SYSTEM.replace("{language}", settings.LANGUAGE_CODE)

@@ -104,7 +104,7 @@ def _clean(raw: dict, pages_by_url: dict, images: set) -> dict | None:
 
 def extract(pages) -> tuple[list, str]:
     """Позиции со страниц без Product-JSON-LD. Возвращает (items, код: ''|ошибка)."""
-    if not is_enabled():
+    if not is_enabled(TASK):
         return [], "disabled"
     candidates = [p for p in pages if not _has_items(p) and (p.text or "").strip()]
     if not candidates:

@@ -28,7 +28,7 @@ AI_RESULT = {
 @pytest.fixture
 def ai(monkeypatch, tg):  # noqa: F811
     calls = []
-    monkeypatch.setattr("apps.ai.api.is_enabled", lambda: True)
+    monkeypatch.setattr("apps.ai.api.is_enabled", lambda *a, **k: True)
     monkeypatch.setattr(services, "download_file", lambda token, fid: b"img")
     monkeypatch.setattr("apps.ai.images.reencode", lambda data, **kw: b"clean")
 
@@ -74,7 +74,7 @@ def test_owner_text_wins_over_ai(tg, ai):  # noqa: F811
 
 
 def test_ai_disabled_photo_without_caption_asks_for_title(tg, monkeypatch):  # noqa: F811
-    monkeypatch.setattr("apps.ai.api.is_enabled", lambda: False)
+    monkeypatch.setattr("apps.ai.api.is_enabled", lambda *a, **k: False)
     called = []
     monkeypatch.setattr(ai_draft, "draft_from_photo", lambda *a, **k: called.append(1))
     upd = _photo_update("")

@@ -434,7 +434,7 @@ def check_reply(draft, *, facts: Facts, messages) -> tuple[str | None, str]:
 
 def draft_reply(conversation, tenant, *, facts: Facts | None = None) -> tuple[dict | None, str]:
     """({"draft", "language"} | None, код). Вызывать ВНЕ atomic (контракт AI-0)."""
-    if not is_enabled():
+    if not is_enabled(TASK):
         return None, "disabled"
     facts = facts or facts_for(conversation, tenant)
     messages = window(conversation)

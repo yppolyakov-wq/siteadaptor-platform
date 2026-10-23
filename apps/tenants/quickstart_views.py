@@ -107,7 +107,7 @@ def _context(request, form, kept_photos=None, kept_signed=""):
 def _ai_enabled() -> bool:
     from apps.ai.api import is_enabled
 
-    return is_enabled()
+    return is_enabled("promo_photo_draft")  # подсказка обещает ИИ по фото
 
 
 def _district_options() -> list[dict]:

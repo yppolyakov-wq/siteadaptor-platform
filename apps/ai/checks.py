@@ -47,6 +47,18 @@ def check_ai_routes(app_configs=None, **kwargs):
                         id="ai.W002",
                     )
                 )
+    # AI-1: опечатка в списке задач молча выключила бы задачу.
+    from .registry import TASKS
+
+    for name in getattr(settings, "AI_TASKS_ENABLED", ()) or ():
+        if name not in TASKS:
+            problems.append(
+                Warning(
+                    f"AI_TASKS_ENABLED: неизвестная задача {name!r} — она не включится.",
+                    hint="Имена задач — docs/ai-usage-policy-2026-10-23.md §2.",
+                    id="ai.W005",
+                )
+            )
     if settings.AI_ENABLED and not settings.AI_REQUIRE_EU and not settings.DEBUG:
         problems.append(
             Warning(
