@@ -5635,6 +5635,14 @@ def status_manager_save(request, kind):
 SORTIMENT_OVERVIEW_LIMIT = 50
 
 
+def _pop_sellable_undo(request, sm):
+    """KA-M4: одноразовое «Rückgängig» после тумблера видимости (см. sellable_visibility)."""
+    undo = request.session.pop("sellable_undo", None)
+    if not isinstance(undo, dict) or undo.get("kind") not in sm.MANAGE_KINDS:
+        return None
+    return undo
+
+
 @login_required
 def sellable_manage(request):
     """FB-8: «Angebote» — один экран со всеми продаваемыми сущностями (товар/услуга/
@@ -5681,6 +5689,7 @@ def sellable_manage(request):
         {
             "nav": "sellables",
             "q": q,
+            "undo": _pop_sellable_undo(request, sm),
             "sortiment_view": view,
             "sel_category": category,
             "sel_active": active,
@@ -5738,13 +5747,25 @@ def sortiment_view_set(request):
 def sellable_visibility(request, kind, pk):
     """FB-8: тумблер видимости сущности (is_active) — product/service/stay/combo. Event
     публикуется через FSM (draft↔published) на своей форме → сюда не приходит."""
+    from django.urls import reverse
+    from django.utils.http import url_has_allowed_host_and_scheme
+
     from apps.core import sellable_manage as sm
 
-    obj = sm.toggle_visibility(kind, pk)
-    messages.success(
-        request, _("Sichtbar.") if getattr(obj, "is_active", False) else _("Ausgeblendet.")
-    )
-    return redirect("sellable-manage")
+    raw = request.POST.get("visible", "")
+    visible = {"1": True, "0": False}.get(raw)
+    obj = sm.toggle_visibility(kind, pk, visible)
+    shown = bool(getattr(obj, "is_active", False))
+    # KA-M4: один промах пальцем на телефоне прячет товар — даём «Rückgängig» на
+    # следующем экране (одноразово, в сессии; ключ перезаписывается последним действием).
+    request.session["sellable_undo"] = {"kind": kind, "pk": str(obj.pk), "visible": not shown}
+    messages.success(request, _("Sichtbar.") if shown else _("Ausgeblendet."))
+    nxt = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        nxt, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ) or not nxt.startswith("/"):
+        nxt = reverse("sellable-manage")
+    return redirect(nxt)
 
 
 # --- U-D4: настройки каналов уведомлений (email ∥ Telegram) -------------------

@@ -364,15 +364,14 @@ def _texts(inp: CheckInput, *, german: bool):
 
 
 def to_decimal(raw: str) -> Decimal | None:
-    """«1.299,00» / «2,99» / «2.99» / «1 299» → Decimal (немецкая запятая)."""
-    s = (raw or "").replace("\u00a0", " ").strip()
-    if re.fullmatch(r"\d{1,3}(?:[ .]\d{3})+(?:,\d+)?", s):
-        s = s.replace(".", "").replace(" ", "").replace(",", ".")
-    else:
-        s = s.replace(" ", "").replace(",", ".")
+    """«1.299,00» / «2,99» / «2.99» / «1 299» → Decimal (немецкая запятая).
+
+    KA-M2: одно правило с денежными полями кабинета — `core.money.parse_money`."""
+    from .money import parse_money
+
     try:
-        return Decimal(s)
-    except (InvalidOperation, ValueError):
+        return parse_money(raw)
+    except ValueError:
         return None
 
 

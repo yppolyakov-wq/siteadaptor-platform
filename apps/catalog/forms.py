@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import card_forms
+from apps.core.form_fields import MoneyField
 from apps.core.i18n_input import DynamicI18nFormMixin
 
 from .food import ADDITIVES, ALLERGENS, COURSES, DIETS
@@ -228,6 +229,12 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
 
     class Meta:
         model = Product
+        # KA-M2: цены принимают «12,50» (поле текстовое, разбор на сервере).
+        field_classes = {
+            "base_price": MoneyField,
+            "list_price": MoneyField,
+            "cost_price": MoneyField,
+        }
         fields = [
             "category",
             "base_price",

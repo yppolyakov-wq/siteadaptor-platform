@@ -272,9 +272,12 @@ def add_options(tenant) -> list[dict]:
     return out
 
 
-def toggle_visibility(kind: str, pk):
-    """FB-8: флип видимости (is_active) для product/service/stay/combo. Event (публикация
-    через FSM) не поддержан — Http404. Возвращает объект. Схема тенанта изолирует выборку."""
+def toggle_visibility(kind: str, pk, visible: bool | None = None):
+    """FB-8: видимость (is_active) для product/service/stay/combo. Event (публикация
+    через FSM) не поддержан — Http404. Возвращает объект. Схема тенанта изолирует выборку.
+
+    KA-M4: `visible` задаёт состояние явно — повторный тап (двойная отправка с телефона)
+    не переворачивает его обратно; None — прежний флип."""
     from django.http import Http404
     from django.shortcuts import get_object_or_404
 
@@ -282,7 +285,10 @@ def toggle_visibility(kind: str, pk):
     if not cfg or not cfg["toggle"]:
         raise Http404("kind not toggleable")
     obj = get_object_or_404(_model(kind), pk=pk)
-    obj.is_active = not obj.is_active
+    target = (not obj.is_active) if visible is None else bool(visible)
+    if target == obj.is_active:
+        return obj
+    obj.is_active = target
     fields = ["is_active"]
     if obj.is_active and hasattr(obj, "confirmed_at"):  # Г3: включение = подтверждение
         from apps.core import freshness

@@ -87,9 +87,11 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
                 {% else %}
                 <span class="flex-1 py-1 text-center text-indigo-600">{% trans "Main" %}</span>
                 {% endif %}
-                <button type="submit" form="pf-img-del-{{ img.id }}"
-                        class="px-2 py-1 text-red-600 hover:bg-red-50" title="{% trans 'Löschen' %}">✕</button>
               </div>
+              {# KA-M5: ✕ отдельно от ★ (угол фото, зона 44 px) и с подтверждением вторым касанием #}
+              <button type="submit" form="pf-img-del-{{ img.id }}" data-confirm-tap="{% trans 'Wirklich löschen?' %}"
+                      class="tap44 absolute top-1 right-1 h-7 min-w-[1.75rem] px-1.5 rounded-full bg-white/90 text-red-600 text-xs shadow hover:bg-red-50"
+                      title="{% trans 'Foto löschen' %}" aria-label="{% trans 'Foto löschen' %}">✕</button>
             </div>
           {% endfor %}{% endif %}
         </div>

@@ -47,8 +47,10 @@
       {% if it.can_toggle %}
         <form method="post" action="{% url 'sellable-visibility' it.kind it.pk %}">
           {% csrf_token %}
+          <input type="hidden" name="visible" value="{% if it.is_visible %}0{% else %}1{% endif %}">
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
           <button type="submit" title="{% trans 'Sichtbarkeit umschalten' %}"
-            class="text-[11px] font-medium px-2 py-0.5 rounded-full {% if it.is_visible %}bg-emerald-100 text-emerald-800 hover:bg-emerald-200{% else %}bg-gray-100 text-gray-500 hover:bg-gray-200{% endif %}">
+            class="tap44 text-[11px] font-medium px-2 py-0.5 rounded-full {% if it.is_visible %}bg-emerald-100 text-emerald-800 hover:bg-emerald-200{% else %}bg-gray-100 text-gray-500 hover:bg-gray-200{% endif %}">
             {% if it.is_visible %}✓ {% trans "Sichtbar" %}{% else %}{% trans "Versteckt" %}{% endif %}
           </button>
         </form>

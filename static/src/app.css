@@ -1583,3 +1583,52 @@ input[type="datetime-local"] {
 [data-detail-layout="breit"] .max-w-3xl {
   max-width: none;
 }
+
+/* ── KA-M1: на телефоне поля ввода 16 px — иначе iOS (Safari и Telegram) зумит
+   страницу при каждом касании поля. Класс `.text-sm` сильнее селектора элемента,
+   поэтому `!important`, и только до md: на десктопе вид прежний. Поля, уже
+   набранные крупнее (`text-lg` и выше), не трогаем. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="image"]):not(.text-lg):not(.text-xl):not(.text-2xl):not(.text-3xl),
+  select:not(.text-lg):not(.text-xl),
+  textarea:not(.text-lg):not(.text-xl),
+  [contenteditable="true"] {
+    font-size: 16px !important;
+  }
+}
+
+/* ── KA-M3: липкая полоса «Speichern» стоит НАД плавающим таб-баром кабинета, а не
+   под ним (таб-бар: fixed bottom-3, высота ≈ 60 px). Без таб-бара — у края. */
+.sticky-save {
+  position: sticky;
+  bottom: 0;
+  z-index: 21;
+}
+@media (max-width: 767px) {
+  body:has(nav[data-tabbar]) .sticky-save {
+    bottom: calc(5.25rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* ── KA-M4/M5: цель касания не меньше 44 px (WCAG 2.5.5) — переключатель видимости,
+   удаление фото и другие кнопки, по которым промахиваются пальцем. Вид кнопки не
+   меняется: зону касания расширяет невидимый ::after по центру кнопки. */
+.tap44 {
+  position: relative;
+}
+.tap44::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
+/* ── KA-M5: второе касание подтверждает опасное действие (см. core/_confirm_tap.html). */
+[data-confirm-armed] {
+  background: #dc2626 !important;
+  color: #fff !important;
+  border-color: #dc2626 !important;
+}

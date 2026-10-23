@@ -1,0 +1,22 @@
+{% comment %}KA-M5: опасное действие на телефоне — второе касание подтверждает.
+Кнопка с data-confirm-tap="<вопрос>": первое касание «взводит» её (красная, текст —
+вопрос), второе в течение 4 с отправляет форму. Без JS кнопка работает как раньше.{% endcomment %}
+<script>
+(function () {
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("[data-confirm-tap]");
+    if (!btn) return;
+    if (btn.hasAttribute("data-confirm-armed")) return;
+    e.preventDefault();
+    e.stopPropagation();
+    btn.setAttribute("data-confirm-armed", "");
+    btn.dataset.confirmLabel = btn.textContent;
+    btn.textContent = btn.getAttribute("data-confirm-tap");
+    setTimeout(function () {
+      if (!btn.isConnected || !btn.hasAttribute("data-confirm-armed")) return;
+      btn.removeAttribute("data-confirm-armed");
+      btn.textContent = btn.dataset.confirmLabel;
+    }, 4000);
+  }, true);
+})();
+</script>

@@ -47,66 +47,33 @@
     </div>
   </form>
 
-  <div class="bg-white rounded-2xl shadow-sm p-5">
-    <div class="flex items-center justify-between mb-2">
-      <span class="text-sm font-medium">{% trans "Scan QR with camera" %}</span>
-      <button id="scan-toggle" type="button" class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50">{% trans "Start camera" %}</button>
-    </div>
-    <video id="scan-video" class="w-full rounded-lg bg-black hidden" muted playsinline></video>
-    <p id="scan-msg" class="text-xs text-gray-400 mt-2">{% trans "Or scan the voucher QR with your phone camera." %}</p>
-  </div>
+  {% trans "Or scan the voucher QR with your phone camera." as scan_hint %}
+  {% include "promotions/_qr_scanner.html" with scan_hint=scan_hint %}
 </div>
 
 <form method="post" action="{% url 'promotions:redeem' %}" hidden data-scan-form>{% csrf_token %}<input type="hidden" name="code"><input type="hidden" name="scan" value="1"><input type="hidden" name="kind" value="voucher"></form>
 {% include "promotions/_submit_once.html" %}
 <script>
 (function () {
-  var toggle = document.getElementById("scan-toggle"), video = document.getElementById("scan-video"),
-      msg = document.getElementById("scan-msg"), stream = null, detector = null, raf = null;
-  if (!("BarcodeDetector" in window)) {
-    toggle.disabled = true; toggle.classList.add("opacity-50");
-    msg.textContent = "{{ _('In-app scanner not supported here — use the code field above.')|escapejs }}";
-    return;
-  }
-  async function start() {
-    try {
-      detector = new BarcodeDetector({ formats: ["qr_code"] });
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      video.srcObject = stream; video.classList.remove("hidden"); await video.play();
-      toggle.textContent = "{{ _('Stop')|escapejs }}"; loop();
-    } catch (e) { msg.textContent = "" + e; }
-  }
-  function stop() {
-    if (raf) cancelAnimationFrame(raf);
-    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
-    video.classList.add("hidden"); toggle.textContent = "{{ _('Start camera')|escapejs }}"; stream = null;
-  }
-  async function loop() {
-    try {
-      var codes = await detector.detect(video);
-      if (codes && codes.length) {
-        var val = (codes[0].rawValue || "").trim(); stop();
-        // T-8.30e: из QR — только код ваучера (свой путь ?code= или голый код); на
-        // чужие адреса не переходим (раньше уходили на любой адрес из QR).
-        var base = "{% url 'promotions:voucher-redeem' %}";
-        if (/^https?:\/\//i.test(val)) {
-          try { var u = new URL(val); val = u.pathname === base ? (u.searchParams.get("code") || "") : ""; }
-          catch (e) { val = ""; }
-        }
-        if (/^[A-Za-z0-9][A-Za-z0-9-]{2,31}$/.test(val)) {
-          // T-8.30g: POST сканера (CSRF) — при «Sofort einlösen» гасит сразу, иначе
-          // ведёт на страницу ваучера с кнопкой подтверждения.
-          var f = document.querySelector("[data-scan-form]");
-          f.querySelector("[name=code]").value = val.toUpperCase();
-          f.submit();
-        }
-        else { msg.textContent = "{{ _('Unbekannter QR-Code.')|escapejs }}"; }
-        return;
-      }
-    } catch (e) {}
-    raf = requestAnimationFrame(loop);
-  }
-  toggle.addEventListener("click", function () { stream ? stop() : start(); });
+  // KA-M6: камера — общий партиал _qr_scanner.html (с jsQR для iOS/Telegram).
+  // T-8.30e: из QR — только код ваучера (свой путь ?code= или голый код); на чужие
+  // адреса не переходим. T-8.30g: POST сканера (CSRF) — при «Sofort einlösen» гасит
+  // сразу, иначе ведёт на страницу ваучера с кнопкой подтверждения.
+  var base = "{% url 'promotions:voucher-redeem' %}";
+  window.saOnScan = function (raw) {
+    var val = (raw || "").trim();
+    if (/^https?:\/\//i.test(val)) {
+      try { var u = new URL(val); val = u.pathname === base ? (u.searchParams.get("code") || "") : ""; }
+      catch (e) { val = ""; }
+    }
+    if (/^[A-Za-z0-9][A-Za-z0-9-]{2,31}$/.test(val)) {
+      var f = document.querySelector("[data-scan-form]");
+      f.querySelector("[name=code]").value = val.toUpperCase();
+      f.submit();
+    } else {
+      document.getElementById("scan-msg").textContent = "{{ _('Unbekannter QR-Code.')|escapejs }}";
+    }
+  };
 })();
 </script>
 {% endblock %}

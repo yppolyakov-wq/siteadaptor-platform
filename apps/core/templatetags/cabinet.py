@@ -322,3 +322,11 @@ def cab_is_owner(user):
         return is_owner(user)
     except (TypeError, ValueError):  # не настоящий пользователь — кнопку не показываем
         return False
+
+
+@register.filter
+def money_input(value) -> str:
+    """KA-M2: значение денежного поля для рукописного `<input>` («12,50» в de, ввод — как есть)."""
+    from apps.core.form_fields import format_money
+
+    return format_money(value)

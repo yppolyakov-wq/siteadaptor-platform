@@ -28272,3 +28272,9 @@ msgstr ".env'deki gibi"
 
 msgid "„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden."
 msgstr "“Yalnızca AB” .env'de açık ve burada gevşetilemez."
+
+msgid "Wirklich löschen?"
+msgstr "Gerçekten silinsin mi?"
+
+msgid "Foto löschen"
+msgstr "Fotoğrafı sil"

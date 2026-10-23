@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.models import Product
 from apps.core import card_forms
+from apps.core.form_fields import MoneyField
 from apps.core.i18n_input import DynamicI18nFormMixin, extra_locales
 from apps.loyalty.models import LoyaltyProgram
 
@@ -45,6 +46,8 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
 
     class Meta:
         model = Promotion
+        # KA-M2: цены принимают «12,50».
+        field_classes = {"compare_at_price": MoneyField, "price_override": MoneyField}
         fields = [
             "product",
             # W11-4: цели ценового слоя PL (P1) — движок готов с 2026-08-04,
@@ -439,14 +442,14 @@ class VoucherCreateForm(forms.Form):
     discount_percent = forms.IntegerField(
         label=_("Discount % (online order)"), min_value=1, max_value=100, required=False
     )
-    discount_eur = forms.DecimalField(
+    discount_eur = MoneyField(
         label=_("Discount € (online order)"),
         min_value=0,
         decimal_places=2,
         max_digits=10,
         required=False,
     )
-    min_order_eur = forms.DecimalField(
+    min_order_eur = MoneyField(
         label=_("Minimum order €"),
         min_value=0,
         decimal_places=2,
@@ -475,10 +478,10 @@ class CouponCampaignForm(forms.Form):
     discount_percent = forms.IntegerField(
         label=_("Discount %"), min_value=1, max_value=100, required=False
     )
-    discount_eur = forms.DecimalField(
+    discount_eur = MoneyField(
         label=_("Discount €"), min_value=0, decimal_places=2, max_digits=10, required=False
     )
-    min_order_eur = forms.DecimalField(
+    min_order_eur = MoneyField(
         label=_("Minimum order €"), min_value=0, decimal_places=2, max_digits=10, required=False
     )
     valid_days = forms.IntegerField(

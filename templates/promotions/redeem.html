@@ -31,16 +31,8 @@
     </div>
   </form>
 
-  {# Сканер на странице: BarcodeDetector, без него (iOS) — jsQR. T-8.30l: и в Telegram. #}
-  <div class="bg-white rounded-2xl shadow-sm p-5" data-jsqr-src="{% static 'vendor/jsqr/jsQR.min.js' %}">
-    <div class="flex items-center justify-between mb-2">
-      <span class="text-sm font-medium">{% trans "Scan QR with camera" %}</span>
-      <button id="scan-toggle" type="button" class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50">{% trans "Start camera" %}</button>
-    </div>
-    <video id="scan-video" class="w-full rounded-lg bg-black hidden" muted playsinline></video>
-    <canvas id="scan-canvas" class="hidden"></canvas>
-    <p id="scan-msg" class="text-xs text-gray-400 mt-2">{% if tg_lite %}{% trans "Kamera öffnet sich nicht? Code oben eintippen." %}{% else %}{% trans "Or just scan the QR with your phone camera — it opens the reservation directly." %}{% endif %}</p>
-  </div>
+  {% if tg_lite %}{% trans "Kamera öffnet sich nicht? Code oben eintippen." as scan_hint %}{% else %}{% trans "Or just scan the QR with your phone camera — it opens the reservation directly." as scan_hint %}{% endif %}
+  {% include "promotions/_qr_scanner.html" with scan_hint=scan_hint %}
 </div>
 
 <div hidden data-redeem-prefix="{% url 'promotions:redeem' %}" data-voucher-prefix="{% url 'promotions:voucher-redeem' %}"></div>
@@ -102,95 +94,11 @@
     br.post("web_app_open_scan_qr_popup", {text: "{{ _('Code der Reservierung oder des Coupons')|escapejs }}"});
   });
 {% endif %}
-  // Сканер на странице. BarcodeDetector есть в Chrome/Android; на iOS (Safari и окно
-  // Telegram) его нет — тогда кадры читает jsQR, загружаемый только по нажатию.
-  var toggle = document.getElementById("scan-toggle");
-  var video = document.getElementById("scan-video");
-  var canvas = document.getElementById("scan-canvas");
-  var msg = document.getElementById("scan-msg");
-  var jsqrSrc = document.querySelector("[data-jsqr-src]").getAttribute("data-jsqr-src");
-  var stream = null, detector = null, timer = null, decode = null;
-  var MAX_SIDE = 640;  // кадр уменьшаем: jsQR на полном кадре грузит процессор телефона
-  var INTERVAL = 200;  // ~5 кадров в секунду
-
-  if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
-    toggle.disabled = true;
-    toggle.classList.add("opacity-50");
-    msg.textContent = "{{ _('In-app scanner not supported here — use your phone camera or the code field above.')|escapejs }}";
-  }
-
-  function loadJsqr() {
-    return new Promise(function (resolve, reject) {
-      if (window.jsQR) { resolve(window.jsQR.default || window.jsQR); return; }
-      var s = document.createElement("script");
-      s.src = jsqrSrc;
-      s.onload = function () { window.jsQR ? resolve(window.jsQR.default || window.jsQR) : reject(); };
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-  async function makeDecoder() {
-    if ("BarcodeDetector" in window) {
-      try {
-        detector = new BarcodeDetector({ formats: ["qr_code"] });
-        return async function () {
-          var codes = await detector.detect(video);
-          return codes && codes.length ? (codes[0].rawValue || null) : null;
-        };
-      } catch (e) { /* формат не поддержан — jsQR */ }
-    }
-    var jsqr = await loadJsqr();
-    var ctx = canvas.getContext("2d", { willReadFrequently: true });
-    return async function () {
-      var w = video.videoWidth, h = video.videoHeight;
-      if (!w || !h) return null;
-      var k = Math.min(1, MAX_SIDE / Math.max(w, h));
-      canvas.width = Math.round(w * k); canvas.height = Math.round(h * k);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      var hit = jsqr(img.data, img.width, img.height, { inversionAttempts: "dontInvert" });
-      return hit ? hit.data : null;
-    };
-  }
-  function explain(e) {
-    var name = (e && e.name) || "";
-    if (name === "NotAllowedError" || name === "SecurityError") {
-      return "{{ _('Kamerazugriff verweigert. Bitte in den Einstellungen erlauben oder den Code oben eintippen.')|escapejs }}";
-    }
-    if (name === "NotFoundError" || name === "NotReadableError" || name === "OverconstrainedError") {
-      return "{{ _('Keine Kamera verfügbar. Bitte den Code oben eintippen.')|escapejs }}";
-    }
-    return "{{ _('Kamera konnte nicht gestartet werden. Bitte den Code oben eintippen.')|escapejs }}";
-  }
-  async function start() {
-    try {
-      decode = decode || await makeDecoder();
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-      video.srcObject = stream; video.classList.remove("hidden"); await video.play();
-      toggle.textContent = "{{ _('Stop')|escapejs }}";
-      timer = setTimeout(loop, INTERVAL);
-    } catch (e) { stop(); msg.textContent = explain(e); }
-  }
-  function stop() {
-    if (timer) clearTimeout(timer);
-    timer = null;
-    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
-    video.classList.add("hidden"); toggle.textContent = "{{ _('Start camera')|escapejs }}"; stream = null;
-  }
-  async function loop() {
-    if (!stream) return;
-    try {
-      var raw = await decode();
-      if (raw) {
-        var r = parse(raw);
-        stop();
-        if (r) { go(r); } else { bad(); }
-        return;
-      }
-    } catch (e) { /* следующий кадр */ }
-    timer = setTimeout(loop, INTERVAL);
-  }
-  toggle.addEventListener("click", function () { stream ? stop() : start(); });
+  // KA-M6: камера — общий партиал _qr_scanner.html, сюда приходит сырой текст QR.
+  window.saOnScan = function (raw) {
+    var r = parse(raw);
+    if (r) { go(r); } else { bad(); }
+  };
 })();
 </script>
 {% endblock %}

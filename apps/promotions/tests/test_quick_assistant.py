@@ -466,7 +466,7 @@ def test_aktion_from_product_opens_short_assistant_prefilled(user):
     body = views.promotion_quick(req).content.decode()
     assert 'value="Kaffee 500 g"' in body
     assert f'<option value="{product.pk}" selected' in body
-    assert 'value="8.90"' in body
+    assert 'value="8,90"' in body
 
 
 def test_convert_lite_promotions_turns_free_promos_into_products(monkeypatch):

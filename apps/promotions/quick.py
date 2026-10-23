@@ -14,6 +14,8 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.form_fields import MoneyField
+
 from . import response as promo_response
 
 TERM_TODAY = "today"
@@ -158,10 +160,10 @@ class QuickPromotionForm(forms.Form):
     photo = MultiplePhotoField(label=_("Fotos"), required=False)
     # Фото прошлой акции при «Wiederholen» (копия файла, а не общая ссылка).
     photo_from = forms.UUIDField(required=False, widget=forms.HiddenInput)
-    new_price = forms.DecimalField(
+    new_price = MoneyField(
         label=_("Aktionspreis €"), required=False, min_value=0, max_digits=10, decimal_places=2
     )
-    old_price = forms.DecimalField(
+    old_price = MoneyField(
         label=_("Statt €"), required=False, min_value=0, max_digits=10, decimal_places=2
     )
     percent = forms.IntegerField(

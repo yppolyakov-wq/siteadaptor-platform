@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block title %}{% trans "Aktion in 3 Klicks" %} · SiteAdaptor{% endblock %}
 {% block extra_head %}<meta name="description" content="{% trans 'Ihre Aktion in 3 Klicks online — mit eigener Seite, QR-Code und Aushang. Kostenlos, ohne Passwort.' %}">{% endblock %}
 
@@ -58,12 +58,12 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
       <div class="grid grid-cols-3 gap-2">
         <label class="block">
           <span class="block text-xs font-medium mb-1">{{ form.new_price.label }}</span>
-          <input type="number" name="new_price" value="{{ form.new_price.value|default_if_none:''|stringformat:'s' }}" step="0.01" min="0" inputmode="decimal"
+          <input type="text" name="new_price" value="{{ form.new_price.value|money_input }}" inputmode="decimal" autocomplete="off"
                  class="w-full rounded-xl border border-gray-300 px-2 py-2.5 text-base">
         </label>
         <label class="block">
           <span class="block text-xs font-medium mb-1">{{ form.old_price.label }}</span>
-          <input type="number" name="old_price" value="{{ form.old_price.value|default_if_none:''|stringformat:'s' }}" step="0.01" min="0" inputmode="decimal"
+          <input type="text" name="old_price" value="{{ form.old_price.value|money_input }}" inputmode="decimal" autocomplete="off"
                  class="w-full rounded-xl border border-gray-300 px-2 py-2.5 text-base">
         </label>
         <label class="block">

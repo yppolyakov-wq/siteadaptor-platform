@@ -31,7 +31,18 @@ Kategorie/Status (паритет умершей /catalog/products/), «Bearbeite
 {% if messages %}
   <div class="mb-3 space-y-1">
     {% for m in messages %}
-      <div class="text-sm rounded-lg px-3 py-2 {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">{{ m }}</div>
+      <div class="text-sm rounded-lg px-3 py-2 flex items-center justify-between gap-3 {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+        <span>{{ m }}</span>
+        {% if undo and forloop.last %}
+          {# KA-M4: одноразовое «Rückgängig» после тумблера видимости #}
+          <form method="post" action="{% url 'sellable-visibility' undo.kind undo.pk %}" data-sellable-undo>
+            {% csrf_token %}
+            <input type="hidden" name="visible" value="{% if undo.visible %}1{% else %}0{% endif %}">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="tap44 font-semibold underline">{% trans "Rückgängig" %}</button>
+          </form>
+        {% endif %}
+      </div>
     {% endfor %}
   </div>
 {% endif %}

@@ -11,6 +11,7 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import vat
+from apps.core.form_fields import MoneyField
 
 from . import details as details_mod
 from . import landing, registration, taxonomy
@@ -22,7 +23,7 @@ def _ta(rows=3, ph=""):
 
 
 class EventForm(forms.ModelForm):
-    price_eur = forms.DecimalField(
+    price_eur = MoneyField(
         min_value=0, max_digits=8, decimal_places=2, required=False, label=_("Preis je Platz (€)")
     )
     questions_text = forms.CharField(

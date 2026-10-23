@@ -28406,3 +28406,9 @@ msgstr "как в .env"
 
 msgid "„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden."
 msgstr "«Только ЕС» включено в .env и здесь не может быть ослаблено."
+
+msgid "Wirklich löschen?"
+msgstr "Точно удалить?"
+
+msgid "Foto löschen"
+msgstr "Удалить фото"
