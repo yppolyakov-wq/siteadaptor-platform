@@ -124,7 +124,7 @@ def test_unlimited_tenant_takes_no_lock(monkeypatch):
     def boom():
         raise AssertionError("lock taken without a limit")
 
-    monkeypatch.setattr(limits, "_lock_limit", boom)
+    monkeypatch.setattr(limits, "_limit_lock", boom)
     promo = _promo(status="scheduled", available_quantity=None)
     limits.activate(promo, None)
     assert Promotion.objects.get(pk=promo.pk).status == "active"
@@ -160,6 +160,8 @@ def test_phone_key_normalizes_dach_formats():
     assert phone_key("+49 171 1234567") == phone_key("0171/1234567") == "491711234567"
     assert phone_key("0049 171 1234567") == "491711234567"
     assert phone_key("") == ""
+    assert phone_key("+49 (0)171 1234567") == "491711234567"
+    assert phone_key("0") == phone_key("12") == ""  # не номер — не сравниваем
 
 
 @pytest.mark.django_db
@@ -167,8 +169,10 @@ def test_short_stored_phone_is_found_by_other_format():
     from apps.core.contacts import find_by_phone
     from apps.promotions.models import Customer
 
-    stored = Customer.objects.create(name="K", phone="0171 1")
-    assert find_by_phone(Customer.objects.all(), "+49 1711") == [stored]
+    stored = Customer.objects.create(name="K", phone="0171 123456")
+    Customer.objects.create(name="Fremd", phone="0160 123456")  # тот же хвост
+    assert find_by_phone(Customer.objects.all(), "+49 171123456") == [stored]
+    assert find_by_phone(Customer.objects.all(), "0") == []
 
 
 @pytest.mark.django_db
@@ -245,18 +249,56 @@ def test_auto_confirm_gets_full_ttl_right_away(settings):
 
 
 @pytest.mark.django_db
-def test_open_reservations_per_contact_cap(settings, isolated_ratelimit):
+def test_unconfirmed_reservations_per_contact_cap(settings, isolated_ratelimit):
     isolated_ratelimit.clear()  # LocMem с тем же именем общий между тестами
     settings.PROMO_OPEN_RESERVATIONS_PER_CONTACT = 2
     tenant = _tenant("e66-open")
-    promos = [_promo(auto_confirm=True) for _ in range(3)]
+    promos = [_promo(auto_confirm=False) for _ in range(3)]
     for p in promos[:2]:
         assert _reserve_post(p, tenant, email="d@example.com").status_code == 302
     resp = _reserve_post(promos[2], tenant, email="D@example.com")
-    assert resp.status_code == 200
-    assert Reservation.objects.count() == 2
-    services.cancel(Reservation.objects.first())
+    assert resp.status_code == 200 and Reservation.objects.count() == 2
+    assert resp.messages == ["Zu viele Versuche. Bitte später erneut."]  # без оракула
+    services.confirm(Reservation.objects.first())  # подтверждённое не держит потолок
     assert _reserve_post(promos[2], tenant, email="d@example.com").status_code == 302
+
+
+@pytest.mark.django_db(transaction=True)
+def test_contact_cap_holds_under_parallel_posts():
+    promos = [_promo(auto_confirm=False) for _ in range(5)]
+    barrier = threading.Barrier(len(promos))
+
+    def worker(promo):
+        connection.close()
+        barrier.wait()
+        try:
+            services.reserve(promo, name="A", email="p@example.com", open_cap=2)
+        except services.ContactHoldLimit:
+            pass
+        finally:
+            connection.close()
+
+    threads = [threading.Thread(target=worker, args=(p,)) for p in promos]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert Reservation.objects.count() == 2
+
+
+@pytest.mark.django_db(transaction=True)
+def test_activate_outside_transaction_releases_lock(monkeypatch):
+    """Вне транзакции — сессионная блокировка: статус коммитится до задач on_transition,
+    и блокировка отпускается."""
+    monkeypatch.setattr(limits, "active_limit", lambda tenant: 3)
+    promo = _promo(status="scheduled", available_quantity=None)
+    limits.activate(promo, None)
+    with connection.cursor() as cur:
+        cur.execute(
+            "SELECT count(*) FROM pg_locks WHERE locktype = 'advisory' AND pid = pg_backend_pid()"
+        )
+        assert cur.fetchone()[0] == 0
+    assert Promotion.objects.get(pk=promo.pk).status == "active"
 
 
 @pytest.mark.django_db
@@ -331,6 +373,11 @@ def test_coupon_by_email_never_reveals_code(isolated_ratelimit, monkeypatch):
     assert voucher.code not in resp.url
     assert public_views.COUPON_COOKIE not in resp.cookies
     assert sent == [(voucher.code, "m@example.com")]
+    again = public_views.coupon_create(
+        _request(f"/p/{promo.pk}/coupon/", tenant, {"email": "m@example.com"}, ip="10.66.2.2"),
+        pk=promo.pk,
+    )
+    assert again.url == f"/p/{promo.pk}/"  # тот же ответ: наличие купона не раскрываем
 
 
 @pytest.mark.django_db

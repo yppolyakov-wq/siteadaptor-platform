@@ -28813,8 +28813,6 @@ msgstr "Для ограниченных купонов: код приходит 
 msgid "Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt."
 msgstr "Купон уже в пути: мы отправили его на %(email)s."
 
-msgid "Sie haben bereits mehrere Reservierungen offen. Bitte holen Sie diese zuerst ab oder melden Sie sich bei uns."
-msgstr "У вас уже несколько открытых резервов. Сначала заберите их или свяжитесь с нами."
 
 msgid "unbestätigt · läuft ab"
 msgstr "не подтверждено · истекает"

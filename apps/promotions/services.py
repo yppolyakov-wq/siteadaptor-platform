@@ -32,6 +32,10 @@ class ReservationLimitReached(Exception):
     """Превышен Promotion.max_per_customer для этого клиента."""
 
 
+class ContactHoldLimit(Exception):
+    """KA-12 E6.6: у контакта уже слишком много неподтверждённых резервов в бизнесе."""
+
+
 class VoucherError(Exception):
     """Ваучер нельзя погасить. reason: not_found/inactive/expired/used_up/stale;
     KA-H9: needs_amount (сертификат с остатком — только с суммой), insufficient,
@@ -62,6 +66,8 @@ def _get_or_create_customer(*, name, email, phone) -> Customer:
 
         matches = find_by_phone(Customer.objects.order_by("created_at"), phone)
         customer = matches[0] if matches else None
+        if customer is None:  # короткий/нестандартный номер — точное совпадение, как раньше
+            customer = Customer.objects.filter(phone=phone.strip()).order_by("created_at").first()
     if customer is not None:
         # дозаполняем пустые контакты, имя не перетираем
         updates = []
@@ -75,7 +81,17 @@ def _get_or_create_customer(*, name, email, phone) -> Customer:
 
 
 @transaction.atomic
-def reserve(promotion, *, name, email="", phone="", quantity=1, note="", source_channel=""):
+def reserve(
+    promotion,
+    *,
+    name,
+    email="",
+    phone="",
+    quantity=1,
+    note="",
+    source_channel="",
+    open_cap=None,
+):
     """ЛЕГАСИ-рельсы (P5/P7 «ценовой слой»): витрина с P5 резервы НЕ порождает —
     новые акции закрываются стандартными сделками (`purchase`/`book`/`book_stay`).
     Функция и /r/<code>/ живут, пока открытые резервы не иссякнут (история цела).
@@ -95,7 +111,11 @@ def reserve(promotion, *, name, email="", phone="", quantity=1, note="", source_
     # anti-oversell между РАЗНЫМИ людьми идёт параллельно, как раньше.
     from apps.core.contacts import advisory_lock, contact_lock_key
 
-    advisory_lock(contact_lock_key(f"resv:{promotion.id}", email, phone))
+    # Ключ — на весь бизнес (не на акцию): потолок «открытых на контакт» (open_cap,
+    # витрина) считается под той же блокировкой — параллельные POST его не обходят.
+    advisory_lock(contact_lock_key("resv", email, phone))
+    if open_cap is not None and open_reservations_for_contact(email, phone) >= open_cap:
+        raise ContactHoldLimit()
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
 
     # лимит на клиента по этой акции (по сумме активных броней)
@@ -168,25 +188,31 @@ def _reserve_locked(promotion, *, customer, quantity, note, source_channel):
 
 
 def open_reservations_for_contact(email="", phone="") -> int:
-    """KA-12 E6.6 (Р-4): сколько открытых резервов у этого контакта по всему бизнесу."""
+    """KA-12 E6.6 (Р-4): сколько НЕПОДТВЕРЖДЁННЫХ резервов у контакта по всему бизнесу.
+
+    Только pending: подтверждённые владелец уже видел; чужой человек, вписав адрес
+    жертвы, держит её «заблокированной» лишь на короткий срок неподтверждённого."""
     from django.db.models import Q
 
     from apps.core import status_registry
     from apps.core.contacts import phone_candidates_regex, phone_key
 
     email, phone = (email or "").strip(), (phone or "").strip()
+    key = phone_key(phone)
     who = Q()
     if email:
         who |= Q(customer__email__iexact=email)
-    regex = phone_candidates_regex(phone) if phone else ""
+    regex = phone_candidates_regex(phone) if key else ""
     if regex:
         who |= Q(customer__phone__regex=regex)
     if not who:
         return 0
-    rows = Reservation.objects.filter(
-        who, status__in=status_registry.active_statuses_for("reservation")
-    ).values_list("customer__email", "customer__phone")
-    key = phone_key(phone)
+    pending = [
+        code for code in status_registry.active_statuses_for("reservation") if code != "confirmed"
+    ]
+    rows = Reservation.objects.filter(who, status__in=pending).values_list(
+        "customer__email", "customer__phone"
+    )
     return sum(
         1
         for row_email, row_phone in rows

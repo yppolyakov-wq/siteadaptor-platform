@@ -40,7 +40,7 @@ from .models import (
     Reservation,
     WaitlistEntry,
 )
-from .services import OutOfStock, ReservationLimitReached, reserve
+from .services import ContactHoldLimit, OutOfStock, ReservationLimitReached, reserve
 
 RL_LIMIT = 5  # попыток (бронь/waitlist на IP+акцию)
 RL_WINDOW = 600  # за 10 минут
@@ -2384,20 +2384,7 @@ def reservation_create(request, pk):
         return render(request, "storefront/promotion_detail.html", ctx)
 
     # KA-12 E6.6 (Р-4): потолки против «выкупа витрины» выдуманными контактами —
-    # открытые резервы на контакт и резервы в сутки с одного IP по всему бизнесу.
-    from .services import open_reservations_for_contact
-
-    if open_reservations_for_contact(
-        form.cleaned_data.get("email", ""), form.cleaned_data.get("phone", "")
-    ) >= int(getattr(settings, "PROMO_OPEN_RESERVATIONS_PER_CONTACT", 3)):
-        messages.error(
-            request,
-            _(
-                "Sie haben bereits mehrere Reservierungen offen. Bitte holen Sie diese "
-                "zuerst ab oder melden Sie sich bei uns."
-            ),
-        )
-        return render(request, "storefront/promotion_detail.html", ctx)
+    # резервы в сутки с одного IP по бизнесу; неподтверждённые на контакт — в reserve().
     day_ident = f"{connection.schema_name}:{ratelimit.client_ip(request)}"
     if ratelimit.hit(
         "resv-day",
@@ -2428,7 +2415,15 @@ def reservation_create(request, pk):
             phone=form.cleaned_data.get("phone", ""),
             quantity=form.cleaned_data["quantity"],
             source_channel=channel,
+            open_cap=int(getattr(settings, "PROMO_OPEN_RESERVATIONS_PER_CONTACT", 3)),
         )
+    except ContactHoldLimit:
+        if token_key:
+            cache.delete(token_key)
+        ratelimit.refund("resv-day", day_ident)
+        # Общее сообщение: какой контакт сколько держит, витрина не раскрывает.
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+        return render(request, "storefront/promotion_detail.html", ctx)
     except OutOfStock:
         if token_key:
             cache.delete(token_key)
@@ -2589,6 +2584,15 @@ def coupon_create(request, pk):
                 )
             except Exception:  # письмо не должно ронять витрину
                 logger.exception("coupon resend failed for %s", exc.voucher.pk)
+        if by_email:
+            # KA-12 E6.6: тот же ответ, что новому адресу — витрина не раскрывает,
+            # есть ли у адреса купон.
+            messages.success(
+                request,
+                _("Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt.")
+                % {"email": email},
+            )
+            return redirect("storefront-promotion", pk=pk)
         messages.info(
             request,
             _(

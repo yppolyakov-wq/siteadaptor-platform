@@ -28797,8 +28797,6 @@ msgstr "Для обмежених купонів: код надходить ли
 msgid "Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt."
 msgstr "Купон уже в дорозі: ми надіслали його на %(email)s."
 
-msgid "Sie haben bereits mehrere Reservierungen offen. Bitte holen Sie diese zuerst ab oder melden Sie sich bei uns."
-msgstr "У вас уже кілька відкритих резервів. Спершу заберіть їх або зв’яжіться з нами."
 
 msgid "unbestätigt · läuft ab"
 msgstr "не підтверджено · спливає"

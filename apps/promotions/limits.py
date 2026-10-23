@@ -10,8 +10,9 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 from django.conf import settings
-from django.db import transaction
 from django.utils.translation import gettext as _
 
 from .state_machine import PromotionSM
@@ -57,16 +58,29 @@ def can_activate(promo, tenant) -> bool:
     return active_count(exclude=promo) < limit
 
 
-def _lock_limit():
-    """KA-12 E6.6 (L10): проверка «сколько активно» и переход — под одной блокировкой.
+@contextmanager
+def _limit_lock():
+    """KA-12 E6.6 (L10): «посчитать активные → перевести» — под одной блокировкой.
 
-    Advisory, а не строка Tenant в public: не мешает сохранению настроек бизнеса.
-    Ключ несёт схему — advisory-блокировки общие на всю БД."""
+    Advisory, а не строка Tenant в public: не мешает сохранению настроек бизнеса; ключ
+    несёт схему (advisory-блокировки общие на БД). Вне транзакции — сессионная: статус
+    акции коммитится сразу (как раньше), и задачи on_transition (агрегатор, каналы)
+    видят его; внутри чужой транзакции — до её конца."""
     from django.db import connection
 
     schema = getattr(connection, "schema_name", "") or "public"
+    key = f"promo-limit:{schema}"
     with connection.cursor() as cur:
-        cur.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [f"promo-limit:{schema}"])
+        if connection.in_atomic_block:
+            cur.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [key])
+            yield
+            return
+        cur.execute("SELECT pg_advisory_lock(hashtext(%s))", [key])
+    try:
+        yield
+    finally:
+        with connection.cursor() as cur:
+            cur.execute("SELECT pg_advisory_unlock(hashtext(%s))", [key])
 
 
 def activate(promo, tenant, *, actor=None):
@@ -77,8 +91,7 @@ def activate(promo, tenant, *, actor=None):
     limit = active_limit(tenant)
     if limit is None:
         return PromotionSM().apply(promo, "active", actor=actor)
-    with transaction.atomic():
-        _lock_limit()
+    with _limit_lock():
         promo.refresh_from_db(fields=["status"])
         if not can_activate(promo, tenant):
             raise ActivationLimit(limit)

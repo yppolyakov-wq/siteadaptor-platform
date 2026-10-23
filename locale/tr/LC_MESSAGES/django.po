@@ -28692,8 +28692,6 @@ msgstr "Sınırlı kuponlar için: kod tarayıcıda değil yalnızca e-postayla 
 msgid "Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt."
 msgstr "Kuponunuz yolda: %(email)s adresine gönderdik."
 
-msgid "Sie haben bereits mehrere Reservierungen offen. Bitte holen Sie diese zuerst ab oder melden Sie sich bei uns."
-msgstr "Zaten birkaç açık rezervasyonunuz var. Lütfen önce bunları teslim alın veya bizimle iletişime geçin."
 
 msgid "unbestätigt · läuft ab"
 msgstr "onaylanmadı · sona eriyor"

@@ -15,9 +15,13 @@ DEFAULT_COUNTRY = "49"
 _TAIL = 6  # хвост цифр для поиска кандидатов в БД
 
 
+_TRUNK = re.compile(r"\(\s*0\s*\)")  # «+49 (0)171 …» — ноль в скобках не набирают
+MIN_DIGITS = 6  # короче — не номер: по ключу не сравниваем (иначе все «0» — один клиент)
+
+
 def phone_key(phone: str) -> str:
-    digits = _NON_DIGIT.sub("", phone or "")
-    if not digits:
+    digits = _NON_DIGIT.sub("", _TRUNK.sub("", phone or ""))
+    if len(digits.lstrip("0")) < MIN_DIGITS:
         return ""
     if digits.startswith("00"):
         return digits[2:]
@@ -37,9 +41,10 @@ def phone_candidates_regex(phone: str) -> str:
 def find_by_phone(queryset, phone: str, field: str = "phone"):
     """Строки queryset с тем же телефоном по ключу (самая ранняя первой) — список."""
     key = phone_key(phone)
-    if not key:
+    regex = phone_candidates_regex(phone)
+    if not key or not regex:
         return []
-    rows = queryset.filter(**{f"{field}__regex": phone_candidates_regex(phone)})
+    rows = queryset.filter(**{f"{field}__regex": regex})
     return [row for row in rows if phone_key(getattr(row, field)) == key]
 
 

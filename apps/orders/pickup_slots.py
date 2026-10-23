@@ -153,26 +153,32 @@ def contact_holds_too_many(email: str, phone: str, tenant=None, now=None) -> boo
     from django.db.models import Q
 
     from apps.core import status_registry
+    from apps.core.contacts import phone_candidates_regex, phone_key
 
     from .models import Order
 
     email, phone = (email or "").strip(), (phone or "").strip()
-    if not email and not phone:
-        return False
+    key = phone_key(phone)
+    regex = phone_candidates_regex(phone) if key else ""
     who = Q()
     if email:
         who |= Q(customer__email__iexact=email)
-    if phone:
-        # KA-12 E6.6: «0171 …» и «+49 171 …» — один контакт.
-        from apps.core.contacts import phone_candidates_regex
-
-        regex = phone_candidates_regex(phone)
-        if regex:
-            who |= Q(customer__phone__regex=regex)
-    held = (
+    if regex:
+        # KA-12 E6.6: «0171 …» и «+49 171 …» — один контакт; хвост из БД — кандидаты,
+        # точное совпадение — по ключу (чужой номер с тем же хвостом не в счёт).
+        who |= Q(customer__phone__regex=regex)
+    if not who:
+        return False
+    rows = (
         Order.objects.filter(who, pickup_slot__gte=now or timezone.now())
         .exclude(status__in=status_registry.cancelled_statuses_for("order", tenant))
-        .count()
+        .values_list("customer__email", "customer__phone")
+    )
+    held = sum(
+        1
+        for row_email, row_phone in rows
+        if (email and (row_email or "").lower() == email.lower())
+        or (key and phone_key(row_phone) == key)
     )
     return held >= MAX_OPEN_PER_CONTACT
 

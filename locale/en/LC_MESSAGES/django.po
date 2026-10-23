@@ -28548,8 +28548,6 @@ msgstr "For limited coupons: the code is sent only by email, not shown in the br
 msgid "Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt."
 msgstr "Your coupon is on its way: we sent it to %(email)s."
 
-msgid "Sie haben bereits mehrere Reservierungen offen. Bitte holen Sie diese zuerst ab oder melden Sie sich bei uns."
-msgstr "You already have several open reservations. Please pick them up first or get in touch with us."
 
 msgid "unbestätigt · läuft ab"
 msgstr "unconfirmed · expires"
