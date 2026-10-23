@@ -50,7 +50,7 @@
       <label class="block text-sm font-medium mb-1">{% trans "Customer" %} ({% trans "optional" %})</label>
       <select name="customer" class="w-full rounded-lg border border-gray-300 px-3 py-2" data-customer-select>
         <option value="">—</option>
-        {% for c in customers %}<option value="{{ c.pk }}"{% if selected_customer and c.pk == selected_customer.pk %} selected{% endif %}>{{ c.name|default:c.email|default:c.phone }}</option>{% endfor %}
+        {% for c in customers %}<option value="{{ c.pk }}"{% if selected_customer and c.pk == selected_customer.pk %} selected{% endif %}>{{ c.pick_label }}</option>{% endfor %}
       </select>
       <p class="text-xs text-gray-500 mt-1">{% if kunde_q %}{% blocktrans with q=kunde_q %}Treffer für „{{ q }}“.{% endblocktrans %}{% else %}{% trans "Neueste Kunden — andere über die Suche oben." %}{% endif %}</p>
     </div>

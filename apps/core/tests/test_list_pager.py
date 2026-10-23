@@ -310,3 +310,16 @@ def test_preselected_customer_is_always_in_the_list():
         _req(path="/dashboard/finance/rechnungen/", data={"customer": str(oldest.pk)})
     ).content.decode()
     assert f'value="{oldest.pk}" selected' in body
+
+
+def test_staff_sees_masked_contact_and_cannot_search_by_it(monkeypatch):
+    from apps.finance import views as fviews
+
+    Customer.objects.create(name="", email="anna@beispiel.de")
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: False)
+    body = fviews.invoices(_req(path="/dashboard/finance/rechnungen/")).content.decode()
+    assert "anna@beispiel.de" not in body and "•••@beispiel.de" in body
+    hit = fviews.invoices(
+        _req(path="/dashboard/finance/rechnungen/", data={"kunde_q": "anna@"})
+    ).content.decode()
+    assert "•••@beispiel.de" not in hit

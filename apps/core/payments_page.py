@@ -87,45 +87,54 @@ def payment_rows(
     (`Order.payment_method`), пусто = любой. Отменённые сделки не показываем:
     их деньги закрыты FSM (тот же приём, что в finance.bank.open_items).
     """
-    rows: list[dict] = []
+    # Ревью P4a: сначала слияние и срез по дате, потом тяжёлая нормализация — только
+    # для строк страницы (иначе глубокая страница нормализовала бы всё до неё).
+    picked: list = []
     for kind in _kinds(tenant):
         qs = _filtered(tenant, kind, state, method, since).order_by("-created_at", "-pk")
         if limit is not None:
             qs = qs[: offset + limit]
-        for obj in qs:
-            tx = transactions.transaction_for(kind, obj)
-            amount_value, amount_display = tx.amount_value, tx.subtotal_display
-            if getattr(obj, "payment_state", "") == "deposit" and kind in ("booking", "stay"):
-                # KA-H6: Anzahlung получена — открыт только остаток (как «Offene Posten»).
-                from decimal import Decimal
+        picked += [(obj.created_at, kind, obj) for obj in qs]
+    picked.sort(key=lambda t: t[0], reverse=True)
+    picked = picked[offset:] if limit is None else picked[offset : offset + limit]
+    rows: list[dict] = []
+    for _created, kind, obj in picked:
+        tx = transactions.transaction_for(kind, obj)
+        amount_value, amount_display = tx.amount_value, tx.subtotal_display
+        if getattr(obj, "payment_state", "") == "deposit" and kind in ("booking", "stay"):
+            # KA-H6: Anzahlung получена — открыт только остаток (как «Offene Posten»).
+            from decimal import Decimal
 
-                amount_value = Decimal(obj.balance_cents) / 100
-                amount_display = f"{amount_value:.2f} €"
-            rows.append(
-                {
-                    "kind": kind,
-                    "kind_label": transactions.KIND_LABEL.get(kind, kind),
-                    "pk": obj.pk,
-                    "code": tx.reference_code,
-                    "title": tx.title,
-                    "customer": tx.customer,
-                    "amount_display": amount_display,
-                    "amount_value": amount_value,
-                    "payment_state": getattr(obj, "payment_state", ""),
-                    "payment_method": getattr(obj, "payment_method", ""),
-                    "payment_method_label": (
-                        payment_methods.label(obj.payment_method)
-                        if getattr(obj, "payment_method", "")
-                        else ""
-                    ),
-                    # SH-23d: срок оплаты (Р-2/Р-4) — просроченное видно на месте.
-                    "payment_due_at": getattr(obj, "payment_due_at", None),
-                    "created_at": obj.created_at,
-                    "manage_url": tx.manage_url,
-                }
-            )
-    rows.sort(key=lambda r: r["created_at"], reverse=True)
-    return rows[offset:] if limit is None else rows[offset : offset + limit]
+            amount_value = Decimal(obj.balance_cents) / 100
+            amount_display = f"{amount_value:.2f} €"
+        rows.append(
+            {
+                "kind": kind,
+                "kind_label": transactions.KIND_LABEL.get(kind, kind),
+                "pk": obj.pk,
+                "code": tx.reference_code,
+                "title": tx.title,
+                "customer": tx.customer,
+                "amount_display": amount_display,
+                "amount_value": amount_value,
+                "payment_state": getattr(obj, "payment_state", ""),
+                "payment_method": getattr(obj, "payment_method", ""),
+                "payment_method_label": (
+                    payment_methods.label(obj.payment_method)
+                    if getattr(obj, "payment_method", "")
+                    else ""
+                ),
+                # SH-23d: срок оплаты (Р-2/Р-4) — просроченное видно на месте.
+                "payment_due_at": getattr(obj, "payment_due_at", None),
+                "created_at": obj.created_at,
+                "manage_url": tx.manage_url,
+            }
+        )
+    return rows
+
+
+#: Открытых сделок, с которых итог кэшируется на минуту (полный проход дорогой).
+SUMMARY_CACHE_FROM = 500
 
 
 def payment_summary(tenant) -> dict:
@@ -135,13 +144,25 @@ def payment_summary(tenant) -> dict:
     вычисляется в Python (снимки допов), поэтому SQL-Sum врал бы — урок VS-2c.
     """
     # KA-P4a: без потолка (раньше 500 — при большем числе сделок «offen» врал).
+    # Полный проход дорогой (суммы booking/ticket считаются в Python) — кэш на минуту.
+    from django.core.cache import cache
+
+    # Кэш — только у больших бизнесов: у обычных итог свежий на каждый заход.
+    big = payment_count(tenant, "open") > SUMMARY_CACHE_FROM
+    key = f"payment-summary:{getattr(tenant, 'schema_name', '')}"
+    cached = cache.get(key) if big else None
+    if cached is not None:
+        return cached
     open_rows = payment_rows(tenant, "open", limit=None)
     since = timezone.now() - timedelta(days=30)
     paid_recent = payment_rows(tenant, "paid", limit=None, since=since)
-    return {
+    summary = {
         "open_count": len(open_rows),
         "open_total": sum((r["amount_value"] or 0) for r in open_rows),
         "paid_count": len(paid_recent),
         "paid_total": sum((r["amount_value"] or 0) for r in paid_recent),
         "currency": "EUR",
     }
+    if big:
+        cache.set(key, summary, 60)
+    return summary
