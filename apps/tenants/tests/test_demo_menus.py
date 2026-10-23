@@ -44,7 +44,12 @@ def _active_modules(kit) -> set:
     """
     from apps.core import modules
 
-    disabled = set(modules.default_disabled_for(kit.business_type or "")) - set(kit.enable_modules)
+    from apps.tenants.demo_kits import kit_enabled_modules
+
+    # KA-12 E8.7/E8.11: посты/услуги кита включают blog/booking (kit_enabled_modules).
+    disabled = set(modules.default_disabled_for(kit.business_type or "")) - set(
+        kit_enabled_modules(kit)
+    )
     return {spec.key for spec in modules.REGISTRY if spec.key not in disabled}
 
 

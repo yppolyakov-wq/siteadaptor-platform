@@ -36,10 +36,11 @@ def test_primary_module_enabled_by_default(business_type, primary_module):
 
 
 def test_universal_modules_enabled_for_new_types():
-    # reviews/gift/blog/inbox/customer_account — из коробки у всех архетипов.
+    # reviews/gift/inbox/customer_account — из коробки у всех архетипов
+    # (KA-12 E8.7: блог выключен по умолчанию — решение владельца).
     for bt in NEW_TYPES:
         disabled = set(modules.default_disabled_for(bt))
-        for universal in ("reviews", "gift", "blog", "inbox", "customer_account"):
+        for universal in ("reviews", "gift", "inbox", "customer_account"):
             assert universal not in disabled, f"{universal} должен быть вкл для {bt}"
 
 
@@ -68,7 +69,7 @@ def test_catering_type_registered_and_wired():
     disabled = set(modules.default_disabled_for("catering"))
     assert "jobs" not in disabled  # primary
     assert "promotions" not in disabled and "crm" not in disabled
-    for universal in ("reviews", "gift", "blog", "inbox", "customer_account"):
+    for universal in ("reviews", "gift", "inbox", "customer_account"):
         assert universal not in disabled
     assert "orders" in disabled and "booking" in disabled  # Speisekarte browse-only
     assert KITS["catering"].business_type == "catering"
@@ -101,7 +102,7 @@ def test_online_shop_type_registered_and_wired():
     assert onboarding.DEMO_KIT_HOST["online_shop"] == "onlineshop"
     disabled = modules.default_disabled_for("online_shop")
     assert "orders" not in disabled  # primary: продажи
-    for mod in ("reviews", "gift", "blog", "inbox", "customer_account", "promotions"):
+    for mod in ("reviews", "gift", "inbox", "customer_account", "promotions"):
         assert mod not in disabled, mod
 
 
