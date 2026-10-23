@@ -41,7 +41,7 @@ class Command(BaseCommand):
             key = "AI_ROUTE_STRONG" if tier == "strong" else "AI_ROUTE_FAST"
             overrides = {"AI_ENABLED": True, key: [name]}
             if allow_non_eu:
-                overrides["AI_REQUIRE_EU"] = False
+                overrides[config.ALLOW_NON_EU] = True
             # AI-CFG: поверх админки и .env (override_settings не перебил бы админку)
             with config.override(**overrides):
                 try:

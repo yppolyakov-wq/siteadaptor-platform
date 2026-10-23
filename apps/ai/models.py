@@ -50,7 +50,7 @@ class AIConfig(models.Model):
     class Meta:
         verbose_name = _("KI-Einstellungen")
         verbose_name_plural = _("KI-Einstellungen")
-        constraints = [models.CheckConstraint(check=models.Q(id=1), name="ai_config_singleton")]
+        constraints = [models.CheckConstraint(condition=models.Q(id=1), name="ai_config_singleton")]
 
     def __str__(self):
         return str(_("KI-Einstellungen"))

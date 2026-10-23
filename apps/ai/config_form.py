@@ -6,6 +6,7 @@ checks: неизвестный маршрут, маршрут вне ЕС при
 
 from __future__ import annotations
 
+import math
 from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
@@ -51,6 +52,9 @@ def parse(post) -> tuple[dict, list[str]]:
         raw = post.get(key, "")
         if raw in ("1", "0"):
             values[key] = raw == "1"
+    if settings.AI_REQUIRE_EU and values.get("AI_REQUIRE_EU") is False:
+        # Пол из .env: поле в форме выключено, но поддельный POST его прислать может.
+        del values["AI_REQUIRE_EU"]
     for tier in ("FAST", "STRONG"):
         picked = [post.get(f"AI_ROUTE_{tier}_{i}", "").strip() for i in range(ROUTE_SLOTS)]
         picked = [p for p in picked if p]
@@ -75,7 +79,7 @@ def parse(post) -> tuple[dict, list[str]]:
         except (ValueError, InvalidOperation):
             errors.append(_("Keine Zahl: %(name)s") % {"name": key})
             continue
-        if number < 0 or number > 1_000_000:
+        if not math.isfinite(number) or number < 0 or number > 1_000_000:
             errors.append(_("Außerhalb des erlaubten Bereichs: %(name)s") % {"name": key})
             continue
         values[key] = number
@@ -91,7 +95,11 @@ def parse(post) -> tuple[dict, list[str]]:
             except (IndexError, ValueError):
                 errors.append(_("Preiszeile unklar: %(line)s") % {"line": line[:60]})
                 continue
-            if not set(model) <= _MODEL_CHARS or cent_in < 0 or cent_out < 0:
+            if (
+                not set(model) <= _MODEL_CHARS
+                or not 0 <= cent_in <= 1_000_000
+                or not 0 <= cent_out <= 1_000_000
+            ):
                 errors.append(_("Preiszeile unklar: %(line)s") % {"line": line[:60]})
                 continue
             prices[model] = [cent_in, cent_out]
@@ -105,7 +113,9 @@ def validate(values: dict) -> tuple[list[str], list[str]]:
 
     errors: list[str] = []
     warnings: list[str] = []
-    with config.override(**values):
+    # Проверяем РОВНО то, что сохранится: save заменяет строку целиком, поэтому ключ
+    # без значения формы после сохранения = .env, а не прежнее значение админки.
+    with config.override(**{config.ENV_BASELINE: True}, **values):
         enabled = bool(config.get("AI_ENABLED"))
         known_tasks = {name for name, _w, _s in task_choices()}
         for task in config.get("AI_TASKS_ENABLED", ()) or ():
@@ -117,7 +127,9 @@ def validate(values: dict) -> tuple[list[str], list[str]]:
                 errors.append(_("Keine Route für %(tier)s.") % {"tier": tier})
             usable = 0
             for name in names:
-                if name not in providers.ROUTE_NAMES:
+                if name not in providers.ROUTE_NAMES or (
+                    name in providers.FAKE_ROUTES and not settings.DEBUG
+                ):
                     errors.append(_("Unbekannte Route: %(r)s") % {"r": name})
                     continue
                 route = routing.describe(name, tier)

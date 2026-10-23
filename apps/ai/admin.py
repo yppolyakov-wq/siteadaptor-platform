@@ -76,6 +76,7 @@ class AIUsageAdmin(ModelAdmin):
 
     def settings_view(self, request):
         from django.conf import settings as dj_settings
+        from django.db import transaction
 
         from apps.audit.services import audit_event
 
@@ -91,20 +92,24 @@ class AIUsageAdmin(ModelAdmin):
                 for err in errors:
                     messages.error(request, err)
                 return redirect("admin:ai_settings")
-            diff = config.save(values, user=request.user)
-            audit_event(
-                action="ai.config.changed",
-                resource_type="ai_config",
-                resource_id="1",
-                actor=request.user,
-                changes=diff,
-                tenant_schema="",
-            )
+            with transaction.atomic():  # конфиг и запись аудита — вместе или никак
+                diff = config.save(values, user=request.user)
+                audit_event(
+                    action="ai.config.changed",
+                    resource_type="ai_config",
+                    resource_id="1",
+                    actor=request.user,
+                    changes=diff,
+                    tenant_schema="",
+                )
             messages.success(
                 request, _("Gespeichert — wirkt in allen Prozessen binnen 15 Sekunden.")
             )
             return redirect("admin:ai_settings")
 
+        # Экран — всегда из БД: после Save редирект может попасть в другой воркер со
+        # старым кэшем, и повторный Save устаревшей формы откатил бы правку.
+        config.reset_cache()
         sources = config.sources()
         admin_values = config.admin_values()
 

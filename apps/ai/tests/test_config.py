@@ -93,3 +93,73 @@ def test_reader_survives_without_database():
     with mock.patch("apps.ai.models.AIConfig.objects") as objects:
         objects.filter.side_effect = RuntimeError("no table")
         assert config.get("AI_ENABLED", "fallback") is not None
+
+
+@override_settings(AI_ENABLED=False, AI_ROUTE_FAST=["mistral"], AI_TASKS_ENABLED=["x"])
+def test_garbage_in_db_is_ignored_not_trusted():
+    """Ревью: строка «false» у bool включала бы ИИ, строка вместо списка маршрутов
+    разбивалась бы по буквам, NaN в бюджете выключал бы потолок."""
+    _admin(
+        AI_ENABLED="false",
+        AI_ROUTE_FAST="bedrock",
+        AI_TASKS_ENABLED="promo_text_check",
+        AI_DAILY_BUDGET_EUR=float("inf"),
+        AI_PRICES=["x"],
+    )
+    assert config.get("AI_ENABLED") is False
+    assert config.get("AI_ROUTE_FAST") == ["mistral"]
+    assert config.get("AI_TASKS_ENABLED") == ["x"]
+    assert config.admin_values() == {}
+
+
+def test_non_dict_row_does_not_crash():
+    AIConfig.objects.update_or_create(pk=1, defaults={"values": ["a"]})
+    config.reset_cache()
+    assert config.admin_values() == {}
+
+
+@override_settings(AI_REQUIRE_EU=True)
+def test_form_validation_cannot_loosen_env_eu_floor():
+    """Ревью: поддельный POST AI_REQUIRE_EU=0 + маршрут вне ЕС проходил проверку формы."""
+    from django.http import QueryDict
+
+    from apps.ai import config_form
+
+    post = QueryDict(mutable=True)
+    post.update({"AI_ENABLED": "1", "AI_REQUIRE_EU": "0", "AI_ROUTE_FAST_0": "openai"})
+    values, _errors = config_form.parse(post)
+    assert "AI_REQUIRE_EU" not in values
+    with config.override(AI_REQUIRE_EU=False):
+        assert config.require_eu() is True
+
+
+@override_settings(DEBUG=False, AI_ENABLED=True)
+def test_fake_route_rejected_outside_debug():
+    from apps.ai import config_form
+
+    errors, _w = config_form.validate({"AI_ROUTE_FAST": ["fake"]})
+    assert errors
+
+
+@override_settings(ANTHROPIC_MODEL_FAST="", AI_ENABLED=True, AI_REQUIRE_EU=False)
+def test_validation_sees_post_save_state_not_old_admin_row():
+    """Ревью: модель лежала в старой строке админки, форма её не прислала — проверка
+    проходила, а после сохранения (строка заменяется целиком) модели не было."""
+    from apps.ai import config_form
+
+    _admin(ANTHROPIC_MODEL_FAST="claude-haiku-5-5")
+    errors, _w = config_form.validate(
+        {"AI_ROUTE_FAST": ["anthropic"], "AI_ROUTE_STRONG": ["anthropic"]}
+    )
+    assert any("anthropic" in str(e) for e in errors)
+
+
+def test_nan_number_is_rejected_by_form():
+    from django.http import QueryDict
+
+    from apps.ai import config_form
+
+    post = QueryDict(mutable=True)
+    post.update({"AI_DAILY_BUDGET_EUR": "NaN"})
+    values, errors = config_form.parse(post)
+    assert errors and "AI_DAILY_BUDGET_EUR" not in values
