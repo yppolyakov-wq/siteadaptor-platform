@@ -1,0 +1,43 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Datenschutz-Anfrage" %}{% endblock %}
+
+{% block dash_content %}
+<a href="{% url 'crm:customer-detail' customer.pk %}" class="text-sm text-gray-500 hover:underline">← {{ customer }}</a>
+<h1 class="text-2xl font-bold mt-1 mb-4">🛡 {% trans "Datenschutz-Anfrage" %}</h1>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="grid lg:grid-cols-2 gap-6 items-start">
+  <section class="bg-white rounded-2xl shadow-sm p-6 space-y-3" data-dsgvo-export>
+    <h2 class="font-semibold">{% trans "Auskunft und Datenübertragung (Art. 15, 20 DSGVO)" %}</h2>
+    <p class="text-sm text-gray-600">{% trans "Alle gespeicherten Daten dieses Kunden als Datei: Bestellungen, Buchungen, Tickets, Aufträge, Angebote, Rechnungen, Nachrichten und Notizen." %}</p>
+    <a href="{% url 'crm:customer-dsgvo-export' customer.pk %}" class="inline-block bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">⬇ {% trans "Daten herunterladen (ZIP)" %}</a>
+  </section>
+
+  <section class="bg-white rounded-2xl shadow-sm p-6 space-y-3" data-dsgvo-erase>
+    <h2 class="font-semibold">{% trans "Löschung (Art. 17 DSGVO)" %}</h2>
+    {% if anonymized %}
+      <p class="text-sm text-green-700">{% trans "Die personenbezogenen Daten des Kunden wurden gelöscht." %}</p>
+    {% elif blockers %}
+      {% for reason in blockers %}<p class="text-sm text-amber-700" data-dsgvo-blocked>{{ reason }}</p>{% endfor %}
+    {% else %}
+      <p class="text-sm text-gray-600">{% trans "Name, E-Mail, Telefon, Notizen, Nachrichten und Adressen werden entfernt. Das kann nicht rückgängig gemacht werden." %}</p>
+      <form method="post" action="{% url 'crm:customer-dsgvo-erase' customer.pk %}" class="space-y-2">
+        {% csrf_token %}
+        <label class="block text-xs text-gray-500" for="dsgvo-confirm">{% trans "Zur Bestätigung bitte LÖSCHEN eingeben." %}</label>
+        <input id="dsgvo-confirm" name="confirm" autocomplete="off" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
+        <button class="rounded-lg px-4 py-2 text-sm font-medium bg-red-600 text-white hover:bg-red-700">{% trans "Daten löschen" %}</button>
+      </form>
+    {% endif %}
+    <div class="border-t border-gray-100 pt-3">
+      <p class="text-xs font-medium text-gray-500 mb-1">{% trans "Was gesetzlich gespeichert bleibt" %}</p>
+      <ul class="text-xs text-gray-500 list-disc pl-4 space-y-1">{% for reason in kept %}<li>{{ reason }}</li>{% endfor %}</ul>
+    </div>
+  </section>
+</div>
+{% endblock %}

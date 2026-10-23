@@ -28490,3 +28490,48 @@ msgstr "Unpaid"
 
 msgid "Wieder verfügbar."
 msgstr "Available again."
+
+msgid "Alle gespeicherten Daten dieses Kunden als Datei: Bestellungen, Buchungen, Tickets, Aufträge, Angebote, Rechnungen, Nachrichten und Notizen."
+msgstr "All stored data of this customer as a file: orders, bookings, tickets, jobs, quotes, invoices, messages and notes."
+
+msgid "Ausgestellte Rechnungen bleiben 10 Jahre unverändert (GoBD, § 147 AO); der Empfänger auf der Rechnung kann nicht geändert werden."
+msgstr "Issued invoices are kept unchanged for 10 years (GoBD, § 147 AO); the recipient on the invoice cannot be changed."
+
+msgid "Auskunft und Datenübertragung (Art. 15, 20 DSGVO)"
+msgstr "Access and data portability (Art. 15, 20 GDPR)"
+
+msgid "Daten herunterladen (ZIP)"
+msgstr "Download data (ZIP)"
+
+msgid "Datenauskunft (Art. 15 und 20 DSGVO)"
+msgstr "Data access (Art. 15 and 20 GDPR)"
+
+msgid "Datenschutz-Anfrage"
+msgstr "Privacy request"
+
+msgid "Der Kunde hat noch eine offene Bestellung, Buchung, ein offenes Angebot oder eine unbezahlte Rechnung. Bitte zuerst abschließen oder stornieren."
+msgstr "The customer still has an open order, booking, quote or unpaid invoice. Please complete or cancel it first."
+
+msgid "Die personenbezogenen Daten des Kunden wurden gelöscht."
+msgstr "The customer's personal data has been deleted."
+
+msgid "Löschung (Art. 17 DSGVO)"
+msgstr "Erasure (Art. 17 GDPR)"
+
+msgid "Meldescheine bleiben 1 Jahr gespeichert (§ 30 BMG) und werden dann gelöscht."
+msgstr "Registration forms are kept for 1 year (§ 30 BMG) and then deleted."
+
+msgid "Name, E-Mail, Telefon, Notizen, Nachrichten und Adressen werden entfernt. Das kann nicht rückgängig gemacht werden."
+msgstr "Name, email, phone, notes, messages and addresses will be removed. This cannot be undone."
+
+msgid "Umsätze bleiben 10 Jahre gespeichert (GoBD, § 147 AO, § 257 HGB); Kontaktdaten werden entfernt."
+msgstr "Sales amounts are kept for 10 years (GoBD, § 147 AO, § 257 HGB); contact details are removed."
+
+msgid "Unterschriebene Haftungsverzichte bleiben bis zum Ende der Verjährungsfrist."
+msgstr "Signed liability waivers are kept until the limitation period ends."
+
+msgid "Was gesetzlich gespeichert bleibt"
+msgstr "What stays stored by law"
+
+msgid "Zur Bestätigung bitte LÖSCHEN eingeben."
+msgstr "Type LÖSCHEN to confirm."

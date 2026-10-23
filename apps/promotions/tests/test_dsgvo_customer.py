@@ -78,7 +78,7 @@ def test_delete_erases_pii_everywhere():
 def test_delete_refused_with_active_reservation():
     _tenant()
     customer = _customer_with_history(status="confirmed")
-    with pytest.raises(CommandError, match="активных броней"):
+    with pytest.raises(CommandError, match="offene Bestellung"):
         _run(delete=True)
     customer.refresh_from_db()
     assert customer.email == EMAIL  # ничего не стёрто

@@ -28582,3 +28582,48 @@ msgstr "Unbezahlt"
 
 msgid "Wieder verfügbar."
 msgstr "Wieder verfügbar."
+
+msgid "Alle gespeicherten Daten dieses Kunden als Datei: Bestellungen, Buchungen, Tickets, Aufträge, Angebote, Rechnungen, Nachrichten und Notizen."
+msgstr "Alle gespeicherten Daten dieses Kunden als Datei: Bestellungen, Buchungen, Tickets, Aufträge, Angebote, Rechnungen, Nachrichten und Notizen."
+
+msgid "Ausgestellte Rechnungen bleiben 10 Jahre unverändert (GoBD, § 147 AO); der Empfänger auf der Rechnung kann nicht geändert werden."
+msgstr "Ausgestellte Rechnungen bleiben 10 Jahre unverändert (GoBD, § 147 AO); der Empfänger auf der Rechnung kann nicht geändert werden."
+
+msgid "Auskunft und Datenübertragung (Art. 15, 20 DSGVO)"
+msgstr "Auskunft und Datenübertragung (Art. 15, 20 DSGVO)"
+
+msgid "Daten herunterladen (ZIP)"
+msgstr "Daten herunterladen (ZIP)"
+
+msgid "Datenauskunft (Art. 15 und 20 DSGVO)"
+msgstr "Datenauskunft (Art. 15 und 20 DSGVO)"
+
+msgid "Datenschutz-Anfrage"
+msgstr "Datenschutz-Anfrage"
+
+msgid "Der Kunde hat noch eine offene Bestellung, Buchung, ein offenes Angebot oder eine unbezahlte Rechnung. Bitte zuerst abschließen oder stornieren."
+msgstr "Der Kunde hat noch eine offene Bestellung, Buchung, ein offenes Angebot oder eine unbezahlte Rechnung. Bitte zuerst abschließen oder stornieren."
+
+msgid "Die personenbezogenen Daten des Kunden wurden gelöscht."
+msgstr "Die personenbezogenen Daten des Kunden wurden gelöscht."
+
+msgid "Löschung (Art. 17 DSGVO)"
+msgstr "Löschung (Art. 17 DSGVO)"
+
+msgid "Meldescheine bleiben 1 Jahr gespeichert (§ 30 BMG) und werden dann gelöscht."
+msgstr "Meldescheine bleiben 1 Jahr gespeichert (§ 30 BMG) und werden dann gelöscht."
+
+msgid "Name, E-Mail, Telefon, Notizen, Nachrichten und Adressen werden entfernt. Das kann nicht rückgängig gemacht werden."
+msgstr "Name, E-Mail, Telefon, Notizen, Nachrichten und Adressen werden entfernt. Das kann nicht rückgängig gemacht werden."
+
+msgid "Umsätze bleiben 10 Jahre gespeichert (GoBD, § 147 AO, § 257 HGB); Kontaktdaten werden entfernt."
+msgstr "Umsätze bleiben 10 Jahre gespeichert (GoBD, § 147 AO, § 257 HGB); Kontaktdaten werden entfernt."
+
+msgid "Unterschriebene Haftungsverzichte bleiben bis zum Ende der Verjährungsfrist."
+msgstr "Unterschriebene Haftungsverzichte bleiben bis zum Ende der Verjährungsfrist."
+
+msgid "Was gesetzlich gespeichert bleibt"
+msgstr "Was gesetzlich gespeichert bleibt"
+
+msgid "Zur Bestätigung bitte LÖSCHEN eingeben."
+msgstr "Zur Bestätigung bitte LÖSCHEN eingeben."

@@ -28755,3 +28755,48 @@ msgstr "Не оплачено"
 
 msgid "Wieder verfügbar."
 msgstr "Снова в наличии."
+
+msgid "Alle gespeicherten Daten dieses Kunden als Datei: Bestellungen, Buchungen, Tickets, Aufträge, Angebote, Rechnungen, Nachrichten und Notizen."
+msgstr "Все сохранённые данные этого клиента одним файлом: заказы, брони, билеты, заявки, предложения, счета, сообщения и заметки."
+
+msgid "Ausgestellte Rechnungen bleiben 10 Jahre unverändert (GoBD, § 147 AO); der Empfänger auf der Rechnung kann nicht geändert werden."
+msgstr "Выставленные счета хранятся без изменений 10 лет (GoBD, § 147 AO); получателя в счёте изменить нельзя."
+
+msgid "Auskunft und Datenübertragung (Art. 15, 20 DSGVO)"
+msgstr "Доступ и перенос данных (ст. 15, 20 GDPR)"
+
+msgid "Daten herunterladen (ZIP)"
+msgstr "Скачать данные (ZIP)"
+
+msgid "Datenauskunft (Art. 15 und 20 DSGVO)"
+msgstr "Предоставление данных (ст. 15 и 20 GDPR)"
+
+msgid "Datenschutz-Anfrage"
+msgstr "Запрос по защите данных"
+
+msgid "Der Kunde hat noch eine offene Bestellung, Buchung, ein offenes Angebot oder eine unbezahlte Rechnung. Bitte zuerst abschließen oder stornieren."
+msgstr "У клиента есть открытый заказ, бронь, предложение или неоплаченный счёт. Сначала завершите или отмените его."
+
+msgid "Die personenbezogenen Daten des Kunden wurden gelöscht."
+msgstr "Персональные данные клиента удалены."
+
+msgid "Löschung (Art. 17 DSGVO)"
+msgstr "Удаление (ст. 17 GDPR)"
+
+msgid "Meldescheine bleiben 1 Jahr gespeichert (§ 30 BMG) und werden dann gelöscht."
+msgstr "Регистрационные бланки (Meldeschein) хранятся 1 год (§ 30 BMG) и затем удаляются."
+
+msgid "Name, E-Mail, Telefon, Notizen, Nachrichten und Adressen werden entfernt. Das kann nicht rückgängig gemacht werden."
+msgstr "Имя, e-mail, телефон, заметки, сообщения и адреса будут удалены. Отменить это нельзя."
+
+msgid "Umsätze bleiben 10 Jahre gespeichert (GoBD, § 147 AO, § 257 HGB); Kontaktdaten werden entfernt."
+msgstr "Суммы продаж хранятся 10 лет (GoBD, § 147 AO, § 257 HGB); контактные данные удаляются."
+
+msgid "Unterschriebene Haftungsverzichte bleiben bis zum Ende der Verjährungsfrist."
+msgstr "Подписанные отказы от претензий хранятся до истечения срока исковой давности."
+
+msgid "Was gesetzlich gespeichert bleibt"
+msgstr "Что хранится по закону"
+
+msgid "Zur Bestätigung bitte LÖSCHEN eingeben."
+msgstr "Для подтверждения введите LÖSCHEN."

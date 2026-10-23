@@ -16,4 +16,16 @@ urlpatterns = [
     path("firmen/<uuid:pk>/loeschen/", views.company_delete, name="company-delete"),
     path("<uuid:pk>/", views.customer_detail, name="customer-detail"),
     path("<uuid:pk>/notes/", views.note_add, name="note-add"),
+    # KA-12 E6.1: запрос клиента по DSGVO (Art. 15/17/20) — только владелец.
+    path("<uuid:pk>/datenschutz/", views.customer_dsgvo, name="customer-dsgvo"),
+    path(
+        "<uuid:pk>/datenschutz/export.zip",
+        views.customer_dsgvo_export,
+        name="customer-dsgvo-export",
+    ),
+    path(
+        "<uuid:pk>/datenschutz/loeschen/",
+        views.customer_dsgvo_erase,
+        name="customer-dsgvo-erase",
+    ),
 ]

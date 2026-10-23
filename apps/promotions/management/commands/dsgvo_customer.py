@@ -20,7 +20,6 @@ from django.db import transaction
 from django_tenants.utils import get_tenant_model, schema_context
 
 from apps.promotions.models import Customer, Reservation, WaitlistEntry
-from apps.promotions.tasks import _ANONYMIZED_NAME
 
 
 def _customers(email: str, customer=None) -> list:
@@ -102,67 +101,39 @@ def _export_payload(email: str, customer=None) -> dict:
             for c in customers
             for n in c.crm_notes.all()
         ],
+        # KA-12 E6.1: полная выгрузка по всем сделкам (заказы, брони, билеты, заявки,
+        # предложения, счета, переписка) — та же, что у кнопки владельца.
+        "full": [_full_export(c) for c in customers],
     }
+
+
+def _full_export(customer) -> dict:
+    from apps.crm import dsgvo
+
+    return json.loads(dsgvo.export_json(customer))
 
 
 def _erase(email: str, customer=None) -> dict:
-    from apps.notifications.models import Notification
+    """Art. 17 — общая реализация `apps.crm.dsgvo` (KA-12 E6.1): та же политика, что у
+    кнопки владельца; живая сделка любого вида блокирует удаление."""
+    from apps.crm import dsgvo
 
     customers = _customers(email, customer)
+    for c in customers:
+        blockers = dsgvo.erasure_blockers(c)
+        if blockers:
+            raise CommandError(" ".join(str(b) for b in blockers))
 
-    active = Reservation.objects.filter(
-        customer__in=customers, status__in=["pending", "confirmed"]
-    ).count()
-    if active:
-        raise CommandError(
-            f"У клиента {active} активных броней (pending/confirmed) — сначала "
-            "выполнить или отменить их (Art. 17 (3): исполнение договора)."
-        )
-
-    from apps.crm.models import CustomerNote
-
+    stats: dict = {"customers_anonymized": len(customers)}
     with transaction.atomic():
-        notes = Reservation.objects.filter(customer__in=customers).exclude(note="").update(note="")
-        crm_notes, _ = CustomerNote.objects.filter(customer__in=customers).delete()
         for c in customers:
-            c.name = _ANONYMIZED_NAME
-            c.email = ""
-            c.phone = ""
-            c.note = ""
-            c.tags = []
-            c.marketing_opt_in = False  # согласие отзывается вместе со стиранием
-            c.save(
-                update_fields=[
-                    "name",
-                    "email",
-                    "phone",
-                    "note",
-                    "tags",
-                    "marketing_opt_in",
-                    "updated_at",
-                ]
-            )
-        from apps.telegram.models import TelegramLink
-
-        links = TelegramLink.objects.filter(customer__in=customers)
-        chats = [c for c in links.values_list("chat_id", flat=True) if c]
-        tg_links, _ = links.delete()
-        waitlist = 0
-        recipients = 0
-        if email:
-            waitlist, _ = WaitlistEntry.objects.filter(email__iexact=email).delete()
-            recipients = Notification.objects.filter(recipient__iexact=email).update(recipient="")
-        if chats:
-            recipients += Notification.objects.filter(recipient__in=chats).update(recipient="")
-
-    return {
-        "customers_anonymized": len(customers),
-        "reservation_notes_cleared": notes,
-        "crm_notes_deleted": crm_notes,
-        "waitlist_deleted": waitlist,
-        "telegram_links_deleted": tg_links,
-        "notification_recipients_cleared": recipients,
-    }
+            for key, value in dsgvo.erase_customer(c).items():
+                stats[key] = stats.get(key, 0) + value
+        # e-mail без карточки клиента (только лист ожидания / уведомления)
+        if email and not customers:
+            for key, value in dsgvo._erase_email_linked(email, []).items():
+                stats[key] = stats.get(key, 0) + value
+    return stats
 
 
 class Command(BaseCommand):

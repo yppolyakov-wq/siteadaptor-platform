@@ -255,40 +255,19 @@ def _open_statuses(
     )
 
 
-def purge_due_customers(now=None, tenant=None) -> int:
-    """DSGVO: обезличить контакты клиентов без живых сделок (в текущей схеме).
-
-    Кандидат — клиент с резервом или бронью номера (набор НЕ расширяем: клиенты
-    только с заказами/счетами — отдельное решение GoBD vs Art. 17). Его не трогаем,
-    пока открыта ЛЮБАЯ сделка (заказ, запись, заявка, билет, бронь, резерв,
-    открытое предложение, абонемент с остатком, выставленный неоплаченный счёт), и
-    пока последняя активность по любой из них моложе RESERVATION_PII_RETENTION_DAYS
-    (KA-H11: раньше учитывались только резервы и брони номеров — клиента с живым
-    заказом обезличивало посреди сделки). Строка Customer остаётся (статистика,
-    счета держат свой снимок получателя), PII затирается.
-    """
+def open_deal_q(tenant=None, now=None):
+    """Q «у клиента есть живая сделка» (для Customer). Общая точка автоочистки и
+    запроса владельца по Art. 17 (KA-12 E6.1): открытый заказ/запись/заявка/билет/
+    бронь/резерв, открытое предложение, абонемент с остатком, неоплаченный счёт."""
     from django.apps import apps as django_apps
-    from django.db.models import DateTimeField, Exists, F, OuterRef, Q, Subquery
-    from django.db.models.functions import Greatest
+    from django.db.models import Exists, F, OuterRef, Q
 
     from apps.booking.models import Pass
     from apps.finance.models import Invoice
     from apps.orders.models import Offer
-    from apps.stays.models import StayBooking
 
     now = now or timezone.now()
-    cutoff = now - timedelta(days=settings.RESERVATION_PII_RETENTION_DAYS)
-
-    def latest(model):
-        return Subquery(
-            model.objects.filter(customer=OuterRef("pk"))
-            .order_by("-updated_at")
-            .values("updated_at")[:1],
-            output_field=DateTimeField(),
-        )
-
     open_deal = Q()
-    activity = []
     for kind, (label, _related) in _PURGE_DEAL_KINDS.items():
         model = django_apps.get_model(label)
         deals = model.objects.filter(customer=OuterRef("pk"))
@@ -306,8 +285,6 @@ def purge_due_customers(now=None, tenant=None) -> int:
                 )
             )
         )
-        activity.append(latest(model))
-    activity.append(latest(Offer))
     # предложение с истёкшим сроком (`is_expired`) клиента не держит
     open_deal |= Q(
         Exists(
@@ -334,6 +311,44 @@ def purge_due_customers(now=None, tenant=None) -> int:
             ).filter(Q(valid_until__isnull=True) | Q(valid_until__gte=timezone.localdate(now)))
         )
     )
+    return open_deal
+
+
+def purge_due_customers(now=None, tenant=None) -> int:
+    """DSGVO: обезличить контакты клиентов без живых сделок (в текущей схеме).
+
+    Кандидат — клиент с резервом или бронью номера (набор НЕ расширяем: клиенты
+    только с заказами/счетами — отдельное решение GoBD vs Art. 17). Его не трогаем,
+    пока открыта ЛЮБАЯ сделка (заказ, запись, заявка, билет, бронь, резерв,
+    открытое предложение, абонемент с остатком, выставленный неоплаченный счёт), и
+    пока последняя активность по любой из них моложе RESERVATION_PII_RETENTION_DAYS
+    (KA-H11: раньше учитывались только резервы и брони номеров — клиента с живым
+    заказом обезличивало посреди сделки). Строка Customer остаётся (статистика,
+    счета держат свой снимок получателя), PII затирается.
+    """
+    from django.apps import apps as django_apps
+    from django.db.models import DateTimeField, Exists, OuterRef, Q, Subquery
+    from django.db.models.functions import Greatest
+
+    from apps.orders.models import Offer
+    from apps.stays.models import StayBooking
+
+    now = now or timezone.now()
+    cutoff = now - timedelta(days=settings.RESERVATION_PII_RETENTION_DAYS)
+
+    def latest(model):
+        return Subquery(
+            model.objects.filter(customer=OuterRef("pk"))
+            .order_by("-updated_at")
+            .values("updated_at")[:1],
+            output_field=DateTimeField(),
+        )
+
+    open_deal = open_deal_q(tenant, now)
+    activity = [
+        latest(django_apps.get_model(label)) for label, _related in _PURGE_DEAL_KINDS.values()
+    ]
+    activity.append(latest(Offer))
 
     candidate = Q(Exists(Reservation.objects.filter(customer=OuterRef("pk")))) | Q(
         Exists(StayBooking.objects.filter(customer=OuterRef("pk")))

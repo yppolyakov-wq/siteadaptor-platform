@@ -28634,3 +28634,48 @@ msgstr "Ödenmedi"
 
 msgid "Wieder verfügbar."
 msgstr "Yeniden mevcut."
+
+msgid "Alle gespeicherten Daten dieses Kunden als Datei: Bestellungen, Buchungen, Tickets, Aufträge, Angebote, Rechnungen, Nachrichten und Notizen."
+msgstr "Bu müşterinin kayıtlı tüm verileri tek dosyada: siparişler, rezervasyonlar, biletler, işler, teklifler, faturalar, mesajlar ve notlar."
+
+msgid "Ausgestellte Rechnungen bleiben 10 Jahre unverändert (GoBD, § 147 AO); der Empfänger auf der Rechnung kann nicht geändert werden."
+msgstr "Kesilmiş faturalar 10 yıl değiştirilmeden saklanır (GoBD, § 147 AO); faturadaki alıcı değiştirilemez."
+
+msgid "Auskunft und Datenübertragung (Art. 15, 20 DSGVO)"
+msgstr "Erişim ve veri taşınabilirliği (GDPR md. 15, 20)"
+
+msgid "Daten herunterladen (ZIP)"
+msgstr "Verileri indir (ZIP)"
+
+msgid "Datenauskunft (Art. 15 und 20 DSGVO)"
+msgstr "Veri erişimi (GDPR md. 15 ve 20)"
+
+msgid "Datenschutz-Anfrage"
+msgstr "Gizlilik talebi"
+
+msgid "Der Kunde hat noch eine offene Bestellung, Buchung, ein offenes Angebot oder eine unbezahlte Rechnung. Bitte zuerst abschließen oder stornieren."
+msgstr "Müşterinin hâlâ açık bir siparişi, rezervasyonu, teklifi veya ödenmemiş faturası var. Lütfen önce tamamlayın veya iptal edin."
+
+msgid "Die personenbezogenen Daten des Kunden wurden gelöscht."
+msgstr "Müşterinin kişisel verileri silindi."
+
+msgid "Löschung (Art. 17 DSGVO)"
+msgstr "Silme (GDPR md. 17)"
+
+msgid "Meldescheine bleiben 1 Jahr gespeichert (§ 30 BMG) und werden dann gelöscht."
+msgstr "Kayıt formları (Meldeschein) 1 yıl saklanır (§ 30 BMG) ve sonra silinir."
+
+msgid "Name, E-Mail, Telefon, Notizen, Nachrichten und Adressen werden entfernt. Das kann nicht rückgängig gemacht werden."
+msgstr "Ad, e-posta, telefon, notlar, mesajlar ve adresler kaldırılacak. Bu işlem geri alınamaz."
+
+msgid "Umsätze bleiben 10 Jahre gespeichert (GoBD, § 147 AO, § 257 HGB); Kontaktdaten werden entfernt."
+msgstr "Satış tutarları 10 yıl saklanır (GoBD, § 147 AO, § 257 HGB); iletişim bilgileri kaldırılır."
+
+msgid "Unterschriebene Haftungsverzichte bleiben bis zum Ende der Verjährungsfrist."
+msgstr "İmzalı sorumluluk feragatnameleri zamanaşımı süresi dolana kadar saklanır."
+
+msgid "Was gesetzlich gespeichert bleibt"
+msgstr "Yasal olarak saklananlar"
+
+msgid "Zur Bestätigung bitte LÖSCHEN eingeben."
+msgstr "Onaylamak için LÖSCHEN yazın."

@@ -28739,3 +28739,48 @@ msgstr "Не оплачено"
 
 msgid "Wieder verfügbar."
 msgstr "Знову в наявності."
+
+msgid "Alle gespeicherten Daten dieses Kunden als Datei: Bestellungen, Buchungen, Tickets, Aufträge, Angebote, Rechnungen, Nachrichten und Notizen."
+msgstr "Усі збережені дані цього клієнта одним файлом: замовлення, бронювання, квитки, заявки, пропозиції, рахунки, повідомлення та нотатки."
+
+msgid "Ausgestellte Rechnungen bleiben 10 Jahre unverändert (GoBD, § 147 AO); der Empfänger auf der Rechnung kann nicht geändert werden."
+msgstr "Виставлені рахунки зберігаються без змін 10 років (GoBD, § 147 AO); одержувача в рахунку змінити не можна."
+
+msgid "Auskunft und Datenübertragung (Art. 15, 20 DSGVO)"
+msgstr "Доступ і перенесення даних (ст. 15, 20 GDPR)"
+
+msgid "Daten herunterladen (ZIP)"
+msgstr "Завантажити дані (ZIP)"
+
+msgid "Datenauskunft (Art. 15 und 20 DSGVO)"
+msgstr "Надання даних (ст. 15 і 20 GDPR)"
+
+msgid "Datenschutz-Anfrage"
+msgstr "Запит щодо захисту даних"
+
+msgid "Der Kunde hat noch eine offene Bestellung, Buchung, ein offenes Angebot oder eine unbezahlte Rechnung. Bitte zuerst abschließen oder stornieren."
+msgstr "У клієнта є відкрите замовлення, бронювання, пропозиція або неоплачений рахунок. Спершу завершіть або скасуйте його."
+
+msgid "Die personenbezogenen Daten des Kunden wurden gelöscht."
+msgstr "Персональні дані клієнта видалено."
+
+msgid "Löschung (Art. 17 DSGVO)"
+msgstr "Видалення (ст. 17 GDPR)"
+
+msgid "Meldescheine bleiben 1 Jahr gespeichert (§ 30 BMG) und werden dann gelöscht."
+msgstr "Реєстраційні бланки (Meldeschein) зберігаються 1 рік (§ 30 BMG), потім видаляються."
+
+msgid "Name, E-Mail, Telefon, Notizen, Nachrichten und Adressen werden entfernt. Das kann nicht rückgängig gemacht werden."
+msgstr "Ім'я, e-mail, телефон, нотатки, повідомлення та адреси буде видалено. Скасувати це неможливо."
+
+msgid "Umsätze bleiben 10 Jahre gespeichert (GoBD, § 147 AO, § 257 HGB); Kontaktdaten werden entfernt."
+msgstr "Суми продажів зберігаються 10 років (GoBD, § 147 AO, § 257 HGB); контактні дані видаляються."
+
+msgid "Unterschriebene Haftungsverzichte bleiben bis zum Ende der Verjährungsfrist."
+msgstr "Підписані відмови від претензій зберігаються до закінчення строку позовної давності."
+
+msgid "Was gesetzlich gespeichert bleibt"
+msgstr "Що зберігається за законом"
+
+msgid "Zur Bestätigung bitte LÖSCHEN eingeben."
+msgstr "Для підтвердження введіть LÖSCHEN."

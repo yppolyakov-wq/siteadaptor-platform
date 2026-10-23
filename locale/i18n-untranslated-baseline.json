@@ -58,6 +58,9 @@
   "StayBookingSM",
   "TicketSM"
  ],
+ "apps/crm/views.py": [
+  "LÖSCHEN"
+ ],
  "apps/events/forms.py": [
   "Frühbucher | 79 | 10\nStandard | 99\nKind | 0"
  ],

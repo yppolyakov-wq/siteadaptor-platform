@@ -257,3 +257,89 @@ def note_add(request, pk):
         CustomerNote.objects.create(customer=customer, text=form.cleaned_data["text"])
         messages.success(request, _("Note added."))
     return redirect("crm:customer-detail", pk=customer.pk)
+
+
+# --- KA-12 E6.1: запрос клиента по DSGVO (только владелец) ------------------------
+
+
+@login_required
+@owner_required
+def customer_dsgvo(request, pk):
+    """Экран запроса: что выгрузится, что сохранится по закону, можно ли удалить."""
+    from . import dsgvo
+
+    customer = get_object_or_404(Customer, pk=pk)
+    tenant = getattr(request, "tenant", None)
+    return render(
+        request,
+        "crm/customer_dsgvo.html",
+        {
+            "nav": "crm",
+            "customer": customer,
+            "blockers": dsgvo.erasure_blockers(customer, tenant),
+            "kept": list(dsgvo.KEPT_REASONS.values()),
+            "anonymized": customer.name == dsgvo.ANONYMIZED_NAME and not customer.email,
+        },
+    )
+
+
+@login_required
+@owner_required
+def customer_dsgvo_export(request, pk):
+    """Art. 15/20: ZIP с данными клиента (JSON + README «что сохранено и почему»)."""
+    import io
+    import zipfile
+
+    from django.http import HttpResponse
+
+    from apps.audit.services import audit_event
+
+    from . import dsgvo
+
+    customer = get_object_or_404(Customer, pk=pk)
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("daten.json", dsgvo.export_json(customer))
+        readme = [_("Datenauskunft (Art. 15 und 20 DSGVO)"), ""]
+        readme += [f"- {reason}" for reason in dsgvo.KEPT_REASONS.values()]
+        archive.writestr("README.txt", "\n".join(str(line) for line in readme) + "\n")
+    audit_event(
+        action="dsgvo.export",
+        resource_type="customer",
+        resource_id=str(customer.pk),
+        actor=request.user,
+    )
+    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="datenauskunft-{customer.pk}.zip"'
+    response["Cache-Control"] = "no-store"
+    return response
+
+
+@login_required
+@owner_required
+@require_POST
+def customer_dsgvo_erase(request, pk):
+    """Art. 17: удалить данные клиента. Нужно подтверждение словом «LÖSCHEN»."""
+    from apps.audit.services import audit_event
+
+    from . import dsgvo
+
+    customer = get_object_or_404(Customer, pk=pk)
+    if request.POST.get("confirm", "").strip().upper() not in ("LÖSCHEN", "LOESCHEN"):
+        messages.error(request, _("Zur Bestätigung bitte LÖSCHEN eingeben."))
+        return redirect("crm:customer-dsgvo", pk=customer.pk)
+    try:
+        stats = dsgvo.erase_customer(customer, getattr(request, "tenant", None))
+    except dsgvo.ErasureBlocked as exc:
+        for reason in exc.reasons:
+            messages.error(request, reason)
+        return redirect("crm:customer-dsgvo", pk=customer.pk)
+    audit_event(
+        action="dsgvo.erase",
+        resource_type="customer",
+        resource_id=str(customer.pk),
+        actor=request.user,
+        changes={"counts": {k: v for k, v in stats.items() if v}},
+    )
+    messages.success(request, _("Die personenbezogenen Daten des Kunden wurden gelöscht."))
+    return redirect("crm:customer-dsgvo", pk=customer.pk)
