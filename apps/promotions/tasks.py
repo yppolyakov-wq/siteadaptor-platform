@@ -12,9 +12,8 @@ helper'ы (expire_due_reservations / roll_due_promotions), работающие 
 from datetime import timedelta
 
 from django.conf import settings
-from django.db.models import Max
 from django.utils import timezone
-from django_tenants.utils import get_tenant_model, schema_context
+from django_tenants.utils import get_tenant_model, schema_context, tenant_context
 
 from apps.core.jobs import idempotent_task
 
@@ -217,37 +216,100 @@ def roll_recurring_promotions():
     return {"spawned": total}
 
 
-def purge_due_customers(now=None) -> int:
-    """DSGVO: обезличить контакты клиентов без активных броней (в текущей схеме).
+# KA-H11: виды сделок, держащих клиента. Ключ = kind реестра статусов; значение —
+# (модель «app.Model», related_name на Customer). «Открыта» = роль intake/active.
+_PURGE_DEAL_KINDS = {
+    "reservation": ("promotions.Reservation", "reservations"),
+    "stay": ("stays.StayBooking", "stays"),
+    "order": ("orders.Order", "orders"),
+    "booking": ("booking.Booking", "bookings"),
+    "job": ("jobs.Job", "jobs"),
+    "ticket": ("events.Ticket", "event_tickets"),
+}
 
-    Кандидат — клиент, у которого нет pending/confirmed резерваций И активных
-    отельных броней, и чья последняя активность (резервации ИЛИ stays — PMS-аудит
-    2026-07-27: раньше отельные гости под purge не попадали вовсе) старше
-    RESERVATION_PII_RETENTION_DAYS. Сама строка Customer остаётся (для
-    агрегатной статистики), но PII затирается.
+
+def _open_statuses(kind: str, tenant=None) -> tuple[str, ...]:
+    """Коды «сделка ещё идёт»: intake/active (встроенные ∪ свои статусы владельца).
+
+    Не `active_statuses_for`: та про ёмкость — у заказа «ready» и сметы «quoted»
+    места не держат, но сделка живая."""
+    from apps.core import status_registry
+
+    return tuple(
+        code
+        for code, d in status_registry.all_descriptors(kind, tenant).items()
+        if d.role in ("intake", "active")
+    )
+
+
+def purge_due_customers(now=None, tenant=None) -> int:
+    """DSGVO: обезличить контакты клиентов без живых сделок (в текущей схеме).
+
+    Кандидат — клиент с резервом или бронью номера (набор НЕ расширяем: клиенты
+    только с заказами/счетами — отдельное решение GoBD vs Art. 17). Его не трогаем,
+    пока открыта ЛЮБАЯ сделка (заказ, запись, заявка, билет, бронь, резерв,
+    открытое предложение, абонемент с остатком, выставленный неоплаченный счёт), и
+    пока последняя активность по любой из них моложе RESERVATION_PII_RETENTION_DAYS
+    (KA-H11: раньше учитывались только резервы и брони номеров — клиента с живым
+    заказом обезличивало посреди сделки). Строка Customer остаётся (статистика,
+    счета держат свой снимок получателя), PII затирается.
     """
+    from django.apps import apps as django_apps
+    from django.db.models import DateTimeField, Exists, F, OuterRef, Q, Subquery
     from django.db.models.functions import Greatest
 
-    from apps.core import status_registry
+    from apps.booking.models import Pass
+    from apps.finance.models import Invoice
+    from apps.orders.models import Offer
     from apps.stays.models import StayBooking
 
     now = now or timezone.now()
     cutoff = now - timedelta(days=settings.RESERVATION_PII_RETENTION_DAYS)
 
-    # SM-3: активность через реестр (как stays строкой ниже) — резерв в кастом-
-    # active статусе владельца тоже живая сделка, его клиента не обезличиваем.
-    active_customer_ids = Reservation.objects.filter(
-        status__in=status_registry.active_statuses_for("reservation")
-    ).values_list("customer_id", flat=True)
-    active_stay_ids = StayBooking.objects.filter(
-        status__in=status_registry.active_statuses_for("stay")
-    ).values_list("customer_id", flat=True)
+    def latest(model):
+        return Subquery(
+            model.objects.filter(customer=OuterRef("pk"))
+            .order_by("-updated_at")
+            .values("updated_at")[:1],
+            output_field=DateTimeField(),
+        )
+
+    open_deal = Q()
+    activity = []
+    for kind, (label, _related) in _PURGE_DEAL_KINDS.items():
+        model = django_apps.get_model(label)
+        open_deal |= Q(
+            Exists(
+                model.objects.filter(
+                    customer=OuterRef("pk"), status__in=_open_statuses(kind, tenant)
+                )
+            )
+        )
+        activity.append(latest(model))
+    activity.append(latest(Offer))
+    open_deal |= Q(Exists(Offer.objects.filter(customer=OuterRef("pk"), status="open")))
+    open_deal |= Q(
+        Exists(Invoice.objects.filter(customer=OuterRef("pk"), status=Invoice.STATUS_ISSUED))
+    )
+    open_deal |= Q(
+        Exists(
+            Pass.objects.filter(
+                customer=OuterRef("pk"),
+                is_active=True,
+                credits_used__lt=F("credits_total"),
+            ).filter(Q(valid_until__isnull=True) | Q(valid_until__gte=timezone.localdate(now)))
+        )
+    )
+
+    candidate = Q(Exists(Reservation.objects.filter(customer=OuterRef("pk")))) | Q(
+        Exists(StayBooking.objects.filter(customer=OuterRef("pk")))
+    )
 
     stale = (
-        Customer.objects.exclude(id__in=active_customer_ids)
-        .exclude(id__in=active_stay_ids)
-        # PostgreSQL GREATEST игнорирует NULL → работает и для «только stays».
-        .annotate(last_activity=Greatest(Max("reservations__updated_at"), Max("stays__updated_at")))
+        Customer.objects.filter(candidate)
+        .exclude(open_deal)
+        # PostgreSQL GREATEST игнорирует NULL → «нет таких сделок» не мешает.
+        .annotate(last_activity=Greatest(*activity))
         .filter(last_activity__isnull=False, last_activity__lt=cutoff)
         # уже обезличенные не трогаем повторно
         .exclude(name=_ANONYMIZED_NAME, email="", phone="", note="")
@@ -270,9 +332,11 @@ def purge_reservation_pii():
     """Beat: DSGVO-обезличивание старых контактов во всех схемах арендаторов."""
     total = 0
     now = timezone.now()
-    for schema in _iter_tenant_schemas():
-        with schema_context(schema):
-            total += purge_due_customers(now)
+    # KA-H11: настоящий тенант — свои статусы владельца учитываются (schema_context
+    # даёт FakeTenant без site_config).
+    for tenant in get_tenant_model().objects.exclude(schema_name="public"):
+        with tenant_context(tenant):
+            total += purge_due_customers(now, tenant=tenant)
             purge_daily_views(now)
     return {"purged": total}
 
