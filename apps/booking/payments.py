@@ -67,7 +67,7 @@ def mark_deposit_paid(*, tenant_schema: str, booking_id: str, payment_intent: st
         if fields:
             fields.append("updated_at")
             booking.save(update_fields=fields)
-        settle_late_payment("booking", booking)
+        settle_late_payment("booking", booking, newly_paid="payment_state" in fields)
         # Авто-подтверждение, если ресурс не требует ручной проверки (анти-фрод).
         if not booking.resource.require_manual_confirm and booking.status == Booking.STATUS_PENDING:
             try:

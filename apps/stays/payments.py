@@ -71,7 +71,7 @@ def mark_stay_paid(*, tenant_schema: str, booking_id: str, payment_intent: str =
         if fields:
             fields.append("updated_at")
             booking.save(update_fields=fields)
-        settle_late_payment("stay", booking)
+        settle_late_payment("stay", booking, newly_paid="payment_state" in fields)
         # Авто-подтверждение, если юнит не требует ручной проверки (анти-фрод).
         if not booking.unit.require_manual_confirm and booking.status == StayBooking.STATUS_PENDING:
             try:

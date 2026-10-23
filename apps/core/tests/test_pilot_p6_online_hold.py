@@ -110,3 +110,26 @@ def test_late_payment_on_released_stay_is_refunded(sessions, monkeypatch):
     )
     stay.refresh_from_db()
     assert stay.payment_state == "refunded" and refunds
+
+
+def test_replayed_webhook_does_not_refund_kept_payment(sessions, monkeypatch):
+    """Владелец отменил с «nicht erstatten», Stripe повторил вебхук — денег не трогаем."""
+    from django.db import connection
+
+    from apps.stays import payments
+    from apps.stays.state_machine import StayBookingSM
+    from apps.tenants.tests.factories import TenantFactory
+
+    refunds = []
+    monkeypatch.setattr("apps.billing.connect.refund", lambda **kw: refunds.append(kw))
+    TenantFactory(schema_name="public", stripe_connect_id="acct_1")
+    stay = _stay()
+    StayBookingSM().apply(stay, "confirmed")
+    stay.payment_state, stay.stripe_payment_intent = "paid", "pi_kept"
+    stay.save(update_fields=["payment_state", "stripe_payment_intent"])
+    StayBookingSM().apply(stay, "cancelled")  # «nicht erstatten»
+    payments.mark_stay_paid(
+        tenant_schema=connection.schema_name, booking_id=str(stay.id), payment_intent="pi_kept"
+    )
+    stay.refresh_from_db()
+    assert stay.payment_state == "paid" and refunds == []

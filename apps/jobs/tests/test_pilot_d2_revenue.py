@@ -80,3 +80,17 @@ def test_non_job_invoice_untouched():
     invoice = Invoice.objects.create(recipient="X", lines=[], gross=Decimal("10.00"))
     issue_invoice(invoice)
     assert not RevenueEntry.objects.filter(source="job").exists()
+
+
+def test_voucher_part_not_journaled_twice():
+    """Wertgutschein уже в журнале с продажи — его часть в счёте заявки не проводится."""
+    job = _done_job([{"text": "Arbeit", "qty": 1, "unit_price": "100.00"}])
+    from apps.jobs.models import Job
+
+    Job.objects.filter(pk=job.pk).update(discount_cents=3000, voucher_paid_cents=3000)
+    job.refresh_from_db()
+    invoice = services.quote_to_invoice(job)
+    issue_invoice(invoice)
+    invoice.refresh_from_db()
+    total = sum(e.amount for e in _entries(invoice))
+    assert total == invoice.gross - Decimal("30.00")

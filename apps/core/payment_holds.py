@@ -102,14 +102,22 @@ def start_online_hold(obj, *, now=None) -> int:
     return int((due - SESSION_MARGIN).timestamp())
 
 
-def settle_late_payment(kind: str, obj) -> None:
+def settle_late_payment(kind: str, obj, *, newly_paid: bool) -> None:
     """Оплата пришла, а сделка уже снята (удержание истекло, отменили вручную):
     деньги не должны остаться у бизнеса за отменённую бронь — возвращаем сразу.
-    Ошибка Stripe → `refund_payment` откатывает состояние и пишет владельцу."""
+    Ошибка Stripe → `refund_payment` откатывает состояние и пишет владельцу.
+
+    `newly_paid` — именно этот вебхук перевёл оплату в «оплачено». Повтор вебхука по
+    уже оплаченной сделке (Stripe повторяет доставку) НЕ возвращает: владелец мог
+    отменить с «nicht erstatten» (KA-D3) — деньги остаются по его решению."""
     from django.db import connection
 
     from apps.core import refunds
 
+    if not newly_paid:
+        return
+    # Статус — из БД: снятие удержания могло пройти между загрузкой и сохранением.
+    obj.refresh_from_db(fields=["status"])
     if getattr(obj, "status", "") not in status_registry.cancelled_statuses_for(kind):
         return
     from django_tenants.utils import get_tenant_model

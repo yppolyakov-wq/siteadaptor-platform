@@ -216,7 +216,7 @@ def mark_ticket_paid(*, tenant_schema: str, ticket_id: str, payment_intent: str 
         if fields:
             fields.append("updated_at")
             ticket.save(update_fields=fields)
-        settle_late_payment("ticket", ticket)
+        settle_late_payment("ticket", ticket, newly_paid="payment_state" in fields)
         if not ticket.event.require_manual_confirm and ticket.status == Ticket.STATUS_PENDING:
             try:
                 TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)

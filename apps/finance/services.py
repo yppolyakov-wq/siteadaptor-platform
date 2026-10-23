@@ -99,9 +99,38 @@ def _invoice_gross_by_rate(invoice) -> list:
         gross = net + (net * rate / Decimal("100")).quantize(cent, rounding=ROUND_HALF_UP)
         if gross:
             rows.append((rate, gross))
-    if not rows or sum(g for _r, g in rows) != Decimal(invoice.gross):
+    # Отрицательная группа (скидка другой ставки) не проводится record_revenue —
+    # журнал разошёлся бы с документом; тогда одной строкой по ставке документа.
+    if (
+        not rows
+        or any(g <= 0 for _r, g in rows)
+        or sum(g for _r, g in rows) != Decimal(invoice.gross)
+    ):
         return [(Decimal("0") if no_vat else default_rate, Decimal(invoice.gross))]
     return rows
+
+
+def _minus_voucher(rows, voucher_cents: int) -> list:
+    """Вычесть оплату Wertgutschein пропорционально строкам: продажа сертификата уже
+    в журнале (`loyalty.gift`), повтор в счёте задвоил бы выручку."""
+    from decimal import ROUND_HALF_UP, Decimal
+
+    if not voucher_cents or not rows:
+        return rows
+    total = sum(g for _r, g in rows)
+    cut = min(Decimal(voucher_cents) / 100, total)
+    if cut <= 0:
+        return rows
+    out, left = [], cut
+    for i, (rate, gross) in enumerate(rows):
+        share = (
+            left
+            if i == len(rows) - 1
+            else (cut * gross / total).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        )
+        left -= share
+        out.append((rate, gross - share))
+    return [(rate, g) for rate, g in out if g > 0]
 
 
 def journal_invoice_revenue(invoice) -> None:
@@ -111,7 +140,16 @@ def journal_invoice_revenue(invoice) -> None:
     Идемпотентно по `inv:<pk>:<ставка>`."""
     if invoice.deal_kind != "job" or not invoice.gross:
         return
-    for rate, gross in _invoice_gross_by_rate(invoice):
+    voucher_cents = 0
+    try:
+        from apps.jobs.models import Job
+        from apps.jobs.services import voucher_payment_cents
+
+        job = Job.objects.filter(reference_code=invoice.deal_id).first()
+        voucher_cents = voucher_payment_cents(job) if job is not None else 0
+    except Exception:  # noqa: BLE001 — журнал не должен ронять выпуск счёта
+        logger.exception("job revenue: voucher lookup failed for invoice %s", invoice.pk)
+    for rate, gross in _minus_voucher(_invoice_gross_by_rate(invoice), voucher_cents):
         record_revenue(
             source=RevenueEntry.SOURCE_JOB,
             amount=gross,
