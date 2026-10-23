@@ -72,7 +72,9 @@ def test_aktionen_package_caps_modules_without_writing():
 
 def test_lite_storefront_header_has_no_blog_and_no_duplicate_offers():
     """Без своего меню шапка выводится из легаси-nav: «Neuigkeiten» (блог включён
-    пресетом) и «Angebote» → главная у лёгкой витрины не появляются, акции и чат — да."""
+    пресетом), «Angebote» → главная, «Angebot anfordern» и «Eine Frage stellen» у лёгкой
+    витрины не появляются (фидбэк 2026-10-23: чат уже в плавающей кнопке, заявка — у
+    акции); акции и «Über uns» — да."""
     tenant = TenantFactory.build(site_config=dict(AKTIONEN), disabled_modules=[])
     urls = {n["url"] for n in menu.resolve_menu(tenant, "top")}
     # Витрина зовёт с нормализованным конфигом (context.py) — там `menus` есть всегда.
@@ -82,8 +84,11 @@ def test_lite_storefront_header_has_no_blog_and_no_duplicate_offers():
     assert cfg_urls == urls
     assert "/blog/" not in urls
     assert "/" not in urls
-    assert "/aktionen/" in urls
-    assert any(u and u.startswith("/nachricht") for u in urls)
+    assert "/aktionen/" in urls and "/ueber-uns/" in urls
+    assert not any(u and u.startswith(("/nachricht", "/anfrage")) for u in urls)
+    # чат никуда не делся: плавающая кнопка — при том же гейте модуля, что и пункт
+    src = open("templates/storefront/_base.html").read()
+    assert "{% if storefront_inbox_enabled %}" in src.split("data-chat-fab", 1)[0][-600:]
 
 
 def test_full_storefront_header_unchanged():

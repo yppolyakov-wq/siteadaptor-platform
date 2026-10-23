@@ -517,13 +517,20 @@ def resolve_menu(tenant, side: str, cfg=None) -> list[dict]:
     side_cfg = _menus_of(tenant, cfg).get(side, {})
     items = side_cfg.get("items", [])
     if side == "top" and _derived_home_is_duplicate(tenant, cfg):
-        items = [n for n in items if not (n.get("type") == "page" and n.get("target") == "home")]
+        items = [n for n in items if (n.get("type"), n.get("target")) not in LITE_DERIVED_SKIP]
     return [r for r in (_resolve(tenant, n) for n in items) if r]
+
+
+#: Пункты автоменю, которых нет в шапке лёгкой витрины (своё меню владелец не собирал):
+#: «Angebote» → главная — дубль логотипа и «Aktionen» (T-8.32a); «Angebot anfordern»
+#: (заявка) и «Eine Frage stellen» (чат) — вход в них уже есть у самой акции и в
+#: плавающей кнопке чата, в шапке они спорили с акциями (фидбэк владельца 2026-10-23).
+LITE_DERIVED_SKIP = frozenset({("page", "home"), ("archetype", "jobs"), ("archetype", "inbox")})
 
 
 def _derived_home_is_duplicate(tenant, cfg) -> bool:
     """T-8.32a: шапка лёгкой витрины, выведенная из легаси-nav (своего меню владелец не
-    собирал), не показывает «Angebote» → главная: это дубль логотипа и «Aktionen».
+    собирал), без лишних пунктов (`LITE_DERIVED_SKIP`).
     Меню, собранное владельцем, не трогаем — там «Start» мог быть поставлен осознанно."""
     from apps.core import packages
 
