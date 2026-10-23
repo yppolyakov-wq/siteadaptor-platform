@@ -454,6 +454,12 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             raise forms.ValidationError(_("Price must be ≥ 0."))
         return price
 
+    def clean_list_price(self):
+        price = self.cleaned_data.get("list_price")
+        if price is not None and price < 0:
+            raise forms.ValidationError(_("Price must be ≥ 0."))
+        return price
+
     def clean_cost_price(self):
         cost = self.cleaned_data.get("cost_price")
         if cost is not None and cost < 0:

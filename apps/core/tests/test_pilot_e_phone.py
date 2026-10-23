@@ -27,6 +27,12 @@ from apps.core.money import parse_money
         ("12,50 €", Decimal("12.50")),
         (" 12,50 ", Decimal("12.50")),
         ("9.90", Decimal("9.90")),
+        ("1.234.567", Decimal("1234567")),
+        ("1.500,00", Decimal("1500.00")),
+        # одиночная группа через точку — неоднозначна: остаётся дробью (поле с двумя
+        # знаками её отклонит), а не тихо ×1000
+        ("1.500", Decimal("1.500")),
+        ("0.125", Decimal("0.125")),
         ("0", Decimal("0")),
         ("", None),
         ("   ", None),
@@ -63,7 +69,7 @@ def test_money_field_validates_bounds_and_places():
     field = MoneyField(min_value=0, max_digits=10, decimal_places=2, required=False)
     assert field.clean("12,50") == Decimal("12.50")
     assert field.clean("") is None
-    for bad in ("-1", "1,234", "abc"):
+    for bad in ("-1", "1,234", "abc", "1.500", "0.125"):
         with pytest.raises(Exception):  # noqa: B017 — ValidationError с разными кодами
             field.clean(bad)
 
@@ -329,3 +335,17 @@ def test_voucher_page_uses_the_shared_scanner_with_ios_fallback():
     voucher = _tpl("promotions/voucher_redeem.html")
     assert "data-scan-form" in voucher and 'value="voucher"' in voucher
     assert "location.href" not in voucher  # T-8.30e: на адрес из QR не переходим
+
+
+@pytestmark_db
+def test_reference_prices_cannot_be_negative():
+    from apps.catalog.forms import ProductForm
+    from apps.promotions.forms import PromotionForm
+
+    product = ProductForm(
+        {"name_de": "Brot", "currency": "EUR", "base_price": "2", "list_price": "-1"}
+    )
+    assert not product.is_valid() and "list_price" in product.errors
+    promo = PromotionForm({"compare_at_price": "-1", "price_override": "-2"})
+    promo.is_valid()
+    assert "compare_at_price" in promo.errors and "price_override" in promo.errors

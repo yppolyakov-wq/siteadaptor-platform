@@ -286,6 +286,18 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 initial=overlay.get(loc, "") if isinstance(overlay, dict) else "",
             )
 
+    def _non_negative(self, name):
+        value = self.cleaned_data.get(name)
+        if value is not None and value < 0:
+            raise forms.ValidationError(_("Price must be ≥ 0."))
+        return value
+
+    def clean_compare_at_price(self):
+        return self._non_negative("compare_at_price")
+
+    def clean_price_override(self):
+        return self._non_negative("price_override")
+
     def clean(self):
         cleaned = super().clean()
         starts, ends = cleaned.get("starts_at"), cleaned.get("ends_at")
