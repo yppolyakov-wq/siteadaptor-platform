@@ -70,8 +70,13 @@ _AKTIONEN_VIEWS = frozenset(
         "telegram-settings",
         "telegram-connect",
         "telegram-disconnect",
-        "gbp-*",
-        "channel*",
+        "gbp-sync",
+        "gbp-hours",
+        "gbp-location",
+        "channels",
+        "channel-toggle",
+        "channel-config",
+        "channel-oauth-start",
         # Aktionen
         "promotions:promotion-list",
         "promotions:promotion-quick",
@@ -102,8 +107,15 @@ _AKTIONEN_VIEWS = frozenset(
         "catalog:product-image-primary",
         "catalog:variant-*",
         "catalog:modifier-*",
-        # Kunden & Nachrichten + заявки по акции
-        "inbox:*",
+        # Kunden & Nachrichten (без Sofort-Angebot: он создаёт заказ — продажа вне пакета)
+        "inbox:list",
+        "inbox:thread",
+        "inbox:thread-poll",
+        "inbox:thread-typing",
+        "inbox:unread-count",
+        "inbox:reply-draft",
+        "inbox:reply-draft-result",
+        # заявки по акции
         "jobs:detail",
         "jobs:new",
         "jobs:pdf",
@@ -115,7 +127,8 @@ _EINTRAG_VIEWS = _AKTIONEN_VIEWS | {
     "sortiment-view",
     "catalog:product-create",
     "catalog:product-delete",
-    "imports:website*",
+    "imports:website",
+    "imports:website-*",
 }
 
 PACKAGES: dict[str, Package] = {
@@ -148,8 +161,14 @@ def module_allowed(tenant, key: str) -> bool:
 
 
 def view_allowed(tenant, view_name: str) -> bool:
-    """Открыт ли экран кабинета пакету. Пустое имя (не разрешилось) — не наше дело."""
+    """Открыт ли экран кабинета пакету. «префикс-*» — только с разделителем «-»
+    (`catalog:variant-*`), без голых строковых префиксов. Безымянный экран у лёгкого
+    пакета закрыт (сегодня таких под кабинетом нет — замок)."""
     allow = package_of(tenant).cabinet_allow
-    if allow is None or not view_name or view_name in allow:
+    if allow is None:
         return True
-    return any(p.endswith("*") and view_name.startswith(p[:-1]) for p in allow)
+    if not view_name:
+        return False
+    if view_name in allow:
+        return True
+    return any(p.endswith("-*") and view_name.startswith(p[:-1]) for p in allow)

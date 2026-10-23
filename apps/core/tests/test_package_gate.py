@@ -125,7 +125,7 @@ def test_every_allow_entry_matches_a_real_screen():
         "owner-confirm-resend",
     }
     for entry in packages.PACKAGES["eintrag"].cabinet_allow:
-        if entry.endswith("*"):
+        if entry.endswith("-*"):
             assert any(n.startswith(entry[:-1]) for n in names), entry
         else:
             assert entry in names, entry
@@ -155,3 +155,25 @@ def test_mini_app_lite_set_is_cut_by_the_package():
     assert "inbox:list" in reachable
     assert "sellable-manage" not in reachable and "catalog:product-create" not in reachable
     assert "promotions:voucher-redeem" not in reachable
+
+
+def test_template_look_and_bundle_keep_the_package():
+    """Ревью T-8.32b: пакет выведен из `profile` — шаблон/Look/сборка не должны его
+    стирать (иначе лёгкий бизнес молча получил бы весь кабинет)."""
+    from apps.tenants import sitetemplates
+
+    t = TenantFactory(schema_name="public", slug="t832b-keep", site_config=dict(LITE))
+    sitetemplates.apply_template(t, sitetemplates.TEMPLATES[0]["key"])
+    assert packages.package_of(t).key == "aktionen"
+    sitetemplates.apply_look(t, sitetemplates.LOOK_FAMILIES[0]["key"])
+    assert packages.package_of(t).key == "aktionen"
+    sitetemplates.apply_bundle(t, sitetemplates.BUNDLES[0]["key"])
+    assert packages.package_of(t).key == "aktionen"
+
+
+def test_offer_composer_is_outside_aktionen():
+    """Sofort-Angebot создаёт заказ — продажа вне пакета «Aktionen»."""
+    tenant = _tenant(LITE)
+    assert not packages.view_allowed(tenant, "inbox:offer-compose")
+    assert not packages.view_allowed(tenant, "gbp-merchant")
+    assert not packages.view_allowed(tenant, "")
