@@ -20,6 +20,7 @@
   title + посчитанный итог, без конфликта int-центы/Decimal).
 """
 
+import logging
 from dataclasses import dataclass, field
 from decimal import Decimal
 from importlib import import_module
@@ -561,12 +562,14 @@ def _per_status(qs, per_column: int, fallback_limit: int) -> list:
     from django.db.models.functions import RowNumber
 
     try:
-        ordering = list(qs.query.order_by) or ["-created_at"]
+        # pk — последний ключ: та же граница, что у списка «+N weitere» (paginate_queryset).
+        ordering = [*(list(qs.query.order_by) or ["-created_at"]), "-pk"]
         ranked = qs.annotate(
             _rn=Window(RowNumber(), partition_by=[F("status")], order_by=ordering)
         ).filter(_rn__lte=per_column)
         return list(ranked)
     except Exception:  # noqa: BLE001 — доска важнее точности среза
+        logging.getLogger(__name__).exception("board per-column slice failed")
         return list(qs[:fallback_limit])
 
 
