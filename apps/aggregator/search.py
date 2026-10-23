@@ -165,6 +165,19 @@ def match(qs, q: str, *, lang: str | None = None):
     return _match_words(qs, words)
 
 
+def match_any(qs, terms):
+    """T-8.34d: ИЛИ по готовым немецким словам (ИИ-подстраховка) — каждое тем же правилом,
+    что слово запроса (полнотекст + часть слова), но совпасть достаточно любому."""
+    cond = None
+    for term in terms:
+        for token, word in _words(term, "de"):
+            part = Q(search_vector=word)
+            if len(token) >= SUBSTRING_MIN:
+                part |= Q(search_text__contains=fold(token))
+            cond = part if cond is None else cond | part
+    return qs.filter(cond) if cond is not None else qs.none()
+
+
 def _fallback_terms(q: str, lang: str, city: str) -> list[str]:
     """T-8.26 п.4 (Р-1): ЗНАЧИМЫЕ слова для фолбэка — без склейки дефиса («Solingen-Wald» →
     два слова), без стоп-слов, без топонимов города/районов (`districts.toponym_tokens`),

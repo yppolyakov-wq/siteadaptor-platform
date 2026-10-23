@@ -334,6 +334,14 @@ def ai_search_suggest(*, phrase, city, lang, key) -> None:
     ai_search.run(phrase, city, lang, key)
 
 
+@idempotent_task(lock_timeout=60)
+def ai_search_expand(*, q, lang, key) -> None:
+    """T-8.34d: немецкие поисковые слова для запроса на языке посетителя (только в кэш)."""
+    from . import ai_expand
+
+    ai_expand.run(q, lang, key)
+
+
 @idempotent_task()
 def sync_aggregator_listing(*, tenant_schema, promotion_id):
     """Beat/hook: материализовать листинг акции в агрегаторе."""

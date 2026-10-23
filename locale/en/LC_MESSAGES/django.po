@@ -28177,3 +28177,6 @@ msgstr "1 left"
 
 msgid "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
 msgstr "You already have several open pickup times. Please contact us."
+
+msgid "Gesucht auch nach:"
+msgstr "Also searched for:"

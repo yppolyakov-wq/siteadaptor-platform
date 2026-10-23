@@ -1,0 +1,10 @@
+{% load i18n %}{% comment %}T-8.34d: ИИ-подстраховка поиска — немецкие слова и карточки ИЗ БАЗЫ (ни одного
+слова модели вне проверенного списка). Каждое слово — ссылка на обычный поиск по нему.{% endcomment %}
+<section data-ki-expand class="mb-6">
+  <p class="flex flex-wrap items-center gap-2 text-sm mb-3">
+    <span class="text-gray-500">✨ {% trans "Gesucht auch nach:" %}</span>
+    {% for l in links %}<a href="{{ l.url }}" rel="nofollow" class="rounded-full border border-violet-200 bg-white px-3 py-1 text-violet-900 hover:border-violet-400">{{ l.term }}</a>{% endfor %}
+    <span class="text-xs text-gray-400">{{ ai_label }}</span>
+  </p>
+  {% include "aggregator/_cards.html" with items=items %}
+</section>

@@ -729,12 +729,12 @@ def discover_index(request):
             + geo_carry
         )
         ki_slot = None
-        if ai_search.enabled() and not cursor:
+        if ai_search.any_enabled() and not cursor:
             from django.conf import settings
 
             lang = outcome.lang or "de"
             fuzzy = outcome.mode in ("trigram", "empty")
-            if ai_search.should_suggest(q_eff, lang=lang, results=0, first_page=True, fuzzy=fuzzy):
+            if ai_search.should_suggest(q_eff, lang=lang, results=0, first_page=True, fuzzy=True):
                 results = search.count_capped(pool, settings.AI_SEARCH_MAX_RESULTS)
                 ki_slot = ai_search.slot_context(
                     request,

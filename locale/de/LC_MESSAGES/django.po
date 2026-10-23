@@ -28267,3 +28267,6 @@ msgstr "noch 1 frei"
 
 msgid "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
 msgstr "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
+
+msgid "Gesucht auch nach:"
+msgstr "Gesucht auch nach:"

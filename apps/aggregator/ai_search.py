@@ -70,6 +70,13 @@ def enabled() -> bool:
     return bool(config.get("AI_SEARCH_ENABLED", False)) and is_enabled(TASK)
 
 
+def any_enabled() -> bool:
+    """Подсказка фильтров (D-2) ИЛИ подстраховка переводом (T-8.34d) — общий слот/опрос."""
+    from . import ai_expand
+
+    return enabled() or ai_expand.enabled()
+
+
 def _kinds() -> list[str]:
     from .models import AggregatorListing
 
@@ -406,9 +413,9 @@ def slot_context(
     from django.core import signing
     from django.urls import reverse
 
-    from . import follow_query
+    from . import ai_expand, follow_query
 
-    if not enabled():
+    if not any_enabled():
         return None
     # Город — только из реестра: свободный `?city=` попал бы в промпт вне рамки маркера
     # и делил бы ключ кэша с поиском без города (ревью security D-2).
@@ -422,7 +429,20 @@ def slot_context(
     ):
         return None
     first_page = not request.GET.get("cursor")
-    if not should_suggest(q_eff, lang=lang, results=results, first_page=first_page, fuzzy=fuzzy):
+    suggest = enabled() and should_suggest(
+        q_eff, lang=lang, results=results, first_page=first_page, fuzzy=fuzzy
+    )
+    # T-8.34d: перевод — на одно слово тоже, но только когда словарь его не знает и
+    # точной выдачи нет или она маленькая; запрос с контактами/ссылками — никогда.
+    expand = (
+        ai_expand.enabled()
+        and first_page
+        and results is not None
+        and (fuzzy or results <= settings.AI_SEARCH_MAX_RESULTS)
+        and ai_expand.needs_expansion(q_eff, lang=lang)
+        and should_suggest(q_eff, lang=lang, results=0, first_page=True, fuzzy=True)
+    )
+    if not (suggest or expand):
         return None
     pairs = [(k, v) for k, v in request.GET.items() if k not in ("cursor", KI_PARAM)]
     pairs = [(k, v) for k in dict.fromkeys(k for k, _v in pairs) for v in request.GET.getlist(k)]
@@ -439,6 +459,8 @@ def slot_context(
         "c": city or "",
         "l": lang or "de",
         "g": pairs,
+        "sg": 1 if suggest else 0,
+        "x": 1 if expand else 0,
     }
     token = signing.dumps(payload, salt=TOKEN_SALT, compress=True)
     name = "portal-ki-suggest" if surface == "portal" else "aggregator-ki-suggest"
@@ -555,7 +577,7 @@ def fragment(request, *, portal):
             "ai-search-poll", ip, limit=settings.AI_SEARCH_POLL_LIMIT, window=POLL_WINDOW
         ):
             return _empty()
-        if not enabled():
+        if not any_enabled():
             return _empty()
         try:
             payload = signing.loads(
@@ -573,6 +595,12 @@ def fragment(request, *, portal):
         if (payload.get("c") or "") and not city:
             return _empty()
         payload["c"] = city
+        if payload.get("x"):
+            expanded = _expand_step(request, payload, portal=portal, ip=ip)
+            if expanded is not None:
+                return expanded
+        if not payload.get("sg", 1) or not enabled():
+            return _empty()
         key = cache_key(payload.get("r", ""), city, payload.get("l", ""))
         current = state(key)
         if current is None:
@@ -621,6 +649,91 @@ def fragment(request, *, portal):
         {"suggestions": views, "ai_label": AI_LABEL},
     )
     return _private(resp)
+
+
+def _expand_step(request, payload, *, portal, ip):
+    """T-8.34d: ветка перевода внутри общего опроса. None — переходим к подсказке D-2
+    (перевод выключен/пуст/ничего не нашёл), иначе готовый ответ (202 или фрагмент)."""
+    from django.http import HttpResponse
+    from django.shortcuts import render
+
+    from apps.core import ratelimit
+
+    from . import ai_expand, tasks
+
+    if not ai_expand.enabled():
+        return None
+    query, lang = payload.get("r", ""), payload.get("l", "")
+    key = ai_expand.cache_key(query, lang)
+    current = ai_expand.state(key)
+    if current is None:
+        if ratelimit.hit("ai-search", ip, limit=settings.AI_SEARCH_IP_LIMIT, window=POLL_WINDOW):
+            return None
+        if not ai_expand.cache.add(key, {"state": "pending"}, 60):
+            return _private(HttpResponse(status=202))
+        if not reserve_daily_slot():
+            ai_expand.cache.delete(key)
+            return None
+        try:
+            tasks.ai_search_expand.delay(q=query, lang=lang, key=key, dedupe_key=key)
+        except Exception as exc:  # брокер недоступен — подстраховки не будет
+            logger.warning("ai expand enqueue failed: %s", type(exc).__name__)
+            ai_expand.cache.delete(key)
+            return None
+        return _private(HttpResponse(status=202))
+    if current.get("state") == "pending":
+        return _private(HttpResponse(status=202))
+    terms = [t for t in current.get("terms") or () if isinstance(t, str)]
+    if current.get("state") != "done" or not terms:
+        return None
+    view = _expanded_view(terms, payload, portal=portal)
+    if view is None:
+        return None
+    from apps.ai.api import AI_LABEL
+
+    resp = render(
+        request, "aggregator/_search_ki_expand.html", {**view, "terms": terms, "ai_label": AI_LABEL}
+    )
+    return _private(resp)
+
+
+def _expanded_view(terms, payload, *, portal):
+    """Немецкие слова → карточки ИЗ БАЗЫ тем же пулом и фильтрами, что у страницы."""
+    from urllib.parse import urlencode
+
+    from . import ai_expand, search
+    from . import portal_home_blocks as home
+    from .models import AggregatorListing
+    from .views import listings_for
+
+    page = QueryDict(mutable=True)
+    for key, value in payload["g"]:
+        page.appendlist(key, value)
+    if payload.get("pd"):
+        page.setlist("stadtteil", [payload["pd"]])
+    city = payload["c"]
+    filters = search.parse_filters(SimpleNamespace(GET=page), city=city)
+    if portal is not None:
+        from . import portal_scope
+
+        business_type = payload.get("bt") or getattr(portal, "business_type", "") or None
+        pool = portal_scope.pool(portal, city=city or None, business_type=business_type)
+        kinds = home.kinds_for(home.default_kind(page.get("kind") or "", "", filters)) or (
+            AggregatorListing.OFFER_KINDS
+        )
+    else:
+        pool = listings_for(city=city or None)
+        kind = page.get("kind") or ""
+        kinds = home.kinds_for(kind) if kind else None
+    if kinds:
+        pool = pool.filter(listing_kind__in=kinds)
+    qs = search.match_any(search.apply_filters(pool, filters), terms)
+    items = list(qs.order_by("-created_at", "-pk")[: ai_expand.MAX_RESULTS])
+    if not items:
+        return None
+    base = [(k, v) for k, v in payload["g"] if k not in ("q", "cursor", KI_PARAM)]
+    links = [{"term": t, "url": payload["p"] + "?" + urlencode([*base, ("q", t)])} for t in terms]
+    return {"items": items, "links": links}
 
 
 def _private(resp):

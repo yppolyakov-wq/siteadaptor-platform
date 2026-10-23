@@ -28317,3 +28317,6 @@ msgstr "1 yer kaldı"
 
 msgid "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
 msgstr "Zaten birkaç açık teslim alma saatiniz var. Lütfen bizimle iletişime geçin."
+
+msgid "Gesucht auch nach:"
+msgstr "Ayrıca şunlar için arandı:"

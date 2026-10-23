@@ -381,7 +381,7 @@ def portal_home(request, facet=None, district=None):
     ki_slot, ki_chips, ki_landing = None, [], False
     from . import ai_search
 
-    if ai_search.enabled():
+    if ai_search.any_enabled():
         if searching:
             ki_slot = ai_search.slot_context(
                 request,

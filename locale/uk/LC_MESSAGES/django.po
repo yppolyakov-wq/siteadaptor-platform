@@ -28431,3 +28431,6 @@ msgstr "залишилося 1 місце"
 
 msgid "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
 msgstr "У вас уже кілька відкритих замовлень із самовивозом. Будь ласка, зв'яжіться з нами."
+
+msgid "Gesucht auch nach:"
+msgstr "Також шукали за словами:"
