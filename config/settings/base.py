@@ -769,16 +769,20 @@ AI_ENABLED = env.bool("AI_ENABLED", default=False)
 # задача выключена, пока её не внесут. Переписка с клиентом (inbox_reply_draft) по
 # решению владельца выключена, пока ключ ИИ не европейский. Правила —
 # docs/ai-usage-policy-2026-10-23.md.
-AI_TASKS_ENABLED = env.list(
-    "AI_TASKS_ENABLED",
-    default=[
-        "site_import_extract",
-        "promo_photo_draft",
-        "promo_text_check",
-        "catalog_moderation",
-        "search_phrase_filters",
-    ],
-)
+AI_TASKS_ENABLED = [
+    name.strip()
+    for name in env.list(
+        "AI_TASKS_ENABLED",
+        default=[
+            "site_import_extract",
+            "promo_photo_draft",
+            "promo_text_check",
+            "catalog_moderation",
+            "search_phrase_filters",
+        ],
+    )
+    if name.strip()
+]
 AI_REQUIRE_EU = env.bool("AI_REQUIRE_EU", default=False)
 AI_ROUTE_FAST = env.list("AI_ROUTE_FAST", default=["fake"])
 AI_ROUTE_STRONG = env.list("AI_ROUTE_STRONG", default=["fake"])
