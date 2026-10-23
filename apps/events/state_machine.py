@@ -109,6 +109,12 @@ class TicketSM(StateMachine):
                 plan.status = InstallmentPlan.STATUS_CANCELLED
                 plan.save(update_fields=["status", "updated_at"])
 
+        # KA-MC X1: деньги «на месте» за билет приходят на входе (attended).
+        if t.dst == "attended":
+            from apps.core.money_contract import settle_on_delivery
+
+            settle_on_delivery("ticket", instance)
+
         # Продажа билета (подтверждён/оплачен) → выручка. KA-H8: к оплате (после
         # ваучера) по снимку ставки билета; § 19 → 0 %.
         if t.dst == "confirmed":

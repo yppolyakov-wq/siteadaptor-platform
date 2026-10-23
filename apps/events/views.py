@@ -18,7 +18,7 @@ from . import itinerary, registration
 from .forms import EventForm, TeacherForm, TourForm, unique_tour_slug
 from .models import Event, Teacher, Ticket, Tour
 from .services import book_ticket, notify_event_waitlist
-from .state_machine import EventSM, TicketSM
+from .state_machine import EventSM
 
 
 def _add_event_photos(event, uploaded) -> None:
@@ -330,10 +330,9 @@ def ticket_action(request, pk, tid):
                 request,
                 _("Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."),
             )
-        ticket.payment_state = Ticket.PAYMENT_PAID
-        ticket.save(update_fields=["payment_state", "updated_at"])
-        if ticket.status == Ticket.STATUS_PENDING:
-            TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
+        from apps.core import money_contract
+
+        money_contract.settle_payment("ticket", ticket)  # KA-MC: единый путь
         messages.success(request, _("Marked as paid."))
     else:
         try:

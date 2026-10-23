@@ -202,9 +202,15 @@ def refund_on_cancel(
 ) -> RefundResult:
     """Хук кабинетной смены статуса: вернуть оплату, если это вход в отмену.
     `refund=False` — владелец выбрал «nicht erstatten» (KA-D3)."""
-    if not refund or not wants_refund(kind, target, source, tenant):
-        return RefundResult.NONE
-    return refund_payment(kind, obj, tenant)
+    result = RefundResult.NONE
+    if refund and wants_refund(kind, target, source, tenant):
+        result = refund_payment(kind, obj, tenant)
+    if result != RefundResult.FAILED:
+        # KA-MC X6: что бизнес оставил себе (неявка, «nicht erstatten») — выручка.
+        from apps.core.money_contract import retain_on_cancel
+
+        retain_on_cancel(kind, obj, tenant)
+    return result
 
 
 def flash(request, result: RefundResult, kind: str) -> None:

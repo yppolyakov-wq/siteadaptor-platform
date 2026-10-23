@@ -20,7 +20,7 @@ from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
 
-from apps.core import status_registry, transactions
+from apps.core import money_contract, status_registry, transactions
 
 logger = logging.getLogger(__name__)
 
@@ -29,11 +29,7 @@ logger = logging.getLogger(__name__)
 HOLD_KINDS = ("booking", "stay", "ticket")
 
 # Состояния «денег ещё нет» per-kind (те же, что у ERP-2 «Offene Posten»).
-_UNPAID = {
-    "booking": ("none", "pending"),
-    "stay": ("none", "pending"),
-    "ticket": ("none", "pending", "deposit"),
-}
+_UNPAID = money_contract.UNPAID_HOLD_STATES
 
 
 def expire_overdue(tenant, *, now=None, kinds=HOLD_KINDS) -> int:

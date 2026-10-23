@@ -23,7 +23,7 @@ from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import status_registry, transactions
+from apps.core import money_contract, status_registry, transactions
 
 # --- разбор CSV ----------------------------------------------------------------
 
@@ -149,12 +149,8 @@ def import_rows(rows) -> int:
 
 # kind → какие payment_state означают «ЖДЁМ денег». none у броней = оплата на
 # месте (не долг), поэтому в открытые не идёт; у заказа unpaid — идёт.
-_OPEN_PAYMENT_STATES = {
-    "order": ("unpaid",),
-    "booking": ("pending", "deposit"),
-    "stay": ("pending", "deposit"),
-    "ticket": ("pending", "deposit"),
-}
+# KA-MC: одна карта на всю платформу — денежный контракт сделки.
+_OPEN_PAYMENT_STATES = money_contract.OPEN_STATES
 
 
 def open_items(tenant) -> list[dict]:
@@ -164,27 +160,31 @@ def open_items(tenant) -> list[dict]:
 
     today = timezone.localdate()
     out = []
+    billed = Invoice.objects.filter(status__in=("issued", "paid"))
+    invoiced = {(k, d) for k, d in billed.exclude(deal_id="").values_list("deal_kind", "deal_id")}
+    invoiced_ids = set(billed.values_list("pk", flat=True))
     for kind, states in _OPEN_PAYMENT_STATES.items():
         if not tenant.is_module_active(transactions.KIND_MODULE[kind]):
             continue
         model = transactions.model_for(kind)
         qs = (
-            model.objects.filter(payment_state__in=states)
+            model.objects.filter(money_contract.open_q(kind))
             .exclude(status__in=status_registry.cancelled_statuses_for(kind, tenant))
             .order_by("created_at")[:200]
         )
         for obj in qs:
-            t = transactions.transaction_for(kind, obj)
-            if not t.amount_value:
+            # KA-MC X3: у сделки с выставленным счётом открытая позиция — САМ счёт
+            # (одна строка, его ждёт Mahnwesen), иначе сумма считалась бы дважды.
+            if (kind, str(obj.reference_code)) in invoiced or (
+                getattr(obj, "invoice_id", None) in invoiced_ids
+            ):
                 continue
-            amount = t.amount_value
-            if getattr(obj, "payment_state", "") == "deposit":
-                # KA-H6: Anzahlung уже пришла — ждём ОСТАТОК (иначе банк не сопоставит).
-                from decimal import Decimal
-
-                amount = Decimal(getattr(obj, "balance_cents", 0) or 0) / 100
-                if not amount:
-                    continue
+            t = transactions.transaction_for(kind, obj)
+            # KA-MC X4: «ждём» из денежного контракта — к оплате после ваучера и
+            # за вычетом Anzahlung (KA-H6), одним правилом для всех видов.
+            amount = money_contract.due(kind, obj)
+            if not amount:
+                continue
             out.append(
                 {
                     "kind": kind,
@@ -257,10 +257,9 @@ def apply_match(tx, kind: str, obj) -> None:
         if obj.status == "issued":
             InvoiceSM().apply(obj, "paid")
     else:
-        paid = "paid"
-        if obj.payment_state != paid:
-            obj.payment_state = paid
-            obj.save(update_fields=["payment_state", "updated_at"])
+        # KA-MC X2: тем же путём, что вебхук и кнопка «bezahlt» (снятие удержания,
+        # подтверждение, закрытие счёта сделки), а не голой записью поля.
+        money_contract.settle_payment(kind, obj, source="bank")
     tx.matched_kind = kind
     tx.matched_id = str(obj.pk)
     tx.matched_at = timezone.now()

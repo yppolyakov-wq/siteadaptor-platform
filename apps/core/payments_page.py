@@ -16,24 +16,14 @@ from datetime import timedelta
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import payment_methods, status_registry, transactions
+from apps.core import money_contract, payment_methods, status_registry, transactions
 
 # Состояния оплаты per-kind: что считаем «оплачено» и «ждёт денег».
 # Зеркалит finance.bank._OPEN_PAYMENT_STATES (ERP-2): у броней `none` — оплата
 # на месте, это НЕ долг; у билета `deposit` — частичная предоплата.
-PAID_STATES = {
-    "order": ("paid",),
-    "booking": ("paid",),
-    "stay": ("paid",),
-    "ticket": ("paid",),
-}
-OPEN_STATES = {
-    "order": ("unpaid",),
-    "booking": ("pending", "deposit"),
-    "stay": ("pending", "deposit"),
-    "ticket": ("pending", "deposit"),
-}
-REFUNDED_STATES = {k: ("refunded",) for k in PAID_STATES}
+PAID_STATES = money_contract.PAID_STATES
+OPEN_STATES = money_contract.OPEN_STATES
+REFUNDED_STATES = money_contract.REFUNDED_STATES
 
 FILTERS = (
     ("open", _("Offen")),
@@ -54,7 +44,10 @@ def _filtered(tenant, kind, state, method, since=None):
     model = transactions.model_for(kind)
     qs = model.objects.exclude(status__in=status_registry.cancelled_statuses_for(kind, tenant))
     states_map = _STATES_BY_FILTER.get(state)
-    if states_map is not None:
+    if state == "open":
+        # KA-MC: «offen» — то же правило, что Offene Posten (Vorkasse/счёт у брони — тоже долг).
+        qs = qs.filter(money_contract.open_q(kind))
+    elif states_map is not None:
         qs = qs.filter(payment_state__in=states_map[kind])
     # SH-23d: способ оплаты теперь есть у ВСЕХ видов сделок (SH-23c), поэтому
     # фильтр больше не отбрасывает бронь/номер/билет/заявку молча.

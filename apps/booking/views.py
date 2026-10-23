@@ -232,8 +232,9 @@ def booking_action(request, pk):
         if booking.payment_state == Booking.PAYMENT_REFUNDED:
             messages.error(request, _("This step is not possible in the current status."))
             return redirect(back)
-        booking.payment_state = Booking.PAYMENT_PAID
-        booking.save(update_fields=["payment_state", "updated_at"])
+        from apps.core import money_contract
+
+        money_contract.settle_payment("booking", booking)  # KA-MC: единый путь
         messages.success(request, _("Marked as paid."))
         return redirect(back)
     if action == "move":

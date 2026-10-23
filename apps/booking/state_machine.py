@@ -57,6 +57,12 @@ class BookingSM(StateMachine):
         # KA-H7: ставка — снимок записи (§ 19 → 0), визит по карте пишет только
         # Extras (сама услуга проведена при продаже карты). Общие брони без цены
         # (стол/комната) выручку не пишут.
+        if t.dst == "fulfilled":
+            # KA-MC X1: оплата на месте получена при исполнении (решение владельца).
+            from apps.core.money_contract import settle_on_delivery
+
+            settle_on_delivery("booking", instance)
+
         if t.dst == "fulfilled" and instance.total_cents:
             from apps.booking.revenue import revenue_for
             from apps.finance.services import record_revenue

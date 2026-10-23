@@ -56,6 +56,11 @@ class OrderSM(StateMachine):
         # Выдан/отправлен → запись в журнал выручки (D4a, идемпотентно по
         # source_ref). Доставка включена в total → попадает в выручку.
         if t.dst in ("picked_up", "shipped"):
+            # KA-MC X1: оплата на месте получена при исполнении (решение владельца).
+            from apps.core.money_contract import settle_on_delivery
+
+            settle_on_delivery("order", instance)
+
             from apps.finance.services import record_revenue
 
             record_revenue(

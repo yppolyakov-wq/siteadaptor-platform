@@ -21,5 +21,10 @@ class InvoiceSM(StateMachine):
 
         if t.dst == "issued":
             journal_invoice_revenue(instance)
+        elif t.dst == "paid":
+            # KA-MC X3: оплаченный счёт закрывает и сделку, из которой выставлен.
+            from apps.core.money_contract import settle_invoice_deal
+
+            settle_invoice_deal(instance)
         elif t.dst == "cancelled":
             reverse_invoice_revenue(instance)

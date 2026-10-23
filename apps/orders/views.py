@@ -450,9 +450,13 @@ def order_action(request, pk):
     order = get_object_or_404(Order, pk=pk)
     action = request.POST.get("action", "")
     if action == "mark_paid":
-        order.payment_state = Order.PAYMENT_PAID
-        order.save(update_fields=["payment_state", "updated_at"])
-        messages.success(request, _("Marked as paid."))
+        from apps.core import money_contract
+
+        if order.payment_state == Order.PAYMENT_REFUNDED:
+            messages.error(request, _("This step is not possible in the current status."))
+        else:
+            money_contract.settle_payment("order", order)  # KA-MC: единый путь
+            messages.success(request, _("Marked as paid."))
     elif action in ("confirmed", "ready", "picked_up", "shipped", "cancelled", "returned"):
         # W10-5: спец-поля (tracking_code при shipped) пишет единая точка
         # apply_action ДО apply — письмо включает номер; shipped_at ставит FSM (W7c).

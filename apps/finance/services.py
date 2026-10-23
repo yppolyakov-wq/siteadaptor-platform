@@ -224,6 +224,55 @@ def compute_totals(lines, vat_rate, *, small_business=False):
     return net, vat, net + vat
 
 
+def fit_gross(lines, target, vat_rate, *, small_business=False):
+    """KA-MC X5: подогнать снимок позиций так, чтобы брутто счёта = итогу сделки.
+
+    Цены сделок брутто, счёт считает от нетто: нетто за штуку, округлённое до
+    цента, при qty > 1 или нескольких строках уводит счёт на цент (2 × 12,50 €
+    давали 24,99 €). Правим нетто САМОЙ КРУПНОЙ облагаемой строки с точностью
+    0,0001 — `compute_totals` округляет только группы ставок, а PDF печатает цену
+    штуки с двумя знаками, поэтому документ остаётся читаемым. Строки с явной
+    ставкой 0 (Kurtaxe) не трогаем. Возвращает те же `lines` (изменены на месте)."""
+    from decimal import ROUND_HALF_UP, Decimal
+
+    cent = Decimal("0.01")
+    fine = Decimal("0.0001")
+    target = Decimal(str(target)).quantize(cent, rounding=ROUND_HALF_UP)
+    default = Decimal("0") if small_business else Decimal(str(vat_rate))
+
+    def line_rate(line):
+        own = line.get("vat_rate")
+        rate = default if own in (None, "") else Decimal(str(own))
+        return Decimal("0") if small_business else rate
+
+    for _attempt in range(6):
+        _net, _vat, gross = compute_totals(lines, vat_rate, small_business=small_business)
+        diff = target - gross
+        if not diff:
+            return lines
+        candidates = [
+            ln
+            for ln in lines
+            if _to_decimal(ln["unit_price"], "0") > 0
+            and (small_business or str(ln.get("vat_rate", "")) not in ("0", "0.00"))
+        ]
+        if not candidates:
+            break
+        line = max(
+            candidates,
+            key=lambda ln: _to_decimal(ln["unit_price"], "0") * _to_decimal(ln.get("qty", 1)),
+        )
+        qty = _to_decimal(line.get("qty", 1)) or Decimal("1")
+        step = (diff / (1 + line_rate(line) / Decimal("100")) / qty).quantize(
+            fine, rounding=ROUND_HALF_UP
+        )
+        if not step:
+            step = fine if diff > 0 else -fine
+        line["unit_price"] = str(_to_decimal(line["unit_price"], "0") + step)
+    logger.warning("finance: invoice rounding residual vs deal total %s", target)
+    return lines
+
+
 def issue_invoice(invoice, *, tenant=None, terms_days=None):
     """draft → issued: последовательный номер под блокировкой счётчика.
 
@@ -365,6 +414,7 @@ def invoice_from_stay(booking, tenant=None):
                 "vat_rate": "0",
             }
         )
+    fit_gross(lines, Decimal(booking.total_cents or 0) / 100, rate, small_business=small)
     net, vat, gross = compute_totals(lines, rate, small_business=small)
     return Invoice.objects.create(
         customer=booking.customer,
@@ -398,13 +448,22 @@ def invoice_from_booking(booking, tenant=None):
     for extra in booking.extras or []:
         if not isinstance(extra, dict):
             continue
-        e_net, _v = _net_from_gross(Decimal(int(extra.get("price_cents", 0))) / 100, rate)
+        # KA-MC X5: у допа своя ставка (как в счёте из брони номера, VAT-4).
+        own = extra.get("vat_rate")
+        e_rate = rate if small or own in (None, "") else Decimal(str(own))
+        e_net, _v = _net_from_gross(Decimal(int(extra.get("price_cents", 0))) / 100, e_rate)
         lines.append(
-            {"text": str(extra.get("label", ""))[:200], "qty": 1, "unit_price": str(e_net)}
+            {
+                "text": str(extra.get("label", ""))[:200],
+                "qty": 1,
+                "unit_price": str(e_net),
+                "vat_rate": str(e_rate),
+            }
         )
     if booking.discount_cents:
         d_net, _v = _net_from_gross(Decimal(booking.discount_cents) / 100, rate)
         lines.append({"text": str(_("Rabatt")), "qty": 1, "unit_price": str(-d_net)})
+    fit_gross(lines, Decimal(booking.total_cents or 0) / 100, rate, small_business=small)
     total_net, vat, gross = compute_totals(lines, rate, small_business=small)
     return Invoice.objects.create(
         customer=booking.customer,
@@ -563,6 +622,7 @@ def invoice_from_order(order, tenant=None):
     # считается ПО СТАВКАМ СТРОК: у смешанного заказа одна усреднённая ставка
     # давала счёт, не совпадающий с суммой, которую клиент реально заплатил.
     rate = totals["rows"][0]["rate"] if totals["rows"] else Decimal("19.00")
+    fit_gross(lines, order.total, rate, small_business=small)  # KA-MC X5: счёт = заказ
     net, vat, gross = compute_totals(lines, rate, small_business=small)
     return Invoice.objects.create(
         customer=order.customer,

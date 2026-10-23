@@ -63,6 +63,11 @@ class StayBookingSM(StateMachine):
         # Выезд → журнал выручки (идемпотентно по source_ref). KA-H6: проживание —
         # по снимку ставки брони, питание тарифа — отдельной записью 19 %.
         if t.dst == "fulfilled":
+            # KA-MC X1: оплата на месте получена при исполнении (решение владельца).
+            from apps.core.money_contract import settle_on_delivery
+
+            settle_on_delivery("stay", instance)
+
             from apps.stays import meal
 
             meal.record_revenue(instance)

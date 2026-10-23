@@ -241,6 +241,10 @@ def apply_custom_effects(kind: str, instance, src_desc, dst_desc) -> None:
         record_revenue_for(kind, instance)
     if dst_desc.role == "done":
         commit_stock_for(kind, instance)
+        # KA-MC X1: свой статус исполнения — оплата на месте получена (зеркало встроенного).
+        from apps.core.money_contract import settle_on_delivery
+
+        settle_on_delivery(kind, instance)
     # VF-13 (зеркало резерва): кастом-статус job роли active, «держащий ёмкость»
     # (blocks_capacity — дефолт роли), резервирует Teile как builtin `accepted`
     # (commit_stock идемпотентен; builtin quoted/accepted сюда не попадают —

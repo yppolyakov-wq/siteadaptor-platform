@@ -534,8 +534,9 @@ def stay_action(request, pk):
         if booking.payment_state == StayBooking.PAYMENT_REFUNDED:
             messages.error(request, _("This step is not possible in the current status."))
             return redirect(back)
-        booking.payment_state = StayBooking.PAYMENT_PAID
-        booking.save(update_fields=["payment_state", "updated_at"])
+        from apps.core import money_contract
+
+        money_contract.settle_payment("stay", booking)  # KA-MC: единый путь
         messages.success(request, _("Marked as paid."))
         # Панель брони остаётся открытой (как у action=update).
         return redirect(f"{back}&buchung={booking.pk}")
