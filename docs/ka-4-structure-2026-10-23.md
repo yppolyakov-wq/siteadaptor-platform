@@ -208,3 +208,8 @@ Medien/Medienbibliothek · Website & Domains/Domains · Hilfe/Hilfe & Support ·
 Kampagnen/Gutscheinaktionen · Treuepunkte/Treueprogramm(e). Плюс: Verkäufe с одним видом сделок показывает
 `<h1>` вкладки («Aufträge») вместо «Verkäufe» (`core/verkaeufe.html:32,46`) — оставить осознанно.
 Пустые msgstr: «Zahlungen empfangen» (po:18939), «Channel Manager».
+
+**Решения владельца 2026-10-23: В-1…В-6 — по рекомендации.** Седьмой якорь «Finanzen» —
+только при Profi Finanzen или включённой аналитике (мораторий X7 снимается ровно для него) ·
+«Marketing & Kunden» · блог выключен по умолчанию · «Board» → «Spalten» · часы/ресурсы/блокировки →
+Einstellungen · `marketing-home` и `integrations-home` убираются.
