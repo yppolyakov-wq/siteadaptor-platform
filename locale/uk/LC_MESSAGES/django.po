@@ -28594,3 +28594,80 @@ msgstr[3] "%(n)s попередніх розмов з цим клієнтом"
 
 msgid "Auf diesem Gerät vergessen"
 msgstr "Забути на цьому пристрої"
+
+msgid "Berufsbezeichnung (falls reglementiert)"
+msgstr "Професія (якщо регульована)"
+
+msgid "E-Mail für Kundschaft und Impressum"
+msgstr "E-mail для клієнтів та Impressum"
+
+msgid "E-Mail-Adresse für das Impressum"
+msgstr "E-mail для Impressum"
+
+msgid "Einzelunternehmen"
+msgstr "Фізична особа-підприємець"
+
+msgid "Erscheint im Impressum — nicht Ihre Login-Adresse."
+msgstr "Вказується в Impressum — не адреса для входу."
+
+msgid "Freiberufler/in"
+msgstr "Вільна професія"
+
+msgid "Ihr Impressum ist noch unvollständig"
+msgstr "Ваш Impressum ще не заповнено повністю"
+
+msgid ""
+"Ihr Impressum ist noch unvollständig — ergänzen Sie die Pflichtangaben."
+msgstr "Ваш Impressum ще не заповнено — додайте обов'язкові дані."
+
+msgid "Impressum ergänzen"
+msgstr "Заповнити Impressum"
+
+msgid "Jetzt ergänzen"
+msgstr "Заповнити"
+
+msgid "Nur mit Handelsregister-Eintrag, z. B. „Amtsgericht Wuppertal“."
+msgstr ""
+"Лише за наявності запису в торговому реєстрі, напр. «Amtsgericht Wuppertal»."
+
+msgid "Pflichtangaben nach § 5 DDG — daraus entsteht Ihr Impressum."
+msgstr "Обов'язкові дані за § 5 DDG — з них складається Impressum."
+
+msgid "Rechtliches (Impressum)"
+msgstr "Правове (Impressum)"
+
+msgid "Rechtsform"
+msgstr "Правова форма"
+
+msgid "Rechtstexte (Datenschutz, Widerruf, AGB)"
+msgstr "Правові тексти (Datenschutz, Widerruf, AGB)"
+
+msgid ""
+"Rechtstexte (Datenschutz, Widerruf, AGB) bearbeiten Sie im Browser-Kabinett."
+msgstr ""
+"Правові тексти (Datenschutz, Widerruf, AGB) редагуються в кабінеті в "
+"браузері."
+
+msgid "Registergericht"
+msgstr "Реєстраційний суд"
+
+msgid "Registergericht und Registernummer"
+msgstr "Реєстраційний суд і номер"
+
+msgid "Registernummer"
+msgstr "Реєстраційний номер"
+
+msgid "USt-IdNr., Steuernummer oder Kleinunternehmer-Hinweis"
+msgstr "USt-IdNr., податковий номер або позначка Kleinunternehmer"
+
+msgid "Vertreten durch (Geschäftsführer/in, Inhaber/in)"
+msgstr "Представник (директор, власник)"
+
+msgid "Zuständige Kammer (falls vorgeschrieben)"
+msgstr "Професійна палата (якщо вимагається)"
+
+msgid "Vertretungsberechtigte Person"
+msgstr "Уповноважений представник"
+
+msgid "Vorschau Impressum"
+msgstr "Попередній перегляд Impressum"

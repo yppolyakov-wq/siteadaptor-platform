@@ -28612,3 +28612,79 @@ msgstr[3] "%(n)s прежних разговоров с этим клиенто�
 
 msgid "Auf diesem Gerät vergessen"
 msgstr "Забыть на этом устройстве"
+
+msgid "Berufsbezeichnung (falls reglementiert)"
+msgstr "Профессия (если регулируется)"
+
+msgid "E-Mail für Kundschaft und Impressum"
+msgstr "E-mail для клиентов и Impressum"
+
+msgid "E-Mail-Adresse für das Impressum"
+msgstr "E-mail для Impressum"
+
+msgid "Einzelunternehmen"
+msgstr "Индивидуальное предприятие"
+
+msgid "Erscheint im Impressum — nicht Ihre Login-Adresse."
+msgstr "Указывается в Impressum — не адрес для входа."
+
+msgid "Freiberufler/in"
+msgstr "Свободная профессия"
+
+msgid "Ihr Impressum ist noch unvollständig"
+msgstr "Ваш Impressum ещё не заполнен полностью"
+
+msgid ""
+"Ihr Impressum ist noch unvollständig — ergänzen Sie die Pflichtangaben."
+msgstr "Ваш Impressum ещё не заполнен — добавьте обязательные данные."
+
+msgid "Impressum ergänzen"
+msgstr "Заполнить Impressum"
+
+msgid "Jetzt ergänzen"
+msgstr "Заполнить"
+
+msgid "Nur mit Handelsregister-Eintrag, z. B. „Amtsgericht Wuppertal“."
+msgstr "Только при записи в торговом реестре, напр. «Amtsgericht Wuppertal»."
+
+msgid "Pflichtangaben nach § 5 DDG — daraus entsteht Ihr Impressum."
+msgstr "Обязательные данные по § 5 DDG — из них составляется Impressum."
+
+msgid "Rechtliches (Impressum)"
+msgstr "Правовое (Impressum)"
+
+msgid "Rechtsform"
+msgstr "Правовая форма"
+
+msgid "Rechtstexte (Datenschutz, Widerruf, AGB)"
+msgstr "Правовые тексты (Datenschutz, Widerruf, AGB)"
+
+msgid ""
+"Rechtstexte (Datenschutz, Widerruf, AGB) bearbeiten Sie im Browser-Kabinett."
+msgstr ""
+"Правовые тексты (Datenschutz, Widerruf, AGB) редактируются в кабинете в "
+"браузере."
+
+msgid "Registergericht"
+msgstr "Регистрационный суд"
+
+msgid "Registergericht und Registernummer"
+msgstr "Регистрационный суд и номер"
+
+msgid "Registernummer"
+msgstr "Регистрационный номер"
+
+msgid "USt-IdNr., Steuernummer oder Kleinunternehmer-Hinweis"
+msgstr "USt-IdNr., налоговый номер или отметка Kleinunternehmer"
+
+msgid "Vertreten durch (Geschäftsführer/in, Inhaber/in)"
+msgstr "Представитель (директор, владелец)"
+
+msgid "Zuständige Kammer (falls vorgeschrieben)"
+msgstr "Профессиональная палата (если требуется)"
+
+msgid "Vertretungsberechtigte Person"
+msgstr "Уполномоченный представитель"
+
+msgid "Vorschau Impressum"
+msgstr "Предпросмотр Impressum"

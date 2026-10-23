@@ -28346,3 +28346,79 @@ msgstr[1] "%(n)s earlier conversations with this customer"
 
 msgid "Auf diesem Gerät vergessen"
 msgstr "Forget on this device"
+
+msgid "Berufsbezeichnung (falls reglementiert)"
+msgstr "Professional title (if regulated)"
+
+msgid "E-Mail für Kundschaft und Impressum"
+msgstr "E-mail for customers and legal notice"
+
+msgid "E-Mail-Adresse für das Impressum"
+msgstr "E-mail address for the legal notice"
+
+msgid "Einzelunternehmen"
+msgstr "Sole proprietorship"
+
+msgid "Erscheint im Impressum — nicht Ihre Login-Adresse."
+msgstr "Shown in the legal notice — not your login address."
+
+msgid "Freiberufler/in"
+msgstr "Freelancer"
+
+msgid "Ihr Impressum ist noch unvollständig"
+msgstr "Your legal notice is still incomplete"
+
+msgid ""
+"Ihr Impressum ist noch unvollständig — ergänzen Sie die Pflichtangaben."
+msgstr "Your legal notice is still incomplete — add the mandatory details."
+
+msgid "Impressum ergänzen"
+msgstr "Complete legal notice"
+
+msgid "Jetzt ergänzen"
+msgstr "Complete now"
+
+msgid "Nur mit Handelsregister-Eintrag, z. B. „Amtsgericht Wuppertal“."
+msgstr "Only with a commercial register entry, e.g. “Amtsgericht Wuppertal”."
+
+msgid "Pflichtangaben nach § 5 DDG — daraus entsteht Ihr Impressum."
+msgstr ""
+"Mandatory details under § 5 DDG — your legal notice is generated from them."
+
+msgid "Rechtliches (Impressum)"
+msgstr "Legal (legal notice)"
+
+msgid "Rechtsform"
+msgstr "Legal form"
+
+msgid "Rechtstexte (Datenschutz, Widerruf, AGB)"
+msgstr "Legal texts (privacy, withdrawal, terms)"
+
+msgid ""
+"Rechtstexte (Datenschutz, Widerruf, AGB) bearbeiten Sie im Browser-Kabinett."
+msgstr ""
+"Edit legal texts (privacy, withdrawal, terms) in the browser dashboard."
+
+msgid "Registergericht"
+msgstr "Register court"
+
+msgid "Registergericht und Registernummer"
+msgstr "Register court and number"
+
+msgid "Registernummer"
+msgstr "Register number"
+
+msgid "USt-IdNr., Steuernummer oder Kleinunternehmer-Hinweis"
+msgstr "VAT ID, tax number or small-business note"
+
+msgid "Vertreten durch (Geschäftsführer/in, Inhaber/in)"
+msgstr "Represented by (managing director, owner)"
+
+msgid "Zuständige Kammer (falls vorgeschrieben)"
+msgstr "Responsible chamber (if required)"
+
+msgid "Vertretungsberechtigte Person"
+msgstr "Authorised representative"
+
+msgid "Vorschau Impressum"
+msgstr "Legal notice preview"

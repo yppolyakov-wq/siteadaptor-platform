@@ -138,7 +138,7 @@ def test_chips_stadtportal_only_when_listing_public():
 
 def _resolves(path):
     try:
-        resolve(path.split("?")[0])
+        resolve(path.split("?")[0].split("#")[0])
     except Resolver404:
         return False
     return True
@@ -152,6 +152,23 @@ def test_next_step_without_active_promo_points_to_assistant():
 
 def test_next_step_products_without_photo():
     t = _tenant()
+    # KA-12 E7.2: Impressum заполнен — следующий шаг про фото.
+    t.address, t.contact_email, t.small_business = "Markt 1, Solingen", "i@k.de", True
+    step = lite_home.next_step(
+        t, counts={"active": 1, "scheduled": 0}, products={"total": 3, "no_photo": 2}
+    )
+    assert step["key"] == "photos"
+
+
+def test_next_step_incomplete_impressum_after_first_promo():
+    """KA-12 E7.2: после первой акции — дозаполнить Impressum (предупреждение, не блок)."""
+    t = _tenant()
+    t.address = ""
+    step = lite_home.next_step(
+        t, counts={"active": 1, "scheduled": 0}, products={"total": 3, "no_photo": 2}
+    )
+    assert step["key"] == "impressum" and step["url"].endswith("#sec-recht")
+    t.is_demo = True  # демо не пугаем предупреждением
     step = lite_home.next_step(
         t, counts={"active": 1, "scheduled": 0}, products={"total": 3, "no_photo": 2}
     )

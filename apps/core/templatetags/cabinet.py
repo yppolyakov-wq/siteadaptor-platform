@@ -110,6 +110,19 @@ def pkg_allowed(url_name, tenant):
     return tenant is None or packages.view_allowed(tenant, str(url_name))
 
 
+@register.filter
+def lite_allowed(url_name, request):
+    """KA-12 E8.10: `{% if 'x'|lite_allowed:request %}` — экран открыт пакету И, в Telegram
+    Mini App, входит в её белый список (иначе ссылка ведёт в «nicht verfügbar»)."""
+    from apps.core import tg_login
+
+    name = str(url_name)
+    tenant = getattr(request, "tenant", None)
+    if tenant is not None and not packages.view_allowed(tenant, name):
+        return False
+    return not tg_login.is_tg_session(request) or name in tg_login.TG_LITE_VIEWS
+
+
 @register.inclusion_tag("tenant/_nav_palette.html", takes_context=True)
 def nav_palette(context):
     """W8-4: палитра Ctrl+K — гейтнутый индекс реестра (модуль активен).

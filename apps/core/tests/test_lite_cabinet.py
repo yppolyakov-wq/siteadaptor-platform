@@ -75,6 +75,8 @@ def test_lite_business_saves_only_its_fields_and_hours(user):
         "address": "Kölner Straße 64, 42651 Solingen",
         "contact_phone": "0212 123456",
         "whatsapp_number": "",
+        # KA-12 E7.1: e-mail для Impressum обязателен (не почта входа)
+        "contact_email": "info@krume.example.com",
         "oh_0_open": "07:00",
         "oh_0_close": "18:00",
     }

@@ -8,17 +8,37 @@
 <div class="max-w-lg mx-auto" data-lite-business>
   <h1 class="text-xl font-bold mb-1">🏪 {% trans "Geschäft" %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% trans "So finden Kundinnen und Kunden Sie — auf jeder Aktion." %}</p>
+  {% include "tenant/_impressum_missing.html" with missing=impressum_missing link="#sec-recht" %}
   <form method="post" class="space-y-3">
     {% csrf_token %}
-    <section class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
-      {% for field in form %}
+    {% for sec in form.sections %}
+    <section id="sec-{{ sec.key }}" class="bg-white rounded-2xl shadow-sm p-4 space-y-3" data-lite-section="{{ sec.key }}">
+      <h2 class="text-sm font-semibold">{{ sec.title }}</h2>
+      {% if sec.key == "recht" %}<p class="text-xs text-gray-500">{% trans "Pflichtangaben nach § 5 DDG — daraus entsteht Ihr Impressum." %}</p>{% endif %}
+      {% for field in sec.fields %}
+        {% if field.is_hidden %}{{ field }}{% elif field.field.widget.input_type == "checkbox" %}
+        <label class="flex items-center gap-2 text-sm">{{ field }} {{ field.label }}</label>
+        {% else %}
         <label class="block">
           <span class="block text-sm font-medium mb-1">{{ field.label }}</span>
           {% render_field field class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" %}
+          {% if field.help_text %}<span class="block text-xs text-gray-500 mt-1">{{ field.help_text }}</span>{% endif %}
           {% for e in field.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
         </label>
+        {% endif %}
       {% endfor %}
+      {% if sec.key == "recht" %}
+        <details class="text-xs text-gray-500"><summary class="cursor-pointer">{% trans "Vorschau Impressum" %}</summary>
+          <pre class="mt-2 whitespace-pre-wrap font-sans bg-gray-50 rounded-lg p-3" data-impressum-preview>{{ request.tenant.impressum_text }}</pre>
+        </details>
+        {% if 'legal-docs'|lite_allowed:request %}
+        <a href="{% url 'legal-docs' %}" class="block text-sm text-indigo-600 hover:underline" data-legal-link>{% trans "Rechtstexte (Datenschutz, Widerruf, AGB)" %} →</a>
+        {% elif tg_lite %}
+        <p class="text-xs text-gray-500">{% trans "Rechtstexte (Datenschutz, Widerruf, AGB) bearbeiten Sie im Browser-Kabinett." %}</p>
+        {% endif %}
+      {% endif %}
     </section>
+    {% endfor %}
     <section id="sec-zeiten" class="bg-white rounded-2xl shadow-sm p-4" data-lite-hours>
       <h2 class="text-sm font-semibold mb-1">{% trans "Opening hours" %}</h2>
       <p class="text-xs text-gray-500 mb-3">{% trans "Set open/close per day for the live “Open now” badge. Leave a day empty = closed." %}</p>

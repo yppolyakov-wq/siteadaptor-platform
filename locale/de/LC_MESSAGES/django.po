@@ -28437,3 +28437,79 @@ msgstr[1] "%(n)s frühere Unterhaltungen mit diesem Kunden"
 
 msgid "Auf diesem Gerät vergessen"
 msgstr "Auf diesem Gerät vergessen"
+
+msgid "Berufsbezeichnung (falls reglementiert)"
+msgstr "Berufsbezeichnung (falls reglementiert)"
+
+msgid "E-Mail für Kundschaft und Impressum"
+msgstr "E-Mail für Kundschaft und Impressum"
+
+msgid "E-Mail-Adresse für das Impressum"
+msgstr "E-Mail-Adresse für das Impressum"
+
+msgid "Einzelunternehmen"
+msgstr "Einzelunternehmen"
+
+msgid "Erscheint im Impressum — nicht Ihre Login-Adresse."
+msgstr "Erscheint im Impressum — nicht Ihre Login-Adresse."
+
+msgid "Freiberufler/in"
+msgstr "Freiberufler/in"
+
+msgid "Ihr Impressum ist noch unvollständig"
+msgstr "Ihr Impressum ist noch unvollständig"
+
+msgid ""
+"Ihr Impressum ist noch unvollständig — ergänzen Sie die Pflichtangaben."
+msgstr ""
+"Ihr Impressum ist noch unvollständig — ergänzen Sie die Pflichtangaben."
+
+msgid "Impressum ergänzen"
+msgstr "Impressum ergänzen"
+
+msgid "Jetzt ergänzen"
+msgstr "Jetzt ergänzen"
+
+msgid "Nur mit Handelsregister-Eintrag, z. B. „Amtsgericht Wuppertal“."
+msgstr "Nur mit Handelsregister-Eintrag, z. B. „Amtsgericht Wuppertal“."
+
+msgid "Pflichtangaben nach § 5 DDG — daraus entsteht Ihr Impressum."
+msgstr "Pflichtangaben nach § 5 DDG — daraus entsteht Ihr Impressum."
+
+msgid "Rechtliches (Impressum)"
+msgstr "Rechtliches (Impressum)"
+
+msgid "Rechtsform"
+msgstr "Rechtsform"
+
+msgid "Rechtstexte (Datenschutz, Widerruf, AGB)"
+msgstr "Rechtstexte (Datenschutz, Widerruf, AGB)"
+
+msgid ""
+"Rechtstexte (Datenschutz, Widerruf, AGB) bearbeiten Sie im Browser-Kabinett."
+msgstr ""
+"Rechtstexte (Datenschutz, Widerruf, AGB) bearbeiten Sie im Browser-Kabinett."
+
+msgid "Registergericht"
+msgstr "Registergericht"
+
+msgid "Registergericht und Registernummer"
+msgstr "Registergericht und Registernummer"
+
+msgid "Registernummer"
+msgstr "Registernummer"
+
+msgid "USt-IdNr., Steuernummer oder Kleinunternehmer-Hinweis"
+msgstr "USt-IdNr., Steuernummer oder Kleinunternehmer-Hinweis"
+
+msgid "Vertreten durch (Geschäftsführer/in, Inhaber/in)"
+msgstr "Vertreten durch (Geschäftsführer/in, Inhaber/in)"
+
+msgid "Zuständige Kammer (falls vorgeschrieben)"
+msgstr "Zuständige Kammer (falls vorgeschrieben)"
+
+msgid "Vertretungsberechtigte Person"
+msgstr "Vertretungsberechtigte Person"
+
+msgid "Vorschau Impressum"
+msgstr "Vorschau Impressum"

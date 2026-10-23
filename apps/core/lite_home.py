@@ -78,6 +78,14 @@ NEXT_STEPS = (
         "cta": _("Aktion anlegen"),
     },
     {
+        # KA-12 E7.2: Impressum — предупреждение (не блок), сразу после первой акции.
+        "key": "impressum",
+        "url": "lite-business",
+        "anchor": "#sec-recht",
+        "text": _("Ihr Impressum ist noch unvollständig — ergänzen Sie die Pflichtangaben."),
+        "cta": _("Impressum ergänzen"),
+    },
+    {
         "key": "photos",
         "url": "sellable-manage",
         "text": _("Einige Produkte haben noch kein Foto. Mit Foto werden sie öfter angesehen."),
@@ -99,7 +107,7 @@ NEXT_STEPS = (
 
 
 def _step_url(rule) -> str:
-    return reverse(rule["url"])
+    return reverse(rule["url"]) + rule.get("anchor", "")
 
 
 def _owner_in_telegram(tenant) -> bool:
@@ -108,9 +116,16 @@ def _owner_in_telegram(tenant) -> bool:
     return bool(node.get("owner_chat_id"))
 
 
+def _impressum_missing(tenant) -> list[str]:
+    from apps.core.lite_cabinet import impressum_missing
+
+    return impressum_missing(tenant)
+
+
 def next_step(tenant, counts, products) -> dict:
     checks = {
         "first_promo": lambda: not counts.get("active") and not counts.get("scheduled"),
+        "impressum": lambda: bool(_impressum_missing(tenant)),
         "photos": lambda: bool(products and products.get("no_photo")),
         "telegram": lambda: not _owner_in_telegram(tenant),
         "share": lambda: True,

@@ -28491,3 +28491,78 @@ msgstr[1] "Bu müşteriyle %(n)s önceki görüşme"
 
 msgid "Auf diesem Gerät vergessen"
 msgstr "Bu cihazda unut"
+
+msgid "Berufsbezeichnung (falls reglementiert)"
+msgstr "Meslek unvanı (düzenlenmişse)"
+
+msgid "E-Mail für Kundschaft und Impressum"
+msgstr "Müşteriler ve künye için e-posta"
+
+msgid "E-Mail-Adresse für das Impressum"
+msgstr "Künye için e-posta adresi"
+
+msgid "Einzelunternehmen"
+msgstr "Şahıs işletmesi"
+
+msgid "Erscheint im Impressum — nicht Ihre Login-Adresse."
+msgstr "Künyede görünür — giriş adresiniz değil."
+
+msgid "Freiberufler/in"
+msgstr "Serbest meslek"
+
+msgid "Ihr Impressum ist noch unvollständig"
+msgstr "Künyeniz henüz eksik"
+
+msgid ""
+"Ihr Impressum ist noch unvollständig — ergänzen Sie die Pflichtangaben."
+msgstr "Künyeniz eksik — zorunlu bilgileri ekleyin."
+
+msgid "Impressum ergänzen"
+msgstr "Künyeyi tamamla"
+
+msgid "Jetzt ergänzen"
+msgstr "Şimdi tamamla"
+
+msgid "Nur mit Handelsregister-Eintrag, z. B. „Amtsgericht Wuppertal“."
+msgstr "Yalnızca ticaret siciline kayıtlıysa, ör. „Amtsgericht Wuppertal“."
+
+msgid "Pflichtangaben nach § 5 DDG — daraus entsteht Ihr Impressum."
+msgstr "§ 5 DDG uyarınca zorunlu bilgiler — künyeniz bunlardan oluşur."
+
+msgid "Rechtliches (Impressum)"
+msgstr "Yasal (künye)"
+
+msgid "Rechtsform"
+msgstr "Hukuki şekil"
+
+msgid "Rechtstexte (Datenschutz, Widerruf, AGB)"
+msgstr "Yasal metinler (gizlilik, cayma, şartlar)"
+
+msgid ""
+"Rechtstexte (Datenschutz, Widerruf, AGB) bearbeiten Sie im Browser-Kabinett."
+msgstr ""
+"Yasal metinleri (gizlilik, cayma, şartlar) tarayıcıdaki panelde düzenleyin."
+
+msgid "Registergericht"
+msgstr "Sicil mahkemesi"
+
+msgid "Registergericht und Registernummer"
+msgstr "Sicil mahkemesi ve numarası"
+
+msgid "Registernummer"
+msgstr "Sicil numarası"
+
+msgid "USt-IdNr., Steuernummer oder Kleinunternehmer-Hinweis"
+msgstr "KDV no, vergi no veya küçük işletme notu"
+
+msgid "Vertreten durch (Geschäftsführer/in, Inhaber/in)"
+msgstr "Temsilci (genel müdür, sahip)"
+
+msgid "Zuständige Kammer (falls vorgeschrieben)"
+msgstr "Yetkili oda (gerekiyorsa)"
+
+msgid "Vertretungsberechtigte Person"
+msgstr "Yetkili temsilci"
+
+msgid "Vorschau Impressum"
+msgstr "Künye önizlemesi"

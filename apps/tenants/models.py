@@ -211,8 +211,31 @@ class Tenant(TenantMixin):
     # Kleinunternehmer §19 UStG — счета без НДС, с обязательным Hinweis.
     tax_number = models.CharField(max_length=30, blank=True)
     small_business = models.BooleanField(default=False)
-    register_entry = models.CharField(max_length=120, blank=True)  # Handelsregister
+    register_entry = models.CharField(max_length=120, blank=True)  # Handelsregister (легаси)
     legal_responsible = models.CharField(max_length=200, blank=True)  # Verantwortlich i.S.d.
+    # KA-12 E7.1: структурные данные Impressum (§ 5 DDG) — правовая форма, представитель,
+    # реестр (суд + номер), палата и профессия для регулируемых. `legal_responsible` —
+    # это V.i.S.d.P. (§ 18 MStV), НЕ представитель; `register_entry` — легаси-фолбэк.
+    LEGAL_FORMS = [
+        ("einzel", _("Einzelunternehmen")),
+        ("freiberuf", _("Freiberufler/in")),
+        ("ek", "e. K."),
+        ("gbr", "GbR"),
+        ("ohg", "OHG"),
+        ("kg", "KG"),
+        ("ug", "UG (haftungsbeschränkt)"),
+        ("gmbh", "GmbH"),
+        ("ev", "e. V."),
+    ]
+    # Формы, у которых по закону есть представитель / запись в реестре.
+    LEGAL_FORMS_WITH_REPRESENTATIVE = frozenset({"gbr", "ohg", "kg", "ug", "gmbh", "ev"})
+    LEGAL_FORMS_WITH_REGISTER = frozenset({"ek", "ohg", "kg", "ug", "gmbh", "ev"})
+    legal_form = models.CharField(max_length=20, choices=LEGAL_FORMS, blank=True, default="")
+    legal_representative = models.CharField(max_length=200, blank=True, default="")
+    register_court = models.CharField(max_length=80, blank=True, default="")
+    register_number = models.CharField(max_length=40, blank=True, default="")
+    chamber = models.CharField(max_length=200, blank=True, default="")
+    profession = models.CharField(max_length=200, blank=True, default="")
     impressum = models.TextField(blank=True)
     privacy_policy = models.TextField(blank=True)
     withdrawal_policy = models.TextField(blank=True)
@@ -426,20 +449,65 @@ class Tenant(TenantMixin):
         """Свободный Impressum или сгенерированный из структурированных полей."""
         if self.impressum.strip():
             return self.impressum
-        lines = [self.name]
+        form = dict(self.LEGAL_FORMS).get(self.legal_form, "")
+        name = self.name
+        if form and str(form) not in name:
+            name = f"{name} ({form})"
+        lines = [name]
         if self.address:
             lines.append(self.address)
+        if self.legal_representative:
+            lines.append(f"Vertreten durch: {self.legal_representative}")
         if self.public_email:
             lines.append(f"E-Mail: {self.public_email}")
         if self.public_phone:
             lines.append(f"Telefon: {self.public_phone}")
-        if self.legal_responsible:
-            lines.append(f"Verantwortlich i.S.d. § 18 Abs. 2 MStV: {self.legal_responsible}")
-        if self.register_entry:
+        if self.register_court or self.register_number:
+            reg = ", ".join(p for p in (self.register_court, self.register_number) if p)
+            lines.append(f"Registereintrag: {reg}")
+        elif self.register_entry:
             lines.append(f"Registereintrag: {self.register_entry}")
         if self.vat_id:
             lines.append(f"USt-IdNr.: {self.vat_id}")
+        elif self.tax_number:
+            lines.append(f"Steuernummer: {self.tax_number}")
+        if self.chamber:
+            lines.append(f"Zuständige Kammer: {self.chamber}")
+        if self.profession:
+            lines.append(f"Berufsbezeichnung: {self.profession}")
+        if self.legal_responsible:
+            lines.append(f"Verantwortlich i.S.d. § 18 Abs. 2 MStV: {self.legal_responsible}")
         return "\n".join(lines)
+
+    def impressum_missing(self) -> list[str]:
+        """KA-12 E7.2: чего не хватает сгенерированному Impressum (ключи). Свой текст
+        Impressum (поле или LegalDoc) владелец ведёт сам — тогда пусто."""
+        if self.impressum.strip():
+            return []
+        try:
+            from apps.core.models import LegalDoc
+
+            if LegalDoc.objects.filter(kind="impressum").exclude(text="").exists():
+                return []
+        except Exception:  # noqa: BLE001 — не та схема: проверяем по полям
+            pass
+        missing = []
+        if not (self.address or "").strip():
+            missing.append("address")
+        if not (self.contact_email or "").strip():
+            missing.append("contact_email")
+        if (
+            self.legal_form in self.LEGAL_FORMS_WITH_REPRESENTATIVE
+            and not self.legal_representative
+        ):
+            missing.append("representative")
+        if self.legal_form in self.LEGAL_FORMS_WITH_REGISTER and not (
+            (self.register_court and self.register_number) or self.register_entry
+        ):
+            missing.append("register")
+        if not (self.vat_id or self.tax_number or self.small_business):
+            missing.append("tax")
+        return missing
 
     def privacy_text(self) -> str:
         """Свободная политика конфиденциальности или базовый шаблон (DSGVO)."""

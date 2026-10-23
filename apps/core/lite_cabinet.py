@@ -104,21 +104,115 @@ def sidebar_items(tenant=None, user=None) -> list[dict]:
     ]
 
 
+def impressum_missing(tenant) -> list[str]:
+    """KA-12 E7.2: недостающее в Impressum; демо/внутренние — без предупреждения."""
+    if getattr(tenant, "is_demo", False) or getattr(tenant, "is_internal", False):
+        return []
+    try:
+        return tenant.impressum_missing()
+    except Exception:  # noqa: BLE001 — хром кабинета не падает
+        return []
+
+
 class LiteBusinessForm(forms.ModelForm):
-    """«Geschäft»: только то, что видит клиент акции — адрес, телефон, WhatsApp."""
+    """«Geschäft»: что видит клиент акции (адрес, телефон, WhatsApp) + KA-12 E7.1
+    правовые данные Impressum (§ 5 DDG) — свой e-mail вместо почты входа, правовая
+    форма, представитель, реестр, налоговые данные."""
+
+    # Группы полей формы (шаблон рисует их разделами).
+    SECTIONS = (
+        ("kontakt", _("Kontakt"), ("name", "contact_phone", "whatsapp_number", "contact_email")),
+        ("standort", _("Standort"), ("address", "city", "district")),
+        (
+            "recht",
+            _("Rechtliches (Impressum)"),
+            (
+                "legal_form",
+                "legal_representative",
+                "register_court",
+                "register_number",
+                "vat_id",
+                "tax_number",
+                "small_business",
+            ),
+        ),
+    )
 
     class Meta:
         from apps.tenants.models import Tenant
 
         model = Tenant
-        fields = ["name", "address", "contact_phone", "whatsapp_number"]
+        fields = [
+            "name",
+            "address",
+            "city",
+            "district",
+            "contact_phone",
+            "whatsapp_number",
+            "contact_email",
+            "legal_form",
+            "legal_representative",
+            "register_court",
+            "register_number",
+            "vat_id",
+            "tax_number",
+            "small_business",
+        ]
         labels = {
             "name": _("Name Ihres Geschäfts"),
             "address": _("Adresse"),
+            "city": _("Stadt"),
+            "district": _("Stadtteil"),
             "contact_phone": _("Telefon"),
             "whatsapp_number": _("WhatsApp-Nummer"),
+            "contact_email": _("E-Mail für Kundschaft und Impressum"),
+            "legal_form": _("Rechtsform"),
+            "legal_representative": _("Vertreten durch (Geschäftsführer/in, Inhaber/in)"),
+            "register_court": _("Registergericht"),
+            "register_number": _("Registernummer"),
+            "vat_id": _("USt-IdNr."),
+            "tax_number": _("Steuernummer"),
+            "small_business": _("Kleinunternehmer (§ 19 UStG) — Rechnungen ohne MwSt."),
         }
-        widgets = {"address": forms.Textarea(attrs={"rows": 2})}
+        help_texts = {
+            "contact_email": _("Erscheint im Impressum — nicht Ihre Login-Adresse."),
+            "register_court": _("Nur mit Handelsregister-Eintrag, z. B. „Amtsgericht Wuppertal“."),
+        }
+        widgets = {
+            "address": forms.Textarea(attrs={"rows": 2}),
+            "contact_email": forms.EmailInput(attrs={"autocomplete": "email"}),
+            "contact_phone": forms.TextInput(attrs={"type": "tel", "autocomplete": "tel"}),
+            "whatsapp_number": forms.TextInput(attrs={"type": "tel"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from apps.core import districts
+
+        self.fields["contact_email"].required = True
+        if not self.is_bound and not self.instance.contact_email:
+            # Префилл почтой входа — владелец видит её и может сменить (не молча в Impressum).
+            self.initial["contact_email"] = self.instance.owner_email
+        city = (self.data.get("city") if self.is_bound else None) or self.instance.city
+        choices = districts.choices_for(city)
+        if choices:
+            self.fields["district"] = forms.ChoiceField(
+                label=_("Stadtteil"), required=False, choices=[("", "—"), *choices]
+            )
+        else:
+            self.fields["district"].widget = forms.HiddenInput()
+
+    def sections(self):
+        return [
+            {"key": key, "title": title, "fields": [self[n] for n in names if n in self.fields]}
+            for key, title, names in self.SECTIONS
+        ]
+
+    def clean_district(self):
+        from apps.core import districts
+
+        city = self.cleaned_data.get("city") or self.instance.city
+        return districts.normalize(city, self.cleaned_data.get("district") or "")
 
     def clean_address(self):
         address = " ".join((self.cleaned_data.get("address") or "").split())
@@ -155,7 +249,12 @@ def lite_business(request):
     return render(
         request,
         "tenant/lite_business.html",
-        {"form": form, "nav": "settings", "opening_hours_rows": _opening_hours_rows(tenant)},
+        {
+            "form": form,
+            "nav": "settings",
+            "opening_hours_rows": _opening_hours_rows(tenant),
+            "impressum_missing": impressum_missing(tenant),
+        },
     )
 
 

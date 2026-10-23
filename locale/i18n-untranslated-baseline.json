@@ -176,11 +176,16 @@
   "Betrieb und Hosting dieser Website: SiteAdaptor",
   "Datenschutzerklärung\n\nVerantwortlich für die Datenverarbeitung auf dieser Website ist",
   "Die Daten werden nach Ablauf der gesetzlichen Fristen gelöscht bzw. anonymisiert.",
+  "GbR",
+  "GmbH",
   "LinkedIn",
+  "OHG",
   "Sie haben das Recht auf Auskunft, Berichtigung, Löschung und Widerspruch. Wenden Sie sich dazu an:",
   "Stornierung / Widerruf\n\nEine Reservierung ist unverbindlich und kann jederzeit storniert werden. Bei Fragen kontaktieren Sie uns bitte unter",
   "TikTok",
-  "YouTube"
+  "UG (haftungsbeschränkt)",
+  "YouTube",
+  "Zuständige Kammer:"
  ],
  "apps/tenants/siteconfig.py": [
   "Beschreiben Sie hier ein Angebot oder eine Besonderheit — das Foto können Sie jederzeit austauschen.",

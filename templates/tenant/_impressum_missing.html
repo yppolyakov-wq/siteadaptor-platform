@@ -1,0 +1,15 @@
+{% load i18n %}
+{% comment %}KA-12 E7.2: чего не хватает Impressum — предупреждение (не блок): быстрый
+старт T-8.5 адреса не спрашивает, жёсткий гейт продаж — T-8.32c. `missing` — список
+ключей Tenant.impressum_missing(); `link` — куда вести (опционально).{% endcomment %}
+{% if missing %}
+<div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 text-sm" role="status" data-impressum-missing>
+  <p class="font-medium">{% trans "Ihr Impressum ist noch unvollständig" %}</p>
+  <ul class="mt-1 list-disc pl-5 space-y-0.5">
+    {% for k in missing %}
+      <li>{% if k == "address" %}{% trans "Adresse" %}{% elif k == "contact_email" %}{% trans "E-Mail-Adresse für das Impressum" %}{% elif k == "representative" %}{% trans "Vertretungsberechtigte Person" %}{% elif k == "register" %}{% trans "Registergericht und Registernummer" %}{% elif k == "tax" %}{% trans "USt-IdNr., Steuernummer oder Kleinunternehmer-Hinweis" %}{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% if link %}<a href="{{ link }}" class="inline-block mt-2 font-medium underline">{% trans "Jetzt ergänzen" %} →</a>{% endif %}
+</div>
+{% endif %}

@@ -8,6 +8,7 @@
   <p class="text-gray-500 mb-4 text-sm">{% trans "Legal pages of your website — per language. Leave a field empty to use the automatic text from your business data." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
+  {% include "tenant/_impressum_missing.html" with missing=impressum_missing %}
 
   <form method="post" class="space-y-6">
     {% csrf_token %}
@@ -26,6 +27,37 @@
         </div>
       </div>
       <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="small_business" {% if steuer.small_business %}checked{% endif %} class="rounded border-gray-300"> {% trans "Kleinunternehmer (§ 19 UStG) — Rechnungen ohne MwSt." %}</label>
+      {% comment %}KA-12 E7.1: структурные данные Impressum (§ 5 DDG); свободное поле
+      «Registereintrag» остаётся для старых записей — суд+номер его перекрывают.{% endcomment %}
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1" for="legal_form">{% trans "Rechtsform" %}</label>
+          <select id="legal_form" name="legal_form" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <option value="">—</option>
+            {% for v, l in legal_forms %}<option value="{{ v }}"{% if steuer.legal_form == v %} selected{% endif %}>{{ l }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="legal_representative">{% trans "Vertreten durch (Geschäftsführer/in, Inhaber/in)" %}</label>
+          <input id="legal_representative" name="legal_representative" value="{{ steuer.legal_representative }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="register_court">{% trans "Registergericht" %}</label>
+          <input id="register_court" name="register_court" value="{{ steuer.register_court }}" placeholder="Amtsgericht Wuppertal" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="register_number">{% trans "Registernummer" %}</label>
+          <input id="register_number" name="register_number" value="{{ steuer.register_number }}" placeholder="HRB 12345" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="chamber">{% trans "Zuständige Kammer (falls vorgeschrieben)" %}</label>
+          <input id="chamber" name="chamber" value="{{ steuer.chamber }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" for="profession">{% trans "Berufsbezeichnung (falls reglementiert)" %}</label>
+          <input id="profession" name="profession" value="{{ steuer.profession }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        </div>
+      </div>
       <div>
         <label class="block text-sm font-medium mb-1" for="register_entry">{% trans "Registereintrag (z. B. HRB, Amtsgericht)" %}</label>
         <input id="register_entry" name="register_entry" value="{{ steuer.register_entry }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">

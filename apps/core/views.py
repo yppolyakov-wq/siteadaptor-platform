@@ -1499,6 +1499,12 @@ def languages_context(tenant) -> list[dict]:
     ]
 
 
+def _lite_impressum_missing(tenant):
+    from apps.core.lite_cabinet import impressum_missing
+
+    return impressum_missing(tenant)
+
+
 @login_required
 def legal_docs_view(request):
     """L5/E-2: кабинет «Recht» — правовые тексты витрины per-locale (LegalDoc).
@@ -1523,6 +1529,17 @@ def legal_docs_view(request):
             tenant.small_business = bool(request.POST.get("small_business"))
             tenant.register_entry = request.POST.get("register_entry", "").strip()[:200]
             tenant.legal_responsible = request.POST.get("legal_responsible", "").strip()[:200]
+            # KA-12 E7.1: структурные поля Impressum (те же, что в лёгком «Geschäft»).
+            form = request.POST.get("legal_form", "")
+            tenant.legal_form = form if form in dict(tenant.LEGAL_FORMS) else ""
+            for f, n in (
+                ("legal_representative", 200),
+                ("register_court", 80),
+                ("register_number", 40),
+                ("chamber", 200),
+                ("profession", 200),
+            ):
+                setattr(tenant, f, request.POST.get(f, "").strip()[:n])
             tenant.save(
                 update_fields=[
                     "vat_id",
@@ -1530,6 +1547,12 @@ def legal_docs_view(request):
                     "small_business",
                     "register_entry",
                     "legal_responsible",
+                    "legal_form",
+                    "legal_representative",
+                    "register_court",
+                    "register_number",
+                    "chamber",
+                    "profession",
                     "updated_at",
                 ]
             )
@@ -1567,7 +1590,13 @@ def legal_docs_view(request):
     return render(
         request,
         "tenant/legal_docs.html",
-        {"kinds": kinds, "nav": "legal-docs", "steuer": tenant},
+        {
+            "kinds": kinds,
+            "nav": "legal-docs",
+            "steuer": tenant,
+            "legal_forms": tenant.LEGAL_FORMS,
+            "impressum_missing": _lite_impressum_missing(tenant),
+        },
     )
 
 
