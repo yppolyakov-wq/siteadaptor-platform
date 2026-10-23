@@ -493,9 +493,36 @@
       if (tg && tg.initData) {
         try { tg.ready(); tg.expand(); } catch (e) {}
         document.documentElement.classList.add("in-telegram");
+        // Фидбэк 2026-10-23: в Mini App «Anrufen» не делал ничего — Telegram не
+        // открывает tel:/mailto: из своего окна. Показываем номер с «Kopieren»;
+        // внешние ссылки (WhatsApp, Route) открываем через Telegram.
+        document.addEventListener("click", function (ev) {
+          var a = ev.target.closest && ev.target.closest("a[href]");
+          if (!a) return;
+          var href = a.getAttribute("href") || "";
+          var labels = document.getElementById("tg-link-labels");
+          if (/^(tel|mailto):/i.test(href)) {
+            ev.preventDefault();
+            var value = decodeURIComponent(href.replace(/^(tel|mailto):/i, ""));
+            try {
+              tg.showPopup({
+                message: value,
+                buttons: [{id: "copy", type: "default", text: labels ? labels.dataset.copy : "Copy"}, {type: "close"}]
+              }, function (id) {
+                if (id === "copy" && navigator.clipboard) navigator.clipboard.writeText(value).catch(function () {});
+              });
+            } catch (e) { window.prompt("", value); }
+            return;
+          }
+          if (/^https?:/i.test(href) && a.host && a.host !== window.location.host) {
+            ev.preventDefault();
+            try { tg.openLink(a.href); } catch (e) { window.location.href = a.href; }
+          }
+        });
       }
     });
   </script>
+  <span id="tg-link-labels" hidden data-copy="{% trans 'Kopieren' %}"></span>
   <script>
     // Обратный отсчёт: элементы с data-countdown="<ISO end>"
     (function () {

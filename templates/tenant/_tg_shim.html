@@ -43,5 +43,32 @@
   document.addEventListener("click", function (e) {
     if (e.target.closest("[data-tg-close]")) post("web_app_close");
   });
+  // Фидбэк 2026-10-23: tel:/mailto: Telegram из своего окна не открывает («Anrufen»
+  // молчал) — показываем номер с «Kopieren»; внешние ссылки — через Telegram.
+  var pending = "";
+  window.saTgBridge.on("popup_closed", function (d) {
+    if (d && d.button_id === "copy" && pending && navigator.clipboard) {
+      navigator.clipboard.writeText(pending).catch(function () {});
+    }
+    pending = "";
+  });
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a[href]");
+    if (!a) return;
+    var href = a.getAttribute("href") || "";
+    if (/^(tel|mailto):/i.test(href)) {
+      e.preventDefault();
+      pending = decodeURIComponent(href.replace(/^(tel|mailto):/i, ""));
+      post("web_app_open_popup", {
+        message: pending,
+        buttons: [{id: "copy", type: "default", text: "{{ _('Kopieren')|escapejs }}"}, {id: "close", type: "close"}]
+      });
+      return;
+    }
+    if (/^https?:/i.test(href) && a.host && a.host !== window.location.host) {
+      e.preventDefault();
+      post("web_app_open_link", {url: a.href});
+    }
+  });
 })();
 </script>
