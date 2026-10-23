@@ -139,7 +139,11 @@ def job_detail(request, pk):
             # при выдаче» владельцу было не отметить вовсе. Идемпотентно.
             if job.payment_state != "paid":
                 job.payment_state = "paid"
-                job.save(update_fields=["payment_state", "updated_at"])
+                # KA-H10: ручная отметка = оплачено ПОЛНОСТЬЮ (не депозит). «paid» у
+                # заявки иначе значит «Anzahlung пришла через Stripe» — без обнуления
+                # счёт ждал бы остаток, который клиент уже отдал наличными.
+                job.deposit_cents = 0
+                job.save(update_fields=["payment_state", "deposit_cents", "updated_at"])
                 messages.success(request, _("Als bezahlt markiert."))
             return redirect("jobs:detail", pk=job.pk)
         if action == "customer":

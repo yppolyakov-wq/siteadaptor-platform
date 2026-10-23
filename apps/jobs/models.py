@@ -172,6 +172,10 @@ class Job(I18nMixin, TimestampedModel):
         """KA-H10: смета заперта после принятия — клиент принял ИМЕННО эти позиции,
         цену, предоплату и скидку. Открыта только заявка и отправленная смета (и свои
         статусы ранних стадий); принята/выполнена/выставлена/отклонена/отменена — заперта."""
+        if (
+            self.accepted_at is not None
+        ):  # однажды принятая смета — договор (и после своих статусов)
+            return True
         if self.status in (self.STATUS_NEW, self.STATUS_QUOTED):
             return False
         if self.status in (

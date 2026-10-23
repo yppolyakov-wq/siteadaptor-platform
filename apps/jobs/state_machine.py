@@ -26,6 +26,16 @@ class JobSM(StateMachine):
         from . import services
         from .notifications import enqueue_job_email
 
+        # KA-H10: момент принятия фиксируется на ЛЮБОМ пути (кабинет, доска, вебхук,
+        # витрина) — от него держится блокировка сметы.
+        if t.dst == "accepted" and getattr(instance, "accepted_at", None) is None:
+            from django.utils import timezone
+
+            instance.accepted_at = timezone.now()
+            type(instance).objects.filter(pk=instance.pk, accepted_at__isnull=True).update(
+                accepted_at=instance.accepted_at
+            )
+
         # B1.4/B1.6: отмена → вернуть использование/остаток Gutschein (однократно —
         # FSM не даёт второй переход в cancelled).
         if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):

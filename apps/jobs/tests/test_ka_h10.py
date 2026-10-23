@@ -221,3 +221,31 @@ def test_privacy_text_no_false_third_party_claim():
     assert "Dienstleister" in text
     own = TenantFactory.build(privacy_policy="Eigener Text")
     assert own.privacy_text() == "Eigener Text"
+
+
+# --- правки по ревью -------------------------------------------------------------------
+
+
+def test_lock_holds_after_acceptance_even_in_intake_like_status():
+    job = _job("accepted")
+    Job.objects.filter(pk=job.pk).update(status="new")  # как свой статус ранней стадии
+    job.refresh_from_db()
+    assert job.lines_locked is True
+
+
+def test_mark_paid_by_owner_counts_as_full_payment():
+    job = _job("done", deposit_cents=3000)
+    views.job_detail(_req(data={"action": "mark_paid"}), pk=job.pk)
+    job.refresh_from_db()
+    assert services.quote_to_invoice(job).open_amount == 0
+
+
+def test_issue_refreshes_prepaid_for_stay_and_order():
+    from apps.finance import services as fin
+    from apps.finance.models import Invoice
+
+    inv = Invoice.objects.create(recipient="X", lines=[], gross=Decimal("100.00"))
+    inv.deal_kind, inv.deal_id = "order", "nope"
+    assert fin._refresh_prepaid(inv) is False  # нет сделки — ничего не трогаем
+    deal = type("D", (), {"payment_state": "paid", "total": Decimal("80.00")})()
+    assert fin._prepaid_from_payment_state(deal) == 8000

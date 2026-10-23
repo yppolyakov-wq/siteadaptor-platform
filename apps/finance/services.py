@@ -141,14 +141,8 @@ def issue_invoice(invoice, *, tenant=None, terms_days=None):
         if invoice.service_date is None:
             invoice.service_date = tz.localdate()
             fields.append("service_date")
-        if invoice.deal_kind == "job":  # Anzahlung могла прийти между черновиком и выпуском
-            from apps.jobs.models import Job
-            from apps.jobs.services import prepaid_cents as job_prepaid
-
-            job = Job.objects.filter(reference_code=invoice.deal_id).first()
-            if job is not None:
-                invoice.prepaid_cents = job_prepaid(job)
-                fields.append("prepaid_cents")
+        if _refresh_prepaid(invoice):  # оплата могла прийти между черновиком и выпуском
+            fields.append("prepaid_cents")
         if invoice.due_date is None:
             days = terms_days
             if days is None:
@@ -328,13 +322,43 @@ def _local_date(value):
 
 
 def _prepaid_from_payment_state(deal) -> int:
-    """KA-H10: уже получено по брони/записи: Anzahlung → её сумма, оплачено → всё."""
+    """KA-H10: уже получено по брони/записи/заказу: Anzahlung → её сумма, оплачено → всё."""
     state = getattr(deal, "payment_state", "")
     if state == "deposit":
         return int(getattr(deal, "deposit_cents", 0) or 0)
     if state == "paid":
-        return int(getattr(deal, "total_cents", 0) or 0)
+        cents = getattr(deal, "total_cents", None)
+        if cents is None:  # заказ: итог в евро (Decimal)
+            from decimal import Decimal
+
+            cents = int(round(Decimal(str(getattr(deal, "total", 0) or 0)) * 100))
+        return int(cents or 0)
     return 0
+
+
+def _refresh_prepaid(invoice) -> bool:
+    """KA-H10: «уже получено» на момент ВЫПУСКА (оплата могла прийти после черновика)."""
+    kind, ref = invoice.deal_kind, invoice.deal_id
+    if not kind or not ref:
+        return False
+    if kind == "job":
+        from apps.jobs.models import Job
+        from apps.jobs.services import prepaid_cents as job_prepaid
+
+        job = Job.objects.filter(reference_code=ref).first()
+        if job is None:
+            return False
+        invoice.prepaid_cents = job_prepaid(job)
+        return True
+    if kind in ("stay", "booking", "order"):
+        from apps.core import transactions
+
+        deal = transactions.model_for(kind).objects.filter(reference_code=ref).first()
+        if deal is None:
+            return False
+        invoice.prepaid_cents = _prepaid_from_payment_state(deal)
+        return True
+    return False
 
 
 def _net_from_gross(gross, rate):
@@ -441,6 +465,7 @@ def invoice_from_order(order, tenant=None):
         service_date=_local_date(
             getattr(order, "shipped_at", None) or getattr(order, "pickup_slot", None)
         ),
+        prepaid_cents=_prepaid_from_payment_state(order),  # оплаченный заказ — не «offen»
     )
 
 
