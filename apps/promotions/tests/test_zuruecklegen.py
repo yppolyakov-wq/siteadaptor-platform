@@ -75,7 +75,8 @@ def test_with_orders_module_promo_is_bought():
 
 def test_nur_aktionen_storefront_never_sells_online():
     tenant = _tenant("t82-lite", profile="aktionen")
-    assert tenant.is_module_active("orders")
+    # T-8.32a: заказы вне пакета «Aktionen» — модуль гаснет потолком; отклик тот же.
+    assert not tenant.is_module_active("orders")
     assert response.response_for(_promo(), tenant) == response.RESERVE
 
 
