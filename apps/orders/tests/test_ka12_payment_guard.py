@@ -18,6 +18,7 @@ def _ready(method, state="unpaid", code="O-PG0001"):
         status="ready",
         payment_method=method,
         payment_state=state,
+        total=12,
     )
 
 
@@ -111,3 +112,12 @@ def test_counters_match_list_filters():
         if params.get("status"):
             qs = qs.filter(status=params["status"])
         assert counters.apply_list_filters(qs, params).count() == count, key
+
+
+def test_zero_total_prepay_order_is_not_blocked():
+    order = _ready("stripe", code="O-PG0002")
+    order.total = 0
+    order.save(update_fields=["total"])
+    OrderSM().apply(order, "picked_up")
+    order.refresh_from_db()
+    assert order.status == "picked_up"

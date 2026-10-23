@@ -334,6 +334,9 @@ def delivery_blocked_unpaid(kind: str, obj) -> bool:
     state = getattr(obj, "payment_state", None)
     if kind not in DELIVERED or state is None or method not in PREPAY_METHODS:
         return False
+    total = getattr(obj, "total", None)
+    if total is not None and total <= 0:
+        return False  # платить нечего (напр. целиком покрыто ваучером)
     return state not in PAID_STATES.get(kind, ("paid",))
 
 

@@ -310,8 +310,9 @@ def toggle_sold_out_today(pk, sold_out: bool):
 
     product = Product.objects.get(pk=pk)
     product.sold_out_until = timezone.localdate() if sold_out else None
-    # save() целиком — сигналы каталога города/фида видят смену наличия
-    product.save()
+    # Узкая запись: полный save() вернул бы устаревший остаток поверх параллельного
+    # чекаута (ревью W1.3). post_save всё равно срабатывает — листинг города обновится.
+    product.save(update_fields=["sold_out_until", "updated_at"])
     return product
 
 

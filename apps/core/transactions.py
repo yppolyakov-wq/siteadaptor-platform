@@ -473,7 +473,13 @@ def apply_action(kind: str, obj, target: str, actor=None, extra=None, tenant=Non
             raise refunds.RefundChoiceRequired()
         refund = choice == "1"
     if kind == "order" and target == "shipped":
+        from apps.core import money_contract
+
         code = (extra.get("tracking_code") or "").strip()[:100]
+        # Неоплаченный заказ с предоплатой не отправится (OrderSM.guard) — трек-номер
+        # тогда не пишем, чтобы он не висел на неотправленном заказе.
+        if money_contract.delivery_blocked_unpaid("order", obj):
+            code = ""
         if code and code != (getattr(obj, "tracking_code", "") or ""):
             obj.tracking_code = code
             obj.save(update_fields=["tracking_code", "updated_at"])
