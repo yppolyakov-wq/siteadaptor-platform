@@ -389,7 +389,8 @@ def test_done_screen_asks_for_opening_hours_until_they_are_set(user):
         req = _attach(RequestFactory().get(f"/promotions/{promo.pk}/fertig/"), user, tenant)
         return views.promotion_quick_done(req, pk=promo.pk).content.decode()
 
-    assert "data-missing-hours" in body() and "#sec-zeiten" in body()
+    # T-8.32b: у лёгкого пакета полных настроек нет — часы правятся в «Geschäft».
+    assert "data-missing-hours" in body() and "/dashboard/geschaeft/" in body()
     tenant.opening_hours = "Mo–Fr 7–18 Uhr"
     tenant.save(update_fields=["opening_hours"])
     assert "data-missing-hours" not in body()
