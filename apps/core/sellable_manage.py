@@ -332,7 +332,7 @@ def digital_shelf(tenant) -> list[dict]:
             )
     if tenant.is_module_active("gift"):
         try:
-            url = reverse("promotions:vouchers")
+            url = reverse("promotions:voucher-list")
         except NoReverseMatch:
             url = ""
         out.append(

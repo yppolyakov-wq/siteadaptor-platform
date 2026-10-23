@@ -51,7 +51,13 @@ def send_stay_reminders():
     return total
 
 
-def auto_fulfil_departed(today=None) -> int:
+# KA-12 E0.4 (KA-5d Z5): в день выезда гость ещё в номере до конца check-out —
+# автоматика закрывает бронь только после этого часа (местное время), раньше —
+# только прошлые дни. Кнопка «Abgereist» владельца работает как прежде, в любое время.
+AUTO_CHECKOUT_HOUR = 14
+
+
+def auto_fulfil_departed(today=None, now=None) -> int:
     """PMS-B2: авто-«выселение» — confirmed-брони с прошедшим выездом переводятся
     в fulfilled ШТАТНЫМ FSM-путём (та же цепочка, что кнопка владельца: выручка
     RevenueEntry + комната → dirty R4 + audit). Без этого LTV отеля и win-back
@@ -61,8 +67,15 @@ def auto_fulfil_departed(today=None) -> int:
 
     from .state_machine import StayBookingSM
 
-    today = today or timezone.localdate()
-    due = StayBooking.objects.filter(status=StayBooking.STATUS_CONFIRMED, departure__lte=today)
+    now = now or timezone.localtime()
+    today = today or now.date()
+    last_day = today if now.date() > today or now.hour >= AUTO_CHECKOUT_HOUR else None
+    due = StayBooking.objects.filter(status=StayBooking.STATUS_CONFIRMED)
+    due = (
+        due.filter(departure__lte=last_day)
+        if last_day is not None
+        else due.filter(departure__lt=today)
+    )
     sm = StayBookingSM()
     done = 0
     for booking in due:
@@ -76,7 +89,8 @@ def auto_fulfil_departed(today=None) -> int:
 
 @shared_task
 def auto_fulfil_stays():
-    """Beat (раз в сутки): авто-выселение прошедших броней по всем схемам."""
+    """Beat (раз в час): авто-выселение прошедших броней по всем схемам; в день
+    выезда — только после AUTO_CHECKOUT_HOUR."""
     total = 0
     for schema in _iter_tenant_schemas():
         with schema_context(schema):

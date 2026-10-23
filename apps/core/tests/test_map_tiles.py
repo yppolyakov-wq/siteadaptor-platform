@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 import pytest
+from django.conf import settings
 from django.template import Context, Template
 from django.test import override_settings
 
@@ -66,7 +67,10 @@ def test_cdn_assets_pinned_with_sri():
 
     assert MAP_ASSETS
     for asset in MAP_ASSETS:
-        assert re.search(r"@\d+\.\d+\.\d+/", asset["url"]), asset
+        assert re.fullmatch(r"\d+\.\d+\.\d+", asset["version"]), asset
+        # KA-12 E0.1: свои файлы, не CDN (DSGVO — IP посетителя не уходит третьей стороне).
+        assert asset["path"].startswith("vendor/"), asset
+        assert (Path(settings.BASE_DIR) / "static" / asset["path"]).is_file(), asset
         assert asset["integrity"].startswith(("sha384-", "sha256-")), asset
     html = _render()
     for asset in MAP_ASSETS:

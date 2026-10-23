@@ -2,7 +2,7 @@
 {% load i18n cabinet %}
 {% block title %}{% block dash_title %}{% trans "Dashboard" %}{% endblock %} · {{ request.tenant.name }}{% endblock %}
 
-{% block extra_head %}<script src="https://unpkg.com/htmx.org@1.9.12"></script>{% endblock %}
+{% block extra_head %}{% endblock %}
 
 {% block body %}
 {% sidebar_anchor as sb_anchor %}

@@ -573,7 +573,8 @@ CELERY_BEAT_SCHEDULE = {
     },
     "auto-fulfil-stays": {
         "task": "apps.stays.tasks.auto_fulfil_stays",
-        "schedule": 86400.0,  # раз в сутки — PMS-B2: авто-выселение прошедших броней
+        # PMS-B2 + KA-12 E0.4: раз в час — в день выезда закрывает после check-out.
+        "schedule": 3600.0,
     },
     "purge-old-registrations": {
         "task": "apps.stays.tasks.purge_old_registrations",

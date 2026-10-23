@@ -435,7 +435,6 @@ def body_context(request, kind: str, view: str) -> dict:
     fetch-фрагмент карточки брони (`?box=1`), вызывающий обязан его отдать.
     """
     from apps.core import transactions
-    from apps.core.archetypes import FOOD_BUSINESS_TYPES
 
     tenant = request.tenant
     ctx: dict = {}
@@ -514,7 +513,13 @@ def body_context(request, kind: str, view: str) -> dict:
         ctx["orders"] = orders
         # X4 (§6.A4.5): KDS/Tisch-QR — гастро-инструменты; раньше кнопки видел
         # любой архетип с модулем orders (парикмахер — «Kitchen Display»).
-        ctx["is_food"] = (getattr(tenant, "business_type", "") or "") in FOOD_BUSINESS_TYPES
+        # KA-12 E0.3 (KA-5a B5): тот же гейт, что у записей реестра навигации — KDS только
+        # кухням (cafe/catering/restaurant), Tisch-QR только залам; пекарне/мясной — нет.
+        from apps.core.nav_registry import KITCHEN_TYPES, TABLE_TYPES
+
+        btype = getattr(tenant, "business_type", "") or ""
+        ctx["show_kds"] = btype in KITCHEN_TYPES
+        ctx["show_table_qr"] = btype in TABLE_TYPES
         ctx["order_statuses"] = Order.STATUSES
         ctx["order_status"] = status
         ctx["order_q"] = q

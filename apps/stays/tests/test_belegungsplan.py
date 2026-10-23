@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
+from django.utils import timezone
 
 from apps.stays import availability, services, views
 from apps.stays.models import StayBooking, StayUnit, UnitBlock
@@ -651,6 +652,25 @@ def test_auto_fulfil_departed():
     assert room.housekeeping == Room.HK_DIRTY  # R4-хук сработал
 
     assert tasks.auto_fulfil_departed(today=D0) == 0  # идемпотентно
+
+
+def test_auto_fulfil_waits_for_checkout_on_departure_day():
+    """KA-12 E0.4 (KA-5d Z5): утром дня выезда гость ещё в номере — бронь не
+    закрывается и комната не становится «dirty»; после check-out-часа — закрывается."""
+    import datetime as dt
+
+    from apps.stays import tasks
+    from apps.stays.state_machine import StayBookingSM
+
+    unit = _unit()
+    leaving = _book(unit, -2, 0)  # выезд сегодня (D0)
+    StayBookingSM().apply(leaving, "confirmed")
+    morning = timezone.make_aware(dt.datetime.combine(D0, dt.time(9, 0)))
+    assert tasks.auto_fulfil_departed(today=D0, now=morning) == 0
+    leaving.refresh_from_db()
+    assert leaving.status == "confirmed"
+    afternoon = timezone.make_aware(dt.datetime.combine(D0, dt.time(tasks.AUTO_CHECKOUT_HOUR, 5)))
+    assert tasks.auto_fulfil_departed(today=D0, now=afternoon) == 1
 
 
 # --- Фидбэк 2026-07-28: поиск броней + цветные плашки ------------------------

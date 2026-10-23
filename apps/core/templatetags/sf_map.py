@@ -11,37 +11,57 @@ from django.conf import settings
 
 register = template.Library()
 
-# Точные версии + SRI (sha384 посчитан по скачанным файлам с проверкой HTTP 200; leaflet —
-# хеши 1.9.4, опубликованные проектом). Новая версия = новый хеш, иначе браузер файл не
-# исполнит. maplibre-gl держим на 5.x: с 6.0 пакет только ES-модули (нет dist/maplibre-gl.js),
-# а плагин maplibre-gl-leaflet ждёт глобальный `maplibregl` (UMD-сборку).
+# Точные версии + SRI (sha384/sha256 посчитаны по файлам; leaflet — хеши 1.9.4, опубликованные
+# проектом). KA-12 E0.1: файлы лежат у нас (`static/vendor/…`), а не на unpkg.com — IP посетителя
+# не уходит третьей стороне (DSGVO); SRI оставлен: подмена файла в статике тоже не исполнится.
+# Новая версия = новый файл + новый хеш. maplibre-gl держим на 5.x: с 6.0 пакет только ES-модули
+# (нет dist/maplibre-gl.js), а плагин maplibre-gl-leaflet ждёт глобальный `maplibregl` (UMD).
 MAP_ASSETS = (
     {
         "kind": "css",
-        "url": "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
+        "lib": "leaflet",
+        "version": "1.9.4",
+        "path": "vendor/leaflet/leaflet.css",
         "integrity": "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=",
     },
     {
         "kind": "js",
-        "url": "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+        "lib": "leaflet",
+        "version": "1.9.4",
+        "path": "vendor/leaflet/leaflet.js",
         "integrity": "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=",
     },
     {
         "kind": "css",
-        "url": "https://unpkg.com/maplibre-gl@5.9.0/dist/maplibre-gl.css",
+        "lib": "maplibre-gl",
+        "version": "5.9.0",
+        "path": "vendor/maplibre/maplibre-gl.css",
         "integrity": "sha384-gNYNsUmuZqDYiT3gbirWTV5K7rt71RoveS/yXAaU09d4ZUmeDVTD3XoqB6uJAIFR",
     },
     {
         "kind": "js",
-        "url": "https://unpkg.com/maplibre-gl@5.9.0/dist/maplibre-gl.js",
+        "lib": "maplibre-gl",
+        "version": "5.9.0",
+        "path": "vendor/maplibre/maplibre-gl.js",
         "integrity": "sha384-81ppUWZZO+pveTPk4qU9cZuScEFULHfuOMHVJHFZ7xVBlWQTG1zsPrVIMGAl1WMb",
     },
     {
         "kind": "js",
-        "url": "https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js",
+        "lib": "maplibre-gl-leaflet",
+        "version": "0.1.4",
+        "path": "vendor/maplibre/leaflet-maplibre-gl.js",
         "integrity": "sha384-tXYNKOHx4T02jMP7YYCtBxPIv1B5gaA5mcVPBzqMp6d7VzWzxJgI2aWF/nJLrQdS",
     },
 )
+
+
+def _assets() -> list[dict]:
+    from django.templatetags.static import static
+
+    return [
+        {"kind": a["kind"], "lib": a["lib"], "url": static(a["path"]), "integrity": a["integrity"]}
+        for a in MAP_ASSETS
+    ]
 
 
 def _attribution() -> str:
@@ -68,6 +88,6 @@ def sf_map_loader(context):
     config = {
         "style": settings.MAP_STYLE_URL,
         "attribution": _attribution(),
-        "assets": list(MAP_ASSETS),
+        "assets": _assets(),
     }
     return {"sf_map_config": config, "sf_map_config_json": json.dumps(config)}

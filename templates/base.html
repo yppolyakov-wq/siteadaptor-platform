@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Platform{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
-    <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    {# KA-12 E0.1: htmx selbst gehostet (DSGVO: keine IP an unpkg.com); Alpine entfernt — nicht benutzt. #}
+    <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-gray-50 text-gray-900 antialiased">

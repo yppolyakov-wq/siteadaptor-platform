@@ -192,6 +192,9 @@ def test_order_liste_kds_entries_only_for_food_types():
     assert "kitchen/" in food and "tisch-qr/" in food
     other = views.verkaeufe(_req(business_type="clothing", **kw)).content.decode()
     assert "kitchen/" not in other and "tisch-qr/" not in other
+    # KA-12 E0.3 (KA-5a B5): пекарня — пищевой тип, но кухни/зала у неё нет.
+    bakery = views.verkaeufe(_req(business_type="bakery", **kw)).content.decode()
+    assert "kitchen/" not in bakery and "tisch-qr/" not in bakery
 
 
 def test_order_liste_parity_filter_search_entries():

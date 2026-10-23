@@ -49,7 +49,7 @@ window.sfMap один раз на страницу (повторный include �
       state = "loading";
       var assets = (cfg.assets || []).slice();
       // Leaflet уже на странице (другая карта) — его не грузим второй раз.
-      if (window.L) assets = assets.filter(function (a) { return a.url.indexOf("/leaflet@") < 0; });
+      if (window.L) assets = assets.filter(function (a) { return a.lib !== "leaflet"; });
       var step = function (ok) {
         if (!ok) return finish(false);
         var a = assets.shift();
