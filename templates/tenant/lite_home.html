@@ -49,7 +49,7 @@
   </section>
 
   {% comment %}KA-12 E2.5: прилавок — только если заказы в пакете.{% endcomment %}
-  {% if order_counters %}
+  {% if order_counters and 'verkaeufe'|pkg_allowed:request.tenant %}
   <div class="grid grid-cols-3 gap-2" data-lite-order-counters>
     {% for key, icon, label, count, query in order_counters %}
     <a href="{% url 'verkaeufe' %}{{ query }}" class="bg-white rounded-2xl shadow-sm p-3 text-center" data-order-counter="{{ key }}">
