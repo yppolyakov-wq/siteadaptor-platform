@@ -105,3 +105,43 @@ def test_lite_business_saves_legal_fields_and_requires_contact_email():
         "info@krume.example.com",
     )
     assert tenant.impressum_missing() == []
+
+
+def test_district_survives_unrelated_save_and_city_change():
+    """Ревью W1.1 HIGH-2: район вне справочника не стирается чужим Save; район старого
+    города после смены города не валит форму."""
+    from apps.core.lite_cabinet import LiteBusinessForm
+
+    t = _t(address="Markt 1", city="Solingen", district="mein-viertel")
+    t.save()
+    data = {
+        "name": "Krume",
+        "address": "Markt 1",
+        "city": "Solingen",
+        "district": "mein-viertel",
+        "contact_phone": "0212 1",
+        "contact_email": "i@k.example.com",
+    }
+    form = LiteBusinessForm(data, instance=t)
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["district"] == "mein-viertel"
+    moved = LiteBusinessForm({**data, "city": "Hilden", "district": "ohligs"}, instance=t)
+    assert moved.is_valid(), moved.errors
+    assert moved.cleaned_data["district"] == ""  # «ohligs» не район Hilden — снят, не ошибка
+
+
+def test_legal_form_in_impressum_is_german_for_any_locale():
+    from django.utils import translation
+
+    t = _t(legal_form="einzel")
+    with translation.override("en"):
+        assert "(Einzelunternehmen)" in t.impressum_text()
+
+
+def test_staff_cannot_open_geschaeft():
+    from django.http import HttpResponseForbidden
+
+    tenant = _t()
+    tenant.save()
+    resp = _owner_post(tenant, {"name": "X"}, role=Membership.ROLE_STAFF)
+    assert isinstance(resp, HttpResponseForbidden) or resp.status_code == 403

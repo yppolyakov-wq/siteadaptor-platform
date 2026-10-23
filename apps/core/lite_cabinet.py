@@ -17,6 +17,7 @@ from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import storefront_profile
+from apps.core.roles import owner_required
 
 # (url_name, nav_key, emoji, подпись) — nav_key существующие: подсветка и иконки даром.
 LITE_NAV = (
@@ -109,13 +110,21 @@ def sidebar_items(tenant=None, user=None) -> list[dict]:
 
 
 def impressum_missing(tenant) -> list[str]:
-    """KA-12 E7.2: недостающее в Impressum; демо/внутренние — без предупреждения."""
+    """KA-12 E7.2: недостающее в Impressum; демо/внутренние — без предупреждения.
+
+    Вызывается в запросе тенанта: свой Impressum в LegalDoc (TENANT-модель) читаем
+    только когда соединение стоит в схеме ЭТОГО тенанта (иначе — ложный ответ или
+    упавшая транзакция в public)."""
+    from django.db import connection
+
     if getattr(tenant, "is_demo", False) or getattr(tenant, "is_internal", False):
         return []
-    try:
-        return tenant.impressum_missing()
-    except Exception:  # noqa: BLE001 — хром кабинета не падает
-        return []
+    if getattr(connection, "schema_name", None) == tenant.schema_name:
+        from apps.core.models import LegalDoc
+
+        if LegalDoc.objects.filter(kind="impressum").exclude(text="").exists():
+            return []
+    return tenant.impressum_missing()
 
 
 class LiteBusinessForm(forms.ModelForm):
@@ -193,6 +202,7 @@ class LiteBusinessForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         from apps.core import districts
 
+        # Обязателен, если показать в Impressum нечего: иначе префилл почтой входа.
         self.fields["contact_email"].required = True
         if not self.is_bound and not self.instance.contact_email:
             # Префилл почтой входа — владелец видит её и может сменить (не молча в Impressum).
@@ -200,8 +210,16 @@ class LiteBusinessForm(forms.ModelForm):
         city = (self.data.get("city") if self.is_bound else None) or self.instance.city
         choices = districts.choices_for(city)
         if choices:
-            self.fields["district"] = forms.ChoiceField(
-                label=_("Stadtteil"), required=False, choices=[("", "—"), *choices]
+            # Ревью W1.1: CharField + Select, а не ChoiceField — район старого города после
+            # смены города не валит форму (clean_district его нормализует), а сохранённое
+            # значение вне справочника остаётся выбранным и не стирается при любом Save.
+            stored = self.instance.district
+            if stored and stored not in {slug for slug, _n in choices}:
+                choices = [*choices, (stored, stored)]
+            self.fields["district"] = forms.CharField(
+                label=_("Stadtteil"),
+                required=False,
+                widget=forms.Select(choices=[("", "—"), *choices]),
             )
         else:
             self.fields["district"].widget = forms.HiddenInput()
@@ -216,7 +234,11 @@ class LiteBusinessForm(forms.ModelForm):
         from apps.core import districts
 
         city = self.cleaned_data.get("city") or self.instance.city
-        return districts.normalize(city, self.cleaned_data.get("district") or "")
+        value = (self.cleaned_data.get("district") or "").strip()
+        slug = districts.normalize(city, value)
+        if not slug and value and value == self.instance.district and city == self.instance.city:
+            return value  # старое значение вне справочника — не стираем при чужом Save
+        return slug
 
     def clean_address(self):
         address = " ".join((self.cleaned_data.get("address") or "").split())
@@ -232,6 +254,7 @@ class LiteBusinessForm(forms.ModelForm):
 
 
 @login_required
+@owner_required  # KA-12: правовые и налоговые данные — только владелец (не только middleware)
 def lite_business(request):
     """«Geschäft»: название, адрес, телефон, WhatsApp, часы работы — одна колонка."""
     from apps.core.views import _opening_hours_rows, _parse_opening_hours

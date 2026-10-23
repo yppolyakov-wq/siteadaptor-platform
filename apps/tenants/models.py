@@ -449,9 +449,12 @@ class Tenant(TenantMixin):
         """Свободный Impressum или сгенерированный из структурированных полей."""
         if self.impressum.strip():
             return self.impressum
-        form = dict(self.LEGAL_FORMS).get(self.legal_form, "")
+        from django.utils import translation
+
+        with translation.override("de"):  # правовая форма — немецкое обозначение
+            form = str(dict(self.LEGAL_FORMS).get(self.legal_form, ""))
         name = self.name
-        if form and str(form) not in name:
+        if form and form not in name:
             name = f"{name} ({form})"
         lines = [name]
         if self.address:
@@ -480,17 +483,11 @@ class Tenant(TenantMixin):
         return "\n".join(lines)
 
     def impressum_missing(self) -> list[str]:
-        """KA-12 E7.2: чего не хватает сгенерированному Impressum (ключи). Свой текст
-        Impressum (поле или LegalDoc) владелец ведёт сам — тогда пусто."""
+        """KA-12 E7.2: чего не хватает сгенерированному Impressum (ключи) — только по
+        полям этой (SHARED) модели. Свой текст в LegalDoc (TENANT) проверяет вызывающий
+        в контексте схемы тенанта: `apps.core.lite_cabinet.impressum_missing`."""
         if self.impressum.strip():
             return []
-        try:
-            from apps.core.models import LegalDoc
-
-            if LegalDoc.objects.filter(kind="impressum").exclude(text="").exists():
-                return []
-        except Exception:  # noqa: BLE001 — не та схема: проверяем по полям
-            pass
         missing = []
         if not (self.address or "").strip():
             missing.append("address")

@@ -25,6 +25,7 @@ from apps.core import (
     studio_scope,
     vat,
 )
+from apps.core.roles import owner_required
 from apps.promotions import group_styles
 from apps.tenants import domains
 from apps.tenants.forms import BusinessSettingsForm
@@ -1506,6 +1507,7 @@ def _lite_impressum_missing(tenant):
 
 
 @login_required
+@owner_required  # KA-12: правовые и налоговые данные — только владелец (не только middleware)
 def legal_docs_view(request):
     """L5/E-2: кабинет «Recht» — правовые тексты витрины per-locale (LegalDoc).
 

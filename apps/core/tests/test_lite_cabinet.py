@@ -21,7 +21,11 @@ def _urlconf(settings):
 
 @pytest.fixture
 def user(db):
-    return get_user_model().objects.create_user(username="lite", password="pw12345678")
+    from apps.core.models import Membership
+
+    u = get_user_model().objects.create_user(username="lite", password="pw12345678")
+    Membership.objects.create(user=u, role=Membership.ROLE_OWNER)  # KA-12: «Geschäft» — владелец
+    return u
 
 
 def _tenant(slug, lite=True):
