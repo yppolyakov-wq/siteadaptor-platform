@@ -107,17 +107,18 @@ def record_reversal_for(kind: str, instance) -> None:
         )
     elif kind == "booking":
         # KA-H7: сторно = РОВНО проведённая сумма (у визита по карте — только
-        # Extras; у записей до KA-H7 — прежняя полная сумма).
+        # Extras; у записей до KA-H7 — прежняя полная сумма из журнала).
         from apps.booking.revenue import recorded_amount
 
         amount = recorded_amount(instance)
-        record_reversal(
-            source="booking",
-            source_ref=ref,
-            amount=amount if amount is not None else _cents_eur(instance),
-            customer=instance.customer,
-            note=note,
-        )
+        if amount is not None:  # не проведено (визит по карте без Extras) — нечего сторнировать
+            record_reversal(
+                source="booking",
+                source_ref=ref,
+                amount=amount,
+                customer=instance.customer,
+                note=note,
+            )
     elif kind in ("stay", "ticket"):
         source = "event" if kind == "ticket" else kind
         record_reversal(

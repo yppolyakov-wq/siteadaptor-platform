@@ -23,18 +23,29 @@ ZERO = Decimal("0")
 
 
 def _tenant(tenant):
+    """Настоящий тенант: в фоновых задачах (`schema_context`) у соединения FakeTenant
+    без полей — § 19 потерялся бы, поэтому дочитываем запись по схеме."""
     if tenant is not None:
         return tenant
-    return getattr(connection, "tenant", None)
+    current = getattr(connection, "tenant", None)
+    if current is None or hasattr(current, "small_business"):
+        return current
+    from django_tenants.utils import get_tenant_model
+
+    schema = getattr(current, "schema_name", "")
+    return get_tenant_model().objects.filter(schema_name=schema).first() if schema else None
 
 
 def revenue_for(booking, tenant=None) -> tuple[Decimal, Decimal]:
     """(сумма €, ставка %) выручки записи. Сумма 0 — писать нечего."""
     from apps.core.vat import _extras_components
 
-    rate = Decimal(str(getattr(booking, "vat_rate", None) or "19.00"))
+    snapshot = getattr(booking, "vat_rate", None)
+    rate = Decimal("19.00") if snapshot is None else Decimal(str(snapshot))
     if getattr(booking, "card_id", None):
-        # Услуга оплачена картой: в журнал идут только Extras (скидка — из них).
+        # Услуга оплачена картой: в журнал идут только Extras (скидка — из них;
+        # Gutschein на визит по карте — редкость, v1 не делит его на услугу/Extras).
+        # Ставка смешанных Extras — ставка большей позиции (одна запись журнала).
         extras = _extras_components(booking, rate)
         cents = max(0, booking.extras_cents - int(booking.discount_cents or 0))
         amount = Decimal(cents) / 100

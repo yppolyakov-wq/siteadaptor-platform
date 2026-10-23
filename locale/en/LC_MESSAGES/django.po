@@ -27803,3 +27803,7 @@ msgstr "Empty = duration of the service"
 #: KA-H7
 msgid "— ohne Leistung (z. B. Tisch) —"
 msgstr "— no service (e.g. table) —"
+
+#: KA-H7
+msgid "Leistung nicht gefunden – Termin ohne Leistung angelegt."
+msgstr "Service not found – appointment created without a service."

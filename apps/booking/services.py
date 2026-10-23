@@ -62,7 +62,7 @@ def _apply_voucher(code, base_cents):
     return discount, code
 
 
-def _get_or_create_customer(*, name, email, phone) -> Customer:
+def _get_or_create_customer(*, name, email, phone, match_by_phone=False) -> Customer:
     if email:
         customer = Customer.objects.filter(email__iexact=email).order_by("created_at").first()
         if customer is not None:
@@ -70,22 +70,19 @@ def _get_or_create_customer(*, name, email, phone) -> Customer:
                 customer.phone = phone
                 customer.save(update_fields=["phone", "updated_at"])
             return customer
-    elif phone:
-        # KA-H7: клиент без e-mail (запись по телефону) не плодится заново при
-        # каждой записи. Склеиваем только при том же имени (или пустом у найденного):
-        # общий номер семьи не должен сливать двух людей.
+    elif phone and match_by_phone:
+        # KA-H7: запись по телефону из КАБИНЕТА (владелец знает клиента) не плодит
+        # клиента заново. Только доверенный путь: на витрине телефон и имя легко
+        # подставить чужие, и бронь попала бы в историю/письма другого человека.
+        # Склеиваем только при совпадении непустого имени: общий номер семьи не
+        # сливает двух людей; найденную запись не переименовываем.
         raw = phone.strip()
+        wanted = (name or "").strip().lower()
         variants = {raw, re.sub(r"[\s\-/().]", "", raw)} - {""}
-        for customer in Customer.objects.filter(phone__in=variants).order_by("created_at"):
-            if (
-                not customer.name
-                or not name
-                or customer.name.strip().lower() == name.strip().lower()
-            ):
-                if not customer.name and name:
-                    customer.name = name
-                    customer.save(update_fields=["name", "updated_at"])
-                return customer
+        if wanted:
+            for customer in Customer.objects.filter(phone__in=variants).order_by("created_at"):
+                if (customer.name or "").strip().lower() == wanted:
+                    return customer
     return Customer.objects.create(name=name, email=email, phone=phone)
 
 
@@ -140,6 +137,7 @@ def book(
     billing_vat_id="",
     billing_address="",
     payment_due_at=None,
+    match_by_phone=False,
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
     ResourceClosed / ValueError (кривой интервал) / PromoInvalid (B1.2).
@@ -178,14 +176,20 @@ def book(
         from apps.promotions.price_layer import claim_units
 
         claim_units(promotion, 1)
-    customer = _get_or_create_customer(name=name, email=email, phone=phone)
+    customer = _get_or_create_customer(
+        name=name, email=email, phone=phone, match_by_phone=match_by_phone
+    )
     booking = Booking.objects.create(
         resource=resource,
         service=service,
         promotion=promotion,
         price_cents=int(price_cents or 0),
         # DC-8: снимок ставки НДС услуги (у записи без услуги — общая 19 %).
-        vat_rate=getattr(service, "vat_rate", None) or Decimal("19.00"),
+        vat_rate=(
+            Decimal("19.00")
+            if getattr(service, "vat_rate", None) is None
+            else service.vat_rate  # KA-H7: 0 % — законная ставка, не «пусто»
+        ),
         extras=list(extras or []),
         voucher_code=voucher_snap,
         discount_cents=discount_cents,

@@ -28056,3 +28056,7 @@ msgstr "Порожньо = тривалість послуги"
 #: KA-H7
 msgid "— ohne Leistung (z. B. Tisch) —"
 msgstr "— без послуги (напр. стіл) —"
+
+#: KA-H7
+msgid "Leistung nicht gefunden – Termin ohne Leistung angelegt."
+msgstr "Послугу не знайдено — запис створено без послуги."

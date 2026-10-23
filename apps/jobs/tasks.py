@@ -8,22 +8,18 @@ A9: TÜV/Service-Reminder — за SERVICE_REMINDER_LEAD_DAYS до `Job.service_
 from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
-from django_tenants.utils import get_tenant_model, schema_context
+from django_tenants.utils import get_tenant_model, schema_context, tenant_context
 
 from .models import Job
 from .notifications import enqueue_job_email
 
 
-def _iter_tenant_schemas():
+def _iter_tenants():
     with schema_context("public"):
-        return list(
-            get_tenant_model()
-            .objects.exclude(schema_name="public")
-            .values_list("schema_name", flat=True)
-        )
+        return list(get_tenant_model().objects.exclude(schema_name="public"))
 
 
-def send_due_service_reminders(today=None) -> int:
+def send_due_service_reminders(today=None, tenant=None) -> int:
     """Чистая логика для текущей схемы: число отправленных TÜV/Service-напоминаний.
 
     Окно — от сегодня до сегодня+LEAD дней (прошедшие даты не трогаем; смена даты в
@@ -42,7 +38,7 @@ def send_due_service_reminders(today=None) -> int:
             service_due_date__gte=today,
             service_due_date__lte=horizon,
         )
-        .exclude(status__in=status_registry.cancelled_statuses_for("job"))
+        .exclude(status__in=status_registry.cancelled_statuses_for("job", tenant))
     )
     sent = 0
     for job in due:
@@ -59,7 +55,9 @@ def send_due_service_reminders(today=None) -> int:
 def send_service_reminders():
     """Beat (раз в сутки): TÜV/Service-напоминания по всем схемам арендаторов."""
     total = 0
-    for schema in _iter_tenant_schemas():
-        with schema_context(schema):
-            total += send_due_service_reminders()
+    for tenant in _iter_tenants():
+        # KA-H7: tenant_context — настоящий тенант (свои статусы отмены в site_config);
+        # schema_context даёт FakeTenant без конфига.
+        with tenant_context(tenant):
+            total += send_due_service_reminders(tenant=tenant)
     return total

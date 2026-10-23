@@ -27943,3 +27943,7 @@ msgstr "Boş = hizmet süresi"
 #: KA-H7
 msgid "— ohne Leistung (z. B. Tisch) —"
 msgstr "— hizmet yok (ör. masa) —"
+
+#: KA-H7
+msgid "Leistung nicht gefunden – Termin ohne Leistung angelegt."
+msgstr "Hizmet bulunamadı – randevu hizmetsiz oluşturuldu."

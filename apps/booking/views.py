@@ -333,6 +333,8 @@ def booking_create(request):
             service = Service.objects.filter(pk=raw_service, is_active=True).first()
         except (ValueError, ValidationError):
             service = None
+    if raw_service and service is None:
+        messages.warning(request, _("Leistung nicht gefunden – Termin ohne Leistung angelegt."))
     if minutes is None:
         minutes = service.duration_minutes if service is not None else 60
     minutes = max(5, min(minutes, 24 * 60))
@@ -371,6 +373,7 @@ def booking_create(request):
             auto_confirm=True,
             service=service,
             price_cents=price_cents,
+            match_by_phone=True,  # KA-H7: доверенный путь (кабинет)
         )
     except services.SlotTaken:
         if resource.counts_party_size:

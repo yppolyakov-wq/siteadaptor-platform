@@ -27893,3 +27893,7 @@ msgstr "Leer = Dauer der Leistung"
 #: KA-H7
 msgid "— ohne Leistung (z. B. Tisch) —"
 msgstr "— ohne Leistung (z. B. Tisch) —"
+
+#: KA-H7
+msgid "Leistung nicht gefunden – Termin ohne Leistung angelegt."
+msgstr "Leistung nicht gefunden – Termin ohne Leistung angelegt."

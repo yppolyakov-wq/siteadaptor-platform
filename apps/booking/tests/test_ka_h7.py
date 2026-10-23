@@ -208,27 +208,77 @@ def test_manual_booking_note_saved():
     assert booking.note == "Kommt mit Hund"
 
 
-# --- E: клиент по телефону ----------------------------------------------------------
+# --- E: клиент по телефону (только кабинет) ------------------------------------------
+
+
+def _cab(phone, name="Anna", hour=10):
+    start, end = _slot(hour=hour)
+    return services.book(
+        _resource(), start=start, end=end, name=name, phone=phone, match_by_phone=True
+    )
 
 
 def test_customer_reused_by_phone_without_email():
-    first = _book(phone="0171 123", hour=10)
-    second = _book(phone="0171 123", hour=14)
-    assert first.customer_id == second.customer_id
+    assert _cab("0171 123", hour=10).customer_id == _cab("0171 123", hour=14).customer_id
 
 
 def test_phone_match_normalizes_spaces():
-    first = _book(phone="0171123", hour=10)
-    second = _book(phone="0171 123", hour=14)
-    assert first.customer_id == second.customer_id
+    assert _cab("0171123", hour=10).customer_id == _cab("0171 123", hour=14).customer_id
 
 
 def test_phone_match_does_not_merge_different_names():
-    first = services.book(
-        _resource(), start=_slot(hour=10)[0], end=_slot(hour=10)[1], name="Anna", phone="0171 9"
-    )
-    second = services.book(
-        _resource(), start=_slot(hour=14)[0], end=_slot(hour=14)[1], name="Bernd", phone="0171 9"
-    )
+    first = _cab("0171 9", name="Anna", hour=10)
+    second = _cab("0171 9", name="Bernd", hour=14)
     assert first.customer_id != second.customer_id
     assert Customer.objects.filter(phone="0171 9").count() == 2
+
+
+def test_storefront_path_never_matches_by_phone():
+    """Витрина: телефон и имя легко подставить чужие — склейки нет."""
+    first = _cab("0171 77", name="Anna", hour=10)
+    start, end = _slot(hour=14)
+    public = services.book(_resource(), start=start, end=end, name="Anna", phone="0171 77")
+    assert public.customer_id != first.customer_id
+
+
+def test_cabinet_manual_booking_reuses_customer_by_phone():
+    first = _manual(_resource(), name="Anna", phone="0171 55")
+    second = _manual(_resource(), name="Anna", phone="0171 55")
+    assert first.customer_id == second.customer_id
+
+
+# --- правки по ревью -----------------------------------------------------------------
+
+
+def test_reversal_skipped_when_nothing_was_journaled():
+    """Визит по карте без Extras выручку не писал → сторно не создаёт минус."""
+    from apps.core import status_effects
+
+    booking = _book(email="r@test.de", service=_service(), price_cents=4000)
+    card = services.issue_pass(name="Gast", email="r@test.de", credits=5)
+    services.redeem_pass(card, booking=booking)
+    booking = _fulfill(booking)
+    status_effects.record_reversal_for("booking", booking)
+    assert not RevenueEntry.objects.filter(source="booking").exists()
+
+
+def test_zero_percent_rate_is_kept():
+    service = _service(vat_rate=Decimal("0"))
+    booking = _book(email="z@test.de", service=service, price_cents=4000)
+    assert booking.vat_rate == Decimal("0")
+    _fulfill(booking)
+    assert _revenue(booking).get().vat_rate == Decimal("0")
+
+
+def test_small_business_resolved_from_schema_in_background(monkeypatch):
+    """В фоновой задаче у соединения FakeTenant — § 19 дочитывается по схеме."""
+    from django.db import connection
+
+    from apps.booking import revenue
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(small_business=True, auto_create_schema=False)
+    monkeypatch.setattr(
+        connection, "tenant", SimpleNamespace(schema_name=tenant.schema_name), raising=False
+    )
+    assert revenue._tenant(None).pk == tenant.pk
