@@ -3,7 +3,9 @@
     python manage.py ai_smoke [--tier fast|strong] [--route mistral] [--image photo.jpg]
 
 Печатает маршрут, модель, ok, токены, мс и стоимость — без ключей и без текста ответа.
-Уважает AI_REQUIRE_EU: маршрут вне ЕС проверяется только с --allow-non-eu и при DEBUG.
+Уважает AI_REQUIRE_EU: маршрут вне ЕС проверяется только с --allow-non-eu. На сервере
+(без DEBUG) — только текстовая проверка: в модель уходит одна неизменная фраза, ни
+данных бизнесов, ни картинок (AI-1, 2026-10-23: владелец проверяет ключ на проде).
 Учёт пишется как платформенный (task=smoke)."""
 
 from pathlib import Path
@@ -28,8 +30,8 @@ class Command(BaseCommand):
         parser.add_argument("--allow-non-eu", action="store_true")
 
     def handle(self, *args, tier, route, image, allow_non_eu, **opts):
-        if allow_non_eu and not settings.DEBUG:
-            raise CommandError("--allow-non-eu работает только при DEBUG=True.")
+        if allow_non_eu and image and not settings.DEBUG:
+            raise CommandError("--allow-non-eu с --image — только при DEBUG=True.")
         names = [route] if route else routing.configured(tier)
         if not names:
             raise CommandError(f"AI_ROUTE_{tier.upper()} пуст.")

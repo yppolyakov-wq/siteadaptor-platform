@@ -15,7 +15,8 @@ from .models import PlatformSecret
 class PlatformSecretForm(forms.ModelForm):
     value = forms.CharField(
         required=False,
-        widget=forms.PasswordInput(render_value=False),
+        # autocomplete=new-password: браузер не подставляет сохранённый пароль админки
+        widget=forms.PasswordInput(render_value=False, attrs={"autocomplete": "new-password"}),
         label=_("Value"),
         help_text=_("Enter to set/replace. Leave blank to keep the current value."),
     )

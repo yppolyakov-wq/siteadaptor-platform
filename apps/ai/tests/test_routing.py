@@ -232,9 +232,19 @@ def test_ai_smoke_uses_fake_and_prints_no_keys(settings, capsys):
     assert AIUsage.objects.filter(task="smoke", tenant_schema="").count() == 1
 
 
-def test_ai_smoke_refuses_non_eu_without_debug(settings):
+def test_ai_smoke_refuses_non_eu_image_without_debug(settings, tmp_path):
     from django.core.management.base import CommandError
 
     settings.DEBUG = False
+    photo = tmp_path / "p.jpg"
+    photo.write_bytes(b"\xff\xd8\xff\xe0" + b"0" * 100)
     with pytest.raises(CommandError):
-        call_command("ai_smoke", "--allow-non-eu")
+        call_command("ai_smoke", "--allow-non-eu", "--image", str(photo))
+
+
+def test_ai_smoke_non_eu_text_check_allowed_on_server(settings, capsys):
+    """AI-1: проверка ключа на проде — одна фиксированная фраза, данных нет."""
+    settings.DEBUG = False
+    settings.AI_REQUIRE_EU = True
+    call_command("ai_smoke", "--allow-non-eu")
+    assert "OK" in capsys.readouterr().out
