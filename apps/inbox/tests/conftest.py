@@ -20,6 +20,8 @@ def ai_on(settings, monkeypatch):
     settings.AI_ROUTE_FAST = ["fake"]
     settings.AI_ROUTE_STRONG = ["fake"]
     settings.AI_FAKE_MODE = "ok"
+    # AI-1: переписка с клиентом выключена по умолчанию — тесты задачи включают её явно.
+    settings.AI_TASKS_ENABLED = [*settings.AI_TASKS_ENABLED, "inbox_reply_draft"]
     yield settings
     fake.reset()
 

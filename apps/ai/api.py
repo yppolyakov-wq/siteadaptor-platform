@@ -98,14 +98,14 @@ def generate(
     if not is_enabled():
         raise AIDisabled()
     spec = registry.get(task)  # неизвестная задача — ошибка конфигурации, не «выключено»
-    if not is_enabled(task):
-        raise AIDisabled()
     if images and not spec.allow_images:
         raise AIConfigError("images not allowed for task")
     limit = spec.max_input_chars or settings.AI_MAX_PROMPT_CHARS
     if len(prompt or "") + len(system or "") > limit:
         raise AIConfigError("prompt too large")  # до scrub: регулярки на огромном тексте
     imgs = images_mod.prepare(images)
+    if not is_enabled(task):  # AI-1: задача не в AI_TASKS_ENABLED (после проверок конфига)
+        raise AIDisabled()
     tenant_schema, is_demo = _tenant(tenant)
     budget.check(tenant_schema)
     routes = routing.routes_for(spec.tier)

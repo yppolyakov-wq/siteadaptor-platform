@@ -169,6 +169,7 @@ def test_privacy_text_gets_ai_paragraph_only_when_ai_and_inbox_on(settings):
     before = tenant.privacy_text()
     assert "KI-Diensten" not in before
     settings.AI_ENABLED = True
+    settings.AI_TASKS_ENABLED = ["inbox_reply_draft"]  # AI-1: абзац — только при задаче чата
     with_ai = tenant.privacy_text()
     assert "KI-Diensten" in with_ai and "Art. 28 DSGVO" in with_ai
     assert with_ai.replace(tenant._privacy_ai_paragraph(), "") == before

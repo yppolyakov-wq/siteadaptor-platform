@@ -70,3 +70,26 @@ def test_check_warns_on_unknown_task_name(settings):
     settings.AI_TASKS_ENABLED = ["promo_text_chek"]
     ids = [p.id for p in check_ai_routes()]
     assert "ai.W005" in ids
+
+
+def test_inbox_and_deal_card_gates_follow_chat_task(ai_on):
+    from apps.core import deal_card
+    from apps.inbox import views as inbox_views
+
+    ai_on.AI_TASKS_ENABLED = ["promo_text_check"]
+    assert inbox_views._ai_reply_enabled() is False
+    assert deal_card._ai_enabled() is False
+    ai_on.AI_TASKS_ENABLED = ["inbox_reply_draft"]
+    assert inbox_views._ai_reply_enabled() is True
+    assert deal_card._ai_enabled() is True
+
+
+def test_promo_photo_and_text_check_are_separate(ai_on):
+    from apps.promotions import views as promo_views
+
+    ai_on.AI_TASKS_ENABLED = ["promo_text_check"]
+    assert promo_views._ai_text_check_enabled() is True
+    assert promo_views._ai_photo_enabled() is False
+    ai_on.AI_TASKS_ENABLED = ["promo_photo_draft"]
+    assert promo_views._ai_text_check_enabled() is False
+    assert promo_views._ai_photo_enabled() is True
