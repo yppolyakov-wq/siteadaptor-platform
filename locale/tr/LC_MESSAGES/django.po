@@ -28154,3 +28154,21 @@ msgstr "Başlangıca dön"
 
 msgid "Mehr Funktionen? Sprechen Sie uns an."
 msgstr "Daha fazla özellik mi? Bize yazın."
+
+#, python-format
+msgid "%(start)s–%(end)s von %(total)s"
+msgstr "%(start)s–%(end)s / %(total)s"
+
+#, python-format
+msgid "+%(n)s weitere →"
+msgstr "+%(n)s tane daha →"
+
+#, python-format
+msgid "Alle %(n)s anzeigen →"
+msgstr "%(n)s kaydın tümünü göster →"
+
+#, python-format
+msgid "%(n)s Eintrag"
+msgid_plural "%(n)s Einträge"
+msgstr[0] "%(n)s kayıt"
+msgstr[1] "%(n)s kayıt"

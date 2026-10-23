@@ -465,7 +465,9 @@ def body_context(request, kind: str, view: str) -> dict:
         ctx = {**auftragsbuch_context(request), **ctx}
     elif view == "board":
         # VS-2c: на доске порядок — по дате события (ближайшее сверху).
-        ctx["sections"] = transactions.manage_sections_for(tenant, only=kind, board_order=True)
+        ctx["sections"] = transactions.manage_sections_for(
+            tenant, only=kind, board_order=True, per_column=transactions.BOARD_COLUMN_LIMIT
+        )
     elif kind == "order":  # Liste заказов — богатые строки списка orders
         from django.db.models import Q
 
@@ -500,7 +502,12 @@ def body_context(request, kind: str, view: str) -> dict:
         from apps.core import pipeline, transition_rules
 
         subset = transition_rules.subset_for(tenant, "order")
-        orders = list(qs[:200])
+        # KA-P4a: раньше молча 200 — 201-й заказ был не найти. Теперь страницы по 50.
+        from apps.core.pagination import paginate_queryset
+
+        page = paginate_queryset(qs, page_raw=request.GET.get("seite"))
+        ctx["page"] = page
+        orders = page.items
         for o in orders:
             o.row_actions = transactions.allowed_actions_for("order", o.status, subset, obj=o)
             o.row_stage = pipeline.stage_for("order", o.status)
@@ -523,9 +530,15 @@ def body_context(request, kind: str, view: str) -> dict:
         if status not in {code for code, _label in options}:
             status = ""
         sections = transactions.manage_sections_for(
-            tenant, limit=200, only=kind, event_order=True, q=q, status=status
+            tenant,
+            only=kind,
+            event_order=True,
+            q=q,
+            status=status,
+            page_raw=request.GET.get("seite") or "1",
         )
         ctx["section"] = sections[0] if sections else None
+        ctx["page"] = ctx["section"]["page"] if ctx["section"] else None
         ctx["list_q"] = q
         ctx["list_status"] = status
         ctx["list_status_options"] = options

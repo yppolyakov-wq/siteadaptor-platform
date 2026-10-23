@@ -504,10 +504,17 @@ def invoices(request):
         )
         small = request.tenant.small_business
         net, vat, gross = compute_totals(lines, vat_rate, small_business=small)
+        # KA-P4: мусорный id клиента раньше ронял страницу (pk — UUID).
+        import uuid as _uuid
+
+        try:
+            customer_pk = _uuid.UUID(str(request.POST.get("customer") or ""))
+        except ValueError:
+            customer_pk = None
         customer = (
-            Customer.objects.select_related("company")
-            .filter(pk=request.POST.get("customer") or None)
-            .first()
+            Customer.objects.select_related("company").filter(pk=customer_pk).first()
+            if customer_pk
+            else None
         )
         # CO-2: корпоративный гость без явного получателя → реквизиты компании
         # (name + адрес + USt-IdNr), а не свободный текст/имя клиента.
@@ -536,12 +543,17 @@ def invoices(request):
         messages.success(request, _("Draft created."))
         return redirect("finance:invoice-detail", pk=invoice.pk)
 
+    from apps.core.pagination import paginate_queryset
+
+    # KA-P4a: раньше молча 200 последних счетов.
+    page = paginate_queryset(Invoice.objects.all(), page_raw=request.GET.get("seite"))
     return render(
         request,
         "finance/invoices.html",
         {
             "nav": "finance",
-            "invoices": Invoice.objects.all()[:200],
+            "invoices": page.items,
+            "page": page,
             "customers": Customer.objects.order_by("name")[:200],
             "vat_rates": RevenueEntry.VAT_RATES,
             "small_business": request.tenant.small_business,

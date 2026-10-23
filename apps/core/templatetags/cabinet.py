@@ -71,6 +71,39 @@ def _hide_owner_only(context) -> bool:
         return False
 
 
+#: Параметры, которые ссылки пейджера не переносят: фрагменты, курсоры, возвраты.
+_PAGER_DROP = ("box", "cursor", "next")
+
+
+@register.inclusion_tag("core/_list_pager.html", takes_context=True)
+def list_pager(context, page, base=""):
+    """KA-P4a: пейджер списка кабинета. Ссылки — текущий GET (все фильтры) с другим
+    номером страницы; `base` — путь, если список встроен в чужую страницу (главная)."""
+    request = context.get("request")
+    params = request.GET.copy() if request is not None else None
+    path = base or (request.path if request is not None else "")
+
+    def url(n):
+        if params is None:
+            return f"{path}?{page.param}={n}"
+        q = params.copy()
+        for key in (*_PAGER_DROP, page.param):
+            q.pop(key, None)
+        for key, value in (context.get("pager_params") or {}).items():
+            if value:
+                q[key] = value
+        if n > 1:
+            q[page.param] = str(n)
+        qs = q.urlencode()
+        return f"{path}?{qs}" if qs else path
+
+    return {
+        "page": page,
+        "prev_url": url(page.page - 1) if page.has_prev else "",
+        "next_url": url(page.page + 1) if page.has_next else "",
+    }
+
+
 @register.filter
 def pkg_allowed(url_name, tenant):
     """T-8.32b: `{% if 'payment-settings'|pkg_allowed:request.tenant %}` — экран открыт пакету."""

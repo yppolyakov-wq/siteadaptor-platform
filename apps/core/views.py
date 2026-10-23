@@ -300,6 +300,12 @@ def dashboard(request):
         if not isinstance(sub, dict):
             return sub
         loop_ctx = sub
+        # KA-P4a: пейджер списка на главной ведёт на ту же вкладку Verkäufe
+        # (главная `?seite=` не читает).
+        from django.urls import reverse
+
+        loop_ctx["pager_base"] = reverse("verkaeufe")
+        loop_ctx["pager_params"] = {"tab": loop_kind, "view": loop_view}
     from apps.core import freshness
 
     ctx = {
@@ -5625,6 +5631,10 @@ def status_manager_save(request, kind):
 # --- FB-8: единый обзор продаваемых сущностей --------------------------------
 
 
+#: KA-P4a: позиций одного вида в обзоре Sortiment; дальше — «Alle N anzeigen».
+SORTIMENT_OVERVIEW_LIMIT = 50
+
+
 @login_required
 def sellable_manage(request):
     """FB-8: «Angebote» — один экран со всеми продаваемыми сущностями (товар/услуга/
@@ -5649,6 +5659,10 @@ def sellable_manage(request):
     active = request.GET.get("status") or ""
     if active not in ("1", "0"):
         active = ""
+    # KA-P4a: «Alle N anzeigen» — один вид постранично (белый список видов).
+    kind_only = request.GET.get("art") or ""
+    if kind_only not in sm.MANAGE_KINDS:
+        kind_only = ""
     # SR-1: вид Kacheln ↔ Liste — явный GET сильнее сохранённого (паттерн
     # sales_page.resolve_view), персист — POST-сеттер `sortiment-view`.
     requested = request.GET.get("ansicht") or ""
@@ -5673,8 +5687,15 @@ def sellable_manage(request):
             "categories": categories,
             "catalog_active": catalog_active,
             "sections": sm.sellable_manage_sections_for(
-                tenant, q=q, category=category, active=active
+                tenant,
+                q=q,
+                category=category,
+                active=active,
+                limit=SORTIMENT_OVERVIEW_LIMIT,
+                kind_only=kind_only,
+                page_raw=(request.GET.get("seite") or "1") if kind_only else None,
             ),
+            "kind_only": kind_only,
             "add_options": sm.add_options(tenant),
             # MX-7: цифровые Вещи (абонементы/сертификат) — на общей полке.
             # При любом активном фильтре полка прячется (как раньше при q).

@@ -28104,3 +28104,21 @@ msgstr "Zurück zum Start"
 
 msgid "Mehr Funktionen? Sprechen Sie uns an."
 msgstr "Mehr Funktionen? Sprechen Sie uns an."
+
+#, python-format
+msgid "%(start)s–%(end)s von %(total)s"
+msgstr "%(start)s–%(end)s von %(total)s"
+
+#, python-format
+msgid "+%(n)s weitere →"
+msgstr "+%(n)s weitere →"
+
+#, python-format
+msgid "Alle %(n)s anzeigen →"
+msgstr "Alle %(n)s anzeigen →"
+
+#, python-format
+msgid "%(n)s Eintrag"
+msgid_plural "%(n)s Einträge"
+msgstr[0] "%(n)s Eintrag"
+msgstr[1] "%(n)s Einträge"

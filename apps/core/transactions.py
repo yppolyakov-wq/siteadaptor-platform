@@ -112,6 +112,8 @@ KIND_LABEL = {
 
 # Последних записей на вкладку доски (UD1-3): свежие сверху, счётчик по стадиям.
 BOARD_LIMIT = 50
+#: KA-P4a: карточек в КАЖДОЙ колонке доски; остальное — «+N weitere» в Liste.
+BOARD_COLUMN_LIMIT = 20
 
 
 @dataclass(frozen=True)
@@ -552,6 +554,22 @@ def status_filter_options(tenant, kind: str) -> list[tuple]:
     return out
 
 
+def _per_status(qs, per_column: int, fallback_limit: int) -> list:
+    """KA-P4a: до `per_column` строк на КАЖДЫЙ статус одним запросом (оконная
+    нумерация в порядке доски). Ошибка — прежний общий срез."""
+    from django.db.models import F, Window
+    from django.db.models.functions import RowNumber
+
+    try:
+        ordering = list(qs.query.order_by) or ["-created_at"]
+        ranked = qs.annotate(
+            _rn=Window(RowNumber(), partition_by=[F("status")], order_by=ordering)
+        ).filter(_rn__lte=per_column)
+        return list(ranked)
+    except Exception:  # noqa: BLE001 — доска важнее точности среза
+        return list(qs[:fallback_limit])
+
+
 def _managed_queryset(
     kind, event_order: bool = False, q: str = "", status: str = "", board_order: bool = False
 ):
@@ -668,6 +686,8 @@ def manage_sections_for(
     q: str = "",
     status: str = "",
     board_order: bool = False,
+    page_raw: str | None = None,
+    per_column: int | None = None,
 ) -> list[dict]:
     """Секции доски по активным транзакционным модулям тенанта.
 
@@ -676,6 +696,9 @@ def manage_sections_for(
     Пустой активный модуль тоже даёт секцию (вкладка с нулём) — чтобы владелец
     видел все свои каналы продаж. Порядок kind — как TRANSACTION_KINDS.
     `only` — собрать ровно один kind (вкладка Verkäufe грузит только себя).
+    `page_raw` — список постранично (KA-P4a, `section["page"]`); `per_column` — доска:
+    до N карточек В КАЖДОЙ колонке (раньше `limit` резал весь вид, и колонка «Neu»
+    показывала «12» без единой карточки — done/cancelled съедали лимит).
     """
     out = []
     # W5: пер-тенантные настройки доски (переименование/порядок/скрытие колонок).
@@ -695,12 +718,18 @@ def manage_sections_for(
         # FB-4a/b: свои имена статусов + FB-3: правила переходов — только доска кабинета.
         labels = status_labels.custom_labels(tenant, kind)
         trans = transition_rules.subset_for(tenant, kind)
-        txs = [
-            transaction_for(kind, obj, labels, trans)
-            for obj in _managed_queryset(kind, event_order, q, status, board_order=board_order)[
-                :limit
-            ]
-        ]
+        base_qs = _managed_queryset(kind, event_order, q, status, board_order=board_order)
+        page = None
+        if page_raw is not None:
+            from apps.core.pagination import paginate_queryset
+
+            page = paginate_queryset(base_qs, page_raw=page_raw)
+            rows = page.items
+        elif per_column:
+            rows = _per_status(base_qs, per_column, limit)
+        else:
+            rows = base_qs[:limit]
+        txs = [transaction_for(kind, obj, labels, trans) for obj in rows]
         # LS-6: «⚠️ Problem»-полоса — открытые high-треды с ref на карточки секции.
         # ОДИН запрос на секцию по множеству кодов (не per-card — N+1); ключ =
         # reference_code (то же кладёт problem-кнопка витрины). Fail-safe.
@@ -778,8 +807,12 @@ def manage_sections_for(
                 status_counts[tx.status] = status_counts.get(tx.status, 0) + 1
         # VS-2b: колонка = статус; стадия остаётся ГРУППОЙ (полоса над колонками).
         columns = status_columns(kind, tenant, board_cfg)
+        shown: dict[str, int] = {}
+        for tx in txs:
+            shown[tx.status] = shown.get(tx.status, 0) + 1
         for col in columns:
             col["count"] = status_counts.get(col["status"], 0)
+            col["more"] = max(0, col["count"] - shown.get(col["status"], 0))
             amount = status_sums.get(col["status"])
             col["sum_display"] = _money_str(amount) if amount else ""
         out.append(
@@ -792,6 +825,7 @@ def manage_sections_for(
                 "transactions": txs,
                 "stage_counts": counts,
                 "total": sum(counts.values()),  # V4: честный итог по БД
+                "page": page,
             }
         )
     return out

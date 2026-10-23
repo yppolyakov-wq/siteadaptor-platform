@@ -180,7 +180,13 @@ def _locale(tenant) -> str | None:
 
 
 def sellable_manage_sections_for(
-    tenant, limit: int = 200, q: str = "", category: str = "", active: str = ""
+    tenant,
+    limit: int = 200,
+    q: str = "",
+    category: str = "",
+    active: str = "",
+    kind_only: str = "",
+    page_raw: str | None = None,
 ) -> list[dict]:
     """Секции обзора: по одному активному sellable-kind С ХОТЯ БЫ одной сущностью
     (пустые не шумят — их «＋ Neu» есть в `add_options`). Порядок — MANAGE_KINDS.
@@ -191,7 +197,10 @@ def sellable_manage_sections_for(
 
     SR-1 (паритет старой страницы товаров): `category` — pk категории, фильтр
     строго товарный (другие kind при нём скрываются — у них категорий нет);
-    `active` — "1"/"0" по `is_active` (kind без тумблера скрывается)."""
+    `active` — "1"/"0" по `is_active` (kind без тумблера скрывается).
+
+    KA-P4a: `count` — итог по БД (раньше — длина среза, т.е. «200» при 350 товарах);
+    `kind_only` + `page_raw` — один вид постранично (`section["page"]`)."""
     from apps.core.facets import i18n_icontains_q
 
     locale = _locale(tenant)
@@ -202,6 +211,8 @@ def sellable_manage_sections_for(
     out = []
     for kind in MANAGE_KINDS:
         cfg = _MANAGE[kind]
+        if kind_only and kind != kind_only:
+            continue
         if not tenant.is_module_active(cfg["module"]):
             continue
         if category and kind != "product":
@@ -229,10 +240,21 @@ def sellable_manage_sections_for(
             if cfg["toggle"]
             else qs.order_by("-created_at")
         )
-        items = [_managed(kind, obj, locale, threshold) for obj in qs[:limit]]
+        page = None
+        if page_raw is not None:
+            from apps.core.pagination import paginate_queryset
+
+            page = paginate_queryset(qs, page_raw=page_raw)
+            rows = page.items
+        else:
+            rows = list(qs[:limit])
+        items = [_managed(kind, obj, locale, threshold) for obj in rows]
         if not items:
             continue
-        out.append({"kind": kind, "label": cfg["label"], "items": items, "count": len(items)})
+        count = page.total if page else (len(items) if len(items) < limit else qs.count())
+        out.append(
+            {"kind": kind, "label": cfg["label"], "items": items, "count": count, "page": page}
+        )
     return out
 
 

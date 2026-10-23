@@ -28287,3 +28287,22 @@ msgstr "Назад в «Старт»"
 
 msgid "Mehr Funktionen? Sprechen Sie uns an."
 msgstr "Нужно больше функций? Напишите нам."
+
+#, python-format
+msgid "%(start)s–%(end)s von %(total)s"
+msgstr "%(start)s–%(end)s из %(total)s"
+
+#, python-format
+msgid "+%(n)s weitere →"
+msgstr "ещё %(n)s →"
+
+#, python-format
+msgid "Alle %(n)s anzeigen →"
+msgstr "Показать все %(n)s →"
+
+#, python-format
+msgid "%(n)s Eintrag"
+msgid_plural "%(n)s Einträge"
+msgstr[0] "%(n)s запись"
+msgstr[1] "%(n)s записи"
+msgstr[2] "%(n)s записей"

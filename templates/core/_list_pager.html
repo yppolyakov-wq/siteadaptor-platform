@@ -1,0 +1,12 @@
+{% load i18n %}{# KA-P4a: «1–50 von 312» + Zurück/Weiter; ссылки несут фильтры списка. #}
+{% if page.total %}
+<nav class="flex items-center justify-between gap-3 py-3 text-sm text-gray-600" data-list-pager aria-label="{% trans 'Seiten' %}">
+  <span data-pager-count>{% if page.pages > 1 %}{% blocktrans with start=page.start end=page.end total=page.total %}{{ start }}–{{ end }} von {{ total }}{% endblocktrans %}{% else %}{% blocktrans count n=page.total %}{{ n }} Eintrag{% plural %}{{ n }} Einträge{% endblocktrans %}{% endif %}</span>
+  {% if page.pages > 1 %}
+  <span class="flex items-center gap-2">
+    {% if page.has_prev %}<a href="{{ prev_url }}" rel="prev" class="rounded-full bg-white shadow-sm px-3 py-1.5 hover:bg-gray-50">‹ {% trans "Zurück" %}</a>{% endif %}
+    {% if page.has_next %}<a href="{{ next_url }}" rel="next" class="rounded-full bg-white shadow-sm px-3 py-1.5 hover:bg-gray-50">{% trans "Weiter" %} ›</a>{% endif %}
+  </span>
+  {% endif %}
+</nav>
+{% endif %}

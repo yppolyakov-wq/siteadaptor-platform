@@ -38,7 +38,7 @@ radius 16 с мягкой тенью; порядковый номер (SH-12) и
 <div class="space-y-2">
   {% for tx in section.transactions %}
     <div class="flex items-center justify-between gap-3 px-4 py-3 bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)] lg:cursor-pointer" data-peek-row>
-      <span class="w-6 shrink-0 text-xs tabular-nums text-gray-300">{{ forloop.counter }}</span>
+      <span class="w-6 shrink-0 text-xs tabular-nums text-gray-300">{{ forloop.counter|add:page.offset }}</span>
       <div class="min-w-0 flex-1">
         <a href="{{ tx.manage_url|default:'#' }}" class="text-sm font-medium truncate block hover:text-indigo-700">{{ tx.title }}
           {% if tx.has_problem %}<span class="text-xs font-medium text-red-600">· ⚠️ {% trans "Problem — Kunde wartet" %}</span>{% endif %}

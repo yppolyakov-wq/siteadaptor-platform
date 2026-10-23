@@ -44,6 +44,9 @@ snap-back + тост.
                 {% endif %}
               {% endfor %}
             </div>
+            {% if col.more %}{# KA-P4a: остальное — в списке с фильтром статуса #}
+              <a href="{% url 'verkaeufe' %}?tab={{ section.kind }}&amp;view=liste&amp;status={{ col.status|urlencode }}" class="block px-2 pt-2 text-xs font-medium text-indigo-600 hover:underline" data-col-more>{% blocktrans with n=col.more %}+{{ n }} weitere →{% endblocktrans %}</a>
+            {% endif %}
           </div>
         {% endfor %}
       </div>

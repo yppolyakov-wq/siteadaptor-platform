@@ -122,3 +122,57 @@ def paginate_list(items, *, limit: int | None, page: int = 1) -> ListPage:
     page = max(1, min(int(page or 1), pages))
     start = (page - 1) * limit
     return ListPage(rows[start : start + limit], page, pages, page > 1, page < pages, total)
+
+
+# --- KA-P4a: offset-страницы списков кабинета ---------------------------------------
+
+#: Строк на страницу списка кабинета.
+CABINET_PAGE_SIZE = 50
+
+
+@dataclass
+class QueryPage(ListPage):
+    """Страница queryset'а со счётчиком «1–50 von 312» (KA-P4a).
+
+    Offset, а не keyset: нужен итог и сквозная нумерация строк, а сортировки бывают
+    составные и с NULL (дата события) — keyset их не держит. Списки владельца малы."""
+
+    start: int = 0  # номер первой строки (1-based), 0 — пусто
+    end: int = 0
+    offset: int = 0
+    param: str = "seite"
+
+
+def page_number(raw) -> int:
+    """`?seite=` — мусор, ноль и отрицательное → 1 (за концом клампит paginate_queryset)."""
+    try:
+        return max(1, int(raw))
+    except (TypeError, ValueError):
+        return 1
+
+
+def paginate_queryset(qs, *, page_raw=None, per_page=CABINET_PAGE_SIZE, param="seite") -> QueryPage:
+    """Страница queryset'а. Номер за последней страницей — последняя (а не пустота).
+    Без сортировки по pk строки с равным ключом могли бы прыгать между страницами —
+    pk добавляется последним ключом."""
+    per_page = max(1, min(int(per_page), 200))
+    ordering = list(qs.query.order_by or qs.model._meta.ordering or [])
+    if not any(str(o).lstrip("-") in ("pk", "id") for o in ordering):
+        qs = qs.order_by(*ordering, "-pk")
+    total = qs.order_by().count()
+    pages = max(1, -(-total // per_page))
+    page = min(page_number(page_raw), pages)
+    offset = (page - 1) * per_page
+    items = list(qs[offset : offset + per_page])
+    return QueryPage(
+        items=items,
+        page=page,
+        pages=pages,
+        has_prev=page > 1,
+        has_next=page < pages,
+        total=total,
+        start=offset + 1 if items else 0,
+        end=offset + len(items),
+        offset=offset,
+        param=param,
+    )

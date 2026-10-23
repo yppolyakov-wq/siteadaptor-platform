@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n cabinet %}
 {% comment %}X3: тело единой страницы продаж — диспетчер по (active_view,
 active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛАВНАЯ кабинета могла
 показывать ту же рабочую петлю архетипа (вариант B плана cabinet-cleanup).
@@ -46,9 +46,11 @@ active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛА
     {% endif %}
   </div>
   {% include "orders/_order_rows.html" %}
+  {% list_pager page base=pager_base %}
   {# W10-6: «Alte Ansicht» убрана — orders:order-list теперь 302 сюда же #}
 {% else %}
   {% include "core/_sales_liste.html" %}
+  {% if page %}{% list_pager page base=pager_base %}{% endif %}
 {% endif %}
 {% comment %}X2c: у заявок легаси-список схлопнут (302 сюда же), у событий
 экран НЕ легаси — по глоссарию X4 это управление СУЩНОСТЬЮ («Veranstaltungen»

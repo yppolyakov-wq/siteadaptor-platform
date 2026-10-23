@@ -83,6 +83,11 @@ Kategorie/Status (строго товарные — активный фильт�
       {% for it in s.items %}{% include "tenant/_sellable_manage_card.html" with it=it %}{% endfor %}
     </div>
   {% endif %}
+  {% if s.page %}
+    {% list_pager s.page %}
+  {% elif s.count > s.items|length %}{# KA-P4a: обзор показывает первые — остальное по ссылке #}
+    <a href="?art={{ s.kind }}{% if q %}&amp;q={{ q|urlencode }}{% endif %}{% if sel_category %}&amp;kategorie={{ sel_category }}{% endif %}{% if sel_active %}&amp;status={{ sel_active }}{% endif %}{% if sortiment_view %}&amp;ansicht={{ sortiment_view }}{% endif %}" class="inline-block mt-3 text-sm font-medium text-indigo-600 hover:underline" data-sortiment-all>{% blocktrans with n=s.count %}Alle {{ n }} anzeigen →{% endblocktrans %}</a>
+  {% endif %}
   {% empty %}
   <div class="text-center text-gray-400 py-16">
     <p class="text-4xl mb-2">📦</p>
