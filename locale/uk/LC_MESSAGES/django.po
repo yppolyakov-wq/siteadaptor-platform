@@ -28120,3 +28120,54 @@ msgstr "Для %(unit)s у ці ночі бронювань і блокуван�
 #, python-format
 msgid "Überbuchung bei %(unit)s:"
 msgstr "Овербукінг у %(unit)s:"
+
+#: KA-H8
+msgid "Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
+msgstr "Справді скасувати захід? Усі активні реєстрації буде скасовано, оплати карткою повернуто, учасники отримають лист."
+
+#: KA-H8
+msgid "Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die Zusammenfassung erhalten Sie per E-Mail."
+msgstr "Захід скасовано. Реєстрації зараз скасовуються — підсумок ви отримаєте e-mail."
+
+#: KA-H8
+#, python-format
+msgid "Veranstaltung abgesagt: %(title)s"
+msgstr "Захід скасовано: %(title)s"
+
+#: KA-H8
+#, python-format
+msgid "Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: %(manual)s"
+msgstr "Скасовано: %(cancelled)s · Повернуто: %(refunded)s · Перевірте вручну: %(manual)s"
+
+#: KA-H8
+msgid "Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder Fehler bei Stripe):"
+msgstr "Перевірте ці реєстрації вручну (розстрочка, передоплата або помилка Stripe):"
+
+#: KA-H8
+#, python-format
+msgid "Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung (%(code)s) ist damit storniert."
+msgstr "На жаль, захід «%(title)s» скасовано. Вашу реєстрацію (%(code)s) тим самим скасовано."
+
+#: KA-H8
+msgid "Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen Zahlungen melden wir uns bei Ihnen."
+msgstr "Суми, сплачені карткою, ми повернемо автоматично; щодо інших оплат ми з вами зв'яжемося."
+
+#: KA-H8
+msgid "Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. Teilnehmer melden sich dafür selbst über die Website an."
+msgstr "Для цього заходу потрібна підписана відмова від претензій. Учасники реєструються самі через сайт."
+
+#: KA-H8
+msgid "Das Ticket ist noch nicht bestätigt."
+msgstr "Квиток ще не підтверджено."
+
+#: KA-H8
+msgid "Bestätigen und einchecken"
+msgstr "Підтвердити й відмітити прихід"
+
+#: KA-H8
+msgid "Die Veranstaltung wurde abgesagt."
+msgstr "Захід скасовано."
+
+#: KA-H8
+msgid "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
+msgstr "Розстрочку закрито як сплачену — наступні частки не списуватимуться."

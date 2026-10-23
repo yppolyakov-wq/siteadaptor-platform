@@ -445,3 +445,88 @@ def create_series(source, *, interval, count):
             clone.accommodation_units.set(source.accommodation_units.all())
             created.append(clone)
     return created
+
+
+def cancel_event_tickets_now(event, actor=None, tenant=None) -> dict:
+    """KA-H8: отменить активные билеты отменённого события (синхронное ядро задачи).
+
+    Каждый билет — своей транзакцией через `transactions.apply_action` (тот же путь,
+    что кнопка ✕: письмо клиенту, возврат карты, стоп рассрочки, сторно выручки).
+    Пришедшие (attended) не трогаем. Что вернуть автоматически нельзя (рассрочка,
+    Vorkasse/на месте, отказ Stripe, свой статус без ребра в отмену) — в сводку
+    владельцу «bitte manuell prüfen». Повтор — без двойных возвратов и писем."""
+    import logging
+
+    from apps.core import refunds, status_registry, transactions
+
+    log = logging.getLogger(__name__)
+    active = set(status_registry.active_statuses_for("ticket", tenant)) - {Ticket.STATUS_ATTENDED}
+    cancelled = refunded = 0
+    manual: list[str] = []
+    for pk in list(event.tickets.filter(status__in=active).values_list("pk", flat=True)):
+        try:
+            with transaction.atomic():
+                ticket = Ticket.objects.select_for_update().filter(pk=pk).first()
+                if ticket is None or ticket.status not in active:
+                    continue
+                paid_before = ticket.payment_state
+                result = transactions.apply_action(
+                    "ticket", ticket, Ticket.STATUS_CANCELLED, actor=actor, tenant=tenant
+                )
+        except Exception:  # noqa: BLE001 — один билет не валит отмену остальных
+            log.warning("event cancel: ticket %s not cancelled", pk, exc_info=True)
+            manual.append(
+                Ticket.objects.filter(pk=pk).values_list("reference_code", flat=True).first()
+                or str(pk)
+            )
+            continue
+        cancelled += 1
+        if result in (refunds.RefundResult.REFUNDED, refunds.RefundResult.ALREADY):
+            refunded += 1
+        elif result in (refunds.RefundResult.MANUAL, refunds.RefundResult.FAILED) or (
+            paid_before not in ("none", "pending", "refunded", "")
+        ):
+            manual.append(ticket.reference_code)
+    summary = {"cancelled": cancelled, "refunded": refunded, "manual": manual}
+    if cancelled or manual:
+        _notify_owner_event_cancelled(event, summary, tenant)
+    return summary
+
+
+def _notify_owner_event_cancelled(event, summary, tenant) -> None:
+    import logging
+
+    from django.db import connection
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    from apps.notifications.services import email_locale, notify
+
+    recipient = (getattr(tenant, "owner_email", "") or "").strip()
+    if not recipient:
+        return
+    with translation.override(email_locale()):
+        subject = _("Veranstaltung abgesagt: %(title)s") % {"title": event.title}
+        body = _(
+            "Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: %(manual)s"
+        ) % {
+            "cancelled": summary["cancelled"],
+            "refunded": summary["refunded"],
+            "manual": len(summary["manual"]),
+        }
+        if summary["manual"]:
+            body += "\n\n" + _(
+                "Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder "
+                "Fehler bei Stripe):"
+            )
+            body += "\n" + "\n".join(f"- {code}" for code in summary["manual"])
+    try:
+        notify(
+            dedupe_key=f"event-cancel:{connection.schema_name}:{event.id}:owner",
+            type="event_cancelled_owner",
+            recipient=recipient,
+            subject=subject,
+            body=body,
+        )
+    except Exception:  # noqa: BLE001 — сводка не валит отмену
+        logging.getLogger(__name__).warning("event cancel summary not sent", exc_info=True)

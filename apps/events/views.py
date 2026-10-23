@@ -125,6 +125,11 @@ def event_detail(request, pk):
             "edit_extras": edit_extras,
             "waitlist": event.waitlist.all(),
             "nav": "events",
+            # KA-H8: отмена события — подтверждение с последствиями.
+            "cancel_confirm_text": _(
+                "Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, "
+                "Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
+            ),
         },
     )
 
@@ -149,8 +154,17 @@ def event_action(request, pk):
     event = get_object_or_404(Event, pk=pk)
     target = request.POST.get("target", "")
     try:
-        EventSM().apply(event, target)
-        messages.success(request, _("Event updated."))
+        EventSM().apply(event, target, actor=request.user)
+        if target == Event.STATUS_CANCELLED:
+            messages.success(
+                request,
+                _(
+                    "Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die "
+                    "Zusammenfassung erhalten Sie per E-Mail."
+                ),
+            )
+        else:
+            messages.success(request, _("Event updated."))
     except Exception:  # noqa: BLE001 — недопустимый переход
         messages.error(request, _("Action not allowed."))
     return redirect("events:detail", pk=pk)
@@ -169,7 +183,7 @@ def ticket_add(request, pk):
         qty = max(1, int(request.POST.get("quantity", "1")))
     except (TypeError, ValueError):
         qty = 1
-    from .services import EventNotBookable, SoldOut
+    from .services import EventNotBookable, SoldOut, WaiverRequired
 
     try:
         book_ticket(
@@ -185,6 +199,14 @@ def ticket_add(request, pk):
         messages.error(request, _("Not enough seats left."))
     except EventNotBookable:
         messages.error(request, _("Publish the event first."))
+    except WaiverRequired:  # KA-H8: было необработанное исключение → 500
+        messages.error(
+            request,
+            _(
+                "Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. "
+                "Teilnehmer melden sich dafür selbst über die Website an."
+            ),
+        )
     return redirect("events:detail", pk=pk)
 
 
@@ -281,6 +303,19 @@ def ticket_action(request, pk, tid):
             )
         return redirect("events:detail", pk=pk)
     if target == "paid":
+        if ticket.status == Ticket.STATUS_CANCELLED:
+            messages.error(request, _("This ticket is cancelled."))
+            return redirect("events:detail", pk=pk)
+        # KA-H8: ручное «bezahlt» закрывает рассрочку — иначе beat списывал бы
+        # следующие доли с карты повторно.
+        from .installments import settle_manually
+
+        plan = getattr(ticket, "installment_plan", None) if _has_plan(ticket) else None
+        if plan is not None and settle_manually(plan):
+            messages.info(
+                request,
+                _("Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."),
+            )
         ticket.payment_state = Ticket.PAYMENT_PAID
         ticket.save(update_fields=["payment_state", "updated_at"])
         if ticket.status == Ticket.STATUS_PENDING:
@@ -576,6 +611,15 @@ def event_series(request, pk):
     return redirect("events:detail", pk=pk)
 
 
+def _has_plan(ticket) -> bool:
+    from django.core.exceptions import ObjectDoesNotExist
+
+    try:
+        return ticket.installment_plan is not None
+    except ObjectDoesNotExist:
+        return False
+
+
 @login_required
 def checkin(request, code):
     """RT1: Check-in билета по QR (организатор в кабинете). GET — карточка гостя и
@@ -590,16 +634,29 @@ def checkin(request, code):
     if request.method == "POST":
         if ticket.status == Ticket.STATUS_CANCELLED:
             messages.error(request, _("This ticket is cancelled."))
+        elif ticket.event.status == ticket.event.STATUS_CANCELLED:
+            messages.error(request, _("Die Veranstaltung wurde abgesagt."))
         elif ticket.checked_in_at:
             messages.info(request, _("Already checked in."))
+        elif ticket.status == Ticket.STATUS_PENDING and not request.POST.get("confirm_first"):
+            # KA-H8: неоплаченный билет не «приходит» мимо FSM — сначала подтвердить.
+            messages.error(request, _("Das Ticket ist noch nicht bestätigt."))
         else:
-            if ticket.status != Ticket.STATUS_ATTENDED:
-                try:
-                    TicketSM().apply(ticket, Ticket.STATUS_ATTENDED)
-                except Exception:  # noqa: BLE001 — из pending/cancelled переход может быть запрещён
-                    ticket.status = Ticket.STATUS_ATTENDED
+            tenant = getattr(request, "tenant", None)
+            try:
+                if ticket.status == Ticket.STATUS_PENDING:
+                    core_transactions.apply_action(
+                        "ticket", ticket, Ticket.STATUS_CONFIRMED, actor=request.user, tenant=tenant
+                    )
+                if ticket.status != Ticket.STATUS_ATTENDED:
+                    core_transactions.apply_action(
+                        "ticket", ticket, Ticket.STATUS_ATTENDED, actor=request.user, tenant=tenant
+                    )
+            except Exception:  # noqa: BLE001 — запрещённый переход: ничего не пишем
+                messages.error(request, _("Action not allowed."))
+                return redirect("events:checkin", code=ticket.reference_code)
             ticket.checked_in_at = timezone.now()
-            ticket.save(update_fields=["status", "checked_in_at", "updated_at"])
+            ticket.save(update_fields=["checked_in_at", "updated_at"])
             messages.success(request, _("Checked in — welcome!"))
         return redirect("events:checkin", code=ticket.reference_code)
     return render(request, "events/checkin.html", {"ticket": ticket, "event": ticket.event})

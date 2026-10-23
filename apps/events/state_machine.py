@@ -2,8 +2,8 @@
 
 EventSM: draft → published → cancelled (мероприятие). TicketSM: pending →
 confirmed → attended, отмена из pending/confirmed. На confirmed билет пишет
-выручку в журнал finance (НДС 19 %, source «event», идемпотентно по source_ref);
-бесплатные события (amount 0) record_revenue пропускает. Письма — A6c.
+выручку в журнал finance (source «event», идемпотентно по source_ref; KA-H8 — к
+оплате по снимку ставки), отмена сторнирует проведённое. Письма — A6c.
 """
 
 from apps.core.fsm import StateMachine, Transition
@@ -30,6 +30,23 @@ class EventSM(StateMachine):
                 dedupe_key=f"agg-event:{instance.id}:{t.dst}",
                 tenant_schema=connection.schema_name,
                 event_id=str(instance.id),
+            )
+
+        # KA-H8: отмена события → отмена его билетов (возврат, письмо, стоп рассрочки).
+        # После коммита, фоном: возврат — сетевой вызов на каждый билет.
+        if t.dst == "cancelled":
+            from django.db import connection, transaction
+
+            from .tasks import cancel_event_tickets
+
+            actor = kw.get("actor")
+            schema = connection.schema_name
+            event_id = str(instance.id)
+            actor_id = getattr(actor, "pk", None)
+            transaction.on_commit(
+                lambda: cancel_event_tickets.delay(
+                    tenant_schema=schema, event_id=event_id, actor_id=actor_id
+                )
             )
 
 
@@ -83,18 +100,16 @@ class TicketSM(StateMachine):
                 plan.status = InstallmentPlan.STATUS_CANCELLED
                 plan.save(update_fields=["status", "updated_at"])
 
-        # Продажа билета (подтверждён/оплачен) → выручка. НДС 19 % (стандарт; для
-        # культурных мероприятий может быть 7 % — настраиваемо позже).
+        # Продажа билета (подтверждён/оплачен) → выручка. KA-H8: к оплате (после
+        # ваучера) по снимку ставки билета; § 19 → 0 %.
         if t.dst == "confirmed":
-            from decimal import Decimal
+            from . import revenue
 
-            from apps.finance.services import record_revenue
+            revenue.record_revenue(instance)
 
-            record_revenue(
-                source="event",
-                source_ref=str(instance.id),
-                amount=Decimal(instance.total_cents) / 100,
-                vat_rate=Decimal("19.00"),
-                customer=instance.customer,
-                note=instance.reference_code,
-            )
+        # KA-H8: отмена → сторно ровно проведённой выручки (ключ «{id}:reversal» —
+        # общий с status_effects, поэтому встроенный и свой путь дают одно сторно).
+        if t.dst == "cancelled":
+            from . import revenue
+
+            revenue.record_reversal(instance)

@@ -1,8 +1,9 @@
 """FB-3 Вариант B Phase 2: эффекты статусов по РОЛИ (для КАСТОМ-статусов).
 
 Встроенные `on_transition` (apps/*/state_machine.py) НЕ трогаем — их исторические квирки
-(order: `returned` не un-redeem'ит, `cancelled` un-redeem'ит; ticket cancel не сторнирует
-выручку) сохранены точно. Этот модуль даёт ЧИСТУЮ ролевую семантику для кастом-статусов:
+(order: `returned` не un-redeem'ит, `cancelled` un-redeem'ит) сохранены точно; KA-H8:
+отмена билета теперь сторнирует выручку (общий ключ «{id}:reversal»).
+Этот модуль даёт ЧИСТУЮ ролевую семантику для кастом-статусов:
 
 - вход в кастом-статус с `revenue_recognized` → запись выручки (per-kind резолвер);
 - вход в кастом-статус роли `cancelled` → возврат склада + un-redeem ваучера + (если
@@ -57,14 +58,9 @@ def record_revenue_for(kind: str, instance) -> None:
 
         meal.record_revenue(instance)  # KA-H6: питание тарифа — отдельной записью 19 %
     elif kind == "ticket":
-        record_revenue(
-            source="event",
-            source_ref=str(instance.id),
-            amount=_cents_eur(instance),
-            vat_rate=Decimal("19.00"),
-            customer=instance.customer,
-            note=instance.reference_code,
-        )
+        from apps.events import revenue
+
+        revenue.record_revenue(instance)  # KA-H8: к оплате, снимок ставки
     elif kind == "reservation":
         price = instance.promotion.new_price
         if price:
@@ -119,14 +115,9 @@ def record_reversal_for(kind: str, instance) -> None:
 
         meal.record_reversal(instance, ref, note)  # KA-H6: обе записи, своими суммами
     elif kind == "ticket":
-        source = "event"
-        record_reversal(
-            source=source,
-            source_ref=ref,
-            amount=_cents_eur(instance),
-            customer=instance.customer,
-            note=note,
-        )
+        from apps.events import revenue
+
+        revenue.record_reversal(instance, ref, note)  # KA-H8: ровно проведённое
     elif kind == "reservation":
         price = instance.promotion.new_price
         if price:

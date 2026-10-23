@@ -167,3 +167,23 @@ def mark_charge_paid(charge, payment_intent=""):
         ticket.payment_state = Ticket.PAYMENT_PAID
         ticket.save(update_fields=["payment_state", "updated_at"])
     return True
+
+
+def settle_manually(plan) -> bool:
+    """KA-H8: владелец отметил билет «bezahlt» вручную — рассрочка закрыта, доли
+    больше не списываются с карты. Условный UPDATE: повтор/гонка — False."""
+    from django.utils import timezone
+
+    from .models import InstallmentCharge, InstallmentPlan
+
+    closed = InstallmentPlan.objects.filter(
+        pk=plan.pk, status__in=(InstallmentPlan.STATUS_ACTIVE, InstallmentPlan.STATUS_FAILED)
+    ).update(status=InstallmentPlan.STATUS_COMPLETED, updated_at=timezone.now())
+    if not closed:
+        return False
+    InstallmentCharge.objects.filter(
+        plan=plan,
+        status__in=(InstallmentCharge.STATUS_SCHEDULED, InstallmentCharge.STATUS_FAILED),
+    ).update(status=InstallmentCharge.STATUS_PAID, last_error="", updated_at=timezone.now())
+    plan.refresh_from_db(fields=["status"])
+    return True

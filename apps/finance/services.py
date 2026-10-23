@@ -46,7 +46,9 @@ def record_revenue(
     return entry if created else None
 
 
-def record_reversal(*, source, source_ref, amount, currency="EUR", customer=None, note=""):
+def record_reversal(
+    *, source, source_ref, amount, currency="EUR", customer=None, note="", vat_rate=None
+):
     """Сторно-запись возврата: отрицательная сумма, идемпотентно по source_ref.
 
     Для возвратов (A2c): на ту же сумму, что была проведена при выдаче/отправке,
@@ -54,16 +56,17 @@ def record_reversal(*, source, source_ref, amount, currency="EUR", customer=None
     """
     if amount is None or amount <= 0:
         return None
+    defaults = {
+        "amount": -amount,
+        "currency": currency,
+        "date": timezone.localdate(),
+        "customer": customer,
+        "note": note[:200],
+    }
+    if vat_rate is not None:  # KA-H8: ставка исходной записи (иначе — дефолт модели)
+        defaults["vat_rate"] = vat_rate
     entry, created = RevenueEntry.objects.get_or_create(
-        source=source,
-        source_ref=source_ref,
-        defaults={
-            "amount": -amount,
-            "currency": currency,
-            "date": timezone.localdate(),
-            "customer": customer,
-            "note": note[:200],
-        },
+        source=source, source_ref=source_ref, defaults=defaults
     )
     return entry if created else None
 

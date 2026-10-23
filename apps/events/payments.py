@@ -105,14 +105,28 @@ def charge_due_installments(connect_id: str, today=None) -> dict:
 
     today = today or timezone.localdate()
     max_attempts = getattr(settings, "INSTALLMENT_MAX_ATTEMPTS", 3)
-    due = InstallmentCharge.objects.filter(
-        status=InstallmentCharge.STATUS_SCHEDULED,
-        due_date__lte=today,
-        plan__status=InstallmentPlan.STATUS_ACTIVE,
-    ).select_related("plan", "plan__ticket", "plan__ticket__event", "plan__ticket__customer")
+    from apps.core import status_registry
+
+    from .models import Event
+
+    due = (
+        InstallmentCharge.objects.filter(
+            status=InstallmentCharge.STATUS_SCHEDULED,
+            due_date__lte=today,
+            plan__status=InstallmentPlan.STATUS_ACTIVE,
+        )
+        # KA-H8: вторая защита — отменённый билет/событие не списываются никогда.
+        .exclude(plan__ticket__status__in=status_registry.cancelled_statuses_for("ticket"))
+        .exclude(plan__ticket__event__status=Event.STATUS_CANCELLED)
+        .select_related("plan", "plan__ticket", "plan__ticket__event", "plan__ticket__customer")
+    )
     charged = failed = 0
     for charge in due:
         plan = charge.plan
+        # Владелец мог закрыть план вручную, пока шёл цикл (KA-H8, «bezahlt»).
+        plan.refresh_from_db(fields=["status"])
+        if plan.status != InstallmentPlan.STATUS_ACTIVE:
+            continue
         if not (connect_id and plan.stripe_customer_id and plan.stripe_payment_method_id):
             continue  # нет мандата — пропускаем (дозаполнение/ручное списание в кабинете)
         try:

@@ -27957,3 +27957,54 @@ msgstr "Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zim
 #, python-format
 msgid "Überbuchung bei %(unit)s:"
 msgstr "Überbuchung bei %(unit)s:"
+
+#: KA-H8
+msgid "Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
+msgstr "Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
+
+#: KA-H8
+msgid "Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die Zusammenfassung erhalten Sie per E-Mail."
+msgstr "Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die Zusammenfassung erhalten Sie per E-Mail."
+
+#: KA-H8
+#, python-format
+msgid "Veranstaltung abgesagt: %(title)s"
+msgstr "Veranstaltung abgesagt: %(title)s"
+
+#: KA-H8
+#, python-format
+msgid "Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: %(manual)s"
+msgstr "Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: %(manual)s"
+
+#: KA-H8
+msgid "Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder Fehler bei Stripe):"
+msgstr "Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder Fehler bei Stripe):"
+
+#: KA-H8
+#, python-format
+msgid "Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung (%(code)s) ist damit storniert."
+msgstr "Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung (%(code)s) ist damit storniert."
+
+#: KA-H8
+msgid "Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen Zahlungen melden wir uns bei Ihnen."
+msgstr "Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen Zahlungen melden wir uns bei Ihnen."
+
+#: KA-H8
+msgid "Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. Teilnehmer melden sich dafür selbst über die Website an."
+msgstr "Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. Teilnehmer melden sich dafür selbst über die Website an."
+
+#: KA-H8
+msgid "Das Ticket ist noch nicht bestätigt."
+msgstr "Das Ticket ist noch nicht bestätigt."
+
+#: KA-H8
+msgid "Bestätigen und einchecken"
+msgstr "Bestätigen und einchecken"
+
+#: KA-H8
+msgid "Die Veranstaltung wurde abgesagt."
+msgstr "Die Veranstaltung wurde abgesagt."
+
+#: KA-H8
+msgid "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
+msgstr "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."

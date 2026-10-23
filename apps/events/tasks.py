@@ -67,6 +67,7 @@ def send_due_post_event(now=None) -> int:
             status__in=(Ticket.STATUS_CONFIRMED, Ticket.STATUS_ATTENDED),
             post_event_sent_at__isnull=True,
         )
+        .exclude(event__status=Event.STATUS_CANCELLED)  # KA-H8: отменённое не «оценивают»
         .annotate(end_ref=Coalesce("event__ends_at", "event__starts_at"))
         .filter(end_ref__gte=lower, end_ref__lte=upper)
         .select_related("event", "customer")
@@ -148,3 +149,28 @@ def send_ticket_payment_reminders():
         with schema_context(schema):
             total += send_due_payment_reminders()
     return total
+
+
+@shared_task(name="apps.events.tasks.cancel_event_tickets")
+def cancel_event_tickets(*, tenant_schema, event_id, actor_id=None):
+    """KA-H8: отмена события → отмена его активных билетов (возврат, письмо, стоп
+    рассрочки) по одному через `apply_action`. Повтор безопасен: билет перечитывается
+    под блокировкой, возврат захватывается условным UPDATE (refunds.py)."""
+    from django.contrib.auth import get_user_model
+
+    from .services import cancel_event_tickets_now
+
+    with schema_context("public"):
+        tenant = get_tenant_model().objects.filter(schema_name=tenant_schema).first()
+    if tenant is None:
+        return {"skipped": True}
+    # Настоящий тенант (а не FakeTenant schema_context): без stripe_connect_id
+    # возвраты молча не прошли бы.
+    from django_tenants.utils import tenant_context
+
+    with tenant_context(tenant):
+        event = Event.objects.filter(pk=event_id).first()
+        if event is None or event.status != Event.STATUS_CANCELLED:
+            return {"skipped": True}
+        actor = get_user_model().objects.filter(pk=actor_id).first() if actor_id else None
+        return cancel_event_tickets_now(event, actor=actor, tenant=tenant)

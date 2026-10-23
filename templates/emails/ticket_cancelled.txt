@@ -1,6 +1,8 @@
 {% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-{% blocktrans with title=event.title code=ticket.reference_code %}Ihre Anmeldung zu „{{ title }}“ ({{ code }}) wurde storniert.{% endblocktrans %}
+{% if event.status == "cancelled" %}{% blocktrans with title=event.title code=ticket.reference_code %}Die Veranstaltung „{{ title }}“ wurde leider abgesagt. Ihre Anmeldung ({{ code }}) ist damit storniert.{% endblocktrans %}
+
+{% trans "Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen Zahlungen melden wir uns bei Ihnen." %}{% else %}{% blocktrans with title=event.title code=ticket.reference_code %}Ihre Anmeldung zu „{{ title }}“ ({{ code }}) wurde storniert.{% endblocktrans %}{% endif %}
 
 {% if unsubscribe_url %}—
 {% trans "Keine E-Mails mehr" %}: {{ unsubscribe_url }}

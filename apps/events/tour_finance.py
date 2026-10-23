@@ -104,5 +104,13 @@ def event_margin(event) -> dict:
 
 
 def _ticket_refs(event) -> list:
-    """id билетов заезда — ключи, которыми выручка записана в журнал."""
-    return [str(pk) for pk in event.tickets.values_list("pk", flat=True)]
+    """id НЕотменённых билетов заезда — ключи, которыми выручка записана в журнал.
+    KA-H8: отменённые не в счёт (и старые отмены без сторно маржу не завышают)."""
+    from apps.core import status_registry
+
+    return [
+        str(pk)
+        for pk in event.tickets.exclude(
+            status__in=status_registry.cancelled_statuses_for("ticket")
+        ).values_list("pk", flat=True)
+    ]

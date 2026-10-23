@@ -28007,3 +28007,54 @@ msgstr "%(unit)s için bu gecelerde oda sayısından fazla rezervasyon ve blokaj
 #, python-format
 msgid "Überbuchung bei %(unit)s:"
 msgstr "%(unit)s için fazla rezervasyon:"
+
+#: KA-H8
+msgid "Veranstaltung wirklich absagen? Alle aktiven Anmeldungen werden storniert, Kartenzahlungen erstattet und die Teilnehmer per E-Mail informiert."
+msgstr "Etkinlik gerçekten iptal edilsin mi? Tüm aktif kayıtlar iptal edilir, kart ödemeleri iade edilir ve katılımcılara e-posta ile bilgi verilir."
+
+#: KA-H8
+msgid "Veranstaltung abgesagt. Die Anmeldungen werden jetzt storniert — die Zusammenfassung erhalten Sie per E-Mail."
+msgstr "Etkinlik iptal edildi. Kayıtlar şimdi iptal ediliyor — özeti e-posta ile alacaksınız."
+
+#: KA-H8
+#, python-format
+msgid "Veranstaltung abgesagt: %(title)s"
+msgstr "Etkinlik iptal edildi: %(title)s"
+
+#: KA-H8
+#, python-format
+msgid "Storniert: %(cancelled)s · Erstattet: %(refunded)s · Bitte manuell prüfen: %(manual)s"
+msgstr "İptal: %(cancelled)s · İade: %(refunded)s · Lütfen elle kontrol edin: %(manual)s"
+
+#: KA-H8
+msgid "Bitte prüfen Sie diese Anmeldungen manuell (Ratenzahlung, Vorkasse oder Fehler bei Stripe):"
+msgstr "Lütfen bu kayıtları elle kontrol edin (taksit, ön ödeme veya Stripe hatası):"
+
+#: KA-H8
+#, python-format
+msgid "Die Veranstaltung „%(title)s“ wurde leider abgesagt. Ihre Anmeldung (%(code)s) ist damit storniert."
+msgstr "Maalesef „%(title)s“ etkinliği iptal edildi. Kaydınız (%(code)s) bu nedenle iptal edildi."
+
+#: KA-H8
+msgid "Bereits per Karte gezahlte Beträge erstatten wir automatisch; zu anderen Zahlungen melden wir uns bei Ihnen."
+msgstr "Kartla ödenen tutarları otomatik olarak iade ediyoruz; diğer ödemeler için sizinle iletişime geçeceğiz."
+
+#: KA-H8
+msgid "Diese Veranstaltung verlangt eine unterschriebene Haftungsfreistellung. Teilnehmer melden sich dafür selbst über die Website an."
+msgstr "Bu etkinlik imzalı bir sorumluluk feragatnamesi gerektirir. Katılımcılar bunun için web sitesinden kendileri kaydolur."
+
+#: KA-H8
+msgid "Das Ticket ist noch nicht bestätigt."
+msgstr "Bilet henüz onaylanmadı."
+
+#: KA-H8
+msgid "Bestätigen und einchecken"
+msgstr "Onayla ve giriş yap"
+
+#: KA-H8
+msgid "Die Veranstaltung wurde abgesagt."
+msgstr "Etkinlik iptal edildi."
+
+#: KA-H8
+msgid "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
+msgstr "Taksit planı ödendi olarak kapatıldı — başka taksit çekilmeyecek."

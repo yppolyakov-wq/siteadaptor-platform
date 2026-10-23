@@ -22,6 +22,14 @@
       <p class="mt-4 inline-block rounded-full bg-red-50 text-red-700 px-4 py-1.5 text-sm font-medium">✕ {% trans "Cancelled" %}</p>
     {% elif ticket.checked_in_at %}
       <p class="mt-4 inline-block rounded-full bg-green-50 text-green-700 px-4 py-1.5 text-sm font-medium">✓ {% trans "Checked in" %} · {{ ticket.checked_in_at|date:"H:i" }}</p>
+    {% elif event.status == "cancelled" %}
+      <p class="mt-4 inline-block rounded-full bg-red-50 text-red-700 px-4 py-1.5 text-sm font-medium">✕ {% trans "Die Veranstaltung wurde abgesagt." %}</p>
+    {% elif ticket.status == "pending" %}
+      <p class="mt-4 text-sm text-amber-700">{% trans "Das Ticket ist noch nicht bestätigt." %}</p>
+      <form method="post" class="mt-3">{% csrf_token %}
+        <input type="hidden" name="confirm_first" value="1">
+        <button class="w-full bg-green-600 text-white rounded-xl px-4 py-3 font-semibold hover:bg-green-700">✓ {% trans "Bestätigen und einchecken" %}</button>
+      </form>
     {% else %}
       <form method="post" class="mt-5">{% csrf_token %}
         <button class="w-full bg-green-600 text-white rounded-xl px-4 py-3 font-semibold hover:bg-green-700">✓ {% trans "Check in" %}</button>
