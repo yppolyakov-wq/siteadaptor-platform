@@ -374,6 +374,8 @@ def notify_event_waitlist(event) -> int:
     Шлёт одно письмо на запись (R1), помечает notified=True. Возвращает число
     отправленных. Безлимитное событие (capacity=0) — тоже шлёт (мест всегда хватает.)
     """
+    if event.status != Event.STATUS_PUBLISHED:  # KA-H8: отменённое «место свободно» не шлёт
+        return 0
     left = event.seats_left  # None = безлимит
     if left is not None and left <= 0:
         return 0

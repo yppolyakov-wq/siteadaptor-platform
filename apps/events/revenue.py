@@ -47,17 +47,23 @@ def record_revenue(ticket, tenant=None) -> None:
     )
 
 
-def record_reversal(ticket, ref: str | None = None, note: str = "") -> None:
-    """Сторно = РОВНО проведённая запись (сумма и ставка); нет записи — нечего."""
+def record_reversal(
+    ticket, ref: str | None = None, note: str = "", retained_cents: int = 0
+) -> None:
+    """Сторно = проведённая запись (сумма и ставка) МИНУС удержанное бизнесом
+    (платная самоотмена гостя: Anzahlung остаётся — это выручка). Нет записи — нечего."""
     from apps.finance.services import record_reversal as reverse
 
     entry = recorded_entry(ticket)
     if entry is None:
         return
+    amount = entry.amount - Decimal(max(0, int(retained_cents or 0))) / 100
+    if amount <= 0:
+        return
     reverse(
         source="event",
         source_ref=ref or f"{ticket.id}:reversal",
-        amount=entry.amount,
+        amount=amount,
         vat_rate=entry.vat_rate,
         customer=ticket.customer,
         note=note or f"Storno {ticket.reference_code}",

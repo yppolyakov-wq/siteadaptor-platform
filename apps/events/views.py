@@ -153,6 +153,17 @@ def event_action(request, pk):
     """Публикация/снятие/отмена события (EventSM)."""
     event = get_object_or_404(Event, pk=pk)
     target = request.POST.get("target", "")
+    if target == Event.STATUS_CANCELLED:
+        # KA-H8: отмена события = массовый возврат и письма всем участникам —
+        # только владелец и только с подтверждением (не одним кликом/POST).
+        from apps.core.roles import is_owner
+
+        if not is_owner(request.user):
+            messages.error(request, _("Nur der Inhaber kann eine Veranstaltung absagen."))
+            return redirect("events:detail", pk=pk)
+        if request.POST.get("confirm_cancel") != "1":
+            messages.error(request, _("Bitte die Absage bestätigen."))
+            return redirect("events:detail", pk=pk)
     try:
         EventSM().apply(event, target, actor=request.user)
         if target == Event.STATUS_CANCELLED:
@@ -303,15 +314,17 @@ def ticket_action(request, pk, tid):
             )
         return redirect("events:detail", pk=pk)
     if target == "paid":
-        if ticket.status == Ticket.STATUS_CANCELLED:
-            messages.error(request, _("This ticket is cancelled."))
+        if ticket.status == Ticket.STATUS_CANCELLED or (
+            ticket.payment_state == Ticket.PAYMENT_REFUNDED
+        ):
+            messages.error(request, _("This step is not possible in the current status."))
             return redirect("events:detail", pk=pk)
         # KA-H8: ручное «bezahlt» закрывает рассрочку — иначе beat списывал бы
         # следующие доли с карты повторно.
         from .installments import settle_manually
 
         plan = getattr(ticket, "installment_plan", None) if _has_plan(ticket) else None
-        if plan is not None and settle_manually(plan):
+        if plan is not None and settle_manually(plan):  # ждёт блокировку доли beat'а
             messages.info(
                 request,
                 _("Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."),

@@ -44,7 +44,8 @@
     <button name="target" value="published" class="text-sm bg-green-600 text-white rounded-lg px-3 py-1.5 hover:bg-green-700">{% trans "Publish" %}</button>
   {% elif event.status == 'published' %}
     <button name="target" value="draft" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5">{% trans "Unpublish" %}</button>
-    <button name="target" value="cancelled" onclick="return confirm('{{ cancel_confirm_text|escapejs }}')" class="text-sm text-red-600 border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Cancel event" %}</button>
+    <input type="hidden" name="confirm_cancel" value="">
+    <button name="target" value="cancelled" onclick="if (!confirm('{{ cancel_confirm_text|escapejs }}')) return false; this.form.elements.confirm_cancel.value = '1';" class="text-sm text-red-600 border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Cancel event" %}</button>
   {% endif %}
 </form>
 

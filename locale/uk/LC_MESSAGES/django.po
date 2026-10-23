@@ -28171,3 +28171,11 @@ msgstr "Захід скасовано."
 #: KA-H8
 msgid "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
 msgstr "Розстрочку закрито як сплачену — наступні частки не списуватимуться."
+
+#: KA-H8
+msgid "Nur der Inhaber kann eine Veranstaltung absagen."
+msgstr "Скасувати захід може лише власник."
+
+#: KA-H8
+msgid "Bitte die Absage bestätigen."
+msgstr "Підтвердьте скасування."

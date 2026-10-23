@@ -100,7 +100,6 @@ def charge_due_installments(connect_id: str, today=None) -> dict:
     from django.conf import settings
     from django.utils import timezone
 
-    from . import installments
     from .models import InstallmentCharge, InstallmentPlan
 
     today = today or timezone.localdate()
@@ -121,14 +120,37 @@ def charge_due_installments(connect_id: str, today=None) -> dict:
         .select_related("plan", "plan__ticket", "plan__ticket__event", "plan__ticket__customer")
     )
     charged = failed = 0
-    for charge in due:
-        plan = charge.plan
-        # Владелец мог закрыть план вручную, пока шёл цикл (KA-H8, «bezahlt»).
-        plan.refresh_from_db(fields=["status"])
-        if plan.status != InstallmentPlan.STATUS_ACTIVE:
-            continue
-        if not (connect_id and plan.stripe_customer_id and plan.stripe_payment_method_id):
+    for pending in due:
+        if not (connect_id and pending.plan.stripe_customer_id):
             continue  # нет мандата — пропускаем (дозаполнение/ручное списание в кабинете)
+        result = _charge_one(pending.pk, connect_id, max_attempts)
+        charged += result == "charged"
+        failed += result == "failed"
+    return {"charged": charged, "failed": failed}
+
+
+def _charge_one(charge_pk, connect_id: str, max_attempts: int) -> str:
+    """KA-H8: одна доля — под блокировкой плана и доли (ручное «bezahlt» владельца
+    ждёт её, а не проскакивает между проверкой и списанием); ключ идемпотентности
+    Stripe по (доля, попытка) — повтор после сбоя не списывает дважды."""
+    from django.db import transaction
+
+    from . import installments
+    from .models import InstallmentCharge, InstallmentPlan
+
+    with transaction.atomic():
+        charge = (
+            InstallmentCharge.objects.select_for_update()
+            .select_related("plan__ticket__event")
+            .filter(pk=charge_pk)
+            .first()
+        )
+        if charge is None or charge.status != InstallmentCharge.STATUS_SCHEDULED:
+            return "skipped"
+        plan = InstallmentPlan.objects.select_for_update().get(pk=charge.plan_id)
+        if plan.status != InstallmentPlan.STATUS_ACTIVE or not plan.stripe_payment_method_id:
+            return "skipped"
+        charge.plan = plan
         try:
             pi = connect.charge_off_session(
                 connect_id=connect_id,
@@ -141,9 +163,10 @@ def charge_due_installments(connect_id: str, today=None) -> dict:
                     "charge": str(charge.id),
                 },
                 business_type=getattr(plan.ticket.event, "business_type", ""),
+                idempotency_key=f"installment:{charge.id}:{charge.attempts}",
             )
             installments.mark_charge_paid(charge, payment_intent=pi)
-            charged += 1
+            return "charged"
         except stripe.error.StripeError as exc:
             charge.attempts += 1
             charge.last_error = str(getattr(exc, "user_message", "") or exc)[:300]
@@ -156,8 +179,7 @@ def charge_due_installments(connect_id: str, today=None) -> dict:
             from .notifications import enqueue_installment_failed
 
             enqueue_installment_failed(charge, escalate=reached_max)
-            failed += 1
-    return {"charged": charged, "failed": failed}
+            return "failed"
 
 
 def mark_ticket_paid(*, tenant_schema: str, ticket_id: str, payment_intent: str = "") -> bool:

@@ -247,6 +247,7 @@ def charge_off_session(
     metadata: dict,
     currency: str = "eur",
     business_type: str = "",
+    idempotency_key: str = "",
 ) -> str:
     """Off-session списание доли рассрочки по сохранённому мандату (R10c).
 
@@ -266,5 +267,6 @@ def charge_off_session(
     fee = application_fee_cents(amount_cents, business_type)
     if fee > 0:
         intent_data["application_fee_amount"] = fee
-    pi = _client().PaymentIntent.create(stripe_account=connect_id, **intent_data)
+    extra = {"idempotency_key": idempotency_key} if idempotency_key else {}
+    pi = _client().PaymentIntent.create(stripe_account=connect_id, **intent_data, **extra)
     return pi["id"]

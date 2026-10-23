@@ -28058,3 +28058,11 @@ msgstr "Etkinlik iptal edildi."
 #: KA-H8
 msgid "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
 msgstr "Taksit planı ödendi olarak kapatıldı — başka taksit çekilmeyecek."
+
+#: KA-H8
+msgid "Nur der Inhaber kann eine Veranstaltung absagen."
+msgstr "Bir etkinliği yalnızca işletme sahibi iptal edebilir."
+
+#: KA-H8
+msgid "Bitte die Absage bestätigen."
+msgstr "Lütfen iptali onaylayın."

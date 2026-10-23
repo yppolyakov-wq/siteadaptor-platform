@@ -184,6 +184,10 @@ def settle_manually(plan) -> bool:
     InstallmentCharge.objects.filter(
         plan=plan,
         status__in=(InstallmentCharge.STATUS_SCHEDULED, InstallmentCharge.STATUS_FAILED),
-    ).update(status=InstallmentCharge.STATUS_PAID, last_error="", updated_at=timezone.now())
+    ).update(
+        status=InstallmentCharge.STATUS_PAID,
+        last_error="manuell als bezahlt markiert",  # не Stripe — отметка владельца
+        updated_at=timezone.now(),
+    )
     plan.refresh_from_db(fields=["status"])
     return True

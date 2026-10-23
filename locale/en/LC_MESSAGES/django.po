@@ -27918,3 +27918,11 @@ msgstr "The event has been cancelled."
 #: KA-H8
 msgid "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
 msgstr "Instalment plan closed as paid — no further instalments will be charged."
+
+#: KA-H8
+msgid "Nur der Inhaber kann eine Veranstaltung absagen."
+msgstr "Only the owner can cancel an event."
+
+#: KA-H8
+msgid "Bitte die Absage bestätigen."
+msgstr "Please confirm the cancellation."

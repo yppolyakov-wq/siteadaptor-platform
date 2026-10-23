@@ -28191,3 +28191,11 @@ msgstr "Мероприятие отменено."
 #: KA-H8
 msgid "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
 msgstr "Рассрочка закрыта как оплаченная — следующие доли не будут списаны."
+
+#: KA-H8
+msgid "Nur der Inhaber kann eine Veranstaltung absagen."
+msgstr "Отменить мероприятие может только владелец."
+
+#: KA-H8
+msgid "Bitte die Absage bestätigen."
+msgstr "Подтвердите отмену."

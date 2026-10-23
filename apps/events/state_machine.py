@@ -43,11 +43,20 @@ class EventSM(StateMachine):
             schema = connection.schema_name
             event_id = str(instance.id)
             actor_id = getattr(actor, "pk", None)
-            transaction.on_commit(
-                lambda: cancel_event_tickets.delay(
-                    tenant_schema=schema, event_id=event_id, actor_id=actor_id
-                )
-            )
+
+            def _enqueue():
+                try:
+                    cancel_event_tickets.delay(
+                        tenant_schema=schema, event_id=event_id, actor_id=actor_id
+                    )
+                except Exception:  # noqa: BLE001 — брокер недоступен: событие уже отменено
+                    import logging
+
+                    logging.getLogger(__name__).exception(
+                        "event cancel fan-out not queued (%s %s)", schema, event_id
+                    )
+
+            transaction.on_commit(_enqueue)
 
 
 class TicketSM(StateMachine):
@@ -112,4 +121,4 @@ class TicketSM(StateMachine):
         if t.dst == "cancelled":
             from . import revenue
 
-            revenue.record_reversal(instance)
+            revenue.record_reversal(instance, retained_cents=kw.get("retained_cents", 0))

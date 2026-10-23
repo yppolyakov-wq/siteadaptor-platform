@@ -926,8 +926,16 @@ def veranstaltung_cancel(request, token):
 
         from .state_machine import TicketSM
 
+        # KA-H8: платная самоотмена — оплаченное остаётся бизнесу, это выручка;
+        # сторно снимает только остальное (бесплатная — всё, деньги вернутся).
+        retained = 0
+        if not state["free"]:
+            if ticket.payment_state == Ticket.PAYMENT_PAID:
+                retained = ticket.payable_cents
+            elif ticket.payment_state == Ticket.PAYMENT_DEPOSIT:
+                retained = ticket.deposit_cents
         try:
-            TicketSM().apply(ticket, Ticket.STATUS_CANCELLED)
+            TicketSM().apply(ticket, Ticket.STATUS_CANCELLED, retained_cents=retained)
         except IllegalTransition:
             messages.error(request, _("This ticket can no longer be cancelled."))
             return redirect(reverse("storefront-ticket-cancel", args=[token]))

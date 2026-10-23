@@ -28008,3 +28008,11 @@ msgstr "Die Veranstaltung wurde abgesagt."
 #: KA-H8
 msgid "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
 msgstr "Ratenzahlung als bezahlt abgeschlossen — weitere Raten werden nicht abgebucht."
+
+#: KA-H8
+msgid "Nur der Inhaber kann eine Veranstaltung absagen."
+msgstr "Nur der Inhaber kann eine Veranstaltung absagen."
+
+#: KA-H8
+msgid "Bitte die Absage bestätigen."
+msgstr "Bitte die Absage bestätigen."

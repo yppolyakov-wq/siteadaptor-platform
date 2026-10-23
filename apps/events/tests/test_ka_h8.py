@@ -293,3 +293,91 @@ def test_mark_paid_refused_on_cancelled_ticket():
     views.ticket_action(_req({"target": "paid"}), pk=event.pk, tid=ticket.pk)
     ticket.refresh_from_db()
     assert ticket.payment_state != Ticket.PAYMENT_PAID
+
+
+# --- правки по ревью ---------------------------------------------------------------------
+
+
+def test_event_cancel_requires_owner_and_confirmation(monkeypatch):
+    from apps.core import roles
+
+    event = _event()
+    monkeypatch.setattr(roles, "is_owner", lambda user: False)
+    views.event_action(_req({"target": "cancelled", "confirm_cancel": "1"}), pk=event.pk)
+    event.refresh_from_db()
+    assert event.status == Event.STATUS_PUBLISHED
+    monkeypatch.setattr(roles, "is_owner", lambda user: True)
+    views.event_action(_req({"target": "cancelled"}), pk=event.pk)  # без подтверждения
+    event.refresh_from_db()
+    assert event.status == Event.STATUS_PUBLISHED
+    with (
+        mock.patch("apps.events.tasks.cancel_event_tickets.delay"),
+        mock.patch("apps.aggregator.tasks.sync_aggregator_event.delay"),
+    ):
+        views.event_action(_req({"target": "cancelled", "confirm_cancel": "1"}), pk=event.pk)
+    event.refresh_from_db()
+    assert event.status == Event.STATUS_CANCELLED
+
+
+def test_paid_guest_cancel_keeps_retained_revenue():
+    ticket = _ticket(_event())
+    ticket = TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
+    TicketSM().apply(ticket, Ticket.STATUS_CANCELLED, retained_cents=10000)
+    assert _entry(ticket, ":reversal") is None  # всё удержано — сторно нет
+
+
+def test_deposit_guest_cancel_reverses_only_rest():
+    ticket = _ticket(_event())
+    ticket = TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
+    TicketSM().apply(ticket, Ticket.STATUS_CANCELLED, retained_cents=3000)
+    assert _entry(ticket, ":reversal").amount == Decimal("-70.00")
+
+
+def test_waitlist_not_notified_for_cancelled_event():
+    from apps.events.services import notify_event_waitlist
+
+    event = _event(status=Event.STATUS_CANCELLED)
+    assert notify_event_waitlist(event) == 0
+
+
+def test_mark_paid_refused_on_refunded_ticket():
+    event = _event()
+    ticket = TicketSM().apply(_ticket(event), Ticket.STATUS_CONFIRMED)
+    Ticket.objects.filter(pk=ticket.pk).update(payment_state=Ticket.PAYMENT_REFUNDED)
+    views.ticket_action(_req({"target": "paid"}), pk=event.pk, tid=ticket.pk)
+    ticket.refresh_from_db()
+    assert ticket.payment_state == Ticket.PAYMENT_REFUNDED
+
+
+def test_beat_skips_charge_settled_manually():
+    from apps.events.installments import settle_manually
+    from apps.events.payments import charge_due_installments
+
+    event = _event()
+    ticket = TicketSM().apply(_ticket(event), Ticket.STATUS_CONFIRMED)
+    plan = InstallmentPlan.objects.create(
+        ticket=ticket, stripe_customer_id="cus_1", stripe_payment_method_id="pm_1"
+    )
+    InstallmentCharge.objects.create(
+        plan=plan, amount_cents=1000, due_date=timezone.localdate(), sequence=2
+    )
+    settle_manually(plan)
+    with mock.patch("apps.billing.connect.charge_off_session") as charge:
+        charge_due_installments(connect_id="acct_1")
+    charge.assert_not_called()
+
+
+def test_beat_passes_idempotency_key():
+    from apps.events.payments import charge_due_installments
+
+    event = _event()
+    ticket = TicketSM().apply(_ticket(event), Ticket.STATUS_CONFIRMED)
+    plan = InstallmentPlan.objects.create(
+        ticket=ticket, stripe_customer_id="cus_1", stripe_payment_method_id="pm_1"
+    )
+    c = InstallmentCharge.objects.create(
+        plan=plan, amount_cents=1000, due_date=timezone.localdate(), sequence=2
+    )
+    with mock.patch("apps.billing.connect.charge_off_session", return_value="pi_1") as charge:
+        charge_due_installments(connect_id="acct_1")
+    assert charge.call_args.kwargs["idempotency_key"] == f"installment:{c.id}:0"
