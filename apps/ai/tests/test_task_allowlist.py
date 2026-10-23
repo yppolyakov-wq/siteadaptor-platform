@@ -58,6 +58,7 @@ def test_privacy_paragraph_only_when_chat_task_enabled(ai_on):
     from apps.tenants.tests.factories import TenantFactory
 
     tenant = TenantFactory.build(disabled_modules=[])
+    ai_on.AI_ROUTE_FAST = ai_on.AI_ROUTE_STRONG = ["anthropic"]  # AI-2: получатель в тексте
     ai_on.AI_TASKS_ENABLED = ["promo_text_check"]
     assert tenant._privacy_ai_paragraph() == ""
     ai_on.AI_TASKS_ENABLED = ["inbox_reply_draft"]

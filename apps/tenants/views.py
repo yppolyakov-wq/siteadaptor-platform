@@ -197,7 +197,12 @@ def platform_legal(request, kind):
     tpl = _LEGAL_TEMPLATES.get(kind)
     if not tpl:
         raise Http404
-    return render(request, tpl, {"ui_languages": ui_languages()})
+    ctx = {"ui_languages": ui_languages()}
+    if kind == "datenschutz":
+        from apps.ai.disclosure import platform_section
+
+        ctx["ai_section"] = platform_section()  # AI-2: по реальному провайдеру ИИ
+    return render(request, tpl, ctx)
 
 
 def _signup_error(request, reason, status, signup_req=None):

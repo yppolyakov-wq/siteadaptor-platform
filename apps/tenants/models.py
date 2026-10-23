@@ -488,21 +488,15 @@ class Tenant(TenantMixin):
         )
 
     def _privacy_ai_paragraph(self) -> str:
-        """T-8.10g (О-2): абзац про ИИ-черновики ответов — только когда они реально
-        возможны (ИИ платформы включён И модуль «Nachrichten» активен). Иначе пусто:
+        """T-8.10g (О-2) / AI-2: абзац про ИИ-черновики ответов — только когда они
+        реально возможны (задача переписки включена И модуль «Nachrichten» активен).
+        Получатель и страна — из настроенного маршрута ИИ (США ↔ ЕС). Иначе пусто:
         текст байт-в-байт прежний. Собственный текст владельца не трогаем."""
-        from apps.ai.api import is_enabled
-
-        if not (is_enabled("inbox_reply_draft") and self.is_module_active("inbox")):
+        if not self.is_module_active("inbox"):
             return ""
-        return (
-            "Antworten auf Ihre Nachrichten können wir mit Hilfe von KI-Diensten "
-            "vorbereiten lassen. Dabei werden die Inhalte der Nachrichten (erkennbare "
-            "E-Mail-Adressen, Telefon- und Kontonummern werden vorher entfernt), Angaben "
-            "zu Ihrer Bestellung oder Anfrage und zu unserem Angebot an "
-            "Auftragsverarbeiter mit Servern in der EU übermittelt (Art. 28 DSGVO). "
-            "Jede Antwort wird von unseren Mitarbeitenden geprüft und selbst versendet.\n\n"
-        )
+        from apps.ai.disclosure import tenant_paragraph
+
+        return tenant_paragraph()
 
     def _privacy_telegram_paragraph(self) -> str:
         """T-8.30l: абзац о входе в Kundenkonto через Telegram — только когда он

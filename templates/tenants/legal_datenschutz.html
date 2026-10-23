@@ -56,6 +56,12 @@ Stripe (оплата подписки), Resend (транзакционные п�
       <p class="mt-1">Speicherdauer: bis <code>/daten_loeschen</code>; hast du den Bot gesperrt, 30 Tage; ohne Abo und Aktivität 180 Tage.</p>
       <p class="mt-1">Deine Rechte im Bot: <code>/meine_daten</code> (Auskunft und Datei, Art. 15 und 20), <code>/berichtigen</code> (Sprache; Abos mit <code>/folgen</code>), <code>/pausieren</code> und <code>/fortsetzen</code> (Zusammenfassungen ruhen, Abos bleiben – Art. 18), <code>/widerspruch</code> (alle Abos in Telegram beenden – Art. 21), <code>/daten_loeschen</code> (Art. 17).</p>
     </div>
+    {% if ai_section %}
+    <div id="ki-dienste" data-privacy-ai>
+      <h2 class="font-semibold text-gray-900">8b. KI-Dienste</h2>
+      <div class="mt-1">{{ ai_section|linebreaksbr }}</div>
+    </div>
+    {% endif %}
     <div>
       <h2 class="font-semibold text-gray-900">9. Deine Rechte</h2>
       <p class="mt-1">Du hast das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch (Art. 21 DSGVO) sowie das Recht auf Beschwerde bei einer Aufsichtsbehörde (Art. 77 DSGVO). Wende dich dazu an die im Impressum genannte Adresse.</p>
