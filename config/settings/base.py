@@ -788,6 +788,9 @@ AI_TASKS_ENABLED = [
     if name.strip()
 ]
 AI_REQUIRE_EU = env.bool("AI_REQUIRE_EU", default=False)
+# Осознанно принятые предупреждения проверки (например ai.W004 — тест ИИ вне ЕС):
+# SILENCED_SYSTEM_CHECKS=ai.W004 в .env — деплой перестаёт печатать их на каждом шаге.
+SILENCED_SYSTEM_CHECKS = env.list("SILENCED_SYSTEM_CHECKS", default=[])
 AI_ROUTE_FAST = env.list("AI_ROUTE_FAST", default=["fake"])
 AI_ROUTE_STRONG = env.list("AI_ROUTE_STRONG", default=["fake"])
 AI_FAKE_MODE = env("AI_FAKE_MODE", default="ok")
