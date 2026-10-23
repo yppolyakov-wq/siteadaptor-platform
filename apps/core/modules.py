@@ -681,11 +681,9 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
                 "query": e.query,  # X5-3: «?from=board» у Abläufe
             }
             for e in nav_registry.sidebar_children(a)
-            if (not e.module_key or is_module_active(tenant, e.module_key))
-            # X4: гейт по типу бизнеса — «Kitchen Display» только гастро.
-            and nav_registry.allowed_for_business(e.url_name, tenant)
-            # X0: owner-only экраны сотруднику не показываем (мёртвый 403).
-            and e.url_name not in owner_hidden
+            # KA-12 E8.1: один гейт показа на все потребители (модуль, «любой из
+            # модулей», направление, тип бизнеса, owner-only у сотрудника).
+            if nav_registry.entry_visible(e, tenant, owner_hidden)
             # VF-11: вкладка единственного направления = дубль обзора — прячем.
             and not _is_solo_direction_tab(e)
         ]

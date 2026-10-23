@@ -58,6 +58,10 @@ class NavEntry:
     # X5-3: query-суффикс ссылки подпункта («?from=board» у Abläufe: одна
     # страница, но заход из «Verkäufe» не должен телепортировать в настройки).
     query: str = ""
+    # KA-12 E8.1/E8.12: у КАЖДОЙ записи есть гейт — модуль, «любой из модулей»,
+    # направление, тип бизнеса — либо она в UNIVERSAL с причиной («экран для всех»).
+    modules_any: tuple[str, ...] = ()
+    direction: str = ""  # "waren" | "gastro" — см. direction_active()
 
 
 @dataclass(frozen=True)
@@ -155,6 +159,8 @@ def _e(
     business_types=(),
     group="",
     query="",
+    modules_any=(),
+    direction="",
 ):
     return NavEntry(
         url_name,
@@ -170,6 +176,8 @@ def _e(
         business_types,
         group,
         query,
+        modules_any,
+        direction,
     )
 
 
@@ -398,6 +406,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "board",
         search="zusatz extras frühstück optionen verkauft",
         palette_only=True,
+        modules_any=("booking", "stays", "events"),
     ),
     # MX-1: расходы и результат — экраны раздела Finanzen (вход: вкладки на
     # страницах + палитра; состав якорей сайдбара не тронут — мораторий X7.1).
@@ -801,7 +810,15 @@ ENTRIES: tuple[NavEntry, ...] = (
         owner_only=True,
         group="verwaltung",
     ),
-    _e("settings", "extras", _("Zusatzleistungen"), "extras", None, True),
+    _e(
+        "settings",
+        "extras",
+        _("Zusatzleistungen"),
+        "extras",
+        None,
+        True,
+        modules_any=("booking", "stays", "events"),
+    ),
     _e("settings", "modules", _("Funktionen"), "modules", None, True, "module aktivieren"),
     # W12-1: режим кабинета одним экраном (Einfach/Experte + «что скрыто»).
     _e("settings", "finder-settings", _("Finder"), "finder", None, True, "fragen empfehlung"),
@@ -873,6 +890,105 @@ def allowed_for_business(url_name: str, tenant) -> bool:
     if not types or tenant is None:
         return True
     return (getattr(tenant, "business_type", "") or "") in types
+
+
+# KA-12 E8.1: направления кабинета. «Waren» — бизнесы, у которых есть товары
+# (тип, модуль заказов или хотя бы один активный товар); «Gastro» — пищевые типы.
+WAREN_TYPES: tuple[str, ...] = (
+    "bakery",
+    "butcher",
+    "grocery",
+    "retail",
+    "clothing",
+    "online_shop",
+)
+
+
+def direction_active(tenant, direction: str) -> bool:
+    """Активно ли направление у тенанта. Fail-open: без тенанта или при ошибке — да."""
+    if not direction or tenant is None:
+        return True
+    btype = getattr(tenant, "business_type", "") or ""
+    if direction == "gastro":
+        return btype in FOOD_TYPES
+    if direction != "waren":
+        return True
+    if btype in WAREN_TYPES:
+        return True
+    from apps.core.modules import is_module_active
+
+    if is_module_active(tenant, "orders"):
+        return True
+    cached = getattr(tenant, "_nav_has_products", None)
+    if cached is None:
+        try:
+            from apps.catalog.models import Product
+
+            cached = Product.objects.filter(is_active=True).exists()
+        except Exception:  # noqa: BLE001 — хром не падает из-за гейта
+            cached = True
+        try:
+            tenant._nav_has_products = cached
+        except Exception:  # noqa: BLE001 — неизменяемый тенант (namespace) — без кэша
+            pass
+    return cached
+
+
+# KA-12 E8.12: экраны «для всех» — без гейта модуля/направления, с причиной. Запись
+# без гейта и без строки здесь краснит CI (test_ka_w2_nav_locks).
+UNIVERSAL: dict[str, str] = {
+    "settings": "данные бизнеса — у каждого",
+    "languages": "языки витрины — у каждого",
+    "legal-docs": "правовые тексты — у каждого",
+    "team": "команда и доступ — у каждого",
+    "billing": "подписка — у каждого",
+    "billing-payments": "приём оплаты — у каждого",
+    "payment-settings": "способы оплаты и доставки — у каждого",
+    "payments-page": "журнал оплат — у каждого",
+    "notifications-settings": "уведомления и каналы — у каждого",
+    "modules": "включение функций — у каждого",
+    "support:help": "помощь — у каждого",
+    "design": "дизайн сайта — у каждого",
+    "site-seo": "SEO сайта — у каждого",
+    "domains": "домены — у каждого",
+    "media-library": "медиатека — у каждого",
+    "sellable-manage": "обзор ассортимента — у каждого",
+    "ablaeufe": "статусы и переходы — у каждого",
+    "portal-stats": "статистика каталога города — у каждого",
+    "finder-settings": "опция «Finder» — у каждого",
+    "google-reviews-settings": "рейтинг Google — у каждого",
+    "integrations-home": "обзор подключений — у каждого (уходит в батче 3)",
+    # UB3-2: подборки собирают товары, услуги и номера — не только у магазинов.
+    "collections:list": "подборки товаров, услуг и номеров — у каждого",
+}
+
+
+def entry_gate(entry: NavEntry) -> str:
+    """Чем гейтится запись (для замков): модуль, направление, тип или причина."""
+    if entry.module_key:
+        return f"module:{entry.module_key}"
+    if entry.modules_any:
+        return "modules:" + ",".join(entry.modules_any)
+    if entry.direction:
+        return f"direction:{entry.direction}"
+    if business_types_for(entry.url_name):
+        return "business_types"
+    return UNIVERSAL.get(entry.url_name, "")
+
+
+def entry_visible(entry: NavEntry, tenant, owner_hidden=frozenset()) -> bool:
+    """Единый гейт показа записи — сайдбар, палитра, обзор настроек и замки."""
+    from apps.core.modules import is_module_active
+
+    if entry.module_key and not is_module_active(tenant, entry.module_key):
+        return False
+    if entry.modules_any and not any(is_module_active(tenant, m) for m in entry.modules_any):
+        return False
+    if entry.direction and not direction_active(tenant, entry.direction):
+        return False
+    if not allowed_for_business(entry.url_name, tenant):
+        return False
+    return entry.url_name not in owner_hidden
 
 
 # --- Карта подсветки: nav_key страницы → nav_key якоря сайдбара ---------------
