@@ -28245,3 +28245,12 @@ msgstr "Повернути"
 
 msgid "Nicht erstatten"
 msgstr "Не повертати"
+
+msgid "Eintrag"
+msgstr "Запис у каталозі"
+
+msgid "Laden"
+msgstr "Магазин"
+
+msgid "Nicht im Paket"
+msgstr "Не входить у пакет"

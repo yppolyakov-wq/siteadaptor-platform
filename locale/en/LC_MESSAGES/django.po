@@ -27992,3 +27992,12 @@ msgstr "Refund"
 
 msgid "Nicht erstatten"
 msgstr "Do not refund"
+
+msgid "Eintrag"
+msgstr "Listing"
+
+msgid "Laden"
+msgstr "Shop"
+
+msgid "Nicht im Paket"
+msgstr "Not in your package"

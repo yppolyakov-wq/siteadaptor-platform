@@ -28265,3 +28265,12 @@ msgstr "Вернуть"
 
 msgid "Nicht erstatten"
 msgstr "Не возвращать"
+
+msgid "Eintrag"
+msgstr "Запись в каталоге"
+
+msgid "Laden"
+msgstr "Магазин"
+
+msgid "Nicht im Paket"
+msgstr "Не входит в пакет"

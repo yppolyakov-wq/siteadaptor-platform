@@ -28082,3 +28082,12 @@ msgstr "Erstatten"
 
 msgid "Nicht erstatten"
 msgstr "Nicht erstatten"
+
+msgid "Eintrag"
+msgstr "Eintrag"
+
+msgid "Laden"
+msgstr "Laden"
+
+msgid "Nicht im Paket"
+msgstr "Nicht im Paket"

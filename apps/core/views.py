@@ -4288,6 +4288,7 @@ def modules_view(request):
     SubscriptionGatingMiddleware (путь под /dashboard/).
     """
     from apps.core import modules as registry
+    from apps.core import packages
 
     tenant = request.tenant
     optional = registry.optional_modules()
@@ -4324,6 +4325,9 @@ def modules_view(request):
             "depends_on": [dep_labels[dep] for dep in spec.depends_on],
             "recommended": tenant.business_type in spec.recommended_for,
             "suited_label": registry.suited_label(spec),
+            # T-8.32a: вне пакета тумблер заперт, а выбор владельца едет скрытым полем —
+            # иначе Save записал бы потолок пакета в disabled_modules.
+            "in_package": spec.core or packages.module_allowed(tenant, spec.key),
         }
 
     # AB2 (анти-Битрикс): 3 секции в языке задач —

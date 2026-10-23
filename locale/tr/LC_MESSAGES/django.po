@@ -28132,3 +28132,12 @@ msgstr "İade et"
 
 msgid "Nicht erstatten"
 msgstr "İade etme"
+
+msgid "Eintrag"
+msgstr "Katalog kaydı"
+
+msgid "Laden"
+msgstr "Mağaza"
+
+msgid "Nicht im Paket"
+msgstr "Paketinizde yok"

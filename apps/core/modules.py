@@ -555,6 +555,11 @@ def is_module_active(tenant, key: str) -> bool:
         return True
     if not is_entitled(tenant, spec):
         return False
+    from . import packages
+
+    # T-8.32a: потолок пакета — у лёгкого бизнеса вне пакета модуля нет совсем.
+    if not packages.module_allowed(tenant, key):
+        return False
     if key in (getattr(tenant, "disabled_modules", None) or []):
         return False
     return all(is_module_active(tenant, dep) for dep in spec.depends_on)

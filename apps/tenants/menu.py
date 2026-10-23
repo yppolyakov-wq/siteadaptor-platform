@@ -515,7 +515,24 @@ def _menus_of(tenant, cfg=None) -> dict:
 def resolve_menu(tenant, side: str, cfg=None) -> list[dict]:
     """Готовое дерево пунктов для стороны меню ('top' | 'bottom')."""
     side_cfg = _menus_of(tenant, cfg).get(side, {})
-    return [r for r in (_resolve(tenant, n) for n in side_cfg.get("items", [])) if r]
+    items = side_cfg.get("items", [])
+    if side == "top" and _derived_home_is_duplicate(tenant, cfg):
+        items = [n for n in items if not (n.get("type") == "page" and n.get("target") == "home")]
+    return [r for r in (_resolve(tenant, n) for n in items) if r]
+
+
+def _derived_home_is_duplicate(tenant, cfg) -> bool:
+    """T-8.32a: шапка лёгкой витрины, выведенная из легаси-nav (своего меню владелец не
+    собирал), не показывает «Angebote» → главная: это дубль логотипа и «Aktionen».
+    Меню, собранное владельцем, не трогаем — там «Start» мог быть поставлен осознанно."""
+    from apps.core import packages
+
+    if not packages.package_of(tenant).lite:
+        return False
+    if isinstance(cfg, dict) and isinstance(cfg.get("menus"), dict):
+        return False
+    raw = getattr(tenant, "site_config", None)
+    return not (isinstance(raw, dict) and isinstance(raw.get("menus"), dict))
 
 
 def top_meta(tenant, cfg=None) -> tuple[str, bool]:
