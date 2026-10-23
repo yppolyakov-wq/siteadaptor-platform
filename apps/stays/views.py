@@ -198,6 +198,13 @@ def calendar_context(request):
                 {"label": "", "room_id": None, "cells": c} for c in (bars.get(unit.id) or [])
             ]
         grid.append((unit, cells, lane_rows))
+    # KA-H6: овербукинг в видимом окне (брони × номера + блоки > номеров) — плашкой;
+    # производное, без хранимой метки.
+    overbooking = []
+    for unit in units:
+        nights = availability.overbooked_nights(unit, start, window_end)
+        if nights:
+            overbooking.append((unit, nights))
     # PMS-R2: брони «ohne Zimmer» (категория с комнатами, номер не назначен).
     _units_with_rooms = set(rooms_by_unit)
     ohne_zimmer = sum(1 for b in bookings if b.room_id is None and b.unit_id in _units_with_rooms)
@@ -270,6 +277,7 @@ def calendar_context(request):
             return HttpResponse(status=404)
         return render(request, "stays/_booking_card.html", panel_ctx)
     return {
+        "overbooking": overbooking,
         **{
             **panel_ctx,
             "selected_booking": selected,

@@ -61,6 +61,39 @@ def range_available(unit, arrival, departure, *, exclude_pk=None, needed=1) -> b
     return True
 
 
+def overbooked_nights(unit, arrival, departure) -> list:
+    """KA-H6: ночи ``[arrival, departure)``, где занято больше, чем есть номеров
+    (брони × rooms + блокировки) — та же формула, что range_available."""
+    from apps.core import status_registry
+
+    from .models import StayBooking, UnitBlock
+
+    nights = nights_between(arrival, departure)
+    if not nights:
+        return []
+    last_night = nights[-1]
+    stays = list(
+        StayBooking.objects.filter(
+            unit=unit,
+            status__in=status_registry.active_statuses_for("stay"),
+            arrival__lt=departure,
+            departure__gt=arrival,
+        ).values_list("arrival", "departure", "rooms")
+    )
+    blocks = list(
+        UnitBlock.objects.filter(
+            unit=unit, start_date__lte=last_night, end_date__gte=arrival
+        ).values_list("start_date", "end_date")
+    )
+    out = []
+    for night in nights:
+        occupied = sum(rooms for s_arr, s_dep, rooms in stays if s_arr <= night < s_dep)
+        occupied += sum(1 for b_start, b_end in blocks if b_start <= night <= b_end)
+        if occupied > unit.quantity:
+            out.append(night)
+    return out
+
+
 def occupancy_by_day(unit, arrival, departure) -> dict:
     """PMS-D: занятость ночей ``[arrival, departure)`` юнита в процентах (0..100).
 

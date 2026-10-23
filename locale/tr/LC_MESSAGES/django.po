@@ -27992,3 +27992,18 @@ msgstr "Kalan tutarı tahsil et (%(eur)s €)"
 #, python-format
 msgid "Restbetrag vor Ort: %(eur)s €"
 msgstr "Kalan tutar yerinde: %(eur)s €"
+
+#: KA-H6
+#, python-format
+msgid "Überbuchung: %(unit)s"
+msgstr "Fazla rezervasyon: %(unit)s"
+
+#: KA-H6
+#, python-format
+msgid "Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte klären Sie die Belegung im Belegungsplan."
+msgstr "%(unit)s için bu gecelerde oda sayısından fazla rezervasyon ve blokaj var: %(dates)s. Harici takvim yine de alındı — lütfen doluluk planında durumu netleştirin."
+
+#: KA-H6
+#, python-format
+msgid "Überbuchung bei %(unit)s:"
+msgstr "%(unit)s için fazla rezervasyon:"

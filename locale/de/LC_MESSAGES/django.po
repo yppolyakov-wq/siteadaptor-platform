@@ -27942,3 +27942,18 @@ msgstr "Restbetrag kassieren (%(eur)s €)"
 #, python-format
 msgid "Restbetrag vor Ort: %(eur)s €"
 msgstr "Restbetrag vor Ort: %(eur)s €"
+
+#: KA-H6
+#, python-format
+msgid "Überbuchung: %(unit)s"
+msgstr "Überbuchung: %(unit)s"
+
+#: KA-H6
+#, python-format
+msgid "Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte klären Sie die Belegung im Belegungsplan."
+msgstr "Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte klären Sie die Belegung im Belegungsplan."
+
+#: KA-H6
+#, python-format
+msgid "Überbuchung bei %(unit)s:"
+msgstr "Überbuchung bei %(unit)s:"

@@ -20,6 +20,9 @@ test_price_nav/test_verkaeufe).{% endcomment %}
   {% endfor %}
 {% endif %}
 
+{% for unit, nights in overbooking %}
+  <div class="mb-3 rounded-lg px-4 py-2 text-sm bg-red-50 text-red-700" data-overbooking>⚠ {% blocktrans with unit=unit.name %}Überbuchung bei {{ unit }}:{% endblocktrans %} {% for n in nights %}{{ n|date:"d.m." }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+{% endfor %}
 {# Фидбэк 2026-07-28: поиск по гостю/почте/номеру брони — любая дата и статус. #}
 <form method="get" class="mb-3 flex items-center gap-2 max-w-md">
   {% if active_kind %}<input type="hidden" name="tab" value="{{ active_kind }}">{% endif %}

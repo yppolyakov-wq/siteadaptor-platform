@@ -27852,3 +27852,18 @@ msgstr "Collect remaining balance (%(eur)s €)"
 #, python-format
 msgid "Restbetrag vor Ort: %(eur)s €"
 msgstr "Remaining balance on site: %(eur)s €"
+
+#: KA-H6
+#, python-format
+msgid "Überbuchung: %(unit)s"
+msgstr "Overbooking: %(unit)s"
+
+#: KA-H6
+#, python-format
+msgid "Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte klären Sie die Belegung im Belegungsplan."
+msgstr "For %(unit)s there are more bookings and blocks than rooms on these nights: %(dates)s. The external calendar was imported anyway — please resolve the occupancy in the occupancy plan."
+
+#: KA-H6
+#, python-format
+msgid "Überbuchung bei %(unit)s:"
+msgstr "Overbooking at %(unit)s:"

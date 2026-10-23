@@ -439,6 +439,24 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
 
 
 @transaction.atomic
+def _import_over_ical_block(unit, kwargs):
+    """Снять iCal-блоки, накрывающие [заезд, последняя ночь], и повторить бронь
+    в точке сохранения: неудача откатывает удаление блоков."""
+    import datetime
+
+    from .models import UnitBlock
+
+    last_night = kwargs["departure"] - datetime.timedelta(days=1)
+    covering = UnitBlock.objects.filter(
+        unit=unit, start_date__lte=kwargs["arrival"], end_date__gte=last_night
+    ).exclude(source_id_ref="")
+    if not covering.exists():
+        raise StayUnavailable()
+    with transaction.atomic():
+        covering.delete()
+        return book_stay(unit, **kwargs)
+
+
 def import_external_booking(
     *, kind, unit, arrival, departure, name, external_ref="", email="", guests=1
 ):
@@ -455,17 +473,23 @@ def import_external_booking(
         ).first()
         if existing is not None:
             return existing
+    kwargs = {
+        "arrival": arrival,
+        "departure": departure,
+        "name": name or kind,
+        "email": email,
+        "guests": guests,
+        "source_channel": kind,
+        "auto_confirm": True,
+    }
     try:
-        booking = book_stay(
-            unit,
-            arrival=arrival,
-            departure=departure,
-            name=name or kind,
-            email=email,
-            guests=guests,
-            source_channel=kind,
-            auto_confirm=True,
-        )
+        try:
+            booking = book_stay(unit, **kwargs)
+        except StayUnavailable:
+            # KA-H6: часто «занято» — это iCal-блок ТОГО ЖЕ канала на эти даты. Снимаем
+            # блоки iCal, целиком накрывающие бронь, и пробуем ещё раз; не вышло —
+            # откат (блоки вернутся) и прежний путь «Import-Konflikt».
+            booking = _import_over_ical_block(unit, kwargs)
     except (StayUnavailable, MinStay, MaxGuests, ValueError):
         import datetime
 
@@ -478,6 +502,16 @@ def import_external_booking(
                 start_date=arrival,
                 end_date=last_night,
                 reason=f"{kind}: Import-Konflikt {external_ref or name}"[:120],
+            )
+            transaction.on_commit(
+                lambda: _notify_overbooking(
+                    unit,
+                    [
+                        arrival + datetime.timedelta(days=i)
+                        for i in range((departure - arrival).days)
+                    ],
+                    kind,
+                )
             )
         return None
     if external_ref:
@@ -595,13 +629,32 @@ def sync_ical_source(source) -> int:
         source.save(update_fields=["last_status", "last_synced_at", "updated_at"])
         return 0
 
+    from apps.core import status_registry
+
+    from .availability import overbooked_nights
+    from .models import StayBooking
+
     with transaction.atomic():
         UnitBlock.objects.filter(unit=source.unit, source_id_ref=src).delete()
+        # KA-H6: бронь, уже импортированная из канала (G11) на те же даты, — это
+        # та же занятость; второй блок задвоил бы её.
+        imported = set(
+            StayBooking.objects.filter(
+                unit=source.unit,
+                status__in=status_registry.active_statuses_for("stay"),
+            )
+            .exclude(external_ref="")
+            .values_list("arrival", "departure")
+        )
         created = 0
+        window = []
         for _uid, start, end in events:
             last_night = end - timedelta(days=1)  # DTEND эксклюзивно → включительно
             if last_night < start:
                 continue
+            if (start, end) in imported:
+                continue
+            window.append((start, end))
             UnitBlock.objects.create(
                 unit=source.unit,
                 start_date=start,
@@ -610,7 +663,54 @@ def sync_ical_source(source) -> int:
                 source_id_ref=src,
             )
             created += 1
+        # KA-H6: данные канала — правда (блок остаётся), но овербукинг больше не
+        # молчит: статус источника + письмо владельцу (один раз на набор ночей).
+        conflict = []
+        if window:
+            first = min(s for s, _e in window)
+            last = max(e for _s, e in window)
+            conflict = overbooked_nights(source.unit, first, last)
         source.last_status = f"OK: {created}"
+        if conflict:
+            dates = ", ".join(d.strftime("%d.%m.") for d in conflict[:10])
+            source.last_status = f"OK: {created} · Konflikt: {dates}"[:120]
+            transaction.on_commit(lambda: _notify_overbooking(source.unit, conflict, src))
         source.last_synced_at = timezone.now()
         source.save(update_fields=["last_status", "last_synced_at", "updated_at"])
     return created
+
+
+def _notify_overbooking(unit, nights, origin: str) -> None:
+    """KA-H6: письмо владельцу «Überbuchung» (дедуп по юниту и набору ночей)."""
+    import hashlib
+    import logging
+
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    from apps.booking.revenue import _tenant
+    from apps.notifications.services import email_locale, notify
+
+    tenant = _tenant(None)
+    recipient = (getattr(tenant, "owner_email", "") or "").strip()
+    if not recipient or not nights:
+        return
+    dates = ", ".join(d.strftime("%d.%m.%Y") for d in nights[:20])
+    digest = hashlib.sha256(dates.encode()).hexdigest()[:12]
+    with translation.override(email_locale()):
+        subject = _("Überbuchung: %(unit)s") % {"unit": unit.name}
+        body = _(
+            "Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer "
+            "vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — "
+            "bitte klären Sie die Belegung im Belegungsplan."
+        ) % {"unit": unit.name, "dates": dates}
+    try:
+        notify(
+            dedupe_key=f"stay:overbooking:{getattr(tenant, 'schema_name', '')}:{unit.pk}:{digest}",
+            type="stay_overbooking_owner",
+            recipient=recipient,
+            subject=subject,
+            body=body,
+        )
+    except Exception:  # noqa: BLE001 — синк не падает из-за письма
+        logging.getLogger(__name__).warning("overbooking mail not sent (%s)", origin)

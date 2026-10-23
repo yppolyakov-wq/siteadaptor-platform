@@ -28125,3 +28125,18 @@ msgstr "Получить остаток (%(eur)s €)"
 #, python-format
 msgid "Restbetrag vor Ort: %(eur)s €"
 msgstr "Остаток на месте: %(eur)s €"
+
+#: KA-H6
+#, python-format
+msgid "Überbuchung: %(unit)s"
+msgstr "Овербукинг: %(unit)s"
+
+#: KA-H6
+#, python-format
+msgid "Für %(unit)s sind an diesen Nächten mehr Buchungen und Sperren als Zimmer vorhanden: %(dates)s. Der externe Kalender wurde trotzdem übernommen — bitte klären Sie die Belegung im Belegungsplan."
+msgstr "Для %(unit)s в эти ночи броней и блокировок больше, чем номеров: %(dates)s. Внешний календарь всё равно принят — разберите занятость в шахматке."
+
+#: KA-H6
+#, python-format
+msgid "Überbuchung bei %(unit)s:"
+msgstr "Овербукинг у %(unit)s:"
