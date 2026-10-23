@@ -188,7 +188,7 @@ def test_miss_enqueues_once_and_pending_polls(x_on, monkeypatch):
 
 
 def test_daily_cap_means_no_call(x_on, monkeypatch):
-    x_on.AI_SEARCH_DAILY = 0
+    x_on.AI_SEARCH_EXPAND_DAILY = 0
     calls = _delay_spy(monkeypatch)
     assert _get(_payload()).status_code == 204 and calls == []
 
@@ -231,3 +231,67 @@ def test_run_caches_only_clean_terms(x_on, x_cache, monkeypatch):
 def test_short_and_numeric_terms_are_dropped():
     data = {"terms": ["ab", "brot2", "x" * 30, "honig"]}
     assert ai_expand.clean_terms(data, q="мёд") == ["honig"]
+
+
+# --- ревью: пул страницы портала, свой потолок, один шаг -----------------------------------
+
+
+def _done(x_cache, q, lang, terms):
+    x_cache.set(ai_expand.cache_key(q, lang), {"state": "done", "terms": terms}, 60)
+
+
+def test_portal_finds_products_without_kind_in_url(x_on, x_cache):
+    """Ревью: без `?kind=` пул был лентой предложений — товар «Kuchen» не находился."""
+    from apps.aggregator.tests.test_follow_query import _portal
+
+    x_on.ROOT_URLCONF = "config.urls_portal"
+    portal = _portal()
+    _listing(_tenant(), title={"de": "Schokoladenkuchen"})  # вид — товар
+    payload = _payload(s="portal", h=portal.host, p="/", g=[("q", "пахлава")])
+    _done(x_cache, "пахлава", "ru", ["schokoladenkuchen"])
+    resp = ai_search.fragment(_req("get", "/x/", {"t": _token(payload)}), portal=portal)
+    assert resp.status_code == 200 and "Schokoladenkuchen" in resp.content.decode()
+
+
+def test_new_only_scope_is_respected(x_on, x_cache):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.aggregator.models import AggregatorListing
+
+    x_on.ROOT_URLCONF = "config.urls_public"
+    old = _listing(_tenant(), title={"de": "Honigkuchen alt"})
+    AggregatorListing.objects.filter(pk=old.pk).update(
+        created_at=timezone.now() - timedelta(days=90), is_new=False
+    )
+    payload = _payload(g=[("q", "пахлава"), ("city", CITY), ("neu", "1")])
+    _done(x_cache, "пахлава", "ru", ["honigkuchen"])
+    assert _get(payload).status_code == 204
+
+
+def test_expand_has_its_own_daily_cap(x_on, monkeypatch):
+    x_on.AI_SEARCH_DAILY = 0  # лимит подсказок исчерпан — подстраховку это не трогает
+    x_on.AI_SEARCH_EXPAND_DAILY = 5
+    calls = _delay_spy(monkeypatch)
+    assert _get(_payload()).status_code == 202 and len(calls) == 1
+    x_on.AI_SEARCH_EXPAND_DAILY = 0
+    calls.clear()
+    assert _get(_payload(q="ханум", r="ханум")).status_code == 204 and calls == []
+
+
+def test_one_step_per_token_when_both_features_on(x_on):
+    x_on.ROOT_URLCONF = "config.urls_public"
+    x_on.AI_TASKS_ENABLED = [ai_expand.TASK, ai_search.TASK]
+    q = "пахлава с орехами"
+    req = _req("get", "/entdecken/", {"q": q, "city": CITY})
+    slot = ai_search.slot_context(
+        req, surface="entdecken", q=q, q_eff=q, city=CITY, lang="ru", results=0, fuzzy=True
+    )
+    payload = signing.loads(slot["url"].split("?t=", 1)[1], salt=ai_search.TOKEN_SALT)
+    assert payload["x"] == 1 and payload["sg"] == 0
+
+
+def test_cached_terms_are_revalidated():
+    assert ai_expand.valid_cached(["kuchen", "<script>", "a b", 5, "kuchen"]) == ["kuchen"]
+    assert ai_expand.valid_cached("kuchen") == []

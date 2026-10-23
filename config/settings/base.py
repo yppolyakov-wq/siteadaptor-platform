@@ -817,6 +817,7 @@ AI_CATALOG_MODERATION_DEDUPE_DAYS = env.int("AI_CATALOG_MODERATION_DEDUPE_DAYS",
 # пустых/малых выдач). Подсказка только предлагает фильтры ссылкой, сама ничего не применяет.
 AI_SEARCH_ENABLED = env.bool("AI_SEARCH_ENABLED", default=False)
 AI_SEARCH_DAILY = env.int("AI_SEARCH_DAILY", default=500)  # вызовов ИИ платформе в день
+AI_SEARCH_EXPAND_DAILY = env.int("AI_SEARCH_EXPAND_DAILY", default=300)  # T-8.34d, свой потолок
 AI_SEARCH_IP_LIMIT = 10  # новых фраз на IP за 10 минут
 AI_SEARCH_POLL_LIMIT = 120  # обращений к эндпоинту подсказки на IP за 10 минут
 AI_SEARCH_CACHE_HOURS = 24

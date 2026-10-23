@@ -150,6 +150,31 @@ def clean_terms(data, *, q: str) -> list[str]:
     return [t for t in candidates if t in kept][:MAX_TERMS]
 
 
+def valid_cached(terms) -> list[str]:
+    """Слова из кэша — повторно той же проверкой формы (кэш общий; версия промпта меняется)."""
+    if not isinstance(terms, list):
+        return []
+    out = []
+    for term in terms[:MAX_TERMS]:
+        if isinstance(term, str) and _TERM.fullmatch(term) and term not in out:
+            out.append(term)
+    return out
+
+
+def reserve_daily_slot() -> bool:
+    """Свой дневной потолок платформы: подстраховка не съедает лимит подсказок D-2."""
+    from django.utils import timezone
+
+    from apps.ai import config
+
+    key = f"ai-expand-day:{timezone.localdate().isoformat()}"
+    cache.add(key, 0, 2 * 86400)
+    if cache.incr(key) > config.get("AI_SEARCH_EXPAND_DAILY"):
+        logger.warning("ai expand: platform daily cap reached")
+        return False
+    return True
+
+
 def state(key: str):
     value = cache.get(key)
     return value if isinstance(value, dict) else None

@@ -444,6 +444,8 @@ def slot_context(
     )
     if not (suggest or expand):
         return None
+    # Один шаг на токен: два вызова модели подряд не уложились бы в бюджет опроса страницы.
+    suggest = suggest and not expand
     pairs = [(k, v) for k, v in request.GET.items() if k not in ("cursor", KI_PARAM)]
     pairs = [(k, v) for k in dict.fromkeys(k for k, _v in pairs) for v in request.GET.getlist(k)]
     if sum(len(k) + len(v) for k, v in pairs) > GET_MAX:
@@ -668,12 +670,12 @@ def _expand_step(request, payload, *, portal, ip):
     current = ai_expand.state(key)
     if current is None:
         if ratelimit.hit("ai-search", ip, limit=settings.AI_SEARCH_IP_LIMIT, window=POLL_WINDOW):
-            return None
+            return _private(HttpResponse(status=204))
         if not ai_expand.cache.add(key, {"state": "pending"}, 60):
             return _private(HttpResponse(status=202))
-        if not reserve_daily_slot():
+        if not ai_expand.reserve_daily_slot():
             ai_expand.cache.delete(key)
-            return None
+            return _private(HttpResponse(status=204))
         try:
             tasks.ai_search_expand.delay(q=query, lang=lang, key=key, dedupe_key=key)
         except Exception as exc:  # брокер недоступен — подстраховки не будет
@@ -683,7 +685,7 @@ def _expand_step(request, payload, *, portal, ip):
         return _private(HttpResponse(status=202))
     if current.get("state") == "pending":
         return _private(HttpResponse(status=202))
-    terms = [t for t in current.get("terms") or () if isinstance(t, str)]
+    terms = ai_expand.valid_cached(current.get("terms"))
     if current.get("state") != "done" or not terms:
         return None
     view = _expanded_view(terms, payload, portal=portal)
@@ -701,10 +703,10 @@ def _expanded_view(terms, payload, *, portal):
     """Немецкие слова → карточки ИЗ БАЗЫ тем же пулом и фильтрами, что у страницы."""
     from urllib.parse import urlencode
 
-    from . import ai_expand, search
+    from . import ai_expand, reviews, search
     from . import portal_home_blocks as home
     from .models import AggregatorListing
-    from .views import listings_for
+    from .views import _attach_open_status, listings_for
 
     page = QueryDict(mutable=True)
     for key, value in payload["g"]:
@@ -713,24 +715,37 @@ def _expanded_view(terms, payload, *, portal):
         page.setlist("stadtteil", [payload["pd"]])
     city = payload["c"]
     filters = search.parse_filters(SimpleNamespace(GET=page), city=city)
+    # Фильтры, которые страница вывела из текста запроса (цена, «geöffnet»), действуют и тут.
+    _q, filters, _chips, _hints = search.resolve_intent(payload.get("q", ""), filters, city=city)
+    query = " ".join(terms)
+    kind = page.get("kind") or ""
     if portal is not None:
         from . import portal_scope
 
         business_type = payload.get("bt") or getattr(portal, "business_type", "") or None
-        pool = portal_scope.pool(portal, city=city or None, business_type=business_type)
-        kinds = home.kinds_for(home.default_kind(page.get("kind") or "", "", filters)) or (
+        pool = portal_scope.pool(
+            portal,
+            city=city or None,
+            business_type=business_type,
+            district=payload.get("pd") or None,
+        )
+        # Поиск ищет по всем видам («Kuchen» — товар), как страница с запросом.
+        kinds = home.kinds_for(home.default_kind(kind, query, filters)) or (
             AggregatorListing.OFFER_KINDS
         )
     else:
         pool = listings_for(city=city or None)
-        kind = page.get("kind") or ""
         kinds = home.kinds_for(kind) if kind else None
     if kinds:
         pool = pool.filter(listing_kind__in=kinds)
+    pool = home.apply_scope(pool, home.FeedScope(new_only=page.get("neu") == "1"))
     qs = search.match_any(search.apply_filters(pool, filters), terms)
     items = list(qs.order_by("-created_at", "-pk")[: ai_expand.MAX_RESULTS])
     if not items:
         return None
+    reviews.attach_ratings(items)
+    if portal is None:
+        _attach_open_status(items)
     base = [(k, v) for k, v in payload["g"] if k not in ("q", "cursor", KI_PARAM)]
     links = [{"term": t, "url": payload["p"] + "?" + urlencode([*base, ("q", t)])} for t in terms]
     return {"items": items, "links": links}

@@ -58,6 +58,13 @@ TASK_DATA = {
         "Art. 6 Abs. 1 lit. f DSGVO (passende Suchergebnisse)",
         "public",
     ),
+    "search_query_expand": (
+        "Suche im Stadtportal ohne passende Treffer: der Suchtext (ohne Kontaktdaten), um "
+        "deutsche Suchbegriffe zu finden; nur die gefundenen Begriffe (nicht der Suchtext) "
+        "werden bis zu 24 Stunden zwischengespeichert",
+        "Art. 6 Abs. 1 lit. f DSGVO (passende Suchergebnisse)",
+        "public",
+    ),
     "inbox_reply_draft": (
         "Antwortvorschläge auf Kundennachrichten: Nachrichten und Angaben zur Bestellung",
         "Art. 6 Abs. 1 lit. b DSGVO",
@@ -68,6 +75,7 @@ TASK_DATA = {
 _SECONDARY_GATES = {
     "catalog_moderation": "AI_CATALOG_MODERATION",
     "search_phrase_filters": "AI_SEARCH_ENABLED",
+    "search_query_expand": "AI_SEARCH_ENABLED",
 }
 
 

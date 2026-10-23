@@ -60,6 +60,7 @@ SPECS: dict[str, Spec] = {
     "AI_TASKS_ENABLED": Spec("list", "tasks"),
     "AI_SEARCH_ENABLED": Spec("bool", "portal"),
     "AI_SEARCH_DAILY": Spec("int", "portal"),
+    "AI_SEARCH_EXPAND_DAILY": Spec("int", "portal"),
     "AI_CATALOG_MODERATION": Spec("bool", "portal"),
     "AI_CATALOG_MODERATION_DAILY": Spec("int", "portal"),
     "AI_CATALOG_MODERATION_TENANT_DAILY": Spec("int", "portal"),

@@ -21,6 +21,7 @@ NUMBER_KEYS = (
     "AI_TENANT_DAILY_EUR",
     "AI_DAILY_BUDGET_EUR",
     "AI_SEARCH_DAILY",
+    "AI_SEARCH_EXPAND_DAILY",
     "AI_CATALOG_MODERATION_DAILY",
     "AI_CATALOG_MODERATION_TENANT_DAILY",
 )
@@ -152,7 +153,10 @@ def validate(values: dict) -> tuple[list[str], list[str]]:
             if enabled and names and not usable:
                 errors.append(_("Keine nutzbare Route für %(tier)s.") % {"tier": tier})
         tasks = set(config.get("AI_TASKS_ENABLED", ()) or ())
-        if config.get("AI_SEARCH_ENABLED") and "search_phrase_filters" not in tasks:
+        if config.get("AI_SEARCH_ENABLED") and not tasks & {
+            "search_phrase_filters",
+            "search_query_expand",
+        }:
             warnings.append(_("KI-Suche ist an, aber die Aufgabe „search_phrase_filters“ fehlt."))
         if config.get("AI_CATALOG_MODERATION") and "catalog_moderation" not in tasks:
             warnings.append(_("Moderation ist an, aber die Aufgabe „catalog_moderation“ fehlt."))

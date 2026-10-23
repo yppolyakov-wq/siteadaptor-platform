@@ -172,7 +172,8 @@ def match_any(qs, terms):
     for term in terms:
         for token, word in _words(term, "de"):
             part = Q(search_vector=word)
-            if len(token) >= SUBSTRING_MIN:
+            # часть слова — только от 5 букв: короткий корень от модели («haus») тянул бы всё
+            if len(token) > SUBSTRING_MIN:
                 part |= Q(search_text__contains=fold(token))
             cond = part if cond is None else cond | part
     return qs.filter(cond) if cond is not None else qs.none()

@@ -19,12 +19,18 @@
   `AI_TASKS_ENABLED` (админка «KI-Einstellungen»). Подсказка фильтров D-2 независима.
 
 ## Владельцу (до включения)
-Абзац в Datenschutzerklärung портала/платформы (юр. вычитка):
-«Wenn die Suche keine passenden Treffer findet, kann der Suchtext — ohne IP-Adresse und
-ohne Konto, Kontaktdaten werden entfernt — an einen KI-Dienst in der EU (Anbieter laut
-Abschnitt KI-Dienste) übermittelt werden, um passende deutsche Suchbegriffe zu finden.
-Das Ergebnis wird bis zu 24 Stunden ohne den Suchtext zwischengespeichert. Rechtsgrundlage:
-Art. 6 Abs. 1 lit. f DSGVO (funktionierende Suche).»
+Datenschutzerklärung генерируется из реестра ИИ-задач (`apps/ai/disclosure.py`): при
+включении задачи `search_query_expand` абзац «Suche im Stadtportal ohne passende Treffer…»
+с получателем по настроенному маршруту появляется сам. Юр. вычитка текста — владельцу.
+Свой дневной потолок `AI_SEARCH_EXPAND_DAILY` (по умолчанию 300, админка «KI-Einstellungen»)
+— подстраховка не съедает лимит подсказок D-2.
+
+## Ревью (исправлено)
+- HIGH: без `?kind=` портал искал только ленту предложений → товары («Kuchen») не находились;
+  теперь вид решается как у страницы с запросом (все виды).
+- Пул = пул страницы: «Neu», фильтры из текста запроса, район пути; звёзды и «geöffnet».
+- Один шаг ИИ на токен (перевод важнее подсказки D-2); свой потолок; слова из кэша
+  проверяются повторно; подстрока — только от 5 букв.
 
 ## Отложено
 - Счётчик `ai_expanded` в журнале поиска (миграция) — по спросу; частые слова из журнала
