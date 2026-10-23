@@ -30,8 +30,10 @@ LITE_NAV = (
     # T-8.31c: «Sichtbar» — где видно + подключения (свой бот, оплата, домен; T-8.29);
     # полный список подключений — ссылкой со страницы.
     ("lite-visibility", "integrations", "👁", _("Sichtbar")),
+    # KA-12 E8.9: заявки (модуль jobs) — список был недостижим; «Teilen» живёт
+    # ссылкой на странице «Sichtbar» (дубль пункта меню убран).
+    ("lite-requests", "board", "📝", _("Anfragen")),
     ("lite-business", "settings", "🏪", _("Geschäft")),
-    ("lite-share", "site", "🔗", _("Teilen")),
 )
 # Ревью Г1: у визитки «eintrag» сортимент живёт на сайте владельца — повторный импорт
 # должен быть доступен из меню (иначе вход только через прямую ссылку).
@@ -55,6 +57,8 @@ def is_lite_request(request) -> bool:
 
 # KA-H9: пункты только для владельца (мидлварь отдаёт сотруднику 403 — в меню их нет).
 _OWNER_ONLY_ITEMS = frozenset({"lite-business"})
+# Пункты меню, видимые только при включённом модуле.
+_MODULE_ITEMS = {"inbox:list": "inbox", "lite-requests": "jobs"}
 
 
 def sidebar_items(tenant=None, user=None) -> list[dict]:
@@ -76,9 +80,9 @@ def sidebar_items(tenant=None, user=None) -> list[dict]:
             for item in nav
             if (tenant is None or packages.view_allowed(tenant, item[0]))
             and (
-                item[0] != "inbox:list"
+                item[0] not in _MODULE_ITEMS
                 or tenant is None
-                or modules.is_module_active(tenant, "inbox")
+                or modules.is_module_active(tenant, _MODULE_ITEMS[item[0]])
             )
         )
     except Exception:  # noqa: BLE001 — хром кабинета не падает из-за пакета
@@ -355,5 +359,35 @@ def lite_visibility(request):
             "own_bot": st.own_bot(tenant),
             "payments_on": bool(getattr(tenant, "payments_enabled", False)),
             "domain": st.safe(lambda: st.domain(tenant)),
+        },
+    )
+
+
+@login_required
+def lite_requests(request):
+    """KA-12 E8.9: «Anfragen» лёгкого кабинета — заявки клиентов (модуль jobs) списком,
+    50 на страницу. Карточка заявки (смета, деньги) — вне Telegram; в Mini App видно
+    сообщение и контакты клиента, чтобы ответить."""
+    from django.http import Http404
+
+    from apps.core.pagination import paginate_queryset
+    from apps.jobs.models import Job
+
+    if not request.tenant.is_module_active("jobs"):
+        raise Http404
+    status = request.GET.get("status", "")
+    qs = Job.objects.select_related("customer").order_by("-created_at")
+    if status in dict(Job.STATUSES):
+        qs = qs.filter(status=status)
+    page = paginate_queryset(qs, page_raw=request.GET.get("seite"))
+    return render(
+        request,
+        "tenant/lite_requests.html",
+        {
+            "nav": "board",
+            "jobs": page.items,
+            "page": page,
+            "statuses": Job.STATUSES,
+            "active_status": status,
         },
     )

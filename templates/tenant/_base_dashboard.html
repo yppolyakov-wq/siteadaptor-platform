@@ -98,12 +98,28 @@
       {% endif %}
       {% endfor %}
       <p id="nav-empty" class="sb-label hidden px-3 py-3 text-xs text-gray-400">{% trans "Nothing found." %}</p>
-      {% if 'modules'|pkg_allowed:request.tenant %}
+      {% if 'modules'|lite_allowed:request %}
       <a href="{% url 'modules' %}" class="nav-link flex items-center gap-2.5 px-3 py-2 mt-4 rounded-lg border border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-700"
          data-label="{% trans 'add function module' %}">
         <span class="w-5 shrink-0 text-center text-base leading-none" title="{% trans 'Funktion hinzufügen' %}">➕</span>
         <span class="sb-label truncate">{% trans "Funktion hinzufügen" %}</span>
       </a>
+      {% endif %}
+      {% comment %}KA-12 E8.10: в Mini App шапка скрыта — язык кабинета и выход живут
+      здесь, в подвале меню («Mehr»).{% endcomment %}
+      {% if tg_lite %}
+      <div class="mt-4 pt-3 border-t border-gray-100 space-y-2 px-2" data-tg-menu-footer>
+        {% if cabinet_langs|length > 1 %}
+        <form method="post" action="{% url 'set-cabinet-lang' %}" class="flex items-center gap-2 text-sm text-gray-600">
+          {% csrf_token %}
+          <span aria-hidden="true">🗣</span>
+          <select name="lang" onchange="this.form.submit()" aria-label="{% trans 'Cabinet language' %}" class="flex-1 min-h-[44px] bg-white border border-gray-200 rounded-lg px-2 text-sm">
+            {% for l in cabinet_langs %}<option value="{{ l.code }}"{% if l.code == cabinet_lang %} selected{% endif %}>{{ l.label }}</option>{% endfor %}
+          </select>
+        </form>
+        {% endif %}
+        <a href="{% url 'account_logout' %}" class="flex items-center min-h-[44px] px-1 text-sm text-gray-600 hover:text-gray-900">↩ {% trans "Sign out" %}</a>
+      </div>
       {% endif %}
     </nav>
   </aside>

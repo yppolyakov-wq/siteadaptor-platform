@@ -28688,3 +28688,13 @@ msgstr "Уполномоченный представитель"
 
 msgid "Vorschau Impressum"
 msgstr "Предпросмотр Impressum"
+
+msgid ""
+"Anfragen Ihrer Kundschaft — antworten Sie per Telefon, E-Mail oder WhatsApp."
+msgstr "Запросы ваших клиентов — ответьте по телефону, e-mail или WhatsApp."
+
+msgid "Noch keine Anfragen."
+msgstr "Запросов пока нет."
+
+msgid "im Browser"
+msgstr "в браузере"

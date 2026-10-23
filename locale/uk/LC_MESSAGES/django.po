@@ -28671,3 +28671,13 @@ msgstr "Уповноважений представник"
 
 msgid "Vorschau Impressum"
 msgstr "Попередній перегляд Impressum"
+
+msgid ""
+"Anfragen Ihrer Kundschaft — antworten Sie per Telefon, E-Mail oder WhatsApp."
+msgstr "Запити ваших клієнтів — відповідайте телефоном, e-mail або WhatsApp."
+
+msgid "Noch keine Anfragen."
+msgstr "Запитів поки немає."
+
+msgid "im Browser"
+msgstr "у браузері"

@@ -346,18 +346,9 @@ def test_info_page_speaks_cabinet_language():
 # настройки/деньги/интеграции (Р-2); касса с T-8.30e — в белом списке. Новая ссылка с лёгкого
 # экрана обязана попасть либо в белый список, либо сюда — иначе тест красный.
 EMAIL_ONLY = {
-    "integrations-home",
-    "gbp-sync",
-    "notifications-settings",
-    "payment-settings",
-    "domains",
-    "portal-stats",
-    "settings",
-    "modules",
-    "languages",
-    "site-home",
+    # KA-12 E8.10: ссылки лёгких экранов фильтрует `lite_allowed` — сюда только то,
+    # что осознанно ведёт на объяснение «im Browser» (кнопки входа по e-mail и т. п.).
     "owner-login-link",
-    "telegram-settings",
 }
 
 
@@ -399,6 +390,11 @@ def test_lite_screens_link_only_to_allowed_or_email_only():
         "/promotions/": promo_views.promotion_list,
         "/promotions/reservations/": promo_views.reservation_list,
         "/promotions/redeem/": promo_views.redeem_home,
+        # KA-12 E8.10: все экраны лёгкого меню
+        "/dashboard/geschaeft/": lite_cabinet.lite_business,
+        "/dashboard/teilen/": lite_cabinet.lite_share,
+        "/dashboard/anfragen/": lite_cabinet.lite_requests,
+        "/promotions/schnell/": promo_views.promotion_quick,
     }
     detail = {
         f"/promotions/redeem/{res.reference_code}/": res.reference_code,

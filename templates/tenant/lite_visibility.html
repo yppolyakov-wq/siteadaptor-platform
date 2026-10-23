@@ -37,7 +37,7 @@
           <span class="block font-medium">{% trans "Google-Profil" %}</span>
           <span class="block text-sm text-gray-500">{% if google_on %}✓ {% trans "verbunden" %}{% else %}{% trans "Nicht verbunden" %}{% endif %}</span>
         </span>
-        <a href="{% url 'gbp-sync' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% if google_on %}{% trans "Öffnen" %}{% else %}{% trans "Verbinden" %}{% endif %}</a>
+        {% if 'gbp-sync'|lite_allowed:request %}<a href="{% url 'gbp-sync' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% if google_on %}{% trans "Öffnen" %}{% else %}{% trans "Verbinden" %}{% endif %}</a>{% else %}<span class="shrink-0 text-xs text-gray-400" data-tg-browser-only>{% trans "im Browser" %}</span>{% endif %}
       </div>
     {% endif %}
   </section>
@@ -49,7 +49,7 @@
         <span class="block font-medium">{% trans "Telegram (SiteAdaptor-Bot)" %}</span>
         {% if platform_bot.0 %}<span class="block text-sm {% if platform_bot.1 == 'ok' %}text-green-700{% else %}text-gray-500{% endif %}">{{ platform_bot.0 }}</span>{% endif %}
       </span>
-      <a href="{% url 'notifications-settings' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>
+      {% if 'notifications-settings'|lite_allowed:request %}<a href="{% url 'notifications-settings' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>{% else %}<span class="shrink-0 text-xs text-gray-400" data-tg-browser-only>{% trans "im Browser" %}</span>{% endif %}
     </div>
     {% include "tenant/_own_bot_card.html" with inline_token=True can_activate=can_manage_bot %}
     {% if 'payment-settings'|pkg_allowed:request.tenant %}
@@ -58,7 +58,7 @@
         <span class="block font-medium">{% trans "Online bezahlen (Stripe)" %}</span>
         <span class="block text-sm text-gray-500">{% if payments_on %}✓ {% trans "verbunden" %}{% else %}{% trans "Für Zurücklegen nicht nötig" %}{% endif %}</span>
       </span>
-      <a href="{% url 'payment-settings' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>
+      {% if 'payment-settings'|lite_allowed:request %}<a href="{% url 'payment-settings' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>{% else %}<span class="shrink-0 text-xs text-gray-400" data-tg-browser-only>{% trans "im Browser" %}</span>{% endif %}
     </div>
     {% endif %}
     {% if 'domains'|pkg_allowed:request.tenant %}
@@ -67,11 +67,11 @@
         <span class="block font-medium">{% trans "Eigene Domain" %}</span>
         {% if domain.0 %}<span class="block text-sm {% if domain.1 == 'ok' %}text-green-700{% else %}text-gray-500{% endif %}">{{ domain.0 }}</span>{% endif %}
       </span>
-      <a href="{% url 'domains' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>
+      {% if 'domains'|lite_allowed:request %}<a href="{% url 'domains' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>{% else %}<span class="shrink-0 text-xs text-gray-400" data-tg-browser-only>{% trans "im Browser" %}</span>{% endif %}
     </div>
     {% endif %}
   </section>
-  {% if 'integrations-home'|pkg_allowed:request.tenant %}
+  {% if 'integrations-home'|lite_allowed:request %}
   <a href="{% url 'integrations-home' %}" class="block text-center text-sm font-medium text-indigo-600 py-2" data-all-connections>{% trans "Alle Verbindungen" %} →</a>
   {% endif %}
 </div>

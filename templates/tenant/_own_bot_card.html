@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n cabinet %}
 {# T-8.29: свой Telegram-бот — модуль выключен по умолчанию, включает владелец здесь #}
 <div data-own-bot class="bg-white rounded-2xl shadow-sm p-4 flex items-start gap-3">
   <span class="text-2xl leading-none">🤖</span>
@@ -25,7 +25,7 @@
           <button type="submit" class="w-full rounded-xl bg-indigo-600 text-white px-3 py-2 text-sm font-medium">{% trans "Bot verbinden" %}</button>
         </form>
       {% else %}
-        <a href="{% url 'telegram-settings' %}" class="inline-block mt-2 text-sm font-medium text-indigo-600 hover:underline">{% trans "Einrichten" %} →</a>
+        {% if 'telegram-settings'|lite_allowed:request %}<a href="{% url 'telegram-settings' %}" class="inline-block mt-2 text-sm font-medium text-indigo-600 hover:underline">{% trans "Einrichten" %} →</a>{% else %}<span class="block text-xs mt-2 text-gray-400" data-tg-browser-only>{% trans "im Browser" %}</span>{% endif %}
       {% endif %}
     {% elif can_activate %}
       <details data-own-bot-confirm class="mt-2">

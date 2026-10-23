@@ -28566,3 +28566,14 @@ msgstr "Yetkili temsilci"
 
 msgid "Vorschau Impressum"
 msgstr "Künye önizlemesi"
+
+msgid ""
+"Anfragen Ihrer Kundschaft — antworten Sie per Telefon, E-Mail oder WhatsApp."
+msgstr ""
+"Müşterilerinizin talepleri — telefon, e-posta veya WhatsApp ile yanıtlayın."
+
+msgid "Noch keine Anfragen."
+msgstr "Henüz talep yok."
+
+msgid "im Browser"
+msgstr "tarayıcıda"

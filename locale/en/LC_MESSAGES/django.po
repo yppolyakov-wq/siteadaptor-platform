@@ -28422,3 +28422,13 @@ msgstr "Authorised representative"
 
 msgid "Vorschau Impressum"
 msgstr "Legal notice preview"
+
+msgid ""
+"Anfragen Ihrer Kundschaft — antworten Sie per Telefon, E-Mail oder WhatsApp."
+msgstr "Requests from your customers — reply by phone, e-mail or WhatsApp."
+
+msgid "Noch keine Anfragen."
+msgstr "No requests yet."
+
+msgid "im Browser"
+msgstr "in the browser"

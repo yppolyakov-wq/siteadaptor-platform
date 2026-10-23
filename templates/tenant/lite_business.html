@@ -55,7 +55,7 @@
     </section>
     <button type="submit" class="w-full rounded-xl bg-indigo-600 text-white px-4 py-3 text-base font-semibold hover:bg-indigo-700">{% trans "Speichern" %}</button>
   </form>
-  {% if 'settings'|pkg_allowed:request.tenant %}
+  {% if 'settings'|lite_allowed:request %}
   <a href="{% url 'settings' %}" class="block text-center text-xs text-gray-500 hover:underline mt-4">{% trans "Alle Einstellungen" %} →</a>
   {% endif %}
 </div>

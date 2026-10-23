@@ -1,0 +1,41 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Anfragen" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}KA-12 E8.9: заявки клиентов в лёгком кабинете. Карточка заявки (смета и
+деньги) открывается только вне Telegram; в Mini App сообщение и контакты видны здесь.{% endcomment %}
+<div class="max-w-lg mx-auto" data-lite-requests>
+  <h1 class="text-xl font-bold mb-1">📝 {% trans "Anfragen" %}</h1>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Anfragen Ihrer Kundschaft — antworten Sie per Telefon, E-Mail oder WhatsApp." %}</p>
+  <div class="flex flex-wrap gap-2 mb-4 text-sm">
+    <a href="?" class="px-3 py-2 rounded-full {% if not active_status %}bg-gray-900 text-white{% else %}bg-white shadow-sm{% endif %}">{% trans "All" %}</a>
+    {% for value, label in statuses %}
+      <a href="?status={{ value }}" class="px-3 py-2 rounded-full {% if active_status == value %}bg-gray-900 text-white{% else %}bg-white shadow-sm{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+  <div class="space-y-3">
+    {% for job in jobs %}
+      <article class="bg-white rounded-2xl shadow-sm p-4" data-lite-request>
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="font-medium truncate">{{ job.title|default:job.reference_code }}</p>
+            <p class="text-sm text-gray-500 truncate">{{ job.customer.name|default:_("Guest") }} · {{ job.created_at|date:"d.m.Y H:i" }}</p>
+          </div>
+          <span class="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-700 shrink-0">{{ job.get_status_display }}</span>
+        </div>
+        {% if job.description %}<p class="text-sm text-gray-700 mt-2 whitespace-pre-line">{{ job.description|truncatechars:400 }}</p>{% endif %}
+        {% if job.event_date or job.guest_count %}<p class="text-xs text-gray-500 mt-1">{% if job.event_date %}📅 {{ job.event_date|date:"d.m.Y" }}{% endif %}{% if job.guest_count %} · 👥 {{ job.guest_count }}{% endif %}</p>{% endif %}
+        <div class="flex flex-wrap gap-2 mt-3">
+          {% if job.customer.phone %}<a href="tel:{{ job.customer.phone }}" class="inline-flex items-center min-h-[44px] px-3 rounded-xl bg-gray-100 text-sm">📞 {{ job.customer.phone }}</a>{% endif %}
+          {% if job.customer.email %}<a href="mailto:{{ job.customer.email }}" class="inline-flex items-center min-h-[44px] px-3 rounded-xl bg-gray-100 text-sm">✉️ {% trans "E-Mail" %}</a>{% endif %}
+          {% if 'jobs:detail'|lite_allowed:request %}<a href="{% url 'jobs:detail' job.pk %}" class="inline-flex items-center min-h-[44px] px-3 rounded-xl bg-indigo-600 text-white text-sm font-medium">{% trans "Öffnen" %} →</a>{% endif %}
+        </div>
+      </article>
+    {% empty %}
+      <p class="bg-white rounded-2xl shadow-sm p-6 text-gray-500 text-sm">{% trans "Noch keine Anfragen." %}</p>
+    {% endfor %}
+  </div>
+  {% list_pager page %}
+</div>
+{% endblock %}

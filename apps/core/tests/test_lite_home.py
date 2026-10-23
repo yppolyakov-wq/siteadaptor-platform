@@ -190,7 +190,8 @@ def test_lite_nav_is_start_first_and_tabbar_four():
         "inbox:list",
         "lite-visibility",
     ]
-    assert "lite-business" in nav and "lite-share" in nav
+    assert "lite-business" in nav and "lite-requests" in nav
+    assert "lite-share" not in nav  # KA-12 E8.9: «Teilen» — ссылкой со страницы «Sichtbar»
 
 
 def test_start_query_budget(django_assert_max_num_queries):

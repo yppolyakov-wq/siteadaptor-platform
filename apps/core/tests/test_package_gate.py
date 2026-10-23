@@ -189,7 +189,9 @@ def test_reachable_template_links_stay_inside_the_package(path):
     for name in set(re.findall(r"{% url '([^']+)'", body)):
         if name in known or not _cabinet_name(name):
             continue
-        assert packages.view_allowed(tenant, name) or f"'{name}'|pkg_allowed" in body, name
+        # KA-12 E8.10: `lite_allowed` = пакет + белый список Mini App (строже pkg_allowed).
+        guarded = f"'{name}'|pkg_allowed" in body or f"'{name}'|lite_allowed" in body
+        assert packages.view_allowed(tenant, name) or guarded, name
 
 
 def test_lite_menu_has_messages_not_offer():

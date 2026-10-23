@@ -61,6 +61,7 @@ EXPECTED_UNLISTED = frozenset(
         "lite-business",
         "lite-share",
         "lite-visibility",  # T-8.31c: «Sichtbar» — из LITE_NAV
+        "lite-requests",  # KA-12 E8.9: «Anfragen» — из LITE_NAV
         # [POST] приёмники и action-роуты
         "billing-checkout",
         "integrations-telegram-activate",  # T-8.29: POST с карточки «Integrationen»

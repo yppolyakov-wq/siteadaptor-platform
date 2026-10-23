@@ -55,6 +55,7 @@ _AKTIONEN_VIEWS = frozenset(
         "lite-business",
         "lite-share",
         "lite-visibility",
+        "lite-requests",
         "legal-docs",
         "owner-confirm-resend",
         "set-cabinet-lang",

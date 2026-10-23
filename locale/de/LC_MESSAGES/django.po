@@ -28513,3 +28513,14 @@ msgstr "Vertretungsberechtigte Person"
 
 msgid "Vorschau Impressum"
 msgstr "Vorschau Impressum"
+
+msgid ""
+"Anfragen Ihrer Kundschaft — antworten Sie per Telefon, E-Mail oder WhatsApp."
+msgstr ""
+"Anfragen Ihrer Kundschaft — antworten Sie per Telefon, E-Mail oder WhatsApp."
+
+msgid "Noch keine Anfragen."
+msgstr "Noch keine Anfragen."
+
+msgid "im Browser"
+msgstr "im Browser"

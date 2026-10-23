@@ -116,6 +116,7 @@ urlpatterns = [
     path("dashboard/geschaeft/", lite_cabinet.lite_business, name="lite-business"),
     path("dashboard/teilen/", lite_cabinet.lite_share, name="lite-share"),
     path("dashboard/sichtbarkeit/", lite_cabinet.lite_visibility, name="lite-visibility"),
+    path("dashboard/anfragen/", lite_cabinet.lite_requests, name="lite-requests"),
     # UD4-2: кабинет «Benachrichtigungen» — каналы email/Telegram per-событие.
     path(
         "dashboard/settings/notifications/",

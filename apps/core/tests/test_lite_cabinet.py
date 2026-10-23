@@ -48,8 +48,9 @@ def test_lite_sidebar_is_flat_items_full_cabinet_unchanged():
         "promotions:promotion-list",
         "inbox:list",  # T-8.32b (KA-3 В-1): «Angebot» — с пакетом Eintrag
         "lite-visibility",  # T-8.31c: «Sichtbar» (подключения T-8.29 — там же)
+        # KA-12 E8.9: «Anfragen» вместо дубля «Teilen» (он — ссылкой на «Sichtbar»)
+        "lite-requests",
         "lite-business",
-        "lite-share",
     ]
     assert all(not i["children"] for i in lite)
     full = modules.sidebar_nav(_tenant("lc-full", lite=False))
@@ -125,3 +126,22 @@ def test_lite_list_shows_open_reservations_and_scanner(user):
     assert "data-lite-reservations" in body and "1 offen" in body
     assert "/promotions/redeem/" in body
     assert f"/promotions/reservations/?promotion={promo.pk}" in body
+
+
+def test_lite_requests_list_shows_jobs_and_hides_without_module(user):
+    """KA-12 E8.9: заявки клиентов в лёгком кабинете; без модуля jobs — нет пункта и 404."""
+    from django.http import Http404
+
+    from apps.jobs.models import Job
+    from apps.promotions.models import Customer
+
+    t = _tenant("lc-req")
+    kunde = Customer.objects.create(name="Ulla", email="ulla@example.com", phone="0170 1")
+    Job.objects.create(customer=kunde, reference_code="A-REQ001", title="Torte bestellen")
+    body = lite_cabinet.lite_requests(_req("get", "/dashboard/anfragen/", user, t)).content.decode()
+    assert "Torte bestellen" in body and "tel:0170 1" in body and "data-lite-request" in body
+    t.disabled_modules = ["jobs"]
+    t.save()
+    assert "lite-requests" not in [i["url_name"] for i in modules.sidebar_nav(t)]
+    with pytest.raises(Http404):
+        lite_cabinet.lite_requests(_req("get", "/dashboard/anfragen/", user, t))
