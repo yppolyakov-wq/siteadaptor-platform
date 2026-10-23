@@ -98,12 +98,12 @@ def test_reader_survives_without_database():
 @override_settings(AI_ENABLED=False, AI_ROUTE_FAST=["mistral"], AI_TASKS_ENABLED=["x"])
 def test_garbage_in_db_is_ignored_not_trusted():
     """Ревью: строка «false» у bool включала бы ИИ, строка вместо списка маршрутов
-    разбивалась бы по буквам, NaN в бюджете выключал бы потолок."""
+    разбивалась бы по буквам, текст в бюджете ронял бы проверку бюджета."""
     _admin(
         AI_ENABLED="false",
         AI_ROUTE_FAST="bedrock",
         AI_TASKS_ENABLED="promo_text_check",
-        AI_DAILY_BUDGET_EUR=float("inf"),
+        AI_DAILY_BUDGET_EUR="viel",
         AI_PRICES=["x"],
     )
     assert config.get("AI_ENABLED") is False

@@ -10,16 +10,16 @@
 
 Чтение fail-safe: нет таблицы (префлайт до миграций), БД запрещена (тест) или любая
 ошибка — значения `.env`; ошибка кэшируется коротко (FAIL_CACHE_SECONDS), чтобы недоступная
-БД не стоила запроса на каждый `get()`. TTL кэша — `AI_CONFIG_CACHE_SECONDS` (в тестах 0:
-кэш процесса иначе пережил бы откат БД между тестами)."""
+БД не стоила запроса на каждый `get()`. TTL кэша — `AI_CONFIG_CACHE_SECONDS`; в тестах кэш
+сбрасывается перед каждым тестом (корневой conftest), иначе пережил бы откат БД."""
 
 from __future__ import annotations
 
 import contextlib
 import contextvars
 import logging
-import time
 from dataclasses import dataclass
+from time import monotonic as _clock  # не `time.monotonic`: тесты подменяют модуль time
 
 from django.conf import settings
 
@@ -147,10 +147,10 @@ def _clean(raw) -> dict:
 
 
 def _db_values() -> dict:
-    now = time.monotonic()
-    if _cache["values"] is not None and now - _cache["at"] < _cache["ttl"]:
-        return _cache["values"]
     ttl = _ttl()
+    now = _clock() if ttl > 0 else 0.0
+    if ttl > 0 and _cache["values"] is not None and now - _cache["at"] < _cache["ttl"]:
+        return _cache["values"]
     try:
         from django.db import connection, transaction
 

@@ -51,8 +51,6 @@ SERVE_MEDIA = True
 
 # AI-0: тесты без сети и без ключей из окружения — только фейковый провайдер.
 AI_ENABLED = False
-# AI-CFG: без кэша процесса — иначе значения админки пережили бы откат БД между тестами.
-AI_CONFIG_CACHE_SECONDS = 0
 AI_REQUIRE_EU = False
 AI_ROUTE_FAST = ["fake"]
 AI_ROUTE_STRONG = ["fake"]
