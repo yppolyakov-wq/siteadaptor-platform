@@ -43,7 +43,6 @@ def _active_modules(kit) -> set:
     обратно (см. apply_kit). Список `enable_modules` — НЕ полный набор активного.
     """
     from apps.core import modules
-
     from apps.tenants.demo_kits import kit_enabled_modules
 
     # KA-12 E8.7/E8.11: посты/услуги кита включают blog/booking (kit_enabled_modules).
