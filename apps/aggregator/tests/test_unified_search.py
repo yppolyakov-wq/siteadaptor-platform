@@ -735,3 +735,12 @@ def test_kinderaktivitaeten_am_wochenende_equals_manual(isolated_ratelimit):
         by_text = _titles(_portal_html("Kinderaktivitäten am Wochenende"))
         by_param = _titles(_portal_html("Kinder", datum="wochenende"))
     assert by_text == by_param
+
+
+def test_cyrillic_fallback_does_not_match_by_shared_suffix():
+    """Фидбэк 2026-10-23: «сладости» находило «кости» и «лояльности» (общее «-ости»)."""
+    _listing({"de": "Kauknochen", "ru": "Жевательные кости для собак"})
+    _listing({"de": "Treuekarte", "ru": "Карта лояльности"})
+    _listing({"de": "Sladosti-Box", "ru": "Сладкости ассорти"})
+    out, titles = _found("сладости", lang="ru")
+    assert "Kauknochen" not in titles and "Treuekarte" not in titles

@@ -466,3 +466,20 @@ def test_portal_existence_check_uses_offer_feed(ki_on, ki_cache):
     _done(ki_cache, payload, [{"p": [["stadtteil", OHLIGS]], "d": ["Ohligs"]}])
     resp = ai_search.fragment(_req("get", "/x/", {"t": _token(payload)}), portal=portal)
     assert resp.status_code == 204
+
+
+@pytest.mark.parametrize(
+    "q, results, expected",
+    [
+        ("сладости", 4, True),  # одно слово, похожие — не ответ
+        ("Süßigkeiten", 25, True),
+        ("Tomaten www.spam.de", 0, False),  # ссылка — и в fuzzy нельзя
+    ],
+)
+def test_should_suggest_single_word_when_no_exact_match(ki_on, q, results, expected):
+    """Фидбэк 2026-10-23: «сладости» — одно слово, точных совпадений нет, а подсказки
+    ИИ не было (нужно было ≥2 слов и ≤3 результатов)."""
+    assert (
+        ai_search.should_suggest(q, lang="ru", results=results, first_page=True, fuzzy=True)
+        is expected
+    )

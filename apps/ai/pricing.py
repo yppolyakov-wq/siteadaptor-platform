@@ -24,7 +24,9 @@ def _pair(raw):
 def price_for(model: str):
     if model == "fake":
         return Decimal(0), Decimal(0)
-    prices = getattr(settings, "AI_PRICES", None) or {}
+    from . import config
+
+    prices = config.get("AI_PRICES") or {}
     return _pair(prices.get(model)) or _pair(getattr(settings, "AI_DEFAULT_PRICE", None))
 
 

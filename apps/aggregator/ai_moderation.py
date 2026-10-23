@@ -66,7 +66,9 @@ registry.register(
 
 
 def enabled() -> bool:
-    return bool(getattr(settings, "AI_CATALOG_MODERATION", False)) and is_enabled(TASK)
+    from apps.ai import config
+
+    return bool(config.get("AI_CATALOG_MODERATION", False)) and is_enabled(TASK)
 
 
 def _texts(listing) -> list[tuple[str, str, str]]:
@@ -217,11 +219,13 @@ def _reserve_daily_slot(listing) -> str:
     day = timezone.localdate().isoformat()
     own = f"ai-mod-day:{day}:{listing.tenant_schema}"
     cache.add(own, 0, 2 * 86400)
-    if cache.incr(own) > settings.AI_CATALOG_MODERATION_TENANT_DAILY:
+    from apps.ai import config
+
+    if cache.incr(own) > config.get("AI_CATALOG_MODERATION_TENANT_DAILY"):
         return "tenant_cap"
     key = f"ai-mod-day:{day}"
     cache.add(key, 0, 2 * 86400)
-    if cache.incr(key) > settings.AI_CATALOG_MODERATION_DAILY:
+    if cache.incr(key) > config.get("AI_CATALOG_MODERATION_DAILY"):
         logger.warning("catalog ai moderation: platform daily cap reached")
         return "cap"
     return ""

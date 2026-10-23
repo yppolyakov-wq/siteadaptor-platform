@@ -1,0 +1,91 @@
+{% extends "admin/base.html" %}
+{% load i18n unfold %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+{% comment %}AI-CFG-2: настройки ИИ из админки (только суперпользователь). Пустое поле — как в .env.{% endcomment %}
+<form method="post" class="flex flex-col gap-4 max-w-3xl" data-ai-settings>
+  {% csrf_token %}
+  <div class="bg-white p-6 rounded-default shadow-xs border border-base-200 dark:bg-base-900 dark:border-base-800">
+    <h2 class="text-lg font-semibold mb-2">{% trans "Prüfung" %}</h2>
+    {% if not check_errors and not check_warnings %}<p class="text-sm">✅ {% trans "Konfiguration in Ordnung." %}</p>{% endif %}
+    {% for e in check_errors %}<p class="text-sm text-red-600">❌ {{ e }}</p>{% endfor %}
+    {% for w in check_warnings %}<p class="text-sm text-amber-700">⚠️ {{ w }}</p>{% endfor %}
+    <p class="text-xs text-font-subtle-light mt-2">{% trans "Leeres Feld oder „wie .env“ — es gilt der Wert aus .env.prod. Schlüssel liegen unter Plattform → Geheimnisse." %}</p>
+  </div>
+
+  <div class="bg-white p-6 rounded-default shadow-xs border border-base-200 dark:bg-base-900 dark:border-base-800 flex flex-col gap-3">
+    <h2 class="text-lg font-semibold">{% trans "Allgemein" %}</h2>
+    {% for b in bools %}
+      <label class="flex items-center justify-between gap-3 text-sm">
+        <span>{{ b.key }}</span>
+        <select name="{{ b.key }}" class="border rounded px-2 py-1" {% if b.locked %}disabled{% endif %}>
+          <option value="" {% if b.admin is None %}selected{% endif %}>{% trans "wie .env" %} ({% if b.env %}{% trans "An" %}{% else %}{% trans "Aus" %}{% endif %})</option>
+          <option value="1" {% if b.admin is True %}selected{% endif %}>{% trans "An" %}</option>
+          <option value="0" {% if b.admin is False %}selected{% endif %}>{% trans "Aus" %}</option>
+        </select>
+      </label>
+      {% if b.locked %}<p class="text-xs text-font-subtle-light -mt-2">{% trans "„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden." %}</p>{% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="bg-white p-6 rounded-default shadow-xs border border-base-200 dark:bg-base-900 dark:border-base-800 flex flex-col gap-3">
+    <h2 class="text-lg font-semibold">{% trans "Routen" %}</h2>
+    {% for tier, r in routes.items %}
+      <div class="text-sm">
+        <span class="font-medium">{{ tier }}</span>
+        <span class="text-font-subtle-light">· .env: {{ r.env|default:"—" }}{% if r.admin %} · {% trans "aus der Admin" %}{% endif %}</span>
+        <div class="flex gap-2 mt-1">
+          {% for picked in r.picked %}
+            <select name="AI_ROUTE_{{ tier|upper }}_{{ forloop.counter0 }}" class="border rounded px-2 py-1">
+              <option value="">{% if forloop.first %}{% trans "wie .env" %}{% else %}—{% endif %}</option>
+              {% for name, eu in route_choices %}<option value="{{ name }}" {% if r.admin and picked == name %}selected{% endif %}>{{ name }}{% if eu %} (EU){% endif %}</option>{% endfor %}
+            </select>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+    <p class="text-xs text-font-subtle-light">{% trans "Erste Wahl, dann Reserven." %}</p>
+  </div>
+
+  <div class="bg-white p-6 rounded-default shadow-xs border border-base-200 dark:bg-base-900 dark:border-base-800 flex flex-col gap-2">
+    <h2 class="text-lg font-semibold">{% trans "Modelle" %}</h2>
+    {% for m in models %}
+      <label class="flex items-center justify-between gap-3 text-sm">
+        <span>{{ m.key }}</span>
+        <input type="text" name="{{ m.key }}" value="{{ m.admin }}" placeholder="{{ m.env|default:'—' }}" class="border rounded px-2 py-1 w-72">
+      </label>
+    {% endfor %}
+  </div>
+
+  <div class="bg-white p-6 rounded-default shadow-xs border border-base-200 dark:bg-base-900 dark:border-base-800 flex flex-col gap-2">
+    <h2 class="text-lg font-semibold">{% trans "Aufgaben" %}</h2>
+    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="tasks_custom" {% if tasks_custom %}checked{% endif %}> {% trans "Aufgaben hier festlegen (sonst wie .env)" %} <span class="text-font-subtle-light">· .env: {{ tasks_env|default:"—" }}</span></label>
+    {% for name, what, scope in tasks %}
+      <label class="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="tasks" value="{{ name }}" {% if name in tasks_active %}checked{% endif %} class="mt-1">
+        <span><span class="font-medium">{{ name }}</span> <span class="text-font-subtle-light">({{ scope }})</span><br><span class="text-xs">{{ what }}</span></span>
+      </label>
+    {% endfor %}
+  </div>
+
+  <div class="bg-white p-6 rounded-default shadow-xs border border-base-200 dark:bg-base-900 dark:border-base-800 flex flex-col gap-2">
+    <h2 class="text-lg font-semibold">{% trans "Limits & Preise" %}</h2>
+    {% for n in numbers %}
+      <label class="flex items-center justify-between gap-3 text-sm">
+        <span>{{ n.key }}</span>
+        <input type="text" name="{{ n.key }}" value="{{ n.admin }}" placeholder="{{ n.env }}" class="border rounded px-2 py-1 w-40">
+      </label>
+    {% endfor %}
+    <label class="flex flex-col gap-1 text-sm">
+      <span>AI_PRICES — {% trans "eine Zeile: Modell Cent-pro-1M-Eingabe Cent-pro-1M-Ausgabe" %}</span>
+      <textarea name="AI_PRICES" rows="4" class="border rounded px-2 py-1 font-mono" placeholder="{{ prices_env }}">{{ prices_admin }}</textarea>
+    </label>
+  </div>
+
+  <div><button type="submit" class="bg-primary-600 text-white rounded px-4 py-2 font-medium">{% trans "Speichern" %}</button></div>
+</form>
+{% endblock %}

@@ -28042,3 +28042,93 @@ msgstr "Matches for “%(q)s”."
 
 msgid "Neueste Kunden — andere über die Suche oben."
 msgstr "Newest customers — find others with the search above."
+
+msgid "AI settings"
+msgstr "AI settings"
+
+msgid "Aufgaben"
+msgstr "Tasks"
+
+msgid "Aufgaben hier festlegen (sonst wie .env)"
+msgstr "Set tasks here (otherwise as in .env)"
+
+msgid "Außerhalb des erlaubten Bereichs: %(name)s"
+msgstr "Out of the allowed range: %(name)s"
+
+msgid "Daten gehen an Dienste außerhalb der EU — nur mit Demo-Daten zulässig."
+msgstr "Data goes to services outside the EU — only permitted with demo data."
+
+msgid "Erste Wahl, dann Reserven."
+msgstr "First choice, then fallbacks."
+
+msgid "Gespeichert — wirkt in allen Prozessen binnen 15 Sekunden."
+msgstr "Saved — takes effect in all processes within 15 seconds."
+
+msgid "KI-Einstellungen"
+msgstr "AI settings"
+
+msgid "KI-Suche ist an, aber die Aufgabe „search_phrase_filters“ fehlt."
+msgstr "AI search is on, but the task “search_phrase_filters” is missing."
+
+msgid "Kein Preis für Modell %(m)s."
+msgstr "No price for model %(m)s."
+
+msgid "Keine Route für %(tier)s."
+msgstr "No route for %(tier)s."
+
+msgid "Keine Zahl: %(name)s"
+msgstr "Not a number: %(name)s"
+
+msgid "Keine nutzbare Route für %(tier)s."
+msgstr "No usable route for %(tier)s."
+
+msgid "Konfiguration in Ordnung."
+msgstr "Configuration is OK."
+
+msgid "Leeres Feld oder „wie .env“ — es gilt der Wert aus .env.prod. Schlüssel liegen unter Plattform → Geheimnisse."
+msgstr "Empty field or “as in .env” — the value from .env.prod applies. Keys are under Platform → Secrets."
+
+msgid "Limits & Preise"
+msgstr "Limits & prices"
+
+msgid "Modelle"
+msgstr "Models"
+
+msgid "Moderation ist an, aber die Aufgabe „catalog_moderation“ fehlt."
+msgstr "Moderation is on, but the task “catalog_moderation” is missing."
+
+msgid "Preiszeile unklar: %(line)s"
+msgstr "Unclear price line: %(line)s"
+
+msgid "Prüfung"
+msgstr "Check"
+
+msgid "Route %(r)s (%(tier)s) hat kein Modell."
+msgstr "Route %(r)s (%(tier)s) has no model."
+
+msgid "Route %(r)s liegt außerhalb der EU — mit „Nur EU“ nicht erlaubt."
+msgstr "Route %(r)s is outside the EU — not allowed with “EU only”."
+
+msgid "Routen"
+msgstr "Routes"
+
+msgid "Unbekannte Route: %(r)s"
+msgstr "Unknown route: %(r)s"
+
+msgid "Unbekannte oder nicht dokumentierte Aufgabe: %(t)s"
+msgstr "Unknown or undocumented task: %(t)s"
+
+msgid "Ungültiger Modellname: %(name)s"
+msgstr "Invalid model name: %(name)s"
+
+msgid "aus der Admin"
+msgstr "from admin"
+
+msgid "eine Zeile: Modell Cent-pro-1M-Eingabe Cent-pro-1M-Ausgabe"
+msgstr "one line: model cents-per-1M-input cents-per-1M-output"
+
+msgid "wie .env"
+msgstr "as in .env"
+
+msgid "„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden."
+msgstr "“EU only” is enabled in .env and cannot be relaxed here."

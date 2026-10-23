@@ -4,6 +4,7 @@
 SHARED (public): дневной бюджет платформы и сводка суперпользователя — одной таблицей."""
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class AIUsage(models.Model):
@@ -34,3 +35,22 @@ class AIUsage(models.Model):
 
     def __str__(self):
         return f"{self.day} {self.tenant_schema or 'platform'} {self.task} {self.route}"
+
+
+class AIConfig(models.Model):
+    """AI-CFG: настройки ИИ из админки платформы (одна строка, id=1).
+
+    `values` — только то, что задано в админке: нет ключа → действует `.env`. Типы и
+    проверку держит реестр `apps/ai/config.SPECS` (новая настройка — без миграции)."""
+
+    values = models.JSONField(default=dict, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(max_length=150, blank=True, default="")
+
+    class Meta:
+        verbose_name = _("KI-Einstellungen")
+        verbose_name_plural = _("KI-Einstellungen")
+        constraints = [models.CheckConstraint(check=models.Q(id=1), name="ai_config_singleton")]
+
+    def __str__(self):
+        return str(_("KI-Einstellungen"))

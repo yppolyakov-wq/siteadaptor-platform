@@ -1076,6 +1076,13 @@ UNFOLD = {
                         "permission": "apps.platform_bot.admin.superuser_only",
                     },
                     {
+                        # AI-CFG: настройки ИИ — галочками вместо .env.prod.
+                        "title": _("AI settings"),
+                        "icon": "psychology",
+                        "link": reverse_lazy("admin:ai_settings"),
+                        "permission": "apps.platform_bot.admin.superuser_only",
+                    },
+                    {
                         # T-8.10h: общий Telegram-бот платформы — включение, токен, вебхук.
                         "title": _("Telegram platform bot"),
                         "icon": "smart_toy",

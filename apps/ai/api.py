@@ -62,11 +62,13 @@ ALWAYS_ALLOWED = frozenset({"smoke", "smoke_strong"})  # проверка мар
 def is_enabled(task: str | None = None) -> bool:
     """ИИ включён платформой; с `task` — ещё и эта задача в `AI_TASKS_ENABLED` (AI-1).
     Экраны зовут с именем своей задачи, чтобы кнопка пропадала, а не ломалась."""
-    if not getattr(settings, "AI_ENABLED", False):
+    from . import config
+
+    if not config.get("AI_ENABLED", False):
         return False
     if task is None or task in ALWAYS_ALLOWED:
         return True
-    return task in set(getattr(settings, "AI_TASKS_ENABLED", ()) or ())
+    return task in set(config.get("AI_TASKS_ENABLED", ()) or ())
 
 
 def _sleep(attempt: int) -> None:

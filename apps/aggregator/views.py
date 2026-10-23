@@ -733,7 +733,8 @@ def discover_index(request):
             from django.conf import settings
 
             lang = outcome.lang or "de"
-            if ai_search.should_suggest(q_eff, lang=lang, results=0, first_page=True):
+            fuzzy = outcome.mode in ("trigram", "empty")
+            if ai_search.should_suggest(q_eff, lang=lang, results=0, first_page=True, fuzzy=fuzzy):
                 results = search.count_capped(pool, settings.AI_SEARCH_MAX_RESULTS)
                 ki_slot = ai_search.slot_context(
                     request,
@@ -743,6 +744,7 @@ def discover_index(request):
                     city=city,
                     lang=lang,
                     results=results,
+                    fuzzy=fuzzy,
                 )
         # T-8.10d: подписка на этот набор — только с городом (область сводки).
         from . import follow_query

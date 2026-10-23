@@ -14,6 +14,8 @@ import logging
 
 from django.conf import settings
 
+from . import config
+
 logger = logging.getLogger(__name__)
 
 # маршрут → (получатель, страна/регион, ЕС ли)
@@ -75,7 +77,7 @@ def active_tasks() -> list[str]:
     out = []
     for task in TASK_DATA:
         gate = _SECONDARY_GATES.get(task)
-        if gate and not getattr(settings, gate, False):
+        if gate and not config.get(gate, False):
             continue
         if is_enabled(task):
             out.append(task)

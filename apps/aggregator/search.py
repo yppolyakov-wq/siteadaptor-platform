@@ -27,6 +27,9 @@ from .models import apply_city_filters
 from .search_index import fold, ts_config
 
 _TOKEN = re.compile(r"[^\W_]+")
+#: Порог похожести для кириллических слов (окончания длинные — 0.3 пропускал мусор).
+CYRILLIC_TRIGRAM_THRESHOLD = 0.5
+_CYRILLIC = re.compile(r"[\u0400-\u04FF]")
 DATED_KINDS = (L.KIND_PROMOTION, L.KIND_EVENT)  # виды с датами — фильтр даты по окну
 #: Пересмотр Р-О1 (2026-10-23, «Pizza morgen»): при дате виды без своих дат не
 #: выбрасываются, а сужаются часами работы — бизнес открыт хотя бы в один день окна.
@@ -192,6 +195,10 @@ def _trigram_pks(qs, terms: list[str]) -> list[int]:
     n = len(terms)
     need = n if n <= 2 else n - 1
     thr = float(_cfg("trigram_threshold"))
+    if any(_CYRILLIC.search(t) for t in terms):
+        # Фидбэк 2026-10-23: «сладости» ≈ «кости», «лояльности» (общее окончание «-ости»
+        # даёт 0.33) — у кириллицы флексии длинные, порог выше, иначе «похожие» = мусор.
+        thr = max(thr, CYRILLIC_TRIGRAM_THRESHOLD)
     cond = Q()
     sims = {}
     for i, term in enumerate(terms):

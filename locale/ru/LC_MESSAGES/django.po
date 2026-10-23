@@ -28316,3 +28316,93 @@ msgstr "Найдено по «%(q)s»."
 
 msgid "Neueste Kunden — andere über die Suche oben."
 msgstr "Последние клиенты — остальных ищите поиском выше."
+
+msgid "AI settings"
+msgstr "Настройки ИИ"
+
+msgid "Aufgaben"
+msgstr "Задачи"
+
+msgid "Aufgaben hier festlegen (sonst wie .env)"
+msgstr "Задать задачи здесь (иначе как в .env)"
+
+msgid "Außerhalb des erlaubten Bereichs: %(name)s"
+msgstr "Вне допустимого диапазона: %(name)s"
+
+msgid "Daten gehen an Dienste außerhalb der EU — nur mit Demo-Daten zulässig."
+msgstr "Данные уходят в сервисы вне ЕС — допустимо только с демо-данными."
+
+msgid "Erste Wahl, dann Reserven."
+msgstr "Сначала основной, затем резервные."
+
+msgid "Gespeichert — wirkt in allen Prozessen binnen 15 Sekunden."
+msgstr "Сохранено — действует во всех процессах в течение 15 секунд."
+
+msgid "KI-Einstellungen"
+msgstr "Настройки ИИ"
+
+msgid "KI-Suche ist an, aber die Aufgabe „search_phrase_filters“ fehlt."
+msgstr "ИИ-поиск включён, но задачи «search_phrase_filters» нет."
+
+msgid "Kein Preis für Modell %(m)s."
+msgstr "Нет цены для модели %(m)s."
+
+msgid "Keine Route für %(tier)s."
+msgstr "Нет маршрута для %(tier)s."
+
+msgid "Keine Zahl: %(name)s"
+msgstr "Не число: %(name)s"
+
+msgid "Keine nutzbare Route für %(tier)s."
+msgstr "Нет рабочего маршрута для %(tier)s."
+
+msgid "Konfiguration in Ordnung."
+msgstr "Конфигурация в порядке."
+
+msgid "Leeres Feld oder „wie .env“ — es gilt der Wert aus .env.prod. Schlüssel liegen unter Plattform → Geheimnisse."
+msgstr "Пустое поле или «как в .env» — действует значение из .env.prod. Ключи — в разделе Платформа → Секреты."
+
+msgid "Limits & Preise"
+msgstr "Лимиты и цены"
+
+msgid "Modelle"
+msgstr "Модели"
+
+msgid "Moderation ist an, aber die Aufgabe „catalog_moderation“ fehlt."
+msgstr "Модерация включена, но задачи «catalog_moderation» нет."
+
+msgid "Preiszeile unklar: %(line)s"
+msgstr "Неясная строка цены: %(line)s"
+
+msgid "Prüfung"
+msgstr "Проверка"
+
+msgid "Route %(r)s (%(tier)s) hat kein Modell."
+msgstr "У маршрута %(r)s (%(tier)s) нет модели."
+
+msgid "Route %(r)s liegt außerhalb der EU — mit „Nur EU“ nicht erlaubt."
+msgstr "Маршрут %(r)s вне ЕС — при «только ЕС» не разрешён."
+
+msgid "Routen"
+msgstr "Маршруты"
+
+msgid "Unbekannte Route: %(r)s"
+msgstr "Неизвестный маршрут: %(r)s"
+
+msgid "Unbekannte oder nicht dokumentierte Aufgabe: %(t)s"
+msgstr "Неизвестная или не описанная задача: %(t)s"
+
+msgid "Ungültiger Modellname: %(name)s"
+msgstr "Недопустимое имя модели: %(name)s"
+
+msgid "aus der Admin"
+msgstr "из админки"
+
+msgid "eine Zeile: Modell Cent-pro-1M-Eingabe Cent-pro-1M-Ausgabe"
+msgstr "одна строка: модель центы-за-1M-ввода центы-за-1M-вывода"
+
+msgid "wie .env"
+msgstr "как в .env"
+
+msgid "„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden."
+msgstr "«Только ЕС» включено в .env и здесь не может быть ослаблено."

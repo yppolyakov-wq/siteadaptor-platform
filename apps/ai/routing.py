@@ -6,9 +6,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from django.conf import settings
-
-from . import providers
+from . import config, providers
 from .errors import AIUnavailable
 
 _MODEL_SETTINGS = {
@@ -29,7 +27,7 @@ class Route:
 
 
 def configured(tier: str) -> list[str]:
-    raw = settings.AI_ROUTE_STRONG if tier == "strong" else settings.AI_ROUTE_FAST
+    raw = config.get("AI_ROUTE_STRONG" if tier == "strong" else "AI_ROUTE_FAST")
     return [str(r).strip() for r in raw or () if str(r).strip()]
 
 
@@ -37,7 +35,7 @@ def model_for(name: str, tier: str) -> str:
     if name in providers.FAKE_ROUTES:
         return "fake"
     attr = _MODEL_SETTINGS[name].format(tier.upper())
-    return getattr(settings, attr, "") or ""
+    return config.get(attr, "") or ""
 
 
 def describe(name: str, tier: str) -> Route:
@@ -47,7 +45,7 @@ def describe(name: str, tier: str) -> Route:
 
 
 def allowed(route: Route) -> bool:
-    if not settings.AI_REQUIRE_EU:
+    if not config.require_eu():
         return True
     return route.eu and route.name not in providers.FAKE_ROUTES
 

@@ -12,9 +12,8 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.test.utils import override_settings
 
-from apps.ai import api, routing
+from apps.ai import api, config, routing
 from apps.ai.errors import AIError
 
 PROMPT = "Reply with the single word OK."
@@ -43,7 +42,8 @@ class Command(BaseCommand):
             overrides = {"AI_ENABLED": True, key: [name]}
             if allow_non_eu:
                 overrides["AI_REQUIRE_EU"] = False
-            with override_settings(**overrides):
+            # AI-CFG: поверх админки и .env (override_settings не перебил бы админку)
+            with config.override(**overrides):
                 try:
                     r = api.generate(task, PROMPT, images=images, tenant="")
                 except AIError as exc:

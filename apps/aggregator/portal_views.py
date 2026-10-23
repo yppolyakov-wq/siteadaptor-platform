@@ -394,6 +394,7 @@ def portal_home(request, facet=None, district=None):
                 portal_host=portal.host,
                 path_district=district or "",
                 business_type=business_type or "",
+                fuzzy=broad.mode in ("trigram", "empty"),
             )
         ki_chips = ai_search.landing_chips(request, city=city or "")
         ki_landing = bool(ki_chips)

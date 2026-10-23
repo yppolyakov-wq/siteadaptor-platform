@@ -65,7 +65,9 @@ SYSTEM = (
 
 
 def enabled() -> bool:
-    return bool(getattr(settings, "AI_SEARCH_ENABLED", False)) and is_enabled(TASK)
+    from apps.ai import config
+
+    return bool(config.get("AI_SEARCH_ENABLED", False)) and is_enabled(TASK)
 
 
 def _kinds() -> list[str]:
@@ -313,7 +315,9 @@ def reserve_daily_slot() -> bool:
     """Атомарный слот дневного потолка платформы (INCR до вызова; недорасход допустим)."""
     key = f"ai-search-day:{timezone.localdate().isoformat()}"
     cache.add(key, 0, 2 * 86400)
-    if cache.incr(key) > settings.AI_SEARCH_DAILY:
+    from apps.ai import config
+
+    if cache.incr(key) > config.get("AI_SEARCH_DAILY"):
         logger.warning("ai search: platform daily cap reached")
         return False
     return True
@@ -360,8 +364,14 @@ GET_MAX = 2000
 POLL_WINDOW = 600
 
 
-def should_suggest(q_eff: str, *, lang: str, results, first_page: bool) -> bool:
-    """Многословный остаток без контактов и ссылок + пустая/малая выдача + первая страница."""
+def should_suggest(
+    q_eff: str, *, lang: str, results, first_page: bool, fuzzy: bool = False
+) -> bool:
+    """Многословный остаток без контактов и ссылок + пустая/малая выдача + первая страница.
+
+    `fuzzy` — точных совпадений нет (выдача «ähnliche» или пустая): фидбэк 2026-10-23
+    «сладости» — одно слово, а похожие результаты — мусор. Тогда подсказка нужна и на
+    одно слово, и при любом числе похожих (они не ответ на запрос)."""
     from apps.core.pii import scrub
 
     from . import follow_query
@@ -369,12 +379,13 @@ def should_suggest(q_eff: str, *, lang: str, results, first_page: bool) -> bool:
 
     if not first_page or results is None:
         return False
-    if results > settings.AI_SEARCH_MAX_RESULTS:
+    if not fuzzy and results > settings.AI_SEARCH_MAX_RESULTS:
         return False
     text = (q_eff or "").strip()
     if not text or scrub(text) != text or follow_query._LINKISH.search(text):
         return False
-    return significant_word_count(text, lang) >= settings.AI_SEARCH_MIN_WORDS
+    need = 1 if fuzzy else settings.AI_SEARCH_MIN_WORDS
+    return significant_word_count(text, lang) >= need
 
 
 def slot_context(
@@ -389,6 +400,7 @@ def slot_context(
     portal_host: str = "",
     path_district: str = "",
     business_type: str = "",
+    fuzzy: bool = False,
 ) -> dict | None:
     """Слот подсказки (URL эндпоинта с подписанным токеном) или None."""
     from django.core import signing
@@ -410,7 +422,7 @@ def slot_context(
     ):
         return None
     first_page = not request.GET.get("cursor")
-    if not should_suggest(q_eff, lang=lang, results=results, first_page=first_page):
+    if not should_suggest(q_eff, lang=lang, results=results, first_page=first_page, fuzzy=fuzzy):
         return None
     pairs = [(k, v) for k, v in request.GET.items() if k not in ("cursor", KI_PARAM)]
     pairs = [(k, v) for k in dict.fromkeys(k for k, _v in pairs) for v in request.GET.getlist(k)]

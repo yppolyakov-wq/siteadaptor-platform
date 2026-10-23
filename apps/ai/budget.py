@@ -10,10 +10,10 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from django.conf import settings
 from django.db.models import Count, Sum
 from django.utils import timezone
 
+from . import config
 from .errors import AIQuotaExceeded
 
 
@@ -29,12 +29,12 @@ def today_totals(tenant_schema: str | None = None) -> dict:
 
 def check(tenant_schema: str) -> None:
     platform = today_totals()
-    if platform["cost_cents"] >= Decimal(str(settings.AI_DAILY_BUDGET_EUR)) * 100:
+    if platform["cost_cents"] >= Decimal(str(config.get("AI_DAILY_BUDGET_EUR"))) * 100:
         raise AIQuotaExceeded("platform daily budget")
     if not tenant_schema:
         return
     mine = today_totals(tenant_schema)
-    if mine["calls"] >= settings.AI_TENANT_DAILY_CALLS:
+    if mine["calls"] >= config.get("AI_TENANT_DAILY_CALLS"):
         raise AIQuotaExceeded("tenant daily calls")
-    if mine["cost_cents"] >= Decimal(str(settings.AI_TENANT_DAILY_EUR)) * 100:
+    if mine["cost_cents"] >= Decimal(str(config.get("AI_TENANT_DAILY_EUR"))) * 100:
         raise AIQuotaExceeded("tenant daily budget")

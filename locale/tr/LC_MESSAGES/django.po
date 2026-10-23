@@ -28182,3 +28182,93 @@ msgstr "„%(q)s“ için sonuçlar."
 
 msgid "Neueste Kunden — andere über die Suche oben."
 msgstr "En yeni müşteriler — diğerleri için yukarıdaki aramayı kullanın."
+
+msgid "AI settings"
+msgstr "Yapay zekâ ayarları"
+
+msgid "Aufgaben"
+msgstr "Görevler"
+
+msgid "Aufgaben hier festlegen (sonst wie .env)"
+msgstr "Görevleri burada belirle (aksi halde .env'deki gibi)"
+
+msgid "Außerhalb des erlaubten Bereichs: %(name)s"
+msgstr "İzin verilen aralığın dışında: %(name)s"
+
+msgid "Daten gehen an Dienste außerhalb der EU — nur mit Demo-Daten zulässig."
+msgstr "Veriler AB dışındaki hizmetlere gider — yalnızca demo verilerle izinli."
+
+msgid "Erste Wahl, dann Reserven."
+msgstr "Önce ilk tercih, sonra yedekler."
+
+msgid "Gespeichert — wirkt in allen Prozessen binnen 15 Sekunden."
+msgstr "Kaydedildi — 15 saniye içinde tüm süreçlerde geçerli olur."
+
+msgid "KI-Einstellungen"
+msgstr "Yapay zekâ ayarları"
+
+msgid "KI-Suche ist an, aber die Aufgabe „search_phrase_filters“ fehlt."
+msgstr "Yapay zekâ araması açık, ancak “search_phrase_filters” görevi eksik."
+
+msgid "Kein Preis für Modell %(m)s."
+msgstr "%(m)s modeli için fiyat yok."
+
+msgid "Keine Route für %(tier)s."
+msgstr "%(tier)s için rota yok."
+
+msgid "Keine Zahl: %(name)s"
+msgstr "Sayı değil: %(name)s"
+
+msgid "Keine nutzbare Route für %(tier)s."
+msgstr "%(tier)s için kullanılabilir rota yok."
+
+msgid "Konfiguration in Ordnung."
+msgstr "Yapılandırma uygun."
+
+msgid "Leeres Feld oder „wie .env“ — es gilt der Wert aus .env.prod. Schlüssel liegen unter Plattform → Geheimnisse."
+msgstr "Boş alan veya “.env'deki gibi” — .env.prod'daki değer geçerlidir. Anahtarlar Platform → Gizli anahtarlar altında."
+
+msgid "Limits & Preise"
+msgstr "Limitler ve fiyatlar"
+
+msgid "Modelle"
+msgstr "Modeller"
+
+msgid "Moderation ist an, aber die Aufgabe „catalog_moderation“ fehlt."
+msgstr "Moderasyon açık, ancak “catalog_moderation” görevi eksik."
+
+msgid "Preiszeile unklar: %(line)s"
+msgstr "Belirsiz fiyat satırı: %(line)s"
+
+msgid "Prüfung"
+msgstr "Kontrol"
+
+msgid "Route %(r)s (%(tier)s) hat kein Modell."
+msgstr "%(r)s rotasının (%(tier)s) modeli yok."
+
+msgid "Route %(r)s liegt außerhalb der EU — mit „Nur EU“ nicht erlaubt."
+msgstr "%(r)s rotası AB dışında — “Yalnızca AB” ile izin verilmez."
+
+msgid "Routen"
+msgstr "Rotalar"
+
+msgid "Unbekannte Route: %(r)s"
+msgstr "Bilinmeyen rota: %(r)s"
+
+msgid "Unbekannte oder nicht dokumentierte Aufgabe: %(t)s"
+msgstr "Bilinmeyen veya belgelenmemiş görev: %(t)s"
+
+msgid "Ungültiger Modellname: %(name)s"
+msgstr "Geçersiz model adı: %(name)s"
+
+msgid "aus der Admin"
+msgstr "yönetimden"
+
+msgid "eine Zeile: Modell Cent-pro-1M-Eingabe Cent-pro-1M-Ausgabe"
+msgstr "bir satır: model 1M-girdi-başına-sent 1M-çıktı-başına-sent"
+
+msgid "wie .env"
+msgstr ".env'deki gibi"
+
+msgid "„Nur EU“ ist in .env eingeschaltet und kann hier nicht gelockert werden."
+msgstr "“Yalnızca AB” .env'de açık ve burada gevşetilemez."
