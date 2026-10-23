@@ -499,3 +499,31 @@ own=owner-only; lite=LITE_NAV; TG=TG_LITE_VIEWS; unl=EXPECTED_UNLISTED.
 | `/dashboard/presence/` | set-presence | set_presence_view `apps/core/views.py:4349` | 302 | dashboard* | — (inferred group) |  |  |  | Y |
 | `/dashboard/setup/` | setup | setup_view `apps/core/views.py:339` | GET+POST | dashboard* | — (inferred group) |  |  |  | Y |
 | `/dashboard/stadtkatalog-aktuell/` | city-freshness-confirm | freshness_confirm `apps/aggregator/owner_views.py:43` | POST | dashboard* | — (inferred group) |  |  |  | Y |
+## 10. Стенд: обход кабинетов 22 демо (2026-10-23)
+
+Локальный стенд (`config.settings.stand`), 19 отраслевых демо + 3 лёгких/городских, вход
+владельцем, обход ссылок кабинета в ширину (до 70 экранов на демо), для каждого экрана —
+снимок 1440 px и 390 px и машинные метрики. Всего **1402 экрана**, снимки — в scratchpad
+сессии (в git не кладём).
+
+**Находки, исправленные сразу (хотфикс KA-H3, в main):**
+- экран «Aktionstypen» (`/promotions/typen/`) падал **500 у всех бизнесов** — шаблон
+  наследовал несуществующую базу, а содержимое лежало в блоке, которого у базы нет;
+- бейджи в шапке карточек сделок («bezahlt», «🏷 Aktion», номер комнаты) **не выводились
+  ни на одной из пяти карточек** — блок жил внутри `{% include %}`, его Django не даёт
+  переопределить;
+- замок `test_template_extends` ловит оба класса по всем шаблонам.
+
+**Метрики (вход для KA-6/KA-9):**
+- горизонтального переполнения на 390 px — **0 экранов**;
+- ошибок 500 — 0 (две на главной оказались локальными схемами без свежей миграции);
+- **поля без подписи** (нет `<label>`/`aria-label`) — от 223 (лёгкий кабинет) до 929 (магазин)
+  на демо; лидеры — `/dashboard/stock/` (матрица склада), `/dashboard/booking/leistungen/`,
+  `/dashboard/settings/notifications/` (матрица чекбоксов), `/dashboard/settings/payments/`,
+  `/dashboard/ablaeufe/`; это прямой пункт WCAG 1.3.1/4.1.2 (KA-1);
+- **мелкие цели нажатия** (меньше 24 px, WCAG 2.5.8) — на 13–25 экранах каждого демо,
+  максимум — склад (до 1524 мелких элементов) и коллекции;
+- изображений без `alt` — 0.
+- **лёгкий бизнес «Nur Aktionen»** (klingenbrot) по ссылкам из своего кабинета дошёл до
+  70 экранов полного кабинета (склад, закупки, блог, кампании, лояльность, CRM, Studio…) —
+  подтверждает KA-0 §5: лёгкий режим упрощает меню, но не ограничивает доступ.
