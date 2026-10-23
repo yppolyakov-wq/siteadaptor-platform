@@ -68,9 +68,15 @@
   {% endif %}
 
   {% if missing_hours %}
+    {% if 'settings'|pkg_allowed:request.tenant or request.user|cab_is_owner %}
     <a href="{% if 'settings'|pkg_allowed:request.tenant %}{% url 'settings' %}#sec-zeiten{% else %}{% url 'lite-business' %}{% endif %}" class="block rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mb-4" data-missing-hours>
       🕒 {% trans "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen" %} →
     </a>
+    {% else %}
+    <p class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mb-4" data-missing-hours>
+      🕒 {% trans "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen" %} · {% trans "Das kann der Inhaber im Bereich „Geschäft“." %}
+    </p>
+    {% endif %}
   {% endif %}
   <div class="flex flex-wrap gap-2">
     <a href="{% url 'promotions:promotion-quick' %}" class="w-full text-center rounded-xl bg-indigo-600 text-white px-4 py-3 text-sm font-medium">＋ {% if ai_enabled %}✨ {% trans "Nächste Aktion mit KI" %}{% else %}{% trans "Noch eine Aktion" %}{% endif %}</a>

@@ -28695,3 +28695,6 @@ msgstr "Kuponunuz yolda: %(email)s adresine gönderdik."
 
 msgid "unbestätigt · läuft ab"
 msgstr "onaylanmadı · sona eriyor"
+
+msgid "Das kann der Inhaber im Bereich „Geschäft“."
+msgstr "Bunu işletme sahibi „Geschäft“ bölümünde yapabilir."

@@ -28643,3 +28643,6 @@ msgstr "Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt."
 
 msgid "unbestätigt · läuft ab"
 msgstr "unbestätigt · läuft ab"
+
+msgid "Das kann der Inhaber im Bereich „Geschäft“."
+msgstr "Das kann der Inhaber im Bereich „Geschäft“."

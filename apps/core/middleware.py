@@ -13,7 +13,13 @@ from django.utils.translation import gettext as _
 
 from . import modules
 from .i18n_cabinet import CABINET_PREFIXES, resolve_cabinet_locale
-from .roles import can_export_finance, has_cabinet_access, is_owner
+from .roles import (
+    FINANCE_EXPORT_PREFIXES,
+    OWNER_ONLY_PREFIXES,
+    can_export_finance,
+    has_cabinet_access,
+    is_owner,
+)
 from .session_schema import SESSION_SCHEMA_KEY
 
 
@@ -206,44 +212,9 @@ class CabinetOwnerAccessMiddleware:
     # ≠ «отдать бизнес»). Прямые вызовы вьюх в тестах идут мимо middleware —
     # реальный HTTP закрыт здесь fail-closed.
     # В5 V5-3 (решение владельца): статистика Stadtportal — только владельцу.
-    _OWNER_ONLY = (
-        "/dashboard/billing/",
-        "/dashboard/recht/",
-        "/dashboard/settings/team/",
-        "/dashboard/stadtportal/",
-        # T-8.27: импорт с сайта — согласие правообладателя даёт только владелец.
-        "/imports/website/",
-        # Д3 (В-7): каналы публикации пишут во ВНЕШНИЕ профили бизнеса (Google,
-        # Facebook…) — подключение, ключи и синхронизация только владельцу.
-        "/dashboard/channels/google/",
-        "/dashboard/channels/config/",
-        "/dashboard/channels/connect/",
-        "/dashboard/channels/toggle/",
-        # T-8.10h H-3: привязка бизнеса к общему Telegram-боту — только владельцу.
-        "/dashboard/settings/notifications/telegram/",
-        # T-8.29: включить модуль «свой Telegram-бот» решает владелец.
-        "/dashboard/integrationen/telegram-aktivieren/",
-        # Ревью T-8.31 (MEDIUM): токен своего бота подменяет бота для клиентов —
-        # подключать и отключать может только владелец (экран статуса — всем).
-        "/dashboard/telegram/connect/",
-        "/dashboard/telegram/disconnect/",
-        # KA-H9: имя/адрес/телефон бизнеса лёгкого кабинета — уходят в Impressum и
-        # каталог города, менять может только владелец.
-        "/dashboard/geschaeft/",
-        # KA-H11: выгрузки с персональными данными — только владельцу (вьюхи
-        # дополнительно под @owner_required; ростер события — только там, uuid в пути).
-        "/crm/export.csv",
-        "/dashboard/stays/berichte/export.csv",
-        # Банковские выписки: имя плательщика, назначение, IBAN.
-        "/dashboard/finance/bank/",
-    )
-
+    _OWNER_ONLY = OWNER_ONLY_PREFIXES
     # KA-D7: финансовые выгрузки — владельцу и admin (бухгалтер), не staff.
-    _FINANCE_EXPORTS = (
-        "/dashboard/finance/export.csv",
-        "/dashboard/finance/datev.csv",
-        "/dashboard/finance/ausgaben/datev.csv",
-    )
+    _FINANCE_EXPORTS = FINANCE_EXPORT_PREFIXES
 
     def __init__(self, get_response):
         self.get_response = get_response

@@ -382,8 +382,11 @@ def test_done_screen_offers_edit_and_translation_links(user):
 
 def test_done_screen_asks_for_opening_hours_until_they_are_set(user):
     """T-8.23b: без часов работы — подсказка «Öffnungszeiten ergänzen» на «Fertig»."""
+    from apps.core.models import Membership
+
     tenant = _tenant("t823-hours")
     promo = PromotionFactory(status="active", title={"de": "Brot"})
+    membership = Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
 
     def body():
         req = _attach(RequestFactory().get(f"/promotions/{promo.pk}/fertig/"), user, tenant)
@@ -391,6 +394,10 @@ def test_done_screen_asks_for_opening_hours_until_they_are_set(user):
 
     # T-8.32b: у лёгкого пакета полных настроек нет — часы правятся в «Geschäft».
     assert "data-missing-hours" in body() and "/dashboard/geschaeft/" in body()
+    # KA-12 E11.2: сотруднику «Geschäft» закрыт — подсказка без мёртвой ссылки.
+    membership.role = Membership.ROLE_STAFF
+    membership.save(update_fields=["role"])
+    assert "data-missing-hours" in body() and "/dashboard/geschaeft/" not in body()
     tenant.opening_hours = "Mo–Fr 7–18 Uhr"
     tenant.save(update_fields=["opening_hours"])
     assert "data-missing-hours" not in body()

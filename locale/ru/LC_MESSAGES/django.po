@@ -28816,3 +28816,6 @@ msgstr "Купон уже в пути: мы отправили его на %(ema
 
 msgid "unbestätigt · läuft ab"
 msgstr "не подтверждено · истекает"
+
+msgid "Das kann der Inhaber im Bereich „Geschäft“."
+msgstr "Это может сделать владелец в разделе «Geschäft»."

@@ -28551,3 +28551,6 @@ msgstr "Your coupon is on its way: we sent it to %(email)s."
 
 msgid "unbestätigt · läuft ab"
 msgstr "unconfirmed · expires"
+
+msgid "Das kann der Inhaber im Bereich „Geschäft“."
+msgstr "The owner can do this in the “Business” section."
