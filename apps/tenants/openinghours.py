@@ -45,6 +45,22 @@ def normalize(raw) -> dict:
     return out
 
 
+def open_on(structured, day, *, after: time | None = None) -> bool | None:
+    """Открыт ли бизнес в день `day` (date). None — часы не заданы вовсе.
+
+    `after` — для «сегодня»: день считается открытым, только если закрытие позже этого
+    времени (вечером «Brot heute» не ведёт в уже закрытую пекарню)."""
+    hours = normalize(structured)
+    if not hours:
+        return None
+    rng = hours.get(str(day.weekday()))
+    if not rng:
+        return False
+    if after is not None and _parse_hhmm(rng[1]) <= after:
+        return False
+    return True
+
+
 def open_status(structured, now: datetime) -> dict | None:
     """Статус на момент now (aware/naive local). None — часы не заданы.
 

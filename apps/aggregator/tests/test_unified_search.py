@@ -220,7 +220,7 @@ def test_filters_one_by_one():
     assert set(_found("", _filters(preis_von="4", preis_bis="9,50"))[1]) == {"Pizza"}
     heute = _found("", _filters(datum="heute"))[1]
     assert "Konzert heute" in heute and "Konzert später" not in heute
-    assert "Zimmer" not in heute  # Р-О1: дата — только события и акции
+    assert "Zimmer" in heute  # пересмотр Р-О1 (2026-10-23): номер при дате не отпадает
     assert "Jacke" not in _found("", _filters(verfuegbar="1"))[1]
 
 

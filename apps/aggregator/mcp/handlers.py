@@ -123,7 +123,10 @@ SEARCH_INPUT = {
         "date": {
             "type": "string",
             "maxLength": 10,
-            "description": "'today', 'weekend' or YYYY-MM-DD (events and promotions).",
+            "description": (
+                "'today', 'weekend' or YYYY-MM-DD: events and promotions in that window; "
+                "products, services, menus and businesses open that day; rooms unaffected."
+            ),
         },
         "open_now": {"type": "boolean", "description": "Only businesses open right now."},
         "kinds": {

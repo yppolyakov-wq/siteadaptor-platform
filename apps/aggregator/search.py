@@ -27,7 +27,13 @@ from .models import apply_city_filters
 from .search_index import fold, ts_config
 
 _TOKEN = re.compile(r"[^\W_]+")
-DATED_KINDS = (L.KIND_PROMOTION, L.KIND_EVENT)  # Р-О1: фильтр даты — только виды с датами
+DATED_KINDS = (L.KIND_PROMOTION, L.KIND_EVENT)  # виды с датами — фильтр даты по окну
+#: Пересмотр Р-О1 (2026-10-23, «Pizza morgen»): при дате виды без своих дат не
+#: выбрасываются, а сужаются часами работы — бизнес открыт хотя бы в один день окна.
+#: Часы не заданы — остаётся (дата сужает, а не утверждает «закрыто»).
+HOURS_GATED_KINDS = (L.KIND_PRODUCT, L.KIND_SERVICE, L.KIND_MENU, L.KIND_BUSINESS)
+#: Номер: часы стойки — не наличие номера; проверка наличия на дату — позже.
+UNGATED_KINDS = (L.KIND_STAY,)
 
 
 def _cfg(key: str):
@@ -247,7 +253,7 @@ class SearchFilters:
     district: str = ""  # ?stadtteil=<slug>
     price_from: Decimal | None = None
     price_to: Decimal | None = None
-    date: str = ""  # heute | wochenende | YYYY-MM-DD (Р-О1: только события и акции)
+    date: str = ""  # heute | wochenende | YYYY-MM-DD (события/акции — окном, прочее — часами)
     available: bool = False  # ?verfuegbar=1
     open_now: bool = False  # ?offen=1
     sort: str = ""  # "" (релевантность / новые) | SORTS (T-8.7 Р-6)
@@ -429,6 +435,45 @@ def date_window(value: str, *, now=None) -> tuple[datetime, datetime] | None:
     return begin, begin + timedelta(days=days)
 
 
+def window_days(value: str, *, now=None) -> list:
+    """Дни окна даты, начиная с сегодня (прошедшая суббота при «wochenende» в воскресенье
+    не в счёт)."""
+    window = date_window(value, now=now)
+    if window is None:
+        return []
+    today = timezone.localtime(now or timezone.now()).date()
+    start, end = (timezone.localtime(x).date() for x in window)
+    return [
+        start + timedelta(days=i)
+        for i in range((end - start).days)
+        if start + timedelta(days=i) >= today
+    ]
+
+
+def _closed_on_schemas(qs, value: str, *, now=None) -> set:
+    """Схемы пула, закрытые во ВСЕ дни окна. Один запрос к Tenant (часы — на SHARED
+    Tenant), проверка в Python; бизнес без часов закрытым не считается."""
+    from apps.tenants import openinghours
+    from apps.tenants.models import Tenant
+
+    now = timezone.localtime(now or timezone.now())
+    days = window_days(value, now=now)
+    if not days:
+        return set()
+    pool = qs.order_by().filter(listing_kind__in=HOURS_GATED_KINDS).values("tenant_schema")
+    closed = set()
+    for schema, structured in Tenant.objects.filter(schema_name__in=pool).values_list(
+        "schema_name", "opening_hours_structured"
+    ):
+        verdicts = [
+            openinghours.open_on(structured, d, after=now.time() if d == now.date() else None)
+            for d in days
+        ]
+        if all(v is False for v in verdicts):
+            closed.add(schema)
+    return closed
+
+
 def apply_filters(qs, f: SearchFilters, *, now=None, point=None):
     if f.radius_km and point is not None:  # T-8.7 Р-5: радиус — только при точке
         from . import geo
@@ -451,10 +496,14 @@ def apply_filters(qs, f: SearchFilters, *, now=None, point=None):
         window = date_window(f.date, now=now)
         if window:
             start, end = window
-            qs = qs.filter(listing_kind__in=DATED_KINDS).filter(
-                Q(starts_at__isnull=True) | Q(starts_at__lt=end),
-                Q(ends_at__isnull=True) | Q(ends_at__gte=start),
+            dated = (
+                Q(listing_kind__in=DATED_KINDS)
+                & (Q(starts_at__isnull=True) | Q(starts_at__lt=end))
+                & (Q(ends_at__isnull=True) | Q(ends_at__gte=start))
             )
+            closed = _closed_on_schemas(qs, f.date, now=now)
+            gated = Q(listing_kind__in=HOURS_GATED_KINDS) & ~Q(tenant_schema__in=closed)
+            qs = qs.filter(dated | gated | Q(listing_kind__in=UNGATED_KINDS))
     if f.available:
         qs = qs.exclude(availability=L.AVAILABILITY_SOLD_OUT)
     if f.size:  # T-8.26 п.5c: размер есть только у товаров — прочие виды отпадают
