@@ -210,3 +210,46 @@ def test_home_pager_points_to_the_sales_page():
 
 def test_views_module_exposes_the_sortiment_limit():
     assert views.SORTIMENT_OVERVIEW_LIMIT == 50
+
+
+# --- P4a-2 -------------------------------------------------------------------------
+
+
+def test_inbox_list_is_paged():
+    from apps.inbox import views as iviews
+    from apps.inbox.models import Conversation
+
+    Conversation.objects.bulk_create([Conversation(subject=f"S{i}") for i in range(55)])
+    body = iviews.inbox_list(_req(path="/dashboard/inbox/", data={"seite": "2"})).content.decode()
+    assert "51–55 von 55" in body
+
+
+def test_journal_total_covers_the_whole_period_not_the_page():
+    from decimal import Decimal
+
+    from django.utils import timezone
+
+    from apps.finance import views as fviews
+    from apps.finance.models import RevenueEntry
+
+    today = timezone.localdate()
+    RevenueEntry.objects.bulk_create(
+        [RevenueEntry(date=today, amount=Decimal("1.00"), source_ref=f"r{i}") for i in range(60)]
+    )
+    req = _req(
+        path="/dashboard/finance/", data={"von": today.isoformat(), "bis": today.isoformat()}
+    )
+    body = fviews.journal(req).content.decode()
+    assert "1–50 von 60" in body
+    assert "60,00" in body or "60.00" in body
+
+
+def test_payments_page_pages_and_counts_everything():
+    from apps.core import payments_page
+
+    _orders(55, payment_state="unpaid")
+    tenant = TenantFactory.build(disabled_modules=[])
+    assert payments_page.payment_count(tenant, "open") == 55
+    page2 = payments_page.payment_rows(tenant, "open", limit=50, offset=50)
+    assert len(page2) == 5
+    assert payments_page.payment_summary(tenant)["open_count"] == 55

@@ -27,12 +27,15 @@ def review_list(request):
         from django.db import connection
 
         from apps.aggregator.models import BusinessReview
+        from apps.core.pagination import paginate_queryset
 
-        biz = list(
+        page = paginate_queryset(
             BusinessReview.objects.filter(tenant_schema=connection.schema_name).order_by(
                 "-created_at"
-            )[:200]
+            ),
+            page_raw=request.GET.get("seite"),
         )
+        biz = page.items
         return render(
             request,
             "reviews/review_list.html",
@@ -40,6 +43,7 @@ def review_list(request):
                 "nav": "reviews",
                 "betrieb": True,
                 "business_reviews": biz,
+                "page": page,
                 "overview": services.owner_overview(),
                 "kinds": Review.ENTITY_KINDS,
                 "active_kind": "",
@@ -55,7 +59,11 @@ def review_list(request):
         reviews = reviews.filter(is_published=False)
     elif status == "published":
         reviews = reviews.filter(is_published=True)
-    reviews = list(reviews.order_by("-created_at")[:200])
+    from apps.core.pagination import paginate_queryset
+
+    # KA-P4a: раньше молча 200 последних отзывов.
+    page = paginate_queryset(reviews.order_by("-created_at"), page_raw=request.GET.get("seite"))
+    reviews = page.items
     labels = services.entity_labels(reviews)
     for r in reviews:  # подпись сущности прямо на объект (шаблону так проще)
         r.entity_label = labels.get((r.entity_kind, r.entity_id), "")
@@ -65,6 +73,7 @@ def review_list(request):
         {
             "nav": "reviews",
             "reviews": reviews,
+            "page": page,
             "overview": services.owner_overview(),  # CM-6.3: KPI-шапка
             "kinds": Review.ENTITY_KINDS,
             "active_kind": kind,

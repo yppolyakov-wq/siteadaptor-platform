@@ -52,6 +52,7 @@
     </div>
   {% endfor %}
 </div>
+{% list_pager page %}
 {% else %}
 <p class="text-gray-500 mb-6">{% trans "No entries in this period. Picked-up orders and fulfilled reservations land here automatically." %}</p>
 {% endif %}

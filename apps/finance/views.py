@@ -57,6 +57,10 @@ def journal(request):
 
     von, bis, entries = _period_entries(request)
     by_vat = entries.values("vat_rate").annotate(sum=Sum("amount")).order_by("-vat_rate")
+    from apps.core.pagination import paginate_queryset
+
+    # KA-P4a: раньше молча 500 строк; итоги — по-прежнему за ВЕСЬ период.
+    page = paginate_queryset(entries, page_raw=request.GET.get("seite"))
     return render(
         request,
         "finance/journal.html",
@@ -64,7 +68,8 @@ def journal(request):
             "nav": "finance",
             "von": von,
             "bis": bis,
-            "entries": entries[:500],
+            "entries": page.items,
+            "page": page,
             "total": entries.aggregate(s=Sum("amount"))["s"] or Decimal("0"),
             "by_vat": by_vat,
             "vat_rates": RevenueEntry.VAT_RATES,
@@ -173,8 +178,11 @@ def expenses(request):
         .select_related("supplier", "document")
         .order_by("due_date")[:100]
     )
+    from apps.core.pagination import paginate_queryset
     from apps.inventory.models import Lieferant
 
+    # KA-P4a: раньше молча 500 строк; итоги — по-прежнему за ВЕСЬ период.
+    page = paginate_queryset(qs.select_related("event"), page_raw=request.GET.get("seite"))
     return render(
         request,
         "finance/expenses.html",
@@ -185,7 +193,8 @@ def expenses(request):
             "nav": "finance",
             "von": von,
             "bis": bis,
-            "entries": qs.select_related("event")[:500],
+            "entries": page.items,
+            "page": page,
             "total": qs.aggregate(s=Sum("amount"))["s"] or Decimal("0"),
             "by_cat": [
                 {"label": cat_labels.get(r["category"], r["category"]), "sum": r["sum"]}

@@ -51,6 +51,7 @@
     <p class="text-sm text-gray-400 py-4">{% trans "No reviews yet." %}</p>
   {% endfor %}
 </div>
+{% list_pager page %}
 {% else %}
 <div class="bg-white rounded-2xl shadow-sm p-4 space-y-1">
   {% for r in reviews %}
@@ -80,5 +81,6 @@
     <p class="text-sm text-gray-400 py-4">{% trans "No reviews yet." %}</p>
   {% endfor %}
 </div>
+{% list_pager page %}
 {% endif %}
 {% endblock %}

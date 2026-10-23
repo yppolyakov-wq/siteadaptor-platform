@@ -5903,13 +5903,32 @@ def payments_page(request):
     state = request.GET.get("state", "open")
     method = request.GET.get("method", "")
     from apps.core import payment_methods as _pm
+    from apps.core.pagination import CABINET_PAGE_SIZE, QueryPage, page_number
 
+    # KA-P4a: страницы слитого списка (раньше молча 200 на вид).
+    total = pay.payment_count(tenant, state, method)
+    pages = max(1, -(-total // CABINET_PAGE_SIZE))
+    num = min(page_number(request.GET.get("seite")), pages)
+    offset = (num - 1) * CABINET_PAGE_SIZE
+    rows = pay.payment_rows(tenant, state, method, limit=CABINET_PAGE_SIZE, offset=offset)
+    page = QueryPage(
+        items=rows,
+        page=num,
+        pages=pages,
+        has_prev=num > 1,
+        has_next=num < pages,
+        total=total,
+        start=offset + 1 if rows else 0,
+        end=offset + len(rows),
+        offset=offset,
+    )
     return render(
         request,
         "core/payments.html",
         {
             "nav": "zahlungen",
-            "rows": pay.payment_rows(tenant, state, method),
+            "rows": rows,
+            "page": page,
             "summary": pay.payment_summary(tenant),
             "state": state,
             "method": method,

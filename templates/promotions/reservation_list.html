@@ -55,7 +55,7 @@
   {% empty %}
     <p class="text-center text-sm text-gray-500 py-8">{% trans "No reservations." %}</p>
   {% endfor %}
-  {% if more %}<p class="text-center text-xs text-gray-500" data-res-more>{% blocktrans with n=more %}Weitere {{ n }} — bitte nach Aktion filtern.{% endblocktrans %}</p>{% endif %}
+  {% list_pager page %}
 </div>
 {% else %}
 <div class="bg-white rounded-2xl shadow-sm p-4">
@@ -128,5 +128,6 @@
   </table>
   </div>
 </div>
+{% list_pager page %}
 {% endif %}
 {% endblock %}

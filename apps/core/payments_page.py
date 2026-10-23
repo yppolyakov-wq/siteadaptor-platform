@@ -50,25 +50,49 @@ def _kinds(tenant) -> list[str]:
     return [k for k in PAID_STATES if tenant.is_module_active(transactions.KIND_MODULE[k])]
 
 
-def payment_rows(tenant, state: str = "open", method: str = "", limit: int = 200) -> list[dict]:
+def _filtered(tenant, kind, state, method, since=None):
+    model = transactions.model_for(kind)
+    qs = model.objects.exclude(status__in=status_registry.cancelled_statuses_for(kind, tenant))
+    states_map = _STATES_BY_FILTER.get(state)
+    if states_map is not None:
+        qs = qs.filter(payment_state__in=states_map[kind])
+    # SH-23d: способ оплаты теперь есть у ВСЕХ видов сделок (SH-23c), поэтому
+    # фильтр больше не отбрасывает бронь/номер/билет/заявку молча.
+    if method:
+        qs = qs.filter(payment_method=method)
+    if since is not None:
+        qs = qs.filter(created_at__gte=since)
+    return qs
+
+
+def payment_count(tenant, state: str = "open", method: str = "") -> int:
+    """KA-P4a: итог строк для «1–50 von N» — по БД, без загрузки строк."""
+    return sum(_filtered(tenant, k, state, method).count() for k in _kinds(tenant))
+
+
+def payment_rows(
+    tenant,
+    state: str = "open",
+    method: str = "",
+    limit: int | None = 200,
+    offset: int = 0,
+    since=None,
+) -> list[dict]:
     """Строки оплат: сделка + состояние + способ + сумма.
+
+    KA-P4a: `offset` — страница слитого списка (каждый вид отдаёт offset+limit
+    свежих строк, слияние по дате, срез); `limit=None` — все строки (итоги).
 
     `state` — ключ FILTERS ("" = все); `method` — код способа оплаты
     (`Order.payment_method`), пусто = любой. Отменённые сделки не показываем:
     их деньги закрыты FSM (тот же приём, что в finance.bank.open_items).
     """
     rows: list[dict] = []
-    states_map = _STATES_BY_FILTER.get(state)
     for kind in _kinds(tenant):
-        model = transactions.model_for(kind)
-        qs = model.objects.exclude(status__in=status_registry.cancelled_statuses_for(kind, tenant))
-        if states_map is not None:
-            qs = qs.filter(payment_state__in=states_map[kind])
-        # SH-23d: способ оплаты теперь есть у ВСЕХ видов сделок (SH-23c), поэтому
-        # фильтр больше не отбрасывает бронь/номер/билет/заявку молча.
-        if method:
-            qs = qs.filter(payment_method=method)
-        for obj in qs.order_by("-created_at")[:limit]:
+        qs = _filtered(tenant, kind, state, method, since).order_by("-created_at", "-pk")
+        if limit is not None:
+            qs = qs[: offset + limit]
+        for obj in qs:
             tx = transactions.transaction_for(kind, obj)
             amount_value, amount_display = tx.amount_value, tx.subtotal_display
             if getattr(obj, "payment_state", "") == "deposit" and kind in ("booking", "stay"):
@@ -101,7 +125,7 @@ def payment_rows(tenant, state: str = "open", method: str = "", limit: int = 200
                 }
             )
     rows.sort(key=lambda r: r["created_at"], reverse=True)
-    return rows[:limit]
+    return rows[offset:] if limit is None else rows[offset : offset + limit]
 
 
 def payment_summary(tenant) -> dict:
@@ -110,10 +134,10 @@ def payment_summary(tenant) -> dict:
     Считаем по тем же строкам (без отдельных агрегатов): у booking/ticket итог
     вычисляется в Python (снимки допов), поэтому SQL-Sum врал бы — урок VS-2c.
     """
-    open_rows = payment_rows(tenant, "open", limit=500)
-    paid_rows = payment_rows(tenant, "paid", limit=500)
+    # KA-P4a: без потолка (раньше 500 — при большем числе сделок «offen» врал).
+    open_rows = payment_rows(tenant, "open", limit=None)
     since = timezone.now() - timedelta(days=30)
-    paid_recent = [r for r in paid_rows if r["created_at"] >= since]
+    paid_recent = payment_rows(tenant, "paid", limit=None, since=since)
     return {
         "open_count": len(open_rows),
         "open_total": sum((r["amount_value"] or 0) for r in open_rows),

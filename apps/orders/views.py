@@ -101,8 +101,12 @@ def deliveries(request):
         qs = qs.exclude(status__in=list(done) + list(cancelled))
     elif state == "versendet":
         qs = qs.filter(status=Order.STATUS_SHIPPED)
+    from apps.core.pagination import paginate_queryset
+
+    # KA-P4a: раньше молча 200 последних доставок.
+    page = paginate_queryset(qs.order_by("-created_at"), page_raw=request.GET.get("seite"))
     rows = []
-    for order in qs.order_by("-created_at")[:200]:
+    for order in page.items:
         tx = transactions.transaction_for("order", order)
         rows.append({"order": order, "tx": tx})
     return render(
@@ -111,6 +115,7 @@ def deliveries(request):
         {
             "nav": "deliveries",
             "rows": rows,
+            "page": page,
             "state": state,
             "states": (
                 ("offen", _("Offen")),

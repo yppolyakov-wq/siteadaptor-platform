@@ -83,12 +83,17 @@ def inbox_list(request):
     status = request.GET.get("status", "")
     if status in dict(Conversation.STATUSES):
         conversations = conversations.filter(status=status)
+    from apps.core.pagination import paginate_queryset
+
+    # KA-P4a: раньше молча 200 последних бесед.
+    page = paginate_queryset(conversations, page_raw=request.GET.get("seite"))
     return render(
         request,
         "inbox/list.html",
         {
             "nav": "inbox",
-            "conversations": conversations[:200],
+            "conversations": page.items,
+            "page": page,
             "statuses": Conversation.STATUSES,
             "active_status": status,
             "open_count": Conversation.objects.filter(status=Conversation.STATUS_OPEN).count(),

@@ -1430,14 +1430,20 @@ def reservation_list(request):
         (code, own.get(code) or labels.get(code, code)) for code in RESERVATION_STATUSES
     ]
     lite = _lite(request)
-    limit = LITE_RESERVATION_LIMIT if lite else 200
+    from apps.core.pagination import CABINET_PAGE_SIZE, paginate_queryset
+
+    # KA-P4a: страницы вместо «ещё N» (T-8.30e) и молчаливых 200; на телефоне короче.
+    page = paginate_queryset(
+        qs,
+        page_raw=request.GET.get("seite"),
+        per_page=LITE_RESERVATION_LIMIT if lite else CABINET_PAGE_SIZE,
+    )
     return render(
         request,
         "promotions/reservation_list.html",
         {
-            "reservations": qs[:limit],
-            # T-8.30e: на телефоне — честно «ещё N», а не молча обрезанный список.
-            "more": max(qs.count() - limit, 0) if lite else 0,
+            "reservations": page.items,
+            "page": page,
             "statuses": status_choices,
             "status": status,
             "promotions": Promotion.objects.all(),
@@ -1741,15 +1747,25 @@ def voucher_list(request):
         return redirect("promotions:voucher-list")
     # B1.3: проданные Geschenkgutscheine (движок G1) — покупатель/номинал/
     # оплата/погашение; код выпускается webhook'ом после оплаты.
+    from apps.core.pagination import paginate_queryset
     from apps.loyalty.models import GiftVoucher
 
-    gift_sales = GiftVoucher.objects.select_related("voucher").order_by("-created_at")[:100]
+    # KA-P4a: два независимых списка — две страницы (раньше молча 200 и 100).
+    gift_page = paginate_queryset(
+        GiftVoucher.objects.select_related("voucher").order_by("-created_at"),
+        page_raw=request.GET.get("seite_gs"),
+        param="seite_gs",
+    )
+    gift_sales = gift_page.items
+    voucher_page = paginate_queryset(Voucher.objects.all(), page_raw=request.GET.get("seite"))
     return render(
         request,
         "promotions/vouchers.html",
         {
             "form": form,
-            "vouchers": Voucher.objects.all()[:200],
+            "vouchers": voucher_page.items,
+            "page": voucher_page,
+            "gift_page": gift_page,
             "gift_sales": gift_sales,
             "nav": "vouchers",
         },

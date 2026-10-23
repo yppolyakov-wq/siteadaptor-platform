@@ -54,6 +54,7 @@
   </table>
   </div>
 </div>
+{% list_pager page %}
 
 {% if gift_sales %}
 {# B1.3: проданные Geschenkgutscheine — оплата и погашение (код = обычный Voucher выше). #}
@@ -80,5 +81,6 @@
   </table>
   </div>
 </div>
+{% list_pager gift_page %}
 {% endif %}
 {% endblock %}

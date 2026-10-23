@@ -53,6 +53,7 @@ transactions.apply_action), поле трек-номера — перед кно
     </div>
   {% endfor %}
 </div>
+{% list_pager page %}
 {% else %}
 <p class="text-gray-500">{% trans "Keine Lieferungen in dieser Ansicht." %}</p>
 {% endif %}
