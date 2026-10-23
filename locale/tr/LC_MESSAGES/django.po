@@ -28172,3 +28172,13 @@ msgid "%(n)s Eintrag"
 msgid_plural "%(n)s Einträge"
 msgstr[0] "%(n)s kayıt"
 msgstr[1] "%(n)s kayıt"
+
+msgid "Kunde suchen (Name, E-Mail, Telefon)"
+msgstr "Müşteri ara (ad, e-posta, telefon)"
+
+#, python-format
+msgid "Treffer für „%(q)s“."
+msgstr "„%(q)s“ için sonuçlar."
+
+msgid "Neueste Kunden — andere über die Suche oben."
+msgstr "En yeni müşteriler — diğerleri için yukarıdaki aramayı kullanın."

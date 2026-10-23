@@ -182,7 +182,7 @@ def test_invoice_list_is_paged_and_bad_customer_id_does_not_crash():
 
     post = RequestFactory().post(
         "/dashboard/finance/rechnungen/",
-        {"customer": "garbage", "line_text_0": "Brot", "line_qty_0": "1", "line_price_0": "2"},
+        {"customer": "garbage", "line_text_1": "Brot", "line_qty_1": "1", "line_price_1": "2"},
     )
     post.user, post.session, post.tenant = req.user, {}, req.tenant
     post._messages = FallbackStorage(post)
@@ -253,3 +253,60 @@ def test_payments_page_pages_and_counts_everything():
     page2 = payments_page.payment_rows(tenant, "open", limit=50, offset=50)
     assert len(page2) == 5
     assert payments_page.payment_summary(tenant)["open_count"] == 55
+
+
+# --- P4b: выбор клиента в счёте ----------------------------------------------------
+
+
+def _customers(n):
+    return Customer.objects.bulk_create(
+        [Customer(name=f"Kunde {i:04d}", email=f"k{i}@example.com") for i in range(n)]
+    )
+
+
+def test_201st_customer_is_found_and_invoiced():
+    from apps.finance import views as fviews
+    from apps.finance.models import Invoice
+
+    _customers(210)
+    last = Customer.objects.order_by("-name").first()  # «Kunde 0209» — за прежними 200
+    body = fviews.invoices(
+        _req(path="/dashboard/finance/rechnungen/", data={"kunde_q": "0209"})
+    ).content.decode()
+    assert f'value="{last.pk}"' in body
+
+    req = _req(path="/dashboard/finance/rechnungen/")
+    post = RequestFactory().post(
+        "/dashboard/finance/rechnungen/",
+        {"customer": str(last.pk), "line_text_1": "Brot", "line_qty_1": "1", "line_price_1": "2"},
+    )
+    post.user, post.session, post.tenant = req.user, {}, req.tenant
+    post._messages = FallbackStorage(post)
+    fviews.invoices(post)
+    assert Invoice.objects.filter(customer=last).exists()
+
+
+def test_customer_search_json_masks_contact_for_staff(monkeypatch):
+    import json
+
+    from apps.finance import views as fviews
+
+    _customers(3)
+    req = _req(path="/dashboard/finance/kunden-suche/", data={"q": "Kunde 0001"})
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: False)
+    data = json.loads(fviews.customer_search(req).content)
+    assert [i["label"] for i in data["items"]] == ["Kunde 0001"]
+    assert "k1@example.com" not in data["items"][0]["sub"]
+    short = _req(path="/dashboard/finance/kunden-suche/", data={"q": "K"})
+    assert json.loads(fviews.customer_search(short).content)["items"] == []
+
+
+def test_preselected_customer_is_always_in_the_list():
+    from apps.finance import views as fviews
+
+    _customers(60)
+    oldest = Customer.objects.order_by("created_at", "pk").first()
+    body = fviews.invoices(
+        _req(path="/dashboard/finance/rechnungen/", data={"customer": str(oldest.pk)})
+    ).content.decode()
+    assert f'value="{oldest.pk}" selected' in body

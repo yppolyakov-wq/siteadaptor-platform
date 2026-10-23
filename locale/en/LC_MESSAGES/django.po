@@ -28032,3 +28032,13 @@ msgid "%(n)s Eintrag"
 msgid_plural "%(n)s Einträge"
 msgstr[0] "%(n)s entry"
 msgstr[1] "%(n)s entries"
+
+msgid "Kunde suchen (Name, E-Mail, Telefon)"
+msgstr "Search customer (name, email, phone)"
+
+#, python-format
+msgid "Treffer für „%(q)s“."
+msgstr "Matches for “%(q)s”."
+
+msgid "Neueste Kunden — andere über die Suche oben."
+msgstr "Newest customers — find others with the search above."

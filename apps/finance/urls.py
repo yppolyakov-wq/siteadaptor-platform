@@ -19,6 +19,7 @@ urlpatterns = [
     path("datev.csv", views.journal_export_datev, name="export-datev"),
     # Rechnungen (D4b).
     path("rechnungen/", views.invoices, name="invoices"),
+    path("kunden-suche/", views.customer_search, name="customer-search"),
     path("rechnungen/<uuid:pk>/", views.invoice_detail, name="invoice-detail"),
     path("rechnungen/<uuid:pk>/pdf/", views.invoice_pdf, name="invoice-pdf"),
 ]

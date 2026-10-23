@@ -28306,3 +28306,13 @@ msgid_plural "%(n)s Einträge"
 msgstr[0] "%(n)s запись"
 msgstr[1] "%(n)s записи"
 msgstr[2] "%(n)s записей"
+
+msgid "Kunde suchen (Name, E-Mail, Telefon)"
+msgstr "Найти клиента (имя, e-mail, телефон)"
+
+#, python-format
+msgid "Treffer für „%(q)s“."
+msgstr "Найдено по «%(q)s»."
+
+msgid "Neueste Kunden — andere über die Suche oben."
+msgstr "Последние клиенты — остальных ищите поиском выше."

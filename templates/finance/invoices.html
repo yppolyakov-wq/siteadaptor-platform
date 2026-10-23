@@ -37,16 +37,22 @@
 {% list_pager page %}
 {% endif %}
 
+{# KA-P4b: поиск клиента — отдельная GET-форма (не вложенная в POST-форму: браузер развернул бы вложенный form). #}
+<form method="get" class="max-w-2xl mb-2 flex gap-2" data-customer-search-form>
+  <input type="search" name="kunde_q" value="{{ kunde_q }}" placeholder="{% trans 'Kunde suchen (Name, E-Mail, Telefon)' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm" data-customer-search data-url="{% url 'finance:customer-search' %}" autocomplete="off">
+  <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">{% trans "Suchen" %}</button>
+</form>
 <form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
   {% csrf_token %}
   <h2 class="font-semibold">{% trans "Neue Rechnung (Entwurf)" %}</h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Customer" %} ({% trans "optional" %})</label>
-      <select name="customer" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <select name="customer" class="w-full rounded-lg border border-gray-300 px-3 py-2" data-customer-select>
         <option value="">—</option>
-        {% for c in customers %}<option value="{{ c.pk }}">{{ c }}</option>{% endfor %}
+        {% for c in customers %}<option value="{{ c.pk }}"{% if selected_customer and c.pk == selected_customer.pk %} selected{% endif %}>{{ c.name|default:c.email|default:c.phone }}</option>{% endfor %}
       </select>
+      <p class="text-xs text-gray-500 mt-1">{% if kunde_q %}{% blocktrans with q=kunde_q %}Treffer für „{{ q }}“.{% endblocktrans %}{% else %}{% trans "Neueste Kunden — andere über die Suche oben." %}{% endif %}</p>
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "VAT" %}</label>
@@ -91,4 +97,41 @@
   {% endif %}
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Entwurf anlegen" %}</button>
 </form>
+<script>
+/* KA-P4b: живой поиск клиента — подменяет варианты селекта (без JS работает GET-форма). */
+(function () {
+  var timer = null, ctrl = null;
+  document.addEventListener("input", function (ev) {
+    var input = ev.target.closest && ev.target.closest("[data-customer-search]");
+    if (!input) return;
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      var q = input.value.trim();
+      var select = document.querySelector("[data-customer-select]");
+      if (!select || q.length < 2) return;
+      if (ctrl) ctrl.abort();
+      ctrl = new AbortController();
+      fetch(input.dataset.url + "?q=" + encodeURIComponent(q), {signal: ctrl.signal, headers: {"Accept": "application/json"}})
+        .then(function (r) { return r.ok ? r.json() : {items: []}; })
+        .then(function (data) {
+          var keep = select.value;
+          var current = select.options[select.selectedIndex];
+          select.length = 1;
+          if (keep && current) select.add(new Option(current.text, keep, true, true));
+          (data.items || []).forEach(function (it) {
+            if (it.id === keep) return;
+            select.add(new Option(it.sub ? it.label + " — " + it.sub : it.label, it.id));
+          });
+        })
+        .catch(function () {});
+    }, 250);
+  });
+  document.addEventListener("submit", function (ev) {
+    if (ev.target.matches("[data-customer-search-form]") && document.querySelector("[data-customer-select]")) {
+      var input = ev.target.querySelector("[data-customer-search]");
+      if (input && input.value.trim().length >= 2) { ev.preventDefault(); input.dispatchEvent(new Event("input", {bubbles: true})); }
+    }
+  });
+})();
+</script>
 {% endblock %}

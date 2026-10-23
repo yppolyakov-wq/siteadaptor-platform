@@ -98,6 +98,8 @@ EXPECTED_UNLISTED = frozenset(
         "events:teacher-create",
         # ERP-4: DATEV-выгрузка расходов — CSV-скачивание, вход кнопкой на Ausgaben.
         "finance:expenses-datev",
+        # KA-P4b: JSON-поиск клиента для поля «Kunde» формы счёта.
+        "finance:customer-search",
         "finance:export-csv",
         "finance:export-datev",
         "promotions:promotion-create",

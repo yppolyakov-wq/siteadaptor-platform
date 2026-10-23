@@ -563,7 +563,7 @@ def invoices(request):
             "nav": "finance",
             "invoices": page.items,
             "page": page,
-            "customers": Customer.objects.order_by("name")[:200],
+            **_customer_context(request),
             "vat_rates": RevenueEntry.VAT_RATES,
             "small_business": request.tenant.small_business,
             "doc_languages": language_choices(request.tenant),
@@ -653,3 +653,85 @@ def invoice_pdf(request, pk):
     name = invoice.number_display if invoice.number else f"entwurf-{invoice.pk}"
     response["Content-Disposition"] = f'inline; filename="{name}.pdf"'
     return response
+
+
+# --- KA-P4b: выбор клиента в счёте — поиск вместо первых 200 по алфавиту -------------
+
+#: Совпадений поиска клиента за раз; без запроса — столько последних клиентов.
+CUSTOMER_PICK_LIMIT = 50
+
+
+def _customer_choices(raw_q: str):
+    """Клиенты для выбора в счёте: по запросу (имя/e-mail/телефон/фирма, ≥ 2 символа)
+    либо последние. Раньше — первые 200 по алфавиту, 201-го было не выставить."""
+    from django.db.models import Q
+
+    from apps.promotions.models import Customer
+
+    q = (raw_q or "").strip()[:100]
+    qs = Customer.objects.select_related("company")
+    if len(q) >= 2:
+        qs = qs.filter(
+            Q(name__icontains=q)
+            | Q(email__icontains=q)
+            | Q(phone__icontains=q)
+            | Q(company__name__icontains=q)
+        ).order_by("name")
+    else:
+        qs = qs.order_by("-created_at")
+    return list(qs[:CUSTOMER_PICK_LIMIT]), q
+
+
+def _customer_context(request) -> dict:
+    """Варианты селекта «Kunde»: поиск `?kunde_q=` (работает и без JS) + предвыбор
+    `?customer=<uuid>` (вход с карточки клиента) — выбранный всегда в списке."""
+    import uuid as _uuid
+
+    from apps.promotions.models import Customer
+
+    customers, q = _customer_choices(request.GET.get("kunde_q", ""))
+    selected = None
+    try:
+        sel_pk = _uuid.UUID(str(request.GET.get("customer") or ""))
+    except ValueError:
+        sel_pk = None
+    if sel_pk:
+        selected = Customer.objects.filter(pk=sel_pk).first()
+        if selected and all(c.pk != selected.pk for c in customers):
+            customers = [selected, *customers]
+    return {"customers": customers, "kunde_q": q, "selected_customer": selected}
+
+
+@login_required
+def customer_search(request):
+    """JSON для поля «Kunde» формы счёта. Контакт сотруднику — маскированный (KA-H11)."""
+    from django.http import JsonResponse
+
+    from apps.core import ratelimit
+    from apps.core.palette_search import mask_email, mask_phone
+    from apps.core.roles import is_owner
+
+    if ratelimit.hit(
+        "fin-customer-search",
+        f"{request.tenant.schema_name}:{request.user.pk}",
+        limit=120,
+        window=60,
+    ):
+        return JsonResponse({"items": []}, status=429)
+    q = (request.GET.get("q") or "").strip()
+    if len(q) < 2:
+        return JsonResponse({"items": []})
+    customers, _q = _customer_choices(q)
+    owner = is_owner(request.user)
+    items = []
+    for c in customers[:20]:
+        email = c.email if owner else mask_email(c.email)
+        phone = c.phone if owner else mask_phone(c.phone)
+        items.append(
+            {
+                "id": str(c.pk),
+                "label": c.name or email or phone or "—",
+                "sub": " · ".join(x for x in (email, phone) if x),
+            }
+        )
+    return JsonResponse({"items": items})
