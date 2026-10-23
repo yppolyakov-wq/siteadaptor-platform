@@ -76,3 +76,23 @@ def test_view_passes_role(monkeypatch):
     request.tenant = TenantFactory.build()
     views.palette_search(request)
     assert seen["owner"] is False  # без Membership владельца — маска
+
+
+def test_deal_row_masks_nameless_customer_email(monkeypatch):
+    from apps.core import sales_page
+
+    t = _tenant()
+    nameless = Customer.objects.create(name="", email="geheim@beispiel.de")
+    deal = type(
+        "Tx",
+        (),
+        {"title": "Termin", "reference_code": "B-1", "customer": nameless, "manage_url": "/x/"},
+    )()
+    monkeypatch.setattr(sales_page, "visible_kinds", lambda tenant: ["booking"])
+    from apps.core import transactions
+
+    monkeypatch.setattr(transactions, "_managed_queryset", lambda kind, q: [object()])
+    monkeypatch.setattr(transactions, "transaction_for", lambda kind, obj: deal)
+    row = ps._deals(t, "geheim", owner=False)[0]
+    assert "geheim@" not in row["sub"] and "@beispiel.de" in row["sub"]
+    assert "geheim@beispiel.de" in ps._deals(t, "geheim", owner=True)[0]["sub"]

@@ -135,3 +135,18 @@ def test_middleware_blocks_staff_on_export_prefixes():
         "/dashboard/finance/ausgaben/datev.csv",
     ):
         assert path.startswith(mw._OWNER_ONLY), path
+
+
+def test_crm_audit_does_not_store_search_term():
+    Customer.objects.create(name="Q", email="suche@t.de")
+    crm_views.customer_export_csv(_req(Membership.ROLE_OWNER, data={"q": "suche@t.de"}))
+    event = AuditEvent.objects.get(action="export.crm")
+    assert "suche@t.de" not in str(event.context)
+    assert event.context.get("has_q") == "True"
+
+
+def test_bank_import_owner_only():
+    assert finance_views.bank_import(_req(Membership.ROLE_STAFF)).status_code == 403
+    from apps.core.middleware import CabinetOwnerAccessMiddleware as mw
+
+    assert "/dashboard/finance/bank/".startswith(mw._OWNER_ONLY)

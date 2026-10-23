@@ -36,6 +36,22 @@ def mask_phone(phone: str) -> str:
     return "•••" + "".join(digits[-2:]) if digits else ""
 
 
+def _customer_text(customer, owner: bool) -> str:
+    """Имя клиента; без имени — контакт (у сотрудника замаскированный). `str(Customer)`
+    падает на e-mail у безымянного — его напрямую не печатаем."""
+    if not customer:
+        return ""
+    name = getattr(customer, "name", None)
+    if name is None:  # не модель клиента — строка из контракта
+        return str(customer)
+    if name:
+        return name
+    email, phone = getattr(customer, "email", ""), getattr(customer, "phone", "")
+    if owner:
+        return email or phone
+    return mask_email(email) or mask_phone(phone)
+
+
 def _deals(tenant, q: str, owner: bool = False) -> list[dict]:
     from apps.core import sales_page, transactions
 
@@ -45,10 +61,11 @@ def _deals(tenant, q: str, owner: bool = False) -> list[dict]:
             tx = transactions.transaction_for(kind, obj)
             if tx is None:
                 continue
+            who = _customer_text(tx.customer, owner)
             out.append(
                 {
                     "label": tx.title,
-                    "sub": f"#{tx.reference_code}" + (f" · {tx.customer}" if tx.customer else ""),
+                    "sub": f"#{tx.reference_code}" + (f" · {who}" if who else ""),
                     "url": tx.manage_url or "",
                 }
             )

@@ -84,7 +84,9 @@ def test_open_items_lists_unpaid_order_and_match_by_code_sets_paid():
     )
 
 
-def test_bank_view_import_and_match_endpoint():
+def test_bank_view_import_and_match_endpoint(monkeypatch):
+    # KA-H11: банковские выписки — только владельцу.
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
     tenant = TenantFactory(schema_name="public")
     order = _order()
     from apps.finance import views as finance_views

@@ -48,6 +48,6 @@ storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot
   {% comment %}Личные данные — общий хвост (в попапе или инлайном, см.
   _buybox_contact.html). Выбор времени, абонемент, промокод и Extras — выше.{% endcomment %}
   {% if deposit_required %}{% blocktrans asvar dep_note %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}{% endif %}
-  {% if deposit_required %}{% trans "Continue to payment" as sub_label %}{% else %}{% trans "Book now" as sub_label %}{% endif %}
+  {% if service.price_cents or deposit_required %}{% trans "Zahlungspflichtig buchen" as sub_label %}{% else %}{% trans "Book now" as sub_label %}{% endif %}
   {% include "storefront/_buybox_contact.html" with submit_label=sub_label deposit_note=dep_note %}
 </form>

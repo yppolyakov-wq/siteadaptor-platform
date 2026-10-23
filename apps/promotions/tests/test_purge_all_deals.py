@@ -94,10 +94,9 @@ def test_recent_order_keeps_customer():
     "make,model,status",
     [
         (_order, Order, "ready"),
-        (_order, Order, "new"),
         (_booking, Booking, "confirmed"),
         (_job, Job, "quoted"),
-        (_ticket, Ticket, "pending"),
+        (_ticket, Ticket, "confirmed"),
     ],
 )
 def test_open_deal_keeps_customer_even_when_old(make, model, status):
@@ -146,3 +145,44 @@ def test_custom_active_order_status_keeps_customer(monkeypatch):
     customer = _old_customer()
     _age(Order, _order(customer, "in_pack"))
     assert purge_due_customers() == 0
+
+
+# --- правки по ревью -------------------------------------------------------------------
+
+
+def test_expired_open_offer_does_not_block_forever():
+    customer = _old_customer()
+    offer = Offer.objects.create(
+        customer=customer,
+        customer_email="anna@t.de",
+        valid_until=timezone.localdate() - timedelta(days=30),
+    )
+    _age(Offer, offer)
+    assert purge_due_customers() == 1
+
+
+def test_abandoned_intake_deal_does_not_block_forever():
+    """Брошенный «new»-заказ без движения дольше срока — не живая сделка."""
+    customer = _old_customer()
+    _age(Order, _order(customer, "new"))  # 400 дней без движения
+    assert purge_due_customers() == 1
+
+
+def test_beat_continues_after_tenant_error(monkeypatch):
+    from apps.promotions import tasks
+
+    calls = []
+
+    def boom(now, tenant=None):
+        calls.append(tenant)
+        raise RuntimeError("broken schema")
+
+    monkeypatch.setattr(tasks, "purge_due_customers", boom)
+    from apps.tenants.tests.factories import TenantFactory
+
+    TenantFactory()
+    TenantFactory()
+    tasks.purge_reservation_pii.run() if hasattr(tasks.purge_reservation_pii, "run") else (
+        tasks.purge_reservation_pii()
+    )
+    assert len(calls) >= 2

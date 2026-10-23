@@ -193,6 +193,8 @@ class CabinetOwnerAccessMiddleware:
         "/dashboard/finance/export.csv",
         "/dashboard/finance/datev.csv",
         "/dashboard/finance/ausgaben/datev.csv",
+        # Банковские выписки: имя плательщика, назначение, IBAN.
+        "/dashboard/finance/bank/",
     )
 
     def __init__(self, get_response):

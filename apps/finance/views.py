@@ -280,6 +280,7 @@ def offene_posten(request):
 
 
 @login_required
+@owner_required
 def bank_import(request):
     """ERP-2: импорт банковской выписки (CSV) + сопоставление платежей.
 

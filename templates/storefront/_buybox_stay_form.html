@@ -77,6 +77,6 @@ sellable.buybox_ready (= quote.available); сервер ре-валидируе�
   {% comment %}Личные данные — общий хвост (в попапе или инлайном, см.
   _buybox_contact.html). Всё, что влияет на цену и выбор — выше, на странице.{% endcomment %}
   {% if deposit_required %}{% trans "A payment is required for this booking — you'll pay securely in the next step (amount depends on the chosen rate)." as dep_note %}{% endif %}
-  {% if deposit_required %}{% trans "Continue to payment" as sub_label %}{% else %}{% trans "Book now" as sub_label %}{% endif %}
+  {% if quote.total_eur or deposit_required %}{% trans "Zahlungspflichtig buchen" as sub_label %}{% else %}{% trans "Book now" as sub_label %}{% endif %}
   {% include "storefront/_buybox_contact.html" with submit_label=sub_label deposit_note=dep_note %}
 </form>

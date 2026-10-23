@@ -28107,3 +28107,6 @@ msgstr "Fatura zaten tamamen ödendi."
 #, python-format
 msgid "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."
 msgstr "Alınan: %(p)s €. Kalan tutar: %(o)s €."
+
+msgid "Zahlungspflichtig buchen"
+msgstr "Ödeme yükümlülüğüyle rezervasyon yap"

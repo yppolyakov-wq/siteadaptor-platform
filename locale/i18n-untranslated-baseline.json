@@ -236,10 +236,9 @@
   "im Bot oder „Trennen“ im Kabinett. Deine Geschäftsdaten bleiben bis zur Löschung deines Kontos bestehen."
  ],
  "templates/tenants/legal_impressum.html": [
-  ". Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.",
   "Angaben gemäß § 5 DDG",
-  "Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:",
   "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV",
+  "Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.",
   "[Inhaber/in bzw. Geschäftsführer/in]",
   "[Name / Firma des Betreibers]",
   "[Straße Hausnummer]",

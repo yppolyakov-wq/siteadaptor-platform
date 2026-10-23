@@ -130,7 +130,8 @@ def customer_export_csv(request):
                 c.created_at.date().isoformat(),
             ]
         )
-    audit_export(request, "crm", rows, q=_query, firma=getattr(_firma, "pk", ""))
+    # Поисковую строку не пишем: в ней может быть e-mail/телефон клиента.
+    audit_export(request, "crm", rows, has_q=bool(_query), firma=getattr(_firma, "pk", ""))
     return response
 
 

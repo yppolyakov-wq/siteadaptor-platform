@@ -27967,3 +27967,6 @@ msgstr "The invoice has already been paid in full."
 #, python-format
 msgid "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."
 msgstr "Already received: %(p)s €. Amount outstanding: %(o)s €."
+
+msgid "Zahlungspflichtig buchen"
+msgstr "Book with obligation to pay"

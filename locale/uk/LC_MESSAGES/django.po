@@ -28220,3 +28220,6 @@ msgstr "Рахунок уже повністю сплачено."
 #, python-format
 msgid "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."
 msgstr "Вже отримано: %(p)s €. Залишок до сплати: %(o)s €."
+
+msgid "Zahlungspflichtig buchen"
+msgstr "Забронювати з обов'язком оплати"

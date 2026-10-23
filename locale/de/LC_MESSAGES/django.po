@@ -28057,3 +28057,6 @@ msgstr "Die Rechnung ist bereits vollständig bezahlt."
 #, python-format
 msgid "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."
 msgstr "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."
+
+msgid "Zahlungspflichtig buchen"
+msgstr "Zahlungspflichtig buchen"

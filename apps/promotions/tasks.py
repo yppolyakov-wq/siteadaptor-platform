@@ -9,6 +9,7 @@ helper'ы (expire_due_reservations / roll_due_promotions), работающие 
 здесь даёт единое имя и совместимость с dedupe-механизмом.
 """
 
+import logging
 from datetime import timedelta
 
 from django.conf import settings
@@ -20,6 +21,8 @@ from apps.core.jobs import idempotent_task
 from .models import Customer, Promotion, Reservation
 from .services import expire
 from .state_machine import PromotionSM
+
+logger = logging.getLogger(__name__)
 
 # значение, которым затираем обезличенные контакты
 _ANONYMIZED_NAME = "—"
@@ -228,17 +231,23 @@ _PURGE_DEAL_KINDS = {
 }
 
 
-def _open_statuses(kind: str, tenant=None) -> tuple[str, ...]:
-    """Коды «сделка ещё идёт»: intake/active (встроенные ∪ свои статусы владельца).
+# Брошенная «новая» сделка (неоплаченная корзина, неподтверждённая заявка) без
+# движения дольше этого срока клиента больше не держит — иначе обезличивание
+# могло не наступить никогда (ревью KA-H11).
+INTAKE_STALE_DAYS = 180
+
+
+def _open_statuses(kind: str, tenant=None, role: str = "") -> tuple[str, ...]:
+    """Коды «сделка ещё идёт» роли `role` (intake / active; пусто — обе), встроенные ∪
+    свои статусы владельца.
 
     Не `active_statuses_for`: та про ёмкость — у заказа «ready» и сметы «quoted»
     места не держат, но сделка живая."""
     from apps.core import status_registry
 
+    roles = (role,) if role else ("intake", "active")
     return tuple(
-        code
-        for code, d in status_registry.all_descriptors(kind, tenant).items()
-        if d.role in ("intake", "active")
+        code for code, d in status_registry.all_descriptors(kind, tenant).items() if d.role in roles
     )
 
 
@@ -278,16 +287,26 @@ def purge_due_customers(now=None, tenant=None) -> int:
     activity = []
     for kind, (label, _related) in _PURGE_DEAL_KINDS.items():
         model = django_apps.get_model(label)
+        deals = model.objects.filter(customer=OuterRef("pk"))
+        open_deal |= Q(Exists(deals.filter(status__in=_open_statuses(kind, tenant, "active"))))
         open_deal |= Q(
             Exists(
-                model.objects.filter(
-                    customer=OuterRef("pk"), status__in=_open_statuses(kind, tenant)
+                deals.filter(
+                    status__in=_open_statuses(kind, tenant, "intake"),
+                    updated_at__gte=now - timedelta(days=INTAKE_STALE_DAYS),
                 )
             )
         )
         activity.append(latest(model))
     activity.append(latest(Offer))
-    open_deal |= Q(Exists(Offer.objects.filter(customer=OuterRef("pk"), status="open")))
+    # предложение с истёкшим сроком (`is_expired`) клиента не держит
+    open_deal |= Q(
+        Exists(
+            Offer.objects.filter(customer=OuterRef("pk"), status="open").filter(
+                Q(valid_until__isnull=True) | Q(valid_until__gte=timezone.localdate(now))
+            )
+        )
+    )
     open_deal |= Q(
         Exists(Invoice.objects.filter(customer=OuterRef("pk"), status=Invoice.STATUS_ISSUED))
     )
@@ -335,9 +354,12 @@ def purge_reservation_pii():
     # KA-H11: настоящий тенант — свои статусы владельца учитываются (schema_context
     # даёт FakeTenant без site_config).
     for tenant in get_tenant_model().objects.exclude(schema_name="public"):
-        with tenant_context(tenant):
-            total += purge_due_customers(now, tenant=tenant)
-            purge_daily_views(now)
+        try:
+            with tenant_context(tenant):
+                total += purge_due_customers(now, tenant=tenant)
+                purge_daily_views(now)
+        except Exception:  # noqa: BLE001 — сломанная схема не останавливает остальных
+            logger.exception("purge_reservation_pii: tenant %s failed", tenant.schema_name)
     return {"purged": total}
 
 
