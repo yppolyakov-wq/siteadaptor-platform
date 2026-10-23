@@ -48,7 +48,8 @@ CHOICE_KINDS = frozenset({"stay"})
 
 
 def _refundable_states(model) -> frozenset[str]:
-    states = {model.PAYMENT_PAID}
+    paid = getattr(model, "PAYMENT_PAID", None)
+    states = {paid} if paid else set()
     deposit = getattr(model, "PAYMENT_DEPOSIT", None)
     if deposit:
         states.add(deposit)  # билет: оплачен депозит (R4)
