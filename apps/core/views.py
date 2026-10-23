@@ -5228,6 +5228,12 @@ def deal_discount_edit(request, kind, pk):
     if not deal_discount.supports(kind):
         raise Http404("kind has no discount")
     obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    if not deal_discount.supports(kind, obj):
+        messages.error(
+            request, _("Der Rabatt kann nach der Beauftragung nicht mehr geändert werden.")
+        )
+        nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
+        return redirect(nxt)
     raw = (request.POST.get("discount") or "0").replace(",", ".").strip()
     try:
         cents = int(Decimal(raw or "0") * 100)

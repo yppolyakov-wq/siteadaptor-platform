@@ -28066,3 +28066,44 @@ msgstr "Bir etkinliği yalnızca işletme sahibi iptal edebilir."
 #: KA-H8
 msgid "Bitte die Absage bestätigen."
 msgstr "Lütfen iptali onaylayın."
+
+#: KA-H10
+msgid "Leistungsdatum"
+msgstr "Hizmet tarihi"
+
+#: KA-H10
+msgid "Leistungszeitraum"
+msgstr "Hizmet dönemi"
+
+#: KA-H10
+msgid "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen."
+msgstr "Sipariş onaylandıktan sonra kalemler kilitlenir. Değiştirmek için işi iptal edip yeni bir teklif oluşturun."
+
+#: KA-H10
+msgid "Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden."
+msgstr "Ön ödeme zaten yapıldı ve artık değiştirilemez."
+
+#: KA-H10
+msgid "Der Rabatt kann nach der Beauftragung nicht mehr geändert werden."
+msgstr "Onaydan sonra indirim değiştirilemez."
+
+#: KA-H10
+msgid "Dieses Angebot ist abgelaufen. Bitte fragen Sie ein neues Angebot an."
+msgstr "Bu teklifin süresi doldu. Lütfen yeni bir teklif isteyin."
+
+#: KA-H10
+msgid "Bereits erhalten"
+msgstr "Daha önce alınan"
+
+#: KA-H10
+msgid "Zu zahlen"
+msgstr "Ödenecek tutar"
+
+#: KA-H10
+msgid "Die Rechnung ist bereits vollständig bezahlt."
+msgstr "Fatura zaten tamamen ödendi."
+
+#: KA-H10
+#, python-format
+msgid "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."
+msgstr "Alınan: %(p)s €. Kalan tutar: %(o)s €."

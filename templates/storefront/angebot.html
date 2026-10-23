@@ -45,7 +45,10 @@
     <p class="text-gray-500 mt-4">{% trans "The quote is being prepared." %}</p>
     {% endif %}
 
-    {% if job.status == 'quoted' and lines %}
+    {% if job.status == 'quoted' and lines and expired %}
+    <p class="mt-6 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2" data-quote-expired>{% trans "Dieses Angebot ist abgelaufen. Bitte fragen Sie ein neues Angebot an." %}</p>
+    {% endif %}
+    {% if job.status == 'quoted' and lines and not expired %}
     <div class="flex gap-3 mt-6">
       <form method="post" class="flex-1">{% csrf_token %}
         <input type="hidden" name="action" value="accept">

@@ -33,6 +33,8 @@ def supports(kind: str, obj=None) -> bool:
     """Скидку показываем там, где у сделки есть поле и она ещё не закрыта."""
     if kind not in SUPPORTED:
         return False
+    if obj is not None and getattr(obj, "lines_locked", False):
+        return False  # KA-H10: скидка принятой сметы — часть договора
     return obj is None or hasattr(obj, "discount_cents")
 
 

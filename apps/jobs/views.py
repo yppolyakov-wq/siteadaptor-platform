@@ -15,6 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
 
 from apps.catalog.picker import (  # SH-B: пикер позиций общий с заказом
@@ -158,6 +159,16 @@ def job_detail(request, pk):
             # Фидбэк владельца 2026-08-28: Anzahlung — свойство ОПЛАТЫ, а не
             # состава сметы; поле переехало в карточку «Zahlung» и приходит
             # своей формой (как valid_until из «Dokumente»).
+            # KA-H10: оплаченную/принятую предоплату не меняем — счёт напишет
+            # «Anzahlung erhalten» уже другой суммой.
+            if job.payment_state == "paid" or job.lines_locked:
+                messages.error(
+                    request,
+                    _("Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden.")
+                    if job.payment_state == "paid"
+                    else LOCK_MSG,
+                )
+                return redirect("jobs:detail", pk=job.pk)
             job.deposit_cents = _parse_deposit_cents(request.POST.get("deposit_eur"))
             job.save(update_fields=["deposit_cents", "updated_at"])
             messages.success(request, _("Saved."))
@@ -166,6 +177,9 @@ def job_detail(request, pk):
             # CARD-1 (владелец 2026-08-26): срок действия сметы живёт в блоке
             # «Dokumente» рядом с PDF и отправкой — это свойство документа, а не
             # строки состава.
+            if job.lines_locked:  # KA-H10: срок принятой сметы — часть договора
+                messages.error(request, LOCK_MSG)
+                return redirect("jobs:detail", pk=job.pk)
             job.valid_until = _parse_date(request.POST.get("valid_until"))
             job.save(update_fields=["valid_until", "updated_at"])
             messages.success(request, _("Saved."))
@@ -285,8 +299,33 @@ def _link_booking(request, job, *, attach):
     return redirect("jobs:detail", pk=job.pk)
 
 
+LOCK_MSG = gettext_lazy(
+    "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag "
+    "stornieren und ein neues Angebot erstellen."
+)
+
+
+def _save_locked(request, job):
+    """KA-H10: после принятия форма сметы сохраняет только данные авто/сервиса."""
+    if any(k.startswith(("line_text_", "line_price_")) for k in request.POST):
+        messages.warning(request, LOCK_MSG)
+    job.vehicle = request.POST.get("vehicle", job.vehicle).strip()[:120]
+    fields = ["vehicle", "updated_at"]
+    if "service_due_date" in request.POST:
+        new_due = _parse_date(request.POST.get("service_due_date"))
+        if new_due != job.service_due_date:
+            job.service_due_date = new_due
+            job.service_reminder_sent_at = None
+            fields += ["service_due_date", "service_reminder_sent_at"]
+    job.save(update_fields=fields)
+    return redirect("jobs:detail", pk=job.pk)
+
+
 def _save_lines(request, job):
     from apps.catalog.models import Product, ProductVariant
+
+    if job.lines_locked:
+        return _save_locked(request, job)
 
     # Резолв привязок одним проходом (≤12 строк): str(pk) → инстанс (UUID-PK).
     products = {str(p.pk): p for p in Product.objects.filter(is_active=True)}

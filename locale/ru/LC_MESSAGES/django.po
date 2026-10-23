@@ -28199,3 +28199,44 @@ msgstr "Отменить мероприятие может только влад
 #: KA-H8
 msgid "Bitte die Absage bestätigen."
 msgstr "Подтвердите отмену."
+
+#: KA-H10
+msgid "Leistungsdatum"
+msgstr "Дата оказания услуги"
+
+#: KA-H10
+msgid "Leistungszeitraum"
+msgstr "Период оказания услуг"
+
+#: KA-H10
+msgid "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen."
+msgstr "После подтверждения заказа позиции заблокированы. Чтобы изменить их, отмените заказ и создайте новое предложение."
+
+#: KA-H10
+msgid "Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden."
+msgstr "Предоплата уже получена, изменить её нельзя."
+
+#: KA-H10
+msgid "Der Rabatt kann nach der Beauftragung nicht mehr geändert werden."
+msgstr "После подтверждения скидку изменить нельзя."
+
+#: KA-H10
+msgid "Dieses Angebot ist abgelaufen. Bitte fragen Sie ein neues Angebot an."
+msgstr "Срок действия предложения истёк. Запросите, пожалуйста, новое."
+
+#: KA-H10
+msgid "Bereits erhalten"
+msgstr "Уже получено"
+
+#: KA-H10
+msgid "Zu zahlen"
+msgstr "К оплате"
+
+#: KA-H10
+msgid "Die Rechnung ist bereits vollständig bezahlt."
+msgstr "Счёт уже полностью оплачен."
+
+#: KA-H10
+#, python-format
+msgid "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."
+msgstr "Уже получено: %(p)s €. Остаток к оплате: %(o)s €."

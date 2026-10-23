@@ -156,7 +156,10 @@
  ],
  "apps/tenants/models.py": [
   ".\n\nHinweis: Bitte passen Sie diesen Text an Ihr Geschäft an.",
+  ".\n\nWir verarbeiten personenbezogene Daten (Name, E-Mail, Telefon) ausschließlich zur Bearbeitung Ihrer Reservierung gemäß Art. 6 Abs. 1 lit. b DSGVO.",
+  "Betrieb und Hosting dieser Website: SiteAdaptor",
   "Datenschutzerklärung\n\nVerantwortlich für die Datenverarbeitung auf dieser Website ist",
+  "Die Daten werden nach Ablauf der gesetzlichen Fristen gelöscht bzw. anonymisiert.",
   "LinkedIn",
   "Sie haben das Recht auf Auskunft, Berichtigung, Löschung und Widerspruch. Wenden Sie sich dazu an:",
   "Stornierung / Widerruf\n\nEine Reservierung ist unverbindlich und kann jederzeit storniert werden. Bei Fragen kontaktieren Sie uns bitte unter",

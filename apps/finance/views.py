@@ -359,6 +359,9 @@ def invoice_mahnung(request, pk):
     if not email:
         messages.error(request, _("Kunde hat keine E-Mail — Mahnung nicht möglich."))
         return redirect("finance:offene")
+    if not invoice.open_amount:  # KA-H10: напоминать не о чем
+        messages.error(request, _("Die Rechnung ist bereits vollständig bezahlt."))
+        return redirect("finance:offene")
     level = min(int(invoice.mahn_level) + 1, 3)
     tenant = getattr(request, "tenant", None)
     locale = getattr(tenant, "default_locale", "") or "de"
@@ -368,6 +371,13 @@ def invoice_mahnung(request, pk):
         "level": level,
         "number": invoice.number_display,
         "gross": f"{invoice.gross:.2f}".replace(".", ","),
+        # KA-H10: уже получено и остаток — клиент не платит второй раз то, что внёс.
+        "paid": (
+            f"{Decimal(invoice.prepaid_cents) / 100:.2f}".replace(".", ",")
+            if invoice.prepaid_cents
+            else ""
+        ),
+        "open": f"{invoice.open_amount:.2f}".replace(".", ","),
         "business_name": getattr(tenant, "name", "") or "",
     }
     with translation.override(locale if isinstance(locale, str) else "de"):

@@ -51,6 +51,10 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
 <form method="post">
   {% csrf_token %}
   <input type="hidden" name="action" value="save_lines">
+  {% if job.lines_locked %}<p class="mb-2 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2" data-lines-locked>🔒 {% trans "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen." %}</p>{% endif %}
+  {% comment %}KA-H10: после принятия строки только для чтения — disabled-fieldset
+  их не отправляет (сервер всё равно игнорирует), поля авто/сервиса ниже живы.{% endcomment %}
+  <fieldset {% if job.lines_locked %}disabled{% endif %} class="min-w-0">
   <div class="space-y-2">
     {% comment %}DG-1: состав сметы — на ОБЩЕЙ сетке карточки сделки (класс
     .dl-row + общая шапка). У сметы ставка одна на документ, поэтому в строках
@@ -122,6 +126,7 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
       <div data-qt-addpick class="w-full">{% include "core/_part_picker.html" with parts=parts field_name="qt_part" %}</div>
     {% endif %}
   </div>
+  </fieldset>
   {% if parts %}
     <p class="text-xs text-gray-400 mt-2">
       {% if job.stock_committed %}✓ {% trans "Stock for catalog parts has been booked." %}

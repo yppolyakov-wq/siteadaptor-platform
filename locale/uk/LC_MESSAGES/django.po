@@ -28179,3 +28179,44 @@ msgstr "Скасувати захід може лише власник."
 #: KA-H8
 msgid "Bitte die Absage bestätigen."
 msgstr "Підтвердьте скасування."
+
+#: KA-H10
+msgid "Leistungsdatum"
+msgstr "Дата надання послуги"
+
+#: KA-H10
+msgid "Leistungszeitraum"
+msgstr "Період надання послуг"
+
+#: KA-H10
+msgid "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen."
+msgstr "Після підтвердження замовлення позиції заблоковано. Щоб змінити їх, скасуйте замовлення та створіть нову пропозицію."
+
+#: KA-H10
+msgid "Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden."
+msgstr "Передоплату вже отримано, змінити її не можна."
+
+#: KA-H10
+msgid "Der Rabatt kann nach der Beauftragung nicht mehr geändert werden."
+msgstr "Після підтвердження знижку змінити не можна."
+
+#: KA-H10
+msgid "Dieses Angebot ist abgelaufen. Bitte fragen Sie ein neues Angebot an."
+msgstr "Термін дії пропозиції минув. Будь ласка, запросіть нову."
+
+#: KA-H10
+msgid "Bereits erhalten"
+msgstr "Вже отримано"
+
+#: KA-H10
+msgid "Zu zahlen"
+msgstr "До сплати"
+
+#: KA-H10
+msgid "Die Rechnung ist bereits vollständig bezahlt."
+msgstr "Рахунок уже повністю сплачено."
+
+#: KA-H10
+#, python-format
+msgid "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."
+msgstr "Вже отримано: %(p)s €. Залишок до сплати: %(o)s €."

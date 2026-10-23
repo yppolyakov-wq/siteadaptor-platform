@@ -28016,3 +28016,44 @@ msgstr "Nur der Inhaber kann eine Veranstaltung absagen."
 #: KA-H8
 msgid "Bitte die Absage bestätigen."
 msgstr "Bitte die Absage bestätigen."
+
+#: KA-H10
+msgid "Leistungsdatum"
+msgstr "Leistungsdatum"
+
+#: KA-H10
+msgid "Leistungszeitraum"
+msgstr "Leistungszeitraum"
+
+#: KA-H10
+msgid "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen."
+msgstr "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen."
+
+#: KA-H10
+msgid "Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden."
+msgstr "Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden."
+
+#: KA-H10
+msgid "Der Rabatt kann nach der Beauftragung nicht mehr geändert werden."
+msgstr "Der Rabatt kann nach der Beauftragung nicht mehr geändert werden."
+
+#: KA-H10
+msgid "Dieses Angebot ist abgelaufen. Bitte fragen Sie ein neues Angebot an."
+msgstr "Dieses Angebot ist abgelaufen. Bitte fragen Sie ein neues Angebot an."
+
+#: KA-H10
+msgid "Bereits erhalten"
+msgstr "Bereits erhalten"
+
+#: KA-H10
+msgid "Zu zahlen"
+msgstr "Zu zahlen"
+
+#: KA-H10
+msgid "Die Rechnung ist bereits vollständig bezahlt."
+msgstr "Die Rechnung ist bereits vollständig bezahlt."
+
+#: KA-H10
+#, python-format
+msgid "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."
+msgstr "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."

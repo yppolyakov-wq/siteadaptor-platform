@@ -137,6 +137,18 @@ def issue_invoice(invoice, *, tenant=None, terms_days=None):
         invoice.number = counter.last_number
         invoice.issued_at = tz.now()
         fields = ["number", "issued_at", "updated_at"]
+        # KA-H10: Leistungsdatum обязателен — без даты сделки берём день выставления.
+        if invoice.service_date is None:
+            invoice.service_date = tz.localdate()
+            fields.append("service_date")
+        if invoice.deal_kind == "job":  # Anzahlung могла прийти между черновиком и выпуском
+            from apps.jobs.models import Job
+            from apps.jobs.services import prepaid_cents as job_prepaid
+
+            job = Job.objects.filter(reference_code=invoice.deal_id).first()
+            if job is not None:
+                invoice.prepaid_cents = job_prepaid(job)
+                fields.append("prepaid_cents")
         if invoice.due_date is None:
             days = terms_days
             if days is None:
@@ -257,6 +269,9 @@ def invoice_from_stay(booking, tenant=None):
         vat_amount=vat,
         gross=gross,
         note=str(_("Buchung %(code)s")) % {"code": booking.reference_code},
+        service_date=booking.arrival,  # KA-H10: Leistungszeitraum — проживание
+        service_date_end=booking.departure,
+        prepaid_cents=_prepaid_from_payment_state(booking),
     )
 
 
@@ -294,7 +309,32 @@ def invoice_from_booking(booking, tenant=None):
         vat_amount=vat,
         gross=gross,
         note=str(_("Termin %(code)s")) % {"code": booking.reference_code},
+        service_date=_local_date(booking.start),  # KA-H10: Leistungsdatum
+        prepaid_cents=_prepaid_from_payment_state(booking),
     )
+
+
+def _local_date(value):
+    """datetime → локальная дата; date → как есть; None → None."""
+    if value is None:
+        return None
+    from datetime import datetime
+
+    from django.utils import timezone as tz
+
+    if isinstance(value, datetime):
+        return tz.localtime(value).date() if tz.is_aware(value) else value.date()
+    return value
+
+
+def _prepaid_from_payment_state(deal) -> int:
+    """KA-H10: уже получено по брони/записи: Anzahlung → её сумма, оплачено → всё."""
+    state = getattr(deal, "payment_state", "")
+    if state == "deposit":
+        return int(getattr(deal, "deposit_cents", 0) or 0)
+    if state == "paid":
+        return int(getattr(deal, "total_cents", 0) or 0)
+    return 0
 
 
 def _net_from_gross(gross, rate):
@@ -397,6 +437,10 @@ def invoice_from_order(order, tenant=None):
         vat_amount=vat,
         gross=gross,
         note=str(_("Auftrag %(code)s")) % {"code": order.reference_code},
+        # KA-H10: Leistungsdatum — отгрузка, иначе слот выдачи; иначе при выпуске.
+        service_date=_local_date(
+            getattr(order, "shipped_at", None) or getattr(order, "pickup_slot", None)
+        ),
     )
 
 

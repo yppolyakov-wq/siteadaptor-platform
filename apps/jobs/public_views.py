@@ -249,8 +249,16 @@ def auftrag_status(request, token):
 def angebot(request, token):
     _require_jobs_active(request)
     job = get_object_or_404(Job.objects.select_related("customer"), public_token=token)
+    expired = bool(job.valid_until and job.valid_until < timezone.localdate())
     if request.method == "POST" and job.status == Job.STATUS_QUOTED:
         action = request.POST.get("action", "")
+        # KA-H10: просроченную смету принять нельзя (отклонить — можно).
+        if action == "accept" and expired:
+            messages.error(
+                request,
+                _("Dieses Angebot ist abgelaufen. Bitte fragen Sie ein neues Angebot an."),
+            )
+            return redirect(request.path)
         # A7c: принятие сметы с Anzahlung — через Stripe Checkout (на счёт бизнеса).
         # Оплата = принятие (вебхук job_deposit → quoted→accepted). Без депозита/
         # оплаты — принимаем сразу, как раньше.
@@ -325,6 +333,7 @@ def angebot(request, token):
         {
             "job": job,
             "lines": lines,
+            "expired": expired,  # KA-H10: просрочено — кнопки «Annehmen» нет
             # VAT-1: клиент видит ту же разбивку по ставкам, что PDF и кабинет —
             # одна функция на все поверхности документа.
             "vat_rows": quote_totals(lines, job.vat_rate)["rows"],

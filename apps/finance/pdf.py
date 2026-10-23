@@ -98,6 +98,18 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     if invoice.due_date:
         label_due = _("Payable by")
         c.drawRightString(page_w - x, y - 4.5 * mm, f"{label_due}: {doc_date(invoice.due_date)}")
+    # KA-H10: Leistungsdatum/-zeitraum (§ 14 Abs. 4 Nr. 6 UStG). У легаси-счетов поля
+    # нет — печатаем ничего (документ под старым номером не меняется, GoBD).
+    if invoice.service_date:
+        if invoice.service_date_end and invoice.service_date_end != invoice.service_date:
+            label_service = _("Leistungszeitraum")
+            service_text = (
+                f"{doc_date(invoice.service_date)} – {doc_date(invoice.service_date_end)}"
+            )
+        else:
+            label_service = _("Leistungsdatum")
+            service_text = doc_date(invoice.service_date)
+        c.drawRightString(page_w - x, y - 9 * mm, f"{label_service}: {service_text}")
 
     # Таблица позиций.
     y -= 12 * mm
@@ -144,6 +156,19 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     label_total = _("Total")
     c.drawRightString(page_w - x - 30 * mm, y, f"{label_total}:")
     c.drawRightString(page_w - x, y, money(invoice.gross))
+    if invoice.prepaid_cents:  # KA-H10: уже получено → к оплате остаток
+        from decimal import Decimal as _D
+
+        c.setFont(font, 9)
+        y -= 5 * mm
+        label_paid = _("Bereits erhalten")
+        c.drawRightString(page_w - x - 30 * mm, y, f"{label_paid}:")
+        c.drawRightString(page_w - x, y, "−" + money(_D(invoice.prepaid_cents) / 100))
+        y -= 5 * mm
+        c.setFont(font_bold, 10)
+        label_due_amount = _("Zu zahlen")
+        c.drawRightString(page_w - x - 30 * mm, y, f"{label_due_amount}:")
+        c.drawRightString(page_w - x, y, money(invoice.open_amount))
 
     # Hinweise.
     y -= 14 * mm

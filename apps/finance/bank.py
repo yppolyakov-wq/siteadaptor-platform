@@ -206,6 +206,8 @@ def open_items(tenant) -> list[dict]:
                 }
             )
     for inv in Invoice.objects.filter(status="issued").order_by("issued_at")[:200]:
+        if not inv.open_amount:  # KA-H10: всё уже получено (Anzahlung/сертификат)
+            continue
         out.append(
             {
                 "kind": "invoice",
@@ -213,7 +215,7 @@ def open_items(tenant) -> list[dict]:
                 "obj": inv,
                 "code": inv.number_display if hasattr(inv, "number_display") else str(inv.number),
                 "title": str(inv.recipient or "")[:60],
-                "amount": inv.gross,
+                "amount": inv.open_amount,  # KA-H10: ждём остаток, а не всю сумму
                 "customer": inv.customer,
                 "age_days": (today - inv.issued_at.date()).days if inv.issued_at else 0,
                 "manage_url": "",

@@ -134,9 +134,21 @@ class Invoice(TimestampedModel):
     mahn_level = models.PositiveSmallIntegerField(default=0)
     mahned_at = models.DateField(null=True, blank=True)
     note = models.CharField(max_length=200, blank=True)
+    # KA-H10: Leistungsdatum/-zeitraum (§ 14 Abs. 4 Nr. 6 UStG). Пусто у легаси-
+    # счетов — их PDF не меняется (GoBD); при выставлении без даты — день выставления.
+    service_date = models.DateField(null=True, blank=True)
+    service_date_end = models.DateField(null=True, blank=True)
+    # KA-H10: уже получено до счёта (Anzahlung, Wertgutschein, предоплата брони) —
+    # «Offene Posten» и Mahnung ждут ОСТАТОК, а не всю сумму.
+    prepaid_cents = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["-created_at"]
+
+    @property
+    def open_amount(self):
+        """KA-H10: к оплате = брутто − уже получено (не меньше 0)."""
+        return max(Decimal(self.gross) - Decimal(self.prepaid_cents) / 100, Decimal("0"))
 
     def __str__(self):
         return self.number_display

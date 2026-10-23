@@ -452,14 +452,39 @@ class Tenant(TenantMixin):
             f"{self.name}.\n\n"
             "Wir verarbeiten personenbezogene Daten (Name, E-Mail, Telefon) "
             "ausschließlich zur Bearbeitung Ihrer Reservierung gemäß Art. 6 Abs. 1 "
-            "lit. b DSGVO. Die Daten werden nicht an Dritte weitergegeben und nach "
-            "Ablauf der gesetzlichen Fristen gelöscht bzw. anonymisiert.\n\n"
+            "lit. b DSGVO. "
+            f"{self._privacy_processors_sentence()}"
+            "Die Daten werden nach Ablauf der gesetzlichen Fristen gelöscht bzw. "
+            "anonymisiert.\n\n"
             f"{self._privacy_ai_paragraph()}"
             f"{self._privacy_telegram_paragraph()}"
             "Sie haben das Recht auf Auskunft, Berichtigung, Löschung und "
             "Widerspruch. Wenden Sie sich dazu an: "
             f"{contact}.\n\n"
             "Hinweis: Bitte passen Sie diesen Text an Ihr Geschäft an."
+        )
+
+    def _privacy_processors_sentence(self) -> str:
+        """KA-H10 (аудит KA-5g, L5): вместо ложного «nicht an Dritte weitergegeben» —
+        честный список обработчиков, которые реально задействованы (каждый пункт
+        fail-safe). Текст — заготовка; юридическая вычитка — вопрос владельца В-2."""
+        from django.conf import settings
+
+        items = ["Betrieb und Hosting dieser Website: SiteAdaptor"]
+        try:
+            if "resend" in (getattr(settings, "EMAIL_BACKEND", "") or "").lower():
+                items.append("E-Mail-Versand: Resend")
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            if getattr(self, "payments_enabled", False):
+                items.append("Zahlungsabwicklung: Stripe")
+        except Exception:  # noqa: BLE001
+            pass
+        return (
+            "Zur Erbringung unserer Leistungen setzen wir folgende Dienstleister ein: "
+            + "; ".join(items)
+            + ". "
         )
 
     def _privacy_ai_paragraph(self) -> str:

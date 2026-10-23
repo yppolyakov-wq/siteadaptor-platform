@@ -27926,3 +27926,44 @@ msgstr "Only the owner can cancel an event."
 #: KA-H8
 msgid "Bitte die Absage bestätigen."
 msgstr "Please confirm the cancellation."
+
+#: KA-H10
+msgid "Leistungsdatum"
+msgstr "Date of supply"
+
+#: KA-H10
+msgid "Leistungszeitraum"
+msgstr "Service period"
+
+#: KA-H10
+msgid "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen."
+msgstr "Line items are locked once the job is accepted. To change them, cancel the job and create a new quote."
+
+#: KA-H10
+msgid "Die Anzahlung ist bereits bezahlt und kann nicht mehr geändert werden."
+msgstr "The deposit has already been paid and can no longer be changed."
+
+#: KA-H10
+msgid "Der Rabatt kann nach der Beauftragung nicht mehr geändert werden."
+msgstr "The discount can no longer be changed after acceptance."
+
+#: KA-H10
+msgid "Dieses Angebot ist abgelaufen. Bitte fragen Sie ein neues Angebot an."
+msgstr "This quote has expired. Please request a new one."
+
+#: KA-H10
+msgid "Bereits erhalten"
+msgstr "Already received"
+
+#: KA-H10
+msgid "Zu zahlen"
+msgstr "Amount due"
+
+#: KA-H10
+msgid "Die Rechnung ist bereits vollständig bezahlt."
+msgstr "The invoice has already been paid in full."
+
+#: KA-H10
+#, python-format
+msgid "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."
+msgstr "Already received: %(p)s €. Amount outstanding: %(o)s €."

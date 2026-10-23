@@ -438,6 +438,15 @@ def _rabatt_lines(job, small_business: bool, cents: int) -> list[dict]:
     return [ln for ln in best if Decimal(ln["unit_price"]) != 0]
 
 
+def prepaid_cents(job) -> int:
+    """KA-H10: уже получено по заявке до счёта: Wertgutschein + Anzahlung (или всё,
+    если отмечено «оплачено» без депозита). Тот же источник, что `_payment_note`."""
+    total = voucher_payment_cents(job)
+    if job.payment_state == job.PAYMENT_PAID:
+        total += job.deposit_cents or int(round(Decimal(job.payable_gross) * 100))
+    return max(0, min(total, int(round(Decimal(job.gross) * 100))))
+
+
 def _payment_note(job) -> str:
     """Пометка об уже полученных деньгах (без НДС-эффекта: Anzahlungsrechnung не
     выпускалась, § 14 Abs. 5 UStG тут не применяется)."""
@@ -480,9 +489,20 @@ def quote_to_invoice(job, *, small_business=False):
     cents = rabatt_cents(job)
     if cents:
         lines += _rabatt_lines(job, small_business, cents)
-    recipient = str(job.customer)
-    if job.site_address:
+    # KA-H10: получатель — фирма/реквизиты сделки (§ 14 Abs. 4 Nr. 1 UStG), общий
+    # резолвер; адрес объекта — только если другого адреса нет (частный клиент).
+    from apps.finance.recipient import recipient_for
+
+    recipient = recipient_for(job)
+    if "\n" not in recipient and job.site_address:
         recipient = f"{recipient}\n{job.site_address}"
+    service_date = None
+    if getattr(job, "booking_id", None) and job.booking is not None:
+        from django.utils import timezone as tz
+
+        service_date = tz.localtime(job.booking.start).date()
+    elif getattr(job, "event_date", None):
+        service_date = job.event_date
     net, vat, gross = compute_totals(lines, job.vat_rate, small_business=small_business)
     # Пометка об оплате важнее названия: при обрезке до 200 знаков режем title,
     # иначе «Offene Posten»/Mahnung не увидели бы, что часть уже оплачена.
@@ -502,6 +522,8 @@ def quote_to_invoice(job, *, small_business=False):
         note=note[:200],
         deal_kind="job",
         deal_id=job.reference_code,
+        service_date=service_date,
+        prepaid_cents=prepaid_cents(job),
     )
     job.invoice_id = invoice.id
     job.save(update_fields=["invoice_id", "updated_at"])

@@ -168,6 +168,28 @@ class Job(I18nMixin, TimestampedModel):
         return self.get_overlay("description", "description_i18n", locale)
 
     @property
+    def lines_locked(self) -> bool:
+        """KA-H10: смета заперта после принятия — клиент принял ИМЕННО эти позиции,
+        цену, предоплату и скидку. Открыта только заявка и отправленная смета (и свои
+        статусы ранних стадий); принята/выполнена/выставлена/отклонена/отменена — заперта."""
+        if self.status in (self.STATUS_NEW, self.STATUS_QUOTED):
+            return False
+        if self.status in (
+            self.STATUS_ACCEPTED,
+            self.STATUS_DONE,
+            self.STATUS_INVOICED,
+            self.STATUS_DECLINED,
+            self.STATUS_CANCELLED,
+        ):
+            return True
+        from apps.core import status_registry
+
+        # Свой статус (SM-3): открыт только на стадии заявки; «in Arbeit» и т.п. —
+        # уже после принятия, значит заперт.
+        desc = status_registry.resolve("job", self.status)
+        return not (desc is not None and desc.role == "intake")
+
+    @property
     def discount_eur(self):
         """B1.6: скидка Gutschein в евро (Decimal)."""
         from decimal import Decimal
