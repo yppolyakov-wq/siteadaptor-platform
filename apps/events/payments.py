@@ -8,6 +8,7 @@ Checkout на connected account бизнеса (деньги ему; вариа�
 import stripe
 
 from apps.billing import connect
+from apps.core.payment_holds import settle_late_payment, start_online_hold
 
 
 def ticket_checkout_url(ticket, tenant, *, success_url: str, cancel_url: str) -> str:
@@ -25,6 +26,8 @@ def ticket_checkout_url(ticket, tenant, *, success_url: str, cancel_url: str) ->
         cancel_url=cancel_url,
         business_type=getattr(tenant, "business_type", ""),
         payment_method_types=getattr(tenant, "stripe_payment_methods", None),
+        # KA-P6: брошенная оплата не держит ресурс бессрочно (expire_payment_holds).
+        expires_at=start_online_hold(ticket),
     )
 
 
@@ -207,9 +210,13 @@ def mark_ticket_paid(*, tenant_schema: str, ticket_id: str, payment_intent: str 
         if payment_intent and ticket.stripe_payment_intent != payment_intent:
             ticket.stripe_payment_intent = payment_intent
             fields.append("stripe_payment_intent")
+        if ticket.payment_due_at is not None:  # KA-P6: оплачено — удержание снято
+            ticket.payment_due_at = None
+            fields.append("payment_due_at")
         if fields:
             fields.append("updated_at")
             ticket.save(update_fields=fields)
+        settle_late_payment("ticket", ticket)
         if not ticket.event.require_manual_confirm and ticket.status == Ticket.STATUS_PENDING:
             try:
                 TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)

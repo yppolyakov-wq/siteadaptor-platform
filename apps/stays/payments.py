@@ -7,6 +7,7 @@ application_fee=0). Подтверждение оплаты ставит веб�
 """
 
 from apps.billing import connect
+from apps.core.payment_holds import settle_late_payment, start_online_hold
 
 
 def stay_deposit_checkout_url(booking, tenant, *, success_url: str, cancel_url: str) -> str:
@@ -24,6 +25,8 @@ def stay_deposit_checkout_url(booking, tenant, *, success_url: str, cancel_url: 
         cancel_url=cancel_url,
         business_type=getattr(tenant, "business_type", ""),
         payment_method_types=getattr(tenant, "stripe_payment_methods", None),
+        # KA-P6: брошенная оплата не держит ресурс бессрочно (expire_payment_holds).
+        expires_at=start_online_hold(booking),
     )
 
 
@@ -62,9 +65,13 @@ def mark_stay_paid(*, tenant_schema: str, booking_id: str, payment_intent: str =
         if payment_intent and booking.stripe_payment_intent != payment_intent:
             booking.stripe_payment_intent = payment_intent
             fields.append("stripe_payment_intent")
+        if booking.payment_due_at is not None:  # KA-P6: оплачено — удержание снято
+            booking.payment_due_at = None
+            fields.append("payment_due_at")
         if fields:
             fields.append("updated_at")
             booking.save(update_fields=fields)
+        settle_late_payment("stay", booking)
         # Авто-подтверждение, если юнит не требует ручной проверки (анти-фрод).
         if not booking.unit.require_manual_confirm and booking.status == StayBooking.STATUS_PENDING:
             try:

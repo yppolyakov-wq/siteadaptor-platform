@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 
 from django.db import transaction
 from django.utils import timezone
@@ -74,3 +75,45 @@ def expire_overdue(tenant, *, now=None, kinds=HOLD_KINDS) -> int:
                 logger.exception("payment-hold: не удалось отменить %s %s", kind, pk)
                 continue
     return total
+
+
+# --- KA-P6: удержание на время онлайн-оплаты -----------------------------------------
+
+#: Сколько держать номер/время/место, пока клиент на странице оплаты Stripe. 24 ч —
+#: максимум жизни сессии Stripe; напоминание B2 (через 6 ч) ведёт на новую сессию,
+#: которая удержание продлевает.
+ONLINE_HOLD = timedelta(hours=24)
+#: Сессия Stripe закрывается раньше конца удержания: оплата «в последнюю секунду»
+#: уже не пройдёт, когда сделка снимается.
+SESSION_MARGIN = timedelta(minutes=15)
+
+
+def start_online_hold(obj, *, now=None) -> int:
+    """Поставить/продлить срок удержания сделки на время онлайн-оплаты.
+
+    Возвращает `expires_at` для сессии Stripe (unix-время). Более длинное удержание
+    (счёт фирме, Vorkasse) не сокращаем."""
+    now = now or timezone.now()
+    due = now + ONLINE_HOLD
+    current = getattr(obj, "payment_due_at", None)
+    if current is None or current < due:
+        type(obj).objects.filter(pk=obj.pk).update(payment_due_at=due)
+        obj.payment_due_at = due
+    return int((due - SESSION_MARGIN).timestamp())
+
+
+def settle_late_payment(kind: str, obj) -> None:
+    """Оплата пришла, а сделка уже снята (удержание истекло, отменили вручную):
+    деньги не должны остаться у бизнеса за отменённую бронь — возвращаем сразу.
+    Ошибка Stripe → `refund_payment` откатывает состояние и пишет владельцу."""
+    from django.db import connection
+
+    from apps.core import refunds
+
+    if getattr(obj, "status", "") not in status_registry.cancelled_statuses_for(kind):
+        return
+    from django_tenants.utils import get_tenant_model
+
+    tenant = get_tenant_model().objects.filter(schema_name=connection.schema_name).first()
+    result = refunds.refund_payment(kind, obj, tenant)
+    logger.warning("late payment on cancelled %s %s → %s", kind, obj.pk, result)

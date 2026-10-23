@@ -132,6 +132,7 @@ def connected_checkout_session(
     business_type: str = "",
     currency: str = "eur",
     payment_method_types: list | None = None,
+    expires_at: int | None = None,
 ) -> str:
     """Checkout (mode=payment) НА connected account бизнеса — деньги идут ему.
 
@@ -151,6 +152,8 @@ def connected_checkout_session(
     extra: dict = {}
     if payment_method_types:
         extra["payment_method_types"] = list(payment_method_types)
+    if expires_at:  # KA-P6: сессия живёт не дольше удержания сделки
+        extra["expires_at"] = int(expires_at)
     session = _client().checkout.Session.create(
         stripe_account=connect_id,
         mode="payment",
