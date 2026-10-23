@@ -28080,3 +28080,33 @@ msgstr "— без услуги (напр. стол) —"
 #: KA-H7
 msgid "Leistung nicht gefunden – Termin ohne Leistung angelegt."
 msgstr "Услуга не найдена — запись создана без услуги."
+
+#: KA-H9
+msgid "Bitte den einzulösenden Betrag angeben."
+msgstr "Укажите сумму к списанию."
+
+#: KA-H9
+msgid "Das Guthaben reicht für diesen Betrag nicht aus."
+msgstr "Остатка не хватает на эту сумму."
+
+#: KA-H9
+msgid "Diese Aktion ist beendet — der Coupon gilt nicht mehr."
+msgstr "Акция завершена — купон больше не действует."
+
+#: KA-H9
+#, python-format
+msgid "%(code)s: %(amount)s abgebucht ✓ — Restguthaben %(rest)s"
+msgstr "%(code)s: списано %(amount)s ✓ — остаток %(rest)s"
+
+#: KA-H9
+#, python-format
+msgid "Restguthaben: %(amount)s €"
+msgstr "Остаток: %(amount)s €"
+
+#: KA-H9
+msgid "Betrag (€)"
+msgstr "Сумма (€)"
+
+#: KA-H9
+msgid "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
+msgstr "На эти контактные данные купон уже выдан. Если указан e-mail, мы отправили купон туда."

@@ -27947,3 +27947,33 @@ msgstr "— hizmet yok (ör. masa) —"
 #: KA-H7
 msgid "Leistung nicht gefunden – Termin ohne Leistung angelegt."
 msgstr "Hizmet bulunamadı – randevu hizmetsiz oluşturuldu."
+
+#: KA-H9
+msgid "Bitte den einzulösenden Betrag angeben."
+msgstr "Lütfen kullanılacak tutarı girin."
+
+#: KA-H9
+msgid "Das Guthaben reicht für diesen Betrag nicht aus."
+msgstr "Bakiye bu tutar için yeterli değil."
+
+#: KA-H9
+msgid "Diese Aktion ist beendet — der Coupon gilt nicht mehr."
+msgstr "Bu kampanya sona erdi — kupon artık geçerli değil."
+
+#: KA-H9
+#, python-format
+msgid "%(code)s: %(amount)s abgebucht ✓ — Restguthaben %(rest)s"
+msgstr "%(code)s: %(amount)s düşüldü ✓ — kalan bakiye %(rest)s"
+
+#: KA-H9
+#, python-format
+msgid "Restguthaben: %(amount)s €"
+msgstr "Kalan bakiye: %(amount)s €"
+
+#: KA-H9
+msgid "Betrag (€)"
+msgstr "Tutar (€)"
+
+#: KA-H9
+msgid "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
+msgstr "Bu iletişim bilgileri için zaten bir kupon var. Kayıtlı bir e-posta adresi varsa kuponu oraya gönderdik."

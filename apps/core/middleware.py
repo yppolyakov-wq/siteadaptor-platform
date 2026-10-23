@@ -183,6 +183,9 @@ class CabinetOwnerAccessMiddleware:
         # подключать и отключать может только владелец (экран статуса — всем).
         "/dashboard/telegram/connect/",
         "/dashboard/telegram/disconnect/",
+        # KA-H9: имя/адрес/телефон бизнеса лёгкого кабинета — уходят в Impressum и
+        # каталог города, менять может только владелец.
+        "/dashboard/geschaeft/",
     )
 
     def __init__(self, get_response):

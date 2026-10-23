@@ -32,7 +32,9 @@ class ReservationLimitReached(Exception):
 
 
 class VoucherError(Exception):
-    """Ваучер нельзя погасить. reason: not_found/inactive/expired/used_up."""
+    """Ваучер нельзя погасить. reason: not_found/inactive/expired/used_up/stale;
+    KA-H9: needs_amount (сертификат с остатком — только с суммой), insufficient,
+    invalid_amount, promotion_ended (купон остановленной/закончившейся акции)."""
 
     def __init__(self, reason):
         super().__init__(reason)
@@ -447,7 +449,24 @@ def find_coupon(promotion, code) -> Voucher | None:
     return Voucher.objects.filter(code=code, promotion=promotion).first()
 
 
-def issue_coupon(promotion, *, name="", email="", phone="", existing_code="", source_channel=""):
+class CouponExists(Exception):
+    """KA-H9: купон по этим контактам уже выдан — код в браузер не раскрываем."""
+
+    def __init__(self, voucher):
+        super().__init__(voucher.code)
+        self.voucher = voucher
+
+
+def issue_coupon(
+    promotion,
+    *,
+    name="",
+    email="",
+    phone="",
+    existing_code="",
+    source_channel="",
+    reveal_existing=True,
+):
     """Выдать купон акции → (voucher, created).
 
     «1 на человека»: код из куки этого браузера (``existing_code``) или тот же
@@ -466,6 +485,11 @@ def issue_coupon(promotion, *, name="", email="", phone="", existing_code="", so
         )
         existing = Voucher.objects.filter(promotion=promotion, customer=customer).first()
         if existing is not None:
+            # KA-H9: на витрине контакт — не доказательство владения: кто знает чужой
+            # e-mail, получил бы чужой код. reveal_existing=False → вызывающий шлёт
+            # код на адрес из карточки клиента, а не показывает его.
+            if not reveal_existing:
+                raise CouponExists(existing)
             return existing, False
     with transaction.atomic():
         active = Promotion.objects.filter(id=promotion.id, status="active")
@@ -490,6 +514,64 @@ def issue_coupon(promotion, *, name="", email="", phone="", existing_code="", so
     return voucher, True
 
 
+def _promotion_ended(voucher) -> bool:
+    """KA-H9: купон акции живёт, пока жива акция (снимок expires_at этого не видит).
+    Распроданный лимит — НЕ конец: выданные купоны сами его и выбрали."""
+    if not voucher.promotion_id:
+        return False
+    promo = voucher.promotion
+    if promo is None or promo.status != "active":
+        return True
+    return bool(promo.ends_at and promo.ends_at < timezone.now())
+
+
+def _locked_voucher(code):
+    """Ваучер под блокировкой + общие проверки (найден/активен/срок/акция)."""
+    voucher = (
+        Voucher.objects.select_for_update(of=("self",))
+        .select_related("promotion")
+        .filter(code=code)
+        .first()
+    )
+    if voucher is None:
+        raise VoucherError("not_found")
+    if not voucher.is_active:
+        raise VoucherError("inactive")
+    if voucher.expires_at and voucher.expires_at < timezone.now():
+        raise VoucherError("expired")
+    if _promotion_ended(voucher):
+        raise VoucherError("promotion_ended")
+    return voucher
+
+
+@transaction.atomic
+def redeem_balance(code, amount_cents, *, expect_used=None):
+    """KA-H9: списать сумму с сертификата у кассы. Отказ, а не урезание: «на кассе
+    приняли 30 €, а списали 20 €» хуже ошибки. Двойной тап — через expect_used."""
+    code = (code or "").strip().upper()
+    voucher = _locked_voucher(code)
+    if voucher.balance_cents is None:
+        raise VoucherError("not_found")
+    amount = int(amount_cents or 0)
+    if amount <= 0:
+        raise VoucherError("invalid_amount")
+    if voucher.balance_cents <= 0:
+        raise VoucherError("used_up")
+    if expect_used is not None and voucher.used_count != expect_used:
+        raise VoucherError("stale")
+    if amount > voucher.balance_cents:
+        raise VoucherError("insufficient")
+    updated = Voucher.objects.filter(pk=voucher.pk, balance_cents__gte=amount).update(
+        balance_cents=F("balance_cents") - amount,
+        used_count=F("used_count") + 1,
+        updated_at=timezone.now(),
+    )
+    if not updated:
+        raise VoucherError("insufficient")
+    voucher.refresh_from_db(fields=["balance_cents", "used_count", "updated_at"])
+    return voucher
+
+
 @transaction.atomic
 def redeem_voucher(code, *, expect_used=None):
     """Погасить ваучер (одно использование). Бросает VoucherError с reason.
@@ -497,13 +579,11 @@ def redeem_voucher(code, *, expect_used=None):
     ``expect_used`` — счётчик, который видел подтверждающий (T-8.30g): если ваучер уже
     погасили после этого, повтор (двойной тап) не списывает второй раз."""
     code = (code or "").strip().upper()
-    voucher = Voucher.objects.select_for_update().filter(code=code).first()
-    if voucher is None:
-        raise VoucherError("not_found")
-    if not voucher.is_active:
-        raise VoucherError("inactive")
-    if voucher.expires_at and voucher.expires_at < timezone.now():
-        raise VoucherError("expired")
+    voucher = _locked_voucher(code)
+    if voucher.balance_cents is not None:
+        # KA-H9: сертификат с остатком гасится только с суммой (redeem_balance) —
+        # иначе счётчик рос, а остаток нет: «погашать» можно было бесконечно.
+        raise VoucherError("needs_amount")
     if voucher.max_uses and voucher.used_count >= voucher.max_uses:
         raise VoucherError("used_up")
     if expect_used is not None and voucher.used_count != expect_used:

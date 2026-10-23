@@ -77,9 +77,17 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Minutes" %}</label>
-      <input type="number" name="minutes" value="60" min="5" max="1440" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input type="number" name="minutes" value="" placeholder="60" min="5" max="1440" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <p class="text-xs text-gray-500 mt-1">{% trans "Leer = Dauer der Leistung" %}</p>
     </div>
   </div>
+  {% if manual_services %}<div>
+    <label for="neu-service" class="block text-sm font-medium mb-1">{% trans "Leistung" %}</label>
+    <select id="neu-service" name="service" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <option value="">{% trans "— ohne Leistung (z. B. Tisch) —" %}</option>
+      {% for s in manual_services %}<option value="{{ s.pk }}">{{ s.name_localized|default:s.name }}</option>{% endfor %}
+    </select>
+  </div>{% endif %}
   <div class="grid sm:grid-cols-3 gap-4">
     <input name="name" type="text" placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
     <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
@@ -88,6 +96,10 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   <div class="max-w-xs">
     <label for="neu-party" class="block text-sm font-medium mb-1">{% trans "Personen" %}</label>
     <input id="neu-party" type="number" name="party_size" value="1" min="1" max="50" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <div>
+    <label for="neu-note" class="block text-sm font-medium mb-1">{% trans "Notiz" %}</label>
+    <textarea id="neu-note" name="note" rows="2" maxlength="2000" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
   </div>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add booking" %}</button>
 </form>{% endif %}

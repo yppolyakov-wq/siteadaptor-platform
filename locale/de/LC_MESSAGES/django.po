@@ -27897,3 +27897,33 @@ msgstr "— ohne Leistung (z. B. Tisch) —"
 #: KA-H7
 msgid "Leistung nicht gefunden – Termin ohne Leistung angelegt."
 msgstr "Leistung nicht gefunden – Termin ohne Leistung angelegt."
+
+#: KA-H9
+msgid "Bitte den einzulösenden Betrag angeben."
+msgstr "Bitte den einzulösenden Betrag angeben."
+
+#: KA-H9
+msgid "Das Guthaben reicht für diesen Betrag nicht aus."
+msgstr "Das Guthaben reicht für diesen Betrag nicht aus."
+
+#: KA-H9
+msgid "Diese Aktion ist beendet — der Coupon gilt nicht mehr."
+msgstr "Diese Aktion ist beendet — der Coupon gilt nicht mehr."
+
+#: KA-H9
+#, python-format
+msgid "%(code)s: %(amount)s abgebucht ✓ — Restguthaben %(rest)s"
+msgstr "%(code)s: %(amount)s abgebucht ✓ — Restguthaben %(rest)s"
+
+#: KA-H9
+#, python-format
+msgid "Restguthaben: %(amount)s €"
+msgstr "Restguthaben: %(amount)s €"
+
+#: KA-H9
+msgid "Betrag (€)"
+msgstr "Betrag (€)"
+
+#: KA-H9
+msgid "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
+msgstr "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."

@@ -178,3 +178,28 @@ def enqueue_waitlist_available(entry):
         body=body,
         html=html,
     )
+
+
+def send_coupon_email(voucher, promo, email, lang="", dedupe="mcp"):
+    """Купон акции письмом (Д-8 ассистент; KA-H9 — повтор на адрес из карточки
+    клиента вместо показа кода в чужом браузере). dedupe — суффикс ключа."""
+    from django.db import connection
+    from django.urls import reverse
+
+    from apps.notifications.services import notify
+
+    base = _base_url(connection.schema_name)
+    url = f"{base}{reverse('storefront-coupon', args=[voucher.code])}" if base else ""
+    subject, body, html = _render(
+        "coupon_issued",
+        {"coupon": voucher, "promotion": promo, "coupon_url": url},
+        locale=lang or None,
+    )
+    notify(
+        dedupe_key=f"coupon:{voucher.pk}:{dedupe}:customer",
+        type="coupon_issued",
+        recipient=email,
+        subject=" ".join(subject.split()),  # заголовок без переводов строк
+        body=body,
+        html=html,
+    )

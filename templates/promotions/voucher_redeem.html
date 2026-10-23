@@ -19,13 +19,15 @@
     <div class="bg-white rounded-2xl shadow-sm p-6 mb-4">
       <div class="flex items-center justify-between">
         <span class="font-mono text-lg font-bold">{{ voucher.code }}</span>
-        <span class="text-sm">{{ voucher.used_count }}{% if voucher.max_uses %}/{{ voucher.max_uses }}{% else %}/∞{% endif %}</span>
+        {% if voucher.balance_cents is not None %}<span class="text-sm">{% blocktrans with amount=voucher.balance_eur|floatformat:2 %}Restguthaben: {{ amount }} €{% endblocktrans %}</span>{% else %}<span class="text-sm">{{ voucher.used_count }}{% if voucher.max_uses %}/{{ voucher.max_uses }}{% else %}/∞{% endif %}</span>{% endif %}
       </div>
       <p class="mt-1 text-gray-700">{{ voucher.label }}</p>
       <form method="post" class="mt-4" data-once>
         {% csrf_token %}
         <input type="hidden" name="code" value="{{ voucher.code }}">
         <input type="hidden" name="expect" value="{{ voucher.used_count }}">
+        {% if voucher.balance_cents is not None %}<label for="redeem-amount" class="block text-sm font-medium mb-1">{% trans "Betrag (€)" %}</label>
+        <input id="redeem-amount" name="amount" type="text" inputmode="decimal" required autocomplete="off" class="w-full rounded-lg border border-gray-300 px-3 py-2 mb-3">{% endif %}
         <button type="submit" data-redeem-primary {% if voucher.is_redeemable %}autofocus{% else %}disabled{% endif %}
                 class="w-full h-14 rounded-2xl bg-indigo-600 text-white text-base font-semibold hover:bg-indigo-700 disabled:opacity-50">
           {% trans "Redeem" %}

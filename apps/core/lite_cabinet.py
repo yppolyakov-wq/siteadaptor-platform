@@ -50,14 +50,27 @@ def is_lite_request(request) -> bool:
     return is_lite(getattr(request, "tenant", None)) or tg_login.is_tg_session(request)
 
 
-def sidebar_items(tenant=None) -> list[dict]:
-    """Плоский набор пунктов в форме ``modules.sidebar_nav`` (без подменю)."""
+# KA-H9: пункты только для владельца (мидлварь отдаёт сотруднику 403 — в меню их нет).
+_OWNER_ONLY_ITEMS = frozenset({"lite-business"})
+
+
+def sidebar_items(tenant=None, user=None) -> list[dict]:
+    """Плоский набор пунктов в форме ``modules.sidebar_nav`` (без подменю).
+    ``user`` — owner-гейт; без user (fail-open) показываем всё: доступ держит мидлварь."""
     nav = LITE_NAV
     try:
         if tenant is not None and storefront_profile.is_eintrag(tenant):
             nav = LITE_NAV + EINTRAG_NAV
     except Exception:  # noqa: BLE001 — хром кабинета не падает из-за профиля
         pass
+    if user is not None and getattr(user, "is_authenticated", False):
+        try:
+            from apps.core.roles import is_owner
+
+            if not is_owner(user):
+                nav = tuple(item for item in nav if item[0] not in _OWNER_ONLY_ITEMS)
+        except Exception:  # noqa: BLE001 — роли недоступны → fail-open
+            pass
     return [
         {
             "url_name": url_name,

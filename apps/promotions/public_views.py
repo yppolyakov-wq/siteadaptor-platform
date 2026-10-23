@@ -6,6 +6,7 @@ Hardening H8 — бронь/waitlist по IP+акции, QR-вьюхи по IP �
 """
 
 import io
+import logging
 import uuid
 from urllib.parse import quote
 
@@ -44,6 +45,8 @@ RL_LIMIT = 5  # попыток (бронь/waitlist на IP+акцию)
 RL_WINDOW = 600  # за 10 минут
 QR_RL_LIMIT = 60  # QR-вьюх на IP (страница подтверждения рендерит их легитимно)
 TOKEN_TTL = 600
+
+logger = logging.getLogger(__name__)
 
 
 def _qr_limited(request) -> bool:
@@ -2447,7 +2450,7 @@ def _remember_coupon(response, request, promo, code):
 def coupon_create(request, pk):
     """T-8.3: выдать купон акции (POST со страницы акции) → страница купона."""
     from . import response as promo_response
-    from .services import CouponUnavailable, find_coupon, issue_coupon
+    from .services import CouponExists, CouponUnavailable, find_coupon, issue_coupon
 
     promo = get_object_or_404(Promotion, pk=pk, status="active")
     tenant = getattr(request, "tenant", None)
@@ -2489,9 +2492,33 @@ def coupon_create(request, pk):
             email=email,
             phone=(request.POST.get("phone") or "")[:40],
             source_channel=found.channel,
+            reveal_existing=False,
         )
     except CouponUnavailable:
         messages.error(request, _("Alle Coupons sind leider vergeben."))
+        return redirect("storefront-promotion", pk=pk)
+    except CouponExists as exc:
+        # KA-H9: контакт в форме — не доказательство владения. Код уходит на адрес
+        # ИЗ КАРТОЧКИ клиента (не из формы), не чаще раза в день; браузер его не видит.
+        stored = getattr(exc.voucher.customer, "email", "") or ""
+        if stored:
+            from django.utils import timezone
+
+            from .notifications import send_coupon_email
+
+            try:
+                send_coupon_email(
+                    exc.voucher, promo, stored, dedupe=f"resend:{timezone.localdate():%Y%m%d}"
+                )
+            except Exception:  # письмо не должно ронять витрину
+                logger.exception("coupon resend failed for %s", exc.voucher.pk)
+        messages.info(
+            request,
+            _(
+                "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine "
+                "E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
+            ),
+        )
         return redirect("storefront-promotion", pk=pk)
     if _created:  # В5 V5-5: купон — отклик акции = сделка; повторный заход не считаем
         conversions.count(request, "deal", "coupon", voucher, attribution=found)
@@ -2519,6 +2546,11 @@ def coupon_page(request, code):
         state = "used"
     elif (voucher.expires_at and voucher.expires_at < now) or not voucher.is_active:
         state = "expired"
+    else:
+        from .services import _promotion_ended
+
+        if _promotion_ended(voucher):  # KA-H9: у кассы такой купон не пройдёт
+            state = "expired"
     return render(
         request,
         "storefront/coupon.html",

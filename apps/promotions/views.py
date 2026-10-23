@@ -1596,6 +1596,7 @@ _COUPON_ERRORS = {
     "inactive": gettext_lazy("Dieser Coupon ist deaktiviert."),
     "expired": gettext_lazy("Dieser Coupon ist abgelaufen."),
     "used_up": gettext_lazy("Dieser Coupon wurde bereits eingelöst."),
+    "promotion_ended": gettext_lazy("Diese Aktion ist beendet — der Coupon gilt nicht mehr."),
 }
 
 
@@ -1683,7 +1684,28 @@ _VOUCHER_ERRORS = {
     "expired": gettext_lazy("Voucher abgelaufen."),
     "used_up": gettext_lazy("Voucher bereits eingelöst."),
     "stale": gettext_lazy("Gerade schon eingelöst — bitte den aktuellen Stand prüfen."),
+    # KA-H9: сертификат с остатком — только с суммой.
+    "needs_amount": gettext_lazy("Bitte den einzulösenden Betrag angeben."),
+    "invalid_amount": gettext_lazy("Bitte den einzulösenden Betrag angeben."),
+    "insufficient": gettext_lazy("Das Guthaben reicht für diesen Betrag nicht aus."),
+    "promotion_ended": gettext_lazy("Diese Aktion ist beendet — der Coupon gilt nicht mehr."),
 }
+
+_MAX_COUNTER_CENTS = 100_000_00
+
+
+def _parse_eur_cents(raw):
+    """«12,50» / «12.50» → 1250; мусор, ≤ 0 или > 100 000 € → None."""
+    from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+
+    text = (raw or "").strip().replace("€", "").replace(" ", "")
+    if "," in text:
+        text = text.replace(".", "").replace(",", ".")
+    try:
+        cents = int((Decimal(text) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    except (InvalidOperation, ValueError):
+        return None
+    return cents if 0 < cents <= _MAX_COUNTER_CENTS else None
 
 
 @login_required
@@ -1724,17 +1746,41 @@ def voucher_list(request):
 def voucher_redeem(request):
     if request.method == "POST":
         expect = request.POST.get("expect", "")
+        # T-8.30g: кнопка подтверждения несёт счётчик, который видел владелец —
+        # двойной тап по многоразовому ваучеру не списывает дважды.
+        expect_used = int(expect) if expect.isascii() and expect.isdigit() else None
+        code = (request.POST.get("code") or "").strip().upper()
+        back_to_card = f"{reverse('promotions:voucher-redeem')}?code={code}"
+        is_balance = (
+            Voucher.objects.filter(code=code).exclude(balance_cents=None).exists()
+            if code
+            else False
+        )
         try:
-            voucher = services.redeem_voucher(
-                request.POST.get("code", ""),
-                # T-8.30g: кнопка подтверждения несёт счётчик, который видел владелец —
-                # двойной тап по многоразовому ваучеру не списывает дважды.
-                expect_used=int(expect) if expect.isascii() and expect.isdigit() else None,
-            )
-            uses = f" ({voucher.used_count}/{voucher.max_uses})" if voucher.max_uses else ""
-            messages.success(request, f"{voucher.code}: {voucher.label} ✓{uses}")
+            if is_balance:
+                # KA-H9: сертификат с остатком — списание СУММЫ с остатка.
+                cents = _parse_eur_cents(request.POST.get("amount"))
+                if cents is None:
+                    messages.error(request, _VOUCHER_ERRORS["needs_amount"])
+                    return redirect(back_to_card)
+                voucher = services.redeem_balance(code, cents, expect_used=expect_used)
+                messages.success(
+                    request,
+                    _("%(code)s: %(amount)s abgebucht ✓ — Restguthaben %(rest)s")
+                    % {
+                        "code": voucher.code,
+                        "amount": f"{cents / 100:.2f} €",
+                        "rest": f"{voucher.balance_eur:.2f} €",
+                    },
+                )
+            else:
+                voucher = services.redeem_voucher(code, expect_used=expect_used)
+                uses = f" ({voucher.used_count}/{voucher.max_uses})" if voucher.max_uses else ""
+                messages.success(request, f"{voucher.code}: {voucher.label} ✓{uses}")
         except services.VoucherError as exc:
             messages.error(request, _VOUCHER_ERRORS.get(exc.reason, exc.reason))
+            if exc.reason in ("needs_amount", "insufficient", "invalid_amount"):
+                return redirect(back_to_card)
         return redirect("promotions:voucher-redeem")
 
     code = (request.GET.get("code") or "").strip().upper()

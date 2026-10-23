@@ -418,7 +418,7 @@ def modules_nav(request):
     from apps.core import lite_cabinet as _lite_cabinet
 
     if _lite_cabinet.is_lite_request(request):  # T-8.30 Р-5: Mini App — лёгкое меню
-        _compact = _lite_cabinet.sidebar_items(tenant)
+        _compact = _lite_cabinet.sidebar_items(tenant, getattr(request, "user", None))
     else:
         _compact = modules.sidebar_nav(tenant, getattr(request, "user", None))
     # VF-7a (фидбэк 2026-08-24 «выбелены оба»): активный ПОДПУНКТ определяется

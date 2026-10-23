@@ -27807,3 +27807,33 @@ msgstr "— no service (e.g. table) —"
 #: KA-H7
 msgid "Leistung nicht gefunden – Termin ohne Leistung angelegt."
 msgstr "Service not found – appointment created without a service."
+
+#: KA-H9
+msgid "Bitte den einzulösenden Betrag angeben."
+msgstr "Please enter the amount to redeem."
+
+#: KA-H9
+msgid "Das Guthaben reicht für diesen Betrag nicht aus."
+msgstr "The balance is not sufficient for this amount."
+
+#: KA-H9
+msgid "Diese Aktion ist beendet — der Coupon gilt nicht mehr."
+msgstr "This promotion has ended — the coupon is no longer valid."
+
+#: KA-H9
+#, python-format
+msgid "%(code)s: %(amount)s abgebucht ✓ — Restguthaben %(rest)s"
+msgstr "%(code)s: %(amount)s deducted ✓ — remaining balance %(rest)s"
+
+#: KA-H9
+#, python-format
+msgid "Restguthaben: %(amount)s €"
+msgstr "Remaining balance: %(amount)s €"
+
+#: KA-H9
+msgid "Betrag (€)"
+msgstr "Amount (€)"
+
+#: KA-H9
+msgid "Für diese Kontaktdaten gibt es schon einen Coupon. Falls eine E-Mail-Adresse hinterlegt ist, haben wir ihn dorthin geschickt."
+msgstr "A coupon has already been issued for these contact details. If an e-mail address is on file, we have sent it there."

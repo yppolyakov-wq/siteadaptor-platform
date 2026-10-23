@@ -243,28 +243,9 @@ def _do_coupon(request, tenant, promo, token, payload, base):
 
 def _send_coupon_email(voucher, promo, email, lang=""):
     """Д-8: купон нужен на кассе, а ссылку человек мог открыть на другом устройстве."""
-    from django.db import connection
-    from django.urls import reverse
+    from .notifications import send_coupon_email
 
-    from apps.notifications.services import notify
-
-    from .notifications import _base_url, _render
-
-    base = _base_url(connection.schema_name)
-    url = f"{base}{reverse('storefront-coupon', args=[voucher.code])}" if base else ""
-    subject, body, html = _render(
-        "coupon_issued",
-        {"coupon": voucher, "promotion": promo, "coupon_url": url},
-        locale=lang or None,
-    )
-    notify(
-        dedupe_key=f"coupon:{voucher.pk}:mcp:customer",
-        type="coupon_issued",
-        recipient=email,
-        subject=" ".join(subject.split()),  # заголовок без переводов строк
-        body=body,
-        html=html,
-    )
+    send_coupon_email(voucher, promo, email, lang=lang, dedupe="mcp")
 
 
 @never_cache
