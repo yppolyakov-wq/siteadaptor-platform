@@ -289,10 +289,20 @@ def angebot(request, token):
 
                 try:
                     with transaction.atomic():
-                        discount, _v = spend_voucher(code, int(job.gross * 100))
+                        discount, voucher = spend_voucher(code, int(job.gross * 100))
                         job.voucher_code = code.upper()[:40]
                         job.discount_cents = discount
-                        job.save(update_fields=["voucher_code", "discount_cents", "updated_at"])
+                        # KA-H5: сертификат с балансом = оплата, промокод = Rabatt.
+                        is_payment = getattr(voucher, "balance_cents", None) is not None
+                        job.voucher_paid_cents = discount if is_payment else 0
+                        job.save(
+                            update_fields=[
+                                "voucher_code",
+                                "discount_cents",
+                                "voucher_paid_cents",
+                                "updated_at",
+                            ]
+                        )
                 except VoucherError:
                     messages.error(request, _("This voucher code is not valid."))
                     return redirect("storefront-angebot", token=token)

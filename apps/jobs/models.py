@@ -101,6 +101,10 @@ class Job(I18nMixin, TimestampedModel):
     # Списание — spend_voucher при accept; отмена возвращает (хук JobSM).
     voucher_code = models.CharField(max_length=40, blank=True)
     discount_cents = models.PositiveIntegerField(default=0)
+    # KA-H5: сколько из скидки оплачено Wertgutschein (средство платежа, не Rabatt).
+    # Пишется при принятии сметы; счёт отделяет оплату сертификатом от скидки
+    # владельца (DC-5 пишет в voucher_code заметку, по коду их не различить).
+    voucher_paid_cents = models.PositiveIntegerField(default=0)
 
     quoted_at = models.DateTimeField(null=True, blank=True)
     accepted_at = models.DateTimeField(null=True, blank=True)

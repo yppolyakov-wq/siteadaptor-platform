@@ -5,6 +5,7 @@ create_job — заявка (Anfrage) с переиспользованием Cu
 §19 Kleinunternehmer → НДС 0). Письма/PDF/Rechnung — F2/F3.
 """
 
+import logging
 import secrets
 import string
 from decimal import Decimal
@@ -14,6 +15,8 @@ from django.db import transaction
 from apps.promotions.models import Customer
 
 from .models import Job, JobLine
+
+logger = logging.getLogger(__name__)
 
 _ALPHABET = string.ascii_uppercase + string.digits
 
@@ -343,29 +346,45 @@ def lines_snapshot(job) -> list[dict]:
     ]
 
 
-def discount_is_payment(job) -> bool:
-    """KA-H5: скидка заявки — средство платежа (Wertgutschein с балансом) или
-    уменьшение цены (промокод, скидка владельца DC-5 — там в `voucher_code`
-    заметка владельца, а не код)?
+def voucher_payment_cents(job) -> int:
+    """KA-H5: часть скидки заявки, оплаченная Wertgutschein (средство платежа).
+
+    Источник — `voucher_paid_cents`: сумма, фактически списанная с сертификата
+    с балансом при принятии сметы. Поле `voucher_code` ненадёжно: скидка
+    владельца (DC-5) пишет туда заметку. Легаси-заявки (до поля) — по старому
+    признаку: код совпадает с сертификатом с балансом.
 
     Wertgutschein (Mehrzweckgutschein) — Zahlungsmittel: счёт остаётся на gross,
-    оплата отмечается пометкой. Rabatt уменьшает цену — минус-строкой в счёте."""
+    оплата отмечается пометкой. Остальная скидка — Rabatt, минус-строкой."""
+    if not job.discount_cents:
+        return 0
+    paid = getattr(job, "voucher_paid_cents", 0) or 0
+    if paid:
+        return min(paid, job.discount_cents)
     code = (job.voucher_code or "").strip()
-    if not code or not job.discount_cents:
-        return False
+    if not code or job.accepted_at is None:
+        return 0
     try:
         from apps.loyalty.models import Voucher
     except ImportError:  # pragma: no cover
-        return False
+        return 0
     voucher = Voucher.objects.filter(code__iexact=code).first()
-    return voucher is not None and voucher.balance_cents is not None
+    if voucher is not None and voucher.balance_cents is not None:
+        return job.discount_cents
+    return 0
 
 
-def _rabatt_lines(job, small_business: bool) -> list[dict]:
+def rabatt_cents(job) -> int:
+    """Скидка, уменьшающая цену (промокод, скидка владельца) — без сертификата."""
+    return max(0, (job.discount_cents or 0) - voucher_payment_cents(job))
+
+
+def _rabatt_lines(job, small_business: bool, cents: int) -> list[dict]:
     """Скидка (брутто) → минус-строки по ставкам, пропорционально брутто групп.
 
-    Инвариант: gross счёта == job.payable_gross (сумма, которую принял клиент).
-    Цент округления — на последнюю строку."""
+    Инвариант: gross счёта == gross сметы − Rabatt. Цент округления — на
+    последнюю строку (наименьшая ставка); недостижимый при округлении остаток
+    пишется в лог, а не молча."""
     from django.utils.translation import gettext as _
 
     from apps.finance.services import compute_totals
@@ -373,9 +392,13 @@ def _rabatt_lines(job, small_business: bool) -> list[dict]:
 
     from .totals import quote_totals
 
-    rows = quote_totals(job.lines.all(), job.vat_rate, small_business=small_business)["rows"]
+    rows = [
+        r
+        for r in quote_totals(job.lines.all(), job.vat_rate, small_business=small_business)["rows"]
+        if r["gross"] > 0
+    ]
     total_gross = sum((r["gross"] for r in rows), Decimal("0"))
-    discount = min(Decimal(job.discount_cents) / 100, total_gross)
+    discount = min(Decimal(cents) / 100, total_gross)
     if not rows or discount <= 0:
         return []
     lines, left = [], discount
@@ -398,16 +421,21 @@ def _rabatt_lines(job, small_business: bool) -> list[dict]:
     # Подгонка цента: брутто счёта обязано совпасть с суммой, которую принял клиент.
     base = lines_snapshot(job)
     target = max(total_gross - discount, Decimal("0"))
-    for _attempt in range(3):
+    best, best_diff = [dict(ln) for ln in lines], None
+    for _attempt in range(4):
         _net, _vat, gross = compute_totals(
             base + lines, job.vat_rate, small_business=small_business
         )
         diff = gross - target
+        if best_diff is None or abs(diff) < abs(best_diff):
+            best, best_diff = [dict(ln) for ln in lines], diff
         if not diff:
             break
         last = lines[-1]
         last["unit_price"] = str(Decimal(last["unit_price"]) - diff)
-    return lines
+    if best_diff:
+        logger.warning("jobs: Rabatt rounding residual %s for %s", best_diff, job.reference_code)
+    return [ln for ln in best if Decimal(ln["unit_price"]) != 0]
 
 
 def _payment_note(job) -> str:
@@ -418,10 +446,11 @@ def _payment_note(job) -> str:
     from apps.core.documents import money
 
     parts = []
-    if job.discount_cents and discount_is_payment(job):
+    voucher = voucher_payment_cents(job)
+    if voucher:
         parts.append(
             str(_("Gutschein %(code)s: −%(amount)s"))
-            % {"code": job.voucher_code, "amount": money(Decimal(job.discount_cents) / 100)}
+            % {"code": job.voucher_code[:20], "amount": money(Decimal(voucher) / 100)}
         )
     if job.payment_state == job.PAYMENT_PAID:
         if job.deposit_cents:
@@ -448,16 +477,20 @@ def quote_to_invoice(job, *, small_business=False):
     from apps.finance.services import compute_totals
 
     lines = lines_snapshot(job)
-    if job.discount_cents and not discount_is_payment(job):
-        lines += _rabatt_lines(job, small_business)
+    cents = rabatt_cents(job)
+    if cents:
+        lines += _rabatt_lines(job, small_business, cents)
     recipient = str(job.customer)
     if job.site_address:
         recipient = f"{recipient}\n{job.site_address}"
     net, vat, gross = compute_totals(lines, job.vat_rate, small_business=small_business)
-    note = f"Auftrag {job.reference_code}: {job.title}"
+    # Пометка об оплате важнее названия: при обрезке до 200 знаков режем title,
+    # иначе «Offene Posten»/Mahnung не увидели бы, что часть уже оплачена.
     extra = _payment_note(job)
-    if extra:
-        note = f"{note} · {extra}"
+    head = f"Auftrag {job.reference_code}: "
+    room = 200 - len(head) - (len(extra) + 3 if extra else 0)
+    title = job.title if len(job.title) <= room else job.title[: max(room - 1, 0)] + "…"
+    note = f"{head}{title}" + (f" · {extra}" if extra else "")
     invoice = Invoice.objects.create(
         customer=job.customer,
         recipient=recipient[:500],
