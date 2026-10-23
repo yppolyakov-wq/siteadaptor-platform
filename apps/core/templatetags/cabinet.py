@@ -140,6 +140,13 @@ def nav_palette(context):
             continue
         if not nav_registry.allowed_for_business(e["url_name"], tenant):
             continue  # X4: гейт по типу бизнеса (гастро-экраны)
+        entry = e.get("entry")
+        if (
+            entry is not None
+            and tenant is not None
+            and not nav_registry.entry_visible(entry, tenant)
+        ):
+            continue  # KA-12 E8.1: «любой из модулей» и направления — как в сайдбаре
         if tenant is not None and not packages.view_allowed(tenant, e["url_name"]):
             continue  # T-8.32b: экраны вне пакета в палитре не показываем
         entries.append(

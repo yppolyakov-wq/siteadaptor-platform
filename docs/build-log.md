@@ -19280,3 +19280,17 @@ Micro-QR, который сканеры не читают. 11 msgid × 5. Пла
   купон/заказ/бронь, просмотры, сбои писем, дни с последнего входа владельца, журнал обращений
   `--support-log`; демо/внутренние исключены; сбой схемы — колонка `error`) + памятка владельцу
   `pilot-protocol-solingen-2026-10-23.md` (пороги, еженедельный снимок, интервью, стоп-критерии).
+- **2026-10-23 · KA-12 Волна 2 батчи 1–2 «структура кабинета» (без миграций).** План
+  `ka-12-w2-structure-plan-2026-10-23.md`. **Батч 1:** `NavEntry.modules_any/direction`,
+  `direction_active` (waren/gastro, мемо, fail-open), единый гейт `entry_visible` для сайдбара и
+  палитры; замки `test_ka_w2_nav_locks` (у каждой записи гейт или причина в `UNIVERSAL`, размер
+  подменю, палитра без рабочих экранов). **Батч 2:** Kategorien/Lager/Einkauf/Import —
+  направлению «Waren» (тип ∈ WAREN_TYPES вкл. werkstatt, модуль заказов, активный товар или
+  категория), Kombi и Import — ещё и гастро; дубль-хаб `catalog` снят; «Öffnungszeiten &
+  Ressourcen», «Tage blockieren», «Channel Manager» → Einstellungen со своими nav_key;
+  «Abläufe & Status» и «Kunden» убраны из подменю продаж (кнопка тулбара и вкладка остались);
+  «Reservierungen» в Ctrl+K → вкладка продаж и только при записях. Дефолты (только новый
+  онбординг): блог выключен у всех, events у туроператора, booking не у отеля; киты с постами/
+  услугами включают модули сами (`kit_enabled_modules`, `SEEDER_VERSION=2`). Ревью нашло 3
+  дефекта (вход в пустую вкладку, Import/Lager у мастерской и гастро, отпечаток демо) — закрыты
+  замками. ⚠️ ops: `seed_demo_tenants --group all --changed --jobs 3`.

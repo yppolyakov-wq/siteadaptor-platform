@@ -295,6 +295,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="reservierung abholung zurückgelegt",
         palette_only=True,
         query="?tab=reservation",
+        direction="reservations",
     ),
     # MX-2c: сводные доп-продажи — вход из тулбара Verkäufe + палитра.
     _e(
@@ -596,7 +597,8 @@ ENTRIES: tuple[NavEntry, ...] = (
         "catalog",
         True,
         "csv excel",
-        direction="waren",
+        # Импорт — путь к первым товарам: и для гастро (меню из Excel).
+        direction="waren|gastro",
     ),
     _e(
         "sellables",
@@ -866,6 +868,7 @@ WAREN_TYPES: tuple[str, ...] = (
     "retail",
     "clothing",
     "online_shop",
+    "werkstatt",  # S6b: Teile — товары с остатком (Lager/Einkauf у мастерской из коробки)
 )
 
 
@@ -878,6 +881,19 @@ def direction_active(tenant, direction: str) -> bool:
     btype = getattr(tenant, "business_type", "") or ""
     if direction == "gastro":
         return btype in FOOD_TYPES
+    if direction == "reservations":
+        # Вкладка «Reservierungen» продаж живёт только при записях (sales_page) —
+        # без них вход вёл бы на чужую вкладку.
+        cached = getattr(tenant, "_nav_has_reservations", None)
+        if cached is None:
+            from apps.core import sales_page
+
+            cached = sales_page._has_reservations()
+            try:
+                tenant._nav_has_reservations = cached
+            except Exception:  # noqa: BLE001
+                pass
+        return cached
     if direction != "waren":
         return True
     if btype in WAREN_TYPES:
@@ -889,9 +905,10 @@ def direction_active(tenant, direction: str) -> bool:
     cached = getattr(tenant, "_nav_has_products", None)
     if cached is None:
         try:
-            from apps.catalog.models import Product
+            from apps.catalog.models import Category, Product
 
-            cached = Product.objects.filter(is_active=True).exists()
+            # Категории без товаров — тоже знак: владелец начал заводить ассортимент.
+            cached = Product.objects.filter(is_active=True).exists() or Category.objects.exists()
         except Exception:  # noqa: BLE001 — хром не падает из-за гейта
             cached = True
         try:
@@ -1061,8 +1078,9 @@ def palette_entries() -> list[dict]:
     так дубль-записи без query (settings-«Abläufe») по-прежнему схлопываются."""
     seen, seen_q, out = set(), set(), []
 
-    def _rec(url_name, label, nav_key, module_key, hub, search, query=""):
+    def _rec(url_name, label, nav_key, module_key, hub, search, query="", entry=None):
         return {
+            "entry": entry,  # KA-12 E8.1: полный гейт записи (entry_visible) в рендере
             "url_name": url_name,
             "label": label,
             "nav_key": nav_key,
@@ -1086,5 +1104,5 @@ def palette_entries() -> list[dict]:
             if e.url_name in seen:
                 continue
             seen.add(e.url_name)
-        out.append(_rec(e.url_name, e.label, e.nav_key, e.module_key, e.hub, e.search, e.query))
+        out.append(_rec(e.url_name, e.label, e.nav_key, e.module_key, e.hub, e.search, e.query, e))
     return out

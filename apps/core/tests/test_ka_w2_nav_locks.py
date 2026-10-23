@@ -90,3 +90,64 @@ def test_entry_visible_honours_new_gates():
     assert nav_registry.entry_visible(waren, SimpleNamespace(business_type="bakery")) is True
     gastro = nav_registry.NavEntry("x", "X", "x", "h", direction="gastro")
     assert nav_registry.entry_visible(gastro, SimpleNamespace(business_type="hotel")) is False
+
+
+def _tenant_of(business_type):
+    return TenantFactory(
+        slug=f"w2g-{business_type[:7]}-{uuid4().hex[:4]}",
+        business_type=business_type,
+        disabled_modules=modules.default_disabled_for(business_type),
+    )
+
+
+def _sortiment(tenant):
+    item = next(i for i in modules.sidebar_nav(tenant) if i["url_name"] == "sellable-manage")
+    return {c["url_name"] for c in item["children"]}
+
+
+def test_waren_gate_keeps_parts_and_menu_import():
+    """Ревью батча 2: мастерская держит Lager/Einkauf (Teile, S6b); у гастро без
+    товаров — Import (путь к первому меню); салон без товаров учёт не видит."""
+    werkstatt = _sortiment(_tenant_of("werkstatt"))
+    assert {"stock", "purchasing", "catalog:category-list"} <= werkstatt
+    cafe = _sortiment(_tenant_of("cafe"))
+    assert "imports:start" in cafe and "catalog:combo-list" in cafe
+    friseur = _sortiment(_tenant_of("friseur"))
+    assert not {"stock", "purchasing", "imports:start"} & friseur
+
+
+def test_waren_gate_opens_with_first_category():
+    from apps.catalog.models import Category
+
+    tenant = _tenant_of("friseur")
+    Category.objects.create(name="Pflege", slug="pflege-w2")
+    assert "catalog:category-list" in _sortiment(tenant)
+
+
+def test_palette_reservations_only_with_records():
+    """Ревью батча 2: «Reservierungen» в Ctrl+K ведёт на вкладку продаж, а её нет
+    без записей — без них вход не показываем (не прыгать на чужую вкладку)."""
+    from types import SimpleNamespace
+
+    from django.template import Context, Template
+
+    tenant = _tenant_of("bakery")
+    tenant.disabled_modules = [m for m in tenant.disabled_modules if m != "promotions"]
+
+    def _palette():
+        tenant.__dict__.pop("_nav_has_reservations", None)
+        return Template("{% load cabinet %}{% nav_palette %}").render(
+            Context({"request": SimpleNamespace(tenant=tenant, user=None)})
+        )
+
+    assert "tab=reservation" not in _palette()
+    from apps.promotions.models import Reservation
+    from apps.promotions.tests.factories import CustomerFactory, PromotionFactory
+
+    Reservation.objects.create(
+        promotion=PromotionFactory(),
+        customer=CustomerFactory(),
+        reference_code="R-W2RES1",
+        status="pending",
+    )
+    assert "tab=reservation" in _palette()
