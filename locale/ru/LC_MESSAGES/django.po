@@ -28448,3 +28448,6 @@ msgstr "Сейчас нет свободного времени для само�
 
 msgid "noch 1 frei"
 msgstr "осталось 1 место"
+
+msgid "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
+msgstr "У вас уже несколько открытых заказов с самовывозом. Пожалуйста, свяжитесь с нами."

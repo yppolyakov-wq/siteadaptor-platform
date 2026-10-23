@@ -871,7 +871,11 @@ def cart_view(request):
     ctx["pickup_slot_enabled"] = bool(
         not request.session.get("table") and pickup_slots.config(tenant)
     )
-    ctx["pickup_slot_days"] = pickup_slots.slots_for(tenant) if ctx["pickup_slot_enabled"] else []
+    ctx["pickup_slot_days"] = (
+        pickup_slots.slots_for(tenant, cfg=pickup_slots.config(tenant))
+        if ctx["pickup_slot_enabled"]
+        else []
+    )
     return render(request, "storefront/cart.html", ctx)
 
 
@@ -997,9 +1001,7 @@ def checkout(request):
     pickup_slot, pickup_capacity = None, 0
     slot_cfg = None if delivery or request.session.get("table") else pickup_slots.config(tenant)
     if slot_cfg:
-        from apps.tenants import siteconfig as _sc
-
-        optional = bool(_sc.normalize(tenant.site_config or {}).get("quote_cart"))
+        optional = bool((tenant.site_config or {}).get("quote_cart"))
         raw_slot = request.POST.get("pickup_slot", "")
         pickup_slot = pickup_slots.validate(tenant, raw_slot, cfg=slot_cfg)
         if pickup_slot is None and (raw_slot or not optional):
@@ -1009,6 +1011,18 @@ def checkout(request):
                 messages.error(request, _("Bitte wählen Sie eine Abholzeit."))
             return redirect("storefront-cart")
         pickup_capacity = slot_cfg["capacity"]
+        if (
+            pickup_slot
+            and pickup_capacity
+            and pickup_slots.contact_holds_too_many(
+                request.POST.get("email", ""), request.POST.get("phone", ""), tenant
+            )
+        ):
+            messages.error(
+                request,
+                _("Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."),
+            )
+            return redirect("storefront-cart")
 
     # E7-2: способ оплаты — из пикера (radio `payment`); без/с невалидным POST —
     # первый доступный (= прежнее поведение: stripe при сконфигурированной

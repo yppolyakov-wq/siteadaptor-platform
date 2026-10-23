@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 import pytest
@@ -77,9 +77,9 @@ def test_slots_respect_lead_close_and_closed_days():
     grid = pickup_slots.slots_for(_tenant(), now=now)
     first_day, first_row = grid[0]
     assert first_day.isoformat() == "2026-10-23"
-    assert [s.strftime("%H:%M") for s, _ in first_row] == ["11:30"]
+    assert [timezone.localtime(s).strftime("%H:%M") for s, _ in first_row] == ["11:30"]
     assert grid[1][0].isoformat() == "2026-10-26"  # Montag
-    assert [s.strftime("%H:%M") for s, _ in grid[1][1]] == [
+    assert [timezone.localtime(s).strftime("%H:%M") for s, _ in grid[1][1]] == [
         "09:00",
         "09:30",
         "10:00",
@@ -98,12 +98,14 @@ def test_no_hours_or_disabled_means_no_slots():
 
 
 def test_slots_survive_dst_change():
-    # 25.10.2026 — переход на зимнее время: окна по настенному времени, без дублей.
+    # 25.10.2026 — переход на зимнее время: шаги в UTC, ни одно окно не теряется.
     now = _local(2026, 10, 24, 20, 0)
     grid = pickup_slots.slots_for(_tenant(hours=ALL_DAY, cfg={**CFG, "days": 2}), now=now)
     sunday = next(row for day, row in grid if day.isoformat() == "2026-10-25")
     labels = [timezone.localtime(s).strftime("%H:%M") for s, _ in sunday]
-    assert len(labels) == len(set(labels))
+    # 25-часовой день: окна — разные моменты, 02:00/02:30 по настенным часам дважды
+    assert len({s for s, _ in sunday}) == len(sunday) == 49
+    assert labels.count("02:00") == 2
     assert labels[0] == "00:00" and "12:00" in labels
 
 
@@ -330,3 +332,50 @@ def test_settings_form_has_own_sentinel_and_warns_without_hours():
     assert "Ohne strukturierte Öffnungszeiten" in block
     views_src = open("apps/core/views.py").read()
     assert 'request.POST.get("sec_pickup_slots")' in views_src
+
+
+def test_one_contact_cannot_hoard_limited_slots():
+    t = _tenant(hours=ALL_DAY, cfg={**CFG, "lead": 0, "days": 2, "capacity": 5})
+    cart = _cart(t)
+    grid = [s for _d, row in pickup_slots.slots_for(t) for s, _ in row]
+    for slot in grid[: pickup_slots.MAX_OPEN_PER_CONTACT]:
+        _order(slot, email="hoard@example.com")
+    resp = public_views.checkout(
+        _req(
+            data={"name": "K", "email": "Hoard@example.com", "pickup_slot": grid[5].isoformat()},
+            session={"cart": cart},
+            tenant=t,
+        )
+    )
+    assert resp.status_code == 302 and resp.url.endswith("/warenkorb/")
+    assert Order.objects.count() == pickup_slots.MAX_OPEN_PER_CONTACT
+    # без лимита ёмкости окна не ограничены — и правило не мешает
+    unlimited = _tenant(hours=ALL_DAY, cfg={**CFG, "lead": 0, "days": 2})
+    public_views.checkout(
+        _req(
+            data={"name": "K", "email": "hoard@example.com", "pickup_slot": grid[5].isoformat()},
+            session={"cart": _cart(unlimited)},
+            tenant=unlimited,
+        )
+    )
+    assert Order.objects.count() == pickup_slots.MAX_OPEN_PER_CONTACT + 1
+
+
+def test_spring_forward_gap_slots_stay_choosable():
+    # 29.03.2026: 02:00 → 03:00. Каждое предложенное окно проходит validate.
+    t = _tenant(hours=ALL_DAY, cfg={**CFG, "days": 1, "lead": 0})
+    now = _local(2026, 3, 29, 0, 0)
+    row = pickup_slots.slots_for(t, now=now)[0][1]
+    assert all(pickup_slots.validate(t, s.isoformat(), now=now) == s for s, _ in row)
+    assert len({s for s, _ in row}) == len(row)
+
+
+def test_abandoned_online_payment_frees_the_slot():
+    t = _tenant(cfg={**CFG, "capacity": 1})
+    now = _local(2026, 10, 23, 8, 0)
+    slot = _local(2026, 10, 23, 10, 0)
+    order = _order(slot, payment_method=Order.METHOD_STRIPE)
+    offered = lambda: {s for _d, row in pickup_slots.slots_for(t, now=now) for s, _ in row}  # noqa: E731
+    assert slot not in offered()
+    Order.objects.filter(pk=order.pk).update(created_at=timezone.now() - timedelta(hours=1))
+    assert slot in offered()

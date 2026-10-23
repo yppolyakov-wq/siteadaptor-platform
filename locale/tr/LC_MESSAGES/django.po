@@ -28314,3 +28314,6 @@ msgstr "Şu anda uygun teslim alma saati yok."
 
 msgid "noch 1 frei"
 msgstr "1 yer kaldı"
+
+msgid "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei uns."
+msgstr "Zaten birkaç açık teslim alma saatiniz var. Lütfen bizimle iletişime geçin."

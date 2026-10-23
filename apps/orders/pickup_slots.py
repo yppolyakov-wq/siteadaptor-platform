@@ -11,9 +11,10 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from django.db import connection
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.tenants import openinghours
@@ -23,17 +24,33 @@ class SlotFull(Exception):
     """Окно самовывоза заполнилось, пока покупатель оформлял заказ."""
 
 
+# Брошенная онлайн-оплата (Stripe Checkout не завершён) держит окно не дольше этого.
+UNPAID_ONLINE_HOLD = timedelta(minutes=30)
+
+
 def config(tenant) -> dict | None:
     from apps.tenants import siteconfig
 
-    return siteconfig.normalize(getattr(tenant, "site_config", None) or {}).get("pickup_slots")
+    return siteconfig.normalize_pickup_slots(
+        (getattr(tenant, "site_config", None) or {}).get("pickup_slots")
+    )
+
+
+def _utc(dt):
+    return dt.astimezone(UTC).replace(microsecond=0)
 
 
 def _taken(tenant, start, end) -> Counter:
+    """Занятость окон (ключ — UTC). Не считаются отменённые (включая свои статусы
+    владельца) и брошенная онлайн-оплата старше UNPAID_ONLINE_HOLD."""
     from apps.core import status_registry
 
     from .models import Order
 
+    abandoned = Q(
+        payment_method=Order.METHOD_STRIPE,
+        created_at__lt=timezone.now() - UNPAID_ONLINE_HOLD,
+    ) & ~Q(payment_state=Order.PAYMENT_PAID)
     rows = (
         Order.objects.filter(
             fulfillment=Order.FULFILLMENT_PICKUP,
@@ -41,9 +58,10 @@ def _taken(tenant, start, end) -> Counter:
             pickup_slot__lt=end,
         )
         .exclude(status__in=status_registry.cancelled_statuses_for("order", tenant))
+        .exclude(abandoned)
         .values_list("pickup_slot", flat=True)
     )
-    return Counter(timezone.localtime(dt).replace(microsecond=0) for dt in rows)
+    return Counter(_utc(dt) for dt in rows)
 
 
 def slots_for(tenant, now=None, cfg=None) -> list[tuple]:
@@ -69,8 +87,10 @@ def slots_for(tenant, now=None, cfg=None) -> list[tuple]:
             continue
         opens = openinghours._parse_hhmm(rng[0])
         closes = openinghours._parse_hhmm(rng[1])
-        start = timezone.make_aware(datetime.combine(day, opens))
-        end = timezone.make_aware(datetime.combine(day, closes))
+        # Шаги — в UTC: настенная арифметика zoneinfo в ночь перевода часов дала бы
+        # несуществующее (весна) или сдвоенное (осень) окно.
+        start = _utc(timezone.make_aware(datetime.combine(day, opens)))
+        end = _utc(timezone.make_aware(datetime.combine(day, closes)))
         day_slots = []
         slot = start
         while slot + step <= end:
@@ -109,7 +129,7 @@ def parse(raw):
         return None
     if timezone.is_naive(dt):
         dt = timezone.make_aware(dt)
-    return timezone.localtime(dt).replace(microsecond=0)
+    return _utc(dt)
 
 
 def validate(tenant, raw, now=None, cfg=None):
@@ -124,19 +144,43 @@ def validate(tenant, raw, now=None, cfg=None):
     return None
 
 
+# Защита ограниченных окон от «выкупа» анонимными заказами без оплаты: один контакт
+# держит не больше стольких будущих окон (ревью безопасности батча C).
+MAX_OPEN_PER_CONTACT = 3
+
+
+def contact_holds_too_many(email: str, phone: str, tenant=None, now=None) -> bool:
+    from django.db.models import Q
+
+    from apps.core import status_registry
+
+    from .models import Order
+
+    email, phone = (email or "").strip(), (phone or "").strip()
+    if not email and not phone:
+        return False
+    who = Q()
+    if email:
+        who |= Q(customer__email__iexact=email)
+    if phone:
+        who |= Q(customer__phone=phone)
+    held = (
+        Order.objects.filter(who, pickup_slot__gte=now or timezone.now())
+        .exclude(status__in=status_registry.cancelled_statuses_for("order", tenant))
+        .count()
+    )
+    return held >= MAX_OPEN_PER_CONTACT
+
+
 def claim(slot, capacity, tenant=None) -> None:
     """Под гонкой: внутри транзакции create_order. Блокировка на окно (схема в ключе —
     advisory-блокировки общие на всю БД), пересчёт, SlotFull при заполненном окне."""
     if not slot or not capacity:
         return
     tenant = tenant or getattr(connection, "tenant", None)
+    slot = _utc(slot)
     key = f"pickup:{connection.schema_name}:{slot.isoformat()}"
     with connection.cursor() as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [key])
-    if (
-        _taken(tenant, slot, slot + timedelta(seconds=1)).get(
-            timezone.localtime(slot).replace(microsecond=0), 0
-        )
-        >= capacity
-    ):
+    if _taken(tenant, slot, slot + timedelta(seconds=1)).get(slot, 0) >= capacity:
         raise SlotFull()
