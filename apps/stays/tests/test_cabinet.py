@@ -284,7 +284,7 @@ def test_cancel_paid_stay_refunds(monkeypatch):
     booking.save(update_fields=["payment_state", "stripe_payment_intent"])
     captured = {}
     monkeypatch.setattr("apps.billing.connect.refund", lambda **kw: captured.update(kw))
-    request = _req("post", data={"action": "cancelled"})
+    request = _req("post", data={"action": "cancelled", "refund": "1"})
     request.tenant = TenantFactory.build(stripe_connect_id="acct_1")
     views.stay_action(request, pk=booking.pk)
     booking.refresh_from_db()
