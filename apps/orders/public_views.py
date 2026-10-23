@@ -871,9 +871,7 @@ def cart_view(request):
     ctx["pickup_slot_enabled"] = bool(
         not request.session.get("table") and pickup_slots.config(tenant)
     )
-    ctx["pickup_slot_days"] = (
-        pickup_slots.slots_for(tenant) if ctx["pickup_slot_enabled"] else []
-    )
+    ctx["pickup_slot_days"] = pickup_slots.slots_for(tenant) if ctx["pickup_slot_enabled"] else []
     return render(request, "storefront/cart.html", ctx)
 
 

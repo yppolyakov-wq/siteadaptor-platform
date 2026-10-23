@@ -133,7 +133,10 @@ def claim(slot, capacity, tenant=None) -> None:
     key = f"pickup:{connection.schema_name}:{slot.isoformat()}"
     with connection.cursor() as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", [key])
-    if _taken(tenant, slot, slot + timedelta(seconds=1)).get(
-        timezone.localtime(slot).replace(microsecond=0), 0
-    ) >= capacity:
+    if (
+        _taken(tenant, slot, slot + timedelta(seconds=1)).get(
+            timezone.localtime(slot).replace(microsecond=0), 0
+        )
+        >= capacity
+    ):
         raise SlotFull()

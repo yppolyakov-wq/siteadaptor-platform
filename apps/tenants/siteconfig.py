@@ -4271,7 +4271,6 @@ def normalize_seo(raw) -> dict:
     return result
 
 
-
 PICKUP_SLOT_STEPS = (15, 30, 60)
 
 
@@ -4299,6 +4298,7 @@ def normalize_pickup_slots(raw) -> dict | None:
         "lead": _int("lead", 60, 0, 2880),
         "days": _int("days", 7, 1, 14),
     }
+
 
 def normalize(config) -> dict:
     """Привести произвольный site_config к валидной схеме.
