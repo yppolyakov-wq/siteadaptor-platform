@@ -28434,3 +28434,6 @@ msgstr "У вас уже кілька відкритих замовлень із
 
 msgid "Gesucht auch nach:"
 msgstr "Також шукали за словами:"
+
+msgid "Nur Zahlungseingänge können zugeordnet werden."
+msgstr "Зіставити можна лише вхідні платежі."

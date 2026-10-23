@@ -164,9 +164,10 @@ def invoice_for(kind, obj):
     from apps.finance.models import Invoice
 
     ref = str(getattr(obj, "reference_code", "") or obj.pk)
-    inv = Invoice.objects.filter(deal_kind=kind, deal_id=ref).first()
+    live = Invoice.objects.exclude(status="cancelled").order_by("-created_at")
+    inv = live.filter(deal_kind=kind, deal_id=ref).first()
     if inv is None and getattr(obj, "invoice_id", None):
-        inv = Invoice.objects.filter(pk=obj.invoice_id).first()
+        inv = live.filter(pk=obj.invoice_id).first()
     return inv
 
 
@@ -217,12 +218,29 @@ def settle_payment(kind: str, obj, *, source: str = "manual") -> bool:
     Единый путь для ручной кнопки «bezahlt», сопоставления выписки и оплаты счёта:
     тот же набор полей и подтверждение, что у вебхука. Возврат не «воскрешаем».
     Возвращает True, если состояние оплаты изменилось."""
+    from django.db import transaction
+
+    with transaction.atomic():
+        return _settle_payment(kind, obj)
+
+
+def _settle_payment(kind, obj) -> bool:
+    import logging
+
+    from django.db import transaction
+
     from apps.core.fsm import IllegalTransition
 
     paid = getattr(type(obj), "PAYMENT_PAID", "paid")
     refunded = getattr(type(obj), "PAYMENT_REFUNDED", "refunded")
+    from apps.core import status_registry
+
     state = getattr(obj, "payment_state", None)
     if state is None or state == refunded:
+        return False
+    if obj.status in status_registry.cancelled_statuses_for(kind, None):
+        # Деньги за отменённую сделку — вернуть клиенту, а не «оплатить» (иначе они
+        # не стали бы ни выручкой, ни возвратом). Решает владелец вручную.
         return False
     fields = []
     if state != paid:
@@ -239,11 +257,17 @@ def settle_payment(kind: str, obj, *, source: str = "manual") -> bool:
         fields.append("updated_at")
         obj.save(update_fields=fields)
     _settle_invoice(kind, obj)
+    # Оплата счёта вложенно зовёт settle_payment по свежей копии и уже могла
+    # подтвердить сделку — без перечитывания подтвердили бы второй раз.
+    obj.refresh_from_db(fields=["status"])
     if obj.status == _CONFIRM_ON_PAY.get(kind) and not _needs_manual_confirm(kind, obj):
         try:
-            _sm(kind).apply(obj, "confirmed")
+            with transaction.atomic():  # сбой подтверждения не откатывает оплату
+                _sm(kind).apply(obj, "confirmed")
         except IllegalTransition:
             pass
+        except Exception:  # noqa: BLE001 — оплата записана; подтвердит владелец
+            logging.getLogger(__name__).exception("settle_payment: confirm failed %s", kind)
     return "payment_state" in fields
 
 
@@ -335,8 +359,12 @@ def retain_on_cancel(kind: str, obj, tenant=None) -> None:
         return
     if obj.status not in status_registry.cancelled_statuses_for(kind, tenant):
         return
+    if not (getattr(obj, "stripe_payment_intent", "") or "").strip():
+        # Наличные/перевод за отменённую бронь владелец возвращает сам — сколько
+        # осталось у бизнеса, модель не знает (MC-E8); выручку не угадываем.
+        return
     ms = money_state(kind, obj)
-    kept = ms.paid - ms.refunded - ms.posted
+    kept = min(ms.paid - ms.refunded, ms.online_paid) - ms.posted
     if kept <= ZERO:
         return
     record_revenue(

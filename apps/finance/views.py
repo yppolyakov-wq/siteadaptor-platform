@@ -334,8 +334,9 @@ def bank_import(request):
                 )
             if obj is None:
                 messages.error(request, _("Position nicht gefunden."))
+            elif not bank_mod.apply_match(tx, kind, obj):
+                messages.error(request, _("Nur Zahlungseingänge können zugeordnet werden."))
             else:
-                bank_mod.apply_match(tx, kind, obj)
                 messages.success(request, _("Zahlung zugeordnet — Position ist bezahlt."))
             return redirect("finance:bank")
         return redirect("finance:bank")

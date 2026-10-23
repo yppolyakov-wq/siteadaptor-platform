@@ -28454,3 +28454,6 @@ msgstr "У вас уже несколько открытых заказов с �
 
 msgid "Gesucht auch nach:"
 msgstr "Также искали по словам:"
+
+msgid "Nur Zahlungseingänge können zugeordnet werden."
+msgstr "Сопоставить можно только входящие платежи."

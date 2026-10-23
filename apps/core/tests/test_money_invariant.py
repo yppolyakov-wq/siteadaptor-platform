@@ -549,3 +549,54 @@ def test_custom_cancel_after_deposit_keeps_journal_consistent(monkeypatch):
     booking.refresh_from_db()
     transactions.apply_action("booking", booking, "kulanz_storno", tenant=t)
     check("booking", booking, "cancel", t, where="custom cancel")
+
+
+# --- ревью KA-MC ------------------------------------------------------------------------
+
+
+def test_paying_deal_with_issued_invoice_confirms_once(tenant, monkeypatch):
+    """Оплата сделки закрывает её счёт, а оплата счёта — сделку: подтверждение одно."""
+    from apps.orders.state_machine import OrderSM
+
+    calls = []
+    original = OrderSM.on_transition
+
+    def spy(self, instance, t, **kw):
+        calls.append(t.dst)
+        return original(self, instance, t, **kw)
+
+    monkeypatch.setattr(OrderSM, "on_transition", spy)
+    order = _order(method="invoice")
+    issue_deal_invoice("order", order, tenant)
+    order.refresh_from_db()
+    assert order.status == "new"
+    money_contract.settle_payment("order", order)
+    order.refresh_from_db()
+    assert calls.count("confirmed") == 1 and order.payment_state == "paid"
+    assert money_contract.invoice_for("order", order).status == "paid"
+
+
+def test_cancelled_deal_is_not_marked_paid(tenant):
+    order = _order()
+    transactions.apply_action("order", order, "cancelled", tenant=tenant)
+    order.refresh_from_db()
+    assert money_contract.settle_payment("order", order) is False
+    order.refresh_from_db()
+    assert order.payment_state == "unpaid"
+
+
+def test_outgoing_bank_payment_cannot_settle_a_deal(tenant):
+    from apps.finance import bank
+    from apps.finance.models import BankTransaction
+
+    order = _order(method="vorkasse")
+    tx = BankTransaction.objects.create(
+        date=timezone.localdate(),
+        amount=Decimal("-25.00"),
+        purpose=order.reference_code,
+        import_hash=uuid.uuid4().hex,
+    )
+    assert bank.apply_match(tx, "order", order) is False
+    order.refresh_from_db()
+    tx.refresh_from_db()
+    assert order.payment_state == "unpaid" and tx.matched_kind == ""

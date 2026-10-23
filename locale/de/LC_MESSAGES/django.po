@@ -28270,3 +28270,6 @@ msgstr "Sie haben bereits mehrere offene Abholzeiten. Bitte melden Sie sich bei 
 
 msgid "Gesucht auch nach:"
 msgstr "Gesucht auch nach:"
+
+msgid "Nur Zahlungseingänge können zugeordnet werden."
+msgstr ""

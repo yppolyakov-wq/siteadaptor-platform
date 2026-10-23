@@ -28180,3 +28180,6 @@ msgstr "You already have several open pickup times. Please contact us."
 
 msgid "Gesucht auch nach:"
 msgstr "Also searched for:"
+
+msgid "Nur Zahlungseingänge können zugeordnet werden."
+msgstr "Only incoming payments can be matched."

@@ -28320,3 +28320,6 @@ msgstr "Zaten birkaç açık teslim alma saatiniz var. Lütfen bizimle iletişim
 
 msgid "Gesucht auch nach:"
 msgstr "Ayrıca şunlar için arandı:"
+
+msgid "Nur Zahlungseingänge können zugeordnet werden."
+msgstr "Yalnızca gelen ödemeler eşleştirilebilir."

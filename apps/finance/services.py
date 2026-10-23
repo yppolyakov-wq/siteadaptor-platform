@@ -245,6 +245,14 @@ def fit_gross(lines, target, vat_rate, *, small_business=False):
         rate = default if own in (None, "") else Decimal(str(own))
         return Decimal("0") if small_business else rate
 
+    # Подгоняем ТОЛЬКО остаток округления: цент на строку/штуку. Больше — значит в
+    # строках нет какой-то части сделки; такое не прячем в цену, а оставляем как есть.
+    tolerance = cent * (len(lines) + sum(_to_decimal(ln.get("qty", 1)) for ln in lines))
+    _net, _vat, gross = compute_totals(lines, vat_rate, small_business=small_business)
+    if target <= 0 or abs(target - gross) > tolerance:
+        if target != gross:
+            logger.warning("finance: invoice lines differ from deal total, not fitted")
+        return lines
     for _attempt in range(6):
         _net, _vat, gross = compute_totals(lines, vat_rate, small_business=small_business)
         diff = target - gross
@@ -253,8 +261,7 @@ def fit_gross(lines, target, vat_rate, *, small_business=False):
         candidates = [
             ln
             for ln in lines
-            if _to_decimal(ln["unit_price"], "0") > 0
-            and (small_business or str(ln.get("vat_rate", "")) not in ("0", "0.00"))
+            if _to_decimal(ln["unit_price"], "0") > 0 and (small_business or line_rate(ln) > 0)
         ]
         if not candidates:
             break
@@ -268,7 +275,10 @@ def fit_gross(lines, target, vat_rate, *, small_business=False):
         )
         if not step:
             step = fine if diff > 0 else -fine
-        line["unit_price"] = str(_to_decimal(line["unit_price"], "0") + step)
+        new_price = _to_decimal(line["unit_price"], "0") + step
+        if new_price <= 0:
+            break
+        line["unit_price"] = str(new_price)
     logger.warning("finance: invoice rounding residual vs deal total %s", target)
     return lines
 

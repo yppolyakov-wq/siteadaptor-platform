@@ -161,8 +161,6 @@ def open_items(tenant) -> list[dict]:
     today = timezone.localdate()
     out = []
     billed = Invoice.objects.filter(status__in=("issued", "paid"))
-    invoiced = {(k, d) for k, d in billed.exclude(deal_id="").values_list("deal_kind", "deal_id")}
-    invoiced_ids = set(billed.values_list("pk", flat=True))
     for kind in _OPEN_PAYMENT_STATES:
         if not tenant.is_module_active(transactions.KIND_MODULE[kind]):
             continue
@@ -172,6 +170,14 @@ def open_items(tenant) -> list[dict]:
             .exclude(status__in=status_registry.cancelled_statuses_for(kind, tenant))
             .order_by("created_at")[:200]
         )
+        qs = list(qs)
+        # KA-MC X3: какие из кандидатов уже выставлены счётом (запрос — только по ним).
+        codes = [str(o.reference_code) for o in qs]
+        invoiced = set(
+            billed.filter(deal_kind=kind, deal_id__in=codes).values_list("deal_kind", "deal_id")
+        )
+        inv_ids = [o.invoice_id for o in qs if getattr(o, "invoice_id", None)]
+        invoiced_ids = set(billed.filter(pk__in=inv_ids).values_list("pk", flat=True))
         for obj in qs:
             # KA-MC X3: у сделки с выставленным счётом открытая позиция — САМ счёт
             # (одна строка, его ждёт Mahnwesen), иначе сумма считалась бы дважды.
@@ -249,8 +255,11 @@ def suggestions(tx, items) -> list[dict]:
     ]
 
 
-def apply_match(tx, kind: str, obj) -> None:
-    """Подтвердить сопоставление: пометить оплату ШТАТНЫМ путём + привязать tx."""
+def apply_match(tx, kind: str, obj) -> bool:
+    """Подтвердить сопоставление: пометить оплату ШТАТНЫМ путём + привязать tx.
+    False — исходящий платёж: он не может быть оплатой клиента (ревью KA-MC)."""
+    if tx.amount is None or tx.amount <= 0:
+        return False
     if kind == "invoice":
         from .state_machine import InvoiceSM
 
@@ -264,3 +273,4 @@ def apply_match(tx, kind: str, obj) -> None:
     tx.matched_id = str(obj.pk)
     tx.matched_at = timezone.now()
     tx.save(update_fields=["matched_kind", "matched_id", "matched_at", "updated_at"])
+    return True
