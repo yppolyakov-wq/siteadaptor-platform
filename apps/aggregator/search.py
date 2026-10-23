@@ -501,9 +501,12 @@ def apply_filters(qs, f: SearchFilters, *, now=None, point=None):
                 & (Q(starts_at__isnull=True) | Q(starts_at__lt=end))
                 & (Q(ends_at__isnull=True) | Q(ends_at__gte=start))
             )
-            closed = _closed_on_schemas(qs, f.date, now=now)
-            gated = Q(listing_kind__in=HOURS_GATED_KINDS) & ~Q(tenant_schema__in=closed)
-            qs = qs.filter(dated | gated | Q(listing_kind__in=UNGATED_KINDS))
+            if window_days(f.date, now=now):
+                closed = sorted(_closed_on_schemas(qs, f.date, now=now))
+                gated = Q(listing_kind__in=HOURS_GATED_KINDS) & ~Q(tenant_schema__in=closed)
+                qs = qs.filter(dated | gated | Q(listing_kind__in=UNGATED_KINDS))
+            else:  # прошедшая дата: «открыт в этот день» не имеет смысла — только окно
+                qs = qs.filter(dated)
     if f.available:
         qs = qs.exclude(availability=L.AVAILABILITY_SOLD_OUT)
     if f.size:  # T-8.26 п.5c: размер есть только у товаров — прочие виды отпадают

@@ -141,3 +141,17 @@ def test_date_adds_one_query(django_assert_max_num_queries):
     # Дата добавляет ровно один запрос к Tenant (часы), а не по запросу на бизнес.
     with django_assert_max_num_queries(3):
         list(search.apply_filters(base, search.SearchFilters(date="heute")))
+
+
+def test_every_listing_kind_has_a_date_rule():
+    """Новый вид листинга не должен молча пропадать при дате."""
+    kinds = {k for k, _ in AggregatorListing.KINDS}
+    assert kinds == set(search.DATED_KINDS) | set(search.HOURS_GATED_KINDS) | set(
+        search.UNGATED_KINDS
+    )
+
+
+def test_past_date_drops_products():
+    biz = _biz(ALL_WEEK)
+    _listing("Pizza Verdure", kind="product", schema=biz.schema_name)
+    assert _found("Pizza", date="2026-10-01") == []
