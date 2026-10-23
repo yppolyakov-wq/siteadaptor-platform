@@ -4933,7 +4933,7 @@ BAKERY = DemoKit(
             "title": "Partyservice: Kuchenbuffet zum 60. Geburtstag (30 Gäste)",
             "name": "Familie Winter",
             "email": "bk.party1@example.com",
-            "phone": "02103 778899",
+            "phone": "0221 4710100",
             "description": "Jubiläum am Sonntag: Kuchenbuffet aus 4 Torten und "
             "Blechkuchen für 30 Gäste, Lieferung und Aufbau bis 13 Uhr.",
             "lines": [
@@ -5369,7 +5369,7 @@ BUTCHER = DemoKit(
             "title": "Partyservice: Geburtstagsbuffet für 25 Gäste",
             "name": "Familie Ott",
             "email": "mz.party1@example.com",
-            "phone": "02103 445566",
+            "phone": "0221 4710101",
             "description": "Runder Geburtstag am Samstag: Grillbuffet und kalte Platten "
             "für 25 Gäste, Lieferung und Aufbau bis 17 Uhr.",
             "lines": [
@@ -9146,7 +9146,7 @@ MOTO = DemoKit(
             "title": "Private Reise Ladakh für 5 Freunde (eigene Termine)",
             "name": "Team Rostock",
             "email": "moto.job1@example.com",
-            "phone": "0381 445566",
+            "phone": "0221 4710102",
             "description": "Wir sind fünf Fahrer mit eigener Erfahrung und würden die "
             "Ladakh-Runde gern zwei Wochen früher fahren als die Juli-Gruppe. Zwei von "
             "uns bringen eigene Maschinen mit.",
@@ -9297,7 +9297,7 @@ FRISEUR = DemoKit(
     section_layouts={"gallery": {"preset": "cols3"}},
     look="warm",  # ST-1: тёплый Look (архетип-акцент friseur)
     seed_inbox=True,  # LS-3/4/6: демо «Прямой линии» + Sofort-Angebot
-    whatsapp_number="+49 170 2000001",  # LS-1/LS-2
+    whatsapp_number="+49 171 3920000",  # LS-1/LS-2
     presence_mode="on",  # LS-2: «Jetzt erreichbar» видна всегда
     label="Salon Schöngut",
     business_type="friseur",  # S6: реальный архетип
@@ -9737,7 +9737,7 @@ WERKSTATT = DemoKit(
     key="werkstatt",
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}, "products": {"preset": "cols3"}},
-    whatsapp_number="+49 170 2000002",  # LS-1: видео-смета
+    whatsapp_number="+49 171 3920001",  # LS-1: видео-смета
     label="KFZ-Werkstatt Dreyer",
     # FB-3 Вариант B демо: свой промежуточный статус «Teile bestellt» (держит слот занятым).
     status_defs={
@@ -9858,7 +9858,7 @@ WERKSTATT = DemoKit(
             "title": "Kostenvoranschlag: Inspektion + Bremsen vorne",
             "name": "Markus Vogel",
             "email": "vogel@example.com",
-            "phone": "0231 1234567",
+            "phone": "0221 4710103",
             "vehicle": "VW Golf VII 1.6 TDI",
             "vehicle_plate": "DO-MV 1234",
             "vehicle_hsn": "0603",
@@ -10238,7 +10238,7 @@ HANDWERKER = DemoKit(
             "title": "Angebot: Wohnzimmer & Flur streichen (ca. 60 m²)",
             "name": "Julia Becker",
             "email": "becker@example.com",
-            "phone": "0221 9876543",
+            "phone": "0221 4710104",
             "site_address": "Lindenweg 8, 50667 Köln",
             "description": "Wohnzimmer und Flur neu streichen, Wände vorbereiten, "
             "ein Akzentwand in Farbe. Bitte Festpreis.",
@@ -11191,7 +11191,7 @@ CATERING = DemoKit(
             "title": "Catering Hochzeit (80 Personen)",
             "name": "Anna Sommer",
             "email": "sommer@example.com",
-            "phone": "0211 5551234",
+            "phone": "0221 4710105",
             "description": "Sektempfang, warmes Buffet und Dessertbar für 80 "
             "Gäste, Scheune in Ratingen. Bitte vegetarisch mit veganen Optionen.",
             "lines": [
@@ -22610,8 +22610,8 @@ LITE_BAKERY = DemoKit(
     about_text="Kleine Handwerksbäckerei in Solingen-Mitte. Was heute im Angebot ist, "
     "sehen Sie hier — einfach vorbeikommen oder anrufen.",
     address="Klingenweg 7, 42651 Solingen",
-    phone="+49 212 5550101",
-    whatsapp_number="+49 170 2000101",
+    phone="+49 221 4710106",
+    whatsapp_number="+49 171 3920002",
     lat="51.1652000",
     lng="7.0671000",
     opening_hours_text="Mo–Fr 6:30–18:00 · Sa 6:30–13:00",
@@ -22733,8 +22733,8 @@ LITE_CAFE = DemoKit(
     about_text="Das Eckcafé am Ohligser Markt: Frühstück, Mittagstisch und Kuchen. "
     "Unsere Angebote finden Sie hier — einfach vorbeikommen.",
     address="Ohligser Bogen 12, 42697 Solingen",
-    phone="+49 212 5550202",
-    whatsapp_number="+49 170 2000102",
+    phone="+49 221 4710107",
+    whatsapp_number="+49 171 3920003",
     lat="51.1679000",
     lng="7.0102000",
     opening_hours_text="Mo–Fr 8:00–18:00 · Sa–So 9:00–17:00",
@@ -22860,8 +22860,8 @@ LITE_MODE = DemoKit(
     about_text="Inhabergeführtes Modehaus in Wald: Damen- und Herrenmode, persönliche "
     "Beratung, kleine Änderungen im Haus.",
     address="Walder Gasse 5, 42719 Solingen",
-    phone="+49 212 5550303",
-    whatsapp_number="+49 170 2000103",
+    phone="+49 221 4710108",
+    whatsapp_number="+49 171 3920004",
     lat="51.1825000",
     lng="7.0436000",
     opening_hours_text="Mo–Fr 10:00–19:00 · Sa 10:00–16:00",
@@ -22983,8 +22983,8 @@ LITE_HOFLADEN = DemoKit(
     about_text="Familienbetrieb in Aufderhöhe: Gemüse aus eigenem Anbau, Eier von "
     "freilaufenden Hühnern, Apfelsaft von den Streuobstwiesen.",
     address="Hofweg 2, 42699 Solingen",
-    phone="+49 212 5550404",
-    whatsapp_number="+49 170 2000104",
+    phone="+49 221 4710109",
+    whatsapp_number="+49 171 3920005",
     lat="51.1372000",
     lng="7.0254000",
     opening_hours_text="Di–Fr 9:00–18:00 · Sa 8:00–13:00",
@@ -23103,8 +23103,8 @@ LITE_PENSION = DemoKit(
     about_text="Kleine Pension mit sechs Zimmern unterhalb von Schloss Burg — "
     "Wanderwege und Wupper direkt vor der Tür.",
     address="Brückenblick 3, 42659 Solingen",
-    phone="+49 212 5550505",
-    whatsapp_number="+49 170 2000105",
+    phone="+49 221 4710110",
+    whatsapp_number="+49 171 3920006",
     lat="51.1408000",
     lng="7.1490000",
     opening_hours_text="Rezeption täglich 8:00–20:00",
@@ -23228,8 +23228,8 @@ LITE_FRISEUR = DemoKit(
     about_text="Kleiner Salon in der Gräfrather Altstadt: Schnitt, Farbe und Pflege für "
     "Damen und Herren. Unsere Angebote finden Sie hier — einfach anrufen.",
     address="Klostergasse 3, 42653 Solingen",
-    phone="+49 212 5550606",
-    whatsapp_number="+49 170 2000106",
+    phone="+49 221 4710111",
+    whatsapp_number="+49 171 3920007",
     lat="51.2106000",
     lng="7.0728000",
     opening_hours_text="Di–Fr 9:00–18:30 · Sa 8:30–14:00",
@@ -23389,7 +23389,7 @@ KLINGENWERK = DemoKit(
     "Bei uns finden Sie Küchenmesser, Taschenmesser und Scheren — und Ihr altes Messer "
     "wird wieder scharf.",
     address="Hauptstraße 41, 42651 Solingen",
-    phone="+49 212 5550701",
+    phone="+49 221 4710112",
     lat="51.1659000",
     lng="7.0832000",
     opening_hours_text="Mo–Fr 9:30–18:30 · Sa 10:00–14:00",
@@ -23491,7 +23491,7 @@ HANDY_DOKTOR = DemoKit(
     about_text="Werkstatt und Laden in Ohligs: Reparaturen für Smartphones und Tablets, "
     "geprüfte Gebrauchtgeräte mit 12 Monaten Gewährleistung und Zubehör.",
     address="Düsseldorfer Straße 18, 42697 Solingen",
-    phone="+49 212 5550702",
+    phone="+49 221 4710113",
     lat="51.1671000",
     lng="7.0098000",
     opening_hours_text="Mo–Fr 10:00–19:00 · Sa 10:00–16:00",
@@ -23592,7 +23592,7 @@ SPIELKISTE = DemoKit(
     about_text="Kleiner Spielwarenladen in der Gräfrather Altstadt. Wir führen langlebiges "
     "Holzspielzeug, Bilderbücher und Erstausstattung — und packen Geschenke gratis ein.",
     address="In der Freiheit 6, 42653 Solingen",
-    phone="+49 212 5550703",
+    phone="+49 221 4710114",
     lat="51.2011000",
     lng="7.0731000",
     opening_hours_text="Di–Fr 10:00–18:00 · Sa 10:00–14:00",
@@ -23671,7 +23671,7 @@ PFOTENGLUECK = DemoKit(
     about_text="Fachgeschäft für Tierbedarf in Solingen-Wald: Futter ohne Zusätze, "
     "Leinen und Spielzeug — und im Hinterhof unser Hundesalon.",
     address="Stresemannstraße 9, 42719 Solingen",
-    phone="+49 212 5550704",
+    phone="+49 221 4710115",
     lat="51.1827000",
     lng="7.0489000",
     opening_hours_text="Mo–Fr 9:00–18:30 · Sa 9:00–14:00",
@@ -23768,7 +23768,7 @@ RAD_UND_TAT = DemoKit(
     about_text="Fahrradladen mit Werkstatt in Höhscheid. Wir beraten zu E-Bikes für die "
     "Solinger Hügel und reparieren alle Marken.",
     address="Höhscheider Straße 70, 42659 Solingen",
-    phone="+49 212 5550705",
+    phone="+49 221 4710116",
     lat="51.1531000",
     lng="7.0752000",
     opening_hours_text="Mo–Fr 10:00–18:30 · Sa 10:00–15:00",
@@ -23856,7 +23856,7 @@ WOHNWERK = DemoKit(
     about_text="Kleiner Wohnladen in Unterburg: ausgesuchte Deko, Leuchten aus Messing "
     "und Pflanzen aus der Gärtnerei nebenan.",
     address="Eschbachstraße 4, 42659 Solingen",
-    phone="+49 212 5550706",
+    phone="+49 221 4710117",
     lat="51.1432000",
     lng="7.1531000",
     opening_hours_text="Mi–Fr 11:00–18:00 · Sa–So 11:00–17:00",
@@ -23938,7 +23938,7 @@ FEINKOST_MARKT = DemoKit(
     about_text="Feinkostladen am Neumarkt: Käse aus dem Bergischen Land, Olivenöl, Weine "
     "und Gemüse von Höfen aus der Umgebung.",
     address="Neumarkt 12, 42651 Solingen",
-    phone="+49 212 5550707",
+    phone="+49 221 4710118",
     lat="51.1689000",
     lng="7.0846000",
     opening_hours_text="Mo–Fr 9:00–19:00 · Sa 8:00–15:00",
@@ -24056,7 +24056,7 @@ SCHUHHAUS = DemoKit(
     about_text="Familiengeführtes Schuhhaus in der Ohligser Fußgängerzone. Wir messen "
     "Ihre Füße und finden den passenden Schuh.",
     address="Düsseldorfer Straße 55, 42697 Solingen",
-    phone="+49 212 5550708",
+    phone="+49 221 4710119",
     lat="51.1663000",
     lng="7.0115000",
     opening_hours_text="Mo–Fr 9:30–18:30 · Sa 9:30–16:00",
@@ -24138,7 +24138,7 @@ BERGISCH_FIT = DemoKit(
     about_text="Kleines Studio für Yoga und Gesundheitssport in Solingen-Wald. Kurse in "
     "kleinen Gruppen, auch für Einsteiger.",
     address="Friedrich-Ebert-Straße 120, 42719 Solingen",
-    phone="+49 212 5550709",
+    phone="+49 221 4710120",
     lat="51.1849000",
     lng="7.0452000",
     opening_hours_text="Mo–Fr 8:00–21:00 · Sa 9:00–13:00",
@@ -24189,7 +24189,7 @@ LICHTBLICK = DemoKit(
     about_text="Fotostudio in Solingen-Mitte: biometrische Passfotos zum Mitnehmen, "
     "Bewerbungsfotos und Shootings für Familien und Firmen.",
     address="Kölner Straße 22, 42651 Solingen",
-    phone="+49 212 5550710",
+    phone="+49 221 4710121",
     lat="51.1668000",
     lng="7.0801000",
     opening_hours_text="Mo–Fr 10:00–18:00 · Sa 10:00–14:00",
@@ -24245,7 +24245,7 @@ ELEKTRO_SCHMITZ = DemoKit(
     about_text="Meisterbetrieb für Elektrotechnik in Gräfrath: Installation, Reparatur, "
     "Wallboxen und E-Check für Vermieter.",
     address="Wuppertaler Straße 88, 42653 Solingen",
-    phone="+49 212 5550711",
+    phone="+49 221 4710122",
     lat="51.2034000",
     lng="7.0812000",
     opening_hours_text="Mo–Fr 7:30–17:00",
@@ -26184,7 +26184,7 @@ def _seed_demo_purchasing(kit: DemoKit, products: list) -> None:
         name=name,
         contact_person=contact,
         email=email,
-        phone="0231 555 0192",
+        phone="0221 4710123",
         customer_number="K-40412",
     )
     done = purchasing.create_po(supplier=supplier, actor="demo", note="Wocheneinkauf")
@@ -26399,7 +26399,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
         ]
         for name, email, items in samples:
             try:
-                create_order(items=items, name=name, email=email, phone="0151 2345678")
+                create_order(items=items, name=name, email=email, phone="0171 3920008")
             except Exception:
                 pass
         # При активной доставке — ещё один заказ с доставкой (показать кабинет A2).
@@ -26409,7 +26409,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     items=[(products[0], 3)],
                     name="Sabine Lieb",
                     email="sabine@example.com",
-                    phone="0151 9988776",
+                    phone="0171 3920009",
                     fulfillment=Order.FULFILLMENT_DELIVERY,
                     shipping_address="Beispielstraße 5, 40221 Düsseldorf",
                     shipping_cents=kit.delivery.get("fee_cents", 0),
@@ -26427,7 +26427,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                 "title": "Catering Firmenfeier (25 Personen)",
                 "name": "Eventbüro Schmidt",
                 "email": "events@example.com",
-                "phone": "0211 1234567",
+                "phone": "0221 4710124",
                 "description": "Veganes Fingerfood-Buffet für 25 Gäste, inkl. Lieferung & Aufbau.",
                 "lines": [
                     {

@@ -12,7 +12,9 @@ from . import builder
 from .spec import Biz
 
 CITY_BOX = (51.12, 51.23, 6.98, 7.17)
-_PHONE = re.compile(r"^\+49 212 555\d{4}$")
+# KA-12 E7.10: только «Drama Numbers» Bundesnetzagentur (Mitteilung 148/2021) —
+# «555» в Германии не вымышленная серия, номер может принадлежать живому человеку.
+_PHONE = re.compile(r"^\+49 \d{2,4} \d{5,9}$")
 _HOST = re.compile(r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$")
 FOOD_TYPES = {"bakery", "butcher", "grocery", "restaurant", "cafe", "catering"}
 # 7 % НДС без LMIV — печатное (книги/альбомы), живые растения, корм для животных
@@ -71,7 +73,9 @@ def validate(biz: Biz, *, section: str = "") -> list[str]:
         box = builder.DISTRICT_BOX.get(biz.district)
         if box and not (box[0] <= lat <= box[1] and box[2] <= lng <= box[3]):
             errs.append(f"координаты вне прямоугольника района {biz.district}")
-    if not _PHONE.match(biz.phone):
+    from apps.tenants.demo_phones import is_reserved
+
+    if not (_PHONE.match(biz.phone) and is_reserved(biz.phone)):
         errs.append(f"телефон {biz.phone!r} не из вымышленного диапазона")
     if not _HOST.match(builder.subdomain_for(biz.key)):
         errs.append("поддомен не валиден")
