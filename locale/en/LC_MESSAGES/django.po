@@ -27817,8 +27817,8 @@ msgid "Das Guthaben reicht für diesen Betrag nicht aus."
 msgstr "The balance is not sufficient for this amount."
 
 #: KA-H9
-msgid "Diese Aktion ist beendet — der Coupon gilt nicht mehr."
-msgstr "This promotion has ended — the coupon is no longer valid."
+msgid "Diese Aktion ist gerade nicht aktiv — der Coupon gilt derzeit nicht."
+msgstr "This promotion is not active right now — the coupon is currently not valid."
 
 #: KA-H9
 #, python-format

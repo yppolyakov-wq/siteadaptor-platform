@@ -18,6 +18,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import translation
+from django.utils.formats import number_format
+from django.utils.http import urlencode
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
@@ -1596,7 +1598,9 @@ _COUPON_ERRORS = {
     "inactive": gettext_lazy("Dieser Coupon ist deaktiviert."),
     "expired": gettext_lazy("Dieser Coupon ist abgelaufen."),
     "used_up": gettext_lazy("Dieser Coupon wurde bereits eingelöst."),
-    "promotion_ended": gettext_lazy("Diese Aktion ist beendet — der Coupon gilt nicht mehr."),
+    "promotion_ended": gettext_lazy(
+        "Diese Aktion ist gerade nicht aktiv — der Coupon gilt derzeit nicht."
+    ),
 }
 
 
@@ -1688,23 +1692,26 @@ _VOUCHER_ERRORS = {
     "needs_amount": gettext_lazy("Bitte den einzulösenden Betrag angeben."),
     "invalid_amount": gettext_lazy("Bitte den einzulösenden Betrag angeben."),
     "insufficient": gettext_lazy("Das Guthaben reicht für diesen Betrag nicht aus."),
-    "promotion_ended": gettext_lazy("Diese Aktion ist beendet — der Coupon gilt nicht mehr."),
+    "promotion_ended": gettext_lazy(
+        "Diese Aktion ist gerade nicht aktiv — der Coupon gilt derzeit nicht."
+    ),
 }
 
 _MAX_COUNTER_CENTS = 100_000_00
 
 
-def _parse_eur_cents(raw):
-    """«12,50» / «12.50» → 1250; мусор, ≤ 0 или > 100 000 € → None."""
-    from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+_EUR_RE = re.compile(r"^(\d{1,6})(?:[.,](\d{1,2}))?$")
 
+
+def _parse_eur_cents(raw):
+    """«12,50» / «12.50» / «12» → центы. Только «целые[.,]1–2 цифры»: «1.250» или
+    «1,250.00» неоднозначны (тысячи?) — отказ лучше, чем списать 1,25 € вместо 1250 €.
+    ≤ 0 или > 100 000 € → None."""
     text = (raw or "").strip().replace("€", "").replace(" ", "")
-    if "," in text:
-        text = text.replace(".", "").replace(",", ".")
-    try:
-        cents = int((Decimal(text) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-    except (InvalidOperation, ValueError):
+    match = _EUR_RE.match(text)
+    if not match:
         return None
+    cents = int(match.group(1)) * 100 + int((match.group(2) or "0").ljust(2, "0"))
     return cents if 0 < cents <= _MAX_COUNTER_CENTS else None
 
 
@@ -1750,7 +1757,7 @@ def voucher_redeem(request):
         # двойной тап по многоразовому ваучеру не списывает дважды.
         expect_used = int(expect) if expect.isascii() and expect.isdigit() else None
         code = (request.POST.get("code") or "").strip().upper()
-        back_to_card = f"{reverse('promotions:voucher-redeem')}?code={code}"
+        back_to_card = f"{reverse('promotions:voucher-redeem')}?{urlencode({'code': code})}"
         is_balance = (
             Voucher.objects.filter(code=code).exclude(balance_cents=None).exists()
             if code
@@ -1764,13 +1771,22 @@ def voucher_redeem(request):
                     messages.error(request, _VOUCHER_ERRORS["needs_amount"])
                     return redirect(back_to_card)
                 voucher = services.redeem_balance(code, cents, expect_used=expect_used)
+                from apps.core.audit import audit_event
+
+                audit_event(  # KA-H9: кто и сколько списал с сертификата
+                    action="voucher.balance_redeemed",
+                    resource_type="voucher",
+                    resource_id=str(voucher.pk),
+                    actor=request.user,
+                    changes={"amount_cents": cents, "balance_cents": voucher.balance_cents},
+                )
                 messages.success(
                     request,
                     _("%(code)s: %(amount)s abgebucht ✓ — Restguthaben %(rest)s")
                     % {
                         "code": voucher.code,
-                        "amount": f"{cents / 100:.2f} €",
-                        "rest": f"{voucher.balance_eur:.2f} €",
+                        "amount": f"{number_format(cents / 100, 2)} €",
+                        "rest": f"{number_format(voucher.balance_eur, 2)} €",
                     },
                 )
             else:

@@ -2501,6 +2501,16 @@ def coupon_create(request, pk):
         # KA-H9: контакт в форме — не доказательство владения. Код уходит на адрес
         # ИЗ КАРТОЧКИ клиента (не из формы), не чаще раза в день; браузер его не видит.
         stored = getattr(exc.voucher.customer, "email", "") or ""
+        # Лимит на адрес (не на IP): чужие повторы не заваливают ящик клиента.
+        import hashlib
+
+        if stored and ratelimit.hit(
+            "coupon-resend",
+            hashlib.sha256(stored.lower().encode()).hexdigest()[:24],
+            limit=3,
+            window=86400,
+        ):
+            stored = ""
         if stored:
             from django.utils import timezone
 

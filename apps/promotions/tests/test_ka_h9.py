@@ -119,7 +119,7 @@ def test_counter_view_spends_amount_from_balance():
     views.voucher_redeem(req)
     gift.refresh_from_db()
     assert gift.balance_cents == 3750
-    assert any("37.50" in str(m) for m in get_messages(req))
+    assert any("37" in str(m) and "50" in str(m) for m in get_messages(req))
 
 
 def test_counter_view_without_amount_goes_back_to_card():
@@ -279,3 +279,38 @@ def test_lite_nav_hides_business_for_staff(monkeypatch):
     names = [i["url_name"] for i in lite_cabinet.sidebar_items(None, staff)]
     assert "lite-business" not in names
     assert "lite-business" in [i["url_name"] for i in lite_cabinet.sidebar_items(None)]
+
+
+@pytest.mark.parametrize(
+    ("raw", "cents"),
+    [("12,50", 1250), ("12.5", 1250), ("12", 1200), ("0,99", 99), ("12,50 €", 1250)],
+)
+def test_parse_eur_accepts_plain_amounts(raw, cents):
+    assert views._parse_eur_cents(raw) == cents
+
+
+@pytest.mark.parametrize("raw", ["1.250", "1,250.00", "1.250,00", "abc", "0", "-5", "", "12,505"])
+def test_parse_eur_rejects_ambiguous_or_garbage(raw):
+    assert views._parse_eur_cents(raw) is None
+
+
+def test_counter_ambiguous_amount_spends_nothing():
+    gift = _gift(500000)
+    views.voucher_redeem(_cab({"code": gift.code, "amount": "1,250.00"}))
+    gift.refresh_from_db()
+    assert gift.balance_cents == 500000
+
+
+def test_resend_limited_per_stored_address():
+    tenant = _tenant("h9-limit")
+    promo = _promo()
+    path = f"/p/{promo.pk}/coupon/"
+    public_views.coupon_create(
+        _public(path, tenant, {"email": "c@example.de"}, "10.9.3.1"), pk=promo.pk
+    )
+    with mock.patch("apps.promotions.notifications.send_coupon_email") as send:
+        for i in range(5):
+            public_views.coupon_create(
+                _public(path, tenant, {"email": "c@example.de"}, f"10.9.4.{i}"), pk=promo.pk
+            )
+    assert send.call_count == 3
