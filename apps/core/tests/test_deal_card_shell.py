@@ -144,8 +144,8 @@ def test_head_badges_of_the_card_are_rendered():
     order.source_channel = "promo"
     order.save(update_fields=["payment_state", "source_channel"])
     html = order_views.order_detail(_req(tenant=_tenant("retail")), order.pk).content.decode()
-    head = html.split('data-deal-block="head"', 1)[1].split("</h1>", 1)[1][:4000]
-    assert "🏷" in head
+    head = html.split('data-deal-block="head"', 1)[1].split('data-deal-block="', 1)[0]
+    assert "🏷 Aktion" in head
 
 
 def test_status_change_lives_in_the_head_without_a_rail_duplicate():

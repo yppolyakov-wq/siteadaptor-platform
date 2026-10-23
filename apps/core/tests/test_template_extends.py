@@ -18,6 +18,9 @@ from django.template.loader import get_template
 
 ROOT = Path(__file__).resolve().parents[3] / "templates"
 EXTENDS = re.compile(r"{%\s*extends\s+[\"']([^\"']+)[\"']\s*%}")
+# `{% extends base_template|default:"storefront/_base.html" %}` — родитель по умолчанию.
+EXTENDS_DEFAULT = re.compile(r"{%\s*extends\s+\w+\|default:[\"']([^\"']+)[\"']\s*%}")
+INCLUDE = re.compile(r"{%\s*include\s+[\"']([^\"']+)[\"']")
 BLOCK = re.compile(r"{%\s*block\s+(\w+)\s*%}")
 COMMENTS = re.compile(r"{%\s*comment\s*%}.*?{%\s*endcomment\s*%}|{#.*?#}", re.S)
 
@@ -44,9 +47,10 @@ def _chain_blocks(name, seen=None):
     seen.add(name)
     src = _source(name)
     names = set(BLOCK.findall(src))
-    if re.search(r"{%\s*extends\s+[^\"'\s]", src):
+    parents = EXTENDS.findall(src) or EXTENDS_DEFAULT.findall(src)
+    if not parents and re.search(r"{%\s*extends\s", src):
         return None
-    for parent in EXTENDS.findall(src)[:1]:
+    for parent in parents[:1]:
         upper = _chain_blocks(parent, seen)
         if upper is None:
             return None
@@ -70,7 +74,8 @@ def _top_level_blocks(src):
 def test_every_literal_extends_target_exists():
     missing = []
     for path in _templates():
-        for target in EXTENDS.findall(path.read_text(encoding="utf-8")):
+        src = _code(path.read_text(encoding="utf-8"))
+        for target in EXTENDS.findall(src) + EXTENDS_DEFAULT.findall(src):
             try:
                 get_template(target)
             except Exception:  # noqa: BLE001 — любой провал загрузки = дефект
@@ -82,7 +87,7 @@ def test_child_blocks_exist_in_parent_chain():
     lost = []
     for path in _templates():
         src = _code(path.read_text(encoding="utf-8"))
-        parents = EXTENDS.findall(src)
+        parents = EXTENDS.findall(src) or EXTENDS_DEFAULT.findall(src)
         if not parents:
             continue
         try:
@@ -95,3 +100,21 @@ def test_child_blocks_exist_in_parent_chain():
             if name not in available:
                 lost.append(f"{path.relative_to(ROOT)}: block {name} (нет в {parents[0]})")
     assert not lost, "блок не выводится родителем — содержимое пропадёт:\n" + "\n".join(lost)
+
+
+def test_included_templates_have_no_blocks():
+    """Блок внутри подключаемого через `{% include %}` шаблона дочерний шаблон
+    НЕ переопределит (Django) — его содержимое молча останется по умолчанию.
+    Ровно так пропали бейджи головы карточки сделки."""
+    included = set()
+    for path in _templates():
+        included.update(INCLUDE.findall(_code(path.read_text(encoding="utf-8"))))
+    bad = []
+    for name in sorted(included):
+        try:
+            src = _source(name)
+        except Exception:  # noqa: BLE001 — динамические/внешние имена не наша забота
+            continue
+        if BLOCK.search(src) and not EXTENDS.search(src):
+            bad.append(name)
+    assert not bad, "{% block %} в подключаемом шаблоне не переопределяется:\n" + "\n".join(bad)
