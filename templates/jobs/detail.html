@@ -11,7 +11,7 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
 только меняет статус, но и выставляет счёт (`_make_invoice`).{% endcomment %}
 
 {% block deal_back %}
-  <a href="{% url 'verkaeufe' %}?tab=job" class="text-sm text-gray-500 hover:underline">← {% trans "Aufträge" %}</a>
+  {% if 'verkaeufe'|pkg_allowed:request.tenant %}<a href="{% url 'verkaeufe' %}?tab=job" class="text-sm text-gray-500 hover:underline">← {% trans "Aufträge" %}</a>{% else %}<a href="{% url 'dashboard' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Start" %}</a>{% endif %}
 {% endblock %}
 
 {% comment %}DF-2: то, что прислал клиент — своим блоком в теле (тема, свободный

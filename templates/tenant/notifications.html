@@ -17,10 +17,10 @@
     <p class="text-xs text-gray-400 mb-2">🤖 {% trans "Aktiver Bot:" %} @{{ bot.bot_username }} · <a href="{% url 'telegram-settings' %}" class="underline">{% trans "Bot verwalten" %}</a></p>
   {% else %}
     {# T-8.29: без бота ссылка на «Bot verwalten» не появлялась — круг замыкался #}
-    <p class="text-xs text-gray-400 mb-2">🤖 <a href="{% url 'integrations-home' %}" class="underline">{% trans "Eigenen Telegram-Bot einrichten" %}</a></p>
+    <p class="text-xs text-gray-400 mb-2">🤖 <a href="{% if 'integrations-home'|pkg_allowed:request.tenant %}{% url 'integrations-home' %}{% else %}{% url 'lite-visibility' %}{% endif %}" class="underline">{% trans "Eigenen Telegram-Bot einrichten" %}</a></p>
   {% endif %}
   {% if not owner_email %}
-    <p class="mb-2 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">⚠️ {% trans "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden." %} <a href="{% url 'settings' %}" class="underline">{% trans "In den Einstellungen ergänzen" %}</a></p>
+    <p class="mb-2 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">⚠️ {% trans "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden." %} <a href="{% if 'settings'|pkg_allowed:request.tenant %}{% url 'settings' %}{% else %}{% url 'lite-business' %}{% endif %}" class="underline">{% trans "In den Einstellungen ergänzen" %}</a></p>
   {% endif %}
   {% if owner_linked %}
     <div class="flex items-center justify-between gap-3">

@@ -152,10 +152,10 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
 
     <div class="flex gap-3 items-center">
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-      <a href="{% url 'sellable-manage' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
+      <a href="{% if 'sellable-manage'|pkg_allowed:request.tenant %}{% url 'sellable-manage' %}{% else %}{% url 'promotions:promotion-list' %}{% endif %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
       {% comment %}SR-1: единственный вход удаления жил на умершей странице
       товаров — переезжает в форму (confirm-страница прежняя).{% endcomment %}
-      {% if product %}<a href="{% url 'catalog:product-delete' product.pk %}" class="ml-auto px-4 py-2 text-sm text-red-600 hover:underline">{% trans "Delete" %}</a>{% endif %}
+      {% if product and 'catalog:product-delete'|pkg_allowed:request.tenant %}<a href="{% url 'catalog:product-delete' product.pk %}" class="ml-auto px-4 py-2 text-sm text-red-600 hover:underline">{% trans "Delete" %}</a>{% endif %}
     </div>
     </div>
   </form>

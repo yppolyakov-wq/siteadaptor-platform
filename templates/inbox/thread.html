@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{{ conversation.subject|default:"Inbox" }}{% endblock %}
 
 {% block dash_content %}
@@ -39,7 +39,7 @@
     </select>
   </form>
   {# LS-3: персональное предложение прямо из разговора — мгновенная продажа. #}
-  <a href="{% url 'inbox:offer-compose' conversation.pk %}" class="border border-indigo-300 text-indigo-700 rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-50">💶 {% trans "Angebot senden" %}</a>
+  {% if 'inbox:offer-compose'|pkg_allowed:request.tenant %}<a href="{% url 'inbox:offer-compose' conversation.pk %}" class="border border-indigo-300 text-indigo-700 rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-50">💶 {% trans "Angebot senden" %}</a>{% endif %}
 </div>
 
 {# LS-3: карточки предложений этого треда. #}

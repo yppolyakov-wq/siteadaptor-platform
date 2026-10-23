@@ -87,6 +87,9 @@ _AKTIONEN_VIEWS = frozenset(
         "promotions:promotion-create",
         "promotions:promotion-edit",
         "promotions:promotion-share",
+        "promotions:promotion-feature",  # ★ платное продвижение в каталоге города
+        "promotions:promotion-feature-checkout",
+        "portal-stats",  # «Besuche aus dem Stadtportal» (владельцу)
         "promotions:promotion-image-delete",
         "promotions:promotion-image-primary",
         "promotions:promotion-text-check",
@@ -119,6 +122,8 @@ _AKTIONEN_VIEWS = frozenset(
         "jobs:detail",
         "jobs:new",
         "jobs:pdf",
+        "jobs:invoice-pdf",
+        "jobs:delete",
     }
 )
 _EINTRAG_VIEWS = _AKTIONEN_VIEWS | {

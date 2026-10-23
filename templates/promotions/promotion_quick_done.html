@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Fertig" %}{% endblock %}
 
 {% block dash_content %}
@@ -68,7 +68,7 @@
   {% endif %}
 
   {% if missing_hours %}
-    <a href="{% url 'settings' %}#sec-zeiten" class="block rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mb-4" data-missing-hours>
+    <a href="{% if 'settings'|pkg_allowed:request.tenant %}{% url 'settings' %}#sec-zeiten{% else %}{% url 'lite-business' %}{% endif %}" class="block rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mb-4" data-missing-hours>
       🕒 {% trans "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen" %} →
     </a>
   {% endif %}

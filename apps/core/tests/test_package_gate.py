@@ -131,13 +131,64 @@ def test_every_allow_entry_matches_a_real_screen():
             assert entry in names, entry
 
 
-@pytest.mark.parametrize("path", sorted(TEMPLATES.glob("lite_*.html")))
-def test_lite_template_links_stay_inside_the_package(path):
-    """Кнопка внутри лёгкого экрана не ведёт в «nicht enthalten»: либо экран открыт
+_ROOT = Path(dj_settings.BASE_DIR) / "templates"
+#: Шаблоны экранов, открытых пакету «Aktionen», + хром кабинета.
+_REACHABLE = sorted(
+    [
+        *TEMPLATES.glob("lite_*.html"),
+        TEMPLATES / "_base_dashboard.html",
+        TEMPLATES / "notifications.html",
+        TEMPLATES / "package_not_included.html",
+        _ROOT / "jobs" / "detail.html",
+        _ROOT / "jobs" / "new.html",
+        _ROOT / "catalog" / "product_form.html",
+        *(_ROOT / "inbox").glob("*.html"),
+        *(
+            _ROOT / "promotions" / f"{n}.html"
+            for n in (
+                "promotion_form",
+                "promotion_quick",
+                "promotion_quick_done",
+                "promotion_share",
+                "promotion_preview",
+                "reservation_list",
+                "redeem",
+                "redeem_detail",
+            )
+        ),
+    ]
+)
+#: Осознанные исключения: ссылка видна только при условии, которого у пакета нет.
+_KNOWN = {
+    "detail.html": {"finance:invoice-detail"},  # {% if finance_active %} — finance вне пакета
+    "redeem.html": {"promotions:voucher-redeem"},  # префикс ваучеров loyalty/gift для сканера
+}
+
+
+def _cabinet_name(name):
+    """Ссылка ведёт в кабинет (а не на витрину)? Аргументы подставляем пробно."""
+    from django.urls import NoReverseMatch, reverse
+
+    from apps.core.i18n_cabinet import CABINET_PREFIXES
+
+    for args in ((), ["00000000-0000-0000-0000-000000000000"], [1]):
+        try:
+            return reverse(name, args=args, urlconf=URLCONF).startswith(CABINET_PREFIXES)
+        except NoReverseMatch:
+            continue
+    return not name.startswith("storefront")
+
+
+@pytest.mark.parametrize("path", [p for p in _REACHABLE if p.exists()], ids=lambda p: p.name)
+def test_reachable_template_links_stay_inside_the_package(path):
+    """Кнопка внутри доступного экрана не ведёт в «nicht enthalten»: либо экран открыт
     пакету «Aktionen», либо ссылка спрятана за `|pkg_allowed`."""
     tenant = _tenant(LITE)
     body = path.read_text()
+    known = _KNOWN.get(path.name, set())
     for name in set(re.findall(r"{% url '([^']+)'", body)):
+        if name in known or not _cabinet_name(name):
+            continue
         assert packages.view_allowed(tenant, name) or f"'{name}'|pkg_allowed" in body, name
 
 

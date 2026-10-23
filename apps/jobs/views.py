@@ -518,7 +518,12 @@ def job_delete(request, pk):
     if job.status in (Job.STATUS_NEW, Job.STATUS_DECLINED, Job.STATUS_CANCELLED):
         job.delete()
         messages.success(request, _("Request deleted."))
-        # X2c: списка заявок больше нет — возвращаем на вкладку продаж.
+        # X2c: списка заявок больше нет — возвращаем на вкладку продаж (лёгкий пакет —
+        # на Start: страницы продаж в нём нет, T-8.32b).
+        from apps.core import packages
+
+        if not packages.view_allowed(request.tenant, "verkaeufe"):
+            return redirect("dashboard")
         return redirect(reverse("verkaeufe") + "?tab=job")
     messages.error(request, _("This request can no longer be deleted."))
     return redirect("jobs:detail", pk=job.pk)
