@@ -265,6 +265,8 @@ def apply_match(tx, kind: str, obj) -> bool:
     if kind == "invoice":
         from .state_machine import InvoiceSM
 
+        if getattr(obj, "kind", "invoice") == "storno":
+            return False  # ревью W1.2 (M3): Stornorechnung не оплачивается
         if obj.status == "issued":
             InvoiceSM().apply(obj, "paid")
     else:

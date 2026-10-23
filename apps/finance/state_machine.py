@@ -5,6 +5,8 @@ Stornorechnung — отдельный документ со своим номе�
 оригинал не меняется (GoBD). Сама Stornorechnung переходов не имеет.
 """
 
+from django.db import transaction
+
 from apps.core.fsm import IllegalTransition, StateMachine, Transition
 
 
@@ -19,6 +21,11 @@ class InvoiceSM(StateMachine):
     def apply(self, instance, dst, **kw):
         if getattr(instance, "kind", "invoice") == "storno":
             raise IllegalTransition("invoice(storno)", instance.status, dst)
+        if dst == "cancelled":
+            # Ревью W1.2 (H1): отмена и Stornorechnung — одно целое; сбой при выпуске
+            # сторно откатывает и статус оригинала (иначе «Storniert» без документа).
+            with transaction.atomic():
+                return super().apply(instance, dst, **kw)
         return super().apply(instance, dst, **kw)
 
     def on_transition(self, instance, t, **kw):

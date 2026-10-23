@@ -50,6 +50,17 @@ def _rate_rows(invoice):
         net = by_rate[rate].quantize(cent, rounding=ROUND_HALF_UP)
         vat = (net * rate / Decimal("100")).quantize(cent, rounding=ROUND_HALF_UP)
         rows.append((rate, net, vat))
+    # Ревью W1.2 (M2): строки по ставкам обязаны сходиться со снимком документа.
+    # Копеечная разница округления уходит в строку наибольшей ставки; заметная —
+    # значит, строки считались не так (брутто-снимок и т. п.) → одна строка снимка.
+    diff_net = Decimal(invoice.net) - sum(r[1] for r in rows)
+    diff_vat = Decimal(invoice.vat_amount) - sum(r[2] for r in rows)
+    if diff_net or diff_vat:
+        tolerance = cent * len(invoice.lines or [])
+        if abs(diff_net) > tolerance or abs(diff_vat) > tolerance:
+            return fallback
+        rate, net, vat = rows[0]
+        rows[0] = (rate, net + diff_net, vat + diff_vat)
     return rows
 
 

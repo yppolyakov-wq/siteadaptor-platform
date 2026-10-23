@@ -28465,3 +28465,7 @@ msgstr "Cancellation of %(num)s dated %(date)s"
 
 msgid "Stornorechnung"
 msgstr "Cancellation invoice"
+
+#, python-format
+msgid "Stornorechnung Nr. %(n)s"
+msgstr "Cancellation invoice no. %(n)s"

@@ -28609,3 +28609,7 @@ msgstr "%(date)s tarihli %(num)s iptali"
 
 msgid "Stornorechnung"
 msgstr "İptal faturası"
+
+#, python-format
+msgid "Stornorechnung Nr. %(n)s"
+msgstr "İptal faturası no. %(n)s"

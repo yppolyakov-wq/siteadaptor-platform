@@ -103,3 +103,18 @@ def test_open_items_carry_the_due_date_once():
     assert "order" not in by_kind
     assert by_kind["invoice"]["due_date"] == invoice.due_date
     assert by_kind["invoice"]["amount"] == order.total
+
+
+def test_auto_invoice_after_cancel_issues_a_new_one():
+    """Ревью KA-12 W1.2 (H2): после сторно повторное подтверждение сделки выпускает
+    новый счёт, а не отдаёт отменённый."""
+    from apps.finance.state_machine import InvoiceSM
+
+    tenant = _tenant()
+    order = _order(tenant)
+    first = issue_invoice_for_deal("order", order, tenant, send_email=False)
+    InvoiceSM().apply(first, "cancelled")
+    order.refresh_from_db()
+    second = issue_invoice_for_deal("order", order, tenant, send_email=False)
+    assert second is not None and second.pk != first.pk
+    assert second.status == "issued" and second.kind == "invoice"

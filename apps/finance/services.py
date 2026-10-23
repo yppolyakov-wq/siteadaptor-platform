@@ -720,7 +720,12 @@ def issue_invoice_for_deal(kind, obj, tenant, *, send_email=True):
     from .models import Invoice
 
     ref = str(getattr(obj, "reference_code", "") or getattr(obj, "pk", ""))
-    existing = Invoice.objects.filter(deal_kind=kind, deal_id=ref).first()
+    # Ревью W1.2 (H2): отменённый счёт (и его сторно) — уже не счёт сделки; после
+    # отмены повторное подтверждение выпускает новый документ.
+    live = Invoice.objects.exclude(status=Invoice.STATUS_CANCELLED).exclude(
+        kind=Invoice.KIND_STORNO
+    )
+    existing = live.filter(deal_kind=kind, deal_id=ref).first()
     if existing is not None:
         return existing
     # CO-2 (ревью): черновик, созданный кнопкой на карточке (`obj.invoice_id`), —
@@ -728,7 +733,9 @@ def issue_invoice_for_deal(kind, obj, tenant, *, send_email=True):
     draft = None
     if getattr(obj, "invoice_id", None):
         draft = Invoice.objects.filter(pk=obj.invoice_id).first()
-        if draft is not None and draft.status != Invoice.STATUS_DRAFT:
+        if draft is not None and draft.status == Invoice.STATUS_CANCELLED:
+            draft = None
+        elif draft is not None and draft.status != Invoice.STATUS_DRAFT:
             return draft
     builder = {
         "order": invoice_from_order,

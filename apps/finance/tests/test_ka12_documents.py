@@ -197,3 +197,51 @@ def rf_owner():
         return req
 
     return make
+
+
+# --- ревью W1.2 --------------------------------------------------------------------
+
+
+def test_cancel_rolls_back_when_storno_fails(monkeypatch):
+    """H1: сбой выпуска сторно не оставляет «Storniert» без документа."""
+    from apps.finance import services
+
+    original = _issued()
+
+    def boom(_inv):
+        raise RuntimeError("storno failed")
+
+    monkeypatch.setattr(services, "create_storno", boom)
+    with pytest.raises(RuntimeError):
+        InvoiceSM().apply(original, "cancelled")
+    original.refresh_from_db()
+    assert original.status == "issued"
+    assert not Invoice.objects.filter(kind="storno").exists()
+
+
+def test_bank_match_refuses_storno():
+    """M3: Stornorechnung не «оплачивается» банком."""
+    from apps.finance import bank
+    from apps.finance.models import BankTransaction
+
+    original = _issued()
+    InvoiceSM().apply(original, "cancelled")
+    storno = Invoice.objects.get(cancels=original)
+    tx = BankTransaction.objects.create(
+        date="2026-10-01", amount=Decimal("18.32"), purpose="x", import_hash="k1"
+    )
+    assert bank.apply_match(tx, "invoice", storno) is False
+    tx.refresh_from_db()
+    assert not tx.matched_kind
+
+
+def test_rate_rows_reconcile_with_snapshot():
+    """M2: строки по ставкам всегда сходятся с суммами документа."""
+    from apps.finance.pdf import _rate_rows
+
+    inv = Invoice(lines=MIXED, net=Decimal("16.00"), vat_amount=Decimal("2.33"), vat_rate=19)
+    rows = _rate_rows(inv)
+    assert sum(r[1] for r in rows) == inv.net and sum(r[2] for r in rows) == inv.vat_amount
+    # брутто-снимок (заметная разница) → одна строка из сумм документа
+    gross_snap = Invoice(lines=MIXED, net=Decimal("13.90"), vat_amount=Decimal("2.10"), vat_rate=19)
+    assert _rate_rows(gross_snap) == [(Decimal("19"), Decimal("13.90"), Decimal("2.10"))]

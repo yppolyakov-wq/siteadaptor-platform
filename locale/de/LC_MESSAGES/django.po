@@ -28557,3 +28557,7 @@ msgstr "Storno zu %(num)s vom %(date)s"
 
 msgid "Stornorechnung"
 msgstr "Stornorechnung"
+
+#, python-format
+msgid "Stornorechnung Nr. %(n)s"
+msgstr "Stornorechnung Nr. %(n)s"

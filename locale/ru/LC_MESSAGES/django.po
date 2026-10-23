@@ -28730,3 +28730,7 @@ msgstr "Сторно к %(num)s от %(date)s"
 
 msgid "Stornorechnung"
 msgstr "Сторно-счёт"
+
+#, python-format
+msgid "Stornorechnung Nr. %(n)s"
+msgstr "Сторнирующий счёт № %(n)s"
