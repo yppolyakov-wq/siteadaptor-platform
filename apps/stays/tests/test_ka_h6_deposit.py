@@ -121,3 +121,31 @@ def test_booking_webhook_full_price_sets_paid():
     mark_deposit_paid(tenant_schema=connection.schema_name, booking_id=str(b.id))
     b.refresh_from_db()
     assert b.payment_state == Booking.PAYMENT_PAID
+
+
+def test_payments_page_shows_remainder_for_deposit():
+    tenant = TenantFactory.build(disabled_modules=[])
+    b = _stay(deposit=3000, total=20000, state=StayBooking.PAYMENT_DEPOSIT)
+    row = next(r for r in payments_page.payment_rows(tenant, "open") if r["pk"] == b.pk)
+    assert row["amount_value"] == Decimal("170.00")
+
+
+def test_booking_cabinet_mark_paid_from_deposit():
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.booking import views
+
+    b = _appointment(deposit=1000, price=6000)
+    Booking.objects.filter(pk=b.pk).update(payment_state=Booking.PAYMENT_DEPOSIT)
+    request = RequestFactory().post("/x/", {"action": "mark_paid"})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = get_user_model().objects.create_user(
+        username=f"o-{uuid.uuid4().hex[:6]}", password="pw12345678"
+    )
+    views.booking_action(request, pk=b.pk)
+    b.refresh_from_db()
+    assert b.payment_state == Booking.PAYMENT_PAID

@@ -226,6 +226,16 @@ def booking_action(request, pk):
     _next = request.POST.get("next", "")
     if _next.startswith("/") and not _next.startswith("//"):
         back = _next
+    if action == "mark_paid":
+        # KA-H6: остаток после онлайн-Anzahlung кассируется на месте (наличные/EC) —
+        # зеркало stays.mark_paid; refunded не перетираем.
+        if booking.payment_state == Booking.PAYMENT_REFUNDED:
+            messages.error(request, _("This step is not possible in the current status."))
+            return redirect(back)
+        booking.payment_state = Booking.PAYMENT_PAID
+        booking.save(update_fields=["payment_state", "updated_at"])
+        messages.success(request, _("Marked as paid."))
+        return redirect(back)
     if action == "move":
         tz = timezone.get_current_timezone()
         try:

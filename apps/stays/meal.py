@@ -78,8 +78,14 @@ def revenue_parts(booking, tenant=None) -> list[tuple[str, Decimal, Decimal]]:
 
 
 def record_revenue(booking, tenant=None) -> None:
+    from apps.finance.models import RevenueEntry
     from apps.finance.services import record_revenue as record
 
+    # Бронь до KA-H6 уже проведена одной записью на ВЕСЬ итог — повтор хука не
+    # должен дописать «:meal» сверху (питание посчиталось бы дважды).
+    legacy = RevenueEntry.objects.filter(source="stay", source_ref=str(booking.id)).first()
+    if legacy is not None:
+        return
     for suffix, amount, rate in revenue_parts(booking, tenant):
         record(
             source="stay",

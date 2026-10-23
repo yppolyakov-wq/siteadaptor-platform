@@ -70,6 +70,13 @@ def payment_rows(tenant, state: str = "open", method: str = "", limit: int = 200
             qs = qs.filter(payment_method=method)
         for obj in qs.order_by("-created_at")[:limit]:
             tx = transactions.transaction_for(kind, obj)
+            amount_value, amount_display = tx.amount_value, tx.subtotal_display
+            if getattr(obj, "payment_state", "") == "deposit" and kind in ("booking", "stay"):
+                # KA-H6: Anzahlung получена — открыт только остаток (как «Offene Posten»).
+                from decimal import Decimal
+
+                amount_value = Decimal(obj.balance_cents) / 100
+                amount_display = f"{amount_value:.2f} €"
             rows.append(
                 {
                     "kind": kind,
@@ -78,8 +85,8 @@ def payment_rows(tenant, state: str = "open", method: str = "", limit: int = 200
                     "code": tx.reference_code,
                     "title": tx.title,
                     "customer": tx.customer,
-                    "amount_display": tx.subtotal_display,
-                    "amount_value": tx.amount_value,
+                    "amount_display": amount_display,
+                    "amount_value": amount_value,
                     "payment_state": getattr(obj, "payment_state", ""),
                     "payment_method": getattr(obj, "payment_method", ""),
                     "payment_method_label": (

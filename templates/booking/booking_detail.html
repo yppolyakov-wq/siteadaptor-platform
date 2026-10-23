@@ -95,6 +95,13 @@ Rabatt → Netto → MwSt. → Gesamt); свой набор строк у каж
     {% elif b.payment_state == 'refunded' %}{% trans "Refunded" %}
     {% else %}{% trans "Vor Ort zu zahlen" %}{% endif %}
   </p>
+  {% if b.payment_state == 'deposit' and b.status != 'cancelled' %}
+  <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="mt-2">
+    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <input type="hidden" name="action" value="mark_paid">
+    <button type="submit" class="text-sm border border-emerald-300 text-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-50">💶 {% blocktrans with eur=b.balance_eur|floatformat:2 %}Restbetrag kassieren ({{ eur }} €){% endblocktrans %}</button>
+  </form>
+  {% endif %}
 {% endblock %}
 
 {% block deal_rail_extra %}

@@ -98,3 +98,21 @@ def test_revenue_without_meal_single_entry():
     booking = _stay(snapshot={})
     StayBookingSM().apply(booking, StayBooking.STATUS_FULFILLED)
     assert RevenueEntry.objects.filter(source="stay").count() == 1
+
+
+@pytest.mark.parametrize("room", [7333, 9999, 10001, 12347])
+@pytest.mark.parametrize("surcharge", [1199, 1301, 777])
+def test_invoice_gross_matches_total_on_odd_amounts(room, surcharge):
+    snap = {"meal_plan": "half_board", "surcharge_cents": surcharge}
+    booking = _stay(snapshot=snap, nights=3, total=(room + surcharge) * 3)
+    invoice = invoice_from_stay(booking, SimpleNamespace(small_business=False))
+    assert invoice.gross == Decimal(booking.total_cents) / 100
+
+
+def test_legacy_single_entry_gets_no_meal_row():
+    booking = _stay(nights=2)
+    RevenueEntry.objects.create(
+        source="stay", source_ref=str(booking.id), amount=Decimal(booking.total_cents) / 100
+    )
+    meal.record_revenue(booking)
+    assert not RevenueEntry.objects.filter(source_ref=f"{booking.id}:meal").exists()

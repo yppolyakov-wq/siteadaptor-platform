@@ -147,3 +147,36 @@ def test_overbooked_nights_counts_bookings_and_blocks():
     assert availability.overbooked_nights(unit, D0, D0 + timedelta(days=5)) == [
         D0 + timedelta(days=1)
     ]
+
+
+def test_g11_import_keeps_longer_ical_block():
+    """Длинный блок «nicht verfügbar» не снимается ради короткой брони канала."""
+    unit = _unit()
+    UnitBlock.objects.create(
+        unit=unit, start_date=D0, end_date=D0 + timedelta(days=20), source_id_ref="ical-long"
+    )
+    result = services.import_external_booking(
+        kind="booking_com",
+        unit=unit,
+        arrival=D0,
+        departure=D0 + timedelta(days=3),
+        name="OTA",
+        external_ref="BDC-4",
+    )
+    assert result is None
+    assert UnitBlock.objects.filter(source_id_ref="ical-long").exists()
+
+
+def test_replayed_webhook_does_not_revive_refunded():
+    from django.db import connection
+
+    from apps.stays.payments import mark_stay_paid
+
+    unit = _unit()
+    booking = _book(unit, D0)
+    StayBooking.objects.filter(pk=booking.pk).update(
+        payment_state=StayBooking.PAYMENT_REFUNDED, deposit_cents=1000, total_cents=30000
+    )
+    mark_stay_paid(tenant_schema=connection.schema_name, booking_id=str(booking.id))
+    booking.refresh_from_db()
+    assert booking.payment_state == StayBooking.PAYMENT_REFUNDED

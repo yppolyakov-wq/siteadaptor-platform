@@ -51,7 +51,12 @@ def mark_stay_paid(*, tenant_schema: str, booking_id: str, payment_intent: str =
             if 0 < booking.deposit_cents < booking.total_cents
             else StayBooking.PAYMENT_PAID
         )
-        if booking.payment_state not in (target, StayBooking.PAYMENT_PAID):
+        # refunded не воскрешаем повтором вебхука (иначе возврат стал бы возможен снова).
+        if booking.payment_state not in (
+            target,
+            StayBooking.PAYMENT_PAID,
+            StayBooking.PAYMENT_REFUNDED,
+        ):
             booking.payment_state = target
             fields.append("payment_state")
         if payment_intent and booking.stripe_payment_intent != payment_intent:

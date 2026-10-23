@@ -438,7 +438,6 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
     return booking
 
 
-@transaction.atomic
 def _import_over_ical_block(unit, kwargs):
     """Снять iCal-блоки, накрывающие [заезд, последняя ночь], и повторить бронь
     в точке сохранения: неудача откатывает удаление блоков."""
@@ -447,8 +446,11 @@ def _import_over_ical_block(unit, kwargs):
     from .models import UnitBlock
 
     last_night = kwargs["departure"] - datetime.timedelta(days=1)
+    # Только блок iCal РОВНО на даты брони — это та же бронь, пришедшая фидом.
+    # Длинный «nicht verfügbar»-блок или блок другого канала не снимаем: иначе
+    # даты открылись бы для продажи до следующего синка.
     covering = UnitBlock.objects.filter(
-        unit=unit, start_date__lte=kwargs["arrival"], end_date__gte=last_night
+        unit=unit, start_date=kwargs["arrival"], end_date=last_night
     ).exclude(source_id_ref="")
     if not covering.exists():
         raise StayUnavailable()
@@ -457,6 +459,7 @@ def _import_over_ical_block(unit, kwargs):
         return book_stay(unit, **kwargs)
 
 
+@transaction.atomic
 def import_external_booking(
     *, kind, unit, arrival, departure, name, external_ref="", email="", guests=1
 ):
@@ -691,9 +694,13 @@ def _notify_overbooking(unit, nights, origin: str) -> None:
     from apps.booking.revenue import _tenant
     from apps.notifications.services import email_locale, notify
 
+    log = logging.getLogger(__name__)
     tenant = _tenant(None)
     recipient = (getattr(tenant, "owner_email", "") or "").strip()
-    if not recipient or not nights:
+    if not nights:
+        return
+    if not recipient:
+        log.warning("overbooking on unit %s, but no owner e-mail (%s)", unit.pk, origin)
         return
     dates = ", ".join(d.strftime("%d.%m.%Y") for d in nights[:20])
     digest = hashlib.sha256(dates.encode()).hexdigest()[:12]
@@ -713,4 +720,4 @@ def _notify_overbooking(unit, nights, origin: str) -> None:
             body=body,
         )
     except Exception:  # noqa: BLE001 — синк не падает из-за письма
-        logging.getLogger(__name__).warning("overbooking mail not sent (%s)", origin)
+        log.warning("overbooking mail not sent (%s)", origin, exc_info=True)
