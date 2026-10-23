@@ -635,7 +635,7 @@ def save_vorkasse(tenant, request) -> list[str]:
         from apps.core.bank_notify import notify_bank_change
 
         actor = getattr(request.user, "email", "") or getattr(request.user, "username", "")
-        transaction.on_commit(lambda: notify_bank_change(tenant, old, new, actor))
+        transaction.on_commit(lambda: notify_bank_change(tenant, old, new, actor), robust=True)
     return errors
 
 

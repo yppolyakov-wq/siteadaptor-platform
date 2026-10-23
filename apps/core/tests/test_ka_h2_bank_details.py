@@ -84,6 +84,9 @@ def test_iban_validator():
     assert not iban.is_valid_iban("DE8937040044053201300")  # длина DE
     assert not iban.is_valid_iban("DE1")
     assert not iban.is_valid_iban("")
+    assert not iban.is_valid_iban("DE\u0668\u0669370400440532013000")  # не-ASCII цифры
+    assert iban.normalize_iban("DE89\u00a03704-0044 0532 0130 00") == OLD
+    assert not iban.is_valid_iban(iban.normalize_iban(OLD + "0000000000000"))
     assert iban.mask_iban(OLD).endswith("3000") and "0532" not in iban.mask_iban(OLD)
 
 

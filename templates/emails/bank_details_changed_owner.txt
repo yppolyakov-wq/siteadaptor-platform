@@ -1,4 +1,4 @@
-{% load i18n %}{% trans "Die Bankverbindung für Überweisungen (Vorkasse) wurde geändert." %}
+{% load i18n %}{% autoescape off %}{% trans "Die Bankverbindung für Überweisungen (Vorkasse) wurde geändert." %}
 
 {% trans "Vorher" %}: {{ old_holder|default:"–" }} · {{ old_iban|default:"–" }} · {{ old_bic|default:"–" }}
 {% trans "Jetzt" %}: {{ new_holder|default:"–" }} · {{ new_iban|default:"–" }} · {{ new_bic|default:"–" }}
@@ -8,4 +8,4 @@
 
 {% trans "Ihre Kundinnen und Kunden überweisen ab jetzt auf dieses Konto." %}
 {% trans "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie die Bankverbindung." %}
-{% if settings_url %}{{ settings_url|safe }}{% endif %}
+{% if settings_url %}{{ settings_url|safe }}{% endif %}{% endautoescape %}
