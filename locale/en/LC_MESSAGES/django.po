@@ -27775,3 +27775,23 @@ msgstr "The cancellation of %(code)s has been saved, but Stripe did not confirm 
 #: apps/core/refunds.py
 msgid "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
 msgstr "Instalment plan: please refund the instalments already paid in the Stripe dashboard."
+
+#: KA-H5
+msgid "Mehr Personen als Plätze (%(cap)s)."
+msgstr "More people than seats (%(cap)s)."
+
+#: KA-H5
+msgid "Für %(n)s Personen sind zu dieser Zeit nur %(free)s Plätze frei."
+msgstr "For %(n)s people only %(free)s seats are free at this time."
+
+#: KA-H5
+msgid "Gutschein %(code)s: −%(amount)s"
+msgstr "Voucher %(code)s: −%(amount)s"
+
+#: KA-H5
+msgid "Anzahlung erhalten: −%(amount)s"
+msgstr "Deposit received: −%(amount)s"
+
+#: KA-H5
+msgid "Bereits bezahlt"
+msgstr "Already paid"

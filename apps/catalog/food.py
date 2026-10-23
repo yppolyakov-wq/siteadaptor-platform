@@ -111,6 +111,20 @@ def allergen_letters() -> dict[str, str]:
     return {code: chr(ord("a") + i) for i, (code, _label) in enumerate(ALLERGENS)}
 
 
+def additive_numbers() -> dict[str, int]:
+    """KA-H5: позиционный номер Zusatzstoff (1..13, порядок ADDITIVES).
+
+    ZZulV номера не задаёт — это наш стандарт; PDF-карта и сноски обязаны
+    брать его отсюда, чтобы номер у блюда совпадал с легендой."""
+    return {code: i + 1 for i, (code, _label) in enumerate(ADDITIVES)}
+
+
+def additive_number_str(codes) -> str:
+    """Сноска позиции: коды добавок → «2,4» (по возрастанию); неизвестные отброшены."""
+    numbers = additive_numbers()
+    return ",".join(str(n) for n in sorted(numbers[a] for a in (codes or []) if a in numbers))
+
+
 def allergen_letter_str(codes) -> str:
     """Сноска позиции: коды → компактная строка букв («acg»); неизвестные отброшены."""
     letters = allergen_letters()

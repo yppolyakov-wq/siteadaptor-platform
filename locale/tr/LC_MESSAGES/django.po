@@ -27915,3 +27915,23 @@ msgstr "%(code)s iptali kaydedildi, ancak Stripe iadeyi onaylamadı. Lütfen öd
 #: apps/core/refunds.py
 msgid "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
 msgstr "Taksitli ödeme: Lütfen ödenmiş taksitleri Stripe panelinde iade edin."
+
+#: KA-H5
+msgid "Mehr Personen als Plätze (%(cap)s)."
+msgstr "Kişi sayısı yer sayısından fazla (%(cap)s)."
+
+#: KA-H5
+msgid "Für %(n)s Personen sind zu dieser Zeit nur %(free)s Plätze frei."
+msgstr "%(n)s kişi için bu saatte yalnızca %(free)s yer boş."
+
+#: KA-H5
+msgid "Gutschein %(code)s: −%(amount)s"
+msgstr "Hediye çeki %(code)s: −%(amount)s"
+
+#: KA-H5
+msgid "Anzahlung erhalten: −%(amount)s"
+msgstr "Kapora alındı: −%(amount)s"
+
+#: KA-H5
+msgid "Bereits bezahlt"
+msgstr "Ödendi"

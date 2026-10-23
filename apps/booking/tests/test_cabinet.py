@@ -346,3 +346,65 @@ def test_resource_profile_saves_title_bio_photo_and_removes():
     )
     resource.refresh_from_db()
     assert not resource.photo_url
+
+
+# --- KA-H5 (G2): ручная запись учитывает число гостей (овербукинг пула мест) -------
+
+
+def _manual(resource, party="", start_hour=12, **extra):
+    start = timezone.localtime(_slot(hour=start_hour)[0]).replace(tzinfo=None)
+    data = {"resource": str(resource.pk), "start": start.isoformat(), "minutes": "60"}
+    if party != "":
+        data["party_size"] = party
+    data.update(extra)
+    req = _req("post", "/dashboard/booking/neu/", data)
+    views.booking_create(req)
+    return req
+
+
+def _msgs(req):
+    from django.contrib.messages import get_messages
+
+    return [str(m) for m in get_messages(req)]
+
+
+def test_manual_booking_stores_party_size():
+    resource = _resource(capacity=40, counts_party_size=True)
+    _manual(resource, "8")
+    assert Booking.objects.get(resource=resource).party_size == 8
+
+
+def test_manual_booking_rejects_overfill_pooled_resource():
+    resource = _resource(capacity=4, counts_party_size=True)
+    _manual(resource, "3")
+    req = _manual(resource, "2")
+    assert Booking.objects.filter(resource=resource).count() == 1
+    assert any("1" in m for m in _msgs(req))  # свободно 1 место
+
+
+def test_manual_booking_party_size_over_capacity_rejected():
+    resource = _resource(capacity=4, counts_party_size=True)
+    _manual(resource, "6")
+    assert not Booking.objects.filter(resource=resource).exists()
+
+
+def test_manual_booking_garbage_party_size_defaults_to_1():
+    resource = _resource(capacity=10, counts_party_size=True)
+    _manual(resource, "abc")
+    assert Booking.objects.get(resource=resource).party_size == 1
+
+
+def test_manual_booking_table_resource_party_size_informative():
+    resource = _resource(capacity=1)  # стол: одна запись на слот, гости — информация
+    _manual(resource, "6")
+    assert Booking.objects.get(resource=resource).party_size == 6
+
+
+def test_manual_booking_form_has_party_size_field():
+    resource = _resource(capacity=40, counts_party_size=True)
+    req = _req()
+    req.tenant = TenantFactory.build(
+        business_type="restaurant", disabled_modules=["events", "stays"]
+    )
+    body = _cal(req).content.decode()
+    assert resource.name in body and 'name="party_size"' in body

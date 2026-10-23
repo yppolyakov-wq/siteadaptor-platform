@@ -27865,3 +27865,23 @@ msgstr "Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde 
 #: apps/core/refunds.py
 msgid "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
 msgstr "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
+
+#: KA-H5
+msgid "Mehr Personen als Plätze (%(cap)s)."
+msgstr "Mehr Personen als Plätze (%(cap)s)."
+
+#: KA-H5
+msgid "Für %(n)s Personen sind zu dieser Zeit nur %(free)s Plätze frei."
+msgstr "Für %(n)s Personen sind zu dieser Zeit nur %(free)s Plätze frei."
+
+#: KA-H5
+msgid "Gutschein %(code)s: −%(amount)s"
+msgstr "Gutschein %(code)s: −%(amount)s"
+
+#: KA-H5
+msgid "Anzahlung erhalten: −%(amount)s"
+msgstr "Anzahlung erhalten: −%(amount)s"
+
+#: KA-H5
+msgid "Bereits bezahlt"
+msgstr "Bereits bezahlt"

@@ -11,4 +11,5 @@ urlpatterns = [
     path("<uuid:pk>/", views.job_detail, name="detail"),
     path("<uuid:pk>/delete/", views.job_delete, name="delete"),
     path("<uuid:pk>/angebot.pdf", views.job_pdf, name="pdf"),
+    path("<uuid:pk>/rechnung.pdf", views.job_invoice_pdf, name="invoice-pdf"),
 ]

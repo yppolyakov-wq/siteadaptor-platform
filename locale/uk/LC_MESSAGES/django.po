@@ -28028,3 +28028,23 @@ msgstr "Скасування %(code)s збережено, але Stripe не п�
 #: apps/core/refunds.py
 msgid "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
 msgstr "Розстрочка: поверніть уже сплачені частини в панелі Stripe."
+
+#: KA-H5
+msgid "Mehr Personen als Plätze (%(cap)s)."
+msgstr "Гостей більше, ніж місць (%(cap)s)."
+
+#: KA-H5
+msgid "Für %(n)s Personen sind zu dieser Zeit nur %(free)s Plätze frei."
+msgstr "Для %(n)s гостей у цей час вільно лише %(free)s місць."
+
+#: KA-H5
+msgid "Gutschein %(code)s: −%(amount)s"
+msgstr "Сертифікат %(code)s: −%(amount)s"
+
+#: KA-H5
+msgid "Anzahlung erhalten: −%(amount)s"
+msgstr "Отримано аванс: −%(amount)s"
+
+#: KA-H5
+msgid "Bereits bezahlt"
+msgstr "Вже оплачено"

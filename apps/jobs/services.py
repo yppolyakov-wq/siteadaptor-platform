@@ -343,21 +343,121 @@ def lines_snapshot(job) -> list[dict]:
     ]
 
 
+def discount_is_payment(job) -> bool:
+    """KA-H5: скидка заявки — средство платежа (Wertgutschein с балансом) или
+    уменьшение цены (промокод, скидка владельца DC-5 — там в `voucher_code`
+    заметка владельца, а не код)?
+
+    Wertgutschein (Mehrzweckgutschein) — Zahlungsmittel: счёт остаётся на gross,
+    оплата отмечается пометкой. Rabatt уменьшает цену — минус-строкой в счёте."""
+    code = (job.voucher_code or "").strip()
+    if not code or not job.discount_cents:
+        return False
+    try:
+        from apps.loyalty.models import Voucher
+    except ImportError:  # pragma: no cover
+        return False
+    voucher = Voucher.objects.filter(code__iexact=code).first()
+    return voucher is not None and voucher.balance_cents is not None
+
+
+def _rabatt_lines(job, small_business: bool) -> list[dict]:
+    """Скидка (брутто) → минус-строки по ставкам, пропорционально брутто групп.
+
+    Инвариант: gross счёта == job.payable_gross (сумма, которую принял клиент).
+    Цент округления — на последнюю строку."""
+    from django.utils.translation import gettext as _
+
+    from apps.finance.services import compute_totals
+    from apps.orders.totals import split_gross
+
+    from .totals import quote_totals
+
+    rows = quote_totals(job.lines.all(), job.vat_rate, small_business=small_business)["rows"]
+    total_gross = sum((r["gross"] for r in rows), Decimal("0"))
+    discount = min(Decimal(job.discount_cents) / 100, total_gross)
+    if not rows or discount <= 0:
+        return []
+    lines, left = [], discount
+    for i, row in enumerate(rows):
+        part = (
+            left
+            if i == len(rows) - 1
+            else (discount * row["gross"] / total_gross).quantize(Decimal("0.01"))
+        )
+        left -= part
+        net, _vat = split_gross(part, row["rate"])
+        lines.append(
+            {
+                "text": str(_("Rabatt")),
+                "qty": 1,
+                "unit_price": str(-net),
+                "vat_rate": str(row["rate"]),
+            }
+        )
+    # Подгонка цента: брутто счёта обязано совпасть с суммой, которую принял клиент.
+    base = lines_snapshot(job)
+    target = max(total_gross - discount, Decimal("0"))
+    for _attempt in range(3):
+        _net, _vat, gross = compute_totals(
+            base + lines, job.vat_rate, small_business=small_business
+        )
+        diff = gross - target
+        if not diff:
+            break
+        last = lines[-1]
+        last["unit_price"] = str(Decimal(last["unit_price"]) - diff)
+    return lines
+
+
+def _payment_note(job) -> str:
+    """Пометка об уже полученных деньгах (без НДС-эффекта: Anzahlungsrechnung не
+    выпускалась, § 14 Abs. 5 UStG тут не применяется)."""
+    from django.utils.translation import gettext as _
+
+    from apps.core.documents import money
+
+    parts = []
+    if job.discount_cents and discount_is_payment(job):
+        parts.append(
+            str(_("Gutschein %(code)s: −%(amount)s"))
+            % {"code": job.voucher_code, "amount": money(Decimal(job.discount_cents) / 100)}
+        )
+    if job.payment_state == job.PAYMENT_PAID:
+        if job.deposit_cents:
+            parts.append(
+                str(_("Anzahlung erhalten: −%(amount)s"))
+                % {"amount": money(Decimal(job.deposit_cents) / 100)}
+            )
+        else:
+            parts.append(str(_("Bereits bezahlt")))
+    return " · ".join(parts)
+
+
 def quote_to_invoice(job, *, small_business=False):
     """Создать черновик Rechnung (apps.finance.Invoice) из позиций сметы заявки.
 
     Снимок позиций + получатель (клиент + адрес работ); суммы пересчитываются
     через finance.compute_totals (§19 → НДС 0), чтобы Rechnung совпала со сметой.
     Возвращает Invoice; ставит job.invoice_id. Переход done→invoiced — на вызове.
+
+    KA-H5: скидка владельца/промокод — минус-строка (gross счёта == согласованной
+    сумме); Wertgutschein и полученная Anzahlung — пометкой, без изменения НДС.
     """
     from apps.finance.models import Invoice
     from apps.finance.services import compute_totals
 
     lines = lines_snapshot(job)
+    if job.discount_cents and not discount_is_payment(job):
+        lines += _rabatt_lines(job, small_business)
     recipient = str(job.customer)
     if job.site_address:
         recipient = f"{recipient}\n{job.site_address}"
     net, vat, gross = compute_totals(lines, job.vat_rate, small_business=small_business)
+    note = f"Auftrag {job.reference_code}: {job.title}"
+    extra = _payment_note(job)
+    if extra:
+        note = f"{note} · {extra}"
     invoice = Invoice.objects.create(
         customer=job.customer,
         recipient=recipient[:500],
@@ -366,7 +466,9 @@ def quote_to_invoice(job, *, small_business=False):
         net=net,
         vat_amount=vat,
         gross=gross,
-        note=f"Auftrag {job.reference_code}: {job.title}"[:200],
+        note=note[:200],
+        deal_kind="job",
+        deal_id=job.reference_code,
     )
     job.invoice_id = invoice.id
     job.save(update_fields=["invoice_id", "updated_at"])

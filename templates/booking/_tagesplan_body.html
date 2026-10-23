@@ -85,5 +85,9 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
     <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
     <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
   </div>
+  <div class="max-w-xs">
+    <label for="neu-party" class="block text-sm font-medium mb-1">{% trans "Personen" %}</label>
+    <input id="neu-party" type="number" name="party_size" value="1" min="1" max="50" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  </div>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add booking" %}</button>
 </form>{% endif %}

@@ -77,3 +77,43 @@ def test_pdf_groups_split_by_course_only_when_filled():
     titles = [t for t, _items in groups]
     assert titles == ["Hochzeit · Suppe", "Hochzeit · Hauptgericht", "Hochzeit"]
     assert groups[0][1] == [soup] and groups[-1][1] == [plain]
+
+
+# --- KA-H5 (G3): Zusatzstoffe в PDF-карте (LMIV/ZZulV) ------------------------------
+
+
+def _drawn(monkeypatch, groups):
+    from reportlab.pdfgen import canvas as rl_canvas
+
+    texts = []
+    orig = rl_canvas.Canvas.drawString
+
+    def spy(self, x, y, text, *a, **kw):
+        texts.append(str(text))
+        return orig(self, x, y, text, *a, **kw)
+
+    monkeypatch.setattr(rl_canvas.Canvas, "drawString", spy)
+    build_menu_pdf(TenantFactory.build(), groups)
+    return texts
+
+
+def test_additive_numbers_follow_registry_order():
+    from apps.catalog.food import ADDITIVES, additive_number_str, additive_numbers
+
+    numbers = additive_numbers()
+    assert numbers[ADDITIVES[0][0]] == 1 and numbers["taurin"] == 13
+    assert additive_number_str(["taurin", "farbstoff", "unbekannt"]) == "1,13"
+
+
+def test_menu_pdf_prints_additive_footnote_and_legend(monkeypatch):
+    p = _product(name="Cola", allergens=["gluten"], additives=["farbstoff", "taurin"])
+    texts = _drawn(monkeypatch, [("Getränke", [p])])
+    assert any(t.startswith("Cola (1,13 · ") for t in texts)
+    assert any("13 = mit Taurin" in t and "1 = mit Farbstoff" in t for t in texts)
+
+
+def test_menu_pdf_without_additives_unchanged(monkeypatch):
+    p = _product(name="Brot", allergens=["gluten"])
+    texts = _drawn(monkeypatch, [("Karte", [p])])
+    assert "Brot (a)" in texts
+    assert not any("= mit " in t for t in texts)

@@ -314,12 +314,26 @@ def booking_create(request):
         messages.error(request, _("Invalid date."))
         return redirect("booking:calendar")
     name = request.POST.get("name", "").strip() or _("Walk-in")
+    # KA-H5: число гостей. Без него у пула мест (counts_party_size) компания из 8
+    # занимала 1 место → овербукинг. Разбор как на витрине: 1..50, мусор → 1.
+    try:
+        party_size = max(1, min(int(request.POST.get("party_size", "1")), 50))
+    except (TypeError, ValueError):
+        party_size = 1
+    end = start + timedelta(minutes=minutes)
+    if resource.counts_party_size and party_size > resource.capacity:
+        messages.error(
+            request,
+            _("Mehr Personen als Plätze (%(cap)s).") % {"cap": resource.capacity},
+        )
+        return redirect("booking:calendar")
     try:
         booking = services.book(
             resource,
             start=start,
-            end=start + timedelta(minutes=minutes),
+            end=end,
             name=name,
+            party_size=party_size,
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),
             note=request.POST.get("note", "").strip()[:2000],
@@ -327,7 +341,19 @@ def booking_create(request):
             auto_confirm=True,
         )
     except services.SlotTaken:
-        messages.error(request, _("That time is already taken."))
+        if resource.counts_party_size:
+            from django.db.models import Sum
+
+            taken = (
+                services.overlapping(resource, start, end).aggregate(s=Sum("party_size"))["s"] or 0
+            )
+            messages.error(
+                request,
+                _("Für %(n)s Personen sind zu dieser Zeit nur %(free)s Plätze frei.")
+                % {"n": party_size, "free": max(0, resource.capacity - taken)},
+            )
+        else:
+            messages.error(request, _("That time is already taken."))
         return redirect("booking:calendar")
     except services.ResourceClosed:
         messages.error(request, _("Closed on this date."))

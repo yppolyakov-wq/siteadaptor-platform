@@ -439,10 +439,32 @@ def _make_invoice(request, job):
     if job.status != Job.STATUS_DONE:
         messages.error(request, _("Finish the job before invoicing."))
         return redirect("jobs:detail", pk=job.pk)
-    invoice = services.quote_to_invoice(job, small_business=request.tenant.small_business)
-    JobSM().apply(job, Job.STATUS_INVOICED, actor=request.user)
+    from django.db import transaction
+
+    with transaction.atomic():
+        # KA-H5: счёт и переход — одной транзакцией (раньше при ошибке перехода
+        # оставался висящий черновик).
+        invoice = services.quote_to_invoice(job, small_business=request.tenant.small_business)
+        JobSM().apply(job, Job.STATUS_INVOICED, actor=request.user)
     messages.success(request, _("Invoice draft created from the quote."))
-    return redirect(f"{reverse('finance:invoice-detail', args=[invoice.pk])}")
+    # KA-H5: без модуля «Finanzen» экран счёта закрыт (404) — остаёмся на заявке,
+    # счёт доступен PDF-ссылкой с карточки.
+    if request.tenant.is_module_active("finance"):
+        return redirect(f"{reverse('finance:invoice-detail', args=[invoice.pk])}")
+    return redirect("jobs:detail", pk=job.pk)
+
+
+@login_required
+def job_invoice_pdf(request, pk):
+    """KA-H5: PDF счёта заявки без модуля «Finanzen» (экран счёта закрыт модулем)."""
+    from django.http import Http404
+
+    from apps.finance import views as finance_views
+
+    job = get_object_or_404(Job, pk=pk)
+    if not job.invoice_id:
+        raise Http404
+    return finance_views.invoice_pdf(request, pk=job.invoice_id)
 
 
 @login_required

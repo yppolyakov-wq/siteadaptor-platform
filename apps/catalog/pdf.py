@@ -60,6 +60,11 @@ def build_menu_pdf(tenant, groups) -> bytes:
     font, font_bold = fonts()
     letters = _allergen_letters()
     used_allergens = set()
+    # KA-H5: Zusatzstoffe (LMIV/ZZulV) — номером у блюда + легендой, как аллергены.
+    from apps.catalog.food import additive_number_str, additive_numbers
+
+    add_numbers = additive_numbers()
+    used_additives = set()
 
     buffer = io.BytesIO()
     page_w, page_h = A4
@@ -103,9 +108,14 @@ def build_menu_pdf(tenant, groups) -> bytes:
             name = p.get_i18n("name")
             codes = "".join(sorted(letters[a] for a in (p.allergens or []) if a in letters))
             used_allergens.update(a for a in (p.allergens or []) if a in letters)
+            additives = additive_number_str(getattr(p, "additives", None))
+            used_additives.update(
+                a for a in (getattr(p, "additives", None) or []) if a in add_numbers
+            )
+            marks = " · ".join(b for b in (additives, codes) if b)
             c.setFillColorRGB(*_INK)
             c.setFont(font, 10)
-            c.drawString(x, y, name + (f" ({codes})" if codes else ""))
+            c.drawString(x, y, name + (f" ({marks})" if marks else ""))
             c.setFont(font_bold, 10)
             c.drawRightString(right, y, money(p.base_price))
             diets = _diet_labels(p)
@@ -135,6 +145,26 @@ def build_menu_pdf(tenant, groups) -> bytes:
             f"{letters[code]} = {labels[code]}"
             for code, _lbl in ALLERGENS
             if code in used_allergens
+        )
+        for line in _wrap(legend, 110):
+            ensure(5 * mm)
+            c.drawString(x, y, line)
+            y -= 4 * mm
+
+    # Легенда Zusatzstoffe — только встретившиеся.
+    if used_additives:
+        from apps.catalog.food import ADDITIVES
+
+        ensure(20 * mm)
+        y -= 2 * mm
+        c.setFillColorRGB(*_INK)
+        c.setFont(font_bold, 9)
+        c.drawString(x, y, _("Additives"))
+        y -= 5 * mm
+        c.setFont(font, 8)
+        c.setFillColorRGB(*_MUTED)
+        legend = " · ".join(
+            f"{add_numbers[code]} = {label}" for code, label in ADDITIVES if code in used_additives
         )
         for line in _wrap(legend, 110):
             ensure(5 * mm)
