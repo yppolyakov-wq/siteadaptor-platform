@@ -5658,7 +5658,8 @@ SORTIMENT_OVERVIEW_LIMIT = 50
 
 def _pop_sellable_undo(request, sm):
     """KA-M4: одноразовое «Rückgängig» после тумблера видимости (см. sellable_visibility)."""
-    undo = request.session.pop("sellable_undo", None)
+    session = getattr(request, "session", None)
+    undo = session.pop("sellable_undo", None) if session is not None else None
     if not isinstance(undo, dict) or undo.get("kind") not in sm.MANAGE_KINDS:
         return None
     return undo
