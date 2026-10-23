@@ -88,7 +88,7 @@ def test_auto_invoice_without_customer_email_still_issues():
     assert not Notification.objects.filter(type="invoice_issued").exists()
 
 
-def test_open_items_carry_the_due_date():
+def test_open_items_carry_the_due_date_once():
     from apps.finance import bank as bank_mod
 
     tenant = _tenant(schema_name="sh23l", slug="sh23l", invoice_b2b_enabled=True)
@@ -98,5 +98,8 @@ def test_open_items_carry_the_due_date():
     invoice = issue_invoice_for_deal("order", order, tenant)
     rows = bank_mod.open_items(tenant)
     by_kind = {r["kind"]: r for r in rows}
-    assert by_kind["order"]["due_date"] == order.payment_due_at.date()
+    # KA-MC X3: сделка со счётом — ОДНА открытая позиция, сам счёт (его ждёт Mahnwesen);
+    # раньше заказ и его счёт шли двумя строками и сумма считалась дважды.
+    assert "order" not in by_kind
     assert by_kind["invoice"]["due_date"] == invoice.due_date
+    assert by_kind["invoice"]["amount"] == order.total
