@@ -113,21 +113,25 @@ def _full_export(customer) -> dict:
     return json.loads(dsgvo.export_json(customer))
 
 
-def _erase(email: str, customer=None) -> dict:
+def _erase(email: str, customer=None, tenant=None) -> dict:
     """Art. 17 — общая реализация `apps.crm.dsgvo` (KA-12 E6.1): та же политика, что у
     кнопки владельца; живая сделка любого вида блокирует удаление."""
     from apps.crm import dsgvo
 
     customers = _customers(email, customer)
     for c in customers:
-        blockers = dsgvo.erasure_blockers(c)
+        blockers = dsgvo.erasure_blockers(c, tenant)
         if blockers:
             raise CommandError(" ".join(str(b) for b in blockers))
 
     stats: dict = {"customers_anonymized": len(customers)}
     with transaction.atomic():
         for c in customers:
-            for key, value in dsgvo.erase_customer(c).items():
+            try:
+                erased = dsgvo.erase_customer(c, tenant)
+            except dsgvo.ErasureBlocked as exc:
+                raise CommandError(str(exc)) from exc
+            for key, value in erased.items():
                 stats[key] = stats.get(key, 0) + value
         # e-mail без карточки клиента (только лист ожидания / уведомления)
         if email and not customers:

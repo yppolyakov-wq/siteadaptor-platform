@@ -37,14 +37,15 @@ ERASURE_POLICY = {
     "loyalty.Voucher": ("keep", "money"),
     "loyalty.LoyaltyCard": ("delete", ()),
     "crm.CustomerNote": ("delete", ()),
-    "orders.Order": ("clear", ("note", "shipping_address")),
+    # Адреса на сделке — копии; счёт хранит свой снимок получателя (GoBD).
+    "orders.Order": ("clear", ("note", "shipping_address", "billing_name", "billing_address")),
     "orders.Offer": ("clear", ("customer_name", "customer_email", "note")),
     "booking.Pass": ("keep", "money"),
-    "booking.Booking": ("clear", ("note",)),
+    "booking.Booking": ("clear", ("note", "billing_address")),
     "finance.RevenueEntry": ("keep", "money"),
     "finance.Invoice": ("keep", "invoice"),
-    "stays.StayBooking": ("clear", ("note",)),
-    "jobs.Job": ("clear", ("site_address",)),
+    "stays.StayBooking": ("clear", ("note", "billing_address")),
+    "jobs.Job": ("clear", ("site_address", "vehicle_plate")),
     "inbox.Conversation": ("delete", ()),
     "telegram.TelegramLink": ("delete", ()),
     "events.Ticket": ("clear", ("note", "answers")),
@@ -101,6 +102,12 @@ def _value(value):
     return value
 
 
+def _is_encrypted(field) -> bool:
+    from apps.secrets.fields import EncryptedTextField
+
+    return isinstance(field, EncryptedTextField)
+
+
 def _row(obj) -> dict:
     data = {}
     for field in obj._meta.concrete_fields:
@@ -112,7 +119,9 @@ def _row(obj) -> dict:
             data[name] = str(target) if target is not None else None
             continue
         raw = getattr(obj, field.attname, None)
-        if name in MASKED:
+        # Шифрованные поля и секреты — маской (ревью E6.1: новое шифрованное поле
+        # не должно выгружаться открытым текстом по умолчанию).
+        if name in MASKED or _is_encrypted(field):
             data[name] = "***" if raw else ""
             continue
         data[name] = _value(raw)
@@ -242,16 +251,17 @@ def erase_customer(customer, tenant=None) -> dict:
     → статистика (только числа — без персональных данных)."""
     from apps.promotions.models import Customer
 
-    blockers = erasure_blockers(customer, tenant)
-    if blockers:
-        raise ErasureBlocked(blockers)
-
-    email = customer.email
     stats: dict[str, int] = {}
     documents = []
     chats: list[str] = []
     with transaction.atomic():
         customer = Customer.objects.select_for_update().get(pk=customer.pk)
+        # Проверка ПОСЛЕ блокировки: сделка, открытая между проверкой и удалением,
+        # не теряет заметку и адрес (ревью E6.1).
+        blockers = erasure_blockers(customer, tenant)
+        if blockers:
+            raise ErasureBlocked(blockers)
+        email = customer.email
         for label, model, field in _related_specs():
             action, arg = ERASURE_POLICY[label]
             qs = model.objects.filter(**{field: customer})
@@ -276,8 +286,19 @@ def erase_customer(customer, tenant=None) -> dict:
             from apps.documents import services as document_services
 
             # Файл удаляется после фиксации: потерянный файл лучше потерянной записи.
-            transaction.on_commit(lambda: [document_services.purge(d) for d in documents])
+            transaction.on_commit(lambda: _purge_documents(document_services, documents))
     return stats
+
+
+def _purge_documents(document_services, documents):
+    """Файлы удаляются по одному: сбой хранилища на одном не оставляет остальные."""
+    import logging
+
+    for document in documents:
+        try:
+            document_services.purge(document)
+        except Exception:  # noqa: BLE001 — строка останется, её уберёт retention
+            logging.getLogger(__name__).exception("dsgvo: purge failed for %s", document.pk)
 
 
 def _erase_email_linked(email, chats) -> dict:
@@ -289,13 +310,14 @@ def _erase_email_linked(email, chats) -> dict:
         elif label == "loyalty.GiftVoucher":
             stats[label] = qs.update(buyer_name=ANONYMIZED_NAME, buyer_email="", recipient_name="")
         elif label == "notifications.Notification":
-            stats[label] = qs.update(recipient="")
+            # В теме/данных/ошибке письма тоже имя, текст заказа, адрес.
+            stats[label] = qs.update(recipient="", subject="", payload={}, last_error="")
         else:
             stats[label], _detail = qs.delete()
     if chats:
         from apps.notifications.models import Notification
 
         stats["notifications.chat"] = Notification.objects.filter(recipient__in=chats).update(
-            recipient=""
+            recipient="", subject="", payload={}, last_error=""
         )
     return stats

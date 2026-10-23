@@ -186,3 +186,27 @@ def test_failure_rolls_back_everything(monkeypatch):
     with pytest.raises(RuntimeError):
         dsgvo.erase_customer(c)
     assert CustomerNote.objects.filter(customer=c).exists()
+
+
+def test_erase_clears_notification_content_and_billing_copies():
+    """Ревью E6.1: лог писем и копии адресов на сделке тоже чистятся."""
+    from apps.notifications.models import Notification
+
+    c = _customer()
+    order = _closed_order(c)
+    order.billing_name = "Erika Muster"
+    order.billing_address = "Musterweg 1"
+    order.save(update_fields=["billing_name", "billing_address"])
+    Notification.objects.create(
+        type="order_ready",
+        channel="email",
+        recipient="erika@example.com",
+        subject="Hallo Erika",
+        payload={"name": "Erika"},
+        dedupe_key="dsgvo-n1",
+    )
+    dsgvo.erase_customer(c)
+    order.refresh_from_db()
+    assert order.billing_name == "" and order.billing_address == ""
+    note = Notification.objects.get(dedupe_key="dsgvo-n1")
+    assert (note.recipient, note.subject, note.payload) == ("", "", {})

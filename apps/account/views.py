@@ -252,7 +252,8 @@ def delete_account(request):
     from apps.promotions.management.commands.dsgvo_customer import _erase
 
     try:
-        _erase(customer.email, customer=customer)
+        # свои статусы владельца тоже считаются открытой сделкой (тенант в запросе)
+        _erase(customer.email, customer=customer, tenant=getattr(request, "tenant", None))
     except CommandError as exc:
         messages.error(request, str(exc))
         return redirect("account-profile")
