@@ -1,4 +1,4 @@
-{% extends "core/_base_dashboard.html" %}
+{% extends "tenant/_base_dashboard.html" %}
 {% load i18n %}
 {% comment %}PT-5: экран «Aktionstypen» (план docs/pt-promo-types-plan-2026-09-11.md).
 
@@ -11,7 +11,9 @@
 На каждый тип четыре оси вывода (решение владельца Р-3): шаблон страницы ·
 сетка или лента · сколько колонок и рядов · форма карточки.{% endcomment %}
 
-{% block content %}
+{% block dash_title %}{% trans "Aktionstypen" %}{% endblock %}
+
+{% block dash_content %}
 <div class="max-w-5xl">
   <div class="flex flex-wrap items-center justify-between gap-3 mb-1">
     <h1 class="text-xl font-semibold">{% trans "Aktionstypen" %}</h1>

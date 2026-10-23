@@ -196,6 +196,25 @@ def test_screen_lists_own_and_builtin_types_with_counts():
     assert by_key["sys:mystery"]["count"] == 1 and by_key["sys:mystery"]["builtin"]
 
 
+def test_screen_renders(settings):
+    """KA-0 (2026-10-23): экран падал 500 у ВСЕХ бизнесов — шаблон наследовал
+    несуществующий `core/_base_dashboard.html`; тесты звали только помощник строк."""
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    from apps.promotions import views
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    t = _tenant("pt8r")
+    _promo("R1", promo_type="discount", discount_percent=10, group="Räumung")
+    request = _cabinet_request("get", "/promotions/typen/", tenant=t)
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    resp = views.promo_type_list(request)
+    assert resp.status_code == 200
+    assert "Räumung" in resp.content.decode()
+
+
 def test_screen_saves_all_four_axes_and_keeps_other_config():
     from apps.promotions import views
 

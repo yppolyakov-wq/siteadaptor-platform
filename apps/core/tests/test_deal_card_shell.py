@@ -133,6 +133,21 @@ def test_every_deal_card_keeps_its_core_blocks():
         assert f"/inbox/deal/{kind}/" in html, kind  # C1: «написать клиенту»
 
 
+def test_head_badges_of_the_card_are_rendered():
+    """KA-0 (2026-10-23): бейджи головы («paid», «🏷 Aktion») молча не выводились —
+    блок `deal_head_badges` жил внутри `{% include %}`, а такой блок дочерняя
+    карточка не переопределяет."""
+    from apps.orders import views as order_views
+
+    order = _order()
+    order.payment_state = "paid"
+    order.source_channel = "promo"
+    order.save(update_fields=["payment_state", "source_channel"])
+    html = order_views.order_detail(_req(tenant=_tenant("retail")), order.pk).content.decode()
+    head = html.split('data-deal-block="head"', 1)[1].split("</h1>", 1)[1][:4000]
+    assert "🏷" in head
+
+
 def test_status_change_lives_in_the_head_without_a_rail_duplicate():
     """DF-1b (владелец 2026-08-26): «в ту же верхнюю строчку перенести смену
     статуса выпадающим списком», текущий статус уже стоит бейджем рядом с
@@ -202,7 +217,7 @@ def test_shared_blocks_come_from_one_source():
     for marker in ("_deal_customer_card.html", "_deal_links_block.html"):
         assert marker in base, marker
     # DF-1b: смена статуса — общий партиал головы (голова тоже общая).
-    head = Path("templates/core/_deal_head.html").read_text()
+    head = base  # KA-0: голова встроена в базу (блок внутри include не переопределяется)
     assert "_deal_status_form.html" in head
     for tpl in (
         "templates/orders/order_detail.html",
