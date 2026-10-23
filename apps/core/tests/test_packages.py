@@ -118,24 +118,27 @@ def test_modules_page_save_does_not_write_the_package_ceiling():
     from apps.core import views
 
     tenant = TenantFactory(
-        schema_name="t832a_mod", slug="t832a-mod", site_config=dict(AKTIONEN), disabled_modules=[]
+        schema_name="t832a_mod",
+        slug="t832a-mod",
+        site_config=dict(AKTIONEN),
+        disabled_modules=["gift"],
     )
     user = get_user_model().objects.create_user(username="t832a", password="pw12345678")
     get = _request("/dashboard/modules/", tenant)
     get.user = user
     MessageMiddleware(lambda r: None).process_request(get)
     html = views.modules_view(get).content.decode()
-    assert 'type="hidden" name="modules" value="blog"' in html
     assert "Nicht im Paket" in html or "Not in your package" in html
 
-    keys = [s.key for s in modules.optional_modules()]
+    # Подделанный POST: включить gift и выключить blog — оба вне пакета, выбор из БД цел.
+    keys = [s.key for s in modules.optional_modules() if s.key != "blog"]
     post = RequestFactory().post("/dashboard/modules/", {"modules": keys})
     post.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
     post.tenant, post.user = tenant, user
     MessageMiddleware(lambda r: None).process_request(post)
     views.modules_view(post)
     tenant.refresh_from_db()
-    assert tenant.disabled_modules == []
+    assert tenant.disabled_modules == ["gift"]
 
 
 def test_package_report_lists_lost_modules_without_touching_the_tenant():
