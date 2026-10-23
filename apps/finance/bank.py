@@ -160,7 +160,7 @@ def open_items(tenant) -> list[dict]:
 
     today = timezone.localdate()
     out = []
-    billed = Invoice.objects.filter(status__in=("issued", "paid"))
+    billed = Invoice.objects.filter(status__in=("issued", "paid"), kind=Invoice.KIND_INVOICE)
     for kind in _OPEN_PAYMENT_STATES:
         if not tenant.is_module_active(transactions.KIND_MODULE[kind]):
             continue
@@ -211,7 +211,9 @@ def open_items(tenant) -> list[dict]:
                     ),
                 }
             )
-    for inv in Invoice.objects.filter(status="issued").order_by("issued_at")[:200]:
+    # KA-12 E1.1: Stornorechnung ничего не ждёт — не открытая позиция.
+    open_invoices = Invoice.objects.filter(status="issued", kind=Invoice.KIND_INVOICE)
+    for inv in open_invoices.order_by("issued_at")[:200]:
         if not inv.open_amount:  # KA-H10: всё уже получено (Anzahlung/сертификат)
             continue
         out.append(

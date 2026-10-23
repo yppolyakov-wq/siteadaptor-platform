@@ -317,7 +317,13 @@ def purge_due_customers(now=None, tenant=None) -> int:
         )
     )
     open_deal |= Q(
-        Exists(Invoice.objects.filter(customer=OuterRef("pk"), status=Invoice.STATUS_ISSUED))
+        Exists(
+            Invoice.objects.filter(
+                customer=OuterRef("pk"),
+                status=Invoice.STATUS_ISSUED,
+                kind=Invoice.KIND_INVOICE,
+            )
+        )
     )
     open_deal |= Q(
         Exists(

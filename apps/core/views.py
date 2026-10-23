@@ -5272,10 +5272,15 @@ def deal_invoice(request, kind, pk):
     ref = str(getattr(obj, "reference_code", "") or obj.pk)[:64]
     # CO-2 (ревью): у заказа нет `invoice_id` — сначала общий ключ сделки, иначе
     # клик после автосчёта (SH-23b) создал бы второй счёт на тот же заказ.
-    invoice = Invoice.objects.filter(deal_kind=kind, deal_id=ref).order_by("created_at").first()
+    # KA-12 E1.1: отменённый счёт не переиспользуем — после Stornorechnung сделке
+    # можно выставить исправленный счёт.
+    live = Invoice.objects.exclude(status=Invoice.STATUS_CANCELLED).exclude(
+        kind=Invoice.KIND_STORNO
+    )
+    invoice = live.filter(deal_kind=kind, deal_id=ref).order_by("created_at").first()
     existing = getattr(obj, "invoice_id", None)
     if invoice is None and existing:
-        invoice = Invoice.objects.filter(pk=existing).first()
+        invoice = live.filter(pk=existing).first()
     if invoice is None:
         invoice = builders[kind](obj, tenant=tenant)
         # CO-2 (ревью): общий ключ с автосчётом — подтверждение сделки выпустит

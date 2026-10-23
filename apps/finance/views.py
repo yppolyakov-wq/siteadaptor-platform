@@ -367,7 +367,7 @@ def invoice_mahnung(request, pk):
 
     from .models import Invoice
 
-    invoice = get_object_or_404(Invoice, pk=pk, status="issued")
+    invoice = get_object_or_404(Invoice, pk=pk, status="issued", kind=Invoice.KIND_INVOICE)
     email = getattr(invoice.customer, "email", "") if invoice.customer_id else ""
     if not email:
         messages.error(request, _("Kunde hat keine E-Mail — Mahnung nicht möglich."))
@@ -573,6 +573,12 @@ def invoices(request):
     )
 
 
+def _needs_address(invoice) -> bool:
+    from .recipient import needs_address
+
+    return needs_address(invoice)
+
+
 @login_required
 def invoice_detail(request, pk):
     from django.shortcuts import get_object_or_404
@@ -590,7 +596,11 @@ def invoice_detail(request, pk):
 
         action = request.POST.get("action", "")
         try:
-            if action == "language" and invoice.is_editable:
+            if action == "recipient" and invoice.is_editable:
+                invoice.recipient = request.POST.get("recipient", "").strip()[:1000]
+                invoice.save(update_fields=["recipient", "updated_at"])
+                messages.success(request, _("Saved."))
+            elif action == "language" and invoice.is_editable:
                 # Менять язык можно только у ЧЕРНОВИКА: выставленный счёт
                 # неизменяем (GoBD) — иначе один номер дал бы два документа.
                 from apps.core.documents import clean_language
@@ -598,6 +608,15 @@ def invoice_detail(request, pk):
                 invoice.language = clean_language(request.POST.get("language"), request.tenant)
                 invoice.save(update_fields=["language", "updated_at"])
                 messages.success(request, _("Document language saved."))
+            elif action == "issue" and invoice.is_editable and _needs_address(invoice):
+                # KA-12 E1.3 (§ 14 Abs. 4 Nr. 1 UStG): выше 250 € — с адресом получателя.
+                messages.error(
+                    request,
+                    _(
+                        "Anschrift des Empfängers erforderlich (Rechnung über 250 €). "
+                        "Bitte im Feld „Empfänger“ ergänzen."
+                    ),
+                )
             elif action == "issue" and invoice.is_editable:
                 # Язык фиксируется в момент выставления (если владелец его не
                 # выбрал — язык бизнеса), дальше документ неизменяем.
@@ -627,7 +646,7 @@ def invoice_detail(request, pk):
         {
             "nav": "finance",
             "invoice": invoice,
-            "allowed": InvoiceSM().allowed_targets(invoice.status),
+            "allowed": [] if invoice.is_storno else InvoiceSM().allowed_targets(invoice.status),
             "doc_languages": language_choices(request.tenant),
         },
     )

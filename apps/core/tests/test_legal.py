@@ -103,6 +103,10 @@ def _cab_req(method="get", data=None, tenant=None):
     req.user = get_user_model().objects.create_user(
         username=uname, email=f"{uname}@test.de", password="pw12345678"
     )
+    from apps.core.models import Membership
+
+    # KA-12: «Recht & Steuern» — только владелец (гейт и во вьюхе).
+    Membership.objects.create(user=req.user, role=Membership.ROLE_OWNER)
     req.tenant = tenant or _tenant()
     return req
 

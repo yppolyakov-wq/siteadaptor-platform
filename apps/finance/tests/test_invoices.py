@@ -68,11 +68,13 @@ def test_sequential_numbering_without_gaps():
 
     assert issue_invoice(first).number == 1
     assert issue_invoice(second).number == 2
-    # сторно сохраняет номер; следующий счёт продолжает последовательность
+    # отмена сохраняет номер оригинала; KA-12 E1.1: Stornorechnung — следующий номер
+    # того же счётчика, затем последовательность продолжается без пропусков
     InvoiceSM().apply(second, "cancelled")
     second.refresh_from_db()
     assert second.number == 2 and second.status == "cancelled"
-    assert issue_invoice(third).number == 3
+    assert Invoice.objects.get(cancels=second).number == 3
+    assert issue_invoice(third).number == 4
     assert first.number_display == "RE-00001"
 
 

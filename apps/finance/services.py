@@ -283,6 +283,61 @@ def fit_gross(lines, target, vat_rate, *, small_business=False):
     return lines
 
 
+def _next_number() -> int:
+    """Следующий номер счёта под блокировкой счётчика (вызывать внутри atomic).
+    Один счётчик на счета и Stornorechnungen — сквозная нумерация без пропусков."""
+    from .models import InvoiceCounter
+
+    counter, _created = InvoiceCounter.objects.select_for_update().get_or_create(pk=1)
+    counter.last_number += 1
+    counter.save(update_fields=["last_number"])
+    return counter.last_number
+
+
+def create_storno(original):
+    """KA-12 E1.1 (GoBD): Stornorechnung к отменённому счёту — свой номер из того же
+    счётчика, позиции с количеством со знаком минус, суммы = минус суммы оригинала
+    (снимок, не пересчёт). Идемпотентно: одна Stornorechnung на счёт (one-to-one).
+    Оригинал не трогаем."""
+    from django.db import transaction
+    from django.utils import timezone as tz
+
+    from .models import Invoice
+
+    if original.kind == Invoice.KIND_STORNO or not original.number:
+        return None
+    with transaction.atomic():
+        locked = Invoice.objects.select_for_update().get(pk=original.pk)
+        existing = Invoice.objects.filter(cancels=locked).first()
+        if existing is not None:
+            return existing
+        lines = []
+        for line in locked.lines or []:
+            neg = dict(line)
+            neg["qty"] = -_to_decimal(line.get("qty", 1))
+            neg["qty"] = int(neg["qty"]) if neg["qty"] == int(neg["qty"]) else str(neg["qty"])
+            lines.append(neg)
+        storno = Invoice.objects.create(
+            kind=Invoice.KIND_STORNO,
+            cancels=locked,
+            status=Invoice.STATUS_ISSUED,
+            number=_next_number(),
+            issued_at=tz.now(),
+            language=locked.language,
+            customer=locked.customer,
+            recipient=locked.recipient,
+            lines=lines,
+            vat_rate=locked.vat_rate,
+            net=-locked.net,
+            vat_amount=-locked.vat_amount,
+            gross=-locked.gross,
+            service_date=locked.service_date,
+            service_date_end=locked.service_date_end,
+            note=f"Storno zu {locked.number_display}"[:200],
+        )
+        return storno
+
+
 def issue_invoice(invoice, *, tenant=None, terms_days=None):
     """draft → issued: последовательный номер под блокировкой счётчика.
 
@@ -298,14 +353,10 @@ def issue_invoice(invoice, *, tenant=None, terms_days=None):
     from django.db import transaction
     from django.utils import timezone as tz
 
-    from .models import InvoiceCounter
     from .state_machine import InvoiceSM
 
     with transaction.atomic():
-        counter, _created = InvoiceCounter.objects.select_for_update().get_or_create(pk=1)
-        counter.last_number += 1
-        counter.save(update_fields=["last_number"])
-        invoice.number = counter.last_number
+        invoice.number = _next_number()
         invoice.issued_at = tz.now()
         fields = ["number", "issued_at", "updated_at"]
         # KA-H10: Leistungsdatum обязателен — без даты сделки берём день выставления.

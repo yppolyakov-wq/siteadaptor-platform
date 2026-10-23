@@ -1,10 +1,11 @@
 """FSM счёта (Track D / D4b). База — apps.core.fsm.
 
-draft → issued → paid; сторно из issued/paid (номер сохраняется — нумерация
-без дыр). После issued документ иммутабелен (правки блокирует вьюха).
+draft → issued → paid; отмена из issued/paid. KA-12 E1.1: отмена выпускает
+Stornorechnung — отдельный документ со своим номером и суммами со знаком минус;
+оригинал не меняется (GoBD). Сама Stornorechnung переходов не имеет.
 """
 
-from apps.core.fsm import StateMachine, Transition
+from apps.core.fsm import IllegalTransition, StateMachine, Transition
 
 
 class InvoiceSM(StateMachine):
@@ -14,6 +15,11 @@ class InvoiceSM(StateMachine):
         Transition("issued", "cancelled", "invoice.cancelled"),
         Transition("paid", "cancelled", "invoice.cancelled"),
     ]
+
+    def apply(self, instance, dst, **kw):
+        if getattr(instance, "kind", "invoice") == "storno":
+            raise IllegalTransition("invoice(storno)", instance.status, dst)
+        return super().apply(instance, dst, **kw)
 
     def on_transition(self, instance, t, **kw):
         # KA-D2: выручка заявки — при выставлении счёта, сторно — при отмене счёта.
@@ -27,4 +33,7 @@ class InvoiceSM(StateMachine):
 
             settle_invoice_deal(instance)
         elif t.dst == "cancelled":
+            from .services import create_storno
+
             reverse_invoice_revenue(instance)
+            create_storno(instance)

@@ -143,9 +143,36 @@ class Invoice(TimestampedModel):
     # KA-H10: уже получено до счёта (Anzahlung, Wertgutschein, предоплата брони) —
     # «Offene Posten» и Mahnung ждут ОСТАТОК, а не всю сумму.
     prepaid_cents = models.PositiveIntegerField(default=0)
+    # KA-12 E1.1 (GoBD): отмена выставленного счёта = отдельный документ
+    # «Stornorechnung» со СВОИМ номером из того же счётчика и суммами со знаком
+    # минус; оригинал не меняется. One-to-one — не больше одного сторно на счёт.
+    KIND_INVOICE = "invoice"
+    KIND_STORNO = "storno"
+    KINDS = [(KIND_INVOICE, _("Rechnung")), (KIND_STORNO, _("Stornorechnung"))]
+    kind = models.CharField(max_length=10, choices=KINDS, default=KIND_INVOICE)
+    cancels = models.OneToOneField(
+        "self", on_delete=models.PROTECT, null=True, blank=True, related_name="storno_doc"
+    )
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=(models.Q(kind="storno", cancels__isnull=False))
+                | (models.Q(kind="invoice", cancels__isnull=True)),
+                name="finance_invoice_storno_has_original",
+            )
+        ]
+
+    @property
+    def is_storno(self) -> bool:
+        return self.kind == self.KIND_STORNO
+
+    @property
+    def storno_doc_id_safe(self):
+        """pk Stornorechnung к этому счёту или None (обратная one-to-one без исключения)."""
+        doc = Invoice.objects.filter(cancels=self).only("pk").first() if self.pk else None
+        return doc.pk if doc else None
 
     @property
     def open_amount(self):

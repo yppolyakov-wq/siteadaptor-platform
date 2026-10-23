@@ -20,7 +20,7 @@
   {% for inv in invoices %}
     <a href="{% url 'finance:invoice-detail' inv.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
       <div class="min-w-0">
-        <p class="font-medium">{{ inv.number_display }}{% if inv.recipient %} · {{ inv.recipient|truncatechars:40 }}{% endif %}</p>
+        <p class="font-medium">{% if inv.is_storno %}<span class="text-red-600">{% trans "Storno" %}</span> {% endif %}{{ inv.number_display }}{% if inv.recipient %} · {{ inv.recipient|truncatechars:40 }}{% endif %}</p>
         <p class="text-xs text-gray-400">{{ inv.created_at|date:"d.m.Y" }}</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">

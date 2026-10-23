@@ -28,7 +28,27 @@ def recipient_for(deal) -> str:
     elif company is not None:
         return company.invoice_recipient[:1000]
     else:
-        return str(customer or "")[:1000]
+        # KA-12 E1.3: частному лицу — имя И адрес (§ 14 Abs. 4 Nr. 1 UStG; без адреса
+        # допустим только Kleinbetragsrechnung до 250 €). Адрес — со сделки.
+        own = address or (getattr(deal, "shipping_address", "") or "").strip()
+        return "\n".join(p for p in (str(customer or ""), own) if p)[:1000]
     if is_company and vat:
         lines.append(f"USt-IdNr: {vat}")
     return "\n".join(p for p in lines if p)[:1000]
+
+
+#: § 33 UStDV: Kleinbetragsrechnung — до 250 € брутто адрес получателя не обязателен.
+KLEINBETRAG_LIMIT = 250
+
+
+def needs_address(invoice) -> bool:
+    """KA-12 E1.3: счёт > 250 € брутто без адреса получателя выставлять нельзя.
+    «Адрес» = получатель длиннее одной строки (имя + хотя бы строка адреса)."""
+    from decimal import Decimal
+
+    if getattr(invoice, "kind", "invoice") == "storno":
+        return False
+    if Decimal(invoice.gross or 0) <= KLEINBETRAG_LIMIT:
+        return False
+    lines = [ln for ln in (invoice.recipient or "").splitlines() if ln.strip()]
+    return len(lines) < 2

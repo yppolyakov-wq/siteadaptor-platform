@@ -164,7 +164,11 @@ def invoice_for(kind, obj):
     from apps.finance.models import Invoice
 
     ref = str(getattr(obj, "reference_code", "") or obj.pk)
-    live = Invoice.objects.exclude(status="cancelled").order_by("-created_at")
+    live = (
+        Invoice.objects.exclude(status="cancelled")
+        .exclude(kind=Invoice.KIND_STORNO)  # KA-12 E1.1: Stornorechnung — не счёт сделки
+        .order_by("-created_at")
+    )
     inv = live.filter(deal_kind=kind, deal_id=ref).first()
     if inv is None and getattr(obj, "invoice_id", None):
         inv = live.filter(pk=obj.invoice_id).first()

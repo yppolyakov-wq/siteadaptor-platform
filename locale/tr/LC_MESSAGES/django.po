@@ -28577,3 +28577,35 @@ msgstr "Henüz talep yok."
 
 msgid "im Browser"
 msgstr "tarayıcıda"
+
+msgid ""
+"Anschrift des Empfängers erforderlich (Rechnung über 250 €). Bitte im Feld "
+"„Empfänger“ ergänzen."
+msgstr ""
+"Alıcı adresi gerekli (250 € üzeri fatura). Lütfen „Alıcı“ alanına ekleyin."
+
+msgid "Empfänger (Name und Anschrift)"
+msgstr "Alıcı (ad ve adres)"
+
+#, python-format
+msgid "Seite %(n)s von %(m)s"
+msgstr "Sayfa %(n)s / %(m)s"
+
+msgid "Steuerfreie bzw. nicht steuerbare Leistung."
+msgstr "Vergiden muaf veya vergi dışı hizmet."
+
+msgid "Storniert durch"
+msgstr "İptal eden belge"
+
+msgid "Storno"
+msgstr "İptal"
+
+msgid "Storno zu"
+msgstr "İptal edilen"
+
+#, python-format
+msgid "Storno zu %(num)s vom %(date)s"
+msgstr "%(date)s tarihli %(num)s iptali"
+
+msgid "Stornorechnung"
+msgstr "İptal faturası"
