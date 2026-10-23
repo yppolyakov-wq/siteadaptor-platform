@@ -35,7 +35,9 @@ def _hotel(**kw):
 
     return dict(
         business_type="hotel",
-        disabled_modules=list(default_disabled_for("hotel")),
+        # KA-12 E8.11: booking у отеля больше не включён по умолчанию — здесь отель
+        # с услугами (спа/велопрокат), как демо-кит.
+        disabled_modules=[m for m in default_disabled_for("hotel") if m != "booking"],
         **kw,
     )
 

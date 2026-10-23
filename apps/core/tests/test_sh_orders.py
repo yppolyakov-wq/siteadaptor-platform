@@ -217,7 +217,9 @@ def test_delivery_entry_is_a_sidebar_subitem_of_sales():
     # R7-3 (осознанная переписка SH-14): доставка — СВОЯ страница с накладными
     # и трек-номерами, а не фильтр списка (фидбэк владельца 2026-08-24).
     assert ("orders:deliveries", "") in children
-    assert ("verkaeufe", "?tab=kunden") in children
+    # KA-12 E8.2 (осознанная переписка SH-15): клиенты — вкладка страницы продаж,
+    # а не пункт подменю (KA-4: «Marketing & Kunden»).
+    assert ("verkaeufe", "?tab=kunden") not in children
 
 
 def test_delivery_filter_forces_a_view_that_honors_it():

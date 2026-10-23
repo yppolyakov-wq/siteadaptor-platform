@@ -24,7 +24,7 @@ MAX_SUBMENU = 7
 # Подменю больше семи пунктов — долг батча 3 (подзаголовки групп).
 SUBMENU_DEBT = {
     "marketing-home": 13,
-    "einstellungen-home": 14,
+    "einstellungen-home": 16,  # батч 2: +запись/каналы, батч 3 — группы
     "sellable-manage": 9,
     "verkaeufe": 8,
 }

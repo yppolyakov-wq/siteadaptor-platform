@@ -28,11 +28,11 @@ def test_hub_tabs_is_derived_with_legacy_shape():
     first = HUB_TABS["settings"][0]
     assert first[0] == "settings" and str(first[1]) == "Mein Geschäft"  # W9-1
     assert first[2] == "settings" and first[3] is None and first[4] is False
-    # SR-1: страница товаров умерла — записей «Produkte» в реестре больше нет,
-    # обзор Sortiment есть в обоих хабах (catalog-страницы и раздел sellables).
-    assert not any(t[0] == "catalog:product-list" for t in HUB_TABS["catalog"])
+    # SR-1: страница товаров умерла — записей «Produkte» в реестре больше нет.
+    # KA-12 E8.1: дубль-хаб "catalog" снят — обзор Sortiment живёт в "sellables".
+    assert "catalog" not in HUB_TABS
     assert not any(t[0] == "catalog:product-list" for t in HUB_TABS["sellables"])
-    assert any(t[0] == "sellable-manage" for t in HUB_TABS["catalog"])
+    assert any(t[0] == "sellable-manage" for t in HUB_TABS["sellables"])
 
 
 def test_sidebar_anchors_from_registry():

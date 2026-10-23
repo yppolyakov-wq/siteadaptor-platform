@@ -179,12 +179,10 @@ def test_sidebar_children_composition():
         # VF-10: «Aufträge» — прямая ссылка на вкладку (был jobs:list → 302; у
         # архетипов с одним направлением клик выглядел мёртвым)
         ("verkaeufe", "?tab=job"),
-        ("booking:resources", ""),
-        ("booking:availability", ""),
+        # KA-12 E8.2 (осознанная переписка): настройки записи и дубль «Abläufe»
+        # переехали в Einstellungen, «Kunden» — вкладка страницы продаж.
         ("stays:checkins", ""),
         ("orders:kitchen", ""),  # гастро-тип: гейт business_types пропускает
-        ("ablaeufe", "?from=board"),
-        ("verkaeufe", "?tab=kunden"),
         # R7-3: доставка и оплаты — свои страницы (были фильтром/столбцом)
         ("orders:deliveries", ""),
         ("payments-page", ""),
@@ -227,6 +225,10 @@ def test_sidebar_children_composition():
         "billing",
         "team",
         "extras",
+        # KA-12 E8.2: настройки записи и Channel Manager — из «Verkäufe».
+        "booking:resources",
+        "booking:availability",
+        "stays:channels",
         "modules",
         "finder-settings",
         "support:help",
@@ -239,7 +241,8 @@ def test_sidebar_children_composition():
 
 def test_sidebar_children_module_gates():
     """Гейты подпунктов: без модуля stays нет «Berichte», без finance —
-    «Finanzen», без analytics — «Auswertungen»; Abläufe остаётся всегда."""
+    «Finanzen», без analytics — «Auswertungen». KA-12 E8.2: «Abläufe» —
+    подпункт Einstellungen (в продажах — кнопка тулбара)."""
     t = TenantFactory(
         slug="sbc2",
         name="SbG",
@@ -255,7 +258,14 @@ def test_sidebar_children_module_gates():
     assert "stays:reports" not in verk
     assert "finance:journal" not in verk
     assert "promotions:analytics" not in verk
-    assert "ablaeufe" in verk
+    assert "ablaeufe" not in verk
+    sett = {
+        c["url_name"]
+        for it in modules.sidebar_nav(t)
+        if it["url_name"] == "einstellungen-home"
+        for c in it["children"]
+    }
+    assert "ablaeufe" in sett
 
 
 def test_sidebar_renders_children_slider():
@@ -361,7 +371,8 @@ def test_solo_direction_tab_child_hidden():
 
     catering = _tabs("catering")
     assert ("verkaeufe", "?tab=job") not in catering  # дубль спрятан
-    assert ("verkaeufe", "?tab=kunden") in catering  # «Kunden» — не направление
+    # KA-12 E8.2: «Kunden» — не пункт меню продаж (вкладка страницы осталась).
+    assert ("verkaeufe", "?tab=kunden") not in catering
     werkstatt = _tabs("werkstatt")
     assert ("verkaeufe", "?tab=job") in werkstatt  # два направления → вход нужен
 

@@ -83,14 +83,12 @@ def test_ablaeufe_from_board_keeps_sales_context():
 
 
 def test_ablaeufe_sidebar_child_carries_from_board():
-    child = next(
-        c
-        for it in modules.sidebar_nav(_tenant("friseur"))
-        if it["url_name"] == "verkaeufe"
-        for c in it["children"]
-        if c["url_name"] == "ablaeufe"
-    )
-    assert child["query"] == "?from=board"
+    """KA-12 E8.2 (осознанная переписка X5-3): дубль «Abläufe & Status» снят из
+    подменю продаж — пункт живёт в Einstellungen; вход «из продаж» с ?from=board
+    несёт кнопка тулбара страницы Verkäufe (templates/core/verkaeufe.html)."""
+    nav = {it["url_name"]: it["children"] for it in modules.sidebar_nav(_tenant("friseur"))}
+    assert not any(c["url_name"] == "ablaeufe" for c in nav["verkaeufe"])
+    assert any(c["url_name"] == "ablaeufe" for c in nav["einstellungen-home"])
 
 
 def test_settings_form_keeps_every_field_in_dom():

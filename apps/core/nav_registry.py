@@ -682,7 +682,8 @@ ENTRIES: tuple[NavEntry, ...] = (
         "ablaeufe",
         _("Abläufe"),
         "ablaeufe",
-        search="status übergänge spalten workflow prozesse",
+        # X2c: панель «Anfrage-Formular» живёт здесь — Ctrl+K её находит.
+        search="status übergänge spalten workflow prozesse anfrage-formular felder eigene status",
         group="verwaltung",
     ),
     # SM-4: «Website & Domains» переехал в site-хаб (подпункт раздела Website);

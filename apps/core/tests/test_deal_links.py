@@ -192,7 +192,8 @@ def _tenant_for(business_type="hotel"):
     return TenantFactory(
         schema_name=f"t{uuid.uuid4().hex[:8]}",
         business_type=business_type,
-        disabled_modules=list(default_disabled_for(business_type)),
+        # KA-12 E8.11: отель с услугами — booking включён явно (как в демо-ките).
+        disabled_modules=[m for m in default_disabled_for(business_type) if m != "booking"],
     )
 
 

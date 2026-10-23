@@ -107,6 +107,9 @@ EXPECTED_UNLISTED = frozenset(
         "promotions:promotion-inline-edit",
         "promotions:promotion-photo-edit",
         "promotions:voucher-redeem",
+        # KA-12 E8.1: резервы в полном кабинете — вкладка Verkäufe (палитра ведёт
+        # туда); сам список — экран лёгкого кабинета и Mini App.
+        "promotions:reservation-list",
         "set-cabinet-lang",
         "set-presence",
         # [POST] Г3: «Alles noch aktuell» — приёмник плашки, не экран.

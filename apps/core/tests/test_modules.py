@@ -335,7 +335,12 @@ def test_gating_skips_public_schema():
     ],
 )
 def test_default_disabled_for_vertical(business_type, disabled):
-    assert set(modules.default_disabled_for(business_type)) == disabled
+    # KA-12 E8.7 (решение владельца): блог выключен из коробки у всех типов;
+    # E8.11: отелю запись по времени не включается (спа/прокат — по выбору).
+    expected = set(disabled) | {"blog"}
+    if business_type == "hotel":
+        expected |= {"booking"}
+    assert set(modules.default_disabled_for(business_type)) == expected
 
 
 def test_default_disabled_never_touches_core():

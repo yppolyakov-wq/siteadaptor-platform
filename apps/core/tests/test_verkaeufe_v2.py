@@ -77,8 +77,13 @@ def test_single_direction_has_no_direction_tab_row():
 
 def test_two_directions_keep_tabs_with_active_counts():
     from apps.core import sales_page
+    from apps.core.modules import default_disabled_for
 
-    hotel = _tenant(business_type="hotel")
+    # KA-12 E8.11: booking у отеля — по выбору (демо-кит с услугами включает сам).
+    hotel = _tenant(
+        business_type="hotel",
+        disabled_modules=[m for m in default_disabled_for("hotel") if m != "booking"],
+    )
     tabs = sales_page.tab_descriptors(hotel, "stay")
     assert [t["kind"] for t in tabs] == ["stay", "booking"]  # SH-15: клиенты — не направление
     assert all(t["count"] is not None for t in tabs)  # счётчик активных сделок

@@ -61,19 +61,23 @@ def test_sortiment_children_are_archetype_entities():
     hotel = _children(_tenant("hotel"), "sellable-manage")
     assert "stays:units" in hotel  # номера — «товар» отеля
 
-    shop = _children(_tenant("shop"), "sellable-manage")
+    shop = _children(_tenant("retail"), "sellable-manage")
     # SR-1: запись «Produkte» умерла — товары живут в самом обзоре Sortiment.
     assert "catalog:product-list" not in shop and "booking:services" not in shop
     assert "catalog:category-list" in shop
+    # KA-12 E8.1: учёт товаров — направлению «Waren»; салон без товаров его не видит.
+    assert "catalog:category-list" not in friseur and "stock" not in friseur
 
 
 def test_stock_group_reachable_from_sidebar():
     """R2 (осознанная переписка X4): ящик «Erweitert» снят со страниц —
     складская группа достижима подпунктами «Sortiment»; записи реестра целы
     (палитра/подсветка)."""
-    tabs = {t[0] for t in nav_registry.legacy_hub_tabs()["catalog"]}
+    # KA-12 E8.1: дубль-хаб "catalog" снят — записи живут в "sellables".
+    assert "catalog" not in nav_registry.legacy_hub_tabs()
+    tabs = {t[0] for t in nav_registry.legacy_hub_tabs()["sellables"]}
     assert {"stock", "purchasing", "catalog:combo-list", "imports:start"} <= tabs
-    shop = _children(_tenant("shop"), "sellable-manage")
+    shop = _children(_tenant("retail"), "sellable-manage")
     assert {"stock", "purchasing", "catalog:combo-list", "imports:start"} <= set(shop)
 
 
@@ -82,9 +86,11 @@ def test_stock_group_reachable_from_sidebar():
 
 def test_verkaeufe_children_working_entries_before_reports():
     salon = _children(_tenant("friseur"), "verkaeufe")
-    assert "booking:resources" in salon and "booking:availability" in salon
-    # рабочие входы — ДО отчётной группы
-    assert salon.index("booking:resources") < salon.index("ablaeufe")
+    # KA-12 E8.2 (осознанная переписка X4): часы/ресурсы и блокировки — настройки,
+    # они в Einstellungen; в «Verkäufe» — работа дня и отчёты.
+    assert "booking:resources" not in salon and "booking:availability" not in salon
+    sett = _children(_tenant("friseur"), "einstellungen-home")
+    assert "booking:resources" in sett and "booking:availability" in sett
 
     hotel = _children(_tenant("hotel"), "verkaeufe")
     assert "stays:checkins" in hotel
@@ -140,7 +146,6 @@ def test_former_orphans_are_reachable_from_palette():
         "orders:table-qr",
         "events:teacher-list",
         "crm:company-list",
-        "promotions:reservation-list",
         "finance:invoices",
         "billing-payments",
     ):
@@ -150,6 +155,9 @@ def test_former_orphans_are_reachable_from_palette():
     # Ctrl+K отдавал 405. Его UI живёт на «Abläufe» (X2c) — ищется по ключевым
     # словам той записи.
     assert "jobs:anfrage-form-settings" not in listed
+    # KA-12 E8.1: «Reservierungen» в палитре ведёт на вкладку продаж.
+    resv = next(e for e in nav_registry.palette_entries() if e["nav_key"] == "reservations")
+    assert (resv["url_name"], resv["query"]) == ("verkaeufe", "?tab=reservation")
     abl = next(e for e in nav_registry.palette_entries() if e["url_name"] == "ablaeufe")
     assert "anfrage" in abl["search"]
 
@@ -157,7 +165,8 @@ def test_former_orphans_are_reachable_from_palette():
 def test_palette_only_entries_stay_out_of_tab_bars():
     """Сироты попали в палитру, но таб-бары остались компактными."""
     tabs = {u for hub in nav_registry.legacy_hub_tabs().values() for (u, *_r) in hub}
-    for name in ("stays:channels", "crm:company-list", "billing-payments", "finance:invoices"):
+    # KA-12 E8.2: Channel Manager — подпункт Einstellungen, уже не сирота.
+    for name in ("crm:company-list", "billing-payments", "finance:invoices"):
         assert name not in tabs, name
 
 
@@ -169,9 +178,10 @@ def test_glossary_sortiment_replaces_angebote_in_cabinet_nav():
     продаёт, во ВСЕХ точках навигации зовётся «Sortiment»."""
     anchor = next(a for a in nav_registry.ANCHORS if a.url_name == "sellable-manage")
     assert str(anchor.label) == "Sortiment"
-    for hub in ("catalog", "sellables"):
-        label = next(t[1] for t in nav_registry.legacy_hub_tabs()[hub] if t[0] == "sellable-manage")
-        assert str(label) == "Sortiment"
+    label = next(
+        t[1] for t in nav_registry.legacy_hub_tabs()["sellables"] if t[0] == "sellable-manage"
+    )
+    assert str(label) == "Sortiment"
     # «Tickets» осталось за вкладкой СДЕЛОК страницы Verkäufe, сущность — событие
     label = next(t[1] for t in nav_registry.legacy_hub_tabs()["sellables"] if t[0] == "events:list")
     assert str(label) == "Veranstaltungen"
