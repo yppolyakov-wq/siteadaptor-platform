@@ -64,7 +64,13 @@ def deal_components(kind: str, obj) -> list[tuple[str, Decimal, Decimal, bool]]:
         discount = Decimal(getattr(obj, "discount_cents", 0) or 0) / 100
         # Проживание = итог − допы − Kurtaxe + скидка (скидку раскладываем ниже).
         lodging = total - extras - kurtaxe + discount
-        rows.append((str(_("Übernachtung")), max(lodging, ZERO), rate, True))
+        # KA-H6: питание тарифа — 19 % (Aufteilungsgebot), выделяем из проживания.
+        from apps.stays.meal import MEAL_VAT_RATE, safe_meal_cents
+
+        meal = Decimal(safe_meal_cents(obj)) / 100
+        rows.append((str(_("Übernachtung")), max(lodging - meal, ZERO), rate, True))
+        if meal:
+            rows.append((str(_("Verpflegung")), meal, MEAL_VAT_RATE, False))
         rows += [(label, gross, r, False) for label, gross, r in _extras_components(obj, rate)]
         if kurtaxe:
             rows.append((str(_("Kurtaxe")), kurtaxe, ZERO, False))

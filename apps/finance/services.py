@@ -177,6 +177,12 @@ def invoice_from_stay(booking, tenant=None):
     )
     # Одна строка на всё проживание: цена за ночь округлялась бы дважды и итог
     # счёта расходился с суммой брони на копейку (поймано замком).
+    # KA-H6: питание тарифа — своей строкой по 19 % (Aufteilungsgebot), проживание
+    # уменьшается на ту же сумму — итог счёта = итог брони.
+    from apps.stays.meal import MEAL_VAT_RATE, meal_cents
+
+    meal = meal_cents(booking)
+    lodging -= meal
     stay_net, _vat = _net_from_gross(Decimal(lodging) / 100, rate)
     unit_name = getattr(booking.unit, "name", "") or str(_("Übernachtung"))
     nights_label = str(_("%(n)s Nächte")) % {"n": nights}
@@ -188,6 +194,19 @@ def invoice_from_stay(booking, tenant=None):
             "vat_rate": str(rate),
         }
     ]
+    if meal:
+        meal_rate = Decimal("0") if small else MEAL_VAT_RATE
+        meal_net, _v = _net_from_gross(Decimal(meal) / 100, meal_rate)
+        snap = booking.rate_snapshot or {}
+        lines.append(
+            {
+                "text": str(_("Verpflegung"))
+                + (f" · {snap.get('meal_label')}" if snap.get("meal_label") else ""),
+                "qty": 1,
+                "unit_price": str(meal_net),
+                "vat_rate": str(meal_rate),
+            }
+        )
     for extra in booking.extras or []:
         if not isinstance(extra, dict):
             continue

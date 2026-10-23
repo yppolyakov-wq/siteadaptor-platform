@@ -60,18 +60,9 @@ class StayBookingSM(StateMachine):
 
             Room.objects.filter(pk=instance.room_id).update(housekeeping=Room.HK_DIRTY)
 
-        # Выезд → запись в журнал выручки (идемпотентно по source_ref). НДС 7 %
-        # — размещение (Beherbergung) льготная ставка; завтрак/доп — вне v1.
+        # Выезд → журнал выручки (идемпотентно по source_ref). KA-H6: проживание —
+        # по снимку ставки брони, питание тарифа — отдельной записью 19 %.
         if t.dst == "fulfilled":
-            from decimal import Decimal
+            from apps.stays import meal
 
-            from apps.finance.services import record_revenue
-
-            record_revenue(
-                source="stay",
-                source_ref=str(instance.id),
-                amount=Decimal(instance.total_cents) / 100,
-                vat_rate=Decimal("7.00"),
-                customer=instance.customer,
-                note=instance.reference_code,
-            )
+            meal.record_revenue(instance)

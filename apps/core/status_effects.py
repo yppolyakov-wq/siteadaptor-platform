@@ -53,14 +53,9 @@ def record_revenue_for(kind: str, instance) -> None:
             note=instance.reference_code,
         )
     elif kind == "stay":
-        record_revenue(
-            source="stay",
-            source_ref=str(instance.id),
-            amount=_cents_eur(instance),
-            vat_rate=Decimal("7.00"),
-            customer=instance.customer,
-            note=instance.reference_code,
-        )
+        from apps.stays import meal
+
+        meal.record_revenue(instance)  # KA-H6: питание тарифа — отдельной записью 19 %
     elif kind == "ticket":
         record_revenue(
             source="event",
@@ -119,8 +114,12 @@ def record_reversal_for(kind: str, instance) -> None:
                 customer=instance.customer,
                 note=note,
             )
-    elif kind in ("stay", "ticket"):
-        source = "event" if kind == "ticket" else kind
+    elif kind == "stay":
+        from apps.stays import meal
+
+        meal.record_reversal(instance, ref, note)  # KA-H6: обе записи, своими суммами
+    elif kind == "ticket":
+        source = "event"
         record_reversal(
             source=source,
             source_ref=ref,

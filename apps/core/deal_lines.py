@@ -76,6 +76,11 @@ def deal_lines(kind: str, obj) -> list[dict]:
         total = _money(getattr(obj, "total_cents", 0))
         discount = _money(getattr(obj, "discount_cents", 0))
         lodging = max(total - extras_total - kurtaxe + discount, ZERO)
+        # KA-H6: питание тарифа — отдельной строкой по 19 %.
+        from apps.stays.meal import MEAL_VAT_RATE, safe_meal_cents
+
+        meal = _money(safe_meal_cents(obj))
+        lodging = max(lodging - meal, ZERO)
         unit = (lodging / nights) if nights else lodging
         unit_name = getattr(getattr(obj, "unit", None), "name", "") or str(_("Übernachtung"))
         rows.append(
@@ -88,6 +93,18 @@ def deal_lines(kind: str, obj) -> list[dict]:
                 "total": lodging,
             }
         )
+        if meal:
+            snap = getattr(obj, "rate_snapshot", None) or {}
+            rows.append(
+                {
+                    "label": str(_("Verpflegung")),
+                    "note": str(snap.get("meal_label", "")) if isinstance(snap, dict) else "",
+                    "rate": MEAL_VAT_RATE,
+                    "unit": None,
+                    "qty": None,
+                    "total": meal,
+                }
+            )
         rows += _extras_rows(obj, nights, rate)
         if kurtaxe:
             rows.append(
