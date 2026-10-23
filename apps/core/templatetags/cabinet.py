@@ -266,4 +266,7 @@ def cab_is_owner(user):
     """KA-H11: кнопки выгрузок с персональными данными — только владельцу."""
     from apps.core.roles import is_owner
 
-    return is_owner(user)
+    try:
+        return is_owner(user)
+    except (TypeError, ValueError):  # не настоящий пользователь — кнопку не показываем
+        return False

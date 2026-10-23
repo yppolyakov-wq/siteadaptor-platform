@@ -237,7 +237,9 @@ _PURGE_DEAL_KINDS = {
 INTAKE_STALE_DAYS = 180
 
 
-def _open_statuses(kind: str, tenant=None, role: str = "") -> tuple[str, ...]:
+def _open_statuses(
+    kind: str, tenant=None, role: str = "", holds_capacity: bool | None = None
+) -> tuple[str, ...]:
     """Коды «сделка ещё идёт» роли `role` (intake / active; пусто — обе), встроенные ∪
     свои статусы владельца.
 
@@ -247,7 +249,9 @@ def _open_statuses(kind: str, tenant=None, role: str = "") -> tuple[str, ...]:
 
     roles = (role,) if role else ("intake", "active")
     return tuple(
-        code for code, d in status_registry.all_descriptors(kind, tenant).items() if d.role in roles
+        code
+        for code, d in status_registry.all_descriptors(kind, tenant).items()
+        if d.role in roles and (holds_capacity is None or d.blocks_capacity == holds_capacity)
     )
 
 
@@ -288,11 +292,16 @@ def purge_due_customers(now=None, tenant=None) -> int:
     for kind, (label, _related) in _PURGE_DEAL_KINDS.items():
         model = django_apps.get_model(label)
         deals = model.objects.filter(customer=OuterRef("pk"))
-        open_deal |= Q(Exists(deals.filter(status__in=_open_statuses(kind, tenant, "active"))))
+        # active — всегда; intake, держащий место (pending-бронь/-резерв), — тоже;
+        # intake без места (корзина «new», заявка) — только пока не заброшен.
+        held = _open_statuses(kind, tenant, "active") + _open_statuses(
+            kind, tenant, "intake", holds_capacity=True
+        )
+        open_deal |= Q(Exists(deals.filter(status__in=held)))
         open_deal |= Q(
             Exists(
                 deals.filter(
-                    status__in=_open_statuses(kind, tenant, "intake"),
+                    status__in=_open_statuses(kind, tenant, "intake", holds_capacity=False),
                     updated_at__gte=now - timedelta(days=INTAKE_STALE_DAYS),
                 )
             )
