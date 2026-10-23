@@ -163,7 +163,7 @@ def open_items(tenant) -> list[dict]:
     billed = Invoice.objects.filter(status__in=("issued", "paid"))
     invoiced = {(k, d) for k, d in billed.exclude(deal_id="").values_list("deal_kind", "deal_id")}
     invoiced_ids = set(billed.values_list("pk", flat=True))
-    for kind, states in _OPEN_PAYMENT_STATES.items():
+    for kind in _OPEN_PAYMENT_STATES:
         if not tenant.is_module_active(transactions.KIND_MODULE[kind]):
             continue
         model = transactions.model_for(kind)
