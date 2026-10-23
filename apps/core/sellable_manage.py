@@ -106,6 +106,8 @@ class ManagedSellable:
     category_label: str = ""
     stock: object = None
     stock_warn: bool = False
+    # KA-12 E3.4: «Heute ausverkauft» (только product).
+    sold_out_today: bool = False
 
 
 def _model(kind):
