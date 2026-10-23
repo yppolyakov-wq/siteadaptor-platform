@@ -71,6 +71,80 @@ def record_reversal(
     return entry if created else None
 
 
+def _invoice_gross_by_rate(invoice) -> list:
+    """[(ставка, брутто)] счёта по группам ставок строк (как compute_totals: строки
+    нетто, налог по группе). Σ ≠ gross счёта (кривой снимок) → одна строка по ставке
+    документа на весь gross — журнал никогда не расходится с документом."""
+    from decimal import ROUND_HALF_UP, Decimal
+
+    cent = Decimal("0.01")
+    default_rate = Decimal(str(invoice.vat_rate))
+    no_vat = Decimal(invoice.vat_amount or 0) == 0
+    groups: dict[Decimal, Decimal] = {}
+    try:
+        for line in invoice.lines or []:
+            own = line.get("vat_rate")
+            rate = (
+                Decimal("0")
+                if no_vat
+                else (default_rate if own in (None, "") else Decimal(str(own)))
+            )
+            amount = _to_decimal(line["unit_price"], "0") * _to_decimal(line.get("qty", 1))
+            groups[rate] = groups.get(rate, Decimal("0")) + amount
+    except (KeyError, TypeError, AttributeError, ArithmeticError):
+        groups = {}
+    rows = []
+    for rate in sorted(groups, reverse=True):
+        net = groups[rate].quantize(cent, rounding=ROUND_HALF_UP)
+        gross = net + (net * rate / Decimal("100")).quantize(cent, rounding=ROUND_HALF_UP)
+        if gross:
+            rows.append((rate, gross))
+    if not rows or sum(g for _r, g in rows) != Decimal(invoice.gross):
+        return [(Decimal("0") if no_vat else default_rate, Decimal(invoice.gross))]
+    return rows
+
+
+def journal_invoice_revenue(invoice) -> None:
+    """KA-D2 (решение владельца 2026-10-23): выручка заявки/мастерской — в журнал при
+    выставлении счёта, по строке на ставку. Только счета из заявок (`deal_kind="job"`):
+    остальные виды проводятся своими статусами (иначе выручка задвоится).
+    Идемпотентно по `inv:<pk>:<ставка>`."""
+    if invoice.deal_kind != "job" or not invoice.gross:
+        return
+    for rate, gross in _invoice_gross_by_rate(invoice):
+        record_revenue(
+            source=RevenueEntry.SOURCE_JOB,
+            amount=gross,
+            source_ref=f"inv:{invoice.pk}:{rate}",
+            vat_rate=rate,
+            date=timezone.localdate(invoice.issued_at) if invoice.issued_at else None,
+            customer=invoice.customer,
+            note=f"Rechnung {invoice.number_display}"[:200],
+        )
+
+
+def reverse_invoice_revenue(invoice) -> None:
+    """Сторно счёта из заявки → сторно-записи на каждую проведённую строку."""
+    if invoice.deal_kind != "job":
+        return
+    entries = RevenueEntry.objects.filter(
+        source=RevenueEntry.SOURCE_JOB,
+        source_ref__startswith=f"inv:{invoice.pk}:",
+        amount__gt=0,
+    )
+    for entry in list(entries):
+        if entry.source_ref.endswith(":reversal"):
+            continue
+        record_reversal(
+            source=RevenueEntry.SOURCE_JOB,
+            source_ref=f"{entry.source_ref}:reversal",
+            amount=entry.amount,
+            vat_rate=entry.vat_rate,
+            customer=entry.customer,
+            note=f"Storno {entry.note}"[:200],
+        )
+
+
 def _to_decimal(value, default="1"):
     from decimal import Decimal, InvalidOperation
 

@@ -63,7 +63,7 @@ class PendingStorefrontMiddleware:
         "/static/",
         "/robots.txt",
         "/lang/",
-        "/stays/",
+        "/stays/ical/",  # календарь для OTA-каналов (не фид цен — тот скрыт)
     )
 
     def __init__(self, get_response):

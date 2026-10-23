@@ -28117,3 +28117,6 @@ msgstr "Tüm işletmeler şehir kataloğunda görünür. Listelenmek istemiyorsa
 
 msgid "Diese Seite ist bald online."
 msgstr "Bu sayfa yakında yayında olacak."
+
+msgid "Auftrag"
+msgstr "İş"

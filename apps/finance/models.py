@@ -26,6 +26,7 @@ class RevenueEntry(TimestampedModel):
     SOURCE_GIFT = "gift"
     SOURCE_PASS = "pass"
     SOURCE_MANUAL = "manual"
+    SOURCE_JOB = "job"  # KA-D2: заявка/мастерская — при выставлении счёта
     SOURCES = [
         (SOURCE_ORDER, _("Order")),
         (SOURCE_RESERVATION, _("Reservation")),
@@ -35,6 +36,7 @@ class RevenueEntry(TimestampedModel):
         (SOURCE_GIFT, _("Geschenkgutschein")),
         (SOURCE_PASS, _("Mehrfachkarte")),
         (SOURCE_MANUAL, _("Manual")),
+        (SOURCE_JOB, _("Auftrag")),
     ]
     # Ставки НДС DE: 19 стандарт, 7 еда/печать, 0 — §19 Kleinunternehmer и пр.
     VAT_RATES = [Decimal("19.00"), Decimal("7.00"), Decimal("0.00")]

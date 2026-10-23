@@ -28067,3 +28067,6 @@ msgstr "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen m
 
 msgid "Diese Seite ist bald online."
 msgstr "Diese Seite ist bald online."
+
+msgid "Auftrag"
+msgstr "Auftrag"

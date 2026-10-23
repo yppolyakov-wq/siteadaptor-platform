@@ -69,3 +69,8 @@ def test_public_schema_untouched():
     request.tenant = TenantFactory.build(schema_name="public", email_pending=True)
     request.user = AnonymousUser()
     assert PendingStorefrontMiddleware(lambda r: HttpResponse("ok"))(request).content == b"ok"
+
+
+def test_stay_price_feed_hidden_but_ical_open():
+    assert _run("/stays/feed.json").status_code == 503
+    assert _run("/stays/ical/tok.ics").content == b"shop"

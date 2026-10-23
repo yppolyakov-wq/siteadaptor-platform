@@ -14,3 +14,12 @@ class InvoiceSM(StateMachine):
         Transition("issued", "cancelled", "invoice.cancelled"),
         Transition("paid", "cancelled", "invoice.cancelled"),
     ]
+
+    def on_transition(self, instance, t, **kw):
+        # KA-D2: выручка заявки — при выставлении счёта, сторно — при отмене счёта.
+        from .services import journal_invoice_revenue, reverse_invoice_revenue
+
+        if t.dst == "issued":
+            journal_invoice_revenue(instance)
+        elif t.dst == "cancelled":
+            reverse_invoice_revenue(instance)

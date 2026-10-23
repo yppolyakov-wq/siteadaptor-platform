@@ -27977,3 +27977,6 @@ msgstr "All businesses appear in the city catalogue. If you do not want to be li
 
 msgid "Diese Seite ist bald online."
 msgstr "This page will be online soon."
+
+msgid "Auftrag"
+msgstr "Job"

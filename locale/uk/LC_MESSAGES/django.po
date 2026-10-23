@@ -28230,3 +28230,6 @@ msgstr "Усі заклади показуються в каталозі міс�
 
 msgid "Diese Seite ist bald online."
 msgstr "Ця сторінка скоро відкриється."
+
+msgid "Auftrag"
+msgstr "Замовлення-наряд"

@@ -28250,3 +28250,6 @@ msgstr "Все заведения показываются в каталоге �
 
 msgid "Diese Seite ist bald online."
 msgstr "Эта страница скоро откроется."
+
+msgid "Auftrag"
+msgstr "Заказ-наряд"
