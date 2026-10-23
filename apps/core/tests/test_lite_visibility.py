@@ -75,10 +75,13 @@ def _body(tenant, user):
 
 def test_owner_sees_all_blocks():
     body = _body(_tenant(), _owner())
-    for key in ("website", "stadtportal", "google", "platform-bot", "stripe", "domain"):
+    for key in ("website", "stadtportal", "google", "platform-bot"):
         assert f'data-vis="{key}"' in body, key
-    assert "data-own-bot" in body and "data-all-connections" in body
-    assert "/dashboard/integrationen/" in body
+    assert "data-own-bot" in body
+    # T-8.32b: оплата, домен и полный список подключений — вне пакета «Aktionen».
+    for key in ("stripe", "domain"):
+        assert f'data-vis="{key}"' not in body, key
+    assert "data-all-connections" not in body
 
 
 def test_portal_views_owner_only():
@@ -125,8 +128,9 @@ def test_own_bot_connected_shows_username():
     assert "@krume_bot" in body and "data-own-bot-token" not in body
 
 
-def test_stripe_not_needed_for_reserving():
-    assert "Für Zurücklegen nicht nötig" in _body(_tenant(), _owner())
+def test_stripe_not_offered_to_the_aktionen_package():
+    """T-8.32b: Zurücklegen и купон оплаты не требуют — карточки Stripe у пакета нет."""
+    assert 'data-vis="stripe"' not in _body(_tenant(), _owner())
 
 
 def test_every_link_resolves():
