@@ -89,7 +89,9 @@ def test_ticket_mark_paid_confirms_pending():
     assert ticket.status == Ticket.STATUS_CONFIRMED
 
 
-def test_roster_csv_lists_attendees_with_answers():
+def test_roster_csv_lists_attendees_with_answers(monkeypatch):
+    # KA-H11: выгрузка с персональными данными — только владельцу.
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
     event = _event(questions=["Allergien?"])
     from apps.events.services import book_ticket
 

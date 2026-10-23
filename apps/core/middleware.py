@@ -186,6 +186,13 @@ class CabinetOwnerAccessMiddleware:
         # KA-H9: имя/адрес/телефон бизнеса лёгкого кабинета — уходят в Impressum и
         # каталог города, менять может только владелец.
         "/dashboard/geschaeft/",
+        # KA-H11: выгрузки с персональными данными — только владельцу (вьюхи
+        # дополнительно под @owner_required; ростер события — только там, uuid в пути).
+        "/crm/export.csv",
+        "/dashboard/stays/berichte/export.csv",
+        "/dashboard/finance/export.csv",
+        "/dashboard/finance/datev.csv",
+        "/dashboard/finance/ausgaben/datev.csv",
     )
 
     def __init__(self, get_response):

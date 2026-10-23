@@ -181,8 +181,10 @@ def test_card_shows_customer_vouchers():
     assert "Gratis Kaffee" in body
 
 
-def test_export_csv_respects_filter():
+def test_export_csv_respects_filter(monkeypatch):
     """D1c: CSV-экспорт уважает поисковый фильтр и содержит поля D1."""
+    # KA-H11: выгрузка с персональными данными — только владельцу.
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
     Customer.objects.create(name="Jana Vip", email="jana@test.de", tags=["vip"])
     Customer.objects.create(name="Karl Ohne", email="karl@test.de", marketing_opt_in=True)
 

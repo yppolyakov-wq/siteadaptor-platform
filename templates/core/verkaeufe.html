@@ -54,7 +54,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
     <a href="{% url 'crm:customer-create' %}" class="text-sm font-medium text-white bg-indigo-600 rounded-xl px-3 py-1.5 shadow-sm hover:bg-indigo-700">＋ {% trans "Add customer" %}</a>
     <div class="flex items-center gap-2 ml-auto">
       <a href="{% url 'crm:company-list' %}" class="text-sm font-medium text-gray-600 bg-white rounded-xl px-3 py-1.5 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50">🏢 {% trans "Companies" %}</a>
-      <a href="{% url 'crm:customer-export' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="text-sm font-medium text-gray-600 bg-white rounded-xl px-3 py-1.5 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50">{% trans "Export CSV" %}</a>
+      {% if request.user|cab_is_owner %}<a href="{% url 'crm:customer-export' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="text-sm font-medium text-gray-600 bg-white rounded-xl px-3 py-1.5 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50">{% trans "Export CSV" %}</a>{% endif %}
     </div>
   {% else %}
     {% comment %}SH-15: без модуля CRM список читается, но карточка/теги/заметки/

@@ -13,6 +13,7 @@ from django.views.decorators.http import require_POST
 
 from apps.core.csv_safe import csv_safe
 from apps.core.pagination import paginate
+from apps.core.roles import audit_export, owner_required
 from apps.promotions.models import Customer
 
 from . import customer360
@@ -97,6 +98,7 @@ def customer_list(request):
 
 
 @login_required
+@owner_required
 def customer_export_csv(request):
     """CSV-экспорт списка клиентов по текущему фильтру (D1c).
 
@@ -114,7 +116,9 @@ def customer_export_csv(request):
     writer.writerow(
         ["name", "email", "phone", "tags", "marketing_opt_in", "created_source", "created_at"]
     )
+    rows = 0
     for c in customers.order_by("-created_at").iterator():
+        rows += 1
         writer.writerow(
             [
                 csv_safe(c.name),
@@ -126,6 +130,7 @@ def customer_export_csv(request):
                 c.created_at.date().isoformat(),
             ]
         )
+    audit_export(request, "crm", rows, q=_query, firma=getattr(_firma, "pk", ""))
     return response
 
 

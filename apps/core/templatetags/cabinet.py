@@ -259,3 +259,11 @@ def vat_select(current=None, hint="", inherit_label=""):
         "vat_hint": hint,
         "vat_inherit_label": inherit_label,
     }
+
+
+@register.filter
+def cab_is_owner(user):
+    """KA-H11: кнопки выгрузок с персональными данными — только владельцу."""
+    from apps.core.roles import is_owner
+
+    return is_owner(user)

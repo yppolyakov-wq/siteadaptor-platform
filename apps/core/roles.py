@@ -36,3 +36,36 @@ def has_cabinet_access(user) -> bool:
 
 def is_owner(user) -> bool:
     return role_of(user) == Membership.ROLE_OWNER
+
+
+def owner_required(view):
+    """KA-H11: вьюха только для владельца (выгрузки с персональными данными).
+
+    Ставится ПОД `@login_required`. Прямые вызовы вьюх и пути с uuid посередине
+    (`/dashboard/events/<pk>/roster.csv`) middleware не ловит — гейт здесь."""
+    from functools import wraps
+
+    from django.http import HttpResponseForbidden
+    from django.utils.translation import gettext as _
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if not is_owner(request.user):
+            return HttpResponseForbidden(_("Nur für Inhaber."))
+        return view(request, *args, **kwargs)
+
+    return wrapper
+
+
+def audit_export(request, name: str, rows: int, **context) -> None:
+    """KA-H11: запись о выгрузке в журнал — кто, что, сколько строк, фильтры.
+    Только счётчики и параметры фильтра, никаких персональных данных."""
+    from .audit import audit_event
+
+    audit_event(
+        action=f"export.{name}",
+        resource_type="export",
+        resource_id=str(context.pop("resource_id", "")),
+        actor=request.user,
+        context={"rows": rows, **{k: str(v) for k, v in context.items() if v}},
+    )

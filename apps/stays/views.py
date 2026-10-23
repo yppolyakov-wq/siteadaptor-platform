@@ -23,6 +23,7 @@ from apps.core import deal_card, deal_links, refunds, vat
 from apps.core import transactions as core_transactions
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
+from apps.core.roles import audit_export, owner_required
 
 from . import availability, pricing, services
 from .models import (
@@ -1265,6 +1266,7 @@ def reports(request):
 
 
 @login_required
+@owner_required
 def reports_export_csv(request):
     """PMS-C: CSV броней месяца (utf-8-sig для Excel) — считаемые статусы,
     те же выборки, что отчёт; персональные данные — файл владельца (DSGVO)."""
@@ -1305,7 +1307,9 @@ def reports_export_csv(request):
         .select_related("unit", "room", "customer")
         .order_by("arrival")
     )
+    rows = 0
     for b in qs.iterator():
+        rows += 1
         writer.writerow(
             [
                 b.reference_code,
@@ -1325,6 +1329,7 @@ def reports_export_csv(request):
                 b.status,
             ]
         )
+    audit_export(request, "stays", rows, month=start.strftime("%Y-%m"))
     return response
 
 

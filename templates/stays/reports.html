@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Reports" %}{% endblock %}
 
 {% block dash_content %}
@@ -102,7 +102,7 @@
   </div>
   {% endif %}
 </div>
-<a href="{% url 'stays:reports-export' %}?month={{ month_param }}" class="inline-block mt-4 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">⬇ {% trans "Export CSV" %}</a>
+{% if request.user|cab_is_owner %}<a href="{% url 'stays:reports-export' %}?month={{ month_param }}" class="inline-block mt-4 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">⬇ {% trans "Export CSV" %}</a>{% endif %}
 
 {% if market %}
 {# CP-1 «Marktposition»: публичные базовые цены отелей платформы в этом городе. #}

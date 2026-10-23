@@ -16,6 +16,8 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core.roles import audit_export, owner_required
+
 from .models import RevenueEntry
 from .services import record_revenue
 
@@ -403,6 +405,7 @@ def invoice_mahnung(request, pk):
 
 
 @login_required
+@owner_required
 def expenses_export_datev(request):
     """ERP-4: DATEV-CSV расходов за период — бухгалтер получает обе стороны."""
     from django.http import HttpResponse
@@ -415,6 +418,7 @@ def expenses_export_datev(request):
         content_type="text/csv; charset=windows-1252",
     )
     response["Content-Disposition"] = f'attachment; filename="datev_ausgaben_{von}_{bis}.csv"'
+    audit_export(request, "expenses_datev", qs.count(), von=von, bis=bis)
     return response
 
 
@@ -428,6 +432,7 @@ def _period_entries(request):
 
 
 @login_required
+@owner_required
 def journal_export_csv(request):
     """Обычный CSV за период (D4c); utf-8-sig — чтобы Excel понял умляуты."""
     from django.http import HttpResponse
@@ -440,10 +445,12 @@ def journal_export_csv(request):
         content_type="text/csv; charset=utf-8",
     )
     response["Content-Disposition"] = f'attachment; filename="umsatz_{von}_{bis}.csv"'
+    audit_export(request, "finance_csv", entries.count(), von=von, bis=bis)
     return response
 
 
 @login_required
+@owner_required
 def journal_export_datev(request):
     """DATEV-CSV за период (D4c): упрощённый Buchungsstapel, cp1252."""
     from django.http import HttpResponse
@@ -456,6 +463,7 @@ def journal_export_datev(request):
         content_type="text/csv; charset=windows-1252",
     )
     response["Content-Disposition"] = f'attachment; filename="datev_{von}_{bis}.csv"'
+    audit_export(request, "finance_datev", entries.count(), von=von, bis=bis)
     return response
 
 

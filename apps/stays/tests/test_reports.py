@@ -217,8 +217,10 @@ def test_breakdowns_los_ignores_prev_month_arrivals():
     assert b["by_channel"][0]["nights"] == 2  # 1.6/2.6 в окне
 
 
-def test_reports_export_csv():
+def test_reports_export_csv(monkeypatch):
     """PMS-C: CSV месяца — те же считаемые статусы, фильтр по окну."""
+    # KA-H11: выгрузка с персональными данными — только владельцу.
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
     import uuid as uuid_mod
 
     from django.contrib.auth import get_user_model

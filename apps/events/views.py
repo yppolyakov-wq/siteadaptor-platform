@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 from apps.core import refunds
 from apps.core import transactions as core_transactions
 from apps.core.csv_safe import csv_safe
+from apps.core.roles import audit_export, owner_required
 
 from . import itinerary, registration
 from .forms import EventForm, TeacherForm, TourForm, unique_tour_slug
@@ -716,6 +717,7 @@ def teacher_delete(request, pk):
 
 
 @login_required
+@owner_required
 def roster_csv(request, pk):
     """CSV-ростер участников события (utf-8-sig — Excel-friendly)."""
     event = get_object_or_404(Event, pk=pk)
@@ -741,7 +743,9 @@ def roster_csv(request, pk):
             *[label for _key, label in reg_cols],
         ]
     )
+    rows = 0
     for t in event.tickets.select_related("customer", "stay_booking__unit", "waiver").all():
+        rows += 1
         answers = t.answers or {}
         room = t.stay_booking.unit.name if t.stay_booking and t.stay_booking.unit else ""
         waiver = getattr(t, "waiver", None)
@@ -765,6 +769,7 @@ def roster_csv(request, pk):
                 *[csv_safe(answers.get(key, "")) for key, _label in reg_cols],
             ]
         )
+    audit_export(request, "roster", rows, resource_id=event.pk)
     return response
 
 

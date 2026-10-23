@@ -84,7 +84,9 @@ def test_book_stores_preset_answers():
     assert ticket.answers["Anmerkung?"] == "Hallo"  # свободный вопрос не сломан
 
 
-def test_roster_csv_includes_preset_columns():
+def test_roster_csv_includes_preset_columns(monkeypatch):
+    # KA-H11: выгрузка с персональными данными — только владельцу.
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
     event = _event(registration_fields=["diet"])
     services.book_ticket(
         event, name="Anna", email="a@test.de", answers={"diet": "Vegan"}, auto_confirm=True

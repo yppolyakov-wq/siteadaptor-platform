@@ -123,8 +123,10 @@ def test_discount_capped_at_50():
     assert CompanyForm(_company_data(discount_percent="50")).is_valid()
 
 
-def test_firma_filter_on_list_and_csv():
+def test_firma_filter_on_list_and_csv(monkeypatch):
     """CO-2: ?firma= сужает список и CSV; кривой uuid — молча игнорируется."""
+    # KA-H11: выгрузка с персональными данными — только владельцу.
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
     company = Company.objects.create(name="Bäcker AG")
     Customer.objects.create(name="Herr Korn", company=company)
     Customer.objects.create(name="Frau Frei")

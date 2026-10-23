@@ -111,7 +111,9 @@ def test_mahnung_sends_email_levels_up_and_dedupes_same_day():
     assert Notification.objects.filter(type="invoice_mahnung").count() == 3
 
 
-def test_ustva_slice_and_datev_expenses():
+def test_ustva_slice_and_datev_expenses(monkeypatch):
+    # KA-H11: выгрузка с персональными данными — только владельцу.
+    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
     record_revenue(source="manual", amount=Decimal("119.00"), vat_rate=Decimal("19.00"))
     ExpenseEntry.objects.create(
         source="manual", amount=Decimal("23.80"), vat_rate=Decimal("19.00"), category="goods"
