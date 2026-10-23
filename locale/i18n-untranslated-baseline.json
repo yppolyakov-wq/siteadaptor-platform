@@ -7,16 +7,16 @@
   "Art. 6 Abs. 1 lit. f DSGVO (Schutz der Nutzer vor irreführenden Angeboten)",
   "Dabei werden Daten in die USA übermittelt. Grundlage sind die Standardvertragsklauseln der EU-Kommission (Art. 46 Abs. 2 lit. c DSGVO).",
   "Die Verarbeitung erfolgt auf Servern in der EU.",
+  "Die Verarbeitung erfolgt teils auf Servern in der EU, teils in den USA. Für die Übermittlung in die USA gelten die Standardvertragsklauseln der EU-Kommission (Art. 46 Abs. 2 lit. c DSGVO).",
   "Dublin, Rechenzentren in der EU",
   "Empfänger:",
   "Erkennbare E-Mail-Adressen, Telefon- und Kontonummern entfernen wir vor der Übermittlung aus Texten. Die Inhalte speichern wir nicht; wir protokollieren nur Aufgabe, Umfang und Dauer der Anfrage (",
   "Import Ihres Sortiments von Ihrer Website: Text der Seiten Ihrer Website",
   "Jede Antwort wird von unseren Mitarbeitenden geprüft und selbst versendet.",
-  "Luxemburg, Rechenzentren in der EU",
   "Prüfung des Aktionstexts: Text der Aktion und ihre Angaben (Preis, Vergleichspreis, Rabatt, Laufzeit, Menge)",
   "Prüfung öffentlicher Einträge im Stadtkatalog: Text, Preis und Rabatt des Eintrags",
-  "Suche im Stadtportal: die eingegebene Suchphrase",
-  "Vorschlag für eine Aktion aus einem Foto: Fotos (ohne Standort- und Kameradaten) und Ihre Bildunterschrift; was auf dem Foto sonst zu sehen ist, wird mit übermittelt"
+  "Rechenzentren in der EU",
+  "Suche im Stadtportal: die eingegebene Suchphrase; die daraus abgeleiteten Filter (nicht die Phrase) werden bis zu 24 Stunden zwischengespeichert"
  ],
  "apps/billing/usage.py": [
   "Nutzungsgebühr"

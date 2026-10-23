@@ -74,3 +74,19 @@ def test_platform_page_shows_section(anthropic_on, settings):
     settings.ROOT_URLCONF = "config.urls_public"
     body = views.platform_legal(RequestFactory().get("/datenschutz/"), "datenschutz")
     assert "data-privacy-ai" in body.content.decode()
+
+
+def test_mixed_routes_say_eu_and_usa(anthropic_on, settings):
+    anthropic_on.AI_ROUTE_FAST = ["mistral", "anthropic"]
+    settings.MISTRAL_MODEL_FAST = settings.MISTRAL_MODEL_STRONG = "mistral-x"
+    text = disclosure.platform_section()
+    assert "teils auf Servern in der EU, teils in den USA" in text
+
+
+def test_non_eu_route_hidden_when_eu_required(anthropic_on, settings):
+    anthropic_on.AI_REQUIRE_EU = True
+    anthropic_on.AI_ROUTE_FAST = ["mistral", "anthropic"]
+    anthropic_on.AI_ROUTE_STRONG = ["mistral"]
+    settings.MISTRAL_MODEL_FAST = settings.MISTRAL_MODEL_STRONG = "mistral-x"
+    text = disclosure.platform_section()
+    assert "Anthropic" not in text and "USA" not in text

@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 PROCESSORS = {
     "anthropic": ("Anthropic PBC", "San Francisco, USA", False),
     "openai": ("OpenAI, L.L.C.", "San Francisco, USA", False),
-    "bedrock": ("Amazon Web Services EMEA SARL", "Luxemburg, Rechenzentren in der EU", True),
+    "bedrock": ("Amazon Web Services EMEA SARL", "Rechenzentren in der EU", True),
     "azure": ("Microsoft Ireland Operations Ltd.", "Dublin, Rechenzentren in der EU", True),
     "mistral": ("Mistral AI SAS", "Paris, Frankreich", True),
 }
@@ -33,8 +33,9 @@ TASK_DATA = {
         "owner",
     ),
     "promo_photo_draft": (
-        "Vorschlag für eine Aktion aus einem Foto: Fotos (ohne Standort- und Kameradaten) "
-        "und Ihre Bildunterschrift; was auf dem Foto sonst zu sehen ist, wird mit übermittelt",
+        "Vorschlag für eine Aktion aus einem Foto (im Kundenbereich und im Telegram-Bot): "
+        "Fotos (ohne Standort- und Kameradaten) und Ihre Bildunterschrift; was auf dem Foto "
+        "sonst zu sehen ist, wird mit übermittelt",
         "Art. 6 Abs. 1 lit. b DSGVO",
         "owner",
     ),
@@ -50,7 +51,8 @@ TASK_DATA = {
         "public",
     ),
     "search_phrase_filters": (
-        "Suche im Stadtportal: die eingegebene Suchphrase",
+        "Suche im Stadtportal: die eingegebene Suchphrase; die daraus abgeleiteten Filter "
+        "(nicht die Phrase) werden bis zu 24 Stunden zwischengespeichert",
         "Art. 6 Abs. 1 lit. f DSGVO (passende Suchergebnisse)",
         "public",
     ),
@@ -85,7 +87,9 @@ def active_processors() -> list[tuple[str, str, bool]]:
     from . import providers, routing
 
     seen, out = set(), []
-    for tier in routing.TIERS if hasattr(routing, "TIERS") else ("fast", "strong"):
+    from .registry import TIERS
+
+    for tier in TIERS:
         for name in routing.configured(tier):
             if name in providers.FAKE_ROUTES or name in seen or name not in PROCESSORS:
                 continue
@@ -104,6 +108,12 @@ def active_processors() -> list[tuple[str, str, bool]]:
 def _transfer_sentence(processors) -> str:
     if all(eu for _l, _p, eu in processors):
         return "Die Verarbeitung erfolgt auf Servern in der EU."
+    if any(eu for _l, _p, eu in processors):
+        return (
+            "Die Verarbeitung erfolgt teils auf Servern in der EU, teils in den USA. Für die "
+            "Übermittlung in die USA gelten die Standardvertragsklauseln der EU-Kommission "
+            "(Art. 46 Abs. 2 lit. c DSGVO)."
+        )
     return (
         "Dabei werden Daten in die USA übermittelt. Grundlage sind die "
         "Standardvertragsklauseln der EU-Kommission (Art. 46 Abs. 2 lit. c DSGVO)."
