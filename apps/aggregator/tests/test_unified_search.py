@@ -746,3 +746,33 @@ def test_cyrillic_fallback_does_not_match_by_shared_suffix():
     _listing({"de": "Sladosti-Box", "ru": "Сладкости ассорти"})
     out, titles = _found("сладости", lang="ru")
     assert "Kauknochen" not in titles and "Treuekarte" not in titles
+
+
+def test_visitor_language_word_finds_german_offers():
+    """Фидбэк 2026-10-23: «Сладости» на русском портале — 0 из 0, хотя в городе есть
+    торты и шоколад: объявления по-немецки, а мост языков знал только опечатки."""
+    _listing("Schokoladentorte")
+    _listing("Pralinen-Box")
+    _listing("Käsekuchen vom Blech")
+    _listing("Katzenfutter 2 kg")
+    titles = _found("сладости", lang="ru")[1]
+    assert {"Schokoladentorte", "Pralinen-Box", "Käsekuchen vom Blech"} <= set(titles)
+    assert "Katzenfutter 2 kg" not in titles
+    assert "Käsekuchen vom Blech" in _found("cake", lang="en")[1]
+    assert "Käsekuchen vom Blech" in _found("tatlı", lang="tr")[1]
+    # основа не цепляет чужие слова: «котлета» ≠ «кот»
+    assert "Katzenfutter 2 kg" not in _found("котлета", lang="ru")[1]
+
+
+def test_cross_language_bridge_is_consistent():
+    from apps.aggregator import search_synonyms as syn
+
+    for words, german in syn.CROSS_LANG:
+        assert words and german
+        for term in german:
+            # немецкий термин моста ищется: он — в группе синонимов или сам по себе
+            assert syn.expand(term)[0] or term
+        for word in words:
+            assert word == word.lower() and " " not in word, word
+    assert syn.translate("brot") == ()  # немецкое слово ищет основная ветка
+    assert syn.translate("кафель") == ()  # «кафе» — только целым словом

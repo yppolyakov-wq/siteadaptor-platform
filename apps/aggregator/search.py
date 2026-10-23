@@ -27,6 +27,8 @@ from .models import apply_city_filters
 from .search_index import fold, ts_config
 
 _TOKEN = re.compile(r"[^\W_]+")
+#: Сколько переводов слова идут ещё и подстрокой (каждый — отдельный LIKE по индексу).
+TRANSLATE_SUBSTR_MAX = 4
 #: Порог похожести для кириллических слов (окончания длинные — 0.3 пропускал мусор).
 CYRILLIC_TRIGRAM_THRESHOLD = 0.5
 _CYRILLIC = re.compile(r"[\u0400-\u04FF]")
@@ -105,7 +107,13 @@ def _words(q: str, lang: str) -> list[tuple[str, SearchQuery]]:
         # T-8.26 п.5b: части составного слова («winterjacke» → «winter», «jacke») и их
         # синонимы — ветки ИЛИ того же слова, ПОСЛЕ самого слова (ранг: точное первым).
         parts = search_synonyms.split_compound(token)
-        variants = [token, fold(token), *search_synonyms.expand(token)]
+        # Фидбэк 2026-10-23: слово на языке посетителя → немецкие термины объявлений.
+        variants = [
+            token,
+            fold(token),
+            *search_synonyms.translate(token),
+            *search_synonyms.expand(token),
+        ]
         for part in parts:
             variants += [part, *search_synonyms.expand(part)]
         for variant in dict.fromkeys(variants):
@@ -141,6 +149,10 @@ def _match_words(qs, words):
         for part in search_synonyms.split_compound(token):
             if len(part) >= SUBSTRING_MIN and part in search_synonyms.HEADS:
                 cond |= Q(search_text__contains=fold(part))
+        # перевод — как часть немецкого слова («kuchen» → «Käsekuchen»)
+        for term in search_synonyms.translate_heads(token)[:TRANSLATE_SUBSTR_MAX]:
+            if len(term) >= SUBSTRING_MIN:
+                cond |= Q(search_text__contains=fold(term))
         qs = qs.filter(cond)
     return qs
 

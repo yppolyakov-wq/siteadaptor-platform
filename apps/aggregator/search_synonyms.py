@@ -12,6 +12,7 @@ GROUPS: tuple[tuple[str, ...], ...] = (
     # Lebensmittel & Getränke
     ("brot", "brötchen", "backwaren", "semmel", "schrippe"),
     ("kuchen", "torte", "gebäck"),
+    ("süßigkeiten", "süßwaren", "schokolade", "pralinen", "bonbons", "konfekt", "naschen"),
     ("obst", "früchte"),
     ("gemüse", "salat"),
     ("wurst", "aufschnitt"),
@@ -96,6 +97,125 @@ GROUPS: tuple[tuple[str, ...], ...] = (
     ("messer", "klinge", "schneidwaren"),  # Solingen — Klingenstadt
     ("gutschein", "geschenkgutschein", "voucher"),
 )
+
+# Межъязыковой мост (фидбэк владельца 2026-10-23: «Сладости» на русском портале — 0 из
+# 0). Объявления пишутся по-немецки, а житель ищет на своём языке. Ключ — ОСНОВА слова
+# (ru/uk/en/tr, нижний регистр): слово запроса, начинающееся с неё, ищется ещё и по
+# немецким терминам (и их группам синонимов). Основа короче MIN_STEM — только целым
+# словом, иначе «кот» нашёл бы «котлету». Немецкие термины — головы для подстроки
+# («kuchen» находит «Käsekuchen»).
+CROSS_LANG_MIN_STEM = 4
+CROSS_LANG: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
+    # Lebensmittel
+    (
+        ("сладост", "сладк", "солодощ", "солодк", "sweets", "candy", "tatlı"),
+        ("süßigkeiten", "kuchen"),
+    ),
+    (("шоколад", "chocolate", "çikolata"), ("schokolade",)),
+    (("конфет", "цукерк", "bonbon", "şeker"), ("bonbons", "süßigkeiten")),
+    (("торт", "пирож", "выпечк", "випічк", "пиріж", "cake", "cakes", "pastry", "kek"), ("kuchen",)),
+    (("хлеб", "хліб", "булк", "булочк", "bread", "bakery", "ekmek", "fırın", "pekarn"), ("brot",)),
+    (("пекарн", "булочн"), ("bäckerei",)),
+    (
+        ("мясо", "мяса", "мясом", "мясн", "м'ясо", "м'яса", "meat", "butcher", "et", "kasap"),
+        ("fleisch",),
+    ),
+    (("колбас", "ковбас", "sausage", "sucuk"), ("wurst",)),
+    (("сыр", "сир", "cheese", "peynir"), ("käse",)),
+    (("фрукт", "fruit", "fruits", "meyve"), ("obst",)),
+    (("овощ", "овоч", "vegetable", "vegetables", "sebze"), ("gemüse",)),
+    (("напит", "напої", "drink", "drinks", "içecek"), ("getränke",)),
+    (("пиво", "beer", "bira"), ("bier",)),
+    (("вино", "wine", "şarap"), ("wein",)),
+    (("кофе", "кава", "coffee", "kahve"), ("kaffee",)),
+    (("мороженое", "морожен", "морозиво", "dondurma"), ("eis",)),
+    (("пицц", "піц", "pizza"), ("pizza",)),
+    (("суши", "суші", "sushi"), ("sushi",)),
+    (("завтрак", "сніданок", "breakfast", "kahvaltı"), ("frühstück",)),
+    (("обед", "обід", "lunch", "öğle"), ("mittagessen",)),
+    (("ресторан", "restaurant", "lokanta"), ("restaurant",)),
+    (("кафе", "cafe", "kafe"), ("café",)),
+    (("веган", "vegan"), ("vegan",)),
+    (("вегетариан", "вегетаріан", "vegetarian", "vejetaryen"), ("vegetarisch",)),
+    (("продукт", "grocery", "groceries", "market"), ("lebensmittel",)),
+    # Mode
+    (("одежд", "одяг", "clothes", "clothing", "giyim", "kıyafet"), ("kleidung",)),
+    (("обув", "взутт", "shoes", "ayakkabı"), ("schuhe",)),
+    (("куртк", "пальт", "jacket", "coat", "ceket"), ("jacke",)),
+    (("брюк", "штан", "джинс", "trousers", "jeans", "pantolon"), ("hose",)),
+    (("плать", "сукн", "dress", "elbise"), ("kleid",)),
+    (("сумк", "рюкзак", "bag", "çanta"), ("tasche",)),
+    # Technik
+    (("телефон", "смартфон", "phone", "telefon"), ("handy",)),
+    (("ноутбук", "компьютер", "комп'ютер", "laptop", "computer", "bilgisayar"), ("laptop",)),
+    (("ремонт", "repair", "tamir"), ("reparatur",)),
+    (("наушник", "навушник", "headphone", "kulaklık"), ("kopfhörer",)),
+    # Haus & Garten
+    (("мебел", "меблі", "furniture", "mobilya"), ("möbel",)),
+    (("цвет", "квіт", "flower", "flowers", "çiçek"), ("blumen",)),
+    (("ламп", "светильн", "lamp", "lamba"), ("lampe",)),
+    (("нож", "ножи", "ножі", "ножей", "knife", "knives", "bıçak"), ("messer",)),
+    # Beauty, Gesundheit
+    (("парикмах", "перукар", "стрижк", "hairdresser", "haircut", "kuaför", "berber"), ("friseur",)),
+    (("косметик", "cosmetic", "kozmetik"), ("kosmetik",)),
+    (("маникюр", "манікюр", "manicure", "manikür"), ("maniküre",)),
+    (("массаж", "масаж", "massage", "masaj"), ("massage",)),
+    (("фитнес", "фітнес", "fitness", "spor"), ("fitness",)),
+    (("йога", "yoga"), ("yoga",)),
+    # Freizeit, Kinder, Tiere, Reisen
+    (("игрушк", "іграшк", "toy", "toys", "oyuncak"), ("spielzeug",)),
+    (("детск", "дитяч", "дети", "діти", "kid", "kids", "çocuk"), ("kinder",)),
+    (("собак", "пес", "dog", "dogs", "köpek"), ("hund",)),
+    (("кошк", "кіш", "кот", "cat", "cats", "kedi"), ("katze",)),
+    (("корм", "mama"), ("tierfutter",)),
+    (("велосипед", "bicycle", "bike", "bisiklet"), ("fahrrad",)),
+    (("гостиниц", "отел", "готел", "hotel", "otel"), ("hotel",)),
+    (("экскурс", "екскурс", "tour", "tur"), ("tour",)),
+    (("подар", "gift", "gifts", "hediye"), ("geschenk",)),
+    (("курс", "workshop"), ("kurs",)),
+)
+
+
+#: Слова моста, которые сравниваются только целиком, хотя и длиннее MIN_STEM
+#: («кафе» как основа нашла бы «кафель»).
+CROSS_LANG_EXACT = frozenset(
+    {"кафе", "cafe", "kafe", "pizza", "sushi", "yoga", "tour", "hotel", "otel"}
+)
+
+
+def _cross_index():
+    exact, stems = {}, []
+    for words, german in CROSS_LANG:
+        for word in words:
+            if len(word) < CROSS_LANG_MIN_STEM or word in CROSS_LANG_EXACT:
+                exact.setdefault(word, ())
+                exact[word] = tuple(dict.fromkeys(exact[word] + german))
+            else:
+                stems.append((word, german))
+    stems.sort(key=lambda item: -len(item[0]))  # длинная основа — точнее
+    return exact, tuple(stems)
+
+
+_CROSS_EXACT, _CROSS_STEMS = _cross_index()
+
+
+def translate_heads(token: str) -> tuple[str, ...]:
+    """Немецкие термины моста для слова — без синонимов (для поиска подстрокой)."""
+    german = _CROSS_EXACT.get(token)
+    if german is None:
+        german = next((g for stem, g in _CROSS_STEMS if token.startswith(stem)), ())
+    return german
+
+
+def translate(token: str) -> tuple[str, ...]:
+    """Слово запроса на ru/uk/en/tr → немецкие термины поиска (с их синонимами); пусто,
+    если слова в мосте нет. Немецкие слова сюда не попадают — их ищет основная ветка."""
+    german = translate_heads(token)
+    out: list[str] = []
+    for term in german:
+        out += expand(term)
+    return tuple(dict.fromkeys(out))
+
 
 _INDEX: dict[str, tuple[str, ...]] = {}
 for _group in GROUPS:
