@@ -539,7 +539,31 @@ def _derived_home_is_duplicate(tenant, cfg) -> bool:
     # Только сырой конфиг: normalize ВСЕГДА кладёт `menus` (выводя их из nav),
     # поэтому по переданному cfg «собрал ли владелец меню» не определить.
     raw = getattr(tenant, "site_config", None)
-    return not (isinstance(raw, dict) and isinstance(raw.get("menus"), dict))
+    if not (isinstance(raw, dict) and isinstance(raw.get("menus"), dict)):
+        return True
+    # Мастер, дизайн и регистрация сохраняют конфиг через normalize — в `menus` при
+    # этом ложится то же автоменю. Меню «собрано владельцем», только если его пункты
+    # отличаются от выведенных из nav (фидбэк 2026-10-23: бизнес из бота).
+    # Сравниваем СТРУКТУРУ (тип, цель, вкл.), не подписи: подпись автоменю пишется на
+    # языке момента сохранения.
+    memo = getattr(tenant, "_sa_lite_menu_derived", None)
+    if memo is not None and memo[0] is raw:  # меню рисуется несколько раз за запрос
+        return memo[1]
+    normalized = siteconfig.normalize(raw)
+    derived = siteconfig._normalize_menus(None, normalized["nav"])["top"]["items"]
+    result = _shape(normalized["menus"]["top"]["items"]) == _shape(derived)
+    try:
+        tenant._sa_lite_menu_derived = (raw, result)
+    except AttributeError:
+        pass
+    return result
+
+
+def _shape(items) -> list:
+    return [
+        (n.get("type"), n.get("target"), n.get("enabled", True), _shape(n.get("children") or []))
+        for n in items
+    ]
 
 
 def top_meta(tenant, cfg=None) -> tuple[str, bool]:

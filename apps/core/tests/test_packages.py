@@ -91,6 +91,20 @@ def test_lite_storefront_header_has_no_blog_and_no_duplicate_offers():
     assert "{% if storefront_inbox_enabled %}" in src.split("data-chat-fab", 1)[0][-600:]
 
 
+def test_lite_header_filtered_even_after_config_was_saved_normalized():
+    """Фидбэк 2026-10-23 (бизнес из бота): мастер/дизайн/регистрация сохраняют конфиг
+    через normalize, а он кладёт выведенное автоменю в `menus`. Это меню — НЕ собранное
+    владельцем: лишние пункты должны уйти и здесь."""
+    saved = siteconfig.normalize({**AKTIONEN})
+    assert isinstance(saved.get("menus"), dict)
+    tenant = TenantFactory.build(site_config=saved, disabled_modules=[])
+    for cfg in (None, siteconfig.normalize(saved)):
+        urls = {n["url"] for n in menu.resolve_menu(tenant, "top", cfg)}
+        assert "/" not in urls
+        assert not any(u and u.startswith(("/nachricht", "/anfrage")) for u in urls), urls
+        assert "/aktionen/" in urls and "/ueber-uns/" in urls
+
+
 def test_full_storefront_header_unchanged():
     tenant = TenantFactory.build(site_config={}, disabled_modules=[])
     urls = {n["url"] for n in menu.resolve_menu(tenant, "top")}
