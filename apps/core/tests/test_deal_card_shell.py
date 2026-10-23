@@ -994,6 +994,7 @@ def test_ai_reply_button_only_with_thread_and_ai_on(settings):
     from apps.jobs import views as job_views
 
     settings.AI_ENABLED = True
+    settings.AI_TASKS_ENABLED = ["inbox_reply_draft"]  # AI-1: задача переписки — явно
     tenant = _tenant("catering")
     job = _job()
     html = job_views.job_detail(_req(tenant=tenant), pk=job.pk).content.decode()
