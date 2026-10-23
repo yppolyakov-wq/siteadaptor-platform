@@ -48,7 +48,12 @@ _NOT_UNIT = (
 )
 _RE_OPEN = re.compile(
     r"\b(?:(?:jetzt|heute|gerade)\s+)?(?:geöffnet|geoeffnet|offen)(?:\s+(?:heute|jetzt))?\b"
-    r"|\bhat\s+offen\b",
+    r"|\bhat\s+offen\b"
+    # «Pizza morgen» на портале пишут и на языке посетителя (ru/uk/en/tr)
+    r"|\bopen\s+now\b|\bnow\s+open\b"
+    r"|\b(?:сейчас\s+)?открыт[оаы]?(?:\s+сейчас)?\b"
+    r"|\b(?:зараз\s+)?відчинен[оаі]?(?:\s+зараз)?\b|\b(?:зараз\s+)?відкрит[оаі]?(?:\s+зараз)?\b"
+    r"|\b(?:şimdi\s+)?açık(?:\s+şimdi)?\b",
     re.I,
 )
 _RE_RANGE = re.compile(rf"\b{_NUM}\s*(?:-|–|bis)\s*{_NUM}\s*{_CUR}", re.I)
@@ -60,12 +65,61 @@ _RE_TO = re.compile(
     re.I,
 )
 _RE_FROM = re.compile(rf"\b(?:ab|von|mindestens)\s+{_NUM}\s*{_CUR}(?!\w)", re.I)
-_RE_HEUTE = re.compile(r"\bheute\b", re.I)
-_RE_MORGEN = re.compile(r"\bmorgen\b", re.I)
-_RE_WE = re.compile(r"\b(?:(?:am|dieses|übers|uebers)\s+)?wochenende\b", re.I)
+_RE_HEUTE = re.compile(r"\b(?:heute|today|сегодня|сьогодні|bugün)\b", re.I)
+_RE_MORGEN = re.compile(r"\b(?:morgen|tomorrow|завтра|yarın|yarin)\b", re.I)
+_RE_WE = re.compile(
+    r"\b(?:(?:am|dieses|übers|uebers)\s+)?wochenende\b"
+    r"|\b(?:(?:this|on\s+the|at\s+the)\s+)?weekend\b"
+    r"|\b(?:на\s+|в\s+)?выходны[хе]\b|\b(?:на\s+|у\s+)?вихідн(?:их|і)\b"
+    r"|\bhafta\s*sonu(?:nda)?\b",
+    re.I,
+)
+#: Дни недели на языках портала → немецкий ключ _WEEKDAYS.
+_WEEKDAY_ALIASES = {
+    "monday": "montag",
+    "tuesday": "dienstag",
+    "wednesday": "mittwoch",
+    "thursday": "donnerstag",
+    "friday": "freitag",
+    "saturday": "samstag",
+    "sunday": "sonntag",
+    "понедельник": "montag",
+    "вторник": "dienstag",
+    "среду": "mittwoch",
+    "среда": "mittwoch",
+    "четверг": "donnerstag",
+    "пятницу": "freitag",
+    "пятница": "freitag",
+    "субботу": "samstag",
+    "суббота": "samstag",
+    "воскресенье": "sonntag",
+    "понеділок": "montag",
+    "вівторок": "dienstag",
+    "середу": "mittwoch",
+    "середа": "mittwoch",
+    "четвер": "donnerstag",
+    "пʼятницю": "freitag",
+    "п'ятницю": "freitag",
+    "пʼятниця": "freitag",
+    "суботу": "samstag",
+    "субота": "samstag",
+    "неділю": "sonntag",
+    "неділя": "sonntag",
+    "pazartesi": "montag",
+    "salı": "dienstag",
+    "çarşamba": "mittwoch",
+    "perşembe": "donnerstag",
+    "cuma": "freitag",
+    "cumartesi": "samstag",
+    "pazar günü": "sonntag",
+}
 _WEEKDAYS = ("montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag")
 _RE_WEEKDAY = re.compile(
-    r"\b(?:am\s+)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonnabend|sonntag)\b", re.I
+    r"\b(?:am\s+|on\s+|в\s+|во\s+|у\s+)?("
+    r"montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonnabend|sonntag|"
+    + "|".join(sorted((re.escape(k) for k in _WEEKDAY_ALIASES), key=len, reverse=True))
+    + r")\b",
+    re.I,
 )
 _RE_SIZE = re.compile(
     r"\b(?:größe|groesse|grösse|gr\.?)\s*(xxs|xs|s|m|l|xl|xxl|xxxl|[0-9]{2,3})\b", re.I
@@ -130,6 +184,7 @@ def _squash(text: str) -> str:
 
 
 def _next_weekday(today: date, name: str) -> date:
+    name = _WEEKDAY_ALIASES.get(name, name)
     idx = _WEEKDAYS.index("samstag" if name == "sonnabend" else name)
     return today + timedelta(days=(idx - today.weekday()) % 7)
 

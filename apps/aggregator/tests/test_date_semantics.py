@@ -155,3 +155,44 @@ def test_past_date_drops_products():
     biz = _biz(ALL_WEEK)
     _listing("Pizza Verdure", kind="product", schema=biz.schema_name)
     assert _found("Pizza", date="2026-10-01") == []
+
+
+@pytest.mark.parametrize(
+    ("q", "lang"),
+    [
+        ("пиццу завтра", "ru"),
+        ("піцу завтра", "uk"),
+        ("pizza tomorrow", "en"),
+        ("yarın pizza", "tr"),
+    ],
+)
+def test_date_word_is_understood_in_the_visitors_language(q, lang):
+    """Фидбэк владельца: «пиццу завтра» на русском портале — 0 результатов: «завтра»
+    оставалось словом поиска, а его нет ни в одном предложении."""
+    from django.utils import translation
+
+    biz = _biz(ALL_WEEK)
+    AggregatorListing.objects.create(
+        tenant_schema=biz.schema_name,
+        tenant_slug="pz",
+        city="Solingen",
+        listing_kind="product",
+        source_ref="pz",
+        title={
+            "de": "Pizza Verdure",
+            "ru": "Пицца с овощами",
+            "uk": "Піца з овочами",
+            "en": "Pizza with vegetables",
+            "tr": "Sebzeli pizza",
+        },
+        business_name="Trattoria",
+        detail_url="https://x.siteadaptor.de/",
+    )
+    filters = search.SearchFilters()
+    q_eff, eff, _chips, _hints = search.resolve_intent(q, filters, city="Solingen")
+    assert eff.date == "2026-10-22"
+    with translation.override(lang):
+        out = search.execute(
+            views.listings_for(city="Solingen"), q_eff, eff, surface="test", lang=lang
+        )
+    assert [x.title["de"] for x in out.qs] == ["Pizza Verdure"]
