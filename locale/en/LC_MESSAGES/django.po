@@ -27765,9 +27765,13 @@ msgid "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie
 msgstr "If this wasn't you: change your password immediately and check the bank details."
 
 #: apps/core/refunds.py
-msgid "Erstattung fehlgeschlagen: %(code)s"
-msgstr "Refund failed: %(code)s"
+msgid "Erstattung nicht bestätigt: %(code)s"
+msgstr "Refund not confirmed: %(code)s"
 
 #: apps/core/refunds.py
-msgid "Die Stornierung von %(code)s ist gespeichert, aber Stripe hat die Erstattung abgelehnt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort manuell."
-msgstr "The cancellation of %(code)s has been saved, but Stripe declined the refund. Please check the payment in the Stripe dashboard and refund it there manually."
+msgid "Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort bei Bedarf manuell."
+msgstr "The cancellation of %(code)s has been saved, but Stripe did not confirm the refund. Please check the payment in the Stripe dashboard and refund it there manually if needed."
+
+#: apps/core/refunds.py
+msgid "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
+msgstr "Instalment plan: please refund the instalments already paid in the Stripe dashboard."

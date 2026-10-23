@@ -28018,9 +28018,13 @@ msgid "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie
 msgstr "Якщо це були не ви: негайно змініть пароль і перевірте реквізити."
 
 #: apps/core/refunds.py
-msgid "Erstattung fehlgeschlagen: %(code)s"
-msgstr "Повернення не вдалося: %(code)s"
+msgid "Erstattung nicht bestätigt: %(code)s"
+msgstr "Повернення не підтверджено: %(code)s"
 
 #: apps/core/refunds.py
-msgid "Die Stornierung von %(code)s ist gespeichert, aber Stripe hat die Erstattung abgelehnt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort manuell."
-msgstr "Скасування %(code)s збережено, але Stripe відхилив повернення. Перевірте платіж у панелі Stripe і поверніть його там вручну."
+msgid "Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort bei Bedarf manuell."
+msgstr "Скасування %(code)s збережено, але Stripe не підтвердив повернення. Перевірте платіж у панелі Stripe і за потреби поверніть його там вручну."
+
+#: apps/core/refunds.py
+msgid "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
+msgstr "Розстрочка: поверніть уже сплачені частини в панелі Stripe."

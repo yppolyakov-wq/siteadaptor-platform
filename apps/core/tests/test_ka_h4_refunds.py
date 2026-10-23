@@ -133,7 +133,7 @@ def test_board_action_cancel_paid_order_refunds(stripe_calls):
     assert len(stripe_calls) == 1
     call = stripe_calls[0]
     assert call["payment_intent"] == "pi_1" and call["connect_id"] == "acct_1"
-    assert call["idempotency_key"].endswith(f":order:{order.pk}")
+    assert call["idempotency_key"] == refunds._idempotency_key("order", order.pk, "pi_1")
 
 
 def test_board_action_fetch_also_refunds(stripe_calls):
@@ -321,3 +321,61 @@ def test_no_direct_connect_refund_outside_refunds_module():
         if re.search(r"connect\.refund\(", path.read_text(encoding="utf-8")):
             offenders.append(str(path.relative_to(root)))
     assert offenders == []
+
+
+# --- ревью KA-H4 -----------------------------------------------------------------------
+
+
+def test_installment_ticket_is_not_auto_refunded(stripe_calls):
+    """R10: в intent лежит только первая доля — «возвращено целиком» было бы ложью."""
+    from apps.events.models import InstallmentPlan
+
+    ticket = _paid(_ticket())
+    InstallmentPlan.objects.create(ticket=ticket, total_cents=5000, count=3)
+    result = transactions.apply_action("ticket", ticket, "cancelled", tenant=_tenant())
+    ticket.refresh_from_db()
+    assert result == refunds.RefundResult.MANUAL
+    assert ticket.payment_state == "paid" and not stripe_calls
+
+
+def test_idempotency_key_depends_on_payment_and_hides_schema():
+    a = refunds._idempotency_key("order", 1, "pi_a")
+    b = refunds._idempotency_key("order", 1, "pi_b")
+    assert a != b and a.startswith("refund:")
+    from django.db import connection
+
+    assert connection.schema_name not in a
+
+
+def test_stale_in_memory_state_still_refunds(stripe_calls):
+    """Вебхук оплаты пришёл после загрузки объекта: решение — по БД."""
+    order = _order()
+    type(order).objects.filter(pk=order.pk).update(
+        payment_state="paid", stripe_payment_intent="pi_1"
+    )
+    order.stripe_payment_intent = "pi_1"  # в памяти payment_state ещё «unpaid»
+    result = transactions.apply_action("order", order, "cancelled", tenant=_tenant())
+    assert result == refunds.RefundResult.REFUNDED and len(stripe_calls) == 1
+
+
+def test_board_fetch_reports_refund_header(stripe_calls):
+    order = _paid(_order())
+    resp, _req = _board_post("order", order.pk, "cancelled", _tenant(), fetch=True)
+    assert resp["X-Refund"] == "refunded"
+
+
+def test_cabinet_ticket_cancel_notifies_waitlist(stripe_calls, monkeypatch):
+    from apps.events import views as event_views
+
+    seen = []
+    monkeypatch.setattr(event_views, "notify_event_waitlist", lambda ev: seen.append(ev.pk))
+    ticket = _paid(_ticket())
+    req = RequestFactory().post("/x/", {"target": "cancelled"})
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _user()
+    req.tenant = _tenant()
+    event_views.ticket_action(req, pk=ticket.event_id, tid=ticket.pk)
+    ticket.refresh_from_db()
+    assert ticket.status == "cancelled" and ticket.payment_state == "refunded"
+    assert seen == [ticket.event_id]

@@ -27905,9 +27905,13 @@ msgid "Wenn Sie das nicht waren: Ändern Sie sofort Ihr Passwort und prüfen Sie
 msgstr "Bunu siz yapmadıysanız: şifrenizi hemen değiştirin ve banka bilgilerini kontrol edin."
 
 #: apps/core/refunds.py
-msgid "Erstattung fehlgeschlagen: %(code)s"
-msgstr "İade başarısız: %(code)s"
+msgid "Erstattung nicht bestätigt: %(code)s"
+msgstr "İade onaylanmadı: %(code)s"
 
 #: apps/core/refunds.py
-msgid "Die Stornierung von %(code)s ist gespeichert, aber Stripe hat die Erstattung abgelehnt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort manuell."
-msgstr "%(code)s iptali kaydedildi, ancak Stripe iadeyi reddetti. Lütfen ödemeyi Stripe panelinde kontrol edin ve iadeyi orada elle yapın."
+msgid "Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard und erstatten Sie sie dort bei Bedarf manuell."
+msgstr "%(code)s iptali kaydedildi, ancak Stripe iadeyi onaylamadı. Lütfen ödemeyi Stripe panelinde kontrol edin ve gerekirse iadeyi orada elle yapın."
+
+#: apps/core/refunds.py
+msgid "Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."
+msgstr "Taksitli ödeme: Lütfen ödenmiş taksitleri Stripe panelinde iade edin."

@@ -35,6 +35,7 @@ class RefundResult(StrEnum):
     REFUNDED = "refunded"
     ALREADY = "already"  # уже возвращено (повтор, гонка)
     FAILED = "failed"  # Stripe отказал — состояние «оплачено» сохранено
+    MANUAL = "manual"  # рассрочка: автоматически не возвращаем, владелец — в Stripe
 
 
 def _refundable_states(model) -> frozenset[str]:
@@ -80,31 +81,55 @@ def refund_payment(kind: str, obj, tenant=None) -> RefundResult:
     refundable = _refundable_states(model)
     if not intent or not connect_id:
         return RefundResult.NONE
-    if obj.payment_state not in refundable:
-        return (
-            RefundResult.ALREADY
-            if obj.payment_state == model.PAYMENT_REFUNDED
-            else RefundResult.NONE
-        )
+    if _has_installment_plan(obj):
+        # R10: в intent лежит только ПЕРВАЯ доля — вернуть её и пометить
+        # «возвращено целиком» было бы неправдой. Владелец возвращает в Stripe.
+        return RefundResult.MANUAL
+    # Решение — по свежему состоянию из БД (вебхук оплаты мог прийти после
+    # загрузки объекта в память).
+    obj.refresh_from_db(fields=["payment_state"])
     previous = obj.payment_state
-    claimed = model.objects.filter(pk=obj.pk, payment_state__in=refundable).update(
-        payment_state=model.PAYMENT_REFUNDED
-    )
+    if previous not in refundable:
+        return RefundResult.ALREADY if previous == model.PAYMENT_REFUNDED else RefundResult.NONE
+    claimed = model.objects.filter(
+        pk=obj.pk, payment_state=previous, stripe_payment_intent=intent
+    ).update(payment_state=model.PAYMENT_REFUNDED)
     if not claimed:
         obj.refresh_from_db(fields=["payment_state"])
         return RefundResult.ALREADY
-    from django.db import connection
-
-    key = f"refund:{connection.schema_name}:{kind}:{obj.pk}"
+    key = _idempotency_key(kind, obj.pk, intent)
+    # Окно «захвачено, Stripe ещё не ответил»: если процесс упадёт здесь, по логу
+    # видно, какую сделку проверить (повтор с тем же ключом безопасен).
+    logger.info("refund claimed: %s %s", kind, obj.pk)
     try:
         connect.refund(connect_id=connect_id, payment_intent=intent, idempotency_key=key)
     except stripe.error.InvalidRequestError as exc:
         if getattr(exc, "code", "") != "charge_already_refunded":
             return _rollback(kind, obj, previous, tenant)
-    except stripe.error.StripeError:
+    except Exception:  # noqa: BLE001 — сбой не должен оставить ложное «возвращено»
         return _rollback(kind, obj, previous, tenant)
     obj.refresh_from_db(fields=["payment_state"])
     return RefundResult.REFUNDED
+
+
+def _has_installment_plan(obj) -> bool:
+    if getattr(obj, "payment_state", "") == "installment":
+        return True
+    try:
+        return getattr(obj, "installment_plan", None) is not None
+    except Exception:  # noqa: BLE001 — RelatedObjectDoesNotExist у OneToOne
+        return False
+
+
+def _idempotency_key(kind: str, pk, intent: str) -> str:
+    """Ключ на (сделка, платёж): новый платёж — новый ключ. Имя схемы наружу
+    не уходит — хеш."""
+    import hashlib
+
+    from django.db import connection
+
+    raw = f"{connection.schema_name}:{kind}:{pk}:{intent}"
+    return "refund:" + hashlib.sha256(raw.encode()).hexdigest()[:40]
 
 
 def _rollback(kind: str, obj, previous: str, tenant) -> RefundResult:
@@ -132,11 +157,11 @@ def _notify_owner_failed(kind: str, obj, tenant) -> None:
         return
     code = getattr(obj, "reference_code", "") or str(obj.pk)
     with translation.override(email_locale()):
-        subject = _("Erstattung fehlgeschlagen: %(code)s") % {"code": code}
+        subject = _("Erstattung nicht bestätigt: %(code)s") % {"code": code}
         body = _(
-            "Die Stornierung von %(code)s ist gespeichert, aber Stripe hat die "
-            "Erstattung abgelehnt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard "
-            "und erstatten Sie sie dort manuell."
+            "Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde "
+            "von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im "
+            "Stripe-Dashboard und erstatten Sie sie dort bei Bedarf manuell."
         ) % {"code": code}
     try:
         notify(
@@ -163,9 +188,14 @@ def flash(request, result: RefundResult, kind: str) -> None:
     from django.utils.translation import gettext as _
 
     if result == RefundResult.REFUNDED:
-        if kind == "order":
-            messages.success(request, _("Payment refunded."))
-        else:
+        if kind in ("booking", "stay"):
             messages.success(request, _("Deposit refunded."))
+        else:
+            messages.success(request, _("Payment refunded."))
     elif result == RefundResult.FAILED:
         messages.error(request, _("Refund failed — please check Stripe."))
+    elif result == RefundResult.MANUAL:
+        messages.warning(
+            request,
+            _("Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."),
+        )

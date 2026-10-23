@@ -295,15 +295,17 @@ def ticket_action(request, pk, tid):
                 actor=request.user,
                 tenant=getattr(request, "tenant", None),
             )
-            messages.success(request, _("Ticket updated."))
-            # KA-H4: отмена оплаченного билета возвращает оплату.
-            refunds.flash(request, refund, "ticket")
-            if target == Ticket.STATUS_CANCELLED:
-                # R5/MX-0: номер освобождает TicketSM-хук (единый узел).
-                # Отмена освободила место → уведомить лист ожидания (R1).
-                notify_event_waitlist(ticket.event)
         except Exception:  # noqa: BLE001
             messages.error(request, _("Action not allowed."))
+            return redirect("events:detail", pk=pk)
+        messages.success(request, _("Ticket updated."))
+        # KA-H4: отмена оплаченного билета возвращает оплату — вне try: статус уже
+        # сохранён, сбой после него не должен показать «Action not allowed.».
+        refunds.flash(request, refund, "ticket")
+        if target == Ticket.STATUS_CANCELLED:
+            # R5/MX-0: номер освобождает TicketSM-хук (единый узел).
+            # Отмена освободила место → уведомить лист ожидания (R1).
+            notify_event_waitlist(ticket.event)
     return redirect("events:detail", pk=pk)
 
 

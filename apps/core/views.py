@@ -4997,11 +4997,16 @@ def kanban_action(request, kind, pk):
     if is_fetch:
         # kanban_next: сохранить исходный next в перерисованной карточке (иначе
         # hidden-поле указывало бы на URL самого action-эндпоинта).
-        return render(
+        resp = render(
             request,
             "core/_kanban_card.html",
             {"tx": tx, "kind": kind, "kanban_next": request.POST.get("next", "")},
         )
+        # KA-H4: результат возврата для клиента доски (flash придёт на следующей
+        # загрузке страницы).
+        if refund != refunds.RefundResult.NONE:
+            resp["X-Refund"] = str(refund)
+        return resp
     return redirect(back)
 
 
