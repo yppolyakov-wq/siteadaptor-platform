@@ -272,7 +272,14 @@ def test_index_lists_published_future():
 
 def test_index_grid_layout_shows_cover_cards_and_countdown():
     """RV3: сетка обложек (aspect-обложка) + countdown-пилюля для скорых событий."""
-    _event(title="Bald", starts_at=timezone.now() + timedelta(days=5))
+    # Полдень через пять КАЛЕНДАРНЫХ дней: «сейчас + 5×24 ч» около полуночи и при смене
+    # летнего/зимнего времени попадает на соседнюю дату (флак CI 2026-10-23, 25.10 — DST).
+    local_now = timezone.localtime(timezone.now())
+    noon = local_now.replace(hour=12, minute=0, second=0, microsecond=0)
+    starts = timezone.make_aware(
+        (noon + timedelta(days=5)).replace(tzinfo=None), timezone.get_current_timezone()
+    )
+    _event(title="Bald", starts_at=starts)
     tenant = TenantFactory.build(site_config={"events_index_layout": {"preset": "cols2"}})
     body = public_views.veranstaltung_index(_req("get", tenant=tenant)).content.decode()
     assert "aspect-[4/3]" in body  # грид-обложки RV3
