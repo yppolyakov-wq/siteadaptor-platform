@@ -14,7 +14,7 @@ from django.test import RequestFactory
 from django.urls import resolve
 
 from apps.core import modules, packages
-from apps.tenants import menu
+from apps.tenants import menu, siteconfig
 from apps.tenants.models import Tenant
 from apps.tenants.tests.factories import TenantFactory
 
@@ -75,6 +75,11 @@ def test_lite_storefront_header_has_no_blog_and_no_duplicate_offers():
     пресетом) и «Angebote» → главная у лёгкой витрины не появляются, акции и чат — да."""
     tenant = TenantFactory.build(site_config=dict(AKTIONEN), disabled_modules=[])
     urls = {n["url"] for n in menu.resolve_menu(tenant, "top")}
+    # Витрина зовёт с нормализованным конфигом (context.py) — там `menus` есть всегда.
+    cfg_urls = {
+        n["url"] for n in menu.resolve_menu(tenant, "top", siteconfig.normalize({**AKTIONEN}))
+    }
+    assert cfg_urls == urls
     assert "/blog/" not in urls
     assert "/" not in urls
     assert "/aktionen/" in urls

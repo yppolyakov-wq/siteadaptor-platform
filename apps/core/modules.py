@@ -23,6 +23,8 @@ from dataclasses import dataclass
 
 from django.utils.translation import gettext_lazy as _
 
+from . import packages
+
 
 @dataclass(frozen=True)
 class NavItem:
@@ -546,8 +548,9 @@ def is_entitled(tenant, spec: ModuleSpec) -> bool:
     return spec.key in (tenant.enabled_modules or [])
 
 
-def is_module_active(tenant, key: str) -> bool:
-    """Активно = (entitlement ∩ реестр) − disabled; core — всегда; deps — рекурсивно."""
+def is_module_active(tenant, key: str, *, ignore_package: bool = False) -> bool:
+    """Активно = (entitlement ∩ реестр ∩ пакет) − disabled; core — всегда; deps — рекурсивно.
+    `ignore_package` — «как без потолка пакета» (отчёт package_report)."""
     spec = _BY_KEY.get(key)
     if spec is None:
         return False
@@ -555,14 +558,14 @@ def is_module_active(tenant, key: str) -> bool:
         return True
     if not is_entitled(tenant, spec):
         return False
-    from . import packages
-
     # T-8.32a: потолок пакета — у лёгкого бизнеса вне пакета модуля нет совсем.
-    if not packages.module_allowed(tenant, key):
+    if not ignore_package and not packages.module_allowed(tenant, key):
         return False
     if key in (getattr(tenant, "disabled_modules", None) or []):
         return False
-    return all(is_module_active(tenant, dep) for dep in spec.depends_on)
+    return all(
+        is_module_active(tenant, dep, ignore_package=ignore_package) for dep in spec.depends_on
+    )
 
 
 def enable_module(tenant, key: str) -> bool:

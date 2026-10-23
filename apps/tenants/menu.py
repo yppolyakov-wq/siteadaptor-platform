@@ -529,8 +529,8 @@ def _derived_home_is_duplicate(tenant, cfg) -> bool:
 
     if not packages.package_of(tenant).lite:
         return False
-    if isinstance(cfg, dict) and isinstance(cfg.get("menus"), dict):
-        return False
+    # Только сырой конфиг: normalize ВСЕГДА кладёт `menus` (выводя их из nav),
+    # поэтому по переданному cfg «собрал ли владелец меню» не определить.
     raw = getattr(tenant, "site_config", None)
     return not (isinstance(raw, dict) and isinstance(raw.get("menus"), dict))
 

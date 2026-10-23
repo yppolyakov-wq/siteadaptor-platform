@@ -42,26 +42,13 @@ def _count(label: str) -> int | None:
         return None
 
 
-def _without_ceiling(tenant, key: str) -> bool:
-    """Активность модуля, как если бы потолка пакета не было (зеркало is_module_active)."""
-    spec = modules.get_module(key)
-    if spec is None:
-        return False
-    if spec.core:
-        return True
-    if not modules.is_entitled(tenant, spec):
-        return False
-    if key in (getattr(tenant, "disabled_modules", None) or []):
-        return False
-    return all(_without_ceiling(tenant, dep) for dep in spec.depends_on)
-
-
 def report_for(tenant) -> dict:
     package = packages.package_of(tenant)
     lost = [
         s.key
         for s in modules.optional_modules()
-        if _without_ceiling(tenant, s.key) and not modules.is_module_active(tenant, s.key)
+        if modules.is_module_active(tenant, s.key, ignore_package=True)
+        and not modules.is_module_active(tenant, s.key)
     ]
     data = {}
     if lost:
