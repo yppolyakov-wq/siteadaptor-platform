@@ -262,6 +262,17 @@ def vat_select(current=None, hint="", inherit_label=""):
 
 
 @register.filter
+def cab_can_export_finance(user):
+    """KA-D7: кнопки финансовых выгрузок — владельцу и admin."""
+    from apps.core.roles import can_export_finance
+
+    try:
+        return can_export_finance(user)
+    except (TypeError, ValueError):
+        return False
+
+
+@register.filter
 def cab_is_owner(user):
     """KA-H11: кнопки выгрузок с персональными данными — только владельцу."""
     from apps.core.roles import is_owner

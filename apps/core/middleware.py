@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 
 from . import modules
 from .i18n_cabinet import CABINET_PREFIXES, resolve_cabinet_locale
-from .roles import has_cabinet_access, is_owner
+from .roles import can_export_finance, has_cabinet_access, is_owner
 from .session_schema import SESSION_SCHEMA_KEY
 
 
@@ -42,6 +42,50 @@ class SessionSchemaGuardMiddleware:
 
                 logout(request)  # сессия из другой схемы → сброс (далее @login_required)
         return self.get_response(request)
+
+
+class PendingStorefrontMiddleware:
+    """KA-D4 (решение владельца 2026-10-23): витрина бизнеса с неподтверждённой почтой
+    (`Tenant.email_pending`, быстрая регистрация / бот) посетителям не показывается —
+    503 «bald online» + noindex. Пропускаем: кабинет, вход по ссылке, Mini App и
+    вебхуки Telegram, служебные пути, любые POST (вебхуки платёжки), и самого владельца
+    / сотрудника (превью своей витрины). Каталог города такие бизнесы и так скрывает
+    (`aggregator.visibility`)."""
+
+    OPEN_PREFIXES = (
+        *CABINET_PREFIXES,
+        "/accounts/",
+        "/anmelden/",
+        "/start/",
+        "/tg/",
+        "/health",
+        "/media/",
+        "/static/",
+        "/robots.txt",
+        "/lang/",
+        "/stays/",
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        tenant = getattr(request, "tenant", None)
+        if (
+            tenant is None
+            or getattr(tenant, "schema_name", "public") == "public"
+            or not getattr(tenant, "email_pending", False)
+            or request.method not in ("GET", "HEAD")
+            or request.path.startswith(self.OPEN_PREFIXES)
+            or has_cabinet_access(getattr(request, "user", None))
+        ):
+            return self.get_response(request)
+        from django.shortcuts import render
+
+        response = render(request, "storefront/coming_soon.html", status=503)
+        response["X-Robots-Tag"] = "noindex, nofollow"
+        response["Retry-After"] = "3600"
+        return response
 
 
 class StorefrontLocaleClampMiddleware:
@@ -190,11 +234,15 @@ class CabinetOwnerAccessMiddleware:
         # дополнительно под @owner_required; ростер события — только там, uuid в пути).
         "/crm/export.csv",
         "/dashboard/stays/berichte/export.csv",
+        # Банковские выписки: имя плательщика, назначение, IBAN.
+        "/dashboard/finance/bank/",
+    )
+
+    # KA-D7: финансовые выгрузки — владельцу и admin (бухгалтер), не staff.
+    _FINANCE_EXPORTS = (
         "/dashboard/finance/export.csv",
         "/dashboard/finance/datev.csv",
         "/dashboard/finance/ausgaben/datev.csv",
-        # Банковские выписки: имя плательщика, назначение, IBAN.
-        "/dashboard/finance/bank/",
     )
 
     def __init__(self, get_response):
@@ -211,6 +259,10 @@ class CabinetOwnerAccessMiddleware:
             if not has_cabinet_access(request.user):
                 return HttpResponseForbidden(_("Kein Zugriff auf dieses Konto."))
             if request.path.startswith(self._OWNER_ONLY) and not is_owner(request.user):
+                return HttpResponseForbidden(_("Nur für Inhaber."))
+            if request.path.startswith(self._FINANCE_EXPORTS) and not can_export_finance(
+                request.user
+            ):
                 return HttpResponseForbidden(_("Nur für Inhaber."))
         return self.get_response(request)
 

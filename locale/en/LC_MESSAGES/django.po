@@ -27974,3 +27974,6 @@ msgstr "Book with obligation to pay"
 #, python-format
 msgid "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"
 msgstr "All businesses appear in the city catalogue. If you do not want to be listed, please write to us: %(mail)s"
+
+msgid "Diese Seite ist bald online."
+msgstr "This page will be online soon."

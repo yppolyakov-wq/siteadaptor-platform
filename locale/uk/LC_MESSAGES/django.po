@@ -28227,3 +28227,6 @@ msgstr "Забронювати з обов'язком оплати"
 #, python-format
 msgid "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"
 msgstr "Усі заклади показуються в каталозі міста. Якщо ви не хочете там бути, напишіть нам: %(mail)s"
+
+msgid "Diese Seite ist bald online."
+msgstr "Ця сторінка скоро відкриється."

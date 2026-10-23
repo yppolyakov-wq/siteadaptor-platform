@@ -28247,3 +28247,6 @@ msgstr "Забронировать с обязательством оплаты"
 #, python-format
 msgid "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"
 msgstr "Все заведения показываются в каталоге города. Если вы не хотите там быть, напишите нам: %(mail)s"
+
+msgid "Diese Seite ist bald online."
+msgstr "Эта страница скоро откроется."

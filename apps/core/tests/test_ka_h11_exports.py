@@ -85,12 +85,22 @@ EXPORTS = {
 }
 
 
+FINANCE = {"finance_csv", "finance_datev", "expenses_datev"}
+
+
 @pytest.mark.parametrize("name", list(EXPORTS))
-@pytest.mark.parametrize("role", [Membership.ROLE_STAFF, Membership.ROLE_ADMIN])
-def test_staff_cannot_export(name, role):
-    response = EXPORTS[name](_req(role))
+def test_staff_cannot_export(name):
+    response = EXPORTS[name](_req(Membership.ROLE_STAFF))
     assert response.status_code == 403
     assert not AuditEvent.objects.filter(action=f"export.{name}").exists()
+
+
+@pytest.mark.parametrize("name", list(EXPORTS))
+def test_admin_exports_only_finance(name):
+    """KA-D7 (решение владельца 2026-10-23): бухгалтер с ролью admin выгружает
+    журнал и DATEV; клиенты, участники и гости — по-прежнему только владелец."""
+    response = EXPORTS[name](_req(Membership.ROLE_ADMIN))
+    assert response.status_code == (200 if name in FINANCE else 403)
 
 
 @pytest.mark.parametrize("name", list(EXPORTS))
@@ -127,14 +137,14 @@ def test_crm_list_hides_export_button_for_staff():
 def test_middleware_blocks_staff_on_export_prefixes():
     from apps.core.middleware import CabinetOwnerAccessMiddleware as mw
 
+    for path in ("/crm/export.csv", "/dashboard/stays/berichte/export.csv"):
+        assert path.startswith(mw._OWNER_ONLY), path
     for path in (
-        "/crm/export.csv",
-        "/dashboard/stays/berichte/export.csv",
         "/dashboard/finance/export.csv",
         "/dashboard/finance/datev.csv",
         "/dashboard/finance/ausgaben/datev.csv",
     ):
-        assert path.startswith(mw._OWNER_ONLY), path
+        assert path.startswith(mw._FINANCE_EXPORTS), path
 
 
 def test_crm_audit_does_not_store_search_term():

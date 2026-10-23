@@ -189,6 +189,8 @@ MIDDLEWARE = [
     # Гейт доступа к кабинету: только члены тенанта (Membership) — fail-closed
     # поверх @login_required. После AuthenticationMiddleware (нужен request.user).
     "apps.core.middleware.CabinetOwnerAccessMiddleware",
+    # KA-D4: витрина скрыта до подтверждения почты владельцем (нужен request.user).
+    "apps.core.middleware.PendingStorefrontMiddleware",
     # T-8.30 (Р-2): вход из Telegram Mini App — только лёгкие экраны (process_view).
     "apps.core.middleware.TelegramLiteScopeMiddleware",
     # H1.1: витрина кадрируется same-origin (live-preview редактора может переходить

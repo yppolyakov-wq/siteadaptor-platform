@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core.roles import audit_export, owner_required
+from apps.core.roles import audit_export, finance_export_required, owner_required
 
 from .models import RevenueEntry
 from .services import record_revenue
@@ -406,7 +406,7 @@ def invoice_mahnung(request, pk):
 
 
 @login_required
-@owner_required
+@finance_export_required
 def expenses_export_datev(request):
     """ERP-4: DATEV-CSV расходов за период — бухгалтер получает обе стороны."""
     from django.http import HttpResponse
@@ -433,7 +433,7 @@ def _period_entries(request):
 
 
 @login_required
-@owner_required
+@finance_export_required
 def journal_export_csv(request):
     """Обычный CSV за период (D4c); utf-8-sig — чтобы Excel понял умляуты."""
     from django.http import HttpResponse
@@ -451,7 +451,7 @@ def journal_export_csv(request):
 
 
 @login_required
-@owner_required
+@finance_export_required
 def journal_export_datev(request):
     """DATEV-CSV за период (D4c): упрощённый Buchungsstapel, cp1252."""
     from django.http import HttpResponse

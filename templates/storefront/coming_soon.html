@@ -1,0 +1,18 @@
+{% load i18n %}<!doctype html>
+{% comment %}KA-D4: витрина бизнеса до подтверждения почты владельцем (503 + noindex).
+Standalone, как 404: без витринного хрома, ни на что сложное не опирается.{% endcomment %}
+<html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% if request.tenant and request.tenant.name %}{{ request.tenant.name }}{% else %}SiteAdaptor{% endif %}</title>
+</head>
+<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f9fafb;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#111827;">
+  <main style="text-align:center;padding:2rem;max-width:26rem;">
+    <p style="font-size:3rem;margin:0;" aria-hidden="true">🌱</p>
+    <h1 style="font-size:1.4rem;margin:.75rem 0 .25rem;">{% if request.tenant and request.tenant.name %}{{ request.tenant.name }}{% endif %}</h1>
+    <p style="color:#4b5563;margin:0;">{% trans "Diese Seite ist bald online." %}</p>
+  </main>
+</body>
+</html>

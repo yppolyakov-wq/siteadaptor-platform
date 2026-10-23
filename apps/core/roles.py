@@ -38,6 +38,28 @@ def is_owner(user) -> bool:
     return role_of(user) == Membership.ROLE_OWNER
 
 
+def can_export_finance(user) -> bool:
+    """KA-D7 (решение владельца 2026-10-23): финансовые выгрузки (журнал, DATEV) —
+    владельцу и роли admin (бухгалтер). Выгрузки клиентов/участников/гостей — нет."""
+    return role_of(user) in (Membership.ROLE_OWNER, Membership.ROLE_ADMIN)
+
+
+def finance_export_required(view):
+    """KA-D7: вьюха финансовой выгрузки — owner или admin. Под `@login_required`."""
+    from functools import wraps
+
+    from django.http import HttpResponseForbidden
+    from django.utils.translation import gettext as _
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if not can_export_finance(request.user):
+            return HttpResponseForbidden(_("Nur für Inhaber."))
+        return view(request, *args, **kwargs)
+
+    return wrapper
+
+
 def owner_required(view):
     """KA-H11: вьюха только для владельца (выгрузки с персональными данными).
 
