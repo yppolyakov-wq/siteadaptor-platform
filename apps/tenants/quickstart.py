@@ -150,9 +150,6 @@ class QuickStartForm(quick.QuickPromotionForm):
     postcode = forms.CharField(label=_("PLZ"), max_length=10)
     phone = forms.CharField(label=_("Telefon"), max_length=30)
     email = forms.EmailField(label=_("E-Mail"))
-    in_city_catalog = forms.BooleanField(
-        label=_("Auch im Stadtportal Ihrer Stadt zeigen"), required=False, initial=True
-    )
 
     def __init__(self, *args, **kwargs):
         kwargs.pop("tenant", None)

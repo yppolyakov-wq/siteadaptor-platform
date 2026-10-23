@@ -28060,3 +28060,7 @@ msgstr "Bereits erhalten: %(p)s €. Offener Betrag: %(o)s €."
 
 msgid "Zahlungspflichtig buchen"
 msgstr "Zahlungspflichtig buchen"
+
+#, python-format
+msgid "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"
+msgstr "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"

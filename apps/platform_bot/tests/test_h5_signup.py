@@ -111,7 +111,7 @@ def test_full_flow_reaches_summary_and_submits_same_provisioning(bot):
     kw = bot["calls"][0]
     assert kw["business_name"] == "Bäckerei Krume" and kw["business_type"] == "bakery"
     assert kw["address"] == "Hauptstraße 5, 42651 Musterstadt" and kw["phone"] == PHONE
-    assert kw["email"] == MAIL and kw["in_city_catalog"] is True
+    assert kw["email"] == MAIL and "in_city_catalog" not in kw  # KA-D5: всегда в каталоге
     assert kw["promo"]["title"] and kw["promo"]["new_price"] == "2.50"
     assert kw["telegram"] == {"tg_user_id": USER, "lang": "de"}
     assert signup.load(USER) is None

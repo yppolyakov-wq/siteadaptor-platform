@@ -1061,7 +1061,6 @@ def _opening_hours_rows(tenant) -> list:
 @login_required
 def settings_view(request):
     """Настройки бизнеса: контакты, часы работы (структурно) и правовые тексты."""
-    was_in_catalog = getattr(request.tenant, "in_city_catalog", True)
     was_category = getattr(request.tenant, "city_category", "")
     form = BusinessSettingsForm(request.POST or None, instance=request.tenant)
     if request.method == "POST" and form.is_valid():
@@ -1081,8 +1080,7 @@ def settings_view(request):
         from apps.aggregator.tasks import refresh_tenant_fields
 
         refresh_tenant_fields(tenant)
-        if tenant.in_city_catalog != was_in_catalog or tenant.city_category != was_category:
-            # T-8.6: согласие на каталог города — снять все листинги или вернуть их;
+        if tenant.city_category != was_category:
             # T-8.22: смена основной категории — пересобрать рубрики листингов.
             from apps.aggregator.visibility import apply_visibility
 

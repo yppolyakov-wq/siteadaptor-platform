@@ -70,17 +70,6 @@ def show(bot, uid, chat) -> str:
             {"text": "📞 " + _("Telefon ändern"), "callback_data": PREFIX + "p"},
             {"text": "💬 " + _("WhatsApp ändern"), "callback_data": PREFIX + "w"},
         ],
-        [
-            {
-                "text": "🏙 "
-                + (
-                    _("Stadtkatalog ausschalten")
-                    if tenant.in_city_catalog
-                    else _("Stadtkatalog einschalten")
-                ),
-                "callback_data": PREFIX + "c",
-            }
-        ],
         [{"text": "✉️ " + _("Einstellungen im Kabinett"), "callback_data": "pm:l:e"}],
     ]
     _send(bot, chat, "\n".join(lines), {"inline_keyboard": rows})
@@ -171,39 +160,17 @@ def on_callback(bot, callback: dict) -> str:
     if tenant is None:
         _send(bot, chat, _("Nicht verfügbar."))
         return "denied"
-    if code == "c":
-        want = "0" if tenant.in_city_catalog else "1"
-        text = (
-            _("„%(name)s“ aus dem Stadtkatalog nehmen? Ihre Website bleibt unverändert.")
-            if tenant.in_city_catalog
-            else _("„%(name)s“ im Stadtkatalog zeigen? Aktive Angebote erscheinen dort.")
-        )
-        _send(
-            bot,
-            chat,
-            text % {"name": tenant.name},
-            # Кнопка несёт бизнес и ЦЕЛЕВОЕ значение: двойное нажатие / старая кнопка
-            # после /geschaeft не переключают «обратно» и не трогают другой бизнес.
-            {
-                "inline_keyboard": [
-                    [{"text": "✅ " + _("Ja"), "callback_data": f"{PREFIX}C:{tenant.pk}:{want}"}]
-                ]
-            },
-        )
-        return "catalog_asked"
-    from django.db import transaction
+    # KA-D5 (решение владельца 2026-10-23): каталог города — всегда. Старые кнопки
+    # переключателя («pp:c», «pp:C:…») ничего не меняют, только объясняют.
+    from django.conf import settings
 
-    from apps.aggregator.visibility import apply_visibility
-    from apps.tenants.models import Tenant
-
-    if str(tenant.pk) != target_pk:
-        _send(bot, chat, _("Nicht verfügbar."))
-        return "denied"
-    with transaction.atomic():
-        locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
-        value = target_value == "1"
-        if locked.in_city_catalog != value:
-            locked.in_city_catalog = value
-            locked.save(update_fields=["in_city_catalog"])
-            apply_visibility(locked)
-    return show(bot, uid, chat)
+    _send(
+        bot,
+        chat,
+        _(
+            "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen "
+            "möchten, schreiben Sie uns bitte: %(mail)s"
+        )
+        % {"mail": settings.PLATFORM_CONTACT_EMAIL},
+    )
+    return "catalog_info"

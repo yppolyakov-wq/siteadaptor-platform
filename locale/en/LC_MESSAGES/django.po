@@ -27970,3 +27970,7 @@ msgstr "Already received: %(p)s €. Amount outstanding: %(o)s €."
 
 msgid "Zahlungspflichtig buchen"
 msgstr "Book with obligation to pay"
+
+#, python-format
+msgid "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"
+msgstr "All businesses appear in the city catalogue. If you do not want to be listed, please write to us: %(mail)s"

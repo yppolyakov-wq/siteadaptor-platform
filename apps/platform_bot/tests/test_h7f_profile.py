@@ -64,26 +64,22 @@ def test_edit_denied_after_unlink(bot, store):  # noqa: F811
     assert tenant.contact_phone != "+49 1"
 
 
-def test_catalog_toggle_needs_confirmation(bot, store, monkeypatch):  # noqa: F811
+def test_catalog_cannot_be_switched_off_from_bot(bot, store, monkeypatch):  # noqa: F811
+    """KA-D5 (решение владельца 2026-10-23): каталог города — всегда; выключает только
+    оператор по письменному отказу. Старые кнопки бота ничего не меняют."""
     tenant = _owner()
     calls = []
     monkeypatch.setattr("apps.aggregator.visibility.apply_visibility", lambda t: calls.append(t.pk))
-    was = Tenant.objects.get(pk=tenant.pk).in_city_catalog
-    assert handler.handle(_cb("pp:c")) == "catalog_asked"
-    assert Tenant.objects.get(pk=tenant.pk).in_city_catalog == was
-    want = "0" if was else "1"
-    assert handler.handle(_cb(f"pp:C:{tenant.pk}:{want}")) == "profile"
-    assert Tenant.objects.get(pk=tenant.pk).in_city_catalog is (not was)
-    assert calls == [tenant.pk]
-    # двойное нажатие той же кнопки — без «обратного» переключения
-    handler.handle(_cb(f"pp:C:{tenant.pk}:{want}"))
-    assert Tenant.objects.get(pk=tenant.pk).in_city_catalog is (not was)
-    assert calls == [tenant.pk]
+    assert handler.handle(_cb("pp:c")) == "catalog_info"
+    assert handler.handle(_cb(f"pp:C:{tenant.pk}:0")) == "catalog_info"
+    assert Tenant.objects.get(pk=tenant.pk).in_city_catalog is True
+    assert calls == []
 
 
 def test_catalog_confirm_for_other_business_denied(bot, store):  # noqa: F811
     tenant = _owner()
-    assert handler.handle(_cb(f"pp:C:{tenant.pk + 999}:0")) == "denied"
+    # KA-D5: переключателя больше нет — любая старая кнопка только объясняет
+    assert handler.handle(_cb(f"pp:C:{tenant.pk + 999}:0")) == "catalog_info"
 
 
 def test_non_text_does_not_clear_number(bot, store):  # noqa: F811

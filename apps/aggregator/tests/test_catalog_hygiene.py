@@ -139,7 +139,7 @@ def test_settings_toggle_off_removes_listings():
         if value in (None, False):
             continue
         data[name] = "on" if value is True else value
-    data.pop("in_city_catalog", None)  # снятая галочка в POST не приходит
+    data["in_city_catalog"] = ""  # KA-D5: поле убрано — подделанный POST не выключает
     request = RequestFactory().post("/dashboard/settings/", data)
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
@@ -148,8 +148,8 @@ def test_settings_toggle_off_removes_listings():
     response = settings_view(request)
     assert response.status_code == 302, response.content[:500]
     t.refresh_from_db()
-    assert t.in_city_catalog is False
-    assert not AggregatorListing.objects.filter(tenant_schema="biz_t").exists()
+    assert t.in_city_catalog is True
+    assert AggregatorListing.objects.filter(tenant_schema="biz_t").exists()
 
 
 # --- «Melden» -----------------------------------------------------------------------

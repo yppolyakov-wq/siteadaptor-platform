@@ -241,17 +241,10 @@ def _as_post(data: dict) -> dict:
     post = {
         "term": "week",
         "customer_response": "reserve",
-        "in_city_catalog": "on",
         "city_category": cc.suggest_for_business_type(data.get("business_type", "")),
     }
     for key, value in data.items():
         if key in ("photo_ids", "warnings", "phone_verified"):
-            continue
-        if key == "in_city_catalog":
-            if value:
-                post[key] = "on"
-            else:
-                post.pop(key, None)
             continue
         post[key] = value
     return post
@@ -454,7 +447,6 @@ def _summary(bot, chat, state) -> None:
     data = state["data"]
     types = dict(Tenant.BUSINESS_TYPES)
     responses = dict(promo_response.CHOICES)
-    catalog = data.get("in_city_catalog", True)
     lines = [
         "📋 " + _("Bitte prüfen:"),
         "📣 " + (data.get("title") or "—"),
@@ -474,7 +466,11 @@ def _summary(bot, chat, state) -> None:
         "📞 " + (data.get("phone") or "—"),
         "✉️ " + (data.get("email") or "—"),
         "🙋 " + str(responses.get(data.get("customer_response") or "reserve", "")),
-        ("✅ " if catalog else "⬜ ") + _("Auch im Stadtportal zeigen"),
+        "🏙 "
+        + _(
+            "Ihre aktiven Angebote erscheinen im Stadtportal Ihrer Stadt — erst nachdem "
+            "Ihre E-Mail-Adresse bestätigt ist."
+        ),
     ]
     if data.get("photo_ids"):
         lines.append(f"📷 {len(data['photo_ids'])}")
@@ -484,7 +480,6 @@ def _summary(bot, chat, state) -> None:
             {"text": "✏️ " + _("Ändern"), "callback_data": "ps:e"},
             {"text": "🙋 " + _("Reaktion"), "callback_data": "ps:r"},
         ],
-        [{"text": ("✅ " if catalog else "⬜ ") + _("Stadtportal"), "callback_data": "ps:p"}],
         [{"text": "❌ " + _("Abbrechen"), "callback_data": "ps:x"}],
     ]
     _send(bot, chat, "\n".join(lines), {"inline_keyboard": rows})
@@ -565,11 +560,6 @@ def _on_state_callback(bot, uid, chat, state, data) -> str:
         save(uid, state)
         _prompt(bot, chat, state)
         return state["step"]
-    if data == "p":
-        fields["in_city_catalog"] = not fields.get("in_city_catalog", True)
-        save(uid, state)
-        _summary(bot, chat, state)
-        return "summary"
     if data == "r":
         labels = dict(promo_response.CHOICES)
         rows = [[{"text": str(labels[k]), "callback_data": f"ps:r:{k}"}] for k in QUICK_RESPONSES]
@@ -710,7 +700,6 @@ def _provision(bot, chat, form, cd, promo, state, uid):
                 address=form.address_line(),
                 phone=cd["phone"],
                 promo=promo,
-                in_city_catalog=cd.get("in_city_catalog", False),
                 telegram={"tg_user_id": int(uid), "lang": state.get("lang") or ""},
             )
             break

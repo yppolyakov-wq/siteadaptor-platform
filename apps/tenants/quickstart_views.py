@@ -272,7 +272,6 @@ def _publish(request, form):
             phone=cd["phone"],
             promo=promo,
             partner_code=request.session.get("partner_ref", ""),
-            in_city_catalog=cd.get("in_city_catalog", False),
             telegram={"tg_user_id": tg["uid"], "lang": tg["lang"]} if tg else None,
         )
     except IntegrityError:

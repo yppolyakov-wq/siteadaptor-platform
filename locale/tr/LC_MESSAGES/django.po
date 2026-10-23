@@ -28110,3 +28110,7 @@ msgstr "Alınan: %(p)s €. Kalan tutar: %(o)s €."
 
 msgid "Zahlungspflichtig buchen"
 msgstr "Ödeme yükümlülüğüyle rezervasyon yap"
+
+#, python-format
+msgid "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"
+msgstr "Tüm işletmeler şehir kataloğunda görünür. Listelenmek istemiyorsanız lütfen bize yazın: %(mail)s"

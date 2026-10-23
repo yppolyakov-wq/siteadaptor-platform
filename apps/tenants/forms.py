@@ -109,7 +109,8 @@ class BusinessSettingsForm(forms.ModelForm):
             "service_area_note",
             "auto_redeem_on_scan",
             "owner_digest_enabled",
-            "in_city_catalog",
+            # KA-D5 (2026-10-23): каталог города — всегда; выключает только оператор
+            # по письменному отказу (админка платформы), не владелец.
             "city_category",
             "voucher_max_percent",
             # W9-5: налоговые реквизиты и плоские правовые тексты переехали на
@@ -135,7 +136,6 @@ class BusinessSettingsForm(forms.ModelForm):
             "whatsapp_number": _("WhatsApp-Nummer"),
             "auto_redeem_on_scan": _("Sofort einlösen beim Scannen in der Kasse"),
             "owner_digest_enabled": _("Morning digest email"),
-            "in_city_catalog": _("Im Stadtportal zeigen"),
             "voucher_max_percent": _("Max. promo-code share of order (%)"),
         }
         help_texts = {
@@ -163,10 +163,6 @@ class BusinessSettingsForm(forms.ModelForm):
             "owner_digest_enabled": _(
                 "A short morning email: yesterday's revenue, today's bookings and "
                 "what needs your attention."
-            ),
-            "in_city_catalog": _(
-                "Ihre aktiven Angebote erscheinen im Stadtportal Ihrer Stadt — erst nachdem "
-                "Ihre E-Mail-Adresse bestätigt ist."
             ),
             "voucher_max_percent": _(
                 "0 = no limit. Caps discount/promo codes only — sold gift "

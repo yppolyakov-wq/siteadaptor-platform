@@ -28243,3 +28243,7 @@ msgstr "Уже получено: %(p)s €. Остаток к оплате: %(o)
 
 msgid "Zahlungspflichtig buchen"
 msgstr "Забронировать с обязательством оплаты"
+
+#, python-format
+msgid "Alle Geschäfte erscheinen im Stadtkatalog. Wenn Sie nicht dort stehen möchten, schreiben Sie uns bitte: %(mail)s"
+msgstr "Все заведения показываются в каталоге города. Если вы не хотите там быть, напишите нам: %(mail)s"

@@ -220,12 +220,7 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
         <span class="block text-xs text-gray-500 mt-1">{% trans "Kein Passwort nötig — Sie melden sich per Link aus der E-Mail an." %}</span>
         {% for e in form.email.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
       </label>
-      <label class="flex items-start gap-2 text-sm" data-qs-catalog>
-        <input type="checkbox" name="in_city_catalog" value="on" class="mt-0.5" {% if form.in_city_catalog.value %}checked{% endif %}>
-        <span>{{ form.in_city_catalog.label }}
-          <span class="block text-xs text-gray-500">{% trans "Erscheint dort, sobald Sie Ihre E-Mail bestätigt haben. Jederzeit änderbar." %}</span>
-        </span>
-      </label>
+      <p class="text-sm text-gray-600" data-qs-catalog>🏙 {% trans "Ihre aktiven Angebote erscheinen im Stadtportal Ihrer Stadt — erst nachdem Ihre E-Mail-Adresse bestätigt ist." %}</p>
       <button type="submit" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700" data-qs-publish><span data-qs-idle>🚀 {% trans "Veröffentlichen" %}</span><span data-qs-busy hidden>⏳ {% trans "Wird veröffentlicht…" %}</span></button>
       <p class="text-xs text-gray-500 text-center">
         {% trans "Mit dem Veröffentlichen akzeptieren Sie unsere AGB und die Datenschutzhinweise." %}
