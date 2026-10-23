@@ -193,6 +193,8 @@ MIDDLEWARE = [
     "apps.core.middleware.PendingStorefrontMiddleware",
     # T-8.30 (Р-2): вход из Telegram Mini App — только лёгкие экраны (process_view).
     "apps.core.middleware.TelegramLiteScopeMiddleware",
+    # T-8.32b: лёгкий пакет — только свои экраны кабинета (после Telegram-скоупа).
+    "apps.core.middleware.PackageScopeMiddleware",
     # H1.1: витрина кадрируется same-origin (live-preview редактора может переходить
     # по ссылкам между storefront-страницами). ВЫШЕ XFrameOptions → перебивает DENY.
     "apps.core.middleware.StorefrontFrameOptionsMiddleware",

@@ -2,7 +2,7 @@
 
 from django import template
 
-from apps.core import modules, nav_registry
+from apps.core import modules, nav_registry, packages
 
 register = template.Library()
 
@@ -71,6 +71,12 @@ def _hide_owner_only(context) -> bool:
         return False
 
 
+@register.filter
+def pkg_allowed(url_name, tenant):
+    """T-8.32b: `{% if 'payment-settings'|pkg_allowed:request.tenant %}` — экран открыт пакету."""
+    return tenant is None or packages.view_allowed(tenant, str(url_name))
+
+
 @register.inclusion_tag("tenant/_nav_palette.html", takes_context=True)
 def nav_palette(context):
     """W8-4: палитра Ctrl+K — гейтнутый индекс реестра (модуль активен).
@@ -88,6 +94,8 @@ def nav_palette(context):
             continue
         if not nav_registry.allowed_for_business(e["url_name"], tenant):
             continue  # X4: гейт по типу бизнеса (гастро-экраны)
+        if tenant is not None and not packages.view_allowed(tenant, e["url_name"]):
+            continue  # T-8.32b: экраны вне пакета в палитре не показываем
         entries.append(
             {
                 "url_name": e["url_name"],

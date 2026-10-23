@@ -35,6 +35,9 @@ class Package:
     lite: bool
     #: Потолок НЕобязательных модулей; None — без потолка. Core-модули не ограничиваются.
     modules: frozenset[str] | None
+    #: T-8.32b: экраны кабинета, открытые пакету (view_name или префикс «…*»);
+    #: None — весь кабинет. Остальное — страница «In Ihrem Paket nicht enthalten».
+    cabinet_allow: frozenset[str] | None = None
 
 
 #: Модули ступени «Aktionen»: акции, чат с клиентом (решение владельца — остаётся),
@@ -42,9 +45,82 @@ class Package:
 #: Отложить/купон живут в движке акций и модуль loyalty не требуют.
 _LITE_MODULES = frozenset({"promotions", "inbox", "jobs", "publishing", "telegram"})
 
+#: T-8.32b (KA-3 §3.1): экраны «Aktionen». Товар правится только из акции (Angebot —
+#: с Eintrag, В-1); заявки — карточка и новая (список/доска — T-8.32c); касса — отложенное и
+#: погашение кода. Ваучеры loyalty/gift, рассылки, кампании, типы, аналитика — вне пакета.
+_AKTIONEN_VIEWS = frozenset(
+    {
+        # Start / Geschäft / Teilen / Sichtbar + служебное
+        "dashboard",
+        "lite-business",
+        "lite-share",
+        "lite-visibility",
+        "legal-docs",
+        "owner-confirm-resend",
+        "set-cabinet-lang",
+        "account_logout",
+        "tg-start",
+        "tg-lite-info",
+        "palette-search",
+        # Sichtbar: уведомления, общий и свой Telegram-бот, Google-профиль
+        "notifications-settings",
+        "platform-bot-connect",
+        "platform-bot-disconnect",
+        "integrations-telegram-activate",
+        "telegram-settings",
+        "telegram-connect",
+        "telegram-disconnect",
+        "gbp-*",
+        "channel*",
+        # Aktionen
+        "promotions:promotion-list",
+        "promotions:promotion-quick",
+        "promotions:promotion-quick-done",
+        "promotions:promotion-preview",
+        "promotions:promotion-flyer",
+        "promotions:promotion-transition",
+        "promotions:promotion-create",
+        "promotions:promotion-edit",
+        "promotions:promotion-share",
+        "promotions:promotion-image-delete",
+        "promotions:promotion-image-primary",
+        "promotions:promotion-text-check",
+        "promotions:promotion-text-check-ai",
+        "promotions:promotion-text-check-ai-result",
+        "promotions:promotion-quick-ai",
+        "promotions:promotion-quick-ai-result",
+        "promotions:today-dismiss",
+        "promotions:shop-poster",
+        "promotions:reservation-list",
+        "promotions:reservation-action",
+        "promotions:redeem",
+        "promotions:redeem-detail",
+        "promotions:redeem-action",
+        # товар — только правка из акции
+        "catalog:product-edit",
+        "catalog:product-image-delete",
+        "catalog:product-image-primary",
+        "catalog:variant-*",
+        "catalog:modifier-*",
+        # Kunden & Nachrichten + заявки по акции
+        "inbox:*",
+        "jobs:detail",
+        "jobs:new",
+        "jobs:pdf",
+    }
+)
+_EINTRAG_VIEWS = _AKTIONEN_VIEWS | {
+    "sellable-manage",
+    "sellable-visibility",
+    "sortiment-view",
+    "catalog:product-create",
+    "catalog:product-delete",
+    "imports:website*",
+}
+
 PACKAGES: dict[str, Package] = {
-    AKTIONEN: Package(AKTIONEN, _("Aktionen"), True, _LITE_MODULES),
-    EINTRAG: Package(EINTRAG, _("Eintrag"), True, _LITE_MODULES),
+    AKTIONEN: Package(AKTIONEN, _("Aktionen"), True, _LITE_MODULES, _AKTIONEN_VIEWS),
+    EINTRAG: Package(EINTRAG, _("Eintrag"), True, _LITE_MODULES, _EINTRAG_VIEWS),
     LADEN: Package(LADEN, _("Laden"), False, None),
 }
 
@@ -69,3 +145,11 @@ def module_allowed(tenant, key: str) -> bool:
     """Разрешает ли пакет модуль. Core-модули проверяет вызывающий (is_module_active)."""
     ceiling = package_of(tenant).modules
     return ceiling is None or key in ceiling
+
+
+def view_allowed(tenant, view_name: str) -> bool:
+    """Открыт ли экран кабинета пакету. Пустое имя (не разрешилось) — не наше дело."""
+    allow = package_of(tenant).cabinet_allow
+    if allow is None or not view_name or view_name in allow:
+        return True
+    return any(p.endswith("*") and view_name.startswith(p[:-1]) for p in allow)

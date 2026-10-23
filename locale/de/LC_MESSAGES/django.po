@@ -28091,3 +28091,16 @@ msgstr "Laden"
 
 msgid "Nicht im Paket"
 msgstr "Nicht im Paket"
+
+msgid "In Ihrem Paket nicht enthalten"
+msgstr "In Ihrem Paket nicht enthalten"
+
+#, python-format
+msgid "Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten und Ihre Sichtbarkeit finden Sie im Start."
+msgstr "Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten und Ihre Sichtbarkeit finden Sie im Start."
+
+msgid "Zurück zum Start"
+msgstr "Zurück zum Start"
+
+msgid "Mehr Funktionen? Sprechen Sie uns an."
+msgstr "Mehr Funktionen? Sprechen Sie uns an."

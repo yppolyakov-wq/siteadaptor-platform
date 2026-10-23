@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Sichtbarkeit" %}{% endblock %}
 
 {% block dash_content %}
@@ -52,6 +52,7 @@
       <a href="{% url 'notifications-settings' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>
     </div>
     {% include "tenant/_own_bot_card.html" with inline_token=True can_activate=can_manage_bot %}
+    {% if 'payment-settings'|pkg_allowed:request.tenant %}
     <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3" data-vis="stripe">
       <span class="min-w-0">
         <span class="block font-medium">{% trans "Online bezahlen (Stripe)" %}</span>
@@ -59,6 +60,8 @@
       </span>
       <a href="{% url 'payment-settings' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>
     </div>
+    {% endif %}
+    {% if 'domains'|pkg_allowed:request.tenant %}
     <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3" data-vis="domain">
       <span class="min-w-0">
         <span class="block font-medium">{% trans "Eigene Domain" %}</span>
@@ -66,7 +69,10 @@
       </span>
       <a href="{% url 'domains' %}" class="shrink-0 text-sm font-medium text-indigo-600">{% trans "Einrichten" %}</a>
     </div>
+    {% endif %}
   </section>
+  {% if 'integrations-home'|pkg_allowed:request.tenant %}
   <a href="{% url 'integrations-home' %}" class="block text-center text-sm font-medium text-indigo-600 py-2" data-all-connections>{% trans "Alle Verbindungen" %} →</a>
+  {% endif %}
 </div>
 {% endblock %}

@@ -98,6 +98,14 @@ TG_LITE_VIEWS = frozenset(
         "promotions:redeem-detail",
         "promotions:redeem-action",
         "promotions:voucher-redeem",  # QR ваучера/подарочного сертификата у прилавка
+        # T-8.32b: «Nachrichten» лёгкого кабинета (пакет «Aktionen» и Mini App)
+        "inbox:list",
+        "inbox:thread",
+        "inbox:thread-poll",
+        "inbox:thread-typing",
+        "inbox:unread-count",
+        "inbox:reply-draft",
+        "inbox:reply-draft-result",
     }
 )
 

@@ -318,6 +318,59 @@ class StorefrontFrameOptionsMiddleware:
         return response
 
 
+class PackageScopeMiddleware:
+    """T-8.32b: лёгкий пакет («Aktionen», «Eintrag») видит только свои экраны кабинета.
+
+    Остальное под кабинетными префиксами — страница «In Ihrem Paket nicht enthalten» (403):
+    не 404 (тот значит «модуль выключен»), не молчаливый 302 (закладка ломалась бы без
+    объяснения). Fetch/POST — JSON 403. Витрину и вход не трогаем; аноним получает свой
+    редирект на логин от вьюхи. Пакет Laden — без изменений (белого списка нет)."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        from . import packages
+
+        tenant = getattr(request, "tenant", None)
+        if tenant is None or getattr(tenant, "schema_name", "public") == "public":
+            return None
+        if not request.path.startswith(CABINET_PREFIXES):
+            return None
+        if not getattr(getattr(request, "user", None), "is_authenticated", False):
+            return None
+        match = getattr(request, "resolver_match", None)
+        name = getattr(match, "view_name", "") or ""
+        if packages.view_allowed(tenant, name):
+            return None
+        return self._not_included(request, packages.package_of(tenant))
+
+    @staticmethod
+    def _not_included(request, package):
+        from django.http import JsonResponse
+        from django.shortcuts import render
+
+        accept = request.headers.get("Accept", "")
+        fetch = request.headers.get("Sec-Fetch-Mode") not in (None, "navigate", "nested-navigate")
+        if (
+            request.method != "GET"
+            or "application/json" in accept
+            or request.headers.get("X-Requested-With")
+            or request.headers.get("HX-Request")
+            or fetch
+        ):
+            return JsonResponse({"error": "package"}, status=403)
+        return render(
+            request,
+            "tenant/package_not_included.html",
+            {"package_label": package.label},
+            status=403,
+        )
+
+
 class TelegramLiteScopeMiddleware:
     """T-8.30 (Р-2): сессия из Telegram Mini App видит ТОЛЬКО лёгкие экраны.
 

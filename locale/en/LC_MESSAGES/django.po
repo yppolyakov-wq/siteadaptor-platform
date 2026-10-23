@@ -28001,3 +28001,16 @@ msgstr "Shop"
 
 msgid "Nicht im Paket"
 msgstr "Not in your package"
+
+msgid "In Ihrem Paket nicht enthalten"
+msgstr "Not included in your package"
+
+#, python-format
+msgid "Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten und Ihre Sichtbarkeit finden Sie im Start."
+msgstr "This feature is not part of the “%(name)s” package. You will find your promotions, messages and visibility under Start."
+
+msgid "Zurück zum Start"
+msgstr "Back to Start"
+
+msgid "Mehr Funktionen? Sprechen Sie uns an."
+msgstr "Need more features? Get in touch."

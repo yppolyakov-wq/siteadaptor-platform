@@ -169,7 +169,8 @@ def test_lite_nav_is_start_first_and_tabbar_four():
     assert nav[:4] == [
         "dashboard",
         "promotions:promotion-list",
-        "sellable-manage",
+        # T-8.32b (KA-3 В-1): у «Aktionen» вместо «Angebot» — «Nachrichten»
+        "inbox:list",
         "lite-visibility",
     ]
     assert "lite-business" in nav and "lite-share" in nav

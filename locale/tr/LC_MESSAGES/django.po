@@ -28141,3 +28141,16 @@ msgstr "Mağaza"
 
 msgid "Nicht im Paket"
 msgstr "Paketinizde yok"
+
+msgid "In Ihrem Paket nicht enthalten"
+msgstr "Paketinize dahil değil"
+
+#, python-format
+msgid "Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten und Ihre Sichtbarkeit finden Sie im Start."
+msgstr "Bu özellik „%(name)s“ paketine dahil değil. Kampanyalarınızı, mesajlarınızı ve görünürlüğünüzü Başlangıç bölümünde bulabilirsiniz."
+
+msgid "Zurück zum Start"
+msgstr "Başlangıca dön"
+
+msgid "Mehr Funktionen? Sprechen Sie uns an."
+msgstr "Daha fazla özellik mi? Bize yazın."

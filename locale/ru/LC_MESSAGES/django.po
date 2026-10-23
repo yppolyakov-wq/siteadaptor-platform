@@ -28274,3 +28274,16 @@ msgstr "Магазин"
 
 msgid "Nicht im Paket"
 msgstr "Не входит в пакет"
+
+msgid "In Ihrem Paket nicht enthalten"
+msgstr "Не входит в ваш пакет"
+
+#, python-format
+msgid "Diese Funktion gehört nicht zum Paket „%(name)s“. Ihre Aktionen, Nachrichten und Ihre Sichtbarkeit finden Sie im Start."
+msgstr "Эта функция не входит в пакет «%(name)s». Акции, сообщения и видимость — в разделе «Старт»."
+
+msgid "Zurück zum Start"
+msgstr "Назад в «Старт»"
+
+msgid "Mehr Funktionen? Sprechen Sie uns an."
+msgstr "Нужно больше функций? Напишите нам."

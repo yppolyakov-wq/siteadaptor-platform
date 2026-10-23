@@ -3,7 +3,8 @@ docs/t8-23-lite-feedback-plan-2026-10-10.md §8).
 
 Экраны — Start · Aktionen · Angebot · Sichtbar (T-8.31) · Geschäft · Teilen. Реестр якорей W8 (мораторий X7)
 не трогаем: ``modules.sidebar_nav`` отдаёт этот плоский набор только лёгкому режиму.
-Полный кабинет по прямым адресам доступен как раньше — режим упрощает вход, а не запрещает.
+T-8.32b: прочие экраны кабинета у лёгкого пакета закрыты (`PackageScopeMiddleware`,
+страница «nicht enthalten»); меню показывает только то, что пакет открывает.
 """
 
 from __future__ import annotations
@@ -23,6 +24,8 @@ LITE_NAV = (
     # Sichtbar).
     ("dashboard", "dashboard", "🏠", _("Start")),
     ("promotions:promotion-list", "promotions", "📣", _("Aktionen")),
+    # T-8.32b (KA-3 В-1): у пакета «Aktionen» вместо «Angebot» — «Nachrichten».
+    ("inbox:list", "inbox", "💬", _("Nachrichten")),
     ("sellable-manage", "sellables", "📦", _("Angebot")),
     # T-8.31c: «Sichtbar» — где видно + подключения (свой бот, оплата, домен; T-8.29);
     # полный список подключений — ссылкой со страницы.
@@ -62,6 +65,23 @@ def sidebar_items(tenant=None, user=None) -> list[dict]:
         if tenant is not None and storefront_profile.is_eintrag(tenant):
             nav = LITE_NAV + EINTRAG_NAV
     except Exception:  # noqa: BLE001 — хром кабинета не падает из-за профиля
+        pass
+    # T-8.32b: только то, что пакет открывает (полный бизнес в Mini App — как раньше;
+    # «Nachrichten» — только при включённом чате).
+    try:
+        from apps.core import modules, packages
+
+        nav = tuple(
+            item
+            for item in nav
+            if (tenant is None or packages.view_allowed(tenant, item[0]))
+            and (
+                item[0] != "inbox:list"
+                or tenant is None
+                or modules.is_module_active(tenant, "inbox")
+            )
+        )
+    except Exception:  # noqa: BLE001 — хром кабинета не падает из-за пакета
         pass
     if user is not None and getattr(user, "is_authenticated", False):
         try:

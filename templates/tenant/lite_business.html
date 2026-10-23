@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n widget_tweaks %}
+{% load i18n widget_tweaks cabinet %}
 {% block dash_title %}{% trans "Geschäft" %}{% endblock %}
 
 {% block dash_content %}
@@ -35,6 +35,8 @@
     </section>
     <button type="submit" class="w-full rounded-xl bg-indigo-600 text-white px-4 py-3 text-base font-semibold hover:bg-indigo-700">{% trans "Speichern" %}</button>
   </form>
+  {% if 'settings'|pkg_allowed:request.tenant %}
   <a href="{% url 'settings' %}" class="block text-center text-xs text-gray-500 hover:underline mt-4">{% trans "Alle Einstellungen" %} →</a>
+  {% endif %}
 </div>
 {% endblock %}

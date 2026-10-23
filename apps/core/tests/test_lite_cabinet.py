@@ -46,7 +46,7 @@ def test_lite_sidebar_is_flat_items_full_cabinet_unchanged():
     assert [i["url_name"] for i in lite] == [
         "dashboard",
         "promotions:promotion-list",
-        "sellable-manage",
+        "inbox:list",  # T-8.32b (KA-3 В-1): «Angebot» — с пакетом Eintrag
         "lite-visibility",  # T-8.31c: «Sichtbar» (подключения T-8.29 — там же)
         "lite-business",
         "lite-share",
