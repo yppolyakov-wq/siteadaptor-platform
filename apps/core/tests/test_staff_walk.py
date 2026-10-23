@@ -12,6 +12,7 @@ from importlib import import_module
 from uuid import uuid4
 
 import pytest
+from django.conf import settings
 from django.conf import settings as dj_settings
 from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
@@ -82,10 +83,11 @@ def _open(path, tenant, user, method="get", data=None):
     request._dont_enforce_csrf_checks = True
     request.user = user
     request.tenant = tenant
-    match = resolve(path.split("?")[0])
-    request.resolver_match = match
 
     def view(req):
+        # resolve — ПОСЛЕ мидлвари, как в Django: роль проверяется раньше маршрута.
+        match = resolve(path.split("?")[0])
+        req.resolver_match = match
         return match.func(req, *match.args, **match.kwargs)
 
     return CabinetOwnerAccessMiddleware(view)(request)
@@ -173,13 +175,16 @@ def test_staff_and_admin_walk(kind, role):
     bad = []
     for name, path in sorted(screens.items()):
         required = roles.required_role_for_path(path)
-        status = _open(path, tenant, user).status_code
+        response = _open(path, tenant, user)
+        status = response.status_code
         if required == roles.ROLE_OWNER_ONLY:
             expected_ok = status == 403
         elif required == roles.ROLE_FINANCE:
             expected_ok = status == (200 if role == Membership.ROLE_ADMIN else 403)
         else:
-            expected_ok = status in (200, 302)
+            location = response.get("Location", "") if status == 302 else ""
+            # 302 на логин у вошедшего пользователя = сломанная сессия или вьюха.
+            expected_ok = status == 200 or (status == 302 and settings.LOGIN_URL not in location)
         if not expected_ok:
             bad.append(f"{name} {path} → {status} (нужно: {required or 'открыто'})")
     assert bad == [], f"{kind}/{role}: " + "; ".join(bad)
@@ -213,7 +218,7 @@ def test_staff_pages_show_no_owner_data(kind):
         if "DE89370400440532013000" in body or "DE89 3704" in body:
             leaks.append(f"{name}: IBAN")
         for prefix in roles.OWNER_ONLY_PREFIXES:
-            if f'href="{prefix}' in body:
+            if f'href="{prefix}' in body or f"href='{prefix}" in body:
                 leaks.append(f"{name}: ссылка {prefix}")
     assert leaks == [], f"{kind}: " + "; ".join(leaks)
 
@@ -223,12 +228,8 @@ def test_staff_post_to_owner_only_is_rejected(prefix):
     tenant = _tenant("bakery")
     staff = _user(Membership.ROLE_STAFF)
     before = (tenant.name, tenant.bank_iban, dict(tenant.site_config or {}))
-    path = prefix
-    try:
-        resolve(path)
-    except Exception:  # noqa: BLE001 — префикс без собственного маршрута (подпути)
-        pytest.skip("префикс без беспараметрного маршрута")
-    resp = _open(path, tenant, staff, method="post", data={"name": "Übernommen"})
+    # Мидлварь отвечает 403 раньше маршрута — проверяем и префиксы без своего маршрута.
+    resp = _open(prefix, tenant, staff, method="post", data={"name": "Übernommen"})
     assert resp.status_code == 403
     tenant.refresh_from_db()
     assert (tenant.name, tenant.bank_iban, dict(tenant.site_config or {})) == before

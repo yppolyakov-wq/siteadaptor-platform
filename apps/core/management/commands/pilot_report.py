@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import csv
+import logging
 import statistics
 import sys
 from datetime import date, datetime
@@ -19,6 +20,8 @@ from datetime import date, datetime
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Min, Sum
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 COLUMNS = (
     "schema",
@@ -67,7 +70,7 @@ def _support_counts(path: str) -> dict:
                 schema = (row.get("schema") or "").strip()
                 if schema:
                     counts[schema] = counts.get(schema, 0) + 1
-    except OSError as exc:
+    except (OSError, UnicodeDecodeError) as exc:
         raise CommandError(f"support-log: {exc}") from exc
     return counts
 
@@ -129,10 +132,10 @@ def tenant_row(tenant, support: dict) -> dict:
     row["failed_notifications"] = Notification.objects.filter(status="failed").count()
 
     owner = (
-        Membership.objects.filter(role=Membership.ROLE_OWNER)
+        Membership.objects.filter(role=Membership.ROLE_OWNER, user__last_login__isnull=False)
         .select_related("user")
-        .order_by("user__last_login")
-        .last()
+        .order_by("-user__last_login")
+        .first()
     )
     last_login = getattr(getattr(owner, "user", None), "last_login", None)
     row["owner_days_since_login"] = (timezone.now() - last_login).days if last_login else ""
@@ -177,6 +180,7 @@ class Command(BaseCommand):
                 with schema_context(tenant.schema_name):
                     rows.append(tenant_row(tenant, support))
             except Exception as exc:  # noqa: BLE001 — одна схема не обрывает отчёт
+                logger.exception("pilot_report: schema %s failed", tenant.schema_name)
                 rows.append(
                     {
                         "schema": tenant.schema_name,
@@ -188,7 +192,7 @@ class Command(BaseCommand):
         self._write(rows, opts["format"])
 
     def _summary(self, rows):
-        summary = {"schema": f"MEDIAN ({len(rows)})"}
+        summary = {"schema": f"MEDIAN ({sum(1 for r in rows if not r.get('error'))})"}
         for col in DURATIONS:
             values = [r[col] for r in rows if isinstance(r.get(col), int)]
             summary[col] = round(statistics.median(values)) if values else ""
