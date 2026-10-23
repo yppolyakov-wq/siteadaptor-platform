@@ -546,11 +546,21 @@ def stay_action(request, pk):
                 booking,
                 action,
                 actor=request.user,
+                extra=request.POST,  # KA-D3: выбор «erstatten / nicht erstatten»
                 tenant=getattr(request, "tenant", None),
             )
         except IllegalTransition:
             messages.error(request, _("This step is not possible in the current status."))
             return redirect(back)
+        except refunds.RefundChoiceRequired:
+            messages.error(
+                request,
+                _(
+                    "Die Buchung ist bezahlt. Bitte in der Buchung wählen: "
+                    "erstatten oder nicht erstatten."
+                ),
+            )
+            return redirect(f"{back}&buchung={booking.pk}")
         messages.success(request, _("Stay updated."))
         # KA-H4: возврат депозита при отмене — в apply_action (одна точка).
         refunds.flash(request, refund, "stay")

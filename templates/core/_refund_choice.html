@@ -1,0 +1,9 @@
+{% load i18n %}
+{% comment %}KA-D3: выбор возврата при отмене оплаченной брони номера (внутри формы
+статуса). Без выбора сервер отмену не выполняет — молча вернуть 100 % по невозвратному
+тарифу или молча оставить деньги нельзя.{% endcomment %}
+<fieldset class="my-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm" data-refund-choice>
+  <legend class="px-1 text-xs font-medium text-amber-800">{% trans "Bei Stornierung: Zahlung erstatten?" %}</legend>
+  <label class="flex items-center gap-2"><input type="radio" name="refund" value="1"> {% trans "Erstatten" %}</label>
+  <label class="flex items-center gap-2"><input type="radio" name="refund" value="0"> {% trans "Nicht erstatten" %}</label>
+</fieldset>

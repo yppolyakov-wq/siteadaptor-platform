@@ -28120,3 +28120,15 @@ msgstr "Bu sayfa yakında yayında olacak."
 
 msgid "Auftrag"
 msgstr "İş"
+
+msgid "Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht erstatten."
+msgstr "Bu rezervasyon ödenmiş. Lütfen rezervasyonda seçin: iade et veya iade etme."
+
+msgid "Bei Stornierung: Zahlung erstatten?"
+msgstr "İptal durumunda: ödeme iade edilsin mi?"
+
+msgid "Erstatten"
+msgstr "İade et"
+
+msgid "Nicht erstatten"
+msgstr "İade etme"

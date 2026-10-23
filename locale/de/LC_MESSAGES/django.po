@@ -28070,3 +28070,15 @@ msgstr "Diese Seite ist bald online."
 
 msgid "Auftrag"
 msgstr "Auftrag"
+
+msgid "Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht erstatten."
+msgstr "Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht erstatten."
+
+msgid "Bei Stornierung: Zahlung erstatten?"
+msgstr "Bei Stornierung: Zahlung erstatten?"
+
+msgid "Erstatten"
+msgstr "Erstatten"
+
+msgid "Nicht erstatten"
+msgstr "Nicht erstatten"

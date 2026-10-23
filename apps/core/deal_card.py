@@ -209,7 +209,16 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
             pass
     inbox_on = _module_active(tenant, "inbox")
     thread = _thread_for(kind, obj) if inbox_on else None
+    from apps.core import refunds
+
+    # KA-D3: в диалоге статуса — выбор «erstatten / nicht erstatten», если среди
+    # переходов есть отмена оплаченной картой брони номера.
+    refund_choice = any(
+        refunds.needs_choice(kind, obj, a.get("target", ""), getattr(obj, "status", ""), tenant)
+        for a in (getattr(deal, "allowed_actions", None) or [])
+    )
     return {
+        "refund_choice": refund_choice,
         "deal": deal,
         "deal_obj": obj,
         "deal_kind": kind,

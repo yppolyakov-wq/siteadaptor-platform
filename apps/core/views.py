@@ -4961,6 +4961,8 @@ def kanban_action(request, kind, pk):
     if not (back.startswith("/") and not back.startswith("//")):
         # X2b: доска снесена — возвращаемся во вкладку единой страницы продаж.
         back = reverse("verkaeufe") + f"?tab={kind}"
+    from apps.core import refunds
+
     try:
         # W10-5: единая точка — спец-поля поверхности (tracking_code при
         # «Versendet» заказа-доставки) едут в extra и пишутся ДО apply.
@@ -4976,6 +4978,15 @@ def kanban_action(request, kind, pk):
         if is_fetch:
             return HttpResponse(status=409)
         messages.error(request, _("Dieser Schritt ist im aktuellen Status nicht möglich."))
+        return redirect(back)
+    except refunds.RefundChoiceRequired:
+        # KA-D3: оплаченная бронь — выбор «erstatten / nicht erstatten» только в карточке.
+        msg = _(
+            "Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht erstatten."
+        )
+        if is_fetch:
+            return HttpResponse(msg, status=409)
+        messages.error(request, msg)
         return redirect(back)
     # KA-H4: отмена оплаченной сделки вернула деньги (или Stripe отказал).
     from apps.core import refunds

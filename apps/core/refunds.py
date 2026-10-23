@@ -38,6 +38,15 @@ class RefundResult(StrEnum):
     MANUAL = "manual"  # рассрочка: автоматически не возвращаем, владелец — в Stripe
 
 
+class RefundChoiceRequired(Exception):
+    """KA-D3: отмена оплаченной брони номера без выбора «erstatten / nicht erstatten»."""
+
+
+#: KA-D3 (решение владельца 2026-10-23): виды, где владелец выбирает возврат сам
+#: (невозвратный тариф отеля); остальные возвращают при отмене как раньше (KA-H4).
+CHOICE_KINDS = frozenset({"stay"})
+
+
 def _refundable_states(model) -> frozenset[str]:
     states = {model.PAYMENT_PAID}
     deposit = getattr(model, "PAYMENT_DEPOSIT", None)
@@ -65,6 +74,18 @@ def wants_refund(kind: str, target: str, source: str, tenant=None) -> bool:
         return False
     src = status_registry.resolve(kind, source, tenant)
     return src is None or src.role != "cancelled"
+
+
+def needs_choice(kind: str, obj, target: str, source: str, tenant=None) -> bool:
+    """Отмена, при которой есть что вернуть картой, у вида с выбором владельца."""
+    if kind not in CHOICE_KINDS or not wants_refund(kind, target, source, tenant):
+        return False
+    model = type(obj)
+    return (
+        getattr(obj, "payment_state", "") in _refundable_states(model)
+        and bool((getattr(obj, "stripe_payment_intent", "") or "").strip())
+        and bool(_connect_id(tenant))
+    )
 
 
 def refund_payment(kind: str, obj, tenant=None) -> RefundResult:
@@ -175,9 +196,12 @@ def _notify_owner_failed(kind: str, obj, tenant) -> None:
         logger.warning("refund failed notification not sent", exc_info=True)
 
 
-def refund_on_cancel(kind: str, obj, target: str, source: str, tenant=None) -> RefundResult:
-    """Хук кабинетной смены статуса: вернуть оплату, если это вход в отмену."""
-    if not wants_refund(kind, target, source, tenant):
+def refund_on_cancel(
+    kind: str, obj, target: str, source: str, tenant=None, refund: bool = True
+) -> RefundResult:
+    """Хук кабинетной смены статуса: вернуть оплату, если это вход в отмену.
+    `refund=False` — владелец выбрал «nicht erstatten» (KA-D3)."""
+    if not refund or not wants_refund(kind, target, source, tenant):
         return RefundResult.NONE
     return refund_payment(kind, obj, tenant)
 

@@ -27980,3 +27980,15 @@ msgstr "This page will be online soon."
 
 msgid "Auftrag"
 msgstr "Job"
+
+msgid "Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht erstatten."
+msgstr "This booking is paid. Please choose in the booking: refund or do not refund."
+
+msgid "Bei Stornierung: Zahlung erstatten?"
+msgstr "On cancellation: refund the payment?"
+
+msgid "Erstatten"
+msgstr "Refund"
+
+msgid "Nicht erstatten"
+msgstr "Do not refund"

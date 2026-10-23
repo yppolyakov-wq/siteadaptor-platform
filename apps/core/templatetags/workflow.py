@@ -16,8 +16,12 @@ register = template.Library()
 def status_actions(context, kind, obj):
     """``[{target, label, stage, danger}]`` переходов FSM из ``obj.status``. FB-3: правила
     переходов владельца (site_config) СКРЫВАЮТ не-danger переходы (FSM/apply не трогаем)."""
-    from apps.core import transition_rules
+    from apps.core import refunds, transition_rules
 
     tenant = getattr(context.get("request"), "tenant", None)
     subset = transition_rules.subset_for(tenant, kind) if tenant is not None else None
-    return transactions.allowed_actions_for(kind, obj.status, subset, obj=obj)
+    actions = transactions.allowed_actions_for(kind, obj.status, subset, obj=obj)
+    # KA-D3: у отмены оплаченной брони номера рядом с кнопкой — выбор возврата.
+    for a in actions:
+        a["refund_choice"] = refunds.needs_choice(kind, obj, a["target"], obj.status, tenant)
+    return actions

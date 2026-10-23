@@ -28233,3 +28233,15 @@ msgstr "Ця сторінка скоро відкриється."
 
 msgid "Auftrag"
 msgstr "Замовлення-наряд"
+
+msgid "Die Buchung ist bezahlt. Bitte in der Buchung wählen: erstatten oder nicht erstatten."
+msgstr "Бронювання оплачене. Оберіть у картці бронювання: повернути гроші чи не повертати."
+
+msgid "Bei Stornierung: Zahlung erstatten?"
+msgstr "При скасуванні: повернути оплату?"
+
+msgid "Erstatten"
+msgstr "Повернути"
+
+msgid "Nicht erstatten"
+msgstr "Не повертати"

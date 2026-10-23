@@ -462,6 +462,13 @@ def apply_action(kind: str, obj, target: str, actor=None, extra=None, tenant=Non
 
     extra = extra or {}
     source = getattr(obj, "status", "")
+    # KA-D3: оплаченная бронь номера — возврат только по явному выбору владельца.
+    refund = True
+    if refunds.needs_choice(kind, obj, target, source, tenant):
+        choice = str(extra.get("refund", ""))
+        if choice not in ("1", "0"):
+            raise refunds.RefundChoiceRequired()
+        refund = choice == "1"
     if kind == "order" and target == "shipped":
         code = (extra.get("tracking_code") or "").strip()[:100]
         if code and code != (getattr(obj, "tracking_code", "") or ""):
@@ -481,7 +488,7 @@ def apply_action(kind: str, obj, target: str, actor=None, extra=None, tenant=Non
             sm_for(kind).apply(obj, target, actor=actor)
     else:
         sm_for(kind).apply(obj, target, actor=actor)
-    return refunds.refund_on_cancel(kind, obj, target, source, tenant)
+    return refunds.refund_on_cancel(kind, obj, target, source, tenant, refund=refund)
 
 
 # --- UD1-3: кабинетный резолвер транзакций (фундамент доски) ------------------

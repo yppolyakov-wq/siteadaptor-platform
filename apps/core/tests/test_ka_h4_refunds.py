@@ -156,7 +156,8 @@ def test_deal_card_status_form_cancel_refunds_booking_and_stay(stripe_calls):
     _paid(stay, intent="pi_2")
     form = {"notify_form": "1"}  # общая карточка: чекбоксы сняты
     _board_post("booking", booking.pk, "cancelled", _tenant(), data=form)
-    _board_post("stay", stay.pk, "cancelled", _tenant(), data=form)
+    # KA-D3: у брони номера владелец выбирает явно (здесь — «erstatten»)
+    _board_post("stay", stay.pk, "cancelled", _tenant(), data={**form, "refund": "1"})
     booking.refresh_from_db()
     stay.refresh_from_db()
     assert booking.payment_state == "refunded" and stay.payment_state == "refunded"

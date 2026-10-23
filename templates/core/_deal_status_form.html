@@ -42,6 +42,7 @@ top layer, поэтому stacking-контекст карточки не важ
           <input type="checkbox" name="notify_team" value="1" checked class="rounded border-gray-300">
           {% trans "Team" %}
         </label>
+        {% if refund_choice %}{% include "core/_refund_choice.html" %}{% endif %}
         {% if deal.needs_tracking %}
           <input type="text" name="tracking_code" placeholder="{% trans 'Sendungsnummer (optional)' %}"
                  class="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
