@@ -42,6 +42,7 @@
     {% elif order.pickup_location %}
       <p class="text-sm text-gray-600 mb-2">📍 {% trans "Pick up at" %}: <span class="font-medium">{{ order.pickup_location }}</span></p>
     {% endif %}
+    {% if order.pickup_slot and not order.is_delivery %}<p class="text-sm text-gray-600 mb-2" data-pickup-slot>🕒 {% trans "Abholzeit" %}: <span class="font-medium">{{ order.pickup_slot|date:"l, d.m., H:i" }}</span></p>{% endif %}
     {% if order.tracking_code %}<p class="text-sm text-gray-600 mb-2">{% trans "Tracking" %}: <span class="font-mono">{{ order.tracking_code }}</span></p>{% endif %}
     {% if order.payment_state == 'paid' %}
       <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {% trans "Paid online." %}</p>

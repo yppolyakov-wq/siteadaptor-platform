@@ -1,0 +1,21 @@
+{% load i18n %}
+{% comment %}KA-W1: время самовывоза. Один <select> с группами по дням — работает без JS.
+Без required: скрытое при «Lieferung» обязательное поле молча отменяло бы отправку
+формы (класс X6-6); обязательность проверяет сервер.{% endcomment %}
+{% if pickup_slot_enabled %}
+  <div id="pickup-slot" class="{% if delivery_enabled %}border-t border-gray-100 pt-4{% endif %}">
+    <label class="block text-sm font-medium mb-1" for="id_pickup_slot">🕒 {% trans "Abholzeit" %}{% if not quote_cart %} *{% endif %}</label>
+    {% if pickup_slot_days %}
+      <select id="id_pickup_slot" name="pickup_slot" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <option value="">{% trans "Abholzeit wählen" %}</option>
+        {% for day, row in pickup_slot_days %}
+          <optgroup label="{{ day|date:'l, d.m.' }}">
+            {% for slot, left in row %}<option value="{{ slot.isoformat }}">{{ slot|time:'H:i' }}{% if left == 1 %} · {% trans "noch 1 frei" %}{% endif %}</option>{% endfor %}
+          </optgroup>
+        {% endfor %}
+      </select>
+    {% else %}
+      <p class="text-sm text-gray-500">{% trans "Zurzeit keine Abholzeiten verfügbar." %}</p>
+    {% endif %}
+  </div>
+{% endif %}

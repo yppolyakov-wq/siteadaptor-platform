@@ -28228,3 +28228,39 @@ msgstr "Wirklich löschen?"
 
 msgid "Foto löschen"
 msgstr "Foto löschen"
+
+msgid "Abholzeit"
+msgstr "Abholzeit"
+
+msgid "Abholzeit wählen"
+msgstr "Abholzeit wählen"
+
+msgid "Bitte wählen Sie eine Abholzeit."
+msgstr "Bitte wählen Sie eine Abholzeit."
+
+msgid "Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
+msgstr "Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
+
+msgid "Kunden wählen eine Abholzeit"
+msgstr "Kunden wählen eine Abholzeit"
+
+msgid "Max. Bestellungen pro Zeitfenster (0 = unbegrenzt)"
+msgstr "Max. Bestellungen pro Zeitfenster (0 = unbegrenzt)"
+
+msgid "Ohne strukturierte Öffnungszeiten keine Zeitfenster"
+msgstr "Ohne strukturierte Öffnungszeiten keine Zeitfenster"
+
+msgid "Tage im Voraus"
+msgstr "Tage im Voraus"
+
+msgid "Vorlaufzeit (Minuten)"
+msgstr "Vorlaufzeit (Minuten)"
+
+msgid "Zeitfenster (Minuten)"
+msgstr "Zeitfenster (Minuten)"
+
+msgid "Zurzeit keine Abholzeiten verfügbar."
+msgstr "Zurzeit keine Abholzeiten verfügbar."
+
+msgid "noch 1 frei"
+msgstr "noch 1 frei"

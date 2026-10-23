@@ -28278,3 +28278,39 @@ msgstr "Gerçekten silinsin mi?"
 
 msgid "Foto löschen"
 msgstr "Fotoğrafı sil"
+
+msgid "Abholzeit"
+msgstr "Teslim alma saati"
+
+msgid "Abholzeit wählen"
+msgstr "Teslim alma saatini seçin"
+
+msgid "Bitte wählen Sie eine Abholzeit."
+msgstr "Lütfen bir teslim alma saati seçin."
+
+msgid "Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
+msgstr "Bu zaman aralığı az önce doldu. Lütfen başka bir tane seçin."
+
+msgid "Kunden wählen eine Abholzeit"
+msgstr "Müşteriler teslim alma saatini seçer"
+
+msgid "Max. Bestellungen pro Zeitfenster (0 = unbegrenzt)"
+msgstr "Zaman aralığı başına en fazla sipariş (0 = sınırsız)"
+
+msgid "Ohne strukturierte Öffnungszeiten keine Zeitfenster"
+msgstr "Yapılandırılmış çalışma saatleri olmadan zaman aralığı yok"
+
+msgid "Tage im Voraus"
+msgstr "Kaç gün önceden"
+
+msgid "Vorlaufzeit (Minuten)"
+msgstr "Hazırlık süresi (dakika)"
+
+msgid "Zeitfenster (Minuten)"
+msgstr "Zaman aralığı (dakika)"
+
+msgid "Zurzeit keine Abholzeiten verfügbar."
+msgstr "Şu anda uygun teslim alma saati yok."
+
+msgid "noch 1 frei"
+msgstr "1 yer kaldı"

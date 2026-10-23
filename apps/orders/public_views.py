@@ -18,7 +18,7 @@ from django.views.decorators.http import require_POST
 from apps.catalog.combos import combo_labels
 from apps.core import ratelimit
 
-from . import delivery_choice
+from . import delivery_choice, pickup_slots
 from . import payments as order_payments
 from .models import Offer, Order
 from .services import EmptyOrder, OutOfStock, create_order
@@ -867,6 +867,13 @@ def cart_view(request):
     from apps.core import attribution
 
     ctx["attr"] = attribution.context(request)  # В5 V5-5: канал корзины → поля чекаута
+    # KA-W1: окна самовывоза (опция выключена или заказ за столиком → пусто).
+    ctx["pickup_slot_enabled"] = bool(
+        not request.session.get("table") and pickup_slots.config(tenant)
+    )
+    ctx["pickup_slot_days"] = (
+        pickup_slots.slots_for(tenant) if ctx["pickup_slot_enabled"] else []
+    )
     return render(request, "storefront/cart.html", ctx)
 
 
@@ -986,6 +993,25 @@ def checkout(request):
         elif len(points) == 1:
             pickup_location = points[0]["name"]
 
+    # KA-W1: время самовывоза — только при включённой опции, не у доставки и не у
+    # заказа за столиком (QR). Выбор обязателен (кроме просчёта MEN-9): заказ без
+    # времени нарушил бы обещание «zur Wunschzeit»; значение — строго из сетки.
+    pickup_slot, pickup_capacity = None, 0
+    slot_cfg = None if delivery or request.session.get("table") else pickup_slots.config(tenant)
+    if slot_cfg:
+        from apps.tenants import siteconfig as _sc
+
+        optional = bool(_sc.normalize(tenant.site_config or {}).get("quote_cart"))
+        raw_slot = request.POST.get("pickup_slot", "")
+        pickup_slot = pickup_slots.validate(tenant, raw_slot, cfg=slot_cfg)
+        if pickup_slot is None and (raw_slot or not optional):
+            if not pickup_slots.slots_for(tenant, cfg=slot_cfg):
+                messages.error(request, _("Zurzeit keine Abholzeiten verfügbar."))
+            else:
+                messages.error(request, _("Bitte wählen Sie eine Abholzeit."))
+            return redirect("storefront-cart")
+        pickup_capacity = slot_cfg["capacity"]
+
     # E7-2: способ оплаты — из пикера (radio `payment`); без/с невалидным POST —
     # первый доступный (= прежнее поведение: stripe при сконфигурированной
     # предоплате, иначе оплата при получении).
@@ -1049,6 +1075,8 @@ def checkout(request):
             note=request.POST.get("note", "").strip()[:2000],
             table_number="" if delivery else request.session.get("table", ""),
             pickup_location=pickup_location,
+            pickup_slot=pickup_slot,
+            pickup_capacity=pickup_capacity,
             # В5 V5-5: раньше канал читался из GET POST-а чекаута — всегда пусто.
             source_channel=("quote" if quote_mode else found.channel[:50]),
             fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
@@ -1074,6 +1102,12 @@ def checkout(request):
         )
     except EmptyOrder:
         messages.error(request, _("Your order is empty."))
+        return redirect("storefront-cart")
+    except pickup_slots.SlotFull:
+        messages.error(
+            request,
+            _("Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."),
+        )
         return redirect("storefront-cart")
     except PromoLimitSoldOut:
         # SF-4b: лимит кампании исчерпан на чекауте (гонка двух корзин) —

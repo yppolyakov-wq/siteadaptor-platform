@@ -4271,6 +4271,35 @@ def normalize_seo(raw) -> dict:
     return result
 
 
+
+PICKUP_SLOT_STEPS = (15, 30, 60)
+
+
+def normalize_pickup_slots(raw) -> dict | None:
+    """KA-W1: {"step", "capacity", "lead", "days"} с клампами; мусор/выключено → None.
+
+    step — длина окна (15/30/60 мин), capacity — заказов на окно (0 = без лимита),
+    lead — минимум минут до окна (время на сборку), days — на сколько дней вперёд."""
+    if not isinstance(raw, dict) or not raw.get("on", True):
+        return None
+
+    def _int(key, default, lo, hi):
+        try:
+            value = int(raw.get(key, default))
+        except (TypeError, ValueError):
+            value = default
+        return max(lo, min(hi, value))
+
+    step = _int("step", 30, 15, 60)
+    if step not in PICKUP_SLOT_STEPS:
+        step = 30
+    return {
+        "step": step,
+        "capacity": _int("capacity", 0, 0, 999),
+        "lead": _int("lead", 60, 0, 2880),
+        "days": _int("days", 7, 1, 14),
+    }
+
 def normalize(config) -> dict:
     """Привести произвольный site_config к валидной схеме.
 
@@ -4568,6 +4597,11 @@ def _normalize_impl(config) -> dict:
     # говорят «Anfrage». Presence-minimal (ключ только при True — golden целы).
     if config.get("quote_cart"):
         normalized["quote_cart"] = True
+    # KA-W1: время самовывоза (слоты из часов работы). Presence-minimal: ключ только
+    # при включённой опции — без него чекаут прежний байт-в-байт, golden целы.
+    _slots = normalize_pickup_slots(config.get("pickup_slots"))
+    if _slots:
+        normalized["pickup_slots"] = _slots
     # T-8.1: профиль витрины «Nur Aktionen» — визитка + акции, каталог и корзина не
     # видны ниоткуда (apps/core/storefront_profile.py). Presence-minimal: ключ только
     # при известном значении — golden целы, мусор дропается.

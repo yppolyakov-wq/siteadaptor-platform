@@ -28138,3 +28138,39 @@ msgstr "Really delete?"
 
 msgid "Foto löschen"
 msgstr "Delete photo"
+
+msgid "Abholzeit"
+msgstr "Pickup time"
+
+msgid "Abholzeit wählen"
+msgstr "Choose a pickup time"
+
+msgid "Bitte wählen Sie eine Abholzeit."
+msgstr "Please choose a pickup time."
+
+msgid "Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
+msgstr "This time slot has just filled up. Please choose another one."
+
+msgid "Kunden wählen eine Abholzeit"
+msgstr "Customers choose a pickup time"
+
+msgid "Max. Bestellungen pro Zeitfenster (0 = unbegrenzt)"
+msgstr "Max. orders per time slot (0 = unlimited)"
+
+msgid "Ohne strukturierte Öffnungszeiten keine Zeitfenster"
+msgstr "No time slots without structured opening hours"
+
+msgid "Tage im Voraus"
+msgstr "Days in advance"
+
+msgid "Vorlaufzeit (Minuten)"
+msgstr "Lead time (minutes)"
+
+msgid "Zeitfenster (Minuten)"
+msgstr "Time slot (minutes)"
+
+msgid "Zurzeit keine Abholzeiten verfügbar."
+msgstr "No pickup times available at the moment."
+
+msgid "noch 1 frei"
+msgstr "1 left"

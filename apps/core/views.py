@@ -1141,6 +1141,7 @@ def save_payment_settings(request) -> list[str]:
     from apps.orders.views import (
         save_delivery,
         save_invoice_b2b,
+        save_pickup_slots,
         save_prepay,
         save_vorkasse,
     )
@@ -1158,7 +1159,24 @@ def save_payment_settings(request) -> list[str]:
     # SH-23: счёт юрлицу (Kauf auf Rechnung) — свой сентинел.
     if request.POST.get("sec_invoice"):
         save_invoice_b2b(tenant, request)
+    # KA-W1: время самовывоза — свой сентинел (секция доставки не затирает его).
+    if request.POST.get("sec_pickup_slots"):
+        save_pickup_slots(tenant, request)
     return errors
+
+
+def _pickup_slots_ctx(tenant) -> dict:
+    from apps.orders import pickup_slots
+    from apps.tenants import openinghours
+
+    cfg = pickup_slots.config(tenant)
+    return {
+        "on": bool(cfg),
+        "cfg": cfg or {"step": 30, "capacity": 0, "lead": 60, "days": 7},
+        "has_hours": bool(
+            openinghours.normalize(getattr(tenant, "opening_hours_structured", None))
+        ),
+    }
 
 
 def payment_settings_context(request) -> dict:
@@ -1207,6 +1225,9 @@ def payment_settings_context(request) -> dict:
         "delivery_min_eur": _eur(tenant.delivery_min_cents),
         "delivery_area": tenant.delivery_area,
         "pickup_min_eur": _eur(tenant.pickup_min_cents),
+        # KA-W1: время самовывоза — сохранённая настройка (None = выключено) и
+        # предупреждение «без часов работы окон нет».
+        "pickup_slots": _pickup_slots_ctx(tenant),
         "delivery_restrict_to_zones": tenant.delivery_restrict_to_zones,
         "delivery_zone_rows": _zone_rows(tenant),
         "pickup_locations_text": "\n".join(

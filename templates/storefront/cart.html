@@ -137,6 +137,8 @@
           </div>
         {% endif %}
 
+        {% include "storefront/_pickup_slot_choice.html" %}
+
         <div class="grid sm:grid-cols-2 gap-3 {% if delivery_enabled %}border-t border-gray-100 pt-4{% endif %}">
           <div class="sm:col-span-2">
             <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
@@ -221,6 +223,7 @@
             if (!sum) return;
             var addr = document.getElementById("delivery-address");
             var pickupSel = document.getElementById("pickup-select");
+            var pickupSlot = document.getElementById("pickup-slot");
             var line = document.getElementById("summary-delivery");
             var feeEl = sum.querySelector("[data-delivery-fee]");
             var totEl = sum.querySelector("[data-grand-total]");
@@ -232,6 +235,7 @@
               var delivery = d && d.value === "delivery";
               if (addr) addr.classList.toggle("hidden", !delivery);
               if (pickupSel) pickupSel.classList.toggle("hidden", delivery);
+              if (pickupSlot) pickupSlot.classList.toggle("hidden", delivery);
               var f = delivery ? (free && grand >= free ? 0 : fee) : 0;
               line.classList.toggle("hidden", !delivery);
               line.classList.toggle("flex", delivery);

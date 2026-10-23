@@ -4,7 +4,8 @@
 {% for item in items %}{{ item.qty }}× {{ item.title_snapshot }}{% if item.sku %} [Art.-Nr. {{ item.sku }}]{% endif %}{% if item.modifiers_label %} ({{ item.modifiers_label }}){% endif %} — {{ item.line_total }} {{ order.currency }}
 {% endfor %}{% trans "Gesamt" %}: {{ order.total }} {{ order.currency }}
 {% trans "Code" %}: {{ order.reference_code }}
-{% if order.table_number %}{% trans "Tisch" %}: {{ order.table_number }}{% endif %}
+{% if order.pickup_slot and not order.is_delivery %}{% trans "Abholzeit" %}: {{ order.pickup_slot|date:"D d.m., H:i" }}
+{% endif %}{% if order.table_number %}{% trans "Tisch" %}: {{ order.table_number }}{% endif %}
 {% if order.pickup_location %}{% trans "Abholort" %}: {{ order.pickup_location }}{% endif %}
 {% if order.note %}{% trans "Notiz" %}: {{ order.note }}{% endif %}
 

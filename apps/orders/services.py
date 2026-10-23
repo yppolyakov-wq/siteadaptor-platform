@@ -168,6 +168,7 @@ def create_order(
     table_number="",
     pickup_location="",
     pickup_slot=None,
+    pickup_capacity=0,
     source_channel="",
     fulfillment=Order.FULFILLMENT_PICKUP,
     shipping_address="",
@@ -288,9 +289,16 @@ def create_order(
     custom_reserve = [
         (p, v, q, []) for _t, _u, q, p, v, _m, _r, _ps in custom_norm if p is not None
     ]
+    delivery = fulfillment == Order.FULFILLMENT_DELIVERY
+    if delivery:
+        pickup_slot = None  # KA-W1: окно самовывоза у доставки не бывает
+    # KA-W1: ёмкость окна — под advisory-блокировкой в этой же транзакции;
+    # SlotFull откатывает и лимит акции, и (ниже не дошедшее) списание склада.
+    from . import pickup_slots
+
+    pickup_slots.claim(pickup_slot, pickup_capacity)
     _reserve_stock(norm + custom_reserve)
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
-    delivery = fulfillment == Order.FULFILLMENT_DELIVERY
     shipping = int(shipping_cents) if delivery else 0
     if norm:
         currency = norm[0][0].currency

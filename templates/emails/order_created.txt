@@ -6,7 +6,8 @@
    {% blocktrans with amount=item.discount_total|floatformat:2 cur=order.currency name=item.promo_name %}Rabatt „{{ name }}“: −{{ amount }} {{ cur }}{% endblocktrans %}{% endif %}
 {% endfor %}{% trans "Gesamt" %}: {{ order.total }} {{ order.currency }}
 {% trans "Abhol-Code" %}: {{ order.reference_code }}
-
+{% if order.pickup_slot and not order.is_delivery %}{% trans "Abholzeit" %}: {{ order.pickup_slot|date:"D d.m., H:i" }}
+{% endif %}
 {% if order.payment_method == 'invoice' %}{% trans "Sie erhalten die Rechnung per E-Mail." %}{% if order.payment_due_at %}
 {% blocktrans with due=order.payment_due_at|date:"d.m.Y" %}Zahlbar bis {{ due }}.{% endblocktrans %}{% endif %}
 {% trans "Verwendungszweck" %}: {{ order.reference_code }}

@@ -3,7 +3,8 @@
 {% trans "Ihre Bestellung wurde bestätigt. Wir geben Bescheid, sobald sie abholbereit ist." %}
 
 {% trans "Abhol-Code" %}: {{ order.reference_code }}
-
+{% if order.pickup_slot and not order.is_delivery %}{% trans "Abholzeit" %}: {{ order.pickup_slot|date:"D d.m., H:i" }}
+{% endif %}
 {% if problem_url %}
 {% trans "Etwas stimmt nicht? Direkter Draht zu uns:" %}
 {{ problem_url|safe }}

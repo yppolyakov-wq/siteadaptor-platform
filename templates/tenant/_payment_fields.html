@@ -123,6 +123,36 @@
       <textarea name="pickup_locations" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ pickup_locations_text }}</textarea>
       <p class="text-xs text-gray-400 mt-1">{% trans "Leave empty for a single pickup at your address. Several lines = customer chooses in cart." %}</p>
     </div>
+    {% comment %}KA-W1: время самовывоза — свой сентинел sec_pickup_slots (запись одного
+    ключа site_config, остальные поля секции не трогает).{% endcomment %}
+    <div class="border-t border-gray-100 pt-3" data-pickup-slots-settings>
+      <input type="hidden" name="sec_pickup_slots" value="1">
+      <label class="flex items-center gap-2 text-sm font-medium">
+        <input type="checkbox" name="pickup_slots_on" {% if pickup_slots.on %}checked{% endif %}>
+        🕒 {% trans "Kunden wählen eine Abholzeit" %}
+      </label>
+      {% if not pickup_slots.has_hours %}
+        <p class="text-xs text-amber-700 mt-1">⚠ {% trans "Ohne strukturierte Öffnungszeiten keine Zeitfenster" %} — <a href="{% url 'settings' %}" class="underline">{% trans "Öffnungszeiten eintragen" %}</a></p>
+      {% endif %}
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+        <label class="text-xs text-gray-500">{% trans "Zeitfenster (Minuten)" %}
+          <select name="pickup_slots_step" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5">
+            <option value="15" {% if pickup_slots.cfg.step == 15 %}selected{% endif %}>15</option>
+            <option value="30" {% if pickup_slots.cfg.step == 30 %}selected{% endif %}>30</option>
+            <option value="60" {% if pickup_slots.cfg.step == 60 %}selected{% endif %}>60</option>
+          </select>
+        </label>
+        <label class="text-xs text-gray-500">{% trans "Max. Bestellungen pro Zeitfenster (0 = unbegrenzt)" %}
+          <input name="pickup_slots_capacity" type="text" inputmode="numeric" value="{{ pickup_slots.cfg.capacity }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5">
+        </label>
+        <label class="text-xs text-gray-500">{% trans "Vorlaufzeit (Minuten)" %}
+          <input name="pickup_slots_lead" type="text" inputmode="numeric" value="{{ pickup_slots.cfg.lead }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5">
+        </label>
+        <label class="text-xs text-gray-500">{% trans "Tage im Voraus" %}
+          <input name="pickup_slots_days" type="text" inputmode="numeric" value="{{ pickup_slots.cfg.days }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5">
+        </label>
+      </div>
+    </div>
     <div class="border-t border-gray-100 pt-3">
       <p class="font-medium mb-1 text-sm">{% trans "Delivery zones by postal code" %}</p>
       <p class="text-xs text-gray-400 mb-2">{% trans "Optional. A matching PLZ zone overrides the flat fee / free-from / min above." %}</p>

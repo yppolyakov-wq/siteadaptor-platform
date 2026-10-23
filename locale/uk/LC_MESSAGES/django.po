@@ -28392,3 +28392,39 @@ msgstr "Справді видалити?"
 
 msgid "Foto löschen"
 msgstr "Видалити фото"
+
+msgid "Abholzeit"
+msgstr "Час самовивозу"
+
+msgid "Abholzeit wählen"
+msgstr "Оберіть час самовивозу"
+
+msgid "Bitte wählen Sie eine Abholzeit."
+msgstr "Будь ласка, оберіть час самовивозу."
+
+msgid "Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."
+msgstr "Цей час щойно зайняли. Будь ласка, оберіть інший."
+
+msgid "Kunden wählen eine Abholzeit"
+msgstr "Покупці обирають час самовивозу"
+
+msgid "Max. Bestellungen pro Zeitfenster (0 = unbegrenzt)"
+msgstr "Макс. замовлень на інтервал (0 = без обмежень)"
+
+msgid "Ohne strukturierte Öffnungszeiten keine Zeitfenster"
+msgstr "Без годин роботи по днях інтервалів немає"
+
+msgid "Tage im Voraus"
+msgstr "Днів наперед"
+
+msgid "Vorlaufzeit (Minuten)"
+msgstr "Час на підготовку (хвилини)"
+
+msgid "Zeitfenster (Minuten)"
+msgstr "Інтервал (хвилини)"
+
+msgid "Zurzeit keine Abholzeiten verfügbar."
+msgstr "Зараз немає вільного часу для самовивозу."
+
+msgid "noch 1 frei"
+msgstr "залишилося 1 місце"

@@ -589,6 +589,30 @@ def save_delivery(tenant, request) -> None:
     )
 
 
+def save_pickup_slots(tenant, request) -> None:
+    """KA-W1: опция «Kunden wählen eine Abholzeit». Точечная запись одного ключа
+    site_config (W6: остальные ключи конфига не трогаем); выключено → ключ снят."""
+    from apps.tenants import siteconfig
+
+    config = dict(tenant.site_config or {})
+    cfg = None
+    if request.POST.get("pickup_slots_on"):
+        cfg = siteconfig.normalize_pickup_slots(
+            {
+                "step": request.POST.get("pickup_slots_step"),
+                "capacity": request.POST.get("pickup_slots_capacity"),
+                "lead": request.POST.get("pickup_slots_lead"),
+                "days": request.POST.get("pickup_slots_days"),
+            }
+        )
+    if cfg:
+        config["pickup_slots"] = cfg
+    else:
+        config.pop("pickup_slots", None)
+    tenant.site_config = config
+    tenant.save(update_fields=["site_config", "updated_at"])
+
+
 def save_vorkasse(tenant, request) -> list[str]:
     """W4-3: сохранить Vorkasse/Überweisung + банковские реквизиты. IBAN нормализуем
     (без пробелов, верхний регистр); включение без IBAN не активирует способ на витрине

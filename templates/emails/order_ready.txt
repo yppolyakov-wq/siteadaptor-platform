@@ -3,7 +3,8 @@
 {% trans "Ihre Bestellung ist abholbereit. Bitte zeigen Sie diesen Code im Laden vor:" %}
 
 {{ order.reference_code }}
-
+{% if order.pickup_slot and not order.is_delivery %}{% trans "Abholzeit" %}: {{ order.pickup_slot|date:"D d.m., H:i" }}
+{% endif %}
 {% trans "Bezahlt wird bei der Abholung." %}
 
 {% if unsubscribe_url %}—
