@@ -11,6 +11,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -29,7 +30,14 @@ from apps.core.i18n_input import (
 )
 
 from . import services
-from .models import AvailabilityRule, Booking, ClosedDate, Resource, ServiceSeasonRate
+from .models import (
+    AvailabilityRule,
+    Booking,
+    ClosedDate,
+    Resource,
+    Service,
+    ServiceSeasonRate,
+)
 
 
 def _eur_to_cents(raw) -> int:
@@ -89,6 +97,8 @@ def calendar_context(request):
         # переход на любую дату (клик по дню разворачивает его брони ниже).
         **_month_grid_context(request, day),
         "resources": Resource.objects.filter(is_active=True),
+        # KA-H7: услуга в ручной записи (цена/длительность).
+        "manual_services": Service.objects.filter(is_active=True).order_by("name"),
         # A4: iframe-виджет записи для своего сайта.
         "embed_url": request.build_absolute_uri(reverse("storefront-termin")) + "?embed=1",
         # FB-4b: строки панели «Status-Namen» (status, дефолт, своё имя).
@@ -309,10 +319,23 @@ def booking_create(request):
         start = datetime.fromisoformat(request.POST.get("start", ""))
         if timezone.is_naive(start):
             start = start.replace(tzinfo=tz)
-        minutes = max(5, min(int(request.POST.get("minutes", "60")), 24 * 60))
+        raw_minutes = request.POST.get("minutes", "").strip()
+        minutes = int(raw_minutes) if raw_minutes else None
     except (TypeError, ValueError):
         messages.error(request, _("Invalid date."))
         return redirect("booking:calendar")
+    # KA-H7: услуга в ручной записи — цена/длительность из услуги (без неё запись
+    # была на 0 € и 60 мин). Мусор/неактивная услуга → запись без услуги.
+    service = None
+    raw_service = request.POST.get("service", "").strip()
+    if raw_service:
+        try:
+            service = Service.objects.filter(pk=raw_service, is_active=True).first()
+        except (ValueError, ValidationError):
+            service = None
+    if minutes is None:
+        minutes = service.duration_minutes if service is not None else 60
+    minutes = max(5, min(minutes, 24 * 60))
     name = request.POST.get("name", "").strip() or _("Walk-in")
     # KA-H5: число гостей. Без него у пула мест (counts_party_size) компания из 8
     # занимала 1 место → овербукинг. Разбор как на витрине: 1..50, мусор → 1.
@@ -321,6 +344,13 @@ def booking_create(request):
     except (TypeError, ValueError):
         party_size = 1
     end = start + timedelta(minutes=minutes)
+    price_cents = 0
+    if service is not None:
+        from apps.booking import pricing
+
+        price_cents = pricing.price_cents_for(service, timezone.localtime(start).date())
+        if service.pricing_mode == "per_person":
+            price_cents *= party_size
     if resource.counts_party_size and party_size > resource.capacity:
         messages.error(
             request,
@@ -339,6 +369,8 @@ def booking_create(request):
             note=request.POST.get("note", "").strip()[:2000],
             source_channel="manual",
             auto_confirm=True,
+            service=service,
+            price_cents=price_cents,
         )
     except services.SlotTaken:
         if resource.counts_party_size:

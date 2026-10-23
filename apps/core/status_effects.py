@@ -41,11 +41,14 @@ def record_revenue_for(kind: str, instance) -> None:
     elif kind == "booking":
         if not getattr(instance, "total_cents", 0):
             return
+        from apps.booking.revenue import revenue_for
+
+        amount, rate = revenue_for(instance)  # KA-H7: снимок ставки, визит по карте
         record_revenue(
             source="booking",
             source_ref=str(instance.id),
-            amount=_cents_eur(instance),
-            vat_rate=Decimal("19.00"),
+            amount=amount,
+            vat_rate=rate,
             customer=instance.customer,
             note=instance.reference_code,
         )
@@ -102,7 +105,20 @@ def record_reversal_for(kind: str, instance) -> None:
             customer=instance.customer,
             note=note,
         )
-    elif kind in ("booking", "stay", "ticket"):
+    elif kind == "booking":
+        # KA-H7: сторно = РОВНО проведённая сумма (у визита по карте — только
+        # Extras; у записей до KA-H7 — прежняя полная сумма).
+        from apps.booking.revenue import recorded_amount
+
+        amount = recorded_amount(instance)
+        record_reversal(
+            source="booking",
+            source_ref=ref,
+            amount=amount if amount is not None else _cents_eur(instance),
+            customer=instance.customer,
+            note=note,
+        )
+    elif kind in ("stay", "ticket"):
         source = "event" if kind == "ticket" else kind
         record_reversal(
             source=source,

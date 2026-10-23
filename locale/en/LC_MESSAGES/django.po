@@ -27795,3 +27795,11 @@ msgstr "Deposit received: −%(amount)s"
 #: KA-H5
 msgid "Bereits bezahlt"
 msgstr "Already paid"
+
+#: KA-H7
+msgid "Leer = Dauer der Leistung"
+msgstr "Empty = duration of the service"
+
+#: KA-H7
+msgid "— ohne Leistung (z. B. Tisch) —"
+msgstr "— no service (e.g. table) —"

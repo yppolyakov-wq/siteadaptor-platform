@@ -62,3 +62,21 @@ def test_rearm_after_new_date_resends():
     job.service_reminder_sent_at = None
     job.save(update_fields=["service_due_date", "service_reminder_sent_at"])
     assert send_due_service_reminders(today=TODAY) == 1  # вторая дата → второе письмо
+
+
+def test_ka_h7_cancelled_and_declined_jobs_get_no_reminder():
+    """KA-H7: отменённая/отклонённая заявка напоминаний о TÜV не получает."""
+    active = _job(TODAY + datetime.timedelta(days=5))
+    cancelled = _job(TODAY + datetime.timedelta(days=5))
+    declined = _job(TODAY + datetime.timedelta(days=5))
+    cancelled.status = "cancelled"
+    cancelled.save(update_fields=["status"])
+    declined.status = "declined"
+    declined.save(update_fields=["status"])
+    assert send_due_service_reminders(today=TODAY) == 1
+    cancelled.refresh_from_db()
+    declined.refresh_from_db()
+    active.refresh_from_db()
+    assert cancelled.service_reminder_sent_at is None
+    assert declined.service_reminder_sent_at is None
+    assert active.service_reminder_sent_at is not None

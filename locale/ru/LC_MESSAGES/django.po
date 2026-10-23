@@ -28068,3 +28068,11 @@ msgstr "Получен аванс: −%(amount)s"
 #: KA-H5
 msgid "Bereits bezahlt"
 msgstr "Уже оплачено"
+
+#: KA-H7
+msgid "Leer = Dauer der Leistung"
+msgstr "Пусто = длительность услуги"
+
+#: KA-H7
+msgid "— ohne Leistung (z. B. Tisch) —"
+msgstr "— без услуги (напр. стол) —"

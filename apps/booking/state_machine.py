@@ -53,18 +53,20 @@ class BookingSM(StateMachine):
 
             option_trackers.release_options("booking", instance)
 
-        # Услуга выполнена (G10) → выручка в журнал (НДС 19 %, идемпотентно по
-        # source_ref). Общие брони без цены (стол/комната) выручку не пишут.
+        # Услуга выполнена (G10) → выручка в журнал (идемпотентно по source_ref).
+        # KA-H7: ставка — снимок записи (§ 19 → 0), визит по карте пишет только
+        # Extras (сама услуга проведена при продаже карты). Общие брони без цены
+        # (стол/комната) выручку не пишут.
         if t.dst == "fulfilled" and instance.total_cents:
-            from decimal import Decimal
-
+            from apps.booking.revenue import revenue_for
             from apps.finance.services import record_revenue
 
+            amount, rate = revenue_for(instance)
             record_revenue(
                 source="booking",
                 source_ref=str(instance.id),
-                amount=Decimal(instance.total_cents) / 100,  # #7: услуга + Extras
-                vat_rate=Decimal("19.00"),
+                amount=amount,
+                vat_rate=rate,
                 customer=instance.customer,
                 note=instance.reference_code,
             )

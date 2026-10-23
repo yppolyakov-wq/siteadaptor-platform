@@ -6,6 +6,7 @@
 Customer переиспользуется по email (как в promotions/orders).
 """
 
+import re
 import secrets
 import string
 from decimal import Decimal
@@ -69,6 +70,22 @@ def _get_or_create_customer(*, name, email, phone) -> Customer:
                 customer.phone = phone
                 customer.save(update_fields=["phone", "updated_at"])
             return customer
+    elif phone:
+        # KA-H7: клиент без e-mail (запись по телефону) не плодится заново при
+        # каждой записи. Склеиваем только при том же имени (или пустом у найденного):
+        # общий номер семьи не должен сливать двух людей.
+        raw = phone.strip()
+        variants = {raw, re.sub(r"[\s\-/().]", "", raw)} - {""}
+        for customer in Customer.objects.filter(phone__in=variants).order_by("created_at"):
+            if (
+                not customer.name
+                or not name
+                or customer.name.strip().lower() == name.strip().lower()
+            ):
+                if not customer.name and name:
+                    customer.name = name
+                    customer.save(update_fields=["name", "updated_at"])
+                return customer
     return Customer.objects.create(name=name, email=email, phone=phone)
 
 

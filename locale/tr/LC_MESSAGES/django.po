@@ -27935,3 +27935,11 @@ msgstr "Kapora alındı: −%(amount)s"
 #: KA-H5
 msgid "Bereits bezahlt"
 msgstr "Ödendi"
+
+#: KA-H7
+msgid "Leer = Dauer der Leistung"
+msgstr "Boş = hizmet süresi"
+
+#: KA-H7
+msgid "— ohne Leistung (z. B. Tisch) —"
+msgstr "— hizmet yok (ör. masa) —"

@@ -31,11 +31,18 @@ def send_due_service_reminders(today=None) -> int:
     today = today or timezone.localdate()
     lead = getattr(settings, "SERVICE_REMINDER_LEAD_DAYS", 21)
     horizon = today + timezone.timedelta(days=lead)
-    due = Job.objects.select_related("customer").filter(
-        service_reminder_sent_at__isnull=True,
-        service_due_date__isnull=False,
-        service_due_date__gte=today,
-        service_due_date__lte=horizon,
+    from apps.core import status_registry
+
+    # KA-H7: отменённая/отклонённая заявка напоминаний не шлёт (вкл. свои статусы).
+    due = (
+        Job.objects.select_related("customer")
+        .filter(
+            service_reminder_sent_at__isnull=True,
+            service_due_date__isnull=False,
+            service_due_date__gte=today,
+            service_due_date__lte=horizon,
+        )
+        .exclude(status__in=status_registry.cancelled_statuses_for("job"))
     )
     sent = 0
     for job in due:

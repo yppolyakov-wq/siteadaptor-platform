@@ -27885,3 +27885,11 @@ msgstr "Anzahlung erhalten: −%(amount)s"
 #: KA-H5
 msgid "Bereits bezahlt"
 msgstr "Bereits bezahlt"
+
+#: KA-H7
+msgid "Leer = Dauer der Leistung"
+msgstr "Leer = Dauer der Leistung"
+
+#: KA-H7
+msgid "— ohne Leistung (z. B. Tisch) —"
+msgstr "— ohne Leistung (z. B. Tisch) —"
