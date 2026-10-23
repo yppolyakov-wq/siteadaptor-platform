@@ -17,10 +17,8 @@ pytestmark = pytest.mark.django_db
 
 BUSINESS_TYPES = [code for code, _label in Tenant.BUSINESS_TYPES]
 
-# Записи без гейта — долг батча 2 (подменю «Verkäufe» и «Sortiment»).
-GATE_DEBT = {
-    "verkaeufe?tab=kunden",  # пункт «Kunden» в Verkäufe — батч 2 удаляет (вкладка остаётся)
-}
+# Записи без гейта — долг погашен батчем 2 (пункт «Kunden» снят из подменю продаж).
+GATE_DEBT: set[str] = set()
 
 MAX_SUBMENU = 7
 # Подменю больше семи пунктов — долг батча 3 (подзаголовки групп).
@@ -48,8 +46,7 @@ PALETTE_ONLY_OK = {
     "imports:website": "вход с экрана импорта",
     "orders:table-qr": "вход из KDS",
     "promotions:promotion-quick": "ассистент — кнопка «＋»",
-    "promotions:reservation-list": "легаси — батч 2 → 302 на вкладку продаж",
-    "stays:channels": "батч 2 → настройки «Zimmer»",
+    "verkaeufe?tab=reservation": "резервы — вкладка продаж (с первой записи)",
     "verkaeufe-zusatz": "вход из тулбара Verkäufe",
 }
 
@@ -65,7 +62,7 @@ def test_every_entry_has_gate():
 
 
 def test_no_work_screen_palette_only():
-    only = {e.url_name for e in nav_registry.ENTRIES if e.palette_only}
+    only = {_key(e) for e in nav_registry.ENTRIES if e.palette_only}
     assert only - set(PALETTE_ONLY_OK) == set()
 
 

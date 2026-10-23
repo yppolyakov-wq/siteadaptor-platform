@@ -1413,7 +1413,7 @@ def channels(request):
         request,
         "stays/channels.html",
         {
-            "nav": "stays",
+            "nav": "channel-manager",
             "channels": list(Channel.objects.all()),
             "kinds": Channel.KINDS,
             "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),

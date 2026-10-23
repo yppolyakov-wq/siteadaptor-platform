@@ -516,7 +516,7 @@ def availability_calendar(request):
         request,
         "booking/availability.html",
         {
-            "nav": "booking",
+            "nav": "booking-availability",
             "cal_first": first,
             "cal_days": days,
             "cal_lead_blanks": range(first.weekday()),
@@ -623,7 +623,7 @@ def resources(request):
         request,
         "booking/resources.html",
         {
-            "nav": "booking",
+            "nav": "booking-resources",
             "resources": Resource.objects.prefetch_related("rules").order_by("-is_active", "name"),
             "closed_dates": ClosedDate.objects.filter(date__gte=timezone.localdate()),
             "types": Resource.TYPES,

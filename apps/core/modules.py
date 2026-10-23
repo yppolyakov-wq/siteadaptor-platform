@@ -231,7 +231,9 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(),
         url_prefixes=("/dashboard/booking/",),
         # S6: Friseur/Werkstatt — услуги по времени (Termin) primary; Handwerker — suited.
-        recommended_for=("cafe", "restaurant", "hotel", "tour_operator", "friseur", "werkstatt"),
+        # KA-12 E8.11: отелю запись по времени не нужна из коробки (спа/велопрокат —
+        # включает сам или демо-кит с услугами).
+        recommended_for=("cafe", "restaurant", "tour_operator", "friseur", "werkstatt"),
         suited_for=("retail", "clothing", "other", "handwerker", "catering"),
         description_de=_("Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen."),
         storefront_label=_("Termin buchen"),
@@ -362,8 +364,9 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         url_prefixes=("/dashboard/events/",),
         # S6: архетип «Veranstalter/Events» — билеты его primary (default-ON). Сверх
         # пресета подходит гидам/студиям (tour_operator/other).
-        recommended_for=("events",),
-        suited_for=("tour_operator", "other", "catering"),
+        # KA-12 E8.11: заезды тура — события; туроператору модуль нужен сразу.
+        recommended_for=("events", "tour_operator"),
+        suited_for=("other", "catering"),
         description_de=_("Veranstaltungen mit bezahlten Tickets und Teilnehmerliste."),
         storefront_label=_("Veranstaltungen"),
         storefront_blurb=_("Tickets für unsere Events sichern."),
@@ -377,27 +380,11 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("blog-list", _("Blog"), "blog"),),
         # CM-1: контент first-class для ВСЕХ архетипов (модель живёт в apps/events
         # организационно, но от событий не зависит). Гейтим и витрину /blog/ —
-        # тумблер «Module» должен реально выключать. recommended_for=все типы →
-        # активен из коробки везде (в default_disabled_for не попадает).
+        # тумблер «Module» должен реально выключать.
         url_prefixes=("/dashboard/blog/", "/blog/"),
-        recommended_for=(
-            "bakery",
-            "butcher",
-            "grocery",
-            "cafe",
-            "restaurant",
-            "retail",
-            "clothing",
-            "online_shop",  # 2026-07-10
-            "hotel",
-            "tour_operator",
-            "friseur",  # S6
-            "handwerker",  # S6
-            "werkstatt",  # S6
-            "events",  # S6
-            "catering",  # GK-1 (замок test_blog: блог у всех типов)
-            "other",
-        ),
+        # KA-12 E8.7 (решение владельца В-1…В-6): блог выключен по умолчанию у всех —
+        # включается на «Funktionen»; демо-киты с постами включают его сами.
+        recommended_for=(),
         description_de=_(
             "Neuigkeiten und Beiträge veröffentlichen — frischer Inhalt für Kunden und Google."
         ),

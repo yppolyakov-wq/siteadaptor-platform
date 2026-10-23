@@ -24908,10 +24908,9 @@ def apply_kit(tenant, key: str) -> bool:
 
     # Включаем нужные киту модули (orders/events/jobs…) сверх пресета по типу —
     # в памяти ДО сидера (он гейтится по is_module_active) и в final save.
-    if kit.enable_modules:
-        tenant.disabled_modules = [
-            m for m in (tenant.disabled_modules or []) if m not in kit.enable_modules
-        ]
+    enables = kit_enabled_modules(kit)
+    if enables:
+        tenant.disabled_modules = [m for m in (tenant.disabled_modules or []) if m not in enables]
 
     _seed_kit_modules(tenant, kit, refs)
     # P6 «ценовой слой»: акции с целью-услугой/номером — цели созданы модулями выше;
@@ -25179,7 +25178,7 @@ def apply_kit(tenant, key: str) -> bool:
     tenant.site_config = cfg
     tenant.primary_color = accent
     update_fields = ["site_config", "primary_color", "updated_at"]
-    if kit.enable_modules:
+    if kit_enabled_modules(kit):
         update_fields.append("disabled_modules")
     if kit.delivery.get("enabled"):
         d = kit.delivery
@@ -25464,6 +25463,18 @@ def _seed_entity_reviews(kit: DemoKit, refs: dict) -> None:
                     "is_published": True,
                 },
             )
+
+
+def kit_enabled_modules(kit: DemoKit) -> list:
+    """Модули, которые кит включает сверх пресета типа: явный `enable_modules` +
+    то, что следует из его контента (KA-12 E8.7/E8.11: блог и запись по времени
+    выключены по умолчанию у части типов — посты/услуги кита их включают)."""
+    mods = list(kit.enable_modules or [])
+    if kit.blog_posts and "blog" not in mods:
+        mods.append("blog")
+    if kit.services and "booking" not in mods:
+        mods.append("booking")
+    return mods
 
 
 def _seed_blog_posts(tenant, kit: DemoKit) -> None:

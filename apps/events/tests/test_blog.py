@@ -104,16 +104,19 @@ def test_cabinet_delete_post():
 # --- CM-1: блог — свой модуль (first-class для всех архетипов) -----------------
 
 
-def test_blog_is_registered_module_recommended_everywhere():
-    """CM-1: модуль "blog" в реестре, не-core/не-premium, recommended у ВСЕХ
-    типов (активен из коробки, тумблер на «Module»); гейтит кабинет И витрину."""
+def test_blog_is_registered_module_off_by_default():
+    """CM-1: модуль "blog" в реестре, не-core/не-premium; гейтит кабинет И витрину.
+    KA-12 E8.7 (решение владельца, осознанная переписка CM-1): из коробки
+    выключен у ВСЕХ типов — включается на «Funktionen»."""
     from apps.core import modules
 
     spec = next(s for s in modules.REGISTRY if s.key == "blog")
     assert not spec.core and not spec.premium
     from apps.tenants.models import Tenant
 
-    assert set(spec.recommended_for) == {k for k, _l in Tenant.BUSINESS_TYPES}
+    assert spec.recommended_for == ()
+    for code, _label in Tenant.BUSINESS_TYPES:
+        assert "blog" in modules.default_disabled_for(code)
     assert "/dashboard/blog/" in spec.url_prefixes and "/blog/" in spec.url_prefixes
     assert modules.module_for_path("/blog/mein-post/").key == "blog"
     assert modules.module_for_path("/dashboard/blog/").key == "blog"
@@ -123,7 +126,7 @@ def test_blog_module_active_by_default_and_disableable():
     from apps.core import modules
 
     tenant = TenantFactory.build(name="X")
-    assert modules.is_module_active(tenant, "blog") is True  # из коробки
+    assert modules.is_module_active(tenant, "blog") is True  # без выключения — активен
     tenant.disabled_modules = ["blog"]
     assert modules.is_module_active(tenant, "blog") is False  # тумблер работает
 

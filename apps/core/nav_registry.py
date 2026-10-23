@@ -102,7 +102,7 @@ ANCHORS: tuple[Anchor, ...] = (
         "sellables",
         "📦",
         "sortiment angebote produkte leistungen zimmer veranstaltungen",
-        hubs=("sellables", "catalog"),
+        hubs=("sellables",),
     ),
     # X0 (план cabinet-cleanup-2026-08-19): module_key — только ПРЕДПОЧТИТЕЛЬНЫЙ
     # гейт; sidebar_nav показывает якорь и при выключенном promotions, если жив
@@ -185,65 +185,8 @@ def _e(
 # Содержимое = бывший литерал cabinet.HUB_TABS (W7b/W-CL) 1:1 — характеризацию
 # держат test_hub_tabs/test_w7_nav; здесь добавлены только search-слова палитры.
 ENTRIES: tuple[NavEntry, ...] = (
-    # Sortiment (рендерится на страницах каталога; якорь — «Sortiment»).
-    # X4 (глоссарий §6.A4.4): подпись «Angebote» освободила слово для оферты
-    # клиенту (Sofort-Angebot / смета Handwerker) — раздел товаров зовётся
-    # «Sortiment» и в якоре, и в табе.
-    # SR-1: записи «Produkte» (catalog:product-list) удалены — страница умерла,
-    # 302 на Sortiment (вид «Liste» несёт её инструменты); обзор ищется и по
-    # старым словам.
-    _e(
-        "catalog",
-        "sellable-manage",
-        _("Sortiment"),
-        "sellables",
-        search="übersicht alle angebote artikel waren produkte",
-    ),
-    _e("catalog", "catalog:category-list", _("Kategorien"), "categories", "catalog"),
-    # SM-4 (решение владельца): каталожные страницы — тот же компакт-бар, что на
-    # «Sortiment»: main Sortiment·Produkte·Kategorien, остальное — в «Erweitert».
-    # X4: складская группа осталась в ящике таб-бара, но ушла из ПОДПУНКТОВ
-    # сайдбара (sidebar=False) — там место сущностям архетипа, а не учёту.
-    _e(
-        "catalog",
-        "stock",
-        _("Lager"),
-        "stock",
-        "catalog",
-        True,
-        "bestand inventur meldebestand",
-        sidebar=False,
-    ),
-    _e(
-        "catalog",
-        "purchasing",
-        _("Einkauf"),
-        "purchasing",
-        "catalog",
-        True,
-        "lieferanten bestellung",
-        sidebar=False,
-    ),
-    _e("catalog", "catalog:combo-list", _("Kombi"), "combos", "catalog", True, sidebar=False),
-    _e(
-        "catalog",
-        "imports:start",
-        _("Import"),
-        "imports",
-        "catalog",
-        True,
-        "csv excel",
-        sidebar=False,
-    ),
-    _e(
-        "catalog",
-        "collections:list",
-        _("Kollektionen"),
-        "collections",
-        None,
-        True,
-        "podborki lookbook",
-    ),
+    # KA-12 E8.1: хаб "catalog" (дубль "sellables" со времён SM-4) снят — каталожные
+    # экраны живут одной строкой в "sellables"; их nav_key подсвечивают якорь Sortiment.
     # Verkäufe (W-CL): board/календари/список покрыты единой страницей — остаток W10.
     # Хаб как ТАБ-БАР не рендерится (W10-3): записи живут ради палитры, подсветки
     # и подпунктов сайдбара. X4: события/туры переехали в «Sortiment» (сущность),
@@ -265,24 +208,6 @@ ENTRIES: tuple[NavEntry, ...] = (
     # группа (Auswertungen/Finanzen/Berichte) осталась, но ниже.
     _e(
         "board",
-        "booking:resources",
-        _("Öffnungszeiten & Ressourcen"),
-        "booking",
-        "booking",
-        True,
-        "zeiten mitarbeiter tische ressourcen slots",
-    ),
-    _e(
-        "board",
-        "booking:availability",
-        _("Tage blockieren"),
-        "booking",
-        "booking",
-        True,
-        "urlaub feiertag sperren verfügbarkeit",
-    ),
-    _e(
-        "board",
         "stays:checkins",
         _("Check-ins"),
         "stays",
@@ -302,41 +227,11 @@ ENTRIES: tuple[NavEntry, ...] = (
         "küche kds bon",
         business_types=KITCHEN_TYPES,
     ),
-    # SM-4 (решение владельца 2026-08-11): отчёты и настройки процессов — подпункты
-    # раздела «Verkäufe» в сайдбаре (advanced board-хаба; сам hub_tabs "board" не
-    # рендерится). Auswertungen/Finanzen ПЕРЕЕХАЛИ из settings-хаба; Berichte —
-    # бывший сирота stays:reports; Abläufe — дубль-запись (таб Einstellungen жив,
-    # прецедент sellables/catalog; палитра дедупит по url_name).
-    _e(
-        "board",
-        "ablaeufe",
-        # VK-3 (фидбэк владельца 2026-08-20): «Abläufe» не подсказывало, что
-        # именно здесь настраиваются свои статусы и колонки доски — владелец
-        # искал их на самой доске. Подпись подпункта продаж говорит прямо;
-        # вкладка настроек остаётся «Abläufe» (та же страница).
-        _("Abläufe & Status"),
-        "ablaeufe",
-        None,
-        True,
-        # X2c: сюда переехала панель «Anfrage-Formular» — Ctrl+K обязан её
-        # находить (сам приёмник POST-only и в палитру не годится).
-        "status übergänge spalten anfrage-formular felder eigene status tafel",
-        query="?from=board",
-    ),
-    # SH-15 (решение владельца «вкладка в Продажах всем» + «в меню так же вынести
-    # CRM»): клиенты — подпункт раздела продаж. Ведёт на ту же вкладку страницы
-    # продаж, что и ряд вкладок (один экран, одни данные); полный экран CRM с
-    # компаниями/экспортом остаётся табом Marketing.
-    _e(
-        "board",
-        "verkaeufe",
-        _("Kunden"),
-        "kunden",
-        None,  # список клиентов есть у всех; модуль crm гейтит карточку/теги/экспорт
-        True,
-        "kunden kontakte crm klienten",
-        query="?tab=kunden",
-    ),
+    # SM-4: отчёты — подпункты раздела «Verkäufe» (Auswertungen/Finanzen ПЕРЕЕХАЛИ из
+    # settings-хаба; Berichte — бывший сирота stays:reports). KA-12 E8.2: дубль
+    # «Abläufe & Status» и пункт «Kunden» сняты — настройка процессов живёт в
+    # Einstellungen (кнопка «⚙️» тулбара Verkäufe ведёт туда же), клиенты — вкладкой
+    # страницы продаж и разделом Marketing.
     # SH-14 → R7-3 (фидбэк владельца 2026-08-24 «доставку нужно вынести в
     # отдельную страницу, там могут формироваться отгрузочные накладные»):
     # доставка стала СВОИМ экраном (адрес/трек-номер/Lieferschein), а не
@@ -389,14 +284,17 @@ ENTRIES: tuple[NavEntry, ...] = (
     ),
     # X4: бывшие СИРОТЫ поверхности продаж — вход через Ctrl+K (в таб-бар и
     # сайдбар не идут: palette_only). Классификация — x4-navigation-plan §4.
+    # KA-12 E8.1: резервы — вкладка страницы продаж; палитра ведёт туда, а не на
+    # легаси-список (тот остаётся экраном лёгкого кабинета и Mini App).
     _e(
         "board",
-        "promotions:reservation-list",
+        "verkaeufe",
         _("Reservierungen"),
         "reservations",
         "promotions",
-        search="reservierung abholung",
+        search="reservierung abholung zurückgelegt",
         palette_only=True,
+        query="?tab=reservation",
     ),
     # MX-2c: сводные доп-продажи — вход из тулбара Verkäufe + палитра.
     _e(
@@ -453,15 +351,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         "finance",
         "finance",
         search="rechnung invoice beleg",
-        palette_only=True,
-    ),
-    _e(
-        "board",
-        "stays:channels",
-        _("Channel Manager"),
-        "stays",
-        "stays",
-        search="ota booking airbnb kanäle",
         palette_only=True,
     ),
     _e(
@@ -612,7 +501,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "sellable-manage",
         _("Sortiment"),
         "sellables",
-        search="übersicht alle angebote",
+        search="übersicht alle angebote artikel waren produkte",
     ),
     # X4: бывшие сироты — сущности НЕтоварных архетипов. У салона в подпунктах
     # «Sortiment» висел склад, а «Leistungen» не было вовсе (исследование §3).
@@ -654,15 +543,61 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         "touren reisen route",
     ),
-    _e("sellables", "catalog:category-list", _("Kategorien"), "categories", "catalog", True),
-    _e("sellables", "collections:list", _("Kollektionen"), "collections", None, True),
+    _e(
+        "sellables",
+        "catalog:category-list",
+        _("Kategorien"),
+        "categories",
+        "catalog",
+        True,
+        direction="waren",
+    ),
+    _e("sellables", "collections:list", _("Kollektionen"), "collections", None, True, "lookbook"),
     # R2 (редизайн B, утверждённая структура): складская группа — подпункты
     # сайдбара «Sortiment» (ящик «Erweitert» на страницах больше не рендерится,
     # каждая страница живёт ровно в одном месте; X4-решение пересмотрено).
-    _e("sellables", "stock", _("Lager"), "stock", "catalog", True),
-    _e("sellables", "purchasing", _("Einkauf"), "purchasing", "catalog", True),
-    _e("sellables", "catalog:combo-list", _("Kombi"), "combos", "catalog", True),
-    _e("sellables", "imports:start", _("Import"), "imports", "catalog", True),
+    # KA-12 E8.1: учёт товаров — направлению «Waren» (тип, модуль заказов или хотя бы
+    # один активный товар); парикмахер без товаров их не видит.
+    _e(
+        "sellables",
+        "stock",
+        _("Lager"),
+        "stock",
+        "catalog",
+        True,
+        "bestand inventur meldebestand",
+        direction="waren",
+    ),
+    _e(
+        "sellables",
+        "purchasing",
+        _("Einkauf"),
+        "purchasing",
+        "catalog",
+        True,
+        "lieferanten bestellung",
+        direction="waren",
+    ),
+    _e(
+        "sellables",
+        "catalog:combo-list",
+        _("Kombi"),
+        "combos",
+        "catalog",
+        True,
+        "menü set paket",
+        direction="waren|gastro",
+    ),
+    _e(
+        "sellables",
+        "imports:start",
+        _("Import"),
+        "imports",
+        "catalog",
+        True,
+        "csv excel",
+        direction="waren",
+    ),
     _e(
         "sellables",
         "imports:website",
@@ -819,6 +754,35 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         modules_any=("booking", "stays", "events"),
     ),
+    # KA-12 E8.2: настройки записи и каналов отеля — в Einstellungen (были
+    # подпунктами «Verkäufe» рядом с рабочими экранами дня).
+    _e(
+        "settings",
+        "booking:resources",
+        _("Öffnungszeiten & Ressourcen"),
+        "booking-resources",
+        "booking",
+        True,
+        "zeiten mitarbeiter tische ressourcen slots",
+    ),
+    _e(
+        "settings",
+        "booking:availability",
+        _("Tage blockieren"),
+        "booking-availability",
+        "booking",
+        True,
+        "urlaub feiertag sperren verfügbarkeit",
+    ),
+    _e(
+        "settings",
+        "stays:channels",
+        _("Channel Manager"),
+        "channel-manager",
+        "stays",
+        True,
+        "ota booking airbnb kanäle",
+    ),
     _e("settings", "modules", _("Funktionen"), "modules", None, True, "module aktivieren"),
     # W12-1: режим кабинета одним экраном (Einfach/Experte + «что скрыто»).
     _e("settings", "finder-settings", _("Finder"), "finder", None, True, "fragen empfehlung"),
@@ -841,7 +805,7 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e("site", "media-library", _("Medien"), "media", None, True, "bilder fotos bibliothek"),
 )
 
-HUBS: tuple[str, ...] = ("catalog", "board", "marketing", "sellables", "settings", "site")
+HUBS: tuple[str, ...] = ("board", "marketing", "sellables", "settings", "site")
 
 # X5-1: подписанные ряды главных вкладок (пока только хаб настроек). Порядок
 # рядов = порядок показа; вкладки без группы уходят в безымянный ряд в конце.
@@ -908,6 +872,8 @@ def direction_active(tenant, direction: str) -> bool:
     """Активно ли направление у тенанта. Fail-open: без тенанта или при ошибке — да."""
     if not direction or tenant is None:
         return True
+    if "|" in direction:  # «waren|gastro» — любое из направлений
+        return any(direction_active(tenant, d) for d in direction.split("|"))
     btype = getattr(tenant, "business_type", "") or ""
     if direction == "gastro":
         return btype in FOOD_TYPES
