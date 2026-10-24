@@ -28700,3 +28700,12 @@ msgstr "Mit Gutschein bezahlt: Der Rabatt kann nicht mehr geändert werden."
 
 msgid "Ratenzahlung: Eine Rate wurde ohne Online-Zahlung bezahlt — bitte erstatten Sie sie selbst."
 msgstr "Ratenzahlung: Eine Rate wurde ohne Online-Zahlung bezahlt — bitte erstatten Sie sie selbst."
+
+msgid "Eröffnung"
+msgstr "Eröffnung"
+
+msgid "Restzahlung"
+msgstr "Restzahlung"
+
+msgid "Vollzahlung"
+msgstr "Vollzahlung"

@@ -28752,3 +28752,12 @@ msgstr "Hediye çekiyle ödendi: indirim artık değiştirilemez."
 
 msgid "Ratenzahlung: Eine Rate wurde ohne Online-Zahlung bezahlt — bitte erstatten Sie sie selbst."
 msgstr "Taksitli ödeme: bir taksit çevrimiçi ödeme olmadan ödendi — lütfen kendiniz iade edin."
+
+msgid "Eröffnung"
+msgstr "Devreden ödeme"
+
+msgid "Restzahlung"
+msgstr "Kalan ödeme"
+
+msgid "Vollzahlung"
+msgstr "Tam ödeme"

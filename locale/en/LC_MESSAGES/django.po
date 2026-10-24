@@ -28608,3 +28608,12 @@ msgstr "Paid with a gift voucher: the discount can no longer be changed."
 
 msgid "Ratenzahlung: Eine Rate wurde ohne Online-Zahlung bezahlt — bitte erstatten Sie sie selbst."
 msgstr "Instalment plan: one instalment was paid without online payment — please refund it yourself."
+
+msgid "Eröffnung"
+msgstr "Opening balance"
+
+msgid "Restzahlung"
+msgstr "Balance payment"
+
+msgid "Vollzahlung"
+msgstr "Full payment"

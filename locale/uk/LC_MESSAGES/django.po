@@ -28857,3 +28857,12 @@ msgstr "Оплачено подарунковим сертифікатом: зн
 
 msgid "Ratenzahlung: Eine Rate wurde ohne Online-Zahlung bezahlt — bitte erstatten Sie sie selbst."
 msgstr "Розстрочка: один платіж внесено не онлайн — поверніть його, будь ласка, самостійно."
+
+msgid "Eröffnung"
+msgstr "Перенесена оплата"
+
+msgid "Restzahlung"
+msgstr "Доплата залишку"
+
+msgid "Vollzahlung"
+msgstr "Повна оплата"

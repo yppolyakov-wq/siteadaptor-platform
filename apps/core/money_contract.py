@@ -111,7 +111,47 @@ def _online_paid(kind, obj, total) -> Decimal:
     return total
 
 
+def _folio_totals(kind, obj):
+    """KA-12 B2-3: (оплачено, возвращено) из фолио в евро или None (легаси/рассрочка).
+    Рассрочку билета читает её собственная книга долей (InstallmentCharge)."""
+    if kind == "reservation" or getattr(obj, "pk", None) is None:
+        return None
+    if getattr(obj, "payment_state", "") == "installment":
+        return None
+    from apps.core import folio
+
+    found = folio.totals(kind, obj)
+    if found is None:
+        return None
+    return _eur(found[0]), _eur(found[1])
+
+
+def legacy_paid_cents(kind, obj) -> int:
+    """Сколько сделка получила по ПРЕЖНИМ правилам (без фолио) — сумма строки
+    `opening`, когда легаси-сделка получает первую запись фолио."""
+    total = _total(kind, obj)
+    online = min(_online_paid(kind, obj, total), total)
+    paid = min(_legacy_paid(kind, obj, total, online), total)
+    if getattr(obj, "payment_state", "") == "refunded":
+        return 0  # возвращено целиком — переносить нечего
+    return int((paid * 100).to_integral_value())
+
+
 def _paid(kind, obj, total, online) -> Decimal:
+    folio_sums = _folio_totals(kind, obj)
+    if folio_sums is not None:
+        return folio_sums[0]
+    return _legacy_paid(kind, obj, total, online)
+
+
+def _refunded(kind, obj, paid) -> Decimal:
+    folio_sums = _folio_totals(kind, obj)
+    if folio_sums is not None:
+        return min(folio_sums[1], paid)
+    return paid if getattr(obj, "payment_state", "") == "refunded" else ZERO
+
+
+def _legacy_paid(kind, obj, total, online) -> Decimal:
     state = getattr(obj, "payment_state", "")
     if kind == "reservation":
         return total if obj.status == "fulfilled" else ZERO
@@ -186,7 +226,8 @@ def due(kind: str, obj) -> Decimal:
         return ZERO
     total = _total(kind, obj)
     online = min(_online_paid(kind, obj, total), total) if kind != "reservation" else total
-    return max(total - min(_paid(kind, obj, total, online), total), ZERO)
+    paid = min(_paid(kind, obj, total, online), total)
+    return max(total - (paid - _refunded(kind, obj, paid)), ZERO)
 
 
 def money_state(kind: str, obj) -> MoneyState:
@@ -195,9 +236,13 @@ def money_state(kind: str, obj) -> MoneyState:
     total = _total(kind, obj)
     online = min(_online_paid(kind, obj, total), total) if kind != "reservation" else total
     paid = min(_paid(kind, obj, total, online), total)
-    refunded = paid if getattr(obj, "payment_state", "") == "refunded" else ZERO
+    refunded = _refunded(kind, obj, paid)
     cancelled = obj.status in status_registry.cancelled_statuses_for(kind, None)
-    due = ZERO if cancelled or getattr(obj, "payment_state", "") == "refunded" else total - paid
+    due = (
+        ZERO
+        if cancelled or getattr(obj, "payment_state", "") == "refunded"
+        else max(total - (paid - refunded), ZERO)
+    )
     invoice = invoice_for(kind, obj)
     return MoneyState(
         total=total,

@@ -349,3 +349,61 @@ class DealLink(TimestampedModel):
 
     def __str__(self):
         return f"{self.anchor_kind}:{self.anchor_id} → {self.child_kind}:{self.child_id}"
+
+
+class DealPayment(TimestampedModel):
+    """KA-12 B2-3: фолио — каждый полученный платёж сделки отдельной строкой.
+
+    До фолио «сколько оплачено» выводилось из грубого `payment_state` и снимков
+    (`deposit_cents`, `amount_due_now_cents`): сделка знала либо «депозит», либо
+    «всё», а второй платёж (остаток онлайн, наличные у стойки, перевод) и частичный
+    возврат выразить было нечем. Фолио — денежная книга, НЕ выручка: журнал
+    (`RevenueEntry`) пишется при исполнении, как и раньше.
+
+    Ссылка на сделку — `(deal_kind, deal_id)`, как у `DealLink`/`Review`: одна
+    таблица на шесть моделей, без GFK. Легаси-сделка без строк читается по-старому;
+    первая запись в неё создаёт строку `opening` с уже полученной суммой
+    (`apps.core.folio.record`), чтобы второй платёж не потерял первый.
+    """
+
+    PURPOSE_OPENING = "opening"
+    PURPOSE_DEPOSIT = "deposit"
+    PURPOSE_FULL = "full"
+    PURPOSE_BALANCE = "balance"
+    PURPOSES = [
+        (PURPOSE_OPENING, _("Eröffnung")),
+        (PURPOSE_DEPOSIT, _("Anzahlung")),
+        (PURPOSE_FULL, _("Vollzahlung")),
+        (PURPOSE_BALANCE, _("Restzahlung")),
+    ]
+
+    deal_kind = models.CharField(max_length=16)
+    deal_id = models.UUIDField()
+    purpose = models.CharField(max_length=12, choices=PURPOSES)
+    # Способ — код `apps.core.payment_methods` (stripe/on_site/vorkasse/invoice) или
+    # bank/cash для сверки выписки и кассы.
+    method = models.CharField(max_length=16, blank=True)
+    amount_cents = models.PositiveIntegerField()
+    refunded_cents = models.PositiveIntegerField(default=0)
+    stripe_payment_intent = models.CharField(max_length=200, blank=True)
+    # Откуда строка: webhook | manual | bank | invoice | delivery | legacy.
+    source = models.CharField(max_length=12, blank=True)
+
+    class Meta:
+        constraints = [
+            # Повтор вебхука с тем же платежом не создаёт вторую строку.
+            models.UniqueConstraint(
+                fields=["deal_kind", "stripe_payment_intent"],
+                condition=~models.Q(stripe_payment_intent=""),
+                name="dealpayment_intent_uniq",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(refunded_cents__lte=models.F("amount_cents")),
+                name="dealpayment_refund_le_amount",
+            ),
+        ]
+        indexes = [models.Index(fields=["deal_kind", "deal_id"], name="dealpayment_deal_idx")]
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"{self.deal_kind}:{self.deal_id} {self.purpose} {self.amount_cents}"

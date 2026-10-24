@@ -203,6 +203,9 @@ def open_items(tenant) -> list[dict]:
             .order_by("created_at")[:200]
         )
         qs = list(qs)
+        from apps.core import folio
+
+        folio.prefetch(kind, qs)  # KA-12 B2-3: due() без запроса на строку
         # KA-MC X3: какие из кандидатов уже выставлены счётом (запрос — только по ним).
         codes = [str(o.reference_code) for o in qs]
         invoiced = set(
