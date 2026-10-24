@@ -17,10 +17,14 @@ _CENT = Decimal("0.01")
 
 
 def _dec(value, default="0") -> Decimal:
-    try:
-        return Decimal(str(value if value not in (None, "") else default))
-    except ArithmeticError:
-        return Decimal(default)
+    """Пусто → `default`; мусор/NaN/Infinity — `InvalidOperation` наверх (ревью
+    silent-failure: кривая строка не должна молча становиться 0 € или ставкой 0 %)."""
+    from decimal import InvalidOperation
+
+    result = Decimal(str(value if value not in (None, "") else default))
+    if not result.is_finite():
+        raise InvalidOperation(f"non-finite amount {value!r}")
+    return result
 
 
 def line_rate(line, vat_rate, small_business=False) -> Decimal:
@@ -31,17 +35,17 @@ def line_rate(line, vat_rate, small_business=False) -> Decimal:
 
 
 def line_gross(line, rate) -> Decimal:
-    """Брутто строки (за все штуки). Строка без `unit_gross` (старый/смешанный
-    снимок) — из нетто по ставке."""
-    qty = _dec(line.get("qty", 1), "1")
-    if line.get("unit_gross") not in (None, ""):
-        return _dec(line["unit_gross"]) * qty
-    return _dec(line.get("unit_price")) * qty * (1 + rate / Decimal("100"))
+    """Брутто строки (за все штуки). В gross-счёте `unit_gross` обязателен: пересчёт
+    из производного нетто снова дал бы цент расхождения — без него ValueError."""
+    if line.get("unit_gross") in (None, ""):
+        raise ValueError(f"gross line without unit_gross: {line.get('text', '')!r}")
+    return _dec(line["unit_gross"]) * _dec(line.get("qty", 1), "1")
 
 
 def rate_groups(lines, vat_rate, *, small_business=False, basis=BASIS_NET) -> list:
     """[(ставка, нетто, налог, брутто)] по убыванию ставки. Кривая строка (KeyError/
-    TypeError) поднимается наверх — вызывающий решает, какой фолбэк ему честен."""
+    TypeError/ValueError/InvalidOperation) поднимается наверх — вызывающий решает,
+    какой фолбэк ему честен, и обязан его залогировать."""
     from apps.orders.totals import split_gross
 
     sums: dict[Decimal, Decimal] = {}

@@ -141,7 +141,8 @@ def _invoice_gross_by_rate(invoice) -> list:
             )
             if gross
         ]
-    except (KeyError, TypeError, AttributeError, ArithmeticError):
+    except (KeyError, TypeError, AttributeError, ArithmeticError, ValueError) as exc:
+        logger.warning("invoice %s: unreadable lines for revenue split: %s", invoice.pk, exc)
         rows = []
     # Отрицательная группа (скидка другой ставки) не проводится record_revenue —
     # журнал разошёлся бы с документом; тогда одной строкой по ставке документа.
@@ -150,6 +151,13 @@ def _invoice_gross_by_rate(invoice) -> list:
         or any(g <= 0 for _r, g in rows)
         or sum(g for _r, g in rows) != Decimal(invoice.gross)
     ):
+        if rows:
+            logger.warning(
+                "invoice %s: revenue booked in one row at document rate (groups %s, gross %s)",
+                invoice.pk,
+                rows,
+                invoice.gross,
+            )
         return [(Decimal("0") if no_vat else default_rate, Decimal(invoice.gross))]
     return rows
 
@@ -714,8 +722,8 @@ def invoice_from_stay(booking, tenant=None):
         # начислил бы на него ставку проживания, и счёт стал бы больше брони.
         lines.append(gross_line(_("Kurtaxe"), 1, Decimal(booking.kurtaxe_cents) / 100, 0))
     net, vat, gross = compute_totals(lines, rate, small_business=small, basis="gross")
-    _check_deal_total(gross, Decimal((booking.total_cents or 0) + cert) / 100, booking)
-    return Invoice.objects.create(
+    expected = Decimal((booking.total_cents or 0) + cert) / 100
+    invoice = Invoice.objects.create(
         price_basis="gross",
         customer=booking.customer,
         recipient=recipient_for(booking),
@@ -732,6 +740,7 @@ def invoice_from_stay(booking, tenant=None):
         service_date_end=booking.departure,
         prepaid_cents=_prepaid_from_payment_state(booking),
     )
+    return _check_deal_total(invoice, expected, booking)
 
 
 def invoice_from_booking(booking, tenant=None):
@@ -765,8 +774,8 @@ def invoice_from_booking(booking, tenant=None):
     if rabatt:
         lines.append(gross_line(_("Rabatt"), 1, -Decimal(rabatt) / 100, rate))
     total_net, vat, gross = compute_totals(lines, rate, small_business=small, basis="gross")
-    _check_deal_total(gross, Decimal((booking.total_cents or 0) + cert) / 100, booking)
-    return Invoice.objects.create(
+    expected = Decimal((booking.total_cents or 0) + cert) / 100
+    invoice = Invoice.objects.create(
         price_basis="gross",
         customer=booking.customer,
         recipient=recipient_for(booking),
@@ -782,21 +791,27 @@ def invoice_from_booking(booking, tenant=None):
         service_date=_local_date(booking.start),  # KA-H10: Leistungsdatum
         prepaid_cents=_prepaid_from_payment_state(booking),
     )
+    return _check_deal_total(invoice, expected, booking)
 
 
-def _check_deal_total(gross, expected, deal) -> None:
-    """Bruttomethode: брутто счёта обязано равняться итогу сделки. Расхождение —
-    значит, в строках нет части сделки (не округление); не прячем его в цену, но и
-    не молчим."""
+def _check_deal_total(invoice, expected, deal):
+    """Bruttomethode: брутто счёта обязано равняться итогу сделки. Расхождение значит,
+    что в строках нет части сделки (не округление): не прячем в цену, а громко пишем в
+    лог с id счёта и дельтой. Возвращает тот же счёт."""
     from decimal import Decimal
 
-    if Decimal(gross) != Decimal(expected).quantize(Decimal("0.01")):
-        logger.warning(
-            "finance: invoice %s differs from deal %s total %s",
-            gross,
+    expected = Decimal(expected).quantize(Decimal("0.01"))
+    delta = Decimal(invoice.gross) - expected
+    if delta:
+        logger.error(
+            "finance: invoice %s (%s) differs from deal %s total %s by %s",
+            invoice.pk,
+            invoice.gross,
             getattr(deal, "reference_code", "?"),
             expected,
+            delta,
         )
+    return invoice
 
 
 def _with_note(head: str, extra: str) -> str:
@@ -975,9 +990,12 @@ def invoice_from_order(order, tenant=None):
         by_rate[rate] = by_rate.get(rate, Decimal("0")) + item.line_total
     top = totals["rows"][0]["rate"] if totals["rows"] else Decimal("0")
     if order.is_delivery and order.shipping_cents:
+        # Доставка — по максимальной ставке ТОВАРОВ (как `order_totals`), а не по
+        # верхней строке после скидки: бесплатный 19 %-товар не уводит её в 7 %.
+        ship_rate = Decimal("0") if small else (max(by_rate) if by_rate else top)
         ship = Decimal(order.shipping_cents) / 100
-        lines.append(gross_line(_("Lieferung"), 1, ship, top))
-        by_rate[top] = by_rate.get(top, Decimal("0")) + ship
+        lines.append(gross_line(_("Lieferung"), 1, ship, ship_rate))
+        by_rate[ship_rate] = by_rate.get(ship_rate, Decimal("0")) + ship
     cert = certificate_cents(order)  # E1.8: сертификат — оплата, не Rabatt
     rabatt = Decimal((order.discount_cents or 0) - cert) / 100
     if rabatt:
@@ -1001,8 +1019,8 @@ def invoice_from_order(order, tenant=None):
     rate = top if totals["rows"] else Decimal("19.00")
     net, vat, gross = compute_totals(lines, rate, small_business=small, basis="gross")
     # KA-MC X5: счёт = заказ; E1.8: + сертификат (он оплата, а не уменьшение цены).
-    _check_deal_total(gross, Decimal(str(order.total)) + Decimal(cert) / 100, order)
-    return Invoice.objects.create(
+    expected = Decimal(str(order.total)) + Decimal(cert) / 100
+    invoice = Invoice.objects.create(
         price_basis="gross",
         customer=order.customer,
         recipient=recipient_for(order),
@@ -1021,6 +1039,7 @@ def invoice_from_order(order, tenant=None):
         ),
         prepaid_cents=_prepaid_from_payment_state(order),  # оплаченный заказ — не «offen»
     )
+    return _check_deal_total(invoice, expected, order)
 
 
 def issue_invoice_for_deal(kind, obj, tenant, *, send_email=True):

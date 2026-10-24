@@ -283,8 +283,10 @@ def deduction_rows(adv) -> list[tuple]:
     if drift:
         # Та же арифметика, что у документа, — расхождения быть не должно; если есть,
         # итог вычета держим равным брутто предоплаты, но это видно в логах.
-        logger.warning("advance %s: deduction drift %s", adv.pk, drift)
-        rows[-1][2] += drift
+        # Строка остаётся согласованной (нетто + налог = брутто): поправка — в нетто,
+        # налог по ставке не трогаем (он и есть то, что уходит в UStVA).
+        logger.error("advance %s: deduction drift %s", adv.pk, drift)
+        rows[-1][1] += drift
         rows[-1][3] += drift
     return [tuple(r) for r in rows]
 

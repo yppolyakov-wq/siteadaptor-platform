@@ -12,6 +12,7 @@ I18N-7b (2026-07-31): документ печатается на языке, а�
 """
 
 import io
+import logging
 from decimal import Decimal
 
 from django.utils.translation import gettext as _
@@ -20,6 +21,8 @@ from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
 from apps.core.documents import doc_date, fonts, money
+
+logger = logging.getLogger(__name__)
 
 _INK = (0.10, 0.10, 0.12)
 _MUTED = (0.42, 0.42, 0.48)
@@ -47,7 +50,9 @@ def _rate_rows(invoice):
                 lines, invoice.vat_rate, basis=getattr(invoice, "price_basis", "net")
             )
         ]
-    except Exception:  # noqa: BLE001 — кривой снимок не должен ронять счёт
+    except (KeyError, TypeError, AttributeError, ArithmeticError, ValueError):
+        # Кривой снимок не роняет счёт, но и не молчит: разбивка по ставкам — § 14 UStG.
+        logger.warning("invoice %s: unreadable lines, VAT breakdown from totals", invoice.pk)
         return fallback
     if not rows:
         return fallback
@@ -59,6 +64,12 @@ def _rate_rows(invoice):
     if diff_net or diff_vat:
         tolerance = cent * len(lines)
         if abs(diff_net) > tolerance or abs(diff_vat) > tolerance:
+            logger.warning(
+                "invoice %s: rate rows differ from totals (net %s, vat %s), one row",
+                invoice.pk,
+                diff_net,
+                diff_vat,
+            )
             return fallback
         rate, net, vat = rows[0]
         rows[0] = (rate, net + diff_net, vat + diff_vat)

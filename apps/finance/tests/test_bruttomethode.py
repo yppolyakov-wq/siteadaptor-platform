@@ -90,3 +90,60 @@ def test_pdf_rate_rows_of_gross_invoice_match_document():
     assert rows == [(Decimal("19.00"), inv.net, inv.vat_amount)] or (
         sum(r[1] for r in rows) == inv.net and sum(r[2] for r in rows) == inv.vat_amount
     )
+
+
+@pytest.mark.parametrize("bad", ["abc", "NaN", "Infinity"])
+def test_garbage_amount_raises_not_zero(bad):
+    from decimal import InvalidOperation
+
+    with pytest.raises(InvalidOperation):
+        rate_groups([gross_line("x", 1, "1.00", 19) | {"unit_gross": bad}], 19, basis="gross")
+
+
+def test_gross_line_without_unit_gross_raises():
+    with pytest.raises(ValueError):
+        rate_groups(
+            [{"text": "x", "qty": 1, "unit_price": "1.00", "vat_rate": "19"}], 19, basis="gross"
+        )
+
+
+def test_pdf_fallback_is_logged(caplog):
+    from apps.finance.models import Invoice
+    from apps.finance.pdf import _rate_rows
+
+    inv = Invoice(
+        price_basis="gross",
+        lines=[{"text": "x", "qty": 1, "unit_price": "1", "vat_rate": "19"}],
+        vat_rate=Decimal("19"),
+        net=Decimal("1"),
+        vat_amount=Decimal("0.19"),
+        gross=Decimal("1.19"),
+    )
+    assert len(_rate_rows(inv)) == 1 and "unreadable lines" in caplog.text
+
+
+def test_order_invoice_mixed_rates_shipping_discount_exact():
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.finance.services import invoice_from_order
+    from apps.orders import services as order_services
+    from apps.orders.models import Order
+
+    food = ProductFactory(base_price=Decimal("10.70"), stock_quantity=9, vat_rate=Decimal("7"))
+    drink = ProductFactory(base_price=Decimal("11.90"), stock_quantity=9, vat_rate=Decimal("19"))
+    order = order_services.create_order(items=[(food, 3), (drink, 1)], name="M", email="m@t.de")
+    Order.objects.filter(pk=order.pk).update(
+        discount_cents=333, shipping_cents=495, fulfillment=Order.FULFILLMENT_DELIVERY
+    )
+    order.refresh_from_db()
+    inv = invoice_from_order(order)
+    # 3 × 10,70 + 11,90 − 3,33 + 4,95 (update() не пересчитывает сохранённый total)
+    assert inv.gross == Decimal("45.62")
+    from apps.orders.totals import order_totals
+
+    rows = {r["rate"]: r for r in order_totals(order)["rows"]}
+    from apps.finance.totals import rate_groups as groups
+
+    for rate, net, vat, gross in groups(inv.lines, inv.vat_rate, basis="gross"):
+        assert (net, vat, gross) == (rows[rate]["net"], rows[rate]["vat"], rows[rate]["gross"])
+    rates = {Decimal(ln["vat_rate"]) for ln in inv.lines if "Lieferung" in ln["text"]}
+    assert rates == {Decimal("19")}
