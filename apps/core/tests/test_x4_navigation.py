@@ -165,8 +165,9 @@ def test_former_orphans_are_reachable_from_palette():
 def test_palette_only_entries_stay_out_of_tab_bars():
     """Сироты попали в палитру, но таб-бары остались компактными."""
     tabs = {u for hub in nav_registry.legacy_hub_tabs().values() for (u, *_r) in hub}
-    # KA-12 E8.2: Channel Manager — подпункт Einstellungen, уже не сирота.
-    for name in ("crm:company-list", "billing-payments", "finance:invoices"):
+    # KA-12 E8.2/E8.3: Channel Manager — подпункт Einstellungen, счета — раздел
+    # «Finanzen»; оба уже не сироты.
+    for name in ("crm:company-list", "billing-payments"):
         assert name not in tabs, name
 
 

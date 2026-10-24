@@ -75,8 +75,13 @@ def test_submenu_starts_with_section_overview():
     """Клик по разделу раскрывает меню, а не уводит на страницу — обзорная
     страница раздела обязана остаться достижимой ПЕРВЫМ подпунктом."""
     menu = modules.sidebar_nav(_tenant())
+    anchors = {a.nav_key: a for a in nav_registry.ANCHORS}
     for it in menu:
         if not it["children"]:
+            continue
+        if anchors[it["nav_key"]].targets:
+            # KA-12 E8.3: раздел с целями ведёт на свой подпункт — он уже в меню.
+            assert it["url_name"] in [c["url_name"] for c in it["children"]], it["nav_key"]
             continue
         first = it["children"][0]
         assert first["url_name"] == it["url_name"] and not first.get("query"), it["nav_key"]
@@ -92,8 +97,10 @@ def test_submenu_has_no_duplicate_entries():
 def test_moved_pages_anchor_mapping():
     """SM-4: подсветка якоря следует за переездами — отчёты под Verkäufe,
     site-страницы под Website; Abläufe остаётся в настройках."""
-    assert nav_registry.anchor_for("finance") == "board"
-    assert nav_registry.anchor_for("analytics") == "board"
+    # KA-12 E8.3 (осознанная переписка SM-4): отчёты — раздел «Finanzen»; без него
+    # подсветка уходит в Einstellungen (anchor_for_tenant, замок test_ka_w2_finance_anchor).
+    assert nav_registry.anchor_for("finance") == "finance"
+    assert nav_registry.anchor_for("analytics") == "finance"
     assert nav_registry.anchor_for("seo") == "site"
     assert nav_registry.anchor_for("domains") == "site"
     assert nav_registry.anchor_for("media") == "site"

@@ -53,6 +53,8 @@ def test_sidebar_nav_composition_and_urls():
         "sellable-manage",
         "marketing-home",
         "site-home",
+        # KA-12 E8.3: «Finanzen» — у тенанта без disabled_modules активны все модули
+        "finance:journal",
         "einstellungen-home",
     ]
     for it in modules.sidebar_nav(t):
@@ -185,10 +187,18 @@ def test_sidebar_children_composition():
         ("orders:kitchen", ""),  # гастро-тип: гейт business_types пропускает
         # R7-3: доставка и оплаты — свои страницы (были фильтром/столбцом)
         ("orders:deliveries", ""),
-        ("payments-page", ""),
-        ("promotions:analytics", ""),
-        ("finance:journal", ""),
-        ("stays:reports", ""),
+        # KA-12 E8.3: оплаты и отчёты переехали в раздел «Finanzen» (замок ниже).
+    ]
+    assert [c["url_name"] for c in by_anchor["finance:journal"]] == [
+        "payments-page",
+        "promotions:analytics",
+        "stays:reports",
+        "finance:journal",
+        "finance:invoices",
+        "finance:expenses",
+        "finance:ergebnis",
+        "finance:offene",
+        "finance:bank",
     ]
     site = [c["url_name"] for c in by_anchor["site-home"]]
     # DL-7b (осознанное дополнение): «Design» — переключатель шаблонов вне Studio.
@@ -213,22 +223,23 @@ def test_sidebar_children_composition():
     # хаб-плиткой главной, которую X2a удалил как дубль сайдбара).
     # R7-1: подменю несёт ВЕСЬ состав настроек — прежде main-часть жила
     # таб-баром на странице (дубль меню, фидбэк владельца 2026-08-24).
+    # KA-12 E8.4: подменю идёт группами (Geschäft · Verkauf · Termine · Zimmer ·
+    # Kanäle · System) — порядок задаёт SUBMENU_GROUPS, внутри группы — реестр.
     assert sett == [
         "einstellungen-home",  # SR-5: обзор раздела первым (авто-вставка якоря)
         "settings",
         "languages",
         "legal-docs",
-        "payment-settings",
-        "notifications-settings",
-        "ablaeufe",
-        "integrations-home",
-        "billing",
         "team",
+        "payment-settings",
+        "ablaeufe",
         "extras",
-        # KA-12 E8.2: настройки записи и Channel Manager — из «Verkäufe».
         "booking:resources",
         "booking:availability",
         "stays:channels",
+        "notifications-settings",
+        "integrations-home",
+        "billing",
         "modules",
         "finder-settings",
         "support:help",

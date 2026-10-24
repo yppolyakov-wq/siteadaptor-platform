@@ -156,4 +156,13 @@ def test_both_pages_are_in_registry_and_menu():
     t = _tenant()
     sales = next(it for it in modules.sidebar_nav(t) if it["nav_key"] == "board")
     kids = {c["url_name"] for c in sales["children"]}
-    assert {"orders:deliveries", "payments-page"} <= kids
+    assert "orders:deliveries" in kids
+    # KA-12 E8.3 (осознанная переписка R7-3): оплаты — раздел «Finanzen», а без
+    # finance/analytics — группа «Zahlen & Finanzen» в Einstellungen.
+    owner = (
+        "finance"
+        if any(it["nav_key"] == "finance" for it in modules.sidebar_nav(t))
+        else "settings"
+    )
+    box = next(it for it in modules.sidebar_nav(t) if it["nav_key"] == owner)
+    assert "payments-page" in {c["url_name"] for c in box["children"]}

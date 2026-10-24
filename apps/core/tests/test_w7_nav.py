@@ -43,9 +43,10 @@ def test_finance_analytics_billing_have_registry_entries():
     """W7b: у Finanzen/Auswertungen/Abrechnung есть вход в реестре. SM-4
     (осознанная переписка): отчёты переехали в board-хаб — подпункты раздела
     «Verkäufe» в сайдбаре; billing остался вкладкой Einstellungen."""
-    board_urls = [t[0] for t in HUB_TABS["board"]]
-    assert "finance:journal" in board_urls
-    assert "promotions:analytics" in board_urls
+    # KA-12 E8.3 (осознанная переписка SM-4): отчёты — хаб «finance».
+    fin_urls = [t[0] for t in HUB_TABS["finance"]]
+    assert "finance:journal" in fin_urls
+    assert "promotions:analytics" in fin_urls
     assert "billing" in [t[0] for t in HUB_TABS["settings"]]
 
 
