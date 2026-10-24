@@ -98,6 +98,13 @@ def _create_opening(kind: str, locked, *, new_intent: str) -> None:
     )
 
 
+def card_refunded_cents(kind: str, obj) -> int:
+    """Сколько уже вернула карта (строки Stripe в фолио); 0 у легаси-сделки."""
+    return sum(
+        r.refunded_cents for r in rows(kind, obj) if r.method == "stripe" or r.stripe_payment_intent
+    )
+
+
 def mark_refunded(kind: str, obj, *, intent: str) -> None:
     """Полный возврат картой: строки этого платежа Stripe — возвращены целиком.
     Наличные/перевод (другие строки) карта не возвращает — их видно как «остаток»."""
@@ -105,9 +112,12 @@ def mark_refunded(kind: str, obj, *, intent: str) -> None:
 
     from apps.core.models import DealPayment
 
-    DealPayment.objects.filter(deal_kind=kind, deal_id=obj.pk).filter(
-        Q(method="stripe") | Q(stripe_payment_intent=intent) if intent else Q(method="stripe")
-    ).update(refunded_cents=F("amount_cents"))
+    deal_rows = DealPayment.objects.filter(deal_kind=kind, deal_id=obj.pk)
+    target = deal_rows.filter(stripe_payment_intent=intent) if intent else deal_rows.none()
+    if not target.exists():
+        # Легаси-строка opening без intent, но оплаченная картой.
+        target = deal_rows.filter(Q(method="stripe") & Q(stripe_payment_intent=""))
+    target.update(refunded_cents=F("amount_cents"))
     forget(obj)
 
 
@@ -168,6 +178,24 @@ def record(
         has_rows = DealPayment.objects.filter(deal_kind=kind, deal_id=locked.pk).exists()
         if not has_rows:
             _create_opening(kind, locked, new_intent=intent)
+        if not intent:
+            # Платёж без intent (касса/банк/исполнение) — не больше реального остатка
+            # по свежей книге под блокировкой: двойной клик «bezahlt» не задваивает.
+            from django.db.models import Sum
+
+            from apps.core import money_contract
+
+            total = int((money_contract._total(kind, locked) * 100).to_integral_value())
+            booked = (
+                DealPayment.objects.filter(deal_kind=kind, deal_id=locked.pk).aggregate(
+                    net=Sum("amount_cents") - Sum("refunded_cents")
+                )["net"]
+                or 0
+            )
+            amount_cents = min(amount_cents, total - booked)
+            if amount_cents <= 0:
+                forget(obj)
+                return None
         try:
             with transaction.atomic():
                 row = DealPayment.objects.create(

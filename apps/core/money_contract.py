@@ -146,9 +146,12 @@ def _paid(kind, obj, total, online) -> Decimal:
 
 def _refunded(kind, obj, paid) -> Decimal:
     folio_sums = _folio_totals(kind, obj)
-    if folio_sums is not None:
+    refunded_state = getattr(obj, "payment_state", "") == "refunded"
+    if folio_sums is not None and (folio_sums[1] > 0 or not refunded_state):
         return min(folio_sums[1], paid)
-    return paid if getattr(obj, "payment_state", "") == "refunded" else ZERO
+    # «Возвращено», а книга возврата не знает (рассрочка по долям, сбой между
+    # захватом и отметкой) — прежнее правило: возвращено всё полученное.
+    return paid if refunded_state else ZERO
 
 
 def _legacy_paid(kind, obj, total, online) -> Decimal:
@@ -472,7 +475,12 @@ def retain_on_cancel(kind: str, obj, tenant=None) -> None:
         # осталось у бизнеса, модель не знает (MC-E8); выручку не угадываем.
         return
     ms = money_state(kind, obj)
-    kept = min(ms.paid - ms.refunded, ms.online_paid) - ms.posted
+    # Удержано картой = онлайн-платёж минус то, что карта уже вернула (фолио).
+    # Наличные/перевод сюда не идут: их владелец возвращает сам (ревью B2-3).
+    from apps.core import folio
+
+    card_back = _eur(folio.card_refunded_cents(kind, obj))
+    kept = min(ms.paid - ms.refunded, ms.online_paid - card_back) - ms.posted
     if kept <= ZERO:
         return
     record_revenue(

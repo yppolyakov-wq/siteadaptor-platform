@@ -66,8 +66,12 @@ def mark_deposit_paid(*, tenant_schema: str, booking_id: str, payment_intent: st
             fields.append("payment_due_at")
         if fields:
             fields.append("updated_at")
-            if "payment_state" in fields:
-                # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси).
+            if (
+                "payment_state" in fields or "stripe_payment_intent" in fields
+            ) and booking.payment_state != "refunded":
+                # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси);
+                # новый intent пишется и у уже «оплаченной» сделки (поздний вебхук
+                # после кассы) — иначе онлайн-деньги выпали бы из книги.
                 from apps.core import folio
 
                 folio.record_online("booking", booking, intent=payment_intent)

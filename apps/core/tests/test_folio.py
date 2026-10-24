@@ -167,3 +167,72 @@ def test_full_card_refund_marks_card_rows_refunded(monkeypatch):
     cash = DealPayment.objects.exclude(method="stripe").get()
     assert card.refunded_cents == card.amount_cents == 3000
     assert cash.refunded_cents == 0  # наличные карта не вернула
+
+
+# --- ревью django-reviewer B2-3 ----------------------------------------------------------
+
+
+def test_card_refund_of_mixed_deal_retains_nothing(monkeypatch):
+    """Депозит картой + остаток наличными, отмена с возвратом карты: «Einbehalten»
+    не появляется — карта вернула всё, что получила."""
+    from apps.core import refunds
+    from apps.finance.models import RevenueEntry
+    from apps.stays.models import StayBooking
+    from apps.stays.payments import mark_stay_paid
+    from apps.tenants.tests.factories import TenantFactory
+
+    monkeypatch.setattr("apps.billing.connect.refund", lambda **kw: None)
+    stay = _stay(deposit=3000)
+    mark_stay_paid(
+        tenant_schema=connection.schema_name, booking_id=str(stay.pk), payment_intent="pi_m"
+    )
+    money_contract.settle_payment("stay", stay, source="manual")
+    stay.refresh_from_db()
+    StayBooking.objects.filter(pk=stay.pk).update(status="cancelled")
+    stay.refresh_from_db()
+    tenant = TenantFactory.build(stripe_connect_id="acct_1", owner_email="o@t.de")
+    refunds.refund_on_cancel("stay", stay, "cancelled", "confirmed", tenant)
+    assert not RevenueEntry.objects.filter(source_ref=f"{stay.id}:retained").exists()
+
+
+def test_double_manual_payment_does_not_overbook():
+    stay = _stay()
+    folio.record("stay", stay, amount_cents=stay.total_cents, purpose="balance")
+    assert folio.record("stay", stay, amount_cents=stay.total_cents, purpose="balance") is None
+    assert DealPayment.objects.filter(deal_id=stay.pk).count() == 1
+
+
+def test_late_webhook_after_desk_payment_is_booked():
+    """Касса отметила «оплачено», потом пришёл Stripe — онлайн-деньги в книге."""
+    from apps.stays.payments import mark_stay_paid
+
+    stay = _stay(state="paid")
+    mark_stay_paid(
+        tenant_schema=connection.schema_name, booking_id=str(stay.pk), payment_intent="pi_late"
+    )
+    assert DealPayment.objects.filter(stripe_payment_intent="pi_late").exists()
+
+
+def test_refunded_state_without_refund_rows_reads_as_refunded():
+    """Сбой между захватом и отметкой: состояние «возвращено» — книга не спорит."""
+    stay = _stay()
+    folio.record("stay", stay, amount_cents=stay.total_cents, purpose="full", intent="pi_c")
+    type(stay).objects.filter(pk=stay.pk).update(payment_state="refunded")
+    stay.refresh_from_db()
+    folio.forget(stay)
+    ms = money_contract.money_state("stay", stay)
+    assert ms.refunded == ms.paid > 0
+
+
+def test_order_webhook_does_not_revive_refunded_order():
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.orders.payments import mark_order_paid
+    from apps.orders.services import create_order
+
+    order = create_order(items=[(ProductFactory(base_price=Decimal("8.00")), 1)], name="M")
+    type(order).objects.filter(pk=order.pk).update(payment_state="refunded")
+    mark_order_paid(
+        tenant_schema=connection.schema_name, order_id=str(order.pk), payment_intent="pi_o"
+    )
+    order.refresh_from_db()
+    assert order.payment_state == "refunded"

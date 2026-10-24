@@ -57,7 +57,8 @@ def mark_order_paid(*, tenant_schema: str, order_id: str, payment_intent: str = 
         if order is None:
             return False
         fields = []
-        if order.payment_state != Order.PAYMENT_PAID:
+        # Ревью B2-3: refunded не воскрешаем повтором вебхука (как у броней).
+        if order.payment_state not in (Order.PAYMENT_PAID, Order.PAYMENT_REFUNDED):
             order.payment_state = Order.PAYMENT_PAID
             fields.append("payment_state")
         if payment_intent and order.stripe_payment_intent != payment_intent:
@@ -65,8 +66,12 @@ def mark_order_paid(*, tenant_schema: str, order_id: str, payment_intent: str = 
             fields.append("stripe_payment_intent")
         if fields:
             fields.append("updated_at")
-            if "payment_state" in fields:
-                # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси).
+            if (
+                "payment_state" in fields or "stripe_payment_intent" in fields
+            ) and order.payment_state != "refunded":
+                # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси);
+                # новый intent пишется и у уже «оплаченной» сделки (поздний вебхук
+                # после кассы) — иначе онлайн-деньги выпали бы из книги.
                 from apps.core import folio
 
                 folio.record_online("order", order, intent=payment_intent)
