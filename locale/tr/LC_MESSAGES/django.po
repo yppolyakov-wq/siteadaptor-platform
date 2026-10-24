@@ -29070,3 +29070,9 @@ msgstr "Randevunuz değiştirildi. Yeni randevu:"
 
 msgid "Passt Ihnen die neue Zeit nicht? Antworten Sie einfach auf diese E-Mail."
 msgstr "Yeni saat size uymuyor mu? Bu e-postayı yanıtlamanız yeterli."
+
+msgid "Betriebsferien bis %(d)s"
+msgstr "%(d)s tarihine kadar tatil"
+
+msgid "Das ganze Geschäft schließen darf nur der Inhaber. Wählen Sie eine Ressource."
+msgstr "Tüm işletmeyi yalnızca sahibi kapatabilir. Lütfen bir kaynak seçin."

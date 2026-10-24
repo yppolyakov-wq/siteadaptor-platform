@@ -165,10 +165,12 @@ def test_booking_detail_card_and_manage_url():
     assert resp.url.startswith("/dashboard/booking/")
 
 
-def test_availability_range_block_and_reopen():
+def test_availability_range_block_and_reopen(monkeypatch):
     """Фидбэк 2026-08-04: «зарезервировать даты решением владельца» — блок
     диапазона одной формой (идемпотентно), «wieder öffnen» снимает его."""
     from apps.booking.models import ClosedDate
+
+    monkeypatch.setattr(views, "_may_close_business", lambda request: True)  # владелец
 
     _resource()
     von = timezone.localdate() + timedelta(days=10)

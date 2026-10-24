@@ -221,6 +221,10 @@ class Tenant(TenantMixin):
         (TAX_REGIME_IST, _("Istversteuerung")),
     ]
     tax_regime = models.CharField(max_length=4, choices=TAX_REGIMES, default=TAX_REGIME_SOLL)
+    # KA-12 E4.1c: снимок Betriebsferien для портала/MCP/поиска «offen» — они читают
+    # Tenant в public и в схему бизнеса не ходят. [{"von","bis","reason"}], только
+    # текущие и будущие диапазоны; пишет только apps.core.closures.
+    closure_ranges = models.JSONField(default=list, blank=True)
     register_entry = models.CharField(max_length=120, blank=True)  # Handelsregister (легаси)
     legal_responsible = models.CharField(max_length=200, blank=True)  # Verantwortlich i.S.d.
     # KA-12 E7.1: структурные данные Impressum (§ 5 DDG) — правовая форма, представитель,
@@ -437,9 +441,17 @@ class Tenant(TenantMixin):
         from . import openinghours
 
         now = timezone.localtime()
-        if closures.is_closed(now.date(), self):
-            # KA-12 E4.1a: Betriebsferien — «Jetzt geöffnet» не врёт.
-            return {"open": False, "until": None, "next": None, "holiday": True}
+        rng = closures.closed_range_for(self, now.date())
+        if rng:
+            # KA-12 E4.1a/c: Betriebsferien — «Jetzt geöffnet» не врёт ни на витрине, ни на
+            # портале/в MCP (там — снимок closure_ranges).
+            return {
+                "open": False,
+                "until": None,
+                "next": None,
+                "holiday": True,
+                "holiday_until": rng["bis"],
+            }
         return openinghours.open_status(self.opening_hours_structured, now)
 
     def opening_hours_localized(self, locale: str | None = None) -> str:

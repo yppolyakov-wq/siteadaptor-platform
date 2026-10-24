@@ -17,6 +17,8 @@ OWNER_ONLY_PREFIXES = (
     "/dashboard/billing/",
     "/dashboard/recht/",
     "/dashboard/settings/team/",
+    # KA-12 E4.1a (решение владельца): закрыть весь бизнес на каникулы — только владелец.
+    "/dashboard/settings/betriebsferien/",
     "/dashboard/stadtportal/",
     # T-8.27: импорт с сайта — согласие правообладателя даёт только владелец.
     "/imports/website/",

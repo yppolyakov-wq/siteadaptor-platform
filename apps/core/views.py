@@ -6379,6 +6379,7 @@ def deal_refund(request, kind, pk):
 
 
 @login_required
+@owner_required  # решение владельца: закрыть бизнес — только владелец
 def betriebsferien_view(request):
     """KA-12 E4.1a: Betriebsferien — закрыть весь бизнес на дни одной формой.
 

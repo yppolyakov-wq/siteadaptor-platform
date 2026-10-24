@@ -563,6 +563,8 @@ def get_business(args: dict, ctx: Context) -> dict:
     status = tenant.open_status() or {}
     if isinstance(status, dict) and "open" in status:
         data["open_now"] = bool(status["open"])
+        if status.get("holiday_until"):
+            data["closed_until"] = status["holiday_until"].isoformat()  # Betriebsferien
     rating = BusinessRating.objects.filter(tenant_schema=tenant.schema_name).first()
     if rating and rating.review_count:
         data["rating"] = {"average": float(rating.avg_rating), "count": rating.review_count}

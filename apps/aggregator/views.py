@@ -251,14 +251,17 @@ def _open_now_schemas(schemas) -> set:
     """
     from django.utils import timezone
 
+    from apps.core import closures
     from apps.tenants import openinghours
 
     now = timezone.localtime()
     out = set()
     rows = Tenant.objects.filter(schema_name__in=set(schemas)).values_list(
-        "schema_name", "opening_hours_structured"
+        "schema_name", "opening_hours_structured", "closure_ranges"
     )
-    for schema, structured in rows:
+    for schema, structured, ranges in rows:
+        if closures.range_in_snapshot(ranges, now.date()):
+            continue  # KA-12 E4.1c: Betriebsferien — не «geöffnet»
         status = openinghours.open_status(structured, now)
         if status and status.get("open"):
             out.add(schema)
@@ -277,15 +280,22 @@ def _attach_open_status(cards):
         return cards
     from django.utils import timezone
 
+    from apps.core import closures
     from apps.tenants import openinghours
 
     now = timezone.localtime()
-    hours = dict(
-        Tenant.objects.filter(schema_name__in={c.tenant_schema for c in cards}).values_list(
-            "schema_name", "opening_hours_structured"
-        )
+    rows = Tenant.objects.filter(schema_name__in={c.tenant_schema for c in cards}).values_list(
+        "schema_name", "opening_hours_structured", "closure_ranges"
     )
+    hours = {schema: structured for schema, structured, _r in rows}
+    ranges = {schema: r for schema, _s, r in rows}
     for card in cards:
+        holiday = closures.range_in_snapshot(ranges.get(card.tenant_schema), now.date())
+        card.holiday_until = holiday["bis"] if holiday else None
+        if holiday:
+            # KA-12 E4.1c: Betriebsferien — «geschlossen bis …», а не «öffnet Mo 09:00».
+            card.has_hours, card.open_now, card.open_until, card.opens_next = True, False, "", ""
+            continue
         status = openinghours.open_status(hours.get(card.tenant_schema), now)
         card.has_hours = status is not None
         card.open_now = bool(status and status.get("open"))

@@ -28926,3 +28926,9 @@ msgstr "Your appointment has been moved. New appointment:"
 
 msgid "Passt Ihnen die neue Zeit nicht? Antworten Sie einfach auf diese E-Mail."
 msgstr "Does the new time not suit you? Just reply to this email."
+
+msgid "Betriebsferien bis %(d)s"
+msgstr "Closed for holidays until %(d)s"
+
+msgid "Das ganze Geschäft schließen darf nur der Inhaber. Wählen Sie eine Ressource."
+msgstr "Only the owner may close the whole business. Please choose a resource."

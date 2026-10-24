@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 HORIZON_DAYS = 60
 #: Максимальная длина диапазона одной формы.
 MAX_RANGE_DAYS = 366
+#: Сколько диапазонов держит снимок на Tenant (портал/MCP).
+SNAPSHOT_MAX_RANGES = 24
 
 
 def _own_schema(tenant=None) -> bool:
@@ -75,6 +77,35 @@ def _forget() -> None:
     holder = getattr(connection, "tenant", None)
     if holder is not None and hasattr(holder, "_closed_window"):
         del holder._closed_window
+
+
+def _snapshot_hit(tenant, day: date):
+    """Диапазон снимка `Tenant.closure_ranges`, покрывающий день, или None."""
+    return range_in_snapshot(getattr(tenant, "closure_ranges", None), day)
+
+
+def range_in_snapshot(ranges, day: date):
+    """То же по сырому списку снимка (массовое чтение портала без объектов Tenant)."""
+    for rng in ranges or ():
+        try:
+            von, bis = date.fromisoformat(rng["von"]), date.fromisoformat(rng["bis"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        if von <= day <= bis:
+            return {"von": von, "bis": bis, "reason": rng.get("reason", "")}
+    return None
+
+
+def closed_range_for(tenant, day: date):
+    """KA-12 E4.1c: закрыт ли бизнес в день — для читателя ИЗ ЛЮБОЙ схемы.
+
+    В своей схеме — таблица (истина), иначе (портал, MCP, поиск) — снимок на Tenant."""
+    if tenant is not None and _own_schema(tenant):
+        if not is_closed(day, tenant):
+            return None
+        rng = current_or_next(day, tenant)
+        return rng if rng and rng["now"] else {"von": day, "bis": day, "reason": ""}
+    return _snapshot_hit(tenant, day)
 
 
 def is_closed(day: date, tenant=None) -> bool:
@@ -141,9 +172,44 @@ def clear_range(von: date, bis: date, *, resource=None) -> int:
     return deleted
 
 
+def _ranges_from(days: dict) -> list:
+    out = []
+    for day in sorted(days):
+        if out and date.fromisoformat(out[-1]["bis"]) + timedelta(days=1) == day:
+            out[-1]["bis"] = day.isoformat()
+        else:
+            out.append({"von": day.isoformat(), "bis": day.isoformat(), "reason": days[day]})
+    return out[:SNAPSHOT_MAX_RANGES]
+
+
+def sync_snapshot() -> None:
+    """Переписать снимок Betriebsferien на Tenant текущей схемы (портал/MCP видят его)."""
+    from django.utils import timezone
+
+    schema = connection.schema_name
+    if not schema:
+        return
+    try:
+        from apps.booking.models import ClosedDate
+        from apps.tenants.models import Tenant
+
+        days = dict(
+            ClosedDate.objects.filter(
+                resource__isnull=True, date__gte=timezone.localdate()
+            ).values_list("date", "reason")
+        )
+        Tenant.objects.filter(schema_name=schema).update(closure_ranges=_ranges_from(days))
+        holder = getattr(connection, "tenant", None)
+        if holder is not None and hasattr(holder, "closure_ranges"):
+            holder.closure_ranges = _ranges_from(days)
+    except Exception:  # noqa: BLE001 — витрина важнее снимка; повторится при следующей правке
+        logger.exception("closures: snapshot sync failed")
+
+
 def _bump() -> None:
     """Баннер и слоты витрины — из кэша страниц; без сброса закрытие увидели бы поздно."""
     _forget()
+    sync_snapshot()
     try:
         from apps.core.pagecache import bump_storefront_cache
 

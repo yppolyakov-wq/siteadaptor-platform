@@ -544,7 +544,7 @@ def _staff_user():
     )
 
 
-def test_availability_calendar_shows_month_and_toggles_closed_day(settings):
+def test_availability_calendar_shows_month_and_toggles_closed_day(settings, monkeypatch):
     """HF-4 (#1): визуальный календарь доступности + закрытие продаж кликом.
 
     Движок (ClosedDate) был давно, но управлялся списком дат — владелец его не
@@ -553,6 +553,8 @@ def test_availability_calendar_shows_month_and_toggles_closed_day(settings):
     from apps.booking.models import ClosedDate
 
     settings.ROOT_URLCONF = "config.urls_tenant"
+    # Закрыть весь бизнес может только владелец (замок — test_closures_owner_portal).
+    monkeypatch.setattr(views, "_may_close_business", lambda request: True)
     day = _future_day()
     r = _resource(type="staff")
     _rule(r, day)

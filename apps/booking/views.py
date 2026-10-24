@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -461,7 +462,9 @@ def availability_calendar(request):
 
         von = _parse_day_or_none(request.POST.get("von"))
         bis = _parse_day_or_none(request.POST.get("bis"))
-        if not closures.valid_range(von, bis):
+        if chosen is None and not _may_close_business(request):
+            messages.error(request, CLOSE_BUSINESS_OWNER_ONLY)
+        elif not closures.valid_range(von, bis):
             messages.error(request, _("Invalid date."))
         else:
             # KA-12 E4.1a: общий хелпер с экраном Betriebsferien (и сброс кэша витрины).
@@ -477,19 +480,22 @@ def availability_calendar(request):
                 )
         return redirect(_calendar_url(first, chosen))
     if request.method == "POST":
+        from apps.core import closures
+
         day = _parse_day_or_none(request.POST.get("date"))
         if day is None:
             messages.error(request, _("Invalid date."))
+        elif chosen is None and not _may_close_business(request):
+            messages.error(request, CLOSE_BUSINESS_OWNER_ONLY)
+        elif ClosedDate.objects.filter(date=day, resource=chosen).exists():
+            # KA-12 E4.1c: через общий хелпер — сброс кэша витрины и снимок для портала.
+            closures.clear_range(day, day, resource=chosen)
+            messages.success(request, _("Day reopened."))
         else:
-            qs = ClosedDate.objects.filter(date=day, resource=chosen)
-            if qs.exists():
-                qs.delete()
-                messages.success(request, _("Day reopened."))
-            else:
-                ClosedDate.objects.create(
-                    date=day, resource=chosen, reason=request.POST.get("reason", "").strip()[:120]
-                )
-                messages.success(request, _("Sales closed for this day."))
+            closures.set_range(
+                day, day, reason=request.POST.get("reason", "").strip(), resource=chosen
+            )
+            messages.success(request, _("Sales closed for this day."))
         return redirect(_calendar_url(first, chosen))
 
     # Дни месяца: закрыт вручную / нет расписания на этот день недели / открыт.
@@ -561,6 +567,18 @@ OUTSIDE_HOURS_MSG = gettext_lazy(
 )
 
 
+#: KA-12 (решение владельца): закрыть ВЕСЬ бизнес — только владелец; ресурс — любой.
+CLOSE_BUSINESS_OWNER_ONLY = gettext_lazy(
+    "Das ganze Geschäft schließen darf nur der Inhaber. Wählen Sie eine Ressource."
+)
+
+
+def _may_close_business(request) -> bool:
+    from apps.core import roles
+
+    return roles.is_owner(request.user)
+
+
 def _business_hours_of(tenant) -> dict:
     from apps.tenants import openinghours
 
@@ -607,9 +625,12 @@ def resources(request):
             )
             created = 0
             with transaction.atomic():  # двойной клик не плодит дубли правил
-                resource = get_object_or_404(
-                    Resource.objects.select_for_update(), pk=request.POST.get("resource")
-                )
+                try:
+                    resource = get_object_or_404(
+                        Resource.objects.select_for_update(), pk=request.POST.get("resource")
+                    )
+                except (ValueError, ValidationError):  # кривой pk — 404, не 500
+                    raise Http404 from None
                 have = set(resource.rules.values_list("weekday", flat=True))
                 for wd, (o, c) in hours.items():
                     if int(wd) not in have:
@@ -624,14 +645,16 @@ def resources(request):
         elif action == "rule_delete":
             AvailabilityRule.objects.filter(pk=request.POST.get("rule")).delete()
         elif action == "closed":
-            try:
-                ClosedDate.objects.create(
-                    date=request.POST.get("date"),
-                    reason=request.POST.get("reason", "").strip()[:120],
-                )
-                messages.success(request, _("Closed date added."))
-            except Exception:  # noqa: BLE001 — кривой ввод даты
+            from apps.core import closures
+
+            day = _parse_day_or_none(request.POST.get("date"))
+            if not _may_close_business(request):
+                messages.error(request, CLOSE_BUSINESS_OWNER_ONLY)
+            elif day is None:
                 messages.error(request, _("Invalid date."))
+            else:
+                closures.set_range(day, day, reason=request.POST.get("reason", "").strip())
+                messages.success(request, _("Closed date added."))
         elif action == "toggle":
             resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
             resource.is_active = not resource.is_active

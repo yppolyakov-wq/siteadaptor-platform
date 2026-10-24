@@ -29018,3 +29018,9 @@ msgstr "Ihr Termin wurde verschoben. Neuer Termin:"
 
 msgid "Passt Ihnen die neue Zeit nicht? Antworten Sie einfach auf diese E-Mail."
 msgstr "Passt Ihnen die neue Zeit nicht? Antworten Sie einfach auf diese E-Mail."
+
+msgid "Betriebsferien bis %(d)s"
+msgstr "Betriebsferien bis %(d)s"
+
+msgid "Das ganze Geschäft schließen darf nur der Inhaber. Wählen Sie eine Ressource."
+msgstr "Das ganze Geschäft schließen darf nur der Inhaber. Wählen Sie eine Ressource."

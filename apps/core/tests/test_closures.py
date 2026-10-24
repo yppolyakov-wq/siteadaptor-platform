@@ -98,6 +98,9 @@ def test_screen_creates_and_reopens(client, settings):
 
     settings.ROOT_URLCONF = "config.urls_tenant"
     user = get_user_model().objects.create_user(username="bf-owner", password="pw12345678")
+    from apps.core.models import Membership
+
+    Membership.objects.create(user=user, role=Membership.ROLE_OWNER)  # только владелец
     today = timezone.localdate()
 
     def _post(data):

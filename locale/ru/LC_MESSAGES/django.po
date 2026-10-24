@@ -29191,3 +29191,9 @@ msgstr "Ваша запись перенесена. Новое время:"
 
 msgid "Passt Ihnen die neue Zeit nicht? Antworten Sie einfach auf diese E-Mail."
 msgstr "Новое время не подходит? Просто ответьте на это письмо."
+
+msgid "Betriebsferien bis %(d)s"
+msgstr "Каникулы до %(d)s"
+
+msgid "Das ganze Geschäft schließen darf nur der Inhaber. Wählen Sie eine Ressource."
+msgstr "Закрыть весь бизнес может только владелец. Выберите ресурс."
