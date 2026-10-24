@@ -701,3 +701,19 @@ def test_bar_colors_are_solid_compiled_classes():
     body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
     assert "bg-green-200 text-green-900" in body
     assert "bg-green-200/80" not in body
+
+
+def test_multiroom_booking_shows_n_bars():
+    """KA-12 E4.7b: бронь на 3 номера — 3 полосы (1 в комнате + 2 «Zimmer offen»)."""
+    from apps.stays.models import Room
+
+    unit = _unit(price_cents=10000, max_guests=4, quantity=3)
+    r1 = Room.objects.create(unit=unit, number="101")
+    Room.objects.create(unit=unit, number="102")
+    booking = _book(unit, 1, 3, rooms=3)
+    booking.room = r1
+    booking.save(update_fields=["room"])
+    rows = availability.room_lane_rows(unit, list(unit.rooms.all()), D0, 7, [booking], [])
+    segs = [c for r in rows for c in r["cells"] if c.get("kind") == "booking"]
+    assert len(segs) == 3
+    assert sum(1 for c in segs if c.get("open_room")) == 2

@@ -29007,3 +29007,12 @@ msgstr "bunun %(n)s gecesi harici (iCal/OTA)"
 
 msgid "nur eigene Buchungen"
 msgstr "yalnızca kendi rezervasyonlar"
+
+msgid "Zimmer offen"
+msgstr "oda atanmadı"
+
+msgid "zugewiesen: %(n)s"
+msgstr "atanan: %(n)s"
+
+msgid "noch keins zugewiesen"
+msgstr "henüz hiçbiri atanmadı"

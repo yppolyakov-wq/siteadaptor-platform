@@ -251,12 +251,21 @@ def room_lane_rows(unit, rooms, start_day, num_days, bookings, blocks):
                     "cells": cells,
                 }
             )
-    free_segs = [
-        s
-        for b in bookings
-        if b.unit_id == unit.id and b.room_id not in room_ids
-        if (s := _clipped_seg("booking", b, b.arrival, b.departure, start_day, window_end))
-    ]
+    # KA-12 E4.7b: бронь на N номеров занимает N полос — назначенная комната несёт
+    # одну, остальные N−1 (или все N без назначения) стоят в «ohne Zimmer» с
+    # пометкой «Zimmer offen» (назначение N комнат — в E4.10).
+    free_segs = []
+    for b in bookings:
+        if b.unit_id != unit.id:
+            continue
+        seg = _clipped_seg("booking", b, b.arrival, b.departure, start_day, window_end)
+        if seg is None:
+            continue
+        rooms_n = max(1, getattr(b, "rooms", 1) or 1)
+        assigned = b.room_id in room_ids
+        copies = rooms_n - 1 if assigned else rooms_n
+        for i in range(copies):
+            free_segs.append({**seg, "open_room": assigned or i > 0})
     free_segs += [
         s
         for blk in blocks

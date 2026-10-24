@@ -29112,3 +29112,12 @@ msgstr "з них зовнішні (iCal/OTA): %(n)s ночей"
 
 msgid "nur eigene Buchungen"
 msgstr "лише власні бронювання"
+
+msgid "Zimmer offen"
+msgstr "номер не призначено"
+
+msgid "zugewiesen: %(n)s"
+msgstr "призначено: %(n)s"
+
+msgid "noch keins zugewiesen"
+msgstr "ще жодного не призначено"

@@ -112,7 +112,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
             {% elif item.kind == "booking" %}
               <td colspan="{{ item.span }}" class="px-0.5 py-0.5">
                 {# PMS-аудит 2026-07-27: цвет/drag по роли статуса (кастом-статусы живут) #}
-                <div draggable="{% if item.obj.bar_draggable %}true{% else %}false{% endif %}"
+                <div draggable="{% if item.obj.bar_draggable and not item.open_room %}true{% else %}false{% endif %}"
                      data-bar-pk="{{ item.obj.pk }}" data-nights="{{ item.obj.nights }}"
                      data-arrival="{{ item.obj.arrival|date:'Y-m-d' }}"
                      data-action-url="{% url 'stays:stay-action' item.obj.pk %}"
@@ -122,7 +122,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
                      title="{{ item.obj.customer }} · {{ item.obj.arrival|date:'d.m.' }}–{{ item.obj.departure|date:'d.m.Y' }} · {{ item.obj.reference_code }}">
                   {% if item.clip_left %}<span aria-hidden="true">‹</span>{% endif %}
                   {# PMS-R2: назначенный номер видно прямо на плашке #}
-                  <a href="{% url 'stays:booking-detail' item.obj.pk %}" class="truncate hover:underline min-w-0" draggable="false">{% if item.obj.room %}🚪{{ item.obj.room.number }} · {% endif %}{{ item.obj.customer }} · {{ item.obj.reference_code }}</a>
+                  <a href="{% url 'stays:booking-detail' item.obj.pk %}" class="truncate hover:underline min-w-0" draggable="false">{% if item.open_room %}<span data-open-room>＋ {% trans "Zimmer offen" %} · </span>{% elif item.obj.room %}🚪{{ item.obj.room.number }} · {% endif %}{{ item.obj.customer }} · {{ item.obj.reference_code }}</a>
                   {% if item.clip_right %}<span class="ml-auto" aria-hidden="true">›</span>{% endif %}
                 </div>
               </td>

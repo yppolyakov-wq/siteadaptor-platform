@@ -29128,3 +29128,12 @@ msgstr "из них внешние (iCal/OTA): %(n)s ночей"
 
 msgid "nur eigene Buchungen"
 msgstr "только собственные брони"
+
+msgid "Zimmer offen"
+msgstr "номер не назначен"
+
+msgid "zugewiesen: %(n)s"
+msgstr "назначен: %(n)s"
+
+msgid "noch keins zugewiesen"
+msgstr "ещё ни один не назначен"

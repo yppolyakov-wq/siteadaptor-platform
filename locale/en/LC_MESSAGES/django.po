@@ -28863,3 +28863,12 @@ msgstr "of which external (iCal/OTA): %(n)s nights"
 
 msgid "nur eigene Buchungen"
 msgstr "own bookings only"
+
+msgid "Zimmer offen"
+msgstr "room not assigned"
+
+msgid "zugewiesen: %(n)s"
+msgstr "assigned: %(n)s"
+
+msgid "noch keins zugewiesen"
+msgstr "none assigned yet"
