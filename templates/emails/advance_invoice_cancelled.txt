@@ -1,0 +1,5 @@
+{% load i18n %}{% trans "Guten Tag," %}
+
+{% blocktrans with n=number s=storno %}die Anzahlungsrechnung {{ n }} ist storniert (Stornorechnung {{ s }} anbei). Bitte zahlen Sie diese Anzahlungsrechnung nicht mehr.{% endblocktrans %}
+
+{{ business_name }}

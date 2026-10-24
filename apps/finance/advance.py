@@ -165,7 +165,9 @@ def sync_advance_paid(kind: str, obj) -> None:
     try:
         _sync_advance_paid(kind, obj)
     except Exception:  # noqa: BLE001 — оплата важнее документа; виден в логах
-        logger.exception("advance invoice: sync paid failed for %s %s", kind, obj.pk)
+        logger.exception(
+            "advance invoice: sync paid failed for %s %s", kind, getattr(obj, "pk", None)
+        )
 
 
 def lock_deal(kind: str, deal_id: str):
@@ -345,4 +347,88 @@ def cancel_unpaid_for_deal(kind: str, obj) -> None:
             if adv.status == Invoice.STATUS_ISSUED and not deposit_received(kind, obj):
                 InvoiceSM().apply(adv, Invoice.STATUS_CANCELLED)
     except Exception:  # noqa: BLE001
-        logger.exception("advance invoice: cancel with deal failed for %s %s", kind, obj.pk)
+        logger.exception(
+            "advance invoice: cancel with deal failed for %s %s", kind, getattr(obj, "pk", None)
+        )
+
+
+def mail_storno(original, storno) -> None:
+    """B2-8d: письмо клиенту об отмене отправленной Anzahlungsrechnung (PDF сторно
+    вложением). После коммита; ошибки не откатывают отмену; одно письмо (дедуп)."""
+    if not enabled() or storno is None:
+        return
+    from django.db import connection, transaction
+
+    schema = connection.schema_name
+    storno_pk = storno.pk
+
+    def _run():
+        from django.template.loader import render_to_string
+        from django.utils import translation
+        from django.utils.translation import gettext as _
+        from django_tenants.utils import schema_context
+
+        from apps.notifications.services import email_locale, notify
+
+        from .auto_invoice import _real_tenant
+        from .models import Invoice
+        from .pdf import build_invoice_pdf
+
+        try:
+            tenant = _real_tenant(schema)
+            with schema_context(schema):
+                doc = Invoice.objects.filter(pk=storno_pk).select_related("cancels").first()
+                if doc is None or doc.cancels is None:
+                    return
+                email = _deal_email(doc.cancels)
+                if not email:
+                    return
+                ctx = {
+                    "number": doc.cancels.number_display,
+                    "storno": doc.number_display,
+                    "business_name": getattr(tenant, "name", "") or "",
+                }
+                with translation.override(email_locale()):
+                    subject = render_to_string(
+                        "emails/advance_invoice_cancelled_subject.txt", ctx
+                    ).strip()
+                    body = render_to_string("emails/advance_invoice_cancelled.txt", ctx)
+                    name = _("Stornorechnung")
+                attachments = []
+                try:
+                    attachments = [
+                        (
+                            f"{name}-{doc.number_display}.pdf",
+                            build_invoice_pdf(doc, tenant),
+                            "application/pdf",
+                        )
+                    ]
+                except Exception:  # noqa: BLE001 — письмо важнее вложения
+                    logger.warning("finance: storno %s pdf failed", doc.pk, exc_info=True)
+                notify(
+                    dedupe_key=f"{schema}:advance-storno:{doc.cancels.pk}",
+                    type="advance_invoice_cancelled",
+                    recipient=email,
+                    subject=subject,
+                    body=body,
+                    attachments=attachments,
+                )
+        except Exception:  # noqa: BLE001
+            logger.warning("finance: advance storno mail failed", exc_info=True)
+
+    transaction.on_commit(_run)
+
+
+def _deal_email(invoice) -> str:
+    """Адрес клиента сделки Anzahlungsrechnung (тот же, на который она ушла)."""
+    from apps.core import transactions
+
+    if invoice.deal_kind not in KINDS or not invoice.deal_id:
+        return ""
+    deal = (
+        transactions.model_for(invoice.deal_kind)
+        .objects.filter(reference_code=invoice.deal_id)
+        .select_related("customer")
+        .first()
+    )
+    return getattr(getattr(deal, "customer", None), "email", "") or ""

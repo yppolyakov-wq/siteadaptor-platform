@@ -1,0 +1,9 @@
+{% load i18n %}{% trans "Guten Tag," %}
+
+{% blocktrans with n=number %}anbei erhalten Sie die Anzahlungsrechnung {{ n }}.{% endblocktrans %}
+{% trans "Betrag" %}: {{ gross }} EUR
+{% if paid %}{% trans "Die Anzahlung ist bereits eingegangen — vielen Dank." %}
+{% else %}{% if due %}{% blocktrans with due=due|date:"d.m.Y" %}Zahlbar bis {{ due }}.{% endblocktrans %}
+{% endif %}{% if reference %}{% trans "Verwendungszweck" %}: {{ reference }}
+{% endif %}{% endif %}
+{{ business_name }}

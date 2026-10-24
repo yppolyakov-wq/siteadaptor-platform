@@ -67,4 +67,9 @@ class InvoiceSM(StateMachine):
             from .services import create_storno
 
             reverse_invoice_revenue(instance)
-            create_storno(instance)
+            storno = create_storno(instance)
+            if getattr(instance, "kind", "") == "advance" and instance.sent_at:
+                # B2-8d: клиент получил Anzahlungsrechnung — письмо «nicht mehr zahlen».
+                from .advance import mail_storno
+
+                mail_storno(instance, storno)

@@ -28986,3 +28986,18 @@ msgstr "%(date)s tarihli %(num)s ön ödeme faturası düşülerek"
 
 msgid "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs enthalten — bitte mit der Anzahlungsrechnung abgleichen."
 msgstr "Sipariş ön ödemeleri henüz tahsil ayına dahil değil — lütfen ön ödeme faturasıyla karşılaştırın."
+
+msgid "anbei erhalten Sie die Anzahlungsrechnung %(n)s."
+msgstr "ekte %(n)s numaralı avans faturasını bulabilirsiniz."
+
+msgid "Die Anzahlung ist bereits eingegangen — vielen Dank."
+msgstr "Avans ödemesi alınmıştır — teşekkür ederiz."
+
+msgid "Ihre Anzahlungsrechnung %(n)s"
+msgstr "Avans faturanız %(n)s"
+
+msgid "die Anzahlungsrechnung %(n)s ist storniert (Stornorechnung %(s)s anbei). Bitte zahlen Sie diese Anzahlungsrechnung nicht mehr."
+msgstr "%(n)s numaralı avans faturası iptal edilmiştir (%(s)s numaralı iptal faturası ektedir). Lütfen bu avans faturasını ödemeyin."
+
+msgid "Anzahlungsrechnung %(n)s storniert"
+msgstr "Avans faturası %(n)s iptal edildi"

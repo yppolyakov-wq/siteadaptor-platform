@@ -28842,3 +28842,18 @@ msgstr "Less advance invoice %(num)s of %(date)s"
 
 msgid "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs enthalten — bitte mit der Anzahlungsrechnung abgleichen."
 msgstr "Advance payments for jobs are not yet included in the month of receipt — please reconcile with the advance invoice."
+
+msgid "anbei erhalten Sie die Anzahlungsrechnung %(n)s."
+msgstr "please find attached advance payment invoice %(n)s."
+
+msgid "Die Anzahlung ist bereits eingegangen — vielen Dank."
+msgstr "The advance payment has already been received — thank you."
+
+msgid "Ihre Anzahlungsrechnung %(n)s"
+msgstr "Your advance payment invoice %(n)s"
+
+msgid "die Anzahlungsrechnung %(n)s ist storniert (Stornorechnung %(s)s anbei). Bitte zahlen Sie diese Anzahlungsrechnung nicht mehr."
+msgstr "advance payment invoice %(n)s has been cancelled (cancellation invoice %(s)s attached). Please do not pay this advance payment invoice."
+
+msgid "Anzahlungsrechnung %(n)s storniert"
+msgstr "Advance payment invoice %(n)s cancelled"

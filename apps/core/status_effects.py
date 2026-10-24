@@ -258,6 +258,9 @@ def apply_custom_effects(kind: str, instance, src_desc, dst_desc) -> None:
     # builtin=True отфильтрован раньше).
     if kind == "job" and dst_desc.role == "active" and dst_desc.blocks_capacity:
         commit_stock_for(kind, instance)
+        from apps.finance.auto_invoice import advance_on_confirmed
+
+        advance_on_confirmed(kind, instance)
     # CO-2d (ревью): зеркало встроенного «confirmed» — свой статус брони/записи,
     # «держащий» номер/слот, тоже выпускает счёт «Kauf auf Rechnung».
     if kind in ("stay", "booking") and dst_desc.role == "active" and dst_desc.blocks_capacity:

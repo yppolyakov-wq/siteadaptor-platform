@@ -1,0 +1,1 @@
+{% load i18n %}{% blocktrans with n=number %}Anzahlungsrechnung {{ n }} storniert{% endblocktrans %}

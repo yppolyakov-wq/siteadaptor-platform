@@ -28934,3 +28934,18 @@ msgstr "Abzüglich Anzahlungsrechnung %(num)s vom %(date)s"
 
 msgid "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs enthalten — bitte mit der Anzahlungsrechnung abgleichen."
 msgstr "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs enthalten — bitte mit der Anzahlungsrechnung abgleichen."
+
+msgid "anbei erhalten Sie die Anzahlungsrechnung %(n)s."
+msgstr "anbei erhalten Sie die Anzahlungsrechnung %(n)s."
+
+msgid "Die Anzahlung ist bereits eingegangen — vielen Dank."
+msgstr "Die Anzahlung ist bereits eingegangen — vielen Dank."
+
+msgid "Ihre Anzahlungsrechnung %(n)s"
+msgstr "Ihre Anzahlungsrechnung %(n)s"
+
+msgid "die Anzahlungsrechnung %(n)s ist storniert (Stornorechnung %(s)s anbei). Bitte zahlen Sie diese Anzahlungsrechnung nicht mehr."
+msgstr "die Anzahlungsrechnung %(n)s ist storniert (Stornorechnung %(s)s anbei). Bitte zahlen Sie diese Anzahlungsrechnung nicht mehr."
+
+msgid "Anzahlungsrechnung %(n)s storniert"
+msgstr "Anzahlungsrechnung %(n)s storniert"

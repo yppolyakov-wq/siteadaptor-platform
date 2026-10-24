@@ -47,6 +47,10 @@ class JobSM(StateMachine):
         # (кламп, идемпотентно); витрина не продаст заложенное под заявку.
         if t.dst == "accepted":
             services.commit_stock(instance)
+            # B2-8d: фирме с депозитом — Anzahlungsrechnung (после коммита, fail-soft).
+            from apps.finance.auto_invoice import advance_on_confirmed
+
+            advance_on_confirmed("job", instance)
         # VF-13: отмена/отклонение возвращает зарезервированное (release гардится
         # stock_committed — quoted→declined без резерва склад не двигает).
         if t.dst in ("cancelled", "declined"):

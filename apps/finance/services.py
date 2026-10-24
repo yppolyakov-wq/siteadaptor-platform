@@ -1149,7 +1149,16 @@ def _invoice_mail_allowed(email: str) -> bool:
         return True
 
 
-def _send_invoice_email(invoice, tenant, email, *, schema, notify):
+def _send_invoice_email(
+    invoice,
+    tenant,
+    email,
+    *,
+    schema,
+    notify,
+    template="invoice_issued",
+    dedupe_prefix="invoice-issued",
+):
     """Письмо клиенту со счётом (PDF вложением). Сбой PDF не отменяет письмо —
     в нём остаются номер, сумма и срок оплаты."""
     from django.template.loader import render_to_string
@@ -1165,16 +1174,17 @@ def _send_invoice_email(invoice, tenant, email, *, schema, notify):
         "due": invoice.due_date,
         "business_name": getattr(tenant, "name", "") or "",
         "reference": invoice.deal_id,
+        "paid": invoice.status == "paid",
     }
     with translation.override(email_locale()):
-        subject = render_to_string("emails/invoice_issued_subject.txt", ctx).strip()
-        body = render_to_string("emails/invoice_issued.txt", ctx)
+        subject = render_to_string(f"emails/{template}_subject.txt", ctx).strip()
+        body = render_to_string(f"emails/{template}.txt", ctx)
     attachments = []
     try:
         from .pdf import build_invoice_pdf
 
         # Имя файла — на языке письма (msgid тот же, что в шапке PDF).
-        doc_name = _("Invoice")
+        doc_name = _("Anzahlungsrechnung") if invoice.kind == "advance" else _("Invoice")
         attachments = [
             (
                 f"{doc_name}-{invoice.number_display}.pdf",
@@ -1183,10 +1193,11 @@ def _send_invoice_email(invoice, tenant, email, *, schema, notify):
             )
         ]
     except Exception:  # noqa: BLE001 — письмо важнее вложения
+        logger.warning("finance: invoice %s pdf for mail failed", invoice.pk, exc_info=True)
         attachments = []
     sent = notify(
-        dedupe_key=f"{schema}:invoice-issued:{invoice.pk}",
-        type="invoice_issued",
+        dedupe_key=f"{schema}:{dedupe_prefix}:{invoice.pk}",
+        type=template,
         recipient=email,
         subject=subject,
         body=body,

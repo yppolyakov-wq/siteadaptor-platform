@@ -29107,3 +29107,18 @@ msgstr "За вычетом счёта на предоплату %(num)s от %(
 
 msgid "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs enthalten — bitte mit der Anzahlungsrechnung abgleichen."
 msgstr "Предоплаты по заявкам пока не учтены в месяце поступления — сверьте со счётом на предоплату."
+
+msgid "anbei erhalten Sie die Anzahlungsrechnung %(n)s."
+msgstr "во вложении счёт на предоплату %(n)s."
+
+msgid "Die Anzahlung ist bereits eingegangen — vielen Dank."
+msgstr "Предоплата уже получена — спасибо."
+
+msgid "Ihre Anzahlungsrechnung %(n)s"
+msgstr "Ваш счёт на предоплату %(n)s"
+
+msgid "die Anzahlungsrechnung %(n)s ist storniert (Stornorechnung %(s)s anbei). Bitte zahlen Sie diese Anzahlungsrechnung nicht mehr."
+msgstr "счёт на предоплату %(n)s аннулирован (сторно-счёт %(s)s во вложении). Пожалуйста, не оплачивайте этот счёт на предоплату."
+
+msgid "Anzahlungsrechnung %(n)s storniert"
+msgstr "Счёт на предоплату %(n)s аннулирован"
