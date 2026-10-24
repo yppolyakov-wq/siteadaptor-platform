@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Channels" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-1">{% trans "Publishing channels" %}</h1>
+<h1 class="text-2xl font-bold mb-1">{% nav_title _("Publishing channels") %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "Active promotions are published to enabled channels automatically." %}</p>
 
 {% if not can_manage %}<p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mb-4 max-w-xl" data-channels-readonly>{% trans "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten." %}</p>{% endif %}

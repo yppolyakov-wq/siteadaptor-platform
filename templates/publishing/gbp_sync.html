@@ -1,9 +1,10 @@
 {% extends "tenant/_base_dashboard.html" %}
+{% load cabinet %}
 {% load i18n %}
 {% block dash_title %}{% trans "Google-Profil" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-1">{% trans "Google-Profil" %}</h1>
+<h1 class="text-2xl font-bold mb-1">{% nav_title _("Google-Profil") %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist." %}</p>
 
 <div class="space-y-4 max-w-2xl">

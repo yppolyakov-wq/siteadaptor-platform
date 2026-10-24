@@ -1,11 +1,12 @@
 {% extends "tenant/_base_dashboard.html" %}
+{% load cabinet %}
 {% load i18n %}
 {% block dash_title %}{% trans "Besuche aus dem Stadtportal" %}{% endblock %}
 {% block dash_content %}
 {% comment %}В5 V5-3: результаты каталога города. Действия, которые ещё не считаются,
 показываем «—» с подписью, а не нулём (ноль утверждал бы, что никто не смотрел).{% endcomment %}
 <div class="flex flex-wrap items-center gap-2 mb-4">
-  <h1 class="text-xl font-semibold">📍 {% trans "Besuche aus dem Stadtportal" %}</h1>
+  <h1 class="text-xl font-semibold">📍 {% nav_title _("Besuche aus dem Stadtportal") %}</h1>
   {% if stats.is_demo %}<span class="text-xs font-medium text-amber-900 bg-amber-50 rounded-full px-2.5 py-1" data-demo-plate>{% trans "Demo-Daten" %}</span>{% endif %}
 </div>
 {% if stats.is_demo %}<p class="text-xs text-gray-500 -mt-2 mb-4">{% trans "Dieses Geschäft ist ein Demo — die Zahlen stammen aus Testbesuchen." %}</p>{% endif %}

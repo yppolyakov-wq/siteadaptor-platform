@@ -7,7 +7,7 @@
 фото и имя КЛИКАБЕЛЬНЫ → форма категории, текстовых «Edit/Delete» в списке нет
 (Delete переехал в форму — прецедент SR-1). Подкатегории — чипами у родителя.{% endcomment %}
 <div class="flex items-center justify-between mb-4">
-  <h1 class="text-2xl font-bold">🗂 {% trans "Categories" %}</h1>
+  <h1 class="text-2xl font-bold">🗂 {% nav_title _("Categories") %}</h1>
   <a href="{% url 'catalog:category-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
     + {% trans "New category" %}
   </a>

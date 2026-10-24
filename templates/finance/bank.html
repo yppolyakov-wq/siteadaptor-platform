@@ -1,10 +1,11 @@
 {% extends "tenant/_base_dashboard.html" %}
+{% load cabinet %}
 {% load i18n %}
 {% block dash_title %}{% trans "Bankabgleich" %}{% endblock %}
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% trans "Bankabgleich" %}</h1>
+  <h1 class="text-2xl font-bold">{% nav_title _("Bankabgleich") %}</h1>
   <a href="{% url 'finance:offene' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Offene Posten" %} →</a>
 </div>
 {% include "finance/_finance_tabs.html" with fin_tab="bank" %}

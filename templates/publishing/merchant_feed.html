@@ -1,9 +1,10 @@
 {% extends "tenant/_base_dashboard.html" %}
+{% load cabinet %}
 {% load i18n %}
 {% block dash_title %}{% trans "Google Merchant Center" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-1">{% trans "Google Merchant Center" %}</h1>
+<h1 class="text-2xl font-bold mb-1">{% nav_title _("Google Merchant Center") %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab." %}</p>
 
 <div class="grid gap-4 xl:grid-cols-2 items-start">

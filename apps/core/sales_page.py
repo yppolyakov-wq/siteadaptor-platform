@@ -46,7 +46,7 @@ KIND_VIEWS = {
 
 VIEW_LABELS = {
     "kalender": _("Kalender"),
-    "board": _("Board"),
+    "board": _("Spalten"),
     "liste": _("Liste"),
 }
 VIEW_ICONS = {"kalender": "📅", "board": "🧮", "liste": "📃"}

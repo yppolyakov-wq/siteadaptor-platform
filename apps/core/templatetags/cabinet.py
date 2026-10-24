@@ -358,3 +358,33 @@ def money_input(value) -> str:
     from apps.core.form_fields import format_money
 
     return format_money(value)
+
+
+@register.simple_tag(takes_context=True)
+def nav_title(context, fallback=""):
+    """KA-12 E8.5: `{% nav_title <перевод fallback> %}` — заголовок страницы = подпись пункта
+    меню из реестра (одна строка на экран, правило глоссария). Порядок: запись с
+    совпавшим query → запись без query → якорь → fallback (уже переведён `_()`)."""
+    from django.http import QueryDict
+
+    request = context.get("request")
+    match = getattr(request, "resolver_match", None)
+    name = getattr(match, "view_name", "") or ""
+    if name:
+        get = getattr(request, "GET", {}) or {}
+        plain = None
+        for e in nav_registry.ENTRIES:
+            if e.url_name != name:
+                continue
+            if not e.query:
+                plain = plain or e
+                continue
+            want = QueryDict(e.query.lstrip("?"))
+            if all(get.get(k) == want.get(k) for k in want):
+                return str(e.label)
+        if plain is not None:
+            return str(plain.label)
+        for a in nav_registry.ANCHORS:
+            if a.url_name == name:
+                return str(a.label)
+    return str(fallback)

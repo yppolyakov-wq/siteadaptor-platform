@@ -146,8 +146,8 @@ def test_settings_submenu_lists_every_screen():
         "Mein Geschäft",
         "Sprachen",
         "Recht & Steuern",
-        "Zahlung & Lieferung",
-        "Benachrichtigungen & Kanäle",
+        "Zahlarten & Lieferung",
+        "Kanäle & Benachrichtigungen",
         "Abläufe",
         "Telegram-Bot",  # KA-12 E8.4: свой бот — канал (был в Marketing)
         "Abo & Rechnung",
@@ -172,7 +172,7 @@ def test_marketing_nav_collapsed_to_hub():
 
 def test_marketing_submenu_when_active_and_gated():
     kids = _menu()["promotions"]
-    for lbl in ("Aktionen", "Bewertungen", "Kampagnen", "Gutscheine", "Kontakte", "Nachrichten"):
+    for lbl in ("Aktionen", "Bewertungen", "Kampagnen", "Gutscheine", "Kunden", "Nachrichten"):
         assert lbl in kids, lbl
     # VF-20b (решение владельца 2026-08-25): Кампании стоят СРАЗУ за Акциями —
     # одна группа задач («предложить и разослать»), но экраны раздельные.

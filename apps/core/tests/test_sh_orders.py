@@ -119,14 +119,14 @@ def test_ablaeufe_links_to_payment_settings_for_orders():
     body = views.ablaeufe_view(
         _req("/dashboard/ablaeufe/", data={"kind": "order"})
     ).content.decode()
-    assert "Zahlung & Lieferung einstellen" in body
+    assert "Zahlarten & Lieferung einstellen" in body
     assert "/dashboard/settings/payments/" in body
     # У направления без оплаты заказов карточки нет (ссылка в сайдбаре не в счёт)
     hotel = _tenant("hotel")
     other = views.ablaeufe_view(
         _req("/dashboard/ablaeufe/", data={"kind": "stay"}, tenant=hotel)
     ).content.decode()
-    assert "Zahlung & Lieferung einstellen" not in other
+    assert "Zahlarten & Lieferung einstellen" not in other
 
 
 # --- п.17: свёрнутый сайдбар = полоса иконок ---------------------------------

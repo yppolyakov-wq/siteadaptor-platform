@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 {% comment %}SM-4: страница — подпункт «Website» в сайдбаре (settings-бар снят).{% endcomment %}
-<h1 class="text-2xl font-bold mb-1">{% trans "Media library" %}</h1>
+<h1 class="text-2xl font-bold mb-1">{% nav_title _("Media library") %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "All uploaded photos in one place — edit alt texts (SEO & accessibility), delete unused files." %}</p>
 
 {% if folders %}

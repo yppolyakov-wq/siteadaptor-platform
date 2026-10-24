@@ -6,7 +6,7 @@
 {% comment %}UB3-2: подборки (коллекции) услуг/номеров — на витрине это чипы-фасет
 листинга (?kollektion=). Создание/переименование/состав — простыми POST-формами.{% endcomment %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% trans "Collections" %}</h1>
+  <h1 class="text-2xl font-bold">{% nav_title _("Collections") %}</h1>
   <div class="flex gap-4">
     {% if has_booking %}<a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Services" %}</a>{% endif %}
     {% if has_stays %}<a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Units" %}</a>{% endif %}

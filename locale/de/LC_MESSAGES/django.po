@@ -28667,3 +28667,12 @@ msgstr "Marketing & Kunden"
 
 msgid "Reichweite"
 msgstr "Reichweite"
+
+msgid "Zahlarten & Lieferung"
+msgstr "Zahlarten & Lieferung"
+
+msgid "Zahlarten & Lieferung einstellen"
+msgstr "Zahlarten & Lieferung einstellen"
+
+msgid "Kanal-Manager"
+msgstr "Kanal-Manager"

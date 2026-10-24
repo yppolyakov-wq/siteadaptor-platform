@@ -1,4 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
+{% load cabinet %}
 {% load i18n %}
 {% block dash_title %}{% trans "Design" %}{% endblock %}
 
@@ -8,7 +9,7 @@ Startpaket'ов с живыми scaled-iframe превью (stateless-оверл
 Look'и; применение POST'ом — сохраняется сразу. Тонкая настройка — в Studio.{% endcomment %}
 <div class="max-w-5xl">
   <div class="flex items-center justify-between gap-3 mb-1 flex-wrap">
-    <h1 class="text-2xl font-bold">🎨 {% trans "Design" %}</h1>
+    <h1 class="text-2xl font-bold">🎨 {% nav_title _("Design") %}</h1>
     {% if back_url %}<a href="{{ back_url }}" class="text-sm text-indigo-600 hover:underline">← {% trans "Zurück ins Studio" %}</a>{% else %}<a href="{% url 'site-home' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Feinschliff im Studio" %} →</a>{% endif %}
   </div>
   <p class="text-sm text-gray-500 mb-4">{% trans "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um." %} {% trans "Your texts are kept — only empty fields are filled." %}</p>

@@ -1,10 +1,11 @@
 {% extends "tenant/_base_dashboard.html" %}
+{% load cabinet %}
 {% load i18n %}
 {% comment %}MT-1: список тур-продуктов кабинета.{% endcomment %}
 {% block dash_title %}{% trans "Tours" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-2">{% trans "Tours" %}</h1>
+<h1 class="text-2xl font-bold mb-2">{% nav_title _("Tours") %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "A tour holds the content and the route; each date is a departure (event) with its own prices and seats." %}</p>
 
 <form method="post" class="bg-white p-4 rounded-2xl shadow-sm mb-6 flex flex-wrap gap-3 items-end">

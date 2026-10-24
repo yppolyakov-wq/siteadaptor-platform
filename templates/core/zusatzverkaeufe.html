@@ -1,4 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
+{% load cabinet %}
 {% load i18n %}
 {% block dash_title %}{% trans "Zusatzverkäufe" %}{% endblock %}
 
@@ -7,7 +8,7 @@
 аренд байка на заезд». Опция остаётся видимой и в карточке своей сделки.{% endcomment %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
   <div>
-    <h1 class="text-2xl font-bold">{% trans "Zusatzverkäufe" %}</h1>
+    <h1 class="text-2xl font-bold">{% nav_title _("Zusatzverkäufe") %}</h1>
     <p class="text-sm text-gray-500">{% trans "Alle verkauften Zusatzleistungen nach Ausführungstag." %}</p>
   </div>
   <form method="get" class="flex flex-wrap items-center gap-2 text-sm">

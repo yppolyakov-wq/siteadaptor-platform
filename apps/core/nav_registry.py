@@ -244,7 +244,7 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e(
         "board",
         "orders:kitchen",
-        _("Kitchen Display"),
+        _("Küche"),
         "orders",
         "orders",
         True,
@@ -317,7 +317,7 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e(
         "marketing",
         "crm:customer-list",
-        _("Kontakte"),
+        _("Kunden"),
         "crm",
         "crm",
         search="kunden crm",
@@ -476,7 +476,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "posting",
         group="reichweite",
     ),
-    _e("marketing", "blog-list", _("Blog & News"), "blog", "blog", True, group="reichweite"),
+    _e("marketing", "blog-list", _("Blog"), "blog", "blog", True, group="reichweite"),
     _e(
         "marketing",
         "promotions:newsletter",
@@ -630,7 +630,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "finance",
         "payments-page",
         _("Zahlungen"),
-        "zahlungen",  # свой ключ: "payments" занят страницей «Zahlung & Lieferung»
+        "zahlungen",  # свой ключ: "payments" занят страницей «Zahlarten & Lieferung»
         None,  # деньги есть у любого продающего модуля; finance не требуется
         True,
         "zahlungen bezahlt offen stripe vorkasse geld",
@@ -750,7 +750,7 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e(
         "settings",
         "payment-settings",
-        _("Zahlung & Lieferung"),
+        _("Zahlarten & Lieferung"),
         "payments",
         search="stripe vorkasse lieferung zonen versand",
         group="verkauf",
@@ -758,7 +758,7 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e(
         "settings",
         "notifications-settings",
-        _("Benachrichtigungen & Kanäle"),
+        _("Kanäle & Benachrichtigungen"),
         "notifications",
         search="care e-mail telegram erinnerung",
         group="kanaele",
@@ -863,7 +863,7 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e(
         "settings",
         "stays:channels",
-        _("Channel Manager"),
+        _("Kanal-Manager"),
         "channel-manager",
         "stays",
         True,

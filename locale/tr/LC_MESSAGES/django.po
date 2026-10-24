@@ -28719,3 +28719,12 @@ msgstr "Pazarlama ve müşteriler"
 
 msgid "Reichweite"
 msgstr "Erişim"
+
+msgid "Zahlarten & Lieferung"
+msgstr "Ödeme yöntemleri ve teslimat"
+
+msgid "Zahlarten & Lieferung einstellen"
+msgstr "Ödeme yöntemlerini ve teslimatı ayarla"
+
+msgid "Kanal-Manager"
+msgstr "Kanal yöneticisi"

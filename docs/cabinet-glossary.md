@@ -31,7 +31,24 @@
 | **Einkauf** | ЗАКУПКА у поставщика (`inventory.Bestellung`) | продажа |
 | **Leistung** | услуга по времени (`booking.Service`) | работа по заявке |
 | **Abläufe** | статусы, правила переходов, колонки доски | «процессы» вообще |
-| **Kanäle** | каналы публикации (GBP/FB/IG) | каналы уведомлений; OTA-каналы («Channel Manager») |
+| **Kanäle** | каналы публикации (GBP/FB/IG) | каналы уведомлений; OTA-каналы («Kanal-Manager») |
+
+## Подпись = заголовок (KA-12 E8.5, 2026-10-24)
+
+Правило: **подпись пункта меню = `<h1>` страницы = строка глоссария**. Заголовок пишется
+тегом `{% nav_title _("…") %}` — он берёт подпись записи `nav_registry` (литерал — только
+фолбэк для тестов без маршрута). Замок `apps/core/tests/test_menu_label_equals_h1.py`
+(DE + RU, исключения — `EXEMPT` с причиной).
+
+| Было | Стало |
+|---|---|
+| Kitchen Display | **Küche** |
+| Blog & News | **Blog** |
+| Channel Manager | **Kanal-Manager** |
+| Zahlung & Lieferung | **Zahlarten & Lieferung** |
+| Benachrichtigungen & Kanäle | **Kanäle & Benachrichtigungen** |
+| Kontakte | **Kunden** |
+| Board (вид продаж) | **Spalten** |
 
 ## Витрина ≠ кабинет
 

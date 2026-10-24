@@ -1,10 +1,11 @@
 {% extends "tenant/_base_dashboard.html" %}
+{% load cabinet %}
 {% load i18n %}
 {% block dash_title %}{% trans "Online check-ins" %}{% endblock %}
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% trans "Online check-ins (Meldescheine)" %}</h1>
+  <h1 class="text-2xl font-bold">{% nav_title _("Online check-ins (Meldescheine)") %}</h1>
   <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
 </div>
 <p class="text-sm text-gray-500 mb-4">{% trans "Digital registration forms completed by guests. Kept for one year after departure, then deleted automatically (DSGVO)." %}</p>

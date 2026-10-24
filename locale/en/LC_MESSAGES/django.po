@@ -28575,3 +28575,12 @@ msgstr "Marketing & customers"
 
 msgid "Reichweite"
 msgstr "Reach"
+
+msgid "Zahlarten & Lieferung"
+msgstr "Payment methods & delivery"
+
+msgid "Zahlarten & Lieferung einstellen"
+msgstr "Set up payment methods & delivery"
+
+msgid "Kanal-Manager"
+msgstr "Channel manager"

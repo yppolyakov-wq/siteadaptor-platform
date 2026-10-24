@@ -1,10 +1,11 @@
 {% extends "tenant/_base_dashboard.html" %}
+{% load cabinet %}
 {% load i18n %}
 {% block dash_title %}{% trans "Von der Website importieren" %}{% endblock %}
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-6">
-  <h1 class="text-xl font-semibold">{% trans "Von der Website importieren" %}</h1>
+  <h1 class="text-xl font-semibold">{% nav_title _("Von der Website importieren") %}</h1>
 </div>
 
 <div class="bg-white border border-gray-200 rounded-xl p-6 mb-8 max-w-xl">

@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4">
-  <h1 class="text-2xl font-bold">{% trans "Vouchers" %}</h1>
+  <h1 class="text-2xl font-bold">{% nav_title _("Vouchers") %}</h1>
   <a href="{% url 'promotions:voucher-redeem' %}" class="text-sm px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50">{% trans "Redeem" %}</a>
 </div>
 

@@ -45,7 +45,7 @@ active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛА
     {% comment %}X4 + KA-12 E0.3: KDS — только кухням, Tisch-QR — только залам (те же
     гейты, что в реестре навигации); пекарне и мясной ни то ни другое не нужно.{% endcomment %}
     {% if show_kds %}
-    <a href="{% url 'orders:kitchen' %}" class="rounded-xl bg-gray-800 text-white px-3 py-2 text-sm font-medium shadow-sm hover:bg-gray-900">🍳 {% trans "Kitchen Display" %}</a>
+    <a href="{% url 'orders:kitchen' %}" class="rounded-xl bg-gray-800 text-white px-3 py-2 text-sm font-medium shadow-sm hover:bg-gray-900">🍳 {% trans "Küche" %}</a>
     {% endif %}
     {% if show_table_qr %}
     <a href="{% url 'orders:table-qr' %}" class="rounded-xl bg-white text-gray-600 px-3 py-2 text-sm font-medium shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50">🪑 {% trans "Table QR codes" %}</a>

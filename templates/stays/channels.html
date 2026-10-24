@@ -1,4 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
+{% load cabinet %}
 {% load i18n %}
 {% block dash_title %}{% trans "Channels" %}{% endblock %}
 
@@ -7,7 +8,7 @@
 в 2 колонки на lg+ вместо колонки max-w-3xl; мобильный — одна колонка.{% endcomment %}
 <div>
   <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-    <h1 class="text-2xl font-bold">{% trans "Sales channels" %}</h1>
+    <h1 class="text-2xl font-bold">{% nav_title _("Sales channels") %}</h1>
     <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
   </div>
   <p class="text-sm text-gray-500 mb-4">{% trans "Track your OTA channels and import their reservations into your calendar (no double bookings). Availability import via iCal is on the Units page; live 2-way sync needs OTA partner keys." %}

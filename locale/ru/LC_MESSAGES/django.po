@@ -28840,3 +28840,12 @@ msgstr "Маркетинг и клиенты"
 
 msgid "Reichweite"
 msgstr "Охват"
+
+msgid "Zahlarten & Lieferung"
+msgstr "Способы оплаты и доставка"
+
+msgid "Zahlarten & Lieferung einstellen"
+msgstr "Настроить способы оплаты и доставку"
+
+msgid "Kanal-Manager"
+msgstr "Менеджер каналов"
