@@ -28819,3 +28819,18 @@ msgstr "не подтверждено · истекает"
 
 msgid "Das kann der Inhaber im Bereich „Geschäft“."
 msgstr "Это может сделать владелец в разделе «Geschäft»."
+
+msgid "Buchhaltung"
+msgstr "Бухгалтерия"
+
+msgid "Journal"
+msgstr "Журнал"
+
+msgid "Kanäle & Benachrichtigungen"
+msgstr "Каналы и уведомления"
+
+msgid "Zahlen & Finanzen"
+msgstr "Цифры и финансы"
+
+msgid "Überblick"
+msgstr "Обзор"

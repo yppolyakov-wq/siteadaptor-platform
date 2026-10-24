@@ -89,6 +89,7 @@
       {% if it.children %}
       <div data-nav-children="{{ it.nav_key }}" class="pl-9 pr-1 space-y-0.5{% if sb_anchor != it.nav_key %} hidden{% endif %}">
         {% for c in it.children %}
+        {% if c.header %}<p data-nav-subhead class="pt-2 pb-0.5 px-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{{ c.header }}</p>{% endif %}
         {% comment %}SR-5 (вариант А): под названием подпункта — живая подпись
         (данные — индиго-оттенком); hint участвует в поиске меню (data-label).{% endcomment %}
         <a href="{% url c.url_name %}{{ c.query }}" data-label="{{ c.search }} {{ c.label|lower }} {{ c.hint|default:''|lower }}"
@@ -337,6 +338,15 @@ billing.context.subscription) и закрывается кнопкой; пост
           var active = btn && btn.getAttribute("aria-expanded") === "true";
           box.classList.toggle("hidden", !active);
         }
+      });
+      // KA-12 E8.4: подзаголовок группы прячем, если под ним не осталось пунктов.
+      document.querySelectorAll("#dash-nav [data-nav-subhead]").forEach(function (h) {
+        var next = h.nextElementSibling, hasLink = false;
+        while (next && !next.hasAttribute("data-nav-subhead")) {
+          if (next.classList.contains("nav-link") && !next.classList.contains("hidden")) hasLink = true;
+          next = next.nextElementSibling;
+        }
+        h.classList.toggle("hidden", !!q && !hasLink);
       });
       if (empty) empty.classList.toggle("hidden", anyShown);
     });

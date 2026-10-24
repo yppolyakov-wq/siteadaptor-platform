@@ -133,6 +133,13 @@ def nav_palette(context):
     owner_hidden = nav_registry.owner_only_url_names() if _hide_owner_only(context) else frozenset()
     entries = []
     for e in nav_registry.palette_entries():
+        anchor = e.get("anchor")
+        if (
+            anchor is not None
+            and tenant is not None
+            and not nav_registry.anchor_visible(anchor, tenant)
+        ):
+            continue  # KA-12 E8.3: скрытый условный якорь — без карточки
         mod = e["module_key"]
         if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
             continue
@@ -245,7 +252,8 @@ def sidebar_anchor(context):
             return "integrations"
         if lite_cabinet.is_lite(tenant):
             return "integrations"
-    return nav_registry.anchor_for(nav)
+    # KA-12 E8.3: страницы скрытого «Finanzen» подсвечивают Einstellungen.
+    return nav_registry.anchor_for_tenant(nav, tenant)
 
 
 # T-8.29: страницы, которые в лёгком кабинете подсвечивают «Verbindungen».

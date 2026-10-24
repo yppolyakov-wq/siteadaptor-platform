@@ -28554,3 +28554,18 @@ msgstr "unconfirmed · expires"
 
 msgid "Das kann der Inhaber im Bereich „Geschäft“."
 msgstr "The owner can do this in the “Business” section."
+
+msgid "Buchhaltung"
+msgstr "Accounting"
+
+msgid "Journal"
+msgstr "Journal"
+
+msgid "Kanäle & Benachrichtigungen"
+msgstr "Channels & notifications"
+
+msgid "Zahlen & Finanzen"
+msgstr "Numbers & finances"
+
+msgid "Überblick"
+msgstr "Overview"

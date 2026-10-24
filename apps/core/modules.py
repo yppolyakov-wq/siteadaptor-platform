@@ -652,28 +652,31 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
 
     items = []
     for a in nav_registry.ANCHORS:
-        if a.module_key and not is_module_active(tenant, a.module_key):
-            # X0 (план cabinet-cleanup-2026-08-19): якорь с хабами виден, если жив
-            # ЛЮБОЙ модуль его записей — иначе отель/werkstatt (promotions выкл по
-            # умолчанию) теряли единственный вход к Nachrichten/Bewertungen/Kontakte
-            # и бейдж непрочитанных (исследование 2026-08-18 §3, гейт-баг).
-            if not any(is_module_active(tenant, m) for m in nav_registry.hub_module_keys(a)):
+        # X0: якорь с хабами виден, если жив ЛЮБОЙ модуль его записей (отель без
+        # promotions не теряет Nachrichten); KA-12 E8.3: условный «Finanzen» — при
+        # finance|analytics, иначе его подпункты уходят группой в Einstellungen.
+        if not nav_registry.anchor_visible(a, tenant):
+            continue
+        hub = a.hubs[0] if a.hubs else ""
+        children = []
+        prev_group = None
+        for e, group in nav_registry.visible_children(a, tenant, owner_hidden):
+            # VF-11: вкладка единственного направления = дубль обзора — прячем.
+            if _is_solo_direction_tab(e):
                 continue
-        children = [
-            {
+            child = {
                 "url_name": e.url_name,
                 "nav_key": e.nav_key,
                 "label": e.label,
                 "search": e.search,
                 "query": e.query,  # X5-3: «?from=board» у Abläufe
+                "group": group,
             }
-            for e in nav_registry.sidebar_children(a)
-            # KA-12 E8.1: один гейт показа на все потребители (модуль, «любой из
-            # модулей», направление, тип бизнеса, owner-only у сотрудника).
-            if nav_registry.entry_visible(e, tenant, owner_hidden)
-            # VF-11: вкладка единственного направления = дубль обзора — прячем.
-            and not _is_solo_direction_tab(e)
-        ]
+            # KA-12 E8.4: подзаголовок — на первом пункте каждой новой группы.
+            if group and group != prev_group:
+                child["header"] = nav_registry.group_label(hub, group)
+            prev_group = group
+            children.append(child)
         # X0: «Nachrichten» — первым подпунктом якоря Marketing со СВОИМ бейджем:
         # бейдж на якоре вёл на лендинг, где непрочитанного не видно.
         if a.badge == "inbox" and is_module_active(tenant, "inbox"):
@@ -706,13 +709,12 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
             hints = settings_hints.hints_for(tenant)
             for c in children:
                 c["hint"] = hints.get(c["url_name"], "")
-        if children and not any(
-            c["url_name"] == a.url_name and not c.get("query") for c in children
-        ):
+        target = nav_registry.anchor_target(a, tenant)
+        if children and not any(c["url_name"] == target and not c.get("query") for c in children):
             children.insert(
                 0,
                 {
-                    "url_name": a.url_name,
+                    "url_name": target,
                     "nav_key": a.nav_key,
                     "label": a.label,
                     "search": a.search,
@@ -720,7 +722,7 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
                 },
             )
         it = {
-            "url_name": a.url_name,
+            "url_name": target,
             "nav_key": a.nav_key,
             "icon": a.icon,
             "label": a.label,

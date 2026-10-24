@@ -28698,3 +28698,18 @@ msgstr "onaylanmadı · sona eriyor"
 
 msgid "Das kann der Inhaber im Bereich „Geschäft“."
 msgstr "Bunu işletme sahibi „Geschäft“ bölümünde yapabilir."
+
+msgid "Buchhaltung"
+msgstr "Muhasebe"
+
+msgid "Journal"
+msgstr "Yevmiye"
+
+msgid "Kanäle & Benachrichtigungen"
+msgstr "Kanallar ve bildirimler"
+
+msgid "Zahlen & Finanzen"
+msgstr "Rakamlar ve finans"
+
+msgid "Überblick"
+msgstr "Genel bakış"

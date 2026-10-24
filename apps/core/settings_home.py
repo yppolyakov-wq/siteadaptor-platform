@@ -15,16 +15,8 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import nav_registry, settings_hints
 
-# Группы обзора (артборд Einstellungen.dc + VarianteB канваса): url_name → группа.
-_GROUPS = (
-    ("geschaeft", _("Geschäft"), ("settings", "team", "languages")),
-    (
-        "verkauf",
-        _("Verkauf"),
-        ("payment-settings", "legal-docs", "notifications-settings", "ablaeufe"),
-    ),
-    ("system", _("System"), ("integrations-home", "modules", "billing")),
-)
+# KA-12 E8.4: группы обзора = группы подменю (nav_registry.SUBMENU_GROUPS["settings"]);
+# пункты без группы — блоком «Weitere» в конце.
 _TAIL = ("weitere", _("Weitere"))
 
 # Статичные подписи-описания (когда живой нет): url_name → msgid.
@@ -39,8 +31,10 @@ _STATIC = {
 
 
 def _visible_entries(tenant, user):
-    """Записи settings-хаба под теми же гейтами, что подменю сайдбара."""
-    from apps.core import modules, roles
+    """Подпункты Einstellungen под ТЕМИ ЖЕ гейтами и в том же порядке, что подменю
+    сайдбара (nav_registry.visible_children): модуль · направление · тип бизнеса ·
+    owner-only у сотрудника · пункты скрытого «Finanzen» группой «Zahlen & Finanzen»."""
+    from apps.core import roles
     from apps.core.models import Membership
 
     owner_hidden = frozenset()
@@ -51,19 +45,14 @@ def _visible_entries(tenant, user):
                 owner_hidden = nav_registry.owner_only_url_names()
         except Exception:  # noqa: BLE001 — fail-open, как в sidebar_nav
             owner_hidden = frozenset()
+    anchor = next(a for a in nav_registry.ANCHORS if a.nav_key == "settings")
     out = []
-    for url_name, label, _nav, module_key, _adv in nav_registry.legacy_hub_tabs()["settings"]:
-        if module_key and not modules.is_module_active(tenant, module_key):
-            continue
-        if url_name in owner_hidden:
-            continue
-        if not nav_registry.allowed_for_business(url_name, tenant):
-            continue
+    for e, group in nav_registry.visible_children(anchor, tenant, owner_hidden):
         try:
-            url = reverse(url_name)
+            url = reverse(e.url_name) + (e.query or "")
         except NoReverseMatch:
             continue
-        out.append({"url_name": url_name, "label": label, "url": url})
+        out.append({"url_name": e.url_name, "label": e.label, "url": url, "group": group})
     return out
 
 
@@ -78,15 +67,12 @@ def einstellungen_home(request):
         e["static"] = _STATIC.get(e["url_name"], "")
         by_name[e["url_name"]] = e
     groups = []
-    used = set()
-    for key, label, names in _GROUPS:
-        rows = [by_name[n] for n in names if n in by_name]
-        used.update(names)
-        if rows:
-            groups.append({"key": key, "label": label, "rows": rows})
-    tail = [e for e in entries if e["url_name"] not in used]
-    if tail:
-        groups.append({"key": _TAIL[0], "label": _TAIL[1], "rows": tail})
+    for e in entries:
+        key = e["group"] or _TAIL[0]
+        if not groups or groups[-1]["key"] != key:
+            label = nav_registry.group_label("settings", e["group"]) if e["group"] else _TAIL[1]
+            groups.append({"key": key, "label": label, "rows": []})
+        groups[-1]["rows"].append(e)
     return render(
         request,
         "tenant/einstellungen_home.html",

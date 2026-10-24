@@ -1,0 +1,132 @@
+"""KA-12 Волна 2 · батч 3a: условный якорь «Finanzen» и группы подменю.
+
+План — docs/ka-12-w2-batch3-plan-2026-10-24.md. Решение владельца (KA-4 В-1…В-6):
+седьмой якорь «Finanzen» — только при модуле finance или analytics (мораторий X7 снят
+ровно для него); без них его пункты живут группой «Zahlen & Finanzen» в Einstellungen.
+"""
+
+from uuid import uuid4
+
+import pytest
+from django.template import Context, Template
+
+from apps.core import modules, nav_registry
+from apps.tenants.models import Tenant
+from apps.tenants.tests.factories import TenantFactory
+
+pytestmark = pytest.mark.django_db
+
+BUSINESS_TYPES = [code for code, _label in Tenant.BUSINESS_TYPES]
+
+
+def _tenant(business_type="bakery", enable=()):
+    off = [m for m in modules.default_disabled_for(business_type) if m not in enable]
+    return TenantFactory(
+        slug=f"fa-{business_type[:7]}-{uuid4().hex[:4]}",
+        business_type=business_type,
+        disabled_modules=off,
+    )
+
+
+def _items(tenant):
+    return {it["nav_key"]: it for it in modules.sidebar_nav(tenant)}
+
+
+def _sidebar_anchor(tenant, nav):
+    from types import SimpleNamespace
+
+    return Template("{% load cabinet %}{% sidebar_anchor %}").render(
+        Context({"nav": nav, "request": SimpleNamespace(tenant=tenant, user=None)})
+    )
+
+
+def test_only_finance_anchor_is_conditional():
+    conditional = [a.nav_key for a in nav_registry.ANCHORS if a.modules_any]
+    assert conditional == ["finance"]
+
+
+@pytest.mark.parametrize("business_type", BUSINESS_TYPES)
+def test_finance_anchor_hidden_by_default(business_type):
+    """finance и analytics выключены по умолчанию у всех типов → якоря нет, «Zahlungen»
+    живёт группой «Zahlen & Finanzen» в Einstellungen, подсветка — Einstellungen."""
+    tenant = _tenant(business_type)
+    items = _items(tenant)
+    assert "finance" not in items
+    sett = items["settings"]["children"]
+    pay = next(c for c in sett if c["url_name"] == "payments-page")
+    assert pay["group"] == "finanzen"
+    assert _sidebar_anchor(tenant, "zahlungen").strip() == "settings"
+
+
+def test_finance_anchor_shown_with_analytics():
+    tenant = _tenant("bakery", enable=("analytics",))
+    items = _items(tenant)
+    fin = items["finance"]
+    names = [c["url_name"] for c in fin["children"]]
+    assert "promotions:analytics" in names and "payments-page" in names
+    # finance-модуль выключен — журнала нет, цель раздела — первый видимый экран
+    assert "finance:journal" not in names
+    assert fin["url_name"] == "promotions:analytics"
+    assert "payments-page" not in [c["url_name"] for c in items["settings"]["children"]]
+    assert _sidebar_anchor(tenant, "zahlungen").strip() == "finance"
+
+
+def test_finance_anchor_shown_with_finance():
+    tenant = _tenant("bakery", enable=("finance",))
+    fin = _items(tenant)["finance"]
+    names = [c["url_name"] for c in fin["children"]]
+    assert names[:2] == ["payments-page", "finance:journal"] or "finance:journal" in names
+    assert {"finance:invoices", "finance:offene", "finance:bank"} <= set(names)
+    assert fin["url_name"] == "finance:journal"
+    headers = [c["header"] for c in fin["children"] if c.get("header")]
+    assert [str(h) for h in headers] == ["Überblick", "Buchhaltung"]
+
+
+def test_finance_entries_leave_verkaeufe():
+    tenant = _tenant("bakery", enable=("finance", "analytics"))
+    verk = {c["url_name"] for c in _items(tenant)["board"]["children"]}
+    assert not verk & {"payments-page", "promotions:analytics", "finance:journal"}
+
+
+def test_every_grouped_hub_entry_has_known_group():
+    for hub, groups in nav_registry.SUBMENU_GROUPS.items():
+        known = {key for key, _label in groups}
+        for e in nav_registry.ENTRIES:
+            if e.hub == hub and not e.palette_only:
+                assert e.group in known, f"{hub}:{e.url_name} без группы ({e.group!r})"
+
+
+def test_settings_submenu_has_group_headers():
+    tenant = _tenant("hotel")
+    sett = _items(tenant)["settings"]["children"]
+    headers = [str(c["header"]) for c in sett if c.get("header")]
+    assert headers[0] == "Geschäft"
+    assert "Zimmer" in headers and "System" in headers
+    # группы идут блоками: одна группа не встречается дважды
+    seen, prev = [], None
+    for c in sett:
+        g = c.get("group") or ""
+        if g != prev:
+            assert g not in seen, f"группа {g} разорвана"
+            seen.append(g)
+            prev = g
+
+
+def test_sidebar_renders_subheaders():
+    from apps.core.models import Membership
+    from apps.core.tests.test_staff_walk import _open, _user
+
+    tenant = _tenant("hotel")
+    user = _user(Membership.ROLE_OWNER)
+    body = _open("/dashboard/einstellungen/", tenant, user).content.decode()
+    assert "data-nav-subhead" in body
+
+
+def test_finance_anchor_not_in_palette_when_hidden():
+    from types import SimpleNamespace
+
+    tenant = _tenant("bakery")
+    html = Template("{% load cabinet %}{% nav_palette %}").render(
+        Context({"request": SimpleNamespace(tenant=tenant, user=None)})
+    )
+    assert "/dashboard/finance/" not in html

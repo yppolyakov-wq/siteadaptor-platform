@@ -52,7 +52,7 @@ class NavEntry:
     palette_only: bool = False
     # X4: доп-гейт по типу бизнеса (KDS/Tisch-QR — только гастро).
     business_types: tuple[str, ...] = ()
-    # X5: ряд таб-бара («basis»/«verwaltung» у настроек). Пусто = один плоский
+    # KA-12 E8.4: группа подменю (подзаголовок, SUBMENU_GROUPS[hub]). Пусто = блок без
     # ряд, как у всех прочих хабов.
     group: str = ""
     # X5-3: query-суффикс ссылки подпункта («?from=board» у Abläufe: одна
@@ -74,6 +74,13 @@ class Anchor:
     module_key: str | None = None  # гейт активности якоря
     badge: str = ""  # "inbox" → бейдж непрочитанных сообщений
     hubs: tuple[str, ...] = field(default_factory=tuple)  # чьи nav_key подсвечивают якорь
+    # KA-12 E8.3: условный якорь — виден, если активен ЛЮБОЙ из модулей; иначе его
+    # подпункты уходят в якорь `fallback` группой `fallback_group`.
+    modules_any: tuple[str, ...] = ()
+    fallback: str = ""
+    fallback_group: str = ""
+    # Цели клика по разделу: первый видимый экран (иначе url_name).
+    targets: tuple[str, ...] = ()
 
 
 # --- Якоря компакт-сайдбара (ST-4b), порядок = порядок показа -----------------
@@ -129,6 +136,21 @@ ANCHORS: tuple[Anchor, ...] = (
         "✏️",
         "website gestalten studio design",
         hubs=("site",),
+    ),
+    # KA-12 E8.3 (решение владельца KA-4 В-1…В-6): седьмой якорь «Finanzen» — только при
+    # модуле finance или analytics; мораторий X7 снят ровно для него. Без них его
+    # подпункты живут группой «Zahlen & Finanzen» в Einstellungen.
+    Anchor(
+        "finance:journal",
+        _("Finanzen"),
+        "finance",
+        "💶",
+        "finanzen journal rechnungen datev auswertungen zahlungen",
+        hubs=("finance",),
+        modules_any=("finance", "analytics"),
+        fallback="settings",
+        fallback_group="finanzen",
+        targets=("finance:journal", "promotions:analytics", "payments-page"),
     ),
     # SR-5 (вариант Б, прецедент W11-5): якорь ведёт на страницу-обзор
     # /dashboard/einstellungen/ — url_name → einstellungen-home, nav_key
@@ -245,43 +267,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         "versand lieferung tracking sendungen lieferschein",
     ),
-    # R7-3: оплаты отдельной поверхностью («посмотреть оплаты отдельно»).
-    _e(
-        "board",
-        "payments-page",
-        _("Zahlungen"),
-        "zahlungen",  # свой ключ: "payments" занят страницей «Zahlung & Lieferung»
-        None,  # деньги есть у любого продающего модуля; finance не требуется
-        True,
-        "zahlungen bezahlt offen stripe vorkasse geld",
-    ),
-    _e(
-        "board",
-        "promotions:analytics",
-        _("Auswertungen"),
-        "analytics",
-        "analytics",
-        True,
-        "statistik analytics",
-    ),
-    _e(
-        "board",
-        "finance:journal",
-        _("Finanzen"),
-        "finance",
-        "finance",
-        True,
-        "umsatz rechnungen datev",
-    ),
-    _e(
-        "board",
-        "stays:reports",
-        _("Berichte"),
-        "stays",
-        "stays",
-        True,
-        "belegung adr revpar auslastung",
-    ),
     # X4: бывшие СИРОТЫ поверхности продаж — вход через Ctrl+K (в таб-бар и
     # сайдбар не идут: palette_only). Классификация — x4-navigation-plan §4.
     # KA-12 E8.1: резервы — вкладка страницы продаж; палитра ведёт туда, а не на
@@ -306,53 +291,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="zusatz extras frühstück optionen verkauft",
         palette_only=True,
         modules_any=("booking", "stays", "events"),
-    ),
-    # MX-1: расходы и результат — экраны раздела Finanzen (вход: вкладки на
-    # страницах + палитра; состав якорей сайдбара не тронут — мораторий X7.1).
-    _e(
-        "board",
-        "finance:expenses",
-        _("Ausgaben"),
-        "finance",
-        "finance",
-        search="ausgaben kosten einkauf spesen",
-        palette_only=True,
-    ),
-    _e(
-        "board",
-        "finance:ergebnis",
-        _("Ergebnis"),
-        "finance",
-        "finance",
-        search="ergebnis gewinn marge saldo",
-        palette_only=True,
-    ),
-    _e(
-        "board",
-        "finance:offene",
-        _("Offene Posten"),
-        "finance",
-        "finance",
-        search="offene posten schulden unbezahlt mahnung",
-        palette_only=True,
-    ),
-    _e(
-        "board",
-        "finance:bank",
-        _("Bankabgleich"),
-        "finance",
-        "finance",
-        search="bank kontoauszug abgleich umsatz vorkasse",
-        palette_only=True,
-    ),
-    _e(
-        "board",
-        "finance:invoices",
-        _("Rechnungen"),
-        "finance",
-        "finance",
-        search="rechnung invoice beleg",
-        palette_only=True,
     ),
     _e(
         "board",
@@ -631,6 +569,99 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="trainer kursleiter guide gastgeber",
         palette_only=True,
     ),
+    # KA-12 E8.3: хаб «Finanzen» — Überblick (оплаты, отчёты) · Buchhaltung (журнал,
+    # счета, расходы, результат, открытые позиции, банк). Был разбросан по «Verkäufe»
+    # и палитре; без finance/analytics — группа «Zahlen & Finanzen» в Einstellungen.
+    _e(
+        "finance",
+        "payments-page",
+        _("Zahlungen"),
+        "zahlungen",  # свой ключ: "payments" занят страницей «Zahlung & Lieferung»
+        None,  # деньги есть у любого продающего модуля; finance не требуется
+        True,
+        "zahlungen bezahlt offen stripe vorkasse geld",
+        group="ueberblick",
+    ),
+    _e(
+        "finance",
+        "promotions:analytics",
+        _("Auswertungen"),
+        "analytics",
+        "analytics",
+        True,
+        "statistik analytics",
+        group="ueberblick",
+    ),
+    _e(
+        "finance",
+        "stays:reports",
+        _("Berichte"),
+        "stays-reports",
+        "stays",
+        True,
+        "belegung adr revpar auslastung",
+        group="ueberblick",
+    ),
+    _e(
+        "finance",
+        "finance:journal",
+        _("Journal"),
+        "finance",
+        "finance",
+        True,
+        "umsatz rechnungen datev",
+        group="buchhaltung",
+    ),
+    _e(
+        "finance",
+        "finance:invoices",
+        _("Rechnungen"),
+        "finance",
+        "finance",
+        True,
+        "rechnung invoice beleg",
+        group="buchhaltung",
+    ),
+    _e(
+        "finance",
+        "finance:expenses",
+        _("Ausgaben"),
+        "finance",
+        "finance",
+        True,
+        "ausgaben kosten einkauf spesen",
+        group="buchhaltung",
+    ),
+    _e(
+        "finance",
+        "finance:ergebnis",
+        _("Ergebnis"),
+        "finance",
+        "finance",
+        True,
+        "ergebnis gewinn marge saldo",
+        group="buchhaltung",
+    ),
+    _e(
+        "finance",
+        "finance:offene",
+        _("Offene Posten"),
+        "finance",
+        "finance",
+        True,
+        "offene posten schulden unbezahlt mahnung",
+        group="buchhaltung",
+    ),
+    _e(
+        "finance",
+        "finance:bank",
+        _("Bankabgleich"),
+        "finance",
+        "finance",
+        True,
+        "bank kontoauszug abgleich umsatz vorkasse",
+        group="buchhaltung",
+    ),
     # W11-1: хаб «Kunden» удалён (Р-2) — страницы crm/inbox/telegram рендерят
     # marketing-хаб («молчаливая подмена таб-бара» умерла).
     # Einstellungen (W9-1: «базовые + по типам»; порядок = целевая структура §2.3).
@@ -640,7 +671,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Mein Geschäft"),
         "settings",
         search="kontakt öffnungszeiten firma adresse logo",
-        group="basis",
+        group="geschaeft",
     ),
     _e(
         "settings",
@@ -648,7 +679,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Sprachen"),
         "languages",
         search="sprache locale übersetzung",
-        group="basis",
+        group="geschaeft",
     ),
     # X0: Recht/Abo/Team — owner-only (зеркалит _OWNER_ONLY мидлвари W9-10;
     # сотруднику таб не показывается вместо мёртвого 403).
@@ -659,7 +690,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "legal-docs",
         search="impressum datenschutz agb widerruf steuer",
         owner_only=True,
-        group="verwaltung",
+        group="geschaeft",
     ),
     _e(
         "settings",
@@ -667,7 +698,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Zahlung & Lieferung"),
         "payments",
         search="stripe vorkasse lieferung zonen versand",
-        group="basis",
+        group="verkauf",
     ),
     _e(
         "settings",
@@ -675,7 +706,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Benachrichtigungen & Kanäle"),
         "notifications",
         search="care e-mail telegram erinnerung",
-        group="basis",
+        group="kanaele",
     ),
     # W9-8: настройки процессов продаж (статусы/переходы/колонки) — раньше панели
     # были разбросаны по спискам (аудит 2026-08-05).
@@ -686,7 +717,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "ablaeufe",
         # X2c: панель «Anfrage-Formular» живёт здесь — Ctrl+K её находит.
         search="status übergänge spalten workflow prozesse anfrage-formular felder eigene status",
-        group="verwaltung",
+        group="verkauf",
     ),
     # SM-4: «Website & Domains» переехал в site-хаб (подпункт раздела Website);
     # Finanzen/Auswertungen — в board-хаб (подпункты «Verkäufe»). Настройки слимятся.
@@ -707,7 +738,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         False,
         "integrationen stripe telegram publishing ota kanäle verbindungen",
         sidebar=True,
-        group="verwaltung",
+        group="kanaele",
     ),
     # GK-11: Google-рейтинг (Places API) — экран в кластере настроек.
     _e(
@@ -717,6 +748,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "integrations",
         search="google bewertungen sterne rating place id",
         palette_only=True,  # X5-2: вход — карточка Integrationen (GK-11) и Ctrl+K
+        group="kanaele",
     ),
     # X4: экран статуса приёма оплат (Stripe Connect) был сиротой — вход из
     # Integrationen-карточки существовал, в реестре записи не было.
@@ -728,6 +760,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="stripe connect auszahlung konto verbinden",
         owner_only=True,
         palette_only=True,
+        group="system",
     ),
     _e(
         "settings",
@@ -736,7 +769,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "billing",
         search="abo tarif subscription rechnung",
         owner_only=True,
-        group="verwaltung",
+        group="system",
     ),
     # W9-10 (Р-7): членства/роли/инвайт — owner-only (middleware).
     _e(
@@ -746,7 +779,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "team",
         search="team mitarbeiter rollen zugriff einladen",
         owner_only=True,
-        group="verwaltung",
+        group="geschaeft",
     ),
     _e(
         "settings",
@@ -756,6 +789,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         None,
         True,
         modules_any=("booking", "stays", "events"),
+        group="verkauf",
     ),
     # KA-12 E8.2: настройки записи и каналов отеля — в Einstellungen (были
     # подпунктами «Verkäufe» рядом с рабочими экранами дня).
@@ -767,6 +801,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "booking",
         True,
         "zeiten mitarbeiter tische ressourcen slots",
+        group="termine",
     ),
     _e(
         "settings",
@@ -776,6 +811,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "booking",
         True,
         "urlaub feiertag sperren verfügbarkeit",
+        group="termine",
     ),
     _e(
         "settings",
@@ -785,11 +821,39 @@ ENTRIES: tuple[NavEntry, ...] = (
         "stays",
         True,
         "ota booking airbnb kanäle",
+        group="zimmer",
     ),
-    _e("settings", "modules", _("Funktionen"), "modules", None, True, "module aktivieren"),
+    _e(
+        "settings",
+        "modules",
+        _("Funktionen"),
+        "modules",
+        None,
+        True,
+        "module aktivieren",
+        group="system",
+    ),
     # W12-1: режим кабинета одним экраном (Einfach/Experte + «что скрыто»).
-    _e("settings", "finder-settings", _("Finder"), "finder", None, True, "fragen empfehlung"),
-    _e("settings", "support:help", _("Hilfe"), "support", None, True, "anleitung hilfe"),
+    _e(
+        "settings",
+        "finder-settings",
+        _("Finder"),
+        "finder",
+        None,
+        True,
+        "fragen empfehlung",
+        group="system",
+    ),
+    _e(
+        "settings",
+        "support:help",
+        _("Hilfe"),
+        "support",
+        None,
+        True,
+        "anleitung hilfe",
+        group="system",
+    ),
     # SM-4: хаб "site" — подпункты раздела Website в сайдбаре (страницы хаба нет:
     # раздел ведёт в Studio; hub_tabs "site" нигде не рендерится, как board).
     # Domains переехал из main-табов settings, Medien — из advanced settings.
@@ -808,14 +872,25 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e("site", "media-library", _("Medien"), "media", None, True, "bilder fotos bibliothek"),
 )
 
-HUBS: tuple[str, ...] = ("board", "marketing", "sellables", "settings", "site")
+HUBS: tuple[str, ...] = ("board", "marketing", "sellables", "finance", "settings", "site")
 
-# X5-1: подписанные ряды главных вкладок (пока только хаб настроек). Порядок
-# рядов = порядок показа; вкладки без группы уходят в безымянный ряд в конце.
-TAB_GROUPS: tuple[tuple[str, str], ...] = (
-    ("basis", _("Basis")),
-    ("verwaltung", _("Verwaltung")),
-)
+# KA-12 E8.4/E8.12: подзаголовки подменю по хабам (порядок = порядок показа). Запись без
+# группы стоит в конце безымянного блока. Размер подменю считается по группе (≤ 7).
+SUBMENU_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {
+    "finance": (
+        ("ueberblick", _("Überblick")),
+        ("buchhaltung", _("Buchhaltung")),
+    ),
+    "settings": (
+        ("geschaeft", _("Geschäft")),
+        ("verkauf", _("Verkauf")),
+        ("termine", _("Termine")),
+        ("zimmer", _("Zimmer")),
+        ("kanaele", _("Kanäle & Benachrichtigungen")),
+        ("finanzen", _("Zahlen & Finanzen")),
+        ("system", _("System")),
+    ),
+}
 
 
 def group_for(hub: str, url_name: str) -> str:
@@ -1078,9 +1153,10 @@ def palette_entries() -> list[dict]:
     так дубль-записи без query (settings-«Abläufe») по-прежнему схлопываются."""
     seen, seen_q, out = set(), set(), []
 
-    def _rec(url_name, label, nav_key, module_key, hub, search, query="", entry=None):
+    def _rec(url_name, label, nav_key, module_key, hub, search, query="", entry=None, anchor=None):
         return {
-            "entry": entry,  # KA-12 E8.1: полный гейт записи (entry_visible) в рендере
+            "entry": entry,
+            "anchor": anchor,  # KA-12 E8.1: полный гейт записи (entry_visible) в рендере
             "url_name": url_name,
             "label": label,
             "nav_key": nav_key,
@@ -1091,7 +1167,9 @@ def palette_entries() -> list[dict]:
         }
 
     for a in ANCHORS:
-        out.append(_rec(a.url_name, a.label, a.nav_key, a.module_key, "", a.search))
+        if a.targets:
+            continue  # KA-12 E8.3: раздел с целями ведёт на свой подпункт — карточку даёт он
+        out.append(_rec(a.url_name, a.label, a.nav_key, a.module_key, "", a.search, anchor=a))
         seen.add(a.url_name)
     for e in ENTRIES:
         if e.query:
@@ -1106,3 +1184,79 @@ def palette_entries() -> list[dict]:
             seen.add(e.url_name)
         out.append(_rec(e.url_name, e.label, e.nav_key, e.module_key, e.hub, e.search, e.query, e))
     return out
+
+
+# --- KA-12 E8.3/E8.4: условные якоря и группы подменю --------------------------
+
+
+def anchor_visible(anchor, tenant) -> bool:
+    """Виден ли якорь тенанту. Условный (modules_any) — если активен любой из модулей;
+    иначе прежнее правило: свой модуль или любой модуль его хабов (X0)."""
+    from apps.core.modules import is_module_active
+
+    if tenant is None:
+        return not anchor.modules_any
+    if anchor.modules_any:
+        return any(is_module_active(tenant, m) for m in anchor.modules_any)
+    if anchor.module_key and not is_module_active(tenant, anchor.module_key):
+        return any(is_module_active(tenant, m) for m in hub_module_keys(anchor))
+    return True
+
+
+def _entry_in_hubs(anchor, url_name):
+    for hub in anchor.hubs:
+        e = entry_for(hub, url_name)
+        if e is not None:
+            return e
+    return None
+
+
+def anchor_target(anchor, tenant) -> str:
+    """Куда ведёт раздел: первый видимый экран из `targets` (иначе url_name)."""
+    for url_name in anchor.targets:
+        e = _entry_in_hubs(anchor, url_name)
+        if e is not None and entry_visible(e, tenant):
+            return url_name
+    return anchor.url_name
+
+
+def anchor_for_tenant(nav_key: str, tenant) -> str:
+    """Якорь подсветки с учётом скрытых условных якорей: страницы «Finanzen» без
+    модулей finance/analytics подсвечивают «Einstellungen» (там живут их пункты)."""
+    key = anchor_for(nav_key)
+    for a in ANCHORS:
+        if a.nav_key == key and a.fallback and not anchor_visible(a, tenant):
+            return a.fallback
+    return key
+
+
+def _group_order(hub: str) -> dict[str, int]:
+    return {key: i for i, (key, _label) in enumerate(SUBMENU_GROUPS.get(hub, ()))}
+
+
+def group_label(hub: str, key: str) -> str:
+    for k, label in SUBMENU_GROUPS.get(hub, ()):
+        if k == key:
+            return label
+    return ""
+
+
+def visible_children(anchor, tenant, owner_hidden=frozenset()) -> list[tuple]:
+    """Подпункты якоря `(запись, группа)` под едиными гейтами — сайдбар и обзор настроек.
+    К якорю-фолбэку добавляются подпункты скрытых условных якорей (их группой).
+    Порядок — по группам SUBMENU_GROUPS (стабильно внутри группы); без группы — в конце."""
+    out = [(e, e.group) for e in sidebar_children(anchor) if entry_visible(e, tenant, owner_hidden)]
+    seen = {(e.url_name, e.query) for e, _g in out}
+    for other in ANCHORS:
+        if other.fallback != anchor.nav_key or anchor_visible(other, tenant):
+            continue
+        for e in sidebar_children(other):
+            key = (e.url_name, e.query)
+            if key in seen or not entry_visible(e, tenant, owner_hidden):
+                continue
+            seen.add(key)
+            out.append((e, other.fallback_group))
+    hub = anchor.hubs[0] if anchor.hubs else ""
+    order = _group_order(hub)
+    tail = len(order)
+    return sorted(out, key=lambda pair: order.get(pair[1], tail))

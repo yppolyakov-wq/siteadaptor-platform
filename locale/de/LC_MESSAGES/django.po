@@ -28646,3 +28646,18 @@ msgstr "unbestätigt · läuft ab"
 
 msgid "Das kann der Inhaber im Bereich „Geschäft“."
 msgstr "Das kann der Inhaber im Bereich „Geschäft“."
+
+msgid "Buchhaltung"
+msgstr "Buchhaltung"
+
+msgid "Journal"
+msgstr "Journal"
+
+msgid "Kanäle & Benachrichtigungen"
+msgstr "Kanäle & Benachrichtigungen"
+
+msgid "Zahlen & Finanzen"
+msgstr "Zahlen & Finanzen"
+
+msgid "Überblick"
+msgstr "Überblick"

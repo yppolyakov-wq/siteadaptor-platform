@@ -28803,3 +28803,18 @@ msgstr "не підтверджено · спливає"
 
 msgid "Das kann der Inhaber im Bereich „Geschäft“."
 msgstr "Це може зробити власник у розділі «Geschäft»."
+
+msgid "Buchhaltung"
+msgstr "Бухгалтерія"
+
+msgid "Journal"
+msgstr "Журнал"
+
+msgid "Kanäle & Benachrichtigungen"
+msgstr "Канали та сповіщення"
+
+msgid "Zahlen & Finanzen"
+msgstr "Цифри та фінанси"
+
+msgid "Überblick"
+msgstr "Огляд"

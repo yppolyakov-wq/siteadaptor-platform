@@ -1260,7 +1260,7 @@ def reports(request):
         request,
         "stays/reports.html",
         {
-            "nav": "stays",
+            "nav": "stays-reports",
             "start": start,
             "report": data,
             "occupancy_pct": round(data["occupancy"] * 100, 1),
