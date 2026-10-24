@@ -12,6 +12,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -431,73 +432,92 @@ def stay_action(request, pk):
         except ValueError:
             messages.error(request, _("Invalid dates."))
             return redirect(back)
-        # Гости/заметка — ДО move_stay: перерасчёт (Kurtaxe по adults) увидит
-        # свежие значения.
-        booking.adults = adults
-        booking.children = children
-        booking.guests = adults + children
-        booking.note = request.POST.get("note", "").strip()[:2000]
-        booking.save(update_fields=["adults", "children", "guests", "note", "updated_at"])
-        # MX-3: правка состава допов — только при сентинеле (форма без блока допов
-        # ничего не стирает, инвариант W0). Изменённый состав ТРЕБУЕТ пересчёта:
-        # менять допы с «ценой как была» значило бы рассинхронизировать итог.
+        # KA-12 E4.7a (Z8): правка — одно целое. Гости/заметка/допы/трекеры/перенос/
+        # номер в одной транзакции: отказ любого шага откатывает всё (раньше гости и
+        # допы оставались сохранёнными при «даты заняты»).
+        from apps.core import option_trackers
+
         old_total = booking.total_cents
-        if request.POST.get("extras_present"):
-            from apps.core import extras as extras_engine
-
-            new_snap = extras_engine.snapshot(
-                request.POST.getlist("extra"),
-                "stays",
-                nights=max((departure - arrival).days, 1),
-                entity_kind="stay",
-                entity_id=str(target_unit.pk),
-            )
-            old_ids = [str(e.get("id", "")) for e in (booking.extras or []) if isinstance(e, dict)]
-            if sorted(e["id"] for e in new_snap) != sorted(old_ids):
-                # MX-2e: убранные трекер-опции вернуть, добавленные — провести
-                # (пул/склад); отказ оставляет бронь без изменений.
-                from apps.core import option_trackers
-
-                try:
-                    option_trackers.sync_options(
-                        booking.extras, new_snap, kind="stay", deal=booking
-                    )
-                except option_trackers.PoolFull as exc:
-                    messages.error(
-                        request,
-                        _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.")
-                        % {"label": exc.label},
-                    )
-                    return redirect(back)
-                except option_trackers.OptionOutOfStock as exc:
-                    messages.error(
-                        request,
-                        _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
-                    )
-                    return redirect(back)
-                booking.extras = new_snap
-                booking.save(update_fields=["extras", "updated_at"])
-                reprice = True
+        room_taken = False
         try:
-            services.move_stay(
-                booking,
-                arrival=arrival,
-                departure=departure,
-                unit=target_unit,
-                reprice=reprice,
+            with transaction.atomic():
+                # Гости/заметка — ДО move_stay: перерасчёт (Kurtaxe по adults) увидит
+                # свежие значения.
+                booking.adults = adults
+                booking.children = children
+                booking.guests = adults + children
+                booking.note = request.POST.get("note", "").strip()[:2000]
+                booking.save(update_fields=["adults", "children", "guests", "note", "updated_at"])
+                # MX-3: правка состава допов — только при сентинеле (форма без блока допов
+                # ничего не стирает, инвариант W0). Изменённый состав ТРЕБУЕТ пересчёта.
+                if request.POST.get("extras_present"):
+                    from apps.core import extras as extras_engine
+
+                    new_snap = extras_engine.snapshot(
+                        request.POST.getlist("extra"),
+                        "stays",
+                        nights=max((departure - arrival).days, 1),
+                        entity_kind="stay",
+                        entity_id=str(target_unit.pk),
+                    )
+                    old_ids = [
+                        str(e.get("id", "")) for e in (booking.extras or []) if isinstance(e, dict)
+                    ]
+                    if sorted(e["id"] for e in new_snap) != sorted(old_ids):
+                        # MX-2e: убранные трекер-опции вернуть, добавленные — провести.
+                        option_trackers.sync_options(
+                            booking.extras, new_snap, kind="stay", deal=booking
+                        )
+                        booking.extras = new_snap
+                        booking.save(update_fields=["extras", "updated_at"])
+                        reprice = True
+                services.move_stay(
+                    booking,
+                    arrival=arrival,
+                    departure=departure,
+                    unit=target_unit,
+                    reprice=reprice,
+                )
+                # PMS-R2: назначение физического номера (после переноса — даты
+                # финальные). Селект другой категории (unit сменился) — устарел.
+                room_obj = None
+                room_pk = request.POST.get("room", "")
+                if room_pk:
+                    room_obj = Room.objects.filter(pk=room_pk, unit_id=booking.unit_id).first()
+                if room_obj is not None or not room_pk:
+                    try:
+                        with transaction.atomic():
+                            services.assign_room(booking, room_obj)
+                    except services.RoomConflict:
+                        room_taken = True  # перенос состоялся, номер — нет
+        except services.MinStay:
+            booking.refresh_from_db()
+            messages.error(request, _("Below the minimum number of nights."))
+        except services.MaxGuests:
+            booking.refresh_from_db()
+            messages.error(request, _("Too many guests for this unit."))
+        except services.StayUnavailable:
+            booking.refresh_from_db()
+            messages.error(request, _("Those dates are no longer available."))
+        except ValueError:
+            booking.refresh_from_db()
+            messages.error(request, _("Invalid dates."))
+        except option_trackers.PoolFull as exc:
+            messages.error(
+                request,
+                _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.")
+                % {"label": exc.label},
             )
-            # PMS-R2: назначение физического номера (после переноса — даты
-            # финальные). Селект другой категории (unit сменился) — устарел,
-            # игнорируем: комнату уже сбросил move_stay.
-            room_obj = None
-            room_pk = request.POST.get("room", "")
-            if room_pk:
-                room_obj = Room.objects.filter(pk=room_pk, unit_id=booking.unit_id).first()
-            if room_obj is not None or not room_pk:
-                try:
-                    services.assign_room(booking, room_obj)
-                except services.RoomConflict:
-                    messages.error(request, _("This room is taken for those dates."))
+            return redirect(back)
+        except option_trackers.OptionOutOfStock as exc:
+            messages.error(
+                request,
+                _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
+            )
+            return redirect(back)
+        else:
+            if room_taken:
+                messages.error(request, _("This room is taken for those dates."))
             messages.success(request, _("Stay updated."))
             # MX-3: оплаченная бронь + изменившийся итог — владельцу нужна
             # дельта (доплата/возврат вручную; авто-чарджа нет осознанно).
@@ -515,14 +535,6 @@ def stay_action(request, pk):
                     )
                     % {"diff": f"{diff:+.2f}"},
                 )
-        except services.MinStay:
-            messages.error(request, _("Below the minimum number of nights."))
-        except services.MaxGuests:
-            messages.error(request, _("Too many guests for this unit."))
-        except services.StayUnavailable:
-            messages.error(request, _("Those dates are no longer available."))
-        except ValueError:
-            messages.error(request, _("Invalid dates."))
         # von — по АКТУАЛЬНОМУ заезду (move_stay мог его изменить); панель брони
         # остаётся открытой под календарём (?buchung=).
         return redirect(

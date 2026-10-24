@@ -350,6 +350,47 @@ def book_stay(
 
 
 @transaction.atomic
+def _move_keep_rate(booking, old_nights: int):
+    """KA-12 E4.7a: перенос без «Neu berechnen» — держим СОГЛАСОВАННУЮ цену за ночь.
+
+    Проживание (после скидок) масштабируется по числу ночей, per-night допы
+    пересчитываются, Kurtaxe — всегда свежая (налог общины по adults × ночи, не
+    предмет договорённости). Drag с тем же числом ночей и гостей — итог прежний.
+    Скидку промокода/сертификата не трогаем (снимок)."""
+    from apps.core import extras as extras_engine
+
+    nights = (booking.departure - booking.arrival).days
+    extras_old = extras_engine.total_cents(booking.extras)
+    kurtaxe_old = booking.kurtaxe_cents or 0
+    # База проживания = итог − Kurtaxe − допы + скидка (обратная формула reprice-ветки).
+    base = max(0, booking.total_cents - kurtaxe_old - extras_old + (booking.discount_cents or 0))
+    if nights != old_nights:
+        base = round(base * nights / old_nights)
+    booking.extras = extras_engine.retotal(booking.extras, nights=nights)
+    booking.kurtaxe_cents = pricing.kurtaxe_total_cents(booking.adults, nights)
+    booking.total_cents = (
+        max(0, base + extras_engine.total_cents(booking.extras) - (booking.discount_cents or 0))
+        + booking.kurtaxe_cents
+    )
+    update_fields = [
+        "unit",
+        "room",
+        "arrival",
+        "departure",
+        "total_cents",
+        "kurtaxe_cents",
+        "extras",
+        "updated_at",
+    ]
+    if booking.payment_state == StayBooking.PAYMENT_PENDING and booking.deposit_cents:
+        prepay = pricing.prepayment_cents(booking.total_cents, _rate_for_booking(booking))
+        if prepay > 0:
+            booking.deposit_cents = prepay
+            update_fields.append("deposit_cents")
+    booking.save(update_fields=update_fields)
+    return booking
+
+
 def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
     """Перенос брони на новый диапазон (и опц. в другой юнит) с той же
     anti-overbook-проверкой.
@@ -383,11 +424,11 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
         # PMS-R2: физический номер принадлежит категории — при смене сбрасываем.
         booking.room = None
     unit = dest
+    old_nights = max(1, (booking.departure - booking.arrival).days)
     booking.arrival = arrival
     booking.departure = departure
     if not reprice:
-        booking.save(update_fields=["unit", "room", "arrival", "departure", "updated_at"])
-        return booking
+        return _move_keep_rate(booking, old_nights)
     # A5a база + H1 тариф (снимок) + #7 Extras (пересчёт per-night, MX-0) − H4a
     # скидка + H9 Kurtaxe. Промокод не перегашиваем — держим снимок скидки.
     nights = (departure - arrival).days
