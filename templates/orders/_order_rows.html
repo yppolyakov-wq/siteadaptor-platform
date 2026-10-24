@@ -12,10 +12,12 @@
 {% comment %}KA-12 E2.4: на странице продаж у строки есть peek (o.tx — тот же
 Transaction, что у Liste); без него (письма/тесты) строки рисуются как раньше.{% endcomment %}
 {% if orders %}
+{% if bulk_kind %}<label class="inline-flex items-center gap-2 mb-2 text-xs text-gray-500"><input type="checkbox" data-bulk-all class="h-4 w-4 rounded border-gray-300"> {% trans "Alle auf dieser Seite" %}</label>{% endif %}
 {% if order_peek %}<div class="lg:grid lg:grid-cols-[1fr_22rem] lg:gap-4 lg:items-start" data-peek-root>{% endif %}
 <div class="space-y-2">
   {% for o in orders %}
     <div class="flex items-center justify-between gap-3 px-4 py-3 bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)]{% if o.tx %} lg:cursor-pointer{% endif %}"{% if o.tx %} data-peek-row{% endif %}>
+      {% if bulk_kind %}<input type="checkbox" name="ids" value="{{ o.pk }}" form="bulk-form" data-bulk-row data-bulk-targets="{% for a in o.row_actions %}{{ a.target }} {% endfor %}" aria-label="{% trans 'Auswählen' %}" class="shrink-0 h-5 w-5 rounded border-gray-300">{% endif %}
       <span class="w-6 shrink-0 text-xs tabular-nums text-gray-300">{% if page %}{{ forloop.counter|add:page.offset }}{% else %}{{ forloop.counter }}{% endif %}</span>
       <div class="min-w-0 flex-1">
         <a href="{% url 'orders:order-detail' o.pk %}" class="block text-sm font-medium truncate hover:text-indigo-700">{{ o.reference_code }}
@@ -49,6 +51,7 @@ Transaction, что у Liste); без него (письма/тесты) стр�
 </aside>
 </div>
 {% include "core/_deal_peek_js.html" %}
+{% include "core/_bulk_bar.html" %}
 {% endif %}
 {% else %}
 <p class="text-gray-500">{% trans "No orders yet. Customers order from your product pages." %}</p>

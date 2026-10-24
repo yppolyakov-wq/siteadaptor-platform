@@ -1,0 +1,98 @@
+{% load i18n %}
+{% comment %}KA-12 E2.1: массовые действия списка продаж. Чекбоксы строк привязаны к
+форме атрибутом form="bulk-form" (форма — вне строк: вложенные формы браузер
+разворачивает). Варианты селекта — объединение переходов страницы; JS оставляет
+только общие для ВЫБРАННЫХ. Сервер пересчитывает пересечение заново и отклоняет
+цель вне него — клиентский список только для удобства. Опасная цель (отмена) —
+подтверждение диалогом (_danger_confirm), сервер требует confirm=1.
+Контекст: bulk_kind, bulk_options.{% endcomment %}
+{% if bulk_options or bulk_kind == "order" %}
+<form id="bulk-form" method="post" action="{% url 'verkaeufe-bulk' %}" data-bulk-form hidden
+      class="fixed z-30 inset-x-4 bottom-24 md:bottom-4 md:left-auto md:right-6 md:w-[34rem] flex flex-wrap items-center gap-2 rounded-2xl bg-gray-900 text-white px-4 py-3 shadow-[0_12px_40px_rgba(22,24,29,0.25)]">
+  {% csrf_token %}
+  <input type="hidden" name="kind" value="{{ bulk_kind }}">
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <input type="hidden" name="confirm" value="" data-bulk-confirm>
+  <span class="text-sm font-medium" data-bulk-count></span>
+  {% if bulk_options %}
+  <select name="action" aria-label="{% trans 'Status ändern' %}" data-bulk-action
+          class="min-w-0 flex-1 rounded-xl border-0 bg-white/10 px-3 py-2 text-sm text-white">
+    {% for a in bulk_options %}
+      <option value="{{ a.target }}" class="text-gray-900"{% if a.danger %} data-danger="1"{% endif %}>{{ a.label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" data-bulk-go class="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100">{% trans "Anwenden" %}</button>
+  {% endif %}
+  {% if bulk_kind == "order" %}
+  <button type="submit" formaction="{% url 'orders:delivery-notes' %}" formtarget="_blank" data-bulk-pdf
+          class="rounded-xl bg-white/10 px-3 py-2 text-sm hover:bg-white/20">📄 {% trans "Lieferscheine" %}</button>
+  {% endif %}
+  <button type="button" data-bulk-clear class="rounded-full w-8 h-8 text-white/70 hover:bg-white/10" aria-label="{% trans 'Auswahl aufheben' %}">✕</button>
+  <p class="w-full text-xs text-amber-300" data-bulk-none hidden>{% trans "Kein gemeinsamer Schritt für die Auswahl." %}</p>
+</form>
+<script>
+(function () {
+  "use strict";
+  var form = document.getElementById("bulk-form");
+  if (!form || form.__bound) return;
+  form.__bound = true;
+  var select = form.querySelector("[data-bulk-action]");
+  var go = form.querySelector("[data-bulk-go]");
+  var countEl = form.querySelector("[data-bulk-count]");
+  var none = form.querySelector("[data-bulk-none]");
+  {% trans "ausgewählt" as msg_count %}var MSG_COUNT = "{{ msg_count|escapejs }}";
+
+  function rows() { return Array.prototype.slice.call(document.querySelectorAll("[data-bulk-row]")); }
+
+  function refresh() {
+    var picked = rows().filter(function (r) { return r.checked; });
+    form.hidden = picked.length === 0;
+    countEl.textContent = picked.length + " " + MSG_COUNT;
+    if (!select) return;
+    var common = null;
+    picked.forEach(function (r) {
+      var t = (r.getAttribute("data-bulk-targets") || "").split(" ").filter(Boolean);
+      common = common === null ? t : common.filter(function (x) { return t.indexOf(x) !== -1; });
+    });
+    var any = false;
+    Array.prototype.forEach.call(select.options, function (o) {
+      var ok = !!common && common.indexOf(o.value) !== -1;
+      o.hidden = !ok;
+      o.disabled = !ok;
+      if (ok && !any) { any = true; if (select.selectedOptions[0] && select.selectedOptions[0].disabled) o.selected = true; }
+    });
+    select.hidden = !any;
+    if (go) go.hidden = !any;
+    if (none) none.hidden = any || picked.length === 0;
+  }
+
+  document.addEventListener("change", function (e) {
+    if (e.target.matches("[data-bulk-row]")) refresh();
+    if (e.target.matches("[data-bulk-all]")) {
+      rows().forEach(function (r) { r.checked = e.target.checked; });
+      refresh();
+    }
+  });
+  form.querySelector("[data-bulk-clear]").addEventListener("click", function () {
+    rows().forEach(function (r) { r.checked = false; });
+    document.querySelectorAll("[data-bulk-all]").forEach(function (a) { a.checked = false; });
+    refresh();
+  });
+  form.addEventListener("submit", function (e) {
+    var btn = e.submitter;
+    if (!select || btn !== go) return;
+    var opt = select.selectedOptions[0];
+    var confirmEl = form.querySelector("[data-bulk-confirm]");
+    if (!opt || opt.getAttribute("data-danger") !== "1" || confirmEl.value === "1") return;
+    e.preventDefault();
+    var n = rows().filter(function (r) { return r.checked; }).length;
+    window.sfDangerConfirm(opt.textContent.trim() + " · " + n + " " + MSG_COUNT).then(function (ok) {
+      if (!ok) return;
+      confirmEl.value = "1";
+      form.requestSubmit(go);
+    });
+  });
+  refresh();
+})();
+</script>
+{% endif %}

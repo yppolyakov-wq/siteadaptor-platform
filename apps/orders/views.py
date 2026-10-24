@@ -509,6 +509,38 @@ def delivery_note_pdf(request, pk):
     return resp
 
 
+@login_required
+@require_POST
+def delivery_notes_pdf(request):
+    """KA-12 E2.1: Lieferscheine выбранных заказов одним PDF (до 50).
+
+    POST — список id длинный; права — как у одиночной накладной."""
+    from apps.core.bulk_actions import MAX_IDS, clean_ids
+
+    from .pdf import build_delivery_notes_pdf
+
+    pks = clean_ids(request.POST.getlist("ids"))[:MAX_IDS]
+    order_by_pk = {
+        o.pk: o
+        for o in Order.objects.select_related("customer")
+        .prefetch_related("items")
+        .filter(pk__in=pks)
+    }
+    orders = [order_by_pk[pk] for pk in pks if pk in order_by_pk]
+    if not orders:
+        messages.error(request, _("Bitte zuerst Einträge auswählen."))
+        return redirect(reverse("verkaeufe") + "?tab=order&view=liste")
+    from django.utils import translation
+
+    from apps.core.documents import document_language
+
+    with translation.override(document_language(request)):
+        pdf = build_delivery_notes_pdf(orders, request.tenant)
+    resp = HttpResponse(pdf, content_type="application/pdf")
+    resp["Content-Disposition"] = 'inline; filename="Lieferscheine.pdf"'
+    return resp
+
+
 def _eur_to_cents(raw) -> int:
     try:
         return max(0, round(float(str(raw or "0").replace(",", ".")) * 100))

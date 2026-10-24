@@ -29217,3 +29217,91 @@ msgstr "Спочатку старі"
 
 msgid "Überfällig"
 msgstr "Прострочено"
+
+msgid "Alle auf dieser Seite"
+msgstr "Усі на цій сторінці"
+
+msgid "Auswahl aufheben"
+msgstr "Скасувати вибір"
+
+msgid "Auswählen"
+msgstr "Вибрати"
+
+msgid "Bitte den Schritt bestätigen."
+msgstr "Підтвердьте крок."
+
+msgid "Bitte zuerst Einträge auswählen."
+msgstr "Спершу виберіть записи."
+
+msgid "Dieser Bereich ist nicht aktiv."
+msgstr "Цей розділ не ввімкнено."
+
+msgid "Dieser Schritt ist nicht für alle ausgewählten Einträge möglich."
+msgstr "Цей крок можливий не для всіх вибраних записів."
+
+#, python-format
+msgid "Höchstens %(n)s Einträge auf einmal."
+msgstr "Не більше %(n)s записів за раз."
+
+msgid "Ja, ausführen"
+msgstr "Так, виконати"
+
+msgid "Kein gemeinsamer Schritt für die Auswahl."
+msgstr "Для вибраного немає спільного кроку."
+
+msgid "Lieferscheine"
+msgstr "Накладні"
+
+msgid "Schritt im aktuellen Status nicht möglich"
+msgstr "крок неможливий у поточному статусі"
+
+#, python-format
+msgid "Stornieren geht höchstens für %(n)s Einträge auf einmal."
+msgstr "Скасувати можна не більше %(n)s записів за раз."
+
+msgid "Wirklich ausführen?"
+msgstr "Точно виконати?"
+
+msgid "ausgewählt"
+msgstr "вибрано"
+
+msgid "bezahlt — Erstattung in der Buchung wählen"
+msgstr "оплачено — виберіть повернення в картці бронювання"
+
+msgid "das lässt sich nicht einfach rückgängig machen."
+msgstr "це не можна просто скасувати."
+
+msgid "noch nicht bezahlt"
+msgstr "ще не оплачено"
+
+#, python-format
+msgid "%(n)s übersprungen (%(reason)s)"
+msgstr "%(n)s пропущено (%(reason)s)"
+
+#, python-format
+msgid "%(n)s Eintrag geändert"
+msgid_plural "%(n)s Einträge geändert"
+msgstr[0] "%(n)s запис змінено"
+msgstr[1] "%(n)s записи змінено"
+msgstr[2] "%(n)s записів змінено"
+msgstr[3] "%(n)s запису змінено"
+
+#, python-format
+msgid "%(n)s war schon so"
+msgid_plural "%(n)s waren schon so"
+msgstr[0] "%(n)s вже був у цьому статусі"
+msgstr[1] "%(n)s вже були в цьому статусі"
+msgstr[2] "%(n)s вже були в цьому статусі"
+msgstr[3] "%(n)s вже були в цьому статусі"
+
+msgid "Angelegt"
+msgstr "Створено"
+
+msgid "Zahlungsart"
+msgstr "Спосіб оплати"
+
+msgid "Zahlungsstatus"
+msgstr "Статус оплати"
+
+msgid "… gekürzt: mehr als %(n)s Zeilen"
+msgstr "… обрізано: понад %(n)s рядків"

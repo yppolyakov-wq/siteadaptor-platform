@@ -29112,3 +29112,87 @@ msgstr "Önce en eski"
 
 msgid "Überfällig"
 msgstr "Vadesi geçmiş"
+
+msgid "Alle auf dieser Seite"
+msgstr "Bu sayfadakilerin tümü"
+
+msgid "Auswahl aufheben"
+msgstr "Seçimi kaldır"
+
+msgid "Auswählen"
+msgstr "Seç"
+
+msgid "Bitte den Schritt bestätigen."
+msgstr "Lütfen bu adımı onaylayın."
+
+msgid "Bitte zuerst Einträge auswählen."
+msgstr "Lütfen önce kayıt seçin."
+
+msgid "Dieser Bereich ist nicht aktiv."
+msgstr "Bu alan etkin değil."
+
+msgid "Dieser Schritt ist nicht für alle ausgewählten Einträge möglich."
+msgstr "Bu adım seçilen tüm kayıtlar için mümkün değil."
+
+#, python-format
+msgid "Höchstens %(n)s Einträge auf einmal."
+msgstr "Tek seferde en fazla %(n)s kayıt."
+
+msgid "Ja, ausführen"
+msgstr "Evet, uygula"
+
+msgid "Kein gemeinsamer Schritt für die Auswahl."
+msgstr "Seçim için ortak adım yok."
+
+msgid "Lieferscheine"
+msgstr "İrsaliyeler"
+
+msgid "Schritt im aktuellen Status nicht möglich"
+msgstr "mevcut durumda adım mümkün değil"
+
+#, python-format
+msgid "Stornieren geht höchstens für %(n)s Einträge auf einmal."
+msgstr "Tek seferde en fazla %(n)s kayıt iptal edilebilir."
+
+msgid "Wirklich ausführen?"
+msgstr "Gerçekten uygulansın mı?"
+
+msgid "ausgewählt"
+msgstr "seçildi"
+
+msgid "bezahlt — Erstattung in der Buchung wählen"
+msgstr "ödendi — iadeyi rezervasyonda seçin"
+
+msgid "das lässt sich nicht einfach rückgängig machen."
+msgstr "bu kolayca geri alınamaz."
+
+msgid "noch nicht bezahlt"
+msgstr "henüz ödenmedi"
+
+#, python-format
+msgid "%(n)s übersprungen (%(reason)s)"
+msgstr "%(n)s atlandı (%(reason)s)"
+
+#, python-format
+msgid "%(n)s Eintrag geändert"
+msgid_plural "%(n)s Einträge geändert"
+msgstr[0] "%(n)s kayıt değiştirildi"
+msgstr[1] "%(n)s kayıt değiştirildi"
+
+#, python-format
+msgid "%(n)s war schon so"
+msgid_plural "%(n)s waren schon so"
+msgstr[0] "%(n)s zaten bu durumdaydı"
+msgstr[1] "%(n)s zaten bu durumdaydı"
+
+msgid "Angelegt"
+msgstr "Oluşturuldu"
+
+msgid "Zahlungsart"
+msgstr "Ödeme yöntemi"
+
+msgid "Zahlungsstatus"
+msgstr "Ödeme durumu"
+
+msgid "… gekürzt: mehr als %(n)s Zeilen"
+msgstr "… kısaltıldı: %(n)s satırdan fazla"

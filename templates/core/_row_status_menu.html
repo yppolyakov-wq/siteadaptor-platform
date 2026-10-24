@@ -5,15 +5,20 @@
 деньги идут штатным путём; правила FSM остаются жёстким полом.
 Параметры include: kind, pk, label, actions (tx.allowed_actions), next_path.{% endcomment %}
 {% if actions %}
+{% comment %}KA-12 E2.8: на телефоне меню — нижний лист во всю ширину над
+таб-баром (кнопки по 44 px, подложка закрывает по тапу); на sm+ — прежний
+выпадающий список. Скрытие/показ — только CSS, форма одна (инвариант W0).{% endcomment %}
 <details class="relative" data-row-status>
   <summary class="list-none cursor-pointer text-xs font-medium px-2 py-0.5 rounded-full {{ badge_class|default:'bg-gray-100 text-gray-600' }}">{{ label }} ▾</summary>
-  <div class="absolute right-0 z-20 mt-1 w-52 rounded-xl border border-gray-200 bg-white p-1 shadow-lg">
+  <div class="sm:hidden fixed inset-0 z-40 bg-black/30" data-sheet-backdrop aria-hidden="true"></div>
+  <div class="absolute right-0 z-20 mt-1 w-52 rounded-xl border border-gray-200 bg-white p-1 shadow-lg max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:z-50 max-sm:mt-0 max-sm:w-auto max-sm:rounded-b-none max-sm:rounded-t-2xl max-sm:border-0 max-sm:p-3 max-sm:pb-[calc(env(safe-area-inset-bottom)+1rem)]" data-sheet>
+    <p class="sm:hidden px-2 pb-2 text-sm font-semibold text-gray-900">{% trans "Status ändern" %} · {{ label }}</p>
     <form method="post" action="{% url 'board-action' kind pk %}" class="flex flex-col gap-1">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ next_path }}">
       {% for a in actions %}
-        <button type="submit" name="action" value="{{ a.target }}"
-                class="text-left text-sm rounded-lg px-2 py-1.5 {% if a.danger %}text-red-600 hover:bg-red-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}">{{ a.label }}</button>
+        <button type="submit" name="action" value="{{ a.target }}"{% if a.danger %} data-danger="1"{% endif %}
+                class="text-left text-sm rounded-lg px-2 py-1.5 max-sm:py-3 max-sm:text-base {% if a.danger %}text-red-600 hover:bg-red-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}">{{ a.label }}</button>
       {% endfor %}
     </form>
   </div>

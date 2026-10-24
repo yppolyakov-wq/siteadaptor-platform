@@ -42,10 +42,12 @@ radius 16 с мягкой тенью; порядковый номер (SH-12) и
 <template data-peek> клонируется в #deal-peek, запросов на клик нет). На
 мобильном панели нет — строка ведёт на карточку как раньше.{% endcomment %}
 {% if section and section.transactions %}
+{% if bulk_kind %}<label class="inline-flex items-center gap-2 mb-2 text-xs text-gray-500"><input type="checkbox" data-bulk-all class="h-4 w-4 rounded border-gray-300"> {% trans "Alle auf dieser Seite" %}</label>{% endif %}
 <div class="lg:grid lg:grid-cols-[1fr_22rem] lg:gap-4 lg:items-start" data-peek-root>
 <div class="space-y-2">
   {% for tx in section.transactions %}
     <div class="flex items-center justify-between gap-3 px-4 py-3 bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)] lg:cursor-pointer" data-peek-row>
+{% if bulk_kind %}<input type="checkbox" name="ids" value="{{ tx.pk }}" form="bulk-form" data-bulk-row data-bulk-targets="{% for a in tx.allowed_actions %}{{ a.target }} {% endfor %}" aria-label="{% trans 'Auswählen' %}" class="shrink-0 h-5 w-5 rounded border-gray-300">{% endif %}
       <span class="w-6 shrink-0 text-xs tabular-nums text-gray-300">{% if page %}{{ forloop.counter|add:page.offset }}{% else %}{{ forloop.counter }}{% endif %}</span>
       <div class="min-w-0 flex-1">
         <a href="{{ tx.manage_url|default:'#' }}" class="text-sm font-medium truncate block hover:text-indigo-700">{{ tx.title }}
@@ -66,6 +68,7 @@ radius 16 с мягкой тенью; порядковый номер (SH-12) и
 </aside>
 </div>
 {% include "core/_deal_peek_js.html" %}
+{% include "core/_bulk_bar.html" %}
 {% else %}
 {% if list_q %}
   <p class="text-gray-500">{% blocktrans with q=list_q %}Nichts gefunden für „{{ q }}“.{% endblocktrans %}</p>

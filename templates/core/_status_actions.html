@@ -10,6 +10,6 @@ Jeder Button postet name="action" value="<Zielstatus>".
 {% if not actions %}{% status_actions kind obj as actions %}{% endif %}
 {% for a in actions %}
   {% if a.refund_choice %}{% include "core/_refund_choice.html" %}{% endif %}
-  <button type="submit" name="action" value="{{ a.target }}" data-target="{{ a.target }}" data-stage="{{ a.stage }}"
+  <button type="submit" name="action" value="{{ a.target }}" data-target="{{ a.target }}" data-stage="{{ a.stage }}"{% if a.danger %} data-danger="1"{% endif %}
     class="text-sm rounded-lg px-3 py-1.5 {% if a.danger %}border border-red-200 text-red-600 hover:bg-red-50{% else %}bg-indigo-600 text-white hover:bg-indigo-700{% endif %}">{{ a.label }}</button>
 {% endfor %}

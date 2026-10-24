@@ -533,6 +533,10 @@ def body_context(request, kind: str, view: str) -> dict:
             o.tx = transactions.transaction_for("order", o, labels, subset)
         ctx["orders"] = orders
         ctx["order_peek"] = True
+        # KA-12 E2.1: массовые действия — варианты = объединение переходов строк
+        # страницы (JS сужает до пересечения выбранных; сервер проверит заново).
+        ctx["bulk_kind"] = "order"
+        ctx["bulk_options"] = _bulk_options("order", [o.row_actions for o in orders])
         # X4 (§6.A4.5): KDS/Tisch-QR — гастро-инструменты; раньше кнопки видел
         # любой архетип с модулем orders (парикмахер — «Kitchen Display»).
         # KA-12 E0.3 (KA-5a B5): тот же гейт, что у записей реестра навигации — KDS только
@@ -571,10 +575,27 @@ def body_context(request, kind: str, view: str) -> dict:
         )
         ctx["section"] = sections[0] if sections else None
         ctx["page"] = ctx["section"]["page"] if ctx["section"] else None
+        if ctx["section"]:
+            ctx["bulk_kind"] = kind
+            ctx["bulk_options"] = _bulk_options(
+                kind, [tx.allowed_actions for tx in ctx["section"]["transactions"]]
+            )
         ctx["list_q"] = q
         ctx["list_status"] = status
         ctx["list_status_options"] = options
     return ctx
+
+
+def _bulk_options(kind: str, row_actions) -> list[dict]:
+    """KA-12 E2.1: объединение переходов строк (без целей, которые массово не ставим)."""
+    from apps.core.bulk_actions import NOT_BULK
+
+    seen: dict = {}
+    for actions in row_actions:
+        for a in actions or ():
+            if a["target"] not in seen and a["target"] not in NOT_BULK.get(kind, ()):
+                seen[a["target"]] = a
+    return list(seen.values())
 
 
 def create_target(kind: str, customers: bool = False) -> str:

@@ -33,10 +33,22 @@ def _item_label(item) -> str:
 
 
 def build_delivery_note_pdf(order, tenant) -> bytes:
-    font, font_bold = fonts()
+    return build_delivery_notes_pdf([order], tenant)
+
+
+def build_delivery_notes_pdf(orders, tenant) -> bytes:
+    """KA-12 E2.1: накладные пачкой — один PDF, по странице на заказ."""
     buffer = io.BytesIO()
-    page_w, page_h = A4
     c = canvas.Canvas(buffer, pagesize=A4)
+    for order in orders:
+        _draw_delivery_note(c, order, tenant)
+    c.save()
+    return buffer.getvalue()
+
+
+def _draw_delivery_note(c, order, tenant) -> None:
+    font, font_bold = fonts()
+    page_w, page_h = A4
     x = 20 * mm
     y = page_h - 25 * mm
 
@@ -111,5 +123,3 @@ def build_delivery_note_pdf(order, tenant) -> bytes:
         ly -= 6 * mm
 
     c.showPage()
-    c.save()
-    return buffer.getvalue()

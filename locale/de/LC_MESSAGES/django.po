@@ -29060,3 +29060,87 @@ msgstr "Älteste zuerst"
 
 msgid "Überfällig"
 msgstr "Überfällig"
+
+msgid "Alle auf dieser Seite"
+msgstr "Alle auf dieser Seite"
+
+msgid "Auswahl aufheben"
+msgstr "Auswahl aufheben"
+
+msgid "Auswählen"
+msgstr "Auswählen"
+
+msgid "Bitte den Schritt bestätigen."
+msgstr "Bitte den Schritt bestätigen."
+
+msgid "Bitte zuerst Einträge auswählen."
+msgstr "Bitte zuerst Einträge auswählen."
+
+msgid "Dieser Bereich ist nicht aktiv."
+msgstr "Dieser Bereich ist nicht aktiv."
+
+msgid "Dieser Schritt ist nicht für alle ausgewählten Einträge möglich."
+msgstr "Dieser Schritt ist nicht für alle ausgewählten Einträge möglich."
+
+#, python-format
+msgid "Höchstens %(n)s Einträge auf einmal."
+msgstr "Höchstens %(n)s Einträge auf einmal."
+
+msgid "Ja, ausführen"
+msgstr "Ja, ausführen"
+
+msgid "Kein gemeinsamer Schritt für die Auswahl."
+msgstr "Kein gemeinsamer Schritt für die Auswahl."
+
+msgid "Lieferscheine"
+msgstr "Lieferscheine"
+
+msgid "Schritt im aktuellen Status nicht möglich"
+msgstr "Schritt im aktuellen Status nicht möglich"
+
+#, python-format
+msgid "Stornieren geht höchstens für %(n)s Einträge auf einmal."
+msgstr "Stornieren geht höchstens für %(n)s Einträge auf einmal."
+
+msgid "Wirklich ausführen?"
+msgstr "Wirklich ausführen?"
+
+msgid "ausgewählt"
+msgstr "ausgewählt"
+
+msgid "bezahlt — Erstattung in der Buchung wählen"
+msgstr "bezahlt — Erstattung in der Buchung wählen"
+
+msgid "das lässt sich nicht einfach rückgängig machen."
+msgstr "das lässt sich nicht einfach rückgängig machen."
+
+msgid "noch nicht bezahlt"
+msgstr "noch nicht bezahlt"
+
+#, python-format
+msgid "%(n)s übersprungen (%(reason)s)"
+msgstr "%(n)s übersprungen (%(reason)s)"
+
+#, python-format
+msgid "%(n)s Eintrag geändert"
+msgid_plural "%(n)s Einträge geändert"
+msgstr[0] "%(n)s Eintrag geändert"
+msgstr[1] "%(n)s Einträge geändert"
+
+#, python-format
+msgid "%(n)s war schon so"
+msgid_plural "%(n)s waren schon so"
+msgstr[0] "%(n)s war schon so"
+msgstr[1] "%(n)s waren schon so"
+
+msgid "Angelegt"
+msgstr "Angelegt"
+
+msgid "Zahlungsart"
+msgstr "Zahlungsart"
+
+msgid "Zahlungsstatus"
+msgstr "Zahlungsstatus"
+
+msgid "… gekürzt: mehr als %(n)s Zeilen"
+msgstr "… gekürzt: mehr als %(n)s Zeilen"

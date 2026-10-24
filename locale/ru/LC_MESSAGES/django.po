@@ -29233,3 +29233,91 @@ msgstr "Сначала старые"
 
 msgid "Überfällig"
 msgstr "Просрочено"
+
+msgid "Alle auf dieser Seite"
+msgstr "Все на этой странице"
+
+msgid "Auswahl aufheben"
+msgstr "Снять выбор"
+
+msgid "Auswählen"
+msgstr "Выбрать"
+
+msgid "Bitte den Schritt bestätigen."
+msgstr "Подтвердите шаг."
+
+msgid "Bitte zuerst Einträge auswählen."
+msgstr "Сначала выберите записи."
+
+msgid "Dieser Bereich ist nicht aktiv."
+msgstr "Этот раздел не включён."
+
+msgid "Dieser Schritt ist nicht für alle ausgewählten Einträge möglich."
+msgstr "Этот шаг возможен не для всех выбранных записей."
+
+#, python-format
+msgid "Höchstens %(n)s Einträge auf einmal."
+msgstr "Не больше %(n)s записей за раз."
+
+msgid "Ja, ausführen"
+msgstr "Да, выполнить"
+
+msgid "Kein gemeinsamer Schritt für die Auswahl."
+msgstr "Для выбранного нет общего шага."
+
+msgid "Lieferscheine"
+msgstr "Накладные"
+
+msgid "Schritt im aktuellen Status nicht möglich"
+msgstr "шаг невозможен в текущем статусе"
+
+#, python-format
+msgid "Stornieren geht höchstens für %(n)s Einträge auf einmal."
+msgstr "Отменить можно не больше %(n)s записей за раз."
+
+msgid "Wirklich ausführen?"
+msgstr "Точно выполнить?"
+
+msgid "ausgewählt"
+msgstr "выбрано"
+
+msgid "bezahlt — Erstattung in der Buchung wählen"
+msgstr "оплачено — выберите возврат в карточке брони"
+
+msgid "das lässt sich nicht einfach rückgängig machen."
+msgstr "это нельзя просто отменить."
+
+msgid "noch nicht bezahlt"
+msgstr "ещё не оплачено"
+
+#, python-format
+msgid "%(n)s übersprungen (%(reason)s)"
+msgstr "%(n)s пропущено (%(reason)s)"
+
+#, python-format
+msgid "%(n)s Eintrag geändert"
+msgid_plural "%(n)s Einträge geändert"
+msgstr[0] "%(n)s запись изменена"
+msgstr[1] "%(n)s записи изменены"
+msgstr[2] "%(n)s записей изменено"
+msgstr[3] "%(n)s записи изменено"
+
+#, python-format
+msgid "%(n)s war schon so"
+msgid_plural "%(n)s waren schon so"
+msgstr[0] "%(n)s уже была в этом статусе"
+msgstr[1] "%(n)s уже были в этом статусе"
+msgstr[2] "%(n)s уже были в этом статусе"
+msgstr[3] "%(n)s уже были в этом статусе"
+
+msgid "Angelegt"
+msgstr "Создано"
+
+msgid "Zahlungsart"
+msgstr "Способ оплаты"
+
+msgid "Zahlungsstatus"
+msgstr "Статус оплаты"
+
+msgid "… gekürzt: mehr als %(n)s Zeilen"
+msgstr "… обрезано: больше %(n)s строк"

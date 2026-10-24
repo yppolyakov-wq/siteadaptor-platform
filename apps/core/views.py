@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 
 from apps.catalog import category_styles
@@ -301,6 +302,9 @@ def dashboard(request):
         if not isinstance(sub, dict):
             return sub
         loop_ctx = sub
+        # KA-12 E2.1: массовые действия — только на странице «Verkäufe».
+        loop_ctx.pop("bulk_kind", None)
+        loop_ctx.pop("bulk_options", None)
         # KA-P4a: пейджер списка на главной ведёт на ту же вкладку Verkäufe
         # (главная `?seite=` не читает).
         from django.urls import reverse
@@ -4804,6 +4808,73 @@ def verkaeufe_view_set(request):
     if nxt.startswith("/") and not nxt.startswith("//"):
         return redirect(nxt)
     return redirect(reverse("verkaeufe") + f"?tab={kind}")
+
+
+def _safe_next(nxt: str, fallback: str) -> str:
+    """Только внутренний путь: без `//host`, `/\\host` и схем."""
+    if (
+        nxt.startswith("/")
+        and "\\" not in nxt
+        and url_has_allowed_host_and_scheme(nxt, allowed_hosts=None)
+    ):
+        return nxt
+    return fallback
+
+
+@login_required
+@require_POST
+def sales_bulk_action(request):
+    """KA-12 E2.1: массовая смена статуса из списка продаж (до 50 сделок).
+
+    Пересечение переходов и права считаются на сервере (`bulk_actions.apply_bulk`);
+    каждый объект идёт штатным путём одиночной кнопки (`apply_action`)."""
+    from django.urls import reverse
+
+    from apps.core import bulk_actions, refunds
+
+    kind = request.POST.get("kind", "")
+    back = _safe_next(request.POST.get("next", ""), reverse("verkaeufe") + f"?tab={kind}")
+    try:
+        result = bulk_actions.apply_bulk(
+            request.tenant,
+            kind,
+            request.POST.getlist("ids"),
+            request.POST.get("action", ""),
+            confirm=request.POST.get("confirm") == "1",
+            actor=request.user,
+        )
+    except bulk_actions.BulkRefused as exc:
+        messages.error(request, str(exc))
+        return redirect(back)
+    parts = [
+        ngettext("%(n)s Eintrag geändert", "%(n)s Einträge geändert", result.changed)
+        % {"n": result.changed}
+    ]
+    if result.already:
+        parts.append(
+            ngettext("%(n)s war schon so", "%(n)s waren schon so", result.already)
+            % {"n": result.already}
+        )
+    for reason, n in result.skipped.items():
+        parts.append(_("%(n)s übersprungen (%(reason)s)") % {"n": n, "reason": reason})
+    level = messages.warning if result.skipped else messages.success
+    level(request, " · ".join(parts))
+    for refund in result.refunds:
+        refunds.flash(request, refund, kind)
+    from apps.core.audit import audit_event
+
+    audit_event(
+        action="sales.bulk_status",
+        resource_type=kind,
+        resource_id="",
+        actor=request.user,
+        context={
+            "target": request.POST.get("action", "")[:20],
+            "changed": result.changed,
+            "skipped": sum(result.skipped.values()),
+        },
+    )
+    return redirect(back)
 
 
 def _board_stage_rows(tenant):

@@ -28968,3 +28968,87 @@ msgstr "Oldest first"
 
 msgid "Überfällig"
 msgstr "Overdue"
+
+msgid "Alle auf dieser Seite"
+msgstr "All on this page"
+
+msgid "Auswahl aufheben"
+msgstr "Clear selection"
+
+msgid "Auswählen"
+msgstr "Select"
+
+msgid "Bitte den Schritt bestätigen."
+msgstr "Please confirm this step."
+
+msgid "Bitte zuerst Einträge auswählen."
+msgstr "Please select entries first."
+
+msgid "Dieser Bereich ist nicht aktiv."
+msgstr "This area is not active."
+
+msgid "Dieser Schritt ist nicht für alle ausgewählten Einträge möglich."
+msgstr "This step is not possible for all selected entries."
+
+#, python-format
+msgid "Höchstens %(n)s Einträge auf einmal."
+msgstr "At most %(n)s entries at once."
+
+msgid "Ja, ausführen"
+msgstr "Yes, do it"
+
+msgid "Kein gemeinsamer Schritt für die Auswahl."
+msgstr "No common step for the selection."
+
+msgid "Lieferscheine"
+msgstr "Delivery notes"
+
+msgid "Schritt im aktuellen Status nicht möglich"
+msgstr "step not possible in the current status"
+
+#, python-format
+msgid "Stornieren geht höchstens für %(n)s Einträge auf einmal."
+msgstr "Cancelling works for at most %(n)s entries at once."
+
+msgid "Wirklich ausführen?"
+msgstr "Really do this?"
+
+msgid "ausgewählt"
+msgstr "selected"
+
+msgid "bezahlt — Erstattung in der Buchung wählen"
+msgstr "paid — choose the refund in the booking"
+
+msgid "das lässt sich nicht einfach rückgängig machen."
+msgstr "this cannot simply be undone."
+
+msgid "noch nicht bezahlt"
+msgstr "not paid yet"
+
+#, python-format
+msgid "%(n)s übersprungen (%(reason)s)"
+msgstr "%(n)s skipped (%(reason)s)"
+
+#, python-format
+msgid "%(n)s Eintrag geändert"
+msgid_plural "%(n)s Einträge geändert"
+msgstr[0] "%(n)s entry changed"
+msgstr[1] "%(n)s entries changed"
+
+#, python-format
+msgid "%(n)s war schon so"
+msgid_plural "%(n)s waren schon so"
+msgstr[0] "%(n)s was already so"
+msgstr[1] "%(n)s were already so"
+
+msgid "Angelegt"
+msgstr "Created"
+
+msgid "Zahlungsart"
+msgstr "Payment method"
+
+msgid "Zahlungsstatus"
+msgstr "Payment status"
+
+msgid "… gekürzt: mehr als %(n)s Zeilen"
+msgstr "… truncated: more than %(n)s rows"

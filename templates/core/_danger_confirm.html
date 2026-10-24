@@ -1,0 +1,77 @@
+{% load i18n %}
+{% comment %}KA-12 E2.8: подтверждение опасных переходов (отмена, отказ, неявка)
+перед отправкой формы статуса. Одна точка на кабинет (подключена в
+_base_dashboard): перехват submit в фазе capture на document опережает и
+обычную отправку, и fetch-отправку доски. Кнопка помечается data-danger="1"
+в партиалах статусов. Без JS форма уходит как раньше (fail-safe).
+<dialog>, а не confirm(): в Telegram Mini App нативный confirm чужероден.
+`window.sfDangerConfirm(label)` — тот же диалог для перетаскивания на доске.{% endcomment %}
+<dialog id="danger-confirm" class="rounded-2xl p-0 border-0 shadow-xl backdrop:bg-black/40 w-[min(22rem,92vw)]">
+  <div class="p-5 text-left">
+    <p class="font-semibold mb-1">{% trans "Wirklich ausführen?" %}</p>
+    <p class="text-sm text-gray-600 mb-4"><span class="font-medium" data-danger-label></span> — {% trans "das lässt sich nicht einfach rückgängig machen." %}</p>
+    <div class="flex items-center justify-end gap-2">
+      <button type="button" value="no" data-danger-no class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">{% trans "Abbrechen" %}</button>
+      <button type="button" value="yes" data-danger-yes class="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700">{% trans "Ja, ausführen" %}</button>
+    </div>
+  </div>
+</dialog>
+<script>
+(function () {
+  "use strict";
+  if (window.sfDangerConfirm) return;
+  var dlg = document.getElementById("danger-confirm");
+  var pending = null;
+
+  function finish(ok) {
+    if (dlg && dlg.open) dlg.close();
+    var cb = pending;
+    pending = null;
+    if (cb) cb(ok);
+  }
+
+  window.sfDangerConfirm = function (label) {
+    return new Promise(function (resolve) {
+      if (!dlg || typeof dlg.showModal !== "function") {
+        resolve(window.confirm(label));
+        return;
+      }
+      pending = resolve;
+      dlg.querySelector("[data-danger-label]").textContent = label || "";
+      dlg.showModal();
+      dlg.querySelector("[data-danger-no]").focus();
+    });
+  };
+
+  if (dlg) {
+    dlg.querySelector("[data-danger-yes]").addEventListener("click", function () { finish(true); });
+    dlg.querySelector("[data-danger-no]").addEventListener("click", function () { finish(false); });
+    dlg.addEventListener("cancel", function () { finish(false); });
+  }
+
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    var btn = e.submitter;
+    if (!btn || btn.getAttribute("data-danger") !== "1") return;
+    if (form.dataset.dangerConfirmed === "1") {
+      delete form.dataset.dangerConfirmed;
+      return;
+    }
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    window.sfDangerConfirm(btn.textContent.trim()).then(function (ok) {
+      if (!ok) return;
+      form.dataset.dangerConfirmed = "1";
+      if (typeof form.requestSubmit === "function") form.requestSubmit(btn);
+      else {
+        var keep = document.createElement("input");
+        keep.type = "hidden";
+        keep.name = btn.name;
+        keep.value = btn.value;
+        form.appendChild(keep);
+        form.submit();
+      }
+    });
+  }, true);
+})();
+</script>

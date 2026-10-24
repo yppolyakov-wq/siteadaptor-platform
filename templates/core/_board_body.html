@@ -121,6 +121,17 @@
       if (card.getAttribute("data-status") === status) return; // та же колонка
       var btn = card.querySelector('[data-target="' + status + '"]');
       if (!btn) { showToast(MSG_NO_TRANSITION); return; }
+      // KA-12 E2.8: перетаскивание в колонку отмены — тот же вопрос, что у кнопки.
+      if (btn.getAttribute("data-danger") === "1" && window.sfDangerConfirm) {
+        window.sfDangerConfirm(btn.textContent.trim()).then(function (ok) {
+          if (ok) send(card, zone, btn);
+        });
+        return;
+      }
+      send(card, zone, btn);
+    }
+
+    function send(card, zone, btn) {
       var target = btn.getAttribute("data-target");
       var form = card.querySelector("form[data-kanban-form]");
       if (!form) return;

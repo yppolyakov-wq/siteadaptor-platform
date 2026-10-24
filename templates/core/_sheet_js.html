@@ -1,0 +1,15 @@
+{% comment %}KA-12 E2.8: подложка нижнего листа меню статуса закрывает <details>
+по тапу (делегирование на document — переживает fetch-перерисовку строк).{% endcomment %}
+<script>
+(function () {
+  "use strict";
+  if (window.__sheetBound) return;
+  window.__sheetBound = true;
+  document.addEventListener("click", function (e) {
+    var backdrop = e.target.closest("[data-sheet-backdrop]");
+    if (!backdrop) return;
+    var details = backdrop.closest("details");
+    if (details) details.open = false;
+  });
+})();
+</script>
