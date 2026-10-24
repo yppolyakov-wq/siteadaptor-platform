@@ -26579,7 +26579,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                         else None
                     )
                     # R8: подписываем waiver (на случай waiver_required события).
-                    book_ticket(
+                    sold = book_ticket(
                         ev,
                         name=who,
                         email=mail,
@@ -26590,6 +26590,14 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                         health_confirmed=True,
                         signed_ip="127.0.0.1",
                     )
+                    # KA-12 E1.7: «проданный» билет — оплачен (иначе выручка ждала бы
+                    # посещения); тот же путь, что кнопка «bezahlt» + запись выручки.
+                    from apps.core.money_contract import settle_payment
+                    from apps.events import revenue as _ev_revenue
+
+                    settle_payment("ticket", sold, source="manual")
+                    sold.refresh_from_db()
+                    _ev_revenue.record_revenue(sold)
                 except Exception:
                     pass
             # R1: пара записей в лист ожидания (как будто событие популярно).
