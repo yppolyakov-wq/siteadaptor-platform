@@ -545,10 +545,22 @@ def reduce_price(kind: str, obj, cents: int, tenant, key: str, *, reason="Preism
     ошибки пробрасываются. Деньги не двигает: возврат — забота вызывающего.
     Возвращает корректуру или None (счёта нет)."""
     from apps.core import deal_discount, transactions
+    from apps.finance.models import Invoice, RevenueEntry
     from apps.finance.services import record_minderung
 
     with transaction.atomic():
         fresh = transactions.model_for(kind).objects.select_for_update().get(pk=obj.pk)
+        # Уже применено с этим ключом (повтор формы/двойной клик) — второй раз цену
+        # не снижаем: сторно и корректура идемпотентны по ключу, скидка — нет.
+        done = Invoice.objects.filter(correction_key=f"mind:{key}").first()
+        if (
+            done is not None
+            or RevenueEntry.objects.filter(
+                source=kind, source_ref__startswith=f"{fresh.id}:minderung:{key}"
+            ).exists()
+        ):
+            obj.refresh_from_db()
+            return done
         if _minderung_blocked(kind, fresh, cents):
             raise PriceReductionBlocked(kind)
         new = int(getattr(fresh, "discount_cents", 0) or 0) + cents

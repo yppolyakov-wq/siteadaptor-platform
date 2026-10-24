@@ -584,6 +584,7 @@ def invoice_detail(request, pk):
     from django.shortcuts import get_object_or_404
 
     from apps.core.documents import language_choices
+    from apps.core.roles import can_export_finance
 
     from .models import Invoice
     from .state_machine import InvoiceSM
@@ -635,7 +636,11 @@ def invoice_detail(request, pk):
                 InvoiceSM().apply(invoice, action, actor=request.user)
                 messages.success(request, _("Invoice updated."))
             elif action == "credit":
-                _create_manual_credit(request, invoice)
+                # Корректура — нумерованный налоговый документ: владелец/админ.
+                if can_export_finance(request.user):
+                    _create_manual_credit(request, invoice)
+                else:
+                    messages.error(request, _("This step is not possible in the current status."))
             else:
                 messages.error(request, _("This step is not possible in the current status."))
         except IllegalTransition:
@@ -654,7 +659,7 @@ def invoice_detail(request, pk):
                 else InvoiceSM().allowed_targets(invoice.status)
             ),
             "doc_languages": language_choices(request.tenant),
-            "credit_form": _credit_form(invoice),
+            "credit_form": (_credit_form(invoice) if can_export_finance(request.user) else None),
         },
     )
 

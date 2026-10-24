@@ -121,3 +121,51 @@ def test_view_creates_credit_once_per_form():
         request.tenant = TENANT
         invoice_detail(request, inv.pk)
     assert Invoice.objects.filter(corrects=inv).count() == 1
+
+
+def test_repeated_submit_lowers_order_price_only_once():
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.orders.models import Order
+    from apps.orders.services import create_order
+
+    product = ProductFactory(base_price=Decimal("11.90"), vat_rate=Decimal("19.00"))
+    order = create_order(items=[(product, None, 2)], name="Gast", email="g@t.de")
+    Order.objects.filter(pk=order.pk).update(status="fulfilled")
+    order.refresh_from_db()
+    inv = services.invoice_from_order(order)
+    Invoice.objects.filter(pk=inv.pk).update(deal_kind="order", deal_id=order.reference_code)
+    inv.refresh_from_db()
+    issue_invoice(inv)
+    first = manual_credit(inv, Decimal("5.00"), reason="x", key="same", tenant=TENANT)
+    again = manual_credit(inv, Decimal("5.00"), reason="x", key="same", tenant=TENANT)
+    assert again.pk == first.pk
+    order.refresh_from_db()
+    assert order.discount_cents == 500
+
+
+def test_staff_cannot_create_credit():
+    import uuid
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.core.models import Membership
+    from apps.finance.views import invoice_detail
+
+    user = get_user_model().objects.create_user(
+        username=f"s-{uuid.uuid4().hex[:6]}", password="pw12345678"
+    )
+    Membership.objects.create(user=user, role=Membership.ROLE_STAFF)
+    inv = _issued()
+    request = RequestFactory().post(
+        "/x/",
+        {"action": "credit", "credit_nonce": uuid.uuid4().hex, "amount": "1,00"},
+    )
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = user
+    request.tenant = TENANT
+    invoice_detail(request, inv.pk)
+    assert not Invoice.objects.filter(corrects=inv).exists()
