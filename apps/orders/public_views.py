@@ -1001,8 +1001,8 @@ def checkout(request):
     if slot_error:
         messages.error(request, slot_error)
         return redirect("storefront-cart")
-    if pickup_slot is None:
-        # KA-12 О-3: в Betriebsferien заказ «как можно скорее» некому выдать; время
+    if pickup_slot is None and not (tenant.site_config or {}).get("quote_cart"):
+        # KA-12 О-3 (корзина-запрос MEN-9 — это Anfrage, она в каникулы работает): в Betriebsferien заказ «как можно скорее» некому выдать; время
         # из сетки — можно (сетка дни закрытия уже исключает).
         closed = closures.closed_now_message(tenant)
         if closed:

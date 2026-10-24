@@ -91,3 +91,13 @@ def test_future_closure_does_not_block_today():
     fresh = type(tenant).objects.get(pk=tenant.pk)  # окно закрытий — одно на запрос
     _close(days=1)
     assert "Betriebsferien" in closures.closed_now_message(fresh)
+
+
+def test_quote_cart_inquiry_still_works_during_holidays():
+    product = ProductFactory(base_price=Decimal("10.00"))
+    tenant = TenantFactory.build(schema_name="public", site_config={"quote_cart": True})
+    _close()
+    order_views.checkout(
+        _pub_req({"name": "K"}, tenant=tenant, session={"cart": {str(product.pk): 1}})
+    )
+    assert Order.objects.count() == 1
