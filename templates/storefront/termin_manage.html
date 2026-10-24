@@ -1,0 +1,71 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Termin verwalten" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'warning' %}bg-amber-50 text-amber-800{% else %}bg-green-50 text-green-800{% endif %}" role="status">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="sf-card bg-white rounded-2xl shadow-sm p-6 md:p-8">
+    <h1 class="text-2xl font-bold mb-2">{% trans "Termin verwalten" %}</h1>
+    <p class="text-gray-700">{% if booking.service_id %}{{ booking.service_label }}{% endif %}</p>
+    <p class="text-sm text-gray-500 mt-1">{{ booking.start|date:"l, d.m.Y" }} · {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }} · {{ booking.reference_code }}</p>
+
+    {% if booking.status == 'cancelled' %}
+      <p class="mt-4 text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2">{% trans "This booking is already cancelled." %}</p>
+    {% elif not state.can_cancel and state.reason == "closed" %}
+      <p class="mt-4 text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2">{% trans "This booking can no longer be cancelled online. Please contact us." %}</p>
+    {% else %}
+      <h2 class="font-semibold mt-6 mb-1">{% trans "Stornierung & Umbuchung" %}</h2>
+      <p class="text-sm text-gray-700">
+        {% if state.free %}{% blocktrans with deadline=state.deadline|date:"d.m.Y H:i" %}Kostenlos stornierbar bis {{ deadline }}{% endblocktrans %}.
+        {% if state.late_mode == "keep_deposit" and booking.deposit_cents %}{% blocktrans with amount=booking.deposit_eur|floatformat:2 %}Danach wird die Anzahlung von {{ amount }} € einbehalten.{% endblocktrans %}{% endif %}
+        {% elif state.late_mode == "keep_deposit" and state.kept_cents %}{% trans "Ihre Anzahlung wird bei Stornierung einbehalten." %}
+        {% else %}{% trans "Jederzeit kostenlos stornierbar." %}{% endif %}
+      </p>
+
+      {% if state.can_reschedule %}
+        <h2 class="font-semibold mt-6 mb-1">{% trans "Termin verschieben" %}</h2>
+        <p class="text-xs text-gray-500 mb-2">{% blocktrans count n=state.reschedules_left %}Noch {{ n }} Umbuchung möglich.{% plural %}Noch {{ n }} Umbuchungen möglich.{% endblocktrans %}</p>
+        <div class="flex items-center justify-between mb-2 text-sm">
+          <a href="?tag={{ prev_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline">← {{ prev_day|date:"D d.m." }}</a>
+          <span class="font-medium">{{ day|date:"l, d.m." }}</span>
+          <a href="?tag={{ next_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline">{{ next_day|date:"D d.m." }} →</a>
+        </div>
+        {% if slots %}
+          <div class="flex flex-wrap gap-2" role="group" aria-label="{% trans 'Freie Zeiten' %}">
+            {% for s in slots %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="move">
+                <input type="hidden" name="start" value="{{ s|date:'c' }}">
+                <button type="submit" class="px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-300 hover:border-indigo-400">{{ s|time:"H:i" }}</button>
+              </form>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-sm text-gray-500">{% trans "No free times on this day." %}</p>
+        {% endif %}
+      {% elif state.free and booking.reschedule_count %}
+        <p class="text-sm text-gray-500 mt-4">{% trans "Keine Umbuchung mehr möglich." %}</p>
+      {% endif %}
+
+      {% if state.can_cancel %}
+        <form method="post" class="mt-6 border-t border-gray-100 pt-5">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="cancel">
+          <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <label class="flex items-start gap-2 text-sm mb-3"><input type="checkbox" required class="mt-1"> {% trans "Ja, ich möchte diesen Termin stornieren." %}</label>
+          <button type="submit" class="bg-red-600 text-white rounded-lg px-5 py-2.5 font-medium hover:bg-red-700">{% trans "Termin stornieren" %}</button>
+        </form>
+      {% else %}
+        <p class="mt-6 text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2">{% trans "Bitte kontaktieren Sie uns." %}</p>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

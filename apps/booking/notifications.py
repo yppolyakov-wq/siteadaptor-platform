@@ -68,6 +68,19 @@ def enqueue_booking_email(booking, event):
                 if base
                 else ""
             )
+        # KA-12 B6: «Termin verwalten» (отмена/перенос по правилам). Подписанный
+        # токен; легаси-запись без снимка правил — письмо байт-в-байт прежнее.
+        if (
+            event in ("created", "confirmed", "reminder", "moved")
+            and base
+            and isinstance(booking.cancel_policy, dict)
+            and booking.cancel_policy.get("v")
+        ):
+            from .cancel_policy import manage_token
+
+            ctx["manage_url"] = (
+                f"{base}{reverse('storefront-termin-manage', args=[manage_token(booking)])}"
+            )
         # B2: ссылка на подтверждение (там кнопка «Jetzt bezahlen»).
         if event == "payment_reminder":
             ctx["pay_url"] = (
@@ -131,6 +144,30 @@ def enqueue_booking_email(booking, event):
             dedupe_key=f"booking:{booking.id}:{_event_key(booking, event)}:tg",
             text=subject_tg or body_tg,
         )
+
+    # KA-12 B6: гость сам отменил/перенёс — владельцу (email + Telegram-пуш).
+    if event in ("guest_cancelled", "guest_moved"):
+        octx = {**ctx, "owner_event": event, "unsubscribe_url": ""}
+        owner = _owner_email(tenant)
+        key = f"booking:{booking.id}:{_event_key(booking, 'moved' if event == 'guest_moved' else event)}:owner"
+        if owner and channel_enabled(tenant, "owner", "booking", event, "email"):
+            subject, body, html = _render("booking_owner_guest", octx)
+            notify(
+                dedupe_key=key,
+                type=f"booking_{event}_owner",
+                recipient=owner,
+                subject=subject,
+                body=body,
+                html=html,
+            )
+        if channel_enabled(tenant, "owner", "booking", event, "telegram"):
+            from apps.telegram.notify import send_to_owner
+
+            subj_o, body_o, _h = _render("booking_owner_guest", octx)
+            send_to_owner(
+                tenant, type=f"booking_{event}_owner", dedupe_key=f"{key}:tg", text=subj_o or body_o
+            )
+        return
 
     # владельцу — только при новой заявке (email + UD4c Telegram-пуш)
     if event == "created":

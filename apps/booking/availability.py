@@ -78,7 +78,7 @@ def is_closed(resource, day) -> bool:
 
 
 def free_slots_with_spots(
-    resource, day, duration_minutes=None, buffer_minutes=0, earliest=None
+    resource, day, duration_minutes=None, buffer_minutes=0, earliest=None, exclude=None
 ) -> list[tuple[datetime, datetime, int]]:
     """[(start, end, spots_left), …] свободных слотов с остатком мест (G9).
 
@@ -87,7 +87,8 @@ def free_slots_with_spots(
     «N Plätze frei». duration_minutes (G10): длина слота = длительность услуги.
     KA-12 E4.4a: buffer_minutes — после слота ресурс занят ещё столько (уборка);
     в часы работы обязан уложиться только сам визит. earliest — минимальный
-    срок записи (раньше — не предлагаем).
+    срок записи (раньше — не предлагаем). exclude (B6) — pk записи, которую
+    переносят: её собственный интервал слот не занимает.
     """
     if is_closed(resource, day):
         return []
@@ -116,8 +117,9 @@ def free_slots_with_spots(
     day_end = max(end for _start, end in grid)
     from apps.core import status_registry
 
+    busy_qs = Booking.objects.exclude(pk=exclude) if exclude else Booking.objects
     bookings = list(
-        Booking.objects.filter(
+        busy_qs.filter(
             resource=resource,
             # FB-3 Вариант B: built-in ∪ кастом-active тенанта.
             status__in=status_registry.active_statuses_for("booking"),
@@ -142,13 +144,18 @@ def free_slots_with_spots(
 
 
 def free_slots(
-    resource, day, duration_minutes=None, buffer_minutes=0, earliest=None
+    resource, day, duration_minutes=None, buffer_minutes=0, earliest=None, exclude=None
 ) -> list[tuple[datetime, datetime]]:
     """[(start, end), …] свободных слотов (тонкая обёртка над free_slots_with_spots)."""
     return [
         (s, e)
         for s, e, _spots in free_slots_with_spots(
-            resource, day, duration_minutes, buffer_minutes=buffer_minutes, earliest=earliest
+            resource,
+            day,
+            duration_minutes,
+            buffer_minutes=buffer_minutes,
+            earliest=earliest,
+            exclude=exclude,
         )
     ]
 
@@ -166,7 +173,7 @@ def booking_window(service):
 
 
 def service_slots(
-    service, day, resource=None, duration_minutes=None, base_pool=None
+    service, day, resource=None, duration_minutes=None, base_pool=None, exclude=None
 ) -> list[datetime]:
     """G10: объединённые свободные старты по ресурсам под услугу.
 
@@ -185,7 +192,12 @@ def service_slots(
     starts = set()
     for r in pool:
         for start, _end in free_slots(
-            r, day, duration_minutes=length, buffer_minutes=buffer, earliest=earliest
+            r,
+            day,
+            duration_minutes=length,
+            buffer_minutes=buffer,
+            earliest=earliest,
+            exclude=exclude,
         ):
             starts.add(start)
     return sorted(starts)
@@ -242,7 +254,7 @@ def next_free_slot(service, from_day=None, max_days=60, resource=None, duration_
     return None
 
 
-def assign_resource(service, start, resource=None, duration_minutes=None):
+def assign_resource(service, start, resource=None, duration_minutes=None, exclude=None):
     """G10: ресурс под услугу на [start, start+duration); None если занят.
 
     resource задан → проверяем только его (выбор конкретного мастера, #4); иначе
@@ -256,7 +268,12 @@ def assign_resource(service, start, resource=None, duration_minutes=None):
     buffer = getattr(service, "buffer_after_minutes", 0)
     for r in pool:
         if (start, end) in free_slots(
-            r, start.date(), duration_minutes=length, buffer_minutes=buffer, earliest=earliest
+            r,
+            start.date(),
+            duration_minutes=length,
+            buffer_minutes=buffer,
+            earliest=earliest,
+            exclude=exclude,
         ):
             return r
     return None

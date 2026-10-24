@@ -29439,3 +29439,100 @@ msgstr "закрыто"
 
 msgid "Diese Ressource ist deaktiviert."
 msgstr "Этот ресурс отключён."
+
+msgid "Bitte kontaktieren Sie uns."
+msgstr "Пожалуйста, свяжитесь с нами."
+
+msgid "Danach wird die Anzahlung von %(amount)s € einbehalten."
+msgstr "После этого предоплата %(amount)s € не возвращается."
+
+msgid "Freie Zeiten"
+msgstr "Свободное время"
+
+msgid "Ihre Anzahlung wird bei Stornierung einbehalten."
+msgstr "При отмене предоплата не возвращается."
+
+msgid "Ja, ich möchte diesen Termin stornieren."
+msgstr "Да, я хочу отменить эту запись."
+
+msgid "Jederzeit kostenlos stornierbar."
+msgstr "Бесплатная отмена в любое время."
+
+msgid "Keine Umbuchung mehr möglich."
+msgstr "Перенос больше невозможен."
+
+msgid "Kostenlos stornierbar bis %(deadline)s"
+msgstr "Бесплатная отмена до %(deadline)s"
+
+msgid "No free times on this day."
+msgstr "В этот день нет свободного времени."
+
+msgid "Stornierung & Umbuchung"
+msgstr "Отмена и перенос"
+
+msgid "Termin stornieren"
+msgstr "Отменить запись"
+
+msgid "Termin verwalten"
+msgstr "Управление записью"
+
+msgid "Erstattung wird geprüft."
+msgstr "Возврат проверяется."
+
+msgid "Ihre Anzahlung wurde einbehalten."
+msgstr "Ваша предоплата не возвращена."
+
+msgid "Anzahlung einbehalten"
+msgstr "Удержать предоплату"
+
+msgid "Immer erstatten"
+msgstr "Всегда возвращать"
+
+msgid "Eine Umbuchung ist nicht mehr möglich."
+msgstr "Перенос больше невозможен."
+
+msgid "Aktionstermin oder anderer Preis — bitte neu buchen."
+msgstr "Акционное время или другая цена — пожалуйста, запишитесь заново."
+
+msgid "Das ist bereits Ihr Termin."
+msgstr "Это уже ваша запись."
+
+msgid "Noch %(n)s Umbuchung möglich."
+msgid_plural "Noch %(n)s Umbuchungen möglich."
+msgstr[0] "Ещё %(n)s перенос возможен."
+msgstr[1] "Ещё %(n)s переноса возможно."
+msgstr[2] "Ещё %(n)s переносов возможно."
+msgstr[3] "Ещё %(n)s переноса возможно."
+
+msgid "Kostenlos stornierbar bis %(h)s Std. vorher"
+msgstr "Бесплатная отмена не позднее чем за %(h)s ч"
+
+msgid "danach Anzahlung einbehalten"
+msgstr "позже — предоплата не возвращается"
+
+msgid "danach erstattet"
+msgstr "возврат и позже"
+
+msgid "Umbuchungen durch Gast: %(n)s von %(m)s"
+msgstr "Переносов гостем: %(n)s из %(m)s"
+
+msgid "Danach"
+msgstr "Позже"
+
+msgid "Termin verwalten (stornieren oder verschieben)"
+msgstr "Управление записью (отменить или перенести)"
+
+msgid "Gast hat verschoben"
+msgstr "Гость перенёс запись"
+
+msgid "Gast hat storniert"
+msgstr "Гость отменил запись"
+
+msgid "Ein Gast hat seinen Termin selbst verschoben."
+msgstr "Гость сам перенёс свою запись."
+
+msgid "Ein Gast hat seinen Termin selbst storniert."
+msgstr "Гость сам отменил свою запись."
+
+msgid "Kostenlos stornierbar bis"
+msgstr "Бесплатная отмена не позднее чем за"

@@ -1,0 +1,7 @@
+{% load i18n %}{% if owner_event == "guest_moved" %}{% trans "Ein Gast hat seinen Termin selbst verschoben." %}{% else %}{% trans "Ein Gast hat seinen Termin selbst storniert." %}{% endif %}
+
+{{ resource.name }} · {{ booking.start|date:"l, d.m.Y" }} {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }}
+{% trans "Gast" %}: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}
+{% trans "Code" %}: {{ booking.reference_code }}
+
+{% trans "Dashboard" %}: /dashboard/booking/

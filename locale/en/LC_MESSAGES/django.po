@@ -29170,3 +29170,98 @@ msgstr "closed"
 
 msgid "Diese Ressource ist deaktiviert."
 msgstr "This resource is deactivated."
+
+msgid "Bitte kontaktieren Sie uns."
+msgstr "Please contact us."
+
+msgid "Danach wird die Anzahlung von %(amount)s € einbehalten."
+msgstr "After that, the deposit of %(amount)s € is retained."
+
+msgid "Freie Zeiten"
+msgstr "Free times"
+
+msgid "Ihre Anzahlung wird bei Stornierung einbehalten."
+msgstr "Your deposit is retained if you cancel."
+
+msgid "Ja, ich möchte diesen Termin stornieren."
+msgstr "Yes, I want to cancel this appointment."
+
+msgid "Jederzeit kostenlos stornierbar."
+msgstr "Free cancellation at any time."
+
+msgid "Keine Umbuchung mehr möglich."
+msgstr "No more rescheduling possible."
+
+msgid "Kostenlos stornierbar bis %(deadline)s"
+msgstr "Free cancellation until %(deadline)s"
+
+msgid "No free times on this day."
+msgstr "No free times on this day."
+
+msgid "Stornierung & Umbuchung"
+msgstr "Cancellation & rescheduling"
+
+msgid "Termin stornieren"
+msgstr "Cancel appointment"
+
+msgid "Termin verwalten"
+msgstr "Manage appointment"
+
+msgid "Erstattung wird geprüft."
+msgstr "Refund is being checked."
+
+msgid "Ihre Anzahlung wurde einbehalten."
+msgstr "Your deposit was retained."
+
+msgid "Anzahlung einbehalten"
+msgstr "Retain deposit"
+
+msgid "Immer erstatten"
+msgstr "Always refund"
+
+msgid "Eine Umbuchung ist nicht mehr möglich."
+msgstr "Rescheduling is no longer possible."
+
+msgid "Aktionstermin oder anderer Preis — bitte neu buchen."
+msgstr "Promotional slot or different price — please book again."
+
+msgid "Das ist bereits Ihr Termin."
+msgstr "This is already your appointment."
+
+msgid "Noch %(n)s Umbuchung möglich."
+msgid_plural "Noch %(n)s Umbuchungen möglich."
+msgstr[0] "%(n)s more reschedule possible."
+msgstr[1] "%(n)s more reschedules possible."
+
+msgid "Kostenlos stornierbar bis %(h)s Std. vorher"
+msgstr "Free cancellation up to %(h)s h before"
+
+msgid "danach Anzahlung einbehalten"
+msgstr "after that the deposit is retained"
+
+msgid "danach erstattet"
+msgstr "refunded even after that"
+
+msgid "Umbuchungen durch Gast: %(n)s von %(m)s"
+msgstr "Guest reschedules: %(n)s of %(m)s"
+
+msgid "Danach"
+msgstr "After that"
+
+msgid "Termin verwalten (stornieren oder verschieben)"
+msgstr "Manage appointment (cancel or reschedule)"
+
+msgid "Gast hat verschoben"
+msgstr "Guest rescheduled"
+
+msgid "Gast hat storniert"
+msgstr "Guest cancelled"
+
+msgid "Ein Gast hat seinen Termin selbst verschoben."
+msgstr "A guest rescheduled their appointment themselves."
+
+msgid "Ein Gast hat seinen Termin selbst storniert."
+msgstr "A guest cancelled their appointment themselves."
+
+msgid "Kostenlos stornierbar bis"
+msgstr "Free cancellation up to"

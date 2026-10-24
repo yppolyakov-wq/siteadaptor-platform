@@ -929,6 +929,12 @@ def _clamp_int(raw, low, high) -> int:
     return max(low, min(high, value))
 
 
+def _can_edit_policy(user) -> bool:
+    from apps.core import roles
+
+    return roles.can_edit_policy(user)
+
+
 def _is_uuid(value) -> bool:
     import uuid
 
@@ -1148,6 +1154,19 @@ def services_view(request, pk=None):
                 else:  # мусор не превращаем молча в «1 день» — оставляем как было
                     messages.error(request, _("Bitte den Buchungszeitraum in Tagen angeben."))
                 fields += ["buffer_after_minutes", "min_lead_minutes", "max_days_ahead"]
+            # KA-12 B6: правила отмены — сентинел + роль owner/admin; поля от staff
+            # молча игнорируются (новые записи берут снимок, старые не меняются).
+            if request.POST.get("cancel_policy_present"):
+                from .models import LATE_CANCEL_KEEP, LATE_CANCEL_REFUND, MAX_CANCEL_WINDOW_HOURS
+
+                if _can_edit_policy(request.user):
+                    service.cancel_window_hours = _clamp_int(
+                        request.POST.get("cancel_window_hours"), 0, MAX_CANCEL_WINDOW_HOURS
+                    )
+                    late = request.POST.get("late_cancel")
+                    if late in (LATE_CANCEL_KEEP, LATE_CANCEL_REFUND):
+                        service.late_cancel = late
+                    fields += ["cancel_window_hours", "late_cancel"]
             # MX-5: режим цены — по сентинелу (W0: чужая форма без селекта не трогает).
             if request.POST.get("pricing_mode_present"):
                 service.pricing_mode = (
@@ -1259,6 +1278,8 @@ def services_view(request, pk=None):
             "services": services,
             # KA-12 E4.2a: чекбоксы «wer bietet die Leistung an» (навыки).
             "skill_resources": list(Resource.objects.filter(is_active=True).order_by("name")),
+            # KA-12 B6: блок правил отмены — только owner/admin.
+            "can_edit_policy": _can_edit_policy(request.user),
             # Фидбэк 2026-07-30 («на сайте пишет: нет доступных»): без рабочих часов
             # слоты не генерируются вообще. Показываем причину ЗДЕСЬ, где владелец
             # правит услугу, — иначе он ищет «календарь услуги», которого нет.

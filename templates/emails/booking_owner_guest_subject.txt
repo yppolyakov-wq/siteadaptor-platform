@@ -1,0 +1,1 @@
+{% load i18n %}{% if owner_event == "guest_moved" %}{% trans "Gast hat verschoben" %}{% else %}{% trans "Gast hat storniert" %}{% endif %}: {{ booking.start|date:"d.m." }} {{ booking.start|time:"H:i" }} ({{ resource.name }})

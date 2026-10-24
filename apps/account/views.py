@@ -219,24 +219,33 @@ def cancel_booking(request, code):
     customer = auth.current_customer(request)
     if customer is None:
         return redirect("account-login")
+    from apps.booking import cancel_policy
     from apps.booking.models import Booking
-    from apps.booking.state_machine import BookingSM
     from apps.core.fsm import IllegalTransition
 
     booking = Booking.objects.filter(reference_code=code, customer=customer).first()
     if booking is None:
         raise Http404
+    # KA-12 B6: те же правила, что у ссылки «Termin verwalten» (снимок политики) —
+    # раньше ЛК отменял когда угодно и всегда возвращал Anzahlung.
     try:
-        BookingSM().apply(booking, "cancelled", actor=None)
+        result, kept = cancel_policy.guest_cancel(booking, tenant=getattr(request, "tenant", None))
+    except cancel_policy.NotCancellable as exc:
+        if exc.reason == "contact":
+            messages.error(request, _("Bitte kontaktieren Sie uns."))
+        else:
+            messages.error(request, _("This booking can no longer be cancelled."))
+        return redirect("account-home")
     except IllegalTransition:
         messages.error(request, _("This booking can no longer be cancelled."))
         return redirect("account-home")
-    # Возврат депозита (анти-фрод, как в кабинете), если был оплачен. KA-H4:
-    # общая функция — захват + ключ идемпотентности, при отказе Stripe письмо владельцу.
     from apps.core import refunds
 
-    refunds.refund_payment("booking", booking, getattr(request, "tenant", None))
     messages.success(request, _("Your booking was cancelled."))
+    if result == refunds.RefundResult.FAILED:
+        messages.warning(request, _("Erstattung wird geprüft."))
+    elif kept:
+        messages.info(request, _("Ihre Anzahlung wurde einbehalten."))
     return redirect("account-home")
 
 

@@ -27,6 +27,12 @@ MAX_BUFFER_MINUTES = 480
 MAX_VARIANT_PRICE_DELTA = 1_000_000
 MAX_VARIANT_MINUTES_DELTA = 480
 MAX_VARIANTS_PER_SERVICE = 12
+# KA-12 E4.4b (B6): политика отмены услуги — окно бесплатной отмены (ч, ≤ 30 дней),
+# поздняя отмена «удержать Anzahlung» или «всегда вернуть», самоперенос ≤ 2 раз.
+MAX_CANCEL_WINDOW_HOURS = 720
+MAX_SELF_RESCHEDULES = 2
+LATE_CANCEL_KEEP = "keep_deposit"
+LATE_CANCEL_REFUND = "refund"
 
 
 class Resource(I18nMixin, TimestampedModel):
@@ -117,6 +123,18 @@ class Service(I18nMixin, TimestampedModel):
     )
     min_lead_minutes = models.PositiveIntegerField(default=0)
     max_days_ahead = models.PositiveSmallIntegerField(null=True, blank=True)
+    # B6: правила отмены/самопереноса; снимком уходят в запись при бронировании.
+    cancel_window_hours = models.PositiveSmallIntegerField(
+        default=24, validators=[MaxValueValidator(MAX_CANCEL_WINDOW_HOURS)]
+    )
+    late_cancel = models.CharField(
+        max_length=12,
+        choices=[
+            (LATE_CANCEL_KEEP, _("Anzahlung einbehalten")),
+            (LATE_CANCEL_REFUND, _("Immer erstatten")),
+        ],
+        default=LATE_CANCEL_KEEP,
+    )
     price_cents = models.PositiveIntegerField(default=0)
     # DC-8: ставка НДС услуги (DE — обычно 19 %). Снимком уходит в запись.
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
@@ -172,6 +190,14 @@ class Service(I18nMixin, TimestampedModel):
             models.CheckConstraint(
                 condition=models.Q(buffer_after_minutes__lte=MAX_BUFFER_MINUTES),
                 name="booking_service_buffer_cap",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(cancel_window_hours__lte=MAX_CANCEL_WINDOW_HOURS),
+                name="booking_service_cancel_window_cap",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(late_cancel__in=[LATE_CANCEL_KEEP, LATE_CANCEL_REFUND]),
+                name="booking_service_late_cancel_valid",
             ),
         ]
 
@@ -424,6 +450,10 @@ class Booking(TimestampedModel):
         related_name="bookings",
     )
     variant_label = models.CharField(max_length=100, blank=True, default="")
+    # B6: снимок правил отмены на момент брони ({} = старая запись: бесплатно до
+    # начала, возврат, без самопереноса) + сколько раз гость сам переносил.
+    cancel_policy = models.JSONField(default=dict, blank=True)
+    reschedule_count = models.PositiveSmallIntegerField(default=0)
     price_cents = models.PositiveIntegerField(default=0)  # снимок цены услуги
     # G9: Mehrfachkarte, которой оплачен визит (SET_NULL — карту можно аннулировать,
     # бронь остаётся). null = обычная оплата/депозит/без карты.
@@ -527,6 +557,11 @@ class Booking(TimestampedModel):
             models.Index(fields=["status", "start"], name="booking_status_start_idx"),
             # KA-12 E4.4a: нижняя граница пересечений `end > start − потолок буфера`.
             models.Index(fields=["resource", "end"], name="booking_resource_end_idx"),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(reschedule_count__lte=10), name="booking_reschedule_cap"
+            ),
         ]
 
     @property

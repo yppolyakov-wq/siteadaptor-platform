@@ -29262,3 +29262,98 @@ msgstr "geschlossen"
 
 msgid "Diese Ressource ist deaktiviert."
 msgstr "Diese Ressource ist deaktiviert."
+
+msgid "Bitte kontaktieren Sie uns."
+msgstr "Bitte kontaktieren Sie uns."
+
+msgid "Danach wird die Anzahlung von %(amount)s € einbehalten."
+msgstr "Danach wird die Anzahlung von %(amount)s € einbehalten."
+
+msgid "Freie Zeiten"
+msgstr "Freie Zeiten"
+
+msgid "Ihre Anzahlung wird bei Stornierung einbehalten."
+msgstr "Ihre Anzahlung wird bei Stornierung einbehalten."
+
+msgid "Ja, ich möchte diesen Termin stornieren."
+msgstr "Ja, ich möchte diesen Termin stornieren."
+
+msgid "Jederzeit kostenlos stornierbar."
+msgstr "Jederzeit kostenlos stornierbar."
+
+msgid "Keine Umbuchung mehr möglich."
+msgstr "Keine Umbuchung mehr möglich."
+
+msgid "Kostenlos stornierbar bis %(deadline)s"
+msgstr "Kostenlos stornierbar bis %(deadline)s"
+
+msgid "No free times on this day."
+msgstr "Keine freien Zeiten an diesem Tag."
+
+msgid "Stornierung & Umbuchung"
+msgstr "Stornierung & Umbuchung"
+
+msgid "Termin stornieren"
+msgstr "Termin stornieren"
+
+msgid "Termin verwalten"
+msgstr "Termin verwalten"
+
+msgid "Erstattung wird geprüft."
+msgstr "Erstattung wird geprüft."
+
+msgid "Ihre Anzahlung wurde einbehalten."
+msgstr "Ihre Anzahlung wurde einbehalten."
+
+msgid "Anzahlung einbehalten"
+msgstr "Anzahlung einbehalten"
+
+msgid "Immer erstatten"
+msgstr "Immer erstatten"
+
+msgid "Eine Umbuchung ist nicht mehr möglich."
+msgstr "Eine Umbuchung ist nicht mehr möglich."
+
+msgid "Aktionstermin oder anderer Preis — bitte neu buchen."
+msgstr "Aktionstermin oder anderer Preis — bitte neu buchen."
+
+msgid "Das ist bereits Ihr Termin."
+msgstr "Das ist bereits Ihr Termin."
+
+msgid "Noch %(n)s Umbuchung möglich."
+msgid_plural "Noch %(n)s Umbuchungen möglich."
+msgstr[0] "Noch %(n)s Umbuchung möglich."
+msgstr[1] "Noch %(n)s Umbuchungen möglich."
+
+msgid "Kostenlos stornierbar bis %(h)s Std. vorher"
+msgstr "Kostenlos stornierbar bis %(h)s Std. vorher"
+
+msgid "danach Anzahlung einbehalten"
+msgstr "danach Anzahlung einbehalten"
+
+msgid "danach erstattet"
+msgstr "danach erstattet"
+
+msgid "Umbuchungen durch Gast: %(n)s von %(m)s"
+msgstr "Umbuchungen durch Gast: %(n)s von %(m)s"
+
+msgid "Danach"
+msgstr "Danach"
+
+msgid "Termin verwalten (stornieren oder verschieben)"
+msgstr "Termin verwalten (stornieren oder verschieben)"
+
+msgid "Gast hat verschoben"
+msgstr "Gast hat verschoben"
+
+msgid "Gast hat storniert"
+msgstr "Gast hat storniert"
+
+msgid "Ein Gast hat seinen Termin selbst verschoben."
+msgstr "Ein Gast hat seinen Termin selbst verschoben."
+
+msgid "Ein Gast hat seinen Termin selbst storniert."
+msgstr "Ein Gast hat seinen Termin selbst storniert."
+
+msgid "Kostenlos stornierbar bis"
+msgstr "Kostenlos stornierbar bis"

@@ -16,6 +16,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.billing import connect
 from apps.core import attribution, listing_composition, option_trackers, ratelimit
@@ -1492,3 +1493,119 @@ def _payment_kwargs(request, kind):
         ),
         "payment_due_at": (timezone.now() + timedelta(days=days)) if days else None,
     }
+
+
+# --- KA-12 E4.4b (B6): «Termin verwalten» — отмена и самоперенос гостем ------------
+
+
+def _manage_response(response):
+    # Токен в адресе не уходит наружу через Referer и не индексируется.
+    response["Referrer-Policy"] = "no-referrer"
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    response["Cache-Control"] = "no-store"
+    return response
+
+
+def termin_manage(request, token):
+    """GET — условия, выбор нового времени (`?tag=`), кнопки; без побочных эффектов.
+    POST `action=cancel|move` — отмена или перенос по правилам снимка (cancel_policy)."""
+    _require_booking_active(request)
+    from . import cancel_policy
+
+    booking = cancel_policy.booking_from_token(token)
+    if booking is None:
+        raise Http404
+    here = reverse("storefront-termin-manage", args=[token])
+    if request.method == "POST":
+        if request.POST.get("website"):  # honeypot
+            return redirect(here)
+        if ratelimit.hit(
+            "termin_manage", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW
+        ):
+            return HttpResponse(status=429)
+        action = request.POST.get("action", "")
+        tenant = getattr(request, "tenant", None)
+        if action == "cancel":
+            from apps.core import refunds
+            from apps.core.fsm import IllegalTransition
+
+            try:
+                result, kept = cancel_policy.guest_cancel(booking, tenant=tenant)
+            except cancel_policy.NotCancellable as exc:
+                messages.error(
+                    request,
+                    _("Bitte kontaktieren Sie uns.")
+                    if exc.reason in ("contact", "invoice")
+                    else _("This booking can no longer be cancelled."),
+                )
+                return redirect(here)
+            except IllegalTransition:
+                messages.error(request, _("This booking can no longer be cancelled."))
+                return redirect(here)
+            messages.success(request, _("Your booking was cancelled."))
+            if result == refunds.RefundResult.FAILED:
+                messages.warning(request, _("Erstattung wird geprüft."))
+            elif kept:
+                messages.info(request, _("Ihre Anzahlung wurde einbehalten."))
+            return redirect(here)
+        if action == "move":
+            try:
+                start = datetime.fromisoformat(request.POST.get("start", ""))
+            except ValueError:
+                raise Http404 from None
+            if timezone.is_naive(start):
+                start = timezone.make_aware(start)
+            back = f"{here}?tag={timezone.localtime(start).date().isoformat()}"
+            try:
+                cancel_policy.guest_reschedule(booking, start=start, tenant=tenant)
+            except cancel_policy.RescheduleRefused as exc:
+                messages.error(request, _RESCHEDULE_REASONS.get(exc.reason, _RESCHEDULE_DEFAULT))
+                return redirect(back)
+            except (services.SlotTaken, services.ResourceClosed, services.OutsideHours):
+                messages.error(request, _("This time is no longer available. Please pick another."))
+                return redirect(back)
+            messages.success(request, _("Booking moved."))
+            return redirect(here)
+        raise Http404
+    st = cancel_policy.state(booking)
+    day = None
+    slots = []
+    if st.can_reschedule:
+        raw = request.GET.get("tag")
+        try:
+            day = date.fromisoformat(raw) if raw else timezone.localtime(booking.start).date()
+        except ValueError:
+            day = timezone.localtime(booking.start).date()
+        minutes = int((booking.end - booking.start).total_seconds() // 60)
+        slots = [
+            s
+            for s in availability.service_slots(
+                booking.service, day, duration_minutes=minutes, exclude=booking.pk
+            )
+            if s != booking.start
+        ]
+    return _manage_response(
+        render(
+            request,
+            "storefront/termin_manage.html",
+            {
+                "booking": booking,
+                "state": st,
+                "token": token,
+                "day": day,
+                "prev_day": day - timedelta(days=1) if day else None,
+                "next_day": day + timedelta(days=1) if day else None,
+                "slots": slots,
+            },
+        )
+    )
+
+
+_RESCHEDULE_DEFAULT = gettext_lazy("Eine Umbuchung ist nicht mehr möglich.")
+_RESCHEDULE_REASONS = {
+    "limit": gettext_lazy("Keine Umbuchung mehr möglich."),
+    "price": gettext_lazy("Aktionstermin oder anderer Preis — bitte neu buchen."),
+    "promo": gettext_lazy("Aktionstermin oder anderer Preis — bitte neu buchen."),
+    "extras": gettext_lazy("Bitte kontaktieren Sie uns."),
+    "same": gettext_lazy("Das ist bereits Ihr Termin."),
+}

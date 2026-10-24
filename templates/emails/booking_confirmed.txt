@@ -15,6 +15,9 @@
 {% trans "Etwas stimmt nicht? Direkter Draht zu uns:" %}
 {{ problem_url|safe }}
 {% endif %}
-{% if unsubscribe_url %}—
+{% if manage_url %}
+{% trans "Termin verwalten (stornieren oder verschieben)" %}:
+{{ manage_url }}
+{% endif %}{% if unsubscribe_url %}—
 {% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

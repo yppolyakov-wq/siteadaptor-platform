@@ -29314,3 +29314,98 @@ msgstr "kapalı"
 
 msgid "Diese Ressource ist deaktiviert."
 msgstr "Bu kaynak devre dışı."
+
+msgid "Bitte kontaktieren Sie uns."
+msgstr "Lütfen bizimle iletişime geçin."
+
+msgid "Danach wird die Anzahlung von %(amount)s € einbehalten."
+msgstr "Bundan sonra %(amount)s € kapora iade edilmez."
+
+msgid "Freie Zeiten"
+msgstr "Boş saatler"
+
+msgid "Ihre Anzahlung wird bei Stornierung einbehalten."
+msgstr "İptal ederseniz kaporanız iade edilmez."
+
+msgid "Ja, ich möchte diesen Termin stornieren."
+msgstr "Evet, bu randevuyu iptal etmek istiyorum."
+
+msgid "Jederzeit kostenlos stornierbar."
+msgstr "İstediğiniz zaman ücretsiz iptal."
+
+msgid "Keine Umbuchung mehr möglich."
+msgstr "Artık tarih değişikliği mümkün değil."
+
+msgid "Kostenlos stornierbar bis %(deadline)s"
+msgstr "%(deadline)s tarihine kadar ücretsiz iptal"
+
+msgid "No free times on this day."
+msgstr "Bu günde boş saat yok."
+
+msgid "Stornierung & Umbuchung"
+msgstr "İptal ve tarih değişikliği"
+
+msgid "Termin stornieren"
+msgstr "Randevuyu iptal et"
+
+msgid "Termin verwalten"
+msgstr "Randevuyu yönet"
+
+msgid "Erstattung wird geprüft."
+msgstr "İade kontrol ediliyor."
+
+msgid "Ihre Anzahlung wurde einbehalten."
+msgstr "Kaporanız iade edilmedi."
+
+msgid "Anzahlung einbehalten"
+msgstr "Kaporayı tut"
+
+msgid "Immer erstatten"
+msgstr "Her zaman iade et"
+
+msgid "Eine Umbuchung ist nicht mehr möglich."
+msgstr "Tarih değişikliği artık mümkün değil."
+
+msgid "Aktionstermin oder anderer Preis — bitte neu buchen."
+msgstr "Kampanya saati veya farklı fiyat — lütfen yeniden rezervasyon yapın."
+
+msgid "Das ist bereits Ihr Termin."
+msgstr "Bu zaten sizin randevunuz."
+
+msgid "Noch %(n)s Umbuchung möglich."
+msgid_plural "Noch %(n)s Umbuchungen möglich."
+msgstr[0] "%(n)s tarih değişikliği daha mümkün."
+msgstr[1] "%(n)s tarih değişikliği daha mümkün."
+
+msgid "Kostenlos stornierbar bis %(h)s Std. vorher"
+msgstr "%(h)s saat öncesine kadar ücretsiz iptal"
+
+msgid "danach Anzahlung einbehalten"
+msgstr "sonrasında kapora iade edilmez"
+
+msgid "danach erstattet"
+msgstr "sonrasında da iade edilir"
+
+msgid "Umbuchungen durch Gast: %(n)s von %(m)s"
+msgstr "Misafir tarih değişiklikleri: %(n)s / %(m)s"
+
+msgid "Danach"
+msgstr "Sonrasında"
+
+msgid "Termin verwalten (stornieren oder verschieben)"
+msgstr "Randevuyu yönet (iptal et veya değiştir)"
+
+msgid "Gast hat verschoben"
+msgstr "Misafir tarihi değiştirdi"
+
+msgid "Gast hat storniert"
+msgstr "Misafir iptal etti"
+
+msgid "Ein Gast hat seinen Termin selbst verschoben."
+msgstr "Bir misafir randevusunu kendisi değiştirdi."
+
+msgid "Ein Gast hat seinen Termin selbst storniert."
+msgstr "Bir misafir randevusunu kendisi iptal etti."
+
+msgid "Kostenlos stornierbar bis"
+msgstr "Ücretsiz iptal en geç"

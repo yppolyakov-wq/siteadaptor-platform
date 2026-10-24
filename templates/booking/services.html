@@ -71,6 +71,19 @@
           <label class="ml-2 whitespace-nowrap">{% trans "Buchbar ab" %} <input name="min_lead_hours" type="number" min="0" max="720" inputmode="numeric" value="{% widthratio s.min_lead_minutes 60 1 %}" class="w-16 rounded border border-gray-300 px-1 py-0.5 text-xs"> {% trans "Std. vorher" %}</label>
           <label class="ml-2 whitespace-nowrap">{% trans "bis" %} <input name="max_days_ahead" type="number" min="1" max="365" inputmode="numeric" value="{{ s.max_days_ahead|default_if_none:'' }}" placeholder="30" class="w-16 rounded border border-gray-300 px-1 py-0.5 text-xs"> {% trans "Tage im Voraus" %}</label>
         </span>
+        {% comment %}KA-12 B6: правила отмены/самопереноса гостем — только owner/admin.{% endcomment %}
+        {% if can_edit_policy %}
+        <input type="hidden" name="cancel_policy_present" value="1">
+        <span class="text-xs text-gray-500" data-service-cancel>
+          <label class="whitespace-nowrap">{% trans "Kostenlos stornierbar bis" %} <input name="cancel_window_hours" type="number" min="0" max="720" inputmode="numeric" value="{{ s.cancel_window_hours }}" class="w-16 rounded border border-gray-300 px-1 py-0.5 text-xs"> {% trans "Std. vorher" %}</label>
+          <label class="ml-2 whitespace-nowrap">{% trans "Danach" %}
+            <select name="late_cancel" class="ml-1 rounded border border-gray-300 px-1 py-0.5 text-xs">
+              <option value="keep_deposit" {% if s.late_cancel == "keep_deposit" %}selected{% endif %}>{% trans "Anzahlung einbehalten" %}</option>
+              <option value="refund" {% if s.late_cancel == "refund" %}selected{% endif %}>{% trans "Immer erstatten" %}</option>
+            </select>
+          </label>
+        </span>
+        {% endif %}
         <input type="hidden" name="pricing_mode_present" value="1">
         <label class="text-xs text-gray-500">{% trans "Preis gilt" %}
           <select name="pricing_mode" class="ml-1 rounded border border-gray-300 px-1 py-0.5 text-xs">

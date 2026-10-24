@@ -72,8 +72,8 @@ def required_role_for_path(path: str) -> str:
 
 
 def _membership(user):
-    if not getattr(user, "is_authenticated", False):
-        return None
+    if not getattr(user, "is_authenticated", False) or getattr(user, "pk", None) is None:
+        return None  # аноним или несохранённый пользователь — fail-closed
     return Membership.objects.filter(user=user).first()
 
 
@@ -95,6 +95,12 @@ def has_cabinet_access(user) -> bool:
 
 def is_owner(user) -> bool:
     return role_of(user) == Membership.ROLE_OWNER
+
+
+def can_edit_policy(user) -> bool:
+    """KA-12 B6 (решение владельца): правила отмены/переноса услуги — owner и admin;
+    staff правит длительность/варианты/навыки, но не условия для гостя."""
+    return role_of(user) in (Membership.ROLE_OWNER, Membership.ROLE_ADMIN)
 
 
 def can_export_finance(user) -> bool:

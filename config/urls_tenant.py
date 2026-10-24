@@ -579,6 +579,12 @@ urlpatterns = [
         name="storefront-service-review",
     ),
     path("t/<str:code>/", booking_public.termin_confirmation, name="storefront-termin-ok"),
+    # KA-12 B6: гостевая ссылка «Termin verwalten» (подписанный токен) — отмена/перенос.
+    path(
+        "termin/verwalten/<str:token>/",
+        booking_public.termin_manage,
+        name="storefront-termin-manage",
+    ),
     # B2.2: повторная оплата депозита (Checkout на лету).
     path("t/<str:code>/bezahlen/", booking_public.termin_pay, name="storefront-termin-pay"),
     # A3: онлайн-продажа Mehrfachkarte.

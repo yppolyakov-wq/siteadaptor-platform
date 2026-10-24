@@ -95,6 +95,14 @@ Rabatt → Netto → MwSt. → Gesamt); свой набор строк у каж
     {% elif b.payment_state == 'refunded' %}{% trans "Refunded" %}
     {% else %}{% trans "Vor Ort zu zahlen" %}{% endif %}
   </p>
+  {% comment %}KA-12 B6: условия, действующие для гостя (снимок на записи).{% endcomment %}
+  {% if b.cancel_policy.v %}
+  <p class="text-xs text-gray-500 mt-1" data-deal-cancel-policy>
+    {% blocktrans with h=b.cancel_policy.window_h %}Kostenlos stornierbar bis {{ h }} Std. vorher{% endblocktrans %}
+    · {% if b.cancel_policy.late == "keep_deposit" %}{% trans "danach Anzahlung einbehalten" %}{% else %}{% trans "danach erstattet" %}{% endif %}
+    · {% blocktrans with n=b.reschedule_count m=b.cancel_policy.resched_max %}Umbuchungen durch Gast: {{ n }} von {{ m }}{% endblocktrans %}
+  </p>
+  {% endif %}
   {% if b.payment_state == 'deposit' and b.status != 'cancelled' %}
   <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="mt-2">
     {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">

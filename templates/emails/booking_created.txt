@@ -8,6 +8,9 @@
 {% if group_bookings %}{% trans "Alle Termine dieser Buchung" %}:
 {% for g in group_bookings %}- {{ g.start|date:"d.m.Y" }} · {{ g.start|time:"H:i" }}–{{ g.end|time:"H:i" }}
 {% endfor %}{% endif %}
-{% if unsubscribe_url %}—
+{% if manage_url %}
+{% trans "Termin verwalten (stornieren oder verschieben)" %}:
+{{ manage_url }}
+{% endif %}{% if unsubscribe_url %}—
 {% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

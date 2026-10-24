@@ -7,6 +7,9 @@
 
 {% trans "Passt Ihnen die neue Zeit nicht? Antworten Sie einfach auf diese E-Mail." %}
 
-{% if unsubscribe_url %}—
+{% if manage_url %}
+{% trans "Termin verwalten (stornieren oder verschieben)" %}:
+{{ manage_url }}
+{% endif %}{% if unsubscribe_url %}—
 {% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
 {% endif %}

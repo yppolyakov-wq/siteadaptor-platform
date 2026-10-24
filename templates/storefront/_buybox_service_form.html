@@ -49,6 +49,8 @@ storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot
   {% include "storefront/_extras.html" %}
   {% comment %}Личные данные — общий хвост (в попапе или инлайном, см.
   _buybox_contact.html). Выбор времени, абонемент, промокод и Extras — выше.{% endcomment %}
+  {% comment %}KA-12 B6: условия отмены ДО брони (снимок этих правил уйдёт в запись).{% endcomment %}
+  {% if deposit_required %}<p class="text-xs text-gray-500" data-cancel-terms>{% blocktrans with h=service.cancel_window_hours %}Kostenlos stornierbar bis {{ h }} Std. vorher{% endblocktrans %}{% if service.late_cancel == "keep_deposit" %} · {% trans "danach Anzahlung einbehalten" %}{% else %} · {% trans "danach erstattet" %}{% endif %}.</p>{% endif %}
   {% if deposit_required %}{% blocktrans asvar dep_note %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}{% endif %}
   {% if service.price_cents or deposit_required %}{% trans "Zahlungspflichtig buchen" as sub_label %}{% else %}{% trans "Book now" as sub_label %}{% endif %}
   {% include "storefront/_buybox_contact.html" with submit_label=sub_label deposit_note=dep_note %}

@@ -103,6 +103,12 @@ def _get_or_create_customer(*, name, email, phone, match_by_phone=False) -> Cust
     return Customer.objects.create(name=name, email=email, phone=phone)
 
 
+def _cancel_snapshot(service) -> dict:
+    from .cancel_policy import snapshot
+
+    return snapshot(service) if service is not None else {}
+
+
 def _fresh_buffer(service) -> int:
     """Буфер из СВЕЖЕЙ строки услуги (читать под блокировкой ресурса): объект во
     вьюхе мог быть загружен до смены буфера владельцем — иначе гонка с
@@ -274,6 +280,8 @@ def book(
         service=service,
         variant=variant,
         variant_label=(variant_label or "")[:100],
+        # B6: снимок правил отмены (правка услуги не меняет условия этой записи).
+        cancel_policy=_cancel_snapshot(service),
         promotion=promotion,
         price_cents=int(price_cents or 0),
         # DC-8: снимок ставки НДС услуги (у записи без услуги — общая 19 %).
