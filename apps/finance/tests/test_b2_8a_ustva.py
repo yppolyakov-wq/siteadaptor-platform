@@ -244,3 +244,26 @@ def test_lite_business_radio_writes_regime(settings):
     lite_cabinet.lite_business(_owner_req("/dashboard/geschaeft/2", t, data))
     t.refresh_from_db()
     assert t.tax_regime == "ist"
+
+
+def test_ist_gap_counted_once_on_last_posting():
+    order = _order()
+    _pay(order, 1000, date(2026, 9, 10))
+    record_revenue(source="order", source_ref=f"{order.id}:a", amount=Decimal("11.90"))
+    record_revenue(source="order", source_ref=f"{order.id}:b", amount=Decimal("11.90"))
+    RevenueEntry.objects.filter(source_ref=f"{order.id}:a").update(date=date(2026, 10, 5))
+    RevenueEntry.objects.filter(source_ref=f"{order.id}:b").update(date=date(2026, 11, 5))
+    t = _tenant("ist")
+    total = _slice(t, SEP)["ust"] + _slice(t, OCT)["ust"] + _slice(t, NOV)["ust"]
+    assert total == Decimal("3.80")
+
+
+def test_soll_storno_before_performance_does_not_move_recognition():
+    order = _order()
+    _pay(order, 1000, date(2026, 9, 10))
+    _book(order, date(2026, 10, 5))
+    record_revenue(source="order", source_ref=f"{order.id}:reversal", amount=Decimal("-0.00"))
+    RevenueEntry.objects.filter(source_ref=f"{order.id}:reversal").update(
+        amount=Decimal("-1.00"), date=date(2026, 9, 1)
+    )
+    assert _slice(_tenant(), OCT)["ust"] == Decimal("2.20")

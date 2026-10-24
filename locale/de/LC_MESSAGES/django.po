@@ -28892,3 +28892,9 @@ msgstr "USt"
 
 msgid "brutto"
 msgstr "brutto"
+
+msgid "Einnahmen oben nach Leistungsdatum; Umsatzsteuer hier nach Zahlungseingang. Vorsteuer nach Belegdatum."
+msgstr "Einnahmen oben nach Leistungsdatum; Umsatzsteuer hier nach Zahlungseingang. Vorsteuer nach Belegdatum."
+
+msgid "USt-Richtwert nur für Zeiträume bis zu einem Jahr."
+msgstr "USt-Richtwert nur für Zeiträume bis zu einem Jahr."

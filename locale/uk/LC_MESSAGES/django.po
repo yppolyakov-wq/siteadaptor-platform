@@ -29049,3 +29049,9 @@ msgstr "ПДВ"
 
 msgid "brutto"
 msgstr "брутто"
+
+msgid "Einnahmen oben nach Leistungsdatum; Umsatzsteuer hier nach Zahlungseingang. Vorsteuer nach Belegdatum."
+msgstr "Доходи вище — за датою надання; ПДВ тут — за надходженням коштів. Вхідний ПДВ — за датою документа."
+
+msgid "USt-Richtwert nur für Zeiträume bis zu einem Jahr."
+msgstr "Орієнтир ПДВ — лише для періодів до одного року."

@@ -465,7 +465,8 @@ def refund_partial(
             # сравнением со «стало»: параллельная отмена могла уже дописать строку.
             if getattr(exc, "code", "") != "charge_already_refunded":
                 DealPayment.objects.filter(pk=row.pk, refunded_cents__gte=new - old).update(
-                    refunded_cents=F("refunded_cents") - (new - old)
+                    refunded_cents=F("refunded_cents") - (new - old),
+                    refunded_at=row.refunded_at,  # B2-8a: дата прежнего возврата
                 )
                 folio.forget(obj)
                 logger.warning("partial refund rejected: %s %s", kind, obj.pk)

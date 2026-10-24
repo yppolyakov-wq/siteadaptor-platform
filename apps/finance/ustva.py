@@ -229,7 +229,12 @@ def _soll(von: date, bis: date, entries, acc: _Acc, notes: list) -> None:
     if not refs:
         return
     journal = _journal_of(refs)
-    rec = {ref: min(e.date for e in es) for ref, es in journal.items()}
+    # Исполнение — первая ПОЛОЖИТЕЛЬНАЯ проводка (сторно раньше неё дату не сдвигает).
+    rec = {}
+    for ref, es in journal.items():
+        days = [e.date for e in es if e.amount > 0]
+        if days:
+            rec[ref] = min(days)
     rows = _folio_rows(refs)
     mixes = _Mixes()
     mixes.load(refs)
@@ -272,7 +277,7 @@ def _ist(von: date, bis: date, entries, acc: _Acc, notes: list) -> None:
             DealPayment.objects.filter(_refs_q(journal_refs)).values_list("deal_kind", "deal_id")
         )
     mixes = _Mixes()
-    mixes.load(refs | with_folio)
+    mixes.load(refs)  # остаток без фолио берёт ставки журнала, не состав
     by_deal = defaultdict(list)
     for row in moved:
         by_deal[(row.deal_kind, row.deal_id)].append(row)
@@ -300,14 +305,24 @@ def _ist(von: date, bis: date, entries, acc: _Acc, notes: list) -> None:
         for row in _folio_rows(set(journal_by_deal)):
             covered[(row.deal_kind, row.deal_id)] += Decimal(row.amount_cents) / 100
         for ref, deal_entries in journal_by_deal.items():
-            posted = sum((e.amount for e in journal.get(ref, ())), ZERO)
-            gap = posted - covered[ref]
-            here = sum((e.amount for e in deal_entries), ZERO)
-            if gap <= 0 or here <= 0:
+            posted_entries = journal.get(ref, ())
+            gap = sum((e.amount for e in posted_entries), ZERO) - covered[ref]
+            # Разница — один раз, в день ПОСЛЕДНЕЙ положительной проводки сделки
+            # (иначе сделка с журналом в двух месяцах дала бы её дважды).
+            last = max((e.date for e in posted_entries if e.amount > 0), default=None)
+            here = [e for e in deal_entries if e.date == last and e.amount > 0]
+            here_sum = sum((e.amount for e in here), ZERO)
+            if gap <= 0 or here_sum <= 0:
                 continue
-            share = min(gap, here) / here
-            for e in deal_entries:
+            share = gap / here_sum  # вся разница — по ставкам последней проводки
+            for e in here:
                 acc.add(e.amount * share, e.vat_rate)
+    notes.append(
+        _(
+            "Einnahmen oben nach Leistungsdatum; Umsatzsteuer hier nach Zahlungseingang. "
+            "Vorsteuer nach Belegdatum."
+        )
+    )
     if legacy:
         notes.append(
             _(

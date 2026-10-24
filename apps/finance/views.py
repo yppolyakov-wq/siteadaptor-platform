@@ -240,8 +240,15 @@ def ergebnis(request):
     cogs, cogs_partial = _order_cogs(entries)
     # ERP-4 → KA-12 B2-8a: UStVA-срез по режиму бизнеса (Soll/Ist/§ 19).
     from .ustva import REGIME_CHOICES, ustva_slice
+    from .ustva import regime_of as ustva_regime
 
-    tax = ustva_slice(getattr(request, "tenant", None), von, bis, entries, expense_qs)
+    if (bis - von).days > 366:
+        # Срез — помесячный ориентир; многолетний диапазон — тяжёлый и бессмысленный.
+        tax = {"ust": None, "vorsteuer": None, "zahllast": None, "rows": [], "regime": ""}
+        tax["notes"] = [_("USt-Richtwert nur für Zeiträume bis zu einem Jahr.")]
+        tax["regime"] = ustva_regime(getattr(request, "tenant", None))
+    else:
+        tax = ustva_slice(getattr(request, "tenant", None), von, bis, entries, expense_qs)
     return render(
         request,
         "finance/ergebnis.html",

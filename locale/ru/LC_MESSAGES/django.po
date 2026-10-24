@@ -29065,3 +29065,9 @@ msgstr "НДС"
 
 msgid "brutto"
 msgstr "брутто"
+
+msgid "Einnahmen oben nach Leistungsdatum; Umsatzsteuer hier nach Zahlungseingang. Vorsteuer nach Belegdatum."
+msgstr "Доходы выше — по дате оказания; НДС здесь — по поступлению денег. Входной НДС — по дате документа."
+
+msgid "USt-Richtwert nur für Zeiträume bis zu einem Jahr."
+msgstr "Ориентир по НДС — только для периодов до одного года."

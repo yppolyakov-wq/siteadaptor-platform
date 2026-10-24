@@ -28944,3 +28944,9 @@ msgstr "KDV"
 
 msgid "brutto"
 msgstr "brüt"
+
+msgid "Einnahmen oben nach Leistungsdatum; Umsatzsteuer hier nach Zahlungseingang. Vorsteuer nach Belegdatum."
+msgstr "Yukarıdaki gelirler hizmet tarihine göre; KDV burada tahsilata göre. İndirilecek KDV belge tarihine göre."
+
+msgid "USt-Richtwert nur für Zeiträume bis zu einem Jahr."
+msgstr "KDV yol gösterici değeri yalnızca bir yıla kadar olan dönemler için."

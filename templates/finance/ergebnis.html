@@ -32,15 +32,15 @@
 <div class="mt-4 grid sm:grid-cols-3 gap-4 max-w-3xl">
   <div class="rounded-xl border border-gray-200 p-5">
     <p class="text-xs text-gray-400">{% trans "USt aus Einnahmen" %}</p>
-    <p class="text-xl font-semibold">{{ ust|floatformat:2 }} €</p>
+    <p class="text-xl font-semibold">{% if ust is None %}—{% else %}{{ ust|floatformat:2 }} €{% endif %}</p>
   </div>
   <div class="rounded-xl border border-gray-200 p-5">
     <p class="text-xs text-gray-400">{% trans "Vorsteuer aus Ausgaben" %}</p>
-    <p class="text-xl font-semibold">−{{ vorsteuer|floatformat:2 }} €</p>
+    <p class="text-xl font-semibold">{% if vorsteuer is None %}—{% else %}−{{ vorsteuer|floatformat:2 }} €{% endif %}</p>
   </div>
   <div class="rounded-xl border border-gray-200 p-5">
     <p class="text-xs text-gray-400">{% trans "USt-Zahllast (Richtwert)" %}</p>
-    <p class="text-xl font-semibold">{{ zahllast|floatformat:2 }} €</p>
+    <p class="text-xl font-semibold">{% if zahllast is None %}—{% else %}{{ zahllast|floatformat:2 }} €{% endif %}</p>
   </div>
 </div>
 <div class="mt-2 max-w-3xl text-sm text-gray-500" data-ustva>
