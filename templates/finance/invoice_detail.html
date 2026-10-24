@@ -79,6 +79,23 @@
       {% if "paid" in allowed %}<button name="action" value="paid" class="text-sm font-medium rounded-lg px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700">{% trans "Als bezahlt markieren" %}</button>{% endif %}
       {% if "cancelled" in allowed %}<button name="action" value="cancelled" class="text-sm font-medium rounded-lg px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50">{% trans "Stornieren" %}</button>{% endif %}
     </form>
+    {% if credit_form %}
+      {% comment %}KA-12 B2-7c: частичная корректура — свой документ, оригинал не меняется.{% endcomment %}
+      <details class="border-t border-gray-100 pt-3" data-credit-form>
+        <summary class="cursor-pointer text-sm font-medium text-gray-700">{% trans "Gutschrift erstellen" %}</summary>
+        <form method="post" class="mt-2 space-y-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="credit">
+          <input type="hidden" name="credit_nonce" value="{{ credit_form.nonce }}">
+          <label class="block text-xs text-gray-500" for="credit-amount">{% trans "Betrag (brutto)" %} · {% trans "höchstens" %} {{ credit_form.max_eur|floatformat:2 }} €</label>
+          <input id="credit-amount" name="amount" inputmode="decimal" required class="w-40 rounded-lg border border-gray-300 px-3 py-2 text-base sm:text-sm">
+          <label class="block text-xs text-gray-500" for="credit-reason">{% trans "Grund" %}</label>
+          <input id="credit-reason" name="reason" maxlength="200" placeholder="{% trans "z. B. Preisminderung" %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base sm:text-sm">
+          <p class="text-xs text-gray-500">{% trans "Die Rechnung bleibt unverändert. Es entsteht ein eigenes Dokument mit eigener Nummer; der offene Betrag sinkt. Geld wird dabei nicht erstattet." %}</p>
+          <button class="text-sm font-medium rounded-lg px-4 py-2 border border-gray-300 hover:bg-gray-50">{% trans "Gutschrift erstellen" %}</button>
+        </form>
+      </details>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

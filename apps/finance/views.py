@@ -634,6 +634,8 @@ def invoice_detail(request, pk):
             elif action in ("paid", "cancelled"):
                 InvoiceSM().apply(invoice, action, actor=request.user)
                 messages.success(request, _("Invoice updated."))
+            elif action == "credit":
+                _create_manual_credit(request, invoice)
             else:
                 messages.error(request, _("This step is not possible in the current status."))
         except IllegalTransition:
@@ -652,8 +654,70 @@ def invoice_detail(request, pk):
                 else InvoiceSM().allowed_targets(invoice.status)
             ),
             "doc_languages": language_choices(request.tenant),
+            "credit_form": _credit_form(invoice),
         },
     )
+
+
+def _credit_form(invoice):
+    """KA-12 B2-7c: форма «Gutschrift erstellen» — у выставленного счёта с остатком.
+    Одноразовый ключ формы: двойной клик не создаёт вторую корректуру."""
+    import uuid
+
+    from .models import Invoice
+
+    if invoice.kind != Invoice.KIND_INVOICE or invoice.status not in (
+        Invoice.STATUS_ISSUED,
+        Invoice.STATUS_PAID,
+    ):
+        return None
+    if invoice.corrected_gross <= Decimal("0.01"):
+        return None
+    if invoice.deal_kind and invoice.deal_kind not in ("order", "booking", "stay", "job"):
+        return None
+    return {"max_eur": invoice.corrected_gross - Decimal("0.01"), "nonce": uuid.uuid4().hex}
+
+
+def _create_manual_credit(request, invoice):
+    import hashlib
+    import re
+
+    from apps.core.money import parse_money
+
+    from .services import CreditError, manual_credit
+
+    nonce = request.POST.get("credit_nonce", "")
+    if not re.fullmatch(r"[0-9a-f]{32}", nonce):
+        messages.error(request, _("This step is not possible in the current status."))
+        return
+    amount = parse_money(request.POST.get("amount", ""))
+    reason = request.POST.get("reason", "").strip()[:200]
+    if amount is None or amount <= 0:
+        messages.error(request, _("Bitte einen Betrag angeben."))
+        return
+    key = hashlib.md5(nonce.encode()).hexdigest()[:12]  # noqa: S324 — ключ идемпотентности
+    try:
+        credit = manual_credit(
+            invoice, amount, reason=reason, key=key, tenant=getattr(request, "tenant", None)
+        )
+    except CreditError:
+        messages.error(
+            request,
+            _(
+                "Gutschrift nicht möglich: Betrag zu hoch (dafür ist die Stornierung da) "
+                "oder der Auftrag ist storniert."
+            ),
+        )
+        return
+    messages.success(
+        request,
+        _("Gutschrift %(num)s erstellt.") % {"num": credit.number_display},
+    )
+    if invoice.status == invoice.STATUS_PAID or invoice.prepaid_cents:
+        messages.info(
+            request,
+            _("Die Rechnung war schon bezahlt — erstatten Sie den Betrag dem Kunden."),
+        )
 
 
 @login_required

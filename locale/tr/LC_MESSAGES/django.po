@@ -28881,3 +28881,30 @@ msgstr "Düzeltme faturası"
 
 msgid "Rechnungskorrektur Nr. %(n)s"
 msgstr "Düzeltme faturası no. %(n)s"
+
+msgid "Betrag (brutto)"
+msgstr "Tutar (brüt)"
+
+msgid "Bitte einen Betrag angeben."
+msgstr "Lütfen bir tutar girin."
+
+msgid "Die Rechnung bleibt unverändert. Es entsteht ein eigenes Dokument mit eigener Nummer; der offene Betrag sinkt. Geld wird dabei nicht erstattet."
+msgstr "Fatura değişmez. Kendi numarasıyla ayrı bir belge oluşturulur; açık tutar azalır. Para iadesi yapılmaz."
+
+msgid "Die Rechnung war schon bezahlt — erstatten Sie den Betrag dem Kunden."
+msgstr "Fatura zaten ödendi — tutarı müşteriye iade edin."
+
+msgid "Gutschrift %(num)s erstellt."
+msgstr "Düzeltme %(num)s oluşturuldu."
+
+msgid "Gutschrift erstellen"
+msgstr "Düzeltme oluştur"
+
+msgid "Gutschrift nicht möglich: Betrag zu hoch (dafür ist die Stornierung da) oder der Auftrag ist storniert."
+msgstr "Düzeltme mümkün değil: tutar çok yüksek (bunun için iptal kullanın) veya sipariş iptal edildi."
+
+msgid "höchstens"
+msgstr "en fazla"
+
+msgid "z. B. Preisminderung"
+msgstr "örn. fiyat indirimi"

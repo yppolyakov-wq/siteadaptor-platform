@@ -209,22 +209,85 @@ def journal_invoice_revenue(invoice) -> None:
         )
 
 
+def _credit_marker(credit) -> str:
+    """Метка сторно корректуры в source_ref (varchar(64): номер, а не uuid)."""
+    return f"c{credit.number}"
+
+
+def _job_credit_reversed(invoice) -> dict:
+    """{ставка: сумма} уже сторнированного корректурами по счёту заявки (положительная)."""
+    out: dict = {}
+    for entry in RevenueEntry.objects.filter(
+        source=RevenueEntry.SOURCE_JOB,
+        source_ref__startswith=f"inv:{invoice.pk}:c",
+        amount__lt=0,
+    ):
+        out[entry.vat_rate] = out.get(entry.vat_rate, Decimal("0")) - entry.amount
+    return out
+
+
+def reverse_job_credit(invoice, credit) -> None:
+    """KA-12 B2-7c: корректура счёта заявки сторнирует проведённую выручку по
+    ставкам — не больше, чем осталось проведённым по этой ставке."""
+    from decimal import ROUND_HALF_UP
+
+    if invoice.deal_kind != "job":
+        return
+    cent = Decimal("0.01")
+    small = Decimal(credit.vat_amount or 0) == 0
+    groups: dict = {}
+    for line in credit.lines or []:
+        own = line.get("vat_rate")
+        rate = (
+            Decimal("0")
+            if small
+            else Decimal(str(own if own not in (None, "") else credit.vat_rate))
+        )
+        amount = abs(_to_decimal(line["unit_price"], "0") * _to_decimal(line.get("qty", 1)))
+        groups[rate] = groups.get(rate, Decimal("0")) + amount
+    posted: dict = {}
+    for entry in RevenueEntry.objects.filter(
+        source=RevenueEntry.SOURCE_JOB, source_ref__startswith=f"inv:{invoice.pk}:", amount__gt=0
+    ):
+        posted[entry.vat_rate] = posted.get(entry.vat_rate, Decimal("0")) + entry.amount
+    taken = _job_credit_reversed(invoice)
+    for rate, net_sum in groups.items():
+        net = net_sum.quantize(cent, rounding=ROUND_HALF_UP)
+        gross = net + (net * rate / Decimal("100")).quantize(cent, rounding=ROUND_HALF_UP)
+        room = posted.get(rate, Decimal("0")) - taken.get(rate, Decimal("0"))
+        part = min(gross, room)
+        if part <= 0:
+            continue
+        record_reversal(
+            source=RevenueEntry.SOURCE_JOB,
+            source_ref=f"inv:{invoice.pk}:{_credit_marker(credit)}:{rate}",
+            amount=part,
+            vat_rate=rate,
+            customer=invoice.customer,
+            note=f"Korrektur {credit.number_display}"[:200],
+        )
+
+
 def reverse_invoice_revenue(invoice) -> None:
-    """Сторно счёта из заявки → сторно-записи на каждую проведённую строку."""
+    """Сторно счёта из заявки → сторно-записи на каждую проведённую строку за вычетом
+    того, что уже сторнировали корректуры (B2-7c) — иначе выручка ушла бы в минус."""
     if invoice.deal_kind != "job":
         return
     entries = RevenueEntry.objects.filter(
         source=RevenueEntry.SOURCE_JOB,
         source_ref__startswith=f"inv:{invoice.pk}:",
         amount__gt=0,
-    )
+    ).order_by("source_ref")
+    credited = _job_credit_reversed(invoice)
     for entry in list(entries):
         if entry.source_ref.endswith(":reversal"):
             continue
+        already = min(credited.get(entry.vat_rate, Decimal("0")), entry.amount)
+        credited[entry.vat_rate] = credited.get(entry.vat_rate, Decimal("0")) - already
         record_reversal(
             source=RevenueEntry.SOURCE_JOB,
             source_ref=f"{entry.source_ref}:reversal",
-            amount=entry.amount,
+            amount=entry.amount - already,
             vat_rate=entry.vat_rate,
             customer=entry.customer,
             note=f"Storno {entry.note}"[:200],
@@ -483,6 +546,47 @@ def create_credit(original, gross, *, reason: str, key: str):
             service_date_end=locked.service_date_end,
             note=f"Korrektur zu {locked.number_display}"[:200],
         )
+
+
+def manual_credit(invoice, gross, *, reason: str, key: str, tenant=None):
+    """KA-12 B2-7c: «Gutschrift erstellen» со страницы счёта. Деньги не двигает.
+    Заказ/запись/номер — снижение цены сделки (`refunds.reduce_price`: скидка, сторно
+    выручки, корректура одной транзакцией). Заявка — корректура + сторно журнала по
+    ставкам. Счёт без сделки — только документ. Прочие виды — CreditError (выручка
+    там проводится иначе, документ разошёлся бы с журналом)."""
+    from django.db import transaction
+
+    from apps.core import money_contract, refunds, transactions
+
+    from .models import Invoice
+
+    if invoice.kind != Invoice.KIND_INVOICE or invoice.status not in (
+        Invoice.STATUS_ISSUED,
+        Invoice.STATUS_PAID,
+    ):
+        raise CreditError("invoice is not issued")
+    gross = Decimal(str(gross)).quantize(Decimal("0.01"))
+    kind = invoice.deal_kind
+    if kind in refunds.MINDERUNG_KINDS:
+        deal = transactions.model_for(kind).objects.filter(reference_code=invoice.deal_id).first()
+        current = money_contract.invoice_for(kind, deal) if deal is not None else None
+        if current is None or current.pk != invoice.pk:
+            raise CreditError("deal of the invoice not found")
+        try:
+            credit = refunds.reduce_price(
+                kind, deal, int(gross * 100), tenant, key, reason=reason or "Preisminderung"
+            )
+        except refunds.PriceReductionBlocked as exc:
+            raise CreditError("price reduction not possible") from exc
+        if credit is None:
+            raise CreditError("no credit issued")
+        return credit
+    if kind and kind != "job":
+        raise CreditError("unsupported deal kind")
+    with transaction.atomic():
+        credit = create_credit(invoice, gross, reason=reason, key=f"man:{key}")
+        reverse_job_credit(invoice, credit)
+    return credit
 
 
 def issue_invoice(invoice, *, tenant=None, terms_days=None):

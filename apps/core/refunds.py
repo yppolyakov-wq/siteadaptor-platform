@@ -534,40 +534,53 @@ def _short_key(row_pk, cumulative: int) -> str:
     return hashlib.md5(f"{row_pk}:{cumulative}".encode()).hexdigest()[:12]  # noqa: S324
 
 
-def _apply_minderung(kind: str, obj, cents: int, tenant, key: str) -> bool:
-    """Снизить цену на сумму уступки и сторнировать проведённую выручку — под
-    блокировкой сделки, с повторной проверкой (между захватом и Stripe сделку могли
-    отменить или выставить счёт). False — применить нельзя: деньги уже вернулись,
-    владелец получает письмо и правит вручную (ревью B2-4b)."""
+class PriceReductionBlocked(ValueError):
+    """Снижение цены невозможно (отмена/больше остатка/сертификат)."""
+
+
+def reduce_price(kind: str, obj, cents: int, tenant, key: str, *, reason="Preisminderung"):
+    """KA-12 B2-4b/B2-7c: снизить цену сделки на `cents` — скидка сделки выше, проведённая
+    выручка сторнируется по ставкам, при выставленном счёте — Rechnungskorrektur.
+    Всё в одной транзакции под блокировкой сделки; блок → PriceReductionBlocked, прочие
+    ошибки пробрасываются. Деньги не двигает: возврат — забота вызывающего.
+    Возвращает корректуру или None (счёта нет)."""
     from apps.core import deal_discount, transactions
     from apps.finance.services import record_minderung
 
+    with transaction.atomic():
+        fresh = transactions.model_for(kind).objects.select_for_update().get(pk=obj.pk)
+        if _minderung_blocked(kind, fresh, cents):
+            raise PriceReductionBlocked(kind)
+        new = int(getattr(fresh, "discount_cents", 0) or 0) + cents
+        if kind == "stay":
+            # Цена брони — та, что была; пересчёт по сегодняшним тарифам сдвинул
+            # бы итог на разницу сезонов (ревью B2-4b).
+            fresh.discount_cents = new
+            fresh.total_cents = max(int(fresh.total_cents) - cents, 0)
+            fresh.save(update_fields=["discount_cents", "total_cents", "updated_at"])
+        else:
+            deal_discount.set_discount(kind, fresh, cents=new, tenant=tenant, allow_closed=True)
+        record_minderung(source=kind, deal=fresh, amount=Decimal(cents) / 100, key=key)
+        credit = _credit_issued_invoice(kind, fresh, cents, key, reason=reason)
+    obj.refresh_from_db()
+    return credit
+
+
+def _apply_minderung(kind: str, obj, cents: int, tenant, key: str) -> bool:
+    """Снижение цены после уже сделанного возврата (повторная проверка под блокировкой:
+    между захватом и Stripe сделку могли отменить). False — применить нельзя: деньги
+    уже вернулись, владелец получает письмо и правит вручную (ревью B2-4b)."""
     try:
-        with transaction.atomic():
-            fresh = transactions.model_for(kind).objects.select_for_update().get(pk=obj.pk)
-            if _minderung_blocked(kind, fresh, cents):
-                raise ValueError("minderung blocked after refund")
-            new = int(getattr(fresh, "discount_cents", 0) or 0) + cents
-            if kind == "stay":
-                # Цена брони — та, что была; пересчёт по сегодняшним тарифам сдвинул
-                # бы итог на разницу сезонов (ревью B2-4b).
-                fresh.discount_cents = new
-                fresh.total_cents = max(int(fresh.total_cents) - cents, 0)
-                fresh.save(update_fields=["discount_cents", "total_cents", "updated_at"])
-            else:
-                deal_discount.set_discount(kind, fresh, cents=new, tenant=tenant, allow_closed=True)
-            record_minderung(source=kind, deal=fresh, amount=Decimal(cents) / 100, key=key)
-            _credit_issued_invoice(kind, fresh, cents, key)
+        reduce_price(kind, obj, cents, tenant, key)
     except Exception:  # noqa: BLE001 — деньги ушли; цену правит владелец, не 500
         logger.error("minderung not applied: %s %s", kind, obj.pk, exc_info=True)
         _notify_owner_failed(kind, obj, tenant, reason="price", cents=cents)
         obj.refresh_from_db()
         return False
-    obj.refresh_from_db()
     return True
 
 
-def _credit_issued_invoice(kind: str, obj, cents: int, key: str) -> None:
+def _credit_issued_invoice(kind: str, obj, cents: int, key: str, *, reason="Preisminderung"):
     """KA-12 B2-7b: у сделки выставлен счёт — уступка оформляется Rechnungskorrektur
     (свой номер, минус по ставкам). В транзакции Minderung: не вышла корректура —
     откатывается и снижение цены (документы и сделка не расходятся)."""
@@ -577,8 +590,8 @@ def _credit_issued_invoice(kind: str, obj, cents: int, key: str) -> None:
 
     invoice = money_contract.invoice_for(kind, obj)
     if invoice is None or invoice.status == Invoice.STATUS_DRAFT:
-        return
-    create_credit(invoice, Decimal(cents) / 100, reason="Preisminderung", key=f"mind:{key}")
+        return None
+    return create_credit(invoice, Decimal(cents) / 100, reason=reason, key=f"mind:{key}")
 
 
 def _is_card_row(row) -> bool:

@@ -28829,3 +28829,30 @@ msgstr "Rechnungskorrektur"
 
 msgid "Rechnungskorrektur Nr. %(n)s"
 msgstr "Rechnungskorrektur Nr. %(n)s"
+
+msgid "Betrag (brutto)"
+msgstr "Betrag (brutto)"
+
+msgid "Bitte einen Betrag angeben."
+msgstr "Bitte einen Betrag angeben."
+
+msgid "Die Rechnung bleibt unverändert. Es entsteht ein eigenes Dokument mit eigener Nummer; der offene Betrag sinkt. Geld wird dabei nicht erstattet."
+msgstr "Die Rechnung bleibt unverändert. Es entsteht ein eigenes Dokument mit eigener Nummer; der offene Betrag sinkt. Geld wird dabei nicht erstattet."
+
+msgid "Die Rechnung war schon bezahlt — erstatten Sie den Betrag dem Kunden."
+msgstr "Die Rechnung war schon bezahlt — erstatten Sie den Betrag dem Kunden."
+
+msgid "Gutschrift %(num)s erstellt."
+msgstr "Gutschrift %(num)s erstellt."
+
+msgid "Gutschrift erstellen"
+msgstr "Gutschrift erstellen"
+
+msgid "Gutschrift nicht möglich: Betrag zu hoch (dafür ist die Stornierung da) oder der Auftrag ist storniert."
+msgstr "Gutschrift nicht möglich: Betrag zu hoch (dafür ist die Stornierung da) oder der Auftrag ist storniert."
+
+msgid "höchstens"
+msgstr "höchstens"
+
+msgid "z. B. Preisminderung"
+msgstr "z. B. Preisminderung"

@@ -28986,3 +28986,30 @@ msgstr "Коригувальний рахунок"
 
 msgid "Rechnungskorrektur Nr. %(n)s"
 msgstr "Коригувальний рахунок № %(n)s"
+
+msgid "Betrag (brutto)"
+msgstr "Сума (брутто)"
+
+msgid "Bitte einen Betrag angeben."
+msgstr "Вкажіть суму."
+
+msgid "Die Rechnung bleibt unverändert. Es entsteht ein eigenes Dokument mit eigener Nummer; der offene Betrag sinkt. Geld wird dabei nicht erstattet."
+msgstr "Рахунок не змінюється. Створюється окремий документ із власним номером, сума до сплати зменшується. Гроші при цьому не повертаються."
+
+msgid "Die Rechnung war schon bezahlt — erstatten Sie den Betrag dem Kunden."
+msgstr "Рахунок уже сплачено — поверніть цю суму клієнту."
+
+msgid "Gutschrift %(num)s erstellt."
+msgstr "Коригування %(num)s створено."
+
+msgid "Gutschrift erstellen"
+msgstr "Створити коригування"
+
+msgid "Gutschrift nicht möglich: Betrag zu hoch (dafür ist die Stornierung da) oder der Auftrag ist storniert."
+msgstr "Коригування неможливе: сума завелика (для цього є сторно) або угоду скасовано."
+
+msgid "höchstens"
+msgstr "не більше"
+
+msgid "z. B. Preisminderung"
+msgstr "напр. знижка ціни"
