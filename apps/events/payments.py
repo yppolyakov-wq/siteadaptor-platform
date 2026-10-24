@@ -215,6 +215,11 @@ def mark_ticket_paid(*, tenant_schema: str, ticket_id: str, payment_intent: str 
             fields.append("payment_due_at")
         if fields:
             fields.append("updated_at")
+            if "payment_state" in fields:
+                # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси).
+                from apps.core import folio
+
+                folio.record_online("ticket", ticket, intent=payment_intent)
             ticket.save(update_fields=fields)
         settle_late_payment("ticket", ticket, newly_paid="payment_state" in fields)
         if not ticket.event.require_manual_confirm and ticket.status == Ticket.STATUS_PENDING:

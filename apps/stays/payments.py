@@ -70,6 +70,11 @@ def mark_stay_paid(*, tenant_schema: str, booking_id: str, payment_intent: str =
             fields.append("payment_due_at")
         if fields:
             fields.append("updated_at")
+            if "payment_state" in fields:
+                # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси).
+                from apps.core import folio
+
+                folio.record_online("stay", booking, intent=payment_intent)
             booking.save(update_fields=fields)
         settle_late_payment("stay", booking, newly_paid="payment_state" in fields)
         # Авто-подтверждение, если юнит не требует ручной проверки (анти-фрод).

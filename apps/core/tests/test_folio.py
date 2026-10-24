@@ -87,3 +87,83 @@ def test_prefetch_makes_due_query_free():
         dues = [money_contract.due("stay", s) for s in stays]
     assert not [q for q in ctx.captured_queries if "dealpayment" in q["sql"].lower()]
     assert dues[0] == money_contract.due("stay", stays[1]) - Decimal("10.00")
+
+
+# --- ревью database-reviewer -----------------------------------------------------------
+
+
+def test_shared_intent_across_deals_records_each_deal():
+    """Один Checkout на несколько сделок (групповая запись) — строка у каждой."""
+    a, b = _stay(), _stay()
+    folio.record("stay", a, amount_cents=1000, purpose="deposit", intent="pi_group")
+    folio.record("stay", b, amount_cents=1000, purpose="deposit", intent="pi_group")
+    assert DealPayment.objects.filter(stripe_payment_intent="pi_group").count() == 2
+
+
+def test_opening_does_not_take_the_new_payments_intent():
+    stay = _stay(state="deposit", deposit=3000)
+    type(stay).objects.filter(pk=stay.pk).update(stripe_payment_intent="pi_new")
+    folio.record("stay", stay, amount_cents=2000, purpose="balance", intent="pi_new")
+    opening = DealPayment.objects.get(purpose="opening")
+    assert opening.stripe_payment_intent == ""
+    assert DealPayment.objects.filter(stripe_payment_intent="pi_new").count() == 1
+
+
+def test_refunded_legacy_deal_keeps_payment_and_refund_in_book():
+    stay = _stay(state="refunded", deposit=0)
+    folio.record("stay", stay, amount_cents=1500, purpose="full", method="cash")
+    opening = DealPayment.objects.get(purpose="opening")
+    assert opening.amount_cents == opening.refunded_cents == stay.total_cents
+
+
+# --- писатели B2-3b ---------------------------------------------------------------------
+
+
+def test_webhook_then_manual_rest_builds_full_book():
+    """Депозит онлайн → остаток «bezahlt»: две строки, оплачено = итог."""
+    from apps.stays.payments import mark_stay_paid
+
+    stay = _stay(deposit=3000)
+    mark_stay_paid(
+        tenant_schema=connection.schema_name, booking_id=str(stay.pk), payment_intent="pi_d"
+    )
+    stay.refresh_from_db()
+    assert stay.payment_state == "deposit"
+    money_contract.settle_payment("stay", stay, source="manual")
+    stay.refresh_from_db()
+    book = list(DealPayment.objects.values_list("purpose", "method", "amount_cents"))
+    assert book[0] == ("deposit", "stripe", 3000)
+    assert book[1][0] == "balance" and book[1][2] == stay.total_cents - 3000
+    folio.forget(stay)
+    assert money_contract.money_state("stay", stay).paid == Decimal(stay.total_cents) / 100
+
+
+def test_repeated_webhook_writes_one_row():
+    from apps.stays.payments import mark_stay_paid
+
+    stay = _stay()
+    for _ in range(2):
+        mark_stay_paid(
+            tenant_schema=connection.schema_name, booking_id=str(stay.pk), payment_intent="pi_once"
+        )
+    assert DealPayment.objects.filter(deal_id=stay.pk).count() == 1
+
+
+def test_full_card_refund_marks_card_rows_refunded(monkeypatch):
+    from apps.core import refunds
+    from apps.stays.payments import mark_stay_paid
+    from apps.tenants.tests.factories import TenantFactory
+
+    monkeypatch.setattr("apps.billing.connect.refund", lambda **kw: None)
+    stay = _stay(deposit=3000)
+    mark_stay_paid(
+        tenant_schema=connection.schema_name, booking_id=str(stay.pk), payment_intent="pi_r"
+    )
+    money_contract.settle_payment("stay", stay, source="manual")  # остаток наличными
+    stay.refresh_from_db()
+    tenant = TenantFactory.build(stripe_connect_id="acct_1", owner_email="o@t.de")
+    assert refunds.refund_payment("stay", stay, tenant) == refunds.RefundResult.REFUNDED
+    card = DealPayment.objects.get(method="stripe")
+    cash = DealPayment.objects.exclude(method="stripe").get()
+    assert card.refunded_cents == card.amount_cents == 3000
+    assert cash.refunded_cents == 0  # наличные карта не вернула

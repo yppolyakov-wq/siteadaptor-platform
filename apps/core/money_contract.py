@@ -114,12 +114,12 @@ def _online_paid(kind, obj, total) -> Decimal:
 def _folio_totals(kind, obj):
     """KA-12 B2-3: (оплачено, возвращено) из фолио в евро или None (легаси/рассрочка).
     Рассрочку билета читает её собственная книга долей (InstallmentCharge)."""
-    if kind == "reservation" or getattr(obj, "pk", None) is None:
+    from apps.core import folio
+
+    if kind not in folio.FOLIO_KINDS or getattr(obj, "pk", None) is None:
         return None
     if getattr(obj, "payment_state", "") == "installment":
         return None
-    from apps.core import folio
-
     found = folio.totals(kind, obj)
     if found is None:
         return None
@@ -275,7 +275,30 @@ def settle_payment(kind: str, obj, *, source: str = "manual", deposit_only: bool
     from django.db import transaction
 
     with transaction.atomic():
-        return _settle_payment(kind, obj, deposit_only=deposit_only)
+        return _settle_payment(kind, obj, deposit_only=deposit_only, source=source)
+
+
+def _record_rest(kind, obj, *, source: str) -> None:
+    """KA-12 B2-3: остаток, полученный вне Stripe, — строкой фолио (ДО смены состояния:
+    `due` и строка opening считаются по прежнему состоянию)."""
+    from apps.core import folio
+
+    if kind not in folio.FOLIO_KINDS:
+        return
+    rest = due(kind, obj)
+    if rest <= 0:
+        return
+    method = {"bank": "bank", "invoice": "invoice"}.get(source) or (
+        getattr(obj, "payment_method", "") or "on_site"
+    )
+    folio.record(
+        kind,
+        obj,
+        amount_cents=int((rest * 100).to_integral_value()),
+        purpose="balance",
+        method=method,
+        source=source,
+    )
 
 
 def job_deposit_open_q():
@@ -292,7 +315,7 @@ def job_deposit_open_q():
 JOB_NOT_YET_OWED = ("new", "quoted", "invoiced")
 
 
-def _settle_payment(kind, obj, *, deposit_only: bool = False) -> bool:
+def _settle_payment(kind, obj, *, deposit_only: bool = False, source: str = "manual") -> bool:
     import logging
 
     from django.db import transaction
@@ -312,6 +335,7 @@ def _settle_payment(kind, obj, *, deposit_only: bool = False) -> bool:
         return False
     fields = []
     if state != paid:
+        _record_rest(kind, obj, source=source)
         obj.payment_state = paid
         fields.append("payment_state")
         if kind == "job" and obj.deposit_cents and not deposit_only:
@@ -420,6 +444,7 @@ def settle_on_delivery(kind: str, obj) -> bool:
     )
     if not (open_cash or rest_on_site):
         return False
+    _record_rest(kind, obj, source="delivery")
     obj.payment_state = getattr(type(obj), "PAYMENT_PAID", "paid")
     obj.save(update_fields=["payment_state", "updated_at"])
     return True

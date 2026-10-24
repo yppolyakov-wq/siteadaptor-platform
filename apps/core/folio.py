@@ -13,7 +13,7 @@
 
 from __future__ import annotations
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
 _CACHE = "_folio_rows"
 
@@ -59,6 +59,78 @@ def totals(kind: str, obj) -> tuple[int, int] | None:
     return sum(r.amount_cents for r in found), sum(r.refunded_cents for r in found)
 
 
+#: Виды сделок с фолио. Заявка — нет: её деньги идут через счёт и `prepaid_cents`
+#: (сертификат + Anzahlung), второй источник там только запутал бы «уже получено».
+#: Резерв (легаси) и gift/pass — тоже нет.
+FOLIO_KINDS = ("order", "booking", "stay", "ticket")
+
+
+def _create_opening(kind: str, locked, *, new_intent: str) -> None:
+    """Перенести в фолио то, что легаси-сделка уже получила по прежним правилам.
+
+    Возвращённая целиком сделка — строка с оплатой И возвратом (иначе старый платёж
+    и его возврат пропали бы из книги). intent прежнего платежа сохраняем, только
+    если это не intent записываемого сейчас платежа (иначе строки столкнулись бы)."""
+    from apps.core import money_contract
+    from apps.core.models import DealPayment
+
+    refunded_state = getattr(type(locked), "PAYMENT_REFUNDED", "refunded")
+    if getattr(locked, "payment_state", "") == refunded_state:
+        total = money_contract._total(kind, locked)
+        online = min(money_contract._online_paid(kind, locked, total), total)
+        amount = int((online * 100).to_integral_value())
+        refunded = amount
+    else:
+        amount = money_contract.legacy_paid_cents(kind, locked)
+        refunded = 0
+    if amount <= 0:
+        return
+    old_intent = getattr(locked, "stripe_payment_intent", "") or ""
+    DealPayment.objects.create(
+        deal_kind=kind,
+        deal_id=locked.pk,
+        purpose=DealPayment.PURPOSE_OPENING,
+        method=getattr(locked, "payment_method", "") or "",
+        amount_cents=amount,
+        refunded_cents=refunded,
+        stripe_payment_intent=old_intent if old_intent != new_intent else "",
+        source="legacy",
+    )
+
+
+def mark_refunded(kind: str, obj, *, intent: str) -> None:
+    """Полный возврат картой: строки этого платежа Stripe — возвращены целиком.
+    Наличные/перевод (другие строки) карта не возвращает — их видно как «остаток»."""
+    from django.db.models import F, Q
+
+    from apps.core.models import DealPayment
+
+    DealPayment.objects.filter(deal_kind=kind, deal_id=obj.pk).filter(
+        Q(method="stripe") | Q(stripe_payment_intent=intent) if intent else Q(method="stripe")
+    ).update(refunded_cents=F("amount_cents"))
+    forget(obj)
+
+
+def record_online(kind: str, obj, *, intent: str = ""):
+    """Вебхук Stripe: записать онлайн-платёж (депозит или всё — как `_online_paid`)."""
+    if kind not in FOLIO_KINDS:
+        return None
+    from apps.core import money_contract
+
+    total = money_contract._total(kind, obj)
+    online = min(money_contract._online_paid(kind, obj, total), total)
+    purpose = "full" if online >= total else "deposit"
+    return record(
+        kind,
+        obj,
+        amount_cents=int((online * 100).to_integral_value()),
+        purpose=purpose,
+        method="stripe",
+        source="webhook",
+        intent=intent,
+    )
+
+
 def record(
     kind: str,
     obj,
@@ -73,43 +145,42 @@ def record(
     легаси-сделки считается по состоянию, которое было до этого платежа.
 
     Возвращает строку (повтор с тем же intent — прежнюю строку)."""
-    from apps.core import money_contract, transactions
+    from apps.core import transactions
     from apps.core.models import DealPayment
 
     amount_cents = int(amount_cents or 0)
     if amount_cents <= 0:
         return None
     model = transactions.model_for(kind)
+
+    def _existing(deal_pk):
+        return DealPayment.objects.filter(
+            deal_kind=kind, deal_id=deal_pk, stripe_payment_intent=intent
+        ).first()
+
     with transaction.atomic():
         locked = model.objects.select_for_update().get(pk=obj.pk)
         if intent:
-            existing = DealPayment.objects.filter(
-                deal_kind=kind, stripe_payment_intent=intent
-            ).first()
+            existing = _existing(locked.pk)
             if existing is not None:
                 forget(obj)
                 return existing
         has_rows = DealPayment.objects.filter(deal_kind=kind, deal_id=locked.pk).exists()
         if not has_rows:
-            opening = money_contract.legacy_paid_cents(kind, locked)
-            if opening > 0:
-                DealPayment.objects.create(
+            _create_opening(kind, locked, new_intent=intent)
+        try:
+            with transaction.atomic():
+                row = DealPayment.objects.create(
                     deal_kind=kind,
                     deal_id=locked.pk,
-                    purpose=DealPayment.PURPOSE_OPENING,
-                    method=getattr(locked, "payment_method", "") or "",
-                    amount_cents=opening,
-                    stripe_payment_intent=getattr(locked, "stripe_payment_intent", "") or "",
-                    source="legacy",
+                    purpose=purpose,
+                    method=method,
+                    amount_cents=amount_cents,
+                    stripe_payment_intent=intent,
+                    source=source,
                 )
-        row = DealPayment.objects.create(
-            deal_kind=kind,
-            deal_id=locked.pk,
-            purpose=purpose,
-            method=method,
-            amount_cents=amount_cents,
-            stripe_payment_intent=intent,
-            source=source,
-        )
+        except IntegrityError:
+            # Гонка повтора с тем же intent (вебхук ∥ ручной вызов) — строка уже есть.
+            row = _existing(locked.pk)
     forget(obj)
     return row

@@ -391,9 +391,11 @@ class DealPayment(TimestampedModel):
 
     class Meta:
         constraints = [
-            # Повтор вебхука с тем же платежом не создаёт вторую строку.
+            # Повтор вебхука с тем же платежом не создаёт вторую строку. deal_id в
+            # ключе: один Checkout может покрыть несколько сделок (групповая запись,
+            # несколько номеров) — у каждой своя строка с общим intent.
             models.UniqueConstraint(
-                fields=["deal_kind", "stripe_payment_intent"],
+                fields=["deal_kind", "deal_id", "stripe_payment_intent"],
                 condition=~models.Q(stripe_payment_intent=""),
                 name="dealpayment_intent_uniq",
             ),

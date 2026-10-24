@@ -141,6 +141,9 @@ def refund_payment(kind: str, obj, tenant=None) -> RefundResult:
     except Exception:  # noqa: BLE001 — сбой не должен оставить ложное «возвращено»
         return _rollback(kind, obj, previous, tenant)
     obj.refresh_from_db(fields=["payment_state"])
+    from apps.core import folio
+
+    folio.mark_refunded(kind, obj, intent=intent)  # KA-12 B2-3: книга знает о возврате
     if rest > 0:
         _OFFLINE_REST.set(rest)
         _notify_owner_rest(kind, obj, rest, tenant)

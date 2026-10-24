@@ -65,6 +65,11 @@ def mark_order_paid(*, tenant_schema: str, order_id: str, payment_intent: str = 
             fields.append("stripe_payment_intent")
         if fields:
             fields.append("updated_at")
+            if "payment_state" in fields:
+                # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси).
+                from apps.core import folio
+
+                folio.record_online("order", order, intent=payment_intent)
             order.save(update_fields=fields)
         if order.status == Order.STATUS_NEW:
             try:
