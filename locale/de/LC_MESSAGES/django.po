@@ -29176,3 +29176,6 @@ msgstr "In diesem Zeitraum sind alle Zimmer der Kategorie verkauft — der Block
 #, python-format
 msgid "Zimmer %(n)s"
 msgstr "Zimmer %(n)s"
+
+msgid "Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."
+msgstr "Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."

@@ -168,3 +168,65 @@ def test_edit_form_without_sentinel_keeps_extras(settings):
     )
     b.refresh_from_db()
     assert [r.number for r in services.assigned_rooms(b)] == ["101", "102"]
+
+
+def test_drag_onto_room_held_as_extra_is_409(settings):
+    from apps.stays import views
+    from apps.stays.tests.test_belegungsplan import _req
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    unit, (r1, r2, r3) = _unit()
+    services.assign_rooms(_booking(unit, rooms=2), [r1, r2])
+    other = _booking(unit, arrival=D0 + timedelta(days=20))
+    resp = views.stay_action(
+        _req(
+            "post",
+            data={
+                "action": "move",
+                "arrival": D0.isoformat(),
+                "departure": (D0 + timedelta(days=2)).isoformat(),
+                "room": str(r2.pk),
+                "reprice": "0",
+            },
+            fetch=True,
+        ),
+        pk=other.pk,
+    )
+    assert resp.status_code == 409
+    other.refresh_from_db()
+    assert other.arrival == D0 + timedelta(days=20)
+
+
+def test_drag_of_multiroom_booking_onto_room_lane_is_refused(settings):
+    from apps.stays import views
+    from apps.stays.tests.test_belegungsplan import _req
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    unit, (r1, r2, r3) = _unit()
+    b = _booking(unit, rooms=2)
+    services.assign_rooms(b, [r1, r2])
+    resp = views.stay_action(
+        _req(
+            "post",
+            data={
+                "action": "move",
+                "arrival": b.arrival.isoformat(),
+                "departure": b.departure.isoformat(),
+                "room": str(r3.pk),
+                "reprice": "0",
+            },
+            fetch=True,
+        ),
+        pk=b.pk,
+    )
+    assert resp.status_code == 409
+    assert [r.number for r in services.assigned_rooms(b)] == ["101", "102"]
+
+
+def test_unassigning_first_room_promotes_extra():
+    unit, (r1, r2, _r3) = _unit()
+    b = _booking(unit, rooms=2)
+    services.assign_rooms(b, [r1, r2])
+    services.assign_room(b, None)
+    b.refresh_from_db()
+    assert b.room_id == r2.id and not b.extra_rooms.exists()

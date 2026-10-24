@@ -29353,3 +29353,6 @@ msgstr "В эти даты все номера категории проданы
 #, python-format
 msgid "Zimmer %(n)s"
 msgstr "Номер %(n)s"
+
+msgid "Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."
+msgstr "Несколько номеров — назначьте номера в карточке брони."

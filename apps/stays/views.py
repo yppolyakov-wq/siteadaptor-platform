@@ -362,9 +362,19 @@ def stay_action(request, pk):
                 room_obj = Room.objects.filter(
                     pk=room_param, unit_id=dest.pk, is_active=True
                 ).first()
+                # KA-12 E4.10b (ревью): у брони на несколько номеров дорожка не говорит,
+                # какой из номеров тянули — назначение только в карточке брони.
+                if room_obj is not None and (booking.rooms or 1) > 1:
+                    msg = _("Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen.")
+                    if is_fetch:
+                        return HttpResponse(msg, status=409)
+                    messages.error(request, msg)
+                    return redirect(back)
+                from django.db.models import Q as _Q
+
                 if room_obj is not None and (
                     StayBooking.objects.filter(
-                        room=room_obj,
+                        _Q(room=room_obj) | _Q(extra_rooms=room_obj),
                         status__in=status_registry.active_statuses_for("stay"),
                         arrival__lt=departure,
                         departure__gt=arrival,

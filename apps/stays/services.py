@@ -154,8 +154,13 @@ def assign_room(booking, room) -> None:
     чужой категории или занятая на диапазон → RoomConflict."""
     if room is None:
         if booking.room_id:
-            booking.room = None
+            # KA-12 E4.10b: первым становится следующий назначенный номер — иначе
+            # бронь с доп. номерами считалась бы «ohne Zimmer».
+            extras = list(booking.extra_rooms.all())
+            booking.room = extras[0] if extras else None
             booking.save(update_fields=["room", "updated_at"])
+            if extras:
+                booking.extra_rooms.remove(extras[0])
         return
     if room.unit_id != booking.unit_id:
         raise RoomConflict()
@@ -221,9 +226,18 @@ def extra_room_slots(booking) -> list[dict]:
 def drop_conflicting_rooms(booking) -> None:
     """После переноса дат: снять назначенные номера, которые на новые даты заняты."""
     free = {r.id for r in free_rooms_for(booking)}
-    keep = [r for r in assigned_rooms(booking) if r.id in free]
-    if len(keep) != len(assigned_rooms(booking)):
+    current = assigned_rooms(booking)
+    keep = [r for r in current if r.id in free]
+    if len(keep) == len(current):
+        return
+    try:
         assign_rooms(booking, keep)
+    except RoomConflict:
+        # Гонка: и оставшиеся номера только что заняли — снимаем все (номера
+        # назначит стойка), лишь бы не держать один номер за двумя гостями.
+        booking.room = None
+        booking.save(update_fields=["room", "updated_at"])
+        booking.extra_rooms.clear()
 
 
 def create_block(unit, start_date, end_date, reason="", *, room=None):

@@ -29228,3 +29228,6 @@ msgstr "Bu tarihlerde kategorinin tüm odaları satıldı — engelleme fazla re
 #, python-format
 msgid "Zimmer %(n)s"
 msgstr "Oda %(n)s"
+
+msgid "Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."
+msgstr "Birden fazla oda — lütfen odaları rezervasyonda atayın."
