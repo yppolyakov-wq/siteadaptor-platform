@@ -29016,3 +29016,30 @@ msgstr "atanan: %(n)s"
 
 msgid "noch keins zugewiesen"
 msgstr "henüz hiçbiri atanmadı"
+
+msgid "An diesen Tagen ist Ihr ganzes Geschäft geschlossen: keine Termine und keine Abholzeiten, „Jetzt geöffnet“ ist aus, Ihre Website zeigt einen Hinweis."
+msgstr "Bu günlerde işletmenizin tamamı kapalıdır: randevu ve teslim alma saati yoktur, “Şimdi açık” kapalıdır ve web sitenizde bir duyuru gösterilir."
+
+msgid "Betriebsferien"
+msgstr "İşletme tatili"
+
+msgid "Betriebsferien am %(d)s"
+msgstr "%(d)s tarihinde kapalı"
+
+msgid "Betriebsferien gespeichert."
+msgstr "Kapanış kaydedildi."
+
+msgid "Betriebsferien vom %(von)s bis %(bis)s"
+msgstr "%(von)s – %(bis)s arası kapalı"
+
+msgid "Geplante Schließungen"
+msgstr "Planlanan kapanışlar"
+
+msgid "Grund (optional, wird auf der Website gezeigt)"
+msgstr "Neden (isteğe bağlı, web sitesinde gösterilir)"
+
+msgid "Keine Schließungen geplant."
+msgstr "Planlanmış kapanış yok."
+
+msgid "Von"
+msgstr "Başlangıç"

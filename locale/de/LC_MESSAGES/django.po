@@ -28964,3 +28964,30 @@ msgstr "zugewiesen: %(n)s"
 
 msgid "noch keins zugewiesen"
 msgstr "noch keins zugewiesen"
+
+msgid "An diesen Tagen ist Ihr ganzes Geschäft geschlossen: keine Termine und keine Abholzeiten, „Jetzt geöffnet“ ist aus, Ihre Website zeigt einen Hinweis."
+msgstr "An diesen Tagen ist Ihr ganzes Geschäft geschlossen: keine Termine und keine Abholzeiten, „Jetzt geöffnet“ ist aus, Ihre Website zeigt einen Hinweis."
+
+msgid "Betriebsferien"
+msgstr "Betriebsferien"
+
+msgid "Betriebsferien am %(d)s"
+msgstr "Betriebsferien am %(d)s"
+
+msgid "Betriebsferien gespeichert."
+msgstr "Betriebsferien gespeichert."
+
+msgid "Betriebsferien vom %(von)s bis %(bis)s"
+msgstr "Betriebsferien vom %(von)s bis %(bis)s"
+
+msgid "Geplante Schließungen"
+msgstr "Geplante Schließungen"
+
+msgid "Grund (optional, wird auf der Website gezeigt)"
+msgstr "Grund (optional, wird auf der Website gezeigt)"
+
+msgid "Keine Schließungen geplant."
+msgstr "Keine Schließungen geplant."
+
+msgid "Von"
+msgstr "Von"

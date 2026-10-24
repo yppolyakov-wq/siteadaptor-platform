@@ -29137,3 +29137,30 @@ msgstr "назначен: %(n)s"
 
 msgid "noch keins zugewiesen"
 msgstr "ещё ни один не назначен"
+
+msgid "An diesen Tagen ist Ihr ganzes Geschäft geschlossen: keine Termine und keine Abholzeiten, „Jetzt geöffnet“ ist aus, Ihre Website zeigt einen Hinweis."
+msgstr "В эти дни весь бизнес закрыт: нет записи и времени самовывоза, «Сейчас открыто» выключено, на сайте показывается объявление."
+
+msgid "Betriebsferien"
+msgstr "Отпуск / закрытие"
+
+msgid "Betriebsferien am %(d)s"
+msgstr "Закрыто %(d)s"
+
+msgid "Betriebsferien gespeichert."
+msgstr "Закрытие сохранено."
+
+msgid "Betriebsferien vom %(von)s bis %(bis)s"
+msgstr "Закрыто с %(von)s по %(bis)s"
+
+msgid "Geplante Schließungen"
+msgstr "Запланированные закрытия"
+
+msgid "Grund (optional, wird auf der Website gezeigt)"
+msgstr "Причина (необязательно, видна на сайте)"
+
+msgid "Keine Schließungen geplant."
+msgstr "Закрытий не запланировано."
+
+msgid "Von"
+msgstr "С"

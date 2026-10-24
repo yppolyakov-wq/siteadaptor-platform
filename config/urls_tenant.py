@@ -23,6 +23,7 @@ from apps.core.storefront_profile import redirect_if_aktionen as _aktionen
 from apps.core.team import team_join, team_view
 from apps.core.views import (
     ablaeufe_view,
+    betriebsferien_view,
     board,
     board_settings,
     dashboard,
@@ -139,6 +140,11 @@ urlpatterns = [
     ),
     # L2 (Волна L): кабинет «Sprachen» — включение языков витрины + дефолт.
     path("dashboard/settings/languages/", languages_view, name="languages"),
+    path(
+        "dashboard/settings/betriebsferien/",
+        betriebsferien_view,
+        name="betriebsferien",
+    ),
     # FD-3-lite: тумблер+превью Finder (вкладка Marketing-хаба «Erweitert»).
     path("dashboard/finder/", finder_settings, name="finder-settings"),
     # W4-3: единый экран «Zahlung & Versand» (свод оплаты/доставки).

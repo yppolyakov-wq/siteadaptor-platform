@@ -720,6 +720,20 @@ def presence_fab(context):
     return {"wa_url": wa_url}
 
 
+@register.inclusion_tag("storefront/_holiday_banner.html", takes_context=True)
+def holiday_banner(context):
+    """KA-12 E4.1a: «Betriebsferien vom … bis …» — идёт сейчас или скоро начнётся."""
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    if tenant is None:
+        return {"closure": None}
+    from django.utils import timezone
+
+    from apps.core import closures
+
+    return {"closure": closures.current_or_next(timezone.localdate(), tenant)}
+
+
 @register.inclusion_tag("storefront/_booking_info.html", takes_context=True)
 def booking_info(context):
     """Фидбэк 2026-07-28: инфо-блок под листингом Termine для всех booking-

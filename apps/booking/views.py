@@ -438,28 +438,20 @@ def availability_calendar(request):
         # Фидбэк 2026-08-04: «зарезервировать даты решением владельца» — блок
         # ЦЕЛОГО диапазона (отпуск/санитарные дни) одной формой, не кликами по
         # дням. Идемпотентно; «wieder öffnen» снимает блок того же диапазона.
+        from apps.core import closures
+
         von = _parse_day_or_none(request.POST.get("von"))
         bis = _parse_day_or_none(request.POST.get("bis"))
-        if von is None or bis is None or bis < von or (bis - von).days > 366:
+        if not closures.valid_range(von, bis):
             messages.error(request, _("Invalid date."))
         else:
-            span = [von + timedelta(days=i) for i in range((bis - von).days + 1)]
+            # KA-12 E4.1a: общий хелпер с экраном Betriebsferien (и сброс кэша витрины).
             if request.POST.get("mode") == "open":
-                ClosedDate.objects.filter(date__in=span, resource=chosen).delete()
+                closures.clear_range(von, bis, resource=chosen)
                 messages.success(request, _("Zeitraum wieder geöffnet."))
             else:
-                existing = set(
-                    ClosedDate.objects.filter(date__in=span, resource=chosen).values_list(
-                        "date", flat=True
-                    )
-                )
-                reason = request.POST.get("reason", "").strip()[:120]
-                ClosedDate.objects.bulk_create(
-                    [
-                        ClosedDate(date=d, resource=chosen, reason=reason)
-                        for d in span
-                        if d not in existing
-                    ]
+                closures.set_range(
+                    von, bis, reason=request.POST.get("reason", "").strip(), resource=chosen
                 )
                 messages.success(
                     request, _("Zeitraum blockiert — diese Tage sind nicht mehr buchbar.")

@@ -1,0 +1,48 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Betriebsferien" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold mb-1">{% nav_title _("Betriebsferien") %}</h1>
+  <p class="text-gray-500 mb-4 text-sm">{% trans "An diesen Tagen ist Ihr ganzes Geschäft geschlossen: keine Termine und keine Abholzeiten, „Jetzt geöffnet“ ist aus, Ihre Website zeigt einen Hinweis." %}</p>
+
+  {% include "tenant/_settings_messages.html" %}
+
+  <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4" data-betriebsferien-form>
+    {% csrf_token %}
+    <div class="grid sm:grid-cols-2 gap-4">
+      <label class="block text-sm">{% trans "Von" %}
+        <input type="date" name="von" required min="{{ today|date:'Y-m-d' }}" class="mt-1 w-full rounded-lg border-gray-300">
+      </label>
+      <label class="block text-sm">{% trans "Bis" %}
+        <input type="date" name="bis" required min="{{ today|date:'Y-m-d' }}" class="mt-1 w-full rounded-lg border-gray-300">
+      </label>
+    </div>
+    <label class="block text-sm">{% trans "Grund (optional, wird auf der Website gezeigt)" %}
+      <input type="text" name="reason" maxlength="120" class="mt-1 w-full rounded-lg border-gray-300">
+    </label>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium">{% trans "Schließen" %}</button>
+  </form>
+
+  <h2 class="font-semibold mt-8 mb-3">{% trans "Geplante Schließungen" %}</h2>
+  {% if ranges %}
+  <ul class="space-y-2">
+    {% for r in ranges %}
+    <li class="bg-white rounded-xl shadow-sm px-4 py-3 flex items-center justify-between gap-3" data-closure-range>
+      <span class="text-sm">{{ r.von|date:"d.m.Y" }}{% if r.bis != r.von %} – {{ r.bis|date:"d.m.Y" }}{% endif %}{% if r.reason %} · <span class="text-gray-500">{{ r.reason }}</span>{% endif %}</span>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="von" value="{{ r.von|date:'Y-m-d' }}">
+        <input type="hidden" name="bis" value="{{ r.bis|date:'Y-m-d' }}">
+        <input type="hidden" name="mode" value="open">
+        <button class="text-sm text-indigo-600 hover:underline">{% trans "Wieder öffnen" %}</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-sm text-gray-500">{% trans "Keine Schließungen geplant." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

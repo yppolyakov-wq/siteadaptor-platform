@@ -28872,3 +28872,30 @@ msgstr "assigned: %(n)s"
 
 msgid "noch keins zugewiesen"
 msgstr "none assigned yet"
+
+msgid "An diesen Tagen ist Ihr ganzes Geschäft geschlossen: keine Termine und keine Abholzeiten, „Jetzt geöffnet“ ist aus, Ihre Website zeigt einen Hinweis."
+msgstr "On these days your whole business is closed: no appointments and no pickup times, “Open now” is off, and your website shows a notice."
+
+msgid "Betriebsferien"
+msgstr "Company holidays"
+
+msgid "Betriebsferien am %(d)s"
+msgstr "Closed on %(d)s"
+
+msgid "Betriebsferien gespeichert."
+msgstr "Closure saved."
+
+msgid "Betriebsferien vom %(von)s bis %(bis)s"
+msgstr "Closed from %(von)s to %(bis)s"
+
+msgid "Geplante Schließungen"
+msgstr "Planned closures"
+
+msgid "Grund (optional, wird auf der Website gezeigt)"
+msgstr "Reason (optional, shown on the website)"
+
+msgid "Keine Schließungen geplant."
+msgstr "No closures planned."
+
+msgid "Von"
+msgstr "From"

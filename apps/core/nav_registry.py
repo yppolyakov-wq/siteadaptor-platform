@@ -736,6 +736,15 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="sprache locale übersetzung",
         group="geschaeft",
     ),
+    # KA-12 E4.1a: закрытие всего бизнеса (запись, самовывоз, «Jetzt geöffnet», баннер).
+    _e(
+        "settings",
+        "betriebsferien",
+        _("Betriebsferien"),
+        "betriebsferien",
+        search="urlaub ferien geschlossen feiertag pause",
+        group="geschaeft",
+    ),
     # X0: Recht/Abo/Team — owner-only (зеркалит _OWNER_ONLY мидлвари W9-10;
     # сотруднику таб не показывается вместо мёртвого 403).
     _e(

@@ -6376,3 +6376,54 @@ def deal_refund(request, kind, pk):
     ):
         nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
     return redirect(nxt)
+
+
+@login_required
+def betriebsferien_view(request):
+    """KA-12 E4.1a: Betriebsferien — закрыть весь бизнес на дни одной формой.
+
+    Пишет `ClosedDate(resource=None)` через `core.closures` (тот же хелпер, что
+    диапазон в календаре записи): запись, самовывоз, «Jetzt geöffnet» и баннер
+    витрины видят закрытие сразу (сброс кэша витрины)."""
+    from datetime import date, timedelta
+
+    from django.utils import timezone
+
+    from apps.booking.models import ClosedDate
+
+    from . import closures
+
+    def _day(raw):
+        try:
+            return date.fromisoformat((raw or "").strip())
+        except ValueError:
+            return None
+
+    if request.method == "POST":
+        von, bis = _day(request.POST.get("von")), _day(request.POST.get("bis"))
+        if not closures.valid_range(von, bis):
+            messages.error(request, _("Invalid date."))
+        elif request.POST.get("mode") == "open":
+            closures.clear_range(von, bis)
+            messages.success(request, _("Zeitraum wieder geöffnet."))
+        else:
+            closures.set_range(von, bis, reason=request.POST.get("reason", "").strip())
+            messages.success(request, _("Betriebsferien gespeichert."))
+        return redirect("betriebsferien")
+    today = timezone.localdate()
+    days = list(
+        ClosedDate.objects.filter(resource__isnull=True, date__gte=today)
+        .order_by("date")
+        .values_list("date", "reason")[: closures.MAX_RANGE_DAYS]
+    )
+    ranges = []
+    for day, reason in days:
+        if ranges and ranges[-1]["bis"] + timedelta(days=1) == day:
+            ranges[-1]["bis"] = day
+        else:
+            ranges.append({"von": day, "bis": day, "reason": reason})
+    return render(
+        request,
+        "tenant/betriebsferien.html",
+        {"ranges": ranges, "today": today, "nav": "betriebsferien"},
+    )

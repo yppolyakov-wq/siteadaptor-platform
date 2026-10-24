@@ -432,9 +432,15 @@ class Tenant(TenantMixin):
         """Live-статус «открыто сейчас» из структурных часов (P1b). None — не заданы."""
         from django.utils import timezone
 
+        from apps.core import closures
+
         from . import openinghours
 
-        return openinghours.open_status(self.opening_hours_structured, timezone.localtime())
+        now = timezone.localtime()
+        if closures.is_closed(now.date(), self):
+            # KA-12 E4.1a: Betriebsferien — «Jetzt geöffnet» не врёт.
+            return {"open": False, "until": None, "next": None, "holiday": True}
+        return openinghours.open_status(self.opening_hours_structured, now)
 
     def opening_hours_localized(self, locale: str | None = None) -> str:
         """I18N-12: часы работы строкой на локали гостя (база — плоское поле)."""

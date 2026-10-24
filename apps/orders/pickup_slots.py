@@ -80,10 +80,15 @@ def slots_for(tenant, now=None, cfg=None) -> list[tuple]:
     step = timedelta(minutes=cfg["step"])
     capacity = cfg["capacity"]
     grid = []
+    from apps.core import closures
+
+    # KA-12 E4.1a: в Betriebsferien окна выдачи не предлагаются (validate отвергнет
+    # выбор сам — он сверяет с этой же сеткой).
+    holidays = closures.closed_days(now.date(), now.date() + timedelta(days=cfg["days"]), tenant)
     for offset in range(cfg["days"]):  # календарные дни, начиная с сегодня
         day = (now + timedelta(days=offset)).date()
         rng = hours.get(str(day.weekday()))
-        if not rng:
+        if not rng or day in holidays:
             continue
         opens = openinghours._parse_hhmm(rng[0])
         closes = openinghours._parse_hhmm(rng[1])

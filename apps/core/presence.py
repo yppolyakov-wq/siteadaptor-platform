@@ -29,9 +29,11 @@ def available_now(tenant) -> bool:
         return False
     if m == "on":
         return True
+    from apps.core import closures
     from apps.tenants import openinghours
 
-    status = openinghours.open_status(
-        getattr(tenant, "opening_hours_structured", None), timezone.localtime()
-    )
+    now = timezone.localtime()
+    if closures.is_closed(now.date(), tenant):
+        return False  # KA-12 E4.1a: Betriebsferien
+    status = openinghours.open_status(getattr(tenant, "opening_hours_structured", None), now)
     return bool(status and status.get("open"))

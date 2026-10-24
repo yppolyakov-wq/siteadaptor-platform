@@ -29121,3 +29121,30 @@ msgstr "призначено: %(n)s"
 
 msgid "noch keins zugewiesen"
 msgstr "ще жодного не призначено"
+
+msgid "An diesen Tagen ist Ihr ganzes Geschäft geschlossen: keine Termine und keine Abholzeiten, „Jetzt geöffnet“ ist aus, Ihre Website zeigt einen Hinweis."
+msgstr "У ці дні весь бізнес зачинено: немає запису й часу самовивозу, «Зараз відчинено» вимкнено, на сайті показується оголошення."
+
+msgid "Betriebsferien"
+msgstr "Відпустка / зачинено"
+
+msgid "Betriebsferien am %(d)s"
+msgstr "Зачинено %(d)s"
+
+msgid "Betriebsferien gespeichert."
+msgstr "Закриття збережено."
+
+msgid "Betriebsferien vom %(von)s bis %(bis)s"
+msgstr "Зачинено з %(von)s по %(bis)s"
+
+msgid "Geplante Schließungen"
+msgstr "Заплановані закриття"
+
+msgid "Grund (optional, wird auf der Website gezeigt)"
+msgstr "Причина (необов’язково, видно на сайті)"
+
+msgid "Keine Schließungen geplant."
+msgstr "Закриттів не заплановано."
+
+msgid "Von"
+msgstr "З"
