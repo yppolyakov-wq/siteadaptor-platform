@@ -314,6 +314,9 @@ clothing/restaurant/cafe/retail/tour_operator/hotel).
 - [x] Sitemaps, мета, **schema.org** — закрыто ранее (Track B5 + P2.1c). hreflang (DE/EN)
   сознательно не делаем, пока язык в cookie, а не в URL (см. §Отложено).
 
+- **(2026-10-24, KA-12 E6.4a) Свой статус неявки не считается.** Счётчик неявок берёт только
+  встроенный `no_show`; кастом-статус FB-3 с ролью cancelled («Nicht gekommen») молча не войдёт.
+  При спросе — флаг `counts_as_no_show` в `status_defs` и `no_shows.NO_SHOW_STATUSES` из реестра.
 - **(2026-10-24, KA-12 E11.1) Счёт: НДС «из брутто» (Bruttomethode).** `compute_totals` считает НДС
   от нетто, округлённого до цента, поэтому часть брутто-цен недостижима: 45,00 € @19 % даёт 45,01 €
   (37,82 → 7,19) или 44,99 €; `fit_gross` пишет предупреждение «rounding residual» и оставляет цент.

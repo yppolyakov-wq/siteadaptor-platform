@@ -29282,3 +29282,36 @@ msgid "%(n)s× nicht erschienen"
 msgid_plural "%(n)s× nicht erschienen"
 msgstr[0] "%(n)s× no-show"
 msgstr[1] "%(n)s× no-show"
+
+msgid "Behandlung"
+msgstr "Treatment"
+
+msgid "Behandlung & Rezeptur"
+msgstr "Treatment & formula"
+
+msgid "Beim letzten Besuch"
+msgstr "At the last visit"
+
+msgid "Notiz zu diesem Termin"
+msgstr "Note on this appointment"
+
+msgid "Nur intern sichtbar. Keine Gesundheitsdaten (z. B. Allergien) ohne ausdrückliche Einwilligung der Kundin oder des Kunden."
+msgstr "Visible internally only. No health data (e.g. allergies) without the customer's explicit consent."
+
+msgid "Notiz speichern"
+msgstr "Save note"
+
+msgid "Behandlungshistorie"
+msgstr "Treatment history"
+
+msgid "Bitte einen Text eingeben."
+msgstr "Please enter a text."
+
+msgid "Höchstens %(n)s Zeichen."
+msgstr "At most %(n)s characters."
+
+msgid "Notiz gespeichert."
+msgstr "Note saved."
+
+msgid "Notiz gelöscht."
+msgstr "Note deleted."

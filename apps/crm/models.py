@@ -6,8 +6,10 @@
 следующий шаг.
 """
 
+from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimestampedModel
 from apps.promotions.models import Customer
@@ -52,11 +54,37 @@ class Company(TimestampedModel):
 
 
 class CustomerNote(TimestampedModel):
+    """Заметка о клиенте (только кабинет). KA-12 E6.4b: `kind=service` — запись мастера
+    о процедуре визита (рецептура цвета, техника): видна на следующем визите клиента.
+    Не путать с `Booking.note` — заметкой КЛИЕНТА, которая уходит в письма."""
+
+    KIND_NOTE = "note"
+    KIND_SERVICE = "service"
+    KIND_CHOICES = [(KIND_NOTE, _("Notiz")), (KIND_SERVICE, _("Behandlung"))]
+    MAX_TEXT = 2000
+
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="crm_notes")
     text = models.TextField()
+    kind = models.CharField(max_length=12, choices=KIND_CHOICES, default=KIND_NOTE)
+    booking = models.ForeignKey(
+        "booking.Booking", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    service = models.ForeignKey(
+        "booking.Service", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["customer", "kind", "-created_at"], name="crm_note_cust_kind_idx")
+        ]
 
     def __str__(self):
         return f"{self.customer}: {self.text[:40]}"

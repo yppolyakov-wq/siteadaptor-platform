@@ -11,7 +11,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Prefetch, Q
 from django.http import Http404
@@ -234,6 +234,8 @@ def booking_detail(request, pk):
         {
             "b": booking,
             "no_show": no_shows.summary(booking.customer),
+            "service_notes": _service_notes_for(booking),
+            "can_edit_policy": _can_edit_policy(request.user),
             "nav": "booking",
             "edit_extras": edit_extras,
             "chosen_extra_ids": chosen_extra_ids,
@@ -317,6 +319,41 @@ def _move_booking(request, booking):
     return None
 
 
+def _service_note_action(request, booking, action, back):
+    """KA-12 E6.4b: заметка мастера к визиту (рецептура/техника) — только кабинет.
+    Удалить может автор или owner/admin. Хелпер стоит ВЫШЕ декораторов вьюхи."""
+    from apps.crm.models import CustomerNote
+
+    if action == "service_note":
+        text = (request.POST.get("text") or "").strip()
+        if not text:
+            messages.error(request, _("Bitte einen Text eingeben."))
+        elif len(text) > CustomerNote.MAX_TEXT:
+            messages.error(request, _("Höchstens %(n)s Zeichen.") % {"n": CustomerNote.MAX_TEXT})
+        else:
+            CustomerNote.objects.create(
+                customer=booking.customer,
+                kind=CustomerNote.KIND_SERVICE,
+                booking=booking,
+                service=booking.service,
+                author=request.user if request.user.is_authenticated else None,
+                text=text,
+            )
+            messages.success(request, _("Notiz gespeichert."))
+        return redirect(back)
+    note = get_object_or_404(
+        CustomerNote,
+        pk=request.POST.get("note"),
+        customer=booking.customer,
+        kind=CustomerNote.KIND_SERVICE,
+    )
+    if note.author_id != request.user.pk and not _can_edit_policy(request.user):
+        raise PermissionDenied
+    note.delete()
+    messages.success(request, _("Notiz gelöscht."))
+    return redirect(back)
+
+
 @login_required
 @require_POST
 def booking_action(request, pk):
@@ -332,6 +369,8 @@ def booking_action(request, pk):
         and url_has_allowed_host_and_scheme(_next, allowed_hosts={request.get_host()})
     ):
         back = _next
+    if action in ("service_note", "service_note_delete"):
+        return _service_note_action(request, booking, action, back)
     if action == "mark_paid":
         # KA-H6: остаток после онлайн-Anzahlung кассируется на месте (наличные/EC) —
         # зеркало stays.mark_paid; refunded не перетираем.
@@ -934,6 +973,18 @@ def _clamp_int(raw, low, high) -> int:
     except ValueError:
         value = 0
     return max(low, min(high, value))
+
+
+def _service_notes_for(booking, limit=3):
+    """E6.4b «Beim letzten Besuch»: последние заметки мастера по ЭТОЙ услуге клиента,
+    иначе — по любой (с подписью услуги)."""
+    from apps.crm.models import CustomerNote
+
+    base = CustomerNote.objects.filter(
+        customer_id=booking.customer_id, kind=CustomerNote.KIND_SERVICE
+    ).select_related("service", "author", "booking__resource")
+    same = list(base.filter(service_id=booking.service_id)[:limit]) if booking.service_id else []
+    return same or list(base[:limit])
 
 
 def _can_edit_policy(user) -> bool:

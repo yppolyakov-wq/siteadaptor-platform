@@ -16,7 +16,7 @@
   {% elif b.payment_state == 'refunded' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">{% trans "Refunded" %}</span>{% endif %}
   {% if b.group_code %}<span class="text-xs text-gray-400">🔗 {% trans "Part of a multi-slot booking" %}</span>{% endif %}
   {% comment %}KA-12 E6.4a: неявки клиента — видны только в кабинете, текстом (не только цветом).{% endcomment %}
-  {% if no_show.n %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-900" data-no-show-card title="{% blocktrans with d=no_show.last|date:'d.m.Y' %}zuletzt am {{ d }}{% endblocktrans %}">⚠ {% blocktrans count n=no_show.n %}{{ n }}× nicht erschienen{% plural %}{{ n }}× nicht erschienen{% endblocktrans %}</span>{% endif %}
+  {% if no_show.n %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-900" data-no-show-card title="{% blocktrans with d=no_show.last|date:'SHORT_DATE_FORMAT' %}zuletzt am {{ d }}{% endblocktrans %}"><span aria-hidden="true">⚠</span> {% blocktrans count n=no_show.n %}{{ n }}× nicht erschienen{% plural %}{{ n }}× nicht erschienen{% endblocktrans %}</span>{% endif %}
 {% endblock %}
 
 {% block deal_items_title %}{% trans "Termin & Leistung" %}{% endblock %}
@@ -80,6 +80,41 @@
       </form>
     </details>
   {% endif %}{% endif %}
+
+  {% comment %}KA-12 E6.4b: заметки мастера о процедуре (только кабинет; Booking.note —
+  заметка КЛИЕНТА, она отдельно выше). Видны на следующем визите клиента.{% endcomment %}
+  <section class="mt-5 border-t border-gray-100 pt-4" data-service-notes aria-labelledby="svc-notes-h">
+    <h3 id="svc-notes-h" class="text-sm font-semibold mb-2">{% trans "Behandlung & Rezeptur" %}</h3>
+    {% if service_notes %}
+      <p class="text-xs text-gray-400 mb-1">{% trans "Beim letzten Besuch" %}</p>
+      <ul class="space-y-2 mb-3">
+        {% for n in service_notes %}
+          <li class="rounded-lg bg-gray-50 px-3 py-2 text-sm">
+            <p class="whitespace-pre-line">{{ n.text }}</p>
+            <p class="mt-1 text-xs text-gray-500">{{ n.created_at|date:"SHORT_DATE_FORMAT" }}{% if n.service_id and n.service_id != b.service_id %} · {{ n.service }}{% endif %}{% if n.booking.resource %} · {{ n.booking.resource.name }}{% endif %}{% if n.author %} · {{ n.author.get_full_name|default:n.author.email }}{% endif %}</p>
+            {% if n.author_id == request.user.pk or can_edit_policy %}
+              <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="mt-1">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="service_note_delete">
+                <input type="hidden" name="note" value="{{ n.pk }}">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="text-xs text-red-700 hover:underline">{% trans "Löschen" %}</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="space-y-2">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="service_note">
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <label for="svc-note-text" class="block text-xs text-gray-500">{% trans "Notiz zu diesem Termin" %}</label>
+      <textarea id="svc-note-text" name="text" rows="2" maxlength="2000" required aria-describedby="svc-note-hint" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base"></textarea>
+      <p id="svc-note-hint" class="text-xs text-gray-400">{% trans "Nur intern sichtbar. Keine Gesundheitsdaten (z. B. Allergien) ohne ausdrückliche Einwilligung der Kundin oder des Kunden." %}</p>
+      <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700">＋ {% trans "Notiz speichern" %}</button>
+    </form>
+  </section>
 {% endblock %}
 
 {% comment %}DF-4: суммы — общим партиалом в порядке макета (Zwischensumme →

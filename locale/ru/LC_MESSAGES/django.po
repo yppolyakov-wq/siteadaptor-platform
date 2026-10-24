@@ -29555,3 +29555,36 @@ msgstr[0] "%(n)s неявка"
 msgstr[1] "%(n)s неявки"
 msgstr[2] "%(n)s неявок"
 msgstr[3] "%(n)s неявки"
+
+msgid "Behandlung"
+msgstr "Процедура"
+
+msgid "Behandlung & Rezeptur"
+msgstr "Процедура и рецептура"
+
+msgid "Beim letzten Besuch"
+msgstr "В прошлый визит"
+
+msgid "Notiz zu diesem Termin"
+msgstr "Заметка к этой записи"
+
+msgid "Nur intern sichtbar. Keine Gesundheitsdaten (z. B. Allergien) ohne ausdrückliche Einwilligung der Kundin oder des Kunden."
+msgstr "Видно только внутри. Не записывайте данные о здоровье (например, аллергии) без явного согласия клиента."
+
+msgid "Notiz speichern"
+msgstr "Сохранить заметку"
+
+msgid "Behandlungshistorie"
+msgstr "История процедур"
+
+msgid "Bitte einen Text eingeben."
+msgstr "Введите текст."
+
+msgid "Höchstens %(n)s Zeichen."
+msgstr "Не более %(n)s символов."
+
+msgid "Notiz gespeichert."
+msgstr "Заметка сохранена."
+
+msgid "Notiz gelöscht."
+msgstr "Заметка удалена."

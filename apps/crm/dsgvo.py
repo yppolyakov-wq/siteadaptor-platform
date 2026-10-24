@@ -66,7 +66,8 @@ CHILDREN = {
 
 # Поля, которые в выгрузку НЕ идут или идут маской (секреты/служебное).
 MASKED = {"doc_number", "signed_ip", "public_token", "token", "path"}
-SKIPPED = {"stripe_payment_intent", "external_ref"}
+# `author` (E6.4b) — сотрудник, написавший заметку: не данные клиента.
+SKIPPED = {"stripe_payment_intent", "external_ref", "author"}
 
 KEPT_REASONS = {
     "money": _(

@@ -148,3 +148,20 @@ def test_tagesplan_no_show_badge_query_count_flat(rf, django_assert_max_num_quer
     few = count()
     make(6)
     assert count() <= few + 1
+
+
+def test_tagesplan_template_renders_badge():
+    from django.template.loader import render_to_string
+
+    from apps.booking.tests.test_services import _aware, _future_day, _rule
+
+    day = _future_day()
+    r = _resource()
+    _rule(r, day, "09:00", "18:00", slot=30)
+    _visit("z@t.de", "no_show", 9)
+    b = services.book(
+        r, start=_aware(day, 10), end=_aware(day, 11), name="Z", email="z@t.de", service=_service()
+    )
+    b.no_show_n = 1
+    html = render_to_string("booking/_tagesplan_body.html", {"bookings": [b], "day": day})
+    assert "data-no-show" in html and "nicht erschienen" in html

@@ -74,6 +74,20 @@ def kpis(tenant, customer) -> dict:
     }
 
 
+def _booking_status(tenant, booking) -> str:
+    """Подпись статуса записи как в остальном кабинете: своё имя владельца (FB-4a) →
+    подпись кастом-статуса (FB-3) → встроенная; не сырой код."""
+    from apps.core import status_labels, status_registry
+
+    own = status_labels.custom_labels(tenant, "booking").get(booking.status)
+    if own:
+        return own
+    d = status_registry.resolve("booking", booking.status, tenant)
+    if d is not None and not d.builtin and d.label:
+        return str(d.label)
+    return str(booking.get_status_display())
+
+
 def sections(tenant, customer) -> list[dict]:
     """CM-8.2/8.3/8.4: недостающие readonly-разделы: [{key,title,items}];
     item = {title, sub, status, url}. Пустые разделы не возвращаем."""
@@ -93,11 +107,27 @@ def sections(tenant, customer) -> list[dict]:
                     "title": f"{b.service_label if b.service else b.resource}",
                     "sub": f"{b.start:%d.%m.%Y %H:%M} · {b.reference_code}",
                     # E6.4a: читаемый статус («Nicht erschienen»), а не сырой код.
-                    "status": b.get_status_display(),
+                    "status": _booking_status(tenant, b),
                     # VF-18a (фидбэк 2026-08-25): сделки клиента кликабельны
                     "url": _url("booking:booking-detail", b.pk),
                 }
                 for b in customer.bookings.select_related("resource", "service").order_by("-start")[
+                    :_LIMIT
+                ]
+            ],
+        )
+        # KA-12 E6.4b: история процедур — заметки мастера по визитам клиента.
+        add(
+            "service_history",
+            _("Behandlungshistorie"),
+            lambda: [
+                {
+                    "title": str(n.service) if n.service_id else str(_("Behandlung")),
+                    "sub": f"{n.created_at:%d.%m.%Y} · {n.text[:80]}",
+                    "status": "",
+                    "url": _url("booking:booking-detail", n.booking_id) if n.booking_id else "",
+                }
+                for n in customer.crm_notes.filter(kind="service").select_related("service")[
                     :_LIMIT
                 ]
             ],
