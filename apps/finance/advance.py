@@ -250,3 +250,96 @@ def on_advance_paid(invoice, *, source: str = "invoice") -> None:
             fields.append("payment_due_at")
         obj.save(update_fields=fields)
     settle_late_payment(kind, obj, newly_paid=True)
+
+
+# --- B2-8c: вычет в итоговом счёте и сторно неоплаченной -------------------------
+
+
+def deduction_rows(adv) -> list[tuple]:
+    """[(ставка, нетто, НДС, брутто)] предоплаты по её строкам — так же, как
+    `compute_totals` (нетто строк, налог по группе); остаток округления — в последнюю
+    строку, чтобы Σ брутто == брутто документа предоплаты."""
+    from .services import _to_decimal
+
+    groups: dict = {}
+    for line in adv.lines or []:
+        rate = Decimal(str(line.get("vat_rate") or adv.vat_rate or 0))
+        amount = _to_decimal(line.get("unit_price", "0"), "0") * _to_decimal(line.get("qty", 1))
+        groups[rate] = groups.get(rate, Decimal("0")) + amount
+    rows = []
+    for rate in sorted(groups, reverse=True):
+        net = groups[rate].quantize(CENT, rounding=ROUND_HALF_UP)
+        vat = (net * rate / Decimal("100")).quantize(CENT, rounding=ROUND_HALF_UP)
+        rows.append([rate, net, vat, net + vat])
+    if not rows:
+        return []
+    drift = Decimal(adv.gross) - sum(r[3] for r in rows)
+    if drift:
+        rows[-1][2] += drift
+        rows[-1][3] += drift
+    return [tuple(r) for r in rows]
+
+
+def settle_for_final(invoice) -> None:
+    """Итоговый счёт сделки выпускается: оплаченная предоплата вычитается строками по
+    ставкам (§ 14 Abs. 5 S. 2 UStG), неоплаченная — сторнируется (решение Q-2).
+    Зовётся из `issue_invoice` в его транзакции; работает и при выключенном флаге."""
+    from .models import Invoice, InvoiceDeduction
+    from .state_machine import InvoiceSM
+
+    kind = invoice.deal_kind
+    if invoice.kind != Invoice.KIND_INVOICE or kind not in KINDS or not invoice.deal_id:
+        return
+    deal = lock_deal(kind, invoice.deal_id)
+    adv = (
+        Invoice.objects.select_for_update()
+        .filter(kind=Invoice.KIND_ADVANCE, deal_kind=kind, deal_id=invoice.deal_id)
+        .exclude(status=Invoice.STATUS_CANCELLED)
+        .first()
+    )
+    if adv is None:
+        return
+    if adv.status == Invoice.STATUS_ISSUED and deal is not None and deposit_received(kind, deal):
+        # Деньги пришли, а синк не успел — сначала «bezahlt», иначе сторно съело бы оплату.
+        InvoiceSM().apply(adv, Invoice.STATUS_PAID)
+    if adv.status == Invoice.STATUS_ISSUED:
+        InvoiceSM().apply(adv, Invoice.STATUS_CANCELLED)
+        return
+    if adv.status != Invoice.STATUS_PAID:
+        return
+    for rate, net, vat, gross in deduction_rows(adv):
+        InvoiceDeduction.objects.get_or_create(
+            final=invoice,
+            advance=adv,
+            vat_rate=rate,
+            defaults={"net": net, "vat": vat, "gross": gross},
+        )
+
+
+def deducted_cents(invoice) -> int:
+    from django.db.models import Sum
+
+    total = invoice.deductions.aggregate(s=Sum("gross"))["s"] if invoice.pk else None
+    return int((Decimal(total or 0) * 100).to_integral_value())
+
+
+def cancel_unpaid_for_deal(kind: str, obj) -> None:
+    """Сделка отменена: выставленная НЕоплаченная предоплата — сторно (иначе висела бы
+    в Offene Posten и уходила в Mahnung). Оплаченную не трогаем — возврат решает
+    владелец. Fail-soft: отмена сделки важнее документа."""
+    if kind not in KINDS:
+        return
+    try:
+        from .models import Invoice
+        from .state_machine import InvoiceSM
+
+        with transaction.atomic():
+            lock_deal(kind, _ref(obj))
+            adv = live_advance(kind, obj)
+            if adv is None:
+                return
+            adv = Invoice.objects.select_for_update().get(pk=adv.pk)
+            if adv.status == Invoice.STATUS_ISSUED and not deposit_received(kind, obj):
+                InvoiceSM().apply(adv, Invoice.STATUS_CANCELLED)
+    except Exception:  # noqa: BLE001
+        logger.exception("advance invoice: cancel with deal failed for %s %s", kind, obj.pk)

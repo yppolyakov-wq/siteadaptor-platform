@@ -28980,3 +28980,9 @@ msgstr "Bu satış için ön ödeme belirlenmemiş."
 
 msgid "Der Verkauf ist bereits vollständig bezahlt."
 msgstr "Satış zaten tamamen ödendi."
+
+msgid "Abzüglich Anzahlungsrechnung %(num)s vom %(date)s"
+msgstr "%(date)s tarihli %(num)s ön ödeme faturası düşülerek"
+
+msgid "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs enthalten — bitte mit der Anzahlungsrechnung abgleichen."
+msgstr "Sipariş ön ödemeleri henüz tahsil ayına dahil değil — lütfen ön ödeme faturasıyla karşılaştırın."

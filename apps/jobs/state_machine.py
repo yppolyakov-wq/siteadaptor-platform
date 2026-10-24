@@ -51,6 +51,10 @@ class JobSM(StateMachine):
         # stock_committed — quoted→declined без резерва склад не двигает).
         if t.dst in ("cancelled", "declined"):
             services.release_stock(instance)
+            # B2-8c: неоплаченная Anzahlungsrechnung отменённой заявки — сторно.
+            from apps.finance.advance import cancel_unpaid_for_deal
+
+            cancel_unpaid_for_deal("job", instance)
 
         # G11: расходники (Teile) списаны не позже erledigt (обычно уже при
         # Beauftragt — VF-13; повтор идемпотентен).

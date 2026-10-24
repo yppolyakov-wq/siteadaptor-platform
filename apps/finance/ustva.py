@@ -213,7 +213,27 @@ def _journal_of(refs) -> dict:
     return out
 
 
+def _job_advance_note(von: date, bis: date, notes: list) -> None:
+    """B2-8c: у заявок нет книги платежей — Anzahlung заявки в Mindest-Ist не попадает."""
+    from .models import Invoice
+
+    if Invoice.objects.filter(
+        kind=Invoice.KIND_ADVANCE,
+        deal_kind="job",
+        status=Invoice.STATUS_PAID,
+        issued_at__date__gte=von,
+        issued_at__date__lte=bis,
+    ).exists():
+        notes.append(
+            _(
+                "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs "
+                "enthalten — bitte mit der Anzahlungsrechnung abgleichen."
+            )
+        )
+
+
 def _soll(von: date, bis: date, entries, acc: _Acc, notes: list) -> None:
+    _job_advance_note(von, bis, notes)
     for e in entries:
         acc.add(e.amount, e.vat_rate)
     # Mindest-Ist: сделки с деньгами, двинувшимися в периоде, + сделки, исполненные в

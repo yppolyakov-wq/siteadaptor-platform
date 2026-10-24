@@ -260,14 +260,43 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     label_total = _("Total")
     c.drawRightString(page_w - x - 30 * mm, y, f"{label_total}:")
     c.drawRightString(page_w - x, y, money(invoice.gross))
+    # KA-12 B2-8c (§ 14 Abs. 5 S. 2 UStG): вычет оплаченной Anzahlungsrechnung —
+    # её номер и дата, нетто и налог по каждой ставке. Формулировка нейтральная (Q-5).
+    deductions = (
+        list(invoice.deductions.select_related("advance").order_by("advance_id", "-vat_rate"))
+        if getattr(invoice, "pk", None) and getattr(invoice, "kind", "invoice") == "invoice"
+        else []
+    )
+    deducted = sum((Decimal(d.gross) for d in deductions), Decimal("0"))
+    if deductions and not no_payment:
+        c.setFont(font, 9)
+        y = need(y, (len(deductions) * 2 + 2) * 5 * mm)
+        seen = None
+        for d in deductions:
+            if d.advance_id != seen:
+                seen = d.advance_id
+                y -= 6 * mm
+                head = _("Abzüglich Anzahlungsrechnung %(num)s vom %(date)s") % {
+                    "num": d.advance.number_display,
+                    "date": doc_date(d.advance.issued_at) if d.advance.issued_at else "",
+                }
+                c.drawRightString(page_w - x, y, head)
+            y -= 5 * mm
+            c.drawRightString(page_w - x - 30 * mm, y, f"{label_net} {d.vat_rate:.0f} %:")
+            c.drawRightString(page_w - x, y, "−" + money(d.net))
+            y -= 5 * mm
+            c.drawRightString(page_w - x - 30 * mm, y, f"{label_vat} {d.vat_rate:.0f} %:")
+            c.drawRightString(page_w - x, y, "−" + money(d.vat))
     if invoice.prepaid_cents and not no_payment:  # KA-H10: уже получено → к оплате остаток
         from decimal import Decimal as _D
 
         c.setFont(font, 9)
-        y -= 5 * mm
-        label_paid = _("Bereits erhalten")
-        c.drawRightString(page_w - x - 30 * mm, y, f"{label_paid}:")
-        c.drawRightString(page_w - x, y, "−" + money(_D(invoice.prepaid_cents) / 100))
+        other = _D(invoice.prepaid_cents) / 100 - deducted  # B2-8c: без вычтенной предоплаты
+        if other > 0:
+            y -= 5 * mm
+            label_paid = _("Bereits erhalten")
+            c.drawRightString(page_w - x - 30 * mm, y, f"{label_paid}:")
+            c.drawRightString(page_w - x, y, "−" + money(other))
         y -= 5 * mm
         c.setFont(font_bold, 10)
         label_due_amount = _("Zu zahlen")

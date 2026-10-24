@@ -28928,3 +28928,9 @@ msgstr "Für diesen Verkauf ist keine Anzahlung festgelegt."
 
 msgid "Der Verkauf ist bereits vollständig bezahlt."
 msgstr "Der Verkauf ist bereits vollständig bezahlt."
+
+msgid "Abzüglich Anzahlungsrechnung %(num)s vom %(date)s"
+msgstr "Abzüglich Anzahlungsrechnung %(num)s vom %(date)s"
+
+msgid "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs enthalten — bitte mit der Anzahlungsrechnung abgleichen."
+msgstr "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs enthalten — bitte mit der Anzahlungsrechnung abgleichen."

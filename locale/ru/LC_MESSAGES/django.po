@@ -29101,3 +29101,9 @@ msgstr "Для этой продажи предоплата не задана."
 
 msgid "Der Verkauf ist bereits vollständig bezahlt."
 msgstr "Продажа уже полностью оплачена."
+
+msgid "Abzüglich Anzahlungsrechnung %(num)s vom %(date)s"
+msgstr "За вычетом счёта на предоплату %(num)s от %(date)s"
+
+msgid "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs enthalten — bitte mit der Anzahlungsrechnung abgleichen."
+msgstr "Предоплаты по заявкам пока не учтены в месяце поступления — сверьте со счётом на предоплату."

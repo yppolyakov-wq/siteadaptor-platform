@@ -22,7 +22,12 @@ class InvoiceSM(StateMachine):
         kind = getattr(instance, "kind", "invoice")
         if kind in ("storno", "credit"):  # B2-7b: корректура тоже без переходов
             raise IllegalTransition(f"invoice({kind})", instance.status, dst)
-        if dst == "cancelled" and kind == "advance" and instance.deducted_in.exists():
+        if (
+            dst == "cancelled"
+            and kind == "advance"
+            # B2-8c: вычет «живой», пока итоговый счёт не сторнирован (строки — снимок).
+            and instance.deducted_in.exclude(final__status="cancelled").exists()
+        ):
             # B2-8c: вычтенную предоплату не сторнируют — сначала итоговый счёт.
             raise IllegalTransition("invoice(advance, deducted)", instance.status, dst)
         if kind == "advance":

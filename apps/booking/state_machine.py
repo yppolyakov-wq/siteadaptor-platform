@@ -50,6 +50,10 @@ class BookingSM(StateMachine):
             from apps.core import option_trackers
 
             option_trackers.release_options("booking", instance)
+            # B2-8c: неоплаченная Anzahlungsrechnung отменённой сделки — сторно.
+            from apps.finance.advance import cancel_unpaid_for_deal
+
+            cancel_unpaid_for_deal("booking", instance)
 
         # Услуга выполнена (G10) → выручка в журнал (идемпотентно по source_ref).
         # KA-H7: ставка — снимок записи (§ 19 → 0), визит по карте пишет только

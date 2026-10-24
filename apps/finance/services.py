@@ -611,6 +611,10 @@ def issue_invoice(invoice, *, tenant=None, terms_days=None):
     from .state_machine import InvoiceSM
 
     with transaction.atomic():
+        # KA-12 B2-8c: предоплата сделки — вычет (оплачена) или сторно (не оплачена).
+        from .advance import deducted_cents, settle_for_final
+
+        settle_for_final(invoice)
         invoice.number = _next_number()
         invoice.issued_at = tz.now()
         fields = ["number", "issued_at", "updated_at"]
@@ -620,6 +624,13 @@ def issue_invoice(invoice, *, tenant=None, terms_days=None):
             fields.append("service_date")
         if _refresh_prepaid(invoice):  # оплата могла прийти между черновиком и выпуском
             fields.append("prepaid_cents")
+        # B2-8c: вычтенная предоплата — уже полученные деньги, даже если депозит брони
+        # пересчитали после её выставления (иначе «к оплате» включало бы её снова).
+        deducted = deducted_cents(invoice)
+        if deducted > invoice.prepaid_cents:
+            invoice.prepaid_cents = deducted
+            if "prepaid_cents" not in fields:
+                fields.append("prepaid_cents")
         if invoice.due_date is None:
             days = terms_days
             if days is None:

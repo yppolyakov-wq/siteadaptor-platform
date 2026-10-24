@@ -42,6 +42,10 @@ class StayBookingSM(StateMachine):
             from apps.core import option_trackers
 
             option_trackers.release_options("stay", instance)
+            # B2-8c: неоплаченная Anzahlungsrechnung отменённой сделки — сторно.
+            from apps.finance.advance import cancel_unpaid_for_deal
+
+            cancel_unpaid_for_deal("stay", instance)
 
         # B1.4: отмена → вернуть использование промокода/Gutschein (однократно —
         # FSM не даёт второй переход в cancelled).

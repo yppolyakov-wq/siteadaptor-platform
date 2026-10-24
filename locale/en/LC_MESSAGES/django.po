@@ -28836,3 +28836,9 @@ msgstr "No deposit is set for this sale."
 
 msgid "Der Verkauf ist bereits vollständig bezahlt."
 msgstr "The sale is already fully paid."
+
+msgid "Abzüglich Anzahlungsrechnung %(num)s vom %(date)s"
+msgstr "Less advance invoice %(num)s of %(date)s"
+
+msgid "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs enthalten — bitte mit der Anzahlungsrechnung abgleichen."
+msgstr "Advance payments for jobs are not yet included in the month of receipt — please reconcile with the advance invoice."

@@ -29085,3 +29085,9 @@ msgstr "Для цього продажу передоплату не задан�
 
 msgid "Der Verkauf ist bereits vollständig bezahlt."
 msgstr "Продаж уже повністю оплачено."
+
+msgid "Abzüglich Anzahlungsrechnung %(num)s vom %(date)s"
+msgstr "За вирахуванням рахунку на передоплату %(num)s від %(date)s"
+
+msgid "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs enthalten — bitte mit der Anzahlungsrechnung abgleichen."
+msgstr "Передоплати за замовленнями поки не враховані в місяці надходження — звірте з рахунком на передоплату."
