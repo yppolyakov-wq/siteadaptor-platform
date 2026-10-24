@@ -525,22 +525,23 @@ def settle_on_delivery(kind: str, obj) -> bool:
 RETAIN_KINDS = ("booking", "stay")
 
 
-def retain_on_cancel(kind: str, obj, tenant=None) -> None:
+def retain_on_cancel(kind: str, obj, tenant=None):
     """Отменённая бронь, деньги по которой остались у бизнеса (неявка, «nicht
     erstatten» у номера), — выручка: удержанная Anzahlung это вознаграждение
     за резерв, а не «ничего». Запись «{id}:retained» по ставке брони,
-    идемпотентно. Билет удерживает свою сумму сам (`events.revenue`)."""
+    идемпотентно. Билет удерживает свою сумму сам (`events.revenue`).
+    → удержанная сейчас сумма (Decimal; 0 — ничего не записано)."""
     from apps.core import status_registry
     from apps.finance.services import record_revenue
 
     if kind not in RETAIN_KINDS:
-        return
+        return ZERO
     if obj.status not in status_registry.cancelled_statuses_for(kind, tenant):
-        return
+        return ZERO
     if not (getattr(obj, "stripe_payment_intent", "") or "").strip():
         # Наличные/перевод за отменённую бронь владелец возвращает сам — сколько
         # осталось у бизнеса, модель не знает (MC-E8); выручку не угадываем.
-        return
+        return ZERO
     ms = money_state(kind, obj)
     # Удержано картой = онлайн-платёж минус то, что карта уже вернула (фолио).
     # Наличные/перевод сюда не идут: их владелец возвращает сам (ревью B2-3).
@@ -549,7 +550,7 @@ def retain_on_cancel(kind: str, obj, tenant=None) -> None:
     card_back = _eur(folio.card_refunded_cents(kind, obj))
     kept = min(ms.paid - ms.refunded, ms.online_paid - card_back) - ms.posted
     if kept <= ZERO:
-        return
+        return ZERO
     record_revenue(
         source=kind,
         source_ref=f"{obj.id}:retained",
@@ -558,6 +559,7 @@ def retain_on_cancel(kind: str, obj, tenant=None) -> None:
         customer=obj.customer,
         note=f"Einbehalten {obj.reference_code}",
     )
+    return kept
 
 
 def _retain_rate(kind, obj, tenant):

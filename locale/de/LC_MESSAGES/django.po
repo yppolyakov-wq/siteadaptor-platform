@@ -29357,3 +29357,6 @@ msgstr "Ein Gast hat seinen Termin selbst storniert."
 
 msgid "Kostenlos stornierbar bis"
 msgstr "Kostenlos stornierbar bis"
+
+msgid "Alle Termine dieser Buchung werden storniert."
+msgstr "Alle Termine dieser Buchung werden storniert."

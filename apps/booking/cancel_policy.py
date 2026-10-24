@@ -40,10 +40,17 @@ class PolicyState:
     free: bool
     deadline: object  # aware datetime или None
     late_mode: str
-    kept_cents: int
+    kept_cents: int  # удержится при отмене СЕЙЧАС
     can_reschedule: bool
     reschedules_left: int
     reason: str = ""
+    keep_after_cents: int = 0  # удержится при отмене ПОСЛЕ дедлайна
+
+    @property
+    def keep_after_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.keep_after_cents) / 100
 
 
 def _policy(booking) -> dict:
@@ -53,41 +60,52 @@ def _policy(booking) -> dict:
     return p
 
 
-def state(booking, now=None) -> PolicyState:
+def _late_mode(p) -> str:
+    late = p.get("late")
+    return late if late in (LATE_CANCEL_KEEP, LATE_CANCEL_REFUND) else LATE_CANCEL_REFUND
+
+
+def _keep_after(booking, late) -> tuple[int, bool]:
+    """(¢ удержится после дедлайна, нужен ли контакт). Удерживается только Anzahlung:
+    оплачено больше депозита — частичный возврат «всё, кроме Anzahlung» — v2 (контакт)."""
+    if late != LATE_CANCEL_KEEP:
+        return 0, False
+    deposit, price = int(booking.deposit_cents or 0), int(booking.price_cents or 0)
+    if booking.payment_state == Booking.PAYMENT_DEPOSIT:
+        return deposit, False
+    if booking.payment_state == Booking.PAYMENT_PAID:
+        if deposit and deposit >= price:  # депозит = вся цена: удерживается всё оплаченное
+            return price, False
+        return 0, True
+    return 0, False
+
+
+def state(booking, now=None, tenant=None) -> PolicyState:
     from apps.core import status_registry
 
     now = now or timezone.now()
     p = _policy(booking)
     window = max(0, int(p.get("window_h") or 0))
-    late = (
-        p.get("late")
-        if p.get("late") in (LATE_CANCEL_KEEP, LATE_CANCEL_REFUND)
-        else LATE_CANCEL_REFUND
-    )
+    late = _late_mode(p)
     deadline = booking.start - timedelta(hours=window)
-    active = booking.status in status_registry.active_statuses_for("booking")
+    keep_after, contact = _keep_after(booking, late)
+    active = booking.status in status_registry.active_statuses_for("booking", tenant)
     if not active or booking.start <= now:
-        return PolicyState(False, False, deadline, late, 0, False, 0, "closed")
+        return PolicyState(False, False, deadline, late, 0, False, 0, "closed", keep_after)
     free = now <= deadline
-    kept = 0
-    if not free and late == LATE_CANCEL_KEEP and booking.payment_state == Booking.PAYMENT_DEPOSIT:
-        kept = int(booking.deposit_cents or 0)
+    kept = 0 if free else keep_after
     can_cancel, reason = True, ""
     if getattr(booking, "invoice_id", None):
         can_cancel, reason = False, "invoice"
-    elif (
-        not free
-        and late == LATE_CANCEL_KEEP
-        and booking.payment_state == Booking.PAYMENT_PAID
-        and int(booking.deposit_cents or 0) < int(booking.price_cents or 0)
-    ):
-        # Оплачено больше депозита: частичный возврат «всё кроме Anzahlung» — v2.
+    elif not free and contact:
         can_cancel, reason = False, "contact"
     left = max(0, int(p.get("resched_max") or 0) - int(booking.reschedule_count or 0))
     can_reschedule = bool(
         free and booking.service_id and not booking.group_code and left > 0 and not p.get("legacy")
     )
-    return PolicyState(can_cancel, free, deadline, late, kept, can_reschedule, left, reason)
+    return PolicyState(
+        can_cancel, free, deadline, late, kept, can_reschedule, left, reason, keep_after
+    )
 
 
 class NotCancellable(Exception):
@@ -98,26 +116,21 @@ class NotCancellable(Exception):
         self.reason = reason
 
 
-def _terms(booking, now) -> tuple[bool, str]:
-    """(в бесплатном окне?, режим поздней отмены) — без учёта статуса (для повтора)."""
-    p = _policy(booking)
-    late = (
-        p.get("late")
-        if p.get("late") in (LATE_CANCEL_KEEP, LATE_CANCEL_REFUND)
-        else LATE_CANCEL_REFUND
-    )
-    window = max(0, int(p.get("window_h") or 0))
-    return now <= booking.start - timedelta(hours=window), late
+# Исходы возврата, при которых гостю честно говорим «Erstattung wird geprüft».
+CHECK_RESULTS = ("failed", "manual", "refused", "uncertain")
 
 
 def guest_cancel(booking, *, tenant=None, now=None):
     """Отмена гостем (ЛК / ссылка «Termin verwalten»). → (RefundResult, удержано ¢).
 
-    Под блокировкой строк записи (и всей группы HF-6c, в порядке pk) статус и
-    условия перепроверяются; FSM-хуки возвращают лимит акции, промокод и опции.
-    Деньги — после коммита: в окне или при «immer erstatten» — `refund_payment`,
-    иначе Anzahlung остаётся бизнесу и пишется выручкой (`retain_on_cancel`).
-    Повтор по уже отменённой записи ДОВОДИТ недошедший возврат (он идемпотентен)."""
+    Под блокировкой строк записи (и всей группы HF-6c, в порядке pk) статус и условия
+    перепроверяются; решение «вернуть / удержать» ФИКСИРУЕТСЯ в снимке записи в момент
+    отмены (`cancel_policy["guest_cancel"]`). Повтор по отменённой записи доводит
+    недошедший возврат ТОЛЬКО по этому решению; отмену владельцем (в т.ч. no_show и
+    «ohne Erstattung») гость не переигрывает. Деньги — после коммита: возврат через
+    `refund_payment`, иначе Anzahlung — выручка (`retain_on_cancel`)."""
+    import logging
+
     from django.db import transaction
 
     from apps.core import refunds, status_registry
@@ -135,31 +148,57 @@ def guest_cancel(booking, *, tenant=None, now=None):
         if head is None:
             raise NotCancellable("closed")
         cancelled = status_registry.cancelled_statuses_for("booking", tenant)
-        st = state(head, now)
-        if head.status not in cancelled:
-            if not st.can_cancel:
-                raise NotCancellable(st.reason or "closed")
+        if head.status in cancelled:
+            decision = (head.cancel_policy or {}).get("guest_cancel")
+            if not isinstance(decision, dict):
+                raise NotCancellable("closed")
+        else:
             active = status_registry.active_statuses_for("booking", tenant)
-            free_now = st.free
+            live = [b for b in members if b.status in active]
+            states = [state(b, now, tenant) for b in live] or [state(head, now, tenant)]
+            for st in states:
+                if not st.can_cancel:
+                    raise NotCancellable(st.reason or "closed")
+            # Группа: бесплатно, только если бесплатно для САМОГО раннего периода.
+            decision = {"free": all(st.free for st in states), "late": states[0].late_mode}
+            decision["at"] = now.isoformat()
+            for b in live:
+                BookingSM().apply(b, "cancelled", actor=None)
+                if decision["free"] and b.card_id:
+                    _return_pass_credit(b)
+            policy = dict(head.cancel_policy or {})
+            policy["guest_cancel"] = decision
+            Booking.objects.filter(pk=head.pk).update(cancel_policy=policy)
+            head.cancel_policy = policy
             from .notifications import enqueue_booking_email
 
             transaction.on_commit(lambda: enqueue_booking_email(head, "guest_cancelled"))
-            for b in members:
-                if b.status in active:
-                    BookingSM().apply(b, "cancelled", actor=None)
-                    if free_now and b.card_id:
-                        _return_pass_credit(b)
-    free, late = _terms(head, now)
+    refund_due = bool(decision.get("free")) or decision.get("late") != LATE_CANCEL_KEEP
     payer = next((b for b in members if (b.stripe_payment_intent or "").strip()), head)
-    payer.refresh_from_db()
-    result = refunds.RefundResult.NONE
-    if free or late == LATE_CANCEL_REFUND:
-        result = refunds.refund_payment("booking", payer, tenant)
-    kept = 0
-    if result != refunds.RefundResult.FAILED:
-        retain_on_cancel("booking", payer, tenant)
-        if not free and late == LATE_CANCEL_KEEP and payer.payment_state == Booking.PAYMENT_DEPOSIT:
-            kept = int(payer.deposit_cents or 0)
+    result, kept = refunds.RefundResult.NONE, 0
+    try:
+        payer.refresh_from_db()
+        if refund_due:
+            result = refunds.refund_payment("booking", payer, tenant)
+            paid_online = payer.payment_state in (Booking.PAYMENT_PAID, Booking.PAYMENT_DEPOSIT)
+            if result == refunds.RefundResult.NONE and paid_online and payer.stripe_payment_intent:
+                # Деньги должны вернуться, а возврат не состоялся (Connect отключён и т.п.):
+                # не молчим — владельцу письмо, гостю «wird geprüft».
+                logging.getLogger(__name__).error(
+                    "guest_cancel: refund due but none made for booking %s", payer.pk
+                )
+                refunds._notify_owner_failed("booking", payer, tenant)
+                result = refunds.RefundResult.FAILED
+        else:
+            kept_eur = retain_on_cancel("booking", payer, tenant)
+            kept = int(round((kept_eur or 0) * 100))
+    except Exception:  # отмена уже зафиксирована — гостю не 500, владельцу сигнал
+        logging.getLogger(__name__).exception("guest_cancel money step failed: %s", payer.pk)
+        try:
+            refunds._notify_owner_failed("booking", payer, tenant)
+        except Exception:
+            logging.getLogger(__name__).exception("owner notify failed: %s", payer.pk)
+        result = refunds.RefundResult.FAILED
     return result, kept
 
 
@@ -174,6 +213,7 @@ def _return_pass_credit(booking):
         credits_used=F("credits_used") - 1, updated_at=timezone.now()
     )
     Booking.objects.filter(pk=booking.pk).update(card=None, updated_at=timezone.now())
+    booking.card_id = None
 
 
 class RescheduleRefused(Exception):
@@ -203,7 +243,7 @@ def guest_reschedule(booking, *, start, tenant=None, now=None):
     from .models import Resource
 
     now = now or timezone.now()
-    st = state(booking, now)
+    st = state(booking, now, tenant)
     if not st.can_reschedule:
         raise RescheduleRefused("limit" if st.free and st.reschedules_left == 0 else "closed")
     service = booking.service
@@ -249,15 +289,33 @@ def guest_reschedule(booking, *, start, tenant=None, now=None):
             .order_by("pk")
         )
         fresh = Booking.objects.select_for_update().get(pk=booking.pk)
-        st = state(fresh, now)
+        st = state(fresh, now, tenant)
         if not st.can_reschedule:
             raise RescheduleRefused("closed")
+        # Ревью B6: владелец мог перенести запись между проверкой и блокировкой —
+        # длина/мастер/день брались из старого чтения; закрытие дня или выключенный
+        # мастер могли появиться тоже.
+        if (fresh.start, fresh.end, fresh.resource_id) != (
+            booking.start,
+            booking.end,
+            booking.resource_id,
+        ):
+            raise RescheduleRefused("closed")
+        target.refresh_from_db(fields=["is_active"])
+        if not target.is_active or availability.is_closed(target, new_day):
+            raise svc_mod.SlotTaken()
         busy_until = svc_mod.occupied_end(service, end, fresh=True)
         overlaps = svc_mod.overlapping(target, start, busy_until or end).exclude(pk=fresh.pk)
         if svc_mod._would_overfill(target, overlaps, fresh.party_size):
             raise svc_mod.SlotTaken()
         limit = int(_policy(fresh).get("resched_max") or 0)
-        updated = Booking.objects.filter(pk=fresh.pk, reschedule_count__lt=limit).update(
+        from apps.core import status_registry
+
+        updated = Booking.objects.filter(
+            pk=fresh.pk,
+            reschedule_count__lt=limit,
+            status__in=status_registry.active_statuses_for("booking", tenant),
+        ).update(
             start=start,
             end=end,
             occupied_until=busy_until,
@@ -277,6 +335,14 @@ def guest_reschedule(booking, *, start, tenant=None, now=None):
 
 
 _MANAGE_SALT = "termin-manage"
+_MANAGE_MAX_AGE = 400 * 24 * 3600  # ссылка из письма; после визита правил всё равно нет
+
+
+def _salt() -> str:
+    # Привязка к схеме тенанта: SECRET_KEY общий для всех бизнесов (защита вглубь).
+    from django.db import connection
+
+    return f"{_MANAGE_SALT}:{connection.schema_name}"
 
 
 def manage_token(booking) -> str:
@@ -290,14 +356,14 @@ def manage_token(booking) -> str:
             Booking.objects.filter(group_code=booking.group_code).order_by("start", "pk").first()
             or booking
         )
-    return signing.dumps(str(head.pk), salt=_MANAGE_SALT)
+    return signing.dumps(str(head.pk), salt=_salt())
 
 
 def booking_from_token(token):
     from django.core import signing
 
     try:
-        pk = signing.loads(token, salt=_MANAGE_SALT)
-    except signing.BadSignature:
+        pk = signing.loads(token, salt=_salt(), max_age=_MANAGE_MAX_AGE)
+    except signing.BadSignature:  # включая SignatureExpired
         return None
     return Booking.objects.select_related("service", "resource", "variant").filter(pk=pk).first()

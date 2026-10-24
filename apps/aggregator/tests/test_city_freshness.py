@@ -212,7 +212,9 @@ def test_expiring_counts_soon_and_gone(tenant, settings):
     _product(days_ago=10, name="Frisch")
     info = freshness.expiring(tenant)
     assert info["soon"] == 1 and info["gone"] == 1
-    assert info["first_expiry"] == timezone.localdate() + timedelta(days=5)
+    # Дата — от МОМЕНТА истечения, а не «сегодня + 5»: в ночь перевода часов
+    # (25.10, сутки = 23 ч) «сегодня + 5 дней» расходится с localdate(момент + 5 сут).
+    assert info["first_expiry"] == timezone.localdate(timezone.now() + timedelta(days=5))
 
 
 def _post_confirm(user, tenant, nxt):

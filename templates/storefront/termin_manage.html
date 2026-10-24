@@ -4,12 +4,6 @@
 
 {% block content %}
 <div class="max-w-xl mx-auto">
-  {% if messages %}
-    {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'warning' %}bg-amber-50 text-amber-800{% else %}bg-green-50 text-green-800{% endif %}" role="status">{{ m }}</div>
-    {% endfor %}
-  {% endif %}
-
   <div class="sf-card bg-white rounded-2xl shadow-sm p-6 md:p-8">
     <h1 class="text-2xl font-bold mb-2">{% trans "Termin verwalten" %}</h1>
     <p class="text-gray-700">{% if booking.service_id %}{{ booking.service_label }}{% endif %}</p>
@@ -23,8 +17,9 @@
       <h2 class="font-semibold mt-6 mb-1">{% trans "Stornierung & Umbuchung" %}</h2>
       <p class="text-sm text-gray-700">
         {% if state.free %}{% blocktrans with deadline=state.deadline|date:"d.m.Y H:i" %}Kostenlos stornierbar bis {{ deadline }}{% endblocktrans %}.
-        {% if state.late_mode == "keep_deposit" and booking.deposit_cents %}{% blocktrans with amount=booking.deposit_eur|floatformat:2 %}Danach wird die Anzahlung von {{ amount }} € einbehalten.{% endblocktrans %}{% endif %}
-        {% elif state.late_mode == "keep_deposit" and state.kept_cents %}{% trans "Ihre Anzahlung wird bei Stornierung einbehalten." %}
+        {% if state.keep_after_cents %}{% blocktrans with amount=state.keep_after_eur|floatformat:2 %}Danach wird die Anzahlung von {{ amount }} € einbehalten.{% endblocktrans %}{% endif %}
+        {% elif state.kept_cents %}{% trans "Ihre Anzahlung wird bei Stornierung einbehalten." %}
+        {% elif state.late_mode == "keep_deposit" and state.reason == "contact" %}{% trans "Bitte kontaktieren Sie uns." %}
         {% else %}{% trans "Jederzeit kostenlos stornierbar." %}{% endif %}
       </p>
 
@@ -58,6 +53,7 @@
         <form method="post" class="mt-6 border-t border-gray-100 pt-5">
           {% csrf_token %}
           <input type="hidden" name="action" value="cancel">
+          {% if booking.group_code %}<p class="text-sm text-gray-700 mb-2">{% trans "Alle Termine dieser Buchung werden storniert." %}</p>{% endif %}
           <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
           <label class="flex items-start gap-2 text-sm mb-3"><input type="checkbox" required class="mt-1"> {% trans "Ja, ich möchte diesen Termin stornieren." %}</label>
           <button type="submit" class="bg-red-600 text-white rounded-lg px-5 py-2.5 font-medium hover:bg-red-700">{% trans "Termin stornieren" %}</button>

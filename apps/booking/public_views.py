@@ -1526,7 +1526,6 @@ def termin_manage(request, token):
         action = request.POST.get("action", "")
         tenant = getattr(request, "tenant", None)
         if action == "cancel":
-            from apps.core import refunds
             from apps.core.fsm import IllegalTransition
 
             try:
@@ -1543,7 +1542,7 @@ def termin_manage(request, token):
                 messages.error(request, _("This booking can no longer be cancelled."))
                 return redirect(here)
             messages.success(request, _("Your booking was cancelled."))
-            if result == refunds.RefundResult.FAILED:
+            if result in cancel_policy.CHECK_RESULTS:
                 messages.warning(request, _("Erstattung wird geprüft."))
             elif kept:
                 messages.info(request, _("Ihre Anzahlung wurde einbehalten."))
@@ -1554,7 +1553,10 @@ def termin_manage(request, token):
             except ValueError:
                 raise Http404 from None
             if timezone.is_naive(start):
-                start = timezone.make_aware(start)
+                try:
+                    start = timezone.make_aware(start)
+                except Exception:  # несуществующее/двусмысленное время перевода часов
+                    raise Http404 from None
             back = f"{here}?tag={timezone.localtime(start).date().isoformat()}"
             try:
                 cancel_policy.guest_reschedule(booking, start=start, tenant=tenant)
@@ -1567,15 +1569,22 @@ def termin_manage(request, token):
             messages.success(request, _("Booking moved."))
             return redirect(here)
         raise Http404
-    st = cancel_policy.state(booking)
+    if ratelimit.hit("termin_manage_get", ratelimit.client_ip(request), limit=60, window=RL_WINDOW):
+        return HttpResponse(status=429)
+    st = cancel_policy.state(booking, tenant=getattr(request, "tenant", None))
     day = None
     slots = []
     if st.can_reschedule:
         raw = request.GET.get("tag")
+        own_day = timezone.localtime(booking.start).date()
         try:
-            day = date.fromisoformat(raw) if raw else timezone.localtime(booking.start).date()
+            day = date.fromisoformat(raw) if raw else own_day
         except ValueError:
-            day = timezone.localtime(booking.start).date()
+            day = own_day
+        # Ревью B6: без границ `9999-12-31 + 1 день` ронял страницу (OverflowError);
+        # раньше сегодня и дальше года вперёд выбирать нечего.
+        today = timezone.localdate()
+        day = min(max(day, today), today + timedelta(days=366))
         minutes = int((booking.end - booking.start).total_seconds() // 60)
         slots = [
             s

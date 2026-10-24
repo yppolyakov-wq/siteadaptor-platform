@@ -29409,3 +29409,6 @@ msgstr "Bir misafir randevusunu kendisi iptal etti."
 
 msgid "Kostenlos stornierbar bis"
 msgstr "Ücretsiz iptal en geç"
+
+msgid "Alle Termine dieser Buchung werden storniert."
+msgstr "Bu rezervasyonun tüm randevuları iptal edilecek."

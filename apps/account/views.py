@@ -239,10 +239,9 @@ def cancel_booking(request, code):
     except IllegalTransition:
         messages.error(request, _("This booking can no longer be cancelled."))
         return redirect("account-home")
-    from apps.core import refunds
 
     messages.success(request, _("Your booking was cancelled."))
-    if result == refunds.RefundResult.FAILED:
+    if result in cancel_policy.CHECK_RESULTS:
         messages.warning(request, _("Erstattung wird geprüft."))
     elif kept:
         messages.info(request, _("Ihre Anzahlung wurde einbehalten."))

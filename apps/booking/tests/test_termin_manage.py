@@ -223,3 +223,30 @@ def test_staff_cannot_change_cancel_policy(monkeypatch):
     views.services_view.__wrapped__(req2)
     svc.refresh_from_db()
     assert svc.cancel_window_hours == 2 and svc.late_cancel == "refund"
+
+
+def test_far_day_param_does_not_crash():
+    _, b = _booking()
+    token = cancel_policy.manage_token(b)
+    for tag in ("9999-12-31", "0001-01-01", "junk"):
+        resp = public_views.termin_manage(_req(path=_path(token), data={"tag": tag}), token)
+        assert resp.status_code == 200
+
+
+def test_token_bound_to_tenant_schema(monkeypatch):
+    from django.db import connection
+
+    _, b = _booking()
+    token = cancel_policy.manage_token(b)
+    monkeypatch.setattr(connection, "schema_name", "other_tenant")
+    assert cancel_policy.booking_from_token(token) is None
+
+
+def test_deposit_amount_shown_before_deadline():
+    _, b = _booking()
+    Booking.objects.filter(pk=b.pk).update(
+        payment_state=Booking.PAYMENT_DEPOSIT, deposit_cents=1500
+    )
+    token = cancel_policy.manage_token(b)
+    body = public_views.termin_manage(_req(path=_path(token)), token).content.decode()
+    assert "15" in body.split("einbehalten")[0][-40:]

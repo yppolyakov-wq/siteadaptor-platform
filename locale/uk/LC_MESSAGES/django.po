@@ -29520,3 +29520,6 @@ msgstr "Гість сам скасував свій запис."
 
 msgid "Kostenlos stornierbar bis"
 msgstr "Безкоштовне скасування не пізніше ніж за"
+
+msgid "Alle Termine dieser Buchung werden storniert."
+msgstr "Буде скасовано всі записи цього бронювання."

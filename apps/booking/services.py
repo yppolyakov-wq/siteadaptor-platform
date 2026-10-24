@@ -375,6 +375,13 @@ def book_many(starts, **kwargs):
         "voucher_code": kwargs.pop("voucher_code", ""),
         "extras": kwargs.pop("extras", None),
     }
+    # Ревью B6 (база): ресурсы всей группы — заранее и в порядке pk, как `move`,
+    # `resync_occupancy` и самоперенос (иначе встречные блокировки → дедлок).
+    list(
+        Resource.objects.select_for_update()
+        .filter(pk__in={r.pk for r, *_rest in slots})
+        .order_by("pk")
+    )
     created = []
     for resource, start, end, price_cents in slots:
         created.append(

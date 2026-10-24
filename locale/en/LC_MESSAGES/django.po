@@ -29265,3 +29265,6 @@ msgstr "A guest cancelled their appointment themselves."
 
 msgid "Kostenlos stornierbar bis"
 msgstr "Free cancellation up to"
+
+msgid "Alle Termine dieser Buchung werden storniert."
+msgstr "All appointments of this booking will be cancelled."

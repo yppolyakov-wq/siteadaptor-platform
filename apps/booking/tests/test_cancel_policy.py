@@ -5,6 +5,7 @@
 правила; повтор по отменённой записи доводит недошедший возврат."""
 
 from datetime import timedelta
+from decimal import Decimal
 
 import pytest
 from django.db import IntegrityError, transaction
@@ -41,9 +42,12 @@ def money(monkeypatch):
         return refunds.RefundResult.REFUNDED
 
     monkeypatch.setattr(refunds, "refund_payment", fake_refund)
-    monkeypatch.setattr(
-        money_contract, "retain_on_cancel", lambda k, o, t=None: calls["retain"].append(o.pk)
-    )
+
+    def fake_retain(kind, obj, tenant=None):
+        calls["retain"].append(obj.pk)
+        return Decimal(obj.deposit_cents or 0) / 100
+
+    monkeypatch.setattr(money_contract, "retain_on_cancel", fake_retain)
     return calls
 
 
@@ -216,3 +220,81 @@ def test_free_cancel_returns_pass_credit_once_late_burns(money):
     cancel_policy.guest_cancel(late)
     card.refresh_from_db()
     assert card.credits_used == 1
+
+
+# --- ревью B6: повтор отмены не переигрывает решение владельца и само решение -----
+
+
+def test_owner_cancelled_booking_cannot_be_refunded_by_guest(money):
+    b = _book(_service(cancel_window_hours=24), hours_ahead=48)
+    _paid_deposit(b)
+    Booking.objects.filter(pk=b.pk).update(status="cancelled")  # отменил владелец
+    b.refresh_from_db()
+    with pytest.raises(cancel_policy.NotCancellable):
+        cancel_policy.guest_cancel(b)
+    assert money["refund"] == [] and money["retain"] == []
+
+
+def test_no_show_keeps_deposit_against_guest_retry(money):
+    b = _book(_service(cancel_window_hours=24, late_cancel="refund"), hours_ahead=48)
+    _paid_deposit(b)
+    Booking.objects.filter(pk=b.pk).update(status="no_show")
+    b.refresh_from_db()
+    with pytest.raises(cancel_policy.NotCancellable):
+        cancel_policy.guest_cancel(b)
+    assert money["refund"] == []
+
+
+def test_retry_uses_decision_from_cancel_time(money, monkeypatch):
+    """Бесплатная отмена, возврат сорвался; повтор ПОСЛЕ дедлайна всё равно возвращает."""
+    b = _book(_service(cancel_window_hours=24, late_cancel="keep_deposit"), hours_ahead=48)
+    _paid_deposit(b)
+    monkeypatch.setattr(refunds, "refund_payment", lambda *a, **k: refunds.RefundResult.FAILED)
+    result, _kept = cancel_policy.guest_cancel(b)
+    assert result == refunds.RefundResult.FAILED
+    b.refresh_from_db()
+    assert b.cancel_policy["guest_cancel"]["free"] is True
+    calls = []
+    monkeypatch.setattr(
+        refunds,
+        "refund_payment",
+        lambda kind, obj, tenant=None: calls.append(obj.pk) or refunds.RefundResult.REFUNDED,
+    )
+    later = b.start - timedelta(hours=1)
+    cancel_policy.guest_cancel(b, now=later)
+    assert calls == [b.pk] and money["retain"] == []
+
+
+def test_refund_due_but_not_made_is_flagged_not_booked_as_revenue(money, monkeypatch):
+    b = _book(_service(cancel_window_hours=24), hours_ahead=48)
+    _paid_deposit(b)
+    monkeypatch.setattr(refunds, "refund_payment", lambda *a, **k: refunds.RefundResult.NONE)
+    told = []
+    monkeypatch.setattr(refunds, "_notify_owner_failed", lambda *a, **k: told.append(1))
+    result, kept = cancel_policy.guest_cancel(b)
+    assert result == refunds.RefundResult.FAILED and told and money["retain"] == []
+
+
+def test_money_step_exception_does_not_propagate(money, monkeypatch):
+    b = _book(_service(cancel_window_hours=24), hours_ahead=48)
+    _paid_deposit(b)
+
+    def boom(*a, **k):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(refunds, "refund_payment", boom)
+    monkeypatch.setattr(refunds, "_notify_owner_failed", lambda *a, **k: None)
+    result, _ = cancel_policy.guest_cancel(b)
+    b.refresh_from_db()
+    assert result == refunds.RefundResult.FAILED and b.status == "cancelled"
+
+
+def test_full_prepaid_deposit_equals_price_is_honestly_kept(money):
+    svc = _service(cancel_window_hours=24, late_cancel="keep_deposit")
+    b = _book(svc, hours_ahead=5, price_cents=2000)
+    Booking.objects.filter(pk=b.pk).update(
+        payment_state=Booking.PAYMENT_PAID, deposit_cents=2000, stripe_payment_intent="pi_x"
+    )
+    b.refresh_from_db()
+    st = cancel_policy.state(b)
+    assert st.can_cancel and st.kept_cents == 2000 and st.keep_after_cents == 2000

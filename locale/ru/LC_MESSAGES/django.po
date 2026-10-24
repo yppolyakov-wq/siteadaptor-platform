@@ -29536,3 +29536,6 @@ msgstr "Гость сам отменил свою запись."
 
 msgid "Kostenlos stornierbar bis"
 msgstr "Бесплатная отмена не позднее чем за"
+
+msgid "Alle Termine dieser Buchung werden storniert."
+msgstr "Будут отменены все записи этой брони."
