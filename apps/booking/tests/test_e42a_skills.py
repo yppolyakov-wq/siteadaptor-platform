@@ -50,15 +50,53 @@ def test_explicit_foreign_master_gets_no_slots():
     assert availability.assign_resource(svc, _aware(day, 9), resource=anna) is None
 
 
-def test_inactive_skilled_master_falls_back_to_none_not_all():
-    """Все мастера навыка выключены → пул навыков пуст → прежнее «любой активный»
-    (услуга не исчезает с витрины из-за отпуска единственного мастера)."""
+def test_inactive_skilled_masters_close_the_service():
+    """Ревью: все мастера навыка выключены → пул пуст (fail-closed). Владелец явно
+    ограничил услугу — отпуск мастера не открывает её мастерам без квалификации,
+    и витрина не предлагает мастера, которого бронь потом отвергнет."""
     day = _future_day()
     anna, ben = _two_masters(day)
     svc = _service(duration_minutes=60)
     svc.resources.set([ben])
     Resource.objects.filter(pk=ben.pk).update(is_active=False)
-    assert availability.service_pool(svc) == [anna]
+    assert availability.service_pool(svc) == []
+    assert availability.service_slots(svc, day) == []
+    assert not availability.has_skill(svc, anna)
+
+
+def test_has_skill_matches_pool_for_inactive_skill():
+    day = _future_day()
+    anna, ben = _two_masters(day)
+    svc = _service(duration_minutes=60)
+    svc.resources.set([anna, ben])
+    Resource.objects.filter(pk=ben.pk).update(is_active=False)
+    assert availability.has_skill(svc, anna)
+    assert not availability.has_skill(svc, ben)
+
+
+def test_slot_page_queries_do_not_grow_per_day(settings):
+    """Ревью: пул считается один раз на запрос, а не по дню месяца (N+1)."""
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.booking import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    anna, ben = _two_masters(day)
+    svc = _service(duration_minutes=60)
+    svc.resources.set([ben])
+    req = RequestFactory().get(f"/termin/leistung/{svc.pk}/", {"tag": day.isoformat()})
+    SessionMiddleware(lambda r: None).process_request(req)
+    req.tenant = TenantFactory.build(schema_name="public")
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    with CaptureQueriesContext(connection) as ctx:
+        public_views.service_slots(req, pk=svc.pk)
+    pool_queries = [q for q in ctx.captured_queries if "booking_service_resources" in q["sql"]]
+    assert len(pool_queries) <= 3, len(pool_queries)
 
 
 def test_has_skill():
@@ -112,7 +150,7 @@ def test_save_without_sentinel_keeps_skills(settings):
         _req("post", data={**base, "resources_present": "1", "resources": [str(anna.pk)]})
     )
     assert list(svc.resources.all()) == [anna]
-    views.services_view(_req("post", data={**base, "resources_present": "1"}))
+    views.services_view(_req("post", data={**base, "resources_present": "1", "resources": ["abc"]}))
     assert not svc.resources.exists()
 
 

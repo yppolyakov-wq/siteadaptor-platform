@@ -823,6 +823,16 @@ def _faq_rows(service, locales) -> list[dict]:
     return rows
 
 
+def _is_uuid(value) -> bool:
+    import uuid
+
+    try:
+        uuid.UUID(str(value))
+    except ValueError:
+        return False
+    return True
+
+
 @login_required
 def services_view(request, pk=None):
     """Услуги с ценой+длительностью (G10): CRUD простыми POST-формами.
@@ -922,7 +932,7 @@ def services_view(request, pk=None):
             # KA-12 E4.2a: навыки (какие мастера оказывают услугу) — по сентинелу,
             # иначе компактная строка без чекбоксов стёрла бы связи (W0).
             if request.POST.get("resources_present"):
-                picked = [p for p in request.POST.getlist("resources") if p]
+                picked = [p for p in request.POST.getlist("resources") if _is_uuid(p)]
                 service.resources.set(Resource.objects.filter(pk__in=picked))
             fields += apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
             fields += _apply_rich(service, getattr(request, "tenant", None))

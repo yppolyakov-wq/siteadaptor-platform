@@ -131,7 +131,9 @@ def free_slots(resource, day, duration_minutes=None) -> list[tuple[datetime, dat
     return [(s, e) for s, e, _spots in free_slots_with_spots(resource, day, duration_minutes)]
 
 
-def service_slots(service, day, resource=None, duration_minutes=None) -> list[datetime]:
+def service_slots(
+    service, day, resource=None, duration_minutes=None, base_pool=None
+) -> list[datetime]:
     """G10: объединённые свободные старты по ресурсам под услугу.
 
     Услуга бизнес-уровня — старт доступен, если ХОТЯ БЫ один ресурс свободен на
@@ -141,7 +143,7 @@ def service_slots(service, day, resource=None, duration_minutes=None) -> list[da
     единиц подряд («с 8:30 до 12:30»), тогда сюда приходит N × длительность."""
 
     length = duration_minutes or service.duration_minutes
-    pool = service_pool(service, resource)
+    pool = service_pool(service, resource, base=base_pool)
     starts = set()
     for r in pool:
         for start, _end in free_slots(r, day, duration_minutes=length):
@@ -149,27 +151,35 @@ def service_slots(service, day, resource=None, duration_minutes=None) -> list[da
     return sorted(starts)
 
 
-def service_pool(service, resource=None) -> list:
-    """KA-12 E4.2a: ресурсы, которые оказывают услугу (навыки; пусто = все активные).
+def service_pool(service, resource=None, base=None) -> list:
+    """KA-12 E4.2a: ресурсы, которые оказывают услугу.
 
-    `resource` задан — только он, и только если он в пуле (чужой мастер → пусто)."""
-    from .models import Resource
-
-    skilled = []
-    if service is not None and getattr(service, "pk", None):
-        skilled = list(service.resources.filter(is_active=True))
-    pool = skilled or list(Resource.objects.filter(is_active=True))
+    Навыков не задано — все активные (паритет со старыми услугами). Заданы — только
+    активные из них; все выключены → пусто (fail-closed: владелец явно ограничил
+    услугу, отпуск мастера не открывает её мастерам без квалификации).
+    `resource` задан — только он, и только если он в пуле (чужой мастер → пусто).
+    `base` — уже посчитанный пул (страница слотов зовёт по дню месяца — без N+1)."""
+    pool = base if base is not None else _skill_pool(service)
     if resource is not None:
         return [r for r in pool if r.pk == resource.pk]
     return pool
 
 
+def _skill_pool(service) -> list:
+    from .models import Resource
+
+    if service is not None and getattr(service, "pk", None):
+        skills = list(service.resources.all())
+        if skills:
+            return [r for r in skills if r.is_active]
+    return list(Resource.objects.filter(is_active=True))
+
+
 def has_skill(service, resource) -> bool:
-    """Ресурс оказывает услугу (у услуги без навыков — любой)."""
+    """Ресурс оказывает услугу — по тому же пулу, что предлагает витрина."""
     if service is None or resource is None or not getattr(service, "pk", None):
         return True
-    ids = set(service.resources.values_list("pk", flat=True))
-    return not ids or resource.pk in ids
+    return any(r.pk == resource.pk for r in _skill_pool(service))
 
 
 def next_free_slot(service, from_day=None, max_days=60, resource=None):
@@ -178,8 +188,9 @@ def next_free_slot(service, from_day=None, max_days=60, resource=None):
     или None (нет свободных в горизонте). Перехват уходящего клиента в момент
     отказа (день без слотов → «ближайший свободный: …»)."""
     start = from_day or timezone.localdate()
+    base = _skill_pool(service)
     for i in range(max_days + 1):
-        slots = service_slots(service, start + timedelta(days=i), resource=resource)
+        slots = service_slots(service, start + timedelta(days=i), resource=resource, base_pool=base)
         if slots:
             return slots[0]
     return None

@@ -442,7 +442,7 @@ def service_slots(request, pk):
     units = _parse_units(request.GET.get("dauer"))
     total_minutes = units * service.duration_minutes
     starts = availability.service_slots(
-        service, day, resource=chosen, duration_minutes=total_minutes
+        service, day, resource=chosen, duration_minutes=total_minutes, base_pool=resources
     )
     # R3 empty-state: день без слотов → ближайший свободный старт (перехват
     # уходящего клиента). Скан от завтра выбранного дня; вычисляем лишь при пустом.
@@ -494,7 +494,13 @@ def service_slots(request, pk):
     max_day = today + timedelta(days=MAX_DAYS_AHEAD)
     cal = _slot_month(
         lambda d: bool(
-            availability.service_slots(service, d, resource=chosen, duration_minutes=total_minutes)
+            availability.service_slots(
+                service,
+                d,
+                resource=chosen,
+                duration_minutes=total_minutes,
+                base_pool=resources,
+            )
         ),
         _cal_first(request, day),
         today,
@@ -782,10 +788,11 @@ def _unit_options(day, resource, service, units, *, embed=False, tail=()) -> lis
     from urllib.parse import urlencode
 
     rows = []
+    base = availability.service_pool(service)
     for n in range(1, MAX_UNITS + 1):
         total = n * service.duration_minutes
         if n > 1 and not availability.service_slots(
-            service, day, resource=resource, duration_minutes=total
+            service, day, resource=resource, duration_minutes=total, base_pool=base
         ):
             continue
         pairs = [("tag", day.isoformat())]
