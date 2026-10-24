@@ -41,6 +41,7 @@ from .models import (
     Service,
     ServiceSeasonRate,
 )
+from .services import MAX_BUFFER_MINUTES, resync_occupancy
 
 
 def _eur_to_cents(raw) -> int:
@@ -425,7 +426,10 @@ def booking_create(request):
             from django.db.models import Sum
 
             taken = (
-                services.overlapping(resource, start, end).aggregate(s=Sum("party_size"))["s"] or 0
+                services.overlapping(
+                    resource, start, services.occupied_end(service, end) or end
+                ).aggregate(s=Sum("party_size"))["s"]
+                or 0
             )
             messages.error(
                 request,
@@ -933,9 +937,12 @@ def services_view(request, pk=None):
                 fields.append("hide_in_city")
             # KA-12 E4.4a: буфер/минимальный срок/горизонт — по сентинелу (W0).
             if request.POST.get("booking_rules_present"):
+                old_buffer = service.buffer_after_minutes
                 service.buffer_after_minutes = _clamp_int(
-                    request.POST.get("buffer_after_minutes"), 0, 480
+                    request.POST.get("buffer_after_minutes"), 0, MAX_BUFFER_MINUTES
                 )
+                if service.buffer_after_minutes != old_buffer:
+                    transaction.on_commit(lambda svc=service: resync_occupancy(svc))
                 service.min_lead_minutes = 60 * _clamp_int(
                     request.POST.get("min_lead_hours"), 0, 720
                 )

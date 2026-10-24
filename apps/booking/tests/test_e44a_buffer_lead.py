@@ -117,8 +117,10 @@ def test_no_bare_end_overlap_on_booking():
     голый `end__gt` в booking-пересечениях молча проигнорировал бы буфер."""
     root = pathlib.Path(__file__).resolve().parents[1]
     for name in ("services.py", "availability.py"):
-        src = (root / name).read_text()
-        assert not re.search(r"\bend__gt\s*=", src), name
+        for line in (root / name).read_text().splitlines():
+            if re.search(r"\bend__gt\s*=", line):
+                # допустима только грубая индексная граница «end > start − потолок буфера»
+                assert "MAX_BUFFER_MINUTES" in line, (name, line)
 
 
 def test_occupied_until_ignored_for_unbuffered_service():
@@ -155,3 +157,50 @@ def test_service_form_saves_rules_by_sentinel(settings):
     )
     svc.refresh_from_db()
     assert (svc.buffer_after_minutes, svc.min_lead_minutes, svc.max_days_ahead) == (0, 2880, None)
+
+
+def test_buffer_change_resyncs_future_bookings(settings, django_capture_on_commit_callbacks):
+    from apps.booking import views
+    from apps.booking.tests.test_cabinet import _req
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r = _resource()
+    _rule(r, day, "09:00", "12:00")
+    svc = _service(duration_minutes=60)
+    b = _book(r, _aware(day, 9), _aware(day, 10), service=svc)
+    base = {"action": "update", "service": str(svc.pk), "duration": "60", "price_eur": "10"}
+    with django_capture_on_commit_callbacks(execute=True):
+        views.services_view(
+            _req(
+                "post",
+                data={**base, "booking_rules_present": "1", "buffer_after_minutes": "20"},
+            )
+        )
+    b.refresh_from_db()
+    assert b.occupied_until == _aware(day, 10, 20)
+    with django_capture_on_commit_callbacks(execute=True):
+        views.services_view(
+            _req("post", data={**base, "booking_rules_present": "1", "buffer_after_minutes": "0"})
+        )
+    b.refresh_from_db()
+    assert b.occupied_until is None
+
+
+def test_service_horizon_beyond_global_cap(settings):
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.booking import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    far = _future_day(50)
+    r = _resource(type="staff")
+    _rule(r, far, "09:00", "12:00", slot=60)
+    svc = _service(duration_minutes=60, max_days_ahead=90)
+    req = RequestFactory().get(f"/termin/leistung/{svc.pk}/", {"tag": far.isoformat()})
+    SessionMiddleware(lambda r: None).process_request(req)
+    req.tenant = TenantFactory.build(schema_name="public")
+    body = public_views.service_slots(req, pk=svc.pk).content.decode()
+    assert "data-slot=\"free\"" in body  # день 50 открыт (общий потолок 30)

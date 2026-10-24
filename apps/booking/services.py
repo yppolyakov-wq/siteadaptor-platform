@@ -95,10 +95,27 @@ def _get_or_create_customer(*, name, email, phone, match_by_phone=False) -> Cust
     return Customer.objects.create(name=name, email=email, phone=phone)
 
 
+# Потолок буфера (форма услуги): нижняя граница по `end` для индексного отбора —
+# занятость чужой записи кончается не позже end + MAX_BUFFER_MINUTES.
+MAX_BUFFER_MINUTES = 480
+
+
 def occupied_end(service, end):
     """KA-12 E4.4a: конец занятости ресурса с буфером услуги (None — буфера нет)."""
     buffer = int(getattr(service, "buffer_after_minutes", 0) or 0)
     return end + timedelta(minutes=buffer) if buffer else None
+
+
+def resync_occupancy(service):
+    """KA-12 E4.4a: буфер услуги поменяли — будущие активные записи держат ресурс
+    по новому буферу (иначе старые брони остаются со старой занятостью)."""
+    from django.db.models import F
+
+    buffer = int(getattr(service, "buffer_after_minutes", 0) or 0)
+    future = Booking.objects.filter(service=service, end__gte=timezone.now())
+    if buffer:
+        return future.update(occupied_until=F("end") + timedelta(minutes=buffer))
+    return future.update(occupied_until=None)
 
 
 def overlapping(resource, start, end):
@@ -116,6 +133,7 @@ def overlapping(resource, start, end):
             # FB-3 Вариант B: built-in ∪ кастом-active тенанта (кастом-статус держит слот).
             status__in=status_registry.active_statuses_for("booking"),
             start__lt=end,
+            end__gt=start - timedelta(minutes=MAX_BUFFER_MINUTES),
         )
         .annotate(busy_until=Coalesce("occupied_until", "end"))
         .filter(busy_until__gt=start)

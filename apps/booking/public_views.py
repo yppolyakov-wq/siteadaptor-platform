@@ -38,13 +38,19 @@ def _require_booking_active(request):
         raise Http404
 
 
-def _parse_day(raw) -> date:
+def _horizon_days(service=None) -> int:
+    """KA-12 E4.4a: горизонт записи — свой у услуги (`max_days_ahead`) или общий."""
+    own = getattr(service, "max_days_ahead", None)
+    return int(own) if own else MAX_DAYS_AHEAD
+
+
+def _parse_day(raw, horizon=MAX_DAYS_AHEAD) -> date:
     today = timezone.localdate()
     try:
         day = date.fromisoformat(raw or "")
     except ValueError:
         return today
-    return min(max(day, today), today + timedelta(days=MAX_DAYS_AHEAD))
+    return min(max(day, today), today + timedelta(days=horizon))
 
 
 def _parse_start(raw):
@@ -428,7 +434,7 @@ def service_slots(request, pk):
     """G10: свободные старты под услугу (по всем ресурсам), форма брони."""
     _require_booking_active(request)
     service = get_object_or_404(Service, pk=pk, is_active=True)
-    day = _parse_day(request.GET.get("tag"))
+    day = _parse_day(request.GET.get("tag"), _horizon_days(service))
     today = timezone.localdate()
     # #4: опциональный выбор конкретного мастера/ресурса (если их несколько).
     # KA-12 E4.2a: только мастера, которые оказывают эту услугу (навыки).
@@ -449,7 +455,7 @@ def service_slots(request, pk):
     next_free = None
     if not starts:
         next_free = availability.next_free_slot(
-            service, day + timedelta(days=1), max_days=MAX_DAYS_AHEAD, resource=chosen
+            service, day + timedelta(days=1), max_days=_horizon_days(service), resource=chosen
         )
     # HF-6c (фидбэк владельца: «нельзя выбрать услугу сразу на 2-3 времени»):
     # выбор — СПИСОК стартов (?slot=A&slot=B). Валидируем каждый по живой сетке,
@@ -491,7 +497,7 @@ def service_slots(request, pk):
 
     # A3: месяц-сетка наличия — день кликабелен, если у услуги есть свободный старт
     # (на выбранном мастере или любом). resource-параметр несём в ссылки дня.
-    max_day = today + timedelta(days=MAX_DAYS_AHEAD)
+    max_day = today + timedelta(days=_horizon_days(service))
     cal = _slot_month(
         lambda d: bool(
             availability.service_slots(

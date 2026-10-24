@@ -15,6 +15,8 @@ from django.utils import timezone
 
 from .models import Booking, ClosedDate
 
+MAX_BUFFER_MINUTES = 480  # = services.MAX_BUFFER_MINUTES (потолок формы услуги)
+
 #: KA-12 E4.1b: шаг сетки, когда окно взято из часов работы бизнеса (у ресурса нет правил).
 HOURS_FALLBACK_STEP = 30
 
@@ -117,6 +119,7 @@ def free_slots_with_spots(
             # FB-3 Вариант B: built-in ∪ кастом-active тенанта.
             status__in=status_registry.active_statuses_for("booking"),
             start__lt=day_end + buffer,
+            end__gt=day_start - timedelta(minutes=MAX_BUFFER_MINUTES),
         )
         .annotate(busy_until=Coalesce("occupied_until", "end"))
         .filter(busy_until__gt=day_start)
