@@ -15,6 +15,8 @@
   {% elif b.payment_state == 'pending' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">{% trans "Deposit pending" %}</span>
   {% elif b.payment_state == 'refunded' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">{% trans "Refunded" %}</span>{% endif %}
   {% if b.group_code %}<span class="text-xs text-gray-400">🔗 {% trans "Part of a multi-slot booking" %}</span>{% endif %}
+  {% comment %}KA-12 E6.4a: неявки клиента — видны только в кабинете, текстом (не только цветом).{% endcomment %}
+  {% if no_show.n %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-900" data-no-show-card title="{% blocktrans with d=no_show.last|date:'d.m.Y' %}zuletzt am {{ d }}{% endblocktrans %}">⚠ {% blocktrans count n=no_show.n %}{{ n }}× nicht erschienen{% plural %}{{ n }}× nicht erschienen{% endblocktrans %}</span>{% endif %}
 {% endblock %}
 
 {% block deal_items_title %}{% trans "Termin & Leistung" %}{% endblock %}

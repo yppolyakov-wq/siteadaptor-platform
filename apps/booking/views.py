@@ -93,8 +93,12 @@ def calendar_context(request):
 
     from apps.core import status_labels, status_registry, transition_rules
 
-    from . import tagesplan
+    # KA-12 E6.4a: неявки клиентов дня — одним агрегатом, бейдж «N×» у записи.
+    from . import no_shows, tagesplan
 
+    counts = no_shows.counts_for({b.customer_id for b in bookings})
+    for b in bookings:
+        b.no_show_n = counts.get(b.customer_id, 0)
     resources = list(Resource.objects.filter(is_active=True).prefetch_related("rules"))
     # KA-12 E4.2b: сетка «ресурс × время» (двигаются только действующие записи).
     grid = tagesplan.build(
@@ -222,11 +226,14 @@ def booking_detail(request, pk):
     # остаётся только специфика записи.
     from apps.core import deal_card
 
+    from . import no_shows  # KA-12 E6.4a
+
     return render(
         request,
         "booking/booking_detail.html",
         {
             "b": booking,
+            "no_show": no_shows.summary(booking.customer),
             "nav": "booking",
             "edit_extras": edit_extras,
             "chosen_extra_ids": chosen_extra_ids,

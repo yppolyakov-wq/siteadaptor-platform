@@ -29539,3 +29539,19 @@ msgstr "Бесплатная отмена не позднее чем за"
 
 msgid "Alle Termine dieser Buchung werden storniert."
 msgstr "Будут отменены все записи этой брони."
+
+msgid "zuletzt am %(d)s"
+msgstr "последний раз %(d)s"
+
+msgid "nicht erschienen"
+msgstr "не пришёл"
+
+msgid "Nicht erschienen"
+msgstr "Неявки"
+
+msgid "%(n)s× nicht erschienen"
+msgid_plural "%(n)s× nicht erschienen"
+msgstr[0] "%(n)s неявка"
+msgstr[1] "%(n)s неявки"
+msgstr[2] "%(n)s неявок"
+msgstr[3] "%(n)s неявки"

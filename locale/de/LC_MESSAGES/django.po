@@ -29360,3 +29360,17 @@ msgstr "Kostenlos stornierbar bis"
 
 msgid "Alle Termine dieser Buchung werden storniert."
 msgstr "Alle Termine dieser Buchung werden storniert."
+
+msgid "zuletzt am %(d)s"
+msgstr "zuletzt am %(d)s"
+
+msgid "nicht erschienen"
+msgstr "nicht erschienen"
+
+msgid "Nicht erschienen"
+msgstr "Nicht erschienen"
+
+msgid "%(n)s× nicht erschienen"
+msgid_plural "%(n)s× nicht erschienen"
+msgstr[0] "%(n)s× nicht erschienen"
+msgstr[1] "%(n)s× nicht erschienen"

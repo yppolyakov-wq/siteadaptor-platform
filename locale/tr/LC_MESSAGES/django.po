@@ -29412,3 +29412,17 @@ msgstr "Ücretsiz iptal en geç"
 
 msgid "Alle Termine dieser Buchung werden storniert."
 msgstr "Bu rezervasyonun tüm randevuları iptal edilecek."
+
+msgid "zuletzt am %(d)s"
+msgstr "en son %(d)s"
+
+msgid "nicht erschienen"
+msgstr "gelmedi"
+
+msgid "Nicht erschienen"
+msgstr "Gelmeme"
+
+msgid "%(n)s× nicht erschienen"
+msgid_plural "%(n)s× nicht erschienen"
+msgstr[0] "%(n)s× gelmedi"
+msgstr[1] "%(n)s× gelmedi"

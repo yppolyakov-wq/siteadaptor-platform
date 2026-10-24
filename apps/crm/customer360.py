@@ -59,6 +59,13 @@ def kpis(tenant, customer) -> dict:
         n = _safe(lambda rel=rel: getattr(customer, rel).count(), 0)
         if n:
             counts.append({"label": label, "n": n})
+    # KA-12 E6.4a: неявки — отдельной плиткой (только кабинет, только при n > 0).
+    if _active(tenant, "booking"):
+        from apps.booking import no_shows
+
+        n_missed = _safe(lambda: no_shows.summary(customer)["n"], 0)
+        if n_missed:
+            counts.append({"label": _("Nicht erschienen"), "n": n_missed})
     return {
         "ltv_total": agg.get("total"),
         "ltv_n": agg.get("n") or 0,
@@ -85,7 +92,8 @@ def sections(tenant, customer) -> list[dict]:
                 {
                     "title": f"{b.service_label if b.service else b.resource}",
                     "sub": f"{b.start:%d.%m.%Y %H:%M} · {b.reference_code}",
-                    "status": b.status,
+                    # E6.4a: читаемый статус («Nicht erschienen»), а не сырой код.
+                    "status": b.get_status_display(),
                     # VF-18a (фидбэк 2026-08-25): сделки клиента кликабельны
                     "url": _url("booking:booking-detail", b.pk),
                 }

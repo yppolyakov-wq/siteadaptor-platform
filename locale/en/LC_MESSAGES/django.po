@@ -29268,3 +29268,17 @@ msgstr "Free cancellation up to"
 
 msgid "Alle Termine dieser Buchung werden storniert."
 msgstr "All appointments of this booking will be cancelled."
+
+msgid "zuletzt am %(d)s"
+msgstr "last on %(d)s"
+
+msgid "nicht erschienen"
+msgstr "no-show"
+
+msgid "Nicht erschienen"
+msgstr "No-shows"
+
+msgid "%(n)s× nicht erschienen"
+msgid_plural "%(n)s× nicht erschienen"
+msgstr[0] "%(n)s× no-show"
+msgstr[1] "%(n)s× no-show"
