@@ -5,15 +5,20 @@
 {% block dash_content %}
 <a href="{% url 'finance:invoices' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Rechnungen" %}</a>
 <div class="flex items-center gap-3 mt-1 mb-4">
-  <h1 class="text-2xl font-bold">{% if invoice.is_storno %}{% trans "Stornorechnung" %} {% endif %}{{ invoice.number_display }}</h1>
+  <h1 class="text-2xl font-bold">{% if invoice.is_storno %}{% trans "Stornorechnung" %} {% elif invoice.is_credit %}{% trans "Gutschrift" %} {% endif %}{{ invoice.number_display }}</h1>
   {% comment %}KA-12 E1.1: перекрёстные ссылки «счёт ↔ Stornorechnung».{% endcomment %}
   {% if invoice.is_storno and invoice.cancels %}
     <p class="text-sm text-gray-500" data-storno-of>{% trans "Storno zu" %} <a href="{% url 'finance:invoice-detail' invoice.cancels.pk %}" class="text-indigo-600 hover:underline">{{ invoice.cancels.number_display }}</a></p>
+  {% elif invoice.is_credit and invoice.corrects %}
+    <p class="text-sm text-gray-500" data-credit-of>{% trans "Korrektur zu" %} <a href="{% url 'finance:invoice-detail' invoice.corrects.pk %}" class="text-indigo-600 hover:underline">{{ invoice.corrects.number_display }}</a></p>
   {% elif invoice.storno_doc_id_safe %}
     <p class="text-sm text-gray-500" data-storno-doc>{% trans "Storniert durch" %} <a href="{% url 'finance:invoice-detail' invoice.storno_doc_id_safe %}" class="text-indigo-600 hover:underline">{% trans "Stornorechnung" %}</a></p>
   {% endif %}
   <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ invoice.get_status_display }}</span>
 </div>
+{% if not invoice.is_credit and not invoice.is_storno %}{% with corr=invoice.corrections.all %}{% if corr %}
+  <p class="-mt-2 mb-4 text-sm text-gray-500" data-credits>{% trans "Gutschriften" %}:{% for c in corr %} <a href="{% url 'finance:invoice-detail' c.pk %}" class="text-indigo-600 hover:underline">{{ c.number_display }}</a> ({{ c.gross }} €){% if not forloop.last %},{% endif %}{% endfor %} · {% trans "Zu zahlen" %}: {{ invoice.open_amount }} €</p>
+{% endif %}{% endwith %}{% endif %}
 
 {% if messages %}
   {% for m in messages %}

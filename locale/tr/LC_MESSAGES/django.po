@@ -28863,3 +28863,21 @@ msgstr "%(code)s için %(amount)s € iade edildi ancak fiyat güncellenemedi. L
 
 msgid "Zahlung nicht verbucht"
 msgstr "Ödeme kaydedilmedi"
+
+msgid "Gutschrift"
+msgstr "Fatura düzeltmesi"
+
+msgid "Gutschriften"
+msgstr "Fatura düzeltmeleri"
+
+msgid "Korrektur zu"
+msgstr "Düzeltilen fatura"
+
+msgid "Korrektur zu Rechnung %(num)s vom %(date)s"
+msgstr "%(date)s tarihli %(num)s numaralı faturanın düzeltmesi"
+
+msgid "Rechnungskorrektur"
+msgstr "Düzeltme faturası"
+
+msgid "Rechnungskorrektur Nr. %(n)s"
+msgstr "Düzeltme faturası no. %(n)s"

@@ -106,7 +106,9 @@ def test_order_minderung_lowers_price_refunds_and_reverses_revenue(stripe_calls)
     assert money_contract.due("order", order) == 0
 
 
-def test_minderung_refused_with_issued_invoice(stripe_calls):
+def test_minderung_of_whole_invoiced_amount_is_refused(stripe_calls):
+    """B2-7b: при выставленном счёте Minderung выпускает корректуру; вся сумма
+    счёта — это уже Stornorechnung, не уступка."""
     from apps.finance.models import Invoice
     from apps.finance.services import invoice_from_order
 
@@ -116,7 +118,7 @@ def test_minderung_refused_with_issued_invoice(stripe_calls):
         status=Invoice.STATUS_ISSUED, deal_kind="order", deal_id=order.reference_code
     )
     result = refunds.refund_partial(
-        "order", order, cents=500, method="card", tenant=TENANT, reason="minderung"
+        "order", order, cents=2380, method="card", tenant=TENANT, reason="minderung"
     )
     assert result == refunds.RefundResult.REFUSED
     assert stripe_calls == []

@@ -248,7 +248,12 @@ def open_items(tenant) -> list[dict]:
             )
     out += _job_deposit_items(tenant, today)
     # KA-12 E1.1: Stornorechnung ничего не ждёт — не открытая позиция.
-    open_invoices = Invoice.objects.filter(status="issued", kind=Invoice.KIND_INVOICE)
+    from .models import with_credited
+
+    # B2-7b: корректуры уменьшают «к оплате» — аннотацией, без запроса на строку.
+    open_invoices = with_credited(
+        Invoice.objects.filter(status="issued", kind=Invoice.KIND_INVOICE)
+    )
     for inv in open_invoices.order_by("issued_at")[:200]:
         if not inv.open_amount:  # KA-H10: всё уже получено (Anzahlung/сертификат)
             continue

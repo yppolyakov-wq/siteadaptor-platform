@@ -19,8 +19,9 @@ class InvoiceSM(StateMachine):
     ]
 
     def apply(self, instance, dst, **kw):
-        if getattr(instance, "kind", "invoice") == "storno":
-            raise IllegalTransition("invoice(storno)", instance.status, dst)
+        kind = getattr(instance, "kind", "invoice")
+        if kind in ("storno", "credit"):  # B2-7b: корректура тоже без переходов
+            raise IllegalTransition(f"invoice({kind})", instance.status, dst)
         if dst == "cancelled":
             # Ревью W1.2 (H1): отмена и Stornorechnung — одно целое; сбой при выпуске
             # сторно откатывает и статус оригинала (иначе «Storniert» без документа).

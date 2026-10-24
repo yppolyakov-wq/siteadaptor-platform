@@ -28811,3 +28811,21 @@ msgstr "Für %(code)s wurden %(amount)s € erstattet, aber der Preis konnte nic
 
 msgid "Zahlung nicht verbucht"
 msgstr "Zahlung nicht verbucht"
+
+msgid "Gutschrift"
+msgstr "Gutschrift"
+
+msgid "Gutschriften"
+msgstr "Gutschriften"
+
+msgid "Korrektur zu"
+msgstr "Korrektur zu"
+
+msgid "Korrektur zu Rechnung %(num)s vom %(date)s"
+msgstr "Korrektur zu Rechnung %(num)s vom %(date)s"
+
+msgid "Rechnungskorrektur"
+msgstr "Rechnungskorrektur"
+
+msgid "Rechnungskorrektur Nr. %(n)s"
+msgstr "Rechnungskorrektur Nr. %(n)s"

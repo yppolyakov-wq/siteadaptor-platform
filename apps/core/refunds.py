@@ -506,8 +506,9 @@ MINDERUNG_KINDS = ("order", "booking", "stay")
 
 
 def _minderung_blocked(kind: str, obj, cents: int) -> bool:
-    """Minderung невозможна: сделка отменена, счёт уже выставлен (это Rechnungskorrektur),
-    уступка больше итога или сертификат не даёт править скидку."""
+    """Minderung невозможна: сделка отменена, уступка больше итога (или — при
+    выставленном счёте — не меньше его остатка: полная сумма = Stornorechnung) или
+    сертификат не даёт править скидку."""
     from apps.core import deal_discount, money_contract, status_registry
     from apps.finance.models import Invoice
 
@@ -515,7 +516,9 @@ def _minderung_blocked(kind: str, obj, cents: int) -> bool:
         return True
     invoice = money_contract.invoice_for(kind, obj)
     if invoice is not None and invoice.status != Invoice.STATUS_DRAFT:
-        return True
+        # KA-12 B2-7b: выставленный счёт не отказ — Minderung выпустит корректуру.
+        if Decimal(cents) / 100 >= invoice.corrected_gross:
+            return True
     total = int((money_contract._total(kind, obj) * 100).to_integral_value())
     if cents > total:
         return True
@@ -554,6 +557,7 @@ def _apply_minderung(kind: str, obj, cents: int, tenant, key: str) -> bool:
             else:
                 deal_discount.set_discount(kind, fresh, cents=new, tenant=tenant, allow_closed=True)
             record_minderung(source=kind, deal=fresh, amount=Decimal(cents) / 100, key=key)
+            _credit_issued_invoice(kind, fresh, cents, key)
     except Exception:  # noqa: BLE001 — деньги ушли; цену правит владелец, не 500
         logger.error("minderung not applied: %s %s", kind, obj.pk, exc_info=True)
         _notify_owner_failed(kind, obj, tenant, reason="price", cents=cents)
@@ -561,6 +565,20 @@ def _apply_minderung(kind: str, obj, cents: int, tenant, key: str) -> bool:
         return False
     obj.refresh_from_db()
     return True
+
+
+def _credit_issued_invoice(kind: str, obj, cents: int, key: str) -> None:
+    """KA-12 B2-7b: у сделки выставлен счёт — уступка оформляется Rechnungskorrektur
+    (свой номер, минус по ставкам). В транзакции Minderung: не вышла корректура —
+    откатывается и снижение цены (документы и сделка не расходятся)."""
+    from apps.core import money_contract
+    from apps.finance.models import Invoice
+    from apps.finance.services import create_credit
+
+    invoice = money_contract.invoice_for(kind, obj)
+    if invoice is None or invoice.status == Invoice.STATUS_DRAFT:
+        return
+    create_credit(invoice, Decimal(cents) / 100, reason="Preisminderung", key=f"mind:{key}")
 
 
 def _is_card_row(row) -> bool:

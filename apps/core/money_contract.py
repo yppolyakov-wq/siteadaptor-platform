@@ -199,7 +199,7 @@ def _recognized(kind, obj, total, invoice) -> Decimal:
 
         return _dec(revenue_for(obj)[0]) if obj.total_cents else ZERO
     if kind == "job":
-        return _dec(invoice.gross) if invoice is not None else ZERO
+        return _dec(invoice.corrected_gross) if invoice is not None else ZERO
     return total
 
 
@@ -210,7 +210,8 @@ def invoice_for(kind, obj):
     ref = str(getattr(obj, "reference_code", "") or obj.pk)
     live = (
         Invoice.objects.exclude(status="cancelled")
-        .exclude(kind=Invoice.KIND_STORNO)  # KA-12 E1.1: Stornorechnung — не счёт сделки
+        # KA-12 E1.1/B2-7b: Stornorechnung и корректура — не счёт сделки.
+        .filter(kind=Invoice.KIND_INVOICE)
         .order_by("-created_at")
     )
     inv = live.filter(deal_kind=kind, deal_id=ref).first()

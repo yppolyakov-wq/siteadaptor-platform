@@ -28968,3 +28968,21 @@ msgstr "За %(code)s повернуто %(amount)s €, але ціну змі�
 
 msgid "Zahlung nicht verbucht"
 msgstr "Платіж не враховано"
+
+msgid "Gutschrift"
+msgstr "Коригування рахунку"
+
+msgid "Gutschriften"
+msgstr "Коригування"
+
+msgid "Korrektur zu"
+msgstr "Коригування до"
+
+msgid "Korrektur zu Rechnung %(num)s vom %(date)s"
+msgstr "Коригування до рахунку %(num)s від %(date)s"
+
+msgid "Rechnungskorrektur"
+msgstr "Коригувальний рахунок"
+
+msgid "Rechnungskorrektur Nr. %(n)s"
+msgstr "Коригувальний рахунок № %(n)s"

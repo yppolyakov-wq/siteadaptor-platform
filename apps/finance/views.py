@@ -646,7 +646,11 @@ def invoice_detail(request, pk):
         {
             "nav": "finance",
             "invoice": invoice,
-            "allowed": [] if invoice.is_storno else InvoiceSM().allowed_targets(invoice.status),
+            "allowed": (
+                []
+                if invoice.kind != Invoice.KIND_INVOICE
+                else InvoiceSM().allowed_targets(invoice.status)
+            ),
             "doc_languages": language_choices(request.tenant),
         },
     )

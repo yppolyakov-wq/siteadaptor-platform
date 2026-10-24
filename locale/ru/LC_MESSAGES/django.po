@@ -28984,3 +28984,21 @@ msgstr "По %(code)s возвращено %(amount)s €, но цену изм�
 
 msgid "Zahlung nicht verbucht"
 msgstr "Платёж не учтён"
+
+msgid "Gutschrift"
+msgstr "Корректировка счёта"
+
+msgid "Gutschriften"
+msgstr "Корректировки"
+
+msgid "Korrektur zu"
+msgstr "Корректировка к"
+
+msgid "Korrektur zu Rechnung %(num)s vom %(date)s"
+msgstr "Корректировка к счёту %(num)s от %(date)s"
+
+msgid "Rechnungskorrektur"
+msgstr "Корректировочный счёт"
+
+msgid "Rechnungskorrektur Nr. %(n)s"
+msgstr "Корректировочный счёт № %(n)s"

@@ -115,6 +115,9 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     y = page_h - 25 * mm
     bottom = 25 * mm
     is_storno = getattr(invoice, "kind", "invoice") == "storno"
+    # KA-12 B2-7b: корректура — свой заголовок (G-1) и ссылка на оригинал; оплаты нет.
+    is_credit = getattr(invoice, "kind", "invoice") == "credit"
+    no_payment = is_storno or is_credit
     desc_w = page_w - 2 * x - 75 * mm
 
     def table_header(y):
@@ -167,7 +170,11 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     # Заголовок документа.
     y -= 10 * mm
     c.setFont(font_bold, 16)
-    title = _("Stornorechnung") if is_storno else _("Invoice")
+    title = (
+        _("Stornorechnung")
+        if is_storno
+        else (_("Rechnungskorrektur") if is_credit else _("Invoice"))
+    )
     c.drawString(x, y, f"{title} {invoice.number_display}")
     c.setFont(font, 9)
     c.setFillColorRGB(*_MUTED)
@@ -182,8 +189,16 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
             "date": doc_date(orig.issued_at) if orig.issued_at else "",
         }
         c.drawString(x, y - 5 * mm, ref)
+    if is_credit and getattr(invoice, "corrects", None) is not None:
+        # § 31 UStDV: корректура однозначно ссылается на исправляемый счёт.
+        orig = invoice.corrects
+        ref = _("Korrektur zu Rechnung %(num)s vom %(date)s") % {
+            "num": orig.number_display,
+            "date": doc_date(orig.issued_at) if orig.issued_at else "",
+        }
+        c.drawString(x, y - 5 * mm, ref)
     # SH-23b (Р-2): срок оплаты на документе (у сторно оплаты нет).
-    if invoice.due_date and not is_storno:
+    if invoice.due_date and not no_payment:
         label_due = _("Payable by")
         c.drawRightString(page_w - x, y - 4.5 * mm, f"{label_due}: {doc_date(invoice.due_date)}")
     # KA-H10: Leistungsdatum/-zeitraum (§ 14 Abs. 4 Nr. 6 UStG).
@@ -242,7 +257,7 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     label_total = _("Total")
     c.drawRightString(page_w - x - 30 * mm, y, f"{label_total}:")
     c.drawRightString(page_w - x, y, money(invoice.gross))
-    if invoice.prepaid_cents and not is_storno:  # KA-H10: уже получено → к оплате остаток
+    if invoice.prepaid_cents and not no_payment:  # KA-H10: уже получено → к оплате остаток
         from decimal import Decimal as _D
 
         c.setFont(font, 9)
@@ -254,7 +269,10 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
         c.setFont(font_bold, 10)
         label_due_amount = _("Zu zahlen")
         c.drawRightString(page_w - x - 30 * mm, y, f"{label_due_amount}:")
-        c.drawRightString(page_w - x, y, money(invoice.open_amount))
+        # Документ не меняется после выставления (GoBD): «к оплате» — на момент
+        # выпуска, без последующих корректур (они — свои документы).
+        printed_due = max(_D(invoice.gross) - _D(invoice.prepaid_cents) / 100, _D("0"))
+        c.drawRightString(page_w - x, y, money(printed_due))
 
     # Hinweise.
     notes = []

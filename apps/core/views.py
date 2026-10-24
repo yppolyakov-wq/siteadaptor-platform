@@ -5274,8 +5274,8 @@ def deal_invoice(request, kind, pk):
     # клик после автосчёта (SH-23b) создал бы второй счёт на тот же заказ.
     # KA-12 E1.1: отменённый счёт не переиспользуем — после Stornorechnung сделке
     # можно выставить исправленный счёт.
-    live = Invoice.objects.exclude(status=Invoice.STATUS_CANCELLED).exclude(
-        kind=Invoice.KIND_STORNO
+    live = Invoice.objects.exclude(status=Invoice.STATUS_CANCELLED).filter(
+        kind=Invoice.KIND_INVOICE
     )
     invoice = live.filter(deal_kind=kind, deal_id=ref).order_by("created_at").first()
     existing = getattr(obj, "invoice_id", None)

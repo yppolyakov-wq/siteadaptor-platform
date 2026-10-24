@@ -148,20 +148,41 @@ class Invoice(TimestampedModel):
     # минус; оригинал не меняется. One-to-one — не больше одного сторно на счёт.
     KIND_INVOICE = "invoice"
     KIND_STORNO = "storno"
-    KINDS = [(KIND_INVOICE, _("Rechnung")), (KIND_STORNO, _("Stornorechnung"))]
+    # KA-12 B2-7b: частичная корректура выставленного счёта (Minderung, ошибка в
+    # сумме) — свой номер, суммы со знаком минус, ссылка на оригинал (§ 31 UStDV).
+    # В кабинете — «Gutschrift», в PDF — «Rechnungskorrektur» (решение G-1).
+    KIND_CREDIT = "credit"
+    KINDS = [
+        (KIND_INVOICE, _("Rechnung")),
+        (KIND_STORNO, _("Stornorechnung")),
+        (KIND_CREDIT, _("Gutschrift")),
+    ]
     kind = models.CharField(max_length=10, choices=KINDS, default=KIND_INVOICE)
     cancels = models.OneToOneField(
         "self", on_delete=models.PROTECT, null=True, blank=True, related_name="storno_doc"
     )
+    corrects = models.ForeignKey(
+        "self", on_delete=models.PROTECT, null=True, blank=True, related_name="corrections"
+    )
+    # Ключ идемпотентности корректуры (повтор Minderung/клика — тот же документ).
+    correction_key = models.CharField(max_length=64, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
         constraints = [
             models.CheckConstraint(
-                condition=(models.Q(kind="storno", cancels__isnull=False))
-                | (models.Q(kind="invoice", cancels__isnull=True)),
-                name="finance_invoice_storno_has_original",
-            )
+                condition=(
+                    models.Q(kind="invoice", cancels__isnull=True, corrects__isnull=True)
+                    | models.Q(kind="storno", cancels__isnull=False, corrects__isnull=True)
+                    | models.Q(kind="credit", cancels__isnull=True, corrects__isnull=False)
+                ),
+                name="finance_invoice_kind_links",
+            ),
+            models.UniqueConstraint(
+                fields=["correction_key"],
+                condition=~models.Q(correction_key=""),
+                name="finance_invoice_correction_key_uniq",
+            ),
         ]
 
     @property
@@ -175,9 +196,31 @@ class Invoice(TimestampedModel):
         return doc.pk if doc else None
 
     @property
+    def is_credit(self) -> bool:
+        return self.kind == self.KIND_CREDIT
+
+    @property
+    def credited_amount(self) -> Decimal:
+        """KA-12 B2-7b: сумма выставленных корректур (положительная). Списки
+        аннотируют `credited` (`with_credited`) — без запроса на строку."""
+        if self.kind != self.KIND_INVOICE or not self.pk:
+            return Decimal("0")
+        if hasattr(self, "credited"):
+            return -Decimal(self.credited or 0)
+        total = self.corrections.exclude(status=self.STATUS_DRAFT).aggregate(s=models.Sum("gross"))[
+            "s"
+        ]
+        return -Decimal(total or 0)
+
+    @property
+    def corrected_gross(self) -> Decimal:
+        """Брутто после корректур — столько стоит сделка по документам."""
+        return Decimal(self.gross) - self.credited_amount
+
+    @property
     def open_amount(self):
-        """KA-H10: к оплате = брутто − уже получено (не меньше 0)."""
-        return max(Decimal(self.gross) - Decimal(self.prepaid_cents) / 100, Decimal("0"))
+        """KA-H10: к оплате = брутто − корректуры − уже получено (не меньше 0)."""
+        return max(self.corrected_gross - Decimal(self.prepaid_cents) / 100, Decimal("0"))
 
     def __str__(self):
         return self.number_display
@@ -193,6 +236,21 @@ class Invoice(TimestampedModel):
     @property
     def is_editable(self) -> bool:
         return self.status == self.STATUS_DRAFT
+
+
+def with_credited(qs):
+    """KA-12 B2-7b: аннотировать `credited` (Σ брутто корректур, ≤ 0) одним
+    запросом — `open_amount`/`corrected_gross` в списках без запроса на строку."""
+    from django.db.models import DecimalField, Q, Sum, Value
+    from django.db.models.functions import Coalesce
+
+    return qs.annotate(
+        credited=Coalesce(
+            Sum("corrections__gross", filter=~Q(corrections__status=Invoice.STATUS_DRAFT)),
+            Value(Decimal("0")),
+            output_field=DecimalField(max_digits=10, decimal_places=2),
+        )
+    )
 
 
 # MT-5: журнал расходов — зеркало RevenueEntry в отдельном модуле; импорт нужен,

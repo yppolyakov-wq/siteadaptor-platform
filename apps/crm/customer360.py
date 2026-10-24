@@ -163,7 +163,7 @@ def sections(tenant, customer) -> list[dict]:
             lambda: [
                 {
                     "title": f"{i.number_display} · {i.gross} €"
-                    + (f" · {_('Stornorechnung')}" if i.is_storno else ""),
+                    + (f" · {i.get_kind_display()}" if i.kind != i.KIND_INVOICE else ""),
                     "sub": f"{i.issued_at:%d.%m.%Y}" if i.issued_at else "",
                     "status": getattr(i, "status", ""),
                     "url": _url("finance:invoice-detail", i.pk),

@@ -386,6 +386,94 @@ def create_storno(original):
         return storno
 
 
+class CreditError(ValueError):
+    """Корректуру выпустить нельзя (не тот документ/сумма) — причина в тексте."""
+
+
+def create_credit(original, gross, *, reason: str, key: str):
+    """KA-12 B2-7b: Rechnungskorrektur — частичное уменьшение выставленного счёта.
+
+    Свой номер из общего счётчика, строки по ставкам оригинала пропорционально
+    (`_invoice_gross_by_rate`), суммы со знаком минус, брутто ровно = −`gross`
+    (`fit_gross`). Оригинал не меняется (GoBD). Идемпотентно по `key`.
+    Полная сумма остатка — это Stornorechnung, не корректура (`CreditError`).
+    Журнал выручки не трогает: сторно пишет тот, кто снизил цену (Minderung)."""
+    from decimal import ROUND_HALF_UP, Decimal
+
+    from django.db import transaction
+    from django.db.models import Sum
+    from django.utils import timezone as tz
+
+    from .models import Invoice
+
+    cent = Decimal("0.01")
+    gross = Decimal(str(gross)).quantize(cent, rounding=ROUND_HALF_UP)
+    key = str(key)[:64]
+    with transaction.atomic():
+        existing = Invoice.objects.filter(correction_key=key).first() if key else None
+        if existing is not None:
+            return existing
+        locked = Invoice.objects.select_for_update().get(pk=original.pk)
+        if locked.kind != Invoice.KIND_INVOICE or not locked.number:
+            raise CreditError("only an issued invoice can be corrected")
+        if locked.status not in (Invoice.STATUS_ISSUED, Invoice.STATUS_PAID):
+            raise CreditError("invoice is not issued")
+        credited = -(
+            locked.corrections.exclude(status=Invoice.STATUS_DRAFT).aggregate(s=Sum("gross"))["s"]
+            or Decimal("0")
+        )
+        remaining = Decimal(locked.gross) - credited
+        if gross <= 0 or gross >= remaining:
+            raise CreditError("credit must be positive and below the remaining amount")
+        rows = _invoice_gross_by_rate(locked)
+        total = sum(g for _r, g in rows)
+        label = (reason or "Preisminderung")[:200]
+        lines, left = [], gross
+        for i, (rate, row_gross) in enumerate(rows):
+            share = (
+                left
+                if i == len(rows) - 1
+                else (gross * row_gross / total).quantize(cent, rounding=ROUND_HALF_UP)
+            )
+            left -= share
+            if share <= 0:
+                continue
+            lines.append(
+                {
+                    "text": label,
+                    "qty": 1,
+                    "unit_price": str(_net_from_gross(share, rate)[0]),
+                    "vat_rate": str(rate),
+                }
+            )
+        # Цент округления групп — в цену крупнейшей строки; потом знак минус.
+        fit_gross(lines, gross, locked.vat_rate)
+        for line in lines:
+            line["qty"] = -1
+        net, vat, total_gross = compute_totals(lines, locked.vat_rate)
+        return Invoice.objects.create(
+            kind=Invoice.KIND_CREDIT,
+            corrects=locked,
+            correction_key=key,
+            status=Invoice.STATUS_ISSUED,
+            number=_next_number(),
+            issued_at=tz.now(),
+            language=locked.language,
+            customer=locked.customer,
+            recipient=locked.recipient,
+            lines=lines,
+            vat_rate=locked.vat_rate,
+            net=net,
+            vat_amount=vat,
+            gross=total_gross,
+            deal_kind=locked.deal_kind,
+            deal_id=locked.deal_id,
+            service_date=locked.service_date,
+            service_date_end=locked.service_date_end,
+            note=f"Korrektur zu {locked.number_display}"[:200],
+        )
+
+
 def issue_invoice(invoice, *, tenant=None, terms_days=None):
     """draft → issued: последовательный номер под блокировкой счётчика.
 
@@ -841,8 +929,9 @@ def issue_invoice_for_deal(kind, obj, tenant, *, send_email=True):
     ref = str(getattr(obj, "reference_code", "") or getattr(obj, "pk", ""))
     # Ревью W1.2 (H2): отменённый счёт (и его сторно) — уже не счёт сделки; после
     # отмены повторное подтверждение выпускает новый документ.
-    live = Invoice.objects.exclude(status=Invoice.STATUS_CANCELLED).exclude(
-        kind=Invoice.KIND_STORNO
+    # KA-12 B2-7b: Stornorechnung и корректура — не счёт сделки.
+    live = Invoice.objects.exclude(status=Invoice.STATUS_CANCELLED).filter(
+        kind=Invoice.KIND_INVOICE
     )
     existing = live.filter(deal_kind=kind, deal_id=ref).first()
     if existing is not None:

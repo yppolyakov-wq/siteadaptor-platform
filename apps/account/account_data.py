@@ -226,7 +226,15 @@ def _invoices(customer):
     items = [
         {
             "title": (
-                (_("Stornorechnung Nr. %(n)s") if inv.is_storno else _("Rechnung Nr. %(n)s"))
+                (
+                    _("Stornorechnung Nr. %(n)s")
+                    if inv.is_storno
+                    else (
+                        _("Rechnungskorrektur Nr. %(n)s")
+                        if inv.is_credit
+                        else _("Rechnung Nr. %(n)s")
+                    )
+                )
                 % {"n": inv.number}
                 if inv.number
                 else _("Entwurf")

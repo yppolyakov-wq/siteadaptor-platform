@@ -28719,3 +28719,21 @@ msgstr "%(amount)s € were refunded for %(code)s, but the price could not be ad
 
 msgid "Zahlung nicht verbucht"
 msgstr "Payment not booked"
+
+msgid "Gutschrift"
+msgstr "Credit note"
+
+msgid "Gutschriften"
+msgstr "Credit notes"
+
+msgid "Korrektur zu"
+msgstr "Correction to"
+
+msgid "Korrektur zu Rechnung %(num)s vom %(date)s"
+msgstr "Correction to invoice %(num)s dated %(date)s"
+
+msgid "Rechnungskorrektur"
+msgstr "Corrected invoice"
+
+msgid "Rechnungskorrektur Nr. %(n)s"
+msgstr "Corrected invoice no. %(n)s"
