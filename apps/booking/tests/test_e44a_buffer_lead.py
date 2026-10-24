@@ -203,4 +203,4 @@ def test_service_horizon_beyond_global_cap(settings):
     SessionMiddleware(lambda r: None).process_request(req)
     req.tenant = TenantFactory.build(schema_name="public")
     body = public_views.service_slots(req, pk=svc.pk).content.decode()
-    assert "data-slot=\"free\"" in body  # день 50 открыт (общий потолок 30)
+    assert 'data-slot="free"' in body  # день 50 открыт (общий потолок 30)
