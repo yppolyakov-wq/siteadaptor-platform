@@ -178,9 +178,12 @@ def test_bot_connect_returns_to_visibility_on_error():
 
 def test_integrations_home_output_unchanged_by_extraction():
     """Карточки «Integrationen» после выноса статусов — те же ключи и тексты."""
-    # KA-12 E8.6: карточки — секция «Verbindungen» на странице каналов.
+    # KA-12 E8.6: карточки — секция «Verbindungen» на странице каналов (полный пакет).
+    t = _tenant()
+    t.site_config = {}
+    t.save(update_fields=["site_config"])
     body = views.notifications_settings(
-        _req(_tenant(), _owner(), path="/dashboard/settings/notifications/")
+        _req(t, _owner(), path="/dashboard/settings/notifications/")
     )
     html = body.content.decode()
     assert "Nicht verbunden" in html and "Keine eigene Domain" in html

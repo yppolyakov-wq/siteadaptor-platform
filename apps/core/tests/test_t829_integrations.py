@@ -78,14 +78,15 @@ def _card(tenant):
 
 
 def test_own_bot_card_module_off_offers_activation_with_explanation():
-    body = _card(_tenant())
+    # KA-12 E8.6: секция «Verbindungen» — у полного пакета; лёгкому — «Sichtbarkeit».
+    body = _card(_tenant(lite=False))
     assert "data-own-bot" in body
     assert ACTIVATE in body
     assert "data-own-bot-confirm" in body  # подтверждение с объяснением (Р-4)
 
 
 def test_own_bot_card_module_on_without_token_links_settings():
-    body = _card(_tenant(telegram_off=False))
+    body = _card(_tenant(lite=False, telegram_off=False))
     assert ACTIVATE not in body
     assert "/dashboard/telegram/" in body
 
@@ -93,7 +94,7 @@ def test_own_bot_card_module_on_without_token_links_settings():
 def test_own_bot_card_hides_activation_for_staff():
     from apps.core.models import Membership
 
-    t = _tenant()
+    t = _tenant(lite=False)
     body = views.notifications_settings(
         _req("get", "/dashboard/settings/notifications/", t, _member(Membership.ROLE_STAFF))
     ).content.decode()
