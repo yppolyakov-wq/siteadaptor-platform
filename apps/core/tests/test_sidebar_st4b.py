@@ -234,6 +234,7 @@ def test_sidebar_children_composition():
         "einstellungen-home",  # SR-5: обзор раздела первым (авто-вставка якоря)
         "settings",
         "languages",
+        "betriebsferien",  # KA-12 E4.1a: закрытие бизнеса — у каждого
         "legal-docs",
         "team",
         "payment-settings",

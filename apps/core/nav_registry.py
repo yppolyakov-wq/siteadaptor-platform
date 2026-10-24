@@ -1059,6 +1059,7 @@ def direction_active(tenant, direction: str) -> bool:
 UNIVERSAL: dict[str, str] = {
     "settings": "данные бизнеса — у каждого",
     "languages": "языки витрины — у каждого",
+    "betriebsferien": "закрытие бизнеса на отпуск/праздники — у каждого",
     "legal-docs": "правовые тексты — у каждого",
     "team": "команда и доступ — у каждого",
     "billing": "подписка — у каждого",
