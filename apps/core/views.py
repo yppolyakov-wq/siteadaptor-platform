@@ -4625,7 +4625,6 @@ def verkaeufe(request):
     прочие — при наличии продаж), в каждой — переключатель видов
     Kalender/Board/Liste. Переключение вкладки = обычная навигация `?tab=`
     (неактивные вкладки не запрашиваются вовсе)."""
-    from django.urls import reverse
 
     from apps.core import sales_page
 
@@ -4652,15 +4651,7 @@ def verkaeufe(request):
         view = sales_page.view_for_filters(active, view, request.GET)
     # W10-3: «＋» из любого вида — цель создания по kind (есть только у
     # календарных движков: walk-in формы живут в их телах/на stay-new).
-    create_target = ""
-    if customers_tab:
-        create_target = reverse("crm:customer-create")
-    elif active == "stay":
-        create_target = reverse("stays:stay-new")
-    elif active == "booking":
-        create_target = reverse("verkaeufe") + "?tab=booking&view=kalender#neu"
-    elif active == "job":
-        create_target = reverse("jobs:new")  # X2c: ручная заявка (звонок/визит)
+    create_target = sales_page.create_target(active, customers=customers_tab)
     from apps.core import zusatz as zusatz_mod
 
     ctx = {

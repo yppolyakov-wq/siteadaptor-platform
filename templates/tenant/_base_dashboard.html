@@ -206,34 +206,46 @@ billing.context.subscription) и закрывается кнопкой; пост
 </script>
 {% endif %}
 
-{# Мобильный таб-бар кабинета — R1 (редизайн B): плавающая пилюля с SVG-иконками. #}
-{% comment %}Подписи разделов живут в title/aria-label (иконки-кружки —
-утверждённый макет B); «Mehr» открывает полный сайдбар слайд-овером.{% endcomment %}
+{# Мобильный таб-бар кабинета — R1 (редизайн B) + KA-12 E8.8: подписи под иконками. #}
+{% comment %}Übersicht · Verkäufe · ＋ · Nachrichten (или Sortiment) · Mehr; «Mehr» открывает
+полный сайдбар слайд-овером, раздел с подменю — список его подпунктов.{% endcomment %}
 {% if nav_primary %}
-<nav data-tabbar class="md:hidden fixed bottom-3 inset-x-4 z-20 bg-white rounded-full shadow-[0_10px_26px_rgba(22,24,29,0.18)] flex items-center justify-around px-2 py-1.5"
+<nav data-tabbar class="md:hidden fixed bottom-3 inset-x-4 z-20 bg-white rounded-3xl shadow-[0_10px_26px_rgba(22,24,29,0.18)] flex items-end justify-around px-1 py-1.5"
      style="margin-bottom: env(safe-area-inset-bottom); transform: translateZ(0);"
      aria-label="{% trans 'Menu' %}">
   {% for it in nav_primary %}
-    {% comment %}R7-1: раздел с подменю открывает список подпунктов (сайдбар-лист
-    с раскрытым разделом) — жест тот же, что на десктопе; раздел без подменю
-    («Übersicht») остаётся прямой ссылкой.{% endcomment %}
-    {% if it.has_children %}
-    <button type="button" data-tabbar-section="{{ it.nav_key }}" title="{{ it.label }}" aria-label="{{ it.label }}"
-            class="w-12 h-12 rounded-full grid place-items-center
-                   {% if sb_anchor == it.nav_key %}bg-indigo-600 text-white{% else %}text-gray-500 active:bg-gray-100{% endif %}">
-      <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-{{ it.nav_key }}"></use></svg>
+    {% if it.kind == "create" %}
+    <a href="{{ it.url }}" data-tabbar-create aria-label="{{ it.label }}" class="flex flex-col items-center gap-0.5 min-w-[3.5rem]">
+      <span class="w-11 h-11 rounded-full grid place-items-center bg-indigo-600 text-white shadow-md">
+        <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-plus"></use></svg>
+      </span>
+      <span class="text-[10px] leading-none text-gray-600">{{ it.label }}</span>
+    </a>
+    {% elif it.has_children %}
+    <button type="button" data-tabbar-section="{{ it.nav_key }}" aria-label="{{ it.label }}"
+            class="flex flex-col items-center gap-0.5 min-w-[3.5rem] {% if sb_anchor == it.nav_key %}text-indigo-600{% else %}text-gray-500{% endif %}">
+      <span class="w-10 h-9 rounded-full grid place-items-center {% if sb_anchor == it.nav_key %}bg-indigo-50{% endif %}">
+        <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-{{ it.nav_key }}"></use></svg>
+      </span>
+      <span class="text-[10px] leading-none">{{ it.label }}</span>
     </button>
     {% else %}
-    <a href="{% url it.url_name %}" title="{{ it.label }}" aria-label="{{ it.label }}"
-       class="w-12 h-12 rounded-full grid place-items-center
-              {% if sb_anchor == it.nav_key %}bg-indigo-600 text-white{% else %}text-gray-500 active:bg-gray-100{% endif %}">
-      <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-{{ it.nav_key }}"></use></svg>
+    <a href="{% url it.url_name %}" aria-label="{{ it.label }}"
+       class="relative flex flex-col items-center gap-0.5 min-w-[3.5rem] {% if sb_anchor == it.nav_key or nav == it.nav_key %}text-indigo-600{% else %}text-gray-500{% endif %}">
+      <span class="w-10 h-9 rounded-full grid place-items-center {% if sb_anchor == it.nav_key or nav == it.nav_key %}bg-indigo-50{% endif %}">
+        <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-{{ it.nav_key }}"></use></svg>
+      </span>
+      {% if it.badge == "inbox" %}<span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="hidden absolute top-0 right-2 min-w-[1rem] h-4 px-1 rounded-full bg-rose-600 text-white text-[10px] leading-4 text-center"></span>{% endif %}
+      <span class="text-[10px] leading-none">{{ it.label }}</span>
     </a>
     {% endif %}
   {% endfor %}
-  <button id="tabbar-menu" type="button" title="{% trans 'Menu' %}" aria-label="{% trans 'Menu' %}"
-          class="w-12 h-12 rounded-full grid place-items-center text-gray-500 active:bg-gray-100">
-    <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-more"></use></svg>
+  <button id="tabbar-menu" type="button" aria-label="{% trans 'Mehr' %}"
+          class="flex flex-col items-center gap-0.5 min-w-[3.5rem] text-gray-500">
+    <span class="w-10 h-9 rounded-full grid place-items-center">
+      <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-more"></use></svg>
+    </span>
+    <span class="text-[10px] leading-none">{% trans "Mehr" %}</span>
   </button>
 </nav>
 {% endif %}

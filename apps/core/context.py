@@ -469,6 +469,8 @@ def modules_nav(request):
         }
         for it in _compact[:4]
     ]
+    if not _lite_cabinet.is_lite_request(request):
+        nav_primary = _cabinet_tabbar(tenant, _compact) or nav_primary
     # DS-3b (Fokus): CTA primary-действия в шапке (nav.cta) — метка/URL из
     # реестра primary_item (как hero-CTA); нерезолвимый лендинг → кнопки нет.
     storefront_nav_cta = None
@@ -656,3 +658,53 @@ def modules_nav(request):
         "cabinet_langs": cabinet_languages(),
         "cabinet_lang": get_language() or settings.LANGUAGE_CODE,
     }
+
+
+def _cabinet_tabbar(tenant, compact) -> list[dict]:
+    """KA-12 E8.8 (KA-4 §7): таб-бар полного кабинета — Übersicht · Verkäufe · ＋ ·
+    Nachrichten (без чата — Sortiment) · Mehr (кнопка шаблона). Пункты берутся из уже
+    собранного сайдбара (те же гейты и роли), «＋» — цель создания главного направления."""
+    from django.utils.translation import gettext as _
+
+    from apps.core import sales_page
+
+    by_key = {it["nav_key"]: it for it in compact}
+
+    def _item(it, **extra):
+        row = {
+            "url_name": it.get("target") or it["url_name"],
+            "nav_key": it["nav_key"],
+            "label": it["label"],
+            "icon": it["icon"],
+            "has_children": bool(it.get("children")),
+        }
+        row.update(extra)
+        return row
+
+    out = [_item(by_key[k]) for k in ("dashboard", "board") if k in by_key]
+    if len(out) < 2:
+        return []
+    try:
+        plus = sales_page.tabbar_create_target(tenant)
+    except Exception:  # noqa: BLE001 — хром кабинета не падает из-за «＋»
+        plus = ""
+    if plus:
+        out.append({"kind": "create", "url": plus, "nav_key": "plus", "label": _("Neu")})
+    inbox = None
+    for it in compact:
+        for c in it.get("children", ()):
+            if c.get("url_name") == "inbox:list" and not c.get("query"):
+                inbox = c
+    if inbox is not None:
+        out.append(
+            {
+                "url_name": "inbox:list",
+                "nav_key": "inbox",
+                "label": inbox["label"],
+                "has_children": False,
+                "badge": "inbox",
+            }
+        )
+    elif "sellables" in by_key:
+        out.append(_item(by_key["sellables"]))
+    return out

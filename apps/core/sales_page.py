@@ -558,3 +558,33 @@ def body_context(request, kind: str, view: str) -> dict:
         ctx["list_status"] = status
         ctx["list_status_options"] = options
     return ctx
+
+
+def create_target(kind: str, customers: bool = False) -> str:
+    """W10-3/KA-12 E8.8: куда ведёт «＋» направления (пусто — у kind нет формы создания:
+    walk-in формы живут в телах календарных движков). Один источник для тулбара
+    Verkäufe и мобильного таб-бара."""
+    from django.urls import reverse
+
+    if customers:
+        return reverse("crm:customer-create")
+    if kind == "stay":
+        return reverse("stays:stay-new")
+    if kind == "booking":
+        return reverse("verkaeufe") + "?tab=booking&view=kalender#neu"
+    if kind == "job":
+        return reverse("jobs:new")  # X2c: ручная заявка (звонок/визит)
+    return ""
+
+
+def tabbar_create_target(tenant) -> str:
+    """KA-12 E8.8: «＋» таб-бара — создать по главному направлению тенанта; где формы
+    нет (заказы/билеты) — быстрая акция, если модуль акций включён; иначе кнопки нет.
+    Без запросов: primary_module читает конфиг тенанта."""
+    kind = _MODULE_KIND.get(archetypes.primary_module(tenant) or "", "")
+    url = create_target(kind)
+    if not url and tenant.is_module_active("promotions"):
+        from django.urls import reverse
+
+        url = reverse("promotions:promotion-quick")
+    return url
