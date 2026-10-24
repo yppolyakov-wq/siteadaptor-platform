@@ -380,8 +380,13 @@ def mail_storno(original, storno) -> None:
                 doc = Invoice.objects.filter(pk=storno_pk).select_related("cancels").first()
                 if doc is None or doc.cancels is None:
                     return
-                email = _deal_email(doc.cancels)
+                email = _sent_to(schema, doc.cancels)
                 if not email:
+                    return
+                from .services import _invoice_mail_allowed
+
+                if not _invoice_mail_allowed(email):
+                    logger.warning("finance: advance storno %s mail throttled", doc.pk)
                     return
                 ctx = {
                     "number": doc.cancels.number_display,
@@ -419,16 +424,14 @@ def mail_storno(original, storno) -> None:
     transaction.on_commit(_run)
 
 
-def _deal_email(invoice) -> str:
-    """Адрес клиента сделки Anzahlungsrechnung (тот же, на который она ушла)."""
-    from apps.core import transactions
+def _sent_to(schema: str, invoice) -> str:
+    """Адрес, на который Anzahlungsrechnung реально ушла (ревью безопасности B2-8d:
+    не текущий адрес клиента — его могли поправить или слить с другим клиентом)."""
+    from apps.notifications.models import Notification
 
-    if invoice.deal_kind not in KINDS or not invoice.deal_id:
-        return ""
-    deal = (
-        transactions.model_for(invoice.deal_kind)
-        .objects.filter(reference_code=invoice.deal_id)
-        .select_related("customer")
+    note = (
+        Notification.objects.filter(dedupe_key=f"{schema}:advance-issued:{invoice.pk}")
+        .only("recipient")
         .first()
     )
-    return getattr(getattr(deal, "customer", None), "email", "") or ""
+    return note.recipient if note is not None else ""
