@@ -28686,3 +28686,18 @@ msgstr "Only an overpayment (more than the price) can be refunded."
 
 msgid "Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."
 msgstr "Stripe did not respond. Please check the refund in Stripe."
+
+msgid "Betrag erstatten"
+msgstr "Refund an amount"
+
+msgid "Grund"
+msgstr "Reason"
+
+msgid "Überzahlung (höchstens %(eur)s €) — der Preis bleibt"
+msgstr "Overpayment (at most %(eur)s €) — the price stays"
+
+msgid "Preisminderung (höchstens %(eur)s €) — der Preis sinkt"
+msgstr "Price reduction (at most %(eur)s €) — the price goes down"
+
+msgid "Dieser Betrag kann nicht erstattet werden: höher als möglich, oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."
+msgstr "This amount cannot be refunded: it is more than possible, or the invoice has already been issued (then use an invoice correction)."

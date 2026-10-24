@@ -100,18 +100,27 @@ def record_revenue(booking, tenant=None) -> None:
 def record_reversal(booking, ref: str, note: str) -> None:
     """Сторно = РОВНО проведённые записи (основная + «:meal»), каждая своей суммой."""
     from apps.finance.models import RevenueEntry
+    from apps.finance.services import minderung_total
     from apps.finance.services import record_reversal as reverse
 
+    # KA-12 B2-4b: уступка уже сторнирована — вычитаем её из записей (иначе двойное сторно).
+    already = minderung_total("stay", booking.id)
     for suffix in ("", ":meal"):
         entry = RevenueEntry.objects.filter(
             source="stay", source_ref=f"{booking.id}{suffix}"
         ).first()
         if entry is None:
             continue
+        amount = entry.amount
+        take = min(already, amount)
+        amount -= take
+        already -= take
+        if amount <= 0:
+            continue
         reverse(
             source="stay",
             source_ref=f"{ref}{suffix}",
-            amount=entry.amount,
+            amount=amount,
             customer=booking.customer,
             note=note,
         )

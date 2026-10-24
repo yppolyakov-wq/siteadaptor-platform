@@ -28830,3 +28830,18 @@ msgstr "Yalnızca fazla ödeme (fiyatın üzerindeki tutar) iade edilebilir."
 
 msgid "Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."
 msgstr "Stripe yanıt vermedi. Lütfen iadeyi Stripe'ta kontrol edin."
+
+msgid "Betrag erstatten"
+msgstr "Tutar iade et"
+
+msgid "Grund"
+msgstr "Neden"
+
+msgid "Überzahlung (höchstens %(eur)s €) — der Preis bleibt"
+msgstr "Fazla ödeme (en fazla %(eur)s €) — fiyat aynı kalır"
+
+msgid "Preisminderung (höchstens %(eur)s €) — der Preis sinkt"
+msgstr "Fiyat indirimi (en fazla %(eur)s €) — fiyat düşer"
+
+msgid "Dieser Betrag kann nicht erstattet werden: höher als möglich, oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."
+msgstr "Bu tutar iade edilemez: izin verilenden fazla veya fatura zaten kesildi (o zaman fatura düzeltmesi gerekir)."

@@ -28935,3 +28935,18 @@ msgstr "Повернути можна лише переплату (понад ц
 
 msgid "Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."
 msgstr "Stripe не відповів. Перевірте повернення в Stripe."
+
+msgid "Betrag erstatten"
+msgstr "Повернути суму"
+
+msgid "Grund"
+msgstr "Причина"
+
+msgid "Überzahlung (höchstens %(eur)s €) — der Preis bleibt"
+msgstr "Переплата (не більше %(eur)s €) — ціна не змінюється"
+
+msgid "Preisminderung (höchstens %(eur)s €) — der Preis sinkt"
+msgstr "Зниження ціни (не більше %(eur)s €) — ціна зменшується"
+
+msgid "Dieser Betrag kann nicht erstattet werden: höher als möglich, oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."
+msgstr "Цю суму не можна повернути: вона більша за допустиму, або рахунок уже виставлено (тоді потрібне коригування рахунку)."

@@ -384,10 +384,13 @@ def refund_partial(
     from apps.core.models import DealPayment
 
     cents = int(cents or 0)
+    minderung = reason == "minderung"
     if (
         kind not in folio.FOLIO_KINDS
         or cents <= 0
         or method not in ("card", "offline")
+        or reason not in ("ueberzahlung", "minderung")
+        or (minderung and kind not in MINDERUNG_KINDS)
         or getattr(obj, "payment_state", "") == "installment"
     ):
         return RefundResult.REFUSED
@@ -402,10 +405,13 @@ def refund_partial(
         rows = list(
             DealPayment.objects.filter(deal_kind=kind, deal_id=obj.pk).order_by("created_at")
         )
-        # Пока нет Minderung (B2-4b: снижение цены со сторно выручки) — вернуть
-        # можно только ПЕРЕПЛАТУ: всё сверх цены. Иначе возврат «мимо» цены
-        # оставил бы выручку проведённой, а сделку — неотменённой.
-        if cents > overpaid_cents(kind, locked, rows):
+        # Переплату возвращаем без правки цены; всё, что сверх переплаты, — только
+        # как Minderung (снижение цены со сторно выручки), иначе выручка осталась
+        # бы проведённой, а сделка — неотменённой.
+        if minderung:
+            if _minderung_blocked(kind, locked, cents):
+                return RefundResult.REFUSED
+        elif cents > overpaid_cents(kind, locked, rows):
             return RefundResult.REFUSED
         if method == "card":
             card = [r for r in rows if r.stripe_payment_intent]
@@ -465,10 +471,14 @@ def refund_partial(
             # Таймаут/обрыв: Stripe мог вернуть деньги. Захват оставляем (иначе
             # следующая попытка с другой суммой — новый ключ — вернула бы ещё раз);
             # владелец сверяет в Stripe.
+            if minderung:  # книга уже «вернула» — цена следует за книгой
+                _apply_minderung(kind, obj, cents, tenant)
             folio.forget(obj)
             logger.warning("partial refund uncertain: %s %s", kind, obj.pk)
             _notify_owner_failed(kind, obj, tenant)
             return RefundResult.UNCERTAIN
+    if minderung:
+        _apply_minderung(kind, obj, cents, tenant)
     _mark_refunded_if_complete(kind, obj)
     folio.forget(obj)
     from apps.core.audit import audit_event
@@ -481,6 +491,40 @@ def refund_partial(
         changes={"cents": cents, "method": method, "reason": reason},
     )
     return RefundResult.REFUNDED
+
+
+#: KA-12 B2-4b: виды со скидкой владельца (DC-5) — у билета цену не снизить.
+MINDERUNG_KINDS = ("order", "booking", "stay")
+
+
+def _minderung_blocked(kind: str, obj, cents: int) -> bool:
+    """Minderung невозможна: сделка отменена, счёт уже выставлен (это Rechnungskorrektur),
+    уступка больше итога или сертификат не даёт править скидку."""
+    from apps.core import deal_discount, money_contract, status_registry
+    from apps.finance.models import Invoice
+
+    if obj.status in status_registry.cancelled_statuses_for(kind, None):
+        return True
+    invoice = money_contract.invoice_for(kind, obj)
+    if invoice is not None and invoice.status != Invoice.STATUS_DRAFT:
+        return True
+    total = int((money_contract._total(kind, obj) * 100).to_integral_value())
+    if cents > total:
+        return True
+    new = int(getattr(obj, "discount_cents", 0) or 0) + cents
+    return deal_discount.certificate_locked(obj, new)
+
+
+def _apply_minderung(kind: str, obj, cents: int, tenant) -> None:
+    """Снизить цену на сумму уступки и сторнировать проведённую выручку."""
+    from apps.core import deal_discount, transactions
+    from apps.finance.services import record_minderung
+
+    fresh = transactions.model_for(kind).objects.get(pk=obj.pk)
+    new = int(getattr(fresh, "discount_cents", 0) or 0) + cents
+    deal_discount.set_discount(kind, fresh, cents=new, tenant=tenant, allow_closed=True)
+    record_minderung(source=kind, deal=fresh, amount=Decimal(cents) / 100, key=str(new))
+    obj.refresh_from_db()
 
 
 def _is_card_row(row) -> bool:

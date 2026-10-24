@@ -28778,3 +28778,18 @@ msgstr "Erstatten lässt sich nur eine Überzahlung (mehr als der Preis)."
 
 msgid "Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."
 msgstr "Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."
+
+msgid "Betrag erstatten"
+msgstr "Betrag erstatten"
+
+msgid "Grund"
+msgstr "Grund"
+
+msgid "Überzahlung (höchstens %(eur)s €) — der Preis bleibt"
+msgstr "Überzahlung (höchstens %(eur)s €) — der Preis bleibt"
+
+msgid "Preisminderung (höchstens %(eur)s €) — der Preis sinkt"
+msgstr "Preisminderung (höchstens %(eur)s €) — der Preis sinkt"
+
+msgid "Dieser Betrag kann nicht erstattet werden: höher als möglich, oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."
+msgstr "Dieser Betrag kann nicht erstattet werden: höher als möglich, oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."

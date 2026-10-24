@@ -6,7 +6,9 @@ constraint в БД). Ручные записи (source=manual) идут без s
 """
 
 import logging
+from decimal import Decimal
 
+from django.db import models
 from django.utils import timezone
 
 from .models import RevenueEntry
@@ -69,6 +71,39 @@ def record_reversal(
         source=source, source_ref=source_ref, defaults=defaults
     )
     return entry if created else None
+
+
+def minderung_total(source: str, deal_id) -> Decimal:
+    """KA-12 B2-4b: сколько выручки сделки уже сторнировано Minderung (положительное
+    число). Сторно при отмене вычитает его — иначе сумма ушла бы в минус дважды."""
+    from django.db.models import Sum
+
+    total = RevenueEntry.objects.filter(
+        source=source, source_ref__startswith=f"{deal_id}:minderung:"
+    ).aggregate(s=Sum("amount"))["s"]
+    return -Decimal(total or 0)
+
+
+def record_minderung(*, source: str, deal, amount: Decimal, key: str) -> None:
+    """Сторно проведённой выручки на сумму уступки — со ставкой проведённой записи.
+    Не проведено — нечего сторнировать (выручку потом посчитают от сниженной цены)."""
+    entry = (
+        RevenueEntry.objects.filter(source=source, amount__gt=0)
+        .filter(models.Q(source_ref=str(deal.id)) | models.Q(source_ref__startswith=f"{deal.id}:"))
+        .exclude(source_ref__startswith=f"{deal.id}:minderung:")
+        .order_by("-amount")
+        .first()
+    )
+    if entry is None:
+        return
+    record_reversal(
+        source=source,
+        source_ref=f"{deal.id}:minderung:{key}",
+        amount=min(amount, entry.amount),
+        vat_rate=entry.vat_rate,
+        customer=getattr(deal, "customer", None),
+        note=f"Minderung {getattr(deal, 'reference_code', '')}",
+    )
 
 
 def _invoice_gross_by_rate(invoice) -> list:

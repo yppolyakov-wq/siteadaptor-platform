@@ -102,7 +102,12 @@ def record_reversal_for(kind: str, instance) -> None:
         from apps.booking.revenue import recorded_amount
 
         amount = recorded_amount(instance)
-        if amount is not None:  # не проведено (визит по карте без Extras) — нечего сторнировать
+        if amount is not None:
+            # KA-12 B2-4b: уступка уже сторнирована — вычитаем её (иначе двойное сторно).
+            from apps.finance.services import minderung_total
+
+            amount -= minderung_total("booking", instance.id)
+        if amount is not None and amount > 0:  # не проведено — нечего сторнировать
             record_reversal(
                 source="booking",
                 source_ref=ref,

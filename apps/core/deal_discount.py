@@ -67,7 +67,16 @@ def certificate_locked(obj, cents: int | None = None) -> bool:
     return int(cents) != int(getattr(obj, "discount_cents", 0) or 0)
 
 
-def set_discount(kind: str, obj, *, cents: int, note: str = "", scope: str = "", tenant=None):
+def set_discount(
+    kind: str,
+    obj,
+    *,
+    cents: int,
+    note: str = "",
+    scope: str = "",
+    tenant=None,
+    allow_closed: bool = False,
+):
     """Поставить скидку и пересчитать итог сделки. Возвращает новый итог (центы).
 
     DC-9: `scope` — на что скидка ложится (вся сделка / позиция / доставка).
@@ -84,7 +93,9 @@ def set_discount(kind: str, obj, *, cents: int, note: str = "", scope: str = "",
     if kind == "order":
         from apps.orders import editing as order_editing
 
-        order_editing.set_discount(obj, cents=cents, note=note[:limit], tenant=tenant)
+        order_editing.set_discount(
+            obj, cents=cents, note=note[:limit], tenant=tenant, allow_closed=allow_closed
+        )
         if scope and scope != obj.discount_scope:
             obj.discount_scope = scope
             obj.save(update_fields=["discount_scope", "updated_at"])

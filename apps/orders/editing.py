@@ -260,10 +260,14 @@ def add_item(
 
 
 @transaction.atomic
-def set_discount(order, *, cents: int, note: str = "", tenant=None):
+def set_discount(order, *, cents: int, note: str = "", tenant=None, allow_closed=False):
     """Скидка владельца на заказ (в центах). Промокод не трогаем: `voucher_code`
-    остаётся снимком того, что применил клиент."""
-    _require_editable(order, tenant)
+    остаётся снимком того, что применил клиент.
+
+    KA-12 B2-4b: `allow_closed` — Minderung у выданного заказа меняет только цену
+    (склад и позиции не трогаются), поэтому проверка «можно править» не нужна."""
+    if not allow_closed:
+        _require_editable(order, tenant)
     from apps.core.deal_discount import certificate_locked
 
     if certificate_locked(order, max(int(cents), 0)):

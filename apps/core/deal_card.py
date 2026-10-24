@@ -171,7 +171,14 @@ def _refund_form(request, kind, obj, tenant):
             return None
         rows = folio.rows(kind, obj)
         over = refunds.overpaid_cents(kind, obj, rows) if rows else 0
-        if over <= 0:
+        net = sum(r.amount_cents - r.refunded_cents for r in rows)
+        # B2-4b: Minderung — уступка в цене (до суммы полученного), если её можно дать.
+        minder = 0
+        if kind in refunds.MINDERUNG_KINDS and net > 0:
+            minder = min(net, int(getattr(obj, "total_cents", 0) or 0) or net)
+            if refunds._minderung_blocked(kind, obj, 1):
+                minder = 0
+        if over <= 0 and minder <= 0:
             return None
         card_rows = [
             {
@@ -190,6 +197,7 @@ def _refund_form(request, kind, obj, tenant):
             return None
         return {
             "open_eur": Decimal(over) / 100,
+            "minder_eur": Decimal(minder) / 100,
             "card_rows": card_rows,
             "card_ok": card_ok,
             "cash_ok": cash_open > 0,

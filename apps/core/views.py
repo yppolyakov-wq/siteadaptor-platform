@@ -6284,6 +6284,7 @@ def deal_refund(request, kind, pk):
             row_pk=request.POST.get("row") or None,
             tenant=getattr(request, "tenant", None),
             user=request.user,
+            reason=request.POST.get("reason") or "ueberzahlung",
         )
         if result == refunds.RefundResult.REFUNDED:
             messages.success(
@@ -6293,7 +6294,10 @@ def deal_refund(request, kind, pk):
         elif result == refunds.RefundResult.REFUSED:
             messages.error(
                 request,
-                _("Erstatten lässt sich nur eine Überzahlung (mehr als der Preis)."),
+                _(
+                    "Dieser Betrag kann nicht erstattet werden: höher als möglich, "
+                    "oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."
+                ),
             )
         elif result == refunds.RefundResult.UNCERTAIN:
             messages.warning(

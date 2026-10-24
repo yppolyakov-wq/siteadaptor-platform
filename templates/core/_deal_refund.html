@@ -2,11 +2,21 @@
   {% comment %}KA-12 B2-4: частичный возврат — только владельцу. Карта: часть платежа
   Stripe; иначе — запись возврата наличными/переводом.{% endcomment %}
   <details class="mt-4 pt-4 border-t border-gray-100" data-deal-refund>
-    <summary class="text-sm font-medium cursor-pointer">↩ {% trans "Überzahlung erstatten" %}</summary>
+    <summary class="text-sm font-medium cursor-pointer">↩ {% trans "Betrag erstatten" %}</summary>
     <form method="post" action="{% url 'deal-refund' deal_kind deal_obj.pk %}" class="mt-3 space-y-3">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ request.get_full_path }}">
-      <p class="text-xs text-gray-500">{% blocktrans with eur=deal_refund.open_eur|floatformat:2 %}Höchstens {{ eur }} €{% endblocktrans %}</p>
+      <fieldset class="text-sm space-y-1">
+        <legend class="font-medium">{% trans "Grund" %}</legend>
+        {% if deal_refund.open_eur %}
+          <label class="flex items-center gap-2"><input type="radio" name="reason" value="ueberzahlung" checked>
+            {% blocktrans with eur=deal_refund.open_eur|floatformat:2 %}Überzahlung (höchstens {{ eur }} €) — der Preis bleibt{% endblocktrans %}</label>
+        {% endif %}
+        {% if deal_refund.minder_eur %}
+          <label class="flex items-center gap-2"><input type="radio" name="reason" value="minderung" {% if not deal_refund.open_eur %}checked{% endif %}>
+            {% blocktrans with eur=deal_refund.minder_eur|floatformat:2 %}Preisminderung (höchstens {{ eur }} €) — der Preis sinkt{% endblocktrans %}</label>
+        {% endif %}
+      </fieldset>
       <label class="block text-sm">{% trans "Betrag (€)" %}
         <input type="text" name="amount" inputmode="decimal" required placeholder="0,00"
                class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
