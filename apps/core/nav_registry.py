@@ -1268,6 +1268,13 @@ def anchor_target(anchor, tenant, owner_hidden=frozenset()) -> str:
         e = _entry_in_hubs(anchor, url_name)
         if e is not None and entry_visible(e, tenant, owner_hidden):
             return url_name
+    if anchor.targets:
+        # Ни одной цели нет (модули выключены/роль) — первый видимый подпункт без query;
+        # сам якорь у разделов с целями — редирект-заглушка (иначе петля 302).
+        for e, _group in visible_children(anchor, tenant, owner_hidden):
+            if not e.query and e.url_name != anchor.url_name:
+                return e.url_name
+        return "dashboard"
     return anchor.url_name
 
 

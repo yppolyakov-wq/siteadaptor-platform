@@ -204,3 +204,17 @@ def test_marketing_submenu_grouped_with_inbox_first():
     headers = [str(c["header"]) for c in mk["children"] if c.get("header")]
     assert headers == ["Kunden", "Aktionen", "Reichweite"][: len(headers)]
     assert "telegram-settings" not in [c["url_name"] for c in mk["children"]]
+
+
+def test_anchor_target_never_points_to_redirect_stub():
+    """Ревью батча 3: без inbox/promotions/reviews/crm раздел Marketing остаётся виден
+    (блог/рассылка), а цель не может быть самой заглушкой marketing-home — петля 302."""
+    anchor = next(a for a in nav_registry.ANCHORS if a.nav_key == "promotions")
+    t = _tenant(enable=("blog", "newsletter"))
+    t.disabled_modules = list(t.disabled_modules) + ["inbox", "promotions", "reviews", "crm"]
+    t.save(update_fields=["disabled_modules"])
+    target = nav_registry.anchor_target(anchor, t)
+    assert target != "marketing-home"
+    for it in modules.sidebar_nav(t):
+        assert it["target"] != "marketing-home"
+        assert all(c["url_name"] != "marketing-home" for c in it["children"])

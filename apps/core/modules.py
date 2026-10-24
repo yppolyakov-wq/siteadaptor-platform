@@ -596,6 +596,22 @@ NAV_TASK_LABELS: dict[str, str] = {
 }
 
 
+def owner_hidden_for(user) -> frozenset:
+    """owner-only записи, скрытые от сотрудника (пусто — владельцу/анониму)."""
+    if user is None:
+        return frozenset()
+    try:
+        from apps.core import nav_registry, roles
+        from apps.core.models import Membership
+
+        role = roles.role_of(user)
+        if role and role != Membership.ROLE_OWNER:
+            return nav_registry.owner_only_url_names()
+    except Exception:  # noqa: BLE001 — рендер хрома не падает из-за ролей
+        pass
+    return frozenset()
+
+
 # ST-4b: компактный сайдбар «хабы + Website» — плоский список якорей.
 # Sortiment/Kunden/Finanzen/Auswertungen достижимы через хаб-табы и
 # «Funktion hinzufügen». W-CL (2026-08-05): классик-сайдбар снесён.
@@ -613,17 +629,7 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
     if lite_cabinet.is_lite(tenant):
         return lite_cabinet.sidebar_items(tenant, user)
 
-    owner_hidden = frozenset()
-    if user is not None:
-        try:
-            from apps.core import roles
-            from apps.core.models import Membership
-
-            role = roles.role_of(user)
-            if role and role != Membership.ROLE_OWNER:
-                owner_hidden = nav_registry.owner_only_url_names()
-        except Exception:  # noqa: BLE001 — рендер хрома не падает из-за ролей
-            owner_hidden = frozenset()
+    owner_hidden = owner_hidden_for(user)
 
     def _is_solo_direction_tab(e):
         """VF-11 (фидбэк 2026-08-25 «внутри одно и то же»): подпункт-вкладка

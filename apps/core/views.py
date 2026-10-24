@@ -6081,11 +6081,12 @@ def marketing_home(request):
     """KA-12 E8.6 (решение владельца KA-4): лендинг Marketing-центра убран — раздел
     ведёт на свой первый активный экран (Nachrichten → Aktionen → Bewertungen → Kunden).
     Сводка авто-касаний и результатов (apps/core/marketing_home.py) осталась на главной."""
-    from apps.core import nav_registry, sales_page
+    from apps.core import modules, nav_registry, sales_page
 
     anchor = next(a for a in nav_registry.ANCHORS if a.nav_key == "promotions")
+    hidden = modules.owner_hidden_for(request.user)
     return sales_page.legacy_redirect(
-        request, _url_name=nav_registry.anchor_target(anchor, request.tenant)
+        request, _url_name=nav_registry.anchor_target(anchor, request.tenant, hidden)
     )
 
 
