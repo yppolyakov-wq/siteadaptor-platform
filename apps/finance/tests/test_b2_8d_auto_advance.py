@@ -159,3 +159,16 @@ def test_repeat_cancel_gives_one_storno_mail(django_capture_on_commit_callbacks)
         StayBookingSM().apply(booking, "cancelled")
         advance.cancel_unpaid_for_deal("stay", booking)
     assert _storno_mails().count() == 1
+
+
+def test_paid_advance_storno_does_not_tell_customer_not_to_pay(django_capture_on_commit_callbacks):
+    from apps.finance.state_machine import InvoiceSM
+
+    booking = _stay()
+    _confirm(django_capture_on_commit_callbacks, booking)
+    adv = _advances(booking).get()
+    InvoiceSM().apply(adv, "paid", source="bank")
+    adv.refresh_from_db()
+    with django_capture_on_commit_callbacks(execute=True):
+        InvoiceSM().apply(adv, "cancelled")
+    assert not _storno_mails().exists()

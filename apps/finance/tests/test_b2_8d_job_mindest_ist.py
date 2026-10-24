@@ -151,3 +151,12 @@ def test_full_manual_payment_dates_payable_not_more():
     assert row.amount_cents == int(job.payable_gross * 100) and row.purpose == "full"
     folio.record_job_payment(job, amount_cents=500, purpose="balance")
     assert DealPayment.objects.filter(deal_kind="job", deal_id=job.pk).count() == 1
+
+
+def test_manual_job_row_is_never_a_card_row():
+    job = _job(deposit=0)
+    type(job).objects.filter(pk=job.pk).update(payment_method="stripe")
+    job.refresh_from_db()
+    money_contract.settle_payment("job", job, source="manual")
+    row = DealPayment.objects.get(deal_kind="job", deal_id=job.pk)
+    assert row.method == "manual"

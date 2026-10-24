@@ -318,9 +318,12 @@ def _record_rest(kind, obj, *, source: str) -> None:
 
 
 def _payment_method_code(obj, source: str) -> str:
-    return {"bank": "bank", "invoice": "invoice"}.get(source) or (
+    code = {"bank": "bank", "invoice": "invoice"}.get(source) or (
         getattr(obj, "payment_method", "") or "on_site"
     )
+    # Ревью B2-8d: ручная отметка — не карта; иначе возврат картой (`mark_refunded`
+    # без intent) пометил бы эту строку возвращённой.
+    return "manual" if code == "stripe" else code
 
 
 def _record_job(job, *, deposit_only: bool, source: str) -> None:

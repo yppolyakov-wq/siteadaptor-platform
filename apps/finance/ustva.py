@@ -242,11 +242,11 @@ def _job_journal(job_pks) -> dict:
         inv_to_job[str(inv_pk)] = code_to_job[deal_id]
     if not inv_to_job:
         return out
-    from django.db.models.functions import Substr
-
-    qs = RevenueEntry.objects.annotate(inv_head=Substr("source_ref", 5, 36)).filter(
-        source=RevenueEntry.SOURCE_JOB, source_ref__startswith="inv:", inv_head__in=list(inv_to_job)
-    )
+    # Префиксы «inv:<счёт>:» — индексируемый LIKE вместо выражения по всей таблице.
+    prefixes = Q(pk__in=[])
+    for inv_pk in inv_to_job:
+        prefixes |= Q(source_ref__startswith=f"inv:{inv_pk}:")
+    qs = RevenueEntry.objects.filter(prefixes, source=RevenueEntry.SOURCE_JOB)
     for entry in qs.only("source", "source_ref", "date", "amount"):
         job_pk = inv_to_job.get(entry.source_ref[4:].split(":", 1)[0])
         if job_pk is not None:
