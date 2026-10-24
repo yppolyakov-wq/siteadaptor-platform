@@ -709,7 +709,7 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
             hints = settings_hints.hints_for(tenant)
             for c in children:
                 c["hint"] = hints.get(c["url_name"], "")
-        target = nav_registry.anchor_target(a, tenant)
+        target = nav_registry.anchor_target(a, tenant, owner_hidden)
         if children and not any(c["url_name"] == target and not c.get("query") for c in children):
             children.insert(
                 0,

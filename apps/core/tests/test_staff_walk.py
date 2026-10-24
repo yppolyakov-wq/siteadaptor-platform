@@ -40,7 +40,6 @@ EXPECTED_OWNER_ONLY_UNLISTED = {
     "/dashboard/telegram/disconnect/": "POST-приёмник отключения своего бота",
     "/crm/export.csv": "кнопка выгрузки на экране CRM, не пункт меню",
     "/dashboard/stays/berichte/export.csv": "кнопка выгрузки на экране отчётов",
-    "/dashboard/finance/bank/": "вход из «Offene Posten», не пункт меню",
     "/imports/website/": "вход из экрана импорта",
     "/dashboard/geschaeft/": "лёгкий кабинет: пункт своего меню (lite_cabinet)",
     "/dashboard/channels/google/": "вход с экрана каналов",

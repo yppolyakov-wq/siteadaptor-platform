@@ -660,6 +660,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "finance",
         True,
         "bank kontoauszug abgleich umsatz vorkasse",
+        owner_only=True,  # банковские выписки (IBAN, плательщики) — только владелец
         group="buchhaltung",
     ),
     # W11-1: хаб «Kunden» удалён (Р-2) — страницы crm/inbox/telegram рендерят
@@ -1211,11 +1212,11 @@ def _entry_in_hubs(anchor, url_name):
     return None
 
 
-def anchor_target(anchor, tenant) -> str:
-    """Куда ведёт раздел: первый видимый экран из `targets` (иначе url_name)."""
+def anchor_target(anchor, tenant, owner_hidden=frozenset()) -> str:
+    """Куда ведёт раздел: первый видимый ЭТОМУ пользователю экран из `targets`."""
     for url_name in anchor.targets:
         e = _entry_in_hubs(anchor, url_name)
-        if e is not None and entry_visible(e, tenant):
+        if e is not None and entry_visible(e, tenant, owner_hidden):
             return url_name
     return anchor.url_name
 

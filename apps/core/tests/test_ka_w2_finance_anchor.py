@@ -130,3 +130,21 @@ def test_finance_anchor_not_in_palette_when_hidden():
         Context({"request": SimpleNamespace(tenant=tenant, user=None)})
     )
     assert "/dashboard/finance/" not in html
+
+
+def test_staff_never_gets_owner_only_finance_link():
+    """Ревью 3a: банк — owner-only; цель раздела учитывает роль (без 403-ссылок)."""
+    from django.urls import reverse
+
+    from apps.core import roles
+    from apps.core.models import Membership
+    from apps.core.tests.test_staff_walk import _user
+
+    tenant = _tenant("bakery", enable=("finance", "analytics"))
+    staff = _user(Membership.ROLE_STAFF)
+    items = {it["nav_key"]: it for it in modules.sidebar_nav(tenant, staff)}
+    fin = items["finance"]
+    urls = [fin["url_name"]] + [c["url_name"] for c in fin["children"]]
+    assert "finance:bank" not in urls
+    for name in urls:
+        assert roles.required_role_for_path(reverse(name)) != roles.ROLE_OWNER_ONLY, name
