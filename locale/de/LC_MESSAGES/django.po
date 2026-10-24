@@ -29198,3 +29198,10 @@ msgstr "Buchbar ab"
 
 msgid "Std. vorher"
 msgstr "Std. vorher"
+
+msgid "Bitte den Buchungszeitraum in Tagen angeben."
+msgstr "Bitte den Buchungszeitraum in Tagen angeben."
+
+#, python-format
+msgid "Termine mit Überschneidung nach dem neuen Puffer: %(n)s"
+msgstr "Termine mit Überschneidung nach dem neuen Puffer: %(n)s"

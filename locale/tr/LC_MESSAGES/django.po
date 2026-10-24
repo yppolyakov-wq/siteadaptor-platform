@@ -29250,3 +29250,10 @@ msgstr "Rezervasyon en erken"
 
 msgid "Std. vorher"
 msgstr "saat önce"
+
+msgid "Bitte den Buchungszeitraum in Tagen angeben."
+msgstr "Lütfen rezervasyon süresini gün olarak girin."
+
+#, python-format
+msgid "Termine mit Überschneidung nach dem neuen Puffer: %(n)s"
+msgstr "Yeni aradan sonra çakışan randevular: %(n)s"

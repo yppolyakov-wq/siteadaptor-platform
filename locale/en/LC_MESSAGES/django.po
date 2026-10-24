@@ -29106,3 +29106,10 @@ msgstr "Bookable from"
 
 msgid "Std. vorher"
 msgstr "hrs before"
+
+msgid "Bitte den Buchungszeitraum in Tagen angeben."
+msgstr "Please enter the booking horizon in days."
+
+#, python-format
+msgid "Termine mit Überschneidung nach dem neuen Puffer: %(n)s"
+msgstr "Bookings overlapping after the new buffer: %(n)s"

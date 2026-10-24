@@ -13,9 +13,12 @@ from django.db.models import Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from .models import Booking, ClosedDate
+from .models import MAX_BUFFER_MINUTES, Booking, ClosedDate
 
-MAX_BUFFER_MINUTES = 480  # = services.MAX_BUFFER_MINUTES (потолок формы услуги)
+# Общий горизонт записи на витрине (услуга может задать свой `max_days_ahead`).
+DEFAULT_HORIZON_DAYS = 30
+# Скан «ближайшего свободного» не дальше этого (каждый день = запросы по пулу).
+NEXT_FREE_SCAN_DAYS = 60
 
 #: KA-12 E4.1b: шаг сетки, когда окно взято из часов работы бизнеса (у ресурса нет правил).
 HOURS_FALLBACK_STEP = 30
@@ -157,9 +160,8 @@ def booking_window(service):
     lead = int(getattr(service, "min_lead_minutes", 0) or 0)
     if lead:
         earliest = timezone.now() + timedelta(minutes=lead)
-    horizon = getattr(service, "max_days_ahead", None)
-    if horizon is not None:
-        last_day = timezone.localdate() + timedelta(days=int(horizon))
+    horizon = getattr(service, "max_days_ahead", None) or DEFAULT_HORIZON_DAYS
+    last_day = timezone.localdate() + timedelta(days=int(horizon))
     return earliest, last_day
 
 
@@ -227,7 +229,7 @@ def next_free_slot(service, from_day=None, max_days=60, resource=None):
     отказа (день без слотов → «ближайший свободный: …»)."""
     start = from_day or timezone.localdate()
     base = _skill_pool(service)
-    for i in range(max_days + 1):
+    for i in range(min(max_days, NEXT_FREE_SCAN_DAYS) + 1):
         slots = service_slots(service, start + timedelta(days=i), resource=resource, base_pool=base)
         if slots:
             return slots[0]

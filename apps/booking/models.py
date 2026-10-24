@@ -9,6 +9,7 @@
 
 from decimal import Decimal
 
+from django.core.validators import MaxValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -17,6 +18,11 @@ from apps.core import payment_methods
 from apps.core.i18n_seq import overlay_seq
 from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
+
+# KA-12 E4.4a: потолок буфера после визита — единственный источник. На нём держится
+# нижняя граница выборок пересечений (занятость кончается не позже end + потолок),
+# поэтому он закреплён и в форме, и валидатором, и ограничением БД.
+MAX_BUFFER_MINUTES = 480
 
 
 class Resource(I18nMixin, TimestampedModel):
@@ -102,7 +108,9 @@ class Service(I18nMixin, TimestampedModel):
     duration_minutes = models.PositiveSmallIntegerField(default=30)
     # KA-12 E4.4a: буфер после визита (уборка/подготовка) держит ресурс дольше
     # записи; минимальный срок и горизонт записи — только для витрины.
-    buffer_after_minutes = models.PositiveSmallIntegerField(default=0)
+    buffer_after_minutes = models.PositiveSmallIntegerField(
+        default=0, validators=[MaxValueValidator(MAX_BUFFER_MINUTES)]
+    )
     min_lead_minutes = models.PositiveIntegerField(default=0)
     max_days_ahead = models.PositiveSmallIntegerField(null=True, blank=True)
     price_cents = models.PositiveIntegerField(default=0)
@@ -156,6 +164,12 @@ class Service(I18nMixin, TimestampedModel):
 
     class Meta:
         ordering = ["name"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(buffer_after_minutes__lte=MAX_BUFFER_MINUTES),
+                name="booking_service_buffer_cap",
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -497,6 +511,8 @@ class Booking(TimestampedModel):
             # Поиск пересечений по ресурсу/интервалу и календарь-вид.
             models.Index(fields=["resource", "start"], name="booking_resource_start_idx"),
             models.Index(fields=["status", "start"], name="booking_status_start_idx"),
+            # KA-12 E4.4a: нижняя граница пересечений `end > start − потолок буфера`.
+            models.Index(fields=["resource", "end"], name="booking_resource_end_idx"),
         ]
 
     def __str__(self):

@@ -29375,3 +29375,10 @@ msgstr "Запись не раньше чем за"
 
 msgid "Std. vorher"
 msgstr "ч"
+
+msgid "Bitte den Buchungszeitraum in Tagen angeben."
+msgstr "Укажите горизонт записи в днях."
+
+#, python-format
+msgid "Termine mit Überschneidung nach dem neuen Puffer: %(n)s"
+msgstr "Записей с пересечением после нового буфера: %(n)s"

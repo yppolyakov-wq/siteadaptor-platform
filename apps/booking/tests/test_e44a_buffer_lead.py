@@ -204,3 +204,102 @@ def test_service_horizon_beyond_global_cap(settings):
     req.tenant = TenantFactory.build(schema_name="public")
     body = public_views.service_slots(req, pk=svc.pk).content.decode()
     assert 'data-slot="free"' in body  # день 50 открыт (общий потолок 30)
+
+
+def test_default_horizon_applies_without_service_horizon():
+    """Ревью: общий горизонт 30 дней действует и в проверке брони (не только в GET)."""
+    r = _resource()
+    far = _future_day(40)
+    _rule(r, far, "09:00", "12:00")
+    svc = _service(duration_minutes=60)
+    assert availability.service_slots(svc, far) == []
+
+
+def test_book_reads_fresh_buffer_not_stale_object():
+    """Ревью (гонка с resync): объект услуги во вьюхе мог устареть — book берёт
+    буфер из свежей строки под блокировкой ресурса."""
+    from apps.booking.models import Service
+
+    day = _future_day()
+    r = _resource()
+    svc = _service(duration_minutes=60)
+    Service.objects.filter(pk=svc.pk).update(buffer_after_minutes=30)
+    b = _book(r, _aware(day, 9), _aware(day, 10), service=svc)  # svc.buffer == 0 в памяти
+    b.refresh_from_db()
+    assert b.occupied_until == _aware(day, 10, 30)
+
+
+def test_resync_reports_new_overlaps():
+    day = _future_day()
+    r = _resource()
+    svc = _service(duration_minutes=60)
+    _book(r, _aware(day, 9), _aware(day, 10), service=svc)
+    _book(r, _aware(day, 10), _aware(day, 11), service=svc)
+    svc.buffer_after_minutes = 30
+    svc.save(update_fields=["buffer_after_minutes"])
+    assert services.resync_occupancy(svc) == 2  # обе записи пары
+
+
+def test_buffer_cap_enforced_by_database():
+    from django.db import IntegrityError, transaction
+
+    from apps.booking.models import MAX_BUFFER_MINUTES, Service
+
+    svc = _service()
+    with pytest.raises(IntegrityError), transaction.atomic():
+        Service.objects.filter(pk=svc.pk).update(buffer_after_minutes=MAX_BUFFER_MINUTES + 1)
+
+
+def test_direct_resource_booking_respects_horizon(settings):
+    from django.test import RequestFactory
+
+    from apps.booking import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    far = _future_day(40)
+    r = _resource()
+    _rule(r, far, "09:00", "12:00", slot=60)
+    req = RequestFactory().post(
+        f"/termin/{r.pk}/buchen/",
+        {
+            "start": _aware(far, 9).isoformat(),
+            "end": _aware(far, 10).isoformat(),
+            "name": "X",
+            "email": "x@t.de",
+        },
+        REMOTE_ADDR="10.44.0.7",
+    )
+    req.tenant = TenantFactory.build(schema_name="public")
+    from django.contrib.messages.storage.fallback import FallbackStorage
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    SessionMiddleware(lambda r: None).process_request(req)
+    req._messages = FallbackStorage(req)
+    public_views.termin_book(req, pk=r.pk)
+    assert not Booking.objects.filter(resource=r).exists()
+
+
+def test_junk_horizon_keeps_previous_value(settings):
+    from apps.booking import views
+    from apps.booking.tests.test_cabinet import _req
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    svc = _service(max_days_ahead=14, min_lead_minutes=90)
+    views.services_view(
+        _req(
+            "post",
+            data={
+                "action": "update",
+                "service": str(svc.pk),
+                "duration": "60",
+                "price_eur": "10",
+                "booking_rules_present": "1",
+                "buffer_after_minutes": "0",
+                "min_lead_hours": "2",  # форма показала round(90/60) = 2
+                "max_days_ahead": "abc",
+            },
+        )
+    )
+    svc.refresh_from_db()
+    assert svc.max_days_ahead == 14 and svc.min_lead_minutes == 90

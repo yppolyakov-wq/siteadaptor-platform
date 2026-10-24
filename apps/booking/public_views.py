@@ -28,7 +28,7 @@ from .state_machine import BookingSM
 
 RL_LIMIT = 5  # попыток записи на IP
 RL_WINDOW = 600  # за 10 минут
-MAX_DAYS_AHEAD = 30  # горизонт записи
+MAX_DAYS_AHEAD = availability.DEFAULT_HORIZON_DAYS  # горизонт записи
 MAX_UNITS = 8  # HF-7: максимум подряд идущих единиц услуги в одной брони
 
 
@@ -1159,7 +1159,9 @@ def termin_book(request, pk):
     except ValueError:
         raise Http404 from None
     # Слот должен существовать в сетке расписания — иначе произвольный интервал.
-    if (start, end) not in availability.free_slots(resource, start.date()):
+    # KA-12 E4.4a: прямой POST не обходит горизонт записи витрины.
+    too_far = start.date() > timezone.localdate() + timedelta(days=MAX_DAYS_AHEAD)
+    if too_far or (start, end) not in availability.free_slots(resource, start.date()):
         messages.error(request, _("This slot is no longer available. Please pick another."))
         return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
 

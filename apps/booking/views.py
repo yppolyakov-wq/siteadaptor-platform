@@ -936,18 +936,25 @@ def services_view(request, pk=None):
                 service.hide_in_city = bool(request.POST.get("hide_in_city"))
                 fields.append("hide_in_city")
             # KA-12 E4.4a: буфер/минимальный срок/горизонт — по сентинелу (W0).
+            buffer_changed = False
             if request.POST.get("booking_rules_present"):
                 old_buffer = service.buffer_after_minutes
                 service.buffer_after_minutes = _clamp_int(
                     request.POST.get("buffer_after_minutes"), 0, MAX_BUFFER_MINUTES
                 )
-                if service.buffer_after_minutes != old_buffer:
-                    transaction.on_commit(lambda svc=service: resync_occupancy(svc))
-                service.min_lead_minutes = 60 * _clamp_int(
-                    request.POST.get("min_lead_hours"), 0, 720
-                )
+                buffer_changed = service.buffer_after_minutes != old_buffer
+                # Часы → минуты; те же часы, что показала форма, не округляют
+                # значение, заданное в минутах другим путём.
+                lead_hours = _clamp_int(request.POST.get("min_lead_hours"), 0, 720)
+                if lead_hours != round(service.min_lead_minutes / 60):
+                    service.min_lead_minutes = 60 * lead_hours
                 horizon = (request.POST.get("max_days_ahead") or "").strip()
-                service.max_days_ahead = _clamp_int(horizon, 1, 365) if horizon else None
+                if not horizon:
+                    service.max_days_ahead = None
+                elif horizon.isdigit() and int(horizon) > 0:
+                    service.max_days_ahead = min(int(horizon), 365)
+                else:  # мусор не превращаем молча в «1 день» — оставляем как было
+                    messages.error(request, _("Bitte den Buchungszeitraum in Tagen angeben."))
                 fields += ["buffer_after_minutes", "min_lead_minutes", "max_days_ahead"]
             # MX-5: режим цены — по сентинелу (W0: чужая форма без селекта не трогает).
             if request.POST.get("pricing_mode_present"):
@@ -968,6 +975,14 @@ def services_view(request, pk=None):
                 service.image = new_image or {}
                 fields.append("image")
             service.save(update_fields=fields)
+            if request.POST.get("booking_rules_present") and buffer_changed:
+                overlaps = resync_occupancy(service)
+                if overlaps:
+                    messages.warning(
+                        request,
+                        _("Termine mit Überschneidung nach dem neuen Puffer: %(n)s")
+                        % {"n": overlaps},
+                    )
             messages.success(request, _("Service saved."))
         elif action == "toggle":
             service = get_object_or_404(Service, pk=request.POST.get("service"))

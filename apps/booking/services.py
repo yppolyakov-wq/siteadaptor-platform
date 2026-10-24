@@ -18,7 +18,7 @@ from django.utils import timezone
 
 from apps.promotions.models import Customer
 
-from .models import Booking, ClosedDate, Pass, Resource
+from .models import MAX_BUFFER_MINUTES, Booking, ClosedDate, Pass, Resource
 
 _ALPHABET = string.ascii_uppercase + string.digits
 
@@ -95,27 +95,62 @@ def _get_or_create_customer(*, name, email, phone, match_by_phone=False) -> Cust
     return Customer.objects.create(name=name, email=email, phone=phone)
 
 
-# Потолок буфера (форма услуги): нижняя граница по `end` для индексного отбора —
-# занятость чужой записи кончается не позже end + MAX_BUFFER_MINUTES.
-MAX_BUFFER_MINUTES = 480
+def _fresh_buffer(service) -> int:
+    """Буфер из СВЕЖЕЙ строки услуги (читать под блокировкой ресурса): объект во
+    вьюхе мог быть загружен до смены буфера владельцем — иначе гонка с
+    `resync_occupancy` оставила бы новую запись со старой занятостью."""
+    pk = getattr(service, "pk", None)
+    if not pk:
+        return 0
+    from .models import Service
+
+    value = Service.objects.filter(pk=pk).values_list("buffer_after_minutes", flat=True).first()
+    return min(int(value or 0), MAX_BUFFER_MINUTES)
 
 
-def occupied_end(service, end):
+def occupied_end(service, end, *, fresh=False):
     """KA-12 E4.4a: конец занятости ресурса с буфером услуги (None — буфера нет)."""
-    buffer = int(getattr(service, "buffer_after_minutes", 0) or 0)
+    if fresh:
+        buffer = _fresh_buffer(service)
+    else:
+        buffer = min(int(getattr(service, "buffer_after_minutes", 0) or 0), MAX_BUFFER_MINUTES)
     return end + timedelta(minutes=buffer) if buffer else None
 
 
-def resync_occupancy(service):
+@transaction.atomic
+def resync_occupancy(service) -> int:
     """KA-12 E4.4a: буфер услуги поменяли — будущие активные записи держат ресурс
-    по новому буферу (иначе старые брони остаются со старой занятостью)."""
+    по новому буферу (иначе старые брони остаются со старой занятостью).
+
+    Под блокировкой затронутых ресурсов (порядок по pk, как у `book`): новая
+    запись либо уже видна апдейту, либо создаётся после и читает свежий буфер.
+    Возвращает число записей, которые после смены буфера легли внахлёст."""
     from django.db.models import F
 
-    buffer = int(getattr(service, "buffer_after_minutes", 0) or 0)
-    future = Booking.objects.filter(service=service, end__gte=timezone.now())
+    from apps.core import status_registry
+
+    buffer = _fresh_buffer(service)
+    future = Booking.objects.filter(
+        service=service,
+        end__gte=timezone.now(),
+        status__in=status_registry.active_statuses_for("booking"),
+    )
+    resource_ids = sorted(set(future.values_list("resource_id", flat=True)))
+    list(Resource.objects.select_for_update().filter(pk__in=resource_ids).order_by("pk"))
+    now = timezone.now()
     if buffer:
-        return future.update(occupied_until=F("end") + timedelta(minutes=buffer))
-    return future.update(occupied_until=None)
+        future.update(occupied_until=F("end") + timedelta(minutes=buffer), updated_at=now)
+    else:
+        future.update(occupied_until=None, updated_at=now)
+    return sum(
+        1
+        for b in future.select_related("resource")
+        if _would_overfill(
+            b.resource,
+            overlapping(b.resource, b.start, b.occupied_until or b.end).exclude(pk=b.pk),
+            b.party_size,
+        )
+    )
 
 
 def overlapping(resource, start, end):
@@ -204,7 +239,7 @@ def book(
     if closed.exists():
         raise ResourceClosed()
 
-    busy_until = occupied_end(service, end)
+    busy_until = occupied_end(service, end, fresh=True)
     if _would_overfill(resource, overlapping(resource, start, busy_until or end), party_size):
         raise SlotTaken()
 
@@ -417,7 +452,7 @@ def move(booking, *, start, end, override_hours=False):
         raise ResourceClosed()
     if not override_hours and not availability.within_hours(resource, start, end):
         raise OutsideHours()
-    busy_until = occupied_end(booking.service, end)
+    busy_until = occupied_end(booking.service, end, fresh=True)
     overlaps = overlapping(resource, start, busy_until or end).exclude(pk=booking.pk)
     if _would_overfill(resource, overlaps, booking.party_size):
         raise SlotTaken()
