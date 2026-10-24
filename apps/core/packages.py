@@ -56,6 +56,7 @@ _AKTIONEN_VIEWS = frozenset(
         "lite-share",
         "lite-visibility",
         "lite-requests",
+        "betriebsferien",  # KA-12 О-8: каникулы — и в лёгком пакете
         "legal-docs",
         "owner-confirm-resend",
         "set-cabinet-lang",

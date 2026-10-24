@@ -230,3 +230,11 @@ def test_offer_composer_is_outside_aktionen():
     assert not packages.view_allowed(tenant, "inbox:offer-compose")
     assert not packages.view_allowed(tenant, "gbp-merchant")
     assert not packages.view_allowed(tenant, "")
+
+
+def test_betriebsferien_open_to_lite_package_and_telegram():
+    """KA-12 О-8: каникулы закрывает и владелец лёгкого пакета (в т. ч. из Mini App)."""
+    from apps.core import packages, tg_login
+
+    assert packages.view_allowed(_tenant(LITE), "betriebsferien")
+    assert "betriebsferien" in tg_login.TG_LITE_VIEWS
