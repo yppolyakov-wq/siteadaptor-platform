@@ -654,6 +654,10 @@ class Ticket(TimestampedModel):
     # Скидка вычитается из суммы к оплате (payable_cents); снимок переживает ваучер.
     voucher_code = models.CharField(max_length=12, blank=True)
     discount_cents = models.PositiveIntegerField(default=0)
+    # KA-12 B2-1: сколько из скидки оплачено сертификатом с остатком (Wertgutschein —
+    # средство платежа, не Rabatt). Пишется при списании; 0 у легаси-сделок (там
+    # действует признак «код = сертификат», `finance.certificate_cents`).
+    voucher_paid_cents = models.PositiveIntegerField(default=0)
     # R4: снимок онлайн-депозита (центы) при частичной оплате (Event.deposit_percent);
     # 0 = оплата полностью. Остаток (payable − deposit) — на месте/по счёту.
     deposit_cents = models.PositiveIntegerField(default=0)

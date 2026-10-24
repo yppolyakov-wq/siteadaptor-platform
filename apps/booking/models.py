@@ -475,6 +475,10 @@ class Booking(TimestampedModel):
     # гасится атомарно в services.book (зеркало events/stays).
     voucher_code = models.CharField(max_length=40, blank=True)
     discount_cents = models.PositiveIntegerField(default=0)
+    # KA-12 B2-1: сколько из скидки оплачено сертификатом с остатком (Wertgutschein —
+    # средство платежа, не Rabatt). Пишется при списании; 0 у легаси-сделок (там
+    # действует признак «код = сертификат», `finance.certificate_cents`).
+    voucher_paid_cents = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["start"]

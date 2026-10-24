@@ -112,6 +112,10 @@ class Order(TimestampedModel):
     # отменяет просроченные (restore стока — штатный путь cancelled).
     reserve_expires_at = models.DateTimeField(null=True, blank=True)
     discount_cents = models.PositiveIntegerField(default=0)
+    # KA-12 B2-1: сколько из скидки оплачено сертификатом с остатком (Wertgutschein —
+    # средство платежа, не Rabatt). Пишется при списании; 0 у легаси-сделок (там
+    # действует признак «код = сертификат», `finance.certificate_cents`).
+    voucher_paid_cents = models.PositiveIntegerField(default=0)
     tracking_code = models.CharField(max_length=100, blank=True)  # номер DHL/Hermes
     # SH-8 (решение владельца 2026-08-20 «второй номер = ВНЕШНИЙ»): номер этого
     # заказа в чужой системе — касса, маркетплейс, бумажный журнал. Свободное

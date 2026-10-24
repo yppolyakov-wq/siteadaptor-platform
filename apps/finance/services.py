@@ -581,8 +581,13 @@ def certificate_cents(deal) -> int:
     код не совпадёт — и она честно остаётся Rabatt. Точное поле
     `voucher_paid_cents` для этих видов — батч 2 (миграция)."""
     disc = int(getattr(deal, "discount_cents", 0) or 0)
+    if disc <= 0:
+        return 0
+    paid = int(getattr(deal, "voucher_paid_cents", 0) or 0)
+    if paid:  # KA-12 B2-1: точное поле (новые сделки); легаси — признак по коду ниже
+        return min(paid, disc)
     code = (getattr(deal, "voucher_code", "") or "").strip()
-    if disc <= 0 or not code:
+    if not code:
         return 0
     try:
         from apps.loyalty.models import Voucher

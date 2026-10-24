@@ -55,15 +55,17 @@ def _apply_voucher(code, base_cents):
     Код задан, но не применим → PromoInvalid. Зеркало stays._apply_voucher."""
     code = (code or "").strip().upper()
     if not code:
-        return 0, ""
+        return 0, "", 0
     from apps.promotions.services import VoucherError, spend_voucher
 
     # B1.5: расчёт+списание атомарно (единая точка; balance-сертификат — частично).
     try:
-        discount, _voucher = spend_voucher(code, base_cents)
+        discount, voucher = spend_voucher(code, base_cents)
     except VoucherError as exc:
         raise PromoInvalid() from exc
-    return discount, code
+    # KA-12 B2-1: сертификат с остатком — оплата (третий элемент), промокод — Rabatt.
+    paid = discount if getattr(voucher, "balance_cents", None) is not None else 0
+    return discount, code, paid
 
 
 def _unique_ticket_code() -> str:
@@ -180,10 +182,11 @@ def book_ticket(
     # R4: применить подарочный/промо-код к итогу билета (после проживания/Extras).
     fields = []
     if voucher_code:
-        discount, code_snap = _apply_voucher(voucher_code, ticket.total_cents)
+        discount, code_snap, voucher_paid = _apply_voucher(voucher_code, ticket.total_cents)
         ticket.discount_cents = discount
         ticket.voucher_code = code_snap
-        fields += ["discount_cents", "voucher_code"]
+        ticket.voucher_paid_cents = voucher_paid
+        fields += ["discount_cents", "voucher_code", "voucher_paid_cents"]
     # R4: депозит (онлайн-предоплата %) — снимок от суммы к оплате (после скидки).
     pct = event.deposit_percent
     if 0 < pct < 100 and ticket.payable_cents > 0:

@@ -95,15 +95,17 @@ def _apply_voucher(code, base_cents):
     Гасит ваучер атомарно (used_count += 1) — откатится, если транзакция упадёт."""
     code = (code or "").strip().upper()
     if not code:
-        return 0, ""
+        return 0, "", 0
     from apps.promotions.services import VoucherError, spend_voucher
 
     # B1.5: расчёт+списание атомарно (единая точка; balance-сертификат — частично).
     try:
-        discount, _voucher = spend_voucher(code, base_cents)
+        discount, voucher = spend_voucher(code, base_cents)
     except VoucherError as exc:
         raise PromoInvalid() from exc
-    return discount, code
+    # KA-12 B2-1: сертификат с остатком — оплата (третий элемент), промокод — Rabatt.
+    paid = discount if getattr(voucher, "balance_cents", None) is not None else 0
+    return discount, code, paid
 
 
 class RoomConflict(Exception):
@@ -279,7 +281,7 @@ def book_stay(
         booked_promo = promo_hit[0]
     # H4a: промокод применяется к проживанию (после авто-скидки) + услугам, не к Kurtaxe.
     lodging_cents = room_cents - auto_discount_cents + extras_engine.total_cents(extras_snap)
-    discount_cents, voucher_code_snap = _apply_voucher(voucher_code, lodging_cents)
+    discount_cents, voucher_code_snap, voucher_paid = _apply_voucher(voucher_code, lodging_cents)
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     booking = StayBooking.objects.create(
         unit=unit,
@@ -300,6 +302,7 @@ def book_stay(
         kurtaxe_cents=kurtaxe,
         discount_cents=discount_cents,
         voucher_code=voucher_code_snap,
+        voucher_paid_cents=voucher_paid,
         auto_discount_cents=auto_discount_cents,
         auto_discount_label=auto_discount_label,
         extras=extras_snap,

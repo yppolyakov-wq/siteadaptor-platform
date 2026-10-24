@@ -51,15 +51,17 @@ def _apply_voucher(code, base_cents):
     гасит атомарно (used_count += 1) — откатится вместе с транзакцией book."""
     code = (code or "").strip().upper()
     if not code:
-        return 0, ""
+        return 0, "", 0
     from apps.promotions.services import VoucherError, spend_voucher
 
     # B1.5: расчёт+списание атомарно (единая точка; balance-сертификат — частично).
     try:
-        discount, _voucher = spend_voucher(code, base_cents)
+        discount, voucher = spend_voucher(code, base_cents)
     except VoucherError as exc:
         raise PromoInvalid() from exc
-    return discount, code
+    # KA-12 B2-1: сертификат с остатком — оплата (третий элемент), промокод — Rabatt.
+    paid = discount if getattr(voucher, "balance_cents", None) is not None else 0
+    return discount, code, paid
 
 
 def _get_or_create_customer(*, name, email, phone, match_by_phone=False) -> Customer:
@@ -168,7 +170,7 @@ def book(
 
     # B1.2: скидка на полную стоимость (услуга + Extras); снимок кода/суммы.
     base_cents = int(price_cents or 0) + sum(int(e.get("price_cents", 0)) for e in (extras or []))
-    discount_cents, voucher_snap = _apply_voucher(voucher_code, base_cents)
+    discount_cents, voucher_snap, voucher_paid = _apply_voucher(voucher_code, base_cents)
 
     # P5: акция — списание лимита кампании внутри той же atomic (OutOfStock →
     # откат брони целиком, фантомного списания нет).
@@ -193,6 +195,7 @@ def book(
         extras=list(extras or []),
         voucher_code=voucher_snap,
         discount_cents=discount_cents,
+        voucher_paid_cents=voucher_paid,
         customer=customer,
         reference_code=_unique_booking_code(),
         group_code=group_code or "",

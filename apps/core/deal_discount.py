@@ -50,13 +50,21 @@ class CertificateLocked(ValueError):
 
 
 def certificate_locked(obj, cents: int | None = None) -> bool:
-    """True — сделка оплачена сертификатом с остатком и новая сумма скидки другая."""
+    """True — новая скидка сдвинула бы уже полученную оплату сертификатом.
+
+    KA-12 B2-1: у сделки с точным `voucher_paid_cents` скидку владельца можно
+    добавить или снять — нельзя только опустить ниже суммы сертификата (это деньги
+    клиента). У легаси-сделки (сумма читается из discount_cents) правки нет."""
     from apps.finance.services import certificate_cents
 
     paid = certificate_cents(obj)
     if not paid:
         return False
-    return cents is None or int(cents) != int(getattr(obj, "discount_cents", 0) or 0)
+    if cents is None:
+        return True
+    if int(getattr(obj, "voucher_paid_cents", 0) or 0):
+        return int(cents) < paid
+    return int(cents) != int(getattr(obj, "discount_cents", 0) or 0)
 
 
 def set_discount(kind: str, obj, *, cents: int, note: str = "", scope: str = "", tenant=None):

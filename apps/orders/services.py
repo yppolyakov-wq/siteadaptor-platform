@@ -488,14 +488,25 @@ def create_order(
 
         # B1.5: расчёт+списание атомарно (единая точка; balance — частично).
         try:
-            disc_cents, _voucher = spend_voucher(voucher_code, int(total * 100))
+            disc_cents, voucher = spend_voucher(voucher_code, int(total * 100))
             discount = Decimal(disc_cents) / 100
             order.voucher_code = voucher_code[:12]
             order.discount_cents = disc_cents
+            # KA-12 B2-1: сертификат с остатком — оплата, промокод — Rabatt.
+            if getattr(voucher, "balance_cents", None) is not None:
+                order.voucher_paid_cents = disc_cents
         except VoucherError:
             discount = Decimal("0")
     order.total = total - discount + Decimal(shipping) / 100  # G4: доставка в итог
-    order.save(update_fields=["total", "voucher_code", "discount_cents", "updated_at"])
+    order.save(
+        update_fields=[
+            "total",
+            "voucher_code",
+            "discount_cents",
+            "voucher_paid_cents",
+            "updated_at",
+        ]
+    )
     # письма клиенту/владельцу — Notification в этой же транзакции,
     # доставка после коммита (D2b)
     from .notifications import enqueue_order_email

@@ -425,6 +425,10 @@ class StayBooking(TimestampedModel):
     # Скидка уже вычтена из total_cents; снимок переживает изменение/удаление ваучера.
     voucher_code = models.CharField(max_length=12, blank=True)
     discount_cents = models.PositiveIntegerField(default=0)
+    # KA-12 B2-1: сколько из скидки оплачено сертификатом с остатком (Wertgutschein —
+    # средство платежа, не Rabatt). Пишется при списании; 0 у легаси-сделок (там
+    # действует признак «код = сертификат», `finance.certificate_cents`).
+    voucher_paid_cents = models.PositiveIntegerField(default=0)
     # G4: авто-скидка (LOS / Frühbucher / Last-Minute) на проживание — снимок суммы
     # (центы) и подписи. Уже вычтена из total_cents; считается в services по датам/
     # сроку до заезда и настройкам StaySettings. Отдельно от промокода (стыкуется).
