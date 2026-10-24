@@ -43,6 +43,16 @@
     <p class="text-xl font-semibold">{{ zahllast|floatformat:2 }} €</p>
   </div>
 </div>
+<div class="mt-2 max-w-3xl text-sm text-gray-500" data-ustva>
+  <p>{% trans "Besteuerung" %}: <a href="{% url 'legal-docs' %}" class="underline">{{ tax_regime_label }}</a></p>
+  {% if tax_rows %}
+  <ul class="mt-1">
+    {% for r in tax_rows %}<li>{{ r.rate|floatformat:0 }} %: {{ r.gross|floatformat:2 }} € {% trans "brutto" %} → {{ r.vat|floatformat:2 }} € {% trans "USt" %}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  {% for n in tax_notes %}<p class="mt-1 text-xs">{{ n }}</p>{% endfor %}
+  <p class="mt-1 text-xs">{% trans "Richtwert für die Voranmeldung — keine Steuererklärung." %}</p>
+</div>
 {% if cogs %}
 <div class="mt-4 grid sm:grid-cols-2 gap-4 max-w-2xl">
   <div class="rounded-xl border border-gray-200 p-5">

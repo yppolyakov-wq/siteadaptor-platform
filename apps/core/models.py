@@ -385,6 +385,10 @@ class DealPayment(TimestampedModel):
     method = models.CharField(max_length=16, blank=True)
     amount_cents = models.PositiveIntegerField()
     refunded_cents = models.PositiveIntegerField(default=0)
+    # KA-12 B2-8a: когда вернули (для UStVA при Istversteuerung). Одна дата на строку —
+    # при нескольких частичных возвратах это дата ПОСЛЕДНЕГО; NULL у легаси-возвратов
+    # (срез берёт `updated_at`).
+    refunded_at = models.DateTimeField(null=True, blank=True)
     stripe_payment_intent = models.CharField(max_length=200, blank=True)
     # Откуда строка: webhook | manual | bank | invoice | delivery | legacy.
     source = models.CharField(max_length=12, blank=True)

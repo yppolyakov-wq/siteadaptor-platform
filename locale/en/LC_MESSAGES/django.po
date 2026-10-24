@@ -28764,3 +28764,39 @@ msgstr "at most"
 
 msgid "z. B. Preisminderung"
 msgstr "e.g. price reduction"
+
+msgid "Anzahlungen vor der Leistung sind im Monat des Zahlungseingangs enthalten und im Monat der Leistung wieder abgezogen (Mindest-Istversteuerung)."
+msgstr "Advance payments received before the service are included in the month of receipt and deducted again in the month of the service (minimum actual taxation)."
+
+msgid "Aufträge, Gutscheine, Mehrfachkarten, manuelle Buchungen und ältere Verkäufe ohne Zahlungsbuch sind nach Buchungsdatum enthalten."
+msgstr "Jobs, gift vouchers, multi-visit cards, manual entries and older sales without a payment book are included by booking date."
+
+msgid "Besteuerung"
+msgstr "Taxation"
+
+msgid "Einige Zahlungen ohne erkennbare Leistung — mit dem Regelsteuersatz angesetzt."
+msgstr "Some payments without an identifiable service — calculated at the standard rate."
+
+msgid "Istversteuerung"
+msgstr "Cash-basis taxation"
+
+msgid "Istversteuerung — USt bei Zahlungseingang"
+msgstr "Cash basis — VAT when payment is received"
+
+msgid "Kleinunternehmer (§ 19 UStG): keine Umsatzsteuer, kein Vorsteuerabzug."
+msgstr "Small business (§ 19 UStG): no VAT, no input tax deduction."
+
+msgid "Richtwert für die Voranmeldung — keine Steuererklärung."
+msgstr "Guide value for the advance return — not a tax return."
+
+msgid "Sollversteuerung"
+msgstr "Accrual-basis taxation"
+
+msgid "Sollversteuerung — USt bei Leistung (Standard)"
+msgstr "Accrual basis — VAT when the service is performed (default)"
+
+msgid "USt"
+msgstr "VAT"
+
+msgid "brutto"
+msgstr "gross"

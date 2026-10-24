@@ -29029,3 +29029,39 @@ msgstr "не больше"
 
 msgid "z. B. Preisminderung"
 msgstr "напр. уступка в цене"
+
+msgid "Anzahlungen vor der Leistung sind im Monat des Zahlungseingangs enthalten und im Monat der Leistung wieder abgezogen (Mindest-Istversteuerung)."
+msgstr "Предоплаты до оказания услуги учтены в месяце поступления и вычтены в месяце оказания (Mindest-Istversteuerung)."
+
+msgid "Aufträge, Gutscheine, Mehrfachkarten, manuelle Buchungen und ältere Verkäufe ohne Zahlungsbuch sind nach Buchungsdatum enthalten."
+msgstr "Заявки, подарочные сертификаты, абонементы, ручные записи и старые продажи без книги платежей учтены по дате проводки."
+
+msgid "Besteuerung"
+msgstr "Налогообложение"
+
+msgid "Einige Zahlungen ohne erkennbare Leistung — mit dem Regelsteuersatz angesetzt."
+msgstr "Некоторые платежи без распознанной услуги — посчитаны по обычной ставке."
+
+msgid "Istversteuerung"
+msgstr "Налог по поступлению (Ist)"
+
+msgid "Istversteuerung — USt bei Zahlungseingang"
+msgstr "Ist — НДС при поступлении денег"
+
+msgid "Kleinunternehmer (§ 19 UStG): keine Umsatzsteuer, kein Vorsteuerabzug."
+msgstr "Малый предприниматель (§ 19 UStG): без НДС и без вычета входного НДС."
+
+msgid "Richtwert für die Voranmeldung — keine Steuererklärung."
+msgstr "Ориентир для предварительной декларации — это не налоговая декларация."
+
+msgid "Sollversteuerung"
+msgstr "Налог по исполнению (Soll)"
+
+msgid "Sollversteuerung — USt bei Leistung (Standard)"
+msgstr "Soll — НДС при оказании услуги (по умолчанию)"
+
+msgid "USt"
+msgstr "НДС"
+
+msgid "brutto"
+msgstr "брутто"

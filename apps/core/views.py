@@ -1518,6 +1518,7 @@ def legal_docs_view(request):
     """
     from apps.core.legal import legal_text
     from apps.core.models import LegalDoc
+    from apps.finance import ustva
 
     tenant = request.tenant
     locales = tenant.active_locales
@@ -1528,7 +1529,10 @@ def legal_docs_view(request):
         if request.POST.get("sec_steuer"):
             tenant.vat_id = request.POST.get("vat_id", "").strip()[:32]
             tenant.tax_number = request.POST.get("tax_number", "").strip()[:32]
-            tenant.small_business = bool(request.POST.get("small_business"))
+            # KA-12 B2-8a: Soll/Ist/§ 19 одной группой; без поля (старая форма) —
+            # прежний чекбокс Kleinunternehmer, режим не трогаем.
+            if not ustva.apply_regime(tenant, request.POST.get("tax_regime", "")):
+                tenant.small_business = bool(request.POST.get("small_business"))
             tenant.register_entry = request.POST.get("register_entry", "").strip()[:200]
             tenant.legal_responsible = request.POST.get("legal_responsible", "").strip()[:200]
             # KA-12 E7.1: структурные поля Impressum (те же, что в лёгком «Geschäft»).
@@ -1547,6 +1551,7 @@ def legal_docs_view(request):
                     "vat_id",
                     "tax_number",
                     "small_business",
+                    "tax_regime",
                     "register_entry",
                     "legal_responsible",
                     "legal_form",
@@ -1596,6 +1601,8 @@ def legal_docs_view(request):
             "kinds": kinds,
             "nav": "legal-docs",
             "steuer": tenant,
+            "tax_regimes": ustva.REGIME_CHOICES,
+            "tax_regime": ustva.regime_of(tenant),
             "legal_forms": tenant.LEGAL_FORMS,
             "impressum_missing": _lite_impressum_missing(tenant),
         },

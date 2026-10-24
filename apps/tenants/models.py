@@ -211,6 +211,16 @@ class Tenant(TenantMixin):
     # Kleinunternehmer §19 UStG — счета без НДС, с обязательным Hinweis.
     tax_number = models.CharField(max_length=30, blank=True)
     small_business = models.BooleanField(default=False)
+    # KA-12 B2-8a (T-1): когда возникает НДС — при исполнении (Soll, § 13 Abs. 1 Nr. 1a
+    # UStG, дефолт) или при поступлении денег (Ist, § 20 UStG). Kleinunternehmer — это
+    # `small_business`, он сильнее режима (`apps.finance.ustva.regime_of`).
+    TAX_REGIME_SOLL = "soll"
+    TAX_REGIME_IST = "ist"
+    TAX_REGIMES = [
+        (TAX_REGIME_SOLL, _("Sollversteuerung")),
+        (TAX_REGIME_IST, _("Istversteuerung")),
+    ]
+    tax_regime = models.CharField(max_length=4, choices=TAX_REGIMES, default=TAX_REGIME_SOLL)
     register_entry = models.CharField(max_length=120, blank=True)  # Handelsregister (легаси)
     legal_responsible = models.CharField(max_length=200, blank=True)  # Verantwortlich i.S.d.
     # KA-12 E7.1: структурные данные Impressum (§ 5 DDG) — правовая форма, представитель,

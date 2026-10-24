@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 from django.db import IntegrityError, transaction
+from django.utils import timezone
 
 _CACHE = "_folio_rows"
 
@@ -130,7 +131,10 @@ def mark_refunded(kind: str, obj, *, intent: str) -> None:
     if not target.exists():
         # Легаси-строка opening без intent, но оплаченная картой.
         target = deal_rows.filter(Q(method="stripe") & Q(stripe_payment_intent=""))
-    target.update(refunded_cents=F("amount_cents"))
+    # B2-8a: дата возврата — только строкам, где он действительно случился сейчас.
+    target.exclude(refunded_cents=F("amount_cents")).update(
+        refunded_cents=F("amount_cents"), refunded_at=timezone.now()
+    )
     forget(obj)
 
 

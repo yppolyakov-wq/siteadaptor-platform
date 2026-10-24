@@ -28856,3 +28856,39 @@ msgstr "höchstens"
 
 msgid "z. B. Preisminderung"
 msgstr "z. B. Preisminderung"
+
+msgid "Anzahlungen vor der Leistung sind im Monat des Zahlungseingangs enthalten und im Monat der Leistung wieder abgezogen (Mindest-Istversteuerung)."
+msgstr "Anzahlungen vor der Leistung sind im Monat des Zahlungseingangs enthalten und im Monat der Leistung wieder abgezogen (Mindest-Istversteuerung)."
+
+msgid "Aufträge, Gutscheine, Mehrfachkarten, manuelle Buchungen und ältere Verkäufe ohne Zahlungsbuch sind nach Buchungsdatum enthalten."
+msgstr "Aufträge, Gutscheine, Mehrfachkarten, manuelle Buchungen und ältere Verkäufe ohne Zahlungsbuch sind nach Buchungsdatum enthalten."
+
+msgid "Besteuerung"
+msgstr "Besteuerung"
+
+msgid "Einige Zahlungen ohne erkennbare Leistung — mit dem Regelsteuersatz angesetzt."
+msgstr "Einige Zahlungen ohne erkennbare Leistung — mit dem Regelsteuersatz angesetzt."
+
+msgid "Istversteuerung"
+msgstr "Istversteuerung"
+
+msgid "Istversteuerung — USt bei Zahlungseingang"
+msgstr "Istversteuerung — USt bei Zahlungseingang"
+
+msgid "Kleinunternehmer (§ 19 UStG): keine Umsatzsteuer, kein Vorsteuerabzug."
+msgstr "Kleinunternehmer (§ 19 UStG): keine Umsatzsteuer, kein Vorsteuerabzug."
+
+msgid "Richtwert für die Voranmeldung — keine Steuererklärung."
+msgstr "Richtwert für die Voranmeldung — keine Steuererklärung."
+
+msgid "Sollversteuerung"
+msgstr "Sollversteuerung"
+
+msgid "Sollversteuerung — USt bei Leistung (Standard)"
+msgstr "Sollversteuerung — USt bei Leistung (Standard)"
+
+msgid "USt"
+msgstr "USt"
+
+msgid "brutto"
+msgstr "brutto"

@@ -29,6 +29,7 @@ from enum import StrEnum
 
 from django.db import transaction
 from django.db.models import F
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -440,7 +441,7 @@ def refund_partial(
             new = row.refunded_cents + take
             updated = DealPayment.objects.filter(
                 pk=row.pk, refunded_cents=row.refunded_cents
-            ).update(refunded_cents=new)
+            ).update(refunded_cents=new, refunded_at=timezone.now())
             if not updated:
                 transaction.set_rollback(True)
                 return RefundResult.ALREADY

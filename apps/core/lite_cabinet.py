@@ -146,9 +146,18 @@ class LiteBusinessForm(forms.ModelForm):
                 "register_number",
                 "vat_id",
                 "tax_number",
-                "small_business",
+                "tax_choice",
             ),
         ),
+    )
+
+    # KA-12 B2-8a (T-1): Soll/Ist/§ 19 одной группой; пишет `small_business` и
+    # `tax_regime` (поле не модельное — у Kleinunternehmer режим не меняется).
+    tax_choice = forms.ChoiceField(
+        label=_("Besteuerung"),
+        choices=(),
+        widget=forms.RadioSelect,
+        required=False,  # не прислано (старая форма/API) — режим не трогаем
     )
 
     class Meta:
@@ -169,7 +178,6 @@ class LiteBusinessForm(forms.ModelForm):
             "register_number",
             "vat_id",
             "tax_number",
-            "small_business",
         ]
         labels = {
             "name": _("Name Ihres Geschäfts"),
@@ -185,7 +193,6 @@ class LiteBusinessForm(forms.ModelForm):
             "register_number": _("Registernummer"),
             "vat_id": _("USt-IdNr."),
             "tax_number": _("Steuernummer"),
-            "small_business": _("Kleinunternehmer (§ 19 UStG) — Rechnungen ohne MwSt."),
         }
         help_texts = {
             "contact_email": _("Erscheint im Impressum — nicht Ihre Login-Adresse."),
@@ -201,6 +208,10 @@ class LiteBusinessForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from apps.core import districts
+        from apps.finance import ustva
+
+        self.fields["tax_choice"].choices = ustva.REGIME_CHOICES
+        self.fields["tax_choice"].initial = ustva.regime_of(self.instance)
 
         # Обязателен, если показать в Impressum нечего: иначе префилл почтой входа.
         self.fields["contact_email"].required = True
@@ -229,6 +240,15 @@ class LiteBusinessForm(forms.ModelForm):
             {"key": key, "title": title, "fields": [self[n] for n in names if n in self.fields]}
             for key, title, names in self.SECTIONS
         ]
+
+    def save(self, commit=True):
+        from apps.finance import ustva
+
+        obj = super().save(commit=False)
+        ustva.apply_regime(obj, self.cleaned_data.get("tax_choice", ""))
+        if commit:
+            obj.save()
+        return obj
 
     def clean_district(self):
         from apps.core import districts
@@ -266,7 +286,13 @@ def lite_business(request):
         obj.opening_hours_structured = _parse_opening_hours(request)
         # W0/W7a: пишем только поля этого экрана, чужие колонки не трогаем.
         obj.save(
-            update_fields=[*LiteBusinessForm.Meta.fields, "opening_hours_structured", "updated_at"]
+            update_fields=[
+                *LiteBusinessForm.Meta.fields,
+                "small_business",
+                "tax_regime",
+                "opening_hours_structured",
+                "updated_at",
+            ]
         )
         from apps.aggregator.tasks import refresh_tenant_fields
 

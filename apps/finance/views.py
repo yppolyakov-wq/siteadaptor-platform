@@ -238,16 +238,10 @@ def ergebnis(request):
     revenue = sum((e.amount for e in entries), Decimal("0"))
     spent = expense_qs.aggregate(s=Sum("amount"))["s"] or Decimal("0")
     cogs, cogs_partial = _order_cogs(entries)
-    # ERP-4: UStVA-срез — налог из БРУТТО: amount × rate/(100+rate). Расходы со
-    # ставкой 0 (легаси/безставочные) Vorsteuer не дают — честно.
-    ust = sum(
-        (e.amount * e.vat_rate / (Decimal("100") + e.vat_rate) for e in entries if e.vat_rate),
-        Decimal("0"),
-    )
-    vorsteuer = sum(
-        (e.amount * e.vat_rate / (Decimal("100") + e.vat_rate) for e in expense_qs if e.vat_rate),
-        Decimal("0"),
-    )
+    # ERP-4 → KA-12 B2-8a: UStVA-срез по режиму бизнеса (Soll/Ist/§ 19).
+    from .ustva import REGIME_CHOICES, ustva_slice
+
+    tax = ustva_slice(getattr(request, "tenant", None), von, bis, entries, expense_qs)
     return render(
         request,
         "finance/ergebnis.html",
@@ -261,9 +255,12 @@ def ergebnis(request):
             "cogs": cogs,
             "cogs_partial": cogs_partial,
             "rohertrag": revenue - cogs,
-            "ust": ust,
-            "vorsteuer": vorsteuer,
-            "zahllast": ust - vorsteuer,
+            "ust": tax["ust"],
+            "vorsteuer": tax["vorsteuer"],
+            "zahllast": tax["zahllast"],
+            "tax_rows": tax["rows"],
+            "tax_notes": tax["notes"],
+            "tax_regime_label": dict(REGIME_CHOICES)[tax["regime"]],
         },
     )
 

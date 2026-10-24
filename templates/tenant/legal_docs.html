@@ -26,7 +26,13 @@
           <input id="tax_number" name="tax_number" value="{{ steuer.tax_number }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
         </div>
       </div>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="small_business" {% if steuer.small_business %}checked{% endif %} class="rounded border-gray-300"> {% trans "Kleinunternehmer (§ 19 UStG) — Rechnungen ohne MwSt." %}</label>
+      {% comment %}KA-12 B2-8a (T-1): одна радио-группа — когда возникает USt.{% endcomment %}
+      <fieldset class="space-y-1" data-tax-regime>
+        <legend class="block text-sm font-medium mb-1">{% trans "Besteuerung" %}</legend>
+        {% for value, label in tax_regimes %}
+        <label class="flex items-center gap-2 text-sm"><input type="radio" name="tax_regime" value="{{ value }}" {% if value == tax_regime %}checked{% endif %} class="border-gray-300"> {{ label }}</label>
+        {% endfor %}
+      </fieldset>
       {% comment %}KA-12 E7.1: структурные данные Impressum (§ 5 DDG); свободное поле
       «Registereintrag» остаётся для старых записей — суд+номер его перекрывают.{% endcomment %}
       <div class="grid sm:grid-cols-2 gap-4">

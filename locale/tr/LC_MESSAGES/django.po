@@ -28908,3 +28908,39 @@ msgstr "en fazla"
 
 msgid "z. B. Preisminderung"
 msgstr "örn. fiyat indirimi"
+
+msgid "Anzahlungen vor der Leistung sind im Monat des Zahlungseingangs enthalten und im Monat der Leistung wieder abgezogen (Mindest-Istversteuerung)."
+msgstr "Hizmetten önce alınan ön ödemeler tahsil ayında dahil edilir ve hizmet ayında yeniden düşülür (asgari tahsilat esaslı vergilendirme)."
+
+msgid "Aufträge, Gutscheine, Mehrfachkarten, manuelle Buchungen und ältere Verkäufe ohne Zahlungsbuch sind nach Buchungsdatum enthalten."
+msgstr "Siparişler, hediye çekleri, çoklu giriş kartları, manuel kayıtlar ve ödeme defteri olmayan eski satışlar kayıt tarihine göre dahil edilir."
+
+msgid "Besteuerung"
+msgstr "Vergilendirme"
+
+msgid "Einige Zahlungen ohne erkennbare Leistung — mit dem Regelsteuersatz angesetzt."
+msgstr "Hizmeti belirlenemeyen bazı ödemeler genel vergi oranıyla hesaplandı."
+
+msgid "Istversteuerung"
+msgstr "Tahsilat esaslı vergilendirme"
+
+msgid "Istversteuerung — USt bei Zahlungseingang"
+msgstr "Tahsilat esası — KDV ödeme alındığında"
+
+msgid "Kleinunternehmer (§ 19 UStG): keine Umsatzsteuer, kein Vorsteuerabzug."
+msgstr "Küçük işletme (§ 19 UStG): KDV yok, indirilecek KDV yok."
+
+msgid "Richtwert für die Voranmeldung — keine Steuererklärung."
+msgstr "Ön beyanname için yol gösterici değer — vergi beyannamesi değildir."
+
+msgid "Sollversteuerung"
+msgstr "Tahakkuk esaslı vergilendirme"
+
+msgid "Sollversteuerung — USt bei Leistung (Standard)"
+msgstr "Tahakkuk esası — KDV hizmet sunulduğunda (varsayılan)"
+
+msgid "USt"
+msgstr "KDV"
+
+msgid "brutto"
+msgstr "brüt"

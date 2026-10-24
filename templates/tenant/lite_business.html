@@ -18,6 +18,12 @@
       {% for field in sec.fields %}
         {% if field.is_hidden %}{{ field }}{% elif field.field.widget.input_type == "checkbox" %}
         <label class="flex items-center gap-2 text-sm">{{ field }} {{ field.label }}</label>
+        {% elif field.field.widget.input_type == "radio" %}
+        <fieldset class="space-y-2" data-tax-regime>
+          <legend class="block text-sm font-medium mb-1">{{ field.label }}</legend>
+          {% for radio in field %}<label class="flex items-center gap-2 text-sm">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
+          {% for e in field.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        </fieldset>
         {% else %}
         <label class="block">
           <span class="block text-sm font-medium mb-1">{{ field.label }}</span>
