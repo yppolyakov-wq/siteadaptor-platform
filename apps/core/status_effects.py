@@ -264,5 +264,7 @@ def apply_custom_effects(kind: str, instance, src_desc, dst_desc) -> None:
             return
         restore_stock_for(kind, instance, src_role=(src_desc.role if src_desc else None))
         unredeem_for(instance)
-        if src_desc is not None and src_desc.revenue_recognized:
+        # KA-12 E1.12 (ревью): «ohne Erstattung» — деньги остаются у бизнеса,
+        # значит и выручка остаётся (сторно без возврата обнулило бы журнал).
+        if src_desc is not None and src_desc.revenue_recognized and not dst_desc.no_refund:
             record_reversal_for(kind, instance)

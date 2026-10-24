@@ -5309,6 +5309,7 @@ def deal_discount_edit(request, kind, pk):
     from django.urls import reverse
 
     from apps.core import deal_discount, transactions
+    from apps.orders.editing import OrderLocked
 
     if not deal_discount.supports(kind):
         raise Http404("kind has no discount")
@@ -5326,15 +5327,19 @@ def deal_discount_edit(request, kind, pk):
         messages.error(request, _("Bitte einen gültigen Betrag eingeben."))
         cents = None
     if cents is not None:
-        deal_discount.set_discount(
-            kind,
-            obj,
-            cents=cents,
-            note=(request.POST.get("discount_note") or "").strip(),
-            scope=(request.POST.get("discount_scope") or "").strip(),
-            tenant=getattr(request, "tenant", None),
-        )
-        messages.success(request, _("Rabatt gespeichert."))
+        try:
+            deal_discount.set_discount(
+                kind,
+                obj,
+                cents=cents,
+                note=(request.POST.get("discount_note") or "").strip(),
+                scope=(request.POST.get("discount_scope") or "").strip(),
+                tenant=getattr(request, "tenant", None),
+            )
+        except (deal_discount.CertificateLocked, OrderLocked) as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, _("Rabatt gespeichert."))
     nxt = request.POST.get("next", "")
     if not (nxt.startswith("/") and not nxt.startswith("//")):
         nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
@@ -5623,6 +5628,11 @@ def status_manager_save(request, kind):
         # SM-3: кламп 20 = max_length поля status (согласован с normalize)
         return re.sub(r"[^a-z0-9_]+", "_", (v or "").strip().lower()).strip("_")[:20]
 
+    from apps.core import roles
+
+    # KA-12 E1.12 (ревью): «ohne Erstattung» — политика денег, решает только владелец;
+    # у сотрудника флаг остаётся прежним (новый статус — без флага).
+    owner = bool(getattr(request.user, "pk", None)) and roles.is_owner(request.user)
     defs, seen = [], set()
     for code in request.POST.getlist("custom_code"):
         if request.POST.get(f"del_{code}"):
@@ -5637,7 +5647,10 @@ def status_manager_save(request, kind):
             else:
                 row = status_registry.def_from_role(code, label, role, kind=kind)
             # KA-12 E1.12: чекбокс «ohne Erstattung» рисуется у каждой строки
-            row["no_refund"] = bool(request.POST.get(f"norefund_{code}"))
+            if owner:
+                row["no_refund"] = bool(request.POST.get(f"norefund_{code}"))
+            else:
+                row["no_refund"] = bool(old and old.get("no_refund"))
             defs.append(row)
     new_label = (request.POST.get("new_label") or "").strip()[:40]
     if new_label:
@@ -5646,7 +5659,7 @@ def status_manager_save(request, kind):
             row = status_registry.def_from_role(
                 new_code, new_label, request.POST.get("new_role") or "active", kind=kind
             )
-            row["no_refund"] = bool(request.POST.get("new_no_refund"))
+            row["no_refund"] = owner and bool(request.POST.get("new_no_refund"))
             defs.append(row)
             seen.add(new_code)
 

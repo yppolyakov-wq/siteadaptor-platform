@@ -28602,3 +28602,9 @@ msgstr "Please refund the remaining %(amount)s € (paid in cash or by bank tran
 
 msgid "Ihre Entscheidung wurde bereits gespeichert."
 msgstr "Your decision has already been saved."
+
+msgid "Mit Gutschein bezahlt: Der Rabatt kann nicht mehr geändert werden."
+msgstr "Paid with a gift voucher: the discount can no longer be changed."
+
+msgid "Ratenzahlung: Eine Rate wurde ohne Online-Zahlung bezahlt — bitte erstatten Sie sie selbst."
+msgstr "Instalment plan: one instalment was paid without online payment — please refund it yourself."

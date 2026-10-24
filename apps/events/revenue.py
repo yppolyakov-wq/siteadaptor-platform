@@ -41,7 +41,8 @@ def paid_on_site_later(ticket) -> bool:
 
     state = getattr(ticket, "payment_state", "") or ""
     method = getattr(ticket, "payment_method", "") or ""
-    return state in ("none", "unpaid", "") and method in _CASH_METHODS
+    # Только ЯВНОЕ «не оплачено»: объект без поля (стаб/легаси-снимок) не откладываем.
+    return state in ("none", "unpaid") and method in _CASH_METHODS
 
 
 def record_revenue(ticket, tenant=None) -> None:

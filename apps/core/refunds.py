@@ -41,7 +41,7 @@ class RefundResult(StrEnum):
     REFUNDED = "refunded"
     ALREADY = "already"  # уже возвращено (повтор, гонка)
     FAILED = "failed"  # Stripe отказал — состояние «оплачено» сохранено
-    MANUAL = "manual"  # больше не возникает (рассрочка возвращается по долям, KA-12 E1.12)
+    MANUAL = "manual"  # доля рассрочки оплачена вне Stripe — возвращает владелец
 
 
 class RefundChoiceRequired(Exception):
@@ -235,13 +235,19 @@ def _refund_installments(kind: str, ticket, connect_id: str, tenant) -> RefundRe
             _notify_owner_failed(kind, ticket, tenant)
             break
         refunded_any = True
-    if not plan.charges.filter(status=paid).exists():
+    any_refunded = plan.charges.filter(status=InstallmentCharge.STATUS_REFUNDED).exists()
+    if any_refunded and not plan.charges.filter(status=paid).exists():
         model.objects.filter(pk=ticket.pk).exclude(payment_state=model.PAYMENT_REFUNDED).exclude(
             payment_state=model.PAYMENT_NONE
         ).update(payment_state=model.PAYMENT_REFUNDED)
     ticket.refresh_from_db(fields=["payment_state"])
     if failed:
         return RefundResult.FAILED
+    if plan.charges.filter(status=paid, stripe_payment_intent="").exists():
+        # Оплаченная доля без платежа Stripe (отмечена вручную) — автоматически не
+        # вернуть: владелец возвращает сам (ревью: раньше выходило молчаливое NONE).
+        _notify_owner_failed(kind, ticket, tenant)
+        return RefundResult.MANUAL
     if refunded_any:
         return RefundResult.REFUNDED
     return (
@@ -353,8 +359,11 @@ def flash(request, result: RefundResult, kind: str) -> None:
             )
     elif result == RefundResult.FAILED:
         messages.error(request, _("Refund failed — please check Stripe."))
-    elif result == RefundResult.MANUAL:  # обратная совместимость (сейчас не возникает)
+    elif result == RefundResult.MANUAL:  # доля оплачена вне Stripe
         messages.warning(
             request,
-            _("Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."),
+            _(
+                "Ratenzahlung: Eine Rate wurde ohne Online-Zahlung bezahlt — "
+                "bitte erstatten Sie sie selbst."
+            ),
         )

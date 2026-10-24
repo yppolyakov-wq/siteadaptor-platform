@@ -42,6 +42,23 @@ def label_for(kind: str):
     return _("Rabatt")
 
 
+class CertificateLocked(ValueError):
+    """KA-12 E1.8 (ревью): скидку сделки, оплаченной сертификатом с остатком, не правим.
+
+    До батча 2 (точное поле `voucher_paid_cents`) сумма сертификата читается из
+    `discount_cents` — правка скидки молча сдвинула бы «уже оплачено» в счёте."""
+
+
+def certificate_locked(obj, cents: int | None = None) -> bool:
+    """True — сделка оплачена сертификатом с остатком и новая сумма скидки другая."""
+    from apps.finance.services import certificate_cents
+
+    paid = certificate_cents(obj)
+    if not paid:
+        return False
+    return cents is None or int(cents) != int(getattr(obj, "discount_cents", 0) or 0)
+
+
 def set_discount(kind: str, obj, *, cents: int, note: str = "", scope: str = "", tenant=None):
     """Поставить скидку и пересчитать итог сделки. Возвращает новый итог (центы).
 
@@ -49,6 +66,10 @@ def set_discount(kind: str, obj, *, cents: int, note: str = "", scope: str = "",
     Итог сделки от области НЕ зависит; меняется распределение базы НДС и показ,
     поэтому движки оплаты и письма не трогаем. Чужое значение игнорируется."""
     cents = max(int(cents or 0), 0)
+    if certificate_locked(obj, cents):
+        raise CertificateLocked(
+            _("Mit Gutschein bezahlt: Der Rabatt kann nicht mehr geändert werden.")
+        )
     field, limit = NOTE_FIELDS[kind]
     allowed = {value for value, _label in getattr(type(obj), "DISCOUNT_SCOPES", ())}
     scope = scope if scope in allowed else ""

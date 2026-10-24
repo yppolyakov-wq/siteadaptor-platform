@@ -264,6 +264,11 @@ def set_discount(order, *, cents: int, note: str = "", tenant=None):
     """Скидка владельца на заказ (в центах). Промокод не трогаем: `voucher_code`
     остаётся снимком того, что применил клиент."""
     _require_editable(order, tenant)
+    from apps.core.deal_discount import certificate_locked
+
+    if certificate_locked(order, max(int(cents), 0)):
+        # KA-12 E1.8: сертификат читается из discount_cents — правка сдвинула бы оплату
+        raise OrderLocked(_("Mit Gutschein bezahlt: Der Rabatt kann nicht mehr geändert werden."))
     order.discount_cents = max(int(cents), 0)
     if note:
         order.voucher_code = note[:12]

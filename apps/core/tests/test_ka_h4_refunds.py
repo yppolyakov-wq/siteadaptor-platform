@@ -509,3 +509,124 @@ def test_cabinet_ticket_cancel_notifies_waitlist(stripe_calls, monkeypatch):
     ticket.refresh_from_db()
     assert ticket.status == "cancelled" and ticket.payment_state == "refunded"
     assert seen == [ticket.event_id]
+
+
+# --- ревью KA-12 W3 батч 1 -------------------------------------------------------------
+
+
+def test_installment_without_paid_shares_is_not_marked_refunded(stripe_calls):
+    """Ничего не оплачено — ничего не «возвращено» (раньше состояние ставилось ложно)."""
+    ticket = _paid(_ticket(), intent="", state="installment")
+    _installment(ticket, scheduled=2)
+    result = refunds.refund_payment("ticket", ticket, _tenant())
+    ticket.refresh_from_db()
+    assert result == refunds.RefundResult.NONE
+    assert ticket.payment_state == "installment"
+    assert stripe_calls == []
+
+
+def test_installment_share_paid_outside_stripe_is_manual(stripe_calls):
+    """Доля, оплаченная без платежа Stripe, — не молчаливое NONE, а MANUAL + письмо."""
+    ticket = _paid(_ticket(), intent="pi_r1", state="installment")
+    plan = _installment(ticket, "pi_r1", "", scheduled=0)
+    result = refunds.refund_payment("ticket", ticket, _tenant())
+    ticket.refresh_from_db()
+    assert result == refunds.RefundResult.MANUAL
+    assert [c["payment_intent"] for c in stripe_calls] == ["pi_r1"]
+    assert plan.charges.filter(status="paid", stripe_payment_intent="").exists()
+    assert ticket.payment_state == "installment"
+
+
+def test_custom_no_refund_cancel_keeps_revenue(monkeypatch):
+    """«ohne Erstattung»: деньги остаются у бизнеса — сторно выручки не делается."""
+    from apps.core import status_effects
+    from apps.core.status_registry import StatusDescriptor
+
+    calls = []
+    monkeypatch.setattr(status_effects, "record_reversal_for", lambda k, i: calls.append(k))
+    for name in ("restore_stock_for", "unredeem_for"):
+        monkeypatch.setattr(status_effects, name, lambda *a, **kw: None)
+    src = StatusDescriptor(code="done_x", role="done", stage="done", revenue_recognized=True)
+    keep = StatusDescriptor(
+        code="storno_nr", role="cancelled", stage="terminal", builtin=False, no_refund=True
+    )
+    plain = StatusDescriptor(code="storno", role="cancelled", stage="terminal", builtin=False)
+    status_effects.apply_custom_effects("order", object(), src, keep)
+    assert calls == []
+    status_effects.apply_custom_effects("order", object(), src, plain)
+    assert calls == ["order"]
+
+
+def test_staff_cannot_set_no_refund(monkeypatch):
+    """Флаг «ohne Erstattung» — политика денег: сотрудник его не включает и не снимает."""
+    from apps.core import roles
+    from apps.tenants import siteconfig
+
+    defs = {
+        "order": [
+            {"code": "st_a", "label": "A", "role": "cancelled", "stage": "terminal"},
+            {
+                "code": "st_b",
+                "label": "B",
+                "role": "cancelled",
+                "stage": "terminal",
+                "no_refund": True,
+            },
+        ]
+    }
+    tenant = TenantFactory(site_config={"status_defs": defs})
+    data = {
+        "custom_code": ["st_a", "st_b"],
+        "label_st_a": "A",
+        "role_st_a": "cancelled",
+        "norefund_st_a": "on",
+        "label_st_b": "B",
+        "role_st_b": "cancelled",
+        "new_label": "Neu Storno",
+        "new_role": "cancelled",
+        "new_no_refund": "on",
+    }
+    monkeypatch.setattr(roles, "is_owner", lambda user: False)
+    request = RequestFactory().post("/dashboard/status-manager/order/save/", data)
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = _user()
+    request.tenant = tenant
+    core_views.status_manager_save(request, kind="order")
+    tenant.refresh_from_db()
+    saved = {
+        d["code"]: d
+        for d in siteconfig.normalize_status_defs(tenant.site_config["status_defs"])["order"]
+    }
+    assert "no_refund" not in saved["st_a"]  # не включил
+    assert saved["st_b"]["no_refund"] is True  # не снял
+    assert "no_refund" not in saved["neu_storno"]
+
+
+def test_discount_change_on_certificate_paid_deal_is_refused():
+    """Сумма сертификата читается из discount_cents — правка скидки сдвинула бы оплату."""
+    from apps.core import deal_discount
+    from apps.loyalty.models import Voucher
+    from apps.orders import editing
+
+    Voucher.objects.create(code="WERT05", label="Gutschein", balance_cents=500)
+    order = _order()
+    order.voucher_code = "WERT05"
+    order.discount_cents = 500
+    order.save(update_fields=["voucher_code", "discount_cents"])
+    with pytest.raises(editing.OrderLocked):
+        editing.set_discount(order, cents=1500)
+    with pytest.raises(deal_discount.CertificateLocked):
+        deal_discount.set_discount("stay", _cert_stay("WERT05"), cents=0)
+    order.refresh_from_db()
+    assert order.discount_cents == 500
+    # та же сумма — не правка (повторное сохранение формы не ломается)
+    editing.set_discount(order, cents=500)
+
+
+def _cert_stay(code):
+    stay = _stay()
+    stay.voucher_code = code
+    stay.discount_cents = 500
+    stay.save(update_fields=["voucher_code", "discount_cents"])
+    return stay
