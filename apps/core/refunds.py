@@ -23,9 +23,15 @@
 from __future__ import annotations
 
 import logging
+from contextvars import ContextVar
+from decimal import Decimal
 from enum import StrEnum
 
 logger = logging.getLogger(__name__)
+
+#: KA-12 E1.6: часть оплаты, которую карта не покрывает (депозит картой + остаток
+#: наличными/переводом). Её владелец возвращает сам — `flash` и письмо говорят сумму.
+_OFFLINE_REST: ContextVar[Decimal] = ContextVar("refund_offline_rest", default=Decimal("0"))
 
 NO_REFUND_TARGETS = frozenset({"no_show", "expired"})
 
@@ -35,7 +41,7 @@ class RefundResult(StrEnum):
     REFUNDED = "refunded"
     ALREADY = "already"  # уже возвращено (повтор, гонка)
     FAILED = "failed"  # Stripe отказал — состояние «оплачено» сохранено
-    MANUAL = "manual"  # рассрочка: автоматически не возвращаем, владелец — в Stripe
+    MANUAL = "manual"  # больше не возникает (рассрочка возвращается по долям, KA-12 E1.12)
 
 
 class RefundChoiceRequired(Exception):
@@ -71,7 +77,8 @@ def wants_refund(kind: str, target: str, source: str, tenant=None) -> bool:
     if target in NO_REFUND_TARGETS:
         return False
     dst = status_registry.resolve(kind, target, tenant)
-    if dst is None or dst.role != "cancelled":
+    if dst is None or dst.role != "cancelled" or dst.no_refund:
+        # KA-12 E1.12: свой статус отмены с флагом «ohne Erstattung» оставляет оплату.
         return False
     src = status_registry.resolve(kind, source, tenant)
     return src is None or src.role != "cancelled"
@@ -95,24 +102,27 @@ def refund_payment(kind: str, obj, tenant=None) -> RefundResult:
 
     from apps.billing import connect
 
+    _OFFLINE_REST.set(Decimal("0"))  # подсказка относится только к ЭТОМУ возврату
     model = type(obj)
     if not hasattr(model, "PAYMENT_REFUNDED") or not hasattr(obj, "stripe_payment_intent"):
         return RefundResult.NONE
     intent = (obj.stripe_payment_intent or "").strip()
     connect_id = _connect_id(tenant)
     refundable = _refundable_states(model)
-    if not intent or not connect_id:
+    if not connect_id:
         return RefundResult.NONE
     if _has_installment_plan(obj):
-        # R10: в intent лежит только ПЕРВАЯ доля — вернуть её и пометить
-        # «возвращено целиком» было бы неправдой. Владелец возвращает в Stripe.
-        return RefundResult.MANUAL
+        # KA-12 E1.12: у каждой доли рассрочки свой платёж — возвращаем все оплаченные.
+        return _refund_installments(kind, obj, connect_id, tenant)
+    if not intent:
+        return RefundResult.NONE
     # Решение — по свежему состоянию из БД (вебхук оплаты мог прийти после
     # загрузки объекта в память).
     obj.refresh_from_db(fields=["payment_state"])
     previous = obj.payment_state
     if previous not in refundable:
         return RefundResult.ALREADY if previous == model.PAYMENT_REFUNDED else RefundResult.NONE
+    rest = _offline_rest(kind, obj)
     claimed = model.objects.filter(
         pk=obj.pk, payment_state=previous, stripe_payment_intent=intent
     ).update(payment_state=model.PAYMENT_REFUNDED)
@@ -131,7 +141,114 @@ def refund_payment(kind: str, obj, tenant=None) -> RefundResult:
     except Exception:  # noqa: BLE001 — сбой не должен оставить ложное «возвращено»
         return _rollback(kind, obj, previous, tenant)
     obj.refresh_from_db(fields=["payment_state"])
+    if rest > 0:
+        _OFFLINE_REST.set(rest)
+        _notify_owner_rest(kind, obj, rest, tenant)
     return RefundResult.REFUNDED
+
+
+def _offline_rest(kind: str, obj) -> Decimal:
+    """Оплачено сверх онлайн-платежа (остаток отмечен «bezahlt» вручную)."""
+    from apps.core import money_contract as mc
+
+    try:
+        total = mc._total(kind, obj)
+        online = min(mc._online_paid(kind, obj, total), total)
+        paid = min(mc._paid(kind, obj, total, online), total)
+    except Exception:  # noqa: BLE001 — подсказка не должна мешать возврату
+        return Decimal("0")
+    return max(paid - online, Decimal("0"))
+
+
+def _notify_owner_rest(kind: str, obj, rest: Decimal, tenant) -> None:
+    from django.db import connection
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    from apps.notifications.services import email_locale, notify
+
+    if tenant is None:
+        tenant = getattr(connection, "tenant", None)
+    recipient = (getattr(tenant, "owner_email", "") or "").strip()
+    if not recipient:
+        return
+    code = getattr(obj, "reference_code", "") or str(obj.pk)
+    amount = f"{rest:.2f}".replace(".", ",")
+    with translation.override(email_locale()):
+        subject = _("Restbetrag manuell erstatten: %(code)s") % {"code": code}
+        body = _(
+            "Bei der Stornierung von %(code)s wurde die Kartenzahlung automatisch "
+            "erstattet. Den Restbetrag von %(amount)s €, der bar oder per Überweisung "
+            "bezahlt wurde, erstatten Sie bitte selbst."
+        ) % {"code": code, "amount": amount}
+    try:
+        notify(
+            dedupe_key=f"refund-rest:{connection.schema_name}:{kind}:{obj.pk}",
+            type="refund_rest_owner",
+            recipient=recipient,
+            subject=subject,
+            body=body,
+        )
+    except Exception:  # noqa: BLE001 — письмо не должно ронять смену статуса
+        logger.warning("refund rest notification not sent", exc_info=True)
+
+
+def _refund_installments(kind: str, ticket, connect_id: str, tenant) -> RefundResult:
+    """Вернуть каждую оплаченную долю рассрочки (R10). Захват доли — условным
+    UPDATE paid→refunded, ключ идемпотентности — на платёж доли; сбой Stripe
+    откатывает только эту долю. Сделка «возвращена» — когда оплаченных долей нет."""
+    import stripe
+
+    from apps.billing import connect
+    from apps.events.models import InstallmentCharge
+
+    model = type(ticket)
+    plan = getattr(ticket, "installment_plan", None)
+    if plan is None:
+        return RefundResult.NONE
+    refunded_any = failed = False
+    paid = InstallmentCharge.STATUS_PAID
+    for charge in plan.charges.filter(status=paid).exclude(stripe_payment_intent=""):
+        claimed = InstallmentCharge.objects.filter(pk=charge.pk, status=paid).update(
+            status=InstallmentCharge.STATUS_REFUNDED
+        )
+        if not claimed:
+            continue
+        intent = charge.stripe_payment_intent
+        logger.info("refund claimed: %s %s installment %s", kind, ticket.pk, charge.sequence)
+        try:
+            connect.refund(
+                connect_id=connect_id,
+                payment_intent=intent,
+                idempotency_key=_idempotency_key(kind, ticket.pk, intent),
+            )
+        except stripe.error.InvalidRequestError as exc:
+            if getattr(exc, "code", "") != "charge_already_refunded":
+                failed = True
+        except Exception:  # noqa: BLE001 — сбой доли не должен оставить ложное «возвращено»
+            failed = True
+        if failed:
+            InstallmentCharge.objects.filter(
+                pk=charge.pk, status=InstallmentCharge.STATUS_REFUNDED
+            ).update(status=paid)
+            logger.warning("refund failed: %s %s installment %s", kind, ticket.pk, charge.sequence)
+            _notify_owner_failed(kind, ticket, tenant)
+            break
+        refunded_any = True
+    if not plan.charges.filter(status=paid).exists():
+        model.objects.filter(pk=ticket.pk).exclude(payment_state=model.PAYMENT_REFUNDED).exclude(
+            payment_state=model.PAYMENT_NONE
+        ).update(payment_state=model.PAYMENT_REFUNDED)
+    ticket.refresh_from_db(fields=["payment_state"])
+    if failed:
+        return RefundResult.FAILED
+    if refunded_any:
+        return RefundResult.REFUNDED
+    return (
+        RefundResult.ALREADY
+        if ticket.payment_state == model.PAYMENT_REFUNDED
+        else RefundResult.NONE
+    )
 
 
 def _has_installment_plan(obj) -> bool:
@@ -223,9 +340,20 @@ def flash(request, result: RefundResult, kind: str) -> None:
             messages.success(request, _("Deposit refunded."))
         else:
             messages.success(request, _("Payment refunded."))
+        rest = _OFFLINE_REST.get()
+        if rest > 0:
+            _OFFLINE_REST.set(Decimal("0"))
+            messages.warning(
+                request,
+                _(
+                    "Den Restbetrag von %(amount)s € (bar oder per Überweisung bezahlt) "
+                    "erstatten Sie bitte selbst."
+                )
+                % {"amount": f"{rest:.2f}".replace(".", ",")},
+            )
     elif result == RefundResult.FAILED:
         messages.error(request, _("Refund failed — please check Stripe."))
-    elif result == RefundResult.MANUAL:
+    elif result == RefundResult.MANUAL:  # обратная совместимость (сейчас не возникает)
         messages.warning(
             request,
             _("Ratenzahlung: Bitte erstatten Sie die bereits gezahlten Raten im Stripe-Dashboard."),

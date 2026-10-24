@@ -4900,7 +4900,10 @@ def _status_manager_context(tenant, kind) -> dict:
         "kind": kind,
         "kind_label": transactions.KIND_LABEL.get(kind, kind),
         "roles": [(r, status_registry.ROLE_LABELS[r]) for r in status_registry.ROLES],
-        "custom_rows": [{"code": c, "label": d.label, "role": d.role} for c, d in custom.items()],
+        "custom_rows": [
+            {"code": c, "label": d.label, "role": d.role, "no_refund": d.no_refund}
+            for c, d in custom.items()
+        ],
         "trans_rows": trans_rows,
     }
 
@@ -5630,18 +5633,21 @@ def status_manager_save(request, kind):
             seen.add(code)
             old = stored.get(code)
             if old is not None and old.get("role") == role:
-                defs.append({**old, "label": label})  # роль та же → флаги целы
+                row = {**old, "label": label}  # роль та же → флаги целы
             else:
-                defs.append(status_registry.def_from_role(code, label, role, kind=kind))
+                row = status_registry.def_from_role(code, label, role, kind=kind)
+            # KA-12 E1.12: чекбокс «ohne Erstattung» рисуется у каждой строки
+            row["no_refund"] = bool(request.POST.get(f"norefund_{code}"))
+            defs.append(row)
     new_label = (request.POST.get("new_label") or "").strip()[:40]
     if new_label:
         new_code = _slug(new_label)
         if new_code and new_code not in builtin_codes and new_code not in seen:
-            defs.append(
-                status_registry.def_from_role(
-                    new_code, new_label, request.POST.get("new_role") or "active", kind=kind
-                )
+            row = status_registry.def_from_role(
+                new_code, new_label, request.POST.get("new_role") or "active", kind=kind
             )
+            row["no_refund"] = bool(request.POST.get("new_no_refund"))
+            defs.append(row)
             seen.add(new_code)
 
     valid_defs = siteconfig.normalize_status_defs({kind: defs}).get(kind, [])

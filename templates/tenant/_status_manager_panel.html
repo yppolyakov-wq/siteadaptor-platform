@@ -16,6 +16,7 @@ next_path (куда вернуться после сохранения).{% endco
       <select name="role_{{ r.code }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         {% for code, lbl in roles %}<option value="{{ code }}" {% if code == r.role %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
       </select>
+      <label class="flex items-center gap-1 text-xs text-gray-600 whitespace-nowrap" title="{% trans 'Gilt nur für Storno-Status: Die Zahlung wird nicht automatisch erstattet.' %}"><input type="checkbox" name="norefund_{{ r.code }}" {% if r.no_refund %}checked{% endif %}> {% trans "ohne Erstattung" %}</label>
       <label class="flex items-center gap-1 text-xs text-red-500 whitespace-nowrap"><input type="checkbox" name="del_{{ r.code }}"> {% trans "Löschen" %}</label>
     </div>
   {% endfor %}
@@ -26,6 +27,7 @@ next_path (куда вернуться после сохранения).{% endco
     <select name="new_role" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
       {% for code, lbl in roles %}<option value="{{ code }}">{{ lbl }}</option>{% endfor %}
     </select>
+    <label class="flex items-center gap-1 text-xs text-gray-600 whitespace-nowrap" title="{% trans 'Gilt nur für Storno-Status: Die Zahlung wird nicht automatisch erstattet.' %}"><input type="checkbox" name="new_no_refund"> {% trans "ohne Erstattung" %}</label>
     <span class="text-lg text-gray-300 leading-none">＋</span>
   </div>
 

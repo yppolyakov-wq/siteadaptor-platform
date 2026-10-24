@@ -3888,17 +3888,18 @@ def normalize_status_defs(raw) -> dict:
             if role not in ROLES or stage not in STAGES:
                 continue
             seen.add(code)
-            defs.append(
-                {
-                    "code": code,
-                    "label": _s(d.get("label"))[:40] or code,
-                    "role": role,
-                    "stage": stage,
-                    "blocks_capacity": bool(d.get("blocks_capacity")),
-                    "counts_in_reports": bool(d.get("counts_in_reports")),
-                    "revenue_recognized": bool(d.get("revenue_recognized")),
-                }
-            )
+            row = {
+                "code": code,
+                "label": _s(d.get("label"))[:40] or code,
+                "role": role,
+                "stage": stage,
+                "blocks_capacity": bool(d.get("blocks_capacity")),
+                "counts_in_reports": bool(d.get("counts_in_reports")),
+                "revenue_recognized": bool(d.get("revenue_recognized")),
+            }
+            if role == "cancelled" and d.get("no_refund"):
+                row["no_refund"] = True  # KA-12 E1.12: presence-minimal
+            defs.append(row)
         if defs:
             out[kind] = defs
     return out

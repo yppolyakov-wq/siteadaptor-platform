@@ -327,16 +327,145 @@ def test_no_direct_connect_refund_outside_refunds_module():
 # --- ревью KA-H4 -----------------------------------------------------------------------
 
 
-def test_installment_ticket_is_not_auto_refunded(stripe_calls):
-    """R10: в intent лежит только первая доля — «возвращено целиком» было бы ложью."""
-    from apps.events.models import InstallmentPlan
+def _installment(ticket, *paid_intents, scheduled=1):
+    from apps.events.models import InstallmentCharge, InstallmentPlan
 
-    ticket = _paid(_ticket())
-    InstallmentPlan.objects.create(ticket=ticket, total_cents=5000, count=3)
+    plan = InstallmentPlan.objects.create(ticket=ticket, total_cents=6000, count=3)
+    day = timezone.localdate()
+    for i, intent in enumerate(paid_intents, start=1):
+        InstallmentCharge.objects.create(
+            plan=plan,
+            sequence=i,
+            due_date=day,
+            amount_cents=2000,
+            status=InstallmentCharge.STATUS_PAID,
+            stripe_payment_intent=intent,
+        )
+    for j in range(scheduled):
+        InstallmentCharge.objects.create(
+            plan=plan, sequence=len(paid_intents) + j + 1, due_date=day, amount_cents=2000
+        )
+    return plan
+
+
+def test_installment_ticket_refunds_every_paid_share(stripe_calls):
+    """KA-12 E1.12 (осознанная переписка KA-H4 «MANUAL»): у каждой доли рассрочки свой
+    платёж — при отмене возвращаются ВСЕ оплаченные доли, а не одна первая."""
+    ticket = _paid(_ticket(), intent="pi_r1", state="installment")
+    plan = _installment(ticket, "pi_r1", "pi_r2")
     result = transactions.apply_action("ticket", ticket, "cancelled", tenant=_tenant())
     ticket.refresh_from_db()
-    assert result == refunds.RefundResult.MANUAL
-    assert ticket.payment_state == "paid" and not stripe_calls
+    assert result == refunds.RefundResult.REFUNDED
+    assert sorted(c["payment_intent"] for c in stripe_calls) == ["pi_r1", "pi_r2"]
+    assert ticket.payment_state == "refunded"
+    assert not plan.charges.filter(status="paid").exists()
+    # повтор — второй возврат не уходит
+    assert refunds.refund_payment("ticket", ticket, _tenant()) == refunds.RefundResult.ALREADY
+    assert len(stripe_calls) == 2
+
+
+def test_installment_share_failure_keeps_rest_paid(monkeypatch):
+    calls = []
+
+    def _refund(**kw):
+        calls.append(kw["payment_intent"])
+        if kw["payment_intent"] == "pi_r2":
+            raise RuntimeError("stripe down")
+
+    monkeypatch.setattr("apps.billing.connect.refund", _refund)
+    ticket = _paid(_ticket(), intent="pi_r1", state="installment")
+    plan = _installment(ticket, "pi_r1", "pi_r2")
+    result = refunds.refund_payment("ticket", ticket, _tenant())
+    ticket.refresh_from_db()
+    assert result == refunds.RefundResult.FAILED
+    statuses = dict(plan.charges.values_list("stripe_payment_intent", "status"))
+    assert statuses == {"pi_r1": "refunded", "pi_r2": "paid", "": "scheduled"}
+    assert ticket.payment_state == "installment"  # не «возвращено целиком»
+
+
+def test_custom_cancel_without_refund_keeps_payment(stripe_calls):
+    """KA-12 E1.12: свой статус отмены с флагом «ohne Erstattung»."""
+    tenant = _tenant(
+        site_config={
+            "status_defs": {
+                "order": [
+                    {
+                        "code": "storno_nr",
+                        "label": "Storno ohne Erstattung",
+                        "role": "cancelled",
+                        "stage": "terminal",
+                        "no_refund": True,
+                    }
+                ]
+            }
+        }
+    )
+    from apps.tenants import siteconfig
+
+    tenant.site_config = siteconfig.normalize(tenant.site_config)
+    assert refunds.wants_refund("order", "storno_nr", "new", tenant) is False
+    assert refunds.wants_refund("order", "cancelled", "new", tenant) is True
+
+
+def test_no_refund_flag_survives_normalize_only_for_cancel_role():
+    from apps.tenants import siteconfig
+
+    defs = siteconfig.normalize_status_defs(
+        {
+            "order": [
+                {
+                    "code": "a_x",
+                    "label": "A",
+                    "role": "cancelled",
+                    "stage": "terminal",
+                    "no_refund": True,
+                },
+                {
+                    "code": "b_x",
+                    "label": "B",
+                    "role": "active",
+                    "stage": "in_progress",
+                    "no_refund": True,
+                },
+                {"code": "c_x", "label": "C", "role": "cancelled", "stage": "terminal"},
+            ]
+        }
+    )["order"]
+    by = {d["code"]: d for d in defs}
+    assert by["a_x"]["no_refund"] is True
+    assert "no_refund" not in by["b_x"] and "no_refund" not in by["c_x"]  # presence-minimal
+
+
+def test_deposit_by_card_and_rest_in_cash_tells_owner_the_rest(stripe_calls):
+    """KA-12 E1.6: депозит вернула карта, а наличный остаток — владельцу вернуть самому."""
+    from apps.core.money_contract import settle_payment
+
+    stay = _stay()
+    stay.deposit_cents = 3000
+    stay.save(update_fields=["deposit_cents"])
+    _paid(stay, intent="pi_dep", state="deposit")
+    settle_payment("stay", stay)
+    stay.refresh_from_db()
+    assert stay.payment_state == "paid"
+    result = refunds.refund_payment("stay", stay, _tenant())
+    assert result == refunds.RefundResult.REFUNDED and len(stripe_calls) == 1
+    rest = refunds._OFFLINE_REST.get()
+    assert rest == Decimal(stay.total_cents - 3000) / 100
+    assert Notification.objects.filter(type="refund_rest_owner").count() == 1
+
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    refunds.flash(req, result, "stay")
+    texts = [str(m) for m in get_messages(req)]
+    assert any("Restbetrag" in t for t in texts)
+
+
+def test_full_card_payment_has_no_rest_hint(stripe_calls):
+    order = _paid(_order())
+    assert refunds.refund_payment("order", order, _tenant()) == refunds.RefundResult.REFUNDED
+    assert refunds._OFFLINE_REST.get() == 0
+    assert not Notification.objects.filter(type="refund_rest_owner").exists()
 
 
 def test_idempotency_key_depends_on_payment_and_hides_schema():

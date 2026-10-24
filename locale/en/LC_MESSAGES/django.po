@@ -28584,3 +28584,18 @@ msgstr "Set up payment methods & delivery"
 
 msgid "Kanal-Manager"
 msgstr "Channel manager"
+
+msgid "ohne Erstattung"
+msgstr "without refund"
+
+msgid "Gilt nur für Storno-Status: Die Zahlung wird nicht automatisch erstattet."
+msgstr "Only for cancellation statuses: the payment is not refunded automatically."
+
+msgid "Restbetrag manuell erstatten: %(code)s"
+msgstr "Refund the remaining amount manually: %(code)s"
+
+msgid "Bei der Stornierung von %(code)s wurde die Kartenzahlung automatisch erstattet. Den Restbetrag von %(amount)s €, der bar oder per Überweisung bezahlt wurde, erstatten Sie bitte selbst."
+msgstr "When %(code)s was cancelled, the card payment was refunded automatically. Please refund the remaining %(amount)s €, paid in cash or by bank transfer, yourself."
+
+msgid "Den Restbetrag von %(amount)s € (bar oder per Überweisung bezahlt) erstatten Sie bitte selbst."
+msgstr "Please refund the remaining %(amount)s € (paid in cash or by bank transfer) yourself."

@@ -28849,3 +28849,18 @@ msgstr "Настроить способы оплаты и доставку"
 
 msgid "Kanal-Manager"
 msgstr "Менеджер каналов"
+
+msgid "ohne Erstattung"
+msgstr "без возврата"
+
+msgid "Gilt nur für Storno-Status: Die Zahlung wird nicht automatisch erstattet."
+msgstr "Только для статусов отмены: оплата не возвращается автоматически."
+
+msgid "Restbetrag manuell erstatten: %(code)s"
+msgstr "Верните остаток вручную: %(code)s"
+
+msgid "Bei der Stornierung von %(code)s wurde die Kartenzahlung automatisch erstattet. Den Restbetrag von %(amount)s €, der bar oder per Überweisung bezahlt wurde, erstatten Sie bitte selbst."
+msgstr "При отмене %(code)s оплата картой возвращена автоматически. Остаток %(amount)s €, оплаченный наличными или переводом, верните, пожалуйста, сами."
+
+msgid "Den Restbetrag von %(amount)s € (bar oder per Überweisung bezahlt) erstatten Sie bitte selbst."
+msgstr "Остаток %(amount)s € (оплачен наличными или переводом) верните, пожалуйста, сами."

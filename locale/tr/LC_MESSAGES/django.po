@@ -28728,3 +28728,18 @@ msgstr "Ödeme yöntemlerini ve teslimatı ayarla"
 
 msgid "Kanal-Manager"
 msgstr "Kanal yöneticisi"
+
+msgid "ohne Erstattung"
+msgstr "iadesiz"
+
+msgid "Gilt nur für Storno-Status: Die Zahlung wird nicht automatisch erstattet."
+msgstr "Yalnızca iptal durumları için: ödeme otomatik olarak iade edilmez."
+
+msgid "Restbetrag manuell erstatten: %(code)s"
+msgstr "Kalan tutarı elle iade edin: %(code)s"
+
+msgid "Bei der Stornierung von %(code)s wurde die Kartenzahlung automatisch erstattet. Den Restbetrag von %(amount)s €, der bar oder per Überweisung bezahlt wurde, erstatten Sie bitte selbst."
+msgstr "%(code)s iptal edildiğinde kartla ödeme otomatik olarak iade edildi. Nakit veya havale ile ödenen kalan %(amount)s € tutarını lütfen kendiniz iade edin."
+
+msgid "Den Restbetrag von %(amount)s € (bar oder per Überweisung bezahlt) erstatten Sie bitte selbst."
+msgstr "Kalan %(amount)s € tutarını (nakit veya havale ile ödendi) lütfen kendiniz iade edin."

@@ -66,6 +66,7 @@ class StatusDescriptor:
     revenue_recognized: bool = False
     is_danger: bool = False
     builtin: bool = True
+    no_refund: bool = False  # KA-12 E1.12: своя отмена «ohne Erstattung»
     label: str = ""  # отображаемая подпись кастом-статуса (Phase 6); built-in — из pipeline
 
 
@@ -204,6 +205,7 @@ def custom_descriptors(tenant, kind: str) -> dict[str, StatusDescriptor]:
                 revenue_recognized=bool(d.get("revenue_recognized")),
                 is_danger=(d.get("role") == "cancelled"),
                 builtin=False,
+                no_refund=bool(d.get("no_refund")) and d.get("role") == "cancelled",
                 label=d.get("label") or code,
             )
     return out

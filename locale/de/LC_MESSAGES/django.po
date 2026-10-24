@@ -28676,3 +28676,18 @@ msgstr "Zahlarten & Lieferung einstellen"
 
 msgid "Kanal-Manager"
 msgstr "Kanal-Manager"
+
+msgid "ohne Erstattung"
+msgstr "ohne Erstattung"
+
+msgid "Gilt nur für Storno-Status: Die Zahlung wird nicht automatisch erstattet."
+msgstr "Gilt nur für Storno-Status: Die Zahlung wird nicht automatisch erstattet."
+
+msgid "Restbetrag manuell erstatten: %(code)s"
+msgstr "Restbetrag manuell erstatten: %(code)s"
+
+msgid "Bei der Stornierung von %(code)s wurde die Kartenzahlung automatisch erstattet. Den Restbetrag von %(amount)s €, der bar oder per Überweisung bezahlt wurde, erstatten Sie bitte selbst."
+msgstr "Bei der Stornierung von %(code)s wurde die Kartenzahlung automatisch erstattet. Den Restbetrag von %(amount)s €, der bar oder per Überweisung bezahlt wurde, erstatten Sie bitte selbst."
+
+msgid "Den Restbetrag von %(amount)s € (bar oder per Überweisung bezahlt) erstatten Sie bitte selbst."
+msgstr "Den Restbetrag von %(amount)s € (bar oder per Überweisung bezahlt) erstatten Sie bitte selbst."

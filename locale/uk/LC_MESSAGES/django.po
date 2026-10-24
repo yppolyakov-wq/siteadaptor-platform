@@ -28833,3 +28833,18 @@ msgstr "Налаштувати способи оплати й доставку"
 
 msgid "Kanal-Manager"
 msgstr "Менеджер каналів"
+
+msgid "ohne Erstattung"
+msgstr "без повернення"
+
+msgid "Gilt nur für Storno-Status: Die Zahlung wird nicht automatisch erstattet."
+msgstr "Лише для статусів скасування: оплата не повертається автоматично."
+
+msgid "Restbetrag manuell erstatten: %(code)s"
+msgstr "Поверніть залишок вручну: %(code)s"
+
+msgid "Bei der Stornierung von %(code)s wurde die Kartenzahlung automatisch erstattet. Den Restbetrag von %(amount)s €, der bar oder per Überweisung bezahlt wurde, erstatten Sie bitte selbst."
+msgstr "Під час скасування %(code)s оплату карткою повернено автоматично. Залишок %(amount)s €, сплачений готівкою або переказом, поверніть, будь ласка, самі."
+
+msgid "Den Restbetrag von %(amount)s € (bar oder per Überweisung bezahlt) erstatten Sie bitte selbst."
+msgstr "Залишок %(amount)s € (сплачений готівкою або переказом) поверніть, будь ласка, самі."
