@@ -70,8 +70,9 @@ def test_lite_nav_has_verbindungen():
 def _card(tenant):
     from apps.core.models import Membership
 
-    body = views.integrations_home(
-        _req("get", "/dashboard/integrationen/", tenant, _member(Membership.ROLE_OWNER))
+    # KA-12 E8.6: карточка своего бота — в секции «Verbindungen» страницы каналов.
+    body = views.notifications_settings(
+        _req("get", "/dashboard/settings/notifications/", tenant, _member(Membership.ROLE_OWNER))
     ).content.decode()
     return body
 
@@ -93,8 +94,8 @@ def test_own_bot_card_hides_activation_for_staff():
     from apps.core.models import Membership
 
     t = _tenant()
-    body = views.integrations_home(
-        _req("get", "/dashboard/integrationen/", t, _member(Membership.ROLE_STAFF))
+    body = views.notifications_settings(
+        _req("get", "/dashboard/settings/notifications/", t, _member(Membership.ROLE_STAFF))
     ).content.decode()
     assert "data-own-bot" in body and ACTIVATE not in body
 
@@ -144,8 +145,9 @@ def test_activate_path_not_under_gated_prefix():
 def test_platform_bot_own_bot_target_never_404s():
     from apps.platform_bot import menu
 
-    assert menu.TARGETS["t"] == "integrations-home"
-    assert menu.target_path("t") == "/dashboard/integrationen/"
+    # KA-12 E8.6: «Verbindungen» — секция страницы каналов (экран всегда есть).
+    assert menu.TARGETS["t"] == "notifications-settings"
+    assert menu.target_path("t") == "/dashboard/settings/notifications/"
 
 
 def test_settings_screen_explains_token_stays_out_of_chat():

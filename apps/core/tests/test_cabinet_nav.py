@@ -49,7 +49,8 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     # «Einstellungen» (таб-баров на страницах больше нет, состав живёт в меню);
     # проверяем, что разделы верхнего уровня остались компактными якорями.
     assert 'href="/dashboard/marketing/"' in html
-    assert 'href="/dashboard/integrationen/"' in html
+    # KA-12 E8.6: «Integrationen» — не пункт меню (302 на страницу каналов).
+    assert 'href="/dashboard/integrationen/"' not in html
     assert "Einstellungen" in html
     # «➕ Funktion hinzufügen» → страница «Module».
     assert "Add function" in html or "➕" in html

@@ -75,7 +75,8 @@ def test_sparkline_points_safe():
 
 def test_integrations_landing_gates_by_modules():
     tenant = _tenant(slug="st4e", name="St4e", disabled_modules=["publishing", "stays"])
-    html = core_views.integrations_home(_req(tenant)).content.decode()
+    # KA-12 E8.6: карточки подключений — секция «Verbindungen» страницы каналов.
+    html = core_views.notifications_settings(_req(tenant)).content.decode()
     assert "Zahlung &amp; Stripe" in html and "Eigene Domain" in html  # HTML-escape &
     assert "Channel Manager" not in html and "Publishing" not in html
 

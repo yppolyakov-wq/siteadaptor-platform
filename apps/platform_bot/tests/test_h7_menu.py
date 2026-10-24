@@ -59,7 +59,10 @@ def test_cabinet_offers_whitelisted_screens(bot):  # noqa: F811
     assert handler.handle(_msg("/kabinett")) == "cabinet"
     datas = _datas(bot["sent"][-1])
     assert {f"pm:l:{c}" for c in menu.TARGETS} <= set(datas)
-    assert any(d.startswith("http") and d.endswith("/dashboard/integrationen/") for d in datas)
+    # KA-12 E8.6: «Verbindungen» — секция страницы каналов (бывший «Integrationen»).
+    assert any(
+        d.startswith("http") and d.endswith("/dashboard/settings/notifications/") for d in datas
+    )
     assert tenant.name in bot["sent"][-1]["text"]
 
 
@@ -75,7 +78,8 @@ def test_login_button_sends_mail_with_next(bot, monkeypatch):  # noqa: F811
         lambda t, e, **k: calls.append((e, k.get("next_path"))),
     )
     assert handler.handle(_cb("pm:l:t")) == "sent"
-    assert calls == [(MAIL, "/dashboard/integrationen/")]  # T-8.29: экран бота мог быть 404
+    # T-8.29: экран бота мог быть 404; KA-12 E8.6: подключения — на странице каналов.
+    assert calls == [(MAIL, "/dashboard/settings/notifications/")]
 
 
 @pytest.mark.parametrize("data", ["pm:l:x", "pm:l:/evil", "pm:l://evil.com", "pm:zz", "pm:"])

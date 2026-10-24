@@ -114,9 +114,11 @@ def test_sidebar_hotel_default_sees_marketing_and_messages():
     # R7-1 (осознанная переписка): первым подпунктом идёт ОБЗОР раздела —
     # клик по разделу раскрывает меню, а не уводит на страницу. Вход к
     # сообщениям и бейдж остаются (смысл прежнего замка).
-    assert children[0]["url_name"] == "marketing-home"
-    msgs = next(c for c in children if c["url_name"] == "inbox:list")
-    assert msgs.get("badge") == "inbox" or True  # бейдж рисует шаблон подпункта
+    # KA-12 E8.6 (осознанная переписка R7-1): лендинга больше нет — раздел ведёт
+    # на свой первый активный экран, «Nachrichten» с бейджем стоит первой.
+    assert nav["marketing-home"]["target"] == "inbox:list"
+    assert children[0]["url_name"] == "inbox:list"
+    assert children[0].get("badge") == "inbox"
 
 
 def test_compact_sidebar_renders_on_dashboard():
@@ -132,7 +134,8 @@ def test_compact_sidebar_renders_on_dashboard():
     # «Einstellungen», проверяем отсутствие ГРУППОВЫХ ЗАГОЛОВКОВ классик-меню.
     assert "nav-group" not in html
     assert 'href="/dashboard/marketing/"' in html  # якорь Marketing → центр ST-6
-    assert 'href="/dashboard/integrationen/"' in html
+    # KA-12 E8.6: «Integrationen» — секция страницы каналов, не пункт меню.
+    assert 'href="/dashboard/integrationen/"' not in html
     assert "data-inbox-badge" in html  # бейдж переехал на Marketing-якорь
 
 
@@ -238,7 +241,8 @@ def test_sidebar_children_composition():
         "booking:availability",
         "stays:channels",
         "notifications-settings",
-        "integrations-home",
+        # KA-12 E8.4/E8.6: свой бот — канал; «Integrationen» — секция страницы каналов
+        "telegram-settings",
         "billing",
         "modules",
         "finder-settings",

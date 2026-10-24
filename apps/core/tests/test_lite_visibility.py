@@ -178,7 +178,10 @@ def test_bot_connect_returns_to_visibility_on_error():
 
 def test_integrations_home_output_unchanged_by_extraction():
     """Карточки «Integrationen» после выноса статусов — те же ключи и тексты."""
-    body = views.integrations_home(_req(_tenant(), _owner(), path="/dashboard/integrationen/"))
+    # KA-12 E8.6: карточки — секция «Verbindungen» на странице каналов.
+    body = views.notifications_settings(
+        _req(_tenant(), _owner(), path="/dashboard/settings/notifications/")
+    )
     html = body.content.decode()
     assert "Nicht verbunden" in html and "Keine eigene Domain" in html
     assert "data-own-bot-token" not in html  # форма токена — только на «Sichtbarkeit»

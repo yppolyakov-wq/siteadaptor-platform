@@ -113,9 +113,8 @@ EXPECTED_UNLISTED = frozenset(
         # KA-12 E8.1: резервы в полном кабинете — вкладка Verkäufe (палитра ведёт
         # туда); сам список — экран лёгкого кабинета и Mini App.
         "promotions:reservation-list",
-        # [302] KA-12 E8.6: лендинги Marketing и Integrationen — переадресация
-        # на первый активный экран раздела и на «Kanäle & Benachrichtigungen».
-        "marketing-home",
+        # [302] KA-12 E8.6: лендинг Integrationen — переадресация на
+        # «Kanäle & Benachrichtigungen» (marketing-home — url якоря, 302 на его цель).
         "integrations-home",
         "set-cabinet-lang",
         "set-presence",
@@ -294,9 +293,11 @@ def test_marketing_home_shows_unread_card():
     req.user = get_user_model().objects.create_user(
         username=f"m-{uuid4().hex[:8]}", email=f"m-{uuid4().hex[:8]}@t.de", password="pw12345678"
     )
-    html = core_views.marketing_home(req).content.decode()
-    assert "ungelesen" in html
-    assert "/dashboard/inbox/" in html
+    # KA-12 E8.6 (осознанная переписка X0): лендинга нет — раздел ведёт прямо в
+    # «Nachrichten», где непрочитанное и видно (бейдж — у пункта меню).
+    resp = core_views.marketing_home(req)
+    assert resp.status_code == 302
+    assert resp["Location"] == "/dashboard/inbox/"
 
 
 # --- X2b: снос легаси-доски не ломает главную у events/jobs-архетипов ---------

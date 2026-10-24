@@ -81,7 +81,7 @@ def test_submenu_starts_with_section_overview():
             continue
         if anchors[it["nav_key"]].targets:
             # KA-12 E8.3: раздел с целями ведёт на свой подпункт — он уже в меню.
-            assert it["url_name"] in [c["url_name"] for c in it["children"]], it["nav_key"]
+            assert it["target"] in [c["url_name"] for c in it["children"]], it["nav_key"]
             continue
         first = it["children"][0]
         assert first["url_name"] == it["url_name"] and not first.get("query"), it["nav_key"]
@@ -149,7 +149,7 @@ def test_settings_submenu_lists_every_screen():
         "Zahlung & Lieferung",
         "Benachrichtigungen & Kanäle",
         "Abläufe",
-        "Integrationen",
+        "Telegram-Bot",  # KA-12 E8.4: свой бот — канал (был в Marketing)
         "Abo & Rechnung",
         "Team & Zugriff",
         "Funktionen",

@@ -66,7 +66,7 @@ def test_finance_anchor_shown_with_analytics():
     assert "promotions:analytics" in names and "payments-page" in names
     # finance-модуль выключен — журнала нет, цель раздела — первый видимый экран
     assert "finance:journal" not in names
-    assert fin["url_name"] == "promotions:analytics"
+    assert fin["target"] == "promotions:analytics"
     assert "payments-page" not in [c["url_name"] for c in items["settings"]["children"]]
     assert _sidebar_anchor(tenant, "zahlungen").strip() == "finance"
 
@@ -77,7 +77,7 @@ def test_finance_anchor_shown_with_finance():
     names = [c["url_name"] for c in fin["children"]]
     assert names[:2] == ["payments-page", "finance:journal"] or "finance:journal" in names
     assert {"finance:invoices", "finance:offene", "finance:bank"} <= set(names)
-    assert fin["url_name"] == "finance:journal"
+    assert fin["target"] == "finance:journal"
     headers = [c["header"] for c in fin["children"] if c.get("header")]
     assert [str(h) for h in headers] == ["Überblick", "Buchhaltung"]
 
@@ -144,7 +144,7 @@ def test_staff_never_gets_owner_only_finance_link():
     staff = _user(Membership.ROLE_STAFF)
     items = {it["nav_key"]: it for it in modules.sidebar_nav(tenant, staff)}
     fin = items["finance"]
-    urls = [fin["url_name"]] + [c["url_name"] for c in fin["children"]]
+    urls = [fin["target"]] + [c["url_name"] for c in fin["children"]]
     assert "finance:bank" not in urls
     for name in urls:
         assert roles.required_role_for_path(reverse(name)) != roles.ROLE_OWNER_ONLY, name
@@ -198,7 +198,7 @@ def test_connection_cards_live_on_channels_page():
 def test_marketing_submenu_grouped_with_inbox_first():
     tenant = _tenant("bakery")
     mk = _items(tenant)["promotions"]
-    assert mk["url_name"] == "inbox:list"
+    assert mk["target"] == "inbox:list"
     first = mk["children"][0]
     assert first["url_name"] == "inbox:list" and first.get("badge") == "inbox"
     headers = [str(c["header"]) for c in mk["children"] if c.get("header")]

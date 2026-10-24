@@ -37,15 +37,13 @@ def _req(tenant=None):
     return req
 
 
-def test_landing_renders_state_and_care_link():
-    """W11-2: лендинг = состояние (обзор авто-касаний + результаты) + один
-    кросс-вход Care-Zyklus; карточки-дубли табов хаба убраны."""
+def test_landing_redirects_to_first_section_screen():
+    """KA-12 E8.6 (осознанная переписка W11-2): лендинг убран — раздел ведёт на
+    первый активный экран (здесь «Nachrichten»); сводка осталась модулем `mh`."""
     t = TenantFactory(slug="mh1", name="Mh1")
-    body = core_views.marketing_home(_req(tenant=t)).content.decode()
-    assert "Erinnerungen &amp; Care-Zyklus" in body or "Erinnerungen & Care-Zyklus" in body
-    # обзор авто-касаний: строки reminder-событий матрицы UD4-2 с индикаторами
-    assert "Aktive Erinnerungen" in body and "Zahlungserinnerung" in body
-    assert "E-Mail" in body and "Telegram" in body
+    resp = core_views.marketing_home(_req(tenant=t))
+    assert resp.status_code == 302
+    assert resp["Location"] == "/dashboard/inbox/"
 
 
 def test_cards_only_care_cross_link_remains():

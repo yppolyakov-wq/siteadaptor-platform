@@ -725,7 +725,10 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
                 },
             )
         it = {
-            "url_name": target,
+            # url_name — идентичность якоря (замки, мобильное меню); куда ведёт
+            # раздел — `target` (KA-12 E8.3: первый видимый экран при `targets`).
+            "url_name": a.url_name,
+            "target": target,
             "nav_key": a.nav_key,
             "icon": a.icon,
             "label": a.label,
