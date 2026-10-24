@@ -109,10 +109,11 @@ def _public_tenant():
     return TenantFactory(schema_name="public", slug=f"t-{uuid.uuid4().hex[:6]}")
 
 
-def test_set_range_writes_snapshot_and_clear_removes_it():
+def test_set_range_writes_snapshot_and_clear_removes_it(django_capture_on_commit_callbacks):
     tenant = _public_tenant()
     today = timezone.localdate()
-    closures.set_range(today, today + timedelta(days=2), reason="Urlaub")
+    with django_capture_on_commit_callbacks(execute=True):
+        closures.set_range(today, today + timedelta(days=2), reason="Urlaub")
     tenant.refresh_from_db()
     assert tenant.closure_ranges == [
         {
@@ -121,9 +122,22 @@ def test_set_range_writes_snapshot_and_clear_removes_it():
             "reason": "Urlaub",
         }
     ]
-    closures.clear_range(today, today + timedelta(days=2))
+    with django_capture_on_commit_callbacks(execute=True):
+        closures.clear_range(today, today + timedelta(days=2))
     tenant.refresh_from_db()
     assert tenant.closure_ranges == []
+
+
+def test_stale_full_save_does_not_revert_snapshot(django_capture_on_commit_callbacks):
+    """Ревью: полный save() устаревшего объекта Tenant не откатывает снимок каникул."""
+    tenant = _public_tenant()
+    stale = Tenant.objects.get(pk=tenant.pk)
+    with django_capture_on_commit_callbacks(execute=True):
+        closures.set_range(timezone.localdate(), timezone.localdate())
+    stale.name = "Neu"
+    stale.save()
+    fresh = Tenant.objects.get(pk=tenant.pk)
+    assert fresh.name == "Neu" and len(fresh.closure_ranges) == 1
 
 
 def _other(ranges):
@@ -175,8 +189,27 @@ def test_past_snapshot_range_is_ignored():
     assert t.open_status()["open"] is True
 
 
-def test_snapshot_never_reaches_other_tenant_row():
+def test_snapshot_never_reaches_other_tenant_row(django_capture_on_commit_callbacks):
     other = _other([])
     _public_tenant()
-    closures.set_range(timezone.localdate(), timezone.localdate())
+    with django_capture_on_commit_callbacks(execute=True):
+        closures.set_range(timezone.localdate(), timezone.localdate())
     assert Tenant.objects.get(pk=other.pk).closure_ranges == []
+
+
+def test_search_date_window_treats_holiday_as_closed():
+    """Ревью HIGH: «geöffnet morgen» в поиске учитывает каникулы, а не только часы."""
+    from apps.aggregator import search
+    from apps.aggregator.models import AggregatorListing
+
+    tomorrow = timezone.localdate() + timedelta(days=1)
+    t = _other([{"von": tomorrow.isoformat(), "bis": tomorrow.isoformat(), "reason": ""}])
+    AggregatorListing.objects.create(
+        tenant_schema=t.schema_name,
+        tenant_slug=t.slug,
+        listing_kind="product",
+        source_ref=f"p-{uuid.uuid4().hex[:6]}",
+        title={"de": "Brot"},
+    )
+    qs = AggregatorListing.objects.filter(tenant_schema=t.schema_name)
+    assert t.schema_name in search._closed_on_schemas(qs, tomorrow.isoformat())

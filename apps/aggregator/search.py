@@ -486,6 +486,7 @@ def window_days(value: str, *, now=None) -> list:
 def _closed_on_schemas(qs, value: str, *, now=None) -> set:
     """Схемы пула, закрытые во ВСЕ дни окна. Один запрос к Tenant (часы — на SHARED
     Tenant), проверка в Python; бизнес без часов закрытым не считается."""
+    from apps.core import closures
     from apps.tenants import openinghours
     from apps.tenants.models import Tenant
 
@@ -495,11 +496,14 @@ def _closed_on_schemas(qs, value: str, *, now=None) -> set:
         return set()
     pool = qs.order_by().filter(listing_kind__in=HOURS_GATED_KINDS).values("tenant_schema")
     closed = set()
-    for schema, structured in Tenant.objects.filter(schema_name__in=pool).values_list(
-        "schema_name", "opening_hours_structured"
+    for schema, structured, ranges in Tenant.objects.filter(schema_name__in=pool).values_list(
+        "schema_name", "opening_hours_structured", "closure_ranges"
     ):
+        # KA-12 E4.1c: день Betriebsferien — закрыт, что бы ни говорили часы.
         verdicts = [
-            openinghours.open_on(structured, d, after=now.time() if d == now.date() else None)
+            False
+            if closures.range_in_snapshot(ranges, d)
+            else openinghours.open_on(structured, d, after=now.time() if d == now.date() else None)
             for d in days
         ]
         if all(v is False for v in verdicts):

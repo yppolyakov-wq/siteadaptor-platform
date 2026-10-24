@@ -432,6 +432,19 @@ class Tenant(TenantMixin):
             out.append((key, label, url))
         return out
 
+    #: Поля, которые пишет только свой писатель через .update() — полный save() устаревшего
+    #: объекта их не перетирает (KA-12 E4.1c: снимок каникул).
+    SELF_MANAGED_FIELDS = ("closure_ranges",)
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding and kwargs.get("update_fields") is None:
+            kwargs["update_fields"] = [
+                f.name
+                for f in self._meta.concrete_fields
+                if not f.primary_key and f.name not in self.SELF_MANAGED_FIELDS
+            ]
+        return super().save(*args, **kwargs)
+
     def open_status(self) -> dict | None:
         """Live-статус «открыто сейчас» из структурных часов (P1b). None — не заданы."""
         from django.utils import timezone

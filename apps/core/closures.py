@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from datetime import date, timedelta
 
-from django.db import connection
+from django.db import connection, transaction
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ HORIZON_DAYS = 60
 #: Максимальная длина диапазона одной формы.
 MAX_RANGE_DAYS = 366
 #: Сколько диапазонов держит снимок на Tenant (портал/MCP).
-SNAPSHOT_MAX_RANGES = 24
+SNAPSHOT_MAX_RANGES = 60
 
 
 def _own_schema(tenant=None) -> bool:
@@ -183,25 +183,34 @@ def _ranges_from(days: dict) -> list:
 
 
 def sync_snapshot() -> None:
-    """Переписать снимок Betriebsferien на Tenant текущей схемы (портал/MCP видят его)."""
+    """Переписать снимок Betriebsferien на Tenant текущей схемы (портал/MCP видят его).
+
+    После коммита записи (иначе параллельная правка читала бы чужой незакоммиченный вид),
+    под блокировкой строки Tenant и в своём savepoint — сбой не отравляет транзакцию."""
+    schema = connection.schema_name
+    if schema:
+        transaction.on_commit(lambda: _write_snapshot(schema))
+
+
+def _write_snapshot(schema: str) -> None:
     from django.utils import timezone
 
-    schema = connection.schema_name
-    if not schema:
-        return
     try:
         from apps.booking.models import ClosedDate
         from apps.tenants.models import Tenant
 
-        days = dict(
-            ClosedDate.objects.filter(
-                resource__isnull=True, date__gte=timezone.localdate()
-            ).values_list("date", "reason")
-        )
-        Tenant.objects.filter(schema_name=schema).update(closure_ranges=_ranges_from(days))
+        with transaction.atomic():
+            Tenant.objects.select_for_update().filter(schema_name=schema).exists()
+            days = dict(
+                ClosedDate.objects.filter(
+                    resource__isnull=True, date__gte=timezone.localdate()
+                ).values_list("date", "reason")
+            )
+            ranges = _ranges_from(days)
+            Tenant.objects.filter(schema_name=schema).update(closure_ranges=ranges)
         holder = getattr(connection, "tenant", None)
         if holder is not None and hasattr(holder, "closure_ranges"):
-            holder.closure_ranges = _ranges_from(days)
+            holder.closure_ranges = ranges
     except Exception:  # noqa: BLE001 — витрина важнее снимка; повторится при следующей правке
         logger.exception("closures: snapshot sync failed")
 

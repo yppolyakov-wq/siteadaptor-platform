@@ -19501,4 +19501,8 @@ Micro-QR, который сканеры не читают. 11 msgid × 5. Пла
   записи идут через `closures` (раньше два писали `ClosedDate` напрямую мимо сброса кэша).
 - Security-ревью батча календаря: CRITICAL/HIGH нет; M1 (сотрудник закрывает бизнес) — этим и закрыт;
   кривой pk ресурса в «Aus Öffnungszeiten übernehmen» → 404 вместо 500.
+- Ревью E4.1c (django-reviewer): HIGH — поиск по дате «geöffnet morgen» (`search._closed_on_schemas`)
+  не знал каникул → учитывает снимок; снимок пишется после коммита, под блокировкой строки Tenant и в
+  своём savepoint; полный `Tenant.save()` устаревшего объекта больше не откатывает `closure_ranges`
+  (`Tenant.SELF_MANAGED_FIELDS`); лимит снимка 60 диапазонов.
 
