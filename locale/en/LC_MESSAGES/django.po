@@ -29080,3 +29080,7 @@ msgstr "A guest is staying in this room during this period — please move the g
 
 msgid "In diesem Zeitraum sind alle Zimmer der Kategorie verkauft — der Block würde zu einer Überbuchung führen."
 msgstr "All rooms of this category are sold for this period — the block would cause an overbooking."
+
+#, python-format
+msgid "Zimmer %(n)s"
+msgstr "Room %(n)s"

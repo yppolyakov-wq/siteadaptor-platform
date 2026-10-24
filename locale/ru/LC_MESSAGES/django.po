@@ -29349,3 +29349,7 @@ msgstr "В этом номере в эти даты живёт гость — с
 
 msgid "In diesem Zeitraum sind alle Zimmer der Kategorie verkauft — der Block würde zu einer Überbuchung führen."
 msgstr "В эти даты все номера категории проданы — блок привёл бы к овербукингу."
+
+#, python-format
+msgid "Zimmer %(n)s"
+msgstr "Номер %(n)s"

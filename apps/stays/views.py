@@ -157,6 +157,7 @@ def calendar_context(request):
             departure__gt=start,
         )
         .select_related("unit", "customer", "room")
+        .prefetch_related("extra_rooms")  # KA-12 E4.10b: полосы доп. номеров
         .order_by("arrival")
     )
     # Батч C (Belegungsplan): плашки броней/блокировок по дорожкам поверх сетки.
@@ -261,6 +262,7 @@ def calendar_context(request):
         "units": units,
         # PMS-R2: селект физического номера (пусто = у категории нет комнат).
         "free_rooms": services.free_rooms_for(selected) if selected else [],
+        "extra_room_slots": services.extra_room_slots(selected) if selected else [],
         "edit_extras": edit_extras,
         "chosen_extra_ids": chosen_extra_ids,
         # Ревью 2026-08-25: тот же партиал рендерится страницей брони, фрагментом
@@ -387,14 +389,10 @@ def stay_action(request, pk):
                 except services.RoomConflict:  # гонка — перенос состоялся, номер нет
                     # Прежняя комната на новые даты может быть занята — снимаем её,
                     # чтобы комната не оказалась занята дважды (ревью E4.10a).
-                    if booking.room_id and booking.room_id not in {
-                        r.id for r in services.free_rooms_for(booking)
-                    }:
-                        services.assign_room(booking, None)
-            elif booking.room_id and booking.room_id not in {
-                r.id for r in services.free_rooms_for(booking)
-            }:
-                services.assign_room(booking, None)  # даты переехали в конфликт
+                    services.drop_conflicting_rooms(booking)
+            else:
+                # Даты переехали в конфликт — снимаем занятые номера (все, E4.10b).
+                services.drop_conflicting_rooms(booking)
             if is_fetch:
                 return HttpResponse(status=204)
             messages.success(request, _("Stay moved."))
@@ -493,10 +491,20 @@ def stay_action(request, pk):
                 room_pk = request.POST.get("room", "")
                 if room_pk:
                     room_obj = Room.objects.filter(pk=room_pk, unit_id=booking.unit_id).first()
+                # KA-12 E4.10b: мультиномерная бронь — селекты «Zimmer 2…N».
+                extra_pks = [p for p in request.POST.getlist("room_extra") if p]
+                by_pk = {
+                    str(r.pk): r
+                    for r in Room.objects.filter(pk__in=extra_pks, unit_id=booking.unit_id)
+                }
+                extra_objs = [by_pk[p] for p in extra_pks if p in by_pk]
                 if room_obj is not None or not room_pk:
                     try:
                         with transaction.atomic():
-                            services.assign_room(booking, room_obj)
+                            if booking.rooms > 1 and "room_extra_present" in request.POST:
+                                services.assign_rooms(booking, [room_obj, *extra_objs])
+                            else:
+                                services.assign_room(booking, room_obj)
                     except services.RoomConflict:
                         room_taken = True  # перенос состоялся, номер — нет
         except services.MinStay:
@@ -722,6 +730,8 @@ def booking_detail(request, pk):
             "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
             # PMS-R2: селект физического номера (пусто = у категории нет комнат).
             "free_rooms": services.free_rooms_for(booking),
+            "extra_room_slots": services.extra_room_slots(booking),
+            "assigned_room_numbers": ", ".join(r.number for r in services.assigned_rooms(booking)),
             # DC-1: общий скелет карточки сделки — голова, статус, клиент, связи
             # и Belegungsplan под сеткой приходят из одного источника.
             **deal_card.card_context(

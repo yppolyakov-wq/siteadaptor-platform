@@ -29172,3 +29172,7 @@ msgstr "In diesem Zimmer wohnt in diesem Zeitraum ein Gast — bitte den Gast zu
 
 msgid "In diesem Zeitraum sind alle Zimmer der Kategorie verkauft — der Block würde zu einer Überbuchung führen."
 msgstr "In diesem Zeitraum sind alle Zimmer der Kategorie verkauft — der Block würde zu einer Überbuchung führen."
+
+#, python-format
+msgid "Zimmer %(n)s"
+msgstr "Zimmer %(n)s"

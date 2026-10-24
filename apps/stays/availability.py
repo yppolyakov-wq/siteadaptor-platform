@@ -233,12 +233,17 @@ def room_lane_rows(unit, rooms, start_day, num_days, bookings, blocks):
     ячейки в той же системе, что booking_bars (gap/seg)."""
     window_end = start_day + timedelta(days=num_days)
     room_ids = {r.id for r in rooms}
+
+    def _extra_ids(b):
+        # KA-12 E4.10b: доп. номера (prefetch extra_rooms у вызывающего — без N+1).
+        return {r.id for r in b.extra_rooms.all()} if getattr(b, "pk", None) else set()
+
     out = []
     for room in rooms:
         segs = [
             s
             for b in bookings
-            if b.unit_id == unit.id and b.room_id == room.id
+            if b.unit_id == unit.id and (b.room_id == room.id or room.id in _extra_ids(b))
             if (s := _clipped_seg("booking", b, b.arrival, b.departure, start_day, window_end))
         ]
         # KA-12 E4.10a: блок комнаты (ремонт) — в её полосе, не в «ohne Zimmer».
@@ -278,10 +283,10 @@ def room_lane_rows(unit, rooms, start_day, num_days, bookings, blocks):
         if seg is None:
             continue
         rooms_n = max(1, getattr(b, "rooms", 1) or 1)
-        assigned = b.room_id in room_ids
-        copies = rooms_n - 1 if assigned else rooms_n
+        n_assigned = int(b.room_id in room_ids) + len(_extra_ids(b) & room_ids)
+        copies = max(0, rooms_n - n_assigned)
         for i in range(copies):
-            free_segs.append({**seg, "open_room": assigned or i > 0})
+            free_segs.append({**seg, "open_room": bool(n_assigned) or i > 0})
     free_segs += [
         s
         for blk in blocks

@@ -29224,3 +29224,7 @@ msgstr "Bu tarihlerde bu odada bir misafir kalıyor — lütfen önce misafiri b
 
 msgid "In diesem Zeitraum sind alle Zimmer der Kategorie verkauft — der Block würde zu einer Überbuchung führen."
 msgstr "Bu tarihlerde kategorinin tüm odaları satıldı — engelleme fazla rezervasyona yol açar."
+
+#, python-format
+msgid "Zimmer %(n)s"
+msgstr "Oda %(n)s"

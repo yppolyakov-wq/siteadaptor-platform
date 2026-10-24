@@ -356,6 +356,9 @@ class StayBooking(TimestampedModel):
     room = models.ForeignKey(
         Room, on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings"
     )
+    # KA-12 E4.10b: при rooms > 1 — остальные назначенные номера (первый — `room`,
+    # его читают шахматка, карточка и хаускипинг). Всего назначено ≤ rooms.
+    extra_rooms = models.ManyToManyField(Room, blank=True, related_name="extra_bookings")
     # H5: разбивка гостей (вместимость = adults + children ≤ max_guests). guests
     # держим как итог для совместимости; adults/children — для Kurtaxe и отображения.
     adults = models.PositiveSmallIntegerField(default=1)

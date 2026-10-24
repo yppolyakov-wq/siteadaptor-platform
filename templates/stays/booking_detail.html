@@ -29,7 +29,7 @@
   <div class="grid sm:grid-cols-2 gap-4 text-sm mt-4">
     <div>{% include "stays/_stay_stay.html" %}</div>
     <div>
-      <p class="text-sm text-gray-600">{{ b.adults }} {% trans "Erwachsene" %}{% if b.children %} · {{ b.children }} {% trans "Kinder" %}{% endif %}{% if b.rooms > 1 %} · {{ b.rooms }} {% trans "Zimmer" %} <span data-rooms-assigned>({% if b.room %}{% blocktrans with n=b.room.number %}zugewiesen: {{ n }}{% endblocktrans %}{% else %}{% trans "noch keins zugewiesen" %}{% endif %})</span>{% endif %}</p>
+      <p class="text-sm text-gray-600">{{ b.adults }} {% trans "Erwachsene" %}{% if b.children %} · {{ b.children }} {% trans "Kinder" %}{% endif %}{% if b.rooms > 1 %} · {{ b.rooms }} {% trans "Zimmer" %} <span data-rooms-assigned>({% if assigned_room_numbers %}{% blocktrans with n=assigned_room_numbers %}zugewiesen: {{ n }}{% endblocktrans %}{% else %}{% trans "noch keins zugewiesen" %}{% endif %})</span>{% endif %}</p>
       {% if b.note %}<p class="mt-2 text-sm bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">📝 {{ b.note }}</p>{% endif %}
       {% if b.source_channel %}<p class="text-xs text-gray-400 mt-2">{{ b.source_channel }}{% if b.external_ref %} ({{ b.external_ref }}){% endif %}</p>{% endif %}
     </div>

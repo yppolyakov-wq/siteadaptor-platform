@@ -126,15 +126,17 @@ def free_rooms_for(booking):
     rooms = list(Room.objects.filter(unit_id=booking.unit_id, is_active=True))
     if not rooms:
         return []
-    busy = set(
-        StayBooking.objects.filter(
-            room__in=rooms,
-            status__in=status_registry.active_statuses_for("stay"),
-            arrival__lt=booking.departure,
-            departure__gt=booking.arrival,
-        )
-        .exclude(pk=booking.pk)
-        .values_list("room_id", flat=True)
+    overlapping = StayBooking.objects.filter(
+        status__in=status_registry.active_statuses_for("stay"),
+        arrival__lt=booking.departure,
+        departure__gt=booking.arrival,
+    ).exclude(pk=booking.pk)
+    busy = set(overlapping.filter(room__in=rooms).values_list("room_id", flat=True))
+    # KA-12 E4.10b: доп. номера мультиномерных броней тоже заняты.
+    busy |= set(
+        StayBooking.extra_rooms.through.objects.filter(
+            staybooking__in=overlapping, room__in=rooms
+        ).values_list("room_id", flat=True)
     )
     # KA-12 E4.10a: блок комнаты занимает ночи [start_date, end_date] включительно.
     busy |= set(
@@ -167,6 +169,61 @@ def assign_room(booking, room) -> None:
             raise RoomConflict()
         booking.room = room
         booking.save(update_fields=["room", "updated_at"])
+        # Комната не может стоять и первой, и дополнительной.
+        booking.extra_rooms.remove(room)
+
+
+def assigned_rooms(booking) -> list:
+    """KA-12 E4.10b: все назначенные номера брони (первый — `room`)."""
+    out = [booking.room] if booking.room_id else []
+    out += [r for r in booking.extra_rooms.all() if r.id != booking.room_id]
+    return out
+
+
+def assign_rooms(booking, rooms) -> None:
+    """KA-12 E4.10b: назначить номера мультиномерной брони одним действием.
+
+    Порядок значим: первый → `room`, остальные → `extra_rooms`. Пустые и дубли
+    отбрасываются; больше, чем `booking.rooms`, — RoomConflict; каждая комната —
+    своей категории и свободна на диапазон (блокировки комнат в порядке pk)."""
+    from .models import Room
+
+    picked = []
+    for room in rooms:
+        if room is not None and room.id not in {r.id for r in picked}:
+            picked.append(room)
+    if len(picked) > max(1, booking.rooms or 1):
+        raise RoomConflict()
+    if any(r.unit_id != booking.unit_id for r in picked):
+        raise RoomConflict()
+    with transaction.atomic():
+        for pk in sorted(r.pk for r in picked):
+            Room.objects.select_for_update().filter(pk=pk).first()
+        free = {r.id for r in free_rooms_for(booking)}
+        if any(r.id not in free for r in picked):
+            raise RoomConflict()
+        booking.room = picked[0] if picked else None
+        booking.save(update_fields=["room", "updated_at"])
+        booking.extra_rooms.set(picked[1:])
+
+
+def extra_room_slots(booking) -> list[dict]:
+    """Селекты «Zimmer 2…N» формы правки: номер слота и уже назначенная комната."""
+    if not booking or (booking.rooms or 1) <= 1:
+        return []
+    extras = [r.id for r in booking.extra_rooms.all() if r.id != booking.room_id]
+    return [
+        {"n": i + 2, "room_id": extras[i] if i < len(extras) else None}
+        for i in range(booking.rooms - 1)
+    ]
+
+
+def drop_conflicting_rooms(booking) -> None:
+    """После переноса дат: снять назначенные номера, которые на новые даты заняты."""
+    free = {r.id for r in free_rooms_for(booking)}
+    keep = [r for r in assigned_rooms(booking) if r.id in free]
+    if len(keep) != len(assigned_rooms(booking)):
+        assign_rooms(booking, keep)
 
 
 def create_block(unit, start_date, end_date, reason="", *, room=None):
@@ -482,6 +539,8 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
         booking.unit = dest
         # PMS-R2: физический номер принадлежит категории — при смене сбрасываем.
         booking.room = None
+        # KA-12 E4.10b: и доп. номера мультиномерной брони.
+        booking.extra_rooms.clear()
     unit = dest
     old_nights = max(1, (booking.departure - booking.arrival).days)
     booking.arrival = arrival

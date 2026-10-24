@@ -57,10 +57,15 @@ class StayBookingSM(StateMachine):
 
         # PMS-R4: выезд освобождает физический номер грязным — хаускипинг видит
         # его в списке уборки, стойка отмечает «Sauber».
-        if t.dst == "fulfilled" and instance.room_id:
+        if t.dst == "fulfilled":
             from .models import Room
 
-            Room.objects.filter(pk=instance.room_id).update(housekeeping=Room.HK_DIRTY)
+            # KA-12 E4.10b: все назначенные номера брони, не только первый.
+            room_ids = list(instance.extra_rooms.values_list("pk", flat=True))
+            if instance.room_id:
+                room_ids.append(instance.room_id)
+            if room_ids:
+                Room.objects.filter(pk__in=room_ids).update(housekeeping=Room.HK_DIRTY)
 
         # Выезд → журнал выручки (идемпотентно по source_ref). KA-H6: проживание —
         # по снимку ставки брони, питание тарифа — отдельной записью 19 %.
