@@ -324,7 +324,7 @@ def bank_import(request):
                 from .models import Invoice
 
                 obj = Invoice.objects.filter(pk=request.POST.get("obj")).first()
-            elif kind in bank_mod._OPEN_PAYMENT_STATES:
+            elif kind in bank_mod._OPEN_PAYMENT_STATES or kind == "job":  # B2-2: Anzahlung
                 from apps.core import transactions as core_transactions
 
                 obj = (

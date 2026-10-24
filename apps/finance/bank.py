@@ -153,6 +153,38 @@ def import_rows(rows) -> int:
 _OPEN_PAYMENT_STATES = money_contract.OPEN_STATES
 
 
+def _job_deposit_items(tenant, today) -> list[dict]:
+    """KA-12 B2-2 (MC-J1): принятая заявка с неоплаченной Anzahlung — строка на сумму
+    депозита (раньше заявки в Offene Posten не было вовсе, пока нет счёта)."""
+    if not tenant.is_module_active(transactions.KIND_MODULE["job"]):
+        return []
+    model = transactions.model_for("job")
+    qs = (
+        model.objects.filter(money_contract.job_deposit_open_q())
+        .exclude(status__in=status_registry.cancelled_statuses_for("job", tenant))
+        .select_related("customer")
+        .order_by("created_at")[:200]
+    )
+    rows = []
+    for obj in qs:
+        t = transactions.transaction_for("job", obj)
+        rows.append(
+            {
+                "kind": "job",
+                "kind_label": _("Anzahlung"),
+                "obj": obj,
+                "code": obj.reference_code,
+                "title": t.title,
+                "amount": Decimal(obj.deposit_cents) / 100,
+                "customer": obj.customer,
+                "age_days": (today - obj.created_at.date()).days,
+                "manage_url": t.manage_url,
+                "due_date": None,
+            }
+        )
+    return rows
+
+
 def open_items(tenant) -> list[dict]:
     """Открытые позиции: сделки, ждущие оплату (+ выставленные счета). Строка:
     {kind, obj, code, title, amount, customer, age_days, tx}."""
@@ -211,6 +243,7 @@ def open_items(tenant) -> list[dict]:
                     ),
                 }
             )
+    out += _job_deposit_items(tenant, today)
     # KA-12 E1.1: Stornorechnung ничего не ждёт — не открытая позиция.
     open_invoices = Invoice.objects.filter(status="issued", kind=Invoice.KIND_INVOICE)
     for inv in open_invoices.order_by("issued_at")[:200]:
@@ -272,7 +305,9 @@ def apply_match(tx, kind: str, obj) -> bool:
     else:
         # KA-MC X2: тем же путём, что вебхук и кнопка «bezahlt» (снятие удержания,
         # подтверждение, закрытие счёта сделки), а не голой записью поля.
-        money_contract.settle_payment(kind, obj, source="bank")
+        # KA-12 B2-2: строка заявки до счёта — это Anzahlung, а не вся сумма.
+        deposit_only = kind == "job" and not getattr(obj, "invoice_id", None)
+        money_contract.settle_payment(kind, obj, source="bank", deposit_only=deposit_only)
     tx.matched_kind = kind
     tx.matched_id = str(obj.pk)
     tx.matched_at = timezone.now()

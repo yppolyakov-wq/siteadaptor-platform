@@ -295,7 +295,11 @@ def check(kind, obj, phase, tenant, where=""):
     # I-OP
     rows = _open_rows(kind, obj, tenant)
     assert len(rows) <= 1, f"{msg} rows={rows}"
-    if rows:
+    if rows and rows[0]["kind"] == "job":
+        # KA-12 B2-2 (MC-J1, осознанное уточнение I-OP): у заявки до счёта сейчас
+        # ждём только Anzahlung; остаток станет долгом вместе со счётом.
+        assert rows[0]["amount"] == Decimal(obj.deposit_cents) / 100 <= ms.due, msg
+    elif rows:
         assert rows[0]["amount"] == ms.due, f"{msg} row={rows[0]['amount']}"
     elif kind != "job":
         # Сделка вне Offene Posten обязана не ждать денег через перевод/счёт.

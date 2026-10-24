@@ -217,19 +217,37 @@ def money_state(kind: str, obj) -> MoneyState:
 _CONFIRM_ON_PAY = {"order": "new", "ticket": "pending", "booking": "pending", "stay": "pending"}
 
 
-def settle_payment(kind: str, obj, *, source: str = "manual") -> bool:
+def settle_payment(kind: str, obj, *, source: str = "manual", deposit_only: bool = False) -> bool:
     """Отметить сделку оплаченной ПОЛНОСТЬЮ вне Stripe (касса, перевод, банк).
 
     Единый путь для ручной кнопки «bezahlt», сопоставления выписки и оплаты счёта:
     тот же набор полей и подтверждение, что у вебхука. Возврат не «воскрешаем».
-    Возвращает True, если состояние оплаты изменилось."""
+    Возвращает True, если состояние оплаты изменилось.
+
+    `deposit_only` (KA-12 B2-2, только заявка): пришла Anzahlung — та же семантика,
+    что у вебхука депозита (`jobs.payments.mark_deposit_paid`): «оплачено», сумма
+    депозита сохраняется, счёт потом вычтет ровно её, а не всю сумму."""
     from django.db import transaction
 
     with transaction.atomic():
-        return _settle_payment(kind, obj)
+        return _settle_payment(kind, obj, deposit_only=deposit_only)
 
 
-def _settle_payment(kind, obj) -> bool:
+def job_deposit_open_q():
+    """KA-12 B2-2 (MC-J1): заявка ждёт Anzahlung — принята, депозит назначен и не
+    оплачен, счёта ещё нет (после счёта открытая позиция — сам счёт)."""
+    from django.db.models import Q
+
+    return Q(payment_state="unpaid", deposit_cents__gt=0, invoice_id__isnull=True) & ~Q(
+        status__in=JOB_NOT_YET_OWED
+    )
+
+
+#: Заявка до принятия сметы — ещё не долг; после «invoiced» долг — счёт.
+JOB_NOT_YET_OWED = ("new", "quoted", "invoiced")
+
+
+def _settle_payment(kind, obj, *, deposit_only: bool = False) -> bool:
     import logging
 
     from django.db import transaction
@@ -251,7 +269,7 @@ def _settle_payment(kind, obj) -> bool:
     if state != paid:
         obj.payment_state = paid
         fields.append("payment_state")
-        if kind == "job" and obj.deposit_cents:
+        if kind == "job" and obj.deposit_cents and not deposit_only:
             # KA-H10: ручная отметка заявки = оплачено полностью, не Anzahlung.
             obj.deposit_cents = 0
             fields.append("deposit_cents")
