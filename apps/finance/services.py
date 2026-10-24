@@ -454,8 +454,10 @@ def invoice_from_stay(booking, tenant=None):
                 "vat_rate": str(extra_rate),
             }
         )
-    if booking.discount_cents:
-        net, _v = _net_from_gross(Decimal(booking.discount_cents) / 100, rate)
+    cert = certificate_cents(booking)  # E1.8: сертификат — оплата, не Rabatt
+    rabatt = (booking.discount_cents or 0) - cert
+    if rabatt:
+        net, _v = _net_from_gross(Decimal(rabatt) / 100, rate)
         lines.append(
             {
                 "text": str(_("Rabatt")),
@@ -475,7 +477,7 @@ def invoice_from_stay(booking, tenant=None):
                 "vat_rate": "0",
             }
         )
-    fit_gross(lines, Decimal(booking.total_cents or 0) / 100, rate, small_business=small)
+    fit_gross(lines, Decimal((booking.total_cents or 0) + cert) / 100, rate, small_business=small)
     net, vat, gross = compute_totals(lines, rate, small_business=small)
     return Invoice.objects.create(
         customer=booking.customer,
@@ -485,7 +487,10 @@ def invoice_from_stay(booking, tenant=None):
         net=net,
         vat_amount=vat,
         gross=gross,
-        note=str(_("Buchung %(code)s")) % {"code": booking.reference_code},
+        note=_with_note(
+            str(_("Buchung %(code)s")) % {"code": booking.reference_code},
+            _certificate_note(booking, cert),
+        ),
         service_date=booking.arrival,  # KA-H10: Leistungszeitraum — проживание
         service_date_end=booking.departure,
         prepaid_cents=_prepaid_from_payment_state(booking),
@@ -521,10 +526,12 @@ def invoice_from_booking(booking, tenant=None):
                 "vat_rate": str(e_rate),
             }
         )
-    if booking.discount_cents:
-        d_net, _v = _net_from_gross(Decimal(booking.discount_cents) / 100, rate)
+    cert = certificate_cents(booking)  # E1.8: сертификат — оплата, не Rabatt
+    rabatt = (booking.discount_cents or 0) - cert
+    if rabatt:
+        d_net, _v = _net_from_gross(Decimal(rabatt) / 100, rate)
         lines.append({"text": str(_("Rabatt")), "qty": 1, "unit_price": str(-d_net)})
-    fit_gross(lines, Decimal(booking.total_cents or 0) / 100, rate, small_business=small)
+    fit_gross(lines, Decimal((booking.total_cents or 0) + cert) / 100, rate, small_business=small)
     total_net, vat, gross = compute_totals(lines, rate, small_business=small)
     return Invoice.objects.create(
         customer=booking.customer,
@@ -534,10 +541,21 @@ def invoice_from_booking(booking, tenant=None):
         net=total_net,
         vat_amount=vat,
         gross=gross,
-        note=str(_("Termin %(code)s")) % {"code": booking.reference_code},
+        note=_with_note(
+            str(_("Termin %(code)s")) % {"code": booking.reference_code},
+            _certificate_note(booking, cert),
+        ),
         service_date=_local_date(booking.start),  # KA-H10: Leistungsdatum
         prepaid_cents=_prepaid_from_payment_state(booking),
     )
+
+
+def _with_note(head: str, extra: str) -> str:
+    """Заметка счёта + пометка об оплате (поле 200 знаков; пометку не обрезаем)."""
+    if not extra:
+        return head[:200]
+    room = 200 - len(extra) - 3
+    return f"{head[: max(room, 0)]} · {extra}"[:200]
 
 
 def _local_date(value):
@@ -553,19 +571,61 @@ def _local_date(value):
     return value
 
 
+def certificate_cents(deal) -> int:
+    """KA-12 E1.8 (MC-Z9): часть скидки брони/записи/заказа, оплаченная сертификатом
+    с остатком (Wertgutschein, Mehrzweckgutschein — средство платежа, не Rabatt).
+
+    Признак — код сделки совпадает с сертификатом с балансом (то же правило, что
+    у легаси-заявок в `jobs.services.voucher_payment_cents`). Скидка владельца
+    (DC-5) пишет в `voucher_code` свою заметку, поэтому после ручной правки скидки
+    код не совпадёт — и она честно остаётся Rabatt. Точное поле
+    `voucher_paid_cents` для этих видов — батч 2 (миграция)."""
+    disc = int(getattr(deal, "discount_cents", 0) or 0)
+    code = (getattr(deal, "voucher_code", "") or "").strip()
+    if disc <= 0 or not code:
+        return 0
+    try:
+        from apps.loyalty.models import Voucher
+    except ImportError:  # pragma: no cover
+        return 0
+    if Voucher.objects.filter(code__iexact=code, balance_cents__isnull=False).exists():
+        return disc
+    return 0
+
+
+def _certificate_note(deal, cents: int) -> str:
+    """Пометка «Gutschein CODE: −X» (та же строка, что у счёта из заявки)."""
+    if not cents:
+        return ""
+    from decimal import Decimal
+
+    from django.utils.translation import gettext as _
+
+    from apps.core.documents import money
+
+    return str(_("Gutschein %(code)s: −%(amount)s")) % {
+        "code": (deal.voucher_code or "")[:20],
+        "amount": money(Decimal(cents) / 100),
+    }
+
+
 def _prepaid_from_payment_state(deal) -> int:
-    """KA-H10: уже получено по брони/записи/заказу: Anzahlung → её сумма, оплачено → всё."""
+    """KA-H10: уже получено по брони/записи/заказу: Anzahlung → её сумма, оплачено → всё.
+
+    KA-12 E1.8: сертификат с остатком — тоже уже полученные деньги (счёт идёт на
+    полную цену, сертификат вычитается как оплата)."""
+    cert = certificate_cents(deal)
     state = getattr(deal, "payment_state", "")
     if state == "deposit":
-        return int(getattr(deal, "deposit_cents", 0) or 0)
+        return int(getattr(deal, "deposit_cents", 0) or 0) + cert
     if state == "paid":
         cents = getattr(deal, "total_cents", None)
         if cents is None:  # заказ: итог в евро (Decimal)
             from decimal import Decimal
 
             cents = int(round(Decimal(str(getattr(deal, "total", 0) or 0)) * 100))
-        return int(cents or 0)
-    return 0
+        return int(cents or 0) + cert
+    return cert
 
 
 def _refresh_prepaid(invoice) -> bool:
@@ -668,9 +728,11 @@ def invoice_from_order(order, tenant=None):
                 "vat_rate": str(rate),
             }
         )
-    if order.discount_cents:
+    cert = certificate_cents(order)  # E1.8: сертификат — оплата, не Rabatt
+    rabatt = (order.discount_cents or 0) - cert
+    if rabatt:
         rate = totals["rows"][0]["rate"] if totals["rows"] else Decimal("0")
-        net_disc, _vat = split_gross(Decimal(order.discount_cents) / 100, rate)
+        net_disc, _vat = split_gross(Decimal(rabatt) / 100, rate)
         lines.append(
             {
                 "text": str(_("Rabatt")),
@@ -683,7 +745,8 @@ def invoice_from_order(order, tenant=None):
     # считается ПО СТАВКАМ СТРОК: у смешанного заказа одна усреднённая ставка
     # давала счёт, не совпадающий с суммой, которую клиент реально заплатил.
     rate = totals["rows"][0]["rate"] if totals["rows"] else Decimal("19.00")
-    fit_gross(lines, order.total, rate, small_business=small)  # KA-MC X5: счёт = заказ
+    # KA-MC X5: счёт = заказ; E1.8: + сертификат (он оплата, а не уменьшение цены).
+    fit_gross(lines, Decimal(str(order.total)) + Decimal(cert) / 100, rate, small_business=small)
     net, vat, gross = compute_totals(lines, rate, small_business=small)
     return Invoice.objects.create(
         customer=order.customer,
@@ -693,7 +756,10 @@ def invoice_from_order(order, tenant=None):
         net=net,
         vat_amount=vat,
         gross=gross,
-        note=str(_("Auftrag %(code)s")) % {"code": order.reference_code},
+        note=_with_note(
+            str(_("Auftrag %(code)s")) % {"code": order.reference_code},
+            _certificate_note(order, cert),
+        ),
         # KA-H10: Leistungsdatum — отгрузка, иначе слот выдачи; иначе при выпуске.
         service_date=_local_date(
             getattr(order, "shipped_at", None) or getattr(order, "pickup_slot", None)
