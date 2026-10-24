@@ -28884,3 +28884,12 @@ msgstr "Залишок до сплати: %(eur)s €"
 
 msgid "Restbetrag %(eur)s € online bezahlen"
 msgstr "Сплатити залишок %(eur)s € онлайн"
+
+msgid "Noch offen: %(eur)s €"
+msgstr "Ще до сплати: %(eur)s €"
+
+msgid "Jetzt online bezahlen"
+msgstr "Сплатити онлайн"
+
+msgid "Bitte bezahlen Sie den Restbetrag vor Ort."
+msgstr "Залишок, будь ласка, сплатіть на місці."

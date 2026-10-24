@@ -28779,3 +28779,12 @@ msgstr "Kalan bakiye: %(eur)s €"
 
 msgid "Restbetrag %(eur)s € online bezahlen"
 msgstr "Kalan %(eur)s € tutarı çevrimiçi öde"
+
+msgid "Noch offen: %(eur)s €"
+msgstr "Kalan ödeme: %(eur)s €"
+
+msgid "Jetzt online bezahlen"
+msgstr "Şimdi çevrimiçi öde"
+
+msgid "Bitte bezahlen Sie den Restbetrag vor Ort."
+msgstr "Lütfen kalan tutarı yerinde ödeyin."

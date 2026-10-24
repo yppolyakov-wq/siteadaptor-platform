@@ -28900,3 +28900,12 @@ msgstr "Остаток к оплате: %(eur)s €"
 
 msgid "Restbetrag %(eur)s € online bezahlen"
 msgstr "Оплатить остаток %(eur)s € онлайн"
+
+msgid "Noch offen: %(eur)s €"
+msgstr "Ещё к оплате: %(eur)s €"
+
+msgid "Jetzt online bezahlen"
+msgstr "Оплатить онлайн"
+
+msgid "Bitte bezahlen Sie den Restbetrag vor Ort."
+msgstr "Остаток, пожалуйста, оплатите на месте."

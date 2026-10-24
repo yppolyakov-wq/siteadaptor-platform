@@ -28635,3 +28635,12 @@ msgstr "Outstanding balance: %(eur)s €"
 
 msgid "Restbetrag %(eur)s € online bezahlen"
 msgstr "Pay the remaining %(eur)s € online"
+
+msgid "Noch offen: %(eur)s €"
+msgstr "Still outstanding: %(eur)s €"
+
+msgid "Jetzt online bezahlen"
+msgstr "Pay online now"
+
+msgid "Bitte bezahlen Sie den Restbetrag vor Ort."
+msgstr "Please pay the remaining amount on site."

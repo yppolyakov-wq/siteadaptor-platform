@@ -28727,3 +28727,12 @@ msgstr "Offener Restbetrag: %(eur)s €"
 
 msgid "Restbetrag %(eur)s € online bezahlen"
 msgstr "Restbetrag %(eur)s € online bezahlen"
+
+msgid "Noch offen: %(eur)s €"
+msgstr "Noch offen: %(eur)s €"
+
+msgid "Jetzt online bezahlen"
+msgstr "Jetzt online bezahlen"
+
+msgid "Bitte bezahlen Sie den Restbetrag vor Ort."
+msgstr "Bitte bezahlen Sie den Restbetrag vor Ort."

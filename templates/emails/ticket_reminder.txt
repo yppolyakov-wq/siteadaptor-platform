@@ -9,7 +9,9 @@
 {% if event.is_online and event.online_url %}
 {% trans "Zugangslink (online)" %}: {{ event.online_url }}
 {% endif %}
-{% if memo_url %}
+{% if rest_eur %}{% blocktrans with eur=rest_eur %}Noch offen: {{ eur }} €{% endblocktrans %}
+{% if rest_url %}{% trans "Jetzt online bezahlen" %}: {{ rest_url }}{% else %}{% trans "Bitte bezahlen Sie den Restbetrag vor Ort." %}{% endif %}
+{% endif %}{% if memo_url %}
 {% trans "Ihr Infoblatt (was mitbringen, Anfahrt)" %}: {{ memo_url }}
 {% endif %}
 {% trans "Bis bald!" %}

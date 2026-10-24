@@ -22,6 +22,23 @@ _CUSTOMER_TEMPLATES = {
 }
 
 
+def _rest_context(ticket, tenant, base: str) -> dict:
+    """{rest_eur, rest_url} для напоминания; пусто, если ничего не осталось."""
+    from apps.core import balance_pay, money_contract
+
+    try:
+        rest = money_contract.due("ticket", ticket)
+    except Exception:  # noqa: BLE001 — сумма не должна ронять письмо
+        return {}
+    if rest <= 0 or ticket.payment_state in (ticket.PAYMENT_PENDING, ticket.PAYMENT_REFUNDED):
+        # pending — своё письмо «Jetzt bezahlen» (B2.3); refunded — ничего не ждём.
+        return {}
+    url = ""
+    if base and balance_pay.rest_payable("ticket", ticket, tenant):
+        url = f"{base}{balance_pay.pay_path('ticket', ticket)}"
+    return {"rest_eur": f"{rest:.2f}".replace(".", ","), "rest_url": url}
+
+
 def enqueue_ticket_email(ticket, event):
     """Создать Notification(ы) события билета (БД-дедуп) и поставить доставку."""
     schema = connection.schema_name
@@ -41,6 +58,10 @@ def enqueue_ticket_email(ticket, event):
                 if base
                 else ""
             )
+        # KA-12 B2-6 (E1.10): напоминание перед событием называет остаток; при
+        # онлайн-оплате — ссылка, иначе «vor Ort» (решение владельца E-1).
+        if event == "reminder":
+            ctx.update(_rest_context(ticket, tenant, base))
         # B2: ссылка на подтверждение (там кнопка «Jetzt bezahlen»).
         if event == "payment_reminder":
             ctx["pay_url"] = (
