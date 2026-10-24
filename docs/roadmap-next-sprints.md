@@ -314,6 +314,13 @@ clothing/restaurant/cafe/retail/tour_operator/hotel).
 - [x] Sitemaps, мета, **schema.org** — закрыто ранее (Track B5 + P2.1c). hreflang (DE/EN)
   сознательно не делаем, пока язык в cookie, а не в URL (см. §Отложено).
 
+- **(2026-10-24, KA-12 E11.1) Счёт: НДС «из брутто» (Bruttomethode).** `compute_totals` считает НДС
+  от нетто, округлённого до цента, поэтому часть брутто-цен недостижима: 45,00 € @19 % даёт 45,01 €
+  (37,82 → 7,19) или 44,99 €; `fit_gross` пишет предупреждение «rounding residual» и оставляет цент.
+  Счёт расходится с суммой сделки и журналом выручки (Offene Posten, Mahnung). Нужен режим «цены
+  брутто»: НДС = брутто × r/(100+r), нетто = брутто − НДС по группе ставок; PDF-разбивка по ставкам —
+  тем же расчётом. Касается всех `invoice_from_*`. Замок: `test_invoice_gross_equals_deal_total_exactly`
+  (xfail strict — снять при фиксе).
 - [x] SSR-листинги (были) + кэш (P2.2b: `apps/core/pagecache.py`, TTL 120с); canonical
   (P2.1c порталы + P2.2a городские страницы); OpenGraph (P2.2a); перелинковка
   город↔портал↔сеть порталов (P2.2a). _(✅ в `main`, a573b35+75ba11d, CI runs 64/65

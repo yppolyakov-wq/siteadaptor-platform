@@ -7,6 +7,8 @@
         страница подтверждения /r/<code>/ → сделка `Reservation` в БД.
   GP-2  Click & Collect (демо `shop`): каталог → товар → в корзину → корзина →
         самовывоз, имя/почта → заказ /bestellung/<code>/ → `Order` в БД.
+  GP-3  Termine (демо `friseur`, KA-12 E11.1): /termin/ → услуга → свободное время
+        (при пустом дне — «ближайший свободный») → форма → /t/<code>/ → `Booking` в БД.
 
 Плюс общие проверки на каждой странице: нет JS-ошибок, нет горизонтального
 скролла, ответ 2xx.
@@ -163,6 +165,70 @@ def gp2_click_collect(run, ctx, port):
         run.check(_db_has("orders.Order", m.group(1), "shop"), "заказ в БД")
 
 
+def gp3_termine(run, ctx, port):
+    print("GP-3 Termine (friseur)")
+    page = ctx.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    host = f"http://friseur.{BASE}:{port}"
+    resp = page.goto(f"{host}/termin/")
+    run.check(resp and resp.ok, "/termin/ открывается")
+    _page_health(run, page, errors, "/termin/")
+    hrefs = page.locator("a[href*='/leistung/']").evaluate_all(
+        "els => els.map(e => e.getAttribute('href'))"
+    )
+    pk = next(
+        (m.group(1) for h in hrefs if (m := re.search(r"/leistung/([0-9a-f-]{36})/", h))), None
+    )
+    run.check(bool(pk), "на /termin/ есть услуга")
+    if not pk:
+        return
+    page.goto(f"{host}/termin/leistung/{pk}/")
+    _page_health(run, page, errors, "выбор времени")
+    free = page.locator("a[data-slot='free']")
+    for _hop in range(7):  # пустой день → «ближайший свободный термин»
+        if free.count():
+            break
+        nxt = page.locator("a[href*='?tag=']").filter(has_text="→")
+        if not nxt.count():
+            break
+        nxt.first.click()
+        page.wait_for_timeout(700)
+        free = page.locator("a[data-slot='free']")
+    run.check(free.count() > 0, "есть свободное время (иначе демо без окна — причина в R8)")
+    if not free.count():
+        return
+    free.first.click()
+    page.wait_for_timeout(700)
+    form = page.locator("form#buybox-form")
+    run.check(form.count() == 1, "после выбора времени появилась форма записи")
+    if not form.count():
+        return
+    opener = page.locator("[data-modal-open='buybox-modal']")
+    if opener.count() and opener.first.is_visible():
+        opener.first.click()
+        page.wait_for_timeout(300)
+    tag = uuid.uuid4().hex[:6]
+    page.locator("input[name='name']").locator("visible=true").first.fill(f"GP Kunde {tag}")
+    page.locator("input[name='email']").locator("visible=true").first.fill(f"gp-{tag}@example.com")
+    for box in page.locator("input[type='checkbox'][required]").all():
+        if box.is_visible():
+            box.check()
+    page.locator(
+        "button[type='submit'][form='buybox-form'], form#buybox-form button[type='submit']"
+    ).locator("visible=true").last.click()
+    page.wait_for_load_state()
+    m = re.search(r"/t/([^/]+)/", page.url)
+    if not m:
+        err = page.locator(".errorlist, [role='alert'], .text-red-600").all_inner_texts()
+        print("    ошибка формы:", " | ".join(t.strip() for t in err if t.strip())[:200])
+    run.check(bool(m), f"подтверждение /t/<code>/ ({page.url})")
+    _page_health(run, page, errors, "подтверждение записи")
+    if m:
+        run.check(page.get_by_text(m.group(1)).count() > 0, "код показан покупателю")
+        run.check(_db_has("booking.Booking", m.group(1), "friseur"), "запись в БД")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8000)
@@ -176,6 +242,7 @@ def main():
         ctx = browser.new_context(viewport={"width": 390, "height": 844}, locale="de-DE")
         gp1_aktionen(run, ctx, args.port)
         gp2_click_collect(run, ctx, args.port)
+        gp3_termine(run, ctx, args.port)
         browser.close()
     print(f"\n{run.ok} ok, {len(run.fail)} fail")
     for f in run.fail:
