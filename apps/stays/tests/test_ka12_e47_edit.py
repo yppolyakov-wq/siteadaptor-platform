@@ -84,3 +84,25 @@ def test_failed_update_rolls_back_guests_and_note():
     booking.refresh_from_db()
     assert booking.adults != 3 and booking.note != "neu"
     assert booking.departure == D0 + timedelta(days=4)
+
+
+def test_move_stay_runs_in_its_own_atomic_block(monkeypatch):
+    """Ревью: декоратор atomic съехал на хелпер — move_stay без транзакции давал бы
+    TransactionManagementError на select_for_update в проде (тесты сами в транзакции)."""
+    from django.db import connection
+
+    unit = _unit(price_cents=10000, max_guests=4)
+    booking = _book(unit, 1, 4)
+    outer = len(connection.savepoint_ids)
+    seen = []
+    real = services.availability.range_available
+
+    def spy(*a, **k):
+        seen.append(len(connection.savepoint_ids))
+        return real(*a, **k)
+
+    monkeypatch.setattr(services.availability, "range_available", spy)
+    services.move_stay(
+        booking, arrival=D0 + timedelta(days=2), departure=D0 + timedelta(days=5), reprice=False
+    )
+    assert seen and seen[0] > outer

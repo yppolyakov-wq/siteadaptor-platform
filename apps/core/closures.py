@@ -53,14 +53,44 @@ def closed_days(start: date, end: date, tenant=None) -> dict:
         return {}
 
 
+def _window(today: date, tenant=None) -> dict:
+    """Окно [today, today+HORIZON] один раз на объект тенанта (= на запрос): баннер,
+    «открыто сейчас» и присутствие читают одни и те же дни — без трёх запросов."""
+    holder = tenant if tenant is not None else getattr(connection, "tenant", None)
+    memo = getattr(holder, "_closed_window", None) if holder is not None else None
+    if memo is not None and memo[0] == today:
+        return memo[1]
+    days = closed_days(today, today + timedelta(days=HORIZON_DAYS), tenant)
+    if holder is not None and _own_schema(tenant):  # чужая схема = {} — не запоминать
+        try:
+            holder._closed_window = (today, days)
+        except AttributeError:
+            pass
+    return days
+
+
+def _forget() -> None:
+    holder = getattr(connection, "tenant", None)
+    if holder is not None and hasattr(holder, "_closed_window"):
+        del holder._closed_window
+
+
 def is_closed(day: date, tenant=None) -> bool:
+    from django.utils import timezone
+
+    today = timezone.localdate()
+    if today <= day <= today + timedelta(days=HORIZON_DAYS):
+        return day in _window(today, tenant)
     return day in closed_days(day, day, tenant)
 
 
 def current_or_next(today: date, tenant=None, horizon: int = HORIZON_DAYS):
     """Ближайший сплошной диапазон закрытия, который идёт сейчас или начнётся в
     горизонте: {"von", "bis", "reason", "now"} или None."""
-    days = closed_days(today, today + timedelta(days=horizon), tenant)
+    if horizon == HORIZON_DAYS:
+        days = _window(today, tenant)
+    else:
+        days = closed_days(today, today + timedelta(days=horizon), tenant)
     if not days:
         return None
     von = min(days)
@@ -111,6 +141,7 @@ def clear_range(von: date, bis: date, *, resource=None) -> int:
 
 def _bump() -> None:
     """Баннер и слоты витрины — из кэша страниц; без сброса закрытие увидели бы поздно."""
+    _forget()
     try:
         from apps.core.pagecache import bump_storefront_cache
 

@@ -55,6 +55,8 @@ def test_open_status_and_presence_closed_during_holidays():
     tenant.site_config = {"presence": "auto"}
     assert tenant.open_status()["open"] is True
     _close()
+    tenant = type(tenant).objects.get(pk=tenant.pk)  # окно закрытий — одно на запрос
+    tenant.site_config = {"presence": "auto"}
     assert tenant.open_status()["open"] is False
     assert presence.available_now(tenant) is False
 
@@ -112,3 +114,19 @@ def test_screen_creates_and_reopens(client, settings):
     assert not ClosedDate.objects.exists()
     _post({"von": bis, "bis": von})  # перевёрнутый диапазон — отказ
     assert not ClosedDate.objects.exists()
+
+
+def test_one_query_per_request_for_banner_open_status_and_presence(django_assert_num_queries):
+    """Ревью: баннер, «открыто сейчас» и присутствие делили бы три запроса — окно одно."""
+    from types import SimpleNamespace
+
+    from django.db import connection
+    from django.utils import timezone
+
+    holder = SimpleNamespace(schema_name=connection.schema_name)
+    today = timezone.localdate()
+    closures.set_range(today, today, reason="Urlaub")
+    with django_assert_num_queries(1):
+        assert closures.is_closed(today, holder)
+        assert closures.current_or_next(today, holder)["now"]
+        assert closures.is_closed(today, holder)

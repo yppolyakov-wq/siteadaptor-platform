@@ -349,7 +349,6 @@ def book_stay(
     return booking
 
 
-@transaction.atomic
 def _move_keep_rate(booking, old_nights: int):
     """KA-12 E4.7a: перенос без «Neu berechnen» — держим СОГЛАСОВАННУЮ цену за ночь.
 
@@ -391,6 +390,7 @@ def _move_keep_rate(booking, old_nights: int):
     return booking
 
 
+@transaction.atomic
 def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
     """Перенос брони на новый диапазон (и опц. в другой юнит) с той же
     anti-overbook-проверкой.
