@@ -88,5 +88,7 @@ def test_integrations_bot_status_readonly():
 
     TelegramBot.objects.create(token="123:abc", bot_username="demo_bot", is_active=True)
     body = views.notifications_settings(_req()).content.decode()
-    assert "Bot aktiv" in body
+    # KA-12 E8.6: карточка «Benachrichtigungen» бывшего экрана сама стала этой страницей —
+    # статус бота показывает её блок «Ihr Telegram» (W9-7), без дубля в «Verbindungen».
+    assert "Aktiver Bot:" in body
     assert "@demo_bot" in body
