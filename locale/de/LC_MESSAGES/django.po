@@ -28949,3 +28949,9 @@ msgstr "die Anzahlungsrechnung %(n)s ist storniert (Stornorechnung %(s)s anbei).
 
 msgid "Anzahlungsrechnung %(n)s storniert"
 msgstr "Anzahlungsrechnung %(n)s storniert"
+
+msgid "davon extern (iCal/OTA): %(n)s Nächte"
+msgstr "davon extern (iCal/OTA): %(n)s Nächte"
+
+msgid "nur eigene Buchungen"
+msgstr "nur eigene Buchungen"

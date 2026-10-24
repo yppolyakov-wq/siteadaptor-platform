@@ -29106,3 +29106,9 @@ msgstr "рахунок на передоплату %(n)s анульовано (�
 
 msgid "Anzahlungsrechnung %(n)s storniert"
 msgstr "Рахунок на передоплату %(n)s анульовано"
+
+msgid "davon extern (iCal/OTA): %(n)s Nächte"
+msgstr "з них зовнішні (iCal/OTA): %(n)s ночей"
+
+msgid "nur eigene Buchungen"
+msgstr "лише власні бронювання"

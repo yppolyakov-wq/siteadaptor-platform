@@ -29001,3 +29001,9 @@ msgstr "%(n)s numaralı avans faturası iptal edilmiştir (%(s)s numaralı iptal
 
 msgid "Anzahlungsrechnung %(n)s storniert"
 msgstr "Avans faturası %(n)s iptal edildi"
+
+msgid "davon extern (iCal/OTA): %(n)s Nächte"
+msgstr "bunun %(n)s gecesi harici (iCal/OTA)"
+
+msgid "nur eigene Buchungen"
+msgstr "yalnızca kendi rezervasyonlar"

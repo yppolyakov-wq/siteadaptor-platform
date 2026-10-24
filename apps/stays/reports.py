@@ -16,6 +16,7 @@
 тенанта, занимающие ёмкость, больше не выпадают из отчёта).
 """
 
+from collections import defaultdict
 from datetime import timedelta
 
 from apps.core import status_registry
@@ -27,25 +28,40 @@ def _extras_total(booking) -> int:
     return sum(int(e.get("price_cents", 0)) for e in (booking.extras or []))
 
 
+def _is_external(source_id_ref: str, reason: str) -> bool:
+    """KA-12 E4.8: блок «внешняя продажа» — импорт iCal или «Import-Konflikt» Channel
+    Manager. Это проданная на OTA ночь, а не номер вне продажи."""
+    return bool(source_id_ref) or "Import-Konflikt" in (reason or "")
+
+
 def occupancy_report(start, end) -> dict:
-    """Метрики за период ``[start, end)`` (start/end — date). Всё в центах."""
+    """Метрики за период ``[start, end)`` (start/end — date). Всё в центах.
+
+    KA-12 E4.8: ручные блоки (ремонт/своё) выводят юнит из доступных ночей; внешние
+    (iCal/OTA) — проданные ночи, но не больше свободного остатка юнита в эту ночь
+    (iCal поверх своей брони — овербукинг, задваивать нельзя). ADR — по своей выручке
+    (выручка OTA неизвестна), RevPAR — своя выручка на доступную ночь."""
     days = max(0, (end - start).days)
     units = list(StayUnit.objects.filter(is_active=True))
-    available_nights = sum(u.quantity for u in units) * days
-    # Блокировки: каждая выводит ОДИН юнит за ночь (семантика availability;
-    # end_date включителен). Ремонт не должен числиться «пустым, но доступным».
-    blocked_nights = 0
-    for b_start, b_end in UnitBlock.objects.filter(
+    qty = {u.pk: u.quantity for u in units}
+    available_nights = sum(qty.values()) * days
+    manual = defaultdict(int)  # (unit, день) → заблокировано вручную
+    external = defaultdict(int)
+    for unit_id, b_start, b_end, ref, reason in UnitBlock.objects.filter(
         unit__in=units, start_date__lt=end, end_date__gte=start
-    ).values_list("start_date", "end_date"):
-        lo = max(b_start, start)
-        hi = min(b_end + timedelta(days=1), end)
-        blocked_nights += max(0, (hi - lo).days)
-    available_nights = max(0, available_nights - blocked_nights)
-    sold_nights = 0
+    ).values_list("unit_id", "start_date", "end_date", "source_id_ref", "reason"):
+        bucket = external if _is_external(ref, reason) else manual
+        day = max(b_start, start)
+        last = min(b_end, end - timedelta(days=1))
+        while day <= last:
+            bucket[(unit_id, day)] += 1
+            day += timedelta(days=1)
+    available_nights = max(0, available_nights - sum(manual.values()))
+    own_nights = 0
     room_rev = 0
     total_rev = 0
     bookings = 0
+    own_by_day = defaultdict(int)
     qs = StayBooking.objects.filter(
         status__in=status_registry.counted_statuses_for("stay"),
         arrival__lt=end,
@@ -57,19 +73,30 @@ def occupancy_report(start, end) -> dict:
         overlap = (hi - lo).days
         if overlap <= 0:
             continue
-        sold_nights += overlap * b.rooms  # G5: бронь на N номеров продаёт N ночей/ночь
+        own_nights += overlap * b.rooms  # G5: бронь на N номеров продаёт N ночей/ночь
+        day = lo
+        while day < hi:
+            own_by_day[(b.unit_id, day)] += b.rooms
+            day += timedelta(days=1)
         bookings += 1
         frac = overlap / max(1, b.nights)  # доля ночей брони, попавших в окно
         room = max(0, b.total_cents - b.kurtaxe_cents - _extras_total(b))
         room_rev += round(room * frac)
         total_rev += round(b.total_cents * frac)
+    external_nights = 0
+    for key, count in external.items():
+        free = qty.get(key[0], 0) - own_by_day.get(key, 0) - manual.get(key, 0)
+        external_nights += max(0, min(count, free))
+    sold_nights = own_nights + external_nights
     return {
         "days": days,
         "available_nights": available_nights,
         "sold_nights": sold_nights,
+        "own_sold_nights": own_nights,
+        "external_nights": external_nights,
         "bookings": bookings,
         "occupancy": (sold_nights / available_nights) if available_nights else 0.0,
-        "adr_cents": round(room_rev / sold_nights) if sold_nights else 0,
+        "adr_cents": round(room_rev / own_nights) if own_nights else 0,
         "revpar_cents": round(room_rev / available_nights) if available_nights else 0,
         "room_revenue_cents": room_rev,
         "total_revenue_cents": total_rev,

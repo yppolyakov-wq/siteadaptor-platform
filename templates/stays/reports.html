@@ -23,6 +23,7 @@
     <p class="text-xs text-gray-500 mb-1">{% trans "Occupancy (Belegung)" %}</p>
     <p class="text-2xl font-bold">{{ occupancy_pct }} %</p>
     <p class="text-xs text-gray-400 mt-1">{{ report.sold_nights }} / {{ report.available_nights }} {% trans "room-nights" %}</p>
+    {% if report.external_nights %}<p class="text-xs text-gray-400" data-external-nights>{% blocktrans with n=report.external_nights %}davon extern (iCal/OTA): {{ n }} Nächte{% endblocktrans %}</p>{% endif %}
   </div>
   <div class="bg-white rounded-2xl shadow-sm p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "ADR (Ø rate / night)" %}</p>
@@ -33,6 +34,7 @@
     <p class="text-xs text-gray-500 mb-1">RevPAR</p>
     {% widthratio report.revpar_cents 100 1 as revpar_eur %}
     <p class="text-2xl font-bold">{{ revpar_eur }} €</p>
+    {% if report.external_nights %}<p class="text-xs text-gray-400 mt-1">{% trans "nur eigene Buchungen" %}</p>{% endif %}
   </div>
   <div class="bg-white rounded-2xl shadow-sm p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "Room revenue" %}</p>

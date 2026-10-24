@@ -251,3 +251,54 @@ def test_reports_export_csv(monkeypatch):
     assert "Gast Juni" in body and "Gast Juli" not in body
     assert body.splitlines()[0].startswith("reference,guest,unit")
     assert "booking" in body and "200.00" in body
+
+
+# --- KA-12 E4.8: iCal-блок = проданная на OTA ночь, а не «недоступная» -------------------
+
+
+def _ical_block(unit, day_from, day_to, ref="7"):
+    from apps.stays.models import UnitBlock
+
+    return UnitBlock.objects.create(
+        unit=unit, start_date=day_from, end_date=day_to, reason="Booking.com", source_id_ref=ref
+    )
+
+
+def test_ical_blocks_count_as_sold_not_removed():
+    unit = _unit(qty=10)  # 300 доступных ночей
+    book_stay(unit, arrival=date(2026, 6, 10), departure=date(2026, 6, 12), name="A")  # 2
+    _ical_block(unit, date(2026, 6, 20), date(2026, 6, 22))  # 3 ночи OTA
+    r = reports.occupancy_report(START, END)
+    assert r["available_nights"] == 300
+    assert r["own_sold_nights"] == 2 and r["external_nights"] == 3
+    assert r["sold_nights"] == 5
+
+
+def test_ical_block_over_own_booking_not_double_counted():
+    unit = _unit(qty=1)
+    book_stay(unit, arrival=date(2026, 6, 10), departure=date(2026, 6, 12), name="A")
+    _ical_block(unit, date(2026, 6, 10), date(2026, 6, 11))  # овербукинг поверх своей брони
+    r = reports.occupancy_report(START, END)
+    assert r["sold_nights"] == 2 and r["external_nights"] == 0
+
+
+def test_import_conflict_block_counts_as_external():
+    from apps.stays.models import UnitBlock
+
+    unit = _unit(qty=2)
+    UnitBlock.objects.create(
+        unit=unit,
+        start_date=date(2026, 6, 5),
+        end_date=date(2026, 6, 5),
+        reason="booking: Import-Konflikt X",
+    )
+    r = reports.occupancy_report(START, END)
+    assert r["available_nights"] == 60 and r["external_nights"] == 1
+
+
+def test_adr_ignores_external_nights():
+    unit = _unit(qty=2, price=10000)
+    book_stay(unit, arrival=date(2026, 6, 10), departure=date(2026, 6, 14), name="A")
+    _ical_block(unit, date(2026, 6, 1), date(2026, 6, 10))
+    r = reports.occupancy_report(START, END)
+    assert r["adr_cents"] == 10000

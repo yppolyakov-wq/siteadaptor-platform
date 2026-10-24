@@ -29122,3 +29122,9 @@ msgstr "счёт на предоплату %(n)s аннулирован (сто�
 
 msgid "Anzahlungsrechnung %(n)s storniert"
 msgstr "Счёт на предоплату %(n)s аннулирован"
+
+msgid "davon extern (iCal/OTA): %(n)s Nächte"
+msgstr "из них внешние (iCal/OTA): %(n)s ночей"
+
+msgid "nur eigene Buchungen"
+msgstr "только собственные брони"

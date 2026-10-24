@@ -28857,3 +28857,9 @@ msgstr "advance payment invoice %(n)s has been cancelled (cancellation invoice %
 
 msgid "Anzahlungsrechnung %(n)s storniert"
 msgstr "Advance payment invoice %(n)s cancelled"
+
+msgid "davon extern (iCal/OTA): %(n)s Nächte"
+msgstr "of which external (iCal/OTA): %(n)s nights"
+
+msgid "nur eigene Buchungen"
+msgstr "own bookings only"
