@@ -152,10 +152,14 @@ class Invoice(TimestampedModel):
     # сумме) — свой номер, суммы со знаком минус, ссылка на оригинал (§ 31 UStDV).
     # В кабинете — «Gutschrift», в PDF — «Rechnungskorrektur» (решение G-1).
     KIND_CREDIT = "credit"
+    # KA-12 B2-8b: счёт на предоплату (§ 14 Abs. 5 UStG) — свой номер, НЕ выручка
+    # (MC-D1) и НЕ счёт сделки; итоговый счёт вычтет его (`InvoiceDeduction`, B2-8c).
+    KIND_ADVANCE = "advance"
     KINDS = [
         (KIND_INVOICE, _("Rechnung")),
         (KIND_STORNO, _("Stornorechnung")),
         (KIND_CREDIT, _("Gutschrift")),
+        (KIND_ADVANCE, _("Anzahlungsrechnung")),
     ]
     kind = models.CharField(max_length=10, choices=KINDS, default=KIND_INVOICE)
     cancels = models.OneToOneField(
@@ -175,8 +179,15 @@ class Invoice(TimestampedModel):
                     models.Q(kind="invoice", cancels__isnull=True, corrects__isnull=True)
                     | models.Q(kind="storno", cancels__isnull=False, corrects__isnull=True)
                     | models.Q(kind="credit", cancels__isnull=True, corrects__isnull=False)
+                    | models.Q(kind="advance", cancels__isnull=True, corrects__isnull=True)
                 ),
                 name="finance_invoice_kind_links",
+            ),
+            # B2-8b: одна живая предоплата на сделку (T-3 вариант A; этапы — снять).
+            models.UniqueConstraint(
+                fields=["deal_kind", "deal_id"],
+                condition=models.Q(kind="advance") & ~models.Q(status="cancelled"),
+                name="finance_invoice_one_live_advance",
             ),
             models.UniqueConstraint(
                 fields=["correction_key"],
@@ -198,6 +209,10 @@ class Invoice(TimestampedModel):
     @property
     def is_credit(self) -> bool:
         return self.kind == self.KIND_CREDIT
+
+    @property
+    def is_advance(self) -> bool:
+        return self.kind == self.KIND_ADVANCE
 
     @property
     def credited_amount(self) -> Decimal:
@@ -251,6 +266,29 @@ def with_credited(qs):
             output_field=DecimalField(max_digits=10, decimal_places=2),
         )
     )
+
+
+class InvoiceDeduction(TimestampedModel):
+    """KA-12 B2-8b/c: вычет предоплаты в итоговом счёте — снимок по ставкам
+    (§ 14 Abs. 5 S. 2 UStG). Строки пишет выпуск итогового счёта (B2-8c); пока
+    строка есть, предоплату нельзя сторнировать. N этапов — N строк (T-3)."""
+
+    final = models.ForeignKey(Invoice, on_delete=models.PROTECT, related_name="deductions")
+    advance = models.ForeignKey(Invoice, on_delete=models.PROTECT, related_name="deducted_in")
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2)
+    net = models.DecimalField(max_digits=10, decimal_places=2)
+    vat = models.DecimalField(max_digits=10, decimal_places=2)
+    gross = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["final", "advance", "vat_rate"], name="finance_deduction_uniq"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.final_id} − {self.advance_id} @{self.vat_rate}"
 
 
 # MT-5: журнал расходов — зеркало RevenueEntry в отдельном модуле; импорт нужен,

@@ -22,6 +22,9 @@ class InvoiceSM(StateMachine):
         kind = getattr(instance, "kind", "invoice")
         if kind in ("storno", "credit"):  # B2-7b: корректура тоже без переходов
             raise IllegalTransition(f"invoice({kind})", instance.status, dst)
+        if dst == "cancelled" and kind == "advance" and instance.deducted_in.exists():
+            # B2-8c: вычтенную предоплату не сторнируют — сначала итоговый счёт.
+            raise IllegalTransition("invoice(advance, deducted)", instance.status, dst)
         if dst == "cancelled":
             # Ревью W1.2 (H1): отмена и Stornorechnung — одно целое; сбой при выпуске
             # сторно откатывает и статус оригинала (иначе «Storniert» без документа).
@@ -37,6 +40,12 @@ class InvoiceSM(StateMachine):
             journal_invoice_revenue(instance)
         elif t.dst == "paid":
             # KA-MC X3: оплаченный счёт закрывает и сделку, из которой выставлен.
+            if getattr(instance, "kind", "invoice") == "advance":
+                # B2-8b: оплачена предоплата → на сделке только депозит.
+                from .advance import on_advance_paid
+
+                on_advance_paid(instance, source=kw.get("source", "invoice"))
+                return
             from apps.core.money_contract import settle_invoice_deal
 
             settle_invoice_deal(instance)

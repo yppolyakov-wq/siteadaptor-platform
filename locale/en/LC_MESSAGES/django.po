@@ -28806,3 +28806,30 @@ msgstr "Income above by service date; VAT here by payment receipt. Input tax by 
 
 msgid "USt-Richtwert nur für Zeiträume bis zu einem Jahr."
 msgstr "VAT guide value only for periods of up to one year."
+
+msgid "Anzahlung zu %(ref)s"
+msgstr "Advance payment for %(ref)s"
+
+msgid "Anzahlungsrechnung"
+msgstr "Advance invoice"
+
+msgid "Anzahlungsrechnung %(num)s erstellt."
+msgstr "Advance invoice %(num)s created."
+
+msgid "Anzahlungsrechnung erstellen"
+msgstr "Create advance invoice"
+
+msgid "Der Verkauf ist storniert."
+msgstr "The sale is cancelled."
+
+msgid "Für die Anzahlung gibt es eine Anzahlungsrechnung — zuerst stornieren, dann ändern."
+msgstr "There is an advance invoice for the deposit — cancel it first, then change."
+
+msgid "Für diese Art von Verkauf gibt es keine Anzahlungsrechnung."
+msgstr "This type of sale has no advance invoice."
+
+msgid "Für diesen Verkauf gibt es schon eine Rechnung."
+msgstr "This sale already has an invoice."
+
+msgid "Für diesen Verkauf ist keine Anzahlung festgelegt."
+msgstr "No deposit is set for this sale."

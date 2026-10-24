@@ -81,6 +81,9 @@ def mark_stay_paid(*, tenant_schema: str, booking_id: str, payment_intent: str =
                 folio.record_online("stay", booking, intent=payment_intent)
             booking.save(update_fields=fields)
         settle_late_payment("stay", booking, newly_paid="payment_state" in fields)
+        from apps.finance.advance import sync_advance_paid
+
+        sync_advance_paid("stay", booking)  # B2-8b: депозит пришёл → предоплата оплачена
         # Авто-подтверждение, если юнит не требует ручной проверки (анти-фрод).
         if not booking.unit.require_manual_confirm and booking.status == StayBooking.STATUS_PENDING:
             try:

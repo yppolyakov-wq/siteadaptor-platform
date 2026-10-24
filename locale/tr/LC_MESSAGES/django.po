@@ -28950,3 +28950,30 @@ msgstr "Yukarıdaki gelirler hizmet tarihine göre; KDV burada tahsilata göre. 
 
 msgid "USt-Richtwert nur für Zeiträume bis zu einem Jahr."
 msgstr "KDV yol gösterici değeri yalnızca bir yıla kadar olan dönemler için."
+
+msgid "Anzahlung zu %(ref)s"
+msgstr "%(ref)s için ön ödeme"
+
+msgid "Anzahlungsrechnung"
+msgstr "Ön ödeme faturası"
+
+msgid "Anzahlungsrechnung %(num)s erstellt."
+msgstr "Ön ödeme faturası %(num)s oluşturuldu."
+
+msgid "Anzahlungsrechnung erstellen"
+msgstr "Ön ödeme faturası oluştur"
+
+msgid "Der Verkauf ist storniert."
+msgstr "Satış iptal edildi."
+
+msgid "Für die Anzahlung gibt es eine Anzahlungsrechnung — zuerst stornieren, dann ändern."
+msgstr "Ön ödeme için bir fatura var — önce iptal edin, sonra değiştirin."
+
+msgid "Für diese Art von Verkauf gibt es keine Anzahlungsrechnung."
+msgstr "Bu satış türü için ön ödeme faturası yoktur."
+
+msgid "Für diesen Verkauf gibt es schon eine Rechnung."
+msgstr "Bu satışın zaten bir faturası var."
+
+msgid "Für diesen Verkauf ist keine Anzahlung festgelegt."
+msgstr "Bu satış için ön ödeme belirlenmemiş."

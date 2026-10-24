@@ -371,7 +371,12 @@ def invoice_mahnung(request, pk):
 
     from .models import Invoice
 
-    invoice = get_object_or_404(Invoice, pk=pk, status="issued", kind=Invoice.KIND_INVOICE)
+    invoice = get_object_or_404(
+        Invoice,
+        pk=pk,
+        status="issued",
+        kind__in=(Invoice.KIND_INVOICE, Invoice.KIND_ADVANCE),  # B2-8b
+    )
     email = getattr(invoice.customer, "email", "") if invoice.customer_id else ""
     if not email:
         messages.error(request, _("Kunde hat keine E-Mail — Mahnung nicht möglich."))
@@ -659,7 +664,7 @@ def invoice_detail(request, pk):
             "invoice": invoice,
             "allowed": (
                 []
-                if invoice.kind != Invoice.KIND_INVOICE
+                if invoice.kind not in (Invoice.KIND_INVOICE, Invoice.KIND_ADVANCE)
                 else InvoiceSM().allowed_targets(invoice.status)
             ),
             "doc_languages": language_choices(request.tenant),

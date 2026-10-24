@@ -29071,3 +29071,30 @@ msgstr "Доходы выше — по дате оказания; НДС зде�
 
 msgid "USt-Richtwert nur für Zeiträume bis zu einem Jahr."
 msgstr "Ориентир по НДС — только для периодов до одного года."
+
+msgid "Anzahlung zu %(ref)s"
+msgstr "Предоплата по %(ref)s"
+
+msgid "Anzahlungsrechnung"
+msgstr "Счёт на предоплату"
+
+msgid "Anzahlungsrechnung %(num)s erstellt."
+msgstr "Счёт на предоплату %(num)s создан."
+
+msgid "Anzahlungsrechnung erstellen"
+msgstr "Выставить счёт на предоплату"
+
+msgid "Der Verkauf ist storniert."
+msgstr "Продажа отменена."
+
+msgid "Für die Anzahlung gibt es eine Anzahlungsrechnung — zuerst stornieren, dann ändern."
+msgstr "На предоплату уже выставлен счёт — сначала сторнируйте его, затем меняйте."
+
+msgid "Für diese Art von Verkauf gibt es keine Anzahlungsrechnung."
+msgstr "Для этого вида продажи счёт на предоплату не выставляется."
+
+msgid "Für diesen Verkauf gibt es schon eine Rechnung."
+msgstr "По этой продаже уже есть счёт."
+
+msgid "Für diesen Verkauf ist keine Anzahlung festgelegt."
+msgstr "Для этой продажи предоплата не задана."

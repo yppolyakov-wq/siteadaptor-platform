@@ -153,6 +153,23 @@ def import_rows(rows) -> int:
 _OPEN_PAYMENT_STATES = money_contract.OPEN_STATES
 
 
+def _advanced(kind: str, codes) -> set:
+    """B2-8b: сделки с выставленной (неоплаченной) предоплатой — их открытая позиция
+    сама Anzahlungsrechnung, строка сделки/депозита задвоила бы сумму."""
+    from .models import Invoice
+
+    if not codes:
+        return set()
+    return set(
+        Invoice.objects.filter(
+            kind=Invoice.KIND_ADVANCE,
+            status=Invoice.STATUS_ISSUED,
+            deal_kind=kind,
+            deal_id__in=codes,
+        ).values_list("deal_id", flat=True)
+    )
+
+
 def _job_deposit_items(tenant, today) -> list[dict]:
     """KA-12 B2-2 (MC-J1): принятая заявка с неоплаченной Anzahlung — строка на сумму
     депозита (раньше заявки в Offene Posten не было вовсе, пока нет счёта)."""
@@ -165,8 +182,12 @@ def _job_deposit_items(tenant, today) -> list[dict]:
         .select_related("customer")
         .order_by("created_at")[:200]
     )
+    qs = list(qs)
+    advanced = _advanced("job", [str(o.reference_code) for o in qs])
     rows = []
     for obj in qs:
+        if str(obj.reference_code) in advanced:
+            continue
         t = transactions.transaction_for("job", obj)
         rows.append(
             {
@@ -211,13 +232,16 @@ def open_items(tenant) -> list[dict]:
         invoiced = set(
             billed.filter(deal_kind=kind, deal_id__in=codes).values_list("deal_kind", "deal_id")
         )
+        advanced = _advanced(kind, codes)
         inv_ids = [o.invoice_id for o in qs if getattr(o, "invoice_id", None)]
         invoiced_ids = set(billed.filter(pk__in=inv_ids).values_list("pk", flat=True))
         for obj in qs:
             # KA-MC X3: у сделки с выставленным счётом открытая позиция — САМ счёт
             # (одна строка, его ждёт Mahnwesen), иначе сумма считалась бы дважды.
-            if (kind, str(obj.reference_code)) in invoiced or (
-                getattr(obj, "invoice_id", None) in invoiced_ids
+            if (
+                (kind, str(obj.reference_code)) in invoiced
+                or (getattr(obj, "invoice_id", None) in invoiced_ids)
+                or str(obj.reference_code) in advanced
             ):
                 continue
             t = transactions.transaction_for(kind, obj)
@@ -252,9 +276,9 @@ def open_items(tenant) -> list[dict]:
 
     # B2-7b: корректуры уменьшают «к оплате» — аннотацией, без запроса на строку.
     open_invoices = with_credited(
-        Invoice.objects.filter(status="issued", kind=Invoice.KIND_INVOICE).select_related(
-            "customer"
-        )
+        Invoice.objects.filter(
+            status="issued", kind__in=(Invoice.KIND_INVOICE, Invoice.KIND_ADVANCE)
+        ).select_related("customer")
     )
     for inv in open_invoices.order_by("issued_at")[:200]:
         if not inv.open_amount:  # KA-H10: всё уже получено (Anzahlung/сертификат)
@@ -262,7 +286,7 @@ def open_items(tenant) -> list[dict]:
         out.append(
             {
                 "kind": "invoice",
-                "kind_label": _("Rechnung"),
+                "kind_label": _("Anzahlungsrechnung") if inv.is_advance else _("Rechnung"),
                 "obj": inv,
                 "code": inv.number_display if hasattr(inv, "number_display") else str(inv.number),
                 "title": str(inv.recipient or "")[:60],
@@ -308,11 +332,11 @@ def apply_match(tx, kind: str, obj) -> bool:
     if kind == "invoice":
         from .state_machine import InvoiceSM
 
-        if getattr(obj, "kind", "invoice") != "invoice":
+        if getattr(obj, "kind", "invoice") not in ("invoice", "advance"):
             # ревью W1.2 (M3) / B2-7b: Stornorechnung и корректура не оплачиваются
             return False
         if obj.status == "issued":
-            InvoiceSM().apply(obj, "paid")
+            InvoiceSM().apply(obj, "paid", source="bank")
     else:
         # KA-MC X2: тем же путём, что вебхук и кнопка «bezahlt» (снятие удержания,
         # подтверждение, закрытие счёта сделки), а не голой записью поля.

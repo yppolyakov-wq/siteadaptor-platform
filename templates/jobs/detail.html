@@ -341,6 +341,7 @@ document (партиал может перерисовываться — уро�
     </div>
     <button class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Save" %}</button>
   </form>
+  {% include "core/_deal_advance_button.html" %}
   {% if job.deposit_cents and not payments_enabled %}
     <p class="text-xs text-amber-700">{% trans "Enable online payments to collect it." %}</p>
   {% endif %}

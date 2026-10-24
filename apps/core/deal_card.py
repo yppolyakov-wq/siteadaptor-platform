@@ -307,6 +307,8 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         # DC-6: счёт из сделки (кнопка в блоке оплаты) — гейт модуля «Finanzen».
         "finance_active": _module_active(tenant, "finance"),
         "deal_invoice_id": getattr(obj, "invoice_id", None),
+        # KA-12 B2-8b: Anzahlungsrechnung (за флагом до вычета в итоговом счёте).
+        "deal_advance": _advance(kind, obj, tenant),
         # DC-8: строки «davon X % MwSt.» в секции сумм.
         "deal_vat": vat,
         # DC-9: область действия скидки (вся сделка / позиция / доставка).
@@ -345,6 +347,24 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         # T-8.10g (G-3): «✨ Antwort vorschlagen» у существующего треда сделки.
         "ai_reply_enabled": thread is not None and _ai_enabled(),
     }
+
+
+def _advance(kind, obj, tenant):
+    """Кнопка/ссылка счёта на предоплату или None (флаг, модуль, вид, депозит)."""
+    from apps.finance import advance
+
+    if not advance.enabled() or kind not in advance.KINDS:
+        return None
+    if not _module_active(tenant, "finance"):
+        return None
+    try:
+        live = advance.live_advance(kind, obj)
+    except Exception:  # noqa: BLE001 — кнопка не должна ронять карточку
+        logger.exception("deal card: advance lookup failed for %s", kind)
+        return None
+    if live is None and not int(getattr(obj, "deposit_cents", 0) or 0):
+        return None
+    return {"invoice": live}
 
 
 def _billing(obj):

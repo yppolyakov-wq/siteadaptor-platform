@@ -1,0 +1,15 @@
+{% load i18n %}
+{% comment %}KA-12 B2-8b: счёт на предоплату (§ 14 Abs. 5 UStG) с карточки сделки.
+Параметры include: deal_kind, deal_obj, deal_advance (None — не показываем).{% endcomment %}
+{% if deal_advance %}
+  <div class="flex flex-wrap items-center gap-2 pt-2" data-deal-advance>
+    {% if deal_advance.invoice %}
+      <a href="{% url 'finance:invoice-detail' deal_advance.invoice.pk %}" class="text-sm text-indigo-600 hover:underline">🧾 {% trans "Anzahlungsrechnung" %} {{ deal_advance.invoice.number_display }} →</a>
+    {% else %}
+      <form method="post" action="{% url 'deal-advance-invoice' deal_kind deal_obj.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">🧾 {% trans "Anzahlungsrechnung erstellen" %}</button>
+      </form>
+    {% endif %}
+  </div>
+{% endif %}

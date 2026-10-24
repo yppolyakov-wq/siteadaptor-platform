@@ -365,6 +365,7 @@ def _settle_payment(kind, obj, *, deposit_only: bool = False, source: str = "man
         fields.append("updated_at")
         obj.save(update_fields=fields)
     _settle_invoice(kind, obj)
+    _settle_advance(kind, obj)
     # Оплата счёта вложенно зовёт settle_payment по свежей копии и уже могла
     # подтвердить сделку — без перечитывания подтвердили бы второй раз.
     obj.refresh_from_db(fields=["status"])
@@ -389,6 +390,13 @@ def _needs_manual_confirm(kind, obj) -> bool:
     holder = {"booking": "resource", "stay": "unit"}.get(kind)
     target = getattr(obj, holder, None) if holder else None
     return bool(getattr(target, "require_manual_confirm", False))
+
+
+def _settle_advance(kind, obj) -> None:
+    """B2-8b: депозит получен → выставленная предоплата сделки «bezahlt»."""
+    from apps.finance.advance import sync_advance_paid
+
+    sync_advance_paid(kind, obj)
 
 
 def _settle_invoice(kind, obj) -> None:

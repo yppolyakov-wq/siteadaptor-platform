@@ -175,6 +175,9 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
         if is_storno
         else (_("Rechnungskorrektur") if is_credit else _("Invoice"))
     )
+    if getattr(invoice, "kind", "invoice") == "advance":
+        # KA-12 B2-8b: § 14 Abs. 5 UStG — счёт на предоплату своим заголовком.
+        title = _("Anzahlungsrechnung")
     c.drawString(x, y, f"{title} {invoice.number_display}")
     c.setFont(font, 9)
     c.setFillColorRGB(*_MUTED)

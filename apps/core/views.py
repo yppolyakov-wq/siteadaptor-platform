@@ -5308,6 +5308,42 @@ def deal_invoice(request, kind, pk):
 
 @login_required
 @require_POST
+def deal_advance_invoice(request, kind, pk):
+    """KA-12 B2-8b: Anzahlungsrechnung с карточки сделки (stay/booking/job).
+
+    Повтор клика — тот же документ. Выставление — финансовое действие:
+    владелец/админ (как Gutschrift), сотрудник — 403."""
+    from django.core.exceptions import PermissionDenied
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import transactions
+    from apps.core.roles import can_export_finance
+    from apps.finance import advance
+
+    tenant = getattr(request, "tenant", None)
+    if (
+        not advance.enabled()
+        or kind not in advance.KINDS
+        or not (tenant and tenant.is_module_active("finance"))
+    ):
+        raise Http404("no advance invoice")
+    if not can_export_finance(request.user):
+        raise PermissionDenied
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    try:
+        invoice = advance.create_advance_invoice(kind, obj, tenant)
+    except advance.AdvanceError as exc:
+        messages.error(request, str(exc))
+        return redirect(transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe"))
+    messages.success(
+        request, _("Anzahlungsrechnung %(num)s erstellt.") % {"num": invoice.number_display}
+    )
+    return redirect(reverse("finance:invoice-detail", args=[invoice.pk]))
+
+
+@login_required
+@require_POST
 def deal_discount_edit(request, kind, pk):
     """DC-5: скидка владельца с карточки ЛЮБОЙ сделки — один приёмник.
 

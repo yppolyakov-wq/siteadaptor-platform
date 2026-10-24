@@ -55,6 +55,9 @@ def mark_deposit_paid(*, tenant_schema: str, job_id: str, payment_intent: str = 
         if fields:
             fields.append("updated_at")
             job.save(update_fields=fields)
+        from apps.finance.advance import sync_advance_paid
+
+        sync_advance_paid("job", job)  # B2-8b: депозит пришёл → предоплата оплачена
         # Оплата депозита = принятие сметы (если ещё quoted).
         if job.status == Job.STATUS_QUOTED:
             try:

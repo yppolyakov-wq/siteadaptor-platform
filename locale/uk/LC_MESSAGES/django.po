@@ -29055,3 +29055,30 @@ msgstr "Доходи вище — за датою надання; ПДВ тут 
 
 msgid "USt-Richtwert nur für Zeiträume bis zu einem Jahr."
 msgstr "Орієнтир ПДВ — лише для періодів до одного року."
+
+msgid "Anzahlung zu %(ref)s"
+msgstr "Передоплата за %(ref)s"
+
+msgid "Anzahlungsrechnung"
+msgstr "Рахунок на передоплату"
+
+msgid "Anzahlungsrechnung %(num)s erstellt."
+msgstr "Рахунок на передоплату %(num)s створено."
+
+msgid "Anzahlungsrechnung erstellen"
+msgstr "Виставити рахунок на передоплату"
+
+msgid "Der Verkauf ist storniert."
+msgstr "Продаж скасовано."
+
+msgid "Für die Anzahlung gibt es eine Anzahlungsrechnung — zuerst stornieren, dann ändern."
+msgstr "На передоплату вже виставлено рахунок — спершу сторнуйте його, потім змінюйте."
+
+msgid "Für diese Art von Verkauf gibt es keine Anzahlungsrechnung."
+msgstr "Для цього виду продажу рахунок на передоплату не виставляється."
+
+msgid "Für diesen Verkauf gibt es schon eine Rechnung."
+msgstr "За цим продажем уже є рахунок."
+
+msgid "Für diesen Verkauf ist keine Anzahlung festgelegt."
+msgstr "Для цього продажу передоплату не задано."

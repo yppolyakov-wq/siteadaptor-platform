@@ -28898,3 +28898,30 @@ msgstr "Einnahmen oben nach Leistungsdatum; Umsatzsteuer hier nach Zahlungseinga
 
 msgid "USt-Richtwert nur für Zeiträume bis zu einem Jahr."
 msgstr "USt-Richtwert nur für Zeiträume bis zu einem Jahr."
+
+msgid "Anzahlung zu %(ref)s"
+msgstr "Anzahlung zu %(ref)s"
+
+msgid "Anzahlungsrechnung"
+msgstr "Anzahlungsrechnung"
+
+msgid "Anzahlungsrechnung %(num)s erstellt."
+msgstr "Anzahlungsrechnung %(num)s erstellt."
+
+msgid "Anzahlungsrechnung erstellen"
+msgstr "Anzahlungsrechnung erstellen"
+
+msgid "Der Verkauf ist storniert."
+msgstr "Der Verkauf ist storniert."
+
+msgid "Für die Anzahlung gibt es eine Anzahlungsrechnung — zuerst stornieren, dann ändern."
+msgstr "Für die Anzahlung gibt es eine Anzahlungsrechnung — zuerst stornieren, dann ändern."
+
+msgid "Für diese Art von Verkauf gibt es keine Anzahlungsrechnung."
+msgstr "Für diese Art von Verkauf gibt es keine Anzahlungsrechnung."
+
+msgid "Für diesen Verkauf gibt es schon eine Rechnung."
+msgstr "Für diesen Verkauf gibt es schon eine Rechnung."
+
+msgid "Für diesen Verkauf ist keine Anzahlung festgelegt."
+msgstr "Für diesen Verkauf ist keine Anzahlung festgelegt."

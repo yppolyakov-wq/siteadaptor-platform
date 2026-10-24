@@ -26,6 +26,7 @@ from apps.core.views import (
     board,
     board_settings,
     dashboard,
+    deal_advance_invoice,
     deal_billing_edit,
     deal_customer_edit,
     deal_discount_edit,
@@ -314,6 +315,12 @@ urlpatterns = [
         "dashboard/rechnung/<str:kind>/<uuid:pk>/",
         deal_invoice,
         name="deal-invoice",
+    ),
+    # KA-12 B2-8b: счёт на предоплату (stay/booking/job), владелец/админ.
+    path(
+        "dashboard/anzahlungsrechnung/<str:kind>/<uuid:pk>/",
+        deal_advance_invoice,
+        name="deal-advance-invoice",
     ),
     # DC-5: скидка владельца с карточки любой сделки (пересчёт итога — в домене).
     path(

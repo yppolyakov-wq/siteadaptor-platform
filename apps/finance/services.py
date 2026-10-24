@@ -188,6 +188,8 @@ def journal_invoice_revenue(invoice) -> None:
     Идемпотентно по `inv:<pk>:<ставка>`."""
     if invoice.deal_kind != "job" or not invoice.gross:
         return
+    if invoice.kind != invoice.KIND_INVOICE:  # B2-8b: предоплата — не выручка (MC-D1)
+        return
     voucher_cents = 0
     try:
         from apps.jobs.models import Job
@@ -271,6 +273,8 @@ def reverse_job_credit(invoice, credit) -> None:
 def reverse_invoice_revenue(invoice) -> None:
     """Сторно счёта из заявки → сторно-записи на каждую проведённую строку за вычетом
     того, что уже сторнировали корректуры (B2-7c) — иначе выручка ушла бы в минус."""
+    if invoice.kind != invoice.KIND_INVOICE:  # B2-8b: у предоплаты выручки нет
+        return
     if invoice.deal_kind != "job":
         return
     entries = RevenueEntry.objects.filter(
@@ -887,8 +891,8 @@ def _prepaid_from_payment_state(deal) -> int:
 def _refresh_prepaid(invoice) -> bool:
     """KA-H10: «уже получено» на момент ВЫПУСКА (оплата могла прийти после черновика)."""
     kind, ref = invoice.deal_kind, invoice.deal_id
-    if not kind or not ref:
-        return False
+    if not kind or not ref or invoice.kind == invoice.KIND_ADVANCE:
+        return False  # B2-8b: предоплата — ровно депозит, «уже получено» не её
     if kind == "job":
         from apps.jobs.models import Job
         from apps.jobs.services import prepaid_cents as job_prepaid

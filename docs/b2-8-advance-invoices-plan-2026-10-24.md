@@ -71,3 +71,18 @@ T-2 (кнопкой, B2B автоматически), T-3 (вариант A: о�
 - **Q-4** Для Ist учитывать дату возврата — `DealPayment.refunded_at`, аддитивно в B2-8a
   (рекомендация: да)
 - **Q-5** Подпись PDF для счёта после поступления («bereits bezahlt») — сверить со Steuerberater.
+
+## 9. Детальный план B2-8b (planner, 2026-10-24)
+- **Флаг `ADVANCE_INVOICES_ENABLED` (env, default False)** до B2-8c: без блока «Abzüglich
+  Anzahlung» итоговый счёт повторил бы НДС предоплаты (§ 14c UStG).
+- `finance/0017`: `KIND_ADVANCE` + расширение `finance_invoice_kind_links` + частичный
+  unique «одна живая предоплата на сделку» + таблица `InvoiceDeduction` (пустая в 8b).
+- `apps/finance/advance.py`: `advance_rows` (депозит по ставкам `deal_vat`, остаток в
+  последнюю), `create_advance_invoice` (блокировка сделки, повтор = тот же документ, отказ
+  без депозита/отменённой/с итоговым счётом; `invoice_id` сделки НЕ ставится),
+  `sync_advance_paid` (депозит получен → advance paid), `on_advance_paid` (оплата advance →
+  депозит на сделке, НЕ полная оплата).
+- Гарды: журнал/сторно журнала/`_refresh_prepaid` пропускают advance; сторно advance с
+  вычетом — отказ; `InvoiceSM` paid у advance → `on_advance_paid`; Offene Posten: advance —
+  позиция, строка сделки/депозита скрыта; банк/Mahnung принимают advance.
+- UI: кнопка на карточках stay/booking/job (владелец/админ), PDF «Anzahlungsrechnung».

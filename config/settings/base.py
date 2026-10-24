@@ -327,6 +327,9 @@ AGGREGATOR_PORTAL_STATS = {
 # T-8.10f: MCP-сервер каталога города для ассистентов (Claude/ChatGPT) — POST /mcp/ на
 # хосте портала. Выключен по умолчанию; hosts пусто = все активные порталы.
 MCP_ENABLED = env.bool("MCP_ENABLED", default=False)
+# KA-12 B2-8b: Anzahlungsrechnung. Включать вместе с B2-8c (вычет в итоговом
+# счёте) — иначе НДС предоплаты был бы указан в двух счетах (§ 14c UStG).
+ADVANCE_INVOICES_ENABLED = env.bool("ADVANCE_INVOICES_ENABLED", default=False)
 MCP_PORTAL_HOSTS = env.list("MCP_PORTAL_HOSTS", default=[])
 # Origin, которым разрешено звать эндпоинт из браузера (DNS-rebinding); серверные клиенты
 # ассистентов Origin не шлют.

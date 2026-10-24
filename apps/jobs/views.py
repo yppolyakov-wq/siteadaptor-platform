@@ -174,6 +174,18 @@ def job_detail(request, pk):
                     else LOCK_MSG,
                 )
                 return redirect("jobs:detail", pk=job.pk)
+            from apps.finance.advance import live_advance
+
+            if live_advance("job", job) is not None:
+                # B2-8b: сумма уже выставлена Anzahlungsrechnung — менять через её сторно.
+                messages.error(
+                    request,
+                    _(
+                        "Für die Anzahlung gibt es eine Anzahlungsrechnung — "
+                        "zuerst stornieren, dann ändern."
+                    ),
+                )
+                return redirect("jobs:detail", pk=job.pk)
             job.deposit_cents = _parse_deposit_cents(request.POST.get("deposit_eur"))
             job.save(update_fields=["deposit_cents", "updated_at"])
             messages.success(request, _("Saved."))
