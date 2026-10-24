@@ -29163,3 +29163,9 @@ msgstr "Diese Stornierung erstattet Geld — das dürfen nur Inhaber oder Buchha
 
 msgid "bezahlt — Erstattung nur durch Inhaber oder Buchhaltung"
 msgstr "bezahlt — Erstattung nur durch Inhaber oder Buchhaltung"
+
+msgid "Alle Zimmer dieser Kategorie"
+msgstr "Alle Zimmer dieser Kategorie"
+
+msgid "In diesem Zimmer wohnt in diesem Zeitraum ein Gast — bitte den Gast zuerst in ein anderes Zimmer umbuchen."
+msgstr "In diesem Zimmer wohnt in diesem Zeitraum ein Gast — bitte den Gast zuerst in ein anderes Zimmer umbuchen."

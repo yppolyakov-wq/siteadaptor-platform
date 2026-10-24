@@ -241,6 +241,22 @@ def room_lane_rows(unit, rooms, start_day, num_days, bookings, blocks):
             if b.unit_id == unit.id and b.room_id == room.id
             if (s := _clipped_seg("booking", b, b.arrival, b.departure, start_day, window_end))
         ]
+        # KA-12 E4.10a: блок комнаты (ремонт) — в её полосе, не в «ohne Zimmer».
+        segs += [
+            s
+            for blk in blocks
+            if blk.unit_id == unit.id and getattr(blk, "room_id", None) == room.id
+            if (
+                s := _clipped_seg(
+                    "block",
+                    blk,
+                    blk.start_date,
+                    blk.end_date + timedelta(days=1),
+                    start_day,
+                    window_end,
+                )
+            )
+        ]
         packed = _pack_lanes(segs, num_days) or [[{"gap": num_days}]]
         for cells in packed:
             out.append(
@@ -269,7 +285,7 @@ def room_lane_rows(unit, rooms, start_day, num_days, bookings, blocks):
     free_segs += [
         s
         for blk in blocks
-        if blk.unit_id == unit.id
+        if blk.unit_id == unit.id and getattr(blk, "room_id", None) not in room_ids
         if (
             s := _clipped_seg(
                 "block",

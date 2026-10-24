@@ -887,20 +887,38 @@ def units(request, pk=None):
             unit.is_active = not unit.is_active
             unit.save(update_fields=["is_active", "updated_at"])
         elif action == "block":
+            from django.core.exceptions import ValidationError
+
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             try:
                 start_date = date.fromisoformat(request.POST.get("start_date", ""))
                 end_date = date.fromisoformat(request.POST.get("end_date", ""))
                 if end_date < start_date:
                     raise ValueError
-                UnitBlock.objects.create(
-                    unit=unit,
-                    start_date=start_date,
-                    end_date=end_date,
-                    reason=request.POST.get("reason", "").strip()[:120],
+                # KA-12 E4.10a: блок конкретной комнаты (ремонт) — опционально.
+                room = None
+                room_pk = (request.POST.get("room") or "").strip()
+                if room_pk:
+                    room = Room.objects.filter(pk=room_pk, unit=unit).first()
+                    if room is None:
+                        raise ValueError
+                services.create_block(
+                    unit,
+                    start_date,
+                    end_date,
+                    request.POST.get("reason", "").strip(),
+                    room=room,
                 )
                 messages.success(request, _("Dates blocked."))
-            except (TypeError, ValueError):
+            except services.RoomConflict:
+                messages.error(
+                    request,
+                    _(
+                        "In diesem Zimmer wohnt in diesem Zeitraum ein Gast — bitte den Gast "
+                        "zuerst in ein anderes Zimmer umbuchen."
+                    ),
+                )
+            except (TypeError, ValueError, ValidationError):
                 messages.error(request, _("Invalid dates."))
         elif action == "block_delete":
             UnitBlock.objects.filter(pk=request.POST.get("block")).delete()

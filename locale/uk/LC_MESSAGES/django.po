@@ -29324,3 +29324,9 @@ msgstr "Це скасування повертає гроші — це може 
 
 msgid "bezahlt — Erstattung nur durch Inhaber oder Buchhaltung"
 msgstr "оплачено — повернення лише власником або бухгалтерією"
+
+msgid "Alle Zimmer dieser Kategorie"
+msgstr "Усі номери цієї категорії"
+
+msgid "In diesem Zimmer wohnt in diesem Zeitraum ein Gast — bitte den Gast zuerst in ein anderes Zimmer umbuchen."
+msgstr "У цьому номері в ці дати живе гість — спершу переселіть гостя в інший номер."

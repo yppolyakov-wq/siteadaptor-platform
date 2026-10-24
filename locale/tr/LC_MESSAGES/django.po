@@ -29215,3 +29215,9 @@ msgstr "Bu iptal para iadesi yapar — bunu yalnızca işletme sahibi veya muhas
 
 msgid "bezahlt — Erstattung nur durch Inhaber oder Buchhaltung"
 msgstr "ödendi — iade yalnızca işletme sahibi veya muhasebe tarafından"
+
+msgid "Alle Zimmer dieser Kategorie"
+msgstr "Bu kategorinin tüm odaları"
+
+msgid "In diesem Zimmer wohnt in diesem Zeitraum ein Gast — bitte den Gast zuerst in ein anderes Zimmer umbuchen."
+msgstr "Bu tarihlerde bu odada bir misafir kalıyor — lütfen önce misafiri başka bir odaya taşıyın."

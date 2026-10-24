@@ -23,7 +23,7 @@ from django.conf import settings
 from django.utils import translation
 
 # Поднимать вручную при изменении логики сидера, не отражённой в спеке китов.
-SEEDER_VERSION = 3  # 3: KA-12 E1.7 — проданные демо-билеты оплачены; 2: KA-12 E8.7/E8.11 — киты включают blog/booking по контенту
+SEEDER_VERSION = 4  # 4: KA-12 E4.10a — блок ремонта на комнату 104 отеля; 3: KA-12 E1.7 — проданные демо-билеты оплачены; 2: KA-12 E8.7/E8.11 — киты включают blog/booking по контенту
 STORE_KEY = "demo_kit"
 
 

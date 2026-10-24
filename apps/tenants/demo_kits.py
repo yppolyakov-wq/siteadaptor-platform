@@ -26796,6 +26796,22 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                 )
             except Exception:
                 pass
+            # KA-12 E4.10a: ремонт одной комнаты (104) — гостю не назначается,
+            # в шахматке стоит в полосе этой комнаты.
+            try:
+                from apps.stays.models import Room
+
+                room_104 = Room.objects.filter(unit=units[0], number="104").first()
+                if room_104 is not None:
+                    UnitBlock.objects.create(
+                        unit=units[0],
+                        room=room_104,
+                        start_date=today + timedelta(days=12),
+                        end_date=today + timedelta(days=15),
+                        reason="Renovierung Bad",
+                    )
+            except Exception:
+                pass
 
             # G6: цифровые Meldescheine (Online-Checkin) — несколько примеров, чтобы
             # кабинет /dashboard/stays/checkins/ был наполнен.

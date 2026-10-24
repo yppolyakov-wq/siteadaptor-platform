@@ -117,7 +117,7 @@ def free_rooms_for(booking):
     (для селекта назначения; своя комната включена). Пусто, если комнат нет."""
     from apps.core import status_registry
 
-    from .models import Room, StayBooking
+    from .models import Room, StayBooking, UnitBlock
 
     rooms = list(Room.objects.filter(unit_id=booking.unit_id, is_active=True))
     if not rooms:
@@ -132,6 +132,14 @@ def free_rooms_for(booking):
         .exclude(pk=booking.pk)
         .values_list("room_id", flat=True)
     )
+    # KA-12 E4.10a: блок комнаты занимает ночи [start_date, end_date] включительно.
+    busy |= set(
+        UnitBlock.objects.filter(
+            room__in=rooms,
+            start_date__lt=booking.departure,
+            end_date__gte=booking.arrival,
+        ).values_list("room_id", flat=True)
+    )
     return [r for r in rooms if r.id not in busy]
 
 
@@ -145,10 +153,46 @@ def assign_room(booking, room) -> None:
         return
     if room.unit_id != booking.unit_id:
         raise RoomConflict()
-    if room.id not in {r.id for r in free_rooms_for(booking)}:
+    from .models import Room
+
+    with transaction.atomic():
+        # KA-12 E4.10a: блокировка строки комнаты — два одновременных назначения (или
+        # назначение и блок ремонта) одной комнаты не проходят оба.
+        Room.objects.select_for_update().filter(pk=room.pk).first()
+        if room.id not in {r.id for r in free_rooms_for(booking)}:
+            raise RoomConflict()
+        booking.room = room
+        booking.save(update_fields=["room", "updated_at"])
+
+
+def create_block(unit, start_date, end_date, reason="", *, room=None):
+    """KA-12 E4.10a: блок дат категории (room=None) или конкретной комнаты.
+
+    Комната — только своей категории; если на неё на эти ночи уже назначен гость —
+    RoomConflict («сначала переназначьте гостя»), молча комнату у брони не снимаем."""
+    from apps.core import status_registry
+
+    from .models import Room, StayBooking, UnitBlock
+
+    if room is None:
+        return UnitBlock.objects.create(
+            unit=unit, start_date=start_date, end_date=end_date, reason=reason[:120]
+        )
+    if room.unit_id != unit.id:
         raise RoomConflict()
-    booking.room = room
-    booking.save(update_fields=["room", "updated_at"])
+    with transaction.atomic():
+        Room.objects.select_for_update().filter(pk=room.pk).first()
+        occupied = StayBooking.objects.filter(
+            room=room,
+            status__in=status_registry.active_statuses_for("stay"),
+            arrival__lte=end_date,
+            departure__gt=start_date,
+        ).exists()
+        if occupied:
+            raise RoomConflict()
+        return UnitBlock.objects.create(
+            unit=unit, room=room, start_date=start_date, end_date=end_date, reason=reason[:120]
+        )
 
 
 def sync_room_quantity(unit) -> None:

@@ -301,6 +301,12 @@ class UnitBlock(TimestampedModel):
     # A5b: источник блока. "" = ручной; иначе pk ICalSource (импортированные блоки
     # пересоздаются при синке, ручные не трогаем).
     source_id_ref = models.CharField(max_length=40, blank=True, db_index=True)
+    # KA-12 E4.10a: блок КОНКРЕТНОЙ комнаты (ремонт 104). NULL — прежний блок категории
+    # (iCal/OTA всегда без комнаты). В ёмкости считается так же — за один номер; гостю
+    # эту комнату не назначить, в шахматке блок стоит в её полосе.
+    room = models.ForeignKey(
+        "Room", on_delete=models.SET_NULL, null=True, blank=True, related_name="blocks"
+    )
 
     class Meta:
         ordering = ["start_date"]

@@ -232,7 +232,7 @@
         <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Blocked dates" %}</p>
         {% for bl in u.blocks.all %}
           <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
-            <span>{{ bl.start_date|date:"d.m.Y" }} – {{ bl.end_date|date:"d.m.Y" }}{% if bl.reason %} · {{ bl.reason }}{% endif %}</span>
+            <span>{{ bl.start_date|date:"d.m.Y" }} – {{ bl.end_date|date:"d.m.Y" }}{% if bl.room %} · {% trans "Zimmer" %} {{ bl.room.number }}{% endif %}{% if bl.reason %} · {{ bl.reason }}{% endif %}</span>
             <form method="post" class="inline">{% csrf_token %}
               <input type="hidden" name="action" value="block_delete"><input type="hidden" name="block" value="{{ bl.pk }}">
               <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
@@ -245,6 +245,13 @@
           <input type="date" name="start_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           <input type="date" name="end_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           <input type="text" name="reason" placeholder="{% trans 'Reason' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          {% comment %}KA-12 E4.10a: блок одной комнаты (ремонт) — гостю её не назначить.{% endcomment %}
+          {% if u.rooms.all %}
+          <select name="room" aria-label="{% trans 'Zimmer' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+            <option value="">{% trans "Alle Zimmer dieser Kategorie" %}</option>
+            {% for r in u.rooms.all %}<option value="{{ r.pk }}">{% trans "Zimmer" %} {{ r.number }}</option>{% endfor %}
+          </select>
+          {% endif %}
           <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Block" %}</button>
         </form>
       </div>

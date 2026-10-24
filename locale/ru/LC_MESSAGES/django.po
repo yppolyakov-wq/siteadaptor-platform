@@ -29340,3 +29340,9 @@ msgstr "Эта отмена возвращает деньги — это мож�
 
 msgid "bezahlt — Erstattung nur durch Inhaber oder Buchhaltung"
 msgstr "оплачено — возврат только владельцем или бухгалтерией"
+
+msgid "Alle Zimmer dieser Kategorie"
+msgstr "Все номера этой категории"
+
+msgid "In diesem Zimmer wohnt in diesem Zeitraum ein Gast — bitte den Gast zuerst in ein anderes Zimmer umbuchen."
+msgstr "В этом номере в эти даты живёт гость — сначала переселите гостя в другой номер."

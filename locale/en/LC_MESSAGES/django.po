@@ -29071,3 +29071,9 @@ msgstr "This cancellation refunds money — only the owner or accounting may do 
 
 msgid "bezahlt — Erstattung nur durch Inhaber oder Buchhaltung"
 msgstr "paid — refund only by the owner or accounting"
+
+msgid "Alle Zimmer dieser Kategorie"
+msgstr "All rooms of this category"
+
+msgid "In diesem Zimmer wohnt in diesem Zeitraum ein Gast — bitte den Gast zuerst in ein anderes Zimmer umbuchen."
+msgstr "A guest is staying in this room during this period — please move the guest to another room first."
