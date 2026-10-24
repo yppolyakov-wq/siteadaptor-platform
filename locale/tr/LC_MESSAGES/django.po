@@ -29257,3 +29257,27 @@ msgstr "Lütfen rezervasyon süresini gün olarak girin."
 #, python-format
 msgid "Termine mit Überschneidung nach dem neuen Puffer: %(n)s"
 msgstr "Yeni aradan sonra çakışan randevular: %(n)s"
+
+msgid "A variant with this name already exists."
+msgstr "Bu adla bir varyant zaten var."
+
+msgid "Extra minutes"
+msgstr "Ek dakika"
+
+msgid "Long hair"
+msgstr "Uzun saç"
+
+msgid "Please check the surcharge and the extra minutes."
+msgstr "Lütfen ek ücreti ve ek dakikaları kontrol edin."
+
+msgid "Surcharge (€)"
+msgstr "Ek ücret (€)"
+
+msgid "Too many variants for this service."
+msgstr "Bu hizmet için çok fazla varyant var."
+
+msgid "Variant saved."
+msgstr "Varyant kaydedildi."
+
+msgid "e.g. short / long hair: surcharge and extra minutes on top of this service."
+msgstr "örn. kısa / uzun saç: bu hizmete ek ücret ve ek dakika."

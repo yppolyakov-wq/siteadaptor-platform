@@ -29382,3 +29382,27 @@ msgstr "Укажите горизонт записи в днях."
 #, python-format
 msgid "Termine mit Überschneidung nach dem neuen Puffer: %(n)s"
 msgstr "Записей с пересечением после нового буфера: %(n)s"
+
+msgid "A variant with this name already exists."
+msgstr "Вариант с таким названием уже есть."
+
+msgid "Extra minutes"
+msgstr "Доп. минуты"
+
+msgid "Long hair"
+msgstr "Длинные волосы"
+
+msgid "Please check the surcharge and the extra minutes."
+msgstr "Проверьте доплату и дополнительные минуты."
+
+msgid "Surcharge (€)"
+msgstr "Доплата (€)"
+
+msgid "Too many variants for this service."
+msgstr "Слишком много вариантов у этой услуги."
+
+msgid "Variant saved."
+msgstr "Вариант сохранён."
+
+msgid "e.g. short / long hair: surcharge and extra minutes on top of this service."
+msgstr "например, короткие / длинные волосы: доплата и дополнительные минуты к этой услуге."

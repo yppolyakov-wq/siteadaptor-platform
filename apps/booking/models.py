@@ -9,7 +9,7 @@
 
 from decimal import Decimal
 
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -23,6 +23,10 @@ from apps.promotions.models import Customer
 # нижняя граница выборок пересечений (занятость кончается не позже end + потолок),
 # поэтому он закреплён и в форме, и валидатором, и ограничением БД.
 MAX_BUFFER_MINUTES = 480
+# KA-12 E4.4b: потолки знаковых дельт варианта услуги (± 10 000 € / ± 8 ч).
+MAX_VARIANT_PRICE_DELTA = 1_000_000
+MAX_VARIANT_MINUTES_DELTA = 480
+MAX_VARIANTS_PER_SERVICE = 12
 
 
 class Resource(I18nMixin, TimestampedModel):
@@ -410,6 +414,16 @@ class Booking(TimestampedModel):
     service = models.ForeignKey(
         Service, on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings"
     )
+    # KA-12 E4.4b: вариант услуги + снимок его имени на языке витрины (вариант могут
+    # переименовать/удалить — запись помнит, что именно было куплено).
+    variant = models.ForeignKey(
+        "ServiceVariant",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="bookings",
+    )
+    variant_label = models.CharField(max_length=100, blank=True, default="")
     price_cents = models.PositiveIntegerField(default=0)  # снимок цены услуги
     # G9: Mehrfachkarte, которой оплачен визит (SET_NULL — карту можно аннулировать,
     # бронь остаётся). null = обычная оплата/депозит/без карты.
@@ -548,6 +562,62 @@ class Booking(TimestampedModel):
         from decimal import Decimal
 
         return Decimal(self.balance_cents) / 100
+
+
+class ServiceVariant(I18nMixin, TimestampedModel):
+    """KA-12 E4.4b: вариант услуги — «Kurzhaar / Langhaar»: дельты к цене и длительности.
+
+    Хранит ТОЛЬКО отклонения от услуги (знаковые, с потолком в БД): база услуги
+    меняется — варианты едут вместе с ней. Итоговую длину/цену считают
+    `pricing.effective_minutes`/`variant_price_cents` (кламп ≥ 5 мин и ≥ 0 €)."""
+
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name="variants")
+    name = models.CharField(max_length=100)
+    name_i18n = models.JSONField(default=dict, blank=True)
+    price_delta_cents = models.IntegerField(
+        default=0,
+        validators=[
+            MinValueValidator(-MAX_VARIANT_PRICE_DELTA),
+            MaxValueValidator(MAX_VARIANT_PRICE_DELTA),
+        ],
+    )
+    duration_delta_minutes = models.SmallIntegerField(
+        default=0,
+        validators=[
+            MinValueValidator(-MAX_VARIANT_MINUTES_DELTA),
+            MaxValueValidator(MAX_VARIANT_MINUTES_DELTA),
+        ],
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["service", "name"], name="booking_variant_service_name_uniq"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(price_delta_cents__gte=-MAX_VARIANT_PRICE_DELTA)
+                & models.Q(price_delta_cents__lte=MAX_VARIANT_PRICE_DELTA),
+                name="booking_variant_price_cap",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(duration_delta_minutes__gte=-MAX_VARIANT_MINUTES_DELTA)
+                & models.Q(duration_delta_minutes__lte=MAX_VARIANT_MINUTES_DELTA),
+                name="booking_variant_duration_cap",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.service} · {self.name}"
+
+    def name_localized(self, locale: str | None = None) -> str:
+        return self.get_overlay("name", "name_i18n", locale)
+
+    @property
+    def price_delta_eur(self) -> float:
+        return self.price_delta_cents / 100
 
 
 class ServiceSeasonRate(TimestampedModel):

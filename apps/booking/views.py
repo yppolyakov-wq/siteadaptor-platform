@@ -845,6 +845,77 @@ def _is_uuid(value) -> bool:
     return True
 
 
+def _variant_action(request, action) -> None:
+    """KA-12 E4.4b: мини-формы вариантов (отдельно от главного Save услуги — W0).
+
+    Вариант ищется ВНУТРИ услуги из формы: чужой вариант → 404. Дельты — со знаком
+    и потолком; вариант короче 5 минут или мусор вместо цены не сохраняются."""
+    from decimal import Decimal
+
+    from apps.core.money import parse_money
+
+    from .models import (
+        MAX_VARIANT_MINUTES_DELTA,
+        MAX_VARIANT_PRICE_DELTA,
+        MAX_VARIANTS_PER_SERVICE,
+        ServiceVariant,
+    )
+    from .pricing import MIN_VARIANT_MINUTES
+
+    service = get_object_or_404(Service, pk=request.POST.get("service"))
+    variant = None
+    if action != "variant_add":
+        raw = request.POST.get("variant", "")
+        if not _is_uuid(raw):
+            raise Http404
+        variant = get_object_or_404(ServiceVariant, pk=raw, service=service)
+    if action == "variant_toggle":
+        variant.is_active = not variant.is_active
+        variant.save(update_fields=["is_active", "updated_at"])
+        return
+    if action == "variant_delete":
+        variant.delete()  # брони: SET_NULL, снимок имени остаётся
+        messages.success(request, _("Variant removed."))
+        return
+    name = (request.POST.get("name") or "").strip()[:100]
+    try:
+        price = parse_money(request.POST.get("price_delta_eur"))
+        minutes = int((request.POST.get("duration_delta") or "0").strip() or 0)
+    except ValueError:
+        messages.error(request, _("Please check the surcharge and the extra minutes."))
+        return
+    price_cents = int((price or Decimal(0)) * 100)
+    if (
+        not name
+        or abs(price_cents) > MAX_VARIANT_PRICE_DELTA
+        or abs(minutes) > MAX_VARIANT_MINUTES_DELTA
+        or service.duration_minutes + minutes < MIN_VARIANT_MINUTES
+    ):
+        messages.error(request, _("Please check the surcharge and the extra minutes."))
+        return
+    clash = ServiceVariant.objects.filter(service=service, name=name)
+    if variant is not None:
+        clash = clash.exclude(pk=variant.pk)
+    if clash.exists():
+        messages.error(request, _("A variant with this name already exists."))
+        return
+    tenant = getattr(request, "tenant", None)
+    if variant is None:
+        if service.variants.count() >= MAX_VARIANTS_PER_SERVICE:
+            messages.error(request, _("Too many variants for this service."))
+            return
+        variant = ServiceVariant(service=service, sort_order=service.variants.count())
+    variant.name = name
+    variant.price_delta_cents = price_cents
+    variant.duration_delta_minutes = minutes
+    order = (request.POST.get("sort_order") or "").strip()
+    if order.isdigit():
+        variant.sort_order = min(int(order), 999)
+    apply_i18n_overlay(variant, request.POST, tenant, fields=("name",))
+    variant.save()
+    messages.success(request, _("Variant saved."))
+
+
 @login_required
 def services_view(request, pk=None):
     """Услуги с ценой+длительностью (G10): CRUD простыми POST-формами.
@@ -1016,6 +1087,8 @@ def services_view(request, pk=None):
         elif action == "season_delete":
             ServiceSeasonRate.objects.filter(pk=request.POST.get("season")).delete()
             messages.success(request, _("Seasonal price removed."))
+        elif action in ("variant_add", "variant_update", "variant_toggle", "variant_delete"):
+            _variant_action(request, action)  # KA-12 E4.4b: варианты услуги
         if pk:
             return redirect("booking:service-edit", pk=pk)
         return redirect("booking:services")
@@ -1026,12 +1099,15 @@ def services_view(request, pk=None):
     else:
         service_page = None
         services = list(
-            Service.objects.prefetch_related("resources").order_by("-is_active", "name")
+            Service.objects.prefetch_related("resources", "variants").order_by("-is_active", "name")
         )
     locales = extra_locales(getattr(request, "tenant", None))
     for svc in services:  # L3d: данные per-locale инпутов готовим в Python
         svc.i18n_inputs = i18n_inputs_for(svc, getattr(request, "tenant", None))
         svc.seasons = list(svc.season_rates.all())  # HF-5: цены на диапазоны дат
+        svc.variant_rows = list(svc.variants.all())  # KA-12 E4.4b
+        for v in svc.variant_rows:
+            v.i18n_inputs = i18n_inputs_for(v, getattr(request, "tenant", None), fields=("name",))
         # UA4-3-ввод: пункты «Details» — textarea (строка = пункт), переводы —
         # textarea на локаль, выровненная по строкам базовой.
         attrs = svc.attributes_list

@@ -29113,3 +29113,27 @@ msgstr "Please enter the booking horizon in days."
 #, python-format
 msgid "Termine mit Überschneidung nach dem neuen Puffer: %(n)s"
 msgstr "Bookings overlapping after the new buffer: %(n)s"
+
+msgid "A variant with this name already exists."
+msgstr "A variant with this name already exists."
+
+msgid "Extra minutes"
+msgstr "Extra minutes"
+
+msgid "Long hair"
+msgstr "Long hair"
+
+msgid "Please check the surcharge and the extra minutes."
+msgstr "Please check the surcharge and the extra minutes."
+
+msgid "Surcharge (€)"
+msgstr "Surcharge (€)"
+
+msgid "Too many variants for this service."
+msgstr "Too many variants for this service."
+
+msgid "Variant saved."
+msgstr "Variant saved."
+
+msgid "e.g. short / long hair: surcharge and extra minutes on top of this service."
+msgstr "e.g. short / long hair: surcharge and extra minutes on top of this service."
