@@ -317,6 +317,45 @@ def _record_rest(kind, obj, *, source: str) -> None:
     )
 
 
+def _payment_method_code(obj, source: str) -> str:
+    return {"bank": "bank", "invoice": "invoice"}.get(source) or (
+        getattr(obj, "payment_method", "") or "on_site"
+    )
+
+
+def _record_job(job, *, deposit_only: bool, source: str) -> None:
+    """KA-12 B2-8d: дата поступления денег заявки — строкой фолио только для среза
+    УСт (деньги заявки читаются по-прежнему через `prepaid_cents`)."""
+    from apps.core import folio
+
+    if deposit_only:
+        amount, purpose = job.deposit_cents, "deposit"
+    else:
+        amount, purpose = int((_dec(job.payable_gross) * 100).to_integral_value()), "full"
+    folio.record_job_payment(
+        job,
+        amount_cents=amount,
+        purpose=purpose,
+        method=_payment_method_code(job, source),
+        source=source,
+    )
+
+
+def record_job_balance(job, *, source: str) -> None:
+    """B2-8d: итоговый счёт заявки с уже пришедшим депозитом оплачен — остаток с
+    датой (только если депозит тоже датирован; у легаси-заявки дата неизвестна)."""
+    from apps.core import folio
+
+    folio.record_job_payment(
+        job,
+        amount_cents=int((_dec(job.payable_gross) * 100).to_integral_value()),
+        purpose="balance",
+        method=_payment_method_code(job, source),
+        source=source,
+        only_if_dated=True,
+    )
+
+
 def job_deposit_open_q():
     """KA-12 B2-2 (MC-J1): заявка ждёт Anzahlung — принята, депозит назначен и не
     оплачен, счёта ещё нет (после счёта открытая позиция — сам счёт)."""
@@ -352,12 +391,16 @@ def _settle_payment(kind, obj, *, deposit_only: bool = False, source: str = "man
     fields = []
     if state != paid:
         _record_rest(kind, obj, source=source)
+        if kind == "job":
+            _record_job(obj, deposit_only=deposit_only, source=source)
         obj.payment_state = paid
         fields.append("payment_state")
         if kind == "job" and obj.deposit_cents and not deposit_only:
             # KA-H10: ручная отметка заявки = оплачено полностью, не Anzahlung.
             obj.deposit_cents = 0
             fields.append("deposit_cents")
+    elif kind == "job" and source == "invoice":
+        record_job_balance(obj, source=source)
     if getattr(obj, "payment_due_at", None) is not None:
         obj.payment_due_at = None  # KA-P6: оплачено — удержание снято
         fields.append("payment_due_at")

@@ -47,6 +47,17 @@ def mark_deposit_paid(*, tenant_schema: str, job_id: str, payment_intent: str = 
             return False
         fields = []
         if job.payment_state != Job.PAYMENT_PAID:
+            from apps.core import folio
+
+            # B2-8d: дата поступления для среза УСт (ДО смены состояния).
+            folio.record_job_payment(
+                job,
+                amount_cents=job.deposit_cents or int(round(job.payable_gross * 100)),
+                purpose="deposit" if job.deposit_cents else "full",
+                method="stripe",
+                source="webhook",
+                intent=payment_intent,
+            )
             job.payment_state = Job.PAYMENT_PAID
             fields.append("payment_state")
         if payment_intent and job.stripe_payment_intent != payment_intent:

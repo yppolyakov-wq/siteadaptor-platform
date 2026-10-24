@@ -70,8 +70,15 @@ def _vat(gross: Decimal, rate: Decimal) -> Decimal:
     return gross * rate / (Decimal("100") + rate) if rate else ZERO
 
 
-def _deal_ref(source: str, source_ref: str):
-    """(вид, uuid) сделки с фолио по записи журнала или None."""
+def _deal_ref(source: str, source_ref: str, job_map=None):
+    """(вид, uuid) сделки с фолио по записи журнала или None.
+
+    Заявка (B2-8d): `source_ref="inv:<счёт>:<ставка>"` → заявка через `job_map`."""
+    if source == "job":
+        if not job_map or not source_ref.startswith("inv:"):
+            return None
+        job_pk = job_map.get(source_ref[4:].split(":", 1)[0])
+        return ("job", job_pk) if job_pk is not None else None
     kind = _SOURCE_KIND.get(source)
     if kind is None or not source_ref:
         return None
@@ -172,13 +179,13 @@ def _rows_with_events_in(von: date, bis: date) -> list:
     """Строки фолио, у которых в периоде поступление или возврат."""
     from datetime import datetime, time, timedelta
 
-    from apps.core.folio import FOLIO_KINDS
+    from apps.core.folio import DATED_KINDS
     from apps.core.models import DealPayment
 
     tz = timezone.get_current_timezone()
     start = datetime.combine(von, time.min, tzinfo=tz)
     end = datetime.combine(bis + timedelta(days=1), time.min, tzinfo=tz)
-    qs = DealPayment.objects.filter(deal_kind__in=FOLIO_KINDS).annotate(
+    qs = DealPayment.objects.filter(deal_kind__in=DATED_KINDS).annotate(
         refunded_day=Coalesce("refunded_at", "updated_at")
     )
     return list(
@@ -187,6 +194,64 @@ def _rows_with_events_in(von: date, bis: date) -> list:
             | Q(refunded_cents__gt=0, refunded_day__gte=start, refunded_day__lt=end)
         )
     )
+
+
+def _job_map(entries) -> dict:
+    """B2-8d: счёт → заявка для записей журнала заявок (`inv:<счёт>:<ставка>`), пакетно."""
+    from apps.jobs.models import Job
+
+    from .models import Invoice
+
+    inv_ids = {
+        e.source_ref[4:].split(":", 1)[0]
+        for e in entries
+        if e.source == "job" and (e.source_ref or "").startswith("inv:")
+    }
+    if not inv_ids:
+        return {}
+    invoices = list(Invoice.objects.filter(pk__in=inv_ids).values_list("pk", "deal_id"))
+    codes = {deal_id for _pk, deal_id in invoices if deal_id}
+    by_code = dict(Job.objects.filter(reference_code__in=codes).values_list("reference_code", "pk"))
+    by_inv = dict(Job.objects.filter(invoice_id__in=inv_ids).values_list("invoice_id", "pk"))
+    out = {}
+    for pk, deal_id in invoices:
+        job_pk = by_code.get(deal_id) or by_inv.get(pk)
+        if job_pk is not None:
+            out[str(pk)] = job_pk
+    return out
+
+
+def _job_journal(job_pks) -> dict:
+    """B2-8d: все записи журнала заявок (по всем их счетам, вкл. отменённые — их
+    сторно тоже журнал), по заявке."""
+    from apps.jobs.models import Job
+
+    from .models import Invoice, RevenueEntry
+
+    out: dict = defaultdict(list)
+    if not job_pks:
+        return out
+    jobs = list(
+        Job.objects.filter(pk__in=job_pks).values_list("pk", "reference_code", "invoice_id")
+    )
+    code_to_job = {code: pk for pk, code, _inv in jobs if code}
+    inv_to_job = {str(inv): pk for pk, _code, inv in jobs if inv}
+    for inv_pk, deal_id in Invoice.objects.filter(
+        deal_kind="job", deal_id__in=list(code_to_job)
+    ).values_list("pk", "deal_id"):
+        inv_to_job[str(inv_pk)] = code_to_job[deal_id]
+    if not inv_to_job:
+        return out
+    from django.db.models.functions import Substr
+
+    qs = RevenueEntry.objects.annotate(inv_head=Substr("source_ref", 5, 36)).filter(
+        source=RevenueEntry.SOURCE_JOB, source_ref__startswith="inv:", inv_head__in=list(inv_to_job)
+    )
+    for entry in qs.only("source", "source_ref", "date", "amount"):
+        job_pk = inv_to_job.get(entry.source_ref[4:].split(":", 1)[0])
+        if job_pk is not None:
+            out[("job", job_pk)].append(entry)
+    return out
 
 
 def _journal_of(refs) -> dict:
@@ -198,6 +263,11 @@ def _journal_of(refs) -> dict:
         return out
     from django.db.models.functions import Left
 
+    job_pks = {pk for kind, pk in refs if kind == "job"}
+    out.update(_job_journal(job_pks))
+    refs = {ref for ref in refs if ref[0] != "job"}
+    if not refs:
+        return out
     # «{id}» и «{id}:meal/:return/…» — по первым 36 знакам (uuid), одним IN на источник.
     q = Q(pk__in=[])
     by_source = defaultdict(set)
@@ -214,16 +284,30 @@ def _journal_of(refs) -> dict:
 
 
 def _job_advance_note(von: date, bis: date, notes: list) -> None:
-    """B2-8c: у заявок нет книги платежей — Anzahlung заявки в Mindest-Ist не попадает."""
+    """Anzahlung заявки без даты поступления (легаси до B2-8d) в Mindest-Ist не попадает."""
+    from apps.core.models import DealPayment
+    from apps.jobs.models import Job
+
     from .models import Invoice
 
-    if Invoice.objects.filter(
-        kind=Invoice.KIND_ADVANCE,
-        deal_kind="job",
-        status=Invoice.STATUS_PAID,
-        issued_at__date__gte=von,
-        issued_at__date__lte=bis,
-    ).exists():
+    codes = set(
+        Invoice.objects.filter(
+            kind=Invoice.KIND_ADVANCE,
+            deal_kind="job",
+            status=Invoice.STATUS_PAID,
+            issued_at__date__gte=von,
+            issued_at__date__lte=bis,
+        ).values_list("deal_id", flat=True)
+    )
+    if not codes:
+        return
+    job_pks = set(Job.objects.filter(reference_code__in=codes).values_list("pk", flat=True))
+    dated = set(
+        DealPayment.objects.filter(deal_kind="job", deal_id__in=job_pks).values_list(
+            "deal_id", flat=True
+        )
+    )
+    if job_pks - dated:
         notes.append(
             _(
                 "Anzahlungen aus Aufträgen sind noch nicht im Monat des Zahlungseingangs "
@@ -240,10 +324,11 @@ def _soll(von: date, bis: date, entries, acc: _Acc, notes: list) -> None:
     # периоде (у них вычитается налог, уплаченный с предоплаты раньше).
     moved = _rows_with_events_in(von, bis)
     refs = {(r.deal_kind, r.deal_id) for r in moved}
+    job_map = _job_map(entries)
     recognized_here = {
         ref
         for e in entries
-        if (ref := _deal_ref(e.source, e.source_ref)) is not None and e.amount > 0
+        if (ref := _deal_ref(e.source, e.source_ref, job_map)) is not None and e.amount > 0
     }
     refs |= recognized_here
     if not refs:
@@ -288,7 +373,10 @@ def _soll(von: date, bis: date, entries, acc: _Acc, notes: list) -> None:
 def _ist(von: date, bis: date, entries, acc: _Acc, notes: list) -> None:
     moved = _rows_with_events_in(von, bis)
     refs = {(r.deal_kind, r.deal_id) for r in moved}
-    journal_refs = {ref for e in entries if (ref := _deal_ref(e.source, e.source_ref)) is not None}
+    job_map = _job_map(entries)
+    journal_refs = {
+        ref for e in entries if (ref := _deal_ref(e.source, e.source_ref, job_map)) is not None
+    }
     from apps.core.models import DealPayment
 
     with_folio = set()
@@ -314,7 +402,7 @@ def _ist(von: date, bis: date, entries, acc: _Acc, notes: list) -> None:
     journal_by_deal = defaultdict(list)
     legacy = False
     for e in entries:
-        ref = _deal_ref(e.source, e.source_ref)
+        ref = _deal_ref(e.source, e.source_ref, job_map)
         if ref is None or ref not in with_folio:
             acc.add(e.amount, e.vat_rate)
             legacy = True

@@ -13,6 +13,8 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
@@ -64,6 +66,11 @@ def totals(kind: str, obj) -> tuple[int, int] | None:
 #: (сертификат + Anzahlung), второй источник там только запутал бы «уже получено».
 #: Резерв (легаси) и gift/pass — тоже нет.
 FOLIO_KINDS = ("order", "booking", "stay", "ticket")
+
+#: KA-12 B2-8d: виды с ДАТИРОВАННЫМИ строками для среза УСт. У заявки строки только
+#: дают даты поступления денег; её деньги по-прежнему читаются через `prepaid_cents`
+#: (все денежные читатели гейтятся `FOLIO_KINDS`, не этим списком).
+DATED_KINDS = FOLIO_KINDS + ("job",)
 
 
 def _create_opening(kind: str, locked, *, new_intent: str) -> None:
@@ -229,3 +236,63 @@ def record(
             row = _existing(locked.pk)
     forget(obj)
     return row
+
+
+def record_job_payment(
+    job,
+    *,
+    amount_cents: int,
+    purpose: str,
+    method: str = "",
+    source: str = "",
+    intent: str = "",
+    only_if_dated: bool = False,
+):
+    """KA-12 B2-8d: дата поступления денег по заявке — для Mindest-Ist/Ist среза УСт.
+
+    Деньги заявки эта строка НЕ меняет (заявка не в `FOLIO_KINDS`). Без строки
+    `opening`: легаси-заявка с уже полученными деньгами не получает сегодняшнюю дату
+    задним числом. Сумма — не больше остатка «zu zahlen» по строкам; повтор intent —
+    прежняя строка. `only_if_dated` — только если у заявки уже есть датированные
+    строки (остаток по счёту легаси-заявки датой не известен)."""
+    from django.db.models import Sum
+
+    from apps.core.models import DealPayment
+
+    amount_cents = int(amount_cents or 0)
+    if amount_cents <= 0:
+        return None
+    model = type(job)
+
+    def _existing(deal_pk):
+        return DealPayment.objects.filter(
+            deal_kind="job", deal_id=deal_pk, stripe_payment_intent=intent
+        ).first()
+
+    with transaction.atomic():
+        locked = model.objects.select_for_update().get(pk=job.pk)
+        if intent:
+            existing = _existing(locked.pk)
+            if existing is not None:
+                return existing
+        deal_rows = DealPayment.objects.filter(deal_kind="job", deal_id=locked.pk)
+        if only_if_dated and not deal_rows.exists():
+            return None
+        payable = int((Decimal(locked.payable_gross) * 100).to_integral_value())
+        booked = deal_rows.aggregate(net=Sum("amount_cents") - Sum("refunded_cents"))["net"] or 0
+        amount_cents = min(amount_cents, payable - booked)
+        if amount_cents <= 0:
+            return None
+        try:
+            with transaction.atomic():
+                return DealPayment.objects.create(
+                    deal_kind="job",
+                    deal_id=locked.pk,
+                    purpose=purpose,
+                    method=method,
+                    amount_cents=amount_cents,
+                    stripe_payment_intent=intent,
+                    source=source,
+                )
+        except IntegrityError:
+            return _existing(locked.pk)
