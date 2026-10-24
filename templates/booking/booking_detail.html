@@ -91,7 +91,7 @@
         {% for n in service_notes %}
           <li class="rounded-lg bg-gray-50 px-3 py-2 text-sm">
             <p class="whitespace-pre-line">{{ n.text }}</p>
-            <p class="mt-1 text-xs text-gray-500">{{ n.created_at|date:"SHORT_DATE_FORMAT" }}{% if n.service_id and n.service_id != b.service_id %} · {{ n.service }}{% endif %}{% if n.booking.resource %} · {{ n.booking.resource.name }}{% endif %}{% if n.author %} · {{ n.author.get_full_name|default:n.author.email }}{% endif %}</p>
+            <p class="mt-1 text-xs text-gray-500">{{ n.created_at|date:"SHORT_DATE_FORMAT" }}{% if n.service_id and n.service_id != b.service_id %} · {{ n.service }}{% endif %}{% if n.booking.resource %} · {{ n.booking.resource.name }}{% endif %}{% if n.author and n.author.get_full_name %} · {{ n.author.get_full_name }}{% endif %}</p>
             {% if n.author_id == request.user.pk or can_edit_policy %}
               <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="mt-1">
                 {% csrf_token %}

@@ -167,7 +167,8 @@ def customer_detail(request, pk):
             "customer": customer,
             "form": form,
             "note_form": NoteForm(),
-            "notes": customer.crm_notes.all()[:50],
+            # E6.4b: заметки мастера живут в «Behandlungshistorie» (с автором и удалением).
+            "notes": customer.crm_notes.filter(kind="note")[:50],
             "reservations": reservations,
             # 360° (D1b): карты лояльности — readonly-справка.
             "loyalty_cards": customer.loyalty_cards.select_related("program"),

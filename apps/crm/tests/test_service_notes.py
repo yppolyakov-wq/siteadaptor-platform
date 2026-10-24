@@ -142,3 +142,57 @@ def test_customer360_service_history(monkeypatch):
     monkeypatch.setattr(customer360, "_active", lambda t, key: True)
     keys = {s["key"] for s in customer360.sections(None, b.customer)}
     assert "service_history" in keys
+
+
+def test_junk_note_pk_is_404():
+    b = _booking()
+    with pytest.raises(Http404):
+        _post(_user("j@t.de"), b, action="service_note_delete", note="abc")
+
+
+def test_real_roles_staff_cannot_admin_can_delete():
+    from apps.core.models import Membership
+
+    b = _booking()
+    author, staff, admin = _user("au@t.de"), _user("st@t.de"), _user("ad@t.de")
+    Membership.objects.create(user=staff, role=Membership.ROLE_STAFF)
+    Membership.objects.create(user=admin, role=Membership.ROLE_ADMIN)
+    _post(author, b, action="service_note", text="Notiz")
+    pk = str(CustomerNote.objects.get().pk)
+    with pytest.raises(PermissionDenied):
+        _post(staff, b, action="service_note_delete", note=pk)
+    _post(admin, b, action="service_note_delete", note=pk)
+    assert not CustomerNote.objects.exists()
+
+
+def test_crm_notes_list_excludes_service_notes(monkeypatch):
+    from apps.crm import views as crm_views
+
+    b = _booking()
+    u = _user("cr@t.de")
+    _post(u, b, action="service_note", text="Rezeptur-Geheimnis")
+    CustomerNote.objects.create(customer=b.customer, text="Allgemein")
+    seen = {}
+
+    def fake_render(request, template, ctx):
+        seen.update(ctx)
+        from django.http import HttpResponse
+
+        return HttpResponse("")
+
+    monkeypatch.setattr(crm_views, "render", fake_render)
+    view = crm_views.customer_detail
+    while hasattr(view, "__wrapped__"):
+        view = view.__wrapped__
+    view(_req(u, method="get"), b.customer.pk)
+    assert [n.text for n in seen["notes"]] == ["Allgemein"]
+
+
+def test_privacy_text_mentions_treatment_notes_only_when_used():
+    from apps.tenants.tests.factories import TenantFactory as TF
+
+    t = TF.build(business_type="friseur")
+    assert "Angaben zur Behandlung" not in t.privacy_text()
+    b = _booking()
+    _post(_user("pt@t.de"), b, action="service_note", text="x")
+    assert "Angaben zur Behandlung" in t.privacy_text()

@@ -341,9 +341,12 @@ def _service_note_action(request, booking, action, back):
             )
             messages.success(request, _("Notiz gespeichert."))
         return redirect(back)
+    raw_pk = request.POST.get("note", "")
+    if not _is_uuid(raw_pk):  # ревью: мусорный pk — 404, а не 500
+        raise Http404
     note = get_object_or_404(
         CustomerNote,
-        pk=request.POST.get("note"),
+        pk=raw_pk,
         customer=booking.customer,
         kind=CustomerNote.KIND_SERVICE,
     )

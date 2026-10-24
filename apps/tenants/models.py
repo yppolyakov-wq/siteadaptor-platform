@@ -565,6 +565,7 @@ class Tenant(TenantMixin):
             f"{self._privacy_chat_paragraph()}"
             f"{self._privacy_ai_paragraph()}"
             f"{self._privacy_telegram_paragraph()}"
+            f"{self._privacy_treatment_paragraph()}"
             "Sie haben das Recht auf Auskunft, Berichtigung, Löschung und "
             "Widerspruch. Wenden Sie sich dazu an: "
             f"{contact}.\n\n"
@@ -592,6 +593,23 @@ class Tenant(TenantMixin):
             "Zur Erbringung unserer Leistungen setzen wir folgende Dienstleister ein: "
             + "; ".join(items)
             + ". "
+        )
+
+    def _privacy_treatment_paragraph(self) -> str:
+        """KA-12 E6.4b: внутренние заметки к процедурам (рецептура) — абзац только если
+        такие заметки реально ведутся. Ошибка чтения (public-схема, тесты) — пусто."""
+        try:
+            from apps.crm.models import CustomerNote
+
+            if not CustomerNote.objects.filter(kind=CustomerNote.KIND_SERVICE).exists():
+                return ""
+        except Exception:  # noqa: BLE001
+            return ""
+        return (
+            "Zu Ihren Terminen halten wir intern Angaben zur Behandlung fest (z. B. "
+            "verwendete Produkte oder Rezepturen), damit wir beim nächsten Besuch daran "
+            "anknüpfen können (Art. 6 Abs. 1 lit. b DSGVO). Diese Notizen sind nur für "
+            "unser Team sichtbar und werden mit Ihrem Kundenkonto gelöscht.\n\n"
         )
 
     def _privacy_chat_paragraph(self) -> str:
