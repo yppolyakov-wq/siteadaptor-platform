@@ -19294,3 +19294,19 @@ Micro-QR, который сканеры не читают. 11 msgid × 5. Пла
   услугами включают модули сами (`kit_enabled_modules`, `SEEDER_VERSION=2`). Ревью нашло 3
   дефекта (вход в пустую вкладку, Import/Lager у мастерской и гастро, отпечаток демо) — закрыты
   замками. ⚠️ ops: `seed_demo_tenants --group all --changed --jobs 3`.
+
+- **2026-10-24 · KA-12 W2 батч 3 (E8.3/E8.4/E8.6, без миграций).** План
+  `ka-12-w2-batch3-plan-2026-10-24.md`. Реестр `nav_registry`: якорь получил `modules_any`/
+  `fallback`/`fallback_group`/`targets` + хелперы `anchor_visible`/`anchor_target`/
+  `anchor_for_tenant`/`visible_children`, группы подменю `SUBMENU_GROUPS` вместо `TAB_GROUPS`.
+  **Finanzen** — 7-й якорь (мораторий X7 снят только для него, решение владельца), виден при
+  finance или analytics; без них его экраны (Zahlungen, Auswertungen, Berichte, Journal, Rechnungen…)
+  — группой «Zahlen & Finanzen» в Einstellungen, подсветка следует туда же. Банк — только владельцу
+  (`owner_only`, `anchor_target(owner_hidden)`). **Marketing & Kunden**: группы Kunden · Aktionen ·
+  Reichweite, якорь ведёт на первый доступный экран (`target`), идентичность пункта (`url_name`) не
+  меняется — замки и мобильное меню целы. Einstellungen — группы с подзаголовками в сайдбаре и на
+  обзоре (поиск меню прячет пустые подзаголовки). `marketing_home`/`integrations_home` → 302 с GET
+  (`legacy_redirect(_url_name=…)`), шаблоны удалены; карточки подключений + «свой бот» — секция
+  `#verbindungen` на «Kanäle & Benachrichtigungen» (у лёгкого пакета — «Sichtbarkeit»).
+  Ревью 3a: банк в подменю сотрудника и цель раздела без учёта ролей — закрыто. Иконка таб-бара
+  `ic-nav-finance`. Около 15 замков навигации переписаны осознанно (карта — в коммитах).
