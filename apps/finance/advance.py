@@ -123,6 +123,10 @@ def create_advance_invoice(kind: str, obj, tenant):
             raise AdvanceError(_("Für diesen Verkauf ist keine Anzahlung festgelegt."))
         if locked.status in status_registry.cancelled_statuses_for(kind, None):
             raise AdvanceError(_("Der Verkauf ist storniert."))
+        state = getattr(locked, "payment_state", "")
+        if state == "refunded" or (kind != "job" and state == "paid"):
+            # Полностью оплаченной сделке нужен итоговый счёт, а не счёт на предоплату.
+            raise AdvanceError(_("Der Verkauf ist bereits vollständig bezahlt."))
         final = money_contract.invoice_for(kind, locked)
         if final is not None and final.status != Invoice.STATUS_DRAFT:
             raise AdvanceError(_("Für diesen Verkauf gibt es schon eine Rechnung."))
@@ -164,11 +168,25 @@ def sync_advance_paid(kind: str, obj) -> None:
         logger.exception("advance invoice: sync paid failed for %s %s", kind, obj.pk)
 
 
+def lock_deal(kind: str, deal_id: str):
+    """Блокировка сделки по коду — ВСЕГДА раньше строки счёта (один порядок замков
+    на всех путях: вебхук, банк, кнопка — без взаимной блокировки)."""
+    from apps.core import transactions
+
+    return (
+        transactions.model_for(kind)
+        .objects.select_for_update()
+        .filter(reference_code=deal_id)
+        .first()
+    )
+
+
 def _sync_advance_paid(kind: str, obj) -> None:
     from .models import Invoice
     from .state_machine import InvoiceSM
 
     with transaction.atomic():
+        lock_deal(kind, _ref(obj))
         inv = live_advance(kind, obj)
         if inv is None:
             return
@@ -194,11 +212,13 @@ def on_advance_paid(invoice, *, source: str = "invoice") -> None:
             return
         if deposit_received(kind, obj):
             return
-        if int(obj.deposit_cents or 0) <= 0:
-            # Депозит обнулили после выставления — «всё оплачено» ставить нельзя.
-            logger.warning("advance %s paid: deal %s has no deposit", invoice.pk, invoice.deal_id)
-            return
         if kind == "job":
+            if int(obj.deposit_cents or 0) <= 0:
+                # Депозит обнулили — «оплачено полностью» ставить нельзя.
+                logger.warning(
+                    "advance %s paid: job %s has no deposit", invoice.pk, invoice.deal_id
+                )
+                return
             if not money_contract.settle_payment("job", obj, source=source, deposit_only=True):
                 logger.warning("advance %s paid: job %s not settled", invoice.pk, invoice.deal_id)
             return
@@ -210,15 +230,20 @@ def on_advance_paid(invoice, *, source: str = "invoice") -> None:
         from apps.core import folio
         from apps.core.payment_holds import settle_late_payment
 
+        # Пришли деньги ДОКУМЕНТА (депозит брони мог пересчитаться после выставления).
+        paid_cents = int((Decimal(invoice.gross) * 100).to_integral_value())
+        if paid_cents <= 0:
+            logger.warning("advance %s paid: zero amount", invoice.pk)
+            return
         folio.record(
             kind,
             obj,
-            amount_cents=int(obj.deposit_cents),
+            amount_cents=paid_cents,
             purpose="deposit",
             method={"bank": "bank"}.get(source, "invoice"),
             source=source,
         )
-        obj.payment_state = "deposit" if obj.deposit_cents < obj.total_cents else "paid"
+        obj.payment_state = "deposit" if paid_cents < obj.total_cents else "paid"
         fields = ["payment_state", "updated_at"]
         if getattr(obj, "payment_due_at", None) is not None:
             obj.payment_due_at = None

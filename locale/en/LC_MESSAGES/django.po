@@ -28833,3 +28833,6 @@ msgstr "This sale already has an invoice."
 
 msgid "Für diesen Verkauf ist keine Anzahlung festgelegt."
 msgstr "No deposit is set for this sale."
+
+msgid "Der Verkauf ist bereits vollständig bezahlt."
+msgstr "The sale is already fully paid."

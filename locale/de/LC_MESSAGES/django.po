@@ -28925,3 +28925,6 @@ msgstr "Für diesen Verkauf gibt es schon eine Rechnung."
 
 msgid "Für diesen Verkauf ist keine Anzahlung festgelegt."
 msgstr "Für diesen Verkauf ist keine Anzahlung festgelegt."
+
+msgid "Der Verkauf ist bereits vollständig bezahlt."
+msgstr "Der Verkauf ist bereits vollständig bezahlt."

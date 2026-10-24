@@ -224,13 +224,22 @@ def test_full_manual_payment_of_job_closes_advance():
     assert inv.status == "paid"
 
 
+def test_refused_for_fully_paid_or_refunded_deal():
+    for state in ("paid", "refunded"):
+        stay = _stay()
+        type(stay).objects.filter(pk=stay.pk).update(payment_state=state)
+        stay.refresh_from_db()
+        with pytest.raises(advance.AdvanceError):
+            advance.create_advance_invoice("stay", stay, TENANT)
+
+
 def test_paid_advance_with_zeroed_deposit_never_marks_deal_paid():
     stay = _stay()
     inv = advance.create_advance_invoice("stay", stay, TENANT)
     type(stay).objects.filter(pk=stay.pk).update(deposit_cents=0)
     InvoiceSM().apply(inv, "paid")
     stay.refresh_from_db()
-    assert stay.payment_state not in ("paid", "deposit")
+    assert stay.payment_state == "deposit"  # пришли 50 € документа, не «всё оплачено»
 
 
 def test_sync_failure_does_not_break_payment(monkeypatch):

@@ -28977,3 +28977,6 @@ msgstr "Bu satışın zaten bir faturası var."
 
 msgid "Für diesen Verkauf ist keine Anzahlung festgelegt."
 msgstr "Bu satış için ön ödeme belirlenmemiş."
+
+msgid "Der Verkauf ist bereits vollständig bezahlt."
+msgstr "Satış zaten tamamen ödendi."

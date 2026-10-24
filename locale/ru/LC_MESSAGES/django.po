@@ -29098,3 +29098,6 @@ msgstr "По этой продаже уже есть счёт."
 
 msgid "Für diesen Verkauf ist keine Anzahlung festgelegt."
 msgstr "Для этой продажи предоплата не задана."
+
+msgid "Der Verkauf ist bereits vollständig bezahlt."
+msgstr "Продажа уже полностью оплачена."

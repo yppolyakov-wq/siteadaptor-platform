@@ -308,7 +308,7 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "finance_active": _module_active(tenant, "finance"),
         "deal_invoice_id": getattr(obj, "invoice_id", None),
         # KA-12 B2-8b: Anzahlungsrechnung (за флагом до вычета в итоговом счёте).
-        "deal_advance": _advance(kind, obj, tenant),
+        "deal_advance": _advance(kind, obj, tenant, getattr(request, "user", None)),
         # DC-8: строки «davon X % MwSt.» в секции сумм.
         "deal_vat": vat,
         # DC-9: область действия скидки (вся сделка / позиция / доставка).
@@ -349,11 +349,14 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
     }
 
 
-def _advance(kind, obj, tenant):
-    """Кнопка/ссылка счёта на предоплату или None (флаг, модуль, вид, депозит)."""
+def _advance(kind, obj, tenant, user=None):
+    """Кнопка/ссылка счёта на предоплату или None (флаг, модуль, вид, депозит, роль)."""
+    from apps.core.roles import can_export_finance
     from apps.finance import advance
 
     if not advance.enabled() or kind not in advance.KINDS:
+        return None
+    if user is None or not can_export_finance(user):
         return None
     if not _module_active(tenant, "finance"):
         return None

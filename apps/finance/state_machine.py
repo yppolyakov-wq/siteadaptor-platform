@@ -25,6 +25,15 @@ class InvoiceSM(StateMachine):
         if dst == "cancelled" and kind == "advance" and instance.deducted_in.exists():
             # B2-8c: вычтенную предоплату не сторнируют — сначала итоговый счёт.
             raise IllegalTransition("invoice(advance, deducted)", instance.status, dst)
+        if kind == "advance":
+            # B2-8b (ревью): статус предоплаты и депозит сделки — одно целое; сделка
+            # блокируется ПЕРВОЙ (как в sync_advance_paid) — порядок замков один.
+            from .advance import lock_deal
+
+            with transaction.atomic():
+                if instance.deal_kind in ("stay", "booking", "job") and instance.deal_id:
+                    lock_deal(instance.deal_kind, instance.deal_id)
+                return super().apply(instance, dst, **kw)
         if dst == "cancelled":
             # Ревью W1.2 (H1): отмена и Stornorechnung — одно целое; сбой при выпуске
             # сторно откатывает и статус оригинала (иначе «Storniert» без документа).

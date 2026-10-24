@@ -29082,3 +29082,6 @@ msgstr "За цим продажем уже є рахунок."
 
 msgid "Für diesen Verkauf ist keine Anzahlung festgelegt."
 msgstr "Для цього продажу передоплату не задано."
+
+msgid "Der Verkauf ist bereits vollständig bezahlt."
+msgstr "Продаж уже повністю оплачено."
