@@ -28677,3 +28677,12 @@ msgstr "This amount cannot be refunded (more than was paid?)."
 
 msgid "Die Erstattung wurde bereits ausgeführt."
 msgstr "The refund has already been made."
+
+msgid "Überzahlung erstatten"
+msgstr "Refund overpayment"
+
+msgid "Erstatten lässt sich nur eine Überzahlung (mehr als der Preis)."
+msgstr "Only an overpayment (more than the price) can be refunded."
+
+msgid "Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."
+msgstr "Stripe did not respond. Please check the refund in Stripe."

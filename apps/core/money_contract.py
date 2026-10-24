@@ -238,8 +238,10 @@ def _net_received(kind, obj, paid) -> Decimal:
     ценой ДО вычета возвратов (55 € получено при цене 50 €, 5 € вернули → 50 €,
     ждём 0; раньше обрезка давала 50 − 5 и ложный долг 5 €)."""
     folio_sums = _folio_totals(kind, obj)
-    if folio_sums is not None:
+    refunded_state = getattr(obj, "payment_state", "") == "refunded"
+    if folio_sums is not None and not (refunded_state and folio_sums[1] <= 0):
         return folio_sums[0] - folio_sums[1]
+    # «Возвращено», а книга возврата не знает — прежнее правило (_refunded).
     return paid - _refunded(kind, obj, paid)
 
 

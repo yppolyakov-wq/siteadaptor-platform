@@ -28821,3 +28821,12 @@ msgstr "Bu tutar iade edilemez (ödenenden fazla mı?)."
 
 msgid "Die Erstattung wurde bereits ausgeführt."
 msgstr "İade zaten yapıldı."
+
+msgid "Überzahlung erstatten"
+msgstr "Fazla ödemeyi iade et"
+
+msgid "Erstatten lässt sich nur eine Überzahlung (mehr als der Preis)."
+msgstr "Yalnızca fazla ödeme (fiyatın üzerindeki tutar) iade edilebilir."
+
+msgid "Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."
+msgstr "Stripe yanıt vermedi. Lütfen iadeyi Stripe'ta kontrol edin."

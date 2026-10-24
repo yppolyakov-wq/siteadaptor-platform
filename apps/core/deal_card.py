@@ -157,8 +157,9 @@ def _rest_link(request, kind, obj, tenant):
 
 
 def _refund_form(request, kind, obj, tenant):
-    """KA-12 B2-4: форма частичного возврата — только владельцу и только когда в
-    книге есть что возвращать. Карта — если подключён Stripe и есть платёж картой."""
+    """KA-12 B2-4a: форма возврата ПЕРЕПЛАТЫ — только владельцу и только когда
+    получено больше цены. Карта — если подключён Stripe и переплата пришла картой;
+    наличными — если есть деньги, полученные не картой."""
     from decimal import Decimal
 
     from apps.core import folio, refunds, roles
@@ -169,15 +170,8 @@ def _refund_form(request, kind, obj, tenant):
         if getattr(obj, "payment_state", "") == "installment":
             return None
         rows = folio.rows(kind, obj)
-        if not rows:
-            from apps.core import money_contract
-
-            legacy = money_contract.legacy_paid_cents(kind, obj)
-            if legacy <= 0:
-                return None
-            return {"open_eur": Decimal(legacy) / 100, "card_rows": [], "card_ok": False}
-        open_cents = sum(r.amount_cents - r.refunded_cents for r in rows)
-        if open_cents <= 0:
+        over = refunds.overpaid_cents(kind, obj, rows) if rows else 0
+        if over <= 0:
             return None
         card_rows = [
             {
@@ -188,10 +182,17 @@ def _refund_form(request, kind, obj, tenant):
             for r in rows
             if r.stripe_payment_intent and r.amount_cents > r.refunded_cents
         ]
+        cash_open = sum(
+            r.amount_cents - r.refunded_cents for r in rows if not refunds._is_card_row(r)
+        )
+        card_ok = bool(card_rows and refunds._connect_id(tenant))
+        if not card_ok and cash_open <= 0:
+            return None
         return {
-            "open_eur": Decimal(open_cents) / 100,
+            "open_eur": Decimal(over) / 100,
             "card_rows": card_rows,
-            "card_ok": bool(card_rows and refunds._connect_id(tenant)),
+            "card_ok": card_ok,
+            "cash_ok": cash_open > 0,
         }
     except Exception:  # noqa: BLE001 — карточка не падает из-за формы
         return None

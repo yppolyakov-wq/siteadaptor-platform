@@ -28769,3 +28769,12 @@ msgstr "Dieser Betrag kann nicht erstattet werden (höher als bezahlt?)."
 
 msgid "Die Erstattung wurde bereits ausgeführt."
 msgstr "Die Erstattung wurde bereits ausgeführt."
+
+msgid "Überzahlung erstatten"
+msgstr "Überzahlung erstatten"
+
+msgid "Erstatten lässt sich nur eine Überzahlung (mehr als der Preis)."
+msgstr "Erstatten lässt sich nur eine Überzahlung (mehr als der Preis)."
+
+msgid "Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."
+msgstr "Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."

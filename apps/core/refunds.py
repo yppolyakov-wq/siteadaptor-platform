@@ -28,6 +28,7 @@ from decimal import Decimal
 from enum import StrEnum
 
 from django.db import transaction
+from django.db.models import F
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ class RefundResult(StrEnum):
     FAILED = "failed"  # Stripe отказал — состояние «оплачено» сохранено
     MANUAL = "manual"  # доля рассрочки оплачена вне Stripe — возвращает владелец
     REFUSED = "refused"  # KA-12 B2-4: частичный возврат невозможен (сумма/вид/рассрочка)
+    UNCERTAIN = "uncertain"  # B2-4: Stripe не ответил — проверить возврат в Stripe
 
 
 class RefundChoiceRequired(Exception):
@@ -396,10 +398,15 @@ def refund_partial(
     model = transactions.model_for(kind)
     claims = []  # [(row_pk, было, стало)]
     with transaction.atomic():
-        model.objects.select_for_update().get(pk=obj.pk)
+        locked = model.objects.select_for_update().get(pk=obj.pk)
         rows = list(
             DealPayment.objects.filter(deal_kind=kind, deal_id=obj.pk).order_by("created_at")
         )
+        # Пока нет Minderung (B2-4b: снижение цены со сторно выручки) — вернуть
+        # можно только ПЕРЕПЛАТУ: всё сверх цены. Иначе возврат «мимо» цены
+        # оставил бы выручку проведённой, а сделку — неотменённой.
+        if cents > overpaid_cents(kind, locked, rows):
+            return RefundResult.REFUSED
         if method == "card":
             card = [r for r in rows if r.stripe_payment_intent]
             if row_pk:
@@ -409,13 +416,13 @@ def refund_partial(
                 return RefundResult.REFUSED
             targets = [(card[0], cents)]
         else:
-            open_total = sum(r.amount_cents - r.refunded_cents for r in rows)
-            if cents > open_total:
+            # Наличными/переводом — только из денег, полученных НЕ картой (иначе
+            # карта осталась бы списанной, а книга показала бы возврат).
+            cash = [r for r in rows if not _is_card_row(r)]
+            if cents > sum(r.amount_cents - r.refunded_cents for r in cash):
                 return RefundResult.REFUSED
-            # Сначала строки без карты (наличные/перевод), потом остальные.
-            rows.sort(key=lambda r: bool(r.stripe_payment_intent))
             targets, left = [], cents
-            for r in rows:
+            for r in cash:
                 take = min(left, r.amount_cents - r.refunded_cents)
                 if take > 0:
                     targets.append((r, take))
@@ -438,17 +445,30 @@ def refund_partial(
                 idempotency_key=_partial_key(kind, obj.pk, row.stripe_payment_intent, new),
                 amount_cents=new - old,
             )
-        except Exception as exc:  # noqa: BLE001 — сбой Stripe: захват назад, владельцу письмо
-            already = (
-                isinstance(exc, stripe.error.InvalidRequestError)
-                and getattr(exc, "code", "") == "charge_already_refunded"
-            )
-            if not already:
-                DealPayment.objects.filter(pk=row.pk, refunded_cents=new).update(refunded_cents=old)
+        except (
+            stripe.error.InvalidRequestError,
+            stripe.error.CardError,
+            stripe.error.PermissionError,
+            stripe.error.AuthenticationError,
+        ) as exc:
+            # Stripe ОТКАЗАЛ — денег не вернули: захват назад. Арифметикой F, а не
+            # сравнением со «стало»: параллельная отмена могла уже дописать строку.
+            if getattr(exc, "code", "") != "charge_already_refunded":
+                DealPayment.objects.filter(pk=row.pk, refunded_cents__gte=new - old).update(
+                    refunded_cents=F("refunded_cents") - (new - old)
+                )
                 folio.forget(obj)
-                logger.warning("partial refund failed: %s %s", kind, obj.pk)
+                logger.warning("partial refund rejected: %s %s", kind, obj.pk)
                 _notify_owner_failed(kind, obj, tenant)
                 return RefundResult.FAILED
+        except Exception:  # noqa: BLE001 — нет ответа: возврат мог пройти
+            # Таймаут/обрыв: Stripe мог вернуть деньги. Захват оставляем (иначе
+            # следующая попытка с другой суммой — новый ключ — вернула бы ещё раз);
+            # владелец сверяет в Stripe.
+            folio.forget(obj)
+            logger.warning("partial refund uncertain: %s %s", kind, obj.pk)
+            _notify_owner_failed(kind, obj, tenant)
+            return RefundResult.UNCERTAIN
     _mark_refunded_if_complete(kind, obj)
     folio.forget(obj)
     from apps.core.audit import audit_event
@@ -461,6 +481,25 @@ def refund_partial(
         changes={"cents": cents, "method": method, "reason": reason},
     )
     return RefundResult.REFUNDED
+
+
+def _is_card_row(row) -> bool:
+    return bool(row.stripe_payment_intent) or row.method == "stripe"
+
+
+def overpaid_cents(kind: str, obj, rows=None) -> int:
+    """Сколько получено сверх цены (по книге). Только это пока можно вернуть
+    частично; отменённая сделка — 0 (возврат при отмене — свой путь)."""
+    from apps.core import money_contract, status_registry
+    from apps.core.models import DealPayment
+
+    if obj.status in status_registry.cancelled_statuses_for(kind, None):
+        return 0
+    if rows is None:
+        rows = DealPayment.objects.filter(deal_kind=kind, deal_id=obj.pk)
+    net = sum(r.amount_cents - r.refunded_cents for r in rows)
+    total = int((money_contract._total(kind, obj) * 100).to_integral_value())
+    return max(net - total, 0)
 
 
 def _mark_refunded_if_complete(kind: str, obj) -> None:

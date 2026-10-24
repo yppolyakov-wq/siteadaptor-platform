@@ -6293,7 +6293,12 @@ def deal_refund(request, kind, pk):
         elif result == refunds.RefundResult.REFUSED:
             messages.error(
                 request,
-                _("Dieser Betrag kann nicht erstattet werden (höher als bezahlt?)."),
+                _("Erstatten lässt sich nur eine Überzahlung (mehr als der Preis)."),
+            )
+        elif result == refunds.RefundResult.UNCERTAIN:
+            messages.warning(
+                request,
+                _("Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."),
             )
         elif result == refunds.RefundResult.ALREADY:
             messages.warning(request, _("Die Erstattung wurde bereits ausgeführt."))

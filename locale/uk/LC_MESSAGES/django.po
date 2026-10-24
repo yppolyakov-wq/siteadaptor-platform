@@ -28926,3 +28926,12 @@ msgstr "Цю суму не можна повернути (більше, ніж �
 
 msgid "Die Erstattung wurde bereits ausgeführt."
 msgstr "Повернення вже виконано."
+
+msgid "Überzahlung erstatten"
+msgstr "Повернути переплату"
+
+msgid "Erstatten lässt sich nur eine Überzahlung (mehr als der Preis)."
+msgstr "Повернути можна лише переплату (понад ціну)."
+
+msgid "Stripe hat nicht geantwortet. Bitte prüfen Sie die Erstattung in Stripe."
+msgstr "Stripe не відповів. Перевірте повернення в Stripe."

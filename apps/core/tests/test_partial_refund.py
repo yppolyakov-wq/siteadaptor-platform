@@ -30,7 +30,7 @@ def stripe_calls(monkeypatch):
     return calls
 
 
-def _stay(total=5000, state=StayBooking.PAYMENT_PAID, intent="pi_main"):
+def _stay(total=3000, state=StayBooking.PAYMENT_PAID, intent="pi_main"):
     unit = StayUnit.objects.create(name=f"Z {uuid.uuid4().hex[:6]}", price_cents=total)
     b = StayBooking.objects.create(
         unit=unit,
@@ -75,7 +75,7 @@ def test_partial_card_refund_claims_row_and_calls_stripe_with_amount(stripe_call
     assert stripe_calls[-1]["payment_intent"] == "pi_main"
     b.refresh_from_db()
     assert b.payment_state == StayBooking.PAYMENT_PAID  # грубое состояние не трогаем
-    assert money_contract.due("stay", b) == 1000 / 100
+    assert money_contract.due("stay", b) == 0  # вернули часть переплаты
 
 
 def test_two_partial_refunds_use_two_keys(stripe_calls):
@@ -90,14 +90,14 @@ def test_two_partial_refunds_use_two_keys(stripe_calls):
 def test_more_than_open_is_refused_without_stripe(stripe_calls):
     b = _stay()
     _card_row(b)
-    result = refunds.refund_partial("stay", b, cents=6000, method="card", tenant=TENANT)
-    assert result == refunds.RefundResult.REFUSED
+    result = refunds.refund_partial("stay", b, cents=2500, method="card", tenant=TENANT)
+    assert result == refunds.RefundResult.REFUSED  # переплата 20 €, не больше
     assert stripe_calls == []
 
 
-def test_stripe_failure_rolls_back_claim(monkeypatch):
+def test_stripe_rejection_rolls_back_claim(monkeypatch):
     def boom(**kw):
-        raise stripe.error.APIConnectionError("down")
+        raise stripe.error.InvalidRequestError("nope", "amount")
 
     monkeypatch.setattr(connect, "refund", boom)
     b = _stay()
@@ -115,12 +115,12 @@ def test_offline_refund_records_without_stripe(stripe_calls):
     assert result == refunds.RefundResult.REFUNDED
     assert stripe_calls == []
     b.refresh_from_db()
-    assert money_contract.due("stay", b) == 20
+    assert money_contract.due("stay", b) == 0
 
 
 def test_overpayment_refund_brings_due_to_zero(stripe_calls):
     """Переплата: 55 € получено при цене 50 € — вернули 5 €, ждём 0, а не 5."""
-    b = _stay()
+    b = _stay(total=5000)
     _card_row(b)
     _card_row(b, cents=500, intent="pi_extra")
     refunds.refund_partial(
@@ -142,7 +142,7 @@ def test_cancel_after_partial_refunds_only_remainder(stripe_calls):
     b.refresh_from_db()
     assert refunds.refund_payment("stay", b, TENANT) == refunds.RefundResult.REFUNDED
     last = stripe_calls[-1]
-    assert last["amount_cents"] == 4000
+    assert last["amount_cents"] == 4000  # 50 € платёж − 10 € уже вернули
     assert last["idempotency_key"] != stripe_calls[0]["idempotency_key"]
     row.refresh_from_db()
     assert row.refunded_cents == row.amount_cents
@@ -150,20 +150,58 @@ def test_cancel_after_partial_refunds_only_remainder(stripe_calls):
     assert b.payment_state == StayBooking.PAYMENT_REFUNDED
 
 
-def test_full_partial_refund_marks_refunded(stripe_calls):
+def test_refund_beyond_overpayment_is_refused(stripe_calls):
+    """Ревью: вернуть больше переплаты нельзя — выручка осталась бы проведённой
+    (снижение цены со сторно — отдельный шаг B2-4b)."""
+    b = _stay(total=5000)
+    _card_row(b)
+    assert (
+        refunds.refund_partial("stay", b, cents=1000, method="card", tenant=TENANT)
+        == refunds.RefundResult.REFUSED
+    )
+    assert stripe_calls == []
+
+
+def test_stripe_timeout_keeps_claim(monkeypatch):
+    """Ревью: при обрыве Stripe мог вернуть деньги — захват не откатываем, иначе
+    следующая попытка с другой суммой вернула бы ещё раз."""
+
+    def boom(**kw):
+        raise stripe.error.APIConnectionError("timeout")
+
+    monkeypatch.setattr(connect, "refund", boom)
+    b = _stay()
+    row = _card_row(b)
+    result = refunds.refund_partial("stay", b, cents=1000, method="card", tenant=TENANT)
+    assert result == refunds.RefundResult.UNCERTAIN
+    row.refresh_from_db()
+    assert row.refunded_cents == 1000
+
+
+def test_offline_refund_cannot_draw_on_card_money(stripe_calls):
+    """Ревью: «наличными» нельзя списать деньги, пришедшие картой."""
     b = _stay()
     _card_row(b)
-    refunds.refund_partial("stay", b, cents=5000, method="card", tenant=TENANT)
-    b.refresh_from_db()
-    assert b.payment_state == StayBooking.PAYMENT_REFUNDED
+    assert (
+        refunds.refund_partial("stay", b, cents=1000, method="offline", tenant=TENANT)
+        == refunds.RefundResult.REFUSED
+    )
+
+
+def test_refunded_state_without_book_refund_is_not_due():
+    """Ревью: «возвращено», а книга возврата не знает — ждём 0, а не всю цену."""
+    b = _stay(state=StayBooking.PAYMENT_REFUNDED)
+    _card_row(b)
+    assert money_contract.due("stay", b) == 0
 
 
 def test_legacy_deal_gets_opening_first(stripe_calls):
     b = _stay()  # оплачена до фолио: строк нет
     result = refunds.refund_partial("stay", b, cents=1000, method="card", tenant=TENANT)
-    assert result == refunds.RefundResult.REFUNDED
-    rows = list(DealPayment.objects.filter(deal_id=b.pk))
-    assert len(rows) == 1 and rows[0].refunded_cents == 1000
+    # Строка «Eröffnung» встала (возвращать можно только то, что в книге); переплаты
+    # у легаси-сделки нет — возврат отклонён.
+    assert result == refunds.RefundResult.REFUSED
+    assert DealPayment.objects.filter(deal_id=b.pk, purpose="opening").count() == 1
 
 
 def test_installment_ticket_is_refused():
