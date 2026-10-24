@@ -29229,3 +29229,6 @@ msgstr "Variante gespeichert."
 
 msgid "e.g. short / long hair: surcharge and extra minutes on top of this service."
 msgstr "z. B. kurz / lang: Aufpreis und zusätzliche Minuten zu dieser Leistung."
+
+msgid "Variant"
+msgstr "Variante"

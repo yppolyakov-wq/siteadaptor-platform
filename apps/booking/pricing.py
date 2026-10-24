@@ -65,3 +65,12 @@ def variant_price_cents(service, day, variant, seasons=None) -> int:
     base = price_cents_for(service, day, seasons) if day is not None else service.price_cents
     delta = int(getattr(variant, "price_delta_cents", 0) or 0) if variant else 0
     return max(0, base + delta)
+
+
+def promo_with_variant(hit, variant):
+    """Цена акции «счастливых часов» с доплатой варианта (Р-1: акция на услугу,
+    доплата за вариант остаётся). None — акции нет."""
+    if hit is None:
+        return None
+    delta = int(getattr(variant, "price_delta_cents", 0) or 0) if variant else 0
+    return max(0, int(hit[1]) + delta)

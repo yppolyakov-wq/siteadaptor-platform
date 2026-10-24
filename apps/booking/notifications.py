@@ -89,7 +89,7 @@ def enqueue_booking_email(booking, event):
             ctx["whatsapp_url"] = wa_link(
                 getattr(tenant, "whatsapp_number", "") if tenant else "",
                 _("Video-Termin %(when)s — %(service)s")
-                % {"when": when, "service": booking.service.name},
+                % {"when": when, "service": booking.service_label},
             )
         # UA4-4b wiring: post-visit ведёт на форму отзыва об услуге (generic
         # reviews, GET → деталь с формой). Нет услуги/домена → письмо без ссылки.

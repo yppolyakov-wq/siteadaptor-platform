@@ -214,6 +214,8 @@ def book(
     billing_address="",
     payment_due_at=None,
     match_by_phone=False,
+    variant=None,
+    variant_label="",
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
     ResourceClosed / ValueError (кривой интервал) / PromoInvalid (B1.2).
@@ -227,6 +229,9 @@ def book(
     отмене; промо-цена приходит уже готовой в price_cents."""
     if end <= start:
         raise ValueError("end must be after start")
+    # KA-12 E4.4b: вариант обязан принадлежать услуге брони (кросс-таблица в БД не выразима).
+    if variant is not None and variant.service_id != getattr(service, "pk", None):
+        raise ValueError("variant does not belong to service")
 
     resource_id = getattr(resource, "id", resource)
     # Блокировка строки ресурса сериализует конкурентные брони этого ресурса.
@@ -259,6 +264,8 @@ def book(
     booking = Booking.objects.create(
         resource=resource,
         service=service,
+        variant=variant,
+        variant_label=(variant_label or "")[:100],
         promotion=promotion,
         price_cents=int(price_cents or 0),
         # DC-8: снимок ставки НДС услуги (у записи без услуги — общая 19 %).

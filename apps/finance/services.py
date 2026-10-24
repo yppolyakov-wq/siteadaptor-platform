@@ -776,7 +776,7 @@ def invoice_from_booking(booking, tenant=None):
     small = bool(tenant and getattr(tenant, "small_business", False))
     # DC-8: ставка — снимок записи (услуга могла иметь свою ставку).
     rate = Decimal("0") if small else Decimal(str(booking.vat_rate or "19.00"))
-    title = getattr(booking.service, "name", "") or str(_("Leistung"))
+    title = getattr(booking, "service_label", "") or str(_("Leistung"))
     net, _vat = _net_from_gross(Decimal(booking.price_cents or 0) / 100, rate)
     lines = [{"text": str(title)[:200], "qty": 1, "unit_price": str(net)}]
     for extra in booking.extras or []:

@@ -25,7 +25,7 @@
   <div class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm mt-4">
     <div>
       <p class="text-xs text-gray-400">{% trans "Leistung" %}</p>
-      <p class="font-medium">{% if b.service %}{{ b.service.name }}{% else %}{% trans "Booking" %}{% endif %}</p>
+      <p class="font-medium">{% if b.service %}{{ b.service_label }}{% else %}{% trans "Booking" %}{% endif %}</p>
     </div>
     <div>
       <p class="text-xs text-gray-400">{% trans "Date" %}</p>

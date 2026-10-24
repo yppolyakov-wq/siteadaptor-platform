@@ -446,7 +446,19 @@ def service_slots(request, pk):
     # HF-7: длина брони = N единиц услуги подряд (?dauer=N). Сетка считается на
     # суммарную длительность — старт годится, только если свободен ВЕСЬ отрезок.
     units = _parse_units(request.GET.get("dauer"))
-    total_minutes = units * service.duration_minutes
+    # KA-12 E4.4b: вариант услуги (длина/цена — дельты к услуге). Ссылки строит
+    # сервер: чужой/выключенный/мусорный вариант = подделка → 404.
+    variants = pricing.active_variants(service)
+    variant, variant_ok = pricing.resolve_variant(service, request.GET.get("variante"))
+    if not variant_ok:
+        raise Http404
+    variant_pairs = (
+        [("variante", str(variant.pk))] if variant is not None and variant != variants[0] else []
+    )
+    variant_qs = "".join(f"&{k}={v}" for k, v in variant_pairs)
+    tail = attribution.query_tail(request) + variant_pairs
+    unit_minutes = pricing.effective_minutes(service, variant)
+    total_minutes = units * unit_minutes
     starts = availability.service_slots(
         service, day, resource=chosen, duration_minutes=total_minutes, base_pool=resources
     )
@@ -455,7 +467,11 @@ def service_slots(request, pk):
     next_free = None
     if not starts:
         next_free = availability.next_free_slot(
-            service, day + timedelta(days=1), max_days=_horizon_days(service), resource=chosen
+            service,
+            day + timedelta(days=1),
+            max_days=_horizon_days(service),
+            resource=chosen,
+            duration_minutes=total_minutes,
         )
     # HF-6c (фидбэк владельца: «нельзя выбрать услугу сразу на 2-3 времени»):
     # выбор — СПИСОК стартов (?slot=A&slot=B). Валидируем каждый по живой сетке,
@@ -540,7 +556,7 @@ def service_slots(request, pk):
             other_days,
             embed=_is_embed(request),
             units=units,
-            tail=attribution.query_tail(request),
+            tail=tail,
         ),
         "slot_qs_next": _slot_carry_qs(
             day + timedelta(days=1),
@@ -549,7 +565,7 @@ def service_slots(request, pk):
             other_days,
             embed=_is_embed(request),
             units=units,
-            tail=attribution.query_tail(request),
+            tail=tail,
         ),
         "slot_toggles": _slot_toggles(
             day,
@@ -560,14 +576,14 @@ def service_slots(request, pk):
             duration,
             embed=_is_embed(request),
             units=units,
-            tail=attribution.query_tail(request),
+            tail=tail,
         ),
         # HF-7: выбор длительности — чипы «1× / 2× / …» над сеткой; отрезки
         # (начало-конец) для честного заголовка формы «09:00–12:00».
         "selected_spans": [{"start": x, "end": x + duration} for x in selected_list],
         "booking_spans": [{"start": x, "end": x + duration} for x in booking_slots],
         "units": units,
-        "unit_minutes": service.duration_minutes,
+        "unit_minutes": unit_minutes,
         "total_minutes": total_minutes,
         "unit_options": _unit_options(
             day,
@@ -575,7 +591,8 @@ def service_slots(request, pk):
             service,
             units,
             embed=_is_embed(request),
-            tail=attribution.query_tail(request),
+            tail=tail,
+            unit_minutes=unit_minutes,
         ),
         "max_group_slots": services.MAX_GROUP_SLOTS,
         # Пикер «Choose your specialist» — только при >1 ресурсе И когда ресурсы
@@ -600,10 +617,25 @@ def service_slots(request, pk):
         "passes_enabled": _passes_enabled(),  # G9: поле Mehrfachkarte-Code
         "prev_day": day - timedelta(days=1) if day > today else None,
         "next_day": day + timedelta(days=1) if day < max_day else None,
-        "cal_qs": f"&resource={chosen.pk}" if chosen else "",  # A3: параметр дня
+        "cal_qs": (f"&resource={chosen.pk}" if chosen else "") + variant_qs,  # A3: параметр дня
+        # KA-12 E4.4b: чипы вариантов (смена варианта сбрасывает выбранные времена —
+        # длина другая) + параметр для ссылок/формы.
+        "variant": variant,
+        "variant_qs": variant_qs,
+        "variant_param": variant_pairs[0][1] if variant_pairs else "",
+        "variant_options": _variant_options(
+            service,
+            variants,
+            variant,
+            day,
+            chosen,
+            units,
+            embed=_is_embed(request),
+            tail=attribution.query_tail(request),
+        ),
         # HF-5: цена на ВЫБРАННЫЙ день. Показываем ровно то, что спишем при брони
         # (тот же резолвер) — иначе гость видел базовую цену, а платил сезонную.
-        "day_price_eur": pricing.price_cents_for(service, day) * units / 100,
+        "day_price_eur": pricing.variant_price_cents(service, day, variant) * units / 100,
         "day_price_label": pricing.season_label_for(service, day),
         "day_price_differs": pricing.price_cents_for(service, day) != service.price_cents,
         **cal,
@@ -617,21 +649,23 @@ def service_slots(request, pk):
     _promos = service_promos(service)
     if _promos:
         _rid = chosen.pk if chosen else None
-        _day_cents = pricing.price_cents_for(service, day)
+        _day_cents = pricing.variant_price_cents(service, day, variant)
         promo_banner = None
         for row in ctx["slot_toggles"]:
             hit = promo_for_service(service, row["start"], _rid, promos=_promos)
-            if hit is not None and hit[1] < _day_cents:
-                row["promo_eur"] = hit[1] * units / 100
+            hp = pricing.promo_with_variant(hit, variant)
+            if hp is not None and hp < _day_cents:
+                row["promo_eur"] = hp * units / 100
                 if promo_banner is None:
-                    promo_banner = {"title": hit[0].title_text, "eur": hit[1] * units / 100}
+                    promo_banner = {"title": hit[0].title_text, "eur": hp * units / 100}
         ctx["promo_banner"] = promo_banner
         # Промо-цена ВЫБРАННОГО времени в форме брони (зеркало service_book:
         # промо применяется только когда выбран ровно один период).
         if len(selected_list) == 1 and not other_days:
             hit = promo_for_service(service, selected_list[0], _rid, promos=_promos)
-            if hit is not None and hit[1] < _day_cents:
-                ctx["promo_price_eur"] = hit[1] * units / 100
+            hp = pricing.promo_with_variant(hit, variant)
+            if hp is not None and hp < _day_cents:
+                ctx["promo_price_eur"] = hp * units / 100
                 ctx["promo_old_eur"] = _day_cents * units / 100
     embed = _is_embed(request)
     if request.GET.get("box") == "1":
@@ -787,7 +821,40 @@ def service_review_submit(request, pk):
     )
 
 
-def _unit_options(day, resource, service, units, *, embed=False, tail=()) -> list[dict]:
+def _variant_options(service, variants, current, day, resource, units, *, embed, tail):
+    """KA-12 E4.4b: чипы вариантов услуги («Kurz · 30 Min · 25 €»). Ссылка дефолтного
+    варианта — без параметра (паритет прежних ссылок); выбранные времена сбрасываем."""
+    from urllib.parse import urlencode
+
+    if len(variants) < 2:
+        return []
+    rows = []
+    for i, v in enumerate(variants):
+        pairs = [("tag", day.isoformat())]
+        if resource is not None:
+            pairs.append(("resource", str(resource.pk)))
+        if units > 1:
+            pairs.append(("dauer", str(units)))
+        if i:
+            pairs.append(("variante", str(v.pk)))
+        if embed:
+            pairs.append(("embed", "1"))
+        pairs += list(tail)
+        rows.append(
+            {
+                "name": v.name_localized(),
+                "minutes": pricing.effective_minutes(service, v),
+                "eur": pricing.variant_price_cents(service, day, v) / 100,
+                "selected": current is not None and v.pk == current.pk,
+                "url": "?" + urlencode(pairs),
+            }
+        )
+    return rows
+
+
+def _unit_options(
+    day, resource, service, units, *, embed=False, tail=(), unit_minutes=None
+) -> list[dict]:
     """HF-7: чипы длительности («1× 90 Min · 09:00–10:30» … ) — сколько единиц
     услуги подряд. Показываем только те N, для которых в этот день ЕСТЬ старт:
     предлагать заведомо невозможную длину нечестно."""
@@ -795,8 +862,9 @@ def _unit_options(day, resource, service, units, *, embed=False, tail=()) -> lis
 
     rows = []
     base = availability.service_pool(service)
+    unit_minutes = unit_minutes or service.duration_minutes
     for n in range(1, MAX_UNITS + 1):
-        total = n * service.duration_minutes
+        total = n * unit_minutes
         if n > 1 and not availability.service_slots(
             service, day, resource=resource, duration_minutes=total, base_pool=base
         ):
@@ -915,7 +983,11 @@ def service_book(request, pk):
     # — длина брони и цена умножаются на число единиц, сетка проверяется на весь
     # отрезок. dauer вне капа/мусор → 1 (прежнее поведение).
     units = _parse_units(request.POST.get("dauer") or request.GET.get("dauer"))
-    total_minutes = units * service.duration_minutes
+    # KA-12 E4.4b: вариант из формы — только активный вариант ЭТОЙ услуги.
+    variant, variant_ok = pricing.resolve_variant(service, request.POST.get("variante"))
+    if not variant_ok:
+        raise Http404
+    total_minutes = units * pricing.effective_minutes(service, variant)
     # MX-5 (Tripster): per_person — цена × человек; party_size несёт число людей.
     persons = 1
     if service.pricing_mode == "per_person":
@@ -943,7 +1015,7 @@ def service_book(request, pk):
                 one_resource,
                 one,
                 one + timedelta(minutes=total_minutes),
-                pricing.price_cents_for(service, one.date()) * units * persons,
+                pricing.variant_price_cents(service, one.date(), variant) * units * persons,
             )
         )
     resource = slot_plan[0][0]
@@ -970,9 +1042,10 @@ def service_book(request, pk):
 
         r0, s0, e0, price0 = slot_plan[0]
         hit = promo_for_service(service, s0, getattr(r0, "pk", None))
-        if hit is not None and hit[1] * units * persons < price0:
+        hp = pricing.promo_with_variant(hit, variant)
+        if hp is not None and hp * units * persons < price0:
             promo = hit[0]
-            slot_plan[0] = (r0, s0, e0, hit[1] * units * persons)
+            slot_plan[0] = (r0, s0, e0, hp * units * persons)
     from apps.aggregator import conversions
 
     found = attribution.resolve(request)  # В5 V5-5b: ch/cl скрытыми полями слотов
@@ -993,6 +1066,8 @@ def service_book(request, pk):
             extras=extras_snap,
             voucher_code=request.POST.get("voucher_code", ""),
             promotion=promo,
+            variant=variant,
+            variant_label=variant.name_localized()[:100] if variant is not None else "",
         )
         booking = created[0]
     except services.PromoInvalid:

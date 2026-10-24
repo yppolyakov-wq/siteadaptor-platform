@@ -83,7 +83,7 @@ def sections(tenant, customer) -> list[dict]:
             _("Appointments"),
             lambda: [
                 {
-                    "title": f"{b.service.name if b.service else b.resource}",
+                    "title": f"{b.service_label if b.service else b.resource}",
                     "sub": f"{b.start:%d.%m.%Y %H:%M} · {b.reference_code}",
                     "status": b.status,
                     # VF-18a (фидбэк 2026-08-25): сделки клиента кликабельны

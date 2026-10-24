@@ -29406,3 +29406,6 @@ msgstr "Вариант сохранён."
 
 msgid "e.g. short / long hair: surcharge and extra minutes on top of this service."
 msgstr "например, короткие / длинные волосы: доплата и дополнительные минуты к этой услуге."
+
+msgid "Variant"
+msgstr "Вариант"

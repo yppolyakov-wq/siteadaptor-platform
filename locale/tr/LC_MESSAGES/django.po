@@ -29281,3 +29281,6 @@ msgstr "Varyant kaydedildi."
 
 msgid "e.g. short / long hair: surcharge and extra minutes on top of this service."
 msgstr "örn. kısa / uzun saç: bu hizmete ek ücret ve ek dakika."
+
+msgid "Variant"
+msgstr "Varyant"

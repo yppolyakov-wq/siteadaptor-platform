@@ -529,6 +529,14 @@ class Booking(TimestampedModel):
             models.Index(fields=["resource", "end"], name="booking_resource_end_idx"),
         ]
 
+    @property
+    def service_label(self) -> str:
+        """KA-12 E4.4b: «Услуга · Вариант» из снимка (вариант могли удалить)."""
+        name = self.service.name if self.service_id else ""
+        if self.variant_label:
+            return f"{name} · {self.variant_label}" if name else self.variant_label
+        return name
+
     def __str__(self):
         return f"{self.reference_code} {self.resource} {self.start:%d.%m %H:%M}"
 

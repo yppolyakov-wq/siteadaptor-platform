@@ -122,7 +122,9 @@ def deal_lines(kind: str, obj) -> list[dict]:
     if kind == "booking":
         base = _money(getattr(obj, "price_cents", 0))
         service = getattr(obj, "service", None)
-        label = getattr(service, "name", "") or str(_("Leistung"))
+        label = (
+            getattr(obj, "service_label", "") or getattr(service, "name", "") or str(_("Leistung"))
+        )
         party = int(getattr(obj, "party_size", 0) or 0)
         # MX-5: цена за человека — количество честное, иначе «1×».
         per_person = getattr(service, "pricing_mode", "") == "per_person" and party > 1

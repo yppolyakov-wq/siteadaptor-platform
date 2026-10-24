@@ -212,7 +212,8 @@ def _order_fields(o):
 
 
 def _booking_fields(b):
-    name = str(b.service or b.resource or "") or b.reference_code
+    name = (getattr(b, "service_label", "") if b.service_id else "") or str(b.resource or "")
+    name = name or b.reference_code
     title = f"{name} · {b.start:%d.%m. %H:%M}" if b.start else name
     return {"title": title, "amount": _cents(b.total_cents), "currency": "EUR", "when": b.start}
 
@@ -534,7 +535,7 @@ _TITLE_SEARCH = {
     # его по телефону чаще, чем наш собственный код.
     # DC-4 (2026-08-25): внешний номер есть у всех четырёх видов сделок с карточкой.
     "order": ("external_code",),
-    "booking": ("resource__name", "service__name", "external_code"),
+    "booking": ("resource__name", "service__name", "external_code", "variant_label"),
     "stay": ("unit__name", "external_code"),
     "job": ("title", "external_code"),
     "ticket": ("event__title",),

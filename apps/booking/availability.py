@@ -222,7 +222,7 @@ def has_skill(service, resource) -> bool:
     return any(r.pk == resource.pk for r in _skill_pool(service))
 
 
-def next_free_slot(service, from_day=None, max_days=60, resource=None):
+def next_free_slot(service, from_day=None, max_days=60, resource=None, duration_minutes=None):
     """R3 «Nächster freier Termin»: ближайший свободный старт услуги, скан вперёд
     от `from_day` (вкл.) до `max_days` дней. Возвращает datetime первого старта
     или None (нет свободных в горизонте). Перехват уходящего клиента в момент
@@ -230,7 +230,13 @@ def next_free_slot(service, from_day=None, max_days=60, resource=None):
     start = from_day or timezone.localdate()
     base = _skill_pool(service)
     for i in range(min(max_days, NEXT_FREE_SCAN_DAYS) + 1):
-        slots = service_slots(service, start + timedelta(days=i), resource=resource, base_pool=base)
+        slots = service_slots(
+            service,
+            start + timedelta(days=i),
+            resource=resource,
+            duration_minutes=duration_minutes,
+            base_pool=base,
+        )
         if slots:
             return slots[0]
     return None

@@ -1,6 +1,6 @@
 {% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
-{% trans "vielen Dank für Ihren Besuch bei uns" %}{% if booking.service %} ({{ booking.service.name }}, {{ booking.start|date:"d.m.Y" }}){% endif %}.
+{% trans "vielen Dank für Ihren Besuch bei uns" %}{% if booking.service %} ({{ booking.service_label }}, {{ booking.start|date:"d.m.Y" }}){% endif %}.
 {% trans "Wir hoffen, Sie waren zufrieden!" %}
 {% if review_url %}
 {% trans "Würden Sie uns eine kurze Bewertung hinterlassen?" %} {{ review_url }}
