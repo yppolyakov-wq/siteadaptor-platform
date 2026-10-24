@@ -6196,3 +6196,54 @@ def google_reviews_settings(request):
     return render(
         request, "tenant/google_reviews_settings.html", {"nav": "integrations", "form": form}
     )
+
+
+@login_required
+@require_POST
+def deal_pay_link(request, kind, pk):
+    """KA-12 B2-5 (E1.11): «🔗 Zahlungslink senden» — письмо клиенту со ссылкой на
+    онлайн-оплату ОСТАТКА после Anzahlung (номер/запись/билет).
+
+    Гейты — те же, что у публичной страницы оплаты (`balance_pay.rest_payable`):
+    ссылка, которая уводит в никуда, хуже, чем её отсутствие."""
+    from decimal import Decimal
+
+    from django.http import Http404
+    from django.template.loader import render_to_string
+    from django.urls import reverse
+    from django.utils import timezone, translation
+
+    from apps.core import balance_pay, transactions
+    from apps.notifications.services import email_locale, notify
+
+    if kind not in balance_pay.KINDS:
+        raise Http404("unknown kind")
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    email = getattr(getattr(obj, "customer", None), "email", "") or getattr(obj, "email", "")
+    if not balance_pay.rest_payable(kind, obj, getattr(request, "tenant", None)):
+        messages.error(request, _("Für diese Buchung ist kein Restbetrag online zu zahlen."))
+    elif not email:
+        messages.error(request, _("Der Kunde hat keine E-Mail-Adresse."))
+    else:
+        ctx = {
+            "name": getattr(getattr(obj, "customer", None), "name", "") or getattr(obj, "name", ""),
+            "code": obj.reference_code,
+            "eur": f"{Decimal(balance_pay.rest_cents(kind, obj)) / 100:.2f}".replace(".", ","),
+            "pay_url": request.build_absolute_uri(balance_pay.pay_path(kind, obj)),
+        }
+        with translation.override(email_locale()):
+            subject = render_to_string("emails/deal_rest_link_subject.txt", ctx).strip()
+            body = render_to_string("emails/deal_rest_link.txt", ctx)
+        notify(
+            dedupe_key=f"rest-link:{request.tenant.schema_name}:{kind}:{obj.pk}:"
+            f"{timezone.now():%Y%m%d%H%M%S}",
+            type="deal_rest_link",
+            recipient=email,
+            subject=subject,
+            body=body,
+        )
+        messages.success(request, _("Zahlungslink wurde an %(email)s gesendet.") % {"email": email})
+    nxt = request.POST.get("next", "")
+    if not (nxt.startswith("/") and not nxt.startswith("//")):
+        nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
+    return redirect(nxt)

@@ -1,0 +1,8 @@
+{% load i18n %}{% blocktrans with name=name %}Hallo {{ name }},{% endblocktrans %}
+
+{% blocktrans with code=code %}hier ist der Link, um den Restbetrag für {{ code }} online zu bezahlen.{% endblocktrans %}
+
+{% trans "Offen" %}: {{ eur }} €
+{% trans "Jetzt bezahlen" %}: {{ pay_url }}
+
+{% trans "Wenn Sie bereits bezahlt haben, können Sie diese E-Mail ignorieren." %}

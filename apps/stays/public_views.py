@@ -817,6 +817,11 @@ def stay_pay(request, code):
     _require_stays_active(request)
     booking = get_object_or_404(StayBooking, reference_code=code)
     tenant = getattr(request, "tenant", None)
+    from apps.core import balance_pay
+
+    rest = balance_pay.redirect_to_checkout(request, "stay", booking)  # KA-12 E1.11
+    if rest is not None:
+        return rest
     payable = (
         booking.payment_state == StayBooking.PAYMENT_PENDING
         and booking.deposit_cents > 0

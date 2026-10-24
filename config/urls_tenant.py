@@ -32,6 +32,7 @@ from apps.core.views import (
     deal_external_edit,
     deal_invoice,
     deal_link_view,
+    deal_pay_link,
     deal_unlink_view,
     domain_add,
     domain_remove,
@@ -324,6 +325,12 @@ urlpatterns = [
         "dashboard/externe-nummer/<str:kind>/<uuid:pk>/",
         deal_external_edit,
         name="deal-external-edit",
+    ),
+    # KA-12 B2-5: письмо клиенту со ссылкой на онлайн-оплату остатка.
+    path(
+        "dashboard/zahlungslink/<str:kind>/<uuid:pk>/",
+        deal_pay_link,
+        name="deal-pay-link",
     ),
     path("dashboard/status-manager/<str:kind>/", status_manager, name="status-manager"),
     path(

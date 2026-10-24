@@ -1,5 +1,5 @@
 {% extends "storefront/_base.html" %}
-{% load i18n siteui %}
+{% load i18n siteui deal_pay %}
 {% block title %}{% trans "Registration received" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
@@ -43,6 +43,7 @@
 
     {% if ticket.payment_state == 'deposit' %}
       <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {% blocktrans with d=ticket.amount_due_now_eur|floatformat:2 b=ticket.balance_eur|floatformat:2 %}Deposit {{ d }} € paid. Balance {{ b }} € due on site.{% endblocktrans %}</p>
+      {% rest_pay "ticket" ticket as rp %}{% if rp %}<a href="{{ rp.url }}" class="inline-block mt-2 text-white rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm" style="background: var(--accent);" data-rest-pay>{% blocktrans with eur=rp.eur|floatformat:2 %}Restbetrag {{ eur }} € online bezahlen{% endblocktrans %}</a>{% endif %}
     {% elif ticket.payment_state == 'paid' %}
       <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {% trans "Paid online." %}</p>
     {% elif just_paid %}

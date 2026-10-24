@@ -111,6 +111,21 @@ def handle_event(event_type: str, obj: dict) -> None:
             logger.warning("stripe webhook stay_deposit: booking not found %s", meta)
         return
 
+    # KA-12 B2-5 (E1.11): доплата остатка после Anzahlung (номер/запись/билет).
+    if event_type == "checkout.session.completed" and meta.get("kind") == "deal_balance":
+        from apps.core.balance_pay import mark_balance_paid
+
+        ok = mark_balance_paid(
+            tenant_schema=meta.get("tenant_schema", ""),
+            deal_kind=meta.get("deal_kind", ""),
+            deal_id=meta.get("deal_id", ""),
+            payment_intent=obj.get("payment_intent", ""),
+            amount_cents=int(obj.get("amount_total") or 0),
+        )
+        if not ok:
+            logger.warning("stripe webhook deal_balance: deal not found %s", meta)
+        return
+
     # Подарочный сертификат (G1) — Checkout на connected account → выпуск Voucher.
     if event_type == "checkout.session.completed" and meta.get("kind") == "gift_voucher":
         from apps.loyalty.gift import mark_gift_voucher_paid

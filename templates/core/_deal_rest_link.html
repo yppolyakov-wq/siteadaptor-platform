@@ -1,0 +1,15 @@
+{% load i18n %}{% if deal_rest %}
+  {% comment %}KA-12 B2-5 (E1.11): после Anzahlung остаток можно доплатить онлайн —
+  письмо со ссылкой клиенту или ссылка для ручной передачи.{% endcomment %}
+  <div class="mt-4 pt-4 border-t border-gray-100 space-y-2" data-deal-rest>
+    <p class="text-sm text-gray-600">{% blocktrans with eur=deal_rest.eur|floatformat:2 %}Offener Restbetrag: {{ eur }} €{% endblocktrans %}</p>
+    <form method="post" action="{% url 'deal-pay-link' deal_kind deal_obj.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit" class="w-full text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">🔗 {% trans "Zahlungslink senden" %}</button>
+    </form>
+    <input type="text" readonly value="{{ deal_rest.url }}" onclick="this.select()"
+           class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-500"
+           aria-label="{% trans 'Zahlungslink' %}">
+  </div>
+{% endif %}

@@ -28761,3 +28761,21 @@ msgstr "Kalan ödeme"
 
 msgid "Vollzahlung"
 msgstr "Tam ödeme"
+
+msgid "Überzahlung bei %(code)s"
+msgstr "%(code)s için fazla ödeme"
+
+msgid "Für %(code)s ist online eine Zahlung eingegangen, obwohl die Buchung bereits erstattet war. Bitte prüfen und %(amount)s € zurückzahlen."
+msgstr "%(code)s için rezervasyon zaten iade edilmiş olmasına rağmen çevrimiçi ödeme alındı. Lütfen kontrol edin ve %(amount)s € iade edin."
+
+msgid "Für %(code)s wurde online mehr bezahlt als offen war (Überzahlung %(amount)s €). Bitte erstatten Sie den Betrag."
+msgstr "%(code)s için çevrimiçi olarak kalan tutardan fazla ödendi (fazla ödeme %(amount)s €). Lütfen tutarı iade edin."
+
+msgid "Für diese Buchung ist kein Restbetrag online zu zahlen."
+msgstr "Bu rezervasyon için çevrimiçi ödenecek kalan tutar yok."
+
+msgid "Offener Restbetrag: %(eur)s €"
+msgstr "Kalan bakiye: %(eur)s €"
+
+msgid "Restbetrag %(eur)s € online bezahlen"
+msgstr "Kalan %(eur)s € tutarı çevrimiçi öde"

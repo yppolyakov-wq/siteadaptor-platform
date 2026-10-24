@@ -28882,3 +28882,21 @@ msgstr "Доплата остатка"
 
 msgid "Vollzahlung"
 msgstr "Полная оплата"
+
+msgid "Überzahlung bei %(code)s"
+msgstr "Переплата по %(code)s"
+
+msgid "Für %(code)s ist online eine Zahlung eingegangen, obwohl die Buchung bereits erstattet war. Bitte prüfen und %(amount)s € zurückzahlen."
+msgstr "По %(code)s пришла онлайн-оплата, хотя бронь уже была возвращена. Проверьте и верните %(amount)s €."
+
+msgid "Für %(code)s wurde online mehr bezahlt als offen war (Überzahlung %(amount)s €). Bitte erstatten Sie den Betrag."
+msgstr "По %(code)s онлайн оплачено больше, чем оставалось (переплата %(amount)s €). Верните, пожалуйста, эту сумму."
+
+msgid "Für diese Buchung ist kein Restbetrag online zu zahlen."
+msgstr "По этой брони нет остатка для онлайн-оплаты."
+
+msgid "Offener Restbetrag: %(eur)s €"
+msgstr "Остаток к оплате: %(eur)s €"
+
+msgid "Restbetrag %(eur)s € online bezahlen"
+msgstr "Оплатить остаток %(eur)s € онлайн"

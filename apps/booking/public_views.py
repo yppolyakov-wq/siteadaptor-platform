@@ -1250,6 +1250,11 @@ def termin_pay(request, code):
     _require_booking_active(request)
     booking = get_object_or_404(Booking, reference_code=code)
     tenant = getattr(request, "tenant", None)
+    from apps.core import balance_pay
+
+    rest = balance_pay.redirect_to_checkout(request, "booking", booking)  # KA-12 E1.11
+    if rest is not None:
+        return rest
     payable = (
         booking.payment_state == Booking.PAYMENT_PENDING
         and booking.deposit_cents > 0

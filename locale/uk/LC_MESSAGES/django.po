@@ -28866,3 +28866,21 @@ msgstr "Доплата залишку"
 
 msgid "Vollzahlung"
 msgstr "Повна оплата"
+
+msgid "Überzahlung bei %(code)s"
+msgstr "Переплата за %(code)s"
+
+msgid "Für %(code)s ist online eine Zahlung eingegangen, obwohl die Buchung bereits erstattet war. Bitte prüfen und %(amount)s € zurückzahlen."
+msgstr "За %(code)s надійшла онлайн-оплата, хоча бронювання вже було повернуто. Перевірте й поверніть %(amount)s €."
+
+msgid "Für %(code)s wurde online mehr bezahlt als offen war (Überzahlung %(amount)s €). Bitte erstatten Sie den Betrag."
+msgstr "За %(code)s онлайн сплачено більше, ніж залишалося (переплата %(amount)s €). Поверніть, будь ласка, цю суму."
+
+msgid "Für diese Buchung ist kein Restbetrag online zu zahlen."
+msgstr "За цим бронюванням немає залишку для онлайн-оплати."
+
+msgid "Offener Restbetrag: %(eur)s €"
+msgstr "Залишок до сплати: %(eur)s €"
+
+msgid "Restbetrag %(eur)s € online bezahlen"
+msgstr "Сплатити залишок %(eur)s € онлайн"

@@ -105,6 +105,7 @@
         <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="payment">
           <h2 class="font-semibold mb-3">💳 {{ deal_titles.payment }}</h2>
           {% block deal_payment %}{% endblock %}
+          {% include "core/_deal_rest_link.html" %}
         </section>
       {% endif %}
 

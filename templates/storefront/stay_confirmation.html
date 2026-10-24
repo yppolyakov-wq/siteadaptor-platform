@@ -1,5 +1,5 @@
 {% extends base_template|default:"storefront/_base.html" %}
-{% load i18n siteui %}
+{% load i18n siteui deal_pay %}
 {% block title %}{% trans "Booking received" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
@@ -31,6 +31,7 @@
       <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2 mt-4">✓ {% trans "Deposit paid." %}</p>
     {% elif booking.payment_state == 'deposit' %}
       <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2 mt-4">✓ {% trans "Deposit paid." %} {% blocktrans with eur=booking.balance_eur|floatformat:2 %}Restbetrag vor Ort: {{ eur }} €{% endblocktrans %}</p>
+      {% rest_pay "stay" booking as rp %}{% if rp %}<a href="{{ rp.url }}" class="inline-block mt-2 text-white rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm" style="background: var(--accent);" data-rest-pay>{% blocktrans with eur=rp.eur|floatformat:2 %}Restbetrag {{ eur }} € online bezahlen{% endblocktrans %}</a>{% endif %}
     {% elif booking.payment_state == 'pending' %}
       <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-4">{% trans "Your deposit payment is still pending." %}</p>
       {# B2: повторная оплата — Stripe Checkout перегенерируется на лету. #}

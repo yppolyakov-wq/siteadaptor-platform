@@ -139,6 +139,23 @@ def _thread_for(kind: str, obj):
         return None
 
 
+def _rest_link(request, kind, obj, tenant):
+    """{url, eur} для кнопки «Zahlungslink senden» или None (гейты balance_pay)."""
+    from decimal import Decimal
+
+    from apps.core import balance_pay
+
+    try:
+        if not balance_pay.rest_payable(kind, obj, tenant):
+            return None
+        return {
+            "url": request.build_absolute_uri(balance_pay.pay_path(kind, obj)),
+            "eur": Decimal(balance_pay.rest_cents(kind, obj)) / 100,
+        }
+    except Exception:  # noqa: BLE001 — карточка не падает из-за кнопки
+        return None
+
+
 def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targets=()) -> dict:
     """Общий контекст карточки сделки для `core/deal_card_base.html`.
 
@@ -218,6 +235,8 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         for a in (getattr(deal, "allowed_actions", None) or [])
     )
     return {
+        # KA-12 B2-5 (E1.11): ссылка на онлайн-доплату остатка (номер/запись/билет).
+        "deal_rest": _rest_link(request, kind, obj, tenant),
         "refund_choice": refund_choice,
         "deal": deal,
         "deal_obj": obj,

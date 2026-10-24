@@ -28617,3 +28617,21 @@ msgstr "Balance payment"
 
 msgid "Vollzahlung"
 msgstr "Full payment"
+
+msgid "Überzahlung bei %(code)s"
+msgstr "Overpayment for %(code)s"
+
+msgid "Für %(code)s ist online eine Zahlung eingegangen, obwohl die Buchung bereits erstattet war. Bitte prüfen und %(amount)s € zurückzahlen."
+msgstr "An online payment was received for %(code)s although the booking had already been refunded. Please check and pay back %(amount)s €."
+
+msgid "Für %(code)s wurde online mehr bezahlt als offen war (Überzahlung %(amount)s €). Bitte erstatten Sie den Betrag."
+msgstr "For %(code)s more was paid online than was outstanding (overpayment %(amount)s €). Please refund the amount."
+
+msgid "Für diese Buchung ist kein Restbetrag online zu zahlen."
+msgstr "There is no remaining amount to pay online for this booking."
+
+msgid "Offener Restbetrag: %(eur)s €"
+msgstr "Outstanding balance: %(eur)s €"
+
+msgid "Restbetrag %(eur)s € online bezahlen"
+msgstr "Pay the remaining %(eur)s € online"

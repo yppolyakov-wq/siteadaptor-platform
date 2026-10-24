@@ -28709,3 +28709,21 @@ msgstr "Restzahlung"
 
 msgid "Vollzahlung"
 msgstr "Vollzahlung"
+
+msgid "Überzahlung bei %(code)s"
+msgstr "Überzahlung bei %(code)s"
+
+msgid "Für %(code)s ist online eine Zahlung eingegangen, obwohl die Buchung bereits erstattet war. Bitte prüfen und %(amount)s € zurückzahlen."
+msgstr "Für %(code)s ist online eine Zahlung eingegangen, obwohl die Buchung bereits erstattet war. Bitte prüfen und %(amount)s € zurückzahlen."
+
+msgid "Für %(code)s wurde online mehr bezahlt als offen war (Überzahlung %(amount)s €). Bitte erstatten Sie den Betrag."
+msgstr "Für %(code)s wurde online mehr bezahlt als offen war (Überzahlung %(amount)s €). Bitte erstatten Sie den Betrag."
+
+msgid "Für diese Buchung ist kein Restbetrag online zu zahlen."
+msgstr "Für diese Buchung ist kein Restbetrag online zu zahlen."
+
+msgid "Offener Restbetrag: %(eur)s €"
+msgstr "Offener Restbetrag: %(eur)s €"
+
+msgid "Restbetrag %(eur)s € online bezahlen"
+msgstr "Restbetrag %(eur)s € online bezahlen"
