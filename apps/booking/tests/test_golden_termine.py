@@ -43,13 +43,10 @@ def test_book_confirm_fulfil_revenue_and_invoice_agree():
     entry = RevenueEntry.objects.get(source="booking", source_ref=str(b.id))
     assert entry.amount == Decimal(b.total_cents) / 100
     invoice = invoice_from_booking(b)
-    # Известный дефект (roadmap §Отложено «Bruttomethode»): НДС считается от нетто в
-    # центах, и часть брутто-цен недостижима (45,00 € @19 % → 45,01 €). Расхождение —
-    # не больше цента; точное равенство — замок ниже (xfail strict).
-    assert abs(invoice.gross - entry.amount) <= Decimal("0.01")
+    # Bruttomethode: счёт из брутто-сделки равен ей точно (раньше 45,00 € → 45,01 €).
+    assert invoice.gross == entry.amount
 
 
-@pytest.mark.xfail(strict=True, reason="Bruttomethode: 45,00 € @19 % недостижимы от нетто")
 def test_invoice_gross_equals_deal_total_exactly():
     b = _book(_service(price_cents=4500))
     assert invoice_from_booking(b).gross == Decimal("45.00")

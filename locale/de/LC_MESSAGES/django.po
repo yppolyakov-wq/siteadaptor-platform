@@ -29407,3 +29407,6 @@ msgstr "Notiz gespeichert."
 
 msgid "Notiz gelöscht."
 msgstr "Notiz gelöscht."
+
+msgid "Einzelpreis (brutto)"
+msgstr "Einzelpreis (brutto)"

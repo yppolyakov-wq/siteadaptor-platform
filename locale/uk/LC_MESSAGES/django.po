@@ -29572,3 +29572,6 @@ msgstr "Нотатку збережено."
 
 msgid "Notiz gelöscht."
 msgstr "Нотатку видалено."
+
+msgid "Einzelpreis (brutto)"
+msgstr "Ціна за од. (брутто)"

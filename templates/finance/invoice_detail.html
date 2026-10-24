@@ -40,7 +40,7 @@
       {% for line in invoice.lines %}
         <div class="flex items-center justify-between py-2 text-sm">
           <span>{{ line.qty }}× {{ line.text }}{% if line.sku %} <span class="text-gray-400 text-xs">· {% trans "Art.-Nr." %} {{ line.sku }}</span>{% endif %}</span>
-          <span>{{ line.unit_price|floatformat:2 }} EUR</span>
+          {% if invoice.price_basis == "gross" and line.unit_gross %}<span>{{ line.unit_gross|floatformat:2 }} EUR <span class="text-xs text-gray-400">{% trans "brutto" %}</span></span>{% else %}<span>{{ line.unit_price|floatformat:2 }} EUR</span>{% endif %}
         </div>
       {% endfor %}
       <div class="py-2 text-sm flex items-center justify-between"><span>{% trans "Netto" %}</span><span>{{ invoice.net }} EUR</span></div>

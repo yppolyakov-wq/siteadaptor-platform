@@ -227,7 +227,10 @@ def test_invoice_from_order_snapshots_net_lines():
 
     invoice = invoice_from_order(order)
     assert invoice.status == "draft" and invoice.number is None  # нумерация — при выставлении
-    assert invoice.lines[0]["unit_price"] == "10.00" and invoice.lines[0]["qty"] == 2
+    # Bruttomethode: брутто строки — истина, нетто — производное (4 знака).
+    assert invoice.price_basis == "gross" and invoice.lines[0]["qty"] == 2
+    assert invoice.lines[0]["unit_gross"] == "11.90"
+    assert Decimal(invoice.lines[0]["unit_price"]) == Decimal("10.00")
     assert invoice.gross == Decimal("23.80")
     assert "Meier GmbH" in invoice.recipient and "40210" in invoice.recipient
     assert order.reference_code in invoice.note

@@ -119,6 +119,13 @@ class Invoice(TimestampedModel):
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
     net = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # Bruttomethode: «gross» — строки несут брутто за штуку (цены сделки inkl. MwSt.),
+    # налог выделяется из брутто группы ставок. Все прежние счета — «net» (GoBD:
+    # выставленный документ не пересчитываем).
+    PRICE_BASIS_CHOICES = [("net", "netto"), ("gross", "brutto")]
+    price_basis = models.CharField(
+        max_length=5, choices=PRICE_BASIS_CHOICES, default="net", db_default="net"
+    )
     gross = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     issued_at = models.DateTimeField(null=True, blank=True)
     # SH-23b (Р-1/Р-2): счёт юрлицу на чекауте. `due_date` — срок оплаты

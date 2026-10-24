@@ -29459,3 +29459,6 @@ msgstr "Not kaydedildi."
 
 msgid "Notiz gelöscht."
 msgstr "Not silindi."
+
+msgid "Einzelpreis (brutto)"
+msgstr "Birim fiyat (brüt)"

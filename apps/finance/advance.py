@@ -64,7 +64,7 @@ def advance_lines(kind: str, obj, *, small_business: bool = False) -> list:
 
     from apps.core.vat import deal_vat
 
-    from .services import _net_from_gross
+    from .totals import gross_line
 
     deposit = Decimal(int(obj.deposit_cents or 0)) / 100
     rows = [r for r in deal_vat(kind, obj, small_business=small_business)["rows"] if r["gross"]]
@@ -84,9 +84,9 @@ def advance_lines(kind: str, obj, *, small_business: bool = False) -> list:
         if gross <= 0:
             continue
         rate = Decimal("0") if small_business else Decimal(str(row["rate"]))
-        net, _vat = _net_from_gross(gross, rate)
         text = label if len(rows) == 1 else f"{label} · {rate.normalize():f} %"
-        lines.append({"text": text[:200], "qty": 1, "unit_price": str(net), "vat_rate": str(rate)})
+        # Bruttomethode: доля депозита — брутто строки (налог выделяется из неё).
+        lines.append(gross_line(text, 1, gross, rate))
     return lines
 
 
@@ -108,7 +108,7 @@ def create_advance_invoice(kind: str, obj, tenant):
 
     from .models import Invoice
     from .recipient import recipient_for
-    from .services import compute_totals, fit_gross, issue_invoice
+    from .services import compute_totals, issue_invoice
     from .state_machine import InvoiceSM
 
     if kind not in KINDS:
@@ -132,10 +132,10 @@ def create_advance_invoice(kind: str, obj, tenant):
             raise AdvanceError(_("Für diesen Verkauf gibt es schon eine Rechnung."))
         lines = advance_lines(kind, locked, small_business=small)
         top = max((Decimal(ln["vat_rate"]) for ln in lines), default=Decimal("0"))
-        fit_gross(lines, Decimal(int(locked.deposit_cents)) / 100, top, small_business=small)
-        net, vat, gross = compute_totals(lines, top, small_business=small)
+        net, vat, gross = compute_totals(lines, top, small_business=small, basis="gross")
         invoice = Invoice.objects.create(
             kind=Invoice.KIND_ADVANCE,
+            price_basis="gross",
             customer=getattr(locked, "customer", None),
             recipient=recipient_for(locked),
             lines=lines,
@@ -258,21 +258,25 @@ def on_advance_paid(invoice, *, source: str = "invoice") -> None:
 
 
 def deduction_rows(adv) -> list[tuple]:
-    """[(ставка, нетто, НДС, брутто)] предоплаты по её строкам — так же, как
-    `compute_totals` (нетто строк, налог по группе); остаток округления — в последнюю
-    строку, чтобы Σ брутто == брутто документа предоплаты."""
-    from .services import _to_decimal
+    """[(ставка, нетто, НДС, брутто)] предоплаты по её строкам — той же функцией, что
+    документ (`finance.totals.rate_groups`, режим документа); остаток округления — в
+    последнюю строку, чтобы Σ брутто == брутто документа предоплаты."""
+    from .totals import rate_groups
 
-    groups: dict = {}
-    for line in adv.lines or []:
-        rate = Decimal(str(line.get("vat_rate") or adv.vat_rate or 0))
-        amount = _to_decimal(line.get("unit_price", "0"), "0") * _to_decimal(line.get("qty", 1))
-        groups[rate] = groups.get(rate, Decimal("0")) + amount
-    rows = []
-    for rate in sorted(groups, reverse=True):
-        net = groups[rate].quantize(CENT, rounding=ROUND_HALF_UP)
-        vat = (net * rate / Decimal("100")).quantize(CENT, rounding=ROUND_HALF_UP)
-        rows.append([rate, net, vat, net + vat])
+    try:  # строки предоплаты всегда несут свою ставку (§ 19 — «0»)
+        rows = [
+            list(r) for r in rate_groups(adv.lines or [], adv.vat_rate or 0, basis=adv.price_basis)
+        ]
+    except (KeyError, TypeError, AttributeError, ArithmeticError):
+        logger.warning("advance %s: unreadable lines, one row by document", adv.pk)
+        rows = [
+            [
+                Decimal(adv.vat_rate or 0),
+                Decimal(adv.net),
+                Decimal(adv.vat_amount),
+                Decimal(adv.gross),
+            ]
+        ]
     if not rows:
         return []
     drift = Decimal(adv.gross) - sum(r[3] for r in rows)

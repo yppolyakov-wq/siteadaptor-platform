@@ -26,37 +26,38 @@ _MUTED = (0.42, 0.42, 0.48)
 
 
 def _rate_rows(invoice):
-    """KA-12 E1.2: [(ставка, нетто, налог)] по ставкам строк; кривой/старый снимок —
-    одна строка из сумм документа (повторное скачивание не меняет суммы)."""
-    from decimal import ROUND_HALF_UP, Decimal
+    """KA-12 E1.2: [(ставка, нетто, налог)] по ставкам строк — той же функцией, что
+    документ (`finance.totals.rate_groups`, режим счёта); кривой/старый снимок — одна
+    строка из сумм документа (повторное скачивание не меняет суммы)."""
+    from decimal import Decimal
+
+    from apps.finance.totals import rate_groups
 
     cent = Decimal("0.01")
     fallback = [(Decimal(invoice.vat_rate), Decimal(invoice.net), Decimal(invoice.vat_amount))]
-    by_rate: dict[Decimal, Decimal] = {}
-    for line in invoice.lines or []:
-        own = line.get("vat_rate") if isinstance(line, dict) else None
-        if own in (None, ""):
-            return fallback
-        try:
-            rate = Decimal(str(own))
-            amount = Decimal(str(line["unit_price"])) * Decimal(str(line.get("qty", 1)))
-        except Exception:  # noqa: BLE001 — кривой снимок не должен ронять счёт
-            return fallback
-        by_rate[rate] = by_rate.get(rate, Decimal("0")) + amount
-    if not by_rate:
+    lines = invoice.lines or []
+    if not lines or any(
+        not isinstance(line, dict) or line.get("vat_rate") in (None, "") for line in lines
+    ):
         return fallback
-    rows = []
-    for rate in sorted(by_rate, reverse=True):
-        net = by_rate[rate].quantize(cent, rounding=ROUND_HALF_UP)
-        vat = (net * rate / Decimal("100")).quantize(cent, rounding=ROUND_HALF_UP)
-        rows.append((rate, net, vat))
+    try:
+        rows = [
+            (rate, net, vat)
+            for rate, net, vat, _gross in rate_groups(
+                lines, invoice.vat_rate, basis=getattr(invoice, "price_basis", "net")
+            )
+        ]
+    except Exception:  # noqa: BLE001 — кривой снимок не должен ронять счёт
+        return fallback
+    if not rows:
+        return fallback
     # Ревью W1.2 (M2): строки по ставкам обязаны сходиться со снимком документа.
     # Копеечная разница округления уходит в строку наибольшей ставки; заметная —
     # значит, строки считались не так (брутто-снимок и т. п.) → одна строка снимка.
     diff_net = Decimal(invoice.net) - sum(r[1] for r in rows)
     diff_vat = Decimal(invoice.vat_amount) - sum(r[2] for r in rows)
     if diff_net or diff_vat:
-        tolerance = cent * len(invoice.lines or [])
+        tolerance = cent * len(lines)
         if abs(diff_net) > tolerance or abs(diff_vat) > tolerance:
             return fallback
         rate, net, vat = rows[0]
@@ -120,13 +121,19 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     no_payment = is_storno or is_credit
     desc_w = page_w - 2 * x - 75 * mm
 
+    gross_basis = getattr(invoice, "price_basis", "net") == "gross"
+
     def table_header(y):
         c.setFillColorRGB(*_INK)
         c.setFont(font_bold, 9)
         c.drawString(x, y, _("Description"))
         c.drawRightString(page_w - x - 60 * mm, y, _("Quantity"))
-        c.drawRightString(page_w - x - 30 * mm, y, _("Unit price"))
-        c.drawRightString(page_w - x, y, _("Amount"))
+        if gross_basis:  # Bruttomethode: цены строк — брутто (inkl. USt)
+            c.drawRightString(page_w - x - 30 * mm, y, _("Einzelpreis (brutto)"))
+            c.drawRightString(page_w - x, y, _("Betrag (brutto)"))
+        else:
+            c.drawRightString(page_w - x - 30 * mm, y, _("Unit price"))
+            c.drawRightString(page_w - x, y, _("Amount"))
         y -= 2 * mm
         c.line(x, y, page_w - x, y)
         c.setFont(font, 9)
@@ -221,7 +228,11 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     y = table_header(y)
     for line in invoice.lines:
         qty_value = Decimal(str(line.get("qty", 1)))  # A7a: дробное кол-во
-        unit_price = Decimal(str(line["unit_price"]))
+        unit_price = Decimal(
+            str(
+                line["unit_gross"] if gross_basis and line.get("unit_gross") else line["unit_price"]
+            )
+        )
         text = str(line["text"])
         if line.get("sku"):  # SH-20: Art.-Nr. рядом с позицией
             text = f"{text} · {_('Art.-Nr.')} {line['sku']}"
