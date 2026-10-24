@@ -157,3 +157,31 @@ def test_credit_has_no_transitions():
     credit = create_credit(_issued(MIXED), Decimal("1.00"), reason="x", key="t")
     with pytest.raises(IllegalTransition):
         InvoiceSM().apply(credit, "cancelled")
+
+
+def test_key_of_another_invoice_is_refused():
+    first, second = _issued(MIXED), _issued(MIXED)
+    create_credit(first, Decimal("5.00"), reason="x", key="shared")
+    with pytest.raises(CreditError):
+        create_credit(second, Decimal("5.00"), reason="x", key="shared")
+
+
+def test_storno_after_credit_reverses_only_the_remaining_amount():
+    from apps.finance.state_machine import InvoiceSM
+
+    inv = _issued(MIXED)  # 166,50
+    create_credit(inv, Decimal("16.50"), reason="x", key="s")
+    inv.refresh_from_db()
+    InvoiceSM().apply(inv, "cancelled")
+    storno = Invoice.objects.get(cancels=inv)
+    assert storno.gross == Decimal("-150.00")
+    net, vat, gross = services.compute_totals(storno.lines, storno.vat_rate)
+    assert gross == storno.gross
+
+
+def test_credit_doc_is_not_matched_as_payment():
+    from apps.finance.bank import apply_match
+
+    credit = create_credit(_issued(MIXED), Decimal("1.00"), reason="x", key="b")
+    tx = SimpleNamespace(amount=Decimal("1.00"))
+    assert apply_match(tx, "invoice", credit) is False

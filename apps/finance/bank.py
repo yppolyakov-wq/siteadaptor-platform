@@ -252,7 +252,9 @@ def open_items(tenant) -> list[dict]:
 
     # B2-7b: корректуры уменьшают «к оплате» — аннотацией, без запроса на строку.
     open_invoices = with_credited(
-        Invoice.objects.filter(status="issued", kind=Invoice.KIND_INVOICE)
+        Invoice.objects.filter(status="issued", kind=Invoice.KIND_INVOICE).select_related(
+            "customer"
+        )
     )
     for inv in open_invoices.order_by("issued_at")[:200]:
         if not inv.open_amount:  # KA-H10: всё уже получено (Anzahlung/сертификат)
@@ -306,8 +308,9 @@ def apply_match(tx, kind: str, obj) -> bool:
     if kind == "invoice":
         from .state_machine import InvoiceSM
 
-        if getattr(obj, "kind", "invoice") == "storno":
-            return False  # ревью W1.2 (M3): Stornorechnung не оплачивается
+        if getattr(obj, "kind", "invoice") != "invoice":
+            # ревью W1.2 (M3) / B2-7b: Stornorechnung и корректура не оплачиваются
+            return False
         if obj.status == "issued":
             InvoiceSM().apply(obj, "paid")
     else:

@@ -359,12 +359,17 @@ def create_storno(original):
         existing = Invoice.objects.filter(cancels=locked).first()
         if existing is not None:
             return existing
+        # KA-12 B2-7b: сторно снимает ОСТАТОК — у счёта с корректурами строки
+        # корректур входят со своим знаком, иначе сторно + корректуры дали бы минус
+        # больше оригинала.
+        credits = list(locked.corrections.exclude(status=Invoice.STATUS_DRAFT))
         lines = []
-        for line in locked.lines or []:
-            neg = dict(line)
-            neg["qty"] = -_to_decimal(line.get("qty", 1))
-            neg["qty"] = int(neg["qty"]) if neg["qty"] == int(neg["qty"]) else str(neg["qty"])
-            lines.append(neg)
+        for doc_lines in [locked.lines or []] + [c.lines or [] for c in credits]:
+            for line in doc_lines:
+                neg = dict(line)
+                neg["qty"] = -_to_decimal(line.get("qty", 1))
+                neg["qty"] = int(neg["qty"]) if neg["qty"] == int(neg["qty"]) else str(neg["qty"])
+                lines.append(neg)
         storno = Invoice.objects.create(
             kind=Invoice.KIND_STORNO,
             cancels=locked,
@@ -376,9 +381,9 @@ def create_storno(original):
             recipient=locked.recipient,
             lines=lines,
             vat_rate=locked.vat_rate,
-            net=-locked.net,
-            vat_amount=-locked.vat_amount,
-            gross=-locked.gross,
+            net=-(locked.net + sum((c.net for c in credits), Decimal("0"))),
+            vat_amount=-(locked.vat_amount + sum((c.vat_amount for c in credits), Decimal("0"))),
+            gross=-(locked.gross + sum((c.gross for c in credits), Decimal("0"))),
             service_date=locked.service_date,
             service_date_end=locked.service_date_end,
             note=f"Storno zu {locked.number_display}"[:200],
@@ -410,10 +415,14 @@ def create_credit(original, gross, *, reason: str, key: str):
     gross = Decimal(str(gross)).quantize(cent, rounding=ROUND_HALF_UP)
     key = str(key)[:64]
     with transaction.atomic():
+        locked = Invoice.objects.select_for_update().get(pk=original.pk)
+        # Поиск по ключу ПОСЛЕ блокировки: два одинаковых запроса не проскочат
+        # оба мимо и не упрутся в уникальный индекс (500 вместо документа).
         existing = Invoice.objects.filter(correction_key=key).first() if key else None
         if existing is not None:
+            if existing.corrects_id != locked.pk:
+                raise CreditError("correction key belongs to another invoice")
             return existing
-        locked = Invoice.objects.select_for_update().get(pk=original.pk)
         if locked.kind != Invoice.KIND_INVOICE or not locked.number:
             raise CreditError("only an issued invoice can be corrected")
         if locked.status not in (Invoice.STATUS_ISSUED, Invoice.STATUS_PAID):
@@ -446,6 +455,8 @@ def create_credit(original, gross, *, reason: str, key: str):
                     "vat_rate": str(rate),
                 }
             )
+        if not lines:
+            raise CreditError("nothing to correct")
         # Цент округления групп — в цену крупнейшей строки; потом знак минус.
         fit_gross(lines, gross, locked.vat_rate)
         for line in lines:
