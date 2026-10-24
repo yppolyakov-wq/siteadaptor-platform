@@ -565,6 +565,9 @@ def stay_action(request, pk):
         except IllegalTransition:
             messages.error(request, _("This step is not possible in the current status."))
             return redirect(back)
+        except refunds.RefundNotAllowed:
+            messages.error(request, str(refunds.NOT_ALLOWED_MSG))
+            return redirect(f"{back}&buchung={booking.pk}")
         except refunds.RefundChoiceRequired:
             messages.error(
                 request,

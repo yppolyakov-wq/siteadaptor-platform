@@ -5175,6 +5175,12 @@ def kanban_action(request, kind, pk):
             return HttpResponse(status=409)
         messages.error(request, _("Dieser Schritt ist im aktuellen Status nicht möglich."))
         return redirect(back)
+    except refunds.RefundNotAllowed:
+        msg = str(refunds.NOT_ALLOWED_MSG)
+        if is_fetch:
+            return HttpResponse(msg, status=403)
+        messages.error(request, msg)
+        return redirect(back)
     except refunds.RefundChoiceRequired:
         # KA-D3: оплаченная бронь — выбор «erstatten / nicht erstatten» только в карточке.
         msg = _(

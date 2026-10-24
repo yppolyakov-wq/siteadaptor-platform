@@ -480,6 +480,9 @@ def _transition(request, job, dst):
     except IllegalTransition:
         messages.error(request, _("This step is not possible in the current status."))
         return redirect("jobs:detail", pk=job.pk)
+    except refunds.RefundNotAllowed:
+        messages.error(request, str(refunds.NOT_ALLOWED_MSG))
+        return redirect("jobs:detail", pk=job.pk)
     # KA-H4: отмена/отказ после оплаченного депозита возвращает его.
     refunds.flash(request, refund, "job")
     now = timezone.now()

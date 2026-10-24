@@ -29318,3 +29318,9 @@ msgstr "помилка — відкрийте окремо"
 #, python-format
 msgid "Erstattung bitte prüfen: %(codes)s"
 msgstr "Перевірте повернення: %(codes)s"
+
+msgid "Diese Stornierung erstattet Geld — das dürfen nur Inhaber oder Buchhaltung."
+msgstr "Це скасування повертає гроші — це може лише власник або бухгалтерія."
+
+msgid "bezahlt — Erstattung nur durch Inhaber oder Buchhaltung"
+msgstr "оплачено — повернення лише власником або бухгалтерією"

@@ -29065,3 +29065,9 @@ msgstr "error — please open individually"
 #, python-format
 msgid "Erstattung bitte prüfen: %(codes)s"
 msgstr "Please check the refund: %(codes)s"
+
+msgid "Diese Stornierung erstattet Geld — das dürfen nur Inhaber oder Buchhaltung."
+msgstr "This cancellation refunds money — only the owner or accounting may do that."
+
+msgid "bezahlt — Erstattung nur durch Inhaber oder Buchhaltung"
+msgstr "paid — refund only by the owner or accounting"

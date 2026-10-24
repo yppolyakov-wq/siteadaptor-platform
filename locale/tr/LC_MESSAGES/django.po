@@ -29209,3 +29209,9 @@ msgstr "hata — lütfen tek tek açın"
 #, python-format
 msgid "Erstattung bitte prüfen: %(codes)s"
 msgstr "Lütfen iadeyi kontrol edin: %(codes)s"
+
+msgid "Diese Stornierung erstattet Geld — das dürfen nur Inhaber oder Buchhaltung."
+msgstr "Bu iptal para iadesi yapar — bunu yalnızca işletme sahibi veya muhasebe yapabilir."
+
+msgid "bezahlt — Erstattung nur durch Inhaber oder Buchhaltung"
+msgstr "ödendi — iade yalnızca işletme sahibi veya muhasebe tarafından"

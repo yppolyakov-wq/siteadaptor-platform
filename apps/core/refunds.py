@@ -30,6 +30,7 @@ from enum import StrEnum
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _lazy
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,17 @@ class RefundResult(StrEnum):
 
 class RefundChoiceRequired(Exception):
     """KA-D3: отмена оплаченной брони номера без выбора «erstatten / nicht erstatten»."""
+
+
+class RefundNotAllowed(Exception):
+    """KA-12 (решение владельца 2026-10-24): отмена, при которой уходят деньги клиенту,
+    — только владелец или бухгалтер (admin). Сотрудник получает отказ, статус цел."""
+
+
+#: Текст отказа — один на все поверхности.
+NOT_ALLOWED_MSG = _lazy(
+    "Diese Stornierung erstattet Geld — das dürfen nur Inhaber oder Buchhaltung."
+)
 
 
 #: KA-D3 (решение владельца 2026-10-23): виды, где владелец выбирает возврат сам
@@ -89,6 +101,27 @@ def wants_refund(kind: str, target: str, source: str, tenant=None) -> bool:
         return False
     src = status_registry.resolve(kind, source, tenant)
     return src is None or src.role != "cancelled"
+
+
+def would_refund(kind: str, obj, target: str, source: str, tenant=None) -> bool:
+    """Переход вернёт клиенту деньги картой (зеркало предусловий `refund_payment`)."""
+    if not wants_refund(kind, target, source, tenant) or not _connect_id(tenant):
+        return False
+    model = type(obj)
+    if not hasattr(model, "PAYMENT_REFUNDED") or not hasattr(obj, "stripe_payment_intent"):
+        return False
+    if _has_installment_plan(obj):
+        return True
+    return getattr(obj, "payment_state", "") in _refundable_states(model) and bool(
+        (getattr(obj, "stripe_payment_intent", "") or "").strip()
+    )
+
+
+def may_refund(user) -> bool:
+    """Возврат денег — владелец или бухгалтер (admin); не staff."""
+    from apps.core import roles
+
+    return roles.can_export_finance(user)
 
 
 def needs_choice(kind: str, obj, target: str, source: str, tenant=None) -> bool:

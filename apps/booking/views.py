@@ -327,6 +327,9 @@ def booking_action(request, pk):
         except IllegalTransition:
             messages.error(request, _("This step is not possible in the current status."))
             return redirect(back)
+        except refunds.RefundNotAllowed:
+            messages.error(request, str(refunds.NOT_ALLOWED_MSG))
+            return redirect(back)
         messages.success(request, _("Booking updated."))
         # KA-H4: возврат депозита при отмене — в apply_action (одна точка).
         refunds.flash(request, refund, "booking")

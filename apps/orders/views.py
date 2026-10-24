@@ -460,6 +460,7 @@ def order_action(request, pk):
     elif action in ("confirmed", "ready", "picked_up", "shipped", "cancelled", "returned"):
         # W10-5: спец-поля (tracking_code при shipped) пишет единая точка
         # apply_action ДО apply — письмо включает номер; shipped_at ставит FSM (W7c).
+        from apps.core import refunds as core_refunds
         from apps.core import transactions as core_transactions
 
         try:
@@ -478,6 +479,9 @@ def order_action(request, pk):
             return redirect("orders:order-detail", pk=order.pk)
         except IllegalTransition:
             messages.error(request, _("This step is not possible in the current status."))
+            return redirect("orders:order-detail", pk=order.pk)
+        except core_refunds.RefundNotAllowed:
+            messages.error(request, str(core_refunds.NOT_ALLOWED_MSG))
             return redirect("orders:order-detail", pk=order.pk)
         messages.success(request, _("Order updated."))
         # KA-H4: возврат оплаты при отмене/возврате — в apply_action (одна точка).

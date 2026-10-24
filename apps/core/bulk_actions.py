@@ -122,6 +122,9 @@ def apply_bulk(
         except refunds.RefundChoiceRequired:
             result.skip(_("bezahlt — Erstattung in der Buchung wählen"))
             continue
+        except refunds.RefundNotAllowed:
+            result.skip(_("bezahlt — Erstattung nur durch Inhaber oder Buchhaltung"))
+            continue
         except PaymentRequired:
             result.skip(_("noch nicht bezahlt"))
             continue

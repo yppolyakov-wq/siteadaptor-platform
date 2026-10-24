@@ -343,6 +343,9 @@ def ticket_action(request, pk, tid):
                 actor=request.user,
                 tenant=getattr(request, "tenant", None),
             )
+        except refunds.RefundNotAllowed:
+            messages.error(request, str(refunds.NOT_ALLOWED_MSG))
+            return redirect("events:detail", pk=pk)
         except Exception:  # noqa: BLE001
             messages.error(request, _("Action not allowed."))
             return redirect("events:detail", pk=pk)

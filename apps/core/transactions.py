@@ -472,6 +472,16 @@ def apply_action(kind: str, obj, target: str, actor=None, extra=None, tenant=Non
         if choice not in ("1", "0"):
             raise refunds.RefundChoiceRequired()
         refund = choice == "1"
+    # Решение владельца 2026-10-24: возврат денег отменой — только владелец или
+    # бухгалтер. actor=None — системные пути (истечение удержаний и т. п.).
+    if (
+        refund
+        and actor is not None
+        and getattr(actor, "is_authenticated", False)
+        and refunds.would_refund(kind, obj, target, source, tenant)
+        and not refunds.may_refund(actor)
+    ):
+        raise refunds.RefundNotAllowed()
     if kind == "order" and target == "shipped":
         from apps.core import money_contract
 
