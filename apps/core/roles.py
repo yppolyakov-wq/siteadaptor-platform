@@ -42,6 +42,8 @@ OWNER_ONLY_PREFIXES = (
     # KA-H11: выгрузки с персональными данными — только владельцу (вьюхи
     # дополнительно под @owner_required; ростер события — только там, uuid в пути).
     "/crm/export.csv",
+    # KA-12 E2.2: CSV продаж (клиенты, e-mail, телефоны).
+    "/dashboard/verkaeufe/export.csv",
     "/dashboard/stays/berichte/export.csv",
     # Банковские выписки: имя плательщика, назначение, IBAN.
     "/dashboard/finance/bank/",

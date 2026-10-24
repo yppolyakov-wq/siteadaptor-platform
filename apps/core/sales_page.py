@@ -431,6 +431,43 @@ def view_for_filters(kind: str, view: str, params) -> str:
     return view
 
 
+def order_list_queryset(params):
+    """Выборка списка заказов по GET (KA-12 E2.2: одна точка для списка и CSV).
+
+    Возвращает (qs, status, q, versand, sort)."""
+    from django.db.models import Q
+
+    from apps.orders import counters as order_counters
+    from apps.orders.models import Order
+
+    # W10-3: паритет с /dashboard/orders/ — фильтр статуса + поиск (код/имя/
+    # email); deep-link «Abholbereit» главной ведёт сюда (?status=ready).
+    qs = Order.objects.select_related("customer").prefetch_related("items")
+    status = params.get("status", "")
+    if status:
+        qs = qs.filter(status=status)
+    q = (params.get("q") or "").strip()
+    if q:
+        qs = qs.filter(
+            Q(reference_code__icontains=q)
+            | Q(external_code__icontains=q)  # SH-8: внешний номер
+            | Q(customer__name__icontains=q)
+            | Q(customer__email__icontains=q)
+        )
+    # SH-14: доставка — фильтр списка заказов (подпункт сайдбара «Lieferungen»).
+    versand = (params.get("versand") or "").strip() == "1"
+    if versand:
+        # is_delivery — свойство модели, не поле: фильтруем по способу выдачи.
+        qs = qs.filter(fulfillment=Order.FULFILLMENT_DELIVERY)
+    # KA-12 E2.5: фильтры счётчиков главной (тот же Q, что у счётчика).
+    qs = order_counters.apply_list_filters(qs, params)
+    # KA-12 E2.3: сортировка по белому списку (тот же словарь, что у generic).
+    sort = transactions.clean_sort("order", params.get("sort"))
+    if sort:
+        qs = qs.order_by(*transactions._sort_orderings("order")[sort])
+    return qs, status, q, versand, sort
+
+
 def body_context(request, kind: str, view: str) -> dict:
     """X3: контекст ТЕЛА поверхности продаж (движок по (view, kind)).
 
@@ -473,41 +510,12 @@ def body_context(request, kind: str, view: str) -> dict:
             tenant, only=kind, board_order=True, per_column=transactions.BOARD_COLUMN_LIMIT
         )
     elif kind == "order":  # Liste заказов — богатые строки списка orders
-        from django.db.models import Q
-
+        from apps.orders import counters as order_counters
         from apps.orders.models import Order
 
-        # W10-3: паритет с /dashboard/orders/ — фильтр статуса + поиск (код/имя/
-        # email); deep-link «Abholbereit» главной ведёт сюда (?status=ready).
-        qs = Order.objects.select_related("customer").prefetch_related("items")
-        status = request.GET.get("status", "")
-        if status:
-            qs = qs.filter(status=status)
-        q = (request.GET.get("q") or "").strip()
-        if q:
-            qs = qs.filter(
-                Q(reference_code__icontains=q)
-                | Q(external_code__icontains=q)  # SH-8: внешний номер
-                | Q(customer__name__icontains=q)
-                | Q(customer__email__icontains=q)
-            )
-        # SH-14 (фидбэк владельца «доставки вынести в пункт меню»): доставка —
-        # не отдельный экран, а фильтр списка заказов; вход — подпункт сайдбара
-        # «Lieferungen» (nav_registry) и чип в тулбаре.
-        versand = (request.GET.get("versand") or "").strip() == "1"
-        if versand:
-            # is_delivery — свойство модели, не поле: фильтруем по способу выдачи.
-            qs = qs.filter(fulfillment=Order.FULFILLMENT_DELIVERY)
+        qs, status, q, versand, sort = order_list_queryset(request.GET)
         ctx["order_versand"] = versand
-        # KA-12 E2.5: фильтры счётчиков главной (тот же Q, что у счётчика).
-        from apps.orders import counters as order_counters
-
-        qs = order_counters.apply_list_filters(qs, request.GET)
         ctx["order_counter_filter"] = order_counters.active_label(request.GET)
-        # KA-12 E2.3: сортировка по белому списку (тот же словарь, что у generic).
-        sort = transactions.clean_sort("order", request.GET.get("sort"))
-        if sort:
-            qs = qs.order_by(*transactions._sort_orderings("order")[sort])
         ctx["list_sort"] = sort
         ctx["list_sort_options"] = transactions.list_sort_options("order")
         # SH-11 (фидбэк владельца 2026-08-20 «в списке позволить менять статус»):

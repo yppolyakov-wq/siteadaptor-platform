@@ -31,6 +31,7 @@ REPRESENTATIVE = ["bakery", "hotel", "friseur", "catering", "online_shop", "akti
 
 # Owner-only пути без записи в навигации — с причиной (POST-приёмники и выгрузки).
 EXPECTED_OWNER_ONLY_UNLISTED = {
+    "/dashboard/verkaeufe/export.csv": "CSV продаж — кнопка в тулбаре списка (KA-12 E2.2)",
     "/dashboard/channels/config/": "POST-приёмник настроек канала",
     "/dashboard/channels/connect/": "POST-приёмник подключения канала",
     "/dashboard/channels/toggle/": "POST-приёмник вкл/выкл канала",

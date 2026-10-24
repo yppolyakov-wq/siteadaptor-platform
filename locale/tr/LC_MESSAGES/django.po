@@ -29196,3 +29196,6 @@ msgstr "Ödeme durumu"
 
 msgid "… gekürzt: mehr als %(n)s Zeilen"
 msgstr "… kısaltıldı: %(n)s satırdan fazla"
+
+msgid "Liste als CSV herunterladen"
+msgstr "Listeyi CSV olarak indir"

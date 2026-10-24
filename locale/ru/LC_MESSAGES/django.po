@@ -29321,3 +29321,6 @@ msgstr "Статус оплаты"
 
 msgid "… gekürzt: mehr als %(n)s Zeilen"
 msgstr "… обрезано: больше %(n)s строк"
+
+msgid "Liste als CSV herunterladen"
+msgstr "Скачать список в CSV"

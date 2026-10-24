@@ -29052,3 +29052,6 @@ msgstr "Payment status"
 
 msgid "… gekürzt: mehr als %(n)s Zeilen"
 msgstr "… truncated: more than %(n)s rows"
+
+msgid "Liste als CSV herunterladen"
+msgstr "Download list as CSV"

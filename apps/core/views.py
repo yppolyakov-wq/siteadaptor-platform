@@ -4877,6 +4877,41 @@ def sales_bulk_action(request):
     return redirect(back)
 
 
+@login_required
+@owner_required
+def sales_export_csv(request):
+    """KA-12 E2.2: CSV продаж вкладки — те же фильтры и сортировка, что в списке.
+
+    Персональные данные клиентов → только владелец (KA-H11; префикс в
+    OWNER_ONLY_PREFIXES + декоратор). В журнал — число строк и фильтры без
+    поисковой строки (в ней бывает e-mail)."""
+    from django.http import Http404, HttpResponse
+
+    from apps.core import roles, sales_export, sales_page, transactions
+
+    kind = request.GET.get("tab", "")
+    if kind not in sales_export.EXPORT_KINDS or not request.tenant.is_module_active(
+        transactions.KIND_MODULE[kind]
+    ):
+        raise Http404
+    status, q = "", (request.GET.get("q") or "").strip()
+    if kind == "order":
+        qs, status, q, _versand, _sort = sales_page.order_list_queryset(request.GET)
+    else:
+        status = (request.GET.get("status") or "").strip()
+        if status not in {c for c, _l in transactions.status_filter_options(request.tenant, kind)}:
+            status = ""
+        qs = transactions._managed_queryset(
+            kind, event_order=True, q=q, status=status, sort=request.GET.get("sort", "")
+        )
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="verkaeufe-{kind}.csv"'
+    response.write("\ufeff")  # BOM: Excel открывает UTF-8 с умлаутами без кракозябр
+    rows = sales_export.write_rows(response, kind, qs, request.tenant)
+    roles.audit_export(request, f"sales_{kind}", rows, status=status, has_q=bool(q))
+    return response
+
+
 def _board_stage_rows(tenant):
     """W5: строки панели «Spalten anpassen» (переименование/порядок/скрытие) —
     общие для доски и экрана «Abläufe» (W9-8)."""

@@ -147,6 +147,10 @@ EXPECTED_UNLISTED = frozenset(
         "telegram-connect",
         "telegram-disconnect",
         "verkaeufe-view",
+        # KA-12 E2.1: POST-приёмники панели массовых действий списка продаж.
+        "verkaeufe-bulk",
+        "orders:delivery-notes",
+        "verkaeufe-export",  # E2.2: CSV текущего списка (кнопка в тулбаре, только владельцу)
         "sortiment-view",  # SR-1: POST-сеттер вида Kacheln/Liste (кнопки на Sortiment)
         # [302] легаси-редиректы с GET-carry
         "booking:calendar",

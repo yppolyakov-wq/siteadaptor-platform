@@ -62,6 +62,7 @@ from apps.core.views import (
     platform_bot_connect,
     platform_bot_disconnect,
     sales_bulk_action,
+    sales_export_csv,
     sections_view,
     sellable_manage,
     sellable_sold_out,
@@ -271,6 +272,7 @@ urlpatterns = [
     path("dashboard/verkaeufe/", verkaeufe, name="verkaeufe"),
     path("dashboard/verkaeufe/view/", verkaeufe_view_set, name="verkaeufe-view"),
     path("dashboard/verkaeufe/bulk/", sales_bulk_action, name="verkaeufe-bulk"),
+    path("dashboard/verkaeufe/export.csv", sales_export_csv, name="verkaeufe-export"),
     # MX-2c: сводный учёт доп-продаж (все проданные опции по направлениям).
     path("dashboard/verkaeufe/zusatz/", zusatzverkaeufe, name="verkaeufe-zusatz"),
     # U-D2: единая Kanban-доска транзакций (заказы/брони/…) + generic FSM-action.

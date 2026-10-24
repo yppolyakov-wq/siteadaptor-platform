@@ -29144,3 +29144,6 @@ msgstr "Zahlungsstatus"
 
 msgid "… gekürzt: mehr als %(n)s Zeilen"
 msgstr "… gekürzt: mehr als %(n)s Zeilen"
+
+msgid "Liste als CSV herunterladen"
+msgstr "Liste als CSV herunterladen"
