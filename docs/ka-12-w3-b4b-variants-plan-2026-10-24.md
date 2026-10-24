@@ -53,3 +53,20 @@ POST → 404 без брони · снимок переживает удален
 | S2 | `silent-failure-hunter` по ценовым путям (дельта/акция/per_person — деньги); Playwright-стенд «вариант → слот → бронь» (скилл `e2e-testing`) |
 | S2/S3 | `a11y-architect` — чипы вариантов (роль/`aria-current`, фокус) |
 | Перед мержем | i18n_quickcheck, template_comments, `npm run build:css` при новых классах, `ruff format --check .` целиком |
+
+## Поправки по ревью схемы (`database-reviewer`, до кода)
+1. Дельты знаковые с потолком: `price_delta_cents` ±1 000 000 ц., `duration_delta_minutes`
+   ±480 мин — валидаторы + CheckConstraint на НОВОЙ таблице (бесплатно в CreateModel);
+   на `booking_booking` констрейнтов не добавляем.
+2. `UniqueConstraint(service, name)`; `ordering = ["sort_order", "id"]` (детерминизм «первого»).
+3. `variant_label` = только имя варианта, `max_length=100`, склейка «Услуга · Вариант» при
+   рендере; снимок не пересчитывается при переименовании.
+4. Кламп длительности ≥ 5 — только в `effective_minutes` и проверке формы (кросс-таблица в
+   БД невозможна); тест на уменьшение `Service.duration_minutes`.
+5. Активные варианты — ОДНА точка: `Prefetch("variants", queryset=…is_active…, to_attr=
+   "active_variants")`; никаких `.filter()` поверх prefetch в хелперах; списки броней
+   читают снимок, `select_related("variant")` не нужен.
+6. Лимит ≤ 12 вариантов на услугу (форма). Удаление варианта с бронями — предпочтительно
+   «Aus»; жёсткое удаление допустимо (SET_NULL + снимок).
+7. `Booking.variant` — обычный индекс FK (нужен для SET_NULL); миграция без CONCURRENTLY.
+8. После генерации — `sqlmigrate booking 0037` и повторный `database-reviewer` по SQL.
