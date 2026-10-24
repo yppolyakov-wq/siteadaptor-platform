@@ -29077,3 +29077,6 @@ msgstr "All rooms of this category"
 
 msgid "In diesem Zimmer wohnt in diesem Zeitraum ein Gast — bitte den Gast zuerst in ein anderes Zimmer umbuchen."
 msgstr "A guest is staying in this room during this period — please move the guest to another room first."
+
+msgid "In diesem Zeitraum sind alle Zimmer der Kategorie verkauft — der Block würde zu einer Überbuchung führen."
+msgstr "All rooms of this category are sold for this period — the block would cause an overbooking."

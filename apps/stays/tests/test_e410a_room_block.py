@@ -4,6 +4,7 @@
 блок категории (один номер); в шахматке стоит в полосе своей комнаты; блок на
 комнату, где уже живёт гость, — отказ «сначала переназначьте гостя»."""
 
+import uuid
 from datetime import date, timedelta
 
 import pytest
@@ -31,6 +32,7 @@ def _booking(unit, arrival=D0, nights=2, room=None):
         departure=arrival + timedelta(days=nights),
         guests=2,
         status=StayBooking.STATUS_CONFIRMED,
+        reference_code=f"S-{uuid.uuid4().hex[:8].upper()}",
     )
 
 
@@ -103,3 +105,71 @@ def test_category_block_still_in_unassigned_lane():
     blocks = list(UnitBlock.objects.filter(unit=unit))
     rows = availability.room_lane_rows(unit, [r101, r102], D0, 7, [], blocks)
     assert [r for r in rows if r["room_id"] is None]
+
+
+def test_room_block_refused_when_category_sold_out():
+    """Ревью: блок комнаты отнимает номер у продажи — на проданных ночах это
+    был бы овербукинг."""
+    unit, (r101, r102) = _unit()
+    _booking(unit)  # без комнаты
+    _booking(unit)  # без комнаты — категория продана
+    with pytest.raises(services.NoCapacity):
+        services.create_block(unit, D0, D0, "", room=r102)
+
+
+def test_room_block_on_inactive_room_refused():
+    unit, (r101, r102) = _unit()
+    Room.objects.filter(pk=r102.pk).update(is_active=False)
+    r102.refresh_from_db()
+    with pytest.raises(services.RoomConflict):
+        services.create_block(unit, D0, D0, "", room=r102)
+
+
+def test_reversed_dates_refused():
+    unit, (r101, _r102) = _unit()
+    with pytest.raises(ValueError):
+        services.create_block(unit, D0 + timedelta(days=2), D0, "", room=r101)
+
+
+def _view_req(data, fetch=False):
+    from apps.stays.tests.test_belegungsplan import _req
+
+    return _req("post", data=data, fetch=fetch)
+
+
+def test_drag_onto_blocked_room_is_409_and_dates_stay(settings):
+    from apps.stays import views
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    unit, (r101, r102) = _unit()
+    booking = _booking(unit, room=r101)
+    new_arrival = D0 + timedelta(days=5)
+    services.create_block(unit, new_arrival, new_arrival + timedelta(days=1), "", room=r102)
+    resp = views.stay_action(
+        _view_req(
+            {
+                "action": "move",
+                "arrival": new_arrival.isoformat(),
+                "departure": (new_arrival + timedelta(days=2)).isoformat(),
+                "room": str(r102.pk),
+                "reprice": "0",
+            },
+            fetch=True,
+        ),
+        pk=booking.pk,
+    )
+    assert resp.status_code == 409
+    booking.refresh_from_db()
+    assert booking.arrival == D0 and booking.room_id == r101.id
+
+
+def test_deleting_room_removes_its_blocks(settings):
+    """Ревью: блок удалённой комнаты стал бы блоком категории и вычитал бы номер
+    второй раз (quantity уже уменьшен синком)."""
+    from apps.stays import views
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    unit, (r101, r102) = _unit()
+    services.create_block(unit, D0, D0, "Renovierung", room=r102)
+    views.units(_view_req({"action": "room_delete", "room": str(r102.pk)}))
+    assert not UnitBlock.objects.filter(unit=unit).exists()

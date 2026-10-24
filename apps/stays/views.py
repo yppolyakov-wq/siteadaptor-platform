@@ -369,6 +369,10 @@ def stay_action(request, pk):
                     )
                     .exclude(pk=booking.pk)
                     .exists()
+                    # KA-12 E4.10a (ревью): блок ремонта этой комнаты тоже занимает её.
+                    or UnitBlock.objects.filter(
+                        room=room_obj, start_date__lt=departure, end_date__gte=arrival
+                    ).exists()
                 ):
                     if is_fetch:
                         return HttpResponse(_("This room is taken for those dates."), status=409)
@@ -381,7 +385,12 @@ def stay_action(request, pk):
                 try:
                     services.assign_room(booking, room_obj)
                 except services.RoomConflict:  # гонка — перенос состоялся, номер нет
-                    pass
+                    # Прежняя комната на новые даты может быть занята — снимаем её,
+                    # чтобы комната не оказалась занята дважды (ревью E4.10a).
+                    if booking.room_id and booking.room_id not in {
+                        r.id for r in services.free_rooms_for(booking)
+                    }:
+                        services.assign_room(booking, None)
             elif booking.room_id and booking.room_id not in {
                 r.id for r in services.free_rooms_for(booking)
             }:
@@ -910,6 +919,14 @@ def units(request, pk=None):
                     room=room,
                 )
                 messages.success(request, _("Dates blocked."))
+            except services.NoCapacity:
+                messages.error(
+                    request,
+                    _(
+                        "In diesem Zeitraum sind alle Zimmer der Kategorie verkauft — "
+                        "der Block würde zu einer Überbuchung führen."
+                    ),
+                )
             except services.RoomConflict:
                 messages.error(
                     request,
@@ -932,6 +949,9 @@ def units(request, pk=None):
         elif action == "room_delete":  # PMS-R1: удалить комнату + синк ёмкости
             room = get_object_or_404(Room, pk=request.POST.get("room"))
             room_unit = room.unit
+            # KA-12 E4.10a (ревью): блок удалённой комнаты стал бы блоком категории
+            # и вычитал бы номер второй раз (quantity уже уменьшен синком).
+            UnitBlock.objects.filter(room=room).delete()
             room.delete()
             services.sync_room_quantity(room_unit)
         elif action == "ical_add":  # A5b: подписка на внешний iCal-фид

@@ -112,6 +112,10 @@ class RoomConflict(Exception):
     """PMS-R2: на выбранной комнате уже есть пересекающаяся активная бронь."""
 
 
+class NoCapacity(Exception):
+    """KA-12 E4.10a: блок комнаты на ночи, где категория уже продана целиком."""
+
+
 def free_rooms_for(booking):
     """PMS-R2: активные комнаты категории брони, свободные на её диапазон
     (для селекта назначения; своя комната включена). Пусто, если комнат нет."""
@@ -170,18 +174,29 @@ def create_block(unit, start_date, end_date, reason="", *, room=None):
 
     Комната — только своей категории; если на неё на эти ночи уже назначен гость —
     RoomConflict («сначала переназначьте гостя»), молча комнату у брони не снимаем."""
+    from datetime import timedelta
+
     from apps.core import status_registry
 
-    from .models import Room, StayBooking, UnitBlock
+    from .availability import range_available
+    from .models import Room, StayBooking, StayUnit, UnitBlock
 
+    if end_date < start_date:
+        raise ValueError("end before start")
     if room is None:
         return UnitBlock.objects.create(
             unit=unit, start_date=start_date, end_date=end_date, reason=reason[:120]
         )
-    if room.unit_id != unit.id:
+    if room.unit_id != unit.id or not room.is_active:
         raise RoomConflict()
     with transaction.atomic():
+        # Порядок блокировок как у book_stay/move_stay: категория, затем комната.
+        StayUnit.objects.select_for_update().filter(pk=unit.pk).first()
         Room.objects.select_for_update().filter(pk=room.pk).first()
+        # Ревью E4.10a: блок комнаты отнимает номер у продажи — на ночи, где категория
+        # уже продана целиком (брони без назначенной комнаты), он дал бы овербукинг.
+        if not range_available(unit, start_date, end_date + timedelta(days=1)):
+            raise NoCapacity()
         occupied = StayBooking.objects.filter(
             room=room,
             status__in=status_registry.active_statuses_for("stay"),
