@@ -166,8 +166,10 @@ def refund_payment(kind: str, obj, tenant=None) -> RefundResult:
     extra_cents, extra_failed = _refund_other_card_rows(kind, obj, connect_id, intent)
     rest = max(rest - Decimal(extra_cents) / 100, Decimal("0"))
     if extra_failed:
-        _notify_owner_failed(kind, obj, tenant)
-        return RefundResult.FAILED
+        # error-handling: «возвращено» оставило бы доплату остатка без повтора —
+        # возвращаем прежнее состояние; повтор отмены перезапустит возврат (основной
+        # платёж Stripe повторит по тому же ключу, без второго списания).
+        return _rollback(kind, obj, previous, tenant)
     if rest > 0:
         _OFFLINE_REST.set(rest)
         _notify_owner_rest(kind, obj, rest, tenant)
@@ -472,13 +474,16 @@ def refund_partial(
             # следующая попытка с другой суммой — новый ключ — вернула бы ещё раз);
             # владелец сверяет в Stripe.
             if minderung:  # книга уже «вернула» — цена следует за книгой
-                _apply_minderung(kind, obj, cents, tenant)
+                _apply_minderung(kind, obj, cents, tenant, _short_key(row.pk, new))
             folio.forget(obj)
             logger.warning("partial refund uncertain: %s %s", kind, obj.pk)
             _notify_owner_failed(kind, obj, tenant)
             return RefundResult.UNCERTAIN
     if minderung:
-        _apply_minderung(kind, obj, cents, tenant)
+        mkey = _short_key(claims[0][0].pk, claims[0][2])
+        if not _apply_minderung(kind, obj, cents, tenant, mkey):
+            folio.forget(obj)
+            return RefundResult.UNCERTAIN
     _mark_refunded_if_complete(kind, obj)
     folio.forget(obj)
     from apps.core.audit import audit_event
@@ -515,16 +520,44 @@ def _minderung_blocked(kind: str, obj, cents: int) -> bool:
     return deal_discount.certificate_locked(obj, new)
 
 
-def _apply_minderung(kind: str, obj, cents: int, tenant) -> None:
-    """Снизить цену на сумму уступки и сторнировать проведённую выручку."""
+def _short_key(row_pk, cumulative: int) -> str:
+    """Уникальный короткий ключ сторно: source_ref — varchar(64), а uuid сделки +
+    uuid строки фолио туда не влезают (грабля MX-2e, повторилась в B2-4b)."""
+    import hashlib
+
+    return hashlib.md5(f"{row_pk}:{cumulative}".encode()).hexdigest()[:12]  # noqa: S324
+
+
+def _apply_minderung(kind: str, obj, cents: int, tenant, key: str) -> bool:
+    """Снизить цену на сумму уступки и сторнировать проведённую выручку — под
+    блокировкой сделки, с повторной проверкой (между захватом и Stripe сделку могли
+    отменить или выставить счёт). False — применить нельзя: деньги уже вернулись,
+    владелец получает письмо и правит вручную (ревью B2-4b)."""
     from apps.core import deal_discount, transactions
     from apps.finance.services import record_minderung
 
-    fresh = transactions.model_for(kind).objects.get(pk=obj.pk)
-    new = int(getattr(fresh, "discount_cents", 0) or 0) + cents
-    deal_discount.set_discount(kind, fresh, cents=new, tenant=tenant, allow_closed=True)
-    record_minderung(source=kind, deal=fresh, amount=Decimal(cents) / 100, key=str(new))
+    try:
+        with transaction.atomic():
+            fresh = transactions.model_for(kind).objects.select_for_update().get(pk=obj.pk)
+            if _minderung_blocked(kind, fresh, cents):
+                raise ValueError("minderung blocked after refund")
+            new = int(getattr(fresh, "discount_cents", 0) or 0) + cents
+            if kind == "stay":
+                # Цена брони — та, что была; пересчёт по сегодняшним тарифам сдвинул
+                # бы итог на разницу сезонов (ревью B2-4b).
+                fresh.discount_cents = new
+                fresh.total_cents = max(int(fresh.total_cents) - cents, 0)
+                fresh.save(update_fields=["discount_cents", "total_cents", "updated_at"])
+            else:
+                deal_discount.set_discount(kind, fresh, cents=new, tenant=tenant, allow_closed=True)
+            record_minderung(source=kind, deal=fresh, amount=Decimal(cents) / 100, key=key)
+    except Exception:  # noqa: BLE001 — деньги ушли; цену правит владелец, не 500
+        logger.warning("minderung not applied: %s %s", kind, obj.pk, exc_info=True)
+        _notify_owner_failed(kind, obj, tenant)
+        obj.refresh_from_db()
+        return False
     obj.refresh_from_db()
+    return True
 
 
 def _is_card_row(row) -> bool:

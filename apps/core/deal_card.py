@@ -175,7 +175,10 @@ def _refund_form(request, kind, obj, tenant):
         # B2-4b: Minderung — уступка в цене (до суммы полученного), если её можно дать.
         minder = 0
         if kind in refunds.MINDERUNG_KINDS and net > 0:
-            minder = min(net, int(getattr(obj, "total_cents", 0) or 0) or net)
+            from apps.core import money_contract
+
+            total = int((money_contract._total(kind, obj) * 100).to_integral_value())
+            minder = min(net, total)
             if refunds._minderung_blocked(kind, obj, 1):
                 minder = 0
         if over <= 0 and minder <= 0:

@@ -85,25 +85,36 @@ def minderung_total(source: str, deal_id) -> Decimal:
 
 
 def record_minderung(*, source: str, deal, amount: Decimal, key: str) -> None:
-    """Сторно проведённой выручки на сумму уступки — со ставкой проведённой записи.
-    Не проведено — нечего сторнировать (выручку потом посчитают от сниженной цены)."""
-    entry = (
+    """Сторно проведённой выручки на сумму уступки — по записям сделки (основная,
+    потом «:meal» и прочие), каждая своей ставкой; уже сделанные уступки занимают
+    записи в том же порядке (так их вычитает и сторно при отмене). Не проведено —
+    нечего сторнировать: выручку потом посчитают от сниженной цены."""
+    entries = list(
         RevenueEntry.objects.filter(source=source, amount__gt=0)
         .filter(models.Q(source_ref=str(deal.id)) | models.Q(source_ref__startswith=f"{deal.id}:"))
         .exclude(source_ref__startswith=f"{deal.id}:minderung:")
-        .order_by("-amount")
-        .first()
+        .order_by("source_ref")
     )
-    if entry is None:
-        return
-    record_reversal(
-        source=source,
-        source_ref=f"{deal.id}:minderung:{key}",
-        amount=min(amount, entry.amount),
-        vat_rate=entry.vat_rate,
-        customer=getattr(deal, "customer", None),
-        note=f"Minderung {getattr(deal, 'reference_code', '')}",
-    )
+    taken = minderung_total(source, deal.id)
+    left = amount
+    for entry in entries:
+        room = entry.amount - min(taken, entry.amount)
+        taken -= min(taken, entry.amount)
+        part = min(left, room)
+        if part <= 0:
+            continue
+        suffix = entry.source_ref[len(str(deal.id)) :]
+        record_reversal(
+            source=source,
+            source_ref=f"{deal.id}:minderung:{key}{suffix}",
+            amount=part,
+            vat_rate=entry.vat_rate,
+            customer=getattr(deal, "customer", None),
+            note=f"Minderung {getattr(deal, 'reference_code', '')}",
+        )
+        left -= part
+        if left <= 0:
+            break
 
 
 def _invoice_gross_by_rate(invoice) -> list:

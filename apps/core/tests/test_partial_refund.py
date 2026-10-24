@@ -266,3 +266,25 @@ def test_refund_path_is_owner_only_prefix():
     assert roles.OWNER_ONLY_PREFIXES and any(
         "/dashboard/erstattung/x/".startswith(p) for p in roles.OWNER_ONLY_PREFIXES
     )
+
+
+def test_failed_rest_refund_keeps_cancel_retryable(monkeypatch):
+    """error-handling: не прошёл возврат доплаты остатка — сделка не «возвращено»,
+    повтор отмены доберёт остаток (основной платёж — тем же ключом)."""
+    calls = []
+
+    def refund(**kw):
+        calls.append(kw["payment_intent"])
+        if kw["payment_intent"] == "pi_rest" and len(calls) < 3:
+            raise stripe.error.APIConnectionError("down")
+
+    monkeypatch.setattr(connect, "refund", refund)
+    b = _stay()
+    _card_row(b, cents=3000)
+    _card_row(b, cents=2000, intent="pi_rest")
+    assert refunds.refund_payment("stay", b, TENANT) == refunds.RefundResult.FAILED
+    b.refresh_from_db()
+    assert b.payment_state == StayBooking.PAYMENT_PAID
+    assert refunds.refund_payment("stay", b, TENANT) == refunds.RefundResult.REFUNDED
+    rest = DealPayment.objects.get(deal_id=b.pk, stripe_payment_intent="pi_rest")
+    assert rest.refunded_cents == 2000

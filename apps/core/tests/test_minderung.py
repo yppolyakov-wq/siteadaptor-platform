@@ -223,3 +223,70 @@ def test_owner_form_offers_minderung_and_endpoint_applies_it(stripe_calls):
     deal_refund(request, "order", order.pk)
     order.refresh_from_db()
     assert order.discount_cents == 500
+
+
+def test_stay_minderung_keeps_booked_price_when_rates_changed(stripe_calls):
+    """Ревью: итог брони — от цены брони, не от сегодняшнего тарифа."""
+    b = _stay()
+    StayUnit.objects.filter(pk=b.unit_id).update(price_cents=40000)
+    refunds.refund_partial("stay", b, cents=5000, method="card", tenant=TENANT, reason="minderung")
+    b.refresh_from_db()
+    assert b.total_cents == 25000
+    assert money_contract.due("stay", b) == 0
+
+
+def test_second_minderung_after_discount_reset_still_reverses(stripe_calls):
+    """Ревью: ключ сторно уникален — повтор суммы скидки не глотает сторно."""
+    from apps.core import deal_discount
+
+    order = _order()
+    refunds.refund_partial(
+        "order", order, cents=500, method="card", tenant=TENANT, reason="minderung"
+    )
+    order.refresh_from_db()
+    deal_discount.set_discount("order", order, cents=0, allow_closed=True)
+    refunds.refund_partial(
+        "order", order, cents=500, method="card", tenant=TENANT, reason="minderung"
+    )
+    reversals = RevenueEntry.objects.filter(
+        source="order", source_ref__contains=":minderung:"
+    ).filter(source_ref__startswith=str(order.id))
+    assert reversals.count() == 2
+
+
+def test_minderung_splits_across_lodging_and_meal_with_own_rates(stripe_calls):
+    b = _stay()
+    record_revenue(
+        source="stay", source_ref=str(b.id), amount=Decimal("200.00"), vat_rate=Decimal("7.00")
+    )
+    record_revenue(
+        source="stay",
+        source_ref=f"{b.id}:meal",
+        amount=Decimal("100.00"),
+        vat_rate=Decimal("19.00"),
+    )
+    refunds.refund_partial("stay", b, cents=25000, method="card", tenant=TENANT, reason="minderung")
+    rows = {
+        r.vat_rate: -r.amount
+        for r in RevenueEntry.objects.filter(
+            source="stay", source_ref__contains=":minderung:"
+        ).filter(source_ref__startswith=str(b.id))
+    }
+    assert rows == {Decimal("7.00"): Decimal("200.00"), Decimal("19.00"): Decimal("50.00")}
+
+
+def test_minderung_after_concurrent_cancel_is_not_applied(monkeypatch):
+    """Ревью: сделку отменили между захватом и Stripe — цену и выручку не трогаем."""
+    order = _order()
+    from apps.orders.models import Order
+
+    def refund_and_cancel(**kw):
+        Order.objects.filter(pk=order.pk).update(status="cancelled")
+
+    monkeypatch.setattr(connect, "refund", refund_and_cancel)
+    result = refunds.refund_partial(
+        "order", order, cents=500, method="card", tenant=TENANT, reason="minderung"
+    )
+    assert result == refunds.RefundResult.UNCERTAIN
+    order.refresh_from_db()
+    assert order.discount_cents == 0
