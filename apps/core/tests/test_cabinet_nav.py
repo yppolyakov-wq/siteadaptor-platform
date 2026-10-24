@@ -48,7 +48,9 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     # R7-1 (осознанная переписка): «Mein Geschäft» — законный подпункт раздела
     # «Einstellungen» (таб-баров на страницах больше нет, состав живёт в меню);
     # проверяем, что разделы верхнего уровня остались компактными якорями.
-    assert 'href="/dashboard/marketing/"' in html
+    # KA-12 E8.6: лендинга Marketing нет — раздел открывается подменю, первым
+    # пунктом «Nachrichten» (адрес /dashboard/marketing/ остаётся 302 на него).
+    assert 'href="/dashboard/inbox/"' in html
     # KA-12 E8.6: «Integrationen» — не пункт меню (302 на страницу каналов).
     assert 'href="/dashboard/integrationen/"' not in html
     assert "Einstellungen" in html

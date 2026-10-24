@@ -5926,6 +5926,10 @@ def notifications_settings(request):
             # W9-7: read-only статус бизнес-бота — Telegram-строки матрицы бессмысленны
             # без активного бота, владелец должен видеть это ЗДЕСЬ, не гадая.
             "bot": active_bot(),
+            # KA-12 E8.6: бывший экран «Integrationen» — секция «Verbindungen» здесь.
+            "integration_cards": _integration_cards(tenant),
+            "own_bot": _own_bot_safe(tenant),
+            "can_activate": _is_owner_safe(request.user),
         },
     )
 
@@ -6044,10 +6048,6 @@ def payments_page(request):
             # видов сделок, а не только у заказов).
             "payment_methods": _pm.METHOD_CHOICES,
             "finance_active": tenant.is_module_active("finance"),
-            # KA-12 E8.6: бывший экран «Integrationen» — секция «Verbindungen» здесь.
-            "integration_cards": _integration_cards(tenant),
-            "own_bot": _own_bot_safe(tenant),
-            "can_activate": _is_owner_safe(request.user),
         },
     )
 

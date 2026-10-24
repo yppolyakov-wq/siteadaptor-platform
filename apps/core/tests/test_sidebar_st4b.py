@@ -133,7 +133,9 @@ def test_compact_sidebar_renders_on_dashboard():
     # AB1-групп больше нет; R7-1: «Mein Geschäft» — законный подпункт раздела
     # «Einstellungen», проверяем отсутствие ГРУППОВЫХ ЗАГОЛОВКОВ классик-меню.
     assert "nav-group" not in html
-    assert 'href="/dashboard/marketing/"' in html  # якорь Marketing → центр ST-6
+    # KA-12 E8.6: лендинга Marketing нет — раздел открывается подменю, первым
+    # пунктом «Nachrichten» (адрес /dashboard/marketing/ остаётся 302 на него).
+    assert 'href="/dashboard/inbox/"' in html
     # KA-12 E8.6: «Integrationen» — секция страницы каналов, не пункт меню.
     assert 'href="/dashboard/integrationen/"' not in html
     assert "data-inbox-badge" in html  # бейдж переехал на Marketing-якорь
