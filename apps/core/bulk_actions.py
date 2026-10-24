@@ -12,6 +12,7 @@
 - оплаченная бронь номера (выбор erstatten / nicht) пропускается — только в карточке.
 """
 
+import logging
 import uuid
 from dataclasses import dataclass, field
 
@@ -21,7 +22,9 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import transactions
 
 MAX_IDS = 50
-MAX_DANGER = 20
+# Отмена оплаченной сделки возвращает деньги через Stripe синхронно (как у одиночной
+# кнопки) — держим запрос коротким (security-ревью E2.1).
+MAX_DANGER = 10
 # Цели, которые массово не ставим: им нужны данные конкретной сделки.
 NOT_BULK = {"order": {"shipped"}}
 
@@ -36,6 +39,7 @@ class BulkResult:
     already: int = 0
     skipped: dict = field(default_factory=dict)  # причина → число
     refunds: list = field(default_factory=list)  # RefundResult по изменённым
+    check_codes: list = field(default_factory=list)  # возврат не прошёл / не ясен
 
     def skip(self, reason) -> None:
         self.skipped[reason] = self.skipped.get(reason, 0) + 1
@@ -67,7 +71,12 @@ def common_actions(kind: str, objs, subset) -> list[dict]:
     return [a for a in first if a["target"] in (common or set())]
 
 
-def apply_bulk(tenant, kind, ids, target, *, confirm=False, actor=None) -> BulkResult:
+def apply_bulk(
+    tenant, kind, ids, target, *, confirm=False, actor=None, on_refund=None
+) -> BulkResult:
+    """`on_refund(result)` зовётся СРАЗУ после возврата каждой сделки — пока в
+    contextvar лежит её остаток наличными (refunds._OFFLINE_REST перезаписывается
+    следующим возвратом; ревью E2.1)."""
     from apps.core import refunds, transition_rules
     from apps.core.fsm import IllegalTransition, PaymentRequired
 
@@ -119,7 +128,22 @@ def apply_bulk(tenant, kind, ids, target, *, confirm=False, actor=None) -> BulkR
         except IllegalTransition:
             result.skip(_("Schritt im aktuellen Status nicht möglich"))
             continue
+        except model.DoesNotExist:
+            result.skip(_("inzwischen gelöscht"))
+            continue
+        except Exception:  # noqa: BLE001 — одна сделка не обрывает отчёт по остальным
+            logging.getLogger(__name__).exception("bulk status %s %s failed", kind, obj.pk)
+            result.skip(_("Fehler — bitte einzeln öffnen"))
+            continue
         result.changed += 1
         if refund != refunds.RefundResult.NONE:
             result.refunds.append(refund)
+            if refund in (
+                refunds.RefundResult.FAILED,
+                refunds.RefundResult.UNCERTAIN,
+                refunds.RefundResult.MANUAL,
+            ):
+                result.check_codes.append(obj.reference_code)
+            if on_refund is not None:
+                on_refund(refund)
     return result

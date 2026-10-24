@@ -29308,3 +29308,13 @@ msgstr "… обрізано: понад %(n)s рядків"
 
 msgid "Liste als CSV herunterladen"
 msgstr "Завантажити список у CSV"
+
+msgid "inzwischen gelöscht"
+msgstr "вже видалено"
+
+msgid "Fehler — bitte einzeln öffnen"
+msgstr "помилка — відкрийте окремо"
+
+#, python-format
+msgid "Erstattung bitte prüfen: %(codes)s"
+msgstr "Перевірте повернення: %(codes)s"

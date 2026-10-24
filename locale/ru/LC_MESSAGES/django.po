@@ -29324,3 +29324,13 @@ msgstr "… обрезано: больше %(n)s строк"
 
 msgid "Liste als CSV herunterladen"
 msgstr "Скачать список в CSV"
+
+msgid "inzwischen gelöscht"
+msgstr "уже удалено"
+
+msgid "Fehler — bitte einzeln öffnen"
+msgstr "ошибка — откройте по отдельности"
+
+#, python-format
+msgid "Erstattung bitte prüfen: %(codes)s"
+msgstr "Проверьте возврат: %(codes)s"

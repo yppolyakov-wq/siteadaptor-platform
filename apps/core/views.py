@@ -4842,6 +4842,9 @@ def sales_bulk_action(request):
             request.POST.get("action", ""),
             confirm=request.POST.get("confirm") == "1",
             actor=request.user,
+            # Флеш сразу после каждого возврата — подсказка про остаток наличными
+            # относится к СВОЕЙ сделке (contextvar перезаписывается следующей).
+            on_refund=lambda refund: refunds.flash(request, refund, kind),
         )
     except bulk_actions.BulkRefused as exc:
         messages.error(request, str(exc))
@@ -4859,8 +4862,12 @@ def sales_bulk_action(request):
         parts.append(_("%(n)s übersprungen (%(reason)s)") % {"n": n, "reason": reason})
     level = messages.warning if result.skipped else messages.success
     level(request, " · ".join(parts))
-    for refund in result.refunds:
-        refunds.flash(request, refund, kind)
+    if result.check_codes:
+        messages.error(
+            request,
+            _("Erstattung bitte prüfen: %(codes)s")
+            % {"codes": ", ".join(f"#{c}" for c in result.check_codes)},
+        )
     from apps.core.audit import audit_event
 
     audit_event(
@@ -4908,7 +4915,7 @@ def sales_export_csv(request):
     response["Content-Disposition"] = f'attachment; filename="verkaeufe-{kind}.csv"'
     response.write("\ufeff")  # BOM: Excel открывает UTF-8 с умлаутами без кракозябр
     rows = sales_export.write_rows(response, kind, qs, request.tenant)
-    roles.audit_export(request, f"sales_{kind}", rows, status=status, has_q=bool(q))
+    roles.audit_export(request, f"sales_{kind}", rows, status=status[:20], has_q=bool(q))
     return response
 
 
@@ -5140,10 +5147,10 @@ def kanban_action(request, kind, pk):
     # сбой fetch) возвращаемся на исходную поверхность (только внутренний путь),
     # а не выбрасываем владельца на легаси /dashboard/board/.
     back = request.POST.get("next", "")
-    # KA-12 E2.4 (security-ревью): `/\host` браузер нормализует в `//host`.
-    if not (back.startswith("/") and not back.startswith("//")) or "\\" in back:
-        # X2b: доска снесена — возвращаемся во вкладку единой страницы продаж.
-        back = reverse("verkaeufe") + f"?tab={kind}"
+    # KA-12 E2.4 (security-ревью): `/\host` и `/%09/host` браузер нормализует в
+    # `//host` — общий валидатор внутреннего пути.
+    # X2b: доска снесена — фолбэк во вкладку единой страницы продаж.
+    back = _safe_next(back, reverse("verkaeufe") + f"?tab={kind}")
     from apps.core import refunds
 
     try:

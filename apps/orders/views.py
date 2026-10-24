@@ -519,6 +519,10 @@ def delivery_notes_pdf(request):
 
     from .pdf import build_delivery_notes_pdf
 
+    if not request.tenant.is_module_active("orders"):
+        from django.http import Http404
+
+        raise Http404
     pks = clean_ids(request.POST.getlist("ids"))[:MAX_IDS]
     order_by_pk = {
         o.pk: o

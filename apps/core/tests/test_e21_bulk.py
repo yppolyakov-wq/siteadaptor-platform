@@ -161,7 +161,9 @@ def test_view_applies_and_returns_to_next():
     assert _status(a) == "confirmed"
 
 
-@pytest.mark.parametrize("bad", ["//evil.com/", "/\\evil.com/", "https://evil.com/"])
+@pytest.mark.parametrize(
+    "bad", ["//evil.com/", "/\\evil.com/", "https://evil.com/", "/\t/evil.com/"]
+)
 def test_view_rejects_foreign_next(bad):
     a = _make_order()
     resp = views.sales_bulk_action(
@@ -188,3 +190,44 @@ def test_delivery_notes_require_login():
 
     resp = order_views.delivery_notes_pdf(_post({"ids": []}, user=AnonymousUser()))
     assert resp.status_code == 302 and "login" in resp["Location"]
+
+
+def test_refund_callback_runs_right_after_each_refund(tenant, monkeypatch):
+    """Ревью: остаток наличными лежит в contextvar до СЛЕДУЮЩЕГО возврата — флеш
+    обязан идти сразу после своей сделки, а не одним циклом в конце."""
+    from apps.core import refunds, transactions
+
+    a, b = _make_order(), _make_order()
+    order_of_events = []
+
+    def fake(kind, obj, target, **kw):
+        order_of_events.append(("apply", obj.pk))
+        return refunds.RefundResult.REFUNDED if obj.pk == a.pk else refunds.RefundResult.FAILED
+
+    monkeypatch.setattr(transactions, "apply_action", fake)
+    res = bulk_actions.apply_bulk(
+        tenant,
+        "order",
+        [a.pk, b.pk],
+        "confirmed",
+        on_refund=lambda r: order_of_events.append(("flash", r)),
+    )
+    assert [e[0] for e in order_of_events] == ["apply", "flash", "apply", "flash"]
+    assert res.check_codes == [b.reference_code]
+
+
+def test_unexpected_error_skips_one_and_reports(tenant, monkeypatch):
+    from apps.core import transactions
+
+    a, b = _make_order(), _make_order()
+    real = transactions.apply_action
+
+    def fake(kind, obj, target, **kw):
+        if obj.pk == a.pk:
+            raise RuntimeError("boom")
+        return real(kind, obj, target, **kw)
+
+    monkeypatch.setattr(transactions, "apply_action", fake)
+    res = bulk_actions.apply_bulk(tenant, "order", [a.pk, b.pk], "confirmed")
+    assert res.changed == 1 and sum(res.skipped.values()) == 1
+    assert _status(a) == "new" and _status(b) == "confirmed"

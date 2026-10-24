@@ -7,8 +7,8 @@
 подтверждение диалогом (_danger_confirm), сервер требует confirm=1.
 Контекст: bulk_kind, bulk_options.{% endcomment %}
 {% if bulk_options or bulk_kind == "order" %}
-<form id="bulk-form" method="post" action="{% url 'verkaeufe-bulk' %}" data-bulk-form hidden
-      class="fixed z-30 inset-x-4 bottom-24 md:bottom-4 md:left-auto md:right-6 md:w-[34rem] flex flex-wrap items-center gap-2 rounded-2xl bg-gray-900 text-white px-4 py-3 shadow-[0_12px_40px_rgba(22,24,29,0.25)]">
+<form id="bulk-form" method="post" action="{% url 'verkaeufe-bulk' %}" data-bulk-form
+      class="hidden fixed z-30 inset-x-4 bottom-24 md:bottom-4 md:left-auto md:right-6 md:w-[34rem] flex-wrap items-center gap-2 rounded-2xl bg-gray-900 text-white px-4 py-3 shadow-[0_12px_40px_rgba(22,24,29,0.25)]">
   {% csrf_token %}
   <input type="hidden" name="kind" value="{{ bulk_kind }}">
   <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -36,6 +36,11 @@
   var form = document.getElementById("bulk-form");
   if (!form || form.__bound) return;
   form.__bound = true;
+  // Назад из bfcache не должен оставить взведённое подтверждение отмены.
+  window.addEventListener("pageshow", function () {
+    var c = form.querySelector("[data-bulk-confirm]");
+    if (c) c.value = "";
+  });
   var select = form.querySelector("[data-bulk-action]");
   var go = form.querySelector("[data-bulk-go]");
   var countEl = form.querySelector("[data-bulk-count]");
@@ -46,7 +51,9 @@
 
   function refresh() {
     var picked = rows().filter(function (r) { return r.checked; });
-    form.hidden = picked.length === 0;
+    // Класс, а не атрибут hidden: `flex` перебивает [hidden] (стенд поймал).
+    form.classList.toggle("hidden", picked.length === 0);
+    form.classList.toggle("flex", picked.length > 0);
     countEl.textContent = picked.length + " " + MSG_COUNT;
     if (!select) return;
     var common = null;
@@ -90,6 +97,7 @@
       if (!ok) return;
       confirmEl.value = "1";
       form.requestSubmit(go);
+      confirmEl.value = "";
     });
   });
   refresh();

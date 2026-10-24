@@ -29199,3 +29199,13 @@ msgstr "… kısaltıldı: %(n)s satırdan fazla"
 
 msgid "Liste als CSV herunterladen"
 msgstr "Listeyi CSV olarak indir"
+
+msgid "inzwischen gelöscht"
+msgstr "bu arada silindi"
+
+msgid "Fehler — bitte einzeln öffnen"
+msgstr "hata — lütfen tek tek açın"
+
+#, python-format
+msgid "Erstattung bitte prüfen: %(codes)s"
+msgstr "Lütfen iadeyi kontrol edin: %(codes)s"

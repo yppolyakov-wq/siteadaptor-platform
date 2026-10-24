@@ -29055,3 +29055,13 @@ msgstr "… truncated: more than %(n)s rows"
 
 msgid "Liste als CSV herunterladen"
 msgstr "Download list as CSV"
+
+msgid "inzwischen gelöscht"
+msgstr "deleted in the meantime"
+
+msgid "Fehler — bitte einzeln öffnen"
+msgstr "error — please open individually"
+
+#, python-format
+msgid "Erstattung bitte prüfen: %(codes)s"
+msgstr "Please check the refund: %(codes)s"

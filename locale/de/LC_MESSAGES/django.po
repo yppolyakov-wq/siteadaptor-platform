@@ -29147,3 +29147,13 @@ msgstr "… gekürzt: mehr als %(n)s Zeilen"
 
 msgid "Liste als CSV herunterladen"
 msgstr "Liste als CSV herunterladen"
+
+msgid "inzwischen gelöscht"
+msgstr "inzwischen gelöscht"
+
+msgid "Fehler — bitte einzeln öffnen"
+msgstr "Fehler — bitte einzeln öffnen"
+
+#, python-format
+msgid "Erstattung bitte prüfen: %(codes)s"
+msgstr "Erstattung bitte prüfen: %(codes)s"
