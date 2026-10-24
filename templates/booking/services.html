@@ -192,14 +192,14 @@
             <input name="price_delta_eur" type="text" inputmode="decimal" value="{{ v.price_delta_eur|stringformat:'.2f' }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
           <div><label class="block text-xs text-gray-500 mb-1">{% trans "Extra minutes" %}</label>
             <input name="duration_delta" type="text" inputmode="numeric" value="{{ v.duration_delta_minutes }}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
-          <div><label class="block text-xs text-gray-500 mb-1">{% trans "Order" %}</label>
+          <div><label class="block text-xs text-gray-500 mb-1">{% trans "Sort order" %}</label>
             <input name="sort_order" type="text" inputmode="numeric" value="{{ v.sort_order }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
           {% for inp in v.i18n_inputs %}
             <div><label class="block text-xs text-gray-500 mb-1">{{ inp.locale|upper }}</label>
               <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" maxlength="100" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
           {% endfor %}
           <button name="action" value="variant_update" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400">{% trans "Save" %}</button>
-          <button name="action" value="variant_toggle" class="text-xs text-gray-500 hover:text-gray-900">{% if v.is_active %}{% trans "Off" %}{% else %}{% trans "On" %}{% endif %}</button>
+          <button name="action" value="variant_toggle" class="text-xs text-gray-500 hover:text-gray-900">{% if v.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
           <button name="action" value="variant_delete" class="text-xs text-gray-400 hover:text-red-600">{% trans "Delete" %}</button>
         </form>
       {% endfor %}

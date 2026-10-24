@@ -170,3 +170,64 @@ def test_main_service_save_leaves_variants(settings):
         {"action": "update", "service": str(svc.pk), "duration": "60", "price_eur": "10"},
     )
     assert svc.variants.count() == 1
+
+
+def test_junk_inputs_never_500(settings, monkeypatch):
+    """Ревью безопасности: мусорная услуга → 404; «²» в порядке, NUL и длинный
+    перевод — без падения, перевод обрезан до длины поля."""
+    with pytest.raises(Http404):
+        _post(settings, {"action": "variant_add", "service": "zzz", "name": "X"})
+    svc = _service(duration_minutes=30)
+    _post(
+        settings,
+        {
+            "action": "variant_add",
+            "service": str(svc.pk),
+            "name": "La\x00ng",
+            "price_delta_eur": "1",
+            "duration_delta": "0",
+            "sort_order": "²",
+        },
+    )
+    v = svc.variants.get()
+    assert v.name == "Lang"
+    v.name_i18n = {}
+    v.save()
+    from apps.core import i18n_input
+
+    monkeypatch.setattr(i18n_input, "extra_locales", lambda tenant: ["en"])
+    for loc in ("en",):
+        _post(
+            settings,
+            {
+                "action": "variant_update",
+                "service": str(svc.pk),
+                "variant": str(v.pk),
+                "name": "Lang",
+                f"name_{loc}": "y" * 5000,
+            },
+        )
+        v.refresh_from_db()
+        assert len(v.name_i18n.get(loc, "")) == 100
+
+
+def test_duplicate_name_and_limit_are_messages_not_500(settings):
+    from apps.booking.models import MAX_VARIANTS_PER_SERVICE
+
+    svc = _service(duration_minutes=30)
+    base = {"action": "variant_add", "service": str(svc.pk), "duration_delta": "0"}
+    _post(settings, {**base, "name": "Lang"})
+    _post(settings, {**base, "name": "Lang"})
+    assert svc.variants.count() == 1
+    for i in range(MAX_VARIANTS_PER_SERVICE + 2):
+        _post(settings, {**base, "name": f"V{i}"})
+    assert svc.variants.count() == MAX_VARIANTS_PER_SERVICE
+
+
+def test_toggle_delete_with_foreign_service_pair_404(settings):
+    svc, other = _service(), _service()
+    v = _variant(other, "X")
+    for action in ("variant_toggle", "variant_delete"):
+        with pytest.raises(Http404):
+            _post(settings, {"action": action, "service": str(svc.pk), "variant": str(v.pk)})
+    assert ServiceVariant.objects.filter(pk=v.pk, is_active=True).exists()

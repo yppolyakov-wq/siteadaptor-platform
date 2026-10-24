@@ -845,12 +845,29 @@ def _is_uuid(value) -> bool:
     return True
 
 
+def _clean_text(raw, limit=100) -> str:
+    """Строка из формы без NUL-байтов (Postgres их отвергает) и не длиннее поля."""
+    return str(raw or "").replace("\x00", "").strip()[:limit]
+
+
 def _variant_action(request, action) -> None:
     """KA-12 E4.4b: мини-формы вариантов (отдельно от главного Save услуги — W0).
 
     Вариант ищется ВНУТРИ услуги из формы: чужой вариант → 404. Дельты — со знаком
     и потолком; вариант короче 5 минут или мусор вместо цены не сохраняются."""
+    raw_service = request.POST.get("service", "")
+    if not _is_uuid(raw_service):
+        raise Http404
+    with transaction.atomic():
+        # Блокировка строки услуги сериализует правки её вариантов (лимит/уникальность).
+        service = get_object_or_404(Service.objects.select_for_update(), pk=raw_service)
+        _variant_action_locked(request, action, service)
+
+
+def _variant_action_locked(request, action, service) -> None:
     from decimal import Decimal
+
+    from django.db import IntegrityError
 
     from apps.core.money import parse_money
 
@@ -862,7 +879,6 @@ def _variant_action(request, action) -> None:
     )
     from .pricing import MIN_VARIANT_MINUTES
 
-    service = get_object_or_404(Service, pk=request.POST.get("service"))
     variant = None
     if action != "variant_add":
         raw = request.POST.get("variant", "")
@@ -877,14 +893,14 @@ def _variant_action(request, action) -> None:
         variant.delete()  # брони: SET_NULL, снимок имени остаётся
         messages.success(request, _("Variant removed."))
         return
-    name = (request.POST.get("name") or "").strip()[:100]
+    name = _clean_text(request.POST.get("name"))
     try:
         price = parse_money(request.POST.get("price_delta_eur"))
         minutes = int((request.POST.get("duration_delta") or "0").strip() or 0)
     except ValueError:
         messages.error(request, _("Please check the surcharge and the extra minutes."))
         return
-    price_cents = int((price or Decimal(0)) * 100)
+    price_cents = int(((price or Decimal(0)) * 100).quantize(Decimal(1)))
     if (
         not name
         or abs(price_cents) > MAX_VARIANT_PRICE_DELTA
@@ -909,10 +925,18 @@ def _variant_action(request, action) -> None:
     variant.price_delta_cents = price_cents
     variant.duration_delta_minutes = minutes
     order = (request.POST.get("sort_order") or "").strip()
-    if order.isdigit():
+    if order.isascii() and order.isdecimal():
         variant.sort_order = min(int(order), 999)
     apply_i18n_overlay(variant, request.POST, tenant, fields=("name",))
-    variant.save()
+    variant.name_i18n = {
+        loc: _clean_text(val) for loc, val in (variant.name_i18n or {}).items() if _clean_text(val)
+    }
+    try:
+        with transaction.atomic():
+            variant.save()
+    except IntegrityError:
+        messages.error(request, _("A variant with this name already exists."))
+        return
     messages.success(request, _("Variant saved."))
 
 
