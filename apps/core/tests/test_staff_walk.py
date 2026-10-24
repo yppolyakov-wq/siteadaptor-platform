@@ -43,6 +43,7 @@ EXPECTED_OWNER_ONLY_UNLISTED = {
     "/imports/website/": "вход из экрана импорта",
     "/dashboard/geschaeft/": "лёгкий кабинет: пункт своего меню (lite_cabinet)",
     "/dashboard/channels/google/": "вход с экрана каналов",
+    "/dashboard/erstattung/": "POST-приёмник частичного возврата с карточки сделки (B2-4)",
 }
 
 
