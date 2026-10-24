@@ -90,3 +90,20 @@ def test_board_has_peek_drawer_once():
     assert "data-peek-row" in html
     assert html.count("<aside data-peek-drawer") == 1
     assert html.count("if (window.__dealPeekBound) return") == 1
+
+
+def test_generic_list_keeps_status_filter_options_next_to_bulk(monkeypatch):
+    """CI #3193: варианты массовых действий перезаписали фильтр статуса generic-
+    списка (общее имя переменной) — шаблон падал на распаковке."""
+    from apps.core import transactions
+    from apps.jobs.models import Job
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory.build(schema_name="public")
+    monkeypatch.setattr(type(tenant), "is_module_active", lambda self, key: True)
+    Job.objects.create(title="Bad", customer=_make_order().customer)
+    req = RequestFactory().get("/dashboard/verkaeufe/", {"tab": "job", "view": "liste"})
+    req.tenant = tenant
+    ctx = sales_page.body_context(req, "job", "liste")
+    assert ctx["bulk_options"], "у новой заявки есть переходы — панель нужна"
+    assert ctx["list_status_options"] == transactions.status_filter_options(tenant, "job")

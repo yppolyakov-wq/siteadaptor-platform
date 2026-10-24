@@ -584,13 +584,13 @@ def body_context(request, kind: str, view: str) -> dict:
         ctx["section"] = sections[0] if sections else None
         ctx["page"] = ctx["section"]["page"] if ctx["section"] else None
         if ctx["section"]:
-            options = _bulk_options(
+            bulk = _bulk_options(
                 kind, [tx.allowed_actions for tx in ctx["section"]["transactions"]]
             )
             # Без вариантов нет панели — и чекбоксы не рисуем (ревью E2.1).
-            if options:
+            if bulk:
                 ctx["bulk_kind"] = kind
-                ctx["bulk_options"] = options
+                ctx["bulk_options"] = bulk
         ctx["list_q"] = q
         ctx["list_status"] = status
         ctx["list_status_options"] = options
