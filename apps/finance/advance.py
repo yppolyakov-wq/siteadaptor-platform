@@ -14,10 +14,13 @@
 
 from __future__ import annotations
 
+import logging
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.conf import settings
 from django.db import transaction
+
+logger = logging.getLogger(__name__)
 
 KINDS = ("stay", "booking", "job")
 CENT = Decimal("0.01")
@@ -48,7 +51,9 @@ def live_advance(kind: str, obj):
 def deposit_received(kind: str, obj) -> bool:
     state = getattr(obj, "payment_state", "")
     if kind == "job":
-        return state == "paid" and int(obj.deposit_cents or 0) > 0
+        # «paid» у заявки — депозит (вебхук/банк) или всё целиком (кнопка обнуляет
+        # deposit_cents, KA-H10): в обоих случаях деньги предоплаты пришли.
+        return state == "paid"
     return state in ("deposit", "paid")
 
 
@@ -147,12 +152,22 @@ def create_advance_invoice(kind: str, obj, tenant):
 
 
 def sync_advance_paid(kind: str, obj) -> None:
-    """Депозит сделки получен → её выставленная предоплата «bezahlt»."""
+    """Депозит сделки получен → её выставленная предоплата «bezahlt».
+
+    Бухгалтерия поверх уже записанной оплаты: сбой здесь логируется и НЕ откатывает
+    платёж (вебхук не уходит в повтор, кнопка «bezahlt» не теряет отметку)."""
+    if kind not in KINDS:
+        return
+    try:
+        _sync_advance_paid(kind, obj)
+    except Exception:  # noqa: BLE001 — оплата важнее документа; виден в логах
+        logger.exception("advance invoice: sync paid failed for %s %s", kind, obj.pk)
+
+
+def _sync_advance_paid(kind: str, obj) -> None:
     from .models import Invoice
     from .state_machine import InvoiceSM
 
-    if kind not in KINDS:
-        return
     with transaction.atomic():
         inv = live_advance(kind, obj)
         if inv is None:
@@ -172,12 +187,25 @@ def on_advance_paid(invoice, *, source: str = "invoice") -> None:
     model = transactions.model_for(kind)
     with transaction.atomic():
         obj = model.objects.select_for_update().filter(reference_code=invoice.deal_id).first()
-        if obj is None or deposit_received(kind, obj):
+        if obj is None:
+            logger.warning(
+                "advance %s paid: deal %s %s not found", invoice.pk, kind, invoice.deal_id
+            )
+            return
+        if deposit_received(kind, obj):
+            return
+        if int(obj.deposit_cents or 0) <= 0:
+            # Депозит обнулили после выставления — «всё оплачено» ставить нельзя.
+            logger.warning("advance %s paid: deal %s has no deposit", invoice.pk, invoice.deal_id)
             return
         if kind == "job":
-            money_contract.settle_payment("job", obj, source=source, deposit_only=True)
+            if not money_contract.settle_payment("job", obj, source=source, deposit_only=True):
+                logger.warning("advance %s paid: job %s not settled", invoice.pk, invoice.deal_id)
             return
         if obj.payment_state in ("paid", "deposit", "refunded"):
+            logger.warning(
+                "advance %s paid: deal %s state %s", invoice.pk, invoice.deal_id, obj.payment_state
+            )
             return
         from apps.core import folio
         from apps.core.payment_holds import settle_late_payment

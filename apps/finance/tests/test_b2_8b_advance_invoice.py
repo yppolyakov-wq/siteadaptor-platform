@@ -213,3 +213,34 @@ def test_view_flag_and_role(client, settings):
     settings.ADVANCE_INVOICES_ENABLED = False
     with pytest.raises(Http404):
         deal_advance_invoice(request, kind="stay", pk=stay.pk)
+
+
+def test_full_manual_payment_of_job_closes_advance():
+    """Кнопка «bezahlt» обнуляет deposit_cents (KA-H10) — предоплата всё равно оплачена."""
+    job = _job()
+    inv = advance.create_advance_invoice("job", job, TENANT)
+    money_contract.settle_payment("job", job, source="manual")
+    inv.refresh_from_db()
+    assert inv.status == "paid"
+
+
+def test_paid_advance_with_zeroed_deposit_never_marks_deal_paid():
+    stay = _stay()
+    inv = advance.create_advance_invoice("stay", stay, TENANT)
+    type(stay).objects.filter(pk=stay.pk).update(deposit_cents=0)
+    InvoiceSM().apply(inv, "paid")
+    stay.refresh_from_db()
+    assert stay.payment_state not in ("paid", "deposit")
+
+
+def test_sync_failure_does_not_break_payment(monkeypatch):
+    stay = _stay()
+    advance.create_advance_invoice("stay", stay, TENANT)
+
+    def boom(*a, **k):
+        raise RuntimeError("x")
+
+    monkeypatch.setattr(advance, "_sync_advance_paid", boom)
+    stay.payment_state = "deposit"
+    stay.save(update_fields=["payment_state"])
+    advance.sync_advance_paid("stay", stay)  # не бросает

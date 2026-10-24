@@ -77,13 +77,13 @@ def mark_deposit_paid(*, tenant_schema: str, booking_id: str, payment_intent: st
                 folio.record_online("booking", booking, intent=payment_intent)
             booking.save(update_fields=fields)
         settle_late_payment("booking", booking, newly_paid="payment_state" in fields)
-        from apps.finance.advance import sync_advance_paid
-
-        sync_advance_paid("booking", booking)  # B2-8b: депозит пришёл → предоплата оплачена
         # Авто-подтверждение, если ресурс не требует ручной проверки (анти-фрод).
         if not booking.resource.require_manual_confirm and booking.status == Booking.STATUS_PENDING:
             try:
                 BookingSM().apply(booking, Booking.STATUS_CONFIRMED)
             except IllegalTransition:
                 pass
+        from apps.finance.advance import sync_advance_paid
+
+        sync_advance_paid("booking", booking)  # B2-8b: депозит пришёл → предоплата оплачена
     return True
