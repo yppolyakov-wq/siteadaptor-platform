@@ -39,11 +39,9 @@ class JobSM(StateMachine):
         # B1.4/B1.6: отмена → вернуть использование/остаток Gutschein (однократно —
         # FSM не даёт второй переход в cancelled).
         if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):
-            from apps.promotions.services import unredeem_voucher
+            from apps.promotions.services import unredeem_voucher, voucher_return_cents
 
-            unredeem_voucher(
-                instance.voucher_code, amount_cents=getattr(instance, "discount_cents", 0)
-            )
+            unredeem_voucher(instance.voucher_code, amount_cents=voucher_return_cents(instance))
 
         # VF-13: резерв Teile при принятии сметы (Beauftragt) — commit_stock
         # (кламп, идемпотентно); витрина не продаст заложенное под заявку.

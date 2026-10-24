@@ -39,12 +39,10 @@ class BookingSM(StateMachine):
         # B1.4: отмена → вернуть использование промокода/Gutschein (однократно —
         # FSM не даёт второй переход в cancelled).
         if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):
-            from apps.promotions.services import unredeem_voucher
+            from apps.promotions.services import unredeem_voucher, voucher_return_cents
 
             # B1.5: balance-сертификату возвращается и списанная сумма (снимок).
-            unredeem_voucher(
-                instance.voucher_code, amount_cents=getattr(instance, "discount_cents", 0)
-            )
+            unredeem_voucher(instance.voucher_code, amount_cents=voucher_return_cents(instance))
 
         # MX-2e: отмена возвращает stock-опции записи (идемпотентно; зеркало —
         # status_effects.restore_stock_for).

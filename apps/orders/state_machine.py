@@ -57,13 +57,12 @@ class OrderSM(StateMachine):
 
         # B1.4: отмена → вернуть использование промокода/Gutschein (однократно —
         # FSM не даёт второй переход в cancelled).
-        if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):
-            from apps.promotions.services import unredeem_voucher
+        # KA-12 B2-7a: и возврат заказа (`returned`) — сертификат клиента не сгорает.
+        if t.dst in ("cancelled", "returned") and getattr(instance, "voucher_code", ""):
+            from apps.promotions.services import unredeem_voucher, voucher_return_cents
 
             # B1.5: balance-сертификату возвращается и списанная сумма (снимок).
-            unredeem_voucher(
-                instance.voucher_code, amount_cents=getattr(instance, "discount_cents", 0)
-            )
+            unredeem_voucher(instance.voucher_code, amount_cents=voucher_return_cents(instance))
 
         # Выдан/отправлен → запись в журнал выручки (D4a, идемпотентно по
         # source_ref). Доставка включена в total → попадает в выручку.

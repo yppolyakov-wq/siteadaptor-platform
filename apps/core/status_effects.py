@@ -223,9 +223,9 @@ def unredeem_for(instance) -> None:
     code = getattr(instance, "voucher_code", "")
     if not code:
         return
-    from apps.promotions.services import unredeem_voucher
+    from apps.promotions.services import unredeem_voucher, voucher_return_cents
 
-    unredeem_voucher(code, amount_cents=getattr(instance, "discount_cents", 0))
+    unredeem_voucher(code, amount_cents=voucher_return_cents(instance))
 
 
 def apply_custom_effects(kind: str, instance, src_desc, dst_desc) -> None:

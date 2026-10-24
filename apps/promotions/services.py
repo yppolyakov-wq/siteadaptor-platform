@@ -776,6 +776,17 @@ def spend_voucher(code, base_cents: int):
     return discount, voucher
 
 
+def voucher_return_cents(deal) -> int:
+    """KA-12 B2-7a: сколько вернуть balance-сертификату при отмене/возврате сделки —
+    ровно списанное с него (`voucher_paid_cents`, B2-1). `discount_cents` после DC-5 и
+    Minderung несёт и скидку владельца, и уступку — вернуть его = подарить разницу.
+    Легаси-сделка без точного поля — прежнее правило."""
+    exact = int(getattr(deal, "voucher_paid_cents", 0) or 0)
+    if exact:
+        return exact
+    return int(getattr(deal, "discount_cents", 0) or 0)
+
+
 def unredeem_voucher(code, amount_cents=0) -> bool:
     """B1.4: вернуть ОДНО использование кода при отмене брони/заказа/билета.
 
