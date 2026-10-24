@@ -33,6 +33,7 @@ from apps.core.views import (
     deal_invoice,
     deal_link_view,
     deal_pay_link,
+    deal_refund,
     deal_unlink_view,
     domain_add,
     domain_remove,
@@ -331,6 +332,12 @@ urlpatterns = [
         "dashboard/zahlungslink/<str:kind>/<uuid:pk>/",
         deal_pay_link,
         name="deal-pay-link",
+    ),
+    # KA-12 B2-4: частичный возврат с карточки сделки (только владелец).
+    path(
+        "dashboard/erstattung/<str:kind>/<uuid:pk>/",
+        deal_refund,
+        name="deal-refund",
     ),
     path("dashboard/status-manager/<str:kind>/", status_manager, name="status-manager"),
     path(

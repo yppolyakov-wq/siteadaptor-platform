@@ -28794,3 +28794,30 @@ msgstr "%(code)s için kalan tutarı çevrimiçi ödemek üzere bağlantı aşa�
 
 msgid "Restbetrag für %(code)s online bezahlen"
 msgstr "%(code)s için kalan tutarı çevrimiçi ödeyin"
+
+msgid "Teilbetrag erstatten"
+msgstr "Tutarın bir kısmını iade et"
+
+msgid "Höchstens %(eur)s €"
+msgstr "En fazla %(eur)s €"
+
+msgid "Wie erstatten?"
+msgstr "Nasıl iade edilsin?"
+
+msgid "Auf die Karte (Stripe)"
+msgstr "Karta (Stripe)"
+
+msgid "Bar oder per Überweisung (nur vermerken)"
+msgstr "Nakit veya havale ile (yalnızca kaydet)"
+
+msgid "Betrag wirklich erstatten?"
+msgstr "Bu tutar gerçekten iade edilsin mi?"
+
+msgid "%(amount)s € erstattet."
+msgstr "%(amount)s € iade edildi."
+
+msgid "Dieser Betrag kann nicht erstattet werden (höher als bezahlt?)."
+msgstr "Bu tutar iade edilemez (ödenenden fazla mı?)."
+
+msgid "Die Erstattung wurde bereits ausgeführt."
+msgstr "İade zaten yapıldı."

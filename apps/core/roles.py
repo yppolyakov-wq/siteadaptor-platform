@@ -43,6 +43,8 @@ OWNER_ONLY_PREFIXES = (
     "/dashboard/stays/berichte/export.csv",
     # Банковские выписки: имя плательщика, назначение, IBAN.
     "/dashboard/finance/bank/",
+    # KA-12 B2-4 (решение P-1): частичный возврат денег — только владелец.
+    "/dashboard/erstattung/",
 )
 
 # KA-D7: финансовые выгрузки — владельцу и admin (бухгалтер), не staff.

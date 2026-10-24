@@ -230,7 +230,17 @@ def due(kind: str, obj) -> Decimal:
     total = _total(kind, obj)
     online = min(_online_paid(kind, obj, total), total) if kind != "reservation" else total
     paid = min(_paid(kind, obj, total, online), total)
-    return max(total - (paid - _refunded(kind, obj, paid)), ZERO)
+    return max(total - _net_received(kind, obj, paid), ZERO)
+
+
+def _net_received(kind, obj, paid) -> Decimal:
+    """Сколько у бизнеса осталось от клиента. KA-12 B2-4: по книге — без обрезки
+    ценой ДО вычета возвратов (55 € получено при цене 50 €, 5 € вернули → 50 €,
+    ждём 0; раньше обрезка давала 50 − 5 и ложный долг 5 €)."""
+    folio_sums = _folio_totals(kind, obj)
+    if folio_sums is not None:
+        return folio_sums[0] - folio_sums[1]
+    return paid - _refunded(kind, obj, paid)
 
 
 def money_state(kind: str, obj) -> MoneyState:
@@ -244,7 +254,7 @@ def money_state(kind: str, obj) -> MoneyState:
     due = (
         ZERO
         if cancelled or getattr(obj, "payment_state", "") == "refunded"
-        else max(total - (paid - refunded), ZERO)
+        else max(total - _net_received(kind, obj, paid), ZERO)
     )
     invoice = invoice_for(kind, obj)
     return MoneyState(

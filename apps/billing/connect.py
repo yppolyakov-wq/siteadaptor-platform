@@ -176,11 +176,20 @@ def connected_checkout_session(
     return session["url"]
 
 
-def refund(*, connect_id: str, payment_intent: str, idempotency_key: str = "") -> None:
-    """Полный возврат платежа на connected account (анти-фрод при отмене).
+def refund(
+    *,
+    connect_id: str,
+    payment_intent: str,
+    idempotency_key: str = "",
+    amount_cents: int | None = None,
+) -> None:
+    """Возврат платежа на connected account (анти-фрод при отмене).
 
-    KA-H4: `idempotency_key` — повтор того же возврата Stripe не исполнит дважды."""
+    KA-H4: `idempotency_key` — повтор того же возврата Stripe не исполнит дважды.
+    KA-12 B2-4: `amount_cents` — частичный возврат (без него — весь платёж)."""
     kwargs = {"payment_intent": payment_intent, "stripe_account": connect_id}
+    if amount_cents is not None:
+        kwargs["amount"] = int(amount_cents)
     if idempotency_key:
         kwargs["idempotency_key"] = idempotency_key
     _client().Refund.create(**kwargs)

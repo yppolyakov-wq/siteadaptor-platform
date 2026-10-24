@@ -6251,3 +6251,59 @@ def deal_pay_link(request, kind, pk):
     ):
         nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
     return redirect(nxt)
+
+
+@login_required
+@require_POST
+def deal_refund(request, kind, pk):
+    """KA-12 B2-4 (MC-E8): частичный возврат с карточки сделки — только владелец
+    (решение P-1). Сумма — в немецком формате («12,50»)."""
+    from django.http import Http404, HttpResponseForbidden
+    from django.urls import reverse
+
+    from apps.core import folio, refunds, roles, transactions
+    from apps.core.money import parse_money
+
+    if kind not in folio.FOLIO_KINDS:
+        raise Http404("unknown kind")
+    if not roles.is_owner(request.user):
+        return HttpResponseForbidden()
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    try:
+        amount = parse_money(request.POST.get("amount"))
+    except ValueError:
+        amount = None
+    if amount is None or amount <= 0:
+        messages.error(request, _("Bitte einen gültigen Betrag eingeben."))
+    else:
+        result = refunds.refund_partial(
+            kind,
+            obj,
+            cents=int((amount * 100).to_integral_value()),
+            method=request.POST.get("method", ""),
+            row_pk=request.POST.get("row") or None,
+            tenant=getattr(request, "tenant", None),
+            user=request.user,
+        )
+        if result == refunds.RefundResult.REFUNDED:
+            messages.success(
+                request,
+                _("%(amount)s € erstattet.") % {"amount": f"{amount:.2f}".replace(".", ",")},
+            )
+        elif result == refunds.RefundResult.REFUSED:
+            messages.error(
+                request,
+                _("Dieser Betrag kann nicht erstattet werden (höher als bezahlt?)."),
+            )
+        elif result == refunds.RefundResult.ALREADY:
+            messages.warning(request, _("Die Erstattung wurde bereits ausgeführt."))
+        else:
+            messages.error(request, _("Refund failed — please check Stripe."))
+    nxt = request.POST.get("next", "")
+    if (
+        not url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()})
+        or not nxt.startswith("/")
+        or "\\" in nxt
+    ):
+        nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
+    return redirect(nxt)

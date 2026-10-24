@@ -28899,3 +28899,30 @@ msgstr "ось посилання для онлайн-оплати залишк�
 
 msgid "Restbetrag für %(code)s online bezahlen"
 msgstr "Сплатіть залишок за %(code)s онлайн"
+
+msgid "Teilbetrag erstatten"
+msgstr "Повернути частину суми"
+
+msgid "Höchstens %(eur)s €"
+msgstr "Не більше %(eur)s €"
+
+msgid "Wie erstatten?"
+msgstr "Як повернути?"
+
+msgid "Auf die Karte (Stripe)"
+msgstr "На картку (Stripe)"
+
+msgid "Bar oder per Überweisung (nur vermerken)"
+msgstr "Готівкою або переказом (лише позначити)"
+
+msgid "Betrag wirklich erstatten?"
+msgstr "Справді повернути цю суму?"
+
+msgid "%(amount)s € erstattet."
+msgstr "Повернуто %(amount)s €."
+
+msgid "Dieser Betrag kann nicht erstattet werden (höher als bezahlt?)."
+msgstr "Цю суму не можна повернути (більше, ніж сплачено?)."
+
+msgid "Die Erstattung wurde bereits ausgeführt."
+msgstr "Повернення вже виконано."

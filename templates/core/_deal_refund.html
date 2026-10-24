@@ -1,0 +1,32 @@
+{% load i18n %}{% if deal_refund %}
+  {% comment %}KA-12 B2-4: частичный возврат — только владельцу. Карта: часть платежа
+  Stripe; иначе — запись возврата наличными/переводом.{% endcomment %}
+  <details class="mt-4 pt-4 border-t border-gray-100" data-deal-refund>
+    <summary class="text-sm font-medium cursor-pointer">↩ {% trans "Teilbetrag erstatten" %}</summary>
+    <form method="post" action="{% url 'deal-refund' deal_kind deal_obj.pk %}" class="mt-3 space-y-3">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <p class="text-xs text-gray-500">{% blocktrans with eur=deal_refund.open_eur|floatformat:2 %}Höchstens {{ eur }} €{% endblocktrans %}</p>
+      <label class="block text-sm">{% trans "Betrag (€)" %}
+        <input type="text" name="amount" inputmode="decimal" required placeholder="0,00"
+               class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
+      </label>
+      <fieldset class="text-sm space-y-1">
+        <legend class="font-medium">{% trans "Wie erstatten?" %}</legend>
+        {% if deal_refund.card_ok %}
+          <label class="flex items-center gap-2"><input type="radio" name="method" value="card" checked> {% trans "Auf die Karte (Stripe)" %}</label>
+        {% endif %}
+        <label class="flex items-center gap-2"><input type="radio" name="method" value="offline" {% if not deal_refund.card_ok %}checked{% endif %}> {% trans "Bar oder per Überweisung (nur vermerken)" %}</label>
+      </fieldset>
+      {% if deal_refund.card_ok and deal_refund.card_rows|length > 1 %}
+        <label class="block text-sm">{% trans "Zahlung" %}
+          <select name="row" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
+            {% for r in deal_refund.card_rows %}<option value="{{ r.pk }}">{{ r.label|date:"d.m.Y H:i" }} · {{ r.eur|floatformat:2 }} €</option>{% endfor %}
+          </select>
+        </label>
+      {% endif %}
+      <button type="submit" class="w-full text-sm font-medium rounded-xl border border-gray-300 px-3 py-2 hover:bg-gray-50"
+              onclick="return confirm('{% trans "Betrag wirklich erstatten?" %}')">{% trans "Erstatten" %}</button>
+    </form>
+  </details>
+{% endif %}

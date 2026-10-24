@@ -28742,3 +28742,30 @@ msgstr "hier ist der Link, um den Restbetrag für %(code)s online zu bezahlen."
 
 msgid "Restbetrag für %(code)s online bezahlen"
 msgstr "Restbetrag für %(code)s online bezahlen"
+
+msgid "Teilbetrag erstatten"
+msgstr "Teilbetrag erstatten"
+
+msgid "Höchstens %(eur)s €"
+msgstr "Höchstens %(eur)s €"
+
+msgid "Wie erstatten?"
+msgstr "Wie erstatten?"
+
+msgid "Auf die Karte (Stripe)"
+msgstr "Auf die Karte (Stripe)"
+
+msgid "Bar oder per Überweisung (nur vermerken)"
+msgstr "Bar oder per Überweisung (nur vermerken)"
+
+msgid "Betrag wirklich erstatten?"
+msgstr "Betrag wirklich erstatten?"
+
+msgid "%(amount)s € erstattet."
+msgstr "%(amount)s € erstattet."
+
+msgid "Dieser Betrag kann nicht erstattet werden (höher als bezahlt?)."
+msgstr "Dieser Betrag kann nicht erstattet werden (höher als bezahlt?)."
+
+msgid "Die Erstattung wurde bereits ausgeführt."
+msgstr "Die Erstattung wurde bereits ausgeführt."

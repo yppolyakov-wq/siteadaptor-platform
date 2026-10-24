@@ -156,6 +156,47 @@ def _rest_link(request, kind, obj, tenant):
         return None
 
 
+def _refund_form(request, kind, obj, tenant):
+    """KA-12 B2-4: форма частичного возврата — только владельцу и только когда в
+    книге есть что возвращать. Карта — если подключён Stripe и есть платёж картой."""
+    from decimal import Decimal
+
+    from apps.core import folio, refunds, roles
+
+    try:
+        if kind not in folio.FOLIO_KINDS or not roles.is_owner(request.user):
+            return None
+        if getattr(obj, "payment_state", "") == "installment":
+            return None
+        rows = folio.rows(kind, obj)
+        if not rows:
+            from apps.core import money_contract
+
+            legacy = money_contract.legacy_paid_cents(kind, obj)
+            if legacy <= 0:
+                return None
+            return {"open_eur": Decimal(legacy) / 100, "card_rows": [], "card_ok": False}
+        open_cents = sum(r.amount_cents - r.refunded_cents for r in rows)
+        if open_cents <= 0:
+            return None
+        card_rows = [
+            {
+                "pk": r.pk,
+                "eur": Decimal(r.amount_cents - r.refunded_cents) / 100,
+                "label": r.created_at,
+            }
+            for r in rows
+            if r.stripe_payment_intent and r.amount_cents > r.refunded_cents
+        ]
+        return {
+            "open_eur": Decimal(open_cents) / 100,
+            "card_rows": card_rows,
+            "card_ok": bool(card_rows and refunds._connect_id(tenant)),
+        }
+    except Exception:  # noqa: BLE001 — карточка не падает из-за формы
+        return None
+
+
 def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targets=()) -> dict:
     """Общий контекст карточки сделки для `core/deal_card_base.html`.
 
@@ -237,6 +278,7 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
     return {
         # KA-12 B2-5 (E1.11): ссылка на онлайн-доплату остатка (номер/запись/билет).
         "deal_rest": _rest_link(request, kind, obj, tenant),
+        "deal_refund": _refund_form(request, kind, obj, tenant),
         "refund_choice": refund_choice,
         "deal": deal,
         "deal_obj": obj,

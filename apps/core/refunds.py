@@ -27,6 +27,8 @@ from contextvars import ContextVar
 from decimal import Decimal
 from enum import StrEnum
 
+from django.db import transaction
+
 logger = logging.getLogger(__name__)
 
 #: KA-12 E1.6: часть оплаты, которую карта не покрывает (депозит картой + остаток
@@ -42,6 +44,7 @@ class RefundResult(StrEnum):
     ALREADY = "already"  # уже возвращено (повтор, гонка)
     FAILED = "failed"  # Stripe отказал — состояние «оплачено» сохранено
     MANUAL = "manual"  # доля рассрочки оплачена вне Stripe — возвращает владелец
+    REFUSED = "refused"  # KA-12 B2-4: частичный возврат невозможен (сумма/вид/рассрочка)
 
 
 class RefundChoiceRequired(Exception):
@@ -134,7 +137,19 @@ def refund_payment(kind: str, obj, tenant=None) -> RefundResult:
     # видно, какую сделку проверить (повтор с тем же ключом безопасен).
     logger.info("refund claimed: %s %s", kind, obj.pk)
     try:
-        connect.refund(connect_id=connect_id, payment_intent=intent, idempotency_key=key)
+        # KA-12 B2-4: после частичного возврата — только остаток платежа, явной
+        # суммой и ключом на накопленную сумму (иначе Stripe по старому ключу
+        # «повторил» бы прежний частичный ответ или вернул бы весь платёж).
+        open_cents, cumulative = _open_on_intent(kind, obj, intent)
+        if open_cents is None:
+            connect.refund(connect_id=connect_id, payment_intent=intent, idempotency_key=key)
+        elif open_cents > 0:
+            connect.refund(
+                connect_id=connect_id,
+                payment_intent=intent,
+                idempotency_key=_partial_key(kind, obj.pk, intent, cumulative),
+                amount_cents=open_cents,
+            )
     except stripe.error.InvalidRequestError as exc:
         if getattr(exc, "code", "") != "charge_already_refunded":
             return _rollback(kind, obj, previous, tenant)
@@ -177,11 +192,21 @@ def _refund_other_card_rows(kind: str, obj, connect_id: str, main_intent: str):
         if open_cents <= 0:
             continue
         try:
-            connect.refund(
-                connect_id=connect_id,
-                payment_intent=row.stripe_payment_intent,
-                idempotency_key=_idempotency_key(kind, obj.pk, row.stripe_payment_intent),
-            )
+            if row.refunded_cents:
+                connect.refund(
+                    connect_id=connect_id,
+                    payment_intent=row.stripe_payment_intent,
+                    idempotency_key=_partial_key(
+                        kind, obj.pk, row.stripe_payment_intent, row.amount_cents
+                    ),
+                    amount_cents=open_cents,
+                )
+            else:
+                connect.refund(
+                    connect_id=connect_id,
+                    payment_intent=row.stripe_payment_intent,
+                    idempotency_key=_idempotency_key(kind, obj.pk, row.stripe_payment_intent),
+                )
         except stripe.error.InvalidRequestError as exc:
             if getattr(exc, "code", "") != "charge_already_refunded":
                 logger.warning("refund of extra payment failed: %s %s", kind, obj.pk)
@@ -311,6 +336,148 @@ def _has_installment_plan(obj) -> bool:
         return getattr(obj, "installment_plan", None) is not None
     except Exception:  # noqa: BLE001 — RelatedObjectDoesNotExist у OneToOne
         return False
+
+
+def _partial_key(kind: str, pk, intent: str, cumulative_cents: int) -> str:
+    """Ключ частичного возврата — на НАКОПЛЕННУЮ сумму возвратов платежа: повтор
+    того же нажатия — тот же ключ, следующий возврат — новый."""
+    return _idempotency_key(kind, pk, f"{intent}:partial:{int(cumulative_cents)}")
+
+
+def _open_on_intent(kind: str, obj, intent: str):
+    """(ещё не возвращено, полная сумма) по строке фолио этого платежа; (None, 0) —
+    строки нет или возвратов по ней не было (тогда возвращаем весь платёж)."""
+    from apps.core.models import DealPayment
+
+    row = DealPayment.objects.filter(
+        deal_kind=kind, deal_id=obj.pk, stripe_payment_intent=intent
+    ).first()
+    if row is None or not row.refunded_cents:
+        return None, 0
+    return max(row.amount_cents - row.refunded_cents, 0), row.amount_cents
+
+
+def refund_partial(
+    kind: str,
+    obj,
+    *,
+    cents: int,
+    method: str,
+    tenant=None,
+    row_pk=None,
+    user=None,
+    reason: str = "ueberzahlung",
+) -> RefundResult:
+    """KA-12 B2-4 (MC-E8): частичный возврат владельцем.
+
+    `method`: «card» — возврат части платежа Stripe (строка фолио `row_pk` или
+    платёж с наибольшим невозвращённым остатком); «offline» — наличными/переводом
+    (только запись в книге). Сумма захватывается условным UPDATE под блокировкой
+    сделки ДО вызова Stripe: двойной клик не вернёт дважды; сбой Stripe откатывает
+    захват. Грубое состояние становится «возвращено» только когда вернули всё."""
+    import stripe
+
+    from apps.billing import connect
+    from apps.core import folio, transactions
+    from apps.core.models import DealPayment
+
+    cents = int(cents or 0)
+    if (
+        kind not in folio.FOLIO_KINDS
+        or cents <= 0
+        or method not in ("card", "offline")
+        or getattr(obj, "payment_state", "") == "installment"
+    ):
+        return RefundResult.REFUSED
+    connect_id = _connect_id(tenant)
+    if method == "card" and not connect_id:
+        return RefundResult.REFUSED
+    folio.ensure_opening(kind, obj)
+    model = transactions.model_for(kind)
+    claims = []  # [(row_pk, было, стало)]
+    with transaction.atomic():
+        model.objects.select_for_update().get(pk=obj.pk)
+        rows = list(
+            DealPayment.objects.filter(deal_kind=kind, deal_id=obj.pk).order_by("created_at")
+        )
+        if method == "card":
+            card = [r for r in rows if r.stripe_payment_intent]
+            if row_pk:
+                card = [r for r in card if str(r.pk) == str(row_pk)]
+            card.sort(key=lambda r: r.amount_cents - r.refunded_cents, reverse=True)
+            if not card or cents > card[0].amount_cents - card[0].refunded_cents:
+                return RefundResult.REFUSED
+            targets = [(card[0], cents)]
+        else:
+            open_total = sum(r.amount_cents - r.refunded_cents for r in rows)
+            if cents > open_total:
+                return RefundResult.REFUSED
+            # Сначала строки без карты (наличные/перевод), потом остальные.
+            rows.sort(key=lambda r: bool(r.stripe_payment_intent))
+            targets, left = [], cents
+            for r in rows:
+                take = min(left, r.amount_cents - r.refunded_cents)
+                if take > 0:
+                    targets.append((r, take))
+                    left -= take
+        for row, take in targets:
+            new = row.refunded_cents + take
+            updated = DealPayment.objects.filter(
+                pk=row.pk, refunded_cents=row.refunded_cents
+            ).update(refunded_cents=new)
+            if not updated:
+                transaction.set_rollback(True)
+                return RefundResult.ALREADY
+            claims.append((row, row.refunded_cents, new))
+    if method == "card":
+        row, old, new = claims[0]
+        try:
+            connect.refund(
+                connect_id=connect_id,
+                payment_intent=row.stripe_payment_intent,
+                idempotency_key=_partial_key(kind, obj.pk, row.stripe_payment_intent, new),
+                amount_cents=new - old,
+            )
+        except Exception as exc:  # noqa: BLE001 — сбой Stripe: захват назад, владельцу письмо
+            already = (
+                isinstance(exc, stripe.error.InvalidRequestError)
+                and getattr(exc, "code", "") == "charge_already_refunded"
+            )
+            if not already:
+                DealPayment.objects.filter(pk=row.pk, refunded_cents=new).update(refunded_cents=old)
+                folio.forget(obj)
+                logger.warning("partial refund failed: %s %s", kind, obj.pk)
+                _notify_owner_failed(kind, obj, tenant)
+                return RefundResult.FAILED
+    _mark_refunded_if_complete(kind, obj)
+    folio.forget(obj)
+    from apps.core.audit import audit_event
+
+    audit_event(
+        action="deal.partial_refund",
+        resource_type=kind,
+        resource_id=str(obj.pk),
+        actor=user,
+        changes={"cents": cents, "method": method, "reason": reason},
+    )
+    return RefundResult.REFUNDED
+
+
+def _mark_refunded_if_complete(kind: str, obj) -> None:
+    """Вернули всё полученное — грубое состояние «возвращено» (условным UPDATE)."""
+    from django.db.models import Sum
+
+    from apps.core.models import DealPayment
+
+    sums = DealPayment.objects.filter(deal_kind=kind, deal_id=obj.pk).aggregate(
+        amount=Sum("amount_cents"), refunded=Sum("refunded_cents")
+    )
+    model = type(obj)
+    if sums["amount"] and sums["refunded"] == sums["amount"] and hasattr(model, "PAYMENT_REFUNDED"):
+        model.objects.filter(pk=obj.pk).exclude(payment_state=model.PAYMENT_REFUNDED).update(
+            payment_state=model.PAYMENT_REFUNDED
+        )
+    obj.refresh_from_db(fields=["payment_state"])
 
 
 def _idempotency_key(kind: str, pk, intent: str) -> str:

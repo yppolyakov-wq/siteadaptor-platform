@@ -28915,3 +28915,30 @@ msgstr "вот ссылка для онлайн-оплаты остатка по
 
 msgid "Restbetrag für %(code)s online bezahlen"
 msgstr "Оплатите остаток по %(code)s онлайн"
+
+msgid "Teilbetrag erstatten"
+msgstr "Вернуть часть суммы"
+
+msgid "Höchstens %(eur)s €"
+msgstr "Не более %(eur)s €"
+
+msgid "Wie erstatten?"
+msgstr "Как вернуть?"
+
+msgid "Auf die Karte (Stripe)"
+msgstr "На карту (Stripe)"
+
+msgid "Bar oder per Überweisung (nur vermerken)"
+msgstr "Наличными или переводом (только отметить)"
+
+msgid "Betrag wirklich erstatten?"
+msgstr "Точно вернуть эту сумму?"
+
+msgid "%(amount)s € erstattet."
+msgstr "Возвращено %(amount)s €."
+
+msgid "Dieser Betrag kann nicht erstattet werden (höher als bezahlt?)."
+msgstr "Эту сумму вернуть нельзя (больше, чем оплачено?)."
+
+msgid "Die Erstattung wurde bereits ausgeführt."
+msgstr "Возврат уже выполнен."

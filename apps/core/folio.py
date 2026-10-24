@@ -98,6 +98,19 @@ def _create_opening(kind: str, locked, *, new_intent: str) -> None:
     )
 
 
+def ensure_opening(kind: str, obj) -> None:
+    """Легаси-сделке без строк — строка «Eröffnung» (под блокировкой сделки).
+    Нужна перед частичным возвратом: возвращать можно только то, что есть в книге."""
+    from apps.core import transactions
+    from apps.core.models import DealPayment
+
+    with transaction.atomic():
+        locked = transactions.model_for(kind).objects.select_for_update().get(pk=obj.pk)
+        if not DealPayment.objects.filter(deal_kind=kind, deal_id=locked.pk).exists():
+            _create_opening(kind, locked, new_intent="")
+    forget(obj)
+
+
 def card_refunded_cents(kind: str, obj) -> int:
     """Сколько уже вернула карта (строки Stripe в фолио); 0 у легаси-сделки."""
     return sum(

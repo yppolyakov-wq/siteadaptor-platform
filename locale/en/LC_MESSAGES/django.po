@@ -28650,3 +28650,30 @@ msgstr "here is the link to pay the remaining amount for %(code)s online."
 
 msgid "Restbetrag für %(code)s online bezahlen"
 msgstr "Pay the remaining amount for %(code)s online"
+
+msgid "Teilbetrag erstatten"
+msgstr "Refund part of the amount"
+
+msgid "Höchstens %(eur)s €"
+msgstr "At most %(eur)s €"
+
+msgid "Wie erstatten?"
+msgstr "How to refund?"
+
+msgid "Auf die Karte (Stripe)"
+msgstr "To the card (Stripe)"
+
+msgid "Bar oder per Überweisung (nur vermerken)"
+msgstr "In cash or by bank transfer (record only)"
+
+msgid "Betrag wirklich erstatten?"
+msgstr "Really refund this amount?"
+
+msgid "%(amount)s € erstattet."
+msgstr "%(amount)s € refunded."
+
+msgid "Dieser Betrag kann nicht erstattet werden (höher als bezahlt?)."
+msgstr "This amount cannot be refunded (more than was paid?)."
+
+msgid "Die Erstattung wurde bereits ausgeführt."
+msgstr "The refund has already been made."

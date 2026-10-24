@@ -106,6 +106,7 @@
           <h2 class="font-semibold mb-3">💳 {{ deal_titles.payment }}</h2>
           {% block deal_payment %}{% endblock %}
           {% include "core/_deal_rest_link.html" %}
+          {% include "core/_deal_refund.html" %}
         </section>
       {% endif %}
 
