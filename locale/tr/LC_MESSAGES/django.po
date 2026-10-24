@@ -29231,3 +29231,13 @@ msgstr "Oda %(n)s"
 
 msgid "Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."
 msgstr "Birden fazla oda — lütfen odaları rezervasyonda atayın."
+
+msgid "(nichts angehakt = alle)"
+msgstr "(hiçbiri işaretli değil = herkes)"
+
+msgid "Wer bietet die Leistung an?"
+msgstr "Bu hizmeti kim sunuyor?"
+
+#, python-format
+msgid "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."
+msgstr "Not: ayarlara göre %(res)s “%(svc)s” hizmetini sunmuyor."

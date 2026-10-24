@@ -29179,3 +29179,13 @@ msgstr "Zimmer %(n)s"
 
 msgid "Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."
 msgstr "Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."
+
+msgid "(nichts angehakt = alle)"
+msgstr "(nichts angehakt = alle)"
+
+msgid "Wer bietet die Leistung an?"
+msgstr "Wer bietet die Leistung an?"
+
+#, python-format
+msgid "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."
+msgstr "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."

@@ -396,6 +396,14 @@ def booking_create(request):
             _("Mehr Personen als Plätze (%(cap)s).") % {"cap": resource.capacity},
         )
         return redirect("booking:calendar")
+    # KA-12 E4.2a: ручная запись к мастеру без этого навыка — разрешена (стойка знает
+    # лучше), но с подсказкой; витрина такой выбор не предлагает вовсе.
+    if service is not None and not availability.has_skill(service, resource):
+        messages.warning(
+            request,
+            _("Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an.")
+            % {"res": resource.name, "svc": service.name},
+        )
     try:
         booking = services.book(
             resource,
@@ -911,6 +919,11 @@ def services_view(request, pk=None):
                     "per_person" if request.POST.get("pricing_mode") == "per_person" else ""
                 )
                 fields.append("pricing_mode")
+            # KA-12 E4.2a: навыки (какие мастера оказывают услугу) — по сентинелу,
+            # иначе компактная строка без чекбоксов стёрла бы связи (W0).
+            if request.POST.get("resources_present"):
+                picked = [p for p in request.POST.getlist("resources") if p]
+                service.resources.set(Resource.objects.filter(pk__in=picked))
             fields += apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
             fields += _apply_rich(service, getattr(request, "tenant", None))
             # A3: новое фото заменяет старое; чекбокс «удалить» очищает.
@@ -961,7 +974,9 @@ def services_view(request, pk=None):
         services = [service_page]
     else:
         service_page = None
-        services = list(Service.objects.order_by("-is_active", "name"))
+        services = list(
+            Service.objects.prefetch_related("resources").order_by("-is_active", "name")
+        )
     locales = extra_locales(getattr(request, "tenant", None))
     for svc in services:  # L3d: данные per-locale инпутов готовим в Python
         svc.i18n_inputs = i18n_inputs_for(svc, getattr(request, "tenant", None))
@@ -994,6 +1009,8 @@ def services_view(request, pk=None):
             # X6-1: «＋ Neu» из «Sortiment» раскрывает форму создания.
             "open_new": request.GET.get("neu") == "1",
             "services": services,
+            # KA-12 E4.2a: чекбоксы «wer bietet die Leistung an» (навыки).
+            "skill_resources": list(Resource.objects.filter(is_active=True).order_by("name")),
             # Фидбэк 2026-07-30 («на сайте пишет: нет доступных»): без рабочих часов
             # слоты не генерируются вообще. Показываем причину ЗДЕСЬ, где владелец
             # правит услугу, — иначе он ищет «календарь услуги», которого нет.

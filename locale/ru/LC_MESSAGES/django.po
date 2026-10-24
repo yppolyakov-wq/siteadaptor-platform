@@ -29356,3 +29356,13 @@ msgstr "Номер %(n)s"
 
 msgid "Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."
 msgstr "Несколько номеров — назначьте номера в карточке брони."
+
+msgid "(nichts angehakt = alle)"
+msgstr "(ничего не отмечено = все)"
+
+msgid "Wer bietet die Leistung an?"
+msgstr "Кто оказывает услугу?"
+
+#, python-format
+msgid "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."
+msgstr "Обратите внимание: по настройкам %(res)s не оказывает «%(svc)s»."

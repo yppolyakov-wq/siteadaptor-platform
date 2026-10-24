@@ -29340,3 +29340,13 @@ msgstr "Номер %(n)s"
 
 msgid "Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."
 msgstr "Кілька номерів — призначте номери в картці бронювання."
+
+msgid "(nichts angehakt = alle)"
+msgstr "(нічого не позначено = усі)"
+
+msgid "Wer bietet die Leistung an?"
+msgstr "Хто надає послугу?"
+
+#, python-format
+msgid "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."
+msgstr "Зверніть увагу: за налаштуваннями %(res)s не надає «%(svc)s»."

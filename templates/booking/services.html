@@ -56,6 +56,14 @@
         <input type="hidden" name="hide_in_city_present" value="1">
         <label class="text-xs text-gray-500"><input type="checkbox" name="hide_in_city" value="1" {% if s.hide_in_city %}checked{% endif %}> {% trans "Nicht im Stadtkatalog zeigen" %}</label>
         {# MX-5: режим цены — за бронь или за человека (групповая экскурсия/класс). #}
+        {% comment %}KA-12 E4.2a: кто оказывает услугу (ничего не отмечено = любой мастер).{% endcomment %}
+        {% if skill_resources|length > 1 %}
+        <input type="hidden" name="resources_present" value="1">
+        <span class="text-xs text-gray-500" data-service-skills>{% trans "Wer bietet die Leistung an?" %}
+          {% for r in skill_resources %}<label class="ml-2 whitespace-nowrap"><input type="checkbox" name="resources" value="{{ r.pk }}" {% if r in s.resources.all %}checked{% endif %}> {{ r.name }}</label>{% endfor %}
+          <span class="ml-1 text-gray-400">{% trans "(nichts angehakt = alle)" %}</span>
+        </span>
+        {% endif %}
         <input type="hidden" name="pricing_mode_present" value="1">
         <label class="text-xs text-gray-500">{% trans "Preis gilt" %}
           <select name="pricing_mode" class="ml-1 rounded border border-gray-300 px-1 py-0.5 text-xs">

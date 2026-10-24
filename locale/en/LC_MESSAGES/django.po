@@ -29087,3 +29087,13 @@ msgstr "Room %(n)s"
 
 msgid "Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."
 msgstr "Several rooms — please assign the rooms in the booking."
+
+msgid "(nichts angehakt = alle)"
+msgstr "(nothing ticked = everyone)"
+
+msgid "Wer bietet die Leistung an?"
+msgstr "Who offers this service?"
+
+#, python-format
+msgid "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."
+msgstr "Note: according to the settings, %(res)s does not offer “%(svc)s”."

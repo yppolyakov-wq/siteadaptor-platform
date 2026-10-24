@@ -9552,7 +9552,15 @@ FRISEUR = DemoKit(
             "Pflegende Wäsche und professionelles Styling.",
             "hair,styling",
         ),
-        ("Färben", 90, "69", "Brillante Farben mit schonenden Produkten.", "hair,color"),
+        (
+            "Färben",
+            90,
+            "69",
+            "Brillante Farben mit schonenden Produkten.",
+            "hair,color",
+            # KA-12 E4.2a: окрашивание — только у Леи (Farbexpertin), Джонас не красит.
+            {"skills": ["Lea"]},
+        ),
         (
             "Strähnen / Highlights",
             120,
@@ -25575,6 +25583,11 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 # whatsapp_number кита).
                 is_video=bool(rich.get("is_video")),
             )
+            # KA-12 E4.2a: навыки — какие мастера оказывают услугу (по имени ресурса).
+            if rich.get("skills"):
+                from apps.booking.models import Resource as _Res
+
+                svc.resources.set(_Res.objects.filter(name__in=rich["skills"]))
             refs["services"].append(str(svc.pk))
     if kit.combos and is_active("catalog"):
         # L3d.3: комбо-наборы с i18n (дыра master-track §7.0 — combo в демо не было).

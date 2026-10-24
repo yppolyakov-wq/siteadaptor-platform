@@ -104,6 +104,10 @@ class Service(I18nMixin, TimestampedModel):
     # DC-8: ставка НДС услуги (DE — обычно 19 %). Снимком уходит в запись.
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
     deposit_cents = models.PositiveIntegerField(default=0)
+    # KA-12 E4.2a: навыки — какие мастера/посты оказывают услугу. Пусто = любой
+    # активный ресурс (как раньше); иначе слоты, назначение и выбор мастера — только
+    # из этого списка.
+    resources = models.ManyToManyField("Resource", blank=True, related_name="services")
     is_active = models.BooleanField(default=True)
     # T-8.11: владелец не хочет эту услугу в каталоге города.
     hide_in_city = models.BooleanField(default=False)

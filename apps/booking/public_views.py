@@ -431,7 +431,8 @@ def service_slots(request, pk):
     day = _parse_day(request.GET.get("tag"))
     today = timezone.localdate()
     # #4: опциональный выбор конкретного мастера/ресурса (если их несколько).
-    resources = list(Resource.objects.filter(is_active=True))
+    # KA-12 E4.2a: только мастера, которые оказывают эту услугу (навыки).
+    resources = availability.service_pool(service)
     chosen = None
     rid = request.GET.get("resource", "")
     if rid:
@@ -653,7 +654,8 @@ def _service_rich_context(request, service, tenant) -> dict:
     одну и ту же услугу, и расхождение содержимого между ними было бы багом по
     построению. Выбор слота сюда НЕ входит — он остаётся частью слот-страницы.
     """
-    resources = list(Resource.objects.filter(is_active=True))
+    # KA-12 E4.2a: «Team» услуги — её мастера (навыки), иначе все.
+    resources = availability.service_pool(service)
     from apps.core import archetypes, detail_sections
     from apps.core.sellable import sellable_for
     from apps.reviews import services as review_services
@@ -893,6 +895,9 @@ def service_book(request, pk):
     # #4: выбранный мастер/ресурс (если был) — бронируем именно его.
     rid = request.POST.get("resource", "")
     chosen = Resource.objects.filter(pk=rid, is_active=True).first() if rid else None
+    # KA-12 E4.2a: подмена формы чужим мастером (не оказывает услугу) — не принимаем.
+    if chosen is not None and not availability.has_skill(service, chosen):
+        raise Http404
     # HF-7: гость мог взять услугу на НЕСКОЛЬКО единиц подряд («с 8:30 до 12:30»)
     # — длина брони и цена умножаются на число единиц, сетка проверяется на весь
     # отрезок. dauer вне капа/мусор → 1 (прежнее поведение).
