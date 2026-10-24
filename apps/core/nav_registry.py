@@ -744,6 +744,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "betriebsferien",
         search="urlaub ferien geschlossen feiertag pause",
         group="geschaeft",
+        owner_only=True,  # решение владельца: закрыть весь бизнес — только владелец
     ),
     # X0: Recht/Abo/Team — owner-only (зеркалит _OWNER_ONLY мидлвари W9-10;
     # сотруднику таб не показывается вместо мёртвого 403).
@@ -1059,7 +1060,7 @@ def direction_active(tenant, direction: str) -> bool:
 UNIVERSAL: dict[str, str] = {
     "settings": "данные бизнеса — у каждого",
     "languages": "языки витрины — у каждого",
-    "betriebsferien": "закрытие бизнеса на отпуск/праздники — у каждого",
+    "betriebsferien": "закрытие бизнеса на отпуск/праздники — у каждого бизнеса (только владелец)",
     "legal-docs": "правовые тексты — у каждого",
     "team": "команда и доступ — у каждого",
     "billing": "подписка — у каждого",
