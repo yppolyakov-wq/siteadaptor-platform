@@ -35,12 +35,13 @@ OPEN_STATES = {
 }
 PAID_STATES = {k: ("paid",) for k in OPEN_STATES}
 REFUNDED_STATES = {k: ("refunded",) for k in OPEN_STATES}
-# Удержание места до оплаты (core.payment_holds): «денег ещё нет». У билета
-# `deposit` тоже держит место (MC-T1: известное расхождение с бронями).
+# Удержание места до оплаты (core.payment_holds): «денег ещё нет». KA-12 E1.10 (MC-T1):
+# билет с оплаченной Anzahlung больше не снимается по сроку — как и брони, остаток
+# у него оплачивается на месте.
 UNPAID_HOLD_STATES = {
     "booking": ("none", "pending"),
     "stay": ("none", "pending"),
-    "ticket": ("none", "pending", "deposit"),
+    "ticket": ("none", "pending"),
 }
 
 

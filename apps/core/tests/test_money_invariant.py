@@ -89,7 +89,7 @@ def _stay(deposit=0, method=""):
     return s
 
 
-def _ticket(deposit=0, method=""):
+def _ticket(deposit=0, method="", manual=False):
     from apps.events.models import Event
     from apps.events.services import book_ticket
 
@@ -102,7 +102,11 @@ def _ticket(deposit=0, method=""):
         capacity=10,
     )
     t = book_ticket(event, name="K", email="k@test.de", quantity=2)
-    if method:
+    if manual:  # KA-12 E1.7: ручной билет из кабинета — «оплата на месте», денег нет
+        t.payment_method = "on_site"
+        t.payment_state = t.PAYMENT_NONE
+        t.save(update_fields=["payment_method", "payment_state"])
+    elif method:
         t.payment_method = method
         t.payment_state = t.PAYMENT_PENDING  # ждём перевод
         t.save(update_fields=["payment_method", "payment_state"])
@@ -450,6 +454,19 @@ S = [
         "ticket",
         {"deposit": 1000},
         [(pay_online, "done"), (go("cancelled"), "cancel")],
+    ),
+    # KA-12 E1.7: ручной билет с ценой без оплаты — не выручка до входа.
+    (
+        "ticket-manual-on-site",
+        "ticket",
+        {"manual": True},
+        [(go("confirmed"), "open"), (go("attended"), "done")],
+    ),
+    (
+        "ticket-manual-on-site-cancel",
+        "ticket",
+        {"manual": True},
+        [(go("confirmed"), "open"), (go("cancelled"), "cancel")],
     ),
     (
         "ticket-voucher-vorkasse",

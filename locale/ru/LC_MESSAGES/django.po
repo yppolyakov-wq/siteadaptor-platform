@@ -28864,3 +28864,6 @@ msgstr "При отмене %(code)s оплата картой возвраще�
 
 msgid "Den Restbetrag von %(amount)s € (bar oder per Überweisung bezahlt) erstatten Sie bitte selbst."
 msgstr "Остаток %(amount)s € (оплачен наличными или переводом) верните, пожалуйста, сами."
+
+msgid "Ihre Entscheidung wurde bereits gespeichert."
+msgstr "Ваше решение уже сохранено."

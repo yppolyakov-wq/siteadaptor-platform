@@ -439,7 +439,9 @@ def _save_lines(request, job):
     # A7c: Anzahlung (€ → cents). Фидбэк 2026-08-28: поле переехало в карточку
     # «Zahlung» и приходит СВОЕЙ формой, поэтому здесь обязателен presence-guard —
     # без него каждое сохранение сметы обнуляло бы депозит (класс дефекта W0).
-    if "deposit_eur" in request.POST:
+    # KA-12 E1.9: оплаченную Anzahlung меняет только сам владелец формой «Zahlung»
+    # с явным отказом — сохранение состава её не трогает.
+    if "deposit_eur" in request.POST and job.payment_state != "paid":
         job.deposit_cents = _parse_deposit_cents(request.POST.get("deposit_eur"))
     job.save(
         update_fields=[

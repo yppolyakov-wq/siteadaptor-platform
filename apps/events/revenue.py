@@ -33,9 +33,22 @@ def recorded_entry(ticket):
     return RevenueEntry.objects.filter(source="event", source_ref=str(ticket.id)).first()
 
 
+def paid_on_site_later(ticket) -> bool:
+    """KA-12 E1.7: билет «оплата на месте», денег ещё нет (ручной билет из кабинета).
+    Это не выручка при подтверждении — она появится на входе (attended), когда
+    `settle_on_delivery` отметит оплату. Vorkasse/счёт — настоящая дебиторка, их не трогаем."""
+    from apps.core.money_contract import _CASH_METHODS
+
+    state = getattr(ticket, "payment_state", "") or ""
+    method = getattr(ticket, "payment_method", "") or ""
+    return state in ("none", "unpaid", "") and method in _CASH_METHODS
+
+
 def record_revenue(ticket, tenant=None) -> None:
     from apps.finance.services import record_revenue as record
 
+    if paid_on_site_later(ticket):
+        return
     amount, rate = revenue_for(ticket, tenant)
     record(
         source="event",

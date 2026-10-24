@@ -157,3 +157,53 @@ def test_accepting_quote_with_value_voucher_records_payment(settings):
     public_views.angebot(req, token=job.public_token)
     job.refresh_from_db()
     assert job.discount_cents > 0 and job.voucher_paid_cents == job.discount_cents
+
+
+def test_two_concurrent_accepts_spend_the_certificate_once(monkeypatch):
+    """KA-12 E1.9: второй «Annehmen» прочитал заявку ещё «quoted» (гонка) — под
+    блокировкой строки он видит «accepted» и сертификат второй раз не списывает."""
+    from apps.jobs import public_views
+    from apps.jobs.models import Job
+    from apps.loyalty.models import Voucher
+
+    voucher = Voucher.objects.create(
+        code="WERT77", label="Gutschein", balance_cents=50000, max_uses=0
+    )
+    job = services.create_job(title="Feier", name="Kunde")
+    services.set_lines(job, MIXED)
+    JobSM().apply(job, "quoted")
+    stale = Job.objects.get(pk=job.pk)  # снимок «quoted» до первого принятия
+
+    def _post():
+        req = RequestFactory().post("/x/", {"action": "accept", "voucher_code": "wert77"})
+        SessionMiddleware(lambda r: None).process_request(req)
+        MessageMiddleware(lambda r: None).process_request(req)
+        req.tenant = TenantFactory.build()
+        public_views.angebot(req, token=job.public_token)
+
+    _post()
+    voucher.refresh_from_db()
+    after_first = voucher.balance_cents
+    monkeypatch.setattr(public_views, "get_object_or_404", lambda *a, **k: stale)
+    _post()
+    voucher.refresh_from_db()
+    assert voucher.balance_cents == after_first < 50000
+
+
+def test_saving_lines_keeps_paid_deposit():
+    """KA-12 E1.9: оплаченная Anzahlung не меняется сохранением состава сметы."""
+    job = services.create_job(title="Feier", name="Kunde")
+    services.set_lines(job, MIXED)
+    job.deposit_cents = 5000
+    job.payment_state = "paid"
+    job.save(update_fields=["deposit_cents", "payment_state"])
+    data = {
+        "action": "save_lines",
+        "line_text_1": "Buffet",
+        "line_qty_1": "1",
+        "line_price_1": "100",
+        "deposit_eur": "10",
+    }
+    views.job_detail(_req(data=data), pk=job.pk)
+    job.refresh_from_db()
+    assert job.deposit_cents == 5000

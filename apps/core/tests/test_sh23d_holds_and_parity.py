@@ -92,6 +92,29 @@ def test_paid_deal_survives_even_with_a_past_due_date():
     assert booking.status != "cancelled"
 
 
+def test_ticket_with_paid_deposit_is_not_released():
+    """KA-12 E1.10 (MC-T1): оплаченная Anzahlung — деньги пришли; срок удержания
+    больше не снимает билет (как брони: остаток оплачивается на месте)."""
+    from apps.events.models import Event, Ticket
+    from apps.events.services import book_ticket
+
+    tenant = _tenant(schema_name="sh23t", slug="sh23t")
+    event = Event.objects.create(
+        title="Kurs",
+        starts_at=timezone.now() + timedelta(days=9),
+        status=Event.STATUS_PUBLISHED,
+        price_cents=4000,
+        capacity=5,
+    )
+    ticket = book_ticket(event, name="K", email="k@t.de")
+    Ticket.objects.filter(pk=ticket.pk).update(
+        payment_state="deposit", payment_due_at=timezone.now() - timedelta(hours=2)
+    )
+    assert payment_holds.expire_overdue(tenant) == 0
+    ticket.refresh_from_db()
+    assert ticket.status != "cancelled"
+
+
 # ─────────────────────────── экран «Zahlungen» ───────────────────────────
 
 

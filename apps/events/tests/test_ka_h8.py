@@ -44,8 +44,14 @@ def _event(**kw):
     return Event.objects.create(**defaults)
 
 
-def _ticket(event, **kw):
-    return book_ticket(event, name="Gast", email=f"{uuid.uuid4().hex[:6]}@t.de", **kw)
+def _ticket(event, online=False, **kw):
+    ticket = book_ticket(event, name="Gast", email=f"{uuid.uuid4().hex[:6]}@t.de", **kw)
+    if online:
+        # KA-12 E1.7: выручка при подтверждении — у оплаченного онлайн билета; билет
+        # «оплата на месте» без денег проводится на входе (attended).
+        Ticket.objects.filter(pk=ticket.pk).update(payment_state=Ticket.PAYMENT_PAID)
+        ticket.refresh_from_db()
+    return ticket
 
 
 def _req(data=None, method="post"):
@@ -67,7 +73,7 @@ def _entry(ticket, suffix=""):
 
 
 def test_revenue_uses_payable_after_voucher():
-    ticket = _ticket(_event())
+    ticket = _ticket(_event(), online=True)
     Ticket.objects.filter(pk=ticket.pk).update(discount_cents=3000)
     ticket.refresh_from_db()
     TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
@@ -75,7 +81,7 @@ def test_revenue_uses_payable_after_voucher():
 
 
 def test_revenue_uses_ticket_vat_snapshot():
-    ticket = _ticket(_event())
+    ticket = _ticket(_event(), online=True)
     Ticket.objects.filter(pk=ticket.pk).update(vat_rate=Decimal("7.00"))
     ticket.refresh_from_db()
     TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
@@ -83,7 +89,7 @@ def test_revenue_uses_ticket_vat_snapshot():
 
 
 def test_revenue_small_business_zero_rate():
-    ticket = _ticket(_event())
+    ticket = _ticket(_event(), online=True)
     with mock.patch(
         "apps.booking.revenue._tenant", return_value=SimpleNamespace(small_business=True)
     ):
@@ -95,7 +101,7 @@ def test_revenue_small_business_zero_rate():
 
 
 def test_cancel_confirmed_ticket_reverses_revenue_with_rate():
-    ticket = _ticket(_event())
+    ticket = _ticket(_event(), online=True)
     Ticket.objects.filter(pk=ticket.pk).update(vat_rate=Decimal("7.00"))
     ticket.refresh_from_db()
     ticket = TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
@@ -113,7 +119,7 @@ def test_cancel_pending_writes_no_reversal():
 def test_reversal_once_builtin_and_custom_path():
     from apps.core import status_effects
 
-    ticket = _ticket(_event())
+    ticket = _ticket(_event(), online=True)
     ticket = TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
     ticket = TicketSM().apply(ticket, Ticket.STATUS_CANCELLED)
     status_effects.record_reversal_for("ticket", ticket)
@@ -327,7 +333,7 @@ def test_paid_guest_cancel_keeps_retained_revenue():
 
 
 def test_deposit_guest_cancel_reverses_only_rest():
-    ticket = _ticket(_event())
+    ticket = _ticket(_event(), online=True)
     ticket = TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
     TicketSM().apply(ticket, Ticket.STATUS_CANCELLED, retained_cents=3000)
     assert _entry(ticket, ":reversal").amount == Decimal("-70.00")

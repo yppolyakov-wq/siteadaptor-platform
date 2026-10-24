@@ -76,6 +76,9 @@ def test_answers_snapshot_stored():
 def test_confirm_records_revenue_once():
     event = _event(price_cents=5000)
     ticket = book_ticket(event, name="K", email="k@test.de", quantity=2)
+    # KA-12 E1.7: выручка при подтверждении — у оплаченного билета (онлайн).
+    Ticket.objects.filter(pk=ticket.pk).update(payment_state=Ticket.PAYMENT_PAID)
+    ticket.refresh_from_db()
     TicketSM().apply(ticket, Ticket.STATUS_CONFIRMED)
     entry = RevenueEntry.objects.get(source="event", source_ref=str(ticket.id))
     assert entry.amount == Decimal("100.00")  # 2 × 50.00
@@ -86,6 +89,9 @@ def test_auto_confirm_books_and_records():
     event = _event(price_cents=3000)
     ticket = book_ticket(event, name="K", email="k@test.de", quantity=1, auto_confirm=True)
     assert ticket.status == Ticket.STATUS_CONFIRMED
+    # KA-12 E1.7: «оплата на месте» — выручка на входе, а не при подтверждении.
+    assert not RevenueEntry.objects.filter(source="event", source_ref=str(ticket.id)).exists()
+    TicketSM().apply(ticket, Ticket.STATUS_ATTENDED)
     assert RevenueEntry.objects.filter(source="event", source_ref=str(ticket.id)).count() == 1
 
 
