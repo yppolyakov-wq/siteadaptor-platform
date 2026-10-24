@@ -6044,53 +6044,49 @@ def payments_page(request):
             # видов сделок, а не только у заказов).
             "payment_methods": _pm.METHOD_CHOICES,
             "finance_active": tenant.is_module_active("finance"),
+            # KA-12 E8.6: бывший экран «Integrationen» — секция «Verbindungen» здесь.
+            "integration_cards": _integration_cards(tenant),
+            "own_bot": _own_bot_safe(tenant),
+            "can_activate": _is_owner_safe(request.user),
         },
     )
+
+
+def _integration_cards(tenant):
+    from apps.core import integration_status as st
+
+    try:
+        return st.cards(tenant)
+    except Exception:  # noqa: BLE001 — секция подключений не валит страницу уведомлений
+        return []
+
+
+def _own_bot_safe(tenant):
+    from apps.core import integration_status as st
+
+    return st.own_bot(tenant)  # сам fail-safe
+
+
+def _is_owner_safe(user):
+    from apps.core.roles import is_owner
+
+    try:
+        return is_owner(user)
+    except Exception:  # noqa: BLE001 — кнопку не показываем, страница цела
+        return False
 
 
 @login_required
 def marketing_home(request):
-    """ST-6a: Marketing-центр — лендинг с карточками в ROI-порядке ТЗ, read-only
-    обзором авто-напоминаний и панелью результатов (готовые источники, только
-    чтение). Новая страница (ничего не заменяет)
-    (прецедент integrations_home)."""
-    from apps.core import marketing_home as mh
-    from apps.core.roles import is_owner
+    """KA-12 E8.6 (решение владельца KA-4): лендинг Marketing-центра убран — раздел
+    ведёт на свой первый активный экран (Nachrichten → Aktionen → Bewertungen → Kunden).
+    Сводка авто-касаний и результатов (apps/core/marketing_home.py) осталась на главной."""
+    from apps.core import nav_registry, sales_page
 
-    tenant = request.tenant
-
-    def _unread():
-        # X0: непрочитанные треды — первой карточкой (бейдж якоря ведёт сюда).
-        if not tenant.is_module_active("inbox"):
-            return 0
-        from apps.inbox.models import Conversation
-
-        return Conversation.objects.filter(unread_for_staff=True).count()
-
-    try:
-        inbox_unread = _unread()
-    except Exception:  # noqa: BLE001 — карточка сообщений не валит лендинг (_safe-паттерн)
-        inbox_unread = 0
-    return render(
-        request,
-        "tenant/marketing_home.html",
-        {
-            "nav": "promotions",
-            "cards": mh.cards(tenant),
-            "reminders": mh.reminder_overview(tenant),
-            "metrics": mh.results_panel(tenant, owner=is_owner(request.user)),
-            "inbox_unread": inbox_unread,
-        },
+    anchor = next(a for a in nav_registry.ANCHORS if a.nav_key == "promotions")
+    return sales_page.legacy_redirect(
+        request, _url_name=nav_registry.anchor_target(anchor, request.tenant)
     )
-
-
-def _google_rating_status(tenant):
-    """GK-11: ok = кэш есть; warn = ID задан, но ещё не обновлялось; muted = выкл."""
-    if not tenant.google_place_id:
-        return (_("Nicht verbunden"), "muted")
-    if tenant.google_rating is None:
-        return (_("Wartet auf erste Aktualisierung"), "warn")
-    return (f"★ {tenant.google_rating} · {tenant.google_rating_count}", "ok")
 
 
 @login_required
@@ -6118,87 +6114,12 @@ def palette_search(request):
 
 @login_required
 def integrations_home(request):
-    """ST-4a → W9-9 (Р-3): «Integrationen» — вкладка Einstellungen-хаба с
-    read-only статусами подключений на карточках (fail-safe: сломанный блок
-    не валит экран — паттерн _safe ST-4a). Сами подключения настраиваются
-    на целевых экранах; здесь только вход + честное состояние."""
-    from apps.core import integration_status as st
-    from apps.core.roles import is_owner
+    """KA-12 E8.6 (решение владельца KA-4): отдельный экран «Integrationen» убран —
+    карточки подключений живут секцией «Verbindungen» на «Kanäle & Benachrichtigungen».
+    Адрес остаётся 302 с переносом GET (закладки, письма, ссылки бота)."""
+    from apps.core import sales_page
 
-    _safe = st.safe
-    tenant = request.tenant
-
-    def _is_owner_safe(user):
-        try:
-            return is_owner(user)
-        except Exception:  # noqa: BLE001 — кнопку не показываем, страница цела
-            return False
-
-    own_bot = st.own_bot(tenant)
-
-    cards = [
-        {
-            "icon": "💳",
-            "label": _("Zahlung & Stripe"),
-            "hint": _("Online-Zahlung, Vorkasse, Zahlarten"),
-            "url_name": "payment-settings",
-            "show": True,
-            "status": _safe(lambda: st.stripe(tenant)),
-        },
-        {
-            "icon": "📨",
-            "label": _("Benachrichtigungen & Telegram"),
-            "hint": _("E-Mail/Telegram-Kanäle, Telegram verbinden"),
-            "url_name": "notifications-settings",
-            "show": True,
-            "status": _safe(lambda: st.telegram(tenant)),
-        },
-        {
-            "icon": "🌐",
-            "label": _("Eigene Domain"),
-            "hint": _("Custom-Domain verbinden"),
-            "url_name": "domains",
-            "show": True,
-            "status": _safe(lambda: st.domain(tenant)),
-        },
-        {
-            "icon": "📣",
-            "label": _("Publishing (Google/Facebook/Instagram)"),
-            "hint": _("Kanäle verbinden und Beiträge planen"),
-            "url_name": "channels",
-            "show": tenant.is_module_active("publishing"),
-            "status": _safe(st.publishing),
-        },
-        {
-            # GK-11: Google-рейтинг (Places API) — плашка «★ X,X · N Google-
-            # Bewertungen» на витрине; ключ платформенный (env/секрет-стор).
-            "icon": "⭐",
-            "label": _("Google Bewertungen"),
-            "hint": _("Bewertung und Anzahl von Google auf der Website anzeigen"),
-            "url_name": "google-reviews-settings",
-            "show": True,
-            "status": _safe(lambda: _google_rating_status(tenant)),
-        },
-        {
-            "icon": "🏨",
-            "label": _("Channel Manager (OTA)"),
-            "hint": _("Buchungen aus Portalen importieren"),
-            "url_name": "stays:channels",
-            "show": tenant.is_module_active("stays"),
-            "status": _safe(st.ota),
-        },
-    ]
-    return render(
-        request,
-        "tenant/integrations_home.html",
-        # nav-ключ прежний — подсветку на якорь «Einstellungen» ведёт реестр W8.
-        {
-            "nav": "integrations",
-            "cards": [c for c in cards if c["show"]],
-            "own_bot": own_bot,
-            "can_activate": _is_owner_safe(request.user),
-        },
-    )
+    return sales_page.legacy_redirect(request, _url_name="notifications-settings")
 
 
 @login_required

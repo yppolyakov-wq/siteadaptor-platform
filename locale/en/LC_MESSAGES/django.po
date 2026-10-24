@@ -28569,3 +28569,9 @@ msgstr "Numbers & finances"
 
 msgid "Überblick"
 msgstr "Overview"
+
+msgid "Marketing & Kunden"
+msgstr "Marketing & customers"
+
+msgid "Reichweite"
+msgstr "Reach"

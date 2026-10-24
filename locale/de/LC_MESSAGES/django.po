@@ -28661,3 +28661,9 @@ msgstr "Zahlen & Finanzen"
 
 msgid "Überblick"
 msgstr "Überblick"
+
+msgid "Marketing & Kunden"
+msgstr "Marketing & Kunden"
+
+msgid "Reichweite"
+msgstr "Reichweite"

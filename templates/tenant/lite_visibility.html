@@ -71,8 +71,8 @@
     </div>
     {% endif %}
   </section>
-  {% if 'integrations-home'|lite_allowed:request %}
-  <a href="{% url 'integrations-home' %}" class="block text-center text-sm font-medium text-indigo-600 py-2" data-all-connections>{% trans "Alle Verbindungen" %} →</a>
+  {% if 'domains'|lite_allowed:request %}
+  <a href="{% url 'notifications-settings' %}#verbindungen" class="block text-center text-sm font-medium text-indigo-600 py-2" data-all-connections>{% trans "Alle Verbindungen" %} →</a>
   {% endif %}
 </div>
 {% endblock %}

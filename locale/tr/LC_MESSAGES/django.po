@@ -28713,3 +28713,9 @@ msgstr "Rakamlar ve finans"
 
 msgid "Überblick"
 msgstr "Genel bakış"
+
+msgid "Marketing & Kunden"
+msgstr "Pazarlama ve müşteriler"
+
+msgid "Reichweite"
+msgstr "Erişim"

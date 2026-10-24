@@ -94,3 +94,60 @@ def own_bot(tenant) -> dict:
         return state
     except Exception:  # noqa: BLE001 — статус блока не валит страницу
         return {"active": False, "username": ""}
+
+
+def google_rating(tenant):
+    """GK-11: ok = кэш есть; warn = ID задан, но ещё не обновлялось; muted = выкл."""
+    if not tenant.google_place_id:
+        return (_("Nicht verbunden"), "muted")
+    if tenant.google_rating is None:
+        return (_("Wartet auf erste Aktualisierung"), "warn")
+    return (f"★ {tenant.google_rating} · {tenant.google_rating_count}", "ok")
+
+
+def cards(tenant) -> list[dict]:
+    """KA-12 E8.6: карточки подключений (бывший экран «Integrationen») для секции
+    «Verbindungen» на «Kanäle & Benachrichtigungen». Статус каждой — fail-safe."""
+    rows = [
+        {
+            "icon": "💳",
+            "label": _("Zahlung & Stripe"),
+            "hint": _("Online-Zahlung, Vorkasse, Zahlarten"),
+            "url_name": "payment-settings",
+            "show": True,
+            "status": safe(lambda: stripe(tenant)),
+        },
+        {
+            "icon": "🌐",
+            "label": _("Eigene Domain"),
+            "hint": _("Custom-Domain verbinden"),
+            "url_name": "domains",
+            "show": True,
+            "status": safe(lambda: domain(tenant)),
+        },
+        {
+            "icon": "📣",
+            "label": _("Publishing (Google/Facebook/Instagram)"),
+            "hint": _("Kanäle verbinden und Beiträge planen"),
+            "url_name": "channels",
+            "show": tenant.is_module_active("publishing"),
+            "status": safe(publishing),
+        },
+        {
+            "icon": "⭐",
+            "label": _("Google Bewertungen"),
+            "hint": _("Bewertung und Anzahl von Google auf der Website anzeigen"),
+            "url_name": "google-reviews-settings",
+            "show": True,
+            "status": safe(lambda: google_rating(tenant)),
+        },
+        {
+            "icon": "🏨",
+            "label": _("Channel Manager (OTA)"),
+            "hint": _("Buchungen aus Portalen importieren"),
+            "url_name": "stays:channels",
+            "show": tenant.is_module_active("stays"),
+            "status": safe(ota),
+        },
+    ]
+    return [c for c in rows if c["show"]]

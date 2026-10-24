@@ -17,7 +17,7 @@
     <p class="text-xs text-gray-400 mb-2">🤖 {% trans "Aktiver Bot:" %} @{{ bot.bot_username }} · <a href="{% url 'telegram-settings' %}" class="underline">{% trans "Bot verwalten" %}</a></p>
   {% else %}
     {# T-8.29: без бота ссылка на «Bot verwalten» не появлялась — круг замыкался #}
-    <p class="text-xs text-gray-400 mb-2">🤖 <a href="{% if 'integrations-home'|pkg_allowed:request.tenant %}{% url 'integrations-home' %}{% else %}{% url 'lite-visibility' %}{% endif %}" class="underline">{% trans "Eigenen Telegram-Bot einrichten" %}</a></p>
+    <p class="text-xs text-gray-400 mb-2">🤖 <a href="{% if 'domains'|pkg_allowed:request.tenant %}#verbindungen{% else %}{% url 'lite-visibility' %}{% endif %}" class="underline">{% trans "Eigenen Telegram-Bot einrichten" %}</a></p>
   {% endif %}
   {% if not owner_email %}
     <p class="mb-2 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">⚠️ {% trans "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden." %} {% if 'settings'|pkg_allowed:request.tenant %}<a href="{% url 'settings' %}" class="underline">{% trans "In den Einstellungen ergänzen" %}</a>{% elif request.user|cab_is_owner %}<a href="{% url 'lite-business' %}" class="underline">{% trans "In den Einstellungen ergänzen" %}</a>{% else %}{% trans "Das kann der Inhaber im Bereich „Geschäft“." %}{% endif %}</p>
@@ -124,4 +124,27 @@
     });
   });
 </script>
+{% comment %}KA-12 E8.6: бывший экран «Integrationen» — подключения со статусами здесь,
+рядом с каналами (решение владельца KA-4). Лёгкому пакету — «Sichtbar».{% endcomment %}
+{% if 'domains'|pkg_allowed:request.tenant %}
+<section id="verbindungen" class="mt-8" data-connections>
+  <h2 class="text-lg font-semibold mb-1">🔌 {% trans "Verbindungen" %}</h2>
+  <p class="text-sm text-gray-500 mb-3">{% trans "Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort." %}</p>
+  <div class="grid sm:grid-cols-2 gap-3 max-w-2xl">
+    {% for c in integration_cards %}
+    <a href="{% url c.url_name %}" class="bg-white rounded-2xl shadow-sm p-4 hover:ring-1 hover:ring-indigo-300 flex items-start gap-3">
+      <span class="text-2xl leading-none">{{ c.icon }}</span>
+      <span>
+        <span class="block text-sm font-medium text-gray-800">{{ c.label }}</span>
+        <span class="block text-xs text-gray-400 mt-0.5">{{ c.hint }}</span>
+        {% if c.status.0 %}
+        <span class="block text-xs mt-1 {% if c.status.1 == 'ok' %}text-green-700{% elif c.status.1 == 'warn' %}text-amber-700{% else %}text-gray-400{% endif %}">{% if c.status.1 == 'ok' %}✅{% elif c.status.1 == 'warn' %}⚠️{% else %}○{% endif %} {{ c.status.0 }}</span>
+        {% endif %}
+      </span>
+    </a>
+    {% endfor %}
+    {% include "tenant/_own_bot_card.html" %}
+  </div>
+</section>
+{% endif %}
 {% endblock %}

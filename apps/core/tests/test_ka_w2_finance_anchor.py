@@ -148,3 +148,59 @@ def test_staff_never_gets_owner_only_finance_link():
     assert "finance:bank" not in urls
     for name in urls:
         assert roles.required_role_for_path(reverse(name)) != roles.ROLE_OWNER_ONLY, name
+
+
+# --- 3b: Marketing & Kunden, лендинги → 302 ------------------------------------
+
+
+def _owner_open(path, tenant, data=None):
+    from apps.core.models import Membership
+    from apps.core.tests.test_staff_walk import _open, _user
+
+    return _open(path, tenant, _user(Membership.ROLE_OWNER), data=data)
+
+
+def test_marketing_home_redirects_to_first_active_screen_with_get():
+    tenant = _tenant("bakery")
+    resp = _owner_open("/dashboard/marketing/", tenant, data={"q": "x"})
+    assert resp.status_code == 302
+    anchor = next(a for a in nav_registry.ANCHORS if a.nav_key == "promotions")
+    from django.urls import reverse
+
+    assert resp["Location"] == reverse(nav_registry.anchor_target(anchor, tenant)) + "?q=x"
+
+
+def test_anchor_target_first_active():
+    anchor = next(a for a in nav_registry.ANCHORS if a.nav_key == "promotions")
+    with_inbox = _tenant("bakery")
+    assert nav_registry.anchor_target(anchor, with_inbox) == "inbox:list"
+    no_inbox = _tenant("bakery")
+    no_inbox.disabled_modules = list(no_inbox.disabled_modules) + ["inbox"]
+    assert nav_registry.anchor_target(anchor, no_inbox) == "promotions:promotion-list"
+
+
+def test_integrations_home_redirects_to_channels_page():
+    tenant = _tenant("bakery")
+    resp = _owner_open("/dashboard/integrationen/", tenant, data={"a": "1"})
+    assert resp.status_code == 302
+    from django.urls import reverse
+
+    assert resp["Location"] == reverse("notifications-settings") + "?a=1"
+
+
+def test_connection_cards_live_on_channels_page():
+    tenant = _tenant("hotel")
+    body = _owner_open("/dashboard/settings/notifications/", tenant).content.decode()
+    assert "data-connections" in body and 'id="verbindungen"' in body
+    assert "/dashboard/domains/" in body  # карточка «Eigene Domain»
+
+
+def test_marketing_submenu_grouped_with_inbox_first():
+    tenant = _tenant("bakery")
+    mk = _items(tenant)["promotions"]
+    assert mk["url_name"] == "inbox:list"
+    first = mk["children"][0]
+    assert first["url_name"] == "inbox:list" and first.get("badge") == "inbox"
+    headers = [str(c["header"]) for c in mk["children"] if c.get("header")]
+    assert headers == ["Kunden", "Aktionen", "Reichweite"][: len(headers)]
+    assert "telegram-settings" not in [c["url_name"] for c in mk["children"]]

@@ -113,6 +113,10 @@ EXPECTED_UNLISTED = frozenset(
         # KA-12 E8.1: резервы в полном кабинете — вкладка Verkäufe (палитра ведёт
         # туда); сам список — экран лёгкого кабинета и Mini App.
         "promotions:reservation-list",
+        # [302] KA-12 E8.6: лендинги Marketing и Integrationen — переадресация
+        # на первый активный экран раздела и на «Kanäle & Benachrichtigungen».
+        "marketing-home",
+        "integrations-home",
         "set-cabinet-lang",
         "set-presence",
         # [POST] Г3: «Alles noch aktuell» — приёмник плашки, не экран.

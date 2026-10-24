@@ -117,13 +117,15 @@ ANCHORS: tuple[Anchor, ...] = (
     # сообщениям клиентов и бейдж непрочитанных (исследование 2026-08-18 §3).
     Anchor(
         "marketing-home",
-        _("Marketing"),
+        _("Marketing & Kunden"),
         "promotions",
         "📣",
         "marketing aktionen kunden kampagnen nachrichten bewertungen",
         module_key="promotions",
         badge="inbox",
         hubs=("marketing",),
+        # KA-12 E8.6: лендинг убран (302) — раздел ведёт на первый активный экран.
+        targets=("inbox:list", "promotions:promotion-list", "reviews:list", "crm:customer-list"),
     ),
     # W9-9 (Р-3): «Integrationen» ушёл из якорей сайдбара — вкладка Einstellungen.
     # W11-5: якорь ведёт прямо в Studio — страница-лендинг «Site» умерла (302).
@@ -302,7 +304,25 @@ ENTRIES: tuple[NavEntry, ...] = (
         palette_only=True,
         business_types=TABLE_TYPES,
     ),
-    # Marketing.
+    # Marketing & Kunden (KA-12 E8.4): Kunden · Aktionen · Reichweite.
+    _e(
+        "marketing",
+        "inbox:list",
+        _("Nachrichten"),
+        "inbox",
+        "inbox",
+        search="chat posteingang",
+        group="kunden",
+    ),
+    _e(
+        "marketing",
+        "crm:customer-list",
+        _("Kontakte"),
+        "crm",
+        "crm",
+        search="kunden crm",
+        group="kunden",
+    ),
     _e(
         "marketing",
         "promotions:promotion-list",
@@ -310,6 +330,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "promotions",
         "promotions",
         search="rabatt deals",
+        group="aktionen",
     ),
     # VF-20b (решение владельца 2026-08-25 «поставить рядом, но не объединять»):
     # Кампании — сразу за Акциями (одна группа задач: «предложить и разослать»),
@@ -321,6 +342,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "campaigns",
         "crm",
         search="coupon winback",
+        group="aktionen",
     ),
     # PT-5: «Aktionstypen» — ось типов акции и их вывод (шаблон · раскладка ·
     # сетка/лента · форма карточки). Стоит ПОСЛЕ Кампаний: правило VF-20b
@@ -333,6 +355,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "promotions",
         True,
         search="gruppen rubriken typen mystery vorbestellung",
+        group="aktionen",
     ),
     # T-8.4: ассистент «Schnell-Aktion» — вход из палитры (основной вход — «＋»
     # в списке акций и мобильная плавающая кнопка).
@@ -344,6 +367,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "promotions",
         search="schnell handy foto neu wiederholen",
         palette_only=True,
+        group="aktionen",
     ),
     _e(
         "marketing",
@@ -352,6 +376,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "reviews",
         "reviews",
         search="rezension antworten",
+        group="kunden",
     ),
     # В5 V5-3: «Stadtportal» — учёт результатов каталога города. Модуль None: каталог
     # города есть у всех типов; пустые состояния экрана объясняют, почему цифр нет.
@@ -362,12 +387,18 @@ ENTRIES: tuple[NavEntry, ...] = (
         "portal-stats",
         search="stadtportal besuche klicks statistik portal aufrufe",
         owner_only=True,  # решение владельца: статистику видит только владелец
+        group="reichweite",
     ),
-    _e("marketing", "promotions:voucher-list", _("Gutscheine"), "vouchers", "loyalty"),
+    _e(
+        "marketing",
+        "promotions:voucher-list",
+        _("Gutscheine"),
+        "vouchers",
+        "loyalty",
+        group="aktionen",
+    ),
     # W11-1 (Р-2): Kunden влит в Marketing — Kontakte/Nachrichten прямыми табами
     # («Ruf & Dialog»), Telegram остаётся в Erweitert.
-    _e("marketing", "crm:customer-list", _("Kontakte"), "crm", "crm", search="kunden crm"),
-    _e("marketing", "inbox:list", _("Nachrichten"), "inbox", "inbox", search="chat posteingang"),
     # X4: корпоративные клиенты (CO-1) — экран был сиротой, вход через Ctrl+K.
     _e(
         "marketing",
@@ -377,10 +408,20 @@ ENTRIES: tuple[NavEntry, ...] = (
         "crm",
         search="firmen unternehmen b2b konten",
         palette_only=True,
+        group="kunden",
     ),
     # W10-2+решение 4а (2026-08-06): Reservierungen — вкладка Verkäufe («с первой
     # продажей»); дубль из Marketing/Erweitert убран (одна поверхность).
-    _e("marketing", "promotions:redeem", _("Einlösen"), "redeem", "promotions", True, "qr scan"),
+    _e(
+        "marketing",
+        "promotions:redeem",
+        _("Einlösen"),
+        "redeem",
+        "promotions",
+        True,
+        "qr scan",
+        group="aktionen",
+    ),
     _e(
         "marketing",
         "promotions:loyalty-list",
@@ -389,8 +430,8 @@ ENTRIES: tuple[NavEntry, ...] = (
         "loyalty",
         True,
         "bonus",
+        group="aktionen",
     ),
-    _e("marketing", "telegram-settings", _("Telegram"), "telegram", "telegram", True, "bot"),
     _e(
         "marketing",
         "channels",
@@ -399,6 +440,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "publishing",
         True,
         "google facebook instagram",
+        group="reichweite",
     ),
     # Д3: Google-Profil (Standort, Öffnungszeiten, Angebote) — вход с «Kanäle» и палитры.
     _e(
@@ -410,6 +452,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="google profil öffnungszeiten standort sync",
         owner_only=True,
         palette_only=True,
+        group="reichweite",
     ),
     # M23b.2: фид товаров для Google Merchant Center — вход с «Google-Profil» и «Kanäle».
     _e(
@@ -421,9 +464,19 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="google merchant produktfeed shopping feed produkte",
         owner_only=True,
         palette_only=True,
+        group="reichweite",
     ),
-    _e("marketing", "publishing-posts", _("Beiträge"), "posts", "publishing", True, "posting"),
-    _e("marketing", "blog-list", _("Blog & News"), "blog", "blog", True),
+    _e(
+        "marketing",
+        "publishing-posts",
+        _("Beiträge"),
+        "posts",
+        "publishing",
+        True,
+        "posting",
+        group="reichweite",
+    ),
+    _e("marketing", "blog-list", _("Blog & News"), "blog", "blog", True, group="reichweite"),
     _e(
         "marketing",
         "promotions:newsletter",
@@ -432,6 +485,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "promotions",
         True,
         "rundschreiben e-mail",
+        group="reichweite",
     ),
     # Sortiment-хаб (X4: сущности архетипа — то, что бизнес ПРОДАЁТ). Порядок
     # записей = порядок подпунктов якоря «Sortiment» в сайдбаре.
@@ -722,23 +776,15 @@ ENTRIES: tuple[NavEntry, ...] = (
     ),
     # SM-4: «Website & Domains» переехал в site-хаб (подпункт раздела Website);
     # Finanzen/Auswertungen — в board-хаб (подпункты «Verkäufe»). Настройки слимятся.
-    # W9-9 (Р-3): Integrationen — вкладка настроек (был якорь сайдбара).
-    # X2a: advanced=True — запись становится ПОДПУНКТОМ якоря «Einstellungen»
-    # (sidebar_children берёт advanced-состав хабов). Прежде единственным входом
-    # с первого экрана была хаб-плитка главной, которую X2a удаляет как дубль
-    # сайдбара; таб-бар настроек и палитра Ctrl+K остаются как были.
+    # KA-12 E8.4: свой Telegram-бот — канал, не маркетинг (был в Marketing/Erweitert).
     _e(
         "settings",
-        "integrations-home",
-        _("Integrationen"),
-        "integrations",
-        None,
-        # X5-1: не advanced — вкладка ряда «Verwaltung»; подпунктом якоря
-        # «Einstellungen» остаётся явно (sidebar=True): вход с первого экрана
-        # дал X2a, терять его нельзя.
-        False,
-        "integrationen stripe telegram publishing ota kanäle verbindungen",
-        sidebar=True,
+        "telegram-settings",
+        _("Telegram-Bot"),
+        "telegram",
+        "telegram",
+        True,
+        "bot telegram eigener",
         group="kanaele",
     ),
     # GK-11: Google-рейтинг (Places API) — экран в кластере настроек.
@@ -878,6 +924,11 @@ HUBS: tuple[str, ...] = ("board", "marketing", "sellables", "finance", "settings
 # KA-12 E8.4/E8.12: подзаголовки подменю по хабам (порядок = порядок показа). Запись без
 # группы стоит в конце безымянного блока. Размер подменю считается по группе (≤ 7).
 SUBMENU_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {
+    "marketing": (
+        ("kunden", _("Kunden")),
+        ("aktionen", _("Aktionen")),
+        ("reichweite", _("Reichweite")),
+    ),
     "finance": (
         ("ueberblick", _("Überblick")),
         ("buchhaltung", _("Buchhaltung")),
@@ -1017,7 +1068,6 @@ UNIVERSAL: dict[str, str] = {
     "portal-stats": "статистика каталога города — у каждого",
     "finder-settings": "опция «Finder» — у каждого",
     "google-reviews-settings": "рейтинг Google — у каждого",
-    "integrations-home": "обзор подключений — у каждого (уходит в батче 3)",
     # UB3-2: подборки собирают товары, услуги и номера — не только у магазинов.
     "collections:list": "подборки товаров, услуг и номеров — у каждого",
 }

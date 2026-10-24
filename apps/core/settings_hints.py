@@ -61,19 +61,6 @@ def _notifications(tenant) -> str:
     return " + ".join(str(c) for c in channels)
 
 
-def _integrations(tenant) -> str:
-    ok, warn = [], []
-    (ok if tenant.payments_enabled else warn).append("Stripe")
-    from apps.telegram.notify import owner_chat_id
-
-    (ok if _safe(lambda: bool(owner_chat_id(tenant)), False) else warn).append("Telegram")
-    if getattr(tenant, "google_place_id", ""):
-        ok.append("Google")
-    if not ok:
-        return ""
-    return " · ".join(f"{name} ●" for name in ok)
-
-
 def _modules(tenant) -> str:
     from apps.core import modules
 
@@ -107,7 +94,6 @@ _HINTS = {
     "team": _team,
     "payment-settings": _payments,
     "notifications-settings": _notifications,
-    "integrations-home": _integrations,
     "modules": _modules,
     "billing": _billing,
     "finder-settings": _finder,

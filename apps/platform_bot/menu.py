@@ -31,7 +31,8 @@ TARGETS = {
     "a": "promotions:promotion-list",
     "e": "settings",
     # T-8.29: «Verbindungen» есть всегда; экран бота при выключенном модуле — 404.
-    "t": "integrations-home",
+    # KA-12 E8.6: подключения — секция «Verbindungen» страницы каналов.
+    "t": "notifications-settings",
     "n": "notifications-settings",
 }
 

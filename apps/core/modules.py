@@ -683,6 +683,9 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
             e = nav_registry.entry_for("marketing", "inbox:list")
             # R7-1: подменю несёт ВЕСЬ состав хаба — «Nachrichten» там уже есть;
             # вставляем первым только если её нет (иначе был бы дубль строки).
+            for c in children:
+                if c["url_name"] == "inbox:list":
+                    c["badge"] = "inbox"  # KA-12 E8.4: бейдж — у самого пункта в группе
             if e is not None and not any(c["url_name"] == e.url_name for c in children):
                 children.insert(
                     0,

@@ -28818,3 +28818,9 @@ msgstr "Цифри та фінанси"
 
 msgid "Überblick"
 msgstr "Огляд"
+
+msgid "Marketing & Kunden"
+msgstr "Маркетинг і клієнти"
+
+msgid "Reichweite"
+msgstr "Охоплення"

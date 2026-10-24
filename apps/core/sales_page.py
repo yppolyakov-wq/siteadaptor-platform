@@ -301,12 +301,13 @@ def heute_columns(tenant) -> list[dict]:
     return cols
 
 
-def legacy_redirect(request, **params):
+def legacy_redirect(request, _url_name="verkaeufe", **params):
     """W10-6: 302 с легаси-страницы продаж на Verkäufe С СОХРАНЕНИЕМ GET
     (deep-links ?status=/?von=/?tag=/?q=/?buchung= живут на цели). params
     задают вкладку/вид и перекрывают одноимённые GET-ключи; значение None
     УДАЛЯЕТ ключ (X2b: у доски параметр звался `?kind=`, у единой страницы —
-    `?tab=`, тащить оба в адрес незачем)."""
+    `?tab=`, тащить оба в адрес незачем). KA-12 E8.6: `_url_name` — цель (по умолчанию
+    единая страница продаж; лендинги Marketing/Integrationen ведут на свои экраны)."""
     from django.http import HttpResponseRedirect
     from django.urls import reverse
 
@@ -317,7 +318,7 @@ def legacy_redirect(request, **params):
         else:
             get[k] = v
     qs = get.urlencode()
-    return HttpResponseRedirect(reverse("verkaeufe") + (f"?{qs}" if qs else ""))
+    return HttpResponseRedirect(reverse(_url_name) + (f"?{qs}" if qs else ""))
 
 
 # SH-15 (фидбэк владельца 2026-08-20 «нет нигде списка клиентов», решение

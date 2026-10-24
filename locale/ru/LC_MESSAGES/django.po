@@ -28834,3 +28834,9 @@ msgstr "Цифры и финансы"
 
 msgid "Überblick"
 msgstr "Обзор"
+
+msgid "Marketing & Kunden"
+msgstr "Маркетинг и клиенты"
+
+msgid "Reichweite"
+msgstr "Охват"
