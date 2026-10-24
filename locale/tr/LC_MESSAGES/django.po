@@ -28788,3 +28788,9 @@ msgstr "Şimdi çevrimiçi öde"
 
 msgid "Bitte bezahlen Sie den Restbetrag vor Ort."
 msgstr "Lütfen kalan tutarı yerinde ödeyin."
+
+msgid "hier ist der Link, um den Restbetrag für %(code)s online zu bezahlen."
+msgstr "%(code)s için kalan tutarı çevrimiçi ödemek üzere bağlantı aşağıdadır."
+
+msgid "Restbetrag für %(code)s online bezahlen"
+msgstr "%(code)s için kalan tutarı çevrimiçi ödeyin"

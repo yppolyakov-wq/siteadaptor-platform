@@ -28644,3 +28644,9 @@ msgstr "Pay online now"
 
 msgid "Bitte bezahlen Sie den Restbetrag vor Ort."
 msgstr "Please pay the remaining amount on site."
+
+msgid "hier ist der Link, um den Restbetrag für %(code)s online zu bezahlen."
+msgstr "here is the link to pay the remaining amount for %(code)s online."
+
+msgid "Restbetrag für %(code)s online bezahlen"
+msgstr "Pay the remaining amount for %(code)s online"

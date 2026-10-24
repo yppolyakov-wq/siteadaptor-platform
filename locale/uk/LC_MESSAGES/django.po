@@ -28893,3 +28893,9 @@ msgstr "Сплатити онлайн"
 
 msgid "Bitte bezahlen Sie den Restbetrag vor Ort."
 msgstr "Залишок, будь ласка, сплатіть на місці."
+
+msgid "hier ist der Link, um den Restbetrag für %(code)s online zu bezahlen."
+msgstr "ось посилання для онлайн-оплати залишку за %(code)s."
+
+msgid "Restbetrag für %(code)s online bezahlen"
+msgstr "Сплатіть залишок за %(code)s онлайн"
