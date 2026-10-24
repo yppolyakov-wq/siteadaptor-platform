@@ -448,8 +448,9 @@ def prepaid_cents(job) -> int:
 
 
 def _payment_note(job) -> str:
-    """Пометка об уже полученных деньгах (без НДС-эффекта: Anzahlungsrechnung не
-    выпускалась, § 14 Abs. 5 UStG тут не применяется)."""
+    """Пометка об уже полученных деньгах (без НДС-эффекта). Если по депозиту есть
+    Anzahlungsrechnung (B2-8c), депозит здесь не пишется — итоговый счёт вычитает
+    её своим блоком по ставкам (§ 14 Abs. 5 UStG)."""
     from django.utils.translation import gettext as _
 
     from apps.core.documents import money
@@ -462,7 +463,11 @@ def _payment_note(job) -> str:
             % {"code": job.voucher_code[:20], "amount": money(Decimal(voucher) / 100)}
         )
     if job.payment_state == job.PAYMENT_PAID:
-        if job.deposit_cents:
+        from apps.finance.advance import live_advance
+
+        if job.deposit_cents and live_advance("job", job) is not None:
+            pass  # B2-8c: Anzahlungsrechnung вычитается своим блоком в PDF, не нотой
+        elif job.deposit_cents:
             parts.append(
                 str(_("Anzahlung erhalten: −%(amount)s"))
                 % {"amount": money(Decimal(job.deposit_cents) / 100)}

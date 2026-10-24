@@ -627,6 +627,8 @@ def issue_invoice(invoice, *, tenant=None, terms_days=None):
         # B2-8c: вычтенная предоплата — уже полученные деньги, даже если депозит брони
         # пересчитали после её выставления (иначе «к оплате» включало бы её снова).
         deducted = deducted_cents(invoice)
+        if deducted:
+            deducted += _other_prepaid_cents(invoice)  # сертификат/ваучер — тоже получены
         if deducted > invoice.prepaid_cents:
             invoice.prepaid_cents = deducted
             if "prepaid_cents" not in fields:
@@ -897,6 +899,27 @@ def _prepaid_from_payment_state(deal) -> int:
             cents = int(round(Decimal(str(getattr(deal, "total", 0) or 0)) * 100))
         return int(cents or 0) + cert
     return cert
+
+
+def _other_prepaid_cents(invoice) -> int:
+    """B2-8c: полученное помимо депозита (сертификат брони / ваучер заявки) — чтобы
+    кламп «prepaid ≥ вычет» не потерял его, если депозит пересчитали."""
+    kind, ref = invoice.deal_kind, invoice.deal_id
+    try:
+        if kind == "job":
+            from apps.jobs.models import Job
+            from apps.jobs.services import voucher_payment_cents
+
+            job = Job.objects.filter(reference_code=ref).first()
+            return voucher_payment_cents(job) if job is not None else 0
+        if kind in ("stay", "booking"):
+            from apps.core import transactions
+
+            deal = transactions.model_for(kind).objects.filter(reference_code=ref).first()
+            return certificate_cents(deal) if deal is not None else 0
+    except Exception:  # noqa: BLE001 — пол «к оплате»: без него выпуск всё равно корректен
+        logger.exception("invoice %s: other prepaid lookup failed", invoice.pk)
+    return 0
 
 
 def _refresh_prepaid(invoice) -> bool:

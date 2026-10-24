@@ -275,6 +275,9 @@ def deduction_rows(adv) -> list[tuple]:
         return []
     drift = Decimal(adv.gross) - sum(r[3] for r in rows)
     if drift:
+        # Та же арифметика, что у документа, — расхождения быть не должно; если есть,
+        # итог вычета держим равным брутто предоплаты, но это видно в логах.
+        logger.warning("advance %s: deduction drift %s", adv.pk, drift)
         rows[-1][2] += drift
         rows[-1][3] += drift
     return [tuple(r) for r in rows]

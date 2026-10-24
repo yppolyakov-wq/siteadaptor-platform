@@ -384,6 +384,12 @@ def invoice_mahnung(request, pk):
     if not invoice.open_amount:  # KA-H10: напоминать не о чем
         messages.error(request, _("Die Rechnung ist bereits vollständig bezahlt."))
         return redirect("finance:offene")
+    from .bank import _advances_of_cancelled_deals
+
+    if _advances_of_cancelled_deals([invoice], getattr(request, "tenant", None)):
+        # B2-8c: предоплата отменённой сделки — не долг, напоминать нельзя.
+        messages.error(request, _("Der Verkauf ist storniert."))
+        return redirect("finance:offene")
     level = min(int(invoice.mahn_level) + 1, 3)
     tenant = getattr(request, "tenant", None)
     locale = getattr(tenant, "default_locale", "") or "de"

@@ -170,6 +170,30 @@ def _advanced(kind: str, codes) -> set:
     )
 
 
+def _advances_of_cancelled_deals(invoices, tenant) -> set:
+    """B2-8c: предоплаты отменённых сделок (автосторно могло не пройти — fail-soft)
+    не долг клиента: ни в Offene Posten, ни в Mahnung."""
+    by_kind: dict = {}
+    for inv in invoices:
+        if inv.is_advance and inv.deal_kind in _ADVANCE_DEAL_KINDS:
+            by_kind.setdefault(inv.deal_kind, {})[inv.deal_id] = inv.pk
+    dead = set()
+    for kind, refs in by_kind.items():
+        codes = (
+            transactions.model_for(kind)
+            .objects.filter(
+                reference_code__in=list(refs),
+                status__in=status_registry.cancelled_statuses_for(kind, tenant),
+            )
+            .values_list("reference_code", flat=True)
+        )
+        dead |= {refs[str(c)] for c in codes}
+    return dead
+
+
+_ADVANCE_DEAL_KINDS = ("stay", "booking", "job")
+
+
 def _job_deposit_items(tenant, today) -> list[dict]:
     """KA-12 B2-2 (MC-J1): принятая заявка с неоплаченной Anzahlung — строка на сумму
     депозита (раньше заявки в Offene Posten не было вовсе, пока нет счёта)."""
@@ -280,8 +304,12 @@ def open_items(tenant) -> list[dict]:
             status="issued", kind__in=(Invoice.KIND_INVOICE, Invoice.KIND_ADVANCE)
         ).select_related("customer")
     )
-    for inv in open_invoices.order_by("issued_at")[:200]:
+    open_invoices = list(open_invoices.order_by("issued_at")[:200])
+    dead_advances = _advances_of_cancelled_deals(open_invoices, tenant)
+    for inv in open_invoices:
         if not inv.open_amount:  # KA-H10: всё уже получено (Anzahlung/сертификат)
+            continue
+        if inv.pk in dead_advances:  # B2-8c: сделка отменена — не долг (сторно не прошло)
             continue
         out.append(
             {

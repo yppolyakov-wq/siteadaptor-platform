@@ -172,3 +172,43 @@ def test_deduction_runs_with_flag_off(settings):
     settings.ADVANCE_INVOICES_ENABLED = False
     final = _final(stay)
     assert InvoiceDeduction.objects.filter(final=final).exists()
+
+
+def test_mixed_rate_advance_deduction_has_no_drift(caplog):
+    adv = Invoice(
+        kind="advance",
+        vat_rate=Decimal("19"),
+        lines=[
+            {"text": "a", "qty": 1, "unit_price": "28.04", "vat_rate": "7"},
+            {"text": "b", "qty": 1, "unit_price": "16.81", "vat_rate": "19"},
+        ],
+    )
+    from apps.finance.services import compute_totals
+
+    adv.net, adv.vat_amount, adv.gross = compute_totals(adv.lines, Decimal("19"))
+    rows = advance.deduction_rows(adv)
+    assert sum(r[1] for r in rows) == adv.net and sum(r[2] for r in rows) == adv.vat_amount
+    assert "drift" not in caplog.text
+
+
+def test_cancelled_deal_advance_is_not_an_open_item(monkeypatch):
+    from apps.finance import bank
+    from apps.tenants.tests.factories import TenantFactory
+
+    stay = _stay()
+    adv = advance.create_advance_invoice("stay", stay, TENANT)
+    monkeypatch.setattr(advance, "cancel_unpaid_for_deal", lambda *a, **k: None)  # сторно «упало»
+    type(stay).objects.filter(pk=stay.pk).update(status="cancelled")
+    items = bank.open_items(TenantFactory(schema_name="public"))
+    assert not [i for i in items if i["obj"].pk == adv.pk]
+
+
+def test_clamp_keeps_certificate_when_deposit_changed(monkeypatch):
+    from apps.finance import services
+
+    stay = _stay()
+    adv = _paid_advance(stay)
+    type(stay).objects.filter(pk=stay.pk).update(deposit_cents=1000)
+    monkeypatch.setattr(services, "certificate_cents", lambda deal: 700)
+    final = _final(stay)
+    assert final.prepaid_cents >= int(adv.gross * 100) + 700
