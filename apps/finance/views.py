@@ -575,7 +575,10 @@ def invoices(request):
     # KA-P4a: раньше молча 200 последних счетов.
     # KA-12 E2.9: чипы статуса/вида, «überfällig», поиск, период, сортировка.
     base_qs = Invoice.objects.select_related("customer")
-    qs, filters = invoice_list.filtered(base_qs, request.GET)
+    from apps.core import roles
+
+    full_search = roles.can_export_finance(request.user)
+    qs, filters = invoice_list.filtered(base_qs, request.GET, full_search)
     page = paginate_queryset(qs, page_raw=request.GET.get("seite"))
     return render(
         request,
@@ -585,7 +588,9 @@ def invoices(request):
             "invoices": page.items,
             "page": page,
             "inv_filters": filters,
-            "inv_chips": invoice_list.chips(invoice_list.status_counts(base_qs, request.GET)),
+            "inv_chips": invoice_list.chips(
+                invoice_list.status_counts(base_qs, request.GET, full_search)
+            ),
             "inv_kinds": Invoice.KINDS,
             "inv_sort_options": invoice_list.sort_options(),
             **_customer_context(request),

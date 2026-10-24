@@ -69,9 +69,9 @@ def test_search_by_number_and_recipient_not_email():
     by_recipient = _inv(number=1, recipient="Bäckerei Krume GmbH")
     by_customer = _inv(number=2, customer=cust)
     assert _pks(invoice_list.filtered(Invoice.objects.all(), {"q": "4711"})[0]) == {by_number.pk}
-    assert _pks(invoice_list.filtered(Invoice.objects.all(), {"q": "krume"})[0]) == {
-        by_recipient.pk
-    }
+    assert _pks(
+        invoice_list.filtered(Invoice.objects.all(), {"q": "krume"}, full_search=True)[0]
+    ) == {by_recipient.pk}
     assert _pks(invoice_list.filtered(Invoice.objects.all(), {"q": "Erika"})[0]) == {by_customer.pk}
     # KA-H11: поиск по e-mail даёт сотруднику способ угадывать адреса.
     assert _pks(invoice_list.filtered(Invoice.objects.all(), {"q": "geheim@"})[0]) == set()
@@ -125,3 +125,16 @@ def test_view_renders_chips_and_filters():
 def test_view_junk_params_do_not_crash():
     resp = views.invoices(_req(data={"von": "x", "sort": "';--", "seite": "abc", "art": "?"}))
     assert resp.status_code == 200
+
+
+def test_staff_cannot_probe_emails_through_recipient():
+    """Security-ревью: у клиента без имени получатель счёта = его e-mail
+    (Customer.__str__). Поиск по получателю сотруднику давал бы подбор адресов."""
+    _inv(number=1, recipient="ivan.geheim@gmail.com")
+    staff_qs, _state = invoice_list.filtered(Invoice.objects.all(), {"q": "ivan.geheim"})
+    assert not staff_qs.exists()
+    assert invoice_list.status_counts(Invoice.objects.all(), {"q": "ivan.geheim"})[""] == 0
+    owner_qs, _state = invoice_list.filtered(
+        Invoice.objects.all(), {"q": "ivan.geheim"}, full_search=True
+    )
+    assert owner_qs.exists()

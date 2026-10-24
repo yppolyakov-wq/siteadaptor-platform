@@ -87,6 +87,7 @@
       card.addEventListener("dragstart", function (e) {
         dragged = card;
         card.classList.add("opacity-40");
+        if (window.sfPeekClose) window.sfPeekClose();
         if (e.dataTransfer) { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", ""); }
       });
       card.addEventListener("dragend", function () { card.classList.remove("opacity-40"); });
@@ -151,6 +152,7 @@
       if (!node) return;
       card.parentNode.replaceChild(node, card);
       bindCard(node);
+      if (window.sfPeekClose) window.sfPeekClose();
     }
 
     document.querySelectorAll(".kanban-card").forEach(bindCard);

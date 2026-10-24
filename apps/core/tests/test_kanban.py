@@ -96,3 +96,21 @@ def test_unknown_kind_bad_request():
     pk = uuid.uuid4()
     resp = views.kanban_action(_post("nope", pk, "x"), "nope", pk)
     assert resp.status_code == 400
+
+
+def test_backslash_next_does_not_escape_to_foreign_host():
+    """Security-ревью E2.4: `/\\evil.com` браузер нормализует в `//evil.com`."""
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    order = _make_order()
+    req = RequestFactory().post(
+        f"/dashboard/board/order/{order.pk}/action/",
+        {"action": "confirmed", "next": "/\\evil.com/"},
+    )
+    req.user = _User()
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    resp = views.kanban_action(req, "order", order.pk)
+    assert resp.status_code == 302
+    assert "evil.com" not in resp["Location"]

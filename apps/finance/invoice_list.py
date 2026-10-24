@@ -2,8 +2,10 @@
 период и сортировка по белому списку.
 
 Всё из URL проходит через словари этого модуля: неизвестное значение
-отбрасывается, а не попадает в запрос. Поиск — по номеру, получателю и имени
-клиента; по e-mail не ищем (KA-H11: сотрудник не должен угадывать адреса).
+отбрасывается, а не попадает в запрос. Поиск — по номеру и имени клиента; по
+получателю — только владельцу и бухгалтеру (`full_search`): у клиента без
+имени получатель = его e-mail (`Customer.__str__`), и поиск по нему давал бы
+сотруднику посимвольный подбор адресов (KA-H11).
 """
 
 from datetime import date
@@ -58,7 +60,7 @@ def _clean(params) -> dict:
     }
 
 
-def _base(qs, state: dict):
+def _base(qs, state: dict, full_search: bool = False):
     """Всё, кроме чипа статуса (счётчики чипов считаются по этой выборке)."""
     if state["art"]:
         qs = qs.filter(kind=state["art"])
@@ -68,7 +70,9 @@ def _base(qs, state: dict):
         qs = qs.filter(created_at__date__lte=state["bis"])
     q = state["q"]
     if q:
-        cond = Q(recipient__icontains=q) | Q(customer__name__icontains=q)
+        cond = Q(customer__name__icontains=q)
+        if full_search:
+            cond |= Q(recipient__icontains=q)
         digits = q.lstrip("#").strip()
         if digits.isdigit() and len(digits) <= 9:
             cond |= Q(number=int(digits))
@@ -76,10 +80,10 @@ def _base(qs, state: dict):
     return qs
 
 
-def filtered(qs, params) -> tuple:
+def filtered(qs, params, full_search: bool = False) -> tuple:
     """(queryset, состояние фильтров для шаблона)."""
     state = _clean(params)
-    qs = _base(qs, state)
+    qs = _base(qs, state, full_search)
     if state["status"] == OVERDUE:
         qs = qs.filter(_overdue_q())
     elif state["status"]:
@@ -89,12 +93,12 @@ def filtered(qs, params) -> tuple:
     return qs, state
 
 
-def status_counts(qs, params) -> dict:
+def status_counts(qs, params, full_search: bool = False) -> dict:
     """Счётчики чипов одним запросом (+ один на «überfällig»).
 
     `order_by()` снимается до `values()` — иначе сортировка попадает в GROUP BY
     и даёт по строке на счёт (грабля VS-2c)."""
-    base = _base(qs, _clean(params)).order_by()
+    base = _base(qs, _clean(params), full_search).order_by()
     counts = {row["status"]: row["n"] for row in base.values("status").annotate(n=Count("pk"))}
     counts[""] = sum(counts.values())
     counts[OVERDUE] = base.filter(_overdue_q()).count()

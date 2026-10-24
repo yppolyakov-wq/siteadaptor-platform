@@ -13,6 +13,9 @@
       r.classList.remove("ring-2", "ring-indigo-300");
     });
   }
+  // Доска закрывает drawer, когда карточка перерисована или её тащат: клон в
+  // панели показывал бы старый статус и кнопки (ревью E2.4).
+  window.sfPeekClose = closeDrawer;
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") closeDrawer();
   });

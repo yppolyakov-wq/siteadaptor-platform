@@ -5034,7 +5034,8 @@ def kanban_action(request, kind, pk):
     # сбой fetch) возвращаемся на исходную поверхность (только внутренний путь),
     # а не выбрасываем владельца на легаси /dashboard/board/.
     back = request.POST.get("next", "")
-    if not (back.startswith("/") and not back.startswith("//")):
+    # KA-12 E2.4 (security-ревью): `/\host` браузер нормализует в `//host`.
+    if not (back.startswith("/") and not back.startswith("//")) or "\\" in back:
         # X2b: доска снесена — возвращаемся во вкладку единой страницы продаж.
         back = reverse("verkaeufe") + f"?tab={kind}"
     from apps.core import refunds
