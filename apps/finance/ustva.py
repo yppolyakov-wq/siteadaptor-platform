@@ -149,10 +149,14 @@ def _events(rows):
             )
 
 
-def _refs_q(refs, *, kind_field="deal_kind", id_field="deal_id"):
-    q = Q(pk__in=[])
+def _refs_q(refs):
+    """По виду — `deal_id__in` (индекс dealpayment_deal_idx), без OR на каждую сделку."""
+    by_kind = defaultdict(set)
     for kind, pk in refs:
-        q |= Q(**{kind_field: kind, id_field: pk})
+        by_kind[kind].add(pk)
+    q = Q(pk__in=[])
+    for kind, ids in by_kind.items():
+        q |= Q(deal_kind=kind, deal_id__in=ids)
     return q
 
 
@@ -192,16 +196,17 @@ def _journal_of(refs) -> dict:
     out: dict = defaultdict(list)
     if not refs:
         return out
+    from django.db.models.functions import Left
+
+    # «{id}» и «{id}:meal/:return/…» — по первым 36 знакам (uuid), одним IN на источник.
     q = Q(pk__in=[])
-    by_source = defaultdict(list)
+    by_source = defaultdict(set)
     for kind, pk in refs:
-        by_source[{"ticket": "event"}.get(kind, kind)].append(str(pk))
+        by_source[{"ticket": "event"}.get(kind, kind)].add(str(pk))
     for source, ids in by_source.items():
-        sub = Q(source_ref__in=ids)
-        for ident in ids:
-            sub |= Q(source_ref__startswith=f"{ident}:")
-        q |= Q(source=source) & sub
-    for entry in RevenueEntry.objects.filter(q).only("source", "source_ref", "date", "amount"):
+        q |= Q(source=source, ref_head__in=ids)
+    qs = RevenueEntry.objects.annotate(ref_head=Left("source_ref", 36))
+    for entry in qs.filter(q).only("source", "source_ref", "date", "amount"):
         ref = _deal_ref(entry.source, entry.source_ref)
         if ref is not None:
             out[ref].append(entry)

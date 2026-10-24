@@ -206,6 +206,9 @@ def test_legal_docs_radio_writes_regime(settings):
     legal_docs_view(_owner_req("/dashboard/recht/", t, {"sec_steuer": "1", "tax_regime": "klein"}))
     t.refresh_from_db()
     assert (t.tax_regime, t.small_business) == ("ist", True)
+    legal_docs_view(_owner_req("/dashboard/recht/", t, {"sec_steuer": "1", "tax_regime": "x"}))
+    t.refresh_from_db()
+    assert t.small_business  # пусто/чужое — § 19 не выключаем
     body = legal_docs_view(_get_req(t)).content.decode()
     assert "data-tax-regime" in body and 'value="klein" checked' in body
 

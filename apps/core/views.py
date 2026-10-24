@@ -1531,7 +1531,11 @@ def legal_docs_view(request):
             tenant.tax_number = request.POST.get("tax_number", "").strip()[:32]
             # KA-12 B2-8a: Soll/Ist/§ 19 одной группой; без поля (старая форма) —
             # прежний чекбокс Kleinunternehmer, режим не трогаем.
-            if not ustva.apply_regime(tenant, request.POST.get("tax_regime", "")):
+            # Пусто/чужое значение — § 19 не трогаем (иначе устаревшая форма молча
+            # выключала бы Kleinunternehmer).
+            if not ustva.apply_regime(tenant, request.POST.get("tax_regime", "")) and (
+                "small_business" in request.POST
+            ):
                 tenant.small_business = bool(request.POST.get("small_business"))
             tenant.register_entry = request.POST.get("register_entry", "").strip()[:200]
             tenant.legal_responsible = request.POST.get("legal_responsible", "").strip()[:200]
