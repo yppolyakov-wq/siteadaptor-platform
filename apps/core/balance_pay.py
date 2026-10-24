@@ -106,13 +106,19 @@ def redirect_to_checkout(request, kind: str, obj):
     """Страница «Jetzt bezahlen»: остаток → Checkout; None, если доплачивать нечего."""
     import stripe
     from django.contrib import messages
+    from django.http import HttpResponse
     from django.shortcuts import redirect
     from django.urls import reverse
     from django.utils.translation import gettext as _
 
+    from apps.core import ratelimit
+
     tenant = getattr(request, "tenant", None)
     if not rest_payable(kind, obj, tenant):
         return None
+    # Каждый заход создаёт сессию Stripe на аккаунте бизнеса — троттлим.
+    if ratelimit.hit("rest_pay", ratelimit.client_ip(request), limit=20, window=600):
+        return HttpResponse(status=429)
     back = request.build_absolute_uri(reverse(CONFIRM_ROUTES[kind], args=[obj.reference_code]))
     try:
         return redirect(
@@ -124,57 +130,99 @@ def redirect_to_checkout(request, kind: str, obj):
 
 
 def mark_balance_paid(
-    *, tenant_schema: str, deal_kind: str, deal_id: str, payment_intent: str, amount_cents: int
+    *,
+    tenant_schema: str,
+    deal_kind: str,
+    deal_id: str,
+    payment_intent: str,
+    amount_cents: int,
+    account: str = "",
+    payment_status: str = "paid",
 ) -> bool:
     """Вебхук `deal_balance`: записать оплату остатка. Кросс-схемно, идемпотентно.
 
     В книгу пишется сумма, которую Stripe реально списал (`amount_total`), а не
     пересчитанная: если владелец успел изменить сделку, разница видна в «ждём».
     Переплата (остаток уже отмечен «bezahlt» на месте) записывается и сообщается
-    владельцу — деньги вернуть должен он."""
+    владельцу — деньги вернуть должен он.
+
+    Ревью B2-5: событие принимается только от connected account ЭТОГО бизнеса
+    (иначе чужой аккаунт с подделанной metadata писал бы в книгу другого
+    тенанта) и только с `payment_status == paid` (SEPA и др. — после зачисления).
+    «До» и переплата считаются под блокировкой сделки: повтор вебхука и гонка с
+    кассой не дают ложной или пропущенной «Überzahlung»."""
+    from django.db import transaction
     from django_tenants.utils import schema_context
 
     from apps.core import folio, money_contract, transactions
+    from apps.core.models import DealPayment
+    from apps.promotions.notifications import _tenant
 
-    if not tenant_schema or deal_kind not in KINDS or not deal_id:
+    if not tenant_schema or deal_kind not in KINDS or not deal_id or not payment_intent:
         return False
-    with schema_context(tenant_schema):
-        obj = transactions.model_for(deal_kind).objects.filter(pk=deal_id).first()
+    if payment_status != "paid":
+        return True  # отложенная оплата: придёт async_payment_succeeded
+    tenant = _tenant(tenant_schema)
+    connect_id = getattr(tenant, "stripe_connect_id", "") if tenant else ""
+    if not connect_id or account != connect_id:
+        logger.warning("deal_balance: account mismatch for %s", tenant_schema)
+        return False
+    amount = int(amount_cents or 0)
+    notice = None
+    with schema_context(tenant_schema), transaction.atomic():
+        model = transactions.model_for(deal_kind)
+        obj = model.objects.select_for_update().filter(pk=deal_id).first()
         if obj is None:
             return False
-        if getattr(obj, "payment_state", "") == "refunded":
-            # Возвращённую сделку оплата остатка не «воскрешает» — это ручной случай.
-            _notify_owner(tenant_schema, deal_kind, obj, int(amount_cents or 0), refunded=True)
-            return True
-        from apps.core.models import DealPayment
-
-        if (
-            payment_intent
-            and DealPayment.objects.filter(
-                deal_kind=deal_kind, deal_id=obj.pk, stripe_payment_intent=payment_intent
-            ).exists()
-        ):
+        if DealPayment.objects.filter(
+            deal_kind=deal_kind, deal_id=obj.pk, stripe_payment_intent=payment_intent
+        ).exists():
             return True  # повтор вебхука: платёж уже в книге (и не «переплата»)
-        before = rest_cents(deal_kind, obj)
-        folio.record(
+        if getattr(obj, "payment_state", "") == "refunded":
+            # Возвращённую сделку оплата остатка не «воскрешает»: платёж — в книгу,
+            # владельцу — письмо.
+            # refunded_cents=0: деньги ещё у бизнеса — вернуть их должен владелец.
+            folio.record(
+                deal_kind,
+                obj,
+                amount_cents=amount,
+                purpose="balance",
+                method="stripe",
+                source="webhook",
+                intent=payment_intent,
+            )
+            notice = (obj, amount, True)
+        else:
+            before = rest_cents(deal_kind, obj)
+            folio.record(
+                deal_kind,
+                obj,
+                amount_cents=amount,
+                purpose="balance",
+                method="stripe",
+                source="webhook",
+                intent=payment_intent,
+            )
+            obj.refresh_from_db()
+            if rest_cents(deal_kind, obj) <= 0:
+                money_contract.settle_payment(deal_kind, obj, source="online")
+            if amount - before > 0:
+                notice = (obj, amount - before, False)
+    if notice is not None:
+        _notify_owner(
+            tenant_schema,
             deal_kind,
-            obj,
-            amount_cents=int(amount_cents or 0),
-            purpose="balance",
-            method="stripe",
-            source="webhook",
+            notice[0],
+            notice[1],
+            refunded=notice[2],
             intent=payment_intent,
         )
-        obj.refresh_from_db()
-        if rest_cents(deal_kind, obj) <= 0:
-            money_contract.settle_payment(deal_kind, obj, source="online")
-        overpaid = int(amount_cents or 0) - before
-        if overpaid > 0:
-            _notify_owner(tenant_schema, deal_kind, obj, overpaid)
     return True
 
 
-def _notify_owner(schema: str, kind: str, obj, cents: int, *, refunded: bool = False) -> None:
+def _notify_owner(
+    schema: str, kind: str, obj, cents: int, *, refunded: bool = False, intent: str = ""
+) -> None:
     """Переплата / оплата по возвращённой сделке — владельцу письмом (dedupe)."""
     from decimal import Decimal
 
@@ -204,7 +252,7 @@ def _notify_owner(schema: str, kind: str, obj, cents: int, *, refunded: bool = F
         ) % {"code": obj.reference_code, "amount": amount}
     try:
         notify(
-            dedupe_key=f"overpaid:{schema}:{kind}:{obj.pk}",
+            dedupe_key=f"overpaid:{schema}:{kind}:{obj.pk}:{intent}",
             type="deal_overpaid_owner",
             recipient=email,
             subject=subject,

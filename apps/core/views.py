@@ -6244,6 +6244,10 @@ def deal_pay_link(request, kind, pk):
         )
         messages.success(request, _("Zahlungslink wurde an %(email)s gesendet.") % {"email": email})
     nxt = request.POST.get("next", "")
-    if not (nxt.startswith("/") and not nxt.startswith("//")):
+    if (
+        not url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()})
+        or not nxt.startswith("/")
+        or "\\" in nxt
+    ):
         nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
     return redirect(nxt)

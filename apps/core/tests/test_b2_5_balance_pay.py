@@ -12,7 +12,7 @@ from django.db import connection
 from django.test import RequestFactory
 from django.utils import timezone
 
-from apps.core import balance_pay, folio, money_contract
+from apps.core import balance_pay, money_contract
 from apps.core.models import DealPayment
 from apps.core.tests.dates import future_month_start
 from apps.promotions.models import Customer
@@ -101,13 +101,27 @@ def test_pay_view_redirects_deposit_booking_to_rest_checkout(connect_on, monkeyp
     assert "expires_at" not in call  # место держит депозит — удержание не нужно
 
 
-def _webhook(b, intent="pi_rest", amount=17000, schema=None):
+@pytest.fixture(autouse=True)
+def _own_tenant(monkeypatch):
+    """Вебхук сверяет `account` события с connected account бизнеса."""
+    from apps.promotions import notifications
+
+    monkeypatch.setattr(
+        notifications,
+        "_tenant",
+        lambda schema: SimpleNamespace(stripe_connect_id="acct_test", owner_email="o@t.de"),
+    )
+
+
+def _webhook(b, intent="pi_rest", amount=17000, schema=None, account="acct_test", status="paid"):
     return balance_pay.mark_balance_paid(
         tenant_schema=schema or connection.schema_name,
         deal_kind="stay",
         deal_id=str(b.pk),
         payment_intent=intent,
         amount_cents=amount,
+        account=account,
+        payment_status=status,
     )
 
 
@@ -140,27 +154,20 @@ def test_webhook_on_refunded_deal_does_not_resurrect(monkeypatch):
     _webhook(b)
     b.refresh_from_db()
     assert b.payment_state == StayBooking.PAYMENT_REFUNDED
-    assert not folio.rows("stay", b) or all(
-        r.stripe_payment_intent != "pi_rest" for r in folio.rows("stay", b)
-    )
+    # Деньги не теряются: платёж в книге (вернуть его — дело владельца).
+    row = DealPayment.objects.get(deal_id=b.pk, stripe_payment_intent="pi_rest")
+    assert row.amount_cents == 17000 and row.refunded_cents == 0
     assert sent and sent[0].get("refunded") is True
 
 
 def test_webhook_unknown_deal_or_kind_writes_nothing():
     b = _stay()
+    common = {"payment_intent": "pi_x", "amount_cents": 100, "account": "acct_test"}
     assert not balance_pay.mark_balance_paid(
-        tenant_schema=connection.schema_name,
-        deal_kind="order",
-        deal_id=str(b.pk),
-        payment_intent="pi_x",
-        amount_cents=100,
+        tenant_schema=connection.schema_name, deal_kind="order", deal_id=str(b.pk), **common
     )
     assert not balance_pay.mark_balance_paid(
-        tenant_schema=connection.schema_name,
-        deal_kind="stay",
-        deal_id=str(uuid.uuid4()),
-        payment_intent="pi_x",
-        amount_cents=100,
+        tenant_schema=connection.schema_name, deal_kind="stay", deal_id=str(uuid.uuid4()), **common
     )
     assert not DealPayment.objects.filter(stripe_payment_intent="pi_x").exists()
 
@@ -209,3 +216,84 @@ def test_cabinet_pay_link_requires_login():
     request = RequestFactory().post("/x/")
     request.user = AnonymousUser()
     assert deal_pay_link(request, "stay", uuid.uuid4()).status_code == 302
+
+
+def test_webhook_from_foreign_account_writes_nothing():
+    """Чужой connected account с подделанной metadata не пишет в книгу бизнеса."""
+    b = _stay()
+    assert not _webhook(b, account="acct_other")
+    assert not _webhook(b, account="")
+    b.refresh_from_db()
+    assert b.payment_state == StayBooking.PAYMENT_DEPOSIT
+    assert not DealPayment.objects.filter(deal_id=b.pk, stripe_payment_intent="pi_rest").exists()
+
+
+def test_webhook_waits_for_delayed_payment():
+    b = _stay()
+    _webhook(b, status="unpaid")  # SEPA: деньги ещё не пришли
+    assert not DealPayment.objects.filter(deal_id=b.pk, stripe_payment_intent="pi_rest").exists()
+    _webhook(b, status="paid")  # async_payment_succeeded
+    b.refresh_from_db()
+    assert b.payment_state == StayBooking.PAYMENT_PAID
+
+
+def test_second_overpayment_is_reported_too(monkeypatch):
+    sent = []
+    monkeypatch.setattr(balance_pay, "_notify_owner", lambda *a, **k: sent.append(k["intent"]))
+    b = _stay()
+    money_contract.settle_payment("stay", b, source="manual")
+    b.refresh_from_db()
+    _webhook(b, intent="pi_a")
+    _webhook(b, intent="pi_b")
+    assert sent == ["pi_a", "pi_b"]
+
+
+def test_cancel_refunds_online_rest_payment_too(monkeypatch):
+    """Ревью B2-5: возврат при отмене возвращает и доплату остатка (свой intent)."""
+    from apps.billing import connect
+    from apps.core import refunds
+
+    refunded = []
+    monkeypatch.setattr(connect, "refund", lambda **kw: refunded.append(kw["payment_intent"]))
+    b = _stay()
+    StayBooking.objects.filter(pk=b.pk).update(stripe_payment_intent="pi_dep")
+    b.refresh_from_db()
+    _webhook(b)  # остаток онлайн
+    b.refresh_from_db()
+    result = refunds.refund_payment("stay", b, _tenant())
+    assert result == refunds.RefundResult.REFUNDED
+    assert sorted(refunded) == ["pi_dep", "pi_rest"]
+    row = DealPayment.objects.get(deal_id=b.pk, stripe_payment_intent="pi_rest")
+    assert row.refunded_cents == row.amount_cents
+    assert refunds._OFFLINE_REST.get() == 0  # остаток вернула карта, не «наличные»
+
+
+def test_confirmation_hides_rest_button_right_after_payment(connect_on):
+    from django.template.loader import render_to_string
+
+    b = _stay()
+    request = RequestFactory().get("/?paid=1")
+    request.tenant = _tenant()
+    html = render_to_string(
+        "storefront/stay_confirmation.html", {"booking": b, "b": b}, request=request
+    )
+    assert "data-rest-pay" not in html
+
+
+def test_cabinet_pay_link_rejects_backslash_next(connect_on):
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    from apps.core.views import deal_pay_link
+
+    b = _stay()
+    request = RequestFactory().post("/x/", {"next": "/\\evil.test/"})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = get_user_model().objects.create_user(
+        username=f"o-{uuid.uuid4().hex[:6]}", password="pw12345678"
+    )
+    request.tenant = _tenant()
+    resp = deal_pay_link(request, "stay", b.pk)
+    assert "evil" not in resp["Location"]

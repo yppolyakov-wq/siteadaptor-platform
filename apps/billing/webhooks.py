@@ -50,7 +50,7 @@ def _tenant_from_object(obj: dict) -> Tenant | None:
     return None
 
 
-def handle_event(event_type: str, obj: dict) -> None:
+def handle_event(event_type: str, obj: dict, account: str = "") -> None:
     """Применить эффект события к арендатору (идемпотентно через SM)."""
     meta = obj.get("metadata") or {}
 
@@ -112,15 +112,22 @@ def handle_event(event_type: str, obj: dict) -> None:
         return
 
     # KA-12 B2-5 (E1.11): доплата остатка после Anzahlung (номер/запись/билет).
-    if event_type == "checkout.session.completed" and meta.get("kind") == "deal_balance":
+    # Деньги — только от connected account этого бизнеса (`account` события) и только
+    # зачисленные (`payment_status`; отложенные способы — async_payment_succeeded).
+    if (
+        event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded")
+        and meta.get("kind") == "deal_balance"
+    ):
         from apps.core.balance_pay import mark_balance_paid
 
         ok = mark_balance_paid(
             tenant_schema=meta.get("tenant_schema", ""),
             deal_kind=meta.get("deal_kind", ""),
             deal_id=meta.get("deal_id", ""),
-            payment_intent=obj.get("payment_intent", ""),
+            payment_intent=obj.get("payment_intent") or "",
             amount_cents=int(obj.get("amount_total") or 0),
+            account=account or "",
+            payment_status=obj.get("payment_status") or "",
         )
         if not ok:
             logger.warning("stripe webhook deal_balance: deal not found %s", meta)
@@ -239,5 +246,5 @@ def stripe_webhook(request):
     if not cache.add(f"stripe_evt:{event['id']}", "1", timeout=_EVENT_TTL):
         return HttpResponse(status=200)
 
-    handle_event(event["type"], event["data"]["object"])
+    handle_event(event["type"], event["data"]["object"], account=event.get("account") or "")
     return HttpResponse(status=200)

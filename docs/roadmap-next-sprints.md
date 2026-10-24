@@ -454,6 +454,14 @@ c) история броней (email-связка с Customer) → d) наст�
 
 ## Отложено / заметки на будущее
 
+- **KA-12 B2-5 (ревью безопасности 2026-10-24): сверка `event.account` во ВСЕХ денежных ветках
+  вебхука Stripe.** Новая ветка `deal_balance` принимает событие только от connected account
+  самого бизнеса и только с `payment_status == paid`. Старые ветки (`stay_deposit`,
+  `booking_deposit`, `order_payment`, билет, сертификат) доверяют `metadata.tenant_schema` без
+  сверки аккаунта и не проверяют `payment_status` (SEPA). Эксплуатация требует знать UUID чужой
+  сделки. Нужен отдельный инкремент: `handle_event` уже получает `account`; перед включением
+  проверки — убедиться по логам прода, что события Connect приходят с `account`.
+
 - **CI-скорость (2026-10-23, KA-12):** ~15 тестов (billing webhooks/tasks, notifications-settings,
   t829, demo_hygiene) идут по ~60 с каждый — похоже на сетевой таймаут без мока; группа g1 CI выросла
   до 13–40 мин. Найти общий вызов (Telegram/Stripe/resolve) и замокать в conftest.

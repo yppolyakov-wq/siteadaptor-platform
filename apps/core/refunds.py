@@ -144,10 +144,54 @@ def refund_payment(kind: str, obj, tenant=None) -> RefundResult:
     from apps.core import folio
 
     folio.mark_refunded(kind, obj, intent=intent)  # KA-12 B2-3: книга знает о возврате
+    # KA-12 B2-5: остаток, доплаченный онлайн отдельным платежом, — свой intent;
+    # вернуть и его (иначе карта осталась бы списанной, а книга — «возвращено»).
+    extra_cents, extra_failed = _refund_other_card_rows(kind, obj, connect_id, intent)
+    rest = max(rest - Decimal(extra_cents) / 100, Decimal("0"))
+    if extra_failed:
+        _notify_owner_failed(kind, obj, tenant)
+        return RefundResult.FAILED
     if rest > 0:
         _OFFLINE_REST.set(rest)
         _notify_owner_rest(kind, obj, rest, tenant)
     return RefundResult.REFUNDED
+
+
+def _refund_other_card_rows(kind: str, obj, connect_id: str, main_intent: str):
+    """Вернуть прочие платежи Stripe сделки (доплата остатка B2-5). Возвращает
+    (сколько вернули в центах, был ли сбой). Повтор безопасен: ключ — на intent."""
+    import stripe
+
+    from apps.billing import connect
+    from apps.core import folio
+    from apps.core.models import DealPayment
+
+    refunded = 0
+    rows = (
+        DealPayment.objects.filter(deal_kind=kind, deal_id=obj.pk)
+        .exclude(stripe_payment_intent="")
+        .exclude(stripe_payment_intent=main_intent)
+    )
+    for row in rows:
+        open_cents = row.amount_cents - row.refunded_cents
+        if open_cents <= 0:
+            continue
+        try:
+            connect.refund(
+                connect_id=connect_id,
+                payment_intent=row.stripe_payment_intent,
+                idempotency_key=_idempotency_key(kind, obj.pk, row.stripe_payment_intent),
+            )
+        except stripe.error.InvalidRequestError as exc:
+            if getattr(exc, "code", "") != "charge_already_refunded":
+                logger.warning("refund of extra payment failed: %s %s", kind, obj.pk)
+                return refunded, True
+        except Exception:  # noqa: BLE001 — сбой виден владельцу, не «возвращено»
+            logger.warning("refund of extra payment failed: %s %s", kind, obj.pk)
+            return refunded, True
+        folio.mark_refunded(kind, obj, intent=row.stripe_payment_intent)
+        refunded += open_cents
+    return refunded, False
 
 
 def _offline_rest(kind: str, obj) -> Decimal:

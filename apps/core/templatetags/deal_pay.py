@@ -14,6 +14,10 @@ def rest_pay(context, kind, obj):
 
     request = context.get("request")
     tenant = getattr(request, "tenant", None)
+    if request is not None and request.GET.get("paid"):
+        # Возврат из Stripe: вебхук мог ещё не прийти — повторная кнопка вела бы
+        # к двойной оплате.
+        return None
     try:
         if not balance_pay.rest_payable(kind, obj, tenant):
             return None
