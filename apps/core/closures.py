@@ -56,7 +56,9 @@ def closed_days(start: date, end: date, tenant=None) -> dict:
 def _window(today: date, tenant=None) -> dict:
     """Окно [today, today+HORIZON] один раз на объект тенанта (= на запрос): баннер,
     «открыто сейчас» и присутствие читают одни и те же дни — без трёх запросов."""
-    holder = tenant if tenant is not None else getattr(connection, "tenant", None)
+    current = getattr(connection, "tenant", None)
+    # Запоминаем только на тенанте соединения (= объект запроса): его чистит _bump.
+    holder = current if tenant is None or tenant is current else None
     memo = getattr(holder, "_closed_window", None) if holder is not None else None
     if memo is not None and memo[0] == today:
         return memo[1]

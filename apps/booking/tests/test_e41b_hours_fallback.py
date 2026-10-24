@@ -76,3 +76,16 @@ def test_rules_from_hours_button_creates_missing_days(hours):
     views.resources(req)
     rules = {x.weekday: (x.start_time, x.end_time) for x in r.rules.all()}
     assert len(rules) == 7 and rules[0] == (time(14), time(15)) and rules[3] == (time(9), time(12))
+
+
+def test_rules_from_hours_twice_creates_no_duplicates(hours):
+    r = _resource()
+    for _ in range(2):
+        req = _req(
+            "post",
+            "/dashboard/booking/resources/",
+            {"action": "rules_from_hours", "resource": r.pk},
+        )
+        req.tenant = hours
+        views.resources(req)
+    assert r.rules.count() == 7

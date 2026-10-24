@@ -116,7 +116,9 @@ def test_screen_creates_and_reopens(client, settings):
     assert not ClosedDate.objects.exists()
 
 
-def test_one_query_per_request_for_banner_open_status_and_presence(django_assert_num_queries):
+def test_one_query_per_request_for_banner_open_status_and_presence(
+    django_assert_num_queries, monkeypatch
+):
     """Ревью: баннер, «открыто сейчас» и присутствие делили бы три запроса — окно одно."""
     from types import SimpleNamespace
 
@@ -124,6 +126,7 @@ def test_one_query_per_request_for_banner_open_status_and_presence(django_assert
     from django.utils import timezone
 
     holder = SimpleNamespace(schema_name=connection.schema_name)
+    monkeypatch.setattr(connection, "tenant", holder, raising=False)  # объект запроса
     today = timezone.localdate()
     closures.set_range(today, today, reason="Urlaub")
     with django_assert_num_queries(1):

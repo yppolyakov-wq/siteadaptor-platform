@@ -81,3 +81,15 @@ def test_manual_booking_outside_hours_needs_override():
     assert Booking.objects.count() == before
     views.booking_create(_req("post", "/dashboard/booking/neu/", {**data, "override_hours": "1"}))
     assert Booking.objects.count() == before + 1
+
+
+def test_move_back_to_earlier_time_mails_again(django_capture_on_commit_callbacks):
+    """Ревью: A→B→A — третье письмо не должно гаснуть дедупом первого."""
+    b = _ruled_booking()
+    a_start, a_end = b.start, b.end
+    for shift in (2, 0, 2):
+        with django_capture_on_commit_callbacks(execute=True):
+            services.move(
+                b, start=a_start + timedelta(hours=shift), end=a_end + timedelta(hours=shift)
+            )
+    assert Notification.objects.filter(type="booking_moved").count() == 3

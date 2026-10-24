@@ -12,6 +12,7 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -601,18 +602,21 @@ def resources(request):
             # (дни, где у ресурса уже есть правило, не трогаем).
             from apps.tenants import openinghours
 
-            resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
             hours = openinghours.normalize(
                 getattr(getattr(request, "tenant", None), "opening_hours_structured", None)
             )
-            have = set(resource.rules.values_list("weekday", flat=True))
             created = 0
-            for wd, (o, c) in hours.items():
-                if int(wd) not in have:
-                    AvailabilityRule.objects.create(
-                        resource=resource, weekday=int(wd), start_time=o, end_time=c
-                    )
-                    created += 1
+            with transaction.atomic():  # двойной клик не плодит дубли правил
+                resource = get_object_or_404(
+                    Resource.objects.select_for_update(), pk=request.POST.get("resource")
+                )
+                have = set(resource.rules.values_list("weekday", flat=True))
+                for wd, (o, c) in hours.items():
+                    if int(wd) not in have:
+                        AvailabilityRule.objects.create(
+                            resource=resource, weekday=int(wd), start_time=o, end_time=c
+                        )
+                        created += 1
             if created:
                 messages.success(request, _("Opening hours added."))
             else:

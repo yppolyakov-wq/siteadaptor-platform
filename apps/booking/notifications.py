@@ -4,6 +4,8 @@
 `booking:{id}:{event}:{role}`, доставка после коммита.
 """
 
+from datetime import UTC
+
 from django.db import connection
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -28,7 +30,11 @@ def _event_key(booking, event) -> str:
     """KA-12 E4.3: перенос и напоминание привязаны ко ВРЕМЕНИ записи — после переноса
     клиент получает новое письмо и новое напоминание (прежний ключ гасил бы их дедупом)."""
     if event in ("moved", "reminder") and booking.start:
-        return f"{event}:{booking.start:%Y%m%d%H%M}"
+        at = f"{booking.start.astimezone(UTC):%Y%m%d%H%M}"  # один пояс у всех путей
+        if event == "moved" and booking.updated_at:
+            # A→B→A — законное второе письмо «verschoben» на прежнее время.
+            at += f":{booking.updated_at.timestamp():.6f}"
+        return f"{event}:{at}"
     return event
 
 

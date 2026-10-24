@@ -22,6 +22,11 @@ def _business_hours(tenant=None) -> dict:
     from apps.tenants import openinghours
 
     tenant = tenant if tenant is not None else getattr(connection, "tenant", None)
+    if tenant is not None and not hasattr(tenant, "opening_hours_structured"):
+        # schema_context в Celery/команде даёт FakeTenant без часов — дочитать настоящий.
+        from apps.tenants.models import Tenant
+
+        tenant = Tenant.objects.filter(schema_name=connection.schema_name).first()
     return openinghours.normalize(getattr(tenant, "opening_hours_structured", None))
 
 
