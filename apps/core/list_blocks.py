@@ -469,6 +469,7 @@ def _blog(data: dict, limit: int, cfg: dict):
 # на вид; ссылка — только у живой сущности включённого модуля.
 def _review_targets():
     from apps.booking.models import Service
+    from apps.booking.pricing import with_active_variants
     from apps.catalog.models import Combo, Product
     from apps.events.models import Event
     from apps.stays.models import StayUnit
@@ -483,7 +484,7 @@ def _review_targets():
         ),
         "service": (
             "booking",
-            lambda ids: Service.objects.filter(pk__in=ids),
+            lambda ids: with_active_variants(Service.objects.filter(pk__in=ids)),
             lambda o: o.is_active,
             lambda o: reverse("storefront-service-detail", args=[o.pk]),
             lambda o: o.name_localized(),

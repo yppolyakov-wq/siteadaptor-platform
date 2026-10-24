@@ -324,3 +324,37 @@ def test_grid_queries_do_not_grow_with_bookings(settings, django_assert_max_num_
     req = _req("get", "/dashboard/booking/", {"tag": day.isoformat()})
     with django_assert_max_num_queries(30):
         views.calendar_context(req)
+
+
+def test_booking_of_inactive_resource_still_moves_in_time():
+    """Ревью B5: выключенный ресурс запрещён только как ЦЕЛЬ — запись мастера,
+    которого выключили, по-прежнему переносится по времени (как до B5)."""
+    day = _future_day()
+    anna, _ben = _two(day)
+    b = _book(anna, day, 10, 11)
+    anna.is_active = False
+    anna.save(update_fields=["is_active"])
+    services.move(b, start=_aware(day, 12), end=_aware(day, 13))
+    b.refresh_from_db()
+    assert b.start == _aware(day, 12) and b.resource_id == anna.pk
+
+
+def test_cancelled_between_show_and_move_is_not_movable():
+    day = _future_day()
+    anna, _ben = _two(day)
+    b = _book(anna, day, 10, 11)
+    Booking.objects.filter(pk=b.pk).update(status="cancelled")  # объект в памяти — confirmed
+    with pytest.raises(services.NotMovable):
+        services.move(b, start=_aware(day, 12), end=_aware(day, 13))
+
+
+def test_closed_dates_read_once_for_grid(django_assert_num_queries):
+    from apps.booking import tagesplan
+    from apps.booking.models import Resource
+
+    day = _future_day()
+    for _ in range(4):
+        _rule(_resource(), day, "09:00", "12:00")
+    rs = list(Resource.objects.prefetch_related("rules"))
+    with django_assert_num_queries(1):
+        tagesplan.build(rs, day, [])

@@ -29167,3 +29167,6 @@ msgstr "Moving failed."
 
 msgid "geschlossen"
 msgstr "closed"
+
+msgid "Diese Ressource ist deaktiviert."
+msgstr "This resource is deactivated."

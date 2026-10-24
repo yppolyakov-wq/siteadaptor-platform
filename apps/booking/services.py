@@ -467,8 +467,6 @@ def move(booking, *, start, end, resource=None, override_hours=False):
 
     if end <= start:
         raise ValueError("end must be after start")
-    if booking.status not in status_registry.active_statuses_for("booking"):
-        raise NotMovable()
     target_id = resource.pk if resource is not None else booking.resource_id
     locked = {
         r.pk: r
@@ -476,8 +474,20 @@ def move(booking, *, start, end, resource=None, override_hours=False):
         .filter(pk__in={booking.resource_id, target_id})
         .order_by("pk")
     }
+    # Ревью B5: статус — по СВЕЖЕЙ строке под блокировкой (параллельная отмена
+    # между показом и переносом не должна «двигать» уже не действующую запись).
+    fresh_status = (
+        Booking.objects.select_for_update()
+        .filter(pk=booking.pk)
+        .values_list("status", flat=True)
+        .first()
+    )
+    if fresh_status not in status_registry.active_statuses_for("booking"):
+        raise NotMovable()
     target = locked[target_id]
-    if not target.is_active:
+    # Выключенный ресурс — запрет только как ЦЕЛЬ смены; запись выключенного мастера
+    # по-прежнему переносится по времени (как до B5).
+    if target_id != booking.resource_id and not target.is_active:
         raise ResourceInactive()
     if availability.is_closed(target, timezone.localtime(start).date()):
         raise ResourceClosed()

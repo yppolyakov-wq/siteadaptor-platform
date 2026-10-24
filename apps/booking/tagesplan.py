@@ -81,9 +81,13 @@ def build(resources, day, bookings, *, active_statuses=(), tenant=None) -> Grid:
     def row_of(minute):
         return max(1, min(n_rows, (minute - first) // step + 1))
 
+    # Ревью B5: закрытия дня — одним запросом на всю сетку (не по запросу на мастера).
+    from .models import ClosedDate
+
+    closed_ids = set(ClosedDate.objects.filter(date=day).values_list("resource_id", flat=True))
     columns = []
     for r in resources:
-        col = Column(resource=r, closed=availability.is_closed(r, day))
+        col = Column(resource=r, closed=(None in closed_ids) or (r.pk in closed_ids))
         ws = windows[r.pk]
         for idx, _label, _full in rows:
             m = first + (idx - 1) * step

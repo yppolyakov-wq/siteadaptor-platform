@@ -84,9 +84,9 @@ def calendar_context(request):
     tz = timezone.get_current_timezone()
     day_start = datetime.combine(day, time.min, tzinfo=tz)
     day_end = day_start + timedelta(days=1)
-    bookings = (
+    bookings = list(
         Booking.objects.filter(start__gte=day_start, start__lt=day_end)
-        .select_related("resource", "customer")
+        .select_related("resource", "customer", "service")
         .order_by("resource__name", "start")
     )
     from django.urls import reverse
@@ -100,7 +100,7 @@ def calendar_context(request):
     grid = tagesplan.build(
         resources,
         day,
-        list(bookings.select_related("service")),
+        bookings,
         active_statuses=status_registry.active_statuses_for("booking"),
         tenant=getattr(request, "tenant", None),
     )
@@ -283,6 +283,8 @@ def _move_booking(request, booking):
         )
     except services.NotMovable:
         return fail("not_movable", _("This step is not possible in the current status."))
+    except services.ResourceInactive:  # ресурс выключили между проверкой и блокировкой
+        return fail("inactive_resource", _("Diese Ressource ist deaktiviert."))
     except services.SlotTaken:
         return fail("slot_taken", _("That time is already taken."))
     except services.ResourceClosed:

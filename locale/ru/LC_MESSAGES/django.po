@@ -29436,3 +29436,6 @@ msgstr "Не удалось перенести."
 
 msgid "geschlossen"
 msgstr "закрыто"
+
+msgid "Diese Ressource ist deaktiviert."
+msgstr "Этот ресурс отключён."

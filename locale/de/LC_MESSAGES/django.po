@@ -29259,3 +29259,6 @@ msgstr "Verschieben fehlgeschlagen."
 
 msgid "geschlossen"
 msgstr "geschlossen"
+
+msgid "Diese Ressource ist deaktiviert."
+msgstr "Diese Ressource ist deaktiviert."

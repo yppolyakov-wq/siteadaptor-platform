@@ -92,3 +92,19 @@ def promo_with_variant(hit, variant):
         return None
     delta = int(getattr(variant, "price_delta_cents", 0) or 0) if variant else 0
     return max(0, int(hit[1]) + delta)
+
+
+def with_active_variants(qs):
+    """Prefetch активных вариантов (`to_attr="active_variants"`) — «ab»-цена карточки
+    услуги без запроса на каждую услугу (листинги, блоки «Liste», выборки по id)."""
+    from django.db.models import Prefetch
+
+    from .models import ServiceVariant
+
+    return qs.prefetch_related(
+        Prefetch(
+            "variants",
+            queryset=ServiceVariant.objects.filter(is_active=True).order_by("sort_order", "id"),
+            to_attr="active_variants",
+        )
+    )

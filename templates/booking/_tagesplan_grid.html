@@ -49,6 +49,14 @@
 {% if not deal_calendar_compact %}
 <script>
 (function () {
+  try {
+    var pk = sessionStorage.getItem("tp-focus");
+    if (pk) {
+      sessionStorage.removeItem("tp-focus");
+      var a = document.querySelector('[data-tp-block="' + pk + '"] a');
+      if (a) { a.scrollIntoView({block: "center"}); a.focus(); }
+    }
+  } catch (e) {}
   if (window.__tpBound) return; window.__tpBound = 1;
   var drag = null;
   function grid(el) { return el && el.closest("[data-tp-grid]"); }
@@ -124,21 +132,13 @@
     var row = Math.max(1, rowAt(col, e.clientY) - drag.offset);
     var start = hhmm(g, row), resource = col.dataset.tpCol;
     drag = null;
-    if (start === blk.dataset.start && resource === blk.closest("[data-tp-col]").dataset.tpCol) return;
+    if (String(row) === blk.dataset.row && resource === blk.closest("[data-tp-col]").dataset.tpCol) return;
     send(g, blk, start, resource, false);
   });
   document.addEventListener("dragend", function () {
     drag = null;
     document.querySelectorAll("[data-tp-col].ring-2").forEach(function (c) { c.classList.remove("ring-2", "ring-indigo-400"); });
   });
-  try {
-    var pk = sessionStorage.getItem("tp-focus");
-    if (pk) {
-      sessionStorage.removeItem("tp-focus");
-      var a = document.querySelector('[data-tp-block="' + pk + '"] a');
-      if (a) { a.scrollIntoView({block: "center"}); a.focus(); }
-    }
-  } catch (e) {}
 })();
 </script>
 {% endif %}

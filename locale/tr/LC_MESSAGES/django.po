@@ -29311,3 +29311,6 @@ msgstr "Taşıma başarısız oldu."
 
 msgid "geschlossen"
 msgstr "kapalı"
+
+msgid "Diese Ressource ist deaktiviert."
+msgstr "Bu kaynak devre dışı."
