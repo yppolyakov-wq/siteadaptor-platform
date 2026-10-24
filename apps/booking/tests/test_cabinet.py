@@ -30,8 +30,10 @@ def _req(method="get", path="/dashboard/booking/", data=None):
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
     owner = uuid.uuid4().hex[:8]
-    request.user = get_user_model().objects.create_user(
-        username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+    request.user = _with_owner_role(
+        get_user_model().objects.create_user(
+            username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+        )
     )
     return request
 
@@ -413,3 +415,12 @@ def test_manual_booking_form_has_party_size_field():
     )
     body = _cal(req).content.decode()
     assert resource.name in body and 'name="party_size"' in body
+
+
+def _with_owner_role(user):
+    """Решение 2026-10-24: возврат отменой — только владелец/бухгалтер; эти тесты
+    действуют от имени владельца (раньше роль не требовалась)."""
+    from apps.core.models import Membership
+
+    Membership.objects.get_or_create(user=user, defaults={"role": Membership.ROLE_OWNER})
+    return user

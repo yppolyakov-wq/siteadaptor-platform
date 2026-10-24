@@ -30,7 +30,7 @@ from enum import StrEnum
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _lazy
+from django.utils.translation import gettext_lazy
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ class RefundNotAllowed(Exception):
 
 
 #: Текст отказа — один на все поверхности.
-NOT_ALLOWED_MSG = _lazy(
+NOT_ALLOWED_MSG = gettext_lazy(
     "Diese Stornierung erstattet Geld — das dürfen nur Inhaber oder Buchhaltung."
 )
 

@@ -45,7 +45,12 @@ def _user():
     from django.contrib.auth import get_user_model
 
     o = uuid.uuid4().hex[:8]
-    return get_user_model().objects.create_user(f"h4-{o}", f"h4-{o}@t.de", "pw12345678")
+    from apps.core.models import Membership
+
+    user = get_user_model().objects.create_user(f"h4-{o}", f"h4-{o}@t.de", "pw12345678")
+    # Решение 2026-10-24: возврат отменой — только владелец/бухгалтер.
+    Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
+    return user
 
 
 def _tenant(**kw):

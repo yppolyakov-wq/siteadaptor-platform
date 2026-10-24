@@ -31,8 +31,10 @@ def _req(method="get", path="/dashboard/stays/", data=None):
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
     owner = uuid.uuid4().hex[:8]
-    request.user = get_user_model().objects.create_user(
-        username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+    request.user = _with_owner_role(
+        get_user_model().objects.create_user(
+            username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+        )
     )
     return request
 
@@ -541,3 +543,12 @@ def test_units_list_is_compact_and_links_to_unit_page():
         pk=a.pk,
     )
     assert resp.status_code == 302 and resp.url.endswith(f"/units/{a.pk}/")
+
+
+def _with_owner_role(user):
+    """Решение 2026-10-24: возврат отменой — только владелец/бухгалтер; эти тесты
+    действуют от имени владельца (раньше роль не требовалась)."""
+    from apps.core.models import Membership
+
+    Membership.objects.get_or_create(user=user, defaults={"role": Membership.ROLE_OWNER})
+    return user

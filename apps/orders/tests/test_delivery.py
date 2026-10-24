@@ -31,8 +31,10 @@ def _cab_req(data=None):
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
     owner = uuid.uuid4().hex[:8]
-    request.user = get_user_model().objects.create_user(
-        username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+    request.user = _with_owner_role(
+        get_user_model().objects.create_user(
+            username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+        )
     )
     return request
 
@@ -355,10 +357,12 @@ def test_delivery_note_view_returns_pdf():
     request = RequestFactory().get(f"/dashboard/orders/{order.pk}/lieferschein.pdf")
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
-    request.user = get_user_model().objects.create_user(
-        username=f"o-{uuid.uuid4().hex[:8]}",
-        email=f"{uuid.uuid4().hex[:8]}@t.de",
-        password="pw1234567",
+    request.user = _with_owner_role(
+        get_user_model().objects.create_user(
+            username=f"o-{uuid.uuid4().hex[:8]}",
+            email=f"{uuid.uuid4().hex[:8]}@t.de",
+            password="pw1234567",
+        )
     )
     request.tenant = TenantFactory.build(name="X", address="Str. 1", city="Hilden")
     resp = views.delivery_note_pdf(request, pk=order.pk)
@@ -421,3 +425,12 @@ def test_cabinet_return_refunds_paid_order(monkeypatch):
     assert order.status == "returned"
     assert order.payment_state == "refunded"
     assert refunds  # Stripe-refund вызван
+
+
+def _with_owner_role(user):
+    """Решение 2026-10-24: возврат отменой — только владелец/бухгалтер; эти тесты
+    действуют от имени владельца (раньше роль не требовалась)."""
+    from apps.core.models import Membership
+
+    Membership.objects.get_or_create(user=user, defaults={"role": Membership.ROLE_OWNER})
+    return user
