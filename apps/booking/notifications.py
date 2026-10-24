@@ -18,9 +18,18 @@ _CUSTOMER_TEMPLATES = {
     "confirmed": "booking_confirmed",
     "cancelled": "booking_cancelled",
     "reminder": "booking_reminder",
+    "moved": "booking_moved",  # KA-12 E4.3: владелец перенёс запись
     "post_visit": "booking_post_visit",  # UA4-4b: danke + запрос отзыва об услуге
     "payment_reminder": "booking_payment_reminder",  # B2: незавершённая оплата
 }
+
+
+def _event_key(booking, event) -> str:
+    """KA-12 E4.3: перенос и напоминание привязаны ко ВРЕМЕНИ записи — после переноса
+    клиент получает новое письмо и новое напоминание (прежний ключ гасил бы их дедупом)."""
+    if event in ("moved", "reminder") and booking.start:
+        return f"{event}:{booking.start:%Y%m%d%H%M}"
+    return event
 
 
 def enqueue_booking_email(booking, event):
@@ -92,7 +101,7 @@ def enqueue_booking_email(booking, event):
                 "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
             }
         notify(
-            dedupe_key=f"booking:{booking.id}:{event}:customer",
+            dedupe_key=f"booking:{booking.id}:{_event_key(booking, event)}:customer",
             type=f"booking_{event}",
             recipient=customer.email,
             subject=subject,
@@ -113,7 +122,7 @@ def enqueue_booking_email(booking, event):
         send_to_customer(
             customer,
             type=f"booking_{event}",
-            dedupe_key=f"booking:{booking.id}:{event}:tg",
+            dedupe_key=f"booking:{booking.id}:{_event_key(booking, event)}:tg",
             text=subject_tg or body_tg,
         )
 

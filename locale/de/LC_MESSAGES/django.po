@@ -28994,3 +28994,27 @@ msgstr "Von"
 
 msgid "Wir haben Betriebsferien bis %(bis)s. Bestellen und Zurücklegen geht danach wieder."
 msgstr "Wir haben Betriebsferien bis %(bis)s. Bestellen und Zurücklegen geht danach wieder."
+
+msgid "Aus Öffnungszeiten übernehmen"
+msgstr "Aus Öffnungszeiten übernehmen"
+
+msgid "Außerhalb der Öffnungszeiten. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen."
+msgstr "Außerhalb der Öffnungszeiten. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen."
+
+msgid "Keine eigenen Zeiten — gebucht wird in den Öffnungszeiten des Geschäfts."
+msgstr "Keine eigenen Zeiten — gebucht wird in den Öffnungszeiten des Geschäfts."
+
+msgid "Keine Öffnungszeiten zum Übernehmen."
+msgstr "Keine Öffnungszeiten zum Übernehmen."
+
+msgid "Termin verschoben"
+msgstr "Termin verschoben"
+
+msgid "Trotzdem eintragen"
+msgstr "Trotzdem eintragen"
+
+msgid "Ihr Termin wurde verschoben. Neuer Termin:"
+msgstr "Ihr Termin wurde verschoben. Neuer Termin:"
+
+msgid "Passt Ihnen die neue Zeit nicht? Antworten Sie einfach auf diese E-Mail."
+msgstr "Passt Ihnen die neue Zeit nicht? Antworten Sie einfach auf diese E-Mail."

@@ -94,7 +94,10 @@ def test_reminder_sent_once_within_horizon():
     assert tasks.send_due_reminders(now=now) == 1  # только near в горизонте 24ч
     near.refresh_from_db()
     assert near.reminder_sent_at is not None
-    assert Notification.objects.filter(dedupe_key=f"booking:{near.id}:reminder:customer").exists()
+    # KA-12 E4.3: ключ напоминания несёт время записи (после переноса — новое напоминание).
+    assert Notification.objects.filter(
+        dedupe_key__startswith=f"booking:{near.id}:reminder:", dedupe_key__endswith=":customer"
+    ).exists()
     assert tasks.send_due_reminders(now=now) == 0  # второго напоминания нет
 
 

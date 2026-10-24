@@ -28902,3 +28902,27 @@ msgstr "From"
 
 msgid "Wir haben Betriebsferien bis %(bis)s. Bestellen und Zurücklegen geht danach wieder."
 msgstr "We are closed for holidays until %(bis)s. Ordering and reserving will be possible again afterwards."
+
+msgid "Aus Öffnungszeiten übernehmen"
+msgstr "Copy from opening hours"
+
+msgid "Außerhalb der Öffnungszeiten. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen."
+msgstr "Outside opening hours. To book anyway, tick “Book anyway”."
+
+msgid "Keine eigenen Zeiten — gebucht wird in den Öffnungszeiten des Geschäfts."
+msgstr "No own hours — bookings follow the business opening hours."
+
+msgid "Keine Öffnungszeiten zum Übernehmen."
+msgstr "No opening hours to copy."
+
+msgid "Termin verschoben"
+msgstr "Appointment moved"
+
+msgid "Trotzdem eintragen"
+msgstr "Book anyway"
+
+msgid "Ihr Termin wurde verschoben. Neuer Termin:"
+msgstr "Your appointment has been moved. New appointment:"
+
+msgid "Passt Ihnen die neue Zeit nicht? Antworten Sie einfach auf diese E-Mail."
+msgstr "Does the new time not suit you? Just reply to this email."

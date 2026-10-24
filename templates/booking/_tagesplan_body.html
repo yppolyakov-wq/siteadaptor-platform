@@ -52,6 +52,7 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
         {% include "core/_status_actions.html" with kind="booking" obj=b %}
         {% if b.status == 'pending' or b.status == 'confirmed' %}
           <input type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <label class="inline-flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="override_hours" value="1"> {% trans "Trotzdem eintragen" %}</label>
           <button name="action" value="move" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
         {% endif %}
       </form>
@@ -102,5 +103,6 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
     <label for="neu-note" class="block text-sm font-medium mb-1">{% trans "Notiz" %}</label>
     <textarea id="neu-note" name="note" rows="2" maxlength="2000" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
   </div>
+  <div><label class="inline-flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="override_hours" value="1"> {% trans "Trotzdem eintragen" %}</label></div>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add booking" %}</button>
 </form>{% endif %}

@@ -29046,3 +29046,27 @@ msgstr "Başlangıç"
 
 msgid "Wir haben Betriebsferien bis %(bis)s. Bestellen und Zurücklegen geht danach wieder."
 msgstr "%(bis)s tarihine kadar tatildeyiz. Sipariş ve ayırtma bundan sonra yeniden mümkün olacak."
+
+msgid "Aus Öffnungszeiten übernehmen"
+msgstr "Çalışma saatlerinden al"
+
+msgid "Außerhalb der Öffnungszeiten. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen."
+msgstr "Çalışma saatleri dışında. Yine de kaydetmek için «Yine de kaydet» seçeneğini işaretleyin."
+
+msgid "Keine eigenen Zeiten — gebucht wird in den Öffnungszeiten des Geschäfts."
+msgstr "Kendi saatleri yok — randevular işletmenin çalışma saatlerine göre alınır."
+
+msgid "Keine Öffnungszeiten zum Übernehmen."
+msgstr "Alınacak çalışma saati yok."
+
+msgid "Termin verschoben"
+msgstr "Randevu ertelendi"
+
+msgid "Trotzdem eintragen"
+msgstr "Yine de kaydet"
+
+msgid "Ihr Termin wurde verschoben. Neuer Termin:"
+msgstr "Randevunuz değiştirildi. Yeni randevu:"
+
+msgid "Passt Ihnen die neue Zeit nicht? Antworten Sie einfach auf diese E-Mail."
+msgstr "Yeni saat size uymuyor mu? Bu e-postayı yanıtlamanız yeterli."

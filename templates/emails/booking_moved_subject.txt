@@ -1,0 +1,1 @@
+{% load i18n %}{% trans "Termin verschoben" %} — {{ booking.start|date:"d.m." }} {{ booking.start|time:"H:i" }}

@@ -29151,3 +29151,27 @@ msgstr "З"
 
 msgid "Wir haben Betriebsferien bis %(bis)s. Bestellen und Zurücklegen geht danach wieder."
 msgstr "У нас канікули до %(bis)s. Замовити або відкласти можна буде після цього."
+
+msgid "Aus Öffnungszeiten übernehmen"
+msgstr "Взяти з годин роботи"
+
+msgid "Außerhalb der Öffnungszeiten. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen."
+msgstr "Поза годинами роботи. Щоб усе одно записати, позначте «Усе одно записати»."
+
+msgid "Keine eigenen Zeiten — gebucht wird in den Öffnungszeiten des Geschäfts."
+msgstr "Власних годин немає — запис іде в години роботи закладу."
+
+msgid "Keine Öffnungszeiten zum Übernehmen."
+msgstr "Немає годин роботи для перенесення."
+
+msgid "Termin verschoben"
+msgstr "Запис перенесено"
+
+msgid "Trotzdem eintragen"
+msgstr "Усе одно записати"
+
+msgid "Ihr Termin wurde verschoben. Neuer Termin:"
+msgstr "Ваш запис перенесено. Новий час:"
+
+msgid "Passt Ihnen die neue Zeit nicht? Antworten Sie einfach auf diese E-Mail."
+msgstr "Новий час не підходить? Просто дайте відповідь на цей лист."

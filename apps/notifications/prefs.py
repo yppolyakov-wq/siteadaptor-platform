@@ -35,6 +35,7 @@ CUSTOMER_EVENTS = {
         ("confirmed", _("Bestätigt")),
         ("cancelled", _("Storniert")),
         ("reminder", _("Terminerinnerung")),
+        ("moved", _("Termin verschoben")),
         ("post_visit", _("Danke & Bewertung")),
         ("payment_reminder", _("Zahlungserinnerung")),
     ],

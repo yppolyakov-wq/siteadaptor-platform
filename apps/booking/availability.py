@@ -8,10 +8,54 @@
 
 from datetime import datetime, timedelta
 
+from django.db import connection
 from django.db.models import Q
 from django.utils import timezone
 
 from .models import Booking, ClosedDate
+
+#: KA-12 E4.1b: шаг сетки, когда окно взято из часов работы бизнеса (у ресурса нет правил).
+HOURS_FALLBACK_STEP = 30
+
+
+def _business_hours(tenant=None) -> dict:
+    from apps.tenants import openinghours
+
+    tenant = tenant if tenant is not None else getattr(connection, "tenant", None)
+    return openinghours.normalize(getattr(tenant, "opening_hours_structured", None))
+
+
+def day_windows(resource, day, tenant=None) -> list:
+    """[(start_time, end_time, slot_minutes)] рабочих окон ресурса в день.
+
+    О-4: правила ресурса сильнее; ресурс БЕЗ единого правила работает в часы бизнеса
+    (раньше — ни одного слота, и витрина молча писала «keine freien Termine»)."""
+    from apps.tenants import openinghours
+
+    rules = list(resource.rules.all())
+    if rules:
+        return [
+            (r.start_time, r.end_time, r.slot_minutes) for r in rules if r.weekday == day.weekday()
+        ]
+    rng = _business_hours(tenant).get(str(day.weekday()))
+    if not rng:
+        return []
+    start, end = openinghours._parse_hhmm(rng[0]), openinghours._parse_hhmm(rng[1])
+    return [(start, end, HOURS_FALLBACK_STEP)]
+
+
+def within_hours(resource, start, end, tenant=None) -> bool:
+    """Лежит ли [start, end] в рабочем окне ресурса (E4.3). Ни правил, ни часов — не
+    знаем, значит не мешаем (True)."""
+    if not resource.rules.exists() and not _business_hours(tenant):
+        return True
+    local_start, local_end = timezone.localtime(start), timezone.localtime(end)
+    if local_start.date() != local_end.date():
+        return False
+    return any(
+        w_start <= local_start.time() and local_end.time() <= w_end
+        for w_start, w_end, _step in day_windows(resource, local_start.date(), tenant)
+    )
 
 
 def is_closed(resource, day) -> bool:
@@ -37,10 +81,10 @@ def free_slots_with_spots(
     tz = timezone.get_current_timezone()
     now = timezone.now()
     grid = []
-    for rule in resource.rules.filter(weekday=day.weekday()):
-        cursor = datetime.combine(day, rule.start_time, tzinfo=tz)
-        window_end = datetime.combine(day, rule.end_time, tzinfo=tz)
-        step = timedelta(minutes=rule.slot_minutes)
+    for w_start, w_end, slot_minutes in day_windows(resource, day):
+        cursor = datetime.combine(day, w_start, tzinfo=tz)
+        window_end = datetime.combine(day, w_end, tzinfo=tz)
+        step = timedelta(minutes=slot_minutes)
         length = timedelta(minutes=duration_minutes) if duration_minutes else step
         while cursor + length <= window_end:
             if cursor > now:  # прошедшие слоты сегодня не предлагаем

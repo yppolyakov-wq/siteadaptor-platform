@@ -17,6 +17,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
 
 from apps.core import deal_links, freshness, refunds, vat
@@ -244,12 +245,21 @@ def booking_action(request, pk):
             if timezone.is_naive(start):  # datetime-local приходит без TZ
                 start = start.replace(tzinfo=tz)
             end = start + (booking.end - booking.start)  # длительность сохраняем
-            services.move(booking, start=start, end=end)
+            services.move(
+                booking,
+                start=start,
+                end=end,
+                override_hours=bool(request.POST.get("override_hours")),
+            )
             messages.success(request, _("Booking moved."))
         except ValueError:
             messages.error(request, _("Invalid date."))
         except services.SlotTaken:
             messages.error(request, _("That time is already taken."))
+        except services.ResourceClosed:
+            messages.error(request, _("Closed on this date."))
+        except services.OutsideHours:
+            messages.error(request, OUTSIDE_HOURS_MSG)
         return redirect(back)
     if action == "extras":
         # MX-3: пересборка снимка допов записи; итог (total_cents) — свойство
@@ -367,6 +377,14 @@ def booking_create(request):
         price_cents = pricing.price_cents_for(service, timezone.localtime(start).date())
         if service.pricing_mode == "per_person":
             price_cents *= party_size
+    from apps.booking import availability
+
+    if not request.POST.get("override_hours") and not availability.within_hours(
+        resource, start, end
+    ):
+        # KA-12 E4.3 (О-4b): вне часов — только с подтверждением владельца.
+        messages.error(request, OUTSIDE_HOURS_MSG)
+        return redirect("booking:calendar")
     if resource.counts_party_size and party_size > resource.capacity:
         messages.error(
             request,
@@ -536,6 +554,18 @@ def _parse_day_or_none(raw):
         return None
 
 
+#: KA-12 E4.3: подсказка при записи/переносе вне часов работы.
+OUTSIDE_HOURS_MSG = gettext_lazy(
+    "Außerhalb der Öffnungszeiten. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen."
+)
+
+
+def _business_hours_of(tenant) -> dict:
+    from apps.tenants import openinghours
+
+    return openinghours.normalize(getattr(tenant, "opening_hours_structured", None))
+
+
 @login_required
 def resources(request):
     """Ресурсы + недельные правила + выходные — простые POST-формы."""
@@ -566,6 +596,27 @@ def resources(request):
                 messages.success(request, _("Opening hours added."))
             except (TypeError, ValueError):
                 messages.error(request, _("Invalid input."))
+        elif action == "rules_from_hours":
+            # KA-12 E4.1b: «Aus Öffnungszeiten übernehmen» — правила дня из часов бизнеса
+            # (дни, где у ресурса уже есть правило, не трогаем).
+            from apps.tenants import openinghours
+
+            resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
+            hours = openinghours.normalize(
+                getattr(getattr(request, "tenant", None), "opening_hours_structured", None)
+            )
+            have = set(resource.rules.values_list("weekday", flat=True))
+            created = 0
+            for wd, (o, c) in hours.items():
+                if int(wd) not in have:
+                    AvailabilityRule.objects.create(
+                        resource=resource, weekday=int(wd), start_time=o, end_time=c
+                    )
+                    created += 1
+            if created:
+                messages.success(request, _("Opening hours added."))
+            else:
+                messages.info(request, _("Keine Öffnungszeiten zum Übernehmen."))
         elif action == "rule_delete":
             AvailabilityRule.objects.filter(pk=request.POST.get("rule")).delete()
         elif action == "closed":
@@ -620,6 +671,7 @@ def resources(request):
             "closed_dates": ClosedDate.objects.filter(date__gte=timezone.localdate()),
             "types": Resource.TYPES,
             "weekdays": AvailabilityRule.WEEKDAYS,
+            "business_hours": _business_hours_of(getattr(request, "tenant", None)),
             # Фидбэк 2026-08-03: настройки уехали С календаря СЮДА («настройки —
             # в настройки»): embed-виджет + имена статусов + правила переходов.
             "embed_url": request.build_absolute_uri(reverse("storefront-termin")) + "?embed=1",
@@ -915,7 +967,10 @@ def services_view(request, pk=None):
             # Фидбэк 2026-07-30 («на сайте пишет: нет доступных»): без рабочих часов
             # слоты не генерируются вообще. Показываем причину ЗДЕСЬ, где владелец
             # правит услугу, — иначе он ищет «календарь услуги», которого нет.
-            "has_hours": AvailabilityRule.objects.exists(),
+            "has_hours": AvailabilityRule.objects.exists()
+            or bool(
+                _business_hours_of(getattr(request, "tenant", None))
+            ),  # E4.1b: часы бизнеса — тоже окно записи
             "extra_locales": extra_locales(getattr(request, "tenant", None)),
         },
     )

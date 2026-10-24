@@ -13,6 +13,7 @@ from decimal import Decimal
 
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 
 from apps.promotions.models import Customer
 
@@ -31,6 +32,11 @@ class SlotTaken(Exception):
 
 class ResourceClosed(Exception):
     """На эту дату ресурс/бизнес закрыт (ClosedDate)."""
+
+
+class OutsideHours(Exception):
+    """KA-12 E4.3 (О-4b): интервал вне рабочих часов ресурса/бизнеса — только с
+    подтверждением владельца («Trotzdem eintragen»); закрытый день — жёстко."""
 
 
 def _unique_booking_code() -> str:
@@ -361,15 +367,34 @@ def redeem_pass(card, *, booking=None):
 
 
 @transaction.atomic
-def move(booking, *, start, end):
-    """Перенос записи на новый интервал с той же anti-double-book проверкой."""
+def move(booking, *, start, end, override_hours=False):
+    """Перенос записи на новый интервал с той же anti-double-book проверкой.
+
+    KA-12 E4.3: закрытый день (ClosedDate ресурса или всего бизнеса) → ResourceClosed;
+    вне часов → OutsideHours, если владелец не подтвердил. Новое время = новое
+    напоминание и письмо клиенту «verschoben» (после коммита)."""
+    from . import availability
+
     if end <= start:
         raise ValueError("end must be after start")
     resource = Resource.objects.select_for_update().get(id=booking.resource_id)
+    if availability.is_closed(resource, timezone.localtime(start).date()):
+        raise ResourceClosed()
+    if not override_hours and not availability.within_hours(resource, start, end):
+        raise OutsideHours()
     overlaps = overlapping(resource, start, end).exclude(pk=booking.pk)
     if _would_overfill(resource, overlaps, booking.party_size):
         raise SlotTaken()
+    moved = booking.start != start
     booking.start = start
     booking.end = end
-    booking.save(update_fields=["start", "end", "updated_at"])
+    fields = ["start", "end", "updated_at"]
+    if moved:
+        booking.reminder_sent_at = None
+        fields.append("reminder_sent_at")
+    booking.save(update_fields=fields)
+    if moved and booking.status in (Booking.STATUS_PENDING, Booking.STATUS_CONFIRMED):
+        from .notifications import enqueue_booking_email
+
+        transaction.on_commit(lambda: enqueue_booking_email(booking, "moved"))
     return booking
