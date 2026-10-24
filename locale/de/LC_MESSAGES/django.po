@@ -29189,3 +29189,12 @@ msgstr "Wer bietet die Leistung an?"
 #, python-format
 msgid "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."
 msgstr "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."
+
+msgid "Puffer danach"
+msgstr "Puffer danach"
+
+msgid "Buchbar ab"
+msgstr "Buchbar ab"
+
+msgid "Std. vorher"
+msgstr "Std. vorher"

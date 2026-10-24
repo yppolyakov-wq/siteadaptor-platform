@@ -29241,3 +29241,12 @@ msgstr "Bu hizmeti kim sunuyor?"
 #, python-format
 msgid "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."
 msgstr "Not: ayarlara göre %(res)s “%(svc)s” hizmetini sunmuyor."
+
+msgid "Puffer danach"
+msgstr "Sonrasında ara"
+
+msgid "Buchbar ab"
+msgstr "Rezervasyon en erken"
+
+msgid "Std. vorher"
+msgstr "saat önce"

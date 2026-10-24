@@ -29366,3 +29366,12 @@ msgstr "Кто оказывает услугу?"
 #, python-format
 msgid "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."
 msgstr "Обратите внимание: по настройкам %(res)s не оказывает «%(svc)s»."
+
+msgid "Puffer danach"
+msgstr "Буфер после"
+
+msgid "Buchbar ab"
+msgstr "Запись не раньше чем за"
+
+msgid "Std. vorher"
+msgstr "ч"

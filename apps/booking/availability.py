@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 
 from django.db import connection
 from django.db.models import Q
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from .models import Booking, ClosedDate
@@ -72,19 +73,25 @@ def is_closed(resource, day) -> bool:
 
 
 def free_slots_with_spots(
-    resource, day, duration_minutes=None
+    resource, day, duration_minutes=None, buffer_minutes=0, earliest=None
 ) -> list[tuple[datetime, datetime, int]]:
     """[(start, end, spots_left), …] свободных слотов с остатком мест (G9).
 
     spots_left = capacity − активные пересечения; включаем только слоты, где есть
     место (spots_left > 0). Для групповых курсов (capacity>1) витрина показывает
     «N Plätze frei». duration_minutes (G10): длина слота = длительность услуги.
+    KA-12 E4.4a: buffer_minutes — после слота ресурс занят ещё столько (уборка);
+    в часы работы обязан уложиться только сам визит. earliest — минимальный
+    срок записи (раньше — не предлагаем).
     """
     if is_closed(resource, day):
         return []
 
     tz = timezone.get_current_timezone()
     now = timezone.now()
+    if earliest is not None and earliest > now:
+        now = earliest
+    buffer = timedelta(minutes=int(buffer_minutes or 0))
     grid = []
     for w_start, w_end, slot_minutes in day_windows(resource, day):
         cursor = datetime.combine(day, w_start, tzinfo=tz)
@@ -109,9 +116,11 @@ def free_slots_with_spots(
             resource=resource,
             # FB-3 Вариант B: built-in ∪ кастом-active тенанта.
             status__in=status_registry.active_statuses_for("booking"),
-            start__lt=day_end,
-            end__gt=day_start,
-        ).values_list("start", "end", "party_size")
+            start__lt=day_end + buffer,
+        )
+        .annotate(busy_until=Coalesce("occupied_until", "end"))
+        .filter(busy_until__gt=day_start)
+        .values_list("start", "busy_until", "party_size")
     )
     by_party = resource.counts_party_size  # G9: места = сумма party_size
     result = []
@@ -119,16 +128,36 @@ def free_slots_with_spots(
         taken = sum(
             (party if by_party else 1)
             for b_start, b_end, party in bookings
-            if b_start < end and b_end > start
+            if b_start < end + buffer and b_end > start
         )
         if taken < resource.capacity:
             result.append((start, end, resource.capacity - taken))
     return result
 
 
-def free_slots(resource, day, duration_minutes=None) -> list[tuple[datetime, datetime]]:
+def free_slots(
+    resource, day, duration_minutes=None, buffer_minutes=0, earliest=None
+) -> list[tuple[datetime, datetime]]:
     """[(start, end), …] свободных слотов (тонкая обёртка над free_slots_with_spots)."""
-    return [(s, e) for s, e, _spots in free_slots_with_spots(resource, day, duration_minutes)]
+    return [
+        (s, e)
+        for s, e, _spots in free_slots_with_spots(
+            resource, day, duration_minutes, buffer_minutes=buffer_minutes, earliest=earliest
+        )
+    ]
+
+
+def booking_window(service):
+    """KA-12 E4.4a: (earliest, last_day) записи на витрине — минимальный срок и
+    горизонт услуги. None — без ограничения."""
+    earliest = last_day = None
+    lead = int(getattr(service, "min_lead_minutes", 0) or 0)
+    if lead:
+        earliest = timezone.now() + timedelta(minutes=lead)
+    horizon = getattr(service, "max_days_ahead", None)
+    if horizon is not None:
+        last_day = timezone.localdate() + timedelta(days=int(horizon))
+    return earliest, last_day
 
 
 def service_slots(
@@ -143,10 +172,16 @@ def service_slots(
     единиц подряд («с 8:30 до 12:30»), тогда сюда приходит N × длительность."""
 
     length = duration_minutes or service.duration_minutes
+    earliest, last_day = booking_window(service)
+    if last_day is not None and day > last_day:
+        return []
     pool = service_pool(service, resource, base=base_pool)
+    buffer = getattr(service, "buffer_after_minutes", 0)
     starts = set()
     for r in pool:
-        for start, _end in free_slots(r, day, duration_minutes=length):
+        for start, _end in free_slots(
+            r, day, duration_minutes=length, buffer_minutes=buffer, earliest=earliest
+        ):
             starts.add(start)
     return sorted(starts)
 
@@ -206,7 +241,11 @@ def assign_resource(service, start, resource=None, duration_minutes=None):
     length = duration_minutes or service.duration_minutes
     end = start + timedelta(minutes=length)
     pool = service_pool(service, resource)
+    earliest, _last_day = booking_window(service)
+    buffer = getattr(service, "buffer_after_minutes", 0)
     for r in pool:
-        if (start, end) in free_slots(r, start.date(), duration_minutes=length):
+        if (start, end) in free_slots(
+            r, start.date(), duration_minutes=length, buffer_minutes=buffer, earliest=earliest
+        ):
             return r
     return None

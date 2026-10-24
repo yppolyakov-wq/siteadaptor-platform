@@ -64,6 +64,13 @@
           <span class="ml-1 text-gray-400">{% trans "(nichts angehakt = alle)" %}</span>
         </span>
         {% endif %}
+        {% comment %}KA-12 E4.4a: буфер после визита, минимальный срок и горизонт записи (витрина).{% endcomment %}
+        <input type="hidden" name="booking_rules_present" value="1">
+        <span class="text-xs text-gray-500" data-service-rules>
+          <label class="whitespace-nowrap">{% trans "Puffer danach" %} <input name="buffer_after_minutes" type="number" min="0" max="480" inputmode="numeric" value="{{ s.buffer_after_minutes }}" class="w-16 rounded border border-gray-300 px-1 py-0.5 text-xs"> {% trans "Min." %}</label>
+          <label class="ml-2 whitespace-nowrap">{% trans "Buchbar ab" %} <input name="min_lead_hours" type="number" min="0" max="720" inputmode="numeric" value="{% widthratio s.min_lead_minutes 60 1 %}" class="w-16 rounded border border-gray-300 px-1 py-0.5 text-xs"> {% trans "Std. vorher" %}</label>
+          <label class="ml-2 whitespace-nowrap">{% trans "bis" %} <input name="max_days_ahead" type="number" min="1" max="365" inputmode="numeric" value="{{ s.max_days_ahead|default_if_none:'' }}" placeholder="30" class="w-16 rounded border border-gray-300 px-1 py-0.5 text-xs"> {% trans "Tage im Voraus" %}</label>
+        </span>
         <input type="hidden" name="pricing_mode_present" value="1">
         <label class="text-xs text-gray-500">{% trans "Preis gilt" %}
           <select name="pricing_mode" class="ml-1 rounded border border-gray-300 px-1 py-0.5 text-xs">

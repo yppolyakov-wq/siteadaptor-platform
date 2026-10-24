@@ -823,6 +823,14 @@ def _faq_rows(service, locales) -> list[dict]:
     return rows
 
 
+def _clamp_int(raw, low, high) -> int:
+    try:
+        value = int(str(raw or "").strip() or 0)
+    except ValueError:
+        value = 0
+    return max(low, min(high, value))
+
+
 def _is_uuid(value) -> bool:
     import uuid
 
@@ -923,6 +931,17 @@ def services_view(request, pk=None):
             if request.POST.get("hide_in_city_present"):  # T-8.11
                 service.hide_in_city = bool(request.POST.get("hide_in_city"))
                 fields.append("hide_in_city")
+            # KA-12 E4.4a: буфер/минимальный срок/горизонт — по сентинелу (W0).
+            if request.POST.get("booking_rules_present"):
+                service.buffer_after_minutes = _clamp_int(
+                    request.POST.get("buffer_after_minutes"), 0, 480
+                )
+                service.min_lead_minutes = 60 * _clamp_int(
+                    request.POST.get("min_lead_hours"), 0, 720
+                )
+                horizon = (request.POST.get("max_days_ahead") or "").strip()
+                service.max_days_ahead = _clamp_int(horizon, 1, 365) if horizon else None
+                fields += ["buffer_after_minutes", "min_lead_minutes", "max_days_ahead"]
             # MX-5: режим цены — по сентинелу (W0: чужая форма без селекта не трогает).
             if request.POST.get("pricing_mode_present"):
                 service.pricing_mode = (

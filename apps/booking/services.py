@@ -9,6 +9,7 @@ Customer переиспользуется по email (как в promotions/order
 import re
 import secrets
 import string
+from datetime import timedelta
 from decimal import Decimal
 
 from django.db import transaction
@@ -94,16 +95,30 @@ def _get_or_create_customer(*, name, email, phone, match_by_phone=False) -> Cust
     return Customer.objects.create(name=name, email=email, phone=phone)
 
 
+def occupied_end(service, end):
+    """KA-12 E4.4a: конец занятости ресурса с буфером услуги (None — буфера нет)."""
+    buffer = int(getattr(service, "buffer_after_minutes", 0) or 0)
+    return end + timedelta(minutes=buffer) if buffer else None
+
+
 def overlapping(resource, start, end):
-    """Активные записи ресурса, пересекающие интервал [start, end)."""
+    """Активные записи ресурса, пересекающие интервал [start, end).
+
+    KA-12 E4.4a: чужая запись держит ресурс до `occupied_until` (с буфером её
+    услуги); NULL — до `end`, как раньше."""
+    from django.db.models.functions import Coalesce
+
     from apps.core import status_registry
 
-    return Booking.objects.filter(
-        resource=resource,
-        # FB-3 Вариант B: built-in ∪ кастом-active тенанта (кастом-статус держит слот).
-        status__in=status_registry.active_statuses_for("booking"),
-        start__lt=end,
-        end__gt=start,
+    return (
+        Booking.objects.filter(
+            resource=resource,
+            # FB-3 Вариант B: built-in ∪ кастом-active тенанта (кастом-статус держит слот).
+            status__in=status_registry.active_statuses_for("booking"),
+            start__lt=end,
+        )
+        .annotate(busy_until=Coalesce("occupied_until", "end"))
+        .filter(busy_until__gt=start)
     )
 
 
@@ -171,7 +186,8 @@ def book(
     if closed.exists():
         raise ResourceClosed()
 
-    if _would_overfill(resource, overlapping(resource, start, end), party_size):
+    busy_until = occupied_end(service, end)
+    if _would_overfill(resource, overlapping(resource, start, busy_until or end), party_size):
         raise SlotTaken()
 
     # B1.2: скидка на полную стоимость (услуга + Extras); снимок кода/суммы.
@@ -207,6 +223,7 @@ def book(
         group_code=group_code or "",
         start=start,
         end=end,
+        occupied_until=busy_until,
         party_size=party_size,
         status=Booking.STATUS_CONFIRMED if auto_confirm else Booking.STATUS_PENDING,
         note=note,
@@ -382,13 +399,15 @@ def move(booking, *, start, end, override_hours=False):
         raise ResourceClosed()
     if not override_hours and not availability.within_hours(resource, start, end):
         raise OutsideHours()
-    overlaps = overlapping(resource, start, end).exclude(pk=booking.pk)
+    busy_until = occupied_end(booking.service, end)
+    overlaps = overlapping(resource, start, busy_until or end).exclude(pk=booking.pk)
     if _would_overfill(resource, overlaps, booking.party_size):
         raise SlotTaken()
     moved = booking.start != start
     booking.start = start
     booking.end = end
-    fields = ["start", "end", "updated_at"]
+    booking.occupied_until = busy_until
+    fields = ["start", "end", "occupied_until", "updated_at"]
     if moved:
         booking.reminder_sent_at = None
         fields.append("reminder_sent_at")

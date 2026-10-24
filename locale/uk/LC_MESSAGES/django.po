@@ -29350,3 +29350,12 @@ msgstr "Хто надає послугу?"
 #, python-format
 msgid "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."
 msgstr "Зверніть увагу: за налаштуваннями %(res)s не надає «%(svc)s»."
+
+msgid "Puffer danach"
+msgstr "Буфер після"
+
+msgid "Buchbar ab"
+msgstr "Запис не раніше ніж за"
+
+msgid "Std. vorher"
+msgstr "год"

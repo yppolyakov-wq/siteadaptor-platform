@@ -100,6 +100,11 @@ class Service(I18nMixin, TimestampedModel):
     # пусто = карточка без фото (как раньше).
     image = models.JSONField(default=dict, blank=True)
     duration_minutes = models.PositiveSmallIntegerField(default=30)
+    # KA-12 E4.4a: буфер после визита (уборка/подготовка) держит ресурс дольше
+    # записи; минимальный срок и горизонт записи — только для витрины.
+    buffer_after_minutes = models.PositiveSmallIntegerField(default=0)
+    min_lead_minutes = models.PositiveIntegerField(default=0)
+    max_days_ahead = models.PositiveSmallIntegerField(null=True, blank=True)
     price_cents = models.PositiveIntegerField(default=0)
     # DC-8: ставка НДС услуги (DE — обычно 19 %). Снимком уходит в запись.
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
@@ -418,6 +423,8 @@ class Booking(TimestampedModel):
     group_code = models.CharField(max_length=12, blank=True, db_index=True)
     start = models.DateTimeField()
     end = models.DateTimeField()
+    # KA-12 E4.4a: конец занятости ресурса с буфером услуги (NULL = `end`).
+    occupied_until = models.DateTimeField(null=True, blank=True)
     party_size = models.PositiveSmallIntegerField(default=1)
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_PENDING)
     note = models.TextField(blank=True)

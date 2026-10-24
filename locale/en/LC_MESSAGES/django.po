@@ -29097,3 +29097,12 @@ msgstr "Who offers this service?"
 #, python-format
 msgid "Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an."
 msgstr "Note: according to the settings, %(res)s does not offer “%(svc)s”."
+
+msgid "Puffer danach"
+msgstr "Buffer afterwards"
+
+msgid "Buchbar ab"
+msgstr "Bookable from"
+
+msgid "Std. vorher"
+msgstr "hrs before"
