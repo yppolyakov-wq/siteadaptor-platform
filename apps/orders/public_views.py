@@ -16,7 +16,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.catalog.combos import combo_labels
-from apps.core import ratelimit
+from apps.core import closures, ratelimit
 
 from . import delivery_choice, pickup_slots
 from . import payments as order_payments
@@ -1001,6 +1001,13 @@ def checkout(request):
     if slot_error:
         messages.error(request, slot_error)
         return redirect("storefront-cart")
+    if pickup_slot is None:
+        # KA-12 О-3: в Betriebsferien заказ «как можно скорее» некому выдать; время
+        # из сетки — можно (сетка дни закрытия уже исключает).
+        closed = closures.closed_now_message(tenant)
+        if closed:
+            messages.error(request, closed)
+            return redirect("storefront-cart")
 
     # E7-2: способ оплаты — из пикера (radio `payment`); без/с невалидным POST —
     # первый доступный (= прежнее поведение: stripe при сконфигурированной

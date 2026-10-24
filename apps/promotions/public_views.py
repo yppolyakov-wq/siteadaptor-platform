@@ -25,7 +25,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from apps.catalog.combos import combo_labels
 from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
-from apps.core import grid_filler, ratelimit
+from apps.core import closures, grid_filler, ratelimit
 from apps.core.models import resolve_overlay
 from apps.core.pagecache import cache_storefront_page
 from apps.core.pagination import paginate
@@ -2363,6 +2363,11 @@ def reservation_create(request, pk):
     # honeypot — тихо игнорируем ботов (отдаём вид успеха)
     if request.POST.get("website"):
         return redirect("storefront-promotion", pk=pk)
+    # KA-12 О-3: в Betriebsferien не продаём и не откладываем (выдать некому).
+    closed = closures.closed_now_message(getattr(request, "tenant", None))
+    if closed:
+        messages.info(request, closed)
+        return redirect("storefront-promotion", pk=pk)
 
     form = PublicReservationForm(request.POST)
     if form.is_valid() and not (
@@ -2676,6 +2681,12 @@ def promotion_purchase(request, pk):
     if request.POST.get("website"):  # honeypot
         return redirect("storefront-promotion", pk=pk)
     from . import response as promo_response
+
+    # KA-12 О-3: в Betriebsferien не продаём и не откладываем (выдать некому).
+    closed = closures.closed_now_message(getattr(request, "tenant", None))
+    if closed:
+        messages.info(request, closed)
+        return redirect("storefront-promotion", pk=pk)
 
     if promo.price_condition:
         # В2: условная акция онлайн не продаётся (подменённый POST тоже).

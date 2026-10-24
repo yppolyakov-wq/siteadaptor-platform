@@ -29148,3 +29148,6 @@ msgstr "Закриттів не заплановано."
 
 msgid "Von"
 msgstr "З"
+
+msgid "Wir haben Betriebsferien bis %(bis)s. Bestellen und Zurücklegen geht danach wieder."
+msgstr "У нас канікули до %(bis)s. Замовити або відкласти можна буде після цього."

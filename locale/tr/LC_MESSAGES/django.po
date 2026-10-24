@@ -29043,3 +29043,6 @@ msgstr "Planlanmış kapanış yok."
 
 msgid "Von"
 msgstr "Başlangıç"
+
+msgid "Wir haben Betriebsferien bis %(bis)s. Bestellen und Zurücklegen geht danach wieder."
+msgstr "%(bis)s tarihine kadar tatildeyiz. Sipariş ve ayırtma bundan sonra yeniden mümkün olacak."

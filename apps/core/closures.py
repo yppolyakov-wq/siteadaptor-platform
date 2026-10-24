@@ -148,3 +148,17 @@ def _bump() -> None:
         bump_storefront_cache(connection.schema_name)
     except Exception:  # noqa: BLE001
         logger.exception("closures: cache bump failed")
+
+
+def closed_now_message(tenant=None):
+    """О-3: сегодня закрыто → текст для витрины «заказ/отложить сейчас нельзя», иначе None.
+    Купон и запрос (Anfrage) не закрываются — они не обещают выдачу в эти дни."""
+    from django.utils import formats, timezone
+    from django.utils.translation import gettext as _
+
+    rng = current_or_next(timezone.localdate(), tenant)
+    if not rng or not rng["now"]:
+        return None
+    return _(
+        "Wir haben Betriebsferien bis %(bis)s. Bestellen und Zurücklegen geht danach wieder."
+    ) % {"bis": formats.date_format(rng["bis"], "SHORT_DATE_FORMAT")}

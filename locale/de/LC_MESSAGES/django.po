@@ -28991,3 +28991,6 @@ msgstr "Keine Schließungen geplant."
 
 msgid "Von"
 msgstr "Von"
+
+msgid "Wir haben Betriebsferien bis %(bis)s. Bestellen und Zurücklegen geht danach wieder."
+msgstr "Wir haben Betriebsferien bis %(bis)s. Bestellen und Zurücklegen geht danach wieder."
