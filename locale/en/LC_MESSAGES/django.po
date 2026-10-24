@@ -29143,3 +29143,27 @@ msgstr "Variant"
 
 msgid "This option is no longer available. Please pick another."
 msgstr "This option is no longer available. Please pick another."
+
+msgid "Variante nicht gefunden – Termin ohne Variante angelegt."
+msgstr "Option not found – appointment created without an option."
+
+msgid "Außerhalb der Öffnungszeiten — trotzdem eintragen?"
+msgstr "Outside opening hours — book anyway?"
+
+msgid "Nicht verfügbar"
+msgstr "Not available"
+
+msgid "Puffer"
+msgstr "Buffer"
+
+msgid "Puffer bis %(t)s"
+msgstr "Buffer until %(t)s"
+
+msgid "Tagesplan nach Ressource und Uhrzeit"
+msgstr "Day plan by resource and time"
+
+msgid "Verschieben fehlgeschlagen."
+msgstr "Moving failed."
+
+msgid "geschlossen"
+msgstr "closed"

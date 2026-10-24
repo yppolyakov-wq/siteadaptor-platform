@@ -37,7 +37,10 @@ def active_variants(service) -> list:
     cached = getattr(service, "active_variants", None)
     if cached is not None:
         return list(cached)
-    if not getattr(service, "pk", None):
+    # UUID-pk назначается в __init__ → несохранённость определяет `_state.adding`;
+    # у заглушек без модели (`SimpleNamespace` в тестах секций) вариантов нет.
+    state = getattr(service, "_state", None)
+    if state is None or state.adding or not getattr(service, "pk", None):
         return []
     return list(service.variants.filter(is_active=True).order_by("sort_order", "id"))
 

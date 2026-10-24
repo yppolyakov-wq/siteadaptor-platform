@@ -13,6 +13,7 @@
 """
 
 from dataclasses import dataclass, field
+from decimal import Decimal
 
 from django.urls import NoReverseMatch, reverse
 from django.utils.html import strip_tags
@@ -124,13 +125,27 @@ def _product_ld_extra(obj) -> dict:
 
 
 def _service(obj, locale):
+    price_display = _price_str(obj.price_eur) if obj.price_cents else ""
+    price_value = obj.price_eur if obj.price_cents else None
+    # KA-12 E4.4b: у услуги с вариантами цена честная «ab <минимум>» (база или
+    # самый дешёвый вариант). Варианты — из prefetch листинга (to_attr), без N+1.
+    from apps.booking import pricing
+
+    variants = pricing.active_variants(obj)
+    if variants:
+        low = min(pricing.variant_price_cents(obj, None, v) for v in [None, *variants])
+        if low > 0:
+            price_display = "ab " + _price_str(Decimal(low) / 100)
+            price_value = Decimal(low) / 100
+        else:
+            price_display, price_value = "", None
     return {
         "name": obj.name_localized(locale),
         "description": obj.description_localized(locale),
-        "price_display": _price_str(obj.price_eur) if obj.price_cents else "",
+        "price_display": price_display,
         "image_url": obj.image_url,
         "gallery": _gallery_urls(obj.images),
-        "price_value": obj.price_eur if obj.price_cents else None,
+        "price_value": price_value,
     }
 
 

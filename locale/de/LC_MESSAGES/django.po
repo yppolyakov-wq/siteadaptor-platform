@@ -29235,3 +29235,27 @@ msgstr "Variante"
 
 msgid "This option is no longer available. Please pick another."
 msgstr "Diese Variante ist nicht mehr verfügbar. Bitte wählen Sie eine andere."
+
+msgid "Variante nicht gefunden – Termin ohne Variante angelegt."
+msgstr "Variante nicht gefunden – Termin ohne Variante angelegt."
+
+msgid "Außerhalb der Öffnungszeiten — trotzdem eintragen?"
+msgstr "Außerhalb der Öffnungszeiten — trotzdem eintragen?"
+
+msgid "Nicht verfügbar"
+msgstr "Nicht verfügbar"
+
+msgid "Puffer"
+msgstr "Puffer"
+
+msgid "Puffer bis %(t)s"
+msgstr "Puffer bis %(t)s"
+
+msgid "Tagesplan nach Ressource und Uhrzeit"
+msgstr "Tagesplan nach Ressource und Uhrzeit"
+
+msgid "Verschieben fehlgeschlagen."
+msgstr "Verschieben fehlgeschlagen."
+
+msgid "geschlossen"
+msgstr "geschlossen"

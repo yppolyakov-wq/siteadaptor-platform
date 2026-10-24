@@ -477,6 +477,13 @@ def translate_tenant_content(tenant, locales) -> None:
                 ]
             )
 
+    # KA-12 E4.4b: варианты услуги («Langhaar») — подпись чипа на витрине.
+    from apps.booking.models import ServiceVariant
+
+    for var in ServiceVariant.objects.all():
+        if _fill_overlay(var, "name", "name_i18n", locales):
+            var.save(update_fields=["name_i18n"])
+
     # Фидбэк владельца 2026-07-31: акции демо оставались немецкими на любой
     # локали — их просто не было в этом обходе. Поля те же full-JSON, что у товара.
     from apps.promotions.models import Promotion

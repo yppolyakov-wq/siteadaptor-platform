@@ -1,0 +1,145 @@
+{% load i18n cabinet %}
+{% comment %}KA-12 E4.2b: Tagesplan «ресурс × время». Колонка = секция ресурса со списком
+блоков по времени (порядок DOM = порядок чтения; фон часов aria-hidden). Перетаскивание
+меняет время/мастера (fetch 204/409); клавиатурный путь — форма переноса в списке ниже.
+В карточке сделки (compact) — только показ, без перетаскивания.{% endcomment %}
+{% if grid.columns %}
+<div class="hidden md:block mb-6 bg-white rounded-2xl shadow-sm overflow-auto" style="max-height:70vh"
+     data-tp-grid data-day="{{ day|date:'Y-m-d' }}" data-step="{{ grid.step }}" data-first="{{ grid.rows.0.1 }}"
+     {% if not deal_calendar_compact %}data-tp-dnd data-confirm-hours="{% trans 'Außerhalb der Öffnungszeiten — trotzdem eintragen?' %}" data-error="{% trans 'Verschieben fehlgeschlagen.' %}"{% endif %}
+     role="group" aria-label="{% trans 'Tagesplan nach Ressource und Uhrzeit' %}">
+  {% if not deal_calendar_compact %}{% csrf_token %}{% endif %}
+  <div style="display:grid;grid-template-columns:3.5rem repeat({{ grid.columns|length }},minmax(9rem,1fr));min-width:max-content">
+    <div aria-hidden="true">
+      <div class="sticky top-0 z-20 bg-white h-9 border-b border-gray-200"></div>
+      <div style="display:grid;grid-template-rows:repeat({{ grid.rows|length }},1.75rem)">
+        {% for idx, label, full in grid.rows %}<div class="text-[11px] text-right pr-2 {% if full %}text-gray-600 border-t border-gray-200{% else %}text-gray-400 border-t border-gray-100{% endif %}">{% if full %}{{ label }}{% endif %}</div>{% endfor %}
+      </div>
+    </div>
+    {% for col in grid.columns %}
+    <section class="border-l border-gray-200" aria-labelledby="tp-r{{ col.resource.pk }}">
+      <h3 id="tp-r{{ col.resource.pk }}" class="sticky top-0 z-20 bg-white h-9 px-2 flex items-center text-sm font-semibold border-b border-gray-200 truncate">{{ col.resource.name }}{% if col.closed %} <span class="ml-1 text-xs font-normal text-red-700">· {% trans "geschlossen" %}</span>{% endif %}</h3>
+      <div data-tp-col="{{ col.resource.pk }}" class="relative{% if col.closed %} bg-gray-100{% endif %}"
+           style="display:grid;grid-template-rows:repeat({{ grid.rows|length }},1.75rem);grid-template-columns:repeat({{ col.lanes }},minmax(0,1fr))">
+        {% for idx, label, full in grid.rows %}<div aria-hidden="true" class="border-t {% if full %}border-gray-200{% else %}border-gray-100{% endif %}{% if idx in col.off_rows %} bg-gray-50{% endif %}" style="grid-row:{{ idx }};grid-column:1 / -1"{% if idx in col.off_rows %} title="{% trans 'Nicht verfügbar' %}"{% endif %}></div>{% endfor %}
+        <ul style="display:contents">
+          {% for blk in col.blocks %}{% with b=blk.booking %}
+          <li data-tp-block="{{ b.pk }}" data-action="{% url 'booking:booking-action' b.pk %}"
+              data-start="{{ b.start|time:'H:i' }}" data-row="{{ blk.row }}"
+              {% if blk.movable and not deal_calendar_compact %}draggable="true"{% endif %}
+              class="relative z-10 m-0.5 rounded-lg border px-2 py-1 text-xs leading-tight overflow-hidden {% if b.status == 'confirmed' %}bg-green-50 border-green-300 text-green-900{% elif b.status == 'pending' %}bg-amber-50 border-amber-300 text-amber-900{% else %}bg-gray-50 border-gray-300 text-gray-700{% endif %}{% if blk.movable and not deal_calendar_compact %} cursor-grab{% endif %}"
+              style="grid-row:{{ blk.row }} / span {{ blk.span }};grid-column:{{ blk.lane|add:1 }};min-height:24px">
+            <a href="{% url 'booking:booking-detail' b.pk %}" draggable="false" class="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+              <span class="font-semibold">{{ b.start|time:"H:i" }}–{{ b.end|time:"H:i" }}</span>
+              {{ b.customer }}{% if b.group_code %} 🔗{% endif %}
+              <span class="block truncate">{% if b.service_id %}{{ b.service_label }} · {% endif %}{% status_label b "booking" %}</span>
+            </a>
+            {% if b.occupied_until %}<span class="sr-only">{% blocktrans with t=b.occupied_until|time:"H:i" %}Puffer bis {{ t }}{% endblocktrans %}</span>{% endif %}
+          </li>
+          {% if blk.buffer_span %}<li aria-hidden="true" class="m-0.5 rounded-b-lg border border-dashed border-gray-300" title="{% trans 'Puffer' %}"
+              style="grid-row:{{ blk.row|add:blk.span }} / span {{ blk.buffer_span }};grid-column:{{ blk.lane|add:1 }};background:repeating-linear-gradient(45deg,#f3f4f6 0 6px,#e5e7eb 6px 12px)"></li>{% endif %}
+          {% endwith %}{% endfor %}
+        </ul>
+      </div>
+    </section>
+    {% endfor %}
+  </div>
+</div>
+<div id="tp-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+{% if not deal_calendar_compact %}
+<script>
+(function () {
+  if (window.__tpBound) return; window.__tpBound = 1;
+  var drag = null;
+  function grid(el) { return el && el.closest("[data-tp-grid]"); }
+  function say(g, msg) {
+    var live = document.getElementById("tp-live");
+    if (live) live.textContent = msg;
+    var t = document.createElement("div");
+    t.className = "mb-3 rounded-lg px-4 py-2 text-sm bg-red-50 text-red-700";
+    t.textContent = msg;
+    g.parentNode.insertBefore(t, g);
+    setTimeout(function () { t.remove(); }, 6000);
+  }
+  function rowAt(col, y) {
+    var rows = col.querySelectorAll(":scope > [aria-hidden]");
+    if (!rows.length) return 1;
+    var h = rows[0].getBoundingClientRect().height || 28;
+    var top = col.getBoundingClientRect().top;
+    return Math.max(1, Math.min(rows.length, Math.floor((y - top) / h) + 1));
+  }
+  function hhmm(g, row) {
+    var p = g.dataset.first.split(":"), step = parseInt(g.dataset.step, 10);
+    var m = parseInt(p[0], 10) * 60 + parseInt(p[1], 10) + (row - 1) * step;
+    m = Math.max(0, Math.min(m, 23 * 60 + 59));
+    return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+  }
+  function send(g, blk, start, resource, override) {
+    if (g.dataset.inflight) return;
+    g.dataset.inflight = "1";
+    var body = new URLSearchParams({action: "move", start: g.dataset.day + "T" + start, resource: resource, next: location.pathname + location.search});
+    if (override) body.set("override_hours", "1");
+    var tok = g.querySelector("[name=csrfmiddlewaretoken]");
+    fetch(blk.dataset.action, {method: "POST", body: body, credentials: "same-origin",
+      headers: {"X-CSRFToken": tok ? tok.value : "", "X-Requested-With": "fetch"}})
+      .then(function (r) {
+        if (r.status === 204) {
+          try { sessionStorage.setItem("tp-focus", blk.dataset.tpBlock); } catch (e) {}
+          location.reload();
+          return;
+        }
+        delete g.dataset.inflight;
+        if (r.status === 409) {
+          return r.json().then(function (d) {
+            if (d.code === "outside_hours" && confirm(g.dataset.confirmHours)) {
+              send(g, blk, start, resource, true);
+            } else if (d.code !== "outside_hours") { say(g, d.message); }
+          });
+        }
+        say(g, g.dataset.error);
+      })
+      .catch(function () { delete g.dataset.inflight; say(g, g.dataset.error); });
+  }
+  document.addEventListener("dragstart", function (e) {
+    var blk = e.target.closest && e.target.closest("[data-tp-block][draggable=true]");
+    if (!blk || !grid(blk) || !grid(blk).hasAttribute("data-tp-dnd")) return;
+    var col = blk.closest("[data-tp-col]");
+    drag = {blk: blk, offset: rowAt(col, e.clientY) - parseInt(blk.dataset.row, 10)};
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", blk.dataset.tpBlock);
+  });
+  document.addEventListener("dragover", function (e) {
+    var col = drag && e.target.closest && e.target.closest("[data-tp-col]");
+    if (!col) return;
+    e.preventDefault();
+    document.querySelectorAll("[data-tp-col].ring-2").forEach(function (c) { if (c !== col) c.classList.remove("ring-2", "ring-indigo-400"); });
+    col.classList.add("ring-2", "ring-indigo-400");
+  });
+  document.addEventListener("drop", function (e) {
+    var col = drag && e.target.closest && e.target.closest("[data-tp-col]");
+    if (!col) return;
+    e.preventDefault();
+    col.classList.remove("ring-2", "ring-indigo-400");
+    var g = grid(col), blk = drag.blk;
+    var row = Math.max(1, rowAt(col, e.clientY) - drag.offset);
+    var start = hhmm(g, row), resource = col.dataset.tpCol;
+    drag = null;
+    if (start === blk.dataset.start && resource === blk.closest("[data-tp-col]").dataset.tpCol) return;
+    send(g, blk, start, resource, false);
+  });
+  document.addEventListener("dragend", function () {
+    drag = null;
+    document.querySelectorAll("[data-tp-col].ring-2").forEach(function (c) { c.classList.remove("ring-2", "ring-indigo-400"); });
+  });
+  try {
+    var pk = sessionStorage.getItem("tp-focus");
+    if (pk) {
+      sessionStorage.removeItem("tp-focus");
+      var a = document.querySelector('[data-tp-block="' + pk + '"] a');
+      if (a) { a.scrollIntoView({block: "center"}); a.focus(); }
+    }
+  } catch (e) {}
+})();
+</script>
+{% endif %}
+{% endif %}

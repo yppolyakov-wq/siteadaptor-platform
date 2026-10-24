@@ -30,7 +30,18 @@ class ServiceFacets(FacetProvider):
             ).distinct()
         if sel["video"]:
             items = items.filter(is_video=True)
-        return items
+        # KA-12 E4.4b: варианты для «ab …»-цены карточки — одним запросом на листинг.
+        from django.db.models import Prefetch
+
+        from .models import ServiceVariant
+
+        return items.prefetch_related(
+            Prefetch(
+                "variants",
+                queryset=ServiceVariant.objects.filter(is_active=True).order_by("sort_order", "id"),
+                to_attr="active_variants",
+            )
+        )
 
     def present(self, items, params) -> dict:
         """Чипы подборок для листинга услуг: только коллекции, где есть услуги

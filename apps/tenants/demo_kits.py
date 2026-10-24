@@ -9534,6 +9534,8 @@ FRISEUR = DemoKit(
                 "en": "Wash, cut and blow-dry — tailored to you.",
             },
             "woman,haircut",
+            # KA-12 E4.4b: варианты (доплата €, доп. минуты) — база = короткие волосы.
+            {"variants": [("Mittellang", "8", 15), ("Langhaar", "15", 30)]},
         ),
         (
             {"de": "Haarschnitt Herren", "en": "Men's haircut"},
@@ -25583,6 +25585,18 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 # whatsapp_number кита).
                 is_video=bool(rich.get("is_video")),
             )
+            # KA-12 E4.4b: варианты услуги (имя, доплата €, доп. минуты).
+            if rich.get("variants"):
+                from apps.booking.models import ServiceVariant as _Var
+
+                for vi, (vname, vprice, vmin) in enumerate(rich["variants"]):
+                    _Var.objects.create(
+                        service=svc,
+                        name=vname,
+                        price_delta_cents=int(Decimal(vprice) * 100),
+                        duration_delta_minutes=vmin,
+                        sort_order=vi,
+                    )
             # KA-12 E4.2a: навыки — какие мастера оказывают услугу (по имени ресурса).
             if rich.get("skills"):
                 from apps.booking.models import Resource as _Res

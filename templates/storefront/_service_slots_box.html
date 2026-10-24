@@ -49,8 +49,8 @@
 {% comment %}KA-12 E4.4b: варианты услуги (своя длина и цена). Смена варианта
 сбрасывает выбранные времена — длина другая.{% endcomment %}
 {% if variant_options %}
-<p class="text-xs text-gray-500 mb-2 max-w-xl mx-auto">{% trans "Variant" %}</p>
-<div class="flex flex-wrap gap-2 mb-3 max-w-xl mx-auto" data-variants>
+<p id="svc-variant-lbl" class="text-xs text-gray-500 mb-2 max-w-xl mx-auto">{% trans "Variant" %}</p>
+<div class="flex flex-wrap gap-2 mb-3 max-w-xl mx-auto" role="group" aria-labelledby="svc-variant-lbl" data-variants>
   {% for v in variant_options %}
     <a href="{{ v.url }}" data-variant{% if v.selected %} aria-current="true"{% endif %}
        class="px-3 py-1.5 rounded-lg text-sm font-medium border {% if v.selected %}bg-indigo-600 text-white border-indigo-600{% else %}bg-white border-gray-300 hover:border-indigo-400{% endif %}">{{ v.name }} · {% blocktrans with m=v.minutes %}{{ m }} min{% endblocktrans %} · {{ v.eur|floatformat:2 }} €</a>

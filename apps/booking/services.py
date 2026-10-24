@@ -40,6 +40,14 @@ class OutsideHours(Exception):
     подтверждением владельца («Trotzdem eintragen»); закрытый день — жёстко."""
 
 
+class NotMovable(Exception):
+    """KA-12 E4.2b: двигать можно только действующую запись (не выполненную/отменённую)."""
+
+
+class ResourceInactive(Exception):
+    """KA-12 E4.2b: перенос на выключенный ресурс (мастер/стол)."""
+
+
 def _unique_booking_code() -> str:
     for _ in range(10):
         code = "T-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
@@ -444,30 +452,49 @@ def redeem_pass(card, *, booking=None):
 
 
 @transaction.atomic
-def move(booking, *, start, end, override_hours=False):
+def move(booking, *, start, end, resource=None, override_hours=False):
     """Перенос записи на новый интервал с той же anti-double-book проверкой.
 
     KA-12 E4.3: закрытый день (ClosedDate ресурса или всего бизнеса) → ResourceClosed;
     вне часов → OutsideHours, если владелец не подтвердил. Новое время = новое
-    напоминание и письмо клиенту «verschoben» (после коммита)."""
+    напоминание и письмо клиенту «verschoben» (после коммита).
+    KA-12 E4.2b: `resource` — перенос к другому мастеру/столу; все проверки — по
+    ЦЕЛЕВОМУ ресурсу; двигается только действующая запись; блокируются оба ресурса
+    в порядке pk (как `resync_occupancy` — без встречного дедлока)."""
+    from apps.core import status_registry
+
     from . import availability
 
     if end <= start:
         raise ValueError("end must be after start")
-    resource = Resource.objects.select_for_update().get(id=booking.resource_id)
-    if availability.is_closed(resource, timezone.localtime(start).date()):
+    if booking.status not in status_registry.active_statuses_for("booking"):
+        raise NotMovable()
+    target_id = resource.pk if resource is not None else booking.resource_id
+    locked = {
+        r.pk: r
+        for r in Resource.objects.select_for_update()
+        .filter(pk__in={booking.resource_id, target_id})
+        .order_by("pk")
+    }
+    target = locked[target_id]
+    if not target.is_active:
+        raise ResourceInactive()
+    if availability.is_closed(target, timezone.localtime(start).date()):
         raise ResourceClosed()
-    if not override_hours and not availability.within_hours(resource, start, end):
+    if not override_hours and not availability.within_hours(target, start, end):
         raise OutsideHours()
     busy_until = occupied_end(booking.service, end, fresh=True)
-    overlaps = overlapping(resource, start, busy_until or end).exclude(pk=booking.pk)
-    if _would_overfill(resource, overlaps, booking.party_size):
+    overlaps = overlapping(target, start, busy_until or end).exclude(pk=booking.pk)
+    if _would_overfill(target, overlaps, booking.party_size):
         raise SlotTaken()
     moved = booking.start != start
     booking.start = start
     booking.end = end
     booking.occupied_until = busy_until
     fields = ["start", "end", "occupied_until", "updated_at"]
+    if target.pk != booking.resource_id:
+        booking.resource = target
+        fields.append("resource")
     if moved:
         booking.reminder_sent_at = None
         fields.append("reminder_sent_at")

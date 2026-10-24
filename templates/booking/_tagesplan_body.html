@@ -24,6 +24,8 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
 </div>
 
 {% if bookings %}
+{# KA-12 E4.2b: сетка «ресурс × время» с переносом перетаскиванием (md+); список ниже — путь без мыши. #}
+{% include "booking/_tagesplan_grid.html" %}
 <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
   {% for b in bookings %}
     <div class="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
@@ -52,6 +54,8 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
         {% include "core/_status_actions.html" with kind="booking" obj=b %}
         {% if b.status == 'pending' or b.status == 'confirmed' %}
           <input type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          {% if resources|length > 1 %}<label class="inline-flex items-center gap-1 text-xs text-gray-500">{% trans "Resource" %}
+            <select name="resource" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">{% for r in resources %}<option value="{{ r.pk }}"{% if r.pk == b.resource_id %} selected{% endif %}>{{ r.name }}</option>{% endfor %}</select></label>{% endif %}
           <label class="inline-flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="override_hours" value="1"> {% trans "Trotzdem eintragen" %}</label>
           <button name="action" value="move" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
         {% endif %}
@@ -87,7 +91,7 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
     <label for="neu-service" class="block text-sm font-medium mb-1">{% trans "Leistung" %}</label>
     <select id="neu-service" name="service" class="w-full rounded-lg border border-gray-300 px-3 py-2">
       <option value="">{% trans "— ohne Leistung (z. B. Tisch) —" %}</option>
-      {% for s in manual_services %}<option value="{{ s.pk }}">{{ s.name_localized|default:s.name }}</option>{% endfor %}
+      {% for s in manual_services %}<option value="{{ s.pk }}">{{ s.name_localized|default:s.name }}</option>{% for v in s.active_variants %}<option value="{{ s.pk }}:{{ v.pk }}">{{ s.name_localized|default:s.name }} · {{ v.name_localized }}</option>{% endfor %}{% endfor %}
     </select>
   </div>{% endif %}
   <div class="grid sm:grid-cols-3 gap-4">

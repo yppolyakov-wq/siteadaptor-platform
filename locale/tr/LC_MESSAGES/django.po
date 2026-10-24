@@ -29287,3 +29287,27 @@ msgstr "Varyant"
 
 msgid "This option is no longer available. Please pick another."
 msgstr "Bu seçenek artık mevcut değil. Lütfen başka birini seçin."
+
+msgid "Variante nicht gefunden – Termin ohne Variante angelegt."
+msgstr "Seçenek bulunamadı – randevu seçeneksiz oluşturuldu."
+
+msgid "Außerhalb der Öffnungszeiten — trotzdem eintragen?"
+msgstr "Çalışma saatleri dışında — yine de kaydedilsin mi?"
+
+msgid "Nicht verfügbar"
+msgstr "Müsait değil"
+
+msgid "Puffer"
+msgstr "Ara süre"
+
+msgid "Puffer bis %(t)s"
+msgstr "%(t)s saatine kadar ara süre"
+
+msgid "Tagesplan nach Ressource und Uhrzeit"
+msgstr "Kaynağa ve saate göre günlük plan"
+
+msgid "Verschieben fehlgeschlagen."
+msgstr "Taşıma başarısız oldu."
+
+msgid "geschlossen"
+msgstr "kapalı"

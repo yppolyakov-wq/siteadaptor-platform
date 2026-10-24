@@ -13,11 +13,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
@@ -40,6 +41,7 @@ from .models import (
     Resource,
     Service,
     ServiceSeasonRate,
+    ServiceVariant,
 )
 from .services import MAX_BUFFER_MINUTES, resync_occupancy
 
@@ -89,10 +91,22 @@ def calendar_context(request):
     )
     from django.urls import reverse
 
-    from apps.core import status_labels, transition_rules
+    from apps.core import status_labels, status_registry, transition_rules
 
+    from . import tagesplan
+
+    resources = list(Resource.objects.filter(is_active=True).prefetch_related("rules"))
+    # KA-12 E4.2b: сетка «ресурс × время» (двигаются только действующие записи).
+    grid = tagesplan.build(
+        resources,
+        day,
+        list(bookings.select_related("service")),
+        active_statuses=status_registry.active_statuses_for("booking"),
+        tenant=getattr(request, "tenant", None),
+    )
     return {
         "nav": "booking",
+        "grid": grid,
         "day": day,
         "prev_day": day - timedelta(days=1),
         "next_day": day + timedelta(days=1),
@@ -100,9 +114,18 @@ def calendar_context(request):
         # Фидбэк владельца 2026-08-04: месячная сетка над списком дня — быстрый
         # переход на любую дату (клик по дню разворачивает его брони ниже).
         **_month_grid_context(request, day),
-        "resources": Resource.objects.filter(is_active=True),
+        "resources": resources,
         # KA-H7: услуга в ручной записи (цена/длительность).
-        "manual_services": Service.objects.filter(is_active=True).order_by("name"),
+        # KA-12 E4.4b: варианты строками «Услуга · Вариант» (значение `<svc>:<variant>`).
+        "manual_services": Service.objects.filter(is_active=True)
+        .order_by("name")
+        .prefetch_related(
+            Prefetch(
+                "variants",
+                queryset=ServiceVariant.objects.filter(is_active=True).order_by("sort_order", "id"),
+                to_attr="active_variants",
+            )
+        ),
         # A4: iframe-виджет записи для своего сайта.
         "embed_url": request.build_absolute_uri(reverse("storefront-termin")) + "?embed=1",
         # FB-4b: строки панели «Status-Namen» (status, дефолт, своё имя).
@@ -219,6 +242,72 @@ def booking_detail(request, pk):
     )
 
 
+def _move_booking(request, booking):
+    """KA-12 E4.2b: перенос записи (время и/или мастер/стол). Форма строки — сообщения
+    и редирект (None); перетаскивание в Tagesplan (`X-Requested-With: fetch`) —
+    204 / 409 JSON `{code, message}`. Хелпер стоит ВЫШЕ декораторов вьюхи
+    (иначе «съел» бы `@login_required` — `test_orphan_decorators`)."""
+    from django.http import HttpResponse, JsonResponse
+
+    from apps.booking import availability
+
+    is_fetch = request.headers.get("X-Requested-With") == "fetch"
+
+    def fail(code, msg):
+        if is_fetch:
+            return JsonResponse({"code": code, "message": str(msg)}, status=409)
+        messages.error(request, msg)
+        return None
+
+    target = None
+    raw_resource = request.POST.get("resource", "").strip()
+    if raw_resource and raw_resource != str(booking.resource_id):
+        if not _is_uuid(raw_resource):
+            raise Http404
+        target = get_object_or_404(Resource, pk=raw_resource, is_active=True)
+    tz = timezone.get_current_timezone()
+    try:
+        start = datetime.fromisoformat(request.POST.get("start", ""))
+    except ValueError:
+        return fail("invalid", _("Invalid date."))
+    if timezone.is_naive(start):  # datetime-local приходит без TZ
+        start = start.replace(tzinfo=tz)
+    end = start + (booking.end - booking.start)  # длительность сохраняем
+    try:
+        services.move(
+            booking,
+            start=start,
+            end=end,
+            resource=target,
+            override_hours=bool(request.POST.get("override_hours")),
+        )
+    except services.NotMovable:
+        return fail("not_movable", _("This step is not possible in the current status."))
+    except services.SlotTaken:
+        return fail("slot_taken", _("That time is already taken."))
+    except services.ResourceClosed:
+        return fail("closed", _("Closed on this date."))
+    except services.OutsideHours:
+        return fail("outside_hours", OUTSIDE_HOURS_MSG)
+    except ValueError:
+        return fail("invalid", _("Invalid date."))
+    # Мастер без навыка — не отказ (стойка знает лучше, паритет ручной записи E4.2a).
+    if (
+        target is not None
+        and booking.service_id
+        and not availability.has_skill(booking.service, target)
+    ):
+        messages.warning(
+            request,
+            _("Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an.")
+            % {"res": target.name, "svc": booking.service.name},
+        )
+    if is_fetch:
+        return HttpResponse(status=204)
+    messages.success(request, _("Booking moved."))
+    return None
+
+
 @login_required
 @require_POST
 def booking_action(request, pk):
@@ -228,7 +317,11 @@ def booking_action(request, pk):
     # Карточка брони шлёт next= — после действия остаёмся на ней (только
     # внутренние пути; чужие/абсолютные URL игнорируем).
     _next = request.POST.get("next", "")
-    if _next.startswith("/") and not _next.startswith("//"):
+    if (
+        _next.startswith("/")
+        and "\\" not in _next
+        and url_has_allowed_host_and_scheme(_next, allowed_hosts={request.get_host()})
+    ):
         back = _next
     if action == "mark_paid":
         # KA-H6: остаток после онлайн-Anzahlung кассируется на месте (наличные/EC) —
@@ -242,28 +335,8 @@ def booking_action(request, pk):
         messages.success(request, _("Marked as paid."))
         return redirect(back)
     if action == "move":
-        tz = timezone.get_current_timezone()
-        try:
-            start = datetime.fromisoformat(request.POST.get("start", ""))
-            if timezone.is_naive(start):  # datetime-local приходит без TZ
-                start = start.replace(tzinfo=tz)
-            end = start + (booking.end - booking.start)  # длительность сохраняем
-            services.move(
-                booking,
-                start=start,
-                end=end,
-                override_hours=bool(request.POST.get("override_hours")),
-            )
-            messages.success(request, _("Booking moved."))
-        except ValueError:
-            messages.error(request, _("Invalid date."))
-        except services.SlotTaken:
-            messages.error(request, _("That time is already taken."))
-        except services.ResourceClosed:
-            messages.error(request, _("Closed on this date."))
-        except services.OutsideHours:
-            messages.error(request, OUTSIDE_HOURS_MSG)
-        return redirect(back)
+        resp = _move_booking(request, booking)
+        return resp if resp is not None else redirect(back)
     if action == "extras":
         # MX-3: пересборка снимка допов записи; итог (total_cents) — свойство
         # модели (цена+допы−скидка), отдельного пересчёта не требует. Сентинел
@@ -357,7 +430,7 @@ def booking_create(request):
     # KA-H7: услуга в ручной записи — цена/длительность из услуги (без неё запись
     # была на 0 € и 60 мин). Мусор/неактивная услуга → запись без услуги.
     service = None
-    raw_service = request.POST.get("service", "").strip()
+    raw_service, _sep, raw_variant = request.POST.get("service", "").strip().partition(":")
     if raw_service:
         try:
             service = Service.objects.filter(pk=raw_service, is_active=True).first()
@@ -365,8 +438,23 @@ def booking_create(request):
             service = None
     if raw_service and service is None:
         messages.warning(request, _("Leistung nicht gefunden – Termin ohne Leistung angelegt."))
+    # KA-12 E4.4b: вариант услуги — только активный вариант ЭТОЙ услуги; иначе запись
+    # без варианта с предупреждением (стойку не блокируем — как с услугой выше).
+    variant = None
+    if service is not None and raw_variant:
+        from apps.booking import pricing as _pricing
+
+        variant, _ok = _pricing.resolve_variant(service, raw_variant)
+        if not _ok:
+            variant = None
+            messages.warning(request, _("Variante nicht gefunden – Termin ohne Variante angelegt."))
     if minutes is None:
-        minutes = service.duration_minutes if service is not None else 60
+        if service is not None:
+            from apps.booking import pricing as _pricing
+
+            minutes = _pricing.effective_minutes(service, variant)
+        else:
+            minutes = 60
     minutes = max(5, min(minutes, 24 * 60))
     name = request.POST.get("name", "").strip() or _("Walk-in")
     # KA-H5: число гостей. Без него у пула мест (counts_party_size) компания из 8
@@ -380,7 +468,9 @@ def booking_create(request):
     if service is not None:
         from apps.booking import pricing
 
-        price_cents = pricing.price_cents_for(service, timezone.localtime(start).date())
+        price_cents = pricing.variant_price_cents(
+            service, timezone.localtime(start).date(), variant
+        )
         if service.pricing_mode == "per_person":
             price_cents *= party_size
     from apps.booking import availability
@@ -420,6 +510,8 @@ def booking_create(request):
             service=service,
             price_cents=price_cents,
             match_by_phone=True,  # KA-H7: доверенный путь (кабинет)
+            variant=variant,
+            variant_label=variant.name[:100] if variant is not None else "",
         )
     except services.SlotTaken:
         if resource.counts_party_size:

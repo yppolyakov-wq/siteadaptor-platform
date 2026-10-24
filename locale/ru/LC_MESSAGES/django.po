@@ -29412,3 +29412,27 @@ msgstr "Вариант"
 
 msgid "This option is no longer available. Please pick another."
 msgstr "Этот вариант больше недоступен. Пожалуйста, выберите другой."
+
+msgid "Variante nicht gefunden – Termin ohne Variante angelegt."
+msgstr "Вариант не найден — запись создана без варианта."
+
+msgid "Außerhalb der Öffnungszeiten — trotzdem eintragen?"
+msgstr "Вне часов работы — всё равно записать?"
+
+msgid "Nicht verfügbar"
+msgstr "Недоступно"
+
+msgid "Puffer"
+msgstr "Буфер"
+
+msgid "Puffer bis %(t)s"
+msgstr "Буфер до %(t)s"
+
+msgid "Tagesplan nach Ressource und Uhrzeit"
+msgstr "План дня по ресурсам и времени"
+
+msgid "Verschieben fehlgeschlagen."
+msgstr "Не удалось перенести."
+
+msgid "geschlossen"
+msgstr "закрыто"
