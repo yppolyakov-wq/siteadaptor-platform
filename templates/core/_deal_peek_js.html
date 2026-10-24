@@ -7,7 +7,17 @@
   "use strict";
   if (window.__dealPeekBound) return;
   window.__dealPeekBound = true;
+  function closeDrawer() {
+    document.querySelectorAll("[data-peek-drawer]").forEach(function (d) { d.hidden = true; });
+    document.querySelectorAll("[data-peek-row].ring-2").forEach(function (r) {
+      r.classList.remove("ring-2", "ring-indigo-300");
+    });
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeDrawer();
+  });
   document.addEventListener("click", function (e) {
+    if (e.target.closest("[data-peek-close]")) { closeDrawer(); return; }
     var row = e.target.closest("[data-peek-row]");
     if (!row) return;
     if (e.target.closest("a, button, form, details, input, select, label")) return;
@@ -21,6 +31,9 @@
       return;
     }
     panel.replaceChildren(tpl.content.cloneNode(true));
+    // KA-12 E2.4: на доске панель живёт в выезжающем drawer'е.
+    var drawer = panel.closest("[data-peek-drawer]");
+    if (drawer) drawer.hidden = false;
     document.querySelectorAll("[data-peek-row].ring-2").forEach(function (r) {
       r.classList.remove("ring-2", "ring-indigo-300");
     });

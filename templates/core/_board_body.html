@@ -36,6 +36,14 @@
     </div>
   {% endfor %}
 
+  {% comment %}KA-12 E2.4: правый drawer peek доски (колонки горизонтальные —
+второй колонки сетки, как у Liste, тут нет). Открывает _deal_peek_js.{% endcomment %}
+  <aside data-peek-drawer hidden class="fixed top-16 right-4 bottom-4 z-40 w-[22rem] max-w-[calc(100vw-2rem)] overflow-y-auto bg-white rounded-[22px] shadow-[0_12px_40px_rgba(22,24,29,0.18)] p-5">
+    <button type="button" data-peek-close class="absolute top-3 right-3 rounded-full w-8 h-8 text-gray-400 hover:bg-gray-100 hover:text-gray-700" aria-label="{% trans 'Schließen' %}">✕</button>
+    <div id="deal-peek"></div>
+  </aside>
+  {% include "core/_deal_peek_js.html" %}
+
   <div id="board-toast" class="fixed bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm rounded-lg px-4 py-2 shadow-lg hidden z-50"></div>
 
   <script>

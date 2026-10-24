@@ -29076,3 +29076,39 @@ msgstr "%(d)s tarihine kadar tatil"
 
 msgid "Das ganze Geschäft schließen darf nur der Inhaber. Wählen Sie eine Ressource."
 msgstr "Tüm işletmeyi yalnızca sahibi kapatabilir. Lütfen bir kaynak seçin."
+
+msgid "Alle Dokumente"
+msgstr "Tüm belgeler"
+
+msgid "Dokumentart"
+msgstr "Belge türü"
+
+msgid "Höchster Betrag"
+msgstr "En yüksek tutar"
+
+msgid "Keine Rechnungen für diesen Filter."
+msgstr "Bu filtre için fatura yok."
+
+msgid "Kunde A–Z"
+msgstr "Müşteri A–Z"
+
+msgid "Nummer, Empfänger, Kunde"
+msgstr "Numara, alıcı, müşteri"
+
+msgid "Rechnungsnummer"
+msgstr "Fatura numarası"
+
+msgid "Standard-Reihenfolge"
+msgstr "Varsayılan sıra"
+
+msgid "Termin: nächster zuerst"
+msgstr "Tarih: en yakın önce"
+
+msgid "Termin: spätester zuerst"
+msgstr "Tarih: en geç önce"
+
+msgid "Älteste zuerst"
+msgstr "Önce en eski"
+
+msgid "Überfällig"
+msgstr "Vadesi geçmiş"

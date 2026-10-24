@@ -29024,3 +29024,39 @@ msgstr "Betriebsferien bis %(d)s"
 
 msgid "Das ganze Geschäft schließen darf nur der Inhaber. Wählen Sie eine Ressource."
 msgstr "Das ganze Geschäft schließen darf nur der Inhaber. Wählen Sie eine Ressource."
+
+msgid "Alle Dokumente"
+msgstr "Alle Dokumente"
+
+msgid "Dokumentart"
+msgstr "Dokumentart"
+
+msgid "Höchster Betrag"
+msgstr "Höchster Betrag"
+
+msgid "Keine Rechnungen für diesen Filter."
+msgstr "Keine Rechnungen für diesen Filter."
+
+msgid "Kunde A–Z"
+msgstr "Kunde A–Z"
+
+msgid "Nummer, Empfänger, Kunde"
+msgstr "Nummer, Empfänger, Kunde"
+
+msgid "Rechnungsnummer"
+msgstr "Rechnungsnummer"
+
+msgid "Standard-Reihenfolge"
+msgstr "Standard-Reihenfolge"
+
+msgid "Termin: nächster zuerst"
+msgstr "Termin: nächster zuerst"
+
+msgid "Termin: spätester zuerst"
+msgstr "Termin: spätester zuerst"
+
+msgid "Älteste zuerst"
+msgstr "Älteste zuerst"
+
+msgid "Überfällig"
+msgstr "Überfällig"

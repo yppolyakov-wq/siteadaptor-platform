@@ -29197,3 +29197,39 @@ msgstr "Каникулы до %(d)s"
 
 msgid "Das ganze Geschäft schließen darf nur der Inhaber. Wählen Sie eine Ressource."
 msgstr "Закрыть весь бизнес может только владелец. Выберите ресурс."
+
+msgid "Alle Dokumente"
+msgstr "Все документы"
+
+msgid "Dokumentart"
+msgstr "Вид документа"
+
+msgid "Höchster Betrag"
+msgstr "Сначала крупные суммы"
+
+msgid "Keine Rechnungen für diesen Filter."
+msgstr "По этому фильтру счетов нет."
+
+msgid "Kunde A–Z"
+msgstr "Клиент А–Я"
+
+msgid "Nummer, Empfänger, Kunde"
+msgstr "Номер, получатель, клиент"
+
+msgid "Rechnungsnummer"
+msgstr "Номер счёта"
+
+msgid "Standard-Reihenfolge"
+msgstr "Порядок по умолчанию"
+
+msgid "Termin: nächster zuerst"
+msgstr "Дата: ближайшие сначала"
+
+msgid "Termin: spätester zuerst"
+msgstr "Дата: поздние сначала"
+
+msgid "Älteste zuerst"
+msgstr "Сначала старые"
+
+msgid "Überfällig"
+msgstr "Просрочено"

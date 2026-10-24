@@ -19,6 +19,14 @@ section (может быть None).{% endcomment %}
       <option value="{{ value }}" {% if list_status == value %}selected{% endif %}>{{ label }}</option>
     {% endfor %}
   </select>
+  {% if list_sort_options %}
+  <select name="sort" onchange="this.form.submit()" aria-label="{% trans 'Sortierung' %}" data-list-sort class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
+    <option value="">{% trans "Standard-Reihenfolge" %}</option>
+    {% for value, label in list_sort_options %}
+      <option value="{{ value }}" {% if list_sort == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  {% endif %}
   <input type="search" name="q" value="{{ list_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
          class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm w-56 focus:border-indigo-300 focus:outline-none">
   <button type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>

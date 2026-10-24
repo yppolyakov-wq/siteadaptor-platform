@@ -71,6 +71,22 @@ def _hide_owner_only(context) -> bool:
         return False
 
 
+@register.simple_tag(takes_context=True)
+def query_with(context, key, value=""):
+    """KA-12 E2.9: текущий GET с заменённым `key` (пусто — убрать); номер
+    страницы сбрасывается — чип/фильтр начинает список сначала."""
+    request = context.get("request")
+    q = request.GET.copy() if request is not None else None
+    if q is None:
+        return f"?{key}={value}" if value else "?"
+    for drop in (*_PAGER_DROP, "seite", key):
+        q.pop(drop, None)
+    if value:
+        q[key] = str(value)
+    encoded = q.urlencode()
+    return f"?{encoded}" if encoded else "?"
+
+
 #: Параметры, которые ссылки пейджера не переносят: фрагменты, курсоры, возвраты.
 _PAGER_DROP = ("box", "cursor", "next")
 

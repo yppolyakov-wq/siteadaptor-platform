@@ -31,7 +31,7 @@ detail-панели master-detail. Рендерится СКРЫТЫМ <template
   {% if tx.allowed_actions %}
   <form method="post" action="{% url 'board-action' tx.kind tx.pk %}" class="flex flex-col gap-1.5 mb-3">
     {% csrf_token %}
-    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <input type="hidden" name="next" value="{% firstof kanban_next request.get_full_path %}">
     {% if tx.needs_tracking %}
       <input type="text" name="tracking_code" maxlength="100" placeholder="{% trans 'Sendungsnummer (optional)' %}"
              class="rounded-xl border border-transparent bg-gray-50 px-3 py-1.5 text-sm focus:border-indigo-300 focus:outline-none">

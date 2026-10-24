@@ -544,6 +544,55 @@ _BOARD_ORDER = {
 }
 
 
+# KA-12 E2.3: сортировка списков `?sort=` — БЕЛЫЙ список. Ключ приходит из URL,
+# в order_by попадает только значение отсюда; неизвестный ключ = порядок по
+# умолчанию. «Дата» — дата СОБЫТИЯ вида (заезд/начало/выдача/мероприятие).
+# Сумма — только где итог лежит в одном поле БД (см. _SUM_FIELD): у booking/
+# ticket итог считается в Python, и сортировка по price_cents врала бы.
+_SORT_DATE_FIELD = {
+    "order": "pickup_slot",
+    "booking": "start",
+    "stay": "arrival",
+    "ticket": "event__starts_at",
+    "job": "event_date",
+}
+_SORT_LABELS = {
+    "neu": _("Neueste zuerst"),
+    "alt": _("Älteste zuerst"),
+    "datum": _("Termin: nächster zuerst"),
+    "datum_ab": _("Termin: spätester zuerst"),
+    "kunde": _("Kunde A–Z"),
+    "summe": _("Höchster Betrag"),
+}
+
+
+def _sort_orderings(kind: str) -> dict:
+    """kind → {ключ: order_by-кортеж}. pk-тай-брейк добавляет пагинация."""
+    from django.db.models import F
+
+    out = {"neu": ("-created_at",), "alt": ("created_at",)}
+    date_field = _SORT_DATE_FIELD.get(kind)
+    if date_field:
+        out["datum"] = (F(date_field).asc(nulls_last=True), "-created_at")
+        out["datum_ab"] = (F(date_field).desc(nulls_last=True), "-created_at")
+    out["kunde"] = (F("customer__name").asc(nulls_last=True), "-created_at")
+    if kind in _SUM_FIELD:
+        out["summe"] = (F(_SUM_FIELD[kind][0]).desc(nulls_last=True), "-created_at")
+    return out
+
+
+def list_sort_options(kind: str) -> list[tuple]:
+    """Варианты селекта сортировки для вида (ключ, подпись) — в порядке реестра."""
+    keys = _sort_orderings(kind)
+    return [(key, label) for key, label in _SORT_LABELS.items() if key in keys]
+
+
+def clean_sort(kind: str, raw) -> str:
+    """Ключ сортировки из URL → допустимый ключ вида или ""."""
+    raw = (raw or "").strip()
+    return raw if raw in _sort_orderings(kind) else ""
+
+
 def status_filter_options(tenant, kind: str) -> list[tuple]:
     """X2c: варианты фильтра статуса для generic-списка продаж.
 
@@ -580,7 +629,12 @@ def _per_status(qs, per_column: int, fallback_limit: int) -> list:
 
 
 def _managed_queryset(
-    kind, event_order: bool = False, q: str = "", status: str = "", board_order: bool = False
+    kind,
+    event_order: bool = False,
+    q: str = "",
+    status: str = "",
+    board_order: bool = False,
+    sort: str = "",
 ):
     """Базовый queryset kind для кабинета: свежие сверху, с select_related.
     `event_order` — сортировка по дате СОБЫТИЯ (W7c, только kind'ы из _EVENT_ORDER).
@@ -598,6 +652,8 @@ def _managed_queryset(
         from django.db.models import F
 
         qs = qs.order_by(F(field).asc(nulls_last=True), "-created_at")
+    elif clean_sort(kind, sort):
+        qs = qs.order_by(*_sort_orderings(kind)[clean_sort(kind, sort)])
     else:
         order = _EVENT_ORDER.get(kind, "-created_at") if event_order else "-created_at"
         qs = qs.order_by(order)
@@ -697,6 +753,7 @@ def manage_sections_for(
     board_order: bool = False,
     page_raw: str | None = None,
     per_column: int | None = None,
+    sort: str = "",
 ) -> list[dict]:
     """Секции доски по активным транзакционным модулям тенанта.
 
@@ -727,7 +784,9 @@ def manage_sections_for(
         # FB-4a/b: свои имена статусов + FB-3: правила переходов — только доска кабинета.
         labels = status_labels.custom_labels(tenant, kind)
         trans = transition_rules.subset_for(tenant, kind)
-        base_qs = _managed_queryset(kind, event_order, q, status, board_order=board_order)
+        base_qs = _managed_queryset(
+            kind, event_order, q, status, board_order=board_order, sort=sort
+        )
         page = None
         if page_raw is not None:
             from apps.core.pagination import paginate_queryset

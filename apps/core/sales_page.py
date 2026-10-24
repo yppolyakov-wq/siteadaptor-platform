@@ -504,6 +504,12 @@ def body_context(request, kind: str, view: str) -> dict:
 
         qs = order_counters.apply_list_filters(qs, request.GET)
         ctx["order_counter_filter"] = order_counters.active_label(request.GET)
+        # KA-12 E2.3: сортировка по белому списку (тот же словарь, что у generic).
+        sort = transactions.clean_sort("order", request.GET.get("sort"))
+        if sort:
+            qs = qs.order_by(*transactions._sort_orderings("order")[sort])
+        ctx["list_sort"] = sort
+        ctx["list_sort_options"] = transactions.list_sort_options("order")
         # SH-11 (фидбэк владельца 2026-08-20 «в списке позволить менять статус»):
         # к строке заказа привязываем переходы FSM — тот же слой, что у доски
         # (allowed_actions_for + правила владельца FB-3), поэтому список не
@@ -517,10 +523,16 @@ def body_context(request, kind: str, view: str) -> dict:
         page = paginate_queryset(qs, page_raw=request.GET.get("seite"))
         ctx["page"] = page
         orders = page.items
+        from apps.core import status_labels
+
+        labels = status_labels.custom_labels(tenant, "order")
         for o in orders:
             o.row_actions = transactions.allowed_actions_for("order", o.status, subset, obj=o)
             o.row_stage = pipeline.stage_for("order", o.status)
+            # KA-12 E2.4: peek строки — те же данные Transaction, что у Liste/доски.
+            o.tx = transactions.transaction_for("order", o, labels, subset)
         ctx["orders"] = orders
+        ctx["order_peek"] = True
         # X4 (§6.A4.5): KDS/Tisch-QR — гастро-инструменты; раньше кнопки видел
         # любой архетип с модулем orders (парикмахер — «Kitchen Display»).
         # KA-12 E0.3 (KA-5a B5): тот же гейт, что у записей реестра навигации — KDS только
@@ -544,6 +556,10 @@ def body_context(request, kind: str, view: str) -> dict:
         options = transactions.status_filter_options(tenant, kind)
         if status not in {code for code, _label in options}:
             status = ""
+        # KA-12 E2.3: сортировка `?sort=` по белому списку вида.
+        sort = transactions.clean_sort(kind, request.GET.get("sort"))
+        ctx["list_sort"] = sort
+        ctx["list_sort_options"] = transactions.list_sort_options(kind)
         sections = transactions.manage_sections_for(
             tenant,
             only=kind,
@@ -551,6 +567,7 @@ def body_context(request, kind: str, view: str) -> dict:
             q=q,
             status=status,
             page_raw=request.GET.get("seite") or "1",
+            sort=sort,
         )
         ctx["section"] = sections[0] if sections else None
         ctx["page"] = ctx["section"]["page"] if ctx["section"] else None

@@ -28932,3 +28932,39 @@ msgstr "Closed for holidays until %(d)s"
 
 msgid "Das ganze Geschäft schließen darf nur der Inhaber. Wählen Sie eine Ressource."
 msgstr "Only the owner may close the whole business. Please choose a resource."
+
+msgid "Alle Dokumente"
+msgstr "All documents"
+
+msgid "Dokumentart"
+msgstr "Document type"
+
+msgid "Höchster Betrag"
+msgstr "Highest amount"
+
+msgid "Keine Rechnungen für diesen Filter."
+msgstr "No invoices for this filter."
+
+msgid "Kunde A–Z"
+msgstr "Customer A–Z"
+
+msgid "Nummer, Empfänger, Kunde"
+msgstr "Number, recipient, customer"
+
+msgid "Rechnungsnummer"
+msgstr "Invoice number"
+
+msgid "Standard-Reihenfolge"
+msgstr "Default order"
+
+msgid "Termin: nächster zuerst"
+msgstr "Date: soonest first"
+
+msgid "Termin: spätester zuerst"
+msgstr "Date: latest first"
+
+msgid "Älteste zuerst"
+msgstr "Oldest first"
+
+msgid "Überfällig"
+msgstr "Overdue"
