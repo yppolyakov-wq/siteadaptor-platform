@@ -43,6 +43,9 @@ def test_sidebar_anchor_composition_is_frozen():
         ("sellable-manage", "sellables", "📦"),
         ("marketing-home", "promotions", "📣"),
         ("site-home", "site", "✏️"),
+        # KA-12 E8.3 (решение владельца KA-4 В-1…В-6): мораторий X7 снят РОВНО для
+        # седьмого якоря «Finanzen» — он виден только при finance|analytics.
+        ("finance:journal", "finance", "💶"),
         # SR-5: якорь ведёт на обзор (nav_key прежний — подсветка цела)
         ("einstellungen-home", "settings", "⚙️"),
     ]

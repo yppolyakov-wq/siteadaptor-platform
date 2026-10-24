@@ -21,12 +21,11 @@ BUSINESS_TYPES = [code for code, _label in Tenant.BUSINESS_TYPES]
 GATE_DEBT: set[str] = set()
 
 MAX_SUBMENU = 7
-# Подменю больше семи пунктов — долг батча 3 (подзаголовки групп).
+# Группа подменю больше семи пунктов — долг батча 3b (группы Marketing, подписи Sortiment).
+# KA-12 E8.4: с подзаголовками размер считается ПО ГРУППЕ; пункты без группы — один блок.
 SUBMENU_DEBT = {
     "marketing-home": 13,
-    "einstellungen-home": 16,  # батч 2: +запись/каналы, батч 3 — группы
     "sellable-manage": 9,
-    "verkaeufe": 8,
 }
 
 # Экраны только в Ctrl+K — с причиной; рабочий экран сюда не попадает без решения.
@@ -35,11 +34,6 @@ PALETTE_ONLY_OK = {
     "booking:passes": "абонементы — вход с услуги",
     "crm:company-list": "фирмы — вход из «Kunden»",
     "events:teacher-list": "ведущие — вход с события",
-    "finance:bank": "банк — вход из «Offene Posten» (батч 3 → меню Finanzen)",
-    "finance:ergebnis": "батч 3 → меню Finanzen",
-    "finance:expenses": "батч 3 → меню Finanzen",
-    "finance:invoices": "батч 3 → меню Finanzen",
-    "finance:offene": "батч 3 → меню Finanzen",
     "gbp-merchant": "вход с экрана каналов",
     "gbp-sync": "вход с экрана каналов",
     "google-reviews-settings": "вход из «Integrationen»",
@@ -75,9 +69,15 @@ def test_submenu_size(business_type):
     )
     for item in modules.sidebar_nav(tenant):
         limit = max(MAX_SUBMENU, SUBMENU_DEBT.get(item["url_name"], 0))
-        assert len(item["children"]) <= limit, (
-            f"{business_type}: подменю «{item['url_name']}» — {len(item['children'])} пунктов"
-        )
+        groups: dict[str, int] = {}
+        for c in item["children"]:
+            if c["url_name"] == item["url_name"] and not c.get("query"):
+                continue  # обзор раздела — не пункт группы
+            groups[c.get("group") or ""] = groups.get(c.get("group") or "", 0) + 1
+        for group, size in groups.items():
+            assert size <= limit, (
+                f"{business_type}: подменю «{item['url_name']}», группа «{group}» — {size}"
+            )
 
 
 def test_entry_visible_honours_new_gates():

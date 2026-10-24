@@ -210,7 +210,11 @@ def test_sidebar_menu_never_drops_an_entry():
             if (not e.module_key or modules.is_module_active(tenant, e.module_key))
             and nav_registry.allowed_for_business(e.url_name, tenant)
         }
-        shown = {c["url_name"] for c in by_anchor.get(a.nav_key, [])}
+        # KA-12 E8.3: пункты скрытого условного якоря обязаны найтись у его фолбэка.
+        owner = a.nav_key
+        if a.fallback and not nav_registry.anchor_visible(a, tenant):
+            owner = a.fallback
+        shown = {c["url_name"] for c in by_anchor.get(owner, [])}
         assert expected <= shown, (a.nav_key, sorted(expected - shown))
 
 
@@ -218,8 +222,12 @@ def test_registry_groups_are_known():
     """Статический дубль того же инварианта — опечатка ловится до рендера."""
     from apps.core import nav_registry
 
-    known = {""} | {key for key, _label in nav_registry.TAB_GROUPS}
-    unknown = {e.group for e in nav_registry.ENTRIES} - known
+    # KA-12 E8.4: ряды таб-бара (TAB_GROUPS) стали группами подменю по хабам.
+    unknown = set()
+    for e in nav_registry.ENTRIES:
+        known = {""} | {key for key, _label in nav_registry.SUBMENU_GROUPS.get(e.hub, ())}
+        if e.group not in known:
+            unknown.add(f"{e.hub}:{e.group}")
     assert unknown == set(), f"неизвестные группы вкладок: {unknown}"
 
 
