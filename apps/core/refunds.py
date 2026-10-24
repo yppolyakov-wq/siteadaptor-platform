@@ -47,6 +47,7 @@ class RefundResult(StrEnum):
     MANUAL = "manual"  # доля рассрочки оплачена вне Stripe — возвращает владелец
     REFUSED = "refused"  # KA-12 B2-4: частичный возврат невозможен (сумма/вид/рассрочка)
     UNCERTAIN = "uncertain"  # B2-4: Stripe не ответил — проверить возврат в Stripe
+    PRICE_UNCHANGED = "price_unchanged"  # B2-4b: деньги вернули, цену поправить вручную
 
 
 class RefundChoiceRequired(Exception):
@@ -467,7 +468,7 @@ def refund_partial(
                 )
                 folio.forget(obj)
                 logger.warning("partial refund rejected: %s %s", kind, obj.pk)
-                _notify_owner_failed(kind, obj, tenant)
+                _notify_owner_failed(kind, obj, tenant, reason="partial", cents=new - old)
                 return RefundResult.FAILED
         except Exception:  # noqa: BLE001 — нет ответа: возврат мог пройти
             # Таймаут/обрыв: Stripe мог вернуть деньги. Захват оставляем (иначе
@@ -476,14 +477,16 @@ def refund_partial(
             if minderung:  # книга уже «вернула» — цена следует за книгой
                 _apply_minderung(kind, obj, cents, tenant, _short_key(row.pk, new))
             folio.forget(obj)
-            logger.warning("partial refund uncertain: %s %s", kind, obj.pk)
-            _notify_owner_failed(kind, obj, tenant)
+            logger.error("partial refund uncertain: %s %s", kind, obj.pk)
+            _notify_owner_failed(kind, obj, tenant, reason="partial", cents=new - old)
             return RefundResult.UNCERTAIN
     if minderung:
         mkey = _short_key(claims[0][0].pk, claims[0][2])
         if not _apply_minderung(kind, obj, cents, tenant, mkey):
+            # Деньги вернулись (Stripe подтвердил) — это НЕ «Stripe не ответил».
+            _mark_refunded_if_complete(kind, obj)
             folio.forget(obj)
-            return RefundResult.UNCERTAIN
+            return RefundResult.PRICE_UNCHANGED
     _mark_refunded_if_complete(kind, obj)
     folio.forget(obj)
     from apps.core.audit import audit_event
@@ -552,8 +555,8 @@ def _apply_minderung(kind: str, obj, cents: int, tenant, key: str) -> bool:
                 deal_discount.set_discount(kind, fresh, cents=new, tenant=tenant, allow_closed=True)
             record_minderung(source=kind, deal=fresh, amount=Decimal(cents) / 100, key=key)
     except Exception:  # noqa: BLE001 — деньги ушли; цену правит владелец, не 500
-        logger.warning("minderung not applied: %s %s", kind, obj.pk, exc_info=True)
-        _notify_owner_failed(kind, obj, tenant)
+        logger.error("minderung not applied: %s %s", kind, obj.pk, exc_info=True)
+        _notify_owner_failed(kind, obj, tenant, reason="price", cents=cents)
         obj.refresh_from_db()
         return False
     obj.refresh_from_db()
@@ -618,9 +621,12 @@ def _rollback(kind: str, obj, previous: str, tenant) -> RefundResult:
     return RefundResult.FAILED
 
 
-def _notify_owner_failed(kind: str, obj, tenant) -> None:
+def _notify_owner_failed(kind: str, obj, tenant, *, reason: str = "cancel", cents: int = 0) -> None:
+    """Письмо владельцу о сбое возврата. `reason`: cancel (отмена) · partial (частичный
+    возврат) · price (деньги вернули, цену не снизили). Ключ — на причину и сумму:
+    второй сбой по той же сделке тоже доходит (ревью silent-failure)."""
     from django.db import connection
-    from django.utils import translation
+    from django.utils import timezone, translation
     from django.utils.translation import gettext as _
 
     from apps.notifications.services import email_locale, notify
@@ -628,19 +634,35 @@ def _notify_owner_failed(kind: str, obj, tenant) -> None:
     if tenant is None:
         tenant = getattr(connection, "tenant", None)
     recipient = (getattr(tenant, "owner_email", "") or "").strip()
-    if not recipient:
-        return
     code = getattr(obj, "reference_code", "") or str(obj.pk)
+    if not recipient:
+        logger.error("refund problem (%s) for %s %s, owner has no email", reason, kind, code)
+        return
+    amount = f"{Decimal(int(cents or 0)) / 100:.2f}".replace(".", ",")
     with translation.override(email_locale()):
         subject = _("Erstattung nicht bestätigt: %(code)s") % {"code": code}
-        body = _(
-            "Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde "
-            "von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im "
-            "Stripe-Dashboard und erstatten Sie sie dort bei Bedarf manuell."
-        ) % {"code": code}
+        if reason == "price":
+            body = _(
+                "Für %(code)s wurden %(amount)s € erstattet, aber der Preis konnte nicht "
+                "angepasst werden. Bitte setzen Sie den Rabatt in der Buchung von Hand."
+            ) % {"code": code, "amount": amount}
+        elif reason == "partial":
+            body = _(
+                "Die Erstattung von %(amount)s € für %(code)s wurde von Stripe nicht "
+                "bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard."
+            ) % {"code": code, "amount": amount}
+        else:
+            body = _(
+                "Die Stornierung von %(code)s ist gespeichert, aber die Erstattung wurde "
+                "von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im "
+                "Stripe-Dashboard und erstatten Sie sie dort bei Bedarf manuell."
+            ) % {"code": code}
     try:
         notify(
-            dedupe_key=f"refund-failed:{connection.schema_name}:{kind}:{obj.pk}",
+            dedupe_key=(
+                f"refund-failed:{connection.schema_name}:{kind}:{obj.pk}:{reason}:{cents}:"
+                f"{timezone.now():%Y%m%d%H%M}"
+            ),
             type="refund_failed_owner",
             recipient=recipient,
             subject=subject,

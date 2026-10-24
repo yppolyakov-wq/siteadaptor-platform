@@ -1,10 +1,12 @@
 """KA-12 B2-5 (E1.11): «Restbetrag online bezahlen» на подтверждении брони/записи/билета."""
 
+import logging
 from decimal import Decimal
 
 from django import template
 
 register = template.Library()
+logger = logging.getLogger(__name__)
 
 
 @register.simple_tag(takes_context=True)
@@ -26,4 +28,5 @@ def rest_pay(context, kind, obj):
             "eur": Decimal(balance_pay.rest_cents(kind, obj)) / 100,
         }
     except Exception:  # noqa: BLE001 — кнопка не должна ронять подтверждение
+        logger.exception("rest_pay tag failed %s %s", kind, getattr(obj, "pk", ""))
         return None

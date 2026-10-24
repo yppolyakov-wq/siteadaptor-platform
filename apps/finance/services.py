@@ -115,6 +115,8 @@ def record_minderung(*, source: str, deal, amount: Decimal, key: str) -> None:
         left -= part
         if left <= 0:
             break
+    if left > 0 and entries:
+        logger.warning("minderung %s %s: %s not reversed (more than posted)", source, deal.id, left)
 
 
 def _invoice_gross_by_rate(invoice) -> list:

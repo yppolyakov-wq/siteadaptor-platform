@@ -28845,3 +28845,21 @@ msgstr "Fiyat indirimi (en fazla %(eur)s €) — fiyat düşer"
 
 msgid "Dieser Betrag kann nicht erstattet werden: höher als möglich, oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."
 msgstr "Bu tutar iade edilemez: izin verilenden fazla veya fatura zaten kesildi (o zaman fatura düzeltmesi gerekir)."
+
+msgid "Der Betrag wurde erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+msgstr "Tutar iade edildi ancak fiyat güncellenemedi. Lütfen indirimi elle girin."
+
+msgid "Der Zahlungslink wurde gerade schon gesendet."
+msgstr "Ödeme bağlantısı az önce zaten gönderildi."
+
+msgid "Die Erstattung von %(amount)s € für %(code)s wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard."
+msgstr "Stripe, %(code)s için %(amount)s € iadesini onaylamadı. Lütfen ödemeyi Stripe panelinde kontrol edin."
+
+msgid "Eine Online-Zahlung über %(amount)s € (Stripe %(intent)s) gehört zu keiner Buchung mehr. Bitte prüfen Sie sie im Stripe-Dashboard."
+msgstr "%(amount)s € tutarındaki çevrimiçi ödeme (Stripe %(intent)s) artık hiçbir rezervasyona ait değil. Lütfen Stripe panelinde kontrol edin."
+
+msgid "Für %(code)s wurden %(amount)s € erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt in der Buchung von Hand."
+msgstr "%(code)s için %(amount)s € iade edildi ancak fiyat güncellenemedi. Lütfen indirimi rezervasyonda elle girin."
+
+msgid "Zahlung nicht verbucht"
+msgstr "Ödeme kaydedilmedi"

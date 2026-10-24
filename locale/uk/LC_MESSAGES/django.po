@@ -28950,3 +28950,21 @@ msgstr "Зниження ціни (не більше %(eur)s €) — ціна �
 
 msgid "Dieser Betrag kann nicht erstattet werden: höher als möglich, oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."
 msgstr "Цю суму не можна повернути: вона більша за допустиму, або рахунок уже виставлено (тоді потрібне коригування рахунку)."
+
+msgid "Der Betrag wurde erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+msgstr "Суму повернуто, але ціну змінити не вдалося. Встановіть знижку вручну."
+
+msgid "Der Zahlungslink wurde gerade schon gesendet."
+msgstr "Посилання на оплату щойно вже надіслано."
+
+msgid "Die Erstattung von %(amount)s € für %(code)s wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard."
+msgstr "Stripe не підтвердив повернення %(amount)s € за %(code)s. Перевірте платіж у панелі Stripe."
+
+msgid "Eine Online-Zahlung über %(amount)s € (Stripe %(intent)s) gehört zu keiner Buchung mehr. Bitte prüfen Sie sie im Stripe-Dashboard."
+msgstr "Онлайн-платіж на %(amount)s € (Stripe %(intent)s) більше не належить жодному бронюванню. Перевірте його в панелі Stripe."
+
+msgid "Für %(code)s wurden %(amount)s € erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt in der Buchung von Hand."
+msgstr "За %(code)s повернуто %(amount)s €, але ціну змінити не вдалося. Встановіть знижку в угоді вручну."
+
+msgid "Zahlung nicht verbucht"
+msgstr "Платіж не враховано"

@@ -6234,7 +6234,7 @@ def deal_pay_link(request, kind, pk):
         with translation.override(email_locale()):
             subject = render_to_string("emails/deal_rest_link_subject.txt", ctx).strip()
             body = render_to_string("emails/deal_rest_link.txt", ctx)
-        notify(
+        sent = notify(
             dedupe_key=f"rest-link:{request.tenant.schema_name}:{kind}:{obj.pk}:"
             f"{timezone.now():%Y%m%d%H%M%S}",
             type="deal_rest_link",
@@ -6242,7 +6242,12 @@ def deal_pay_link(request, kind, pk):
             subject=subject,
             body=body,
         )
-        messages.success(request, _("Zahlungslink wurde an %(email)s gesendet.") % {"email": email})
+        if sent is None:
+            messages.warning(request, _("Der Zahlungslink wurde gerade schon gesendet."))
+        else:
+            messages.success(
+                request, _("Zahlungslink wurde an %(email)s gesendet.") % {"email": email}
+            )
     nxt = request.POST.get("next", "")
     if (
         not url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()})
@@ -6297,6 +6302,14 @@ def deal_refund(request, kind, pk):
                 _(
                     "Dieser Betrag kann nicht erstattet werden: höher als möglich, "
                     "oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."
+                ),
+            )
+        elif result == refunds.RefundResult.PRICE_UNCHANGED:
+            messages.warning(
+                request,
+                _(
+                    "Der Betrag wurde erstattet, aber der Preis konnte nicht angepasst "
+                    "werden. Bitte setzen Sie den Rabatt von Hand."
                 ),
             )
         elif result == refunds.RefundResult.UNCERTAIN:

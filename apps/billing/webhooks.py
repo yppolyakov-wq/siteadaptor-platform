@@ -130,7 +130,7 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             payment_status=obj.get("payment_status") or "",
         )
         if not ok:
-            logger.warning("stripe webhook deal_balance: deal not found %s", meta)
+            logger.error("stripe webhook deal_balance: payment NOT booked %s", meta)
         return
 
     # Подарочный сертификат (G1) — Checkout на connected account → выпуск Voucher.
@@ -243,8 +243,15 @@ def stripe_webhook(request):
         return HttpResponseBadRequest("invalid signature")
 
     # Дедупликация по event.id: первый приход выигрывает cache.add, повторы — no-op.
-    if not cache.add(f"stripe_evt:{event['id']}", "1", timeout=_EVENT_TTL):
+    evt_key = f"stripe_evt:{event['id']}"
+    if not cache.add(evt_key, "1", timeout=_EVENT_TTL):
         return HttpResponse(status=200)
 
-    handle_event(event["type"], event["data"]["object"], account=event.get("account") or "")
+    try:
+        handle_event(event["type"], event["data"]["object"], account=event.get("account") or "")
+    except Exception:
+        # Ревью silent-failure: ключ дедупа снят — повтор Stripe обработается заново,
+        # иначе упавшая оплата никогда не попала бы в книгу.
+        cache.delete(evt_key)
+        raise
     return HttpResponse(status=200)

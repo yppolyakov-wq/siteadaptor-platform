@@ -287,6 +287,7 @@ def test_minderung_after_concurrent_cancel_is_not_applied(monkeypatch):
     result = refunds.refund_partial(
         "order", order, cents=500, method="card", tenant=TENANT, reason="minderung"
     )
-    assert result == refunds.RefundResult.UNCERTAIN
+    # Деньги вернулись, цену не тронули — честный отдельный результат (не «Stripe молчит»).
+    assert result == refunds.RefundResult.PRICE_UNCHANGED
     order.refresh_from_db()
     assert order.discount_cents == 0

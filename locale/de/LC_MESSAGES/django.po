@@ -28793,3 +28793,21 @@ msgstr "Preisminderung (höchstens %(eur)s €) — der Preis sinkt"
 
 msgid "Dieser Betrag kann nicht erstattet werden: höher als möglich, oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."
 msgstr "Dieser Betrag kann nicht erstattet werden: höher als möglich, oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."
+
+msgid "Der Betrag wurde erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+msgstr "Der Betrag wurde erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+
+msgid "Der Zahlungslink wurde gerade schon gesendet."
+msgstr "Der Zahlungslink wurde gerade schon gesendet."
+
+msgid "Die Erstattung von %(amount)s € für %(code)s wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard."
+msgstr "Die Erstattung von %(amount)s € für %(code)s wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard."
+
+msgid "Eine Online-Zahlung über %(amount)s € (Stripe %(intent)s) gehört zu keiner Buchung mehr. Bitte prüfen Sie sie im Stripe-Dashboard."
+msgstr "Eine Online-Zahlung über %(amount)s € (Stripe %(intent)s) gehört zu keiner Buchung mehr. Bitte prüfen Sie sie im Stripe-Dashboard."
+
+msgid "Für %(code)s wurden %(amount)s € erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt in der Buchung von Hand."
+msgstr "Für %(code)s wurden %(amount)s € erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt in der Buchung von Hand."
+
+msgid "Zahlung nicht verbucht"
+msgstr "Zahlung nicht verbucht"

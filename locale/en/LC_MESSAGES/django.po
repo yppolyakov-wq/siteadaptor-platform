@@ -28701,3 +28701,21 @@ msgstr "Price reduction (at most %(eur)s €) — the price goes down"
 
 msgid "Dieser Betrag kann nicht erstattet werden: höher als möglich, oder die Rechnung ist schon ausgestellt (dann Rechnungskorrektur)."
 msgstr "This amount cannot be refunded: it is more than possible, or the invoice has already been issued (then use an invoice correction)."
+
+msgid "Der Betrag wurde erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+msgstr "The amount was refunded, but the price could not be adjusted. Please set the discount manually."
+
+msgid "Der Zahlungslink wurde gerade schon gesendet."
+msgstr "The payment link has just been sent already."
+
+msgid "Die Erstattung von %(amount)s € für %(code)s wurde von Stripe nicht bestätigt. Bitte prüfen Sie die Zahlung im Stripe-Dashboard."
+msgstr "Stripe did not confirm the refund of %(amount)s € for %(code)s. Please check the payment in the Stripe dashboard."
+
+msgid "Eine Online-Zahlung über %(amount)s € (Stripe %(intent)s) gehört zu keiner Buchung mehr. Bitte prüfen Sie sie im Stripe-Dashboard."
+msgstr "An online payment of %(amount)s € (Stripe %(intent)s) no longer belongs to any booking. Please check it in the Stripe dashboard."
+
+msgid "Für %(code)s wurden %(amount)s € erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt in der Buchung von Hand."
+msgstr "%(amount)s € were refunded for %(code)s, but the price could not be adjusted. Please set the discount in the booking manually."
+
+msgid "Zahlung nicht verbucht"
+msgstr "Payment not booked"

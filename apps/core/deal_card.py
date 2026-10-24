@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import copy
+import logging
 from dataclasses import replace as _dc_replace
 from decimal import Decimal
 
@@ -25,6 +26,8 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import status_labels, transactions, transition_rules
 from apps.core.vat import deal_vat
+
+logger = logging.getLogger(__name__)
 
 # Подписи секций — в одном месте: правка меняет ВСЕ карточки сразу.
 SECTION_TITLES = {
@@ -153,6 +156,7 @@ def _rest_link(request, kind, obj, tenant):
             "eur": Decimal(balance_pay.rest_cents(kind, obj)) / 100,
         }
     except Exception:  # noqa: BLE001 — карточка не падает из-за кнопки
+        logger.exception("deal card: rest link failed %s %s", kind, getattr(obj, "pk", ""))
         return None
 
 
@@ -206,6 +210,7 @@ def _refund_form(request, kind, obj, tenant):
             "cash_ok": cash_open > 0,
         }
     except Exception:  # noqa: BLE001 — карточка не падает из-за формы
+        logger.exception("deal card: refund form failed %s %s", kind, getattr(obj, "pk", ""))
         return None
 
 

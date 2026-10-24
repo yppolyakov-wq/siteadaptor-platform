@@ -297,3 +297,38 @@ def test_cabinet_pay_link_rejects_backslash_next(connect_on):
     request.tenant = _tenant()
     resp = deal_pay_link(request, "stay", b.pk)
     assert "evil" not in resp["Location"]
+
+
+def test_failed_webhook_is_retryable(monkeypatch):
+    """silent-failure: упавшая обработка не оставляет ключ дедупа — повтор Stripe
+    обработается, оплата попадёт в книгу."""
+    import stripe as stripe_lib
+    from django.core.cache import cache
+    from django.test import RequestFactory as RF
+
+    from apps.billing import webhooks
+
+    event = {"id": f"evt_{uuid.uuid4().hex[:8]}", "type": "x", "data": {"object": {}}}
+    monkeypatch.setattr(stripe_lib.Webhook, "construct_event", lambda *a, **k: event)
+
+    def boom(*a, **k):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(webhooks, "handle_event", boom)
+    with pytest.raises(RuntimeError):
+        webhooks.stripe_webhook(RF().post("/x/", data=b"{}", content_type="application/json"))
+    assert cache.get(f"stripe_evt:{event['id']}") is None
+
+
+def test_payment_for_missing_deal_tells_owner(monkeypatch):
+    sent = []
+    monkeypatch.setattr(balance_pay, "_notify_unbooked", lambda *a, **k: sent.append(a[4]))
+    assert not balance_pay.mark_balance_paid(
+        tenant_schema=connection.schema_name,
+        deal_kind="stay",
+        deal_id=str(uuid.uuid4()),
+        payment_intent="pi_lost",
+        amount_cents=100,
+        account="acct_test",
+    )
+    assert sent == ["pi_lost"]

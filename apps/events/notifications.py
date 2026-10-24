@@ -5,12 +5,16 @@
 из promotions.notifications. + Telegram (TG3) клиенту, если привязан.
 """
 
+import logging
+
 from django.db import connection
 from django.urls import reverse
 
 from apps.notifications.prefs import channel_enabled
 from apps.notifications.services import notify
 from apps.promotions.notifications import _base_url, _owner_email, _render, _tenant
+
+logger = logging.getLogger(__name__)
 
 _CUSTOMER_TEMPLATES = {
     "created": "ticket_created",
@@ -29,6 +33,7 @@ def _rest_context(ticket, tenant, base: str) -> dict:
     try:
         rest = money_contract.due("ticket", ticket)
     except Exception:  # noqa: BLE001 — сумма не должна ронять письмо
+        logger.exception("ticket reminder: rest amount failed %s", ticket.pk)
         return {}
     if rest <= 0 or ticket.payment_state in (ticket.PAYMENT_PENDING, ticket.PAYMENT_REFUNDED):
         # pending — своё письмо «Jetzt bezahlen» (B2.3); refunded — ничего не ждём.

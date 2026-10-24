@@ -163,17 +163,33 @@ def mark_balance_paid(
     if payment_status != "paid":
         return True  # отложенная оплата: придёт async_payment_succeeded
     tenant = _tenant(tenant_schema)
-    connect_id = getattr(tenant, "stripe_connect_id", "") if tenant else ""
+    if tenant is None:
+        logger.error("deal_balance: tenant %s not found, payment %s", tenant_schema, payment_intent)
+        return False
+    connect_id = getattr(tenant, "stripe_connect_id", "") or ""
     if not connect_id or account != connect_id:
-        logger.warning("deal_balance: account mismatch for %s", tenant_schema)
+        # Возможна подделка metadata чужим аккаунтом — владельцу не пишем, только лог.
+        logger.error(
+            "deal_balance: account mismatch for %s (event %s), payment %s",
+            tenant_schema,
+            account,
+            payment_intent,
+        )
         return False
     amount = int(amount_cents or 0)
     notice = None
+    with schema_context(tenant_schema):
+        missing = not transactions.model_for(deal_kind).objects.filter(pk=deal_id).exists()
+    if missing:
+        # Деньги на счёте бизнеса, а сделки нет — владелец должен знать.
+        logger.error(
+            "deal_balance: deal %s/%s missing, payment %s", deal_kind, deal_id, payment_intent
+        )
+        _notify_unbooked(tenant, tenant_schema, deal_kind, deal_id, payment_intent, amount)
+        return False
     with schema_context(tenant_schema), transaction.atomic():
         model = transactions.model_for(deal_kind)
-        obj = model.objects.select_for_update().filter(pk=deal_id).first()
-        if obj is None:
-            return False
+        obj = model.objects.select_for_update().get(pk=deal_id)
         if DealPayment.objects.filter(
             deal_kind=deal_kind, deal_id=obj.pk, stripe_payment_intent=payment_intent
         ).exists():
@@ -234,7 +250,10 @@ def _notify_owner(
 
     tenant = _tenant(schema)
     email = getattr(tenant, "owner_email", "") if tenant else ""
-    if not email or cents <= 0:
+    if cents <= 0:
+        return
+    if not email:
+        logger.error("balance_pay: owner of %s has no email, overpayment %s", schema, cents)
         return
     amount = f"{Decimal(cents) / 100:.2f}".replace(".", ",")
     with translation.override(email_locale()):
@@ -260,3 +279,35 @@ def _notify_owner(
         )
     except Exception:  # noqa: BLE001 — письмо не роняет вебхук
         logger.exception("balance_pay: owner notify failed %s %s", kind, obj.pk)
+
+
+def _notify_unbooked(tenant, schema, kind, deal_id, intent, cents) -> None:
+    """Оплата пришла, а сделки нет — письмо владельцу: проверить в Stripe."""
+    from decimal import Decimal
+
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    from apps.notifications.services import email_locale, notify
+
+    email = getattr(tenant, "owner_email", "") or ""
+    if not email:
+        logger.error("balance_pay: owner of %s has no email, unbooked payment %s", schema, intent)
+        return
+    amount = f"{Decimal(int(cents or 0)) / 100:.2f}".replace(".", ",")
+    with translation.override(email_locale()):
+        subject = _("Zahlung nicht verbucht")
+        body = _(
+            "Eine Online-Zahlung über %(amount)s € (Stripe %(intent)s) gehört zu keiner "
+            "Buchung mehr. Bitte prüfen Sie sie im Stripe-Dashboard."
+        ) % {"amount": amount, "intent": intent}
+    try:
+        notify(
+            dedupe_key=f"unbooked:{schema}:{intent}",
+            type="deal_unbooked_owner",
+            recipient=email,
+            subject=subject,
+            body=body,
+        )
+    except Exception:  # noqa: BLE001
+        logger.exception("balance_pay: unbooked notify failed %s", intent)
