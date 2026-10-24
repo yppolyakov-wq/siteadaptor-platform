@@ -29140,3 +29140,6 @@ msgstr "e.g. short / long hair: surcharge and extra minutes on top of this servi
 
 msgid "Variant"
 msgstr "Variant"
+
+msgid "This option is no longer available. Please pick another."
+msgstr "This option is no longer available. Please pick another."

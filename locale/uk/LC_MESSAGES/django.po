@@ -29393,3 +29393,6 @@ msgstr "наприклад, коротке / довге волосся: допл
 
 msgid "Variant"
 msgstr "Варіант"
+
+msgid "This option is no longer available. Please pick another."
+msgstr "Цей варіант більше недоступний. Будь ласка, оберіть інший."

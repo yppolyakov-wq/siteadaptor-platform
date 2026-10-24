@@ -29,7 +29,7 @@ storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot
   <div>
     <label class="block text-sm font-medium mb-1" for="id_personen">{% trans "Personen" %}</label>
     <input id="id_personen" name="personen" type="number" min="1" max="50" value="1" class="w-24 rounded-lg border border-gray-300 px-3 py-2">
-    <p class="text-xs text-gray-400 mt-1">{% trans "Preis pro Person" %}: {{ service.price_eur|floatformat:2 }} €</p>
+    <p class="text-xs text-gray-400 mt-1">{% trans "Preis pro Person" %}: {{ day_price_eur|default:service.price_eur|floatformat:2 }} €</p>
   </div>
   {% endif %}
   {% if passes_enabled %}

@@ -29232,3 +29232,6 @@ msgstr "z. B. kurz / lang: Aufpreis und zusätzliche Minuten zu dieser Leistung.
 
 msgid "Variant"
 msgstr "Variante"
+
+msgid "This option is no longer available. Please pick another."
+msgstr "Diese Variante ist nicht mehr verfügbar. Bitte wählen Sie eine andere."

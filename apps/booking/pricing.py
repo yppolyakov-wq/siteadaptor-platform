@@ -43,16 +43,31 @@ def active_variants(service) -> list:
 
 
 def resolve_variant(service, raw) -> tuple:
-    """(вариант | None, ok). Пусто → первый активный (или None без вариантов);
-    чужой/выключенный/мусор → ok=False (витрина отвечает 404 — ссылки строит сервер)."""
-    variants = active_variants(service)
+    """(вариант | None, ok). Пусто → базовая услуга (None): вариант — ЯВНЫЙ выбор,
+    иначе любая ссылка без параметра (Finder, MCP, письма, акции) молча меняла бы цену
+    и длину. Не активный вариант этой услуги / мусор → ok=False."""
     raw = (raw or "").strip()
     if not raw:
-        return (variants[0] if variants else None), True
-    for v in variants:
+        return None, True
+    for v in active_variants(service):
         if str(v.pk) == raw:
             return v, True
     return None, False
+
+
+def is_stale_variant(service, raw) -> bool:
+    """Вариант ЭТОЙ услуги, который выключили, или удалённый (UUID без строки):
+    гостя со старой ссылкой возвращаем на выбор, а не в 404. Чужой вариант — подделка."""
+    from uuid import UUID
+
+    from .models import ServiceVariant
+
+    try:
+        uid = UUID(str(raw or "").strip())
+    except ValueError:
+        return False
+    row = ServiceVariant.objects.filter(pk=uid).values_list("service_id", flat=True).first()
+    return row is None or row == service.pk
 
 
 def effective_minutes(service, variant) -> int:

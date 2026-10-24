@@ -906,6 +906,9 @@ def _variant_action_locked(request, action, service) -> None:
         or abs(price_cents) > MAX_VARIANT_PRICE_DELTA
         or abs(minutes) > MAX_VARIANT_MINUTES_DELTA
         or service.duration_minutes + minutes < MIN_VARIANT_MINUTES
+        # Ревью S2: скидка варианта не уводит цену ниже нуля (бесплатную запись
+        # владелец задаёт ценой услуги, а не «−100 €» у варианта).
+        or service.price_cents + price_cents < 0
     ):
         messages.error(request, _("Please check the surcharge and the extra minutes."))
         return

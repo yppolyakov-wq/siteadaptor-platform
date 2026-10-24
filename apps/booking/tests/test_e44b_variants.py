@@ -26,12 +26,41 @@ def _variant(service, name="Lang", price=0, minutes=0, order=0, active=True):
     )
 
 
-def test_resolve_default_is_first_active_by_order():
+def test_resolve_empty_is_base_service():
+    """Ревью S2: вариант — явный выбор; без параметра бронь = базовая услуга
+    (ссылки Finder/MCP/писем не меняют цену и длину молча)."""
     svc = _service()
     _variant(svc, "Lang", order=2)
     kurz = _variant(svc, "Kurz", order=1)
-    _variant(svc, "Off", order=0, active=False)
-    assert pricing.resolve_variant(svc, "") == (kurz, True)
+    assert pricing.resolve_variant(svc, "") == (None, True)
+    assert pricing.resolve_variant(svc, str(kurz.pk)) == (kurz, True)
+
+
+def test_stale_variant_is_own_inactive_or_deleted_not_foreign():
+    import uuid
+
+    svc, other = _service(), _service()
+    off = _variant(svc, "Off", active=False)
+    foreign = _variant(other, "X")
+    assert pricing.is_stale_variant(svc, str(off.pk))
+    assert pricing.is_stale_variant(svc, str(uuid.uuid4()))
+    assert not pricing.is_stale_variant(svc, str(foreign.pk))
+    assert not pricing.is_stale_variant(svc, "abc")
+
+
+def test_cabinet_refuses_discount_below_zero_price(settings):
+    svc = _service(duration_minutes=30, price_cents=2000)
+    _post(
+        settings,
+        {
+            "action": "variant_add",
+            "service": str(svc.pk),
+            "name": "Gratis",
+            "price_delta_eur": "-25",
+            "duration_delta": "0",
+        },
+    )
+    assert not svc.variants.exists()
 
 
 def test_resolve_without_variants_is_none():

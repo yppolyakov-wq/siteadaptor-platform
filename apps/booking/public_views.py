@@ -201,15 +201,18 @@ def _passes_enabled() -> bool:
     return Pass.objects.filter(is_active=True).exists()
 
 
-def _embed_redirect(name, embed, *, request=None, **kwargs):
+def _embed_redirect(name, embed, *, request=None, extra=(), **kwargs):
     """A4: redirect на именованный URL c сохранением ?embed=1 (флоу не выходит из iframe).
     С `request` несёт и `ch/cl` каталога города (В5 V5-5b: после ошибки брони гость
-    возвращается на выбор, и канал не должен теряться)."""
+    возвращается на выбор, и канал не должен теряться). `extra` — пары выбора, которые
+    гость не должен терять после ошибки (вариант/мастер/длительность — E4.4b)."""
     from urllib.parse import urlencode
 
     url = reverse(name, kwargs=kwargs) if kwargs else reverse(name)
-    pairs = ([("embed", "1")] if embed else []) + (
-        attribution.query_tail(request) if request is not None else []
+    pairs = (
+        ([("embed", "1")] if embed else [])
+        + list(extra)
+        + (attribution.query_tail(request) if request is not None else [])
     )
     return redirect(f"{url}?{urlencode(pairs)}" if pairs else url)
 
@@ -449,12 +452,16 @@ def service_slots(request, pk):
     # KA-12 E4.4b: вариант услуги (длина/цена — дельты к услуге). Ссылки строит
     # сервер: чужой/выключенный/мусорный вариант = подделка → 404.
     variants = pricing.active_variants(service)
-    variant, variant_ok = pricing.resolve_variant(service, request.GET.get("variante"))
+    raw_variant = request.GET.get("variante")
+    variant, variant_ok = pricing.resolve_variant(service, raw_variant)
     if not variant_ok:
+        if pricing.is_stale_variant(service, raw_variant):
+            messages.info(request, _("This option is no longer available. Please pick another."))
+            return _embed_redirect(
+                "storefront-service-slots", _is_embed(request), request=request, pk=service.pk
+            )
         raise Http404
-    variant_pairs = (
-        [("variante", str(variant.pk))] if variant is not None and variant != variants[0] else []
-    )
+    variant_pairs = [("variante", str(variant.pk))] if variant is not None else []
     variant_qs = "".join(f"&{k}={v}" for k, v in variant_pairs)
     tail = attribution.query_tail(request) + variant_pairs
     unit_minutes = pricing.effective_minutes(service, variant)
@@ -822,30 +829,31 @@ def service_review_submit(request, pk):
 
 
 def _variant_options(service, variants, current, day, resource, units, *, embed, tail):
-    """KA-12 E4.4b: чипы вариантов услуги («Kurz · 30 Min · 25 €»). Ссылка дефолтного
-    варианта — без параметра (паритет прежних ссылок); выбранные времена сбрасываем."""
+    """KA-12 E4.4b: чипы «Standard» (базовая услуга, без параметра) + вариантов услуги
+    («Lang · 90 Min · 42 €»). Смена варианта сбрасывает выбранные времена и длительность
+    (длина другая — прежние «N×» могли бы не влезть)."""
     from urllib.parse import urlencode
 
-    if len(variants) < 2:
+    if not variants:
         return []
     rows = []
-    for i, v in enumerate(variants):
+    for v in [None, *variants]:
         pairs = [("tag", day.isoformat())]
         if resource is not None:
             pairs.append(("resource", str(resource.pk)))
-        if units > 1:
-            pairs.append(("dauer", str(units)))
-        if i:
+        if v is not None:
             pairs.append(("variante", str(v.pk)))
         if embed:
             pairs.append(("embed", "1"))
         pairs += list(tail)
         rows.append(
             {
-                "name": v.name_localized(),
+                "name": v.name_localized() if v is not None else _("Standard"),
                 "minutes": pricing.effective_minutes(service, v),
                 "eur": pricing.variant_price_cents(service, day, v) / 100,
-                "selected": current is not None and v.pk == current.pk,
+                "selected": (current is None)
+                if v is None
+                else (current is not None and v.pk == current.pk),
                 "url": "?" + urlencode(pairs),
             }
         )
@@ -984,10 +992,23 @@ def service_book(request, pk):
     # отрезок. dauer вне капа/мусор → 1 (прежнее поведение).
     units = _parse_units(request.POST.get("dauer") or request.GET.get("dauer"))
     # KA-12 E4.4b: вариант из формы — только активный вариант ЭТОЙ услуги.
-    variant, variant_ok = pricing.resolve_variant(service, request.POST.get("variante"))
+    raw_variant = request.POST.get("variante")
+    variant, variant_ok = pricing.resolve_variant(service, raw_variant)
     if not variant_ok:
+        if pricing.is_stale_variant(service, raw_variant):
+            messages.error(request, _("This option is no longer available. Please pick another."))
+            return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
         raise Http404
     total_minutes = units * pricing.effective_minutes(service, variant)
+    # Ревью S2: после ошибки гость возвращается к СВОЕМУ выбору (вариант/мастер/
+    # длительность), а не к услуге по умолчанию — иначе следующая попытка молча
+    # бронировала бы другую длину и цену.
+    back = (
+        ([("resource", str(chosen.pk))] if chosen is not None else [])
+        + ([("dauer", str(units))] if units > 1 else [])
+        + ([("variante", str(variant.pk))] if variant is not None else [])
+    )
+    seasons = list(service.season_rates.all())
     # MX-5 (Tripster): per_person — цена × человек; party_size несёт число людей.
     persons = 1
     if service.pricing_mode == "per_person":
@@ -1003,19 +1024,25 @@ def service_book(request, pk):
             service, one.date(), resource=chosen, duration_minutes=total_minutes
         ):
             messages.error(request, _("This time is no longer available. Please pick another."))
-            return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
+            return _embed_redirect(
+                "storefront-service-slots", embed, request=request, extra=back, pk=pk
+            )
         one_resource = availability.assign_resource(
             service, one, resource=chosen, duration_minutes=total_minutes
         )
         if one_resource is None:
             messages.error(request, _("This time is no longer available. Please pick another."))
-            return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
+            return _embed_redirect(
+                "storefront-service-slots", embed, request=request, extra=back, pk=pk
+            )
         slot_plan.append(
             (
                 one_resource,
                 one,
                 one + timedelta(minutes=total_minutes),
-                pricing.variant_price_cents(service, one.date(), variant) * units * persons,
+                pricing.variant_price_cents(service, one.date(), variant, seasons)
+                * units
+                * persons,
             )
         )
     resource = slot_plan[0][0]
@@ -1027,7 +1054,9 @@ def service_book(request, pk):
             if resource is None
             else _("Please tell us your name."),
         )
-        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
+        return _embed_redirect(
+            "storefront-service-slots", embed, request=request, extra=back, pk=pk
+        )
     from apps.core import extras as extras_engine
 
     # MX-2: тот же фильтр адресности, что в GET — чужую опцию не подсунуть формой.
@@ -1067,32 +1096,42 @@ def service_book(request, pk):
             voucher_code=request.POST.get("voucher_code", ""),
             promotion=promo,
             variant=variant,
-            variant_label=variant.name_localized()[:100] if variant is not None else "",
+            variant_label=variant.name[:100] if variant is not None else "",
         )
         booking = created[0]
     except services.PromoInvalid:
         # B1.2: невалидный промокод/Gutschein — бронь не создаём, слот не занят.
         messages.error(request, _("This voucher code is not valid."))
-        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
+        return _embed_redirect(
+            "storefront-service-slots", embed, request=request, extra=back, pk=pk
+        )
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This time is no longer available. Please pick another."))
-        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
+        return _embed_redirect(
+            "storefront-service-slots", embed, request=request, extra=back, pk=pk
+        )
     except option_trackers.PoolFull as exc:
         messages.error(
             request,
             _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.") % {"label": exc.label},
         )
-        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
+        return _embed_redirect(
+            "storefront-service-slots", embed, request=request, extra=back, pk=pk
+        )
     except option_trackers.OptionOutOfStock as exc:
         messages.error(
             request,
             _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
         )
-        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
+        return _embed_redirect(
+            "storefront-service-slots", embed, request=request, extra=back, pk=pk
+        )
     except PromoSoldOut:
         # P5: лимит акции исчерпан между показом и отправкой — бронь откатилась.
         messages.error(request, _("Diese Aktion ist leider ausverkauft."))
-        return _embed_redirect("storefront-service-slots", embed, request=request, pk=pk)
+        return _embed_redirect(
+            "storefront-service-slots", embed, request=request, extra=back, pk=pk
+        )
 
     # В5 V5-5b: группа периодов = одна сделка
     conversions.count(
@@ -1121,11 +1160,13 @@ def service_book(request, pk):
     # Депозит услуги (P2.5b): на Stripe Checkout, иначе обычная запись.
     tenant = getattr(request, "tenant", None)
     if (
-        service.deposit_cents > 0
+        min(service.deposit_cents, booking.price_cents) > 0
         and getattr(tenant, "payments_enabled", False)
         and connect.is_connect_configured()
     ):
-        booking.deposit_cents = service.deposit_cents
+        # Ревью S2: депозит не больше цены брони (вариант со скидкой мог сделать
+        # запись дешевле фиксированного депозита — гость платил бы больше цены).
+        booking.deposit_cents = min(service.deposit_cents, booking.price_cents)
         booking.payment_state = Booking.PAYMENT_PENDING
         booking.save(update_fields=["deposit_cents", "payment_state", "updated_at"])
         ok_url = (

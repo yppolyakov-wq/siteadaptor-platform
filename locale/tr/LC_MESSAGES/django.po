@@ -29284,3 +29284,6 @@ msgstr "örn. kısa / uzun saç: bu hizmete ek ücret ve ek dakika."
 
 msgid "Variant"
 msgstr "Varyant"
+
+msgid "This option is no longer available. Please pick another."
+msgstr "Bu seçenek artık mevcut değil. Lütfen başka birini seçin."

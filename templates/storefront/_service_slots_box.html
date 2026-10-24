@@ -105,7 +105,7 @@
 {% comment %}R3 empty-state: перехват уходящего клиента — прямая ссылка на
 ближайший свободный день/старт (вместо тупика «нет слотов»).{% endcomment %}
 {% if next_free %}
-<a href="?tag={{ next_free|date:'Y-m-d' }}{% if chosen_resource %}&resource={{ rq }}{% endif %}{{ variant_qs }}{{ embed_qs }}"
+<a href="?tag={{ next_free|date:'Y-m-d' }}{% if chosen_resource %}&resource={{ rq }}{% endif %}{% if units > 1 %}&dauer={{ units }}{% endif %}{{ variant_qs }}{{ embed_qs }}"
    class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 mb-6 text-sm font-semibold text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">
   {% blocktrans with d=next_free|date:"l, d.m." t=next_free|time:"H:i" %}Next free appointment: {{ d }} at {{ t }}{% endblocktrans %} →
 </a>

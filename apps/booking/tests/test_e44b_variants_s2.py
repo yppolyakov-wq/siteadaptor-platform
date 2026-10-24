@@ -108,13 +108,13 @@ def test_booking_with_variant_and_units(settings):
     assert b.price_cents == 2 * 4200
 
 
-def test_default_variant_without_param(settings):
+def test_no_variant_param_books_base_service(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     day = _future_day()
     r, svc, std, lang = _setup(day, window=("09:00", "12:00"))
     _book_post(svc, _aware(day, 9))
     b = Booking.objects.get(service=svc)
-    assert b.variant_id == std.pk and b.price_cents == 3000
+    assert b.variant_id is None and b.variant_label == "" and b.price_cents == 3000
 
 
 def test_forged_variant_on_post_is_404_without_booking(settings):
@@ -122,12 +122,13 @@ def test_forged_variant_on_post_is_404_without_booking(settings):
     day = _future_day()
     r, svc, std, lang = _setup(day, window=("09:00", "12:00"))
     foreign = _variant(_service(), "X")
-    lang_off = lang
-    lang_off.is_active = False
-    lang_off.save()
-    for raw in (str(foreign.pk), str(lang_off.pk), "abc"):
+    for raw in (str(foreign.pk), "abc"):
         with pytest.raises(Http404):
             _book_post(svc, _aware(day, 9), variante=raw)
+    lang.is_active = False
+    lang.save()
+    resp = _book_post(svc, _aware(day, 9), variante=str(lang.pk))  # выключили — не 404
+    assert resp.status_code == 302 and "variante" not in resp["Location"]
     assert not Booking.objects.filter(service=svc).exists()
 
 
@@ -269,3 +270,64 @@ def test_variant_label_on_deal_surfaces():
     assert transactions._booking_fields(b)["title"].startswith("Haarschnitt · Lang")
     inv = invoice_from_booking(b)
     assert inv.lines[0]["text"] == "Haarschnitt · Lang"
+
+
+def test_stale_variant_link_on_slot_page_redirects(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r, svc, std, lang = _setup(day)
+    gone = str(lang.pk)
+    lang.delete()
+    resp = public_views.service_slots(
+        _rf("get", "/", {"tag": day.isoformat(), "variante": gone}), pk=svc.pk
+    )
+    assert resp.status_code == 302 and "variante" not in resp["Location"]
+
+
+def test_chips_offer_standard_first_and_drop_duration(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r, svc, std, lang = _setup(day, window=("09:00", "13:00"))
+    resp = public_views.service_slots(
+        _rf("get", "/", {"tag": day.isoformat(), "variante": str(lang.pk), "dauer": "2"}), pk=svc.pk
+    )
+    rows = resp.context_data["variant_options"] if hasattr(resp, "context_data") else None
+    if rows is None:
+        rows = public_views._variant_options(
+            svc, [std, lang], lang, day, None, 2, embed=False, tail=[]
+        )
+    assert rows[0]["name"] == "Standard" and "variante" not in rows[0]["url"]
+    assert all("dauer" not in row["url"] for row in rows)
+    assert [row["selected"] for row in rows] == [False, False, True]
+
+
+def test_header_shows_variant_length(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r, svc, std, lang = _setup(day, window=("09:00", "12:00"))
+    body = public_views.service_slots(
+        _rf("get", "/", {"tag": day.isoformat(), "variante": str(lang.pk)}), pk=svc.pk
+    ).content.decode()
+    assert "90 min" in body
+
+
+def test_error_redirect_keeps_choice(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r, svc, std, lang = _setup(day, window=("09:00", "12:00"))
+    resp = _book_post(svc, _aware(day, 9), variante=str(lang.pk), dauer="2", name="")
+    loc = resp["Location"]
+    assert f"variante={lang.pk}" in loc and "dauer=2" in loc
+
+
+def test_snapshot_stores_base_name_not_translation(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    day = _future_day()
+    r, svc, std, lang = _setup(day, window=("09:00", "12:00"))
+    lang.name_i18n = {"en": "Long"}
+    lang.save()
+    from django.utils import translation
+
+    with translation.override("en"):
+        _book_post(svc, _aware(day, 9), variante=str(lang.pk))
+    assert Booking.objects.get(service=svc).variant_label == "Lang"
