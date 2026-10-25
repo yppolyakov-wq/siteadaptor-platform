@@ -29,7 +29,12 @@ def _tenant(**kw):
 
 
 def _days_ago(n):
-    return timezone.now() - timedelta(days=n)
+    # Полдень локальной даты N дней назад: «сейчас − N×24 ч» в ночь перевода часов
+    # (25.10, сутки = 25 ч) поздно вечером попадает на СЕГОДНЯ (флак CI 2026-10-25).
+    from datetime import datetime, time
+
+    day = timezone.localdate() - timedelta(days=n)
+    return timezone.make_aware(datetime.combine(day, time(12)))
 
 
 def _promo(title="Brötchen-Woche", **kw):
