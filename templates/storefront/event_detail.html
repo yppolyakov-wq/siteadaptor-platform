@@ -111,7 +111,7 @@
                   <span class="flex items-center gap-2 text-sm">
                     <input type="radio" name="tier" value="{{ t.label }}" data-rv1-label="{{ t.label }}" {% if t.is_default %}checked{% endif %} {% if t.sold_out %}disabled{% endif %} required>
                     {{ t.label }}
-                    {% if t.sold_out %}<span class="text-xs text-red-600 font-medium">· {% trans "Sold out" %}</span>{% elif t.seats_left %}<span class="text-xs text-gray-500">· {% blocktrans with n=t.seats_left %}{{ n }} left{% endblocktrans %}</span>{% endif %}
+                    {% if t.closed %}<span class="text-xs text-gray-500">· {% trans "Abgelaufen" %}</span>{% elif t.sold_out %}<span class="text-xs text-red-600 font-medium">· {% trans "Sold out" %}</span>{% elif t.until %}<span class="text-xs text-amber-700">· {% blocktrans with d=t.until %}bis {{ d }}{% endblocktrans %}</span>{% elif t.seats_left %}<span class="text-xs text-gray-500">· {% blocktrans with n=t.seats_left %}{{ n }} left{% endblocktrans %}</span>{% endif %}
                   </span>
                   <span class="font-semibold text-sm">{% if t.price_cents %}{{ t.price_eur|floatformat:2 }} €{% else %}{% trans "Free" %}{% endif %}</span>
                 </label>

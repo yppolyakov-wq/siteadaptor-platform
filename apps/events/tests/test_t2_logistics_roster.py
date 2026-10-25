@@ -142,3 +142,80 @@ def test_roster_has_tier_amount_open_and_checkin():
     for col in ("Tarif", "Betrag", "Offen", "Extras", "Check-in"):
         assert col in header
     assert "50.00" in row
+
+
+# --- ревью T-2 --------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "action", ["edit_booking", "delete_booking", "booking_status", "toggle_task"]
+)
+def test_garbage_id_is_404_not_500(action):
+    from django.http import Http404
+
+    event = _event()
+    with pytest.raises(Http404):
+        _post(event, {"action": action, "id": "1 OR 1"})
+
+
+def test_absurd_numbers_are_clamped_not_500():
+    event = _event()
+    _post(event, {"action": "add_booking", "cost_eur": "Infinity", "qty": "999999", "day": "99999"})
+    _post(event, {"action": "add_booking", "cost_eur": "1e30"})
+    costs = sorted(SupplierBooking.objects.filter(event=event).values_list("cost_cents", flat=True))
+    assert costs == [0, 2_147_483_647]
+    assert SupplierBooking.objects.filter(event=event, qty=32767, day=32767).exists()
+
+
+def test_paid_booking_cannot_be_zeroed_and_keeps_expense():
+    from apps.events.tour_finance import sync_expense
+
+    event = _event()
+    b = _booking(event, status=SupplierBooking.STATUS_PAID)
+    sync_expense(b)
+    _post(event, {"action": "edit_booking", "id": b.pk, "cost_eur": "0", "supplier_name": "X"})
+    b.refresh_from_db()
+    assert b.cost_cents == 42000 and ExpenseEntry.objects.filter(event=event).exists()
+
+
+def test_edit_keeps_inactive_supplier():
+    from apps.inventory.models import Lieferant
+
+    event = _event()
+    supplier = Lieferant.objects.create(name="Alt", is_active=False)
+    b = _booking(event, supplier=supplier)
+    _post(
+        event, {"action": "edit_booking", "id": b.pk, "supplier": str(supplier.pk), "cost_eur": "1"}
+    )
+    b.refresh_from_db()
+    assert b.supplier_id == supplier.pk
+
+
+def test_roster_queries_do_not_grow_with_tickets(django_assert_max_num_queries):
+    event = _event(price_cents=1000, capacity=0)
+    for i in range(5):
+        services.book_ticket(event, name=f"G{i}", email=f"g{i}@t.de", auto_confirm=True)
+    request = _cab("get")
+    from apps.core.models import Membership
+
+    Membership.objects.create(user=request.user, role=Membership.ROLE_OWNER)
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    with CaptureQueriesContext(connection) as five:
+        views.roster_csv(request, pk=event.pk)
+    for i in range(5, 15):
+        services.book_ticket(event, name=f"G{i}", email=f"g{i}@t.de", auto_confirm=True)
+    with CaptureQueriesContext(connection) as fifteen:
+        views.roster_csv(request, pk=event.pk)
+    assert len(fifteen) <= len(five) + 2
+
+
+def test_add_booking_with_active_supplier_keeps_it():
+    """Регресс T-2: pk поставщика — UUID; разбор как числа терял выбор всегда."""
+    from apps.inventory.models import Lieferant
+
+    event = _event()
+    supplier = Lieferant.objects.create(name="Bus GmbH")
+    _post(event, {"action": "add_booking", "supplier": str(supplier.pk), "cost_eur": "10"})
+    assert SupplierBooking.objects.get(event=event).supplier_id == supplier.pk

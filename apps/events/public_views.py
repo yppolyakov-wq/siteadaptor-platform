@@ -530,6 +530,9 @@ def veranstaltung_book(request, pk):
             health_confirmed=bool(request.POST.get("health_confirmed")),
             signed_ip=ratelimit.client_ip(request),
         )
+    except services.TierClosed:
+        messages.error(request, _("Dieser Frühbucherpreis ist abgelaufen."))
+        return redirect("storefront-event", pk=pk)
     except services.SoldOut as exc:
         messages.error(
             request,

@@ -97,6 +97,7 @@
                     <label class="text-xs text-gray-500">{% trans "Supplier" %}
                       <select name="supplier" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
                         <option value="">—</option>
+                        {% if b.supplier and not b.supplier.is_active %}<option value="{{ b.supplier_id }}" selected>{{ b.supplier.name }}</option>{% endif %}
                         {% for s in suppliers %}<option value="{{ s.pk }}"{% if b.supplier_id == s.pk %} selected{% endif %}>{{ s.name }}</option>{% endfor %}
                       </select>
                     </label>

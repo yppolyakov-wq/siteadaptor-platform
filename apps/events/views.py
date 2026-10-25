@@ -753,10 +753,12 @@ def roster_csv(request, pk):
             *[label for _key, label in reg_cols],
         ]
     )
-    from apps.core import money_contract
+    from apps.core import folio, money_contract
 
+    tickets = list(event.tickets.select_related("customer", "stay_booking__unit", "waiver"))
+    folio.prefetch("ticket", tickets)  # ревью T-2: остаток без запроса на каждый билет
     rows = 0
-    for t in event.tickets.select_related("customer", "stay_booking__unit", "waiver").all():
+    for t in tickets:
         rows += 1
         answers = t.answers or {}
         room = t.stay_booking.unit.name if t.stay_booking and t.stay_booking.unit else ""
@@ -778,7 +780,11 @@ def roster_csv(request, pk):
                 csv_safe(t.tier_label),
                 f"{t.payable_cents / 100:.2f}",
                 f"{money_contract.due('ticket', t):.2f}",
-                csv_safe(", ".join(str(x.get("label", "")) for x in (t.extras or []))),
+                csv_safe(
+                    ", ".join(
+                        str(x.get("label", "")) for x in (t.extras or []) if isinstance(x, dict)
+                    )
+                ),
                 f"{timezone.localtime(t.checked_in_at):%d.%m.%Y %H:%M}" if t.checked_in_at else "",
                 *([csv_safe(room)] if show_unterkunft else []),
                 *([csv_safe(waiver_cell)] if show_waiver else []),
@@ -900,65 +906,22 @@ def event_logistics(request, pk):
     Закупочные цены здесь показываются гиду и НИКОГДА не уезжают на витрину
     (участнику отдаётся `SupplierBooking.participant_view`).
     """
-    from django.utils import timezone
 
     from .logistics import SupplierBooking, TourTask
     from .tour_finance import event_margin, sync_expense
 
     event = get_object_or_404(Event, pk=pk)
     if request.method == "POST":
-        action = request.POST.get("action", "")
-        if action == "add_booking":
-            _add_supplier_booking(request, event)
-        elif action == "edit_booking":
-            # KA-12 T-2: поставщика можно поправить (опечатка, новая цена/дата).
-            booking = get_object_or_404(SupplierBooking, pk=request.POST.get("id"), event=event)
-            _add_supplier_booking(request, event, booking=booking)
-            sync_expense(booking)  # оплаченная запись: расход идёт за новой суммой
-        elif action == "delete_booking":
-            booking = get_object_or_404(SupplierBooking, pk=request.POST.get("id"), event=event)
-            if booking.status == SupplierBooking.STATUS_PAID:
-                # Оплаченная — расход уже в журнале: только «Storniert», не удаление.
-                messages.error(
-                    request,
-                    _(
-                        "Bezahlte Buchungen werden nicht gelöscht — "
-                        "setzen Sie den Status auf „Storniert“."
-                    ),
-                )
-                return redirect("events:logistics", pk=event.pk)
-            sync_expense(booking)
-            booking.delete()
-        elif action == "copy_tasks":
-            # KA-12 T-2: чек-лист из другого заезда — те же задачи, срок с тем же
-            # отступом от старта (шаблон = прошлый тур, без отдельного хранилища).
-            source = get_object_or_404(Event, pk=_uuid_or_none(request.POST.get("source")))
-            _copy_tasks(source, event)
-        elif action == "booking_status":
-            booking = get_object_or_404(SupplierBooking, pk=request.POST.get("id"), event=event)
-            target = request.POST.get("status", "")
-            if target in dict(SupplierBooking.STATUSES):
-                booking.status = target
-                booking.save(update_fields=["status", "updated_at"])
-                # Расход появляется/исчезает вместе со статусом «Bezahlt».
-                sync_expense(booking)
-        elif action == "booking_visibility":
-            booking = get_object_or_404(SupplierBooking, pk=request.POST.get("id"), event=event)
-            booking.visible_to_participants = not booking.visible_to_participants
-            booking.save(update_fields=["visible_to_participants", "updated_at"])
-        elif action == "add_task":
-            title = (request.POST.get("title") or "").strip()
-            if title:
-                TourTask.objects.create(
-                    event=event,
-                    title=title[:200],
-                    due_date=_parse_date(request.POST.get("due_date")),
-                )
-        elif action == "toggle_task":
-            task = get_object_or_404(TourTask, pk=request.POST.get("id"), event=event)
-            task.done_at = None if task.done_at else timezone.now()
-            task.save(update_fields=["done_at", "updated_at"])
-        messages.success(request, _("Saved."))
+        from django.db import transaction
+
+        # Ревью T-2: каждое действие — одна транзакция (правка записи и её расход
+        # меняются вместе); строка записи блокируется от параллельной смены статуса.
+        with transaction.atomic():
+            error = _logistics_post(request, event, SupplierBooking, TourTask, sync_expense)
+        if error:
+            messages.error(request, error)
+        else:
+            messages.success(request, _("Saved."))
         return redirect("events:logistics", pk=event.pk)
     return render(
         request,
@@ -981,10 +944,98 @@ def event_logistics(request, pk):
     )
 
 
+def _logistics_post(request, event, SupplierBooking, TourTask, sync_expense):  # noqa: N803
+    """POST-действия логистики. Возвращает текст ошибки или "" (успех)."""
+    from django.utils import timezone
+
+    action = request.POST.get("action", "")
+
+    def _booking():
+        # Ревью T-2: мусор вместо UUID — 404, а не ValidationError (500).
+        return get_object_or_404(
+            SupplierBooking.objects.select_for_update(),
+            pk=_uuid_or_none(request.POST.get("id")),
+            event=event,
+        )
+
+    if action == "add_booking":
+        _add_supplier_booking(request, event)
+    elif action == "edit_booking":
+        # KA-12 T-2: поставщика можно поправить (опечатка, новая цена/дата).
+        booking = _booking()
+        if booking.status == SupplierBooking.STATUS_PAID and not _cents(
+            request.POST.get("cost_eur")
+        ):
+            return _("Eine bezahlte Buchung braucht einen Betrag.")
+        _add_supplier_booking(request, event, booking=booking)
+        sync_expense(booking)  # оплаченная запись: расход идёт за новой суммой
+    elif action == "delete_booking":
+        booking = _booking()
+        if booking.status == SupplierBooking.STATUS_PAID:
+            # Оплаченная — расход уже в журнале: только «Storniert», не удаление.
+            return _(
+                "Bezahlte Buchungen werden nicht gelöscht — setzen Sie den Status auf „Storniert“."
+            )
+        sync_expense(booking)
+        booking.delete()
+    elif action == "copy_tasks":
+        # KA-12 T-2: чек-лист из другого заезда — те же задачи, срок с тем же
+        # отступом от старта (шаблон = прошлый тур, без отдельного хранилища).
+        source = get_object_or_404(Event, pk=_uuid_or_none(request.POST.get("source")))
+        if not _copy_tasks(source, event):
+            return _("Keine neuen Aufgaben zum Übernehmen.")
+    elif action == "booking_status":
+        booking = _booking()
+        target = request.POST.get("status", "")
+        if target in dict(SupplierBooking.STATUSES):
+            booking.status = target
+            booking.save(update_fields=["status", "updated_at"])
+            # Расход появляется/исчезает вместе со статусом «Bezahlt».
+            sync_expense(booking)
+    elif action == "booking_visibility":
+        booking = _booking()
+        booking.visible_to_participants = not booking.visible_to_participants
+        booking.save(update_fields=["visible_to_participants", "updated_at"])
+    elif action == "add_task":
+        title = (request.POST.get("title") or "").strip()
+        if title:
+            TourTask.objects.create(
+                event=event,
+                title=title[:200],
+                due_date=_parse_date(request.POST.get("due_date")),
+            )
+    elif action == "toggle_task":
+        task = get_object_or_404(
+            TourTask.objects.select_for_update(),
+            pk=_uuid_or_none(request.POST.get("id")),
+            event=event,
+        )
+        task.done_at = None if task.done_at else timezone.now()
+        task.save(update_fields=["done_at", "updated_at"])
+    return ""
+
+
 def _active_suppliers():
     from apps.inventory.models import Lieferant
 
     return Lieferant.objects.filter(is_active=True)
+
+
+_MAX_INT = 2_147_483_647  # PositiveIntegerField
+_MAX_SMALL = 32_767  # PositiveSmallIntegerField
+
+
+def _cents(raw) -> int:
+    """Евро из формы → центы; мусор/бесконечность → 0, сверх поля — кламп (не 500)."""
+    from decimal import Decimal, InvalidOperation
+
+    try:
+        value = Decimal(str(raw or "0").replace(",", "."))
+        if not value.is_finite():
+            return 0
+        return min(max(0, int(value * 100)), _MAX_INT)
+    except (InvalidOperation, TypeError, ValueError, OverflowError):
+        return 0
 
 
 def _parse_date(raw):
@@ -1011,7 +1062,9 @@ def _copy_tasks(source, event) -> int:
     have = set(event.prep_tasks.values_list("title", flat=True))
     shift = None
     if source.starts_at and event.starts_at:
-        shift = event.starts_at.date() - source.starts_at.date()
+        shift = (
+            timezone.localtime(event.starts_at).date() - timezone.localtime(source.starts_at).date()
+        )
     created = 0
     for task in source.prep_tasks.all():
         if task.title in have:
@@ -1032,12 +1085,6 @@ def _add_supplier_booking(request, event, booking=None) -> None:
 
     from .logistics import SupplierBooking
 
-    def _cents(raw):
-        try:
-            return max(0, int(Decimal(str(raw or "0").replace(",", ".")) * 100))
-        except (InvalidOperation, TypeError, ValueError):
-            return 0
-
     def _decimal(raw):
         try:
             value = Decimal(str(raw).replace(",", ".")) if raw not in (None, "") else None
@@ -1047,17 +1094,22 @@ def _add_supplier_booking(request, event, booking=None) -> None:
             return None  # поле 12,2: сверх — None, а не DataError
         return value.quantize(Decimal("0.01"))
 
-    supplier_id = _int_or_zero(request.POST.get("supplier")) or None
-    if supplier_id and not _active_suppliers().filter(pk=supplier_id).exists():
+    supplier_id = _uuid_or_none(request.POST.get("supplier"))  # Lieferant.pk — UUID
+    keep = getattr(booking, "supplier_id", None)
+    if (
+        supplier_id
+        and supplier_id != keep
+        and not _active_suppliers().filter(pk=supplier_id).exists()
+    ):
         supplier_id = None  # чужой/мусорный id — без поставщика, а не 500
     fields = dict(
         kind=request.POST.get("kind") or SupplierBooking.KIND_HOTEL,
         supplier_id=supplier_id,
         supplier_name=(request.POST.get("supplier_name") or "").strip()[:200],
-        day=_int_or_zero(request.POST.get("day")),
+        day=min(_int_or_zero(request.POST.get("day")), _MAX_SMALL),
         date=_parse_date(request.POST.get("date")),
         stop=(request.POST.get("stop") or "").strip()[:200],
-        qty=max(1, _int_or_zero(request.POST.get("qty")) or 1),
+        qty=min(max(1, _int_or_zero(request.POST.get("qty")) or 1), _MAX_SMALL),
         cost_cents=_cents(request.POST.get("cost_eur")),
         currency=(request.POST.get("currency") or "").strip()[:3].upper(),
         amount_original=_decimal(request.POST.get("amount_original")),
@@ -1070,7 +1122,7 @@ def _add_supplier_booking(request, event, booking=None) -> None:
         return
     for name, value in fields.items():
         setattr(booking, name, value)
-    booking.save()
+    booking.save(update_fields=[*fields, "updated_at"])  # статус/видимость не трогаем
 
 
 def _int_or_zero(raw) -> int:

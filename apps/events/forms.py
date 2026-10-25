@@ -34,11 +34,12 @@ class EventForm(forms.ModelForm):
     )
     tiers_text = forms.CharField(
         required=False,
-        widget=_ta(3, "Frühbucher | 79 | 10\nStandard | 99\nKind | 0"),
+        widget=_ta(3, _("Frühbucher | 79 | 10 | bis 30.11.2026\nStandard | 99\nKind | 0")),
         label=(
             _(
-                "Preiskategorien (Label | Preis € | Kontingent, eine pro Zeile; "
-                "Kontingent optional, leer = einheitlicher Preis)"
+                "Preiskategorien (Label | Preis € | Kontingent | bis Datum, eine pro Zeile; "
+                "Kontingent und Datum optional — nach dem Datum wird die Kategorie nicht "
+                "mehr verkauft; leer = einheitlicher Preis)"
             )
         ),
     )

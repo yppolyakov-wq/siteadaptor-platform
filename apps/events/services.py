@@ -26,6 +26,10 @@ class SoldOut(Exception):
         super().__init__(f"sold out (available {available})")
 
 
+class TierClosed(Exception):
+    """KA-12 T-3: выбранная ранняя цена (тир с датой `until`) уже не продаётся."""
+
+
 class EventNotBookable(Exception):
     """Событие не опубликовано / отменено."""
 
@@ -141,6 +145,10 @@ def book_ticket(
 
     # Цена из выбранного тира (Frühbucher/Standard…), иначе единая цена события.
     matched_tier = next((t for t in event.tier_list if t["label"] == tier_label), None)
+    from .details import tier_open
+
+    if matched_tier is not None and not tier_open(matched_tier):
+        raise TierClosed()  # под блокировкой события: страница могла быть открыта вчера
     price_cents = matched_tier["price_cents"] if matched_tier else event.price_cents
     # R11: анти-овердрафт на уровне тира (под той же блокировкой строки Event —
     # конкурентные покупки этого тира сериализуются). capacity тира 0 = без лимита.

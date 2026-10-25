@@ -30397,3 +30397,24 @@ msgstr "Взять чек-лист из другой даты"
 
 msgid "Diese Buchung löschen?"
 msgstr "Удалить это бронирование?"
+
+msgid "Dieser Frühbucherpreis ist abgelaufen."
+msgstr "Срок этой ранней цены истёк."
+
+msgid "Eine bezahlte Buchung braucht einen Betrag."
+msgstr "У оплаченного бронирования должна быть сумма."
+
+msgid "Keine neuen Aufgaben zum Übernehmen."
+msgstr "Новых задач для переноса нет."
+
+msgid "Preiskategorien (Label | Preis € | Kontingent | bis Datum, eine pro Zeile; Kontingent und Datum optional — nach dem Datum wird die Kategorie nicht mehr verkauft; leer = einheitlicher Preis)"
+msgstr "Ценовые категории (Название | Цена € | Квота | до даты, по одной в строке; квота и дата необязательны — после даты категория не продаётся; пусто = единая цена)"
+
+msgid ""
+"Frühbucher | 79 | 10 | bis 30.11.2026\n"
+"Standard | 99\n"
+"Kind | 0"
+msgstr ""
+"Ранняя цена | 79 | 10 | bis 30.11.2026\n"
+"Стандарт | 99\n"
+"Дети | 0"

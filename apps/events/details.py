@@ -84,16 +84,55 @@ def normalize(raw) -> dict:
     return out
 
 
+def parse_until(value) -> str:
+    """KA-12 T-3: «bis 30.11.2026» / «2026-11-30» → ISO-дата или "" (мусор = без срока)."""
+    from datetime import date, datetime
+
+    import re
+
+    # Слово перед датой любое («bis», «until», «до»…): берём саму дату.
+    found = re.search(r"\d{4}-\d{2}-\d{2}|\d{1,2}\.\d{1,2}\.\d{2,4}", str(value or ""))
+    raw = found.group(0) if found else ""
+    if not raw:
+        return ""
+    for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%d.%m.%y"):
+        try:
+            return datetime.strptime(raw, fmt).date().isoformat()
+        except ValueError:
+            continue
+    try:
+        return date.fromisoformat(raw).isoformat()
+    except ValueError:
+        return ""
+
+
+def tier_open(tier, today=None) -> bool:
+    """KA-12 T-3: тир продаётся, пока не прошла его дата `until` (включительно)."""
+    until = (tier or {}).get("until") or ""
+    if not until:
+        return True
+    from datetime import date
+
+    from django.utils import timezone
+
+    try:
+        return (today or timezone.localdate()) <= date.fromisoformat(until)
+    except ValueError:
+        return True
+
+
 def normalize_tiers(raw) -> list[dict]:
-    """Ценовые тиры билета → [{label, price_cents, capacity}] (label непустой,
+    """Ценовые тиры билета → [{label, price_cents, capacity[, until]}] (label непустой,
     цена/вместимость >= 0; capacity=0 = без отдельного лимита, R11).
 
-    Принимает list[dict] {label, price_cents|price, capacity} или строки
-    «Label | Preis(€) | Kapazität».
+    Принимает list[dict] {label, price_cents|price, capacity, until} или строки
+    «Label | Preis(€) | Kapazität | bis TT.MM.JJJJ». KA-12 T-3: `until` — ранняя цена
+    до даты (Frühbucher); после неё тир не продаётся, остальные — как прежде.
     """
     out = []
     for item in raw or []:
         cap = 0
+        until = ""
         if isinstance(item, dict):
             label = _s(item.get("label"), 120)
             if "price_cents" in item:
@@ -101,21 +140,27 @@ def normalize_tiers(raw) -> list[dict]:
             else:
                 cents = _eur_to_cents(item.get("price"))
             cap = item.get("capacity")
+            until = parse_until(item.get("until"))
         elif isinstance(item, (list, tuple)):
             label = _s(item[0], 120) if item else ""
             cents = _eur_to_cents(item[1]) if len(item) > 1 else 0
             cap = item[2] if len(item) > 2 else 0
+            until = parse_until(item[3]) if len(item) > 3 else ""
         else:
             parts = str(item).split(_SEP)
             label = _s(parts[0], 120)
             cents = _eur_to_cents(parts[1]) if len(parts) > 1 else 0
             cap = parts[2] if len(parts) > 2 else 0
+            until = parse_until(parts[3]) if len(parts) > 3 else ""
         try:
             cents = max(0, int(cents))
         except (TypeError, ValueError):
             cents = 0
         if label:
-            out.append({"label": label, "price_cents": cents, "capacity": _int(cap)})
+            tier = {"label": label, "price_cents": cents, "capacity": _int(cap)}
+            if until:  # presence-minimal: старые тиры без ключа остаются байт-в-байт
+                tier["until"] = until
+            out.append(tier)
         if len(out) >= 12:
             break
     return out
@@ -140,10 +185,14 @@ def tiers_to_text(raw) -> str:
     """[{label, price_cents, capacity}] → «Label | 12.50» (+ «| N» при лимите R11)
     построчно (для формы кабинета)."""
     lines = []
+    from datetime import date
+
     for t in normalize_tiers(raw):
         line = f"{t['label']} {_SEP} {t['price_cents'] / 100:.2f}"
-        if t.get("capacity"):
-            line += f" {_SEP} {t['capacity']}"
+        if t.get("capacity") or t.get("until"):
+            line += f" {_SEP} {t.get('capacity') or ''}".rstrip()
+        if t.get("until"):
+            line += f" {_SEP} bis {date.fromisoformat(t['until']):%d.%m.%Y}"
         lines.append(line)
     return "\n".join(lines)
 

@@ -475,12 +475,16 @@ class Event(I18nMixin, TimestampedModel):
         """Тиры для шаблона: [{label, price_cents, price_eur, capacity, seats_left,
         sold_out, is_default}]. seats_left=None при безлимите тира; is_default —
         первый доступный тир (для предвыбора в форме, R11)."""
+        from .details import tier_open
+
         sold_map = self.tier_sold_map() if any(t.get("capacity") for t in self.tier_list) else {}
         out = []
         default_set = False
         for t in self.tier_list:
             left = self.tier_seats_left(t["label"], sold_map)
-            sold_out = left is not None and left <= 0
+            # KA-12 T-3: ранняя цена после своей даты не продаётся (как распродано).
+            closed = not tier_open(t)
+            sold_out = closed or (left is not None and left <= 0)
             is_default = not sold_out and not default_set
             if is_default:
                 default_set = True
@@ -490,6 +494,7 @@ class Event(I18nMixin, TimestampedModel):
                     "price_eur": Decimal(t["price_cents"]) / 100,
                     "seats_left": left,
                     "sold_out": sold_out,
+                    "closed": closed,
                     "is_default": is_default,
                 }
             )
@@ -506,7 +511,12 @@ class Event(I18nMixin, TimestampedModel):
     @property
     def from_price_cents(self) -> int:
         """Минимальная цена (для «ab X €» на витрине): мин. тир или price_cents."""
-        prices = [t["price_cents"] for t in self.tier_list]
+        from .details import tier_open
+
+        # KA-12 T-3: «ab X €» — по тирам, которые ещё продаются (не прошедшая ранняя цена).
+        prices = [t["price_cents"] for t in self.tier_list if tier_open(t)]
+        if not prices:
+            prices = [t["price_cents"] for t in self.tier_list]
         return min(prices) if prices else self.price_cents
 
     @property
@@ -546,7 +556,14 @@ class Event(I18nMixin, TimestampedModel):
             return True
         # R11: все ценовые тиры с лимитом распроданы (а безлимитных тиров нет) →
         # купить нечего, показываем лист ожидания.
+        from .details import tier_open
+
         tiers = self.tier_list
+        if tiers:
+            # KA-12 T-3: тиры с прошедшей ранней ценой купить нельзя.
+            tiers = [t for t in tiers if tier_open(t)]
+            if not tiers:
+                return True
         if tiers and all(t.get("capacity") for t in tiers):
             sold_map = self.tier_sold_map()
             return all((self.tier_seats_left(t["label"], sold_map) or 0) <= 0 for t in tiers)
