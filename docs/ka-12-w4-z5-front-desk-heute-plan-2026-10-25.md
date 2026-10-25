@@ -275,3 +275,43 @@
 | Перед мержем | — | `django-reviewer` по всей ветке (обязательно); `security-reviewer` по итоговому диффу `views.py`; `ruff check .` + `ruff format --check .` целиком; pytest `apps/stays apps/core apps/finance apps/tenants` (`--create-db`); `test_orphan_decorators`; `test_template_comments`; `scripts/i18n_quickcheck.py` + дуп-чек polib; `scripts/i18n_untranslated.py`; `npm run build:css` + коммит `static/css/app.css`; зелёный CI → FF в `main` |
 
 **ops после деплоя:** `./scripts/deploy.sh single` (`stays/0044`). Пересев демо не нужен.
+
+## 9. Ревью плана `security-reviewer` (2026-10-25, до кода) — принять при реализации
+1. **Р-2:** `room` — строго `rate_plans.parse_uuid`; сначала `unit`, потом `room` внутри него; в `mode=block`
+   комната тоже разбирается строго; тест-замок «письмо/Celery брони — только `on_commit`» (откат при `RoomConflict`).
+2. **Р-3:** сервисный тест «`payment_method=invoice` + `auto_confirm` без реквизитов → счёт не выпущен»;
+   форма стойки не шлёт buyer/company → дефолты `book_stay` не ведут к счёту фирме; **Vorkasse на стойке
+   только при заданных банковских реквизитах** (guard IBAN, как в E7).
+3. **`_safe_next`:** переиспользовать общий хелпер (`core/views.py`, `inbox/views.py`), а не третий;
+   `url_has_allowed_host_and_scheme(allowed_hosts={host}, require_https=is_secure)` + отказ от `\`, `\t\r\n`;
+   пробы `/\evil.com`, `/%09/evil.com`, `///evil.com`, `https://evil.com` в `stay_action` и `stay_create`.
+4. **Права check-out:** решение через систему прав сотрудников (запрос владельца 2026-10-25 — настраиваемые
+   права, выдаёт администратор; план — отдельным инкрементом ДО кода Z-5). Undo check-in запрещён и при `no_show`.
+5. Двойной тап: «bereits» — по `rowcount == 0`; два `check_out` подряд — одна выручка.
+6. Гард `no_show` после check-in — и в массовой смене статусов (E2.1), и в кастом-ролях.
+7. Гард правки заселённой брони — в `services.move_stay`/update (не только вьюха): перенос `departure`
+   раньше сегодня, смена категории/комнаты, drag на шахматке.
+8. `stay_hours`: клампить в 0..23 до записи (CheckConstraint не должен давать 500); `"٣"` не должен стать 3.
+9. Тест блока категории «ночи свободны, но часть ёмкости уже блокирована».
+10. Порядок локов «юнит → комната» одинаков в `delete_room`/`assign_room` — проверить по `connection.queries`.
+11. Heute: `logger.exception` без PII; `next` с `"><script>` экранирован; Meldeschein — только ✓/—.
+
+## 10. Ревью плана `database-reviewer` (2026-10-25, до кода) — принять при реализации
+1. `delete_room`: проверка «назначена активной брони» — строго ПОСЛЕ `select_for_update` комнаты
+   (`assign_room` лочит только комнату); тест: без лока комнаты — красный.
+2. DF-Z3 по `quantity` — только категории без комнат; с комнатами ёмкость уменьшает лишь `room_delete`,
+   сравнение `max(sold) > active_rooms − 1`; presence-guard `quantity` в `unit_settings` (W0: без поля — не 1).
+3. `checked_out_at` — ПЕРВЫМ действием ветки `fulfilled`; `check_out` в `atomic`; тест «падение
+   `settle_on_delivery` откатывает статус и отметку».
+4. Check-in: `UPDATE … WHERE checked_in_at IS NULL AND status IN (allowed)`, «bereits» vs «статус изменился»
+   перечитыванием; undo — условия в UPDATE; даты от `timezone.localdate()`.
+5. `create_block`: лок юнита + `range_available` + `NoCapacity` — общая часть выше развилки по `room`;
+   два блока на последний номер → `NoCapacity`.
+6. `sold_by_night`: SQL `departure > from_day`, `status__in=active`, × `rooms`; наружу обычный dict.
+7. Heute: `Exists(GuestRegistration)` → `has_registration` (reverse OneToOne без строки бросает); «Im Haus»
+   одним `Q`; бюджет запросов 3 vs 10 броней.
+8. `CheckConstraint(condition=…)` (Django 5.1), только `≤ 23`; имена согласованы с `0044`.
+9. ops: после деплоя проверить в логе пересборку шаблонной схемы (шаг 6a).
+10. Письма walk-in — тест «только on_commit» обязателен.
+11–14. `%5c` в пробах `next`; гард `no_show` и исключение `pending` — по РОЛИ статуса, не по коду;
+   симметричный тест кастом done-роли (отметка ставится, но не при `auto`).
