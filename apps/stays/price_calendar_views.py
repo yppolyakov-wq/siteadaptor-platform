@@ -19,6 +19,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.dates import WEEKDAYS_ABBR
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -29,7 +30,10 @@ from .models import StayUnit
 
 WINDOWS = (14, 31)
 PREVIEW_ROWS = 50
-_WEEKDAYS = ("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
+
+
+def _rejected_msg() -> str:
+    return _("Der neue Preis läge außerhalb von 0,01 € bis 99.999,99 €.")
 
 
 def _can_edit(user) -> bool:
@@ -43,7 +47,7 @@ def _ident(request) -> str:
 
 def _window(params, today):
     """(von, tage) из GET/POST: tage ∈ WINDOWS, von не раньше сегодня и не за горизонтом."""
-    tage = int(params.get("tage")) if str(params.get("tage", "")).isdigit() else 14
+    tage = night_rates.small_int(params.get("tage")) or 14
     if tage not in WINDOWS:
         tage = 14
     von = night_rates.parse_day(params.get("von")) or today
@@ -227,7 +231,7 @@ def price_calendar(request):
         ),
         "can_edit": can_edit,
         "all_units": _units() if can_edit else [],
-        "weekday_choices": [(str(i), _(name)) for i, name in enumerate(_WEEKDAYS)],
+        "weekday_choices": [(str(i), str(WEEKDAYS_ABBR[i])) for i in range(7)],
         "preview": _preview(request, today),
         **grid_context(units, von, tage),
     }
@@ -271,7 +275,7 @@ def price_calendar_apply(request):
         )
         return redirect(back)
     except night_rates.PlanRejected:
-        messages.error(request, _("Der Preis würde auf 0 € oder darunter fallen."))
+        messages.error(request, _rejected_msg())
         return redirect(back)
     changed = result.created + result.updated + result.deleted
     if changed:
@@ -288,9 +292,9 @@ def _day_action(post) -> night_rates.Action:
     raw_min = str(post.get("min_nights") or "").strip()
     return night_rates.Action(
         price_mode="set" if raw_price else "reset",
-        price_cents=night_rates._money_cents(raw_price) if raw_price else None,
+        price_cents=night_rates.money_cents(raw_price) if raw_price else None,
         stop_sell=bool(post.get("stop_sell")) if flags else None,
-        min_nights=(int(raw_min) if raw_min.isdigit() else 0) if flags else None,
+        min_nights=(night_rates.small_int(raw_min) or 0) if flags else None,
         no_checkin=bool(post.get("no_checkin")) if flags else None,
         no_checkout=bool(post.get("no_checkout")) if flags else None,
     )
@@ -304,13 +308,19 @@ def price_day(request, pk, day):
         today <= the_day <= today + timedelta(days=night_rates.MAX_HORIZON_DAYS)
     ):
         raise Http404
-    unit = get_object_or_404(StayUnit.objects.prefetch_related("season_rates"), pk=pk)
+    unit = get_object_or_404(
+        StayUnit.objects.filter(is_active=True).prefetch_related("season_rates"), pk=pk
+    )
     von, tage = _window(request.POST if request.method == "POST" else request.GET, today)
     if request.method == "POST":
         if not _can_edit(request.user):
             raise PermissionDenied(_("Nur für Inhaber und Administratoren."))
         raw_min = str(request.POST.get("min_nights") or "").strip()
-        if raw_min and not (raw_min.isdigit() and int(raw_min) <= 365):
+        if (
+            raw_min
+            and (night_rates.small_int(raw_min) or 0) > 365
+            or (raw_min and night_rates.small_int(raw_min) is None)
+        ):
             messages.error(request, _("Mindestaufenthalt: 1 bis 365 Nächte."))
             return redirect(_grid_url(von, tage))
         try:
@@ -318,10 +328,8 @@ def price_day(request, pk, day):
         except ValueError as exc:
             messages.error(request, str(exc))
             return redirect(_grid_url(von, tage))
-        if action.is_noop:
-            action = night_rates.Action(price_mode="reset")
         try:
-            night_rates.apply_plan(
+            result = night_rates.apply_plan(
                 [unit.pk],
                 [the_day],
                 action,
@@ -331,16 +339,17 @@ def price_day(request, pk, day):
             )
         except night_rates.StalePlan:
             messages.error(
-                request,
-                _(
-                    "Die Daten haben sich inzwischen geändert. Bitte prüfen Sie die Vorschau erneut."
-                ),
+                request, _("Der Tag wurde inzwischen geändert. Bitte erneut öffnen und prüfen.")
             )
         except night_rates.PlanRejected:
-            messages.error(request, _("Der Preis würde auf 0 € oder darunter fallen."))
+            messages.error(request, _rejected_msg())
         else:
-            messages.success(request, _("Gespeichert."))
-        return redirect(_grid_url(von, tage))
+            if result.created + result.updated + result.deleted:
+                messages.success(request, _("Gespeichert."))
+            else:
+                messages.info(request, _("Keine Änderungen — alles ist bereits so eingestellt."))
+        # a11y: фокус возвращается на правленую ячейку (якорь, см. price_calendar.html).
+        return redirect(_grid_url(von, tage) + f"#pc-{unit.pk}-{the_day:%Y%m%d}")
     seasons = list(unit.season_rates.all())
     window = pricing.night_rates_window([unit.pk], the_day, the_day)
     night = window[unit.pk].get(the_day)

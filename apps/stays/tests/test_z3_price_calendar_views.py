@@ -266,3 +266,26 @@ def test_screen_is_behind_stays_module_gate():
     spec = next(m for m in REGISTRY if m.key == "stays")
     path = reverse("stays:price-calendar")
     assert any(path.startswith(p) for p in spec.url_prefixes)
+
+
+def test_day_post_without_change_says_so():
+    unit = _unit()
+    day = _day(2)
+    req = _req("post", "/x/", {"price": "", "day_present": "1", "state": _state(unit, day)})
+    v.price_day(req, pk=unit.pk, day=day.isoformat())
+    msgs = [str(m) for m in get_messages(req)]
+    assert msgs and "Gespeichert" not in msgs[0]
+
+
+def test_day_of_inactive_unit_is_404():
+    unit = _unit(is_active=False)
+    with pytest.raises(Http404):
+        v.price_day(_req(), pk=unit.pk, day=_day(1).isoformat())
+
+
+def test_day_post_redirect_carries_cell_anchor():
+    unit = _unit()
+    day = _day(2)
+    data = {"price": "61", "day_present": "1", "state": _state(unit, day)}
+    resp = v.price_day(_req("post", "/x/", data), pk=unit.pk, day=day.isoformat())
+    assert resp.url.endswith(f"#pc-{unit.pk}-{day:%Y%m%d}")

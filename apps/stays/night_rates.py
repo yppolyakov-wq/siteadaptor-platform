@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 import uuid
 from dataclasses import dataclass, replace
 from datetime import date, timedelta
@@ -28,6 +29,7 @@ MAX_CELLS = 20_000  # категории × ночи за одну правку
 MAX_UNITS = 200  # категорий за одну правку (кап IN-списка и времени блокировки)
 MAX_PRICE_CENTS = 9_999_999  # 99 999,99 €
 PERCENT_MIN, PERCENT_MAX = -90, 300
+_SMALL_INT = re.compile(r"[0-9]{1,3}")
 _FIELDS = ("price_cents", "stop_sell", "min_nights", "no_checkin", "no_checkout")
 
 
@@ -146,6 +148,12 @@ class ApplyResult:
 # ── разбор ввода ────────────────────────────────────────────────────────────
 
 
+def small_int(raw) -> int | None:
+    """Целое 0..999 из ввода; иначе None. Не ``isdigit()``: «²» — digit, но int() падает."""
+    raw = str(raw or "").strip()
+    return int(raw) if _SMALL_INT.fullmatch(raw) else None
+
+
 def select_days(von: date, bis: date, weekdays) -> list[date]:
     wd = set(weekdays)
     out, day = [], von
@@ -166,8 +174,9 @@ def parse_day(raw) -> date | None:
 def parse_weekdays(values) -> list[int]:
     out = set()
     for raw in values:
-        if str(raw).isdigit() and 0 <= int(raw) <= 6:
-            out.add(int(raw))
+        n = small_int(raw)
+        if n is not None and n <= 6:
+            out.add(n)
     return sorted(out)
 
 
@@ -187,7 +196,7 @@ def validate_scope(*, n_units, n_requested, garbage, von, bis, weekdays, today) 
     if n_requested > MAX_UNITS:
         errors.append(_("Höchstens %(n)s Kategorien auf einmal.") % {"n": MAX_UNITS})
     if garbage or n_units != n_requested:
-        errors.append(_("Unbekannte Kategorie."))
+        errors.append(_("Unbekannte oder deaktivierte Kategorie."))
     if not n_requested:
         errors.append(_("Bitte mindestens eine Kategorie wählen."))
     if von is None or bis is None:
@@ -202,7 +211,11 @@ def validate_scope(*, n_units, n_requested, garbage, von, bis, weekdays, today) 
     if not weekdays:
         errors.append(_("Bitte mindestens einen Wochentag wählen."))
     if not errors:
-        cells = n_units * len(select_days(von, bis, weekdays))
+        if not select_days(von, bis, weekdays):
+            errors.append(_("Im Zeitraum liegt kein gewählter Wochentag."))
+        # Кап по ДЛИНЕ диапазона (не по выбранным дням): окно занятости и цен
+        # читается целиком — один день недели на 2 года не должен раздувать GET.
+        cells = n_units * ((bis - von).days + 1)
         if cells > MAX_CELLS:
             errors.append(
                 _("Zu viele Nächte auf einmal (%(n)s). Bitte Zeitraum oder Kategorien verkleinern.")
@@ -215,7 +228,7 @@ def _tri(raw) -> bool | None:
     return {"on": True, "off": False}.get(str(raw or "").strip())
 
 
-def _money_cents(raw) -> int:
+def money_cents(raw) -> int:
     """Цена в центах; ValueError — с текстом для владельца."""
     from apps.core.money import parse_money
 
@@ -240,7 +253,7 @@ def parse_action(data) -> tuple[Action | None, list[str]]:
     price_cents = percent = None
     if mode == "set":
         try:
-            price_cents = _money_cents(data.get("price"))
+            price_cents = money_cents(data.get("price"))
         except ValueError as exc:
             errors.append(str(exc))
     elif mode == "percent":
@@ -262,8 +275,9 @@ def parse_action(data) -> tuple[Action | None, list[str]]:
         min_nights = 0
     elif min_mode == "set":
         raw = str(data.get("min_nights") or "").strip()
-        if raw.isdigit() and 1 <= int(raw) <= 365:
-            min_nights = int(raw)
+        n = small_int(raw)
+        if n is not None and 1 <= n <= 365:
+            min_nights = n
         else:
             errors.append(_("Mindestaufenthalt: 1 bis 365 Nächte."))
     action = Action(
@@ -427,22 +441,30 @@ def apply_plan(
         for unit_id, del_days in to_delete.items():
             NightRate.objects.filter(unit_id=unit_id, day__in=del_days).delete()
         counts = plan.counts()
-        audit_event(
-            action=f"stays.night_rates.{kind}",
-            resource_type="stay_night_rates",
-            resource_id="",
-            actor=actor,
-            context={
-                "units": len(units),
-                "von": min(days).isoformat(),
-                "bis": max(days).isoformat(),
-                "nights": plan.cells,
-                "created": counts["create"],
-                "updated": counts["update"],
-                "deleted": counts["delete"],
-                "action": action.summary(),
-            },
-        )
+        # Свой savepoint: сбой INSERT аудита иначе пометил бы внешнюю транзакцию
+        # needs_rollback — правка цен молча откатилась бы при «успешном» ответе.
+        with transaction.atomic():
+            audit_event(
+                action=f"stays.night_rates.{kind}",
+                resource_type="stay_night_rates",
+                resource_id="",
+                actor=actor,
+                context=_audit_context(units, days, plan, counts, action),
+            )
     for unit in units:
         pricing.forget_night_rates(unit)
     return ApplyResult(counts["create"], counts["update"], counts["delete"], plan.cells)
+
+
+def _audit_context(units, days, plan, counts, action) -> dict:
+    return {
+        "unit_ids": [str(u.pk) for u in units],
+        "units": len(units),
+        "von": min(days).isoformat(),
+        "bis": max(days).isoformat(),
+        "nights": plan.cells,
+        "created": counts["create"],
+        "updated": counts["update"],
+        "deleted": counts["delete"],
+        "action": action.summary(),
+    }

@@ -213,6 +213,8 @@ def test_sidebar_children_composition():
         "sellable-manage",  # R7-1: обзор раздела первым (SR-1: «Produkte» умер)
         "booking:services",
         "stays:units",
+        # KA-12 Z-3 (О-9, осознанное дополнение): цены и ограничения по дням
+        "stays:price-calendar",
         "events:list",
         "events:tour-list",
         "catalog:category-list",

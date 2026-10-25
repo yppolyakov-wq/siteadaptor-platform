@@ -29578,3 +29578,19 @@ msgid "%(n)s Tag"
 msgid_plural "%(n)s Tage"
 msgstr[0] "%(n)s day"
 msgstr[1] "%(n)s days"
+
+msgid "Der Tag wurde inzwischen geändert. Bitte erneut öffnen und prüfen."
+msgstr "This day has been changed in the meantime. Please open it again and check."
+
+msgid "Der neue Preis läge außerhalb von 0,01 € bis 99.999,99 €."
+msgstr "The new price would be outside €0.01 to €99,999.99."
+
+msgid "Im Zeitraum liegt kein gewählter Wochentag."
+msgstr "None of the selected weekdays falls within the period."
+
+#, python-format
+msgid "Nächte mit ungültigem Preis (unter 0,01 € oder über 99.999,99 €): %(n)s — bitte die Änderung anpassen."
+msgstr "Nights with an invalid price (below €0.01 or above €99,999.99): %(n)s — please adjust the change."
+
+msgid "Unbekannte oder deaktivierte Kategorie."
+msgstr "Unknown or deactivated category."

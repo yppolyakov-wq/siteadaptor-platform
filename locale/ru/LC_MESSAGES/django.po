@@ -29853,3 +29853,19 @@ msgstr[0] "%(n)s день"
 msgstr[1] "%(n)s дня"
 msgstr[2] "%(n)s дней"
 msgstr[3] "%(n)s дня"
+
+msgid "Der Tag wurde inzwischen geändert. Bitte erneut öffnen und prüfen."
+msgstr "Этот день тем временем изменили. Откройте его заново и проверьте."
+
+msgid "Der neue Preis läge außerhalb von 0,01 € bis 99.999,99 €."
+msgstr "Новая цена вышла бы за пределы от 0,01 € до 99 999,99 €."
+
+msgid "Im Zeitraum liegt kein gewählter Wochentag."
+msgstr "В выбранном периоде нет ни одного из отмеченных дней недели."
+
+#, python-format
+msgid "Nächte mit ungültigem Preis (unter 0,01 € oder über 99.999,99 €): %(n)s — bitte die Änderung anpassen."
+msgstr "Ночей с недопустимой ценой (меньше 0,01 € или больше 99 999,99 €): %(n)s — измените правку."
+
+msgid "Unbekannte oder deaktivierte Kategorie."
+msgstr "Неизвестная или отключённая категория."

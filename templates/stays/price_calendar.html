@@ -17,16 +17,22 @@ KA-12 Z-3 (E4.6b): сетка категория × день (цена ночи 
   </div>
 </div>
 
+{% if messages %}<div role="status">
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+</div>{% endif %}
+
 <p class="text-sm text-gray-500 mb-4 max-w-3xl">{% trans "Preis pro Nacht ohne Tarif. Ein eigener Tagespreis hat Vorrang vor Saison- und Wochenendpreisen. Stopp und Mindestaufenthalt gelten nur für Online-Buchungen — bestehende Buchungen bleiben unverändert." %}</p>
 
 <nav class="flex flex-wrap items-center gap-2 mb-4" aria-label="{% trans 'Zeitraum' %}">
-  <a href="?von={{ prev|date:'Y-m-d' }}&amp;tage={{ tage }}{% if kat %}&amp;kat={{ kat }}{% endif %}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400" aria-label="{% trans 'Früher' %}">←</a>
-  <a href="?tage={{ tage }}{% if kat %}&amp;kat={{ kat }}{% endif %}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Heute" %}</a>
-  <a href="?von={{ next|date:'Y-m-d' }}&amp;tage={{ tage }}{% if kat %}&amp;kat={{ kat }}{% endif %}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400" aria-label="{% trans 'Später' %}">→</a>
+  <a href="?von={{ prev|date:'Y-m-d' }}&amp;tage={{ tage }}{% if kat %}&amp;kat={{ kat }}{% endif %}" class="text-sm border border-gray-300 rounded-lg px-3 min-h-[44px] inline-flex items-center hover:border-indigo-400" aria-label="{% trans 'Früher' %}">←</a>
+  <a href="?tage={{ tage }}{% if kat %}&amp;kat={{ kat }}{% endif %}" class="text-sm border border-gray-300 rounded-lg px-3 min-h-[44px] inline-flex items-center hover:border-indigo-400">{% trans "Heute" %}</a>
+  <a href="?von={{ next|date:'Y-m-d' }}&amp;tage={{ tage }}{% if kat %}&amp;kat={{ kat }}{% endif %}" class="text-sm border border-gray-300 rounded-lg px-3 min-h-[44px] inline-flex items-center hover:border-indigo-400" aria-label="{% trans 'Später' %}">→</a>
   <span class="font-semibold text-sm ml-1">{{ von|date:"d.m." }} – {{ days|last|date:"d.m.Y" }}</span>
   <span class="ml-auto flex gap-1">
     {% for w in windows %}
-    <a href="?von={{ von|date:'Y-m-d' }}&amp;tage={{ w }}{% if kat %}&amp;kat={{ kat }}{% endif %}" aria-current="{% if w == tage %}true{% else %}false{% endif %}" class="rounded-full px-3 py-1 text-xs font-medium {% if w == tage %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% blocktrans count n=w %}{{ n }} Tag{% plural %}{{ n }} Tage{% endblocktrans %}</a>
+    <a href="?von={{ von|date:'Y-m-d' }}&amp;tage={{ w }}{% if kat %}&amp;kat={{ kat }}{% endif %}" {% if w == tage %}aria-current="true" {% endif %}class="rounded-full px-3 min-h-[32px] inline-flex items-center text-xs font-medium {% if w == tage %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% blocktrans count n=w %}{{ n }} Tag{% plural %}{{ n }} Tage{% endblocktrans %}</a>
     {% endfor %}
   </span>
 </nav>
@@ -42,7 +48,7 @@ KA-12 Z-3 (E4.6b): сетка категория × день (цена ночи 
 {% include "stays/_price_cards.html" %}
 {% endif %}
 
-<dialog id="price-day-dialog" class="rounded-2xl p-0 border-0 shadow-xl backdrop:bg-black/40 w-[min(26rem,94vw)]" aria-labelledby="price-day-title"></dialog>
+<dialog id="price-day-dialog" aria-modal="true" class="rounded-2xl p-0 border-0 shadow-xl backdrop:bg-black/40 w-[min(26rem,94vw)]" aria-labelledby="price-day-title"></dialog>
 <script>
 (function () {
   var dlg = document.getElementById('price-day-dialog');
@@ -60,8 +66,8 @@ KA-12 Z-3 (E4.6b): сетка категория × день (цена ночи 
       }).then(function (html) {
         dlg.innerHTML = html;
         dlg.showModal();
-        var first = dlg.querySelector('input, button, a');
-        if (first) first.focus();
+        var title = dlg.querySelector('#price-day-title');
+        if (title) title.focus();
       }).catch(function () { window.location.href = a.getAttribute('href'); });
       return;
     }
@@ -69,10 +75,33 @@ KA-12 Z-3 (E4.6b): сетка категория × день (цена ночи 
   });
   dlg.addEventListener('close', function () { if (opener) opener.focus(); });
   document.addEventListener('change', function (e) {
-    var all = e.target.closest('[data-price-all-units]');
-    if (!all) return;
-    document.querySelectorAll('[data-price-unit]').forEach(function (c) { c.checked = all.checked; });
+    var units = document.querySelectorAll('[data-price-unit]');
+    var all = document.querySelector('[data-price-all-units]');
+    if (e.target.matches('[data-price-all-units]')) {
+      units.forEach(function (c) { c.checked = all.checked; });
+    } else if (all && e.target.matches('[data-price-unit]')) {
+      var n = Array.prototype.filter.call(units, function (c) { return c.checked; }).length;
+      all.checked = n === units.length;
+      all.indeterminate = n > 0 && n < units.length;
+    }
   });
+  // Ввод цены/процента/ночей выбирает соответствующее действие (иначе «Nicht ändern»).
+  document.addEventListener('input', function (e) {
+    var mode = e.target.getAttribute('data-price-pick');
+    if (mode) {
+      var r = document.querySelector('input[name="price_mode"][value="' + mode + '"]');
+      if (r) r.checked = true;
+    } else if (e.target.hasAttribute('data-min-pick')) {
+      var sel = document.querySelector('select[name="min_mode"]');
+      if (sel && sel.value === 'keep') sel.value = 'set';
+    }
+  });
+  var head = document.getElementById('price-preview-title');
+  if (head) { head.focus(); }
+  else if (location.hash.indexOf('#pc') === 0) {
+    var cell = document.getElementById(location.hash.slice(1));
+    if (cell) cell.focus();
+  }
 })();
 </script>
 {% endblock %}

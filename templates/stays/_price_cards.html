@@ -7,11 +7,11 @@
     <ul class="divide-y divide-gray-100 border-t border-gray-100">
       {% for c in row.cells %}
       <li>
-        <a href="{% url 'stays:price-day' row.unit.pk c.day|date:'Y-m-d' %}?von={{ von|date:'Y-m-d' }}&amp;tage={{ tage }}" data-price-day class="flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm {% if c.stop %}bg-rose-50{% endif %}">
+        <a id="pcm-{{ row.unit.pk }}-{{ c.day|date:'Ymd' }}" href="{% url 'stays:price-day' row.unit.pk c.day|date:'Y-m-d' %}?von={{ von|date:'Y-m-d' }}&amp;tage={{ tage }}" data-price-day class="flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm {% if c.stop %}bg-rose-50{% endif %}">
           <span class="w-20 shrink-0 {% if c.day == today %}font-semibold text-indigo-700{% else %}text-gray-600{% endif %}">{{ c.day|date:"D d.m." }}</span>
           <span class="font-semibold tabular-nums {% if c.own %}text-indigo-700{% endif %}">{{ c.eur|floatformat:2 }} €</span>
           <span class="flex flex-wrap gap-0.5">{% include "stays/_price_badges.html" %}</span>
-          <span class="ml-auto text-xs {% if c.free %}text-emerald-700{% else %}text-gray-400{% endif %}">{% blocktrans with n=c.free %}frei {{ n }}{% endblocktrans %}</span>
+          <span class="ml-auto text-xs {% if c.free %}text-emerald-700{% else %}text-gray-600{% endif %}">{% blocktrans with n=c.free %}frei {{ n }}{% endblocktrans %}</span>
         </a>
       </li>
       {% endfor %}

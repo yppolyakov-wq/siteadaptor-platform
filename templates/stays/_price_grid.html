@@ -2,6 +2,7 @@
 {# Z-3: таблица — только md+ (на телефоне — карточки _price_cards.html) #}
 <div class="hidden md:block bg-white rounded-2xl shadow-sm overflow-x-auto mb-6" data-price-grid>
   <table class="text-xs border-collapse min-w-full">
+    <caption class="sr-only">{% trans "Preise & Verfügbarkeit" %}</caption>
     <thead>
       <tr>
         <th scope="col" class="sticky left-0 z-10 bg-white text-left font-semibold px-3 py-2 border-b border-gray-200 min-w-[10rem]">{% trans "Kategorie" %}</th>
@@ -13,16 +14,16 @@
     <tbody>
       {% for row in rows %}
       <tr>
-        <th scope="row" class="sticky left-0 z-10 bg-white text-left font-medium px-3 py-2 border-b border-gray-100 align-top">{{ row.unit.name }}<span class="block text-[11px] font-normal text-gray-400">{% blocktrans with n=row.unit.quantity %}Zimmer: {{ n }}{% endblocktrans %}</span></th>
+        <th scope="row" class="sticky left-0 z-10 bg-white text-left font-medium px-3 py-2 border-b border-gray-100 align-top">{{ row.unit.name }}<span class="block text-[11px] font-normal text-gray-600">{% blocktrans with n=row.unit.quantity %}Zimmer: {{ n }}{% endblocktrans %}</span></th>
         {% for c in row.cells %}
         <td class="border-b border-l border-gray-100 p-0 align-top {% if c.weekend %}bg-indigo-50/40{% endif %} {% if c.stop %}bg-rose-50{% endif %}">
-          <a href="{% url 'stays:price-day' row.unit.pk c.day|date:'Y-m-d' %}?von={{ von|date:'Y-m-d' }}&amp;tage={{ tage }}" data-price-day
-             class="block px-1 py-1.5 text-center hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 {% if c.day == today %}ring-1 ring-inset ring-indigo-400{% endif %}"
-             aria-label="{{ row.unit.name }}, {{ c.day|date:'D d.m.' }}, {{ c.eur|floatformat:2 }} €{% if c.source %}, {{ c.source }}{% endif %}{% if c.stop %}, {% trans 'Stopp' %}{% endif %}{% if c.min %}, {% blocktrans with n=c.min %}min. {{ n }}{% endblocktrans %}{% endif %}{% if c.no_in %}, {% trans 'Kein Check-in' %}{% endif %}{% if c.no_out %}, {% trans 'Kein Check-out' %}{% endif %}, {% blocktrans with n=c.free %}frei {{ n }}{% endblocktrans %}">
+          <a id="pc-{{ row.unit.pk }}-{{ c.day|date:'Ymd' }}" href="{% url 'stays:price-day' row.unit.pk c.day|date:'Y-m-d' %}?von={{ von|date:'Y-m-d' }}&amp;tage={{ tage }}" data-price-day
+             class="block px-1 py-1.5 text-center hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 {% if c.day == today %}ring-1 ring-inset ring-indigo-400{% endif %}">
+            <span class="sr-only">{{ row.unit.name }}, {{ c.day|date:'l d.m.' }}:</span>
             <span class="block font-semibold tabular-nums {% if c.own %}text-indigo-700{% else %}text-gray-900{% endif %}">{{ c.eur|floatformat:2 }}</span>
-            <span class="block text-[10px] text-gray-400 truncate">{{ c.source|default:"·" }}</span>
+            <span class="block text-[11px] text-gray-600 truncate">{{ c.source|default:"·" }}</span>
             <span class="flex flex-wrap justify-center gap-0.5 mt-0.5">{% include "stays/_price_badges.html" %}</span>
-            <span class="block text-[10px] {% if c.free %}text-emerald-700{% else %}text-gray-400{% endif %}">{% blocktrans with n=c.free %}frei {{ n }}{% endblocktrans %}</span>
+            <span class="block text-[11px] {% if c.free %}text-emerald-700{% else %}text-gray-600{% endif %}">{% blocktrans with n=c.free %}frei {{ n }}{% endblocktrans %}</span>
           </a>
         </td>
         {% endfor %}

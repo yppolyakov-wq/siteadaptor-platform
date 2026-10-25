@@ -161,7 +161,13 @@ def test_past_days_refused_under_lock():
 def test_validate_scope():
     today = timezone.localdate()
     ok = dict(
-        n_units=1, n_requested=1, garbage=False, von=today, bis=today, weekdays=[0], today=today
+        n_units=1,
+        n_requested=1,
+        garbage=False,
+        von=today,
+        bis=today,
+        weekdays=list(ALL),
+        today=today,
     )
     assert nr.validate_scope(**ok) == []
     assert nr.validate_scope(**{**ok, "von": today - timedelta(days=1)})
@@ -258,7 +264,17 @@ def test_audit_written_without_pii(monkeypatch):
     _apply([unit], _days(3), nr.Action(price_mode="set", price_cents=9000))
     assert len(calls) == 1
     ctx = calls[0]["context"]
-    assert set(ctx) == {"units", "von", "bis", "nights", "created", "updated", "deleted", "action"}
+    assert set(ctx) == {
+        "unit_ids",
+        "units",
+        "von",
+        "bis",
+        "nights",
+        "created",
+        "updated",
+        "deleted",
+        "action",
+    }
     assert ctx["created"] == 3 and ctx["nights"] == 3
 
 
@@ -307,3 +323,37 @@ def test_move_stay_locks_units_in_id_order():
         if "FOR UPDATE" in q["sql"] and "stays_stayunit" in q["sql"]
     ]
     assert lock and "ORDER BY" in lock[0]
+
+
+def test_failed_audit_does_not_roll_back_price_change(monkeypatch):
+    """Silent-failure ревью: сбой INSERT аудита в своём savepoint, правка цен цела."""
+    from django.db.transaction import mark_for_rollback_on_error
+
+    def broken_audit(**kw):
+        try:
+            with mark_for_rollback_on_error():
+                with connection.cursor() as cur:
+                    cur.execute("SELECT 1/0")
+        except Exception:  # noqa: BLE001 — как audit_event: не пробрасывает
+            pass
+
+    monkeypatch.setattr("apps.audit.services.audit_event", broken_audit)
+    unit = _unit()
+    _apply([unit], _days(2), nr.Action(price_mode="set", price_cents=9100))
+    assert NightRate.objects.filter(unit=unit, price_cents=9100).count() == 2
+
+
+def test_small_int_rejects_unicode_digits():
+    assert nr.small_int("²") is None and nr.small_int("12") == 12 and nr.small_int("1234") is None
+    assert nr.parse_weekdays(["²", "3", "9"]) == [3]
+    action, errors = nr.parse_action({"min_mode": "set", "min_nights": "²"})
+    assert action is None and errors
+
+
+def test_scope_without_matching_weekday_is_error():
+    today = timezone.localdate()
+    monday = today + timedelta(days=(7 - today.weekday()) % 7 or 7)
+    errors = nr.validate_scope(
+        n_units=1, n_requested=1, garbage=False, von=monday, bis=monday, weekdays=[1], today=today
+    )
+    assert errors
