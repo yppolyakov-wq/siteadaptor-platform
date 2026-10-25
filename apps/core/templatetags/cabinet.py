@@ -399,3 +399,19 @@ def nav_title(context, fallback=""):
             if a.url_name == name:
                 return str(a.label)
     return str(fallback)
+
+
+@register.filter
+def mask_email(value):
+    """E6.7g: «•••@domain.de» — сотрудник без права на контакты узнаёт клиента по домену."""
+    from apps.core.contact_access import mask_email as _mask
+
+    return _mask(value or "")
+
+
+@register.filter
+def mask_phone(value):
+    """E6.7g: «•••12» — последние цифры телефона."""
+    from apps.core.contact_access import mask_phone as _mask
+
+    return _mask(value or "")

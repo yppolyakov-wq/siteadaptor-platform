@@ -253,6 +253,13 @@ def _storefront_nav(tenant):
     return items, nav_cfg["style"], nav_cfg["sticky"]
 
 
+def _can_see_contacts(request) -> bool:
+    from apps.core.contact_access import can_see
+
+    user = getattr(request, "user", None)
+    return user is None or not getattr(user, "is_authenticated", False) or can_see(user)
+
+
 def _lite_cabinet_tg(request) -> bool:
     from apps.core import tg_login
 
@@ -534,6 +541,9 @@ def modules_nav(request):
     return {
         # T-8.30: сессия из Telegram Mini App — без хрома кабинета, только лёгкие экраны.
         "tg_lite": _lite_cabinet_tg(request),
+        # E6.7g: True — у пользователя нет права «Kontaktdaten sehen»: шаблоны маскируют
+        # контакты. Отсутствие ключа (публичная схема) = показывать, как прежде.
+        "hide_contacts": not _can_see_contacts(request),
         # ST-4b/W-CL: компактный сайдбар «хабы + Website» — единственный.
         "nav_compact": _compact,
         "nav_primary": nav_primary,  # мобильный таб-бар кабинета

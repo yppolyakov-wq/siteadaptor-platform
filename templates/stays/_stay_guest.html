@@ -3,8 +3,13 @@
 `core/deal_card_base.html`) и для панели под Belegungsplan (fetch ?buchung=&box=1).
 Один источник: правка здесь меняет обе поверхности.{% endcomment %}
       <p class="font-medium">{{ b.customer.name|default:b.customer }}</p>
+    {% if hide_contacts %}
+    {% if b.customer.email %}<p class="text-sm text-gray-600">{{ b.customer.email|mask_email }}</p>{% endif %}
+    {% if b.customer.phone %}<p class="text-sm text-gray-600">{{ b.customer.phone|mask_phone }}</p>{% endif %}
+    {% else %}
     {% if b.customer.email %}<p class="text-sm text-gray-600"><a href="mailto:{{ b.customer.email }}" class="hover:underline">{{ b.customer.email }}</a></p>{% endif %}
     {% if b.customer.phone %}<p class="text-sm text-gray-600"><a href="tel:{{ b.customer.phone }}" class="hover:underline">{{ b.customer.phone }}</a></p>{% endif %}
+    {% endif %}
     <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
       {% if crm_active %}<a href="{% url 'crm:customer-detail' b.customer.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
       {% include "core/_deal_message_button.html" with kind="stay" obj_pk=b.pk %}
@@ -16,8 +21,13 @@
 `core/deal_card_base.html`) и для панели под Belegungsplan (fetch ?buchung=&box=1).
 Один источник: правка здесь меняет обе поверхности.{% endcomment %}
       <p class="font-medium">{{ b.customer.name|default:b.customer }}</p>
+    {% if hide_contacts %}
+    {% if b.customer.email %}<p class="text-sm text-gray-600">{{ b.customer.email|mask_email }}</p>{% endif %}
+    {% if b.customer.phone %}<p class="text-sm text-gray-600">{{ b.customer.phone|mask_phone }}</p>{% endif %}
+    {% else %}
     {% if b.customer.email %}<p class="text-sm text-gray-600"><a href="mailto:{{ b.customer.email }}" class="hover:underline">{{ b.customer.email }}</a></p>{% endif %}
     {% if b.customer.phone %}<p class="text-sm text-gray-600"><a href="tel:{{ b.customer.phone }}" class="hover:underline">{{ b.customer.phone }}</a></p>{% endif %}
+    {% endif %}
     <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
       {% if crm_active %}<a href="{% url 'crm:customer-detail' b.customer.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
       {% include "core/_deal_message_button.html" with kind="stay" obj_pk=b.pk %}

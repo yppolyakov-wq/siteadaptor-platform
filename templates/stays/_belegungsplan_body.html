@@ -35,7 +35,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 <div class="mb-4 bg-white rounded-2xl shadow-sm divide-y divide-gray-100 max-w-3xl">
   {% for b in search_results %}
     <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}von={{ b.arrival|date:'Y-m-d' }}&amp;buchung={{ b.pk }}" class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
-      <span class="min-w-0 truncate"><span class="font-medium">{{ b.customer.name|default:b.customer }}</span> · {{ b.reference_code }}{% if b.customer.email %} · <span class="text-gray-400">{{ b.customer.email }}</span>{% endif %}</span>
+      <span class="min-w-0 truncate"><span class="font-medium">{{ b.customer.name|default:b.customer }}</span> · {{ b.reference_code }}{% if b.customer.email %} · <span class="text-gray-400">{% if hide_contacts %}{{ b.customer.email|mask_email }}{% else %}{{ b.customer.email }}{% endif %}</span>{% endif %}</span>
       <span class="shrink-0 text-gray-500">{{ b.unit.name }}{% if b.room %} · 🚪{{ b.room.number }}{% endif %} · {{ b.arrival|date:"d.m.y" }}–{{ b.departure|date:"d.m.y" }} · {% status_label b "stay" %}</span>
     </a>
   {% empty %}

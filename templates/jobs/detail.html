@@ -385,8 +385,10 @@ document (партиал может перерисовываться — уро�
   <form method="post" class="grid gap-2">{% csrf_token %}
     <input type="hidden" name="action" value="customer">
     <input type="hidden" name="cust_name" value="{{ job.customer.name }}">
+    {% if not hide_contacts %}{# E6.7g: без права сервер сохраняет прежние контакты #}
     <input type="hidden" name="cust_email" value="{{ job.customer.email }}">
     <input type="hidden" name="cust_phone" value="{{ job.customer.phone }}">
+    {% endif %}
     <label class="text-xs text-gray-500">📍 {% trans "Adresse (Einsatzort)" %}
       <input name="site_address" value="{{ job.site_address }}" maxlength="300" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
     <div><button type="submit" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Save" %}</button></div>

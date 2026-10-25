@@ -27,6 +27,7 @@ FROZEN_SENSITIVE_IN_PRESETS = {
             "geld.preis",
             "geld.rabatt",
             "geld.zahlungslink",
+            "kunden.kontakte",  # E6.7g
         }
     ),
     STAFF: frozenset(
@@ -36,6 +37,7 @@ FROZEN_SENSITIVE_IN_PRESETS = {
             "geld.preis",
             "geld.rabatt",
             "geld.zahlungslink",
+            "kunden.kontakte",  # E6.7g
         }
     ),
 }

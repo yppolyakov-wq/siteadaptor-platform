@@ -256,12 +256,13 @@ def calendar_context(request):
     if search_q:
         from django.db.models import Q as _Q
 
+        from apps.core import contact_access as contacts
+
+        cond = _Q(customer__name__icontains=search_q) | _Q(reference_code__icontains=search_q)
+        if contacts.can_see(request.user):  # E6.7g
+            cond |= _Q(customer__email__icontains=search_q)
         search_results = list(
-            StayBooking.objects.filter(
-                _Q(customer__name__icontains=search_q)
-                | _Q(customer__email__icontains=search_q)
-                | _Q(reference_code__icontains=search_q)
-            )
+            StayBooking.objects.filter(cond)
             .select_related("unit", "customer", "room")
             .order_by("-arrival")[:20]
         )

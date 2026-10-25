@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n widget_tweaks %}
+{% load i18n widget_tweaks cabinet %}
 {% block dash_title %}{% if company %}{{ company.name }}{% else %}{% trans "Add company" %}{% endif %}{% endblock %}
 
 {% block dash_content %}
@@ -35,7 +35,7 @@
     {% for c in customers %}
       <a href="{% url 'crm:customer-detail' c.pk %}" class="border-t border-gray-100 py-2.5 flex items-center justify-between gap-3 hover:bg-gray-50">
         <span class="text-sm font-medium truncate">{{ c }}</span>
-        <span class="text-xs text-gray-400 shrink-0">{{ c.email }}</span>
+        <span class="text-xs text-gray-400 shrink-0">{% if hide_contacts %}{{ c.email|mask_email }}{% else %}{{ c.email }}{% endif %}</span>
       </a>
     {% empty %}
       <p class="text-sm text-gray-400">{% trans "No customers linked yet — pick this company on a customer's card." %}</p>

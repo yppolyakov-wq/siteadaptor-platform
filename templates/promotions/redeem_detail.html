@@ -46,7 +46,7 @@
         <div class="flex justify-between"><dt class="text-gray-500">{% trans "Offer" %}</dt><dd class="font-medium text-right">{{ reservation.promotion.title_text }}</dd></div>
         <div class="flex justify-between"><dt class="text-gray-500">{% trans "Quantity" %}</dt><dd>{{ reservation.quantity }}</dd></div>
         <div class="flex justify-between"><dt class="text-gray-500">{% trans "Customer" %}</dt><dd class="text-right">{{ reservation.customer }}</dd></div>
-        {% if reservation.customer.phone %}<div class="flex justify-between"><dt class="text-gray-500">{% trans "Phone" %}</dt><dd>{{ reservation.customer.phone }}</dd></div>{% endif %}
+        {% if reservation.customer.phone %}<div class="flex justify-between"><dt class="text-gray-500">{% trans "Phone" %}</dt><dd>{% if hide_contacts %}{{ reservation.customer.phone|mask_phone }}{% else %}{{ reservation.customer.phone }}{% endif %}</dd></div>{% endif %}
       </dl>
 
       <div class="mt-5 flex flex-wrap gap-2">

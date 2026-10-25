@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Nachricht an den Kunden" %}{% endblock %}
 
 {% block dash_content %}
@@ -18,7 +18,7 @@
 <div class="bg-white border border-gray-200 rounded-2xl p-4 max-w-2xl">
   <p class="text-sm mb-3">
     <span class="text-gray-500">{% trans "Kunde" %}:</span>
-    {{ customer.name|default:"—" }}{% if customer.email %} · <span class="text-gray-500">{{ customer.email }}</span>{% endif %}
+    {{ customer.name|default:"—" }}{% if customer.email %} · <span class="text-gray-500">{% if hide_contacts %}{{ customer.email|mask_email }}{% else %}{{ customer.email }}{% endif %}</span>{% endif %}
   </p>
   {% if customer and customer.email %}
     <form method="post" class="space-y-3">

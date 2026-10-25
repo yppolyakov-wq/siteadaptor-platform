@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n cabinet %}
 {% comment %}SH-15 (фидбэк владельца 2026-08-20 «нет нигде списка клиентов»):
 тело списка клиентов извлечено 1:1, чтобы ОДНИ И ТЕ ЖЕ данные показывались и на
 экране CRM (таб Marketing), и вкладкой «Kunden» страницы продаж — без второй
@@ -29,7 +29,7 @@
       <span class="w-10 h-10 rounded-full bg-indigo-600 text-white font-semibold shrink-0 flex items-center justify-center">{{ c|stringformat:"s"|slice:":1"|upper }}</span>
       <span class="min-w-0 flex-1">
         <span class="font-medium truncate block">{{ c }}{% if c.has_unread %}<span class="ml-1.5 align-middle text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-rose-500 text-white">✉ {% trans "Neu" %}</span>{% endif %}</span>
-        <span class="text-xs text-gray-400 truncate block">{{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}</span>
+        <span class="text-xs text-gray-400 truncate block">{% if hide_contacts %}{{ c.email|mask_email }}{% if c.phone %} · {{ c.phone|mask_phone }}{% endif %}{% else %}{{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}{% endif %}</span>
         {% if c.ltv %}<span class="text-xs text-emerald-700 block mt-1">{{ c.ltv.total|floatformat:2 }} € · {{ c.ltv.n }}×</span>{% endif %}
         {% if c.tags or c.company %}
         <span class="flex flex-wrap items-center gap-1 mt-1.5">

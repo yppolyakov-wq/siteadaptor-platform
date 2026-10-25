@@ -153,8 +153,18 @@ def job_detail(request, pk):
             # в CRM и в других его сделках) — это и ожидается: «исправить телефон».
             customer = job.customer
             customer.name = (request.POST.get("cust_name") or customer.name).strip()[:200]
-            customer.email = (request.POST.get("cust_email") or "").strip()[:254]
-            customer.phone = (request.POST.get("cust_phone") or "").strip()[:40]
+            from apps.core import contact_access as contacts
+
+            # E6.7g: без права на контакты поля не приходят — сохраняем прежние.
+            customer.email = contacts.kept(
+                request.user,
+                customer,
+                "email",
+                (request.POST.get("cust_email") or "").strip()[:254],
+            )
+            customer.phone = contacts.kept(
+                request.user, customer, "phone", (request.POST.get("cust_phone") or "").strip()[:40]
+            )
             customer.save(update_fields=["name", "email", "phone", "updated_at"])
             job.site_address = (request.POST.get("site_address") or "").strip()[:300]
             job.save(update_fields=["site_address", "updated_at"])

@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n cabinet %}
 {% comment %}DC-1: клиент сделки — ОДНА карточка на все архетипы. Имя ведёт в
 полную карточку CRM, рядом вход в переписку (C1) и правка контакта (SH-5).
 Гейты модулей fail-closed: без CRM/Inbox ссылки не рисуются, а не ведут в 404.
@@ -19,8 +19,14 @@
       {% endif %}
     </p>
     {% comment %}QF-3: контакты — кликабельной строкой, а не серым мелким текстом.{% endcomment %}
+    {% if hide_contacts %}
+    {% comment %}E6.7g: без права «Kontaktdaten sehen» — маска, без ссылок mailto/tel.{% endcomment %}
+    {% if deal.customer.email %}<p class="text-sm text-gray-500">✉ {{ deal.customer.email|mask_email }}</p>{% endif %}
+    {% if deal.customer.phone %}<p class="text-sm text-gray-500">📞 {{ deal.customer.phone|mask_phone }}</p>{% endif %}
+    {% else %}
     {% if deal.customer.email %}<p class="text-sm break-all"><a href="mailto:{{ deal.customer.email }}" class="text-indigo-700 hover:underline">✉ {{ deal.customer.email }}</a></p>{% endif %}
     {% if deal.customer.phone %}<p class="text-sm"><a href="tel:{{ deal.customer.phone }}" class="text-indigo-700 hover:underline">📞 {{ deal.customer.phone }}</a></p>{% endif %}
+    {% endif %}
     {% if not deal.customer.email and not deal.customer.phone %}<p class="text-sm text-amber-700">{% trans "Keine Kontaktdaten hinterlegt" %}</p>{% endif %}
     {% comment %}CARD-3 (владелец 2026-08-26): «убери кнопку написать клиенту —
     ниже всё равно есть открытое поле». Блок переписки стоит прямо под этой

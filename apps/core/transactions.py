@@ -646,8 +646,10 @@ def _managed_queryset(
     status: str = "",
     board_order: bool = False,
     sort: str = "",
+    contact_search: bool = True,
 ):
     """Базовый queryset kind для кабинета: свежие сверху, с select_related.
+    E6.7g: ``contact_search=False`` — без поиска по e-mail клиента (нет права на контакты).
     `event_order` — сортировка по дате СОБЫТИЯ (W7c, только kind'ы из _EVENT_ORDER).
 
     X6-2: `q` — поиск по коду сделки и клиенту (имя/e-mail). У ВСЕХ шести kind
@@ -677,11 +679,9 @@ def _managed_queryset(
         # добавлены поля, из которых складывается ЗАГОЛОВОК карточки (_FIELDS).
         # Выигрывают все поверхности поиска сразу: палитра Ctrl+K (X8), список
         # продаж (X6-2) и пикер привязки (VS-3c).
-        condition = (
-            Q(reference_code__icontains=q)
-            | Q(customer__name__icontains=q)
-            | Q(customer__email__icontains=q)
-        )
+        condition = Q(reference_code__icontains=q) | Q(customer__name__icontains=q)
+        if contact_search:
+            condition |= Q(customer__email__icontains=q)
         for lookup in _TITLE_SEARCH.get(kind, ()):
             condition |= Q(**{f"{lookup}__icontains": q})
         qs = qs.filter(condition)
@@ -765,6 +765,7 @@ def manage_sections_for(
     page_raw: str | None = None,
     per_column: int | None = None,
     sort: str = "",
+    contact_search: bool = True,
 ) -> list[dict]:
     """Секции доски по активным транзакционным модулям тенанта.
 
@@ -796,7 +797,13 @@ def manage_sections_for(
         labels = status_labels.custom_labels(tenant, kind)
         trans = transition_rules.subset_for(tenant, kind)
         base_qs = _managed_queryset(
-            kind, event_order, q, status, board_order=board_order, sort=sort
+            kind,
+            event_order,
+            q,
+            status,
+            board_order=board_order,
+            sort=sort,
+            contact_search=contact_search,
         )
         page = None
         if page_raw is not None:

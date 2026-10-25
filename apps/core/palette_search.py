@@ -57,7 +57,7 @@ def _deals(tenant, q: str, owner: bool = False) -> list[dict]:
 
     out = []
     for kind in sales_page.visible_kinds(tenant):
-        for obj in transactions._managed_queryset(kind, q=q)[:PER_SECTION]:
+        for obj in transactions._managed_queryset(kind, q=q, contact_search=owner)[:PER_SECTION]:
             tx = transactions.transaction_for(kind, obj)
             if tx is None:
                 continue
@@ -79,9 +79,10 @@ def _deals(tenant, q: str, owner: bool = False) -> list[dict]:
 
         from apps.orders.models import Offer
 
-        offers = Offer.objects.filter(
-            _Q(customer_name__icontains=q) | _Q(customer_email__icontains=q)
-        ).order_by("-created_at")[: PER_SECTION - len(out)]
+        cond = _Q(customer_name__icontains=q)
+        if owner:  # E6.7g: по e-mail ищет только тот, кто видит контакты
+            cond |= _Q(customer_email__icontains=q)
+        offers = Offer.objects.filter(cond).order_by("-created_at")[: PER_SECTION - len(out)]
         for offer in offers:
             try:
                 url = reverse("inbox:thread", args=[offer.conversation_id])

@@ -27,8 +27,8 @@
         {% if job.description %}<p class="text-sm text-gray-700 mt-2 whitespace-pre-line">{{ job.description|truncatechars:400 }}</p>{% endif %}
         {% if job.event_date or job.guest_count %}<p class="text-xs text-gray-500 mt-1">{% if job.event_date %}📅 {{ job.event_date|date:"d.m.Y" }}{% endif %}{% if job.guest_count %} · 👥 {{ job.guest_count }}{% endif %}</p>{% endif %}
         <div class="flex flex-wrap gap-2 mt-3">
-          {% if job.customer.phone %}<a href="tel:{{ job.customer.phone }}" class="inline-flex items-center min-h-[44px] px-3 rounded-xl bg-gray-100 text-sm">📞 {{ job.customer.phone }}</a>{% endif %}
-          {% if job.customer.email %}<a href="mailto:{{ job.customer.email }}" class="inline-flex items-center min-h-[44px] px-3 rounded-xl bg-gray-100 text-sm">✉️ {% trans "E-Mail" %}</a>{% endif %}
+          {% if job.customer.phone and not hide_contacts %}<a href="tel:{{ job.customer.phone }}" class="inline-flex items-center min-h-[44px] px-3 rounded-xl bg-gray-100 text-sm">📞 {{ job.customer.phone }}</a>{% endif %}
+          {% if job.customer.email and not hide_contacts %}<a href="mailto:{{ job.customer.email }}" class="inline-flex items-center min-h-[44px] px-3 rounded-xl bg-gray-100 text-sm">✉️ {% trans "E-Mail" %}</a>{% endif %}
           {% if 'jobs:detail'|lite_allowed:request %}<a href="{% url 'jobs:detail' job.pk %}" class="inline-flex items-center min-h-[44px] px-3 rounded-xl bg-indigo-600 text-white text-sm font-medium">{% trans "Öffnen" %} →</a>{% endif %}
         </div>
       </article>

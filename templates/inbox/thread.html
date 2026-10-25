@@ -14,7 +14,7 @@
 <div class="flex items-start justify-between gap-3 flex-wrap mt-1 mb-4">
   <div class="min-w-0">
     <h1 class="text-2xl font-bold">{{ conversation.subject|default:"—" }}</h1>
-    <p class="text-sm text-gray-500">{{ conversation.customer|default:_("Guest") }}{% if conversation.customer.email %} · {{ conversation.customer.email }}{% endif %}{% if conversation.ref_label %} · {{ conversation.ref_label }}{% endif %}</p>
+    <p class="text-sm text-gray-500">{{ conversation.customer|default:_("Guest") }}{% if conversation.customer.email %} · {% if hide_contacts %}{{ conversation.customer.email|mask_email }}{% else %}{{ conversation.customer.email }}{% endif %}{% endif %}{% if conversation.ref_label %} · {{ conversation.ref_label }}{% endif %}</p>
   </div>
   {% if reaction_time %}<span class="text-xs text-gray-400 shrink-0">⚡ {{ reaction_time }}</span>{% endif %}
   <span class="text-xs font-medium px-2 py-0.5 rounded-full shrink-0

@@ -477,7 +477,14 @@ def view_for_filters(kind: str, view: str, params) -> str:
     return view
 
 
-def order_list_queryset(params):
+def _contact_search(request) -> bool:
+    """E6.7g: искать по e-mail клиента — только с правом видеть контакты."""
+    from apps.core import contact_access as contacts
+
+    return contacts.can_see(getattr(request, "user", None))
+
+
+def order_list_queryset(params, contact_search: bool = True):
     """Выборка списка заказов по GET (KA-12 E2.2: одна точка для списка и CSV).
 
     Возвращает (qs, status, q, versand, sort)."""
@@ -498,7 +505,7 @@ def order_list_queryset(params):
             Q(reference_code__icontains=q)
             | Q(external_code__icontains=q)  # SH-8: внешний номер
             | Q(customer__name__icontains=q)
-            | Q(customer__email__icontains=q)
+            | (Q(customer__email__icontains=q) if contact_search else Q(pk__in=[]))
         )
     # SH-14: доставка — фильтр списка заказов (подпункт сайдбара «Lieferungen»).
     versand = (params.get("versand") or "").strip() == "1"
@@ -561,7 +568,9 @@ def body_context(request, kind: str, view: str) -> dict:
         from apps.orders import counters as order_counters
         from apps.orders.models import Order
 
-        qs, status, q, versand, sort = order_list_queryset(request.GET)
+        qs, status, q, versand, sort = order_list_queryset(
+            request.GET, contact_search=_contact_search(request)
+        )
         ctx["order_versand"] = versand
         ctx["order_counter_filter"] = order_counters.active_label(request.GET)
         ctx["list_sort"] = sort
@@ -628,6 +637,7 @@ def body_context(request, kind: str, view: str) -> dict:
             status=status,
             page_raw=request.GET.get("seite") or "1",
             sort=sort,
+            contact_search=_contact_search(request),
         )
         ctx["section"] = sections[0] if sections else None
         ctx["page"] = ctx["section"]["page"] if ctx["section"] else None

@@ -5296,8 +5296,13 @@ def deal_customer_edit(request, kind, pk):
     customer = getattr(obj, "customer", None)
     if customer is None:
         raise Http404("deal has no customer")
+    from apps.core import contact_access as contacts
+
     fields = []
-    for attr in ("name", "email", "phone"):
+    # E6.7g: без права «Kontaktdaten sehen» форма полей контакта не показывает —
+    # правится только имя (подделанный POST контакты не меняет).
+    attrs = ("name", "email", "phone") if contacts.can_see(request.user) else ("name",)
+    for attr in attrs:
         value = (request.POST.get(attr) or "").strip()
         if value and getattr(customer, attr, None) != value:
             setattr(customer, attr, value)

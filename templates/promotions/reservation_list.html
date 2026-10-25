@@ -32,7 +32,7 @@
         </div>
         <span class="shrink-0 text-xs px-2 py-0.5 rounded-full bg-gray-100">{% status_label r "reservation" %}</span>
       </div>
-      <p class="text-sm text-gray-600">{{ r.customer }}{% if r.customer.phone %} · <a href="tel:{{ r.customer.phone }}" class="text-indigo-600">{{ r.customer.phone }}</a>{% endif %}</p>
+      <p class="text-sm text-gray-600">{{ r.customer }}{% if r.customer.phone %} · {% if hide_contacts %}{{ r.customer.phone|mask_phone }}{% else %}<a href="tel:{{ r.customer.phone }}" class="text-indigo-600">{{ r.customer.phone }}</a>{% endif %}{% endif %}</p>
       {% if r.expires_at %}<p class="text-xs {% if r.status == 'pending' %}text-amber-700{% else %}text-gray-500{% endif %}" {% if r.status == 'pending' %}data-resv-unconfirmed{% endif %}>{% if r.status == 'pending' %}{% trans "unbestätigt · läuft ab" %}{% else %}{% trans "bis" %}{% endif %} {{ r.expires_at|date:"d.m. H:i" }}</p>{% endif %}
       {% if r.status == 'pending' or r.status == 'confirmed' %}
         <div class="flex gap-2 pt-1">
@@ -93,7 +93,7 @@
         <tr class="border-b last:border-0">
           <td class="py-2 font-mono">{{ r.reference_code }}</td>
           <td class="py-2">{{ r.promotion }}</td>
-          <td class="py-2">{{ r.customer }}<div class="text-xs text-gray-400">{{ r.customer.email }} {{ r.customer.phone }}</div></td>
+          <td class="py-2">{{ r.customer }}<div class="text-xs text-gray-400">{% if hide_contacts %}{{ r.customer.email|mask_email }} {{ r.customer.phone|mask_phone }}{% else %}{{ r.customer.email }} {{ r.customer.phone }}{% endif %}</div></td>
           <td class="py-2">{{ r.quantity }}</td>
           <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-gray-100">{% status_label r "reservation" %}</span></td>
           <td class="py-2 text-gray-500">{{ r.expires_at|default:"—" }}</td>

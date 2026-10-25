@@ -41,13 +41,14 @@ def _filtered_customers(request):
         customers = customers.filter(company=firma)
     query = request.GET.get("q", "").strip()
     if query:
-        customers = customers.filter(
-            Q(name__icontains=query)
-            | Q(email__icontains=query)
-            | Q(phone__icontains=query)
-            # тег — точным совпадением (JSONB containment; теги хранятся lower)
-            | Q(tags__contains=[query.lower()])
-        )
+        from apps.core import contact_access as contacts
+
+        cond = Q(name__icontains=query) | Q(tags__contains=[query.lower()])
+        # E6.7g: поиск по контактам — только с правом их видеть (иначе их угадывают).
+        if contacts.can_see(request.user):
+            cond |= Q(email__icontains=query) | Q(phone__icontains=query)
+        # тег — точным совпадением (JSONB containment; теги хранятся lower)
+        customers = customers.filter(cond)
     return customers, query, firma
 
 
@@ -155,6 +156,13 @@ def customer_detail(request, pk):
     if request.method == "POST" and request.POST.get("action") == "issue_voucher":
         return _issue_voucher(request, customer)
     form = CustomerForm(request.POST or None, instance=customer)
+    from apps.core import contact_access as contacts
+
+    if not contacts.can_see(request.user):
+        # E6.7g: без права контакты не показываются и не перезаписываются (поля вне формы
+        # ModelForm не трогает).
+        form.fields.pop("email", None)
+        form.fields.pop("phone", None)
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, _("Saved."))

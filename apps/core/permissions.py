@@ -120,7 +120,6 @@ _OWNER_ONLY_TODAY = frozenset(
         "geld.korrektur",
         "geld.richtlinie",
         "veranstaltung.absagen",
-        "kunden.kontakte",
         "kunden.export",
         "kunden.dsgvo",
         "kanaele.edit",

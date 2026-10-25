@@ -1,4 +1,4 @@
-{% load i18n %}{# Доска KDS (A4): активные заказы (new/confirmed). HTMX-партиал — перерисовывается поллингом и после действий. #}
+{% load i18n cabinet %}{# Доска KDS (A4): активные заказы (new/confirmed). HTMX-партиал — перерисовывается поллингом и после действий. #}
 <div id="kds-board" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
   {% for o in orders %}
     <div class="bg-white rounded-2xl shadow-sm border-l-4 {% if o.status == 'new' %}border-amber-400{% else %}border-sky-500{% endif %} p-4 flex flex-col">
@@ -11,7 +11,7 @@
       <p class="text-xs text-gray-400 mb-1">
         {{ o.created_at|date:"H:i" }}
         {% if o.table_number %}· 🪑 {% trans "Table" %} {{ o.table_number }}{% elif o.is_delivery %}· 🚚 {% trans "Delivery" %}{% else %}· 🛍 {% trans "Pickup" %}{% endif %}
-        {% if o.customer %}· {{ o.customer.name|default:o.customer.email }}{% endif %}
+        {% if o.customer %}· {% if o.customer.name or not hide_contacts %}{{ o.customer.name|default:o.customer.email }}{% else %}{{ o.customer.email|mask_email }}{% endif %}{% endif %}
       </p>
       <ul class="text-sm space-y-1 mb-3 flex-1">
         {% for it in o.items.all %}

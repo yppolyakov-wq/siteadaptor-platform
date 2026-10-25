@@ -222,7 +222,11 @@ def test_admin_revoke_cannot_drop_out_of_scope_key_via_requires(no_mail):
     assert "kunden.export" in _eff(staff)
     with pytest.raises(G.PermsDenied):  # kunden.view снять — уронило бы kunden.export
         G.set_member_permissions(
-            admin.user, staff.pk, P.for_role(STAFF) - {"kunden.view", "kunden.edit"}
+            admin.user,
+            staff.pk,
+            # E6.7g: kunden.kontakte требует kunden.view — снимаем и его, иначе requires
+            # вернул бы kunden.view и запрос ничего бы не снимал.
+            P.for_role(STAFF) - {"kunden.view", "kunden.edit", "kunden.kontakte"},
         )
     assert "kunden.export" in _eff(staff)
 

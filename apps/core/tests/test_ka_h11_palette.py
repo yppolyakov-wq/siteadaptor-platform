@@ -91,7 +91,9 @@ def test_deal_row_masks_nameless_customer_email(monkeypatch):
     monkeypatch.setattr(sales_page, "visible_kinds", lambda tenant: ["booking"])
     from apps.core import transactions
 
-    monkeypatch.setattr(transactions, "_managed_queryset", lambda kind, q: [object()])
+    monkeypatch.setattr(
+        transactions, "_managed_queryset", lambda kind, q, contact_search=True: [object()]
+    )
     monkeypatch.setattr(transactions, "transaction_for", lambda kind, obj: deal)
     row = ps._deals(t, "geheim", owner=False)[0]
     assert "geheim@" not in row["sub"] and "@beispiel.de" in row["sub"]

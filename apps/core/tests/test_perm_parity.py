@@ -48,7 +48,8 @@ SITES = {
         OWNER,
     ),
     "Stadtportal-Statistik (owner_views, Link, lite)": ("stadtportal.view", OWNER),
-    "Kontaktdaten unmaskiert (palette, finance-Kundensuche)": ("kunden.kontakte", OWNER),
+    # E6.7g: контакты видны всей команде по умолчанию (решение владельца), снимаются точечно.
+    "Kontaktdaten unmaskiert (palette, finance-Kundensuche)": ("kunden.kontakte", ALL),
     "PII-Exporte (CRM/Verkäufe/Gäste/Roster)": ("kunden.export", OWNER),
     "DSGVO-Anfrage": ("kunden.dsgvo", OWNER),
 }
