@@ -13,6 +13,9 @@
         диапазон (сдвиг по неделям) → форма → /s/<code>/ → `StayBooking` в БД.
   GP-5  Tickets (демо `touren`, KA-12 T-0): /veranstaltung/ → дата → форма билета →
         /e/<code>/ → `Ticket` в БД.
+  GP-6  Anfragen (демо `handwerker`, KA-12 A-0): /anfrage/ → тема с меткой, имя, почта,
+        PLZ → «Danke» → `Job` в БД (кода клиенту нет — поиск по метке в теме) →
+        /auftrag/<token>/ открывается.
 
 Плюс общие проверки на каждой странице: нет JS-ошибок, нет горизонтального
 скролла, ответ 2xx.
@@ -347,6 +350,60 @@ def gp5_tickets(run, ctx, port):
         run.check(_db_has("events.Ticket", m.group(1), "touren"), "билет в БД")
 
 
+def _db_job_token(tag, schema):
+    """public_token заявки с меткой в теме (у /anfrage/ кода клиенту нет)."""
+    code_py = (
+        "from django_tenants.utils import schema_context\n"
+        "from apps.jobs.models import Job\n"
+        f"with schema_context({schema!r}):\n"
+        f"    j = Job.objects.filter(title__startswith={'GP ' + tag!r}).first()\n"
+        "    print('TOKEN', j.public_token if j else '')\n"
+    )
+    out = subprocess.run(
+        [sys.executable, "manage.py", "shell", "-c", code_py],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    m = re.search(r"TOKEN ([0-9a-f-]{36})", out.stdout)
+    return m.group(1) if m else ""
+
+
+def gp6_anfragen(run, ctx, port):
+    """KA-12 A-0: /anfrage/ → «Danke» → заявка в БД → страница статуса заявки."""
+    print("GP-6 Anfragen (handwerker)")
+    page = ctx.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    host = f"http://handwerker.{BASE}:{port}"
+    resp = page.goto(f"{host}/anfrage/")
+    run.check(resp and resp.ok, "/anfrage/ открывается")
+    _page_health(run, page, errors, "/anfrage/")
+    form = page.locator("form[action$='/anfrage/']").first
+    run.check(form.count() == 1, "на /anfrage/ есть форма")
+    if not form.count():
+        return
+    tag = uuid.uuid4().hex[:6]
+    form.locator("[name='title']").fill(f"GP {tag} Bad sanieren")
+    form.locator("[name='name']").fill(f"GP Kunde {tag}")
+    form.locator("[name='email']").fill(f"gp-{tag}@example.com")
+    plz = form.locator("[name='site_plz']")
+    if plz.count():
+        plz.fill("42651")
+    for box in form.locator("input[type='checkbox'][required]").all():
+        if box.is_visible():
+            box.check()
+    form.locator("button[type='submit']").locator("visible=true").last.click()
+    page.wait_for_load_state()
+    _page_health(run, page, errors, "после отправки")
+    token = _db_job_token(tag, "handwerker")
+    run.check(bool(token), "заявка в БД")
+    if token:
+        resp = page.goto(f"{host}/auftrag/{token}/")
+        run.check(resp and resp.ok, "/auftrag/<token>/ открывается")
+        _page_health(run, page, errors, "статус заявки")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8000)
@@ -363,6 +420,7 @@ def main():
         gp3_termine(run, ctx, args.port)
         gp4_zimmer(run, ctx, args.port)
         gp5_tickets(run, ctx, args.port)
+        gp6_anfragen(run, ctx, args.port)
         browser.close()
     print(f"\n{run.ok} ok, {len(run.fail)} fail")
     for f in run.fail:
