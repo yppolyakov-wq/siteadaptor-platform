@@ -90,7 +90,7 @@ def sidebar_items(tenant=None, user=None) -> list[dict]:
         pass
     if user is not None and getattr(user, "is_authenticated", False):
         try:
-            from apps.core.roles import is_owner
+            from apps.core.roles import is_owner  # Inhaber-Vorbehalt (Impressum), не право
 
             if not is_owner(user):
                 nav = tuple(item for item in nav if item[0] not in _OWNER_ONLY_ITEMS)
@@ -397,7 +397,7 @@ def lite_visibility(request):
         "tenant/lite_visibility.html",
         {
             "nav": "integrations",
-            "is_owner": channels,
+            "can_channels": channels,
             "can_manage_bot": can_manage_bot,
             "site_url": _block(lambda: _public_url(request, "/"), ""),
             "portal": _block(

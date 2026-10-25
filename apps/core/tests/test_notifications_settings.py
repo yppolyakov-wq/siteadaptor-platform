@@ -5,7 +5,7 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
-from apps.core import views
+from apps.core import permissions, views
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -62,7 +62,9 @@ def test_save_preserves_owner_linkage_keys():
 
 def test_disconnect_owner_clears_chat_id(monkeypatch):
     # T-8.10h H-3: отключение Telegram владельца — только владельцу (замок в test_h3_connect).
-    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
+    monkeypatch.setattr(
+        "apps.core.permissions.effective", lambda user: frozenset(permissions.PERMS)
+    )
     tenant = TenantFactory(business_type="restaurant")
     tenant.site_config = {"notify": {"owner_chat_id": "999", "owner_link_token": "tok"}}
     tenant.save(update_fields=["site_config"])

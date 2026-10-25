@@ -13,7 +13,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.template import Context, Template
 from django.test import RequestFactory
 
-from apps.core import pagination, transactions, views
+from apps.core import pagination, permissions, transactions, views
 from apps.orders.models import Order
 from apps.promotions.models import Customer
 from apps.tenants.tests.factories import TenantFactory
@@ -293,7 +293,9 @@ def test_customer_search_json_masks_contact_for_staff(monkeypatch):
 
     _customers(3)
     req = _req(path="/dashboard/finance/kunden-suche/", data={"q": "Kunde 0001"})
-    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: False)
+    monkeypatch.setattr(
+        "apps.core.permissions.effective", lambda user: permissions.PRESETS["staff"]
+    )
     data = json.loads(fviews.customer_search(req).content)
     assert [i["label"] for i in data["items"]] == ["Kunde 0001"]
     assert "k1@example.com" not in data["items"][0]["sub"]
@@ -316,7 +318,9 @@ def test_staff_sees_masked_contact_and_cannot_search_by_it(monkeypatch):
     from apps.finance import views as fviews
 
     Customer.objects.create(name="", email="anna@beispiel.de")
-    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: False)
+    monkeypatch.setattr(
+        "apps.core.permissions.effective", lambda user: permissions.PRESETS["staff"]
+    )
     body = fviews.invoices(_req(path="/dashboard/finance/rechnungen/")).content.decode()
     assert "anna@beispiel.de" not in body and "•••@beispiel.de" in body
     hit = fviews.invoices(

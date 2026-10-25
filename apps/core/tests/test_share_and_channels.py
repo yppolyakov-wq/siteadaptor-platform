@@ -9,6 +9,7 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
+from apps.core import permissions
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -67,7 +68,9 @@ def test_channels_page_lists_personal_channels(monkeypatch):
     """Страница каналов показывает и личные каналы связи."""
     from apps.publishing import views as pub_views
 
-    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
+    monkeypatch.setattr(
+        "apps.core.permissions.effective", lambda user: frozenset(permissions.PERMS)
+    )
 
     tenant = _tenant(whatsapp_number="+4915112345678", instagram="backhaus")
     html = pub_views.channels(_req("/publishing/channels/", tenant)).content.decode()

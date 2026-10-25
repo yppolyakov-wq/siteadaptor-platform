@@ -21,7 +21,7 @@ from django.test import RequestFactory
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from apps.core import refunds, transactions
+from apps.core import permissions, refunds, transactions
 from apps.core import views as core_views
 from apps.notifications.models import Notification
 from apps.tenants.tests.factories import TenantFactory
@@ -564,7 +564,6 @@ def test_custom_no_refund_cancel_keeps_revenue(monkeypatch):
 
 def test_staff_cannot_set_no_refund(monkeypatch):
     """Флаг «ohne Erstattung» — политика денег: сотрудник его не включает и не снимает."""
-    from apps.core import roles
     from apps.tenants import siteconfig
 
     defs = {
@@ -591,7 +590,9 @@ def test_staff_cannot_set_no_refund(monkeypatch):
         "new_role": "cancelled",
         "new_no_refund": "on",
     }
-    monkeypatch.setattr(roles, "is_owner", lambda user: False)
+    monkeypatch.setattr(
+        "apps.core.permissions.effective", lambda user: permissions.PRESETS["staff"]
+    )
     request = RequestFactory().post("/dashboard/status-manager/order/save/", data)
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)

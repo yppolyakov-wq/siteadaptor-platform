@@ -305,14 +305,18 @@ def test_mark_paid_refused_on_cancelled_ticket():
 
 
 def test_event_cancel_requires_owner_and_confirmation(monkeypatch):
-    from apps.core import roles
+    from apps.core import permissions
 
     event = _event()
-    monkeypatch.setattr(roles, "is_owner", lambda user: False)
+    monkeypatch.setattr(
+        "apps.core.permissions.effective", lambda user: permissions.PRESETS["staff"]
+    )
     views.event_action(_req({"target": "cancelled", "confirm_cancel": "1"}), pk=event.pk)
     event.refresh_from_db()
     assert event.status == Event.STATUS_PUBLISHED
-    monkeypatch.setattr(roles, "is_owner", lambda user: True)
+    monkeypatch.setattr(
+        "apps.core.permissions.effective", lambda user: frozenset(permissions.PERMS)
+    )
     views.event_action(_req({"target": "cancelled"}), pk=event.pk)  # без подтверждения
     event.refresh_from_db()
     assert event.status == Event.STATUS_PUBLISHED

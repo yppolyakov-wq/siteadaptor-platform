@@ -2,6 +2,7 @@ import pytest
 from django.contrib.messages.storage.cookie import CookieStorage
 from django.test import RequestFactory
 
+from apps.core import permissions
 from apps.publishing import views
 from apps.publishing.models import Channel
 from apps.tenants.tests.factories import TenantFactory
@@ -23,7 +24,9 @@ def _req(method, path, data=None):
 
 
 def test_channels_page_auto_creates_and_renders(monkeypatch):
-    monkeypatch.setattr("apps.core.roles.is_owner", lambda user: True)
+    monkeypatch.setattr(
+        "apps.core.permissions.effective", lambda user: frozenset(permissions.PERMS)
+    )
     resp = views.channels(_req("get", "/dashboard/channels/"))
     assert resp.status_code == 200
     assert Channel.objects.filter(type="log").exists()  # авто-создан на странице

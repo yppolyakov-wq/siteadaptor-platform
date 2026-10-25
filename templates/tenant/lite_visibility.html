@@ -31,7 +31,7 @@
         <span class="block text-sm text-gray-500">✓ {% trans "sichtbar" %} · {% blocktrans count n=portal.count %}{{ n }} Angebot{% plural %}{{ n }} Angebote{% endblocktrans %}{% if portal.views is not None %} · <span data-portal-views>{% blocktrans with n=portal.views %}{{ n }} Aufrufe in 7 Tagen{% endblocktrans %}</span>{% endif %}</span>
       {% endif %}
     </div>
-    {% if is_owner and publishing_on %}
+    {% if can_channels and publishing_on %}
       <div class="p-4 flex items-center justify-between gap-3" data-vis="google">
         <span class="min-w-0">
           <span class="block font-medium">{% trans "Google-Profil" %}</span>
