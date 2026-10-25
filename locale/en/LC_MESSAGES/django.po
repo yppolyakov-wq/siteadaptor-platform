@@ -29645,3 +29645,6 @@ msgstr "— no rate —"
 
 msgid "nur für ausgewählte Kategorien"
 msgstr "only for selected categories"
+
+msgid "Dafür fehlt Ihnen das Recht."
+msgstr "You do not have permission for this."

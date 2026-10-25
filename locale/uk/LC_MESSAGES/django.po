@@ -29904,3 +29904,6 @@ msgstr "— без тарифу —"
 
 msgid "nur für ausgewählte Kategorien"
 msgstr "лише для вибраних категорій"
+
+msgid "Dafür fehlt Ihnen das Recht."
+msgstr "У вас немає права на цю дію."

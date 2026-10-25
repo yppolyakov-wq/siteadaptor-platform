@@ -29789,3 +29789,6 @@ msgstr "— tarifesiz —"
 
 msgid "nur für ausgewählte Kategorien"
 msgstr "yalnızca seçilen kategoriler için"
+
+msgid "Dafür fehlt Ihnen das Recht."
+msgstr "Bunun için yetkiniz yok."

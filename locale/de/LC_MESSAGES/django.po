@@ -29737,3 +29737,6 @@ msgstr "— ohne Tarif —"
 
 msgid "nur für ausgewählte Kategorien"
 msgstr "nur für ausgewählte Kategorien"
+
+msgid "Dafür fehlt Ihnen das Recht."
+msgstr "Dafür fehlt Ihnen das Recht."

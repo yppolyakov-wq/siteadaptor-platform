@@ -62,6 +62,7 @@ _ALL = (
     _p("veranstaltung.absagen", "sortiment", ["sortiment.edit"], sensitive=True),
     # Kunden
     _p("kunden.view", "kunden"),
+    _p("kunden.edit", "kunden", ["kunden.view"]),
     _p("kunden.kontakte", "kunden", ["kunden.view"], sensitive=True),
     _p("kunden.export", "kunden", ["kunden.view"], sensitive=True),
     _p("kunden.dsgvo", "kunden", ["kunden.view"], sensitive=True),

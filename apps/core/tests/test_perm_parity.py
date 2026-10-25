@@ -67,6 +67,7 @@ OPEN_TODAY = (
     "sortiment.edit",
     "lager.edit",
     "kunden.view",
+    "kunden.edit",
     "marketing.edit",
     "nachrichten.edit",
     "website.edit",
@@ -177,6 +178,7 @@ def test_one_query_per_check():
 IS_OWNER_ALLOWED = {
     "apps/core/roles.py",
     "apps/core/middleware.py",  # E6.7b: process_view по правам вьюхи
+    "apps/core/view_perms.py",  # FLOOR — Inhaber-Vorbehalt
     "apps/core/templatetags/cabinet.py",  # cab_is_owner — только для пола (lite-business)
     "apps/core/lite_cabinet.py",  # пункт «Geschäft» (Impressum) — пол
     "apps/core/views.py",  # can_edit_bank (IBAN) — пол

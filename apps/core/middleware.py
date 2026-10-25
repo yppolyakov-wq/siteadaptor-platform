@@ -237,6 +237,25 @@ class CabinetOwnerAccessMiddleware:
                 return HttpResponseForbidden(_("Nur für Inhaber."))
         return self.get_response(request)
 
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        """KA-12 E6.7b: право экрана из реестра ``view_perms`` (по имени маршрута —
+        значит, и пути с uuid посередине). Чтение — GET/HEAD/OPTIONS, иначе запись."""
+        tenant = getattr(request, "tenant", None)
+        if (
+            tenant is None
+            or getattr(tenant, "schema_name", "public") == "public"
+            or not request.path.startswith(self._PREFIXES)
+            or not getattr(request.user, "is_authenticated", False)
+        ):
+            return None
+        from . import view_perms
+
+        match = getattr(request, "resolver_match", None)
+        view_name = getattr(match, "view_name", "") or ""
+        if not view_perms.allowed(request.user, view_name, request.method):
+            return HttpResponseForbidden(_("Dafür fehlt Ihnen das Recht."))
+        return None
+
 
 class StorefrontFrameOptionsMiddleware:
     """H1.1: разрешить same-origin кадрирование витрины, чтобы live-preview iframe
