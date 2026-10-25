@@ -113,7 +113,10 @@ def test_endpoint_returns_json_sections():
     t = _tenant("friseur")
     Service.objects.create(name="Föhnen", duration_minutes=15)
     req = RequestFactory().get("/dashboard/palette-search/", {"q": "föhn"})
+    from apps.core.models import Membership
+
     req.tenant, req.user = t, _user()
+    Membership.objects.create(user=req.user, role=Membership.ROLE_STAFF)  # E6.7b: секции по правам
     payload = json.loads(core_views.palette_search(req).content)
     labels = [i["label"] for sec in payload["sections"] for i in sec["items"]]
     assert "Föhnen" in labels

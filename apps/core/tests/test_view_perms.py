@@ -28,7 +28,6 @@ INLINE_GATED = {
     "stays:price-calendar-apply": "preise.edit — _can_edit во вьюхе",
     "stays:price-day": "preise.edit на запись — _can_edit во вьюхе",
     "stays:price-calendar": "preise.edit на запись — _can_edit во вьюхе",
-    "channels": "чтение kanaele.view открыто всем; POST — marketing.edit",
 }
 
 
@@ -95,7 +94,12 @@ def test_rules_match_todays_access():
         gate = _today_gate(route, cb)
         keys = _keys(rule)
         if gate == roles.ROLE_OWNER_ONLY:
-            if not (keys <= OWNER_ONLY_KEYS) or (not keys and view_perms.FLOOR not in (rule.read,)):
+            floor_both = rule.read == rule.write == view_perms.FLOOR
+            if (
+                not keys <= OWNER_ONLY_KEYS
+                or (not keys and not floor_both)
+                or (keys and view_perms.OPEN in (rule.read, rule.write))
+            ):
                 bad.append(f"{name}: сегодня только владелец, правило {rule}")
         elif gate == roles.ROLE_FINANCE:
             if not keys or not keys <= ADMIN_ONLY_KEYS:
@@ -109,8 +113,26 @@ def test_rules_match_todays_access():
 
 
 def test_inline_gated_list_is_honest():
+    """Исключения паритета обязаны требовать ключ СТРОЖЕ staff (на чтение или запись)."""
     for name in INLINE_GATED:
-        assert view_perms.rule_for(name) is not None, name
+        rule = view_perms.rule_for(name)
+        assert rule is not None, name
+        assert _keys(rule) - STAFF_KEYS, f"{name}: исключение без более строгого ключа"
+
+
+@pytest.mark.django_db
+def test_palette_sections_follow_rights(monkeypatch):
+    from apps.core import palette_search as ps
+
+    called = []
+    for key in ps.SECTION_PERMS:
+        fn_name = {"deals": "_deals", "customers": "_customers", "sellables": "_sellables"}[key]
+        monkeypatch.setattr(ps, fn_name, lambda t, q, owner=False, k=key: called.append(k) or [])
+    ps.search(None, "anna", perms=frozenset({"kunden.view"}))
+    assert called == ["customers"]
+    called.clear()
+    ps.search(None, "anna", perms=frozenset())
+    assert called == []
 
 
 # --- поведение middleware ------------------------------------------------------------
@@ -185,6 +207,6 @@ def test_storefront_paths_are_untouched():
 
 
 def test_registry_keys_are_known():
-    for rule in [*view_perms.RULES.values(), *view_perms.NAMESPACE_DEFAULTS.values()]:
+    for rule in view_perms.RULES.values():
         for key in (rule.read, rule.write):
             assert key in (view_perms.OPEN, view_perms.FLOOR) or key in permissions.PERMS

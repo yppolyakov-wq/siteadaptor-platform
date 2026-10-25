@@ -76,7 +76,7 @@ RULES: dict[str, Rule] = {
     # --- Verkäufe -----------------------------------------------------------------
     "verkaeufe": _r(V, E),
     "verkaeufe-bulk": _r(V, E),
-    "verkaeufe-view": _r(V),
+    "verkaeufe-view": _r(V, E),  # пишет общий для всех вид списка
     "verkaeufe-zusatz": _r(V, E),
     "verkaeufe-export": _r("kunden.export"),
     "board": _r(V, E),
@@ -152,7 +152,7 @@ RULES: dict[str, Rule] = {
     "sellable-manage": _r(S, SE),
     "sellable-sold-out": _r(S, SE),
     "sellable-visibility": _r(S, SE),
-    "sortiment-view": _r(S),
+    "sortiment-view": _r(S, SE),  # пишет общий для всех вид списка
     "city-freshness-confirm": _r(S, SE),
     "collections:list": _r(S, SE),
     "booking:services": _r(S, SE),
@@ -188,6 +188,44 @@ RULES: dict[str, Rule] = {
     "imports:map": _r(L, LE),
     "imports:preview": _r(L, LE),
     "imports:status": _r(L, LE),
+    # Каталог: удаление позиции — отдельное действие (фото — правка).
+    "catalog:category-create": _r(S, SE),
+    "catalog:category-delete": _r(S, "sortiment.delete"),
+    "catalog:category-edit": _r(S, SE),
+    "catalog:category-image-delete": _r(S, SE),
+    "catalog:category-image-primary": _r(S, SE),
+    "catalog:category-inline-edit": _r(S, SE),
+    "catalog:category-list": _r(S, SE),
+    "catalog:combo-create": _r(S, SE),
+    "catalog:combo-delete": _r(S, "sortiment.delete"),
+    "catalog:combo-edit": _r(S, SE),
+    "catalog:combo-group-add": _r(S, SE),
+    "catalog:combo-group-delete": _r(S, "sortiment.delete"),
+    "catalog:combo-group-update": _r(S, SE),
+    "catalog:combo-image-delete": _r(S, SE),
+    "catalog:combo-image-primary": _r(S, SE),
+    "catalog:combo-list": _r(S, SE),
+    "catalog:combo-option-add": _r(S, SE),
+    "catalog:combo-option-delete": _r(S, "sortiment.delete"),
+    "catalog:combo-option-update": _r(S, SE),
+    "catalog:modifier-group-add": _r(S, SE),
+    "catalog:modifier-group-delete": _r(S, "sortiment.delete"),
+    "catalog:modifier-group-update": _r(S, SE),
+    "catalog:modifier-option-add": _r(S, SE),
+    "catalog:modifier-option-delete": _r(S, "sortiment.delete"),
+    "catalog:modifier-option-update": _r(S, SE),
+    "catalog:product-create": _r(S, SE),
+    "catalog:product-delete": _r(S, "sortiment.delete"),
+    "catalog:product-edit": _r(S, SE),
+    "catalog:product-image-delete": _r(S, SE),
+    "catalog:product-image-primary": _r(S, SE),
+    "catalog:product-inline-edit": _r(S, SE),
+    "catalog:product-list": _r(S, SE),
+    "catalog:product-photo-edit": _r(S, SE),
+    "catalog:products-merge": _r(S, SE),
+    "catalog:variant-add": _r(S, SE),
+    "catalog:variant-delete": _r(S, "sortiment.delete"),
+    "catalog:variant-update": _r(S, SE),
     # --- Kunden & Nachrichten -------------------------------------------------------
     "crm:customer-list": _r(K, KE),
     "crm:customer-create": _r(K, KE),
@@ -243,6 +281,36 @@ RULES: dict[str, Rule] = {
     "events:feature-checkout": _r(M, ME),
     "stays:unit-feature": _r(M, ME),
     "stays:unit-feature-checkout": _r(M, ME),
+    # Акции
+    "promotions:coupon-campaigns": _r(M, ME),
+    "promotions:loyalty-list": _r(M, ME),
+    "promotions:newsletter": _r(M, ME),
+    "promotions:promo-type-list": _r(M, ME),
+    "promotions:promo-type-save": _r(M, ME),
+    "promotions:promotion-create": _r(M, ME),
+    "promotions:promotion-edit": _r(M, ME),
+    "promotions:promotion-feature": _r(M, ME),
+    "promotions:promotion-feature-checkout": _r(M, ME),
+    "promotions:promotion-flyer": _r(M, ME),
+    "promotions:promotion-image-delete": _r(M, ME),
+    "promotions:promotion-image-primary": _r(M, ME),
+    "promotions:promotion-inline-edit": _r(M, ME),
+    "promotions:promotion-list": _r(M, ME),
+    "promotions:promotion-page-mode": _r(M, ME),
+    "promotions:promotion-photo-edit": _r(M, ME),
+    "promotions:promotion-preview": _r(M, ME),
+    "promotions:promotion-quick": _r(M, ME),
+    "promotions:promotion-quick-ai": _r(M, ME),
+    "promotions:promotion-quick-ai-result": _r(M, ME),
+    "promotions:promotion-quick-done": _r(M, ME),
+    "promotions:promotion-share": _r(M, ME),
+    "promotions:promotion-text-check": _r(M, ME),
+    "promotions:promotion-text-check-ai": _r(M, ME),
+    "promotions:promotion-text-check-ai-result": _r(M, ME),
+    "promotions:promotion-transition": _r(M, ME),
+    "promotions:shop-poster": _r(M, ME),
+    "promotions:today-dismiss": _r(M, ME),
+    "promotions:voucher-list": _r(M, ME),
     # --- Website ------------------------------------------------------------------
     "design": _r(W, WE),
     "media-library": _r(W, WE),
@@ -296,30 +364,15 @@ RULES: dict[str, Rule] = {
     "team": _r("team.view", "team.edit"),
 }
 
-# Пространство имён → правило по умолчанию (catalog/promotions — большие однородные разделы).
-NAMESPACE_DEFAULTS: dict[str, Rule] = {
-    "catalog": _r(S, SE),
-    "promotions": _r(M, ME),
-}
-# Удаление в каталоге — отдельное действие.
-_DELETE_SUFFIXES = ("-delete",)
-
 
 def rule_for(view_name: str) -> Rule | None:
-    rule = RULES.get(view_name)
-    if rule is not None:
-        return rule
-    ns, _, name = (view_name or "").rpartition(":")
-    default = NAMESPACE_DEFAULTS.get(ns)
-    if default is None:
-        return None
-    if ns == "catalog" and name.endswith(_DELETE_SUFFIXES):
-        return _r(S, "sortiment.delete")
-    return default
+    """Правило экрана; None — экран не зарегистрирован (без правил «по умолчанию»:
+    новый маршрут обязан быть записан явно — ревью безопасности E6.7b)."""
+    return RULES.get(view_name or "")
 
 
 def _check_registry() -> None:
-    for _name, rule in [*RULES.items(), *NAMESPACE_DEFAULTS.items()]:
+    for rule in RULES.values():
         for key in (rule.read, rule.write):
             if key not in _MARKERS:
                 permissions.check_key(key)

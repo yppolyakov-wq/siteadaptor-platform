@@ -6246,9 +6246,11 @@ def palette_search(request):
     from django.http import JsonResponse
 
     from apps.core import palette_search as ps
+    from apps.core import permissions
 
+    perms = permissions.effective(request.user)
     sections = ps.search(
-        request.tenant, request.GET.get("q", ""), owner=has_perm(request.user, "kunden.kontakte")
+        request.tenant, request.GET.get("q", ""), owner="kunden.kontakte" in perms, perms=perms
     )
     return JsonResponse(
         {

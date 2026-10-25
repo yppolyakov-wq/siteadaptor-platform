@@ -69,7 +69,7 @@ def test_view_passes_role(monkeypatch):
 
     seen = {}
     monkeypatch.setattr(
-        ps, "search", lambda t, q, owner=None: seen.setdefault("owner", owner) or []
+        ps, "search", lambda t, q, owner=None, perms=None: seen.setdefault("owner", owner) or []
     )
     request = RequestFactory().get("/dashboard/palette/suche/", {"q": "ab"})
     request.user = get_user_model().objects.create_user(f"u-{uuid4().hex[:6]}", password="pw")

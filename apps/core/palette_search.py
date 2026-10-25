@@ -145,15 +145,26 @@ def _sellables(tenant, q: str, owner: bool = False) -> list[dict]:
     return out
 
 
-def search(tenant, q: str, owner: bool = False) -> list[dict]:
+# KA-12 E6.7b: какое право нужно, чтобы видеть секцию палитры.
+SECTION_PERMS = {
+    "deals": "verkaeufe.view",
+    "customers": "kunden.view",
+    "sellables": "sortiment.view",
+}
+
+
+def search(tenant, q: str, owner: bool = False, perms=None) -> list[dict]:
     """Секции результата: [{key, label, items:[{label, sub, url}]}].
     Короткий запрос → пустой ответ БЕЗ запросов в БД. `owner=False` (по умолчанию,
-    fail-closed) — контакты клиентов маскируются (KA-H11)."""
+    fail-closed) — контакты клиентов маскируются (KA-H11). `perms` — права
+    пользователя (E6.7b): секция без права не ищется; None — все секции."""
     q = (q or "").strip()
     if len(q) < MIN_QUERY:
         return []
     sections, total = [], 0
     for key, fn in (("deals", _deals), ("customers", _customers), ("sellables", _sellables)):
+        if perms is not None and SECTION_PERMS[key] not in perms:
+            continue
         try:
             items = fn(tenant, q, owner=owner)
         except Exception:  # noqa: BLE001 — одна секция не валит палитру
