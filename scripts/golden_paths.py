@@ -11,6 +11,8 @@
         (при пустом дне — «ближайший свободный») → форма → /t/<code>/ → `Booking` в БД.
   GP-4  Zimmer (демо `hotel`, KA-12 Z-0): /unterkunft/ → номер → первый свободный
         диапазон (сдвиг по неделям) → форма → /s/<code>/ → `StayBooking` в БД.
+  GP-5  Tickets (демо `touren`, KA-12 T-0): /veranstaltung/ → дата → форма билета →
+        /e/<code>/ → `Ticket` в БД.
 
 Плюс общие проверки на каждой странице: нет JS-ошибок, нет горизонтального
 скролла, ответ 2xx.
@@ -289,6 +291,62 @@ def gp4_zimmer(run, ctx, port):
         run.check(_db_has("stays.StayBooking", m.group(1), "hotel"), "бронь в БД")
 
 
+def gp5_tickets(run, ctx, port):
+    """KA-12 T-0: дата события → форма билета → /e/<code>/ → билет в БД."""
+    print("GP-5 Tickets (touren)")
+    page = ctx.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    host = f"http://touren.{BASE}:{port}"
+    resp = page.goto(f"{host}/veranstaltung/")
+    run.check(resp and resp.ok, "/veranstaltung/ открывается")
+    _page_health(run, page, errors, "/veranstaltung/")
+    hrefs = page.locator("a[href*='/veranstaltung/']").evaluate_all(
+        "els => els.map(e => e.getAttribute('href'))"
+    )
+    pks = []
+    for h in hrefs:
+        m = re.search(r"/veranstaltung/([0-9a-f-]{36})/", h or "")
+        if m and m.group(1) not in pks:
+            pks.append(m.group(1))
+    run.check(bool(pks), "на /veranstaltung/ есть дата")
+    form = page.locator("form[action$='/buchen/']")
+    for pk in pks[:6]:  # первая дата с открытой продажей (не распродана/не прошла)
+        page.goto(f"{host}/veranstaltung/{pk}/")
+        form = page.locator("form[action$='/buchen/']")
+        if form.count():
+            break
+    _page_health(run, page, errors, "страница даты")
+    run.check(form.count() == 1, "на странице даты есть форма билета")
+    if not form.count():
+        return
+    opener = page.locator("[data-modal-open='buybox-modal']")
+    if opener.count() and opener.first.is_visible():
+        opener.first.click()
+        page.wait_for_timeout(300)
+    nxt = form.locator("[data-rv1-next]")  # RV1: шаг 1 — места, «Weiter» открывает данные
+    if nxt.count() and nxt.first.is_visible():
+        nxt.first.click()
+        page.wait_for_timeout(300)
+    tag = uuid.uuid4().hex[:6]
+    form.locator("input[name='name']").locator("visible=true").first.fill(f"GP Teilnehmer {tag}")
+    form.locator("input[name='email']").locator("visible=true").first.fill(f"gp-{tag}@example.com")
+    for box in form.locator("input[type='checkbox'][required]").all():
+        if box.is_visible():
+            box.check()
+    form.locator("button[type='submit']").locator("visible=true").last.click()
+    page.wait_for_load_state()
+    m = re.search(r"/e/([^/?]+)/", page.url)
+    if not m:
+        err = page.locator(".errorlist, [role='alert'], .text-red-600").all_inner_texts()
+        print("    ошибка формы:", " | ".join(t.strip() for t in err if t.strip())[:200])
+    run.check(bool(m), f"подтверждение /e/<code>/ ({page.url})")
+    _page_health(run, page, errors, "подтверждение билета")
+    if m:
+        run.check(page.get_by_text(m.group(1)).count() > 0, "код показан участнику")
+        run.check(_db_has("events.Ticket", m.group(1), "touren"), "билет в БД")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8000)
@@ -304,6 +362,7 @@ def main():
         gp2_click_collect(run, ctx, args.port)
         gp3_termine(run, ctx, args.port)
         gp4_zimmer(run, ctx, args.port)
+        gp5_tickets(run, ctx, args.port)
         browser.close()
     print(f"\n{run.ok} ok, {len(run.fail)} fail")
     for f in run.fail:
