@@ -169,3 +169,37 @@ def test_purge_keeps_recent_and_future():
     assert tasks.purge_due_night_rates(today=today) == 1
     left = set(NightRate.objects.values_list("pk", flat=True))
     assert old.pk not in left and {recent.pk, future.pk} <= left
+
+
+def test_next_free_range_skips_stop_sell():
+    from apps.stays import availability
+
+    unit = _unit(quantity=1)
+    NightRate.objects.create(unit=unit, day=_d(0), stop_sell=True)
+    rng = availability.next_free_range(2, from_day=_d(0), max_days=5)
+    assert rng is not None and rng[0] >= _d(1)
+
+
+def test_hotel_search_respects_stop_sell(monkeypatch):
+    from django.db import connection
+
+    from apps.aggregator import hotel_search
+
+    monkeypatch.setattr(
+        hotel_search, "cache", type("C", (), {"get": lambda *a: None, "set": lambda *a: None})()
+    )
+    StayUnit.objects.update(is_active=False)
+    unit = _unit()
+    NightRate.objects.create(unit=unit, day=_d(1), stop_sell=True)
+    ok, _cents = hotel_search.hotel_availability(connection.schema_name, _d(0), _d(3), 1)
+    assert ok is False
+    ok2, cents2 = hotel_search.hotel_availability(connection.schema_name, _d(2), _d(4), 1)
+    assert ok2 is True and cents2 > 0
+
+
+def test_forget_night_rates_drops_instance_cache():
+    unit = _unit()
+    assert pricing.quote_total_cents(unit, _d(0), _d(1)) == 10000
+    NightRate.objects.create(unit=unit, day=_d(0), price_cents=5000)
+    pricing.forget_night_rates(unit)
+    assert pricing.quote_total_cents(unit, _d(0), _d(1)) == 5000

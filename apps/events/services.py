@@ -256,6 +256,9 @@ def _attach_accommodation(event, ticket, customer, stay_unit_id, quantity):
     unit = StayUnit.objects.select_for_update().get(id=stay_unit_id, is_active=True)
     if not availability.range_available(unit, arrival, departure, needed=1):
         raise StayUnavailable()
+    # KA-12 Z-2: цена — с поночным слоем; правила продаж витрины (стоп-продажа,
+    # G12) ретрит НЕ применяет осознанно: номер продаётся пакетом события,
+    # который владелец собрал сам (как кабинет/walk-in).
     room_cents = pricing.quote_total_cents(unit, arrival, departure)
     guests = min(max(1, quantity), unit.max_guests) or 1
     booking = StayBooking.objects.create(

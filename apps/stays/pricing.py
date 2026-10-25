@@ -35,6 +35,12 @@ def night_rates_for(unit, arrival, departure) -> dict:
     return cache[key]
 
 
+def forget_night_rates(unit) -> None:
+    """Сбросить кэш окон NightRate на экземпляре — писатель NightRate (Z-3) обязан
+    звать после записи, если дальше считает цену на том же экземпляре юнита."""
+    unit.__dict__.pop("_night_rates_cache", None)
+
+
 def nightly_price_cents(unit, day, seasons=None, night_rates=None) -> int:
     """Цена ночи: NightRate (Z-2) → SeasonRate → выходные → база. ``night_rates`` —
     готовый словарь окна ({day: NightRate}); None — без поночного слоя."""

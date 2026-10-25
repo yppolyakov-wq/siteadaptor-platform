@@ -19752,3 +19752,16 @@ occupancy, до авто-скидки; метка — имя сезона вла
 ключ сделки общий с автосчётом); легаси удалён. Ревью silent-failure + django: HIGH (скидка > проживания)
 и MEDIUM (разбивка × номера, дубль логики) закрыты; остаток в roadmap (iregex без индекса, гонка двух
 черновиков счёта — прецедент DC-6). Замки `test_z1_night_snapshot.py` (12).
+
+## 2026-10-25 · KA-12 Zimmer Z-2 (E4.6a) — поночный слой цен и ограничений (⚠️ миграция `stays/0042`)
+`stays.NightRate(unit, day, price_cents?, stop_sell, min_nights, no_checkin, no_checkout)` — только
+переопределённые дни (constraint «строка не пустая», цена > 0, min ≤ 365, unique `(unit, day)` с явным
+именем — копия шаблонной схемы T-10 сверяет имена). Цена ночи NightRate → сезон → выходные → база — в
+`nightly_price_cents`, `night_snapshot`, `quote_total_cents` (одно окно на запрос, кэш на экземпляре юнита
++ `forget_night_rates` для писателя Z-3; метка `@night` в снимке → «Tagespreis»). Ограничения дня —
+`restrictions.violation` (только витрина; book_stay ре-валидирует под локом юнита). Учтены: витринный
+календарь (день стоп-продажи не заезд, но выезд — как занятый), фид G8 (цена/наличие/min/CTA/CTD),
+портал `hotel_search` (G12 + стоп-продажа — раньше портал не знал и G12), подсказка «nächste freie».
+Ретрит сознательно без правил витрины (пакет события, как кабинет). Beat `purge-old-night-rates` (старше
+30 дней). Ревью database + silent-failure: MEDIUM (портал, подсказка, кэш) закрыты; LOW — roadmap.
+Замки `test_z2_night_rates.py` (16).

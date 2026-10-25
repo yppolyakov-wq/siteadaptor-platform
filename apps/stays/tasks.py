@@ -160,7 +160,9 @@ def purge_due_night_rates(today=None) -> int:
     from .models import NightRate
 
     today = today or timezone.localdate()
-    cutoff = today - timezone.timedelta(days=NIGHT_RATE_KEEP_DAYS)
+    from datetime import timedelta
+
+    cutoff = today - timedelta(days=NIGHT_RATE_KEEP_DAYS)
     deleted, _ = NightRate.objects.filter(day__lt=cutoff).delete()
     return deleted
 

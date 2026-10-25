@@ -34,7 +34,7 @@ def hotel_availability(tenant_schema, von, bis, guests) -> tuple[bool, int]:
     result = (False, 0)
     nights = (bis - von).days
     if nights >= 1:
-        from apps.stays import availability, pricing
+        from apps.stays import availability, pricing, restrictions
         from apps.stays.models import RatePlan, StayUnit
 
         best = None
@@ -44,6 +44,10 @@ def hotel_availability(tenant_schema, von, bis, guests) -> tuple[bool, int]:
                 if nights < unit.min_nights:
                     continue
                 if not availability.range_available(unit, von, bis):
+                    continue
+                # KA-12 Z-2: правила продаж витрины (G12 + стоп-продажа/ограничения дня) —
+                # портал не обещает то, что сайт отеля откажет забронировать.
+                if restrictions.violation(unit, von, bis):
                     continue
                 if rate_plans:
                     cents = min(

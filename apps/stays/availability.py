@@ -319,7 +319,15 @@ def next_free_range(nights, *, guests=1, from_day=None, max_days=60):
     for i in range(max_days + 1):
         arrival = start + timedelta(days=i)
         departure = arrival + timedelta(days=nights)
-        if free_units(arrival, departure, guests=guests):
+        # KA-12 Z-2: подсказка ведёт гостя на витрину — диапазон обязан проходить
+        # её правила продаж (стоп-продажа/ограничения дня, G12), иначе ссылка
+        # «nächste freie» заканчивалась бы отказом.
+        from . import restrictions
+
+        if any(
+            not restrictions.violation(u, arrival, departure)
+            for u in free_units(arrival, departure, guests=guests)
+        ):
             return (arrival, departure)
     return None
 
