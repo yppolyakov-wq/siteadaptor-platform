@@ -17,7 +17,8 @@ def purge_team_audit():
     Прочий журнал не трогаем: у него свои сроки (GoBD, выгрузки)."""
     from .models import AuditEvent
 
-    cutoff = timezone.now() - timedelta(days=settings.TEAM_AUDIT_RETENTION_DAYS)
+    days = max(int(settings.TEAM_AUDIT_RETENTION_DAYS), 365)  # 0/минус из env не стирают журнал
+    cutoff = timezone.now() - timedelta(days=days)
     total = 0
     while True:
         ids = list(
