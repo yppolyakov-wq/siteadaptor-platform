@@ -211,8 +211,9 @@ def set_member_permissions(
         added = new - old
         from .role_templates import TEMPLATES
 
-        if not template and not strict_template:
+        if not template and not strict_template and new != P.for_role(role):
             # Ручная правка не стирает происхождение: подпись «Vorlage · angepasst».
+            # Вернули ровно пресет роли — подписи шаблона больше нет.
             raw = target.permissions if isinstance(target.permissions, dict) else {}
             template = raw.get("template", "") if isinstance(raw.get("template"), str) else ""
         if template not in template_keys() or TEMPLATES[template].role != role:

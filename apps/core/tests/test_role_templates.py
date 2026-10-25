@@ -108,3 +108,45 @@ def test_admin_template_cards_for_admin_member():
     assert keys == {"leitung", "buchhaltung"}
     _apply(owner, admin, "buchhaltung")
     assert _eff(admin) == RT.TEMPLATES["buchhaltung"].keys
+
+
+def test_template_requires_form_state_and_matching_business_type():
+    owner, staff = _member(OWNER), _member(STAFF)
+    before = _eff(staff)
+    req = _req(
+        owner.user,
+        "post",
+        {"action": "perms", "membership_id": str(staff.pk), "apply_template": "aushilfe"},
+    )
+    team.team_view(req)  # без perms_state — отказ stale
+    assert _eff(staff) == before
+    _apply(owner, staff, "rezeption")  # тенант теста — ресторан, не отель
+    assert _eff(staff) == before
+
+
+def test_role_change_drops_template_and_strict_rejects_foreign_role():
+    owner, staff = _member(OWNER), _member(STAFF)
+    _apply(owner, staff, "aushilfe")
+    G.set_member_role(owner.user, staff.pk, ADMIN)
+    staff.refresh_from_db()
+    assert not staff.permissions.get("template")
+    with pytest.raises(G.PermsDenied) as exc:
+        G.set_member_permissions(
+            owner.user, staff.pk, RT.TEMPLATES["aushilfe"].keys, "aushilfe", strict_template=True
+        )
+    assert exc.value.reason == "template"
+
+
+def test_manual_return_to_preset_clears_template_label():
+    owner, staff = _member(OWNER), _member(STAFF)
+    _apply(owner, staff, "aushilfe")
+    G.set_member_permissions(owner.user, staff.pk, P.for_role(STAFF))
+    staff.refresh_from_db()
+    assert not staff.permissions.get("template")
+    assert perm_ui.perm_form(owner, staff)["template_label"] == ""
+
+
+def test_template_buttons_come_after_save_button():
+    owner, _staff = _member(OWNER), _member(STAFF)
+    html = team.team_view(_req(owner.user)).content.decode()
+    assert html.index("Rechte speichern") < html.index('name="apply_template"')

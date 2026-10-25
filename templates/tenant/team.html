@@ -54,6 +54,10 @@ lg+ вместо колонки max-w-3xl; на мобильном — одна 
                 <input type="hidden" name="membership_id" value="{{ r.m.pk }}">
                 <input type="hidden" name="perms_present" value="1">
                 <input type="hidden" name="perms_state" value="{{ r.perm_form.state }}">
+                {% include "tenant/_perm_fieldsets.html" with groups=r.perm_form.groups field="perm" %}
+                <button type="submit" aria-describedby="who-{{ r.m.pk }}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Rechte speichern" %}</button>
+                {% comment %}Шаблоны — ПОСЛЕ «Rechte speichern»: неявная отправка формы берёт первую
+                submit-кнопку, и она не должна быть шаблоном (ревью E6.7f).{% endcomment %}
                 {% if r.perm_form.templates %}
                   <fieldset class="rounded-lg border border-gray-100 p-3">
                     <legend class="px-1 text-xs font-semibold text-gray-700">{% trans "Vorlage" %}{% if r.perm_form.template_label %} · <span data-template-label>{{ r.perm_form.template_label }}</span>{% endif %}</legend>
@@ -73,8 +77,6 @@ lg+ вместо колонки max-w-3xl; на мобильном — одна 
                     </div>
                   </fieldset>
                 {% endif %}
-                {% include "tenant/_perm_fieldsets.html" with groups=r.perm_form.groups field="perm" %}
-                <button type="submit" aria-describedby="who-{{ r.m.pk }}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Rechte speichern" %}</button>
               </form>
             </details>
           {% elif r.m.role == "owner" %}

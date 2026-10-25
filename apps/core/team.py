@@ -203,11 +203,14 @@ def _member_action(request, action):
         elif request.POST.get("apply_template"):
             # E6.7f: шаблон роли — та же выдача прав (области/requires/stale); имя хранится
             # для подписи. Неизвестный шаблон — отказ «scope», а не тихий пресет.
-            from apps.core.role_templates import TEMPLATES
+            from apps.core import role_templates
 
-            tpl = TEMPLATES.get(request.POST.get("apply_template", ""))
-            if tpl is None:
-                raise perm_grants.PermsDenied("scope")
+            tpl = role_templates.TEMPLATES.get(request.POST.get("apply_template", ""))
+            tenant = getattr(request, "tenant", None)
+            if tpl is None or tpl not in role_templates.templates_for(tenant, tpl.role):
+                raise perm_grants.PermsDenied("scope")  # чужой архетип/мусор — как в форме
+            if not request.POST.get("perms_state"):
+                raise perm_grants.PermsDenied("stale")  # шаблон перезаписывает всё — только с формы
             perm_grants.set_member_permissions(
                 request.user,
                 member_pk,
