@@ -430,11 +430,7 @@ def _save_request(request, job):
                 fields.append(key)
     if fields:
         job.save(update_fields=[*fields, "updated_at"])
-        changed = {
-            f: str(getattr(job, f) or "")
-            for f in before
-            if getattr(job, f) != before[f]
-        }
+        changed = {f: str(getattr(job, f) or "") for f in before if getattr(job, f) != before[f]}
         if changed and job.lines_locked:
             # Смета уже принята: дату/гостей правим (О-4), но след остаётся.
             from apps.core.audit import audit_event
