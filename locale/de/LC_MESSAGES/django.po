@@ -30205,3 +30205,12 @@ msgstr "Übernachtungen Erwachsene"
 
 msgid "Übernachtungen Kinder"
 msgstr "Übernachtungen Kinder"
+
+msgid "Bezahlte Buchungen werden nicht gelöscht — setzen Sie den Status auf „Storniert“."
+msgstr "Bezahlte Buchungen werden nicht gelöscht — setzen Sie den Status auf „Storniert“."
+
+msgid "Checkliste aus einem anderen Termin übernehmen"
+msgstr "Checkliste aus einem anderen Termin übernehmen"
+
+msgid "Diese Buchung löschen?"
+msgstr "Diese Buchung löschen?"

@@ -52,6 +52,7 @@
           <th class="p-3">{% trans "Cost" %}</th>
           <th class="p-3">{% trans "Status" %}</th>
           <th class="p-3">{% trans "Visible" %}</th>
+          <th class="p-3"></th>
         </tr></thead>
         <tbody>
           {% for b in bookings %}
@@ -79,6 +80,64 @@
                     {% if b.visible_to_participants %}👁 {% trans "For participants" %}{% else %}🔒 {% trans "Internal" %}{% endif %}
                   </button>
                 </form>
+              </td>
+              <td class="p-3 text-right whitespace-nowrap">
+                {% comment %}KA-12 T-2: правка и удаление строки поставщика.{% endcomment %}
+                <details class="inline-block text-left">
+                  <summary class="cursor-pointer text-xs text-indigo-600 hover:underline">{% trans "Edit" %}</summary>
+                  <form method="post" class="mt-2 grid gap-2 w-64 rounded-xl bg-gray-50 p-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="edit_booking">
+                    <input type="hidden" name="id" value="{{ b.pk }}">
+                    <label class="text-xs text-gray-500">{% trans "Type" %}
+                      <select name="kind" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                        {% for value, label in kinds %}<option value="{{ value }}"{% if b.kind == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+                      </select>
+                    </label>
+                    <label class="text-xs text-gray-500">{% trans "Supplier" %}
+                      <select name="supplier" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                        <option value="">—</option>
+                        {% for s in suppliers %}<option value="{{ s.pk }}"{% if b.supplier_id == s.pk %} selected{% endif %}>{{ s.name }}</option>{% endfor %}
+                      </select>
+                    </label>
+                    <label class="text-xs text-gray-500">{% trans "or name" %}
+                      <input type="text" name="supplier_name" maxlength="200" value="{{ b.supplier_name }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                    </label>
+                    <label class="text-xs text-gray-500">{% trans "Day" %}
+                      <input type="number" min="0" name="day" value="{{ b.day|default_if_none:'' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                    </label>
+                    <label class="text-xs text-gray-500">{% trans "Date" %}
+                      <input type="date" name="date" value="{{ b.date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                    </label>
+                    <label class="text-xs text-gray-500">{% trans "Stop" %}
+                      <input type="text" name="stop" maxlength="200" value="{{ b.stop }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                    </label>
+                    <label class="text-xs text-gray-500">{% trans "Quantity" %}
+                      <input type="number" min="1" name="qty" value="{{ b.qty }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                    </label>
+                    <label class="text-xs text-gray-500">{% trans "Cost (€)" %}
+                      <input type="text" name="cost_eur" inputmode="decimal" value="{{ b.cost_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                    </label>
+                    <label class="text-xs text-gray-500">{% trans "Original" %}
+                      <input type="text" name="amount_original" inputmode="decimal" value="{{ b.amount_original|default_if_none:''|stringformat:'s' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                    </label>
+                    <label class="text-xs text-gray-500">{% trans "Currency" %}
+                      <input type="text" name="currency" maxlength="3" value="{{ b.currency }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                    </label>
+                    <label class="text-xs text-gray-500">{% trans "Note" %}
+                      <input type="text" name="note" maxlength="300" value="{{ b.note }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                    </label>
+                    <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Save" %}</button>
+                  </form>
+                </details>
+                {% if b.status != "paid" %}
+                  <form method="post" class="inline" onsubmit="return confirm('{% trans "Diese Buchung löschen?" %}');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_booking">
+                    <input type="hidden" name="id" value="{{ b.pk }}">
+                    <button type="submit" class="ml-2 text-xs text-red-600 hover:underline">{% trans "Delete" %}</button>
+                  </form>
+                {% endif %}
               </td>
             </tr>
           {% endfor %}
@@ -112,6 +171,9 @@
     </label>
     <label class="text-xs text-gray-500 sm:col-span-2">{% trans "Stop" %}
       <input type="text" name="stop" maxlength="200" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+    </label>
+    <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Date" %}
+      <input type="date" name="date" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
     </label>
     <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Cost (€)" %}
       <input type="text" name="cost_eur" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
@@ -153,5 +215,18 @@
     <input type="date" name="due_date" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
     <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Add" %}</button>
   </form>
+  {% if task_sources %}
+    {% comment %}KA-12 T-2: чек-лист из прошлого заезда — сроки с тем же отступом от старта.{% endcomment %}
+    <form method="post" class="mt-3 flex flex-wrap gap-2 items-end">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="copy_tasks">
+      <label class="text-xs text-gray-500 grow">{% trans "Checkliste aus einem anderen Termin übernehmen" %}
+        <select name="source" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          {% for e in task_sources %}<option value="{{ e.pk }}">{{ e.title }} · {{ e.starts_at|date:"d.m.Y" }}</option>{% endfor %}
+        </select>
+      </label>
+      <button type="submit" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-400">{% trans "Übernehmen" %}</button>
+    </form>
+  {% endif %}
 </section>
 {% endblock %}

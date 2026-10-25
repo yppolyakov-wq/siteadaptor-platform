@@ -30388,3 +30388,12 @@ msgstr "Ночёвки взрослых"
 
 msgid "Übernachtungen Kinder"
 msgstr "Ночёвки детей"
+
+msgid "Bezahlte Buchungen werden nicht gelöscht — setzen Sie den Status auf „Storniert“."
+msgstr "Оплаченные бронирования не удаляются — поставьте статус «Отменено»."
+
+msgid "Checkliste aus einem anderen Termin übernehmen"
+msgstr "Взять чек-лист из другой даты"
+
+msgid "Diese Buchung löschen?"
+msgstr "Удалить это бронирование?"

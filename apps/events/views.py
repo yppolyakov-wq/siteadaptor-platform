@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -740,12 +741,20 @@ def roster_csv(request, pk):
             "Plätze",
             "Status",
             "Bezahlt",
+            # KA-12 T-2: что гиду нужно в день старта — тариф, деньги, допы, вход.
+            "Tarif",
+            "Betrag",
+            "Offen",
+            "Extras",
+            "Check-in",
             *(["Unterkunft"] if show_unterkunft else []),
             *(["Waiver"] if show_waiver else []),
             *question_cols,
             *[label for _key, label in reg_cols],
         ]
     )
+    from apps.core import money_contract
+
     rows = 0
     for t in event.tickets.select_related("customer", "stay_booking__unit", "waiver").all():
         rows += 1
@@ -766,6 +775,11 @@ def roster_csv(request, pk):
                 t.quantity,
                 t.get_status_display(),
                 t.get_payment_state_display(),
+                csv_safe(t.tier_label),
+                f"{t.payable_cents / 100:.2f}",
+                f"{money_contract.due('ticket', t):.2f}",
+                csv_safe(", ".join(str(x.get("label", "")) for x in (t.extras or []))),
+                f"{timezone.localtime(t.checked_in_at):%d.%m.%Y %H:%M}" if t.checked_in_at else "",
                 *([csv_safe(room)] if show_unterkunft else []),
                 *([csv_safe(waiver_cell)] if show_waiver else []),
                 *[csv_safe(answers.get(q, "")) for q in question_cols],
@@ -896,6 +910,30 @@ def event_logistics(request, pk):
         action = request.POST.get("action", "")
         if action == "add_booking":
             _add_supplier_booking(request, event)
+        elif action == "edit_booking":
+            # KA-12 T-2: поставщика можно поправить (опечатка, новая цена/дата).
+            booking = get_object_or_404(SupplierBooking, pk=request.POST.get("id"), event=event)
+            _add_supplier_booking(request, event, booking=booking)
+            sync_expense(booking)  # оплаченная запись: расход идёт за новой суммой
+        elif action == "delete_booking":
+            booking = get_object_or_404(SupplierBooking, pk=request.POST.get("id"), event=event)
+            if booking.status == SupplierBooking.STATUS_PAID:
+                # Оплаченная — расход уже в журнале: только «Storniert», не удаление.
+                messages.error(
+                    request,
+                    _(
+                        "Bezahlte Buchungen werden nicht gelöscht — "
+                        "setzen Sie den Status auf „Storniert“."
+                    ),
+                )
+                return redirect("events:logistics", pk=event.pk)
+            sync_expense(booking)
+            booking.delete()
+        elif action == "copy_tasks":
+            # KA-12 T-2: чек-лист из другого заезда — те же задачи, срок с тем же
+            # отступом от старта (шаблон = прошлый тур, без отдельного хранилища).
+            source = get_object_or_404(Event, pk=_uuid_or_none(request.POST.get("source")))
+            _copy_tasks(source, event)
         elif action == "booking_status":
             booking = get_object_or_404(SupplierBooking, pk=request.POST.get("id"), event=event)
             target = request.POST.get("status", "")
@@ -914,7 +952,7 @@ def event_logistics(request, pk):
                 TourTask.objects.create(
                     event=event,
                     title=title[:200],
-                    due_date=request.POST.get("due_date") or None,
+                    due_date=_parse_date(request.POST.get("due_date")),
                 )
         elif action == "toggle_task":
             task = get_object_or_404(TourTask, pk=request.POST.get("id"), event=event)
@@ -933,6 +971,11 @@ def event_logistics(request, pk):
             "kinds": SupplierBooking.KINDS,
             "statuses": SupplierBooking.STATUSES,
             "suppliers": _active_suppliers(),
+            # KA-12 T-2: заезды с чек-листом — источник «Aus anderem Termin übernehmen».
+            "task_sources": Event.objects.exclude(pk=event.pk)
+            .filter(prep_tasks__isnull=False)
+            .distinct()
+            .order_by("-starts_at")[:20],
             "nav": "events",
         },
     )
@@ -944,8 +987,47 @@ def _active_suppliers():
     return Lieferant.objects.filter(is_active=True)
 
 
-def _add_supplier_booking(request, event) -> None:
-    """Новая строка книги логистики (цена — в евро, оригинал опционально)."""
+def _parse_date(raw):
+    """Дата из формы: мусор → None, а не ValidationError (500) при save()."""
+    from datetime import date
+
+    try:
+        return date.fromisoformat(str(raw).strip()) if raw else None
+    except ValueError:
+        return None
+
+
+def _uuid_or_none(raw):
+    from apps.stays.rate_plans import parse_uuid
+
+    return parse_uuid(raw)
+
+
+def _copy_tasks(source, event) -> int:
+    from .logistics import TourTask
+
+    if source.pk == event.pk:
+        return 0
+    have = set(event.prep_tasks.values_list("title", flat=True))
+    shift = None
+    if source.starts_at and event.starts_at:
+        shift = event.starts_at.date() - source.starts_at.date()
+    created = 0
+    for task in source.prep_tasks.all():
+        if task.title in have:
+            continue
+        due = task.due_date + shift if (task.due_date and shift is not None) else None
+        TourTask.objects.create(
+            event=event, title=task.title, due_date=due, sort_order=task.sort_order
+        )
+        created += 1
+    return created
+
+
+def _add_supplier_booking(request, event, booking=None) -> None:
+    """Новая строка книги логистики (цена — в евро, оригинал опционально).
+
+    KA-12 T-2: с `booking` — правка существующей строки теми же полями."""
     from decimal import Decimal, InvalidOperation
 
     from .logistics import SupplierBooking
@@ -956,21 +1038,39 @@ def _add_supplier_booking(request, event) -> None:
         except (InvalidOperation, TypeError, ValueError):
             return 0
 
-    supplier_id = request.POST.get("supplier") or None
-    SupplierBooking.objects.create(
-        event=event,
+    def _decimal(raw):
+        try:
+            value = Decimal(str(raw).replace(",", ".")) if raw not in (None, "") else None
+        except (InvalidOperation, TypeError, ValueError):
+            return None
+        if value is None or not value.is_finite() or abs(value) >= 10**10:
+            return None  # поле 12,2: сверх — None, а не DataError
+        return value.quantize(Decimal("0.01"))
+
+    supplier_id = _int_or_zero(request.POST.get("supplier")) or None
+    if supplier_id and not _active_suppliers().filter(pk=supplier_id).exists():
+        supplier_id = None  # чужой/мусорный id — без поставщика, а не 500
+    fields = dict(
         kind=request.POST.get("kind") or SupplierBooking.KIND_HOTEL,
         supplier_id=supplier_id,
         supplier_name=(request.POST.get("supplier_name") or "").strip()[:200],
         day=_int_or_zero(request.POST.get("day")),
-        date=request.POST.get("date") or None,
+        date=_parse_date(request.POST.get("date")),
         stop=(request.POST.get("stop") or "").strip()[:200],
         qty=max(1, _int_or_zero(request.POST.get("qty")) or 1),
         cost_cents=_cents(request.POST.get("cost_eur")),
         currency=(request.POST.get("currency") or "").strip()[:3].upper(),
-        amount_original=request.POST.get("amount_original") or None,
+        amount_original=_decimal(request.POST.get("amount_original")),
         note=(request.POST.get("note") or "").strip()[:300],
     )
+    if fields["kind"] not in dict(SupplierBooking.KINDS):
+        fields["kind"] = SupplierBooking.KIND_OTHER
+    if booking is None:
+        SupplierBooking.objects.create(event=event, **fields)
+        return
+    for name, value in fields.items():
+        setattr(booking, name, value)
+    booking.save()
 
 
 def _int_or_zero(raw) -> int:

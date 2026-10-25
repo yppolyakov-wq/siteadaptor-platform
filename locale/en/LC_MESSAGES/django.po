@@ -30113,3 +30113,12 @@ msgstr "Adult overnight stays"
 
 msgid "Übernachtungen Kinder"
 msgstr "Children overnight stays"
+
+msgid "Bezahlte Buchungen werden nicht gelöscht — setzen Sie den Status auf „Storniert“."
+msgstr "Paid bookings are not deleted — set the status to “Cancelled”."
+
+msgid "Checkliste aus einem anderen Termin übernehmen"
+msgstr "Copy checklist from another date"
+
+msgid "Diese Buchung löschen?"
+msgstr "Delete this booking?"

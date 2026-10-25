@@ -30257,3 +30257,12 @@ msgstr "Yetişkin konaklamaları"
 
 msgid "Übernachtungen Kinder"
 msgstr "Çocuk konaklamaları"
+
+msgid "Bezahlte Buchungen werden nicht gelöscht — setzen Sie den Status auf „Storniert“."
+msgstr "Ödenmiş rezervasyonlar silinmez — durumu “İptal edildi” olarak ayarlayın."
+
+msgid "Checkliste aus einem anderen Termin übernehmen"
+msgstr "Kontrol listesini başka bir tarihten kopyala"
+
+msgid "Diese Buchung löschen?"
+msgstr "Bu rezervasyon silinsin mi?"

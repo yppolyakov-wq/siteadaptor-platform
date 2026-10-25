@@ -380,6 +380,9 @@ def notify_event_waitlist(event) -> int:
 
     Шлёт одно письмо на запись (R1), помечает notified=True. Возвращает число
     отправленных. Безлимитное событие (capacity=0) — тоже шлёт (мест всегда хватает.)
+    KA-12 T-2: по очереди и по числу мест — запись, которой мест не хватает, ждёт
+    (не получает «есть места», когда её группа не помещается), следующие поменьше —
+    получают, пока хватает свободных мест.
     """
     if event.status != Event.STATUS_PUBLISHED:  # KA-H8: отменённое «место свободно» не шлёт
         return 0
@@ -390,7 +393,13 @@ def notify_event_waitlist(event) -> int:
 
     pending = event.waitlist.filter(notified=False).order_by("created_at")
     sent = 0
+    budget = left
     for entry in pending:
+        size = max(1, entry.party_size or 1)
+        if budget is not None:
+            if size > budget:
+                continue
+            budget -= size
         enqueue_event_waitlist_available(entry)
         entry.notified = True
         entry.save(update_fields=["notified", "updated_at"])

@@ -30,22 +30,33 @@ def record_expense(booking) -> object | None:
 
     if booking.status != booking.STATUS_PAID or not booking.cost_cents:
         return None
-    entry, _created = ExpenseEntry.objects.get_or_create(
+    mirrored = {
+        "amount": booking.cost_eur,
+        "original_currency": booking.currency,
+        "original_amount": booking.amount_original,
+        "category": _CATEGORY_BY_KIND.get(booking.kind, ExpenseEntry.CATEGORY_OTHER),
+        "date": booking.date or booking.created_at.date(),
+        "note": f"{booking.get_kind_display()} · {booking.supplier_label}"[:200],
+    }
+    entry, created = ExpenseEntry.objects.get_or_create(
         source=ExpenseEntry.SOURCE_SUPPLIER,
         source_ref=str(booking.pk),
         defaults={
-            "amount": booking.cost_eur,
-            "original_currency": booking.currency,
-            "original_amount": booking.amount_original,
-            "category": _CATEGORY_BY_KIND.get(booking.kind, ExpenseEntry.CATEGORY_OTHER),
-            "date": booking.date or booking.created_at.date(),
+            **mirrored,
             "event": booking.event,
             # MX-4: generic-ссылка расхода — маржа считается и вне туров.
             "ref_kind": booking.ref_kind or ("event" if booking.event_id else ""),
             "ref_id": booking.ref_id or (str(booking.event_id) if booking.event_id else ""),
-            "note": f"{booking.get_kind_display()} · {booking.supplier_label}"[:200],
         },
     )
+    if not created:
+        # KA-12 T-2: правка оплаченной записи (цена, дата, поставщик) — расход идёт за
+        # ней; повтор без изменений ничего не пишет.
+        changed = [k for k, v in mirrored.items() if getattr(entry, k) != v]
+        if changed:
+            for key in changed:
+                setattr(entry, key, mirrored[key])
+            entry.save(update_fields=[*changed, "updated_at"])
     return entry
 
 

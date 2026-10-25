@@ -42,6 +42,10 @@ E8 (депозит + остаток вручную: отмена возвращ�
 E9 («Bezahlt» и банковский матч подтверждают pending-билет через FSM — `settle_payment`),
 E10 (`payment_due_at` ставится при онлайн-оплате и снимается beat'ом `expire_payment_holds`),
 E11 (ручной билет с ценой без оплаты выручку не пишет — E1.7). Закрытое — замком, открытое — фиксом.
+**Итог сверки (2026-10-25): все четыре уже закрыты волной 3 и держатся замками** — E8/E11 —
+`core/tests/test_money_invariant.py` (пути ticket-deposit-cash-attended/-cancel, manual-on-site),
+E9 — `money_contract.settle_payment` (подтверждение через FSM), E10 — `test_pilot_p6_online_hold`
+(ticket). Кода T-1 не потребовалось.
 
 **T-2 логистика и участники (без миграций).** Правка/удаление `SupplierBooking` (POST-действия
 `edit_booking`/`delete_booking`, удаление — с подтверждением; оплаченный поставщик с записанным
