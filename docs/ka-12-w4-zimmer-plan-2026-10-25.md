@@ -117,3 +117,29 @@ i18n ×5 · `npm run build:css`.
 | Z-5 | `django-security` | `django-reviewer`, `security-reviewer`, `silent-failure-hunter`, Playwright Heute |
 | Z-6 | `django-security` | `django-reviewer`, `security-reviewer`, `silent-failure-hunter` |
 | перед мержем | — | ruff целиком, pytest затронутых модулей (`--create-db` после миграций), `i18n_quickcheck`, `template_comments`, `build:css`, CI |
+
+## 10. Дизайн Z-2/Z-3 после ревью `database-reviewer` (2026-10-25, до кода)
+1. **Индексы.** `UniqueConstraint(unit, day, name="stays_nightrate_unit_day_uniq")` покрывает FK, диапазон и
+   `unit_id IN … AND day BETWEEN`; отдельный Index не нужен, FK `db_index=False`; без `Meta.ordering`.
+   Проверить, что копия шаблонной схемы (T-10) сохраняет имя UNIQUE и CheckConstraint.
+2. **Загрузка без N+1.** Один хелпер `load_night_rates(units, arrival, departure) -> {unit_id: {day: NightRate}}`
+   (один запрос `unit_id__in`); листинги — `Prefetch(..., to_attr="nr_window")` (не related-кэш — грабля
+   prefetch с filter). Функции pricing принимают готовый dict (`night_rates=`), не тянут сами; приоритет
+   NightRate → SeasonRate → weekend → base — ТОЛЬКО в `nightly_price_cents`; метка `@night` в снимке.
+   NULL-цена — проверка `is not None`. Колл-сайты: public_views (quote/варианты/календарь/фид G8),
+   hotel_search, deal_discount (легаси-ветка), events (ретрит), services (book/move), кабинет 1183.
+   Замок: все колл-сайты quote передают NightRate (AST/grep).
+3. **Upsert только изменённых.** Прочитать окно, сравнить, в `bulk_create(update_conflicts=…)` слать только
+   новые/изменённые (с явным `updated_at`), нейтральные строки — `delete`; патч — только присланные поля
+   («не менять» ≠ «сбросить цену»: отдельный флаг); чанки `batch_size=500`, сортировка по (unit, day);
+   кап units × days на сервере.
+4. **Блокировки.** Массовая правка лочит `StayUnit` по возрастанию id (как book_stay) в короткой транзакции;
+   брони не пересчитывает (снимок). `book_stay(enforce_restrictions=True)` ре-валидирует stop_sell/min/
+   no_checkin/no_checkout под локом (TOCTOU) — расширение `restrictions.violation` (min — max с G12).
+   `range_available` не трогаем (кабинет); витринный календарь, free_units, hotel_search и фид G8
+   исключают ночи stop_sell.
+5. **Ретеншн.** Beat: `day < today − 30`, по схемам, пачками; горизонт ввода ≤ 2×366 дней, не в прошлом.
+6. **CheckConstraint.** `min_nights <= 365`; `price_cents IS NULL OR price_cents > 0`; «строка не пустая».
+7. **Миграция.** Один `CreateModel` отдельно от прочего; `--create-db` после.
+8. **Прочее.** Аудит массовой правки (диапазон, число строк); права — owner/admin (О-4); проверить,
+   не кэширует ли каталог города «ab»-цену номера (реконсиляция при правке NightRate).
