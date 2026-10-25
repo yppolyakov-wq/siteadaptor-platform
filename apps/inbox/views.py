@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core import contact_access as contacts
 from apps.core.fsm import IllegalTransition
 
 from . import services
@@ -186,7 +187,8 @@ def thread(request, pk):
             # клиента к боту; WhatsApp — ссылка на чат с НОМЕРОМ КЛИЕНТА
             # (отправка через API — external-backlog, платный Business API).
             "telegram_linked": _telegram_linked(conversation.customer),
-            "wa_url": _customer_wa_url(conversation),
+            # E6.7g: ссылка несёт полный номер — без права на контакты её нет.
+            "wa_url": _customer_wa_url(conversation) if contacts.can_see(request.user) else "",
             # T-8.10g: «✨ Antwort vorschlagen» — только при включённом ИИ.
             "ai_reply_enabled": _ai_reply_enabled(),
         },

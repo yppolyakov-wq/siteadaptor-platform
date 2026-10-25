@@ -149,8 +149,8 @@
       {% for w in waitlist %}
         <tr class="border-b border-gray-50">
           <td class="py-2 px-3">{{ w.name|default:"—" }}</td>
-          <td class="px-3">{{ w.email }}</td>
-          <td class="px-3">{{ w.phone|default:"—" }}</td>
+          <td class="px-3">{% if hide_contacts %}{{ w.email|mask_email }}{% else %}{{ w.email }}{% endif %}</td>
+          <td class="px-3">{% if hide_contacts %}{{ w.phone|mask_phone|default:"—" }}{% else %}{{ w.phone|default:"—" }}{% endif %}</td>
           <td class="px-3">{{ w.party_size }}</td>
           <td class="px-3">{% if w.notified %}<span class="text-green-600">✓</span>{% else %}—{% endif %}</td>
         </tr>

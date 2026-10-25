@@ -65,7 +65,8 @@ _ALL = (
     _p("kunden.view", "kunden"),
     _p("kunden.edit", "kunden", ["kunden.view"]),
     _p("kunden.kontakte", "kunden", ["kunden.view"], sensitive=True),
-    _p("kunden.export", "kunden", ["kunden.view"], sensitive=True),
+    # E6.7g: выгрузка несёт полные контакты — без права их видеть её не дать.
+    _p("kunden.export", "kunden", ["kunden.view", "kunden.kontakte"], sensitive=True),
     _p("kunden.dsgvo", "kunden", ["kunden.view"], sensitive=True),
     # Marketing
     _p("marketing.view", "marketing"),

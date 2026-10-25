@@ -110,12 +110,13 @@ def _customers(tenant, q: str, owner: bool = False) -> list[dict]:
 
     from apps.crm.models import Customer
 
-    qs = Customer.objects.filter(
-        Q(name__icontains=q) | Q(email__icontains=q) | Q(phone__icontains=q)
-    )
+    cond = Q(name__icontains=q)
+    if owner:  # E6.7g: по контактам ищет только тот, кто их видит (иначе — подбор)
+        cond |= Q(email__icontains=q) | Q(phone__icontains=q)
+    qs = Customer.objects.filter(cond)
     out = []
     for c in qs[:PER_SECTION]:
-        # KA-H11: контакт клиента видит только владелец; поиск по нему работает у всех.
+        # KA-H11/E6.7g: контакт клиента — только с правом «Kontaktdaten sehen».
         email = c.email if owner else mask_email(c.email)
         phone = c.phone if owner else mask_phone(c.phone)
         out.append(

@@ -107,3 +107,24 @@ def test_customer_detail_hides_contact_fields_without_right():
         _req("get", f"/crm/{c.pk}/", user=_user(perms=NO_CONTACTS)), c.pk
     ).content.decode()
     assert "geheim@beispiel.de" not in text and "1234567" not in text
+
+
+# --- ревью безопасности E6.7g ------------------------------------------------------
+
+
+def test_export_right_requires_contacts_right():
+    """Выгрузки несут полные контакты — kunden.export без kunden.kontakte не бывает."""
+    assert "kunden.kontakte" in permissions.PERMS["kunden.export"].requires
+    user = _user(perms={"add": ["kunden.export"], "remove": ["kunden.kontakte"]})
+    assert not permissions.has_perm(user, "kunden.export")
+
+
+def test_palette_does_not_search_customers_by_contact_without_right():
+    from apps.core import palette_search as ps
+
+    _customer()
+    tenant = TenantFactory.build(disabled_modules=[])
+    assert ps._customers(tenant, "geheim@", owner=False) == []
+    assert ps._customers(tenant, "1234567", owner=False) == []
+    assert ps._customers(tenant, "geheim@", owner=True)
+    assert ps._customers(tenant, "Frau Geheim", owner=False)  # по имени — можно

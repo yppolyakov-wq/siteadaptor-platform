@@ -69,7 +69,7 @@
       {% for g in gift_sales %}
         <tr class="border-b last:border-0">
           <td class="py-2 text-gray-500">{{ g.created_at|date:"d.m.Y" }}</td>
-          <td class="py-2">{{ g.buyer_name }} <span class="text-xs text-gray-400">{{ g.buyer_email }}</span></td>
+          <td class="py-2">{{ g.buyer_name }} <span class="text-xs text-gray-400">{% if hide_contacts %}{{ g.buyer_email|mask_email }}{% else %}{{ g.buyer_email }}{% endif %}</span></td>
           <td class="py-2">{{ g.recipient_name|default:"—" }}</td>
           <td class="py-2">{{ g.amount_eur|floatformat:2 }} €</td>
           <td class="py-2">{% if g.payment_state == "paid" %}<span class="text-green-600">✓</span>{% else %}<span class="text-amber-500">{% trans "open" %}</span>{% endif %}</td>

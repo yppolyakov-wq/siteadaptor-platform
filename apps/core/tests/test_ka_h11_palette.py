@@ -1,5 +1,6 @@
 """KA-H11 (аудит KA-9 №2): палитра Ctrl+K не показывает e-mail и телефон клиента
-сотрудникам — только владельцу. Найти клиента сотрудник по-прежнему может."""
+сотрудникам — только владельцу. E6.7g: без права «Kontaktdaten sehen» клиента не
+найти и ПО контакту (иначе e-mail/телефон угадываются подбором) — только по имени."""
 
 from uuid import uuid4
 
@@ -27,7 +28,7 @@ def _tenant():
 
 def _customer_items(owner, q):
     sections = {s["key"]: s for s in ps.search(_tenant(), q, owner=owner)}
-    return sections["customers"]["items"]
+    return sections.get("customers", {}).get("items", [])
 
 
 def test_staff_sees_masked_email():
@@ -37,23 +38,23 @@ def test_staff_sees_masked_email():
     assert item["sub"].endswith("@beispiel.de")
 
 
-def test_staff_finds_by_email_but_sees_mask():
+def test_staff_does_not_find_by_email():
+    """Переписано осознанно (E6.7g): раньше поиск по e-mail работал у всех."""
     Customer.objects.create(name="Herr Lenz", email="lenz@beispiel.de")
-    item = _customer_items(False, "lenz@beispiel")[0]
-    assert item["label"] == "Herr Lenz"
-    assert "lenz@" not in item["sub"]
+    assert _customer_items(False, "lenz@beispiel") == []
+    assert _customer_items(True, "lenz@beispiel")[0]["label"] == "Herr Lenz"
 
 
-def test_staff_sees_masked_phone_and_no_email_label():
+def test_staff_does_not_find_by_phone():
     Customer.objects.create(name="", email="", phone="0151 2345678")
-    item = _customer_items(False, "2345678")[0]
-    assert "2345678" not in item["sub"] and item["sub"].endswith("78")
+    assert _customer_items(False, "2345678") == []
 
 
 def test_nameless_customer_label_is_masked_for_staff():
-    Customer.objects.create(name="", email="ohnename@beispiel.de")
-    item = _customer_items(False, "ohnename")[0]
-    assert "ohnename" not in item["label"]
+    Customer.objects.create(name="Ohne", email="ohnename@beispiel.de")
+    Customer.objects.filter(email="ohnename@beispiel.de").update(name="")
+    item = _customer_items(True, "ohnename")[0]
+    assert "ohnename" in item["label"]  # владелец видит; сотрудник клиента без имени не найдёт
 
 
 def test_owner_sees_full_contact():

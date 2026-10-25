@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% comment %}MT-2: матрица «участник × документ» по заезду — кто что сдал.{% endcomment %}
 {% block dash_title %}{% trans "Documents" %}{% endblock %}
 
@@ -25,7 +25,7 @@
         {% for row in rows %}
           <tr class="border-b last:border-0">
             <td class="p-3">
-              <span class="font-medium">{{ row.customer.name|default:row.customer.email }}</span>
+              <span class="font-medium">{% if row.customer.name or not hide_contacts %}{{ row.customer.name|default:row.customer.email }}{% else %}{{ row.customer.email|mask_email }}{% endif %}</span>
               <span class="block text-xs text-gray-500">{{ row.ticket.reference_code }}</span>
             </td>
             {% for value, label in kinds %}
