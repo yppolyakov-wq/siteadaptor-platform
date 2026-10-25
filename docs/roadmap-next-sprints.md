@@ -983,3 +983,8 @@ bottom_nav = {
 
 
 - (2026-10-16, T-8.26) Кандидат на флак: `aggregator/tests/test_follow.py::test_one_mail_per_day_for_daily_plus_weekly_and_instant_excluded` — один раз упал локально (в т.ч. в изоляции на коде до 5c), на повторе и в CI #2718/#2720 зелёный; `confirmed_at` считается от реального `timezone.now()` при замороженном `now=_at(9)` (2026-10-21) — при повторе на CI заморозить и его.
+- **(2026-10-25, KA-12 E6.4c/Z-1, ревью)** (а) подсчёт неявок по `customer__email__iregex` без индекса — при
+  росте клиентов хранить нормализованный ящик в `Customer` (lowercase без `+tag`) и сравнивать равенством;
+  (б) `invoice_for_deal` без блокировки сделки — двойной клик теоретически даёт два черновика (прецедент
+  DC-6): `select_for_update` или частичный unique на `(deal_kind, deal_id)` живых счетов; (в) сброс кэша
+  витрины при `site_config` до коммита (класс W9) — `transaction.on_commit`.

@@ -32,23 +32,36 @@ def price_breakdown(
     Возвращает [{date, cents, label}] — label = имя сезона («Hochsaison»),
     «Wochenende» для выходной цены или "" для базовой. Сумма строк равна
     `quote_total_cents` с теми же аргументами (замок в тестах) — то есть это
-    именно объяснение итога, а не второй расчёт.
+    именно объяснение итога, а не второй расчёт. KA-12 Z-1: строится поверх
+    `night_snapshot` — одна логика «сезон → выходные → тариф → occupancy».
     """
-    seasons = list(unit.season_rates.all())
+    return _rows(
+        night_snapshot(
+            unit,
+            arrival,
+            departure,
+            rate_plan,
+            occupancy_by_day=occupancy_by_day,
+            occupancy_rules=occupancy_rules,
+        )
+    )
+
+
+def _rows(snapshot, multiplier: int = 1) -> list[dict]:
+    from datetime import date as _date
+
     rows = []
-    for day in nights_between(arrival, departure):
-        label = ""
-        for rate in seasons:
-            if rate.start_date <= day <= rate.end_date:
-                label = rate.label or _("Saisonpreis")
-                break
-        else:
-            if day.weekday() in WEEKEND_WEEKDAYS and unit.weekend_price_cents:
-                label = _("Wochenende")
-        cents = apply_rate_plan(nightly_price_cents(unit, day, seasons), rate_plan)
-        if occupancy_rules and occupancy_by_day is not None:
-            cents = occupancy_adjust(cents, occupancy_by_day.get(day), occupancy_rules)
-        rows.append({"date": day, "cents": cents, "eur": cents / 100, "label": label})
+    for item in snapshot:
+        cents = int(item[1]) * multiplier
+        label = _snapshot_label(item[2] if len(item) > 2 else "")
+        rows.append(
+            {
+                "date": _date.fromisoformat(item[0]),
+                "cents": cents,
+                "eur": cents / 100,
+                "label": label,
+            }
+        )
     return rows
 
 
@@ -86,28 +99,17 @@ def _snapshot_label(mark) -> str:
 
 
 def booking_breakdown(booking) -> list[dict]:
-    """Разбивка цены брони по ночам: снимок брони; легаси-бронь без снимка — прайс
+    """Разбивка цены брони по ночам: снимок брони × число номеров (сумма строк =
+    проживание до авто-скидки, как в итоге); легаси-бронь без снимка — прайс
     сегодняшнего дня (прежнее поведение)."""
-    from datetime import date as _date
-
+    rooms = max(1, booking.rooms or 1)
     if booking.night_prices:
-        rows = []
-        for item in booking.night_prices:
-            cents = int(item[1])
-            label = _snapshot_label(item[2] if len(item) > 2 else "")
-            rows.append(
-                {
-                    "date": _date.fromisoformat(item[0]),
-                    "cents": cents,
-                    "eur": cents / 100,
-                    "label": label,
-                }
-            )
-        return rows
+        return _rows(booking.night_prices, rooms)
     if not booking.unit_id:
         return []
-    return price_breakdown(
-        booking.unit, booking.arrival, booking.departure, rate_plan=booking.rate_plan
+    return _rows(
+        night_snapshot(booking.unit, booking.arrival, booking.departure, booking.rate_plan),
+        rooms,
     )
 
 

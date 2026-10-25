@@ -124,4 +124,7 @@ def test_builders_use_the_shared_recipient():
     stays = (root / "stays" / "services.py").read_text()
     assert "recipient=str(booking.customer)" not in finance
     assert "recipient=str(booking.customer)" not in stays
-    assert finance.count("recipient_for(") >= 3 and "recipient_for(" in stays
+    # KA-12 Z-1: у броней номера свой построитель счёта удалён (DF-Z2) — счета
+    # строит только finance (один источник получателя).
+    assert finance.count("recipient_for(") >= 3
+    assert "Invoice.objects.create" not in stays

@@ -142,3 +142,36 @@ def test_cabinet_invoice_action_uses_deal_invoice(monkeypatch):
     assert created and not created2 and first.pk == second.pk
     assert first.gross == Decimal(b.total_cents) / 100
     assert "19.00" in {line["vat_rate"] for line in first.lines}
+
+
+def test_huge_discount_is_capped_and_reversible():
+    """Ревью Z-1 (HIGH): скидка больше проживания обрезается до проживания —
+    следующая правка восстанавливает проживание точно, итог не раздувается."""
+    unit = _unit()
+    b = _book(unit, nights=2, rooms=2)
+    before = b.total_cents
+    deal_discount.set_discount("stay", b, cents=999_999)
+    b.refresh_from_db()
+    assert b.total_cents == b.kurtaxe_cents
+    assert b.discount_cents == before - b.kurtaxe_cents
+    deal_discount.set_discount("stay", b, cents=0)
+    b.refresh_from_db()
+    assert b.total_cents == before
+
+
+def test_legacy_clamped_discount_falls_back_to_repricing():
+    unit = _unit()
+    b = _book(unit, nights=2, rooms=2)
+    before = b.total_cents
+    StayBooking.objects.filter(pk=b.pk).update(discount_cents=999_999, total_cents=b.kurtaxe_cents)
+    b.refresh_from_db()
+    deal_discount.set_discount("stay", b, cents=0)
+    b.refresh_from_db()
+    assert b.total_cents == before
+
+
+def test_breakdown_multiplies_by_rooms():
+    unit = _unit()
+    b = _book(unit, nights=2, rooms=2)
+    rows = pricing.booking_breakdown(b)
+    assert sum(r["cents"] for r in rows) == b.total_cents + b.auto_discount_cents - b.kurtaxe_cents
