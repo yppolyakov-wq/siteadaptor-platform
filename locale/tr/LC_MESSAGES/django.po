@@ -29792,3 +29792,10 @@ msgstr "yalnızca seçilen kategoriler için"
 
 msgid "Dafür fehlt Ihnen das Recht."
 msgstr "Bunun için yetkiniz yok."
+
+msgid "Neue Rechte im Team vergeben"
+msgstr "Ekibinizde yeni yetkiler verildi"
+
+#, python-format
+msgid "%(who)s hat %(whom)s neue Rechte gegeben: %(keys)s. Sie können das unter „Team & Zugriff“ prüfen und ändern."
+msgstr "%(who)s, %(whom)s kullanıcısına yeni yetkiler verdi: %(keys)s. Bunu „Ekip ve erişim“ bölümünden kontrol edip değiştirebilirsiniz."

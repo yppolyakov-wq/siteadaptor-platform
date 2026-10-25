@@ -29907,3 +29907,10 @@ msgstr "лише для вибраних категорій"
 
 msgid "Dafür fehlt Ihnen das Recht."
 msgstr "У вас немає права на цю дію."
+
+msgid "Neue Rechte im Team vergeben"
+msgstr "У команді надано нові права"
+
+#, python-format
+msgid "%(who)s hat %(whom)s neue Rechte gegeben: %(keys)s. Sie können das unter „Team & Zugriff“ prüfen und ändern."
+msgstr "%(who)s надав(ла) %(whom)s нові права: %(keys)s. Перевірити й змінити це можна в розділі «Команда і доступ»."

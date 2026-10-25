@@ -5,9 +5,10 @@
 Inhaber-Vorbehalt (Abo, Recht/Impressum, IBAN, владение, удаление бизнеса, импорт с
 чужого сайта) — НЕ права: он остаётся на ``roles.is_owner`` и не выдаётся никому.
 
-E6.7a: только пресеты ролей — ровно сегодняшний доступ (паритет держит
-``tests/test_perm_parity.py``). Хранение выданных прав (core/0013), подписи для экрана
-прав и выдача администратором — следующие шаги (E6.7c/d).
+E6.7a: пресеты ролей = сегодняшний доступ (паритет — ``tests/test_perm_parity.py``).
+E6.7c: у участника хранится ДЕЛЬТА к пресету (``Membership.permissions``:
+``{"add": [...], "remove": [...], "template": ""}``); пусто = ровно пресет. Пишет её
+только ``apps.core.perm_grants``; здесь — чтение, нормализация и расчёт.
 """
 
 import logging
@@ -170,12 +171,112 @@ def for_role(role: str) -> frozenset:
     return _closure(PRESETS.get(role, frozenset()))
 
 
+SENSITIVE = frozenset(k for k, p in PERMS.items() if p.sensitive)
+# Ключи, которых у роли не бывает вовсе (Р-c2): команду правит только admin.
+_TEAM_WRITE = frozenset({"team.edit", "team.delete"})
+ROLE_LIMIT = {
+    Membership.ROLE_ADMIN: frozenset(PERMS),
+    Membership.ROLE_STAFF: frozenset(PERMS) - _TEAM_WRITE,
+}
+_MAX_DELTA = 200
+_TEMPLATE_MAX = 40
+
+
+class CorruptDelta(ValueError):
+    """Дельта прав не того вида — читаем fail-closed."""
+
+
+def _keys_from(raw, field):
+    value = raw.get(field, [])
+    if not isinstance(value, list) or len(value) > _MAX_DELTA:
+        raise CorruptDelta(field)
+    if any(not isinstance(k, str) for k in value):
+        raise CorruptDelta(field)
+    return {k for k in value if k in PERMS}  # неизвестный (удалённый из реестра) ключ — пропуск
+
+
+def _parse(raw):
+    if raw in (None, "", {}):
+        return set(), set(), ""
+    if not isinstance(raw, dict):
+        raise CorruptDelta("not a dict")
+    template = raw.get("template", "")
+    if not isinstance(template, str):
+        raise CorruptDelta("template")
+    return _keys_from(raw, "add"), _keys_from(raw, "remove"), template[:_TEMPLATE_MAX]
+
+
+def normalize_permissions(role, raw) -> dict:
+    """Минимальная дельта для роли: add ⊆ лимит роли − пресет, remove ⊆ пресет.
+    Никогда не бросает: неразборчивое → пустая дельта (= пресет)."""
+    if role not in PRESETS:
+        return {}
+    try:
+        add, remove, template = _parse(raw)
+    except CorruptDelta:
+        return {}
+    preset = PRESETS[role]
+    add = (add & ROLE_LIMIT[role]) - preset
+    remove = remove & preset
+    out = {}
+    if add:
+        out["add"] = sorted(add)
+    if remove:
+        out["remove"] = sorted(remove)
+    if template:
+        out["template"] = template
+    return out
+
+
+def effective_from(role, raw) -> frozenset:
+    """Права роли с дельтой. Owner — всё. Повреждённая дельта у admin/staff →
+    пресет МИНУС все чувствительные ключи (fail-closed: потерянный отзыв не расширяет)."""
+    if role == Membership.ROLE_OWNER:
+        return frozenset(PERMS)
+    if role not in PRESETS:
+        return frozenset()
+    preset = PRESETS[role]
+    try:
+        add, remove, _template = _parse(raw)
+    except CorruptDelta:
+        logger.warning("permissions: повреждённая дельта прав у роли %s — без чувствительных", role)
+        return _closure(preset - SENSITIVE)
+    return _closure(((preset | add) - remove) & ROLE_LIMIT[role])
+
+
+def _schema() -> str:
+    from django.db import connection
+
+    return getattr(connection, "schema_name", "") or ""
+
+
+def forget(user) -> None:
+    """Сбросить мемо прав (после записи прав в том же запросе)."""
+    if user is not None and hasattr(user, "_cab_perms"):
+        try:
+            del user._cab_perms
+        except AttributeError:
+            pass
+
+
 def effective(user) -> frozenset:
-    """Права пользователя в текущей схеме. Аноним/нет Membership → пусто (fail-closed)."""
+    """Права пользователя в текущей схеме. Аноним/нет Membership → пусто (fail-closed).
+
+    Мемо — только на объекте ``user`` (живёт один запрос), с ключом схемы: один
+    запрос Membership на страницу, отзыв действует со следующего запроса."""
     if not getattr(user, "is_authenticated", False) or getattr(user, "pk", None) is None:
         return frozenset()
-    role = Membership.objects.filter(user=user).values_list("role", flat=True).first()
-    return for_role(role) if role else frozenset()
+    key = (_schema(), user.pk)
+    memo = getattr(user, "_cab_perms", None)
+    if memo is not None and memo[0] == key:
+        return memo[1]
+    row = Membership.objects.filter(user=user).values_list("role", "permissions").first()
+    perms = effective_from(row[0], row[1]) if row else frozenset()
+    try:
+        user._cab_perms = (key, perms)
+    except AttributeError:  # не настоящий пользователь — без мемо
+        pass
+    return perms
 
 
 def has_perm(user, key: str) -> bool:

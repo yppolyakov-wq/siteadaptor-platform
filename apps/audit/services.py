@@ -30,8 +30,12 @@ def audit_event(
     context=None,
     diff_summary="",
     tenant_schema=None,
+    strict=False,
 ):
-    """Записать событие в журнал. Безопасно: не пробрасывает исключения."""
+    """Записать событие в журнал. Безопасно: не пробрасывает исключения.
+
+    ``strict=True`` (KA-12 E6.7c, ревью B6): ошибка записи пробрасывается — для
+    чувствительных действий (выдача прав), которые без записи в журнал не проводятся."""
     try:
         from .models import AuditEvent
 
@@ -56,3 +60,5 @@ def audit_event(
         )
     except Exception:  # noqa: BLE001 — audit не критичен для запроса
         logger.exception("audit_event failed: %s", action)
+        if strict:
+            raise

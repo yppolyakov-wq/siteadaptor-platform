@@ -165,6 +165,9 @@ class Membership(TimestampedModel):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="membership"
     )
     role = models.CharField(max_length=20, choices=ROLES, default=ROLE_OWNER)
+    # KA-12 E6.7c: выданные права — ДЕЛЬТА к пресету роли {"add": [...], "remove": [...],
+    # "template": ""}; пусто = ровно пресет. Пишет только apps.core.perm_grants.
+    permissions = models.JSONField(default=dict, db_default={}, blank=True)
 
     class Meta:
         ordering = ["role"]

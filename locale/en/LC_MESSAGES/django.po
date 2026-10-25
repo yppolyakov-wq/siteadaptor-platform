@@ -29648,3 +29648,10 @@ msgstr "only for selected categories"
 
 msgid "Dafür fehlt Ihnen das Recht."
 msgstr "You do not have permission for this."
+
+msgid "Neue Rechte im Team vergeben"
+msgstr "New permissions granted in your team"
+
+#, python-format
+msgid "%(who)s hat %(whom)s neue Rechte gegeben: %(keys)s. Sie können das unter „Team & Zugriff“ prüfen und ändern."
+msgstr "%(who)s gave %(whom)s new permissions: %(keys)s. You can review and change this under “Team & access”."
