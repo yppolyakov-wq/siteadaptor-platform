@@ -174,3 +174,34 @@ def cancel_event_tickets(*, tenant_schema, event_id, actor_id=None):
             return {"skipped": True}
         actor = get_user_model().objects.filter(pk=actor_id).first() if actor_id else None
         return cancel_event_tickets_now(event, actor=actor, tenant=tenant)
+
+
+def check_due_min_participants(now=None) -> int:
+    """KA-12 T-3: за `min_deadline_days` до старта — письмо владельцу, если минимум
+    участников не набран. Отмену владелец делает сам (О-1); повтор письма гасит дедуп."""
+    from .notifications import enqueue_min_participants_owner
+
+    now = now or timezone.now()
+    candidates = Event.objects.filter(
+        status=Event.STATUS_PUBLISHED,
+        min_participants__gt=0,
+        starts_at__gt=now,
+        starts_at__lte=now + timezone.timedelta(days=366),
+    )
+    sent = 0
+    for event in candidates:
+        if event.starts_at - timezone.timedelta(days=event.min_deadline_days) > now:
+            continue  # срок проверки ещё не наступил
+        if event.min_missing and enqueue_min_participants_owner(event):
+            sent += 1
+    return sent
+
+
+@shared_task
+def check_min_participants():
+    """Beat (раз в сутки): минимум участников по всем схемам арендаторов."""
+    total = 0
+    for schema in _iter_tenant_schemas():
+        with schema_context(schema):
+            total += check_due_min_participants()
+    return total

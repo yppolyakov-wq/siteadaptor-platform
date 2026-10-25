@@ -106,6 +106,8 @@ class EventForm(forms.ModelForm):
             "waiver_text",
             "cancellation",
             "free_cancel_days",
+            "min_participants",
+            "min_deadline_days",
         )
         labels = {
             # I18N-13: без явной подписи Django печатает машинное имя поля
@@ -129,6 +131,8 @@ class EventForm(forms.ModelForm):
             "waiver_text": _("Text der Haftungserklärung"),
             "cancellation": _("Stornierung"),
             "free_cancel_days": _("Kostenlose Stornierung bis (Tage vor Beginn)"),
+            "min_participants": _("Mindestteilnehmerzahl (0 = keine)"),
+            "min_deadline_days": _("Prüfen … Tage vor Beginn"),
             "tour": _("Gehört zur Reise (optional)"),
         }
         widgets = {
@@ -161,6 +165,8 @@ class EventForm(forms.ModelForm):
         # R12: политика отмены — необязательна в форме (фолбэк на дефолт модели).
         self.fields["cancellation"].required = False
         self.fields["free_cancel_days"].required = False
+        self.fields["min_participants"].required = False
+        self.fields["min_deadline_days"].required = False
         if self.instance and self.instance.pk:
             self.fields["price_eur"].initial = self.instance.price_eur
             self.fields["questions_text"].initial = "\n".join(self.instance.questions or [])
@@ -219,6 +225,13 @@ class EventForm(forms.ModelForm):
 
     def clean_free_cancel_days(self):
         return self.cleaned_data.get("free_cancel_days") or 0
+
+    def clean_min_participants(self):
+        return self.cleaned_data.get("min_participants") or 0
+
+    def clean_min_deadline_days(self):
+        value = self.cleaned_data.get("min_deadline_days")
+        return 7 if value in (None, "") else value
 
 
 class TourForm(forms.ModelForm):

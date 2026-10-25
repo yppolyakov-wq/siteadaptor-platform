@@ -260,3 +260,8 @@
 - **(2026-10-25, Tickets T-2) «мусорные поля без 500» — проверять и числа.** `Decimal("Infinity")`
   → OverflowError в `int()`, `1e30` → DataError в PositiveIntegerField, >32767 — в SmallInteger.
   Клампить к границе поля, `is_finite()` до `int()`.
+- **(2026-10-25, Tickets T-3) pre-commit-хук проверяет только i18n.** `ruff check .` он не гоняет —
+  неотсортированный импорт ушёл в коммит и в CI. Перед `git commit` — `ruff check .` и
+  `ruff format --check .` целиком.
+- **(2026-10-25, Tickets T-3) скрипт `.po` с `\n` в msgid.** Самописный дописыватель экранирует
+  только кавычки — многострочный плейсхолдер сломал бы каталог. Такие записи — через `polib.POEntry`.

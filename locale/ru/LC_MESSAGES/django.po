@@ -30418,3 +30418,34 @@ msgstr ""
 "Ранняя цена | 79 | 10 | bis 30.11.2026\n"
 "Стандарт | 99\n"
 "Дети | 0"
+
+#, python-format
+msgid "Findet ab %(n)s Teilnehmenden statt."
+msgstr "Состоится при участии от %(n)s человек."
+
+#, python-format
+msgid "Mindestens %(n)s — es fehlen %(m)s"
+msgstr "Минимум %(n)s — не хватает %(m)s"
+
+msgid "Mindestteilnehmerzahl (0 = keine)"
+msgstr "Минимум участников (0 = нет)"
+
+msgid "Prüfen … Tage vor Beginn"
+msgstr "Проверить за … дней до начала"
+
+msgid "Mindestteilnehmerzahl nicht erreicht"
+msgstr "Минимальное число участников не набрано"
+
+#, python-format
+msgid "Für „%(title)s“ am %(date)s ist die Mindestteilnehmerzahl noch nicht erreicht."
+msgstr "Для «%(title)s» %(date)s минимальное число участников пока не набрано."
+
+#, python-format
+msgid "Angemeldet: %(sold)s von mindestens %(minimum)s — es fehlen %(missing)s."
+msgstr "Записано: %(sold)s из минимум %(minimum)s — не хватает %(missing)s."
+
+msgid "Sie entscheiden: Termin findet trotzdem statt, oder Sie sagen ihn im Dashboard ab — dann werden alle Teilnehmenden informiert und Zahlungen erstattet."
+msgstr "Решаете вы: дата состоится всё равно, или вы отменяете её в кабинете — тогда все участники получат уведомление, а оплаты будут возвращены."
+
+msgid "Zur Veranstaltung im Dashboard"
+msgstr "К мероприятию в кабинете"

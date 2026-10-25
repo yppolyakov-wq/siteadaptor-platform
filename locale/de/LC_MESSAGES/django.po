@@ -30235,3 +30235,34 @@ msgstr ""
 "Frühbucher | 79 | 10 | bis 30.11.2026\n"
 "Standard | 99\n"
 "Kind | 0"
+
+#, python-format
+msgid "Findet ab %(n)s Teilnehmenden statt."
+msgstr "Findet ab %(n)s Teilnehmenden statt."
+
+#, python-format
+msgid "Mindestens %(n)s — es fehlen %(m)s"
+msgstr "Mindestens %(n)s — es fehlen %(m)s"
+
+msgid "Mindestteilnehmerzahl (0 = keine)"
+msgstr "Mindestteilnehmerzahl (0 = keine)"
+
+msgid "Prüfen … Tage vor Beginn"
+msgstr "Prüfen … Tage vor Beginn"
+
+msgid "Mindestteilnehmerzahl nicht erreicht"
+msgstr "Mindestteilnehmerzahl nicht erreicht"
+
+#, python-format
+msgid "Für „%(title)s“ am %(date)s ist die Mindestteilnehmerzahl noch nicht erreicht."
+msgstr "Für „%(title)s“ am %(date)s ist die Mindestteilnehmerzahl noch nicht erreicht."
+
+#, python-format
+msgid "Angemeldet: %(sold)s von mindestens %(minimum)s — es fehlen %(missing)s."
+msgstr "Angemeldet: %(sold)s von mindestens %(minimum)s — es fehlen %(missing)s."
+
+msgid "Sie entscheiden: Termin findet trotzdem statt, oder Sie sagen ihn im Dashboard ab — dann werden alle Teilnehmenden informiert und Zahlungen erstattet."
+msgstr "Sie entscheiden: Termin findet trotzdem statt, oder Sie sagen ihn im Dashboard ab — dann werden alle Teilnehmenden informiert und Zahlungen erstattet."
+
+msgid "Zur Veranstaltung im Dashboard"
+msgstr "Zur Veranstaltung im Dashboard"

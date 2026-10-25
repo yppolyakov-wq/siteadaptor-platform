@@ -7,6 +7,7 @@ Connect (как P2.5/E4, A6c), выручка — в finance. Переиспуе
 реестр модулей. Покрывает A6: Konzert/Workshop/Yoga/Retreat/Tour с билетами.
 """
 
+from datetime import date
 from decimal import Decimal
 
 from django.db import models
@@ -293,6 +294,11 @@ class Event(I18nMixin, TimestampedModel):
     cancellation = models.CharField(max_length=20, choices=CANCELLATIONS, default=CANCEL_FLEXIBLE)
     # Бесплатная отмена до N дней до начала (для flexible; 0 = до дня начала).
     free_cancel_days = models.PositiveSmallIntegerField(default=0)
+    # KA-12 T-3 (EV-6): минимум участников. 0 = без минимума. За `min_deadline_days`
+    # до старта владелец получает письмо «Mindestteilnehmerzahl nicht erreicht» —
+    # отменяет сам (массовая отмена с возвратами), автоматически деньги не двигаем (О-1).
+    min_participants = models.PositiveSmallIntegerField(default=0)
+    min_deadline_days = models.PositiveSmallIntegerField(default=7)
     # R10: рассрочка (Ratenzahlung) — гость платит билет частями (Stripe мандат).
     INSTALLMENT_UNTIL_EVENT = "until_event"
     INSTALLMENT_FIXED = "fixed"
@@ -495,6 +501,7 @@ class Event(I18nMixin, TimestampedModel):
                     "seats_left": left,
                     "sold_out": sold_out,
                     "closed": closed,
+                    "until_date": date.fromisoformat(t["until"]) if t.get("until") else None,
                     "is_default": is_default,
                 }
             )
@@ -568,6 +575,13 @@ class Event(I18nMixin, TimestampedModel):
             sold_map = self.tier_sold_map()
             return all((self.tier_seats_left(t["label"], sold_map) or 0) <= 0 for t in tiers)
         return False
+
+    @property
+    def min_missing(self) -> int:
+        """KA-12 T-3: сколько мест не хватает до минимума (0 — достигнут или минимума нет)."""
+        if not self.min_participants:
+            return 0
+        return max(self.min_participants - self.seats_sold, 0)
 
     @property
     def reg_fields(self) -> list:

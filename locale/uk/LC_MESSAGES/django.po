@@ -30402,3 +30402,34 @@ msgstr ""
 "Рання ціна | 79 | 10 | bis 30.11.2026\n"
 "Стандарт | 99\n"
 "Діти | 0"
+
+#, python-format
+msgid "Findet ab %(n)s Teilnehmenden statt."
+msgstr "Відбудеться за участі від %(n)s осіб."
+
+#, python-format
+msgid "Mindestens %(n)s — es fehlen %(m)s"
+msgstr "Мінімум %(n)s — бракує %(m)s"
+
+msgid "Mindestteilnehmerzahl (0 = keine)"
+msgstr "Мінімум учасників (0 = немає)"
+
+msgid "Prüfen … Tage vor Beginn"
+msgstr "Перевірити за … днів до початку"
+
+msgid "Mindestteilnehmerzahl nicht erreicht"
+msgstr "Мінімальну кількість учасників не набрано"
+
+#, python-format
+msgid "Für „%(title)s“ am %(date)s ist die Mindestteilnehmerzahl noch nicht erreicht."
+msgstr "Для «%(title)s» %(date)s мінімальну кількість учасників ще не набрано."
+
+#, python-format
+msgid "Angemeldet: %(sold)s von mindestens %(minimum)s — es fehlen %(missing)s."
+msgstr "Записано: %(sold)s з мінімум %(minimum)s — бракує %(missing)s."
+
+msgid "Sie entscheiden: Termin findet trotzdem statt, oder Sie sagen ihn im Dashboard ab — dann werden alle Teilnehmenden informiert und Zahlungen erstattet."
+msgstr "Вирішуєте ви: дата відбудеться все одно, або ви скасовуєте її в кабінеті — тоді всі учасники отримають сповіщення, а оплати буде повернуто."
+
+msgid "Zur Veranstaltung im Dashboard"
+msgstr "До заходу в кабінеті"

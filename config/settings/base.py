@@ -642,6 +642,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.events.tasks.send_event_reminders",
         "schedule": 86400.0,  # раз в сутки — pre-event напоминание участникам (R9)
     },
+    "check-min-participants": {
+        "task": "apps.events.tasks.check_min_participants",
+        "schedule": 86400.0,  # раз в сутки — минимум участников не набран (KA-12 T-3)
+    },
     "send-event-post-event": {
         "task": "apps.events.tasks.send_event_post_event",
         "schedule": 86400.0,  # раз в сутки — post-event письмо + запрос отзыва (R9)

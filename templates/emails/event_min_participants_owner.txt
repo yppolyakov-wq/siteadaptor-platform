@@ -1,0 +1,7 @@
+{% load i18n %}{% blocktrans with title=event.title date=event.starts_at|date:"d.m.Y" %}Für „{{ title }}“ am {{ date }} ist die Mindestteilnehmerzahl noch nicht erreicht.{% endblocktrans %}
+
+{% blocktrans with sold=sold minimum=event.min_participants missing=missing %}Angemeldet: {{ sold }} von mindestens {{ minimum }} — es fehlen {{ missing }}.{% endblocktrans %}
+
+{% trans "Sie entscheiden: Termin findet trotzdem statt, oder Sie sagen ihn im Dashboard ab — dann werden alle Teilnehmenden informiert und Zahlungen erstattet." %}
+
+{% trans "Zur Veranstaltung im Dashboard" %}: {{ dashboard_path }}

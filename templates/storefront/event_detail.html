@@ -28,6 +28,7 @@
         <a href="#buchen" class="block text-center bg-amber-600 text-white rounded-lg px-5 py-3 font-medium hover:bg-amber-700">{% trans "Join waitlist" %}</a>
       {% else %}
         {% if event.seats_left %}<p class="text-sm text-amber-700">{% blocktrans with n=event.seats_left %}Only {{ n }} spots left{% endblocktrans %}</p>{% endif %}
+        {% if event.min_participants %}<p class="text-sm text-gray-600">{% blocktrans with n=event.min_participants %}Findet ab {{ n }} Teilnehmenden statt.{% endblocktrans %}</p>{% endif %}
         <a href="#buchen" class="block text-center bg-indigo-600 text-white rounded-lg px-5 py-3 font-medium hover:bg-indigo-700">{% trans "Reserve a spot" %}</a>
       {% endif %}
       {% if storefront_inbox_enabled %}
@@ -111,7 +112,7 @@
                   <span class="flex items-center gap-2 text-sm">
                     <input type="radio" name="tier" value="{{ t.label }}" data-rv1-label="{{ t.label }}" {% if t.is_default %}checked{% endif %} {% if t.sold_out %}disabled{% endif %} required>
                     {{ t.label }}
-                    {% if t.closed %}<span class="text-xs text-gray-500">· {% trans "Abgelaufen" %}</span>{% elif t.sold_out %}<span class="text-xs text-red-600 font-medium">· {% trans "Sold out" %}</span>{% elif t.until %}<span class="text-xs text-amber-700">· {% blocktrans with d=t.until %}bis {{ d }}{% endblocktrans %}</span>{% elif t.seats_left %}<span class="text-xs text-gray-500">· {% blocktrans with n=t.seats_left %}{{ n }} left{% endblocktrans %}</span>{% endif %}
+                    {% if t.closed %}<span class="text-xs text-gray-500">· {% trans "Abgelaufen" %}</span>{% elif t.sold_out %}<span class="text-xs text-red-600 font-medium">· {% trans "Sold out" %}</span>{% elif t.until_date %}<span class="text-xs text-amber-700">· {% blocktrans with d=t.until_date|date:"d.m.Y" %}bis {{ d }}{% endblocktrans %}</span>{% elif t.seats_left %}<span class="text-xs text-gray-500">· {% blocktrans with n=t.seats_left %}{{ n }} left{% endblocktrans %}</span>{% endif %}
                   </span>
                   <span class="font-semibold text-sm">{% if t.price_cents %}{{ t.price_eur|floatformat:2 }} €{% else %}{% trans "Free" %}{% endif %}</span>
                 </label>

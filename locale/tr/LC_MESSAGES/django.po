@@ -30287,3 +30287,34 @@ msgstr ""
 "Erken kayıt | 79 | 10 | bis 30.11.2026\n"
 "Standart | 99\n"
 "Çocuk | 0"
+
+#, python-format
+msgid "Findet ab %(n)s Teilnehmenden statt."
+msgstr "En az %(n)s katılımcıyla gerçekleşir."
+
+#, python-format
+msgid "Mindestens %(n)s — es fehlen %(m)s"
+msgstr "En az %(n)s — %(m)s eksik"
+
+msgid "Mindestteilnehmerzahl (0 = keine)"
+msgstr "Asgari katılımcı sayısı (0 = yok)"
+
+msgid "Prüfen … Tage vor Beginn"
+msgstr "Başlangıçtan … gün önce kontrol et"
+
+msgid "Mindestteilnehmerzahl nicht erreicht"
+msgstr "Asgari katılımcı sayısına ulaşılmadı"
+
+#, python-format
+msgid "Für „%(title)s“ am %(date)s ist die Mindestteilnehmerzahl noch nicht erreicht."
+msgstr "%(date)s tarihli “%(title)s” için asgari katılımcı sayısına henüz ulaşılmadı."
+
+#, python-format
+msgid "Angemeldet: %(sold)s von mindestens %(minimum)s — es fehlen %(missing)s."
+msgstr "Kayıtlı: en az %(minimum)s kişiden %(sold)s — %(missing)s eksik."
+
+msgid "Sie entscheiden: Termin findet trotzdem statt, oder Sie sagen ihn im Dashboard ab — dann werden alle Teilnehmenden informiert und Zahlungen erstattet."
+msgstr "Karar sizin: etkinlik yine de gerçekleşir ya da panelden iptal edersiniz — o zaman tüm katılımcılar bilgilendirilir ve ödemeler iade edilir."
+
+msgid "Zur Veranstaltung im Dashboard"
+msgstr "Paneldeki etkinliğe git"

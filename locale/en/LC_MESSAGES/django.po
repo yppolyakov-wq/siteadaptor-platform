@@ -30143,3 +30143,34 @@ msgstr ""
 "Early bird | 79 | 10 | bis 30.11.2026\n"
 "Standard | 99\n"
 "Child | 0"
+
+#, python-format
+msgid "Findet ab %(n)s Teilnehmenden statt."
+msgstr "Takes place with at least %(n)s participants."
+
+#, python-format
+msgid "Mindestens %(n)s — es fehlen %(m)s"
+msgstr "At least %(n)s — %(m)s missing"
+
+msgid "Mindestteilnehmerzahl (0 = keine)"
+msgstr "Minimum participants (0 = none)"
+
+msgid "Prüfen … Tage vor Beginn"
+msgstr "Check … days before start"
+
+msgid "Mindestteilnehmerzahl nicht erreicht"
+msgstr "Minimum number of participants not reached"
+
+#, python-format
+msgid "Für „%(title)s“ am %(date)s ist die Mindestteilnehmerzahl noch nicht erreicht."
+msgstr "The minimum number of participants for “%(title)s” on %(date)s has not been reached yet."
+
+#, python-format
+msgid "Angemeldet: %(sold)s von mindestens %(minimum)s — es fehlen %(missing)s."
+msgstr "Registered: %(sold)s of at least %(minimum)s — %(missing)s missing."
+
+msgid "Sie entscheiden: Termin findet trotzdem statt, oder Sie sagen ihn im Dashboard ab — dann werden alle Teilnehmenden informiert und Zahlungen erstattet."
+msgstr "You decide: the date takes place anyway, or you cancel it in the dashboard — then all participants are informed and payments are refunded."
+
+msgid "Zur Veranstaltung im Dashboard"
+msgstr "Go to the event in the dashboard"

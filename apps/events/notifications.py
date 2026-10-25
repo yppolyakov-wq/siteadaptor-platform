@@ -223,3 +223,28 @@ def enqueue_event_waitlist_available(entry):
         body=body,
         html=html,
     )
+
+
+def enqueue_min_participants_owner(event) -> bool:
+    """KA-12 T-3: владельцу — «Mindestteilnehmerzahl nicht erreicht» (одно письмо на дату)."""
+    schema = connection.schema_name
+    owner = _owner_email(_tenant(schema))
+    if not owner:
+        return False
+    ctx = {
+        "event": event,
+        "sold": event.seats_sold,
+        "missing": event.min_missing,
+        "dashboard_path": reverse("events:detail", args=[event.pk]),
+        "unsubscribe_url": "",
+    }
+    subject, body, html = _render("event_min_participants_owner", ctx)
+    notify(
+        dedupe_key=f"event:{event.id}:min_participants:owner",
+        type="event_min_participants_owner",
+        recipient=owner,
+        subject=subject,
+        body=body,
+        html=html,
+    )
+    return True

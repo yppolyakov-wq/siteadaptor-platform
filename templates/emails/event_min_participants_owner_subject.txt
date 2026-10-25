@@ -1,0 +1,1 @@
+{% load i18n %}{% trans "Mindestteilnehmerzahl nicht erreicht" %}: {{ event.title }}
