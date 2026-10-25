@@ -372,12 +372,18 @@ def prepayment_cents(total_cents, rate_plan) -> int:
     return round(max(0, total_cents) * pct / 100) if pct > 0 else 0
 
 
-def kurtaxe_total_cents(adults, nights, settings=None) -> int:
-    """Kurtaxe за бронь (H9): adults × ночи × ставка. Дети бесплатно (по умолчанию).
+def kurtaxe_total_cents(adults, nights, settings=None, children=0) -> int:
+    """Kurtaxe за бронь (H9): adults × ночи × ставка. Дети бесплатно по умолчанию;
+    KA-12 Z-6: при ``kurtaxe_children_free=False`` — дети × ночи × ставка детей.
     settings — StaySettings (грузим, если не передан); 0/выключено → 0."""
     if settings is None:
         from .models import StaySettings
 
         settings = StaySettings.load()
     rate = getattr(settings, "kurtaxe_cents", 0) or 0
-    return max(0, int(adults)) * max(0, int(nights)) * rate
+    nights = max(0, int(nights))
+    total = max(0, int(adults)) * nights * rate
+    if not getattr(settings, "kurtaxe_children_free", True):
+        child_rate = getattr(settings, "kurtaxe_child_cents", 0) or 0
+        total += max(0, int(children or 0)) * nights * child_rate
+    return total

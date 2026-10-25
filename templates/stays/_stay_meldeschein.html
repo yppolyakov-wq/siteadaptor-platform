@@ -5,7 +5,33 @@
     {% if registration %}
     <p class="text-sm">{{ registration.first_name }} {{ registration.last_name }}{% if registration.nationality %} · {{ registration.nationality }}{% endif %}</p>
     {% if registration.street %}<p class="text-sm text-gray-600">{{ registration.street }}, {{ registration.postal_code }}</p>{% endif %}
-    <p class="text-xs text-gray-400 mt-1">{% trans "Online ausgefüllt" %} · {{ registration.created_at|date:"d.m.Y H:i" }}</p>
+    <p class="text-xs text-gray-400 mt-1">{% if registration.signed_ip %}{% trans "Online ausgefüllt" %}{% else %}{% trans "An der Rezeption erfasst" %}{% endif %} · {{ registration.created_at|date:"d.m.Y H:i" }}</p>
   {% else %}
     <p class="text-sm text-gray-400">{% trans "Noch nicht ausgefüllt." %} <a href="{% url 'stays:checkins' %}" class="text-indigo-600 hover:underline">{% trans "Online-Checkins" %} →</a></p>
+  {% endif %}
+  {% comment %}KA-12 Z-6: ввод со стойки (гость подписывает распечатку) и печать. Онлайн-подпись
+  гостя не перетирается — форма только для пустого или стоечного Meldeschein.{% endcomment %}
+  {% if "stays:meldeschein-pdf"|can_open:request %}
+    <a href="{% url 'stays:meldeschein-pdf' b.pk %}" target="_blank" rel="noopener" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">🖨 {% trans "Meldeschein drucken" %}</a>
+    {% if not registration.signed_ip %}
+    <details class="mt-2" data-meldeschein-form>
+      <summary class="cursor-pointer text-sm text-indigo-600">✏️ {% trans "Meldeschein erfassen" %}</summary>
+      <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="mt-2 grid grid-cols-2 gap-2 text-sm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="registration"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <input name="first_name" value="{{ registration.first_name }}" placeholder="{% trans 'Vorname' %}" aria-label="{% trans 'Vorname' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
+        <input name="last_name" required value="{{ registration.last_name }}" placeholder="{% trans 'Nachname' %}" aria-label="{% trans 'Nachname' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
+        <input name="birth_date" type="date" value="{{ registration.birth_date|date:'Y-m-d' }}" aria-label="{% trans 'Geburtsdatum' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
+        <input name="nationality" value="{{ registration.nationality }}" placeholder="{% trans 'Staatsangehörigkeit' %}" aria-label="{% trans 'Staatsangehörigkeit' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
+        <input name="street" value="{{ registration.street }}" placeholder="{% trans 'Straße' %}" aria-label="{% trans 'Straße' %}" class="col-span-2 rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
+        <input name="postal_code" value="{{ registration.postal_code }}" placeholder="{% trans 'PLZ' %}" aria-label="{% trans 'PLZ' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
+        <input name="city" value="{{ registration.city }}" placeholder="{% trans 'Ort' %}" aria-label="{% trans 'Ort' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
+        <input name="country" value="{{ registration.country }}" placeholder="{% trans 'Land' %}" aria-label="{% trans 'Land' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
+        <input name="doc_type" value="{{ registration.doc_type }}" placeholder="{% trans 'Ausweisart' %}" aria-label="{% trans 'Ausweisart' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
+        <input name="doc_number" value="{{ registration.doc_number }}" placeholder="{% trans 'Ausweisnummer' %}" aria-label="{% trans 'Ausweisnummer' %}" autocomplete="off" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
+        <input name="accompanying" type="number" min="0" max="50" value="{{ registration.accompanying|default:0 }}" aria-label="{% trans 'Mitreisende' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
+        <button type="submit" class="col-span-2 min-h-[44px] rounded-xl bg-gray-900 px-4 text-sm font-medium text-white hover:bg-black">{% trans "Meldeschein speichern" %}</button>
+      </form>
+    </details>
+    {% endif %}
   {% endif %}

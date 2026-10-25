@@ -19936,3 +19936,19 @@ Meldeschein ✓/—, отметки, кнопки (Check-out — с подтве
 находок; исправлен повторный выезд («Bereits ausgecheckt»). Замки: `test_z5_hours`/`capacity`/
 `front_desk`/`checkin` (stays), `test_z5_heute` (core); осознанно обновлён счётчик карточек
 настроек (`test_cabinet`). 36 msgid × 5. Грабли — `pitfalls.md` §3.
+
+
+## 2026-10-25 — KA-12 Zimmer Z-6: Kurtaxe-Meldung + Meldeschein (⚠️ `stays/0045`)
+
+План `ka-12-w4-z6-kurtaxe-meldeschein-plan-2026-10-25.md`. **Kurtaxe детей:**
+`StaySettings.kurtaxe_child_cents`; флаг «Kinder frei» наконец действует (снимок брони считает
+детей по ставке детей). **Найден и закрыт дефект:** у настроек не было `kurtaxe_eur` — форма
+показывала пустую ставку, и любое сохранение Hausordnung обнуляло Kurtaxe. **Отчёт для общины**
+`/dashboard/stays/kurtaxe/?month=` (+ CSV/PDF, `stays/kurtaxe.py`, `stays/pdf.py`): суммы из
+снимков броней, бронь через границу месяца делится по ночам с остатком копеек последнему месяцу
+(Σ месяцев = снимок), учитываемые статусы по реестру, без имён гостей; право «Berichte», подпункт
+Finanzen. **Meldescheine за месяц** CSV — право «Kundendaten exportieren» + журнал выгрузок, без
+номера документа. **Со стойки:** «Meldeschein erfassen» на карточке брони (право «Kunden
+bearbeiten», онлайн-подпись гостя не перетирается; разбор полей общий с онлайн-регистрацией —
+`stays/registration.py`) и «Meldeschein drucken» (PDF на подпись). Замки `test_z6_kurtaxe` (17);
+реестры экранов/прав/сайдбара дополнены. Широкую регрессию гоняет CI (решение владельца).

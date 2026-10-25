@@ -76,6 +76,7 @@ LEGACY_DECORATED = {
     "finance:export-csv": ROLE_FINANCE,
     "finance:export-datev": ROLE_FINANCE,
     "stays:reports-export": ROLE_OWNER_ONLY,
+    "stays:meldescheine-export": ROLE_OWNER_ONLY,  # KA-12 Z-6: персональные данные
     "events:roster-csv": ROLE_OWNER_ONLY,
     "lite-business": ROLE_OWNER_ONLY,
     "legal-docs": ROLE_OWNER_ONLY,

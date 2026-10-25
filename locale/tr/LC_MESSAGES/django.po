@@ -30173,3 +30173,87 @@ msgstr "onaylanmadı"
 
 msgid "Bereits ausgecheckt."
 msgstr "Çıkış zaten yapıldı."
+
+msgid "An der Rezeption erfasst"
+msgstr "Resepsiyonda girildi"
+
+msgid "Ausweisart"
+msgstr "Kimlik türü"
+
+msgid "Ausweisnummer"
+msgstr "Kimlik numarası"
+
+msgid "Betrag / Kind / Nacht (€)"
+msgstr "Tutar / çocuk / gece (€)"
+
+msgid "Bitte mindestens den Nachnamen angeben."
+msgstr "Lütfen en azından soyadını girin."
+
+msgid "Buchungen"
+msgstr "Rezervasyonlar"
+
+msgid "Datum, Unterschrift des Gastes"
+msgstr "Tarih, misafir imzası"
+
+msgid "Der Gast hat den Meldeschein online ausgefüllt."
+msgstr "Misafir kayıt formunu çevrimiçi doldurdu."
+
+msgid "Erw."
+msgstr "Yet."
+
+msgid "Keine Übernachtungen in diesem Monat."
+msgstr "Bu ay konaklama yok."
+
+msgid "Kinder frei"
+msgstr "Çocuklar ücretsiz"
+
+msgid "Kurtaxe-Meldung"
+msgstr "Konaklama vergisi bildirimi"
+
+msgid "Meldeschein drucken"
+msgstr "Kayıt formunu yazdır"
+
+msgid "Meldeschein erfassen"
+msgstr "Kayıt formunu gir"
+
+msgid "Meldeschein gespeichert."
+msgstr "Kayıt formu kaydedildi."
+
+msgid "Meldeschein speichern"
+msgstr "Kayıt formunu kaydet"
+
+msgid "Meldescheine (CSV)"
+msgstr "Kayıt formları (CSV)"
+
+msgid "Mitreisende"
+msgstr "Beraberindekiler"
+
+msgid "Nachname"
+msgstr "Soyadı"
+
+msgid "Nächster Monat"
+msgstr "Sonraki ay"
+
+msgid "Vormonat"
+msgstr "Önceki ay"
+
+msgid "Vorname"
+msgstr "Adı"
+
+msgid "Staatsangehörigkeit"
+msgstr "Uyruk"
+
+msgid "Straße"
+msgstr "Sokak"
+
+msgid "PLZ / Ort"
+msgstr "Posta kodu / şehir"
+
+msgid "davon befreit"
+msgstr "muaf olanlar"
+
+msgid "Übernachtungen Erwachsene"
+msgstr "Yetişkin konaklamaları"
+
+msgid "Übernachtungen Kinder"
+msgstr "Çocuk konaklamaları"

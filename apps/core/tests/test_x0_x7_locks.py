@@ -143,6 +143,7 @@ EXPECTED_UNLISTED = frozenset(
         "site-scope-state",
         "site-share-preview",
         "stays:reports-export",
+        "stays:meldescheine-export",  # KA-12 Z-6: CSV-выгрузка, вход — со страницы Kurtaxe
         "stays:stay-create",
         "stays:stay-inline-edit",
         "stays:stay-photo-edit",

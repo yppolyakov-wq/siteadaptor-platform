@@ -654,10 +654,26 @@ class StaySettings(I18nMixin, TimestampedModel):
     kurtaxe_cents = models.PositiveIntegerField(default=0)
     kurtaxe_label = models.CharField(max_length=80, default="Kurtaxe")
     kurtaxe_children_free = models.BooleanField(default=True)
+    # KA-12 Z-6: ставка за ребёнка за ночь (центы) — действует при kurtaxe_children_free=False.
+    kurtaxe_child_cents = models.PositiveIntegerField(default=0)
     # H6: Hausordnung / правила проживания (свободный текст; пусто = страницы нет).
     house_rules = models.TextField(blank=True)
     # L3/DL: overlay-перевод Hausordnung (база = de-плоское поле, переводы тут).
     house_rules_i18n = models.JSONField(default=dict, blank=True)
+
+    @property
+    def kurtaxe_eur(self):
+        """Ставка взрослого в €. Z-6: без свойства форма показывала пустое поле, и
+        сохранение одной Hausordnung обнуляло Kurtaxe."""
+        from decimal import Decimal
+
+        return Decimal(self.kurtaxe_cents) / 100
+
+    @property
+    def kurtaxe_child_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.kurtaxe_child_cents) / 100
 
     def house_rules_localized(self, locale: str | None = None) -> str:
         """L3/DL: Hausordnung на локали (перевод из house_rules_i18n, иначе база)."""

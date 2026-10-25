@@ -30029,3 +30029,87 @@ msgstr "unconfirmed"
 
 msgid "Bereits ausgecheckt."
 msgstr "Already checked out."
+
+msgid "An der Rezeption erfasst"
+msgstr "Entered at the front desk"
+
+msgid "Ausweisart"
+msgstr "ID type"
+
+msgid "Ausweisnummer"
+msgstr "ID number"
+
+msgid "Betrag / Kind / Nacht (€)"
+msgstr "Amount / child / night (€)"
+
+msgid "Bitte mindestens den Nachnamen angeben."
+msgstr "Please enter at least the last name."
+
+msgid "Buchungen"
+msgstr "Bookings"
+
+msgid "Datum, Unterschrift des Gastes"
+msgstr "Date, guest signature"
+
+msgid "Der Gast hat den Meldeschein online ausgefüllt."
+msgstr "The guest filled in the registration form online."
+
+msgid "Erw."
+msgstr "Adults"
+
+msgid "Keine Übernachtungen in diesem Monat."
+msgstr "No overnight stays this month."
+
+msgid "Kinder frei"
+msgstr "Children free"
+
+msgid "Kurtaxe-Meldung"
+msgstr "Tourist tax report"
+
+msgid "Meldeschein drucken"
+msgstr "Print registration form"
+
+msgid "Meldeschein erfassen"
+msgstr "Enter registration form"
+
+msgid "Meldeschein gespeichert."
+msgstr "Registration form saved."
+
+msgid "Meldeschein speichern"
+msgstr "Save registration form"
+
+msgid "Meldescheine (CSV)"
+msgstr "Registration forms (CSV)"
+
+msgid "Mitreisende"
+msgstr "Fellow travellers"
+
+msgid "Nachname"
+msgstr "Last name"
+
+msgid "Nächster Monat"
+msgstr "Next month"
+
+msgid "Vormonat"
+msgstr "Previous month"
+
+msgid "Vorname"
+msgstr "First name"
+
+msgid "Staatsangehörigkeit"
+msgstr "Nationality"
+
+msgid "Straße"
+msgstr "Street"
+
+msgid "PLZ / Ort"
+msgstr "Postcode / city"
+
+msgid "davon befreit"
+msgstr "of which exempt"
+
+msgid "Übernachtungen Erwachsene"
+msgstr "Adult overnight stays"
+
+msgid "Übernachtungen Kinder"
+msgstr "Children overnight stays"

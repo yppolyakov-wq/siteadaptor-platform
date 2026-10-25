@@ -30121,3 +30121,87 @@ msgstr "unbestätigt"
 
 msgid "Bereits ausgecheckt."
 msgstr "Bereits ausgecheckt."
+
+msgid "An der Rezeption erfasst"
+msgstr "An der Rezeption erfasst"
+
+msgid "Ausweisart"
+msgstr "Ausweisart"
+
+msgid "Ausweisnummer"
+msgstr "Ausweisnummer"
+
+msgid "Betrag / Kind / Nacht (€)"
+msgstr "Betrag / Kind / Nacht (€)"
+
+msgid "Bitte mindestens den Nachnamen angeben."
+msgstr "Bitte mindestens den Nachnamen angeben."
+
+msgid "Buchungen"
+msgstr "Buchungen"
+
+msgid "Datum, Unterschrift des Gastes"
+msgstr "Datum, Unterschrift des Gastes"
+
+msgid "Der Gast hat den Meldeschein online ausgefüllt."
+msgstr "Der Gast hat den Meldeschein online ausgefüllt."
+
+msgid "Erw."
+msgstr "Erw."
+
+msgid "Keine Übernachtungen in diesem Monat."
+msgstr "Keine Übernachtungen in diesem Monat."
+
+msgid "Kinder frei"
+msgstr "Kinder frei"
+
+msgid "Kurtaxe-Meldung"
+msgstr "Kurtaxe-Meldung"
+
+msgid "Meldeschein drucken"
+msgstr "Meldeschein drucken"
+
+msgid "Meldeschein erfassen"
+msgstr "Meldeschein erfassen"
+
+msgid "Meldeschein gespeichert."
+msgstr "Meldeschein gespeichert."
+
+msgid "Meldeschein speichern"
+msgstr "Meldeschein speichern"
+
+msgid "Meldescheine (CSV)"
+msgstr "Meldescheine (CSV)"
+
+msgid "Mitreisende"
+msgstr "Mitreisende"
+
+msgid "Nachname"
+msgstr "Nachname"
+
+msgid "Nächster Monat"
+msgstr "Nächster Monat"
+
+msgid "Vormonat"
+msgstr "Vormonat"
+
+msgid "Vorname"
+msgstr "Vorname"
+
+msgid "Staatsangehörigkeit"
+msgstr "Staatsangehörigkeit"
+
+msgid "Straße"
+msgstr "Straße"
+
+msgid "PLZ / Ort"
+msgstr "PLZ / Ort"
+
+msgid "davon befreit"
+msgstr "davon befreit"
+
+msgid "Übernachtungen Erwachsene"
+msgstr "Übernachtungen Erwachsene"
+
+msgid "Übernachtungen Kinder"
+msgstr "Übernachtungen Kinder"

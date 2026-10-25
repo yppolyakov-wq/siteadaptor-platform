@@ -697,7 +697,7 @@
 {# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
 <details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Kurtaxe & house rules" %}</summary>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Kurtaxe per adult per night, added to every booking (0 = off). Children are free. House rules appear as a public page when filled." %}</p>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Kurtaxe per adult per night, added to every booking (0 = off). Children are free. House rules appear as a public page when filled." %} <a href="{% url 'stays:kurtaxe' %}" class="text-indigo-600 hover:underline">{% trans "Kurtaxe-Meldung" %} →</a></p>
   <form method="post" class="flex items-end gap-3 flex-wrap">
     {% csrf_token %}
     <input type="hidden" name="action" value="kurtaxe">
@@ -708,6 +708,16 @@
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Label" %}</label>
       <input name="kurtaxe_label" type="text" value="{{ stay_settings.kurtaxe_label }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    {% comment %}KA-12 Z-6: Kurtaxe детей. Сентинел — снятый чекбокс браузер не шлёт.{% endcomment %}
+    <input type="hidden" name="kurtaxe_children_present" value="1">
+    <label class="flex items-center gap-2 text-sm self-center">
+      <input type="checkbox" name="kurtaxe_children_free" value="1" {% if stay_settings.kurtaxe_children_free %}checked{% endif %} class="rounded border-gray-300">
+      {% trans "Kinder frei" %}
+    </label>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Betrag / Kind / Nacht (€)" %}</label>
+      <input name="kurtaxe_child_eur" type="text" inputmode="decimal" value="{{ stay_settings.kurtaxe_child_eur|stringformat:'.2f' }}" class="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
     <div class="w-full">
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "House rules (Hausordnung) — shown as a public page when filled" %}</label>

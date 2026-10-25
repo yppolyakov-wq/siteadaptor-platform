@@ -43,4 +43,8 @@ urlpatterns = [
     path("channels/", views.channels, name="channels"),
     path("checkins/", views.checkins, name="checkins"),
     path("reports/", views.reports, name="reports"),
+    # KA-12 Z-6 (E1.15): Kurtaxe-Meldung + Meldescheine за месяц, Meldeschein на подпись.
+    path("kurtaxe/", views.kurtaxe_report, name="kurtaxe"),
+    path("meldescheine.csv", views.meldescheine_export, name="meldescheine-export"),
+    path("buchung/<uuid:pk>/meldeschein.pdf", views.meldeschein_pdf, name="meldeschein-pdf"),
 ]

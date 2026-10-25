@@ -632,6 +632,8 @@ def stay_action(request, pk):
         return redirect(f"{back}&buchung={booking.pk}")
     if action in ("check_in", "check_in_undo", "check_out"):
         return _front_desk_action(request, booking, action, back)
+    if action == "registration":
+        return _registration_action(request, booking, back)
     if action in ("confirmed", "fulfilled", "no_show", "cancelled"):
         try:
             refund = core_transactions.apply_action(
@@ -670,6 +672,32 @@ def stay_action(request, pk):
 
 def _checked_in_move_msg():
     return _("Gast ist eingecheckt — zuerst Check-in zurücknehmen.")
+
+
+def _registration_action(request, booking, back):
+    """KA-12 Z-6: Meldeschein со стойки (гость подписывает распечатку). Онлайн-подпись
+    гостя (`signed_ip` задан) не перетираем — это его собственное заявление."""
+    from . import registration
+    from .models import GuestRegistration
+
+    if not has_perm(request.user, "kunden.edit"):
+        messages.error(request, _("Dafür fehlt Ihnen das Recht."))
+        return redirect(back)
+    reg = GuestRegistration.objects.filter(booking=booking).first()
+    if reg is not None and reg.signed_ip:
+        messages.error(request, _("Der Gast hat den Meldeschein online ausgefüllt."))
+        return redirect(back)
+    if not request.POST.get("last_name", "").strip():
+        messages.error(request, _("Bitte mindestens den Nachnamen angeben."))
+        return redirect(back)
+    reg = reg or GuestRegistration(booking=booking)
+    registration.fill(reg, request.POST)
+    reg.signed_name = f"{reg.first_name} {reg.last_name}".strip()[:200]
+    reg.signed_at = timezone.now()
+    reg.signed_ip = None
+    reg.save()
+    messages.success(request, _("Meldeschein gespeichert."))
+    return redirect(back)
 
 
 def _front_desk_action(request, booking, action, back):
@@ -1332,9 +1360,15 @@ def units(request, pk=None):
                 request.POST.get("kurtaxe_label", "").strip()[:80] or "Kurtaxe"
             )
             settings_obj.house_rules = request.POST.get("house_rules", "").strip()[:8000]
-            settings_obj.save(
-                update_fields=["kurtaxe_cents", "kurtaxe_label", "house_rules", "updated_at"]
-            )
+            fields = ["kurtaxe_cents", "kurtaxe_label", "house_rules", "updated_at"]
+            # KA-12 Z-6: Kurtaxe детей — presence-guard (снятый чекбокс не приходит).
+            if request.POST.get("kurtaxe_children_present"):
+                settings_obj.kurtaxe_children_free = bool(request.POST.get("kurtaxe_children_free"))
+                settings_obj.kurtaxe_child_cents = _eur_to_cents(
+                    request.POST.get("kurtaxe_child_eur")
+                )
+                fields += ["kurtaxe_children_free", "kurtaxe_child_cents"]
+            settings_obj.save(update_fields=fields)
             messages.success(request, _("Settings saved."))
         elif action == "stay_hours":  # Z-5 Р-8: часы заезда/выезда
             checkin = _parse_hour(request.POST.get("checkin_hour"))
@@ -1919,3 +1953,170 @@ def _stay_sections(request):
         + (("documents",) if finance else ())
         + ("thread",)
     )
+
+
+# --- KA-12 Z-6 (E1.15): Kurtaxe-Meldung + Meldescheine ------------------------------
+
+
+@login_required
+def kurtaxe_report(request):
+    """Kurtaxe за месяц для общины: таблица по броням (без имён гостей) + CSV + PDF.
+    Суммы — из снимков броней (`stays.kurtaxe`). Право — «Berichte» (view_perms)."""
+    from django.utils import translation
+
+    from apps.core.documents import document_language
+
+    from . import kurtaxe as kurtaxe_mod
+
+    start, end = _month_bounds(request.GET.get("month"))
+    report = kurtaxe_mod.month_report(start, end, tenant=getattr(request, "tenant", None))
+    fmt = request.GET.get("format", "")
+    if fmt == "csv":
+        import csv
+
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="kurtaxe_{start.strftime("%Y-%m")}.csv"'
+        )
+        response.write("﻿")
+        writer = csv.writer(response, delimiter=";")
+        writer.writerow(
+            [
+                "reference",
+                "unit",
+                "arrival",
+                "departure",
+                "nights_in_month",
+                "adult_nights",
+                "child_nights",
+                "free_child_nights",
+                "kurtaxe_eur",
+            ]
+        )
+        for r in report["rows"]:
+            b = r.booking
+            writer.writerow(
+                [
+                    b.reference_code,
+                    str(b.unit),
+                    b.arrival.isoformat(),
+                    b.departure.isoformat(),
+                    r.nights,
+                    r.adult_nights,
+                    r.child_nights,
+                    r.free_child_nights,
+                    f"{r.kurtaxe_cents / 100:.2f}",
+                ]
+            )
+        audit_export(request, "stays.kurtaxe", len(report["rows"]), month=start.isoformat())
+        return response
+    if fmt == "pdf":
+        from .pdf import build_kurtaxe_pdf
+
+        with translation.override(document_language(request)):
+            pdf = build_kurtaxe_pdf(report, request.tenant)
+        audit_export(request, "stays.kurtaxe_pdf", len(report["rows"]), month=start.isoformat())
+        resp = HttpResponse(pdf, content_type="application/pdf")
+        resp["Content-Disposition"] = f'inline; filename="Kurtaxe-{start.strftime("%Y-%m")}.pdf"'
+        return resp
+    prev_m = (start - timedelta(days=1)).replace(day=1)
+    return render(
+        request,
+        "stays/kurtaxe.html",
+        {
+            "nav": "stays-kurtaxe",
+            "report": report,
+            "month_param": start.strftime("%Y-%m"),
+            "prev_month": prev_m.strftime("%Y-%m"),
+            "next_month": end.strftime("%Y-%m"),
+        },
+    )
+
+
+@login_required
+def meldescheine_export(request):
+    """Meldescheine за месяц (CSV) — персональные данные: право «Kundendaten exportieren»
+    + запись в журнал. Номер документа НЕ выгружаем (О-10: только печатный Meldeschein)."""
+    import csv
+
+    from apps.core.csv_safe import csv_safe
+
+    from .models import GuestRegistration
+
+    start, end = _month_bounds(request.GET.get("month"))
+    regs = (
+        GuestRegistration.objects.select_related("booking", "booking__unit")
+        .filter(booking__arrival__lt=end, booking__departure__gt=start)
+        .order_by("booking__arrival")
+    )
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = (
+        f'attachment; filename="meldescheine_{start.strftime("%Y-%m")}.csv"'
+    )
+    response.write("﻿")
+    writer = csv.writer(response, delimiter=";")
+    writer.writerow(
+        [
+            "reference",
+            "arrival",
+            "departure",
+            "last_name",
+            "first_name",
+            "birth_date",
+            "nationality",
+            "street",
+            "postal_code",
+            "city",
+            "country",
+            "doc_type",
+            "accompanying",
+            "signed_at",
+        ]
+    )
+    rows = 0
+    for reg in regs:
+        b = reg.booking
+        writer.writerow(
+            [
+                csv_safe(v)
+                for v in [
+                    b.reference_code,
+                    b.arrival.isoformat(),
+                    b.departure.isoformat(),
+                    reg.last_name,
+                    reg.first_name,
+                    reg.birth_date.isoformat() if reg.birth_date else "",
+                    reg.nationality,
+                    reg.street,
+                    reg.postal_code,
+                    reg.city,
+                    reg.country,
+                    reg.doc_type,
+                    reg.accompanying,
+                    reg.signed_at.isoformat() if reg.signed_at else "",
+                ]
+            ]
+        )
+        rows += 1
+    audit_export(request, "stays.meldescheine", rows, month=start.isoformat())
+    return response
+
+
+@login_required
+def meldeschein_pdf(request, pk):
+    """Meldeschein брони на подпись гостя (с номером документа — только в печати)."""
+    from django.utils import translation
+
+    from apps.core.documents import document_language
+
+    from .models import GuestRegistration
+    from .pdf import build_meldeschein_pdf
+
+    booking = get_object_or_404(StayBooking, pk=pk)
+    reg = GuestRegistration.objects.filter(booking=booking).first()
+    with translation.override(document_language(request)):
+        pdf = build_meldeschein_pdf(booking, reg, request.tenant)
+    audit_export(request, "stays.meldeschein_pdf", 1, resource_id=booking.pk)
+    resp = HttpResponse(pdf, content_type="application/pdf")
+    resp["Content-Disposition"] = f'inline; filename="Meldeschein-{booking.reference_code}.pdf"'
+    return resp

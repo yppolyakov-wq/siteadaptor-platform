@@ -128,6 +128,8 @@ RULES: dict[str, Rule] = {
     "stays:stay-new": _r(V, E),
     "stays:room-clean": _r(V, E),
     "stays:reports-export": _r("kunden.export"),
+    "stays:meldescheine-export": _r("kunden.export"),
+    "stays:meldeschein-pdf": _r("kunden.edit"),
     "events:ticket-action": _r(V, E),
     "events:ticket-add": _r(V, E),
     "events:ticket-detail": _r(V, E),
@@ -350,6 +352,7 @@ RULES: dict[str, Rule] = {
     "finance:expenses-datev": _r("finanzen.export"),
     "promotions:analytics": _r(M),
     "stays:reports": _r("finanzen.berichte"),
+    "stays:kurtaxe": _r("finanzen.berichte"),
     # --- Einstellungen ------------------------------------------------------------
     "settings": _r(CFG, CFGE),
     "setup": _r(CFG, CFGE),

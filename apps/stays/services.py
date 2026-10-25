@@ -398,7 +398,7 @@ def book_stay(
 
     extras_snap = list(extras or [])
     nights = (departure - arrival).days
-    kurtaxe = pricing.kurtaxe_total_cents(adults, nights)  # H9 (по гостям, не × номера)
+    kurtaxe = pricing.kurtaxe_total_cents(adults, nights, children=children)  # H9, Z-6
     # G4: авто-скидка (LOS/Frühbucher/Last-Minute) — на проживание (без Extras/Kurtaxe).
     # G5: проживание × число номеров.
     # PMS-D: динамическая цена — ТОЛЬКО витрина (dynamic_pricing=True из
@@ -525,7 +525,9 @@ def _move_keep_rate(booking, old_nights: int):
     if nights != old_nights:
         base = round(base * nights / old_nights)
     booking.extras = extras_engine.retotal(booking.extras, nights=nights)
-    booking.kurtaxe_cents = pricing.kurtaxe_total_cents(booking.adults, nights)
+    booking.kurtaxe_cents = pricing.kurtaxe_total_cents(
+        booking.adults, nights, children=booking.children
+    )
     booking.total_cents = (
         max(0, base + extras_engine.total_cents(booking.extras) - (booking.discount_cents or 0))
         + booking.kurtaxe_cents
@@ -644,7 +646,9 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
     # скидка + H9 Kurtaxe. Промокод не перегашиваем — держим снимок скидки.
     nights = (departure - arrival).days
     rate_plan = _rate_for_booking(booking)
-    booking.kurtaxe_cents = pricing.kurtaxe_total_cents(booking.adults, nights)
+    booking.kurtaxe_cents = pricing.kurtaxe_total_cents(
+        booking.adults, nights, children=booking.children
+    )
     room_cents = (
         pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan) * booking.rooms
     )

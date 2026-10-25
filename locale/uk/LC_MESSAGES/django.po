@@ -30288,3 +30288,87 @@ msgstr "не підтверджено"
 
 msgid "Bereits ausgecheckt."
 msgstr "Гість уже виїхав."
+
+msgid "An der Rezeption erfasst"
+msgstr "Заповнено на стійці"
+
+msgid "Ausweisart"
+msgstr "Вид документа"
+
+msgid "Ausweisnummer"
+msgstr "Номер документа"
+
+msgid "Betrag / Kind / Nacht (€)"
+msgstr "Сума / дитина / ніч (€)"
+
+msgid "Bitte mindestens den Nachnamen angeben."
+msgstr "Вкажіть принаймні прізвище."
+
+msgid "Buchungen"
+msgstr "Бронювання"
+
+msgid "Datum, Unterschrift des Gastes"
+msgstr "Дата, підпис гостя"
+
+msgid "Der Gast hat den Meldeschein online ausgefüllt."
+msgstr "Гість заповнив Meldeschein онлайн."
+
+msgid "Erw."
+msgstr "Дор."
+
+msgid "Keine Übernachtungen in diesem Monat."
+msgstr "Цього місяця ночівель немає."
+
+msgid "Kinder frei"
+msgstr "Діти безкоштовно"
+
+msgid "Kurtaxe-Meldung"
+msgstr "Звіт про курортний збір"
+
+msgid "Meldeschein drucken"
+msgstr "Надрукувати Meldeschein"
+
+msgid "Meldeschein erfassen"
+msgstr "Заповнити Meldeschein"
+
+msgid "Meldeschein gespeichert."
+msgstr "Meldeschein збережено."
+
+msgid "Meldeschein speichern"
+msgstr "Зберегти Meldeschein"
+
+msgid "Meldescheine (CSV)"
+msgstr "Meldescheine (CSV)"
+
+msgid "Mitreisende"
+msgstr "Супутники"
+
+msgid "Nachname"
+msgstr "Прізвище"
+
+msgid "Nächster Monat"
+msgstr "Наступний місяць"
+
+msgid "Vormonat"
+msgstr "Попередній місяць"
+
+msgid "Vorname"
+msgstr "Ім'я"
+
+msgid "Staatsangehörigkeit"
+msgstr "Громадянство"
+
+msgid "Straße"
+msgstr "Вулиця"
+
+msgid "PLZ / Ort"
+msgstr "Індекс / місто"
+
+msgid "davon befreit"
+msgstr "з них звільнено"
+
+msgid "Übernachtungen Erwachsene"
+msgstr "Ночівлі дорослих"
+
+msgid "Übernachtungen Kinder"
+msgstr "Ночівлі дітей"

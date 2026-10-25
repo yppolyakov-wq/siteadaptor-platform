@@ -659,6 +659,16 @@ ENTRIES: tuple[NavEntry, ...] = (
     ),
     _e(
         "finance",
+        "stays:kurtaxe",
+        _("Kurtaxe-Meldung"),
+        "stays-kurtaxe",
+        "stays",
+        True,
+        "kurtaxe tourismusabgabe gemeinde meldeschein",
+        group="ueberblick",
+    ),
+    _e(
+        "finance",
         "finance:journal",
         _("Journal"),
         "finance",

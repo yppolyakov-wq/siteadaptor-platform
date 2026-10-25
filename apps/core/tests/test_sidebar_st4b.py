@@ -198,6 +198,7 @@ def test_sidebar_children_composition():
         "payments-page",
         "promotions:analytics",
         "stays:reports",
+        "stays:kurtaxe",  # KA-12 Z-6
         "finance:journal",
         "finance:invoices",
         "finance:expenses",

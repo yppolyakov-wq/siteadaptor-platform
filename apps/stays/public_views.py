@@ -366,7 +366,9 @@ def unterkunft_unit(request, pk):
     if von and bis and von >= today and bis > von:
         nights, total_cents, available, reason, reason_n = _quote(unit, von, bis, guests, rooms)
         # H9: Kurtaxe (adults × ночи × ставка) — поверх проживания, в итог брони.
-        kurtaxe_cents = pricing.kurtaxe_total_cents(adults, nights) if available else 0
+        kurtaxe_cents = (
+            pricing.kurtaxe_total_cents(adults, nights, children=children) if available else 0
+        )
         kurtaxe_eur = kurtaxe_cents / 100
         # G4: авто-скидка на проживание (без тарифа) — для показа итога без тарифов.
         auto_cents, auto_label = (
@@ -984,20 +986,9 @@ def unterkunft_checkin(request, token):
             messages.error(request, _("Please fill in your name and confirm."))
             return redirect(reverse("storefront-stay-checkin", args=[token]))
         reg = reg or GuestRegistration(booking=booking)
-        reg.last_name = request.POST.get("last_name", "").strip()[:120]
-        reg.first_name = request.POST.get("first_name", "").strip()[:120]
-        reg.birth_date = _parse_date(request.POST.get("birth_date"))
-        reg.nationality = request.POST.get("nationality", "").strip()[:80]
-        reg.street = request.POST.get("street", "").strip()[:200]
-        reg.postal_code = request.POST.get("postal_code", "").strip()[:20]
-        reg.city = request.POST.get("city", "").strip()[:120]
-        reg.country = request.POST.get("country", "").strip()[:80]
-        reg.doc_type = request.POST.get("doc_type", "").strip()[:40]
-        reg.doc_number = request.POST.get("doc_number", "").strip()[:60]
-        try:
-            reg.accompanying = max(0, min(int(request.POST.get("accompanying", "0")), 50))
-        except (TypeError, ValueError):
-            reg.accompanying = 0
+        from . import registration
+
+        registration.fill(reg, request.POST)
         reg.signed_name = request.POST.get("signed_name", "").strip()[:200]
         reg.signed_at = timezone.now()
         reg.signed_ip = ratelimit.client_ip(request)
