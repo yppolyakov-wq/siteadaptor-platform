@@ -214,6 +214,9 @@ def normalize_permissions(role, raw) -> dict:
     try:
         add, remove, template = _parse(raw)
     except CorruptDelta:
+        logger.warning(
+            "permissions: corrupt permission delta for role %s normalized to preset", role
+        )
         return {}
     preset = PRESETS[role]
     add = (add & ROLE_LIMIT[role]) - preset

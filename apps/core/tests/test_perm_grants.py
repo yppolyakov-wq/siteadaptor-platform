@@ -192,12 +192,62 @@ def test_alert_has_no_customer_or_member_email(monkeypatch):
     owner, admin, staff = _member(OWNER), _admin_with_team(), _member(STAFF)
     sent = []
     monkeypatch.setattr("apps.notifications.services.notify", lambda **kw: sent.append(kw))
-    from django.core.cache import cache
-
-    cache.delete(f"perms-alert:{__import__('django.db').db.connection.schema_name}:{staff.pk}")
     G._alert_owner(admin.user, staff, {"kunden.edit"}, P.for_role(STAFF))
     assert sent and staff.user.email not in sent[0]["body"]
     assert sent[0]["recipient"] == owner.user.email or sent[0]["recipient"]
+
+
+def test_corrupt_stored_delta_is_repaired_by_a_save(no_mail):
+    owner, staff = _member(OWNER), _member(STAFF, {"add": "not-a-list"})
+    G.set_member_permissions(owner.user, staff.pk, P.for_role(STAFF))
+    staff.refresh_from_db()
+    assert staff.permissions == {}  # чистая дельта, а не мусор
+
+
+def test_denial_audit_failure_keeps_the_denial(no_mail, monkeypatch):
+    admin, staff = _member(ADMIN), _member(STAFF)
+
+    def boom(**kw):
+        raise RuntimeError("audit down")
+
+    monkeypatch.setattr("apps.audit.services.audit_event", boom)
+    with pytest.raises(G.PermsDenied):
+        G.set_member_permissions(admin.user, staff.pk, P.for_role(STAFF))
+
+
+def test_admin_revoke_cannot_drop_out_of_scope_key_via_requires(no_mail):
+    owner, admin = _member(OWNER), _admin_with_team()
+    staff = _member(STAFF)
+    G.set_member_permissions(owner.user, staff.pk, P.for_role(STAFF) | {"kunden.export"})
+    assert "kunden.export" in _eff(staff)
+    with pytest.raises(G.PermsDenied):  # kunden.view снять — уронило бы kunden.export
+        G.set_member_permissions(
+            admin.user, staff.pk, P.for_role(STAFF) - {"kunden.view", "kunden.edit"}
+        )
+    assert "kunden.export" in _eff(staff)
+
+
+def test_stale_form_is_denied(no_mail):
+    owner, staff = _member(OWNER), _member(STAFF)
+    token = G.state_token(_eff(staff))
+    G.set_member_permissions(owner.user, staff.pk, P.for_role(STAFF) | {"kunden.export"})
+    with pytest.raises(G.PermsDenied):
+        G.set_member_permissions(owner.user, staff.pk, P.for_role(STAFF), expected=token)
+
+
+def test_unknown_template_is_not_stored(no_mail):
+    owner, staff = _member(OWNER), _member(STAFF)
+    G.set_member_permissions(owner.user, staff.pk, P.for_role(STAFF) - {"lager.edit"}, template="x")
+    staff.refresh_from_db()
+    assert "template" not in staff.permissions
+
+
+def test_demoted_owner_gets_plain_preset(no_mail):
+    owner, other = _member(OWNER), _member(OWNER)
+    G.set_member_role(owner.user, other.pk, ADMIN)
+    other.refresh_from_db()
+    assert other.permissions == {}
+    assert _eff(other) == P.for_role(ADMIN)
 
 
 def test_role_change_only_by_owner_and_last_owner_protected(no_mail):

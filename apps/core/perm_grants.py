@@ -41,7 +41,7 @@ class PermsDenied(Exception):
 
 def _uuid(raw):
     try:
-        return uuid.UUID(str(raw or "").strip()[:36])
+        return uuid.UUID(str(raw or "").strip())
     except ValueError:
         return None
 
@@ -50,7 +50,9 @@ def _lock_all() -> dict:
     """Все строки Membership схемы под блокировкой, одним запросом в порядке pk."""
     return {
         m.pk: m
-        for m in Membership.objects.select_for_update().select_related("user").order_by("pk")
+        for m in Membership.objects.select_for_update(of=("self",))
+        .select_related("user")
+        .order_by("pk")
     }
 
 
@@ -117,15 +119,19 @@ def _audit_denied(member_pk, actor_user, reason):
     from apps.audit.services import audit_event
 
     if reason == "not_found":
+        logger.info("perm_grants: denied (not_found)")
         return  # мусорный pk — не шум в журнале
-    with transaction.atomic():
-        audit_event(
-            action="team.perms_denied",
-            resource_type="membership",
-            resource_id=str(member_pk or "")[:64],
-            actor=actor_user,
-            changes={"reason": reason},
-        )
+    try:
+        with transaction.atomic():
+            audit_event(
+                action="team.perms_denied",
+                resource_type="membership",
+                resource_id=str(_uuid(member_pk) or ""),
+                actor=actor_user,
+                changes={"reason": reason},
+            )
+    except Exception:  # noqa: BLE001 — отказ остаётся отказом, а не ошибкой БД
+        logger.exception("perm_grants: denial audit not written (%s)", reason)
 
 
 def _audited(fn):
@@ -143,14 +149,28 @@ def _audited(fn):
     return wrapper
 
 
+def state_token(eff) -> str:
+    """Отпечаток набора прав — форма шлёт его, чтобы не затереть чужую правку (lost update)."""
+    return hashlib.sha256(",".join(sorted(eff)).encode()).hexdigest()[:16]
+
+
+# E6.7f заполнит реестр шаблонов; неизвестное имя не хранится (не подписать staff чужим шаблоном).
+TEMPLATE_KEYS: frozenset = frozenset()
+
+
 @_audited
-def set_member_permissions(actor_user, member_pk, requested_keys, template: str = "") -> frozenset:
-    """Записать права участника. Возвращает его новые эффективные права."""
+def set_member_permissions(
+    actor_user, member_pk, requested_keys, template: str = "", expected: str | None = None
+) -> frozenset:
+    """Записать права участника. Возвращает его новые эффективные права.
+    ``expected`` — ``state_token`` прав цели на момент открытия формы (иначе отказ "stale")."""
     with transaction.atomic():
         actor, target, _rows = _rows_for(actor_user, member_pk)
         grant_scope, revoke_scope = _scopes(actor, target)
         role = target.role
         old = P.effective_from(role, target.permissions)
+        if expected is not None and expected != state_token(old):
+            raise PermsDenied("stale")
         requested = _with_requires(requested_keys or ())
         # Запрошенное сверх текущего обязано быть в области выдачи — иначе отказ,
         # а не тихое выбрасывание ключа (актор должен видеть, что не выдал).
@@ -158,14 +178,18 @@ def set_member_permissions(actor_user, member_pk, requested_keys, template: str 
             raise PermsDenied("scope")
         new = P._closure(((old - revoke_scope) | (requested & revoke_scope)) & P.ROLE_LIMIT[role])
         added = new - old
-        if added - grant_scope:
+        # Замыкание после отзыва может уронить ключ вне области актора (X требует R,
+        # R снят) — это тоже «тронуть чужое», отказ.
+        if added - grant_scope or (old - new) - revoke_scope:
             raise PermsDenied("scope")
+        if template not in TEMPLATE_KEYS:
+            template = ""
         preset = P.PRESETS[role]
         delta = P.normalize_permissions(
             role,
             {"add": sorted(new - preset), "remove": sorted(preset - new), "template": template},
         )
-        if delta == P.normalize_permissions(role, target.permissions):
+        if delta == target.permissions:  # сырое сравнение: повреждённое хранение чинится записью
             return new
         target.permissions = delta
         target.save(update_fields=["permissions", "updated_at"])
@@ -209,7 +233,9 @@ def set_member_role(actor_user, member_pk, role: str) -> None:
         target.role = role
         # Дельта переносится на новую роль (лишнее для роли вырезается normalize).
         old_eff = P.effective_from(before, target.permissions)
-        target.permissions = _delta_for(role, old_eff) if role != OWNER else {}
+        # Понижение владельца — ровно пресет новой роли (иначе «admin» = совладелец).
+        keep = before != OWNER and role != OWNER
+        target.permissions = _delta_for(role, old_eff) if keep else {}
         target.save(update_fields=["role", "permissions", "updated_at"])
         _audit("team.role", target, actor_user, {"role": role, "before": before})
     P.forget(target.user)
@@ -251,9 +277,8 @@ def revoke_member(actor_user, member_pk) -> None:
 
 def _alert_owner(actor_user, target, keys, new) -> None:
     """Письмо владельцу: не-владелец выдал чувствительные права (A.7). Без данных
-    клиентов и без e-mail участника; дедуп по состоянию + не чаще раза в час на цель."""
+    клиентов и без e-mail участника; дедуп по состоянию (повтор того же набора — без письма)."""
     try:
-        from django.core.cache import cache
         from django.utils import translation
         from django.utils.translation import gettext as _
 
@@ -271,10 +296,7 @@ def _alert_owner(actor_user, target, keys, new) -> None:
             )
             recipient = owner.user.email if owner else ""
         if not recipient:
-            logger.warning("perm_grants: no recipient for the owner alert")
-            return
-        throttle = f"perms-alert:{connection.schema_name}:{target.pk}"
-        if not cache.add(throttle, 1, 3600):
+            logger.error("perm_grants: no recipient for the owner alert")
             return
         state = hashlib.sha256(",".join(sorted(new)).encode()).hexdigest()[:12]
         who = getattr(actor_user, "get_full_name", lambda: "")() or actor_user.get_username()
@@ -293,4 +315,4 @@ def _alert_owner(actor_user, target, keys, new) -> None:
             body=body,
         )
     except Exception:  # noqa: BLE001 — письмо не должно ронять выдачу
-        logger.warning("perm_grants: owner alert not sent", exc_info=True)
+        logger.error("perm_grants: owner alert not sent", exc_info=True)
