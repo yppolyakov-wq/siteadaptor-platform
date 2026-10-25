@@ -12,9 +12,13 @@ W10-2 (решение Р-4, 2026-08-05): `reservation` подчиняется О
 календарь, Handwerker'у — пайплайн, магазину — список; план §1).
 """
 
+import logging
+
 from django.utils.translation import gettext_lazy as _
 
 from . import archetypes, status_registry, transactions
+
+logger = logging.getLogger(__name__)
 
 # Модуль → kind сделки. `_PRIORITY` архетипов оперирует модулями; продажи
 # каталога живут в модуле orders (catalog в _PRIORITY — это ОН).
@@ -156,84 +160,122 @@ def resolve_view(tenant, kind: str, requested: str = "") -> str:
     return allowed[0]
 
 
-def heute_columns(tenant) -> list[dict]:
+def _stay_heute_item(s, *, today, allowed, can_desk):
+    """KA-12 Z-5 (Р-9): карточка брони в «Heute» — комнаты, оплата, Meldeschein,
+    отметки стойки и POST-кнопки (генерик-поля badges/actions — общие для колонок)."""
+    from django.urls import reverse
+    from django.utils import timezone
+
+    from apps.core import payment_methods
+    from apps.stays import front_desk
+
+    desk = front_desk.state(s, today=today, allowed=allowed)
+    rooms = ([s.room.number] if s.room_id else []) + [
+        r.number for r in s.extra_rooms.all() if r.id != s.room_id
+    ]
+    badges = []
+    if desk["unconfirmed"]:
+        badges.append({"text": _("unbestätigt"), "tone": "amber"})
+    if desk["checked_in_at"]:
+        t = timezone.localtime(desk["checked_in_at"]).strftime("%H:%M")
+        badges.append({"text": _("Eingecheckt %(time)s") % {"time": t}, "tone": "green"})
+    if desk["checked_out_at"]:
+        t = timezone.localtime(desk["checked_out_at"]).strftime("%H:%M")
+        badges.append({"text": _("Ausgecheckt %(time)s") % {"time": t}, "tone": "green"})
+    pay = str(s.get_payment_state_display())
+    if s.payment_method:
+        pay = f"{pay} · {payment_methods.label(s.payment_method)}"
+    badges.append({"text": pay, "tone": "gray"})
+    meldeschein = str(_("Meldeschein"))
+    badges.append({"text": f"{meldeschein} {'✓' if s.has_registration else '—'}", "tone": "gray"})
+    actions = []
+    if can_desk:
+        if desk["can_check_in"]:
+            actions.append({"label": _("Check-in"), "action": "check_in", "danger": False})
+        if desk["can_check_out"]:
+            actions.append({"label": _("Check-out"), "action": "check_out", "danger": True})
+    subtitle = str(s.unit)
+    if rooms:
+        zimmer = str(_("Zimmer"))
+        subtitle = f"{subtitle} · {zimmer} {', '.join(rooms)}"
+    return {
+        "title": s.customer.name or s.customer.email,
+        "subtitle": subtitle,
+        "url": reverse("stays:booking-detail", args=[s.pk]),
+        "badges": badges,
+        "actions": actions,
+        "action_url": reverse("stays:stay-action", args=[s.pk]),
+    }
+
+
+def heute_columns(tenant, user=None) -> list[dict]:
     """W10-4: kind-агностичный вид «Heute» — операционный ответ на «что сегодня»:
-    заезды/выезды (stays, семантика = виджет PMS-A2), записи (booking), выдача/
-    доставка (orders, status=ready). Колонки гейтятся модулями и fail-safe
-    (сломанный блок не валит страницу); карточка ведёт на родную деталь."""
+    заезды/выезды (stays — одна точка `front_desk.today_lists`, её же читает виджет
+    главной), записи (booking), выдача/доставка (orders, status=ready). Колонки
+    гейтятся модулями; KA-12 Z-5 (DF-Z4): ошибка колонки логируется и показывается
+    как «Konnte nicht geladen werden», а не как пустой день."""
     from django.urls import reverse
     from django.utils import timezone
 
     today = timezone.localdate()
     cols = []
 
-    def _safe(fn):
+    def _safe(key, fn):
+        """(items, error): сломанная колонка одного модуля не валит «Heute»."""
         try:
-            return fn()
+            return fn(), False
         except Exception:  # noqa: BLE001 — колонка одного модуля не валит «Heute»
-            return []
+            logger.exception("heute column %s failed", key)
+            return [], True
+
+    def _col(key, icon, label, fn, **extra):
+        items, error = _safe(key, fn)
+        return {"key": key, "icon": icon, "label": label, "items": items, "error": error, **extra}
 
     if tenant.is_module_active("stays"):
-        from apps.stays.models import StayBooking
+        from apps.core.permissions import has_perm
+        from apps.stays import front_desk
+        from apps.stays.models import StaySettings
 
-        def _stay_items(qs):
+        can_desk = user is not None and has_perm(user, "rezeption.edit")
+
+        def _lists():
+            return front_desk.today_lists(tenant, today), front_desk.checkin_allowed_statuses(
+                tenant
+            )
+
+        lists, lists_error = _safe("stays", _lists)
+
+        def _stay_col(name):
+            if lists_error:
+                raise RuntimeError("stays lists unavailable")
+            qs, allowed = lists[0][name], lists[1]
             return [
-                {
-                    "title": s.customer.name or s.customer.email,
-                    "subtitle": str(s.unit),
-                    "url": reverse("stays:booking-detail", args=[s.pk]),
-                }
-                for s in qs.select_related("customer", "unit")[:50]
+                _stay_heute_item(s, today=today, allowed=allowed, can_desk=can_desk)
+                for s in qs[: front_desk.LIST_LIMIT]
             ]
 
+        checkin_hour, checkout_hour = _safe("stays_hours", StaySettings.hours)[0] or (15, 14)
         cols.append(
-            {
-                "key": "anreise",
-                "icon": "🛎",
-                "label": _("Anreisen heute"),
-                # SM-3: «активные» через реестр — заезд в кастом-статусе виден в Heute.
-                "items": _safe(
-                    lambda: _stay_items(
-                        StayBooking.objects.filter(
-                            arrival=today,
-                            status__in=status_registry.active_statuses_for("stay", tenant),
-                        )
-                    )
-                ),
-            }
+            _col(
+                "anreise",
+                "🛎",
+                _("Anreisen heute"),
+                lambda: _stay_col("arrivals"),
+                hint=_("Check-in ab %(h)s:00") % {"h": checkin_hour},
+            )
         )
         cols.append(
-            {
-                "key": "abreise",
-                "icon": "🧳",
-                "label": _("Abreisen heute"),
-                "items": _safe(
-                    lambda: _stay_items(
-                        StayBooking.objects.filter(
-                            departure=today, status=StayBooking.STATUS_CONFIRMED
-                        )
-                    )
-                ),
-            }
+            _col(
+                "abreise",
+                "🧳",
+                _("Abreisen heute"),
+                lambda: _stay_col("departures"),
+                hint=_("Check-out bis %(h)s:00") % {"h": checkout_hour},
+            )
         )
-        # W10-6: паритет со stays:today — «Im Haus» (живут сейчас) обязателен
-        # ДО редиректа легаси-страницы (аудит-урок «не схлопывать до паритета»).
-        cols.append(
-            {
-                "key": "im_haus",
-                "icon": "🏠",
-                "label": _("Im Haus"),
-                "items": _safe(
-                    lambda: _stay_items(
-                        StayBooking.objects.filter(
-                            arrival__lt=today,
-                            departure__gt=today,
-                            status=StayBooking.STATUS_CONFIRMED,
-                        )
-                    )
-                ),
-            }
-        )
+        # W10-6: паритет со stays:today — «Im Haus» (живут сейчас).
+        cols.append(_col("im_haus", "🏠", _("Im Haus"), lambda: _stay_col("in_house")))
     if tenant.is_module_active("booking"):
         from apps.booking.models import Booking
 
@@ -259,9 +301,7 @@ def heute_columns(tenant) -> list[dict]:
                 )
             return out
 
-        cols.append(
-            {"key": "termine", "icon": "📅", "label": _("Termine heute"), "items": _safe(_termine)}
-        )
+        cols.append(_col("termine", "📅", _("Termine heute"), _termine))
     if tenant.is_module_active("orders"):
         from apps.orders.models import Order
 
@@ -280,22 +320,16 @@ def heute_columns(tenant) -> list[dict]:
                 )
             return out[:50]
 
-        cols.append(
-            {
-                "key": "abholung",
-                "icon": "📦",
-                "label": _("Abholbereit"),
-                "items": _safe(lambda: _ready(delivery=False)),
-            }
-        )
-        lieferungen = _safe(lambda: _ready(delivery=True))
-        if lieferungen or getattr(tenant, "delivery_enabled", False):
+        cols.append(_col("abholung", "📦", _("Abholbereit"), lambda: _ready(delivery=False)))
+        lieferungen, lieferungen_error = _safe("lieferung", lambda: _ready(delivery=True))
+        if lieferungen or lieferungen_error or getattr(tenant, "delivery_enabled", False):
             cols.append(
                 {
                     "key": "lieferung",
                     "icon": "🚚",
                     "label": _("Lieferungen heute"),
                     "items": lieferungen,
+                    "error": lieferungen_error,
                 }
             )
     return cols
@@ -502,7 +536,7 @@ def body_context(request, kind: str, view: str) -> dict:
 
         return {**customer_list_context(request), "crm_active": tenant.is_module_active("crm")}
     if view == "heute":
-        ctx["heute_columns"] = heute_columns(tenant)
+        ctx["heute_columns"] = heute_columns(tenant, getattr(request, "user", None))
     elif view == "kalender" and kind == "stay":
         from apps.stays.views import calendar_context as stays_calendar_context
 

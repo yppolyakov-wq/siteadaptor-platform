@@ -30236,3 +30236,68 @@ msgstr "Номер %(number)s назначен брони %(code)s — снач�
 
 msgid "— Zimmer später zuweisen —"
 msgstr "— назначить номер позже —"
+
+msgid "Abreise vor dem gebuchten Datum — bitte zuerst die Abreise in der Buchung ändern."
+msgstr "Выезд раньше забронированной даты — сначала измените дату выезда в брони."
+
+msgid "Abreisedatum ist schon erreicht."
+msgstr "Дата выезда уже наступила."
+
+msgid "Anreise / Abreise"
+msgstr "Заезд / выезд"
+
+#, python-format
+msgid "Anreise ist erst am %(day)s."
+msgstr "Заезд только %(day)s."
+
+#, python-format
+msgid "Ausgecheckt %(time)s"
+msgstr "Выехал %(time)s"
+
+msgid "Bereits eingecheckt."
+msgstr "Гость уже заселён."
+
+msgid "Bitte die Buchung zuerst bestätigen."
+msgstr "Сначала подтвердите бронь."
+
+#, python-format
+msgid "Check-in ab %(h)s:00"
+msgstr "Заезд с %(h)s:00"
+
+msgid "Check-in kann nicht mehr zurückgenommen werden."
+msgstr "Заселение уже нельзя отменить."
+
+msgid "Check-in zurückgenommen."
+msgstr "Заселение отменено."
+
+msgid "Check-in zurücknehmen"
+msgstr "Отменить заселение"
+
+msgid "Check-out"
+msgstr "Выезд"
+
+#, python-format
+msgid "Check-out bis %(h)s:00"
+msgstr "Выезд до %(h)s:00"
+
+#, python-format
+msgid "Eingecheckt %(time)s"
+msgstr "Заселён %(time)s"
+
+msgid "Gast ausgecheckt."
+msgstr "Гость выехал."
+
+msgid "Gast eingecheckt."
+msgstr "Гость заселён."
+
+msgid "Gast ist eingecheckt — zuerst Check-in zurücknehmen."
+msgstr "Гость заселён — сначала отмените заселение."
+
+msgid "Konnte nicht geladen werden."
+msgstr "Не удалось загрузить."
+
+msgid "Noch nicht eingecheckt"
+msgstr "Ещё не заселён"
+
+msgid "unbestätigt"
+msgstr "не подтверждена"

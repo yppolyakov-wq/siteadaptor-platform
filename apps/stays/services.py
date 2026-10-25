@@ -113,6 +113,10 @@ class RoomConflict(Exception):
     """PMS-R2: на выбранной комнате уже есть пересекающаяся активная бронь."""
 
 
+class GuestCheckedInMove(Exception):
+    """KA-12 Z-5: перенос дат заселённого гостя (заезд в будущее / выезд в прошлое)."""
+
+
 class NoCapacity(Exception):
     """KA-12 E4.10a: блок комнаты на ночи, где категория уже продана целиком."""
 
@@ -596,6 +600,14 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
     Обе блокировки строк берём в стабильном порядке pk (без дедлоков)."""
     if departure <= arrival:
         raise ValueError("departure must be after arrival")
+    # KA-12 Z-5 (Р-6, ревью §9.7): гость уже заселён — заезд не переносится в
+    # будущее, выезд — в прошлое (все поверхности: форма, кнопка, drag).
+    if getattr(booking, "checked_in_at", None):
+        from django.utils import timezone
+
+        today = timezone.localdate()
+        if arrival > today or departure < today:
+            raise GuestCheckedInMove()
     ids = {booking.unit_id}
     if unit is not None:
         ids.add(unit.pk)

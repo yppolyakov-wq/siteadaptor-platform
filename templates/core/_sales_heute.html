@@ -1,22 +1,48 @@
 {% load i18n %}
 {% comment %}W10-4: вид «Heute» единой страницы продаж — операционные колонки
 «что сегодня» (заезды/выезды/записи/выдача/доставка). Колонки гейтятся модулями
-во вьюхе (sales_page.heute_columns); карточка ведёт на родную деталь.{% endcomment %}
+во вьюхе (sales_page.heute_columns); карточка ведёт на родную деталь.
+KA-12 Z-5 (Р-9): элемент — блок со ссылкой, бейджами (badges) и POST-кнопками
+стойки (actions); сломанная колонка — «Konnte nicht geladen werden», а не пустой день.
+Check-out — с подтверждением общим диалогом кабинета (data-danger).{% endcomment %}
 <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4" data-sales-heute>
   {% for col in heute_columns %}
-    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-      <div class="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
-        <span class="text-sm font-semibold text-gray-700">{{ col.icon }} {{ col.label }}</span>
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden" data-heute-col="{{ col.key }}">
+      <div class="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between gap-2">
+        <span class="text-sm font-semibold text-gray-700">{{ col.icon }} {{ col.label }}{% if col.hint %} <span class="block text-xs font-normal text-gray-400">{{ col.hint }}</span>{% endif %}</span>
         <span class="text-xs rounded-full px-2 py-0.5 {% if col.items %}bg-indigo-50 text-indigo-700{% else %}bg-gray-100 text-gray-400{% endif %}">{{ col.items|length }}</span>
       </div>
       <div class="divide-y divide-gray-50">
         {% for it in col.items %}
-          <a href="{{ it.url }}" class="block px-4 py-2.5 hover:bg-gray-50">
-            <span class="block text-sm font-medium text-gray-800">{{ it.title }}</span>
-            {% if it.subtitle %}<span class="block text-xs text-gray-400 mt-0.5">{{ it.subtitle }}</span>{% endif %}
-          </a>
+          <div class="px-4 py-2.5" data-heute-item>
+            <a href="{{ it.url }}" class="block hover:underline">
+              <span class="block text-sm font-medium text-gray-800">{{ it.title }}</span>
+              {% if it.subtitle %}<span class="block text-xs text-gray-400 mt-0.5">{{ it.subtitle }}</span>{% endif %}
+            </a>
+            {% if it.badges %}
+              <div class="mt-1.5 flex flex-wrap gap-1">
+                {% for b in it.badges %}<span class="text-[11px] rounded-full px-2 py-0.5 {% if b.tone == 'green' %}bg-emerald-50 text-emerald-700{% elif b.tone == 'amber' %}bg-amber-50 text-amber-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ b.text }}</span>{% endfor %}
+              </div>
+            {% endif %}
+            {% if it.actions %}
+              <div class="mt-2 flex flex-wrap gap-2">
+                {% for a in it.actions %}
+                  <form method="post" action="{{ it.action_url }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="{{ a.action }}">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" {% if a.danger %}data-danger="1"{% endif %} class="min-h-[44px] rounded-xl px-4 text-sm font-medium {% if a.danger %}bg-gray-900 text-white hover:bg-black{% else %}bg-emerald-600 text-white hover:bg-emerald-700{% endif %}">{{ a.label }}</button>
+                  </form>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
         {% empty %}
-          <p class="px-4 py-4 text-sm text-gray-400">{% trans "Nichts für heute." %}</p>
+          {% if col.error %}
+            <p class="px-4 py-4 text-sm text-red-600" role="alert">{% trans "Konnte nicht geladen werden." %}</p>
+          {% else %}
+            <p class="px-4 py-4 text-sm text-gray-400">{% trans "Nichts für heute." %}</p>
+          {% endif %}
         {% endfor %}
       </div>
     </div>

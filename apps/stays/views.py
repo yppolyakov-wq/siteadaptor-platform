@@ -24,14 +24,14 @@ from django.views.decorators.http import require_POST
 
 from apps.core import deal_card, deal_links, payment_methods, refunds, vat
 from apps.core import transactions as core_transactions
-from apps.core.fsm import IllegalTransition
+from apps.core.fsm import GuestCheckedIn, IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.core.owner_login import local_next
 from apps.core.permissions import has_perm
 from apps.core.roles import audit_export
 from apps.core.view_perms import perm_required
 
-from . import availability, capacity, pricing, services
+from . import availability, capacity, front_desk, pricing, services
 from . import rate_plans as rate_plans_mod
 from . import restrictions as stay_restrictions
 from .models import (
@@ -465,6 +465,10 @@ def stay_action(request, pk):
             if is_fetch:
                 return HttpResponse(_("Those dates are no longer available."), status=409)
             messages.error(request, _("Those dates are no longer available."))
+        except services.GuestCheckedInMove:
+            if is_fetch:
+                return HttpResponse(_checked_in_move_msg(), status=409)
+            messages.error(request, _checked_in_move_msg())
         return redirect(back)
     if action == "update":
         # Фидбэк 2026-07-27: форма «Buchung bearbeiten» — даты/номер/гости/заметка
@@ -573,6 +577,9 @@ def stay_action(request, pk):
         except ValueError:
             booking.refresh_from_db()
             messages.error(request, _("Invalid dates."))
+        except services.GuestCheckedInMove:
+            booking.refresh_from_db()
+            messages.error(request, _checked_in_move_msg())
         except option_trackers.PoolFull as exc:
             messages.error(
                 request,
@@ -623,6 +630,8 @@ def stay_action(request, pk):
         messages.success(request, _("Marked as paid."))
         # Панель брони остаётся открытой (как у action=update).
         return redirect(f"{back}&buchung={booking.pk}")
+    if action in ("check_in", "check_in_undo", "check_out"):
+        return _front_desk_action(request, booking, action, back)
     if action in ("confirmed", "fulfilled", "no_show", "cancelled"):
         try:
             refund = core_transactions.apply_action(
@@ -633,6 +642,9 @@ def stay_action(request, pk):
                 extra=request.POST,  # KA-D3: выбор «erstatten / nicht erstatten»
                 tenant=getattr(request, "tenant", None),
             )
+        except GuestCheckedIn:
+            messages.error(request, _("Gast ist eingecheckt — zuerst Check-in zurücknehmen."))
+            return redirect(back)
         except IllegalTransition:
             messages.error(request, _("This step is not possible in the current status."))
             return redirect(back)
@@ -653,6 +665,35 @@ def stay_action(request, pk):
         refunds.flash(request, refund, "stay")
     else:
         messages.error(request, _("Unknown action."))
+    return redirect(back)
+
+
+def _checked_in_move_msg():
+    return _("Gast ist eingecheckt — zuerst Check-in zurücknehmen.")
+
+
+def _front_desk_action(request, booking, action, back):
+    """KA-12 Z-5 (Р-6/Р-7): Check-in / Check-in zurücknehmen / Check-out.
+
+    Право — «Rezeption: An- und Abreise buchen» (у сотрудника по умолчанию есть)."""
+    if not has_perm(request.user, "rezeption.edit"):
+        messages.error(request, _("Dafür fehlt Ihnen das Recht."))
+        return redirect(back)
+    tenant = getattr(request, "tenant", None)
+    try:
+        if action == "check_in":
+            front_desk.check_in(booking, actor=request.user, tenant=tenant)
+            messages.success(request, _("Gast eingecheckt."))
+        elif action == "check_in_undo":
+            front_desk.undo_check_in(booking, actor=request.user, tenant=tenant)
+            messages.success(request, _("Check-in zurückgenommen."))
+        else:
+            front_desk.check_out(booking, actor=request.user, tenant=tenant, extra=request.POST)
+            messages.success(request, _("Gast ausgecheckt."))
+    except front_desk.FrontDeskError as exc:
+        messages.error(request, str(exc))
+    except IllegalTransition:
+        messages.error(request, _("This step is not possible in the current status."))
     return redirect(back)
 
 
@@ -850,6 +891,9 @@ def booking_detail(request, pk):
             "free_rooms": services.free_rooms_for(booking),
             "extra_room_slots": services.extra_room_slots(booking),
             "assigned_room_numbers": ", ".join(r.number for r in services.assigned_rooms(booking)),
+            # KA-12 Z-5: стойка — отметки заезда/выезда и кнопки.
+            "desk": front_desk.state(booking, tenant=getattr(request, "tenant", None)),
+            "can_front_desk": has_perm(request.user, "rezeption.edit"),
             # DC-1: общий скелет карточки сделки — голова, статус, клиент, связи
             # и Belegungsplan под сеткой приходят из одного источника.
             **deal_card.card_context(

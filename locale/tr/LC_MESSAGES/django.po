@@ -30105,3 +30105,68 @@ msgstr "%(number)s numaralı oda %(code)s rezervasyonuna atanmış — lütfen �
 
 msgid "— Zimmer später zuweisen —"
 msgstr "— odayı sonra ata —"
+
+msgid "Abreise vor dem gebuchten Datum — bitte zuerst die Abreise in der Buchung ändern."
+msgstr "Rezerve edilen tarihten önce çıkış — lütfen önce rezervasyondaki çıkış tarihini değiştirin."
+
+msgid "Abreisedatum ist schon erreicht."
+msgstr "Çıkış tarihine zaten ulaşıldı."
+
+msgid "Anreise / Abreise"
+msgstr "Giriş / çıkış"
+
+#, python-format
+msgid "Anreise ist erst am %(day)s."
+msgstr "Giriş ancak %(day)s tarihinde."
+
+#, python-format
+msgid "Ausgecheckt %(time)s"
+msgstr "Çıkış yapıldı %(time)s"
+
+msgid "Bereits eingecheckt."
+msgstr "Giriş zaten yapıldı."
+
+msgid "Bitte die Buchung zuerst bestätigen."
+msgstr "Lütfen önce rezervasyonu onaylayın."
+
+#, python-format
+msgid "Check-in ab %(h)s:00"
+msgstr "Giriş %(h)s:00'dan itibaren"
+
+msgid "Check-in kann nicht mehr zurückgenommen werden."
+msgstr "Giriş artık geri alınamaz."
+
+msgid "Check-in zurückgenommen."
+msgstr "Giriş geri alındı."
+
+msgid "Check-in zurücknehmen"
+msgstr "Girişi geri al"
+
+msgid "Check-out"
+msgstr "Çıkış"
+
+#, python-format
+msgid "Check-out bis %(h)s:00"
+msgstr "Çıkış en geç %(h)s:00"
+
+#, python-format
+msgid "Eingecheckt %(time)s"
+msgstr "Giriş yapıldı %(time)s"
+
+msgid "Gast ausgecheckt."
+msgstr "Misafirin çıkışı yapıldı."
+
+msgid "Gast eingecheckt."
+msgstr "Misafirin girişi yapıldı."
+
+msgid "Gast ist eingecheckt — zuerst Check-in zurücknehmen."
+msgstr "Misafir giriş yaptı — önce girişi geri alın."
+
+msgid "Konnte nicht geladen werden."
+msgstr "Yüklenemedi."
+
+msgid "Noch nicht eingecheckt"
+msgstr "Henüz giriş yapılmadı"
+
+msgid "unbestätigt"
+msgstr "onaylanmadı"

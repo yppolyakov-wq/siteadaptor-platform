@@ -6,7 +6,7 @@ ACTIVE_STATUSES. confirmed/cancelled шлют письмо клиенту (notif
 fulfilled (выезд) пишет выручку в журнал finance (НДС 7 % — Beherbergung).
 """
 
-from apps.core.fsm import StateMachine, Transition
+from apps.core.fsm import GuestCheckedIn, StateMachine, Transition
 
 
 class StayBookingSM(StateMachine):
@@ -19,7 +19,19 @@ class StayBookingSM(StateMachine):
         Transition("confirmed", "no_show", "stay.no_show"),
     ]
 
+    def guard(self, instance, src, dst):
+        # KA-12 Z-5 (Р-6): заселённый гость — не неявка (все поверхности: кнопка,
+        # доска, массовая смена). Отмена заселённой брони разрешена (бывает).
+        if dst == "no_show" and getattr(instance, "checked_in_at", None):
+            raise GuestCheckedIn(type(instance).__name__, src, dst)
+
     def on_transition(self, instance, t, **kw):
+        # KA-12 Z-5 (О-7): факт выезда — отметка стойки, ПЕРВЫМ действием перехода
+        # (откат перехода откатывает и её). Автоматика (auto=True) факт не подтверждает.
+        if t.dst == "fulfilled" and not kw.get("auto"):
+            from . import front_desk
+
+            front_desk.stamp_checked_out(instance)
         if t.dst == "confirmed":
             from apps.finance.auto_invoice import on_confirmed
 

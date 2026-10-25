@@ -21,6 +21,10 @@ class PaymentRequired(IllegalTransition):
     """KA-12 E2.6: выдача/отправка онлайн-оплачиваемой сделки до поступления денег."""
 
 
+class GuestCheckedIn(IllegalTransition):
+    """KA-12 Z-5: неявка гостя, который уже заселился (отметка стойки)."""
+
+
 @dataclass(frozen=True)
 class Transition:
     src: str

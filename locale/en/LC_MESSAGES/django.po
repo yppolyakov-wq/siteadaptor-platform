@@ -29961,3 +29961,68 @@ msgstr "Room %(number)s is assigned to booking %(code)s — please move the gues
 
 msgid "— Zimmer später zuweisen —"
 msgstr "— assign room later —"
+
+msgid "Abreise vor dem gebuchten Datum — bitte zuerst die Abreise in der Buchung ändern."
+msgstr "Departure before the booked date — please change the departure in the booking first."
+
+msgid "Abreisedatum ist schon erreicht."
+msgstr "The departure date has already been reached."
+
+msgid "Anreise / Abreise"
+msgstr "Arrival / departure"
+
+#, python-format
+msgid "Anreise ist erst am %(day)s."
+msgstr "Arrival is only on %(day)s."
+
+#, python-format
+msgid "Ausgecheckt %(time)s"
+msgstr "Checked out %(time)s"
+
+msgid "Bereits eingecheckt."
+msgstr "Already checked in."
+
+msgid "Bitte die Buchung zuerst bestätigen."
+msgstr "Please confirm the booking first."
+
+#, python-format
+msgid "Check-in ab %(h)s:00"
+msgstr "Check-in from %(h)s:00"
+
+msgid "Check-in kann nicht mehr zurückgenommen werden."
+msgstr "The check-in can no longer be undone."
+
+msgid "Check-in zurückgenommen."
+msgstr "Check-in undone."
+
+msgid "Check-in zurücknehmen"
+msgstr "Undo check-in"
+
+msgid "Check-out"
+msgstr "Check-out"
+
+#, python-format
+msgid "Check-out bis %(h)s:00"
+msgstr "Check-out until %(h)s:00"
+
+#, python-format
+msgid "Eingecheckt %(time)s"
+msgstr "Checked in %(time)s"
+
+msgid "Gast ausgecheckt."
+msgstr "Guest checked out."
+
+msgid "Gast eingecheckt."
+msgstr "Guest checked in."
+
+msgid "Gast ist eingecheckt — zuerst Check-in zurücknehmen."
+msgstr "The guest is checked in — undo the check-in first."
+
+msgid "Konnte nicht geladen werden."
+msgstr "Could not be loaded."
+
+msgid "Noch nicht eingecheckt"
+msgstr "Not checked in yet"
+
+msgid "unbestätigt"
+msgstr "unconfirmed"

@@ -30220,3 +30220,68 @@ msgstr "Номер %(number)s призначено бронюванню %(code)s
 
 msgid "— Zimmer später zuweisen —"
 msgstr "— призначити номер пізніше —"
+
+msgid "Abreise vor dem gebuchten Datum — bitte zuerst die Abreise in der Buchung ändern."
+msgstr "Виїзд раніше заброньованої дати — спершу змініть дату виїзду в бронюванні."
+
+msgid "Abreisedatum ist schon erreicht."
+msgstr "Дата виїзду вже настала."
+
+msgid "Anreise / Abreise"
+msgstr "Заїзд / виїзд"
+
+#, python-format
+msgid "Anreise ist erst am %(day)s."
+msgstr "Заїзд лише %(day)s."
+
+#, python-format
+msgid "Ausgecheckt %(time)s"
+msgstr "Виїхав %(time)s"
+
+msgid "Bereits eingecheckt."
+msgstr "Гість уже заселений."
+
+msgid "Bitte die Buchung zuerst bestätigen."
+msgstr "Спершу підтвердьте бронювання."
+
+#, python-format
+msgid "Check-in ab %(h)s:00"
+msgstr "Заїзд з %(h)s:00"
+
+msgid "Check-in kann nicht mehr zurückgenommen werden."
+msgstr "Заселення вже не можна скасувати."
+
+msgid "Check-in zurückgenommen."
+msgstr "Заселення скасовано."
+
+msgid "Check-in zurücknehmen"
+msgstr "Скасувати заселення"
+
+msgid "Check-out"
+msgstr "Виїзд"
+
+#, python-format
+msgid "Check-out bis %(h)s:00"
+msgstr "Виїзд до %(h)s:00"
+
+#, python-format
+msgid "Eingecheckt %(time)s"
+msgstr "Заселений %(time)s"
+
+msgid "Gast ausgecheckt."
+msgstr "Гість виїхав."
+
+msgid "Gast eingecheckt."
+msgstr "Гість заселений."
+
+msgid "Gast ist eingecheckt — zuerst Check-in zurücknehmen."
+msgstr "Гість заселений — спершу скасуйте заселення."
+
+msgid "Konnte nicht geladen werden."
+msgstr "Не вдалося завантажити."
+
+msgid "Noch nicht eingecheckt"
+msgstr "Ще не заселений"
+
+msgid "unbestätigt"
+msgstr "не підтверджено"

@@ -242,6 +242,11 @@ def apply_custom_effects(kind: str, instance, src_desc, dst_desc) -> None:
     """
     if dst_desc is None:
         return
+    if dst_desc.role == "done" and kind == "stay":
+        # KA-12 Z-5: зеркало встроенного «fulfilled» — свой статус выезда ставит отметку.
+        from apps.stays import front_desk
+
+        front_desk.stamp_checked_out(instance)
     if dst_desc.role == "done":
         # KA-MC X1: свой статус исполнения — оплата на месте получена (зеркало встроенного).
         # KA-12 E1.7: ДО записи выручки — отложенная выручка билета «на месте» видит оплату.

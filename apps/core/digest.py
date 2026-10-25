@@ -5,12 +5,15 @@
 сегодняшних событий, ни «требует действия») → None, письмо не шлём.
 """
 
+import logging
 from datetime import timedelta
 from decimal import Decimal
 
 from django.utils import timezone
 
 from apps.core import modules
+
+logger = logging.getLogger(__name__)
 
 DIGEST_HOUR = 7  # локальный час тенанта (tenant.timezone), когда слать
 
@@ -19,6 +22,8 @@ def _safe(fn, default=0):
     try:
         return fn()
     except Exception:  # noqa: BLE001 — блок одного модуля не валит дайджест
+        # KA-12 Z-5 (DF-Z4): сбой виден в логах, а не только как «0» на главной.
+        logger.exception("digest/dashboard block failed")
         return default
 
 

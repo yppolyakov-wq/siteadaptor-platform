@@ -1,0 +1,33 @@
+{% load i18n %}
+{% comment %}KA-12 Z-5 (О-7): стойка — отметки заезда/выезда (не статус) и кнопки.
+Check-out — штатный переход «Abgereist» (выручка, уборка), поэтому с подтверждением
+общим диалогом кабинета (data-danger, _danger_confirm).
+Ожидает: b (бронь), desk (front_desk.state), can_front_desk, next_url (опц.).{% endcomment %}
+<div class="space-y-2" data-front-desk>
+  <p class="text-sm">
+    {% if desk.checked_in_at %}✓ {% blocktrans with time=desk.checked_in_at|time:"H:i" %}Eingecheckt {{ time }}{% endblocktrans %}{% elif desk.unconfirmed %}<span class="text-amber-700">{% trans "unbestätigt" %}</span>{% else %}<span class="text-gray-500">{% trans "Noch nicht eingecheckt" %}</span>{% endif %}
+    {% if desk.checked_out_at %}<br>✓ {% blocktrans with time=desk.checked_out_at|time:"H:i" %}Ausgecheckt {{ time }}{% endblocktrans %}{% endif %}
+  </p>
+  {% if can_front_desk %}
+  <div class="flex flex-wrap gap-2">
+    {% if desk.can_check_in %}
+    <form method="post" action="{% url 'stays:stay-action' b.pk %}">
+      {% csrf_token %}<input type="hidden" name="action" value="check_in"><input type="hidden" name="next" value="{{ next_url|default:request.get_full_path }}">
+      <button type="submit" class="min-h-[44px] rounded-xl bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-700">{% trans "Check-in" %}</button>
+    </form>
+    {% endif %}
+    {% if desk.can_check_out %}
+    <form method="post" action="{% url 'stays:stay-action' b.pk %}">
+      {% csrf_token %}<input type="hidden" name="action" value="check_out"><input type="hidden" name="next" value="{{ next_url|default:request.get_full_path }}">
+      <button type="submit" data-danger="1" class="min-h-[44px] rounded-xl bg-gray-900 px-4 text-sm font-medium text-white hover:bg-black">{% trans "Check-out" %}</button>
+    </form>
+    {% endif %}
+    {% if desk.can_undo %}
+    <form method="post" action="{% url 'stays:stay-action' b.pk %}">
+      {% csrf_token %}<input type="hidden" name="action" value="check_in_undo"><input type="hidden" name="next" value="{{ next_url|default:request.get_full_path }}">
+      <button type="submit" class="min-h-[44px] rounded-xl border border-gray-300 px-4 text-sm text-gray-700 hover:border-gray-500">{% trans "Check-in zurücknehmen" %}</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
