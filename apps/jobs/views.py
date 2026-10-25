@@ -43,19 +43,76 @@ def _parse_date(raw):
         return None
 
 
+# KA-12 A-2 (HW-2): откуда пришла ручная заявка — белый список (О-2). «manual» —
+# прежнее значение (телефон), остальные — подвиды; зарезервированные каналы
+# витрины/каталога города (V5) сюда не попадают.
+MANUAL_SOURCES = (
+    ("manual", gettext_lazy("Telefon")),
+    ("manual-email", gettext_lazy("E-Mail")),
+    ("manual-visit", gettext_lazy("Vor Ort")),
+    ("manual-referral", gettext_lazy("Empfehlung")),
+    ("manual-other", gettext_lazy("Sonstiges")),
+)
+
+
+def _vehicle_tenant(tenant) -> bool:
+    """Структурные поля авто (Kennzeichen/HSN/TSN) — мастерской или при `jobs_vehicle`."""
+    from apps.tenants import siteconfig
+
+    if getattr(tenant, "business_type", "") == "werkstatt":
+        return True
+    return bool(siteconfig.normalize(getattr(tenant, "site_config", None)).get("jobs_vehicle"))
+
+
+def _cabinet_event_fields(post, cfg) -> dict:
+    """Событийные поля ручной заявки: те же правила, что у /anfrage/, но вид
+    мероприятия владелец может вписать и свой (он говорит с клиентом сам)."""
+    from .public_views import _parse_event_fields
+
+    out = _parse_event_fields(post, cfg)
+    if "event_type" in (cfg.get("fields") or []) and not out["event_type"]:
+        out["event_type"] = (post.get("event_type") or "").strip()[:100]
+    return out
+
+
+def _request_form_context(tenant) -> dict:
+    from .public_views import _anfrage_config
+
+    return {
+        "anfrage_cfg": _anfrage_config(tenant),
+        "jobs_vehicle": _vehicle_tenant(tenant),
+        "manual_sources": MANUAL_SOURCES,
+        "max_photos": services.MAX_PHOTOS,
+    }
+
+
 @login_required
 def job_new(request):
     """X2c: экран «＋ Neue Anfrage» (конвенция X6-1) + ПРИЁМНИК ручной заявки.
 
     POST переехал сюда со списка заявок: сам список схлопнулся в единую
     поверхность продаж (`/dashboard/verkaeufe/?tab=job`), а форма создания
-    обязана жить на своём экране."""
+    обязана жить на своём экране.
+
+    KA-12 A-2 (HW-2/G-4): ручная заявка принимает то же, что /anfrage/ — PLZ,
+    фото, событийные поля, структурные поля авто — и источник обращения."""
+    from .public_views import _anfrage_config
+
     if request.method == "POST":  # ручная заявка (телефон/личный контакт)
         name = request.POST.get("name", "").strip()
         title = request.POST.get("title", "").strip()
         if not (name and title):
             messages.error(request, _("Please enter a name and a short title."))
             return redirect("jobs:new")
+        source = request.POST.get("source", "manual")
+        if source not in dict(MANUAL_SOURCES):
+            source = "manual"
+        vehicle = {}
+        if _vehicle_tenant(request.tenant):
+            vehicle = {
+                k: request.POST.get(k, "").strip()
+                for k in ("vehicle_plate", "vehicle_hsn", "vehicle_tsn")
+            }
         job = services.create_job(
             title=title,
             name=name,
@@ -63,12 +120,18 @@ def job_new(request):
             phone=request.POST.get("phone", "").strip(),
             description=request.POST.get("description", "").strip(),
             site_address=request.POST.get("site_address", "").strip(),
-            source_channel="manual",
+            site_plz=request.POST.get("site_plz", "").strip(),
+            source_channel=source,
             vehicle=request.POST.get("vehicle", "").strip(),
+            **vehicle,
+            **_cabinet_event_fields(request.POST, _anfrage_config(request.tenant)),
         )
+        services.add_job_photos(job, request.FILES.getlist("photos"))
         messages.success(request, _("Request created."))
         return redirect("jobs:detail", pk=job.pk)
-    return render(request, "jobs/new.html", {"nav": "jobs"})
+    return render(
+        request, "jobs/new.html", {"nav": "jobs", **_request_form_context(request.tenant)}
+    )
 
 
 @login_required
@@ -211,6 +274,16 @@ def job_detail(request, pk):
             job.save(update_fields=["valid_until", "updated_at"])
             messages.success(request, _("Saved."))
             return redirect("jobs:detail", pk=job.pk)
+        if action == "request":
+            return _save_request(request, job)
+        if action == "photos":
+            room = max(0, services.MAX_PHOTOS - job.photos.count())
+            added = services.add_job_photos(job, request.FILES.getlist("photos"), max_count=room)
+            if added:
+                messages.success(request, _("Fotos hinzugefügt."))
+            else:
+                messages.error(request, _("Keine Fotos gespeichert (JPG/PNG/WebP, max. 5 MB)."))
+            return redirect("jobs:detail", pk=job.pk)
         if action == "language":
             # I18N-7b/2: язык сметы хранится на заявке — клиент повторно скачает
             # ТОТ ЖЕ документ, независимо от языка кабинета.
@@ -260,6 +333,8 @@ def job_detail(request, pk):
                 or bool(job.vehicle or job.service_due_date)
             ),
             "doc_languages": _doc_languages(request),
+            # KA-12 A-2: форма «Anfrage bearbeiten» — те же поля, что у новой заявки.
+            **_request_form_context(request.tenant),
             # DC-1: общий скелет карточки сделки — голова, статус, клиент и связи
             # приходят из одного источника (core/deal_card_base.html).
             # У заявки своя форма контакта (адрес объекта) → общую отключаем;
@@ -291,6 +366,46 @@ def job_detail(request, pk):
             "angebot_path": reverse("storefront-angebot", args=[job.public_token]),
         },
     )
+
+
+def _save_request(request, job):
+    """KA-12 A-2 (HW-2/G-4): правка того, что прислал клиент — тема, текст, PLZ,
+    событийные поля, структурные поля авто. Presence-guard на каждом поле (W0):
+    чего нет в POST — не трогаем. Это данные ЗАЯВКИ, не цена договора, поэтому
+    правятся и после принятия сметы (О-4); позиции запирает KA-H10."""
+    from .public_views import _anfrage_config
+
+    post = request.POST
+    fields = []
+    if "title" in post:
+        title = post.get("title", "").strip()[:200]
+        if title:
+            job.title = title
+            fields.append("title")
+    if "description" in post:
+        job.description = post.get("description", "").strip()[:5000]
+        fields.append("description")
+    if "site_plz" in post:
+        job.site_plz = post.get("site_plz", "").strip()[:10]
+        fields.append("site_plz")
+    if "event_present" in post:
+        cfg = dict(_anfrage_config(request.tenant))
+        cfg["fields"] = ["date", "guests", "event_type"]  # правим всё, что показали
+        ev = _cabinet_event_fields(post, cfg)
+        job.event_date, job.guest_count, job.event_type = (
+            ev["event_date"],
+            ev["guest_count"],
+            ev["event_type"],
+        )
+        fields += ["event_date", "guest_count", "event_type"]
+    for key, size in (("vehicle_plate", 15), ("vehicle_hsn", 4), ("vehicle_tsn", 3)):
+        if key in post:
+            setattr(job, key, post.get(key, "").strip().upper()[:size])
+            fields.append(key)
+    if fields:
+        job.save(update_fields=[*fields, "updated_at"])
+        messages.success(request, _("Saved."))
+    return redirect("jobs:detail", pk=job.pk)
 
 
 def _doc_languages(request):

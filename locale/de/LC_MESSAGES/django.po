@@ -30384,3 +30384,28 @@ msgstr "Fotos nutzen wir nur für Ihr Angebot."
 
 msgid "Datenschutzerklärung"
 msgstr "Datenschutzerklärung"
+
+msgid "Anfrage bearbeiten"
+msgstr "Anfrage bearbeiten"
+
+msgid "Fahrzeug (z. B. VW Golf)"
+msgstr "Fahrzeug (z. B. VW Golf)"
+
+#, python-format
+msgid "Fotos (max. %(n)s)"
+msgstr "Fotos (max. %(n)s)"
+
+msgid "Fotos hinzufügen"
+msgstr "Fotos hinzufügen"
+
+msgid "Fotos hinzugefügt."
+msgstr "Fotos hinzugefügt."
+
+msgid "Keine Fotos gespeichert (JPG/PNG/WebP, max. 5 MB)."
+msgstr "Keine Fotos gespeichert (JPG/PNG/WebP, max. 5 MB)."
+
+msgid "Kurze Bezeichnung"
+msgstr "Kurze Bezeichnung"
+
+msgid "Vor Ort"
+msgstr "Vor Ort"

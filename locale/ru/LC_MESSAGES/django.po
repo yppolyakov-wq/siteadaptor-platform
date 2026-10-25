@@ -30567,3 +30567,28 @@ msgstr "Фотографии мы используем только для ва�
 
 msgid "Datenschutzerklärung"
 msgstr "Политика конфиденциальности"
+
+msgid "Anfrage bearbeiten"
+msgstr "Изменить заявку"
+
+msgid "Fahrzeug (z. B. VW Golf)"
+msgstr "Автомобиль (например, VW Golf)"
+
+#, python-format
+msgid "Fotos (max. %(n)s)"
+msgstr "Фото (не более %(n)s)"
+
+msgid "Fotos hinzufügen"
+msgstr "Добавить фото"
+
+msgid "Fotos hinzugefügt."
+msgstr "Фото добавлены."
+
+msgid "Keine Fotos gespeichert (JPG/PNG/WebP, max. 5 MB)."
+msgstr "Фото не сохранены (JPG/PNG/WebP, не более 5 МБ)."
+
+msgid "Kurze Bezeichnung"
+msgstr "Краткое название"
+
+msgid "Vor Ort"
+msgstr "Лично"

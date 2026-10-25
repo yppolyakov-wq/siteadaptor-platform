@@ -1,18 +1,55 @@
 {% load i18n %}
-{% comment %}X2c: форма ручной заявки — общий партиал списка заявок
-и нового экрана «＋ Neue Anfrage» (jobs:new). Разметка перенесена 1:1;
-приёмник POST — jobs:new (список схлопнулся в поверхность продаж).{% endcomment %}
-<form method="post" action="{% url 'jobs:new' %}" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+{% comment %}X2c: форма ручной заявки — экран «＋ Neue Anfrage» (jobs:new).
+KA-12 A-2 (HW-2/G-4): те же поля, что у /anfrage/ — PLZ, фото, событие (по
+конфигу формы), авто (мастерская) — и источник обращения.{% endcomment %}
+<form method="post" action="{% url 'jobs:new' %}" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
   {% csrf_token %}
   <h2 class="font-semibold">{% trans "New request" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
-  <input name="title" type="text" required placeholder="{% trans 'Short title (e.g. Bad streichen)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <input name="title" type="text" required placeholder="{% trans 'Kurze Bezeichnung' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   <div class="grid sm:grid-cols-3 gap-4">
     <input name="name" type="text" required placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
     <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
     <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
   </div>
-  <input name="site_address" type="text" placeholder="{% trans 'Job address (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-  <input name="vehicle" type="text" placeholder="{% trans 'Vehicle / licence plate (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <div class="grid sm:grid-cols-3 gap-4">
+    <input name="site_address" type="text" placeholder="{% trans 'Job address (optional)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+    <input name="site_plz" type="text" inputmode="numeric" maxlength="10" placeholder="{% trans 'Postal code' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  {% if anfrage_cfg.fields %}
+    <div class="grid sm:grid-cols-3 gap-4" data-request-event>
+      {% if "date" in anfrage_cfg.fields %}
+        <label class="block text-xs text-gray-500">{% trans "Wunschdatum" %}
+          <input name="event_date" type="date" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+      {% endif %}
+      {% if "guests" in anfrage_cfg.fields %}
+        <label class="block text-xs text-gray-500">{% trans "Personen" %}
+          <input name="guest_count" type="number" min="1" inputmode="numeric" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+      {% endif %}
+      {% if "event_type" in anfrage_cfg.fields %}
+        <label class="block text-xs text-gray-500">{% trans "Art der Veranstaltung" %}
+          <input name="event_type" list="request-event-types" maxlength="100" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+        <datalist id="request-event-types">{% for t in anfrage_cfg.event_types %}<option value="{{ t }}">{% endfor %}</datalist>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% if jobs_vehicle %}
+    <div class="grid sm:grid-cols-4 gap-4" data-request-vehicle>
+      <input name="vehicle" type="text" placeholder="{% trans 'Fahrzeug (z. B. VW Golf)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+      <input name="vehicle_plate" type="text" maxlength="15" placeholder="{% trans 'Licence plate' %}" class="rounded-lg border border-gray-300 px-3 py-2 uppercase">
+      <div class="grid grid-cols-2 gap-2">
+        <input name="vehicle_hsn" type="text" maxlength="4" placeholder="HSN" class="rounded-lg border border-gray-300 px-3 py-2 uppercase">
+        <input name="vehicle_tsn" type="text" maxlength="3" placeholder="TSN" class="rounded-lg border border-gray-300 px-3 py-2 uppercase">
+      </div>
+    </div>
+  {% endif %}
   <textarea name="description" rows="2" placeholder="{% trans 'Description (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  <div class="grid sm:grid-cols-2 gap-4 items-end">
+    <label class="block text-xs text-gray-500">{% trans "Source" %}
+      <select name="source" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900">
+        {% for code, label in manual_sources %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+      </select></label>
+    <label class="block text-xs text-gray-500">{% blocktrans with n=max_photos %}Fotos (max. {{ n }}){% endblocktrans %}
+      <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple class="mt-1 block w-full text-sm"></label>
+  </div>
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create request" %}</button>
 </form>

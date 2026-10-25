@@ -30436,3 +30436,28 @@ msgstr "Fotoğrafları yalnızca teklifiniz için kullanırız."
 
 msgid "Datenschutzerklärung"
 msgstr "Gizlilik politikası"
+
+msgid "Anfrage bearbeiten"
+msgstr "Talebi düzenle"
+
+msgid "Fahrzeug (z. B. VW Golf)"
+msgstr "Araç (ör. VW Golf)"
+
+#, python-format
+msgid "Fotos (max. %(n)s)"
+msgstr "Fotoğraflar (en fazla %(n)s)"
+
+msgid "Fotos hinzufügen"
+msgstr "Fotoğraf ekle"
+
+msgid "Fotos hinzugefügt."
+msgstr "Fotoğraflar eklendi."
+
+msgid "Keine Fotos gespeichert (JPG/PNG/WebP, max. 5 MB)."
+msgstr "Fotoğraf kaydedilmedi (JPG/PNG/WebP, en fazla 5 MB)."
+
+msgid "Kurze Bezeichnung"
+msgstr "Kısa başlık"
+
+msgid "Vor Ort"
+msgstr "Yerinde"
