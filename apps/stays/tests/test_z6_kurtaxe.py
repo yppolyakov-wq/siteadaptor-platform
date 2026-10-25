@@ -259,3 +259,24 @@ def test_status_still_pending_counted_only_if_registry_counts(monkeypatch):
     counted = status_registry.counted_statuses_for("stay")
     rep = kurtaxe.month_report(M1, M2)
     assert (StayBooking.STATUS_PENDING in counted) == bool(rep["rows"])
+
+
+def test_desk_entry_can_be_corrected_at_desk():
+    b = _book(M1 + timedelta(days=3), 2)
+    _post_reg(b, {"last_name": "Erst"})
+    _post_reg(b, {"last_name": "Korrigiert"})
+    assert GuestRegistration.objects.get(booking=b).last_name == "Korrigiert"
+
+
+def test_cancelled_booking_not_in_meldescheine_export():
+    b = _book(M1 + timedelta(days=3), 2)
+    GuestRegistration.objects.create(
+        booking=b, first_name="X", last_name="Storniert", signed_name="X"
+    )
+    StayBookingSM().apply(b, "cancelled")
+    text = _get(views.meldescheine_export, "/x", {"month": "2026-01"}).content.decode("utf-8-sig")
+    assert "Storniert" not in text
+
+
+def test_absurd_month_is_not_500():
+    assert _get(views.kurtaxe_report, "/x", {"month": "9999-12"}).status_code == 200

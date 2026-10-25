@@ -684,7 +684,7 @@ def _registration_action(request, booking, back):
         messages.error(request, _("Dafür fehlt Ihnen das Recht."))
         return redirect(back)
     reg = GuestRegistration.objects.filter(booking=booking).first()
-    if reg is not None and reg.signed_ip:
+    if reg is not None and not reg.entered_at_desk:
         messages.error(request, _("Der Gast hat den Meldeschein online ausgefüllt."))
         return redirect(back)
     if not request.POST.get("last_name", "").strip():
@@ -695,6 +695,7 @@ def _registration_action(request, booking, back):
     reg.signed_name = f"{reg.first_name} {reg.last_name}".strip()[:200]
     reg.signed_at = timezone.now()
     reg.signed_ip = None
+    reg.entered_at_desk = True
     reg.save()
     messages.success(request, _("Meldeschein gespeichert."))
     return redirect(back)
@@ -1605,6 +1606,8 @@ def _month_bounds(raw):
     today = timezone.localdate()
     try:
         y, m = (int(x) for x in (raw or "").split("-", 1))
+        if not 2000 <= y <= 2100:  # Z-6: ?month=9999-12 ронял 500 на расчёте конца
+            raise ValueError
         start = date(y, m, 1)
     except (TypeError, ValueError):
         start = today.replace(day=1)
@@ -1974,6 +1977,8 @@ def kurtaxe_report(request):
     if fmt == "csv":
         import csv
 
+        from apps.core.csv_safe import csv_safe
+
         response = HttpResponse(content_type="text/csv; charset=utf-8")
         response["Content-Disposition"] = (
             f'attachment; filename="kurtaxe_{start.strftime("%Y-%m")}.csv"'
@@ -1998,7 +2003,7 @@ def kurtaxe_report(request):
             writer.writerow(
                 [
                     b.reference_code,
-                    str(b.unit),
+                    csv_safe(str(b.unit)),
                     b.arrival.isoformat(),
                     b.departure.isoformat(),
                     r.nights,
@@ -2039,6 +2044,7 @@ def meldescheine_export(request):
     + запись в журнал. Номер документа НЕ выгружаем (О-10: только печатный Meldeschein)."""
     import csv
 
+    from apps.core import status_registry
     from apps.core.csv_safe import csv_safe
 
     from .models import GuestRegistration
@@ -2046,7 +2052,14 @@ def meldescheine_export(request):
     start, end = _month_bounds(request.GET.get("month"))
     regs = (
         GuestRegistration.objects.select_related("booking", "booking__unit")
-        .filter(booking__arrival__lt=end, booking__departure__gt=start)
+        .filter(
+            booking__arrival__lt=end,
+            booking__departure__gt=start,
+            # Минимизация данных: отменённые/неявки в выгрузку не идут.
+            booking__status__in=status_registry.counted_statuses_for(
+                "stay", getattr(request, "tenant", None)
+            ),
+        )
         .order_by("booking__arrival")
     )
     response = HttpResponse(content_type="text/csv; charset=utf-8")

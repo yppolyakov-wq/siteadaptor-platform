@@ -857,6 +857,9 @@ class GuestRegistration(TimestampedModel):
     signed_name = models.CharField(max_length=200)
     signed_at = models.DateTimeField(null=True, blank=True)
     signed_ip = models.GenericIPAddressField(null=True, blank=True)
+    # KA-12 Z-6: Meldeschein внесён на стойке (гость подписывает распечатку). Онлайн-подпись
+    # гостя (False) стойка не перетирает — признак не зависит от того, был ли известен IP.
+    entered_at_desk = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]

@@ -26978,6 +26978,49 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     },
                 )
 
+            # KA-12 Z-5/Z-7: стойка «Heute» — заезд сегодня (уже заселён) и выезд сегодня,
+            # оба в физических номерах; колонки Anreisen/Abreisen/Im Haus наполнены.
+            try:
+                from apps.stays import front_desk as _front_desk
+                from apps.stays.models import Room as _Room
+                from apps.stays.models import StayBooking as _StayBooking
+                from apps.stays.services import assign_room
+
+                desk_unit = (
+                    _Room.objects.order_by("unit__name").values_list("unit_id", flat=True).first()
+                )
+                desk_unit = next((u for u in units if u.pk == desk_unit), units[0])
+                rooms_free = list(_Room.objects.filter(unit=desk_unit).order_by("number"))
+                desk_cases = [
+                    ("Familie Sommer", 0, 3, "sommer@example.com"),
+                    ("Herr Wagner", -2, 0, "wagner@example.com"),
+                ]
+                for i, (name, arr, dep, mail) in enumerate(desk_cases):
+                    room = rooms_free[i + 1] if len(rooms_free) > i + 1 else None
+                    b = book_stay(
+                        desk_unit,
+                        arrival=today + timedelta(days=arr),
+                        departure=today + timedelta(days=dep),
+                        name=name,
+                        email=mail,
+                        adults=2,
+                        auto_confirm=True,
+                        source_channel="manual",
+                    )
+                    if room is not None:
+                        try:
+                            assign_room(b, room)
+                        except Exception:
+                            pass
+                    if arr == 0:
+                        _front_desk.check_in(b)
+                    else:
+                        _StayBooking.objects.filter(pk=b.pk).update(checked_in_at=timezone.now())
+            except Exception:
+                import logging
+
+                logging.getLogger(__name__).exception("demo: hotel front desk seed failed")
+
             # G11: каналы продаж (Booking/Airbnb) + импортированная бронь из канала.
             from apps.stays.models import Channel
             from apps.stays.services import import_external_booking

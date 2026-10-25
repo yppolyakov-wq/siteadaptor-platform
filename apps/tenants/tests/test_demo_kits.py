@@ -467,6 +467,12 @@ def test_apply_hotel_kit_builds_stays_site():
 
     assert Extra.objects.filter(scope="stays").count() == 4
     assert Extra.objects.get(label="Frühstücksbuffet").per_night is True
+    # KA-12 Z-7: стойка «Heute» наполнена — заезд сегодня уже заселён, выезд сегодня есть.
+    from django.utils import timezone as _tz
+
+    today = _tz.localdate()
+    assert StayBooking.objects.filter(arrival=today, checked_in_at__isnull=False).exists()
+    assert StayBooking.objects.filter(departure=today, status="confirmed").exists()
 
     # E4 депозит + A5a сезонный тариф на Doppelzimmer
     from apps.stays.models import SeasonRate

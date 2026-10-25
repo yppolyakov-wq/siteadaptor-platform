@@ -5,7 +5,7 @@
     {% if registration %}
     <p class="text-sm">{{ registration.first_name }} {{ registration.last_name }}{% if registration.nationality %} · {{ registration.nationality }}{% endif %}</p>
     {% if registration.street %}<p class="text-sm text-gray-600">{{ registration.street }}, {{ registration.postal_code }}</p>{% endif %}
-    <p class="text-xs text-gray-400 mt-1">{% if registration.signed_ip %}{% trans "Online ausgefüllt" %}{% else %}{% trans "An der Rezeption erfasst" %}{% endif %} · {{ registration.created_at|date:"d.m.Y H:i" }}</p>
+    <p class="text-xs text-gray-400 mt-1">{% if registration.entered_at_desk %}{% trans "An der Rezeption erfasst" %}{% else %}{% trans "Online ausgefüllt" %}{% endif %} · {{ registration.created_at|date:"d.m.Y H:i" }}</p>
   {% else %}
     <p class="text-sm text-gray-400">{% trans "Noch nicht ausgefüllt." %} <a href="{% url 'stays:checkins' %}" class="text-indigo-600 hover:underline">{% trans "Online-Checkins" %} →</a></p>
   {% endif %}
@@ -13,7 +13,7 @@
   гостя не перетирается — форма только для пустого или стоечного Meldeschein.{% endcomment %}
   {% if "stays:meldeschein-pdf"|can_open:request %}
     <a href="{% url 'stays:meldeschein-pdf' b.pk %}" target="_blank" rel="noopener" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">🖨 {% trans "Meldeschein drucken" %}</a>
-    {% if not registration.signed_ip %}
+    {% if not registration or registration.entered_at_desk %}
     <details class="mt-2" data-meldeschein-form>
       <summary class="cursor-pointer text-sm text-indigo-600">✏️ {% trans "Meldeschein erfassen" %}</summary>
       <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="mt-2 grid grid-cols-2 gap-2 text-sm">
