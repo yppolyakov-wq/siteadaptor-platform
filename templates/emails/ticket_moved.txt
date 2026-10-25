@@ -1,0 +1,10 @@
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
+
+{% blocktrans with title=event.title code=ticket.reference_code %}Ihre Anmeldung zu „{{ title }}“ ({{ code }}) wurde auf einen neuen Termin verlegt:{% endblocktrans %}
+{{ event.starts_at|date:"D, d.m.Y H:i" }}{% if event.location %} · {{ event.location }}{% endif %}
+
+{% trans "Ihr Ticket und Ihre Zahlung bleiben gültig." %}
+{% if memo_url %}{% trans "Infoblatt" %}: {{ memo_url }}
+{% endif %}{% if unsubscribe_url %}—
+{% trans "Keine E-Mails mehr" %}: {{ unsubscribe_url }}
+{% endif %}

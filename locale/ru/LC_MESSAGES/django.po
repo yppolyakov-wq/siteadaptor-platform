@@ -30474,3 +30474,58 @@ msgstr "с начала: %(p)s %%"
 
 msgid "Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."
 msgstr "Возврат не удалось выполнить автоматически — мы свяжемся с вами."
+
+#, python-format
+msgid "Am neuen Termin sind nur noch %(n)s Plätze frei."
+msgstr "На новую дату осталось только %(n)s мест."
+
+msgid "Auf anderen Termin umbuchen"
+msgstr "Перенести на другую дату"
+
+msgid "Bitte zuerst die Zusatzleistungen entfernen — sie gelten nur für diesen Termin."
+msgstr "Сначала уберите дополнительные услуги — они действуют только для этой даты."
+
+msgid "Das Ticket hat eine Unterkunft — bitte die Buchung des Zimmers getrennt umbuchen."
+msgstr "К билету привязано проживание — перенесите бронь номера отдельно."
+
+#, python-format
+msgid "Der neue Termin kostet %(diff)s € anders — Nachzahlung oder Erstattung mit dem Gast klären."
+msgstr "Цена новой даты отличается на %(diff)s € — доплату или возврат согласуйте с гостем."
+
+msgid "Dieser Termin steht für eine Umbuchung nicht zur Verfügung."
+msgstr "Эта дата недоступна для переноса."
+
+msgid "Neuer Termin"
+msgstr "Новая дата"
+
+msgid "Termin geändert"
+msgstr "Дата изменена"
+
+#, python-format
+msgid "Ticket auf %(date)s umgebucht."
+msgstr "Билет перенесён на %(date)s."
+
+msgid "Umbuchen"
+msgstr "Перенести"
+
+msgid "Ihr Ticket und Ihre Zahlung bleiben gültig."
+msgstr "Ваш билет и оплата остаются в силе."
+
+#, python-format
+msgid "Ihre Anmeldung zu „%(title)s“ (%(code)s) wurde auf einen neuen Termin verlegt:"
+msgstr "Ваша запись на «%(title)s» (%(code)s) перенесена на новую дату:"
+
+msgid "Infoblatt"
+msgstr "Памятка"
+
+msgid "Das Ticket wird in Raten bezahlt — der Ratenplan gilt für den alten Termin."
+msgstr "Билет оплачивается в рассрочку — график действует для старой даты."
+
+msgid "Der neue Termin verlangt eine Haftungserklärung, die der Gast nicht unterschrieben hat."
+msgstr "Новая дата требует отказа от ответственности, который гость не подписывал."
+
+msgid "Den Tarif dieses Tickets gibt es am neuen Termin nicht."
+msgstr "Тарифа этого билета на новой дате нет."
+
+msgid "Der neue Termin fragt andere Angaben ab — bitte beim Gast nachfragen."
+msgstr "Новая дата запрашивает другие данные — уточните у гостя."

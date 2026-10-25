@@ -23,6 +23,7 @@ _CUSTOMER_TEMPLATES = {
     "reminder": "ticket_reminder",  # R9 за N дней до события
     "post_event": "ticket_post_event",  # R9 после события (отзыв/возврат)
     "payment_reminder": "ticket_payment_reminder",  # B2: незавершённая оплата
+    "moved": "ticket_moved",  # KA-12 T-4b: перенос на другую дату
 }
 
 
@@ -44,8 +45,11 @@ def _rest_context(ticket, tenant, base: str) -> dict:
     return {"rest_eur": f"{rest:.2f}".replace(".", ","), "rest_url": url}
 
 
-def enqueue_ticket_email(ticket, event):
-    """Создать Notification(ы) события билета (БД-дедуп) и поставить доставку."""
+def enqueue_ticket_email(ticket, event, dedupe_suffix=""):
+    """Создать Notification(ы) события билета (БД-дедуп) и поставить доставку.
+
+    `dedupe_suffix` — для событий, которые законно повторяются (перенос на другую
+    дату — суффикс целевой даты, иначе второй перенос остался бы без письма)."""
     schema = connection.schema_name
     customer = ticket.customer
     tenant = _tenant(schema)
@@ -107,7 +111,7 @@ def enqueue_ticket_email(ticket, event):
                 "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
             }
         notify(
-            dedupe_key=f"ticket:{ticket.id}:{event}:customer",
+            dedupe_key=f"ticket:{ticket.id}:{event}{dedupe_suffix}:customer",
             type=f"ticket_{event}",
             recipient=customer.email,
             subject=subject,
@@ -127,7 +131,7 @@ def enqueue_ticket_email(ticket, event):
         send_to_customer(
             customer,
             type=f"ticket_{event}",
-            dedupe_key=f"ticket:{ticket.id}:{event}:tg",
+            dedupe_key=f"ticket:{ticket.id}:{event}{dedupe_suffix}:tg",
             text=subject_tg or body_tg,
         )
 

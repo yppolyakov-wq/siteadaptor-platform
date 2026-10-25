@@ -30199,3 +30199,58 @@ msgstr "from the start: %(p)s %%"
 
 msgid "Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."
 msgstr "The refund could not be processed automatically — we will get in touch."
+
+#, python-format
+msgid "Am neuen Termin sind nur noch %(n)s Plätze frei."
+msgstr "Only %(n)s seats left on the new date."
+
+msgid "Auf anderen Termin umbuchen"
+msgstr "Move to another date"
+
+msgid "Bitte zuerst die Zusatzleistungen entfernen — sie gelten nur für diesen Termin."
+msgstr "Please remove the extras first — they only apply to this date."
+
+msgid "Das Ticket hat eine Unterkunft — bitte die Buchung des Zimmers getrennt umbuchen."
+msgstr "The ticket includes accommodation — please move the room booking separately."
+
+#, python-format
+msgid "Der neue Termin kostet %(diff)s € anders — Nachzahlung oder Erstattung mit dem Gast klären."
+msgstr "The new date differs in price by %(diff)s € — settle the additional payment or refund with the guest."
+
+msgid "Dieser Termin steht für eine Umbuchung nicht zur Verfügung."
+msgstr "This date is not available for moving the ticket."
+
+msgid "Neuer Termin"
+msgstr "New date"
+
+msgid "Termin geändert"
+msgstr "Date changed"
+
+#, python-format
+msgid "Ticket auf %(date)s umgebucht."
+msgstr "Ticket moved to %(date)s."
+
+msgid "Umbuchen"
+msgstr "Move"
+
+msgid "Ihr Ticket und Ihre Zahlung bleiben gültig."
+msgstr "Your ticket and your payment remain valid."
+
+#, python-format
+msgid "Ihre Anmeldung zu „%(title)s“ (%(code)s) wurde auf einen neuen Termin verlegt:"
+msgstr "Your registration for “%(title)s” (%(code)s) has been moved to a new date:"
+
+msgid "Infoblatt"
+msgstr "Info sheet"
+
+msgid "Das Ticket wird in Raten bezahlt — der Ratenplan gilt für den alten Termin."
+msgstr "The ticket is paid in instalments — the plan applies to the old date."
+
+msgid "Der neue Termin verlangt eine Haftungserklärung, die der Gast nicht unterschrieben hat."
+msgstr "The new date requires a liability waiver the guest has not signed."
+
+msgid "Den Tarif dieses Tickets gibt es am neuen Termin nicht."
+msgstr "This ticket's rate does not exist on the new date."
+
+msgid "Der neue Termin fragt andere Angaben ab — bitte beim Gast nachfragen."
+msgstr "The new date asks for different details — please check with the guest."

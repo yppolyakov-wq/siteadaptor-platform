@@ -30458,3 +30458,58 @@ msgstr "з початку: %(p)s %%"
 
 msgid "Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."
 msgstr "Повернення не вдалося виконати автоматично — ми зв'яжемося з вами."
+
+#, python-format
+msgid "Am neuen Termin sind nur noch %(n)s Plätze frei."
+msgstr "На нову дату залишилося лише %(n)s місць."
+
+msgid "Auf anderen Termin umbuchen"
+msgstr "Перенести на іншу дату"
+
+msgid "Bitte zuerst die Zusatzleistungen entfernen — sie gelten nur für diesen Termin."
+msgstr "Спочатку приберіть додаткові послуги — вони діють лише для цієї дати."
+
+msgid "Das Ticket hat eine Unterkunft — bitte die Buchung des Zimmers getrennt umbuchen."
+msgstr "До квитка прив'язано проживання — перенесіть бронювання номера окремо."
+
+#, python-format
+msgid "Der neue Termin kostet %(diff)s € anders — Nachzahlung oder Erstattung mit dem Gast klären."
+msgstr "Ціна нової дати відрізняється на %(diff)s € — доплату чи повернення узгодьте з гостем."
+
+msgid "Dieser Termin steht für eine Umbuchung nicht zur Verfügung."
+msgstr "Ця дата недоступна для перенесення."
+
+msgid "Neuer Termin"
+msgstr "Нова дата"
+
+msgid "Termin geändert"
+msgstr "Дату змінено"
+
+#, python-format
+msgid "Ticket auf %(date)s umgebucht."
+msgstr "Квиток перенесено на %(date)s."
+
+msgid "Umbuchen"
+msgstr "Перенести"
+
+msgid "Ihr Ticket und Ihre Zahlung bleiben gültig."
+msgstr "Ваш квиток і оплата залишаються чинними."
+
+#, python-format
+msgid "Ihre Anmeldung zu „%(title)s“ (%(code)s) wurde auf einen neuen Termin verlegt:"
+msgstr "Ваш запис на «%(title)s» (%(code)s) перенесено на нову дату:"
+
+msgid "Infoblatt"
+msgstr "Пам'ятка"
+
+msgid "Das Ticket wird in Raten bezahlt — der Ratenplan gilt für den alten Termin."
+msgstr "Квиток оплачується частинами — графік діє для старої дати."
+
+msgid "Der neue Termin verlangt eine Haftungserklärung, die der Gast nicht unterschrieben hat."
+msgstr "Нова дата вимагає відмови від відповідальності, яку гість не підписував."
+
+msgid "Den Tarif dieses Tickets gibt es am neuen Termin nicht."
+msgstr "Тарифу цього квитка на новій даті немає."
+
+msgid "Der neue Termin fragt andere Angaben ab — bitte beim Gast nachfragen."
+msgstr "Нова дата запитує інші дані — уточніть у гостя."

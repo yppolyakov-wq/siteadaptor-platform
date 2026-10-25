@@ -54,6 +54,7 @@ CUSTOMER_EVENTS = {
         ("reminder", _("Erinnerung")),
         ("post_event", _("Danke & Bewertung")),
         ("payment_reminder", _("Zahlungserinnerung")),
+        ("moved", _("Termin geändert")),
     ],
     "job": [
         ("quoted", _("Angebot gesendet")),

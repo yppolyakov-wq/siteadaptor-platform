@@ -7,7 +7,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
 
 from apps.core import refunds
@@ -237,6 +239,7 @@ def ticket_detail(request, pk):
     from apps.core import extras as extras_engine
 
     from .models import Ticket
+    from .services import transfer_targets
 
     ticket = get_object_or_404(Ticket.objects.select_related("customer", "event"), pk=pk)
     edit_extras = extras_engine.active_for(
@@ -254,6 +257,12 @@ def ticket_detail(request, pk):
             "edit_extras": edit_extras,
             "chosen_extra_ids": chosen,
             "waiver": getattr(ticket, "waiver", None),
+            # KA-12 T-4b: даты для переноса (та же серия/тур, ещё не начались).
+            "transfer_targets": (
+                list(transfer_targets(ticket))
+                if ticket.status in (Ticket.STATUS_PENDING, Ticket.STATUS_CONFIRMED)
+                else []
+            ),
             **deal_card.card_context(
                 request,
                 "ticket",
@@ -271,6 +280,8 @@ def ticket_action(request, pk, tid):
     """Действия по билету: confirm / attended / cancel (FSM) + mark paid."""
     ticket = get_object_or_404(Ticket, pk=tid, event_id=pk)
     target = request.POST.get("target", "")
+    if request.POST.get("action") == "transfer":
+        return _ticket_transfer(request, ticket)
     if request.POST.get("action") == "extras":
         # 3b (зеркало MX-3): правка состава допов билета; итог — свойство
         # Ticket.total_cents (пересчитывается сам). Enforcement трекеров — MX-2e.
@@ -360,6 +371,64 @@ def ticket_action(request, pk, tid):
             # Отмена освободила место → уведомить лист ожидания (R1).
             notify_event_waitlist(ticket.event)
     return redirect("events:detail", pk=pk)
+
+
+_TRANSFER_ERRORS = {
+    "status": gettext_lazy("This step is not possible in the current status."),
+    "accommodation": gettext_lazy(
+        "Das Ticket hat eine Unterkunft — bitte die Buchung des Zimmers getrennt umbuchen."
+    ),
+    "extras": gettext_lazy(
+        "Bitte zuerst die Zusatzleistungen entfernen — sie gelten nur für diesen Termin."
+    ),
+    "target": gettext_lazy("Dieser Termin steht für eine Umbuchung nicht zur Verfügung."),
+    "installment": gettext_lazy(
+        "Das Ticket wird in Raten bezahlt — der Ratenplan gilt für den alten Termin."
+    ),
+    "waiver": gettext_lazy(
+        "Der neue Termin verlangt eine Haftungserklärung, die der Gast nicht unterschrieben hat."
+    ),
+    "tier": gettext_lazy("Den Tarif dieses Tickets gibt es am neuen Termin nicht."),
+}
+
+
+def _ticket_transfer(request, ticket):
+    """KA-12 T-4b: перенос билета на другую дату той же серии/тура."""
+    from .services import TransferRefused, transfer_ticket
+
+    try:
+        result = transfer_ticket(
+            ticket, _uuid_or_none(request.POST.get("target_event")), actor=request.user
+        )
+    except TransferRefused as exc:
+        if exc.reason == "full":
+            messages.error(
+                request,
+                _("Am neuen Termin sind nur noch %(n)s Plätze frei.") % {"n": exc.available},
+            )
+        else:
+            messages.error(request, _TRANSFER_ERRORS[exc.reason])
+        return redirect("events:ticket-detail", pk=ticket.pk)
+    messages.success(
+        request,
+        _("Ticket auf %(date)s umgebucht.")
+        % {"date": date_format(timezone.localtime(result["to"].starts_at), "D, d.m.Y H:i")},
+    )
+    if result["price_diff_cents"]:
+        messages.warning(
+            request,
+            _(
+                "Der neue Termin kostet %(diff)s € anders — Nachzahlung oder Erstattung "
+                "mit dem Gast klären."
+            )
+            % {"diff": f"{result['price_diff_cents'] / 100:+.2f}"},
+        )
+    if result["questions_differ"]:
+        messages.warning(
+            request,
+            _("Der neue Termin fragt andere Angaben ab — bitte beim Gast nachfragen."),
+        )
+    return redirect("events:ticket-detail", pk=ticket.pk)
 
 
 @login_required

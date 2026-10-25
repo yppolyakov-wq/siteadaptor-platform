@@ -30291,3 +30291,58 @@ msgstr "ab Beginn: %(p)s %%"
 
 msgid "Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."
 msgstr "Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."
+
+#, python-format
+msgid "Am neuen Termin sind nur noch %(n)s Plätze frei."
+msgstr "Am neuen Termin sind nur noch %(n)s Plätze frei."
+
+msgid "Auf anderen Termin umbuchen"
+msgstr "Auf anderen Termin umbuchen"
+
+msgid "Bitte zuerst die Zusatzleistungen entfernen — sie gelten nur für diesen Termin."
+msgstr "Bitte zuerst die Zusatzleistungen entfernen — sie gelten nur für diesen Termin."
+
+msgid "Das Ticket hat eine Unterkunft — bitte die Buchung des Zimmers getrennt umbuchen."
+msgstr "Das Ticket hat eine Unterkunft — bitte die Buchung des Zimmers getrennt umbuchen."
+
+#, python-format
+msgid "Der neue Termin kostet %(diff)s € anders — Nachzahlung oder Erstattung mit dem Gast klären."
+msgstr "Der neue Termin kostet %(diff)s € anders — Nachzahlung oder Erstattung mit dem Gast klären."
+
+msgid "Dieser Termin steht für eine Umbuchung nicht zur Verfügung."
+msgstr "Dieser Termin steht für eine Umbuchung nicht zur Verfügung."
+
+msgid "Neuer Termin"
+msgstr "Neuer Termin"
+
+msgid "Termin geändert"
+msgstr "Termin geändert"
+
+#, python-format
+msgid "Ticket auf %(date)s umgebucht."
+msgstr "Ticket auf %(date)s umgebucht."
+
+msgid "Umbuchen"
+msgstr "Umbuchen"
+
+msgid "Ihr Ticket und Ihre Zahlung bleiben gültig."
+msgstr "Ihr Ticket und Ihre Zahlung bleiben gültig."
+
+#, python-format
+msgid "Ihre Anmeldung zu „%(title)s“ (%(code)s) wurde auf einen neuen Termin verlegt:"
+msgstr "Ihre Anmeldung zu „%(title)s“ (%(code)s) wurde auf einen neuen Termin verlegt:"
+
+msgid "Infoblatt"
+msgstr "Infoblatt"
+
+msgid "Das Ticket wird in Raten bezahlt — der Ratenplan gilt für den alten Termin."
+msgstr "Das Ticket wird in Raten bezahlt — der Ratenplan gilt für den alten Termin."
+
+msgid "Der neue Termin verlangt eine Haftungserklärung, die der Gast nicht unterschrieben hat."
+msgstr "Der neue Termin verlangt eine Haftungserklärung, die der Gast nicht unterschrieben hat."
+
+msgid "Den Tarif dieses Tickets gibt es am neuen Termin nicht."
+msgstr "Den Tarif dieses Tickets gibt es am neuen Termin nicht."
+
+msgid "Der neue Termin fragt andere Angaben ab — bitte beim Gast nachfragen."
+msgstr "Der neue Termin fragt andere Angaben ab — bitte beim Gast nachfragen."

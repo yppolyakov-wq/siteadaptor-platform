@@ -41,6 +41,24 @@
     </div>
   </div>
 
+  {% if transfer_targets %}
+    {% comment %}KA-12 T-4b: перенос на другую дату той же серии/тура — деньги и тариф
+    остаются на билете; места цели проверяет сервер под блокировкой.{% endcomment %}
+    <details class="mt-4 border-t border-gray-100 pt-3" data-ticket-transfer>
+      <summary class="text-xs text-indigo-600 cursor-pointer select-none">{% trans "Auf anderen Termin umbuchen" %}</summary>
+      <form method="post" action="{% url 'events:ticket-action' t.event_id t.pk %}" class="mt-2 flex flex-wrap items-end gap-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="transfer">
+        <label class="text-xs text-gray-500">{% trans "Neuer Termin" %}
+          <select name="target_event" class="mt-1 block rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            {% for e in transfer_targets %}<option value="{{ e.pk }}">{{ e.starts_at|date:"D, d.m.Y H:i" }}{% if e.seats_left is not None %} · {% blocktrans with n=e.seats_left %}{{ n }} frei{% endblocktrans %}{% endif %}</option>{% endfor %}
+          </select>
+        </label>
+        <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-700">{% trans "Umbuchen" %}</button>
+      </form>
+    </details>
+  {% endif %}
+
   {% if t.extras %}
     <ul class="mt-4 border-t border-gray-100 pt-3 text-sm text-gray-600 space-y-1">
       {% for e in t.extras %}<li>+ {{ e.label }}</li>{% endfor %}

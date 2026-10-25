@@ -13,7 +13,7 @@ from django.db import models, transaction
 
 from apps.promotions.models import Customer
 
-from .models import Event, EventWaitlistEntry, Ticket
+from .models import Event, EventWaitlistEntry, InstallmentPlan, Ticket, TicketWaiver
 
 _ALPHABET = string.ascii_uppercase + string.digits
 
@@ -604,3 +604,137 @@ def _notify_owner_event_cancelled(event, summary, tenant) -> None:
         )
     except Exception:  # noqa: BLE001 — сводка не валит отмену
         logging.getLogger(__name__).warning("event cancel summary not sent", exc_info=True)
+
+
+# --- KA-12 T-4b: перенос билета на другую дату той же серии/тура -----------------
+class TransferRefused(Exception):
+    """Перенос невозможен (`reason` — машинный код для сообщения кабинета)."""
+
+    def __init__(self, reason: str, available: int = 0):
+        super().__init__(reason)
+        self.reason = reason
+        self.available = available
+
+
+def transfer_targets(ticket):
+    """Даты, на которые можно перенести билет: та же серия или тот же тур,
+    опубликованы, ещё не начались, не текущая. Пусто — переноса нет."""
+    from django.db.models import Q
+    from django.utils import timezone
+
+    event = ticket.event
+    match = Q()
+    if event.series_id:
+        match |= Q(series_id=event.series_id)
+    if event.tour_id:
+        match |= Q(tour_id=event.tour_id)
+    if not match:
+        return Event.objects.none()
+    return (
+        Event.objects.filter(match, status=Event.STATUS_PUBLISHED, starts_at__gt=timezone.now())
+        .exclude(pk=event.pk)
+        .order_by("starts_at")
+    )
+
+
+def _sold(event, *, tier_label=None) -> int:
+    from apps.core import status_registry
+
+    qs = event.tickets.filter(status__in=status_registry.active_statuses_for("ticket"))
+    if tier_label is not None:
+        qs = qs.filter(tier_label=tier_label)
+    return qs.aggregate(n=models.Sum("quantity"))["n"] or 0
+
+
+def transfer_ticket(ticket, target_id, *, actor=None) -> dict:
+    """Перенести билет на другой заезд. Деньги, тир, ставка и оплата остаются на
+    билете (v1 без доплаты); разница цены возвращается для предупреждения владельцу.
+
+    Оба события блокируются в порядке pk (взаимной блокировки нет), места цели и
+    лимит её тира проверяются под блокировкой — как при покупке. → {"from", "to",
+    "price_diff_cents"}; отказ — TransferRefused(reason)."""
+    from django.db import transaction as tx
+
+    with tx.atomic():
+        # Без select_related: событие блокируем ниже вместе с целью в порядке pk.
+        locked = Ticket.objects.select_for_update().get(pk=ticket.pk)
+        if locked.status not in (Ticket.STATUS_PENDING, Ticket.STATUS_CONFIRMED):
+            raise TransferRefused("status")
+        if locked.stay_booking_id:
+            raise TransferRefused("accommodation")
+        if locked.extras:
+            raise TransferRefused("extras")
+        if InstallmentPlan.objects.filter(ticket_id=locked.pk).exists():
+            raise TransferRefused("installment")  # график долей посчитан от старой даты
+        allowed = {str(pk) for pk in transfer_targets(locked).values_list("pk", flat=True)}
+        if str(target_id) not in allowed:
+            raise TransferRefused("target")
+        ids = [locked.event_id, target_id]
+        events = {
+            str(e.pk): e
+            for e in Event.objects.select_for_update().filter(pk__in=ids).order_by("pk")
+        }
+        source, target = events[str(locked.event_id)], events[str(target_id)]
+        from django.utils import timezone
+
+        # Под блокировкой: цель могли отменить или она уже началась после выборки.
+        if target.status != Event.STATUS_PUBLISHED or target.starts_at <= timezone.now():
+            raise TransferRefused("target")
+        if target.waiver_required and not TicketWaiver.objects.filter(ticket_id=locked.pk).exists():
+            raise TransferRefused("waiver")  # гость не подписывал Haftungserklärung цели
+        if target.capacity:
+            free = target.capacity - _sold(target)
+            if locked.quantity > free:
+                raise TransferRefused("full", available=max(free, 0))
+        tier = next((t for t in target.tier_list if t["label"] == locked.tier_label), None)
+        if target.tier_list and tier is None:
+            raise TransferRefused("tier")  # тарифа билета у цели нет — учёт тиров разъехался бы
+        if tier and tier.get("capacity"):
+            free = tier["capacity"] - _sold(target, tier_label=tier["label"])
+            if locked.quantity > free:
+                raise TransferRefused("full", available=max(free, 0))
+        target_price = tier["price_cents"] if tier else target.price_cents
+        locked.event = target
+        locked.reminder_sent_at = None
+        locked.post_event_sent_at = None
+        locked.save(update_fields=["event", "reminder_sent_at", "post_event_sent_at", "updated_at"])
+        from apps.core.audit import audit_event
+
+        audit_event(
+            action="ticket.transfer",
+            resource_type="ticket",
+            resource_id=str(locked.pk),
+            actor=actor,
+            changes={"from": str(source.pk), "to": str(target.pk)},
+        )
+        tx.on_commit(lambda: _after_transfer(locked, source))
+    ticket.refresh_from_db()
+    return {
+        "from": source,
+        "to": target,
+        "price_diff_cents": (target_price - locked.price_cents) * locked.quantity,
+        # Ответы анкеты — по вопросам старой даты; другие вопросы → владелец уточнит.
+        "questions_differ": list(source.questions or []) != list(target.questions or []),
+    }
+
+
+def _after_transfer(ticket, source) -> None:
+    """После коммита: лист ожидания и снимок мест старой даты, письмо гостю."""
+    import logging
+
+    log = logging.getLogger(__name__)
+    try:
+        notify_event_waitlist(source)
+    except Exception:  # noqa: BLE001 — побочное, перенос уже состоялся
+        log.exception("transfer: waitlist notify failed %s", source.pk)
+    try:
+        from apps.aggregator.stock_sync import touch_event
+
+        touch_event(source.pk)
+    except Exception:  # noqa: BLE001
+        log.exception("transfer: listing resync failed %s", source.pk)
+    from .notifications import enqueue_ticket_email
+
+    # Суффикс — цель + момент переноса: A→B→A→B каждый раз даёт письмо.
+    stamp = int(ticket.updated_at.timestamp() * 1_000_000) if ticket.updated_at else 0
+    enqueue_ticket_email(ticket, "moved", dedupe_suffix=f":{ticket.event_id}:{stamp}")
