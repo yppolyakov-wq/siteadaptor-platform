@@ -72,6 +72,7 @@ EXPECTED_UNLISTED = frozenset(
         "billing-payments-connect",
         "billing-payments-methods",
         "booking:booking-create",
+        "booking:no-show-rule",  # KA-12 E6.4c: POST панели на странице услуг
         "booking:service-inline-edit",
         "booking:service-photo-edit",
         "catalog:category-create",
