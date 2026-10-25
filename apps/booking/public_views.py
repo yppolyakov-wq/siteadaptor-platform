@@ -1251,7 +1251,9 @@ def service_book(request, pk):
             party_size=persons,
             name=name,
             email=email,
-            notify=not no_show.forced,
+            # E6.4c: при правиле «created» — только по окончательному исходу
+            # (иначе гонка карты → депозит слала бы письмо дважды).
+            notify=no_show.kind == "none",
             phone=request.POST.get("phone", "").strip(),
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=found.channel[:50],
@@ -1328,6 +1330,9 @@ def service_book(request, pk):
         if not unpaid:
             if deferred:
                 after_deal()
+                from .notifications import enqueue_booking_email
+
+                enqueue_booking_email(booking, "created")
             return _embed_redirect(
                 "storefront-termin-ok", embed, request=request, code=booking.reference_code
             )
@@ -1523,7 +1528,9 @@ def termin_book(request, pk):
             email=email,
             phone=request.POST.get("phone", "").strip(),
             party_size=party_size,
-            notify=not no_show.forced,
+            # E6.4c: при правиле «created» — только по окончательному исходу
+            # (иначе гонка карты → депозит слала бы письмо дважды).
+            notify=no_show.kind == "none",
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=found.channel[:50],
             extras=extras_snap,
@@ -1565,6 +1572,9 @@ def termin_book(request, pk):
         if no_show.kind != "pass" or not _uncarded([booking]):
             if deferred:
                 after_deal()
+                from .notifications import enqueue_booking_email
+
+                enqueue_booking_email(booking, "created")
             return _embed_redirect(
                 "storefront-termin-ok", embed, request=request, code=booking.reference_code
             )

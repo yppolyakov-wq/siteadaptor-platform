@@ -518,3 +518,16 @@ def test_mailbox_limit_is_per_ip_not_global():
     k2 = no_show_rule.email_rate_key("a@b.de", ip="2.2.2.2", schema="s")
     k3 = no_show_rule.email_rate_key("a+x@b.de", ip="1.1.1.1", schema="s")
     assert k1 != k2 and k1 == k3
+
+
+def test_pass_race_sends_created_once(stripe_on, monkeypatch):
+    from apps.booking import notifications
+
+    sent = []
+    monkeypatch.setattr(notifications, "notify", lambda **kw: sent.append(kw["type"]))
+    _past_no_show("anna@web.de")
+    sent.clear()
+    monkeypatch.setattr(no_show_rule, "pass_covers", lambda *a, **k: True)
+    service, slots = _service_setup()
+    _post_service(_tenant(), service, slots[:1], pass_code="K-GONE00")
+    assert sent.count("booking_created") == 1
