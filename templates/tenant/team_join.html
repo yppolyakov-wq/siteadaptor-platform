@@ -9,6 +9,9 @@
 {% elif already_member %}
   <p class="text-sm text-gray-600">{% trans "Dieses Konto ist bereits Mitglied des Teams." %}</p>
   <a href="{% url 'account_login' %}" class="inline-block mt-3 text-sm font-medium text-indigo-600 hover:underline">{% trans "Sign in" %} →</a>
+{% elif needs_login %}
+  <p class="text-sm text-gray-600">{% blocktrans %}Für {{ email }} gibt es bereits ein Konto. Bitte melden Sie sich zuerst damit an und öffnen Sie den Einladungslink danach erneut.{% endblocktrans %}</p>
+  <a href="{% url 'account_login' %}?next={{ request.path|urlencode }}" class="inline-block mt-3 text-sm font-medium text-indigo-600 hover:underline">{% trans "Sign in" %} →</a>
 {% else %}
   <p class="text-sm text-gray-600 mb-4">{% trans "Sie treten dem Team bei als:" %} <strong>{{ email }}</strong></p>
   <form method="post" class="space-y-4">
@@ -25,8 +28,6 @@
         <label class="block text-sm font-medium mb-1" for="password2">{% trans "Passwort wiederholen" %}</label>
         <input id="password2" type="password" name="password2" minlength="8" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
       </div>
-    {% else %}
-      <p class="text-xs text-gray-400">{% trans "Ihr bestehendes Passwort bleibt unverändert." %}</p>
     {% endif %}
     <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Beitreten" %}</button>
   </form>

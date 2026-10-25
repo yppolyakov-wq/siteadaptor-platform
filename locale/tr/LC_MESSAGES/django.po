@@ -29811,3 +29811,7 @@ msgstr "Yetkiler kaydedildi."
 
 msgid "Die Rechte wurden inzwischen geändert — bitte Seite neu laden."
 msgstr "Yetkiler bu arada değiştirildi — lütfen sayfayı yeniden yükleyin."
+
+#, python-format
+msgid "Für %(email)s gibt es bereits ein Konto. Bitte melden Sie sich zuerst damit an und öffnen Sie den Einladungslink danach erneut."
+msgstr "%(email)s için zaten bir hesap var. Lütfen önce bu hesapla giriş yapın, ardından davet bağlantısını yeniden açın."

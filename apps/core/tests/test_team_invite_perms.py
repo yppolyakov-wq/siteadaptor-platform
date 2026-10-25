@@ -110,7 +110,7 @@ def test_removed_inviter_kills_invite_without_membership():
 def test_demoted_inviter_scope_is_stripped_at_join():
     owner = _member(OWNER)
     admin = _member(ADMIN, {"add": ["team.view", "team.edit"]})
-    perms = sorted(P.for_role(STAFF) | {"preise.edit"})
+    perms = sorted((P.for_role(STAFF) - P.SENSITIVE) | {"preise.edit"})
     token = team.issue_invite("p3@t.de", STAFF, inviter=admin.user, perms=perms)
     G.set_member_permissions(
         owner.user,
@@ -166,3 +166,47 @@ def test_emails_masked_for_viewer_without_team_edit():
     assert owner.user.email not in body and "***@t.de" in body
     body = team.team_view(_req(owner.user)).content.decode()
     assert viewer.user.email in body
+
+
+# --- ревью безопасности c-3 --------------------------------------------------
+def test_existing_account_needs_its_own_login_no_password_takeover():
+    owner = _member(OWNER)
+    victim = get_user_model().objects.create_user(username="v1@t.de", email="v1@t.de")
+    victim.set_unusable_password()
+    victim.save()
+    token = team.issue_invite("V1@t.de", STAFF, inviter=owner.user)
+    resp, _user = _join(token, "v1@t.de")
+    assert b"bereits ein Konto" in resp.content
+    victim.refresh_from_db()
+    assert not victim.has_usable_password()
+    assert not Membership.objects.filter(user=victim).exists()
+    # тот же аккаунт, вошедший сам, — присоединяется без смены пароля
+    req = _req(victim, "post", {}, path=f"/team/beitreten/{token}/")
+    resp = team.team_join(req, token)
+    assert resp.status_code == 302
+    assert Membership.objects.filter(user=victim, role=STAFF).exists()
+
+
+def test_default_preset_is_cut_to_inviter_scope():
+    owner = _member(OWNER)
+    admin = _member(ADMIN, {"add": ["team.view", "team.edit"]})
+    token = team.issue_invite("p5@t.de", STAFF, inviter=admin.user)
+    G.set_member_permissions(
+        owner.user,
+        admin.pk,
+        (P.for_role(ADMIN) | {"team.view", "team.edit"}) - {"lager.edit", "lager.export"},
+    )
+    _resp, user = _join(token, "p5@t.de")
+    eff = _eff(user)
+    assert "lager.edit" not in eff  # приглашающий урезан после выпуска
+    assert not (eff & P.SENSITIVE)  # admin чувствительное не вкладывает
+
+
+def test_unknown_payload_version_is_rejected():
+    owner = _member(OWNER)
+    token = team.issue_invite("p6@t.de", STAFF, inviter=owner.user)
+    payload = cache.get(team._token_key(token))
+    cache.set(team._token_key(token), {**payload, "v": 3}, 60)
+    resp, user = _join(token, "p6@t.de")
+    assert resp.status_code == 404 and user is None
+    assert AuditEvent.objects.filter(action="team.join_denied").exists()

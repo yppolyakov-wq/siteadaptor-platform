@@ -29942,3 +29942,7 @@ msgstr "Права сохранены."
 
 msgid "Die Rechte wurden inzwischen geändert — bitte Seite neu laden."
 msgstr "Права тем временем изменились — перезагрузите страницу."
+
+#, python-format
+msgid "Für %(email)s gibt es bereits ein Konto. Bitte melden Sie sich zuerst damit an und öffnen Sie den Einladungslink danach erneut."
+msgstr "Для %(email)s уже есть аккаунт. Сначала войдите в него, затем снова откройте ссылку-приглашение."

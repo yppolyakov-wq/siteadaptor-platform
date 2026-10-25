@@ -29667,3 +29667,7 @@ msgstr "Permissions saved."
 
 msgid "Die Rechte wurden inzwischen geändert — bitte Seite neu laden."
 msgstr "The permissions have changed in the meantime — please reload the page."
+
+#, python-format
+msgid "Für %(email)s gibt es bereits ein Konto. Bitte melden Sie sich zuerst damit an und öffnen Sie den Einladungslink danach erneut."
+msgstr "An account already exists for %(email)s. Please sign in with it first and then open the invitation link again."

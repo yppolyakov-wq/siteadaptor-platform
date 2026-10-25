@@ -23,6 +23,7 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.db import connection, transaction
+from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -56,17 +57,11 @@ def issue_invite(email: str, role: str, inviter=None, perms=None) -> str | None:
     payload = {"email": email, "role": role}
     if inviter is not None:
         try:
-            perm_grants.check_invite(inviter, role, perms)
+            granted = perm_grants.invite_perms(inviter, role, perms)
         except perm_grants.PermsDenied:
             return None
         member = Membership.objects.filter(user=inviter).first()
-        payload.update(
-            {
-                "v": 2,
-                "inviter_pk": str(member.pk),
-                "perms": sorted(perms) if perms is not None else None,
-            }
-        )
+        payload.update({"v": 2, "inviter_pk": str(member.pk), "perms": sorted(granted)})
     token = secrets.token_urlsafe(32)
     cache.set(_token_key(token), payload, INVITE_TTL)
     return token
@@ -138,6 +133,7 @@ def team_view(request):
                 request.POST.get("email"), request.POST.get("role"), inviter=request.user
             )
             if token is None:
+                ratelimit.refund("team-invite", connection.schema_name)
                 messages.error(request, _("E-Mail oder Rolle ungültig."))
             else:
                 link = request.build_absolute_uri(reverse("team-join", args=[token]))
@@ -213,15 +209,24 @@ def team_join(request, token):
     """Публичное принятие приглашения: токен → User+Membership → login.
 
     GET показывает форму (peek — токен НЕ расходуется), POST расходует
-    (одноразовость). Существующий User с паролем НЕ перезаписывается —
-    инвайт лишь добавляет членство."""
+    (одноразовость). E6.7c-3 (ревью): для СУЩЕСТВУЮЩЕГО аккаунта ссылка не даёт ни
+    входа, ни пароля — сначала вход этим аккаунтом (иначе держатель ссылки — в т.ч.
+    сам приглашающий — входил бы в чужой аккаунт или задавал ему пароль)."""
     payload = peek_invite(token)
     if payload is None:
         return render(request, "tenant/team_join.html", {"invalid": True}, status=404)
-    user = get_user_model().objects.filter(username=payload["email"]).first()
-    needs_password = user is None or not user.has_usable_password()
+    email = payload["email"]
+    user = (
+        get_user_model()
+        .objects.filter(Q(username__iexact=email) | Q(email__iexact=email))
+        .order_by("pk")
+        .first()
+    )
     if user is not None and Membership.objects.filter(user=user).exists():
         return render(request, "tenant/team_join.html", {"already_member": True})
+    if user is not None and getattr(request.user, "pk", None) != user.pk:
+        return render(request, "tenant/team_join.html", {"needs_login": True, "email": email})
+    needs_password = user is None
 
     if request.method == "POST":
         if ratelimit.hit(
@@ -244,11 +249,9 @@ def team_join(request, token):
                     user = get_user_model().objects.create_user(
                         username=payload["email"], email=payload["email"], password=pw1
                     )
-                elif needs_password:
-                    user.set_password(pw1)
-                    user.save(update_fields=["password"])
                 perm_grants.join_from_invite(user, payload)
-        except perm_grants.PermsDenied:
+        except perm_grants.PermsDenied as exc:
+            perm_grants.audit_join_denied(payload, exc.reason)
             return render(request, "tenant/team_join.html", {"invalid": True}, status=404)
         auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
         return redirect("dashboard")

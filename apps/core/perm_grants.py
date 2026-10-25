@@ -323,35 +323,32 @@ def _alert_owner(actor_user, target, keys, new) -> None:
 
 
 def _invite_compute(inviter, role, requested_keys):
-    """(новые права, срезанные ключи) нового участника роли ``role`` от ``inviter``.
-    Тот же расчёт, что у правки: база — пресет роли, выдать — только из области выдачи."""
+    """(права нового участника, срезанные ключи) роли ``role`` от ``inviter``.
+
+    У нового участника прав нет — всё, что он получит, ВЫДАЁТСЯ: только из области
+    выдачи приглашающего (admin — без чувствительных). Без явного набора — пресет роли,
+    срезанный той же областью."""
     if role not in (ADMIN, STAFF):
         raise PermsDenied("bad_role")
-    grant_scope, revoke_scope = _scopes(inviter, SimpleNamespace(role=role))
-    old = P.for_role(role)
+    grant_scope, _revoke = _scopes(inviter, SimpleNamespace(role=role))
     if requested_keys is None:
-        return old, frozenset()
-    limit = P.ROLE_LIMIT[role]
-    requested = _with_requires(requested_keys) & limit
-    new = P._closure(((old - revoke_scope) | (requested & revoke_scope)) & limit)
-    out = (new - old) - grant_scope
-    if out:
-        new = P._closure(new - out)
+        requested_keys = P.for_role(role)
+    requested = _with_requires(requested_keys) & P.ROLE_LIMIT[role]
+    new = P._closure(requested & grant_scope)
     return new, frozenset(requested - new)
 
 
-def check_invite(inviter_user, role, requested_keys=None) -> None:
-    """Проверка при выпуске: приглашающий вправе выдать роль и ВСЕ запрошенные ключи."""
-    inviter = (
-        Membership.objects.filter(user_id=getattr(inviter_user, "pk", None)).first()
-        if getattr(inviter_user, "pk", None)
-        else None
-    )
+def invite_perms(inviter_user, role, requested_keys=None) -> frozenset:
+    """Права, которые приглашающий вправе вложить в инвайт. Явный набор сверх области —
+    отказ (видно сразу, не при принятии); без набора — пресет роли в пределах области."""
+    pk = getattr(inviter_user, "pk", None)
+    inviter = Membership.objects.filter(user_id=pk).first() if pk else None
     if inviter is None:
         raise PermsDenied("not_found")
-    _new, stripped = _invite_compute(inviter, role, requested_keys)
-    if stripped:
+    new, stripped = _invite_compute(inviter, role, requested_keys)
+    if stripped and requested_keys is not None:
         raise PermsDenied("scope")
+    return new
 
 
 def join_from_invite(user, payload) -> tuple[Membership, dict]:
@@ -368,7 +365,10 @@ def join_from_invite(user, payload) -> tuple[Membership, dict]:
         rows = _lock_all()
         if any(m.user_id == user.pk for m in rows.values()):
             raise PermsDenied("already_member")
-        if payload.get("v") == 2:
+        version = payload.get("v")
+        if version not in (None, 2):
+            raise PermsDenied("bad_version")  # неизвестная версия — отказ, а не «легаси»
+        if version == 2:
             inviter = rows.get(_uuid(payload.get("inviter_pk")))
             if inviter is None:
                 raise PermsDenied("inviter")
@@ -385,3 +385,20 @@ def join_from_invite(user, payload) -> tuple[Membership, dict]:
         member = Membership.objects.create(user=user, role=role, permissions=delta)
         _audit("team.join", member, user, info)
     return member, info
+
+
+def audit_join_denied(payload, reason) -> None:
+    """Отказ принятия инвайта — в журнал (владелец видит, что ссылка «умерла»)."""
+    from apps.audit.services import audit_event
+
+    try:
+        with transaction.atomic():
+            audit_event(
+                action="team.join_denied",
+                resource_type="membership",
+                resource_id=str(_uuid((payload or {}).get("inviter_pk")) or ""),
+                actor=None,
+                changes={"reason": reason, "role": (payload or {}).get("role", "")},
+            )
+    except Exception:  # noqa: BLE001 — журнал отказа не должен заменять отказ ошибкой
+        logger.exception("perm_grants: join denial audit not written")

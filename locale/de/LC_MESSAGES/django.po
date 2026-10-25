@@ -29759,3 +29759,7 @@ msgstr "Rechte gespeichert."
 
 msgid "Die Rechte wurden inzwischen geändert — bitte Seite neu laden."
 msgstr "Die Rechte wurden inzwischen geändert — bitte Seite neu laden."
+
+#, python-format
+msgid "Für %(email)s gibt es bereits ein Konto. Bitte melden Sie sich zuerst damit an und öffnen Sie den Einladungslink danach erneut."
+msgstr "Für %(email)s gibt es bereits ein Konto. Bitte melden Sie sich zuerst damit an und öffnen Sie den Einladungslink danach erneut."
