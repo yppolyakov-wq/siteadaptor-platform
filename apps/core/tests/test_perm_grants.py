@@ -143,7 +143,7 @@ def test_target_promoted_meanwhile_is_denied(no_mail):
         G.set_member_permissions(admin.user, staff.pk, set())
 
 
-@pytest.mark.parametrize("bad", ["", "x", "1; drop", str(uuid4())])
+@pytest.mark.parametrize("bad", ["", "x", "1; drop", "00000000-0000-4000-8000-000000000000"])
 def test_garbage_or_unknown_member_is_one_answer(no_mail, bad):
     owner = _member(OWNER)
     with pytest.raises(G.PermsDenied) as exc:
