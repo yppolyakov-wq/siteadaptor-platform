@@ -20085,3 +20085,11 @@ geändert» (дедуп по цели и моменту — A→B→A→B каж
 счёт (получатель, Leistungsdatum) → выручка одной суммой по ставкам; ветка с Anzahlung — к оплате счёт −
 депозит. Браузерный GP-6 в `scripts/golden_paths.py` (метка в теме → заявка в БД → /auftrag/<token>/),
 стенд 10/10. Дефектов пути не найдено.
+
+## 2026-10-25 — KA-12 Anfragen A-1 (E7.7): Datenschutz на формах витрины (без миграций)
+Ссылка на Datenschutzerklärung стояла только в подвале и у newsletter. Партиал
+`storefront/_privacy_note.html` («Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten.» +
+ссылка; у /anfrage/ — строка про фото) — в конце каждой формы витрины, которая собирает e-mail,
+телефон или файл (18 форм + общий блок контактов buy-box). Информация по Art. 13, без чекбокса
+(основание Art. 6(1)(b)). Замок `test_privacy_note.py` сканирует все шаблоны витрины — новая форма
+без заметки краснит CI. 3 msgid × 5 каталогов.

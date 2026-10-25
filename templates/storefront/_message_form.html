@@ -42,4 +42,5 @@ prefill_subject опциональны (пусто во встроенном к�
     </div>
     {% if known_contact.email %}</details>{% endif %}
     <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Send message" %}</button>
+    {% include "storefront/_privacy_note.html" %}
   </form>

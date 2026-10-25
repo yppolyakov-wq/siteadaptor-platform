@@ -93,6 +93,7 @@
           </label>
         </div>
         <button type="submit" class="w-full bg-amber-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-amber-700">{% trans "Join waitlist" %}</button>
+        {% include "storefront/_privacy_note.html" %}
       </form>
     {% else %}
       {% comment %}RV1: 2-шаговый чекаут — Schritt 1 «Auswahl» (тариф/места/проживание/
@@ -211,6 +212,7 @@
             </button>
           </div>
         </div>
+        {% include "storefront/_privacy_note.html" %}
       </form>
       <script>
       (function () {

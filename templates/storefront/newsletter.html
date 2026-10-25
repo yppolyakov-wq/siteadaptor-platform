@@ -34,6 +34,7 @@
         </div>
         <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent);">{% trans "Subscribe" %}</button>
         <p class="text-xs text-gray-400">{% trans "By subscribing you agree to receive marketing emails. See our privacy policy for details." %}</p>
+        {% include "storefront/_privacy_note.html" %}
       </form>
     {% endif %}
   </div>

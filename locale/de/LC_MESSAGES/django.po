@@ -30375,3 +30375,12 @@ msgstr "Zurück zum Ticket"
 #, python-format
 msgid "Ticket %(code)s"
 msgstr "Ticket %(code)s"
+
+msgid "Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten."
+msgstr "Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten."
+
+msgid "Fotos nutzen wir nur für Ihr Angebot."
+msgstr "Fotos nutzen wir nur für Ihr Angebot."
+
+msgid "Datenschutzerklärung"
+msgstr "Datenschutzerklärung"

@@ -1,0 +1,4 @@
+{% load i18n %}{% comment %}KA-12 A-1 (E7.7, Art. 13 DSGVO): Hinweis an jedem Formular mit personenbezogenen
+Daten. Information, keine Einwilligung — Grundlage ist Art. 6 Abs. 1 lit. b (Bearbeitung der
+Anfrage/Buchung), daher ohne Checkbox. Parameter: photos (Hinweis zu Fotos), privacy_cls (Farbe).{% endcomment %}
+<p class="basis-full sm:col-span-full mt-2 text-xs {{ privacy_cls|default:'text-gray-500' }}" data-privacy-note>{% trans "Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten." %}{% if photos %} {% trans "Fotos nutzen wir nur für Ihr Angebot." %}{% endif %} <a href="{% url 'storefront-privacy' %}" class="underline" target="_top">{% trans "Datenschutzerklärung" %}</a></p>

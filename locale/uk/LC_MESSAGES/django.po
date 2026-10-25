@@ -30542,3 +30542,12 @@ msgstr "Назад до квитка"
 #, python-format
 msgid "Ticket %(code)s"
 msgstr "Квиток %(code)s"
+
+msgid "Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten."
+msgstr "Ми використовуємо ваші дані лише для обробки вашого звернення."
+
+msgid "Fotos nutzen wir nur für Ihr Angebot."
+msgstr "Фотографії ми використовуємо лише для вашої пропозиції."
+
+msgid "Datenschutzerklärung"
+msgstr "Політика конфіденційності"

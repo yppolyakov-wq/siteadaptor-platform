@@ -76,6 +76,11 @@ accept → `accepted`; `done` → счёт с получателем и Leistung
 в `_anfrage_form.html` (+ строка про фото), Rückruf, `_message_form.html`. Замок: каждый публичный
 шаблон с `type="file"`/`name="email"`/`name="phone"` содержит `storefront-privacy`; исключения списком.
 
+**A-1 ✅ сделано (2026-10-25, без миграций).** Шире плана: заметка нужна на ВСЕХ формах витрины с
+e-mail/телефоном/файлом (Art. 13), а не на трёх — партиал `storefront/_privacy_note.html` в конце 18 форм
+(+ `_buybox_contact_fields`), подпись про фото у `/anfrage/`; замок `apps/core/tests/test_privacy_note.py`
+сканирует все шаблоны витрины; исключение — блок newsletter (своя ссылка).
+
 ### A-2 · E5.4a + E5.5a ручная заявка = публичная, правка в карточке (без миграций)
 `job_new` + `_request_form.html` (multipart): PLZ, фото, источник (белый список «Telefon · E-Mail ·
 Vor Ort · Empfehlung · Sonstiges» → `source_channel`), событийные поля по конфигу, авто при

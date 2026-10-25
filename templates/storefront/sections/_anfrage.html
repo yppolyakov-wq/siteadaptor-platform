@@ -37,6 +37,7 @@ PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключе
       <input type="email" name="email" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
     <button type="submit" class="rounded-lg bg-white px-5 py-2 font-semibold" style="color: var(--accent, #4f46e5);">{% trans "Request a quote" %}</button>
     <p class="basis-full text-[11px] text-white/70 m-0">{% trans "Unverbindlich — wir melden uns mit einem Angebot." %}</p>
+    {% include "storefront/_privacy_note.html" with privacy_cls="text-white/70 m-0" %}
   </form>
 </section>
 {% else %}

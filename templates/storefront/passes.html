@@ -25,6 +25,7 @@
             <input name="name" type="text" required placeholder="{% trans 'Your name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <input name="email" type="email" required placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <button class="w-full bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Buy" %}</button>
+            {% include "storefront/_privacy_note.html" %}
           </form>
         {% else %}
           <p class="text-xs text-gray-400 mt-3">{% trans "Available to buy on site." %}</p>

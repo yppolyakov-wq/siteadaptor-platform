@@ -46,6 +46,7 @@ PLZ; показываем только если бизнес её задал (Ha
       <input id="id_rc_time" name="best_time" type="text" placeholder="{% trans 'e.g. after 17:00' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <button type="submit" class="sm:col-span-3 w-full bg-gray-900 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-gray-700">{% trans "Request callback" %}</button>
+    {% include "storefront/_privacy_note.html" %}
   </form>
 </div>
 

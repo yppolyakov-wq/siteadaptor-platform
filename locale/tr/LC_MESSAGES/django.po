@@ -30427,3 +30427,12 @@ msgstr "Bilete dön"
 #, python-format
 msgid "Ticket %(code)s"
 msgstr "Bilet %(code)s"
+
+msgid "Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten."
+msgstr "Bilgilerinizi yalnızca talebinizi işlemek için kullanırız."
+
+msgid "Fotos nutzen wir nur für Ihr Angebot."
+msgstr "Fotoğrafları yalnızca teklifiniz için kullanırız."
+
+msgid "Datenschutzerklärung"
+msgstr "Gizlilik politikası"

@@ -189,6 +189,7 @@
           <summary class="cursor-pointer text-center">{% trans "Coupon zusätzlich per E-Mail sichern (optional)" %}</summary>
           <input type="email" name="email" maxlength="254" placeholder="{% trans 'E-Mail' %}" class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
         </details>
+        {% include "storefront/_privacy_note.html" %}
       </form>
       <p class="mt-2 text-center text-xs text-gray-500">{% trans "Kostenlos — den Code zeigen Sie einfach an der Kasse." %}</p>
       {% endif %}
