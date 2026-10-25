@@ -15,6 +15,7 @@ E6.7b: правила повторяют сегодняшний доступ (п
 
 import logging
 from dataclasses import dataclass
+from functools import wraps
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -270,11 +271,13 @@ RULES: dict[str, Rule] = {
     "gbp-hours": _r("kanaele.edit"),
     "gbp-merchant": _r("kanaele.edit"),
     "telegram-settings": _r(CFG, CFGE),
-    "telegram-connect": _r("kanaele.edit"),
-    "telegram-disconnect": _r("kanaele.edit"),
-    "platform-bot-connect": _r("kanaele.edit"),
-    "platform-bot-disconnect": _r("kanaele.edit"),
-    "integrations-telegram-activate": _r("kanaele.edit"),
+    # E6.7c-4 (ревью A1): токен своего бота подменяет бота клиентов, ссылка общего бота
+    # привязывает чат к владельцу — Inhaber-Vorbehalt, никому не выдаётся.
+    "telegram-connect": _r(FLOOR),
+    "telegram-disconnect": _r(FLOOR),
+    "platform-bot-connect": _r(FLOOR),
+    "platform-bot-disconnect": _r(FLOOR),
+    "integrations-telegram-activate": _r(FLOOR),
     "catalog:combo-feature": _r(M, ME),
     "catalog:combo-feature-checkout": _r(M, ME),
     "events:feature": _r(M, ME),
@@ -396,6 +399,10 @@ def allowed(user, view_name: str, method: str) -> bool:
         logger.error("view_perms: экран без права %r — 403", view_name)
         return False
     key = rule.read if (method or "GET").upper() in SAFE_METHODS else rule.write
+    return _passes(user, key)
+
+
+def _passes(user, key: str) -> bool:
     if key == OPEN:
         return True
     if key == FLOOR:
@@ -403,3 +410,25 @@ def allowed(user, view_name: str, method: str) -> bool:
 
         return is_owner(user)
     return permissions.has_perm(user, key)
+
+
+def perm_required(key: str):
+    """Право прямо на вьюхе (под ``@login_required``): страхует прямые вызовы и пути,
+    которые middleware не видит. Ключ обязан совпадать с правилом маршрута (замок)."""
+    if key not in _MARKERS:
+        permissions.check_key(key)
+
+    def decorator(view):
+        @wraps(view)
+        def wrapper(request, *args, **kwargs):
+            if not _passes(request.user, key):
+                from django.http import HttpResponseForbidden
+                from django.utils.translation import gettext as _
+
+                return HttpResponseForbidden(_("Dafür fehlt Ihnen das Recht."))
+            return view(request, *args, **kwargs)
+
+        wrapper._required_perm = key
+        return wrapper
+
+    return decorator

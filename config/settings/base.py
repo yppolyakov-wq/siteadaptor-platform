@@ -591,6 +591,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.crm.tasks.purge_old_service_notes",
         "schedule": 86400.0,  # раз в сутки — заметки к процедурам 3 года после визита (E6.4d)
     },
+    "purge-team-audit": {
+        "task": "apps.audit.tasks.purge_team_audit",
+        "schedule": 86400.0,  # раз в сутки — журнал команды старше TEAM_AUDIT_RETENTION_DAYS (E6.7c)
+    },
     "purge-portal-stats": {
         "task": "apps.aggregator.tasks.purge_portal_stats",
         "schedule": 86400.0,  # раз в сутки — учёт портала старше PORTAL_STATS_RETENTION_DAYS (В5)
@@ -680,6 +684,8 @@ DOCUMENT_RETENTION_DAYS = env.int("DOCUMENT_RETENTION_DAYS", default=90)
 # клиента (решение владельца 2026-10-25). Константа, не env: срок назван в тексте
 # Datenschutzerklärung — разойтись с ним он не должен.
 SERVICE_NOTE_RETENTION_DAYS = 3 * 365
+# KA-12 E6.7c (Р-c6, В-8): журнал выдачи прав/ролей команды — 3 года.
+TEAM_AUDIT_RETENTION_DAYS = env.int("TEAM_AUDIT_RETENTION_DAYS", default=3 * 365)
 
 # ---------------------------------------------------------------------------
 # Email (Resend через django-anymail)

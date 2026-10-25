@@ -10,10 +10,11 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory, override_settings
 from django.urls import URLPattern, URLResolver, get_resolver
 
-from apps.core import permissions, roles, view_perms
+from apps.core import permissions, view_perms
 from apps.core.i18n_cabinet import CABINET_PREFIXES
 from apps.core.middleware import CabinetOwnerAccessMiddleware
 from apps.core.models import Membership
+from apps.core.tests import legacy_role_gates as LG
 from apps.tenants.tests.factories import TenantFactory
 
 OWNER_ONLY_KEYS = frozenset(permissions.PERMS) - permissions.PRESETS["admin"]
@@ -66,17 +67,17 @@ def test_every_rule_names_a_real_view():
     assert stale == [], f"Правила для несуществующих экранов: {stale}"
 
 
-def _today_gate(route, callback):
+def _today_gate(route, callback, name=""):
     """Сегодняшний ролевой гейт экрана: 'owner' / 'finance' / ''."""
     static = route.split("<", 1)[0]
-    role = getattr(callback, "_required_role", "")
+    role = LG.LEGACY_DECORATED.get(name, "")
     if role:
         return role
     if "<" not in route:
-        return roles.required_role_for_path(route)
+        return LG.legacy_role_for_path(route)
     return (
-        roles.required_role_for_path(static)
-        if static.startswith(roles.OWNER_ONLY_PREFIXES + roles.FINANCE_EXPORT_PREFIXES)
+        LG.legacy_role_for_path(static)
+        if static.startswith(LG.LEGACY_OWNER_ONLY_PREFIXES + LG.LEGACY_FINANCE_EXPORT_PREFIXES)
         else ""
     )
 
@@ -91,9 +92,9 @@ def test_rules_match_todays_access():
     bad = []
     for route, cb, name in _cabinet_views():
         rule = view_perms.rule_for(name)
-        gate = _today_gate(route, cb)
+        gate = _today_gate(route, cb, name)
         keys = _keys(rule)
-        if gate == roles.ROLE_OWNER_ONLY:
+        if gate == LG.ROLE_OWNER_ONLY:
             floor_both = rule.read == rule.write == view_perms.FLOOR
             if (
                 not keys <= OWNER_ONLY_KEYS
@@ -101,7 +102,7 @@ def test_rules_match_todays_access():
                 or (keys and view_perms.OPEN in (rule.read, rule.write))
             ):
                 bad.append(f"{name}: сегодня только владелец, правило {rule}")
-        elif gate == roles.ROLE_FINANCE:
+        elif gate == LG.ROLE_FINANCE:
             if not keys or not keys <= ADMIN_ONLY_KEYS:
                 bad.append(f"{name}: сегодня owner+admin, правило {rule}")
         elif name in INLINE_GATED:
@@ -210,3 +211,21 @@ def test_registry_keys_are_known():
     for rule in view_perms.RULES.values():
         for key in (rule.read, rule.write):
             assert key in (view_perms.OPEN, view_perms.FLOOR) or key in permissions.PERMS
+
+
+def test_legacy_role_gates_are_gone_from_code():
+    """E6.7c-4: ролевые префиксы и декораторы сняты — доступ только из view_perms."""
+    import pathlib
+    import re
+
+    root = pathlib.Path(dj_settings.BASE_DIR) / "apps"
+    banned = re.compile(
+        r"\b(OWNER_ONLY_PREFIXES|FINANCE_EXPORT_PREFIXES|required_role_for_path|"
+        r"owner_required|finance_export_required)\b"
+    )
+    hits = [
+        str(p.relative_to(root))
+        for p in root.rglob("*.py")
+        if "tests" not in p.parts and "migrations" not in p.parts and banned.search(p.read_text())
+    ]
+    assert hits == []

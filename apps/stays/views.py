@@ -25,7 +25,8 @@ from apps.core import transactions as core_transactions
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.core.permissions import has_perm
-from apps.core.roles import audit_export, owner_required
+from apps.core.roles import audit_export
+from apps.core.view_perms import perm_required
 
 from . import availability, pricing, services
 from . import rate_plans as rate_plans_mod
@@ -1488,7 +1489,7 @@ def reports(request):
 
 
 @login_required
-@owner_required
+@perm_required("kunden.export")
 def reports_export_csv(request):
     """PMS-C: CSV броней месяца (utf-8-sig для Excel) — считаемые статусы,
     те же выборки, что отчёт; персональные данные — файл владельца (DSGVO)."""

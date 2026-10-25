@@ -12,7 +12,8 @@ from django.views.decorators.http import require_POST
 from apps.core import refunds
 from apps.core import transactions as core_transactions
 from apps.core.csv_safe import csv_safe
-from apps.core.roles import audit_export, owner_required
+from apps.core.roles import audit_export
+from apps.core.view_perms import perm_required
 
 from . import itinerary, registration
 from .forms import EventForm, TeacherForm, TourForm, unique_tour_slug
@@ -719,7 +720,7 @@ def teacher_delete(request, pk):
 
 
 @login_required
-@owner_required
+@perm_required("kunden.export")
 def roster_csv(request, pk):
     """CSV-ростер участников события (utf-8-sig — Excel-friendly)."""
     event = get_object_or_404(Event, pk=pk)

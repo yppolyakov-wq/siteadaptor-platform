@@ -25,9 +25,10 @@ from apps.core import (
     studio_pages,
     studio_scope,
     vat,
+    view_perms,
 )
 from apps.core.permissions import has_perm
-from apps.core.roles import owner_required
+from apps.core.view_perms import perm_required
 from apps.promotions import group_styles
 from apps.tenants import domains
 from apps.tenants.forms import BusinessSettingsForm
@@ -1512,7 +1513,7 @@ def _lite_impressum_missing(tenant):
 
 
 @login_required
-@owner_required  # KA-12: правовые и налоговые данные — только владелец (не только middleware)
+@perm_required(view_perms.FLOOR)
 def legal_docs_view(request):
     """L5/E-2: кабинет «Recht» — правовые тексты витрины per-locale (LegalDoc).
 
@@ -4886,7 +4887,7 @@ def sales_bulk_action(request):
 
 
 @login_required
-@owner_required
+@perm_required("kunden.export")
 def sales_export_csv(request):
     """KA-12 E2.2: CSV продаж вкладки — те же фильтры и сортировка, что в списке.
 
@@ -6471,7 +6472,7 @@ def deal_refund(request, kind, pk):
 
 
 @login_required
-@owner_required  # решение владельца: закрыть бизнес — только владелец
+@perm_required("betriebsferien.ganz")
 def betriebsferien_view(request):
     """KA-12 E4.1a: Betriebsferien — закрыть весь бизнес на дни одной формой.
 

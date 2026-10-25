@@ -16,8 +16,8 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import storefront_profile
-from apps.core.roles import owner_required
+from apps.core import storefront_profile, view_perms
+from apps.core.view_perms import perm_required
 
 # (url_name, nav_key, emoji, подпись) — nav_key существующие: подсветка и иконки даром.
 LITE_NAV = (
@@ -274,7 +274,7 @@ class LiteBusinessForm(forms.ModelForm):
 
 
 @login_required
-@owner_required  # KA-12: правовые и налоговые данные — только владелец (не только middleware)
+@perm_required(view_perms.FLOOR)
 def lite_business(request):
     """«Geschäft»: название, адрес, телефон, WhatsApp, часы работы — одна колонка."""
     from apps.core.views import _opening_hours_rows, _parse_opening_hours

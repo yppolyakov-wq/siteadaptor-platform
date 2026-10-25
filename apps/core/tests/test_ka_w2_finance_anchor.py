@@ -11,6 +11,7 @@ import pytest
 from django.template import Context, Template
 
 from apps.core import modules, nav_registry
+from apps.core.tests import legacy_role_gates as LG
 from apps.tenants.models import Tenant
 from apps.tenants.tests.factories import TenantFactory
 
@@ -136,7 +137,6 @@ def test_staff_never_gets_owner_only_finance_link():
     """Ревью 3a: банк — owner-only; цель раздела учитывает роль (без 403-ссылок)."""
     from django.urls import reverse
 
-    from apps.core import roles
     from apps.core.models import Membership
     from apps.core.tests.test_staff_walk import _user
 
@@ -147,7 +147,7 @@ def test_staff_never_gets_owner_only_finance_link():
     urls = [fin["target"]] + [c["url_name"] for c in fin["children"]]
     assert "finance:bank" not in urls
     for name in urls:
-        assert roles.required_role_for_path(reverse(name)) != roles.ROLE_OWNER_ONLY, name
+        assert LG.legacy_role_for_path(reverse(name)) != LG.ROLE_OWNER_ONLY, name
 
 
 # --- 3b: Marketing & Kunden, лендинги → 302 ------------------------------------

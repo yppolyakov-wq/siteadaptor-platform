@@ -11,64 +11,15 @@ Membership бэкфилятся миграцией `core/0006` (по одном�
 
 from .models import Membership
 
-# W9-10 / KA-H11 / KA-D7: какие пути кабинета закрыты ролью. Единственный источник —
-# его читают CabinetOwnerAccessMiddleware и замки E11.2 (обход экранов сотрудником).
-OWNER_ONLY_PREFIXES = (
+# KA-12 E6.7c-4: доступ к экранам задаёт реестр прав ``apps.core.view_perms`` (по имени
+# маршрута). Ролевые префиксы сняты; здесь — только пол Inhaber-Vorbehalt (страховка
+# middleware до разрешения маршрута): эти разделы не выдаются никому.
+OWNER_FLOOR_PREFIXES = (
     "/dashboard/billing/",
     "/dashboard/recht/",
-    "/dashboard/settings/team/",
-    # KA-12 E4.1a (решение владельца): закрыть весь бизнес на каникулы — только владелец.
-    "/dashboard/settings/betriebsferien/",
-    "/dashboard/stadtportal/",
-    # T-8.27: импорт с сайта — согласие правообладателя даёт только владелец.
-    "/imports/website/",
-    # Д3 (В-7): каналы публикации пишут во ВНЕШНИЕ профили бизнеса (Google,
-    # Facebook…) — подключение, ключи и синхронизация только владельцу.
-    "/dashboard/channels/google/",
-    "/dashboard/channels/config/",
-    "/dashboard/channels/connect/",
-    "/dashboard/channels/toggle/",
-    # T-8.10h H-3: привязка бизнеса к общему Telegram-боту — только владельцу.
-    "/dashboard/settings/notifications/telegram/",
-    # T-8.29: включить модуль «свой Telegram-бот» решает владелец.
-    "/dashboard/integrationen/telegram-aktivieren/",
-    # Ревью T-8.31 (MEDIUM): токен своего бота подменяет бота для клиентов —
-    # подключать и отключать может только владелец (экран статуса — всем).
-    "/dashboard/telegram/connect/",
-    "/dashboard/telegram/disconnect/",
-    # KA-H9: имя/адрес/телефон бизнеса лёгкого кабинета — уходят в Impressum и
-    # каталог города, менять может только владелец.
     "/dashboard/geschaeft/",
-    # KA-H11: выгрузки с персональными данными — только владельцу (вьюхи
-    # дополнительно под @owner_required; ростер события — только там, uuid в пути).
-    "/crm/export.csv",
-    # KA-12 E2.2: CSV продаж (клиенты, e-mail, телефоны).
-    "/dashboard/verkaeufe/export.csv",
-    "/dashboard/stays/berichte/export.csv",
-    # Банковские выписки: имя плательщика, назначение, IBAN.
-    "/dashboard/finance/bank/",
-    # KA-12 B2-4 (решение P-1): частичный возврат денег — только владелец.
-    "/dashboard/erstattung/",
+    "/imports/website/",
 )
-
-# KA-D7: финансовые выгрузки — владельцу и admin (бухгалтер), не staff.
-FINANCE_EXPORT_PREFIXES = (
-    "/dashboard/finance/export.csv",
-    "/dashboard/finance/datev.csv",
-    "/dashboard/finance/ausgaben/datev.csv",
-)
-
-ROLE_OWNER_ONLY = "owner"
-ROLE_FINANCE = "finance"
-
-
-def required_role_for_path(path: str) -> str:
-    """Какую роль требует путь кабинета: "owner", "finance" (owner+admin) или ""."""
-    if path.startswith(OWNER_ONLY_PREFIXES):
-        return ROLE_OWNER_ONLY
-    if path.startswith(FINANCE_EXPORT_PREFIXES):
-        return ROLE_FINANCE
-    return ""
 
 
 def _membership(user):
@@ -109,43 +60,6 @@ def can_export_finance(user) -> bool:
     from .permissions import has_perm
 
     return has_perm(user, "finanzen.export")
-
-
-def finance_export_required(view):
-    """KA-D7: вьюха финансовой выгрузки — owner или admin. Под `@login_required`."""
-    from functools import wraps
-
-    from django.http import HttpResponseForbidden
-    from django.utils.translation import gettext as _
-
-    @wraps(view)
-    def wrapper(request, *args, **kwargs):
-        if not can_export_finance(request.user):
-            return HttpResponseForbidden(_("Nur für Inhaber."))
-        return view(request, *args, **kwargs)
-
-    wrapper._required_role = ROLE_FINANCE  # E11.2: замок видит гейт без грепа
-    return wrapper
-
-
-def owner_required(view):
-    """KA-H11: вьюха только для владельца (выгрузки с персональными данными).
-
-    Ставится ПОД `@login_required`. Прямые вызовы вьюх и пути с uuid посередине
-    (`/dashboard/events/<pk>/roster.csv`) middleware не ловит — гейт здесь."""
-    from functools import wraps
-
-    from django.http import HttpResponseForbidden
-    from django.utils.translation import gettext as _
-
-    @wraps(view)
-    def wrapper(request, *args, **kwargs):
-        if not is_owner(request.user):
-            return HttpResponseForbidden(_("Nur für Inhaber."))
-        return view(request, *args, **kwargs)
-
-    wrapper._required_role = ROLE_OWNER_ONLY  # E11.2
-    return wrapper
 
 
 def audit_export(request, name: str, rows: int, **context) -> None:

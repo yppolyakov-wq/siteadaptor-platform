@@ -1,9 +1,9 @@
 """KA-12 E11.2: сценарий «сотрудник» на каждом экране кабинета.
 
 План — docs/ka-12-e11-checks-plan-2026-10-23.md. Политика (решение владельца 2026-08-06):
-admin и staff пока одинаковы; owner-only — пути `roles.OWNER_ONLY_PREFIXES` и вьюхи под
-`@owner_required`; финансовые выгрузки — owner + admin. Ожидания тест выводит из этих
-источников, а не прописывает руками: новый owner-only экран не требует правки замка.
+owner-only — пути замороженного эталона `legacy_role_gates` (вчерашние префиксы и
+декораторы); финансовые выгрузки — owner + admin. KA-12 E6.7c-4: код читает только реестр
+прав `view_perms`, а этот замок держит паритет «пустые права = вчерашний доступ».
 
 Экран открываем так же, как браузер: путь → мидлвари доступа → вьюха по `resolve()`.
 """
@@ -16,12 +16,14 @@ from django.conf import settings
 from django.conf import settings as dj_settings
 from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
+from django.http import HttpResponseNotFound
 from django.test import RequestFactory
-from django.urls import URLPattern, URLResolver, get_resolver, resolve, reverse
+from django.urls import Resolver404, URLPattern, URLResolver, get_resolver, resolve, reverse
 
-from apps.core import modules, nav_registry, roles
+from apps.core import modules, nav_registry, view_perms
 from apps.core.middleware import CabinetOwnerAccessMiddleware
 from apps.core.models import Membership
+from apps.core.tests import legacy_role_gates as LG
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -85,13 +87,22 @@ def _open(path, tenant, user, method="get", data=None):
     request.user = user
     request.tenant = tenant
 
+    middleware = CabinetOwnerAccessMiddleware(None)
+
     def view(req):
-        # resolve — ПОСЛЕ мидлвари, как в Django: роль проверяется раньше маршрута.
-        match = resolve(path.split("?")[0])
+        # Как в Django: __call__ (пол) → resolve → process_view (право маршрута) → вьюха.
+        try:
+            match = resolve(path.split("?")[0])
+        except Resolver404:
+            return HttpResponseNotFound()
         req.resolver_match = match
+        denied = middleware.process_view(req, match.func, match.args, match.kwargs)
+        if denied is not None:
+            return denied
         return match.func(req, *match.args, **match.kwargs)
 
-    return CabinetOwnerAccessMiddleware(view)(request)
+    middleware.get_response = view
+    return middleware(request)
 
 
 def _screens(tenant, user):
@@ -118,20 +129,20 @@ def _screens(tenant, user):
 # --- источник истины ---------------------------------------------------------------
 
 
-def test_middleware_reads_the_single_source():
-    assert CabinetOwnerAccessMiddleware._OWNER_ONLY is roles.OWNER_ONLY_PREFIXES
-    assert CabinetOwnerAccessMiddleware._FINANCE_EXPORTS is roles.FINANCE_EXPORT_PREFIXES
+def test_middleware_floor_is_part_of_yesterdays_owner_zone():
+    for prefix in CabinetOwnerAccessMiddleware._OWNER_FLOOR:
+        assert prefix.startswith(LG.LEGACY_OWNER_ONLY_PREFIXES), prefix
 
 
 def test_owner_only_nav_entries_match_middleware():
     """owner_only-запись навигации ⇔ путь под owner-префиксом (или объяснённое исключение)."""
     for name in nav_registry.owner_only_url_names():
         path = reverse(name)
-        assert roles.required_role_for_path(path) == roles.ROLE_OWNER_ONLY, (
+        assert LG.legacy_role_for_path(path) == LG.ROLE_OWNER_ONLY, (
             f"{name} помечен owner_only, но мидлварь его не закрывает: {path}"
         )
     covered = {reverse(name) for name in nav_registry.owner_only_url_names()}
-    for prefix in roles.OWNER_ONLY_PREFIXES:
+    for prefix in LG.LEGACY_OWNER_ONLY_PREFIXES:
         if any(path.startswith(prefix) for path in covered):
             continue
         assert prefix in EXPECTED_OWNER_ONLY_UNLISTED, (
@@ -147,20 +158,31 @@ def _walk_patterns(patterns, prefix=""):
             yield prefix + str(p.pattern), p.callback
 
 
-def test_role_decorated_views_are_declared():
-    """Вьюха под `owner_required`/`finance_export_required` либо лежит под префиксом
-    той же роли, либо имеет параметр в пути (uuid) — тогда гейт держит только декоратор."""
+def test_perm_decorated_views_match_their_route_rule():
+    """`@perm_required(key)` обязан совпадать с правилом маршрута в view_perms."""
     problems = []
     for route, callback in _walk_patterns(get_resolver("config.urls_tenant").url_patterns):
-        required = getattr(callback, "_required_role", "")
-        if not required:
+        key = getattr(callback, "_required_perm", "")
+        if not key:
             continue
-        if "<" in route:
-            continue  # путь с параметром — middleware его не видит, гейт в декораторе
-        path = "/" + route
-        if roles.required_role_for_path(path) != required:
-            problems.append(f"{path}: декоратор требует {required}, префикса нет")
+        name = resolve("/" + route.replace("<uuid:pk>", str(uuid4()))).view_name
+        rule = view_perms.rule_for(name)
+        if rule is None or key not in (rule.read, rule.write):
+            problems.append(f"{name}: декоратор {key}, правило {rule}")
     assert problems == []
+
+
+def test_decorated_list_of_yesterday_is_still_guarded_on_the_view():
+    """Пути с uuid middleware по префиксу не видел — гейт был на вьюхе; он остаётся там."""
+    by_name = {}
+    for route, callback in _walk_patterns(get_resolver("config.urls_tenant").url_patterns):
+        if getattr(callback, "_required_perm", ""):
+            try:
+                name = resolve("/" + route.replace("<uuid:pk>", str(uuid4()))).view_name
+            except Exception:  # noqa: BLE001 — путь с другими параметрами
+                continue
+            by_name[name] = callback._required_perm
+    assert set(LG.LEGACY_DECORATED) <= set(by_name), set(LG.LEGACY_DECORATED) - set(by_name)
 
 
 # --- обход экранов -----------------------------------------------------------------
@@ -175,12 +197,12 @@ def test_staff_and_admin_walk(kind, role):
     assert len(screens) >= 5, f"{kind}: обход пустой — замок ничего бы не проверил"
     bad = []
     for name, path in sorted(screens.items()):
-        required = roles.required_role_for_path(path)
+        required = LG.legacy_role_for_path(path)
         response = _open(path, tenant, user)
         status = response.status_code
-        if required == roles.ROLE_OWNER_ONLY:
+        if required == LG.ROLE_OWNER_ONLY:
             expected_ok = status == 403
-        elif required == roles.ROLE_FINANCE:
+        elif required == LG.ROLE_FINANCE:
             expected_ok = status == (200 if role == Membership.ROLE_ADMIN else 403)
         else:
             location = response.get("Location", "") if status == 302 else ""
@@ -199,7 +221,7 @@ def test_staff_nav_hides_owner_only(kind):
     for item in modules.sidebar_nav(tenant, staff):
         visible.add(item["url_name"])
         visible.update(child["url_name"] for child in item["children"])
-    leaked = {n for n in visible if roles.required_role_for_path(reverse(n))}
+    leaked = {n for n in visible if LG.legacy_role_for_path(reverse(n))}
     assert leaked == set()
 
 
@@ -210,7 +232,7 @@ def test_staff_pages_show_no_owner_data(kind):
     staff = _user(Membership.ROLE_STAFF)
     leaks = []
     for name, path in sorted(_screens(tenant, staff).items()):
-        if roles.required_role_for_path(path):
+        if LG.legacy_role_for_path(path):
             continue
         resp = _open(path, tenant, staff)
         if resp.status_code != 200 or not hasattr(resp, "content"):
@@ -218,19 +240,20 @@ def test_staff_pages_show_no_owner_data(kind):
         body = resp.content.decode(errors="ignore")
         if "DE89370400440532013000" in body or "DE89 3704" in body:
             leaks.append(f"{name}: IBAN")
-        for prefix in roles.OWNER_ONLY_PREFIXES:
+        for prefix in LG.LEGACY_OWNER_ONLY_PREFIXES:
             if f'href="{prefix}' in body or f"href='{prefix}" in body:
                 leaks.append(f"{name}: ссылка {prefix}")
     assert leaks == [], f"{kind}: " + "; ".join(leaks)
 
 
-@pytest.mark.parametrize("prefix", roles.OWNER_ONLY_PREFIXES)
+@pytest.mark.parametrize("prefix", LG.LEGACY_OWNER_ONLY_PREFIXES)
 def test_staff_post_to_owner_only_is_rejected(prefix):
     tenant = _tenant("bakery")
     staff = _user(Membership.ROLE_STAFF)
     before = (tenant.name, tenant.bank_iban, dict(tenant.site_config or {}))
     # Мидлварь отвечает 403 раньше маршрута — проверяем и префиксы без своего маршрута.
     resp = _open(prefix, tenant, staff, method="post", data={"name": "Übernommen"})
-    assert resp.status_code == 403
+    # E6.7c-4: префикс без своего маршрута — 404 (права живут на маршрутах), иначе 403.
+    assert resp.status_code in (403, 404)
     tenant.refresh_from_db()
     assert (tenant.name, tenant.bank_iban, dict(tenant.site_config or {})) == before

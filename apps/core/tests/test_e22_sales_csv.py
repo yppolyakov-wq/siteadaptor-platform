@@ -9,6 +9,7 @@ import pytest
 from django.test import RequestFactory
 
 from apps.core import views
+from apps.core.tests import legacy_role_gates as LG
 from apps.core.tests.test_kanban import _make_order
 
 pytestmark = pytest.mark.django_db
@@ -57,9 +58,8 @@ def test_staff_is_forbidden():
 
 
 def test_owner_only_prefix_registered():
-    from apps.core import roles
 
-    assert roles.required_role_for_path("/dashboard/verkaeufe/export.csv") == roles.ROLE_OWNER_ONLY
+    assert LG.legacy_role_for_path("/dashboard/verkaeufe/export.csv") == LG.ROLE_OWNER_ONLY
 
 
 def test_filters_apply_like_the_list():

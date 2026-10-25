@@ -13,6 +13,7 @@ import stripe
 from apps.billing import connect
 from apps.core import folio, money_contract, refunds
 from apps.core.models import DealPayment
+from apps.core.tests import legacy_role_gates as LG
 from apps.core.tests.dates import future_month_start
 from apps.promotions.models import Customer
 from apps.stays.models import StayBooking, StayUnit
@@ -261,10 +262,9 @@ def test_staff_cannot_refund(stripe_calls):
 
 
 def test_refund_path_is_owner_only_prefix():
-    from apps.core import roles
 
-    assert roles.OWNER_ONLY_PREFIXES and any(
-        "/dashboard/erstattung/x/".startswith(p) for p in roles.OWNER_ONLY_PREFIXES
+    assert LG.LEGACY_OWNER_ONLY_PREFIXES and any(
+        "/dashboard/erstattung/x/".startswith(p) for p in LG.LEGACY_OWNER_ONLY_PREFIXES
     )
 
 

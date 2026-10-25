@@ -16,6 +16,7 @@ from apps.booking import views as booking_views
 from apps.booking.models import ClosedDate, Resource
 from apps.core import closures
 from apps.core.models import Membership
+from apps.core.tests import legacy_role_gates as LG
 from apps.tenants.models import Tenant
 from apps.tenants.tests.factories import TenantFactory
 
@@ -60,11 +61,8 @@ def test_staff_cannot_open_betriebsferien_screen():
 
 
 def test_owner_only_prefix_covers_screen():
-    from apps.core import roles
 
-    assert (
-        roles.required_role_for_path("/dashboard/settings/betriebsferien/") == roles.ROLE_OWNER_ONLY
-    )
+    assert LG.legacy_role_for_path("/dashboard/settings/betriebsferien/") == LG.ROLE_OWNER_ONLY
 
 
 def test_staff_cannot_close_business_in_booking_calendar():

@@ -14,9 +14,7 @@ from django.utils.translation import gettext as _
 from . import modules
 from .i18n_cabinet import CABINET_PREFIXES, resolve_cabinet_locale
 from .roles import (
-    FINANCE_EXPORT_PREFIXES,
-    OWNER_ONLY_PREFIXES,
-    can_export_finance,
+    OWNER_FLOOR_PREFIXES,
     has_cabinet_access,
     is_owner,
 )
@@ -207,14 +205,9 @@ class CabinetOwnerAccessMiddleware:
     # Кабинет-пути владельца: CABINET_PREFIXES (dashboard + корневые разделы) плюс
     # алиас мастера онбординга. Витрину/публичные пути/логин НЕ трогаем.
     _PREFIXES = CABINET_PREFIXES
-    # W9-10: owner-only зона — Abo/Stripe-Connect, правовые тексты/реквизиты,
-    # Team. Приглашённый admin/staff сюда не попадает («пригласить сотрудника»
-    # ≠ «отдать бизнес»). Прямые вызовы вьюх в тестах идут мимо middleware —
-    # реальный HTTP закрыт здесь fail-closed.
-    # В5 V5-3 (решение владельца): статистика Stadtportal — только владельцу.
-    _OWNER_ONLY = OWNER_ONLY_PREFIXES
-    # KA-D7: финансовые выгрузки — владельцу и admin (бухгалтер), не staff.
-    _FINANCE_EXPORTS = FINANCE_EXPORT_PREFIXES
+    # KA-12 E6.7c-4: права экранов — в process_view по реестру view_perms; здесь только
+    # пол Inhaber-Vorbehalt (Abo/Recht/Geschäft/импорт с сайта) — до разрешения маршрута.
+    _OWNER_FLOOR = OWNER_FLOOR_PREFIXES
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -229,11 +222,7 @@ class CabinetOwnerAccessMiddleware:
         ):
             if not has_cabinet_access(request.user):
                 return HttpResponseForbidden(_("Kein Zugriff auf dieses Konto."))
-            if request.path.startswith(self._OWNER_ONLY) and not is_owner(request.user):
-                return HttpResponseForbidden(_("Nur für Inhaber."))
-            if request.path.startswith(self._FINANCE_EXPORTS) and not can_export_finance(
-                request.user
-            ):
+            if request.path.startswith(self._OWNER_FLOOR) and not is_owner(request.user):
                 return HttpResponseForbidden(_("Nur für Inhaber."))
         return self.get_response(request)
 

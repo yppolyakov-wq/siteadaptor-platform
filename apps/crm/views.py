@@ -13,7 +13,8 @@ from django.views.decorators.http import require_POST
 
 from apps.core.csv_safe import csv_safe
 from apps.core.pagination import paginate
-from apps.core.roles import audit_export, owner_required
+from apps.core.roles import audit_export
+from apps.core.view_perms import perm_required
 from apps.promotions.models import Customer
 
 from . import customer360
@@ -98,7 +99,7 @@ def customer_list(request):
 
 
 @login_required
-@owner_required
+@perm_required("kunden.export")
 def customer_export_csv(request):
     """CSV-экспорт списка клиентов по текущему фильтру (D1c).
 
@@ -264,7 +265,7 @@ def note_add(request, pk):
 
 
 @login_required
-@owner_required
+@perm_required("kunden.dsgvo")
 def customer_dsgvo(request, pk):
     """Экран запроса: что выгрузится, что сохранится по закону, можно ли удалить."""
     from . import dsgvo
@@ -285,7 +286,7 @@ def customer_dsgvo(request, pk):
 
 
 @login_required
-@owner_required
+@perm_required("kunden.dsgvo")
 def customer_dsgvo_export(request, pk):
     """Art. 15/20: ZIP с данными клиента (JSON + README «что сохранено и почему»)."""
     import io
@@ -317,7 +318,7 @@ def customer_dsgvo_export(request, pk):
 
 
 @login_required
-@owner_required
+@perm_required("kunden.dsgvo")
 @require_POST
 def customer_dsgvo_erase(request, pk):
     """Art. 17: удалить данные клиента. Нужно подтверждение словом «LÖSCHEN»."""
