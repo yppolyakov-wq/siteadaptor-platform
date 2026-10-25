@@ -394,6 +394,41 @@ def test_staff_cannot_change_prices(data):
     assert any("Inhaber" in m for m in _msgs(request))
 
 
+def test_staff_unit_settings_keeps_prices_but_saves_text():
+    a = _unit(price_cents=10000, deposit_cents=500)
+    _units_post(
+        {
+            "action": "unit_settings",
+            "unit": str(a.pk),
+            "description": "Neu beschrieben",
+            "price_eur": "1",
+            "weekend_price_eur": "1",
+            "deposit_eur": "0",
+        },
+        role=Membership.ROLE_STAFF,
+    )
+    a.refresh_from_db()
+    assert a.description == "Neu beschrieben"
+    assert (a.price_cents, a.deposit_cents) == (10000, 500)
+
+
+@pytest.mark.parametrize("action", ["kurtaxe", "gap_deal", "autodiscount_add", "unit"])
+def test_staff_blocked_on_price_forming_settings(action):
+    request, _ = _units_post({"action": action, "name": "X"}, role=Membership.ROLE_STAFF)
+    assert any("Inhaber" in m for m in _msgs(request))
+    assert not StayUnit.objects.filter(name="X").exists()
+
+
+@pytest.mark.parametrize("action", ["rateplan_units", "rateplan_toggle", "rateplan_delete"])
+def test_garbage_rateplan_pk_is_not_500(action):
+    from django.http import Http404
+
+    try:
+        _units_post({"action": action, "rateplan": "not-a-uuid", "rate_scope": "all"})
+    except Http404:
+        pass
+
+
 def test_rate_edit_actions_constant_covers_price_writers():
     """Каждый action диспетчера units(), пишущий RatePlan/SeasonRate, — в RATE_EDIT_ACTIONS."""
     src = pathlib.Path(views.__file__).read_text()

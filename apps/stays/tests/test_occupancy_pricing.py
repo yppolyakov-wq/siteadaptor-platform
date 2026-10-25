@@ -8,6 +8,7 @@ from datetime import date, timedelta
 
 import pytest
 
+from apps.core.models import Membership
 from apps.stays import availability, pricing, services
 from apps.stays.models import StayBooking, StaySettings, StayUnit
 
@@ -128,6 +129,9 @@ def test_storefront_quote_and_booking_use_dynamic_price_desk_does_not():
     MessageMiddleware(lambda r: None).process_request(request)
     o = uuid.uuid4().hex[:8]
     request.user = get_user_model().objects.create_user(username=f"o-{o}", password="pw12345678")
+    Membership.objects.get_or_create(  # Z-4: цены — owner/admin
+        user=request.user, defaults={"role": Membership.ROLE_OWNER}
+    )
     services.book_stay(  # поднимаем занятость целевых ночей до 50 %
         unit,
         arrival=D0 + timedelta(days=10),
@@ -154,6 +158,9 @@ def test_units_page_occupancy_rule_add_delete():
         o = uuid.uuid4().hex[:8]
         request.user = get_user_model().objects.create_user(
             username=f"o-{o}", password="pw12345678"
+        )
+        Membership.objects.get_or_create(  # Z-4: цены — owner/admin
+            user=request.user, defaults={"role": Membership.ROLE_OWNER}
         )
         return request
 

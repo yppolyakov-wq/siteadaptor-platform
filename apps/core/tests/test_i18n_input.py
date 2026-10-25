@@ -9,6 +9,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
+from apps.core.models import Membership
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -73,6 +74,9 @@ def _req(method="get", data=None, locales=("de",)):
     uname = f"o-{uuid.uuid4().hex[:8]}"
     request.user = get_user_model().objects.create_user(
         username=uname, email=f"{uname}@t.de", password="pw12345678"
+    )
+    Membership.objects.get_or_create(  # Z-4: цены — owner/admin
+        user=request.user, defaults={"role": Membership.ROLE_OWNER}
     )
     request.tenant = _tenant(list(locales))
     return request

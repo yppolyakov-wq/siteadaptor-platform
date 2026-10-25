@@ -12,6 +12,7 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
+from apps.core.models import Membership
 from apps.stays import public_views, restrictions, views
 from apps.stays.models import StayBooking, StaySettings, StayUnit
 from apps.tenants.tests.factories import TenantFactory
@@ -181,6 +182,9 @@ def test_unterkunft_book_blocked_but_cabinet_walkin_allowed():
     request.user = get_user_model().objects.create_user(
         username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
     )
+    Membership.objects.get_or_create(  # Z-4: цены — owner/admin
+        user=request.user, defaults={"role": Membership.ROLE_OWNER}
+    )
     views.stay_create(request)
     assert StayBooking.objects.count() == 1
 
@@ -221,6 +225,9 @@ def _owner_req(data):
     owner = uuid.uuid4().hex[:8]
     request.user = get_user_model().objects.create_user(
         username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+    )
+    Membership.objects.get_or_create(  # Z-4: цены — owner/admin
+        user=request.user, defaults={"role": Membership.ROLE_OWNER}
     )
     return request
 

@@ -825,10 +825,35 @@ def booking_delete(request, pk):
     return redirect(back)
 
 
-# Z-4 Р-7: действия диспетчера units(), пишущие цены (тарифы, сезоны).
+# Z-4 Р-7 (О-4): действия диспетчера units(), пишущие цены и ценообразующие правила
+# (тарифы, сезоны, Kurtaxe, авто-скидки, занятость, Lücken-Deal, правила продаж,
+# новый номер с ценой) — только владелец и admin. ``unit_settings`` гейтится по
+# полям: сотрудник правит описание/фото/удобства, но не цены (см. ниже).
 RATE_EDIT_ACTIONS = frozenset(
-    {"rate", "rate_delete", "rateplan", "rateplan_units", "rateplan_toggle", "rateplan_delete"}
+    {
+        "unit",
+        "rate",
+        "rate_delete",
+        "rateplan",
+        "rateplan_units",
+        "rateplan_toggle",
+        "rateplan_delete",
+        "kurtaxe",
+        "autodiscount_add",
+        "autodiscount_delete",
+        "booking_window",
+        "restriction_add",
+        "restriction_delete",
+        "occupancy_add",
+        "occupancy_delete",
+        "gap_deal",
+    }
 )
+
+
+def _rateplan_pk(post):
+    """pk тарифа из формы — строгий UUID; мусор → None (404/ничего), не 500."""
+    return rate_plans_mod.parse_uuid(post.get("rateplan"))
 
 
 def _rateplan_scope(post):
@@ -880,7 +905,7 @@ def units(request, pk=None):
         # Гейт ДО чтения pk из POST (не различаем существующий/несуществующий pk).
         if action in RATE_EDIT_ACTIONS and not roles.can_edit_policy(request.user):
             messages.error(request, _("Preise und Tarife ändern nur Inhaber und Admins."))
-            return redirect("stays:units")
+            return redirect("stays:unit-edit", pk=pk) if pk else redirect("stays:units")
         if action == "unit":
             name = request.POST.get("name", "").strip()
             if name:
@@ -915,10 +940,13 @@ def units(request, pk=None):
             _new_name = request.POST.get("name")
             if _new_name is not None and _new_name.strip():
                 unit.name = _new_name.strip()[:120]
-            unit.price_cents = _eur_to_cents(request.POST.get("price_eur"))
-            unit.weekend_price_cents = _eur_to_cents(request.POST.get("weekend_price_eur"))
+            # Z-4 Р-7: цены номера правят только владелец и admin (сотрудник — прочее).
+            can_price = roles.can_edit_policy(request.user)
+            if can_price:
+                unit.price_cents = _eur_to_cents(request.POST.get("price_eur"))
+                unit.weekend_price_cents = _eur_to_cents(request.POST.get("weekend_price_eur"))
             # DC-8: ставка НДС — presence-guard (поле только на странице номера).
-            if request.POST.get("vat_rate") is not None:
+            if can_price and request.POST.get("vat_rate") is not None:
                 unit.vat_rate = vat.parse_rate(request.POST.get("vat_rate"), unit.vat_rate)
             unit.quantity = _int(request.POST.get("quantity", "1"), 1, 1, 999)
             # PMS-R1: при заведённых комнатах ёмкость считается по ним —
@@ -927,11 +955,12 @@ def units(request, pk=None):
                 unit.quantity = unit.rooms.filter(is_active=True).count()
             unit.min_nights = _int(request.POST.get("min_nights", "1"), 1, 1, 365)
             unit.max_guests = _int(request.POST.get("max_guests", "2"), 2, 1, 99)
-            unit.deposit_cents = _eur_to_cents(request.POST.get("deposit_eur"))
+            if can_price:
+                unit.deposit_cents = _eur_to_cents(request.POST.get("deposit_eur"))
             # Фидбэк 2026-07-30: Lücken-Deal для КОНКРЕТНОГО номера (0 = как в
             # общих настройках). Presence-guard: поля приходят только со страницы
             # номера — на списке значения не затираются.
-            if request.POST.get("gap_present"):
+            if can_price and request.POST.get("gap_present"):
                 unit.gap_max_nights = _int(request.POST.get("gap_max_nights", "0"), 0, 0, 14)
                 unit.gap_discount_percent = _int(
                     request.POST.get("gap_discount_percent", "0"), 0, 0, 70
@@ -1103,7 +1132,7 @@ def units(request, pk=None):
             else:
                 messages.error(request, _("Please enter a rate plan name."))
         elif action == "rateplan_units":  # Z-4: правка категорий тарифа
-            rp = get_object_or_404(RatePlan, pk=request.POST.get("rateplan"))
+            rp = get_object_or_404(RatePlan, pk=_rateplan_pk(request.POST))
             scope = _rateplan_scope(request.POST)
             if scope is None:
                 pass  # W0: формы без поля охвата набор не трогают
@@ -1116,12 +1145,12 @@ def units(request, pk=None):
                     rp.units.set([] if scope[0] else scope[1])
                 messages.success(request, _("Settings saved."))
         elif action == "rateplan_toggle":
-            rp = get_object_or_404(RatePlan, pk=request.POST.get("rateplan"))
+            rp = get_object_or_404(RatePlan, pk=_rateplan_pk(request.POST))
             rp.is_active = not rp.is_active
             rp.save(update_fields=["is_active", "updated_at"])
             messages.success(request, _("Settings saved."))
         elif action == "rateplan_delete":
-            RatePlan.objects.filter(pk=request.POST.get("rateplan")).delete()
+            RatePlan.objects.filter(pk=_rateplan_pk(request.POST)).delete()
             messages.success(request, _("Settings saved."))
         elif action == "card_amenities":  # HF-2: пиктограммы удобств на карточке номера
             from apps.tenants import siteconfig

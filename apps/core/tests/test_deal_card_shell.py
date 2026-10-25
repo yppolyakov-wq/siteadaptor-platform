@@ -641,11 +641,20 @@ def test_vat_rate_saves_from_cabinet_and_foreign_value_is_ignored():
     unit = StayUnit.objects.create(name="Suite", price_cents=9000)
     assert unit.vat_rate == Decimal("7.00")  # дефолт DE: проживание
 
+    from django.contrib.auth import get_user_model
+
+    from apps.core.models import Membership
+
+    owner = get_user_model().objects.create_user(
+        username=f"o-{uuid.uuid4().hex[:8]}", password="pw12345678"
+    )
+    Membership.objects.get_or_create(user=owner, defaults={"role": Membership.ROLE_OWNER})
+
     def _post(view, data, path="/dashboard/", **kwargs):
         req = RequestFactory().post(path, data)
         SessionMiddleware(lambda r: None).process_request(req)
         MessageMiddleware(lambda r: None).process_request(req)
-        req.user = _User()
+        req.user = owner  # Z-4: цены номера правят owner/admin
         req.tenant = tenant
         return view(req, **kwargs)
 

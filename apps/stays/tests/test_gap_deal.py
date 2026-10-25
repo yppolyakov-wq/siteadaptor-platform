@@ -11,6 +11,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 from django.utils import timezone
 
+from apps.core.models import Membership
 from apps.stays import pricing, services, views
 from apps.stays.models import StaySettings, StayUnit
 
@@ -46,6 +47,9 @@ def _req(method="get", data=None):
     MessageMiddleware(lambda r: None).process_request(request)
     o = uuid.uuid4().hex[:8]
     request.user = get_user_model().objects.create_user(username=f"o-{o}", password="pw12345678")
+    Membership.objects.get_or_create(  # Z-4: цены — owner/admin
+        user=request.user, defaults={"role": Membership.ROLE_OWNER}
+    )
     return request
 
 
