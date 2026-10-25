@@ -29594,3 +29594,54 @@ msgstr "Nights with an invalid price (below €0.01 or above €99,999.99): %(n)
 
 msgid "Unbekannte oder deaktivierte Kategorie."
 msgstr "Unknown or deactivated category."
+
+msgid "Bei Überschneidung gilt die früher beginnende Saison."
+msgstr "If seasons overlap, the one starting earlier applies."
+
+#, python-format
+msgid "Der Tarif „%(rate)s“ gilt nicht für „%(unit)s“ — die Buchung behält den vereinbarten Tarif."
+msgstr "The rate “%(rate)s” does not apply to “%(unit)s” — the booking keeps the agreed rate."
+
+msgid "Dieser Tarif gilt nicht für die gewählte Kategorie."
+msgstr "This rate does not apply to the selected category."
+
+msgid "Dieser Tarif ist für dieses Zimmer nicht verfügbar. Bitte wählen Sie erneut."
+msgstr "This rate is not available for this room. Please choose again."
+
+msgid "Kategorien speichern"
+msgstr "Save categories"
+
+msgid "Kategorien ändern"
+msgstr "Change categories"
+
+msgid "Preise und Tarife ändern nur Inhaber und Admins."
+msgstr "Only owners and admins can change prices and rates."
+
+msgid "Verschiedene Arten, dieselben Zimmer zu verkaufen — Basis, nicht erstattbar, mit Frühstück, Halbpension … Gäste wählen beim Buchen. Ein Tarif gilt für alle Kategorien oder nur für ausgewählte."
+msgstr "Different ways to sell the same rooms — base, non-refundable, with breakfast, half board … Guests choose when booking. A rate applies to all categories or only to selected ones."
+
+msgid "für alle Kategorien"
+msgstr "for all categories"
+
+msgid "keine Kategorie — wird nicht angeboten"
+msgstr "no category — not offered"
+
+msgid "nur:"
+msgstr "only:"
+
+#, python-format
+msgid "Überschneidet sich mit der Saison „%(label)s“ (%(start)s – %(end)s)."
+msgstr "Overlaps with the season “%(label)s” (%(start)s – %(end)s)."
+
+#, python-format
+msgid "Überschneidet sich mit einer Saison (%(start)s – %(end)s)."
+msgstr "Overlaps with a season (%(start)s – %(end)s)."
+
+msgid "Überschneidung"
+msgstr "Overlap"
+
+msgid "— ohne Tarif —"
+msgstr "— no rate —"
+
+msgid "nur für ausgewählte Kategorien"
+msgstr "only for selected categories"

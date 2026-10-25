@@ -29738,3 +29738,54 @@ msgstr "Geçersiz fiyatlı geceler (0,01 €'nun altında veya 99.999,99 €'nun
 
 msgid "Unbekannte oder deaktivierte Kategorie."
 msgstr "Bilinmeyen veya devre dışı kategori."
+
+msgid "Bei Überschneidung gilt die früher beginnende Saison."
+msgstr "Sezonlar çakışırsa, daha önce başlayan sezon geçerlidir."
+
+#, python-format
+msgid "Der Tarif „%(rate)s“ gilt nicht für „%(unit)s“ — die Buchung behält den vereinbarten Tarif."
+msgstr "“%(rate)s” tarifesi “%(unit)s” için geçerli değil — rezervasyon kararlaştırılan tarifeyi korur."
+
+msgid "Dieser Tarif gilt nicht für die gewählte Kategorie."
+msgstr "Bu tarife seçilen kategori için geçerli değil."
+
+msgid "Dieser Tarif ist für dieses Zimmer nicht verfügbar. Bitte wählen Sie erneut."
+msgstr "Bu tarife bu oda için mevcut değil. Lütfen tekrar seçin."
+
+msgid "Kategorien speichern"
+msgstr "Kategorileri kaydet"
+
+msgid "Kategorien ändern"
+msgstr "Kategorileri değiştir"
+
+msgid "Preise und Tarife ändern nur Inhaber und Admins."
+msgstr "Fiyatları ve tarifeleri yalnızca sahipler ve yöneticiler değiştirebilir."
+
+msgid "Verschiedene Arten, dieselben Zimmer zu verkaufen — Basis, nicht erstattbar, mit Frühstück, Halbpension … Gäste wählen beim Buchen. Ein Tarif gilt für alle Kategorien oder nur für ausgewählte."
+msgstr "Aynı odaları satmanın farklı yolları — temel, iade edilemez, kahvaltılı, yarım pansiyon … Misafirler rezervasyon sırasında seçer. Bir tarife tüm kategoriler veya yalnızca seçilenler için geçerlidir."
+
+msgid "für alle Kategorien"
+msgstr "tüm kategoriler için"
+
+msgid "keine Kategorie — wird nicht angeboten"
+msgstr "kategori yok — sunulmuyor"
+
+msgid "nur:"
+msgstr "yalnızca:"
+
+#, python-format
+msgid "Überschneidet sich mit der Saison „%(label)s“ (%(start)s – %(end)s)."
+msgstr "“%(label)s” sezonuyla çakışıyor (%(start)s – %(end)s)."
+
+#, python-format
+msgid "Überschneidet sich mit einer Saison (%(start)s – %(end)s)."
+msgstr "Bir sezonla çakışıyor (%(start)s – %(end)s)."
+
+msgid "Überschneidung"
+msgstr "Çakışma"
+
+msgid "— ohne Tarif —"
+msgstr "— tarifesiz —"
+
+msgid "nur für ausgewählte Kategorien"
+msgstr "yalnızca seçilen kategoriler için"

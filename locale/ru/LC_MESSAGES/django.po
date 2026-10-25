@@ -29869,3 +29869,54 @@ msgstr "Ночей с недопустимой ценой (меньше 0,01 €
 
 msgid "Unbekannte oder deaktivierte Kategorie."
 msgstr "Неизвестная или отключённая категория."
+
+msgid "Bei Überschneidung gilt die früher beginnende Saison."
+msgstr "При пересечении действует сезон, который начинается раньше."
+
+#, python-format
+msgid "Der Tarif „%(rate)s“ gilt nicht für „%(unit)s“ — die Buchung behält den vereinbarten Tarif."
+msgstr "Тариф «%(rate)s» не действует для «%(unit)s» — бронь сохраняет согласованный тариф."
+
+msgid "Dieser Tarif gilt nicht für die gewählte Kategorie."
+msgstr "Этот тариф не действует для выбранной категории."
+
+msgid "Dieser Tarif ist für dieses Zimmer nicht verfügbar. Bitte wählen Sie erneut."
+msgstr "Этот тариф недоступен для этого номера. Пожалуйста, выберите снова."
+
+msgid "Kategorien speichern"
+msgstr "Сохранить категории"
+
+msgid "Kategorien ändern"
+msgstr "Изменить категории"
+
+msgid "Preise und Tarife ändern nur Inhaber und Admins."
+msgstr "Цены и тарифы меняют только владельцы и администраторы."
+
+msgid "Verschiedene Arten, dieselben Zimmer zu verkaufen — Basis, nicht erstattbar, mit Frühstück, Halbpension … Gäste wählen beim Buchen. Ein Tarif gilt für alle Kategorien oder nur für ausgewählte."
+msgstr "Разные способы продать одни и те же номера — базовый, невозвратный, с завтраком, полупансион … Гости выбирают при бронировании. Тариф действует для всех категорий или только для выбранных."
+
+msgid "für alle Kategorien"
+msgstr "для всех категорий"
+
+msgid "keine Kategorie — wird nicht angeboten"
+msgstr "нет категории — не предлагается"
+
+msgid "nur:"
+msgstr "только:"
+
+#, python-format
+msgid "Überschneidet sich mit der Saison „%(label)s“ (%(start)s – %(end)s)."
+msgstr "Пересекается с сезоном «%(label)s» (%(start)s – %(end)s)."
+
+#, python-format
+msgid "Überschneidet sich mit einer Saison (%(start)s – %(end)s)."
+msgstr "Пересекается с сезоном (%(start)s – %(end)s)."
+
+msgid "Überschneidung"
+msgstr "Пересечение"
+
+msgid "— ohne Tarif —"
+msgstr "— без тарифа —"
+
+msgid "nur für ausgewählte Kategorien"
+msgstr "только для выбранных категорий"

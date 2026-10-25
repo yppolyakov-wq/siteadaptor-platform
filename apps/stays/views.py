@@ -20,13 +20,14 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import deal_card, deal_links, refunds, vat
+from apps.core import deal_card, deal_links, refunds, roles, vat
 from apps.core import transactions as core_transactions
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.core.roles import audit_export, owner_required
 
 from . import availability, pricing, services
+from . import rate_plans as rate_plans_mod
 from .models import (
     _AMENITY_KEYS,
     AMENITIES,
@@ -70,9 +71,26 @@ def stay_new(request):
         {
             "nav": "stays",
             "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
-            "rate_plans": list(RatePlan.objects.filter(is_active=True)),
+            "rate_plans": rate_plans_mod.active_plans(),  # Z-4: с категориями (data-units)
             "walkin_extras": _extras_for_walkin(),
         },
+    )
+
+
+def _warn_rate_mismatch(request, booking):
+    """Z-4 Р-3: перенос в категорию, к которой тариф брони не относится, разрешён —
+    бронь сохраняет согласованный тариф (питание/отмена/предоплата). Сотруднику —
+    предупреждение. Категорию и тариф перечитываем после переноса. Для fetch-drag
+    (204) не выводим: сообщение всплыло бы на чужом действии (известное ограничение)."""
+    fresh = StayBooking.objects.select_related("unit", "rate_plan").filter(pk=booking.pk).first()
+    if fresh is None or fresh.rate_plan is None or fresh.rate_plan.applies_to(fresh.unit):
+        return
+    messages.warning(
+        request,
+        _(
+            "Der Tarif „%(rate)s“ gilt nicht für „%(unit)s“ — die Buchung behält den vereinbarten Tarif."
+        )
+        % {"rate": fresh.rate_plan.name, "unit": fresh.unit.name},
     )
 
 
@@ -311,7 +329,7 @@ def calendar_context(request):
                 and _has_short_gaps(units)
             ),
             # PMS-A1: паритет walk-in формы с витриной — тарифы и доп-услуги.
-            "rate_plans": list(RatePlan.objects.filter(is_active=True)),
+            "rate_plans": rate_plans_mod.active_plans(),  # Z-4: с категориями (data-units)
             "walkin_extras": _extras_for_walkin(),
             # W9-8: мёртвые status_label_rows/transition_rows убраны (шаблон их не
             # рендерил — аудит 2026-08-05); настройки статусов — экран «Abläufe».
@@ -411,6 +429,7 @@ def stay_action(request, pk):
             if is_fetch:
                 return HttpResponse(status=204)
             messages.success(request, _("Stay moved."))
+            _warn_rate_mismatch(request, booking)
         except ValueError:
             if is_fetch:
                 return HttpResponse(_("Invalid dates."), status=409)
@@ -500,6 +519,7 @@ def stay_action(request, pk):
                     unit=target_unit,
                     reprice=reprice,
                 )
+                _warn_rate_mismatch(request, booking)
                 # PMS-R2: назначение физического номера (после переноса — даты
                 # финальные). Селект другой категории (unit сменился) — устарел.
                 room_obj = None
@@ -654,11 +674,18 @@ def stay_create(request):
     # (= взрослые). G12-ограничения на стойку осознанно НЕ действуют.
     adults = _int(request.POST.get("erw", "") or request.POST.get("guests", "1"), 1, 1, 50)
     children = _int(request.POST.get("kinder", "0"), 0, 0, 50)
-    rate_plan = None
-    active_rates = list(RatePlan.objects.filter(is_active=True))
-    if active_rates:
-        rate_pk = request.POST.get("rate_plan")
-        rate_plan = next((r for r in active_rates if str(r.pk) == str(rate_pk)), active_rates[0])
+    # Z-4 (E4.6c): тариф на стойке — явный выбор («— ohne Tarif —» = база); тариф
+    # чужой категории/выключенный/подделанный — отказ, без тихой подмены первым.
+    try:
+        rate_plan = rate_plans_mod.resolve_choice(
+            unit,
+            request.POST.getlist("rate_plan"),
+            plans=rate_plans_mod.active_plans(),
+            empty="none",
+        )
+    except rate_plans_mod.RatePlanInvalid:
+        messages.error(request, _("Dieser Tarif gilt nicht für die gewählte Kategorie."))
+        return redirect(back or "stays:calendar")
     from apps.core import extras as extras_engine
 
     extras_snap = extras_engine.snapshot(
@@ -686,6 +713,9 @@ def stay_create(request):
             voucher_code=request.POST.get("voucher_code", "").strip(),
             rooms=_int(request.POST.get("rooms", "1"), 1, 1, 20),
         )
+    except services.RatePlanInvalid:  # Z-4: тариф изменили между формой и POST
+        messages.error(request, _("Dieser Tarif gilt nicht für die gewählte Kategorie."))
+        return redirect(back or "stays:calendar")
     except services.MinStay:
         messages.error(request, _("Below the minimum number of nights."))
         return redirect(back or "stays:calendar")
@@ -795,6 +825,50 @@ def booking_delete(request, pk):
     return redirect(back)
 
 
+# Z-4 Р-7: действия диспетчера units(), пишущие цены (тарифы, сезоны).
+RATE_EDIT_ACTIONS = frozenset(
+    {"rate", "rate_delete", "rateplan", "rateplan_units", "rateplan_toggle", "rateplan_delete"}
+)
+
+
+def _rateplan_scope(post):
+    """Охват тарифа из формы: None — поля нет (не трогать); (True, []) — все
+    категории; (False, [StayUnit…]) — выбранные (только существующие pk)."""
+    scope = post.get("rate_scope")
+    if scope == "all":
+        return (True, [])
+    if scope != "some":
+        return None
+    pks = rate_plans_mod.parse_pks(post.getlist("units"))
+    return (False, list(StayUnit.objects.filter(pk__in=pks)))
+
+
+def _overlapping_season_ids(rates) -> set:
+    """Z-4: pk сезонов, пересекающихся с другим сезоном той же категории (старые
+    данные до гарда) — для бейджа «Überschneidung». В памяти, без запросов."""
+    rates = sorted(rates, key=lambda r: (r.start_date, r.end_date))
+    out, last = set(), None
+    for r in rates:
+        if last is not None and r.start_date <= last.end_date:
+            out.update((r.pk, last.pk))
+        if last is None or r.end_date > last.end_date:
+            last = r
+    return out
+
+
+def _season_overlap_msg(conflict):
+    from django.utils.formats import date_format
+
+    params = {
+        "label": conflict.label,
+        "start": date_format(conflict.start_date, "SHORT_DATE_FORMAT"),
+        "end": date_format(conflict.end_date, "SHORT_DATE_FORMAT"),
+    }
+    if conflict.label:
+        return _("Überschneidet sich mit der Saison „%(label)s“ (%(start)s – %(end)s).") % params
+    return _("Überschneidet sich mit einer Saison (%(start)s – %(end)s).") % params
+
+
 @login_required
 def units(request, pk=None):
     """Юниты + блокировки дат — POST-формы. Фидбэк 2026-07-28: с pk —
@@ -802,6 +876,11 @@ def units(request, pk=None):
     возвращаются на неё); без pk — компактный список + глобальные настройки."""
     if request.method == "POST":
         action = request.POST.get("action", "")
+        # Z-4 Р-7 (О-4): цены — тарифы и сезоны — правят только владелец и admin.
+        # Гейт ДО чтения pk из POST (не различаем существующий/несуществующий pk).
+        if action in RATE_EDIT_ACTIONS and not roles.can_edit_policy(request.user):
+            messages.error(request, _("Preise und Tarife ändern nur Inhaber und Admins."))
+            return redirect("stays:units")
         if action == "unit":
             name = request.POST.get("name", "").strip()
             if name:
@@ -901,14 +980,16 @@ def units(request, pk=None):
                 end_date = date.fromisoformat(request.POST.get("end_date", ""))
                 if end_date < start_date:
                     raise ValueError
-                SeasonRate.objects.create(
-                    unit=unit,
+                services.add_season_rate(  # Z-4: без пересечений, под локом категории
+                    unit,
                     label=request.POST.get("label", "").strip()[:120],
                     start_date=start_date,
                     end_date=end_date,
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
                 )
                 messages.success(request, _("Season rate added."))
+            except services.SeasonOverlap as exc:
+                messages.error(request, _season_overlap_msg(exc.conflict))
             except (TypeError, ValueError):
                 messages.error(request, _("Invalid dates."))
         elif action == "rate_delete":
@@ -998,10 +1079,13 @@ def units(request, pk=None):
             src = get_object_or_404(ICalSource, pk=request.POST.get("source"))
             n = services.sync_ical_source(src)
             messages.success(request, _("Synced: %(n)d blocked range(s).") % {"n": n})
-        elif action == "rateplan":  # H1: тариф (на тенанта, для всех номеров)
+        elif action == "rateplan":  # H1: тариф; Z-4 — для всех или выбранных категорий
             name = request.POST.get("name", "").strip()
-            if name:
-                RatePlan.objects.create(
+            scope = _rateplan_scope(request.POST)
+            if name and scope is not None and not scope[0] and not scope[1]:
+                messages.error(request, _("Bitte mindestens eine Kategorie wählen."))
+            elif name:
+                rp = RatePlan.objects.create(
                     name=name[:120],
                     description=request.POST.get("description", "").strip()[:300],
                     percent_adjust=_int(request.POST.get("percent_adjust", "0"), 0, -90, 200),
@@ -1011,10 +1095,26 @@ def units(request, pk=None):
                     free_cancel_days=_int(request.POST.get("free_cancel_days", "0"), 0, 0, 365),
                     prepayment_percent=_int(request.POST.get("prepayment_percent", "0"), 0, 0, 100),
                     sort_order=_int(request.POST.get("sort_order", "0"), 0, 0, 999),
+                    applies_to_all=scope is None or scope[0],
                 )
+                if scope is not None and not scope[0]:
+                    rp.units.set(scope[1])
                 messages.success(request, _("Rate plan added."))
             else:
                 messages.error(request, _("Please enter a rate plan name."))
+        elif action == "rateplan_units":  # Z-4: правка категорий тарифа
+            rp = get_object_or_404(RatePlan, pk=request.POST.get("rateplan"))
+            scope = _rateplan_scope(request.POST)
+            if scope is None:
+                pass  # W0: формы без поля охвата набор не трогают
+            elif not scope[0] and not scope[1]:
+                messages.error(request, _("Bitte mindestens eine Kategorie wählen."))
+            else:
+                with transaction.atomic():
+                    rp.applies_to_all = scope[0]
+                    rp.save(update_fields=["applies_to_all", "updated_at"])
+                    rp.units.set([] if scope[0] else scope[1])
+                messages.success(request, _("Settings saved."))
         elif action == "rateplan_toggle":
             rp = get_object_or_404(RatePlan, pk=request.POST.get("rateplan"))
             rp.is_active = not rp.is_active
@@ -1163,6 +1263,8 @@ def units(request, pk=None):
         _settings_sections = {
             "rateplan": "preise",
             "rateplan_toggle": "preise",
+            "rateplan_units": "preise",
+            "rate": "preise",
             "rateplan_delete": "preise",
             "autodiscount_add": "preise",
             "autodiscount_delete": "preise",
@@ -1192,6 +1294,7 @@ def units(request, pk=None):
             reverse("storefront-stay-ical", args=[ical_token(u)])
         )
         u.i18n_inputs = i18n_inputs_for(u, getattr(request, "tenant", None))  # L3d
+        u.season_overlaps = _overlapping_season_ids(u.season_rates.all())  # Z-4
     stay_settings = StaySettings.load()
     # G12: правила продаж (Verkaufsregeln) — индекс для удаления + имя номера.
     _unit_names = {str(u.pk): u.name for u in units}
@@ -1226,7 +1329,10 @@ def units(request, pk=None):
             "extra_locales": extra_locales(getattr(request, "tenant", None)),
             "types": StayUnit.TYPES,
             "today": timezone.localdate(),
-            "rate_plans": list(RatePlan.objects.all()),  # H1
+            # H1/Z-4: тарифы с категориями (подпись «nur: …» без N+1).
+            "rate_plans": list(RatePlan.objects.prefetch_related("units")),
+            "can_edit_prices": roles.can_edit_policy(request.user),  # Z-4 Р-7
+            "category_choices": list(StayUnit.objects.only("pk", "name").order_by("name")),
             "meals": RatePlan.MEALS,
             "cancellations": RatePlan.CANCELLATIONS,
             "amenities": AMENITIES,  # H3 чек-лист удобств

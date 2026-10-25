@@ -29686,3 +29686,54 @@ msgstr "Nächte mit ungültigem Preis (unter 0,01 € oder über 99.999,99 €):
 
 msgid "Unbekannte oder deaktivierte Kategorie."
 msgstr "Unbekannte oder deaktivierte Kategorie."
+
+msgid "Bei Überschneidung gilt die früher beginnende Saison."
+msgstr "Bei Überschneidung gilt die früher beginnende Saison."
+
+#, python-format
+msgid "Der Tarif „%(rate)s“ gilt nicht für „%(unit)s“ — die Buchung behält den vereinbarten Tarif."
+msgstr "Der Tarif „%(rate)s“ gilt nicht für „%(unit)s“ — die Buchung behält den vereinbarten Tarif."
+
+msgid "Dieser Tarif gilt nicht für die gewählte Kategorie."
+msgstr "Dieser Tarif gilt nicht für die gewählte Kategorie."
+
+msgid "Dieser Tarif ist für dieses Zimmer nicht verfügbar. Bitte wählen Sie erneut."
+msgstr "Dieser Tarif ist für dieses Zimmer nicht verfügbar. Bitte wählen Sie erneut."
+
+msgid "Kategorien speichern"
+msgstr "Kategorien speichern"
+
+msgid "Kategorien ändern"
+msgstr "Kategorien ändern"
+
+msgid "Preise und Tarife ändern nur Inhaber und Admins."
+msgstr "Preise und Tarife ändern nur Inhaber und Admins."
+
+msgid "Verschiedene Arten, dieselben Zimmer zu verkaufen — Basis, nicht erstattbar, mit Frühstück, Halbpension … Gäste wählen beim Buchen. Ein Tarif gilt für alle Kategorien oder nur für ausgewählte."
+msgstr "Verschiedene Arten, dieselben Zimmer zu verkaufen — Basis, nicht erstattbar, mit Frühstück, Halbpension … Gäste wählen beim Buchen. Ein Tarif gilt für alle Kategorien oder nur für ausgewählte."
+
+msgid "für alle Kategorien"
+msgstr "für alle Kategorien"
+
+msgid "keine Kategorie — wird nicht angeboten"
+msgstr "keine Kategorie — wird nicht angeboten"
+
+msgid "nur:"
+msgstr "nur:"
+
+#, python-format
+msgid "Überschneidet sich mit der Saison „%(label)s“ (%(start)s – %(end)s)."
+msgstr "Überschneidet sich mit der Saison „%(label)s“ (%(start)s – %(end)s)."
+
+#, python-format
+msgid "Überschneidet sich mit einer Saison (%(start)s – %(end)s)."
+msgstr "Überschneidet sich mit einer Saison (%(start)s – %(end)s)."
+
+msgid "Überschneidung"
+msgstr "Überschneidung"
+
+msgid "— ohne Tarif —"
+msgstr "— ohne Tarif —"
+
+msgid "nur für ausgewählte Kategorien"
+msgstr "nur für ausgewählte Kategorien"

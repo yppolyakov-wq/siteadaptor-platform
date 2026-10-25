@@ -1,0 +1,24 @@
+{% load i18n %}{% comment %}
+Z-4 (E4.6c): охват тарифа — «для всех категорий» или выбранные. Поле rate_scope
+всегда приходит (радио) — сервер различает «не трогать» (нет поля) и «все».
+Контекст: rp (тариф или None), category_choices, uid (уникальный суффикс id).
+{% endcomment %}
+<fieldset class="sm:col-span-2" data-rate-scope>
+  <legend class="block text-xs font-medium text-gray-500 mb-1">{% trans "Kategorien" %}</legend>
+  <label class="flex items-center gap-2 text-sm min-h-[44px]">
+    <input type="radio" name="rate_scope" value="all" {% if not rp or rp.applies_to_all %}checked{% endif %} class="border-gray-300">
+    {% trans "für alle Kategorien" %}
+  </label>
+  <label class="flex items-center gap-2 text-sm min-h-[44px]">
+    <input type="radio" name="rate_scope" value="some" {% if rp and not rp.applies_to_all %}checked{% endif %} class="border-gray-300">
+    {% trans "nur für ausgewählte Kategorien" %}
+  </label>
+  <div class="flex flex-wrap gap-x-4 gap-y-1 pl-6">
+    {% for c in category_choices %}
+      <label class="flex items-center gap-2 text-sm min-h-[44px]">
+        <input type="checkbox" name="units" value="{{ c.pk }}" data-rate-scope-unit {% if rp and c.pk in rp.unit_ids %}checked{% endif %} class="rounded border-gray-300">
+        {{ c.name }}
+      </label>
+    {% endfor %}
+  </div>
+</fieldset>

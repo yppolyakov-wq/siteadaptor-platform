@@ -263,12 +263,16 @@
         {% for r in u.season_rates.all %}
           <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
             <span>{{ r.start_date|date:"d.m.Y" }} – {{ r.end_date|date:"d.m.Y" }} · {{ r.price_eur|stringformat:".2f" }} €{% if r.label %} · {{ r.label }}{% endif %}</span>
+            {% if r.pk in u.season_overlaps %}<span data-season-overlap class="text-xs bg-amber-100 text-amber-800 rounded px-1.5 py-0.5" title="{% trans 'Bei Überschneidung gilt die früher beginnende Saison.' %}">⚠ {% trans "Überschneidung" %}<span class="sr-only"> — {% trans "Bei Überschneidung gilt die früher beginnende Saison." %}</span></span>{% endif %}
+            {% if can_edit_prices %}
             <form method="post" class="inline">{% csrf_token %}
               <input type="hidden" name="action" value="rate_delete"><input type="hidden" name="rate" value="{{ r.pk }}">
               <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
             </form>
+            {% endif %}
           </div>
         {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "None" %}</p>{% endfor %}
+        {% if can_edit_prices %}
         <form method="post" class="flex items-end gap-2 flex-wrap mt-2">
           {% csrf_token %}
           <input type="hidden" name="action" value="rate"><input type="hidden" name="unit" value="{{ u.pk }}">
@@ -278,6 +282,7 @@
           <input type="text" name="label" placeholder="{% trans 'Label' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add rate" %}</button>
         </form>
+        {% endif %}
       </div>
 
       {# iCal-синхронизация (A5b): экспорт занятости + импорт Booking.com/Airbnb #}
@@ -401,7 +406,7 @@
 {# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Rate plans" %} <span class="text-xs font-normal text-gray-400">{% if rate_plans %}· {{ rate_plans|length }}{% endif %}</span></summary>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Ways to sell the same rooms — base, non-refundable, with breakfast, half board… Guests pick a rate when booking. Apply to all rooms." %}</p>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Verschiedene Arten, dieselben Zimmer zu verkaufen — Basis, nicht erstattbar, mit Frühstück, Halbpension … Gäste wählen beim Buchen. Ein Tarif gilt für alle Kategorien oder nur für ausgewählte." %}</p>
   {% for r in rate_plans %}
     <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2 {% if not r.is_active %}opacity-50{% endif %}">
       <div>
@@ -411,8 +416,20 @@
         {% if r.meal_included %}<span class="text-xs bg-emerald-100 text-emerald-700 rounded px-1.5 py-0.5">{{ r.get_meal_plan_display }}</span>{% endif %}
         <span class="text-xs text-gray-400">· {{ r.get_cancellation_display }}{% if r.cancellation == 'flexible' and r.free_cancel_days %} ({{ r.free_cancel_days }} {% trans "days" %}){% endif %}</span>
         {% if r.prepayment_percent %}<span class="text-xs bg-sky-100 text-sky-700 rounded px-1.5 py-0.5">{% blocktrans with p=r.prepayment_percent %}{{ p }}% prepay{% endblocktrans %}</span>{% endif %}
+        <span class="block text-xs text-gray-600" data-rate-scope-label>{% if r.applies_to_all %}{% trans "für alle Kategorien" %}{% else %}{% trans "nur:" %} {% for u in r.units.all %}{{ u.name }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "keine Kategorie — wird nicht angeboten" %}{% endfor %}{% endif %}</span>
         {% if r.description %}<span class="block text-xs text-gray-400">{{ r.description }}</span>{% endif %}
+        {% if can_edit_prices %}
+        <details class="mt-1">
+          <summary class="cursor-pointer text-xs text-indigo-600 hover:underline">{% trans "Kategorien ändern" %}</summary>
+          <form method="post" class="grid sm:grid-cols-2 gap-2 mt-2">{% csrf_token %}
+            <input type="hidden" name="action" value="rateplan_units"><input type="hidden" name="rateplan" value="{{ r.pk }}">
+            {% include "stays/_rate_scope_fields.html" with rp=r %}
+            <button class="text-sm border border-gray-300 rounded-lg px-3 min-h-[44px] hover:border-indigo-400 sm:w-auto">{% trans "Kategorien speichern" %}</button>
+          </form>
+        </details>
+        {% endif %}
       </div>
+      {% if can_edit_prices %}
       <div class="flex items-center gap-2 whitespace-nowrap">
         <form method="post" class="inline">{% csrf_token %}
           <input type="hidden" name="action" value="rateplan_toggle"><input type="hidden" name="rateplan" value="{{ r.pk }}">
@@ -423,9 +440,11 @@
           <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
         </form>
       </div>
+      {% endif %}
     </div>
   {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No rate plans yet — guests book at the room's base price." %}</p>{% endfor %}
 
+  {% if can_edit_prices %}
   <form method="post" class="grid sm:grid-cols-2 gap-3 items-end mt-4 pt-4 border-t border-gray-100">
     {% csrf_token %}
     <input type="hidden" name="action" value="rateplan">
@@ -473,8 +492,10 @@
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Sort order" %}</label>
       <input name="sort_order" type="number" min="0" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
+    {% include "stays/_rate_scope_fields.html" with rp=None %}
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 sm:col-span-2 sm:w-auto">{% trans "Add rate plan" %}</button>
   </form>
+  {% else %}<p class="text-xs text-gray-600 mt-3">{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}</p>{% endif %}
 </details>
 {# G4: авто-скидки на проживание — список правил (несколько на тип) ----------- #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">

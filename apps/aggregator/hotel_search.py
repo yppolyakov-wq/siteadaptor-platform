@@ -35,11 +35,12 @@ def hotel_availability(tenant_schema, von, bis, guests) -> tuple[bool, int]:
     nights = (bis - von).days
     if nights >= 1:
         from apps.stays import availability, pricing, restrictions
-        from apps.stays.models import RatePlan, StayUnit
+        from apps.stays import rate_plans as rate_plans_mod
+        from apps.stays.models import StayUnit
 
         best = None
         with schema_context(tenant_schema):
-            rate_plans = list(RatePlan.objects.filter(is_active=True))
+            plans = rate_plans_mod.active_plans()  # Z-4: тарифы с категориями
             for unit in StayUnit.objects.filter(is_active=True, max_guests__gte=guests):
                 if nights < unit.min_nights:
                     continue
@@ -49,6 +50,7 @@ def hotel_availability(tenant_schema, von, bis, guests) -> tuple[bool, int]:
                 # портал не обещает то, что сайт отеля откажет забронировать.
                 if restrictions.violation(unit, von, bis):
                     continue
+                rate_plans = rate_plans_mod.plans_for(unit, plans)
                 if rate_plans:
                     cents = min(
                         pricing.quote_total_cents(unit, von, bis, rate_plan=rp) for rp in rate_plans

@@ -36,10 +36,35 @@
   {% if rate_plans %}
   <div>
     <label class="block text-sm font-medium mb-1">{% trans "Rate" %}</label>
-    <select name="rate_plan" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-      {% for r in rate_plans %}<option value="{{ r.pk }}">{{ r.name }}{% if r.meal_included %} · {{ r.get_meal_plan_display }}{% endif %}</option>{% endfor %}
+    {% comment %}Z-4: тариф — явный выбор; «— ohne Tarif —» = базовая цена. data-units —
+    категории тарифа (пусто = все); сервер всё равно отбивает неприменимый.{% endcomment %}
+    <select name="rate_plan" data-walkin-rate class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <option value="" selected>{% trans "— ohne Tarif —" %}</option>
+      {% for r in rate_plans %}<option value="{{ r.pk }}" data-units="{% if not r.applies_to_all %}{% for u in r.units.all %}{{ u.pk }}{% if not forloop.last %},{% endif %}{% empty %}none{% endfor %}{% endif %}">{{ r.name }}{% if r.meal_included %} · {{ r.get_meal_plan_display }}{% endif %}{% if not r.applies_to_all %} · {% trans "nur:" %} {% for u in r.units.all %}{{ u.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</option>{% endfor %}
     </select>
   </div>
+  <script>
+  (function () {
+    if (window.__walkinRateBound) return;
+    window.__walkinRateBound = true;
+    function sync() {
+      var unit = document.getElementById('walkin-unit');
+      var sel = document.querySelector('[data-walkin-rate]');
+      if (!unit || !sel) return;
+      Array.prototype.forEach.call(sel.options, function (o) {
+        var ids = o.getAttribute('data-units');
+        var ok = !ids || ids.split(',').indexOf(unit.value) >= 0;
+        o.hidden = !ok;
+        o.disabled = !ok;
+      });
+      if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = '';
+    }
+    document.addEventListener('change', function (e) {
+      if (e.target && e.target.id === 'walkin-unit') sync();
+    });
+    sync();
+  })();
+  </script>
   {% endif %}
   {# PMS-A1: редкие поля стойки — свёрнуты, форма остаётся компактной. #}
   <details class="rounded-lg border border-gray-200 p-3">

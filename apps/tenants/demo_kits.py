@@ -26758,7 +26758,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
 
         from django.utils import timezone
 
-        from apps.stays.models import RatePlan, StayUnit
+        from apps.stays.models import StayUnit
         from apps.stays.services import book_stay
 
         units = list(StayUnit.objects.filter(is_active=True).order_by("id"))
@@ -26770,7 +26770,9 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             from apps.stays.state_machine import StayBookingSM
 
             today = timezone.localdate()
-            rate_plans = list(RatePlan.objects.filter(is_active=True))
+            from apps.stays import rate_plans as rate_plans_mod
+
+            rate_plans = rate_plans_mod.active_plans()
 
             def _u(i):
                 return units[i % len(units)]
@@ -26853,7 +26855,8 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                 guests = max(1, min(s["guests"], unit.max_guests * rooms))
                 nights = max(s["nights"], unit.min_nights)
                 arrival = today + timedelta(days=s["in_days"])
-                rate_plan = rate_plans[idx % len(rate_plans)] if rate_plans else None
+                applicable = rate_plans_mod.plans_for(unit, rate_plans)  # Z-4
+                rate_plan = applicable[idx % len(applicable)] if applicable else None
                 status = s.get("status", "confirmed")
                 snap = (
                     extras_engine.snapshot(s["extras"], "stays", nights=nights)

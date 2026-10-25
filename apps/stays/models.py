@@ -166,10 +166,22 @@ class StayUnit(I18nMixin, TimestampedModel):
         return self.weekend_price_cents / 100
 
 
+class RatePlanQuerySet(models.QuerySet):
+    def for_unit(self, unit):
+        """Z-4: тарифы, применимые к категории — ``applies_to_all`` или эта категория
+        в ``units``. Через Exists: без дублей и distinct(), ordering сохраняется."""
+        through = RatePlan.units.through
+        return self.filter(
+            models.Q(applies_to_all=True)
+            | models.Exists(through.objects.filter(rateplan=models.OuterRef("pk"), stayunit=unit))
+        )
+
+
 class RatePlan(I18nMixin, TimestampedModel):
     """Тариф (Rate Plan, H1) — альтернативный способ продать те же номера: Basis,
-    Nicht-stornierbar, mit Frühstück, Halbpension, Frühbucher, Flexibel. На тенанта
-    (применяется ко всем юнитам). Цена = посуточная (база/сезон/выходные) с
+    Nicht-stornierbar, mit Frühstück, Halbpension, Frühbucher, Flexibel. Z-4: тариф
+    для всех категорий (``applies_to_all``) или только для ``units``; явный флаг, а не
+    «пустой набор = все» — удаление последней категории не расширяет тариф. Цена = посуточная (база/сезон/выходные) с
     модификатором тарифа ``percent_adjust`` (%) + надбавкой за ночь ``surcharge_cents``
     (напр. завтрак +12 €/ночь). Условия отмены показываем гостю ДО оплаты."""
 
@@ -211,12 +223,26 @@ class RatePlan(I18nMixin, TimestampedModel):
     prepayment_percent = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
+    # Z-4 (E4.6c): для всех категорий или только для выбранных. False + пустой набор =
+    # тариф нигде не продаётся (осознанно — не «для всех»).
+    applies_to_all = models.BooleanField(default=True)
+    units = models.ManyToManyField(StayUnit, blank=True, related_name="rate_plans")
+
+    objects = RatePlanQuerySet.as_manager()
 
     class Meta:
         ordering = ["sort_order", "name"]
 
     def __str__(self):
         return self.name
+
+    def unit_ids(self) -> set:
+        """pk категорий тарифа (из prefetch-кэша; без prefetch — запрос на тариф)."""
+        return {u.pk for u in self.units.all()}
+
+    def applies_to(self, unit) -> bool:
+        """Паритет с ``RatePlanQuerySet.for_unit`` (замок test_z4)."""
+        return self.applies_to_all or unit.pk in self.unit_ids()
 
     @property
     def meal_included(self) -> bool:
@@ -237,7 +263,8 @@ class RatePlan(I18nMixin, TimestampedModel):
 class SeasonRate(TimestampedModel):
     """Сезонный тариф юнита (A5a): цена за ночь на диапазон дат [start, end]
     включительно. Перебивает базовую и выходную цену. Окна не должны
-    пересекаться (гард — на стороне кабинета); при пересечении берётся первое."""
+    пересекаться (гард — ``services.add_season_rate``, Z-4); при старом пересечении
+    берётся первое по ``start_date``."""
 
     unit = models.ForeignKey(StayUnit, on_delete=models.CASCADE, related_name="season_rates")
     label = models.CharField(max_length=120, blank=True)  # «Hochsaison», «Weihnachten»

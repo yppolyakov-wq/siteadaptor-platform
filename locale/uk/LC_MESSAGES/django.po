@@ -29853,3 +29853,54 @@ msgstr "Ночей із недопустимою ціною (менше 0,01 €
 
 msgid "Unbekannte oder deaktivierte Kategorie."
 msgstr "Невідома або вимкнена категорія."
+
+msgid "Bei Überschneidung gilt die früher beginnende Saison."
+msgstr "При перетині діє сезон, що починається раніше."
+
+#, python-format
+msgid "Der Tarif „%(rate)s“ gilt nicht für „%(unit)s“ — die Buchung behält den vereinbarten Tarif."
+msgstr "Тариф «%(rate)s» не діє для «%(unit)s» — бронювання зберігає узгоджений тариф."
+
+msgid "Dieser Tarif gilt nicht für die gewählte Kategorie."
+msgstr "Цей тариф не діє для вибраної категорії."
+
+msgid "Dieser Tarif ist für dieses Zimmer nicht verfügbar. Bitte wählen Sie erneut."
+msgstr "Цей тариф недоступний для цього номера. Будь ласка, виберіть знову."
+
+msgid "Kategorien speichern"
+msgstr "Зберегти категорії"
+
+msgid "Kategorien ändern"
+msgstr "Змінити категорії"
+
+msgid "Preise und Tarife ändern nur Inhaber und Admins."
+msgstr "Ціни й тарифи змінюють лише власники та адміністратори."
+
+msgid "Verschiedene Arten, dieselben Zimmer zu verkaufen — Basis, nicht erstattbar, mit Frühstück, Halbpension … Gäste wählen beim Buchen. Ein Tarif gilt für alle Kategorien oder nur für ausgewählte."
+msgstr "Різні способи продати ті самі номери — базовий, неповоротний, зі сніданком, напівпансіон … Гості обирають під час бронювання. Тариф діє для всіх категорій або лише для вибраних."
+
+msgid "für alle Kategorien"
+msgstr "для всіх категорій"
+
+msgid "keine Kategorie — wird nicht angeboten"
+msgstr "немає категорії — не пропонується"
+
+msgid "nur:"
+msgstr "лише:"
+
+#, python-format
+msgid "Überschneidet sich mit der Saison „%(label)s“ (%(start)s – %(end)s)."
+msgstr "Перетинається із сезоном «%(label)s» (%(start)s – %(end)s)."
+
+#, python-format
+msgid "Überschneidet sich mit einer Saison (%(start)s – %(end)s)."
+msgstr "Перетинається із сезоном (%(start)s – %(end)s)."
+
+msgid "Überschneidung"
+msgstr "Перетин"
+
+msgid "— ohne Tarif —"
+msgstr "— без тарифу —"
+
+msgid "nur für ausgewählte Kategorien"
+msgstr "лише для вибраних категорій"

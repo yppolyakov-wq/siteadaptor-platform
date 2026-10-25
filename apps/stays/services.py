@@ -17,7 +17,8 @@ from django.utils.translation import gettext as _
 from apps.promotions.models import Customer
 
 from . import availability, pricing
-from .models import StayBooking, StaySettings, StayUnit
+from .models import RatePlan, StayBooking, StaySettings, StayUnit
+from .rate_plans import RatePlanInvalid  # noqa: F401 — реэкспорт для вызывающих (Z-4)
 
 _ALPHABET = string.ascii_uppercase + string.digits
 
@@ -359,6 +360,14 @@ def book_stay(
     # Блокировка строки юнита сериализует конкурентные брони этого юнита.
     unit = StayUnit.objects.select_for_update().get(id=unit_id, is_active=True)
 
+    # Z-4 (E4.6c): тариф перепроверяется под локом юнита (деактивирован/сужен между
+    # формой и POST, или вызывающий передал чужой) — и берётся ПЕРЕЧИТАННЫМ, чтобы цена
+    # и снимок считались по актуальным модификаторам, а не по объекту из формы.
+    if rate_plan is not None:
+        rate_plan = RatePlan.objects.for_unit(unit).filter(pk=rate_plan.pk, is_active=True).first()
+        if rate_plan is None:
+            raise RatePlanInvalid()
+
     if (departure - arrival).days < unit.min_nights:
         raise MinStay()
     # G12: правила онлайн-продаж — ре-валидация ТОЛЬКО для витрины
@@ -526,6 +535,41 @@ def _move_keep_rate(booking, old_nights: int):
             update_fields.append("deposit_cents")
     booking.save(update_fields=update_fields)
     return booking
+
+
+class SeasonOverlap(Exception):
+    """Z-4: новый сезон пересекается с сезоном той же категории (``conflict``)."""
+
+    def __init__(self, conflict):
+        super().__init__(conflict)
+        self.conflict = conflict
+
+
+@transaction.atomic
+def add_season_rate(unit, *, label, start_date, end_date, price_cents):
+    """Z-4 (E4.6c): сезонная цена категории без пересечений. Границы включительные
+    (резолвер цены: ``start ≤ ночь ≤ end``) — [1–10] и [10–20] пересекаются по 10-й.
+    Лок строки категории сериализует две параллельные вставки. Уже существующие
+    пересечения (до Z-4) не чиним — кабинет помечает их бейджем."""
+    from .models import SeasonRate
+
+    if end_date < start_date:
+        raise ValueError("end before start")
+    unit = StayUnit.objects.select_for_update().get(pk=getattr(unit, "pk", unit))
+    conflict = (
+        SeasonRate.objects.filter(unit=unit, start_date__lte=end_date, end_date__gte=start_date)
+        .order_by("start_date")
+        .first()
+    )
+    if conflict is not None:
+        raise SeasonOverlap(conflict)
+    return SeasonRate.objects.create(
+        unit=unit,
+        label=label,
+        start_date=start_date,
+        end_date=end_date,
+        price_cents=price_cents,
+    )
 
 
 @transaction.atomic

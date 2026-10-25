@@ -17,13 +17,20 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.billing import connect
 from apps.core import attribution, listing_composition, option_trackers, ratelimit
 from apps.loyalty.public_views import gift_purchase_active as _gift_purchase_active
 
 from . import availability, payments, pricing, restrictions, services
-from .models import RatePlan, StayBooking, StayUnit
+from . import rate_plans as rate_plans_mod
+from .models import StayBooking, StayUnit
+
+# Z-4: тариф не для этой категории / выключен / подделан — одна фраза гостю (Р-8).
+RATE_PLAN_UNAVAILABLE_MSG = gettext_lazy(
+    "Dieser Tarif ist für dieses Zimmer nicht verfügbar. Bitte wählen Sie erneut."
+)
 
 RL_LIMIT = 5  # попыток брони на IP
 RL_WINDOW = 600  # за 10 минут
@@ -205,12 +212,16 @@ def unterkunft_index(request):
         search_qs = f"?von={von:%Y-%m-%d}&bis={bis:%Y-%m-%d}&erw={adults}&kinder={children}" + (
             "&embed=1" if embed else ""
         )
-        rate_plans = list(RatePlan.objects.filter(is_active=True))
+        plans = rate_plans_mod.active_plans()  # Z-4: тарифы с категориями, 2 запроса
         nights = (bis - von).days
         rows = []
         for unit in units:
             _nights_q, _total_cents, available, reason, reason_n = _quote(unit, von, bis, guests)
-            from_cents = _unit_from_price_cents(unit, von, bis, rate_plans) if available else 0
+            from_cents = (
+                _unit_from_price_cents(unit, von, bis, rate_plans_mod.plans_for(unit, plans))
+                if available
+                else 0
+            )
             rows.append(
                 {
                     "unit": unit,
@@ -340,7 +351,9 @@ def unterkunft_unit(request, pk):
     guests = adults + children
     rooms = _parse_rooms(request.GET, unit)  # G5: число номеров
 
-    rate_plans = list(RatePlan.objects.filter(is_active=True))
+    # Z-4: только тарифы этой категории — и в карточках, и в предоплате (иначе
+    # предоплата тарифа чужой категории включила бы онлайн-оплату).
+    rate_plans = rate_plans_mod.plans_for(unit, rate_plans_mod.active_plans())
     # P6 «ценовой слой»: акция на номер — витрина считает ТЕМ ЖЕ кандидатом, что
     # спишет book_stay (иначе показали бы цену дороже реальной). Без дат — бейдж.
     from apps.promotions.price_layer import stay_promo as _stay_promo
@@ -681,13 +694,18 @@ def unterkunft_book(request, pk):
         entity_kind="stay",
         entity_id=str(unit.pk),
     )
-    # H1: выбранный тариф (если бизнес завёл тарифы). Невалидный/чужой pk → None
-    # (бронь по базовой цене), но если тарифы есть — берём первый по порядку.
-    rate_plan = None
-    active_rates = list(RatePlan.objects.filter(is_active=True))
-    if active_rates:
-        rate_pk = request.POST.get("rate_plan")
-        rate_plan = next((r for r in active_rates if str(r.pk) == str(rate_pk)), active_rates[0])
+    # H1/Z-4: выбранный тариф. Пусто → первый применимый (паритет с отмеченным радио);
+    # чужой/неактивный/мусорный pk → честный отказ, без тихой подмены другим тарифом.
+    try:
+        rate_plan = rate_plans_mod.resolve_choice(
+            unit,
+            request.POST.getlist("rate_plan"),
+            plans=rate_plans_mod.active_plans(),
+            empty="first",
+        )
+    except rate_plans_mod.RatePlanInvalid:
+        messages.error(request, RATE_PLAN_UNAVAILABLE_MSG)
+        return redirect(back)
     from apps.aggregator import conversions
 
     found = attribution.resolve(request)  # В5 V5-5b
@@ -713,6 +731,9 @@ def unterkunft_book(request, pk):
             # доступен только фирме, Р-3; срок оплаты по Р-2/Р-4).
             **_payment_kwargs(request, "stay"),
         )
+    except services.RatePlanInvalid:  # Z-4: тариф сузили/выключили между формой и POST
+        messages.error(request, RATE_PLAN_UNAVAILABLE_MSG)
+        return redirect(back)
     except services.RestrictionViolated as exc:
         messages.error(request, restrictions.message(exc.code, exc.n))
         return redirect(back)
@@ -756,7 +777,7 @@ def unterkunft_book(request, pk):
     # нет, депозит юнита (E4). Если сумма > 0 и бизнес принимает оплату — ведём на
     # Stripe Checkout (на счёт бизнеса). Иначе — обычная бронь без оплаты.
     tenant = getattr(request, "tenant", None)
-    prepay = pricing.prepayment_cents(booking.total_cents, rate_plan)
+    prepay = pricing.prepayment_cents(booking.total_cents, booking.rate_plan)
     upfront = prepay if prepay > 0 else unit.deposit_cents * rooms  # G5: депозит × номера
     from apps.core import payment_methods
 
