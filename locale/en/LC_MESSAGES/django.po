@@ -30026,3 +30026,6 @@ msgstr "Not checked in yet"
 
 msgid "unbestätigt"
 msgstr "unconfirmed"
+
+msgid "Bereits ausgecheckt."
+msgstr "Already checked out."

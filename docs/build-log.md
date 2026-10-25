@@ -19906,3 +19906,33 @@ Aushilfe/Kasse — staff; отель Rezeption, Housekeeping; гастро Küch
 + `preview` — недоступный актору шаблон disabled с причиной; шаблон чужой роли — отказ
 (`strict_template`); ручная правка сохраняет имя шаблона → «Vorlage · angepasst». 18 msgid ×5.
 Замки `test_role_templates.py` (14).
+
+
+## 2026-10-25 — KA-12 Zimmer Z-5: стойка, «Heute», Check-in/out (⚠️ `stays/0044`)
+
+План `ka-12-w4-z5-front-desk-heute-plan-2026-10-25.md` (planner + ревью плана security/database).
+**Z-5a** `StayBooking.checked_in_at/checked_out_at`, `StaySettings.checkin_hour/checkout_hour`
+(CheckConstraint ≤ 23); `StaySettings.hours()` только чтением (beat не создаёт строку в каждой
+схеме); авто-выезд по часу владельца; форма «Check-in & Check-out» в настройках номеров
+(owner/admin, `RATE_EDIT_ACTIONS`; часы — только ASCII-цифры: `"٣".isdigit()` — True).
+**Z-5b** `stays/capacity.py`: число номеров и удаление комнаты не ниже проданного на любую ночь
+от сегодня (О-8 — запрет), занятая комната (в т. ч. как `extra_rooms`) не удаляется; отказ
+quantity не теряет остальные поля формы; без поля quantity ёмкость не сбрасывается в 1 (раньше
+сбрасывалась). `create_block` проверяет ёмкость и у блока категории (⚠️ изменение поведения:
+ручной блок на распроданных ночах теперь отказ, раньше молча давал овербукинг; iCal/OTA — как
+прежде); блок комнаты видит и `extra_rooms`. **Z-5c** стойка: тумблер «Automatische Rabatte»
+(сентинел; выкл. — лимит акции не списывается, ваучер работает), комната сразу при брони (откат
+всей брони при конфликте), оплата на месте / Vorkasse (только при IBAN, без срока удержания),
+блок через сервис, предупреждение о нарушенном правиле продаж; `next` — общий `safe_next`
+(отказ от `\` и управляющих символов — стало строже для всех вызывающих). **Z-5d**
+`stays/front_desk.py`: Check-in/отмена/Check-out — отметки, не статус; выезд = штатный
+`fulfilled` через `apply_action` (выручка, уборка), ранний выезд запрещён; отметку ставит FSM
+(кнопка «Abgereist», доска, Heute, свой статус выезда), автоматика — нет; право «Rezeption»;
+неявка заселённого — отказ на всех поверхностях (`GuestCheckedIn` в guard), даты заселённого
+не переносятся в будущее/прошлое. **Z-5e** «Heute» и виджет главной — одна точка
+`front_desk.today_lists` (свои статусы видны, счёт не расходится); карточка: комнаты, оплата,
+Meldeschein ✓/—, отметки, кнопки (Check-out — с подтверждением); сбой колонки логируется и
+показывается «Konnte nicht geladen werden». Ревью django/security/database — без критичных
+находок; исправлен повторный выезд («Bereits ausgecheckt»). Замки: `test_z5_hours`/`capacity`/
+`front_desk`/`checkin` (stays), `test_z5_heute` (core); осознанно обновлён счётчик карточек
+настроек (`test_cabinet`). 36 msgid × 5. Грабли — `pitfalls.md` §3.

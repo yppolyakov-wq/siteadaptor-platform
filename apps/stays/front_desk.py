@@ -108,6 +108,9 @@ def check_out(booking, *, actor=None, today=None, tenant=None, extra=None):
     from apps.core import transactions as core_transactions
 
     today = today or timezone.localdate()
+    desc = status_registry.resolve("stay", booking.status, tenant)
+    if desc is not None and desc.role == "done":
+        raise FrontDeskError(_("Bereits ausgecheckt."))
     if booking.arrival > today:
         raise FrontDeskError(
             _("Anreise ist erst am %(day)s.")

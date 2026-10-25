@@ -30170,3 +30170,6 @@ msgstr "Henüz giriş yapılmadı"
 
 msgid "unbestätigt"
 msgstr "onaylanmadı"
+
+msgid "Bereits ausgecheckt."
+msgstr "Çıkış zaten yapıldı."

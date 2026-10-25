@@ -152,7 +152,8 @@ def test_double_check_out_books_revenue_once():
     b = _booking(arr=-2, dep=0)
     front_desk.check_out(b)
     stale = StayBooking.objects.get(pk=b.pk)
-    front_desk.check_out(stale)  # идемпотентно (src == dst)
+    with pytest.raises(front_desk.FrontDeskError):  # «Bereits ausgecheckt.»
+        front_desk.check_out(stale)
     assert RevenueEntry.objects.filter(source="stay", source_ref=str(b.pk)).count() == 1
 
 
@@ -314,3 +315,11 @@ def test_booking_detail_shows_front_desk_block():
     request.tenant = TenantFactory.build(disabled_modules=[])
     body = views.booking_detail(request, b.pk).content.decode()
     assert 'value="check_in"' in body and "data-front-desk" in body
+
+
+def test_check_out_of_fulfilled_booking_says_already():
+    b = _booking(arr=-2, dep=0)
+    front_desk.check_out(b)
+    b.refresh_from_db()
+    with pytest.raises(front_desk.FrontDeskError):
+        front_desk.check_out(b)

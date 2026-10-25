@@ -30301,3 +30301,6 @@ msgstr "Ещё не заселён"
 
 msgid "unbestätigt"
 msgstr "не подтверждена"
+
+msgid "Bereits ausgecheckt."
+msgstr "Гость уже выехал."

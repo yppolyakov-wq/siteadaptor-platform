@@ -30118,3 +30118,6 @@ msgstr "Noch nicht eingecheckt"
 
 msgid "unbestätigt"
 msgstr "unbestätigt"
+
+msgid "Bereits ausgecheckt."
+msgstr "Bereits ausgecheckt."
