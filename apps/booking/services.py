@@ -366,6 +366,9 @@ def book_many(starts, **kwargs):
     if len(slots) > MAX_GROUP_SLOTS:
         raise ValueError("too many slots")
     single = len(slots) == 1
+    # KA-12 E6.4c: при принудительном депозите письмо «Anfrage erhalten» уходит только
+    # после успешного создания оплаты (иначе отказ по правилу слал бы гостю письмо).
+    notify = kwargs.pop("notify", True)
     code = "" if single else _unique_group_code()
     # Ревью 2026-07-31: промокод и Extras — ОДИН РАЗ на заказ, не на каждый период.
     # Раньше они уезжали в каждый `book` через **kwargs: одноразовый Gutschein
@@ -392,12 +395,12 @@ def book_many(starts, **kwargs):
                 price_cents=price_cents,
                 group_code=code,
                 # Одно письмо на всю группу — шлём после успешного создания всех.
-                notify=single,
+                notify=single and notify,
                 **(once if not created else {}),
                 **kwargs,
             )
         )
-    if not single:
+    if not single and notify:
         from .notifications import enqueue_booking_email
 
         enqueue_booking_email(created[0], "created")

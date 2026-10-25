@@ -29322,3 +29322,42 @@ msgstr "Unit price (gross)"
 #: templates/booking/booking_detail.html
 msgid "Notizen werden 3 Jahre nach dem letzten Termin automatisch gelöscht."
 msgstr "Notes are deleted automatically 3 years after the last appointment."
+
+msgid "Anzahlung (€, optional)"
+msgstr "Deposit (€, optional)"
+
+msgid "Anzahlung nach Nichterscheinen"
+msgstr "Deposit after no-shows"
+
+msgid "Bitte geben Sie eine gültige E-Mail-Adresse an."
+msgstr "Please enter a valid email address."
+
+msgid "Für diese Buchung bitten wir um einen kurzen Anruf."
+msgstr "For this booking, please give us a quick call."
+
+msgid "Für diese Buchung bitten wir um einen kurzen Anruf: %(phone)s"
+msgstr "For this booking, please give us a quick call: %(phone)s"
+
+msgid "Ab wie vielen Nichterscheinen"
+msgstr "After how many no-shows"
+
+msgid "Nach wiederholtem Nichterscheinen bitten wir bei Online-Buchungen um eine Anzahlung."
+msgstr "After repeated no-shows, we ask for a deposit on online bookings."
+
+msgid "Nur Inhaber und Admins können diese Regel ändern."
+msgstr "Only owners and admins can change this rule."
+
+msgid "Ohne Betrag: die Anzahlung der Leistung, sonst der volle Preis."
+msgstr "Without an amount: the service's deposit, otherwise the full price."
+
+msgid "Online-Zahlung ist nicht eingerichtet — betroffene Kundinnen und Kunden werden gebeten anzurufen."
+msgstr "Online payment is not set up — affected customers will be asked to call."
+
+msgid "Regel aktiv"
+msgstr "Rule active"
+
+msgid "Zeitraum (Tage)"
+msgstr "Period (days)"
+
+msgid "Wer mehrmals nicht erschienen ist, bucht online nur noch mit Anzahlung. Ohne Online-Zahlung wird um einen Anruf gebeten. Gezählt wird nach E-Mail-Adresse."
+msgstr "Customers who repeatedly did not show up can only book online with a deposit. Without online payment they are asked to call. Counted by email address."

@@ -4155,6 +4155,32 @@ def normalize_presence(raw) -> dict:
     return {"mode": mode} if mode in ("on", "off") else {}
 
 
+def _rule_int(value, lo: int, hi: int, default: int) -> int:
+    try:
+        return max(lo, min(hi, int(value)))
+    except (TypeError, ValueError):
+        return default
+
+
+def normalize_booking(raw) -> dict:
+    """KA-12 E6.4c: правила онлайн-записи. Сейчас одно — «Anzahlung nach
+    Nichterscheinen»: {"no_show_deposit": {"after": 1..10, "days": 30..730,
+    "cents": 1..100000?}}. Ключ ТОЛЬКО при включённом правиле (presence-minimal,
+    golden-паритет); мусор → правило выключено."""
+    raw = raw if isinstance(raw, dict) else {}
+    rule = raw.get("no_show_deposit")
+    if not isinstance(rule, dict):
+        return {}
+    clean = {
+        "after": _rule_int(rule.get("after"), 1, 10, 2),
+        "days": _rule_int(rule.get("days"), 30, 730, 365),
+    }
+    cents = _rule_int(rule.get("cents"), 0, 100000, 0)
+    if cents > 0:
+        clean["cents"] = cents
+    return {"no_show_deposit": clean}
+
+
 _ANFRAGE_FIELDS = ("date", "guests", "event_type")  # канонический порядок
 _MAX_EVENT_TYPES = 12
 
@@ -4397,6 +4423,10 @@ def _normalize_impl(config) -> dict:
     page_styles = normalize_page_styles(config.get("page_styles"))
     if page_styles:
         normalized["page_styles"] = page_styles
+    # KA-12 E6.4c: правила онлайн-записи; ключ ТОЛЬКО при включённом правиле.
+    booking_rules = normalize_booking(config.get("booking"))
+    if booking_rules:
+        normalized["booking"] = booking_rules
     # AF-1: событийные поля формы /anfrage/; ключ ТОЛЬКО при непустом (golden-паритет).
     anfrage = normalize_anfrage(config.get("anfrage"))
     if anfrage:

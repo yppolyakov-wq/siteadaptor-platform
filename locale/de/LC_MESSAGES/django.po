@@ -29414,3 +29414,42 @@ msgstr "Einzelpreis (brutto)"
 #: templates/booking/booking_detail.html
 msgid "Notizen werden 3 Jahre nach dem letzten Termin automatisch gelöscht."
 msgstr "Notizen werden 3 Jahre nach dem letzten Termin automatisch gelöscht."
+
+msgid "Anzahlung (€, optional)"
+msgstr "Anzahlung (€, optional)"
+
+msgid "Anzahlung nach Nichterscheinen"
+msgstr "Anzahlung nach Nichterscheinen"
+
+msgid "Bitte geben Sie eine gültige E-Mail-Adresse an."
+msgstr "Bitte geben Sie eine gültige E-Mail-Adresse an."
+
+msgid "Für diese Buchung bitten wir um einen kurzen Anruf."
+msgstr "Für diese Buchung bitten wir um einen kurzen Anruf."
+
+msgid "Für diese Buchung bitten wir um einen kurzen Anruf: %(phone)s"
+msgstr "Für diese Buchung bitten wir um einen kurzen Anruf: %(phone)s"
+
+msgid "Ab wie vielen Nichterscheinen"
+msgstr "Ab wie vielen Nichterscheinen"
+
+msgid "Nach wiederholtem Nichterscheinen bitten wir bei Online-Buchungen um eine Anzahlung."
+msgstr "Nach wiederholtem Nichterscheinen bitten wir bei Online-Buchungen um eine Anzahlung."
+
+msgid "Nur Inhaber und Admins können diese Regel ändern."
+msgstr "Nur Inhaber und Admins können diese Regel ändern."
+
+msgid "Ohne Betrag: die Anzahlung der Leistung, sonst der volle Preis."
+msgstr "Ohne Betrag: die Anzahlung der Leistung, sonst der volle Preis."
+
+msgid "Online-Zahlung ist nicht eingerichtet — betroffene Kundinnen und Kunden werden gebeten anzurufen."
+msgstr "Online-Zahlung ist nicht eingerichtet — betroffene Kundinnen und Kunden werden gebeten anzurufen."
+
+msgid "Regel aktiv"
+msgstr "Regel aktiv"
+
+msgid "Zeitraum (Tage)"
+msgstr "Zeitraum (Tage)"
+
+msgid "Wer mehrmals nicht erschienen ist, bucht online nur noch mit Anzahlung. Ohne Online-Zahlung wird um einen Anruf gebeten. Gezählt wird nach E-Mail-Adresse."
+msgstr "Wer mehrmals nicht erschienen ist, bucht online nur noch mit Anzahlung. Ohne Online-Zahlung wird um einen Anruf gebeten. Gezählt wird nach E-Mail-Adresse."

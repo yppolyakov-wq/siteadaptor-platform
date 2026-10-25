@@ -29466,3 +29466,42 @@ msgstr "Birim fiyat (brüt)"
 #: templates/booking/booking_detail.html
 msgid "Notizen werden 3 Jahre nach dem letzten Termin automatisch gelöscht."
 msgstr "Notlar son randevudan 3 yıl sonra otomatik olarak silinir."
+
+msgid "Anzahlung (€, optional)"
+msgstr "Ön ödeme (€, isteğe bağlı)"
+
+msgid "Anzahlung nach Nichterscheinen"
+msgstr "Gelmeme sonrası ön ödeme"
+
+msgid "Bitte geben Sie eine gültige E-Mail-Adresse an."
+msgstr "Lütfen geçerli bir e-posta adresi girin."
+
+msgid "Für diese Buchung bitten wir um einen kurzen Anruf."
+msgstr "Bu rezervasyon için lütfen bizi kısaca arayın."
+
+msgid "Für diese Buchung bitten wir um einen kurzen Anruf: %(phone)s"
+msgstr "Bu rezervasyon için lütfen bizi kısaca arayın: %(phone)s"
+
+msgid "Ab wie vielen Nichterscheinen"
+msgstr "Kaç kez gelmemeden sonra"
+
+msgid "Nach wiederholtem Nichterscheinen bitten wir bei Online-Buchungen um eine Anzahlung."
+msgstr "Tekrarlanan gelmeme durumlarından sonra online rezervasyonlarda ön ödeme istiyoruz."
+
+msgid "Nur Inhaber und Admins können diese Regel ändern."
+msgstr "Bu kuralı yalnızca sahipler ve yöneticiler değiştirebilir."
+
+msgid "Ohne Betrag: die Anzahlung der Leistung, sonst der volle Preis."
+msgstr "Tutar yoksa: hizmetin ön ödemesi, aksi halde tam fiyat."
+
+msgid "Online-Zahlung ist nicht eingerichtet — betroffene Kundinnen und Kunden werden gebeten anzurufen."
+msgstr "Online ödeme ayarlı değil — ilgili müşterilerden aramaları istenecek."
+
+msgid "Regel aktiv"
+msgstr "Kural etkin"
+
+msgid "Zeitraum (Tage)"
+msgstr "Süre (gün)"
+
+msgid "Wer mehrmals nicht erschienen ist, bucht online nur noch mit Anzahlung. Ohne Online-Zahlung wird um einen Anruf gebeten. Gezählt wird nach E-Mail-Adresse."
+msgstr "Birkaç kez gelmeyen müşteriler online yalnızca ön ödemeyle rezervasyon yapabilir. Online ödeme yoksa aramaları istenir. E-posta adresine göre sayılır."

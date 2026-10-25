@@ -53,8 +53,8 @@
   </div>
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
-      <input id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}{% if no_show_terms %} *{% endif %}</label>
+      <input id="id_email" name="email" type="email"{% if no_show_terms %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
@@ -79,6 +79,7 @@
     <input type="checkbox" name="marketing" value="on" class="mt-0.5 rounded border-gray-300">
     <span>{% trans "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime." %}</span>
   </label>
+  {% if no_show_terms %}<p class="text-xs text-gray-500" data-no-show-terms>{% trans "Nach wiederholtem Nichterscheinen bitten wir bei Online-Buchungen um eine Anzahlung." %}</p>{% endif %}
   {% if deposit_required %}
     <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% blocktrans %}A deposit of {{ deposit_eur }} € is required — you'll pay securely in the next step.{% endblocktrans %}</p>
   {% endif %}

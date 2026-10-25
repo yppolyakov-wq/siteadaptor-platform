@@ -6,8 +6,10 @@
 закрывает services.book (anti-double-book). Модуль booking выключен → 404.
 """
 
+import logging
 import uuid
 from datetime import date, datetime, timedelta
+from types import SimpleNamespace
 
 import stripe
 from django.contrib import messages
@@ -26,6 +28,8 @@ from apps.promotions.services import OutOfStock as PromoSoldOut
 from . import availability, payments, pricing, services
 from .models import Booking, Pass, Resource, Service
 from .state_machine import BookingSM
+
+logger = logging.getLogger(__name__)
 
 RL_LIMIT = 5  # попыток записи на IP
 RL_WINDOW = 600  # за 10 минут
@@ -200,6 +204,100 @@ def _redeem_pass_if_code(request, bookings) -> bool:
 
 def _passes_enabled() -> bool:
     return Pass.objects.filter(is_active=True).exists()
+
+
+def _no_show_terms(request) -> bool:
+    from . import no_show_rule
+
+    return bool(no_show_rule.rule(getattr(request, "tenant", None)))
+
+
+def _termin_ok_url(request, booking, embed) -> str:
+    return (
+        request.build_absolute_uri(reverse("storefront-termin-ok", args=[booking.reference_code]))
+        + "?paid=1"
+        + ("&embed=1" if embed else "")
+    )
+
+
+def _no_show_gate(request, tenant, *, base_deposit, estimate, slots, offline, service=None):
+    """KA-12 E6.4c: правило «Anzahlung nach Nichterscheinen» ДО создания брони.
+
+    Возвращает (decision, email, early): `early` — ответ, который нужно отдать сразу
+    (брони нет). Правило выключено → (none, сырой e-mail, None): прежний путь
+    байт-в-байт. Включено → e-mail обязателен всем (иначе правило обходится пустым
+    полем), лимит по ящику, один запрос подсчёта для любого адреса."""
+    from . import no_show_rule
+
+    raw_email = request.POST.get("email", "").strip()
+    if not no_show_rule.rule(tenant):
+        return no_show_rule.Decision(), raw_email, None
+    email = no_show_rule.clean_email(raw_email)
+    if not email:
+        messages.error(request, _("Bitte geben Sie eine gültige E-Mail-Adresse an."))
+        return no_show_rule.Decision(), "", "back"
+    if ratelimit.hit(
+        "termin_mailbox",
+        no_show_rule.email_rate_key(email),
+        limit=no_show_rule.RL_EMAIL_LIMIT,
+        window=no_show_rule.RL_EMAIL_WINDOW,
+    ):
+        return no_show_rule.Decision(), email, HttpResponse(status=429)
+    is_flagged = no_show_rule.flagged(tenant, email)
+    # Ревью C1: Mehrfachkarte пропускает правило, только если ТОЧНО покроет все
+    # периоды; мусорный/исчерпанный код правило не обходит.
+    code = request.POST.get("pass_code", "")
+    if is_flagged and no_show_rule.pass_covers(code, service=service, slots=slots):
+        return no_show_rule.Decision(), email, None
+    decision = no_show_rule.decide_before(
+        tenant,
+        is_flagged=is_flagged,
+        slots=slots,
+        offline=offline,
+        estimate_cents=no_show_rule.amount_cents(tenant, base_deposit, estimate),
+    )
+    if decision.kind == no_show_rule.CALL:
+        messages.error(request, no_show_rule.call_message(tenant))
+        return decision, email, "back"
+    return decision, email, None
+
+
+def _forced_deposit(request, tenant, bookings, *, base_deposit, payable, ok_url, cancel_url):
+    """E6.4c: депозит по правилу для созданной брони. Сумма — по ФАКТИЧЕСКОЙ брони
+    (скидка/сертификат известны только после `book`). None — депозит не нужен
+    (сертификат закрыл цену): вызывающий идёт обычным путём.
+
+    Ревью H3: любая ошибка оплаты — не «бронь без оплаты», а отмена брони через FSM
+    без писем и та же нейтральная просьба позвонить."""
+    from apps.notifications.prefs import muted
+
+    from . import no_show_rule
+    from .notifications import enqueue_booking_email
+
+    booking = bookings[0]
+    cents = no_show_rule.amount_cents(tenant, base_deposit, payable(booking))
+    if cents <= 0:
+        enqueue_booking_email(booking, "created")
+        return None
+    booking.deposit_cents = cents
+    booking.payment_state = Booking.PAYMENT_PENDING
+    booking.save(update_fields=["deposit_cents", "payment_state", "updated_at"])
+    try:
+        url = payments.deposit_checkout_url(
+            booking, tenant, success_url=ok_url, cancel_url=cancel_url
+        )
+    except Exception:  # noqa: BLE001 — сеть/Stripe/пустой connect_id: бронь не держим
+        logger.exception("no-show deposit checkout failed for booking %s", booking.pk)
+        with muted(customer=True, owner=True):
+            for b in bookings:
+                try:
+                    BookingSM().apply(b, "cancelled", actor="system:no-show-rule")
+                except IllegalTransition:
+                    logger.warning("no-show rule: booking %s not cancellable", b.pk)
+        messages.error(request, no_show_rule.call_message(tenant))
+        return "back"
+    enqueue_booking_email(booking, "created")
+    return redirect(url)
 
 
 def _embed_redirect(name, embed, *, request=None, extra=(), **kwargs):
@@ -617,6 +715,9 @@ def service_slots(request, pk):
         "extras": extras_engine.active_for(
             "booking", entity_kind="service", entity_id=str(service.pk)
         ),
+        # KA-12 E6.4c: общая строка политики для ВСЕХ (не вывод о человеке) +
+        # e-mail обязателен, пока правило включено.
+        "no_show_terms": _no_show_terms(request),
         "deposit_required": service.deposit_cents > 0
         and getattr(tenant, "payments_enabled", False),
         # SH-23c: способ оплаты и «кто покупает» — общий реестр.
@@ -795,6 +896,9 @@ def _service_rich_context(request, service, tenant) -> dict:
         "resources": _team,
         "upsell": _upsell,
         "jobs_active": bool(tenant and tenant.is_module_active("jobs")),
+        # KA-12 E6.4c: общая строка политики для ВСЕХ (не вывод о человеке) +
+        # e-mail обязателен, пока правило включено.
+        "no_show_terms": _no_show_terms(request),
         "deposit_required": service.deposit_cents > 0
         and getattr(tenant, "payments_enabled", False),
         # SH-23c: способ оплаты и «кто покупает» — общий реестр.
@@ -1058,6 +1162,22 @@ def service_book(request, pk):
         return _embed_redirect(
             "storefront-service-slots", embed, request=request, extra=back, pk=pk
         )
+    tenant = getattr(request, "tenant", None)
+    no_show, email, early = _no_show_gate(
+        request,
+        tenant,
+        base_deposit=service.deposit_cents,
+        estimate=sum(p[3] for p in slot_plan),
+        slots=len(slot_plan),
+        offline=False,
+        service=service,
+    )
+    if early == "back":
+        return _embed_redirect(
+            "storefront-service-slots", embed, request=request, extra=back, pk=pk
+        )
+    if early is not None:
+        return early
     from apps.core import extras as extras_engine
 
     # MX-2: тот же фильтр адресности, что в GET — чужую опцию не подсунуть формой.
@@ -1088,7 +1208,8 @@ def service_book(request, pk):
             slot_plan,
             party_size=persons,
             name=name,
-            email=request.POST.get("email", "").strip(),
+            email=email,
+            notify=not no_show.forced,
             phone=request.POST.get("phone", "").strip(),
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=found.channel[:50],
@@ -1153,13 +1274,37 @@ def service_book(request, pk):
 
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
     # HF-6c: гасим визит на КАЖДЫЙ период группы (created), а не только на первый.
-    if _redeem_pass_if_code(request, created):
+    # E6.4c: при депозите по правилу карта уже проверена гейтом и не покрывает визит.
+    if not no_show.forced and _redeem_pass_if_code(request, created):
+        return _embed_redirect(
+            "storefront-termin-ok", embed, request=request, code=booking.reference_code
+        )
+    if no_show.forced:
+        if request.POST.get("pass_code", "").strip():
+            messages.error(request, _("This pass code is not valid."))
+        forced = _forced_deposit(
+            request,
+            tenant,
+            created,
+            base_deposit=service.deposit_cents,
+            payable=lambda b: b.total_cents - b.voucher_paid_cents,
+            ok_url=_termin_ok_url(request, booking, embed),
+            cancel_url=request.build_absolute_uri(
+                reverse("storefront-service-slots", args=[service.pk])
+            )
+            + ("?embed=1" if embed else ""),
+        )
+        if forced == "back":
+            return _embed_redirect(
+                "storefront-service-slots", embed, request=request, extra=back, pk=pk
+            )
+        if forced is not None:
+            return forced
         return _embed_redirect(
             "storefront-termin-ok", embed, request=request, code=booking.reference_code
         )
 
     # Депозит услуги (P2.5b): на Stripe Checkout, иначе обычная запись.
-    tenant = getattr(request, "tenant", None)
     if (
         min(service.deposit_cents, booking.price_cents) > 0
         and getattr(tenant, "payments_enabled", False)
@@ -1228,6 +1373,9 @@ def termin_slots(request, pk):
         "extras": extras_engine.active_for("booking"),
         # SH-23c: способ оплаты и «кто покупает» — общий реестр.
         **_payment_ctx(getattr(request, "tenant", None), "booking"),
+        # KA-12 E6.4c: общая строка политики для ВСЕХ (не вывод о человеке) +
+        # e-mail обязателен, пока правило включено.
+        "no_show_terms": _no_show_terms(request),
         "deposit_required": resource.deposit_cents > 0
         and getattr(getattr(request, "tenant", None), "payments_enabled", False),
         "deposit_eur": f"{resource.deposit_cents / 100:.2f}".replace(".", ","),
@@ -1290,6 +1438,22 @@ def termin_book(request, pk):
         party_size = max(1, min(int(request.POST.get("party_size", "1")), 50))
     except (TypeError, ValueError):
         party_size = 1
+    from apps.core import payment_methods
+
+    tenant = getattr(request, "tenant", None)
+    pay_kwargs = _payment_kwargs(request, "booking")
+    no_show, email, early = _no_show_gate(
+        request,
+        tenant,
+        base_deposit=resource.deposit_cents,
+        estimate=None,
+        slots=1,
+        offline=payment_methods.offline_payment(SimpleNamespace(**pay_kwargs)),
+    )
+    if early == "back":
+        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+    if early is not None:
+        return early
     from apps.core import extras as extras_engine
 
     extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "booking")
@@ -1302,15 +1466,16 @@ def termin_book(request, pk):
             start=start,
             end=end,
             name=name,
-            email=request.POST.get("email", "").strip(),
+            email=email,
             phone=request.POST.get("phone", "").strip(),
             party_size=party_size,
+            notify=not no_show.forced,
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=found.channel[:50],
             extras=extras_snap,
             # SH-23c: способ оплаты и «кто покупает» — общий разбор (счёт юрлицу
             # доступен только фирме, Р-3; срок оплаты по Р-2/Р-4).
-            **_payment_kwargs(request, "booking"),
+            **pay_kwargs,
         )
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This slot is no longer available. Please pick another."))
@@ -1338,16 +1503,36 @@ def termin_book(request, pk):
         maybe_send_doi(booking.customer, base_url=request.build_absolute_uri("/").rstrip("/"))
 
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
-    if _redeem_pass_if_code(request, [booking]):
+    if not no_show.forced and _redeem_pass_if_code(request, [booking]):
+        return _embed_redirect(
+            "storefront-termin-ok", embed, request=request, code=booking.reference_code
+        )
+    if no_show.forced:
+        if request.POST.get("pass_code", "").strip():
+            messages.error(request, _("This pass code is not valid."))
+        # В-A3: у ресурсной записи цены обычно нет — кап только при цене.
+        forced = _forced_deposit(
+            request,
+            tenant,
+            [booking],
+            base_deposit=resource.deposit_cents,
+            payable=lambda b: (b.total_cents - b.voucher_paid_cents) if b.price_cents else None,
+            ok_url=_termin_ok_url(request, booking, embed),
+            cancel_url=request.build_absolute_uri(
+                reverse("storefront-termin-slots", args=[resource.pk])
+            )
+            + ("?embed=1" if embed else ""),
+        )
+        if forced == "back":
+            return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+        if forced is not None:
+            return forced
         return _embed_redirect(
             "storefront-termin-ok", embed, request=request, code=booking.reference_code
         )
 
     # Депозит (P2.5b): если у ресурса задан и бизнес принимает оплату — ведём на
     # Stripe Checkout (на счёт бизнеса). Без депозита/оплаты — обычная бронь.
-    tenant = getattr(request, "tenant", None)
-    from apps.core import payment_methods
-
     if (
         resource.deposit_cents > 0
         and not payment_methods.offline_payment(booking)  # CO-2d: «Rechnung» — без Stripe

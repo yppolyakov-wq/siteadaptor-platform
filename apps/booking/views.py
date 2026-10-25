@@ -990,6 +990,20 @@ def _service_notes_for(booking, limit=3):
     return same or list(base[:limit])
 
 
+def _no_show_rule_ctx(tenant) -> dict:
+    """Текущее правило для панели (выключено — дефолты формы 2/365)."""
+    from .no_show_rule import rule, stripe_ready
+
+    current = rule(tenant)
+    return {
+        "enabled": bool(current),
+        "after": (current or {}).get("after", 2),
+        "days": (current or {}).get("days", 365),
+        "amount": ((current or {}).get("cents", 0) or 0) / 100,
+        "stripe": stripe_ready(tenant),
+    }
+
+
 def _can_edit_policy(user) -> bool:
     from apps.core import roles
 
@@ -1341,6 +1355,8 @@ def services_view(request, pk=None):
             "skill_resources": list(Resource.objects.filter(is_active=True).order_by("name")),
             # KA-12 B6: блок правил отмены — только owner/admin.
             "can_edit_policy": _can_edit_policy(request.user),
+            # KA-12 E6.4c: правило «Anzahlung nach Nichterscheinen».
+            "no_show_rule": _no_show_rule_ctx(getattr(request, "tenant", None)),
             # Фидбэк 2026-07-30 («на сайте пишет: нет доступных»): без рабочих часов
             # слоты не генерируются вообще. Показываем причину ЗДЕСЬ, где владелец
             # правит услугу, — иначе он ищет «календарь услуги», которого нет.
@@ -1351,6 +1367,56 @@ def services_view(request, pk=None):
             "extra_locales": extra_locales(getattr(request, "tenant", None)),
         },
     )
+
+
+@login_required
+@require_POST
+def no_show_rule_save(request):
+    """KA-12 E6.4c: «Anzahlung nach Nichterscheinen» — только owner/admin.
+
+    Точечная запись ТОЛЬКО ключа `booking` под блокировкой строки тенанта (класс W6:
+    чужие ключи site_config не теряются, параллельная правка не затирается).
+    Выключено — ключа нет (presence-minimal)."""
+    from apps.audit.services import audit_event
+    from apps.core.money import parse_money
+    from apps.tenants.models import Tenant
+    from apps.tenants.siteconfig import normalize_booking
+
+    if not _can_edit_policy(request.user):
+        raise PermissionDenied
+    enabled = request.POST.get("enabled") == "1"
+    amount = parse_money(request.POST.get("amount", ""))
+    rule = normalize_booking(
+        {
+            "no_show_deposit": {
+                "after": request.POST.get("after"),
+                "days": request.POST.get("days"),
+                "cents": int(amount * 100) if amount else 0,
+            }
+        }
+    )
+    with transaction.atomic():
+        tenant = Tenant.objects.select_for_update().get(pk=request.tenant.pk)
+        # Свежий экземпляр из БД: схема уже есть (по ней пришёл запрос) — без проверки
+        # и создания схемы на save() (django-tenants делает это при auto_create_schema).
+        tenant.auto_create_schema = False
+        cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+        if enabled:
+            cfg["booking"] = rule
+        else:
+            cfg.pop("booking", None)
+        tenant.site_config = cfg
+        tenant.save(update_fields=["site_config", "updated_at"])
+    request.tenant.site_config = cfg
+    audit_event(
+        action="booking.no_show_rule",
+        resource_type="tenant",
+        resource_id=tenant.pk,
+        actor=request.user,
+        context={"enabled": enabled, **(rule.get("no_show_deposit", {}) if enabled else {})},
+    )
+    messages.success(request, _("Gespeichert."))
+    return redirect("booking:services")
 
 
 @login_required

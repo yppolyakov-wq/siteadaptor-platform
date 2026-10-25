@@ -18,6 +18,31 @@
   </div>
 </div>
 
+{% comment %}KA-12 E6.4c: «Anzahlung nach Nichterscheinen» — правило онлайн-записи
+(owner/admin правят, staff видит только состояние).{% endcomment %}
+{% if not service_page %}
+<details class="mb-4 rounded-xl border border-gray-200 bg-white px-4 py-3" data-no-show-rule{% if no_show_rule.enabled %} open{% endif %}>
+  <summary class="cursor-pointer text-sm font-semibold">{% trans "Anzahlung nach Nichterscheinen" %}
+    <span class="ml-2 text-xs font-normal {% if no_show_rule.enabled %}text-green-700{% else %}text-gray-500{% endif %}">{% if no_show_rule.enabled %}{% trans "aktiv" %}{% else %}{% trans "aus" %}{% endif %}</span>
+  </summary>
+  <p class="mt-2 text-xs text-gray-500">{% trans "Wer mehrmals nicht erschienen ist, bucht online nur noch mit Anzahlung. Ohne Online-Zahlung wird um einen Anruf gebeten. Gezählt wird nach E-Mail-Adresse." %}</p>
+  {% if not no_show_rule.stripe %}<p class="mt-1 text-xs text-amber-700">{% trans "Online-Zahlung ist nicht eingerichtet — betroffene Kundinnen und Kunden werden gebeten anzurufen." %}</p>{% endif %}
+  {% if can_edit_policy %}
+  <form method="post" action="{% url 'booking:no-show-rule' %}" class="mt-3 flex flex-wrap items-end gap-3 text-sm">
+    {% csrf_token %}
+    <label class="flex items-center gap-2"><input type="checkbox" name="enabled" value="1"{% if no_show_rule.enabled %} checked{% endif %}> {% trans "Regel aktiv" %}</label>
+    <label class="text-xs text-gray-500">{% trans "Ab wie vielen Nichterscheinen" %} <input name="after" type="number" min="1" max="10" inputmode="numeric" value="{{ no_show_rule.after }}" class="w-16 rounded border border-gray-300 px-2 py-1 text-base"></label>
+    <label class="text-xs text-gray-500">{% trans "Zeitraum (Tage)" %} <input name="days" type="number" min="30" max="730" inputmode="numeric" value="{{ no_show_rule.days }}" class="w-20 rounded border border-gray-300 px-2 py-1 text-base"></label>
+    <label class="text-xs text-gray-500">{% trans "Anzahlung (€, optional)" %} <input name="amount" type="text" inputmode="decimal" value="{% if no_show_rule.amount %}{{ no_show_rule.amount|floatformat:2 }}{% endif %}" placeholder="20,00" class="w-24 rounded border border-gray-300 px-2 py-1 text-base"></label>
+    <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700">{% trans "Speichern" %}</button>
+  </form>
+  <p class="mt-1 text-xs text-gray-400">{% trans "Ohne Betrag: die Anzahlung der Leistung, sonst der volle Preis." %}</p>
+  {% else %}
+  <p class="mt-2 text-xs text-gray-500">{% trans "Nur Inhaber und Admins können diese Regel ändern." %}</p>
+  {% endif %}
+</details>
+{% endif %}
+
 {% if messages %}
   {% for m in messages %}
     <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>

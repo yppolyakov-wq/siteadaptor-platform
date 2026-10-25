@@ -29595,3 +29595,42 @@ msgstr "Цена за ед. (брутто)"
 #: templates/booking/booking_detail.html
 msgid "Notizen werden 3 Jahre nach dem letzten Termin automatisch gelöscht."
 msgstr "Заметки автоматически удаляются через 3 года после последней записи."
+
+msgid "Anzahlung (€, optional)"
+msgstr "Предоплата (€, необязательно)"
+
+msgid "Anzahlung nach Nichterscheinen"
+msgstr "Предоплата после неявок"
+
+msgid "Bitte geben Sie eine gültige E-Mail-Adresse an."
+msgstr "Пожалуйста, укажите действительный адрес электронной почты."
+
+msgid "Für diese Buchung bitten wir um einen kurzen Anruf."
+msgstr "Для этой записи, пожалуйста, позвоните нам."
+
+msgid "Für diese Buchung bitten wir um einen kurzen Anruf: %(phone)s"
+msgstr "Для этой записи, пожалуйста, позвоните нам: %(phone)s"
+
+msgid "Ab wie vielen Nichterscheinen"
+msgstr "После скольких неявок"
+
+msgid "Nach wiederholtem Nichterscheinen bitten wir bei Online-Buchungen um eine Anzahlung."
+msgstr "После повторных неявок при онлайн-записи мы просим предоплату."
+
+msgid "Nur Inhaber und Admins können diese Regel ändern."
+msgstr "Изменить это правило могут только владелец и администраторы."
+
+msgid "Ohne Betrag: die Anzahlung der Leistung, sonst der volle Preis."
+msgstr "Без суммы: предоплата услуги, иначе полная цена."
+
+msgid "Online-Zahlung ist nicht eingerichtet — betroffene Kundinnen und Kunden werden gebeten anzurufen."
+msgstr "Онлайн-оплата не настроена — таких клиентов попросят позвонить."
+
+msgid "Regel aktiv"
+msgstr "Правило включено"
+
+msgid "Zeitraum (Tage)"
+msgstr "Период (дней)"
+
+msgid "Wer mehrmals nicht erschienen ist, bucht online nur noch mit Anzahlung. Ohne Online-Zahlung wird um einen Anruf gebeten. Gezählt wird nach E-Mail-Adresse."
+msgstr "Клиенты, которые несколько раз не пришли, записываются онлайн только с предоплатой. Без онлайн-оплаты их просят позвонить. Подсчёт — по адресу электронной почты."

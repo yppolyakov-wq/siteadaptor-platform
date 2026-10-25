@@ -567,6 +567,7 @@ class Tenant(TenantMixin):
             f"{self._privacy_ai_paragraph()}"
             f"{self._privacy_telegram_paragraph()}"
             f"{self._privacy_treatment_paragraph()}"
+            f"{self._privacy_no_show_paragraph()}"
             "Sie haben das Recht auf Auskunft, Berichtigung, Löschung und "
             "Widerspruch. Wenden Sie sich dazu an: "
             f"{contact}.\n\n"
@@ -614,6 +615,21 @@ class Tenant(TenantMixin):
             f"unser Team sichtbar und werden spätestens {years} Jahre nach Ihrem letzten "
             "Termin automatisch gelöscht, auf Wunsch oder mit Ihrem Kundenkonto auch "
             "früher (Art. 17 DSGVO).\n\n"
+        )
+
+    def _privacy_no_show_paragraph(self) -> str:
+        """KA-12 E6.4c: правило «Anzahlung nach Nichterscheinen» использует историю
+        неявок по e-mail — абзац только при включённом правиле."""
+        site = self.site_config if isinstance(self.site_config, dict) else {}
+        if not isinstance(site.get("booking"), dict) or not site["booking"].get("no_show_deposit"):
+            return ""
+        return (
+            "Bei Online-Terminbuchungen prüfen wir anhand Ihrer E-Mail-Adresse, ob "
+            "frühere Termine ohne Absage nicht wahrgenommen wurden. In diesem Fall "
+            "bitten wir um eine Anzahlung oder um eine telefonische Buchung "
+            "(Art. 6 Abs. 1 lit. f DSGVO — Schutz vor Terminausfällen). Es findet "
+            "keine automatisierte Entscheidung mit rechtlicher Wirkung statt; Sie "
+            "können jederzeit telefonisch buchen.\n\n"
         )
 
     def _privacy_chat_paragraph(self) -> str:
