@@ -102,6 +102,7 @@ def set_discount(
         obj.refresh_from_db()
         return int(round(float(obj.total) * 100))
 
+    previous_cents = int(getattr(obj, "discount_cents", 0) or 0)
     obj.discount_cents = cents
     updated = ["discount_cents", "updated_at"]
     if scope and scope != getattr(obj, "discount_scope", ""):
@@ -114,9 +115,7 @@ def set_discount(
     if kind == "stay":
         # Бронь номера хранит итог полем — пересчитываем той же формулой, что
         # `stays.services.reprice` (иначе показанная сумма разошлась бы с оплатой).
-        from apps.core import extras as extras_engine
-
-        lodging = _stay_lodging_cents(obj, extras_engine)
+        lodging = _stay_lodging_cents(obj, previous_cents)
         obj.total_cents = max(0, lodging - cents) + obj.kurtaxe_cents
         updated.insert(1, "total_cents")
 
@@ -124,14 +123,13 @@ def set_discount(
     return _total_cents(kind, obj)
 
 
-def _stay_lodging_cents(booking, extras_engine) -> int:
-    """Стоимость проживания брони ДО скидки владельца (ночи − авто-скидка + допы)."""
-    from apps.stays import pricing
+def _stay_lodging_cents(booking, previous_discount_cents: int) -> int:
+    """Проживание брони ДО скидки владельца — из СНИМКА сделки (итог − Kurtaxe +
+    прежняя скидка), обратной формулой `move_stay`/E4.7a.
 
-    room = pricing.quote_total_cents(
-        booking.unit, booking.arrival, booking.departure, rate_plan=booking.rate_plan
-    )
-    return max(0, room - booking.auto_discount_cents) + extras_engine.total_cents(booking.extras)
+    KA-12 Z-1 (DF-Z1): раньше считалось по СЕГОДНЯШНИМ ценам и без числа номеров —
+    после правки сезона или у брони на 2 номера скидка «съедала» разницу цен."""
+    return max(0, booking.total_cents - (booking.kurtaxe_cents or 0) + previous_discount_cents)
 
 
 def _total_cents(kind: str, obj) -> int:

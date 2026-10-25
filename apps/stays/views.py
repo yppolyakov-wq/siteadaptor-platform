@@ -335,8 +335,13 @@ def stay_action(request, pk):
         if not _finance_active(request):
             messages.error(request, _("Enable the Finance module first."))
             return redirect(back)
-        small_business = getattr(request.tenant, "small_business", False)
-        invoice = services.stay_to_invoice(booking, small_business=small_business)
+        # KA-12 Z-1 (DF-Z2): общий счёт сделки (Bruttomethode, питание 19 %,
+        # черновик переиспользуется) — тот же, что кнопка «Rechnung» карточки.
+        from apps.core.deal_invoice import invoice_for_deal
+
+        invoice, created = invoice_for_deal("stay", booking, tenant=request.tenant)
+        if created:
+            messages.success(request, _("Rechnungsentwurf erstellt."))
         return redirect(reverse("finance:invoice-detail", args=[invoice.pk]))
     if action == "move":
         # Батч C: drag на Belegungsplan шлёт fetch (X-Requested-With) + опц. целевой
@@ -729,11 +734,8 @@ def booking_detail(request, pk):
             "registration": registration,
             # Фидбэк 2026-07-30: разбивка цены ПО НОЧАМ (сезоны/выходные) —
             # владелец видит, из чего сложился итог мультисезонной брони.
-            "price_rows": pricing.price_breakdown(
-                booking.unit, booking.arrival, booking.departure, rate_plan=booking.rate_plan
-            )
-            if booking.unit_id
-            else [],
+            # KA-12 Z-1: из снимка брони (прайс после брони сделку не переписывает).
+            "price_rows": pricing.booking_breakdown(booking),
             "nav": "stays",
             "can_delete": _can_delete_booking(booking),
             # Фидбэк 2026-07-27: селект номера в форме «Buchung bearbeiten».

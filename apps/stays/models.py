@@ -359,6 +359,10 @@ class StayBooking(TimestampedModel):
     # KA-12 E4.10b: при rooms > 1 — остальные назначенные номера (первый — `room`,
     # его читают шахматка, карточка и хаускипинг). Всего назначено ≤ rooms.
     extra_rooms = models.ManyToManyField(Room, blank=True, related_name="extra_bookings")
+    # KA-12 Z-1: цены ночей на момент брони [[iso, cents, label], …] — на ОДИН номер,
+    # после тарифа/occupancy, до авто-скидки. Источник разбивки карточки: прайс,
+    # изменённый после брони, сделку не переписывает. Пусто — легаси-бронь.
+    night_prices = models.JSONField(default=list, blank=True)
     # H5: разбивка гостей (вместимость = adults + children ≤ max_guests). guests
     # держим как итог для совместимости; adults/children — для Kurtaxe и отображения.
     adults = models.PositiveSmallIntegerField(default=1)

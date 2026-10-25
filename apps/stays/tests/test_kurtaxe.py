@@ -77,7 +77,11 @@ def test_invoice_separates_kurtaxe_line_without_vat():
     StaySettings.objects.create(kurtaxe_cents=250)
     unit = _unit(price_cents=10000, max_guests=4)
     b = _book(unit, nights=2, adults=2)  # total 220 €, Kurtaxe 10 €
-    inv = services.stay_to_invoice(b)
+    from types import SimpleNamespace
+
+    from apps.finance.services import invoice_from_stay
+
+    inv = invoice_from_stay(b, SimpleNamespace(small_business=False))
     # отдельная строка Kurtaxe; gross = итог брони; НДС только на проживание (210 €)
     assert any("Kurtaxe" in line["text"] for line in inv.lines)
     assert inv.gross == b.total_eur

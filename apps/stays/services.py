@@ -14,7 +14,6 @@ from django.db import transaction
 from django.utils import translation
 from django.utils.translation import gettext as _
 
-from apps.notifications.services import tenant_locale
 from apps.promotions.models import Customer
 
 from . import availability, pricing
@@ -438,6 +437,10 @@ def book_stay(
         extras=extras_snap,
         rate_plan=rate_plan,
         rate_snapshot=_rate_snapshot(rate_plan),
+        # KA-12 Z-1: цены ночей на момент брони (те же аргументы, что room_cents).
+        night_prices=pricing.night_snapshot(
+            unit, arrival, departure, rate_plan=rate_plan, **occ_kwargs
+        ),
         status=StayBooking.STATUS_CONFIRMED if auto_confirm else StayBooking.STATUS_PENDING,
         note=note,
         source_channel=(source_channel or "")[:50],
@@ -501,6 +504,10 @@ def _move_keep_rate(booking, old_nights: int):
         max(0, base + extras_engine.total_cents(booking.extras) - (booking.discount_cents or 0))
         + booking.kurtaxe_cents
     )
+    # Z-1: согласованные цены ночей едут вместе с бронью (разбивка = итог).
+    booking.night_prices = pricing.shift_snapshot(
+        booking.night_prices, booking.arrival, booking.departure
+    )
     update_fields = [
         "unit",
         "room",
@@ -509,6 +516,7 @@ def _move_keep_rate(booking, old_nights: int):
         "total_cents",
         "kurtaxe_cents",
         "extras",
+        "night_prices",
         "updated_at",
     ]
     if booking.payment_state == StayBooking.PAYMENT_PENDING and booking.deposit_cents:
@@ -569,6 +577,7 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
     room_cents = (
         pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan) * booking.rooms
     )
+    booking.night_prices = pricing.night_snapshot(unit, arrival, departure, rate_plan=rate_plan)
     # G4 + MX-0: авто-скидка ТЕМИ ЖЕ аргументами, что book_stay — без unit/departure
     # правка молча теряла Lücken-Deal; без extra — скидку акции при живом FK
     # StayBooking.promotion (итог и причина расходились).
@@ -600,6 +609,7 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
         "auto_discount_cents",
         "auto_discount_label",
         "extras",
+        "night_prices",
         "updated_at",
     ]
     # MX-0: неоплаченная процентная предоплата (G7) следует за новым итогом —
@@ -722,63 +732,6 @@ def cancellation_state(booking, today=None) -> dict:
     return {"can_cancel": True, "free": today <= booking.arrival - timedelta(days=days)}
 
 
-def stay_to_invoice(booking, *, small_business=False):
-    """Создать черновик Rechnung (finance.Invoice) из брони (A5, опц.).
-
-    Цена брони — брутто (вкл. 7 % Beherbergung), поэтому нетто вычисляем обратным
-    счётом, чтобы gross в счёте совпал с оплаченным. §19 → НДС 0 (gross == net).
-    Идемпотентно: повторный вызов вернёт уже существующий счёт. Ставит
-    booking.invoice_id; статус draft (выпуск/нумерация — в кабинете finance).
-    """
-    from decimal import ROUND_HALF_UP, Decimal
-
-    from apps.finance.models import Invoice
-    from apps.finance.recipient import recipient_for
-
-    if booking.invoice_id:
-        existing = Invoice.objects.filter(pk=booking.invoice_id).first()
-        if existing is not None:
-            return existing
-
-    gross = Decimal(booking.total_cents) / 100
-    # H9: Kurtaxe — durchlaufender Posten, отдельной строкой без 7 % Beherbergung-НДС;
-    # из базы НДС её исключаем (gross_beh = итог − Kurtaxe).
-    kurtaxe = Decimal(booking.kurtaxe_cents) / 100
-    gross_beh = gross - kurtaxe
-    rate = Decimal("0") if small_business else Decimal("7")
-    if rate:
-        net_beh = (gross_beh / (1 + rate / 100)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    else:
-        net_beh = gross_beh
-    vat = gross_beh - net_beh
-    net = net_beh + kurtaxe  # Kurtaxe без НДС → net == gross по этой строке
-    # I18N-13: строки счёта — снимок в БД (GoBD): язык БИЗНЕСА, не действующего лица.
-    with translation.override(tenant_locale()):
-        stay_line = _("Übernachtung %(unit)s: %(nights)s Nächte (%(from)s–%(to)s)") % {
-            "unit": booking.unit.name,
-            "nights": booking.nights,
-            "from": f"{booking.arrival:%d.%m.%Y}",
-            "to": f"{booking.departure:%d.%m.%Y}",
-        }
-        kurtaxe_line = _("Kurtaxe (ohne USt.)")
-    lines = [{"text": stay_line, "qty": 1, "unit_price": str(net_beh)}]
-    if kurtaxe:
-        lines.append({"text": kurtaxe_line, "qty": 1, "unit_price": str(kurtaxe)})
-    invoice = Invoice.objects.create(
-        customer=booking.customer,
-        recipient=recipient_for(booking)[:500],
-        lines=lines,
-        vat_rate=rate,
-        net=net,
-        vat_amount=vat,
-        gross=gross,
-        note=f"Buchung {booking.reference_code}"[:200],
-    )
-    booking.invoice_id = invoice.id
-    booking.save(update_fields=["invoice_id", "updated_at"])
-    return invoice
-
-
 def sync_ical_source(source) -> int:
     """Стянуть внешний iCal и пересоздать блоки этого источника (A5b).
 
@@ -863,9 +816,6 @@ def _notify_overbooking(unit, nights, origin: str) -> None:
     """KA-H6: письмо владельцу «Überbuchung» (дедуп по юниту и набору ночей)."""
     import hashlib
     import logging
-
-    from django.utils import translation
-    from django.utils.translation import gettext as _
 
     from apps.booking.revenue import _tenant
     from apps.notifications.services import email_locale, notify

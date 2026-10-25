@@ -270,6 +270,7 @@ def _attach_accommodation(event, ticket, customer, stay_unit_id, quantity):
         rooms=1,
         price_cents=unit.price_cents,
         total_cents=room_cents,
+        night_prices=pricing.night_snapshot(unit, arrival, departure),  # KA-12 Z-1
         status=StayBooking.STATUS_PENDING,
         payment_state=StayBooking.PAYMENT_NONE,  # оплата через билет ретрита
         note=f"Retreat: {event.title} ({ticket.reference_code})",

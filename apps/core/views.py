@@ -5388,40 +5388,14 @@ def deal_invoice(request, kind, pk):
     from django.urls import reverse
 
     from apps.core import transactions
-    from apps.finance import services as finance_services
-    from apps.finance.models import Invoice
+    from apps.core.deal_invoice import invoice_for_deal, supports
 
-    builders = {
-        "order": finance_services.invoice_from_order,
-        "stay": finance_services.invoice_from_stay,
-        "booking": finance_services.invoice_from_booking,
-    }
     tenant = getattr(request, "tenant", None)
-    if kind not in builders or not (tenant and tenant.is_module_active("finance")):
+    if not supports(kind) or not (tenant and tenant.is_module_active("finance")):
         raise Http404("no invoice for this deal")
     obj = get_object_or_404(transactions.model_for(kind), pk=pk)
-    ref = str(getattr(obj, "reference_code", "") or obj.pk)[:64]
-    # CO-2 (ревью): у заказа нет `invoice_id` — сначала общий ключ сделки, иначе
-    # клик после автосчёта (SH-23b) создал бы второй счёт на тот же заказ.
-    # KA-12 E1.1: отменённый счёт не переиспользуем — после Stornorechnung сделке
-    # можно выставить исправленный счёт.
-    live = Invoice.objects.exclude(status=Invoice.STATUS_CANCELLED).filter(
-        kind=Invoice.KIND_INVOICE
-    )
-    invoice = live.filter(deal_kind=kind, deal_id=ref).order_by("created_at").first()
-    existing = getattr(obj, "invoice_id", None)
-    if invoice is None and existing:
-        invoice = live.filter(pk=existing).first()
-    if invoice is None:
-        invoice = builders[kind](obj, tenant=tenant)
-        # CO-2 (ревью): общий ключ с автосчётом — подтверждение сделки выпустит
-        # ЭТОТ черновик, а не второй счёт.
-        invoice.deal_kind = kind
-        invoice.deal_id = ref
-        invoice.save(update_fields=["deal_kind", "deal_id", "updated_at"])
-        if hasattr(obj, "invoice_id"):
-            obj.invoice_id = invoice.pk
-            obj.save(update_fields=["invoice_id", "updated_at"])
+    invoice, created = invoice_for_deal(kind, obj, tenant=tenant)
+    if created:
         messages.success(request, _("Rechnungsentwurf erstellt."))
     return redirect(reverse("finance:invoice-detail", args=[invoice.pk]))
 

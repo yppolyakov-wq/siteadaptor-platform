@@ -5,6 +5,8 @@
 за ночь). quote_total суммирует по ночам [arrival, departure).
 """
 
+from datetime import timedelta
+
 from django.utils.translation import gettext_lazy as _
 
 from .availability import nights_between
@@ -48,6 +50,81 @@ def price_breakdown(
             cents = occupancy_adjust(cents, occupancy_by_day.get(day), occupancy_rules)
         rows.append({"date": day, "cents": cents, "eur": cents / 100, "label": label})
     return rows
+
+
+def night_snapshot(
+    unit, arrival, departure, rate_plan=None, *, occupancy_by_day=None, occupancy_rules=None
+) -> list[list]:
+    """KA-12 Z-1: снимок цен ночей для `StayBooking.night_prices` — те же цены, что
+    `price_breakdown`/`quote_total_cents` (сумма равна), на один номер. Метка — НЕ
+    переведённый текст (язык запроса гостя != язык кабинета): имя сезона владельца,
+    маркер «@season»/«@weekend» или ""."""
+    seasons = list(unit.season_rates.all())
+    rows = []
+    for day in nights_between(arrival, departure):
+        mark = ""
+        for rate in seasons:
+            if rate.start_date <= day <= rate.end_date:
+                mark = rate.label or "@season"
+                break
+        else:
+            if day.weekday() in WEEKEND_WEEKDAYS and unit.weekend_price_cents:
+                mark = "@weekend"
+        cents = apply_rate_plan(nightly_price_cents(unit, day, seasons), rate_plan)
+        if occupancy_rules and occupancy_by_day is not None:
+            cents = occupancy_adjust(cents, occupancy_by_day.get(day), occupancy_rules)
+        rows.append([day.isoformat(), cents, mark])
+    return rows
+
+
+def _snapshot_label(mark) -> str:
+    if mark == "@season":
+        return _("Saisonpreis")
+    if mark == "@weekend":
+        return _("Wochenende")
+    return mark or ""
+
+
+def booking_breakdown(booking) -> list[dict]:
+    """Разбивка цены брони по ночам: снимок брони; легаси-бронь без снимка — прайс
+    сегодняшнего дня (прежнее поведение)."""
+    from datetime import date as _date
+
+    if booking.night_prices:
+        rows = []
+        for item in booking.night_prices:
+            cents = int(item[1])
+            label = _snapshot_label(item[2] if len(item) > 2 else "")
+            rows.append(
+                {
+                    "date": _date.fromisoformat(item[0]),
+                    "cents": cents,
+                    "eur": cents / 100,
+                    "label": label,
+                }
+            )
+        return rows
+    if not booking.unit_id:
+        return []
+    return price_breakdown(
+        booking.unit, booking.arrival, booking.departure, rate_plan=booking.rate_plan
+    )
+
+
+def shift_snapshot(snapshot, arrival, departure) -> list[list]:
+    """Перенос без пересчёта (E4.7a): те же цены ночей на новые даты; при другом
+    числе ночей — средняя согласованная цена ночи (как масштабирует итог)."""
+    nights = (departure - arrival).days
+    if not snapshot or nights <= 0:
+        return []
+    days = [arrival + timedelta(days=i) for i in range(nights)]
+    if len(snapshot) == nights:
+        return [
+            [d.isoformat(), int(row[1]), row[2] if len(row) > 2 else ""]
+            for d, row in zip(days, snapshot, strict=True)
+        ]
+    avg = round(sum(int(row[1]) for row in snapshot) / len(snapshot))
+    return [[d.isoformat(), avg, ""] for d in days]
 
 
 def apply_rate_plan(base_cents, rate_plan) -> int:
