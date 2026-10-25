@@ -5,6 +5,7 @@ from datetime import date
 
 import pytest
 
+from apps.core.models import Membership
 from apps.stays import reports
 from apps.stays.models import StayBooking, StayUnit
 from apps.stays.services import book_stay
@@ -245,6 +246,7 @@ def test_reports_export_csv(monkeypatch):
     MessageMiddleware(lambda r: None).process_request(request)
     o = uuid_mod.uuid4().hex[:8]
     request.user = get_user_model().objects.create_user(username=f"o-{o}", password="pw12345678")
+    Membership.objects.create(user=request.user, role="owner")  # E6.7c-4: право на вьюхе
     resp = views.reports_export_csv(request)
     assert resp["Content-Type"].startswith("text/csv")
     body = resp.content.decode("utf-8-sig")

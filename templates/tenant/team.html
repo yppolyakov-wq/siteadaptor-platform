@@ -18,7 +18,7 @@ lg+ вместо колонки max-w-3xl; на мобильном — одна 
       {% for r in rows %}
         <div id="m-{{ r.m.pk }}" class="px-4 py-3 text-sm">
           <div class="flex flex-wrap items-center gap-3">
-            <span class="flex-1 min-w-[12rem] font-medium text-gray-800">{{ r.email }}</span>
+            <span id="who-{{ r.m.pk }}" class="flex-1 min-w-[12rem] font-medium text-gray-800">{{ r.email }}</span>
             {% if r.is_last_owner %}
               <span class="text-xs text-gray-500">{{ r.m.get_role_display }} · {% trans "letzter Inhaber" %}</span>
             {% elif r.can_role %}
@@ -37,7 +37,7 @@ lg+ вместо колонки max-w-3xl; на мобильном — одна 
               <span class="text-xs text-gray-500">{{ r.m.get_role_display }}</span>
             {% endif %}
             {% if r.can_revoke %}
-              <form method="post" onsubmit="return confirm('{% trans "Zugriff wirklich entziehen?" %}')">
+              <form method="post" onsubmit="return confirm('{% filter escapejs %}{% trans "Zugriff wirklich entziehen?" %}{% endfilter %}')">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="revoke">
                 <input type="hidden" name="membership_id" value="{{ r.m.pk }}">
@@ -47,30 +47,33 @@ lg+ вместо колонки max-w-3xl; на мобильном — одна 
           </div>
           {% if r.perm_form %}
             <details class="mt-2" data-perm-details>
-              <summary class="cursor-pointer text-xs font-medium text-indigo-700 py-1">{% blocktrans with n=r.perm_form.count %}Rechte ({{ n }}){% endblocktrans %}</summary>
-              <form method="post" class="mt-2 space-y-3">
+              <summary aria-describedby="who-{{ r.m.pk }}" class="cursor-pointer text-xs font-medium text-indigo-700 py-1">{% blocktrans with n=r.perm_form.count %}Rechte ({{ n }}){% endblocktrans %}</summary>
+              <form method="post" class="mt-2 space-y-3" aria-labelledby="who-{{ r.m.pk }}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="perms">
                 <input type="hidden" name="membership_id" value="{{ r.m.pk }}">
                 <input type="hidden" name="perms_present" value="1">
                 <input type="hidden" name="perms_state" value="{{ r.perm_form.state }}">
                 {% include "tenant/_perm_fieldsets.html" with groups=r.perm_form.groups field="perm" %}
-                <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Rechte speichern" %}</button>
+                <button type="submit" aria-describedby="who-{{ r.m.pk }}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Rechte speichern" %}</button>
               </form>
             </details>
           {% elif r.m.role == "owner" %}
             <p class="mt-1 text-xs text-gray-500">{% trans "Inhaber — alle Rechte." %}</p>
           {% elif r.is_self and can_edit %}
             <p class="mt-1 text-xs text-gray-500">{% trans "Eigene Rechte kann nur der Inhaber ändern." %}</p>
+          {% elif can_edit %}
+            <p class="mt-1 text-xs text-gray-500">{% trans "Rechte dieser Person ändert nur der Inhaber." %}</p>
           {% endif %}
         </div>
       {% endfor %}
     </div>
   </div>
 
+  {% if invite_roles %}
   <div class="rounded-xl border border-gray-200 bg-white p-4 min-w-0">
     <h2 class="text-sm font-semibold text-gray-700 mb-2">{% trans "Mitarbeiter einladen" %}</h2>
-    <p class="text-xs text-gray-400 mb-3">{% trans "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Rechte lassen sich pro Person anpassen; Abo und Recht & Steuern bleiben dem Inhaber vorbehalten." %}</p>
+    <p class="text-xs text-gray-500 mb-3">{% trans "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Rechte lassen sich pro Person anpassen; Abo und Recht & Steuern bleiben dem Inhaber vorbehalten." %}</p>
     <form method="post" class="flex flex-wrap items-end gap-3">
       {% csrf_token %}
       <input type="hidden" name="action" value="invite">
@@ -101,6 +104,7 @@ lg+ вместо колонки max-w-3xl; на мобильном — одна 
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Einladen" %}</button>
     </form>
   </div>
+  {% endif %}
   </div>
 </div>
 <script>
@@ -134,6 +138,11 @@ lg+ вместо колонки max-w-3xl; на мобильном — одна 
     });
   }
   if (sel) { sel.addEventListener("change", syncRole); syncRole(); }
+  // После сохранения/отказа — вернуть раскрытой форму участника из якоря.
+  var m = location.hash.match(/^#m-([0-9a-f-]{36})$/);
+  var row = m && document.getElementById("m-" + m[1]);
+  var det = row && row.querySelector("[data-perm-details]");
+  if (det) det.open = true;
 })();
 </script>
 {% endblock %}

@@ -8,18 +8,18 @@
       <ul class="space-y-1.5">
         {% for it in g.items %}
           <li>
-            <label class="flex items-start gap-2 text-sm {% if it.disabled %}text-gray-500{% else %}text-gray-800{% endif %}">
+            <label class="flex items-start gap-2 py-1 text-sm {% if it.disabled %}text-gray-500{% else %}text-gray-800{% endif %}">
               <input type="checkbox" name="{{ field }}" value="{{ it.key }}" id="{{ it.dom_id }}"
-                     class="mt-0.5 h-4 w-4 rounded border-gray-300"
+                     class="mt-0.5 h-5 w-5 rounded border-gray-300"
                      data-perm="{{ it.key }}" data-requires="{{ it.requires }}"
                      {% if it.checked %}checked{% endif %}
                      {% if it.disabled %}disabled aria-describedby="{{ it.dom_id }}-why"{% endif %}>
               <span>
                 {{ it.label }}
                 {% if it.sensitive %}<span aria-hidden="true" title="{% trans "sensibles Recht" %}">🔒</span><span class="sr-only">({% trans "sensibles Recht" %})</span>{% endif %}
-                {% if it.disabled %}<span id="{{ it.dom_id }}-why" class="block text-xs text-gray-500">{{ it.reason }}</span>{% endif %}
               </span>
             </label>
+            {% if it.disabled %}<p id="{{ it.dom_id }}-why" class="ml-6 text-xs text-gray-500">{{ it.reason }}</p>{% endif %}
           </li>
         {% endfor %}
       </ul>

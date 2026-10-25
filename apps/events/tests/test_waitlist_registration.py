@@ -21,6 +21,20 @@ def _urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
 
 
+def _owner():
+    from uuid import uuid4
+
+    from django.contrib.auth import get_user_model
+
+    from apps.core.models import Membership
+
+    user = get_user_model().objects.create_user(
+        username=f"ev-{uuid4().hex[:10]}", password="pw12345678"
+    )
+    Membership.objects.create(user=user, role="owner")
+    return user
+
+
 class _User:
     is_authenticated = True
     is_active = True
@@ -39,7 +53,7 @@ def _cabinet_req(method, data=None):
     request = getattr(RequestFactory(), method)("/dashboard/events/", data or {})
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
-    request.user = _User()
+    request.user = _owner()  # E6.7c-4: право на вьюхе (roster CSV)
     return request
 
 

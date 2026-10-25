@@ -8,6 +8,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 
+from apps.core.models import Membership
 from apps.finance import views
 from apps.finance.exports import datev_csv, plain_csv
 from apps.finance.services import record_revenue
@@ -42,6 +43,7 @@ def _req(path):
     request = RequestFactory().get(path, {"von": "2026-06-01", "bis": "2026-06-30"})
     owner = uuid.uuid4().hex[:8]
     request.user = get_user_model().objects.create_user(username=f"o-{owner}", password="pw")
+    Membership.objects.create(user=request.user, role="owner")  # E6.7c-4: право на вьюхе
     return request
 
 

@@ -167,8 +167,8 @@ def team_view(request):
                 messages.success(request, f"{hint} {link}")
         elif action in ("role", "revoke", "perms"):
             _member_action(request, action)
-            if action == "perms" and perm_grants._uuid(request.POST.get("membership_id")):
-                anchor = perm_grants._uuid(request.POST.get("membership_id"))
+            anchor = perm_grants.parse_member_pk(request.POST.get("membership_id"))
+            if action == "perms" and anchor:
                 return redirect(f"{reverse('team')}#m-{anchor}")
         return redirect("team")
 

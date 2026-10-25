@@ -30124,3 +30124,9 @@ msgstr "Запрошення створює одноразове посилан�
 
 msgid "Diese Änderung liegt außerhalb Ihres Bereichs."
 msgstr "Ця зміна поза вашими повноваженнями."
+
+msgid "Wird von einem Recht benötigt, das nur der Inhaber entziehen kann."
+msgstr "Потрібне для права, яке може відкликати лише власник."
+
+msgid "Rechte dieser Person ändert nur der Inhaber."
+msgstr "Права цієї людини змінює лише власник."

@@ -29865,3 +29865,9 @@ msgstr "The invitation creates a one-time link (valid for 7 days). Permissions c
 
 msgid "Diese Änderung liegt außerhalb Ihres Bereichs."
 msgstr "This change is outside your scope."
+
+msgid "Wird von einem Recht benötigt, das nur der Inhaber entziehen kann."
+msgstr "Required by a permission only the owner can revoke."
+
+msgid "Rechte dieser Person ändert nur der Inhaber."
+msgstr "Only the owner changes this person's permissions."

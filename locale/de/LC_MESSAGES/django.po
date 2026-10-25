@@ -29957,3 +29957,9 @@ msgstr "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Rechte lassen 
 
 msgid "Diese Änderung liegt außerhalb Ihres Bereichs."
 msgstr "Diese Änderung liegt außerhalb Ihres Bereichs."
+
+msgid "Wird von einem Recht benötigt, das nur der Inhaber entziehen kann."
+msgstr "Wird von einem Recht benötigt, das nur der Inhaber entziehen kann."
+
+msgid "Rechte dieser Person ändert nur der Inhaber."
+msgstr "Rechte dieser Person ändert nur der Inhaber."

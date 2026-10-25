@@ -30140,3 +30140,9 @@ msgstr "Приглашение создаёт одноразовую ссылк�
 
 msgid "Diese Änderung liegt außerhalb Ihres Bereichs."
 msgstr "Это изменение вне ваших полномочий."
+
+msgid "Wird von einem Recht benötigt, das nur der Inhaber entziehen kann."
+msgstr "Нужно для права, которое может отозвать только владелец."
+
+msgid "Rechte dieser Person ändert nur der Inhaber."
+msgstr "Права этого человека меняет только владелец."

@@ -6,6 +6,7 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
+from apps.core.models import Membership
 from apps.crm import views
 from apps.crm.models import CustomerNote
 from apps.promotions.models import Customer
@@ -29,6 +30,7 @@ def _req(method="get", path="/crm/", data=None):
     request.user = get_user_model().objects.create_user(
         username=f"o{uuid.uuid4().hex[:10]}", email="o@test.de", password="pw12345678"
     )
+    Membership.objects.create(user=request.user, role="owner")  # E6.7c-4: право на вьюхе
     return request
 
 

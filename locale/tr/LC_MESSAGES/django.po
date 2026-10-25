@@ -30009,3 +30009,9 @@ msgstr "Davet tek kullanımlık bir bağlantı oluşturur (7 gün geçerli). Yet
 
 msgid "Diese Änderung liegt außerhalb Ihres Bereichs."
 msgstr "Bu değişiklik yetki alanınızın dışında."
+
+msgid "Wird von einem Recht benötigt, das nur der Inhaber entziehen kann."
+msgstr "Yalnızca sahibin geri alabileceği bir yetki için gerekli."
+
+msgid "Rechte dieser Person ändert nur der Inhaber."
+msgstr "Bu kişinin yetkilerini yalnızca sahip değiştirir."

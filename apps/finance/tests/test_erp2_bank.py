@@ -12,6 +12,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
 from apps.catalog.tests.factories import ProductFactory
+from apps.core.models import Membership
 from apps.finance import bank
 from apps.finance.models import BankTransaction
 from apps.orders import services as order_services
@@ -100,6 +101,7 @@ def test_bank_view_import_and_match_endpoint(monkeypatch):
             email="o@t.de",
             password="pw12345678",
         )
+        Membership.objects.create(user=request.user, role="owner")  # E6.7c-4: право на вьюхе
         request.tenant = tenant
         return request
 

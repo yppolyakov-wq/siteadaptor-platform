@@ -209,3 +209,106 @@ def test_invite_untouched_form_equals_preset_default():
     payload = team.peek_invite(_token_from(msgs))
     assert set(payload["perms"]) == set(G.invite_defaults(admin, STAFF))
     assert [f["role"] for f in perm_ui.invite_forms(admin)] == [STAFF]
+
+
+def test_requirement_of_locked_key_is_locked_and_untouched_save_succeeds():
+    """geld.bezahlt заперт для admin → verkaeufe.edit/view, которые он требует, тоже
+    заперты; сохранение формы «как есть» проходит без отказа."""
+    admin = _member(ADMIN, {"add": ["team.view", "team.edit"], "remove": ["geld.bezahlt"]})
+    staff = _member(STAFF)
+    items = _items(perm_ui.perm_form(admin, staff))
+    assert items["verkaeufe.edit"]["disabled"] and items["verkaeufe.view"]["disabled"]
+    before = _eff(staff)
+    sent = [k for k, it in items.items() if it["checked"] and not it["disabled"]]
+    _resp, msgs = _post_perms(admin, staff, sent)
+    assert _eff(staff) == before
+    assert not any("außerhalb" in m for m in msgs)
+
+
+def _dependents(key, keys):
+    """key + все ключи из keys, которые (транзитивно) его требуют — как снимает JS."""
+    out, changed = {key}, True
+    while changed:
+        changed = False
+        for k in keys:
+            if k not in out and set(P.PERMS[k].requires) & out:
+                out.add(k)
+                changed = True
+    return out
+
+
+class _Rollback(Exception):
+    pass
+
+
+def test_every_enabled_box_can_be_unchecked_without_scope_denial():
+    """Адверсариально: снять любой активный отмеченный ключ (с зависимыми, как JS) —
+    сервер не отвечает отказом: форма не предлагает невыполнимого."""
+    from django.db import transaction
+
+    admin = _member(ADMIN, {"add": ["team.view", "team.edit"], "remove": ["geld.bezahlt"]})
+    staff = _member(STAFF)
+    items = _items(perm_ui.perm_form(admin, staff))
+    enabled = [k for k, it in items.items() if it["checked"] and not it["disabled"]]
+    assert enabled
+    for key in enabled:
+        sent = [k for k in enabled if k not in _dependents(key, enabled)]
+        try:
+            with transaction.atomic():
+                G.set_member_permissions(admin.user, staff.pk, sent)
+                raise _Rollback
+        except _Rollback:
+            pass
+
+
+def test_no_plain_permission_requires_a_sensitive_one():
+    """Инвариант для admin-формы: отметить обычное право не тянет 🔒 (вне области admin)."""
+    for perm in P.PERMS.values():
+        if not perm.sensitive:
+            assert not set(perm.requires) & P.SENSITIVE, perm.key
+
+
+def test_every_enabled_unchecked_box_can_be_checked_without_scope_denial():
+    from django.db import transaction
+
+    admin = _member(ADMIN, {"add": ["team.view", "team.edit"], "remove": ["kunden.edit"]})
+    staff = _member(STAFF, {"remove": ["kunden.edit", "sortiment.delete"]})
+    items = _items(perm_ui.perm_form(admin, staff))
+    current = [k for k, it in items.items() if it["checked"] and not it["disabled"]]
+    to_check = [k for k, it in items.items() if not it["checked"] and not it["disabled"]]
+    assert "sortiment.delete" in to_check and "kunden.edit" not in to_check
+    for key in to_check:
+        try:
+            with transaction.atomic():
+                G.set_member_permissions(admin.user, staff.pk, current + [key])
+                raise _Rollback
+        except _Rollback:
+            pass
+
+
+def test_invite_with_all_boxes_unchecked_carries_no_permissions():
+    owner = _member(OWNER)
+    msgs = _invite(owner, {"email": "leer-pu@t.de", "role": STAFF, "perms_present_staff": "1"})
+    assert team.peek_invite(_token_from(msgs))["perms"] == []
+
+
+def test_page_query_count_does_not_grow_with_members(django_assert_max_num_queries):
+    owner = _member(OWNER)
+    for _ in range(3):
+        _member(STAFF)
+    with django_assert_max_num_queries(40) as ctx:
+        team.team_view(_req(owner.user))
+    few = len(ctx.captured_queries)
+    for _ in range(7):
+        _member(STAFF)
+    with django_assert_max_num_queries(few):
+        team.team_view(_req(owner.user))
+
+
+def test_admin_sees_note_on_other_admin_and_no_invite_without_rights():
+    admin, _other = _admin_with_team(), _member(ADMIN)
+    html = team.team_view(_req(admin.user)).content.decode()
+    assert "Rechte dieser Person ändert nur der Inhaber." in html
+    staff = _member(STAFF, {"add": ["team.view"]})
+    html = team.team_view(_req(staff.user)).content.decode()
+    assert 'name="email"' not in html

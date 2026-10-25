@@ -87,28 +87,38 @@ REASONS = {
     "role_limit": _("Für diese Rolle nicht möglich."),
     "no_grant": _("Nur vergeben, wer dieses Recht selbst hat — sensible Rechte nur der Inhaber."),
     "no_revoke": _("Nur der Inhaber kann dieses Recht entziehen."),
+    "needed": _("Wird von einem Recht benötigt, das nur der Inhaber entziehen kann."),
 }
 
 
+def _reason(key, checked, limit, grant, revoke):
+    if key not in limit:
+        return "role_limit"
+    if checked and key not in revoke:
+        return "no_revoke"
+    if not checked and key not in grant:
+        return "no_grant"
+    return ""
+
+
 def _groups(eff, limit, grant, revoke, prefix):
+    reasons = {k: _reason(k, k in eff, limit, grant, revoke) for k in P.PERMS}
+    # Запертое отмеченное право держит свои requires: снять их — уронить запертое
+    # замыканием, а это сервер отклонит ("scope"). Поэтому их тоже не даём снять.
+    locked = {k for k in eff if reasons[k]}
+    for key in G.with_requires(locked) - locked:
+        if key in eff and not reasons[key]:
+            reasons[key] = "needed"
     out = []
     for group in P.GROUPS:
         items = []
         for perm in (p for p in P.PERMS.values() if p.group == group):
-            checked = perm.key in eff
-            if perm.key not in limit:
-                reason = "role_limit"
-            elif checked and perm.key not in revoke:
-                reason = "no_revoke"
-            elif not checked and perm.key not in grant:
-                reason = "no_grant"
-            else:
-                reason = ""
+            reason = reasons[perm.key]
             items.append(
                 {
                     "key": perm.key,
                     "label": LABELS[perm.key],
-                    "checked": checked,
+                    "checked": perm.key in eff,
                     "disabled": bool(reason),
                     "reason": REASONS.get(reason, ""),
                     "sensitive": perm.sensitive,
@@ -131,9 +141,7 @@ def perm_form(actor_m, target_m) -> dict | None:
         return None
     eff = P.effective_from(target_m.role, target_m.permissions)
     return {
-        "groups": _groups(
-            eff, P.ROLE_LIMIT[target_m.role], grant, revoke, f"p{target_m.pk.hex[:8]}"
-        ),
+        "groups": _groups(eff, P.ROLE_LIMIT[target_m.role], grant, revoke, f"p{target_m.pk.hex}"),
         "state": G.state_token(eff),
         "count": len(eff),
     }

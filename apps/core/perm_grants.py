@@ -338,6 +338,16 @@ def _invite_compute(inviter, role, requested_keys):
     return new, frozenset(requested - new)
 
 
+def with_requires(keys) -> set:
+    """Публичное: ключи вместе с их requires (вверх по цепочке)."""
+    return _with_requires(keys)
+
+
+def parse_member_pk(raw):
+    """Публичное: строгий UUID участника или None."""
+    return _uuid(raw)
+
+
 def scopes_for(actor, target):
     """Публичное чтение области (grant, revoke) актора для цели — для отрисовки формы
     (E6.7d). Без блокировки: запись всё равно перепроверит под замком."""

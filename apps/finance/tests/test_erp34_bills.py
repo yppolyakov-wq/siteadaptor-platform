@@ -13,6 +13,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 from django.utils import timezone
 
+from apps.core.models import Membership
 from apps.finance import views as finance_views
 from apps.finance.expenses import ExpenseEntry
 from apps.finance.models import Invoice
@@ -45,6 +46,7 @@ def _req(method, path="/dashboard/finance/", data=None, tenant=None):
     request.user = get_user_model().objects.create_user(
         username=f"u-{_uuid.uuid4().hex[:8]}", email="o@t.de", password="pw12345678"
     )
+    Membership.objects.create(user=request.user, role="owner")  # E6.7c-4: право на вьюхе
     request.tenant = tenant or _tenant()
     return request
 
