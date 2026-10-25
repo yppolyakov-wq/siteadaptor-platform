@@ -4892,7 +4892,7 @@ def sales_export_csv(request):
     """KA-12 E2.2: CSV продаж вкладки — те же фильтры и сортировка, что в списке.
 
     Персональные данные клиентов → только владелец (KA-H11; префикс в
-    OWNER_ONLY_PREFIXES + декоратор). В журнал — число строк и фильтры без
+    право kunden.export в view_perms + perm_required). В журнал — число строк и фильтры без
     поисковой строки (в ней бывает e-mail)."""
     from django.http import Http404, HttpResponse
 

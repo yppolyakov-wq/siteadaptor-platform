@@ -195,11 +195,9 @@ def test_integrations_home_output_unchanged_by_extraction():
 )
 def test_bot_token_endpoints_owner_only(path):
     """Ревью T-8.31: сотрудник не подменяет и не снимает бота клиентов."""
-    from django.http import HttpResponse
 
-    from apps.core.middleware import CabinetOwnerAccessMiddleware
+    from apps.core.tests.gates import ok, open_as
 
-    mw = CabinetOwnerAccessMiddleware(lambda r: HttpResponse("ok"))
     t = _tenant(telegram_off=False)
-    assert mw(_req(t, _staff(), "post", path)).status_code == 403
-    assert mw(_req(t, _owner(), "post", path)).status_code == 200
+    assert open_as(_req(t, _staff(), "post", path), ok).status_code == 403
+    assert open_as(_req(t, _owner(), "post", path), ok).status_code == 200

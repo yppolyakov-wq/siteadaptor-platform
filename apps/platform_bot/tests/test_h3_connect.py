@@ -270,11 +270,10 @@ def test_connect_issue_rate_limited_per_schema(on, isolated_ratelimit):
 def test_owner_only_prefix_covers_new_urls():
     from django.urls import reverse
 
-    from apps.core.middleware import CabinetOwnerAccessMiddleware
+    from apps.core.tests.gates import floor
 
     for name in ("platform-bot-connect", "platform-bot-disconnect"):
-        path = reverse(name, urlconf="config.urls_tenant")
-        assert path.startswith(CabinetOwnerAccessMiddleware._OWNER_ONLY)
+        assert floor(reverse(name, urlconf="config.urls_tenant"))
 
 
 def test_page_shows_platform_button_and_status(on):

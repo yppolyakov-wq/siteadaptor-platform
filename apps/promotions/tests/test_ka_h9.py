@@ -265,8 +265,10 @@ def test_coupon_page_of_ended_promo_shows_expired():
 
 def test_lite_business_is_owner_only_prefix():
     from apps.core.middleware import CabinetOwnerAccessMiddleware
+    from apps.core.tests.gates import floor
 
-    assert "/dashboard/geschaeft/" in CabinetOwnerAccessMiddleware._OWNER_ONLY
+    assert floor("/dashboard/geschaeft/")
+    assert "/dashboard/geschaeft/" in CabinetOwnerAccessMiddleware._OWNER_FLOOR
 
 
 def test_lite_nav_hides_business_for_staff(monkeypatch):

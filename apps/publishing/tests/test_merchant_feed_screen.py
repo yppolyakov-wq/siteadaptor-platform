@@ -86,10 +86,9 @@ def test_owner_sees_screen_staff_does_not(owner, staff):
 
 
 def test_middleware_owner_prefix_covers_screen():
-    from apps.core.middleware import CabinetOwnerAccessMiddleware
+    from apps.core.tests.gates import owner_only
 
-    path = reverse("gbp-merchant")
-    assert any(path.startswith(p) for p in CabinetOwnerAccessMiddleware._OWNER_ONLY)
+    assert owner_only(reverse("gbp-merchant"))
 
 
 # --- включение и токен ------------------------------------------------------------------

@@ -11,11 +11,9 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.http import HttpResponse
 from django.test import RequestFactory
 
 from apps.core import team
-from apps.core.middleware import CabinetOwnerAccessMiddleware
 from apps.core.models import Membership
 from apps.tenants.tests.factories import TenantFactory
 
@@ -48,22 +46,24 @@ def _req(path="/dashboard/settings/team/", method="get", data=None, user=None, t
 
 # --- owner-only гейт (middleware) ---------------------------------------------
 def test_middleware_blocks_staff_on_owner_only_paths():
-    mw = CabinetOwnerAccessMiddleware(lambda r: HttpResponse("ok"))
+    from apps.core.tests.gates import ok, open_as
+
     tenant = TenantFactory(business_type="restaurant")
     staff = _user(Membership.ROLE_STAFF)
     for path in ("/dashboard/billing/", "/dashboard/recht/", "/dashboard/settings/team/"):
-        resp = mw(_req(path, user=staff, tenant=tenant))
+        resp = open_as(_req(path, user=staff, tenant=tenant), ok)
         assert resp.status_code == 403, path
     # обычный кабинет staff доступен
-    assert mw(_req("/dashboard/", user=staff, tenant=tenant)).status_code == 200
+    assert open_as(_req("/dashboard/", user=staff, tenant=tenant), ok).status_code == 200
 
 
 def test_middleware_allows_owner_on_owner_only_paths():
-    mw = CabinetOwnerAccessMiddleware(lambda r: HttpResponse("ok"))
+    from apps.core.tests.gates import ok, open_as
+
     tenant = TenantFactory(business_type="restaurant")
     owner = _user(Membership.ROLE_OWNER)
     for path in ("/dashboard/billing/", "/dashboard/recht/", "/dashboard/settings/team/"):
-        assert mw(_req(path, user=owner, tenant=tenant)).status_code == 200, path
+        assert open_as(_req(path, user=owner, tenant=tenant), ok).status_code == 200, path
 
 
 # --- инвайт: одноразовость/TTL/валидация ---------------------------------------

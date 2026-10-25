@@ -11,7 +11,6 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.http import HttpResponse
 from django.test import RequestFactory
 from django.urls import reverse
 
@@ -371,7 +370,6 @@ def test_anonymous_redirected_and_get_on_action_405(owner):
     ],
 )
 def test_staff_blocked_by_middleware(django_user_model, path):
-    from apps.core.middleware import CabinetOwnerAccessMiddleware
     from apps.core.models import Membership
 
     staff = django_user_model.objects.create_user(username=f"s{uuid.uuid4().hex[:6]}", password="x")
@@ -379,7 +377,9 @@ def test_staff_blocked_by_middleware(django_user_model, path):
     request = RequestFactory().get(path)
     request.user = staff
     request.tenant = TenantFactory.build(schema_name="t_gbp")
-    resp = CabinetOwnerAccessMiddleware(lambda r: HttpResponse("ok"))(request)
+    from apps.core.tests.gates import ok, open_as
+
+    resp = open_as(request, ok)
     assert resp.status_code == 403
 
 

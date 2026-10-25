@@ -11,7 +11,6 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.http import HttpResponse
 from django.test import RequestFactory
 
 from apps.core import lite_cabinet, modules, views
@@ -129,13 +128,12 @@ def test_activate_requires_login():
 
 
 def test_activate_is_owner_only_over_http():
-    from apps.core.middleware import CabinetOwnerAccessMiddleware
     from apps.core.models import Membership
+    from apps.core.tests.gates import ok, open_as
 
-    mw = CabinetOwnerAccessMiddleware(lambda r: HttpResponse("ok"))
     t = _tenant()
     for role, status in ((Membership.ROLE_STAFF, 403), (Membership.ROLE_OWNER, 200)):
-        assert mw(_req("post", ACTIVATE, t, _member(role))).status_code == status, role
+        assert open_as(_req("post", ACTIVATE, t, _member(role)), ok).status_code == status, role
 
 
 def test_activate_path_not_under_gated_prefix():

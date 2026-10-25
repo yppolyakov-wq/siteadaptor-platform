@@ -135,16 +135,16 @@ def test_crm_list_hides_export_button_for_staff():
 
 
 def test_middleware_blocks_staff_on_export_prefixes():
-    from apps.core.middleware import CabinetOwnerAccessMiddleware as mw
+    from apps.core.tests.gates import finance_export, owner_only
 
     for path in ("/crm/export.csv", "/dashboard/stays/berichte/export.csv"):
-        assert path.startswith(mw._OWNER_ONLY), path
+        assert owner_only(path), path
     for path in (
         "/dashboard/finance/export.csv",
         "/dashboard/finance/datev.csv",
         "/dashboard/finance/ausgaben/datev.csv",
     ):
-        assert path.startswith(mw._FINANCE_EXPORTS), path
+        assert finance_export(path), path
 
 
 def test_crm_audit_does_not_store_search_term():
@@ -157,6 +157,6 @@ def test_crm_audit_does_not_store_search_term():
 
 def test_bank_import_owner_only():
     assert finance_views.bank_import(_req(Membership.ROLE_STAFF)).status_code == 403
-    from apps.core.middleware import CabinetOwnerAccessMiddleware as mw
+    from apps.core.tests.gates import owner_only
 
-    assert "/dashboard/finance/bank/".startswith(mw._OWNER_ONLY)
+    assert owner_only("/dashboard/finance/bank/")

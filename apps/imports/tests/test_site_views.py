@@ -135,9 +135,9 @@ def test_views_require_login():
 
 
 def test_website_paths_are_owner_only():
-    from apps.core.middleware import CabinetOwnerAccessMiddleware
+    from apps.core.tests.gates import floor
 
-    assert reverse("imports:website").startswith(CabinetOwnerAccessMiddleware._OWNER_ONLY)
+    assert floor(reverse("imports:website"))
 
 
 def test_review_post_applies_selected_items(owner):

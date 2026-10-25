@@ -292,17 +292,15 @@ def _member(role):
 
 
 def test_screen_is_owner_only():
-    from django.http import HttpResponse
 
-    from apps.core.middleware import CabinetOwnerAccessMiddleware
     from apps.core.models import Membership
+    from apps.core.tests.gates import ok, open_as
 
-    mw = CabinetOwnerAccessMiddleware(lambda r: HttpResponse("ok"))
     t = _tenant()
     for role, status in ((Membership.ROLE_STAFF, 403), (Membership.ROLE_OWNER, 200)):
         req = _req(t)
         req.user = _member(role)
-        assert mw(req).status_code == status, role
+        assert open_as(req, ok).status_code == status, role
     from apps.core import nav_registry
 
     assert nav_registry.entry_for("marketing", "portal-stats").owner_only is True
