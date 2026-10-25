@@ -19806,3 +19806,14 @@ int — поймано прогоном). Замки `test_z4_rate_plan_units.py
 (осознанно — новый гейт); стенд Playwright 16/16 (hotel, 1440/390: витрина, подделка POST, стойка, кабинет,
 сезон). ops: деплой `stays/0043`, пересев не нужен.
 
+
+**2026-10-25 — KA-12 E6.7a «права сотрудников: реестр + резолвер» ✅ (без миграций).** Решения владельца
+по 10 вопросам — «по рекомендации» (план `ka-12-e6-7-staff-permissions-plan-2026-10-25.md` §H). Новый
+`apps/core/permissions.py`: 57 ключей `<раздел>.<действие>` в 9 группах, `requires`, `sensitive`, пресеты
+ролей = сегодняшний доступ, `has_perm` (опечатка ключа → `ImproperlyConfigured` при `PERMS_STRICT`).
+Все ролевые проверки внутри экранов переведены на ключи (booking/stays/finance/deal_card/core-views/events/
+publishing/promotions/aggregator/lite/refunds + шаблоны через фильтр `cab_can`); `is_owner` остался только для
+Inhaber-Vorbehalt и middleware/навигации (E6.7b/e) — grep-замок. Эталон `test_perm_parity.py`: место → ключ →
+роли с доступом. Ревью django-reviewer нашло тесты, подменявшие `is_owner` (после перевода они проверяли
+пустую роль) — переписаны на подмену `permissions.effective`. Дальше: E6.7b — права на всех вьюхах +
+`process_view`.
