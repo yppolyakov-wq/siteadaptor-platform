@@ -313,3 +313,178 @@
     лёгком пакете → 403 вне белого списка».
 **LOW** 13–16: team-join без раскрытия; замок «Telegram-сессия только owner»; `community.access` — проверить
 сразу; роль и права меняются в одной транзакции под блокировкой.
+
+
+# Редакция 2 (2026-10-25): учёт рыночного исследования
+Заменяет §1.1, §1.3, §5, §8 выше; остальное в силе. Замечания security-ревью §15 действуют поверх (в т.ч. §15.11 — `team.edit` НЕ в пресете admin, owner включает вручную; §15.10 — чувствительные права выдаёт только owner).
+
+## A. Модель: раздел × действие + ступени (v1)
+
+### A.1 Ключ права
+
+Ключ имеет вид `<раздел>.<действие>`. Действия:
+- `view` — смотреть;
+- `edit` — менять;
+- `delete` — удалять;
+- `export` — выгрузка (у Mews и Shopify это отдельное право).
+
+Разделы заданы в реестре и сопоставлены с `nav_registry`: у каждого раздела есть свой набор подпунктов меню.
+
+Зависимости в реестре: `edit` требует `view`; `delete` требует `edit`; `export` требует `view`. Если раздел не умеет какое-то действие (например, «delete» у Website), ключа для него просто нет — пустых галочек не будет.
+
+### A.2 Ступени для клиентов и финансов
+
+Это один выбор, а не набор галочек. Внутри они раскладываются в ключи, поэтому `has_perm` работает как прежде.
+
+- **Kunden** (по образцу Timely):
+  - `0 — keine` (выключено);
+  - `1 — nur Name` — на сделке и в чате видны имя и код, телефон и e-mail замаскированы. Это сегодняшнее поведение staff;
+  - `2 — Kontaktdaten` — без маски;
+  - `3 — volle Kartei` — CRM, заметки, фирмы, теги, история.
+
+  Отдельно (по умолчанию только владелец): `kunden.export` (CSV клиентов, CSV продаж, отчёт гостей, ростер), `kunden.dsgvo` (выгрузка и удаление по DSGVO, E6.1), `kunden.delete`.
+
+- **Zahlen & Finanzen** (по образцу Square):
+  - `0 — nichts`;
+  - `1 — Kennzahlen` — «Umsatz heute», полоса дня, сводки и агрегаты на главной, Marketing-Puls;
+  - `2 — Berichte` — Auswertungen, Belegungsbericht, Zahlungen, Offene Posten (только просмотр);
+  - `3 — Finanzen` — Journal, Rechnungen, Ausgaben, Ergebnis.
+
+  Отдельно: `finanzen.edit` (счета из сделки, Mahnung, Ausgaben, Eingangsrechnung), `finanzen.export` (DATEV и журнал, сегодня `FINANCE_EXPORT_PREFIXES`), `finanzen.korrektur` (Gutschrift, Storno, Rechnungskorrektur, Anzahlungsrechnung, полный поиск получателя — сегодня `can_export_finance`), `finanzen.bank` (выписки, owner).
+
+### A.3 Группа «Geld» (v1, отдельные права да/нет)
+
+Каждое право — отдельная галочка с 🔒.
+
+| Ключ | Подпись | Из кода | Сегодня |
+|---|---|---|---|
+| `geld.erstatten` | Geld erstatten (Storno mit Erstattung) | `refunds.may_refund` → `apply_action` | owner+admin |
+| `geld.korrektur` | Erstattung von Überzahlung & Minderung | `/dashboard/erstattung/`, `deal_refund`, `_refund_form` | owner |
+| `geld.rabatt` | Rabatt vergeben | `deal_discount_edit`, скидка в смете и заказе | все |
+| `geld.preis` | Preis in einer Buchung/Bestellung ändern | правка цены позиции в `orders/editing`, свободная строка сметы, цена в Sofort-Angebot | все |
+| `geld.bezahlt` | Als bezahlt markieren / Barzahlung erfassen | `settle_payment` с карточки, «bezahlt» заявки, фолио | все |
+| `geld.einloesen` | Gutschein/Coupon einlösen | `promotions:redeem`, сканер, Mini App | все |
+| `geld.zahlungslink` | Zahlungslink senden | `deal_pay_link` | все |
+
+«Kassenbuch» — в v2: модуля кассовой книги пока нет.
+
+### A.4 Сетка разделов (v1)
+
+Обозначения: «S» — сегодня доступно staff, «A» — сегодня доступно admin. Шаблоны ролей в A.5 могут отличаться — это осознанные изменения (E6.7f).
+
+| Раздел (`nav_registry`) | view | edit | delete | export | Сегодня (паритет) |
+|---|---|---|---|---|---|
+| `verkaeufe` — доска, списки, календари, Heute, карточки, Zusatzverkäufe, Lieferungen, KDS, Mini App «Anfragen» | ✓ | ✓ (статус, ручная бронь, клиент, связи, массовая смена, состав) | ✓ = `verkaeufe.storno` (переход в cancelled или no_show) | → `kunden.export` | S/A всё |
+| `rezeption` — check-in/out (Z-5) | — | ✓ `rezeption.edit` | — | — | новое |
+| `ablaeufe` — статусы, переходы, колонки, анкета Anfrage | ✓ | ✓ | — | — | S/A |
+| `sortiment` — товары, услуги, номера, события, туры, наборы, категории, Teacher, Pässe, Extras, видимость, «ausverkauft» | ✓ | ✓ | ✓ | — | S/A |
+| `preise` — тарифы, NightRate и price-calendar, сезоны, Kurtaxe, правила отмены, авто-скидки; правка чужих заметок мастера | ✓ | ✓ | — | — | view всем, edit A (`can_edit_policy`, `RATE_EDIT_ACTIONS`) |
+| `lager` — склад, закупки, Mängelanzeige, Produktion, импорт CSV | ✓ | ✓ | — | ✓ (CSV склада) | S/A |
+| `veranstaltung.absagen` — отмена события (массовый возврат) | — | ✓ 🔒 | — | — | owner |
+| `marketing` — акции, типы, кампании, ваучеры, лояльность, newsletter, отзывы, публикации, Finder, Schnell-Aktion | ✓ | ✓ | ✓ | — | S/A |
+| `nachrichten` — inbox, ответ, ИИ-черновик | ✓ | ✓ | — | — | S/A |
+| `kanaele` — Google GBP и Merchant, свой и общий Telegram-бот, подключение каналов | ✓ | ✓ 🔒 | — | — | edit owner |
+| `stadtportal` — статистика | ✓ 🔒 | — | — | — | owner |
+| `website` — Studio, Design, Seiten, SEO, Medien, Menü | ✓ | ✓ | — | — | S/A |
+| `domains` | ✓ | ✓ 🔒 | — | — | S/A (В-3) |
+| `einstellungen` — Mein Geschäft (без права и IBAN), Sprachen, Benachrichtigungen, Zahlung & Lieferung (тумблеры), Ressourcen, Öffnungszeiten, Channel-Manager, Google-Bewertungen | ✓ | ✓ | — | — | S/A |
+| `funktionen` — модули вкл/выкл | ✓ | ✓ 🔒 | — | — | S/A (В-3) |
+| `betriebsferien.ganz` — закрыть весь бизнес | — | ✓ 🔒 | — | — | owner |
+| `team` — участники, инвайт, права | ✓ | ✓ 🔒 | ✓ (отзыв доступа) 🔒 | — | owner (В-1: admin) |
+
+Плюс `kunden.*` и `finanzen.*` ступенями (A.2) и `geld.*` (A.3).
+
+**Inhaber-Vorbehalt (не право, неотзываемо, вне сетки):** Abo & Rechnung, Recht & Steuern и Impressum лёгкого кабинета, банковские реквизиты (IBAN/BIC; у Square даже роль Full их не даёт), смена или передача владельца, удаление бизнеса, импорт с чужого сайта.
+
+### A.5 Шаблоны ролей по архетипу (v1)
+
+Шаблон хранится как набор кодов (пресет), без наследования. Пресет — это дельта поверх роли staff или admin (§2 прежнего плана). Карточки сверху экрана, у каждой одна строка «что может». Набор шаблонов зависит от `tenant.business_type` и активных модулей (реестр `ROLE_TEMPLATES[archetype]`).
+
+- **Все типы:**
+  - **Leitung** (admin): всё, кроме Vorbehalt и owner-only по умолчанию. Kunden 3, Finanzen 2, `geld.erstatten`, `team.edit` по В-1.
+  - **Mitarbeiter** (staff): сегодняшний staff. Kunden 1, Finanzen 1, `geld.rabatt`, `geld.bezahlt`, `geld.einloesen`.
+  - **Buchhaltung** (admin): Finanzen 3, `finanzen.edit`, `finanzen.export`, `finanzen.korrektur`, `geld.erstatten`, `verkaeufe.view`, Kunden 1.
+  - **Aushilfe/Kasse** (staff): `verkaeufe.view` и `verkaeufe.edit`, `geld.einloesen`, `geld.bezahlt`, Kunden 1, Finanzen 0.
+- **Отель:** + **Rezeption** (`verkaeufe` view/edit, `rezeption.edit`, `geld.bezahlt`, Kunden 2, Finanzen 1) и **Housekeeping** (`verkaeufe.view` + хаускипинг-статусы комнат, Kunden 0, Finanzen 0).
+- **Салон, мастерская, Handwerker, туры:** «Mitarbeiter: nur eigene Termine» — v2 (B.1). В v1 — обычный «Mitarbeiter».
+- **Гастро:** + **Küche** (`verkaeufe.view`, смена статусов заказов через KDS, Kunden 0).
+- **Лёгкий пакет («Nur Aktionen», T-8.32):** только два шаблона — **Inhaber** и **Mitarbeiter**. Полный редактор прав скрыт: по исследованию рынка это функция роста, и Square держит свои наборы за платным планом. Редактор входит в пакеты «Laden» и Profi. Гейт — `package_scope`.
+
+**Паритет.** Без выбранного шаблона роль даёт ровно сегодняшний доступ (эталонный снимок паритета §7.1 не меняется). Шаблоны применяются только явно — владельцем или при инвайте. Исключение — осознанное изменение дефолтов в E6.7f.
+
+**Одна роль на человека** (как в POS-системах): `Membership` и так OneToOne. Несколько ролей и правило «максимум из ролей» (анти-пример Bitrix24) не вводим. Замок: модель не допускает второй роли.
+
+### A.6 Запрет эскалации (уточнение §3 по Mews)
+
+- Выдать можно только права ≤ своих. Ступени сравниваются числом: admin с Kunden 2 не может выдать Kunden 3.
+- Свои права не меняются никогда, даже у admin с `team.edit` (у owner прав нет — у него всё).
+- Управление командой — отдельное привилегированное право `team.edit` с 🔒. Admin правит только staff.
+- Проверка — на сервере в `set_member_permissions`. Скрытые и disabled-галочки — это только UX.
+- `team.delete` (отзыв доступа) admin применяет только к staff. Последний владелец защищён.
+
+### A.7 Журнал и письмо владельцу (v1)
+
+- `audit_event("team.perms", changes={"before": [...], "after": [...], "template": ..., "actor_role": ...})` — что было и что стало. Персональных данных нет (только коды прав и pk участника).
+- Хранение журнала прав — **3 года**, затем beat-очистка (минимизация DSGVO). Срок — вопрос В-8.
+- **Письмо владельцу** (на локали бизнеса, `notifications.services.email_locale`), когда **не владелец** (admin) выдал или расширил права из чувствительных групп: `geld.*`, `finanzen.*` ступень ≥ 2 или export, `kunden.export`/`dsgvo` или ступень 3, `team.*`, `kanaele.edit`. Прецедент — письмо при смене IBAN (KA-H2). Если выдаёт сам владелец, письма нет. Дедуп — `dedupe_key=schema:perms:<membership>:<hash after>`. Отправка через Celery и `on_commit`.
+- Экран «Verlauf» на странице команды: последние 50 событий `team.*`.
+
+## B. v2 (вне объёма E6.7, записать в roadmap §Отложено)
+
+1. **«Nur eigene» — область данных** (Bitrix24, Timify): сотрудник видит только свои записи, заявки и свой календарь. Привязка `Membership.user` ↔ `booking.Resource`/Teacher/исполнитель заявки — нужна миграция и фильтры во всех выборках продаж, а это большой риск утечки. Шаблон «Mitarbeiter: nur eigene Termine» для салона, мастерской, гида.
+2. **Лимиты:** «Rabatt bis N %», «Erstattung bis X €».
+3. **«С подтверждением»** (Shopify POS): действие выше лимита требует PIN менеджера или подтверждения владельцем в Mini App.
+4. **«So sieht es der Mitarbeiter»** — предпросмотр кабинета глазами сотрудника (рендер навигации и плиток по чужим `effective()`, только чтение).
+5. **Журнал денежных действий** с экраном (возвраты, скидки, правки цены, «bezahlt», погашения) — поверх существующего audit.
+6. **Kassenbuch** как право (когда появится модуль).
+7. Вход сотрудников в Mini App через Telegram.
+8. Свои именованные шаблоны (владелец сохраняет набор как «Wochenendaushilfe»).
+
+## C. UI экрана прав (v1, заменяет §5)
+
+- **Сверху:** карточки шаблонов архетипа с одной строкой «что может», выбранная выделена. После ручных правок подпись «Vorlage + angepasst».
+- **Ниже:** группы-карточки Verkäufe · Geld · Sortiment · Kunden · Marketing · Website · Zahlen & Finanzen · Einstellungen · Team. У каждого раздела — **переключатели** по действиям (Ansehen / Ändern / Löschen / Export). У Kunden и Finanzen — **ступени**: radio-группа из 4 шагов с подписью «что видно».
+- **🔒** у чувствительных прав (Geld, Finanzen ≥ 2, Export, DSGVO, Team, Kanäle, Domains, Funktionen) + подсказка «Inhaber wird per E-Mail informiert», когда выдаёт admin.
+- Disabled с подсказкой «Dieses Recht haben Sie selbst nicht». Блок «Nur Inhaber» read-only.
+- **a11y:** `fieldset`/`legend` на группу; переключатели — `<input type=checkbox role=switch>` с `aria-describedby`; ступени — `<fieldset>` с radio; работа с клавиатуры; без JS — обычный POST; сентинел `perms_present` (W0).
+- **Мобайл:** группы аккордеоном, поля 16px, «Speichern» над таб-баром.
+
+## D. Инкременты v1 (заменяет §8)
+
+- **E6.7a — реестр и резолвер, без миграции.**
+  - Реестр «раздел × действие» + ступени + Geld + Vorbehalt.
+  - Сопоставление разделов с `nav_registry` (замок: каждый раздел сетки ↔ ≥1 запись реестра навигации, каждая запись навигации ↔ раздел или OPEN_TO_ALL).
+  - Эталонный снимок паритета первым коммитом.
+  - Inline-проверки (§4.3 прежнего плана) переведены на новые ключи: `can_edit_policy` → `preise.edit`; `can_export_finance` → `finanzen.korrektur` и `finanzen.export`; `may_refund` → `geld.erstatten`; маскировка контактов → `kunden` ступень ≥ 2; `_refund_form`/`deal_refund` → `geld.korrektur`; отмена события → `veranstaltung.absagen`; переход в cancelled или no_show → `verkaeufe.storno`.
+  - Новые точки денег: `geld.rabatt`, `geld.preis`, `geld.bezahlt`, `geld.einloesen`, `geld.zahlungslink` — гейты добавляются, а пресеты дают «все» (паритет).
+- **E6.7b — объявление прав на всех вьюхах + `process_view`.** Замок «каждая вьюха кабинета — право или OPEN_TO_ALL», `NavEntry.perm`, перевод E11.2.
+- **E6.7c — хранение и сервис выдачи (`core/0013`).** Миграция, `set_member_permissions` (≤ своих, свои права не меняются, сравнение ступеней), шаблоны по архетипу, инвайт с шаблоном, журнал «до/после», письмо владельцу, срок хранения журнала.
+- **E6.7d — экран прав** (C) + доступ admin к команде по В-1 + 403-страница с подписью права + гейт лёгкого пакета (два шаблона).
+- **E6.7e — скрытие** в меню, палитре, плитках и кнопках по правам и ступеням + стенд обхода 16 архетипов × шаблонов.
+- **E6.7f — дефолты по решениям владельца** (В-2: Finanzen 1 у Mitarbeiter; В-3: Domains/Funktionen/Abläufe — Leitung). Эталон перегенерируется осознанно, письмо владельцам, у кого есть сотрудники.
+- **Затем Z-5** — `rezeption.edit` и шаблон «Rezeption».
+
+## E. Новые замки сверх §7
+
+1. Сетка ↔ `nav_registry` в обе стороны (A.5 E6.7a).
+2. Ступени: Kunden 1 — на карточке сделки, в CRM, палитре, счёте и Mini App телефон и e-mail замаскированы (одна точка `kunden_level(user)`); Kunden 0 — пункт CRM скрыт, имя на сделке видно.
+3. Finanzen 1 — главная показывает агрегаты, `/dashboard/finance/*` даёт 403; Finanzen 2 — отчёты открыты, журнал и счета дают 403.
+4. Каждое право группы Geld проверяется на ВСЕХ поверхностях своего действия: доска, карточка, массовая смена, Mini App, сканер.
+5. Шаблоны по архетипу: каждый шаблон проходит normalize идемпотентно; шаблоны лёгкого пакета ⊆ {Inhaber, Mitarbeiter}; каждый шаблон ⊆ пресета Leitung (выдавать может admin).
+6. Эскалация по ступеням: admin с Kunden 2 не выдаёт 3; своя правка запрещена даже при `team.edit`.
+7. Письмо владельцу: при выдаче adminом права из чувствительной группы — одно письмо (дедуп), при выдаче владельцем — нет, в тексте нет персональных данных клиентов.
+8. Одна роль на человека (OneToOne; второй строки Membership на user не бывает).
+9. Журнал прав старше срока удаляется beat'ом.
+
+## F. Вопросы владельцу (добавлены к В-1…В-6)
+
+- **В-7.** Шаблоны по архетипу — утвердить набор A.5 (Leitung, Mitarbeiter, Buchhaltung, Aushilfe/Kasse + Rezeption/Housekeeping у отеля + Küche у гастро)?
+- **В-8.** Срок хранения журнала прав — 3 года? *Рекомендация: да* — совпадает со сроком заметок мастера E6.4d и с исковой давностью.
+- **В-9.** Права в лёгком пакете — только Inhaber/Mitarbeiter, полный редактор — в Laden/Profi? *Рекомендация: да.*
+- **В-10.** «Mitarbeiter» по умолчанию видит «Umsatz heute» (Finanzen 1) или ничего? Исследование советует «ничего» для Mitarbeiter и агрегаты для Leitung. *Рекомендация: «ничего» в E6.7f; сегодня staff видит всё.*
+
+## G. ECC-прогоны (дополнение к §12)
+
+- `market-research` уже есть — повторно не нужен.
+- E6.7c: `security-reviewer` — сравнение ступеней, письмо владельцу (нет ли персональных данных и оракула), запрет правки своих прав; `silent-failure-hunter` — отправка письма и `on_commit`.
+- E6.7d: `a11y-architect` — переключатели `role=switch`, radio-ступени, 🔒 с текстовой альтернативой (`aria-label` «sensibles Recht»); Playwright-стенд: шаблон «Rezeption» у отеля, «Küche» у кафе, лёгкий пакет — только два шаблона.
