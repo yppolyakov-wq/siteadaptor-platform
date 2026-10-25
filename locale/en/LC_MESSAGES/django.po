@@ -30326,3 +30326,16 @@ msgstr "By subscribing you agree to receive marketing emails."
 
 msgid "Ungültiger Wert — der bisherige wurde beibehalten."
 msgstr "Invalid value — the previous one was kept."
+
+msgid "Für Ihre Branche gibt es keine Vorlage."
+msgstr "There is no template for your industry."
+
+msgid "Gästezahl geändert — bitte die Mengen im Angebot prüfen."
+msgstr "Number of guests changed — please check the quantities in the quote."
+
+#, python-format
+msgid "Preise „pro Person“ werden mit %(n)s Gästen gerechnet."
+msgstr "“Per person” prices are calculated for %(n)s guests."
+
+msgid "Aktuelle Felder durch die Branchen-Vorlage ersetzen?"
+msgstr "Replace the current fields with the industry template?"

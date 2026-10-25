@@ -54,6 +54,15 @@ def apply_business_type(tenant, business_type: str) -> None:
     if type_changed or untouched_preset:
         tenant.disabled_modules = registry.default_disabled_for(business_type)
         update_fields.insert(1, "disabled_modules")
+    # KA-12 A-3: стартовая форма заявки нового типа — только при СМЕНЕ типа и
+    # только если ключа нет. Повтор того же шага не возвращает пресет, если
+    # владелец снял все поля (ключ удалён панелью).
+    if type_changed:
+        from apps.jobs.anfrage_presets import with_default
+
+        tenant.site_config, changed = with_default(tenant.site_config, business_type)
+        if changed:
+            update_fields.insert(1, "site_config")
     tenant.save(update_fields=update_fields)
 
 

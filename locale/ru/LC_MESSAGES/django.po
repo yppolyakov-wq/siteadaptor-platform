@@ -30601,3 +30601,16 @@ msgstr "Подписываясь, вы соглашаетесь получать
 
 msgid "Ungültiger Wert — der bisherige wurde beibehalten."
 msgstr "Недопустимое значение — сохранено прежнее."
+
+msgid "Für Ihre Branche gibt es keine Vorlage."
+msgstr "Для вашей отрасли шаблона нет."
+
+msgid "Gästezahl geändert — bitte die Mengen im Angebot prüfen."
+msgstr "Число гостей изменилось — проверьте количество в смете."
+
+#, python-format
+msgid "Preise „pro Person“ werden mit %(n)s Gästen gerechnet."
+msgstr "Цены «на человека» считаются на %(n)s гостей."
+
+msgid "Aktuelle Felder durch die Branchen-Vorlage ersetzen?"
+msgstr "Заменить текущие поля шаблоном отрасли?"

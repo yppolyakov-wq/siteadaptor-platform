@@ -78,6 +78,8 @@ def _catalog_parts(tenant=None, include_combos=False):
                     "price": combo.price,
                     "title": str(combo),
                     "image": combo.primary_image_url,
+                    # KA-12 A-3: цена «pro Person» — в смете кол-во = число гостей.
+                    "per_person": bool(combo.price_per_person),
                 }
             )
     # Услуги — только если модуль записи активен (у кейтеринга/Handwerker их нет).
@@ -92,6 +94,7 @@ def _catalog_parts(tenant=None, include_combos=False):
                     "price": Decimal(svc.price_cents) / 100,
                     "title": str(svc),
                     "image": getattr(svc, "image_url", "") or "",
+                    "per_person": svc.pricing_mode == "per_person",
                 }
             )
     return parts

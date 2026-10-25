@@ -152,12 +152,23 @@ def anfrage_form_settings(request):
     Targeted-write — прочие ключи site_config целы (паттерн board_settings)."""
     from apps.tenants import siteconfig
 
+    from .anfrage_presets import preset_for
+
     tenant = request.tenant
-    fields = [f for f in ("date", "guests", "event_type") if request.POST.get(f"af_{f}")]
-    types = [t.strip() for t in (request.POST.get("af_event_types") or "").splitlines()]
-    anfrage = siteconfig.normalize_anfrage(
-        {"fields": fields, "event_types": [t for t in types if t]}
-    )
+    if request.POST.get("load_preset"):
+        # KA-12 A-3: «Branchen-Vorlage laden» — явное действие владельца, поэтому
+        # пресет типа ПЕРЕЗАПИСЫВАЕТ текущий состав (в отличие от дефолта при
+        # создании). Нет пресета у типа → ничего не меняем.
+        anfrage = preset_for(tenant.business_type)
+        if not anfrage:
+            messages.info(request, _("Für Ihre Branche gibt es keine Vorlage."))
+            return redirect(_safe_next(request))
+    else:
+        fields = [f for f in ("date", "guests", "event_type") if request.POST.get(f"af_{f}")]
+        types = [t.strip() for t in (request.POST.get("af_event_types") or "").splitlines()]
+        anfrage = siteconfig.normalize_anfrage(
+            {"fields": fields, "event_types": [t for t in types if t]}
+        )
     cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
     if anfrage:
         cfg["anfrage"] = anfrage
@@ -169,10 +180,15 @@ def anfrage_form_settings(request):
     # X2c: панель живёт на «Abläufe». Ревью 2026-08-19: возвращаемся ТУДА ЖЕ,
     # откуда сохраняли (kind + ?from=board) — как соседние панели экрана;
     # чужой хост в `next` не принимаем (protocol-relative `//` тоже).
+    return redirect(_safe_next(request))
+
+
+def _safe_next(request) -> str:
+    """Локальный `next` формы или «Abläufe» (чужой хост и `//` не принимаем)."""
     nxt = request.POST.get("next", "")
     if not nxt.startswith("/") or nxt.startswith("//"):
         nxt = reverse("ablaeufe")
-    return redirect(nxt)
+    return nxt
 
 
 def _parse_deposit_cents(raw) -> int:
@@ -443,6 +459,14 @@ def _save_request(request, job):
                 changes=changed,
             )
         messages.success(request, _("Saved."))
+        # KA-12 A-3: смета считала «pro Person» от прежнего числа гостей — без
+        # автопересчёта (у строк нет флага «pro Person», угадывать нельзя),
+        # но владельцу говорим, что количества стоит проверить.
+        if "guest_count" in changed and job.lines.exists():
+            messages.warning(
+                request,
+                _("Gästezahl geändert — bitte die Mengen im Angebot prüfen."),
+            )
     return redirect("jobs:detail", pk=job.pk)
 
 

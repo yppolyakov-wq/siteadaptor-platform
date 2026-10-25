@@ -95,7 +95,7 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
 {% block deal_items_title %}{% trans "Quote / Kostenvoranschlag" %}{% endblock %}
 {% block deal_items %}
 {# конструктор сметы #}
-<form method="post">
+<form method="post"{% if job.guest_count %} data-qt-guests="{{ job.guest_count }}"{% endif %}>
   {% csrf_token %}
   <input type="hidden" name="action" value="save_lines">
   {% if job.lines_locked %}<p class="mb-2 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2" data-lines-locked>🔒 {% trans "Positionen sind nach der Beauftragung gesperrt. Für Änderungen den Auftrag stornieren und ein neues Angebot erstellen." %}</p>{% endif %}
@@ -167,6 +167,7 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
   (текст и цена заполняются сразу, привязка — hidden line_part).{% endcomment %}
   <div class="mt-2 flex flex-wrap items-center gap-3">
     <button type="button" data-qt-add class="text-sm font-medium text-indigo-600 hover:underline">＋ {% trans "Position hinzufügen" %}</button>
+    {% if job.guest_count %}<span class="text-xs text-gray-500" data-qt-guest-hint>{% blocktrans with n=job.guest_count %}Preise „pro Person“ werden mit {{ n }} Gästen gerechnet.{% endblocktrans %}</span>{% endif %}
     {% if parts %}
       {% comment %}SH-21: пикер списком с миниатюрами (радио name="qt_part" — в приёмник не
       уходит, строки несут line_part_i); JS ниже слушает change радио.{% endcomment %}
@@ -327,6 +328,13 @@ document (партиал может перерисовываться — уро�
     if (linked) linked.classList.toggle("hidden", !/^[pv]:/.test(pick.value));
     resetPick();
     var qty = row.querySelector("[data-qt-qty]");
+    // KA-12 A-3: набор/услуга «pro Person» — количество = гости заявки.
+    var guestBox = document.querySelector("[data-qt-guests]");
+    var guests = guestBox ? guestBox.getAttribute("data-qt-guests") : "";
+    // Только поверх значения по умолчанию — введённое владельцем не трогаем.
+    if (qty && guests && opt.getAttribute("data-per-person") && (qty.value === "" || qty.value === "1")) {
+      qty.value = guests;
+    }
     if (qty) qty.focus();
     recalc();
     syncAddButton();

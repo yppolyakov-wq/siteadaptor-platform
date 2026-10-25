@@ -53,6 +53,10 @@ def _resolve_partner(code: str):
 
 
 def _new_tenant(*, business_name, slug, business_type, city, email, partner_code="") -> Tenant:
+    from apps.jobs.anfrage_presets import with_default
+
+    # KA-12 A-3: стартовая форма заявки по типу (кейтеринг — дата/гости/повод).
+    site_config, _changed = with_default({}, business_type)
     return Tenant(
         partner=_resolve_partner(partner_code),
         schema_name=slug.replace("-", "_"),
@@ -69,6 +73,7 @@ def _new_tenant(*, business_name, slug, business_type, city, email, partner_code
         # опциональные модули выключены, владелец включает на /dashboard/modules/.
         disabled_modules=modules.default_disabled_for(business_type),
         enabled_locales=["de", "en"],
+        site_config=site_config,
     )
 
 

@@ -30470,3 +30470,16 @@ msgstr "Abone olarak pazarlama e-postaları almayı kabul edersiniz."
 
 msgid "Ungültiger Wert — der bisherige wurde beibehalten."
 msgstr "Geçersiz değer — önceki değer korundu."
+
+msgid "Für Ihre Branche gibt es keine Vorlage."
+msgstr "Sektörünüz için şablon yok."
+
+msgid "Gästezahl geändert — bitte die Mengen im Angebot prüfen."
+msgstr "Misafir sayısı değişti — lütfen teklifteki miktarları kontrol edin."
+
+#, python-format
+msgid "Preise „pro Person“ werden mit %(n)s Gästen gerechnet."
+msgstr "“Kişi başı” fiyatlar %(n)s misafir için hesaplanır."
+
+msgid "Aktuelle Felder durch die Branchen-Vorlage ersetzen?"
+msgstr "Mevcut alanlar sektör şablonuyla değiştirilsin mi?"

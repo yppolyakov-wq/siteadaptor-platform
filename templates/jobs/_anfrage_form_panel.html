@@ -17,6 +17,12 @@
       <label class="block text-xs text-gray-500 mb-1" for="id_af_event_types">{% trans "Auswahlliste (eine Option pro Zeile)" %}</label>
       <textarea id="id_af_event_types" name="af_event_types" rows="4" placeholder="Hochzeit&#10;Firmenfeier&#10;Geburtstag" class="w-full rounded-lg border border-gray-300 px-3 py-2">{% for t in anfrage_cfg.event_types %}{{ t }}{% if not forloop.last %}&#10;{% endif %}{% endfor %}</textarea>
     </div>
-    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    <div class="flex flex-wrap items-center gap-3">
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+      {% if anfrage_preset %}
+        {% comment %}KA-12 A-3: пресет типа бизнеса (кейтеринг — дата/гости/повод).{% endcomment %}
+        <button type="submit" name="load_preset" value="1" onclick="return confirm('{% trans "Aktuelle Felder durch die Branchen-Vorlage ersetzen?" as q %}{{ q|escapejs }}')" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "Branchen-Vorlage laden" %}</button>
+      {% endif %}
+    </div>
   </form>
 </details>

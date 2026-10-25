@@ -5646,6 +5646,7 @@ def ablaeufe_view(request):
     stays — мёртвый контекст) — аудит 2026-08-05. Сохранение — прежние эндпоинты
     (status-labels-save/transitions-save/board-settings) через next= сюда."""
     from apps.core import status_labels, transition_rules
+    from apps.jobs import anfrage_presets
     from apps.tenants import siteconfig
 
     tenant = request.tenant
@@ -5682,6 +5683,8 @@ def ablaeufe_view(request):
         # (которая схлопывается) — их место в «Abläufe» (процессы продаж).
         "anfrage_enabled": tenant.is_module_active("jobs"),
         "anfrage_cfg": (siteconfig.normalize(tenant.site_config).get("anfrage") or {}),
+        # KA-12 A-3: кнопка «Branchen-Vorlage laden» — только у типа с пресетом.
+        "anfrage_preset": bool(anfrage_presets.preset_for(tenant.business_type)),
         "delivery_enabled": getattr(tenant, "delivery_enabled", False),
     }
     ctx.update(ctx_status_manager)  # VK-3: секция «Eigene Status» на самой странице
