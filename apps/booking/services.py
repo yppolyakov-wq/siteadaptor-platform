@@ -539,7 +539,13 @@ def move(booking, *, start, end, resource=None, override_hours=False):
 
 
 class ManualBookingRefused(Exception):
-    """KA-12 A-4: ручную запись нельзя поставить — текст причины для владельца."""
+    """KA-12 A-4: ручную запись нельзя поставить — текст причины для владельца.
+
+    ``warnings`` — подсказки, собранные до отказа (навык мастера): показываем и их."""
+
+    def __init__(self, message, warnings=()):
+        super().__init__(message)
+        self.warnings = list(warnings)
 
 
 def create_manual(
@@ -624,9 +630,10 @@ def create_manual(
             )
             raise ManualBookingRefused(
                 _("Für %(n)s Personen sind zu dieser Zeit nur %(free)s Plätze frei.")
-                % {"n": party_size, "free": max(0, resource.capacity - taken)}
+                % {"n": party_size, "free": max(0, resource.capacity - taken)},
+                warnings,
             ) from None
-        raise ManualBookingRefused(_("That time is already taken.")) from None
+        raise ManualBookingRefused(_("That time is already taken."), warnings) from None
     except ResourceClosed:
-        raise ManualBookingRefused(_("Closed on this date.")) from None
+        raise ManualBookingRefused(_("Closed on this date."), warnings) from None
     return booking, warnings

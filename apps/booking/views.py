@@ -521,6 +521,9 @@ def booking_create(request):
             override_hours=bool(request.POST.get("override_hours")),
         )
     except services.ManualBookingRefused as exc:
+        # Паритет: подсказка о навыке видна и при отказе (как до выноса ядра).
+        for text in exc.warnings:
+            messages.warning(request, text)
         messages.error(request, str(exc))
         return redirect("booking:calendar")
     for text in warnings:

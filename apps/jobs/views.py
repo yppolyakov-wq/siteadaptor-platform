@@ -560,31 +560,49 @@ def _create_booking(request, job):
             variant, ok = pricing.resolve_variant(service, raw_variant)
             if not ok:
                 variant = None
-    customer = job.customer
+    from django.db import transaction
+
     try:
-        booking, warnings = booking_services.create_manual(
-            resource,
-            start=start,
-            minutes=minutes,
-            service=service,
-            variant=variant,
-            party_size=job.guest_count or 1,
-            name=customer.name or job.title,
-            email=customer.email or "",
-            phone=customer.phone or "",
-            note=(post.get("note") or "").strip() or f"{job.reference_code} · {job.title}",
-            override_hours=bool(post.get("override_hours")),
-            customer=customer,
-        )
+        with transaction.atomic():
+            # Двойной клик: вторая отправка ждёт первую и видит уже привязанную
+            # запись — иначе осталась бы вторая подтверждённая запись-сирота
+            # (держит слот, клиенту ушло письмо).
+            locked = Job.objects.select_for_update().select_related("customer").get(pk=job.pk)
+            if locked.booking_id:
+                return redirect("jobs:detail", pk=job.pk)
+            booking, warnings = _book_for_job(
+                locked, booking_services, resource, start, minutes, service, variant, post
+            )
+            locked.booking = booking
+            locked.save(update_fields=["booking", "updated_at"])
     except booking_services.ManualBookingRefused as exc:
+        for text in exc.warnings:
+            messages.warning(request, text)
         messages.error(request, str(exc))
         return redirect("jobs:detail", pk=job.pk)
-    job.booking = booking
-    job.save(update_fields=["booking", "updated_at"])
     for text in warnings:
         messages.warning(request, text)
     messages.success(request, _("Termin angelegt."))
     return redirect("jobs:detail", pk=job.pk)
+
+
+def _book_for_job(job, booking_services, resource, start, minutes, service, variant, post):
+    """Запись на клиента заявки: гости = места, заметка = номер и тема заявки."""
+    customer = job.customer
+    return booking_services.create_manual(
+        resource,
+        start=start,
+        minutes=minutes,
+        service=service,
+        variant=variant,
+        party_size=job.guest_count or 1,
+        name=customer.name or job.title,
+        email=customer.email or "",
+        phone=customer.phone or "",
+        note=(post.get("note") or "").strip() or f"{job.reference_code} · {job.title}",
+        override_hours=bool(post.get("override_hours")),
+        customer=customer,
+    )
 
 
 def _link_booking(request, job, *, attach):
