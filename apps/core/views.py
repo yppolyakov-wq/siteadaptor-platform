@@ -26,6 +26,7 @@ from apps.core import (
     studio_scope,
     vat,
 )
+from apps.core.permissions import has_perm
 from apps.core.roles import owner_required
 from apps.promotions import group_styles
 from apps.tenants import domains
@@ -1124,7 +1125,7 @@ def settings_view(request):
 
 
 def _gbp_hours_link(user) -> bool:
-    from apps.core.roles import is_owner
+    from apps.core.permissions import has_perm
     from apps.publishing.models import Channel
 
     config = (
@@ -1134,7 +1135,7 @@ def _gbp_hours_link(user) -> bool:
     )
     if not (isinstance(config, dict) and config.get("refresh_token") and config.get("location")):
         return False
-    return is_owner(user)
+    return has_perm(user, "kanaele.edit")
 
 
 def save_payment_settings(request) -> list[str]:
@@ -5412,7 +5413,7 @@ def deal_advance_invoice(request, kind, pk):
     from django.urls import reverse
 
     from apps.core import transactions
-    from apps.core.roles import can_export_finance
+    from apps.core.permissions import has_perm
     from apps.finance import advance
 
     tenant = getattr(request, "tenant", None)
@@ -5422,7 +5423,7 @@ def deal_advance_invoice(request, kind, pk):
         or not (tenant and tenant.is_module_active("finance"))
     ):
         raise Http404("no advance invoice")
-    if not can_export_finance(request.user):
+    if not has_perm(request.user, "finanzen.korrektur"):
         raise PermissionDenied
     obj = get_object_or_404(transactions.model_for(kind), pk=pk)
     try:
@@ -5769,11 +5770,9 @@ def status_manager_save(request, kind):
         # SM-3: кламп 20 = max_length поля status (согласован с normalize)
         return re.sub(r"[^a-z0-9_]+", "_", (v or "").strip().lower()).strip("_")[:20]
 
-    from apps.core import roles
-
     # KA-12 E1.12 (ревью): «ohne Erstattung» — политика денег, решает только владелец;
     # у сотрудника флаг остаётся прежним (новый статус — без флага).
-    owner = bool(getattr(request.user, "pk", None)) and roles.is_owner(request.user)
+    owner = bool(getattr(request.user, "pk", None)) and has_perm(request.user, "geld.richtlinie")
     defs, seen = [], set()
     for code in request.POST.getlist("custom_code"):
         if request.POST.get(f"del_{code}"):
@@ -6013,7 +6012,6 @@ def notifications_settings(request):
     """UD4-2: матрица каналов per-событие (клиент) + owner-каналы + привязка
     Telegram владельца. Хранение — Tenant.site_config['notify'] (без миграции);
     owner_chat_id/owner_link_token в том же узле НЕ затираем при сохранении."""
-    from apps.core import roles
     from apps.notifications import prefs
     from apps.platform_bot import links as platform_links
     from apps.telegram import bots
@@ -6028,7 +6026,7 @@ def notifications_settings(request):
     if request.method == "POST":
         if request.POST.get("action") == "disconnect_owner":
             # Telegram ВЛАДЕЛЬЦА отключает только владелец (как кнопки общего бота).
-            if not roles.is_owner(request.user):
+            if not has_perm(request.user, "kanaele.edit"):
                 messages.error(request, _("Nur der Inhaber kann das ändern."))
                 return redirect("notifications-settings")
             platform_links.disconnect(tenant)  # T-8.10h: единственный писатель привязки
@@ -6069,7 +6067,7 @@ def notifications_settings(request):
             # T-8.10h H-3: подключение к общему боту — только владельцу бизнеса.
             "platform_bot_available": platform is not None
             and bool(platform.username)
-            and roles.is_owner(request.user),
+            and has_perm(request.user, "kanaele.edit"),
             "platform_bot_username": platform.username if platform else "",
             # FB-10: КУДА идут owner-письма (и предупреждение, если адрес пуст —
             # частая причина «уведомления не приходят»).
@@ -6119,11 +6117,11 @@ def platform_bot_connect(request):
     from django.http import Http404, HttpResponseForbidden
     from django.utils import translation
 
-    from apps.core import ratelimit, roles
+    from apps.core import ratelimit
     from apps.platform_bot import connect
     from apps.telegram import bots
 
-    if not roles.is_owner(request.user):
+    if not has_perm(request.user, "kanaele.edit"):
         return HttpResponseForbidden()
     if bots.platform_bot() is None:
         raise Http404
@@ -6142,10 +6140,9 @@ def platform_bot_connect(request):
 def platform_bot_disconnect(request):
     from django.http import HttpResponseForbidden
 
-    from apps.core import roles
     from apps.platform_bot import links as platform_links
 
-    if not roles.is_owner(request.user):
+    if not has_perm(request.user, "kanaele.edit"):
         return HttpResponseForbidden()
     platform_links.disconnect(request.tenant)
     messages.success(request, _("Telegram getrennt."))
@@ -6219,10 +6216,8 @@ def _own_bot_safe(tenant):
 
 
 def _is_owner_safe(user):
-    from apps.core.roles import is_owner
-
     try:
-        return is_owner(user)
+        return has_perm(user, "kanaele.edit")
     except Exception:  # noqa: BLE001 — кнопку не показываем, страница цела
         return False
 
@@ -6251,9 +6246,10 @@ def palette_search(request):
     from django.http import JsonResponse
 
     from apps.core import palette_search as ps
-    from apps.core.roles import is_owner
 
-    sections = ps.search(request.tenant, request.GET.get("q", ""), owner=is_owner(request.user))
+    sections = ps.search(
+        request.tenant, request.GET.get("q", ""), owner=has_perm(request.user, "kunden.kontakte")
+    )
     return JsonResponse(
         {
             "sections": [
@@ -6407,12 +6403,12 @@ def deal_refund(request, kind, pk):
     from django.http import Http404, HttpResponseForbidden
     from django.urls import reverse
 
-    from apps.core import folio, refunds, roles, transactions
+    from apps.core import folio, refunds, transactions
     from apps.core.money import parse_money
 
     if kind not in folio.FOLIO_KINDS:
         raise Http404("unknown kind")
-    if not roles.is_owner(request.user):
+    if not has_perm(request.user, "geld.korrektur"):
         return HttpResponseForbidden()
     obj = get_object_or_404(transactions.model_for(kind), pk=pk)
     try:

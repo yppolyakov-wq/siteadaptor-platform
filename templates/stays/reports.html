@@ -104,7 +104,7 @@
   </div>
   {% endif %}
 </div>
-{% if request.user|cab_is_owner %}<a href="{% url 'stays:reports-export' %}?month={{ month_param }}" class="inline-block mt-4 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">⬇ {% trans "Export CSV" %}</a>{% endif %}
+{% if request.user|cab_can:"kunden.export" %}<a href="{% url 'stays:reports-export' %}?month={{ month_param }}" class="inline-block mt-4 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">⬇ {% trans "Export CSV" %}</a>{% endif %}
 
 {% if market %}
 {# CP-1 «Marktposition»: публичные базовые цены отелей платформы в этом городе. #}

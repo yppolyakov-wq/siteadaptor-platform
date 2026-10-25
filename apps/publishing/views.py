@@ -14,6 +14,8 @@ from django.utils.translation import gettext_lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
+from apps.core.permissions import has_perm
+
 from . import oauth
 from .models import Channel, Publication
 
@@ -27,7 +29,6 @@ def _ensure_channels():
 @login_required
 def channels(request):
     from apps.core.personal_channels import personal_channels
-    from apps.core.roles import is_owner
 
     _ensure_channels()
     return render(
@@ -40,7 +41,7 @@ def channels(request):
             # каналы связи (WhatsApp, Telegram, e-mail, чат сайта, соцпрофили).
             "personal_channels": personal_channels(getattr(request, "tenant", None)),
             # Д3 (В-7): подключение/ключи/тумблеры — только владельцу (middleware).
-            "can_manage": is_owner(request.user),
+            "can_manage": has_perm(request.user, "kanaele.edit"),
             "publications": (Publication.objects.select_related("channel", "promotion").all()[:20]),
         },
     )
@@ -230,9 +231,7 @@ GBP_ERROR_MESSAGES = {
 
 def _owner(request) -> bool:
     """Вторая линия к owner-only префиксу middleware: экран пишет во внешний профиль."""
-    from apps.core.roles import is_owner
-
-    return is_owner(request.user)
+    return has_perm(request.user, "kanaele.edit")
 
 
 def _gbp_channel():

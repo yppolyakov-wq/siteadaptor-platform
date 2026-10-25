@@ -14,11 +14,11 @@ from django.views.decorators.http import require_GET, require_POST
 @require_GET
 def portal_stats(request):
     from apps.core import owner_login
-    from apps.core.roles import is_owner
+    from apps.core.permissions import has_perm
 
-    # Решение владельца: только владельцу. Middleware держит то же правило для HTTP;
-    # проверка здесь — защита в глубину на случай смены порядка/префиксов middleware.
-    if not is_owner(request.user):
+    # Решение владельца: только владельцу (право «stadtportal.view»). Middleware держит
+    # то же правило для HTTP; проверка здесь — защита в глубину.
+    if not has_perm(request.user, "stadtportal.view"):
         return HttpResponseForbidden(_("Nur für Inhaber."))
 
     from apps.core import freshness

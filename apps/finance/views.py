@@ -575,9 +575,9 @@ def invoices(request):
     # KA-P4a: раньше молча 200 последних счетов.
     # KA-12 E2.9: чипы статуса/вида, «überfällig», поиск, период, сортировка.
     base_qs = Invoice.objects.select_related("customer")
-    from apps.core import roles
+    from apps.core.permissions import has_perm
 
-    full_search = roles.can_export_finance(request.user)
+    full_search = has_perm(request.user, "finanzen.korrektur")
     qs, filters = invoice_list.filtered(base_qs, request.GET, full_search)
     page = paginate_queryset(qs, page_raw=request.GET.get("seite"))
     return render(
@@ -613,7 +613,7 @@ def invoice_detail(request, pk):
     from django.shortcuts import get_object_or_404
 
     from apps.core.documents import language_choices
-    from apps.core.roles import can_export_finance
+    from apps.core.permissions import has_perm
 
     from .models import Invoice
     from .state_machine import InvoiceSM
@@ -666,7 +666,7 @@ def invoice_detail(request, pk):
                 messages.success(request, _("Invoice updated."))
             elif action == "credit":
                 # Корректура — нумерованный налоговый документ: владелец/админ.
-                if can_export_finance(request.user):
+                if has_perm(request.user, "finanzen.korrektur"):
                     _create_manual_credit(request, invoice)
                 else:
                     messages.error(request, _("This step is not possible in the current status."))
@@ -688,7 +688,9 @@ def invoice_detail(request, pk):
                 else InvoiceSM().allowed_targets(invoice.status)
             ),
             "doc_languages": language_choices(request.tenant),
-            "credit_form": (_credit_form(invoice) if can_export_finance(request.user) else None),
+            "credit_form": (
+                _credit_form(invoice) if has_perm(request.user, "finanzen.korrektur") else None
+            ),
         },
     )
 
@@ -808,10 +810,10 @@ def _customer_context(request) -> dict:
     import uuid as _uuid
 
     from apps.core.palette_search import mask_email, mask_phone
-    from apps.core.roles import is_owner
+    from apps.core.permissions import has_perm
     from apps.promotions.models import Customer
 
-    owner = is_owner(request.user)
+    owner = has_perm(request.user, "kunden.kontakte")
     customers, q = _customer_choices(request.GET.get("kunde_q", ""), owner)
     selected = None
     try:
@@ -836,7 +838,7 @@ def customer_search(request):
 
     from apps.core import ratelimit
     from apps.core.palette_search import mask_email, mask_phone
-    from apps.core.roles import is_owner
+    from apps.core.permissions import has_perm
 
     if ratelimit.hit(
         "fin-customer-search",
@@ -848,7 +850,7 @@ def customer_search(request):
     q = (request.GET.get("q") or "").strip()
     if len(q) < 2:
         return JsonResponse({"items": []})
-    owner = is_owner(request.user)
+    owner = has_perm(request.user, "kunden.kontakte")
     customers, _q = _customer_choices(q, owner)
     items = []
     for c in customers[:20]:

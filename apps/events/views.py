@@ -157,9 +157,9 @@ def event_action(request, pk):
     if target == Event.STATUS_CANCELLED:
         # KA-H8: отмена события = массовый возврат и письма всем участникам —
         # только владелец и только с подтверждением (не одним кликом/POST).
-        from apps.core.roles import is_owner
+        from apps.core.permissions import has_perm
 
-        if not is_owner(request.user):
+        if not has_perm(request.user, "veranstaltung.absagen"):
             messages.error(request, _("Nur der Inhaber kann eine Veranstaltung absagen."))
             return redirect("events:detail", pk=pk)
         if request.POST.get("confirm_cancel") != "1":

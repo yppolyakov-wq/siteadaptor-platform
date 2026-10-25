@@ -347,12 +347,13 @@ def vat_select(current=None, hint="", inherit_label=""):
 
 
 @register.filter
-def cab_can_export_finance(user):
-    """KA-D7: кнопки финансовых выгрузок — владельцу и admin."""
-    from apps.core.roles import can_export_finance
+def cab_can(user, key):
+    """KA-12 E6.7: ``{% if request.user|cab_can:"kunden.export" %}`` — кнопка по праву.
+    Неизвестный ключ — ошибка в тестах (PERMS_STRICT), в проде кнопка скрыта."""
+    from apps.core.permissions import has_perm
 
     try:
-        return can_export_finance(user)
+        return has_perm(user, key)
     except (TypeError, ValueError):
         return False
 

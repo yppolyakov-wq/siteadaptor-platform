@@ -338,11 +338,11 @@ def lite_share(request):
     )
 
 
-def _is_owner(user) -> bool:
-    from apps.core.roles import is_owner
+def _can(user, key) -> bool:
+    from apps.core.permissions import has_perm
 
     try:
-        return is_owner(user)
+        return has_perm(user, key)
     except Exception:  # noqa: BLE001 — нет роли → как сотрудник (меньше видно)
         return False
 
@@ -381,9 +381,10 @@ def lite_visibility(request):
     from apps.promotions.views import _public_url
 
     tenant = request.tenant
-    owner = _is_owner(request.user)
+    channels = _can(request.user, "kanaele.edit")
+    stats = _can(request.user, "stadtportal.view")
     # T-8.30 (Р-2): из Telegram — только статусы; свой бот подключается по e-mail-входу.
-    can_manage_bot = owner and not tg_login.is_tg_session(request)
+    can_manage_bot = channels and not tg_login.is_tg_session(request)
 
     def _block(fn, fallback):
         try:
@@ -396,11 +397,11 @@ def lite_visibility(request):
         "tenant/lite_visibility.html",
         {
             "nav": "integrations",
-            "is_owner": owner,
+            "is_owner": channels,
             "can_manage_bot": can_manage_bot,
             "site_url": _block(lambda: _public_url(request, "/"), ""),
             "portal": _block(
-                lambda: _portal_block(tenant, owner), {"reason": "", "count": 0, "views": None}
+                lambda: _portal_block(tenant, stats), {"reason": "", "count": 0, "views": None}
             ),
             "google_on": _block(_google_connected, False),
             "publishing_on": tenant.is_module_active("publishing"),

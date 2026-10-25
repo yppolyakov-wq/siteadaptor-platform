@@ -52,7 +52,7 @@ active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛА
     {% endif %}
     {% comment %}X4 + KA-12 E0.3: KDS — только кухням, Tisch-QR — только залам (те же
     гейты, что в реестре навигации); пекарне и мясной ни то ни другое не нужно.{% endcomment %}
-    {% if request.user|cab_is_owner %}<a href="{% url 'verkaeufe-export' %}{% query_with 'tab' 'order' %}" data-sales-csv class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" title="{% trans 'Liste als CSV herunterladen' %}">⬇ CSV</a>{% endif %}
+    {% if request.user|cab_can:"kunden.export" %}<a href="{% url 'verkaeufe-export' %}{% query_with 'tab' 'order' %}" data-sales-csv class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" title="{% trans 'Liste als CSV herunterladen' %}">⬇ CSV</a>{% endif %}
     {% if show_kds %}
     <a href="{% url 'orders:kitchen' %}" class="rounded-xl bg-gray-800 text-white px-3 py-2 text-sm font-medium shadow-sm hover:bg-gray-900">🍳 {% trans "Küche" %}</a>
     {% endif %}

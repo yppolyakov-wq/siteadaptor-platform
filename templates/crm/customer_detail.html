@@ -16,7 +16,7 @@
   {% if customer.marketing_opt_in %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-green-50 text-green-700">{% trans "Marketing" %} ✓</span>{% endif %}
   <span class="text-xs text-gray-400">{{ customer.get_created_source_display }}</span>
   {% comment %}KA-12 E6.1: запрос клиента по DSGVO — только владельцу.{% endcomment %}
-  {% if request.user|cab_is_owner %}<a href="{% url 'crm:customer-dsgvo' customer.pk %}" class="ml-auto text-xs font-medium px-2.5 py-1 rounded-full border border-gray-300 text-gray-600 hover:border-indigo-400" data-dsgvo-link>🛡 {% trans "Datenschutz-Anfrage" %}</a>{% endif %}
+  {% if request.user|cab_can:"kunden.dsgvo" %}<a href="{% url 'crm:customer-dsgvo' customer.pk %}" class="ml-auto text-xs font-medium px-2.5 py-1 rounded-full border border-gray-300 text-gray-600 hover:border-indigo-400" data-dsgvo-link>🛡 {% trans "Datenschutz-Anfrage" %}</a>{% endif %}
 </div>
 
 {% if messages %}

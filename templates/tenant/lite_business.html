@@ -58,7 +58,7 @@
           </div>
         {% endfor %}
       </div>
-      {% if 'betriebsferien'|lite_allowed:request and request.user|cab_is_owner %}
+      {% if 'betriebsferien'|lite_allowed:request and request.user|cab_can:"betriebsferien.ganz" %}
       <a href="{% url 'betriebsferien' %}" class="inline-block text-sm text-indigo-700 hover:underline mt-3" data-lite-holidays>🏖 {% trans "Betriebsferien" %} →</a>
       {% endif %}
     </section>

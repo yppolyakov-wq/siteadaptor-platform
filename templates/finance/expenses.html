@@ -6,7 +6,7 @@
 <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
   <div>
     <h1 class="text-2xl font-bold">{% nav_title _("Ausgaben") %}</h1>
-    {% if request.user|cab_can_export_finance %}<a href="{% url 'finance:expenses-datev' %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline">DATEV</a>{% endif %}
+    {% if request.user|cab_can:"finanzen.export" %}<a href="{% url 'finance:expenses-datev' %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline">DATEV</a>{% endif %}
   </div>
   <form method="get" class="flex flex-wrap items-center gap-2 text-sm">
     <input type="date" name="von" value="{{ von|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">

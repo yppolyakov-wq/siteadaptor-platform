@@ -118,10 +118,10 @@ def would_refund(kind: str, obj, target: str, source: str, tenant=None) -> bool:
 
 
 def may_refund(user) -> bool:
-    """Возврат денег — владелец или бухгалтер (admin); не staff."""
-    from apps.core import roles
+    """Возврат денег при отмене — право «geld.erstatten» (KA-12 E6.7)."""
+    from apps.core.permissions import has_perm
 
-    return roles.can_export_finance(user)
+    return has_perm(user, "geld.erstatten")
 
 
 def needs_choice(kind: str, obj, target: str, source: str, tenant=None) -> bool:

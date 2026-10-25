@@ -20,10 +20,11 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import deal_card, deal_links, refunds, roles, vat
+from apps.core import deal_card, deal_links, refunds, vat
 from apps.core import transactions as core_transactions
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
+from apps.core.permissions import has_perm
 from apps.core.roles import audit_export, owner_required
 
 from . import availability, pricing, services
@@ -903,7 +904,7 @@ def units(request, pk=None):
         action = request.POST.get("action", "")
         # Z-4 Р-7 (О-4): цены — тарифы и сезоны — правят только владелец и admin.
         # Гейт ДО чтения pk из POST (не различаем существующий/несуществующий pk).
-        if action in RATE_EDIT_ACTIONS and not roles.can_edit_policy(request.user):
+        if action in RATE_EDIT_ACTIONS and not has_perm(request.user, "preise.edit"):
             messages.error(request, _("Preise und Tarife ändern nur Inhaber und Admins."))
             return redirect("stays:unit-edit", pk=pk) if pk else redirect("stays:units")
         if action == "unit":
@@ -941,7 +942,7 @@ def units(request, pk=None):
             if _new_name is not None and _new_name.strip():
                 unit.name = _new_name.strip()[:120]
             # Z-4 Р-7: цены номера правят только владелец и admin (сотрудник — прочее).
-            can_price = roles.can_edit_policy(request.user)
+            can_price = has_perm(request.user, "preise.edit")
             if can_price:
                 unit.price_cents = _eur_to_cents(request.POST.get("price_eur"))
                 unit.weekend_price_cents = _eur_to_cents(request.POST.get("weekend_price_eur"))
@@ -1360,7 +1361,7 @@ def units(request, pk=None):
             "today": timezone.localdate(),
             # H1/Z-4: тарифы с категориями (подпись «nur: …» без N+1).
             "rate_plans": list(RatePlan.objects.prefetch_related("units")),
-            "can_edit_prices": roles.can_edit_policy(request.user),  # Z-4 Р-7
+            "can_edit_prices": has_perm(request.user, "preise.edit"),  # Z-4 Р-7
             "category_choices": list(StayUnit.objects.only("pk", "name").order_by("name")),
             "meals": RatePlan.MEALS,
             "cancellations": RatePlan.CANCELLATIONS,

@@ -14,6 +14,7 @@ from .base import *  # noqa: F401, F403
 from .base import BASE_DIR, SHARED_APPS, STORAGES, TENANT_APPS
 
 DEBUG = False
+PERMS_STRICT = True  # KA-12 E6.7: опечатка в ключе права — ошибка, а не тихий False
 ALLOWED_HOSTS = ["*"]
 TENANT_DOMAIN_BASE = "siteadaptor.de"
 

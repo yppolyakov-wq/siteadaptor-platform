@@ -28,7 +28,7 @@ from apps.catalog.images import delete_stored_image, save_product_image
 from apps.core import owner_login
 from apps.core.documents import document_language
 from apps.core.fsm import IllegalTransition
-from apps.core.roles import is_owner
+from apps.core.permissions import has_perm
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
 from apps.promotions import channels as promo_channels
 
@@ -1082,7 +1082,7 @@ def promotion_quick_done(request, pk):
             **owner_login.pending_context(request),  # T-8.5
             "ai_enabled": _ai_photo_enabled(),  # «Nächste Aktion mit KI»
             # В5 V5-3: «что принесла акция» — вход в статистику Stadtportal (только владельцу).
-            "portal_stats_link": is_owner(request.user),
+            "portal_stats_link": has_perm(request.user, "stadtportal.view"),
             # D2a-2: важные подсказки к тексту (high/medium) — исправить в форме.
             "text_findings": [
                 f for f in _text_findings(promo, request) if f.severity in ("high", "medium")

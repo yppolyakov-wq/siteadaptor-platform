@@ -23,7 +23,8 @@ from django.utils.dates import WEEKDAYS_ABBR
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import ratelimit, roles
+from apps.core import ratelimit
+from apps.core.permissions import has_perm
 
 from . import availability, night_rates, pricing
 from .models import StayUnit
@@ -38,7 +39,7 @@ def _rejected_msg() -> str:
 
 def _can_edit(user) -> bool:
     """О-4: массовая правка цен — владелец и admin (обёртка для тестов)."""
-    return roles.can_edit_policy(user)
+    return has_perm(user, "preise.edit")
 
 
 def _ident(request) -> str:

@@ -98,15 +98,17 @@ def is_owner(user) -> bool:
 
 
 def can_edit_policy(user) -> bool:
-    """KA-12 B6 (решение владельца): правила отмены/переноса услуги — owner и admin;
-    staff правит длительность/варианты/навыки, но не условия для гостя."""
-    return role_of(user) in (Membership.ROLE_OWNER, Membership.ROLE_ADMIN)
+    """Алиас KA-12 E6.7: право «preise.edit» (правила отмены, тарифы, цены)."""
+    from .permissions import has_perm
+
+    return has_perm(user, "preise.edit")
 
 
 def can_export_finance(user) -> bool:
-    """KA-D7 (решение владельца 2026-10-23): финансовые выгрузки (журнал, DATEV) —
-    владельцу и роли admin (бухгалтер). Выгрузки клиентов/участников/гостей — нет."""
-    return role_of(user) in (Membership.ROLE_OWNER, Membership.ROLE_ADMIN)
+    """Алиас KA-12 E6.7: право «finanzen.export» (журнал CSV, DATEV)."""
+    from .permissions import has_perm
+
+    return has_perm(user, "finanzen.export")
 
 
 def finance_export_required(view):

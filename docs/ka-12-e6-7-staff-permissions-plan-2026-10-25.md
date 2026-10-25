@@ -488,3 +488,27 @@
 - `market-research` уже есть — повторно не нужен.
 - E6.7c: `security-reviewer` — сравнение ступеней, письмо владельцу (нет ли персональных данных и оракула), запрет правки своих прав; `silent-failure-hunter` — отправка письма и `on_commit`.
 - E6.7d: `a11y-architect` — переключатели `role=switch`, radio-ступени, 🔒 с текстовой альтернативой (`aria-label` «sensibles Recht»); Playwright-стенд: шаблон «Rezeption» у отеля, «Küche» у кафе, лёгкий пакет — только два шаблона.
+
+## H. Решения владельца (2026-10-25: «по рекомендации»)
+В-1 права раздаёт admin, но `team.edit` в пресет admin НЕ входит — владелец включает вручную
+(§15.11) · В-2 Finanzen у Mitarbeiter по умолчанию скрыт (E6.7f) · В-3 Abläufe/Domains/Funktionen —
+только Leitung (E6.7f) · В-4 выдаваемые права — как в сетке A.4 · В-5 check-in/out всем, отмена
+заезда — под `verkaeufe.storno` · В-6 Mini App сотрудникам не открываем · В-7 шаблоны A.5 · В-8
+журнал прав — 3 года · В-9 лёгкий пакет — 2 шаблона · В-10 Mitarbeiter выручку не видит (E6.7f).
+
+### E6.7a — что сделано (2026-10-25)
+- `apps/core/permissions.py`: реестр 57 ключей (без подписей — подписи и переводы идут вместе с
+  экраном прав в E6.7d, иначе мёртвые msgid), группы, `requires`, `sensitive`, пресеты ролей =
+  сегодняшний доступ, `for_role`/`effective`/`has_perm` (опечатка в ключе → `ImproperlyConfigured`
+  при `PERMS_STRICT`, в проде — False + лог).
+- Ступени Kunden/Finanzen в коде — независимые ключи (`kunden.view`/`kunden.kontakte`/…): сегодняшний
+  staff видит CRM, но с маской контактов в палитре и поиске получателя — линейной ступени это не
+  соответствует. Сборка ступеней в UI — E6.7d.
+- Новый ключ `geld.richtlinie` — флаг «ohne Erstattung» у своих статусов (сегодня только владелец).
+- Переведены: booking (правила отмены, чужие заметки, Betriebsferien), stays (тарифы, цены,
+  price-calendar), finance (Gutschrift, полный поиск, маска контактов), deal_card (возврат переплаты,
+  Anzahlungsrechnung), core/views (Anzahlungsrechnung, «ohne Erstattung», Telegram/общий бот, GBP,
+  палитра, `deal_refund`), events (отмена), publishing, promotions/aggregator/lite (Stadtportal),
+  `refunds.may_refund`, шаблоны (`cab_can:"<ключ>"`); `roles.can_edit_policy`/`can_export_finance` —
+  алиасы. `is_owner` остался только для пола и middleware/навигации (E6.7b/e) — grep-замок.
+- Эталон `apps/core/tests/test_perm_parity.py`: место → ключ → роли с доступом сегодня.

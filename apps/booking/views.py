@@ -732,9 +732,9 @@ CLOSE_BUSINESS_OWNER_ONLY = gettext_lazy(
 
 
 def _may_close_business(request) -> bool:
-    from apps.core import roles
+    from apps.core.permissions import has_perm
 
-    return roles.is_owner(request.user)
+    return has_perm(request.user, "betriebsferien.ganz")
 
 
 def _business_hours_of(tenant) -> dict:
@@ -1005,9 +1005,9 @@ def _no_show_rule_ctx(tenant) -> dict:
 
 
 def _can_edit_policy(user) -> bool:
-    from apps.core import roles
+    from apps.core.permissions import has_perm
 
-    return roles.can_edit_policy(user)
+    return has_perm(user, "preise.edit")
 
 
 def _is_uuid(value) -> bool:

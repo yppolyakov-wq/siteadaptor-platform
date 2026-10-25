@@ -166,10 +166,11 @@ def _refund_form(request, kind, obj, tenant):
     наличными — если есть деньги, полученные не картой."""
     from decimal import Decimal
 
-    from apps.core import folio, refunds, roles
+    from apps.core import folio, refunds
+    from apps.core.permissions import has_perm
 
     try:
-        if kind not in folio.FOLIO_KINDS or not roles.is_owner(request.user):
+        if kind not in folio.FOLIO_KINDS or not has_perm(request.user, "geld.korrektur"):
             return None
         if getattr(obj, "payment_state", "") == "installment":
             return None
@@ -351,12 +352,12 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
 
 def _advance(kind, obj, tenant, user=None):
     """Кнопка/ссылка счёта на предоплату или None (флаг, модуль, вид, депозит, роль)."""
-    from apps.core.roles import can_export_finance
+    from apps.core.permissions import has_perm
     from apps.finance import advance
 
     if not advance.enabled() or kind not in advance.KINDS:
         return None
-    if user is None or not can_export_finance(user):
+    if user is None or not has_perm(user, "finanzen.korrektur"):
         return None
     if not _module_active(tenant, "finance"):
         return None
