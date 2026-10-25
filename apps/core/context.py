@@ -257,7 +257,12 @@ def _can_see_contacts(request) -> bool:
     from apps.core.contact_access import can_see
 
     user = getattr(request, "user", None)
-    return user is None or not getattr(user, "is_authenticated", False) or can_see(user)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return True
+    try:
+        return can_see(user)
+    except (TypeError, ValueError):  # не настоящий пользователь — маскируем (fail-closed)
+        return False
 
 
 def _lite_cabinet_tg(request) -> bool:

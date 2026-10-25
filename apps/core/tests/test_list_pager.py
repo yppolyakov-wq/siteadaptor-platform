@@ -293,8 +293,10 @@ def test_customer_search_json_masks_contact_for_staff(monkeypatch):
 
     _customers(3)
     req = _req(path="/dashboard/finance/kunden-suche/", data={"q": "Kunde 0001"})
+    # E6.7g: контакты видны staff по умолчанию — маскируем, когда право отозвано.
     monkeypatch.setattr(
-        "apps.core.permissions.effective", lambda user: permissions.PRESETS["staff"]
+        "apps.core.permissions.effective",
+        lambda user: permissions.PRESETS["staff"] - {"kunden.kontakte"},
     )
     data = json.loads(fviews.customer_search(req).content)
     assert [i["label"] for i in data["items"]] == ["Kunde 0001"]
@@ -318,8 +320,10 @@ def test_staff_sees_masked_contact_and_cannot_search_by_it(monkeypatch):
     from apps.finance import views as fviews
 
     Customer.objects.create(name="", email="anna@beispiel.de")
+    # E6.7g: контакты видны staff по умолчанию — маскируем, когда право отозвано.
     monkeypatch.setattr(
-        "apps.core.permissions.effective", lambda user: permissions.PRESETS["staff"]
+        "apps.core.permissions.effective",
+        lambda user: permissions.PRESETS["staff"] - {"kunden.kontakte"},
     )
     body = fviews.invoices(_req(path="/dashboard/finance/rechnungen/")).content.decode()
     assert "anna@beispiel.de" not in body and "•••@beispiel.de" in body
