@@ -30279,3 +30279,7 @@ msgstr "Participant details saved."
 
 msgid "Zurück zum Ticket"
 msgstr "Back to the ticket"
+
+#, python-format
+msgid "Ticket %(code)s"
+msgstr "Ticket %(code)s"

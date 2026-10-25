@@ -215,6 +215,24 @@ def _refund_form(request, kind, obj, tenant):
         return None
 
 
+def _invoice_id(kind, obj, tenant):
+    """Счёт сделки: поле `invoice_id`, а у видов без поля (билет, KA-12 T-6) —
+    по общему ключу сделки `deal_kind`/`deal_id` (тот же, что у `invoice_for_deal`)."""
+    found = getattr(obj, "invoice_id", None)
+    if found or hasattr(obj, "invoice_id") or not _module_active(tenant, "finance"):
+        return found
+    from apps.finance.models import Invoice
+
+    ref = str(getattr(obj, "reference_code", "") or obj.pk)[:64]
+    return (
+        Invoice.objects.exclude(status=Invoice.STATUS_CANCELLED)
+        .filter(kind=Invoice.KIND_INVOICE, deal_kind=kind, deal_id=ref)
+        .order_by("created_at")
+        .values_list("pk", flat=True)
+        .first()
+    )
+
+
 def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targets=()) -> dict:
     """Общий контекст карточки сделки для `core/deal_card_base.html`.
 
@@ -307,7 +325,7 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "deal_show_when": show_when,
         # DC-6: счёт из сделки (кнопка в блоке оплаты) — гейт модуля «Finanzen».
         "finance_active": _module_active(tenant, "finance"),
-        "deal_invoice_id": getattr(obj, "invoice_id", None),
+        "deal_invoice_id": _invoice_id(kind, obj, tenant),
         # KA-12 B2-8b: Anzahlungsrechnung (за флагом до вычета в итоговом счёте).
         "deal_advance": _advance(kind, obj, tenant, getattr(request, "user", None)),
         # DC-8: строки «davon X % MwSt.» в секции сумм.

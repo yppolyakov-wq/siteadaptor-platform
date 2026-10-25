@@ -30371,3 +30371,7 @@ msgstr "Teilnehmerdaten gespeichert."
 
 msgid "Zurück zum Ticket"
 msgstr "Zurück zum Ticket"
+
+#, python-format
+msgid "Ticket %(code)s"
+msgstr "Ticket %(code)s"

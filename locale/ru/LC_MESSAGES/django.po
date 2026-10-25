@@ -30554,3 +30554,7 @@ msgstr "Данные участников сохранены."
 
 msgid "Zurück zum Ticket"
 msgstr "Назад к билету"
+
+#, python-format
+msgid "Ticket %(code)s"
+msgstr "Билет %(code)s"

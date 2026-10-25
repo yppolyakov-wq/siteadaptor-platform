@@ -15,6 +15,7 @@ def _builders():
         "order": finance_services.invoice_from_order,
         "stay": finance_services.invoice_from_stay,
         "booking": finance_services.invoice_from_booking,
+        "ticket": finance_services.invoice_from_ticket,
     }
 
 

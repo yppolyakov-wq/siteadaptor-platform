@@ -114,6 +114,16 @@ T-4a решения: шкала сильнее `free_cancel_days`; база уд
 не автоматизируем. Флаг выключен по умолчанию и помечен «vor Nutzung mit Steuerberater klären».
 Sicherungsschein (§ 651r BGB) — поле загрузки документа к туру и ссылка в письме, без проверки.
 
+**T-6a ✅ сделано (2026-10-25, без миграций).** `finance.services.invoice_from_ticket` + `_ticket_prepaid_cents`
+(«уже получено» = оплачено − возвращено по `money_contract.money_state` — фолио, депозит, рассрочка
+долями; + сертификат), билет зарегистрирован в `core/deal_invoice._builders`, ветки ticket в
+`_refresh_prepaid`/`_other_prepaid_cents`; карточка билета получила секцию «Dokumente» (гейт модуля
+Finanzen) с общей кнопкой; `deal_card._invoice_id` находит счёт по ключу сделки у видов без поля
+`invoice_id`. Размещение — по ставке билета, как карточка сделки (одна истина; если размещению
+нужна 7 % — это правка снимка `core/vat.py`, отдельным решением). Замки — `test_t6_ticket_invoice.py`.
+**T-6b (§ 25 + Sicherungsschein) — ОТЛОЖЕНО** (нужна миграция флага + формулировки Steuerberater'а) —
+roadmap §Отложено.
+
 ## 3. Миграции (все аддитивные)
 
 | Инкремент | Миграция | Что |

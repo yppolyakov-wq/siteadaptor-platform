@@ -30423,3 +30423,7 @@ msgstr "Katılımcı bilgileri kaydedildi."
 
 msgid "Zurück zum Ticket"
 msgstr "Bilete dön"
+
+#, python-format
+msgid "Ticket %(code)s"
+msgstr "Bilet %(code)s"

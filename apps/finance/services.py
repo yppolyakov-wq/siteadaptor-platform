@@ -794,6 +794,81 @@ def invoice_from_booking(booking, tenant=None):
     return _check_deal_total(invoice, expected, booking)
 
 
+def _ticket_prepaid_cents(ticket) -> int:
+    """KA-12 T-6: уже получено по билету — по денежному контракту (фолио, рассрочка
+    по долям, депозит), за вычетом возвращённого, плюс сертификат (средство платежа).
+    `_prepaid_from_payment_state` не годится: у билета итог — `payable_cents`, а не
+    `total_cents`, и рассрочка платится долями."""
+    from apps.core import money_contract
+
+    # Без перехвата: «уже получено» задаёт «к оплате», Offene Posten и Mahnung —
+    # молчаливый 0 выставил бы оплаченному клиенту полную сумму (ревью T-6a).
+    ms = money_contract.money_state("ticket", ticket)
+    received = int(((ms.paid - ms.refunded) * 100).to_integral_value())
+    return max(0, received) + certificate_cents(ticket)
+
+
+def invoice_from_ticket(ticket, tenant=None):
+    """KA-12 T-6 (EV-4): черновик счёта ИЗ БИЛЕТА (места × цена тира + допы +
+    размещение − скидка). Ставки — снимки сделки (как карточка: билет и размещение
+    по ставке билета, допы — своей), сертификат — оплата, не Rabatt."""
+    from decimal import Decimal
+
+    from django.utils.translation import gettext as _
+
+    from .models import Invoice
+    from .totals import gross_line
+
+    small = bool(tenant and getattr(tenant, "small_business", False))
+    rate = Decimal("0") if small else Decimal(str(ticket.vat_rate or "19.00"))
+    event = ticket.event
+    qty = max(1, int(ticket.quantity or 1))
+    title = getattr(event, "title", "") or str(_("Ticket"))
+    if ticket.tier_label:
+        title = f"{title} · {ticket.tier_label}"
+    lines = [gross_line(title, qty, Decimal(ticket.price_cents or 0) / 100, rate)]
+    for extra in ticket.extras or []:
+        if not isinstance(extra, dict):
+            continue
+        own = extra.get("vat_rate")
+        e_rate = rate if small or own in (None, "") else Decimal(str(own))
+        lines.append(
+            gross_line(
+                extra.get("label", ""), 1, Decimal(int(extra.get("price_cents", 0))) / 100, e_rate
+            )
+        )
+    if ticket.accommodation_cents:
+        lines.append(
+            gross_line(_("Übernachtung"), 1, Decimal(ticket.accommodation_cents) / 100, rate)
+        )
+    cert = certificate_cents(ticket)
+    rabatt = (ticket.discount_cents or 0) - cert
+    if rabatt:
+        lines.append(gross_line(_("Rabatt"), 1, -Decimal(rabatt) / 100, rate))
+    total_net, vat, gross = compute_totals(lines, rate, small_business=small, basis="gross")
+    expected = Decimal(ticket.payable_cents + cert) / 100
+    invoice = Invoice.objects.create(
+        price_basis="gross",
+        customer=ticket.customer,
+        recipient=recipient_for(ticket),
+        lines=lines,
+        vat_rate=rate,
+        net=total_net,
+        vat_amount=vat,
+        gross=gross,
+        note=_with_note(
+            str(_("Ticket %(code)s")) % {"code": ticket.reference_code},
+            _certificate_note(ticket, cert),
+        ),
+        service_date=_local_date(getattr(event, "starts_at", None)),
+        prepaid_cents=_ticket_prepaid_cents(ticket),
+        # Ключ сделки сразу: `_refresh_prepaid` при выпуске находит билет по нему.
+        deal_kind="ticket",
+        deal_id=str(ticket.reference_code or ticket.pk)[:64],
+    )
+    return _check_deal_total(invoice, expected, ticket)
+
+
 def _check_deal_total(invoice, expected, deal):
     """Bruttomethode: брутто счёта обязано равняться итогу сделки. Расхождение значит,
     что в строках нет части сделки (не округление): не прячем в цену, а громко пишем в
@@ -908,7 +983,7 @@ def _other_prepaid_cents(invoice) -> int:
 
             job = Job.objects.filter(reference_code=ref).first()
             return voucher_payment_cents(job) if job is not None else 0
-        if kind in ("stay", "booking"):
+        if kind in ("stay", "booking", "ticket"):
             from apps.core import transactions
 
             deal = transactions.model_for(kind).objects.filter(reference_code=ref).first()
@@ -939,6 +1014,14 @@ def _refresh_prepaid(invoice) -> bool:
         if deal is None:
             return False
         invoice.prepaid_cents = _prepaid_from_payment_state(deal)
+        return True
+    if kind == "ticket":
+        from apps.events.models import Ticket
+
+        ticket = Ticket.objects.filter(reference_code=ref).first()
+        if ticket is None:
+            return False
+        invoice.prepaid_cents = _ticket_prepaid_cents(ticket)
         return True
     return False
 

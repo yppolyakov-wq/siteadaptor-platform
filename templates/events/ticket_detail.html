@@ -147,6 +147,10 @@
   {% endif %}
 {% endblock %}
 
+{% block deal_documents %}
+  {% include "core/_deal_invoice_button.html" %}
+{% endblock %}
+
 {% block deal_rail_extra %}
   {% if waiver %}
     <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="waiver">

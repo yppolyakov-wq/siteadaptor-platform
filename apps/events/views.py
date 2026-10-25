@@ -226,6 +226,14 @@ def ticket_add(request, pk):
     return redirect("events:detail", pk=pk)
 
 
+def _finance_on(request) -> bool:
+    tenant = getattr(request, "tenant", None)
+    try:
+        return bool(tenant and tenant.is_module_active("finance"))
+    except Exception:  # noqa: BLE001 — гейт fail-closed
+        return False
+
+
 @login_required
 def ticket_detail(request, pk):
     """DC-7 (ТЗ владельца 2026-08-25): карточка билета — экрана не было вовсе,
@@ -272,7 +280,10 @@ def ticket_detail(request, pk):
                 request,
                 "ticket",
                 ticket,
-                sections=("items", "discount", "totals", "payment", "thread"),
+                # KA-12 T-6: «Документы» (счёт) — только при модуле Finanzen.
+                sections=("items", "discount", "totals", "payment")
+                + (("documents",) if _finance_on(request) else ())
+                + ("thread",),
                 links=deal_links.block_context("ticket", ticket.pk),
             ),
         },
