@@ -716,6 +716,31 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
 </details>
+{% if can_edit_prices %}
+{% comment %}KA-12 Z-5 (Р-8): часы заезда/выезда. Check-out-час задаёт момент, когда
+автоматика закрывает выезд дня (выручка) — поэтому правят только owner/admin.{% endcomment %}
+<details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+  <summary class="cursor-pointer font-semibold">{% trans "Check-in & Check-out" %}</summary>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Danach schließt das System die Abreise automatisch ab." %}</p>
+  <form method="post" class="flex items-end gap-3 flex-wrap">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="stay_hours">
+    <div>
+      <label for="stay-checkin-hour" class="block text-xs font-medium text-gray-500 mb-1">{% trans "Check-in ab (Uhr)" %}</label>
+      <select id="stay-checkin-hour" name="checkin_hour" class="rounded-lg border border-gray-300 px-3 py-2 text-base sm:text-sm">
+        {% for h in hour_choices %}<option value="{{ h }}" {% if h == stay_settings.checkin_hour %}selected{% endif %}>{{ h }}:00</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="stay-checkout-hour" class="block text-xs font-medium text-gray-500 mb-1">{% trans "Check-out bis (Uhr)" %}</label>
+      <select id="stay-checkout-hour" name="checkout_hour" class="rounded-lg border border-gray-300 px-3 py-2 text-base sm:text-sm">
+        {% for h in hour_choices %}<option value="{{ h }}" {% if h == stay_settings.checkout_hour %}selected{% endif %}>{{ h }}:00</option>{% endfor %}
+      </select>
+    </div>
+    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</details>
+{% endif %}
 </div>
 <div data-st-panel="kanaele" class="{% if sec != 'kanaele' %}hidden{% endif %}">
 {# --- G10: виджет бронирования (iframe) для своего сайта --------------------- #}

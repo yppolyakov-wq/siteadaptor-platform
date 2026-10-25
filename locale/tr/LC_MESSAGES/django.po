@@ -30060,3 +30060,48 @@ msgstr "Bu şablon role uymuyor."
 
 msgid "Vorlage"
 msgstr "Şablon"
+
+#, python-format
+msgid "Am %(day)s sind %(sold)s Zimmer verkauft — weniger geht nicht."
+msgstr "%(day)s tarihinde %(sold)s oda satıldı — daha az olamaz."
+
+msgid "Automatische Rabatte anwenden"
+msgstr "Otomatik indirimleri uygula"
+
+msgid "Bitte eine Stunde von 0 bis 23 angeben."
+msgstr "Lütfen 0 ile 23 arasında bir saat girin."
+
+msgid "Check-in & Check-out"
+msgstr "Giriş ve çıkış"
+
+msgid "Check-in ab (Uhr)"
+msgstr "Giriş saati (itibaren)"
+
+msgid "Check-out bis (Uhr)"
+msgstr "Çıkış saati (en geç)"
+
+msgid "Danach schließt das System die Abreise automatisch ab."
+msgstr "Bu saatten sonra sistem çıkışı otomatik olarak tamamlar."
+
+msgid "Dieses Zimmer gehört nicht zur gewählten Kategorie."
+msgstr "Bu oda seçilen kategoriye ait değil."
+
+msgid "Dieses Zimmer ist in diesem Zeitraum belegt."
+msgstr "Bu oda bu dönemde dolu."
+
+#, python-format
+msgid "Hinweis: Diese Buchung verletzt die Verkaufsregel (%(rule)s) — an der Rezeption erlaubt."
+msgstr "Not: Bu rezervasyon satış kuralını ihlal ediyor (%(rule)s) — resepsiyonda izin verilir."
+
+msgid "Rechnung an eine Firma — in der Buchung unter „Rechnungsempfänger“."
+msgstr "Şirkete fatura — rezervasyonda “Fatura alıcısı” bölümünde."
+
+msgid "Verkaufsstopp"
+msgstr "Satış durduruldu"
+
+#, python-format
+msgid "Zimmer %(number)s ist der Buchung %(code)s zugewiesen — bitte zuerst umbuchen."
+msgstr "%(number)s numaralı oda %(code)s rezervasyonuna atanmış — lütfen önce misafiri taşıyın."
+
+msgid "— Zimmer später zuweisen —"
+msgstr "— odayı sonra ata —"

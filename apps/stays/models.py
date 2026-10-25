@@ -444,6 +444,10 @@ class StayBooking(TimestampedModel):
     source_channel = models.CharField(max_length=50, blank=True)
     # G11: id брони во внешнем канале (Booking/Airbnb…) — для идемпотентного импорта.
     external_ref = models.CharField(max_length=120, blank=True, db_index=True)
+    # KA-12 Z-5 (О-7): отметки стойки — НЕ статус FSM. checked_out_at ставит хук
+    # перехода в fulfilled (кнопка/доска/Heute); NULL у fulfilled = закрыто автоматикой.
+    checked_in_at = models.DateTimeField(null=True, blank=True)
+    checked_out_at = models.DateTimeField(null=True, blank=True)
     # Напоминание перед заездом (beat, E3): чтобы слать ровно одно.
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
     # B2.3: напоминание о незавершённой предоплате — дедуп «одно на бронь».
@@ -698,6 +702,10 @@ class StaySettings(I18nMixin, TimestampedModel):
     # скидкой gap_discount_percent (лучший из кандидатов G4, не суммируется).
     gap_max_nights = models.PositiveSmallIntegerField(default=0)
     gap_discount_percent = models.PositiveSmallIntegerField(default=25)
+    # KA-12 Z-5 (Р-8): час check-out (местное время) — после него автоматика закрывает
+    # выезд сегодняшнего дня; check-in — только подсказка стойке в «Heute».
+    checkin_hour = models.PositiveSmallIntegerField(default=15)
+    checkout_hour = models.PositiveSmallIntegerField(default=14)
 
     def clean_restriction_rules(self) -> list[dict]:
         """G12: очищенный список правил продаж (кап 50, валидные поля/диапазоны)."""
@@ -769,6 +777,15 @@ class StaySettings(I18nMixin, TimestampedModel):
     class Meta:
         verbose_name = "Stay settings"
         verbose_name_plural = "Stay settings"
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(checkin_hour__lte=23), name="stay_settings_checkin_hour_lte_23"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(checkout_hour__lte=23),
+                name="stay_settings_checkout_hour_lte_23",
+            ),
+        ]
 
     def __str__(self):
         return "Stay settings"
@@ -780,6 +797,16 @@ class StaySettings(I18nMixin, TimestampedModel):
         if obj is None:
             obj = cls.objects.create()
         return obj
+
+    DEFAULT_CHECKIN_HOUR = 15
+    DEFAULT_CHECKOUT_HOUR = 14
+
+    @classmethod
+    def hours(cls) -> tuple[int, int]:
+        """Z-5: (check-in, check-out) ТОЛЬКО чтением — beat не должен создавать
+        строку настроек в каждой схеме (``load()`` создаёт)."""
+        row = cls.objects.values_list("checkin_hour", "checkout_hour").first()
+        return row or (cls.DEFAULT_CHECKIN_HOUR, cls.DEFAULT_CHECKOUT_HOUR)
 
 
 class GuestRegistration(TimestampedModel):

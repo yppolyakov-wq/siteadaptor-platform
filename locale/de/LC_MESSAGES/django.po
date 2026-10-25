@@ -30008,3 +30008,48 @@ msgstr "Diese Vorlage passt nicht zur Rolle."
 
 msgid "Vorlage"
 msgstr "Vorlage"
+
+#, python-format
+msgid "Am %(day)s sind %(sold)s Zimmer verkauft — weniger geht nicht."
+msgstr "Am %(day)s sind %(sold)s Zimmer verkauft — weniger geht nicht."
+
+msgid "Automatische Rabatte anwenden"
+msgstr "Automatische Rabatte anwenden"
+
+msgid "Bitte eine Stunde von 0 bis 23 angeben."
+msgstr "Bitte eine Stunde von 0 bis 23 angeben."
+
+msgid "Check-in & Check-out"
+msgstr "Check-in & Check-out"
+
+msgid "Check-in ab (Uhr)"
+msgstr "Check-in ab (Uhr)"
+
+msgid "Check-out bis (Uhr)"
+msgstr "Check-out bis (Uhr)"
+
+msgid "Danach schließt das System die Abreise automatisch ab."
+msgstr "Danach schließt das System die Abreise automatisch ab."
+
+msgid "Dieses Zimmer gehört nicht zur gewählten Kategorie."
+msgstr "Dieses Zimmer gehört nicht zur gewählten Kategorie."
+
+msgid "Dieses Zimmer ist in diesem Zeitraum belegt."
+msgstr "Dieses Zimmer ist in diesem Zeitraum belegt."
+
+#, python-format
+msgid "Hinweis: Diese Buchung verletzt die Verkaufsregel (%(rule)s) — an der Rezeption erlaubt."
+msgstr "Hinweis: Diese Buchung verletzt die Verkaufsregel (%(rule)s) — an der Rezeption erlaubt."
+
+msgid "Rechnung an eine Firma — in der Buchung unter „Rechnungsempfänger“."
+msgstr "Rechnung an eine Firma — in der Buchung unter „Rechnungsempfänger“."
+
+msgid "Verkaufsstopp"
+msgstr "Verkaufsstopp"
+
+#, python-format
+msgid "Zimmer %(number)s ist der Buchung %(code)s zugewiesen — bitte zuerst umbuchen."
+msgstr "Zimmer %(number)s ist der Buchung %(code)s zugewiesen — bitte zuerst umbuchen."
+
+msgid "— Zimmer später zuweisen —"
+msgstr "— Zimmer später zuweisen —"

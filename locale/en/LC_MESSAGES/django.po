@@ -29916,3 +29916,48 @@ msgstr "This template does not match the role."
 
 msgid "Vorlage"
 msgstr "Template"
+
+#, python-format
+msgid "Am %(day)s sind %(sold)s Zimmer verkauft — weniger geht nicht."
+msgstr "On %(day)s, %(sold)s rooms are sold — it cannot be fewer."
+
+msgid "Automatische Rabatte anwenden"
+msgstr "Apply automatic discounts"
+
+msgid "Bitte eine Stunde von 0 bis 23 angeben."
+msgstr "Please enter an hour from 0 to 23."
+
+msgid "Check-in & Check-out"
+msgstr "Check-in & check-out"
+
+msgid "Check-in ab (Uhr)"
+msgstr "Check-in from (o'clock)"
+
+msgid "Check-out bis (Uhr)"
+msgstr "Check-out until (o'clock)"
+
+msgid "Danach schließt das System die Abreise automatisch ab."
+msgstr "After that, the system completes the departure automatically."
+
+msgid "Dieses Zimmer gehört nicht zur gewählten Kategorie."
+msgstr "This room does not belong to the selected category."
+
+msgid "Dieses Zimmer ist in diesem Zeitraum belegt."
+msgstr "This room is occupied during this period."
+
+#, python-format
+msgid "Hinweis: Diese Buchung verletzt die Verkaufsregel (%(rule)s) — an der Rezeption erlaubt."
+msgstr "Note: this booking breaks the sales rule (%(rule)s) — allowed at the front desk."
+
+msgid "Rechnung an eine Firma — in der Buchung unter „Rechnungsempfänger“."
+msgstr "Invoice to a company — in the booking under “Invoice recipient”."
+
+msgid "Verkaufsstopp"
+msgstr "Stop sell"
+
+#, python-format
+msgid "Zimmer %(number)s ist der Buchung %(code)s zugewiesen — bitte zuerst umbuchen."
+msgstr "Room %(number)s is assigned to booking %(code)s — please move the guest first."
+
+msgid "— Zimmer später zuweisen —"
+msgstr "— assign room later —"

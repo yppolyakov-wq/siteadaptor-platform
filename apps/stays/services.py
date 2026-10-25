@@ -11,6 +11,7 @@ import secrets
 import string
 
 from django.db import transaction
+from django.db.models import Q
 from django.utils import translation
 from django.utils.translation import gettext as _
 
@@ -254,26 +255,31 @@ def create_block(unit, start_date, end_date, reason="", *, room=None):
 
     if end_date < start_date:
         raise ValueError("end before start")
-    if room is None:
-        return UnitBlock.objects.create(
-            unit=unit, start_date=start_date, end_date=end_date, reason=reason[:120]
-        )
-    if room.unit_id != unit.id or not room.is_active:
+    if room is not None and (room.unit_id != unit.id or not room.is_active):
         raise RoomConflict()
     with transaction.atomic():
         # Порядок блокировок как у book_stay/move_stay: категория, затем комната.
         StayUnit.objects.select_for_update().filter(pk=unit.pk).first()
-        Room.objects.select_for_update().filter(pk=room.pk).first()
-        # Ревью E4.10a: блок комнаты отнимает номер у продажи — на ночи, где категория
-        # уже продана целиком (брони без назначенной комнаты), он дал бы овербукинг.
+        # Ревью E4.10a / Z-5 Р-4: блок (категории или комнаты) отнимает номер у
+        # продажи — на ночах, где категория уже продана целиком, он дал бы овербукинг.
+        # Внешние факты (iCal/OTA) пишут UnitBlock напрямую — отказать им нельзя.
         if not range_available(unit, start_date, end_date + timedelta(days=1)):
             raise NoCapacity()
-        occupied = StayBooking.objects.filter(
-            room=room,
-            status__in=status_registry.active_statuses_for("stay"),
-            arrival__lte=end_date,
-            departure__gt=start_date,
-        ).exists()
+        if room is None:
+            return UnitBlock.objects.create(
+                unit=unit, start_date=start_date, end_date=end_date, reason=reason[:120]
+            )
+        Room.objects.select_for_update().filter(pk=room.pk).first()
+        occupied = (
+            StayBooking.objects.filter(
+                Q(room=room) | Q(extra_rooms=room),
+                status__in=status_registry.active_statuses_for("stay"),
+                arrival__lte=end_date,
+                departure__gt=start_date,
+            )
+            .distinct()
+            .exists()
+        )
         if occupied:
             raise RoomConflict()
         return UnitBlock.objects.create(
@@ -332,6 +338,7 @@ def book_stay(
     billing_vat_id="",
     billing_address="",
     payment_due_at=None,
+    apply_auto_discount=True,
 ):
     """Создать бронь по датам, атомарно проверив занятость по ночам. Бросает
     ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable, PromoInvalid.
@@ -408,10 +415,16 @@ def book_stay(
     # не суммируем); победа акции списывает лимит кампании в ЭТОЙ же транзакции.
     from apps.promotions import price_layer as promo_layer
 
-    promo_hit = promo_layer.stay_promo(unit, arrival)
+    # Z-5 Р-1: стойка может выключить авто-скидки (G4/Lücken/акция) — тогда и лимит
+    # акции не списывается; ваучер — явный ввод сотрудника, его тумблер не трогает.
+    promo_hit = promo_layer.stay_promo(unit, arrival) if apply_auto_discount else None
     extra = [(promo_hit[1], promo_hit[2])] if promo_hit else None
-    auto_discount_cents, auto_discount_label = pricing.auto_discount(
-        room_cents, nights, arrival, unit=unit, departure=departure, extra=extra
+    auto_discount_cents, auto_discount_label = (
+        pricing.auto_discount(
+            room_cents, nights, arrival, unit=unit, departure=departure, extra=extra
+        )
+        if apply_auto_discount
+        else (0, "")
     )
     booked_promo = None
     if promo_hit and auto_discount_label == promo_hit[2]:

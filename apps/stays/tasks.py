@@ -9,7 +9,7 @@ from django.conf import settings
 from django.utils import timezone
 from django_tenants.utils import get_tenant_model, schema_context
 
-from .models import StayBooking
+from .models import StayBooking, StaySettings
 from .notifications import enqueue_stay_email
 
 
@@ -54,7 +54,8 @@ def send_stay_reminders():
 # KA-12 E0.4 (KA-5d Z5): в день выезда гость ещё в номере до конца check-out —
 # автоматика закрывает бронь только после этого часа (местное время), раньше —
 # только прошлые дни. Кнопка «Abgereist» владельца работает как прежде, в любое время.
-AUTO_CHECKOUT_HOUR = 14
+# Z-5 (Р-8): час задаёт владелец (``StaySettings.checkout_hour``); это — дефолт.
+AUTO_CHECKOUT_HOUR = StaySettings.DEFAULT_CHECKOUT_HOUR
 
 
 def auto_fulfil_departed(today=None, now=None) -> int:
@@ -69,7 +70,8 @@ def auto_fulfil_departed(today=None, now=None) -> int:
 
     now = now or timezone.localtime()
     today = today or now.date()
-    last_day = today if now.date() > today or now.hour >= AUTO_CHECKOUT_HOUR else None
+    _checkin_hour, checkout_hour = StaySettings.hours()
+    last_day = today if now.date() > today or now.hour >= checkout_hour else None
     due = StayBooking.objects.filter(status=StayBooking.STATUS_CONFIRMED)
     due = (
         due.filter(departure__lte=last_day)
@@ -80,7 +82,7 @@ def auto_fulfil_departed(today=None, now=None) -> int:
     done = 0
     for booking in due:
         try:
-            sm.apply(booking, "fulfilled")
+            sm.apply(booking, "fulfilled", auto=True)  # Z-5: без отметки check-out
             done += 1
         except IllegalTransition:  # кастом-правила переходов могли сузить путь
             continue

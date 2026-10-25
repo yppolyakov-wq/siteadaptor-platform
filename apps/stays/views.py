@@ -6,6 +6,7 @@ confirmed), управление юнитами (тип/цена/min_nights/max_
 блокировками дат. Гейтинг — модуль «stays» из реестра (ModuleGatingMiddleware).
 """
 
+import re
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
@@ -17,19 +18,22 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import deal_card, deal_links, refunds, vat
+from apps.core import deal_card, deal_links, payment_methods, refunds, vat
 from apps.core import transactions as core_transactions
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
+from apps.core.owner_login import local_next
 from apps.core.permissions import has_perm
 from apps.core.roles import audit_export
 from apps.core.view_perms import perm_required
 
-from . import availability, pricing, services
+from . import availability, capacity, pricing, services
 from . import rate_plans as rate_plans_mod
+from . import restrictions as stay_restrictions
 from .models import (
     _AMENITY_KEYS,
     AMENITIES,
@@ -75,6 +79,7 @@ def stay_new(request):
             "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
             "rate_plans": rate_plans_mod.active_plans(),  # Z-4: с категориями (data-units)
             "walkin_extras": _extras_for_walkin(),
+            **_walkin_desk(request),
         },
     )
 
@@ -101,6 +106,19 @@ def _extras_for_walkin():
     from apps.core import extras as extras_engine
 
     return extras_engine.active_for("stays")
+
+
+def _walkin_desk(request) -> dict:
+    """Z-5 Р-2/Р-3: физические номера (``data-unit`` — JS прячет чужие, решает
+    сервер) и Vorkasse — только при заданном IBAN."""
+    return {
+        "walkin_rooms": list(
+            Room.objects.filter(is_active=True, unit__is_active=True)
+            .select_related("unit")
+            .order_by("unit__name", "sort_order", "number")
+        ),
+        "walkin_vorkasse": bool(getattr(getattr(request, "tenant", None), "bank_iban", "")),
+    }
 
 
 def _has_short_gaps(units, *, max_nights=3, horizon=60) -> bool:
@@ -333,6 +351,7 @@ def calendar_context(request):
             # PMS-A1: паритет walk-in формы с витриной — тарифы и доп-услуги.
             "rate_plans": rate_plans_mod.active_plans(),  # Z-4: с категориями (data-units)
             "walkin_extras": _extras_for_walkin(),
+            **_walkin_desk(request),
             # W9-8: мёртвые status_label_rows/transition_rows убраны (шаблон их не
             # рендерил — аудит 2026-08-05); настройки статусов — экран «Abläufe».
         },
@@ -348,9 +367,7 @@ def stay_action(request, pk):
     # W7c: Belegungsplan/карточка встроены в Verkäufe — форма шлёт next=, после
     # действия остаёмся на той же поверхности (только внутренние пути; зеркало
     # booking_action).
-    _next = request.POST.get("next", "")
-    if _next.startswith("/") and not _next.startswith("//"):
-        back = _next
+    back = local_next(request) or back  # Z-5: `/\\host`, таб/CR/LF — отказ
     if action == "invoice":  # A5: черновик Rechnung из брони (модуль finance)
         if not _finance_active(request):
             messages.error(request, _("Enable the Finance module first."))
@@ -647,29 +664,49 @@ def stay_create(request):
     Батч C: та же форма умеет «Blockieren» (mode=block) — вместо брони создаёт
     UnitBlock на выбранный диапазон (ремонт/своё проживание); поле имени служит
     причиной. departure эксклюзивен → end_date = departure − 1 (включителен)."""
-    unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"), is_active=True)
+    unit = get_object_or_404(
+        StayUnit, pk=rate_plans_mod.parse_uuid(request.POST.get("unit")), is_active=True
+    )
     # W7c: walk-in-форма встроена и в Verkäufe — next= возвращает туда же
-    # (только внутренние пути); без next — прежний stays:calendar.
-    _next = request.POST.get("next", "")
-    back = _next if (_next.startswith("/") and not _next.startswith("//")) else None
+    # (только внутренние пути этого хоста; Z-5: `/\\host`, таб/CR/LF — отказ).
+    back = local_next(request) or None
     try:
         arrival = date.fromisoformat(request.POST.get("arrival", ""))
         departure = date.fromisoformat(request.POST.get("departure", ""))
     except ValueError:
         messages.error(request, _("Invalid dates."))
         return redirect(back or "stays:calendar")
+    # Z-5 Р-2: физический номер — строго UUID и только своей активной категории.
+    room = None
+    if (request.POST.get("room") or "").strip():
+        room = Room.objects.filter(
+            pk=rate_plans_mod.parse_uuid(request.POST.get("room")), unit=unit, is_active=True
+        ).first()
+        if room is None:
+            messages.error(request, _("Dieses Zimmer gehört nicht zur gewählten Kategorie."))
+            return redirect(back or "stays:calendar")
     if request.POST.get("mode") == "block":
         if departure <= arrival:
             messages.error(request, _("Invalid dates."))
             return redirect(back or "stays:calendar")
-        UnitBlock.objects.create(
-            unit=unit,
-            start_date=arrival,
-            end_date=departure - timedelta(days=1),
-            reason=request.POST.get("name", "").strip()[:120],
-        )
+        # Z-5 Р-4: блок — только через сервис (лок категории + ёмкость + комната).
+        try:
+            services.create_block(
+                unit,
+                arrival,
+                departure - timedelta(days=1),
+                request.POST.get("name", "").strip(),
+                room=room,
+            )
+        except (services.NoCapacity, services.RoomConflict) as exc:
+            messages.error(request, _block_error_msg(exc))
+            return redirect(back or "stays:calendar")
         messages.success(request, _("Dates blocked."))
         return redirect(back or f"{reverse('stays:calendar')}?von={arrival.isoformat()}")
+    rooms_count = _int(request.POST.get("rooms", "1"), 1, 1, 20)
+    if room is not None and rooms_count > 1:
+        messages.error(request, _("Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."))
+        return redirect(back or "stays:calendar")
     name = request.POST.get("name", "").strip() or _("Walk-in")
     # PMS-A1: паритет со витриной — взрослые/дети (Kurtaxe по взрослым!), тариф,
     # extras, несколько номеров, промокод. Легаси-поле guests остаётся фолбэком
@@ -698,23 +735,37 @@ def stay_create(request):
         entity_id=str(unit.pk),
     )
     try:
-        booking = services.book_stay(
-            unit,
-            arrival=arrival,
-            departure=departure,
-            name=name,
-            email=request.POST.get("email", "").strip(),
-            phone=request.POST.get("phone", "").strip(),
-            adults=adults,
-            children=children,
-            note=request.POST.get("note", "").strip()[:2000],
-            source_channel="manual",
-            auto_confirm=True,
-            extras=extras_snap,
-            rate_plan=rate_plan,
-            voucher_code=request.POST.get("voucher_code", "").strip(),
-            rooms=_int(request.POST.get("rooms", "1"), 1, 1, 20),
-        )
+        with transaction.atomic():
+            booking = services.book_stay(
+                unit,
+                arrival=arrival,
+                departure=departure,
+                name=name,
+                email=request.POST.get("email", "").strip(),
+                phone=request.POST.get("phone", "").strip(),
+                adults=adults,
+                children=children,
+                note=request.POST.get("note", "").strip()[:2000],
+                source_channel="manual",
+                auto_confirm=True,
+                extras=extras_snap,
+                rate_plan=rate_plan,
+                voucher_code=request.POST.get("voucher_code", "").strip(),
+                rooms=rooms_count,
+                # Z-5 Р-3: на месте / Vorkasse; payment_due_at не задаём — beat
+                # expire_payment_holds не снимет телефонную бронь.
+                payment_method=_desk_payment_method(request),
+                # Z-5 Р-1: без сентинела (легаси-формы) — как прежде, авто-скидки вкл.
+                apply_auto_discount=(
+                    not request.POST.get("auto_rabatt_present")
+                    or bool(request.POST.get("auto_rabatt"))
+                ),
+            )
+            if room is not None:
+                services.assign_room(booking, room)
+    except services.RoomConflict:  # Z-5 Р-2: откат всей брони (atomic выше)
+        messages.error(request, _("Dieses Zimmer ist in diesem Zeitraum belegt."))
+        return redirect(back or "stays:calendar")
     except services.RatePlanInvalid:  # Z-4: тариф изменили между формой и POST
         messages.error(request, _("Dieser Tarif gilt nicht für die gewählte Kategorie."))
         return redirect(back or "stays:calendar")
@@ -735,7 +786,30 @@ def stay_create(request):
         messages.error(request, _("Invalid dates."))
         return redirect(back or "stays:calendar")
     messages.success(request, _("Stay created."))
+    # Z-5 (О-2): правила продаж стойку не ограничивают, но нарушение видно сразу.
+    hit = stay_restrictions.violation(unit, arrival, departure)
+    if hit is not None:
+        code, n = hit
+        rule = _("Verkaufsstopp") if code == "stop_sell" else stay_restrictions.message(code, n)
+        messages.warning(
+            request,
+            _(
+                "Hinweis: Diese Buchung verletzt die Verkaufsregel (%(rule)s) — an der Rezeption erlaubt."
+            )
+            % {"rule": rule},
+        )
     return redirect(back or f"{reverse('stays:calendar')}?von={booking.arrival.isoformat()}")
+
+
+def _desk_payment_method(request) -> str:
+    """Z-5 Р-3: белый список стойки — на месте (дефолт) и Vorkasse (только при IBAN).
+    Онлайн/счёт/мусор → на месте: счёт фирме — в карточке («Rechnungsempfänger»)."""
+    tenant = getattr(request, "tenant", None)
+    if request.POST.get("payment_method") == payment_methods.VORKASSE and getattr(
+        tenant, "bank_iban", ""
+    ):
+        return payment_methods.VORKASSE
+    return payment_methods.ON_SITE
 
 
 @login_required
@@ -841,6 +915,7 @@ RATE_EDIT_ACTIONS = frozenset(
         "rateplan_toggle",
         "rateplan_delete",
         "kurtaxe",
+        "stay_hours",  # Z-5 Р-8: час выезда задаёт момент признания выручки
         "autodiscount_add",
         "autodiscount_delete",
         "booking_window",
@@ -851,6 +926,38 @@ RATE_EDIT_ACTIONS = frozenset(
         "gap_deal",
     }
 )
+
+
+def _block_error_msg(exc) -> str:
+    """Z-5 Р-4: одни тексты отказа блока дат — кабинет номеров и стойка."""
+    if isinstance(exc, services.RoomConflict):
+        return _(
+            "In diesem Zimmer wohnt in diesem Zeitraum ein Gast — bitte den Gast "
+            "zuerst in ein anderes Zimmer umbuchen."
+        )
+    return _(
+        "In diesem Zeitraum sind alle Zimmer der Kategorie verkauft — "
+        "der Block würde zu einer Überbuchung führen."
+    )
+
+
+def _capacity_msg(exc) -> str:
+    return _("Am %(day)s sind %(sold)s Zimmer verkauft — weniger geht nicht.") % {
+        "day": date_format(exc.day, "SHORT_DATE_FORMAT"),
+        "sold": exc.sold,
+    }
+
+
+_HOUR_RE = re.compile(r"[0-9]{1,2}")
+
+
+def _parse_hour(raw):
+    """Z-5: час 0..23 строго ASCII-цифрами (``"٣".isdigit()`` — True); иначе None."""
+    raw = (raw or "").strip()
+    if not _HOUR_RE.fullmatch(raw):
+        return None
+    hour = int(raw)
+    return hour if 0 <= hour <= 23 else None
 
 
 def _rateplan_pk(post):
@@ -950,11 +1057,6 @@ def units(request, pk=None):
             # DC-8: ставка НДС — presence-guard (поле только на странице номера).
             if can_price and request.POST.get("vat_rate") is not None:
                 unit.vat_rate = vat.parse_rate(request.POST.get("vat_rate"), unit.vat_rate)
-            unit.quantity = _int(request.POST.get("quantity", "1"), 1, 1, 999)
-            # PMS-R1: при заведённых комнатах ёмкость считается по ним —
-            # ручной ввод quantity игнорируется (поле в форме read-only).
-            if unit.rooms.exists():
-                unit.quantity = unit.rooms.filter(is_active=True).count()
             unit.min_nights = _int(request.POST.get("min_nights", "1"), 1, 1, 365)
             unit.max_guests = _int(request.POST.get("max_guests", "2"), 2, 1, 99)
             if can_price:
@@ -977,7 +1079,6 @@ def units(request, pk=None):
                 "price_cents",
                 "weekend_price_cents",
                 "vat_rate",
-                "quantity",
                 "min_nights",
                 "max_guests",
                 "deposit_cents",
@@ -991,6 +1092,20 @@ def units(request, pk=None):
             unit.save(update_fields=_uf)
             _add_unit_photos(unit, request.FILES.getlist("photos"))
             messages.success(request, _("Unit saved."))
+            # Z-5 Р-5 (DF-Z3, О-8): ёмкость — отдельно и под локом категории; отказ
+            # не теряет остальные поля. PMS-R1: при комнатах ёмкость = их число
+            # (ручной ввод игнорируется); W0: без поля quantity не трогаем.
+            if unit.rooms.exists():
+                services.sync_room_quantity(unit)
+            elif request.POST.get("quantity") is not None:
+                try:
+                    capacity.set_quantity(
+                        unit,
+                        _int(request.POST.get("quantity"), unit.quantity, 1, 999),
+                        timezone.localdate(),
+                    )
+                except capacity.CapacityBelowSold as exc:
+                    messages.error(request, _capacity_msg(exc))
         elif action == "photo_delete":
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             from apps.catalog.images import delete_stored_image
@@ -1042,7 +1157,9 @@ def units(request, pk=None):
                 room = None
                 room_pk = (request.POST.get("room") or "").strip()
                 if room_pk:
-                    room = Room.objects.filter(pk=room_pk, unit=unit).first()
+                    room = Room.objects.filter(
+                        pk=rate_plans_mod.parse_uuid(room_pk), unit=unit
+                    ).first()
                     if room is None:
                         raise ValueError
                 services.create_block(
@@ -1053,22 +1170,8 @@ def units(request, pk=None):
                     room=room,
                 )
                 messages.success(request, _("Dates blocked."))
-            except services.NoCapacity:
-                messages.error(
-                    request,
-                    _(
-                        "In diesem Zeitraum sind alle Zimmer der Kategorie verkauft — "
-                        "der Block würde zu einer Überbuchung führen."
-                    ),
-                )
-            except services.RoomConflict:
-                messages.error(
-                    request,
-                    _(
-                        "In diesem Zimmer wohnt in diesem Zeitraum ein Gast — bitte den Gast "
-                        "zuerst in ein anderes Zimmer umbuchen."
-                    ),
-                )
+            except (services.NoCapacity, services.RoomConflict) as exc:
+                messages.error(request, _block_error_msg(exc))
             except (TypeError, ValueError, ValidationError):
                 messages.error(request, _("Invalid dates."))
         elif action == "block_delete":
@@ -1081,13 +1184,23 @@ def units(request, pk=None):
                 services.sync_room_quantity(unit)
                 messages.success(request, _("Room added."))
         elif action == "room_delete":  # PMS-R1: удалить комнату + синк ёмкости
-            room = get_object_or_404(Room, pk=request.POST.get("room"))
-            room_unit = room.unit
+            room = get_object_or_404(Room, pk=rate_plans_mod.parse_uuid(request.POST.get("room")))
             # KA-12 E4.10a (ревью): блок удалённой комнаты стал бы блоком категории
-            # и вычитал бы номер второй раз (quantity уже уменьшен синком).
-            UnitBlock.objects.filter(room=room).delete()
-            room.delete()
-            services.sync_room_quantity(room_unit)
+            # и вычитал бы номер второй раз — capacity.delete_room удаляет и его.
+            # Z-5 Р-5 (О-8): занятая/проданная комната не удаляется.
+            try:
+                capacity.delete_room(room, timezone.localdate())
+            except capacity.RoomAssigned as exc:
+                messages.error(
+                    request,
+                    _(
+                        "Zimmer %(number)s ist der Buchung %(code)s zugewiesen — bitte "
+                        "zuerst umbuchen."
+                    )
+                    % {"number": room.number, "code": exc.booking.reference_code},
+                )
+            except capacity.CapacityBelowSold as exc:
+                messages.error(request, _capacity_msg(exc))
         elif action == "ical_add":  # A5b: подписка на внешний iCal-фид
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             url = request.POST.get("url", "").strip()
@@ -1179,6 +1292,16 @@ def units(request, pk=None):
                 update_fields=["kurtaxe_cents", "kurtaxe_label", "house_rules", "updated_at"]
             )
             messages.success(request, _("Settings saved."))
+        elif action == "stay_hours":  # Z-5 Р-8: часы заезда/выезда
+            checkin = _parse_hour(request.POST.get("checkin_hour"))
+            checkout = _parse_hour(request.POST.get("checkout_hour"))
+            if checkin is None or checkout is None:
+                messages.error(request, _("Bitte eine Stunde von 0 bis 23 angeben."))
+            else:
+                settings_obj = StaySettings.load()
+                settings_obj.checkin_hour, settings_obj.checkout_hour = checkin, checkout
+                settings_obj.save(update_fields=["checkin_hour", "checkout_hour", "updated_at"])
+                messages.success(request, _("Settings saved."))
         elif action == "autodiscount_add":  # G4: добавить правило авто-скидки
             settings_obj = StaySettings.load()
             kind = request.POST.get("kind", "")
@@ -1306,6 +1429,7 @@ def units(request, pk=None):
             "restriction_add": "regeln",
             "restriction_delete": "regeln",
             "kurtaxe": "kurtaxe",
+            "stay_hours": "kurtaxe",
             "card_amenities": "kurtaxe",  # HF-2: живёт рядом с прочей «подачей» номеров
         }
         sec = _settings_sections.get(action)
@@ -1363,6 +1487,7 @@ def units(request, pk=None):
             # H1/Z-4: тарифы с категориями (подпись «nur: …» без N+1).
             "rate_plans": list(RatePlan.objects.prefetch_related("units")),
             "can_edit_prices": has_perm(request.user, "preise.edit"),  # Z-4 Р-7
+            "hour_choices": range(24),
             "category_choices": list(StayUnit.objects.only("pk", "name").order_by("name")),
             "meals": RatePlan.MEALS,
             "cancellations": RatePlan.CANCELLATIONS,

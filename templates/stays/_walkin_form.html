@@ -23,6 +23,39 @@
       <input type="date" name="departure" id="walkin-departure" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
     </div>
   </div>
+  {% if walkin_rooms %}
+  <div>
+    <label for="walkin-room" class="block text-sm font-medium mb-1">{% trans "Zimmer" %}</label>
+    {% comment %}Z-5 Р-2: номер сразу на стойке. data-unit — категория комнаты; JS прячет
+    чужие, сервер всё равно проверяет категорию и занятость (откат всей брони).{% endcomment %}
+    <select name="room" id="walkin-room" data-walkin-room class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <option value="">{% trans "— Zimmer später zuweisen —" %}</option>
+      {% for r in walkin_rooms %}<option value="{{ r.pk }}" data-unit="{{ r.unit_id }}">{{ r.number }} · {{ r.unit.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <script>
+  (function () {
+    if (window.__walkinRoomBound) return;
+    window.__walkinRoomBound = true;
+    function syncRooms() {
+      var unit = document.getElementById('walkin-unit');
+      var sel = document.querySelector('[data-walkin-room]');
+      if (!unit || !sel) return;
+      Array.prototype.forEach.call(sel.options, function (o) {
+        var u = o.getAttribute('data-unit');
+        var ok = !u || u === unit.value;
+        o.hidden = !ok;
+        o.disabled = !ok;
+      });
+      if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = '';
+    }
+    document.addEventListener('change', function (e) {
+      if (e.target && e.target.id === 'walkin-unit') syncRooms();
+    });
+    syncRooms();
+  })();
+  </script>
+  {% endif %}
   <div class="grid sm:grid-cols-4 gap-4">
     <input name="name" type="text" placeholder="{% trans 'Name (reason when blocking)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
     {# PMS-A1: взрослые/дети как на витрине (Kurtaxe по взрослым). #}
@@ -91,6 +124,21 @@
           <input name="voucher_code" type="text" autocapitalize="characters" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase">
         </div>
       </div>
+      <div>
+        <label for="walkin-payment" class="block text-sm font-medium mb-1">{% trans "Zahlung" %}</label>
+        <select name="payment_method" id="walkin-payment" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <option value="on_site" selected>{% trans "Zahlung vor Ort" %}</option>
+          {% if walkin_vorkasse %}<option value="vorkasse">{% trans "Vorkasse (Überweisung)" %}</option>{% endif %}
+        </select>
+        <p class="text-xs text-gray-500 mt-1">{% trans "Rechnung an eine Firma — in der Buchung unter „Rechnungsempfänger“." %}</p>
+      </div>
+      {% comment %}Z-5 Р-1: авто-скидки (Langzeit/Frühbucher/Lücken/Aktion) — по умолчанию
+      вкл. Сентинел нужен: снятый чекбокс браузер не отправляет.{% endcomment %}
+      <input type="hidden" name="auto_rabatt_present" value="1">
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="auto_rabatt" value="1" checked class="rounded border-gray-300">
+        {% trans "Automatische Rabatte anwenden" %}
+      </label>
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Note" %}</label>
         <textarea name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>

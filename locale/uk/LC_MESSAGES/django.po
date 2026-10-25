@@ -30175,3 +30175,48 @@ msgstr "Цей шаблон не підходить до ролі."
 
 msgid "Vorlage"
 msgstr "Шаблон"
+
+#, python-format
+msgid "Am %(day)s sind %(sold)s Zimmer verkauft — weniger geht nicht."
+msgstr "На %(day)s продано номерів: %(sold)s — менше не можна."
+
+msgid "Automatische Rabatte anwenden"
+msgstr "Застосовувати автоматичні знижки"
+
+msgid "Bitte eine Stunde von 0 bis 23 angeben."
+msgstr "Вкажіть годину від 0 до 23."
+
+msgid "Check-in & Check-out"
+msgstr "Заїзд і виїзд"
+
+msgid "Check-in ab (Uhr)"
+msgstr "Заїзд з (година)"
+
+msgid "Check-out bis (Uhr)"
+msgstr "Виїзд до (година)"
+
+msgid "Danach schließt das System die Abreise automatisch ab."
+msgstr "Після цієї години система автоматично завершує виїзд."
+
+msgid "Dieses Zimmer gehört nicht zur gewählten Kategorie."
+msgstr "Цей номер не належить до вибраної категорії."
+
+msgid "Dieses Zimmer ist in diesem Zeitraum belegt."
+msgstr "Цей номер зайнятий у ці дати."
+
+#, python-format
+msgid "Hinweis: Diese Buchung verletzt die Verkaufsregel (%(rule)s) — an der Rezeption erlaubt."
+msgstr "Увага: бронювання порушує правило продажу (%(rule)s) — на стійці це дозволено."
+
+msgid "Rechnung an eine Firma — in der Buchung unter „Rechnungsempfänger“."
+msgstr "Рахунок фірмі — у бронюванні, в розділі «Отримувач рахунку»."
+
+msgid "Verkaufsstopp"
+msgstr "Стоп-продаж"
+
+#, python-format
+msgid "Zimmer %(number)s ist der Buchung %(code)s zugewiesen — bitte zuerst umbuchen."
+msgstr "Номер %(number)s призначено бронюванню %(code)s — спершу переселіть гостя."
+
+msgid "— Zimmer später zuweisen —"
+msgstr "— призначити номер пізніше —"

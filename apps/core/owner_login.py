@@ -74,7 +74,11 @@ def safe_next(request, value: str) -> str:
     value = (value or "").strip()
     if (
         value.startswith("/")
-        and not value.startswith(("//", "/\\"))
+        and not value.startswith("//")
+        # Браузер (WHATWG) читает «\» как «/» и вырезает таб/CR/LF: `/\host`,
+        # `/<TAB>/host` стали бы `//host` (Z-5, ревью плана §9.3).
+        and "\\" not in value
+        and not any(ord(ch) < 32 or ord(ch) == 127 for ch in value)
         and url_has_allowed_host_and_scheme(value, allowed_hosts={request.get_host()})
     ):
         return value
