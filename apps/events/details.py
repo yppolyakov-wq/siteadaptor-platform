@@ -86,9 +86,8 @@ def normalize(raw) -> dict:
 
 def parse_until(value) -> str:
     """KA-12 T-3: «bis 30.11.2026» / «2026-11-30» → ISO-дата или "" (мусор = без срока)."""
-    from datetime import date, datetime
-
     import re
+    from datetime import date, datetime
 
     # Слово перед датой любое («bis», «until», «до»…): берём саму дату.
     found = re.search(r"\d{4}-\d{2}-\d{2}|\d{1,2}\.\d{1,2}\.\d{2,4}", str(value or ""))
