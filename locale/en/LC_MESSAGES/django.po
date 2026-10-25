@@ -29655,3 +29655,15 @@ msgstr "New permissions granted in your team"
 #, python-format
 msgid "%(who)s hat %(whom)s neue Rechte gegeben: %(keys)s. Sie können das unter „Team & Zugriff“ prüfen und ändern."
 msgstr "%(who)s gave %(whom)s new permissions: %(keys)s. You can review and change this under “Team & access”."
+
+msgid "Keine Berechtigung."
+msgstr "No permission."
+
+msgid "Zu viele Einladungen heute — bitte morgen erneut."
+msgstr "Too many invitations today — please try again tomorrow."
+
+msgid "Rechte gespeichert."
+msgstr "Permissions saved."
+
+msgid "Die Rechte wurden inzwischen geändert — bitte Seite neu laden."
+msgstr "The permissions have changed in the meantime — please reload the page."

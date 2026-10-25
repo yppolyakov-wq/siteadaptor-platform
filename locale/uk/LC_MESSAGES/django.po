@@ -29914,3 +29914,15 @@ msgstr "У команді надано нові права"
 #, python-format
 msgid "%(who)s hat %(whom)s neue Rechte gegeben: %(keys)s. Sie können das unter „Team & Zugriff“ prüfen und ändern."
 msgstr "%(who)s надав(ла) %(whom)s нові права: %(keys)s. Перевірити й змінити це можна в розділі «Команда і доступ»."
+
+msgid "Keine Berechtigung."
+msgstr "Немає прав."
+
+msgid "Zu viele Einladungen heute — bitte morgen erneut."
+msgstr "Сьогодні надіслано забагато запрошень — спробуйте завтра."
+
+msgid "Rechte gespeichert."
+msgstr "Права збережено."
+
+msgid "Die Rechte wurden inzwischen geändert — bitte Seite neu laden."
+msgstr "Права тим часом змінилися — перезавантажте сторінку."

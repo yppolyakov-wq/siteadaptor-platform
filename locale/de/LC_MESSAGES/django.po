@@ -29747,3 +29747,15 @@ msgstr "Neue Rechte im Team vergeben"
 #, python-format
 msgid "%(who)s hat %(whom)s neue Rechte gegeben: %(keys)s. Sie können das unter „Team & Zugriff“ prüfen und ändern."
 msgstr "%(who)s hat %(whom)s neue Rechte gegeben: %(keys)s. Sie können das unter „Team & Zugriff“ prüfen und ändern."
+
+msgid "Keine Berechtigung."
+msgstr "Keine Berechtigung."
+
+msgid "Zu viele Einladungen heute — bitte morgen erneut."
+msgstr "Zu viele Einladungen heute — bitte morgen erneut."
+
+msgid "Rechte gespeichert."
+msgstr "Rechte gespeichert."
+
+msgid "Die Rechte wurden inzwischen geändert — bitte Seite neu laden."
+msgstr "Die Rechte wurden inzwischen geändert — bitte Seite neu laden."

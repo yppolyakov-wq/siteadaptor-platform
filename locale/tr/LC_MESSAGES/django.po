@@ -29799,3 +29799,15 @@ msgstr "Ekibinizde yeni yetkiler verildi"
 #, python-format
 msgid "%(who)s hat %(whom)s neue Rechte gegeben: %(keys)s. Sie können das unter „Team & Zugriff“ prüfen und ändern."
 msgstr "%(who)s, %(whom)s kullanıcısına yeni yetkiler verdi: %(keys)s. Bunu „Ekip ve erişim“ bölümünden kontrol edip değiştirebilirsiniz."
+
+msgid "Keine Berechtigung."
+msgstr "Yetkiniz yok."
+
+msgid "Zu viele Einladungen heute — bitte morgen erneut."
+msgstr "Bugün çok fazla davet gönderildi — lütfen yarın tekrar deneyin."
+
+msgid "Rechte gespeichert."
+msgstr "Yetkiler kaydedildi."
+
+msgid "Die Rechte wurden inzwischen geändert — bitte Seite neu laden."
+msgstr "Yetkiler bu arada değiştirildi — lütfen sayfayı yeniden yükleyin."

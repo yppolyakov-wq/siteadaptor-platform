@@ -15,6 +15,7 @@
 import hashlib
 import logging
 import uuid
+from types import SimpleNamespace
 
 from django.db import connection, transaction
 
@@ -316,3 +317,71 @@ def _alert_owner(actor_user, target, keys, new) -> None:
         )
     except Exception:  # noqa: BLE001 — письмо не должно ронять выдачу
         logger.error("perm_grants: owner alert not sent", exc_info=True)
+
+
+# --- E6.7c-3: инвайт v2 ---------------------------------------------------------------------
+
+
+def _invite_compute(inviter, role, requested_keys):
+    """(новые права, срезанные ключи) нового участника роли ``role`` от ``inviter``.
+    Тот же расчёт, что у правки: база — пресет роли, выдать — только из области выдачи."""
+    if role not in (ADMIN, STAFF):
+        raise PermsDenied("bad_role")
+    grant_scope, revoke_scope = _scopes(inviter, SimpleNamespace(role=role))
+    old = P.for_role(role)
+    if requested_keys is None:
+        return old, frozenset()
+    limit = P.ROLE_LIMIT[role]
+    requested = _with_requires(requested_keys) & limit
+    new = P._closure(((old - revoke_scope) | (requested & revoke_scope)) & limit)
+    out = (new - old) - grant_scope
+    if out:
+        new = P._closure(new - out)
+    return new, frozenset(requested - new)
+
+
+def check_invite(inviter_user, role, requested_keys=None) -> None:
+    """Проверка при выпуске: приглашающий вправе выдать роль и ВСЕ запрошенные ключи."""
+    inviter = (
+        Membership.objects.filter(user_id=getattr(inviter_user, "pk", None)).first()
+        if getattr(inviter_user, "pk", None)
+        else None
+    )
+    if inviter is None:
+        raise PermsDenied("not_found")
+    _new, stripped = _invite_compute(inviter, role, requested_keys)
+    if stripped:
+        raise PermsDenied("scope")
+
+
+def join_from_invite(user, payload) -> tuple[Membership, dict]:
+    """Членство по инвайту под блокировкой: приглашающий перечитывается, лишнее срезается.
+
+    v=2: приглашающего нет/он больше не вправе → PermsDenied("inviter") (членство не
+    создаётся). Легаси (без ``v``): только пресет роли (Р-c5). Возвращает (членство, аудит).
+    """
+    role = payload.get("role")
+    if role not in (ADMIN, STAFF):
+        raise PermsDenied("bad_role")
+    info = {"role": role, "legacy": False, "stripped": []}
+    with transaction.atomic():
+        rows = _lock_all()
+        if any(m.user_id == user.pk for m in rows.values()):
+            raise PermsDenied("already_member")
+        if payload.get("v") == 2:
+            inviter = rows.get(_uuid(payload.get("inviter_pk")))
+            if inviter is None:
+                raise PermsDenied("inviter")
+            try:
+                eff, stripped = _invite_compute(inviter, role, payload.get("perms"))
+            except PermsDenied as exc:
+                raise PermsDenied("inviter") from exc
+            info["stripped"] = sorted(stripped)
+            info["inviter"] = str(inviter.pk)
+            delta = _delta_for(role, eff)
+        else:
+            info["legacy"] = True
+            delta = {}
+        member = Membership.objects.create(user=user, role=role, permissions=delta)
+        _audit("team.join", member, user, info)
+    return member, info
