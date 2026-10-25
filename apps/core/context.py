@@ -684,8 +684,8 @@ def _cabinet_tabbar(tenant, compact, user=None) -> list[dict]:
         return row
 
     out = [_item(by_key[k]) for k in ("dashboard", "board") if k in by_key]
-    if len(out) < 2:
-        return []
+    if "dashboard" not in by_key:
+        return []  # E6.7e: без «Verkäufe» (нет права) бар остаётся — Übersicht · ＋ · … · Mehr
     try:
         plus = sales_page.tabbar_create_target(tenant, user)
     except Exception:  # noqa: BLE001 — хром кабинета не падает из-за «＋»

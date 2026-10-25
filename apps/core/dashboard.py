@@ -23,6 +23,29 @@ def _sparkline_points(days, width=120, height=32) -> str:
     return " ".join(pts)
 
 
+# E6.7e (ревью безопасности): виджет главной показывает данные раздела — значит, и
+# право того раздела. Главная сама открыта всем (OPEN), поэтому фильтр — здесь.
+WIDGET_PERMS = {
+    "umsatz": "finanzen.kennzahlen",
+    "finance_off": "funktionen.edit",
+    "ready": "verkaeufe.view",
+    "stays_today": "verkaeufe.view",
+    "puls": "marketing.view",
+    "reviews": "marketing.view",
+}
+
+
+def widgets_for(user, widgets) -> list[dict]:
+    """Виджеты, данные которых пользователь вправе видеть (неизвестный ключ — скрыт)."""
+    from apps.core.permissions import has_perm
+
+    return [
+        w
+        for w in widgets
+        if w.get("key") in WIDGET_PERMS and has_perm(user, WIDGET_PERMS[w["key"]])
+    ]
+
+
 def home_widgets(tenant) -> list[dict]:
     """ST-4a: виджеты «что сегодня» главной кабинета (план st4-admin-home-plan §1).
 

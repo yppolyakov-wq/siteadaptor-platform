@@ -1153,10 +1153,14 @@ def hidden_for(user) -> frozenset[str]:
     ``url_name+query`` (вкладки со своим правом). Источник один — ``view_perms``: меню
     прячет ровно то, что middleware отдал бы 403. Аноним/None — пусто (fail-open
     хрома: доступ держит middleware)."""
-    if user is None or not getattr(user, "is_authenticated", False):
-        return frozenset()
-    from apps.core import view_perms
+    from apps.core import permissions, view_perms
 
+    if user is None or not permissions.is_member(user):
+        return frozenset()  # не член команды — кабинет его и так не пустит
+    key = (permissions._schema(), user.pk)
+    memo = getattr(user, "_cab_nav_hidden", None)
+    if memo is not None and memo[0] == key and memo[1] is permissions.effective(user):
+        return memo[2]
     out = set()
     for name in {e.url_name for e in ENTRIES} | {a.url_name for a in ANCHORS}:
         if not view_perms.allowed_quiet(user, name, "GET"):
@@ -1164,7 +1168,12 @@ def hidden_for(user) -> frozenset[str]:
     for (name, query), _key in view_perms.QUERY_RULES.items():
         if not view_perms.query_allowed(user, name, query):
             out.add(name + query)
-    return frozenset(out)
+    hidden = frozenset(out)
+    try:  # мемо на запрос; сверка по объекту прав — перезапись прав его сбрасывает
+        user._cab_nav_hidden = (key, permissions.effective(user), hidden)
+    except AttributeError:
+        pass
+    return hidden
 
 
 def entry_for(hub: str, url_name: str) -> NavEntry | None:

@@ -276,10 +276,21 @@ def effective(user) -> frozenset:
     row = Membership.objects.filter(user=user).values_list("role", "permissions").first()
     perms = effective_from(row[0], row[1]) if row else frozenset()
     try:
-        user._cab_perms = (key, perms)
+        user._cab_perms = (key, perms, row is not None)
     except AttributeError:  # не настоящий пользователь — без мемо
         pass
     return perms
+
+
+def is_member(user) -> bool:
+    """Есть ли у пользователя членство в текущей схеме (тот же мемо, что у прав)."""
+    if not getattr(user, "is_authenticated", False) or getattr(user, "pk", None) is None:
+        return False
+    effective(user)
+    memo = getattr(user, "_cab_perms", None)
+    if memo is None or len(memo) < 3:
+        return Membership.objects.filter(user=user).exists()
+    return memo[2]
 
 
 def has_perm(user, key: str) -> bool:

@@ -100,3 +100,31 @@ def test_query_rules_point_to_registered_screens():
     for (name, query), key in view_perms.QUERY_RULES.items():
         assert view_perms.rule_for(name) is not None, name
         assert query.startswith("?") and key in P.PERMS
+
+
+def test_mobile_tabbar_keeps_mehr_without_sales_section():
+    from apps.core.context import _cabinet_tabbar
+
+    tenant = _tenant("hotel")
+    user = _staff([k for k in ROLE_KEYS if k.startswith(("verkaeufe", "rezeption", "ablaeufe"))])
+    bar = _cabinet_tabbar(tenant, modules.sidebar_nav(tenant, user), user)
+    keys = [b["nav_key"] for b in bar]
+    assert "dashboard" in keys and "board" not in keys
+
+
+def test_home_shows_sales_loop_and_widgets_only_with_section_rights(monkeypatch):
+    """Ревью безопасности E6.7e: главная открыта всем, но данные разделов — по праву."""
+    from apps.core import dashboard as dash
+
+    tenant = _tenant("bakery")
+    owner = _user(Membership.ROLE_OWNER)
+    staff = _staff([k for k in ROLE_KEYS if k.startswith(("verkaeufe", "rezeption", "ablaeufe"))])
+    sample = [{"key": k} for k in dash.WIDGET_PERMS] + [{"key": "unbekannt"}]
+    assert {w["key"] for w in dash.widgets_for(owner, sample)} == set(dash.WIDGET_PERMS)
+    assert not {"ready", "stays_today"} & {w["key"] for w in dash.widgets_for(staff, sample)}
+    seen = []
+    monkeypatch.setattr(sales_page, "body_context", lambda req, kind, view: seen.append(kind) or {})
+    _open("/dashboard/", tenant, staff)
+    assert seen == []  # петля продаж без verkaeufe.view не собирается
+    _open("/dashboard/", tenant, owner)
+    assert seen  # у владельца — собирается

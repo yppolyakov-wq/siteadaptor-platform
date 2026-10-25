@@ -293,6 +293,8 @@ def dashboard(request):
     # доска), а не набор плиток. Контекст и тело — те же, что у страницы Verkäufe
     # (`body_context` + `core/_sales_body.html`), поэтому петля не форкается.
     loop_kind = (sales_page.visible_kinds(tenant) or [""])[0]
+    if not has_perm(request.user, "verkaeufe.view"):
+        loop_kind = ""  # E6.7e: главная открыта всем, петля продаж — по праву раздела
     loop_view = sales_page.resolve_view(tenant, loop_kind) if loop_kind else ""
     loop_ctx = {}
     if loop_kind:
@@ -321,7 +323,7 @@ def dashboard(request):
         # перенесённый пункт часов).
         "checklist": onboarding.setup_checklist(tenant),
         # ST-4a: виджеты «что сегодня» — сжаты в полосу над петлёй (X3).
-        "widgets": dash.home_widgets(tenant),
+        "widgets": dash.widgets_for(request.user, dash.home_widgets(tenant)),
         # X3: сама петля — через общий партиал тела продаж.
         "active_kind": loop_kind,
         "active_view": loop_view,

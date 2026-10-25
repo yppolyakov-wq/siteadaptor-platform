@@ -717,9 +717,12 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
             for c in children:
                 c["hint"] = hints.get(c["url_name"], "")
         target = nav_registry.anchor_target(a, tenant, owner_hidden)
-        emptied = bool(owner_hidden) and not children and target == "dashboard" != a.url_name
-        if target in owner_hidden or emptied:
-            continue  # E6.7e: в разделе нет ни одного разрешённого экрана — раздел скрыт
+        # E6.7e: права скрыли всё в разделе — цель скатилась на «Übersicht», раздел скрыт
+        # (вкладки-query делят url_name с обзором, поэтому скрыты вместе с ним). У
+        # владельца скрытого нет — его меню не меняется.
+        fell_back = target == "dashboard" and a.url_name != "dashboard"
+        if owner_hidden and fell_back:
+            continue
         if children and not any(c["url_name"] == target and not c.get("query") for c in children):
             children.insert(
                 0,
