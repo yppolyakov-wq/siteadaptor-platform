@@ -29456,3 +29456,9 @@ msgstr "Wer mehrmals nicht erschienen ist, bucht online nur noch mit Anzahlung. 
 
 msgid "Bitte einen Betrag zwischen 0 und 1000 € angeben."
 msgstr "Bitte einen Betrag zwischen 0 und 1000 € angeben."
+
+msgid "Tagespreis"
+msgstr "Tagespreis"
+
+msgid "These dates cannot be booked online. Please contact us directly."
+msgstr "An diesen Tagen ist keine Online-Buchung möglich. Bitte kontaktieren Sie uns direkt."

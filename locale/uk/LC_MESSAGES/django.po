@@ -29621,3 +29621,9 @@ msgstr "Клієнти, які кілька разів не прийшли, за
 
 msgid "Bitte einen Betrag zwischen 0 und 1000 € angeben."
 msgstr "Вкажіть суму від 0 до 1000 €."
+
+msgid "Tagespreis"
+msgstr "Ціна дня"
+
+msgid "These dates cannot be booked online. Please contact us directly."
+msgstr "Ці дати не можна забронювати онлайн. Будь ласка, зв’яжіться з нами напряму."

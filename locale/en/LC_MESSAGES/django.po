@@ -29364,3 +29364,9 @@ msgstr "Customers who repeatedly did not show up can only book online with a dep
 
 msgid "Bitte einen Betrag zwischen 0 und 1000 € angeben."
 msgstr "Please enter an amount between 0 and 1000 €."
+
+msgid "Tagespreis"
+msgstr "Daily rate"
+
+msgid "These dates cannot be booked online. Please contact us directly."
+msgstr ""

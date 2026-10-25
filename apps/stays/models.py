@@ -289,6 +289,51 @@ class Room(TimestampedModel):
         return f"{self.number} · {self.unit.name}"
 
 
+class NightRate(TimestampedModel):
+    """KA-12 Z-2 (E4.6): переопределение ОДНОЙ ночи категории — цена и ограничения дня.
+
+    Храним только переопределённые дни (нейтральная строка запрещена constraint'ом —
+    сервис её удаляет). Цена ночи: NightRate → SeasonRate → выходные → база, затем
+    тариф и occupancy. Ограничения — только витрина (как G12): ``stop_sell`` — ночь
+    не продаётся онлайн; ``min_nights`` — минимум ночей при заезде в этот день;
+    ``no_checkin``/``no_checkout`` — запрет заезда/выезда в этот день. Брони уже
+    проданных ночей не трогаются (их цена — снимок ``StayBooking.night_prices``)."""
+
+    unit = models.ForeignKey(
+        StayUnit, on_delete=models.CASCADE, related_name="night_rates", db_index=False
+    )
+    day = models.DateField()
+    price_cents = models.PositiveIntegerField(null=True, blank=True)  # None — цену не трогаем
+    stop_sell = models.BooleanField(default=False)
+    min_nights = models.PositiveSmallIntegerField(default=0)
+    no_checkin = models.BooleanField(default=False)
+    no_checkout = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            # Имя явно: копия шаблонной схемы (T-10) сверяет имена constraint'ов.
+            models.UniqueConstraint(fields=["unit", "day"], name="stays_nightrate_unit_day_uniq"),
+            models.CheckConstraint(
+                condition=models.Q(min_nights__lte=365), name="stays_nightrate_min_nights_cap"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(price_cents__isnull=True) | models.Q(price_cents__gt=0),
+                name="stays_nightrate_price_positive",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(price_cents__isnull=False)
+                | models.Q(stop_sell=True)
+                | models.Q(min_nights__gt=0)
+                | models.Q(no_checkin=True)
+                | models.Q(no_checkout=True),
+                name="stays_nightrate_not_neutral",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.unit_id} {self.day}"
+
+
 class UnitBlock(TimestampedModel):
     """Блокировка дат юнита (ремонт/своё проживание/Wartung). Занимает ночи
     ``[start_date, end_date]`` ВКЛЮЧИТЕЛЬНО — считается как занятость при подборе

@@ -583,6 +583,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.stays.tasks.purge_old_registrations",
         "schedule": 86400.0,  # раз в сутки — удаление Meldescheine >1 года (G6/DSGVO)
     },
+    "purge-old-night-rates": {
+        "task": "apps.stays.tasks.purge_old_night_rates",
+        "schedule": 86400.0,  # раз в сутки — прошлые переопределения ночей (KA-12 Z-2)
+    },
     "purge-old-service-notes": {
         "task": "apps.crm.tasks.purge_old_service_notes",
         "schedule": 86400.0,  # раз в сутки — заметки к процедурам 3 года после визита (E6.4d)

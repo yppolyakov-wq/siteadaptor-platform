@@ -29508,3 +29508,9 @@ msgstr "Birkaç kez gelmeyen müşteriler online yalnızca ön ödemeyle rezerva
 
 msgid "Bitte einen Betrag zwischen 0 und 1000 € angeben."
 msgstr "Lütfen 0 ile 1000 € arasında bir tutar girin."
+
+msgid "Tagespreis"
+msgstr "Günlük fiyat"
+
+msgid "These dates cannot be booked online. Please contact us directly."
+msgstr "Bu tarihler online rezerve edilemez. Lütfen doğrudan bizimle iletişime geçin."

@@ -1060,15 +1060,26 @@ def stays_feed(request):
     rooms = []
     for unit, cells in rows:
         seasons = list(unit.season_rates.all())
-        nights = [
-            {
-                "date": c["day"].isoformat(),
-                "units_free": c["free"],
-                "available": c["free"] > 0,
-                "price": round(pricing.nightly_price_cents(unit, c["day"], seasons) / 100, 2),
-            }
-            for c in cells
-        ]
+        # KA-12 Z-2: цена дня и стоп-продажа — те же, что витрина и бронь (иначе
+        # метапоиск показал бы цену/наличие, которые не забронировать).
+        day_rates = pricing.night_rates_for(unit, today, today + timedelta(days=FEED_DAYS))
+        nights = []
+        for c in cells:
+            nr = day_rates.get(c["day"])
+            stop = bool(nr and nr.stop_sell)
+            nights.append(
+                {
+                    "date": c["day"].isoformat(),
+                    "units_free": 0 if stop else c["free"],
+                    "available": c["free"] > 0 and not stop,
+                    "price": round(
+                        pricing.nightly_price_cents(unit, c["day"], seasons, day_rates) / 100, 2
+                    ),
+                    "min_nights": max(unit.min_nights, nr.min_nights if nr else 0),
+                    "closed_to_arrival": bool(nr and nr.no_checkin),
+                    "closed_to_departure": bool(nr and nr.no_checkout),
+                }
+            )
         rooms.append(
             {
                 "id": str(unit.pk),

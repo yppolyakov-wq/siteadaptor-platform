@@ -151,6 +151,36 @@ def purge_old_registrations():
     return total
 
 
+NIGHT_RATE_KEEP_DAYS = 30  # KA-12 Z-2: прошлые переопределения — недавняя история в кабинете
+
+
+def purge_due_night_rates(today=None) -> int:
+    """Z-2: удалить переопределения ночей старше `NIGHT_RATE_KEEP_DAYS` (на цены не
+    влияют — проданные ночи хранят снимок `night_prices`). Текущая схема."""
+    from .models import NightRate
+
+    today = today or timezone.localdate()
+    cutoff = today - timezone.timedelta(days=NIGHT_RATE_KEEP_DAYS)
+    deleted, _ = NightRate.objects.filter(day__lt=cutoff).delete()
+    return deleted
+
+
+@shared_task
+def purge_old_night_rates():
+    """Beat (раз в сутки): прошлые NightRate по всем схемам; сбой схемы — в лог."""
+    import logging
+
+    log = logging.getLogger(__name__)
+    total = 0
+    for schema in _iter_tenant_schemas():
+        try:
+            with schema_context(schema):
+                total += purge_due_night_rates()
+        except Exception:  # noqa: BLE001 — сломанная схема не останавливает остальных
+            log.exception("purge_old_night_rates: schema %s failed", schema)
+    return total
+
+
 @shared_task
 def sync_ical_sources():
     """Beat (раз в час): тянуть внешние iCal-фиды и обновлять блоки (A5b)."""

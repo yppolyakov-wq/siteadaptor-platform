@@ -375,6 +375,15 @@ def month_availability(unit, year, month, *, today=None) -> list[dict]:
     days_in_month = calendar.monthrange(year, month)[1]
     _days, rows = occupancy_grid([unit], first, days_in_month)
     _u, cells = rows[0]
+    # KA-12 Z-2: стоп-продажа витрины — день не предлагаем к выбору (иначе гость
+    # выбрал бы свободный в календаре день и получил отказ при бронировании).
+    from .pricing import night_rates_for
+
+    stopped = {
+        day
+        for day, nr in night_rates_for(unit, first, first + timedelta(days=days_in_month)).items()
+        if nr.stop_sell
+    }
     out = []
     for cell in cells:
         in_past = cell["day"] < today
@@ -383,7 +392,7 @@ def month_availability(unit, year, month, *, today=None) -> list[dict]:
                 "date": cell["day"],
                 "in_past": in_past,
                 "free": cell["free"],
-                "is_free": cell["free"] > 0 and not in_past,
+                "is_free": cell["free"] > 0 and not in_past and cell["day"] not in stopped,
             }
         )
     return out

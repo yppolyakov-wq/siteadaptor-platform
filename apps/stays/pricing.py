@@ -14,7 +14,33 @@ from .availability import nights_between
 WEEKEND_WEEKDAYS = (4, 5)  # ночь пятницы и субботы (Mo=0 … So=6)
 
 
-def nightly_price_cents(unit, day, seasons=None) -> int:
+def night_rates_for(unit, arrival, departure) -> dict:
+    """KA-12 Z-2: {day: NightRate} окна [arrival, departure] — один запрос на окно.
+
+    Кэш на экземпляре юнита (одна цена считается многими вызовами: тарифы,
+    авто-скидка, снимок). Окно включает день выезда — ограничение «no_checkout»."""
+    if not getattr(unit, "pk", None):
+        return {}
+    cache = unit.__dict__.setdefault("_night_rates_cache", {})
+    key = (arrival, departure)
+    if key not in cache:
+        from .models import NightRate
+
+        cache[key] = {
+            nr.day: nr
+            for nr in NightRate.objects.filter(
+                unit_id=unit.pk, day__gte=arrival, day__lte=departure
+            )
+        }
+    return cache[key]
+
+
+def nightly_price_cents(unit, day, seasons=None, night_rates=None) -> int:
+    """Цена ночи: NightRate (Z-2) → SeasonRate → выходные → база. ``night_rates`` —
+    готовый словарь окна ({day: NightRate}); None — без поночного слоя."""
+    night = (night_rates or {}).get(day)
+    if night is not None and night.price_cents is not None:
+        return night.price_cents
     seasons = unit.season_rates.all() if seasons is None else seasons
     for rate in seasons:
         if rate.start_date <= day <= rate.end_date:
@@ -73,17 +99,21 @@ def night_snapshot(
     переведённый текст (язык запроса гостя != язык кабинета): имя сезона владельца,
     маркер «@season»/«@weekend» или ""."""
     seasons = list(unit.season_rates.all())
+    nights = night_rates_for(unit, arrival, departure)
     rows = []
     for day in nights_between(arrival, departure):
         mark = ""
-        for rate in seasons:
+        night = nights.get(day)
+        for rate in seasons if night is None or night.price_cents is None else ():
             if rate.start_date <= day <= rate.end_date:
                 mark = rate.label or "@season"
                 break
         else:
-            if day.weekday() in WEEKEND_WEEKDAYS and unit.weekend_price_cents:
+            if night is not None and night.price_cents is not None:
+                mark = "@night"
+            elif day.weekday() in WEEKEND_WEEKDAYS and unit.weekend_price_cents:
                 mark = "@weekend"
-        cents = apply_rate_plan(nightly_price_cents(unit, day, seasons), rate_plan)
+        cents = apply_rate_plan(nightly_price_cents(unit, day, seasons, nights), rate_plan)
         if occupancy_rules and occupancy_by_day is not None:
             cents = occupancy_adjust(cents, occupancy_by_day.get(day), occupancy_rules)
         rows.append([day.isoformat(), cents, mark])
@@ -95,6 +125,8 @@ def _snapshot_label(mark) -> str:
         return _("Saisonpreis")
     if mark == "@weekend":
         return _("Wochenende")
+    if mark == "@night":
+        return _("Tagespreis")
     return mark or ""
 
 
@@ -168,9 +200,10 @@ def quote_total_cents(
     динамическую цену ПО НОЧАМ; оба None/пусто — итог байт-в-байт прежний
     (все существующие вызовы не меняются; включает только витрина stays)."""
     seasons = list(unit.season_rates.all())
+    nights = night_rates_for(unit, arrival, departure)
     total = 0
     for day in nights_between(arrival, departure):
-        cents = apply_rate_plan(nightly_price_cents(unit, day, seasons), rate_plan)
+        cents = apply_rate_plan(nightly_price_cents(unit, day, seasons, nights), rate_plan)
         if occupancy_rules and occupancy_by_day is not None:
             cents = occupancy_adjust(cents, occupancy_by_day.get(day), occupancy_rules)
         total += cents

@@ -76,6 +76,21 @@ def violation(unit, arrival: date, departure: date, *, today: date | None = None
                 return ("no_checkin", None)
         if _in_period(departure, rule) and departure.weekday() in rule["no_checkout"]:
             return ("no_checkout", None)
+    # KA-12 Z-2: ограничения дня (NightRate) — то же «строжайшее»: стоп-продажа на
+    # любой ночи, мин. ночей и запрет заезда — по дате заезда, запрет выезда — по выезду.
+    from .pricing import night_rates_for
+
+    days = night_rates_for(unit, arrival, departure)
+    if any(nr.stop_sell for day, nr in days.items() if arrival <= day < departure):
+        return ("stop_sell", None)
+    first = days.get(arrival)
+    if first is not None:
+        if first.no_checkin:
+            return ("no_checkin", None)
+        min_nights = max(min_nights, first.min_nights)
+    last = days.get(departure)
+    if last is not None and last.no_checkout:
+        return ("no_checkout", None)
     if min_nights and nights < min_nights:
         return ("rule_min_nights", min_nights)
     if max_nights and nights > max_nights:
@@ -97,6 +112,8 @@ def message(code: str, n=None) -> str:
         return _("These dates allow a stay of at most %(n)s nights.") % {"n": n}
     if code == "no_checkin":
         return _("Check-in is not possible on this weekday — please pick another arrival day.")
+    if code == "stop_sell":
+        return _("These dates cannot be booked online. Please contact us directly.")
     if code == "no_checkout":
         return _("Check-out is not possible on this weekday — please pick another departure day.")
     return _("Sorry, these dates are not available. Please try another range.")
