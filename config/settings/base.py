@@ -583,6 +583,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.stays.tasks.purge_old_registrations",
         "schedule": 86400.0,  # раз в сутки — удаление Meldescheine >1 года (G6/DSGVO)
     },
+    "purge-old-service-notes": {
+        "task": "apps.crm.tasks.purge_old_service_notes",
+        "schedule": 86400.0,  # раз в сутки — заметки к процедурам 3 года после визита (E6.4d)
+    },
     "purge-portal-stats": {
         "task": "apps.aggregator.tasks.purge_portal_stats",
         "schedule": 86400.0,  # раз в сутки — учёт портала старше PORTAL_STATS_RETENTION_DAYS (В5)
@@ -668,6 +672,10 @@ STAY_REMINDER_DAYS = env.int("STAY_REMINDER_DAYS", default=1)
 RESERVATION_PII_RETENTION_DAYS = env.int("RESERVATION_PII_RETENTION_DAYS", default=90)
 # MT-2: сколько дней документы участника живут ПОСЛЕ окончания поездки.
 DOCUMENT_RETENTION_DAYS = env.int("DOCUMENT_RETENTION_DAYS", default=90)
+# KA-12 E6.4d: заметки мастера к процедурам живут 3 года после последней записи
+# клиента (решение владельца 2026-10-25). Константа, не env: срок назван в тексте
+# Datenschutzerklärung — разойтись с ним он не должен.
+SERVICE_NOTE_RETENTION_DAYS = 3 * 365
 
 # ---------------------------------------------------------------------------
 # Email (Resend через django-anymail)

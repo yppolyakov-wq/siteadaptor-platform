@@ -29318,3 +29318,7 @@ msgstr "Note deleted."
 
 msgid "Einzelpreis (brutto)"
 msgstr "Unit price (gross)"
+
+#: templates/booking/booking_detail.html
+msgid "Notizen werden 3 Jahre nach dem letzten Termin automatisch gelöscht."
+msgstr "Notes are deleted automatically 3 years after the last appointment."

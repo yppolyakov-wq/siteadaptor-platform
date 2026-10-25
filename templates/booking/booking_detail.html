@@ -111,7 +111,7 @@
       <input type="hidden" name="next" value="{{ request.get_full_path }}">
       <label for="svc-note-text" class="block text-xs text-gray-500">{% trans "Notiz zu diesem Termin" %}</label>
       <textarea id="svc-note-text" name="text" rows="2" maxlength="2000" required aria-describedby="svc-note-hint" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base"></textarea>
-      <p id="svc-note-hint" class="text-xs text-gray-400">{% trans "Nur intern sichtbar. Keine Gesundheitsdaten (z. B. Allergien) ohne ausdrückliche Einwilligung der Kundin oder des Kunden." %}</p>
+      <p id="svc-note-hint" class="text-xs text-gray-400">{% trans "Nur intern sichtbar. Keine Gesundheitsdaten (z. B. Allergien) ohne ausdrückliche Einwilligung der Kundin oder des Kunden." %} {% trans "Notizen werden 3 Jahre nach dem letzten Termin automatisch gelöscht." %}</p>
       <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700">＋ {% trans "Notiz speichern" %}</button>
     </form>
   </section>

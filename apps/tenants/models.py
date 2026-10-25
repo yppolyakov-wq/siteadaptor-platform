@@ -1,6 +1,7 @@
 import secrets
 from datetime import timedelta
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -605,11 +606,14 @@ class Tenant(TenantMixin):
                 return ""
         except Exception:  # noqa: BLE001
             return ""
+        years = settings.SERVICE_NOTE_RETENTION_DAYS // 365
         return (
             "Zu Ihren Terminen halten wir intern Angaben zur Behandlung fest (z. B. "
             "verwendete Produkte oder Rezepturen), damit wir beim nächsten Besuch daran "
             "anknüpfen können (Art. 6 Abs. 1 lit. b DSGVO). Diese Notizen sind nur für "
-            "unser Team sichtbar und werden mit Ihrem Kundenkonto gelöscht.\n\n"
+            f"unser Team sichtbar und werden spätestens {years} Jahre nach Ihrem letzten "
+            "Termin automatisch gelöscht, auf Wunsch oder mit Ihrem Kundenkonto auch "
+            "früher (Art. 17 DSGVO).\n\n"
         )
 
     def _privacy_chat_paragraph(self) -> str:

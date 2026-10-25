@@ -19699,3 +19699,16 @@ id счёта; брутто-строка без `unit_gross` — ошибка, �
 будущий визит, на котором видны «Beim letzten Besuch» и «2× nicht erschienen». Прошлое пишется прямым
 статусом (FSM слал бы письма и выручку демо-клиентам), адреса @example.com. `SEEDER_VERSION` 7.
 ⚠️ ops: `seed_demo_tenants --group all --changed` (или `--kit friseur --recreate`).
+
+
+## 2026-10-25 · KA-12 E6.4d — срок хранения заметок к процедурам (БЕЗ миграций)
+Решение владельца: без поля аллергий и без шифрования, но с удалением через 3 года после последнего
+визита. `apps/crm/tasks.py::purge_due_service_notes` — якорь `Greatest(Coalesce(последняя запись
+клиента в любом статусе, created_at), created_at)`: заметку моложе срока не удаляем никогда, отмена и
+неявка тоже контакт, будущая запись продлевает; обычные заметки (`kind=note`) не трогаем; пачки keyset'ом
+по pk (бэклог первого запуска не пересканирует таблицу). Beat `purge-old-service-notes` раз в сутки,
+падение одной схемы не останавливает остальные. `SERVICE_NOTE_RETENTION_DAYS = 3 * 365` — константа,
+не env: срок назван в Datenschutzerklärung (абзац E6.4b теперь «spätestens 3 Jahre nach Ihrem letzten
+Termin»), подсказка в форме заметки. Замки `test_service_note_retention.py` (14). Ревью `database-reviewer`
+— блокирующих нет, учтены keyset и счёт удалённых по модели. План — `ka-12-w4-termine-e64c-plan-2026-10-25.md`;
+план направления «Zimmer» — `ka-12-w4-zimmer-plan-2026-10-25.md`.

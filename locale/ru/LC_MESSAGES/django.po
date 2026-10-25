@@ -29591,3 +29591,7 @@ msgstr "Заметка удалена."
 
 msgid "Einzelpreis (brutto)"
 msgstr "Цена за ед. (брутто)"
+
+#: templates/booking/booking_detail.html
+msgid "Notizen werden 3 Jahre nach dem letzten Termin automatisch gelöscht."
+msgstr "Заметки автоматически удаляются через 3 года после последней записи."

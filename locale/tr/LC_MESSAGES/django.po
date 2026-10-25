@@ -29462,3 +29462,7 @@ msgstr "Not silindi."
 
 msgid "Einzelpreis (brutto)"
 msgstr "Birim fiyat (brüt)"
+
+#: templates/booking/booking_detail.html
+msgid "Notizen werden 3 Jahre nach dem letzten Termin automatisch gelöscht."
+msgstr "Notlar son randevudan 3 yıl sonra otomatik olarak silinir."
