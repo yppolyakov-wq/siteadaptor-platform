@@ -117,13 +117,24 @@ def test_home_shows_sales_loop_and_widgets_only_with_section_rights(monkeypatch)
     from apps.core import dashboard as dash
 
     tenant = _tenant("bakery")
+    tenant.site_config = {**(tenant.site_config or {}), "onboarding": {"completed": True}}
+    tenant.save(update_fields=["site_config"])
     owner = _user(Membership.ROLE_OWNER)
     staff = _staff([k for k in ROLE_KEYS if k.startswith(("verkaeufe", "rezeption", "ablaeufe"))])
     sample = [{"key": k} for k in dash.WIDGET_PERMS] + [{"key": "unbekannt"}]
     assert {w["key"] for w in dash.widgets_for(owner, sample)} == set(dash.WIDGET_PERMS)
-    assert not {"ready", "stays_today"} & {w["key"] for w in dash.widgets_for(staff, sample)}
+    sample.append({"key": "orders_new"})
+    assert not {"ready", "stays_today", "orders_new"} & {
+        w["key"] for w in dash.widgets_for(staff, sample)
+    }
     seen = []
-    monkeypatch.setattr(sales_page, "body_context", lambda req, kind, view: seen.append(kind) or {})
+    real = sales_page.body_context
+
+    def _spy(req, kind, view):
+        seen.append(kind)
+        return real(req, kind, view)
+
+    monkeypatch.setattr(sales_page, "body_context", _spy)
     _open("/dashboard/", tenant, staff)
     assert seen == []  # петля продаж без verkaeufe.view не собирается
     _open("/dashboard/", tenant, owner)

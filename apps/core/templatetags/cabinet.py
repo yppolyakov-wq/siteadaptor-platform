@@ -106,11 +106,11 @@ def list_pager(context, page, base=""):
 def can_open(url_name, request):
     """E6.7e: `{% if 'modules'|can_open:request %}` — экран открывается этому
     пользователю (``view_perms``; тот же источник, что скрывает меню)."""
-    from apps.core import view_perms
+    from apps.core import permissions, view_perms
 
     user = getattr(request, "user", None)
-    if user is None or not getattr(user, "is_authenticated", False):
-        return True
+    if user is None or not permissions.is_member(user):
+        return True  # не член команды — кабинет его не пускает, прятать нечего
     return view_perms.allowed_quiet(user, url_name, "GET")
 
 

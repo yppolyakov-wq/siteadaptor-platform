@@ -293,6 +293,15 @@ def is_member(user) -> bool:
     return memo[2]
 
 
+def chrome_allows(user, key: str) -> bool:
+    """Право для СКРЫТИЯ в интерфейсе (меню, кнопки, блоки главной). Не член команды —
+    True: в кабинет его не пускает middleware (``has_cabinet_access``), а прятать от него
+    нечего; член команды — ровно ``has_perm``."""
+    if not is_member(user):
+        return True
+    return has_perm(user, key)
+
+
 def has_perm(user, key: str) -> bool:
     if key not in PERMS:
         if _strict():

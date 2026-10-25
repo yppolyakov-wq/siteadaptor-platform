@@ -358,10 +358,12 @@ def tab_descriptors(tenant, active_kind: str) -> list[dict]:
 def customers_allowed(tenant, user) -> bool:
     """E6.7e: вкладка клиентов — по праву ``kunden.view`` (view_perms.QUERY_RULES —
     тот же источник, что скрывает её в меню); без него список клиентов не отдаём."""
-    from apps.core import view_perms
+    from apps.core import permissions, view_perms
 
     return shows_customers(tenant) and (
-        user is None or view_perms.query_allowed(user, "verkaeufe", f"?tab={KUNDEN_TAB}")
+        user is None
+        or not permissions.is_member(user)
+        or view_perms.query_allowed(user, "verkaeufe", f"?tab={KUNDEN_TAB}")
     )
 
 

@@ -21,6 +21,7 @@ from apps.core import (
     compositions,
     detail_sections,
     list_blocks,
+    permissions,
     presence,
     studio_pages,
     studio_scope,
@@ -293,7 +294,7 @@ def dashboard(request):
     # доска), а не набор плиток. Контекст и тело — те же, что у страницы Verkäufe
     # (`body_context` + `core/_sales_body.html`), поэтому петля не форкается.
     loop_kind = (sales_page.visible_kinds(tenant) or [""])[0]
-    if not has_perm(request.user, "verkaeufe.view"):
+    if not permissions.chrome_allows(request.user, "verkaeufe.view"):
         loop_kind = ""  # E6.7e: главная открыта всем, петля продаж — по праву раздела
     loop_view = sales_page.resolve_view(tenant, loop_kind) if loop_kind else ""
     loop_ctx = {}

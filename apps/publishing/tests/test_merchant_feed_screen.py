@@ -261,10 +261,10 @@ def test_entry_points_link_to_screen(owner, isolated_ratelimit):
 
 
 def test_nav_registry_entry_is_owner_only():
-    from apps.core import nav_registry
+    from apps.core import nav_registry, view_perms
 
-    entries = [e for e in nav_registry.ENTRIES if e.url_name == "gbp-merchant"]
-    assert entries and entries[0].owner_only
+    assert [e for e in nav_registry.ENTRIES if e.url_name == "gbp-merchant"]
+    assert view_perms.rule_for("gbp-merchant").read == "kanaele.edit"  # E6.7e: скрытие из прав
 
 
 def test_unreadable_token_offers_new_address_without_confirm(owner, isolated_ratelimit):

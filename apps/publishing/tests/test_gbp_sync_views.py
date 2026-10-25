@@ -387,10 +387,12 @@ def test_staff_blocked_by_middleware(django_user_model, path):
 
 
 def test_nav_registry_has_entry():
+    from apps.core import view_perms
     from apps.core.nav_registry import ENTRIES
 
     entry = next(e for e in ENTRIES if e.url_name == "gbp-sync")
-    assert entry.owner_only and entry.palette_only
+    assert entry.palette_only  # E6.7e: скрытие у сотрудника — из права kanaele.edit
+    assert view_perms.rule_for("gbp-sync").read == "kanaele.edit"
     assert entry.nav_key == "channels"
 
 

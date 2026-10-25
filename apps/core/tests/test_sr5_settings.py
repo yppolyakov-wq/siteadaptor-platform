@@ -77,10 +77,12 @@ def test_overview_hides_owner_only_for_staff(monkeypatch):
     t = _tenant()
     owner_body = _get(t).content.decode()
     assert "/dashboard/billing/" in owner_body
-    from apps.core import roles
+    from django.contrib.auth import get_user_model
+
     from apps.core.models import Membership
 
-    monkeypatch.setattr(roles, "role_of", lambda u: Membership.ROLE_STAFF)
-    staff_body = _get(t).content.decode()
+    staff = get_user_model().objects.create_user(username="sr5-staff", password="pw12345678")
+    Membership.objects.create(user=staff, role=Membership.ROLE_STAFF)
+    staff_body = _get(t, staff).content.decode()  # E6.7e: скрытие — по правам сотрудника
     assert "/dashboard/billing/" not in staff_body
     assert "/dashboard/settings/" in staff_body  # обычные строки на месте

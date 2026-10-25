@@ -303,7 +303,8 @@ def test_screen_is_owner_only():
         assert open_as(req, ok).status_code == status, role
     from apps.core import nav_registry
 
-    assert nav_registry.entry_for("marketing", "portal-stats").owner_only is True
+    staff = _member(Membership.ROLE_STAFF)  # E6.7e: скрытие из прав (stadtportal.view)
+    assert "portal-stats" in nav_registry.hidden_for(staff)
 
 
 def test_marketing_metric_only_for_owner():

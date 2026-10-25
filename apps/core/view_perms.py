@@ -415,7 +415,7 @@ def url_allowed(user, url: str, method: str = "GET") -> bool:
     """Ссылка/кнопка кабинета (готовый URL) — открывается ли этому пользователю. Не
     экран кабинета (витрина, чужой путь) — True: это не зона прав. Без пользователя —
     True (fail-open хрома; доступ держит middleware)."""
-    if not url or user is None or not getattr(user, "is_authenticated", False):
+    if not url or user is None or not permissions.is_member(user):
         return True
     from urllib.parse import urlsplit
 

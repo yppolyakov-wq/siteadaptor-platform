@@ -37,12 +37,15 @@ WIDGET_PERMS = {
 
 def widgets_for(user, widgets) -> list[dict]:
     """Виджеты, данные которых пользователь вправе видеть (неизвестный ключ — скрыт)."""
-    from apps.core.permissions import has_perm
+    from apps.core.permissions import chrome_allows
+
+    def _perm(key):
+        if key.startswith("orders_"):
+            return "verkaeufe.view"  # счётчики заказов дня (orders_new/…)
+        return WIDGET_PERMS.get(key)
 
     return [
-        w
-        for w in widgets
-        if w.get("key") in WIDGET_PERMS and has_perm(user, WIDGET_PERMS[w["key"]])
+        w for w in widgets if _perm(w.get("key") or "") and chrome_allows(user, _perm(w["key"]))
     ]
 
 
