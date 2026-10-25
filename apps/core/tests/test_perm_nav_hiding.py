@@ -1,0 +1,102 @@
+"""KA-12 E6.7e: навигация по правам — скрываем ровно то, что middleware отдал бы 403.
+
+План — docs/ka-12-e6-7e-nav-by-perms-plan-2026-10-25.md. Источник один — ``view_perms``
+(+ ``QUERY_RULES`` для вкладок-адресов). Замки: каждая ссылка кабинета, которую видит
+сотрудник с урезанными правами, открывается (адверсариально по дельтам); раздел без
+разрешённых экранов скрыт; вкладка «Kunden» без ``kunden.view`` не отдаёт список.
+"""
+
+import re
+from urllib.parse import urlsplit
+
+import pytest
+from django.urls import Resolver404, resolve
+
+from apps.core import modules, nav_registry, sales_page, view_perms
+from apps.core import permissions as P
+from apps.core.models import Membership
+from apps.core.tests.test_staff_walk import _open, _tenant, _user
+
+pytestmark = pytest.mark.django_db
+
+ROLE_KEYS = sorted(P.for_role(Membership.ROLE_STAFF))
+PAGES = ("/dashboard/", "/dashboard/verkaeufe/", "/dashboard/settings/")
+HREF = re.compile(r'href="(/(?:dashboard|crm|catalog|promotions|finance|imports)[^"#]*)"')
+
+
+def _staff(remove=()):
+    user = _user(Membership.ROLE_STAFF)
+    Membership.objects.filter(user=user).update(permissions={"remove": sorted(remove)})
+    return user
+
+
+def _assert_links_allowed(tenant, user, label):
+    bad = []
+    for page in PAGES:
+        resp = _open(page, tenant, user)
+        if resp.status_code != 200:
+            continue  # сам экран закрыт — его ссылки в меню и так не показаны (проверено ниже)
+        html = resp.content.decode()
+        for href in set(HREF.findall(html)):
+            parts = urlsplit(href.replace("&amp;", "&"))
+            try:
+                match = resolve(parts.path)
+            except Resolver404:
+                continue
+            name = match.view_name
+            if view_perms.rule_for(name) is None:
+                continue  # не экран кабинета (витрина/статика) — не наша зона
+            query = f"?{parts.query}" if parts.query else ""
+            if not view_perms.allowed(user, name, "GET") or not view_perms.query_allowed(
+                user, name, query
+            ):
+                bad.append((page, href))
+    assert not bad, f"{label}: ссылки на запрещённые экраны {bad[:8]}"
+
+
+@pytest.mark.parametrize("kind", ["bakery", "hotel", "friseur", "catering"])
+def test_staff_preset_sees_only_allowed_links(kind):
+    tenant = _tenant(kind)
+    _assert_links_allowed(tenant, _staff(), f"{kind}/staff")
+
+
+@pytest.mark.parametrize("key", ROLE_KEYS)
+def test_staff_without_one_key_sees_only_allowed_links(key):
+    """Адверсариально: снять по одному каждый ключ пресета (с зависимыми)."""
+    tenant = _tenant("bakery")
+    _assert_links_allowed(tenant, _staff([key]), f"-{key}")
+
+
+def test_sidebar_items_all_allowed_and_empty_section_hidden():
+    tenant = _tenant("hotel")
+    user = _staff([k for k in ROLE_KEYS if k.startswith(("verkaeufe", "rezeption", "ablaeufe"))])
+    items = modules.sidebar_nav(tenant, user)
+    for it in items:
+        for name in [it["target"]] + [c["url_name"] for c in it["children"]]:
+            assert view_perms.allowed(user, name, "GET"), (it["nav_key"], name)
+    assert "board" not in {it["nav_key"] for it in items}  # «Verkäufe» без права — скрыт
+
+
+def test_owner_sidebar_unchanged_by_permissions():
+    tenant = _tenant("hotel")
+    owner = _user(Membership.ROLE_OWNER)
+    assert nav_registry.hidden_for(owner) == frozenset()
+    assert any(it["nav_key"] == "board" for it in modules.sidebar_nav(tenant, owner))
+
+
+def test_customers_tab_requires_kunden_view():
+    tenant = _tenant("bakery")
+    staff = _staff(["kunden.view"])
+    assert sales_page.customers_tab(tenant, "", staff) is None
+    resp = _open("/dashboard/verkaeufe/?tab=kunden", tenant, staff)
+    html = resp.content.decode()
+    assert "data-kunden-tab" not in html
+    allowed = _staff()
+    assert sales_page.customers_tab(tenant, "", allowed) is not None
+    assert "data-kunden-tab" in _open("/dashboard/verkaeufe/", tenant, allowed).content.decode()
+
+
+def test_query_rules_point_to_registered_screens():
+    for (name, query), key in view_perms.QUERY_RULES.items():
+        assert view_perms.rule_for(name) is not None, name
+        assert query.startswith("?") and key in P.PERMS

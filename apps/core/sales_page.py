@@ -355,11 +355,21 @@ def tab_descriptors(tenant, active_kind: str) -> list[dict]:
     return tabs
 
 
-def customers_tab(tenant, active_kind: str) -> dict | None:
+def customers_allowed(tenant, user) -> bool:
+    """E6.7e: вкладка клиентов — по праву ``kunden.view`` (view_perms.QUERY_RULES —
+    тот же источник, что скрывает её в меню); без него список клиентов не отдаём."""
+    from apps.core import view_perms
+
+    return shows_customers(tenant) and (
+        user is None or view_perms.query_allowed(user, "verkaeufe", f"?tab={KUNDEN_TAB}")
+    )
+
+
+def customers_tab(tenant, active_kind: str, user=None) -> dict | None:
     """Вкладка «Kunden» — отдельно от направлений сделок: ряд вкладок остаётся
     рядом НАПРАВЛЕНИЙ (VS-2a: одинокое направление ряда не рисует), а клиенты
-    примыкают к нему справа. Гейт — модуль crm."""
-    if not shows_customers(tenant):
+    примыкают к нему справа. Гейт — право ``kunden.view``."""
+    if not customers_allowed(tenant, user):
         return None
     return {"kind": KUNDEN_TAB, "label": _("Kunden"), "active": active_kind == KUNDEN_TAB}
 
@@ -481,6 +491,8 @@ def body_context(request, kind: str, view: str) -> dict:
     tenant = request.tenant
     ctx: dict = {}
     if kind == KUNDEN_TAB:
+        if not customers_allowed(tenant, getattr(request, "user", None)):
+            return {}  # E6.7e: без kunden.view — без списка клиентов
         # SH-15: тот же контекст, что у экрана CRM (crm.views.customer_list_context).
         # `crm_active` гейтит ссылки на карточку/экспорт/компании: без модуля они
         # упёрлись бы в гейт путей (404) — класс дефекта из сверки 2026-08-19.
@@ -626,7 +638,7 @@ def create_target(kind: str, customers: bool = False) -> str:
     return ""
 
 
-def tabbar_create_target(tenant) -> str:
+def tabbar_create_target(tenant, user=None) -> str:
     """KA-12 E8.8: «＋» таб-бара — создать по главному направлению тенанта; где формы
     нет (заказы/билеты) — быстрая акция, если модуль акций включён; иначе кнопки нет.
     Без запросов: primary_module читает конфиг тенанта."""
@@ -636,4 +648,7 @@ def tabbar_create_target(tenant) -> str:
         from django.urls import reverse
 
         url = reverse("promotions:promotion-quick")
-    return url
+    from apps.core import view_perms
+
+    # E6.7e: «＋» ведёт к созданию — кнопка только при праве записи этого экрана.
+    return url if view_perms.url_allowed(user, url, "POST") else ""

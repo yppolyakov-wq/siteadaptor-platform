@@ -33,18 +33,10 @@ _STATIC = {
 def _visible_entries(tenant, user):
     """Подпункты Einstellungen под ТЕМИ ЖЕ гейтами и в том же порядке, что подменю
     сайдбара (nav_registry.visible_children): модуль · направление · тип бизнеса ·
-    owner-only у сотрудника · пункты скрытого «Finanzen» группой «Zahlen & Finanzen»."""
-    from apps.core import roles
-    from apps.core.models import Membership
+    права пользователя (E6.7e) · пункты скрытого «Finanzen» группой «Zahlen & Finanzen»."""
+    from apps.core.modules import owner_hidden_for
 
-    owner_hidden = frozenset()
-    if user is not None:
-        try:
-            role = roles.role_of(user)
-            if role and role != Membership.ROLE_OWNER:
-                owner_hidden = nav_registry.owner_only_url_names()
-        except Exception:  # noqa: BLE001 — fail-open, как в sidebar_nav
-            owner_hidden = frozenset()
+    owner_hidden = owner_hidden_for(user)
     anchor = next(a for a in nav_registry.ANCHORS if a.nav_key == "settings")
     out = []
     for e, group in nav_registry.visible_children(anchor, tenant, owner_hidden):

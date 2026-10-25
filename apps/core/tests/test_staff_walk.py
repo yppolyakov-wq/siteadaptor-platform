@@ -31,24 +31,6 @@ pytestmark = pytest.mark.django_db
 # Представительные типы: товар, номера, запись, заявки, онлайн-магазин, лёгкая ступень.
 REPRESENTATIVE = ["bakery", "hotel", "friseur", "catering", "online_shop", "aktionen"]
 
-# Owner-only пути без записи в навигации — с причиной (POST-приёмники и выгрузки).
-EXPECTED_OWNER_ONLY_UNLISTED = {
-    "/dashboard/verkaeufe/export.csv": "CSV продаж — кнопка в тулбаре списка (KA-12 E2.2)",
-    "/dashboard/channels/config/": "POST-приёмник настроек канала",
-    "/dashboard/channels/connect/": "POST-приёмник подключения канала",
-    "/dashboard/channels/toggle/": "POST-приёмник вкл/выкл канала",
-    "/dashboard/settings/notifications/telegram/": "POST-приёмник ссылки на общий бот",
-    "/dashboard/integrationen/telegram-aktivieren/": "POST-приёмник включения модуля",
-    "/dashboard/telegram/connect/": "POST-приёмник токена своего бота",
-    "/dashboard/telegram/disconnect/": "POST-приёмник отключения своего бота",
-    "/crm/export.csv": "кнопка выгрузки на экране CRM, не пункт меню",
-    "/dashboard/stays/berichte/export.csv": "кнопка выгрузки на экране отчётов",
-    "/imports/website/": "вход из экрана импорта",
-    "/dashboard/geschaeft/": "лёгкий кабинет: пункт своего меню (lite_cabinet)",
-    "/dashboard/channels/google/": "вход с экрана каналов",
-    "/dashboard/erstattung/": "POST-приёмник частичного возврата с карточки сделки (B2-4)",
-}
-
 
 @pytest.fixture(autouse=True)
 def _urlconf(settings):
@@ -134,20 +116,21 @@ def test_middleware_floor_is_part_of_yesterdays_owner_zone():
         assert prefix.startswith(LG.LEGACY_OWNER_ONLY_PREFIXES), prefix
 
 
-def test_owner_only_nav_entries_match_middleware():
-    """owner_only-запись навигации ⇔ путь под owner-префиксом (или объяснённое исключение)."""
-    for name in nav_registry.owner_only_url_names():
-        path = reverse(name)
-        assert LG.legacy_role_for_path(path) == LG.ROLE_OWNER_ONLY, (
-            f"{name} помечен owner_only, но мидлварь его не закрывает: {path}"
+def test_staff_nav_hides_exactly_what_view_perms_forbid():
+    """E6.7e (заменил owner_only-флаг): у staff скрыто ровно запрещённое ``view_perms``;
+    экраны «пол владельца» скрыты всегда, разрешённые — видны."""
+    from apps.core import view_perms
+
+    staff = _user(Membership.ROLE_STAFF)
+    hidden = nav_registry.hidden_for(staff)
+    for e in nav_registry.ENTRIES:
+        assert (e.url_name in hidden) == (not view_perms.allowed(staff, e.url_name, "GET")), (
+            e.url_name
         )
-    covered = {reverse(name) for name in nav_registry.owner_only_url_names()}
-    for prefix in LG.LEGACY_OWNER_ONLY_PREFIXES:
-        if any(path.startswith(prefix) for path in covered):
-            continue
-        assert prefix in EXPECTED_OWNER_ONLY_UNLISTED, (
-            f"owner-only префикс {prefix} без owner_only-записи и без причины в списке"
-        )
+        if view_perms.rule_for(e.url_name).read == view_perms.FLOOR:
+            assert e.url_name in hidden, e.url_name
+    owner = _user(Membership.ROLE_OWNER)
+    assert nav_registry.hidden_for(owner) == frozenset()
 
 
 def _walk_patterns(patterns, prefix=""):

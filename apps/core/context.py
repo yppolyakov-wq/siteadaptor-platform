@@ -470,7 +470,9 @@ def modules_nav(request):
         for it in _compact[:4]
     ]
     if not _lite_cabinet.is_lite_request(request):
-        nav_primary = _cabinet_tabbar(tenant, _compact) or nav_primary
+        nav_primary = (
+            _cabinet_tabbar(tenant, _compact, getattr(request, "user", None)) or nav_primary
+        )
     # DS-3b (Fokus): CTA primary-действия в шапке (nav.cta) — метка/URL из
     # реестра primary_item (как hero-CTA); нерезолвимый лендинг → кнопки нет.
     storefront_nav_cta = None
@@ -660,7 +662,7 @@ def modules_nav(request):
     }
 
 
-def _cabinet_tabbar(tenant, compact) -> list[dict]:
+def _cabinet_tabbar(tenant, compact, user=None) -> list[dict]:
     """KA-12 E8.8 (KA-4 §7): таб-бар полного кабинета — Übersicht · Verkäufe · ＋ ·
     Nachrichten (без чата — Sortiment) · Mehr (кнопка шаблона). Пункты берутся из уже
     собранного сайдбара (те же гейты и роли), «＋» — цель создания главного направления."""
@@ -685,7 +687,7 @@ def _cabinet_tabbar(tenant, compact) -> list[dict]:
     if len(out) < 2:
         return []
     try:
-        plus = sales_page.tabbar_create_target(tenant)
+        plus = sales_page.tabbar_create_target(tenant, user)
     except Exception:  # noqa: BLE001 — хром кабинета не падает из-за «＋»
         plus = ""
     if plus:

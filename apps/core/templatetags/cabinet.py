@@ -53,24 +53,6 @@ def status_label(context, obj, kind="order"):
 HUB_TABS = nav_registry.legacy_hub_tabs()
 
 
-def _hide_owner_only(context) -> bool:
-    """X0: True — пользователь ОПРЕДЕЛЁННО сотрудник (не owner) текущего тенанта →
-    owner-only записи (Recht/Abo/Team) прячем: мидлварь W9-10 всё равно отдаст им
-    403, мёртвый таб только путает. Fail-open: аноним/тест-стаб/ошибка → показываем
-    (доступ держит middleware, скрытие — чистый UX-слой)."""
-    request = context.get("request")
-    if request is None:
-        return False
-    try:
-        from apps.core import roles
-        from apps.core.models import Membership
-
-        role = roles.role_of(getattr(request, "user", None))
-        return bool(role) and role != Membership.ROLE_OWNER
-    except Exception:  # noqa: BLE001 — рендер хрома не должен падать из-за ролей
-        return False
-
-
 @register.simple_tag(takes_context=True)
 def query_with(context, key, value=""):
     """KA-12 E2.9: текущий GET с заменённым `key` (пусто — убрать); номер
@@ -121,6 +103,18 @@ def list_pager(context, page, base=""):
 
 
 @register.filter
+def can_open(url_name, request):
+    """E6.7e: `{% if 'modules'|can_open:request %}` — экран открывается этому
+    пользователю (``view_perms``; тот же источник, что скрывает меню)."""
+    from apps.core import view_perms
+
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return True
+    return view_perms.allowed_quiet(user, url_name, "GET")
+
+
+@register.filter
 def pkg_allowed(url_name, tenant):
     """T-8.32b: `{% if 'payment-settings'|pkg_allowed:request.tenant %}` — экран открыт пакету."""
     return tenant is None or packages.view_allowed(tenant, str(url_name))
@@ -146,7 +140,7 @@ def nav_palette(context):
     request = context.get("request")
     tenant = getattr(request, "tenant", None) if request is not None else None
     area_by_hub = {hub: a.label for a in nav_registry.ANCHORS for hub in a.hubs}
-    owner_hidden = nav_registry.owner_only_url_names() if _hide_owner_only(context) else frozenset()
+    owner_hidden = modules.owner_hidden_for(getattr(request, "user", None))
     entries = []
     for e in nav_registry.palette_entries():
         anchor = e.get("anchor")
@@ -159,8 +153,8 @@ def nav_palette(context):
         mod = e["module_key"]
         if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
             continue
-        if e["url_name"] in owner_hidden:  # X0: сотрудник не видит owner-only экраны
-            continue
+        if e["url_name"] in owner_hidden or e["url_name"] + e.get("query", "") in owner_hidden:
+            continue  # E6.7e: экраны без права пользователя не показываем
         if not nav_registry.allowed_for_business(e["url_name"], tenant):
             continue  # X4: гейт по типу бизнеса (гастро-экраны)
         entry = e.get("entry")

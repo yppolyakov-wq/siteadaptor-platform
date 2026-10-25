@@ -39,9 +39,6 @@ class NavEntry:
     module_key: str | None = None  # гейт активности (None = ядро)
     advanced: bool = False  # ящик «Erweitert»
     search: str = ""  # ключевые слова палитры (дополняют label)
-    # X0 (план cabinet-cleanup-2026-08-19): owner-only экраны (мидлварь W9-10 и
-    # так отдаёт сотруднику 403 — здесь СКРЫТИЕ, чтобы не показывать мёртвые табы).
-    owner_only: bool = False
     # X4: «ящик Erweitert таб-бара» и «подпункты якоря в сайдбаре» были ОДНИМ
     # множеством (advanced) — склад висел в подпунктах «товаров» у парикмахера.
     # None = «как advanced» (прежнее поведение), False = остаётся в ящике, но
@@ -177,7 +174,6 @@ def _e(
     module_key=None,
     advanced=False,
     search="",
-    owner_only=False,
     sidebar=None,
     palette_only=False,
     business_types=(),
@@ -194,7 +190,6 @@ def _e(
         module_key,
         advanced,
         search,
-        owner_only,
         sidebar,
         palette_only,
         business_types,
@@ -386,7 +381,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Stadtportal"),
         "portal-stats",
         search="stadtportal besuche klicks statistik portal aufrufe",
-        owner_only=True,  # решение владельца: статистику видит только владелец
         group="reichweite",
     ),
     _e(
@@ -450,7 +444,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         "channels",
         "publishing",
         search="google profil öffnungszeiten standort sync",
-        owner_only=True,
         palette_only=True,
         group="reichweite",
     ),
@@ -462,7 +455,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         "channels",
         "publishing",
         search="google merchant produktfeed shopping feed produkte",
-        owner_only=True,
         palette_only=True,
         group="reichweite",
     ),
@@ -610,7 +602,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         "catalog",
         True,
         search="website import übernehmen shop seite",
-        owner_only=True,
         # Вход — со страницы «Import» и из Ctrl+K; состав подменю «Sortiment» не трогаем.
         palette_only=True,
     ),
@@ -724,7 +715,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         "finance",
         True,
         "bank kontoauszug abgleich umsatz vorkasse",
-        owner_only=True,  # банковские выписки (IBAN, плательщики) — только владелец
         group="buchhaltung",
     ),
     # W11-1: хаб «Kunden» удалён (Р-2) — страницы crm/inbox/telegram рендерят
@@ -754,7 +744,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         "betriebsferien",
         search="urlaub ferien geschlossen feiertag pause",
         group="geschaeft",
-        owner_only=True,  # решение владельца: закрыть весь бизнес — только владелец
     ),
     # X0: Recht/Abo/Team — owner-only (зеркалит _OWNER_ONLY мидлвари W9-10;
     # сотруднику таб не показывается вместо мёртвого 403).
@@ -764,7 +753,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Recht & Steuern"),
         "legal-docs",
         search="impressum datenschutz agb widerruf steuer",
-        owner_only=True,
         group="geschaeft",
     ),
     _e(
@@ -825,7 +813,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Zahlungen empfangen"),
         "billing",
         search="stripe connect auszahlung konto verbinden",
-        owner_only=True,
         palette_only=True,
         group="system",
     ),
@@ -835,7 +822,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Abo & Rechnung"),
         "billing",
         search="abo tarif subscription rechnung",
-        owner_only=True,
         group="system",
     ),
     # W9-10 (Р-7): членства/роли/инвайт — owner-only (middleware).
@@ -845,7 +831,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Team & Zugriff"),
         "team",
         search="team mitarbeiter rollen zugriff einladen",
-        owner_only=True,
         group="geschaeft",
     ),
     _e(
@@ -1119,7 +1104,7 @@ def entry_visible(entry: NavEntry, tenant, owner_hidden=frozenset()) -> bool:
         return False
     if not allowed_for_business(entry.url_name, tenant):
         return False
-    return entry.url_name not in owner_hidden
+    return entry.url_name not in owner_hidden and (entry.url_name + entry.query) not in owner_hidden
 
 
 # --- Карта подсветки: nav_key страницы → nav_key якоря сайдбара ---------------
@@ -1163,10 +1148,23 @@ def anchor_for(nav_key: str) -> str:
     return ANCHOR_BY_NAV.get(nav_key or "", "")
 
 
-def owner_only_url_names() -> frozenset[str]:
-    """X0: url_name'ы owner-only записей — потребители (hub_tabs/палитра) прячут
-    их у сотрудников; доступ и так держит CabinetOwnerAccessMiddleware."""
-    return frozenset(e.url_name for e in ENTRIES if e.owner_only)
+def hidden_for(user) -> frozenset[str]:
+    """E6.7e: адреса реестра, которые пользователь НЕ вправе открыть — ``url_name`` и
+    ``url_name+query`` (вкладки со своим правом). Источник один — ``view_perms``: меню
+    прячет ровно то, что middleware отдал бы 403. Аноним/None — пусто (fail-open
+    хрома: доступ держит middleware)."""
+    if user is None or not getattr(user, "is_authenticated", False):
+        return frozenset()
+    from apps.core import view_perms
+
+    out = set()
+    for name in {e.url_name for e in ENTRIES} | {a.url_name for a in ANCHORS}:
+        if not view_perms.allowed_quiet(user, name, "GET"):
+            out.add(name)
+    for (name, query), _key in view_perms.QUERY_RULES.items():
+        if not view_perms.query_allowed(user, name, query):
+            out.add(name + query)
+    return frozenset(out)
 
 
 def entry_for(hub: str, url_name: str) -> NavEntry | None:
@@ -1294,6 +1292,12 @@ def anchor_target(anchor, tenant, owner_hidden=frozenset()) -> str:
         # сам якорь у разделов с целями — редирект-заглушка (иначе петля 302).
         for e, _group in visible_children(anchor, tenant, owner_hidden):
             if not e.query and e.url_name != anchor.url_name:
+                return e.url_name
+        return "dashboard"
+    if anchor.url_name in owner_hidden:
+        # E6.7e: обзор раздела закрыт правами — ведём на первый разрешённый подпункт.
+        for e, _group in visible_children(anchor, tenant, owner_hidden):
+            if not e.query:
                 return e.url_name
         return "dashboard"
     return anchor.url_name

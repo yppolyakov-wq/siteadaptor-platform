@@ -60,7 +60,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
     {% comment %}SH-15: без модуля CRM список читается, но карточка/теги/заметки/
     экспорт живут в модуле — говорим об этом прямо, а не молча прячем.{% endcomment %}
     <p class="text-sm text-gray-500">{% trans "Kundenkarte mit Notizen, Tags und Historie gibt es im Modul «Kunden (CRM)»." %}
-      <a href="{% url 'modules' %}" class="text-indigo-600 hover:underline">{% trans "Funktion hinzufügen" %} →</a></p>
+      {% if 'modules'|can_open:request %}<a href="{% url 'modules' %}" class="text-indigo-600 hover:underline">{% trans "Funktion hinzufügen" %} →</a>{% endif %}</p>
   {% endif %}
 </div>
 {% elif active_view != "heute" %}
@@ -87,9 +87,9 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
     раздела вернулся на страницу. SM-4 увёл «Abläufe» в подпункт сайдбара — и
     владелец перестал находить настройки доски/статусов. Кнопка несёт активный
     kind и `from=board`: крошка на «Abläufe» вернёт на ту же вкладку (X5-3).{% endcomment %}
-    <a href="{% url 'ablaeufe' %}?kind={{ active_kind }}&amp;from=board"
+    {% if 'ablaeufe'|can_open:request %}<a href="{% url 'ablaeufe' %}?kind={{ active_kind }}&amp;from=board"
        class="text-sm font-medium text-gray-600 bg-white rounded-xl px-3 py-1.5 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50"
-       title="{% trans 'Tafel, Status und Felder dieses Bereichs einstellen' %}">⚙️ <span class="hidden sm:inline">{% trans "Einstellungen" %}</span></a>
+       title="{% trans 'Tafel, Status und Felder dieses Bereichs einstellen' %}">⚙️ <span class="hidden sm:inline">{% trans "Einstellungen" %}</span></a>{% endif %}
   </div>
 </div>
 {% endif %}

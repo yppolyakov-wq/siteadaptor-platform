@@ -597,19 +597,14 @@ NAV_TASK_LABELS: dict[str, str] = {
 
 
 def owner_hidden_for(user) -> frozenset:
-    """owner-only записи, скрытые от сотрудника (пусто — владельцу/анониму)."""
-    if user is None:
-        return frozenset()
+    """E6.7e: адреса, скрытые от пользователя по его правам (``nav_registry.hidden_for``;
+    имя историческое — раньше прятались только owner-only записи)."""
     try:
-        from apps.core import nav_registry, roles
-        from apps.core.models import Membership
+        from apps.core import nav_registry
 
-        role = roles.role_of(user)
-        if role and role != Membership.ROLE_OWNER:
-            return nav_registry.owner_only_url_names()
-    except Exception:  # noqa: BLE001 — рендер хрома не падает из-за ролей
-        pass
-    return frozenset()
+        return nav_registry.hidden_for(user)
+    except Exception:  # noqa: BLE001 — рендер хрома не падает из-за прав
+        return frozenset()
 
 
 # ST-4b: компактный сайдбар «хабы + Website» — плоский список якорей.
@@ -619,10 +614,9 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
     """Якоря компактного сайдбара — из ЕДИНОГО реестра (W8, nav_registry.ANCHORS).
     Гейты — по активным модулям; nav_key = значение `nav` целевой страницы.
     R7-1: у якоря — `children` (ВЕСЬ состав его хабов; клик по разделу раскрывает
-    подменю). `user` — для owner-гейта: сотруднику owner-only экраны (Team/Abo/
-    Recht) не показываем, мидлварь W9-10 всё равно отдала бы 403 (прежде этот
-    гейт жил только в снесённом теге hub_tabs и в палитре). Fail-open: без
-    user/при ошибке ролей показываем всё — доступ держит middleware."""
+    подменю). `user` — для гейта прав (E6.7e): экраны, которые middleware отдал бы
+    403 (`view_perms`), не показываем; раздел без разрешённых экранов скрыт. Fail-open:
+    без user/при ошибке показываем всё — доступ держит middleware."""
     from apps.core import lite_cabinet, nav_registry
 
     # T-8.23c: лёгкий кабинет «Nur Aktionen» — 4 плоских пункта вместо якорей W8.
@@ -692,7 +686,11 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
             for c in children:
                 if c["url_name"] == "inbox:list":
                     c["badge"] = "inbox"  # KA-12 E8.4: бейдж — у самого пункта в группе
-            if e is not None and not any(c["url_name"] == e.url_name for c in children):
+            if (
+                e is not None
+                and nav_registry.entry_visible(e, tenant, owner_hidden)
+                and not any(c["url_name"] == e.url_name for c in children)
+            ):
                 children.insert(
                     0,
                     {
@@ -719,6 +717,9 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
             for c in children:
                 c["hint"] = hints.get(c["url_name"], "")
         target = nav_registry.anchor_target(a, tenant, owner_hidden)
+        emptied = bool(owner_hidden) and not children and target == "dashboard" != a.url_name
+        if target in owner_hidden or emptied:
+            continue  # E6.7e: в разделе нет ни одного разрешённого экрана — раздел скрыт
         if children and not any(c["url_name"] == target and not c.get("query") for c in children):
             children.insert(
                 0,

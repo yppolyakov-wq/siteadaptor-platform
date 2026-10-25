@@ -402,6 +402,48 @@ def allowed(user, view_name: str, method: str) -> bool:
     return _passes(user, key)
 
 
+def allowed_quiet(user, view_name: str, method: str = "GET") -> bool:
+    """``allowed`` для хрома (меню/палитра/плитки): незарегистрированный экран — False
+    с записью в лог, без исключения strict-режима (рендер меню не должен падать)."""
+    if rule_for(view_name) is None:
+        logger.error("view_perms: ссылка на экран без права %r скрыта", view_name)
+        return False
+    return allowed(user, view_name, method)
+
+
+def url_allowed(user, url: str, method: str = "GET") -> bool:
+    """Ссылка/кнопка кабинета (готовый URL) — открывается ли этому пользователю. Не
+    экран кабинета (витрина, чужой путь) — True: это не зона прав. Без пользователя —
+    True (fail-open хрома; доступ держит middleware)."""
+    if not url or user is None or not getattr(user, "is_authenticated", False):
+        return True
+    from urllib.parse import urlsplit
+
+    from django.urls import Resolver404, resolve
+
+    parts = urlsplit(url)
+    try:
+        name = resolve(parts.path).view_name
+    except Resolver404:
+        return True
+    if rule_for(name) is None:
+        return True
+    query = f"?{parts.query}" if parts.query else ""
+    return allowed_quiet(user, name, method) and query_allowed(user, name, query)
+
+
+# E6.7e: вкладки-адреса одного экрана со СВОИМ правом (иначе — право экрана). Ту же
+# карту проверяет сама страница: скрытие в меню без проверки на экране — косметика.
+QUERY_RULES: dict[tuple[str, str], str] = {
+    ("verkaeufe", "?tab=kunden"): "kunden.view",
+}
+
+
+def query_allowed(user, view_name: str, query: str) -> bool:
+    key = QUERY_RULES.get((view_name, query or ""))
+    return True if key is None else _passes(user, key)
+
+
 def _passes(user, key: str) -> bool:
     if key == OPEN:
         return True

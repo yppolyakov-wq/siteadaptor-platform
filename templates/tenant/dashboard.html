@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Dashboard" %}{% endblock %}
 
 {% block dash_content %}
@@ -105,6 +105,6 @@ deep-links те же.{% endcomment %}
 </div>
 {% include "core/_sales_body.html" %}
 {% else %}
-<p class="text-sm text-gray-400">{% trans "Noch keine Verkaufskanäle aktiv." %} <a href="{% url 'modules' %}" class="text-indigo-600 hover:underline">{% trans "Funktionen" %} →</a></p>
+<p class="text-sm text-gray-400">{% trans "Noch keine Verkaufskanäle aktiv." %}{% if 'modules'|can_open:request %} <a href="{% url 'modules' %}" class="text-indigo-600 hover:underline">{% trans "Funktionen" %} →</a>{% endif %}</p>
 {% endif %}
 {% endblock %}

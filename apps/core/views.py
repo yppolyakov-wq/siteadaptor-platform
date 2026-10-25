@@ -4650,7 +4650,9 @@ def verkaeufe(request):
     active = request.GET.get("tab", "")
     # SH-15: «Kunden» — вкладка страницы продаж (не направление сделок): у неё
     # нет ни видов, ни «＋»-цели, тело — список клиентов CRM.
-    customers_tab = active == sales_page.KUNDEN_TAB and sales_page.shows_customers(tenant)
+    customers_tab = active == sales_page.KUNDEN_TAB and sales_page.customers_allowed(
+        tenant, request.user
+    )
     if not customers_tab and active not in kinds:
         active = kinds[0]
     view = (
@@ -4669,12 +4671,14 @@ def verkaeufe(request):
     # W10-3: «＋» из любого вида — цель создания по kind (есть только у
     # календарных движков: walk-in формы живут в их телах/на stay-new).
     create_target = sales_page.create_target(active, customers=customers_tab)
+    if not view_perms.url_allowed(request.user, create_target, "POST"):
+        create_target = ""  # E6.7e: «＋» только при праве создавать
     from apps.core import zusatz as zusatz_mod
 
     ctx = {
         "nav": "board",
         "sales_tabs": sales_page.tab_descriptors(tenant, active),
-        "customers_tab": sales_page.customers_tab(tenant, active),
+        "customers_tab": sales_page.customers_tab(tenant, active, request.user),
         "sales_views": [] if customers_tab else sales_page.view_descriptors(tenant, active, view),
         "active_kind": active,
         "active_view": view,
