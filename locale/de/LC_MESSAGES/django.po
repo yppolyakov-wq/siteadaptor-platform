@@ -29963,3 +29963,48 @@ msgstr "Wird von einem Recht benötigt, das nur der Inhaber entziehen kann."
 
 msgid "Rechte dieser Person ändert nur der Inhaber."
 msgstr "Rechte dieser Person ändert nur der Inhaber."
+
+msgid "Leitung"
+msgstr "Leitung"
+
+msgid "Alles außer Abo, Recht und Bankdaten."
+msgstr "Alles außer Abo, Recht und Bankdaten."
+
+msgid "Rechnungen, Journal, Export und Erstattungen."
+msgstr "Rechnungen, Journal, Export und Erstattungen."
+
+msgid "Mitarbeiter"
+msgstr "Mitarbeiter"
+
+msgid "Verkäufe, Sortiment, Kunden und Nachrichten — ohne Finanzen."
+msgstr "Verkäufe, Sortiment, Kunden und Nachrichten — ohne Finanzen."
+
+msgid "Aushilfe / Kasse"
+msgstr "Aushilfe / Kasse"
+
+msgid "Verkäufe bearbeiten, kassieren und Gutscheine einlösen."
+msgstr "Verkäufe bearbeiten, kassieren und Gutscheine einlösen."
+
+msgid "Rezeption"
+msgstr "Rezeption"
+
+msgid "An- und Abreise, Buchungen, Gäste und Zahlungen."
+msgstr "An- und Abreise, Buchungen, Gäste und Zahlungen."
+
+msgid "Belegung und Zimmerstatus ansehen."
+msgstr "Belegung und Zimmerstatus ansehen."
+
+msgid "Bestellungen sehen und den Status weitersetzen."
+msgstr "Bestellungen sehen und den Status weitersetzen."
+
+msgid "angepasst"
+msgstr "angepasst"
+
+msgid "Diese Vorlage enthält Rechte außerhalb Ihres Bereichs."
+msgstr "Diese Vorlage enthält Rechte außerhalb Ihres Bereichs."
+
+msgid "Diese Vorlage passt nicht zur Rolle."
+msgstr "Diese Vorlage passt nicht zur Rolle."
+
+msgid "Vorlage"
+msgstr "Vorlage"

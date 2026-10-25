@@ -21,6 +21,7 @@ from django.test import RequestFactory
 from django.urls import Resolver404, URLPattern, URLResolver, get_resolver, resolve, reverse
 
 from apps.core import modules, nav_registry, view_perms
+from apps.core import permissions as P
 from apps.core.middleware import CabinetOwnerAccessMiddleware
 from apps.core.models import Membership
 from apps.core.tests import legacy_role_gates as LG
@@ -183,7 +184,11 @@ def test_staff_and_admin_walk(kind, role):
         required = LG.legacy_role_for_path(path)
         response = _open(path, tenant, user)
         status = response.status_code
+        rule = view_perms.rule_for(name)
         if required == LG.ROLE_OWNER_ONLY:
+            expected_ok = status == 403
+        elif role == Membership.ROLE_STAFF and rule and rule.read in P._ADMIN_BY_DEFAULT:
+            # E6.7f (В-2/В-3): у сотрудника по умолчанию нет финансов/процессов/доменов/функций
             expected_ok = status == 403
         elif required == LG.ROLE_FINANCE:
             expected_ok = status == (200 if role == Membership.ROLE_ADMIN else 403)

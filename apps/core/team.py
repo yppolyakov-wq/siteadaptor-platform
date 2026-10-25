@@ -127,6 +127,7 @@ _DENIED_TEXT = {
     "self": gettext_lazy("Sich selbst entfernen ist nicht möglich."),
     "stale": gettext_lazy("Die Rechte wurden inzwischen geändert — bitte Seite neu laden."),
     "scope": gettext_lazy("Diese Änderung liegt außerhalb Ihres Bereichs."),
+    "template": gettext_lazy("Diese Vorlage passt nicht zur Rolle."),
 }
 
 
@@ -199,6 +200,23 @@ def _member_action(request, action):
         elif action == "role":
             perm_grants.set_member_role(request.user, member_pk, request.POST.get("role", ""))
             messages.success(request, _("Rolle geändert."))
+        elif request.POST.get("apply_template"):
+            # E6.7f: шаблон роли — та же выдача прав (области/requires/stale); имя хранится
+            # для подписи. Неизвестный шаблон — отказ «scope», а не тихий пресет.
+            from apps.core.role_templates import TEMPLATES
+
+            tpl = TEMPLATES.get(request.POST.get("apply_template", ""))
+            if tpl is None:
+                raise perm_grants.PermsDenied("scope")
+            perm_grants.set_member_permissions(
+                request.user,
+                member_pk,
+                tpl.keys,
+                template=tpl.key,
+                expected=request.POST.get("perms_state") or None,
+                strict_template=True,
+            )
+            messages.success(request, _("Rechte gespeichert."))
         elif request.POST.get("perms_present") == "1":
             perm_grants.set_member_permissions(
                 request.user,

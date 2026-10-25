@@ -54,6 +54,25 @@ lg+ вместо колонки max-w-3xl; на мобильном — одна 
                 <input type="hidden" name="membership_id" value="{{ r.m.pk }}">
                 <input type="hidden" name="perms_present" value="1">
                 <input type="hidden" name="perms_state" value="{{ r.perm_form.state }}">
+                {% if r.perm_form.templates %}
+                  <fieldset class="rounded-lg border border-gray-100 p-3">
+                    <legend class="px-1 text-xs font-semibold text-gray-700">{% trans "Vorlage" %}{% if r.perm_form.template_label %} · <span data-template-label>{{ r.perm_form.template_label }}</span>{% endif %}</legend>
+                    <div class="grid gap-2 sm:grid-cols-2">
+                      {% for t in r.perm_form.templates %}
+                        <div>
+                          <button type="submit" name="apply_template" value="{{ t.key }}" data-template="{{ t.key }}"
+                                  class="w-full text-left rounded-lg border px-3 py-2 text-sm {% if t.active %}border-indigo-500 bg-indigo-50{% else %}border-gray-200 hover:border-indigo-300{% endif %} disabled:opacity-60"
+                                  {% if t.disabled %}disabled aria-describedby="tpl-{{ r.m.pk }}-{{ t.key }}-why"{% endif %}
+                                  {% if t.active %}aria-current="true"{% endif %}>
+                            <span class="block font-medium text-gray-800">{{ t.label }}</span>
+                            <span class="block text-xs text-gray-500">{{ t.hint }}</span>
+                          </button>
+                          {% if t.disabled %}<p id="tpl-{{ r.m.pk }}-{{ t.key }}-why" class="mt-0.5 text-xs text-gray-500">{{ t.reason }}</p>{% endif %}
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </fieldset>
+                {% endif %}
                 {% include "tenant/_perm_fieldsets.html" with groups=r.perm_form.groups field="perm" %}
                 <button type="submit" aria-describedby="who-{{ r.m.pk }}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Rechte speichern" %}</button>
               </form>

@@ -19,7 +19,8 @@ from apps.tenants.tests.factories import TenantFactory
 
 OWNER_ONLY_KEYS = frozenset(permissions.PERMS) - permissions.PRESETS["admin"]
 ADMIN_ONLY_KEYS = permissions.PRESETS["admin"] - permissions.PRESETS["staff"]
-STAFF_KEYS = permissions.PRESETS["staff"]
+# E6.7f: «сегодня у staff» = пресет E6.7a; ключи, снятые В-2/В-3, — осознанно admin-дефолт.
+STAFF_KEYS = permissions.PRESETS["staff"] | permissions._ADMIN_BY_DEFAULT
 
 # Сегодня открыты по префиксу, но всё действие закрыто проверкой ВНУТРИ вьюхи
 # (отказ тем же 403/сообщением) — правило честно называет это право.
@@ -166,7 +167,9 @@ def _call(path, user, method="get", view_name=None):
 @pytest.mark.django_db
 def test_staff_without_key_gets_403(monkeypatch):
     user = _user(Membership.ROLE_STAFF)
-    assert _call("/dashboard/finance/", user, view_name="finance:journal") is None
+    assert _call("/dashboard/verkaeufe/", user, view_name="verkaeufe") is None
+    # E6.7f: финансы у staff по умолчанию закрыты
+    assert _call("/dashboard/finance/", user, view_name="finance:journal").status_code == 403
     monkeypatch.setattr("apps.core.permissions.effective", lambda u: frozenset())
     resp = _call("/dashboard/finance/", user, view_name="finance:journal")
     assert resp.status_code == 403

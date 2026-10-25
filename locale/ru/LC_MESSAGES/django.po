@@ -30146,3 +30146,48 @@ msgstr "Нужно для права, которое может отозвать
 
 msgid "Rechte dieser Person ändert nur der Inhaber."
 msgstr "Права этого человека меняет только владелец."
+
+msgid "Leitung"
+msgstr "Руководство"
+
+msgid "Alles außer Abo, Recht und Bankdaten."
+msgstr "Всё, кроме подписки, правовых данных и банковских реквизитов."
+
+msgid "Rechnungen, Journal, Export und Erstattungen."
+msgstr "Счета, журнал, экспорт и возвраты."
+
+msgid "Mitarbeiter"
+msgstr "Сотрудник"
+
+msgid "Verkäufe, Sortiment, Kunden und Nachrichten — ohne Finanzen."
+msgstr "Продажи, ассортимент, клиенты и сообщения — без финансов."
+
+msgid "Aushilfe / Kasse"
+msgstr "Подработка / касса"
+
+msgid "Verkäufe bearbeiten, kassieren und Gutscheine einlösen."
+msgstr "Вести продажи, принимать оплату и погашать сертификаты."
+
+msgid "Rezeption"
+msgstr "Ресепшн"
+
+msgid "An- und Abreise, Buchungen, Gäste und Zahlungen."
+msgstr "Заезд и выезд, брони, гости и оплаты."
+
+msgid "Belegung und Zimmerstatus ansehen."
+msgstr "Просмотр загрузки и статуса номеров."
+
+msgid "Bestellungen sehen und den Status weitersetzen."
+msgstr "Видеть заказы и переводить статус дальше."
+
+msgid "angepasst"
+msgstr "изменено"
+
+msgid "Diese Vorlage enthält Rechte außerhalb Ihres Bereichs."
+msgstr "Этот шаблон содержит права вне ваших полномочий."
+
+msgid "Diese Vorlage passt nicht zur Rolle."
+msgstr "Этот шаблон не подходит к роли."
+
+msgid "Vorlage"
+msgstr "Шаблон"

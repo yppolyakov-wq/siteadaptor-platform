@@ -71,12 +71,27 @@ OPEN_TODAY = (
     "marketing.edit",
     "nachrichten.edit",
     "website.edit",
-    "domains.edit",
     "einstellungen.edit",
-    "funktionen.edit",
-    "ablaeufe.edit",
+)
+
+# E6.7f — осознанное изменение дефолтов (решения владельца В-2/В-3 «по рекомендации»):
+#   ключ                   было (E6.7a)        стало (E6.7f)
+#   finanzen.journal       owner+admin+staff   owner+admin
+#   finanzen.edit          owner+admin+staff   owner+admin
+#   finanzen.kennzahlen    owner+admin+staff   owner+admin
+#   finanzen.berichte      owner+admin+staff   owner+admin
+#   ablaeufe.edit          owner+admin+staff   owner+admin
+#   domains.edit           owner+admin+staff   owner+admin
+#   funktionen.edit        owner+admin+staff   owner+admin
+# Сотруднику владелец возвращает их точечно (чекбокс/шаблон роли).
+ADMIN_BY_DEFAULT_E67F = (
     "finanzen.journal",
     "finanzen.edit",
+    "finanzen.kennzahlen",
+    "finanzen.berichte",
+    "ablaeufe.edit",
+    "domains.edit",
+    "funktionen.edit",
 )
 
 
@@ -100,6 +115,12 @@ def test_site_keeps_todays_access(site, role):
 @pytest.mark.parametrize("role", ROLES)
 def test_open_keys_stay_open(key, role):
     assert permissions.has_perm(_user(role), key) is (role in ALL)
+
+
+@pytest.mark.parametrize("key", ADMIN_BY_DEFAULT_E67F)
+@pytest.mark.parametrize("role", ROLES)
+def test_e67f_admin_by_default(key, role):
+    assert permissions.has_perm(_user(role), key) is (role in OWNER_ADMIN)
 
 
 @pytest.mark.parametrize("role", ROLES)

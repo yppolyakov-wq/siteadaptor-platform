@@ -105,12 +105,12 @@ def test_admin_may_revoke_within_his_scope(no_mail):
 
 def test_keys_outside_admin_scope_survive_his_save(no_mail):
     owner = _member(OWNER)
-    admin = _member(ADMIN, {"add": ["team.view", "team.edit"], "remove": ["finanzen.journal"]})
+    admin = _member(ADMIN, {"add": ["team.view", "team.edit"], "remove": ["lager.export"]})
     staff = _member(STAFF)
     G.set_member_permissions(owner.user, staff.pk, P.for_role(STAFF))  # без изменений
-    # у staff есть finanzen.journal (пресет); admin его не держит → не может ни снять, ни выдать
-    G.set_member_permissions(admin.user, staff.pk, (P.for_role(STAFF) - {"finanzen.journal"}))
-    assert "finanzen.journal" in _eff(staff)
+    # у staff есть lager.export (пресет); admin его не держит → не может ни снять, ни выдать
+    G.set_member_permissions(admin.user, staff.pk, (P.for_role(STAFF) - {"lager.export"}))
+    assert "lager.export" in _eff(staff)
 
 
 def test_edit_pulls_view(no_mail):

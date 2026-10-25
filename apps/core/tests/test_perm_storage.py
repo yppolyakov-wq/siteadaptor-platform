@@ -31,8 +31,6 @@ FROZEN_SENSITIVE_IN_PRESETS = {
     ),
     STAFF: frozenset(
         {
-            "domains.edit",
-            "funktionen.edit",
             "geld.bezahlt",
             "geld.einloesen",
             "geld.preis",

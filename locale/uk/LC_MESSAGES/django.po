@@ -30130,3 +30130,48 @@ msgstr "Потрібне для права, яке може відкликати
 
 msgid "Rechte dieser Person ändert nur der Inhaber."
 msgstr "Права цієї людини змінює лише власник."
+
+msgid "Leitung"
+msgstr "Керівництво"
+
+msgid "Alles außer Abo, Recht und Bankdaten."
+msgstr "Усе, крім підписки, правових даних і банківських реквізитів."
+
+msgid "Rechnungen, Journal, Export und Erstattungen."
+msgstr "Рахунки, журнал, експорт і повернення."
+
+msgid "Mitarbeiter"
+msgstr "Співробітник"
+
+msgid "Verkäufe, Sortiment, Kunden und Nachrichten — ohne Finanzen."
+msgstr "Продажі, асортимент, клієнти й повідомлення — без фінансів."
+
+msgid "Aushilfe / Kasse"
+msgstr "Підробіток / каса"
+
+msgid "Verkäufe bearbeiten, kassieren und Gutscheine einlösen."
+msgstr "Вести продажі, приймати оплату й погашати сертифікати."
+
+msgid "Rezeption"
+msgstr "Рецепція"
+
+msgid "An- und Abreise, Buchungen, Gäste und Zahlungen."
+msgstr "Заїзд і виїзд, бронювання, гості й оплати."
+
+msgid "Belegung und Zimmerstatus ansehen."
+msgstr "Перегляд завантаження та статусу номерів."
+
+msgid "Bestellungen sehen und den Status weitersetzen."
+msgstr "Бачити замовлення й переводити статус далі."
+
+msgid "angepasst"
+msgstr "змінено"
+
+msgid "Diese Vorlage enthält Rechte außerhalb Ihres Bereichs."
+msgstr "Цей шаблон містить права поза вашими повноваженнями."
+
+msgid "Diese Vorlage passt nicht zur Rolle."
+msgstr "Цей шаблон не підходить до ролі."
+
+msgid "Vorlage"
+msgstr "Шаблон"

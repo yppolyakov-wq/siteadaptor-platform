@@ -19891,3 +19891,18 @@ Betriebsferien, Stadtportal, Google ×2) теперь видны сотрудн�
 каждая ссылка 3 страниц × 4 архетипа × снятие каждого ключа пресета открывается — нашёл 5
 зашитых ссылок; пустой раздел; вкладка Kunden; главная). Отложено в E6.7g: контакты клиентов
 по `kunden.kontakte` на всех экранах CRM/сделок.
+
+**2026-10-25 — KA-12 E6.7f «шаблоны ролей + новые дефолты сотрудника» ✅ (без миграций).** План
+`ka-12-e6-7f-role-templates-plan-2026-10-25.md`. (1) Решения владельца В-2/В-3 «по рекомендации»:
+у пресета staff сняты `finanzen.kennzahlen/berichte/journal/edit`, `ablaeufe.edit`,
+`domains.edit`, `funktionen.edit` (`permissions._ADMIN_BY_DEFAULT`); admin без изменений.
+⚠️ У уже приглашённых сотрудников эти права пропадают (хранится дельта к пресету) — владелец
+возвращает точечно чекбоксом или шаблоном. Эталоны паритета переписаны осознанно с таблицей
+«было/стало» (`test_perm_parity`, `test_perm_storage`, `test_view_perms`, `test_staff_walk`).
+(2) `apps/core/role_templates.py` — 7 шаблонов (Leitung, Buchhaltung — admin; Mitarbeiter,
+Aushilfe/Kasse — staff; отель Rezeption, Housekeeping; гастро Küche), явные наборы без
+наследования. На форме прав — кнопки шаблонов роли участника: применение = обычная выдача
+(`set_member_permissions`, области/requires/stale); общий расчёт вынесен в `perm_grants._compute`
++ `preview` — недоступный актору шаблон disabled с причиной; шаблон чужой роли — отказ
+(`strict_template`); ручная правка сохраняет имя шаблона → «Vorlage · angepasst». 18 msgid ×5.
+Замки `test_role_templates.py` (14).

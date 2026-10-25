@@ -29871,3 +29871,48 @@ msgstr "Required by a permission only the owner can revoke."
 
 msgid "Rechte dieser Person ändert nur der Inhaber."
 msgstr "Only the owner changes this person's permissions."
+
+msgid "Leitung"
+msgstr "Management"
+
+msgid "Alles außer Abo, Recht und Bankdaten."
+msgstr "Everything except subscription, legal and bank details."
+
+msgid "Rechnungen, Journal, Export und Erstattungen."
+msgstr "Invoices, journal, export and refunds."
+
+msgid "Mitarbeiter"
+msgstr "Employee"
+
+msgid "Verkäufe, Sortiment, Kunden und Nachrichten — ohne Finanzen."
+msgstr "Sales, range, customers and messages — without finances."
+
+msgid "Aushilfe / Kasse"
+msgstr "Temp / till"
+
+msgid "Verkäufe bearbeiten, kassieren und Gutscheine einlösen."
+msgstr "Edit sales, take payments and redeem vouchers."
+
+msgid "Rezeption"
+msgstr "Front desk"
+
+msgid "An- und Abreise, Buchungen, Gäste und Zahlungen."
+msgstr "Check-in and check-out, bookings, guests and payments."
+
+msgid "Belegung und Zimmerstatus ansehen."
+msgstr "View occupancy and room status."
+
+msgid "Bestellungen sehen und den Status weitersetzen."
+msgstr "See orders and move the status on."
+
+msgid "angepasst"
+msgstr "adjusted"
+
+msgid "Diese Vorlage enthält Rechte außerhalb Ihres Bereichs."
+msgstr "This template contains permissions outside your scope."
+
+msgid "Diese Vorlage passt nicht zur Rolle."
+msgstr "This template does not match the role."
+
+msgid "Vorlage"
+msgstr "Template"

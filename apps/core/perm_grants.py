@@ -150,18 +150,48 @@ def _audited(fn):
     return wrapper
 
 
+def _compute(old, requested_keys, grant_scope, revoke_scope, role) -> frozenset:
+    """Новые права цели из запроса — общий расчёт писателя и экрана (``preview``)."""
+    requested = _with_requires(requested_keys or ())
+    # Запрошенное сверх текущего обязано быть в области выдачи — иначе отказ,
+    # а не тихое выбрасывание ключа (актор должен видеть, что не выдал).
+    if ((requested - old) & P.ROLE_LIMIT[role]) - grant_scope:
+        raise PermsDenied("scope")
+    new = P._closure(((old - revoke_scope) | (requested & revoke_scope)) & P.ROLE_LIMIT[role])
+    # Замыкание после отзыва может уронить ключ вне области актора (X требует R,
+    # R снят) — это тоже «тронуть чужое», отказ.
+    if (new - old) - grant_scope or (old - new) - revoke_scope:
+        raise PermsDenied("scope")
+    return new
+
+
+def preview(actor, target, requested_keys) -> frozenset:
+    """Без записи и блокировки: какими станут права цели (или PermsDenied) — для
+    отрисовки (шаблон роли применим или нет). Запись всё равно перепроверит под замком."""
+    grant_scope, revoke_scope = _scopes(actor, target)
+    old = P.effective_from(target.role, target.permissions)
+    return _compute(old, requested_keys, grant_scope, revoke_scope, target.role)
+
+
+def template_keys() -> frozenset:
+    from .role_templates import TEMPLATES
+
+    return frozenset(TEMPLATES)
+
+
 def state_token(eff) -> str:
     """Отпечаток набора прав — форма шлёт его, чтобы не затереть чужую правку (lost update)."""
     return hashlib.sha256(",".join(sorted(eff)).encode()).hexdigest()[:16]
 
 
-# E6.7f заполнит реестр шаблонов; неизвестное имя не хранится (не подписать staff чужим шаблоном).
-TEMPLATE_KEYS: frozenset = frozenset()
-
-
 @_audited
 def set_member_permissions(
-    actor_user, member_pk, requested_keys, template: str = "", expected: str | None = None
+    actor_user,
+    member_pk,
+    requested_keys,
+    template: str = "",
+    expected: str | None = None,
+    strict_template: bool = False,
 ) -> frozenset:
     """Записать права участника. Возвращает его новые эффективные права.
     ``expected`` — ``state_token`` прав цели на момент открытия формы (иначе отказ "stale")."""
@@ -172,19 +202,21 @@ def set_member_permissions(
         old = P.effective_from(role, target.permissions)
         if expected is not None and expected != state_token(old):
             raise PermsDenied("stale")
-        requested = _with_requires(requested_keys or ())
-        # Запрошенное сверх текущего обязано быть в области выдачи — иначе отказ,
-        # а не тихое выбрасывание ключа (актор должен видеть, что не выдал).
-        if ((requested - old) & P.ROLE_LIMIT[role]) - grant_scope:
-            raise PermsDenied("scope")
-        new = P._closure(((old - revoke_scope) | (requested & revoke_scope)) & P.ROLE_LIMIT[role])
+        if strict_template:
+            from .role_templates import TEMPLATES
+
+            if template not in TEMPLATES or TEMPLATES[template].role != role:
+                raise PermsDenied("template")  # шаблон чужой роли — отказ, не урезанный набор
+        new = _compute(old, requested_keys, grant_scope, revoke_scope, role)
         added = new - old
-        # Замыкание после отзыва может уронить ключ вне области актора (X требует R,
-        # R снят) — это тоже «тронуть чужое», отказ.
-        if added - grant_scope or (old - new) - revoke_scope:
-            raise PermsDenied("scope")
-        if template not in TEMPLATE_KEYS:
-            template = ""
+        from .role_templates import TEMPLATES
+
+        if not template and not strict_template:
+            # Ручная правка не стирает происхождение: подпись «Vorlage · angepasst».
+            raw = target.permissions if isinstance(target.permissions, dict) else {}
+            template = raw.get("template", "") if isinstance(raw.get("template"), str) else ""
+        if template not in template_keys() or TEMPLATES[template].role != role:
+            template = ""  # чужой роли/неизвестный шаблон не подписывает участника
         preset = P.PRESETS[role]
         delta = P.normalize_permissions(
             role,

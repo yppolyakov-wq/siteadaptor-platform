@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from . import perm_grants as G
 from . import permissions as P
+from . import role_templates as RT
 from .models import Membership
 
 GROUP_LABELS = {
@@ -88,6 +89,7 @@ REASONS = {
     "no_grant": _("Nur vergeben, wer dieses Recht selbst hat — sensible Rechte nur der Inhaber."),
     "no_revoke": _("Nur der Inhaber kann dieses Recht entziehen."),
     "needed": _("Wird von einem Recht benötigt, das nur der Inhaber entziehen kann."),
+    "template_scope": _("Diese Vorlage enthält Rechte außerhalb Ihres Bereichs."),
 }
 
 
@@ -140,11 +142,48 @@ def perm_form(actor_m, target_m) -> dict | None:
     except G.PermsDenied:
         return None
     eff = P.effective_from(target_m.role, target_m.permissions)
+    raw = target_m.permissions if isinstance(target_m.permissions, dict) else {}
+    stored = raw.get("template", "") if isinstance(raw.get("template", ""), str) else ""
     return {
         "groups": _groups(eff, P.ROLE_LIMIT[target_m.role], grant, revoke, f"p{target_m.pk.hex}"),
         "state": G.state_token(eff),
         "count": len(eff),
+        "templates": _templates(actor_m, target_m, stored),
+        "template_label": _template_label(stored, target_m.role, eff),
     }
+
+
+def _templates(actor_m, target_m, stored) -> list[dict]:
+    """Карточки шаблонов роли цели: применимые актором — активные, прочие — с причиной."""
+    from django.db import connection
+
+    out = []
+    for t in RT.templates_for(getattr(connection, "tenant", None), target_m.role):
+        try:
+            G.preview(actor_m, target_m, t.keys)
+            reason = ""
+        except G.PermsDenied:
+            reason = REASONS["template_scope"]
+        out.append(
+            {
+                "key": t.key,
+                "label": t.label,
+                "hint": t.hint,
+                "disabled": bool(reason),
+                "reason": reason,
+                "active": t.key == stored,
+            }
+        )
+    return out
+
+
+def _template_label(stored, role, eff) -> str:
+    t = RT.TEMPLATES.get(stored)
+    if t is None or t.role != role:
+        return ""
+    if RT.matches(stored, role, eff):
+        return str(t.label)
+    return f"{t.label} · {_('angepasst')}"
 
 
 def invite_forms(actor_m) -> list:

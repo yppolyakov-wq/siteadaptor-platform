@@ -135,9 +135,24 @@ _OWNER_ONLY_TODAY = frozenset(
 # Сегодня у owner и admin (KA-12 B6 / Z-4, KA-D7, KA-H4).
 _ADMIN_TODAY = frozenset({"preise.edit", "finanzen.export", "finanzen.korrektur", "geld.erstatten"})
 
+# E6.7f (решения владельца В-2/В-3 «по рекомендации»): у сотрудника по умолчанию нет
+# цифр и финансов, правил процессов, доменов и включения функций — владелец возвращает
+# их точечно (чекбокс или шаблон роли). У admin — как было.
+_ADMIN_BY_DEFAULT = frozenset(
+    {
+        "finanzen.kennzahlen",
+        "finanzen.berichte",
+        "finanzen.journal",
+        "finanzen.edit",
+        "ablaeufe.edit",
+        "domains.edit",
+        "funktionen.edit",
+    }
+)
+
 PRESETS: dict[str, frozenset] = {
     Membership.ROLE_ADMIN: frozenset(PERMS) - _OWNER_ONLY_TODAY,
-    Membership.ROLE_STAFF: frozenset(PERMS) - _OWNER_ONLY_TODAY - _ADMIN_TODAY,
+    Membership.ROLE_STAFF: frozenset(PERMS) - _OWNER_ONLY_TODAY - _ADMIN_TODAY - _ADMIN_BY_DEFAULT,
 }
 
 

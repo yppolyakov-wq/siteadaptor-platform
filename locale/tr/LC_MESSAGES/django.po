@@ -30015,3 +30015,48 @@ msgstr "Yalnızca sahibin geri alabileceği bir yetki için gerekli."
 
 msgid "Rechte dieser Person ändert nur der Inhaber."
 msgstr "Bu kişinin yetkilerini yalnızca sahip değiştirir."
+
+msgid "Leitung"
+msgstr "Yönetim"
+
+msgid "Alles außer Abo, Recht und Bankdaten."
+msgstr "Abonelik, hukuk ve banka bilgileri hariç her şey."
+
+msgid "Rechnungen, Journal, Export und Erstattungen."
+msgstr "Faturalar, yevmiye, dışa aktarma ve iadeler."
+
+msgid "Mitarbeiter"
+msgstr "Çalışan"
+
+msgid "Verkäufe, Sortiment, Kunden und Nachrichten — ohne Finanzen."
+msgstr "Satışlar, ürünler, müşteriler ve mesajlar — finans hariç."
+
+msgid "Aushilfe / Kasse"
+msgstr "Yardımcı / kasa"
+
+msgid "Verkäufe bearbeiten, kassieren und Gutscheine einlösen."
+msgstr "Satışları düzenle, ödeme al ve hediye çeklerini kullan."
+
+msgid "Rezeption"
+msgstr "Resepsiyon"
+
+msgid "An- und Abreise, Buchungen, Gäste und Zahlungen."
+msgstr "Giriş ve çıkış, rezervasyonlar, misafirler ve ödemeler."
+
+msgid "Belegung und Zimmerstatus ansehen."
+msgstr "Doluluğu ve oda durumunu görüntüle."
+
+msgid "Bestellungen sehen und den Status weitersetzen."
+msgstr "Siparişleri gör ve durumu ilerlet."
+
+msgid "angepasst"
+msgstr "uyarlandı"
+
+msgid "Diese Vorlage enthält Rechte außerhalb Ihres Bereichs."
+msgstr "Bu şablon yetki alanınızın dışındaki yetkileri içeriyor."
+
+msgid "Diese Vorlage passt nicht zur Rolle."
+msgstr "Bu şablon role uymuyor."
+
+msgid "Vorlage"
+msgstr "Şablon"
