@@ -23,7 +23,7 @@ from django.conf import settings
 from django.utils import translation
 
 # Поднимать вручную при изменении логики сидера, не отражённой в спеке китов.
-SEEDER_VERSION = 6  # 6: KA-12 E4.4b — варианты услуги (friseur: Haarschnitt Damen); 5: KA-12 E4.2a — навыки мастеров (friseur: Färben только Lea); 4: KA-12 E4.10a — блок ремонта на комнату 104 отеля; 3: KA-12 E1.7 — проданные демо-билеты оплачены; 2: KA-12 E8.7/E8.11 — киты включают blog/booking по контенту
+SEEDER_VERSION = 7  # 7: KA-12 E6.4 — история клиента салона (неявки, рецептура); 6: KA-12 E4.4b — варианты услуги (friseur: Haarschnitt Damen); 5: KA-12 E4.2a — навыки мастеров (friseur: Färben только Lea); 4: KA-12 E4.10a — блок ремонта на комнату 104 отеля; 3: KA-12 E1.7 — проданные демо-билеты оплачены; 2: KA-12 E8.7/E8.11 — киты включают blog/booking по контенту
 STORE_KEY = "demo_kit"
 
 

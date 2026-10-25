@@ -250,6 +250,12 @@ class DemoKit:
     # Наполнить кабинет примерами транзакций (заказы/заявки/брони/билеты) по
     # активным архетипам — чтобы демо было «как настоящее». Адреса @example.com.
     seed_records: bool = False
+    # KA-12 E6.4: история клиента салона — прошлые визиты (в т.ч. неявки) и заметки
+    # мастера к процедуре, плюс будущий визит того же клиента (на нём видны «N× nicht
+    # erschienen» и «Beim letzten Besuch»). Список dict'ов:
+    #   {service: индекс в refs["services"], name, email, days: ±дней от сегодня,
+    #    hour, status: fulfilled|no_show|confirmed, note?: текст заметки мастера}.
+    service_history: list = field(default_factory=list)
     # Тематические заявки/сметы (jobs) для seed_records: список dict'ов
     #   {title, name, email, phone?, description, lines:[{text,qty,unit_price}], vat_rate}.
     # Пусто → дефолтные Catering-заявки (ресторан). Werkstatt → Fahrzeug-Angebote.
@@ -9292,6 +9298,58 @@ FRISEUR_MENUS = {
 
 FRISEUR = DemoKit(
     key="friseur",
+    # KA-12 E6.4: постоянная клиентка с рецептурой и клиент с двумя неявками —
+    # на их следующих визитах видны «Beim letzten Besuch» и «2× nicht erschienen».
+    service_history=[
+        {
+            "service": 3,
+            "name": "Claudia Brandt",
+            "email": "claudia.brandt@example.com",
+            "days": -70,
+            "hour": 9,
+            "status": "fulfilled",
+            "note": "Ansatz 6.0 + 7.1 (1:1), 6 % Oxid, 35 Min. Längen nur Glossing.",
+        },
+        {
+            "service": 3,
+            "name": "Claudia Brandt",
+            "email": "claudia.brandt@example.com",
+            "days": -28,
+            "hour": 9,
+            "status": "fulfilled",
+            "note": "Wie letztes Mal, Ansatz 2 cm. Wunsch: etwas kühler — nächstes Mal 7.1 statt 7.3.",
+        },
+        {
+            "service": 3,
+            "name": "Claudia Brandt",
+            "email": "claudia.brandt@example.com",
+            "days": 3,
+            "hour": 9,
+        },
+        {
+            "service": 1,
+            "name": "Tobias Wendt",
+            "email": "tobias.wendt@example.com",
+            "days": -45,
+            "hour": 16,
+            "status": "no_show",
+        },
+        {
+            "service": 1,
+            "name": "Tobias Wendt",
+            "email": "tobias.wendt@example.com",
+            "days": -14,
+            "hour": 16,
+            "status": "no_show",
+        },
+        {
+            "service": 1,
+            "name": "Tobias Wendt",
+            "email": "tobias.wendt@example.com",
+            "days": 2,
+            "hour": 16,
+        },
+    ],
     page_presets=[("services", "beratung")],  # LB-4d-3: пресет листинга архетипа
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}},
@@ -26409,6 +26467,53 @@ def _seed_kit_winback(kit: DemoKit) -> None:
     )
 
 
+def _seed_service_history(kit: DemoKit, refs: dict) -> None:
+    """KA-12 E6.4: прошлые визиты/неявки + заметки мастера (CustomerNote kind=service)
+    и будущий визит того же клиента. Каждая запись изолирована (сбой не рушит сид)."""
+    from datetime import datetime, time, timedelta
+
+    from django.utils import timezone
+
+    from apps.booking.models import Booking, Resource, Service
+    from apps.booking.services import book
+    from apps.crm.models import CustomerNote
+
+    resources = list(Resource.objects.filter(pk__in=refs["resources"]).order_by("name"))
+    service_pks = refs.get("services") or []
+    for i, spec in enumerate(kit.service_history):
+        try:
+            service = Service.objects.get(pk=service_pks[spec["service"]])
+            pool = list(service.resources.filter(is_active=True)) or resources
+            resource = pool[i % len(pool)]
+            day = timezone.localdate() + timedelta(days=spec["days"])
+            start = timezone.make_aware(datetime.combine(day, time(spec.get("hour", 10), 0)))
+            booking = book(
+                resource,
+                start=start,
+                end=start + timedelta(minutes=service.duration_minutes),
+                name=spec["name"],
+                email=spec["email"],
+                service=service,
+                price_cents=service.price_cents,
+                auto_confirm=True,
+                notify=False,
+            )
+            status = spec.get("status", "confirmed")
+            if status != "confirmed":
+                # Прошлое — прямой записью: FSM писал бы письма/выручку демо-клиентам.
+                Booking.objects.filter(pk=booking.pk).update(status=status)
+            if spec.get("note"):
+                CustomerNote.objects.create(
+                    customer=booking.customer,
+                    kind=CustomerNote.KIND_SERVICE,
+                    booking=booking,
+                    service=service,
+                    text=spec["note"],
+                )
+        except Exception:  # noqa: BLE001 — демо: одна кривая запись не рушит сид
+            continue
+
+
 def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
     """Примеры транзакций по активным архетипам (заказы/заявки/брони/билеты) —
     чтобы кабинет демо был наполнен «как настоящий». Демо-тенант одноразовый
@@ -26551,6 +26656,10 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     pass
         except Exception:
             pass
+
+    # KA-12 E6.4: история клиента (визиты, неявки, рецептура мастера).
+    if kit.service_history and is_active("booking") and refs.get("resources"):
+        _seed_service_history(kit, refs)
 
     # Mehrfachkarte (A3/G9b): выдать одну карту по первому тарифу.
     if kit.pass_plans and is_active("booking"):
