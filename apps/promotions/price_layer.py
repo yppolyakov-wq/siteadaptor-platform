@@ -263,6 +263,8 @@ def promo_for_service(service, start, resource_id=None, promos=None):
     return best
 
 
+# KA-12 E6.4c: публичного вызова нет. Подключая к витрине — пропустить через
+# booking.public_views._no_show_gate (правило «Anzahlung nach Nichterscheinen»).
 @transaction.atomic
 def purchase_service(
     promotion,

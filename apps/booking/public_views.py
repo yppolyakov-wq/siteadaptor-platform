@@ -212,6 +212,22 @@ def _no_show_terms(request) -> bool:
     return bool(no_show_rule.rule(getattr(request, "tenant", None)))
 
 
+def _uncarded(bookings) -> list:
+    """Брони, которые Mehrfachkarte НЕ погасила (card не привязан)."""
+    ids = set(
+        Booking.objects.filter(pk__in=[b.pk for b in bookings], card__isnull=True).values_list(
+            "pk", flat=True
+        )
+    )
+    return [b for b in bookings if b.pk in ids]
+
+
+def no_show_rule_decision_deposit():
+    from . import no_show_rule
+
+    return no_show_rule.Decision(no_show_rule.DEPOSIT)
+
+
 def _termin_ok_url(request, booking, embed) -> str:
     return (
         request.build_absolute_uri(reverse("storefront-termin-ok", args=[booking.reference_code]))
@@ -236,19 +252,25 @@ def _no_show_gate(request, tenant, *, base_deposit, estimate, slots, offline, se
     if not email:
         messages.error(request, _("Bitte geben Sie eine gültige E-Mail-Adresse an."))
         return no_show_rule.Decision(), "", "back"
+    from django.db import connection
+
     if ratelimit.hit(
         "termin_mailbox",
-        no_show_rule.email_rate_key(email),
+        no_show_rule.email_rate_key(
+            email, ip=ratelimit.client_ip(request), schema=connection.schema_name
+        ),
         limit=no_show_rule.RL_EMAIL_LIMIT,
         window=no_show_rule.RL_EMAIL_WINDOW,
     ):
-        return no_show_rule.Decision(), email, HttpResponse(status=429)
+        # Не пустая страница (в iframe embed — белый экран): тот же нейтральный текст.
+        messages.error(request, no_show_rule.call_message(tenant))
+        return no_show_rule.Decision(no_show_rule.CALL), email, "back"
     is_flagged = no_show_rule.flagged(tenant, email)
     # Ревью C1: Mehrfachkarte пропускает правило, только если ТОЧНО покроет все
     # периоды; мусорный/исчерпанный код правило не обходит.
     code = request.POST.get("pass_code", "")
     if is_flagged and no_show_rule.pass_covers(code, service=service, slots=slots):
-        return no_show_rule.Decision(), email, None
+        return no_show_rule.Decision(no_show_rule.PASS), email, None
     decision = no_show_rule.decide_before(
         tenant,
         is_flagged=is_flagged,
@@ -262,6 +284,28 @@ def _no_show_gate(request, tenant, *, base_deposit, estimate, slots, offline, se
     return decision, email, None
 
 
+def _rule_cancel(bookings) -> None:
+    """E6.4c: снять брони, которые правило не дало оплатить, — через FSM, без писем.
+    Поля «ждём депозит» сбрасываем: отменённая бронь не должна висеть в списках
+    ожидающих оплаты. Сбой одной брони не прячем — logger.error со ссылкой."""
+    from apps.notifications.prefs import muted
+
+    for b in bookings:
+        Booking.objects.filter(pk=b.pk).update(
+            payment_state=Booking.PAYMENT_NONE, deposit_cents=0, payment_due_at=None
+        )
+        b.refresh_from_db()
+        try:
+            with muted(customer=True, owner=True):
+                BookingSM().apply(b, "cancelled", actor="system:no-show-rule")
+        except Exception:  # noqa: BLE001 — бронь осталась активной: владельцу в лог
+            logger.error(
+                "no-show rule: booking %s could not be cancelled and still holds its slot",
+                b.reference_code,
+                exc_info=True,
+            )
+
+
 def _forced_deposit(request, tenant, bookings, *, base_deposit, payable, ok_url, cancel_url):
     """E6.4c: депозит по правилу для созданной брони. Сумма — по ФАКТИЧЕСКОЙ брони
     (скидка/сертификат известны только после `book`). None — депозит не нужен
@@ -269,11 +313,13 @@ def _forced_deposit(request, tenant, bookings, *, base_deposit, payable, ok_url,
 
     Ревью H3: любая ошибка оплаты — не «бронь без оплаты», а отмена брони через FSM
     без писем и та же нейтральная просьба позвонить."""
-    from apps.notifications.prefs import muted
-
     from . import no_show_rule
     from .notifications import enqueue_booking_email
 
+    if len(bookings) > 1:  # группа периодов: депозит одной брони не держит N слотов
+        _rule_cancel(bookings)
+        messages.error(request, no_show_rule.call_message(tenant))
+        return "back"
     booking = bookings[0]
     cents = no_show_rule.amount_cents(tenant, base_deposit, payable(booking))
     if cents <= 0:
@@ -286,14 +332,10 @@ def _forced_deposit(request, tenant, bookings, *, base_deposit, payable, ok_url,
         url = payments.deposit_checkout_url(
             booking, tenant, success_url=ok_url, cancel_url=cancel_url
         )
-    except Exception:  # noqa: BLE001 — сеть/Stripe/пустой connect_id: бронь не держим
+    except (stripe.error.StripeError, ValueError, OSError):
+        # Сеть/Stripe/пустой connect_id. Ошибки БД сюда не ловим — они не «нет оплаты».
         logger.exception("no-show deposit checkout failed for booking %s", booking.pk)
-        with muted(customer=True, owner=True):
-            for b in bookings:
-                try:
-                    BookingSM().apply(b, "cancelled", actor="system:no-show-rule")
-                except IllegalTransition:
-                    logger.warning("no-show rule: booking %s not cancellable", b.pk)
+        _rule_cancel(bookings)
         messages.error(request, no_show_rule.call_message(tenant))
         return "back"
     enqueue_booking_email(booking, "created")
@@ -1255,33 +1297,44 @@ def service_book(request, pk):
             "storefront-service-slots", embed, request=request, extra=back, pk=pk
         )
 
-    # В5 V5-5b: группа периодов = одна сделка
-    conversions.count(
-        request,
-        "deal",
-        "booking",
-        booking,
-        attribution=found,
-        once_key=f"booking:{booking.group_code or booking.pk}",
-    )
+    def after_deal():
+        # В5 V5-5b: группа периодов = одна сделка
+        conversions.count(
+            request,
+            "deal",
+            "booking",
+            booking,
+            attribution=found,
+            once_key=f"booking:{booking.group_code or booking.pk}",
+        )
+        # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо
+        # (прямой opt-in не ставим; подписанным/отписанным — тишина).
+        if request.POST.get("marketing") == "on":
+            from apps.promotions.newsletter import maybe_send_doi
 
-    # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо
-    # (прямой opt-in не ставим; подписанным/отписанным — тишина).
-    if request.POST.get("marketing") == "on":
-        from apps.promotions.newsletter import maybe_send_doi
+            maybe_send_doi(booking.customer, base_url=request.build_absolute_uri("/").rstrip("/"))
 
-        maybe_send_doi(booking.customer, base_url=request.build_absolute_uri("/").rstrip("/"))
+    # E6.4c: при правиле сделка/DOI — только когда бронь точно осталась (откат по
+    # правилу не должен оставлять «сделку» в аналитике и письмо гостю).
+    deferred = no_show.kind != "none"
+    if not deferred:
+        after_deal()
 
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
     # HF-6c: гасим визит на КАЖДЫЙ период группы (created), а не только на первый.
     # E6.4c: при депозите по правилу карта уже проверена гейтом и не покрывает визит.
     if not no_show.forced and _redeem_pass_if_code(request, created):
-        return _embed_redirect(
-            "storefront-termin-ok", embed, request=request, code=booking.reference_code
-        )
+        unpaid = _uncarded(created) if no_show.kind == "pass" else []
+        if not unpaid:
+            if deferred:
+                after_deal()
+            return _embed_redirect(
+                "storefront-termin-ok", embed, request=request, code=booking.reference_code
+            )
+        # Гонка: карта исчерпалась между проверкой и погашением — правило в силе
+        # для непогашенных визитов (погашенные оплачены картой и остаются).
+        created, no_show = unpaid, no_show_rule_decision_deposit()
     if no_show.forced:
-        if request.POST.get("pass_code", "").strip():
-            messages.error(request, _("This pass code is not valid."))
         forced = _forced_deposit(
             request,
             tenant,
@@ -1298,6 +1351,7 @@ def service_book(request, pk):
             return _embed_redirect(
                 "storefront-service-slots", embed, request=request, extra=back, pk=pk
             )
+        after_deal()
         if forced is not None:
             return forced
         return _embed_redirect(
@@ -1493,23 +1547,29 @@ def termin_book(request, pk):
         )
         return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
 
-    conversions.count(request, "deal", "booking", booking, attribution=found)  # В5 V5-5b
+    def after_deal():
+        conversions.count(request, "deal", "booking", booking, attribution=found)  # В5 V5-5b
+        # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо
+        # (прямой opt-in не ставим; подписанным/отписанным — тишина).
+        if request.POST.get("marketing") == "on":
+            from apps.promotions.newsletter import maybe_send_doi
 
-    # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо
-    # (прямой opt-in не ставим; подписанным/отписанным — тишина).
-    if request.POST.get("marketing") == "on":
-        from apps.promotions.newsletter import maybe_send_doi
+            maybe_send_doi(booking.customer, base_url=request.build_absolute_uri("/").rstrip("/"))
 
-        maybe_send_doi(booking.customer, base_url=request.build_absolute_uri("/").rstrip("/"))
+    deferred = no_show.kind != "none"  # E6.4c: см. service_book
+    if not deferred:
+        after_deal()
 
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
     if not no_show.forced and _redeem_pass_if_code(request, [booking]):
-        return _embed_redirect(
-            "storefront-termin-ok", embed, request=request, code=booking.reference_code
-        )
+        if no_show.kind != "pass" or not _uncarded([booking]):
+            if deferred:
+                after_deal()
+            return _embed_redirect(
+                "storefront-termin-ok", embed, request=request, code=booking.reference_code
+            )
+        no_show = no_show_rule_decision_deposit()  # гонка: карта не погасила визит
     if no_show.forced:
-        if request.POST.get("pass_code", "").strip():
-            messages.error(request, _("This pass code is not valid."))
         # В-A3: у ресурсной записи цены обычно нет — кап только при цене.
         forced = _forced_deposit(
             request,
@@ -1525,6 +1585,7 @@ def termin_book(request, pk):
         )
         if forced == "back":
             return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+        after_deal()
         if forced is not None:
             return forced
         return _embed_redirect(

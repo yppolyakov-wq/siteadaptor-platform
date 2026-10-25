@@ -29634,3 +29634,6 @@ msgstr "Период (дней)"
 
 msgid "Wer mehrmals nicht erschienen ist, bucht online nur noch mit Anzahlung. Ohne Online-Zahlung wird um einen Anruf gebeten. Gezählt wird nach E-Mail-Adresse."
 msgstr "Клиенты, которые несколько раз не пришли, записываются онлайн только с предоплатой. Без онлайн-оплаты их просят позвонить. Подсчёт — по адресу электронной почты."
+
+msgid "Bitte einen Betrag zwischen 0 und 1000 € angeben."
+msgstr "Укажите сумму от 0 до 1000 €."

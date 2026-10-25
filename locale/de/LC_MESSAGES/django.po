@@ -29453,3 +29453,6 @@ msgstr "Zeitraum (Tage)"
 
 msgid "Wer mehrmals nicht erschienen ist, bucht online nur noch mit Anzahlung. Ohne Online-Zahlung wird um einen Anruf gebeten. Gezählt wird nach E-Mail-Adresse."
 msgstr "Wer mehrmals nicht erschienen ist, bucht online nur noch mit Anzahlung. Ohne Online-Zahlung wird um einen Anruf gebeten. Gezählt wird nach E-Mail-Adresse."
+
+msgid "Bitte einen Betrag zwischen 0 und 1000 € angeben."
+msgstr "Bitte einen Betrag zwischen 0 und 1000 € angeben."

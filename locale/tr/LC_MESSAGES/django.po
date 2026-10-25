@@ -29505,3 +29505,6 @@ msgstr "Süre (gün)"
 
 msgid "Wer mehrmals nicht erschienen ist, bucht online nur noch mit Anzahlung. Ohne Online-Zahlung wird um einen Anruf gebeten. Gezählt wird nach E-Mail-Adresse."
 msgstr "Birkaç kez gelmeyen müşteriler online yalnızca ön ödemeyle rezervasyon yapabilir. Online ödeme yoksa aramaları istenir. E-posta adresine göre sayılır."
+
+msgid "Bitte einen Betrag zwischen 0 und 1000 € angeben."
+msgstr "Lütfen 0 ile 1000 € arasında bir tutar girin."

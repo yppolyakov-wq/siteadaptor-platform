@@ -28,6 +28,9 @@ from . import no_shows
 logger = logging.getLogger(__name__)
 
 NONE, DEPOSIT, CALL = "none", "deposit", "call"
+# Гость с неявками, чью запись покрывает Mehrfachkarte: правило пропущено, но
+# если карта не погасила все визиты (гонка) — откат на депозит.
+PASS = "pass"
 # Пробник «есть ли у этого адреса неявки» упирается в лимит по самому адресу.
 RL_EMAIL_LIMIT = 10
 RL_EMAIL_WINDOW = 3600
@@ -71,8 +74,12 @@ def mailbox_pattern(email: str) -> str:
     return rf"^{re.escape(local)}(\+[^@]*)?@{re.escape(domain)}$"
 
 
-def email_rate_key(email: str) -> str:
-    return hashlib.sha256(mailbox_pattern(email).encode()).hexdigest()[:32]
+def email_rate_key(email: str, *, ip: str = "", schema: str = "") -> str:
+    """Ключ лимита: ящик + IP + схема. Только по ящику — целевой DoS (чужой человек
+    10 запросами блокировал бы запись владельцу адреса); перебор многих адресов с
+    одного IP держит общий IP-лимит «termin»."""
+    raw = f"{schema}|{ip}|{mailbox_pattern(email)}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:32]
 
 
 def recent_no_shows_for_email(email: str, days: int) -> int:

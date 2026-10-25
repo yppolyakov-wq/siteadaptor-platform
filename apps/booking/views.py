@@ -7,7 +7,7 @@
 """
 
 from datetime import datetime, time, timedelta
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -1385,13 +1385,20 @@ def no_show_rule_save(request):
     if not _can_edit_policy(request.user):
         raise PermissionDenied
     enabled = request.POST.get("enabled") == "1"
-    amount = parse_money(request.POST.get("amount", ""))
+    try:
+        amount = parse_money(request.POST.get("amount", ""))
+    except ValueError:
+        amount = Decimal("-1")
+    if amount is not None and not (Decimal("0") <= amount <= Decimal("1000")):
+        messages.error(request, _("Bitte einen Betrag zwischen 0 und 1000 € angeben."))
+        return redirect("booking:services")
+    cents = int((amount * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)) if amount else 0
     rule = normalize_booking(
         {
             "no_show_deposit": {
                 "after": request.POST.get("after"),
                 "days": request.POST.get("days"),
-                "cents": int(amount * 100) if amount else 0,
+                "cents": cents,
             }
         }
     )
@@ -1401,20 +1408,25 @@ def no_show_rule_save(request):
         # и создания схемы на save() (django-tenants делает это при auto_create_schema).
         tenant.auto_create_schema = False
         cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+        section = dict(cfg.get("booking") or {})
         if enabled:
-            cfg["booking"] = rule
+            section.update(rule)
+        else:  # только своё правило: соседние правила записи (будущие) целы
+            section.pop("no_show_deposit", None)
+        if section:
+            cfg["booking"] = section
         else:
             cfg.pop("booking", None)
         tenant.site_config = cfg
         tenant.save(update_fields=["site_config", "updated_at"])
+        audit_event(
+            action="booking.no_show_rule",
+            resource_type="tenant",
+            resource_id=tenant.pk,
+            actor=request.user,
+            context={"enabled": enabled, **(rule.get("no_show_deposit", {}) if enabled else {})},
+        )
     request.tenant.site_config = cfg
-    audit_event(
-        action="booking.no_show_rule",
-        resource_type="tenant",
-        resource_id=tenant.pk,
-        actor=request.user,
-        context={"enabled": enabled, **(rule.get("no_show_deposit", {}) if enabled else {})},
-    )
     messages.success(request, _("Gespeichert."))
     return redirect("booking:services")
 

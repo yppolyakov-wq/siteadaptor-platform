@@ -9,6 +9,7 @@ import uuid
 from datetime import timedelta
 
 import pytest
+import stripe
 from django.contrib.messages import get_messages
 from django.core.cache.backends.locmem import LocMemCache
 from django.utils import timezone
@@ -75,10 +76,12 @@ def _service_setup(**svc):
     return service, availability.service_slots(service, day)
 
 
-def _post_service(tenant, service, starts, email="anna@web.de", **extra):
+def _post_service(tenant, service, starts, email="anna@web.de", ip=None, **extra):
     data = {"start": [s.isoformat() for s in starts], "name": "Anna", "email": email}
     data.update(extra)
     request = _req("post", f"/termin/leistung/{service.pk}/buchen/", data, tenant=tenant)
+    if ip:
+        request.META["REMOTE_ADDR"] = ip
     response = public_views.service_book(request, pk=service.pk)
     return response, [str(m) for m in get_messages(request)]
 
@@ -251,7 +254,7 @@ def test_stripe_failure_cancels_without_mail(monkeypatch):
     monkeypatch.setattr(connect, "is_connect_configured", lambda: True)
 
     def boom(*a, **k):
-        raise RuntimeError("stripe down")
+        raise ValueError("no connect id")
 
     monkeypatch.setattr(public_views.payments, "deposit_checkout_url", boom)
     _past_no_show("anna@web.de")
@@ -278,15 +281,21 @@ def test_success_sends_created_mail_once(stripe_on, monkeypatch):
     assert sent.count("booking_created") == 1
 
 
-def test_mailbox_rate_limit():
+def test_mailbox_rate_limit(monkeypatch):
+    monkeypatch.setattr(public_views, "RL_LIMIT", 1000)  # проверяем лимит ящика, не IP
     service, slots = _service_setup()
     tenant = _tenant(stripe=False)
     codes = set()
+    msgs = []
     for _ in range(no_show_rule.RL_EMAIL_LIMIT + 2):
-        response, _m = _post_service(tenant, service, slots[:1], email="probe+x@web.de")
+        response, m = _post_service(
+            tenant, service, slots[:1], email="probe+x@web.de", ip="10.7.7.7"
+        )
         codes.add(response.status_code)
+        msgs.extend(m)
         Booking.objects.filter(service=service).delete()
-    assert 429 in codes
+    assert codes == {302}  # не пустая 429-страница: редирект с нейтральным текстом
+    assert any("0211 123" in m for m in msgs)
 
 
 # --- витрина: ресурс (Tisch/Platz) ----------------------------------------------------
@@ -419,3 +428,93 @@ def test_buybox_shows_policy_line_only_when_rule_on():
 def test_privacy_paragraph_only_when_rule_on():
     assert _tenant()._privacy_no_show_paragraph()
     assert _tenant(rule=False)._privacy_no_show_paragraph() == ""
+
+
+# --- ревью кода (2026-10-25) ----------------------------------------------------------
+
+
+@pytest.mark.parametrize("amount", ["abc", "1,2,3", "-5", "5000"])
+def test_cabinet_rejects_bad_amount_without_500(monkeypatch, amount):
+    from apps.booking import views
+
+    monkeypatch.setattr(views, "_can_edit_policy", lambda user: True)
+    request, tenant = _cab("owner", {"enabled": "1", "amount": amount})
+    response = views.no_show_rule_save.__wrapped__.__wrapped__(request)
+    assert response.status_code == 302
+    tenant.refresh_from_db()
+    assert "booking" not in tenant.site_config
+
+
+def test_cabinet_amount_rounds_half_up(monkeypatch):
+    from apps.booking import views
+
+    monkeypatch.setattr(views, "_can_edit_policy", lambda user: True)
+    request, tenant = _cab("owner", {"enabled": "1", "amount": "0,105"})
+    views.no_show_rule_save.__wrapped__.__wrapped__(request)
+    tenant.refresh_from_db()
+    assert tenant.site_config["booking"]["no_show_deposit"]["cents"] == 11
+
+
+def test_disable_keeps_sibling_booking_rules(monkeypatch):
+    from apps.booking import views
+
+    monkeypatch.setattr(views, "_can_edit_policy", lambda user: True)
+    request, tenant = _cab("owner", {})
+    tenant.site_config = {"booking": {"other": 1, "no_show_deposit": {"after": 2}}}
+    tenant.save(update_fields=["site_config"])
+    views.no_show_rule_save.__wrapped__.__wrapped__(request)
+    tenant.refresh_from_db()
+    assert tenant.site_config["booking"] == {"other": 1}
+
+
+def test_stripe_failure_records_no_deal_and_no_doi(monkeypatch):
+    from apps.aggregator import conversions
+    from apps.billing import connect
+    from apps.promotions import newsletter
+
+    counted, doi = [], []
+    monkeypatch.setattr(conversions, "count", lambda *a, **k: counted.append(1))
+    monkeypatch.setattr(newsletter, "maybe_send_doi", lambda *a, **k: doi.append(1))
+    monkeypatch.setattr(connect, "is_connect_configured", lambda: True)
+
+    def boom(*a, **k):
+        raise stripe.error.APIConnectionError("down")
+
+    monkeypatch.setattr(public_views.payments, "deposit_checkout_url", boom)
+    _past_no_show("anna@web.de")
+    service, slots = _service_setup()
+    _post_service(_tenant(), service, slots[:1], marketing="on")
+    booking = Booking.objects.get(service=service)
+    assert booking.status == "cancelled"
+    assert booking.payment_state == Booking.PAYMENT_NONE and booking.deposit_cents == 0
+    assert not counted and not doi
+
+
+def test_success_records_deal_once(stripe_on, monkeypatch):
+    from apps.aggregator import conversions
+
+    counted = []
+    monkeypatch.setattr(conversions, "count", lambda *a, **k: counted.append(1))
+    _past_no_show("anna@web.de")
+    service, slots = _service_setup()
+    _post_service(_tenant(), service, slots[:1])
+    assert counted == [1]
+
+
+def test_pass_race_falls_back_to_deposit(stripe_on, monkeypatch):
+    """Гейт пропустил по карте, но погасить не вышло (гонка) — правило в силе."""
+    _past_no_show("anna@web.de")
+    monkeypatch.setattr(no_show_rule, "pass_covers", lambda *a, **k: True)
+    service, slots = _service_setup()
+    response, _m = _post_service(_tenant(), service, slots[:1], pass_code="K-GONE00")
+    assert response.url == "https://stripe.test/dep"
+    booking = Booking.objects.get(service=service)
+    assert booking.payment_state == Booking.PAYMENT_PENDING and booking.card_id is None
+
+
+def test_mailbox_limit_is_per_ip_not_global():
+    """Чужой IP не может заблокировать запись владельцу адреса."""
+    k1 = no_show_rule.email_rate_key("a@b.de", ip="1.1.1.1", schema="s")
+    k2 = no_show_rule.email_rate_key("a@b.de", ip="2.2.2.2", schema="s")
+    k3 = no_show_rule.email_rate_key("a+x@b.de", ip="1.1.1.1", schema="s")
+    assert k1 != k2 and k1 == k3
