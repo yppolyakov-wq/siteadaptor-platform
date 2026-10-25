@@ -1,0 +1,41 @@
+{% load i18n %}
+{# Z-3: Vorschau массовой правки — ничего не записано; «Übernehmen» шлёт те же поля + отпечаток #}
+<section class="bg-white rounded-2xl shadow-sm p-4 mb-4 border border-indigo-200" data-price-preview aria-labelledby="price-preview-title">
+  <h2 id="price-preview-title" class="font-semibold mb-2">{% trans "Vorschau" %}</h2>
+  {% if preview.errors %}
+  <ul class="text-sm text-rose-700 list-disc pl-5" role="alert">{% for e in preview.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  {% elif not preview.plan.changes and not preview.rejected %}
+  <p class="text-sm text-gray-600">{% trans "Keine Änderungen — alles ist bereits so eingestellt." %}</p>
+  {% else %}
+  <p class="text-sm mb-2">{% blocktrans with n=preview.plan.cells %}Betroffene Nächte: {{ n }}{% endblocktrans %} · {% blocktrans with n=preview.counts.create %}neu: {{ n }}{% endblocktrans %} · {% blocktrans with n=preview.counts.update %}geändert: {{ n }}{% endblocktrans %} · {% blocktrans with n=preview.counts.delete %}entfernt: {{ n }}{% endblocktrans %}</p>
+  {% if preview.booked %}<p class="text-xs text-gray-500 mb-2">{% blocktrans with n=preview.booked %}Darunter Nächte mit Buchungen: {{ n }} — bestehende Buchungen bleiben unverändert.{% endblocktrans %}</p>{% endif %}
+  {% if preview.rejected %}<p class="text-sm text-rose-700 mb-2" role="alert">{% blocktrans with n=preview.rejected %}Nächte mit Preis 0 € oder darunter: {{ n }} — bitte die Änderung anpassen.{% endblocktrans %}</p>{% endif %}
+  {% if preview.rows %}
+  <div class="overflow-x-auto">
+  <table class="text-xs w-full mb-2">
+    <thead><tr class="text-left text-gray-500"><th class="py-1 pr-2">{% trans "Kategorie" %}</th><th class="py-1 pr-2">{% trans "Datum" %}</th><th class="py-1 pr-2">{% trans "Tagespreis" %}</th><th class="py-1">{% trans "Einschränkungen" %}</th></tr></thead>
+    <tbody>
+      {% for r in preview.rows %}
+      <tr class="border-t border-gray-100">
+        <td class="py-1 pr-2">{{ r.unit }}</td>
+        <td class="py-1 pr-2 whitespace-nowrap">{{ r.day|date:"D d.m.Y" }}</td>
+        <td class="py-1 pr-2 whitespace-nowrap">{% if r.before_eur %}{{ r.before_eur|floatformat:2 }} €{% else %}—{% endif %} → {% if r.after_eur %}<strong>{{ r.after_eur|floatformat:2 }} €</strong>{% else %}—{% endif %}</td>
+        <td class="py-1">{% with c=r.after %}{% if c.stop_sell %}<span class="text-rose-700">{% trans "Stopp" %}</span> {% endif %}{% if c.min_nights %}{% blocktrans with n=c.min_nights %}min. {{ n }}{% endblocktrans %} {% endif %}{% if c.no_checkin %}{% trans "Kein Check-in" %} {% endif %}{% if c.no_checkout %}{% trans "Kein Check-out" %}{% endif %}{% if r.kind == "delete" %}<span class="text-gray-400">{% trans "wie Saison/Basis" %}</span>{% endif %}{% endwith %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% if preview.more %}<p class="text-xs text-gray-500 mb-2">{% blocktrans with n=preview.more %}… und {{ n }} weitere{% endblocktrans %}</p>{% endif %}
+  {% endif %}
+  {% if not preview.rejected %}
+  <form method="post" action="{% url 'stays:price-calendar-apply' %}" class="flex flex-wrap gap-2 items-center">
+    {% csrf_token %}
+    <input type="hidden" name="fingerprint" value="{{ preview.fingerprint }}">
+    {% for key, values in request.GET.lists %}{% if key != "vorschau" %}{% for v in values %}<input type="hidden" name="{{ key }}" value="{{ v }}">{% endfor %}{% endif %}{% endfor %}
+    <button type="submit" class="rounded-lg bg-indigo-600 text-white font-medium px-5 py-2.5 min-h-[44px] hover:bg-indigo-700">{% trans "Übernehmen" %}</button>
+    <a href="?von={{ von|date:'Y-m-d' }}&amp;tage={{ tage }}" class="text-sm text-gray-600 hover:underline px-2 py-2">{% trans "Abbrechen" %}</a>
+  </form>
+  {% endif %}
+  {% endif %}
+</section>

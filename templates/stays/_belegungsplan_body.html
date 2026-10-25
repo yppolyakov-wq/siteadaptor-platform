@@ -13,6 +13,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3 text-sm">
   <a href="{% url 'dashboard' %}" class="text-indigo-600 hover:underline">📋 {% trans "Heute" %} →</a>
   <a href="{% url 'stays:units' %}?tab=einstellungen&amp;sec=preise" class="text-indigo-600 hover:underline">💶 {% trans "Preise & Saison" %} →</a>
+  <a href="{% url 'stays:price-calendar' %}" class="text-indigo-600 hover:underline" data-price-calendar-link>📅 {% trans "Preise & Verfügbarkeit" %} →</a>
 </div>
 {% if messages %}
   {% for m in messages %}

@@ -516,6 +516,16 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         "zimmer unterkunft tarife saison",
     ),
+    # KA-12 Z-3 (О-9): цены и ограничения по дням — подпункт «Sortiment» у отеля.
+    _e(
+        "sellables",
+        "stays:price-calendar",
+        _("Preise & Verfügbarkeit"),
+        "price-calendar",
+        "stays",
+        True,
+        "preise kalender verfügbarkeit stopp mindestaufenthalt tagespreis",
+    ),
     # X4 (глоссарий): «Tickets» осталось за вкладкой СДЕЛОК в Verkäufe — сущность
     # зовётся «Veranstaltungen» (событие продаётся билетами, но это не билет).
     _e(

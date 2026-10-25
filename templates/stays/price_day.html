@@ -1,0 +1,7 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Preise & Verfügbarkeit" %}{% endblock %}
+{% block dash_content %}
+<p class="mb-3 text-sm"><a href="{% url 'stays:price-calendar' %}?von={{ von|date:'Y-m-d' }}&amp;tage={{ tage }}" class="text-indigo-600 hover:underline">← {% trans "Preise & Verfügbarkeit" %}</a></p>
+<div class="bg-white rounded-2xl shadow-sm max-w-md">{% include "stays/_price_day.html" %}</div>
+{% endblock %}

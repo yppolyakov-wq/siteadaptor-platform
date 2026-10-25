@@ -542,7 +542,9 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
     ids = {booking.unit_id}
     if unit is not None:
         ids.add(unit.pk)
-    locked = {u.pk: u for u in StayUnit.objects.select_for_update().filter(id__in=ids)}
+    locked = {
+        u.pk: u for u in StayUnit.objects.select_for_update().filter(id__in=ids).order_by("id")
+    }
     dest = locked[unit.pk] if unit is not None else locked[booking.unit_id]
     if (departure - arrival).days < dest.min_nights:
         raise MinStay()

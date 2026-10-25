@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import price_calendar_views, views
 
 app_name = "stays"
 
@@ -22,6 +22,14 @@ urlpatterns = [
     path("zimmer/<uuid:pk>/sauber/", views.room_clean, name="room-clean"),
     # Фидбэк 2026-07-28: «＋ Buchung» — отдельная вкладка (только форма).
     path("neu/", views.stay_new, name="stay-new"),
+    # KA-12 Z-3 (E4.6b): «Preise & Verfügbarkeit» — сетка цен/ограничений по дням.
+    path("preise/", price_calendar_views.price_calendar, name="price-calendar"),
+    path(
+        "preise/uebernehmen/",
+        price_calendar_views.price_calendar_apply,
+        name="price-calendar-apply",
+    ),
+    path("preise/<uuid:pk>/<str:day>/", price_calendar_views.price_day, name="price-day"),
     path("units/", views.units, name="units"),
     # Фидбэк 2026-07-28: каждый номер редактируется на СВОЕЙ странице.
     path("units/<uuid:pk>/", views.units, name="unit-edit"),

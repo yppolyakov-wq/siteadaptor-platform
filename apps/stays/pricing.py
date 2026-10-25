@@ -35,6 +35,38 @@ def night_rates_for(unit, arrival, departure) -> dict:
     return cache[key]
 
 
+def night_rates_window(unit_ids, start, end) -> dict:
+    """KA-12 Z-3: {unit_id: {day: NightRate}} окна [start, end] для НЕСКОЛЬКИХ
+    категорий — один запрос (сетка цен, массовая правка). Чтение NightRate живёт
+    здесь и в ``restrictions`` (замок: не размазывать по модулям)."""
+    from .models import NightRate
+
+    out = {uid: {} for uid in unit_ids}
+    if not out:
+        return out
+    for nr in NightRate.objects.filter(unit_id__in=list(out), day__gte=start, day__lte=end):
+        out.setdefault(nr.unit_id, {})[nr.day] = nr
+    return out
+
+
+def price_source_mark(unit, day, seasons, night) -> str:
+    """Источник цены ночи (без тарифа) тем же правилом, что ``night_snapshot``:
+    "@night" / имя сезона или "@season" / "@weekend" / "" (база)."""
+    if night is not None and night.price_cents is not None:
+        return "@night"
+    for rate in seasons:
+        if rate.start_date <= day <= rate.end_date:
+            return rate.label or "@season"
+    if day.weekday() in WEEKEND_WEEKDAYS and unit.weekend_price_cents:
+        return "@weekend"
+    return ""
+
+
+def source_label(mark) -> str:
+    """Подпись источника цены для кабинета (переведённая)."""
+    return _snapshot_label(mark)
+
+
 def forget_night_rates(unit) -> None:
     """Сбросить кэш окон NightRate на экземпляре — писатель NightRate (Z-3) обязан
     звать после записи, если дальше считает цену на том же экземпляре юнита."""

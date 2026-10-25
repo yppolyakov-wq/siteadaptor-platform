@@ -142,6 +142,7 @@
           <p class="sm:col-span-3 text-xs text-gray-500 -mb-1">
             {% trans "Saisonpreise für Zeiträume legen Sie weiter unten auf dieser Seite fest." %}
             <a href="{% url 'stays:units' %}?tab=einstellungen&amp;sec=preise" class="text-indigo-600 hover:underline">{% trans "Allgemeine Tarife, Rabatte und dynamische Preise" %} →</a>
+            <a href="{% url 'stays:price-calendar' %}?kat={{ u.pk }}" class="text-indigo-600 hover:underline ml-2" data-price-calendar-link>📅 {% trans "Preise & Verfügbarkeit" %} →</a>
           </p>
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price / night (€)" %}</label>
@@ -394,6 +395,9 @@
   <button type="button" data-st-tab="kanaele" aria-pressed="{% if sec == 'kanaele' %}true{% else %}false{% endif %}" class="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap {% if sec == 'kanaele' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🔗 {% trans "Channels & export" %}</button>
 </div>
 <div data-st-panel="preise" class="{% if sec == 'regeln' or sec == 'kurtaxe' or sec == 'kanaele' %}hidden{% endif %}">
+<a href="{% url 'stays:price-calendar' %}" data-price-calendar-link class="flex items-center justify-between gap-3 bg-indigo-50 rounded-2xl px-5 py-3 mb-3 text-sm text-indigo-800 hover:bg-indigo-100">
+  <span>📅 <strong>{% trans "Preise & Verfügbarkeit" %}</strong> — {% trans "Tagespreise, Stopp und Mindestaufenthalt im Kalender" %}</span><span aria-hidden="true">→</span>
+</a>
 {# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
 <details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Rate plans" %} <span class="text-xs font-normal text-gray-400">{% if rate_plans %}· {{ rate_plans|length }}{% endif %}</span></summary>

@@ -337,25 +337,31 @@ def occupancy_grid(units, start_day, num_days):
 
     ``days`` — список дат окна; ``rows`` — список ``(unit, cells)``, где cell =
     ``{day, free, blocked}`` (free = quantity − занятость ночи, blocked — есть
-    блокировка). Один запрос броней + блоков на юнит, занятость считаем в памяти.
+    блокировка). Два запроса на окно (брони + блоки всех юнитов), занятость в памяти.
     """
     end_day = start_day + timedelta(days=num_days)
     days = [start_day + timedelta(days=i) for i in range(num_days)]
+    units = list(units)
+    # KA-12 Z-3: два запроса на всё окно (брони + блоки по unit__in), не по паре
+    # на юнит — сетка цен и Belegungsplan не растут запросами с числом категорий.
+    stays_by_unit, blocks_by_unit = {}, {}
+    ids = [u.pk for u in units]
+    if ids:
+        for unit_id, s_arr, s_dep, rooms in StayBooking.objects.filter(
+            unit_id__in=ids,
+            status__in=status_registry.active_statuses_for("stay"),
+            arrival__lt=end_day,
+            departure__gt=start_day,
+        ).values_list("unit_id", "arrival", "departure", "rooms"):
+            stays_by_unit.setdefault(unit_id, []).append((s_arr, s_dep, rooms))
+        for unit_id, b_start, b_end in UnitBlock.objects.filter(
+            unit_id__in=ids, start_date__lt=end_day, end_date__gte=start_day
+        ).values_list("unit_id", "start_date", "end_date"):
+            blocks_by_unit.setdefault(unit_id, []).append((b_start, b_end))
     rows = []
     for unit in units:
-        stays = list(
-            StayBooking.objects.filter(
-                unit=unit,
-                status__in=status_registry.active_statuses_for("stay"),
-                arrival__lt=end_day,
-                departure__gt=start_day,
-            ).values_list("arrival", "departure", "rooms")
-        )
-        blocks = list(
-            UnitBlock.objects.filter(
-                unit=unit, start_date__lt=end_day, end_date__gte=start_day
-            ).values_list("start_date", "end_date")
-        )
+        stays = stays_by_unit.get(unit.pk, [])
+        blocks = blocks_by_unit.get(unit.pk, [])
         cells = []
         for day in days:
             occupied = sum(rooms for s_arr, s_dep, rooms in stays if s_arr <= day < s_dep)

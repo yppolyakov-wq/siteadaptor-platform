@@ -29514,3 +29514,211 @@ msgstr "Günlük fiyat"
 
 msgid "These dates cannot be booked online. Please contact us directly."
 msgstr "Bu tarihler online rezerve edilemez. Lütfen doğrudan bizimle iletişime geçin."
+
+#, python-format
+msgid "Aktualisierte Nächte: %(n)s"
+msgstr "Güncellenen geceler: %(n)s"
+
+msgid "Alle Kategorien anzeigen"
+msgstr "Tüm kategorileri göster"
+
+msgid "Auf Saison/Basis zurücksetzen"
+msgstr "Sezon/temel fiyata sıfırla"
+
+#, python-format
+msgid "Nächte mit Preis 0 € oder darunter: %(n)s — bitte die Änderung anpassen."
+msgstr "Fiyatı 0 € veya altına düşen geceler: %(n)s — lütfen değişikliği düzeltin."
+
+#, python-format
+msgid "Betroffene Nächte: %(n)s"
+msgstr "Etkilenen geceler: %(n)s"
+
+#, python-format
+msgid "Bitte eine Änderung zwischen %(lo)s und +%(hi)s %% angeben."
+msgstr "Lütfen %(lo)s ile +%(hi)s %% arasında bir değişiklik girin."
+
+msgid "Bitte einen gültigen Preis angeben (z. B. 89,00)."
+msgstr "Lütfen geçerli bir fiyat girin (ör. 89,00)."
+
+msgid "Bitte einen gültigen Zeitraum angeben."
+msgstr "Lütfen geçerli bir dönem girin."
+
+msgid "Bitte mindestens eine Kategorie wählen."
+msgstr "Lütfen en az bir kategori seçin."
+
+msgid "Bitte mindestens einen Wochentag wählen."
+msgstr "Lütfen en az bir hafta günü seçin."
+
+msgid "Das Enddatum liegt vor dem Startdatum."
+msgstr "Bitiş tarihi başlangıç tarihinden önce."
+
+msgid "Datum"
+msgstr "Tarih"
+
+#, python-format
+msgid "Darunter Nächte mit Buchungen: %(n)s — bestehende Buchungen bleiben unverändert."
+msgstr "Bunların rezervasyonlu geceleri: %(n)s — mevcut rezervasyonlar değişmez."
+
+msgid "Der Preis würde auf 0 € oder darunter fallen."
+msgstr "Fiyat 0 € veya altına düşer."
+
+msgid "Die Daten haben sich inzwischen geändert. Bitte prüfen Sie die Vorschau erneut."
+msgstr "Veriler bu arada değişti. Lütfen önizlemeyi yeniden kontrol edin."
+
+msgid "Ein"
+msgstr "Açık"
+
+msgid "Einschränkungen"
+msgstr "Kısıtlamalar"
+
+msgid "Festlegen"
+msgstr "Belirle"
+
+msgid "Früher"
+msgstr "Önceki"
+
+#, python-format
+msgid "Höchstens %(n)s Kategorien auf einmal."
+msgstr "Bir seferde en fazla %(n)s kategori."
+
+#, python-format
+msgid "Höchstens %(n)s Tage im Voraus."
+msgstr "En fazla %(n)s gün önceden."
+
+msgid "Kein Check-in"
+msgstr "Giriş yok"
+
+msgid "Kein Check-out"
+msgstr "Çıkış yok"
+
+msgid "Keine Änderung ausgewählt."
+msgstr "Değişiklik seçilmedi."
+
+msgid "Keine Änderungen — alles ist bereits so eingestellt."
+msgstr "Değişiklik yok — her şey zaten böyle ayarlı."
+
+msgid "Mehrere Tage ändern"
+msgstr "Birden fazla günü değiştir"
+
+msgid "Mindestaufenthalt bei Anreise"
+msgstr "Girişte asgari konaklama"
+
+msgid "Mindestaufenthalt: 1 bis 365 Nächte."
+msgstr "Asgari konaklama: 1 ila 365 gece."
+
+msgid "Nicht ändern"
+msgstr "Değiştirme"
+
+msgid "Noch keine aktiven Zimmerkategorien."
+msgstr "Henüz aktif oda kategorisi yok."
+
+msgid "Nur für Inhaber und Administratoren."
+msgstr "Yalnızca sahipler ve yöneticiler için."
+
+msgid "Nächte"
+msgstr "Gece"
+
+#, python-format
+msgid "Ohne Tagespreis: %(p)s € (Saison/Wochenende/Basis)"
+msgstr "Günlük fiyat olmadan: %(p)s € (sezon/hafta sonu/temel)"
+
+msgid "Online-Verkauf"
+msgstr "Online satış"
+
+msgid "Preis festlegen"
+msgstr "Fiyat belirle"
+
+msgid "Preis pro Nacht"
+msgstr "Gecelik fiyat"
+
+msgid "Preis pro Nacht ohne Tarif. Ein eigener Tagespreis hat Vorrang vor Saison- und Wochenendpreisen. Stopp und Mindestaufenthalt gelten nur für Online-Buchungen — bestehende Buchungen bleiben unverändert."
+msgstr "Tarifesiz gecelik fiyat. Özel günlük fiyat, sezon ve hafta sonu fiyatlarından önceliklidir. Satış durdurma ve asgari konaklama yalnızca online rezervasyonlar için geçerlidir — mevcut rezervasyonlar değişmez."
+
+msgid "Preise & Verfügbarkeit"
+msgstr "Fiyatlar ve müsaitlik"
+
+msgid "Später"
+msgstr "Sonraki"
+
+msgid "Stopp"
+msgstr "Durdur"
+
+msgid "Stopp (nicht online buchbar)"
+msgstr "Durdur (online rezerve edilemez)"
+
+msgid "Tagespreis (leer = Saison/Basis)"
+msgstr "Günlük fiyat (boş = sezon/temel)"
+
+msgid "Tagespreise, Stopp und Mindestaufenthalt im Kalender"
+msgstr "Takvimde günlük fiyatlar, durdurma ve asgari konaklama"
+
+msgid "Tarife & Rabatte"
+msgstr "Tarifeler ve indirimler"
+
+msgid "Unbekannte Kategorie."
+msgstr "Bilinmeyen kategori."
+
+msgid "Wochentage"
+msgstr "Hafta günleri"
+
+msgid "Zeitraum liegt in der Vergangenheit."
+msgstr "Dönem geçmişte."
+
+msgid "Zimmer anlegen"
+msgstr "Oda oluştur"
+
+#, python-format
+msgid "Zimmer: %(n)s"
+msgstr "Oda: %(n)s"
+
+msgid "Zu viele Anfragen. Bitte kurz warten."
+msgstr "Çok fazla istek. Lütfen biraz bekleyin."
+
+#, python-format
+msgid "Zu viele Nächte auf einmal (%(n)s). Bitte Zeitraum oder Kategorien verkleinern."
+msgstr "Bir seferde çok fazla gece (%(n)s). Lütfen dönemi veya kategorileri azaltın."
+
+#, python-format
+msgid "entfernt: %(n)s"
+msgstr "kaldırıldı: %(n)s"
+
+#, python-format
+msgid "frei %(n)s"
+msgstr "boş %(n)s"
+
+#, python-format
+msgid "geändert: %(n)s"
+msgstr "değişti: %(n)s"
+
+msgid "kein Ab"
+msgstr "çıkış yok"
+
+msgid "kein An"
+msgstr "giriş yok"
+
+#, python-format
+msgid "min. %(n)s"
+msgstr "min. %(n)s"
+
+#, python-format
+msgid "neu: %(n)s"
+msgstr "yeni: %(n)s"
+
+msgid "wie Saison/Basis"
+msgstr "sezon/temel gibi"
+
+msgid "Ändern um"
+msgstr "Şu kadar değiştir"
+
+msgid "Änderung in Prozent"
+msgstr "Yüzde olarak değişiklik"
+
+#, python-format
+msgid "… und %(n)s weitere"
+msgstr "… ve %(n)s tane daha"
+
+#, python-format
+msgid "%(n)s Tag"
+msgid_plural "%(n)s Tage"
+msgstr[0] "%(n)s gün"
+msgstr[1] "%(n)s gün"

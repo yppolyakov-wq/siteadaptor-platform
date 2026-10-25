@@ -1,0 +1,38 @@
+{% load i18n %}
+{# Z-3: один день категории — фрагмент <dialog> (?box=1) и тело страницы price_day.html #}
+<div class="p-5" data-price-day-box>
+  <div class="flex items-start justify-between gap-3 mb-3">
+    <h2 id="price-day-title" class="font-semibold">{{ unit.name }} · {{ cell.day|date:"D d.m.Y" }}</h2>
+    <button type="button" data-price-day-close class="text-gray-400 hover:text-gray-700 text-xl leading-none px-2 min-h-[44px]" aria-label="{% trans 'Schließen' %}">✕</button>
+  </div>
+  <p class="text-sm mb-1"><span class="text-2xl font-bold tabular-nums">{{ cell.eur|floatformat:2 }} €</span> <span class="text-gray-500">{{ cell.source }}</span></p>
+  <p class="text-xs text-gray-500 mb-3">{% blocktrans with p=chain_eur|floatformat:2 %}Ohne Tagespreis: {{ p }} € (Saison/Wochenende/Basis){% endblocktrans %} · {% blocktrans with n=cell.free %}frei {{ n }}{% endblocktrans %}</p>
+  {% if can_edit %}
+  <form method="post" action="{% url 'stays:price-day' unit.pk cell.day|date:'Y-m-d' %}" class="grid gap-3 text-base md:text-sm">
+    {% csrf_token %}
+    <input type="hidden" name="day_present" value="1">
+    <input type="hidden" name="state" value="{{ state }}">
+    <input type="hidden" name="von" value="{{ von|date:'Y-m-d' }}">
+    <input type="hidden" name="tage" value="{{ tage }}">
+    <label class="block">{% trans "Tagespreis (leer = Saison/Basis)" %}
+      <span class="flex items-center gap-1 mt-1"><input type="text" inputmode="decimal" name="price" value="{% if own_eur %}{{ own_eur|stringformat:'.2f' }}{% endif %}" placeholder="{{ chain_eur|stringformat:'.2f' }}" class="w-32 border border-gray-300 rounded-lg px-2 py-2"> €</span></label>
+    <label class="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" name="stop_sell" value="1" {% if night.stop_sell %}checked{% endif %}> {% trans "Stopp (nicht online buchbar)" %}</label>
+    <label class="block">{% trans "Mindestaufenthalt bei Anreise" %}
+      <input type="text" inputmode="numeric" name="min_nights" value="{% if night.min_nights %}{{ night.min_nights }}{% endif %}" placeholder="—" class="mt-1 w-24 border border-gray-300 rounded-lg px-2 py-2"></label>
+    <label class="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" name="no_checkin" value="1" {% if night.no_checkin %}checked{% endif %}> {% trans "Kein Check-in" %}</label>
+    <label class="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" name="no_checkout" value="1" {% if night.no_checkout %}checked{% endif %}> {% trans "Kein Check-out" %}</label>
+    <div class="flex flex-wrap gap-2">
+      <button type="submit" class="rounded-lg bg-indigo-600 text-white font-medium px-5 py-2.5 min-h-[44px] hover:bg-indigo-700">{% trans "Speichern" %}</button>
+      <a href="{% url 'stays:price-calendar' %}?von={{ von|date:'Y-m-d' }}&amp;tage={{ tage }}" data-price-day-close class="text-sm text-gray-600 hover:underline px-2 py-2.5">{% trans "Abbrechen" %}</a>
+    </div>
+  </form>
+  {% else %}
+  <ul class="text-sm space-y-1">
+    <li>{% trans "Stopp (nicht online buchbar)" %}: {% if night.stop_sell %}{% trans "Ein" %}{% else %}{% trans "Aus" %}{% endif %}</li>
+    <li>{% trans "Mindestaufenthalt bei Anreise" %}: {{ night.min_nights|default:"—" }}</li>
+    <li>{% trans "Kein Check-in" %}: {% if night.no_checkin %}{% trans "Ein" %}{% else %}{% trans "Aus" %}{% endif %}</li>
+    <li>{% trans "Kein Check-out" %}: {% if night.no_checkout %}{% trans "Ein" %}{% else %}{% trans "Aus" %}{% endif %}</li>
+  </ul>
+  <p class="text-xs text-gray-500 mt-3">{% trans "Nur für Inhaber und Administratoren." %}</p>
+  {% endif %}
+</div>

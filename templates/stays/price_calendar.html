@@ -1,0 +1,78 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Preise & Verfügbarkeit" %}{% endblock %}
+{% block dash_heading %}{% trans "Preise & Verfügbarkeit" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}
+KA-12 Z-3 (E4.6b): сетка категория × день (цена ночи без тарифа, источник, ограничения,
+свободно). Массовая правка — GET Vorschau → POST Übernehmen; ячейка — ссылка на день
+(без JS — страница, с JS — <dialog>). Скрытие разметок — классами (не атрибутом hidden).
+{% endcomment %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% nav_title _("Preise & Verfügbarkeit") %}</h1>
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+    <a href="{% url 'stays:calendar' %}" class="text-indigo-600 hover:underline">← {% trans "Belegungsplan" %}</a>
+    <a href="{% url 'stays:units' %}?tab=einstellungen&amp;sec=preise" class="text-indigo-600 hover:underline">💶 {% trans "Tarife & Rabatte" %} →</a>
+  </div>
+</div>
+
+<p class="text-sm text-gray-500 mb-4 max-w-3xl">{% trans "Preis pro Nacht ohne Tarif. Ein eigener Tagespreis hat Vorrang vor Saison- und Wochenendpreisen. Stopp und Mindestaufenthalt gelten nur für Online-Buchungen — bestehende Buchungen bleiben unverändert." %}</p>
+
+<nav class="flex flex-wrap items-center gap-2 mb-4" aria-label="{% trans 'Zeitraum' %}">
+  <a href="?von={{ prev|date:'Y-m-d' }}&amp;tage={{ tage }}{% if kat %}&amp;kat={{ kat }}{% endif %}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400" aria-label="{% trans 'Früher' %}">←</a>
+  <a href="?tage={{ tage }}{% if kat %}&amp;kat={{ kat }}{% endif %}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Heute" %}</a>
+  <a href="?von={{ next|date:'Y-m-d' }}&amp;tage={{ tage }}{% if kat %}&amp;kat={{ kat }}{% endif %}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400" aria-label="{% trans 'Später' %}">→</a>
+  <span class="font-semibold text-sm ml-1">{{ von|date:"d.m." }} – {{ days|last|date:"d.m.Y" }}</span>
+  <span class="ml-auto flex gap-1">
+    {% for w in windows %}
+    <a href="?von={{ von|date:'Y-m-d' }}&amp;tage={{ w }}{% if kat %}&amp;kat={{ kat }}{% endif %}" aria-current="{% if w == tage %}true{% else %}false{% endif %}" class="rounded-full px-3 py-1 text-xs font-medium {% if w == tage %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% blocktrans count n=w %}{{ n }} Tag{% plural %}{{ n }} Tage{% endblocktrans %}</a>
+    {% endfor %}
+  </span>
+</nav>
+{% if kat %}<p class="text-sm mb-3"><a href="?von={{ von|date:'Y-m-d' }}&amp;tage={{ tage }}" class="text-indigo-600 hover:underline">{% trans "Alle Kategorien anzeigen" %}</a></p>{% endif %}
+
+{% if can_edit %}{% include "stays/_price_bulk_form.html" %}{% endif %}
+{% if preview %}{% include "stays/_price_preview.html" %}{% endif %}
+
+{% if not rows %}
+<p class="bg-white rounded-2xl shadow-sm p-5 text-sm text-gray-500">{% trans "Noch keine aktiven Zimmerkategorien." %} <a href="{% url 'stays:units' %}" class="text-indigo-600 hover:underline">{% trans "Zimmer anlegen" %}</a></p>
+{% else %}
+{% include "stays/_price_grid.html" %}
+{% include "stays/_price_cards.html" %}
+{% endif %}
+
+<dialog id="price-day-dialog" class="rounded-2xl p-0 border-0 shadow-xl backdrop:bg-black/40 w-[min(26rem,94vw)]" aria-labelledby="price-day-title"></dialog>
+<script>
+(function () {
+  var dlg = document.getElementById('price-day-dialog');
+  if (!dlg || typeof dlg.showModal !== 'function') return;
+  var opener = null;
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-price-day]');
+    if (a && !e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) {
+      e.preventDefault();
+      opener = a;
+      var url = a.getAttribute('href') + (a.getAttribute('href').indexOf('?') < 0 ? '?' : '&') + 'box=1';
+      fetch(url, {credentials: 'same-origin'}).then(function (r) {
+        if (!r.ok) throw new Error(r.status);
+        return r.text();
+      }).then(function (html) {
+        dlg.innerHTML = html;
+        dlg.showModal();
+        var first = dlg.querySelector('input, button, a');
+        if (first) first.focus();
+      }).catch(function () { window.location.href = a.getAttribute('href'); });
+      return;
+    }
+    if (dlg.open && e.target.closest('[data-price-day-close]')) { e.preventDefault(); dlg.close(); }
+  });
+  dlg.addEventListener('close', function () { if (opener) opener.focus(); });
+  document.addEventListener('change', function (e) {
+    var all = e.target.closest('[data-price-all-units]');
+    if (!all) return;
+    document.querySelectorAll('[data-price-unit]').forEach(function (c) { c.checked = all.checked; });
+  });
+})();
+</script>
+{% endblock %}

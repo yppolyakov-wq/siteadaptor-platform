@@ -29643,3 +29643,213 @@ msgstr "Цена дня"
 
 msgid "These dates cannot be booked online. Please contact us directly."
 msgstr "Эти даты нельзя забронировать онлайн. Пожалуйста, свяжитесь с нами напрямую."
+
+#, python-format
+msgid "Aktualisierte Nächte: %(n)s"
+msgstr "Обновлено ночей: %(n)s"
+
+msgid "Alle Kategorien anzeigen"
+msgstr "Показать все категории"
+
+msgid "Auf Saison/Basis zurücksetzen"
+msgstr "Сбросить к сезону/базе"
+
+#, python-format
+msgid "Nächte mit Preis 0 € oder darunter: %(n)s — bitte die Änderung anpassen."
+msgstr "Ночей с ценой 0 € или ниже: %(n)s — измените правку."
+
+#, python-format
+msgid "Betroffene Nächte: %(n)s"
+msgstr "Затронуто ночей: %(n)s"
+
+#, python-format
+msgid "Bitte eine Änderung zwischen %(lo)s und +%(hi)s %% angeben."
+msgstr "Укажите изменение от %(lo)s до +%(hi)s %%."
+
+msgid "Bitte einen gültigen Preis angeben (z. B. 89,00)."
+msgstr "Укажите корректную цену (например, 89,00)."
+
+msgid "Bitte einen gültigen Zeitraum angeben."
+msgstr "Укажите корректный период."
+
+msgid "Bitte mindestens eine Kategorie wählen."
+msgstr "Выберите хотя бы одну категорию."
+
+msgid "Bitte mindestens einen Wochentag wählen."
+msgstr "Выберите хотя бы один день недели."
+
+msgid "Das Enddatum liegt vor dem Startdatum."
+msgstr "Дата окончания раньше даты начала."
+
+msgid "Datum"
+msgstr "Дата"
+
+#, python-format
+msgid "Darunter Nächte mit Buchungen: %(n)s — bestehende Buchungen bleiben unverändert."
+msgstr "Из них ночей с бронями: %(n)s — существующие брони не меняются."
+
+msgid "Der Preis würde auf 0 € oder darunter fallen."
+msgstr "Цена опустилась бы до 0 € или ниже."
+
+msgid "Die Daten haben sich inzwischen geändert. Bitte prüfen Sie die Vorschau erneut."
+msgstr "Данные тем временем изменились. Проверьте предпросмотр ещё раз."
+
+msgid "Ein"
+msgstr "Вкл."
+
+msgid "Einschränkungen"
+msgstr "Ограничения"
+
+msgid "Festlegen"
+msgstr "Задать"
+
+msgid "Früher"
+msgstr "Раньше"
+
+#, python-format
+msgid "Höchstens %(n)s Kategorien auf einmal."
+msgstr "Не более %(n)s категорий за раз."
+
+#, python-format
+msgid "Höchstens %(n)s Tage im Voraus."
+msgstr "Не более чем на %(n)s дн. вперёд."
+
+msgid "Kein Check-in"
+msgstr "Без заезда"
+
+msgid "Kein Check-out"
+msgstr "Без выезда"
+
+msgid "Keine Änderung ausgewählt."
+msgstr "Изменение не выбрано."
+
+msgid "Keine Änderungen — alles ist bereits so eingestellt."
+msgstr "Изменений нет — всё уже так настроено."
+
+msgid "Mehrere Tage ändern"
+msgstr "Изменить несколько дней"
+
+msgid "Mindestaufenthalt bei Anreise"
+msgstr "Мин. проживание при заезде"
+
+msgid "Mindestaufenthalt: 1 bis 365 Nächte."
+msgstr "Минимальное проживание: от 1 до 365 ночей."
+
+msgid "Nicht ändern"
+msgstr "Не менять"
+
+msgid "Noch keine aktiven Zimmerkategorien."
+msgstr "Пока нет активных категорий номеров."
+
+msgid "Nur für Inhaber und Administratoren."
+msgstr "Только для владельцев и администраторов."
+
+msgid "Nächte"
+msgstr "Ночей"
+
+#, python-format
+msgid "Ohne Tagespreis: %(p)s € (Saison/Wochenende/Basis)"
+msgstr "Без цены дня: %(p)s € (сезон/выходные/база)"
+
+msgid "Online-Verkauf"
+msgstr "Онлайн-продажа"
+
+msgid "Preis festlegen"
+msgstr "Задать цену"
+
+msgid "Preis pro Nacht"
+msgstr "Цена за ночь"
+
+msgid "Preis pro Nacht ohne Tarif. Ein eigener Tagespreis hat Vorrang vor Saison- und Wochenendpreisen. Stopp und Mindestaufenthalt gelten nur für Online-Buchungen — bestehende Buchungen bleiben unverändert."
+msgstr "Цена за ночь без тарифа. Своя цена дня важнее сезонной и цены выходных. Стоп-продажа и минимальное проживание действуют только для онлайн-броней — существующие брони не меняются."
+
+msgid "Preise & Verfügbarkeit"
+msgstr "Цены и наличие"
+
+msgid "Später"
+msgstr "Позже"
+
+msgid "Stopp"
+msgstr "Стоп"
+
+msgid "Stopp (nicht online buchbar)"
+msgstr "Стоп (нельзя бронировать онлайн)"
+
+msgid "Tagespreis (leer = Saison/Basis)"
+msgstr "Цена дня (пусто = сезон/база)"
+
+msgid "Tagespreise, Stopp und Mindestaufenthalt im Kalender"
+msgstr "Цены дня, стоп и мин. проживание в календаре"
+
+msgid "Tarife & Rabatte"
+msgstr "Тарифы и скидки"
+
+msgid "Unbekannte Kategorie."
+msgstr "Неизвестная категория."
+
+msgid "Wochentage"
+msgstr "Дни недели"
+
+msgid "Zeitraum liegt in der Vergangenheit."
+msgstr "Период в прошлом."
+
+msgid "Zimmer anlegen"
+msgstr "Создать номер"
+
+#, python-format
+msgid "Zimmer: %(n)s"
+msgstr "Номеров: %(n)s"
+
+msgid "Zu viele Anfragen. Bitte kurz warten."
+msgstr "Слишком много запросов. Подождите немного."
+
+#, python-format
+msgid "Zu viele Nächte auf einmal (%(n)s). Bitte Zeitraum oder Kategorien verkleinern."
+msgstr "Слишком много ночей за раз (%(n)s). Сократите период или категории."
+
+#, python-format
+msgid "entfernt: %(n)s"
+msgstr "удалено: %(n)s"
+
+#, python-format
+msgid "frei %(n)s"
+msgstr "свободно %(n)s"
+
+#, python-format
+msgid "geändert: %(n)s"
+msgstr "изменено: %(n)s"
+
+msgid "kein Ab"
+msgstr "без выезда"
+
+msgid "kein An"
+msgstr "без заезда"
+
+#, python-format
+msgid "min. %(n)s"
+msgstr "мин. %(n)s"
+
+#, python-format
+msgid "neu: %(n)s"
+msgstr "новых: %(n)s"
+
+msgid "wie Saison/Basis"
+msgstr "как сезон/база"
+
+msgid "Ändern um"
+msgstr "Изменить на"
+
+msgid "Änderung in Prozent"
+msgstr "Изменение в процентах"
+
+#, python-format
+msgid "… und %(n)s weitere"
+msgstr "… и ещё %(n)s"
+
+#, python-format
+msgid "%(n)s Tag"
+msgid_plural "%(n)s Tage"
+msgstr[0] "%(n)s день"
+msgstr[1] "%(n)s дня"
+msgstr[2] "%(n)s дней"
+msgstr[3] "%(n)s дня"
