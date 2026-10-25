@@ -82,11 +82,12 @@ def labels(raw) -> list[tuple[str, str]]:
     return [(f["key"], f["label"]) for f in active(raw)]
 
 
-def collect(raw, post) -> dict:
-    """Ответы на включённые поля из POST (имя — POST_PREFIX+key), непустые."""
+def collect(raw, post, prefix=POST_PREFIX) -> dict:
+    """Ответы на включённые поля из POST (имя — prefix+key), непустые.
+    KA-12 T-5: свой `prefix` у каждого участника группы (`p2_reg_` …)."""
     out = {}
     for f in active(raw):
-        value = (post.get(POST_PREFIX + f["key"]) or "").strip()[:500]
+        value = (post.get(prefix + f["key"]) or "").strip()[:500]
         if value:
             out[f["key"]] = value
     return out

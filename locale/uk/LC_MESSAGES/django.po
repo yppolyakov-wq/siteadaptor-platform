@@ -30513,3 +30513,28 @@ msgstr "Тарифу цього квитка на новій даті немає
 
 msgid "Der neue Termin fragt andere Angaben ab — bitte beim Gast nachfragen."
 msgstr "Нова дата запитує інші дані — уточніть у гостя."
+
+msgid "Angaben ergänzen"
+msgstr "Доповнити дані"
+
+msgid "Die Angaben können nicht mehr geändert werden."
+msgstr "Дані більше не можна змінити."
+
+#, python-format
+msgid "Person %(n)s"
+msgstr "Учасник %(n)s"
+
+msgid "Teilnehmende"
+msgstr "Учасники"
+
+msgid "Teilnehmerdaten"
+msgstr "Дані учасників"
+
+msgid "Teilnehmerdaten ergänzen"
+msgstr "Вказати дані учасників"
+
+msgid "Teilnehmerdaten gespeichert."
+msgstr "Дані учасників збережено."
+
+msgid "Zurück zum Ticket"
+msgstr "Назад до квитка"

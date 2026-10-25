@@ -61,7 +61,7 @@ CHILDREN = {
     "jobs.Job": ("lines",),
     "inbox.Conversation": ("messages",),
     "stays.StayBooking": ("registration",),
-    "events.Ticket": ("waiver",),
+    "events.Ticket": ("waiver", "participants"),
 }
 
 # Поля, которые в выгрузку НЕ идут или идут маской (секреты/служебное).
@@ -281,6 +281,13 @@ def erase_customer(customer, tenant=None) -> dict:
             else:
                 count = 0
             stats[label] = count
+        # KA-12 T-5: участники группы висят на билете, не на клиенте — имена и
+        # анкету (вкл. здоровье) удаляем вместе с ответами билета.
+        from apps.events.models import TicketParticipant
+
+        stats["events.TicketParticipant"], _detail = TicketParticipant.objects.filter(
+            ticket__customer=customer
+        ).delete()
         stats.update(_erase_email_linked(email, chats))
         _anonymize_customer(customer)
         if documents:

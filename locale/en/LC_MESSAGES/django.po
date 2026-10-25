@@ -30254,3 +30254,28 @@ msgstr "This ticket's rate does not exist on the new date."
 
 msgid "Der neue Termin fragt andere Angaben ab — bitte beim Gast nachfragen."
 msgstr "The new date asks for different details — please check with the guest."
+
+msgid "Angaben ergänzen"
+msgstr "Add details"
+
+msgid "Die Angaben können nicht mehr geändert werden."
+msgstr "The details can no longer be changed."
+
+#, python-format
+msgid "Person %(n)s"
+msgstr "Person %(n)s"
+
+msgid "Teilnehmende"
+msgstr "Participants"
+
+msgid "Teilnehmerdaten"
+msgstr "Participant details"
+
+msgid "Teilnehmerdaten ergänzen"
+msgstr "Add participant details"
+
+msgid "Teilnehmerdaten gespeichert."
+msgstr "Participant details saved."
+
+msgid "Zurück zum Ticket"
+msgstr "Back to the ticket"

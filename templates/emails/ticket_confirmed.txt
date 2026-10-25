@@ -7,7 +7,9 @@
 {% trans "Zugangslink (online)" %}: {{ event.online_url }}
 {% endif %}
 {% trans "Bis bald!" %}
-{% if cancel_url %}
+{% if participants_url %}
+{% trans "Teilnehmerdaten ergänzen" %}: {{ participants_url }}
+{% endif %}{% if cancel_url %}
 {% trans "Stornierung" %}: {{ cancel_url }}
 {% endif %}
 {% if problem_url %}

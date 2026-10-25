@@ -7,7 +7,9 @@
 {% trans "Ticket-Code" %}: {{ ticket.reference_code }}
 {% if ticket.total_cents %}{% trans "Betrag" %}: {{ ticket.total_eur }} {% endif %}
 {% trans "Wir bestätigen Ihre Teilnahme in Kürze." %}
-{% if cancel_url %}
+{% if participants_url %}
+{% trans "Teilnehmerdaten ergänzen" %}: {{ participants_url }}
+{% endif %}{% if cancel_url %}
 {% trans "Stornierung" %}: {{ cancel_url }}
 {% endif %}
 {% if unsubscribe_url %}—

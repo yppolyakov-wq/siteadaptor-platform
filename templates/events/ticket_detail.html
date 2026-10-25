@@ -41,6 +41,40 @@
     </div>
   </div>
 
+  {% comment %}KA-12 T-5: участники группы — имя и анкета на каждое место. Смена имени —
+  правка здесь (покупатель правит то же по ссылке из письма).{% endcomment %}
+  {% if t.status != "cancelled" %}
+  <details class="mt-4 border-t border-gray-100 pt-3" data-ticket-participants{% if t.quantity > 1 %} open{% endif %}>
+    <summary class="text-xs text-indigo-600 cursor-pointer select-none">👥 {% trans "Teilnehmende" %} ({{ participant_slots|length }})</summary>
+    <form method="post" action="{% url 'events:ticket-action' t.event_id t.pk %}" class="mt-2 space-y-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="participants">
+      {% for s in participant_slots %}
+        <div class="rounded-lg border border-gray-200 p-3 space-y-2">
+          <label class="block text-xs text-gray-500">{% blocktrans with n=s.position %}Person {{ n }}{% endblocktrans %}
+            <input name="p{{ s.position }}_name" value="{{ s.name }}" maxlength="200" class="mt-1 block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          </label>
+          {% for f in s.fields %}
+            <label class="block text-xs text-gray-500">{{ f.label }}
+              {% if f.type == "select" %}
+                <select name="{{ f.input }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+                  <option value="">—</option>
+                  {% for o in f.options %}<option value="{{ o }}"{% if o == f.value %} selected{% endif %}>{{ o }}</option>{% endfor %}
+                </select>
+              {% elif f.type == "textarea" %}
+                <textarea name="{{ f.input }}" rows="2" maxlength="500" class="mt-1 block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ f.value }}</textarea>
+              {% else %}
+                <input name="{{ f.input }}" type="{% if f.type == 'date' %}date{% else %}text{% endif %}" value="{{ f.value }}" maxlength="500" class="mt-1 block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+              {% endif %}
+            </label>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-700">{% trans "Save" %}</button>
+    </form>
+  </details>
+  {% endif %}
+
   {% if transfer_targets %}
     {% comment %}KA-12 T-4b: перенос на другую дату той же серии/тура — деньги и тариф
     остаются на билете; места цели проверяет сервер под блокировкой.{% endcomment %}

@@ -30398,3 +30398,28 @@ msgstr "Bu biletin tarifesi yeni tarihte yok."
 
 msgid "Der neue Termin fragt andere Angaben ab — bitte beim Gast nachfragen."
 msgstr "Yeni tarih farklı bilgiler istiyor — lütfen misafire sorun."
+
+msgid "Angaben ergänzen"
+msgstr "Bilgileri tamamla"
+
+msgid "Die Angaben können nicht mehr geändert werden."
+msgstr "Bilgiler artık değiştirilemez."
+
+#, python-format
+msgid "Person %(n)s"
+msgstr "Kişi %(n)s"
+
+msgid "Teilnehmende"
+msgstr "Katılımcılar"
+
+msgid "Teilnehmerdaten"
+msgstr "Katılımcı bilgileri"
+
+msgid "Teilnehmerdaten ergänzen"
+msgstr "Katılımcı bilgilerini tamamla"
+
+msgid "Teilnehmerdaten gespeichert."
+msgstr "Katılımcı bilgileri kaydedildi."
+
+msgid "Zurück zum Ticket"
+msgstr "Bilete dön"

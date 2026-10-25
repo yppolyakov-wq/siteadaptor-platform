@@ -30346,3 +30346,28 @@ msgstr "Den Tarif dieses Tickets gibt es am neuen Termin nicht."
 
 msgid "Der neue Termin fragt andere Angaben ab — bitte beim Gast nachfragen."
 msgstr "Der neue Termin fragt andere Angaben ab — bitte beim Gast nachfragen."
+
+msgid "Angaben ergänzen"
+msgstr "Angaben ergänzen"
+
+msgid "Die Angaben können nicht mehr geändert werden."
+msgstr "Die Angaben können nicht mehr geändert werden."
+
+#, python-format
+msgid "Person %(n)s"
+msgstr "Person %(n)s"
+
+msgid "Teilnehmende"
+msgstr "Teilnehmende"
+
+msgid "Teilnehmerdaten"
+msgstr "Teilnehmerdaten"
+
+msgid "Teilnehmerdaten ergänzen"
+msgstr "Teilnehmerdaten ergänzen"
+
+msgid "Teilnehmerdaten gespeichert."
+msgstr "Teilnehmerdaten gespeichert."
+
+msgid "Zurück zum Ticket"
+msgstr "Zurück zum Ticket"

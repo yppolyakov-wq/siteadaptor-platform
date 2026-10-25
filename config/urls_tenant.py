@@ -707,6 +707,12 @@ urlpatterns = [
         events_public.veranstaltung_cancel,
         name="storefront-ticket-cancel",
     ),
+    # KA-12 T-5: данные участников группы по подписанной ссылке.
+    path(
+        "e/teilnehmer/<str:token>/",
+        events_public.veranstaltung_participants,
+        name="storefront-ticket-participants",
+    ),
     # R3: преподаватели/ведущие — список + страница учителя.
     path("lehrer/", events_public.lehrer_index, name="storefront-teachers"),
     path("lehrer/<uuid:pk>/", events_public.lehrer_detail, name="storefront-teacher"),

@@ -1,0 +1,50 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Teilnehmerdaten" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+  <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+    <h1 class="text-2xl font-bold mb-2">{% trans "Teilnehmerdaten" %}</h1>
+    <p class="text-gray-600">{{ event.title_text }}</p>
+    <p class="text-sm text-gray-500 mt-1">{{ event.starts_at|date:"d.m.Y H:i" }} · {{ ticket.reference_code }}</p>
+    {% if not editable %}
+      <p class="mt-4 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "Die Angaben können nicht mehr geändert werden." %}</p>
+    {% endif %}
+    <form method="post" class="mt-5 space-y-5" data-participants-form>
+      {% csrf_token %}
+      {% for s in slots %}
+        <fieldset class="rounded-xl border border-gray-200 p-4 space-y-3"{% if not editable %} disabled{% endif %}>
+          <legend class="px-1 text-sm font-semibold">{% blocktrans with n=s.position %}Person {{ n }}{% endblocktrans %}</legend>
+          <label class="block text-sm">{% trans "Name" %}
+            <input name="p{{ s.position }}_name" value="{{ s.name }}" maxlength="200" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
+          </label>
+          {% for f in s.fields %}
+            <label class="block text-sm">{{ f.label }}
+              {% if f.type == "select" %}
+                <select name="{{ f.input }}" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
+                  <option value="">—</option>
+                  {% for o in f.options %}<option value="{{ o }}"{% if o == f.value %} selected{% endif %}>{{ o }}</option>{% endfor %}
+                </select>
+              {% elif f.type == "textarea" %}
+                <textarea name="{{ f.input }}" rows="2" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">{{ f.value }}</textarea>
+              {% else %}
+                <input name="{{ f.input }}" type="{% if f.type == 'date' %}date{% else %}text{% endif %}" value="{{ f.value }}" maxlength="500" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
+              {% endif %}
+            </label>
+          {% endfor %}
+        </fieldset>
+      {% endfor %}
+      {% if editable %}
+        <button type="submit" class="text-white rounded-lg px-5 py-2.5 font-medium" style="background: var(--accent);">{% trans "Speichern" %}</button>
+      {% endif %}
+      <a href="{% url 'storefront-ticket-ok' ticket.reference_code %}" class="ml-3 text-sm text-gray-500 hover:underline">{% trans "Zurück zum Ticket" %}</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

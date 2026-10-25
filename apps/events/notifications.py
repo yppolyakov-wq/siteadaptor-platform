@@ -98,6 +98,12 @@ def enqueue_ticket_email(ticket, event, dedupe_suffix=""):
                 if base
                 else ""
             )
+        # KA-12 T-5: ссылка на данные участников группы / анкету.
+        if base and event in ("created", "confirmed"):
+            from . import participants as parts
+
+            if parts.wanted(ticket):
+                ctx["participants_url"] = f"{base}{parts.url(ticket)}"
         # R12: ссылка на самостоятельную отмену билета (политика — на событии).
         if base and event in ("created", "confirmed"):
             from .public_views import cancel_url

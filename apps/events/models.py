@@ -798,6 +798,32 @@ class Ticket(TimestampedModel):
         return Decimal(self.balance_cents) / 100
 
 
+class TicketParticipant(TimestampedModel):
+    """KA-12 T-5 (EV-2): данные КАЖДОГО участника групповой брони.
+
+    Билет на N мест несёт одно имя покупателя; организатору нужны имена и анкета
+    каждого. Строка на место (`position` 1..quantity): имя + ответы на пресет-поля
+    события (`registration_fields`, те же ключи, что у `Ticket.answers`). Заполняет
+    покупатель по подписанной ссылке или владелец в кабинете (смена имени = правка
+    здесь). Удаляется вместе с билетом; DSGVO-удаление клиента стирает строки."""
+
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="participants")
+    position = models.PositiveSmallIntegerField()
+    name = models.CharField(max_length=200, blank=True)
+    answers = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["position"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["ticket", "position"], name="uniq_ticket_participant_pos"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.ticket_id} #{self.position}"
+
+
 class EventWaitlistEntry(TimestampedModel):
     """Лист ожидания на распроданное событие (R1, зеркало promotions.WaitlistEntry).
 

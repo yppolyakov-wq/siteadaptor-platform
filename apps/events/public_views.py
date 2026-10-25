@@ -692,6 +692,12 @@ def ticket_pay(request, code):
     return redirect("storefront-ticket-ok", code=ticket.reference_code)
 
 
+def _participants_url(ticket) -> str:
+    from . import participants as parts
+
+    return parts.url(ticket) if parts.wanted(ticket) and parts.editable(ticket) else ""
+
+
 def veranstaltung_confirmation(request, code):
     _require_events_active(request)
     ticket = get_object_or_404(
@@ -709,6 +715,8 @@ def veranstaltung_confirmation(request, code):
             "telegram_link": deep_link(ticket.customer),
             "cancel_state": services.cancellation_state(ticket),
             "cancel_url": cancel_url(ticket),
+            # KA-12 T-5: ссылка на данные участников группы / анкету.
+            "participants_url": _participants_url(ticket),
             # MT-F4: путь в группу поездки со страницы своего билета. Роль
             # считает тот же fail-closed резолвер, что и сама лента: без входа
             # в личный кабинет ссылка вела бы в 404, поэтому там показываем
@@ -990,5 +998,41 @@ def veranstaltung_cancel(request, token):
             "state": state,
             "token": token,
             "split": services.cancel_fee_split(ticket, state),
+        },
+    )
+
+
+def veranstaltung_participants(request, token):
+    """KA-12 T-5: покупатель вносит имена и анкету каждого участника группы.
+
+    Подписанная ссылка (из подтверждения и письма); править можно, пока билет
+    активен и событие не началось. Подделка токена → 404."""
+    _require_events_active(request)
+    from . import participants as parts
+
+    ip = ratelimit.client_ip(request)
+    if ratelimit.hit("event-participants", ip, limit=RL_LIMIT * 4, window=RL_WINDOW):
+        return HttpResponse(_("Zu viele Anfragen — bitte kurz warten."), status=429)
+    pk = parts.ticket_pk(token)
+    if pk is None:
+        raise Http404
+    ticket = get_object_or_404(Ticket.objects.select_related("event", "customer"), pk=pk)
+    editable = parts.editable(ticket)
+    if request.method == "POST":
+        if parts.save(ticket, request.POST, source="guest", ip=ip) is None:
+            messages.error(request, _("Die Angaben können nicht mehr geändert werden."))
+        else:
+            messages.success(request, _("Teilnehmerdaten gespeichert."))
+        return redirect(reverse("storefront-ticket-participants", args=[token]))
+    return render(
+        request,
+        "storefront/event_participants.html",
+        {
+            "ticket": ticket,
+            "event": ticket.event,
+            # Данные (в т.ч. о здоровье) — только пока их можно править.
+            "slots": parts.slots(ticket) if editable else [],
+            "editable": editable,
+            "token": token,
         },
     )

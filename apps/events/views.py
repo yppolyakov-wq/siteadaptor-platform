@@ -235,9 +235,10 @@ def ticket_detail(request, pk):
     голова, статус, клиент, скидка и связи — из одного источника; здесь —
     специфика билета: тир, места, доп-услуги, ответы анкеты, waiver.
     """
-    from apps.core import deal_card, deal_links
+    from apps.core import contact_access, deal_card, deal_links
     from apps.core import extras as extras_engine
 
+    from . import participants
     from .models import Ticket
     from .services import transfer_targets
 
@@ -257,6 +258,10 @@ def ticket_detail(request, pk):
             "edit_extras": edit_extras,
             "chosen_extra_ids": chosen,
             "waiver": getattr(ticket, "waiver", None),
+            # KA-12 T-5: участники группы — по слоту на место.
+            "participant_slots": participants.slots(
+                ticket, hide_contacts=not contact_access.can_see(request.user)
+            ),
             # KA-12 T-4b: даты для переноса (та же серия/тур, ещё не начались).
             "transfer_targets": (
                 list(transfer_targets(ticket))
@@ -282,6 +287,24 @@ def ticket_action(request, pk, tid):
     target = request.POST.get("target", "")
     if request.POST.get("action") == "transfer":
         return _ticket_transfer(request, ticket)
+    if request.POST.get("action") == "participants":
+        # KA-12 T-5: имена и анкета участников (смена имени = правка здесь).
+        from . import participants as parts
+
+        if ticket.status == Ticket.STATUS_CANCELLED:
+            messages.error(request, _("This step is not possible in the current status."))
+        else:
+            from apps.core import contact_access
+
+            parts.save(
+                ticket,
+                request.POST,
+                actor=request.user,
+                source="cabinet",
+                hide_contacts=not contact_access.can_see(request.user),
+            )
+            messages.success(request, _("Teilnehmerdaten gespeichert."))
+        return redirect("events:ticket-detail", pk=ticket.pk)
     if request.POST.get("action") == "extras":
         # 3b (зеркало MX-3): правка состава допов билета; итог — свойство
         # Ticket.total_cents (пересчитывается сам). Enforcement трекеров — MX-2e.
@@ -746,7 +769,13 @@ def checkin(request, code):
             ticket.save(update_fields=["checked_in_at", "updated_at"])
             messages.success(request, _("Checked in — welcome!"))
         return redirect("events:checkin", code=ticket.reference_code)
-    return render(request, "events/checkin.html", {"ticket": ticket, "event": ticket.event})
+    from . import participants as parts
+
+    return render(
+        request,
+        "events/checkin.html",
+        {"ticket": ticket, "event": ticket.event, "participant_names": parts.names(ticket)},
+    )
 
 
 @login_required
@@ -794,8 +823,11 @@ def teacher_delete(request, pk):
 def roster_csv(request, pk):
     """CSV-ростер участников события (utf-8-sig — Excel-friendly)."""
     event = get_object_or_404(Event, pk=pk)
-    response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+    # utf-8 + один BOM в начале: с charset utf-8-sig BOM уходил в КАЖДУЮ строку
+    # (каждая запись writer'а кодируется отдельно) — Excel показывал мусор в «Code».
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="roster-{event.pk}.csv"'
+    response.write("\ufeff")
     writer = csv.writer(response, delimiter=";")
     question_cols = list(event.questions or [])
     reg_cols = registration.labels(event.registration_fields)  # [(key, label)]
@@ -816,6 +848,7 @@ def roster_csv(request, pk):
             "Offen",
             "Extras",
             "Check-in",
+            "Teilnehmende",
             *(["Unterkunft"] if show_unterkunft else []),
             *(["Waiver"] if show_waiver else []),
             *question_cols,
@@ -824,7 +857,13 @@ def roster_csv(request, pk):
     )
     from apps.core import folio, money_contract
 
-    tickets = list(event.tickets.select_related("customer", "stay_booking__unit", "waiver"))
+    tickets = list(
+        event.tickets.select_related("customer", "stay_booking__unit", "waiver").prefetch_related(
+            "participants"
+        )
+    )
+    from . import participants as parts
+
     folio.prefetch("ticket", tickets)  # ревью T-2: остаток без запроса на каждый билет
     rows = 0
     for t in tickets:
@@ -855,12 +894,24 @@ def roster_csv(request, pk):
                     )
                 ),
                 f"{timezone.localtime(t.checked_in_at):%d.%m.%Y %H:%M}" if t.checked_in_at else "",
+                csv_safe("; ".join(parts.names(t))),
                 *([csv_safe(room)] if show_unterkunft else []),
                 *([csv_safe(waiver_cell)] if show_waiver else []),
                 *[csv_safe(answers.get(q, "")) for q in question_cols],
                 *[csv_safe(answers.get(key, "")) for key, _label in reg_cols],
             ]
         )
+        # KA-12 T-5: строка на каждого участника группы — его имя и анкета.
+        blank = 12 + int(show_unterkunft) + int(show_waiver) + len(question_cols)
+        if t.status == Ticket.STATUS_CANCELLED:
+            continue  # отменённые места не считаем в составе группы
+        for part in parts.rows(t):
+            if not (part.name or part.answers):
+                continue
+            row = [f"{t.reference_code} #{part.position}", csv_safe(part.name)]
+            row += [""] * (blank - 1)
+            row += [csv_safe((part.answers or {}).get(key, "")) for key, _label in reg_cols]
+            writer.writerow(row)
     audit_export(request, "roster", rows, resource_id=event.pk)
     return response
 
