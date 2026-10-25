@@ -30576,3 +30576,12 @@ msgstr "Коротка назва"
 
 msgid "Vor Ort"
 msgstr "Особисто"
+
+msgid "Die maximale Anzahl Fotos ist erreicht."
+msgstr "Досягнуто максимальну кількість фото."
+
+msgid "By subscribing you agree to receive marketing emails."
+msgstr "Підписуючись, ви погоджуєтеся отримувати рекламні листи."
+
+msgid "Ungültiger Wert — der bisherige wurde beibehalten."
+msgstr "Недопустиме значення — збережено попереднє."

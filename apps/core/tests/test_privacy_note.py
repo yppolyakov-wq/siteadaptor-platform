@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from django.test import override_settings
 
 ROOT = Path(__file__).resolve().parents[3] / "templates" / "storefront"
-FIELD = re.compile(r'type="file"|name="email"|name="phone"')
+FIELD = re.compile(r'type="(?:file|email|tel)"|name="(?:email|phone)"')
 # Своя ссылка на Datenschutz уже есть рядом с полем.
 OWN_LINK = {"sections/_block_newsletter.html"}
 

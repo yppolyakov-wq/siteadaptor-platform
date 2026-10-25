@@ -122,3 +122,18 @@ def test_card_adds_photos_up_to_limit():
     assert job.photos.count() == 2
     _post_detail(job, {"action": "photos", "photos": [_png() for _ in range(6)]})
     assert job.photos.count() == services.MAX_PHOTOS
+
+
+def test_unparseable_event_value_keeps_previous_and_accepted_edit_is_audited():
+    from apps.audit.models import AuditEvent
+    from apps.jobs.state_machine import JobSM
+
+    job = services.create_job(title="G", name="K", guest_count=40)
+    _post_detail(job, {"action": "request", "event_present": "1", "guest_count": "abc"})
+    job.refresh_from_db()
+    assert job.guest_count == 40
+    services.set_lines(job, [{"text": "Arbeit", "qty": 1, "unit_price": "10.00"}])
+    for dst in ("quoted", "accepted"):
+        JobSM().apply(job, dst)
+    _post_detail(job, {"action": "request", "event_present": "1", "guest_count": "60"})
+    assert AuditEvent.objects.filter(action="job.request_edit", resource_id=str(job.pk)).exists()

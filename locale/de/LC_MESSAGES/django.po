@@ -30409,3 +30409,12 @@ msgstr "Kurze Bezeichnung"
 
 msgid "Vor Ort"
 msgstr "Vor Ort"
+
+msgid "Die maximale Anzahl Fotos ist erreicht."
+msgstr "Die maximale Anzahl Fotos ist erreicht."
+
+msgid "By subscribing you agree to receive marketing emails."
+msgstr "By subscribing you agree to receive marketing emails."
+
+msgid "Ungültiger Wert — der bisherige wurde beibehalten."
+msgstr "Ungültiger Wert — der bisherige wurde beibehalten."

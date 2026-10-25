@@ -30461,3 +30461,12 @@ msgstr "Kısa başlık"
 
 msgid "Vor Ort"
 msgstr "Yerinde"
+
+msgid "Die maximale Anzahl Fotos ist erreicht."
+msgstr "Azami fotoğraf sayısına ulaşıldı."
+
+msgid "By subscribing you agree to receive marketing emails."
+msgstr "Abone olarak pazarlama e-postaları almayı kabul edersiniz."
+
+msgid "Ungültiger Wert — der bisherige wurde beibehalten."
+msgstr "Geçersiz değer — önceki değer korundu."

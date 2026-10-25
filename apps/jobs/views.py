@@ -277,10 +277,22 @@ def job_detail(request, pk):
         if action == "request":
             return _save_request(request, job)
         if action == "photos":
-            room = max(0, services.MAX_PHOTOS - job.photos.count())
-            added = services.add_job_photos(job, request.FILES.getlist("photos"), max_count=room)
+            from django.db import transaction
+
+            # Счёт «сколько ещё можно» и запись — под блокировкой заявки: два
+            # параллельных POST иначе вместе превысили бы лимит фото.
+            with transaction.atomic():
+                locked = Job.objects.select_for_update().get(pk=job.pk)
+                room = max(0, services.MAX_PHOTOS - locked.photos.count())
+                added = (
+                    services.add_job_photos(locked, request.FILES.getlist("photos"), max_count=room)
+                    if room
+                    else 0
+                )
             if added:
                 messages.success(request, _("Fotos hinzugefügt."))
+            elif not room:
+                messages.error(request, _("Die maximale Anzahl Fotos ist erreicht."))
             else:
                 messages.error(request, _("Keine Fotos gespeichert (JPG/PNG/WebP, max. 5 MB)."))
             return redirect("jobs:detail", pk=job.pk)
@@ -377,11 +389,14 @@ def _save_request(request, job):
 
     post = request.POST
     fields = []
+    before = {f: getattr(job, f) for f in ("event_date", "guest_count", "event_type")}
     if "title" in post:
         title = post.get("title", "").strip()[:200]
         if title:
             job.title = title
             fields.append("title")
+        else:
+            messages.error(request, _("Please enter a name and a short title."))
     if "description" in post:
         job.description = post.get("description", "").strip()[:5000]
         fields.append("description")
@@ -392,18 +407,45 @@ def _save_request(request, job):
         cfg = dict(_anfrage_config(request.tenant))
         cfg["fields"] = ["date", "guests", "event_type"]  # правим всё, что показали
         ev = _cabinet_event_fields(post, cfg)
+        # Пустое поле = очистить; непустое, но нечитаемое — оставить прежнее
+        # значение и сказать (ревью A-2: иначе «abc» молча стирало число гостей).
+        bad = False
+        for key, attr in (("event_date", "event_date"), ("guest_count", "guest_count")):
+            raw = (post.get(key) or "").strip()
+            if raw and ev[attr] is None:
+                bad = True
+                ev[attr] = getattr(job, attr)
+        if bad:
+            messages.warning(request, _("Ungültiger Wert — der bisherige wurde beibehalten."))
         job.event_date, job.guest_count, job.event_type = (
             ev["event_date"],
             ev["guest_count"],
             ev["event_type"],
         )
         fields += ["event_date", "guest_count", "event_type"]
-    for key, size in (("vehicle_plate", 15), ("vehicle_hsn", 4), ("vehicle_tsn", 3)):
-        if key in post:
-            setattr(job, key, post.get(key, "").strip().upper()[:size])
-            fields.append(key)
+    if _vehicle_tenant(request.tenant) or job.vehicle_plate:
+        for key, size in (("vehicle_plate", 15), ("vehicle_hsn", 4), ("vehicle_tsn", 3)):
+            if key in post:
+                setattr(job, key, post.get(key, "").strip().upper()[:size])
+                fields.append(key)
     if fields:
         job.save(update_fields=[*fields, "updated_at"])
+        changed = {
+            f: str(getattr(job, f) or "")
+            for f in before
+            if getattr(job, f) != before[f]
+        }
+        if changed and job.lines_locked:
+            # Смета уже принята: дату/гостей правим (О-4), но след остаётся.
+            from apps.core.audit import audit_event
+
+            audit_event(
+                action="job.request_edit",
+                resource_type="job",
+                resource_id=str(job.pk),
+                actor=request.user,
+                changes=changed,
+            )
         messages.success(request, _("Saved."))
     return redirect("jobs:detail", pk=job.pk)
 

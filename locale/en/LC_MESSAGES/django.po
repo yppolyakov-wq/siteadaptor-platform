@@ -30317,3 +30317,12 @@ msgstr "Short title"
 
 msgid "Vor Ort"
 msgstr "In person"
+
+msgid "Die maximale Anzahl Fotos ist erreicht."
+msgstr "The maximum number of photos has been reached."
+
+msgid "By subscribing you agree to receive marketing emails."
+msgstr "By subscribing you agree to receive marketing emails."
+
+msgid "Ungültiger Wert — der bisherige wurde beibehalten."
+msgstr "Invalid value — the previous one was kept."
