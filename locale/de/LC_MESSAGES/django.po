@@ -29763,3 +29763,197 @@ msgstr "Die Rechte wurden inzwischen geändert — bitte Seite neu laden."
 #, python-format
 msgid "Für %(email)s gibt es bereits ein Konto. Bitte melden Sie sich zuerst damit an und öffnen Sie den Einladungslink danach erneut."
 msgstr "Für %(email)s gibt es bereits ein Konto. Bitte melden Sie sich zuerst damit an und öffnen Sie den Einladungslink danach erneut."
+
+msgid "Geld & Zahlungen"
+msgstr "Geld & Zahlungen"
+
+msgid "Verkäufe ansehen"
+msgstr "Verkäufe ansehen"
+
+msgid "Verkäufe bearbeiten"
+msgstr "Verkäufe bearbeiten"
+
+msgid "Verkäufe stornieren"
+msgstr "Verkäufe stornieren"
+
+msgid "Rezeption: An- und Abreise buchen"
+msgstr "Rezeption: An- und Abreise buchen"
+
+msgid "Abläufe & Status ansehen"
+msgstr "Abläufe & Status ansehen"
+
+msgid "Abläufe & Status ändern"
+msgstr "Abläufe & Status ändern"
+
+msgid "Geld erstatten"
+msgstr "Geld erstatten"
+
+msgid "Rechnungen korrigieren"
+msgstr "Rechnungen korrigieren"
+
+msgid "Storno- und Anzahlungsregeln ändern"
+msgstr "Storno- und Anzahlungsregeln ändern"
+
+msgid "Rabatt auf einen Verkauf geben"
+msgstr "Rabatt auf einen Verkauf geben"
+
+msgid "Preis eines Verkaufs ändern"
+msgstr "Preis eines Verkaufs ändern"
+
+msgid "Gutscheine und Coupons einlösen"
+msgstr "Gutscheine und Coupons einlösen"
+
+msgid "Sortiment bearbeiten"
+msgstr "Sortiment bearbeiten"
+
+msgid "Sortiment löschen"
+msgstr "Sortiment löschen"
+
+msgid "Preise & Verfügbarkeit ansehen"
+msgstr "Preise & Verfügbarkeit ansehen"
+
+msgid "Preise & Verfügbarkeit ändern"
+msgstr "Preise & Verfügbarkeit ändern"
+
+msgid "Lager ansehen"
+msgstr "Lager ansehen"
+
+msgid "Lager buchen"
+msgstr "Lager buchen"
+
+msgid "Lager exportieren"
+msgstr "Lager exportieren"
+
+msgid "Veranstaltung absagen"
+msgstr "Veranstaltung absagen"
+
+msgid "Kunden ansehen"
+msgstr "Kunden ansehen"
+
+msgid "Kunden bearbeiten"
+msgstr "Kunden bearbeiten"
+
+msgid "Kontaktdaten der Kunden sehen"
+msgstr "Kontaktdaten der Kunden sehen"
+
+msgid "Kundendaten exportieren"
+msgstr "Kundendaten exportieren"
+
+msgid "Datenschutz-Anfragen bearbeiten"
+msgstr "Datenschutz-Anfragen bearbeiten"
+
+msgid "Aktionen & Marketing ansehen"
+msgstr "Aktionen & Marketing ansehen"
+
+msgid "Aktionen & Marketing bearbeiten"
+msgstr "Aktionen & Marketing bearbeiten"
+
+msgid "Aktionen löschen"
+msgstr "Aktionen löschen"
+
+msgid "Nachrichten lesen"
+msgstr "Nachrichten lesen"
+
+msgid "Nachrichten beantworten"
+msgstr "Nachrichten beantworten"
+
+msgid "Kanäle ansehen"
+msgstr "Kanäle ansehen"
+
+msgid "Kanäle verbinden und trennen"
+msgstr "Kanäle verbinden und trennen"
+
+msgid "Stadtportal-Statistik ansehen"
+msgstr "Stadtportal-Statistik ansehen"
+
+msgid "Website ansehen"
+msgstr "Website ansehen"
+
+msgid "Domains ansehen"
+msgstr "Domains ansehen"
+
+msgid "Domains verwalten"
+msgstr "Domains verwalten"
+
+msgid "Kennzahlen ansehen"
+msgstr "Kennzahlen ansehen"
+
+msgid "Berichte ansehen"
+msgstr "Berichte ansehen"
+
+msgid "Journal & Rechnungen ansehen"
+msgstr "Journal & Rechnungen ansehen"
+
+msgid "Rechnungen & Ausgaben bearbeiten"
+msgstr "Rechnungen & Ausgaben bearbeiten"
+
+msgid "Finanzdaten exportieren (DATEV)"
+msgstr "Finanzdaten exportieren (DATEV)"
+
+msgid "Buchungen korrigieren"
+msgstr "Buchungen korrigieren"
+
+msgid "Bankumsätze importieren"
+msgstr "Bankumsätze importieren"
+
+msgid "Einstellungen ansehen"
+msgstr "Einstellungen ansehen"
+
+msgid "Einstellungen ändern"
+msgstr "Einstellungen ändern"
+
+msgid "Funktionen ansehen"
+msgstr "Funktionen ansehen"
+
+msgid "Funktionen ein- und ausschalten"
+msgstr "Funktionen ein- und ausschalten"
+
+msgid "Ganzen Betrieb schließen (Betriebsferien)"
+msgstr "Ganzen Betrieb schließen (Betriebsferien)"
+
+msgid "Team ansehen"
+msgstr "Team ansehen"
+
+msgid "Team verwalten und Rechte vergeben"
+msgstr "Team verwalten und Rechte vergeben"
+
+msgid "Mitarbeiter entfernen"
+msgstr "Mitarbeiter entfernen"
+
+msgid "Für diese Rolle nicht möglich."
+msgstr "Für diese Rolle nicht möglich."
+
+msgid "Nur vergeben, wer dieses Recht selbst hat — sensible Rechte nur der Inhaber."
+msgstr "Nur vergeben, wer dieses Recht selbst hat — sensible Rechte nur der Inhaber."
+
+msgid "Nur der Inhaber kann dieses Recht entziehen."
+msgstr "Nur der Inhaber kann dieses Recht entziehen."
+
+msgid "sensibles Recht"
+msgstr "sensibles Recht"
+
+#, python-format
+msgid "Rechte (%(n)s)"
+msgstr "Rechte (%(n)s)"
+
+msgid "Rechte speichern"
+msgstr "Rechte speichern"
+
+msgid "Inhaber — alle Rechte."
+msgstr "Inhaber — alle Rechte."
+
+msgid "Eigene Rechte kann nur der Inhaber ändern."
+msgstr "Eigene Rechte kann nur der Inhaber ändern."
+
+msgid "Rechte anpassen (optional)"
+msgstr "Rechte anpassen (optional)"
+
+#, python-format
+msgid "Rechte für die Rolle „%(role)s“"
+msgstr "Rechte für die Rolle „%(role)s“"
+
+msgid "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Rechte lassen sich pro Person anpassen; Abo und Recht & Steuern bleiben dem Inhaber vorbehalten."
+msgstr "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Rechte lassen sich pro Person anpassen; Abo und Recht & Steuern bleiben dem Inhaber vorbehalten."
+
+msgid "Diese Änderung liegt außerhalb Ihres Bereichs."
+msgstr "Diese Änderung liegt außerhalb Ihres Bereichs."

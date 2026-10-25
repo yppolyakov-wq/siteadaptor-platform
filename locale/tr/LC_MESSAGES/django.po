@@ -29815,3 +29815,197 @@ msgstr "Yetkiler bu arada değiştirildi — lütfen sayfayı yeniden yükleyin.
 #, python-format
 msgid "Für %(email)s gibt es bereits ein Konto. Bitte melden Sie sich zuerst damit an und öffnen Sie den Einladungslink danach erneut."
 msgstr "%(email)s için zaten bir hesap var. Lütfen önce bu hesapla giriş yapın, ardından davet bağlantısını yeniden açın."
+
+msgid "Geld & Zahlungen"
+msgstr "Para ve ödemeler"
+
+msgid "Verkäufe ansehen"
+msgstr "Satışları görüntüle"
+
+msgid "Verkäufe bearbeiten"
+msgstr "Satışları düzenle"
+
+msgid "Verkäufe stornieren"
+msgstr "Satışları iptal et"
+
+msgid "Rezeption: An- und Abreise buchen"
+msgstr "Resepsiyon: giriş ve çıkış işlemleri"
+
+msgid "Abläufe & Status ansehen"
+msgstr "Süreçleri ve durumları görüntüle"
+
+msgid "Abläufe & Status ändern"
+msgstr "Süreçleri ve durumları değiştir"
+
+msgid "Geld erstatten"
+msgstr "Para iadesi yap"
+
+msgid "Rechnungen korrigieren"
+msgstr "Faturaları düzelt"
+
+msgid "Storno- und Anzahlungsregeln ändern"
+msgstr "İptal ve kapora kurallarını değiştir"
+
+msgid "Rabatt auf einen Verkauf geben"
+msgstr "Satışa indirim uygula"
+
+msgid "Preis eines Verkaufs ändern"
+msgstr "Satış fiyatını değiştir"
+
+msgid "Gutscheine und Coupons einlösen"
+msgstr "Hediye çeklerini ve kuponları kullan"
+
+msgid "Sortiment bearbeiten"
+msgstr "Ürün yelpazesini düzenle"
+
+msgid "Sortiment löschen"
+msgstr "Ürün yelpazesinden sil"
+
+msgid "Preise & Verfügbarkeit ansehen"
+msgstr "Fiyatları ve müsaitliği görüntüle"
+
+msgid "Preise & Verfügbarkeit ändern"
+msgstr "Fiyatları ve müsaitliği değiştir"
+
+msgid "Lager ansehen"
+msgstr "Stoku görüntüle"
+
+msgid "Lager buchen"
+msgstr "Stok hareketi kaydet"
+
+msgid "Lager exportieren"
+msgstr "Stoku dışa aktar"
+
+msgid "Veranstaltung absagen"
+msgstr "Etkinliği iptal et"
+
+msgid "Kunden ansehen"
+msgstr "Müşterileri görüntüle"
+
+msgid "Kunden bearbeiten"
+msgstr "Müşterileri düzenle"
+
+msgid "Kontaktdaten der Kunden sehen"
+msgstr "Müşteri iletişim bilgilerini gör"
+
+msgid "Kundendaten exportieren"
+msgstr "Müşteri verilerini dışa aktar"
+
+msgid "Datenschutz-Anfragen bearbeiten"
+msgstr "Veri koruma taleplerini işle"
+
+msgid "Aktionen & Marketing ansehen"
+msgstr "Kampanyaları ve pazarlamayı görüntüle"
+
+msgid "Aktionen & Marketing bearbeiten"
+msgstr "Kampanyaları ve pazarlamayı düzenle"
+
+msgid "Aktionen löschen"
+msgstr "Kampanyaları sil"
+
+msgid "Nachrichten lesen"
+msgstr "Mesajları oku"
+
+msgid "Nachrichten beantworten"
+msgstr "Mesajları yanıtla"
+
+msgid "Kanäle ansehen"
+msgstr "Kanalları görüntüle"
+
+msgid "Kanäle verbinden und trennen"
+msgstr "Kanalları bağla ve ayır"
+
+msgid "Stadtportal-Statistik ansehen"
+msgstr "Şehir portalı istatistiklerini görüntüle"
+
+msgid "Website ansehen"
+msgstr "Web sitesini görüntüle"
+
+msgid "Domains ansehen"
+msgstr "Alan adlarını görüntüle"
+
+msgid "Domains verwalten"
+msgstr "Alan adlarını yönet"
+
+msgid "Kennzahlen ansehen"
+msgstr "Temel rakamları görüntüle"
+
+msgid "Berichte ansehen"
+msgstr "Raporları görüntüle"
+
+msgid "Journal & Rechnungen ansehen"
+msgstr "Yevmiye ve faturaları görüntüle"
+
+msgid "Rechnungen & Ausgaben bearbeiten"
+msgstr "Faturaları ve giderleri düzenle"
+
+msgid "Finanzdaten exportieren (DATEV)"
+msgstr "Finans verilerini dışa aktar (DATEV)"
+
+msgid "Buchungen korrigieren"
+msgstr "Kayıtları düzelt"
+
+msgid "Bankumsätze importieren"
+msgstr "Banka hareketlerini içe aktar"
+
+msgid "Einstellungen ansehen"
+msgstr "Ayarları görüntüle"
+
+msgid "Einstellungen ändern"
+msgstr "Ayarları değiştir"
+
+msgid "Funktionen ansehen"
+msgstr "Özellikleri görüntüle"
+
+msgid "Funktionen ein- und ausschalten"
+msgstr "Özellikleri aç ve kapat"
+
+msgid "Ganzen Betrieb schließen (Betriebsferien)"
+msgstr "Tüm işletmeyi kapat (tatil)"
+
+msgid "Team ansehen"
+msgstr "Ekibi görüntüle"
+
+msgid "Team verwalten und Rechte vergeben"
+msgstr "Ekibi yönet ve yetki ver"
+
+msgid "Mitarbeiter entfernen"
+msgstr "Çalışanı kaldır"
+
+msgid "Für diese Rolle nicht möglich."
+msgstr "Bu rol için mümkün değil."
+
+msgid "Nur vergeben, wer dieses Recht selbst hat — sensible Rechte nur der Inhaber."
+msgstr "Bu yetkiyi yalnızca kendisi sahip olan verebilir — hassas yetkileri yalnızca sahip."
+
+msgid "Nur der Inhaber kann dieses Recht entziehen."
+msgstr "Bu yetkiyi yalnızca sahip geri alabilir."
+
+msgid "sensibles Recht"
+msgstr "hassas yetki"
+
+#, python-format
+msgid "Rechte (%(n)s)"
+msgstr "Yetkiler (%(n)s)"
+
+msgid "Rechte speichern"
+msgstr "Yetkileri kaydet"
+
+msgid "Inhaber — alle Rechte."
+msgstr "Sahip — tüm yetkiler."
+
+msgid "Eigene Rechte kann nur der Inhaber ändern."
+msgstr "Kendi yetkilerinizi yalnızca sahip değiştirebilir."
+
+msgid "Rechte anpassen (optional)"
+msgstr "Yetkileri ayarla (isteğe bağlı)"
+
+#, python-format
+msgid "Rechte für die Rolle „%(role)s“"
+msgstr "“%(role)s” rolü için yetkiler"
+
+msgid "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Rechte lassen sich pro Person anpassen; Abo und Recht & Steuern bleiben dem Inhaber vorbehalten."
+msgstr "Davet tek kullanımlık bir bağlantı oluşturur (7 gün geçerli). Yetkiler kişi bazında ayarlanabilir; abonelik ile hukuk ve vergi sahibe aittir."
+
+msgid "Diese Änderung liegt außerhalb Ihres Bereichs."
+msgstr "Bu değişiklik yetki alanınızın dışında."

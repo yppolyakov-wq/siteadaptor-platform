@@ -1,0 +1,28 @@
+{% load i18n %}
+{% comment %}KA-12 E6.7d: чекбоксы прав по группам. Вход: groups, field (имя поля). Недоступный
+чекбокс — disabled + видимая причина (aria-describedby); его ключ сервер сохраняет сам.{% endcomment %}
+<div class="grid gap-3 sm:grid-cols-2" data-perm-set>
+  {% for g in groups %}
+    <fieldset class="rounded-lg border border-gray-100 p-3 min-w-0">
+      <legend class="px-1 text-xs font-semibold text-gray-700">{{ g.label }}</legend>
+      <ul class="space-y-1.5">
+        {% for it in g.items %}
+          <li>
+            <label class="flex items-start gap-2 text-sm {% if it.disabled %}text-gray-500{% else %}text-gray-800{% endif %}">
+              <input type="checkbox" name="{{ field }}" value="{{ it.key }}" id="{{ it.dom_id }}"
+                     class="mt-0.5 h-4 w-4 rounded border-gray-300"
+                     data-perm="{{ it.key }}" data-requires="{{ it.requires }}"
+                     {% if it.checked %}checked{% endif %}
+                     {% if it.disabled %}disabled aria-describedby="{{ it.dom_id }}-why"{% endif %}>
+              <span>
+                {{ it.label }}
+                {% if it.sensitive %}<span aria-hidden="true" title="{% trans "sensibles Recht" %}">🔒</span><span class="sr-only">({% trans "sensibles Recht" %})</span>{% endif %}
+                {% if it.disabled %}<span id="{{ it.dom_id }}-why" class="block text-xs text-gray-500">{{ it.reason }}</span>{% endif %}
+              </span>
+            </label>
+          </li>
+        {% endfor %}
+      </ul>
+    </fieldset>
+  {% endfor %}
+</div>

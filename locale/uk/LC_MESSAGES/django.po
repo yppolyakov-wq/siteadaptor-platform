@@ -29930,3 +29930,197 @@ msgstr "Права тим часом змінилися — перезавант
 #, python-format
 msgid "Für %(email)s gibt es bereits ein Konto. Bitte melden Sie sich zuerst damit an und öffnen Sie den Einladungslink danach erneut."
 msgstr "Для %(email)s уже є обліковий запис. Спершу увійдіть у нього, потім знову відкрийте посилання-запрошення."
+
+msgid "Geld & Zahlungen"
+msgstr "Гроші та платежі"
+
+msgid "Verkäufe ansehen"
+msgstr "Перегляд продажів"
+
+msgid "Verkäufe bearbeiten"
+msgstr "Редагування продажів"
+
+msgid "Verkäufe stornieren"
+msgstr "Скасування продажів"
+
+msgid "Rezeption: An- und Abreise buchen"
+msgstr "Рецепція: заїзд і виїзд гостей"
+
+msgid "Abläufe & Status ansehen"
+msgstr "Перегляд процесів і статусів"
+
+msgid "Abläufe & Status ändern"
+msgstr "Зміна процесів і статусів"
+
+msgid "Geld erstatten"
+msgstr "Повернення коштів"
+
+msgid "Rechnungen korrigieren"
+msgstr "Коригування рахунків"
+
+msgid "Storno- und Anzahlungsregeln ändern"
+msgstr "Зміна правил скасування та передоплати"
+
+msgid "Rabatt auf einen Verkauf geben"
+msgstr "Знижка на продаж"
+
+msgid "Preis eines Verkaufs ändern"
+msgstr "Зміна ціни продажу"
+
+msgid "Gutscheine und Coupons einlösen"
+msgstr "Погашення сертифікатів і купонів"
+
+msgid "Sortiment bearbeiten"
+msgstr "Редагування асортименту"
+
+msgid "Sortiment löschen"
+msgstr "Видалення з асортименту"
+
+msgid "Preise & Verfügbarkeit ansehen"
+msgstr "Перегляд цін і наявності"
+
+msgid "Preise & Verfügbarkeit ändern"
+msgstr "Зміна цін і наявності"
+
+msgid "Lager ansehen"
+msgstr "Перегляд складу"
+
+msgid "Lager buchen"
+msgstr "Проведення по складу"
+
+msgid "Lager exportieren"
+msgstr "Експорт складу"
+
+msgid "Veranstaltung absagen"
+msgstr "Скасування заходу"
+
+msgid "Kunden ansehen"
+msgstr "Перегляд клієнтів"
+
+msgid "Kunden bearbeiten"
+msgstr "Редагування клієнтів"
+
+msgid "Kontaktdaten der Kunden sehen"
+msgstr "Контактні дані клієнтів"
+
+msgid "Kundendaten exportieren"
+msgstr "Експорт даних клієнтів"
+
+msgid "Datenschutz-Anfragen bearbeiten"
+msgstr "Запити щодо захисту даних"
+
+msgid "Aktionen & Marketing ansehen"
+msgstr "Перегляд акцій і маркетингу"
+
+msgid "Aktionen & Marketing bearbeiten"
+msgstr "Редагування акцій і маркетингу"
+
+msgid "Aktionen löschen"
+msgstr "Видалення акцій"
+
+msgid "Nachrichten lesen"
+msgstr "Читання повідомлень"
+
+msgid "Nachrichten beantworten"
+msgstr "Відповіді на повідомлення"
+
+msgid "Kanäle ansehen"
+msgstr "Перегляд каналів"
+
+msgid "Kanäle verbinden und trennen"
+msgstr "Підключення та відключення каналів"
+
+msgid "Stadtportal-Statistik ansehen"
+msgstr "Статистика міського порталу"
+
+msgid "Website ansehen"
+msgstr "Перегляд сайту"
+
+msgid "Domains ansehen"
+msgstr "Перегляд доменів"
+
+msgid "Domains verwalten"
+msgstr "Керування доменами"
+
+msgid "Kennzahlen ansehen"
+msgstr "Перегляд показників"
+
+msgid "Berichte ansehen"
+msgstr "Перегляд звітів"
+
+msgid "Journal & Rechnungen ansehen"
+msgstr "Перегляд журналу та рахунків"
+
+msgid "Rechnungen & Ausgaben bearbeiten"
+msgstr "Редагування рахунків і витрат"
+
+msgid "Finanzdaten exportieren (DATEV)"
+msgstr "Експорт фінансових даних (DATEV)"
+
+msgid "Buchungen korrigieren"
+msgstr "Коригування проведень"
+
+msgid "Bankumsätze importieren"
+msgstr "Імпорт банківських операцій"
+
+msgid "Einstellungen ansehen"
+msgstr "Перегляд налаштувань"
+
+msgid "Einstellungen ändern"
+msgstr "Зміна налаштувань"
+
+msgid "Funktionen ansehen"
+msgstr "Перегляд функцій"
+
+msgid "Funktionen ein- und ausschalten"
+msgstr "Увімкнення та вимкнення функцій"
+
+msgid "Ganzen Betrieb schließen (Betriebsferien)"
+msgstr "Закрити весь бізнес (канікули)"
+
+msgid "Team ansehen"
+msgstr "Перегляд команди"
+
+msgid "Team verwalten und Rechte vergeben"
+msgstr "Керування командою та надання прав"
+
+msgid "Mitarbeiter entfernen"
+msgstr "Видалення співробітників"
+
+msgid "Für diese Rolle nicht möglich."
+msgstr "Для цієї ролі недоступно."
+
+msgid "Nur vergeben, wer dieses Recht selbst hat — sensible Rechte nur der Inhaber."
+msgstr "Надати може лише той, хто має це право, — чутливі права лише власник."
+
+msgid "Nur der Inhaber kann dieses Recht entziehen."
+msgstr "Відкликати це право може лише власник."
+
+msgid "sensibles Recht"
+msgstr "чутливе право"
+
+#, python-format
+msgid "Rechte (%(n)s)"
+msgstr "Права (%(n)s)"
+
+msgid "Rechte speichern"
+msgstr "Зберегти права"
+
+msgid "Inhaber — alle Rechte."
+msgstr "Власник — усі права."
+
+msgid "Eigene Rechte kann nur der Inhaber ändern."
+msgstr "Власні права може змінити лише власник."
+
+msgid "Rechte anpassen (optional)"
+msgstr "Налаштувати права (необов'язково)"
+
+#, python-format
+msgid "Rechte für die Rolle „%(role)s“"
+msgstr "Права для ролі «%(role)s»"
+
+msgid "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Rechte lassen sich pro Person anpassen; Abo und Recht & Steuern bleiben dem Inhaber vorbehalten."
+msgstr "Запрошення створює одноразове посилання (діє 7 днів). Права налаштовуються для кожної людини; підписка, право й податки залишаються за власником."
+
+msgid "Diese Änderung liegt außerhalb Ihres Bereichs."
+msgstr "Ця зміна поза вашими повноваженнями."

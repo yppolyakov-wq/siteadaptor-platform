@@ -29671,3 +29671,197 @@ msgstr "The permissions have changed in the meantime — please reload the page.
 #, python-format
 msgid "Für %(email)s gibt es bereits ein Konto. Bitte melden Sie sich zuerst damit an und öffnen Sie den Einladungslink danach erneut."
 msgstr "An account already exists for %(email)s. Please sign in with it first and then open the invitation link again."
+
+msgid "Geld & Zahlungen"
+msgstr "Money & payments"
+
+msgid "Verkäufe ansehen"
+msgstr "View sales"
+
+msgid "Verkäufe bearbeiten"
+msgstr "Edit sales"
+
+msgid "Verkäufe stornieren"
+msgstr "Cancel sales"
+
+msgid "Rezeption: An- und Abreise buchen"
+msgstr "Front desk: check guests in and out"
+
+msgid "Abläufe & Status ansehen"
+msgstr "View workflows & statuses"
+
+msgid "Abläufe & Status ändern"
+msgstr "Change workflows & statuses"
+
+msgid "Geld erstatten"
+msgstr "Refund money"
+
+msgid "Rechnungen korrigieren"
+msgstr "Correct invoices"
+
+msgid "Storno- und Anzahlungsregeln ändern"
+msgstr "Change cancellation and deposit rules"
+
+msgid "Rabatt auf einen Verkauf geben"
+msgstr "Give a discount on a sale"
+
+msgid "Preis eines Verkaufs ändern"
+msgstr "Change the price of a sale"
+
+msgid "Gutscheine und Coupons einlösen"
+msgstr "Redeem vouchers and coupons"
+
+msgid "Sortiment bearbeiten"
+msgstr "Edit range"
+
+msgid "Sortiment löschen"
+msgstr "Delete from range"
+
+msgid "Preise & Verfügbarkeit ansehen"
+msgstr "View prices & availability"
+
+msgid "Preise & Verfügbarkeit ändern"
+msgstr "Change prices & availability"
+
+msgid "Lager ansehen"
+msgstr "View stock"
+
+msgid "Lager buchen"
+msgstr "Book stock movements"
+
+msgid "Lager exportieren"
+msgstr "Export stock"
+
+msgid "Veranstaltung absagen"
+msgstr "Cancel an event"
+
+msgid "Kunden ansehen"
+msgstr "View customers"
+
+msgid "Kunden bearbeiten"
+msgstr "Edit customers"
+
+msgid "Kontaktdaten der Kunden sehen"
+msgstr "See customer contact details"
+
+msgid "Kundendaten exportieren"
+msgstr "Export customer data"
+
+msgid "Datenschutz-Anfragen bearbeiten"
+msgstr "Handle data protection requests"
+
+msgid "Aktionen & Marketing ansehen"
+msgstr "View promotions & marketing"
+
+msgid "Aktionen & Marketing bearbeiten"
+msgstr "Edit promotions & marketing"
+
+msgid "Aktionen löschen"
+msgstr "Delete promotions"
+
+msgid "Nachrichten lesen"
+msgstr "Read messages"
+
+msgid "Nachrichten beantworten"
+msgstr "Reply to messages"
+
+msgid "Kanäle ansehen"
+msgstr "View channels"
+
+msgid "Kanäle verbinden und trennen"
+msgstr "Connect and disconnect channels"
+
+msgid "Stadtportal-Statistik ansehen"
+msgstr "View city portal statistics"
+
+msgid "Website ansehen"
+msgstr "View website"
+
+msgid "Domains ansehen"
+msgstr "View domains"
+
+msgid "Domains verwalten"
+msgstr "Manage domains"
+
+msgid "Kennzahlen ansehen"
+msgstr "View key figures"
+
+msgid "Berichte ansehen"
+msgstr "View reports"
+
+msgid "Journal & Rechnungen ansehen"
+msgstr "View journal & invoices"
+
+msgid "Rechnungen & Ausgaben bearbeiten"
+msgstr "Edit invoices & expenses"
+
+msgid "Finanzdaten exportieren (DATEV)"
+msgstr "Export financial data (DATEV)"
+
+msgid "Buchungen korrigieren"
+msgstr "Correct bookings"
+
+msgid "Bankumsätze importieren"
+msgstr "Import bank transactions"
+
+msgid "Einstellungen ansehen"
+msgstr "View settings"
+
+msgid "Einstellungen ändern"
+msgstr "Change settings"
+
+msgid "Funktionen ansehen"
+msgstr "View features"
+
+msgid "Funktionen ein- und ausschalten"
+msgstr "Switch features on and off"
+
+msgid "Ganzen Betrieb schließen (Betriebsferien)"
+msgstr "Close the whole business (company holidays)"
+
+msgid "Team ansehen"
+msgstr "View team"
+
+msgid "Team verwalten und Rechte vergeben"
+msgstr "Manage team and grant permissions"
+
+msgid "Mitarbeiter entfernen"
+msgstr "Remove staff"
+
+msgid "Für diese Rolle nicht möglich."
+msgstr "Not possible for this role."
+
+msgid "Nur vergeben, wer dieses Recht selbst hat — sensible Rechte nur der Inhaber."
+msgstr "Only someone who has this permission can grant it — sensitive permissions only the owner."
+
+msgid "Nur der Inhaber kann dieses Recht entziehen."
+msgstr "Only the owner can revoke this permission."
+
+msgid "sensibles Recht"
+msgstr "sensitive permission"
+
+#, python-format
+msgid "Rechte (%(n)s)"
+msgstr "Permissions (%(n)s)"
+
+msgid "Rechte speichern"
+msgstr "Save permissions"
+
+msgid "Inhaber — alle Rechte."
+msgstr "Owner — all permissions."
+
+msgid "Eigene Rechte kann nur der Inhaber ändern."
+msgstr "Only the owner can change your own permissions."
+
+msgid "Rechte anpassen (optional)"
+msgstr "Adjust permissions (optional)"
+
+#, python-format
+msgid "Rechte für die Rolle „%(role)s“"
+msgstr "Permissions for the role “%(role)s”"
+
+msgid "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Rechte lassen sich pro Person anpassen; Abo und Recht & Steuern bleiben dem Inhaber vorbehalten."
+msgstr "The invitation creates a one-time link (valid for 7 days). Permissions can be adjusted per person; subscription and legal & tax stay reserved for the owner."
+
+msgid "Diese Änderung liegt außerhalb Ihres Bereichs."
+msgstr "This change is outside your scope."

@@ -29,7 +29,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
-from apps.core import perm_grants, ratelimit
+from apps.core import perm_grants, perm_ui, ratelimit
 from apps.core import permissions as P
 from apps.core.audit import audit_event
 from apps.core.models import Membership
@@ -92,17 +92,31 @@ def _mask(email: str) -> str:
     return f"{local[:1]}***@{domain}" if domain else "***"
 
 
-def _member_rows(can_see_emails: bool):
+def _member_rows(can_see_emails: bool, actor=None):
+    """Строки участников; с ``actor`` — формы прав (E6.7d) и флаги роль/удаление."""
     members = list(Membership.objects.select_related("user").order_by("role", "user__username"))
     owners = sum(1 for m in members if m.role == Membership.ROLE_OWNER)
+    actor_eff = P.effective_from(actor.role, actor.permissions) if actor else frozenset()
     rows = []
     for m in members:
         email = m.user.email or m.user.username
+        is_last_owner = m.role == Membership.ROLE_OWNER and owners <= 1
+        own = actor is not None and actor.pk == m.pk
+        is_owner_actor = actor is not None and actor.role == Membership.ROLE_OWNER
         rows.append(
             {
                 "m": m,
                 "email": email if can_see_emails else _mask(email),
-                "is_last_owner": m.role == Membership.ROLE_OWNER and owners <= 1,
+                "is_last_owner": is_last_owner,
+                "is_self": own,
+                "can_role": is_owner_actor and not own and not is_last_owner,
+                "can_revoke": not own
+                and not is_last_owner
+                and (
+                    is_owner_actor
+                    or ("team.delete" in actor_eff and m.role == Membership.ROLE_STAFF)
+                ),
+                "perm_form": perm_ui.perm_form(actor, m),
             }
         )
     return rows
@@ -112,6 +126,7 @@ _DENIED_TEXT = {
     "last_owner": gettext_lazy("Der letzte Inhaber kann nicht entfernt werden."),
     "self": gettext_lazy("Sich selbst entfernen ist nicht möglich."),
     "stale": gettext_lazy("Die Rechte wurden inzwischen geändert — bitte Seite neu laden."),
+    "scope": gettext_lazy("Diese Änderung liegt außerhalb Ihres Bereichs."),
 }
 
 
@@ -129,8 +144,12 @@ def team_view(request):
             ):
                 messages.error(request, _("Zu viele Einladungen heute — bitte morgen erneut."))
                 return redirect("team")
+            role = request.POST.get("role", "")
+            perms_in = None
+            if role in INVITE_ROLES and request.POST.get(f"perms_present_{role}") == "1":
+                perms_in = request.POST.getlist(f"perm_{role}")
             token = issue_invite(
-                request.POST.get("email"), request.POST.get("role"), inviter=request.user
+                request.POST.get("email"), role, inviter=request.user, perms=perms_in
             )
             if token is None:
                 ratelimit.refund("team-invite", connection.schema_name)
@@ -148,16 +167,24 @@ def team_view(request):
                 messages.success(request, f"{hint} {link}")
         elif action in ("role", "revoke", "perms"):
             _member_action(request, action)
+            if action == "perms" and perm_grants._uuid(request.POST.get("membership_id")):
+                anchor = perm_grants._uuid(request.POST.get("membership_id"))
+                return redirect(f"{reverse('team')}#m-{anchor}")
         return redirect("team")
 
+    actor = Membership.objects.filter(user=request.user).first()
+    can_edit = "team.edit" in perms
+    invite_forms = perm_ui.invite_forms(actor) if can_edit else []
     return render(
         request,
         "tenant/team.html",
         {
             "nav": "team",
-            "rows": _member_rows("team.edit" in perms),
+            "rows": _member_rows(can_edit, actor if can_edit else None),
+            "can_edit": can_edit,
+            "invite_forms": invite_forms,
             "roles": Membership.ROLES,
-            "invite_roles": [(r, lbl) for r, lbl in Membership.ROLES if r in INVITE_ROLES],
+            "invite_roles": [(f["role"], f["label"]) for f in invite_forms],
         },
     )
 

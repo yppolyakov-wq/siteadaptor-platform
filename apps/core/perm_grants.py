@@ -338,6 +338,18 @@ def _invite_compute(inviter, role, requested_keys):
     return new, frozenset(requested - new)
 
 
+def scopes_for(actor, target):
+    """Публичное чтение области (grant, revoke) актора для цели — для отрисовки формы
+    (E6.7d). Без блокировки: запись всё равно перепроверит под замком."""
+    return _scopes(actor, target)
+
+
+def invite_defaults(inviter, role) -> frozenset:
+    """Права инвайта роли ``role`` без правок (пресет в пределах области приглашающего)."""
+    new, _stripped = _invite_compute(inviter, role, None)
+    return new
+
+
 def invite_perms(inviter_user, role, requested_keys=None) -> frozenset:
     """Права, которые приглашающий вправе вложить в инвайт. Явный набор сверх области —
     отказ (видно сразу, не при принятии); без набора — пресет роли в пределах области."""
