@@ -470,6 +470,33 @@ document (партиал может перерисовываться — уро�
         <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50">{% trans "Link" %}</button>
       </form>
     {% endif %}
+    {% if termin_resources %}
+      {% comment %}KA-12 A-4: выезд/приёмка прямо из заявки — тем же ядром, что
+      «Add booking» в Tagesplan; запись идёт на клиента заявки и привязывается.{% endcomment %}
+      <details class="mt-2" data-job-termin>
+        <summary class="cursor-pointer text-sm font-medium text-indigo-600">📅 {% trans "Termin anlegen" %}</summary>
+        <form method="post" class="mt-2 grid gap-2">{% csrf_token %}
+          <input type="hidden" name="action" value="create_booking">
+          <label class="text-xs text-gray-500">{% trans "Resource" %}
+            <select name="resource" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900">
+              {% for r in termin_resources %}<option value="{{ r.pk }}">{{ r.name }}</option>{% endfor %}
+            </select></label>
+          <label class="text-xs text-gray-500">{% trans "Start" %}
+            <input type="datetime-local" name="start" required class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900"></label>
+          {% if termin_services %}<label class="text-xs text-gray-500">{% trans "Leistung" %}
+            <select name="service" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900">
+              <option value="">—</option>
+              {% for s in termin_services %}<option value="{{ s.pk }}">{{ s.name_localized|default:s.name }}</option>{% for v in s.active_variants %}<option value="{{ s.pk }}:{{ v.pk }}">{{ s.name_localized|default:s.name }} · {{ v.name_localized }}</option>{% endfor %}{% endfor %}
+            </select></label>{% endif %}
+          <label class="text-xs text-gray-500">{% trans "Minutes" %}
+            <input type="number" name="minutes" min="5" max="1440" placeholder="60" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900"></label>
+          <label class="inline-flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="override_hours" value="1"> {% trans "Trotzdem eintragen" %}</label>
+          <div><button type="submit" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Termin anlegen" %}</button></div>
+        </form>
+      </details>
+    {% elif termin_needs_resource %}
+      <p class="mt-2 text-xs text-gray-500">📅 {% trans "Für Termine zuerst eine Ressource anlegen" %} — <a href="{% url 'booking:resources' %}" class="text-indigo-600 hover:underline">{% trans "Öffnungszeiten & Ressourcen" %}</a></p>
+    {% endif %}
   </div>
   </div>
 {% endblock %}

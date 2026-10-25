@@ -30483,3 +30483,15 @@ msgstr "“Kişi başı” fiyatlar %(n)s misafir için hesaplanır."
 
 msgid "Aktuelle Felder durch die Branchen-Vorlage ersetzen?"
 msgstr "Mevcut alanlar sektör şablonuyla değiştirilsin mi?"
+
+msgid "Bitte Ressource und Beginn angeben."
+msgstr "Lütfen kaynak ve başlangıç zamanı seçin."
+
+msgid "Für Termine zuerst eine Ressource anlegen"
+msgstr "Randevu için önce bir kaynak oluşturun"
+
+msgid "Termin angelegt."
+msgstr "Randevu oluşturuldu."
+
+msgid "Termin anlegen"
+msgstr "Randevu oluştur"

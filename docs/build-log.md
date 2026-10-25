@@ -20114,3 +20114,13 @@ Kennzeichen/HSN/TSN мастерской и источник обращения 
   предупреждение «Gästezahl geändert — bitte die Mengen im Angebot prüfen.» без автопересчёта.
 - Ревью django-reviewer: снята мёртвая серверная ветка (форма всегда шлёт кол-во), подтверждение
   перед «Branchen-Vorlage laden». Замки: `apps/jobs/tests/test_a3_catering.py` (5). 4 msgid × 5 каталогов.
+
+## 2026-10-25 — KA-12 Anfragen A-4 (E5.4b): Termin прямо из заявки (без миграций)
+
+- `apps/booking/services.create_manual` — ядро ручной записи кабинета (цена/длительность из услуги
+  и варианта, per_person, часы работы с «Trotzdem eintragen», места пула, навык мастера,
+  занятость/закрыто → `ManualBookingRefused`). `booking_create` переведён на него байт-в-байт
+  (456 тестов booking зелёные). `book()` += `customer=`.
+- Карточка заявки: «📅 Termin anlegen» → запись на клиента заявки (без контактов не плодится
+  «Walk-in»), гости заявки = места, заметка = номер заявки; сразу привязка `job.booking`. Гейт —
+  модуль booking + активный ресурс (иначе подсказка). Замки `test_a4_termin_from_request.py` (4).

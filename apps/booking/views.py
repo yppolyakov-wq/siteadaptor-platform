@@ -499,92 +499,32 @@ def booking_create(request):
         if not _ok:
             variant = None
             messages.warning(request, _("Variante nicht gefunden – Termin ohne Variante angelegt."))
-    if minutes is None:
-        if service is not None:
-            from apps.booking import pricing as _pricing
-
-            minutes = _pricing.effective_minutes(service, variant)
-        else:
-            minutes = 60
-    minutes = max(5, min(minutes, 24 * 60))
-    name = request.POST.get("name", "").strip() or _("Walk-in")
     # KA-H5: число гостей. Без него у пула мест (counts_party_size) компания из 8
     # занимала 1 место → овербукинг. Разбор как на витрине: 1..50, мусор → 1.
     try:
         party_size = max(1, min(int(request.POST.get("party_size", "1")), 50))
     except (TypeError, ValueError):
         party_size = 1
-    end = start + timedelta(minutes=minutes)
-    price_cents = 0
-    if service is not None:
-        from apps.booking import pricing
-
-        price_cents = pricing.variant_price_cents(
-            service, timezone.localtime(start).date(), variant
-        )
-        if service.pricing_mode == "per_person":
-            price_cents *= party_size
-    from apps.booking import availability
-
-    if not request.POST.get("override_hours") and not availability.within_hours(
-        resource, start, end
-    ):
-        # KA-12 E4.3 (О-4b): вне часов — только с подтверждением владельца.
-        messages.error(request, OUTSIDE_HOURS_MSG)
-        return redirect("booking:calendar")
-    if resource.counts_party_size and party_size > resource.capacity:
-        messages.error(
-            request,
-            _("Mehr Personen als Plätze (%(cap)s).") % {"cap": resource.capacity},
-        )
-        return redirect("booking:calendar")
-    # KA-12 E4.2a: ручная запись к мастеру без этого навыка — разрешена (стойка знает
-    # лучше), но с подсказкой; витрина такой выбор не предлагает вовсе.
-    if service is not None and not availability.has_skill(service, resource):
-        messages.warning(
-            request,
-            _("Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an.")
-            % {"res": resource.name, "svc": service.name},
-        )
+    # KA-12 A-4: ядро ручной записи — общее с «Termin anlegen» в заявке.
     try:
-        booking = services.book(
+        booking, warnings = services.create_manual(
             resource,
             start=start,
-            end=end,
-            name=name,
+            minutes=minutes,
+            service=service,
+            variant=variant,
             party_size=party_size,
+            name=request.POST.get("name", "").strip(),
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),
-            note=request.POST.get("note", "").strip()[:2000],
-            source_channel="manual",
-            auto_confirm=True,
-            service=service,
-            price_cents=price_cents,
-            match_by_phone=True,  # KA-H7: доверенный путь (кабинет)
-            variant=variant,
-            variant_label=variant.name[:100] if variant is not None else "",
+            note=request.POST.get("note", "").strip(),
+            override_hours=bool(request.POST.get("override_hours")),
         )
-    except services.SlotTaken:
-        if resource.counts_party_size:
-            from django.db.models import Sum
-
-            taken = (
-                services.overlapping(
-                    resource, start, services.occupied_end(service, end) or end
-                ).aggregate(s=Sum("party_size"))["s"]
-                or 0
-            )
-            messages.error(
-                request,
-                _("Für %(n)s Personen sind zu dieser Zeit nur %(free)s Plätze frei.")
-                % {"n": party_size, "free": max(0, resource.capacity - taken)},
-            )
-        else:
-            messages.error(request, _("That time is already taken."))
+    except services.ManualBookingRefused as exc:
+        messages.error(request, str(exc))
         return redirect("booking:calendar")
-    except services.ResourceClosed:
-        messages.error(request, _("Closed on this date."))
-        return redirect("booking:calendar")
+    for text in warnings:
+        messages.warning(request, text)
     messages.success(request, _("Booking created."))
     return redirect(f"{reverse('booking:calendar')}?tag={booking.start.date().isoformat()}")
 

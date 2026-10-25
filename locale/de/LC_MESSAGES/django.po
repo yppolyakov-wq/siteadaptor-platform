@@ -30431,3 +30431,15 @@ msgstr "Preise „pro Person“ werden mit %(n)s Gästen gerechnet."
 
 msgid "Aktuelle Felder durch die Branchen-Vorlage ersetzen?"
 msgstr "Aktuelle Felder durch die Branchen-Vorlage ersetzen?"
+
+msgid "Bitte Ressource und Beginn angeben."
+msgstr "Bitte Ressource und Beginn angeben."
+
+msgid "Für Termine zuerst eine Ressource anlegen"
+msgstr "Für Termine zuerst eine Ressource anlegen"
+
+msgid "Termin angelegt."
+msgstr "Termin angelegt."
+
+msgid "Termin anlegen"
+msgstr "Termin anlegen"

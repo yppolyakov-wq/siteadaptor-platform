@@ -212,6 +212,8 @@ def job_detail(request, pk):
             return _transition(request, job, action)
         if action in ("link_booking", "unlink_booking"):
             return _link_booking(request, job, attach=action == "link_booking")
+        if action == "create_booking":
+            return _create_booking(request, job)
         if action == "mark_paid":
             # VF-15 (фидбэк 2026-08-25 «блок оплаты во всех архетипах»): у заявки
             # payment_state писал только Stripe-вебхук депозита — оплату «наличными
@@ -355,6 +357,7 @@ def job_detail(request, pk):
             "deposit_eur": f"{job.deposit_cents / 100:.2f}",
             "payments_enabled": getattr(request.tenant, "payments_enabled", False),
             "customer_bookings": _customer_bookings(job),  # A7d: Termin-привязка
+            **_termin_context(request.tenant, job),  # KA-12 A-4: Termin aus Anfrage
             # QF-2: поля мастерской — нужным архетипам или если уже заполнены.
             "show_vehicle_fields": (
                 request.tenant.business_type in ("werkstatt", "handwerker")
@@ -487,6 +490,101 @@ def _customer_bookings(job):
         .select_related("resource")
         .order_by("-start")[:20]
     )
+
+
+def _termin_context(tenant, job) -> dict:
+    """KA-12 A-4: форма «📅 Termin anlegen» — только при модуле записи и ресурсе."""
+    if job.booking_id or not tenant.is_module_active("booking"):
+        return {}
+    from django.db.models import Prefetch
+
+    from apps.booking.models import Resource, Service, ServiceVariant
+
+    resources = list(Resource.objects.filter(is_active=True).order_by("name"))
+    if not resources:
+        return {"termin_needs_resource": True}
+    # Тот же состав, что у «Add booking» в Tagesplan (варианты строками).
+    services_qs = (
+        Service.objects.filter(is_active=True)
+        .order_by("name")
+        .prefetch_related(
+            Prefetch(
+                "variants",
+                queryset=ServiceVariant.objects.filter(is_active=True).order_by("sort_order", "id"),
+                to_attr="active_variants",
+            )
+        )
+    )
+    return {"termin_resources": resources, "termin_services": list(services_qs)}
+
+
+def _create_booking(request, job):
+    """KA-12 A-4 (HW-2): выезд/приёмка прямо из заявки — тем же ядром, что ручная
+    запись в Tagesplan (часы, каникулы, места, навыки, буфер), на клиента заявки;
+    созданная запись сразу привязывается (`job.booking`)."""
+    from datetime import datetime
+
+    from django.core.exceptions import ValidationError
+
+    from apps.booking import pricing
+    from apps.booking import services as booking_services
+    from apps.booking.models import Resource, Service
+
+    if job.booking_id or not request.tenant.is_module_active("booking"):
+        return redirect("jobs:detail", pk=job.pk)
+    post = request.POST
+    try:
+        resource = Resource.objects.filter(pk=post.get("resource") or None, is_active=True).first()
+    except (ValueError, ValidationError):
+        resource = None
+    start = None
+    try:
+        start = datetime.fromisoformat(post.get("start", ""))
+        if timezone.is_naive(start):
+            start = start.replace(tzinfo=timezone.get_current_timezone())
+        raw_minutes = (post.get("minutes") or "").strip()
+        minutes = int(raw_minutes) if raw_minutes else None
+    except (TypeError, ValueError):
+        start = None
+    if resource is None or start is None:
+        messages.error(request, _("Bitte Ressource und Beginn angeben."))
+        return redirect("jobs:detail", pk=job.pk)
+    service = variant = None
+    raw_service, _sep, raw_variant = (post.get("service") or "").strip().partition(":")
+    if raw_service:
+        try:
+            service = Service.objects.filter(pk=raw_service, is_active=True).first()
+        except (ValueError, ValidationError):
+            service = None
+        if service is not None and raw_variant:
+            variant, ok = pricing.resolve_variant(service, raw_variant)
+            if not ok:
+                variant = None
+    customer = job.customer
+    try:
+        booking, warnings = booking_services.create_manual(
+            resource,
+            start=start,
+            minutes=minutes,
+            service=service,
+            variant=variant,
+            party_size=job.guest_count or 1,
+            name=customer.name or job.title,
+            email=customer.email or "",
+            phone=customer.phone or "",
+            note=(post.get("note") or "").strip() or f"{job.reference_code} · {job.title}",
+            override_hours=bool(post.get("override_hours")),
+            customer=customer,
+        )
+    except booking_services.ManualBookingRefused as exc:
+        messages.error(request, str(exc))
+        return redirect("jobs:detail", pk=job.pk)
+    job.booking = booking
+    job.save(update_fields=["booking", "updated_at"])
+    for text in warnings:
+        messages.warning(request, text)
+    messages.success(request, _("Termin angelegt."))
+    return redirect("jobs:detail", pk=job.pk)
 
 
 def _link_booking(request, job, *, attach):

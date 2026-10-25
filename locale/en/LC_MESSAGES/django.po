@@ -30339,3 +30339,15 @@ msgstr "“Per person” prices are calculated for %(n)s guests."
 
 msgid "Aktuelle Felder durch die Branchen-Vorlage ersetzen?"
 msgstr "Replace the current fields with the industry template?"
+
+msgid "Bitte Ressource und Beginn angeben."
+msgstr "Please choose a resource and a start time."
+
+msgid "Für Termine zuerst eine Ressource anlegen"
+msgstr "To add appointments, first create a resource"
+
+msgid "Termin angelegt."
+msgstr "Appointment created."
+
+msgid "Termin anlegen"
+msgstr "Create appointment"

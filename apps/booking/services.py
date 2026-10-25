@@ -230,6 +230,7 @@ def book(
     match_by_phone=False,
     variant=None,
     variant_label="",
+    customer=None,
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
     ResourceClosed / ValueError (кривой интервал) / PromoInvalid (B1.2).
@@ -272,9 +273,12 @@ def book(
         from apps.promotions.price_layer import claim_units
 
         claim_units(promotion, 1)
-    customer = _get_or_create_customer(
-        name=name, email=email, phone=phone, match_by_phone=match_by_phone
-    )
+    # KA-12 A-4: запись из заявки идёт на клиента ЗАЯВКИ (без почты/телефона
+    # поиск по контактам завёл бы второго «Walk-in»).
+    if customer is None:
+        customer = _get_or_create_customer(
+            name=name, email=email, phone=phone, match_by_phone=match_by_phone
+        )
     booking = Booking.objects.create(
         resource=resource,
         service=service,
@@ -532,3 +536,97 @@ def move(booking, *, start, end, resource=None, override_hours=False):
 
         transaction.on_commit(lambda: enqueue_booking_email(booking, "moved"))
     return booking
+
+
+class ManualBookingRefused(Exception):
+    """KA-12 A-4: ручную запись нельзя поставить — текст причины для владельца."""
+
+
+def create_manual(
+    resource,
+    *,
+    start,
+    minutes=None,
+    service=None,
+    variant=None,
+    party_size=1,
+    name="",
+    email="",
+    phone="",
+    note="",
+    override_hours=False,
+    customer=None,
+):
+    """KA-12 A-4: ядро ручной записи кабинета (стойка, звонок, заявка).
+
+    Одни правила для «Add booking» в Tagesplan и «Termin anlegen» в заявке:
+    длительность и цена из услуги/варианта, часы работы (вне — только с
+    ``override_hours``), места пула, навык мастера (предупреждение), занятость.
+    Возвращает ``(booking, warnings)``; отказ — ``ManualBookingRefused``.
+    """
+    from django.db.models import Sum
+    from django.utils.translation import gettext as _
+
+    from apps.booking import availability, pricing
+
+    warnings = []
+    if minutes is None:
+        minutes = pricing.effective_minutes(service, variant) if service is not None else 60
+    minutes = max(5, min(int(minutes), 24 * 60))
+    party_size = max(1, min(int(party_size or 1), 50))
+    end = start + timedelta(minutes=minutes)
+    price_cents = 0
+    if service is not None:
+        price_cents = pricing.variant_price_cents(
+            service, timezone.localtime(start).date(), variant
+        )
+        if service.pricing_mode == "per_person":
+            price_cents *= party_size
+    if not override_hours and not availability.within_hours(resource, start, end):
+        raise ManualBookingRefused(
+            _("Außerhalb der Öffnungszeiten. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen.")
+        )
+    if resource.counts_party_size and party_size > resource.capacity:
+        raise ManualBookingRefused(
+            _("Mehr Personen als Plätze (%(cap)s).") % {"cap": resource.capacity}
+        )
+    if service is not None and not availability.has_skill(service, resource):
+        warnings.append(
+            _("Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an.")
+            % {"res": resource.name, "svc": service.name}
+        )
+    try:
+        booking = book(
+            resource,
+            start=start,
+            end=end,
+            name=name or _("Walk-in"),
+            party_size=party_size,
+            email=email,
+            phone=phone,
+            note=(note or "")[:2000],
+            source_channel="manual",
+            auto_confirm=True,
+            service=service,
+            price_cents=price_cents,
+            match_by_phone=True,  # KA-H7: доверенный путь (кабинет)
+            variant=variant,
+            variant_label=variant.name[:100] if variant is not None else "",
+            customer=customer,
+        )
+    except SlotTaken:
+        if resource.counts_party_size:
+            taken = (
+                overlapping(resource, start, occupied_end(service, end) or end).aggregate(
+                    s=Sum("party_size")
+                )["s"]
+                or 0
+            )
+            raise ManualBookingRefused(
+                _("Für %(n)s Personen sind zu dieser Zeit nur %(free)s Plätze frei.")
+                % {"n": party_size, "free": max(0, resource.capacity - taken)}
+            ) from None
+        raise ManualBookingRefused(_("That time is already taken.")) from None
+    except ResourceClosed:
+        raise ManualBookingRefused(_("Closed on this date.")) from None
+    return booking, warnings

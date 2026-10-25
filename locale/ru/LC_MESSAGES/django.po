@@ -30614,3 +30614,15 @@ msgstr "Цены «на человека» считаются на %(n)s гос�
 
 msgid "Aktuelle Felder durch die Branchen-Vorlage ersetzen?"
 msgstr "Заменить текущие поля шаблоном отрасли?"
+
+msgid "Bitte Ressource und Beginn angeben."
+msgstr "Укажите ресурс и время начала."
+
+msgid "Für Termine zuerst eine Ressource anlegen"
+msgstr "Для записи сначала создайте ресурс"
+
+msgid "Termin angelegt."
+msgstr "Запись создана."
+
+msgid "Termin anlegen"
+msgstr "Создать запись"

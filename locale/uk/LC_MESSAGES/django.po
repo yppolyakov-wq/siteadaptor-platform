@@ -30598,3 +30598,15 @@ msgstr "Ціни «на особу» рахуються на %(n)s гостей.
 
 msgid "Aktuelle Felder durch die Branchen-Vorlage ersetzen?"
 msgstr "Замінити поточні поля шаблоном галузі?"
+
+msgid "Bitte Ressource und Beginn angeben."
+msgstr "Вкажіть ресурс і час початку."
+
+msgid "Für Termine zuerst eine Ressource anlegen"
+msgstr "Для запису спершу створіть ресурс"
+
+msgid "Termin angelegt."
+msgstr "Запис створено."
+
+msgid "Termin anlegen"
+msgstr "Створити запис"

@@ -114,6 +114,15 @@ Service.pricing_mode); JS ставит кол-во = гости поверх з�
 `booking_create`), бронь на `job.customer`, `job.booking` = новая запись. Гейт — модуль booking и ресурс,
 иначе подсказка «Termine aktivieren» (О-1).
 
+**A-4 ✅ сделано (2026-10-25, без миграций).** Ядро ручной записи вынесено в
+`booking.services.create_manual` (длительность/цена из услуги и варианта, per_person, часы с
+«Trotzdem eintragen», места пула, навык — предупреждением, занятость/закрыто → `ManualBookingRefused`);
+`booking_create` переведён на него без изменения поведения (456 тестов booking зелёные). `book()` принимает
+`customer=` — запись из заявки идёт на клиента заявки, а не на «Walk-in» по контактам. Карточка заявки:
+«📅 Termin anlegen» (ресурс, начало, услуга, минуты), гости заявки = места, заметка = номер и тема заявки;
+созданная запись сразу в `job.booking`. Без модуля записи формы нет и POST ничего не создаёт; без ресурса —
+подсказка со ссылкой на «Öffnungszeiten & Ressourcen».
+
 ### A-5 · E5.4c фото мастера + Abnahmeprotokoll (⚠️ `jobs/0022`)
 `JobPhoto.kind` (customer/before/after/intake/handover, default customer) + `uploaded_by`; модель
 `JobProtocol` (kind intake|handover, date, notes, items JSON, mileage_km, signed_name/at,
