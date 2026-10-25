@@ -30266,3 +30266,28 @@ msgstr "Sie entscheiden: Termin findet trotzdem statt, oder Sie sagen ihn im Das
 
 msgid "Zur Veranstaltung im Dashboard"
 msgstr "Zur Veranstaltung im Dashboard"
+
+#, python-format
+msgid "%(amount)s € werden erstattet."
+msgstr "%(amount)s € werden erstattet."
+
+#, python-format
+msgid "Stornogebühr %(p)s %%."
+msgstr "Stornogebühr %(p)s %%."
+
+msgid "Stornogebühren"
+msgstr "Stornogebühren"
+
+msgid "Stornogebühren (Tage vor Beginn | Prozent, eine Stufe pro Zeile; leer = kostenlose Stornierung bis zur Frist oben)"
+msgstr "Stornogebühren (Tage vor Beginn | Prozent, eine Stufe pro Zeile; leer = kostenlose Stornierung bis zur Frist oben)"
+
+#, python-format
+msgid "ab %(d)s Tagen vor Beginn: %(p)s %%"
+msgstr "ab %(d)s Tagen vor Beginn: %(p)s %%"
+
+#, python-format
+msgid "ab Beginn: %(p)s %%"
+msgstr "ab Beginn: %(p)s %%"
+
+msgid "Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."
+msgstr "Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."

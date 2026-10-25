@@ -294,6 +294,9 @@ class Event(I18nMixin, TimestampedModel):
     cancellation = models.CharField(max_length=20, choices=CANCELLATIONS, default=CANCEL_FLEXIBLE)
     # Бесплатная отмена до N дней до начала (для flexible; 0 = до дня начала).
     free_cancel_days = models.PositiveSmallIntegerField(default=0)
+    # KA-12 T-4 (EV-3): шкала Stornogebühr [{days, percent}] — «ab N Tagen vor Beginn
+    # behalten wir P %». Пусто = прежнее правило `free_cancel_days` (решение О-2).
+    cancel_fee_steps = models.JSONField(default=list, blank=True)
     # KA-12 T-3 (EV-6): минимум участников. 0 = без минимума. За `min_deadline_days`
     # до старта владелец получает письмо «Mindestteilnehmerzahl nicht erreicht» —
     # отменяет сам (массовая отмена с возвратами), автоматически деньги не двигаем (О-1).
@@ -623,6 +626,15 @@ class Event(I18nMixin, TimestampedModel):
     @property
     def cancellation_label(self) -> str:
         return self.get_cancellation_display()
+
+    @property
+    def cancel_fee_lines(self) -> list[dict]:
+        """KA-12 T-4: шкала Stornogebühr для витрины (по убыванию дней)."""
+        from .details import normalize_fee_steps
+
+        if self.cancellation != self.CANCEL_FLEXIBLE:
+            return []
+        return normalize_fee_steps(self.cancel_fee_steps or [])
 
     @property
     def is_refundable(self) -> bool:

@@ -59,7 +59,9 @@
     {# R12: политика отмены + ссылка на самостоятельную отмену #}
     {% if cancel_state.can_cancel %}
       <div class="mt-5 pt-4 border-t border-gray-100 text-sm text-gray-500">
-        {% if event.is_refundable %}
+        {% if event.cancel_fee_lines %}
+          {% include "storefront/_event_cancel_fees.html" %}
+        {% elif event.is_refundable %}
           {% if event.free_cancel_days %}{% blocktrans with d=event.free_cancel_days %}Free cancellation up to {{ d }} days before the start.{% endblocktrans %}{% else %}{% trans "Free cancellation up to the start." %}{% endif %}
         {% else %}{% trans "This ticket is non-refundable." %}{% endif %}
         <a href="{{ cancel_url }}" class="text-red-600 hover:underline ml-1">{% trans "Cancel ticket" %}</a>

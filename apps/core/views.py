@@ -6441,7 +6441,8 @@ def deal_refund(request, kind, pk):
             row_pk=request.POST.get("row") or None,
             tenant=getattr(request, "tenant", None),
             user=request.user,
-            reason=request.POST.get("reason") or "ueberzahlung",
+            # KA-12 T-4: «stornogebuehr» — только из самоотмены (refund_cancel_fee).
+            reason=("minderung" if request.POST.get("reason") == "minderung" else "ueberzahlung"),
         )
         if result == refunds.RefundResult.REFUNDED:
             messages.success(

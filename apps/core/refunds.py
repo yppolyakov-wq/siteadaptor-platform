@@ -406,6 +406,7 @@ def refund_partial(
     row_pk=None,
     user=None,
     reason: str = "ueberzahlung",
+    storno_target: int | None = None,
 ) -> RefundResult:
     """KA-12 B2-4 (MC-E8): частичный возврат владельцем.
 
@@ -422,12 +423,16 @@ def refund_partial(
 
     cents = int(cents or 0)
     minderung = reason == "minderung"
+    # KA-12 T-4: «stornogebuehr» — возврат части оплаты ОТМЕНЁННОЙ сделки (самоотмена
+    # по шкале Stornogebühr); только картой, удержанное уже проведено как выручка.
+    storno = reason == "stornogebuehr"
     if (
         kind not in folio.FOLIO_KINDS
         or cents <= 0
         or method not in ("card", "offline")
-        or reason not in ("ueberzahlung", "minderung")
+        or reason not in ("ueberzahlung", "minderung", "stornogebuehr")
         or (minderung and kind not in MINDERUNG_KINDS)
+        or (storno and (method != "card" or storno_target is None))
         or getattr(obj, "payment_state", "") == "installment"
     ):
         return RefundResult.REFUSED
@@ -447,6 +452,16 @@ def refund_partial(
         # бы проведённой, а сделка — неотменённой.
         if minderung:
             if _minderung_blocked(kind, locked, cents):
+                return RefundResult.REFUSED
+        elif storno:
+            from apps.core import status_registry
+
+            if locked.status not in status_registry.cancelled_statuses_for(kind, None):
+                return RefundResult.REFUSED
+            # Под блокировкой сделки: картой всего возвращено не больше цели
+            # (удержанная Stornogebühr не уходит повторным/параллельным запросом).
+            card_back = sum(r.refunded_cents for r in rows if r.stripe_payment_intent)
+            if card_back + cents > storno_target:
                 return RefundResult.REFUSED
         elif cents > overpaid_cents(kind, locked, rows):
             return RefundResult.REFUSED
@@ -534,6 +549,51 @@ def refund_partial(
         changes={"cents": cents, "method": method, "reason": reason},
     )
     return RefundResult.REFUNDED
+
+
+def refund_cancel_fee(kind: str, obj, *, retained_cents: int, tenant=None) -> RefundResult:
+    """KA-12 T-4: после отмены по шкале Stornogebühr вернуть картой всё, кроме
+    удержанного. Цель — от книги: Σ карточных платежей − удержанное; уже возвращённое
+    картой засчитывается, поэтому повтор (двойной клик, ретрай) ничего не добавит.
+    Возврат идёт по нескольким платежам (Anzahlung + остаток). Не вернули всё —
+    письмо владельцу с остатком (тихой недоплаты нет)."""
+    from apps.core import folio
+    from apps.core.models import DealPayment
+
+    folio.ensure_opening(kind, obj)
+    result = RefundResult.NONE
+    left = 0
+    for _attempt in range(5):
+        card = [
+            r
+            for r in DealPayment.objects.filter(deal_kind=kind, deal_id=obj.pk)
+            if r.stripe_payment_intent
+        ]
+        target = max(0, sum(r.amount_cents for r in card) - int(retained_cents or 0))
+        left = target - sum(r.refunded_cents for r in card)
+        if left <= 0:
+            return result
+        take = min(left, max((r.amount_cents - r.refunded_cents for r in card), default=0))
+        if take <= 0:
+            break
+        result = refund_partial(
+            kind,
+            obj,
+            cents=take,
+            method="card",
+            tenant=tenant,
+            reason="stornogebuehr",
+            storno_target=target,
+        )
+        if result in (RefundResult.FAILED, RefundResult.UNCERTAIN):
+            return result  # refund_partial уже написал владельцу
+        if result != RefundResult.REFUNDED:
+            break  # REFUSED/ALREADY — нет Connect или гонка: ниже письмо с остатком
+    if left > 0:
+        logger.error("cancel fee refund incomplete: %s %s rest=%s", kind, obj.pk, left)
+        _notify_owner_failed(kind, obj, tenant, reason="partial", cents=left)
+        return RefundResult.FAILED
+    return result
 
 
 #: KA-12 B2-4b: виды со скидкой владельца (DC-5) — у билета цену не снизить.

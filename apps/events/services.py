@@ -364,9 +364,57 @@ def cancellation_state(ticket, now=None) -> dict:
         return {"can_cancel": False, "free": False, "deadline": None}
     event = ticket.event
     if event.cancellation == Event.CANCEL_NONREF:
-        return {"can_cancel": True, "free": False, "deadline": None}
+        return {"can_cancel": True, "free": False, "deadline": None, "fee_percent": 100}
+    from . import details
+
+    steps = details.normalize_fee_steps(event.cancel_fee_steps or [])
+    if steps:
+        # KA-12 T-4: шкала Stornogebühr сильнее `free_cancel_days`.
+        # Ab Beginn (или позже) — 100 %, даже если шкала не задаёт ступень «0».
+        percent = (
+            100
+            if now >= event.starts_at
+            else details.fee_percent(steps, (event.starts_at - now).days)
+        )
+        return {"can_cancel": True, "free": percent == 0, "deadline": None, "fee_percent": percent}
     deadline = event.starts_at - timedelta(days=int(event.free_cancel_days or 0))
-    return {"can_cancel": True, "free": now <= deadline, "deadline": deadline}
+    free = now <= deadline
+    return {
+        "can_cancel": True,
+        "free": free,
+        "deadline": deadline,
+        "fee_percent": 0 if free else 100,
+    }
+
+
+def cancel_fee_split(ticket, state) -> dict:
+    """KA-12 T-4: что остаётся бизнесу и что возвращается при самоотмене гостем.
+
+    База — полученная ОНЛАЙН сумма (полная оплата или Anzahlung); наличных/
+    неоплаченного здесь нет — удерживать нечего. mode: «free» — вернуть всё
+    (общий `refund_payment`), «keep» — ничего не возвращать, «partial» — вернуть
+    часть карты. Рассрочка частично не возвращается (у каждой доли свой платёж) —
+    при неполной шкале клиенту возвращается всё (в его пользу)."""
+    paid = 0
+    if ticket.payment_state == Ticket.PAYMENT_PAID:
+        paid = ticket.payable_cents
+    elif ticket.payment_state == Ticket.PAYMENT_DEPOSIT:
+        paid = ticket.deposit_cents
+    percent = int(state.get("fee_percent", 0 if state.get("free") else 100))
+    if ticket.payment_state == Ticket.PAYMENT_INSTALLMENT and percent < 100:
+        percent = 0
+    if percent <= 0:
+        return {"mode": "free", "percent": 0, "retained_cents": 0, "refund_cents": paid}
+    if percent >= 100 or paid <= 0:
+        return {"mode": "keep", "percent": percent, "retained_cents": paid, "refund_cents": 0}
+    retained = (paid * percent + 50) // 100
+    return {
+        "mode": "partial",
+        "percent": percent,
+        "retained_cents": retained,
+        "refund_cents": paid - retained,
+        "refund_eur": (Decimal(paid - retained) / 100).quantize(Decimal("0.01")),
+    }
 
 
 def join_waitlist(event, *, name="", email="", phone="", party_size=1) -> EventWaitlistEntry:

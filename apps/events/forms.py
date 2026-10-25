@@ -43,6 +43,15 @@ class EventForm(forms.ModelForm):
             )
         ),
     )
+    # KA-12 T-4: шкала Stornogebühr «Tage vor Beginn | % behalten».
+    cancel_fee_text = forms.CharField(
+        required=False,
+        widget=_ta(3, "30 | 0\n14 | 50\n0 | 100"),
+        label=_(
+            "Stornogebühren (Tage vor Beginn | Prozent, eine Stufe pro Zeile; "
+            "leer = kostenlose Stornierung bis zur Frist oben)"
+        ),
+    )
     # R2: таксономия (направление/уровень/язык) — для каталога и фильтров.
     # MX-6: владелец может завести СВОЮ категорию (пресет из 9 wellness-тем
     # душил тур-оператора/мастерские) — свободный ввод с datalist-подсказками.
@@ -172,6 +181,9 @@ class EventForm(forms.ModelForm):
             self.fields["questions_text"].initial = "\n".join(self.instance.questions or [])
             self.fields["program_text"].initial = "\n".join(self.instance.program or [])
             self.fields["tiers_text"].initial = details_mod.tiers_to_text(self.instance.tiers)
+            self.fields["cancel_fee_text"].initial = details_mod.fee_steps_to_text(
+                self.instance.cancel_fee_steps
+            )
             self.fields["registration_fields"].initial = self.instance.registration_fields or []
             for f in ("category", "level", "language"):
                 self.fields[f].initial = getattr(self.instance, f, "")
@@ -206,6 +218,11 @@ class EventForm(forms.ModelForm):
         event.tiers = details_mod.normalize_tiers(
             (self.cleaned_data.get("tiers_text") or "").splitlines()
         )
+        # KA-12 T-4: шкалу пишем, только если поле пришло (мастер/демо его не шлют — W0).
+        if "cancel_fee_text" in self.data:
+            event.cancel_fee_steps = details_mod.normalize_fee_steps(
+                (self.cleaned_data.get("cancel_fee_text") or "").splitlines()
+            )
         # сохраняем включённые пресет-поля в порядке каталога (стабильно)
         chosen = set(self.cleaned_data.get("registration_fields") or [])
         event.registration_fields = [k for k in registration.VALID_KEYS if k in chosen]

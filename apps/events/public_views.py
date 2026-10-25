@@ -930,20 +930,31 @@ def veranstaltung_cancel(request, token):
     state = services.cancellation_state(ticket)
 
     if request.method == "POST" and state["can_cancel"]:
+        from django.db import transaction
+
         from apps.core.fsm import IllegalTransition
 
         from .state_machine import TicketSM
 
         # KA-H8: платная самоотмена — оплаченное остаётся бизнесу, это выручка;
         # сторно снимает только остальное (бесплатная — всё, деньги вернутся).
-        retained = 0
-        if not state["free"]:
-            if ticket.payment_state == Ticket.PAYMENT_PAID:
-                retained = ticket.payable_cents
-            elif ticket.payment_state == Ticket.PAYMENT_DEPOSIT:
-                retained = ticket.deposit_cents
+        # KA-12 T-4: шкала Stornogebühr — удерживается её процент, остальное назад.
+        # Отмена — под блокировкой билета: второй (двойной) POST видит «cancelled»
+        # и до возврата не доходит; доля считается по свежему состоянию оплаты.
         try:
-            TicketSM().apply(ticket, Ticket.STATUS_CANCELLED, retained_cents=retained)
+            with transaction.atomic():
+                ticket = (
+                    Ticket.objects.select_for_update()
+                    .select_related("event", "customer")
+                    .get(pk=ticket.pk)
+                )
+                state = services.cancellation_state(ticket)
+                if not state["can_cancel"]:
+                    raise IllegalTransition("Ticket", ticket.status, Ticket.STATUS_CANCELLED)
+                split = services.cancel_fee_split(ticket, state)
+                TicketSM().apply(
+                    ticket, Ticket.STATUS_CANCELLED, retained_cents=split["retained_cents"]
+                )
         except IllegalTransition:
             messages.error(request, _("This ticket can no longer be cancelled."))
             return redirect(reverse("storefront-ticket-cancel", args=[token]))
@@ -951,17 +962,33 @@ def veranstaltung_cancel(request, token):
         services.notify_event_waitlist(ticket.event)
         # Возврат: только при бесплатной отмене и онлайн-оплате (депозит/полная).
         tenant = getattr(request, "tenant", None)
-        if state["free"]:
+        from apps.core import refunds
+
+        if split["mode"] == "free":
             # KA-H4: общая функция возврата (захват + идемпотентность + письмо
             # владельцу при отказе Stripe). Платная отмена оплату не возвращает.
-            from apps.core import refunds
-
             refunds.refund_payment("ticket", ticket, tenant)
+        elif split["mode"] == "partial":
+            # KA-12 T-4: часть карты назад; отказ Stripe → письмо владельцу (внутри).
+            result = refunds.refund_cancel_fee(
+                "ticket", ticket, retained_cents=split["retained_cents"], tenant=tenant
+            )
+            if result not in (refunds.RefundResult.REFUNDED, refunds.RefundResult.NONE):
+                messages.warning(
+                    request,
+                    _("Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."),
+                )
         messages.success(request, _("Your ticket has been cancelled."))
         return redirect(reverse("storefront-ticket-cancel", args=[token]))
 
     return render(
         request,
         "storefront/event_cancel.html",
-        {"ticket": ticket, "event": ticket.event, "state": state, "token": token},
+        {
+            "ticket": ticket,
+            "event": ticket.event,
+            "state": state,
+            "token": token,
+            "split": services.cancel_fee_split(ticket, state),
+        },
     )

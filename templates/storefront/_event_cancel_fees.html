@@ -1,0 +1,4 @@
+{% load i18n %}{% if event.cancel_fee_lines %}<ul class="text-sm text-gray-600 space-y-0.5" data-cancel-fees>
+  <li class="font-medium text-gray-700">{% trans "Stornogebühren" %}</li>
+  {% for s in event.cancel_fee_lines %}<li>{% if s.days %}{% blocktrans with d=s.days p=s.percent %}ab {{ d }} Tagen vor Beginn: {{ p }} %{% endblocktrans %}{% else %}{% blocktrans with p=s.percent %}ab Beginn: {{ p }} %{% endblocktrans %}{% endif %}</li>{% endfor %}
+</ul>{% endif %}

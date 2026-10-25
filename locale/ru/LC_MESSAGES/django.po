@@ -30449,3 +30449,28 @@ msgstr "Решаете вы: дата состоится всё равно, ил
 
 msgid "Zur Veranstaltung im Dashboard"
 msgstr "К мероприятию в кабинете"
+
+#, python-format
+msgid "%(amount)s € werden erstattet."
+msgstr "%(amount)s € будут возвращены."
+
+#, python-format
+msgid "Stornogebühr %(p)s %%."
+msgstr "Плата за отмену %(p)s %%."
+
+msgid "Stornogebühren"
+msgstr "Плата за отмену"
+
+msgid "Stornogebühren (Tage vor Beginn | Prozent, eine Stufe pro Zeile; leer = kostenlose Stornierung bis zur Frist oben)"
+msgstr "Плата за отмену (дней до начала | процент, одна ступень на строку; пусто = бесплатная отмена до срока выше)"
+
+#, python-format
+msgid "ab %(d)s Tagen vor Beginn: %(p)s %%"
+msgstr "за %(d)s дн. до начала и позже: %(p)s %%"
+
+#, python-format
+msgid "ab Beginn: %(p)s %%"
+msgstr "с начала: %(p)s %%"
+
+msgid "Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."
+msgstr "Возврат не удалось выполнить автоматически — мы свяжемся с вами."

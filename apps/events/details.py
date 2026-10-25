@@ -7,6 +7,8 @@
 (построчный ввод «A | B»).
 """
 
+import re
+
 _MAX_ITEMS = 30
 _SEP = "|"
 
@@ -210,3 +212,49 @@ def list_to_text(value) -> str:
 def records_to_text(value, keys) -> str:
     rows = _records(value, keys)
     return "\n".join(f" {_SEP} ".join(r[k] for k in keys) for r in rows)
+
+
+# --- KA-12 T-4: шкала Stornogebühr («ab N Tagen vor Beginn: P %») ---------------
+_FEE_STEPS_MAX = 6
+_FEE_DAYS_MAX = 365
+
+
+def normalize_fee_steps(raw) -> list[dict]:
+    """Строки «Tage | %» (или уже нормализованный список) → [{days, percent}],
+    по убыванию дней, без дублей дня. Мусор отбрасывается; пусто = шкалы нет
+    (прежнее поведение `free_cancel_days`, решение О-2)."""
+    items = raw if isinstance(raw, list) else _lines(raw)
+    by_day = {}
+    for item in items:
+        if isinstance(item, dict):
+            days, percent = item.get("days"), item.get("percent")
+        else:
+            parts = re.split(r"[|=:;]", str(item))
+            if len(parts) < 2:
+                continue
+            days, percent = parts[0], parts[1]
+        try:
+            days = int(str(days).strip())
+            percent = int(str(percent).replace("%", "").strip())
+        except (TypeError, ValueError):
+            continue
+        if not (0 <= days <= _FEE_DAYS_MAX and 0 <= percent <= 100):
+            continue
+        by_day.setdefault(days, percent)
+    steps = [{"days": d, "percent": by_day[d]} for d in sorted(by_day, reverse=True)]
+    return steps[:_FEE_STEPS_MAX]
+
+
+def fee_steps_to_text(raw) -> str:
+    return "\n".join(f"{s['days']} {_SEP} {s['percent']}" for s in normalize_fee_steps(raw))
+
+
+def fee_percent(steps, days_left: int) -> int:
+    """Процент удержания при отмене за `days_left` полных дней до начала: ступень
+    с наименьшим порогом `days`, который ≥ days_left; раньше всех ступеней — 0 %."""
+    percent = 0
+    for step in sorted(normalize_fee_steps(steps), key=lambda s: s["days"]):
+        if days_left <= step["days"]:
+            percent = step["percent"]
+            break
+    return percent

@@ -21,9 +21,11 @@
       <p class="mt-4 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "This ticket can no longer be cancelled online. Please contact us." %}</p>
     {% else %}
       <div class="mt-4 text-sm rounded-lg px-3 py-2 {% if state.free %}bg-emerald-50 text-emerald-800{% else %}bg-amber-50 text-amber-800{% endif %}">
-        {% if state.free %}{% trans "Free cancellation — no charge." %}{% if ticket.payment_state == 'paid' or ticket.payment_state == 'deposit' %} {% trans "Your online payment will be refunded." %}{% endif %}
+        {% if split.mode == 'partial' %}{% blocktrans with p=split.percent %}Stornogebühr {{ p }} %.{% endblocktrans %} {% blocktrans with amount=split.refund_eur|floatformat:2 %}{{ amount }} € werden erstattet.{% endblocktrans %}
+        {% elif state.free or split.mode == 'free' %}{% trans "Free cancellation — no charge." %}{% if ticket.payment_state == 'paid' or ticket.payment_state == 'deposit' %} {% trans "Your online payment will be refunded." %}{% endif %}
         {% else %}{% trans "This ticket is non-refundable — cancelling will not refund any payment." %}{% endif %}
       </div>
+      <div class="mt-3">{% include "storefront/_event_cancel_fees.html" %}</div>
       <form method="post" class="mt-5">
         {% csrf_token %}
         <button type="submit" class="bg-red-600 text-white rounded-lg px-5 py-2.5 font-medium hover:bg-red-700">{% trans "Cancel ticket" %}</button>

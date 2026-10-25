@@ -30174,3 +30174,28 @@ msgstr "You decide: the date takes place anyway, or you cancel it in the dashboa
 
 msgid "Zur Veranstaltung im Dashboard"
 msgstr "Go to the event in the dashboard"
+
+#, python-format
+msgid "%(amount)s € werden erstattet."
+msgstr "%(amount)s € will be refunded."
+
+#, python-format
+msgid "Stornogebühr %(p)s %%."
+msgstr "Cancellation fee %(p)s %%."
+
+msgid "Stornogebühren"
+msgstr "Cancellation fees"
+
+msgid "Stornogebühren (Tage vor Beginn | Prozent, eine Stufe pro Zeile; leer = kostenlose Stornierung bis zur Frist oben)"
+msgstr "Cancellation fees (days before start | percent, one step per line; empty = free cancellation until the deadline above)"
+
+#, python-format
+msgid "ab %(d)s Tagen vor Beginn: %(p)s %%"
+msgstr "from %(d)s days before start: %(p)s %%"
+
+#, python-format
+msgid "ab Beginn: %(p)s %%"
+msgstr "from the start: %(p)s %%"
+
+msgid "Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."
+msgstr "The refund could not be processed automatically — we will get in touch."

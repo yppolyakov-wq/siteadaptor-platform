@@ -30318,3 +30318,28 @@ msgstr "Karar sizin: etkinlik yine de gerçekleşir ya da panelden iptal edersin
 
 msgid "Zur Veranstaltung im Dashboard"
 msgstr "Paneldeki etkinliğe git"
+
+#, python-format
+msgid "%(amount)s € werden erstattet."
+msgstr "%(amount)s € iade edilecek."
+
+#, python-format
+msgid "Stornogebühr %(p)s %%."
+msgstr "İptal ücreti %%%(p)s."
+
+msgid "Stornogebühren"
+msgstr "İptal ücretleri"
+
+msgid "Stornogebühren (Tage vor Beginn | Prozent, eine Stufe pro Zeile; leer = kostenlose Stornierung bis zur Frist oben)"
+msgstr "İptal ücretleri (başlangıçtan önceki gün | yüzde, her satıra bir kademe; boş = yukarıdaki süreye kadar ücretsiz iptal)"
+
+#, python-format
+msgid "ab %(d)s Tagen vor Beginn: %(p)s %%"
+msgstr "başlangıçtan %(d)s gün önce: %%%(p)s"
+
+#, python-format
+msgid "ab Beginn: %(p)s %%"
+msgstr "başlangıçtan itibaren: %%%(p)s"
+
+msgid "Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."
+msgstr "İade otomatik olarak yapılamadı — sizinle iletişime geçeceğiz."

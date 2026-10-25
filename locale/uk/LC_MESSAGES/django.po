@@ -30433,3 +30433,28 @@ msgstr "Вирішуєте ви: дата відбудеться все одно
 
 msgid "Zur Veranstaltung im Dashboard"
 msgstr "До заходу в кабінеті"
+
+#, python-format
+msgid "%(amount)s € werden erstattet."
+msgstr "%(amount)s € буде повернуто."
+
+#, python-format
+msgid "Stornogebühr %(p)s %%."
+msgstr "Плата за скасування %(p)s %%."
+
+msgid "Stornogebühren"
+msgstr "Плата за скасування"
+
+msgid "Stornogebühren (Tage vor Beginn | Prozent, eine Stufe pro Zeile; leer = kostenlose Stornierung bis zur Frist oben)"
+msgstr "Плата за скасування (днів до початку | відсоток, один щабель на рядок; порожньо = безкоштовне скасування до терміну вище)"
+
+#, python-format
+msgid "ab %(d)s Tagen vor Beginn: %(p)s %%"
+msgstr "за %(d)s дн. до початку й пізніше: %(p)s %%"
+
+#, python-format
+msgid "ab Beginn: %(p)s %%"
+msgstr "з початку: %(p)s %%"
+
+msgid "Die Erstattung konnte nicht automatisch erfolgen — wir melden uns."
+msgstr "Повернення не вдалося виконати автоматично — ми зв'яжемося з вами."

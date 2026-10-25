@@ -29,6 +29,7 @@
       {% else %}
         {% if event.seats_left %}<p class="text-sm text-amber-700">{% blocktrans with n=event.seats_left %}Only {{ n }} spots left{% endblocktrans %}</p>{% endif %}
         {% if event.min_participants %}<p class="text-sm text-gray-600">{% blocktrans with n=event.min_participants %}Findet ab {{ n }} Teilnehmenden statt.{% endblocktrans %}</p>{% endif %}
+        {% include "storefront/_event_cancel_fees.html" %}
         <a href="#buchen" class="block text-center bg-indigo-600 text-white rounded-lg px-5 py-3 font-medium hover:bg-indigo-700">{% trans "Reserve a spot" %}</a>
       {% endif %}
       {% if storefront_inbox_enabled %}
