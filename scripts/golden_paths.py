@@ -9,6 +9,8 @@
         самовывоз, имя/почта → заказ /bestellung/<code>/ → `Order` в БД.
   GP-3  Termine (демо `friseur`, KA-12 E11.1): /termin/ → услуга → свободное время
         (при пустом дне — «ближайший свободный») → форма → /t/<code>/ → `Booking` в БД.
+  GP-4  Zimmer (демо `hotel`, KA-12 Z-0): /unterkunft/ → номер → первый свободный
+        диапазон (сдвиг по неделям) → форма → /s/<code>/ → `StayBooking` в БД.
 
 Плюс общие проверки на каждой странице: нет JS-ошибок, нет горизонтального
 скролла, ответ 2xx.
@@ -30,6 +32,7 @@ import re
 import subprocess
 import sys
 import uuid
+from datetime import date, timedelta
 
 from playwright.sync_api import sync_playwright
 
@@ -229,6 +232,63 @@ def gp3_termine(run, ctx, port):
         run.check(_db_has("booking.Booking", m.group(1), "friseur"), "запись в БД")
 
 
+def gp4_zimmer(run, ctx, port):
+    """KA-12 Z-0: номер → свободные даты → форма → /s/<code>/ → бронь в БД."""
+    print("GP-4 Zimmer (hotel)")
+    page = ctx.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    host = f"http://hotel.{BASE}:{port}"
+    resp = page.goto(f"{host}/unterkunft/")
+    run.check(resp and resp.ok, "/unterkunft/ открывается")
+    _page_health(run, page, errors, "/unterkunft/")
+    hrefs = page.locator("a[href*='/unterkunft/']").evaluate_all(
+        "els => els.map(e => e.getAttribute('href'))"
+    )
+    pk = next(
+        (m.group(1) for h in hrefs if (m := re.search(r"/unterkunft/([0-9a-f-]{36})/", h))), None
+    )
+    run.check(bool(pk), "на /unterkunft/ есть номер")
+    if not pk:
+        return
+    form = page.locator("form#buybox-form")
+    start = date.today() + timedelta(days=21)
+    for week in range(8):  # свободный диапазон: сдвиг на неделю, пока номер не свободен
+        von = start + timedelta(days=7 * week)
+        bis = von + timedelta(days=2)
+        page.goto(f"{host}/unterkunft/{pk}/?von={von.isoformat()}&bis={bis.isoformat()}&erw=2")
+        form = page.locator("form#buybox-form")
+        if form.count():
+            break
+    _page_health(run, page, errors, "страница номера с датами")
+    run.check(form.count() == 1, "для дат появилась форма брони")
+    if not form.count():
+        return
+    opener = page.locator("[data-modal-open='buybox-modal']")
+    if opener.count() and opener.first.is_visible():
+        opener.first.click()
+        page.wait_for_timeout(300)
+    tag = uuid.uuid4().hex[:6]
+    page.locator("input[name='name']").locator("visible=true").first.fill(f"GP Gast {tag}")
+    page.locator("input[name='email']").locator("visible=true").first.fill(f"gp-{tag}@example.com")
+    for box in page.locator("input[type='checkbox'][required]").all():
+        if box.is_visible():
+            box.check()
+    page.locator(
+        "button[type='submit'][form='buybox-form'], form#buybox-form button[type='submit']"
+    ).locator("visible=true").last.click()
+    page.wait_for_load_state()
+    m = re.search(r"/s/([^/?]+)/", page.url)
+    if not m:
+        err = page.locator(".errorlist, [role='alert'], .text-red-600").all_inner_texts()
+        print("    ошибка формы:", " | ".join(t.strip() for t in err if t.strip())[:200])
+    run.check(bool(m), f"подтверждение /s/<code>/ ({page.url})")
+    _page_health(run, page, errors, "подтверждение брони")
+    if m:
+        run.check(page.get_by_text(m.group(1)).count() > 0, "код показан гостю")
+        run.check(_db_has("stays.StayBooking", m.group(1), "hotel"), "бронь в БД")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8000)
@@ -243,6 +303,7 @@ def main():
         gp1_aktionen(run, ctx, args.port)
         gp2_click_collect(run, ctx, args.port)
         gp3_termine(run, ctx, args.port)
+        gp4_zimmer(run, ctx, args.port)
         browser.close()
     print(f"\n{run.ok} ok, {len(run.fail)} fail")
     for f in run.fail:
