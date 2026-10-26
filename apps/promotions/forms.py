@@ -207,6 +207,19 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 "wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
             ),
         )
+        # KA-12 PR-5: кому действует онлайн-цена акции (metadata["customer_rule"]).
+        from . import eligibility
+
+        self.fields["customer_rule"] = forms.ChoiceField(
+            label=_("Für wen gilt der Online-Preis?"),
+            required=False,
+            choices=eligibility.CHOICES,
+            initial=eligibility.rule_of(self.instance),
+            help_text=_(
+                "Geprüft an der Kasse über E-Mail oder Telefon. Wer nicht passt, bekommt einen "
+                "Hinweis statt des Aktionspreises."
+            ),
+        )
         # KA-12 E6.6 (Р-3): код купона — только письмом (проверка владения адресом).
         meta0 = self.instance.metadata if isinstance(self.instance.metadata, dict) else {}
         self.fields["coupon_by_email"] = forms.BooleanField(
@@ -532,6 +545,14 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 meta["response"] = value
             else:
                 meta.pop("response", None)
+            promo.metadata = meta
+        if "customer_rule" in self.data:  # presence-guard (W0)
+            meta = dict(promo.metadata) if isinstance(promo.metadata, dict) else {}
+            rule = self.cleaned_data.get("customer_rule") or ""
+            if rule:
+                meta["customer_rule"] = rule
+            else:
+                meta.pop("customer_rule", None)
             promo.metadata = meta
         # KA-12 E6.6: сентинел `coupon_by_email_present` — снятый чекбокс браузер не шлёт.
         if "coupon_by_email_present" in self.data:

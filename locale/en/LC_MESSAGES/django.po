@@ -31094,3 +31094,23 @@ msgstr "For a category or the whole shop, please enter a discount in percent or 
 
 msgid "Rabatt in € pro Stück"
 msgstr "Discount in € per item"
+
+#, python-format
+msgid "Die Aktion „%(t)s“ gilt nur einmal pro Kunde."
+msgstr "The promotion “%(t)s” applies only once per customer."
+
+#, python-format
+msgid "Die Aktion „%(t)s“ gilt nur für Neukunden."
+msgstr "The promotion “%(t)s” applies only to new customers."
+
+msgid "Einmal pro Kunde"
+msgstr "Once per customer"
+
+msgid "Für wen gilt der Online-Preis?"
+msgstr "Who gets the online price?"
+
+msgid "Geprüft an der Kasse über E-Mail oder Telefon. Wer nicht passt, bekommt einen Hinweis statt des Aktionspreises."
+msgstr "Checked at checkout by e-mail or phone. Anyone who doesn't qualify sees a note instead of the promotional price."
+
+msgid "Nur für Neukunden (erste Bestellung)"
+msgstr "New customers only (first order)"

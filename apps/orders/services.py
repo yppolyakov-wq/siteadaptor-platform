@@ -342,6 +342,13 @@ def create_order(
         # Обычная акция (новая цена) сильнее условной — не суммируем. Лимит кампании —
         # скидочными штуками; склад — по сумме подстрок (одна строка товара на подстроку).
         norm, line_promos = _apply_quantity_deals(norm, line_promos, claim_totals)
+        # KA-12 PR-5: «nur Neukunden» / «einmal pro Kunde» — до списания лимита.
+        if source_channel not in ("quote", "offer"):
+            from apps.promotions import eligibility
+
+            eligibility.check(
+                [promo for promo, _qty in claim_totals.values()], email=email, phone=phone
+            )
         for promo, total_qty in claim_totals.values():
             claim_units(promo, total_qty)
     # R3: атомарное списание; OutOfStock → откат, заказа нет. Custom-строки с

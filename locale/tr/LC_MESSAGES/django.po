@@ -31238,3 +31238,23 @@ msgstr "Kategori veya tüm mağaza için lütfen yüzde veya euro indirim girin.
 
 msgid "Rabatt in € pro Stück"
 msgstr "Adet başına € indirim"
+
+#, python-format
+msgid "Die Aktion „%(t)s“ gilt nur einmal pro Kunde."
+msgstr "„%(t)s“ kampanyası müşteri başına yalnızca bir kez geçerlidir."
+
+#, python-format
+msgid "Die Aktion „%(t)s“ gilt nur für Neukunden."
+msgstr "„%(t)s“ kampanyası yalnızca yeni müşteriler için geçerlidir."
+
+msgid "Einmal pro Kunde"
+msgstr "Müşteri başına bir kez"
+
+msgid "Für wen gilt der Online-Preis?"
+msgstr "Çevrimiçi fiyat kimler için geçerli?"
+
+msgid "Geprüft an der Kasse über E-Mail oder Telefon. Wer nicht passt, bekommt einen Hinweis statt des Aktionspreises."
+msgstr "Ödemede e-posta veya telefonla kontrol edilir. Uygun olmayanlar kampanya fiyatı yerine bir uyarı görür."
+
+msgid "Nur für Neukunden (erste Bestellung)"
+msgstr "Yalnızca yeni müşteriler (ilk sipariş)"

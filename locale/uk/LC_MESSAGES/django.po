@@ -31355,3 +31355,23 @@ msgstr "Для категорії або всього магазину вкаж�
 
 msgid "Rabatt in € pro Stück"
 msgstr "Знижка в € за штуку"
+
+#, python-format
+msgid "Die Aktion „%(t)s“ gilt nur einmal pro Kunde."
+msgstr "Акція «%(t)s» діє лише один раз на клієнта."
+
+#, python-format
+msgid "Die Aktion „%(t)s“ gilt nur für Neukunden."
+msgstr "Акція «%(t)s» діє лише для нових клієнтів."
+
+msgid "Einmal pro Kunde"
+msgstr "Один раз на клієнта"
+
+msgid "Für wen gilt der Online-Preis?"
+msgstr "Для кого онлайн-ціна?"
+
+msgid "Geprüft an der Kasse über E-Mail oder Telefon. Wer nicht passt, bekommt einen Hinweis statt des Aktionspreises."
+msgstr "Перевіряється під час оформлення за e-mail або телефоном. Хто не підходить, бачить пояснення замість акційної ціни."
+
+msgid "Nur für Neukunden (erste Bestellung)"
+msgstr "Лише новим клієнтам (перше замовлення)"
