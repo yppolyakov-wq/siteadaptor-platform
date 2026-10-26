@@ -30774,3 +30774,9 @@ msgstr "Gültig bis (Uhr)"
 
 msgid "Leer = jeden Tag. Wiederholte Aktionen überspringen die übrigen Tage."
 msgstr "Leer = jeden Tag. Wiederholte Aktionen überspringen die übrigen Tage."
+
+msgid "Das Zeitfenster ist leer."
+msgstr "Das Zeitfenster ist leer."
+
+msgid "Die Uhrzeit passt nicht zum Zeitraum der Aktion — der Preis würde nie gelten."
+msgstr "Die Uhrzeit passt nicht zum Zeitraum der Aktion — der Preis würde nie gelten."

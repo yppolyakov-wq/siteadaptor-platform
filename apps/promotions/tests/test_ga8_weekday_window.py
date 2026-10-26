@@ -23,13 +23,13 @@ def _at(day, hour):
 
 
 def _form_data(**extra):
-    now = timezone.now()
+    day = timezone.localdate() + timedelta(days=2)  # 10–16 Uhr: окно 11–15 внутри
     data = {
         "title_de": "Mittagstisch",
         "promo_type": "discount",
         "discount_percent": "10",
-        "starts_at": (now + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M"),
-        "ends_at": (now + timedelta(hours=5)).strftime("%Y-%m-%dT%H:%M"),
+        "starts_at": _at(day, 10).strftime("%Y-%m-%dT%H:%M"),
+        "ends_at": _at(day, 16).strftime("%Y-%m-%dT%H:%M"),
         "recurrence": "daily",
         "max_per_customer": "1",
         "reservation_ttl_hours": "4",
@@ -130,3 +130,20 @@ def test_heir_keeps_window_and_target():
     assert heir.service_id == service.pk
     assert heir.target_rules["weekdays"] == [0, 1, 2, 3, 4]
     assert timezone.localtime(heir.starts_at).weekday() == 0
+
+
+def test_empty_hour_window_is_rejected():
+    form = PromotionForm(_form_data(rule_hour_from="11", rule_hour_to="11"))
+    assert not form.is_valid() and "rule_hour_to" in form.errors
+
+
+def test_hour_window_outside_one_day_promotion_is_rejected():
+    day = timezone.localdate() + timedelta(days=3)
+    data = _form_data(
+        starts_at=_at(day, 9).strftime("%Y-%m-%dT%H:%M"),
+        ends_at=_at(day, 10).strftime("%Y-%m-%dT%H:%M"),
+        rule_hour_from="11",
+        rule_hour_to="15",
+    )
+    form = PromotionForm(data)
+    assert not form.is_valid() and "rule_hour_from" in form.errors

@@ -5,6 +5,8 @@ JSONField. Статус акции через форму не меняется �
 (кнопки переходов). starts_at/ends_at — datetime-local.
 """
 
+from datetime import timedelta
+
 from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -343,6 +345,7 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         if starts and ends and ends <= starts:
             self.add_error("ends_at", _("End must be after start."))
         self._clean_price_condition(cleaned)
+        self._clean_rule_window(cleaned, starts, ends)
         # SF-9: у услуги и номера цена акции видна в сетке слотов/расчёте брони — секрет
         # «сюрприза» не спрятать, поэтому сочетание запрещено (товар — только своя страница).
         if cleaned.get("discount_style") == "mystery" and (
@@ -353,6 +356,30 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 _("Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."),
             )
         return cleaned
+
+    def _clean_rule_window(self, cleaned, starts, ends):
+        """Ревью GA-8: окно часов не должно быть пустым и обязано пересекаться с
+        временем однодневной акции — иначе цена молча не действует никогда."""
+        lo, hi = cleaned.get("rule_hour_from"), cleaned.get("rule_hour_to")
+        if lo is None and hi is None:
+            return
+        if lo is not None and hi is not None and lo == hi:
+            self.add_error("rule_hour_to", _("Das Zeitfenster ist leer."))
+            return
+        if not (starts and ends) or ends - starts >= timedelta(days=1):
+            return
+        from .price_layer import rules_match
+
+        rules = {"hour_from": lo, "hour_to": hi}
+        probe = starts
+        while probe < ends:
+            if rules_match(rules, probe):
+                return
+            probe += timedelta(minutes=30)
+        self.add_error(
+            "rule_hour_from",
+            _("Die Uhrzeit passt nicht zum Zeitraum der Aktion — der Preis würde nie gelten."),
+        )
 
     def _clean_price_condition(self, cleaned):
         """В2: условие собирается и проверяется одной функцией с витриной."""

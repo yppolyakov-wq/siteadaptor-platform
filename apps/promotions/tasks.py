@@ -9,6 +9,7 @@ helper'ы (expire_due_reservations / roll_due_promotions), работающие 
 здесь даёт единое имя и совместимость с dedupe-механизмом.
 """
 
+import copy
 import logging
 from datetime import timedelta
 
@@ -176,7 +177,8 @@ def _next_window(starts, ends, recurrence, now, rules=None):
 
     KA-12 GA-8: ежедневный повтор пропускает дни вне `target_rules.weekdays`
     (Mittagstisch Mo–Fr не появляется в субботу) и закрытые дни бизнеса
-    (Betriebsferien). Не нашли за 14 дней или правило — мусор → прежний шаг."""
+    (Betriebsferien). Не нашли за 14 дней или правило — мусор → прежний шаг.
+    Недельный повтор дни не пропускает: его день недели задаёт сама дата акции."""
     delta = timedelta(days=1) if recurrence == Promotion.DAILY else timedelta(weeks=1)
     new_starts, new_ends = starts + delta, ends + delta
     # если beat молчал несколько циклов — перескакиваем к ближайшему будущему
@@ -221,7 +223,8 @@ def _spawn_recurrence(promo, now):
         starts_at=new_starts,
         ends_at=new_ends,
         recurrence=promo.recurrence,
-        **{f: getattr(promo, f) for f in _RECUR_CLONE_FIELDS},
+        # ревью GA-8: JSON-поля — копией, наследник не делит словари с родителем
+        **{f: copy.deepcopy(getattr(promo, f)) for f in _RECUR_CLONE_FIELDS},
     )
     heir.save()
     PromotionSM().apply(heir, "scheduled")

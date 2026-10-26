@@ -30682,3 +30682,9 @@ msgstr "Valid until (hour)"
 
 msgid "Leer = jeden Tag. Wiederholte Aktionen überspringen die übrigen Tage."
 msgstr "Empty = every day. Repeating promotions skip the other days."
+
+msgid "Das Zeitfenster ist leer."
+msgstr "The time window is empty."
+
+msgid "Die Uhrzeit passt nicht zum Zeitraum der Aktion — der Preis würde nie gelten."
+msgstr "The time does not fit the promotion period — the price would never apply."

@@ -30941,3 +30941,9 @@ msgstr "Діє до (година)"
 
 msgid "Leer = jeden Tag. Wiederholte Aktionen überspringen die übrigen Tage."
 msgstr "Порожньо — щодня. Повторювані акції пропускають інші дні."
+
+msgid "Das Zeitfenster ist leer."
+msgstr "Вікно часу порожнє."
+
+msgid "Die Uhrzeit passt nicht zum Zeitraum der Aktion — der Preis würde nie gelten."
+msgstr "Час не потрапляє в період акції — ціна не діятиме ніколи."

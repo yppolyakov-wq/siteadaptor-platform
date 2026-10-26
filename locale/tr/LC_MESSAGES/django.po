@@ -30826,3 +30826,9 @@ msgstr "Geçerlilik bitişi (saat)"
 
 msgid "Leer = jeden Tag. Wiederholte Aktionen überspringen die übrigen Tage."
 msgstr "Boş = her gün. Tekrarlanan kampanyalar diğer günleri atlar."
+
+msgid "Das Zeitfenster ist leer."
+msgstr "Zaman aralığı boş."
+
+msgid "Die Uhrzeit passt nicht zum Zeitraum der Aktion — der Preis würde nie gelten."
+msgstr "Saat, kampanya süresine uymuyor — fiyat hiç geçerli olmaz."
