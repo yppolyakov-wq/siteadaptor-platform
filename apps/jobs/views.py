@@ -306,6 +306,12 @@ def job_detail(request, pk):
             kind = request.POST.get("kind", "")
             if kind not in JobPhoto.MASTER_KINDS:
                 kind = JobPhoto.KIND_CUSTOMER
+            if kind in ("after", "handover") and services.handover_confirmed(job):
+                messages.error(
+                    request,
+                    _("Die Abnahme ist bestätigt — Fotos dazu können nicht mehr ergänzt werden."),
+                )
+                return redirect("jobs:detail", pk=job.pk)
             limit = (
                 services.MAX_PHOTOS
                 if kind == JobPhoto.KIND_CUSTOMER
@@ -564,6 +570,7 @@ def _save_protocol(request, job):
             mileage_km=mileage_km,
             signed_name=request.POST.get("signed_name", ""),
             user=request.user,
+            release=bool(request.POST.get("release")),
         )
     except services.ProtocolLocked:
         messages.error(

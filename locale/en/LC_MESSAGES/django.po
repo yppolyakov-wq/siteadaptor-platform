@@ -30358,9 +30358,6 @@ msgstr "Confirm acceptance"
 msgid "Abnahmeprotokoll"
 msgstr "Acceptance report"
 
-msgid "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
-msgstr "Acceptance reports and photos of the completed work are kept until the end of the warranty period (§ 634a BGB); names and remarks are removed."
-
 msgid "Annahme"
 msgstr "Intake"
 
@@ -30451,3 +30448,12 @@ msgstr "%(name)s confirmed the acceptance report for %(code)s online."
 #, python-format
 msgid "Abnahme %(code)s bestätigt"
 msgstr "Acceptance %(code)s confirmed"
+
+msgid "Die Abnahme ist bestätigt — Fotos dazu können nicht mehr ergänzt werden."
+msgstr "The acceptance is confirmed — photos for it can no longer be added."
+
+msgid "Dem Kunden zur Bestätigung freigeben"
+msgstr "Release to the customer for confirmation"
+
+msgid "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+msgstr "Acceptance reports (checkpoints and defects) and photos of the completed work are kept until the end of the warranty period (§ 634a BGB); names and remarks are removed."

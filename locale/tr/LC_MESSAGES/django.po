@@ -30502,9 +30502,6 @@ msgstr "Teslimi onayla"
 msgid "Abnahmeprotokoll"
 msgstr "Teslim tutanağı"
 
-msgid "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
-msgstr "Teslim tutanakları ve yapılan işin fotoğrafları garanti süresinin sonuna kadar saklanır (§ 634a BGB); isimler ve notlar silinir."
-
 msgid "Annahme"
 msgstr "Teslim alma"
 
@@ -30595,3 +30592,12 @@ msgstr "%(name)s, %(code)s için teslim tutanağını çevrimiçi onayladı."
 #, python-format
 msgid "Abnahme %(code)s bestätigt"
 msgstr "Teslim %(code)s onaylandı"
+
+msgid "Die Abnahme ist bestätigt — Fotos dazu können nicht mehr ergänzt werden."
+msgstr "Teslim onaylandı — buna fotoğraf artık eklenemez."
+
+msgid "Dem Kunden zur Bestätigung freigeben"
+msgstr "Müşteriye onay için aç"
+
+msgid "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+msgstr "Teslim tutanakları (kontrol noktaları ve kusurlar) ve yapılan işin fotoğrafları garanti süresinin sonuna kadar saklanır (§ 634a BGB); isimler ve notlar silinir."

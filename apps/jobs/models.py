@@ -363,6 +363,8 @@ class JobProtocol(TimestampedModel):
     mileage_km = models.PositiveIntegerField(null=True, blank=True)
     signed_name = models.CharField(max_length=120, blank=True)
     signed_at = models.DateTimeField(null=True, blank=True)
+    #: Владелец открыл акт клиенту для онлайн-подтверждения (до этого — черновик).
+    released_at = models.DateTimeField(null=True, blank=True)
     confirmed_online_at = models.DateTimeField(null=True, blank=True)
     confirmed_name = models.CharField(max_length=120, blank=True)
     created_by = models.ForeignKey(

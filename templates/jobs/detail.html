@@ -125,8 +125,14 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
               <textarea name="notes" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900">{{ pf.protocol.notes }}</textarea></label>
             <label class="block text-xs text-gray-500">{% trans "Unterschrift vor Ort (Name)" %}
               <input name="signed_name" maxlength="120" value="{{ pf.protocol.signed_name }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+            {% if pf.kind == "handover" %}
+              {% if pf.protocol.released_at %}
+                <p class="text-xs text-gray-500">{% trans "Der Kunde kann das Protokoll auf der Statusseite des Auftrags online bestätigen." %}</p>
+              {% else %}
+                <label class="flex items-center gap-2 text-xs text-gray-600"><input type="checkbox" name="release" value="1"> {% trans "Dem Kunden zur Bestätigung freigeben" %}</label>
+              {% endif %}
+            {% endif %}
             <button class="rounded-lg bg-indigo-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-            {% if pf.kind == "handover" and pf.protocol %}<p class="text-xs text-gray-500">{% trans "Der Kunde kann das Protokoll auf der Statusseite des Auftrags online bestätigen." %}</p>{% endif %}
           </form>
         {% endif %}
       </div>

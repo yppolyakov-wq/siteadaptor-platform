@@ -30617,9 +30617,6 @@ msgstr "Підтвердити приймання"
 msgid "Abnahmeprotokoll"
 msgstr "Акт здачі-приймання"
 
-msgid "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
-msgstr "Акти приймання та фото виконаної роботи зберігаються до кінця гарантійного строку (§ 634a BGB); імена та зауваження видаляються."
-
 msgid "Annahme"
 msgstr "Приймання"
 
@@ -30710,3 +30707,12 @@ msgstr "%(name)s підтвердив(ла) онлайн акт прийманн
 #, python-format
 msgid "Abnahme %(code)s bestätigt"
 msgstr "Приймання %(code)s підтверджено"
+
+msgid "Die Abnahme ist bestätigt — Fotos dazu können nicht mehr ergänzt werden."
+msgstr "Приймання підтверджено — фото до нього більше додати не можна."
+
+msgid "Dem Kunden zur Bestätigung freigeben"
+msgstr "Відкрити клієнту для підтвердження"
+
+msgid "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+msgstr "Акти приймання (пункти перевірки та недоліки) і фото виконаної роботи зберігаються до кінця гарантійного строку (§ 634a BGB); імена та зауваження видаляються."

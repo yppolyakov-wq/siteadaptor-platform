@@ -224,8 +224,11 @@ def auftrag_status(request, token):
     Ссылка приходит клиенту в письме «Auftrag fertig». Гейт модулем jobs."""
     _require_jobs_active(request)
     job = get_object_or_404(Job.objects.select_related("customer"), public_token=token)
+    terminal = job.status in (Job.STATUS_DECLINED, Job.STATUS_CANCELLED)
     if request.method == "POST" and request.POST.get("action") == "confirm_protocol":
         # KA-12 A-5: клиент подтверждает Abnahme — один раз, статус не меняется (О-3).
+        if terminal:
+            raise Http404
         if ratelimit.hit("abnahme", ratelimit.client_ip(request), limit=10, window=3600):
             messages.error(request, _("Zu viele Versuche. Bitte später erneut versuchen."))
         elif not request.POST.get("checked") or not request.POST.get("name", "").strip():
@@ -238,7 +241,6 @@ def auftrag_status(request, token):
             messages.info(request, _("Die Abnahme wurde bereits bestätigt."))
         return redirect("storefront-auftrag", token=job.public_token)
     labels = dict(Job.STATUSES)
-    terminal = job.status in (Job.STATUS_DECLINED, Job.STATUS_CANCELLED)
     try:
         cur = _STATUS_FLOW.index(job.status)
     except ValueError:
@@ -256,8 +258,11 @@ def auftrag_status(request, token):
             "terminal": terminal,
             "status_label": labels.get(job.status, job.status),
             # KA-12 A-5: акт сдачи-приёмки и фото «Nachher» — клиенту.
-            "protocol": job.protocols.filter(kind="handover").first(),
-            "after_photos": list(job.photos.filter(kind="after")),
+            # Черновик акта клиенту не виден — только открытый владельцем («freigeben»).
+            "protocol": None
+            if terminal
+            else job.protocols.filter(kind="handover", released_at__isnull=False).first(),
+            "after_photos": [] if terminal else list(job.photos.filter(kind="after")),
         },
     )
 

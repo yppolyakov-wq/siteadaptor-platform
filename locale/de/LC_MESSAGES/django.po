@@ -30450,9 +30450,6 @@ msgstr "Abnahme bestätigen"
 msgid "Abnahmeprotokoll"
 msgstr "Abnahmeprotokoll"
 
-msgid "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
-msgstr "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
-
 msgid "Annahme"
 msgstr "Annahme"
 
@@ -30543,3 +30540,12 @@ msgstr "%(name)s hat das Abnahmeprotokoll zu %(code)s online bestätigt."
 #, python-format
 msgid "Abnahme %(code)s bestätigt"
 msgstr "Abnahme %(code)s bestätigt"
+
+msgid "Die Abnahme ist bestätigt — Fotos dazu können nicht mehr ergänzt werden."
+msgstr "Die Abnahme ist bestätigt — Fotos dazu können nicht mehr ergänzt werden."
+
+msgid "Dem Kunden zur Bestätigung freigeben"
+msgstr "Dem Kunden zur Bestätigung freigeben"
+
+msgid "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+msgstr "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."

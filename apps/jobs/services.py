@@ -540,7 +540,9 @@ def quote_to_invoice(job, *, small_business=False):
 # --- KA-12 A-5: акт приёмки / сдачи-приёмки ------------------------------------
 
 MAX_PROTOCOL_ITEMS = 40
-_DEFECT_MARKS = ("✗", "x ", "X ", "- [ ]")
+# Только явные метки: «x …»/«X …» — частое начало обычного пункта («x 2 Steckdosen»),
+# иначе пункт переворачивался бы в Mangel при каждом сохранении (ревью A-5).
+_DEFECT_MARKS = ("✗", "- [ ]")
 
 
 class ProtocolLocked(Exception):
@@ -567,7 +569,16 @@ def parse_protocol_items(text: str) -> list[dict]:
 
 
 def save_protocol(
-    job, kind, *, date=None, notes="", items=(), mileage_km=None, signed_name="", user=None
+    job,
+    kind,
+    *,
+    date=None,
+    notes="",
+    items=(),
+    mileage_km=None,
+    signed_name="",
+    user=None,
+    release=False,
 ):
     """Создать/обновить акт вида `kind`. Подтверждённый клиентом — не правится."""
     from django.db import transaction
@@ -592,6 +603,8 @@ def save_protocol(
         if name != proto.signed_name:
             proto.signed_name = name
             proto.signed_at = timezone.now() if name else None
+        if release and kind == JobProtocol.KIND_HANDOVER and not proto.released_at:
+            proto.released_at = timezone.now()
         proto.save()
     return proto
 
@@ -615,7 +628,7 @@ def confirm_protocol(job, name: str) -> bool:
             .filter(job=job, kind=JobProtocol.KIND_HANDOVER)
             .first()
         )
-        if proto is None or proto.confirmed_online_at:
+        if proto is None or not proto.released_at or proto.confirmed_online_at:
             return False
         proto.confirmed_online_at = timezone.now()
         proto.confirmed_name = name
@@ -624,9 +637,20 @@ def confirm_protocol(job, name: str) -> bool:
             action="job.protocol_confirmed",
             resource_type="jobs.JobProtocol",
             resource_id=proto.pk,
-            context={"job": str(job.pk)},
+            # Снимок пунктов на момент Abnahme. Имя/IP в журнал НЕ пишем: журнал не
+            # стирается DSGVO-удалением, а имя хранится в акте и стирается вместе с ним.
+            context={"job": str(job.pk), "items": proto.items},
         )
         from .notifications import enqueue_job_email
 
         transaction.on_commit(lambda: enqueue_job_email(job, "protocol_confirmed", protocol=proto))
     return True
+
+
+def handover_confirmed(job) -> bool:
+    """Клиент подтвердил Abnahme — доказательства (фото после/сдачи) заморожены."""
+    from .models import JobProtocol
+
+    return JobProtocol.objects.filter(
+        job=job, kind=JobProtocol.KIND_HANDOVER, confirmed_online_at__isnull=False
+    ).exists()

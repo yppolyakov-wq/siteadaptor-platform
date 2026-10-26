@@ -84,8 +84,9 @@ KEPT_REASONS = {
     "waiver": _("Unterschriebene Haftungsverzichte bleiben bis zum Ende der Verjährungsfrist."),
     # KA-12 A-5 ⚖️ (юр-вычитка): Abnahme запускает срок Gewährleistung (§ 634a BGB).
     "abnahme": _(
-        "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der "
-        "Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+        "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben "
+        "bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen "
+        "werden entfernt."
     ),
 }
 

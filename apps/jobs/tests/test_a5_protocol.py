@@ -66,6 +66,7 @@ def _protocol(job, **extra):
         "notes": "Rest am Freitag",
         "mileage_km": "",
         "signed_name": "",
+        "release": "1",
     }
     data.update(extra)
     return views.job_detail(_cab("post", data), pk=job.pk)
@@ -209,3 +210,44 @@ def test_dsgvo_erases_customer_photos_and_names_keeps_protocol():
     proto = JobProtocol.objects.get(job=job)
     assert proto.signed_name == "" and proto.confirmed_name == "" and proto.notes == ""
     assert proto.items  # пункты акта остаются (доказательство Abnahme)
+
+
+def test_draft_protocol_is_hidden_and_not_confirmable():
+    job = _job()
+    _protocol(job, release="")
+    body = public_views.auftrag_status(_pub(), token=job.public_token).content.decode()
+    assert "Silikon Ecke links fehlt" not in body
+    data = {"action": "confirm_protocol", "name": "Anna", "checked": "1"}
+    public_views.auftrag_status(_pub("post", data), token=job.public_token)
+    assert JobProtocol.objects.get(job=job).confirmed_online_at is None
+
+
+def test_plain_x_item_is_not_a_defect_and_round_trips():
+    items = services.parse_protocol_items("x 2 Steckdosen geprüft\n✗ Kratzer")
+    assert items == [
+        {"label": "x 2 Steckdosen geprüft", "ok": True},
+        {"label": "Kratzer", "ok": False},
+    ]
+
+
+def test_after_photos_frozen_after_confirmation():
+    job = _job()
+    _protocol(job)
+    data = {"action": "confirm_protocol", "name": "Anna", "checked": "1"}
+    public_views.auftrag_status(_pub("post", data), token=job.public_token)
+    views.job_detail(
+        _cab("post", {"action": "photos", "kind": "after", "photos": [_png()]}), pk=job.pk
+    )
+    assert not job.photos.filter(kind="after").exists()
+
+
+def test_cancelled_job_cannot_confirm():
+    job = _job()
+    _protocol(job)
+    job.status = "cancelled"
+    job.save(update_fields=["status"])
+    with pytest.raises(Http404):
+        public_views.auftrag_status(
+            _pub("post", {"action": "confirm_protocol", "name": "A", "checked": "1"}),
+            token=job.public_token,
+        )
