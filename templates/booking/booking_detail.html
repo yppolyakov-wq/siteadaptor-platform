@@ -39,7 +39,7 @@
     </div>
     <div>
       <p class="text-xs text-gray-400">{% trans "Personen" %}</p>
-      <p class="font-medium">{{ b.party_size|default:1 }}</p>
+      <p class="font-medium">{{ b.party_size|default:1 }}{% if b.is_large_party %} <span class="text-xs text-amber-700 font-medium" data-large-party>👥 {% trans "Gruppenanfrage" %}</span>{% endif %}</p>
     </div>
     {% if b.source_channel %}
       <div>

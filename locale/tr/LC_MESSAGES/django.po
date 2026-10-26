@@ -30792,3 +30792,25 @@ msgstr "Panelde"
 
 msgid "Hinweis: Bei Tischen mit Anzahlung oder aktiver Regel zu Nichterscheinen wird erst nach der Zahlung bestätigt."
 msgstr "Not: Kaporalı masalarda veya gelmeme kuralı etkinse onay ancak ödemeden sonra yapılır."
+
+#, python-format
+msgid "%(n)s Pers."
+msgstr "%(n)s kişi"
+
+#, python-format
+msgid "%(n)s Reservierungen"
+msgstr "%(n)s rezervasyon"
+
+msgid "Gruppenanfrage"
+msgstr "Grup talebi"
+
+msgid "Gäste heute"
+msgstr "Bugünkü misafirler"
+
+#, python-format
+msgid "nächste %(t)s"
+msgstr "sonraki %(t)s"
+
+#, python-format
+msgid "offene Gruppenanfragen: %(n)s"
+msgstr "açık grup talepleri: %(n)s"

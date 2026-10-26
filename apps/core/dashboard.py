@@ -30,6 +30,7 @@ WIDGET_PERMS = {
     "finance_off": "funktionen.edit",
     "ready": "verkaeufe.view",
     "stays_today": "verkaeufe.view",
+    "guests_today": "verkaeufe.view",
     "puls": "marketing.view",
     "reviews": "marketing.view",
 }
@@ -195,6 +196,61 @@ def home_widgets(tenant) -> list[dict]:
                 "sparkline": "",
             }
         )
+
+    # 👥 Gäste heute (KA-12 GA-2): зал ресторана/кафе — гости сегодняшних броней столов,
+    # в подсказке — число броней, ближайшее время и открытые Gruppenanfragen.
+    if tenant.is_module_active("booking"):
+
+        def _guests_today():
+            from django.db.models import Count, Min, Q, Sum
+            from django.utils import timezone
+
+            from apps.booking.models import Booking, Resource
+            from apps.core import status_registry
+
+            if not Resource.objects.filter(type=Resource.TYPE_TABLE, is_active=True).exists():
+                return None
+            now = timezone.now()
+            today = timezone.localdate()
+            agg = Booking.objects.filter(
+                start__date=today,
+                resource__type=Resource.TYPE_TABLE,
+                status__in=status_registry.active_statuses_for("booking", tenant),
+            ).aggregate(
+                guests=Sum("party_size"),
+                n=Count("pk"),
+                nxt=Min("start", filter=Q(start__gte=now)),
+            )
+            requests = Booking.objects.filter(status="pending", is_large_party=True).count()
+            return agg, requests
+
+        from django.utils import timezone as dj_tz
+
+        found = _safe(_guests_today, None)
+        if found is not None:
+            agg, requests = found
+            hint = _("%(n)s Reservierungen") % {"n": agg["n"] or 0}
+            if agg["nxt"]:
+                hint += " · " + _("nächste %(t)s") % {
+                    "t": dj_tz.localtime(agg["nxt"]).strftime("%H:%M")
+                }
+            if requests:
+                hint += " · " + _("offene Gruppenanfragen: %(n)s") % {"n": requests}
+            widgets.append(
+                {
+                    "key": "guests_today",
+                    "icon": "👥",
+                    "label": _("Gäste heute"),
+                    "value": str(agg["guests"] or 0),
+                    "hint": hint,
+                    # открытые Gruppenanfragen — список ожидающих броней, иначе календарь
+                    "url_name": "verkaeufe",
+                    "url_query": "?tab=booking&view=liste&status=pending"
+                    if requests
+                    else "?tab=booking&view=kalender",
+                    "sparkline": "",
+                }
+            )
 
     # 📣 Marketing-Puls (v1): Σ просмотров активных акций + погашения кампаний.
     if tenant.is_module_active("promotions"):

@@ -54,6 +54,7 @@ radius 16 с мягкой тенью; порядковый номер (SH-12) и
       <div class="min-w-0 flex-1">
         <a href="{{ tx.manage_url|default:'#' }}" class="text-sm font-medium truncate block hover:text-indigo-700">{{ tx.title }}
           {% if tx.has_problem %}<span class="text-xs font-medium text-red-600">· ⚠️ {% trans "Problem — Kunde wartet" %}</span>{% endif %}
+          {% if tx.large_party %}<span class="text-xs font-medium text-amber-700" data-large-party>· 👥 {% trans "Gruppenanfrage" %}</span>{% endif %}
         </a>
         <p class="text-xs text-gray-500 truncate">{% if tx.customer %}👤 {{ tx.customer }} · {% endif %}#{{ tx.reference_code }}{% if tx.when %} · 📅 {{ tx.when|date:"d.m.y" }}{% endif %}</p>
       </div>

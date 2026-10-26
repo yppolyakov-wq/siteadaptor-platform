@@ -292,6 +292,10 @@ def heute_columns(tenant, user=None) -> list[dict]:
             for b in qs:
                 when = timezone.localtime(b.start).strftime("%H:%M")
                 what = str(b.service) if b.service_id else str(b.resource)
+                if (b.party_size or 1) > 1:  # KA-12 GA-2: стойке — сколько гостей
+                    what = f"{what} · " + _("%(n)s Pers.") % {"n": b.party_size}
+                if b.is_large_party:
+                    what = f"{what} · 👥 " + _("Gruppenanfrage")
                 out.append(
                     {
                         "title": f"{when} · {b.customer.name or b.customer.email}",

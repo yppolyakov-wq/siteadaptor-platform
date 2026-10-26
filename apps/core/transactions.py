@@ -166,6 +166,8 @@ class Transaction:
     # ушла по акционной цене. Источник — Order.source_channel="promo", который
     # ставит promotions.services.purchase; лишних запросов нет.
     from_promo: bool = False
+    # KA-12 GA-1/GA-2: бронь стола выше порога «sofort» — Gruppenanfrage (бейдж).
+    large_party: bool = False
 
 
 def _is_overdue(deadline) -> bool:
@@ -215,7 +217,17 @@ def _booking_fields(b):
     name = (getattr(b, "service_label", "") if b.service_id else "") or str(b.resource or "")
     name = name or b.reference_code
     title = f"{name} · {b.start:%d.%m. %H:%M}" if b.start else name
-    return {"title": title, "amount": _cents(b.total_cents), "currency": "EUR", "when": b.start}
+    # KA-12 GA-2: у брони стола вторая деталь — число гостей (как у заявки кейтеринга).
+    note = ""
+    if (b.party_size or 1) > 1:
+        note = ngettext("%(n)d Gast", "%(n)d Gäste", b.party_size) % {"n": b.party_size}
+    return {
+        "title": title,
+        "amount": _cents(b.total_cents),
+        "currency": "EUR",
+        "when": b.start,
+        "when_note": note,
+    }
 
 
 def _stay_fields(s):
@@ -443,6 +455,7 @@ def transaction_for(
         allowed_actions=actions,
         needs_tracking=needs_tracking,
         from_promo=(getattr(obj, "source_channel", "") or "") == "promo",
+        large_party=bool(getattr(obj, "is_large_party", False)),
         when=f.get("when"),
         when_note=f.get("when_note", ""),
         deadline=f.get("deadline"),

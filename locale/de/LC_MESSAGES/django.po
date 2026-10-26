@@ -30740,3 +30740,25 @@ msgstr "Im Dashboard"
 
 msgid "Hinweis: Bei Tischen mit Anzahlung oder aktiver Regel zu Nichterscheinen wird erst nach der Zahlung bestätigt."
 msgstr "Hinweis: Bei Tischen mit Anzahlung oder aktiver Regel zu Nichterscheinen wird erst nach der Zahlung bestätigt."
+
+#, python-format
+msgid "%(n)s Pers."
+msgstr "%(n)s Pers."
+
+#, python-format
+msgid "%(n)s Reservierungen"
+msgstr "%(n)s Reservierungen"
+
+msgid "Gruppenanfrage"
+msgstr "Gruppenanfrage"
+
+msgid "Gäste heute"
+msgstr "Gäste heute"
+
+#, python-format
+msgid "nächste %(t)s"
+msgstr "nächste %(t)s"
+
+#, python-format
+msgid "offene Gruppenanfragen: %(n)s"
+msgstr "offene Gruppenanfragen: %(n)s"

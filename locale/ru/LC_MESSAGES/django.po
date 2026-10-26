@@ -30923,3 +30923,25 @@ msgstr "В кабинете"
 
 msgid "Hinweis: Bei Tischen mit Anzahlung oder aktiver Regel zu Nichterscheinen wird erst nach der Zahlung bestätigt."
 msgstr "Обратите внимание: у столов с предоплатой или при правиле неявок подтверждение — только после оплаты."
+
+#, python-format
+msgid "%(n)s Pers."
+msgstr "%(n)s чел."
+
+#, python-format
+msgid "%(n)s Reservierungen"
+msgstr "Броней: %(n)s"
+
+msgid "Gruppenanfrage"
+msgstr "Групповая заявка"
+
+msgid "Gäste heute"
+msgstr "Гостей сегодня"
+
+#, python-format
+msgid "nächste %(t)s"
+msgstr "ближайшая %(t)s"
+
+#, python-format
+msgid "offene Gruppenanfragen: %(n)s"
+msgstr "открытых групповых заявок: %(n)s"
