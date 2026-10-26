@@ -67,7 +67,9 @@ class JobSM(StateMachine):
             # A9: клиенту — Auftrag fertig (Repair-Status) + ссылка на страницу статуса.
             # KA-12 A-6b: после «Abholbereit» клиент уже знает, что машина готова —
             # второе письмо «Auftrag fertig» при выдаче было бы лишним.
-            if t.src != status_presets.READY_CODE:
+            # Ревью A-6b: пропуск — только если письмо «Abholbereit» реально ушло
+            # (канал/почта могли его не пустить; тогда «Auftrag fertig» нужен).
+            if not _ready_mail_sent(instance):
                 enqueue_job_email(instance, "done", status_url=_status_url(instance))
 
         # KA-12 A-6b: свой статус «Abholbereit» (по коду, имя может быть другим) —
@@ -103,3 +105,9 @@ def _status_url(job) -> str:
 
     base = _base_url(connection.schema_name)
     return f"{base}{reverse('storefront-auftrag', args=[job.public_token])}" if base else ""
+
+
+def _ready_mail_sent(job) -> bool:
+    from apps.notifications.models import Notification
+
+    return Notification.objects.filter(dedupe_key=f"job:{job.id}:ready:customer").exists()

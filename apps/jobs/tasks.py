@@ -78,7 +78,7 @@ def send_due_hu_reminders(today=None, tenant=None) -> int:
     tenant_obj = tenant or _tenant(connection.schema_name)
     if not channel_enabled(tenant_obj, "customer", "job", "service_reminder", "email"):
         return 0
-    cancelled = status_registry.cancelled_statuses_for("job", tenant)
+    cancelled = status_registry.cancelled_statuses_for("job", tenant_obj)
     sent = 0
     for vehicle in due.iterator():
         if vehicle.hu_reminder_sent_for == vehicle.hu_due:
@@ -86,25 +86,35 @@ def send_due_hu_reminders(today=None, tenant=None) -> int:
         customer = vehicle.customer
         if not (customer.email and not customer.unsubscribed):
             continue
+        # Ревью A-6b: «покрыто» только УЖЕ отправленным напоминанием A9 тому же
+        # клиенту (A9 идёт в бег раньше). Иначе машину не помечаем — оценим завтра.
         covered = (
-            vehicle.jobs.filter(service_due_date=vehicle.hu_due)
+            vehicle.jobs.filter(
+                customer_id=vehicle.customer_id,
+                service_due_date=vehicle.hu_due,
+                service_reminder_sent_at__isnull=False,
+            )
             .exclude(status__in=cancelled)
             .exists()
         )
-        if not covered:
-            subject, body, html = _render(
-                "vehicle_hu_reminder", {"vehicle": vehicle, "customer": customer}
-            )
-            notify(
-                dedupe_key=f"vehicle:{vehicle.pk}:hu:{vehicle.hu_due.isoformat()}:customer",
-                type="vehicle_hu_reminder",
-                recipient=customer.email,
-                subject=subject,
-                body=body,
-                html=html,
-            )
-            sent += 1
-        Vehicle.objects.filter(pk=vehicle.pk).update(hu_reminder_sent_for=vehicle.hu_due)
+        try:
+            if not covered:
+                subject, body, html = _render(
+                    "vehicle_hu_reminder", {"vehicle": vehicle, "customer": customer}
+                )
+                created = notify(
+                    dedupe_key=f"vehicle:{vehicle.pk}:hu:{vehicle.hu_due.isoformat()}:customer",
+                    type="vehicle_hu_reminder",
+                    recipient=customer.email,
+                    subject=subject,
+                    body=body,
+                    html=html,
+                )
+                sent += 1 if created is not None else 0
+            Vehicle.objects.filter(pk=vehicle.pk).update(hu_reminder_sent_for=vehicle.hu_due)
+        except Exception:
+            # одна машина (шаблон/данные) не останавливает остальные машины бизнеса
+            logger.exception("HU reminder failed for vehicle %s", vehicle.pk)
     return sent
 
 
@@ -117,10 +127,10 @@ def send_service_reminders():
     for tenant in _iter_tenants():
         # KA-H7: tenant_context — настоящий тенант (свои статусы отмены в site_config);
         # schema_context даёт FakeTenant без конфига.
-        try:
-            with tenant_context(tenant):
-                total += send_due_service_reminders(tenant=tenant)
-                total += send_due_hu_reminders(tenant=tenant)
-        except Exception:
-            logger.exception("service reminders failed for %s", tenant.schema_name)
+        for step in (send_due_service_reminders, send_due_hu_reminders):
+            try:
+                with tenant_context(tenant):
+                    total += step(tenant=tenant)
+            except Exception:
+                logger.exception("%s failed for %s", step.__name__, tenant.schema_name)
     return total

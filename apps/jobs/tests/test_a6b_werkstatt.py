@@ -76,7 +76,11 @@ def test_hu_duplicate_with_service_reminder_is_suppressed():
     job = _job()
     due = TODAY + datetime.timedelta(days=10)
     _hu(job, due)
-    Job.objects.filter(pk=job.pk).update(service_due_date=due)
+    from django.utils import timezone
+
+    Job.objects.filter(pk=job.pk).update(
+        service_due_date=due, service_reminder_sent_at=timezone.now()
+    )
     assert tasks.send_due_hu_reminders(today=TODAY, tenant=_tenant()) == 0
     assert Vehicle.objects.get(pk=job.vehicle_ref_id).hu_reminder_sent_for == due
 
@@ -231,3 +235,51 @@ def test_intake_pdf_title_for_vehicle():
     assert data.startswith(b"%PDF")
     assert "Fahrzeugannahme" in calls and "Annahmeprotokoll" not in calls
     assert "FIN" in calls
+
+
+# --- правки по ревью ----------------------------------------------------------
+
+
+def test_uncovered_when_service_reminder_not_sent_yet():
+    """A9-заявка с той же датой, но без отправленного напоминания (нет почты у её
+    клиента и т.п.) машину НЕ гасит — HU-письмо уходит."""
+    job = _job()
+    due = TODAY + datetime.timedelta(days=10)
+    _hu(job, due)
+    other = _job(plate="", email="")
+    Job.objects.filter(pk=other.pk).update(vehicle_ref=job.vehicle_ref_id, service_due_date=due)
+    assert tasks.send_due_hu_reminders(today=TODAY, tenant=_tenant()) == 1
+
+
+def test_bad_vehicle_does_not_stop_others(monkeypatch):
+    first, second = _job("A-A 1"), _job("B-B 2")
+    for j in (first, second):
+        _hu(j, TODAY + datetime.timedelta(days=5))
+    from apps.promotions import notifications as promo_notifications
+
+    real = promo_notifications._render
+
+    def flaky(name, ctx, locale=None):
+        if ctx.get("vehicle") and ctx["vehicle"].plate == "A-A 1":
+            raise RuntimeError("template broken")
+        return real(name, ctx, locale)
+
+    monkeypatch.setattr(promo_notifications, "_render", flaky)
+    assert tasks.send_due_hu_reminders(today=TODAY, tenant=_tenant()) == 1
+    assert _hu_mails(second) == 1
+    assert Vehicle.objects.get(pk=first.vehicle_ref_id).hu_reminder_sent_for is None
+
+
+def test_done_mail_kept_when_ready_mail_did_not_go_out():
+    from django.db import connection
+
+    old = getattr(connection, "tenant", None)
+    try:
+        job = _job(email="")  # нет почты → «Abholbereit» не ушло
+        sm = _walk_to_ready(job)
+        job.customer.email = f"{uuid.uuid4().hex[:6]}@example.com"
+        job.customer.save(update_fields=["email"])
+        sm.apply(job, "done")
+        assert Notification.objects.filter(type="job_done", recipient=job.customer.email).exists()
+    finally:
+        connection.tenant = old

@@ -61,7 +61,7 @@ def enqueue_job_email(job, event, *, angebot_url="", status_url="", protocol=Non
         "customer": customer,
         "angebot_url": angebot_url,
         "status_url": status_url,
-        "review_url": _review_url(schema) if event == "done" else "",
+        "review_url": _review_url(schema) if event in ("done", "ready") else "",
         "protocol": protocol,  # KA-12 A-5: protocol_confirmed → владельцу
     }
 
