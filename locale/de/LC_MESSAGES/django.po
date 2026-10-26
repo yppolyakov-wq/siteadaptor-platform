@@ -30780,3 +30780,25 @@ msgstr "Das Zeitfenster ist leer."
 
 msgid "Die Uhrzeit passt nicht zum Zeitraum der Aktion — der Preis würde nie gelten."
 msgstr "Die Uhrzeit passt nicht zum Zeitraum der Aktion — der Preis würde nie gelten."
+
+#, python-format
+msgid "%(n)s Plätze"
+msgstr "%(n)s Plätze"
+
+#, python-format
+msgid "%(table)s hat nur %(n)s Plätze. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen oder einen größeren Tisch wählen."
+msgstr "%(table)s hat nur %(n)s Plätze. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen oder einen größeren Tisch wählen."
+
+#, python-format
+msgid "An diesem Tisch ist Platz für höchstens %(n)s Personen."
+msgstr "An diesem Tisch ist Platz für höchstens %(n)s Personen."
+
+msgid "Bereich (z. B. Terrasse)"
+msgstr "Bereich (z. B. Terrasse)"
+
+#, python-format
+msgid "Hinweis: %(table)s hat nur %(n)s Plätze (%(guests)s Gäste)."
+msgstr "Hinweis: %(table)s hat nur %(n)s Plätze (%(guests)s Gäste)."
+
+msgid "z. B. Terrasse"
+msgstr "z. B. Terrasse"

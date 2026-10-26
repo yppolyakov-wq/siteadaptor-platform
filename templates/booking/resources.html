@@ -44,7 +44,7 @@
     {% for r in resources %}
       <div class="bg-white rounded-2xl shadow-sm p-5 {% if not r.is_active %}opacity-60{% endif %}">
         <div class="flex items-center justify-between gap-3">
-          <p class="font-semibold">{{ r.name }} <span class="text-xs text-gray-400 font-normal">{{ r.get_type_display }} · ×{{ r.capacity }}</span></p>
+          <p class="font-semibold">{{ r.name }} <span class="text-xs text-gray-400 font-normal">{{ r.get_type_display }} · ×{{ r.capacity }}{% if r.seats %} · {% blocktrans with n=r.seats %}{{ n }} Plätze{% endblocktrans %}{% endif %}{% if r.zone %} · {{ r.zone }}{% endif %}</span></p>
           <form method="post">{% csrf_token %}
             <input type="hidden" name="action" value="toggle"><input type="hidden" name="resource" value="{{ r.pk }}">
             <button class="text-xs text-gray-500 hover:underline">{% if r.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
@@ -85,6 +85,20 @@
           </label>
           <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="require_manual_confirm" {% if r.require_manual_confirm %}checked{% endif %}> {% trans "Manual review" %}</label>
           <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="counts_party_size" {% if r.counts_party_size %}checked{% endif %}> {% trans "Count per person (group course)" %}</label>
+          {# KA-12 GA-3: вместимость, места стола, зона, порядок (онлайн-флаг — GA-4). #}
+          <input type="hidden" name="seats_present" value="1">
+          <label class="text-gray-600">{% trans "Capacity" %}
+            <input name="capacity" type="number" value="{{ r.capacity }}" min="1" max="100" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5">
+          </label>
+          <label class="text-gray-600">{% trans "Plätze" %}
+            <input name="seats" type="number" value="{{ r.seats|default_if_none:'' }}" min="0" max="99" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" data-table-seats>
+          </label>
+          <label class="text-gray-600">{% trans "Bereich" %}
+            <input name="zone" type="text" maxlength="40" value="{{ r.zone }}" placeholder="{% trans 'z. B. Terrasse' %}" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5">
+          </label>
+          <label class="text-gray-600">{% trans "Reihenfolge" %}
+            <input name="sort_order" type="number" value="{{ r.sort_order }}" min="0" max="999" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5">
+          </label>
           <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
         </form>
         {% comment %}A3: профиль мастера (должность/био/фото) — только для ресурса-сотрудника.{% endcomment %}
@@ -119,7 +133,9 @@
           {% for value, label in types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
         </select>
         <input name="capacity" type="number" value="1" min="1" max="100" class="w-24 rounded-lg border border-gray-300 px-3 py-2" aria-label="{% trans 'Capacity' %}">
+        <input name="seats" type="number" min="0" max="99" placeholder="{% trans 'Plätze' %}" class="w-24 rounded-lg border border-gray-300 px-3 py-2" aria-label="{% trans 'Plätze' %}">
       </div>
+      <input name="zone" type="text" maxlength="40" placeholder="{% trans 'Bereich (z. B. Terrasse)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
       <div class="flex items-center gap-3">
         <input name="deposit_eur" type="text" inputmode="decimal" placeholder="{% trans 'Deposit € (0 = none)' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2">
         <label class="text-sm flex items-center gap-1 whitespace-nowrap"><input type="checkbox" name="require_manual_confirm"> {% trans "Manual review" %}</label>

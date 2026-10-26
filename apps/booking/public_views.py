@@ -1517,6 +1517,14 @@ def termin_book(request, pk):
             % {"n": table_rules.online_max(tenant, resource) + 1},
         )
         return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+    # KA-12 GA-3: стол с местами не берёт компанию больше себя (онлайн — отказ).
+    seats = table_rules.seats_exceeded(resource, party_size)
+    if seats:
+        messages.error(
+            request,
+            _("An diesem Tisch ist Platz für höchstens %(n)s Personen.") % {"n": seats},
+        )
+        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
     pay_kwargs = _payment_kwargs(request, "booking")
     no_show, email, early = _no_show_gate(
         request,

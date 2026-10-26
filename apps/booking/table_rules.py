@@ -65,3 +65,14 @@ def needs_manual_confirm(booking) -> bool:
     return resource_requires_confirm(getattr(booking, "resource", None)) or bool(
         getattr(booking, "is_large_party", False)
     )
+
+
+def seats_exceeded(resource, party: int) -> int | None:
+    """KA-12 GA-3: число мест стола, если компания в него не помещается (иначе None).
+
+    Пул (`counts_party_size`) считает гостей сам; стол без заданных мест — прежнее
+    поведение (места не проверяются)."""
+    seats = getattr(resource, "seats", None)
+    if not seats or getattr(resource, "counts_party_size", False):
+        return None
+    return seats if party > seats else None

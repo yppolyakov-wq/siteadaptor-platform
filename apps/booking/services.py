@@ -563,6 +563,7 @@ def create_manual(
     phone="",
     note="",
     override_hours=False,
+    override_seats=False,
     customer=None,
 ):
     """KA-12 A-4: ядро ручной записи кабинета (стойка, звонок, заявка).
@@ -597,6 +598,17 @@ def create_manual(
     if resource.counts_party_size and party_size > resource.capacity:
         raise ManualBookingRefused(
             _("Mehr Personen als Plätze (%(cap)s).") % {"cap": resource.capacity}
+        )
+    from apps.booking.table_rules import seats_exceeded
+
+    seats = seats_exceeded(resource, party_size)
+    if seats and not override_seats:  # KA-12 GA-3: стол на 2 места не примет 8 гостей
+        raise ManualBookingRefused(
+            _(
+                "%(table)s hat nur %(n)s Plätze. Zum Eintragen bitte „Trotzdem eintragen“ "
+                "ankreuzen oder einen größeren Tisch wählen."
+            )
+            % {"table": resource.name, "n": seats}
         )
     if service is not None and not availability.has_skill(service, resource):
         warnings.append(

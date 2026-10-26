@@ -30963,3 +30963,25 @@ msgstr "Окно времени пустое."
 
 msgid "Die Uhrzeit passt nicht zum Zeitraum der Aktion — der Preis würde nie gelten."
 msgstr "Время не попадает в период акции — цена не подействует никогда."
+
+#, python-format
+msgid "%(n)s Plätze"
+msgstr "%(n)s мест"
+
+#, python-format
+msgid "%(table)s hat nur %(n)s Plätze. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen oder einen größeren Tisch wählen."
+msgstr "За столом %(table)s только %(n)s мест. Чтобы всё равно записать, отметьте «Trotzdem eintragen» или выберите стол побольше."
+
+#, python-format
+msgid "An diesem Tisch ist Platz für höchstens %(n)s Personen."
+msgstr "За этим столом помещается не больше %(n)s человек."
+
+msgid "Bereich (z. B. Terrasse)"
+msgstr "Зона (напр. терраса)"
+
+#, python-format
+msgid "Hinweis: %(table)s hat nur %(n)s Plätze (%(guests)s Gäste)."
+msgstr "Внимание: за столом %(table)s только %(n)s мест (%(guests)s гостей)."
+
+msgid "z. B. Terrasse"
+msgstr "напр. терраса"

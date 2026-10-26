@@ -760,6 +760,7 @@ def _book_for_job(job, booking_services, resource, start, minutes, service, vari
         phone=customer.phone or "",
         note=(post.get("note") or "").strip() or f"{job.reference_code} · {job.title}",
         override_hours=bool(post.get("override_hours")),
+        override_seats=bool(post.get("override_hours")),  # KA-12 GA-3
         customer=customer,
     )
 

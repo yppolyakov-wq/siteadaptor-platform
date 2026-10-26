@@ -30832,3 +30832,25 @@ msgstr "Zaman aralığı boş."
 
 msgid "Die Uhrzeit passt nicht zum Zeitraum der Aktion — der Preis würde nie gelten."
 msgstr "Saat, kampanya süresine uymuyor — fiyat hiç geçerli olmaz."
+
+#, python-format
+msgid "%(n)s Plätze"
+msgstr "%(n)s kişilik"
+
+#, python-format
+msgid "%(table)s hat nur %(n)s Plätze. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen oder einen größeren Tisch wählen."
+msgstr "%(table)s yalnızca %(n)s kişilik. Yine de kaydetmek için “Trotzdem eintragen” seçeneğini işaretleyin veya daha büyük bir masa seçin."
+
+#, python-format
+msgid "An diesem Tisch ist Platz für höchstens %(n)s Personen."
+msgstr "Bu masa en fazla %(n)s kişiliktir."
+
+msgid "Bereich (z. B. Terrasse)"
+msgstr "Bölüm (ör. teras)"
+
+#, python-format
+msgid "Hinweis: %(table)s hat nur %(n)s Plätze (%(guests)s Gäste)."
+msgstr "Not: %(table)s yalnızca %(n)s kişilik (%(guests)s misafir)."
+
+msgid "z. B. Terrasse"
+msgstr "ör. teras"

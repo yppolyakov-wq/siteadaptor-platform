@@ -28,8 +28,8 @@ def _pool(capacity=40):
     return Resource.objects.create(name="Tische", capacity=capacity, counts_party_size=True)
 
 
-def _table(seats_capacity=1):
-    return Resource.objects.create(name="Tisch 4", capacity=seats_capacity)
+def _table(seats=2):
+    return Resource.objects.create(name="Tisch 4", capacity=1, seats=seats)
 
 
 def test_online_table_booking_waits_for_confirmation():
@@ -57,7 +57,6 @@ def test_walk_in_from_counter_is_confirmed():
     assert booking.status == "confirmed" and booking.party_size == 4
 
 
-@pytest.mark.xfail(strict=True, reason="GA-3: у стола нет мест — стол на 2 принимает 8 гостей")
 def test_two_seat_table_refuses_eight_guests():
     table = _table()
     with pytest.raises(services.ManualBookingRefused):

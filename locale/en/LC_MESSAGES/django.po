@@ -30688,3 +30688,25 @@ msgstr "The time window is empty."
 
 msgid "Die Uhrzeit passt nicht zum Zeitraum der Aktion — der Preis würde nie gelten."
 msgstr "The time does not fit the promotion period — the price would never apply."
+
+#, python-format
+msgid "%(n)s Plätze"
+msgstr "%(n)s seats"
+
+#, python-format
+msgid "%(table)s hat nur %(n)s Plätze. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen oder einen größeren Tisch wählen."
+msgstr "%(table)s only has %(n)s seats. To book anyway, tick “Trotzdem eintragen” or choose a larger table."
+
+#, python-format
+msgid "An diesem Tisch ist Platz für höchstens %(n)s Personen."
+msgstr "This table seats at most %(n)s people."
+
+msgid "Bereich (z. B. Terrasse)"
+msgstr "Area (e.g. terrace)"
+
+#, python-format
+msgid "Hinweis: %(table)s hat nur %(n)s Plätze (%(guests)s Gäste)."
+msgstr "Note: %(table)s only has %(n)s seats (%(guests)s guests)."
+
+msgid "z. B. Terrasse"
+msgstr "e.g. terrace"

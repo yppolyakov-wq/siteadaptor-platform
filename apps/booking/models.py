@@ -56,6 +56,16 @@ class Resource(I18nMixin, TimestampedModel):
     # Freunde» = 4 места), а не по числу броней. False (умолч.) — стол/мастер/зал,
     # где бронь = 1 единица, party_size информативен (не ломаем рестораны).
     counts_party_size = models.BooleanField(default=False)
+    # KA-12 GA-3 (Gastro): стол с местами. `seats` — сколько гостей помещается (NULL —
+    # места не заданы, как раньше); `min_seats` — с какого числа гостей стол выдаётся
+    # онлайн (2-местный не отдаём одному, если есть столик на одного); `zone` — зал/
+    # терраса для плана зала; `sort_order` — порядок подбора; `bookable_online` —
+    # стол только для стойки (VIP, у окна).
+    seats = models.PositiveSmallIntegerField(null=True, blank=True)
+    min_seats = models.PositiveSmallIntegerField(default=1)
+    zone = models.CharField(max_length=40, blank=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    bookable_online = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
     # P2.5b: депозит за запись (центы; 0 = без депозита). Анти-no-show.
     deposit_cents = models.PositiveIntegerField(default=0)

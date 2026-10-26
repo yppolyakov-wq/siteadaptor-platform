@@ -313,6 +313,16 @@ def _move_booking(request, booking):
             _("Hinweis: %(res)s bietet „%(svc)s“ laut Einstellungen nicht an.")
             % {"res": target.name, "svc": booking.service.name},
         )
+    # KA-12 GA-3: стол меньше компании — предупреждение, не отказ (перенос со стойки).
+    from apps.booking.table_rules import seats_exceeded
+
+    seats = seats_exceeded(booking.resource, booking.party_size or 1)
+    if seats:
+        messages.warning(
+            request,
+            _("Hinweis: %(table)s hat nur %(n)s Plätze (%(guests)s Gäste).")
+            % {"table": booking.resource.name, "n": seats, "guests": booking.party_size},
+        )
     if is_fetch:
         return HttpResponse(status=204)
     messages.success(request, _("Booking moved."))
@@ -519,6 +529,8 @@ def booking_create(request):
             phone=request.POST.get("phone", "").strip(),
             note=request.POST.get("note", "").strip(),
             override_hours=bool(request.POST.get("override_hours")),
+            # KA-12 GA-3: тот же флажок «Trotzdem eintragen» снимает и проверку мест.
+            override_seats=bool(request.POST.get("override_hours")),
         )
     except services.ManualBookingRefused as exc:
         # Паритет: подсказка о навыке видна и при отказе (как до выноса ядра).
@@ -686,6 +698,20 @@ def _business_hours_of(tenant) -> dict:
     return openinghours.normalize(getattr(tenant, "opening_hours_structured", None))
 
 
+def _bounded_int(raw, default, lo, hi):
+    """KA-12 GA-3 (фикс G9): число из формы с клампом; мусор → default, не 500."""
+    try:
+        return max(lo, min(int(str(raw).strip()), hi))
+    except (TypeError, ValueError):
+        return default
+
+
+def _seats_or_none(raw):
+    """Места стола: пусто/0/мусор → None (места не проверяются)."""
+    value = _bounded_int(raw, 0, 0, 99)
+    return value or None
+
+
 @login_required
 def resources(request):
     """Ресурсы + недельные правила + выходные — простые POST-формы."""
@@ -697,7 +723,9 @@ def resources(request):
                 Resource.objects.create(
                     name=name,
                     type=request.POST.get("type", Resource.TYPE_TABLE),
-                    capacity=max(1, min(int(request.POST.get("capacity", "1") or 1), 100)),
+                    capacity=_bounded_int(request.POST.get("capacity"), 1, 1, 100),
+                    seats=_seats_or_none(request.POST.get("seats")),
+                    zone=request.POST.get("zone", "").strip()[:40],
                     counts_party_size=bool(request.POST.get("counts_party_size")),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
                     require_manual_confirm=bool(request.POST.get("require_manual_confirm")),
@@ -765,14 +793,18 @@ def resources(request):
             resource.deposit_cents = _eur_to_cents(request.POST.get("deposit_eur"))
             resource.require_manual_confirm = bool(request.POST.get("require_manual_confirm"))
             resource.counts_party_size = bool(request.POST.get("counts_party_size"))
-            resource.save(
-                update_fields=[
-                    "deposit_cents",
-                    "require_manual_confirm",
-                    "counts_party_size",
-                    "updated_at",
-                ]
-            )
+            fields = ["deposit_cents", "require_manual_confirm", "counts_party_size", "updated_at"]
+            # KA-12 GA-3: вместимость/места/зона правятся здесь же (presence-guard W0:
+            # старая форма без этих полей их не трогает).
+            if request.POST.get("seats_present"):
+                resource.capacity = _bounded_int(
+                    request.POST.get("capacity"), resource.capacity, 1, 100
+                )
+                resource.seats = _seats_or_none(request.POST.get("seats"))
+                resource.zone = request.POST.get("zone", "").strip()[:40]
+                resource.sort_order = _bounded_int(request.POST.get("sort_order"), 0, 0, 999)
+                fields += ["capacity", "seats", "zone", "sort_order"]
+            resource.save(update_fields=fields)
             messages.success(request, _("Deposit settings saved."))
         elif action == "resource_profile":
             # A3: профиль мастера — должность, био, фото (загрузка/удаление).
@@ -795,7 +827,9 @@ def resources(request):
         "booking/resources.html",
         {
             "nav": "booking-resources",
-            "resources": Resource.objects.prefetch_related("rules").order_by("-is_active", "name"),
+            "resources": Resource.objects.prefetch_related("rules").order_by(
+                "-is_active", "sort_order", "name"
+            ),
             "closed_dates": ClosedDate.objects.filter(date__gte=timezone.localdate()),
             "types": Resource.TYPES,
             "weekdays": AvailabilityRule.WEEKDAYS,
