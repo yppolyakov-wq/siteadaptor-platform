@@ -78,11 +78,13 @@ def text_hash(text: str) -> str:
 
 def record_info(job, tenant, *, early_start: bool) -> None:
     """Снимок при нажатии «Annehmen»: когда и какой текст показан, просил ли клиент
-    начать раньше. Один раз — повторное нажатие (отказ Stripe, назад) не переписывает."""
-    if not applies(job) or job.withdrawal_info_at is not None:
+    начать раньше. Пока смета не принята, КАЖДЫЙ клик переписывает снимок (ревью A-7:
+    брошенная оплата/ошибка ваучера → повтор с другой галочкой фиксирует последний
+    выбор); после принятия снимок заморожен."""
+    if not applies(job) or job.status != job.STATUS_QUOTED:
         return
     now = timezone.now()
-    type(job).objects.filter(pk=job.pk, withdrawal_info_at__isnull=True).update(
+    type(job).objects.filter(pk=job.pk, status=job.STATUS_QUOTED).update(
         withdrawal_info_at=now,
         withdrawal_text_hash=text_hash(text_for(tenant)),
         early_start_requested_at=now if early_start else None,
@@ -100,10 +102,20 @@ def deadline(job):
 
 
 def can_withdraw(job, now=None) -> bool:
-    """Кнопка отказа: потребитель, принял онлайн, работа не завершена, срок не вышел."""
+    """Кнопка отказа: потребитель, принял онлайн, срок не вышел, заявка не отменена.
+
+    Ревью A-7: отметка владельца «erledigt» право не гасит — по § 356 Abs. 4 BGB оно
+    прекращается полным исполнением, только если клиент сам просил начать раньше.
+    Поэтому завершённая заявка без такой просьбы отказ принимает."""
+    from apps.core import status_registry
+
     if not applies(job) or job.withdrawn_at is not None:
         return False
-    if job.status != job.STATUS_ACCEPTED:
+    desc = status_registry.resolve("job", job.status)
+    role = desc.role if desc is not None else ""
+    if role not in ("active", "done") or job.status == job.STATUS_QUOTED:
+        return False
+    if role == "done" and job.early_start_requested_at is not None:
         return False
     end = deadline(job)
     return end is not None and (now or timezone.now()) <= end
@@ -117,11 +129,15 @@ def withdraw(job, tenant) -> bool:
     """Заявить отказ: отметка + отмена заявки общим путём (возврат депозита).
 
     → True, если отказ принят сейчас; False — уже был (повтор безопасен).
-    WithdrawalError — отказ невозможен (срок вышел, работа завершена)."""
-    from apps.core import transactions
+    WithdrawalError — отказ невозможен (срок вышел и т. п.). Если из текущего статуса
+    отмены нет (заявка уже «erledigt»), отказ всё равно фиксируется, а владелец по
+    письму решает вручную — заявление клиента не теряется."""
+    from apps.core import refunds, transactions
+    from apps.core.fsm import IllegalTransition
 
     from .models import Job
 
+    result, cancelled = refunds.RefundResult.NONE, False
     with transaction.atomic():
         locked = Job.objects.select_for_update().get(pk=job.pk)
         if locked.withdrawn_at is not None:
@@ -130,16 +146,30 @@ def withdraw(job, tenant) -> bool:
             raise WithdrawalError(_("Der Widerruf ist für diesen Auftrag nicht mehr möglich."))
         locked.withdrawn_at = timezone.now()
         locked.save(update_fields=["withdrawn_at", "updated_at"])
-        transactions.apply_action(
-            "job", locked, Job.STATUS_CANCELLED, actor=None, extra={"refund": "1"}, tenant=tenant
-        )
+        try:
+            with transaction.atomic():
+                result = transactions.apply_action(
+                    "job",
+                    locked,
+                    Job.STATUS_CANCELLED,
+                    actor=None,
+                    extra={"refund": "1"},
+                    tenant=tenant,
+                )
+            cancelled = True
+        except IllegalTransition:
+            pass
     job.refresh_from_db()
-    transaction.on_commit(lambda: _notify(job))
+    transaction.on_commit(lambda: _notify(job, cancelled=cancelled, refund=str(result)))
     return True
 
 
-def _notify(job) -> None:
+def _notify(job, *, cancelled: bool, refund: str) -> None:
     from .notifications import enqueue_job_email
 
     enqueue_job_email(job, "withdrawn")  # клиенту — подтверждение получения (§ 356a)
-    enqueue_job_email(job, "withdrawn_owner")
+    enqueue_job_email(
+        job,
+        "withdrawn_owner",
+        extra_ctx={"cancelled": cancelled, "refunded": refund == "refunded"},
+    )

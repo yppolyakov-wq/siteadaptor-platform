@@ -6,7 +6,11 @@ quoted → письмо клиенту со ссылкой на публично
 письмо владельцу (notifications dedupe).
 """
 
+import logging
+
 from apps.core.fsm import StateMachine, Transition
+
+logger = logging.getLogger(__name__)
 
 
 class JobSM(StateMachine):
@@ -95,7 +99,17 @@ class JobSM(StateMachine):
         elif t.dst in ("accepted", "declined"):
             enqueue_job_email(instance, t.dst)
         if t.dst == "accepted":
-            _send_contract_confirmation(instance)
+            if kw.get("online"):
+                _send_contract_confirmation(instance)
+            elif instance.withdrawal_info_at is not None:
+                # KA-12 A-7 (ревью): принял не клиент онлайн (владелец в кабинете после
+                # брошенной оплаты) — снимок клика к договору не относится.
+                type(instance).objects.filter(pk=instance.pk).update(
+                    withdrawal_info_at=None, withdrawal_text_hash="", early_start_requested_at=None
+                )
+                instance.withdrawal_info_at = None
+                instance.withdrawal_text_hash = ""
+                instance.early_start_requested_at = None
 
 
 def _status_url(job) -> str:
@@ -131,10 +145,14 @@ def _send_contract_confirmation(job) -> None:
     tenant = _tenant(connection.schema_name)
     if tenant is None:
         return
-    pdf = build_quote_pdf(job, tenant)
-    enqueue_job_email(
-        job,
-        "contract",
-        status_url=_status_url(job),
-        attachments=[(f"angebot_{job.reference_code}.pdf", pdf, "application/pdf")],
-    )
+    try:
+        pdf = build_quote_pdf(job, tenant)
+        enqueue_job_email(
+            job,
+            "contract",
+            status_url=_status_url(job),
+            attachments=[(f"angebot_{job.reference_code}.pdf", pdf, "application/pdf")],
+        )
+    except Exception:
+        # ревью A-7: сбой PDF/письма не отменяет само принятие сметы
+        logger.exception("contract confirmation failed for job %s", job.pk)

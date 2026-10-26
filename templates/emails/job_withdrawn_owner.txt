@@ -1,5 +1,7 @@
-{% load i18n %}{% blocktrans with code=job.reference_code name=customer.name d=job.withdrawn_at|date:"d.m.Y H:i" %}{{ name }} hat den Auftrag {{ code }} am {{ d }} online widerrufen. Der Auftrag wurde storniert, eine Anzahlung wird automatisch erstattet.{% endblocktrans %}
+{% load i18n %}{% autoescape off %}{% blocktrans with code=job.reference_code name=customer.name d=job.withdrawn_at|date:"d.m.Y H:i" %}{{ name }} hat den Auftrag {{ code }} am {{ d }} online widerrufen.{% endblocktrans %}
 
 {{ job.title }}
+{% if cancelled %}{% trans "Der Auftrag wurde storniert." %}{% else %}{% trans "Der Auftrag konnte nicht automatisch storniert werden — bitte bearbeiten Sie ihn im Dashboard." %}{% endif %}
+{% if refunded %}{% trans "Die Anzahlung wurde automatisch erstattet." %}{% else %}{% trans "Bitte prüfen Sie, ob bereits Zahlungen eingegangen sind, und erstatten Sie diese innerhalb von 14 Tagen." %}{% endif %}
 {% if job.early_start_requested_at %}{% trans "Der Kunde hatte einen Beginn vor Ende der Widerrufsfrist verlangt — für bereits erbrachte Leistungen können Sie Wertersatz verlangen." %}
-{% endif %}
+{% endif %}{% endautoescape %}

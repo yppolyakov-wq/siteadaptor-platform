@@ -1,8 +1,8 @@
-{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
+{% load i18n %}{% autoescape off %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
 {% blocktrans with due=vehicle.hu_due|date:"d.m.Y" %}eine kurze Erinnerung: Die Hauptuntersuchung (HU) Ihres Fahrzeugs ist am {{ due }} fällig.{% endblocktrans %}
 
 {% trans "Fahrzeug" %}: {{ vehicle.plate }}{% if vehicle.make_model %} · {{ vehicle.make_model }}{% endif %}
 {% trans "Vereinbaren Sie am besten gleich einen Termin — wir kümmern uns darum." %}
 
-{% trans "Mit freundlichen Grüßen" %}
+{% trans "Mit freundlichen Grüßen" %}{% endautoescape %}

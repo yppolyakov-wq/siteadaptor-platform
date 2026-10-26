@@ -1,4 +1,4 @@
-{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
+{% load i18n %}{% autoescape off %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
 {% trans "vielen Dank — Sie haben unser Angebot angenommen. Das Angebot mit allen Positionen finden Sie im Anhang." %}
 
@@ -11,4 +11,4 @@
 {% trans "Status ansehen:" %}
 {{ status_url }}
 {% endif %}
-{{ withdrawal_text }}
+{{ withdrawal_text }}{% endautoescape %}

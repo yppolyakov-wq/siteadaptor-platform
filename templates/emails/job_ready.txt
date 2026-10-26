@@ -1,4 +1,4 @@
-{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
+{% load i18n %}{% autoescape off %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
 {% trans "Ihr Auftrag ist fertig und kann abgeholt werden:" %}
 
@@ -11,4 +11,4 @@
 {% trans "Waren Sie zufrieden? Über eine kurze Bewertung freuen wir uns sehr:" %}
 {{ review_url }}
 {% endif %}
-{% trans "Vielen Dank für Ihr Vertrauen." %}
+{% trans "Vielen Dank für Ihr Vertrauen." %}{% endautoescape %}

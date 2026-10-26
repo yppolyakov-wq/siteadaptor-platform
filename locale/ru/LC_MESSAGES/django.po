@@ -30865,3 +30865,19 @@ msgstr "%(name)s онлайн отказался(-ась) от заказа %(co
 
 msgid "Der Kunde hatte einen Beginn vor Ende der Widerrufsfrist verlangt — für bereits erbrachte Leistungen können Sie Wertersatz verlangen."
 msgstr "Клиент просил начать до окончания срока отказа — за выполненные работы можно потребовать компенсацию."
+
+#, python-format
+msgid "%(name)s hat den Auftrag %(code)s am %(d)s online widerrufen."
+msgstr "%(name)s онлайн отказался(-ась) от заказа %(code)s %(d)s."
+
+msgid "Der Auftrag wurde storniert."
+msgstr "Заказ отменён."
+
+msgid "Der Auftrag konnte nicht automatisch storniert werden — bitte bearbeiten Sie ihn im Dashboard."
+msgstr "Заказ не удалось отменить автоматически — обработайте его в кабинете."
+
+msgid "Die Anzahlung wurde automatisch erstattet."
+msgstr "Предоплата возвращена автоматически."
+
+msgid "Bitte prüfen Sie, ob bereits Zahlungen eingegangen sind, und erstatten Sie diese innerhalb von 14 Tagen."
+msgstr "Проверьте, поступали ли уже платежи, и верните их в течение 14 дней."

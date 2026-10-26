@@ -30590,3 +30590,19 @@ msgstr "%(name)s withdrew from order %(code)s online on %(d)s. The order was can
 
 msgid "Der Kunde hatte einen Beginn vor Ende der Widerrufsfrist verlangt — für bereits erbrachte Leistungen können Sie Wertersatz verlangen."
 msgstr "The customer had requested a start before the withdrawal period ended — you can claim compensation for work already done."
+
+#, python-format
+msgid "%(name)s hat den Auftrag %(code)s am %(d)s online widerrufen."
+msgstr "%(name)s withdrew from order %(code)s online on %(d)s."
+
+msgid "Der Auftrag wurde storniert."
+msgstr "The order was cancelled."
+
+msgid "Der Auftrag konnte nicht automatisch storniert werden — bitte bearbeiten Sie ihn im Dashboard."
+msgstr "The order could not be cancelled automatically — please handle it in the dashboard."
+
+msgid "Die Anzahlung wurde automatisch erstattet."
+msgstr "The deposit was refunded automatically."
+
+msgid "Bitte prüfen Sie, ob bereits Zahlungen eingegangen sind, und erstatten Sie diese innerhalb von 14 Tagen."
+msgstr "Please check whether payments have already been received and refund them within 14 days."

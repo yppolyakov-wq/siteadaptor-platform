@@ -230,7 +230,7 @@ def auftrag_status(request, token):
         if terminal:
             raise Http404
         if ratelimit.hit("abnahme", ratelimit.client_ip(request), limit=10, window=3600):
-            messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+            messages.error(request, _("Zu viele Versuche. Bitte später erneut versuchen."))
         elif not request.POST.get("checked") or not request.POST.get("name", "").strip():
             messages.error(
                 request, _("Bitte Namen eintragen und die Prüfung der Leistung bestätigen.")
@@ -353,7 +353,8 @@ def angebot(request, token):
                             "updated_at",
                         ]
                     )
-                JobSM().apply(job, dst)  # on_transition → письмо владельцу
+                # KA-12 A-7: online=True — принятие самим клиентом (письмо-договор).
+                JobSM().apply(job, dst, online=True)  # on_transition → письмо владельцу
                 if dst == Job.STATUS_ACCEPTED:
                     job.accepted_at = timezone.now()
                     job.save(update_fields=["accepted_at", "updated_at"])
@@ -397,7 +398,7 @@ def angebot(request, token):
 def _withdraw(request, job, token):
     """KA-12 A-7: кнопка «Vertrag widerrufen» (§ 356a BGB) — подтверждение галочкой."""
     if ratelimit.hit("widerruf", ratelimit.client_ip(request), limit=5, window=600):
-        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut versuchen."))
         return redirect("storefront-angebot", token=token)
     if not request.POST.get("confirm"):
         messages.error(request, _("Bitte bestätigen Sie den Widerruf."))

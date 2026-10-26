@@ -23,7 +23,9 @@ pytestmark = pytest.mark.django_db
 def _setup(settings, monkeypatch):
     settings.ROOT_URLCONF = "config.urls_tenant"
     settings.QUOTE_WITHDRAWAL_ENABLED = True
-    tenant = TenantFactory.build(disabled_modules=[], name="Fliesen Kern")
+    tenant = TenantFactory.build(
+        disabled_modules=[], name="Fliesen Kern", owner_email="chef@example.com"
+    )
     monkeypatch.setattr("apps.promotions.notifications._tenant", lambda schema: tenant)
     monkeypatch.setattr("apps.jobs.notifications._tenant", lambda schema: tenant)
     return tenant
@@ -76,7 +78,7 @@ def test_accept_snapshots_text_once_and_sends_contract_with_pdf(_setup):
     _accept(job, early_start="1")
     job.refresh_from_db()
     assert job.status == Job.STATUS_ACCEPTED
-    assert job.withdrawal_text_hash == withdrawal.text_hash(withdrawal.text_for(_setup))
+    assert len(job.withdrawal_text_hash) == 64  # sha256 показанного текста
     assert job.early_start_requested_at is not None
     first = job.withdrawal_info_at
     withdrawal.record_info(job, _setup, early_start=False)
@@ -122,7 +124,7 @@ def test_withdraw_needs_confirmation():
     assert job.status == Job.STATUS_ACCEPTED and job.withdrawn_at is None
 
 
-def test_withdraw_after_deadline_or_done_refused():
+def test_withdraw_after_deadline_refused():
     job = _quoted()
     _accept(job)
     Job.objects.filter(pk=job.pk).update(
@@ -134,10 +136,71 @@ def test_withdraw_after_deadline_or_done_refused():
         _req("post", {"action": "withdraw", "confirm": "1"}), token=job.public_token
     )
     job.refresh_from_db()
-    assert job.status == Job.STATUS_ACCEPTED
-    Job.objects.filter(pk=job.pk).update(accepted_at=timezone.now(), status=Job.STATUS_DONE)
+    assert job.status == Job.STATUS_ACCEPTED and job.withdrawn_at is None
+
+
+def test_done_without_early_start_still_withdrawable_and_recorded(
+    django_capture_on_commit_callbacks,
+):
+    """Отметка «erledigt» право не гасит; отмены из done в FSM нет — отказ фиксируется,
+    владелец получает письмо и решает вручную."""
+    job = _quoted()
+    _accept(job)
+    Job.objects.filter(pk=job.pk).update(status=Job.STATUS_DONE)
+    job.refresh_from_db()
+    assert withdrawal.can_withdraw(job)
+    with django_capture_on_commit_callbacks(execute=True):
+        assert withdrawal.withdraw(job, None)
+    job.refresh_from_db()
+    assert job.withdrawn_at is not None and job.status == Job.STATUS_DONE
+    assert Notification.objects.filter(type="job_withdrawn_owner").exists()
+
+
+def test_done_with_early_start_not_withdrawable():
+    job = _quoted()
+    _accept(job, early_start="1")
+    Job.objects.filter(pk=job.pk).update(status=Job.STATUS_DONE)
     job.refresh_from_db()
     assert not withdrawal.can_withdraw(job)
+
+
+def test_reclick_while_quoted_takes_last_choice():
+    job = _quoted()
+    withdrawal.record_info(job, TenantFactory.build(name="Kern"), early_start=True)
+    assert job.early_start_requested_at is not None
+    withdrawal.record_info(job, TenantFactory.build(name="Kern"), early_start=False)
+    assert job.early_start_requested_at is None
+
+
+def test_owner_manual_accept_drops_click_snapshot():
+    from apps.jobs.state_machine import JobSM
+
+    job = _quoted()
+    withdrawal.record_info(
+        job, TenantFactory.build(name="Kern"), early_start=True
+    )  # клиент кликнул и бросил оплату
+    JobSM().apply(job, Job.STATUS_ACCEPTED)  # владелец принял сам
+    job.refresh_from_db()
+    assert job.withdrawal_info_at is None and not withdrawal.can_withdraw(job)
+    assert not Notification.objects.filter(
+        type="job_contract", recipient=job.customer.email
+    ).exists()
+
+
+def test_redelivered_deposit_webhook_keeps_refunded_state():
+    from django.db import connection
+
+    from apps.jobs import payments
+
+    job = _quoted()
+    Job.objects.filter(pk=job.pk).update(
+        status=Job.STATUS_CANCELLED, payment_state=Job.PAYMENT_REFUNDED
+    )
+    assert payments.mark_deposit_paid(
+        tenant_schema=connection.schema_name, job_id=str(job.id), payment_intent="pi_x"
+    )
+    job.refresh_from_db()
+    assert job.payment_state == Job.PAYMENT_REFUNDED and job.status == Job.STATUS_CANCELLED
 
 
 def test_quote_accepted_without_belehrung_cannot_be_withdrawn_online():

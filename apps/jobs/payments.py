@@ -45,6 +45,13 @@ def mark_deposit_paid(*, tenant_schema: str, job_id: str, payment_intent: str = 
         job = Job.objects.filter(id=job_id).first()
         if job is None:
             return False
+        # Ревью A-7: повторная доставка вебхука после отказа/отмены не должна
+        # вернуть «оплачено» возвращённой или отменённой заявке.
+        if job.payment_state == Job.PAYMENT_REFUNDED or job.status in (
+            Job.STATUS_CANCELLED,
+            Job.STATUS_DECLINED,
+        ):
+            return True
         fields = []
         if job.payment_state != Job.PAYMENT_PAID:
             from apps.core import folio
@@ -69,7 +76,7 @@ def mark_deposit_paid(*, tenant_schema: str, job_id: str, payment_intent: str = 
         # Оплата депозита = принятие сметы (если ещё quoted).
         if job.status == Job.STATUS_QUOTED:
             try:
-                JobSM().apply(job, Job.STATUS_ACCEPTED)
+                JobSM().apply(job, Job.STATUS_ACCEPTED, online=True)  # A-7: клиент сам
                 job.accepted_at = timezone.now()
                 job.save(update_fields=["accepted_at", "updated_at"])
             except IllegalTransition:

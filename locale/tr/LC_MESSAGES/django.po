@@ -30734,3 +30734,19 @@ msgstr "%(name)s, %(code)s numaralı işten %(d)s tarihinde çevrimiçi caydı. 
 
 msgid "Der Kunde hatte einen Beginn vor Ende der Widerrufsfrist verlangt — für bereits erbrachte Leistungen können Sie Wertersatz verlangen."
 msgstr "Müşteri cayma süresi bitmeden başlanmasını istemişti — yapılmış iş için bedel talep edebilirsiniz."
+
+#, python-format
+msgid "%(name)s hat den Auftrag %(code)s am %(d)s online widerrufen."
+msgstr "%(name)s, %(code)s numaralı işten %(d)s tarihinde çevrimiçi caydı."
+
+msgid "Der Auftrag wurde storniert."
+msgstr "İş iptal edildi."
+
+msgid "Der Auftrag konnte nicht automatisch storniert werden — bitte bearbeiten Sie ihn im Dashboard."
+msgstr "İş otomatik olarak iptal edilemedi — lütfen panelden işleyin."
+
+msgid "Die Anzahlung wurde automatisch erstattet."
+msgstr "Kapora otomatik olarak iade edildi."
+
+msgid "Bitte prüfen Sie, ob bereits Zahlungen eingegangen sind, und erstatten Sie diese innerhalb von 14 Tagen."
+msgstr "Lütfen ödeme alınıp alınmadığını kontrol edin ve 14 gün içinde iade edin."
