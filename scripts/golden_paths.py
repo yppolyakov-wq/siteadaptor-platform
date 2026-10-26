@@ -16,6 +16,8 @@
   GP-6  Anfragen (демо `handwerker`, KA-12 A-0): /anfrage/ → тема с меткой, имя, почта,
         PLZ → «Danke» → `Job` в БД (кода клиенту нет — поиск по метке в теме) →
         /auftrag/<token>/ открывается.
+  GP-7  Gastro (демо `restaurant`, KA-12 GA-0): /termin/ → стол → свободное время →
+        форма (2 гостя) → /t/<code>/ → `Booking` в БД (ждёт подтверждения).
 
 Плюс общие проверки на каждой странице: нет JS-ошибок, нет горизонтального
 скролла, ответ 2xx.
@@ -404,6 +406,59 @@ def gp6_anfragen(run, ctx, port):
         _page_health(run, page, errors, "статус заявки")
 
 
+def gp7_gastro(run, ctx, port):
+    print("GP-7 Gastro (restaurant)")
+    page = ctx.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    host = f"http://restaurant.{BASE}:{port}"
+    resp = page.goto(f"{host}/termin/")
+    run.check(resp and resp.ok, "/termin/ открывается")
+    _page_health(run, page, errors, "/termin/")
+    if not re.search(r"/termin/[0-9a-f-]{36}/", page.url):
+        hrefs = page.locator("a[href*='/termin/']").evaluate_all(
+            "els => els.map(e => e.getAttribute('href'))"
+        )
+        pk = next(
+            (m.group(1) for h in hrefs if (m := re.search(r"/termin/([0-9a-f-]{36})/", h))),
+            None,
+        )
+        run.check(bool(pk), "на /termin/ есть стол")
+        if not pk:
+            return
+        page.goto(f"{host}/termin/{pk}/")
+    _page_health(run, page, errors, "выбор времени")
+    free = page.locator("a[href*='slot=']")
+    for _hop in range(7):  # пустой день → следующий
+        if free.count():
+            break
+        nxt = page.locator("a[href*='?tag=']").filter(has_text="→")
+        if not nxt.count():
+            break
+        nxt.first.click()
+        page.wait_for_timeout(700)
+        free = page.locator("a[href*='slot=']")
+    run.check(free.count() > 0, "есть свободное время у стола")
+    if not free.count():
+        return
+    free.first.click()
+    page.wait_for_load_state()
+    tag = uuid.uuid4().hex[:6]
+    page.locator("input[name='name']").first.fill(f"GP Gast {tag}")
+    page.locator("input[name='party_size']").first.fill("2")
+    page.locator("input[name='email']").first.fill(f"gp-{tag}@example.com")
+    for box in page.locator("input[type='checkbox'][required]").all():
+        if box.is_visible():
+            box.check()
+    page.locator("form[action*='/buchen/'] button[type='submit']").last.click()
+    page.wait_for_load_state()
+    m = re.search(r"/t/([^/]+)/", page.url)
+    run.check(bool(m), f"подтверждение /t/<code>/ ({page.url})")
+    _page_health(run, page, errors, "подтверждение брони стола")
+    if m:
+        run.check(_db_has("booking.Booking", m.group(1), "restaurant"), "бронь стола в БД")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8000)
@@ -421,6 +476,7 @@ def main():
         gp4_zimmer(run, ctx, args.port)
         gp5_tickets(run, ctx, args.port)
         gp6_anfragen(run, ctx, args.port)
+        gp7_gastro(run, ctx, args.port)
         browser.close()
     print(f"\n{run.ok} ok, {len(run.fail)} fail")
     for f in run.fail:
