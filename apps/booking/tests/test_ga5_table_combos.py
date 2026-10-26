@@ -17,6 +17,11 @@ pytestmark = pytest.mark.django_db
 DAY = timezone.localdate() + timedelta(days=7)
 
 
+@pytest.fixture(autouse=True)
+def _urlconf(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+
+
 def _table(name, seats, **kw):
     r = Resource.objects.create(
         name=f"{name} {uuid.uuid4().hex[:4]}",
@@ -134,3 +139,62 @@ def test_occupancy_queries_go_through_scope():
             head = chunk[:400]
             if 'active_statuses_for("booking")' in head:
                 assert "resource=resource" not in head, name
+
+
+def test_closed_part_closes_combo(combo):
+    from apps.booking.models import ClosedDate
+
+    c, t3, _t4 = combo
+    ClosedDate.objects.create(date=DAY, resource=t3)
+    assert availability.free_slots(c, DAY) == []
+    with pytest.raises(services.ResourceClosed):
+        _book(c, party=6)
+
+
+def test_scope_symmetric_even_if_part_later_non_combinable(combo):
+    c, t3, _t4 = combo
+    Resource.objects.filter(pk=t3.pk).update(capacity=3)
+    t3.refresh_from_db()
+    assert c.pk in occupancy.scope_ids(t3) and t3.pk in occupancy.scope_ids(c)
+
+
+def test_book_accepts_str_pk(combo):
+    _c, t3, _t4 = combo
+    b = services.book(
+        str(t3.pk), start=_start(), end=_start() + timedelta(hours=1), name="G", party_size=2
+    )
+    assert b.resource_id == t3.pk
+
+
+def test_book_many_locks_combo_scope(combo):
+    c, t3, t4 = combo
+    _book(c, party=6)
+    with pytest.raises(services.SlotTaken):
+        services.book_many(
+            [(t3, _start(), _start() + timedelta(hours=1), 0)], name="G", party_size=2
+        )
+
+
+def test_settings_cannot_break_combo_part(combo):
+    import uuid as _uuid
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.booking import views
+    from apps.tenants.tests.factories import TenantFactory
+
+    _c, t3, _t4 = combo
+    request = RequestFactory().post(
+        "/dashboard/booking/resources/",
+        {"action": "resource_settings", "resource": str(t3.pk), "counts_party_size": "on"},
+    )
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = get_user_model().objects.create_user(username=f"u{_uuid.uuid4().hex[:6]}")
+    request.tenant = TenantFactory.build()
+    views.resources(request)
+    t3.refresh_from_db()
+    assert t3.counts_party_size is False

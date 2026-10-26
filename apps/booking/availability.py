@@ -70,9 +70,12 @@ def within_hours(resource, start, end, tenant=None) -> bool:
 
 
 def is_closed(resource, day) -> bool:
+    from .occupancy import scope_ids
+
+    # GA-5: закрытый стол закрывает и комбинации с ним.
     return (
         ClosedDate.objects.filter(date=day)
-        .filter(Q(resource=resource) | Q(resource__isnull=True))
+        .filter(Q(resource_id__in=scope_ids(resource)) | Q(resource__isnull=True))
         .exists()
     )
 

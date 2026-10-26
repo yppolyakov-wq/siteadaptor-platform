@@ -30839,3 +30839,6 @@ msgstr "Kombination aus Tischen"
 
 msgid "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."
 msgstr "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."
+
+msgid "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
+msgstr "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."

@@ -30891,3 +30891,6 @@ msgstr "Masa birleşimi"
 
 msgid "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."
 msgstr "Birleşim rezerve edilirse masaları dolu olur — tersi de geçerli."
+
+msgid "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
+msgstr "Bu masa bir birleşimin parçası: kapasite 1 ve koltuk havuzu olmaması gerekir. Lütfen önce birleşimi kaldırın."

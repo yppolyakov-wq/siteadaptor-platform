@@ -271,15 +271,15 @@ def book(
     # а разный порядок блокировок дал бы встречный дедлок.
     from .occupancy import lock_scope
 
-    unlocked = Resource.objects.filter(id=resource_id).first()
-    locked = lock_scope(unlocked) if unlocked is not None else {}
-    resource = locked.get(resource_id)
+    locked = lock_scope(resource_id)
+    resource = locked.get(Resource._meta.pk.to_python(resource_id))
     if resource is None or not resource.is_active:
         raise Resource.DoesNotExist()
 
     # Точечные исключения: выходной ресурса или всего бизнеса (resource=None).
+    # GA-5: закрытый стол закрывает и комбинацию с ним (и наоборот).
     closed = ClosedDate.objects.filter(date=start.date()).filter(
-        Q(resource=resource) | Q(resource__isnull=True)
+        Q(resource_id__in=locked) | Q(resource__isnull=True)
     )
     if closed.exists():
         raise ResourceClosed()
@@ -418,11 +418,10 @@ def book_many(starts, **kwargs):
     }
     # Ревью B6 (база): ресурсы всей группы — заранее и в порядке pk, как `move`,
     # `resync_occupancy` и самоперенос (иначе встречные блокировки → дедлок).
-    list(
-        Resource.objects.select_for_update()
-        .filter(pk__in={r.pk for r, *_rest in slots})
-        .order_by("pk")
-    )
+    from .occupancy import lock_scope
+
+    # GA-5 (ревью базы): вместе с областями комбинаций — иначе дедлок с бронью «3+4».
+    lock_scope(*{r.pk for r, *_rest in slots})
     created = []
     for resource, start, end, price_cents in slots:
         created.append(

@@ -823,6 +823,21 @@ def resources(request):
                     "min_seats",
                     "bookable_online",
                 ]
+            # GA-5 (ревью): стол в комбинации обязан остаться «1 бронь = 1 стол» —
+            # иначе область занятости стала бы несимметричной (продажа в одну сторону).
+            from apps.booking import occupancy
+
+            if (
+                resource.parts.exists() or resource.combinations.exists()
+            ) and not occupancy._combinable(resource):
+                messages.error(
+                    request,
+                    _(
+                        "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und "
+                        "kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
+                    ),
+                )
+                return redirect("booking:resources")
             resource.save(update_fields=fields)
             messages.success(request, _("Deposit settings saved."))
         elif action == "resource_parts":

@@ -31006,3 +31006,6 @@ msgstr "Комбінація зі столів"
 
 msgid "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."
 msgstr "Якщо зайнята комбінація, зайняті і її столи — і навпаки."
+
+msgid "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
+msgstr "Цей стіл входить до комбінації: потрібні місткість 1 і без пулу місць. Спершу розформуйте комбінацію."

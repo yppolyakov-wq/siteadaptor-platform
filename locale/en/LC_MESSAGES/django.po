@@ -30747,3 +30747,6 @@ msgstr "Combination of tables"
 
 msgid "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."
 msgstr "If the combination is booked, its tables are taken — and vice versa."
+
+msgid "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
+msgstr "This table is part of a combination: capacity 1 and no seat pool are required. Please remove the combination first."
