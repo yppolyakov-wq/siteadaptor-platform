@@ -417,6 +417,20 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             return
         if cleaned.get("discount_off") is not None and cleaned["discount_off"] <= 0:
             self.add_error("discount_off", _("Bitte einen Betrag über 0 eingeben."))
+        product = cleaned.get("product")
+        off = cleaned.get("discount_off")
+        if off is not None and product is not None:
+            base = cleaned.get("compare_at_price") or product.base_price
+            if base is not None and off >= base:
+                # Ревью PR-2: «−X €» не дороже самой цены — иначе заказ на 0 €.
+                self.add_error("discount_off", _("Der Rabatt muss kleiner als der Preis sein."))
+        if cleaned.get("customer_rule") and (cleaned.get("service") or cleaned.get("stay_unit")):
+            # Ревью PR-5: запись и проживание не проходят через create_order — правило
+            # молча не действовало бы.
+            self.add_error(
+                "customer_rule",
+                _("Gilt nur für Produkte und den Shop — nicht für Leistungen oder Zimmer."),
+            )
         if not ({"category", "whole_shop"} & set(targets)):
             return
         if not (cleaned.get("discount_percent") or cleaned.get("discount_off")):

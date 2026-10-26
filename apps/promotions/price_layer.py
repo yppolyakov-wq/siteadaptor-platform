@@ -286,7 +286,8 @@ def product_promo_map(product_ids, *, now=None, timeless_only=False):
             if not (promo.whole_shop or promo.category_id in chains.get(product.pk, ())):
                 continue
             clone = scope_copy(promo, product)
-            if not clone.lowers_price:
+            # Ревью PR-2: «−1 € auf alle» не делает дешёвый товар бесплатным — пропуск.
+            if not clone.lowers_price or not clone.new_price or clone.new_price <= 0:
                 continue
             cur = out.get(product.pk)
             if cur is None or clone.new_price < cur.new_price:

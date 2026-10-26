@@ -1085,7 +1085,7 @@ def checkout(request):
     order_items = [(p, v, q, o) for p, v, o, q in _cart_items(request)]
     # SF-4b: класс промо-исключения нужен в except ниже — импорт ДО try (лениво
     # в теле вьюхи против модульных циклов orders ↔ promotions).
-    from apps.promotions.eligibility import PromoNotEligible
+    from apps.promotions.eligibility import NOT_ELIGIBLE_MSG, PromoNotEligible
     from apps.promotions.services import OutOfStock as PromoLimitSoldOut
 
     order_combos = [(c, o, q) for c, o, q in combo_items]
@@ -1154,14 +1154,10 @@ def checkout(request):
             _("Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."),
         )
         return redirect("storefront-cart")
-    except PromoNotEligible as exc:
+    except PromoNotEligible:
         # KA-12 PR-5: правило клиента у акции — объяснить, а не «лимит исчерпан».
-        title = exc.promo.title_text
-        if exc.rule == "new":
-            text = _("Die Aktion „%(t)s“ gilt nur für Neukunden.") % {"t": title}
-        else:
-            text = _("Die Aktion „%(t)s“ gilt nur einmal pro Kunde.") % {"t": title}
-        messages.error(request, text)
+        # Нейтрально (ревью): разные тексты выдавали бы, есть ли у адреса заказы.
+        messages.error(request, _(NOT_ELIGIBLE_MSG))
         return redirect("storefront-cart")
     except PromoLimitSoldOut:
         # SF-4b: лимит кампании исчерпан на чекауте (гонка двух корзин) —

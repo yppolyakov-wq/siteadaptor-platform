@@ -358,6 +358,10 @@ def purchase(
         raise ValueError("scope promotion is applied in the cart, not sold itself")
     if quantity < 1:
         raise ValueError("quantity must be >= 1")
+    # KA-12 PR-5 (ревью): прямая покупка акции — то же правило клиента, что корзина.
+    from . import eligibility
+
+    eligibility.check([promotion], email=email, phone=phone)
     # (1) лимит кампании (None = без лимита; но акция обязана быть active)
     if promotion.available_quantity is not None:
         rows = Promotion.objects.filter(

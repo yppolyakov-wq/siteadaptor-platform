@@ -31114,3 +31114,12 @@ msgstr "Checked at checkout by e-mail or phone. Anyone who doesn't qualify sees 
 
 msgid "Nur für Neukunden (erste Bestellung)"
 msgstr "New customers only (first order)"
+
+msgid "Der Rabatt muss kleiner als der Preis sein."
+msgstr "The discount must be lower than the price."
+
+msgid "Gilt nur für Produkte und den Shop — nicht für Leistungen oder Zimmer."
+msgstr "Applies only to products and the shop — not to services or rooms."
+
+msgid "Der Aktionspreis gilt für diese Bestellung nicht (siehe Bedingungen der Aktion)."
+msgstr "The promotional price does not apply to this order (see the promotion's conditions)."

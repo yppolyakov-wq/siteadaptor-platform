@@ -31,14 +31,14 @@ def test_off_on_product_card_cart_and_order():
     assert order.total == D("10.50")
 
 
-def test_off_for_whole_category_and_never_below_zero():
+def test_off_for_whole_category_skips_items_cheaper_than_discount():
     brot = Category.objects.create(name={"de": "Brot"}, slug="brot-x")
     a = Product.objects.create(name={"de": "A"}, base_price=D("3.00"), category=brot)
     b = Product.objects.create(name={"de": "B"}, base_price=D("0.80"), category=brot)
     _promo(category=brot, discount_off=D("1.00"))
     pmap = price_layer.product_promo_map([a.pk, b.pk])
     assert pmap[a.pk].new_price == D("2.00")
-    assert pmap[b.pk].new_price == D("0.00")
+    assert b.pk not in pmap  # скидка не меньше цены — товар не становится бесплатным
 
 
 def test_form_allows_only_one_kind_of_saving():

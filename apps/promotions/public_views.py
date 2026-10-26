@@ -33,6 +33,7 @@ from apps.core.seo import offer_ld
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
 from apps.promotions import group_styles, promo_types, rules_text
 
+from .eligibility import NOT_ELIGIBLE_MSG, PromoNotEligible
 from .forms import PublicReservationForm, WaitlistForm
 from .models import (
     Customer,
@@ -2786,6 +2787,12 @@ def promotion_purchase(request, pk):
             pickup_slot=slot,
             pickup_capacity=slot_capacity,
         )
+    except PromoNotEligible:
+        # KA-12 PR-5: правило клиента — нейтрально (не подтверждаем, что адрес — наш клиент).
+        if token_key:
+            cache.delete(token_key)
+        messages.error(request, _(NOT_ELIGIBLE_MSG))
+        return render(request, "storefront/promotion_detail.html", ctx)
     except OutOfStock:
         if token_key:
             cache.delete(token_key)

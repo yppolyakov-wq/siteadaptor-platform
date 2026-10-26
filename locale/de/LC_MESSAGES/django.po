@@ -31206,3 +31206,12 @@ msgstr "Geprüft an der Kasse über E-Mail oder Telefon. Wer nicht passt, bekomm
 
 msgid "Nur für Neukunden (erste Bestellung)"
 msgstr "Nur für Neukunden (erste Bestellung)"
+
+msgid "Der Rabatt muss kleiner als der Preis sein."
+msgstr "Der Rabatt muss kleiner als der Preis sein."
+
+msgid "Gilt nur für Produkte und den Shop — nicht für Leistungen oder Zimmer."
+msgstr "Gilt nur für Produkte und den Shop — nicht für Leistungen oder Zimmer."
+
+msgid "Der Aktionspreis gilt für diese Bestellung nicht (siehe Bedingungen der Aktion)."
+msgstr "Der Aktionspreis gilt für diese Bestellung nicht (siehe Bedingungen der Aktion)."

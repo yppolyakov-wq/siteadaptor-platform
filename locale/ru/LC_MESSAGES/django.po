@@ -31391,3 +31391,12 @@ msgstr "Проверяется при оформлении по e-mail или т
 
 msgid "Nur für Neukunden (erste Bestellung)"
 msgstr "Только новым клиентам (первый заказ)"
+
+msgid "Der Rabatt muss kleiner als der Preis sein."
+msgstr "Скидка должна быть меньше цены."
+
+msgid "Gilt nur für Produkte und den Shop — nicht für Leistungen oder Zimmer."
+msgstr "Действует только для товаров и магазина — не для услуг и номеров."
+
+msgid "Der Aktionspreis gilt für diese Bestellung nicht (siehe Bedingungen der Aktion)."
+msgstr "Акционная цена к этому заказу не применяется (см. условия акции)."

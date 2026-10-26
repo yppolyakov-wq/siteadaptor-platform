@@ -31375,3 +31375,12 @@ msgstr "Перевіряється під час оформлення за e-mai
 
 msgid "Nur für Neukunden (erste Bestellung)"
 msgstr "Лише новим клієнтам (перше замовлення)"
+
+msgid "Der Rabatt muss kleiner als der Preis sein."
+msgstr "Знижка має бути меншою за ціну."
+
+msgid "Gilt nur für Produkte und den Shop — nicht für Leistungen oder Zimmer."
+msgstr "Діє лише для товарів і магазину — не для послуг і номерів."
+
+msgid "Der Aktionspreis gilt für diese Bestellung nicht (siehe Bedingungen der Aktion)."
+msgstr "Акційна ціна до цього замовлення не застосовується (див. умови акції)."

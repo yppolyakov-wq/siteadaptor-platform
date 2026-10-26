@@ -72,7 +72,9 @@ INLINE_REGISTRY = {
         "title": Field("text", "title", i18n=True, required=True, bump=False),
         "price_override": Field("decimal", "price_override"),
         "compare_at_price": Field("decimal", "compare_at_price"),
-        "discount_percent": Field("percent", "discount_percent"),
+        # KA-12 PR-2 (ревью): у акции «−X € pro Stück» процент на канве не ставим —
+        # иначе у неё стало бы два вида выгоды в обход проверки формы.
+        "discount_percent": Field("percent", "discount_percent", gate="discount_off"),
         "ends_at": Field("datetime", "ends_at"),
     },
 }

@@ -31258,3 +31258,12 @@ msgstr "Ödemede e-posta veya telefonla kontrol edilir. Uygun olmayanlar kampany
 
 msgid "Nur für Neukunden (erste Bestellung)"
 msgstr "Yalnızca yeni müşteriler (ilk sipariş)"
+
+msgid "Der Rabatt muss kleiner als der Preis sein."
+msgstr "İndirim fiyattan düşük olmalıdır."
+
+msgid "Gilt nur für Produkte und den Shop — nicht für Leistungen oder Zimmer."
+msgstr "Yalnızca ürünler ve mağaza için geçerlidir — hizmetler veya odalar için değil."
+
+msgid "Der Aktionspreis gilt für diese Bestellung nicht (siehe Bedingungen der Aktion)."
+msgstr "Kampanya fiyatı bu sipariş için geçerli değil (kampanya koşullarına bakın)."
