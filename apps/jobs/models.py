@@ -116,6 +116,13 @@ class Job(I18nMixin, TimestampedModel):
 
     quoted_at = models.DateTimeField(null=True, blank=True)
     accepted_at = models.DateTimeField(null=True, blank=True)
+    # KA-12 A-7 (§ 312g/§ 356/§ 356a BGB): потребителю при принятии сметы показана
+    # Widerrufsbelehrung (когда и ЧТО — sha256 текста), просил ли он начать до конца
+    # срока, и когда отказался. Пишется только при включённом QUOTE_WITHDRAWAL_ENABLED.
+    withdrawal_info_at = models.DateTimeField(null=True, blank=True)
+    withdrawal_text_hash = models.CharField(max_length=64, blank=True, default="")
+    early_start_requested_at = models.DateTimeField(null=True, blank=True)
+    withdrawn_at = models.DateTimeField(null=True, blank=True)
     # Связанный счёт (apps.finance.Invoice в той же схеме) — без жёсткого FK.
     invoice_id = models.UUIDField(null=True, blank=True)
     # G11: остаток за расходники (Teile из каталога) списан — один раз, при

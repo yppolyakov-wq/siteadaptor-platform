@@ -1,0 +1,5 @@
+{% load i18n %}{% blocktrans with code=job.reference_code name=customer.name d=job.withdrawn_at|date:"d.m.Y H:i" %}{{ name }} hat den Auftrag {{ code }} am {{ d }} online widerrufen. Der Auftrag wurde storniert, eine Anzahlung wird automatisch erstattet.{% endblocktrans %}
+
+{{ job.title }}
+{% if job.early_start_requested_at %}{% trans "Der Kunde hatte einen Beginn vor Ende der Widerrufsfrist verlangt — für bereits erbrachte Leistungen können Sie Wertersatz verlangen." %}
+{% endif %}

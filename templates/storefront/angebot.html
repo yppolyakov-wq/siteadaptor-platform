@@ -49,9 +49,23 @@
     <p class="mt-6 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2" data-quote-expired>{% trans "Dieses Angebot ist abgelaufen. Bitte fragen Sie ein neues Angebot an." %}</p>
     {% endif %}
     {% if job.status == 'quoted' and lines and not expired %}
+    {% if withdrawal_applies %}
+    {% comment %}KA-12 A-7: Widerrufsbelehrung до принятия (§ 312g BGB) — текст бизнеса
+    или заготовка для работ; хеш показанного текста пишется при «Annehmen».{% endcomment %}
+    <details class="mt-6 rounded-lg border border-gray-200 px-4 py-3 text-sm" data-withdrawal-info>
+      <summary class="cursor-pointer font-medium text-gray-800">{% trans "Widerrufsbelehrung" %}</summary>
+      <div class="mt-2 whitespace-pre-line text-gray-600">{{ withdrawal_text }}</div>
+    </details>
+    {% endif %}
     <div class="flex gap-3 mt-6">
       <form method="post" class="flex-1">{% csrf_token %}
         <input type="hidden" name="action" value="accept">
+        {% if withdrawal_applies %}
+          <label class="flex items-start gap-2 text-sm text-gray-600 mb-3">
+            <input type="checkbox" name="early_start" value="1" class="mt-1 h-4 w-4">
+            <span>{% trans "Ich verlange ausdrücklich, dass Sie vor Ende der Widerrufsfrist mit der Ausführung beginnen. Mir ist bekannt, dass ich bei einem Widerruf die bis dahin erbrachten Leistungen bezahle." %}</span>
+          </label>
+        {% endif %}
         {% if voucher_allowed %}
           {# B1.6: Gutschein/промокод — уменьшает «zu zahlen», счёт остаётся полным. #}
           <input name="voucher_code" type="text" placeholder="{% trans 'Voucher code (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm uppercase mb-2">
@@ -65,6 +79,21 @@
     </div>
     {% elif job.status == 'accepted' %}
     <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2 mt-6">✓ {% trans "You accepted this quote. We'll be in touch." %}</p>
+    {% if can_withdraw %}
+    {% comment %}KA-12 A-7: функция отказа (§ 356a BGB) — до конца 14-дневного срока.{% endcomment %}
+    <form method="post" class="mt-4 rounded-lg border border-gray-200 px-4 py-3 text-sm" data-withdraw-form>{% csrf_token %}
+      <input type="hidden" name="action" value="withdraw">
+      <p class="font-medium text-gray-800">{% trans "Vertrag widerrufen" %}</p>
+      <p class="text-gray-500 mt-1">{% blocktrans with d=withdrawal_deadline|date:"d.m.Y" %}Sie können diesen Vertrag bis zum {{ d }} ohne Angabe von Gründen widerrufen.{% endblocktrans %}</p>
+      <label class="flex items-start gap-2 mt-3 text-gray-600">
+        <input type="checkbox" name="confirm" value="1" required class="mt-1 h-4 w-4">
+        <span>{% trans "Ja, ich widerrufe den Vertrag." %}</span>
+      </label>
+      <button class="mt-3 border border-red-300 text-red-700 rounded-lg px-4 py-2 font-medium hover:bg-red-50">{% trans "Vertrag widerrufen" %}</button>
+    </form>
+    {% endif %}
+    {% elif job.withdrawn_at %}
+    <p class="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2 mt-6" data-withdrawn>{% blocktrans with d=job.withdrawn_at|date:"d.m.Y H:i" %}Sie haben den Vertrag am {{ d }} widerrufen.{% endblocktrans %}</p>
     {% elif job.status == 'declined' %}
     <p class="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2 mt-6">{% trans "You declined this quote." %}</p>
     {% endif %}

@@ -94,6 +94,8 @@ class JobSM(StateMachine):
             enqueue_job_email(instance, "quoted", angebot_url=url)
         elif t.dst in ("accepted", "declined"):
             enqueue_job_email(instance, t.dst)
+        if t.dst == "accepted":
+            _send_contract_confirmation(instance)
 
 
 def _status_url(job) -> str:
@@ -111,3 +113,28 @@ def _ready_mail_sent(job) -> bool:
     from apps.notifications.models import Notification
 
     return Notification.objects.filter(dedupe_key=f"job:{job.id}:ready:customer").exists()
+
+
+def _send_contract_confirmation(job) -> None:
+    """KA-12 A-7 (§ 312f BGB): потребителю, принявшему смету онлайн с показанной
+    Belehrung, — подтверждение договора с текстом Belehrung и PDF сметы."""
+    from django.db import connection
+
+    from apps.promotions.notifications import _tenant
+
+    from . import withdrawal
+    from .notifications import enqueue_job_email
+    from .pdf import build_quote_pdf
+
+    if job.withdrawal_info_at is None or not withdrawal.applies(job):
+        return
+    tenant = _tenant(connection.schema_name)
+    if tenant is None:
+        return
+    pdf = build_quote_pdf(job, tenant)
+    enqueue_job_email(
+        job,
+        "contract",
+        status_url=_status_url(job),
+        attachments=[(f"angebot_{job.reference_code}.pdf", pdf, "application/pdf")],
+    )

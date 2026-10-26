@@ -606,6 +606,10 @@ document (партиал может перерисовываться — уро�
     {% elif job.quoted_at %}
       <p class="text-xs text-gray-500">✓ {% trans "Angebot gesendet" %} · {{ job.quoted_at|date:"d.m.Y" }}</p>
     {% endif %}
+    {% if job.withdrawal_info_at %}
+      {% comment %}KA-12 A-7: отметки права отказа потребителя (доказательство).{% endcomment %}
+      <p class="text-xs text-gray-500" data-job-withdrawal>✓ {% trans "Widerrufsbelehrung angezeigt" %} · {{ job.withdrawal_info_at|date:"d.m.Y H:i" }}{% if job.early_start_requested_at %} · {% trans "Beginn vor Fristende verlangt" %}{% endif %}{% if job.withdrawn_at %} · <span class="text-red-600">{% trans "Widerrufen am" %} {{ job.withdrawn_at|date:"d.m.Y H:i" }}</span>{% endif %}</p>
+    {% endif %}
   </div>
   <div class="flex flex-wrap items-center gap-4">
     <a href="{% url 'jobs:pdf' job.pk %}" target="_blank" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "Kostenvoranschlag PDF" %} ↗</a>

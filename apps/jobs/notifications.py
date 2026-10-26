@@ -47,7 +47,9 @@ def _review_url(schema) -> str:
         return ""
 
 
-def enqueue_job_email(job, event, *, angebot_url="", status_url="", protocol=None):
+def enqueue_job_email(
+    job, event, *, angebot_url="", status_url="", protocol=None, attachments=None
+):
     """event: new/accepted/declined → владельцу; quoted/done → клиенту (со ссылкой).
 
     A9: `done` уведомляет клиента, что работа выполнена (Repair-Status), со ссылкой
@@ -64,8 +66,20 @@ def enqueue_job_email(job, event, *, angebot_url="", status_url="", protocol=Non
         "review_url": _review_url(schema) if event in ("done", "ready") else "",
         "protocol": protocol,  # KA-12 A-5: protocol_confirmed → владельцу
     }
+    if event == "contract" and tenant is not None:
+        # KA-12 A-7: тот же текст Belehrung, что был на странице сметы.
+        from .withdrawal import text_for
 
-    if event in ("quoted", "done", "ready", "service_reminder"):  # → клиенту
+        ctx["withdrawal_text"] = text_for(tenant)
+
+    if event in (
+        "quoted",
+        "done",
+        "ready",
+        "service_reminder",
+        "contract",
+        "withdrawn",
+    ):  # → клиенту
         # A9: напоминание о TÜV/Service может приходить повторно (на каждую дату),
         # поэтому дедуп включает саму дату — иначе вторая дата не отправится.
         suffix = (
@@ -83,6 +97,7 @@ def enqueue_job_email(job, event, *, angebot_url="", status_url="", protocol=Non
                 subject=subject,
                 body=body,
                 html=html,
+                attachments=attachments,  # KA-12 A-7: PDF сметы к подтверждению договора
             )
         # UD4b: Telegram клиенту (раньше Aufträge были email-only) — «Auftrag fertig» и т.п.
         if customer and channel_enabled(tenant, "customer", "job", event, "telegram"):

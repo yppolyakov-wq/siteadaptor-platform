@@ -30779,3 +30779,73 @@ msgstr "Нагадування: техогляд %(plate)s до %(due)s"
 #, python-format
 msgid "eine kurze Erinnerung: Die Hauptuntersuchung (HU) Ihres Fahrzeugs ist am %(due)s fällig."
 msgstr "невелике нагадування: техогляд (HU) вашого автомобіля потрібно пройти до %(due)s."
+
+msgid "Beginn vor Fristende verlangt"
+msgstr "Запитано початок до кінця строку"
+
+msgid "Bitte bestätigen Sie den Widerruf."
+msgstr "Будь ласка, підтвердьте відмову від договору."
+
+msgid "Der Widerruf ist für diesen Auftrag nicht mehr möglich."
+msgstr "Відмова від цього замовлення більше неможлива."
+
+msgid "Ich verlange ausdrücklich, dass Sie vor Ende der Widerrufsfrist mit der Ausführung beginnen. Mir ist bekannt, dass ich bei einem Widerruf die bis dahin erbrachten Leistungen bezahle."
+msgstr "Я прямо прошу розпочати роботи до закінчення строку відмови. Мені відомо, що в разі відмови я оплачу вже виконані роботи."
+
+msgid "Ihr Widerruf ist eingegangen. Eine Bestätigung erhalten Sie per E-Mail."
+msgstr "Вашу відмову отримано. Підтвердження надійде на e-mail."
+
+msgid "Ihr Widerruf liegt uns bereits vor."
+msgstr "Вашу відмову вже отримано."
+
+msgid "Ja, ich widerrufe den Vertrag."
+msgstr "Так, я відмовляюся від договору."
+
+#, python-format
+msgid "Sie haben den Vertrag am %(d)s widerrufen."
+msgstr "Ви відмовилися від договору %(d)s."
+
+#, python-format
+msgid "Sie können diesen Vertrag bis zum %(d)s ohne Angabe von Gründen widerrufen."
+msgstr "Ви можете відмовитися від цього договору до %(d)s без пояснення причин."
+
+msgid "Vertrag widerrufen"
+msgstr "Відмовитися від договору"
+
+msgid "Widerrufen am"
+msgstr "Відмова від договору"
+
+msgid "Widerrufsbelehrung angezeigt"
+msgstr "Інформацію про право відмови показано"
+
+#, python-format
+msgid "Auftragsbestätigung %(code)s"
+msgstr "Підтвердження замовлення %(code)s"
+
+msgid "vielen Dank — Sie haben unser Angebot angenommen. Das Angebot mit allen Positionen finden Sie im Anhang."
+msgstr "дякуємо — ви прийняли нашу пропозицію. Пропозиція з усіма позиціями — у вкладенні."
+
+msgid "Sie haben verlangt, dass wir vor Ende der Widerrufsfrist mit der Ausführung beginnen."
+msgstr "Ви попросили розпочати роботи до закінчення строку відмови."
+
+#, python-format
+msgid "Ihr Widerruf zu %(code)s ist eingegangen"
+msgstr "Вашу відмову щодо %(code)s отримано"
+
+#, python-format
+msgid "wir bestätigen den Eingang Ihres Widerrufs zum Auftrag %(code)s am %(d)s."
+msgstr "підтверджуємо отримання вашої відмови від замовлення %(code)s %(d)s."
+
+msgid "Bereits geleistete Zahlungen erstatten wir Ihnen über dasselbe Zahlungsmittel."
+msgstr "Уже внесені платежі повернемо тим самим способом оплати."
+
+#, python-format
+msgid "Widerruf: Auftrag %(code)s"
+msgstr "Відмова: замовлення %(code)s"
+
+#, python-format
+msgid "%(name)s hat den Auftrag %(code)s am %(d)s online widerrufen. Der Auftrag wurde storniert, eine Anzahlung wird automatisch erstattet."
+msgstr "%(name)s онлайн відмовився(-лася) від замовлення %(code)s %(d)s. Замовлення скасовано, передоплату буде повернено автоматично."
+
+msgid "Der Kunde hatte einen Beginn vor Ende der Widerrufsfrist verlangt — für bereits erbrachte Leistungen können Sie Wertersatz verlangen."
+msgstr "Клієнт просив розпочати до закінчення строку відмови — за виконані роботи можна вимагати компенсацію."

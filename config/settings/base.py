@@ -670,6 +670,8 @@ CELERY_BEAT_SCHEDULE = {
 BOOKING_REMINDER_HOURS = env.int("BOOKING_REMINDER_HOURS", default=24)
 # A9: за сколько дней до TÜV/Service слать напоминание клиенту (Werkstatt-ретеншн).
 SERVICE_REMINDER_LEAD_DAYS = env.int("SERVICE_REMINDER_LEAD_DAYS", default=21)
+# KA-12 A-7: Widerrufsbelehrung + функция отказа на странице сметы — после вычитки юриста.
+QUOTE_WITHDRAWAL_ENABLED = env.bool("QUOTE_WITHDRAWAL_ENABLED", default=False)
 # R9: за сколько дней до события слать напоминание участникам / после — post-event.
 EVENT_REMINDER_DAYS = env.int("EVENT_REMINDER_DAYS", default=7)
 EVENT_POSTEVENT_DAYS = env.int("EVENT_POSTEVENT_DAYS", default=1)

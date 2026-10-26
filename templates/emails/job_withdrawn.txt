@@ -1,0 +1,8 @@
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
+
+{% blocktrans with code=job.reference_code d=job.withdrawn_at|date:"d.m.Y H:i" %}wir bestätigen den Eingang Ihres Widerrufs zum Auftrag {{ code }} am {{ d }}.{% endblocktrans %}
+
+{{ job.title }}
+{% trans "Bereits geleistete Zahlungen erstatten wir Ihnen über dasselbe Zahlungsmittel." %}
+
+{% trans "Mit freundlichen Grüßen" %}

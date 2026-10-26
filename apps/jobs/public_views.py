@@ -16,7 +16,7 @@ from django.utils.translation import gettext as _
 from apps.billing import connect
 from apps.core import ratelimit
 
-from . import payments, services
+from . import payments, services, withdrawal
 from .models import Job
 from .notifications import enqueue_job_email
 from .state_machine import JobSM
@@ -230,7 +230,7 @@ def auftrag_status(request, token):
         if terminal:
             raise Http404
         if ratelimit.hit("abnahme", ratelimit.client_ip(request), limit=10, window=3600):
-            messages.error(request, _("Zu viele Versuche. Bitte später erneut versuchen."))
+            messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
         elif not request.POST.get("checked") or not request.POST.get("name", "").strip():
             messages.error(
                 request, _("Bitte Namen eintragen und die Prüfung der Leistung bestätigen.")
@@ -271,6 +271,8 @@ def angebot(request, token):
     _require_jobs_active(request)
     job = get_object_or_404(Job.objects.select_related("customer"), public_token=token)
     expired = bool(job.valid_until and job.valid_until < timezone.localdate())
+    if request.method == "POST" and request.POST.get("action") == "withdraw":
+        return _withdraw(request, job, token)
     if request.method == "POST" and job.status == Job.STATUS_QUOTED:
         action = request.POST.get("action", "")
         # KA-H10: просроченную смету принять нельзя (отклонить — можно).
@@ -280,6 +282,14 @@ def angebot(request, token):
                 _("Dieses Angebot ist abgelaufen. Bitte fragen Sie ein neues Angebot an."),
             )
             return redirect(request.path)
+        if action == "accept":
+            # KA-12 A-7: снимок Belehrung (и просьбы начать раньше) — до ухода в
+            # Stripe, чтобы показанное клиенту было зафиксировано в обоих путях.
+            withdrawal.record_info(
+                job,
+                getattr(request, "tenant", None),
+                early_start=bool(request.POST.get("early_start")),
+            )
         # A7c: принятие сметы с Anzahlung — через Stripe Checkout (на счёт бизнеса).
         # Оплата = принятие (вебхук job_deposit → quoted→accepted). Без депозита/
         # оплаты — принимаем сразу, как раньше.
@@ -365,6 +375,13 @@ def angebot(request, token):
             # VAT-1: клиент видит ту же разбивку по ставкам, что PDF и кабинет —
             # одна функция на все поверхности документа.
             "vat_rows": quote_totals(lines, job.vat_rate)["rows"],
+            # KA-12 A-7: Belehrung до принятия и кнопка отказа после — за флагом.
+            "withdrawal_applies": withdrawal.applies(job),
+            "withdrawal_text": withdrawal.text_for(request.tenant)
+            if withdrawal.applies(job)
+            else "",
+            "can_withdraw": withdrawal.can_withdraw(job),
+            "withdrawal_deadline": withdrawal.deadline(job),
             "deposit_eur": f"{job.deposit_cents / 100:.2f}".replace(".", ","),
             # B1.6: инпут кода — только в простом accept-пути (без Anzahlung-Checkout).
             "voucher_allowed": job.gross > 0
@@ -375,6 +392,29 @@ def angebot(request, token):
             ),
         },
     )
+
+
+def _withdraw(request, job, token):
+    """KA-12 A-7: кнопка «Vertrag widerrufen» (§ 356a BGB) — подтверждение галочкой."""
+    if ratelimit.hit("widerruf", ratelimit.client_ip(request), limit=5, window=600):
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+        return redirect("storefront-angebot", token=token)
+    if not request.POST.get("confirm"):
+        messages.error(request, _("Bitte bestätigen Sie den Widerruf."))
+        return redirect("storefront-angebot", token=token)
+    try:
+        done = withdrawal.withdraw(job, getattr(request, "tenant", None))
+    except withdrawal.WithdrawalError as exc:
+        messages.error(request, str(exc))
+        return redirect("storefront-angebot", token=token)
+    if done:
+        messages.success(
+            request,
+            _("Ihr Widerruf ist eingegangen. Eine Bestätigung erhalten Sie per E-Mail."),
+        )
+    else:
+        messages.info(request, _("Ihr Widerruf liegt uns bereits vor."))
+    return redirect("storefront-angebot", token=token)
 
 
 def anfrage_modal(request):
