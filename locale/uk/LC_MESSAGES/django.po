@@ -31340,3 +31340,18 @@ msgstr "Знижка у відсотках на кожен товар магаз
 
 msgid "Überraschungspreis gibt es nur für ein einzelnes Produkt."
 msgstr "Ціна-сюрприз можлива лише для одного товару."
+
+msgid "Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent oder Euro je Produkt."
+msgstr "Для категорії або всього магазину діє лише знижка у відсотках або євро на товар."
+
+msgid "Bitte einen Betrag über 0 eingeben."
+msgstr "Введіть суму більше 0."
+
+msgid "Bitte nur eine Art: Prozent, Euro pro Stück oder neuer Preis."
+msgstr "Виберіть лише один вид: відсотки, євро за штуку або нова ціна."
+
+msgid "Für eine Kategorie oder den ganzen Shop bitte einen Rabatt in Prozent oder Euro angeben."
+msgstr "Для категорії або всього магазину вкажіть знижку у відсотках або євро."
+
+msgid "Rabatt in € pro Stück"
+msgstr "Знижка в € за штуку"

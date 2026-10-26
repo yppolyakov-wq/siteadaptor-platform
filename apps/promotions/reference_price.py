@@ -199,10 +199,12 @@ def attach(promos) -> list:
                     continue
                 if not (start_of(o) < start) or (o.ends_at is not None and o.ends_at <= since):
                     continue
-                factor = (Decimal(100) - Decimal(int(o.discount_percent))) / Decimal(100)
-                cands.append(
-                    (Decimal(str(p.product.base_price)) * factor).quantize(Decimal("0.01"))
-                )
+                base = Decimal(str(p.product.base_price))
+                if o.discount_percent:  # PR-2: процент или «−X €» с каждой штуки
+                    factor = (Decimal(100) - Decimal(int(o.discount_percent))) / Decimal(100)
+                    cands.append((base * factor).quantize(Decimal("0.01")))
+                elif o.discount_off:
+                    cands.append(max(base - Decimal(str(o.discount_off)), Decimal("0.00")))
         p._prior_low = min(cands) if cands else None
     return promos
 

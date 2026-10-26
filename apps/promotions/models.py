@@ -226,6 +226,9 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     # Скидку владелец задаёт ЛИБО в %, ЛИБО новой ценой (price_override) —
     # остальное считаем (см. свойства old_price/new_price/discount_*).
     discount_percent = models.PositiveSmallIntegerField(null=True, blank=True)
+    # KA-12 PR-2: «−X € pro Stück» — третий вид выгоды (рядом с % и новой ценой); работает
+    # и для акции области (PR-1): «−1 € auf alle Brote» от цены каждого товара.
+    discount_off = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     price_override = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     # Старая (зачёркнутая) цена: если пусто — фолбэк на base_price товара.
     compare_at_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -430,7 +433,16 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         if self.discount_percent and regular is not None:
             factor = (Decimal(100) - Decimal(int(self.discount_percent))) / Decimal(100)
             return (regular * factor).quantize(_CENTS, rounding=ROUND_HALF_UP)
+        if self.discount_off and regular is not None:
+            return max(regular - self._dec(self.discount_off), Decimal("0.00"))
         return regular
+
+    @property
+    def discount_off_label(self) -> str:
+        """PR-2: бейдж «−1,00 €» для выгоды в евро ('' — иначе)."""
+        if not self.discount_off or self.price_condition:
+            return ""
+        return "−" + f"{self._dec(self.discount_off):.2f}".replace(".", ",") + " €"
 
     @property
     def lowers_price(self) -> bool:

@@ -158,7 +158,9 @@ def attach_promos(products, *, with_lowest=True):
         pct = promo.discount_percent_display if announce else None
         # festpreis без процента раньше вырождался в одинокий «%» — человеческая
         # подпись честнее (находка сверки Sparfuchs-ТЗ).
-        p.promo_badge = f"−{pct} %" if pct else (_("Aktion") if promo else "")
+        # PR-2: «−1,00 €» — выгода в евро и подписана в евро (процент от неё вводил бы в заблуждение).
+        off = promo.discount_off_label if announce else ""
+        p.promo_badge = off or (f"−{pct} %" if pct else (_("Aktion") if promo else ""))
         p.promo_old = promo.old_price if announce else None
         p.promo_lowest = promo.lowest_30d_display if announce and with_lowest else None
         # DL-19: выгода в евро — формам «Regal»/«Deal-Kachel» она нужна строкой
@@ -186,16 +188,19 @@ def _usable(promo, now, timeless_only) -> bool:
 
 
 def _scope_q():
-    """PR-1: акции на категорию / весь магазин (только процент — см. модель)."""
-    return models.Q(
-        product__isnull=True,
-        service__isnull=True,
-        stay_unit__isnull=True,
-        combo__isnull=True,
-        discount_percent__isnull=False,
-        price_override__isnull=True,
-        compare_at_price__isnull=True,
-    ) & (models.Q(whole_shop=True) | models.Q(category__isnull=False))
+    """PR-1: акции на категорию / весь магазин (процент или «−X €» — PR-2)."""
+    return (
+        models.Q(
+            product__isnull=True,
+            service__isnull=True,
+            stay_unit__isnull=True,
+            combo__isnull=True,
+            price_override__isnull=True,
+            compare_at_price__isnull=True,
+        )
+        & (models.Q(discount_percent__isnull=False) | models.Q(discount_off__isnull=False))
+        & (models.Q(whole_shop=True) | models.Q(category__isnull=False))
+    )
 
 
 def _category_chains(products) -> dict:

@@ -49,7 +49,11 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
     class Meta:
         model = Promotion
         # KA-M2: цены принимают «12,50».
-        field_classes = {"compare_at_price": MoneyField, "price_override": MoneyField}
+        field_classes = {
+            "compare_at_price": MoneyField,
+            "price_override": MoneyField,
+            "discount_off": MoneyField,
+        }
         fields = [
             "product",
             # W11-4: цели ценового слоя PL (P1) — движок готов с 2026-08-04,
@@ -63,6 +67,7 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             "promo_type",
             "compare_at_price",
             "discount_percent",
+            "discount_off",
             "price_override",
             "available_quantity",
             "max_per_customer",
@@ -91,6 +96,7 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             "whole_shop": _("Ganzer Shop"),
             "compare_at_price": _("Old price (struck through)"),
             "discount_percent": _("Discount %"),
+            "discount_off": _("Rabatt in € pro Stück"),
             "price_override": _("New price"),
             "strikethrough_old_price": _("Strike through the old price"),
             "show_countdown": _("Show countdown to end"),
@@ -377,7 +383,7 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         return cleaned
 
     def _clean_scope(self, cleaned):
-        """KA-12 PR-1: у акции одна цель; область (категория/магазин) — только процент:
+        """KA-12 PR-1: у акции одна цель; область (категория/магазин) — процент или «−X €»:
         «новая/старая цена» и условие цены — свойства одного товара."""
         targets = [
             name
@@ -387,22 +393,39 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         if len(targets) > 1:
             self.add_error(targets[-1], _("Bitte nur ein Ziel wählen: Produkt, Kategorie, Shop, …"))
             return
+        # PR-2: вид выгоды — один: процент, «−X € pro Stück» или новая цена.
+        kinds = [
+            n for n in ("discount_percent", "discount_off", "price_override") if cleaned.get(n)
+        ]
+        if len(kinds) > 1:
+            self.add_error(
+                kinds[-1], _("Bitte nur eine Art: Prozent, Euro pro Stück oder neuer Preis.")
+            )
+            return
+        if cleaned.get("discount_off") is not None and cleaned["discount_off"] <= 0:
+            self.add_error("discount_off", _("Bitte einen Betrag über 0 eingeben."))
         if not ({"category", "whole_shop"} & set(targets)):
             return
-        if not cleaned.get("discount_percent"):
+        if not (cleaned.get("discount_percent") or cleaned.get("discount_off")):
             self.add_error(
                 "discount_percent",
-                _("Für eine Kategorie oder den ganzen Shop bitte einen Rabatt in Prozent angeben."),
+                _(
+                    "Für eine Kategorie oder den ganzen Shop bitte einen Rabatt in Prozent "
+                    "oder Euro angeben."
+                ),
             )
         for name in ("price_override", "compare_at_price"):
             if cleaned.get(name) is not None:
                 self.add_error(
-                    name, _("Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent je Produkt.")
+                    name,
+                    _(
+                        "Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent oder Euro je Produkt."
+                    ),
                 )
         if getattr(self, "_price_condition", None):
             self.add_error(
                 "price_condition_kind",
-                _("Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent je Produkt."),
+                _("Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent oder Euro je Produkt."),
             )
         if cleaned.get("discount_style") == "mystery":
             self.add_error(

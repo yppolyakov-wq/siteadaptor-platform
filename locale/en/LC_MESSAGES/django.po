@@ -31079,3 +31079,18 @@ msgstr "Percentage discount on every product in the shop — right in the cart."
 
 msgid "Überraschungspreis gibt es nur für ein einzelnes Produkt."
 msgstr "A surprise price is only possible for a single product."
+
+msgid "Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent oder Euro je Produkt."
+msgstr "For a category or the whole shop only a discount in percent or euros per product applies."
+
+msgid "Bitte einen Betrag über 0 eingeben."
+msgstr "Please enter an amount above 0."
+
+msgid "Bitte nur eine Art: Prozent, Euro pro Stück oder neuer Preis."
+msgstr "Please choose only one kind: percent, euros per item or new price."
+
+msgid "Für eine Kategorie oder den ganzen Shop bitte einen Rabatt in Prozent oder Euro angeben."
+msgstr "For a category or the whole shop, please enter a discount in percent or euros."
+
+msgid "Rabatt in € pro Stück"
+msgstr "Discount in € per item"
