@@ -2380,7 +2380,7 @@ def voucher_qr(request, code):
 def reservation_create(request, pk):
     promo = get_object_or_404(Promotion, pk=pk, status="active")
     # T-8.2: услугу/номер не откладывают — у них своя воронка записи/брони.
-    if request.method != "POST" or promo.target_kind in ("service", "stay"):
+    if request.method != "POST" or promo.target_kind in ("service", "stay") or promo.scope_kind:
         return redirect("storefront-promotion", pk=pk)
 
     # honeypot — тихо игнорируем ботов (отдаём вид успеха)
@@ -2699,7 +2699,7 @@ def promotion_purchase(request, pk):
     stay сюда не ходят — их CTA ведёт в собственную воронку (промо-цена там
     применяется автоматически)."""
     promo = get_object_or_404(Promotion, pk=pk, status="active")
-    if request.method != "POST" or promo.target_kind in ("service", "stay"):
+    if request.method != "POST" or promo.target_kind in ("service", "stay") or promo.scope_kind:
         return redirect("storefront-promotion", pk=pk)
     if request.POST.get("website"):  # honeypot
         return redirect("storefront-promotion", pk=pk)

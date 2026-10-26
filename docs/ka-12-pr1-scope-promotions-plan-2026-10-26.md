@@ -26,3 +26,10 @@ Brote», «Sale −10 % auf alles» — сегодня акция живёт т�
 ## ECC-прогоны
 Скиллы: database-migrations, django-patterns, django-tdd. Агенты после кода: django-reviewer,
 database-reviewer (запрос/цепочка категорий), security-reviewer + silent-failure-hunter (деньги).
+
+## Ревью (django-reviewer, 2026-10-26) — исправлено
+- POST `/p/<uuid>/kaufen/` и резерв принимали акцию области (цена None → 500 в create_order):
+  гард во вьюхах и в сервисах `purchase()`/`reserve()` (будущие каналы — бот/MCP).
+- §11 PAngV: прошлая акция категории/магазина входит в 30-дневный минимум товара (тем же
+  запросом, что прошлые акции товара — число запросов прежнее).
+- Виртуальная копия помнит область (`scope_kind` = область оригинала, `target_kind` = product).

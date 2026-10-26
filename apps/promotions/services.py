@@ -105,6 +105,8 @@ def reserve(
 
     promo_id = getattr(promotion, "id", promotion)
     promotion = Promotion.objects.get(id=promo_id)
+    if promotion.scope_kind:  # KA-12 PR-1: резервировать нечего — акция действует в корзине
+        raise ValueError("scope promotion cannot be reserved")
 
     # KA-12 E6.6: один человек — по очереди (поиск клиента, лимит на клиента, бронь).
     # Advisory по контакту, а не строка клиента: UPDATE остатка акции не блокируется,
@@ -350,6 +352,10 @@ def purchase(
         # В2: условная акция онлайн не продаётся — гард в сервисе, не только во вьюхе
         # (будущие каналы: бот, MCP).
         raise ValueError("conditional promotion is not sold online")
+    if promotion.scope_kind:
+        # KA-12 PR-1 (ревью): акция на категорию/магазин действует в корзине на товары —
+        # своей цены у неё нет (кастом-строка с ценой None уронила бы create_order).
+        raise ValueError("scope promotion is applied in the cart, not sold itself")
     if quantity < 1:
         raise ValueError("quantity must be >= 1")
     # (1) лимит кампании (None = без лимита; но акция обязана быть active)

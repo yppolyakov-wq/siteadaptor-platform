@@ -23,6 +23,7 @@ EuGH C-330/23 «Aldi Süd» (26.09.2024) и BGH I ZR 183/24 (09.10.2025): при
 
 from collections import defaultdict
 from datetime import timedelta
+from decimal import Decimal
 
 from django.db.models import Q
 from django.utils import timezone
@@ -143,12 +144,24 @@ def attach(promos) -> list:
         target_q |= Q(product_id__in=product_ids)
     if combo_ids:
         target_q |= Q(combo_id__in=combo_ids)
-    others = list(
-        Promotion.all_objects.filter(target_q)
+    # KA-12 PR-1 (ревью): прошлая акция на категорию/весь магазин тоже снижала цену
+    # товара — без неё «−20 %» после «−30 % auf alle Brote» объявлялось бы от полной цены.
+    # Тем же запросом, что акции на товар (число запросов — константа, замки батча).
+    from .price_layer import _category_chains, _scope_q
+
+    rows = list(
+        Promotion.all_objects.filter(target_q | _scope_q())
         .exclude(status__in=_NEVER_LIVE)
         .filter(Q(ends_at__isnull=True) | Q(ends_at__gt=lo))
         .select_related("product", "combo")
     )
+    others = [o for o in rows if o.product_id or o.combo_id]
+    scoped = [o for o in rows if not (o.product_id or o.combo_id)]
+    chains = {}
+    if scoped and product_ids:
+        from apps.catalog.models import Product
+
+        chains = _category_chains(Product.all_objects.filter(pk__in=product_ids))
 
     for p in goods:
         start = starts[id(p)]
@@ -178,6 +191,18 @@ def attach(promos) -> list:
             price = o.new_price
             if price is not None:
                 cands.append(price)
+        if p.product_id and p.product is not None:
+            for o in scoped:
+                if o.pk == p.pk or getattr(p, "_scope_origin_pk", None) == o.pk:
+                    continue
+                if not (o.whole_shop or o.category_id in chains.get(p.product_id, ())):
+                    continue
+                if not (start_of(o) < start) or (o.ends_at is not None and o.ends_at <= since):
+                    continue
+                factor = (Decimal(100) - Decimal(int(o.discount_percent))) / Decimal(100)
+                cands.append(
+                    (Decimal(str(p.product.base_price)) * factor).quantize(Decimal("0.01"))
+                )
         p._prior_low = min(cands) if cands else None
     return promos
 

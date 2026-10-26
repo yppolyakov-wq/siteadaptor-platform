@@ -111,3 +111,45 @@ def test_scope_response_is_show_not_buy():
     brot, *_ = _tree()
     promo = _scope(category=brot)
     assert response.response_for(promo, None) == response.SHOW
+
+
+def test_scope_promo_cannot_be_bought_or_reserved_directly():
+    from apps.promotions import services
+
+    brot, *_ = _tree()
+    promo = _scope(category=brot, available_quantity=3)
+    with pytest.raises(ValueError):
+        services.purchase(promo, quantity=1, name="K", email="k@t.de")
+    with pytest.raises(ValueError):
+        services.reserve(promo, name="K", email="k@t.de")
+    promo.refresh_from_db()
+    assert promo.available_quantity == 3
+
+
+def test_virtual_copy_keeps_scope_kind():
+    brot, a, *_ = _tree()
+    _scope(category=brot)
+    clone = price_layer.product_promo_map([a.pk])[a.pk]
+    assert clone.scope_kind == "category" and clone.target_kind == "product"
+
+
+def test_prior_category_promo_lowers_reference_price():
+    from datetime import timedelta
+
+    brot, a, *_ = _tree()
+    earlier = _scope(pct=30, category=brot)
+    Promotion.objects.filter(pk=earlier.pk).update(
+        starts_at=timezone.now() - timedelta(days=10),
+        ends_at=timezone.now() - timedelta(days=2),
+        status="ended",
+    )
+    own = Promotion.objects.create(
+        title={"de": "Bauernbrot"},
+        product=a,
+        status="active",
+        starts_at=timezone.now(),
+        discount_percent=20,
+    )
+    # 30-дневный минимум = 3,50 (−30 %) → «−20 %» (4,00) снижением не объявляется
+    assert own.prior_lowest_price == D("3.50")
+    assert not own.has_discount

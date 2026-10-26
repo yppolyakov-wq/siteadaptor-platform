@@ -528,7 +528,11 @@ class Promotion(SoftDeleteMixin, I18nMixin):
 
     @property
     def scope_kind(self) -> str:
-        """PR-1: «category» / «shop» для акции на область, иначе ''."""
+        """PR-1: «category» / «shop» для акции на область, иначе ''. Виртуальная копия
+        (price_layer.scope_copy) помнит область оригинала, хотя привязана к товару."""
+        origin = getattr(self, "_scope_origin", None)
+        if origin is not None:
+            return origin
         if self.product_id or self.service_id or self.stay_unit_id or self.combo_id:
             return ""
         if self.whole_shop:

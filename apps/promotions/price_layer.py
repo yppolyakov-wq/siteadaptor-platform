@@ -227,6 +227,8 @@ def scope_copy(promo, product):
     clone.__dict__.pop("_prior_low", None)
     clone.product = product
     clone._scope_virtual = True
+    clone._scope_origin = promo.scope_kind
+    clone._scope_origin_pk = promo.pk
     return clone
 
 
