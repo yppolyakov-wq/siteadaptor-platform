@@ -15364,7 +15364,7 @@ msgid "Ort / Veranstaltungsort"
 msgstr "Місце проведення"
 
 #. I18N-4 forms/import 2026-07-31
-msgid "Preis (leer = Grundpreis)"
+msgid "Preis (leer = Produktpreis)"
 msgstr "Ціна (порожньо = базова)"
 
 #. I18N-4 forms/import 2026-07-31
@@ -31133,3 +31133,51 @@ msgstr "Акція %(label)s: −%(s)s %(c)s"
 
 msgid "Diese Position gehört zu einer Mengenaktion – bitte entfernen und neu hinzufügen."
 msgstr "Ця позиція — частина акції на кількість: видаліть її та додайте знову."
+
+#, python-format
+msgid "%(n)s Varianten angelegt."
+msgstr "Створено варіантів: %(n)s."
+
+msgid "Alle Kombinationen aus Größen und Farben; vorhandene werden übersprungen."
+msgstr "Усі поєднання розмірів і кольорів; наявні пропускаються."
+
+msgid "Alle Kombinationen gibt es schon."
+msgstr "Усі поєднання вже є."
+
+msgid "Bitte Größen und/oder Farben angeben."
+msgstr "Вкажіть розміри та/або кольори."
+
+msgid "Bitte ein Foto auswählen."
+msgstr "Виберіть фото."
+
+msgid "Farben"
+msgstr "Кольори"
+
+#, python-format
+msgid "Foto für %(n)s Varianten in „%(color)s“ gesetzt."
+msgstr "Фото встановлено для %(n)s варіантів кольору «%(color)s»."
+
+msgid "Foto für eine Farbe"
+msgstr "Фото для одного кольору"
+
+msgid "Für alle Größen setzen"
+msgstr "Встановити для всіх розмірів"
+
+msgid "Größen"
+msgstr "Розміри"
+
+#, python-format
+msgid "Höchstens %(n)s Varianten auf einmal."
+msgstr "Не більше %(n)s варіантів за раз."
+
+msgid "Keine Varianten mit dieser Farbe."
+msgstr "Немає варіантів цього кольору."
+
+msgid "Schwarz, Blau, Rot"
+msgstr "Чорний, синій, червоний"
+
+msgid "Varianten erzeugen"
+msgstr "Створити варіанти"
+
+msgid "leer = Produktpreis"
+msgstr "порожньо = базова ціна"

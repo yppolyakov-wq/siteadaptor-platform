@@ -15314,7 +15314,7 @@ msgid "Ort / Veranstaltungsort"
 msgstr "Yer / mekân"
 
 #. I18N-4 forms/import 2026-07-31
-msgid "Preis (leer = Grundpreis)"
+msgid "Preis (leer = Produktpreis)"
 msgstr "Fiyat (boş = temel fiyat)"
 
 #. I18N-4 forms/import 2026-07-31
@@ -31018,3 +31018,51 @@ msgstr "Kampanya %(label)s: −%(s)s %(c)s"
 
 msgid "Diese Position gehört zu einer Mengenaktion – bitte entfernen und neu hinzufügen."
 msgstr "Bu kalem bir adet kampanyasının parçası – lütfen kaldırıp yeniden ekleyin."
+
+#, python-format
+msgid "%(n)s Varianten angelegt."
+msgstr "%(n)s varyant oluşturuldu."
+
+msgid "Alle Kombinationen aus Größen und Farben; vorhandene werden übersprungen."
+msgstr "Bedenler ve renklerin tüm kombinasyonları; mevcut olanlar atlanır."
+
+msgid "Alle Kombinationen gibt es schon."
+msgstr "Tüm kombinasyonlar zaten mevcut."
+
+msgid "Bitte Größen und/oder Farben angeben."
+msgstr "Lütfen bedenleri ve/veya renkleri girin."
+
+msgid "Bitte ein Foto auswählen."
+msgstr "Lütfen bir fotoğraf seçin."
+
+msgid "Farben"
+msgstr "Renkler"
+
+#, python-format
+msgid "Foto für %(n)s Varianten in „%(color)s“ gesetzt."
+msgstr "“%(color)s” rengindeki %(n)s varyant için fotoğraf ayarlandı."
+
+msgid "Foto für eine Farbe"
+msgstr "Bir renk için fotoğraf"
+
+msgid "Für alle Größen setzen"
+msgstr "Tüm bedenler için ayarla"
+
+msgid "Größen"
+msgstr "Bedenler"
+
+#, python-format
+msgid "Höchstens %(n)s Varianten auf einmal."
+msgstr "Tek seferde en fazla %(n)s varyant."
+
+msgid "Keine Varianten mit dieser Farbe."
+msgstr "Bu renkte varyant yok."
+
+msgid "Schwarz, Blau, Rot"
+msgstr "Siyah, Mavi, Kırmızı"
+
+msgid "Varianten erzeugen"
+msgstr "Varyant oluştur"
+
+msgid "leer = Produktpreis"
+msgstr "boş = temel fiyat"

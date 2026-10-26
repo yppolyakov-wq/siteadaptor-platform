@@ -238,6 +238,31 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
         </form>
       {% endfor %}
 
+      {% comment %}KA-12 WR-5: генератор «размеры × цвета» и фото на цвет — одним действием
+вместо десятков одиночных форм.{% endcomment %}
+      <form method="post" action="{% url 'catalog:variant-generate' product.pk %}" class="mt-4 border-t border-gray-100 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm" data-variant-generator>
+        {% csrf_token %}
+        <p class="sm:col-span-2 font-medium">{% trans "Varianten erzeugen" %} <span class="text-xs text-gray-400 font-normal">{% trans "Alle Kombinationen aus Größen und Farben; vorhandene werden übersprungen." %}</span></p>
+        <label class="text-xs text-gray-500">{% trans "Größen" %}
+          <input name="sizes" type="text" placeholder="S, M, L, XL" class="block w-full rounded-lg border border-gray-300 px-2 py-2 text-base"></label>
+        <label class="text-xs text-gray-500">{% trans "Farben" %}
+          <input name="colors" type="text" placeholder="{% trans 'Schwarz, Blau, Rot' %}" class="block w-full rounded-lg border border-gray-300 px-2 py-2 text-base"></label>
+        <label class="text-xs text-gray-500">{% trans "Price" %}
+          <input name="price" type="text" inputmode="decimal" placeholder="{% trans 'leer = Produktpreis' %}" class="block w-full rounded-lg border border-gray-300 px-2 py-2 text-base"></label>
+        <label class="text-xs text-gray-500">{% trans "Stock" %}
+          <input name="stock" type="number" min="0" class="block w-full rounded-lg border border-gray-300 px-2 py-2 text-base"></label>
+        <button class="sm:col-span-2 min-h-[44px] rounded-xl bg-gray-900 text-white px-4 font-medium">{% trans "Varianten erzeugen" %}</button>
+      </form>
+      {% if variant_colors %}
+      <form method="post" enctype="multipart/form-data" action="{% url 'catalog:variant-color-photo' product.pk %}" class="mt-3 flex flex-wrap items-end gap-2 text-sm" data-variant-color-photo>
+        {% csrf_token %}
+        <label class="text-xs text-gray-500">{% trans "Foto für eine Farbe" %}
+          <select name="color" class="block rounded-lg border border-gray-300 px-2 py-2 text-base">{% for c in variant_colors %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></label>
+        <input name="image" type="file" accept="image/jpeg,image/png,image/webp" required class="text-sm" aria-label="{% trans 'Foto' %}">
+        <button class="min-h-[44px] rounded-xl bg-white border border-gray-300 px-3 hover:border-indigo-400">{% trans "Für alle Größen setzen" %}</button>
+      </form>
+      {% endif %}
+
       <form method="post" enctype="multipart/form-data" action="{% url 'catalog:variant-add' product.pk %}" class="flex flex-wrap items-center gap-2 text-sm mt-3 border-t border-gray-100 pt-3">
         {% csrf_token %}
         <label class="text-xs text-gray-500 cursor-pointer" title="{% trans 'Variant photo' %}">📷

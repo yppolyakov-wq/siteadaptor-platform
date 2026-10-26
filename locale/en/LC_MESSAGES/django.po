@@ -15204,7 +15204,7 @@ msgid "Ort / Veranstaltungsort"
 msgstr "Place / venue"
 
 #. I18N-4 forms/import 2026-07-31
-msgid "Preis (leer = Grundpreis)"
+msgid "Preis (leer = Produktpreis)"
 msgstr "Price (empty = base price)"
 
 #. I18N-4 forms/import 2026-07-31
@@ -30874,3 +30874,51 @@ msgstr "Deal %(label)s: −%(s)s %(c)s"
 
 msgid "Diese Position gehört zu einer Mengenaktion – bitte entfernen und neu hinzufügen."
 msgstr "This item is part of a quantity deal – please remove it and add it again."
+
+#, python-format
+msgid "%(n)s Varianten angelegt."
+msgstr "%(n)s variants created."
+
+msgid "Alle Kombinationen aus Größen und Farben; vorhandene werden übersprungen."
+msgstr "All combinations of sizes and colours; existing ones are skipped."
+
+msgid "Alle Kombinationen gibt es schon."
+msgstr "All combinations already exist."
+
+msgid "Bitte Größen und/oder Farben angeben."
+msgstr "Please enter sizes and/or colours."
+
+msgid "Bitte ein Foto auswählen."
+msgstr "Please choose a photo."
+
+msgid "Farben"
+msgstr "Colours"
+
+#, python-format
+msgid "Foto für %(n)s Varianten in „%(color)s“ gesetzt."
+msgstr "Photo set for %(n)s variants in “%(color)s”."
+
+msgid "Foto für eine Farbe"
+msgstr "Photo for one colour"
+
+msgid "Für alle Größen setzen"
+msgstr "Set for all sizes"
+
+msgid "Größen"
+msgstr "Sizes"
+
+#, python-format
+msgid "Höchstens %(n)s Varianten auf einmal."
+msgstr "At most %(n)s variants at once."
+
+msgid "Keine Varianten mit dieser Farbe."
+msgstr "No variants with this colour."
+
+msgid "Schwarz, Blau, Rot"
+msgstr "Black, Blue, Red"
+
+msgid "Varianten erzeugen"
+msgstr "Generate variants"
+
+msgid "leer = Produktpreis"
+msgstr "empty = base price"

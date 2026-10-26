@@ -229,6 +229,8 @@ RULES: dict[str, Rule] = {
     "catalog:product-photo-edit": _r(S, SE),
     "catalog:products-merge": _r(S, SE),
     "catalog:variant-add": _r(S, SE),
+    "catalog:variant-generate": _r(S, SE),
+    "catalog:variant-color-photo": _r(S, SE),
     "catalog:variant-delete": _r(S, "sortiment.delete"),
     "catalog:variant-update": _r(S, SE),
     # --- Kunden & Nachrichten -------------------------------------------------------

@@ -23,6 +23,13 @@ urlpatterns = [
     ),
     # Варианты товара (R1).
     path("products/<uuid:pk>/variants/add/", views.variant_add, name="variant-add"),
+    # KA-12 WR-5: генератор «размеры × цвета» и фото на цвет.
+    path("products/<uuid:pk>/variants/generate/", views.variant_generate, name="variant-generate"),
+    path(
+        "products/<uuid:pk>/variants/color-photo/",
+        views.variant_color_photo,
+        name="variant-color-photo",
+    ),
     path(
         "products/<uuid:pk>/variants/<uuid:vid>/update/",
         views.variant_update,

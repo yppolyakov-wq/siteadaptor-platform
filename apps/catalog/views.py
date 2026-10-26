@@ -226,6 +226,10 @@ def product_edit(request, pk):
             "is_create": False,
             "product": product,
             "variants": product.variants.all(),
+            # KA-12 WR-5: цвета вариантов — для «Foto für eine Farbe» (без дублей).
+            "variant_colors": sorted(
+                {c for c in product.variants.values_list("color", flat=True) if c}, key=str.lower
+            ),
             "modifier_groups": product.modifier_groups.prefetch_related("options"),
             # O-2: реестры видов отображения (витрина и кабинет читают один список).
             "variant_styles": VARIANT_STYLES,
@@ -287,6 +291,106 @@ def variant_add(request, pk):
         )
         freshness.confirm(product)  # Г3: правка варианта подтверждает товар
         messages.success(request, _("Variant added."))
+    return redirect("catalog:product-edit", pk=pk)
+
+
+MAX_GENERATED_VARIANTS = 120  # KA-12 WR-5: 12 размеров × 10 цветов — потолок одной операции
+
+
+def _axis_values(raw) -> list[str]:
+    """«S, M, L» / по строкам → ["S", "M", "L"] (без пустых и дублей, порядок ввода)."""
+    seen, out = set(), []
+    for part in (raw or "").replace("\n", ",").split(","):
+        value = part.strip()[:40]
+        if value and value.lower() not in seen:
+            seen.add(value.lower())
+            out.append(value)
+    return out
+
+
+@login_required
+@require_POST
+def variant_generate(request, pk):
+    """KA-12 WR-5 (E3.1): все сочетания «размеры × цвета» одним действием. Существующие
+    варианты пропускаются (по метке), цена/остаток — общие; стартовый остаток — в леджер."""
+    from django.db import transaction
+
+    product = get_object_or_404(Product, pk=pk)
+    sizes = _axis_values(request.POST.get("sizes")) or [""]
+    colors = _axis_values(request.POST.get("colors")) or [""]
+    combos = [(sz, col) for sz in sizes for col in colors if sz or col]
+    if not combos:
+        messages.error(request, _("Bitte Größen und/oder Farben angeben."))
+        return redirect("catalog:product-edit", pk=pk)
+    if len(combos) > MAX_GENERATED_VARIANTS:
+        messages.error(
+            request,
+            _("Höchstens %(n)s Varianten auf einmal.") % {"n": MAX_GENERATED_VARIANTS},
+        )
+        return redirect("catalog:product-edit", pk=pk)
+    price = _parse_price(request.POST.get("price"))
+    stock = _parse_int(request.POST.get("stock"))
+    created = 0
+    with transaction.atomic():
+        existing = set(
+            ProductVariant.objects.filter(product=product).values_list("label", flat=True)
+        )
+        order = ProductVariant.objects.filter(product=product).count()
+        for size, color in combos:
+            label = " · ".join(part for part in (size, color) if part)[:100]
+            if label in existing:
+                continue
+            variant = ProductVariant.objects.create(
+                product=product,
+                label=label,
+                size=size,
+                color=color,
+                price=price,
+                stock_quantity=stock,
+                sort_order=order + created,
+            )
+            existing.add(label)
+            created += 1
+            log_catalog_change(
+                product=product,
+                variant=variant,
+                old=None,
+                new=variant.stock_quantity,
+                actor=getattr(request.user, "username", ""),
+            )
+    if created:
+        freshness.confirm(product)
+        messages.success(request, _("%(n)s Varianten angelegt.") % {"n": created})
+    else:
+        messages.info(request, _("Alle Kombinationen gibt es schon."))
+    return redirect("catalog:product-edit", pk=pk)
+
+
+@login_required
+@require_POST
+def variant_color_photo(request, pk):
+    """KA-12 WR-5 (E3.1): одно фото на ЦВЕТ — для всех вариантов этого цвета сразу
+    (5 размеров синего = одна загрузка, а не пять)."""
+    product = get_object_or_404(Product, pk=pk)
+    color = (request.POST.get("color") or "").strip()
+    variants = (
+        list(ProductVariant.objects.filter(product=product, color__iexact=color)) if color else []
+    )
+    if not variants:
+        messages.error(request, _("Keine Varianten mit dieser Farbe."))
+        return redirect("catalog:product-edit", pk=pk)
+    image = _uploaded_variant_image(request)
+    if not image:
+        messages.error(request, _("Bitte ein Foto auswählen."))
+        return redirect("catalog:product-edit", pk=pk)
+    for variant in variants:
+        variant.images = [image]
+        variant.save(update_fields=["images", "updated_at"])
+    messages.success(
+        request,
+        _("Foto für %(n)s Varianten in „%(color)s“ gesetzt.")
+        % {"n": len(variants), "color": color},
+    )
     return redirect("catalog:product-edit", pk=pk)
 
 
