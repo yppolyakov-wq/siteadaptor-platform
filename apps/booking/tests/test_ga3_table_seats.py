@@ -118,7 +118,7 @@ def test_move_to_small_table_warns_not_refuses():
     assert any("2" in t and "Plätze" in t for t in texts)
 
 
-def test_resource_settings_edit_seats_and_garbage_capacity(monkeypatch):
+def test_resource_settings_edit_seats_and_garbage_capacity():
     table = _table(seats=None)
     data = {
         "action": "resource_settings",

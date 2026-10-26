@@ -488,13 +488,21 @@ def termin_index(request):
             },
             embed,
         )
-    resources = Resource.objects.filter(is_active=True)
-    if resources.count() == 1 and not has_pass_plans:  # один ресурс — сразу к слотам
+    # KA-12 GA-4: столы с местами — одной карточкой «Tisch reservieren» (стол
+    # подбирается сам); отдельно их не показываем. «Nur vor Ort» — не показываем вовсе.
+    tables = table_rules.online_tables()
+    has_tables = tables.exists()
+    resources = Resource.objects.filter(is_active=True, bookable_online=True)
+    if has_tables:
+        resources = resources.exclude(pk__in=tables.values("pk"))
+    if has_tables and not resources.exists() and not has_pass_plans:
+        return _embed_redirect("storefront-tisch", embed)
+    if not has_tables and resources.count() == 1 and not has_pass_plans:
         return _embed_redirect("storefront-termin-slots", embed, pk=resources.first().pk)
     return _render_embed(
         request,
         "storefront/booking_index.html",
-        {"resources": resources, "has_pass_plans": has_pass_plans},
+        {"resources": resources, "has_pass_plans": has_pass_plans, "table_booking": has_tables},
         embed,
     )
 
@@ -1471,14 +1479,146 @@ def termin_slots(request, pk):
     )
 
 
+def _party_from(raw, default=2) -> int:
+    try:
+        return max(1, min(int(raw), 50))
+    except (TypeError, ValueError):
+        return default
+
+
+def tisch_slots(request):
+    """KA-12 GA-4: «Tisch reservieren» без выбора стола — гость задаёт день и число
+    гостей, видит объединённые свободные времена; стол подбирается при брони."""
+    _require_booking_active(request)
+    tenant = getattr(request, "tenant", None)
+    if not table_rules.online_tables().exists():
+        raise Http404
+    day = _parse_day(request.GET.get("tag"))
+    party = _party_from(request.GET.get("gaeste"))
+    today = timezone.localdate()
+    slots = [(s, e, len(tables)) for s, e, tables in table_rules.table_slots(day, party)]
+    selected = None
+    raw_slot = request.GET.get("slot", "")
+    if raw_slot:
+        selected = next(((s, e) for s, e, _n in slots if s.isoformat() == raw_slot), None)
+    from apps.core import extras as extras_engine
+
+    max_day = today + timedelta(days=MAX_DAYS_AHEAD)
+    cal = _slot_month(
+        lambda d: table_rules.has_table_slot(d, party), _cal_first(request, day), today, max_day
+    )
+    fitting = table_rules.fitting_tables(party)
+    deposit = max((t.deposit_cents for t in fitting), default=0)
+    # Пилюли «Gäste»: до самого большого онлайн-стола (и не дальше правила GA-1).
+    biggest = max((t.seats for t in table_rules.online_tables()), default=1)
+    rule_max = table_rules.rules(tenant).get("online_max", biggest)
+    top = max(1, min(biggest, rule_max, 12))
+    choices = list(range(1, top + 1))
+    if party not in choices:
+        choices.append(party)
+    ctx = {
+        "resource": None,
+        "table_mode": True,
+        "party": party,
+        "party_choices": choices,
+        "party_max": top,
+        "book_url": reverse("storefront-tisch-book"),
+        "day": day,
+        "slots": slots,
+        "group": False,
+        "selected": selected,
+        "extras": extras_engine.active_for("booking"),
+        **_payment_ctx(tenant, "booking"),
+        "no_show_terms": _no_show_terms(request),
+        "deposit_required": deposit > 0 and getattr(tenant, "payments_enabled", False),
+        "deposit_eur": f"{deposit / 100:.2f}".replace(".", ","),
+        "passes_enabled": _passes_enabled(),
+        "table_rule": table_rules.rules(tenant),
+        "prev_day": day - timedelta(days=1) if day > today else None,
+        "next_day": day + timedelta(days=1) if day < max_day else None,
+        "cal_qs": f"&gaeste={party}",
+        **cal,
+    }
+    embed = _is_embed(request)
+    if request.GET.get("box") == "1":
+        return render(
+            request,
+            "storefront/_booking_slots_box.html",
+            {
+                **ctx,
+                "embed": embed,
+                "embed_qs": _flow_qs(request, embed),
+                "attr": attribution.context(request),
+            },
+        )
+    return _render_embed(request, "storefront/booking_slots.html", ctx, embed)
+
+
+def tisch_book(request):
+    """KA-12 GA-4: бронь автоподбором — годные столы (наименьший первым) по очереди."""
+    _require_booking_active(request)
+    embed = _is_embed(request)
+    party = _party_from(request.POST.get("party_size"), default=1)
+    suffix = f"?gaeste={party}" + ("&embed=1" if embed else "")
+    back_url = reverse("storefront-tisch") + suffix
+
+    def back():
+        return _embed_redirect(
+            "storefront-tisch", embed, request=request, extra=[("gaeste", str(party))]
+        )
+
+    if request.method != "POST":
+        return back()
+    candidates = table_rules.fitting_tables(party)
+    if not candidates:
+        tenant = getattr(request, "tenant", None)
+        if table_rules.decide(tenant, Resource(type=Resource.TYPE_TABLE), party) == (
+            table_rules.CALL
+        ):
+            candidates = list(table_rules.online_tables()[:1])  # ядро ответит «bitte anrufen»
+        if not candidates:
+            messages.error(
+                request,
+                _(
+                    "Für %(n)s Personen haben wir online keinen passenden Tisch — bitte rufen Sie uns an."
+                )
+                % {"n": party},
+            )
+            return back()
+    return _termin_book_core(
+        request,
+        candidates,
+        back=back,
+        cancel_url=request.build_absolute_uri(back_url),
+        embed=embed,
+    )
+
+
 def termin_book(request, pk):
     _require_booking_active(request)
     embed = _is_embed(request)  # A4: сохраняем iframe-режим во всём флоу
     if request.method != "POST":
         return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
-    resource = get_object_or_404(Resource, pk=pk, is_active=True)
+    # KA-12 GA-4: стол «nur vor Ort» (bookable_online=False) онлайн не бронируется.
+    resource = get_object_or_404(Resource, pk=pk, is_active=True, bookable_online=True)
+    cancel_url = request.build_absolute_uri(
+        reverse("storefront-termin-slots", args=[resource.pk])
+    ) + ("?embed=1" if embed else "")
+    return _termin_book_core(
+        request,
+        [resource],
+        back=lambda: _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk),
+        cancel_url=cancel_url,
+        embed=embed,
+    )
+
+
+def _termin_book_core(request, candidates, *, back, cancel_url, embed):
+    """Общее ядро онлайн-брони ресурса. candidates — ресурсы в порядке подбора: один
+    (гость выбрал стол/курс) или годные столы автоподбора (KA-12 GA-4). Бронь
+    пробуется по очереди: стол, занятый между показом и POST, уступает следующему."""
     if request.POST.get("website"):  # honeypot
-        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+        return back()
     if ratelimit.hit("termin", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
         return HttpResponse(status=429)
 
@@ -1490,14 +1630,19 @@ def termin_book(request, pk):
     # Слот должен существовать в сетке расписания — иначе произвольный интервал.
     # KA-12 E4.4a: прямой POST не обходит горизонт записи витрины.
     too_far = start.date() > timezone.localdate() + timedelta(days=MAX_DAYS_AHEAD)
-    if too_far or (start, end) not in availability.free_slots(resource, start.date()):
+    if not too_far:
+        candidates = [
+            r for r in candidates if (start, end) in availability.free_slots(r, start.date())
+        ]
+    if too_far or not candidates:
         messages.error(request, _("This slot is no longer available. Please pick another."))
-        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+        return back()
+    resource = candidates[0]
 
     name = request.POST.get("name", "").strip()
     if not name:
         messages.error(request, _("Please tell us your name."))
-        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+        return back()
     try:
         party_size = max(1, min(int(request.POST.get("party_size", "1")), 50))
     except (TypeError, ValueError):
@@ -1516,7 +1661,7 @@ def termin_book(request, pk):
             )
             % {"n": table_rules.online_max(tenant, resource) + 1},
         )
-        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+        return back()
     # KA-12 GA-3: стол с местами не берёт компанию больше себя (онлайн — отказ).
     seats = table_rules.seats_exceeded(resource, party_size)
     if seats:
@@ -1524,18 +1669,18 @@ def termin_book(request, pk):
             request,
             _("An diesem Tisch ist Platz für höchstens %(n)s Personen.") % {"n": seats},
         )
-        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+        return back()
     pay_kwargs = _payment_kwargs(request, "booking")
     no_show, email, early = _no_show_gate(
         request,
         tenant,
-        base_deposit=resource.deposit_cents,
+        base_deposit=max(r.deposit_cents for r in candidates),
         estimate=None,
         slots=1,
         offline=payment_methods.offline_payment(SimpleNamespace(**pay_kwargs)),
     )
     if early == "back":
-        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+        return back()
     if early is not None:
         return early
     from apps.core import extras as extras_engine
@@ -1545,46 +1690,55 @@ def termin_book(request, pk):
 
     found = attribution.resolve(request)  # В5 V5-5b
     try:
-        booking = services.book(
-            resource,
-            start=start,
-            end=end,
-            name=name,
-            email=email,
-            phone=request.POST.get("phone", "").strip(),
-            party_size=party_size,
-            # E6.4c: при правиле «created» — только по окончательному исходу
-            # (иначе гонка карты → депозит слала бы письмо дважды).
-            notify=no_show.kind == "none",
-            note=request.POST.get("note", "").strip()[:2000],
-            source_channel=found.channel[:50],
-            extras=extras_snap,
-            # KA-12 GA-1: «Sofort bestätigen» — только без депозита и без правила
-            # неявок (их путь подтверждает оплатой, как раньше).
-            auto_confirm=decision == table_rules.INSTANT
-            and no_show.kind == "none"
-            and resource.deposit_cents <= 0
-            and not table_rules.resource_requires_confirm(resource),
-            is_large_party=decision == table_rules.REQUEST,
-            # SH-23c: способ оплаты и «кто покупает» — общий разбор (счёт юрлицу
-            # доступен только фирме, Р-3; срок оплаты по Р-2/Р-4).
-            **pay_kwargs,
-        )
+        booking = None
+        for candidate in candidates:
+            try:
+                booking = services.book(
+                    candidate,
+                    start=start,
+                    end=end,
+                    name=name,
+                    email=email,
+                    phone=request.POST.get("phone", "").strip(),
+                    party_size=party_size,
+                    # E6.4c: при правиле «created» — только по окончательному исходу
+                    # (иначе гонка карты → депозит слала бы письмо дважды).
+                    notify=no_show.kind == "none",
+                    note=request.POST.get("note", "").strip()[:2000],
+                    source_channel=found.channel[:50],
+                    extras=extras_snap,
+                    # KA-12 GA-1: «Sofort bestätigen» — только без депозита и без правила
+                    # неявок (их путь подтверждает оплатой, как раньше).
+                    auto_confirm=decision == table_rules.INSTANT
+                    and no_show.kind == "none"
+                    and candidate.deposit_cents <= 0
+                    and not table_rules.resource_requires_confirm(candidate),
+                    is_large_party=decision == table_rules.REQUEST,
+                    # SH-23c: способ оплаты и «кто покупает» — общий разбор (счёт юрлицу
+                    # доступен только фирме, Р-3; срок оплаты по Р-2/Р-4).
+                    **pay_kwargs,
+                )
+                break
+            except services.SlotTaken:  # GA-4: стол заняли между показом и POST — следующий
+                if candidate is candidates[-1]:
+                    raise
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This slot is no longer available. Please pick another."))
-        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+        return back()
     except option_trackers.PoolFull as exc:
         messages.error(
             request,
             _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.") % {"label": exc.label},
         )
-        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+        return back()
     except option_trackers.OptionOutOfStock as exc:
         messages.error(
             request,
             _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
         )
-        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+        return back()
+
+    resource = booking.resource  # GA-4: депозит/возврат — по назначенному столу
 
     def after_deal():
         conversions.count(request, "deal", "booking", booking, attribution=found)  # В5 V5-5b
@@ -1626,13 +1780,10 @@ def termin_book(request, pk):
             base_deposit=resource.deposit_cents,
             payable=lambda b: (b.total_cents - b.voucher_paid_cents) if b.price_cents else None,
             ok_url=_termin_ok_url(request, booking, embed),
-            cancel_url=request.build_absolute_uri(
-                reverse("storefront-termin-slots", args=[resource.pk])
-            )
-            + ("?embed=1" if embed else ""),
+            cancel_url=cancel_url,
         )
         if forced == "back":
-            return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
+            return back()
         after_deal()
         if forced is not None:
             return forced
@@ -1658,9 +1809,6 @@ def termin_book(request, pk):
             + "?paid=1"
             + ("&embed=1" if embed else "")
         )
-        cancel_url = request.build_absolute_uri(
-            reverse("storefront-termin-slots", args=[resource.pk])
-        ) + ("?embed=1" if embed else "")
         try:
             return redirect(
                 payments.deposit_checkout_url(

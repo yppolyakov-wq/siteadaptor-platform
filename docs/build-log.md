@@ -20270,3 +20270,19 @@ Kennzeichen/HSN/TSN мастерской и источник обращения 
 - Экран ресурсов: вместимость/места/зона/порядок правятся в «resource_settings» под сентинелом
   `seats_present` (W0); число из формы — `_bounded_int` (фикс G9: мусор в capacity давал 500).
 - Golden GA-0: xfail «стол на 2 принимает 8 гостей» снят. Тесты `test_ga3_table_seats.py` (7).
+
+## 2026-10-26 — KA-12 Gastro GA-4: «Tisch reservieren» с автоподбором (без миграций)
+- План `docs/ka-12-w4-ga4-table-autoassign-plan-2026-10-26.md`.
+- `table_rules.online_tables/fitting_tables/table_slots/has_table_slot` — одна точка «какие столы
+  годятся онлайн» (активный стол с местами, не пул, `bookable_online`, `min_seats ≤ гости ≤ seats`;
+  наименьший первым).
+- Витрина `/termin/tisch/` (пилюли «Gäste», объединённые времена, тот же fetch-своп) и POST
+  `/termin/tisch/buchen/`. Ядро `termin_book` вынесено в `_termin_book_core(candidates, back,
+  cancel_url)`: кандидаты по очереди, `SlotTaken` → следующий стол; депозит — по назначенному столу,
+  гейт неявок — по максимальному депозиту кандидатов. Прежний путь «выбрать ресурс» — тот же код
+  с одним кандидатом.
+- `/termin/`: столы с местами — одной карточкой (только столы → сразу на `/termin/tisch/`);
+  «nur vor Ort» (`bookable_online=False`) — 404 по pk и не в списке. Форма ресурсов: «Online ab
+  Personen» (кламп ≤ мест) и «Online buchbar».
+- Тесты `test_ga4_table_autoassign.py` (9): порядок/фильтры, объединение, второй гость на следующий
+  стол, гонка, нет стола, карточка/редирект, 404 офлайн-стола.

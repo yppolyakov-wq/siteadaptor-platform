@@ -559,6 +559,8 @@ urlpatterns = [
     path("o/<uuid:token>/", orders_public.offer_page, name="storefront-offer"),
     # Запись по времени (Track D / D3b): ресурс → день → слот → форма.
     path("termin/", booking_public.termin_index, name="storefront-termin"),
+    path("termin/tisch/", booking_public.tisch_slots, name="storefront-tisch"),
+    path("termin/tisch/buchen/", booking_public.tisch_book, name="storefront-tisch-book"),
     path("termin/<uuid:pk>/", booking_public.termin_slots, name="storefront-termin-slots"),
     path("termin/<uuid:pk>/buchen/", booking_public.termin_book, name="storefront-termin-book"),
     # Запись на услугу (G10): услуга → слот (по всем ресурсам) → форма.

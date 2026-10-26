@@ -30985,3 +30985,16 @@ msgstr "Внимание: за столом %(table)s только %(n)s мес�
 
 msgid "z. B. Terrasse"
 msgstr "напр. терраса"
+
+#, python-format
+msgid "Für %(n)s Personen haben wir online keinen passenden Tisch — bitte rufen Sie uns an."
+msgstr "Для %(n)s человек онлайн подходящего стола нет — пожалуйста, позвоните нам."
+
+msgid "Online ab Personen"
+msgstr "Онлайн от гостей"
+
+msgid "Online buchbar"
+msgstr "Бронируется онлайн"
+
+msgid "Uhrzeit und Personen wählen — den passenden Tisch suchen wir aus."
+msgstr "Выберите время и число гостей — подходящий стол подберём сами."

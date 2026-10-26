@@ -1,6 +1,6 @@
 {% extends base_template|default:"storefront/_base.html" %}
 {% load i18n %}
-{% block title %}{{ resource.name }} — {% trans "Book a slot" %}{% endblock %}
+{% block title %}{% if table_mode %}{% trans "Tisch reservieren" %}{% else %}{{ resource.name }}{% endif %} — {% trans "Book a slot" %}{% endblock %}
 
 {% block content %}
 {# Тематическая шапка брони (акцентный цвет витрины). #}
@@ -9,7 +9,7 @@
   <div class="bg-black/15">
     <div class="max-w-7xl mx-auto px-4 py-8 md:py-12">
       <a href="{% url 'storefront-termin' %}{% if embed %}?embed=1{% endif %}" class="text-sm text-white/80 hover:text-white">← {% trans "Back" %}</a>
-      <h1 class="text-3xl md:text-4xl font-bold mt-1 drop-shadow">🍽 {{ resource.name }}</h1>
+      <h1 class="text-3xl md:text-4xl font-bold mt-1 drop-shadow">🍽 {% if table_mode %}{% trans "Tisch reservieren" %}{% else %}{{ resource.name }}{% endif %}</h1>
       <p class="mt-1 text-white/90">{% trans "Reserve your spot online — pick a day and time." %}</p>
     </div>
   </div>

@@ -30710,3 +30710,16 @@ msgstr "Note: %(table)s only has %(n)s seats (%(guests)s guests)."
 
 msgid "z. B. Terrasse"
 msgstr "e.g. terrace"
+
+#, python-format
+msgid "Für %(n)s Personen haben wir online keinen passenden Tisch — bitte rufen Sie uns an."
+msgstr "We have no suitable table online for %(n)s people — please give us a call."
+
+msgid "Online ab Personen"
+msgstr "Online from guests"
+
+msgid "Online buchbar"
+msgstr "Bookable online"
+
+msgid "Uhrzeit und Personen wählen — den passenden Tisch suchen wir aus."
+msgstr "Choose a time and party size — we'll pick the right table."

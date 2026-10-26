@@ -809,7 +809,20 @@ def resources(request):
                 resource.seats = _seats_or_none(request.POST.get("seats"), resource.seats)
                 resource.zone = request.POST.get("zone", "").strip()[:40]
                 resource.sort_order = _bounded_int(request.POST.get("sort_order"), 0, 0, 999)
-                fields += ["capacity", "seats", "zone", "sort_order"]
+                # GA-4: «ab N Personen» онлайн; не больше мест (иначе стол молча
+                # пропал бы из онлайн-подбора).
+                resource.min_seats = min(
+                    _bounded_int(request.POST.get("min_seats"), 1, 1, 99), resource.seats or 99
+                )
+                resource.bookable_online = bool(request.POST.get("bookable_online"))
+                fields += [
+                    "capacity",
+                    "seats",
+                    "zone",
+                    "sort_order",
+                    "min_seats",
+                    "bookable_online",
+                ]
             resource.save(update_fields=fields)
             messages.success(request, _("Deposit settings saved."))
         elif action == "resource_profile":

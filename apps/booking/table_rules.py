@@ -76,3 +76,49 @@ def seats_exceeded(resource, party: int) -> int | None:
     if not seats or getattr(resource, "counts_party_size", False):
         return None
     return seats if party > seats else None
+
+
+def online_tables():
+    """KA-12 GA-4: столы с местами, которые бронируются онлайн автоподбором (без
+    выбора конкретного стола гостем). Пул (`counts_party_size`) и стол без мест —
+    прежний путь «выбрать ресурс»."""
+    from .models import Resource
+
+    return (
+        Resource.objects.filter(
+            is_active=True,
+            type=Resource.TYPE_TABLE,
+            seats__isnull=False,
+            counts_party_size=False,
+            bookable_online=True,
+        )
+        .prefetch_related("rules")
+        .order_by("seats", "sort_order", "name")
+    )
+
+
+def fitting_tables(party: int) -> list:
+    """Годные для компании столы — наименьший подходящий первым (6 гостей не займут
+    стол на 10, пока свободен стол на 6). `min_seats` — с какого числа гостей стол
+    выдаётся онлайн (столик на двоих не отдают одному, если владелец так задал)."""
+    party = max(1, int(party or 1))
+    return [t for t in online_tables() if (t.min_seats or 1) <= party <= t.seats]
+
+
+def table_slots(day, party: int) -> list:
+    """[(start, end, tables)] — объединение свободных слотов годных столов дня;
+    tables — свободные столы этого слота в порядке подбора."""
+    from . import availability
+
+    merged: dict = {}
+    for table in fitting_tables(party):
+        for start, end in availability.free_slots(table, day):
+            merged.setdefault((start, end), []).append(table)
+    return [(s, e, merged[(s, e)]) for s, e in sorted(merged)]
+
+
+def has_table_slot(day, party: int) -> bool:
+    """Есть ли на день хоть один свободный стол (для месяц-сетки; ранний выход)."""
+    from . import availability
+
+    return any(availability.free_slots(t, day) for t in fitting_tables(party))

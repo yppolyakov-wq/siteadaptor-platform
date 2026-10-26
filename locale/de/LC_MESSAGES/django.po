@@ -30802,3 +30802,16 @@ msgstr "Hinweis: %(table)s hat nur %(n)s Plätze (%(guests)s Gäste)."
 
 msgid "z. B. Terrasse"
 msgstr "z. B. Terrasse"
+
+#, python-format
+msgid "Für %(n)s Personen haben wir online keinen passenden Tisch — bitte rufen Sie uns an."
+msgstr "Für %(n)s Personen haben wir online keinen passenden Tisch — bitte rufen Sie uns an."
+
+msgid "Online ab Personen"
+msgstr "Online ab Personen"
+
+msgid "Online buchbar"
+msgstr "Online buchbar"
+
+msgid "Uhrzeit und Personen wählen — den passenden Tisch suchen wir aus."
+msgstr "Uhrzeit und Personen wählen — den passenden Tisch suchen wir aus."

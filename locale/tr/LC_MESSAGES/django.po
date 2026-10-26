@@ -30854,3 +30854,16 @@ msgstr "Not: %(table)s yalnızca %(n)s kişilik (%(guests)s misafir)."
 
 msgid "z. B. Terrasse"
 msgstr "ör. teras"
+
+#, python-format
+msgid "Für %(n)s Personen haben wir online keinen passenden Tisch — bitte rufen Sie uns an."
+msgstr "%(n)s kişi için çevrimiçi uygun masamız yok — lütfen bizi arayın."
+
+msgid "Online ab Personen"
+msgstr "Çevrimiçi en az kişi"
+
+msgid "Online buchbar"
+msgstr "Çevrimiçi rezerve edilebilir"
+
+msgid "Uhrzeit und Personen wählen — den passenden Tisch suchen wir aus."
+msgstr "Saati ve kişi sayısını seçin — uygun masayı biz seçeriz."
