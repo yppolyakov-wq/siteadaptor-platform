@@ -494,7 +494,7 @@ document (партиал может перерисовываться — уро�
           <div><button type="submit" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Termin anlegen" %}</button></div>
         </form>
       </details>
-    {% elif termin_needs_resource %}
+    {% elif termin_needs_resource and 'booking:resources'|pkg_allowed:request.tenant %}
       <p class="mt-2 text-xs text-gray-500">📅 {% trans "Für Termine zuerst eine Ressource anlegen" %} — <a href="{% url 'booking:resources' %}" class="text-indigo-600 hover:underline">{% trans "Öffnungszeiten & Ressourcen" %}</a></p>
     {% endif %}
   </div>
