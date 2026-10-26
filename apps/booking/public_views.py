@@ -1555,7 +1555,8 @@ def termin_book(request, pk):
             # неявок (их путь подтверждает оплатой, как раньше).
             auto_confirm=decision == table_rules.INSTANT
             and no_show.kind == "none"
-            and resource.deposit_cents <= 0,
+            and resource.deposit_cents <= 0
+            and not table_rules.resource_requires_confirm(resource),
             is_large_party=decision == table_rules.REQUEST,
             # SH-23c: способ оплаты и «кто покупает» — общий разбор (счёт юрлицу
             # доступен только фирме, Р-3; срок оплаты по Р-2/Р-4).
@@ -1591,7 +1592,13 @@ def termin_book(request, pk):
         after_deal()
 
     # G9: Mehrfachkarte вместо оплаты — если код предъявлен, депозит пропускаем.
-    if not no_show.forced and _redeem_pass_if_code(request, [booking]):
+    # Ревью GA-1: Gruppenanfrage карту не гасит — визит списался бы на заявку,
+    # которую владелец ещё может отклонить.
+    if (
+        not no_show.forced
+        and not booking.is_large_party
+        and _redeem_pass_if_code(request, [booking])
+    ):
         if no_show.kind != "pass" or not _uncarded([booking]):
             if deferred:
                 after_deal()
@@ -1654,7 +1661,7 @@ def termin_book(request, pk):
             )
         except stripe.error.StripeError:
             # оплата временно недоступна — бронь остаётся (pending), не теряем её
-            pass
+            logger.exception("deposit checkout failed for booking %s", booking.pk)
     return _embed_redirect(
         "storefront-termin-ok", embed, request=request, code=booking.reference_code
     )

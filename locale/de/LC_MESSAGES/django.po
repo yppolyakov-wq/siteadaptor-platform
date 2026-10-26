@@ -30731,3 +30731,12 @@ msgstr "Sofort bestätigen bis (Personen)"
 
 msgid "Gruppenanfrage — bitte bestätigen oder ablehnen."
 msgstr "Gruppenanfrage — bitte bestätigen oder ablehnen."
+
+msgid "Neue Reservierung (bereits bestätigt)"
+msgstr "Neue Reservierung (bereits bestätigt)"
+
+msgid "Im Dashboard"
+msgstr "Im Dashboard"
+
+msgid "Hinweis: Bei Tischen mit Anzahlung oder aktiver Regel zu Nichterscheinen wird erst nach der Zahlung bestätigt."
+msgstr "Hinweis: Bei Tischen mit Anzahlung oder aktiver Regel zu Nichterscheinen wird erst nach der Zahlung bestätigt."

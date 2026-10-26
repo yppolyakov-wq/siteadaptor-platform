@@ -59,10 +59,11 @@ def enqueue_booking_email(booking, event):
 
     # KA-12 GA-1: запись, созданная сразу подтверждённой (стойка, «Sofort
     # bestätigen»), — гостю письмо «bestätigt», а не «Anfrage erhalten». Ключ дедупа
-    # прежний (событие created), владелец получает обычное «neue Buchung».
+    # фактического письма (ревью: иначе отложенный «created» после подтверждения FSM
+    # давал второе «bestätigt»); переключатели каналов — тоже по фактическому письму.
     mail_event = "confirmed" if event == "created" and booking.status == "confirmed" else event
     template_base = _CUSTOMER_TEMPLATES.get(mail_event)
-    email_on = channel_enabled(tenant, "customer", "booking", event, "email")
+    email_on = channel_enabled(tenant, "customer", "booking", mail_event, "email")
     if template_base and customer.email and not customer.unsubscribed and email_on:
         base = _base_url(schema)
         # LS-6: «Etwas stimmt nicht?» в подтверждении (high-тред + пуш владельцу).
@@ -124,7 +125,9 @@ def enqueue_booking_email(booking, event):
                 "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
             }
         notify(
-            dedupe_key=f"booking:{booking.id}:{_event_key(booking, event)}:customer",
+            # ревью GA-1: ключ по фактическому письму — «bestätigt» уходит один раз,
+            # даже если запись подтвердил FSM раньше отложенного «created».
+            dedupe_key=f"booking:{booking.id}:{_event_key(booking, mail_event)}:customer",
             type=f"booking_{mail_event}",
             recipient=customer.email,
             subject=subject,
@@ -137,15 +140,15 @@ def enqueue_booking_email(booking, event):
     if (
         template_base
         and customer
-        and channel_enabled(tenant, "customer", "booking", event, "telegram")
+        and channel_enabled(tenant, "customer", "booking", mail_event, "telegram")
     ):
         from apps.telegram.notify import send_to_customer
 
         subject_tg, body_tg, _html = _render(template_base, {**ctx, "unsubscribe_url": ""})
         send_to_customer(
             customer,
-            type=f"booking_{event}",
-            dedupe_key=f"booking:{booking.id}:{_event_key(booking, event)}:tg",
+            type=f"booking_{mail_event}",
+            dedupe_key=f"booking:{booking.id}:{_event_key(booking, mail_event)}:tg",
             text=subject_tg or body_tg,
         )
 

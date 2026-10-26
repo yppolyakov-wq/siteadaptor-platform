@@ -813,6 +813,16 @@ def resources(request):
             # есть хоть один стол).
             "table_rule": table_rules.rules(getattr(request, "tenant", None)),
             "has_tables": Resource.objects.filter(type=Resource.TYPE_TABLE).exists(),
+            # Ревью GA-1: «sofort» не действует при депозите стола или правиле неявок
+            # (их путь подтверждает оплатой) — владелец видит это в карточке.
+            "table_rule_caveat": Resource.objects.filter(
+                type=Resource.TYPE_TABLE, deposit_cents__gt=0
+            ).exists()
+            or bool(
+                (getattr(getattr(request, "tenant", None), "site_config", None) or {})
+                .get("booking", {})
+                .get("no_show_deposit")
+            ),
         },
     )
 
@@ -828,6 +838,9 @@ def table_rules_save(request):
     from apps.tenants.models import Tenant
     from apps.tenants.siteconfig import normalize_booking
 
+    # Ревью GA-1: политика приёма броней — как правило неявок, только owner/admin.
+    if not _can_edit_policy(request.user):
+        raise PermissionDenied
     enabled = request.POST.get("enabled") == "1"
     rule = normalize_booking(
         {

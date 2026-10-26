@@ -30639,3 +30639,12 @@ msgstr "Confirm instantly up to (people)"
 
 msgid "Gruppenanfrage — bitte bestätigen oder ablehnen."
 msgstr "Group request — please confirm or decline."
+
+msgid "Neue Reservierung (bereits bestätigt)"
+msgstr "New reservation (already confirmed)"
+
+msgid "Im Dashboard"
+msgstr "In the dashboard"
+
+msgid "Hinweis: Bei Tischen mit Anzahlung oder aktiver Regel zu Nichterscheinen wird erst nach der Zahlung bestätigt."
+msgstr "Note: for tables with a deposit or an active no-show rule, confirmation happens only after payment."

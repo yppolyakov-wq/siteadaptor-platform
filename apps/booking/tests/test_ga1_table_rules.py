@@ -181,8 +181,10 @@ def _cab(data):
     return request
 
 
-def test_rule_save_keeps_other_booking_rules():
+def test_rule_save_keeps_other_booking_rules(monkeypatch):
     from apps.booking import views
+
+    monkeypatch.setattr(views, "_can_edit_policy", lambda user: True)
 
     tenant = TenantFactory(
         site_config={"booking": {"no_show_deposit": {"after": 2, "days": 365}}, "theme": "x"},
@@ -216,3 +218,32 @@ def test_manual_confirm_flag_read_only_in_table_rules():
         if "resource.require_manual_confirm" in text and not rel.startswith("booking/views"):
             hits.append(rel)
     assert hits == []
+
+
+def test_staff_without_policy_right_cannot_change_rule(monkeypatch):
+    from django.core.exceptions import PermissionDenied
+
+    from apps.booking import views
+
+    monkeypatch.setattr(views, "_can_edit_policy", lambda user: False)
+    request = _cab({"enabled": "1", "instant_max": "50", "online_max": "50"})
+    request.tenant = _tenant()
+    with pytest.raises(PermissionDenied):
+        views.table_rules_save(request)
+
+
+def test_manual_confirm_table_is_never_instant():
+    resource = _table()
+    Resource.objects.filter(pk=resource.pk).update(require_manual_confirm=True)
+    resource.refresh_from_db()
+    _response, email = _post(resource, 2)
+    assert Booking.objects.get(customer__email=email).status == "pending"
+
+
+def test_owner_mail_for_confirmed_booking_does_not_ask_to_confirm(monkeypatch):
+    owner_tenant = TenantFactory.build(owner_email="chef@example.com")
+    monkeypatch.setattr("apps.booking.notifications._tenant", lambda schema: owner_tenant)
+    resource = _table()
+    _response, _email = _post(resource, 2)
+    mail = Notification.objects.get(recipient="chef@example.com", type="booking_created_owner")
+    assert "bereits bestätigt" in mail.subject + mail.payload.get("body", "")

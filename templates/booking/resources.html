@@ -34,6 +34,7 @@
       <input type="text" inputmode="numeric" name="online_max" value="{{ table_rule.online_max|default:12 }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5"></label>
     <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 font-medium hover:bg-indigo-700">{% trans "Speichern" %}</button>
     <p class="w-full text-xs text-gray-500">{% trans "Größere Gruppen bis zur Obergrenze kommen als Anfrage, die Sie bestätigen. Darüber bitten wir die Gäste, anzurufen." %}</p>
+    {% if table_rule_caveat %}<p class="w-full text-xs text-amber-700" data-table-rule-caveat>{% trans "Hinweis: Bei Tischen mit Anzahlung oder aktiver Regel zu Nichterscheinen wird erst nach der Zahlung bestätigt." %}</p>{% endif %}
   </form>
 </details>
 {% endif %}

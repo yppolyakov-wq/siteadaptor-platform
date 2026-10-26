@@ -54,10 +54,14 @@ def online_max(tenant, resource) -> int:
     return rules(tenant).get("online_max", 50)
 
 
+def resource_requires_confirm(resource) -> bool:
+    """Ресурс настроен «Manuell bestätigen» (анти-фрод владельца)."""
+    return bool(getattr(resource, "require_manual_confirm", False))
+
+
 def needs_manual_confirm(booking) -> bool:
     """Единственная точка «подтверждает только владелец»: ресурс так настроен или
     бронь — Gruppenanfrage. Оплата депозита/Mehrfachkarte такую бронь не подтверждает."""
-    resource = getattr(booking, "resource", None)
-    return bool(getattr(resource, "require_manual_confirm", False)) or bool(
+    return resource_requires_confirm(getattr(booking, "resource", None)) or bool(
         getattr(booking, "is_large_party", False)
     )

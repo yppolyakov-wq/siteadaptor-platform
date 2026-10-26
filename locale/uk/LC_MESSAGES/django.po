@@ -30898,3 +30898,12 @@ msgstr "Підтверджувати одразу до (осіб)"
 
 msgid "Gruppenanfrage — bitte bestätigen oder ablehnen."
 msgstr "Груповий запит — підтвердьте або відхиліть."
+
+msgid "Neue Reservierung (bereits bestätigt)"
+msgstr "Нове бронювання (вже підтверджено)"
+
+msgid "Im Dashboard"
+msgstr "У кабінеті"
+
+msgid "Hinweis: Bei Tischen mit Anzahlung oder aktiver Regel zu Nichterscheinen wird erst nach der Zahlung bestätigt."
+msgstr "Зверніть увагу: для столів із передоплатою або за правила неявок підтвердження — лише після оплати."

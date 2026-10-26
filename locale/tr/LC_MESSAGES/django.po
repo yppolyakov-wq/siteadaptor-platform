@@ -30783,3 +30783,12 @@ msgstr "Anında onay üst sınırı (kişi)"
 
 msgid "Gruppenanfrage — bitte bestätigen oder ablehnen."
 msgstr "Grup talebi — lütfen onaylayın veya reddedin."
+
+msgid "Neue Reservierung (bereits bestätigt)"
+msgstr "Yeni rezervasyon (zaten onaylandı)"
+
+msgid "Im Dashboard"
+msgstr "Panelde"
+
+msgid "Hinweis: Bei Tischen mit Anzahlung oder aktiver Regel zu Nichterscheinen wird erst nach der Zahlung bestätigt."
+msgstr "Not: Kaporalı masalarda veya gelmeme kuralı etkinse onay ancak ödemeden sonra yapılır."

@@ -1,4 +1,4 @@
-{% load i18n %}{% trans "Neue Reservierungsanfrage!" %}{% if booking.is_large_party %}
+{% load i18n %}{% if booking.status == "confirmed" %}{% trans "Neue Reservierung (bereits bestätigt)" %}{% else %}{% trans "Neue Reservierungsanfrage!" %}{% endif %}{% if booking.is_large_party %}
 👥 {% trans "Gruppenanfrage — bitte bestätigen oder ablehnen." %}{% endif %}
 
 {{ resource.name }} · {{ booking.start|date:"l, d.m.Y" }} {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }}
@@ -8,4 +8,4 @@
 {% for g in group_bookings %}- {{ g.start|date:"d.m.Y" }} · {{ g.start|time:"H:i" }}–{{ g.end|time:"H:i" }}
 {% endfor %}{% endif %}{% if booking.note %}{% trans "Notiz" %}: {{ booking.note }}{% endif %}
 
-{% trans "Bestätigen im Dashboard" %}: /dashboard/booking/
+{% if booking.status == "confirmed" %}{% trans "Im Dashboard" %}{% else %}{% trans "Bestätigen im Dashboard" %}{% endif %}: /dashboard/booking/

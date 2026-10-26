@@ -20212,3 +20212,23 @@ Kennzeichen/HSN/TSN мастерской и источник обращения 
   Mittagstisch Mo–Fr порождает наследника в субботу (GA-8).
 - Браузерный GP-7 в `scripts/golden_paths.py` (демо `restaurant`: /termin/ → стол → время → 2 гостя →
   /t/<code>/ → бронь в БД).
+
+## 2026-10-26 — KA-12 Gastro GA-1: правило онлайн-брони столов (⚠️ `booking/0040`)
+- `site_config["booking"]["tables"] = {instant_max, online_max}` (presence-minimal; нет ключа —
+  прежнее «всё — запрос»). `apps/booking/table_rules.py`: до N гостей — бронь сразу подтверждена,
+  до M — «Gruppenanfrage» (`Booking.is_large_party`, держит места, подтверждает только владелец), больше
+  — брони нет, просьба позвонить/написать. Только тип «Tisch» и только витрина.
+- Одна точка «подтверждает только владелец» (`needs_manual_confirm`) вместо трёх прямых проверок флага
+  ресурса: депозит, Mehrfachkarte и денежный контракт не подтверждают Gruppenanfrage. Замок — прямое
+  чтение флага вне `table_rules` (и форм ресурса) запрещено.
+- Письма: запись, созданная сразу подтверждённой (стойка, «sofort»), шлёт гостю «bestätigt» вместо
+  «Anfrage erhalten» (закрыт xfail GA-0); владельцу — «Neue Reservierung (bereits bestätigt)» и
+  «Gruppenanfrage — bitte bestätigen oder ablehnen». Витрина: предел поля «Gäste» и подсказка правила,
+  свой текст подтверждения Gruppenanfrage. Кабинет: карточка «Online-Tischreservierung» на «Ressourcen»
+  (POST `booking:table-rules`, точечная запись под блокировкой, аудит).
+- Ревью security + silent-failure: «sofort» не обходит «Manuell bestätigen» стола; правило меняют только
+  owner/admin (как правило неявок); «bestätigt» уходит один раз (ключ дедупа и каналы — по фактическому
+  письму); Gruppenanfrage не гасит Mehrfachkarte; предупреждение «при депозите/правиле неявок — после
+  оплаты»; лог сбоя Stripe. Оплаченная Gruppenanfrage без сигнала владельцу — закрывает GA-2 (бейдж).
+- Попутно: флак `test_e44b_variants_s2` (xdist-воркеры делят Redis, счётчики IP совпадали → 429) —
+  автофикстура `isolated_ratelimit` в `apps/booking/tests/conftest.py`. Замки `test_ga1_table_rules.py` (16).
