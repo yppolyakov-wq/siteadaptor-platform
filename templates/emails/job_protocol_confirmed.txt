@@ -1,0 +1,5 @@
+{% load i18n %}{% blocktrans with name=protocol.confirmed_name code=job.reference_code %}{{ name }} hat das Abnahmeprotokoll zu {{ code }} online bestätigt.{% endblocktrans %}
+
+{{ job.title }}
+
+{% trans "Auftrag im Dashboard" %}: /dashboard/auftraege/

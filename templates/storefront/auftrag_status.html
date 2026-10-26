@@ -27,5 +27,43 @@
     {% endfor %}
   </ol>
   {% endif %}
+
+  {% if protocol %}
+  {% comment %}KA-12 A-5: акт сдачи-приёмки — пункты, заметки, фото «Nachher» и
+  онлайн-подтверждение (один раз; статус заявки не меняется).{% endcomment %}
+  <section class="mt-6 bg-white rounded-2xl shadow-sm p-6" data-job-protocol>
+    <h2 class="text-lg font-semibold">{% trans "Abnahmeprotokoll" %}</h2>
+    <p class="text-sm text-gray-500">{{ protocol.date|date:"SHORT_DATE_FORMAT" }}</p>
+    {% if protocol.items %}
+      <ul class="mt-3 space-y-1 text-sm">
+        {% for item in protocol.items %}
+          <li>{% if item.ok %}✓{% else %}<span class="text-red-600">✗</span>{% endif %} {{ item.label }}{% if not item.ok %} — <span class="text-red-600">{% trans "Mangel" %}</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if protocol.notes %}<p class="mt-3 text-sm text-gray-700 whitespace-pre-line">{{ protocol.notes }}</p>{% endif %}
+    {% if after_photos %}
+      <div class="mt-3 flex flex-wrap gap-2">
+        {% for ph in after_photos %}<a href="{{ ph.image.url }}" target="_blank" rel="noopener"><img src="{{ ph.image.url }}" alt="{% trans 'Nachher' %}" class="h-20 w-20 object-cover rounded-lg border border-gray-200"></a>{% endfor %}
+      </div>
+    {% endif %}
+    {% if protocol.confirmed_online_at %}
+      <p class="mt-4 text-sm font-medium text-emerald-700">✓ {% blocktrans with name=protocol.confirmed_name date=protocol.confirmed_online_at|date:"SHORT_DATETIME_FORMAT" %}Bestätigt von {{ name }} am {{ date }}{% endblocktrans %}</p>
+    {% else %}
+      <form method="post" class="mt-4 space-y-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="confirm_protocol">
+        <label class="block text-sm text-gray-600">{% trans "Ihr Name" %}
+          <input name="name" required maxlength="120" autocomplete="name" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-base"></label>
+        <label class="flex items-start gap-2 text-sm text-gray-700">
+          <input type="checkbox" name="checked" value="1" required class="mt-1">
+          <span>{% trans "Ich habe die Leistung geprüft und nehme sie ab." %}</span>
+        </label>
+        {% include "storefront/_privacy_note.html" %}
+        <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Abnahme bestätigen" %}</button>
+      </form>
+    {% endif %}
+  </section>
+  {% endif %}
 </div>
 {% endblock %}

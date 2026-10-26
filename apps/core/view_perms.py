@@ -116,6 +116,7 @@ RULES: dict[str, Rule] = {
     "jobs:detail": _r(V, E),
     "jobs:delete": _r(V, E),
     "jobs:pdf": _r(V),
+    "jobs:protocol-pdf": _r(V),
     "jobs:invoice-pdf": _r(V),
     "jobs:anfrage-form-settings": _r(A, AE),
     "stays:calendar": _r(V, E),

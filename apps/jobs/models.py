@@ -10,7 +10,9 @@ notifications, реестр модулей. Без онлайн-оплаты (Ha
 import uuid
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import payment_methods
@@ -311,11 +313,79 @@ class JobPhoto(TimestampedModel):
     """Фото к заявке (A7b): клиент прикладывает на /anfrage/, мастер видит их в
     кабинете при подготовке сметы (повреждение/объём работ)."""
 
+    KIND_CUSTOMER = "customer"
+    #: KA-12 A-5: фото клиента (публичная форма) и фото мастера (до/после, приёмка/сдача).
+    KINDS = [
+        (KIND_CUSTOMER, _("Kunde")),
+        ("before", _("Vorher")),
+        ("after", _("Nachher")),
+        ("intake", _("Annahme")),
+        ("handover", _("Übergabe")),
+    ]
+    MASTER_KINDS = ("before", "after", "intake", "handover")
+
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="photos")
     image = models.ImageField(upload_to="job_photos/%Y/%m/")
+    kind = models.CharField(
+        max_length=16, choices=KINDS, default=KIND_CUSTOMER, db_default=KIND_CUSTOMER
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
 
     class Meta:
         ordering = ["created_at"]
 
     def __str__(self):
         return f"Photo {self.pk} for {self.job_id}"
+
+
+class JobProtocol(TimestampedModel):
+    """KA-12 A-5: акт приёмки (intake) или сдачи-приёмки (handover, Abnahmeprotokoll).
+
+    Один акт каждого вида на заявку. Клиент подтверждает handover онлайн один раз;
+    статус заявки это НЕ меняет (О-3). После подтверждения акт не правится."""
+
+    KIND_INTAKE = "intake"
+    KIND_HANDOVER = "handover"
+    KINDS = [(KIND_INTAKE, _("Annahmeprotokoll")), (KIND_HANDOVER, _("Abnahmeprotokoll"))]
+
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="protocols")
+    kind = models.CharField(max_length=16, choices=KINDS)
+    date = models.DateField(default=timezone.localdate)
+    notes = models.TextField(blank=True)
+    #: [{"label": str, "ok": bool}] — пункт проверки; ok=False = Mangel.
+    items = models.JSONField(default=list, blank=True)
+    mileage_km = models.PositiveIntegerField(null=True, blank=True)
+    signed_name = models.CharField(max_length=120, blank=True)
+    signed_at = models.DateTimeField(null=True, blank=True)
+    confirmed_online_at = models.DateTimeField(null=True, blank=True)
+    confirmed_name = models.CharField(max_length=120, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+
+    class Meta:
+        ordering = ["kind"]
+        constraints = [
+            models.UniqueConstraint(fields=["job", "kind"], name="jobs_protocol_job_kind_uniq"),
+            models.CheckConstraint(
+                condition=models.Q(kind__in=["intake", "handover"]),
+                name="jobs_protocol_kind_valid",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.kind} protocol for {self.job_id}"
+
+    @property
+    def defects(self):
+        return [i for i in self.items if not i.get("ok", True)]

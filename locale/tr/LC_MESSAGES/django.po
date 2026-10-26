@@ -30495,3 +30495,103 @@ msgstr "Randevu oluşturuldu."
 
 msgid "Termin anlegen"
 msgstr "Randevu oluştur"
+
+msgid "Abnahme bestätigen"
+msgstr "Teslimi onayla"
+
+msgid "Abnahmeprotokoll"
+msgstr "Teslim tutanağı"
+
+msgid "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+msgstr "Teslim tutanakları ve yapılan işin fotoğrafları garanti süresinin sonuna kadar saklanır (§ 634a BGB); isimler ve notlar silinir."
+
+msgid "Annahme"
+msgstr "Teslim alma"
+
+msgid "Annahmeprotokoll"
+msgstr "Teslim alma tutanağı"
+
+msgid "Art des Fotos"
+msgstr "Fotoğraf türü"
+
+msgid "Auftraggeber"
+msgstr "İşveren"
+
+msgid "Auftragnehmer"
+msgstr "Yüklenici"
+
+msgid "Bemerkungen"
+msgstr "Notlar"
+
+#, python-format
+msgid "Bestätigt von %(name)s am %(date)s"
+msgstr "%(name)s tarafından %(date)s tarihinde onaylandı"
+
+msgid "Bitte Namen eintragen und die Prüfung der Leistung bestätigen."
+msgstr "Lütfen adınızı girin ve işi kontrol ettiğinizi onaylayın."
+
+msgid "Danke! Die Abnahme ist bestätigt."
+msgstr "Teşekkürler! Teslim onaylandı."
+
+msgid "Der Kunde hat das Protokoll bereits bestätigt — es kann nicht mehr geändert werden."
+msgstr "Müşteri tutanağı zaten onayladı — artık değiştirilemez."
+
+msgid "Der Kunde kann das Protokoll auf der Statusseite des Auftrags online bestätigen."
+msgstr "Müşteri tutanağı sipariş durum sayfasında çevrimiçi onaylayabilir."
+
+msgid "Die Abnahme wurde bereits bestätigt."
+msgstr "Teslim zaten onaylandı."
+
+msgid "Fotos & Abnahmeprotokoll"
+msgstr "Fotoğraflar ve teslim tutanağı"
+
+msgid "Ich habe die Leistung geprüft und nehme sie ab."
+msgstr "İşi kontrol ettim ve teslim alıyorum."
+
+msgid "Ihr Name"
+msgstr "Adınız"
+
+msgid "Kilometerstand"
+msgstr "Kilometre"
+
+msgid "Kilometerstand ist keine gültige Zahl."
+msgstr "Kilometre geçerli bir sayı değil."
+
+msgid "Mangel"
+msgstr "Kusur"
+
+msgid "Nachher"
+msgstr "Sonra"
+
+msgid "Übergabe"
+msgstr "Teslim"
+
+#, python-format
+msgid "Online bestätigt von %(name)s am %(date)s"
+msgstr "%(name)s tarafından %(date)s tarihinde çevrimiçi onaylandı"
+
+msgid "Protokoll gespeichert."
+msgstr "Tutanak kaydedildi."
+
+msgid "Prüfpunkte"
+msgstr "Kontrol noktaları"
+
+msgid "Prüfpunkte — ein Punkt pro Zeile, „✗ “ am Anfang = Mangel"
+msgstr "Kontrol noktaları — satır başına bir tane, başta „✗ “ = kusur"
+
+msgid "Unbekanntes Protokoll."
+msgstr "Bilinmeyen tutanak."
+
+msgid "Unterschrift vor Ort (Name)"
+msgstr "Yerinde imza (ad)"
+
+msgid "Zu viele Versuche. Bitte später erneut versuchen."
+msgstr "Çok fazla deneme. Lütfen daha sonra tekrar deneyin."
+
+#, python-format
+msgid "%(name)s hat das Abnahmeprotokoll zu %(code)s online bestätigt."
+msgstr "%(name)s, %(code)s için teslim tutanağını çevrimiçi onayladı."
+
+#, python-format
+msgid "Abnahme %(code)s bestätigt"
+msgstr "Teslim %(code)s onaylandı"

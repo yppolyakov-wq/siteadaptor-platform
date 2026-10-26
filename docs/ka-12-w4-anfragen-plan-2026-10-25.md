@@ -129,6 +129,39 @@ Service.pricing_mode); JS ставит кол-во = гости поверх з�
 confirmed_online_at, created_by). PDF «Abnahmeprotokoll»; онлайн-подтверждение клиентом на
 `/auftrag/<token>/` (POST, один раз, под блокировкой, аудит); статус не меняет (О-3). DSGVO — в выгрузку/удаление.
 
+#### A-5 · детальный план (2026-10-26)
+**Модель (`jobs/0022`, аддитивная):**
+- `JobPhoto.kind` CharField(16, choices customer/before/after/intake/handover, default "customer",
+  db_default) — существующие фото = фото клиента; `uploaded_by` FK User SET_NULL null (как
+  `crm.CustomerNote.author`). Индекс не нужен (выборка всегда по job_id, ≤ 25 строк).
+- `JobProtocol` (TimestampedModel): job FK CASCADE related_name="protocols", kind (intake|handover),
+  date DateField, notes Text blank, items JSON list[{"label": str, "ok": bool}] default list,
+  mileage_km PositiveInteger null, signed_name Char(120) blank, signed_at DateTime null,
+  confirmed_online_at DateTime null, confirmed_name Char(120) blank, created_by FK User SET_NULL null.
+  UniqueConstraint(job, kind) — один акт каждого вида на заявку.
+**Лимиты:** клиентский лимит 5 считает только kind=customer (публичная форма); мастер — до 20 фото
+своих видов (`MAX_MASTER_PHOTOS`), счёт под `select_for_update` заявки (как сейчас).
+**Кабинет (jobs:detail):** выбор вида при загрузке (whitelist, мусор → customer запрещён для
+мастера → before), фото группами «Kunde / Vorher / Nachher / Annahme / Übergabe»; блок
+«📝 Abnahmeprotokoll» (date, пункты — строка на пункт, «✗ » в начале = Mangel, пробег, заметки,
+имя подписавшего на месте) → action `protocol` (kind из whitelist), правка запрещена после
+онлайн-подтверждения; PDF `jobs:protocol-pdf <pk> <kind>` (тот же documents-слой, язык заявки).
+**Витрина `/auftrag/<token>/`:** при наличии handover-акта — пункты/заметки/фото «Nachher» и форма
+«Abnahme bestätigen» (имя обязательно, чекбокс «Ich habe die Leistung geprüft»): POST, под
+`select_for_update` акта, повтор → «bereits bestätigt», `audit_event(strict=False)` с IP-хэшем не
+пишем (только факт), ratelimit по IP. Статус заявки НЕ меняется (О-3); владельцу — flash-уведомление
+нет, письмо через `notify` с dedupe (owner-ветка, «Abnahme bestätigt»).
+**DSGVO:** выгрузка — CHILDREN jobs.Job += photos, protocols; удаление — фото вида customer
+удаляются (файл on_commit), акты и фото мастера остаются по основанию «abnahme» (Abnahme
+запускает срок Gewährleistung § 634a BGB — доказательство), из актов стираются signed_name/
+confirmed_name. ⚖️ Основание — на вычитку юриста (как waiver).
+**ECC:** до кода — django-patterns, django-tdd, django-security, database-migrations; агенты —
+database-reviewer (дизайн миграции до кода), django-reviewer + security-reviewer (после кода:
+публичный POST, загрузка файлов, IDOR по kind/pk); стенд — серверный тест витрины (JS нет).
+**Замки до кода:** клиентский лимит не съедается фото мастера; мастер не может загрузить
+customer; акт подтверждается ровно один раз и не меняет статус; правка после подтверждения
+запрещена; чужой токен → 404; PDF отдаётся; DSGVO: фото клиента удалены, акт без имён остался.
+
 ### A-6 · E5.6 Werkstatt (⚠️ `jobs/0023` с data-шагом)
 `jobs.Vehicle` (customer, plate, vin ISO 3779, hsn, tsn, make_model, first_registration, mileage_km,
 hu_due, notes) + `Job.vehicle_ref`, `Job.mileage_km`; data-шаг plate → Vehicle (идемпотентно).

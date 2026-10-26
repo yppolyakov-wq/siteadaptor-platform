@@ -15,7 +15,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
-from apps.core.documents import doc_date, fonts, money, qty
+from apps.core.documents import doc_date, doc_datetime, fonts, money, qty
 
 _INK = (0.10, 0.10, 0.12)
 _MUTED = (0.42, 0.42, 0.48)
@@ -130,6 +130,118 @@ def build_quote_pdf(job, tenant) -> bytes:
         c.drawString(x, y, _("No VAT is charged in accordance with § 19 UStG."))
         y -= 5 * mm
     c.drawString(x, y, _("This is a non-binding quote / cost estimate."))
+
+    c.showPage()
+    c.save()
+    return buffer.getvalue()
+
+
+def build_protocol_pdf(job, protocol, tenant) -> bytes:
+    """KA-12 A-5: акт сдачи-приёмки (Abnahmeprotokoll) или приёмки (Annahmeprotokoll).
+
+    Пункты проверки (✓/✗ Mangel), пробег, заметки, подпись на месте и отметка об
+    онлайн-подтверждении клиента. Длинный список переносится на новую страницу."""
+    font, font_bold = fonts()
+    buffer = io.BytesIO()
+    page_w, page_h = A4
+    c = canvas.Canvas(buffer, pagesize=A4)
+    x = 20 * mm
+    bottom = 25 * mm
+    y = page_h - 25 * mm
+
+    def room(need):
+        nonlocal y
+        if y - need < bottom:
+            c.showPage()
+            y = page_h - 25 * mm
+            c.setFillColorRGB(*_INK)
+            c.setFont(font, 9)
+
+    c.setFillColorRGB(*_INK)
+    c.setFont(font_bold, 14)
+    c.drawString(x, y, tenant.name)
+    c.setFont(font, 9)
+    c.setFillColorRGB(*_MUTED)
+    for bit in [b for b in [tenant.address, tenant.city] if b]:
+        y -= 5 * mm
+        c.drawString(x, y, bit.replace("\n", ", "))
+
+    y -= 15 * mm
+    c.setFillColorRGB(*_INK)
+    c.setFont(font_bold, 16)
+    title = _("Abnahmeprotokoll") if protocol.kind == "handover" else _("Annahmeprotokoll")
+    c.drawString(x, y, f"{title} {job.reference_code}")
+    c.setFont(font, 9)
+    c.setFillColorRGB(*_MUTED)
+    label_date = _("Date")
+    c.drawRightString(page_w - x, y, f"{label_date}: {doc_date(protocol.date)}")
+
+    y -= 10 * mm
+    c.setFillColorRGB(*_INK)
+    c.setFont(font, 10)
+    label_customer = _("Kunde")
+    c.drawString(x, y, f"{label_customer}: {job.customer}"[:95])
+    y -= 6 * mm
+    c.setFont(font_bold, 11)
+    c.drawString(x, y, job.title[:80])
+    if job.site_address:
+        y -= 5 * mm
+        c.setFont(font, 9)
+        c.drawString(x, y, job.site_address.replace("\n", ", ")[:95])
+    if protocol.mileage_km is not None:
+        y -= 5 * mm
+        c.setFont(font, 9)
+        label_km = _("Kilometerstand")
+        c.drawString(x, y, f"{label_km}: {protocol.mileage_km} km")
+
+    if protocol.items:
+        y -= 10 * mm
+        c.setFont(font_bold, 10)
+        c.drawString(x, y, _("Prüfpunkte"))
+        c.setFont(font, 9)
+        for item in protocol.items:
+            room(6 * mm)
+            y -= 6 * mm
+            # Helvetica (WinAnsi) не знает ✓/✗ — без DejaVu печатаем [x]/[ ].
+            ok = item.get("ok", True)
+            if font == "Helvetica":
+                mark = "[x]" if ok else "[ ]"
+            else:
+                mark = "✓" if ok else "✗"
+            suffix = "" if item.get("ok", True) else f" — {_('Mangel')}"
+            c.drawString(x, y, f"{mark}  {item.get('label', '')}"[:90] + suffix)
+
+    if protocol.notes:
+        y -= 8 * mm
+        room(10 * mm)
+        c.setFont(font_bold, 10)
+        c.drawString(x, y, _("Bemerkungen"))
+        c.setFont(font, 9)
+        for raw in protocol.notes.splitlines():
+            for start in range(0, max(len(raw), 1), 95):
+                room(5 * mm)
+                y -= 5 * mm
+                c.drawString(x, y, raw[start : start + 95])
+
+    room(40 * mm)
+    y -= 20 * mm
+    c.setFont(font, 9)
+    c.line(x, y, x + 70 * mm, y)
+    c.line(page_w - x - 70 * mm, y, page_w - x, y)
+    y -= 4 * mm
+    c.setFillColorRGB(*_MUTED)
+    c.drawString(x, y, _("Auftragnehmer"))
+    signed = protocol.signed_name or ""
+    label_client = _("Auftraggeber")
+    c.drawString(page_w - x - 70 * mm, y, f"{label_client}{': ' + signed if signed else ''}"[:50])
+    if protocol.confirmed_online_at:
+        y -= 10 * mm
+        c.setFillColorRGB(*_INK)
+        stamp = _("Online bestätigt von %(name)s am %(date)s") % {
+            "name": protocol.confirmed_name,
+            "date": doc_datetime(protocol.confirmed_online_at),
+        }
+        c.drawString(x, y, stamp[:110])
 
     c.showPage()
     c.save()

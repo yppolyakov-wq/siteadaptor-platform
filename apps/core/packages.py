@@ -124,6 +124,7 @@ _AKTIONEN_VIEWS = frozenset(
         "jobs:detail",
         "jobs:new",
         "jobs:pdf",
+        "jobs:protocol-pdf",
         "jobs:invoice-pdf",
         "jobs:delete",
     }

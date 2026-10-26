@@ -30351,3 +30351,103 @@ msgstr "Appointment created."
 
 msgid "Termin anlegen"
 msgstr "Create appointment"
+
+msgid "Abnahme bestätigen"
+msgstr "Confirm acceptance"
+
+msgid "Abnahmeprotokoll"
+msgstr "Acceptance report"
+
+msgid "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+msgstr "Acceptance reports and photos of the completed work are kept until the end of the warranty period (§ 634a BGB); names and remarks are removed."
+
+msgid "Annahme"
+msgstr "Intake"
+
+msgid "Annahmeprotokoll"
+msgstr "Intake report"
+
+msgid "Art des Fotos"
+msgstr "Photo type"
+
+msgid "Auftraggeber"
+msgstr "Client"
+
+msgid "Auftragnehmer"
+msgstr "Contractor"
+
+msgid "Bemerkungen"
+msgstr "Remarks"
+
+#, python-format
+msgid "Bestätigt von %(name)s am %(date)s"
+msgstr "Confirmed by %(name)s on %(date)s"
+
+msgid "Bitte Namen eintragen und die Prüfung der Leistung bestätigen."
+msgstr "Please enter your name and confirm that you have checked the work."
+
+msgid "Danke! Die Abnahme ist bestätigt."
+msgstr "Thank you! The acceptance is confirmed."
+
+msgid "Der Kunde hat das Protokoll bereits bestätigt — es kann nicht mehr geändert werden."
+msgstr "The customer has already confirmed the report — it can no longer be changed."
+
+msgid "Der Kunde kann das Protokoll auf der Statusseite des Auftrags online bestätigen."
+msgstr "The customer can confirm the report online on the order status page."
+
+msgid "Die Abnahme wurde bereits bestätigt."
+msgstr "The acceptance has already been confirmed."
+
+msgid "Fotos & Abnahmeprotokoll"
+msgstr "Photos & acceptance report"
+
+msgid "Ich habe die Leistung geprüft und nehme sie ab."
+msgstr "I have checked the work and accept it."
+
+msgid "Ihr Name"
+msgstr "Your name"
+
+msgid "Kilometerstand"
+msgstr "Mileage"
+
+msgid "Kilometerstand ist keine gültige Zahl."
+msgstr "Mileage is not a valid number."
+
+msgid "Mangel"
+msgstr "Defect"
+
+msgid "Nachher"
+msgstr "After"
+
+msgid "Übergabe"
+msgstr "Handover"
+
+#, python-format
+msgid "Online bestätigt von %(name)s am %(date)s"
+msgstr "Confirmed online by %(name)s on %(date)s"
+
+msgid "Protokoll gespeichert."
+msgstr "Report saved."
+
+msgid "Prüfpunkte"
+msgstr "Checkpoints"
+
+msgid "Prüfpunkte — ein Punkt pro Zeile, „✗ “ am Anfang = Mangel"
+msgstr "Checkpoints — one per line, “✗ ” at the start = defect"
+
+msgid "Unbekanntes Protokoll."
+msgstr "Unknown report."
+
+msgid "Unterschrift vor Ort (Name)"
+msgstr "Signed on site (name)"
+
+msgid "Zu viele Versuche. Bitte später erneut versuchen."
+msgstr "Too many attempts. Please try again later."
+
+#, python-format
+msgid "%(name)s hat das Abnahmeprotokoll zu %(code)s online bestätigt."
+msgstr "%(name)s confirmed the acceptance report for %(code)s online."
+
+#, python-format
+msgid "Abnahme %(code)s bestätigt"
+msgstr "Acceptance %(code)s confirmed"

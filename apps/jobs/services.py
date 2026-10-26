@@ -296,13 +296,15 @@ def _resync_reserved_stock(job) -> None:
 
 
 MAX_PHOTOS = 5
+#: KA-12 A-5: фото мастера (до/после/приёмка/сдача) — свой лимит, клиентский не съедают.
+MAX_MASTER_PHOTOS = 20
 MAX_PHOTO_BYTES = 8 * 1024 * 1024  # 8 МБ на файл
 
 
 _PHOTO_EXT = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp"}
 
 
-def add_job_photos(job, files, *, max_count=MAX_PHOTOS) -> int:
+def add_job_photos(job, files, *, max_count=MAX_PHOTOS, kind="customer", uploaded_by=None) -> int:
     """A7b: сохранить загруженные фото к заявке. Форма ПУБЛИЧНАЯ (без логина),
     поэтому реальный формат проверяем Pillow'ом (не доверяем клиентскому
     content_type/расширению), а имя перезаписываем на uuid.ext — иначе аноним мог
@@ -325,7 +327,7 @@ def add_job_photos(job, files, *, max_count=MAX_PHOTOS) -> int:
         except ValidationError:
             continue
         f.name = f"{uuid.uuid4().hex}.{_PHOTO_EXT.get(fmt, 'jpg')}"
-        JobPhoto.objects.create(job=job, image=f)
+        JobPhoto.objects.create(job=job, image=f, kind=kind, uploaded_by=uploaded_by)
         saved += 1
     return saved
 
@@ -533,3 +535,98 @@ def quote_to_invoice(job, *, small_business=False):
     job.invoice_id = invoice.id
     job.save(update_fields=["invoice_id", "updated_at"])
     return invoice
+
+
+# --- KA-12 A-5: акт приёмки / сдачи-приёмки ------------------------------------
+
+MAX_PROTOCOL_ITEMS = 40
+_DEFECT_MARKS = ("✗", "x ", "X ", "- [ ]")
+
+
+class ProtocolLocked(Exception):
+    """Клиент уже подтвердил акт онлайн — правка запрещена."""
+
+
+def parse_protocol_items(text: str) -> list[dict]:
+    """Строка на пункт; «✗ …» (или «x …») в начале — Mangel (ok=False)."""
+    items = []
+    for raw in (text or "").splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        ok = True
+        for mark in _DEFECT_MARKS:
+            if line.startswith(mark):
+                ok, line = False, line[len(mark) :].strip()
+                break
+        if line:
+            items.append({"label": line[:200], "ok": ok})
+        if len(items) >= MAX_PROTOCOL_ITEMS:
+            break
+    return items
+
+
+def save_protocol(
+    job, kind, *, date=None, notes="", items=(), mileage_km=None, signed_name="", user=None
+):
+    """Создать/обновить акт вида `kind`. Подтверждённый клиентом — не правится."""
+    from django.db import transaction
+    from django.utils import timezone
+
+    from .models import Job, JobProtocol
+
+    if kind not in dict(JobProtocol.KINDS):
+        raise ValueError(kind)
+    with transaction.atomic():
+        Job.objects.select_for_update().filter(pk=job.pk).first()
+        proto = JobProtocol.objects.select_for_update().filter(job=job, kind=kind).first()
+        if proto and proto.confirmed_online_at:
+            raise ProtocolLocked
+        if proto is None:
+            proto = JobProtocol(job=job, kind=kind, created_by=user)
+        proto.date = date or proto.date or timezone.localdate()
+        proto.notes = notes
+        proto.items = list(items)
+        proto.mileage_km = mileage_km
+        name = (signed_name or "").strip()[:120]
+        if name != proto.signed_name:
+            proto.signed_name = name
+            proto.signed_at = timezone.now() if name else None
+        proto.save()
+    return proto
+
+
+def confirm_protocol(job, name: str) -> bool:
+    """Клиент подтверждает Abnahme онлайн. Ровно один раз; статус заявки не меняется
+    (О-3). → True, если подтверждение записано сейчас."""
+    from django.db import transaction
+    from django.utils import timezone
+
+    from apps.core.audit import audit_event
+
+    from .models import JobProtocol
+
+    name = (name or "").strip()[:120]
+    if not name:
+        return False
+    with transaction.atomic():
+        proto = (
+            JobProtocol.objects.select_for_update()
+            .filter(job=job, kind=JobProtocol.KIND_HANDOVER)
+            .first()
+        )
+        if proto is None or proto.confirmed_online_at:
+            return False
+        proto.confirmed_online_at = timezone.now()
+        proto.confirmed_name = name
+        proto.save(update_fields=["confirmed_online_at", "confirmed_name", "updated_at"])
+        audit_event(
+            action="job.protocol_confirmed",
+            resource_type="jobs.JobProtocol",
+            resource_id=proto.pk,
+            context={"job": str(job.pk)},
+        )
+        from .notifications import enqueue_job_email
+
+        transaction.on_commit(lambda: enqueue_job_email(job, "protocol_confirmed", protocol=proto))
+    return True

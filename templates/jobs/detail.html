@@ -34,15 +34,18 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
     <p class="mt-3 text-sm text-gray-400">{% trans "Der Kunde hat keinen weiteren Text hinterlassen." %}</p>
   {% endif %}
   {% if job.site_address %}<p class="mt-2 text-sm text-gray-500">📍 {{ job.site_address }}</p>{% endif %}
-  {% if job.photos.all %}
-    <div class="mt-3 flex flex-wrap gap-2">
-      {% for ph in job.photos.all %}
-        <a href="{{ ph.image.url }}" target="_blank" rel="noopener">
-          <img src="{{ ph.image.url }}" alt="" class="h-20 w-20 object-cover rounded-lg border border-gray-200">
-        </a>
-      {% endfor %}
+  {% for group in photo_groups %}
+    <div class="mt-3" data-photo-group="{{ group.kind }}">
+      {% if photo_groups|length > 1 or group.kind != "customer" %}<p class="text-xs font-medium text-gray-500">{{ group.label }}</p>{% endif %}
+      <div class="mt-1 flex flex-wrap gap-2">
+        {% for ph in group.photos %}
+          <a href="{{ ph.image.url }}" target="_blank" rel="noopener">
+            <img src="{{ ph.image.url }}" alt="{{ group.label }}" class="h-20 w-20 object-cover rounded-lg border border-gray-200">
+          </a>
+        {% endfor %}
+      </div>
     </div>
-  {% endif %}
+  {% endfor %}
   {% comment %}KA-12 A-2 (HW-2/G-4): то, что прислал клиент, правится здесь же —
   тема, текст, PLZ, событие, авто. Presence-guard в приёмнике (W0); позиции сметы
   после принятия запирает KA-H10, данные заявки — нет (О-4).{% endcomment %}
@@ -81,14 +84,53 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
       {% endif %}
       <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
     </form>
-    {% if job.photos.count < max_photos %}
-      <form method="post" enctype="multipart/form-data" class="mt-3 flex flex-wrap items-center gap-2" data-job-photos-add>
-        {% csrf_token %}
-        <input type="hidden" name="action" value="photos">
-        <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-label="{% trans 'Fotos hinzufügen' %}" class="text-sm">
-        <button class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium hover:border-indigo-400">📷 {% trans "Fotos hinzufügen" %}</button>
-      </form>
-    {% endif %}
+  </details>
+  {% comment %}KA-12 A-5 (HW-3): фото мастера по видам (свой лимит) и акты приёмки /
+  сдачи-приёмки с PDF; подтверждённый клиентом акт заморожен.{% endcomment %}
+  <details class="mt-3 border-t border-gray-100 pt-3" data-job-protocols>
+    <summary class="cursor-pointer text-sm font-medium text-indigo-600">📝 {% trans "Fotos & Abnahmeprotokoll" %}</summary>
+    <form method="post" enctype="multipart/form-data" class="mt-3 flex flex-wrap items-center gap-2" data-job-photos-add>
+      {% csrf_token %}
+      <input type="hidden" name="action" value="photos">
+      <select name="kind" aria-label="{% trans 'Art des Fotos' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        {% for value, label in photo_kinds %}{% if value != "customer" or customer_photo_count < max_photos %}<option value="{{ value }}"{% if value == "after" %} selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}
+      </select>
+      <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-label="{% trans 'Fotos hinzufügen' %}" class="text-sm">
+      <button class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium hover:border-indigo-400">📷 {% trans "Fotos hinzufügen" %}</button>
+    </form>
+    {% for pf in protocol_forms %}
+      <div class="mt-4 rounded-lg border border-gray-200 p-3" data-protocol="{{ pf.kind }}">
+        <div class="flex items-center gap-2">
+          <p class="text-sm font-medium">{{ pf.label }}</p>
+          {% if pf.protocol %}<a href="{% url 'jobs:protocol-pdf' job.pk pf.kind %}" target="_blank" class="ml-auto text-xs text-indigo-600 hover:underline">PDF</a>{% endif %}
+        </div>
+        {% if pf.protocol.confirmed_online_at %}
+          <p class="mt-1 text-xs text-emerald-700">✓ {% blocktrans with name=pf.protocol.confirmed_name date=pf.protocol.confirmed_online_at|date:"SHORT_DATETIME_FORMAT" %}Bestätigt von {{ name }} am {{ date }}{% endblocktrans %}</p>
+          <ul class="mt-2 text-sm space-y-0.5">{% for item in pf.protocol.items %}<li>{% if item.ok %}✓{% else %}✗{% endif %} {{ item.label }}</li>{% endfor %}</ul>
+          {% if pf.protocol.notes %}<p class="mt-2 text-sm whitespace-pre-line text-gray-700">{{ pf.protocol.notes }}</p>{% endif %}
+        {% else %}
+          <form method="post" class="mt-2 space-y-2">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="protocol">
+            <input type="hidden" name="kind" value="{{ pf.kind }}">
+            <div class="grid sm:grid-cols-2 gap-2">
+              <label class="block text-xs text-gray-500">{% trans "Date" %}
+                <input name="date" type="date" value="{{ pf.protocol.date|date:'Y-m-d' }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+              <label class="block text-xs text-gray-500">{% trans "Kilometerstand" %}
+                <input name="mileage_km" inputmode="numeric" value="{{ pf.protocol.mileage_km|default_if_none:'' }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+            </div>
+            <label class="block text-xs text-gray-500">{% trans "Prüfpunkte — ein Punkt pro Zeile, „✗ “ am Anfang = Mangel" %}
+              <textarea name="items" rows="4" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900">{{ pf.items_text }}</textarea></label>
+            <label class="block text-xs text-gray-500">{% trans "Bemerkungen" %}
+              <textarea name="notes" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900">{{ pf.protocol.notes }}</textarea></label>
+            <label class="block text-xs text-gray-500">{% trans "Unterschrift vor Ort (Name)" %}
+              <input name="signed_name" maxlength="120" value="{{ pf.protocol.signed_name }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+            <button class="rounded-lg bg-indigo-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+            {% if pf.kind == "handover" and pf.protocol %}<p class="text-xs text-gray-500">{% trans "Der Kunde kann das Protokoll auf der Statusseite des Auftrags online bestätigen." %}</p>{% endif %}
+          </form>
+        {% endif %}
+      </div>
+    {% endfor %}
   </details>
 {% endblock %}
 

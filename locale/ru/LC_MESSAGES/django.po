@@ -30626,3 +30626,103 @@ msgstr "Запись создана."
 
 msgid "Termin anlegen"
 msgstr "Создать запись"
+
+msgid "Abnahme bestätigen"
+msgstr "Подтвердить приёмку"
+
+msgid "Abnahmeprotokoll"
+msgstr "Акт сдачи-приёмки"
+
+msgid "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+msgstr "Акты приёмки и фото выполненной работы хранятся до конца гарантийного срока (§ 634a BGB); имена и замечания удаляются."
+
+msgid "Annahme"
+msgstr "Приёмка"
+
+msgid "Annahmeprotokoll"
+msgstr "Акт приёмки"
+
+msgid "Art des Fotos"
+msgstr "Вид фото"
+
+msgid "Auftraggeber"
+msgstr "Заказчик"
+
+msgid "Auftragnehmer"
+msgstr "Исполнитель"
+
+msgid "Bemerkungen"
+msgstr "Замечания"
+
+#, python-format
+msgid "Bestätigt von %(name)s am %(date)s"
+msgstr "Подтверждено: %(name)s, %(date)s"
+
+msgid "Bitte Namen eintragen und die Prüfung der Leistung bestätigen."
+msgstr "Укажите имя и подтвердите, что проверили работу."
+
+msgid "Danke! Die Abnahme ist bestätigt."
+msgstr "Спасибо! Приёмка подтверждена."
+
+msgid "Der Kunde hat das Protokoll bereits bestätigt — es kann nicht mehr geändert werden."
+msgstr "Клиент уже подтвердил акт — изменить его больше нельзя."
+
+msgid "Der Kunde kann das Protokoll auf der Statusseite des Auftrags online bestätigen."
+msgstr "Клиент может подтвердить акт онлайн на странице статуса заказа."
+
+msgid "Die Abnahme wurde bereits bestätigt."
+msgstr "Приёмка уже подтверждена."
+
+msgid "Fotos & Abnahmeprotokoll"
+msgstr "Фото и акт приёмки"
+
+msgid "Ich habe die Leistung geprüft und nehme sie ab."
+msgstr "Я проверил(а) работу и принимаю её."
+
+msgid "Ihr Name"
+msgstr "Ваше имя"
+
+msgid "Kilometerstand"
+msgstr "Пробег"
+
+msgid "Kilometerstand ist keine gültige Zahl."
+msgstr "Пробег — не число."
+
+msgid "Mangel"
+msgstr "Недостаток"
+
+msgid "Nachher"
+msgstr "После"
+
+msgid "Übergabe"
+msgstr "Сдача"
+
+#, python-format
+msgid "Online bestätigt von %(name)s am %(date)s"
+msgstr "Подтверждено онлайн: %(name)s, %(date)s"
+
+msgid "Protokoll gespeichert."
+msgstr "Акт сохранён."
+
+msgid "Prüfpunkte"
+msgstr "Пункты проверки"
+
+msgid "Prüfpunkte — ein Punkt pro Zeile, „✗ “ am Anfang = Mangel"
+msgstr "Пункты проверки — по одному в строке, «✗ » в начале = недостаток"
+
+msgid "Unbekanntes Protokoll."
+msgstr "Неизвестный акт."
+
+msgid "Unterschrift vor Ort (Name)"
+msgstr "Подпись на месте (имя)"
+
+msgid "Zu viele Versuche. Bitte später erneut versuchen."
+msgstr "Слишком много попыток. Попробуйте позже."
+
+#, python-format
+msgid "%(name)s hat das Abnahmeprotokoll zu %(code)s online bestätigt."
+msgstr "%(name)s подтвердил(а) онлайн акт приёмки по %(code)s."
+
+#, python-format
+msgid "Abnahme %(code)s bestätigt"
+msgstr "Приёмка %(code)s подтверждена"

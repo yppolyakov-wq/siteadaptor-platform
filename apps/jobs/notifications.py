@@ -47,7 +47,7 @@ def _review_url(schema) -> str:
         return ""
 
 
-def enqueue_job_email(job, event, *, angebot_url="", status_url=""):
+def enqueue_job_email(job, event, *, angebot_url="", status_url="", protocol=None):
     """event: new/accepted/declined → владельцу; quoted/done → клиенту (со ссылкой).
 
     A9: `done` уведомляет клиента, что работа выполнена (Repair-Status), со ссылкой
@@ -62,6 +62,7 @@ def enqueue_job_email(job, event, *, angebot_url="", status_url=""):
         "angebot_url": angebot_url,
         "status_url": status_url,
         "review_url": _review_url(schema) if event == "done" else "",
+        "protocol": protocol,  # KA-12 A-5: protocol_confirmed → владельцу
     }
 
     if event in ("quoted", "done", "service_reminder"):  # → клиенту

@@ -58,7 +58,7 @@ ERASURE_POLICY = {
 CHILDREN = {
     "orders.Order": ("items",),
     "orders.Offer": ("lines",),
-    "jobs.Job": ("lines",),
+    "jobs.Job": ("lines", "photos", "protocols"),
     "inbox.Conversation": ("messages",),
     "stays.StayBooking": ("registration",),
     "events.Ticket": ("waiver", "participants"),
@@ -67,7 +67,7 @@ CHILDREN = {
 # Поля, которые в выгрузку НЕ идут или идут маской (секреты/служебное).
 MASKED = {"doc_number", "signed_ip", "public_token", "token", "path"}
 # `author` (E6.4b) — сотрудник, написавший заметку: не данные клиента.
-SKIPPED = {"stripe_payment_intent", "external_ref", "author"}
+SKIPPED = {"stripe_payment_intent", "external_ref", "author", "uploaded_by", "created_by"}
 
 KEPT_REASONS = {
     "money": _(
@@ -82,6 +82,11 @@ KEPT_REASONS = {
         "Meldescheine bleiben 1 Jahr gespeichert (§ 30 BMG) und werden dann gelöscht."
     ),
     "waiver": _("Unterschriebene Haftungsverzichte bleiben bis zum Ende der Verjährungsfrist."),
+    # KA-12 A-5 ⚖️ (юр-вычитка): Abnahme запускает срок Gewährleistung (§ 634a BGB).
+    "abnahme": _(
+        "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der "
+        "Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+    ),
 }
 
 
@@ -288,6 +293,22 @@ def erase_customer(customer, tenant=None) -> dict:
         stats["events.TicketParticipant"], _detail = TicketParticipant.objects.filter(
             ticket__customer=customer
         ).delete()
+        # KA-12 A-5: фото клиента к заявке удаляем (файлы — после фиксации); акты и
+        # фото мастера остаются как доказательство Abnahme, имена/заметки — стираем.
+        from apps.jobs.models import JobPhoto, JobProtocol
+
+        customer_photos = list(
+            JobPhoto.objects.filter(job__customer=customer, kind=JobPhoto.KIND_CUSTOMER)
+        )
+        files = [p.image.name for p in customer_photos if p.image]
+        stats["jobs.JobPhoto"], _detail = JobPhoto.objects.filter(
+            pk__in=[p.pk for p in customer_photos]
+        ).delete()
+        stats["jobs.JobProtocol"] = JobProtocol.objects.filter(job__customer=customer).update(
+            signed_name="", confirmed_name="", notes=""
+        )
+        if files:
+            transaction.on_commit(lambda: _delete_files(files))
         stats.update(_erase_email_linked(email, chats))
         _anonymize_customer(customer)
         if documents:
@@ -296,6 +317,19 @@ def erase_customer(customer, tenant=None) -> dict:
             # Файл удаляется после фиксации: потерянный файл лучше потерянной записи.
             transaction.on_commit(lambda: _purge_documents(document_services, documents))
     return stats
+
+
+def _delete_files(names):
+    """Файлы фото клиента — по одному: сбой хранилища на одном не держит остальные."""
+    import logging
+
+    from django.core.files.storage import default_storage
+
+    for name in names:
+        try:
+            default_storage.delete(name)
+        except Exception:  # noqa: BLE001 — запись уже удалена, файл осиротел
+            logging.getLogger(__name__).exception("dsgvo: photo delete failed")
 
 
 def _purge_documents(document_services, documents):

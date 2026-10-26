@@ -29,7 +29,7 @@ from apps.core.fsm import IllegalTransition
 from apps.finance.models import RevenueEntry
 
 from . import services
-from .models import Job
+from .models import Job, JobPhoto, JobProtocol
 from .pdf import build_quote_pdf
 from .state_machine import JobSM
 
@@ -294,16 +294,38 @@ def job_detail(request, pk):
             return redirect("jobs:detail", pk=job.pk)
         if action == "request":
             return _save_request(request, job)
+        if action == "protocol":
+            return _save_protocol(request, job)
         if action == "photos":
             from django.db import transaction
 
             # Счёт «сколько ещё можно» и запись — под блокировкой заявки: два
             # параллельных POST иначе вместе превысили бы лимит фото.
+            # KA-12 A-5: вид фото из белого списка; фото мастера — свой лимит,
+            # клиентский (публичная форма) ими не съедается.
+            kind = request.POST.get("kind", "")
+            if kind not in JobPhoto.MASTER_KINDS:
+                kind = JobPhoto.KIND_CUSTOMER
+            limit = (
+                services.MAX_PHOTOS
+                if kind == JobPhoto.KIND_CUSTOMER
+                else services.MAX_MASTER_PHOTOS
+            )
             with transaction.atomic():
                 locked = Job.objects.select_for_update().get(pk=job.pk)
-                room = max(0, services.MAX_PHOTOS - locked.photos.count())
+                if kind == JobPhoto.KIND_CUSTOMER:
+                    taken = locked.photos.filter(kind=kind).count()
+                else:
+                    taken = locked.photos.exclude(kind=JobPhoto.KIND_CUSTOMER).count()
+                room = max(0, limit - taken)
                 added = (
-                    services.add_job_photos(locked, request.FILES.getlist("photos"), max_count=room)
+                    services.add_job_photos(
+                        locked,
+                        request.FILES.getlist("photos"),
+                        max_count=room,
+                        kind=kind,
+                        uploaded_by=request.user,
+                    )
                     if room
                     else 0
                 )
@@ -358,6 +380,7 @@ def job_detail(request, pk):
             "payments_enabled": getattr(request.tenant, "payments_enabled", False),
             "customer_bookings": _customer_bookings(job),  # A7d: Termin-привязка
             **_termin_context(request.tenant, job),  # KA-12 A-4: Termin aus Anfrage
+            **_protocol_context(job),  # KA-12 A-5: Fotos & Abnahmeprotokoll
             # QF-2: поля мастерской — нужным архетипам или если уже заполнены.
             "show_vehicle_fields": (
                 request.tenant.business_type in ("werkstatt", "handwerker")
@@ -490,6 +513,68 @@ def _customer_bookings(job):
         .select_related("resource")
         .order_by("-start")[:20]
     )
+
+
+def _protocol_context(job) -> dict:
+    """KA-12 A-5: фото по видам и акты (intake/handover) для карточки заявки."""
+    photos = list(job.photos.all())
+    groups = []
+    for kind, label in JobPhoto.KINDS:
+        items = [p for p in photos if p.kind == kind]
+        if items:
+            groups.append({"kind": kind, "label": label, "photos": items})
+    protocols = {p.kind: p for p in job.protocols.all()}
+    forms = []
+    for kind, label in JobProtocol.KINDS:
+        proto = protocols.get(kind)
+        items_text = ""
+        if proto:
+            items_text = "\n".join(
+                i["label"] if i.get("ok", True) else f"✗ {i['label']}" for i in proto.items
+            )
+        forms.append({"kind": kind, "label": label, "protocol": proto, "items_text": items_text})
+    return {
+        "photo_groups": groups,
+        "photo_kinds": JobPhoto.KINDS,
+        "protocol_forms": forms,
+        "customer_photo_count": sum(1 for p in photos if p.kind == JobPhoto.KIND_CUSTOMER),
+    }
+
+
+def _save_protocol(request, job):
+    kind = request.POST.get("kind", "")
+    if kind not in dict(JobProtocol.KINDS):
+        messages.error(request, _("Unbekanntes Protokoll."))
+        return redirect("jobs:detail", pk=job.pk)
+    mileage = (request.POST.get("mileage_km") or "").strip()
+    try:
+        mileage_km = int(mileage) if mileage else None
+        if mileage_km is not None and not 0 <= mileage_km <= 9_999_999:
+            raise ValueError
+    except ValueError:
+        messages.error(request, _("Kilometerstand ist keine gültige Zahl."))
+        return redirect("jobs:detail", pk=job.pk)
+    try:
+        services.save_protocol(
+            job,
+            kind,
+            date=_parse_date(request.POST.get("date")),
+            notes=(request.POST.get("notes") or "")[:4000],
+            items=services.parse_protocol_items(request.POST.get("items", "")),
+            mileage_km=mileage_km,
+            signed_name=request.POST.get("signed_name", ""),
+            user=request.user,
+        )
+    except services.ProtocolLocked:
+        messages.error(
+            request,
+            _(
+                "Der Kunde hat das Protokoll bereits bestätigt — es kann nicht mehr geändert werden."
+            ),
+        )
+        return redirect("jobs:detail", pk=job.pk)
+    messages.success(request, _("Protokoll gespeichert."))
+    return redirect("jobs:detail", pk=job.pk)
 
 
 def _termin_context(tenant, job) -> dict:
@@ -848,6 +933,26 @@ def job_delete(request, pk):
         return redirect(reverse("verkaeufe") + "?tab=job")
     messages.error(request, _("This request can no longer be deleted."))
     return redirect("jobs:detail", pk=job.pk)
+
+
+@login_required
+def job_protocol_pdf(request, pk, kind):
+    """KA-12 A-5: PDF «Abnahmeprotokoll» / «Annahmeprotokoll» (язык заявки)."""
+    from django.utils import translation
+
+    from apps.core.documents import document_language
+
+    from .pdf import build_protocol_pdf
+
+    job = get_object_or_404(Job.objects.select_related("customer"), pk=pk)
+    protocol = get_object_or_404(JobProtocol, job=job, kind=kind)
+    with translation.override(document_language(request, explicit=job.language)):
+        pdf = build_protocol_pdf(job, protocol, request.tenant)
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'inline; filename="protokoll_{kind}_{job.reference_code}.pdf"'
+    )
+    return response
 
 
 @login_required

@@ -30443,3 +30443,103 @@ msgstr "Termin angelegt."
 
 msgid "Termin anlegen"
 msgstr "Termin anlegen"
+
+msgid "Abnahme bestätigen"
+msgstr "Abnahme bestätigen"
+
+msgid "Abnahmeprotokoll"
+msgstr "Abnahmeprotokoll"
+
+msgid "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+msgstr "Abnahmeprotokolle und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+
+msgid "Annahme"
+msgstr "Annahme"
+
+msgid "Annahmeprotokoll"
+msgstr "Annahmeprotokoll"
+
+msgid "Art des Fotos"
+msgstr "Art des Fotos"
+
+msgid "Auftraggeber"
+msgstr "Auftraggeber"
+
+msgid "Auftragnehmer"
+msgstr "Auftragnehmer"
+
+msgid "Bemerkungen"
+msgstr "Bemerkungen"
+
+#, python-format
+msgid "Bestätigt von %(name)s am %(date)s"
+msgstr "Bestätigt von %(name)s am %(date)s"
+
+msgid "Bitte Namen eintragen und die Prüfung der Leistung bestätigen."
+msgstr "Bitte Namen eintragen und die Prüfung der Leistung bestätigen."
+
+msgid "Danke! Die Abnahme ist bestätigt."
+msgstr "Danke! Die Abnahme ist bestätigt."
+
+msgid "Der Kunde hat das Protokoll bereits bestätigt — es kann nicht mehr geändert werden."
+msgstr "Der Kunde hat das Protokoll bereits bestätigt — es kann nicht mehr geändert werden."
+
+msgid "Der Kunde kann das Protokoll auf der Statusseite des Auftrags online bestätigen."
+msgstr "Der Kunde kann das Protokoll auf der Statusseite des Auftrags online bestätigen."
+
+msgid "Die Abnahme wurde bereits bestätigt."
+msgstr "Die Abnahme wurde bereits bestätigt."
+
+msgid "Fotos & Abnahmeprotokoll"
+msgstr "Fotos & Abnahmeprotokoll"
+
+msgid "Ich habe die Leistung geprüft und nehme sie ab."
+msgstr "Ich habe die Leistung geprüft und nehme sie ab."
+
+msgid "Ihr Name"
+msgstr "Ihr Name"
+
+msgid "Kilometerstand"
+msgstr "Kilometerstand"
+
+msgid "Kilometerstand ist keine gültige Zahl."
+msgstr "Kilometerstand ist keine gültige Zahl."
+
+msgid "Mangel"
+msgstr "Mangel"
+
+msgid "Nachher"
+msgstr "Nachher"
+
+msgid "Übergabe"
+msgstr "Übergabe"
+
+#, python-format
+msgid "Online bestätigt von %(name)s am %(date)s"
+msgstr "Online bestätigt von %(name)s am %(date)s"
+
+msgid "Protokoll gespeichert."
+msgstr "Protokoll gespeichert."
+
+msgid "Prüfpunkte"
+msgstr "Prüfpunkte"
+
+msgid "Prüfpunkte — ein Punkt pro Zeile, „✗ “ am Anfang = Mangel"
+msgstr "Prüfpunkte — ein Punkt pro Zeile, „✗ “ am Anfang = Mangel"
+
+msgid "Unbekanntes Protokoll."
+msgstr "Unbekanntes Protokoll."
+
+msgid "Unterschrift vor Ort (Name)"
+msgstr "Unterschrift vor Ort (Name)"
+
+msgid "Zu viele Versuche. Bitte später erneut versuchen."
+msgstr "Zu viele Versuche. Bitte später erneut versuchen."
+
+#, python-format
+msgid "%(name)s hat das Abnahmeprotokoll zu %(code)s online bestätigt."
+msgstr "%(name)s hat das Abnahmeprotokoll zu %(code)s online bestätigt."
+
+#, python-format
+msgid "Abnahme %(code)s bestätigt"
+msgstr "Abnahme %(code)s bestätigt"
