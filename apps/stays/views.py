@@ -1767,14 +1767,22 @@ def reports_export_csv(request):
 def checkins(request):
     """G6: список цифровых Meldescheine (Online-Checkins). Read-only обзор для
     стойки — кто заполнил данные регистрации. Гейтинг — модуль stays."""
+    from apps.core.pagination import paginate_queryset
+
     from .models import GuestRegistration
 
-    regs = list(
+    # KA-12 E10 (L-1): раньше — 200 последних; у отеля за год больше, а хранить их год.
+    page = paginate_queryset(
         GuestRegistration.objects.select_related("booking", "booking__unit")
         .filter(signed_at__isnull=False)
-        .order_by("-signed_at")[:200]
+        .order_by("-signed_at"),
+        page_raw=request.GET.get("seite"),
     )
-    return render(request, "stays/checkins.html", {"nav": "stays", "registrations": regs})
+    return render(
+        request,
+        "stays/checkins.html",
+        {"nav": "stays", "registrations": page.items, "page": page},
+    )
 
 
 @login_required

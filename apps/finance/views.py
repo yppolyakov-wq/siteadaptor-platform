@@ -174,12 +174,18 @@ def expenses(request):
     by_cat = qs.values("category").annotate(sum=Sum("amount")).order_by("-sum")
     cat_labels = dict(ExpenseEntry.CATEGORIES)
     # ERP-3: открытые входящие счета — ВНЕ периода (долг не зависит от фильтра).
-    open_bills = list(
+    from apps.core.pagination import paginate_queryset
+
+    # KA-12 E10 (L-4): раньше — 100 первых без пометки; свой параметр страницы, чтобы
+    # не листать вместе с журналом расходов ниже.
+    bills_page = paginate_queryset(
         ExpenseEntry.objects.filter(due_date__isnull=False, paid_at__isnull=True)
         .select_related("supplier", "document")
-        .order_by("due_date")[:100]
+        .order_by("due_date"),
+        page_raw=request.GET.get("offen"),
+        param="offen",
     )
-    from apps.core.pagination import paginate_queryset
+    open_bills = bills_page.items
     from apps.inventory.models import Lieferant
 
     # KA-P4a: раньше молча 500 строк; итоги — по-прежнему за ВЕСЬ период.
@@ -189,6 +195,7 @@ def expenses(request):
         "finance/expenses.html",
         {
             "open_bills": open_bills,
+            "bills_page": bills_page,
             "suppliers": list(Lieferant.objects.filter(is_active=True).order_by("name")),
             "vat_rates": RevenueEntry.VAT_RATES,
             "nav": "finance",
@@ -347,14 +354,26 @@ def bank_import(request):
         return redirect("finance:bank")
 
     open_rows = bank_mod.open_items(request.tenant)
-    unmatched = list(BankTransaction.objects.filter(matched_kind="").order_by("-date")[:100])
+    from apps.core.pagination import paginate_queryset
+
+    # KA-12 E10 (L-5): раньше — 100 последних без пометки.
+    unmatched_page = paginate_queryset(
+        BankTransaction.objects.filter(matched_kind="").order_by("-date"),
+        page_raw=request.GET.get("seite"),
+    )
+    unmatched = unmatched_page.items
     for tx in unmatched:
         tx.match_suggestions = bank_mod.suggestions(tx, open_rows)
     matched = BankTransaction.objects.exclude(matched_kind="").order_by("-matched_at")[:20]
     return render(
         request,
         "finance/bank.html",
-        {"nav": "finance", "unmatched": unmatched, "matched": matched},
+        {
+            "nav": "finance",
+            "unmatched": unmatched,
+            "page": unmatched_page,
+            "matched": matched,
+        },
     )
 
 

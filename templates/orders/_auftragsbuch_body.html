@@ -12,11 +12,12 @@
 
 {% if ab_ohne %}
 <div class="mb-4 bg-amber-50 border border-amber-200 rounded-2xl p-3">
-  <p class="text-xs font-medium text-amber-800 mb-2">{% trans "Ohne Termin" %} ({{ ab_ohne|length }})</p>
+  <p class="text-xs font-medium text-amber-800 mb-2">{% trans "Ohne Termin" %} ({{ ab_ohne_total }})</p>
   <div class="flex flex-wrap gap-2">
     {% for o in ab_ohne %}
       <a href="{% url 'orders:order-detail' o.pk %}" class="text-xs bg-white border border-amber-200 rounded-lg px-2 py-1 hover:bg-amber-100">{{ o.reference_code }} · {{ o.customer }} · {{ o.total }} {{ o.currency }}</a>
     {% endfor %}
+    {% if ab_ohne_total > ab_ohne|length %}<a href="{% url 'verkaeufe' %}?tab=order&amp;view=liste" class="text-xs text-amber-800 underline px-2 py-1">{% blocktrans with n=ab_ohne_total %}Alle anzeigen ({{ n }}){% endblocktrans %}</a>{% endif %}
   </div>
 </div>
 {% endif %}

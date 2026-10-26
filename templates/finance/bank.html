@@ -60,6 +60,7 @@
   <p class="text-sm text-gray-400">{% trans "Keine offenen Umsätze — Auszug importieren oder alles ist zugeordnet." %}</p>
   {% endfor %}
 </div>
+{% list_pager page %}
 
 {% if matched %}
 <h2 class="text-lg font-semibold mb-2">{% trans "Zuletzt zugeordnet" %}</h2>

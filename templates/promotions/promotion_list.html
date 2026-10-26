@@ -181,6 +181,7 @@
   </table>
   </div>
   {% endif %}
+  {% list_pager page %}
 </div>
 {# T-8.4: мобильная «＋» над таб-баром (паттерн R3 Verkäufe) — в ассистент #}
 <a href="{% url 'promotions:promotion-quick' %}" aria-label="{% trans 'Neue Aktion' %}"

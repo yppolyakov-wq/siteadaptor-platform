@@ -74,7 +74,8 @@ def _resolve_entity(value):
 
 
 def _export_csv():
-    """T4: экспорт движений склада в CSV (последние 5000)."""
+    """T4: экспорт движений склада в CSV — все движения (KA-12 E10 L-6: раньше молча
+    5000; теперь потоком по 1000 строк, без загрузки всей таблицы в память)."""
     import csv
 
     from django.http import HttpResponse
@@ -89,7 +90,7 @@ def _export_csv():
     w.writerow(
         ["Datum", "Produkt", "Variante", "Größe", "Farbe", "Art", "Menge", "Quelle", "Notiz"]
     )
-    for mv in StockMovement.objects.select_related("product", "variant").all()[:5000]:
+    for mv in StockMovement.objects.select_related("product", "variant").iterator(chunk_size=1000):
         w.writerow(
             [
                 mv.created_at.strftime("%Y-%m-%d %H:%M"),

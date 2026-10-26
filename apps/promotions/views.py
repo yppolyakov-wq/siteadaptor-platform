@@ -189,7 +189,12 @@ def promotion_list(request):
     from apps.billing import featured as billing_featured
 
     featured_enabled = billing_featured.is_enabled()
-    promos = list(promos)
+    from apps.core.pagination import paginate_queryset
+
+    # KA-12 E10 (L-2): страницами — счётчики, §11-цены и бейджи featured считаются
+    # только по видимой странице (раньше — по всем акциям разом, без предела).
+    page = paginate_queryset(promos, page_raw=request.GET.get("seite"))
+    promos = page.items
     # SF-7: цена сравнения (§11 PAngV) — батчем, список показывает «statt» и подсказку.
     from . import reference_price
 
@@ -221,6 +226,7 @@ def promotion_list(request):
         "promotions/promotion_list.html",
         {
             "promotions": promos,
+            "page": page,
             # X6-3: фильтр показывал сырые коды статусов — даём подписи.
             "statuses": [(st, promo_status_label(st)) for st in PROMO_STATUSES],
             "status": status,

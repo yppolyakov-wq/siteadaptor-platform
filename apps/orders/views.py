@@ -53,6 +53,7 @@ def auftragsbuch_context(request):
         .select_related("customer")
         .order_by("pickup_slot")
     )
+    ohne = Order.objects.filter(pickup_slot__isnull=True, status__in=active)
     by_day = {d: [] for d in days}
     for o in qs:
         by_day[timezone.localtime(o.pickup_slot).date()].append(o)
@@ -62,11 +63,9 @@ def auftragsbuch_context(request):
         "ab_prev": start - timedelta(days=window),
         "ab_next": start + timedelta(days=window),
         "ab_today": timezone.localdate(),
-        "ab_ohne": (
-            Order.objects.filter(pickup_slot__isnull=True, status__in=active)
-            .select_related("customer")
-            .order_by("-created_at")[:50]
-        ),
+        "ab_ohne": list(ohne.select_related("customer").order_by("-created_at")[:50]),
+        # KA-12 E10 (L-3): число — по БД, а не длина среза («50» при любом большем).
+        "ab_ohne_total": ohne.count(),
     }
 
 
