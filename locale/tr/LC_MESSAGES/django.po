@@ -31066,3 +31066,50 @@ msgstr "Varyant oluştur"
 
 msgid "leer = Produktpreis"
 msgstr "boş = temel fiyat"
+
+#, python-format
+msgid "%(n)s Preise geändert."
+msgstr "%(n)s fiyat değiştirildi."
+
+#, python-format
+msgid "%(n)s Produkte aktualisiert."
+msgstr "%(n)s ürün güncellendi."
+
+msgid "Als CSV exportieren"
+msgstr "CSV olarak dışa aktar"
+
+msgid "Ausgewählte:"
+msgstr "Seçilenler:"
+
+msgid "Bitte Produkte auswählen und einen Betrag angeben."
+msgstr "Lütfen ürün seçin ve bir tutar girin."
+
+msgid "Bitte zuerst Produkte auswählen."
+msgstr "Lütfen önce ürün seçin."
+
+msgid "EAN / GTIN"
+msgstr "EAN / GTIN"
+
+msgid "Festpreis setzen"
+msgstr "Sabit fiyat belirle"
+
+msgid "Preis in Euro ändern"
+msgstr "Fiyatı euro olarak değiştir"
+
+msgid "Preis in Prozent ändern"
+msgstr "Fiyatı yüzde olarak değiştir"
+
+msgid "Preis ändern"
+msgstr "Fiyatı değiştir"
+
+msgid "Preise ändern"
+msgstr "Fiyatları değiştir"
+
+msgid "Prozent zwischen −90 und 500."
+msgstr "Yüzde −90 ile 500 arasında."
+
+msgid "Sichtbar machen"
+msgstr "Görünür yap"
+
+msgid "z. B. -10"
+msgstr "örn. -10"

@@ -1253,6 +1253,158 @@ def combo_option_delete(request, pk, gid, oid):
     return redirect("catalog:combo-edit", pk=pk)
 
 
+_BULK_MAX = 200  # KA-12 WR-6: как лимит списка Sortiment
+
+
+def _bulk_products(request):
+    ids = [i for i in request.POST.getlist("ids")[:_BULK_MAX] if _is_uuid_str(i)]
+    return list(Product.objects.filter(pk__in=ids))
+
+
+def _parse_signed(raw):
+    """«−10», «-2,50», «+5» → Decimal (со знаком); пусто/мусор → None."""
+    raw = (raw or "").strip().replace(",", ".").replace("\u2212", "-").replace(" ", "")
+    if not raw:
+        return None
+    try:
+        value = Decimal(raw)
+    except (InvalidOperation, ValueError):
+        return None
+    return value if value.is_finite() else None
+
+
+def _is_uuid_str(value) -> bool:
+    import uuid
+
+    try:
+        uuid.UUID(str(value))
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+@login_required
+@require_POST
+def products_bulk_visibility(request):
+    """KA-12 WR-6 (E3.2): показать/скрыть выбранные товары одним действием — тем же
+    сервисом, что одиночный тумблер (`toggle_visibility`: подтверждение свежести Г3)."""
+    from apps.core.sellable_manage import toggle_visibility
+
+    products = _bulk_products(request)
+    visible = request.POST.get("action") == "show"
+    for product in products:
+        toggle_visibility("product", product.pk, visible)
+    if products:
+        messages.success(request, _("%(n)s Produkte aktualisiert.") % {"n": len(products)})
+    else:
+        messages.error(request, _("Bitte zuerst Produkte auswählen."))
+    return redirect("sellable-manage")
+
+
+@login_required
+@require_POST
+def products_bulk_price(request):
+    """KA-12 WR-6 (E3.2): цена выбранных товаров — «= X €», «± X %», «± X €». Через
+    `.save()` по одному: PriceLog фиксирует каждое изменение (§11 PAngV — минимум 30 дней)."""
+    from decimal import ROUND_HALF_UP
+
+    mode = request.POST.get("mode", "")
+    amount = _parse_signed(request.POST.get("amount"))
+    if mode == "set" and amount is not None and amount < 0:
+        amount = None
+    products = _bulk_products(request)
+    if not products or amount is None or mode not in ("set", "pct", "eur"):
+        messages.error(request, _("Bitte Produkte auswählen und einen Betrag angeben."))
+        return redirect("sellable-manage")
+    if mode == "pct" and not Decimal("-90") <= amount <= Decimal("500"):
+        messages.error(request, _("Prozent zwischen −90 und 500."))
+        return redirect("sellable-manage")
+    changed = 0
+    for product in products:
+        base = Decimal(str(product.base_price))
+        if mode == "set":
+            new = amount
+        elif mode == "pct":
+            new = base * (Decimal(100) + amount) / Decimal(100)
+        else:
+            new = base + amount
+        new = max(new, Decimal("0")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        if new != base:
+            product.base_price = new
+            product.save(update_fields=["base_price", "updated_at"])
+            changed += 1
+    messages.success(request, _("%(n)s Preise geändert.") % {"n": changed})
+    return redirect("sellable-manage")
+
+
+_EXPORT_COLUMNS = (
+    "name_de",
+    "name_en",
+    "description_de",
+    "description_en",
+    "sku",
+    "gtin",
+    "base_price",
+    "list_price",
+    "cost_price",
+    "vat_rate",
+    "currency",
+    "stock_quantity",
+    "category_slug",
+    "brand",
+    "is_active",
+)
+
+
+@login_required
+def products_export_csv(request):
+    """KA-12 WR-6 (E3.2): выгрузка товаров теми же колонками, что понимает импорт
+    (CSV ходит туда-обратно). Разделитель «;» (Excel DE), BOM для умлаутов."""
+    import csv
+
+    from django.http import HttpResponse
+
+    from apps.core import roles
+
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = 'attachment; filename="produkte.csv"'
+    response.write("\ufeff")
+    writer = csv.writer(response, delimiter=";")
+    writer.writerow(_EXPORT_COLUMNS)
+    rows = 0
+    for p in Product.objects.select_related("category").order_by("name__de", "pk"):
+        name = p.name if isinstance(p.name, dict) else {}
+        desc = p.description if isinstance(p.description, dict) else {}
+        writer.writerow(
+            [
+                _csv_safe(name.get("de", "")),
+                _csv_safe(name.get("en", "")),
+                _csv_safe(desc.get("de", "")),
+                _csv_safe(desc.get("en", "")),
+                _csv_safe(p.sku),
+                p.gtin,
+                p.base_price,
+                "" if p.list_price is None else p.list_price,
+                "" if p.cost_price is None else p.cost_price,
+                p.vat_rate,
+                p.currency,
+                "" if p.stock_quantity is None else p.stock_quantity,
+                p.category.slug if p.category_id else "",
+                _csv_safe(p.brand),
+                "1" if p.is_active else "0",
+            ]
+        )
+        rows += 1
+    roles.audit_export(request, "products", rows)
+    return response
+
+
+def _csv_safe(value) -> str:
+    """Защита от CSV-инъекции формул (=, +, -, @ в начале ячейки → апостроф)."""
+    text = str(value or "")
+    return "'" + text if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text
+
+
 @login_required
 def products_merge(request):
     """Фидбэк 2026-08-04 «Zusammenführen»: объединить отдельные товары в ОДНУ

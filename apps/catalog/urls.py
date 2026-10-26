@@ -8,6 +8,14 @@ urlpatterns = [
     path("products/", views.product_list, name="product-list"),
     # Фидбэк 2026-08-04: слияние отдельных товаров в одну карточку с вариантами.
     path("products/merge/", views.products_merge, name="products-merge"),
+    # KA-12 WR-6: массово видимость/цена + выгрузка CSV (колонки импорта).
+    path(
+        "products/bulk/visibility/",
+        views.products_bulk_visibility,
+        name="products-bulk-visibility",
+    ),
+    path("products/bulk/price/", views.products_bulk_price, name="products-bulk-price"),
+    path("products/export.csv", views.products_export_csv, name="products-export-csv"),
     path("products/new/", views.product_create, name="product-create"),
     path("products/<uuid:pk>/edit/", views.product_edit, name="product-edit"),
     path("products/<uuid:pk>/delete/", views.product_delete, name="product-delete"),

@@ -32,6 +32,8 @@ INLINE_GATED = {
     "stays:price-calendar": "preise.edit на запись — _can_edit во вьюхе",
     # KA-12 Z-6: экран новее эталона ролей — сразу по праву выгрузки (kunden.export).
     "stays:meldescheine-export": "kunden.export — новый экран, правило в view_perms",
+    # KA-12 WR-6: массовая правка цен — сразу по праву цен (как price-calendar отеля).
+    "catalog:products-bulk-price": "preise.edit — новый экран, правило в view_perms",
 }
 
 

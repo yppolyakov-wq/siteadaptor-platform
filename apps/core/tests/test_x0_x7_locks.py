@@ -84,6 +84,10 @@ EXPECTED_UNLISTED = frozenset(
         "catalog:product-inline-edit",
         "catalog:product-photo-edit",
         "catalog:products-merge",
+        # KA-12 WR-6: POST-действия и выгрузка из списка «Sortiment» (вход — кнопки списка).
+        "catalog:products-bulk-visibility",
+        "catalog:products-bulk-price",
+        "catalog:products-export-csv",
         "channel-config",
         # POST-only приёмник панели «Anfrage-Formular» (её UI живёт на «Abläufe»
         # с X2c). Был ошибочно классифицирован как экран и попал в палитру —

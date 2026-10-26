@@ -5893,6 +5893,12 @@ def _pop_sellable_undo(request, sm):
     return undo
 
 
+def _perm_chrome(user, key):
+    from apps.core.permissions import chrome_allows
+
+    return chrome_allows(user, key)
+
+
 @login_required
 def sellable_manage(request):
     """FB-8: «Angebote» — один экран со всеми продаваемыми сущностями (товар/услуга/
@@ -5962,6 +5968,9 @@ def sellable_manage(request):
             "filtered": filtered,
             # W11-4: гейт кнопки «% Aktion» на карточках (цель PL из строки).
             "promotions_active": tenant.is_module_active("promotions"),
+            # KA-12 WR-6: массовая правка цен и выгрузка — по праву (сервер проверяет сам).
+            "can_edit_prices": _perm_chrome(request.user, "preise.edit"),
+            "can_export_products": _perm_chrome(request.user, "lager.export"),
             # ST-5a: карточный грид.
             # Во вьюхе (не processor) — как dashboard: работает и на public-схеме.
         },

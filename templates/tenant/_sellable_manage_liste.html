@@ -69,4 +69,21 @@
   <button form="merge-form" class="text-sm rounded-lg px-3 py-1.5 bg-white shadow-sm hover:bg-gray-50 text-gray-700">🔗 {% trans "Als Varianten zusammenführen" %}</button>
   <span class="text-xs text-gray-400">{% trans "Tick two or more products first — they become one card with variants." %}</span>
 </div>
+<div class="mt-2 flex items-center gap-2 flex-wrap" data-bulk-actions>
+  <span class="text-xs text-gray-500">{% trans "Ausgewählte:" %}</span>
+  <button form="merge-form" formaction="{% url 'catalog:products-bulk-visibility' %}" name="action" value="show" class="text-sm rounded-lg px-3 py-1.5 bg-white shadow-sm hover:bg-gray-50 text-gray-700">👁 {% trans "Sichtbar machen" %}</button>
+  <button form="merge-form" formaction="{% url 'catalog:products-bulk-visibility' %}" name="action" value="hide" class="text-sm rounded-lg px-3 py-1.5 bg-white shadow-sm hover:bg-gray-50 text-gray-700">🙈 {% trans "Ausblenden" %}</button>
+  {% if can_edit_prices %}
+  <label class="sr-only" for="bulk-price-mode">{% trans "Preis ändern" %}</label>
+  <select id="bulk-price-mode" name="mode" form="merge-form" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base">
+    <option value="pct">{% trans "Preis in Prozent ändern" %}</option>
+    <option value="eur">{% trans "Preis in Euro ändern" %}</option>
+    <option value="set">{% trans "Festpreis setzen" %}</option>
+  </select>
+  <label class="sr-only" for="bulk-price-amount">{% trans "Betrag" %}</label>
+  <input id="bulk-price-amount" name="amount" form="merge-form" type="text" inputmode="decimal" placeholder="{% trans 'z. B. -10' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-base">
+  <button form="merge-form" formaction="{% url 'catalog:products-bulk-price' %}" class="text-sm rounded-lg px-3 py-1.5 bg-white shadow-sm hover:bg-gray-50 text-gray-700">💶 {% trans "Preise ändern" %}</button>
+  {% endif %}
+  {% if can_export_products %}<a href="{% url 'catalog:products-export-csv' %}" class="text-sm text-indigo-600 hover:underline ml-auto">⬇ {% trans "Als CSV exportieren" %}</a>{% endif %}
+</div>
 {% endif %}

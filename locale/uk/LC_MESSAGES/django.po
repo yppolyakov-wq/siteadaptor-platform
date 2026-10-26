@@ -31181,3 +31181,50 @@ msgstr "Створити варіанти"
 
 msgid "leer = Produktpreis"
 msgstr "порожньо = базова ціна"
+
+#, python-format
+msgid "%(n)s Preise geändert."
+msgstr "Змінено цін: %(n)s."
+
+#, python-format
+msgid "%(n)s Produkte aktualisiert."
+msgstr "Оновлено товарів: %(n)s."
+
+msgid "Als CSV exportieren"
+msgstr "Вивантажити в CSV"
+
+msgid "Ausgewählte:"
+msgstr "Вибрані:"
+
+msgid "Bitte Produkte auswählen und einen Betrag angeben."
+msgstr "Виберіть товари й укажіть суму."
+
+msgid "Bitte zuerst Produkte auswählen."
+msgstr "Спершу виберіть товари."
+
+msgid "EAN / GTIN"
+msgstr "EAN / GTIN"
+
+msgid "Festpreis setzen"
+msgstr "Задати ціну"
+
+msgid "Preis in Euro ändern"
+msgstr "Змінити ціну в євро"
+
+msgid "Preis in Prozent ändern"
+msgstr "Змінити ціну у відсотках"
+
+msgid "Preis ändern"
+msgstr "Змінити ціну"
+
+msgid "Preise ändern"
+msgstr "Змінити ціни"
+
+msgid "Prozent zwischen −90 und 500."
+msgstr "Відсоток від −90 до 500."
+
+msgid "Sichtbar machen"
+msgstr "Показати"
+
+msgid "z. B. -10"
+msgstr "напр. -10"

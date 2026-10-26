@@ -35,6 +35,12 @@ PRODUCT_FIELDS = [
     ("stock_quantity", _("Lagerbestand")),
     ("category_slug", _("Kategorie (slug)")),
     ("is_active", _("Aktiv")),
+    # KA-12 WR-6 (E3.2): поля выгрузки — CSV ходит туда-обратно без потерь.
+    ("gtin", _("EAN / GTIN")),
+    ("list_price", _("UVP")),
+    ("cost_price", _("Einkaufspreis")),
+    ("vat_rate", _("MwSt.-Satz")),
+    ("brand", _("Marke")),
 ]
 
 # Выбор разделителя CSV (значение → подпись).
@@ -55,7 +61,7 @@ VARIANT_FIELDS = [
     ("color", _("Farbe")),
     ("sku", _("Varianten-SKU")),
     ("gtin", _("EAN/GTIN")),
-    ("price", _("Preis (leer = Grundpreis)")),
+    ("price", _("Preis (leer = Produktpreis)")),
     ("content_amount", _("Inhalt (Grundpreis)")),
     ("stock_quantity", _("Lagerbestand")),
     ("is_active", _("Aktiv")),

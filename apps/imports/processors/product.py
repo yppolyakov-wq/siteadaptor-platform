@@ -39,6 +39,20 @@ def _parse_decimal(value):
         return None
 
 
+_VAT_RATES = (Decimal("0.00"), Decimal("7.00"), Decimal("19.00"))
+
+
+def _parse_vat(value):
+    """«7», «7,00», «7 %» → Decimal("7.00"); не 0/7/19 или мусор → None."""
+    if value in (None, ""):
+        return None
+    rate = _parse_decimal(str(value).replace("%", ""))
+    if rate is None:
+        return None
+    rate = rate.quantize(Decimal("0.01"))
+    return rate if rate in _VAT_RATES else None
+
+
 class ProductProcessor(BaseProcessor):
     model = Product
 
@@ -58,6 +72,11 @@ class ProductProcessor(BaseProcessor):
                 errors.append("base_price is not a valid number")
             elif price < 0:
                 errors.append("base_price must be >= 0")
+
+        # KA-12 WR-6: ставка НДС — только законные 0 / 7 / 19 %.
+        raw_vat = data.get("vat_rate")
+        if raw_vat not in (None, "") and _parse_vat(raw_vat) is None:
+            errors.append("vat_rate must be 0, 7 or 19")
 
         return errors
 
@@ -103,6 +122,19 @@ class ProductProcessor(BaseProcessor):
             "is_active": is_active,
             "category": category,
         }
+        # KA-12 WR-6 (E3.2): новые колонки — только если в файле есть значение (пустая
+        # колонка не стирает EAN/UVP/EK/марку при повторном импорте).
+        if str(data.get("gtin") or "").strip():
+            fields["gtin"] = str(data["gtin"]).strip()[:14]
+        if str(data.get("brand") or "").strip():
+            fields["brand"] = str(data["brand"]).strip()[:120]
+        for key in ("list_price", "cost_price"):
+            value = _parse_decimal(data.get(key))
+            if value is not None and value >= 0:
+                fields[key] = value
+        vat = _parse_vat(data.get("vat_rate"))
+        if vat is not None:
+            fields["vat_rate"] = vat
 
         if update_existing:
             # Поле синхронизации: по нему ищем существующий товар.

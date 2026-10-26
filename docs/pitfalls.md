@@ -353,3 +353,8 @@
   беспараметрный маршрут обязан быть в навигации или в `EXPECTED_UNLISTED`
   (`apps/core/tests/test_x0_x7_locks.py`); POST-приёмник панели — в исключения с комментарием. Локальный
   гейт при новых маршрутах: `test_package_gate` + `test_view_perms` + `test_x0_x7_locks`.
+
+- **2026-10-26 · i18n · переименование msgid в `.po` sed'ом по всем каталогам** (WR-4→WR-5, CI #I18N-9):
+  поменял «leer = Grundpreis» → «leer = Produktpreis» в `.po`, а вторая строка-источник
+  («Preis (leer = Grundpreis)» в `apps/imports/views.py`) осталась старой → CI-гейт красный.
+  Правило: msgid переименовывать от ИСХОДНИКА (`grep -rn` по `apps/ templates/`), потом `.po`.

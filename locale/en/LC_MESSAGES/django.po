@@ -30922,3 +30922,50 @@ msgstr "Generate variants"
 
 msgid "leer = Produktpreis"
 msgstr "empty = base price"
+
+#, python-format
+msgid "%(n)s Preise geändert."
+msgstr "%(n)s prices changed."
+
+#, python-format
+msgid "%(n)s Produkte aktualisiert."
+msgstr "%(n)s products updated."
+
+msgid "Als CSV exportieren"
+msgstr "Export as CSV"
+
+msgid "Ausgewählte:"
+msgstr "Selected:"
+
+msgid "Bitte Produkte auswählen und einen Betrag angeben."
+msgstr "Please select products and enter an amount."
+
+msgid "Bitte zuerst Produkte auswählen."
+msgstr "Please select products first."
+
+msgid "EAN / GTIN"
+msgstr "EAN / GTIN"
+
+msgid "Festpreis setzen"
+msgstr "Set fixed price"
+
+msgid "Preis in Euro ändern"
+msgstr "Change price in euros"
+
+msgid "Preis in Prozent ändern"
+msgstr "Change price by percent"
+
+msgid "Preis ändern"
+msgstr "Change price"
+
+msgid "Preise ändern"
+msgstr "Change prices"
+
+msgid "Prozent zwischen −90 und 500."
+msgstr "Percent between −90 and 500."
+
+msgid "Sichtbar machen"
+msgstr "Make visible"
+
+msgid "z. B. -10"
+msgstr "e.g. -10"
