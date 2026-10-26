@@ -34,6 +34,26 @@ class OutOfStock(Exception):
         super().__init__(f"out of stock: {title} (available {available})")
 
 
+class NotOnMenu(OutOfStock):
+    """KA-12 GA-9: блюдо Tageskarte не подаётся в день выдачи. Подкласс OutOfStock —
+    все существующие обработчики чекаутов ловят его без 500; корзина даёт своё сообщение."""
+
+    def __init__(self, title="", days=""):
+        super().__init__(title=title, available=0)
+        self.days = days
+
+
+def _check_menu_days(norm, pickup_slot):
+    """KA-12 GA-9: каждое блюдо должно быть в меню в день выдачи (слот → его локальная
+    дата; без слота — сегодня). Проверка ДО списания склада и ёмкости окна."""
+    from django.utils import timezone
+
+    day = timezone.localtime(pickup_slot).date() if pickup_slot else timezone.localdate()
+    for product, _variant, _qty, _options in norm:
+        if not product.available_on(day):
+            raise NotOnMenu(title=str(product), days=product.weekdays_label)
+
+
 def _reserve_stock(norm):
     """Атомарно списать остаток по позициям (R3, паттерн anti-oversell).
 
@@ -299,6 +319,7 @@ def create_order(
     # SlotFull откатывает и лимит акции, и (ниже не дошедшее) списание склада.
     from . import pickup_slots
 
+    _check_menu_days(norm, pickup_slot)  # KA-12 GA-9: Tageskarte по дню выдачи
     pickup_slots.claim(pickup_slot, pickup_capacity)
     _reserve_stock(norm + custom_reserve)
     customer = _get_or_create_customer(name=name, email=email, phone=phone)

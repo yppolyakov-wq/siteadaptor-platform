@@ -46,7 +46,7 @@
   {% endif %}
   {% if not product.has_variants %}{% with gp=product.grundpreis %}{% if gp %}
     <p class="text-sm text-gray-500">{{ gp.0 }} {{ product.currency|cursym }} / {{ gp.1 }}</p>
-  {% endif %}{% endwith %}{% endif %}
+  {% endif %}{% endwith %}{% endif %}{% include "storefront/_menu_days_badge.html" with p=product %}
   {% comment %}Фидбэк 2026-08-04 «везде артикул»: Art.-Nr. под ценой; у товара с
   вариантами следует за выбором (JS в _add_to_cart_form по data-sku опции).{% endcomment %}
   {% if product.has_variants %}

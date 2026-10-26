@@ -8,7 +8,7 @@ test_storefront, test_listing_parity.
 свотчи цвета из реестра option_styles.COLOR_HEX.
 
 O-2 (Outlet): состояние и марка — те же правила показа, что у остальных осей.{% endcomment %}
-{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips or catalog_show_filters and color_chips or catalog_show_filters and condition_chips or catalog_show_filters and brand_chips or catalog_show_filters and sale_count %}
+{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips or catalog_show_filters and color_chips or catalog_show_filters and condition_chips or catalog_show_filters and brand_chips or catalog_show_filters and sale_count or catalog_show_filters and heute_count %}
 {% comment %}DS-10: панель отдаётся УЖЕ скрытой — CSS DS-6 делает видимую панель
 fixed-ящиком, и до инициализации JS она вспыхивала поверх контента. Без JS её
 показывает правило в <noscript> ниже (прогрессивное улучшение сохранено).{% endcomment %}
@@ -53,6 +53,12 @@ fixed-ящиком, и до инициализации JS она вспыхив�
   <label class="flex items-center gap-2 text-sm text-gray-600 pb-1.5">
     <input type="checkbox" name="sale" value="1" {% if only_sale %}checked{% endif %} class="rounded border-gray-300">
     {% trans "Reduced only" %} <span class="text-gray-400">({{ sale_count }})</span>
+  </label>
+  {% endif %}
+  {% if heute_count %}
+  <label class="flex items-center gap-2 text-sm text-gray-600 pb-1.5">
+    <input type="checkbox" name="heute" value="1" {% if only_heute %}checked{% endif %} class="rounded border-gray-300">
+    {% trans "Heute auf der Karte" %} <span class="text-gray-400">({{ heute_count }})</span>
   </label>
   {% endif %}
   {% comment %}UB2-3: Bio/Regional-происхождение (Product.origin) — только реально

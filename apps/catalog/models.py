@@ -257,6 +257,8 @@ class Product(SoftDeleteMixin, I18nMixin):
     # KA-12 E3.4: «Heute ausverkauft» — до этой даты включительно товар не продаётся;
     # на следующий день снова доступен без записи (ленивый сброс через in_stock).
     sold_out_until = models.DateField(null=True, blank=True)
+    # KA-12 GA-9: Tageskarte — дни недели (0=Mo…6=So), когда блюдо есть; [] = каждый день.
+    available_weekdays = models.JSONField(default=list, blank=True)
     # T-8.27: адрес позиции на сайте владельца (импорт с сайта). У визитки «eintrag»
     # листинг каталога города ведёт сюда; иначе — справка «Original».
     external_url = models.URLField(max_length=500, blank=True, default="")
@@ -437,6 +439,30 @@ class Product(SoftDeleteMixin, I18nMixin):
         from django.utils import timezone
 
         return self.sold_out_until >= timezone.localdate()
+
+    def available_on(self, day) -> bool:
+        """KA-12 GA-9: есть ли блюдо в этот день (Tageskarte). [] — каждый день; мусор в
+        списке игнорируется (не делает блюдо недоступным навсегда)."""
+        days = {d for d in (self.available_weekdays or []) if isinstance(d, int) and 0 <= d <= 6}
+        return not days or day.weekday() in days
+
+    @property
+    def is_on_menu_today(self) -> bool:
+        from django.utils import timezone
+
+        return self.available_on(timezone.localdate())
+
+    @property
+    def weekdays_label(self) -> str:
+        """«Mo · Mi» — подпись дней Tageskarte ("" — каждый день)."""
+        from django.utils.dates import WEEKDAYS_ABBR
+
+        days = sorted(
+            {d for d in (self.available_weekdays or []) if isinstance(d, int) and 0 <= d <= 6}
+        )
+        if not days or len(days) == 7:
+            return ""
+        return " · ".join(str(WEEKDAYS_ABBR[d]) for d in days)
 
     @property
     def in_stock(self) -> bool:

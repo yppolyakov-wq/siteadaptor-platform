@@ -120,7 +120,10 @@ def build_menu_pdf(tenant, groups) -> bytes:
             c.drawRightString(right, y, money(p.base_price))
             diets = _diet_labels(p)
             desc = (p.get_i18n("description") or "").strip().replace("\n", " ")
-            sub = " — ".join(b for b in (diets, desc) if b)
+            # KA-12 GA-9: Tageskarte — «nur Mo · Mi» первым в подстроке.
+            days = p.weekdays_label
+            only = _("nur %(days)s") % {"days": days} if days else ""
+            sub = " — ".join(b for b in (only, diets, desc) if b)
             c.setFont(font, 8)
             c.setFillColorRGB(*_MUTED)
             for line in _wrap(sub, 100)[:2]:

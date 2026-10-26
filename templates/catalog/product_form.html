@@ -116,7 +116,9 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
         <p class="text-sm font-medium">{% trans "Food labeling" %}</p>
         {# MEN-2: Gang (тип подачи) — обычный селект, до чекбокс-реестров #}
         {% for field in form %}{% if field.name == 'course' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
-        {% for field in form %}{% if field.name == 'allergens' or field.name == 'additives' or field.name == 'diets' %}
+        {# KA-12 GA-9: Tageskarte — сентинел: форма без поля не стирает расписание (W0). #}
+        <input type="hidden" name="weekdays_present" value="1">
+        {% for field in form %}{% if field.name == 'allergens' or field.name == 'additives' or field.name == 'diets' or field.name == 'available_weekdays' %}
           <div>
             <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
             <div class="pf-chips">{% render_field field %}</div>

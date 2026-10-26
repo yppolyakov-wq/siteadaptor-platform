@@ -30978,3 +30978,24 @@ msgstr "%(name)s için masa (%(t)s)"
 
 msgid "Zeit wählen"
 msgstr "Saat seçin"
+
+msgid "Heute auf der Karte"
+msgstr "Bugün menüde"
+
+msgid "Leer lassen = jeden Tag auf der Karte."
+msgstr "Boş bırakın = her gün menüde."
+
+#, python-format
+msgid "Nur %(days)s"
+msgstr "Sadece %(days)s"
+
+msgid "Nur an diesen Tagen"
+msgstr "Sadece bu günlerde"
+
+#, python-format
+msgid "nur %(days)s"
+msgstr "sadece %(days)s"
+
+#, python-format
+msgid "„%(item)s“ gibt es nur %(days)s. Bitte einen passenden Abholtag wählen."
+msgstr "“%(item)s” yalnızca %(days)s mevcut. Lütfen uygun bir teslim alma günü seçin."

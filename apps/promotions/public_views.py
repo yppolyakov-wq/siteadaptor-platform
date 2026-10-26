@@ -1321,6 +1321,8 @@ def _facet_pills(facets: dict, chips: dict, badge_chips) -> list:
         pills.append({"label": _("Only available"), "qs": drop("nur_verfuegbar")})
     if facets.get("sale"):
         pills.append({"label": _("Reduced only"), "qs": drop("sale")})
+    if facets.get("heute"):
+        pills.append({"label": _("Heute auf der Karte"), "qs": drop("heute")})
     if facets.get("bewertung"):
         from_label = _("from")
         pills.append({"label": f"{from_label} {facets['bewertung']} ★", "qs": drop("bewertung")})
@@ -1456,6 +1458,7 @@ def product_list(request, slug=None):
     groesse = sel.get("groesse") or []  # M2 Boutique: размеры (мультивыбор)
     farbe = sel.get("farbe") or []  # 2026-09-03: цвета (мультивыбор)
     only_sale = sel.get("sale", False)  # 2026-09-03: только со скидкой
+    only_heute = sel.get("heute", False)  # KA-12 GA-9: Tageskarte сегодня
     kollektion = sel.get("kollektion", "")  # M4-B Lookbook: подборка товаров
     # O-2 (Outlet): состояние (B-Ware) и марка. Цвет и «только со скидкой»
     # живут выше под именами `farbe` (мультивыбор) и `sale`.
@@ -1763,6 +1766,7 @@ def product_list(request, slug=None):
         or groesse
         or farbe
         or only_sale
+        or only_heute
         or kollektion
         or bewertung
         or zustand
@@ -1813,6 +1817,7 @@ def product_list(request, slug=None):
         "groesse": groesse,  # M2: размеры (список — мультивыбор)
         "farbe": farbe,  # 2026-09-03: цвета (список)
         "sale": "1" if only_sale else "",  # 2026-09-03: только со скидкой
+        "heute": "1" if only_heute else "",  # KA-12 GA-9
         "kollektion": kollektion,  # M4-B: подборка (лукбук)
         "zustand": zustand,  # O-2: состояние (B-Ware)
         "marke": marke,  # O-2: марка
@@ -1988,6 +1993,8 @@ def product_list(request, slug=None):
             # 2026-09-03: «Nur reduzierte» — тумблер и его счётчик.
             "only_sale": only_sale,
             "sale_count": chips["sale_count"],
+            "only_heute": only_heute,
+            "heute_count": chips["heute_count"],
             # 2026-09-03: цвет — свотчи мультивыбора.
             "color_chips": chips["color_chips"],
             "active_farbe": farbe,

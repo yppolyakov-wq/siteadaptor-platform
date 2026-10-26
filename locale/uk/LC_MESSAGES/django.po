@@ -31093,3 +31093,24 @@ msgstr "Стіл для %(name)s (%(t)s)"
 
 msgid "Zeit wählen"
 msgstr "Вибрати час"
+
+msgid "Heute auf der Karte"
+msgstr "Сьогодні в меню"
+
+msgid "Leer lassen = jeden Tag auf der Karte."
+msgstr "Залиште порожнім — страва в меню щодня."
+
+#, python-format
+msgid "Nur %(days)s"
+msgstr "Лише %(days)s"
+
+msgid "Nur an diesen Tagen"
+msgstr "Лише в ці дні"
+
+#, python-format
+msgid "nur %(days)s"
+msgstr "лише %(days)s"
+
+#, python-format
+msgid "„%(item)s“ gibt es nur %(days)s. Bitte einen passenden Abholtag wählen."
+msgstr "«%(item)s» буває лише %(days)s. Будь ласка, оберіть відповідний день отримання."

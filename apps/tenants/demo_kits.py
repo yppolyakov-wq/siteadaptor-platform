@@ -431,6 +431,7 @@ def _p(
     note="",
     brand="",
     uvp="",
+    weekdays=None,
 ):
     return {
         "name": name,
@@ -440,6 +441,7 @@ def _p(
         "variants": variants or [],
         "allergens": allergens or [],
         "diets": diets or [],  # A4 диет-теги
+        "weekdays": weekdays or [],  # KA-12 GA-9: Tageskarte (0=Mo…6=So)
         "modifiers": modifiers or [],
         "badge": badge,
         # SH-4: ставка НДС позиции (пусто = 19 %). В демо гастро-китов еда идёт
@@ -1115,7 +1117,14 @@ RESTAURANT = DemoKit(
                     allergens=["gluten", "milch", "eier"],
                     badge="tagesgericht",
                 ),
-                _p("Risotto Funghi", "13.50", "Mit Steinpilzen.", "risotto", allergens=["milch"]),
+                _p(
+                    "Risotto Funghi",
+                    "13.50",
+                    "Mit Steinpilzen.",
+                    "risotto",
+                    allergens=["milch"],
+                    weekdays=[5, 6],  # KA-12 GA-9: Wochenend-Risotto
+                ),
                 _p(
                     "Lasagne al Forno",
                     "11.90",
@@ -1163,6 +1172,7 @@ RESTAURANT = DemoKit(
                     "Gebraten, mit Gemüse.",
                     "salmon,fish",
                     allergens=["fisch"],
+                    weekdays=[4],  # KA-12 GA-9: Fischtag — nur freitags
                 ),
                 _p(
                     "Gnocchi Gorgonzola",
@@ -24742,6 +24752,7 @@ def apply_kit(tenant, key: str) -> bool:
             images=_product_images(item["img"], lock, name_i18n.get("de", "")),
             allergens=item["allergens"],
             diets=item.get("diets", []),  # A4 диет-теги
+            available_weekdays=item.get("weekdays", []),  # KA-12 GA-9: Tageskarte
             badge=item.get("badge", ""),
             unit=item.get("unit", ""),  # R2 Grundpreis
             content_amount=Decimal(str(content)) if content is not None else None,

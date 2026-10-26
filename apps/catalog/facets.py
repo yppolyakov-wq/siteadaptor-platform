@@ -98,6 +98,8 @@ class CatalogFacets(FacetProvider):
             # тем же резолвером, что рисует промо-цену на карточке (иначе фильтр
             # и витрина разошлись бы).
             "sale": params.get("sale") == "1",
+            # KA-12 GA-9: «Heute auf der Karte» — блюда Tageskarte, которые есть сегодня.
+            "heute": params.get("heute") == "1",
         }
 
     def apply(self, items, params):
@@ -155,6 +157,8 @@ class CatalogFacets(FacetProvider):
             ).distinct()
         if sel["bewertung"]:
             items = items.filter(pk__in=self._rated_ids(items, sel["bewertung"]))
+        if sel["heute"]:
+            items = items.filter(_on_menu_today_q())
         if sel["sale"]:
             items = items.filter(pk__in=self._discounted_ids(items))
         return items
@@ -257,6 +261,12 @@ class CatalogFacets(FacetProvider):
             "brand_chips": self._brand_chips(items),
             # 2026-09-03: «Nur reduzierte» показываем, лишь когда скидки есть.
             "sale_count": len(self._discounted_ids(items)),
+            # KA-12 GA-9: чип показываем, только если у кого-то есть расписание дней.
+            "heute_count": (
+                items.filter(_on_menu_today_q()).count()
+                if items.exclude(available_weekdays=[]).exists()
+                else 0
+            ),
         }
 
     @staticmethod
@@ -387,3 +397,11 @@ def _today():
     from django.utils import timezone
 
     return timezone.localdate()
+
+
+def _on_menu_today_q():
+    """KA-12 GA-9: блюдо есть сегодня — расписания нет ([]) или сегодняшний день в нём."""
+    from django.db.models import Q
+
+    wd = _today().weekday()
+    return Q(available_weekdays=[]) | Q(available_weekdays__contains=[wd])

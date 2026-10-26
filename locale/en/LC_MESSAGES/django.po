@@ -30834,3 +30834,24 @@ msgstr "Table for %(name)s (%(t)s)"
 
 msgid "Zeit wählen"
 msgstr "Choose time"
+
+msgid "Heute auf der Karte"
+msgstr "On the menu today"
+
+msgid "Leer lassen = jeden Tag auf der Karte."
+msgstr "Leave empty = on the menu every day."
+
+#, python-format
+msgid "Nur %(days)s"
+msgstr "Only %(days)s"
+
+msgid "Nur an diesen Tagen"
+msgstr "Only on these days"
+
+#, python-format
+msgid "nur %(days)s"
+msgstr "only %(days)s"
+
+#, python-format
+msgid "„%(item)s“ gibt es nur %(days)s. Bitte einen passenden Abholtag wählen."
+msgstr "“%(item)s” is only available %(days)s. Please choose a matching pickup day."

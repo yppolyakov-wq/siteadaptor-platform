@@ -30926,3 +30926,24 @@ msgstr "Tisch für %(name)s (%(t)s)"
 
 msgid "Zeit wählen"
 msgstr "Zeit wählen"
+
+msgid "Heute auf der Karte"
+msgstr "Heute auf der Karte"
+
+msgid "Leer lassen = jeden Tag auf der Karte."
+msgstr "Leer lassen = jeden Tag auf der Karte."
+
+#, python-format
+msgid "Nur %(days)s"
+msgstr "Nur %(days)s"
+
+msgid "Nur an diesen Tagen"
+msgstr "Nur an diesen Tagen"
+
+#, python-format
+msgid "nur %(days)s"
+msgstr "nur %(days)s"
+
+#, python-format
+msgid "„%(item)s“ gibt es nur %(days)s. Bitte einen passenden Abholtag wählen."
+msgstr "„%(item)s“ gibt es nur %(days)s. Bitte einen passenden Abholtag wählen."

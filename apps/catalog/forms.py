@@ -5,6 +5,7 @@
 from decimal import Decimal
 
 from django import forms
+from django.utils.dates import WEEKDAYS_ABBR
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
@@ -228,6 +229,15 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
     )
 
+    # KA-12 GA-9: Tageskarte — дни, когда блюдо есть (ничего / все 7 = каждый день).
+    available_weekdays = forms.MultipleChoiceField(
+        label=_("Nur an diesen Tagen"),
+        choices=[(str(i), WEEKDAYS_ABBR[i]) for i in range(7)],
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        help_text=_("Leer lassen = jeden Tag auf der Karte."),
+    )
+
     class Meta:
         model = Product
         # KA-M2: цены принимают «12,50» (поле текстовое, разбор на сервере).
@@ -407,6 +417,9 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             self.fields["allergens"].initial = list(self.instance.allergens or [])
             self.fields["additives"].initial = list(self.instance.additives or [])
             self.fields["diets"].initial = list(self.instance.diets or [])
+            self.fields["available_weekdays"].initial = [
+                str(d) for d in (self.instance.available_weekdays or [])
+            ]
         # W2: порядок полей — название/описание ПЕРВЫМИ (прежде name_de рендерился 17-м).
         # Динамические per-locale name_<loc>/description_<loc> ловим по префиксу. Секции
         # шаблона роутят по имени; порядок внутри секции = этот. Неупомянутые (если появятся)
@@ -434,6 +447,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
                 "allergens",
                 "additives",
                 "diets",
+                "available_weekdays",
                 "origin",
                 "ingredients",
                 "material",
@@ -513,6 +527,10 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         product.allergens = self.cleaned_data.get("allergens", [])
         product.additives = self.cleaned_data.get("additives", [])
         product.diets = self.cleaned_data.get("diets", [])
+        # KA-12 GA-9: сентинел — форма без поля (мастер, импорт) не стирает расписание.
+        if "weekdays_present" in self.data:
+            days = sorted({int(d) for d in self.cleaned_data.get("available_weekdays") or []})
+            product.available_weekdays = days if len(days) < 7 else []
         if commit:
             product.save()
         return product

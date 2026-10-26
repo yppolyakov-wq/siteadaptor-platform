@@ -219,7 +219,8 @@ def build_local_inventory_feed(*, products, store_code, title, link, description
         for product in products:
             for row in merchant_item_rows(product):
                 availability, quantity = local_availability(
-                    0 if product.is_sold_out_today else row["stock"]  # KA-12 E3.4
+                    # KA-12 E3.4 / GA-9: «ausverkauft» и «heute nicht auf der Karte» — 0.
+                    0 if product.is_sold_out_today or not product.is_on_menu_today else row["stock"]
                 )
                 items.append(
                     _item_xml(
