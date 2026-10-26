@@ -181,14 +181,15 @@ def test_load_preset_button_merges(monkeypatch):
 # --- письмо «Abholbereit» ---------------------------------------------------
 
 
-def _walk_to_ready(job):
-    from django.db import connection
-
+def _walk_to_ready(job, monkeypatch):
+    """Свои статусы мастерской через реестр (НЕ подменяя connection.tenant: выход из
+    schema_context восстановил бы его и переключил схему соединения — грабля CI)."""
+    from apps.core import status_registry
     from apps.jobs.state_machine import JobSM
 
     cfg, _c = status_presets.merge({}, "werkstatt")
     tenant = _tenant(site_config=cfg)
-    connection.tenant = tenant
+    monkeypatch.setattr(status_registry, "_current_tenant", lambda: tenant)
     sm = JobSM()
     for dst in ("quoted", "accepted", "in_arbeit", "abholbereit"):
         sm.apply(job, dst)
@@ -196,18 +197,12 @@ def _walk_to_ready(job):
 
 
 def test_ready_email_once_and_no_done_email_after(monkeypatch):
-    from django.db import connection
-
-    old = getattr(connection, "tenant", None)
-    try:
-        job = _job()
-        sm = _walk_to_ready(job)
-        email = job.customer.email
-        assert Notification.objects.filter(type="job_ready", recipient=email).count() == 1
-        sm.apply(job, "done")
-        assert not Notification.objects.filter(type="job_done", recipient=email).exists()
-    finally:
-        connection.tenant = old
+    job = _job()
+    sm = _walk_to_ready(job, monkeypatch)
+    email = job.customer.email
+    assert Notification.objects.filter(type="job_ready", recipient=email).count() == 1
+    sm.apply(job, "done")
+    assert not Notification.objects.filter(type="job_done", recipient=email).exists()
 
 
 # --- PDF ----------------------------------------------------------------------
@@ -270,16 +265,10 @@ def test_bad_vehicle_does_not_stop_others(monkeypatch):
     assert Vehicle.objects.get(pk=first.vehicle_ref_id).hu_reminder_sent_for is None
 
 
-def test_done_mail_kept_when_ready_mail_did_not_go_out():
-    from django.db import connection
-
-    old = getattr(connection, "tenant", None)
-    try:
-        job = _job(email="")  # нет почты → «Abholbereit» не ушло
-        sm = _walk_to_ready(job)
-        job.customer.email = f"{uuid.uuid4().hex[:6]}@example.com"
-        job.customer.save(update_fields=["email"])
-        sm.apply(job, "done")
-        assert Notification.objects.filter(type="job_done", recipient=job.customer.email).exists()
-    finally:
-        connection.tenant = old
+def test_done_mail_kept_when_ready_mail_did_not_go_out(monkeypatch):
+    job = _job(email="")  # нет почты → «Abholbereit» не ушло
+    sm = _walk_to_ready(job, monkeypatch)
+    job.customer.email = f"{uuid.uuid4().hex[:6]}@example.com"
+    job.customer.save(update_fields=["email"])
+    sm.apply(job, "done")
+    assert Notification.objects.filter(type="job_done", recipient=job.customer.email).exists()
