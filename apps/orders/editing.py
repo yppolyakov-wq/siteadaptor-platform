@@ -132,8 +132,14 @@ def set_item_qty(order, item_pk, qty: int, tenant=None):
     """Изменить количество позиции (0 = удалить). Склад двигается на разницу;
     промо-строка двигает и лимит кампании (SF-4b, та же atomic)."""
     _require_editable(order, tenant)
-    item = order.items.select_related("product", "variant").get(pk=item_pk)
+    item = order.items.select_related("product", "variant", "promotion").get(pk=item_pk)
     qty = max(int(qty), 0)
+    # KA-12 PR-3: строка количественной акции («3 für 2» и т.п.) — часть разбивки; правка
+    # её количества сломала бы соотношение (бесплатные штуки × N). Удалить можно.
+    if qty and item.promotion is not None and item.promotion.price_condition:
+        raise OrderLocked(
+            _("Diese Position gehört zu einer Mengenaktion – bitte entfernen und neu hinzufügen.")
+        )
     delta = item.qty - qty  # положительная разница = возвращаем на склад
     _move_stock(
         product=item.product,

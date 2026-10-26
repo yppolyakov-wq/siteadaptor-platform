@@ -30963,3 +30963,6 @@ msgstr "Quadratmeter"
 #, python-format
 msgid "Aktion %(label)s: −%(s)s %(c)s"
 msgstr "Aktion %(label)s: −%(s)s %(c)s"
+
+msgid "Diese Position gehört zu einer Mengenaktion – bitte entfernen und neu hinzufügen."
+msgstr "Diese Position gehört zu einer Mengenaktion – bitte entfernen und neu hinzufügen."

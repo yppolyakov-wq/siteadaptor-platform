@@ -782,7 +782,11 @@ def cart_view(request):
     # в продаже (лимит мог кончиться между корзиной и «Kaufen»).
     # Пары «товар:акция» — чтобы удалённый в другой вкладке товар не давал ложного «vergriffen».
     promo_seen = ",".join(
-        sorted({f"{r['product'].pk}:{pmap[r['product'].pk].pk}" for r in rows if r["is_promo"]})
+        sorted(
+            {f"{r['product'].pk}:{pmap[r['product'].pk].pk}" for r in rows if r["is_promo"]}
+            # KA-12 PR-3: и количественные акции, которые корзина применила
+            | {f"{r['product'].pk}:{r['deal_promo'].pk}" for r in rows if r["deal_promo"]}
+        )
     )
     # Комбо-наборы (A4): отдельные строки корзины со снимком состава.
     from apps.catalog.combos import combo_price, pool_price
@@ -982,6 +986,13 @@ def checkout(request):
     # молча полную цену (обещание SF-4b), а возвращаем в корзину с обычной ценой.
     current = {str(p.pk): "" for p, _v, _o, _q in items}
     current.update({str(pid): str(promo.pk) for pid, promo in pmap.items()})
+    # KA-12 PR-3: количественная акция, которую показала корзина, тоже сверяется —
+    # исчезла/лимит кончился → назад в корзину, а не молча полная цена.
+    deals = _cart_deals(items)
+    for p, v, o, q in items:
+        deal = _line_total(p, v, o, q, pmap, deals)[1]
+        if deal is not None and str(p.pk) not in {str(pid) for pid in pmap}:
+            current[str(p.pk)] = str(deal[0].pk)
     seen = (x.partition(":") for x in (request.POST.get("promo_seen") or "").split(",")[:200])
     if any(pid in current and current[pid] != promo_pk for pid, _sep, promo_pk in seen):
         messages.error(
@@ -989,7 +1000,6 @@ def checkout(request):
             _("A promotional price has just sold out. Please check your cart."),
         )
         return redirect("storefront-cart")
-    deals = _cart_deals(items)  # KA-12 PR-3: те же итоги строк, что корзина и заказ
     subtotal = sum((_line_total(p, v, o, q, pmap, deals)[0] for p, v, o, q in items), Decimal("0"))
     subtotal += sum((combo_price(c, o) * q for c, o, q in combo_items), Decimal("0"))
     subtotal += sum((pool_price(c, d) * q for c, d, q, _ok, _k in pool_items), Decimal("0"))

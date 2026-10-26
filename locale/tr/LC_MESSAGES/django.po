@@ -31015,3 +31015,6 @@ msgstr "Metrekare"
 #, python-format
 msgid "Aktion %(label)s: −%(s)s %(c)s"
 msgstr "Kampanya %(label)s: −%(s)s %(c)s"
+
+msgid "Diese Position gehört zu einer Mengenaktion – bitte entfernen und neu hinzufügen."
+msgstr "Bu kalem bir adet kampanyasının parçası – lütfen kaldırıp yeniden ekleyin."

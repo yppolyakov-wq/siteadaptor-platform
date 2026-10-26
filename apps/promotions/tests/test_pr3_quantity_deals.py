@@ -118,3 +118,28 @@ def test_inactive_or_mystery_condition_not_applied():
     _promo(p, {"kind": "nth", "n": 2}, pct=50, discount_style="mystery")
     order = order_services.create_order(items=[(p, 2)], name="K")
     assert order.total == D("18.00")
+
+
+def test_limit_caps_discounted_units_instead_of_failing():
+    """Ревью PR-3: лимит 1, «2. Stück −50 %», 4 штуки → скидка на 1 штуку, а не отказ."""
+    p = _product()
+    promo = _promo(p, {"kind": "nth", "n": 2}, pct=50, available_quantity=1)
+    order = order_services.create_order(items=[(p, 4)], name="K")
+    assert order.total == D("31.50")  # 3 × 9,00 + 1 × 4,50
+    promo.refresh_from_db()
+    assert promo.available_quantity == 0
+    assert qd.split_units({"kind": "min_qty", "n": 2}, 20, D("10.00"), 3, cap=2) == [
+        (1, D("10.00"), False),
+        (2, D("8.00"), True),
+    ]
+
+
+def test_staff_cannot_change_qty_of_deal_line():
+    from apps.orders import editing
+
+    p = _product()
+    _promo(p, {"kind": "x_for_y", "n": 3, "pay": 2})
+    order = order_services.create_order(items=[(p, 3)], name="K")
+    free = order.items.get(unit_price=D("0.00"))
+    with pytest.raises(editing.OrderLocked):
+        editing.set_item_qty(order, free.pk, 5)

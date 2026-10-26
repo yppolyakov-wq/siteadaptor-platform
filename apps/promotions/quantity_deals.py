@@ -27,9 +27,38 @@ def _reduced(base: Decimal, percent) -> Decimal | None:
     return (base * (Decimal(100) - pct) / Decimal(100)).quantize(_CENT, rounding=ROUND_HALF_UP)
 
 
-def split_units(cond, percent, base, qty) -> list[tuple[int, Decimal, bool]]:
+def split_units(cond, percent, base, qty, cap=None) -> list[tuple[int, Decimal, bool]]:
     """Разбивка строки: [(штук, цена базы за штуку, скидочная?)] — сумма штук = qty.
-    Без применимого условия — одна строка по base (выгоды нет)."""
+    Без применимого условия — одна строка по base (выгоды нет). `cap` — остаток лимита
+    кампании (None = без лимита): скидочных штук не больше него (иначе чекаут падал бы
+    на `claim_units` вместо того, чтобы дать скидку на оставшиеся штуки)."""
+    parts = _split(cond, percent, base, qty)
+    if cap is None:
+        return parts
+    cap = max(int(cap), 0)
+    out, left = [], cap
+    for units, price, disc in parts:
+        if not disc:
+            out.append((units, price, False))
+            continue
+        take = min(units, left)
+        left -= take
+        if take:
+            out.append((take, price, True))
+        if units - take:
+            out.append((units - take, Decimal(str(base)), False))
+    return _collapse(out)
+
+
+def _collapse(parts):
+    """Слить одинаковые недисконтные куски (после обрезки лимитом)."""
+    plain = sum(u for u, _p, d in parts if not d)
+    disc = [p for p in parts if p[2]]
+    base = next((p for _u, p, d in parts if not d), None)
+    return ([(plain, base, False)] if plain else []) + disc
+
+
+def _split(cond, percent, base, qty) -> list[tuple[int, Decimal, bool]]:
     base = Decimal(str(base))
     qty = int(qty)
     plain = [(qty, base, False)]
@@ -98,7 +127,9 @@ def best_split(promos, product, variant, qty):
     base = Decimal(str(product.base_price))
     best = None
     for promo in promos:
-        parts = split_units(promo.price_condition, promo.discount_percent, base, qty)
+        parts = split_units(
+            promo.price_condition, promo.discount_percent, base, qty, promo.available_quantity
+        )
         gain = savings(parts, base)
         if gain > 0 and (best is None or gain > best[2]):
             best = (promo, parts, gain)

@@ -31130,3 +31130,6 @@ msgstr "Квадратний метр"
 #, python-format
 msgid "Aktion %(label)s: −%(s)s %(c)s"
 msgstr "Акція %(label)s: −%(s)s %(c)s"
+
+msgid "Diese Position gehört zu einer Mengenaktion – bitte entfernen und neu hinzufügen."
+msgstr "Ця позиція — частина акції на кількість: видаліть її та додайте знову."

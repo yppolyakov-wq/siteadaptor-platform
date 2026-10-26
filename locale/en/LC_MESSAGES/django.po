@@ -30871,3 +30871,6 @@ msgstr "Square metre"
 #, python-format
 msgid "Aktion %(label)s: −%(s)s %(c)s"
 msgstr "Deal %(label)s: −%(s)s %(c)s"
+
+msgid "Diese Position gehört zu einer Mengenaktion – bitte entfernen und neu hinzufügen."
+msgstr "This item is part of a quantity deal – please remove it and add it again."
