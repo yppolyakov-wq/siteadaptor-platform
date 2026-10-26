@@ -66,7 +66,6 @@ def test_two_seat_table_refuses_eight_guests():
         )
 
 
-@pytest.mark.xfail(strict=True, reason="GA-1: ручная запись шлёт гостю «Anfrage erhalten»")
 def test_counter_booking_mail_says_confirmed(django_capture_on_commit_callbacks):
     pool = _pool()
     with django_capture_on_commit_callbacks(execute=True):

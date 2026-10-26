@@ -4168,17 +4168,26 @@ def normalize_booking(raw) -> dict:
     "cents": 1..100000?}}. Ключ ТОЛЬКО при включённом правиле (presence-minimal,
     golden-паритет); мусор → правило выключено."""
     raw = raw if isinstance(raw, dict) else {}
+    out = {}
     rule = raw.get("no_show_deposit")
-    if not isinstance(rule, dict):
-        return {}
-    clean = {
-        "after": _rule_int(rule.get("after"), 1, 10, 2),
-        "days": _rule_int(rule.get("days"), 30, 730, 365),
-    }
-    cents = _rule_int(rule.get("cents"), 0, 100000, 0)
-    if cents > 0:
-        clean["cents"] = cents
-    return {"no_show_deposit": clean}
+    if isinstance(rule, dict):
+        clean = {
+            "after": _rule_int(rule.get("after"), 1, 10, 2),
+            "days": _rule_int(rule.get("days"), 30, 730, 365),
+        }
+        cents = _rule_int(rule.get("cents"), 0, 100000, 0)
+        if cents > 0:
+            clean["cents"] = cents
+        out["no_show_deposit"] = clean
+    # KA-12 GA-1: онлайн-бронь столов — до instant_max гостей сразу подтверждена,
+    # до online_max — «Gruppenanfrage», больше — «bitte anrufen». Ключ только при
+    # включённом правиле; instant_max не больше online_max.
+    tables = raw.get("tables")
+    if isinstance(tables, dict):
+        online_max = _rule_int(tables.get("online_max"), 1, 50, 50)
+        instant_max = min(_rule_int(tables.get("instant_max"), 0, 50, 0), online_max)
+        out["tables"] = {"instant_max": instant_max, "online_max": online_max}
+    return out
 
 
 _ANFRAGE_FIELDS = ("date", "guests", "event_type")  # канонический порядок

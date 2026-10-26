@@ -433,6 +433,10 @@ def _sm(kind):
 
 
 def _needs_manual_confirm(kind, obj) -> bool:
+    if kind == "booking":  # KA-12 GA-1: ресурс или Gruppenanfrage — одна точка
+        from apps.booking.table_rules import needs_manual_confirm
+
+        return needs_manual_confirm(obj)
     holder = {"booking": "resource", "stay": "unit"}.get(kind)
     target = getattr(obj, holder, None) if holder else None
     return bool(getattr(target, "require_manual_confirm", False))

@@ -30606,3 +30606,36 @@ msgstr "The deposit was refunded automatically."
 
 msgid "Bitte prüfen Sie, ob bereits Zahlungen eingegangen sind, und erstatten Sie diese innerhalb von 14 Tagen."
 msgstr "Please check whether payments have already been received and refund them within 14 days."
+
+#, python-format
+msgid "Bis %(n)s Personen sofort bestätigt."
+msgstr "Up to %(n)s people confirmed instantly."
+
+#, python-format
+msgid "Für Gruppen ab %(n)s Personen reservieren wir gern persönlich — bitte rufen Sie uns an oder schreiben Sie uns."
+msgstr "For groups of %(n)s or more we are happy to reserve personally — please call or write to us."
+
+#, python-format
+msgid "Größere Gruppen bis %(n)s Personen als Anfrage."
+msgstr "Larger groups up to %(n)s people as a request."
+
+msgid "Größere Gruppen bis zur Obergrenze kommen als Anfrage, die Sie bestätigen. Darüber bitten wir die Gäste, anzurufen."
+msgstr "Larger groups up to the limit arrive as a request that you confirm. Above it we ask guests to call."
+
+msgid "Ihre Gruppenanfrage ist eingegangen. Wir prüfen sie und melden uns mit einer Bestätigung."
+msgstr "Your group request has been received. We will check it and get back to you with a confirmation."
+
+msgid "Online buchbar bis (Personen)"
+msgstr "Bookable online up to (people)"
+
+msgid "Online-Tischreservierung"
+msgstr "Online table reservation"
+
+msgid "Regel verwenden"
+msgstr "Use rule"
+
+msgid "Sofort bestätigen bis (Personen)"
+msgstr "Confirm instantly up to (people)"
+
+msgid "Gruppenanfrage — bitte bestätigen oder ablehnen."
+msgstr "Group request — please confirm or decline."

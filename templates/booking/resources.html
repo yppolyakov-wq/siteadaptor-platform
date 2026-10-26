@@ -20,6 +20,24 @@
   {% endfor %}
 {% endif %}
 
+{% if has_tables %}
+{% comment %}KA-12 GA-1: правило онлайн-брони столов. Выключено — как раньше: каждая
+бронь ждёт подтверждения, размер компании не ограничен.{% endcomment %}
+<details class="mb-4 rounded-xl border border-gray-200 bg-white px-4 py-3" data-table-rules{% if table_rule %} open{% endif %}>
+  <summary class="cursor-pointer font-medium">{% trans "Online-Tischreservierung" %}{% if table_rule %} <span class="text-xs text-green-700">· {% trans "aktiv" %}</span>{% endif %}</summary>
+  <form method="post" action="{% url 'booking:table-rules' %}" class="mt-3 flex flex-wrap items-end gap-3 text-sm">
+    {% csrf_token %}
+    <label class="flex items-center gap-2"><input type="checkbox" name="enabled" value="1" {% if table_rule %}checked{% endif %}> {% trans "Regel verwenden" %}</label>
+    <label class="flex flex-col">{% trans "Sofort bestätigen bis (Personen)" %}
+      <input type="text" inputmode="numeric" name="instant_max" value="{{ table_rule.instant_max|default:4 }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5"></label>
+    <label class="flex flex-col">{% trans "Online buchbar bis (Personen)" %}
+      <input type="text" inputmode="numeric" name="online_max" value="{{ table_rule.online_max|default:12 }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5"></label>
+    <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 font-medium hover:bg-indigo-700">{% trans "Speichern" %}</button>
+    <p class="w-full text-xs text-gray-500">{% trans "Größere Gruppen bis zur Obergrenze kommen als Anfrage, die Sie bestätigen. Darüber bitten wir die Gäste, anzurufen." %}</p>
+  </form>
+</details>
+{% endif %}
+
 <div class="grid lg:grid-cols-2 gap-6 items-start">
   <div class="space-y-4">
     {% for r in resources %}

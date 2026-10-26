@@ -30750,3 +30750,36 @@ msgstr "Kapora otomatik olarak iade edildi."
 
 msgid "Bitte prüfen Sie, ob bereits Zahlungen eingegangen sind, und erstatten Sie diese innerhalb von 14 Tagen."
 msgstr "Lütfen ödeme alınıp alınmadığını kontrol edin ve 14 gün içinde iade edin."
+
+#, python-format
+msgid "Bis %(n)s Personen sofort bestätigt."
+msgstr "%(n)s kişiye kadar anında onaylanır."
+
+#, python-format
+msgid "Für Gruppen ab %(n)s Personen reservieren wir gern persönlich — bitte rufen Sie uns an oder schreiben Sie uns."
+msgstr "%(n)s ve üzeri kişilik gruplar için rezervasyonu memnuniyetle bizzat yapıyoruz — lütfen bizi arayın veya yazın."
+
+#, python-format
+msgid "Größere Gruppen bis %(n)s Personen als Anfrage."
+msgstr "%(n)s kişiye kadar büyük gruplar talep olarak."
+
+msgid "Größere Gruppen bis zur Obergrenze kommen als Anfrage, die Sie bestätigen. Darüber bitten wir die Gäste, anzurufen."
+msgstr "Üst sınıra kadar büyük gruplar onaylayacağınız bir talep olarak gelir. Üstünde misafirlerden aramalarını isteriz."
+
+msgid "Ihre Gruppenanfrage ist eingegangen. Wir prüfen sie und melden uns mit einer Bestätigung."
+msgstr "Grup talebiniz alındı. İnceleyip onayla size döneceğiz."
+
+msgid "Online buchbar bis (Personen)"
+msgstr "Çevrimiçi rezervasyon üst sınırı (kişi)"
+
+msgid "Online-Tischreservierung"
+msgstr "Çevrimiçi masa rezervasyonu"
+
+msgid "Regel verwenden"
+msgstr "Kuralı kullan"
+
+msgid "Sofort bestätigen bis (Personen)"
+msgstr "Anında onay üst sınırı (kişi)"
+
+msgid "Gruppenanfrage — bitte bestätigen oder ablehnen."
+msgstr "Grup talebi — lütfen onaylayın veya reddedin."

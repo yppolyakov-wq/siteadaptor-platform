@@ -57,12 +57,16 @@ def enqueue_booking_email(booking, event):
             group_qs = group_qs.filter(status=booking.status)
         ctx["group_bookings"] = list(group_qs.order_by("start"))
 
-    template_base = _CUSTOMER_TEMPLATES.get(event)
+    # KA-12 GA-1: запись, созданная сразу подтверждённой (стойка, «Sofort
+    # bestätigen»), — гостю письмо «bestätigt», а не «Anfrage erhalten». Ключ дедупа
+    # прежний (событие created), владелец получает обычное «neue Buchung».
+    mail_event = "confirmed" if event == "created" and booking.status == "confirmed" else event
+    template_base = _CUSTOMER_TEMPLATES.get(mail_event)
     email_on = channel_enabled(tenant, "customer", "booking", event, "email")
     if template_base and customer.email and not customer.unsubscribed and email_on:
         base = _base_url(schema)
         # LS-6: «Etwas stimmt nicht?» в подтверждении (high-тред + пуш владельцу).
-        if event in ("confirmed", "post_visit"):
+        if mail_event in ("confirmed", "post_visit"):
             ctx["problem_url"] = (
                 f"{base}{reverse('storefront-message')}?problem=1&ref_kind=booking&ref_id={booking.reference_code}"
                 if base
@@ -121,7 +125,7 @@ def enqueue_booking_email(booking, event):
             }
         notify(
             dedupe_key=f"booking:{booking.id}:{_event_key(booking, event)}:customer",
-            type=f"booking_{event}",
+            type=f"booking_{mail_event}",
             recipient=customer.email,
             subject=subject,
             body=body,

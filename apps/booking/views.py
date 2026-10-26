@@ -33,7 +33,7 @@ from apps.core.i18n_input import (
     i18n_inputs_for,
 )
 
-from . import services
+from . import services, table_rules
 from .models import (
     AvailabilityRule,
     Booking,
@@ -809,8 +809,59 @@ def resources(request):
             "transition_rows": transition_rules.editor_rows(
                 getattr(request, "tenant", None), "booking"
             ),
+            # KA-12 GA-1: правило онлайн-брони столов (карточка показывается, когда
+            # есть хоть один стол).
+            "table_rule": table_rules.rules(getattr(request, "tenant", None)),
+            "has_tables": Resource.objects.filter(type=Resource.TYPE_TABLE).exists(),
         },
     )
+
+
+@login_required
+@require_POST
+def table_rules_save(request):
+    """KA-12 GA-1: «Online-Tischreservierung» — до N гостей сразу, до M — Anfrage,
+    больше — «bitte anrufen». Точечная запись ключа `booking.tables` под блокировкой
+    строки тенанта (как no_show_rule_save: соседние правила записи целы). Выключено —
+    ключа нет, поведение прежнее (всё — запрос)."""
+    from apps.audit.services import audit_event
+    from apps.tenants.models import Tenant
+    from apps.tenants.siteconfig import normalize_booking
+
+    enabled = request.POST.get("enabled") == "1"
+    rule = normalize_booking(
+        {
+            "tables": {
+                "instant_max": request.POST.get("instant_max"),
+                "online_max": request.POST.get("online_max"),
+            }
+        }
+    )["tables"]
+    with transaction.atomic():
+        tenant = Tenant.objects.select_for_update().get(pk=request.tenant.pk)
+        tenant.auto_create_schema = False
+        cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+        section = dict(cfg.get("booking") or {})
+        if enabled:
+            section["tables"] = rule
+        else:
+            section.pop("tables", None)
+        if section:
+            cfg["booking"] = section
+        else:
+            cfg.pop("booking", None)
+        tenant.site_config = cfg
+        tenant.save(update_fields=["site_config", "updated_at"])
+        audit_event(
+            action="booking.table_rules",
+            resource_type="tenant",
+            resource_id=tenant.pk,
+            actor=request.user,
+            context={"enabled": enabled, **(rule if enabled else {})},
+        )
+    request.tenant.site_config = cfg
+    messages.success(request, _("Gespeichert."))
+    return redirect("booking:resources")
 
 
 def _rich_lines(raw) -> list[str]:

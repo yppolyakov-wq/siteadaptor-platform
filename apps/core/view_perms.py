@@ -264,6 +264,7 @@ RULES: dict[str, Rule] = {
     "reviews:toggle": _r(M, ME),
     "reviews:business-reply": _r(M, ME),
     "booking:no-show-rule": _r(CFG, CFGE),
+    "booking:table-rules": _r(CFG, CFGE),
     "portal-stats": _r("stadtportal.view"),
     "channels": _r("kanaele.view", ME),
     "channel-config": _r("kanaele.edit"),

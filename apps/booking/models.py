@@ -484,6 +484,10 @@ class Booking(TimestampedModel):
     # KA-12 E4.4a: конец занятости ресурса с буфером услуги (NULL = `end`).
     occupied_until = models.DateTimeField(null=True, blank=True)
     party_size = models.PositiveSmallIntegerField(default=1)
+    # KA-12 GA-1: онлайн-бронь стола выше порога «Sofort bestätigen» — «Gruppenanfrage»,
+    # подтверждает только владелец (оплата депозита не подтверждает). Снимком: вебхук и
+    # beat не видят живого site_config.
+    is_large_party = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_PENDING)
     note = models.TextField(blank=True)
     source_channel = models.CharField(max_length=50, blank=True)

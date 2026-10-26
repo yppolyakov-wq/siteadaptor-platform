@@ -25,7 +25,7 @@ from apps.core import attribution, listing_composition, option_trackers, ratelim
 from apps.core.fsm import IllegalTransition
 from apps.promotions.services import OutOfStock as PromoSoldOut
 
-from . import availability, payments, pricing, services
+from . import availability, payments, pricing, services, table_rules
 from .models import Booking, Pass, Resource, Service
 from .state_machine import BookingSM
 
@@ -185,7 +185,7 @@ def _redeem_pass_if_code(request, bookings) -> bool:
         done += 1
         # Карта = оплачено → авто-подтверждаем бронь (если ресурс не требует
         # ручного подтверждения), как при оплаченном депозите.
-        if not booking.resource.require_manual_confirm:
+        if not table_rules.needs_manual_confirm(booking):  # KA-12 GA-1
             try:
                 BookingSM().apply(booking, "confirmed")
             except IllegalTransition:
@@ -1439,6 +1439,11 @@ def termin_slots(request, pk):
         and getattr(getattr(request, "tenant", None), "payments_enabled", False),
         "deposit_eur": f"{resource.deposit_cents / 100:.2f}".replace(".", ","),
         "passes_enabled": _passes_enabled(),  # G9: поле Mehrfachkarte-Code
+        # KA-12 GA-1: предел поля «Gäste» и подсказка правила столов.
+        "party_max": table_rules.online_max(getattr(request, "tenant", None), resource),
+        "table_rule": table_rules.rules(getattr(request, "tenant", None))
+        if resource.type == Resource.TYPE_TABLE
+        else {},
         "prev_day": day - timedelta(days=1) if day > today else None,
         "next_day": day + timedelta(days=1) if day < max_day else None,
         "cal_qs": "",  # A3: ресурс уже в пути URL — доп. параметров дня нет
@@ -1500,6 +1505,18 @@ def termin_book(request, pk):
     from apps.core import payment_methods
 
     tenant = getattr(request, "tenant", None)
+    # KA-12 GA-1: правило столов — сразу / Gruppenanfrage / «bitte anrufen».
+    decision = table_rules.decide(tenant, resource, party_size)
+    if decision == table_rules.CALL:
+        messages.error(
+            request,
+            _(
+                "Für Gruppen ab %(n)s Personen reservieren wir gern persönlich — "
+                "bitte rufen Sie uns an oder schreiben Sie uns."
+            )
+            % {"n": table_rules.online_max(tenant, resource) + 1},
+        )
+        return _embed_redirect("storefront-termin-slots", embed, request=request, pk=pk)
     pay_kwargs = _payment_kwargs(request, "booking")
     no_show, email, early = _no_show_gate(
         request,
@@ -1534,6 +1551,12 @@ def termin_book(request, pk):
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=found.channel[:50],
             extras=extras_snap,
+            # KA-12 GA-1: «Sofort bestätigen» — только без депозита и без правила
+            # неявок (их путь подтверждает оплатой, как раньше).
+            auto_confirm=decision == table_rules.INSTANT
+            and no_show.kind == "none"
+            and resource.deposit_cents <= 0,
+            is_large_party=decision == table_rules.REQUEST,
             # SH-23c: способ оплаты и «кто покупает» — общий разбор (счёт юрлицу
             # доступен только фирме, Р-3; срок оплаты по Р-2/Р-4).
             **pay_kwargs,

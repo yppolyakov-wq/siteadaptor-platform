@@ -30865,3 +30865,36 @@ msgstr "Передоплату повернено автоматично."
 
 msgid "Bitte prüfen Sie, ob bereits Zahlungen eingegangen sind, und erstatten Sie diese innerhalb von 14 Tagen."
 msgstr "Перевірте, чи надходили вже платежі, і поверніть їх протягом 14 днів."
+
+#, python-format
+msgid "Bis %(n)s Personen sofort bestätigt."
+msgstr "До %(n)s осіб — підтвердження одразу."
+
+#, python-format
+msgid "Für Gruppen ab %(n)s Personen reservieren wir gern persönlich — bitte rufen Sie uns an oder schreiben Sie uns."
+msgstr "Для груп від %(n)s осіб бронюємо особисто — зателефонуйте або напишіть нам."
+
+#, python-format
+msgid "Größere Gruppen bis %(n)s Personen als Anfrage."
+msgstr "Більші групи, до %(n)s осіб, — як запит."
+
+msgid "Größere Gruppen bis zur Obergrenze kommen als Anfrage, die Sie bestätigen. Darüber bitten wir die Gäste, anzurufen."
+msgstr "Більші групи, до межі, надходять запитом, який ви підтверджуєте. Понад межу просимо гостей зателефонувати."
+
+msgid "Ihre Gruppenanfrage ist eingegangen. Wir prüfen sie und melden uns mit einer Bestätigung."
+msgstr "Ваш груповий запит отримано. Ми перевіримо його й надішлемо підтвердження."
+
+msgid "Online buchbar bis (Personen)"
+msgstr "Онлайн-бронювання до (осіб)"
+
+msgid "Online-Tischreservierung"
+msgstr "Онлайн-бронювання столів"
+
+msgid "Regel verwenden"
+msgstr "Використовувати правило"
+
+msgid "Sofort bestätigen bis (Personen)"
+msgstr "Підтверджувати одразу до (осіб)"
+
+msgid "Gruppenanfrage — bitte bestätigen oder ablehnen."
+msgstr "Груповий запит — підтвердьте або відхиліть."

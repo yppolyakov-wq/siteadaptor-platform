@@ -19,6 +19,7 @@ urlpatterns = [
     path("leistungen/<uuid:pk>/", views.services_view, name="service-edit"),
     path("karten/", views.passes_view, name="passes"),
     path("nichterscheinen/", views.no_show_rule_save, name="no-show-rule"),
+    path("tische/regeln/", views.table_rules_save, name="table-rules"),
     path("services/inline-edit/", views.service_inline_edit, name="service-inline-edit"),
     path("services/photo-edit/", views.service_photo_edit, name="service-photo-edit"),
 ]

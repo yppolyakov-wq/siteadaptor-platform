@@ -78,7 +78,10 @@ def mark_deposit_paid(*, tenant_schema: str, booking_id: str, payment_intent: st
             booking.save(update_fields=fields)
         settle_late_payment("booking", booking, newly_paid="payment_state" in fields)
         # Авто-подтверждение, если ресурс не требует ручной проверки (анти-фрод).
-        if not booking.resource.require_manual_confirm and booking.status == Booking.STATUS_PENDING:
+        # KA-12 GA-1: Gruppenanfrage подтверждает только владелец (table_rules).
+        from .table_rules import needs_manual_confirm
+
+        if not needs_manual_confirm(booking) and booking.status == Booking.STATUS_PENDING:
             try:
                 BookingSM().apply(booking, Booking.STATUS_CONFIRMED)
             except IllegalTransition:

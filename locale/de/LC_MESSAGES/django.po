@@ -30698,3 +30698,36 @@ msgstr "Die Anzahlung wurde automatisch erstattet."
 
 msgid "Bitte prüfen Sie, ob bereits Zahlungen eingegangen sind, und erstatten Sie diese innerhalb von 14 Tagen."
 msgstr "Bitte prüfen Sie, ob bereits Zahlungen eingegangen sind, und erstatten Sie diese innerhalb von 14 Tagen."
+
+#, python-format
+msgid "Bis %(n)s Personen sofort bestätigt."
+msgstr "Bis %(n)s Personen sofort bestätigt."
+
+#, python-format
+msgid "Für Gruppen ab %(n)s Personen reservieren wir gern persönlich — bitte rufen Sie uns an oder schreiben Sie uns."
+msgstr "Für Gruppen ab %(n)s Personen reservieren wir gern persönlich — bitte rufen Sie uns an oder schreiben Sie uns."
+
+#, python-format
+msgid "Größere Gruppen bis %(n)s Personen als Anfrage."
+msgstr "Größere Gruppen bis %(n)s Personen als Anfrage."
+
+msgid "Größere Gruppen bis zur Obergrenze kommen als Anfrage, die Sie bestätigen. Darüber bitten wir die Gäste, anzurufen."
+msgstr "Größere Gruppen bis zur Obergrenze kommen als Anfrage, die Sie bestätigen. Darüber bitten wir die Gäste, anzurufen."
+
+msgid "Ihre Gruppenanfrage ist eingegangen. Wir prüfen sie und melden uns mit einer Bestätigung."
+msgstr "Ihre Gruppenanfrage ist eingegangen. Wir prüfen sie und melden uns mit einer Bestätigung."
+
+msgid "Online buchbar bis (Personen)"
+msgstr "Online buchbar bis (Personen)"
+
+msgid "Online-Tischreservierung"
+msgstr "Online-Tischreservierung"
+
+msgid "Regel verwenden"
+msgstr "Regel verwenden"
+
+msgid "Sofort bestätigen bis (Personen)"
+msgstr "Sofort bestätigen bis (Personen)"
+
+msgid "Gruppenanfrage — bitte bestätigen oder ablehnen."
+msgstr "Gruppenanfrage — bitte bestätigen oder ablehnen."

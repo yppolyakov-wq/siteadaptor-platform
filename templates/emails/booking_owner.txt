@@ -1,4 +1,5 @@
-{% load i18n %}{% trans "Neue Reservierungsanfrage!" %}
+{% load i18n %}{% trans "Neue Reservierungsanfrage!" %}{% if booking.is_large_party %}
+👥 {% trans "Gruppenanfrage — bitte bestätigen oder ablehnen." %}{% endif %}
 
 {{ resource.name }} · {{ booking.start|date:"l, d.m.Y" }} {{ booking.start|time:"H:i" }}–{{ booking.end|time:"H:i" }}
 {% trans "Gast" %}: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}{% if booking.party_size > 1 %} · {% blocktrans with n=booking.party_size %}{{ n }} Personen{% endblocktrans %}{% endif %}
