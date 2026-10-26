@@ -443,8 +443,12 @@ class Product(SoftDeleteMixin, I18nMixin):
     def available_on(self, day) -> bool:
         """KA-12 GA-9: есть ли блюдо в этот день (Tageskarte). [] — каждый день; мусор в
         списке игнорируется (не делает блюдо недоступным навсегда)."""
-        days = {d for d in (self.available_weekdays or []) if isinstance(d, int) and 0 <= d <= 6}
+        days = self._menu_days()
         return not days or day.weekday() in days
+
+    def _menu_days(self) -> set:
+        """Чистые дни Tageskarte: только int 0..6 (bool/строки из импорта — мусор)."""
+        return {d for d in (self.available_weekdays or []) if type(d) is int and 0 <= d <= 6}
 
     @property
     def is_on_menu_today(self) -> bool:
@@ -457,9 +461,7 @@ class Product(SoftDeleteMixin, I18nMixin):
         """«Mo · Mi» — подпись дней Tageskarte ("" — каждый день)."""
         from django.utils.dates import WEEKDAYS_ABBR
 
-        days = sorted(
-            {d for d in (self.available_weekdays or []) if isinstance(d, int) and 0 <= d <= 6}
-        )
+        days = sorted(self._menu_days())
         if not days or len(days) == 7:
             return ""
         return " · ".join(str(WEEKDAYS_ABBR[d]) for d in days)

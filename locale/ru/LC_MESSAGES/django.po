@@ -31128,5 +31128,5 @@ msgid "nur %(days)s"
 msgstr "только %(days)s"
 
 #, python-format
-msgid "„%(item)s“ gibt es nur %(days)s. Bitte einen passenden Abholtag wählen."
-msgstr "«%(item)s» бывает только %(days)s. Пожалуйста, выберите подходящий день получения."
+msgid "„%(item)s“ gibt es nur %(days)s."
+msgstr "«%(item)s» бывает только %(days)s."

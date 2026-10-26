@@ -48,7 +48,12 @@ def _check_menu_days(norm, pickup_slot):
     дата; без слота — сегодня). Проверка ДО списания склада и ёмкости окна."""
     from django.utils import timezone
 
-    day = timezone.localtime(pickup_slot).date() if pickup_slot else timezone.localdate()
+    if pickup_slot is None:
+        day = timezone.localdate()
+    elif timezone.is_aware(pickup_slot):
+        day = timezone.localtime(pickup_slot).date()
+    else:  # наивный слот (не должен приходить) — не роняем чекаут
+        day = pickup_slot.date()
     for product, _variant, _qty, _options in norm:
         if not product.available_on(day):
             raise NotOnMenu(title=str(product), days=product.weekdays_label)
@@ -319,7 +324,10 @@ def create_order(
     # SlotFull откатывает и лимит акции, и (ниже не дошедшее) списание склада.
     from . import pickup_slots
 
-    _check_menu_days(norm, pickup_slot)  # KA-12 GA-9: Tageskarte по дню выдачи
+    # KA-12 GA-9: Tageskarte по дню выдачи — и у строк акций с товаром. Не действует на
+    # запрос (quote — не продажа) и на предложение владельца (offer — он сам собрал состав).
+    if source_channel not in ("quote", "offer"):
+        _check_menu_days(norm + custom_reserve, pickup_slot)
     pickup_slots.claim(pickup_slot, pickup_capacity)
     _reserve_stock(norm + custom_reserve)
     customer = _get_or_create_customer(name=name, email=email, phone=phone)

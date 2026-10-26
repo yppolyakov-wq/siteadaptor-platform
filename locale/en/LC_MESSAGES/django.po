@@ -30853,5 +30853,5 @@ msgid "nur %(days)s"
 msgstr "only %(days)s"
 
 #, python-format
-msgid "„%(item)s“ gibt es nur %(days)s. Bitte einen passenden Abholtag wählen."
-msgstr "“%(item)s” is only available %(days)s. Please choose a matching pickup day."
+msgid "„%(item)s“ gibt es nur %(days)s."
+msgstr "“%(item)s” is only available %(days)s."

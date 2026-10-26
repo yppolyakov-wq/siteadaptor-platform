@@ -20323,3 +20323,17 @@ Kennzeichen/HSN/TSN мастерской и источник обращения 
   сегодня/завтра (поле кита `table_bookings`, одна Gruppenanfrage). Сидер принимает
   seats/min_seats/zone/sort_order/bookable_online/parts. `SEEDER_VERSION` 9.
 - Замок `test_restaurant_kit_seeds_bookable_table` переписан осознанно (пул → зал).
+
+## 2026-10-26 — KA-12 Gastro GA-9: Tageskarte (⚠️ `catalog/0041`)
+- План `docs/ka-12-w4-ga9-tageskarte-plan-2026-10-26.md`. `Product.available_weekdays` (0..6,
+  `[]` = каждый день; чистка мусора `_menu_days`: только int, не bool/строки) + `available_on`/
+  `is_on_menu_today`/`weekdays_label`.
+- `create_order`: `NotOnMenu ⊂ OutOfStock` по дню выдачи (слот → локальная дата, иначе сегодня)
+  ДО ёмкости окна и склада; у `quote`/`offer` не действует; строки акций с товаром — проверяются.
+  `in_stock` не тронут — предзаказ на нужный день возможен. Сообщение корзины «„X“ gibt es nur Fr.».
+- Витрина: бейдж «Nur …» (`_menu_days_badge.html`, БЕЗ перевода строки в конце — иначе каждая
+  карточка получала лишний `\n`, паритет-замки), фасет `?heute=1` «Heute auf der Karte», PDF
+  «nur …», локальный фид Google 0. Форма товара: чекбоксы дней, сентинел `weekdays_present`.
+- Демо: Lachsfilet — Fr, Risotto — Sa·So (`SEEDER_VERSION` 10). Ревью django/silent-failure:
+  лишний `\n`, обход через custom_lines, quote/offer, наивный слот — исправлено; границы v1 —
+  план §4. Тесты `test_ga9_tageskarte.py` (9).

@@ -115,3 +115,25 @@ def test_menu_pdf_renders_with_weekday_note():
     p = ProductFactory(available_weekdays=[4])
     pdf = build_menu_pdf(TenantFactory.build(), [("Karte", [p])])
     assert pdf[:4] == b"%PDF"
+
+
+def test_quote_and_offer_orders_are_not_blocked_by_menu_days():
+    p = ProductFactory(base_price=Decimal("9.50"), available_weekdays=[OTHER])
+    assert services.create_order(items=[(p, 1)], name="K", source_channel="quote").pk
+    order = services.create_order(
+        items=(),
+        custom_lines=[("Angebot", Decimal("9.50"), 1, p)],
+        name="K",
+        source_channel="offer",
+    )
+    assert order.pk
+
+
+def test_promo_custom_line_with_product_is_checked():
+    p = ProductFactory(base_price=Decimal("9.50"), available_weekdays=[OTHER])
+    with pytest.raises(services.NotOnMenu):
+        services.create_order(items=(), custom_lines=[("Aktion", Decimal("7.00"), 1, p)], name="K")
+
+
+def test_bool_and_string_days_are_garbage():
+    assert ProductFactory(available_weekdays=[True, "4"]).weekdays_label == ""

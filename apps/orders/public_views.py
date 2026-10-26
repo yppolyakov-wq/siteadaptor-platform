@@ -1120,8 +1120,7 @@ def checkout(request):
         if getattr(exc, "days", ""):  # KA-12 GA-9: Tageskarte — блюдо не в день выдачи
             messages.error(
                 request,
-                _("„%(item)s“ gibt es nur %(days)s. Bitte einen passenden Abholtag wählen.")
-                % {"item": exc.title, "days": exc.days},
+                _("„%(item)s“ gibt es nur %(days)s.") % {"item": exc.title, "days": exc.days},
             )
             return redirect("storefront-cart")
         messages.error(

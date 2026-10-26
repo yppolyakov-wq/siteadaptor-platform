@@ -30997,5 +30997,5 @@ msgid "nur %(days)s"
 msgstr "sadece %(days)s"
 
 #, python-format
-msgid "„%(item)s“ gibt es nur %(days)s. Bitte einen passenden Abholtag wählen."
-msgstr "“%(item)s” yalnızca %(days)s mevcut. Lütfen uygun bir teslim alma günü seçin."
+msgid "„%(item)s“ gibt es nur %(days)s."
+msgstr "“%(item)s” yalnızca %(days)s mevcut."
