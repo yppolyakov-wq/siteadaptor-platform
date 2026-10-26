@@ -190,6 +190,8 @@ def test_sidebar_children_composition():
         # переехали в Einstellungen, «Kunden» — вкладка страницы продаж.
         ("stays:checkins", ""),
         ("orders:kitchen", ""),  # гастро-тип: гейт business_types пропускает
+        # KA-12 GA-6 (осознанное дополнение): «Tischplan» зала — гастро-тип со столами
+        ("booking:tischplan", ""),
         # R7-3: доставка и оплаты — свои страницы (были фильтром/столбцом)
         ("orders:deliveries", ""),
         # KA-12 E8.3: оплаты и отчёты переехали в раздел «Finanzen» (замок ниже).

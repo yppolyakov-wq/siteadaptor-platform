@@ -119,6 +119,8 @@ def calendar_context(request):
         # переход на любую дату (клик по дню разворачивает его брони ниже).
         **_month_grid_context(request, day),
         "resources": resources,
+        # KA-12 GA-6: вход в «Tischplan» — только где есть столы.
+        "has_tables": any(r.type == Resource.TYPE_TABLE for r in resources),
         # KA-H7: услуга в ручной записи (цена/длительность).
         # KA-12 E4.4b: варианты строками «Услуга · Вариант» (значение `<svc>:<variant>`).
         "manual_services": Service.objects.filter(is_active=True)
@@ -330,6 +332,20 @@ def _move_booking(request, booking):
     return None
 
 
+def _safe_next(request, default):
+    """Внутренний путь из POST `next` (иначе `default`): чужие/абсолютные URL, `//host`
+    и обратные слэши игнорируются. Хелпер ВЫШЕ декораторов (test_orphan_decorators)."""
+    raw = request.POST.get("next", "")
+    if (
+        raw.startswith("/")
+        and not raw.startswith("//")
+        and "\\" not in raw
+        and url_has_allowed_host_and_scheme(raw, allowed_hosts={request.get_host()})
+    ):
+        return raw
+    return default
+
+
 def _service_note_action(request, booking, action, back):
     """KA-12 E6.4b: заметка мастера к визиту (рецептура/техника) — только кабинет.
     Удалить может автор или owner/admin. Хелпер стоит ВЫШЕ декораторов вьюхи."""
@@ -373,16 +389,11 @@ def _service_note_action(request, booking, action, back):
 def booking_action(request, pk):
     booking = get_object_or_404(Booking, pk=pk)
     action = request.POST.get("action", "")
-    back = f"{reverse('booking:calendar')}?tag={booking.start.date().isoformat()}"
-    # Карточка брони шлёт next= — после действия остаёмся на ней (только
+    # Карточка брони/Tischplan шлют next= — после действия остаёмся на них (только
     # внутренние пути; чужие/абсолютные URL игнорируем).
-    _next = request.POST.get("next", "")
-    if (
-        _next.startswith("/")
-        and "\\" not in _next
-        and url_has_allowed_host_and_scheme(_next, allowed_hosts={request.get_host()})
-    ):
-        back = _next
+    back = _safe_next(
+        request, f"{reverse('booking:calendar')}?tag={booking.start.date().isoformat()}"
+    )
     if action in ("service_note", "service_note_delete"):
         return _service_note_action(request, booking, action, back)
     if action == "mark_paid":
@@ -478,7 +489,12 @@ def booking_action(request, pk):
 @require_POST
 def booking_create(request):
     """Ручное добавление (телефонная запись): сразу confirmed."""
-    resource = get_object_or_404(Resource, pk=request.POST.get("resource"), is_active=True)
+    raw_resource = request.POST.get("resource", "")
+    if not _is_uuid(raw_resource):  # мусорный pk — 404, а не 500
+        raise Http404
+    resource = get_object_or_404(Resource, pk=raw_resource, is_active=True)
+    # KA-12 GA-6: walk-in с Tischplan возвращается туда же (next — только внутренний путь).
+    back = _safe_next(request, reverse("booking:calendar"))
     tz = timezone.get_current_timezone()
     try:
         start = datetime.fromisoformat(request.POST.get("start", ""))
@@ -488,7 +504,7 @@ def booking_create(request):
         minutes = int(raw_minutes) if raw_minutes else None
     except (TypeError, ValueError):
         messages.error(request, _("Invalid date."))
-        return redirect("booking:calendar")
+        return redirect(back)
     # KA-H7: услуга в ручной записи — цена/длительность из услуги (без неё запись
     # была на 0 € и 60 мин). Мусор/неактивная услуга → запись без услуги.
     service = None
@@ -538,11 +554,67 @@ def booking_create(request):
         for text in exc.warnings:
             messages.warning(request, text)
         messages.error(request, str(exc))
-        return redirect("booking:calendar")
+        return redirect(back)
     for text in warnings:
         messages.warning(request, text)
     messages.success(request, _("Booking created."))
-    return redirect(f"{reverse('booking:calendar')}?tag={booking.start.date().isoformat()}")
+    return redirect(
+        _safe_next(request, f"{reverse('booking:calendar')}?tag={booking.start.date().isoformat()}")
+    )
+
+
+@login_required
+def tischplan(request):
+    """KA-12 GA-6: «Tischplan» — столы по зонам на момент времени (свободен / скоро /
+    занят, «frei bis», занят через комбинацию). Только чтение: walk-in и «Tisch
+    zuweisen» постят в штатные `booking-create` / `booking-action` с next=сюда."""
+    from apps.core import status_registry
+
+    from . import tischplan as plan
+
+    day = _parse_day_any(request.GET.get("tag"))
+    at = plan.default_moment(day, request.GET.get("zeit"))
+    tz = timezone.get_current_timezone()
+    day_start = datetime.combine(day, time.min, tzinfo=tz)
+    day_end = day_start + timedelta(days=1)
+    tables = list(
+        Resource.objects.filter(is_active=True, type=Resource.TYPE_TABLE)
+        .prefetch_related("parts")
+        .order_by("zone", "sort_order", "name")
+    )
+    # Связи ВСЕХ комбинаций (вкл. выключенные — их брони держат столы, как в scope_ids);
+    # окно — сутки + «скоро» за полночь, буфер `occupied_until` учитывается.
+    links = list(Resource.parts.through.objects.values_list("from_resource_id", "to_resource_id"))
+    bookings = list(
+        Booking.objects.filter(
+            Q(end__gt=day_start) | Q(occupied_until__gt=day_start),
+            resource_id__in=plan.scope_union(tables, links),
+            status__in=status_registry.active_statuses_for("booking"),
+            start__lt=day_end + timedelta(minutes=plan.SOON_MINUTES),
+        ).select_related("resource", "customer")
+    )
+    zones = plan.build(tables, bookings, at, links)
+    step = timedelta(minutes=30)
+
+    def _q(moment):
+        local = timezone.localtime(moment)
+        return f"?tag={local.date().isoformat()}&zeit={local:%H:%M}"
+
+    return render(
+        request,
+        "booking/tischplan.html",
+        {
+            "nav": "tischplan",
+            "zones": zones,
+            "tables": tables,
+            "day": day,
+            "at": at,
+            "prev_q": _q(at - step),
+            "next_q": _q(at + step),
+            "free_count": sum(1 for _z, tiles in zones for t in tiles if t.state == "free"),
+            "here": request.get_full_path(),
+        },
+    )
 
 
 @login_required

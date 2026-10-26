@@ -30894,3 +30894,87 @@ msgstr "Birleşim rezerve edilirse masaları dolu olur — tersi de geçerli."
 
 msgid "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
 msgstr "Bu masa bir birleşimin parçası: kapasite 1 ve koltuk havuzu olmaması gerekir. Lütfen önce birleşimi kaldırın."
+
+#, python-format
+msgid "%(a)s von %(b)s Plätzen belegt"
+msgstr "%(b)s yerin %(a)s'i dolu"
+
+#, python-format
+msgid "%(n)s Plätze (frei wählbar)"
+msgstr "%(n)s yer (serbest oturma)"
+
+msgid "30 Minuten früher"
+msgstr "30 dakika önce"
+
+msgid "30 Minuten später"
+msgstr "30 dakika sonra"
+
+msgid "Belegt"
+msgstr "Dolu"
+
+msgid "Eintragen"
+msgstr "Kaydet"
+
+#, python-format
+msgid "Frei bis %(t)s"
+msgstr "%(t)s'e kadar boş"
+
+msgid "Gäste"
+msgstr "Misafir"
+
+msgid "Minuten"
+msgstr "Dakika"
+
+msgid "Noch keine Tische angelegt."
+msgstr "Henüz masa eklenmedi."
+
+msgid "Ohne Bereich"
+msgstr "Bölgesiz"
+
+#, python-format
+msgid "Reserviert ab %(t)s"
+msgstr "%(t)s'den itibaren rezerve"
+
+msgid "Tagesplan"
+msgstr "Günlük plan"
+
+msgid "Tisch zuweisen"
+msgstr "Masa ata"
+
+msgid "Tische unter „Öffnungszeiten & Ressourcen“ anlegen"
+msgstr "Masaları “Çalışma saatleri ve kaynaklar” altında ekleyin"
+
+msgid "Tischplan"
+msgstr "Masa planı"
+
+msgid "Uhrzeit"
+msgstr "Saat"
+
+msgid "Voll"
+msgstr "Dolu"
+
+msgid "Walk-in eintragen"
+msgstr "Kapıdan gelen misafiri kaydet"
+
+#, python-format
+msgid "über %(name)s"
+msgstr "%(name)s üzerinden"
+
+#, python-format
+msgid "Freie Tische: %(n)s"
+msgstr "Boş masalar: %(n)s"
+
+#, python-format
+msgid "Plätze: %(n)s"
+msgstr "Yer: %(n)s"
+
+#, python-format
+msgid "Reservierungen an diesem Tag: %(n)s"
+msgstr "Bu günün rezervasyonları: %(n)s"
+
+#, python-format
+msgid "Tisch für %(name)s (%(t)s)"
+msgstr "%(name)s için masa (%(t)s)"
+
+msgid "Zeit wählen"
+msgstr "Saat seçin"

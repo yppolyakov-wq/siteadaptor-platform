@@ -30750,3 +30750,87 @@ msgstr "If the combination is booked, its tables are taken — and vice versa."
 
 msgid "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
 msgstr "This table is part of a combination: capacity 1 and no seat pool are required. Please remove the combination first."
+
+#, python-format
+msgid "%(a)s von %(b)s Plätzen belegt"
+msgstr "%(a)s of %(b)s seats taken"
+
+#, python-format
+msgid "%(n)s Plätze (frei wählbar)"
+msgstr "%(n)s seats (open seating)"
+
+msgid "30 Minuten früher"
+msgstr "30 minutes earlier"
+
+msgid "30 Minuten später"
+msgstr "30 minutes later"
+
+msgid "Belegt"
+msgstr "Occupied"
+
+msgid "Eintragen"
+msgstr "Add"
+
+#, python-format
+msgid "Frei bis %(t)s"
+msgstr "Free until %(t)s"
+
+msgid "Gäste"
+msgstr "Guests"
+
+msgid "Minuten"
+msgstr "Minutes"
+
+msgid "Noch keine Tische angelegt."
+msgstr "No tables set up yet."
+
+msgid "Ohne Bereich"
+msgstr "No area"
+
+#, python-format
+msgid "Reserviert ab %(t)s"
+msgstr "Reserved from %(t)s"
+
+msgid "Tagesplan"
+msgstr "Day plan"
+
+msgid "Tisch zuweisen"
+msgstr "Assign table"
+
+msgid "Tische unter „Öffnungszeiten & Ressourcen“ anlegen"
+msgstr "Add tables under “Opening hours & resources”"
+
+msgid "Tischplan"
+msgstr "Table plan"
+
+msgid "Uhrzeit"
+msgstr "Time"
+
+msgid "Voll"
+msgstr "Full"
+
+msgid "Walk-in eintragen"
+msgstr "Add walk-in"
+
+#, python-format
+msgid "über %(name)s"
+msgstr "via %(name)s"
+
+#, python-format
+msgid "Freie Tische: %(n)s"
+msgstr "Free tables: %(n)s"
+
+#, python-format
+msgid "Plätze: %(n)s"
+msgstr "Seats: %(n)s"
+
+#, python-format
+msgid "Reservierungen an diesem Tag: %(n)s"
+msgstr "Reservations on this day: %(n)s"
+
+#, python-format
+msgid "Tisch für %(name)s (%(t)s)"
+msgstr "Table for %(name)s (%(t)s)"
+
+msgid "Zeit wählen"
+msgstr "Choose time"

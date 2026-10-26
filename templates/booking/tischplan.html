@@ -1,0 +1,120 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Tischplan" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}KA-12 GA-6: столы по зонам на выбранный момент. Только чтение — walk-in
+постит в booking-create (create_manual: часы, места, область комбинаций GA-5),
+«Tisch zuweisen» — в booking-action action=move (services.move). Оба с next=сюда.
+Состояние — словами, не только цветом (a11y).{% endcomment %}
+<div class="flex items-center gap-3 flex-wrap mb-3">
+  <h1 class="text-xl font-bold"><span aria-hidden="true">🪑</span> {% nav_title _("Tischplan") %}</h1>
+  <a href="{% url 'verkaeufe' %}?tab=booking" class="ml-auto text-sm text-indigo-600 hover:underline">{% trans "Tagesplan" %} →</a>
+</div>
+
+{% if messages %}{% for m in messages %}
+  <div class="mb-3 rounded-xl px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'warning' %}bg-amber-50 text-amber-800{% else %}bg-green-50 text-green-800{% endif %}" role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}">{{ m }}</div>
+{% endfor %}{% endif %}
+
+<form method="get" class="bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)] px-4 py-3 mb-4 flex items-end gap-3 flex-wrap" data-tischplan-time aria-label="{% trans 'Zeit wählen' %}">
+  <a href="{{ prev_q }}" class="min-h-[44px] inline-flex items-center rounded-xl px-3 text-sm bg-gray-50 hover:bg-gray-100" aria-label="{% trans '30 Minuten früher' %}">← 30</a>
+  <label class="text-xs text-gray-500">{% trans "Datum" %}
+    <input type="date" name="tag" value="{{ day|date:'Y-m-d' }}" class="block rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]">
+  </label>
+  <label class="text-xs text-gray-500">{% trans "Uhrzeit" %}
+    <input type="time" name="zeit" step="900" value="{{ at|time:'H:i' }}" class="block rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]">
+  </label>
+  <button type="submit" class="min-h-[44px] rounded-xl bg-gray-900 text-white px-4 text-sm font-medium">{% trans "Anzeigen" %}</button>
+  <a href="?" class="min-h-[44px] inline-flex items-center rounded-xl px-3 text-sm bg-gray-50 hover:bg-gray-100">{% trans "Jetzt" %}</a>
+  <a href="{{ next_q }}" class="min-h-[44px] inline-flex items-center rounded-xl px-3 text-sm bg-gray-50 hover:bg-gray-100" aria-label="{% trans '30 Minuten später' %}">30 →</a>
+  <p class="w-full text-sm text-gray-600">{{ day|date:"l, d.m.Y" }} · {{ at|time:"H:i" }} · {% blocktrans with n=free_count %}Freie Tische: {{ n }}{% endblocktrans %}</p>
+</form>
+
+{% if not tables %}
+  <div class="bg-white rounded-2xl shadow-sm p-6 text-sm text-gray-600" data-tischplan-empty>
+    {% trans "Noch keine Tische angelegt." %}
+    <a href="{% url 'booking:resources' %}" class="text-indigo-600 hover:underline">{% trans "Tische unter „Öffnungszeiten & Ressourcen“ anlegen" %} →</a>
+  </div>
+{% endif %}
+
+{% for zone, tiles in zones %}
+<section class="mb-6" aria-label="{% if zone %}{{ zone }}{% else %}{% trans 'Ohne Bereich' %}{% endif %}">
+  <h2 class="text-sm font-semibold text-gray-500 mb-2">{% if zone %}{{ zone }}{% else %}{% trans "Ohne Bereich" %}{% endif %}</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+  {% for tile in tiles %}
+    {% with t=tile.table %}
+    <article class="rounded-2xl p-4 shadow-[0_4px_14px_rgba(22,24,29,0.05)] border-l-4
+      {% if tile.state == 'busy' or tile.state == 'full' %}bg-red-50 border-red-400{% elif tile.state == 'soon' %}bg-amber-50 border-amber-400{% else %}bg-white border-emerald-400{% endif %}"
+      data-table-tile="{{ t.pk }}" data-state="{{ tile.state }}">
+      <div class="flex items-start justify-between gap-2">
+        <h3 class="font-semibold">{{ t.name }}</h3>
+        <span class="text-xs text-gray-600">{% if t.counts_party_size %}{% blocktrans with n=t.capacity %}{{ n }} Plätze (frei wählbar){% endblocktrans %}{% elif t.seats %}{% blocktrans with n=t.seats %}Plätze: {{ n }}{% endblocktrans %}{% endif %}</span>
+      </div>
+      <p class="text-sm font-medium mt-1">
+        {% if tile.state == 'busy' %}<span class="text-red-700"><span aria-hidden="true">●</span> {% trans "Belegt" %}</span>
+        {% elif tile.state == 'full' %}<span class="text-red-700"><span aria-hidden="true">●</span> {% trans "Voll" %}</span>
+        {% elif tile.state == 'soon' %}<span class="text-amber-800"><span aria-hidden="true">●</span> {% blocktrans with t=tile.free_until|time:"H:i" %}Reserviert ab {{ t }}{% endblocktrans %}</span>
+        {% else %}<span class="text-emerald-700"><span aria-hidden="true">●</span> {% if tile.free_until %}{% blocktrans with t=tile.free_until|time:"H:i" %}Frei bis {{ t }}{% endblocktrans %}{% else %}{% trans "Frei" %}{% endif %}</span>{% endif %}
+      </p>
+      {% if t.counts_party_size %}<p class="text-xs text-gray-600">{% blocktrans with a=tile.seats_taken b=t.capacity %}{{ a }} von {{ b }} Plätzen belegt{% endblocktrans %}</p>{% endif %}
+      {% if tile.via %}<p class="text-xs text-gray-600" data-via>{% blocktrans with name=tile.via.name %}über {{ name }}{% endblocktrans %}</p>{% endif %}
+      {% if tile.current %}
+        <p class="text-xs text-gray-700 mt-1">{{ tile.current.start|time:"H:i" }}–{{ tile.current.end|time:"H:i" }} · {{ tile.current.customer }}{% if tile.current.party_size > 1 %} · {{ tile.current.party_size }} {% trans "Gäste" %}{% endif %}
+          · <a href="{% url 'booking:booking-detail' tile.current.pk %}" class="text-indigo-600 hover:underline">{{ tile.current.reference_code }}</a>{% if tile.more_now %} · +{{ tile.more_now }}{% endif %}</p>
+      {% elif tile.next_booking and tile.state != 'free' %}
+        <p class="text-xs text-gray-700 mt-1">{{ tile.next_booking.start|time:"H:i" }} · {{ tile.next_booking.customer }}{% if tile.next_booking.party_size > 1 %} · {{ tile.next_booking.party_size }} {% trans "Gäste" %}{% endif %}</p>
+      {% endif %}
+
+      {% if tile.state != 'busy' and tile.state != 'full' %}
+      <details class="mt-2" data-walkin>
+        <summary class="cursor-pointer text-sm text-indigo-700 min-h-[44px] inline-flex items-center"><span aria-hidden="true">＋&nbsp;</span>{% trans "Walk-in eintragen" %}<span class="sr-only"> – {{ t.name }}</span></summary>
+        <form method="post" action="{% url 'booking:booking-create' %}" class="mt-2 space-y-2">
+          {% csrf_token %}
+          <input type="hidden" name="resource" value="{{ t.pk }}">
+          <input type="hidden" name="start" value="{{ at|date:'Y-m-d\TH:i' }}">
+          <input type="hidden" name="next" value="{{ here }}">
+          <div class="flex gap-2">
+            <label class="text-xs text-gray-500 flex-1">{% trans "Gäste" %}
+              <input type="number" name="party_size" min="1" max="50" value="{% if t.seats %}{{ t.seats|stringformat:'d' }}{% else %}2{% endif %}" class="block w-full rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]"></label>
+            <label class="text-xs text-gray-500 flex-1">{% trans "Minuten" %}
+              <input type="number" name="minutes" min="15" max="600" step="15" value="90" class="block w-full rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]"></label>
+          </div>
+          <label class="text-xs text-gray-500 block">{% trans "Name (optional)" %}
+            <input type="text" name="name" maxlength="120" class="block w-full rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]"></label>
+          <label class="inline-flex items-center gap-2 text-sm text-gray-600 min-h-[44px]"><input type="checkbox" name="override_hours" value="1" class="h-5 w-5"> {% trans "Trotzdem eintragen" %}</label>
+          <button type="submit" aria-label="{% trans 'Eintragen' %} – {{ t.name }}" class="w-full min-h-[44px] rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">{% trans "Eintragen" %}</button>
+        </form>
+      </details>
+      {% endif %}
+
+      {% if tile.bookings %}
+      <details class="mt-2" data-assign>
+        <summary class="cursor-pointer text-sm text-gray-700 min-h-[44px] inline-flex items-center">{% blocktrans with n=tile.bookings|length %}Reservierungen an diesem Tag: {{ n }}{% endblocktrans %}</summary>
+        <ul class="mt-2 space-y-2">
+        {% for b in tile.bookings %}
+          <li class="text-xs text-gray-700">
+            <p>{{ b.start|time:"H:i" }}–{{ b.end|time:"H:i" }} · {{ b.customer }}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "Gäste" %}{% endif %}</p>
+            {% if tables|length > 1 %}
+            <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="flex items-center gap-2 mt-1">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ here }}">
+              <input type="hidden" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}">
+              <label class="sr-only" for="assign-{{ b.pk }}">{% blocktrans with name=b.customer t=b.start|time:"H:i" %}Tisch für {{ name }} ({{ t }}){% endblocktrans %}</label>
+              <select id="assign-{{ b.pk }}" name="resource" class="flex-1 rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]">
+                {% for other in tables %}<option value="{{ other.pk }}"{% if other.pk == b.resource_id %} selected{% endif %}>{{ other.name }}{% if other.seats %} ({{ other.seats }}){% endif %}</option>{% endfor %}
+              </select>
+              <button name="action" value="move" aria-label="{% trans 'Tisch zuweisen' %}: {{ b.customer }}" class="min-h-[44px] rounded-xl bg-white border border-gray-300 px-3 text-sm hover:border-indigo-400">{% trans "Tisch zuweisen" %}</button>
+            </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+        </ul>
+      </details>
+      {% endif %}
+    </article>
+    {% endwith %}
+  {% endfor %}
+  </div>
+</section>
+{% endfor %}
+{% endblock %}

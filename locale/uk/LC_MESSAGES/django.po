@@ -31009,3 +31009,87 @@ msgstr "Якщо зайнята комбінація, зайняті і її с�
 
 msgid "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
 msgstr "Цей стіл входить до комбінації: потрібні місткість 1 і без пулу місць. Спершу розформуйте комбінацію."
+
+#, python-format
+msgid "%(a)s von %(b)s Plätzen belegt"
+msgstr "Зайнято %(a)s з %(b)s місць"
+
+#, python-format
+msgid "%(n)s Plätze (frei wählbar)"
+msgstr "%(n)s місць (вільна посадка)"
+
+msgid "30 Minuten früher"
+msgstr "На 30 хвилин раніше"
+
+msgid "30 Minuten später"
+msgstr "На 30 хвилин пізніше"
+
+msgid "Belegt"
+msgstr "Зайнятий"
+
+msgid "Eintragen"
+msgstr "Записати"
+
+#, python-format
+msgid "Frei bis %(t)s"
+msgstr "Вільний до %(t)s"
+
+msgid "Gäste"
+msgstr "Гості"
+
+msgid "Minuten"
+msgstr "Хвилини"
+
+msgid "Noch keine Tische angelegt."
+msgstr "Столи ще не додано."
+
+msgid "Ohne Bereich"
+msgstr "Без зони"
+
+#, python-format
+msgid "Reserviert ab %(t)s"
+msgstr "Заброньований з %(t)s"
+
+msgid "Tagesplan"
+msgstr "План дня"
+
+msgid "Tisch zuweisen"
+msgstr "Призначити стіл"
+
+msgid "Tische unter „Öffnungszeiten & Ressourcen“ anlegen"
+msgstr "Додайте столи в розділі «Години роботи та ресурси»"
+
+msgid "Tischplan"
+msgstr "План залу"
+
+msgid "Uhrzeit"
+msgstr "Час"
+
+msgid "Voll"
+msgstr "Місць немає"
+
+msgid "Walk-in eintragen"
+msgstr "Записати гостя без броні"
+
+#, python-format
+msgid "über %(name)s"
+msgstr "через %(name)s"
+
+#, python-format
+msgid "Freie Tische: %(n)s"
+msgstr "Вільних столів: %(n)s"
+
+#, python-format
+msgid "Plätze: %(n)s"
+msgstr "Місць: %(n)s"
+
+#, python-format
+msgid "Reservierungen an diesem Tag: %(n)s"
+msgstr "Бронювань цього дня: %(n)s"
+
+#, python-format
+msgid "Tisch für %(name)s (%(t)s)"
+msgstr "Стіл для %(name)s (%(t)s)"
+
+msgid "Zeit wählen"
+msgstr "Вибрати час"

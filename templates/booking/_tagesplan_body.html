@@ -23,6 +23,8 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}tag={{ next_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{{ next_day|date:"D d.m." }} →</a>
 </div>
 
+{% if has_tables %}<p class="mb-3"><a href="{% url 'booking:tischplan' %}?tag={{ day|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline" data-tischplan-link>🪑 {% trans "Tischplan" %} →</a></p>{% endif %}
+
 {% if bookings %}
 {# KA-12 E4.2b: сетка «ресурс × время» с переносом перетаскиванием (md+); список ниже — путь без мыши. #}
 {% include "booking/_tagesplan_grid.html" %}

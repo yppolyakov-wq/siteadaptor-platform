@@ -100,6 +100,7 @@ RULES: dict[str, Rule] = {
     "booking:booking-action": _r(V, E),
     "booking:booking-create": _r(V, E),
     "booking:booking-detail": _r(V, E),
+    "booking:tischplan": _r(V, E),
     "orders:order-list": _r(V, E),
     "orders:order-detail": _r(V, E),
     "orders:order-edit": _r(V, E),

@@ -30842,3 +30842,87 @@ msgstr "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."
 
 msgid "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
 msgstr "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
+
+#, python-format
+msgid "%(a)s von %(b)s Plätzen belegt"
+msgstr "%(a)s von %(b)s Plätzen belegt"
+
+#, python-format
+msgid "%(n)s Plätze (frei wählbar)"
+msgstr "%(n)s Plätze (frei wählbar)"
+
+msgid "30 Minuten früher"
+msgstr "30 Minuten früher"
+
+msgid "30 Minuten später"
+msgstr "30 Minuten später"
+
+msgid "Belegt"
+msgstr "Belegt"
+
+msgid "Eintragen"
+msgstr "Eintragen"
+
+#, python-format
+msgid "Frei bis %(t)s"
+msgstr "Frei bis %(t)s"
+
+msgid "Gäste"
+msgstr "Gäste"
+
+msgid "Minuten"
+msgstr "Minuten"
+
+msgid "Noch keine Tische angelegt."
+msgstr "Noch keine Tische angelegt."
+
+msgid "Ohne Bereich"
+msgstr "Ohne Bereich"
+
+#, python-format
+msgid "Reserviert ab %(t)s"
+msgstr "Reserviert ab %(t)s"
+
+msgid "Tagesplan"
+msgstr "Tagesplan"
+
+msgid "Tisch zuweisen"
+msgstr "Tisch zuweisen"
+
+msgid "Tische unter „Öffnungszeiten & Ressourcen“ anlegen"
+msgstr "Tische unter „Öffnungszeiten & Ressourcen“ anlegen"
+
+msgid "Tischplan"
+msgstr "Tischplan"
+
+msgid "Uhrzeit"
+msgstr "Uhrzeit"
+
+msgid "Voll"
+msgstr "Voll"
+
+msgid "Walk-in eintragen"
+msgstr "Walk-in eintragen"
+
+#, python-format
+msgid "über %(name)s"
+msgstr "über %(name)s"
+
+#, python-format
+msgid "Freie Tische: %(n)s"
+msgstr "Freie Tische: %(n)s"
+
+#, python-format
+msgid "Plätze: %(n)s"
+msgstr "Plätze: %(n)s"
+
+#, python-format
+msgid "Reservierungen an diesem Tag: %(n)s"
+msgstr "Reservierungen an diesem Tag: %(n)s"
+
+#, python-format
+msgid "Tisch für %(name)s (%(t)s)"
+msgstr "Tisch für %(name)s (%(t)s)"
+
+msgid "Zeit wählen"
+msgstr "Zeit wählen"

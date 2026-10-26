@@ -246,6 +246,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         "küche kds bon",
         business_types=KITCHEN_TYPES,
     ),
+    # KA-12 GA-6: «Tischplan» — столы по зонам на момент времени (зал ресторана/кафе).
+    _e(
+        "board",
+        "booking:tischplan",
+        _("Tischplan"),
+        "tischplan",
+        "booking",
+        True,
+        "tisch tische zuweisen walk-in saal plan belegung",
+        business_types=TABLE_TYPES,
+    ),
     # SM-4: отчёты — подпункты раздела «Verkäufe» (Auswertungen/Finanzen ПЕРЕЕХАЛИ из
     # settings-хаба; Berichte — бывший сирота stays:reports). KA-12 E8.2: дубль
     # «Abläufe & Status» и пункт «Kunden» сняты — настройка процессов живёт в
