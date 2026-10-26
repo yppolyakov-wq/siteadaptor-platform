@@ -57,6 +57,10 @@ def _new_tenant(*, business_name, slug, business_type, city, email, partner_code
 
     # KA-12 A-3: стартовая форма заявки по типу (кейтеринг — дата/гости/повод).
     site_config, _changed = with_default({}, business_type)
+    # KA-12 A-6b: мастерской — рабочие статусы заявки (In Arbeit/Teile/Abholbereit).
+    from apps.jobs import status_presets
+
+    site_config, _changed = status_presets.with_default(site_config, business_type)
     return Tenant(
         partner=_resolve_partner(partner_code),
         schema_name=slug.replace("-", "_"),

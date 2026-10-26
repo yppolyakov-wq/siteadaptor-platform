@@ -30765,3 +30765,33 @@ msgstr "Следующий техосмотр (HU)"
 
 msgid "Ungültiges Datum."
 msgstr "Неверная дата."
+
+msgid "Die Vorlage ist schon vollständig übernommen."
+msgstr "Шаблон уже полностью применён."
+
+msgid "Fahrzeugannahme"
+msgstr "Приёмка автомобиля"
+
+msgid "In Arbeit · Teile bestellt · Abholbereit — fehlende Status werden ergänzt, Ihre Änderungen bleiben."
+msgstr "В работе · Запчасти заказаны · Готово к выдаче — недостающие статусы добавятся, ваши изменения сохранятся."
+
+msgid "Kennzeichen"
+msgstr "Госномер"
+
+msgid "Werkstatt-Vorlage laden"
+msgstr "Загрузить шаблон мастерской"
+
+#, python-format
+msgid "Ihr Auftrag %(code)s ist abholbereit"
+msgstr "Ваш заказ %(code)s готов к выдаче"
+
+msgid "Ihr Auftrag ist fertig und kann abgeholt werden:"
+msgstr "Ваш заказ выполнен, его можно забрать:"
+
+#, python-format
+msgid "Erinnerung: HU für %(plate)s am %(due)s fällig"
+msgstr "Напоминание: техосмотр %(plate)s до %(due)s"
+
+#, python-format
+msgid "eine kurze Erinnerung: Die Hauptuntersuchung (HU) Ihres Fahrzeugs ist am %(due)s fällig."
+msgstr "небольшое напоминание: техосмотр (HU) вашего автомобиля нужно пройти до %(due)s."

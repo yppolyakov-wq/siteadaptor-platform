@@ -1,0 +1,11 @@
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
+
+{% trans "Ihr Auftrag ist fertig und kann abgeholt werden:" %}
+
+{{ job.title }}{% if job.vehicle_plate %} · {{ job.vehicle_plate }}{% endif %}
+{% trans "Auftrags-Nr." %}: {{ job.reference_code }}
+{% if status_url %}
+{% trans "Status ansehen:" %}
+{{ status_url }}
+{% endif %}
+{% trans "Vielen Dank für Ihr Vertrauen." %}

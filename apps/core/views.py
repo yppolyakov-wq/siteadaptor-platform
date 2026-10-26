@@ -5038,7 +5038,15 @@ def _status_manager_context(tenant, kind) -> dict:
             for c, d in custom.items()
         ],
         "trans_rows": trans_rows,
+        # KA-12 A-6b: кнопка «Werkstatt-Vorlage laden» — у заявок типа с пресетом.
+        "status_preset": kind == "job" and _job_status_preset(tenant),
     }
+
+
+def _job_status_preset(tenant) -> bool:
+    from apps.jobs import status_presets
+
+    return status_presets.has_preset(getattr(tenant, "business_type", ""))
 
 
 def _status_kinds_for(tenant):
@@ -5775,6 +5783,21 @@ def status_manager_save(request, kind):
     if siteconfig.status_label_statuses(kind) is None:
         raise Http404("unknown status kind")
     tenant = request.tenant
+    nxt = request.POST.get("next", "")
+    if not nxt.startswith("/") or nxt.startswith("//"):
+        nxt = reverse("status-manager", args=[kind])
+    if kind == "job" and request.POST.get("load_preset"):
+        # KA-12 A-6b: «Werkstatt-Vorlage laden» — слияние, правки владельца целы.
+        from apps.jobs import status_presets
+
+        cfg, changed = status_presets.merge(tenant.site_config, tenant.business_type)
+        if changed:
+            tenant.site_config = cfg
+            tenant.save(update_fields=["site_config", "updated_at"])
+            messages.success(request, _("Vorlage übernommen."))
+        else:
+            messages.info(request, _("Die Vorlage ist schon vollständig übernommen."))
+        return redirect(nxt)
     builtin_codes = set(status_registry.descriptors(kind))
     cfg_now = tenant.site_config if isinstance(tenant.site_config, dict) else {}
     stored = {
@@ -5851,9 +5874,6 @@ def status_manager_save(request, kind):
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
     messages.success(request, _("Gespeichert."))
-    nxt = request.POST.get("next", "")
-    if not nxt.startswith("/") or nxt.startswith("//"):
-        nxt = reverse("status-manager", args=[kind])
     return redirect(nxt)
 
 

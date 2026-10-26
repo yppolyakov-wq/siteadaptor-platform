@@ -23,7 +23,7 @@ class JobSM(StateMachine):
     ]
 
     def on_transition(self, instance, t, **kw):
-        from . import services
+        from . import services, status_presets
         from .notifications import enqueue_job_email
 
         # KA-H10: момент принятия фиксируется на ЛЮБОМ пути (кабинет, доска, вебхук,
@@ -65,18 +65,15 @@ class JobSM(StateMachine):
         if t.dst == "done":
             services.commit_stock(instance)
             # A9: клиенту — Auftrag fertig (Repair-Status) + ссылка на страницу статуса.
-            from django.db import connection
-            from django.urls import reverse
+            # KA-12 A-6b: после «Abholbereit» клиент уже знает, что машина готова —
+            # второе письмо «Auftrag fertig» при выдаче было бы лишним.
+            if t.src != status_presets.READY_CODE:
+                enqueue_job_email(instance, "done", status_url=_status_url(instance))
 
-            from apps.promotions.notifications import _base_url
-
-            base = _base_url(connection.schema_name)
-            status_url = (
-                f"{base}{reverse('storefront-auftrag', args=[instance.public_token])}"
-                if base
-                else ""
-            )
-            enqueue_job_email(instance, "done", status_url=status_url)
+        # KA-12 A-6b: свой статус «Abholbereit» (по коду, имя может быть другим) —
+        # клиенту «можно забирать» со ссылкой на страницу статуса.
+        if t.dst == status_presets.READY_CODE:
+            enqueue_job_email(instance, "ready", status_url=_status_url(instance))
 
         if t.dst == "quoted":
             # Ссылку на публичное Angebot строим только при известном домене
@@ -95,3 +92,14 @@ class JobSM(StateMachine):
             enqueue_job_email(instance, "quoted", angebot_url=url)
         elif t.dst in ("accepted", "declined"):
             enqueue_job_email(instance, t.dst)
+
+
+def _status_url(job) -> str:
+    """Абсолютная ссылка на публичную страницу статуса заявки ('' без домена)."""
+    from django.db import connection
+    from django.urls import reverse
+
+    from apps.promotions.notifications import _base_url
+
+    base = _base_url(connection.schema_name)
+    return f"{base}{reverse('storefront-auftrag', args=[job.public_token])}" if base else ""

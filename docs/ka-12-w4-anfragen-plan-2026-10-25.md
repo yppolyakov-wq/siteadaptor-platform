@@ -207,6 +207,35 @@ database-reviewer (дизайн до кода + data-шаг), django-reviewer + 
 = одна машина; очищенный номер снимает связь; пробег не убывает; поиск по номеру и FIN находит
 заявку; CRM показывает машины; DSGVO удаляет машину и не трогает заявку; HU-письмо одно на дату.
 
+#### A-6b · детальный план (2026-10-26, без миграций)
+1. **HU-напоминание.** `jobs.tasks.send_due_hu_reminders(today, tenant)` — машины с
+   `hu_due` в окне [сегодня, +SERVICE_REMINDER_LEAD_DAYS], `hu_reminder_sent_for ≠ hu_due`;
+   клиент с e-mail и не отписан; канал — тот же переключатель «Service-Erinnerung» (UD4-2).
+   Если у живой заявки этой машины `service_due_date == hu_due` — письмо уже шлёт A9,
+   машину помечаем без второго письма. Письмо `vehicle_hu_reminder`, дедуп
+   `vehicle:<pk>:hu:<дата>:customer` + отметка `hu_reminder_sent_for`; правка HU в
+   карточке сбрасывает отметку (сделано в A-6a). Бег — внутри существующего ежедневного
+   `send_service_reminders` (новой записи beat нет); сбой одного бизнеса логируется и не
+   останавливает остальные.
+2. **Status-Vorlage Werkstatt** (`apps/jobs/status_presets.py`): свои статусы заявки
+   `in_arbeit` · `teile_bestellt` · `abholbereit` (роль active) + рёбра accepted→in_arbeit,
+   in_arbeit↔teile_bestellt, in_arbeit→abholbereit, abholbereit→done, отмена из
+   in_arbeit/teile_bestellt. Кнопка «Werkstatt-Vorlage laden» в редакторе своих статусов на
+   «Abläufe» (kind job, тип werkstatt) — `status_manager_save` с `load_preset`, СЛИЯНИЕ:
+   недостающие коды/рёбра добавляются, правки владельца целы, повтор ничего не меняет.
+   Новым бизнесам werkstatt и при смене типа — только если своих статусов заявки нет.
+   Демо-кит werkstatt получает те же статусы.
+3. **Письмо «abholbereit»**: вход в статус с кодом `abholbereit` (любой путь FSM) →
+   клиенту `job_ready` (со ссылкой на страницу статуса), событие матрицы «Abholbereit».
+   Переход abholbereit→done письмо «Auftrag fertig» не шлёт — клиент уже знает.
+4. **PDF**: акт приёмки заявки с номером машины — заголовок «Fahrzeugannahme»; в шапке
+   любого акта с машиной — Kennzeichen, FIN, марка.
+**ECC:** django-patterns/django-tdd/django-celery; django-reviewer после кода,
+silent-failure-hunter — бег HU. **Замки:** одно письмо на дату HU; дубль с A9 гасится;
+отписанному не шлём; выключенный канал не помечает; сбой бизнеса не валит бег; пресет
+идемпотентен и не трёт правки; дефолт только без своих статусов; вход в abholbereit шлёт
+письмо один раз, done после него — нет; заголовок PDF.
+
 ### A-7 · E7.5 ⚖️ Widerruf (⚠️ `jobs/0025`, за флагом `QUOTE_WITHDRAWAL_ENABLED`)
 Для потребителя на `/angebot/<token>/`: Belehrung (текст тенанта), необязательный чекбокс «Beginn vor
 Ablauf» (§ 356 Abs. 4, § 357a Abs. 2), снимок `withdrawal_info_at`/`early_start_requested_at`/

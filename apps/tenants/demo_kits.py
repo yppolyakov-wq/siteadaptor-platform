@@ -9817,13 +9817,41 @@ WERKSTATT = DemoKit(
                 "stage": "in_progress",
                 "blocks_capacity": True,
             }
-        ]
+        ],
+        # KA-12 A-6b: рабочие шаги заявки — тот же набор, что «Werkstatt-Vorlage»
+        # (apps.jobs.status_presets; совпадение держит замок test_a6b_werkstatt).
+        "job": [
+            {
+                "code": code,
+                "label": label,
+                "role": "active",
+                "stage": "in_progress",
+                "blocks_capacity": True,
+            }
+            for code, label in (
+                ("in_arbeit", "In Arbeit"),
+                ("teile_bestellt", "Teile bestellt"),
+                ("abholbereit", "Abholbereit"),
+            )
+        ],
     },
     status_edges={
         "booking": [
             {"src": "confirmed", "dst": "teile_bestellt"},
             {"src": "teile_bestellt", "dst": "fulfilled"},
-        ]
+        ],
+        "job": [
+            {"src": src, "dst": dst}
+            for src, dst in (
+                ("accepted", "in_arbeit"),
+                ("in_arbeit", "teile_bestellt"),
+                ("teile_bestellt", "in_arbeit"),
+                ("in_arbeit", "abholbereit"),
+                ("abholbereit", "done"),
+                ("in_arbeit", "cancelled"),
+                ("teile_bestellt", "cancelled"),
+            )
+        ],
     },
     business_type="werkstatt",  # S6: реальный архетип
     # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).

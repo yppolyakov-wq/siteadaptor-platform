@@ -169,7 +169,12 @@ def build_protocol_pdf(job, protocol, tenant) -> bytes:
     y -= 15 * mm
     c.setFillColorRGB(*_INK)
     c.setFont(font_bold, 16)
-    title = _("Abnahmeprotokoll") if protocol.kind == "handover" else _("Annahmeprotokoll")
+    if protocol.kind == "handover":
+        title = _("Abnahmeprotokoll")
+    elif job.vehicle_plate:
+        title = _("Fahrzeugannahme")  # KA-12 A-6b: приёмка машины в мастерской
+    else:
+        title = _("Annahmeprotokoll")
     c.drawString(x, y, f"{title} {job.reference_code}")
     c.setFont(font, 9)
     c.setFillColorRGB(*_MUTED)
@@ -188,6 +193,20 @@ def build_protocol_pdf(job, protocol, tenant) -> bytes:
         y -= 5 * mm
         c.setFont(font, 9)
         c.drawString(x, y, job.site_address.replace("\n", ", ")[:95])
+    if job.vehicle_plate:
+        # KA-12 A-6b: в акте с машиной — Kennzeichen, FIN, марка из карточки машины.
+        vehicle = job.vehicle_ref if job.vehicle_ref_id else None
+        label_plate = _("Kennzeichen")
+        label_vin = _("FIN")
+        bits = [f"{label_plate}: {job.vehicle_plate}"]
+        if vehicle is not None and vehicle.vin:
+            bits.append(f"{label_vin}: {vehicle.vin}")
+        make = (vehicle.make_model if vehicle is not None else "") or job.vehicle
+        if make:
+            bits.append(make)
+        y -= 5 * mm
+        c.setFont(font, 9)
+        c.drawString(x, y, " · ".join(bits)[:110])
     if protocol.mileage_km is not None:
         y -= 5 * mm
         c.setFont(font, 9)

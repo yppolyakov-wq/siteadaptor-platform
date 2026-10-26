@@ -1,0 +1,1 @@
+{% load i18n %}{% blocktrans with plate=vehicle.plate due=vehicle.hu_due|date:"d.m.Y" %}Erinnerung: HU für {{ plate }} am {{ due }} fällig{% endblocktrans %}

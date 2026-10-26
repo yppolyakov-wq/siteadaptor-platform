@@ -59,6 +59,7 @@ CUSTOMER_EVENTS = {
     "job": [
         ("quoted", _("Angebot gesendet")),
         ("done", _("Auftrag fertig")),
+        ("ready", _("Abholbereit")),
         ("service_reminder", _("Service-Erinnerung")),
     ],
     "reservation": [

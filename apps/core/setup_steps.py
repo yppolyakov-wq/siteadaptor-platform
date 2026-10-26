@@ -58,10 +58,14 @@ def apply_business_type(tenant, business_type: str) -> None:
     # только если ключа нет. Повтор того же шага не возвращает пресет, если
     # владелец снял все поля (ключ удалён панелью).
     if type_changed:
+        from apps.jobs import status_presets
         from apps.jobs.anfrage_presets import with_default
 
         tenant.site_config, changed = with_default(tenant.site_config, business_type)
-        if changed:
+        tenant.site_config, changed_status = status_presets.with_default(
+            tenant.site_config, business_type
+        )
+        if changed or changed_status:
             update_fields.insert(1, "site_config")
     tenant.save(update_fields=update_fields)
 

@@ -63,3 +63,12 @@ next_path (куда вернуться после сохранения).{% endco
 
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Speichern" %}</button>
 </form>
+{% if status_preset %}
+<form method="post" action="{% url 'status-manager-save' kind %}" class="mt-3">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_path }}">
+  <input type="hidden" name="load_preset" value="1">
+  <button type="submit" class="text-sm font-medium text-indigo-600 hover:underline">↻ {% trans "Werkstatt-Vorlage laden" %}</button>
+  <span class="text-xs text-gray-500">{% trans "In Arbeit · Teile bestellt · Abholbereit — fehlende Status werden ergänzt, Ihre Änderungen bleiben." %}</span>
+</form>
+{% endif %}

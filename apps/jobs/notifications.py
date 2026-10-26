@@ -65,7 +65,7 @@ def enqueue_job_email(job, event, *, angebot_url="", status_url="", protocol=Non
         "protocol": protocol,  # KA-12 A-5: protocol_confirmed → владельцу
     }
 
-    if event in ("quoted", "done", "service_reminder"):  # → клиенту
+    if event in ("quoted", "done", "ready", "service_reminder"):  # → клиенту
         # A9: напоминание о TÜV/Service может приходить повторно (на каждую дату),
         # поэтому дедуп включает саму дату — иначе вторая дата не отправится.
         suffix = (

@@ -30490,3 +30490,33 @@ msgstr "Next inspection (HU)"
 
 msgid "Ungültiges Datum."
 msgstr "Invalid date."
+
+msgid "Die Vorlage ist schon vollständig übernommen."
+msgstr "The template has already been fully applied."
+
+msgid "Fahrzeugannahme"
+msgstr "Vehicle intake"
+
+msgid "In Arbeit · Teile bestellt · Abholbereit — fehlende Status werden ergänzt, Ihre Änderungen bleiben."
+msgstr "In progress · Parts ordered · Ready for pickup — missing statuses are added, your changes stay."
+
+msgid "Kennzeichen"
+msgstr "Licence plate"
+
+msgid "Werkstatt-Vorlage laden"
+msgstr "Load workshop template"
+
+#, python-format
+msgid "Ihr Auftrag %(code)s ist abholbereit"
+msgstr "Your order %(code)s is ready for pickup"
+
+msgid "Ihr Auftrag ist fertig und kann abgeholt werden:"
+msgstr "Your order is finished and ready for pickup:"
+
+#, python-format
+msgid "Erinnerung: HU für %(plate)s am %(due)s fällig"
+msgstr "Reminder: MOT inspection for %(plate)s due on %(due)s"
+
+#, python-format
+msgid "eine kurze Erinnerung: Die Hauptuntersuchung (HU) Ihres Fahrzeugs ist am %(due)s fällig."
+msgstr "a quick reminder: your vehicle's main inspection (HU) is due on %(due)s."
