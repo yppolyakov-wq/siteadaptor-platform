@@ -269,7 +269,9 @@ billing.context.subscription) и закрывается кнопкой; пост
       }).catch(function () {});
   }
   refresh();
-  setInterval(refresh, 20000);
+  // KA-12 E10: в скрытой вкладке не опрашиваем — догоняем при возврате на неё.
+  setInterval(function () { if (!document.hidden) refresh(); }, 20000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
 })();
 </script>
 <script>

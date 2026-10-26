@@ -268,13 +268,28 @@ def _schema() -> str:
     return getattr(connection, "schema_name", "") or ""
 
 
+# KA-12 E10: счётчик изменений членства в процессе — входит в ключ мемо (права здесь,
+# строка членства в `roles`). Сохранение/удаление Membership (сигнал в CoreConfig.ready)
+# делает мемо устаревшим сразу, а не только со следующего запроса.
+_GENERATION = [0]
+
+
+def bump_generation(**_kwargs) -> None:
+    _GENERATION[0] += 1
+
+
+def memo_key(user) -> tuple:
+    return (_schema(), user.pk, _GENERATION[0])
+
+
 def forget(user) -> None:
     """Сбросить мемо прав (после записи прав в том же запросе)."""
-    if user is not None and hasattr(user, "_cab_perms"):
-        try:
-            del user._cab_perms
-        except AttributeError:
-            pass
+    for attr in ("_cab_perms", "_cab_membership"):  # E10: и мемо строки членства (roles)
+        if user is not None and hasattr(user, attr):
+            try:
+                delattr(user, attr)
+            except AttributeError:
+                pass
 
 
 def effective(user) -> frozenset:
@@ -284,7 +299,7 @@ def effective(user) -> frozenset:
     запрос Membership на страницу, отзыв действует со следующего запроса."""
     if not getattr(user, "is_authenticated", False) or getattr(user, "pk", None) is None:
         return frozenset()
-    key = (_schema(), user.pk)
+    key = memo_key(user)
     memo = getattr(user, "_cab_perms", None)
     if memo is not None and memo[0] == key:
         return memo[1]

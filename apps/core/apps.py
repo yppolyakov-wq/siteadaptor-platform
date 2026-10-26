@@ -26,3 +26,12 @@ class CoreConfig(AppConfig):
         from apps.core import tg_login
 
         tg_login.connect()
+
+        # KA-12 E10: изменение членства сбрасывает мемо прав/членства на объекте user.
+        from django.db.models.signals import post_delete, post_save
+
+        from apps.core.models import Membership
+        from apps.core.permissions import bump_generation
+
+        post_save.connect(bump_generation, sender=Membership, dispatch_uid="core_member_gen_s")
+        post_delete.connect(bump_generation, sender=Membership, dispatch_uid="core_member_gen_d")

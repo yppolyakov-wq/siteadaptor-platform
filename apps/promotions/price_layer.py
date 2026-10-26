@@ -139,7 +139,11 @@ def attach_promos(products, *, with_lowest=True):
     (§11 PAngV: карточка с промо-ценой анонсирует снижение — референс рядом).
 
     Один запрос акций + один батч PriceLog; без акций — ноль лишних запросов."""
-    products = list(products)
+    from apps.catalog.prefetch import prefetch_cards
+
+    # KA-12 E10: карточка читает варианты/опции (`has_variants` ниже, в шаблоне —
+    # ещё 3–4 раза) — одним запросом на список вместо запроса на свойство.
+    products = prefetch_cards(products)
     pmap = product_promo_map([p.pk for p in products])
     if pmap:
         # SF-7: цена сравнения (30 дней до старта + прошлые акции) — батчем на

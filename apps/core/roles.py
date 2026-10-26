@@ -25,7 +25,21 @@ OWNER_FLOOR_PREFIXES = (
 def _membership(user):
     if not getattr(user, "is_authenticated", False) or getattr(user, "pk", None) is None:
         return None  # аноним или несохранённый пользователь — fail-closed
-    return Membership.objects.filter(user=user).first()
+    # KA-12 E10: строку читают middleware, сайдбар и проверки экранов — 4–5 раз за
+    # запрос. Мемо на объекте user (живёт один запрос) с ключом схемы, pk и счётчика
+    # изменений членства, как у `permissions.effective`; сброс — `permissions.forget`.
+    from .permissions import memo_key
+
+    key = memo_key(user)
+    memo = getattr(user, "_cab_membership", None)
+    if memo is not None and memo[0] == key:
+        return memo[1]
+    row = Membership.objects.filter(user=user).first()
+    try:
+        user._cab_membership = (key, row)
+    except AttributeError:  # не настоящий пользователь — без мемо
+        pass
+    return row
 
 
 def role_of(user) -> str:

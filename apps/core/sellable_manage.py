@@ -178,6 +178,36 @@ def _managed(kind, obj, locale, threshold: int = 5) -> ManagedSellable:
     )
 
 
+def _prefetch_rows(kind: str, rows) -> None:
+    """KA-12 E10: то, что адаптер карточки читает у КАЖДОЙ строки, — одним запросом на
+    страницу (варианты товара/услуги, состав набора). Раньше 3–5 запросов на товар и
+    1 + G + G·O на набор."""
+    from django.db.models import prefetch_related_objects
+
+    rows = list(rows)
+    if not rows:
+        return
+    if kind == "product":
+        from apps.catalog.prefetch import prefetch_cards
+
+        prefetch_cards(rows)
+    elif kind == "service":
+        from django.db.models import Prefetch
+
+        from apps.booking.models import ServiceVariant
+
+        prefetch_related_objects(
+            rows,
+            Prefetch(
+                "variants",
+                queryset=ServiceVariant.objects.filter(is_active=True).order_by("sort_order", "id"),
+                to_attr="active_variants",
+            ),
+        )
+    elif kind == "combo":
+        prefetch_related_objects(rows, "groups__options__product")
+
+
 def _locale(tenant) -> str | None:
     return getattr(tenant, "default_locale", None) or None
 
@@ -251,6 +281,7 @@ def sellable_manage_sections_for(
             rows = page.items
         else:
             rows = list(qs[:limit])
+        _prefetch_rows(kind, rows)
         items = [_managed(kind, obj, locale, threshold) for obj in rows]
         if not items:
             continue

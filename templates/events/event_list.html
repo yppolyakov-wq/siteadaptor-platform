@@ -35,6 +35,7 @@
     </a>
   {% endfor %}
 </div>
+{% list_pager page %}
 {% else %}
   <p class="text-gray-400 text-sm">{% trans "No events yet." %}</p>
 {% endif %}

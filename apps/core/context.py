@@ -429,10 +429,17 @@ def modules_nav(request):
     # ST-4b/W-CL: таб-бар = первая четвёрка якорей компакт-сайдбара (безусловно).
     from apps.core import lite_cabinet as _lite_cabinet
 
-    if _lite_cabinet.is_lite_request(request):  # T-8.30 Р-5: Mini App — лёгкое меню
-        _compact = _lite_cabinet.sidebar_items(tenant, getattr(request, "user", None))
+    _user = getattr(request, "user", None)
+    if _user is not None and not getattr(_user, "is_authenticated", False):
+        # KA-12 E10 (S-2): аноним кабинета не видит (login_required + middleware), а
+        # сайдбар — это реестр с гейтами и подписями настроек (~12 запросов к БД) на
+        # КАЖДОЙ странице витрины. Посетителю не строим. Запрос без `user` вовсе
+        # (внутренние вызовы, тесты) — как прежде, fail-open.
+        _compact = []
+    elif _lite_cabinet.is_lite_request(request):  # T-8.30 Р-5: Mini App — лёгкое меню
+        _compact = _lite_cabinet.sidebar_items(tenant, _user)
     else:
-        _compact = modules.sidebar_nav(tenant, getattr(request, "user", None))
+        _compact = modules.sidebar_nav(tenant, _user)
     # VF-7a (фидбэк 2026-08-24 «выбелены оба»): активный ПОДПУНКТ определяется
     # по URL страницы, не по nav_key — несколько подпунктов раздела законно
     # делят nav_key (booking, marketing) и подсвечивались парами. Фолбэк для
@@ -481,7 +488,7 @@ def modules_nav(request):
         }
         for it in _compact[:4]
     ]
-    if not _lite_cabinet.is_lite_request(request):
+    if _compact and not _lite_cabinet.is_lite_request(request):
         nav_primary = (
             _cabinet_tabbar(tenant, _compact, getattr(request, "user", None)) or nav_primary
         )

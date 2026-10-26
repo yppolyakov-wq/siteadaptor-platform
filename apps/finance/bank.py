@@ -245,6 +245,8 @@ def open_items(tenant) -> list[dict]:
         qs = (
             model.objects.filter(money_contract.open_q(kind))
             .exclude(status__in=status_registry.cancelled_statuses_for(kind, tenant))
+            # KA-12 E10: клиент и связи заголовка — без запроса на строку.
+            .select_related(*transactions._SELECT_RELATED.get(kind, ()))
             .order_by("created_at")[:200]
         )
         qs = list(qs)

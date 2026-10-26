@@ -1142,7 +1142,9 @@ def _variant_terms(product) -> list[str]:
     """T-8.26 п.5c: размеры (UPPER) и цвета АКТИВНЫХ вариантов, без дублей, до 40.
     Метка варианта («M · Blau») не берётся — она составная и уже разложена на оси."""
     terms: dict[str, None] = {}
-    for size, color in product.active_variants.order_by("pk").values_list("size", "color"):
+    for size, color in (
+        product.variants.filter(is_active=True).order_by("pk").values_list("size", "color")
+    ):
         for term in ((size or "").strip().upper(), (color or "").strip()):
             if term:
                 terms.setdefault(term[:40], None)

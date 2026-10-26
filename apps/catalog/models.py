@@ -429,10 +429,19 @@ class Product(SoftDeleteMixin, I18nMixin):
 
     @property
     def active_variants(self):
+        # KA-12 E10: списки (карточки витрины, «Sortiment») предзагружают варианты
+        # одним запросом (`catalog.prefetch.prefetch_cards`) — тогда список; иначе
+        # прежний queryset (вызывающие без предзагрузки могут уточнять его дальше).
+        cached = self.__dict__.get("_pf_active_variants")
+        if cached is not None:
+            return cached
         return self.variants.filter(is_active=True)
 
     @property
     def has_variants(self) -> bool:
+        cached = self.__dict__.get("_pf_active_variants")
+        if cached is not None:
+            return bool(cached)
         return self.active_variants.exists()
 
     @property
@@ -515,6 +524,9 @@ class Product(SoftDeleteMixin, I18nMixin):
     @property
     def modifier_groups_active(self):
         """Активные группы модификаторов (Gastro-Extras, A4) с активными опциями."""
+        cached = self.__dict__.get("_pf_modifier_groups")  # KA-12 E10: предзагрузка списка
+        if cached is not None:
+            return cached
         return self.modifier_groups.filter(is_active=True)
 
     @property
@@ -746,6 +758,9 @@ class ModifierGroup(TimestampedModel):
 
     @property
     def active_options(self):
+        cached = self.__dict__.get("_pf_active_options")  # KA-12 E10: предзагрузка списка
+        if cached is not None:
+            return list(cached)
         return list(self.options.filter(is_active=True))
 
     @property

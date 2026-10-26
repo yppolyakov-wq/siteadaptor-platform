@@ -61,8 +61,19 @@ def _delete_event_photo(event, ref_id) -> None:
 
 @login_required
 def event_list(request):
-    events = Event.objects.all().order_by("-starts_at")
-    return render(request, "events/event_list.html", {"events": events, "nav": "events"})
+    from apps.core.pagination import paginate_queryset
+
+    from .listing import attach_seat_counts
+
+    # KA-12 E10: страницами (раньше — все события разом) и проданные места одним
+    # запросом на страницу (раньше — агрегат на каждое событие).
+    page = paginate_queryset(
+        Event.objects.all().order_by("-starts_at"), page_raw=request.GET.get("seite")
+    )
+    attach_seat_counts(page.items)
+    return render(
+        request, "events/event_list.html", {"events": page.items, "page": page, "nav": "events"}
+    )
 
 
 @login_required
