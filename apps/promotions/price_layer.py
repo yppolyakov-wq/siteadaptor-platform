@@ -8,7 +8,7 @@
 откатывает и лимит — фантомного списания нет.
 """
 
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import F
 from django.utils import timezone, translation
 from django.utils.translation import gettext as _
@@ -172,23 +172,62 @@ def promo_for_product(product):
     """P6: активная акция на товар → Promotion | None (для показа на витрине;
     чекаут по промо-цене живёт на детали АКЦИИ — /p/<uuid>/kaufen/).
 
-    При нескольких — максимальная выгода клиенту (минимальная new_price)."""
+    При нескольких — максимальная выгода клиенту (минимальная new_price). PR-1: тот же
+    резолвер, что карточки/корзина/чекаут (своя акция · категория · весь магазин)."""
     if product is None:
         return None
-    best = None
-    # SF-9: mystery-акция — не часть цены товара (секрет раскрывается и продаётся
-    # только на странице акции); иначе баннер/корзина раскрыли бы цену.
-    now = timezone.now()
-    for promo in (
-        Promotion.objects.filter(Promotion.on_sale_q(), product=product)
-        .exclude(discount_style="mystery")
-        .order_by("created_at", "pk")
-    ):
-        if not promo.lowers_price or not rules_match(promo.target_rules, now):
-            continue
-        if best is None or promo.new_price < best.new_price:
-            best = promo
-    return best
+    return product_promo_map([product.pk]).get(product.pk)
+
+
+def _usable(promo, now, timeless_only) -> bool:
+    if timeless_only and promo.target_rules:
+        return False
+    return rules_match(promo.target_rules, now)
+
+
+def _scope_q():
+    """PR-1: акции на категорию / весь магазин (только процент — см. модель)."""
+    return models.Q(
+        product__isnull=True,
+        service__isnull=True,
+        stay_unit__isnull=True,
+        combo__isnull=True,
+        discount_percent__isnull=False,
+        price_override__isnull=True,
+        compare_at_price__isnull=True,
+    ) & (models.Q(whole_shop=True) | models.Q(category__isnull=False))
+
+
+def _category_chains(products) -> dict:
+    """{product_id: {category_id, parent_id, …}} — товар входит в акцию категории и
+    всех её предков (подкатегория «Vollkornbrot» — часть «Brot»)."""
+    from apps.catalog.models import Category
+
+    parents = dict(Category.objects.values_list("pk", "parent_id"))
+    out = {}
+    for product in products:
+        chain, cur, guard = set(), product.category_id, 0
+        while cur is not None and cur not in chain and guard < 20:
+            chain.add(cur)
+            cur, guard = parents.get(cur), guard + 1
+        out[product.pk] = chain
+    return out
+
+
+def scope_copy(promo, product):
+    """Виртуальная копия акции области, привязанная к товару: все цены/§11/бейджи
+    считаются свойствами модели от ЭТОГО товара. Сохранить нельзя (Promotion.save)."""
+    import copy
+
+    clone = copy.copy(promo)
+    # copy.copy делит `_state` (и кэш связей) с оригиналом — без своей копии
+    # `clone.product = …` переписал бы товар и у настоящей акции.
+    clone._state = copy.copy(promo._state)
+    clone._state.fields_cache = dict(promo._state.fields_cache)
+    clone.__dict__.pop("_prior_low", None)
+    clone.product = product
+    clone._scope_virtual = True
+    return clone
 
 
 def product_promo_map(product_ids, *, now=None, timeless_only=False):
@@ -198,27 +237,53 @@ def product_promo_map(product_ids, *, now=None, timeless_only=False):
     KA-12 E3.6: акция с окном (`target_rules` дни/часы) действует только внутри
     окна — та же проверка у карточки, корзины и create_order («показано =
     списано»; момент — время ЗАКАЗА). `timeless_only` — для внешних фидов (Google
-    не знает часовых окон): акции с правилами туда не уходят вовсе."""
+    не знает часовых окон): акции с правилами туда не уходят вовсе.
+
+    KA-12 PR-1: + акции на категорию (с подкатегориями) и на весь магазин — копией
+    с этим товаром; правило конфликта прежнее: лучшая цена клиенту, без суммирования."""
     now = now or timezone.now()
+    product_ids = list(product_ids)
     out = {}
+    scoped = []
+    if not product_ids:
+        return out
     # Стабильный порядок: при равной цене побеждает более ранняя акция — иначе выбор
     # (и вместе с ним фид Merchant: mystery исключает товар) зависел бы от порядка строк.
-    # SF-9: без mystery — см. `promo_for_product`.
+    # SF-9: без mystery — см. `promo_for_product`. PR-1: акции области — тем же запросом.
     for promo in (
-        Promotion.objects.filter(Promotion.on_sale_q(), product_id__in=list(product_ids))
+        Promotion.objects.filter(Promotion.on_sale_q())
+        .filter(models.Q(product_id__in=product_ids) | _scope_q())
         .exclude(discount_style="mystery")
         .select_related("product")
         .order_by("created_at", "pk")
     ):
+        if not _usable(promo, now, timeless_only):
+            continue
+        if promo.product_id is None:
+            if not promo.price_condition:
+                scoped.append(promo)
+            continue
         if not promo.lowers_price:
-            continue
-        if timeless_only and promo.target_rules:
-            continue
-        if not rules_match(promo.target_rules, now):
             continue
         cur = out.get(promo.product_id)
         if cur is None or promo.new_price < cur.new_price:
             out[promo.product_id] = promo
+    if not scoped:
+        return out
+    from apps.catalog.models import Product
+
+    products = list(Product.objects.filter(pk__in=product_ids))
+    chains = _category_chains(products) if any(p.category_id for p in scoped) else {}
+    for product in products:
+        for promo in scoped:
+            if not (promo.whole_shop or promo.category_id in chains.get(product.pk, ())):
+                continue
+            clone = scope_copy(promo, product)
+            if not clone.lowers_price:
+                continue
+            cur = out.get(product.pk)
+            if cur is None or clone.new_price < cur.new_price:
+                out[product.pk] = clone
     return out
 
 

@@ -57,6 +57,9 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             "service",
             "stay_unit",
             "combo",
+            # KA-12 PR-1: область шире товара — категория (с подкатегориями) / весь магазин.
+            "category",
+            "whole_shop",
             "promo_type",
             "compare_at_price",
             "discount_percent",
@@ -84,6 +87,8 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             "reservation_ttl_hours": _("Reservierung gültig (Stunden)"),
             "auto_confirm": _("Automatisch bestätigen"),
             "group": _("Typ der Aktion (Rubrik)"),
+            "category": _("Ganze Kategorie"),
+            "whole_shop": _("Ganzer Shop"),
             "compare_at_price": _("Old price (struck through)"),
             "discount_percent": _("Discount %"),
             "price_override": _("New price"),
@@ -108,6 +113,11 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 "How the discount looks on your storefront — badge, struck-through "
                 "price, fixed price, from-price or countdown accent."
             ),
+            "category": _(
+                "Rabatt in Prozent auf jedes Produkt dieser Kategorie und ihrer Unterkategorien — "
+                "direkt im Warenkorb."
+            ),
+            "whole_shop": _("Rabatt in Prozent auf jedes Produkt im Shop — direkt im Warenkorb."),
             "group": _(
                 "Optional. Der Typ bündelt Aktionen (z. B. „Wochenangebote“, „Räumung“): "
                 "eigene Seite, eigene Vorlage und eigenes Raster unter „Aktionstypen“, "
@@ -119,6 +129,14 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["product"].queryset = Product.objects.all()
         self.fields["product"].required = False
+        from apps.catalog.models import Category
+
+        if tenant is not None and not tenant.is_module_active("catalog"):
+            self.fields.pop("category", None)
+            self.fields.pop("whole_shop", None)
+        else:
+            self.fields["category"].queryset = Category.objects.all()
+            self.fields["category"].required = False
         # W11-4: цели PL — селекты только при активном модуле (tenant=None в
         # тестах → fail-open, как у прочих гейтов формы).
         from apps.booking.models import Service
@@ -346,6 +364,7 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             self.add_error("ends_at", _("End must be after start."))
         self._clean_price_condition(cleaned)
         self._clean_rule_window(cleaned, starts, ends)
+        self._clean_scope(cleaned)
         # SF-9: у услуги и номера цена акции видна в сетке слотов/расчёте брони — секрет
         # «сюрприза» не спрятать, поэтому сочетание запрещено (товар — только своя страница).
         if cleaned.get("discount_style") == "mystery" and (
@@ -356,6 +375,39 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 _("Überraschungspreis ist bei Leistungen und Zimmern nicht möglich."),
             )
         return cleaned
+
+    def _clean_scope(self, cleaned):
+        """KA-12 PR-1: у акции одна цель; область (категория/магазин) — только процент:
+        «новая/старая цена» и условие цены — свойства одного товара."""
+        targets = [
+            name
+            for name in ("product", "service", "stay_unit", "combo", "category")
+            if cleaned.get(name)
+        ] + (["whole_shop"] if cleaned.get("whole_shop") else [])
+        if len(targets) > 1:
+            self.add_error(targets[-1], _("Bitte nur ein Ziel wählen: Produkt, Kategorie, Shop, …"))
+            return
+        if not ({"category", "whole_shop"} & set(targets)):
+            return
+        if not cleaned.get("discount_percent"):
+            self.add_error(
+                "discount_percent",
+                _("Für eine Kategorie oder den ganzen Shop bitte einen Rabatt in Prozent angeben."),
+            )
+        for name in ("price_override", "compare_at_price"):
+            if cleaned.get(name) is not None:
+                self.add_error(
+                    name, _("Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent je Produkt.")
+                )
+        if getattr(self, "_price_condition", None):
+            self.add_error(
+                "price_condition_kind",
+                _("Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent je Produkt."),
+            )
+        if cleaned.get("discount_style") == "mystery":
+            self.add_error(
+                "discount_style", _("Überraschungspreis gibt es nur für ein einzelnes Produkt.")
+            )
 
     def _clean_rule_window(self, cleaned, starts, ends):
         """Ревью GA-8: окно часов не должно быть пустым и обязано пересекаться с

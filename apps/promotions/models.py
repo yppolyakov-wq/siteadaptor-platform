@@ -205,6 +205,18 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         on_delete=models.SET_NULL,
         related_name="promotions",
     )
+    # KA-12 PR-1 (WR-9): область акции шире одного товара — «вся категория» (вместе с
+    # подкатегориями) или «весь магазин». Цена считается от цены КАЖДОГО товара
+    # (`price_layer` подставляет виртуальную копию акции с этим товаром), поэтому для
+    # области допустим только процент: «новая цена»/«старая цена» — свойства одного товара.
+    category = models.ForeignKey(
+        "catalog.Category",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="scope_promotions",
+    )
+    whole_shop = models.BooleanField(default=False)
     # Условия применения к услуге (паттерн StaySettings.auto_discount_rules):
     # {"weekdays": [0..6], "hour_from": 10, "hour_to": 14, "resource_id": "..."}
     # — «счастливые часы»/конкретный мастер. Пусто = без ограничений.
@@ -506,6 +518,24 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         """P1: базовая сущность акции (product/service/stay_unit/combo) или None
         («свободная» акция). Ровно одна — гарантирует clean()/форма."""
         return self.product or self.service or self.stay_unit or self.combo
+
+    def save(self, *args, **kwargs):
+        # PR-1: виртуальная копия «акция × товар» (price_layer.scope_copy) живёт только
+        # в памяти — её сохранение переписало бы товар у настоящей акции категории.
+        if getattr(self, "_scope_virtual", False):
+            raise RuntimeError("virtual scope promotion must not be saved")
+        super().save(*args, **kwargs)
+
+    @property
+    def scope_kind(self) -> str:
+        """PR-1: «category» / «shop» для акции на область, иначе ''."""
+        if self.product_id or self.service_id or self.stay_unit_id or self.combo_id:
+            return ""
+        if self.whole_shop:
+            return "shop"
+        if self.category_id:
+            return "category"
+        return ""
 
     @property
     def target_kind(self) -> str:

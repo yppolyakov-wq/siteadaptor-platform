@@ -31055,3 +31055,27 @@ msgstr "resellable"
 
 msgid "Geld erstatten darf nur, wer Erstattungen buchen darf."
 msgstr "Only people allowed to book refunds can refund money."
+
+msgid "Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent je Produkt."
+msgstr "For a category or the whole shop only a percentage discount per product applies."
+
+msgid "Bitte nur ein Ziel wählen: Produkt, Kategorie, Shop, …"
+msgstr "Please choose only one target: product, category, shop, …"
+
+msgid "Für eine Kategorie oder den ganzen Shop bitte einen Rabatt in Prozent angeben."
+msgstr "For a category or the whole shop, please enter a percentage discount."
+
+msgid "Ganze Kategorie"
+msgstr "Whole category"
+
+msgid "Ganzer Shop"
+msgstr "Whole shop"
+
+msgid "Rabatt in Prozent auf jedes Produkt dieser Kategorie und ihrer Unterkategorien — direkt im Warenkorb."
+msgstr "Percentage discount on every product in this category and its subcategories — right in the cart."
+
+msgid "Rabatt in Prozent auf jedes Produkt im Shop — direkt im Warenkorb."
+msgstr "Percentage discount on every product in the shop — right in the cart."
+
+msgid "Überraschungspreis gibt es nur für ein einzelnes Produkt."
+msgstr "A surprise price is only possible for a single product."

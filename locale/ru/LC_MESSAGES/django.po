@@ -31332,3 +31332,27 @@ msgstr "можно продать снова"
 
 msgid "Geld erstatten darf nur, wer Erstattungen buchen darf."
 msgstr "Возвращать деньги может только тот, у кого есть право на возвраты."
+
+msgid "Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent je Produkt."
+msgstr "Для категории или всего магазина действует только скидка в процентах на каждый товар."
+
+msgid "Bitte nur ein Ziel wählen: Produkt, Kategorie, Shop, …"
+msgstr "Выберите только одну цель: товар, категорию, магазин, …"
+
+msgid "Für eine Kategorie oder den ganzen Shop bitte einen Rabatt in Prozent angeben."
+msgstr "Для категории или всего магазина укажите скидку в процентах."
+
+msgid "Ganze Kategorie"
+msgstr "Вся категория"
+
+msgid "Ganzer Shop"
+msgstr "Весь магазин"
+
+msgid "Rabatt in Prozent auf jedes Produkt dieser Kategorie und ihrer Unterkategorien — direkt im Warenkorb."
+msgstr "Скидка в процентах на каждый товар этой категории и её подкатегорий — сразу в корзине."
+
+msgid "Rabatt in Prozent auf jedes Produkt im Shop — direkt im Warenkorb."
+msgstr "Скидка в процентах на каждый товар магазина — сразу в корзине."
+
+msgid "Überraschungspreis gibt es nur für ein einzelnes Produkt."
+msgstr "Цена-сюрприз возможна только для одного товара."

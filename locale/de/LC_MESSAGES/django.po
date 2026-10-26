@@ -31147,3 +31147,27 @@ msgstr "wieder verkaufbar"
 
 msgid "Geld erstatten darf nur, wer Erstattungen buchen darf."
 msgstr "Geld erstatten darf nur, wer Erstattungen buchen darf."
+
+msgid "Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent je Produkt."
+msgstr "Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent je Produkt."
+
+msgid "Bitte nur ein Ziel wählen: Produkt, Kategorie, Shop, …"
+msgstr "Bitte nur ein Ziel wählen: Produkt, Kategorie, Shop, …"
+
+msgid "Für eine Kategorie oder den ganzen Shop bitte einen Rabatt in Prozent angeben."
+msgstr "Für eine Kategorie oder den ganzen Shop bitte einen Rabatt in Prozent angeben."
+
+msgid "Ganze Kategorie"
+msgstr "Ganze Kategorie"
+
+msgid "Ganzer Shop"
+msgstr "Ganzer Shop"
+
+msgid "Rabatt in Prozent auf jedes Produkt dieser Kategorie und ihrer Unterkategorien — direkt im Warenkorb."
+msgstr "Rabatt in Prozent auf jedes Produkt dieser Kategorie und ihrer Unterkategorien — direkt im Warenkorb."
+
+msgid "Rabatt in Prozent auf jedes Produkt im Shop — direkt im Warenkorb."
+msgstr "Rabatt in Prozent auf jedes Produkt im Shop — direkt im Warenkorb."
+
+msgid "Überraschungspreis gibt es nur für ein einzelnes Produkt."
+msgstr "Überraschungspreis gibt es nur für ein einzelnes Produkt."

@@ -31199,3 +31199,27 @@ msgstr "yeniden satılabilir"
 
 msgid "Geld erstatten darf nur, wer Erstattungen buchen darf."
 msgstr "Para iadesini yalnızca iade kaydetme yetkisi olanlar yapabilir."
+
+msgid "Bei Kategorie oder Shop gilt nur ein Rabatt in Prozent je Produkt."
+msgstr "Kategori veya tüm mağaza için yalnızca ürün başına yüzde indirim geçerlidir."
+
+msgid "Bitte nur ein Ziel wählen: Produkt, Kategorie, Shop, …"
+msgstr "Lütfen yalnızca bir hedef seçin: ürün, kategori, mağaza, …"
+
+msgid "Für eine Kategorie oder den ganzen Shop bitte einen Rabatt in Prozent angeben."
+msgstr "Kategori veya tüm mağaza için lütfen yüzde indirim girin."
+
+msgid "Ganze Kategorie"
+msgstr "Tüm kategori"
+
+msgid "Ganzer Shop"
+msgstr "Tüm mağaza"
+
+msgid "Rabatt in Prozent auf jedes Produkt dieser Kategorie und ihrer Unterkategorien — direkt im Warenkorb."
+msgstr "Bu kategori ve alt kategorilerindeki her ürüne yüzde indirim — doğrudan sepette."
+
+msgid "Rabatt in Prozent auf jedes Produkt im Shop — direkt im Warenkorb."
+msgstr "Mağazadaki her ürüne yüzde indirim — doğrudan sepette."
+
+msgid "Überraschungspreis gibt es nur für ein einzelnes Produkt."
+msgstr "Sürpriz fiyat yalnızca tek bir ürün için mümkündür."

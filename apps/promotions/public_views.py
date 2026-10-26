@@ -99,6 +99,22 @@ def _detail_ctx(request, promo, form) -> dict:
             }
         except Exception:  # noqa: BLE001 — витрина не падает из-за адаптера
             target_card = None
+    elif promo.scope_kind and promo.discount_style != "mystery":
+        # KA-12 PR-1: акция на категорию/весь магазин — карточка ведёт к товарам.
+        if promo.scope_kind == "category" and promo.category and promo.category.slug:
+            target_card = {
+                "kind": "category",
+                "name": promo.category.get_i18n("name"),
+                "url": reverse("storefront-category", args=[promo.category.slug]),
+                "image_url": promo.category.image_url,
+            }
+        else:
+            target_card = {
+                "kind": "shop",
+                "name": _("Alle Produkte"),
+                "url": reverse("storefront-products"),
+                "image_url": "",
+            }
     # DL-16.3 (AD3): «Weitere Aktionen» — та же группа, иначе другие активные.
     others = (
         Promotion.objects.filter(Promotion.on_sale_q()).exclude(pk=promo.pk).order_by("-created_at")
