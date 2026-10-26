@@ -362,6 +362,8 @@ class DemoKit:
     # DS-4: точечные top-level оси конфига (hero_style/nav/catalog_layout…) —
     # shallow-merge ПОСЛЕ look-оверлея (dict-значения мержатся по ключам).
     config_patch: dict = field(default_factory=dict)
+    # KA-12 GA-7: брони зала по столам [(день, "HH:MM", стол, имя, гостей, large)].
+    table_bookings: list = field(default_factory=list)
     # LS-3/4/6: демо-треды «Прямой линии» (вопрос + staff-ответ + открытое
     # Sofort-Angebot; second — high-тред «Etwas stimmt nicht?»). Без писем.
     seed_inbox: bool = False
@@ -764,6 +766,9 @@ RESTAURANT = DemoKit(
         "nav": {"cta": True},
         # DS-8: CTA шапки/hero — бронь стола (эвристика _PRIORITY ставила events).
         "primary_module": "booking",
+        # KA-12 GA-7 (Р-2: в демо включено): до 4 гостей — сразу подтверждено, до 10 —
+        # Gruppenanfrage, больше — «bitte anrufen».
+        "booking": {"tables": {"instant_max": 4, "online_max": 10}},
     },
     sections_off=["archetypes", "usp_bar", "team", "gallery", "reviews", "testimonials"],
     label="Restaurant «Bella Vista»",
@@ -906,17 +911,112 @@ RESTAURANT = DemoKit(
         "button_label": "Zur Speisekarte",
         "button_url": "/sortiment/",
     },
+    # KA-12 GA-7: зал из 8 столов в двух зонах + комбинация «Tisch 3+4» (GA-3…GA-6
+    # видны в демо). Tisch 8 на террасе — только для стойки (погода).
     resources=[
         {
-            "name": "Tisch",
+            "name": "Tisch 1",
             "type": "table",
-            "capacity": 40,  # места в зале; party_size суммируется
-            "counts_party_size": True,
+            "seats": 2,
+            "zone": "Saal",
             "start": "11:00",
             "end": "22:00",
-            "slot": 60,
+            "slot": 30,
             "weekdays": range(0, 7),
-        }
+        },
+        {
+            "name": "Tisch 2",
+            "type": "table",
+            "seats": 2,
+            "zone": "Saal",
+            "start": "11:00",
+            "end": "22:00",
+            "slot": 30,
+            "weekdays": range(0, 7),
+        },
+        {
+            "name": "Tisch 3",
+            "type": "table",
+            "seats": 4,
+            "zone": "Saal",
+            "start": "11:00",
+            "end": "22:00",
+            "slot": 30,
+            "weekdays": range(0, 7),
+        },
+        {
+            "name": "Tisch 4",
+            "type": "table",
+            "seats": 4,
+            "zone": "Saal",
+            "start": "11:00",
+            "end": "22:00",
+            "slot": 30,
+            "weekdays": range(0, 7),
+        },
+        {
+            "name": "Tisch 5",
+            "type": "table",
+            "seats": 6,
+            "zone": "Saal",
+            "start": "11:00",
+            "end": "22:00",
+            "slot": 30,
+            "weekdays": range(0, 7),
+        },
+        {
+            "name": "Tisch 6",
+            "type": "table",
+            "seats": 2,
+            "zone": "Terrasse",
+            "start": "11:00",
+            "end": "22:00",
+            "slot": 30,
+            "weekdays": range(0, 7),
+        },
+        {
+            "name": "Tisch 7",
+            "type": "table",
+            "seats": 4,
+            "zone": "Terrasse",
+            "start": "11:00",
+            "end": "22:00",
+            "slot": 30,
+            "weekdays": range(0, 7),
+        },
+        {
+            "name": "Tisch 8",
+            "type": "table",
+            "seats": 4,
+            "zone": "Terrasse",
+            "start": "11:00",
+            "end": "22:00",
+            "slot": 30,
+            "weekdays": range(0, 7),
+            "bookable_online": False,
+        },
+        {
+            "name": "Tisch 3+4",
+            "type": "table",
+            "seats": 8,
+            "zone": "Saal",
+            "start": "11:00",
+            "end": "22:00",
+            "slot": 30,
+            "weekdays": range(0, 7),
+            "parts": ["Tisch 3", "Tisch 4"],
+            "min_seats": 5,
+        },
+    ],
+    table_bookings=[
+        (0, "12:00", "Tisch 3", "Familie Klein", 4, False),
+        (0, "12:30", "Tisch 1", "Sara Hoff", 2, False),
+        (0, "13:00", "Tisch 7", "Jonas Weber", 3, False),
+        (0, "19:00", "Tisch 3+4", "Geburtstag Becker", 7, False),
+        (0, "19:30", "Tisch 5", "Lena Brandt", 5, False),
+        (0, "20:00", "Tisch 2", "Paul Richter", 2, False),
+        (1, "18:30", "Tisch 6", "Mia Schulz", 2, False),
+        (1, "19:00", "Tisch 5", "Firmenfeier Nord", 6, True),
     ],
     categories=[
         (
@@ -25625,6 +25725,12 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 type=r.get("type", "table"),
                 capacity=r.get("capacity", 1),
                 counts_party_size=r.get("counts_party_size", False),
+                # KA-12 GA-7: зал из столов — места, зона, порядок, «nur vor Ort».
+                seats=r.get("seats"),
+                min_seats=r.get("min_seats", 1),
+                zone=r.get("zone", ""),
+                sort_order=r.get("sort_order", ri),
+                bookable_online=r.get("bookable_online", True),
                 title=r.get("title", ""),
                 bio=r.get("bio", ""),
                 photo=photo,
@@ -25639,6 +25745,15 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     slot_minutes=r.get("slot", 30),
                 )
             refs["resources"].append(str(resource.pk))
+        # KA-12 GA-7: комбинации столов — вторым проходом, единственным писателем состава.
+        combos = [r for r in kit.resources if r.get("parts")]
+        if combos:
+            from apps.booking import occupancy
+
+            for r in combos:
+                combo = Resource.objects.get(name=r["name"])
+                parts = Resource.objects.filter(name__in=r["parts"]).values_list("pk", flat=True)
+                occupancy.set_parts(combo, list(parts))
     if kit.services and is_active("booking"):
         from apps.booking.models import Service
 
@@ -26542,6 +26657,44 @@ def _seed_service_history(kit: DemoKit, refs: dict) -> None:
             continue
 
 
+def _seed_table_bookings(kit: DemoKit) -> None:
+    """KA-12 GA-7: брони зала по столам — `(день, "HH:MM", стол, имя, гостей, large)`.
+
+    Обычная бронь подтверждена (как со стойки), «large» — Gruppenanfrage: ждёт решения
+    владельца. Занятый/закрытый стол — пропуск строки (сид не падает)."""
+    import logging
+    from datetime import datetime, time, timedelta
+
+    from django.utils import timezone
+
+    from apps.booking.models import Resource
+    from apps.booking.services import book
+
+    log = logging.getLogger(__name__)
+    for day_offset, hhmm, table, who, party, large in kit.table_bookings:
+        hh, mm = (int(x) for x in hhmm.split(":"))
+        day = timezone.localdate() + timedelta(days=day_offset)
+        start = timezone.make_aware(datetime.combine(day, time(hh, mm)))
+        res = Resource.objects.filter(name=table).first()
+        if res is None:
+            continue
+        slug = who.split()[-1].lower()
+        try:
+            book(
+                res,
+                start=start,
+                end=start + timedelta(minutes=120),
+                name=who,
+                email=f"{slug}@example.com",
+                party_size=party,
+                auto_confirm=not large,
+                is_large_party=large,
+                enforce_seats=False,
+            )
+        except Exception as exc:  # noqa: BLE001 — демо-сид не должен падать на одной брони
+            log.warning("demo table booking skipped (%s %s): %s", table, hhmm, exc)
+
+
 def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
     """Примеры транзакций по активным архетипам (заказы/заявки/брони/билеты) —
     чтобы кабинет демо был наполнен «как настоящий». Демо-тенант одноразовый
@@ -26662,28 +26815,31 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
         from apps.booking.models import Resource
         from apps.booking.services import book
 
-        try:
-            res = Resource.objects.get(pk=refs["resources"][0])
-            day = timezone.localdate() + timedelta(days=1)
-            for hh, who, mail, party in [
-                (12, "Familie Klein", "klein@example.com", 4),
-                (19, "Sara Hoff", "sara@example.com", 2),
-            ]:
-                start = timezone.make_aware(datetime.combine(day, time(hh, 0)))
-                try:
-                    book(
-                        res,
-                        start=start,
-                        end=start + timedelta(hours=1),
-                        name=who,
-                        email=mail,
-                        party_size=party,
-                        auto_confirm=True,
-                    )
-                except Exception:
-                    pass
-        except Exception:
-            pass
+        if kit.table_bookings:  # KA-12 GA-7: зал — брони по столам (сегодня/завтра)
+            _seed_table_bookings(kit)
+        else:
+            try:
+                res = Resource.objects.get(pk=refs["resources"][0])
+                day = timezone.localdate() + timedelta(days=1)
+                for hh, who, mail, party in [
+                    (12, "Familie Klein", "klein@example.com", 4),
+                    (19, "Sara Hoff", "sara@example.com", 2),
+                ]:
+                    start = timezone.make_aware(datetime.combine(day, time(hh, 0)))
+                    try:
+                        book(
+                            res,
+                            start=start,
+                            end=start + timedelta(hours=1),
+                            name=who,
+                            email=mail,
+                            party_size=party,
+                            auto_confirm=True,
+                        )
+                    except Exception:
+                        pass
+            except Exception:
+                pass
 
     # KA-12 E6.4: история клиента (визиты, неявки, рецептура мастера).
     if kit.service_history and is_active("booking") and refs.get("resources"):

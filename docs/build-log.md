@@ -20315,3 +20315,11 @@ Kennzeichen/HSN/TSN мастерской и источник обращения 
   полуночи, пул показывал одну бронь — исправлено), security (чисто), a11y (подписи кнопок с
   именем стола, «Gäste» вместо англ. «guests», 44 px, `role=alert`). Стенд Playwright 12/12
   (1440/390: walk-in и перенос с экрана). Тесты `test_ga6_tischplan.py` (10).
+
+## 2026-10-26 — KA-12 Gastro GA-7: демо ресторана — зал из столов (без миграций)
+- План `docs/ka-12-w4-ga7-restaurant-demo-plan-2026-10-26.md`. Кит `restaurant`: 8 столов в зонах
+  «Saal»/«Terrasse» (Tisch 8 — только стойка) + комбинация «Tisch 3+4» (сидер зовёт
+  `occupancy.set_parts`), правило столов `instant_max 4 / online_max 10`, брони по столам на
+  сегодня/завтра (поле кита `table_bookings`, одна Gruppenanfrage). Сидер принимает
+  seats/min_seats/zone/sort_order/bookable_online/parts. `SEEDER_VERSION` 9.
+- Замок `test_restaurant_kit_seeds_bookable_table` переписан осознанно (пул → зал).

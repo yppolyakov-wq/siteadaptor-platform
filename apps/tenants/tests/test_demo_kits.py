@@ -321,22 +321,33 @@ def test_restaurant_kit_seeds_events_catering_loyalty():
 
 
 def test_restaurant_kit_seeds_bookable_table():
-    """Бронь столика работает: ресурс + недельное расписание → /termin/ даёт слоты."""
-    from apps.booking import availability
-    from apps.booking.models import AvailabilityRule, Resource
+    """Бронь столика работает: ресурс + недельное расписание → /termin/ даёт слоты.
 
-    tenant = _tenant()
-    demo_kits.apply_kit(tenant, "restaurant")
-    assert Resource.objects.filter(is_active=True).count() == 1
-    assert AvailabilityRule.objects.count() == 7  # все дни недели
-    resource = Resource.objects.first()
-    # на ближайший день недельного окна есть свободные слоты
+    KA-12 GA-7 (осознанная переписка): вместо пула «Tisch» на 40 мест — зал из 8 столов
+    в двух зонах + комбинация «Tisch 3+4», правило столов и брони по столам."""
     from datetime import timedelta
 
     from django.utils import timezone
 
+    from apps.booking import availability, table_rules
+    from apps.booking.models import AvailabilityRule, Booking, Resource
+
+    tenant = _tenant()
+    demo_kits.apply_kit(tenant, "restaurant")
+    tables = Resource.objects.filter(is_active=True, type=Resource.TYPE_TABLE)
+    assert tables.count() == 9
+    assert AvailabilityRule.objects.count() == 9 * 7  # все дни недели у каждого стола
+    assert set(tables.values_list("zone", flat=True)) == {"Saal", "Terrasse"}
+    combo = Resource.objects.get(name="Tisch 3+4")
+    assert sorted(p.name for p in combo.parts.all()) == ["Tisch 3", "Tisch 4"]
+    assert combo.seats == 8
+    assert not Resource.objects.get(name="Tisch 8").bookable_online
+    assert table_rules.rules(tenant) == {"instant_max": 4, "online_max": 10}
+    assert Booking.objects.filter(resource=combo).exists()
+    assert Booking.objects.filter(is_large_party=True, status="pending").exists()
+    small = Resource.objects.get(name="Tisch 1")
     found = any(
-        availability.free_slots_with_spots(resource, (timezone.localdate() + timedelta(days=d)))
+        availability.free_slots_with_spots(small, (timezone.localdate() + timedelta(days=d)))
         for d in range(1, 8)
     )
     assert found
