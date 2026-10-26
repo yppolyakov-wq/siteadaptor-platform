@@ -30723,3 +30723,27 @@ msgstr "Bookable online"
 
 msgid "Uhrzeit und Personen wählen — den passenden Tisch suchen wir aus."
 msgstr "Choose a time and party size — we'll pick the right table."
+
+msgid "Tisch nicht gefunden."
+msgstr "Table not found."
+
+msgid "Kombinieren lassen sich nur Tische mit einer Buchung je Tisch (kein Platz-Pool)."
+msgstr "Only tables with one booking per table can be combined (no seat pool)."
+
+msgid "Eine Kombination besteht aus mindestens zwei Tischen."
+msgstr "A combination consists of at least two tables."
+
+msgid "Eine Kombination kann nicht Teil einer anderen Kombination sein."
+msgstr "A combination cannot be part of another combination."
+
+msgid "Kombination gespeichert."
+msgstr "Combination saved."
+
+msgid "Kombination aufgelöst."
+msgstr "Combination removed."
+
+msgid "Kombination aus Tischen"
+msgstr "Combination of tables"
+
+msgid "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."
+msgstr "If the combination is booked, its tables are taken — and vice versa."

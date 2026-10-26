@@ -825,6 +825,23 @@ def resources(request):
                 ]
             resource.save(update_fields=fields)
             messages.success(request, _("Deposit settings saved."))
+        elif action == "resource_parts":
+            # KA-12 GA-5: «Tisch 3+4» — из каких столов состоит комбинация.
+            from apps.booking import occupancy
+
+            resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
+            try:
+                with transaction.atomic():
+                    parts = occupancy.set_parts(resource, request.POST.getlist("part"))
+            except occupancy.ComboInvalid as exc:
+                messages.error(request, str(exc))
+            except (ValueError, ValidationError):
+                messages.error(request, _("Invalid input."))
+            else:
+                messages.success(
+                    request,
+                    _("Kombination gespeichert.") if parts else _("Kombination aufgelöst."),
+                )
         elif action == "resource_profile":
             # A3: профиль мастера — должность, био, фото (загрузка/удаление).
             resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
@@ -846,9 +863,17 @@ def resources(request):
         "booking/resources.html",
         {
             "nav": "booking-resources",
-            "resources": Resource.objects.prefetch_related("rules").order_by(
+            "resources": Resource.objects.prefetch_related("rules", "parts").order_by(
                 "-is_active", "sort_order", "name"
             ),
+            # KA-12 GA-5: столы, из которых собираются комбинации (сами не комбинации).
+            "single_tables": Resource.objects.filter(
+                is_active=True,
+                type=Resource.TYPE_TABLE,
+                counts_party_size=False,
+                capacity=1,
+                parts__isnull=True,
+            ).order_by("sort_order", "name"),
             "closed_dates": ClosedDate.objects.filter(date__gte=timezone.localdate()),
             "types": Resource.TYPES,
             "weekdays": AvailabilityRule.WEEKDAYS,

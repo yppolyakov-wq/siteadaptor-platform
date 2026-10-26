@@ -30815,3 +30815,27 @@ msgstr "Online buchbar"
 
 msgid "Uhrzeit und Personen wählen — den passenden Tisch suchen wir aus."
 msgstr "Uhrzeit und Personen wählen — den passenden Tisch suchen wir aus."
+
+msgid "Tisch nicht gefunden."
+msgstr "Tisch nicht gefunden."
+
+msgid "Kombinieren lassen sich nur Tische mit einer Buchung je Tisch (kein Platz-Pool)."
+msgstr "Kombinieren lassen sich nur Tische mit einer Buchung je Tisch (kein Platz-Pool)."
+
+msgid "Eine Kombination besteht aus mindestens zwei Tischen."
+msgstr "Eine Kombination besteht aus mindestens zwei Tischen."
+
+msgid "Eine Kombination kann nicht Teil einer anderen Kombination sein."
+msgstr "Eine Kombination kann nicht Teil einer anderen Kombination sein."
+
+msgid "Kombination gespeichert."
+msgstr "Kombination gespeichert."
+
+msgid "Kombination aufgelöst."
+msgstr "Kombination aufgelöst."
+
+msgid "Kombination aus Tischen"
+msgstr "Kombination aus Tischen"
+
+msgid "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."
+msgstr "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."

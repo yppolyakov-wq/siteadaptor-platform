@@ -66,6 +66,13 @@ class Resource(I18nMixin, TimestampedModel):
     zone = models.CharField(max_length=40, blank=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
     bookable_online = models.BooleanField(default=True)
+    # KA-12 GA-5: комбинация столов («Tisch 3+4») — сама ресурс-стол, её `parts` —
+    # столы, которые она занимает. Бронь комбинации держит каждый стол-часть, бронь
+    # части — комбинацию (`apps.booking.occupancy`). Один уровень: часть не бывает
+    # комбинацией.
+    parts = models.ManyToManyField(
+        "self", symmetrical=False, related_name="combinations", blank=True
+    )
     is_active = models.BooleanField(default=True)
     # P2.5b: депозит за запись (центы; 0 = без депозита). Анти-no-show.
     deposit_cents = models.PositiveIntegerField(default=0)

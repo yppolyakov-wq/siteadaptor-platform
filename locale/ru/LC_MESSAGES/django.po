@@ -30998,3 +30998,27 @@ msgstr "Бронируется онлайн"
 
 msgid "Uhrzeit und Personen wählen — den passenden Tisch suchen wir aus."
 msgstr "Выберите время и число гостей — подходящий стол подберём сами."
+
+msgid "Tisch nicht gefunden."
+msgstr "Стол не найден."
+
+msgid "Kombinieren lassen sich nur Tische mit einer Buchung je Tisch (kein Platz-Pool)."
+msgstr "Объединять можно только столы «одна бронь — один стол» (не пул мест)."
+
+msgid "Eine Kombination besteht aus mindestens zwei Tischen."
+msgstr "Комбинация состоит минимум из двух столов."
+
+msgid "Eine Kombination kann nicht Teil einer anderen Kombination sein."
+msgstr "Комбинация не может быть частью другой комбинации."
+
+msgid "Kombination gespeichert."
+msgstr "Комбинация сохранена."
+
+msgid "Kombination aufgelöst."
+msgstr "Комбинация расформирована."
+
+msgid "Kombination aus Tischen"
+msgstr "Комбинация из столов"
+
+msgid "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."
+msgstr "Если занята комбинация, заняты и её столы — и наоборот."

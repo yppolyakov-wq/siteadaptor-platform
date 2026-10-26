@@ -105,6 +105,20 @@
           </label>
           <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
         </form>
+        {# KA-12 GA-5: комбинация столов — из каких столов состоит этот («Tisch 3+4»). #}
+        {% if r.type == 'table' and not r.counts_party_size and r.capacity == 1 and single_tables|length >= 2 %}
+        <details class="mt-2 text-sm border-t border-gray-100 pt-2" data-table-combo>
+          <summary class="cursor-pointer text-gray-600">{% trans "Kombination aus Tischen" %}{% if r.parts.all %}: {% for t in r.parts.all %}{{ t.name }}{% if not forloop.last %} + {% endif %}{% endfor %}{% endif %}</summary>
+          <form method="post" class="mt-2 flex flex-wrap items-center gap-3">{% csrf_token %}
+            <input type="hidden" name="action" value="resource_parts"><input type="hidden" name="resource" value="{{ r.pk }}">
+            {% for t in single_tables %}{% if t.pk != r.pk %}
+              <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="part" value="{{ t.pk }}" {% if t in r.parts.all %}checked{% endif %}> {{ t.name }}{% if t.seats %} ({{ t.seats }}){% endif %}</label>
+            {% endif %}{% endfor %}
+            <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
+          </form>
+          <p class="text-xs text-gray-400 mt-1">{% trans "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt." %}</p>
+        </details>
+        {% endif %}
         {% comment %}A3: профиль мастера (должность/био/фото) — только для ресурса-сотрудника.{% endcomment %}
         {% if r.type == 'staff' %}
         <form method="post" enctype="multipart/form-data" class="mt-2 space-y-2 text-sm border-t border-gray-100 pt-2">{% csrf_token %}

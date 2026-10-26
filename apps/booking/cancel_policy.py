@@ -240,7 +240,6 @@ def guest_reschedule(booking, *, start, tenant=None, now=None):
 
     from . import availability, pricing
     from . import services as svc_mod
-    from .models import Resource
 
     now = now or timezone.now()
     st = state(booking, now, tenant)
@@ -283,11 +282,9 @@ def guest_reschedule(booking, *, start, tenant=None, now=None):
         if ids and Extra.objects.filter(pk__in=ids, tracker=Extra.TRACKER_POOL).exists():
             raise RescheduleRefused("extras")
     with transaction.atomic():
-        list(
-            Resource.objects.select_for_update()
-            .filter(pk__in={booking.resource_id, target.pk})
-            .order_by("pk")
-        )
+        from .occupancy import lock_scope
+
+        lock_scope(booking.resource, target)  # GA-5: вся область, в порядке pk
         fresh = Booking.objects.select_for_update().get(pk=booking.pk)
         st = state(fresh, now, tenant)
         if not st.can_reschedule:

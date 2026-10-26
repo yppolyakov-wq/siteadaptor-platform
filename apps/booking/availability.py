@@ -117,10 +117,13 @@ def free_slots_with_spots(
     day_end = max(end for _start, end in grid)
     from apps.core import status_registry
 
+    from .occupancy import scope_ids
+
     busy_qs = Booking.objects.exclude(pk=exclude) if exclude else Booking.objects
     bookings = list(
         busy_qs.filter(
-            resource=resource,
+            # KA-12 GA-5: область занятости (комбинация столов ↔ её части).
+            resource_id__in=scope_ids(resource),
             # FB-3 Вариант B: built-in ∪ кастом-active тенанта.
             status__in=status_registry.active_statuses_for("booking"),
             start__lt=day_end + buffer,

@@ -30867,3 +30867,27 @@ msgstr "Çevrimiçi rezerve edilebilir"
 
 msgid "Uhrzeit und Personen wählen — den passenden Tisch suchen wir aus."
 msgstr "Saati ve kişi sayısını seçin — uygun masayı biz seçeriz."
+
+msgid "Tisch nicht gefunden."
+msgstr "Masa bulunamadı."
+
+msgid "Kombinieren lassen sich nur Tische mit einer Buchung je Tisch (kein Platz-Pool)."
+msgstr "Yalnızca masa başına bir rezervasyon alan masalar birleştirilebilir (koltuk havuzu değil)."
+
+msgid "Eine Kombination besteht aus mindestens zwei Tischen."
+msgstr "Bir birleşim en az iki masadan oluşur."
+
+msgid "Eine Kombination kann nicht Teil einer anderen Kombination sein."
+msgstr "Bir birleşim başka bir birleşimin parçası olamaz."
+
+msgid "Kombination gespeichert."
+msgstr "Birleşim kaydedildi."
+
+msgid "Kombination aufgelöst."
+msgstr "Birleşim kaldırıldı."
+
+msgid "Kombination aus Tischen"
+msgstr "Masa birleşimi"
+
+msgid "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."
+msgstr "Birleşim rezerve edilirse masaları dolu olur — tersi de geçerli."

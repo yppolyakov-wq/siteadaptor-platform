@@ -30982,3 +30982,27 @@ msgstr "Бронюється онлайн"
 
 msgid "Uhrzeit und Personen wählen — den passenden Tisch suchen wir aus."
 msgstr "Оберіть час і кількість гостей — відповідний стіл підберемо самі."
+
+msgid "Tisch nicht gefunden."
+msgstr "Стіл не знайдено."
+
+msgid "Kombinieren lassen sich nur Tische mit einer Buchung je Tisch (kein Platz-Pool)."
+msgstr "Об'єднувати можна лише столи «одне бронювання — один стіл» (не пул місць)."
+
+msgid "Eine Kombination besteht aus mindestens zwei Tischen."
+msgstr "Комбінація складається щонайменше з двох столів."
+
+msgid "Eine Kombination kann nicht Teil einer anderen Kombination sein."
+msgstr "Комбінація не може бути частиною іншої комбінації."
+
+msgid "Kombination gespeichert."
+msgstr "Комбінацію збережено."
+
+msgid "Kombination aufgelöst."
+msgstr "Комбінацію розформовано."
+
+msgid "Kombination aus Tischen"
+msgstr "Комбінація зі столів"
+
+msgid "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt."
+msgstr "Якщо зайнята комбінація, зайняті і її столи — і навпаки."

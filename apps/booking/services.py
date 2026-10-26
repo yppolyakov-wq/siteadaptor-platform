@@ -158,8 +158,10 @@ def resync_occupancy(service) -> int:
         end__gte=timezone.now(),
         status__in=status_registry.active_statuses_for("booking"),
     )
-    resource_ids = sorted(set(future.values_list("resource_id", flat=True)))
-    list(Resource.objects.select_for_update().filter(pk__in=resource_ids).order_by("pk"))
+    from .occupancy import lock_scope
+
+    # GA-5: вместе с областями (комбинации ↔ столы) — тот же порядок pk, что у `book`.
+    lock_scope(*Resource.objects.filter(pk__in=set(future.values_list("resource_id", flat=True))))
     now = timezone.now()
     if buffer:
         future.update(occupied_until=F("end") + timedelta(minutes=buffer), updated_at=now)
@@ -185,9 +187,12 @@ def overlapping(resource, start, end):
 
     from apps.core import status_registry
 
+    from .occupancy import scope_ids
+
     return (
         Booking.objects.filter(
-            resource=resource,
+            # KA-12 GA-5: область занятости — стол, его комбинации и части комбинации.
+            resource_id__in=scope_ids(resource),
             # FB-3 Вариант B: built-in ∪ кастом-active тенанта (кастом-статус держит слот).
             status__in=status_registry.active_statuses_for("booking"),
             start__lt=end,
@@ -261,7 +266,16 @@ def book(
 
     resource_id = getattr(resource, "id", resource)
     # Блокировка строки ресурса сериализует конкурентные брони этого ресурса.
-    resource = Resource.objects.select_for_update().get(id=resource_id, is_active=True)
+    # KA-12 GA-5: блокируем ВСЮ область (комбинация ↔ столы-части) одним запросом в
+    # порядке pk — иначе брони «стол 3» и «стол 3+4» прошли бы проверку одновременно,
+    # а разный порядок блокировок дал бы встречный дедлок.
+    from .occupancy import lock_scope
+
+    unlocked = Resource.objects.filter(id=resource_id).first()
+    locked = lock_scope(unlocked) if unlocked is not None else {}
+    resource = locked.get(resource_id)
+    if resource is None or not resource.is_active:
+        raise Resource.DoesNotExist()
 
     # Точечные исключения: выходной ресурса или всего бизнеса (resource=None).
     closed = ClosedDate.objects.filter(date=start.date()).filter(
@@ -510,11 +524,14 @@ def move(booking, *, start, end, resource=None, override_hours=False):
     if end <= start:
         raise ValueError("end must be after start")
     target_id = resource.pk if resource is not None else booking.resource_id
+    from .occupancy import scope_ids
+
+    # GA-5: область исходного ресурса и цели — одним запросом в порядке pk.
+    scope = {booking.resource_id, target_id}
+    for r in Resource.objects.filter(pk__in=scope):
+        scope |= scope_ids(r)
     locked = {
-        r.pk: r
-        for r in Resource.objects.select_for_update()
-        .filter(pk__in={booking.resource_id, target_id})
-        .order_by("pk")
+        r.pk: r for r in Resource.objects.select_for_update().filter(pk__in=scope).order_by("pk")
     }
     # Ревью B5: статус — по СВЕЖЕЙ строке под блокировкой (параллельная отмена
     # между показом и переносом не должна «двигать» уже не действующую запись).
