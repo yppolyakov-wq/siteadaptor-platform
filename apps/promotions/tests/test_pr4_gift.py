@@ -46,7 +46,7 @@ def test_pick_reached_and_progress():
 
 def test_order_gets_free_line_and_claims_limit_and_stock():
     goods, present, promo = _setup(limit=2, stock=5)
-    order = order_services.create_order(items=[(goods, 3)], name="K")
+    order = order_services.create_order(items=[(goods, 3)], name="K", with_gift=True)
     assert order.total == D("36.00")
     free = order.items.get(product=present)
     assert free.unit_price == D("0.00") and free.promotion_id == promo.pk
@@ -57,9 +57,9 @@ def test_order_gets_free_line_and_claims_limit_and_stock():
 
 def test_below_threshold_or_exhausted_no_gift_but_order_ok():
     goods, present, promo = _setup(limit=0)
-    order = order_services.create_order(items=[(goods, 3)], name="K")
+    order = order_services.create_order(items=[(goods, 3)], name="K", with_gift=True)
     assert not order.items.filter(product=present).exists()
-    order = order_services.create_order(items=[(goods, 1)], name="K")
+    order = order_services.create_order(items=[(goods, 1)], name="K", with_gift=True)
     assert order.items.count() == 1
 
 
@@ -67,7 +67,23 @@ def test_staff_cannot_multiply_gift_line():
     from apps.orders import editing
 
     goods, present, _promo = _setup(stock=5)
-    order = order_services.create_order(items=[(goods, 3)], name="K")
+    order = order_services.create_order(items=[(goods, 3)], name="K", with_gift=True)
     free = order.items.get(product=present)
     with pytest.raises(editing.OrderLocked):
         editing.set_item_qty(order, free.pk, 4)
+
+
+def test_non_cart_paths_get_no_gift():
+    goods, present, _promo = _setup(stock=5)
+    order = order_services.create_order(items=[(goods, 3)], name="K")
+    assert not order.items.filter(product=present).exists()
+
+
+def test_sold_out_today_gift_not_offered():
+    from datetime import timedelta
+
+    from django.utils import timezone as tz
+
+    _goods, present, _promo = _setup(stock=5)
+    Product.objects.filter(pk=present.pk).update(sold_out_until=tz.now() + timedelta(hours=5))
+    assert gifts.pick(D("50.00"))[0] is None

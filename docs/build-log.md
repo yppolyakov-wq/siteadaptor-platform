@@ -20404,4 +20404,6 @@ Kennzeichen/HSN/TSN мастерской и источник обращения 
   правило запрещено формой.
 - Грабли: `str.replace` в скриптах правки молча промахивался после `ruff format` (→ `assert`);
   локальный импорт затенял модульный `reverse`; `copy.copy` модели делит кэш связей.
-- Остаток из разбора CS-Cart: PR-4 «ab Bestellwert + Gratis-Artikel».
+- **PR-4:** «Gratis-Artikel ab Bestellwert» — подарок 0 € одной функцией `gifts.pick` в корзине
+  и `create_order` (только корзина витрины; лимит+склад в savepoint, кончился — заказ без него
+  с записью в лог). Разбор CS-Cart PR-1…PR-5 исполнен целиком.

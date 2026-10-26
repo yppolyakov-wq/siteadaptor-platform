@@ -51,6 +51,10 @@ def _candidates():
             continue
         if product.stock_quantity is not None and product.stock_quantity < 1:
             continue
+        # Ревью PR-4: «Heute ausverkauft» и товар с вариантами (какой вариант дарить?)
+        # подарком не бывают — корзина не обещает того, чего заказ не добавит.
+        if product.is_sold_out_today or product.has_variants:
+            continue
         if not rules_match(promo.target_rules, now):
             continue
         out.append((limit, promo))

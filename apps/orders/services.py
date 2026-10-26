@@ -6,6 +6,7 @@ email), но клиент из заказа помечается created_source=
 инкремент D2c).
 """
 
+import logging
 import re
 import secrets
 import string
@@ -17,6 +18,8 @@ from apps.inventory.services import record_movement
 from apps.promotions.models import Customer
 
 from .models import Order, OrderItem
+
+logger = logging.getLogger(__name__)
 
 _ALPHABET = string.ascii_uppercase + string.digits
 
@@ -86,6 +89,9 @@ def _add_gift(order, subtotal):
                 )
             return item
     except (PromoSoldOut, OutOfStock):
+        # Корзина показывала подарок, а к заказу он кончился — заказ уходит без него;
+        # след в логе, чтобы владелец мог разобраться (тихо не теряем).
+        logger.warning("gift %s dropped from order %s: sold out", gift.pk, order.reference_code)
         return None
 
 
@@ -286,6 +292,7 @@ def create_order(
     reserve_expires_at=None,
     apply_promotions=True,
     expected_promos=None,
+    with_gift=False,
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
@@ -595,7 +602,9 @@ def create_order(
             )
         total += unit_price * qty
     # KA-12 PR-4: «Gratis-Artikel ab Bestellwert» — та же функция, что корзина (`gifts.pick`).
-    if apply_promotions and source_channel not in ("quote", "offer"):
+    # Только корзина витрины (ревью PR-4): покупка по акции, Anprobe и прочие пути
+    # подарок в корзине не видели — он не должен приходить к ним молча.
+    if with_gift and apply_promotions and source_channel not in ("quote", "offer"):
         _add_gift(order, total)
     # Промокод (A4): скидка на сумму товаров+комбо (до доставки). Гашение под
     # блокировкой (redeem_voucher) — анти-двойное-списание; сбой → без скидки.

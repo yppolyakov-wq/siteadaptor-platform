@@ -1131,6 +1131,7 @@ def checkout(request):
             pickup_capacity=pickup_capacity,
             # В5 V5-5: раньше канал читался из GET POST-а чекаута — всегда пусто.
             source_channel=("quote" if quote_mode else found.channel[:50]),
+            with_gift=not quote_mode,  # KA-12 PR-4: подарок — только корзина витрины
             fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
             shipping_address=shipping_address,
             shipping_cents=shipping_cents,
