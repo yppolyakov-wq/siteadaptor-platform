@@ -31011,3 +31011,7 @@ msgstr "Metre"
 
 msgid "Quadratmeter"
 msgstr "Metrekare"
+
+#, python-format
+msgid "Aktion %(label)s: −%(s)s %(c)s"
+msgstr "Kampanya %(label)s: −%(s)s %(c)s"

@@ -43,6 +43,33 @@ class NotOnMenu(OutOfStock):
         self.days = days
 
 
+def _apply_quantity_deals(norm, line_promos, claim_totals):
+    """KA-12 PR-3: разбить позиции с условной акцией на подстроки (см. create_order)."""
+    from apps.promotions.quantity_deals import best_split, deal_map
+
+    deals = deal_map({p.pk for i, (p, _v, _q, _o) in enumerate(norm) if i not in line_promos})
+    if not deals:
+        return norm, line_promos
+    expanded, new_promos = [], {}
+    for idx, (product, variant, qty, options) in enumerate(norm):
+        found = (
+            None if idx in line_promos else best_split(deals.get(product.pk), product, variant, qty)
+        )
+        if found is None:
+            if idx in line_promos:
+                new_promos[len(expanded)] = line_promos[idx]
+            expanded.append((product, variant, qty, options))
+            continue
+        promo, parts = found
+        for units, price, discounted in parts:
+            if discounted:
+                new_promos[len(expanded)] = (promo, price)
+                prev = claim_totals.get(promo.pk)
+                claim_totals[promo.pk] = (promo, (prev[1] if prev else 0) + units)
+            expanded.append((product, variant, units, options))
+    return expanded, new_promos
+
+
 def _check_menu_days(norm, pickup_slot):
     """KA-12 GA-9: каждое блюдо должно быть в меню в день выдачи (слот → его локальная
     дата; без слота — сегодня). Проверка ДО списания склада и ёмкости окна."""
@@ -310,6 +337,11 @@ def create_order(
             line_promos[idx] = (promo, Decimal(str(promo_base)))
             prev = claim_totals.get(promo.pk)
             claim_totals[promo.pk] = (promo, (prev[1] if prev else 0) + qty)
+        # KA-12 PR-3: количественные акции («3 für 2», «2. Stück −50 %», «ab 3 Stück»)
+        # делят позицию на подстроки ТОЙ ЖЕ функцией, что корзина (показано = списано).
+        # Обычная акция (новая цена) сильнее условной — не суммируем. Лимит кампании —
+        # скидочными штуками; склад — по сумме подстрок (одна строка товара на подстроку).
+        norm, line_promos = _apply_quantity_deals(norm, line_promos, claim_totals)
         for promo, total_qty in claim_totals.values():
             claim_units(promo, total_qty)
     # R3: атомарное списание; OutOfStock → откат, заказа нет. Custom-строки с

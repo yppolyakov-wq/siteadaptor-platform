@@ -34,6 +34,7 @@
             {% firstof r.variant.sku r.product.sku as artno %}{% if artno %}<p class="text-[11px] text-gray-400" data-artno>{% trans "Art.-Nr." %}: {{ artno }}</p>{% endif %}{% include "storefront/_menu_days_badge.html" with p=r.product %}
             {% if r.options %}<p class="text-xs text-gray-500">{% for o in r.options %}{{ o.label_localized }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
             <p class="text-xs text-gray-400">{{ r.qty }}× {{ r.unit_price }} {{ currency|cursym }}{% if r.is_promo %} <span class="line-through">{{ r.base_unit_price }} {{ currency|cursym }}</span> <span class="text-rose-600 font-medium">{% trans "Aktion" %}</span>{% endif %}</p>
+            {% if r.deal_promo %}<p class="text-xs text-rose-600 font-medium" data-quantity-deal>{% blocktrans with label=r.deal_promo.price_condition_label s=r.deal_savings|floatformat:2 c=currency|cursym %}Aktion {{ label }}: −{{ s }} {{ c }}{% endblocktrans %}</p>{% endif %}
           </div>
           <div class="flex items-center gap-3 shrink-0">
             <span class="text-sm font-semibold">{{ r.line_total }} {{ currency|cursym }}</span>

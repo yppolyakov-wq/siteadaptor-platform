@@ -118,6 +118,36 @@ def _line_price(product, variant, options=(), promo_map=None):
     return base + options_delta(options)
 
 
+def _line_total(product, variant, options, qty, promo_map=None, deals=None):
+    """KA-12 PR-3: итог строки корзины и (акция, выгода) количественной акции.
+
+    Та же разбивка, что применит create_order (`quantity_deals.best_split`): обычная акция
+    сильнее условной, надбавки модификаторов — на каждую штуку поверх."""
+    from decimal import Decimal
+
+    from apps.catalog.modifiers import options_delta
+
+    unit = _line_price(product, variant, options, promo_map=promo_map)
+    has_price_promo = unit < _line_price(product, variant, options)
+    if deals and not has_price_promo:
+        from apps.promotions.quantity_deals import best_split, savings
+
+        found = best_split(deals.get(product.pk), product, variant, qty)
+        if found is not None:
+            promo, parts = found
+            total = sum((price * units for units, price, _d in parts), Decimal("0"))
+            total += options_delta(options) * qty
+            return total, (promo, savings(parts, product.base_price))
+    return unit * qty, None
+
+
+def _cart_deals(items):
+    """KA-12 PR-3: условные акции по товарам корзины (один запрос)."""
+    from apps.promotions.quantity_deals import deal_map
+
+    return deal_map({p.pk for p, _v, _o, _q in items})
+
+
 def _cart_promo_map(items):
     """SF-4b: батч акций по товарным строкам корзины (один запрос)."""
     from apps.promotions.price_layer import product_promo_map
@@ -726,20 +756,26 @@ def cart_view(request):
 
     items = _cart_items(request)
     pmap = _cart_promo_map(items)
-    rows = [
-        {
-            "product": product,
-            "variant": variant,
-            "options": options,
-            "qty": qty,
-            "key": _cart_key(product, variant, options),
-            "unit_price": _line_price(product, variant, options, promo_map=pmap),
-            "line_total": _line_price(product, variant, options, promo_map=pmap) * qty,
-            # SF-4b: строка по акции — зачёркнутая база + чип «Aktion» в шаблоне
-            "base_unit_price": _line_price(product, variant, options),
-        }
-        for product, variant, options, qty in items
-    ]
+    deals = _cart_deals(items)  # KA-12 PR-3
+    rows = []
+    for product, variant, options, qty in items:
+        line_total, deal = _line_total(product, variant, options, qty, pmap, deals)
+        rows.append(
+            {
+                "product": product,
+                "variant": variant,
+                "options": options,
+                "qty": qty,
+                "key": _cart_key(product, variant, options),
+                "unit_price": _line_price(product, variant, options, promo_map=pmap),
+                "line_total": line_total,
+                # SF-4b: строка по акции — зачёркнутая база + чип «Aktion» в шаблоне
+                "base_unit_price": _line_price(product, variant, options),
+                # KA-12 PR-3: количественная акция — подпись и выгода строки
+                "deal_promo": deal[0] if deal else None,
+                "deal_savings": deal[1] if deal else None,
+            }
+        )
     for r in rows:
         r["is_promo"] = r["unit_price"] < r["base_unit_price"]
     # SF-10: акции, по которым корзина показала цену, — чекаут сверит, что они ещё
@@ -953,7 +989,8 @@ def checkout(request):
             _("A promotional price has just sold out. Please check your cart."),
         )
         return redirect("storefront-cart")
-    subtotal = sum((_line_price(p, v, o, promo_map=pmap) * q for p, v, o, q in items), Decimal("0"))
+    deals = _cart_deals(items)  # KA-12 PR-3: те же итоги строк, что корзина и заказ
+    subtotal = sum((_line_total(p, v, o, q, pmap, deals)[0] for p, v, o, q in items), Decimal("0"))
     subtotal += sum((combo_price(c, o) * q for c, o, q in combo_items), Decimal("0"))
     subtotal += sum((pool_price(c, d) * q for c, d, q, _ok, _k in pool_items), Decimal("0"))
     subtotal_cents = int(subtotal * 100)

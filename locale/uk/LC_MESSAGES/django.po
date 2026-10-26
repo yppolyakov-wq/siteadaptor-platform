@@ -31126,3 +31126,7 @@ msgstr "Метр"
 
 msgid "Quadratmeter"
 msgstr "Квадратний метр"
+
+#, python-format
+msgid "Aktion %(label)s: −%(s)s %(c)s"
+msgstr "Акція %(label)s: −%(s)s %(c)s"

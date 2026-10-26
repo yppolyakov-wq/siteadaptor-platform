@@ -30867,3 +30867,7 @@ msgstr "Metre"
 
 msgid "Quadratmeter"
 msgstr "Square metre"
+
+#, python-format
+msgid "Aktion %(label)s: −%(s)s %(c)s"
+msgstr "Deal %(label)s: −%(s)s %(c)s"
