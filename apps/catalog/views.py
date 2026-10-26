@@ -305,6 +305,8 @@ def _axis_values(raw) -> list[str]:
         if value and value.lower() not in seen:
             seen.add(value.lower())
             out.append(value)
+            if len(out) > MAX_GENERATED_VARIANTS:  # ревью WR-5: без «миллиона» значений
+                break
     return out
 
 
@@ -318,11 +320,13 @@ def variant_generate(request, pk):
     product = get_object_or_404(Product, pk=pk)
     sizes = _axis_values(request.POST.get("sizes")) or [""]
     colors = _axis_values(request.POST.get("colors")) or [""]
-    combos = [(sz, col) for sz in sizes for col in colors if sz or col]
-    if not combos:
+    # Ревью WR-5: размер произведения проверяем ДО построения списка сочетаний.
+    too_many = len(sizes) * len(colors) > MAX_GENERATED_VARIANTS
+    combos = [] if too_many else [(sz, col) for sz in sizes for col in colors if sz or col]
+    if not combos and not too_many:
         messages.error(request, _("Bitte Größen und/oder Farben angeben."))
         return redirect("catalog:product-edit", pk=pk)
-    if len(combos) > MAX_GENERATED_VARIANTS:
+    if too_many or len(combos) > MAX_GENERATED_VARIANTS:
         messages.error(
             request,
             _("Höchstens %(n)s Varianten auf einmal.") % {"n": MAX_GENERATED_VARIANTS},
@@ -383,9 +387,12 @@ def variant_color_photo(request, pk):
     if not image:
         messages.error(request, _("Bitte ein Foto auswählen."))
         return redirect("catalog:product-edit", pk=pk)
-    for variant in variants:
-        variant.images = [image]
-        variant.save(update_fields=["images", "updated_at"])
+    from django.db import transaction
+
+    with transaction.atomic():
+        for variant in variants:
+            variant.images = [image]
+            variant.save(update_fields=["images", "updated_at"])
     messages.success(
         request,
         _("Foto für %(n)s Varianten in „%(color)s“ gesetzt.")
@@ -1254,6 +1261,7 @@ def combo_option_delete(request, pk, gid, oid):
 
 
 _BULK_MAX = 200  # KA-12 WR-6: как лимит списка Sortiment
+_BULK_PRICE_MAX = Decimal("100000")
 
 
 def _bulk_products(request):
@@ -1288,16 +1296,22 @@ def _is_uuid_str(value) -> bool:
 def products_bulk_visibility(request):
     """KA-12 WR-6 (E3.2): показать/скрыть выбранные товары одним действием — тем же
     сервисом, что одиночный тумблер (`toggle_visibility`: подтверждение свежести Г3)."""
+    from django.db import transaction
+
     from apps.core.sellable_manage import toggle_visibility
 
     products = _bulk_products(request)
     visible = request.POST.get("action") == "show"
-    for product in products:
-        toggle_visibility("product", product.pk, visible)
-    if products:
-        messages.success(request, _("%(n)s Produkte aktualisiert.") % {"n": len(products)})
-    else:
+    if not products:
         messages.error(request, _("Bitte zuerst Produkte auswählen."))
+        return redirect("sellable-manage")
+    changed = 0
+    with transaction.atomic():
+        for product in products:
+            if product.is_active != visible:
+                toggle_visibility("product", product.pk, visible)
+                changed += 1
+    messages.success(request, _("%(n)s Produkte aktualisiert.") % {"n": changed})
     return redirect("sellable-manage")
 
 
@@ -1306,8 +1320,6 @@ def products_bulk_visibility(request):
 def products_bulk_price(request):
     """KA-12 WR-6 (E3.2): цена выбранных товаров — «= X €», «± X %», «± X €». Через
     `.save()` по одному: PriceLog фиксирует каждое изменение (§11 PAngV — минимум 30 дней)."""
-    from decimal import ROUND_HALF_UP
-
     mode = request.POST.get("mode", "")
     amount = _parse_signed(request.POST.get("amount"))
     if mode == "set" and amount is not None and amount < 0:
@@ -1319,6 +1331,20 @@ def products_bulk_price(request):
     if mode == "pct" and not Decimal("-90") <= amount <= Decimal("500"):
         messages.error(request, _("Prozent zwischen −90 und 500."))
         return redirect("sellable-manage")
+    if abs(amount) > _BULK_PRICE_MAX:  # ревью WR-6: «1e30» → InvalidOperation/overflow
+        messages.error(request, _("Bitte Produkte auswählen und einen Betrag angeben."))
+        return redirect("sellable-manage")
+    from django.db import transaction
+
+    with transaction.atomic():
+        changed = _apply_bulk_price(products, mode, amount)
+    messages.success(request, _("%(n)s Preise geändert.") % {"n": changed})
+    return redirect("sellable-manage")
+
+
+def _apply_bulk_price(products, mode, amount) -> int:
+    from decimal import ROUND_HALF_UP
+
     changed = 0
     for product in products:
         base = Decimal(str(product.base_price))
@@ -1333,8 +1359,7 @@ def products_bulk_price(request):
             product.base_price = new
             product.save(update_fields=["base_price", "updated_at"])
             changed += 1
-    messages.success(request, _("%(n)s Preise geändert.") % {"n": changed})
-    return redirect("sellable-manage")
+    return changed
 
 
 _EXPORT_COLUMNS = (
@@ -1382,14 +1407,14 @@ def products_export_csv(request):
                 _csv_safe(desc.get("de", "")),
                 _csv_safe(desc.get("en", "")),
                 _csv_safe(p.sku),
-                p.gtin,
+                _csv_safe(p.gtin),
                 p.base_price,
                 "" if p.list_price is None else p.list_price,
                 "" if p.cost_price is None else p.cost_price,
                 p.vat_rate,
-                p.currency,
+                _csv_safe(p.currency),
                 "" if p.stock_quantity is None else p.stock_quantity,
-                p.category.slug if p.category_id else "",
+                _csv_safe(p.category.slug) if p.category_id else "",
                 _csv_safe(p.brand),
                 "1" if p.is_active else "0",
             ]

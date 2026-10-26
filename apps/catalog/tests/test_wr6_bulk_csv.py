@@ -75,6 +75,8 @@ def test_bulk_price_modes_write_price_log(mode, amount, expected):
         {"mode": "bogus", "amount": "1"},
         {"mode": "pct", "amount": "abc"},
         {"mode": "pct", "amount": "NaN"},
+        {"mode": "set", "amount": "1e30"},
+        {"mode": "eur", "amount": "-1e30"},
     ],
 )
 def test_bulk_price_rejects_bad_input(data):
@@ -131,3 +133,32 @@ def test_import_new_columns_presence_guard_and_vat_validation():
         Decimal("12.00"),
         Decimal("7.00"),
     )
+
+
+def test_export_guards_gtin_and_import_strips_guard():
+    _p(sku="-5 Eis", gtin="=1+1")
+    text = views.products_export_csv(_req("get")).content.decode("utf-8").lstrip("\ufeff")
+    row = next(csv.DictReader(io.StringIO(text), delimiter=";"))
+    assert row["gtin"] == "'=1+1" and row["sku"] == "'-5 Eis"
+    ProductProcessor().create_or_update(
+        {"name_de": "Eis", "base_price": "1", "sku": row["sku"]}, update_existing=True
+    )
+    assert Product.objects.filter(sku="-5 Eis").count() == 1
+
+
+def test_generator_rejects_huge_axes_before_building_combos():
+    from apps.catalog.tests.test_wr5_variant_generator import _post
+
+    p = _p()
+    sizes = ",".join(f"s{i}" for i in range(5000))
+    views.variant_generate(_post({"sizes": sizes, "colors": sizes}), pk=p.pk)
+    assert p.variants.count() == 0
+
+
+def test_bulk_visibility_counts_only_changed():
+    from django.contrib.messages import get_messages
+
+    a, b = _p(), _p(is_active=False)
+    request = _req(data={"ids": [str(a.pk), str(b.pk)], "action": "show"})
+    views.products_bulk_visibility(request)
+    assert [str(m) for m in get_messages(request)] == ["1 Produkte aktualisiert."]

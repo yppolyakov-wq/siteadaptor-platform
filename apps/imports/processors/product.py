@@ -53,6 +53,18 @@ def _parse_vat(value):
     return rate if rate in _VAT_RATES else None
 
 
+def _uncsv(value):
+    """Ревью WR-6: снять защитный апостроф выгрузки (`'=…`, `'-5 °C`), иначе CSV не ходит
+    туда-обратно — апостроф оседал бы в названии/артикуле навсегда."""
+    if (
+        isinstance(value, str)
+        and value[:1] == "'"
+        and value[1:2] in ("=", "+", "-", "@", "\t", "\r")
+    ):
+        return value[1:]
+    return value
+
+
 class ProductProcessor(BaseProcessor):
     model = Product
 
@@ -81,6 +93,7 @@ class ProductProcessor(BaseProcessor):
         return errors
 
     def create_or_update(self, data: dict, *, update_existing: bool, match_field: str = "sku"):
+        data = {key: _uncsv(value) for key, value in data.items()}
         name = {}
         if data.get("name_de"):
             name["de"] = str(data["name_de"]).strip()
