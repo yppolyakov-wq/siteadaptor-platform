@@ -296,6 +296,8 @@ def job_detail(request, pk):
             return _save_request(request, job)
         if action == "protocol":
             return _save_protocol(request, job)
+        if action == "vehicle":
+            return _save_vehicle(request, job)
         if action == "photos":
             from django.db import transaction
 
@@ -387,6 +389,13 @@ def job_detail(request, pk):
             "customer_bookings": _customer_bookings(job),  # A7d: Termin-привязка
             **_termin_context(request.tenant, job),  # KA-12 A-4: Termin aus Anfrage
             **_protocol_context(job),  # KA-12 A-5: Fotos & Abnahmeprotokoll
+            # KA-12 A-6: карточка машины + прошлые заявки этой машины.
+            "vehicle": job.vehicle_ref,
+            "vehicle_jobs": (
+                list(job.vehicle_ref.jobs.exclude(pk=job.pk).order_by("-created_at")[:10])
+                if job.vehicle_ref_id
+                else []
+            ),
             # QF-2: поля мастерской — нужным архетипам или если уже заполнены.
             "show_vehicle_fields": (
                 request.tenant.business_type in ("werkstatt", "handwerker")
@@ -478,6 +487,10 @@ def _save_request(request, job):
                 fields.append(key)
     if fields:
         job.save(update_fields=[*fields, "updated_at"])
+        if "vehicle_plate" in fields:
+            from .vehicles import ensure_vehicle
+
+            ensure_vehicle(job)  # KA-12 A-6: номер → карточка машины клиента
         changed = {f: str(getattr(job, f) or "") for f in before if getattr(job, f) != before[f]}
         if changed and job.lines_locked:
             # Смета уже принята: дату/гостей правим (О-4), но след остаётся.
@@ -580,7 +593,58 @@ def _save_protocol(request, job):
             ),
         )
         return redirect("jobs:detail", pk=job.pk)
+    if kind == JobProtocol.KIND_INTAKE and mileage_km is not None:
+        from .vehicles import record_mileage
+
+        # KA-12 A-6: пробег приёмки → заявка и машина (одометр не убывает).
+        if not record_mileage(job, mileage_km):
+            messages.warning(
+                request,
+                _("Der Kilometerstand ist kleiner als der zuletzt gespeicherte Wert."),
+            )
     messages.success(request, _("Protokoll gespeichert."))
+    return redirect("jobs:detail", pk=job.pk)
+
+
+def _save_vehicle(request, job):
+    """KA-12 A-6: карточка машины из заявки — FIN, Erstzulassung, HU, заметки.
+    Presence-guard на каждом поле (W0); машина — только машина ЭТОЙ заявки."""
+    from .vehicles import ensure_vehicle, normalize_vin
+
+    vehicle = job.vehicle_ref if job.vehicle_ref_id else ensure_vehicle(job)
+    if vehicle is None:
+        messages.error(request, _("Bitte zuerst das Kennzeichen eintragen."))
+        return redirect("jobs:detail", pk=job.pk)
+    post = request.POST
+    fields = []
+    if "vin" in post:
+        vin = normalize_vin(post.get("vin"))
+        if vin is None:
+            messages.error(request, _("Die FIN muss 17 Zeichen haben (ohne I, O und Q)."))
+            return redirect("jobs:detail", pk=job.pk)
+        vehicle.vin = vin
+        fields.append("vin")
+    for key in ("first_registration", "hu_due"):
+        if key in post:
+            raw = (post.get(key) or "").strip()
+            value = _parse_date(raw)
+            if raw and value is None:
+                messages.error(request, _("Ungültiges Datum."))
+                return redirect("jobs:detail", pk=job.pk)
+            if key == "hu_due" and value != vehicle.hu_due:
+                vehicle.hu_reminder_sent_for = None  # A-6b: новая дата → новое письмо
+                fields.append("hu_reminder_sent_for")
+            setattr(vehicle, key, value)
+            fields.append(key)
+    if "make_model" in post:
+        vehicle.make_model = post.get("make_model", "").strip()[:120]
+        fields.append("make_model")
+    if "notes" in post:
+        vehicle.notes = post.get("notes", "").strip()[:4000]
+        fields.append("notes")
+    if fields:
+        vehicle.save(update_fields=[*fields, "updated_at"])
+    messages.success(request, _("Fahrzeug gespeichert."))
     return redirect("jobs:detail", pk=job.pk)
 
 

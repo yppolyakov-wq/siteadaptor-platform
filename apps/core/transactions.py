@@ -537,7 +537,7 @@ _TITLE_SEARCH = {
     "order": ("external_code",),
     "booking": ("resource__name", "service__name", "external_code", "variant_label"),
     "stay": ("unit__name", "external_code"),
-    "job": ("title", "external_code"),
+    "job": ("title", "external_code", "vehicle_plate", "vehicle_ref__vin"),
     "ticket": ("event__title",),
     # У резерва заголовок — название акции, а `Promotion.title` это JSONField
     # (i18n-словарь): `icontains` по нему в Postgres не работает. Легаси-kind

@@ -46,6 +46,9 @@ ERASURE_POLICY = {
     "finance.Invoice": ("keep", "invoice"),
     "stays.StayBooking": ("clear", ("note", "billing_address")),
     "jobs.Job": ("clear", ("site_address", "vehicle_plate")),
+    # KA-12 A-6: номер и FIN — ПДн; заявки остаются (vehicle_ref → NULL коллектором).
+    # Марка/HSN/TSN на заявке не идентифицируют человека без номера — остаются.
+    "jobs.Vehicle": ("delete", ()),
     "inbox.Conversation": ("delete", ()),
     "telegram.TelegramLink": ("delete", ()),
     "events.Ticket": ("clear", ("note", "answers")),
@@ -67,7 +70,14 @@ CHILDREN = {
 # Поля, которые в выгрузку НЕ идут или идут маской (секреты/служебное).
 MASKED = {"doc_number", "signed_ip", "public_token", "token", "path"}
 # `author` (E6.4b) — сотрудник, написавший заметку: не данные клиента.
-SKIPPED = {"stripe_payment_intent", "external_ref", "author", "uploaded_by", "created_by"}
+SKIPPED = {
+    "stripe_payment_intent",
+    "external_ref",
+    "author",
+    "uploaded_by",
+    "created_by",
+    "hu_reminder_sent_for",
+}
 
 KEPT_REASONS = {
     "money": _(

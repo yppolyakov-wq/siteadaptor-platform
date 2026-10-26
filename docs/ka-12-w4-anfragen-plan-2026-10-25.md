@@ -169,7 +169,45 @@ hu_due, notes) + `Job.vehicle_ref`, `Job.mileage_km`; data-шаг plate → Vehi
 машины из CRM (без нового якоря меню), поиск по Kennzeichen/FIN, напоминания по `hu_due`. Пресет статусов
 `in_arbeit/teile_bestellt/abholbereit` кнопкой на «Abläufe» + в ките (О-8); письмо «abholbereit».
 
-### A-7 · E7.5 ⚖️ Widerruf (⚠️ `jobs/0024`, за флагом `QUOTE_WITHDRAWAL_ENABLED`)
+#### A-6 · детальный план (2026-10-26)
+Делим на **A-6a** (модель, перенос, привязка, карточка, поиск) и **A-6b** (напоминания HU, пресет
+статусов, письмо «abholbereit», PDF «Fahrzeugannahme»); одна миграция `jobs/0023` на оба.
+**Модель (`jobs/0023`, аддитивная + data-шаг отдельной операцией):**
+- `Vehicle` (TimestampedModel): customer FK CASCADE related_name="vehicles" (клиент не
+  удаляется — анонимизируется), plate Char(15) blank (норма: верхний регистр, одиночные пробелы),
+  vin Char(17) blank (ISO 3779: 17 знаков, без I/O/Q — проверка в сервисе, не в БД), hsn Char(4),
+  tsn Char(3), make_model Char(120), first_registration Date null, mileage_km PositiveInteger null,
+  hu_due Date null, hu_reminder_sent_for Date null (дедуп A-6b: одно письмо на дату HU), notes Text.
+  UniqueConstraint(customer, plate, condition plate≠"") — одна машина клиента на номер;
+  Index(plate) для поиска по Kennzeichen.
+- `Job.vehicle_ref` FK Vehicle SET_NULL null related_name="jobs"; `Job.mileage_km` PositiveInteger null.
+- data-шаг: для заявок с непустым `vehicle_plate` — get_or_create Vehicle(customer, норм. plate),
+  hsn/tsn/make из заявки только в пустые поля, `vehicle_ref` = машина; идемпотентно, батчами,
+  reverse = noop. Плоские поля заявки остаются (снимок: смета/PDF/письма читают их).
+**Привязка (`jobs/vehicles.py`):** `ensure_vehicle(job)` — после create_job и правки заявки:
+есть номер → найти/создать машину клиента, связать, дописать пустые поля машины; номер
+очищен → связь снять. Пробег из акта приёмки (A-5 intake) → `Job.mileage_km` и машина
+(только вверх — одометр не убывает; меньшее значение → предупреждение).
+**Кабинет:** блок «🚗 Fahrzeug» в карточке заявки (данные машины + правка VIN/EZ/HU/пробег/
+заметки, прошлые заявки этой машины); раздел «Fahrzeuge» в карточке клиента CRM (customer360);
+поиск сделок по Kennzeichen и FIN (`_TITLE_SEARCH`). Новых экранов/якорей нет.
+**A-6b:** beat по `Vehicle.hu_due` (окно как у service_due, дедуп `hu_reminder_sent_for`,
+письмо `vehicle_hu_reminder`, отписка/unsubscribed уважаются); «Status-Vorlage Werkstatt»
+кнопкой на «Abläufe» (свои статусы `in_arbeit/teile_bestellt/abholbereit` через тот же
+редактор FB-3 B, идемпотентно) + в ките werkstatt + новым тенантам werkstatt; письмо клиенту
+при входе в статус «abholbereit» (по коду, dedupe); PDF акта intake у werkstatt озаглавлен
+«Fahrzeugannahme» и печатает Kennzeichen/FIN/пробег.
+**DSGVO:** `jobs.Vehicle` в ERASURE_POLICY = delete (номер/FIN — ПДн; заявки остаются, связь
+SET_NULL, плоские поля заявки уже чистятся политикой `jobs.Job`); в выгрузку — как связанная
+с клиентом модель (автоматически через related_objects).
+**ECC:** скиллы django-patterns, django-tdd, database-migrations, django-security; агенты —
+database-reviewer (дизайн до кода + data-шаг), django-reviewer + security-reviewer после кода
+(IDOR: машина чужого клиента, правка через POST заявки), silent-failure-hunter — beat A-6b.
+**Замки до кода:** перенос идемпотентен и не дублирует машину; номер в разном регистре/пробелах
+= одна машина; очищенный номер снимает связь; пробег не убывает; поиск по номеру и FIN находит
+заявку; CRM показывает машины; DSGVO удаляет машину и не трогает заявку; HU-письмо одно на дату.
+
+### A-7 · E7.5 ⚖️ Widerruf (⚠️ `jobs/0025`, за флагом `QUOTE_WITHDRAWAL_ENABLED`)
 Для потребителя на `/angebot/<token>/`: Belehrung (текст тенанта), необязательный чекбокс «Beginn vor
 Ablauf» (§ 356 Abs. 4, § 357a Abs. 2), снимок `withdrawal_info_at`/`early_start_requested_at`/
 `withdrawal_text_hash`/`withdrawn_at`, письмо-подтверждение с PDF (§ 312f), функция отказа 14 дней
@@ -181,8 +219,8 @@ Ablauf» (§ 356 Abs. 4, § 357a Abs. 2), снимок `withdrawal_info_at`/`ear
 | Инкремент | Миграция | Что |
 |---|---|---|
 | A-5 | `jobs/0022` | `JobPhoto.kind` + `uploaded_by`; `JobProtocol` |
-| A-6 | `jobs/0023` | `Vehicle`; `Job.vehicle_ref`, `Job.mileage_km`; data-шаг |
-| A-7 | `jobs/0024` | поля Widerruf на `Job` |
+| A-6 | `jobs/0023` + `0024` | `Vehicle`; `Job.vehicle_ref`, `Job.mileage_km`; data-шаг отдельной миграцией |
+| A-7 | `jobs/0025` | поля Widerruf на `Job` |
 
 ## 4. Решения (с рекомендацией)
 - **О-1** Termin только через модуль booking — да.

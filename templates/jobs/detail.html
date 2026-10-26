@@ -85,6 +85,36 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
       <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
     </form>
   </details>
+  {% if vehicle %}
+  {% comment %}KA-12 A-6: карточка машины клиента — FIN/EZ/HU/пробег/заметки +
+  прошлые заявки этой машины. Номер правится в «Anfrage bearbeiten».{% endcomment %}
+  <details class="mt-3 border-t border-gray-100 pt-3" data-job-vehicle>
+    <summary class="cursor-pointer text-sm font-medium text-indigo-600">🚗 {% trans "Fahrzeug" %} · {{ vehicle.plate }}{% if vehicle.mileage_km is not None %} · {{ vehicle.mileage_km }} km{% endif %}</summary>
+    <form method="post" class="mt-3 space-y-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="vehicle">
+      <div class="grid sm:grid-cols-2 gap-3">
+        <label class="block text-xs text-gray-500">{% trans "Marke / Modell" %}
+          <input name="make_model" value="{{ vehicle.make_model }}" maxlength="120" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+        <label class="block text-xs text-gray-500">{% trans "FIN" %}
+          <input name="vin" value="{{ vehicle.vin }}" maxlength="17" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm uppercase text-gray-900"></label>
+        <label class="block text-xs text-gray-500">{% trans "Erstzulassung" %}
+          <input name="first_registration" type="date" value="{{ vehicle.first_registration|date:'Y-m-d' }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+        <label class="block text-xs text-gray-500">{% trans "Nächste HU" %}
+          <input name="hu_due" type="date" value="{{ vehicle.hu_due|date:'Y-m-d' }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+      </div>
+      <label class="block text-xs text-gray-500">{% trans "Bemerkungen" %}
+        <textarea name="notes" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900">{{ vehicle.notes }}</textarea></label>
+      <button class="rounded-lg bg-indigo-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    </form>
+    {% if vehicle_jobs %}
+      <p class="mt-3 text-xs font-medium text-gray-500">{% trans "Frühere Aufträge" %}</p>
+      <ul class="mt-1 text-sm space-y-0.5">
+        {% for vj in vehicle_jobs %}<li><a href="{% url 'jobs:detail' vj.pk %}" class="text-indigo-600 hover:underline">{{ vj.reference_code }}</a> · {{ vj.title }} · {{ vj.created_at|date:"SHORT_DATE_FORMAT" }}{% if vj.mileage_km is not None %} · {{ vj.mileage_km }} km{% endif %}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </details>
+  {% endif %}
   {% comment %}KA-12 A-5 (HW-3): фото мастера по видам (свой лимит) и акты приёмки /
   сдачи-приёмки с PDF; подтверждённый клиентом акт заморожен.{% endcomment %}
   <details class="mt-3 border-t border-gray-100 pt-3" data-job-protocols>

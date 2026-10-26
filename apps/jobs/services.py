@@ -82,6 +82,10 @@ def create_job(
         # SH-24: способ получения (пусто = вопрос не задавался).
         fulfillment=fulfillment if fulfillment in ("pickup", "delivery") else "",
     )
+    if job.vehicle_plate:
+        from .vehicles import ensure_vehicle
+
+        ensure_vehicle(job)  # KA-12 A-6: номер → карточка машины клиента
     # C2: «спросил с сайта → оставил заявку» — одна беседа (fail-soft, однозначность).
     from apps.inbox.deal_threads import adopt_open_thread, deal_ref_label
 

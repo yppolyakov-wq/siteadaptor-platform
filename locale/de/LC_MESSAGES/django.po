@@ -30549,3 +30549,36 @@ msgstr "Dem Kunden zur Bestätigung freigeben"
 
 msgid "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
 msgstr "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
+
+msgid "Bitte zuerst das Kennzeichen eintragen."
+msgstr "Bitte zuerst das Kennzeichen eintragen."
+
+msgid "Der Kilometerstand ist kleiner als der zuletzt gespeicherte Wert."
+msgstr "Der Kilometerstand ist kleiner als der zuletzt gespeicherte Wert."
+
+msgid "Die FIN muss 17 Zeichen haben (ohne I, O und Q)."
+msgstr "Die FIN muss 17 Zeichen haben (ohne I, O und Q)."
+
+msgid "Erstzulassung"
+msgstr "Erstzulassung"
+
+msgid "FIN"
+msgstr "FIN"
+
+msgid "Fahrzeug gespeichert."
+msgstr "Fahrzeug gespeichert."
+
+msgid "Fahrzeuge"
+msgstr "Fahrzeuge"
+
+msgid "Frühere Aufträge"
+msgstr "Frühere Aufträge"
+
+msgid "Marke / Modell"
+msgstr "Marke / Modell"
+
+msgid "Nächste HU"
+msgstr "Nächste HU"
+
+msgid "Ungültiges Datum."
+msgstr "Ungültiges Datum."

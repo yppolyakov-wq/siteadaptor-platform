@@ -194,6 +194,33 @@ def sections(tenant, customer) -> list[dict]:
             ],
         )
 
+    if _active(tenant, "jobs"):
+        # KA-12 A-6: машины клиента (Werkstatt) — номер, марка, HU; клик → последняя заявка.
+        def _vehicles():
+            items = []
+            for v in customer.vehicles.prefetch_related("jobs").order_by("plate")[:_LIMIT]:
+                last = max(v.jobs.all(), key=lambda j: j.created_at, default=None)
+                sub = " · ".join(
+                    bit
+                    for bit in (
+                        v.make_model,
+                        f"HU {v.hu_due:%m/%Y}" if v.hu_due else "",
+                        f"{v.mileage_km} km" if v.mileage_km is not None else "",
+                    )
+                    if bit
+                )
+                items.append(
+                    {
+                        "title": v.plate or v.make_model,
+                        "sub": sub,
+                        "status": "",
+                        "url": _url("jobs:detail", last.pk) if last else "",
+                    }
+                )
+            return items
+
+        add("vehicles", _("Fahrzeuge"), _vehicles)
+
     if _active(tenant, "finance"):
         add(
             "invoices",

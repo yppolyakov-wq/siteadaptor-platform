@@ -30601,3 +30601,36 @@ msgstr "Müşteriye onay için aç"
 
 msgid "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
 msgstr "Teslim tutanakları (kontrol noktaları ve kusurlar) ve yapılan işin fotoğrafları garanti süresinin sonuna kadar saklanır (§ 634a BGB); isimler ve notlar silinir."
+
+msgid "Bitte zuerst das Kennzeichen eintragen."
+msgstr "Lütfen önce plakayı girin."
+
+msgid "Der Kilometerstand ist kleiner als der zuletzt gespeicherte Wert."
+msgstr "Kilometre, son kaydedilen değerden düşük."
+
+msgid "Die FIN muss 17 Zeichen haben (ohne I, O und Q)."
+msgstr "Şasi numarası 17 karakter olmalıdır (I, O ve Q olmadan)."
+
+msgid "Erstzulassung"
+msgstr "İlk tescil"
+
+msgid "FIN"
+msgstr "Şasi no."
+
+msgid "Fahrzeug gespeichert."
+msgstr "Araç kaydedildi."
+
+msgid "Fahrzeuge"
+msgstr "Araçlar"
+
+msgid "Frühere Aufträge"
+msgstr "Önceki siparişler"
+
+msgid "Marke / Modell"
+msgstr "Marka / model"
+
+msgid "Nächste HU"
+msgstr "Sonraki muayene (HU)"
+
+msgid "Ungültiges Datum."
+msgstr "Geçersiz tarih."

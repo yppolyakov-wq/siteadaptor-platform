@@ -30716,3 +30716,36 @@ msgstr "Відкрити клієнту для підтвердження"
 
 msgid "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
 msgstr "Акти приймання (пункти перевірки та недоліки) і фото виконаної роботи зберігаються до кінця гарантійного строку (§ 634a BGB); імена та зауваження видаляються."
+
+msgid "Bitte zuerst das Kennzeichen eintragen."
+msgstr "Спочатку вкажіть держномер."
+
+msgid "Der Kilometerstand ist kleiner als der zuletzt gespeicherte Wert."
+msgstr "Пробіг менший за останнє збережене значення."
+
+msgid "Die FIN muss 17 Zeichen haben (ohne I, O und Q)."
+msgstr "VIN має містити 17 символів (без I, O та Q)."
+
+msgid "Erstzulassung"
+msgstr "Перша реєстрація"
+
+msgid "FIN"
+msgstr "VIN"
+
+msgid "Fahrzeug gespeichert."
+msgstr "Автомобіль збережено."
+
+msgid "Fahrzeuge"
+msgstr "Автомобілі"
+
+msgid "Frühere Aufträge"
+msgstr "Попередні замовлення"
+
+msgid "Marke / Modell"
+msgstr "Марка / модель"
+
+msgid "Nächste HU"
+msgstr "Наступний техогляд (HU)"
+
+msgid "Ungültiges Datum."
+msgstr "Невірна дата."

@@ -61,6 +61,12 @@ class Job(I18nMixin, TimestampedModel):
     vehicle_plate = models.CharField(max_length=15, blank=True)  # Kennzeichen «M-AB 1234»
     vehicle_hsn = models.CharField(max_length=4, blank=True)  # Herstellerschlüsselnummer
     vehicle_tsn = models.CharField(max_length=3, blank=True)  # Typschlüsselnummer
+    # KA-12 A-6: карточка машины клиента (VIN/HU/пробег/история). Плоские поля выше —
+    # снимок заявки (смета/PDF/письма читают их); связь ставит vehicles.ensure_vehicle.
+    vehicle_ref = models.ForeignKey(
+        "jobs.Vehicle", on_delete=models.SET_NULL, null=True, blank=True, related_name="jobs"
+    )
+    mileage_km = models.PositiveIntegerField(null=True, blank=True)  # пробег этого визита
     # AF-1: событийная заявка (Catering/Partyservice) — поля видны на форме только
     # при site_config["anfrage"] (per-tenant, presence-minimal); event_type хранит
     # значение из настроенного владельцем списка (валидация fail-closed во вьюхе).
@@ -307,6 +313,37 @@ class JobLine(I18nMixin, TimestampedModel):
         if document_rate is not None:
             return Decimal(document_rate)
         return Decimal(self.job.vat_rate)
+
+
+class Vehicle(TimestampedModel):
+    """KA-12 A-6 (Werkstatt): машина клиента. Одна на (клиент, номер); номер хранится
+    нормализованным (`vehicles.normalize_plate`)."""
+
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="vehicles")
+    plate = models.CharField(max_length=15, blank=True)  # Kennzeichen
+    vin = models.CharField(max_length=17, blank=True)  # FIN, ISO 3779
+    hsn = models.CharField(max_length=4, blank=True)
+    tsn = models.CharField(max_length=3, blank=True)
+    make_model = models.CharField(max_length=120, blank=True)
+    first_registration = models.DateField(null=True, blank=True)  # Erstzulassung
+    mileage_km = models.PositiveIntegerField(null=True, blank=True)  # последний известный
+    hu_due = models.DateField(null=True, blank=True)  # nächste HU/AU
+    #: A-6b: дедуп напоминания — одно письмо на дату HU (смена даты → новое письмо).
+    hu_reminder_sent_for = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["plate"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["customer", "plate"],
+                condition=~models.Q(plate=""),
+                name="jobs_vehicle_customer_plate_uniq",
+            ),
+        ]
+
+    def __str__(self):
+        return self.plate or self.make_model or f"Vehicle {self.pk}"
 
 
 class JobPhoto(TimestampedModel):

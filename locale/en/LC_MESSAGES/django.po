@@ -30457,3 +30457,36 @@ msgstr "Release to the customer for confirmation"
 
 msgid "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
 msgstr "Acceptance reports (checkpoints and defects) and photos of the completed work are kept until the end of the warranty period (§ 634a BGB); names and remarks are removed."
+
+msgid "Bitte zuerst das Kennzeichen eintragen."
+msgstr "Please enter the licence plate first."
+
+msgid "Der Kilometerstand ist kleiner als der zuletzt gespeicherte Wert."
+msgstr "The mileage is lower than the last saved value."
+
+msgid "Die FIN muss 17 Zeichen haben (ohne I, O und Q)."
+msgstr "The VIN must have 17 characters (without I, O and Q)."
+
+msgid "Erstzulassung"
+msgstr "First registration"
+
+msgid "FIN"
+msgstr "VIN"
+
+msgid "Fahrzeug gespeichert."
+msgstr "Vehicle saved."
+
+msgid "Fahrzeuge"
+msgstr "Vehicles"
+
+msgid "Frühere Aufträge"
+msgstr "Previous jobs"
+
+msgid "Marke / Modell"
+msgstr "Make / model"
+
+msgid "Nächste HU"
+msgstr "Next inspection (HU)"
+
+msgid "Ungültiges Datum."
+msgstr "Invalid date."

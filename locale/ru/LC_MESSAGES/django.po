@@ -30732,3 +30732,36 @@ msgstr "Открыть клиенту для подтверждения"
 
 msgid "Abnahmeprotokolle (Prüfpunkte und Mängel) und Fotos der ausgeführten Arbeit bleiben bis zum Ende der Gewährleistungsfrist (§ 634a BGB) gespeichert; Namen und Bemerkungen werden entfernt."
 msgstr "Акты приёмки (пункты проверки и недостатки) и фото выполненной работы хранятся до конца гарантийного срока (§ 634a BGB); имена и замечания удаляются."
+
+msgid "Bitte zuerst das Kennzeichen eintragen."
+msgstr "Сначала укажите госномер."
+
+msgid "Der Kilometerstand ist kleiner als der zuletzt gespeicherte Wert."
+msgstr "Пробег меньше последнего сохранённого значения."
+
+msgid "Die FIN muss 17 Zeichen haben (ohne I, O und Q)."
+msgstr "VIN должен состоять из 17 символов (без I, O и Q)."
+
+msgid "Erstzulassung"
+msgstr "Первая регистрация"
+
+msgid "FIN"
+msgstr "VIN"
+
+msgid "Fahrzeug gespeichert."
+msgstr "Автомобиль сохранён."
+
+msgid "Fahrzeuge"
+msgstr "Автомобили"
+
+msgid "Frühere Aufträge"
+msgstr "Прежние заказы"
+
+msgid "Marke / Modell"
+msgstr "Марка / модель"
+
+msgid "Nächste HU"
+msgstr "Следующий техосмотр (HU)"
+
+msgid "Ungültiges Datum."
+msgstr "Неверная дата."
