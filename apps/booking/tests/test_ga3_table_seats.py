@@ -152,3 +152,29 @@ def test_create_with_garbage_capacity_no_500():
     )
     table = Resource.objects.get(name="Tisch X")
     assert table.capacity == 1 and table.seats == 2
+
+
+def test_seats_enforced_inside_book_for_every_path():
+    table = _table()
+    with pytest.raises(services.SeatsExceeded):
+        services.book(
+            table, start=_start(), end=_start() + timedelta(hours=1), name="G", party_size=4
+        )
+    assert issubclass(services.SeatsExceeded, services.SlotTaken)
+
+
+def test_garbage_seats_keeps_old_value():
+    table = _table(seats=4)
+    data = {
+        "action": "resource_settings",
+        "resource": str(table.pk),
+        "seats_present": "1",
+        "capacity": "1",
+        "seats": "vier",
+    }
+    views.resources(_req("/dashboard/booking/resources/", data))
+    table.refresh_from_db()
+    assert table.seats == 4
+    views.resources(_req("/dashboard/booking/resources/", {**data, "seats": ""}))
+    table.refresh_from_db()
+    assert table.seats is None

@@ -316,12 +316,13 @@ def _move_booking(request, booking):
     # KA-12 GA-3: стол меньше компании — предупреждение, не отказ (перенос со стойки).
     from apps.booking.table_rules import seats_exceeded
 
-    seats = seats_exceeded(booking.resource, booking.party_size or 1)
+    guests = booking.party_size or 1
+    seats = seats_exceeded(booking.resource, guests)
     if seats:
         messages.warning(
             request,
             _("Hinweis: %(table)s hat nur %(n)s Plätze (%(guests)s Gäste).")
-            % {"table": booking.resource.name, "n": seats, "guests": booking.party_size},
+            % {"table": booking.resource.name, "n": seats, "guests": guests},
         )
     if is_fetch:
         return HttpResponse(status=204)
@@ -706,9 +707,14 @@ def _bounded_int(raw, default, lo, hi):
         return default
 
 
-def _seats_or_none(raw):
-    """Места стола: пусто/0/мусор → None (места не проверяются)."""
-    value = _bounded_int(raw, 0, 0, 99)
+def _seats_or_none(raw, current=None):
+    """Места стола: пусто/0 → None (места не проверяются); мусор — прежнее значение
+    (опечатка не должна молча снимать лимит)."""
+    if not str(raw or "").strip():
+        return None
+    value = _bounded_int(raw, -1, 0, 99)
+    if value < 0:
+        return current
     return value or None
 
 
@@ -800,7 +806,7 @@ def resources(request):
                 resource.capacity = _bounded_int(
                     request.POST.get("capacity"), resource.capacity, 1, 100
                 )
-                resource.seats = _seats_or_none(request.POST.get("seats"))
+                resource.seats = _seats_or_none(request.POST.get("seats"), resource.seats)
                 resource.zone = request.POST.get("zone", "").strip()[:40]
                 resource.sort_order = _bounded_int(request.POST.get("sort_order"), 0, 0, 999)
                 fields += ["capacity", "seats", "zone", "sort_order"]

@@ -31,6 +31,15 @@ class SlotTaken(Exception):
     """Интервал на ресурсе уже занят (по capacity)."""
 
 
+class SeatsExceeded(SlotTaken):
+    """KA-12 GA-3: компания больше мест стола (подкласс SlotTaken — прежние ловушки
+    витрины отвечают «слот недоступен», а не 500)."""
+
+    def __init__(self, seats):
+        super().__init__(seats)
+        self.seats = seats
+
+
 class ResourceClosed(Exception):
     """На эту дату ресурс/бизнес закрыт (ClosedDate)."""
 
@@ -232,6 +241,7 @@ def book(
     variant=None,
     variant_label="",
     customer=None,
+    enforce_seats=True,
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
     ResourceClosed / ValueError (кривой интервал) / PromoInvalid (B1.2).
@@ -259,6 +269,14 @@ def book(
     )
     if closed.exists():
         raise ResourceClosed()
+    # KA-12 GA-3: места стола — на ВСЕХ путях брони (витрина, акция, услуга);
+    # стойка снимает проверку флажком «Trotzdem eintragen» (create_manual).
+    if enforce_seats:
+        from apps.booking.table_rules import seats_exceeded
+
+        seats = seats_exceeded(resource, party_size or 1)
+        if seats:
+            raise SeatsExceeded(seats)
 
     busy_until = occupied_end(service, end, fresh=True)
     if _would_overfill(resource, overlapping(resource, start, busy_until or end), party_size):
@@ -630,6 +648,7 @@ def create_manual(
             service=service,
             price_cents=price_cents,
             match_by_phone=True,  # KA-H7: доверенный путь (кабинет)
+            enforce_seats=not override_seats,  # GA-3: проверка мест сделана выше
             variant=variant,
             variant_label=variant.name[:100] if variant is not None else "",
             customer=customer,
