@@ -92,7 +92,7 @@ def _cal_first(request, day) -> date:
     try:
         y, m = (request.GET.get("cal") or "").split("-")
         return date(int(y), int(m), 1)
-    except (ValueError, AttributeError):
+    except (ValueError, AttributeError, OverflowError):  # огромный год → 500 (ревью GA-4)
         return day.replace(day=1)
 
 
@@ -1407,7 +1407,7 @@ def service_book(request, pk):
 
 def termin_slots(request, pk):
     _require_booking_active(request)
-    resource = get_object_or_404(Resource, pk=pk, is_active=True)
+    resource = get_object_or_404(Resource, pk=pk, is_active=True, bookable_online=True)
     day = _parse_day(request.GET.get("tag"))
     today = timezone.localdate()
     # G9: слоты с остатком мест; для групповых курсов (capacity>1) → «N frei».
@@ -1491,12 +1491,21 @@ def tisch_slots(request):
     гостей, видит объединённые свободные времена; стол подбирается при брони."""
     _require_booking_active(request)
     tenant = getattr(request, "tenant", None)
-    if not table_rules.online_tables().exists():
+    tables = list(table_rules.online_tables())
+    if not tables:
         raise Http404
+    # Ревью GA-4: страница дорогая (месяц × столы) и без логина — свой лимит на GET.
+    if ratelimit.hit("tisch_slots", ratelimit.client_ip(request), limit=120, window=60):
+        return HttpResponse(status=429)
     day = _parse_day(request.GET.get("tag"))
-    party = _party_from(request.GET.get("gaeste"))
+    # Пилюли «Gäste»: до самого большого онлайн-стола (и не дальше правила GA-1).
+    biggest = max(t.seats for t in tables)
+    rule_max = table_rules.rules(tenant).get("online_max", biggest)
+    top = max(1, min(biggest, rule_max, 12))
+    party = min(_party_from(request.GET.get("gaeste")), top)
     today = timezone.localdate()
-    slots = [(s, e, len(tables)) for s, e, tables in table_rules.table_slots(day, party)]
+    fitting = table_rules.fitting_tables(party, tables)
+    slots = [(s, e, len(t)) for s, e, t in table_rules.table_slots(day, party, fitting)]
     selected = None
     raw_slot = request.GET.get("slot", "")
     if raw_slot:
@@ -1505,17 +1514,14 @@ def tisch_slots(request):
 
     max_day = today + timedelta(days=MAX_DAYS_AHEAD)
     cal = _slot_month(
-        lambda d: table_rules.has_table_slot(d, party), _cal_first(request, day), today, max_day
+        lambda d: table_rules.has_table_slot(d, party, fitting),
+        _cal_first(request, day),
+        today,
+        max_day,
     )
-    fitting = table_rules.fitting_tables(party)
-    deposit = max((t.deposit_cents for t in fitting), default=0)
-    # Пилюли «Gäste»: до самого большого онлайн-стола (и не дальше правила GA-1).
-    biggest = max((t.seats for t in table_rules.online_tables()), default=1)
-    rule_max = table_rules.rules(tenant).get("online_max", biggest)
-    top = max(1, min(biggest, rule_max, 12))
+    # Депозит — первого стола подбора (его и пробуем первым).
+    deposit = fitting[0].deposit_cents if fitting else 0
     choices = list(range(1, top + 1))
-    if party not in choices:
-        choices.append(party)
     ctx = {
         "resource": None,
         "table_mode": True,
@@ -1569,22 +1575,27 @@ def tisch_book(request):
 
     if request.method != "POST":
         return back()
+    tenant = getattr(request, "tenant", None)
+    if table_rules.decide(tenant, Resource(type=Resource.TYPE_TABLE), party) == table_rules.CALL:
+        messages.error(
+            request,
+            _(
+                "Für Gruppen ab %(n)s Personen reservieren wir gern persönlich — "
+                "bitte rufen Sie uns an oder schreiben Sie uns."
+            )
+            % {"n": table_rules.rules(tenant).get("online_max", 50) + 1},
+        )
+        return back()
     candidates = table_rules.fitting_tables(party)
     if not candidates:
-        tenant = getattr(request, "tenant", None)
-        if table_rules.decide(tenant, Resource(type=Resource.TYPE_TABLE), party) == (
-            table_rules.CALL
-        ):
-            candidates = list(table_rules.online_tables()[:1])  # ядро ответит «bitte anrufen»
-        if not candidates:
-            messages.error(
-                request,
-                _(
-                    "Für %(n)s Personen haben wir online keinen passenden Tisch — bitte rufen Sie uns an."
-                )
-                % {"n": party},
+        messages.error(
+            request,
+            _(
+                "Für %(n)s Personen haben wir online keinen passenden Tisch — bitte rufen Sie uns an."
             )
-            return back()
+            % {"n": party},
+        )
+        return back()
     return _termin_book_core(
         request,
         candidates,
@@ -1674,7 +1685,7 @@ def _termin_book_core(request, candidates, *, back, cancel_url, embed):
     no_show, email, early = _no_show_gate(
         request,
         tenant,
-        base_deposit=max(r.deposit_cents for r in candidates),
+        base_deposit=candidates[0].deposit_cents,  # первый стол подбора (ревью GA-4)
         estimate=None,
         slots=1,
         offline=payment_methods.offline_payment(SimpleNamespace(**pay_kwargs)),
@@ -1719,7 +1730,8 @@ def _termin_book_core(request, candidates, *, back, cancel_url, embed):
                     **pay_kwargs,
                 )
                 break
-            except services.SlotTaken:  # GA-4: стол заняли между показом и POST — следующий
+            # GA-4: стол заняли (или закрыли) между показом и POST — следующий.
+            except (services.SlotTaken, services.ResourceClosed):
                 if candidate is candidates[-1]:
                     raise
     except (services.SlotTaken, services.ResourceClosed):

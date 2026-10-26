@@ -97,28 +97,30 @@ def online_tables():
     )
 
 
-def fitting_tables(party: int) -> list:
+def fitting_tables(party: int, tables=None) -> list:
     """Годные для компании столы — наименьший подходящий первым (6 гостей не займут
     стол на 10, пока свободен стол на 6). `min_seats` — с какого числа гостей стол
     выдаётся онлайн (столик на двоих не отдают одному, если владелец так задал)."""
     party = max(1, int(party or 1))
-    return [t for t in online_tables() if (t.min_seats or 1) <= party <= t.seats]
+    pool = online_tables() if tables is None else tables
+    return [t for t in pool if (t.min_seats or 1) <= party <= t.seats]
 
 
-def table_slots(day, party: int) -> list:
+def table_slots(day, party: int, fitting=None) -> list:
     """[(start, end, tables)] — объединение свободных слотов годных столов дня;
     tables — свободные столы этого слота в порядке подбора."""
     from . import availability
 
     merged: dict = {}
-    for table in fitting_tables(party):
+    for table in fitting_tables(party) if fitting is None else fitting:
         for start, end in availability.free_slots(table, day):
             merged.setdefault((start, end), []).append(table)
     return [(s, e, merged[(s, e)]) for s, e in sorted(merged)]
 
 
-def has_table_slot(day, party: int) -> bool:
+def has_table_slot(day, party: int, fitting=None) -> bool:
     """Есть ли на день хоть один свободный стол (для месяц-сетки; ранний выход)."""
     from . import availability
 
-    return any(availability.free_slots(t, day) for t in fitting_tables(party))
+    pool = fitting_tables(party) if fitting is None else fitting
+    return any(availability.free_slots(t, day) for t in pool)
