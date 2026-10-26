@@ -210,3 +210,40 @@ Netto. Теперь тот же общий партиал, что у остал�
     {% endif %}
   </div>
 {% endblock %}
+
+{% comment %}KA-12 WR-8 (E1.5): поштучный возврат выданного/отправленного заказа. Товар
+фиксируется сразу; деньги — тем же путём, что «Preisminderung» (только с правом).{% endcomment %}
+{% block deal_main_extra %}
+  {% if return_items %}
+  <details class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-order-return>
+    <summary class="font-semibold cursor-pointer">↩ {% trans "Rücksendung erfassen" %}</summary>
+    <form method="post" action="{% url 'orders:order-return' order.pk %}" class="mt-4 space-y-3">
+      {% csrf_token %}
+      <ul class="space-y-2">
+        {% for item in return_items %}
+        <li class="flex flex-wrap items-center gap-3 text-sm">
+          <input type="hidden" name="seen_{{ item.pk }}" value="{{ item.returned_qty }}">
+          <span class="flex-1 min-w-[10rem]">{{ item.title_snapshot }}{% if item.variant_label %} · {{ item.variant_label }}{% endif %}
+            <span class="text-gray-500">({% blocktrans with n=item.qty r=item.returned_qty %}{{ n }} Stück, {{ r }} zurück{% endblocktrans %})</span></span>
+          <label class="flex items-center gap-2">{% trans "Menge" %}
+            <input type="number" name="qty_{{ item.pk }}" min="0" max="{{ item.returnable_qty }}" value="0" inputmode="numeric"
+                   class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-base"></label>
+          <label class="flex items-center gap-2"><input type="checkbox" name="restock_{{ item.pk }}" value="1" checked> {% trans "wieder verkaufbar" %}</label>
+        </li>
+        {% endfor %}
+      </ul>
+      {% if return_refundable_eur %}
+      <fieldset class="text-sm space-y-1">
+        <legend class="font-medium">{% trans "Geld erstatten?" %}</legend>
+        {% if deal_refund.card_ok %}<label class="flex items-center gap-2"><input type="radio" name="method" value="card" checked> {% trans "Auf die Karte (Stripe)" %}</label>{% endif %}
+        {% if deal_refund.cash_ok %}<label class="flex items-center gap-2"><input type="radio" name="method" value="offline" {% if not deal_refund.card_ok %}checked{% endif %}> {% trans "Bar oder per Überweisung (nur vermerken)" %}</label>{% endif %}
+        <label class="flex items-center gap-2"><input type="radio" name="method" value="none" {% if not deal_refund.card_ok and not deal_refund.cash_ok %}checked{% endif %}> {% trans "Nicht erstatten (nur Ware zurückbuchen)" %}</label>
+        <p class="text-xs text-gray-500">{% blocktrans with eur=return_refundable_eur|floatformat:2 %}Erstattet wird der Preis der zurückgegebenen Stücke, höchstens {{ eur }} €.{% endblocktrans %}</p>
+      </fieldset>
+      {% endif %}
+      <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-2 hover:bg-gray-50"
+              onclick="return confirm('{% trans "Rücksendung wirklich buchen?" %}')">{% trans "Rücksendung buchen" %}</button>
+    </form>
+  </details>
+  {% endif %}
+{% endblock %}

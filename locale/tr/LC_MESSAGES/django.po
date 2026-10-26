@@ -31140,3 +31140,59 @@ msgid "%(n)s offene Bestellung ohne Abholzeit ist nicht enthalten."
 msgid_plural "%(n)s offene Bestellungen ohne Abholzeit sind nicht enthalten."
 msgstr[0] "Teslim saati olmayan %(n)s açık sipariş dahil değil."
 msgstr[1] "Teslim saati olmayan %(n)s açık sipariş dahil değil."
+
+#, python-format
+msgid "%(n)s Stück, %(r)s zurück"
+msgstr "%(n)s adet, %(r)s iade"
+
+msgid "Bitte die zurückgegebene Menge eintragen."
+msgstr "Lütfen iade edilen miktarı girin."
+
+msgid "Bitte eine ganze Zahl eingeben."
+msgstr "Lütfen tam sayı girin."
+
+msgid "Die Rücksendung wurde inzwischen geändert. Bitte erneut prüfen."
+msgstr "İade bu arada değişti. Lütfen tekrar kontrol edin."
+
+#, python-format
+msgid "Erstattet wird der Preis der zurückgegebenen Stücke, höchstens %(eur)s €."
+msgstr "İade edilen ürünlerin fiyatı geri ödenir, en fazla %(eur)s €."
+
+msgid "Geld erstatten?"
+msgstr "Para iadesi?"
+
+msgid "Nicht erstatten (nur Ware zurückbuchen)"
+msgstr "İade etme (yalnızca ürünü geri al)"
+
+msgid "Rücksendung buchen"
+msgstr "İadeyi kaydet"
+
+msgid "Rücksendung erfassen"
+msgstr "İade kaydet"
+
+#, python-format
+msgid "Rücksendung gebucht (%(n)s Stück, Warenwert %(eur)s €). Kein Geld erstattet."
+msgstr "İade kaydedildi (%(n)s adet, ürün değeri %(eur)s €). Para iade edilmedi."
+
+msgid "Rücksendung gebucht und Geld erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+msgstr "İade kaydedildi ve para iade edildi, ancak fiyat ayarlanamadı. Lütfen indirimi elle girin."
+
+#, python-format
+msgid "Rücksendung gebucht, %(eur)s € erstattet."
+msgstr "İade kaydedildi, %(eur)s € iade edildi."
+
+#, python-format
+msgid "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ von Hand erstatten."
+msgstr "İade kaydedildi ancak para İADE EDİLMEDİ (%(eur)s €). Lütfen „Tutarı iade et“ ile elle iade edin."
+
+msgid "Rücksendung gebucht. Stripe hat nicht geantwortet — bitte die Erstattung in Stripe prüfen."
+msgstr "İade kaydedildi. Stripe yanıt vermedi — lütfen iadeyi Stripe'ta kontrol edin."
+
+msgid "Rücksendung nur für abgeholte oder versandte Bestellungen."
+msgstr "İade yalnızca teslim alınmış veya gönderilmiş siparişler için."
+
+msgid "Rücksendung wirklich buchen?"
+msgstr "İade gerçekten kaydedilsin mi?"
+
+msgid "wieder verkaufbar"
+msgstr "yeniden satılabilir"

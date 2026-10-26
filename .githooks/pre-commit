@@ -20,6 +20,16 @@ $RUN scripts/i18n_untranslated.py --check --files $FILES || fail=1
 # shellcheck disable=SC2086
 $RUN scripts/i18n_quickcheck.py $FILES || fail=1
 
+# Грабля 2026-10-26 (повтор WR-6/7): шаблон с новым Tailwind-классом без пересборки
+# app.css роняет CI-замок свежести. Пересобираем и сверяем с ИНДЕКСОМ.
+if echo "$FILES" | grep -qE '\.html$' && command -v npm >/dev/null 2>&1 && [ -d node_modules ]; then
+  npm run -s build:css >/dev/null 2>&1
+  if ! git diff --quiet -- static/css/app.css; then
+    echo "app.css устарел для этих шаблонов: git add static/css/app.css" >&2
+    fail=1
+  fi
+fi
+
 if [ "$fail" != "0" ]; then
   echo
   echo "Коммит остановлен: см. подсказки выше." >&2

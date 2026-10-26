@@ -31273,3 +31273,59 @@ msgstr[0] "%(n)s открытый заказ без времени выдачи 
 msgstr[1] "%(n)s открытых заказа без времени выдачи не учтены."
 msgstr[2] "%(n)s открытых заказов без времени выдачи не учтены."
 msgstr[3] "%(n)s открытого заказа без времени выдачи не учтены."
+
+#, python-format
+msgid "%(n)s Stück, %(r)s zurück"
+msgstr "%(n)s шт., возвращено %(r)s"
+
+msgid "Bitte die zurückgegebene Menge eintragen."
+msgstr "Укажите возвращённое количество."
+
+msgid "Bitte eine ganze Zahl eingeben."
+msgstr "Введите целое число."
+
+msgid "Die Rücksendung wurde inzwischen geändert. Bitte erneut prüfen."
+msgstr "Возврат тем временем изменился. Проверьте ещё раз."
+
+#, python-format
+msgid "Erstattet wird der Preis der zurückgegebenen Stücke, höchstens %(eur)s €."
+msgstr "Возвращается цена возвращённых штук, не более %(eur)s €."
+
+msgid "Geld erstatten?"
+msgstr "Вернуть деньги?"
+
+msgid "Nicht erstatten (nur Ware zurückbuchen)"
+msgstr "Не возвращать (только оприходовать товар)"
+
+msgid "Rücksendung buchen"
+msgstr "Оформить возврат"
+
+msgid "Rücksendung erfassen"
+msgstr "Оформить возврат товара"
+
+#, python-format
+msgid "Rücksendung gebucht (%(n)s Stück, Warenwert %(eur)s €). Kein Geld erstattet."
+msgstr "Возврат оформлен (%(n)s шт., стоимость %(eur)s €). Деньги не возвращались."
+
+msgid "Rücksendung gebucht und Geld erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+msgstr "Возврат оформлен и деньги возвращены, но цену изменить не удалось. Задайте скидку вручную."
+
+#, python-format
+msgid "Rücksendung gebucht, %(eur)s € erstattet."
+msgstr "Возврат оформлен, возвращено %(eur)s €."
+
+#, python-format
+msgid "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ von Hand erstatten."
+msgstr "Возврат оформлен, но деньги НЕ возвращены (%(eur)s €). Верните вручную через «Вернуть сумму»."
+
+msgid "Rücksendung gebucht. Stripe hat nicht geantwortet — bitte die Erstattung in Stripe prüfen."
+msgstr "Возврат оформлен. Stripe не ответил — проверьте возврат в Stripe."
+
+msgid "Rücksendung nur für abgeholte oder versandte Bestellungen."
+msgstr "Возврат — только для выданных или отправленных заказов."
+
+msgid "Rücksendung wirklich buchen?"
+msgstr "Точно оформить возврат?"
+
+msgid "wieder verkaufbar"
+msgstr "можно продать снова"

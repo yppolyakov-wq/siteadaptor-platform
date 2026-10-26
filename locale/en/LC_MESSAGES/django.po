@@ -30996,3 +30996,59 @@ msgid "%(n)s offene Bestellung ohne Abholzeit ist nicht enthalten."
 msgid_plural "%(n)s offene Bestellungen ohne Abholzeit sind nicht enthalten."
 msgstr[0] "%(n)s open order without a pickup time is not included."
 msgstr[1] "%(n)s open orders without a pickup time are not included."
+
+#, python-format
+msgid "%(n)s Stück, %(r)s zurück"
+msgstr "%(n)s pcs, %(r)s returned"
+
+msgid "Bitte die zurückgegebene Menge eintragen."
+msgstr "Please enter the returned quantity."
+
+msgid "Bitte eine ganze Zahl eingeben."
+msgstr "Please enter a whole number."
+
+msgid "Die Rücksendung wurde inzwischen geändert. Bitte erneut prüfen."
+msgstr "The return has changed in the meantime. Please check again."
+
+#, python-format
+msgid "Erstattet wird der Preis der zurückgegebenen Stücke, höchstens %(eur)s €."
+msgstr "The price of the returned items is refunded, at most %(eur)s €."
+
+msgid "Geld erstatten?"
+msgstr "Refund money?"
+
+msgid "Nicht erstatten (nur Ware zurückbuchen)"
+msgstr "Don't refund (only book the goods back)"
+
+msgid "Rücksendung buchen"
+msgstr "Book return"
+
+msgid "Rücksendung erfassen"
+msgstr "Record a return"
+
+#, python-format
+msgid "Rücksendung gebucht (%(n)s Stück, Warenwert %(eur)s €). Kein Geld erstattet."
+msgstr "Return booked (%(n)s pcs, goods value %(eur)s €). No money refunded."
+
+msgid "Rücksendung gebucht und Geld erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+msgstr "Return booked and money refunded, but the price could not be adjusted. Please set the discount manually."
+
+#, python-format
+msgid "Rücksendung gebucht, %(eur)s € erstattet."
+msgstr "Return booked, %(eur)s € refunded."
+
+#, python-format
+msgid "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ von Hand erstatten."
+msgstr "Return booked, but the money was NOT refunded (%(eur)s €). Please refund manually via “Refund amount”."
+
+msgid "Rücksendung gebucht. Stripe hat nicht geantwortet — bitte die Erstattung in Stripe prüfen."
+msgstr "Return booked. Stripe did not respond — please check the refund in Stripe."
+
+msgid "Rücksendung nur für abgeholte oder versandte Bestellungen."
+msgstr "Returns only for picked-up or shipped orders."
+
+msgid "Rücksendung wirklich buchen?"
+msgstr "Really book the return?"
+
+msgid "wieder verkaufbar"
+msgstr "resellable"

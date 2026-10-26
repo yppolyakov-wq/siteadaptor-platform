@@ -132,20 +132,25 @@ def _restore_stock(instance):
 
     with transaction.atomic():
         for item in instance.items.all():
+            # KA-12 WR-8: штуки, уже прошедшие поштучный возврат (`returned_qty`), второй
+            # раз на склад не идут — ни годные (уже вернули), ни повреждённые (не возвращаем).
+            qty = item.qty - (item.returned_qty or 0)
+            if qty <= 0:
+                continue
             if item.variant_id:
                 n = ProductVariant.objects.filter(
                     pk=item.variant_id, stock_quantity__isnull=False
-                ).update(stock_quantity=F("stock_quantity") + item.qty)
+                ).update(stock_quantity=F("stock_quantity") + qty)
             else:
                 n = Product.objects.filter(pk=item.product_id, stock_quantity__isnull=False).update(
-                    stock_quantity=F("stock_quantity") + item.qty
+                    stock_quantity=F("stock_quantity") + qty
                 )
             if n:  # реально вернули (учитываемый остаток) → запись в леджер
                 record_movement(
                     product=item.product,
                     variant=item.variant,
                     kind="return",
-                    delta=item.qty,
+                    delta=qty,
                     source="order",
                     source_ref=str(item.pk),
                     note=instance.reference_code,
@@ -153,7 +158,7 @@ def _restore_stock(instance):
                 # Склад-2 E1.5: обратить FEFO-расход — долить партии (no-op без партий).
                 from apps.inventory.services import restore_fefo
 
-                restore_fefo(item.product, item.variant, qty=item.qty)
+                restore_fefo(item.product, item.variant, qty=qty)
         # P2 «ценовой слой»: заказ из акции возвращает ЛИМИТ КАМПАНИИ (маркер
         # {"promo": id} в modifiers custom-строки). Единственная точка возврата:
         # сюда приходят и встроенный FSM, и зеркало кастом-статусов

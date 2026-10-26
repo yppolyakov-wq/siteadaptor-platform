@@ -110,6 +110,7 @@ RULES: dict[str, Rule] = {
     "orders:deliveries": _r(V, E),
     "orders:kitchen": _r(V, E),
     "orders:production": _r(V),
+    "orders:order-return": _r(V, E),
     "orders:kitchen-board": _r(V, E),
     "orders:kitchen-action": _r(V, E),
     "orders:table-qr": _r(CFG),

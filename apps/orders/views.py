@@ -6,6 +6,7 @@
 ModuleGatingMiddleware по префиксу из реестра.
 """
 
+import logging
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
@@ -22,6 +23,8 @@ from apps.core.fsm import IllegalTransition, PaymentRequired
 from .models import Order
 from .services import OutOfStock
 from .state_machine import OrderSM
+
+logger = logging.getLogger(__name__)
 
 
 def auftragsbuch_context(request):
@@ -288,6 +291,8 @@ def order_detail(request, pk):
                 ),
             ),
             "discount_eur_input": f"{order.discount_cents / 100:.2f}",
+            # KA-12 WR-8: поштучный возврат выданного/отправленного заказа.
+            **_return_context(request, order),
             # DC-1: общий скелет карточки сделки — голова, статус, клиент, связи
             # и календарь приходят из одного источника (core/deal_card_base.html);
             # crm_active/inbox_active/deal_links тоже оттуда.
@@ -301,6 +306,112 @@ def order_detail(request, pk):
             ),
         },
     )
+
+
+def _return_context(request, order):
+    from apps.core.permissions import chrome_allows, has_perm
+
+    from . import returns
+
+    if order.status not in returns.RETURNABLE_STATUSES or not chrome_allows(
+        request.user, "verkaeufe.edit"
+    ):
+        return {"return_items": []}
+    items = returns.returnable_items(order)
+    refundable = 0
+    if items and has_perm(request.user, "geld.korrektur"):
+        try:
+            refundable = returns.refundable_cents(order)
+        except Exception:  # noqa: BLE001 — форма денег не должна ронять карточку
+            logger.exception("refundable_cents failed for order %s", order.pk)
+    return {"return_items": items, "return_refundable_eur": Decimal(refundable) / 100}
+
+
+@login_required
+@require_POST
+def order_return(request, pk):
+    """KA-12 WR-8 (E1.5): поштучный возврат — товар фиксируется, деньги (по выбору и праву
+    `geld.korrektur`) тем же путём, что «Preisminderung»."""
+    from apps.core import refunds
+    from apps.core.permissions import has_perm
+
+    from . import returns
+
+    order = get_object_or_404(Order, pk=pk)
+    lines = []
+    for item in order.items.all():
+        raw = (request.POST.get(f"qty_{item.pk}") or "").strip()
+        try:
+            qty = int(raw) if raw else 0
+            expected = int(request.POST.get(f"seen_{item.pk}") or 0)
+        except ValueError:
+            messages.error(request, _("Bitte eine ganze Zahl eingeben."))
+            return redirect("orders:order-detail", pk=pk)
+        if qty < 0:
+            messages.error(request, _("Bitte eine ganze Zahl eingeben."))
+            return redirect("orders:order-detail", pk=pk)
+        if qty:
+            lines.append(
+                returns.Line(
+                    item_pk=str(item.pk),
+                    qty=qty,
+                    restock=request.POST.get(f"restock_{item.pk}") == "1",
+                    expected_returned=expected,
+                )
+            )
+    method = request.POST.get("method", "none")
+    if method not in returns.REFUND_METHODS or not has_perm(request.user, "geld.korrektur"):
+        method = "none"
+    outcome = returns.return_items(
+        order, lines, method=method, tenant=getattr(request, "tenant", None), user=request.user
+    )
+    if outcome.goods == returns.GoodsResult.NOTHING:
+        messages.error(request, _("Bitte die zurückgegebene Menge eintragen."))
+    elif outcome.goods == returns.GoodsResult.NOT_RETURNABLE:
+        messages.error(request, _("Rücksendung nur für abgeholte oder versandte Bestellungen."))
+    elif outcome.goods == returns.GoodsResult.STALE:
+        messages.warning(
+            request, _("Die Rücksendung wurde inzwischen geändert. Bitte erneut prüfen.")
+        )
+    else:
+        eur = f"{Decimal(outcome.cents) / 100:.2f}".replace(".", ",")
+        if outcome.refund is None:
+            messages.success(
+                request,
+                _("Rücksendung gebucht (%(n)s Stück, Warenwert %(eur)s €). Kein Geld erstattet.")
+                % {"n": outcome.pieces, "eur": eur},
+            )
+        elif outcome.refund == refunds.RefundResult.REFUNDED:
+            messages.success(
+                request,
+                _("Rücksendung gebucht, %(eur)s € erstattet.") % {"eur": eur},
+            )
+        elif outcome.refund == refunds.RefundResult.UNCERTAIN:
+            messages.warning(
+                request,
+                _(
+                    "Rücksendung gebucht. Stripe hat nicht geantwortet — bitte die "
+                    "Erstattung in Stripe prüfen."
+                ),
+            )
+        elif outcome.refund == refunds.RefundResult.PRICE_UNCHANGED:
+            messages.warning(
+                request,
+                _(
+                    "Rücksendung gebucht und Geld erstattet, aber der Preis konnte nicht "
+                    "angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+                ),
+            )
+        else:
+            messages.warning(
+                request,
+                _(
+                    "Rücksendung gebucht, aber das Geld wurde NICHT erstattet "
+                    "(%(eur)s €). Bitte über „Betrag erstatten“ von Hand erstatten."
+                )
+                % {"eur": eur},
+            )
+    return redirect("orders:order-detail", pk=pk)
 
 
 @login_required

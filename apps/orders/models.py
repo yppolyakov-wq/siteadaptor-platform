@@ -151,6 +151,8 @@ class Order(TimestampedModel):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["status", "created_at"], name="order_status_created_idx"),
+            # KA-12 WR-7: Produktionsliste — диапазон дня по времени выдачи.
+            models.Index(fields=["pickup_slot", "status"], name="order_pickup_status_idx"),
         ]
 
     def __str__(self):
@@ -215,6 +217,10 @@ class OrderItem(TimestampedModel):
     # (вариантный приоритетнее товарного; sku владелец может менять позже).
     sku = models.CharField(max_length=100, blank=True)
     qty = models.PositiveIntegerField(default=1)
+    # KA-12 WR-8 (E1.5): поштучный возврат — сколько штук вернулось и сколько из них
+    # снова на складе (повреждённые — нет). Полный `returned` возвращает только остаток.
+    returned_qty = models.PositiveIntegerField(default=0)
+    restocked_qty = models.PositiveIntegerField(default=0)
     # Снимки цены/названия: заказ показывает то, что видел клиент.
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     # SH-4: СНИМОК ставки НДС позиции (как unit_price/title): смена ставки в
@@ -249,6 +255,11 @@ class OrderItem(TimestampedModel):
 
     class Meta:
         ordering = ["created_at"]
+
+    @property
+    def returnable_qty(self) -> int:
+        """KA-12 WR-8: сколько штук ещё можно оформить возвратом."""
+        return max(self.qty - (self.returned_qty or 0), 0)
 
     def __str__(self):
         return f"{self.qty}× {self.title_snapshot}"

@@ -31088,3 +31088,59 @@ msgid "%(n)s offene Bestellung ohne Abholzeit ist nicht enthalten."
 msgid_plural "%(n)s offene Bestellungen ohne Abholzeit sind nicht enthalten."
 msgstr[0] "%(n)s offene Bestellung ohne Abholzeit ist nicht enthalten."
 msgstr[1] "%(n)s offene Bestellungen ohne Abholzeit sind nicht enthalten."
+
+#, python-format
+msgid "%(n)s Stück, %(r)s zurück"
+msgstr "%(n)s Stück, %(r)s zurück"
+
+msgid "Bitte die zurückgegebene Menge eintragen."
+msgstr "Bitte die zurückgegebene Menge eintragen."
+
+msgid "Bitte eine ganze Zahl eingeben."
+msgstr "Bitte eine ganze Zahl eingeben."
+
+msgid "Die Rücksendung wurde inzwischen geändert. Bitte erneut prüfen."
+msgstr "Die Rücksendung wurde inzwischen geändert. Bitte erneut prüfen."
+
+#, python-format
+msgid "Erstattet wird der Preis der zurückgegebenen Stücke, höchstens %(eur)s €."
+msgstr "Erstattet wird der Preis der zurückgegebenen Stücke, höchstens %(eur)s €."
+
+msgid "Geld erstatten?"
+msgstr "Geld erstatten?"
+
+msgid "Nicht erstatten (nur Ware zurückbuchen)"
+msgstr "Nicht erstatten (nur Ware zurückbuchen)"
+
+msgid "Rücksendung buchen"
+msgstr "Rücksendung buchen"
+
+msgid "Rücksendung erfassen"
+msgstr "Rücksendung erfassen"
+
+#, python-format
+msgid "Rücksendung gebucht (%(n)s Stück, Warenwert %(eur)s €). Kein Geld erstattet."
+msgstr "Rücksendung gebucht (%(n)s Stück, Warenwert %(eur)s €). Kein Geld erstattet."
+
+msgid "Rücksendung gebucht und Geld erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+msgstr "Rücksendung gebucht und Geld erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+
+#, python-format
+msgid "Rücksendung gebucht, %(eur)s € erstattet."
+msgstr "Rücksendung gebucht, %(eur)s € erstattet."
+
+#, python-format
+msgid "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ von Hand erstatten."
+msgstr "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ von Hand erstatten."
+
+msgid "Rücksendung gebucht. Stripe hat nicht geantwortet — bitte die Erstattung in Stripe prüfen."
+msgstr "Rücksendung gebucht. Stripe hat nicht geantwortet — bitte die Erstattung in Stripe prüfen."
+
+msgid "Rücksendung nur für abgeholte oder versandte Bestellungen."
+msgstr "Rücksendung nur für abgeholte oder versandte Bestellungen."
+
+msgid "Rücksendung wirklich buchen?"
+msgstr "Rücksendung wirklich buchen?"
+
+msgid "wieder verkaufbar"
+msgstr "wieder verkaufbar"

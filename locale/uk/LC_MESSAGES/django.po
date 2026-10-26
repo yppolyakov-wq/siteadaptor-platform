@@ -31257,3 +31257,59 @@ msgstr[0] "%(n)s відкрите замовлення без часу вида�
 msgstr[1] "%(n)s відкриті замовлення без часу видачі не враховано."
 msgstr[2] "%(n)s відкритих замовлень без часу видачі не враховано."
 msgstr[3] "%(n)s відкритого замовлення без часу видачі не враховано."
+
+#, python-format
+msgid "%(n)s Stück, %(r)s zurück"
+msgstr "%(n)s шт., повернуто %(r)s"
+
+msgid "Bitte die zurückgegebene Menge eintragen."
+msgstr "Вкажіть повернену кількість."
+
+msgid "Bitte eine ganze Zahl eingeben."
+msgstr "Введіть ціле число."
+
+msgid "Die Rücksendung wurde inzwischen geändert. Bitte erneut prüfen."
+msgstr "Повернення тим часом змінилося. Перевірте ще раз."
+
+#, python-format
+msgid "Erstattet wird der Preis der zurückgegebenen Stücke, höchstens %(eur)s €."
+msgstr "Повертається ціна повернених штук, не більше %(eur)s €."
+
+msgid "Geld erstatten?"
+msgstr "Повернути гроші?"
+
+msgid "Nicht erstatten (nur Ware zurückbuchen)"
+msgstr "Не повертати (лише оприбуткувати товар)"
+
+msgid "Rücksendung buchen"
+msgstr "Оформити повернення"
+
+msgid "Rücksendung erfassen"
+msgstr "Оформити повернення товару"
+
+#, python-format
+msgid "Rücksendung gebucht (%(n)s Stück, Warenwert %(eur)s €). Kein Geld erstattet."
+msgstr "Повернення оформлено (%(n)s шт., вартість %(eur)s €). Гроші не поверталися."
+
+msgid "Rücksendung gebucht und Geld erstattet, aber der Preis konnte nicht angepasst werden. Bitte setzen Sie den Rabatt von Hand."
+msgstr "Повернення оформлено й гроші повернуто, але ціну змінити не вдалося. Задайте знижку вручну."
+
+#, python-format
+msgid "Rücksendung gebucht, %(eur)s € erstattet."
+msgstr "Повернення оформлено, повернуто %(eur)s €."
+
+#, python-format
+msgid "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ von Hand erstatten."
+msgstr "Повернення оформлено, але гроші НЕ повернуто (%(eur)s €). Поверніть вручну через «Повернути суму»."
+
+msgid "Rücksendung gebucht. Stripe hat nicht geantwortet — bitte die Erstattung in Stripe prüfen."
+msgstr "Повернення оформлено. Stripe не відповів — перевірте повернення у Stripe."
+
+msgid "Rücksendung nur für abgeholte oder versandte Bestellungen."
+msgstr "Повернення — лише для виданих або надісланих замовлень."
+
+msgid "Rücksendung wirklich buchen?"
+msgstr "Точно оформити повернення?"
+
+msgid "wieder verkaufbar"
+msgstr "можна продати знову"
