@@ -79,10 +79,9 @@ def test_open_bills_are_paged_with_own_param():
 
 
 def test_auftragsbuch_counts_all_orders_without_slot():
+    from apps.crm.models import Customer
     from apps.orders.models import Order
     from apps.orders.views import auftragsbuch_context
-
-    from apps.crm.models import Customer
 
     c = Customer.objects.create(name="K", email=f"k{next(_N)}@test.de")
     for _ in range(55):
@@ -116,10 +115,9 @@ def test_stock_csv_exports_all_movements():
 
 
 def test_checkins_are_paged():
+    from apps.crm.models import Customer
     from apps.stays import views
     from apps.stays.models import GuestRegistration, StayBooking, StayUnit
-
-    from apps.crm.models import Customer
 
     unit = StayUnit.objects.create(name="Zimmer", price_cents=8000)
     c = Customer.objects.create(name="G", email=f"g{next(_N)}@test.de")
