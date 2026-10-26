@@ -51,6 +51,17 @@ def ensure_vehicle(job):
             job.save(update_fields=["vehicle_ref", "updated_at"])
         return None
     with transaction.atomic():
+        old = job.vehicle_ref if job.vehicle_ref_id else None
+        if (
+            old is not None
+            and old.plate != plate
+            and not old.jobs.exclude(pk=job.pk).exists()
+            and not Vehicle.objects.filter(customer_id=job.customer_id, plate=plate).exists()
+        ):
+            # Ревью A-6a: исправление опечатки в номере — та же машина (VIN, HU, заметки
+            # остаются), а не сирота + вторая карточка с двойным HU-напоминанием.
+            old.plate = plate
+            old.save(update_fields=["plate", "updated_at"])
         vehicle, _created = Vehicle.objects.get_or_create(customer_id=job.customer_id, plate=plate)
         changed = []
         for src, dst in (

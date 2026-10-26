@@ -198,7 +198,14 @@ def sections(tenant, customer) -> list[dict]:
         # KA-12 A-6: машины клиента (Werkstatt) — номер, марка, HU; клик → последняя заявка.
         def _vehicles():
             items = []
-            for v in customer.vehicles.prefetch_related("jobs").order_by("plate")[:_LIMIT]:
+            from django.db.models import Prefetch
+
+            from apps.jobs.models import Job
+
+            light = Prefetch(
+                "jobs", queryset=Job.objects.only("pk", "vehicle_ref_id", "created_at")
+            )
+            for v in customer.vehicles.prefetch_related(light).order_by("plate")[:_LIMIT]:
                 last = max(v.jobs.all(), key=lambda j: j.created_at, default=None)
                 sub = " · ".join(
                     bit

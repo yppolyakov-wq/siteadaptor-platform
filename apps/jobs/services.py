@@ -85,7 +85,14 @@ def create_job(
     if job.vehicle_plate:
         from .vehicles import ensure_vehicle
 
-        ensure_vehicle(job)  # KA-12 A-6: номер → карточка машины клиента
+        # KA-12 A-6: номер → карточка машины клиента. Побочная привязка: её сбой не
+        # должен ронять уже созданную заявку (публичная /anfrage/ → 500 и повтор формы).
+        try:
+            ensure_vehicle(job)
+        except Exception:  # noqa: BLE001
+            import logging
+
+            logging.getLogger(__name__).exception("ensure_vehicle failed for job %s", job.pk)
     # C2: «спросил с сайта → оставил заявку» — одна беседа (fail-soft, однозначность).
     from apps.inbox.deal_threads import adopt_open_thread, deal_ref_label
 

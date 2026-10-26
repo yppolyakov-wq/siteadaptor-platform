@@ -447,6 +447,7 @@ def _save_request(request, job):
     post = request.POST
     fields = []
     before = {f: getattr(job, f) for f in ("event_date", "guest_count", "event_type")}
+    plate_before = job.vehicle_plate
     if "title" in post:
         title = post.get("title", "").strip()[:200]
         if title:
@@ -487,7 +488,9 @@ def _save_request(request, job):
                 fields.append(key)
     if fields:
         job.save(update_fields=[*fields, "updated_at"])
-        if "vehicle_plate" in fields:
+        if "vehicle_plate" in fields and (
+            job.vehicle_plate != plate_before or bool(job.vehicle_plate) != bool(job.vehicle_ref_id)
+        ):
             from .vehicles import ensure_vehicle
 
             ensure_vehicle(job)  # KA-12 A-6: номер → карточка машины клиента

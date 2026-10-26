@@ -173,3 +173,24 @@ def test_migration_plate_rule_matches_runtime(raw):
 def test_dash_variants_are_one_vehicle_but_shifted_dash_is_not():
     assert vehicles.normalize_plate("m–ab 12") == vehicles.normalize_plate("M - AB 12")
     assert vehicles.normalize_plate("M-AB 12") != vehicles.normalize_plate("MA-B 12")
+
+
+def test_fixing_plate_typo_keeps_the_same_vehicle():
+    job = _job("M-AB 13")
+    Vehicle.objects.filter(pk=job.vehicle_ref_id).update(vin="WVWZZZ1JZXW000013")
+    views.job_detail(
+        _req("post", {"action": "request", "title": job.title, "vehicle_plate": "M-AB 31"}),
+        pk=job.pk,
+    )
+    job.refresh_from_db()
+    assert job.vehicle_ref.plate == "M-AB 31" and job.vehicle_ref.vin == "WVWZZZ1JZXW000013"
+    assert not Vehicle.objects.filter(plate="M-AB 13").exists()
+
+
+def test_vehicle_link_failure_does_not_break_job_creation(monkeypatch):
+    def boom(job):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(vehicles, "ensure_vehicle", boom)
+    job = _job("X-Y 1")
+    assert Job.objects.filter(pk=job.pk).exists() and job.vehicle_ref_id is None
