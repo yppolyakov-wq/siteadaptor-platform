@@ -360,7 +360,10 @@ def order_return(request, pk):
                 )
             )
     method = request.POST.get("method", "none")
-    if method not in returns.REFUND_METHODS or not has_perm(request.user, "geld.korrektur"):
+    if method not in returns.REFUND_METHODS:
+        method = "none"
+    if method != "none" and not has_perm(request.user, "geld.korrektur"):
+        messages.warning(request, _("Geld erstatten darf nur, wer Erstattungen buchen darf."))
         method = "none"
     outcome = returns.return_items(
         order, lines, method=method, tenant=getattr(request, "tenant", None), user=request.user
@@ -394,6 +397,8 @@ def order_return(request, pk):
                     "Erstattung in Stripe prüfen."
                 ),
             )
+        elif outcome.refund == refunds.RefundResult.ALREADY:
+            messages.warning(request, _("Die Erstattung wurde bereits ausgeführt."))
         elif outcome.refund == refunds.RefundResult.PRICE_UNCHANGED:
             messages.warning(
                 request,
@@ -407,7 +412,8 @@ def order_return(request, pk):
                 request,
                 _(
                     "Rücksendung gebucht, aber das Geld wurde NICHT erstattet "
-                    "(%(eur)s €). Bitte über „Betrag erstatten“ von Hand erstatten."
+                    "(%(eur)s €). Bitte über „Betrag erstatten“ → „Preisminderung“ "
+                    "von Hand erstatten."
                 )
                 % {"eur": eur},
             )

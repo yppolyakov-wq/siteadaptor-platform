@@ -118,3 +118,38 @@ def test_refund_refused_when_amount_exceeds_paid_but_goods_kept(stripe_calls):
     assert out.refund == refunds.RefundResult.REFUSED and stripe_calls == []
     product.refresh_from_db()
     assert product.stock_quantity == 8
+
+
+def test_order_discount_is_prorated_and_shipping_not_refunded(stripe_calls):
+    order, _ = _order(qty=4)  # 40,00 €
+    Order.objects.filter(pk=order.pk).update(
+        fulfillment="delivery", discount_cents=800, shipping_cents=500, total=Decimal("37.00")
+    )
+    order.refresh_from_db()
+    DealPayment.objects.filter(deal_kind="order", deal_id=order.pk).update(amount_cents=3700)
+    folio.forget(order)
+    out = returns.return_items(order, [_line(order, 1)], method="card", tenant=TENANT)
+    assert out.cents == 800  # 10,00 × (32,00 / 40,00) — без доли доставки
+    order.refresh_from_db()
+    out = returns.return_items(order, [_line(order, 1)], method="card", tenant=TENANT)
+    assert out.cents == 800  # вторая порция — та же доля
+
+
+def test_full_return_after_partial_refund_nets_revenue_to_zero(stripe_calls):
+    order, _ = _order()
+    returns.return_items(order, [_line(order, 1)], method="card", tenant=TENANT)
+    order.refresh_from_db()
+    OrderSM().apply(order, "returned")
+    assert _net(order) == Decimal("0")
+
+
+def test_parallel_return_is_refused_by_lock():
+    from django.core.cache import cache
+
+    order, _ = _order()
+    cache.add(f"order-return:{order.pk}", 1, 60)
+    try:
+        out = returns.return_items(order, [_line(order, 1)], method="none")
+    finally:
+        cache.delete(f"order-return:{order.pk}")
+    assert out.goods == returns.GoodsResult.STALE

@@ -31182,8 +31182,8 @@ msgid "Rücksendung gebucht, %(eur)s € erstattet."
 msgstr "İade kaydedildi, %(eur)s € iade edildi."
 
 #, python-format
-msgid "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ von Hand erstatten."
-msgstr "İade kaydedildi ancak para İADE EDİLMEDİ (%(eur)s €). Lütfen „Tutarı iade et“ ile elle iade edin."
+msgid "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ → „Preisminderung“ von Hand erstatten."
+msgstr "İade kaydedildi ancak para İADE EDİLMEDİ (%(eur)s €). Lütfen „Tutarı iade et“ → „Fiyat indirimi“ ile elle iade edin."
 
 msgid "Rücksendung gebucht. Stripe hat nicht geantwortet — bitte die Erstattung in Stripe prüfen."
 msgstr "İade kaydedildi. Stripe yanıt vermedi — lütfen iadeyi Stripe'ta kontrol edin."
@@ -31196,3 +31196,6 @@ msgstr "İade gerçekten kaydedilsin mi?"
 
 msgid "wieder verkaufbar"
 msgstr "yeniden satılabilir"
+
+msgid "Geld erstatten darf nur, wer Erstattungen buchen darf."
+msgstr "Para iadesini yalnızca iade kaydetme yetkisi olanlar yapabilir."

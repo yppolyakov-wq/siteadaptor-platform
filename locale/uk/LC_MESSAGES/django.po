@@ -31299,8 +31299,8 @@ msgid "Rücksendung gebucht, %(eur)s € erstattet."
 msgstr "Повернення оформлено, повернуто %(eur)s €."
 
 #, python-format
-msgid "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ von Hand erstatten."
-msgstr "Повернення оформлено, але гроші НЕ повернуто (%(eur)s €). Поверніть вручну через «Повернути суму»."
+msgid "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ → „Preisminderung“ von Hand erstatten."
+msgstr "Повернення оформлено, але гроші НЕ повернуто (%(eur)s €). Поверніть вручну: «Повернути суму» → «Зменшення ціни»."
 
 msgid "Rücksendung gebucht. Stripe hat nicht geantwortet — bitte die Erstattung in Stripe prüfen."
 msgstr "Повернення оформлено. Stripe не відповів — перевірте повернення у Stripe."
@@ -31313,3 +31313,6 @@ msgstr "Точно оформити повернення?"
 
 msgid "wieder verkaufbar"
 msgstr "можна продати знову"
+
+msgid "Geld erstatten darf nur, wer Erstattungen buchen darf."
+msgstr "Повертати гроші може лише той, хто має право на повернення."

@@ -31038,8 +31038,8 @@ msgid "Rücksendung gebucht, %(eur)s € erstattet."
 msgstr "Return booked, %(eur)s € refunded."
 
 #, python-format
-msgid "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ von Hand erstatten."
-msgstr "Return booked, but the money was NOT refunded (%(eur)s €). Please refund manually via “Refund amount”."
+msgid "Rücksendung gebucht, aber das Geld wurde NICHT erstattet (%(eur)s €). Bitte über „Betrag erstatten“ → „Preisminderung“ von Hand erstatten."
+msgstr "Return booked, but the money was NOT refunded (%(eur)s €). Please refund manually via “Refund amount” → “Price reduction”."
 
 msgid "Rücksendung gebucht. Stripe hat nicht geantwortet — bitte die Erstattung in Stripe prüfen."
 msgstr "Return booked. Stripe did not respond — please check the refund in Stripe."
@@ -31052,3 +31052,6 @@ msgstr "Really book the return?"
 
 msgid "wieder verkaufbar"
 msgstr "resellable"
+
+msgid "Geld erstatten darf nur, wer Erstattungen buchen darf."
+msgstr "Only people allowed to book refunds can refund money."
