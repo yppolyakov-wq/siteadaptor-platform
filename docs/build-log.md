@@ -20337,3 +20337,14 @@ Kennzeichen/HSN/TSN мастерской и источник обращения 
 - Демо: Lachsfilet — Fr, Risotto — Sa·So (`SEEDER_VERSION` 10). Ревью django/silent-failure:
   лишний `\n`, обход через custom_lines, quote/offer, наивный слот — исправлено; границы v1 —
   план §4. Тесты `test_ga9_tageskarte.py` (9).
+
+## 2026-10-26 — KA-12 Waren-рост WR-1…WR-4 (⚠️ `catalog/0042`, choices-only)
+- План `docs/ka-12-w4-waren-plan-2026-10-26.md` (разведка двумя агентами).
+- **WR-1** (E3.7) фид Google: `g:size`/`g:color` у вариантов, фото варианта в его `image_link`,
+  состояние картой (`retoure`/`ausstellung` → `refurbished`, `wie_neu`/`gut` → `used`; баг B10).
+- **WR-2** (E3.12) номера Zusatzstoffe на витрине (сноска в прайсе + легенда) из того же
+  `food.additive_number_str`, что PDF.
+- **WR-3** (E3.11) у гастро скрыты «Marke & Zustand» и UVP (заполненное видно, поля в DOM),
+  Chargen/MHD на складе — только продуктам питания или уже включённым.
+- **WR-4** (E3.8) единицы m/m²/m³ (PAngV § 5) + отказ формы «единица без количества».
+  Grundpreis акции на товар с вариантами — с WR-9.

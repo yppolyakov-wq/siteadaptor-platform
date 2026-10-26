@@ -4,3 +4,4 @@
 Ожидает `p` (Product). Включается гейтом show_labels (тег menu_labels_active).{% endcomment %}
 {% if p.diet_badges %}<span class="text-xs leading-none shrink-0">{% for d in p.diet_badges %}<span title="{{ d.label }}">{{ d.icon }}</span>{% endfor %}</span>{% endif %}
 {% if p.allergen_letters_str %}<sup class="text-[10px] text-gray-400 shrink-0" title="{% for a in p.allergen_labels %}{{ a }}{% if not forloop.last %}, {% endif %}{% endfor %}">{{ p.allergen_letters_str }}</sup>{% endif %}
+{% if p.additive_numbers_str %}<sup class="text-[10px] text-gray-400 shrink-0" title="{% for a in p.additive_labels %}{{ a }}{% if not forloop.last %}, {% endif %}{% endfor %}" data-additive-numbers>{{ p.additive_numbers_str }}</sup>{% endif %}

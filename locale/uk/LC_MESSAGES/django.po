@@ -31114,3 +31114,15 @@ msgstr "лише %(days)s"
 #, python-format
 msgid "„%(item)s“ gibt es nur %(days)s."
 msgstr "«%(item)s» буває лише %(days)s."
+
+msgid "Bitte die Menge angeben (z. B. 250 bei 250 g) – sonst fehlt der Grundpreis."
+msgstr "Вкажіть кількість (наприклад, 250 для 250 г) – інакше базова ціна не буде показана."
+
+msgid "Kubikmeter"
+msgstr "Кубічний метр"
+
+msgid "Meter"
+msgstr "Метр"
+
+msgid "Quadratmeter"
+msgstr "Квадратний метр"

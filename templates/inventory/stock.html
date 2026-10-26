@@ -15,7 +15,7 @@
 {% endif %}
 
 {# --- Склад-2 E1: Chargen/MHD-Tumbler (Haltbarkeit für Lebensmittel) --- #}
-<form method="post" action="{% url 'stock' %}" class="mb-4 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-2.5">
+{% if show_lots_toggle %}<form method="post" action="{% url 'stock' %}" class="mb-4 flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-2.5" data-lots-toggle>
   {% csrf_token %}
   <input type="hidden" name="action" value="lots_toggle">
   <label for="lots_enabled" class="text-sm text-gray-600">🗓️ {% trans "Chargen & Haltbarkeit (MHD/FEFO)" %}</label>
@@ -23,7 +23,7 @@
     <input type="checkbox" id="lots_enabled" name="lots_enabled" {% if lots_on %}checked{% endif %} onchange="this.form.submit()" class="h-4 w-4">
     <span class="text-xs text-gray-400">{% trans "für Lebensmittel" %}</span>
   </span>
-</form>
+</form>{% endif %}
 
 {# --- T5: Bestandswert (Warenwert = Σ Bestand × Einkaufspreis) --- #}
 {% if warenwert.total %}

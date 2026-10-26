@@ -57,6 +57,9 @@ def _product_form_flags(request):
         "show_food_labeling": show_food,
         "show_textile_labeling": show_textile,
         "show_labeling_tab": show_food or show_textile,
+        # KA-12 WR-3 (E3.11): «Marke & Zustand» и UVP — товарная розница/аутлет, не кухня.
+        # Заполненное значение у гастро всё равно видно (шаблон), поля всегда в DOM (W0).
+        "show_retail_fields": not show_food,
     }
 
 

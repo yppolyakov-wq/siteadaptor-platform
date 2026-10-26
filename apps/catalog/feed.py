@@ -19,8 +19,17 @@ from django.utils import timezone
 # в названии товара делал весь фид нечитаемым для площадки.
 _XML_ILLEGAL = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\ufffe\uffff]")
 
-# M23b.1 (В-3): состояние товара (O-1) → g:condition. Пусто/новое → new, прочее → used.
-_NEW_CONDITIONS = {"", "neu", "neu_ohne_ovp"}
+# M23b.1 (В-3): состояние товара (O-1) → g:condition. KA-12 WR-1 (B10): geprüfte Retoure и
+# Ausstellungsstück — «refurbished» (проверено продавцом), не «used»; б/у — «used».
+_CONDITION_MAP = {
+    "": "new",
+    "neu": "new",
+    "neu_ohne_ovp": "new",
+    "ausstellung": "refurbished",
+    "retoure": "refurbished",
+    "wie_neu": "used",
+    "gut": "used",
+}
 
 
 def escape(value: str) -> str:
@@ -121,6 +130,12 @@ def merchant_sale(product, variant, row_price) -> dict:
     return {"price": _money(charged, product.currency)}
 
 
+def _variant_image(variant, absolutize) -> str:
+    """KA-12 WR-1: фото варианта (цвет) — в image_link его строки; нет — фото товара."""
+    img = variant.primary_image
+    return absolutize(img["url"]) if img and img.get("url") else ""
+
+
 def _entries(product, *, product_url, absolutize, merchant=False):
     """Записи фида для товара: по одной на активный вариант, иначе одна на товар.
 
@@ -134,11 +149,11 @@ def _entries(product, *, product_url, absolutize, merchant=False):
     legacy_brand = product.metadata.get("brand") if isinstance(product.metadata, dict) else ""
     if merchant:
         brand = product.brand or legacy_brand or ""
-        condition = "new" if (product.condition or "") in _NEW_CONDITIONS else "used"
+        condition = _CONDITION_MAP.get(product.condition or "", "used")
     else:
         brand, condition = legacy_brand, "new"
 
-    def base(item_id, item_title, price, available, gtin="", sku=""):
+    def base(item_id, item_title, price, available, gtin="", sku="", image=""):
         eff_gtin = gtin or product.gtin or ""  # A1: вариантный EAN перебивает товарный
         # Фидбэк 2026-08-04: вариантный артикул перебивает товарный (как EAN).
         eff_sku = sku or product.sku or ""
@@ -147,7 +162,7 @@ def _entries(product, *, product_url, absolutize, merchant=False):
             "title": item_title,
             "description": description,
             "link": link,
-            "image_link": image_link,
+            "image_link": image or image_link,
             "availability": "in_stock" if available else "out_of_stock",
             "price": _money(price, product.currency),
             "brand": brand,
@@ -177,8 +192,12 @@ def _entries(product, *, product_url, absolutize, merchant=False):
                     row["variant"].in_stock,
                     gtin=row["variant"].gtin,
                     sku=row["variant"].sku,
+                    image=_variant_image(row["variant"], absolutize),
                 ),
                 "item_group_id": str(product.pk),
+                # KA-12 WR-1 (E3.7): оси варианта — Google группирует по ним (одежда).
+                "size": row["variant"].size,
+                "color": row["variant"].color,
                 **merchant_sale(product, row["variant"], merchant_row_price(product, row)),
             }
             for row in rows

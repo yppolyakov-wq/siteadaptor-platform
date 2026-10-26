@@ -473,6 +473,17 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             return getattr(self, "_default_vat", Decimal("19.00"))
         return value
 
+    def clean(self):
+        cleaned = super().clean()
+        # KA-12 WR-4 (E3.8, PAngV): единица без количества даёт «Grundpreis» без числа —
+        # владелец думает, что базовая цена указана, а витрина её не покажет.
+        if cleaned.get("unit") and cleaned.get("content_amount") in (None, ""):
+            self.add_error(
+                "content_amount",
+                _("Bitte die Menge angeben (z. B. 250 bei 250 g) – sonst fehlt der Grundpreis."),
+            )
+        return cleaned
+
     def clean_base_price(self):
         price = self.cleaned_data["base_price"]
         if price is not None and price < 0:

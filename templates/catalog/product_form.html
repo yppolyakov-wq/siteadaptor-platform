@@ -104,7 +104,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
       {% comment %}O-1 (Outlet/B-Ware): марка и состояние — часть описания товара, а не
       маркировки: в аутлете это первое, что смотрит покупатель, и по § 476 Abs. 2 BGB
       известный недостаток обязан быть назван.{% endcomment %}
-      <div class="space-y-3 border-t border-gray-100 pt-3">
+      <div class="space-y-3 border-t border-gray-100 pt-3{% if not show_retail_fields and not form.instance.brand and not form.instance.condition %} hidden{% endif %}" data-retail-fields>
         <p class="text-sm font-medium">{% trans "Marke & Zustand" %}</p>
         {% for field in form %}{% if field.name == 'brand' or field.name == 'condition' or field.name == 'condition_note' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
       </div>
@@ -345,7 +345,8 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
           {% for field in form %}{% if field.name == 'base_price' or field.name == 'vat_rate' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
         </div>
         {# O-1: UVP — Streichpreis gegen die Herstellerempfehlung (Outlet). #}
-        {% for field in form %}{% if field.name == 'list_price' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+        {# KA-12 WR-3: UVP — не у гастро (кроме уже заполненного); поле в DOM (W0). #}
+        <div{% if not show_retail_fields and not form.instance.list_price %} class="hidden"{% endif %} data-list-price>{% for field in form %}{% if field.name == 'list_price' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}</div>
         <div class="grid grid-cols-2 gap-3">
           {% for field in form %}{% if field.name == 'stock_quantity' or field.name == 'reorder_point' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
         </div>

@@ -582,3 +582,23 @@ def test_grid_view_cols_follow_section_layout():
         }
     )
     assert 'data-plv-mobile="1"' in _render_home(one)
+
+
+def test_additive_numbers_and_legend_match_pdf_scheme():
+    """KA-12 WR-2 (E3.12): номера Zusatzstoffe в строке прайса и легенда — тот же
+    маппинг, что PDF-Speisekarte (food.additive_numbers)."""
+    from apps.catalog import food
+
+    _seed_products()
+    p = Product.objects.get(name__de="Buffet Vegetarisch")
+    codes = [code for code, _label in food.ADDITIVES[:2]]
+    p.additives = codes
+    p.save(update_fields=["additives"])
+    cfg = {
+        "sections": [{"key": "products", "enabled": True, "style": "preisliste"}],
+        "menu_labels": True,
+    }
+    html = _render_home(TenantFactory.build(business_type="catering", site_config=cfg))
+    assert "data-additive-numbers>1,2</sup>" in html
+    assert "data-additive-legend" in html and "1</b> = " in html
+    assert food.additive_number_str(codes) == p.additive_numbers_str

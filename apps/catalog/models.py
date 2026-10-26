@@ -187,6 +187,10 @@ class Product(SoftDeleteMixin, I18nMixin):
         ("kg", _("Kilogramm")),
         ("ml", _("Milliliter")),
         ("l", _("Liter")),
+        # KA-12 WR-4 (E3.8): Meterware, Fliesen/Laminat, Schüttgut — €/m, €/m², €/m³.
+        ("m", _("Meter")),
+        ("m2", _("Quadratmeter")),
+        ("m3", _("Kubikmeter")),
     ]
     unit = models.CharField(max_length=4, blank=True, choices=UNIT_CHOICES)
     content_amount = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
@@ -545,6 +549,14 @@ class Product(SoftDeleteMixin, I18nMixin):
         from .food import allergen_letter_str
 
         return allergen_letter_str(self.allergens)
+
+    @property
+    def additive_numbers_str(self) -> str:
+        """KA-12 WR-2 (E3.12): номера Zusatzstoffe («2,4») — тот же источник, что у
+        PDF-Speisekarte (`food.additive_number_str`): номер у блюда = номер в легенде."""
+        from .food import additive_number_str
+
+        return additive_number_str(self.additives)
 
 
 class ProductVariant(TimestampedModel):

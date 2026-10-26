@@ -110,6 +110,9 @@ MEN-24a: show_labels — маркировка диет/аллергенов (т�
 {% comment %}MEN-24a: легенда сносок — только фактически встреченные аллергены,
 буквы совпадают с PDF-Speisekarte (единый маппинг food.allergen_letters).{% endcomment %}
 <p class="mt-3 text-[11px] leading-relaxed text-gray-400">{% for letter, label in al %}<span class="whitespace-nowrap"><b class="font-semibold">{{ letter }}</b> = {{ label }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+{% endif %}{% additive_legend price_groups as adl %}{% if adl %}
+{# KA-12 WR-2: легенда номеров Zusatzstoffe — номера совпадают с PDF-Speisekarte. #}
+<p class="mt-1 text-[11px] leading-relaxed text-gray-400" data-additive-legend>{% for num, label in adl %}<span class="whitespace-nowrap"><b class="font-semibold">{{ num }}</b> = {{ label }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
 {% endif %}{% endif %}
 {% if st == 'preisliste_buch' %}{% include "storefront/_price_book_script.html" %}{% endif %}
 {% endwith %}

@@ -30855,3 +30855,15 @@ msgstr "only %(days)s"
 #, python-format
 msgid "„%(item)s“ gibt es nur %(days)s."
 msgstr "“%(item)s” is only available %(days)s."
+
+msgid "Bitte die Menge angeben (z. B. 250 bei 250 g) – sonst fehlt der Grundpreis."
+msgstr "Please enter the quantity (e.g. 250 for 250 g) – otherwise the unit price is missing."
+
+msgid "Kubikmeter"
+msgstr "Cubic metre"
+
+msgid "Meter"
+msgstr "Metre"
+
+msgid "Quadratmeter"
+msgstr "Square metre"

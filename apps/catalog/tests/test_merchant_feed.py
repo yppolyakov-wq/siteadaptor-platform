@@ -107,7 +107,16 @@ def _merchant_xml(products):
 
 @pytest.mark.parametrize(
     "condition,expected",
-    [("", "new"), ("neu", "new"), ("neu_ohne_ovp", "new"), ("retoure", "used"), ("gut", "used")],
+    [
+        ("", "new"),
+        ("neu", "new"),
+        ("neu_ohne_ovp", "new"),
+        # KA-12 WR-1 (B10, осознанная переписка): проверенная Retoure — refurbished
+        ("retoure", "refurbished"),
+        ("ausstellung", "refurbished"),
+        ("wie_neu", "used"),
+        ("gut", "used"),
+    ],
 )
 def test_condition_mapping(condition, expected):
     xml = _merchant_xml([_product(condition=condition)])
@@ -590,3 +599,21 @@ def test_equal_price_tie_is_stable():
     _promo(p, price_override=Decimal("8.00"), discount_style="mystery")
     assert product_promo_map([p.pk])[p.pk] == first
     assert str(p.pk) in _merchant_xml(google.merchant_products())
+
+
+def test_variant_axes_and_own_photo_in_feed():
+    """KA-12 WR-1 (E3.7): g:size/g:color у вариантов, фото варианта в его image_link."""
+    p = _product()
+    ProductVariant.objects.create(
+        product=p,
+        size="M",
+        color="Blau",
+        price=Decimal("29"),
+        images=[{"url": "/media/blau.webp", "is_primary": True}],
+    )
+    ProductVariant.objects.create(product=p, size="L", color="Rot", price=Decimal("29"))
+    xml = _merchant_xml(google.merchant_products())
+    assert "<g:size>M</g:size>" in xml and "<g:color>Blau</g:color>" in xml
+    assert "<g:size>L</g:size>" in xml and "<g:color>Rot</g:color>" in xml
+    assert "/media/blau.webp</g:image_link>" in xml
+    assert "/media/p.webp</g:image_link>" in xml  # без своего фото — фото товара

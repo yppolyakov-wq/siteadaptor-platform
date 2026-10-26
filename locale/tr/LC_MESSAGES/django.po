@@ -30999,3 +30999,15 @@ msgstr "sadece %(days)s"
 #, python-format
 msgid "„%(item)s“ gibt es nur %(days)s."
 msgstr "“%(item)s” yalnızca %(days)s mevcut."
+
+msgid "Bitte die Menge angeben (z. B. 250 bei 250 g) – sonst fehlt der Grundpreis."
+msgstr "Lütfen miktarı girin (ör. 250 g için 250) – aksi halde birim fiyat eksik kalır."
+
+msgid "Kubikmeter"
+msgstr "Metreküp"
+
+msgid "Meter"
+msgstr "Metre"
+
+msgid "Quadratmeter"
+msgstr "Metrekare"

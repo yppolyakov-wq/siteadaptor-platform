@@ -872,6 +872,23 @@ def allergen_legend(groups):
 
 
 @register.simple_tag
+def additive_legend(groups):
+    """KA-12 WR-2 (E3.12): легенда номеров Zusatzstoffe по фактически встреченным
+    добавкам выдачи — [(номер, метка)], тот же маппинг, что PDF-Speisekarte."""
+    try:
+        from apps.catalog.food import ADDITIVES, additive_numbers
+
+        seen: set = set()
+        for g in groups or []:
+            for p in g.get("items", []):
+                seen.update(getattr(p, "additives", None) or [])
+        numbers = additive_numbers()
+        return [(numbers[code], label) for code, label in ADDITIVES if code in seen]
+    except Exception:  # noqa: BLE001
+        return []
+
+
+@register.simple_tag
 def price_groups_from(items):
     """Страница каталога в пресете «preisliste»: группировка ТЕКУЩЕЙ выдачи
     листинга (фасеты/поиск/пагинация уже применены провайдером UB)."""

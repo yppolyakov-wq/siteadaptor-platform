@@ -12,6 +12,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.catalog.models import Product
+from apps.core.archetypes import FOOD_BUSINESS_TYPES
 
 from . import locations, matrix, services
 from .models import StockMovement
@@ -190,6 +191,10 @@ def stock(request):
             "history_label": history_label,
             # E1: Chargen/MHD
             "lots_on": lots_on,
+            # KA-12 WR-3 (E3.11): Chargen/MHD — продукты питания; у одежды/техники
+            # переключатель скрыт (включённый ранее — виден, чтобы можно было выключить).
+            "show_lots_toggle": lots_on
+            or getattr(request.tenant, "business_type", "") in FOOD_BUSINESS_TYPES,
             "lots": lots,
             "expiring_count": expiring_count,
             # E2: Мультисклад
