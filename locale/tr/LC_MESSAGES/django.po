@@ -31267,3 +31267,26 @@ msgstr "Yalnızca ürünler ve mağaza için geçerlidir — hizmetler veya odal
 
 msgid "Der Aktionspreis gilt für diese Bestellung nicht (siehe Bedingungen der Aktion)."
 msgstr "Kampanya fiyatı bu sipariş için geçerli değil (kampanya koşullarına bakın)."
+
+msgid "Bitte das Geschenk-Produkt wählen."
+msgstr "Lütfen hediye ürünü seçin."
+
+msgid "Das Geschenk ist genau ein Stück — es kann nur entfernt werden."
+msgstr "Hediye tam olarak bir adettir — yalnızca kaldırılabilir."
+
+msgid "Das gewählte Produkt kommt kostenlos in jede Bestellung ab diesem Warenwert. Der Preis des Produkts selbst ändert sich nicht."
+msgstr "Seçilen ürün bu tutardan itibaren her siparişe ücretsiz eklenir. Ürünün kendi fiyatı değişmez."
+
+msgid "Ein Geschenk hat keinen eigenen Rabatt — Felder für Rabatt leer lassen."
+msgstr "Hediyenin kendi indirimi yoktur — indirim alanlarını boş bırakın."
+
+msgid "Gratis dazu ab Bestellwert (€)"
+msgstr "Bu sipariş tutarından itibaren hediye (€)"
+
+#, python-format
+msgid "Gratis dazu: %(name)s"
+msgstr "Hediye: %(name)s"
+
+#, python-format
+msgid "Noch %(eur)s %(c)s bis zum Geschenk: %(name)s"
+msgstr "Hediye için %(eur)s %(c)s daha: %(name)s"

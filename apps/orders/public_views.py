@@ -824,7 +824,14 @@ def cart_view(request):
     )
     # A4 промокод: скидка на subtotal (товары+комбо), итог к оплате.
     voucher, discount = _cart_discount(request, total)
+    # KA-12 PR-4: подарок от суммы — та же функция, что create_order.
+    from apps.promotions import gifts
+
+    gift, gift_next, gift_missing = gifts.pick(total) if rows or combo_rows else (None, None, None)
     ctx = {
+        "gift": gift,
+        "gift_next": gift_next,
+        "gift_missing": gift_missing,
         "rows": rows,
         "promo_seen": promo_seen,
         "combo_rows": combo_rows,

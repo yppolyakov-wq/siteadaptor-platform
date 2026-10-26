@@ -31215,3 +31215,26 @@ msgstr "Gilt nur für Produkte und den Shop — nicht für Leistungen oder Zimme
 
 msgid "Der Aktionspreis gilt für diese Bestellung nicht (siehe Bedingungen der Aktion)."
 msgstr "Der Aktionspreis gilt für diese Bestellung nicht (siehe Bedingungen der Aktion)."
+
+msgid "Bitte das Geschenk-Produkt wählen."
+msgstr "Bitte das Geschenk-Produkt wählen."
+
+msgid "Das Geschenk ist genau ein Stück — es kann nur entfernt werden."
+msgstr "Das Geschenk ist genau ein Stück — es kann nur entfernt werden."
+
+msgid "Das gewählte Produkt kommt kostenlos in jede Bestellung ab diesem Warenwert. Der Preis des Produkts selbst ändert sich nicht."
+msgstr "Das gewählte Produkt kommt kostenlos in jede Bestellung ab diesem Warenwert. Der Preis des Produkts selbst ändert sich nicht."
+
+msgid "Ein Geschenk hat keinen eigenen Rabatt — Felder für Rabatt leer lassen."
+msgstr "Ein Geschenk hat keinen eigenen Rabatt — Felder für Rabatt leer lassen."
+
+msgid "Gratis dazu ab Bestellwert (€)"
+msgstr "Gratis dazu ab Bestellwert (€)"
+
+#, python-format
+msgid "Gratis dazu: %(name)s"
+msgstr "Gratis dazu: %(name)s"
+
+#, python-format
+msgid "Noch %(eur)s %(c)s bis zum Geschenk: %(name)s"
+msgstr "Noch %(eur)s %(c)s bis zum Geschenk: %(name)s"

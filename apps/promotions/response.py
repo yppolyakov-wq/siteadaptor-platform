@@ -68,6 +68,10 @@ def response_for(promo, tenant) -> str:
     """Отклик акции для этого тенанта (см. модульный docstring)."""
     if getattr(promo, "target_kind", "") in ("service", "stay"):
         return BOOKING
+    from . import gifts
+
+    if gifts.is_gift(promo):
+        return SHOW  # PR-4: подарок приходит в заказ сам — продавать его на странице нечего
     if getattr(promo, "scope_kind", ""):
         # KA-12 PR-1: акция на категорию/магазин действует в корзине на каждый товар —
         # своей покупки/резерва у неё нет; страница ведёт к товарам (или купон на кассу).

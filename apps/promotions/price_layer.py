@@ -181,6 +181,11 @@ def promo_for_product(product):
     return product_promo_map([product.pk]).get(product.pk)
 
 
+def _is_gift(promo) -> bool:
+    meta = promo.metadata if isinstance(promo.metadata, dict) else {}
+    return bool(meta.get("gift_min_order"))
+
+
 def _usable(promo, now, timeless_only) -> bool:
     if timeless_only and promo.target_rules:
         return False
@@ -265,6 +270,8 @@ def product_promo_map(product_ids, *, now=None, timeless_only=False):
         .order_by("created_at", "pk")
     ):
         if not _usable(promo, now, timeless_only):
+            continue
+        if _is_gift(promo):  # PR-4: подарок не меняет цену товара — отдельная строка 0 €
             continue
         if promo.product_id is None:
             if not promo.price_condition:

@@ -43,6 +43,52 @@ class NotOnMenu(OutOfStock):
         self.days = days
 
 
+def _add_gift(order, subtotal):
+    """KA-12 PR-4: строка-подарок 0 € (лимит кампании + склад) — в savepoint: кончился
+    подарок между корзиной и заказом — заказ уходит без него, а не падает."""
+    from apps.inventory.services import record_movement
+    from apps.promotions import gifts
+    from apps.promotions.price_layer import claim_units
+    from apps.promotions.services import OutOfStock as PromoSoldOut
+
+    gift, _next, _missing = gifts.pick(subtotal)
+    if gift is None:
+        return None
+    product = gift.product
+    try:
+        with transaction.atomic():
+            claim_units(gift, 1)
+            _reserve_stock([(product, None, 1, [])])
+            item = OrderItem.objects.create(
+                order=order,
+                product=product,
+                qty=1,
+                unit_price=Decimal("0.00"),
+                title_snapshot=str(product)[:200],
+                sku=product.sku,
+                modifiers=[
+                    {"promo": str(gift.pk), "label": "Aktion"}
+                ],  # тот же маркер, что у акций
+                vat_rate=product.vat_rate,
+                cost_price=product.cost_price,
+                list_price=Decimal(str(product.base_price)),
+                promotion=gift,
+                promo_label=_promo_title(gift),
+            )
+            if product.stock_quantity is not None:
+                record_movement(
+                    product=product,
+                    kind="sale",
+                    delta=-1,
+                    source="order",
+                    source_ref=str(item.pk),
+                    note=order.reference_code,
+                )
+            return item
+    except (PromoSoldOut, OutOfStock):
+        return None
+
+
 def _apply_quantity_deals(norm, line_promos, claim_totals):
     """KA-12 PR-3: разбить позиции с условной акцией на подстроки (см. create_order)."""
     from apps.promotions.quantity_deals import best_split, deal_map
@@ -548,6 +594,9 @@ def create_order(
                 note=order.reference_code,
             )
         total += unit_price * qty
+    # KA-12 PR-4: «Gratis-Artikel ab Bestellwert» — та же функция, что корзина (`gifts.pick`).
+    if apply_promotions and source_channel not in ("quote", "offer"):
+        _add_gift(order, total)
     # Промокод (A4): скидка на сумму товаров+комбо (до доставки). Гашение под
     # блокировкой (redeem_voucher) — анти-двойное-списание; сбой → без скидки.
     discount = Decimal("0")

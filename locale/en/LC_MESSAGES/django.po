@@ -31123,3 +31123,26 @@ msgstr "Applies only to products and the shop — not to services or rooms."
 
 msgid "Der Aktionspreis gilt für diese Bestellung nicht (siehe Bedingungen der Aktion)."
 msgstr "The promotional price does not apply to this order (see the promotion's conditions)."
+
+msgid "Bitte das Geschenk-Produkt wählen."
+msgstr "Please choose the gift product."
+
+msgid "Das Geschenk ist genau ein Stück — es kann nur entfernt werden."
+msgstr "The gift is exactly one item — it can only be removed."
+
+msgid "Das gewählte Produkt kommt kostenlos in jede Bestellung ab diesem Warenwert. Der Preis des Produkts selbst ändert sich nicht."
+msgstr "The selected product is added free to every order from this goods value. The product's own price does not change."
+
+msgid "Ein Geschenk hat keinen eigenen Rabatt — Felder für Rabatt leer lassen."
+msgstr "A gift has no discount of its own — leave the discount fields empty."
+
+msgid "Gratis dazu ab Bestellwert (€)"
+msgstr "Free gift from order value (€)"
+
+#, python-format
+msgid "Gratis dazu: %(name)s"
+msgstr "Free gift: %(name)s"
+
+#, python-format
+msgid "Noch %(eur)s %(c)s bis zum Geschenk: %(name)s"
+msgstr "%(eur)s %(c)s more for the gift: %(name)s"

@@ -207,6 +207,22 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 "wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
             ),
         )
+        # KA-12 PR-4: «Gratis-Artikel ab Bestellwert» — порог в metadata, цель = подарок.
+        from . import gifts
+
+        gift_min0 = gifts.threshold(self.instance)
+        self.fields["gift_min_order"] = MoneyField(
+            label=_("Gratis dazu ab Bestellwert (€)"),
+            required=False,
+            min_value=0,
+            decimal_places=2,
+            max_digits=10,
+            initial=gift_min0,
+            help_text=_(
+                "Das gewählte Produkt kommt kostenlos in jede Bestellung ab diesem Warenwert. "
+                "Der Preis des Produkts selbst ändert sich nicht."
+            ),
+        )
         # KA-12 PR-5: кому действует онлайн-цена акции (metadata["customer_rule"]).
         from . import eligibility
 
@@ -424,6 +440,15 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             if base is not None and off >= base:
                 # Ревью PR-2: «−X €» не дороже самой цены — иначе заказ на 0 €.
                 self.add_error("discount_off", _("Der Rabatt muss kleiner als der Preis sein."))
+        if cleaned.get("gift_min_order"):
+            # PR-4: подарок — конкретный товар, без собственной скидки и условия цены.
+            if not cleaned.get("product"):
+                self.add_error("gift_min_order", _("Bitte das Geschenk-Produkt wählen."))
+            if kinds or getattr(self, "_price_condition", None):
+                self.add_error(
+                    "gift_min_order",
+                    _("Ein Geschenk hat keinen eigenen Rabatt — Felder für Rabatt leer lassen."),
+                )
         if cleaned.get("customer_rule") and (cleaned.get("service") or cleaned.get("stay_unit")):
             # Ревью PR-5: запись и проживание не проходят через create_order — правило
             # молча не действовало бы.
@@ -559,6 +584,14 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 meta["response"] = value
             else:
                 meta.pop("response", None)
+            promo.metadata = meta
+        if "gift_min_order" in self.data:  # presence-guard (W0)
+            meta = dict(promo.metadata) if isinstance(promo.metadata, dict) else {}
+            gift_min = self.cleaned_data.get("gift_min_order")
+            if gift_min:
+                meta["gift_min_order"] = f"{gift_min:.2f}"
+            else:
+                meta.pop("gift_min_order", None)
             promo.metadata = meta
         if "customer_rule" in self.data:  # presence-guard (W0)
             meta = dict(promo.metadata) if isinstance(promo.metadata, dict) else {}

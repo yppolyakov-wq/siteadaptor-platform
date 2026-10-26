@@ -356,6 +356,10 @@ def purchase(
         # KA-12 PR-1 (ревью): акция на категорию/магазин действует в корзине на товары —
         # своей цены у неё нет (кастом-строка с ценой None уронила бы create_order).
         raise ValueError("scope promotion is applied in the cart, not sold itself")
+    from . import gifts
+
+    if gifts.is_gift(promotion):
+        raise ValueError("gift promotion is added to qualifying orders, not sold")
     if quantity < 1:
         raise ValueError("quantity must be >= 1")
     # KA-12 PR-5 (ревью): прямая покупка акции — то же правило клиента, что корзина.

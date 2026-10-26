@@ -31384,3 +31384,26 @@ msgstr "Діє лише для товарів і магазину — не дл�
 
 msgid "Der Aktionspreis gilt für diese Bestellung nicht (siehe Bedingungen der Aktion)."
 msgstr "Акційна ціна до цього замовлення не застосовується (див. умови акції)."
+
+msgid "Bitte das Geschenk-Produkt wählen."
+msgstr "Виберіть товар-подарунок."
+
+msgid "Das Geschenk ist genau ein Stück — es kann nur entfernt werden."
+msgstr "Подарунок — рівно одна штука, його можна лише видалити."
+
+msgid "Das gewählte Produkt kommt kostenlos in jede Bestellung ab diesem Warenwert. Der Preis des Produkts selbst ändert sich nicht."
+msgstr "Вибраний товар безкоштовно додається до кожного замовлення від цієї суми. Ціна самого товару не змінюється."
+
+msgid "Ein Geschenk hat keinen eigenen Rabatt — Felder für Rabatt leer lassen."
+msgstr "Подарунок не має власної знижки — залиште поля знижки порожніми."
+
+msgid "Gratis dazu ab Bestellwert (€)"
+msgstr "Подарунок від суми замовлення (€)"
+
+#, python-format
+msgid "Gratis dazu: %(name)s"
+msgstr "Подарунок: %(name)s"
+
+#, python-format
+msgid "Noch %(eur)s %(c)s bis zum Geschenk: %(name)s"
+msgstr "Ще %(eur)s %(c)s до подарунка: %(name)s"

@@ -200,6 +200,8 @@
            data-free-cents="{{ delivery_free_cents|default:0 }}" data-sym="{{ currency|cursym }}">
         <div class="flex items-center justify-between text-gray-600"><span>{% trans "Subtotal" %}</span><span>{{ total }} {{ currency|cursym }}</span></div>
         {% if discount %}<div class="flex items-center justify-between text-green-700"><span>{% trans "Discount" %}</span><span>−{{ discount }} {{ currency|cursym }}</span></div>{% endif %}
+        {% if gift %}<div class="flex items-center justify-between text-rose-700" data-cart-gift><span>🎁 {% blocktrans with name=gift.product %}Gratis dazu: {{ name }}{% endblocktrans %}</span><span>0,00 {{ currency|cursym }}</span></div>{% endif %}
+        {% if gift_next %}<p class="text-xs text-gray-500" data-cart-gift-next>{% blocktrans with eur=gift_missing|floatformat:2 c=currency|cursym name=gift_next.product %}Noch {{ eur }} {{ c }} bis zum Geschenk: {{ name }}{% endblocktrans %}</p>{% endif %}
         <div id="summary-delivery" class="hidden items-center justify-between text-gray-600"><span>🚚 {% trans "Delivery" %}</span><span data-delivery-fee></span></div>
         <div class="flex items-center justify-between font-bold text-base pt-1"><span>{% trans "Total" %}</span><span data-grand-total>{{ grand_total|default:total }} {{ currency|cursym }}</span></div>
         {# E-2/PAngV: MwSt.-Hinweis у Total (Versand — отдельной строкой выше при выборе доставки). #}

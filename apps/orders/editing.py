@@ -136,6 +136,11 @@ def set_item_qty(order, item_pk, qty: int, tenant=None):
     qty = max(int(qty), 0)
     # KA-12 PR-3: строка количественной акции («3 für 2» и т.п.) — часть разбивки; правка
     # её количества сломала бы соотношение (бесплатные штуки × N). Удалить можно.
+    from apps.promotions import gifts
+
+    if qty and item.promotion is not None and gifts.is_gift(item.promotion) and qty != item.qty:
+        # KA-12 PR-4: подарок — ровно одна штука за 0 €; размножить его правкой нельзя.
+        raise OrderLocked(_("Das Geschenk ist genau ein Stück — es kann nur entfernt werden."))
     if qty and item.promotion is not None and item.promotion.price_condition:
         raise OrderLocked(
             _("Diese Position gehört zu einer Mengenaktion – bitte entfernen und neu hinzufügen.")
