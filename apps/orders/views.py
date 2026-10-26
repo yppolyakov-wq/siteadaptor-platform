@@ -164,6 +164,8 @@ def production(request):
         day = datetime.date.fromisoformat(request.GET.get("tag") or "")
     except ValueError:
         day = today
+    if abs((day - today).days) > 3660:  # ревью WR-7: 0001-01-01 ± 1 день → OverflowError
+        day = today
     rows = prod.production_list(day)
     return render(
         request,

@@ -89,3 +89,15 @@ def test_view_renders_and_tolerates_garbage_date():
     request.tenant = None
     html = views.production(request).content.decode()
     assert "data-production-list" in html and "Brötchen" in html
+
+
+def test_deleted_product_keeps_name_and_boundary_date_is_safe():
+    roll = Product.objects.create(name={"de": "Brötchen"}, base_price=Decimal("0.50"))
+    _order(roll, 2, day=timezone.localdate())
+    roll.delete()  # soft delete
+    assert production.production_list(timezone.localdate())[0].name == "Brötchen"
+    request = RequestFactory().get("/x/", {"tag": "0001-01-01"})
+    request.user = get_user_model().objects.create_user(
+        username=f"u-{uuid.uuid4().hex[:8]}", password="pw1234567"
+    )
+    assert views.production(request).status_code == 200

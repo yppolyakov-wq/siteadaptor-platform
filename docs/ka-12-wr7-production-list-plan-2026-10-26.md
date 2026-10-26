@@ -24,3 +24,9 @@
 Скиллы: django-patterns, postgres-patterns. Агенты: django-reviewer + database-reviewer
 (агрегат/индексы) после кода. Гейты: ruff, `test_x0_x7_locks`, `test_view_perms`,
 `test_orphan_decorators`, `test_sidebar_st4b`, `test_template_comments`, `i18n_quickcheck`.
+
+## Ревью (django-reviewer, 2026-10-26)
+Исправлено: фильтр дня — полуоткрытым диапазоном локальных полуночей (без каста колонки
+к дате; DST-сутки верной длины); имена — `all_objects` + снимок `title_snapshot` (удалённый
+товар не «—»); артикул не дробит строки (`Max("sku")`); кламп даты против OverflowError.
+Индекс `(pickup_slot, status)` — в ближайшей миграции orders (WR-8), не отдельной.
