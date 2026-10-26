@@ -31113,3 +31113,30 @@ msgstr "Görünür yap"
 
 msgid "z. B. -10"
 msgstr "örn. -10"
+
+msgid "Für diesen Tag gibt es keine Vorbestellungen mit Abholzeit."
+msgstr "Bu gün için teslim saatli ön sipariş yok."
+
+msgid "Herstellen"
+msgstr "Üretilecek"
+
+msgid "Nächster Tag"
+msgstr "Sonraki gün"
+
+msgid "Produktionsliste"
+msgstr "Üretim listesi"
+
+msgid "Tag wählen"
+msgstr "Gün seçin"
+
+msgid "Vorheriger Tag"
+msgstr "Önceki gün"
+
+msgid "Wie viel Sie für die Abholungen dieses Tages herstellen müssen — aus allen offenen Vorbestellungen zusammengezählt."
+msgstr "Bu günün teslimatları için ne kadar üretmeniz gerektiği — tüm açık ön siparişlerden toplandı."
+
+#, python-format
+msgid "%(n)s offene Bestellung ohne Abholzeit ist nicht enthalten."
+msgid_plural "%(n)s offene Bestellungen ohne Abholzeit sind nicht enthalten."
+msgstr[0] "Teslim saati olmayan %(n)s açık sipariş dahil değil."
+msgstr[1] "Teslim saati olmayan %(n)s açık sipariş dahil değil."

@@ -9,6 +9,7 @@ urlpatterns = [
     # R7-3: доставка — своя рабочая страница (накладные/трек-номера)
     path("lieferungen/", views.deliveries, name="deliveries"),
     path("kitchen/", views.kitchen, name="kitchen"),
+    path("produktion/", views.production, name="production"),
     path("tisch-qr/", views.table_qr, name="table-qr"),
     path("kitchen/board/", views.kitchen_board, name="kitchen-board"),
     path("kitchen/<uuid:pk>/action/", views.kitchen_action, name="kitchen-action"),

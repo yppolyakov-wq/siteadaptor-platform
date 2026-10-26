@@ -151,6 +151,38 @@ def kitchen(request):
 
 
 @login_required
+def production(request):
+    """KA-12 WR-7 (E3.10): Produktionsliste — сколько чего произвести под выдачи дня."""
+    import datetime
+
+    from django.utils import timezone
+
+    from . import production as prod
+
+    today = timezone.localdate()
+    try:
+        day = datetime.date.fromisoformat(request.GET.get("tag") or "")
+    except ValueError:
+        day = today
+    rows = prod.production_list(day)
+    return render(
+        request,
+        "orders/production.html",
+        {
+            "nav": "production",
+            "day": day,
+            "today": today,
+            "prev_day": day - datetime.timedelta(days=1),
+            "next_day": day + datetime.timedelta(days=1),
+            "rows": rows,
+            "todo_total": sum(r.todo for r in rows),
+            "done_total": sum(r.done for r in rows),
+            "unscheduled": prod.unscheduled_open_orders(),
+        },
+    )
+
+
+@login_required
 def table_qr(request):
     """T2a: печатный лист QR-кодов столов. Каждый QR ведёт на витрину с
     ?tisch=N&ch=qr — гость сканирует, заказывает, заказ привязан к столу.

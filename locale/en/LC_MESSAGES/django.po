@@ -30969,3 +30969,30 @@ msgstr "Make visible"
 
 msgid "z. B. -10"
 msgstr "e.g. -10"
+
+msgid "Für diesen Tag gibt es keine Vorbestellungen mit Abholzeit."
+msgstr "There are no pre-orders with a pickup time for this day."
+
+msgid "Herstellen"
+msgstr "To make"
+
+msgid "Nächster Tag"
+msgstr "Next day"
+
+msgid "Produktionsliste"
+msgstr "Production list"
+
+msgid "Tag wählen"
+msgstr "Choose day"
+
+msgid "Vorheriger Tag"
+msgstr "Previous day"
+
+msgid "Wie viel Sie für die Abholungen dieses Tages herstellen müssen — aus allen offenen Vorbestellungen zusammengezählt."
+msgstr "How much you need to make for this day's pickups — summed up from all open pre-orders."
+
+#, python-format
+msgid "%(n)s offene Bestellung ohne Abholzeit ist nicht enthalten."
+msgid_plural "%(n)s offene Bestellungen ohne Abholzeit sind nicht enthalten."
+msgstr[0] "%(n)s open order without a pickup time is not included."
+msgstr[1] "%(n)s open orders without a pickup time are not included."

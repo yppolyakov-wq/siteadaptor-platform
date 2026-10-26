@@ -1,0 +1,63 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load cabinet %}
+{% load i18n %}
+{% block dash_title %}{% trans "Produktion" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-3xl mx-auto">
+  <div class="flex items-center justify-between flex-wrap gap-3 mb-2">
+    <h1 class="text-2xl font-bold">{% nav_title _("Produktion") %}</h1>
+    <button type="button" onclick="window.print()" class="print:hidden text-sm rounded-lg bg-indigo-600 text-white px-3 py-2 hover:bg-indigo-700">🖨 {% trans "Print" %}</button>
+  </div>
+  <p class="text-sm text-gray-500 mb-4 print:hidden">{% trans "Wie viel Sie für die Abholungen dieses Tages herstellen müssen — aus allen offenen Vorbestellungen zusammengezählt." %}</p>
+
+  <nav class="flex items-center gap-2 mb-4 print:hidden" aria-label="{% trans 'Tag wählen' %}">
+    <a href="?tag={{ prev_day|date:'Y-m-d' }}" class="rounded-lg bg-white shadow-sm px-3 py-2 text-sm hover:bg-gray-50" aria-label="{% trans 'Vorheriger Tag' %}">←</a>
+    <form method="get" class="flex items-center gap-2">
+      <label for="prod-day" class="sr-only">{% trans "Datum" %}</label>
+      <input id="prod-day" type="date" name="tag" value="{{ day|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base" onchange="this.form.submit()">
+    </form>
+    <a href="?tag={{ next_day|date:'Y-m-d' }}" class="rounded-lg bg-white shadow-sm px-3 py-2 text-sm hover:bg-gray-50" aria-label="{% trans 'Nächster Tag' %}">→</a>
+    {% if day != today %}<a href="?" class="text-sm text-indigo-600 hover:underline">{% trans "Heute" %}</a>{% endif %}
+  </nav>
+
+  <h2 class="hidden print:block text-lg font-semibold mb-2">{{ day|date:"l, d.m.Y" }}</h2>
+
+  {% if rows %}
+  <table class="w-full bg-white rounded-2xl shadow-sm text-sm" data-production-list>
+    <thead>
+      <tr class="text-left text-gray-500 border-b border-gray-100">
+        <th scope="col" class="px-4 py-2 font-medium">{% trans "Artikel" %}</th>
+        <th scope="col" class="px-4 py-2 font-medium text-right">{% trans "Herstellen" %}</th>
+        <th scope="col" class="px-4 py-2 font-medium text-right">{% trans "Fertig" %}</th>
+        <th scope="col" class="px-4 py-2 font-medium text-right">{% trans "Bestellungen" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr class="border-b border-gray-50 last:border-0">
+        <td class="px-4 py-2">{{ r.name }}{% if r.variant_label %} <span class="text-gray-500">· {{ r.variant_label }}</span>{% endif %}{% if r.sku %} <span class="text-xs text-gray-400">{{ r.sku }}</span>{% endif %}</td>
+        <td class="px-4 py-2 text-right text-lg font-bold">{{ r.todo }}</td>
+        <td class="px-4 py-2 text-right text-gray-500">{{ r.done }}</td>
+        <td class="px-4 py-2 text-right text-gray-500">{{ r.orders }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr class="border-t border-gray-200 font-semibold">
+        <th scope="row" class="px-4 py-2 text-left">{% trans "Summe" %}</th>
+        <td class="px-4 py-2 text-right">{{ todo_total }}</td>
+        <td class="px-4 py-2 text-right text-gray-500">{{ done_total }}</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+  {% else %}
+  <p class="bg-white rounded-2xl shadow-sm p-6 text-gray-500">{% trans "Für diesen Tag gibt es keine Vorbestellungen mit Abholzeit." %}</p>
+  {% endif %}
+
+  {% if unscheduled %}
+  <p class="mt-3 text-sm text-amber-700 print:hidden" role="note">{% blocktrans count n=unscheduled %}{{ n }} offene Bestellung ohne Abholzeit ist nicht enthalten.{% plural %}{{ n }} offene Bestellungen ohne Abholzeit sind nicht enthalten.{% endblocktrans %} <a href="{% url 'orders:order-list' %}" class="underline">{% trans "Ansehen" %}</a></p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -31244,3 +31244,32 @@ msgstr "Показать"
 
 msgid "z. B. -10"
 msgstr "напр. -10"
+
+msgid "Für diesen Tag gibt es keine Vorbestellungen mit Abholzeit."
+msgstr "На этот день нет предзаказов со временем выдачи."
+
+msgid "Herstellen"
+msgstr "Изготовить"
+
+msgid "Nächster Tag"
+msgstr "Следующий день"
+
+msgid "Produktionsliste"
+msgstr "Производственный список"
+
+msgid "Tag wählen"
+msgstr "Выбрать день"
+
+msgid "Vorheriger Tag"
+msgstr "Предыдущий день"
+
+msgid "Wie viel Sie für die Abholungen dieses Tages herstellen müssen — aus allen offenen Vorbestellungen zusammengezählt."
+msgstr "Сколько нужно изготовить к выдачам этого дня — сумма по всем открытым предзаказам."
+
+#, python-format
+msgid "%(n)s offene Bestellung ohne Abholzeit ist nicht enthalten."
+msgid_plural "%(n)s offene Bestellungen ohne Abholzeit sind nicht enthalten."
+msgstr[0] "%(n)s открытый заказ без времени выдачи не учтён."
+msgstr[1] "%(n)s открытых заказа без времени выдачи не учтены."
+msgstr[2] "%(n)s открытых заказов без времени выдачи не учтены."
+msgstr[3] "%(n)s открытого заказа без времени выдачи не учтены."

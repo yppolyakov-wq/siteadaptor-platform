@@ -246,6 +246,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         "küche kds bon",
         business_types=KITCHEN_TYPES,
     ),
+    # KA-12 WR-7: «Produktion» — Σ штук под выдачи дня (пекарня/мясная/кафе/кейтеринг).
+    _e(
+        "board",
+        "orders:production",
+        _("Produktion"),
+        "production",
+        "orders",
+        True,
+        "produktion backliste zerlegeliste vorbestellung heute menge",
+        business_types=FOOD_TYPES,
+    ),
     # KA-12 GA-6: «Tischplan» — столы по зонам на момент времени (зал ресторана/кафе).
     _e(
         "board",
