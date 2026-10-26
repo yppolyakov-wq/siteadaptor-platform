@@ -30762,3 +30762,15 @@ msgstr "nächste %(t)s"
 #, python-format
 msgid "offene Gruppenanfragen: %(n)s"
 msgstr "offene Gruppenanfragen: %(n)s"
+
+msgid "Gültig ab (Uhr)"
+msgstr "Gültig ab (Uhr)"
+
+msgid "Gültig an"
+msgstr "Gültig an"
+
+msgid "Gültig bis (Uhr)"
+msgstr "Gültig bis (Uhr)"
+
+msgid "Leer = jeden Tag. Wiederholte Aktionen überspringen die übrigen Tage."
+msgstr "Leer = jeden Tag. Wiederholte Aktionen überspringen die übrigen Tage."

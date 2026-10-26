@@ -89,6 +89,10 @@ PRESETS = {
                 "promo_type": "reservation",
                 "reservation_ttl_hours": 4,
                 "recurrence": "daily",
+                # KA-12 GA-8: Mittagstisch — Mo–Fr 11–15 (повтор пропускает Sa/So).
+                "rule_weekdays": ["0", "1", "2", "3", "4"],
+                "rule_hour_from": 11,
+                "rule_hour_to": 15,
             },
         },
         {
@@ -106,6 +110,10 @@ PRESETS = {
                 "promo_type": "reservation",
                 "reservation_ttl_hours": 4,
                 "recurrence": "daily",
+                # KA-12 GA-8: Mittagstisch — Mo–Fr 11–15 (повтор пропускает Sa/So).
+                "rule_weekdays": ["0", "1", "2", "3", "4"],
+                "rule_hour_from": 11,
+                "rule_hour_to": 15,
             },
         },
     ],

@@ -244,6 +244,34 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             max_length=pc.NOTE_MAX,
             initial=(cond.get("note") or {}).get(settings.LANGUAGE_CODE, ""),
         )
+        # KA-12 GA-8: окно действия «дни недели / часы» (target_rules). Движок окна
+        # (price_layer.rules_match, повтор, витрина) готов давно — в полной форме
+        # его не было; задавали только пресеты и ассистент.
+        from django.utils.dates import WEEKDAYS_ABBR
+
+        rules0 = self.instance.target_rules if isinstance(self.instance.target_rules, dict) else {}
+        self.fields["rule_weekdays"] = forms.MultipleChoiceField(
+            label=_("Gültig an"),
+            required=False,
+            choices=[(str(i), str(WEEKDAYS_ABBR[i])) for i in range(7)],
+            widget=forms.CheckboxSelectMultiple,
+            initial=[str(d) for d in (rules0.get("weekdays") or []) if isinstance(d, int)],
+            help_text=_("Leer = jeden Tag. Wiederholte Aktionen überspringen die übrigen Tage."),
+        )
+        self.fields["rule_hour_from"] = forms.IntegerField(
+            label=_("Gültig ab (Uhr)"),
+            required=False,
+            min_value=0,
+            max_value=23,
+            initial=rules0.get("hour_from"),
+        )
+        self.fields["rule_hour_to"] = forms.IntegerField(
+            label=_("Gültig bis (Uhr)"),
+            required=False,
+            min_value=1,
+            max_value=24,
+            initial=rules0.get("hour_to"),
+        )
         # T-8.13a: категория каталога города + признаки. Новая акция — подсказка по типу
         # бизнеса уже выбрана; пусто = подсказка в момент выкладки.
         from apps.core import city_categories as cc
@@ -429,6 +457,22 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             else:
                 meta.pop("perishable", None)
             promo.metadata = meta
+        # KA-12 GA-8: сентинел `rules_present` — окно пишется только формой, которая его
+        # рисует; прочие ключи target_rules (мастер, даты номера) сохраняются.
+        if "rules_present" in self.data:
+            rules = dict(promo.target_rules) if isinstance(promo.target_rules, dict) else {}
+            days = sorted({int(d) for d in self.cleaned_data.get("rule_weekdays") or []})
+            if days and len(days) < 7:
+                rules["weekdays"] = days
+            else:
+                rules.pop("weekdays", None)
+            for key in ("hour_from", "hour_to"):
+                value = self.cleaned_data.get(f"rule_{key}")
+                if value is None:
+                    rules.pop(key, None)
+                else:
+                    rules[key] = value
+            promo.target_rules = rules
         if commit:
             promo.save()
         return promo

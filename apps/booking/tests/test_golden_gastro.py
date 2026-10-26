@@ -83,7 +83,6 @@ def test_counter_booking_mail_says_confirmed(django_capture_on_commit_callbacks)
     ).exists()
 
 
-@pytest.mark.xfail(strict=True, reason="GA-8: Mittagstisch Mo–Fr порождает наследника в субботу")
 def test_weekday_lunch_skips_weekend():
     from apps.promotions.models import Promotion
     from apps.promotions.tasks import roll_due_recurring

@@ -30945,3 +30945,15 @@ msgstr "ближайшая %(t)s"
 #, python-format
 msgid "offene Gruppenanfragen: %(n)s"
 msgstr "открытых групповых заявок: %(n)s"
+
+msgid "Gültig ab (Uhr)"
+msgstr "Действует с (час)"
+
+msgid "Gültig an"
+msgstr "Действует по дням"
+
+msgid "Gültig bis (Uhr)"
+msgstr "Действует до (час)"
+
+msgid "Leer = jeden Tag. Wiederholte Aktionen überspringen die übrigen Tage."
+msgstr "Пусто — каждый день. Повторяющиеся акции пропускают остальные дни."

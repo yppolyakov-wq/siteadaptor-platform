@@ -30929,3 +30929,15 @@ msgstr "найближче %(t)s"
 #, python-format
 msgid "offene Gruppenanfragen: %(n)s"
 msgstr "відкритих групових запитів: %(n)s"
+
+msgid "Gültig ab (Uhr)"
+msgstr "Діє з (година)"
+
+msgid "Gültig an"
+msgstr "Діє в дні"
+
+msgid "Gültig bis (Uhr)"
+msgstr "Діє до (година)"
+
+msgid "Leer = jeden Tag. Wiederholte Aktionen überspringen die übrigen Tage."
+msgstr "Порожньо — щодня. Повторювані акції пропускають інші дні."

@@ -118,6 +118,9 @@
     {# Menge & Zeit #}
     <div data-pf-panel="zeit" class="space-y-3 pt-2 hidden">
       {% for field in form %}{% if field.name == 'available_quantity' or field.name == 'max_per_customer' or field.name == 'reservation_ttl_hours' or field.name == 'auto_confirm' or field.name == 'starts_at' or field.name == 'ends_at' or field.name == 'recurrence' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% comment %}KA-12 GA-8: окно действия (дни недели и часы) — Mittagstisch Mo–Fr.{% endcomment %}
+      {% for field in form %}{% if field.name == 'rule_weekdays' or field.name == 'rule_hour_from' or field.name == 'rule_hour_to' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      <input type="hidden" name="rules_present" value="1">
     </div>
 
     {# Anzeige: перечёркнутая цена, обратный отсчёт, форма карточки (DL-19) #}

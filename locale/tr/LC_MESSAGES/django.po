@@ -30814,3 +30814,15 @@ msgstr "sonraki %(t)s"
 #, python-format
 msgid "offene Gruppenanfragen: %(n)s"
 msgstr "açık grup talepleri: %(n)s"
+
+msgid "Gültig ab (Uhr)"
+msgstr "Geçerlilik başlangıcı (saat)"
+
+msgid "Gültig an"
+msgstr "Geçerli günler"
+
+msgid "Gültig bis (Uhr)"
+msgstr "Geçerlilik bitişi (saat)"
+
+msgid "Leer = jeden Tag. Wiederholte Aktionen überspringen die übrigen Tage."
+msgstr "Boş = her gün. Tekrarlanan kampanyalar diğer günleri atlar."

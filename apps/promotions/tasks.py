@@ -151,11 +151,32 @@ _RECUR_CLONE_FIELDS = (
     "strikethrough_old_price",
     "is_surprise",
     "metadata",
+    # KA-12 GA-8: цели ценового слоя и окно действия — без них наследник Happy Hour на
+    # услугу становился акцией «ни на что», а Mittagstisch Mo–Fr терял дни и часы.
+    "service_id",
+    "stay_unit_id",
+    "combo_id",
+    "target_rules",
+    "discount_style",
+    "card_style",
+    "page_style",
+    "group",
+    "group_i18n",
+    "city_category",
+    "city_tags",
 )
 
 
-def _next_window(starts, ends, recurrence, now):
-    """Окно следующего повтора: сдвиг на интервал, пропуская прошедшие циклы."""
+#: KA-12 GA-8: сколько дней ищем подходящий день повтора (неделя + каникулы).
+_MAX_SKIP_DAYS = 14
+
+
+def _next_window(starts, ends, recurrence, now, rules=None):
+    """Окно следующего повтора: сдвиг на интервал, пропуская прошедшие циклы.
+
+    KA-12 GA-8: ежедневный повтор пропускает дни вне `target_rules.weekdays`
+    (Mittagstisch Mo–Fr не появляется в субботу) и закрытые дни бизнеса
+    (Betriebsferien). Не нашли за 14 дней или правило — мусор → прежний шаг."""
     delta = timedelta(days=1) if recurrence == Promotion.DAILY else timedelta(weeks=1)
     new_starts, new_ends = starts + delta, ends + delta
     # если beat молчал несколько циклов — перескакиваем к ближайшему будущему
@@ -163,7 +184,28 @@ def _next_window(starts, ends, recurrence, now):
     while new_ends <= now:
         new_starts += delta
         new_ends += delta
-    return new_starts, new_ends
+    if recurrence != Promotion.DAILY:
+        return new_starts, new_ends
+    weekdays = rules.get("weekdays") if isinstance(rules, dict) else None
+    if not (isinstance(weekdays, list) and all(isinstance(d, int) for d in weekdays)):
+        weekdays = None
+    from apps.core import closures
+
+    for _step in range(_MAX_SKIP_DAYS):
+        day = timezone.localtime(new_starts).date()
+        if (weekdays is None or day.weekday() in weekdays) and not _closed(closures, day):
+            return new_starts, new_ends
+        new_starts += delta
+        new_ends += delta
+    return new_starts - delta * _MAX_SKIP_DAYS, new_ends - delta * _MAX_SKIP_DAYS
+
+
+def _closed(closures, day) -> bool:
+    try:
+        return closures.is_closed(day)
+    except Exception:  # noqa: BLE001 — каникулы не должны ронять повтор акции
+        logger.exception("closure check failed for %s", day)
+        return False
 
 
 def _spawn_recurrence(promo, now):
@@ -171,7 +213,9 @@ def _spawn_recurrence(promo, now):
 
     recurrence уходит к наследнику, у родителя гасится → цепочка одиночная.
     """
-    new_starts, new_ends = _next_window(promo.starts_at, promo.ends_at, promo.recurrence, now)
+    new_starts, new_ends = _next_window(
+        promo.starts_at, promo.ends_at, promo.recurrence, now, rules=promo.target_rules
+    )
     heir = Promotion(
         status="draft",
         starts_at=new_starts,
