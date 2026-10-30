@@ -468,8 +468,8 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
     # KA-12 Z-5 — «Check-in & Check-out» (только при праве на цены; _req — владелец).
     body_list = views.units(_req()).content.decode()
     assert (
-        body_list.count('<details class="bg-white')
-        + body_list.count('<details open class="bg-white')
+        # E9: панели — деталь `.ui-card` (было `bg-white …`)
+        body_list.count('<details class="ui-card') + body_list.count('<details open class="ui-card')
         == 10
     )
     for field in (
@@ -482,7 +482,7 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
     ):
         assert field in body_list, field
     # порядок: номера ВЫШЕ глобальных настроек (страница открывается номерами)
-    assert body_list.index("TabZimmer") < body_list.index('<details class="bg-white')
+    assert body_list.index("TabZimmer") < body_list.index('<details class="ui-card')
 
 
 def test_units_list_page_tabs_and_settings_groups():
@@ -537,7 +537,7 @@ def test_units_list_is_compact_and_links_to_unit_page():
     assert "data-unit-tabs" in page and "ZimmerA" in page
     assert "ZimmerB" not in page  # только свой номер
     # ловим ОБЕ формы карточки (после под-табов часть рендерится <details open>)
-    assert not re.search(r'<details(?: open)? class="bg-white', page)
+    assert not re.search(r'<details(?: open)? class="ui-card', page)
     # POST со страницы номера возвращает на неё же
     resp = views.units(
         _req("post", {"action": "unit_settings", "unit": str(a.pk), "price_eur": "95"}),

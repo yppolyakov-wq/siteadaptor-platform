@@ -18,7 +18,7 @@
 {% endif %}
 
 {% if companies %}
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 max-w-3xl">
+<div class="ui-card p-0 divide-y divide-gray-100 max-w-3xl">
   {% for co in companies %}
     <a href="{% url 'crm:company-detail' co.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
       <div class="min-w-0">

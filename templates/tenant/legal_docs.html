@@ -13,7 +13,7 @@
   <form method="post" class="space-y-6">
     {% csrf_token %}
     {# W9-5: реквизиты — раньше в «Mein Geschäft»; единственный редактор теперь тут. #}
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+    <fieldset class="ui-card p-6 space-y-3">
       <legend class="font-semibold mb-1">{% trans "Steuern & Unternehmensangaben" %}</legend>
       <input type="hidden" name="sec_steuer" value="1">
       <div class="grid sm:grid-cols-2 gap-4">
@@ -74,7 +74,7 @@
       </div>
     </fieldset>
     {% for k in kinds %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+      <fieldset class="ui-card p-6 space-y-3">
         <legend class="font-semibold mb-1">{{ k.label }}</legend>
         {% if k.kind == "agb" %}
           <p class="text-xs ui-muted mb-2">{% trans "Optional. The AGB page and its footer link appear only when a text is set." %}</p>

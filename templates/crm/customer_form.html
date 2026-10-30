@@ -7,7 +7,7 @@
   <a href="{% url 'crm:customer-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Customers" %}</a>
   <h1 class="ui-h1 mt-1 mb-4">{% trans "Add customer" %}</h1>
 
-  <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+  <form method="post" class="ui-card p-6 space-y-4">
     {% csrf_token %}
     {% for field in form %}
       <div>{% include "crm/_form_field.html" %}</div>

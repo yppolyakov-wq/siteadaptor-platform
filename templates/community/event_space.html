@@ -16,7 +16,7 @@
 </div>
 
 <div class="grid gap-6 lg:grid-cols-2 max-w-4xl">
-  <form method="post" class="rounded-2xl bg-white p-6 shadow-sm space-y-3">
+  <form method="post" class="ui-card p-6 space-y-3">
     {% csrf_token %}
     <h2 class="ui-h2">{% trans "Settings" %}</h2>
     <label class="flex items-center gap-2 text-sm">
@@ -30,7 +30,7 @@
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>
 
-  <div class="rounded-2xl bg-white p-6 shadow-sm space-y-4">
+  <div class="ui-card p-6 space-y-4">
     <div>
       <h2 class="ui-h2 mb-1">{% trans "Telegram group" %}</h2>
       {% if space.tg_connected %}
@@ -56,7 +56,7 @@
 <section class="mt-8 max-w-4xl">
   <h2 class="ui-h2 mb-3">{% trans "Latest posts" %}</h2>
   {% if posts %}
-    <ul class="divide-y rounded-2xl bg-white shadow-sm">
+    <ul class="ui-card p-0 divide-y">
       {% for post in posts %}
         <li class="p-4 {% if post.is_hidden %}opacity-50{% endif %}">
           <p class="text-sm"><span class="font-medium">{{ post.author_label }}</span>

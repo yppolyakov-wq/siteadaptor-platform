@@ -16,7 +16,7 @@ MT-1: правка тура. Маршрут — таблица строк (бе�
   </div>
 </div>
 
-<form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-2xl shadow-sm max-w-3xl space-y-4">
+<form method="post" enctype="multipart/form-data" class="ui-card p-6 max-w-3xl space-y-4">
   {% csrf_token %}
   {% for field in form %}
     <div>
@@ -107,7 +107,7 @@ MT-1: правка тура. Маршрут — таблица строк (бе�
     <a href="{% url 'events:create' %}" class="text-sm text-indigo-600 hover:underline">+ {% trans "New departure" %}</a>
   </div>
   {% if departures %}
-    <ul class="bg-white rounded-2xl shadow-sm divide-y">
+    <ul class="ui-card p-0 divide-y">
       {% for d in departures %}
         <li class="flex items-center justify-between gap-3 p-4">
           <div>

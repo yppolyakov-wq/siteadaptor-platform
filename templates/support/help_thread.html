@@ -32,7 +32,7 @@
   {% endfor %}
 </div>
 
-<form method="post" class="bg-white rounded-2xl shadow-sm p-4 max-w-2xl">{% csrf_token %}
+<form method="post" class="ui-card p-4 max-w-2xl">{% csrf_token %}
   <textarea name="body" rows="3" required placeholder="{% trans 'Write a message…' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
   <div class="text-right mt-2">
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Send" %}</button>

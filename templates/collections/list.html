@@ -23,7 +23,7 @@
 <p class="text-sm text-gray-500 mb-4">{% trans "Group services or rooms into collections — customers filter the storefront listing by these chips." %}</p>
 
 {# --- создать подборку -------------------------------------------------------- #}
-<form method="post" class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap items-end gap-3">
+<form method="post" class="ui-card p-4 mb-6 flex flex-wrap items-end gap-3">
   {% csrf_token %}
   <input type="hidden" name="action" value="create">
   <div class="flex-1 min-w-[14rem]">

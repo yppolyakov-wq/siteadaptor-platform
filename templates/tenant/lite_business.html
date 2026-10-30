@@ -12,7 +12,7 @@
   <form method="post" class="space-y-3">
     {% csrf_token %}
     {% for sec in form.sections %}
-    <section id="sec-{{ sec.key }}" class="bg-white rounded-2xl shadow-sm p-4 space-y-3" data-lite-section="{{ sec.key }}">
+    <section id="sec-{{ sec.key }}" class="ui-card p-4 space-y-3" data-lite-section="{{ sec.key }}">
       <h2 class="text-sm font-semibold">{{ sec.title }}</h2>
       {% if sec.key == "recht" %}<p class="text-xs text-gray-500">{% trans "Pflichtangaben nach § 5 DDG — daraus entsteht Ihr Impressum." %}</p>{% endif %}
       {% for field in sec.fields %}
@@ -45,7 +45,7 @@
       {% endif %}
     </section>
     {% endfor %}
-    <section id="sec-zeiten" class="bg-white rounded-2xl shadow-sm p-4" data-lite-hours>
+    <section id="sec-zeiten" class="ui-card p-4" data-lite-hours>
       <h2 class="text-sm font-semibold mb-1">{% trans "Opening hours" %}</h2>
       <p class="text-xs text-gray-500 mb-3">{% trans "Set open/close per day for the live “Open now” badge. Leave a day empty = closed." %}</p>
       <div class="space-y-2">

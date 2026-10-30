@@ -30,7 +30,7 @@
     <div class="xl:grid xl:grid-cols-2 xl:gap-6 xl:items-start xl:space-y-0 space-y-6">
     <div class="space-y-6 min-w-0">
     {# ① Базис — контакт и адрес, всегда открыт #}
-    <fieldset id="sec-kontakt" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 scroll-mt-4">
+    <fieldset id="sec-kontakt" class="ui-card p-6 space-y-4 scroll-mt-4">
       <legend class="font-semibold mb-2">{% trans "Contact & location" %}</legend>
       {% include "tenant/_settings_field.html" with field=form.name %}
       {% include "tenant/_settings_field.html" with field=form.address %}
@@ -49,7 +49,7 @@
 
     <div class="space-y-6 min-w-0">
     {# ③ Social — своя секция (X5-4): пять полей раздували блок контактов #}
-    <fieldset id="sec-social" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 scroll-mt-4">
+    <fieldset id="sec-social" class="ui-card p-6 space-y-4 scroll-mt-4">
       <legend class="font-semibold mb-1">{% trans "Social-Profile" %}</legend>
       <p class="text-xs ui-muted mb-2">{% trans "Handle oder volle URL — Icons erscheinen im Footer der Website." %}</p>
       {# GK-9: соцпрофили — иконки в футере витрины + sameAs (W0: всегда в DOM) #}
@@ -61,7 +61,7 @@
     </fieldset>
 
     {# ② Öffnungszeiten — структурный редактор (бейдж «Открыто») + свободный текст (свод обоих) #}
-    <fieldset id="sec-zeiten" class="bg-white rounded-2xl shadow-sm p-6 scroll-mt-4">
+    <fieldset id="sec-zeiten" class="ui-card p-6 scroll-mt-4">
       <legend class="font-semibold mb-1">{% trans "Opening hours" %}</legend>
       <p class="text-xs ui-muted mb-4">{% trans "Set open/close per day for the live “Open now” badge. Leave a day empty = closed." %}</p>
       <div class="space-y-2">

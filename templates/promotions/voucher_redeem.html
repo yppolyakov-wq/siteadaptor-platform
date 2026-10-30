@@ -16,7 +16,7 @@
   {% endif %}
 
   {% if voucher %}
-    <div class="bg-white rounded-2xl shadow-sm p-6 mb-4">
+    <div class="ui-card p-6 mb-4">
       <div class="flex items-center justify-between">
         <span class="font-mono text-lg font-bold">{{ voucher.code }}</span>
         {% if voucher.balance_cents is not None %}<span class="text-sm">{% blocktrans with amount=voucher.balance_eur|floatformat:2 %}Restguthaben: {{ amount }} €{% endblocktrans %}</span>{% else %}<span class="text-sm">{{ voucher.used_count }}{% if voucher.max_uses %}/{{ voucher.max_uses }}{% else %}/∞{% endif %}</span>{% endif %}
@@ -37,7 +37,7 @@
     </div>
   {% endif %}
 
-  <form method="post" action="{% url 'promotions:voucher-redeem' %}" class="bg-white rounded-2xl shadow-sm p-5 mb-4">
+  <form method="post" action="{% url 'promotions:voucher-redeem' %}" class="ui-card p-5 mb-4">
     {% csrf_token %}
     <label class="block text-sm font-medium mb-1" for="code">{% trans "Enter code" %}</label>
     <div class="flex gap-2">

@@ -19,39 +19,39 @@
 </div>
 
 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl">
-  <div class="bg-white rounded-2xl shadow-sm p-5">
+  <div class="ui-card p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "Occupancy (Belegung)" %}</p>
     <p class="text-2xl font-bold">{{ occupancy_pct }} %</p>
     <p class="text-xs ui-muted mt-1">{{ report.sold_nights }} / {{ report.available_nights }} {% trans "room-nights" %}</p>
     {% if report.external_nights %}<p class="text-xs ui-muted" data-external-nights>{% blocktrans with n=report.external_nights %}davon extern (iCal/OTA): {{ n }} Nächte{% endblocktrans %}</p>{% endif %}
   </div>
-  <div class="bg-white rounded-2xl shadow-sm p-5">
+  <div class="ui-card p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "ADR (Ø rate / night)" %}</p>
     {% widthratio report.adr_cents 100 1 as adr_eur %}
     <p class="text-2xl font-bold">{{ adr_eur }} €</p>
   </div>
-  <div class="bg-white rounded-2xl shadow-sm p-5">
+  <div class="ui-card p-5">
     <p class="text-xs text-gray-500 mb-1">RevPAR</p>
     {% widthratio report.revpar_cents 100 1 as revpar_eur %}
     <p class="text-2xl font-bold">{{ revpar_eur }} €</p>
     {% if report.external_nights %}<p class="text-xs ui-muted mt-1">{% trans "nur eigene Buchungen" %}</p>{% endif %}
   </div>
-  <div class="bg-white rounded-2xl shadow-sm p-5">
+  <div class="ui-card p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "Room revenue" %}</p>
     {% widthratio report.room_revenue_cents 100 1 as room_eur %}
     <p class="text-2xl font-bold">{{ room_eur }} €</p>
   </div>
-  <div class="bg-white rounded-2xl shadow-sm p-5">
+  <div class="ui-card p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "Total revenue (incl. extras, Kurtaxe)" %}</p>
     {% widthratio report.total_revenue_cents 100 1 as total_eur %}
     <p class="text-2xl font-bold">{{ total_eur }} €</p>
   </div>
-  <div class="bg-white rounded-2xl shadow-sm p-5">
+  <div class="ui-card p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "Bookings" %}</p>
     <p class="text-2xl font-bold">{{ report.bookings }}</p>
   </div>
   {# PMS-C: Ø длина проживания — по заездам месяца. #}
-  <div class="bg-white rounded-2xl shadow-sm p-5">
+  <div class="ui-card p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "Avg. length of stay" %}</p>
     <p class="text-2xl font-bold">{{ breakdowns.avg_los|floatformat:1 }}</p>
     <p class="text-xs ui-muted mt-1">{% blocktrans with n=breakdowns.arrivals %}nights · {{ n }} arrivals this month{% endblocktrans %}</p>
@@ -62,7 +62,7 @@
 {# PMS-C: разрезы месяца — канал / тариф / категория (выручка пропорциональна). #}
 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 max-w-5xl items-start">
   {% if breakdowns.by_channel %}
-  <div class="bg-white rounded-2xl shadow-sm p-5">
+  <div class="ui-card p-5">
     <h2 class="ui-h2 mb-2">{% trans "By channel" %}</h2>
     <div class="divide-y divide-gray-100 text-sm">
       {% for r in breakdowns.by_channel %}
@@ -76,7 +76,7 @@
   </div>
   {% endif %}
   {% if breakdowns.by_rate %}
-  <div class="bg-white rounded-2xl shadow-sm p-5">
+  <div class="ui-card p-5">
     <h2 class="ui-h2 mb-2">{% trans "By rate" %}</h2>
     <div class="divide-y divide-gray-100 text-sm">
       {% for r in breakdowns.by_rate %}
@@ -90,7 +90,7 @@
   </div>
   {% endif %}
   {% if breakdowns.by_unit %}
-  <div class="bg-white rounded-2xl shadow-sm p-5">
+  <div class="ui-card p-5">
     <h2 class="ui-h2 mb-2">{% trans "By room type" %}</h2>
     <div class="divide-y divide-gray-100 text-sm">
       {% for r in breakdowns.by_unit %}
@@ -108,7 +108,7 @@
 
 {% if market %}
 {# CP-1 «Marktposition»: публичные базовые цены отелей платформы в этом городе. #}
-<div class="bg-white rounded-2xl shadow-sm p-5 mt-6 max-w-2xl">
+<div class="ui-card p-5 mt-6 max-w-2xl">
   <h2 class="ui-h2 mb-1">📊 {% trans "Market position" %} · {{ market.city }}</h2>
   <p class="text-xs text-gray-500 mb-3">{% blocktrans with p=market.position n=market.total %}Your base price ranks {{ p }} of {{ n }} hotels in your city (platform listings, “from €/night”).{% endblocktrans %}</p>
   <div class="flex items-center gap-4 text-sm mb-3">

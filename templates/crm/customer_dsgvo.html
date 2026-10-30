@@ -13,13 +13,13 @@
 {% endif %}
 
 <div class="grid lg:grid-cols-2 gap-6 items-start">
-  <section class="bg-white rounded-2xl shadow-sm p-6 space-y-3" data-dsgvo-export>
+  <section class="ui-card p-6 space-y-3" data-dsgvo-export>
     <h2 class="ui-h2">{% trans "Auskunft und Datenübertragung (Art. 15, 20 DSGVO)" %}</h2>
     <p class="text-sm text-gray-600">{% trans "Alle gespeicherten Daten dieses Kunden als Datei: Bestellungen, Buchungen, Tickets, Aufträge, Angebote, Rechnungen, Nachrichten und Notizen." %}</p>
     <a href="{% url 'crm:customer-dsgvo-export' customer.pk %}" class="ui-btn ui-btn-primary">⬇ {% trans "Daten herunterladen (ZIP)" %}</a>
   </section>
 
-  <section class="bg-white rounded-2xl shadow-sm p-6 space-y-3" data-dsgvo-erase>
+  <section class="ui-card p-6 space-y-3" data-dsgvo-erase>
     <h2 class="ui-h2">{% trans "Löschung (Art. 17 DSGVO)" %}</h2>
     {% if anonymized %}
       <p class="text-sm text-green-700">{% trans "Die personenbezogenen Daten des Kunden wurden gelöscht." %}</p>

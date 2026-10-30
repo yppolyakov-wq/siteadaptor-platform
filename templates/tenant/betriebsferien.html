@@ -9,7 +9,7 @@
 
   {% include "tenant/_settings_messages.html" %}
 
-  <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4" data-betriebsferien-form>
+  <form method="post" class="ui-card p-6 space-y-4" data-betriebsferien-form>
     {% csrf_token %}
     <div class="grid sm:grid-cols-2 gap-4">
       <label class="block text-sm">{% trans "Von" %}

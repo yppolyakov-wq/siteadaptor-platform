@@ -14,7 +14,7 @@
 
   {% if coupon %}
     {% comment %}T-8.3: купон акции — гасится один раз; повтор показывает «уже использован».{% endcomment %}
-    <div class="bg-white rounded-2xl shadow-sm p-6 mt-3" data-redeem-coupon>
+    <div class="ui-card p-6 mt-3" data-redeem-coupon>
       <div class="flex items-center justify-between">
         <span class="font-mono text-lg font-bold">🎟 {{ coupon.code }}</span>
         <span class="px-2 py-0.5 rounded-full text-sm {% if coupon.is_redeemable %}bg-green-100 text-green-800{% else %}bg-gray-100{% endif %}">{% if coupon.is_redeemable %}{% trans "gültig" %}{% elif coupon.max_uses and coupon.used_count >= coupon.max_uses %}{% trans "eingelöst" %}{% else %}{% trans "abgelaufen" %}{% endif %}</span>
@@ -35,7 +35,7 @@
       </div>
     </div>
   {% elif reservation %}
-    <div class="bg-white rounded-2xl shadow-sm p-6 mt-3">
+    <div class="ui-card p-6 mt-3">
       <div class="flex items-center justify-between">
         <span class="font-mono text-lg font-bold">{{ reservation.reference_code }}</span>
         {% comment %}X1: печатался сырой код («pending»/«confirmed»); тег умеет
@@ -66,13 +66,13 @@
       </div>
     </div>
   {% else %}
-    <div class="bg-white rounded-2xl shadow-sm p-6 mt-3 text-center">
+    <div class="ui-card p-6 mt-3 text-center">
       <p class="text-gray-600">{% blocktrans %}No reservation found for code {{ code }}.{% endblocktrans %}</p>
     </div>
   {% endif %}
   {% if lite %}
   {% comment %}T-8.30e: у прилавка — следующий клиент: крупная кнопка назад к сканеру.{% endcomment %}
-  <a href="{% url 'promotions:redeem' %}" class="mt-4 flex items-center justify-center gap-2 h-12 rounded-2xl bg-white shadow-sm text-sm font-semibold text-gray-800" data-next-scan>📷 {% trans "Nächster Code" %}</a>
+  <a href="{% url 'promotions:redeem' %}" class="ui-card p-0 mt-4 flex items-center justify-center gap-2 h-12 text-sm font-semibold text-gray-800" data-next-scan>📷 {% trans "Nächster Code" %}</a>
   {% endif %}
 </div>
 {% include "promotions/_submit_once.html" %}

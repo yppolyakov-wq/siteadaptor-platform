@@ -19,12 +19,12 @@
   <a href="?month={{ next_month }}" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400" aria-label="{% trans 'Nächster Monat' %}">→</a>
 </div>
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mb-6">
-  <div class="bg-white rounded-2xl shadow-sm p-5"><p class="text-xs text-gray-500 mb-1">{% trans "Übernachtungen Erwachsene" %}</p><p class="text-2xl font-bold">{{ report.adult_nights }}</p></div>
-  <div class="bg-white rounded-2xl shadow-sm p-5"><p class="text-xs text-gray-500 mb-1">{% trans "Übernachtungen Kinder" %}</p><p class="text-2xl font-bold">{{ report.child_nights }}</p><p class="text-xs ui-muted mt-1">{% trans "davon befreit" %}: {{ report.free_child_nights }}</p></div>
-  <div class="bg-white rounded-2xl shadow-sm p-5"><p class="text-xs text-gray-500 mb-1">{% trans "Buchungen" %}</p><p class="text-2xl font-bold">{{ report.bookings }}</p></div>
-  <div class="bg-white rounded-2xl shadow-sm p-5"><p class="text-xs text-gray-500 mb-1">{{ report.label }}</p><p class="text-2xl font-bold">{{ report.kurtaxe_eur|floatformat:2 }} €</p></div>
+  <div class="ui-card p-5"><p class="text-xs text-gray-500 mb-1">{% trans "Übernachtungen Erwachsene" %}</p><p class="text-2xl font-bold">{{ report.adult_nights }}</p></div>
+  <div class="ui-card p-5"><p class="text-xs text-gray-500 mb-1">{% trans "Übernachtungen Kinder" %}</p><p class="text-2xl font-bold">{{ report.child_nights }}</p><p class="text-xs ui-muted mt-1">{% trans "davon befreit" %}: {{ report.free_child_nights }}</p></div>
+  <div class="ui-card p-5"><p class="text-xs text-gray-500 mb-1">{% trans "Buchungen" %}</p><p class="text-2xl font-bold">{{ report.bookings }}</p></div>
+  <div class="ui-card p-5"><p class="text-xs text-gray-500 mb-1">{{ report.label }}</p><p class="text-2xl font-bold">{{ report.kurtaxe_eur|floatformat:2 }} €</p></div>
 </div>
-<div class="bg-white rounded-2xl shadow-sm overflow-x-auto max-w-4xl">
+<div class="ui-card p-0 overflow-x-auto max-w-4xl">
   <table class="w-full text-sm">
     <thead class="text-left text-xs text-gray-500"><tr>
       <th scope="col" class="px-4 py-2">{% trans "Buchung" %}</th><th scope="col" class="px-4 py-2">{% trans "Kategorie" %}</th><th scope="col" class="px-4 py-2">{% trans "Zeitraum" %}</th>

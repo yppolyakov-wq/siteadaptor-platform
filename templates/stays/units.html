@@ -324,7 +324,7 @@
 {# --- новый юнит: кнопка «＋» раскрывает форму (пустой список — раскрыта) ---- #}
 <details id="neu" data-pt-panel="einheiten" class="{% if tab == 'einstellungen' %}hidden {% endif %}max-w-2xl mb-8"{% if not units or open_new %} open{% endif %}>
   <summary class="cursor-pointer select-none inline-flex items-center gap-2 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">＋ {% trans "New unit" %}</summary>
-<form method="post" enctype="multipart/form-data" class="mt-3 bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
+<form method="post" enctype="multipart/form-data" class="ui-card mt-3 p-6 max-w-2xl space-y-4">
   {% csrf_token %}
   <input type="hidden" name="action" value="unit">
   <div class="grid sm:grid-cols-2 gap-4">
@@ -404,7 +404,7 @@
   <span>📅 <strong>{% trans "Preise & Verfügbarkeit" %}</strong> — {% trans "Tagespreise, Stopp und Mindestaufenthalt im Kalender" %}</span><span aria-hidden="true">→</span>
 </a>
 {# --- тарифы (Rate Plans, H1) — на тенанта, для всех номеров ----------------- #}
-<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Rate plans" %} <span class="text-xs font-normal text-gray-400">{% if rate_plans %}· {{ rate_plans|length }}{% endif %}</span></summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Verschiedene Arten, dieselben Zimmer zu verkaufen — Basis, nicht erstattbar, mit Frühstück, Halbpension … Gäste wählen beim Buchen. Ein Tarif gilt für alle Kategorien oder nur für ausgewählte." %}</p>
   {% for r in rate_plans %}
@@ -498,7 +498,7 @@
   {% else %}<p class="text-xs text-gray-600 mt-3">{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}</p>{% endif %}
 </details>
 {# G4: авто-скидки на проживание — список правил (несколько на тип) ----------- #}
-<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Automatic discounts" %} <span class="text-xs font-normal text-gray-400">{% if auto_rules %}· {{ auto_rules|length }}{% endif %}</span></summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Applied to the room price (not extras/Kurtaxe). Add several rules — if more than one applies, the highest discount wins." %}</p>
   {% for r in auto_rules %}
@@ -539,7 +539,7 @@
   </form>
 </details>
 {# PMS-D: ручные occupancy-правила цены — «занятость ≥ X % → ±Y % на ночь». #}
-<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">📈 {% trans "Dynamic prices" %} <span class="text-xs font-normal text-gray-400">{% if occupancy_rules %}· {{ occupancy_rules|length }}{% endif %}</span></summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Nights in demand cost more, empty nights less: when a night's occupancy reaches the threshold, its ONLINE price changes by the given percent. Your own bookings at the desk keep the base price. The strictest matching rule wins." %}</p>
 
@@ -572,7 +572,7 @@
   </form>
 </details>
 {# Lücken-Deal: суперскидка на короткие промежутки между бронями. #}
-<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">💥 {% trans "Lücken-Deal" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten gewinnt die beste Ermäßigung (wird nicht addiert)." %}</p>
   <form method="post" class="flex items-end gap-3 flex-wrap">
@@ -596,7 +596,7 @@
 </div>
 <div data-st-panel="regeln" class="{% if sec != 'regeln' %}hidden{% endif %}">
 {# G12: правила продаж (Verkaufsregeln) — сезонный min/max-stay, CTA/CTD, окно #}
-<details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details open class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Sales rules" %} <span class="text-xs font-normal text-gray-400">{% if restriction_rules %}· {{ restriction_rules|length }}{% endif %}</span></summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited." %}</p>
 
@@ -677,7 +677,7 @@
 {% comment %}HF-2 (фидбэк владельца 2026-07-31, п. 5): владелец сам решает, какие
 пиктограммы удобств выносить на карточку номера. Пустой выбор = первые удобства
 самого номера (дефолт), поэтому в конфиг ничего не пишется.{% endcomment %}
-<details class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Amenities on the room card" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Which icons guests see on the room cards (list and home page). Only amenities the room actually has are shown. Leave everything unchecked to show the room's first few amenities." %}</p>
   <form method="post">
@@ -695,7 +695,7 @@
   </form>
 </details>
 {# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
-<details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details open class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Kurtaxe & house rules" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Kurtaxe per adult per night, added to every booking (0 = off). Children are free. House rules appear as a public page when filled." %} <a href="{% url 'stays:kurtaxe' %}" class="text-indigo-600 hover:underline">{% trans "Kurtaxe-Meldung" %} →</a></p>
   <form method="post" class="flex items-end gap-3 flex-wrap">
@@ -729,7 +729,7 @@
 {% if can_edit_prices %}
 {% comment %}KA-12 Z-5 (Р-8): часы заезда/выезда. Check-out-час задаёт момент, когда
 автоматика закрывает выезд дня (выручка) — поэтому правят только owner/admin.{% endcomment %}
-<details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details open class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Check-in & Check-out" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Danach schließt das System die Abreise automatisch ab." %}</p>
   <form method="post" class="flex items-end gap-3 flex-wrap">
@@ -754,13 +754,13 @@
 </div>
 <div data-st-panel="kanaele" class="{% if sec != 'kanaele' %}hidden{% endif %}">
 {# --- G10: виджет бронирования (iframe) для своего сайта --------------------- #}
-<details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details open class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Booking widget for your website" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Paste this code into your existing site to embed the booking search (no header/footer)." %}</p>
   <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Booking"&gt;&lt;/iframe&gt;</textarea>
 </details>
 {# --- G8: метапоиск / Google Hotel Center фид цен и наличия ------------------ #}
-<details open class="bg-white rounded-2xl shadow-sm p-5 mb-3">
+<details open class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Metasearch & Google (rates feed)" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Machine-readable availability & prices for metasearch and channel partners. Connect it in Google Hotel Center to get free booking links straight to your direct booking." %}</p>
   <input type="text" readonly value="{{ feed_url }}" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 font-mono text-[11px]">

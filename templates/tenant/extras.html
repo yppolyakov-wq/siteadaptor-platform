@@ -13,7 +13,7 @@
   {% include "tenant/_settings_messages.html" %}
 
   <div class="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
-  <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6 min-w-0">
+  <div class="ui-card p-0 divide-y divide-gray-100 mb-6 min-w-0">
     {% for e in extras %}
       <div class="flex items-center justify-between gap-3 p-4">
         <div class="flex items-center gap-3 min-w-0">
@@ -46,7 +46,7 @@
     {% endfor %}
   </div>
 
-  <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 min-w-0">
+  <form method="post" enctype="multipart/form-data" class="ui-card p-6 space-y-4 min-w-0">
     {% csrf_token %}
     <input type="hidden" name="action" value="add">
     <h2 class="ui-h2">{% trans "New extra" %}</h2>

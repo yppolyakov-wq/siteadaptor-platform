@@ -30,7 +30,7 @@
 
 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
   {% for f in stats.funnel %}
-    <div class="bg-white rounded-2xl shadow-sm p-4" data-funnel-{{ f.code }}{% if not f.tracked %} data-untracked{% endif %}>
+    <div class="ui-card p-4" data-funnel-{{ f.code }}{% if not f.tracked %} data-untracked{% endif %}>
       <span class="block text-xs text-gray-500">{{ f.label }}</span>
       {% if f.tracked %}
         <span class="block text-2xl font-bold tabular-nums mt-0.5">{{ f.value }}</span>
@@ -53,14 +53,14 @@
 </ul>
 
 {% if stats.sparkline %}
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-5">
+<div class="ui-card p-4 mb-5">
   <span class="block text-xs text-gray-500">{% trans "Aufrufe & Klicks pro Tag" %}</span>
   <svg viewBox="0 0 120 32" class="w-full h-7 mt-2 text-emerald-500" aria-hidden="true"><polyline points="{{ stats.sparkline }}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </div>
 {% endif %}
 
 {% if stats.top %}
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-5 overflow-x-auto" data-top-offers>
+<div class="ui-card p-4 mb-5 overflow-x-auto" data-top-offers>
   <h2 class="ui-h2 mb-2">{% trans "Top-Angebote" %}</h2>
   <table class="w-full text-sm">
     <thead>
@@ -89,7 +89,7 @@
 <p class="text-sm text-gray-700 mb-5" data-assistants-row>{% trans "Assistenten (KI): gezeigt · geöffnet" %}: <span class="tabular-nums">{{ stats.assistants.0 }} · {{ stats.assistants.1 }}</span> <span class="text-xs text-gray-400">({% trans "Anfragen von KI-Assistenten, nicht Personen" %})</span></p>
 {% endif %}
 {% if not stats.has_data and stats.status == "ok" %}
-<div class="bg-white rounded-2xl shadow-sm p-6 text-center" data-empty>
+<div class="ui-card p-6 text-center" data-empty>
   <p class="font-medium">{% trans "Noch keine Besuche" %}</p>
   <p class="text-sm text-gray-500 mt-1">{% trans "Sobald jemand Ihr Angebot im Stadtportal öffnet, erscheint es hier." %}</p>
 </div>

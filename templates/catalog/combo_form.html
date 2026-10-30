@@ -13,7 +13,7 @@
   <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start mt-4">
   <div class="min-w-0 space-y-6">
   {# Основные поля комбо. MEN-2: multipart — фото уходят при Save (плитка «＋ Foto»). #}
-  <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+  <form method="post" enctype="multipart/form-data" class="ui-card p-6 space-y-4">
     {% csrf_token %}
     <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="hidden">
     <div>
@@ -101,7 +101,7 @@
 
   {% if combo %}
     {# Группы выбора + опции #}
-    <div class="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+    <div class="ui-card p-6 space-y-5">
       <h2 class="ui-h2">{% trans "Choice groups" %}</h2>
       <p class="text-xs ui-muted">{% trans "A group with one option = fixed item; several options = guest chooses. min/max = how many to choose." %}</p>
 

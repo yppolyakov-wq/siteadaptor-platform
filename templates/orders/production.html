@@ -24,7 +24,7 @@
   <h2 class="hidden print:block text-lg font-semibold mb-2">{{ day|date:"l, d.m.Y" }}</h2>
 
   {% if rows %}
-  <table class="w-full bg-white rounded-2xl shadow-sm text-sm" data-production-list>
+  <table class="ui-card p-0 w-full text-sm" data-production-list>
     <thead>
       <tr class="text-left text-gray-500 border-b border-gray-100">
         <th scope="col" class="px-4 py-2 font-medium">{% trans "Artikel" %}</th>
@@ -53,7 +53,7 @@
     </tfoot>
   </table>
   {% else %}
-  <p class="bg-white rounded-2xl shadow-sm p-6 text-gray-500">{% trans "Für diesen Tag gibt es keine Vorbestellungen mit Abholzeit." %}</p>
+  <p class="ui-card p-6 text-gray-500">{% trans "Für diesen Tag gibt es keine Vorbestellungen mit Abholzeit." %}</p>
   {% endif %}
 
   {% if unscheduled %}

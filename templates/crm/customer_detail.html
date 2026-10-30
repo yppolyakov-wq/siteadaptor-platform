@@ -27,7 +27,7 @@
 
 {# CM-8.1: KPI-шапка — LTV (RevenueEntry) + счётчики по доменам. #}
 {% if kpi.ltv_n or kpi.counts %}
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
+<div class="ui-card p-4 mb-6 flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
   {% if kpi.ltv_n %}
     <div><span class="text-gray-400">{% trans "Revenue" %}:</span> <span class="font-bold text-base">{{ kpi.ltv_total|floatformat:2 }} €</span> <span class="text-gray-400">({{ kpi.ltv_n }}×{% if kpi.ltv_last %} · {% trans "last" %} {{ kpi.ltv_last|date:"d.m.Y" }}{% endif %})</span></div>
   {% endif %}
@@ -39,7 +39,7 @@
 
 <div class="grid lg:grid-cols-2 gap-6 items-start">
   <div class="space-y-6">
-    <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+    <form method="post" class="ui-card p-6 space-y-4">
       {% csrf_token %}
       {% for field in form %}
         <div>{% include "crm/_form_field.html" %}</div>
@@ -47,7 +47,7 @@
       <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
     </form>
 
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="ui-card p-6">
       <h2 class="ui-h2 mb-3">{% trans "Notes" %}</h2>
       <form method="post" action="{% url 'crm:note-add' customer.pk %}" class="mb-4">
         {% csrf_token %}
@@ -67,7 +67,7 @@
   </div>
 
   <div class="space-y-6">
-  <div class="bg-white rounded-2xl shadow-sm p-6">
+  <div class="ui-card p-6">
     <h2 class="ui-h2 mb-3">{% trans "Reservations" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
     {% for r in reservations %}
       <div class="border-t border-gray-100 py-3 flex items-center justify-between gap-3">
@@ -88,7 +88,7 @@
 
   {# Заказы Click & Collect (D2b, 360°): ведение — в кабинете Orders. #}
   {% if orders %}
-  <div class="bg-white rounded-2xl shadow-sm p-6">
+  <div class="ui-card p-6">
     <h2 class="ui-h2 mb-3">{% trans "Orders" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
     {% for o in orders %}
       <a href="{% url 'orders:order-detail' o.pk %}" class="border-t border-gray-100 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
@@ -103,7 +103,7 @@
   {% endif %}
 
   {# Карты лояльности клиента (D1b, 360°): readonly-справка, начисление — в Loyalty. #}
-  <div class="bg-white rounded-2xl shadow-sm p-6">
+  <div class="ui-card p-6">
     <h2 class="ui-h2 mb-3">{% trans "Loyalty" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
     {% for card in loyalty_cards %}
       <div class="border-t border-gray-100 py-3 flex items-center justify-between gap-3">
@@ -121,7 +121,7 @@
   </div>
 
   {# Ваучеры клиента (D1, 360°): список + выдача нового. #}
-  <div class="bg-white rounded-2xl shadow-sm p-6">
+  <div class="ui-card p-6">
     <h2 class="ui-h2 mb-3">{% trans "Vouchers" %}</h2>
     {% for v in vouchers %}
       <div class="border-t border-gray-100 py-3 flex items-center justify-between gap-3 {% if not v.is_redeemable %}opacity-60{% endif %}">
@@ -144,7 +144,7 @@
 
   {# CM-8.2/8.3/8.4: остальные разделы 360° — generic readonly-карточки. #}
   {% for s in sections360 %}
-  <div class="bg-white rounded-2xl shadow-sm p-6">
+  <div class="ui-card p-6">
     <h2 class="ui-h2 mb-3">{{ s.title }} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
     {% for it in s.items %}
       {% if it.url %}<a href="{{ it.url }}" class="border-t border-gray-100 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">{% else %}<div class="border-t border-gray-100 py-3 flex items-center justify-between gap-3">{% endif %}

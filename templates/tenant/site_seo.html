@@ -30,7 +30,7 @@
   <form method="post" class="space-y-4 pb-20" data-seo-form>
     {% csrf_token %}
     {% for r in rows %}
-      <div class="bg-white rounded-2xl shadow-sm p-5" data-seo-row data-sample="{{ r.sample_json }}"
+      <div class="ui-card p-5" data-seo-row data-sample="{{ r.sample_json }}"
            data-default-title="{{ r.default_title }}" data-default-desc="{{ r.default_desc }}">
         <p class="font-semibold mb-3">{{ r.label }}</p>
 
@@ -64,7 +64,7 @@
     {% endfor %}
 
     {# SEO-3b: контроль AI-краулеров (GEO) — robots.txt блокирует ИИ-ботов при снятии #}
-    <div class="bg-white rounded-2xl shadow-sm p-5">
+    <div class="ui-card p-5">
       <label class="flex items-start gap-3 text-sm">
         <input type="checkbox" name="allow_ai" {% if allow_ai %}checked{% endif %} class="rounded border-gray-300 mt-0.5">
         <span>

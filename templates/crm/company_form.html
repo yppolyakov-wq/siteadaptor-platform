@@ -17,7 +17,7 @@
   {% endif %}
 
   <div class="{% if company %}lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start{% endif %}">
-  <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 min-w-0">
+  <form method="post" class="ui-card p-6 space-y-4 min-w-0">
     {% csrf_token %}
     {% for field in form %}
       <div>{% include "crm/_form_field.html" %}</div>
@@ -27,7 +27,7 @@
 
   {% if company %}
   <div class="min-w-0">
-  <div class="bg-white rounded-2xl shadow-sm p-6 mt-6 lg:mt-0">
+  <div class="ui-card p-6 mt-6 lg:mt-0">
     <h2 class="font-semibold mb-3 flex items-center justify-between gap-3">{% trans "Customers" %}
       {# CO-2: та же выборка фильтром в CRM-списке (поиск/CSV поверх). #}
       <a href="{% url 'crm:customer-list' %}?firma={{ company.pk }}" class="text-xs font-normal text-indigo-600 hover:underline">{% trans "Open in customer list" %}</a>

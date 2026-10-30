@@ -42,7 +42,7 @@ KA-12 Z-3 (E4.6b): сетка категория × день (цена ночи 
 {% if preview %}{% include "stays/_price_preview.html" %}{% endif %}
 
 {% if not rows %}
-<p class="bg-white rounded-2xl shadow-sm p-5 text-sm text-gray-500">{% trans "Noch keine aktiven Zimmerkategorien." %} <a href="{% url 'stays:units' %}" class="text-indigo-600 hover:underline">{% trans "Zimmer anlegen" %}</a></p>
+<p class="ui-card p-5 text-sm text-gray-500">{% trans "Noch keine aktiven Zimmerkategorien." %} <a href="{% url 'stays:units' %}" class="text-indigo-600 hover:underline">{% trans "Zimmer anlegen" %}</a></p>
 {% else %}
 {% include "stays/_price_grid.html" %}
 {% include "stays/_price_cards.html" %}

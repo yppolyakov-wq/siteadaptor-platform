@@ -61,7 +61,7 @@
 
   {% comment %}Ф1: акция — переключатель языка (title/description по языкам, не все сразу)
      + табы вместо портянки. Поля всех языков/табов в DOM (Save собирает всё, инвариант W0).{% endcomment %}
-  <form method="post" enctype="multipart/form-data" class="space-y-4 bg-white p-6 rounded-2xl shadow-sm">
+  <form method="post" enctype="multipart/form-data" class="ui-card space-y-4 p-6">
     {% csrf_token %}
 
     {% include "tenant/_i18n_switch.html" %}

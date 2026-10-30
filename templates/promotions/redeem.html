@@ -16,12 +16,12 @@
   {% comment %}T-8.30e: в Telegram — нативное окно сканера (мост _tg_shim, без SDK).
   T-8.30l: открывается не во всех клиентах (компьютер/веб — нет вовсе), поэтому это
   ВТОРАЯ кнопка; основная — сканер на странице ниже. Видна только при мосте.{% endcomment %}
-  <button type="button" data-tg-scan hidden class="w-full flex items-center justify-center gap-2 h-12 rounded-2xl border border-indigo-200 bg-white text-indigo-700 text-sm font-semibold shadow-sm mb-4">📷 {% trans "Telegram-Scanner öffnen" %}</button>
+  <button type="button" data-tg-scan hidden class="ui-card p-0 w-full flex items-center justify-center gap-2 h-12 border border-indigo-200 text-indigo-700 text-sm font-semibold mb-4">📷 {% trans "Telegram-Scanner öffnen" %}</button>
   {% endif %}
   <p id="scan-error" class="hidden mb-3 rounded-lg px-4 py-2 text-sm bg-red-50 text-red-700" role="alert">{% trans "Unbekannter QR-Code." %}</p>
 
   {# Ручной ввод кода #}
-  <form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-4">
+  <form method="post" class="ui-card p-5 mb-4">
     {% csrf_token %}
     <label class="block text-sm font-medium mb-1" for="code">{% trans "Enter code" %}</label>
     <div class="flex gap-2">

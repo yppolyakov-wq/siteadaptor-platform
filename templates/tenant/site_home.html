@@ -192,7 +192,7 @@
       <div data-bld-area="sections" class="bld-area space-y-6 hidden">
       {% comment %}STU-12g: стартовая страница витрины — здесь, в панели главной: она
       отвечает на вопрос «что открывается первым», а не «как выглядит сайт».{% endcomment %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <fieldset class="ui-card p-6">
         <legend class="font-semibold mb-1">{% trans "Start page" %}</legend>
         <p class="text-xs ui-muted mb-3">{% trans 'What visitors see first. "Combined homepage" shows the blocks below; or jump straight into one section.' %}</p>
         <select name="storefront_root" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -239,7 +239,7 @@
          Скоуп ведёт applyStuPageScope по data-stu-page (единственный владелец класса
          hidden у таких элементов); data-scope="home" оставлен как якорь прежней
          механики для остальных наборов главной.{% endcomment %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="home"
+      <fieldset class="ui-card p-6" data-scope="home"
                 data-stu-setting="home_sections" data-stu-axis="content" data-stu-page="home">
         <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
         {% comment %}STU-8: «Вид баннера» переехал сюда из уровня «Дизайн сайта» — баннер
@@ -542,7 +542,7 @@
       {% if cblocks %}
       {% comment %}UC6-7b (fix): data-scope="home" — блоки ГЛАВНОЙ (cb_id → sections)
          прячутся на подстраницах, чтобы их не путали с блоками страницы (page_blocks).{% endcomment %}
-      <details class="bg-white rounded-2xl shadow-sm group" data-scope="home">
+      <details class="ui-card p-0 group" data-scope="home">
         <summary class="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer list-none">
           <span class="font-semibold">{% trans "Content blocks" %}
             <span class="block text-xs text-gray-400 mt-0.5">{% trans "Free building blocks (text, image, button). Reorder via position, remove with the checkbox." %}</span></span>
@@ -602,7 +602,7 @@
             </details>
           {% endfor %}
         </div>
-        <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-stu-any="1">
+        <fieldset class="ui-card p-6" data-stu-any="1">
           <legend class="font-semibold mb-1">{% trans "Vorlage der Seite" %}</legend>
           {% comment %}STU-8: КАЖДАЯ настройка — своя строка с `data-stu-setting` (код
              реестра) и `data-stu-page` (типы страниц из реестра). Инвариант держит замок
@@ -789,7 +789,7 @@
       {% comment %} SE-2a-2/SE-2b-1: per-page инспектор лендингов — клик по гриду на канве
          переносит контрол в попап (data-page-key). Раскладка → черновик/Save. {% endcomment %}
       {% if has_catalog or has_events or has_stays or has_booking or page_cblocks or page_preset_ui %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="landing">
+      <fieldset class="ui-card p-6" data-scope="landing">
         <legend class="font-semibold mb-1">{% trans "Landing pages" %}</legend>
         <p class="text-xs ui-muted mb-3">{% trans "Switch the preview to a page and click its grid to edit the layout here." %}</p>
         <p class="bld-scope-hint hidden text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-3"></p>
@@ -1104,7 +1104,7 @@
       {% endif %}
       </div>
       <div data-bld-area="menu" class="bld-area space-y-6 hidden">
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <fieldset class="ui-card p-6 space-y-4">
         <legend class="font-semibold mb-1">{% trans "Header & menu" %}</legend>
         {% comment %}STU-16b (фидбэк владельца «2 раза одно и то же, оставь с картинкой»):
    радио-список стилей шапки снят — тем же `nav_style` управляют плитки-мокапы
@@ -1163,7 +1163,7 @@
       </fieldset>
       {% comment %}STU-12c: логотип — часть шапки → живёт в колонке «Kopf- & Fußzeile»
          (переехал из уровня «Дизайн»; загрузчик — область Medien/Logo).{% endcomment %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+      <fieldset class="ui-card p-6">
         <legend class="font-semibold mb-1">{% trans "Logo" %}</legend>
         <p class="text-xs ui-muted mb-3">{% trans "Shown in the header instead of the text name." %}</p>
         <div class="flex items-center gap-3">
@@ -1174,7 +1174,7 @@
       {% comment %}STU-12c (F6A): верхний уровень меню правится ЗДЕСЬ — порядок (⠿/▲▼),
          видимость (👁), имя; «＋ Punkt». Строки без name= (в сабмит не идут, W0) —
          модель сериализуется в hidden menus_json; подменю/цели/переводы — Menü-Generator.{% endcomment %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3" data-menu-editor>
+      <fieldset class="ui-card p-6 space-y-3" data-menu-editor>
         <legend class="font-semibold mb-1">{% trans "Menüpunkte" %}</legend>
         <input type="hidden" name="menus_json" id="menus_json" value="{{ menus_json }}">
         <ul data-menu-items class="space-y-1">
@@ -1217,7 +1217,7 @@
       </fieldset>
       {% comment %}STU-5: своих полей у подвала нет — только указатели; STU-12c: живут в
          колонке «Kopf- & Fußzeile» (клик по подвалу на канве ведёт сюда).{% endcomment %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3" data-stu-footer-links>
+      <fieldset class="ui-card p-6 space-y-3" data-stu-footer-links>
         <legend class="font-semibold mb-1">{% trans "Footer" %}</legend>
         <p class="text-sm text-gray-600">{% trans "The footer shows your contact, opening hours and legal links. Edit them here:" %}</p>
         <div class="flex flex-col gap-2 text-sm">
@@ -1386,7 +1386,7 @@
     {% comment %} SE-4a: библиотека сохранённых блок-шаблонов — вставить копию или удалить
        (отдельная форма, не в #home-form). Пусто → блок скрыт. {% endcomment %}
     {% if block_templates %}
-    <form method="post" class="bg-white rounded-2xl shadow-sm p-5 space-y-2">
+    <form method="post" class="ui-card p-5 space-y-2">
       {% csrf_token %}
       <span class="text-sm font-medium">{% trans "Saved block templates" %}:</span>
       <div class="flex flex-col gap-2">
@@ -1404,7 +1404,7 @@
     {% comment %} SE-4b: библиотека шаблонов страниц — применить (заменить всю компоновку) или
        удалить (отдельная форма). Пусто → блок скрыт. {% endcomment %}
     {% if page_templates %}
-    <form method="post" class="bg-white rounded-2xl shadow-sm p-5 space-y-2">
+    <form method="post" class="ui-card p-5 space-y-2">
       {% csrf_token %}
       <span class="text-sm font-medium">{% trans "Saved page templates" %}:</span>
       <div class="flex flex-col gap-2">
@@ -1423,7 +1423,7 @@
 
     {% comment %} SE-5b: история версий — откат публикации на сохранённую ранее версию (каждое
        «Сохранить» кладёт предыдущую версию сюда). Откат сам undoable. Отдельная форма. {% endcomment %}
-    <form method="post" class="bg-white rounded-2xl shadow-sm p-5 space-y-2">
+    <form method="post" class="ui-card p-5 space-y-2">
       {% csrf_token %}
       <span class="text-sm font-medium">{% trans "Version history" %}:</span>
       {# A3: именованный снимок ТЕКУЩЕЙ версии — безопасная точка отката перед экспериментами. #}
@@ -1451,7 +1451,7 @@
     {% comment %}W11-5: страница «Site» умирает — её навигационные карточки жили только
        там. Отдельные экраны (обложки разделов / раскладки страниц / SEO / превью)
        получают вход отсюда, иначе остались бы сиротами (принцип W7b).{% endcomment %}
-    <div class="bg-white rounded-2xl shadow-sm p-5 space-y-2">
+    <div class="ui-card p-5 space-y-2">
       <span class="text-sm font-medium">{% trans "More tools" %}:</span>
       <div class="flex flex-col gap-2 text-sm">
         <a href="{% url 'site-seo' %}" class="text-indigo-600 hover:underline">🔎 {% trans "SEO" %} — {% trans "Titles & descriptions for Google, with live preview." %}</a>
@@ -1474,10 +1474,10 @@
        (`gallery-media` и т.д.) сохранены на <details>: по ним ходят входы из строк
        блоков и клик по канве; showArea резолвит их в эту колонку.{% endcomment %}
     <div data-bld-area="media" class="bld-area space-y-3 hidden">
-    <details class="bld-media-part bg-white rounded-2xl shadow-sm" data-bld-area="gallery-media" data-media-part="gallery">
+    <details class="ui-card p-0 bld-media-part" data-bld-area="gallery-media" data-media-part="gallery">
       <summary class="cursor-pointer px-5 py-3 font-semibold list-none">🖼 {% trans "Photo gallery" %}</summary>
       <div class="px-1 pb-1 space-y-6">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="ui-card p-6">
       <h3 class="font-semibold mb-1">{% trans "Photo gallery" %}</h3>
       <p class="text-xs ui-muted mb-3">{% trans 'JPEG/PNG/WEBP, max 5 MB. Enable the "Photo gallery" block above to show them.' %}</p>
       {% if config.gallery %}
@@ -1518,10 +1518,10 @@
     </div>
       </div>
     </details>{% comment %}/часть медиа gallery{% endcomment %}
-    <details class="bld-media-part bg-white rounded-2xl shadow-sm" data-bld-area="logo-media" data-media-part="logo">
+    <details class="ui-card p-0 bld-media-part" data-bld-area="logo-media" data-media-part="logo">
       <summary class="cursor-pointer px-5 py-3 font-semibold list-none">🏷 {% trans "Logo" %}</summary>
       <div class="px-1 pb-1 space-y-6">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="ui-card p-6">
       <h3 class="font-semibold mb-1">{% trans "Logo" %}</h3>
       <p class="text-xs ui-muted mb-3">{% trans "JPEG/PNG/WEBP, max 5 MB. Replaces the text site name in the header." %}</p>
       {% if request.tenant.logo_url %}
@@ -1544,10 +1544,10 @@
     </div>
       </div>
     </details>{% comment %}/часть медиа logo{% endcomment %}
-    <details class="bld-media-part bg-white rounded-2xl shadow-sm" data-bld-area="banner-media" data-media-part="banner">
+    <details class="ui-card p-0 bld-media-part" data-bld-area="banner-media" data-media-part="banner">
       <summary class="cursor-pointer px-5 py-3 font-semibold list-none">🎞 {% trans "Banner slides (slider)" %}</summary>
       <div class="px-1 pb-1 space-y-6">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="ui-card p-6">
       <h3 class="font-semibold mb-1">{% trans "Banner slides" %}</h3>
       <p class="text-xs ui-muted mb-4">{% trans "Up to 6 slides — photo, heading, text and a button. Two or more slides rotate automatically. JPEG/PNG/WEBP, max 5 MB." %}</p>
       {% for h in config.heroes %}
@@ -1602,10 +1602,10 @@
     </div>
       </div>
     </details>{% comment %}/часть медиа banner{% endcomment %}
-    <details class="bld-media-part bg-white rounded-2xl shadow-sm" data-bld-area="covers-media" data-media-part="covers">
+    <details class="ui-card p-0 bld-media-part" data-bld-area="covers-media" data-media-part="covers">
       <summary class="cursor-pointer px-5 py-3 font-semibold list-none">🏞 {% trans "Section cover photos" %}</summary>
       <div class="px-1 pb-1 space-y-6">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="ui-card p-6">
       <h3 class="font-semibold mb-1">{% trans "Section cover photos" %}</h3>
       <p class="text-xs ui-muted mb-4">{% trans "Banner photo on each section's landing page (catalog, events, …). JPEG/PNG/WEBP, max 5 MB." %}</p>
       {% for c in cover_specs %}
@@ -1636,7 +1636,7 @@
 
     <div data-bld-area="catalog-add" class="bld-area space-y-6 hidden">
     {% if has_catalog %}
-    <form method="post" class="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-2 flex-wrap">
+    <form method="post" class="ui-card p-5 flex items-center gap-2 flex-wrap">
         <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">
       {% csrf_token %}
       <input type="hidden" name="action" value="add_category">

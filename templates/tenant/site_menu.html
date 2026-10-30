@@ -25,7 +25,7 @@
     {% csrf_token %}
     <input type="hidden" name="menus_json" id="menus_json">
 
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+    <fieldset class="ui-card p-6">
       <legend class="font-semibold mb-3">{% trans "Header menu" %}</legend>
       <div class="flex flex-wrap items-center gap-4 mb-4 text-sm">
         <label class="flex items-center gap-2">{% trans "Style" %}
@@ -46,7 +46,7 @@
         <a href="{% url 'catalog:category-list' %}" class="text-indigo-600 hover:underline">{% trans "Manage category photos" %} →</a></p>
     </fieldset>
 
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+    <fieldset class="ui-card p-6">
       <legend class="font-semibold mb-3">{% trans "Bottom menu (mobile)" %}</legend>
       <label class="flex items-center gap-2 text-sm mb-4">
         <input type="checkbox" id="bottom-enabled" class="rounded border-gray-300">

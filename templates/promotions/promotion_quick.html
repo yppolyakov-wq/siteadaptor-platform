@@ -46,7 +46,7 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
     {{ form.until_time }}{{ form.until_time_for }}
     {{ form.entwurf }}
 
-    <section class="bg-white rounded-2xl shadow-sm p-4 mb-3 space-y-4" data-quick-step="1">
+    <section class="ui-card p-4 mb-3 space-y-4" data-quick-step="1">
       <h2 class="text-sm font-semibold text-gray-500">1 · {% trans "Was gibt es?" %}</h2>
       {% if tg_photo_count %}<p class="text-sm text-gray-600" data-tg-photos>📷 {% blocktrans count n=tg_photo_count %}{{ n }} Foto aus Telegram wird übernommen{% plural %}{{ n }} Fotos aus Telegram werden übernommen{% endblocktrans %}</p>{% endif %}
       {% include "promotions/_photo_picker.html" with errors=form.photo.errors source_images=source.images %}
@@ -107,7 +107,7 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
       </div>
     </section>
 
-    <section class="bg-white rounded-2xl shadow-sm p-4 mb-3 space-y-4" data-quick-step="2">
+    <section class="ui-card p-4 mb-3 space-y-4" data-quick-step="2">
       <h2 class="text-sm font-semibold text-gray-500">2 · {% trans "Preis und Dauer" %}</h2>
       <div class="grid grid-cols-2 gap-3">
         <label class="block">
@@ -161,7 +161,7 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
       {% endif %}
     </section>
 
-    <section class="bg-white rounded-2xl shadow-sm p-4 mb-3 space-y-3" data-quick-step="3">
+    <section class="ui-card p-4 mb-3 space-y-3" data-quick-step="3">
       <h2 class="text-sm font-semibold text-gray-500">3 · {{ form.customer_response.label }}</h2>
       {% if form.booking_target %}
       <p class="rounded-xl border border-indigo-600 bg-indigo-50 p-3 text-sm font-medium" data-quick-booking-response>{% trans "Kund:innen buchen online" %}</p>

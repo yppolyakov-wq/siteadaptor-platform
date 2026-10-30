@@ -16,7 +16,7 @@
   </div>
   <div class="space-y-3">
     {% for job in jobs %}
-      <article class="bg-white rounded-2xl shadow-sm p-4" data-lite-request>
+      <article class="ui-card p-4" data-lite-request>
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <p class="font-medium truncate">{{ job.title|default:job.reference_code }}</p>
@@ -33,7 +33,7 @@
         </div>
       </article>
     {% empty %}
-      <p class="bg-white rounded-2xl shadow-sm p-6 text-gray-500 text-sm">{% trans "Noch keine Anfragen." %}</p>
+      <p class="ui-card p-6 text-gray-500 text-sm">{% trans "Noch keine Anfragen." %}</p>
     {% endfor %}
   </div>
   {% list_pager page %}

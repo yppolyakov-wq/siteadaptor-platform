@@ -15,7 +15,7 @@
   {% endfor %}
 </div>
 
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+<div class="ui-card p-0 divide-y divide-gray-100">
   {% for c in conversations %}
     <a href="{% url 'inbox:thread' c.pk %}" class="flex items-center justify-between gap-3 p-4 hover:bg-gray-50">
       <div class="min-w-0">

@@ -12,7 +12,7 @@
     <span class="ui-badge shrink-0 {% if promo.status == 'active' %}ui-tone-ok{% else %}ui-tone-off{% endif %}">{{ promo.get_status_display }}</span>
   </header>
 
-  <section class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+  <section class="ui-card p-4 space-y-3">
     <p class="text-xs font-semibold tracking-wide text-gray-500">{% trans "SO SEHEN KUNDEN DIE AKTION" %}</p>
     <div role="tablist" aria-label="{% trans "Ansicht" %}" class="grid grid-cols-2 gap-1 rounded-xl bg-gray-100 p-1 text-sm font-medium">
       <button type="button" role="tab" aria-selected="true" data-preview-tab="site" class="rounded-lg py-2 aria-selected:bg-white aria-selected:shadow-sm">{% trans "Meine Website" %}</button>
@@ -34,7 +34,7 @@
     </div>
   </section>
 
-  <section class="bg-white rounded-2xl shadow-sm p-4" data-promo-where>
+  <section class="ui-card p-4" data-promo-where>
     <h2 class="text-base font-semibold mb-2">{% trans "Wo erscheint die Aktion?" %}</h2>
     <ul class="divide-y divide-gray-100 text-sm">
       {% for r in rows %}

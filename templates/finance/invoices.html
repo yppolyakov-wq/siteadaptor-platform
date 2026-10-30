@@ -48,7 +48,7 @@
 </form>
 
 {% if invoices %}
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+<div class="ui-card p-0 divide-y divide-gray-100 mb-6">
   {% for inv in invoices %}
     <a href="{% url 'finance:invoice-detail' inv.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
       <div class="min-w-0">
@@ -68,7 +68,7 @@
 </div>
 {% list_pager page %}
 {% elif inv_filters.q or inv_filters.art or inv_filters.von or inv_filters.bis or inv_filters.status %}
-<p class="mb-6 rounded-2xl bg-white shadow-sm px-4 py-6 text-sm text-gray-500" data-invoice-empty>{% trans "Keine Rechnungen für diesen Filter." %}</p>
+<p class="ui-card mb-6 px-4 py-6 text-sm text-gray-500" data-invoice-empty>{% trans "Keine Rechnungen für diesen Filter." %}</p>
 {% endif %}
 
 {# KA-P4b: поиск клиента — отдельная GET-форма (не вложенная в POST-форму: браузер развернул бы вложенный form). #}
@@ -76,7 +76,7 @@
   <input type="search" name="kunde_q" value="{{ kunde_q }}" placeholder="{% trans 'Kunde suchen (Name, E-Mail, Telefon)' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm" data-customer-search data-url="{% url 'finance:customer-search' %}" autocomplete="off">
   <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">{% trans "Suchen" %}</button>
 </form>
-<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
+<form method="post" class="ui-card p-6 max-w-2xl space-y-4">
   {% csrf_token %}
   <h2 class="ui-h2">{% trans "Neue Rechnung (Entwurf)" %}</h2>
   <div class="grid sm:grid-cols-2 gap-4">

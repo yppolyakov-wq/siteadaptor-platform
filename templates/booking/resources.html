@@ -142,7 +142,7 @@
   </div>
 
   <div class="space-y-6">
-    <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-3">{% csrf_token %}
+    <form method="post" class="ui-card p-6 space-y-3">{% csrf_token %}
       <h2 class="ui-h2">{% trans "New resource" %}</h2>
       <input type="hidden" name="action" value="resource">
       <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Table 1)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
@@ -162,7 +162,7 @@
       <button class="ui-btn ui-btn-primary">{% trans "Create" %}</button>
     </form>
 
-    <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-3">{% csrf_token %}
+    <form method="post" class="ui-card p-6 space-y-3">{% csrf_token %}
       <h2 class="ui-h2">{% trans "Closed days" %}</h2>
       {% for c in closed_dates %}<p class="text-sm text-gray-600">{{ c.date|date:"d.m.Y" }}{% if c.reason %} — {{ c.reason }}{% endif %}</p>{% endfor %}
       <input type="hidden" name="action" value="closed">
@@ -178,7 +178,7 @@
 {% comment %}Фидбэк 2026-08-03: настройки уехали С календаря сюда («настройки — в
 настройки»): embed-виджет + имена статусов + правила переходов.{% endcomment %}
 <div class="mt-6 space-y-4 max-w-3xl">
-  <details class="bg-white rounded-2xl shadow-sm p-4">
+  <details class="ui-card p-4">
     <summary class="cursor-pointer text-sm font-medium">🔗 {% trans "Embed booking widget on your website" %}</summary>
     <p class="text-xs text-gray-500 mt-2 mb-2">{% trans "Paste this code into your existing site to embed the booking form (no header/footer)." %}</p>
     <textarea readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Termin"&gt;&lt;/iframe&gt;</textarea>

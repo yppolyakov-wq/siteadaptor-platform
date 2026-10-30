@@ -27,7 +27,7 @@
 {% endif %}
 
 <div class="grid lg:grid-cols-2 gap-6 items-start">
-  <div class="bg-white rounded-2xl shadow-sm p-6">
+  <div class="ui-card p-6">
     {% if invoice.is_editable %}
       {% comment %}KA-12 E1.3: у черновика получатель правится (над 250 € нужен адрес).{% endcomment %}
       <form method="post" class="mb-3" data-recipient-form>{% csrf_token %}
@@ -51,7 +51,7 @@
     {% if not invoice.is_editable %}<p class="text-xs ui-muted mt-3">{% trans "Issued invoices are immutable (GoBD). Use Storno if needed." %}</p>{% endif %}
   </div>
 
-  <div class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+  <div class="ui-card p-6 space-y-3">
     <a href="{% url 'finance:invoice-pdf' invoice.pk %}" target="_blank"
        class="ui-btn ui-btn-primary">{% trans "Open PDF" %}</a>
     {% comment %}I18N-7b/2: у черновика язык ещё можно сменить, у выставленного

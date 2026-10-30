@@ -17,7 +17,7 @@ VF-24 (фидбэк владельца 2026-08-25 «много свободно�
   <div class="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
   <div class="min-w-0">
     {# --- Шаг 1: добавить домен --- #}
-    <form method="post" action="{% url 'domain-add' %}" class="bg-white rounded-2xl shadow-sm p-6 mb-6 flex gap-3 items-end">
+    <form method="post" action="{% url 'domain-add' %}" class="ui-card p-6 mb-6 flex gap-3 items-end">
       {% csrf_token %}
       <div class="flex-1">
         <label class="block text-sm font-medium mb-1" for="id_domain">{% trans "Domain" %}</label>
@@ -31,7 +31,7 @@ VF-24 (фидбэк владельца 2026-08-25 «много свободно�
     {% if domains %}
       <div class="space-y-3 mb-6">
         {% for d in domains %}
-          <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between gap-3">
+          <div class="ui-card p-4 flex items-center justify-between gap-3">
             <div class="min-w-0">
               <div class="flex items-center gap-2">
                 <span class="font-medium truncate">{{ d.domain }}</span>
@@ -91,9 +91,9 @@ VF-24 (фидбэк владельца 2026-08-25 «много свободно�
 
     {# W9-4: website-настройки одним взглядом — SEO здесь же, визуал в Studio. #}
     <div class="grid sm:grid-cols-3 gap-3">
-      <a href="{% url 'site-seo' %}" class="bg-white rounded-2xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">🔎 SEO →</a>
-      <a href="{% url 'site-home' %}" class="bg-white rounded-2xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">🎨 {% trans "Farbe & Schrift (Studio)" %} →</a>
-      <a href="{% url 'media-library' %}" class="bg-white rounded-2xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">🖼 {% trans "Medien" %} →</a>
+      <a href="{% url 'site-seo' %}" class="ui-card px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">🔎 SEO →</a>
+      <a href="{% url 'site-home' %}" class="ui-card px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">🎨 {% trans "Farbe & Schrift (Studio)" %} →</a>
+      <a href="{% url 'media-library' %}" class="ui-card px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">🖼 {% trans "Medien" %} →</a>
     </div>
   </div>
   </div>

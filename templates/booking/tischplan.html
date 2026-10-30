@@ -31,7 +31,7 @@
 </form>
 
 {% if not tables %}
-  <div class="bg-white rounded-2xl shadow-sm p-6 text-sm text-gray-600" data-tischplan-empty>
+  <div class="ui-card p-6 text-sm text-gray-600" data-tischplan-empty>
     {% trans "Noch keine Tische angelegt." %}
     <a href="{% url 'booking:resources' %}" class="text-indigo-600 hover:underline">{% trans "Tische unter „Öffnungszeiten & Ressourcen“ anlegen" %} →</a>
   </div>

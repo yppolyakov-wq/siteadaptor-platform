@@ -28,12 +28,12 @@
 {% endif %}
 
 <div class="grid sm:grid-cols-3 gap-4 mb-6 max-w-2xl">
-  <div class="bg-white rounded-2xl shadow-sm p-5">
+  <div class="ui-card p-5">
     <p class="text-xs ui-muted">{% trans "Total (gross)" %}</p>
     <p class="text-2xl font-bold">{{ total }} EUR</p>
   </div>
   {% for row in by_vat %}
-    <div class="bg-white rounded-2xl shadow-sm p-5">
+    <div class="ui-card p-5">
       <p class="text-xs ui-muted">{% trans "VAT" %} {{ row.vat_rate }} %</p>
       <p class="text-2xl font-bold">{{ row.sum }} EUR</p>
     </div>
@@ -41,7 +41,7 @@
 </div>
 
 {% if entries %}
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+<div class="ui-card p-0 divide-y divide-gray-100 mb-6">
   {% for e in entries %}
     <div class="px-4 py-3 flex items-center justify-between gap-3">
       <div class="min-w-0">
@@ -57,7 +57,7 @@
 <p class="text-gray-500 mb-6">{% trans "No entries in this period. Picked-up orders and fulfilled reservations land here automatically." %}</p>
 {% endif %}
 
-<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+<form method="post" class="ui-card p-6 max-w-xl space-y-4">
   {% csrf_token %}
   <h2 class="ui-h2">{% trans "Add entry" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. counter sale" %})</span></h2>
   <div class="grid sm:grid-cols-3 gap-4">

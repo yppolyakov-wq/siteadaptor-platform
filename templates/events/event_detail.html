@@ -23,15 +23,15 @@
 мелкими текст-ссылками в строке заголовка «Teilnehmer» — владелец их не находил.
 Теперь — заметная панель карточками сразу под шапкой.{% endcomment %}
 <div class="grid gap-3 sm:grid-cols-3 mb-6 max-w-3xl">
-  <a href="{% url 'events:logistics' event.pk %}" class="rounded-2xl bg-white p-4 shadow-sm hover:shadow-md transition">
+  <a href="{% url 'events:logistics' event.pk %}" class="ui-card p-4 hover:shadow-md transition">
     <p class="font-semibold">💶 {% trans "Logistics & costs" %}</p>
     <p class="mt-0.5 text-xs text-gray-500">{% trans "Hotels, transport, permits — spend and margin" %}</p>
   </a>
-  <a href="{% url 'community:event-space' event.pk %}" class="rounded-2xl bg-white p-4 shadow-sm hover:shadow-md transition">
+  <a href="{% url 'community:event-space' event.pk %}" class="ui-card p-4 hover:shadow-md transition">
     <p class="font-semibold">💬 {% trans "Travel group" %}</p>
     <p class="mt-0.5 text-xs text-gray-500">{% trans "Feed, chat and the Telegram bridge" %}</p>
   </a>
-  <a href="{% url 'events:documents' event.pk %}" class="rounded-2xl bg-white p-4 shadow-sm hover:shadow-md transition">
+  <a href="{% url 'events:documents' event.pk %}" class="ui-card p-4 hover:shadow-md transition">
     <p class="font-semibold">🗂 {% trans "Documents" %}</p>
     <p class="mt-0.5 text-xs text-gray-500">{% trans "Licences and IDs of the participants" %}</p>
   </a>

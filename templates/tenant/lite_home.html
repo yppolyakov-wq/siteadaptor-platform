@@ -22,7 +22,7 @@
 
   {% include "promotions/_lite_counter_tiles.html" %}
 
-  <section class="bg-white rounded-2xl shadow-sm p-4 space-y-3" data-lite-promos>
+  <section class="ui-card p-4 space-y-3" data-lite-promos>
     <div class="flex items-baseline justify-between gap-2">
       <h2 class="text-base font-semibold">{% trans "Aktionen" %}</h2>
       <p class="text-sm text-gray-500">{% blocktrans with a=counts.active s=counts.scheduled %}{{ a }} aktiv · {{ s }} geplant{% endblocktrans %}</p>
@@ -52,7 +52,7 @@
   {% if order_counters and 'verkaeufe'|pkg_allowed:request.tenant %}
   <div class="grid grid-cols-3 gap-2" data-lite-order-counters>
     {% for key, icon, label, count, query in order_counters %}
-    <a href="{% url 'verkaeufe' %}{{ query }}" class="bg-white rounded-2xl shadow-sm p-3 text-center" data-order-counter="{{ key }}">
+    <a href="{% url 'verkaeufe' %}{{ query }}" class="ui-card p-3 text-center" data-order-counter="{{ key }}">
       <span class="block text-xl font-bold">{{ count }}</span>
       <span class="block text-xs text-gray-500">{{ icon }} {{ label }}</span>
     </a>
@@ -62,7 +62,7 @@
 
   <div class="grid grid-cols-2 gap-3">
     {% if 'sellable-manage'|pkg_allowed:request.tenant %}
-    <a href="{% url 'sellable-manage' %}" class="bg-white rounded-2xl shadow-sm p-4 min-h-[6rem] flex flex-col gap-1" data-lite-tile="angebot">
+    <a href="{% url 'sellable-manage' %}" class="ui-card p-4 min-h-[6rem] flex flex-col gap-1" data-lite-tile="angebot">
       <svg class="w-6 h-6 text-indigo-600" aria-hidden="true"><use href="#ic-nav-sellables"></use></svg>
       <span class="font-semibold">{% trans "Mein Angebot" %}</span>
       <span class="text-sm text-gray-500">{% blocktrans count n=products.total %}{{ n }} Produkt{% plural %}{{ n }} Produkte{% endblocktrans %}{% if products.no_photo %} · {% blocktrans with n=products.no_photo %}{{ n }} ohne Foto{% endblocktrans %}{% endif %}</span>

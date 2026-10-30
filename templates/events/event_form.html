@@ -5,7 +5,7 @@
 {% block dash_content %}
 <h1 class="ui-h1 mb-6">{% if event %}{% trans "Edit event" %}{% else %}{% trans "New event" %}{% endif %}</h1>
 
-<form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-2xl shadow-sm max-w-2xl space-y-4">
+<form method="post" enctype="multipart/form-data" class="ui-card p-6 max-w-2xl space-y-4">
   {% csrf_token %}
   {# MX-6: подсказки пресет-категорий для свободного ввода (своя категория разрешена). #}
   <datalist id="event-category-presets">

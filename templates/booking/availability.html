@@ -39,7 +39,7 @@
 
   {% comment %}Фидбэк 2026-08-04: блок дат «решением владельца» — диапазон одной
   формой (отпуск/санитарные дни), не кликами по дням. Ресурс — селектор выше.{% endcomment %}
-  <form method="post" class="bg-white rounded-2xl shadow-sm p-4 mb-4 flex flex-wrap items-end gap-2 text-sm">
+  <form method="post" class="ui-card p-4 mb-4 flex flex-wrap items-end gap-2 text-sm">
     {% csrf_token %}
     <input type="hidden" name="action" value="range">
     <p class="w-full font-medium mb-1">🚫 {% trans "Zeitraum blockieren" %} <span class="font-normal text-gray-400">({% trans "z. B. Urlaub — Termine sind dann nicht buchbar" %})</span></p>
@@ -59,7 +59,7 @@
     <button name="mode" value="open" class="rounded-lg px-3 py-2 border border-gray-300 hover:border-indigo-400">{% trans "Wieder öffnen" %}</button>
   </form>
 
-  <div class="bg-white rounded-2xl shadow-sm p-4 md:p-5">
+  <div class="ui-card p-4 md:p-5">
     <div class="flex items-center justify-between mb-3">
       <a href="{{ prev_url }}" aria-label="{% trans 'Previous month' %}" class="w-11 h-11 flex items-center justify-center rounded-lg text-lg text-gray-600 hover:bg-gray-100">‹</a>
       <span class="font-semibold capitalize">{{ cal_first|date:"F Y" }}</span>
@@ -108,7 +108,7 @@
   <p class="text-xs text-gray-500 mt-3">{% trans "A closed day disappears from the website for all services (or for the selected resource only)." %}</p>
 
   {% if services %}
-  <div class="bg-white rounded-2xl shadow-sm p-5 mt-4">
+  <div class="ui-card p-5 mt-4">
     <h2 class="ui-h2 mb-2">{% trans "Services" %}</h2>
     <div class="flex flex-wrap gap-2">
       {% for s in services %}

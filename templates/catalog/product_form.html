@@ -194,7 +194,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
   {% endfor %}{% endif %}
 
   <div data-pf-panel="varianten" class="hidden">
-    <div class="mt-6 bg-white p-6 rounded-2xl shadow-sm">
+    <div class="ui-card mt-6 p-6">
       <p class="text-sm font-medium mb-1">{% trans "Variants" %}</p>
       {% comment %}O-2: вид выбора вариантов на витрине. Поле живёт в основной форме
       товара (панель выше), здесь — только подсказка со ссылкой на него.{% endcomment %}
@@ -305,7 +305,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
     </div>
 
     {# Модификаторы / Extras блюда (A4 Gastro) #}
-    <div class="mt-6 bg-white p-6 rounded-2xl shadow-sm">
+    <div class="ui-card mt-6 p-6">
       <p class="text-sm font-medium mb-1">{% trans "Modifiers / Extras" %}</p>
       <p class="text-xs ui-muted mb-3">{% trans "E.g. size, side dish, extras. Min/max = how many options the guest may pick (max 0 = no limit, 1 = single choice). Surcharge adds to the item price." %}</p>
 

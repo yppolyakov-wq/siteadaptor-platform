@@ -16,7 +16,7 @@
   {% endif %}
 
   {% if card %}
-    <div class="bg-white rounded-2xl shadow-sm p-6 mb-4">
+    <div class="ui-card p-6 mb-4">
       <p class="text-sm text-gray-500">{{ card.customer }}{% if card.customer.email %} · {% if hide_contacts %}{{ card.customer.email|mask_email }}{% else %}{{ card.customer.email }}{% endif %}{% endif %}</p>
       <p class="text-3xl font-bold mt-2">{{ card.stamps }}<span class="text-gray-400 text-xl"> / {{ program.stamps_required }}</span></p>
       {% if card.rewards_earned %}<p class="text-xs text-green-700 mt-1">{% blocktrans count n=card.rewards_earned %}{{ n }} reward earned{% plural %}{{ n }} rewards earned{% endblocktrans %}</p>{% endif %}
@@ -32,7 +32,7 @@
     </div>
   {% endif %}
 
-  <form method="get" class="bg-white rounded-2xl shadow-sm p-5">
+  <form method="get" class="ui-card p-5">
     <label class="block text-sm font-medium mb-1" for="email">{% trans "Find card by email" %}</label>
     <div class="flex gap-2">
       <input autocomplete="off" id="email" name="email" type="email" placeholder="kunde@example.de"

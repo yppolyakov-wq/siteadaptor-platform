@@ -5,7 +5,7 @@
 {% block dash_content %}
 <h1 class="ui-h1 mb-2">🔗 {% trans "Als Varianten zusammenführen" %}</h1>
 <p class="text-sm text-gray-500 mb-4 max-w-xl">{% trans "Choose the main product — the others become its variants (name, price, stock, Art.-Nr., EAN and photo move along) and disappear from the storefront. Past orders keep their history." %}</p>
-<form method="post" action="{% url 'catalog:products-merge' %}" class="bg-white rounded-2xl shadow-sm p-4 space-y-2 max-w-xl">
+<form method="post" action="{% url 'catalog:products-merge' %}" class="ui-card p-4 space-y-2 max-w-xl">
   {% csrf_token %}
   {% for p in products %}
     <label class="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 hover:border-indigo-300 cursor-pointer">

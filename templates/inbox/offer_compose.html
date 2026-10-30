@@ -17,7 +17,7 @@
 
   {# Пикер позиций из ассортимента (FB-8): чекбокс + кол-во + редактируемая цена. #}
   {% for section in sections %}
-    <div class="bg-white rounded-2xl shadow-sm p-4">
+    <div class="ui-card p-4">
       <h2 class="ui-h2 mb-2">{{ section.label }}</h2>
       <div class="divide-y divide-gray-50">
         {% for item in section.items %}
@@ -34,7 +34,7 @@
   {% endfor %}
 
   {# Свободные строки: название + цена + кол-во (пустые игнорируются). #}
-  <div class="bg-white rounded-2xl shadow-sm p-4">
+  <div class="ui-card p-4">
     <h2 class="ui-h2 mb-2">{% trans "Freie Positionen" %}</h2>
     {% for _ in "123" %}
       <div class="flex items-center gap-3 py-1.5">
@@ -45,7 +45,7 @@
     {% endfor %}
   </div>
 
-  <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+  <div class="ui-card p-4 space-y-3">
     <div>
       <label class="block text-sm font-medium mb-1" for="of-valid">{% trans "Gültig bis" %} <span class="text-gray-400 font-normal">({% trans "optional" %})</span></label>
       <input id="of-valid" type="date" name="valid_until" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">

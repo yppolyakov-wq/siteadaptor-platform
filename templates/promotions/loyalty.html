@@ -11,7 +11,7 @@
   {% endfor %}
 {% endif %}
 
-<form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-6 grid sm:grid-cols-2 gap-4 max-w-2xl">
+<form method="post" class="ui-card p-5 mb-6 grid sm:grid-cols-2 gap-4 max-w-2xl">
   {% csrf_token %}
   {% for field in form %}
     <div>
@@ -25,7 +25,7 @@
   </div>
 </form>
 
-<div class="bg-white rounded-2xl shadow-sm p-4">
+<div class="ui-card p-4">
   <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
   <table class="w-full text-sm min-w-[560px]">
     <thead class="text-left text-gray-500 border-b">
