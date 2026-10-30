@@ -223,6 +223,10 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
           свитчер языка (учётные поля выше остаются немецкими).{% endcomment %}
           {% overlay_i18n_inputs v "label,size,color" compact=True %}
           <input name="price" type="text" inputmode="decimal" value="{{ v.price|default_if_none:'' }}" placeholder="{{ product.base_price }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Price' %}">
+          {% comment %}E9.5: на телефоне учётные поля варианта свёрнуты за «Mehr» (остаются в
+          форме и сохраняются — инвариант W0); на sm+ — как раньше в одну строку.{% endcomment %}
+          <button type="button" class="sm:hidden text-xs text-indigo-700 px-2 py-1.5" data-variant-more-toggle aria-expanded="false">⋯ {% trans "Mehr" %}</button>
+          <span class="hidden sm:contents" data-variant-more>
           <input name="content" type="text" inputmode="decimal" value="{{ v.content_amount|default_if_none:'' }}" placeholder="{% trans 'Content' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Content' %}">
           <input name="stock" type="number" value="{{ v.stock_quantity|default_if_none:'' }}" placeholder="∞" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Stock' %}">
           <input name="cost" type="text" inputmode="decimal" value="{{ v.cost_price|default_if_none:'' }}" placeholder="{% trans 'EK' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Einkaufspreis' %}">
@@ -232,12 +236,26 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
           <input name="sku" type="text" value="{{ v.sku }}" placeholder="{% trans 'Art.-Nr.' %}" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Art.-Nr.' %}">
           <input name="gtin" type="text" value="{{ v.gtin }}" placeholder="EAN" class="w-32 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="EAN / GTIN">
           <input name="sort" type="number" value="{{ v.sort_order }}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
+          </span>
           <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="is_active" {% if v.is_active %}checked{% endif %}> {% trans "Active" %}</label>
           <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
           <button formaction="{% url 'catalog:variant-delete' product.pk v.pk %}" class="text-red-600 hover:bg-red-50 rounded-lg px-2 py-1.5" aria-label="{% trans 'Remove' %}">✕</button>
         </form>
       {% endfor %}
 
+      <script>
+        document.addEventListener("click", function (e) {
+          var b = e.target.closest("[data-variant-more-toggle]");
+          if (!b) return;
+          var box = b.parentElement.querySelector("[data-variant-more]");
+          var open = b.getAttribute("aria-expanded") !== "true";
+          box.classList.toggle("hidden", !open);
+          box.classList.toggle("flex", open);
+          box.classList.toggle("flex-wrap", open);
+          box.classList.toggle("gap-2", open);
+          b.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+      </script>
       {% comment %}KA-12 WR-5: генератор «размеры × цвета» и фото на цвет — одним действием
 вместо десятков одиночных форм.{% endcomment %}
       <form method="post" action="{% url 'catalog:variant-generate' product.pk %}" class="mt-4 border-t border-gray-100 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm" data-variant-generator>

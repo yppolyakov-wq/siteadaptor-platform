@@ -63,3 +63,12 @@ def test_cabinet_shrinks_large_photos_before_upload():
     assert '{% include "core/_photo_shrink.html" %}' in base
     js = (ROOT / "core/_photo_shrink.html").read_text(encoding="utf-8")
     assert "4.5 * 1024 * 1024" in js and "requestSubmit" in js
+
+
+def test_variant_row_folds_stock_fields_on_phone():
+    """E9.5: учётные поля варианта на телефоне свёрнуты, но остаются в форме (W0)."""
+    src = (ROOT / "catalog/product_form.html").read_text(encoding="utf-8")
+    box = src.split("data-variant-more>", 1)[1].split("</span>", 1)[0]
+    for name in ("content", "cost", "reorder_point", "reorder_target", "sku", "gtin", "sort"):
+        assert f'name="{name}"' in box, name
+    assert 'class="hidden sm:contents"' in src and "data-variant-more-toggle" in src
