@@ -40,8 +40,9 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     resp = dashboard(_request(rf, user, tenant))
     html = resp.content.decode()
 
-    # Иконка модуля рядом с пунктом (Angebote).
-    assert "📦" in html
+    # Иконка модуля рядом с пунктом (Angebote). KA-12 E9.3 (осознанная переписка, решение
+    # владельца по макету): SVG из спрайта вместо эмодзи.
+    assert '<use href="#ic-nav-sellables">' in html
     # ST-4b (осознанная замена AB1-групп, одобрено 2026-07-19): компактный
     # сайдбар — плоские якоря хабов (замок в
     # test_sidebar_st4b). Здесь — состав компакт-вида.
@@ -55,7 +56,7 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     assert 'href="/dashboard/integrationen/"' not in html
     assert "Einstellungen" in html
     # «➕ Funktion hinzufügen» → страница «Module».
-    assert "Add function" in html or "➕" in html
+    assert "Funktion hinzufügen" in html  # E9.3: ➕ стал SVG ic-nav-plus — проверяем подпись
     # AB1 (язык задач): пункты сайдбара в языке задач, не техтермины/англ. сущности.
     # S2: продажи сведены в один пункт-хаб «Verkäufe» (Bestellungen/Termine и др. —
     # теперь вкладки хаба на его страницах, а не отдельные пункты сайдбара).

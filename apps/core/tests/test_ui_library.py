@@ -104,3 +104,14 @@ def test_library_does_not_claim_bare_class_names():
     src = (ROOT / "static/src/app.css").read_text(encoding="utf-8")
     for bare in ("btn", "card", "badge", "tab", "input", "label", "empty"):
         assert not re.search(r"(^|[\s,}])\." + bare + r"[\s{:,]", src), bare
+
+
+def test_every_sidebar_section_has_svg_icon():
+    """E9.3: сайдбар рисует SVG из спрайта по nav_key якоря — у каждого якоря есть символ."""
+    from apps.core import nav_registry
+
+    sprite = (ROOT / "templates/tenant/_icons.html").read_text(encoding="utf-8")
+    missing = [a.nav_key for a in nav_registry.ANCHORS if f'id="ic-nav-{a.nav_key}"' not in sprite]
+    assert not missing, missing
+    base = (ROOT / "templates/tenant/_base_dashboard.html").read_text(encoding="utf-8")
+    assert "{{ it.icon }}" not in base

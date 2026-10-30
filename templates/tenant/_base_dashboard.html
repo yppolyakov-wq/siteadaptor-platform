@@ -71,19 +71,19 @@
       остаётся обычной ссылкой. Активный раздел раскрыт с сервера.{% endcomment %}
       <div class="flex items-center gap-0.5">
         {% if it.children %}
-        <button type="button" data-nav-toggle="{{ it.nav_key }}" data-label="{{ it.search }}"
+        <button type="button" data-nav-toggle="{{ it.nav_key }}" data-label="{{ it.search }}" aria-label="{{ it.label }}"
                 aria-expanded="{% if sb_anchor == it.nav_key %}true{% else %}false{% endif %}"
                 class="nav-link w-full min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-xl text-left {% if sb_anchor == it.nav_key %}bg-indigo-600 text-white font-medium shadow-sm{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-          <span class="w-5 shrink-0 text-center text-base leading-none" title="{{ it.label }}">{{ it.icon }}</span>
+          {# KA-12 E9.3: SVG вместо эмодзи (решение владельца по макету) — тот же спрайт, что у таб-бара; эмодзи рисовались по-разному на Windows/Android/iOS. #}<span class="w-5 shrink-0 grid place-items-center" title="{{ it.label }}"><svg class="w-5 h-5" aria-hidden="true"><use href="#ic-nav-{{ it.nav_key }}"></use></svg></span>
           <span class="sb-label truncate">{{ it.label }}</span>
           {% if it.badge == "inbox" %}
           <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
           <span data-nav-chevron class="sb-label ml-auto text-[10px] leading-none transition-transform {% if sb_anchor == it.nav_key %}rotate-90{% endif %}" aria-hidden="true">▶</span>
         </button>
         {% else %}
-        <a href="{% url it.url_name %}" data-label="{{ it.search }}"
+        <a href="{% url it.url_name %}" data-label="{{ it.search }}" aria-label="{{ it.label }}"
            class="nav-link flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-xl {% if sb_anchor == it.nav_key %}bg-indigo-600 text-white font-medium shadow-sm{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-          <span class="w-5 shrink-0 text-center text-base leading-none" title="{{ it.label }}">{{ it.icon }}</span>
+          {# KA-12 E9.3: SVG вместо эмодзи (решение владельца по макету) — тот же спрайт, что у таб-бара; эмодзи рисовались по-разному на Windows/Android/iOS. #}<span class="w-5 shrink-0 grid place-items-center" title="{{ it.label }}"><svg class="w-5 h-5" aria-hidden="true"><use href="#ic-nav-{{ it.nav_key }}"></use></svg></span>
           <span class="sb-label truncate">{{ it.label }}</span>
         </a>
         {% endif %}
@@ -104,7 +104,7 @@
       {% if 'modules'|lite_allowed:request and 'modules'|can_open:request %}
       <a href="{% url 'modules' %}" class="nav-link flex items-center gap-2.5 px-3 py-2 mt-4 rounded-lg border border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-700"
          data-label="{% trans 'add function module' %}">
-        <span class="w-5 shrink-0 text-center text-base leading-none" title="{% trans 'Funktion hinzufügen' %}">➕</span>
+        <span class="w-5 shrink-0 grid place-items-center" title="{% trans 'Funktion hinzufügen' %}"><svg class="w-5 h-5" aria-hidden="true"><use href="#ic-nav-plus"></use></svg></span>
         <span class="sb-label truncate">{% trans "Funktion hinzufügen" %}</span>
       </a>
       {% endif %}
