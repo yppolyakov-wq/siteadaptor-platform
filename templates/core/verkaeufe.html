@@ -29,7 +29,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
 ряд скроллится горизонтально (обёртка с py-запасом, чтобы тень не резалась).{% endcomment %}
 {% if sales_tabs|length > 1 or customers_tab %}
 <div class="flex items-center gap-4 mb-3">
-<h1 class="text-xl font-bold shrink-0">{% if sales_tabs|length == 1 %}{% for t in sales_tabs %}{{ t.label }}{% endfor %}{% else %}{% trans "Verkäufe" %}{% endif %}</h1>
+<h1 class="ui-h1 shrink-0">{% if sales_tabs|length == 1 %}{% for t in sales_tabs %}{{ t.label }}{% endfor %}{% else %}{% trans "Verkäufe" %}{% endif %}</h1>
 
 <div class="flex items-center gap-2 flex-nowrap overflow-x-auto md:flex-wrap md:overflow-visible flex-1 py-2 -my-1" role="tablist" data-sales-tabs>
   {% if sales_tabs|length > 1 %}{% for t in sales_tabs %}
@@ -43,7 +43,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
 </div>
 </div>
 {% else %}
-<h1 class="text-xl font-bold mb-3">{% for t in sales_tabs %}{{ t.label }}{% empty %}{% trans "Verkäufe" %}{% endfor %}</h1>
+<h1 class="ui-h1 mb-3">{% for t in sales_tabs %}{{ t.label }}{% empty %}{% trans "Verkäufe" %}{% endfor %}</h1>
 {% endif %}
 
 {% if active_kind == "kunden" %}

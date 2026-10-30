@@ -5,10 +5,10 @@
 {% block dash_title %}{% trans "Tours" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-2">{% nav_title _("Tours") %}</h1>
+<h1 class="ui-h1 mb-2">{% nav_title _("Tours") %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "A tour holds the content and the route; each date is a departure (event) with its own prices and seats." %}</p>
 
-<form method="post" class="bg-white p-4 rounded-2xl shadow-sm mb-6 flex flex-wrap gap-3 items-end">
+<form id="tour-neu" method="post" class="bg-white p-4 rounded-2xl shadow-sm mb-6 flex flex-wrap gap-3 items-end">
   {% csrf_token %}
   <label class="grow">
     <span class="block text-sm font-medium mb-1">{% trans "New tour" %}</span>
@@ -34,6 +34,6 @@
     {% endfor %}
   </ul>
 {% else %}
-  <p class="text-gray-600">{% trans "No tours yet." %}</p>
+  {% trans "No tours yet." as t %}{% trans "New tour" as a %}{% include "ui/_empty.html" with title=t action_url="#tour-neu" action_label=a %}
 {% endif %}
 {% endblock %}

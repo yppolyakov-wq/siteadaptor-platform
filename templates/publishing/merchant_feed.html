@@ -4,13 +4,13 @@
 {% block dash_title %}{% trans "Google Merchant Center" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-1">{% nav_title _("Google Merchant Center") %}</h1>
+<h1 class="ui-h1 mb-1">{% nav_title _("Google Merchant Center") %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "Ihre Produkte mit Preis und Verfügbarkeit gehen über einen Feed an Google. Sie schalten den Feed hier ein oder aus – Google ruft ihn regelmäßig ab." %}</p>
 
 <div class="grid gap-4 xl:grid-cols-2 items-start">
   <div class="space-y-4">
     <section class="bg-white border border-gray-200 rounded-2xl p-5" data-merchant-status="{% if enabled %}on{% else %}off{% endif %}">
-      <h2 class="font-semibold mb-2">{% trans "Produktfeed" %}</h2>
+      <h2 class="ui-h2 mb-2">{% trans "Produktfeed" %}</h2>
       {% if enabled %}
         <p class="text-sm text-green-700 mb-3">✓ {% trans "Eingeschaltet" %}</p>
       {% else %}
@@ -26,7 +26,7 @@
           <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Feed einschalten" %}</button>
         {% endif %}
       </form>
-      <p class="text-xs text-gray-400 mt-3">{% trans "Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal eingeschaltet“ – dieser gilt nur für Aktionen." %}</p>
+      <p class="text-xs ui-muted mt-3">{% trans "Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal eingeschaltet“ – dieser gilt nur für Aktionen." %}</p>
     </section>
 
     {% if token_unreadable %}
@@ -41,7 +41,7 @@
 
     {% if feed_url %}
     <section class="bg-white border border-gray-200 rounded-2xl p-5">
-      <h2 class="font-semibold mb-2">{% trans "Feed-Adresse" %}</h2>
+      <h2 class="ui-h2 mb-2">{% trans "Feed-Adresse" %}</h2>
       <p class="text-xs text-gray-500 mb-2">{% trans "Diese Adresse in Merchant Center als Produktquelle eintragen. Behandeln Sie sie wie ein Passwort." %}</p>
       <div data-merchant-copy-group="products">
         <div class="flex gap-2">
@@ -63,7 +63,7 @@
     </section>
 
     <section class="bg-white border border-gray-200 rounded-2xl p-5" data-merchant-local>
-      <h2 class="font-semibold mb-1">{% trans "Lokaler Bestand (Im Geschäft verfügbar)" %}</h2>
+      <h2 class="ui-h2 mb-1">{% trans "Lokaler Bestand (Im Geschäft verfügbar)" %}</h2>
       <p class="text-xs text-gray-500 mb-3">{% trans "Ein zweiter Feed meldet Google, welche Produkte in Ihrem Geschäft vorrätig sind." %}</p>
       <form method="post" action="{% url 'gbp-merchant' %}" class="space-y-2">
         {% csrf_token %}
@@ -98,7 +98,7 @@
         · {% blocktrans count counter=local.out_of_stock %}{{ counter }} ausverkauft{% plural %}{{ counter }} ausverkauft{% endblocktrans %}
       </p>
       {% if local.untracked %}
-        <p class="text-xs text-gray-400 mt-1">{% trans "Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den Bestand, damit Google die richtige Verfügbarkeit zeigt." %}</p>
+        <p class="text-xs ui-muted mt-1">{% trans "Produkte ohne Bestandsführung meldet der Feed als vorrätig. Pflegen Sie den Bestand, damit Google die richtige Verfügbarkeit zeigt." %}</p>
       {% endif %}
       <ol class="list-decimal pl-5 space-y-1 text-xs text-gray-600 mt-3">
         <li>{% trans "Im Google-Unternehmensprofil unter „Info“ einen Shopcode festlegen." %}</li>
@@ -110,7 +110,7 @@
     {% endif %}
 
     <section class="bg-white border border-gray-200 rounded-2xl p-5">
-      <h2 class="font-semibold mb-2">{% trans "So verbinden Sie Merchant Center" %}</h2>
+      <h2 class="ui-h2 mb-2">{% trans "So verbinden Sie Merchant Center" %}</h2>
       <ol class="list-decimal pl-5 space-y-1 text-sm text-gray-700">
         <li>{% trans "Konto bei Google Merchant Center anlegen (kostenlos) und Ihre Website bestätigen." %}</li>
         <li>{% trans "Unter „Produkte“ eine Datenquelle „Datei“ mit geplantem Abruf anlegen und die Feed-Adresse oben eintragen." %}</li>
@@ -121,17 +121,17 @@
 
   <div class="space-y-4">
     <section class="bg-white border border-gray-200 rounded-2xl p-5" data-merchant-included="{{ included }}">
-      <h2 class="font-semibold mb-1">{% blocktrans count counter=included %}{{ counter }} Produkt im Feed{% plural %}{{ counter }} Produkte im Feed{% endblocktrans %}</h2>
+      <h2 class="ui-h2 mb-1">{% blocktrans count counter=included %}{{ counter }} Produkt im Feed{% plural %}{{ counter }} Produkte im Feed{% endblocktrans %}</h2>
       <p class="text-xs text-gray-500">{% trans "Aktive Produkte mit Foto und Preis, die nicht ausgeblendet sind." %}</p>
       {% if on_sale %}
       <p class="text-sm mt-2" data-merchant-on-sale="{{ on_sale }}">{% blocktrans count counter=on_sale %}Davon {{ counter }} Position mit Aktionspreis{% plural %}Davon {{ counter }} Positionen mit Aktionspreis{% endblocktrans %}</p>
-      <p class="text-xs text-gray-400 mt-1">{% trans "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab." %}</p>
+      <p class="text-xs ui-muted mt-1">{% trans "Google übernimmt den Aktionspreis beim nächsten Abruf des Feeds. Geben Sie Aktionen ein Enddatum – oder rufen Sie den Feed nach einer Änderung in Merchant Center neu ab." %}</p>
       {% endif %}
     </section>
 
     {% if excluded %}
     <section class="bg-white border border-gray-200 rounded-2xl p-5">
-      <h2 class="font-semibold mb-2">{% trans "Nicht im Feed" %}</h2>
+      <h2 class="ui-h2 mb-2">{% trans "Nicht im Feed" %}</h2>
       <div class="space-y-3">
         {% for group in excluded %}
           <div data-merchant-reason="{{ group.code }}">
@@ -150,7 +150,7 @@
 
     {% if warnings %}
     <section class="bg-white border border-gray-200 rounded-2xl p-5">
-      <h2 class="font-semibold mb-2">{% trans "Hinweise" %}</h2>
+      <h2 class="ui-h2 mb-2">{% trans "Hinweise" %}</h2>
       <div class="space-y-3">
         {% for group in warnings %}
           <div data-merchant-warning="{{ group.code }}">
@@ -168,7 +168,7 @@
   </div>
 </div>
 
-<p class="text-xs text-gray-400 mt-6"><a href="{% url 'gbp-sync' %}" class="hover:underline">← {% trans "Google-Profil" %}</a> · <a href="{% url 'channels' %}" class="hover:underline">{% trans "Publishing channels" %}</a></p>
+<p class="text-xs ui-muted mt-6"><a href="{% url 'gbp-sync' %}" class="hover:underline">← {% trans "Google-Profil" %}</a> · <a href="{% url 'channels' %}" class="hover:underline">{% trans "Publishing channels" %}</a></p>
 
 <script>
   document.addEventListener("click", function (event) {

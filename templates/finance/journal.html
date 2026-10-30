@@ -6,7 +6,7 @@
 {% comment %}SM-4: страница — подпункт «Verkäufe» в сайдбаре (settings-бар снят).{% endcomment %}
 <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
   <div>
-    <h1 class="text-2xl font-bold">{% nav_title _("Revenue journal") %}</h1>
+    <h1 class="ui-h1">{% nav_title _("Revenue journal") %}</h1>
     <div class="flex items-center gap-3 text-sm">
       {% if request.user|cab_can:"finanzen.export" %}<a href="{% url 'finance:export-csv' %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}" class="text-indigo-600 hover:underline">CSV</a>{% endif %}
       {% if request.user|cab_can:"finanzen.export" %}<a href="{% url 'finance:export-datev' %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}" class="text-indigo-600 hover:underline">DATEV</a>{% endif %}
@@ -29,12 +29,12 @@
 
 <div class="grid sm:grid-cols-3 gap-4 mb-6 max-w-2xl">
   <div class="bg-white rounded-2xl shadow-sm p-5">
-    <p class="text-xs text-gray-400">{% trans "Total (gross)" %}</p>
+    <p class="text-xs ui-muted">{% trans "Total (gross)" %}</p>
     <p class="text-2xl font-bold">{{ total }} EUR</p>
   </div>
   {% for row in by_vat %}
     <div class="bg-white rounded-2xl shadow-sm p-5">
-      <p class="text-xs text-gray-400">{% trans "VAT" %} {{ row.vat_rate }} %</p>
+      <p class="text-xs ui-muted">{% trans "VAT" %} {{ row.vat_rate }} %</p>
       <p class="text-2xl font-bold">{{ row.sum }} EUR</p>
     </div>
   {% endfor %}
@@ -46,7 +46,7 @@
     <div class="px-4 py-3 flex items-center justify-between gap-3">
       <div class="min-w-0">
         <p class="text-sm font-medium">{{ e.date|date:"d.m.Y" }} · {{ e.note|default:e.get_source_display }}</p>
-        <p class="text-xs text-gray-400">{{ e.get_source_display }}{% if e.customer %} · {{ e.customer }}{% endif %} · {% trans "VAT" %} {{ e.vat_rate }} %</p>
+        <p class="text-xs ui-muted">{{ e.get_source_display }}{% if e.customer %} · {{ e.customer }}{% endif %} · {% trans "VAT" %} {{ e.vat_rate }} %</p>
       </div>
       <span class="font-semibold shrink-0">{{ e.amount }} {{ e.currency }}</span>
     </div>
@@ -59,7 +59,7 @@
 
 <form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
   {% csrf_token %}
-  <h2 class="font-semibold">{% trans "Add entry" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. counter sale" %})</span></h2>
+  <h2 class="ui-h2">{% trans "Add entry" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. counter sale" %})</span></h2>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Amount (gross)" %}</label>

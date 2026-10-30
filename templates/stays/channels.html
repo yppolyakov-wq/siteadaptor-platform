@@ -8,7 +8,7 @@
 в 2 колонки на lg+ вместо колонки max-w-3xl; мобильный — одна колонка.{% endcomment %}
 <div>
   <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-    <h1 class="text-2xl font-bold">{% nav_title _("Sales channels") %}</h1>
+    <h1 class="ui-h1">{% nav_title _("Sales channels") %}</h1>
     <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
   </div>
   <p class="text-sm text-gray-500 mb-4">{% trans "Track your OTA channels and import their reservations into your calendar (no double bookings). Availability import via iCal is on the Units page; live 2-way sync needs OTA partner keys." %}
@@ -26,7 +26,7 @@
   <div class="min-w-0">
   {# Каналы #}
   <div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
-    <h2 class="font-semibold mb-3">{% trans "Your channels" %}</h2>
+    <h2 class="ui-h2 mb-3">{% trans "Your channels" %}</h2>
     {% for c in channels %}
       <div class="flex items-center justify-between gap-3 border-t border-gray-100 py-2 text-sm {% if not c.is_active %}opacity-50{% endif %}">
         <div>
@@ -66,7 +66,7 @@
 
   {# Импорт брони из канала #}
   <div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
-    <h2 class="font-semibold mb-1">{% trans "Import a reservation" %}</h2>
+    <h2 class="ui-h2 mb-1">{% trans "Import a reservation" %}</h2>
     <p class="text-xs text-gray-500 mb-3">{% trans "Enter an OTA booking to block those dates in your calendar. Re-importing the same reference does nothing (idempotent)." %}</p>
     {% if units %}
     <form method="post" class="grid sm:grid-cols-2 gap-3">
@@ -106,7 +106,7 @@
       </div>
       <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 sm:col-span-2 sm:w-auto">{% trans "Import reservation" %}</button>
     </form>
-    {% else %}<p class="text-xs text-gray-400">{% trans "Create a room first." %}</p>{% endif %}
+    {% else %}<p class="text-xs ui-muted">{% trans "Create a room first." %}</p>{% endif %}
   </div>
 
   </div>
@@ -115,7 +115,7 @@
   {# Импортированные брони #}
   {% if imported %}
   <div class="bg-white rounded-2xl shadow-sm p-5">
-    <h2 class="font-semibold mb-3">{% trans "Imported reservations" %}</h2>
+    <h2 class="ui-h2 mb-3">{% trans "Imported reservations" %}</h2>
     {% for b in imported %}
       <div class="border-t border-gray-100 py-2 text-sm">
         <span class="font-medium">{{ b.arrival|date:"d.m." }}–{{ b.departure|date:"d.m.Y" }}</span>

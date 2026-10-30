@@ -13,8 +13,8 @@
   {% endif %}
 
   <div class="bg-white rounded-2xl shadow-sm p-6 text-center">
-    <p class="text-sm text-gray-400">{{ event.title }}</p>
-    <p class="text-xs text-gray-400 mb-3">{{ event.starts_at|date:"d.m.Y H:i" }}</p>
+    <p class="text-sm ui-muted">{{ event.title }}</p>
+    <p class="text-xs ui-muted mb-3">{{ event.starts_at|date:"d.m.Y H:i" }}</p>
     <p class="text-2xl font-mono font-bold tracking-wider">{{ ticket.reference_code }}</p>
     <p class="text-gray-700 mt-1">{{ ticket.customer.name }}{% if ticket.quantity > 1 %} · {{ ticket.quantity }} {% trans "seats" %}{% endif %}</p>
     {% if participant_names %}

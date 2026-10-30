@@ -8,7 +8,7 @@
 {% comment %}VF-24 (фидбэк 2026-08-25): «настройка | превью» в 2 колонки; редактор
 вопросов остаётся на всю ширину — его строка это 6 полей маппинга.{% endcomment %}
 <div>
-  <h1 class="text-2xl font-bold mb-1">{% nav_title _("Finder") %}</h1>
+  <h1 class="ui-h1 mb-1">{% nav_title _("Finder") %}</h1>
   <p class="text-gray-500 mb-4 text-sm">{% trans "Besucher beantworten 2–3 Fragen und bekommen 3 passende Vorschläge — statt lange im Katalog zu suchen." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
@@ -35,8 +35,8 @@
     </form>
 
     <div class="bg-white rounded-2xl shadow-sm p-6 mb-5 min-w-0">
-      <h2 class="font-semibold mb-1">{% trans "So fragt der Finder" %}</h2>
-      <p class="text-xs text-gray-400 mb-4">{% if finder_has_custom %}{% trans "Eigene Fragen (unten bearbeiten)." %}{% else %}{% trans "Voreingestellt für deine Branche — unten anpassbar." %}{% endif %}</p>
+      <h2 class="ui-h2 mb-1">{% trans "So fragt der Finder" %}</h2>
+      <p class="text-xs ui-muted mb-4">{% if finder_has_custom %}{% trans "Eigene Fragen (unten bearbeiten)." %}{% else %}{% trans "Voreingestellt für deine Branche — unten anpassbar." %}{% endif %}</p>
       <div class="space-y-4">
         {% for q in tree %}
           <div>
@@ -59,10 +59,10 @@
     <form method="post" class="bg-white rounded-2xl shadow-sm p-6">
       {% csrf_token %}
       <div class="flex items-center justify-between gap-3 mb-1">
-        <h2 class="font-semibold">{% trans "Eigene Fragen" %}</h2>
+        <h2 class="ui-h2">{% trans "Eigene Fragen" %}</h2>
         <button type="submit" name="action" value="load_preset" class="text-xs font-medium text-indigo-600 hover:text-indigo-800">↻ {% trans "Branchen-Vorlage laden" %}</button>
       </div>
-      <p class="text-xs text-gray-400 mb-4">{% trans "Leere Zeilen werden ignoriert. Alles leeren = zurück zur Branchen-Vorlage. Für mehr Zeilen: speichern — es wachsen neue nach." %}</p>
+      <p class="text-xs ui-muted mb-4">{% trans "Leere Zeilen werden ignoriert. Alles leeren = zurück zur Branchen-Vorlage. Für mehr Zeilen: speichern — es wachsen neue nach." %}</p>
       <div class="space-y-5">
         {% for q in finder_editor_rows %}
         <div class="border border-gray-200 rounded-xl p-4">

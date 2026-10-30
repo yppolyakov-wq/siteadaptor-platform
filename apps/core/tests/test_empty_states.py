@@ -40,3 +40,34 @@ def test_empty_partial_renders_action_only_with_both_parts():
 def test_empty_partial_escapes_title():
     html = render_to_string("ui/_empty.html", {"title": "<b>x</b>"})
     assert "&lt;b&gt;" in html
+
+
+DASHBOARD = [
+    p
+    for p in ROOT.glob("**/*.html")
+    if '{% extends "tenant/_base_dashboard.html" %}' in p.read_text(encoding="utf-8")
+]
+
+
+def test_dashboard_headings_use_the_scale():
+    """E9.2: заголовки страниц кабинета — шкала `.ui-h1`/`.ui-h2`, не размеры по месту."""
+    import re
+
+    bad = [
+        str(p.relative_to(ROOT))
+        for p in DASHBOARD
+        if re.search(r'<h1 class="[^"]*\btext-(?:2xl|xl)\b', p.read_text(encoding="utf-8"))
+    ]
+    assert not bad, bad
+
+
+def test_dashboard_paragraphs_are_readable_grey():
+    """E9.2/аудит №27: `text-gray-400` на белом не проходит контраст AA — абзацы кабинета `.ui-muted`."""
+    import re
+
+    bad = [
+        str(p.relative_to(ROOT))
+        for p in DASHBOARD
+        if re.search(r'<p class="[^"]*\btext-gray-400\b', p.read_text(encoding="utf-8"))
+    ]
+    assert not bad, bad

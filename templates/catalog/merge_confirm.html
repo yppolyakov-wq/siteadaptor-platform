@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Zusammenführen" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-2">🔗 {% trans "Als Varianten zusammenführen" %}</h1>
+<h1 class="ui-h1 mb-2">🔗 {% trans "Als Varianten zusammenführen" %}</h1>
 <p class="text-sm text-gray-500 mb-4 max-w-xl">{% trans "Choose the main product — the others become its variants (name, price, stock, Art.-Nr., EAN and photo move along) and disappear from the storefront. Past orders keep their history." %}</p>
 <form method="post" action="{% url 'catalog:products-merge' %}" class="bg-white rounded-2xl shadow-sm p-4 space-y-2 max-w-xl">
   {% csrf_token %}
@@ -16,7 +16,7 @@
       <span class="text-sm text-gray-400 whitespace-nowrap">{{ p.base_price }} {{ p.currency }}{% if p.sku %} · {{ p.sku }}{% endif %}</span>
     </label>
   {% endfor %}
-  <p class="text-xs text-gray-400">{% trans "The selected product stays — the rest become its variants." %}</p>
+  <p class="text-xs ui-muted">{% trans "The selected product stays — the rest become its variants." %}</p>
   <div class="flex gap-3 pt-1">
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-indigo-700">{% trans "Zusammenführen" %}</button>
     <a href="{% url 'sellable-manage' %}" class="rounded-lg px-4 py-2.5 border border-gray-300 hover:border-indigo-400">{% trans "Cancel" %}</a>

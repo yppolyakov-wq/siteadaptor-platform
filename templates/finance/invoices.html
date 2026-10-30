@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Rechnungen" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-3">{% nav_title _("Rechnungen") %}</h1>
+<h1 class="ui-h1 mb-3">{% nav_title _("Rechnungen") %}</h1>
 {% comment %}VF-4 (фидбэк 2026-08-24 «после нажатия на счета пропадают табы»):
 единственная страница раздела без ряда вкладок Finanzen — ссылка-«назад»
 не заменяет навигацию.{% endcomment %}
@@ -53,7 +53,7 @@
     <a href="{% url 'finance:invoice-detail' inv.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
       <div class="min-w-0">
         <p class="font-medium">{% if inv.is_storno %}<span class="text-red-600">{% trans "Storno" %}</span> {% elif inv.is_credit %}<span class="text-amber-700">{% trans "Gutschrift" %}</span> {% elif inv.is_advance %}<span class="text-sky-700">{% trans "Anzahlung" %}</span> {% endif %}{{ inv.number_display }}{% if inv.recipient %} · {{ inv.recipient|truncatechars:40 }}{% endif %}</p>
-        <p class="text-xs text-gray-400">{{ inv.created_at|date:"d.m.Y" }}</p>
+        <p class="text-xs ui-muted">{{ inv.created_at|date:"d.m.Y" }}</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <span class="font-semibold">{{ inv.gross }} EUR</span>
@@ -78,7 +78,7 @@
 </form>
 <form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
   {% csrf_token %}
-  <h2 class="font-semibold">{% trans "Neue Rechnung (Entwurf)" %}</h2>
+  <h2 class="ui-h2">{% trans "Neue Rechnung (Entwurf)" %}</h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Customer" %} ({% trans "optional" %})</label>
@@ -103,7 +103,7 @@
     <label class="block text-sm font-medium mb-1">{% trans "Empfänger (Name, Adresse)" %}</label>
     <textarea name="recipient" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
     {# CO-2: пусто + корпоративный гость → реквизиты компании подставятся сами. #}
-    <p class="text-xs text-gray-400 mt-1">{% trans "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen." %}</p>
+    <p class="text-xs ui-muted mt-1">{% trans "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen." %}</p>
   </div>
   <div class="space-y-2">
     <p class="text-sm font-medium">{% trans "Positionen" %} <span class="text-xs text-gray-400 font-normal">{% trans "(Preis netto)" %}</span></p>
@@ -126,7 +126,7 @@
           <option value="{{ lang.code }}" {% if lang.code == doc_language_default %}selected{% endif %}>{{ lang.label }}</option>
         {% endfor %}
       </select>
-      <p class="text-xs text-gray-400 mt-1">{% trans "The invoice is issued in this language — pick the customer's language." %}</p>
+      <p class="text-xs ui-muted mt-1">{% trans "The invoice is issued in this language — pick the customer's language." %}</p>
     </div>
   {% endif %}
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Entwurf anlegen" %}</button>

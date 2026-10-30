@@ -13,7 +13,7 @@
 
 <div class="flex items-start justify-between gap-3 flex-wrap mt-1 mb-4">
   <div class="min-w-0">
-    <h1 class="text-2xl font-bold">{{ conversation.subject|default:"—" }}</h1>
+    <h1 class="ui-h1">{{ conversation.subject|default:"—" }}</h1>
     <p class="text-sm text-gray-500">{{ conversation.customer|default:_("Guest") }}{% if conversation.customer.email %} · {% if hide_contacts %}{{ conversation.customer.email|mask_email }}{% else %}{{ conversation.customer.email }}{% endif %}{% endif %}{% if conversation.ref_label %} · {{ conversation.ref_label }}{% endif %}</p>
   </div>
   {% if reaction_time %}<span class="text-xs text-gray-400 shrink-0">⚡ {{ reaction_time }}</span>{% endif %}
@@ -87,7 +87,7 @@
       <div class="rounded-2xl px-4 py-2 max-w-[80%] {% if m.author_role == 'staff' %}bg-indigo-600 text-white{% elif m.author_role == 'system' %}bg-gray-100 text-gray-500 text-sm italic{% else %}bg-white shadow-sm{% endif %}">
         <p class="text-[11px] font-medium {% if m.author_role == 'staff' %}text-indigo-100{% else %}text-gray-500{% endif %} mb-0.5" data-msg-author>{{ m.author_label }}</p>
         <p class="whitespace-pre-line">{{ m.body }}</p>
-        <p class="text-xs {% if m.author_role == 'staff' %}text-indigo-200{% else %}text-gray-400{% endif %} mt-1">{{ m.created_at|date:"d.m.Y H:i" }}</p>
+        <p class="text-xs {% if m.author_role == 'staff' %}text-indigo-200{% else %}ui-muted{% endif %} mt-1">{{ m.created_at|date:"d.m.Y H:i" }}</p>
       </div>
     </div>
   {% endfor %}

@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Reviews" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-1">{% nav_title _("Reviews") %}</h1>
+<h1 class="ui-h1 mb-1">{% nav_title _("Reviews") %}</h1>
 <p class="text-gray-500 mb-4 text-sm">{% trans "All reviews of your products, services, rooms and events. Hide a review to remove it from your website." %}</p>
 
 {% if messages %}
@@ -34,7 +34,7 @@
 </div>
 
 {% if betrieb %}
-<p class="text-xs text-gray-400 mb-3">{% trans "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal." %}</p>
+<p class="text-xs ui-muted mb-3">{% trans "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal." %}</p>
 <div class="bg-white rounded-2xl shadow-sm p-4 space-y-1">
   {% for r in business_reviews %}
     <div class="border-b border-gray-100 last:border-0 py-3 {% if r.status == 'hidden' %}opacity-60{% endif %}">
@@ -48,7 +48,7 @@
       </form>
     </div>
   {% empty %}
-    <p class="text-sm text-gray-400 py-4">{% trans "No reviews yet." %}</p>
+    <p class="text-sm ui-muted py-4">{% trans "No reviews yet." %}</p>
   {% endfor %}
 </div>
 {% list_pager page %}
@@ -62,7 +62,7 @@
             {% if r.verified %}<span class="text-xs text-green-700">✓ {% trans "verified" %}</span>{% endif %}
             <span class="text-xs text-gray-400">· {{ r.created_at|date:"d.m.Y" }} · {{ r.get_entity_kind_display }}</span>
           </p>
-          <p class="text-xs text-gray-400">{% firstof r.entity_label "—" %}</p>
+          <p class="text-xs ui-muted">{% firstof r.entity_label "—" %}</p>
           {% if r.comment %}<p class="text-sm mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
           {# CM-6.2: ответ владельца — виден на витрине под отзывом. #}
           <form method="post" action="{% url 'reviews:reply' r.pk %}" class="mt-2 flex items-start gap-2">{% csrf_token %}
@@ -78,7 +78,7 @@
       </div>
     </div>
   {% empty %}
-    <p class="text-sm text-gray-400 py-4">{% trans "No reviews yet." %}</p>
+    <p class="text-sm ui-muted py-4">{% trans "No reviews yet." %}</p>
   {% endfor %}
 </div>
 {% list_pager page %}

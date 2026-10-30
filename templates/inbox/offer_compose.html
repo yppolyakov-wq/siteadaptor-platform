@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 <a href="{% url 'inbox:thread' conversation.pk %}" class="text-sm text-gray-500 hover:underline">← {{ conversation.subject|default:"Inbox" }}</a>
-<h1 class="text-2xl font-bold mt-1 mb-1">💶 {% trans "Angebot senden" %}</h1>
+<h1 class="ui-h1 mt-1 mb-1">💶 {% trans "Angebot senden" %}</h1>
 <p class="text-sm text-gray-500 mb-5">{% blocktrans with who=conversation.customer|default:_("Gast") %}Persönliches Angebot für {{ who }} — Positionen wählen oder frei eintragen; der Kunde nimmt es per Link an und bezahlt.{% endblocktrans %}</p>
 
 {% if messages %}
@@ -18,7 +18,7 @@
   {# Пикер позиций из ассортимента (FB-8): чекбокс + кол-во + редактируемая цена. #}
   {% for section in sections %}
     <div class="bg-white rounded-2xl shadow-sm p-4">
-      <h2 class="font-semibold mb-2">{{ section.label }}</h2>
+      <h2 class="ui-h2 mb-2">{{ section.label }}</h2>
       <div class="divide-y divide-gray-50">
         {% for item in section.items %}
           <label class="flex items-center gap-3 py-2 cursor-pointer">
@@ -35,7 +35,7 @@
 
   {# Свободные строки: название + цена + кол-во (пустые игнорируются). #}
   <div class="bg-white rounded-2xl shadow-sm p-4">
-    <h2 class="font-semibold mb-2">{% trans "Freie Positionen" %}</h2>
+    <h2 class="ui-h2 mb-2">{% trans "Freie Positionen" %}</h2>
     {% for _ in "123" %}
       <div class="flex items-center gap-3 py-1.5">
         <input type="text" name="free_title" placeholder="{% trans 'Beschreibung' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">

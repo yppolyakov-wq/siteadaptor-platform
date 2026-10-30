@@ -9,7 +9,7 @@
   <header class="pt-1">
     <p class="text-sm text-gray-500">{{ today|date:"l, j. F" }}</p>
     <div class="flex items-center justify-between gap-3">
-      <h1 class="text-2xl font-bold truncate">{{ request.tenant.name }}</h1>
+      <h1 class="ui-h1 truncate">{{ request.tenant.name }}</h1>
       <a href="{% url 'lite-visibility' %}" aria-label="{% trans "Sichtbarkeit" %}" class="shrink-0 w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-700">
         <svg class="w-5 h-5" aria-hidden="true"><use href="#ic-nav-integrations"></use></svg>
       </a>

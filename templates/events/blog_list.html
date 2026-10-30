@@ -7,7 +7,7 @@
 блог витрины), «＋ Neuer Beitrag» (к форме создания), у опубликованных строк —
 «📣 Teilen» с выбором канала (префилл в publishing, как на карточке записи).{% endcomment %}
 <div class="flex items-center gap-3 flex-wrap mb-4">
-  <h1 class="text-2xl font-bold">{% nav_title _("Blog") %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Blog") %}</h1>
   <span class="ml-auto flex items-center gap-2">
     <a href="{% url 'storefront-blog' %}" target="_blank" rel="noopener" class="text-sm font-medium rounded-xl border border-gray-300 bg-white px-3 py-1.5 hover:bg-gray-50">{% trans "Ansehen auf der Website" %} ↗</a>
     <a href="#blog-neu" class="text-sm font-medium rounded-xl bg-indigo-600 text-white px-3 py-1.5 hover:bg-indigo-700">＋ {% trans "New post" %}</a>
@@ -34,13 +34,13 @@
       <span class="text-xs shrink-0 {% if row.post.is_published %}text-green-600{% elif row.post.published_at %}text-indigo-600{% else %}text-gray-400{% endif %}">{% if row.post.is_published %}{% trans "Published" %}{% elif row.post.published_at %}⏰ {{ row.post.published_at|date:"d.m.Y H:i" }}{% else %}{% trans "Draft" %}{% endif %}</span>
     </div>
   {% empty %}
-    <p class="text-gray-500">{% trans "No posts yet." %}</p>
+    {% trans "No posts yet." as t %}{% trans "New post" as a %}{% include "ui/_empty.html" with title=t action_url="#blog-neu" action_label=a %}
   {% endfor %}
 </div>
 
 <form id="blog-neu" method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-3">
   {% csrf_token %}
-  <h2 class="font-semibold">{% trans "New post" %}</h2>
+  <h2 class="ui-h2">{% trans "New post" %}</h2>
   <input name="title" type="text" required placeholder="{% trans 'Title' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   <input name="excerpt" type="text" placeholder="{% trans 'Short summary (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   <textarea name="body" rows="5" placeholder="{% trans 'Text' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>

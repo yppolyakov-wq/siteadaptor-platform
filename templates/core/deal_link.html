@@ -10,7 +10,7 @@ role=anchor — выбранная прикрепляется К ЭТОЙ. По�
 <a href="{{ back }}" class="text-sm text-gray-500 hover:underline">← {% trans "Zurück" %}</a>
 
 <div class="max-w-2xl">
-  <h1 class="text-2xl font-bold mt-1 mb-1">🔗 {% trans "Verknüpfen" %}</h1>
+  <h1 class="ui-h1 mt-1 mb-1">🔗 {% trans "Verknüpfen" %}</h1>
   <p class="text-sm text-gray-500 mb-1">
     {% if role == "anchor" %}
       {% blocktrans with title=current.title %}Welche Leistung gehört zu „{{ title }}“?{% endblocktrans %}
@@ -18,7 +18,7 @@ role=anchor — выбранная прикрепляется К ЭТОЙ. По�
       {% blocktrans with title=current.title %}Zu welcher Buchung gehört „{{ title }}“?{% endblocktrans %}
     {% endif %}
   </p>
-  <p class="text-xs text-gray-400 mb-4">{% trans "Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene Spalte. Die Verknüpfung zeigt nur, was zusammengehört." %}</p>
+  <p class="text-xs ui-muted mb-4">{% trans "Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene Spalte. Die Verknüpfung zeigt nur, was zusammengehört." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
 
@@ -45,7 +45,7 @@ role=anchor — выбранная прикрепляется К ЭТОЙ. По�
         <div class="flex items-center gap-3 px-4 py-3">
           <div class="min-w-0 flex-1">
             <p class="text-sm font-medium truncate">{{ c.tx.title }}</p>
-            <p class="text-xs text-gray-400 truncate">{{ c.kind_label }} · #{{ c.tx.reference_code }}{% if c.tx.customer %} · {{ c.tx.customer }}{% endif %}{% if c.tx.subtotal_display %} · {{ c.tx.subtotal_display }}{% endif %}</p>
+            <p class="text-xs ui-muted truncate">{{ c.kind_label }} · #{{ c.tx.reference_code }}{% if c.tx.customer %} · {{ c.tx.customer }}{% endif %}{% if c.tx.subtotal_display %} · {{ c.tx.subtotal_display }}{% endif %}</p>
           </div>
           {% if c.blocked %}
             <span class="text-xs text-gray-400 whitespace-nowrap">{% trans "bereits verknüpft" %}</span>
@@ -61,7 +61,7 @@ role=anchor — выбранная прикрепляется К ЭТОЙ. По�
       {% endfor %}
     </div>
   {% elif q %}
-    <p class="text-sm text-gray-400">{% blocktrans %}Nichts gefunden für „{{ q }}“.{% endblocktrans %}</p>
+    <p class="text-sm ui-muted">{% blocktrans %}Nichts gefunden für „{{ q }}“.{% endblocktrans %}</p>
   {% endif %}
 </div>
 {% endblock %}

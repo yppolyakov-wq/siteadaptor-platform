@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Google Bewertungen" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-1">⭐ {% nav_title _("Google Bewertungen") %}</h1>
+<h1 class="ui-h1 mb-1">⭐ {% nav_title _("Google Bewertungen") %}</h1>
 <p class="text-sm text-gray-500 mb-4">{% trans "Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website (Vertrauensleiste und Bewertungsseite)." %}</p>
 
 {% if messages %}
@@ -27,7 +27,7 @@
 <div class="mt-4 bg-white rounded-2xl shadow-sm p-6 max-w-xl text-sm">
   <p class="text-2xl text-amber-500 font-bold">★ {{ request.tenant.google_rating }}</p>
   <p class="text-gray-500 mt-1">{% blocktrans count n=request.tenant.google_rating_count %}{{ n }} Google-Bewertung{% plural %}{{ n }} Google-Bewertungen{% endblocktrans %}</p>
-  <p class="text-xs text-gray-400 mt-2">{% trans "Zuletzt aktualisiert" %}: {{ request.tenant.google_rating_updated_at|date:"d.m.Y H:i" }} · {% trans "Automatische Aktualisierung alle paar Tage" %}</p>
+  <p class="text-xs ui-muted mt-2">{% trans "Zuletzt aktualisiert" %}: {{ request.tenant.google_rating_updated_at|date:"d.m.Y H:i" }} · {% trans "Automatische Aktualisierung alle paar Tage" %}</p>
 </div>
 {% endif %}
 {% endblock %}

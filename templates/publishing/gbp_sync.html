@@ -4,7 +4,7 @@
 {% block dash_title %}{% trans "Google-Profil" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-1">{% nav_title _("Google-Profil") %}</h1>
+<h1 class="ui-h1 mb-1">{% nav_title _("Google-Profil") %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "Standort und Öffnungszeiten Ihres Google-Unternehmensprofils verwalten. Ihre Aktionen gehen automatisch an Google, wenn der Kanal eingeschaltet ist." %}</p>
 
 <div class="space-y-4 max-w-2xl">
@@ -15,7 +15,7 @@
   {% endif %}
 
   <section class="bg-white border border-gray-200 rounded-2xl p-5">
-    <h2 class="font-semibold mb-2">{% trans "Verbindung" %}</h2>
+    <h2 class="ui-h2 mb-2">{% trans "Verbindung" %}</h2>
     {% if connected %}
       <p class="text-sm text-green-700">✓ {% trans "Mit Google verbunden" %}</p>
     {% else %}
@@ -29,7 +29,7 @@
 
   {% if connected %}
   <section class="bg-white border border-gray-200 rounded-2xl p-5">
-    <h2 class="font-semibold mb-2">{% trans "Standort" %}</h2>
+    <h2 class="ui-h2 mb-2">{% trans "Standort" %}</h2>
     {% if location %}
       <p class="text-sm text-gray-700 mb-3">{% trans "Aktueller Standort:" %} <code class="text-xs">{{ location }}</code></p>
     {% else %}
@@ -66,10 +66,10 @@
 
   {% if connected and location %}
   <section class="bg-white border border-gray-200 rounded-2xl p-5" id="zeiten">
-    <h2 class="font-semibold mb-1">{% trans "Öffnungszeiten" %}</h2>
+    <h2 class="ui-h2 mb-1">{% trans "Öffnungszeiten" %}</h2>
     <p class="text-xs text-gray-500 mb-3">{% trans "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen." %}</p>
     {% if hours_synced_at %}
-      <p class="text-xs text-gray-400 mb-3" data-hours-synced>{% trans "Zuletzt abgeglichen" %}: {{ hours_synced_at|date:"SHORT_DATETIME_FORMAT" }}</p>
+      <p class="text-xs ui-muted mb-3" data-hours-synced>{% trans "Zuletzt abgeglichen" %}: {{ hours_synced_at|date:"SHORT_DATETIME_FORMAT" }}</p>
     {% endif %}
 
     {% if hours_diff %}
@@ -122,11 +122,11 @@
   {% endif %}
 
   <section class="bg-white border border-gray-200 rounded-2xl p-5">
-    <h2 class="font-semibold mb-1">{% trans "Produkte bei Google" %}</h2>
+    <h2 class="ui-h2 mb-1">{% trans "Produkte bei Google" %}</h2>
     <p class="text-sm text-gray-600 mb-2">{% trans "Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google senden." %}</p>
     <a href="{% url 'gbp-merchant' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Google Merchant Center" %} →</a>
   </section>
 
-  <p class="text-xs text-gray-400"><a href="{% url 'channels' %}" class="hover:underline">← {% trans "Publishing channels" %}</a></p>
+  <p class="text-xs ui-muted"><a href="{% url 'channels' %}" class="hover:underline">← {% trans "Publishing channels" %}</a></p>
 </div>
 {% endblock %}

@@ -7,7 +7,7 @@
   {% comment %}VF-20b: обратный вход в Акции — экран кампаний был тупиком (ни одной
   ссылки наружу). Раздельные поверхности, соседние задачи.{% endcomment %}
   <div class="flex items-start justify-between gap-3 flex-wrap">
-    <h1 class="text-2xl font-bold mb-1">{% nav_title _("Coupon campaigns") %}</h1>
+    <h1 class="ui-h1 mb-1">{% nav_title _("Coupon campaigns") %}</h1>
     {% if promotions_active %}
       <a href="{% url 'promotions:promotion-list' %}" class="border border-gray-300 text-gray-700 rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-gray-50">🏷 {% trans "Aktionen" %}</a>
     {% endif %}
@@ -29,7 +29,7 @@
   <form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-6 space-y-3">
     {% csrf_token %}
     <input type="hidden" name="action" value="create">
-    <h2 class="font-semibold">{% trans "New campaign" %}</h2>
+    <h2 class="ui-h2">{% trans "New campaign" %}</h2>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Campaign name" %}</label>
       <input id="id_name" name="name" type="text" required maxlength="200" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'e.g. Win-back autumn' %}">
@@ -71,7 +71,7 @@
           <input id="id_valid_days" name="valid_days" type="number" min="1" max="365" value="30" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
         </div>
       </div>
-      <p class="text-xs text-gray-400 mt-2">{% trans "Each customer gets a unique single-use code." %}</p>
+      <p class="text-xs ui-muted mt-2">{% trans "Each customer gets a unique single-use code." %}</p>
     </fieldset>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_subject">{% trans "Subject" %}</label>
@@ -80,7 +80,7 @@
     <div>
       <label class="block text-sm font-medium mb-1" for="id_body">{% trans "Message" %}</label>
       <textarea id="id_body" name="body" rows="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
-      <p class="text-xs text-gray-400 mt-1">{% trans "The personal code and its conditions are appended automatically." %}</p>
+      <p class="text-xs ui-muted mt-1">{% trans "The personal code and its conditions are appended automatically." %}</p>
     </div>
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save draft" %}</button>
   </form>
@@ -106,9 +106,9 @@
             {% if c.discount_percent %}−{{ c.discount_percent }} %{% elif c.discount_cents %}−{{ c.discount_eur|floatformat:2 }} €{% endif %}
           </p>
           {% if c.status == 'draft' %}
-            <p class="text-xs text-gray-400 mt-1">{% blocktrans count n=c.segment_count %}{{ n }} recipient in segment now{% plural %}{{ n }} recipients in segment now{% endblocktrans %}</p>
+            <p class="text-xs ui-muted mt-1">{% blocktrans count n=c.segment_count %}{{ n }} recipient in segment now{% plural %}{{ n }} recipients in segment now{% endblocktrans %}</p>
           {% else %}
-            <p class="text-xs text-gray-400 mt-1">
+            <p class="text-xs ui-muted mt-1">
               {% if c.sent_at %}{{ c.sent_at|date:"d.m.Y H:i" }} · {% endif %}
               {% blocktrans with issued=c.issued|default:0 redeemed=c.redeemed|default:0 %}{{ issued }} codes issued · {{ redeemed }} redeemed{% endblocktrans %}
             </p>
@@ -130,7 +130,7 @@
         {% endif %}
       </div>
     {% empty %}
-      <p class="p-4 text-sm text-gray-400">{% trans "No campaigns yet." %}</p>
+      <p class="p-4 text-sm ui-muted">{% trans "No campaigns yet." %}</p>
     {% endfor %}
   </div>
   </div>
@@ -141,7 +141,7 @@
     {% csrf_token %}
     <input type="hidden" name="action" value="winback">
     <div class="flex items-center justify-between">
-      <h2 class="font-semibold">{% trans "Auto Win-back" %}</h2>
+      <h2 class="ui-h2">{% trans "Auto Win-back" %}</h2>
       <label class="flex items-center gap-2 text-sm">
         <input type="checkbox" name="enabled" value="1" {% if winback and winback.status == 'active' %}checked{% endif %} class="rounded border-gray-300">
         {% trans "Enabled" %}
@@ -174,7 +174,7 @@
     {% csrf_token %}
     <input type="hidden" name="action" value="birthday">
     <div class="flex items-center justify-between">
-      <h2 class="font-semibold">🎂 {% trans "Geburtstagsgruß" %}</h2>
+      <h2 class="ui-h2">🎂 {% trans "Geburtstagsgruß" %}</h2>
       <label class="flex items-center gap-2 text-sm">
         <input type="checkbox" name="enabled" value="1" {% if birthday and birthday.status == 'active' %}checked{% endif %} class="rounded border-gray-300">
         {% trans "Enabled" %}

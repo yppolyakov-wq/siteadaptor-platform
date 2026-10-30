@@ -12,7 +12,7 @@
 {% endif %}
 
 <div class="flex items-center justify-between gap-3 flex-wrap mt-1 mb-4">
-  <h1 class="text-2xl font-bold">{{ thread.subject }}</h1>
+  <h1 class="ui-h1">{{ thread.subject }}</h1>
   <span class="text-xs font-medium px-2 py-0.5 rounded-full shrink-0
     {% if thread.status == 'open' %}bg-amber-100 text-amber-800
     {% elif thread.status == 'pending' %}bg-blue-100 text-blue-800
@@ -26,7 +26,7 @@
       <div class="rounded-2xl px-4 py-2 max-w-[80%] {% if m.author_role == 'owner' %}bg-indigo-600 text-white{% elif m.author_role == 'system' %}bg-gray-100 text-gray-500 text-sm italic{% else %}bg-white shadow-sm{% endif %}">
         {% if m.author_role == 'platform' %}<p class="text-xs font-semibold text-indigo-600 mb-0.5">SiteAdaptor</p>{% endif %}
         <p class="whitespace-pre-line">{{ m.body }}</p>
-        <p class="text-xs {% if m.author_role == 'owner' %}text-indigo-200{% else %}text-gray-400{% endif %} mt-1">{{ m.created_at|date:"d.m. H:i" }}</p>
+        <p class="text-xs {% if m.author_role == 'owner' %}text-indigo-200{% else %}ui-muted{% endif %} mt-1">{{ m.created_at|date:"d.m. H:i" }}</p>
       </div>
     </div>
   {% endfor %}

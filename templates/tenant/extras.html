@@ -7,7 +7,7 @@
 раскладка «список слева · форма справа» вместо колонки max-w-2xl. На мобильном —
 одна колонка (список первым, как было). Формы/эндпоинты не тронуты.{% endcomment %}
 <div>
-  <h1 class="text-2xl font-bold mb-1">{% nav_title _("Extras") %}</h1>
+  <h1 class="ui-h1 mb-1">{% nav_title _("Extras") %}</h1>
   <p class="text-sm text-gray-500 mb-5">{% trans "Optional paid add-ons guests can pick when booking (breakfast, parking, late checkout …). One engine for all booking types; “scope” limits where it applies. Currently shown on Übernachtung." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
@@ -20,8 +20,8 @@
           {% comment %}A5: миниатюра фото доп-услуги (если задано).{% endcomment %}
           {% if e.image_url %}<img src="{{ e.image_url }}" alt="{{ e.label }}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">{% endif %}
           <div class="min-w-0">
-            <p class="font-medium truncate {% if not e.is_active %}text-gray-400 line-through{% endif %}">{{ e.label }}</p>
-            <p class="text-xs text-gray-400">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %} · {{ e.get_scope_display }}{% if e.entity_kind %} · 🎯 {{ e.entity_label|default:_("gelöschtes Objekt") }}{% endif %}{% if e.tracker %} · {{ e.get_tracker_display }}{% if e.tracker == "pool" and e.pool_size %} ({{ e.pool_size }}){% endif %}{% endif %}</p>
+            <p class="font-medium truncate {% if not e.is_active %}ui-muted line-through{% endif %}">{{ e.label }}</p>
+            <p class="text-xs ui-muted">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %} · {{ e.get_scope_display }}{% if e.entity_kind %} · 🎯 {{ e.entity_label|default:_("gelöschtes Objekt") }}{% endif %}{% if e.tracker %} · {{ e.get_tracker_display }}{% if e.tracker == "pool" and e.pool_size %} ({{ e.pool_size }}){% endif %}{% endif %}</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -42,14 +42,14 @@
         </div>
       </div>
     {% empty %}
-      <p class="p-4 text-sm text-gray-400">{% trans "No extras yet — add your first below." %}</p>
+      <p class="p-4 text-sm ui-muted">{% trans "No extras yet — add your first below." %}</p>
     {% endfor %}
   </div>
 
   <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 min-w-0">
     {% csrf_token %}
     <input type="hidden" name="action" value="add">
-    <h2 class="font-semibold">{% trans "New extra" %}</h2>
+    <h2 class="ui-h2">{% trans "New extra" %}</h2>
     <div class="grid sm:grid-cols-2 gap-4">
       <input name="label" type="text" required placeholder="{% trans 'Name (e.g. Frühstück)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
       <div>

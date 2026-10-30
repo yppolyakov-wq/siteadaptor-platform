@@ -3,7 +3,7 @@
 {% block dash_title %}{% if teacher %}{% trans "Edit teacher" %}{% else %}{% trans "New teacher" %}{% endif %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-6">{% if teacher %}{% trans "Edit teacher" %}{% else %}{% trans "New teacher" %}{% endif %}</h1>
+<h1 class="ui-h1 mb-6">{% if teacher %}{% trans "Edit teacher" %}{% else %}{% trans "New teacher" %}{% endif %}</h1>
 
 <form method="post" class="bg-white p-6 rounded-2xl shadow-sm max-w-2xl space-y-4">
   {% csrf_token %}

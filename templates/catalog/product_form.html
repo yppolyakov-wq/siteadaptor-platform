@@ -6,7 +6,7 @@
 {% comment %}SR-2: форма на всю ширину (утверждённый канвас) —
 main-колонка + правая колонка «Preis & Bestand»/«Kategorie»/Sichtbarkeit.{% endcomment %}
 <div>
-  <h1 class="text-2xl font-bold mb-4">
+  <h1 class="ui-h1 mb-4">
     {% if is_create %}{% trans "New product" %}{% else %}{% trans "Edit product" %}{% endif %}
   </h1>
 
@@ -67,7 +67,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
           <span aria-hidden="true">⚙</span> {% trans "Advanced pricing (variants & extras)" %} →
         </button>
       {% else %}
-        <p class="text-xs text-gray-400">{% trans "Save first to add variants & extras (sizes, options, surcharges)." %}</p>
+        <p class="text-xs ui-muted">{% trans "Save first to add variants & extras (sizes, options, surcharges)." %}</p>
       {% endif %}
       {% comment %}FB-5 + R7-2: изображения — ЧАСТЬ вкладки «Grundlagen» (решение
       владельца: «изображения это часть основных»), а не отдельный блок над
@@ -99,7 +99,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Add images" %}</label>
         <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-sm">
-        <p class="text-xs text-gray-400 mt-1">{% trans "JPEG, PNG or WEBP, max 5 MB each." %}</p>
+        <p class="text-xs ui-muted mt-1">{% trans "JPEG, PNG or WEBP, max 5 MB each." %}</p>
       </div>
       {% comment %}O-1 (Outlet/B-Ware): марка и состояние — часть описания товара, а не
       маркировки: в аутлете это первое, что смотрит покупатель, и по § 476 Abs. 2 BGB
@@ -122,7 +122,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
           <div>
             <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
             <div class="pf-chips">{% render_field field %}</div>
-            {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+            {% if field.help_text %}<p class="text-xs ui-muted mt-1">{{ field.help_text }}</p>{% endif %}
           </div>
         {% endif %}{% endfor %}
       </div>
@@ -198,8 +198,8 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
       <p class="text-sm font-medium mb-1">{% trans "Variants" %}</p>
       {% comment %}O-2: вид выбора вариантов на витрине. Поле живёт в основной форме
       товара (панель выше), здесь — только подсказка со ссылкой на него.{% endcomment %}
-      <p class="text-xs text-gray-400 mb-3">{% trans "How the options look on your storefront is set in the Marketing tab." %}</p>
-      <p class="text-xs text-gray-400 mb-3">{% trans "E.g. 100 g / 250 g, sizes. Empty price = base price." %} {% trans "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch." %}</p>
+      <p class="text-xs ui-muted mb-3">{% trans "How the options look on your storefront is set in the Marketing tab." %}</p>
+      <p class="text-xs ui-muted mb-3">{% trans "E.g. 100 g / 250 g, sizes. Empty price = base price." %} {% trans "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch." %}</p>
 
       {% for v in variants %}
         <form method="post" enctype="multipart/form-data" action="{% url 'catalog:variant-update' product.pk v.pk %}"
@@ -289,7 +289,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
     {# Модификаторы / Extras блюда (A4 Gastro) #}
     <div class="mt-6 bg-white p-6 rounded-2xl shadow-sm">
       <p class="text-sm font-medium mb-1">{% trans "Modifiers / Extras" %}</p>
-      <p class="text-xs text-gray-400 mb-3">{% trans "E.g. size, side dish, extras. Min/max = how many options the guest may pick (max 0 = no limit, 1 = single choice). Surcharge adds to the item price." %}</p>
+      <p class="text-xs ui-muted mb-3">{% trans "E.g. size, side dish, extras. Min/max = how many options the guest may pick (max 0 = no limit, 1 = single choice). Surcharge adds to the item price." %}</p>
 
       {% for g in modifier_groups %}
         <div class="border border-gray-200 rounded-xl p-4 mb-3">

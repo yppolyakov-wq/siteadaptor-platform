@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 <div>
-  <h1 class="text-2xl font-bold mb-4">
+  <h1 class="ui-h1 mb-4">
     {% if is_create %}{% trans "New promotion" %}{% else %}{% trans "Edit promotion" %}{% endif %}
   </h1>
 
@@ -101,7 +101,7 @@
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Add images" %}</label>
         <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-sm">
-        <p class="text-xs text-gray-400 mt-1">{% trans "JPEG, PNG or WEBP, max 5 MB each. If empty, the linked product's photo is used." %}</p>
+        <p class="text-xs ui-muted mt-1">{% trans "JPEG, PNG or WEBP, max 5 MB each. If empty, the linked product's photo is used." %}</p>
       </div>
     </div>
 
@@ -210,7 +210,7 @@
   {% if promotion and waitlist_count %}
     <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
       <p class="text-sm font-medium">{% trans "Waitlist" %}: <span class="font-bold">{{ waitlist_count }}</span></p>
-      <p class="text-xs text-gray-400 mt-1">{% trans "Customers waiting for this offer to be back in stock." %}</p>
+      <p class="text-xs ui-muted mt-1">{% trans "Customers waiting for this offer to be back in stock." %}</p>
     </div>
   {% endif %}
 
@@ -299,7 +299,7 @@
           </tbody>
         </table>
       {% else %}
-        <p class="text-xs text-gray-400">{% trans "No reservations yet." %}</p>
+        <p class="text-xs ui-muted">{% trans "No reservations yet." %}</p>
       {% endif %}
       {% endif %}
     </div>

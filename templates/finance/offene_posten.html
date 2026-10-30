@@ -5,13 +5,13 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% nav_title _("Offene Posten") %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Offene Posten") %}</h1>
   <a href="{% url 'finance:bank' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Bankabgleich" %} →</a>
 </div>
 {% include "finance/_finance_tabs.html" with fin_tab="offene" %}
 
 <div class="rounded-xl border border-gray-200 p-4 mb-4 max-w-xs">
-  <p class="text-xs text-gray-400">{% trans "Offen gesamt" %}</p>
+  <p class="text-xs ui-muted">{% trans "Offen gesamt" %}</p>
   <p class="text-xl font-semibold">{{ total|floatformat:2 }} €</p>
 </div>
 

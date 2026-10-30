@@ -5,7 +5,7 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% nav_title _("Bankabgleich") %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Bankabgleich") %}</h1>
   <a href="{% url 'finance:offene' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Offene Posten" %} →</a>
 </div>
 {% include "finance/_finance_tabs.html" with fin_tab="bank" %}
@@ -24,10 +24,10 @@
     <input type="file" name="file" accept=".csv,text/csv" required class="w-full text-sm">
   </div>
   <button class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">{% trans "Importieren" %}</button>
-  <p class="w-full text-xs text-gray-400">{% trans "Spalten werden automatisch erkannt (Buchungstag, Betrag, Verwendungszweck). Doppelte Umsätze werden übersprungen." %}</p>
+  <p class="w-full text-xs ui-muted">{% trans "Spalten werden automatisch erkannt (Buchungstag, Betrag, Verwendungszweck). Doppelte Umsätze werden übersprungen." %}</p>
 </form>
 
-<h2 class="text-lg font-semibold mb-2">{% trans "Nicht zugeordnete Umsätze" %}</h2>
+<h2 class="ui-h2 mb-2">{% trans "Nicht zugeordnete Umsätze" %}</h2>
 <div class="space-y-2 mb-8">
   {% for tx in unmatched %}
   <div class="rounded-xl border border-gray-200 p-3 text-sm">
@@ -53,17 +53,17 @@
       {% endfor %}
     </div>
     {% else %}
-    <p class="mt-1 text-xs text-gray-400">{% trans "Kein Vorschlag — Verwendungszweck enthält keinen bekannten Code." %}</p>
+    <p class="mt-1 text-xs ui-muted">{% trans "Kein Vorschlag — Verwendungszweck enthält keinen bekannten Code." %}</p>
     {% endif %}
   </div>
   {% empty %}
-  <p class="text-sm text-gray-400">{% trans "Keine offenen Umsätze — Auszug importieren oder alles ist zugeordnet." %}</p>
+  <p class="text-sm ui-muted">{% trans "Keine offenen Umsätze — Auszug importieren oder alles ist zugeordnet." %}</p>
   {% endfor %}
 </div>
 {% list_pager page %}
 
 {% if matched %}
-<h2 class="text-lg font-semibold mb-2">{% trans "Zuletzt zugeordnet" %}</h2>
+<h2 class="ui-h2 mb-2">{% trans "Zuletzt zugeordnet" %}</h2>
 <ul class="text-sm text-gray-500 space-y-1">
   {% for tx in matched %}<li>{{ tx.date|date:"d.m.Y" }} · {{ tx.amount|floatformat:2 }} € → {{ tx.matched_kind }} {{ tx.matched_id|truncatechars:12 }}</li>{% endfor %}
 </ul>

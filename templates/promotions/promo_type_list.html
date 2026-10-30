@@ -17,7 +17,7 @@
 {% block dash_content %}
 <div class="max-w-5xl">
   <div class="flex flex-wrap items-center justify-between gap-3 mb-1">
-    <h1 class="text-xl font-semibold">{% nav_title _("Aktionstypen") %}</h1>
+    <h1 class="ui-h1">{% nav_title _("Aktionstypen") %}</h1>
     <a href="{% url 'promotions:promotion-list' %}" class="text-sm text-gray-500 hover:underline">{% trans "Zu den Aktionen" %} →</a>
   </div>
   <p class="text-sm text-gray-500 mb-5">{% trans "Jeder Typ bekommt eine eigene Seite auf der Website — mit eigener Vorlage, eigenem Raster und eigener Kartenform." %}</p>
@@ -35,7 +35,7 @@
         <a href="{% url 'storefront-aktionen' %}?gruppe={{ row.key|urlencode }}" target="_blank" rel="noopener"
            class="ml-auto text-sm text-gray-500 hover:underline">{% trans "Seite ansehen" %} →</a>
       </div>
-      {% if row.hint %}<p class="-mt-2 mb-3 text-xs text-gray-400">{{ row.hint }}</p>{% endif %}
+      {% if row.hint %}<p class="-mt-2 mb-3 text-xs ui-muted">{{ row.hint }}</p>{% endif %}
 
       <div class="grid gap-4 md:grid-cols-2">
         {% include "tenant/_cardform_picker.html" with name="style:"|add:row.key value=row.style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Vorlage der Seite") %}

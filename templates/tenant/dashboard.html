@@ -6,7 +6,7 @@
 {% comment %}R4 (редизайн B, макет Main.dc/DesktopHome.dc): шапка — имя бизнеса
 + строка дня вместо «Welcome».{% endcomment %}
 <div class="mb-4">
-  <h1 class="text-xl font-bold tracking-tight">{{ request.tenant.name }}</h1>
+  <h1 class="ui-h1 tracking-tight">{{ request.tenant.name }}</h1>
   <p class="text-xs text-gray-500">{% trans "Heute" %} · {% now "D, j. F" %}</p>
 </div>
 
@@ -105,6 +105,6 @@ deep-links те же.{% endcomment %}
 </div>
 {% include "core/_sales_body.html" %}
 {% else %}
-<p class="text-sm text-gray-400">{% trans "Noch keine Verkaufskanäle aktiv." %}{% if 'modules'|can_open:request %} <a href="{% url 'modules' %}" class="text-indigo-600 hover:underline">{% trans "Funktionen" %} →</a>{% endif %}</p>
+<p class="text-sm ui-muted">{% trans "Noch keine Verkaufskanäle aktiv." %}{% if 'modules'|can_open:request %} <a href="{% url 'modules' %}" class="text-indigo-600 hover:underline">{% trans "Funktionen" %} →</a>{% endif %}</p>
 {% endif %}
 {% endblock %}

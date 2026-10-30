@@ -6,7 +6,7 @@
 {% comment %}VF-24 (фидбэк 2026-08-25): раскладка как у Kampagnen (VF-19) —
 «создание | список» в 2 колонки на lg+, на мобильном одна колонка.{% endcomment %}
 <div>
-  <h1 class="text-2xl font-bold mb-1">{% nav_title _("Newsletter campaigns") %}</h1>
+  <h1 class="ui-h1 mb-1">{% nav_title _("Newsletter campaigns") %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% blocktrans count n=consented %}{{ n }} guest has confirmed marketing consent (double opt-in).{% plural %}{{ n }} guests have confirmed marketing consent (double opt-in).{% endblocktrans %} {% trans "Emails are only sent to them." %}</p>
 
   {% if messages %}
@@ -20,7 +20,7 @@
   <form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-6 space-y-3 min-w-0">
     {% csrf_token %}
     <input type="hidden" name="action" value="create">
-    <h2 class="font-semibold">{% trans "New campaign" %}</h2>
+    <h2 class="ui-h2">{% trans "New campaign" %}</h2>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_subject">{% trans "Subject" %}</label>
       <input id="id_subject" name="subject" type="text" required maxlength="200" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -42,7 +42,7 @@
             {% else %}<span class="text-xs bg-amber-100 text-amber-800 rounded-full px-2 py-0.5 ml-1">{% trans "draft" %}</span>{% endif %}
           </p>
           <p class="text-xs text-gray-500 mt-1 whitespace-pre-line line-clamp-2">{{ c.body }}</p>
-          {% if c.status == 'sent' %}<p class="text-xs text-gray-400 mt-1">{{ c.sent_at|date:"d.m.Y H:i" }} · {% blocktrans count n=c.recipient_count %}{{ n }} recipient{% plural %}{{ n }} recipients{% endblocktrans %}</p>{% endif %}
+          {% if c.status == 'sent' %}<p class="text-xs ui-muted mt-1">{{ c.sent_at|date:"d.m.Y H:i" }} · {% blocktrans count n=c.recipient_count %}{{ n }} recipient{% plural %}{{ n }} recipients{% endblocktrans %}</p>{% endif %}
         </div>
         {% if c.status == 'draft' %}
         <div class="flex items-center gap-2 whitespace-nowrap">
@@ -60,7 +60,7 @@
         {% endif %}
       </div>
     {% empty %}
-      <p class="p-4 text-sm text-gray-400">{% trans "No campaigns yet." %}</p>
+      <p class="p-4 text-sm ui-muted">{% trans "No campaigns yet." %}</p>
     {% endfor %}
   </div>
   </div>

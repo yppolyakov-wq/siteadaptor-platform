@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Lager" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-1">📦 {% nav_title _("Lager") %}</h1>
+<h1 class="ui-h1 mb-1">📦 {% nav_title _("Lager") %}</h1>
 <p class="text-sm text-gray-500 mb-4">{% trans "Wareneingänge, Korrekturen & Inventur — mit Bewegungshistorie und Abgleich gegen den Bestandszähler." %}</p>
 
 {% if messages %}
@@ -190,7 +190,7 @@
       </form>
     </div>
   {% else %}
-    <p class="text-sm text-gray-400">{% trans "Noch keine Produkte angelegt." %}</p>
+    <p class="text-sm ui-muted">{% trans "Noch keine Produkte angelegt." %}</p>
   {% endif %}
 </div>
 
@@ -201,7 +201,7 @@
   <form method="post" action="{% url 'stock' %}" class="px-4 pb-4 space-y-3">
     {% csrf_token %}
     <input type="hidden" name="action" value="production">
-    <p class="text-xs text-gray-400">{% trans "Zutaten werden abgebucht, das Fertigprodukt zugebucht — alles in einer Buchung. Reicht eine Zutat nicht, wird nichts gebucht." %}</p>
+    <p class="text-xs ui-muted">{% trans "Zutaten werden abgebucht, das Fertigprodukt zugebucht — alles in einer Buchung. Reicht eine Zutat nicht, wird nichts gebucht." %}</p>
     <div class="grid gap-2 sm:grid-cols-2">
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Fertigprodukt" %}</label>
@@ -246,7 +246,7 @@
   <form method="post" action="{% url 'stock' %}" class="px-4 pb-4">
     {% csrf_token %}
     <input type="hidden" name="action" value="stocktake_bulk">
-    <p class="text-xs text-gray-400 mb-2">{% trans "Gezählten Bestand eintragen; leere Felder bleiben unverändert. Differenzen werden als Inventur gebucht." %}</p>
+    <p class="text-xs ui-muted mb-2">{% trans "Gezählten Bestand eintragen; leere Felder bleiben unverändert. Differenzen werden als Inventur gebucht." %}</p>
     {% comment %}Список следует активному фильтру осей — это законная ЧАСТИЧНАЯ
     инвентаризация (посчитать только размер M), но владелец должен видеть, что
     считает не весь склад.{% endcomment %}
@@ -275,7 +275,7 @@
         {% endfor %}
       </ul>
     {% else %}
-      <p class="text-xs text-gray-400">{% trans "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv." %}</p>
+      <p class="text-xs ui-muted">{% trans "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv." %}</p>
     {% endif %}
     <form method="post" action="{% url 'stock' %}" class="flex items-center gap-2">
       {% csrf_token %}
@@ -413,7 +413,7 @@
       </table>
     </div>
   {% else %}
-    <p class="text-sm text-gray-400 px-4 py-6">{% trans "Noch keine Produkte mit Bestandsführung." %}</p>
+    <p class="text-sm ui-muted px-4 py-6">{% trans "Noch keine Produkte mit Bestandsführung." %}</p>
   {% endif %}
 </div>
 
@@ -450,7 +450,7 @@
       {% endfor %}
     </ul>
   {% else %}
-    <p class="text-sm text-gray-400">{% trans "Noch keine Bewegungen." %}</p>
+    <p class="text-sm ui-muted">{% trans "Noch keine Bewegungen." %}</p>
   {% endif %}
 </div>
 {% endblock %}

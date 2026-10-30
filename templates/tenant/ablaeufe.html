@@ -21,7 +21,7 @@ max-w-3xl умерла — карта процесса на всю ширину,
 на lg+ (на мобильном складываются в одну — адаптив прежний). Каждая панель —
 самостоятельная форма со своим эндпоинтом, перенос ничего не ломает.{% endcomment %}
 <div>
-  <h1 class="text-2xl font-bold mb-1">🔁 {% nav_title _("Abläufe") %}</h1>
+  <h1 class="ui-h1 mb-1">🔁 {% nav_title _("Abläufe") %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% trans "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
@@ -42,10 +42,10 @@ max-w-3xl умерла — карта процесса на всю ширину,
     же строкам, что редактор колонок ниже (переименование/скрытие/порядок видны
     сразу), статусы — встроенные ∪ свои.{% endcomment %}
     <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
-      <h2 class="font-semibold mb-1">🗺 {% trans "So läuft ein Verkauf" %} · {{ kind_label }}</h2>
+      <h2 class="ui-h2 mb-1">🗺 {% trans "So läuft ein Verkauf" %} · {{ kind_label }}</h2>
       {% comment %}VS-2b: на доске КАЖДЫЙ статус — своя колонка, а стадии стали
       группами колонок. Карта читается так же, поэтому текст объясняет группу.{% endcomment %}
-      <p class="text-xs text-gray-400 mb-3">{% trans "Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder Status eine eigene Spalte innerhalb seiner Phase." %}</p>
+      <p class="text-xs ui-muted mb-3">{% trans "Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder Status eine eigene Spalte innerhalb seiner Phase." %}</p>
       <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {% for col in process_map %}
           <div class="rounded-xl border border-gray-100 bg-gray-50 p-2 {% if col.hidden %}opacity-50{% endif %}">
@@ -65,8 +65,8 @@ max-w-3xl умерла — карта процесса на всю ширину,
     {% comment %}2. Колонки — Trello-стиль (перетаскивание), общие для всех
     направлений: стадии канонические (pipeline.STAGES).{% endcomment %}
     <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
-      <h2 class="font-semibold mb-1">🧱 {% trans "Phasen der Tafel" %}</h2>
-      <p class="text-xs text-gray-400 mb-3">{% trans "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich." %}</p>
+      <h2 class="ui-h2 mb-1">🧱 {% trans "Phasen der Tafel" %}</h2>
+      <p class="text-xs ui-muted mb-3">{% trans "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich." %}</p>
       {% include "tenant/_board_columns_panel.html" with rows=board_stage_rows next_path=request.get_full_path %}
     </section>
 
@@ -78,8 +78,8 @@ max-w-3xl умерла — карта процесса на всю ширину,
     {% comment %}4. VK-3: редактор СВОИХ статусов — на самой странице (был ссылкой
     внутри свёрнутой панели переходов; владелец его не находил).{% endcomment %}
     <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
-      <h2 class="font-semibold mb-1">🏷️ {% trans "Eigene Status" %}</h2>
-      <p class="text-xs text-gray-400 mb-3">{% trans "Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben unverändert." %}</p>
+      <h2 class="ui-h2 mb-1">🏷️ {% trans "Eigene Status" %}</h2>
+      <p class="text-xs ui-muted mb-3">{% trans "Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben unverändert." %}</p>
       {% include "tenant/_status_manager_panel.html" with kind=active_kind next_path=request.get_full_path %}
     </section>
 
@@ -93,8 +93,8 @@ max-w-3xl умерла — карта процесса на всю ширину,
     (урок W9-5), возврат — на ту же вкладку продаж.{% endcomment %}
     {% if active_kind == "order" %}
     <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
-      <h2 class="font-semibold mb-1">💳 {% trans "Zahlarten & Lieferung" %}</h2>
-      <p class="text-xs text-gray-400 mb-3">{% trans "Zahlarten, Vorkasse-Bankdaten, Versandkosten und Liefergebiet — gelten für alle Bestellungen." %}</p>
+      <h2 class="ui-h2 mb-1">💳 {% trans "Zahlarten & Lieferung" %}</h2>
+      <p class="text-xs ui-muted mb-3">{% trans "Zahlarten, Vorkasse-Bankdaten, Versandkosten und Liefergebiet — gelten für alle Bestellungen." %}</p>
       <div class="flex flex-wrap gap-2">
         <a href="{% url 'payment-settings' %}" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Zahlarten & Lieferung einstellen" %} →</a>
         <a href="{% url 'notifications-settings' %}" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Benachrichtigungen" %} →</a>
@@ -109,7 +109,7 @@ max-w-3xl умерла — карта процесса на всю ширину,
     </div>
     </div>
   {% else %}
-    <p class="text-sm text-gray-400 mb-4">{% trans "Keine aktiven Verkaufsmodule." %}</p>
+    <p class="text-sm ui-muted mb-4">{% trans "Keine aktiven Verkaufsmodule." %}</p>
   {% endif %}
 </div>
 {% endblock %}

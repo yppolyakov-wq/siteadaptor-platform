@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Posts" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-1">{% nav_title _("Content calendar") %}</h1>
+<h1 class="ui-h1 mb-1">{% nav_title _("Content calendar") %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "Plan posts ahead — they are sent to all enabled channels at the scheduled time." %}</p>
 
 {% if not has_channels %}
@@ -36,7 +36,7 @@
 </form>
 
 {% if scheduled %}
-<h2 class="font-semibold mb-2">{% trans "Scheduled" %}</h2>
+<h2 class="ui-h2 mb-2">{% trans "Scheduled" %}</h2>
 <div class="space-y-2 max-w-xl mb-8">
   {% for p in scheduled %}
     <div class="bg-white border border-gray-200 rounded-lg p-3 flex items-start gap-3">
@@ -55,7 +55,7 @@
 {% endif %}
 
 {% if drafts %}
-<h2 class="font-semibold mb-2">{% trans "Drafts" %}</h2>
+<h2 class="ui-h2 mb-2">{% trans "Drafts" %}</h2>
 <div class="space-y-2 max-w-xl mb-8">
   {% for p in drafts %}
     <div class="bg-white border border-gray-200 rounded-lg p-3 flex items-start gap-3">
@@ -71,14 +71,14 @@
 {% endif %}
 
 {% if sent %}
-<h2 class="font-semibold mb-2">{% trans "Sent" %}</h2>
+<h2 class="ui-h2 mb-2">{% trans "Sent" %}</h2>
 <div class="space-y-2 max-w-xl">
   {% for p in sent %}
     <div class="bg-white border border-gray-100 rounded-lg p-3 flex items-start gap-3 opacity-70">
       {% if p.image_url %}<img src="{{ p.image_url }}" alt="" class="w-12 h-12 rounded object-cover">{% endif %}
       <div class="flex-1 min-w-0">
         <p class="text-sm whitespace-pre-line line-clamp-2">{{ p.text }}</p>
-        <p class="text-xs text-gray-400 mt-1">✓ {{ p.scheduled_at|date:"d.m.Y H:i" }} · <a href="{% url 'channels' %}" class="underline">{% trans "delivery status" %}</a></p>
+        <p class="text-xs ui-muted mt-1">✓ {{ p.scheduled_at|date:"d.m.Y H:i" }} · <a href="{% url 'channels' %}" class="underline">{% trans "delivery status" %}</a></p>
       </div>
     </div>
   {% endfor %}

@@ -30,7 +30,7 @@
         {% elif coupon.max_uses and coupon.used_count >= coupon.max_uses %}
           <p class="text-sm text-green-700">✓ {% blocktrans with d=coupon.updated_at|date:"d.m.Y H:i" %}Bereits eingelöst am {{ d }}.{% endblocktrans %}</p>
         {% else %}
-          <p class="text-sm text-gray-400">{% trans "Dieser Coupon ist abgelaufen." %}</p>
+          <p class="text-sm ui-muted">{% trans "Dieser Coupon ist abgelaufen." %}</p>
         {% endif %}
       </div>
     </div>
@@ -61,7 +61,7 @@
         {% elif reservation.status == 'fulfilled' %}
           <p class="text-sm text-green-700">✓ {% trans "Already handed out." %}</p>
         {% else %}
-          <p class="text-sm text-gray-400">{% trans "No actions available." %}</p>
+          <p class="text-sm ui-muted">{% trans "No actions available." %}</p>
         {% endif %}
       </div>
     </div>

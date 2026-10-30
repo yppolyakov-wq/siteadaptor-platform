@@ -4,8 +4,8 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% nav_title _("Inbox") %}{% if open_count %} <span class="text-sm font-medium align-middle bg-indigo-100 text-indigo-700 rounded-full px-2 py-0.5">{{ open_count }} {% trans "open" %}</span>{% endif %}</h1>
-{% if avg_reaction %}<p class="text-xs text-gray-400 mb-2">⌀ {% trans "Reaktionszeit (30 Tage)" %}: {{ avg_reaction }}</p>{% endif %}
+  <h1 class="ui-h1">{% nav_title _("Inbox") %}{% if open_count %} <span class="text-sm font-medium align-middle bg-indigo-100 text-indigo-700 rounded-full px-2 py-0.5">{{ open_count }} {% trans "open" %}</span>{% endif %}</h1>
+{% if avg_reaction %}<p class="text-xs ui-muted mb-2">⌀ {% trans "Reaktionszeit (30 Tage)" %}: {{ avg_reaction }}</p>{% endif %}
 </div>
 
 <div class="flex flex-wrap gap-2 mb-4 text-sm">
@@ -33,7 +33,7 @@
           {% elif c.status == 'pending' %}bg-blue-100 text-blue-800
           {% elif c.status == 'resolved' %}bg-green-100 text-green-800
           {% else %}bg-gray-100 text-gray-600{% endif %}">{{ c.get_status_display }}</span>
-        <p class="text-xs text-gray-400 mt-1">{{ c.last_message_at|date:"d.m.Y H:i"|default:"" }}</p>
+        <p class="text-xs ui-muted mt-1">{{ c.last_message_at|date:"d.m.Y H:i"|default:"" }}</p>
       </div>
     </a>
   {% empty %}

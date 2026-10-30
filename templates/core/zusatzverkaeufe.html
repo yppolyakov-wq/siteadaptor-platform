@@ -8,7 +8,7 @@
 аренд байка на заезд». Опция остаётся видимой и в карточке своей сделки.{% endcomment %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
   <div>
-    <h1 class="text-2xl font-bold">{% nav_title _("Zusatzverkäufe") %}</h1>
+    <h1 class="ui-h1">{% nav_title _("Zusatzverkäufe") %}</h1>
     <p class="text-sm text-gray-500">{% trans "Alle verkauften Zusatzleistungen nach Ausführungstag." %}</p>
   </div>
   <form method="get" class="flex flex-wrap items-center gap-2 text-sm">
@@ -28,7 +28,7 @@
   {% for s in summary|slice:":6" %}
   <div class="rounded-xl border border-gray-200 px-4 py-3">
     <p class="text-sm font-medium">{{ s.label }} × {{ s.count }}</p>
-    <p class="text-xs text-gray-400">{{ s.total_eur|floatformat:2 }} €</p>
+    <p class="text-xs ui-muted">{{ s.total_eur|floatformat:2 }} €</p>
     {% if s.purchase_option %}
     {# MX-4: закупаемая опция — заказ у поставщика с префиллом qty=продано. #}
     <form method="post" class="mt-2 flex items-center gap-1">
@@ -53,7 +53,7 @@
     <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm">
       <div class="min-w-0">
         <p class="font-medium truncate">{{ sb.note|default:sb.get_kind_display }} × {{ sb.qty }}</p>
-        <p class="text-xs text-gray-400">{{ sb.supplier_label }}{% if sb.event %} · {{ sb.event.title }}{% endif %}</p>
+        <p class="text-xs ui-muted">{{ sb.supplier_label }}{% if sb.event %} · {{ sb.event.title }}{% endif %}</p>
       </div>
       <form method="post" class="flex items-center gap-1">
         {% csrf_token %}

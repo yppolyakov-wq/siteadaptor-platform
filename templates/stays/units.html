@@ -5,10 +5,10 @@
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
   {% if unit_page %}
-    <h1 class="text-2xl font-bold">{{ unit_page.name }} <span class="text-sm font-normal text-gray-400">· {{ unit_page.get_type_display }}</span></h1>
+    <h1 class="ui-h1">{{ unit_page.name }} <span class="text-sm font-normal text-gray-400">· {{ unit_page.get_type_display }}</span></h1>
     <a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Units" %}</a>
   {% else %}
-    <h1 class="text-2xl font-bold">{% nav_title _("Units & blocked dates") %}</h1>
+    <h1 class="ui-h1">{% nav_title _("Units & blocked dates") %}</h1>
     <div class="flex gap-4">
       {# UB3-2: подборки номеров → чипы-фасет на /unterkunft/. #}
       <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
@@ -41,7 +41,7 @@
       {% else %}<div class="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center text-xl shrink-0">🛏️</div>{% endif %}
       <div class="min-w-0 flex-1">
         <a href="{% url 'stays:unit-edit' u.pk %}" class="font-semibold hover:text-indigo-700">{{ u.name }}</a>
-        <p class="text-xs text-gray-400 truncate">{{ u.get_type_display }} · {{ u.price_eur|stringformat:".2f" }} €/{% trans "night" %} · ×{{ u.quantity }}{% if u.rooms.all %} · 🚪 {{ u.rooms.all|length }}{% endif %}{% if not u.is_active %} · {% trans "inactive" %}{% endif %}</p>
+        <p class="text-xs ui-muted truncate">{{ u.get_type_display }} · {{ u.price_eur|stringformat:".2f" }} €/{% trans "night" %} · ×{{ u.quantity }}{% if u.rooms.all %} · 🚪 {{ u.rooms.all|length }}{% endif %}{% if not u.is_active %} · {% trans "inactive" %}{% endif %}</p>
       </div>
       <div class="flex items-center gap-3 shrink-0">
         {% if u.is_active %}<a href="{% url 'stays:unit-feature' u.pk %}" class="text-sm text-amber-600 hover:underline">★</a>{% endif %}
@@ -53,7 +53,7 @@
       </div>
     </div>
   {% empty %}
-    <p class="px-5 py-4 text-gray-500">{% trans "No units yet — create your first below." %}</p>
+    {% trans "No units yet — create your first below." as t %}{% include "ui/_empty.html" with title=t flat=1 %}
   {% endfor %}
 </div>
 {% endif %}
@@ -64,7 +64,7 @@
   {% for u in units %}
     <div data-unit-tabs class="bg-white rounded-2xl shadow-sm p-5 {% if not u.is_active %}opacity-60{% endif %}">
       <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
-        <h2 class="font-semibold">{{ u.name }} <span class="text-xs text-gray-400">· {{ u.get_type_display }}{% if not u.is_active %} · {% trans "inactive" %}{% endif %}</span></h2>
+        <h2 class="ui-h2">{{ u.name }} <span class="text-xs text-gray-400">· {{ u.get_type_display }}{% if not u.is_active %} · {% trans "inactive" %}{% endif %}</span></h2>
         <div class="flex items-center gap-3">
           {% if u.is_active %}{# D2.4: self-serve продвижение юнита в агрегаторе #}
             <a href="{% url 'stays:unit-feature' u.pk %}" class="text-sm text-amber-600 hover:underline">★ {% trans "Feature" %}</a>

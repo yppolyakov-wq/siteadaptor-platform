@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 {% comment %}SM-4: страница — подпункт «Website» в сайдбаре (settings-бар снят).{% endcomment %}
-<h1 class="text-2xl font-bold mb-1">{% nav_title _("Media library") %}</h1>
+<h1 class="ui-h1 mb-1">{% nav_title _("Media library") %}</h1>
 <p class="text-sm text-gray-500 mb-6">{% trans "All uploaded photos in one place — edit alt texts (SEO & accessibility), delete unused files." %}</p>
 
 {% if folders %}
@@ -24,7 +24,7 @@
         <img src="{{ row.asset.url }}" alt="{{ row.asset.alt.de|default:'' }}" loading="lazy" class="w-full h-full object-cover">
       </div>
       <div class="p-3 space-y-2">
-        <p class="text-[11px] text-gray-400 truncate">{{ row.asset.folder }} · {{ row.asset.size|filesizeformat }}
+        <p class="text-[11px] ui-muted truncate">{{ row.asset.folder }} · {{ row.asset.size|filesizeformat }}
           {% if row.used %}<span class="text-green-700 bg-green-50 rounded-full px-2 py-0.5 ml-1">{% trans "in use" %}</span>{% else %}<span class="text-gray-500 bg-gray-100 rounded-full px-2 py-0.5 ml-1">{% trans "unused" %}</span>{% endif %}
         </p>
         <form method="post" class="flex gap-1">{% csrf_token %}
@@ -44,6 +44,6 @@
   {% endfor %}
 </div>
 {% else %}
-<p class="text-gray-400 text-sm">{% trans "No media yet — photos appear here as soon as you upload them." %}</p>
+<p class="ui-muted text-sm">{% trans "No media yet — photos appear here as soon as you upload them." %}</p>
 {% endif %}
 {% endblock %}

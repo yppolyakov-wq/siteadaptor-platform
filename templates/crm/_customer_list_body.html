@@ -51,5 +51,5 @@
 </div>
 {% endif %}
 {% else %}
-  <p class="text-gray-400 text-sm">{% trans "No customers yet. They appear automatically with reservations — or add one manually." %}</p>
+  {% if query %}{% trans "Nothing found." as t %}{% include "ui/_empty.html" with title=t %}{% else %}{% trans "No customers yet. They appear automatically with reservations — or add one manually." as t %}{% trans "Add customer" as a %}{% if crm_active is not False and 'crm:customer-create'|can_open:request %}{% url 'crm:customer-create' as u %}{% endif %}{% include "ui/_empty.html" with title=t action_url=u action_label=a %}{% endif %}
 {% endif %}

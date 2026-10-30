@@ -5,7 +5,7 @@
 {% block dash_content %}
 <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
   <div>
-    <h1 class="text-2xl font-bold">{% nav_title _("Ausgaben") %}</h1>
+    <h1 class="ui-h1">{% nav_title _("Ausgaben") %}</h1>
     {% if request.user|cab_can:"finanzen.export" %}<a href="{% url 'finance:expenses-datev' %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline">DATEV</a>{% endif %}
   </div>
   <form method="get" class="flex flex-wrap items-center gap-2 text-sm">
@@ -29,12 +29,12 @@
 
 <div class="grid sm:grid-cols-3 gap-4 mb-6 max-w-2xl">
   <div class="rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-400">{% trans "Summe" %}</p>
+    <p class="text-xs ui-muted">{% trans "Summe" %}</p>
     <p class="text-xl font-semibold">−{{ total|floatformat:2 }} €</p>
   </div>
   {% for row in by_cat|slice:":2" %}
   <div class="rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-400">{{ row.label }}</p>
+    <p class="text-xs ui-muted">{{ row.label }}</p>
     <p class="text-xl font-semibold">−{{ row.sum|floatformat:2 }} €</p>
   </div>
   {% endfor %}
@@ -87,7 +87,7 @@
 
 {% if open_bills %}
 {# ERP-3: входящие счета с сроком — вне периода: долг не зависит от фильтра. #}
-<h2 class="text-lg font-semibold mb-2">{% trans "Offene Eingangsrechnungen" %}</h2>
+<h2 class="ui-h2 mb-2">{% trans "Offene Eingangsrechnungen" %}</h2>
 <div class="mb-6 space-y-2">
   {% for e in open_bills %}
   <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 text-sm {% if e.is_overdue %}border-red-200 bg-red-50{% else %}border-gray-200{% endif %}">

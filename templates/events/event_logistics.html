@@ -6,7 +6,7 @@
 {% block dash_content %}
 <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
   <div>
-    <h1 class="text-2xl font-bold">{% trans "Logistics & costs" %}</h1>
+    <h1 class="ui-h1">{% trans "Logistics & costs" %}</h1>
     <p class="text-sm text-gray-500">{{ event.title }} · {{ event.starts_at|date:"d.m.Y" }}</p>
   </div>
   <div class="flex items-center gap-3">
@@ -37,7 +37,7 @@
 </div>
 
 <section class="max-w-5xl mb-8">
-  <h2 class="text-lg font-semibold mb-3">
+  <h2 class="ui-h2 mb-3">
     {% trans "Bookings with suppliers" %}
     {% if finance.open_items %}<span class="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">{% blocktrans count n=finance.open_items %}{{ n }} still open{% plural %}{{ n }} still open{% endblocktrans %}</span>{% endif %}
   </h2>
@@ -190,7 +190,7 @@
 </section>
 
 <section class="max-w-3xl">
-  <h2 class="text-lg font-semibold mb-3">{% trans "Preparation checklist" %}</h2>
+  <h2 class="ui-h2 mb-3">{% trans "Preparation checklist" %}</h2>
   {% if tasks %}
     <ul class="divide-y rounded-2xl bg-white shadow-sm mb-4">
       {% for t in tasks %}

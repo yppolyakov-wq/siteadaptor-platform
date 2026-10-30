@@ -5,7 +5,7 @@
 {% block dash_content %}
 <div class="max-w-lg">
   <div class="flex items-center justify-between mb-4">
-    <h1 class="text-2xl font-bold">{{ program.label }}</h1>
+    <h1 class="ui-h1">{{ program.label }}</h1>
     <a href="{% url 'promotions:loyalty-list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "All programs" %}</a>
   </div>
 
@@ -39,7 +39,7 @@
              class="flex-1 rounded-lg border border-gray-300 px-3 py-2">
       <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Open" %}</button>
     </div>
-    <p class="text-xs text-gray-400 mt-2">{% trans "Or scan the customer's loyalty QR with your phone camera." %}</p>
+    <p class="text-xs ui-muted mt-2">{% trans "Or scan the customer's loyalty QR with your phone camera." %}</p>
   </form>
 </div>
 {% endblock %}

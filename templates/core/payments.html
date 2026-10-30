@@ -7,7 +7,7 @@
 Слой ЧТЕНИЯ: сами статусы оплаты меняются на карточке сделки штатным путём —
 здесь обзор «кто заплатил, кто должен, чем платили» по всем направлениям.{% endcomment %}
 <div class="flex items-center gap-3 flex-wrap mb-3">
-  <h1 class="text-xl font-bold">💳 {% nav_title _("Zahlungen") %}</h1>
+  <h1 class="ui-h1">💳 {% nav_title _("Zahlungen") %}</h1>
   {% if finance_active %}
   <a href="{% url 'finance:offene' %}" class="ml-auto text-sm text-indigo-600 hover:underline">{% trans "Offene Posten & Bankabgleich" %} →</a>
   {% endif %}

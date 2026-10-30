@@ -8,7 +8,7 @@
 форма остаётся узкой.{% endcomment %}
 <div class="{% if not company %}max-w-xl{% endif %}">
   <a href="{% url 'crm:company-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Companies" %}</a>
-  <h1 class="text-2xl font-bold mt-1 mb-4">{% if company %}🏢 {{ company.name }}{% else %}{% trans "Add company" %}{% endif %}</h1>
+  <h1 class="ui-h1 mt-1 mb-4">{% if company %}🏢 {{ company.name }}{% else %}{% trans "Add company" %}{% endif %}</h1>
 
   {% if messages %}
     {% for m in messages %}
@@ -38,7 +38,7 @@
         <span class="text-xs text-gray-400 shrink-0">{% if hide_contacts %}{{ c.email|mask_email }}{% else %}{{ c.email }}{% endif %}</span>
       </a>
     {% empty %}
-      <p class="text-sm text-gray-400">{% trans "No customers linked yet — pick this company on a customer's card." %}</p>
+      <p class="text-sm ui-muted">{% trans "No customers linked yet — pick this company on a customer's card." %}</p>
     {% endfor %}
   </div>
 

@@ -26,7 +26,7 @@
 «bezahlt»/«Aktion»/номер комнаты молча не выводились. Замок test_template_extends.{% endcomment %}
   <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] px-5 py-3 mb-4" data-deal-block="head">
     <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <h1 class="text-lg sm:text-xl font-bold tabular-nums">{{ deal.reference_code }}</h1>
+      <h1 class="ui-h1 tabular-nums">{{ deal.reference_code }}</h1>
       <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ deal.status_label }}</span>
       {% comment %}DF-5 (владелец 2026-08-26): «вмести в одну строчку дату создания
       с остальными, чтоб сэкономить место» — мета переехала из отдельного абзаца
@@ -68,7 +68,7 @@
         это жило только в подписи головы (её владелец попросил убрать) и терялось
         при обрезке темы.{% endcomment %}
         <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="request">
-          <h2 class="font-semibold mb-3">💬 {{ deal_titles.request }}</h2>
+          <h2 class="ui-h2 mb-3">💬 {{ deal_titles.request }}</h2>
           {% block deal_request %}{% endblock %}
         </section>
       {% endif %}
@@ -81,7 +81,7 @@
         отдельной карточки.{% endcomment %}
         <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="items">
           <div class="flex items-center justify-between gap-3 mb-3">
-            <h2 class="font-semibold">{% block deal_items_title %}{{ deal_titles.items }}{% endblock %}</h2>
+            <h2 class="ui-h2">{% block deal_items_title %}{{ deal_titles.items }}{% endblock %}</h2>
             {% block deal_items_actions %}{% endblock %}
           </div>
           {% block deal_items %}{% endblock %}
@@ -94,7 +94,7 @@
 
           {% if "totals" in deal_sections %}
             <div class="mt-4 pt-4 border-t border-gray-100" data-deal-block="totals">
-              <p class="text-[11px] uppercase tracking-wide text-gray-400 mb-2">{{ deal_titles.totals }}</p>
+              <p class="text-[11px] uppercase tracking-wide ui-muted mb-2">{{ deal_titles.totals }}</p>
               {% block deal_totals %}{% endblock %}
             </div>
           {% endif %}
@@ -103,7 +103,7 @@
 
       {% if "payment" in deal_sections %}
         <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="payment">
-          <h2 class="font-semibold mb-3">💳 {{ deal_titles.payment }}</h2>
+          <h2 class="ui-h2 mb-3">💳 {{ deal_titles.payment }}</h2>
           {% block deal_payment %}{% endblock %}
           {% include "core/_deal_rest_link.html" %}
           {% include "core/_deal_refund.html" %}
@@ -116,7 +116,7 @@
         рейле у заявки; теперь место задаёт скелет, наследник только наполняет.
         {% endcomment %}
         <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="documents">
-          <h2 class="font-semibold mb-3">📄 {{ deal_titles.documents }}</h2>
+          <h2 class="ui-h2 mb-3">📄 {{ deal_titles.documents }}</h2>
           {% block deal_documents %}{% endblock %}
         </section>
       {% endif %}
@@ -134,7 +134,7 @@
         деньги. Гейт модуля inbox — в партиале; якорь тот же, поэтому скролл по
         кнопке (DF-6) продолжает работать.{% endcomment %}
         <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="thread">
-          <h2 class="font-semibold mb-3">✉️ {{ deal_titles.thread }}</h2>
+          <h2 class="ui-h2 mb-3">✉️ {{ deal_titles.thread }}</h2>
           {% include "core/_deal_thread.html" %}
         </section>
       {% endif %}
@@ -149,7 +149,7 @@
     ниже сетки». Тот же движок, что на странице продаж (Belegungsplan /
     Tagesplan / Auftragsbuch) — развёрнутым, без клика.{% endcomment %}
     <section class="mt-5 bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="calendar">
-      <h2 class="font-semibold mb-3">📅 {{ deal_titles.calendar }}</h2>
+      <h2 class="ui-h2 mb-3">📅 {{ deal_titles.calendar }}</h2>
       <div class="overflow-x-auto">{{ deal_calendar_html }}</div>
     </section>
   {% endif %}

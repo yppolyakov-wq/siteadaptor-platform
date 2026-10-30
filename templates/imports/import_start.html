@@ -5,7 +5,7 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-6">
-  <h1 class="text-xl font-semibold">{% nav_title _("Product import") %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Product import") %}</h1>
   {% if is_owner %}<a href="{% url 'imports:website' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Von der Website importieren" %} →</a>{% endif %}
 </div>
 
@@ -26,7 +26,7 @@
     </div>
     <div>
       {% render_field form.source_file accept=".csv,.xlsx,.xlsm" class="block w-full text-sm border border-gray-300 rounded-lg p-2" %}
-      <p class="text-xs text-gray-400 mt-1">{% trans "Supported: .csv, .xlsx, .xlsm" %}</p>
+      <p class="text-xs ui-muted mt-1">{% trans "Supported: .csv, .xlsx, .xlsm" %}</p>
       {% if form.source_file.errors %}
         <p class="text-sm text-red-600 mt-1">{{ form.source_file.errors|striptags }}</p>
       {% endif %}

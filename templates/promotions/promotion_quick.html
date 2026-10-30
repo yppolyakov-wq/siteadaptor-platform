@@ -8,7 +8,7 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
 работает; скрипт внизу показывает по одному шагу с «Weiter/Zurück».{% endcomment %}
 <div class="max-w-lg mx-auto" data-quick-assistant>
   <div class="flex items-center justify-between gap-3 mb-3">
-    <h1 class="text-xl font-bold">{% if source %}↻ {% trans "Aktion wiederholen" %}{% else %}⚡ {% trans "Neue Aktion" %}{% endif %}</h1>
+    <h1 class="ui-h1">{% if source %}↻ {% trans "Aktion wiederholen" %}{% else %}⚡ {% trans "Neue Aktion" %}{% endif %}</h1>
     <a href="{% url 'promotions:promotion-create' %}" class="text-xs text-gray-500 hover:underline">{% trans "Alle Felder" %} →</a>
   </div>
 

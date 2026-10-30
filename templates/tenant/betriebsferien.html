@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 <div class="max-w-2xl">
-  <h1 class="text-2xl font-bold mb-1">{% nav_title _("Betriebsferien") %}</h1>
+  <h1 class="ui-h1 mb-1">{% nav_title _("Betriebsferien") %}</h1>
   <p class="text-gray-500 mb-4 text-sm">{% trans "An diesen Tagen ist Ihr ganzes Geschäft geschlossen: keine Termine und keine Abholzeiten, „Jetzt geöffnet“ ist aus, Ihre Website zeigt einen Hinweis." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
@@ -25,7 +25,7 @@
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium">{% trans "Schließen" %}</button>
   </form>
 
-  <h2 class="font-semibold mt-8 mb-3">{% trans "Geplante Schließungen" %}</h2>
+  <h2 class="ui-h2 mt-8 mb-3">{% trans "Geplante Schließungen" %}</h2>
   {% if ranges %}
   <ul class="space-y-2">
     {% for r in ranges %}

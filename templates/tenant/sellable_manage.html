@@ -10,7 +10,7 @@
 Kategorie/Status (паритет умершей /catalog/products/), «Bearbeiten»-ссылок нет —
 кликабельны фото и имя.{% endcomment %}
 <div class="flex items-center gap-3 flex-wrap mb-1">
-  <h1 class="text-2xl font-bold">📦 {% nav_title _("Sortiment") %}</h1>
+  <h1 class="ui-h1">📦 {% nav_title _("Sortiment") %}</h1>
   <div class="flex rounded-xl overflow-hidden bg-white shadow-sm" data-sortiment-view>
     <form method="post" action="{% url 'sortiment-view' %}">
       {% csrf_token %}

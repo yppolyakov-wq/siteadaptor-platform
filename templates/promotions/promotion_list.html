@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-  <h1 class="text-2xl font-bold">{% nav_title _("Promotions") %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Promotions") %}</h1>
   <div class="flex items-center gap-2">
     {% comment %}VF-20b (решение владельца 2026-08-25 «рядом, но не объединять»):
     соседняя задача — разослать персональные коды; экраны остаются раздельными.{% endcomment %}
@@ -113,7 +113,7 @@
             <span class="px-1.5 py-0.5 rounded-full {% if p.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-700{% endif %}">{{ p.status_label }}</span>
             {% if p.ends_at %}<span class="ml-1 text-gray-500">{% trans "bis" %} {{ p.ends_at|date:"d.m. H:i" }}</span>{% endif %}
           </p>
-          <p class="text-[11px] text-gray-400 mt-0.5" data-promo-counters>👁 {{ p.views }} · <a href="{% url 'promotions:reservation-list' %}?promotion={{ p.pk }}" class="underline">{% trans "zurückgelegt" %} {{ p.n_held }}</a> · {% trans "ausgegeben" %} {{ p.n_handed }}</p>
+          <p class="text-[11px] ui-muted mt-0.5" data-promo-counters>👁 {{ p.views }} · <a href="{% url 'promotions:reservation-list' %}?promotion={{ p.pk }}" class="underline">{% trans "zurückgelegt" %} {{ p.n_held }}</a> · {% trans "ausgegeben" %} {{ p.n_handed }}</p>
           <div class="mt-2 flex flex-wrap gap-2 text-xs">
             {% if p.status == 'active' %}<a href="{% url 'promotions:promotion-quick-done' p.pk %}" class="rounded-full border border-gray-300 px-2.5 py-1">📣 {% trans "Teilen" %}</a>{% endif %}
             {% if p.status in repeatable %}<a href="{% url 'promotions:promotion-quick' %}?von={{ p.pk }}" class="rounded-full border border-gray-300 px-2.5 py-1" data-repeat>↻ {% trans "Wiederholen" %}</a>{% endif %}
@@ -122,7 +122,7 @@
         </div>
       </article>
     {% empty %}
-      <p class="py-6 text-center text-gray-400 sm:col-span-2">{% trans "No promotions yet." %}</p>
+      <div class="sm:col-span-2">{% if status %}{% url 'promotions:promotion-list' as u %}{% trans "Nothing found." as t %}{% trans "Reset filters" as a %}{% else %}{% url 'promotions:promotion-quick' as u %}{% trans "No promotions yet." as t %}{% trans "Neue Aktion" as a %}{% endif %}{% include "ui/_empty.html" with title=t action_url=u action_label=a icon="ic-nav-promotions" flat=1 %}</div>
     {% endfor %}
   </div>
   {% else %}
@@ -175,7 +175,7 @@
           </td>
         </tr>
       {% empty %}
-        <tr><td colspan="6" class="py-6 text-center text-gray-400">{% trans "No promotions yet." %}</td></tr>
+        <tr><td colspan="6">{% if status %}{% url 'promotions:promotion-list' as u %}{% trans "Nothing found." as t %}{% trans "Reset filters" as a %}{% else %}{% url 'promotions:promotion-quick' as u %}{% trans "No promotions yet." as t %}{% trans "Neue Aktion" as a %}{% endif %}{% include "ui/_empty.html" with title=t action_url=u action_label=a icon="ic-nav-promotions" flat=1 %}</td></tr>
       {% endfor %}
     </tbody>
   </table>

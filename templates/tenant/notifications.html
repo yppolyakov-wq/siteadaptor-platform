@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Benachrichtigungen" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-1">🔔 {% nav_title _("Benachrichtigungen") %}</h1>
+<h1 class="ui-h1 mb-1">🔔 {% nav_title _("Benachrichtigungen") %}</h1>
 <p class="text-sm text-gray-500 mb-4">{% trans "Legen Sie fest, über welche Kanäle Kunden und Sie benachrichtigt werden. Telegram wird nur zugestellt, wenn der Empfänger den Bot verknüpft hat (ergänzt E-Mail)." %}</p>
 
 {% include "tenant/_settings_messages.html" %}
@@ -14,10 +14,10 @@
   {% comment %}W9-7: read-only статус бизнес-бота — без него Telegram-колонки матрицы
   не доставляются; управление ботом остаётся на «Telegram».{% endcomment %}
   {% if bot %}
-    <p class="text-xs text-gray-400 mb-2">🤖 {% trans "Aktiver Bot:" %} @{{ bot.bot_username }} · <a href="{% url 'telegram-settings' %}" class="underline">{% trans "Bot verwalten" %}</a></p>
+    <p class="text-xs ui-muted mb-2">🤖 {% trans "Aktiver Bot:" %} @{{ bot.bot_username }} · <a href="{% url 'telegram-settings' %}" class="underline">{% trans "Bot verwalten" %}</a></p>
   {% else %}
     {# T-8.29: без бота ссылка на «Bot verwalten» не появлялась — круг замыкался #}
-    <p class="text-xs text-gray-400 mb-2">🤖 <a href="{% if 'domains'|pkg_allowed:request.tenant %}#verbindungen{% else %}{% url 'lite-visibility' %}{% endif %}" class="underline">{% trans "Eigenen Telegram-Bot einrichten" %}</a></p>
+    <p class="text-xs ui-muted mb-2">🤖 <a href="{% if 'domains'|pkg_allowed:request.tenant %}#verbindungen{% else %}{% url 'lite-visibility' %}{% endif %}" class="underline">{% trans "Eigenen Telegram-Bot einrichten" %}</a></p>
   {% endif %}
   {% if not owner_email %}
     <p class="mb-2 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">⚠️ {% trans "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden." %} {% if 'settings'|pkg_allowed:request.tenant %}<a href="{% url 'settings' %}" class="underline">{% trans "In den Einstellungen ergänzen" %}</a>{% elif request.user|cab_is_owner %}<a href="{% url 'lite-business' %}" class="underline">{% trans "In den Einstellungen ergänzen" %}</a>{% else %}{% trans "Das kann der Inhaber im Bereich „Geschäft“." %}{% endif %}</p>
@@ -37,15 +37,15 @@
       {% csrf_token %}
       <button class="inline-block text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Mit Telegram verbinden" %}</button>
     </form>
-    <p class="text-xs text-gray-400 mt-1">{% trans "Öffnet Telegram — tippen Sie auf Start. Der Link gilt 15 Minuten." %}</p>
+    <p class="text-xs ui-muted mt-1">{% trans "Öffnet Telegram — tippen Sie auf Start. Der Link gilt 15 Minuten." %}</p>
     {% if owner_deep_link %}
-      <p class="text-xs text-gray-400 mt-2"><a href="{{ owner_deep_link }}" target="_blank" rel="noopener" class="underline">{% trans "Stattdessen den eigenen Bot verwenden" %}</a></p>
+      <p class="text-xs ui-muted mt-2"><a href="{{ owner_deep_link }}" target="_blank" rel="noopener" class="underline">{% trans "Stattdessen den eigenen Bot verwenden" %}</a></p>
     {% endif %}
   {% elif owner_deep_link %}
     <a href="{{ owner_deep_link }}" target="_blank" rel="noopener" class="inline-block text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Telegram verbinden" %}</a>
-    <p class="text-xs text-gray-400 mt-1">{% trans "Öffnet Ihren Bot — tippen Sie auf Start, um Ihr Konto zu verknüpfen." %}</p>
+    <p class="text-xs ui-muted mt-1">{% trans "Öffnet Ihren Bot — tippen Sie auf Start, um Ihr Konto zu verknüpfen." %}</p>
   {% else %}
-    <p class="text-sm text-gray-400">{% trans "Kein aktiver Telegram-Bot. Zuerst unter „Telegram“ verbinden." %}</p>
+    <p class="text-sm ui-muted">{% trans "Kein aktiver Telegram-Bot. Zuerst unter „Telegram“ verbinden." %}</p>
   {% endif %}
 </div>
 
@@ -106,7 +106,7 @@
       </div>
     </div>
   {% empty %}
-    <p class="text-sm text-gray-400 mb-5">{% trans "Keine aktiven Verkaufsmodule." %}</p>
+    <p class="text-sm ui-muted mb-5">{% trans "Keine aktiven Verkaufsmodule." %}</p>
   {% endfor %}
 
   <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Speichern" %}</button>
@@ -128,7 +128,7 @@
 рядом с каналами (решение владельца KA-4). Лёгкому пакету — «Sichtbar».{% endcomment %}
 {% if 'domains'|pkg_allowed:request.tenant %}
 <section id="verbindungen" class="mt-8" data-connections>
-  <h2 class="text-lg font-semibold mb-1">🔌 {% trans "Verbindungen" %}</h2>
+  <h2 class="ui-h2 mb-1">🔌 {% trans "Verbindungen" %}</h2>
   <p class="text-sm text-gray-500 mb-3">{% trans "Verbindungen nach draußen: Zahlung, Kanäle, Domain — alles an einem Ort." %}</p>
   <div class="grid sm:grid-cols-2 gap-3 max-w-2xl">
     {% for c in integration_cards %}

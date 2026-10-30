@@ -6,7 +6,7 @@
 {% block dash_content %}
 <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
   <div>
-    <h1 class="text-2xl font-bold">{% trans "Travel group" %}</h1>
+    <h1 class="ui-h1">{% trans "Travel group" %}</h1>
     <p class="text-sm text-gray-500">{{ event.title }} · {{ event.starts_at|date:"d.m.Y" }}</p>
   </div>
   <div class="flex items-center gap-3">
@@ -18,7 +18,7 @@
 <div class="grid gap-6 lg:grid-cols-2 max-w-4xl">
   <form method="post" class="rounded-2xl bg-white p-6 shadow-sm space-y-3">
     {% csrf_token %}
-    <h2 class="font-semibold">{% trans "Settings" %}</h2>
+    <h2 class="ui-h2">{% trans "Settings" %}</h2>
     <label class="flex items-center gap-2 text-sm">
       <input type="checkbox" name="is_open" value="1" {% if space.is_open %}checked{% endif %}>
       {% trans "Group is open (new posts allowed)" %}
@@ -32,7 +32,7 @@
 
   <div class="rounded-2xl bg-white p-6 shadow-sm space-y-4">
     <div>
-      <h2 class="font-semibold mb-1">{% trans "Telegram group" %}</h2>
+      <h2 class="ui-h2 mb-1">{% trans "Telegram group" %}</h2>
       {% if space.tg_connected %}
         <p class="text-sm text-green-700">● {% trans "Connected — posts sync both ways." %}</p>
       {% else %}
@@ -46,7 +46,7 @@
       {% endif %}
     </div>
     <div>
-      <h2 class="font-semibold mb-1">{% trans "Invite link" %}</h2>
+      <h2 class="ui-h2 mb-1">{% trans "Invite link" %}</h2>
       <p class="text-sm text-gray-600">{% trans "For companions without a ticket (partner, mechanic)." %}</p>
       <input type="text" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'community-space-join' space.invite_token %}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs">
     </div>
@@ -54,7 +54,7 @@
 </div>
 
 <section class="mt-8 max-w-4xl">
-  <h2 class="text-lg font-semibold mb-3">{% trans "Latest posts" %}</h2>
+  <h2 class="ui-h2 mb-3">{% trans "Latest posts" %}</h2>
   {% if posts %}
     <ul class="divide-y rounded-2xl bg-white shadow-sm">
       {% for post in posts %}

@@ -5,7 +5,7 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% nav_title _("Passes / 10er-Karten") %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Passes / 10er-Karten") %}</h1>
   <a href="{% url 'booking:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
 </div>
 
@@ -43,7 +43,7 @@
 <form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
   {% csrf_token %}
   <input type="hidden" name="action" value="issue">
-  <h2 class="font-semibold">{% trans "Issue a pass" %}</h2>
+  <h2 class="ui-h2">{% trans "Issue a pass" %}</h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Customer name" %} *</label>
@@ -72,7 +72,7 @@
 </form>
 
 {# A3: тарифы для онлайн-продажи Mehrfachkarte #}
-<h2 class="font-semibold mt-10 mb-2">{% trans "Card plans (online sale)" %}</h2>
+<h2 class="ui-h2 mt-10 mb-2">{% trans "Card plans (online sale)" %}</h2>
 <p class="text-sm text-gray-500 mb-4">{% trans "Plans customers can buy online (paid into your account). Requires connected payments." %}</p>
 <div class="space-y-2 mb-6">
   {% for plan in plans %}

@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Teilen" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-1">📣 {% trans "Aktion überall teilen" %}</h1>
+<h1 class="ui-h1 mb-1">📣 {% trans "Aktion überall teilen" %}</h1>
 <p class="text-sm text-gray-500 mb-4">{{ promo }}</p>
 
 {% if messages %}
@@ -36,10 +36,10 @@
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">📣 {% trans "Jetzt überall veröffentlichen" %}</button>
     </form>
     {% else %}
-    <p class="text-xs text-gray-400 mt-3">{% trans "Nur aktive Aktionen können geteilt werden." %}</p>
+    <p class="text-xs ui-muted mt-3">{% trans "Nur aktive Aktionen können geteilt werden." %}</p>
     {% endif %}
   {% else %}
-    <p class="text-sm text-gray-400">{% trans "Keine Kanäle verbunden." %} <a href="{% url 'channels' %}" class="text-indigo-600 hover:underline">{% trans "Kanäle verbinden" %} →</a></p>
+    <p class="text-sm ui-muted">{% trans "Keine Kanäle verbunden." %} <a href="{% url 'channels' %}" class="text-indigo-600 hover:underline">{% trans "Kanäle verbinden" %} →</a></p>
   {% endif %}
 </div>
 {% endif %}

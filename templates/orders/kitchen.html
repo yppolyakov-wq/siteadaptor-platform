@@ -5,7 +5,7 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3">
-  <h1 class="text-2xl font-bold">{% nav_title _("Kitchen Display") %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Kitchen Display") %}</h1>
   <div class="flex items-center gap-3">
     <a href="{% url 'orders:production' %}" class="text-sm text-indigo-600 hover:underline">📋 {% trans "Produktionsliste" %}</a>
     <a href="{% url 'orders:order-list' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Orders" %}</a>

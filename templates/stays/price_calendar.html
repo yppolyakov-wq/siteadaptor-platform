@@ -10,7 +10,7 @@ KA-12 Z-3 (E4.6b): сетка категория × день (цена ночи 
 (без JS — страница, с JS — <dialog>). Скрытие разметок — классами (не атрибутом hidden).
 {% endcomment %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% nav_title _("Preise & Verfügbarkeit") %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Preise & Verfügbarkeit") %}</h1>
   <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
     <a href="{% url 'stays:calendar' %}" class="text-indigo-600 hover:underline">← {% trans "Belegungsplan" %}</a>
     <a href="{% url 'stays:units' %}?tab=einstellungen&amp;sec=preise" class="text-indigo-600 hover:underline">💶 {% trans "Tarife & Rabatte" %} →</a>

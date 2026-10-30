@@ -9,7 +9,7 @@ Startpaket'ов с живыми scaled-iframe превью (stateless-оверл
 Look'и; применение POST'ом — сохраняется сразу. Тонкая настройка — в Studio.{% endcomment %}
 <div class="max-w-5xl">
   <div class="flex items-center justify-between gap-3 mb-1 flex-wrap">
-    <h1 class="text-2xl font-bold">🎨 {% nav_title _("Design") %}</h1>
+    <h1 class="ui-h1">🎨 {% nav_title _("Design") %}</h1>
     {% if back_url %}<a href="{{ back_url }}" class="text-sm text-indigo-600 hover:underline">← {% trans "Zurück ins Studio" %}</a>{% else %}<a href="{% url 'site-home' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Feinschliff im Studio" %} →</a>{% endif %}
   </div>
   <p class="text-sm text-gray-500 mb-4">{% trans "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um." %} {% trans "Your texts are kept — only empty fields are filled." %}</p>
@@ -27,7 +27,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
   <form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-8 space-y-5">
     {% csrf_token %}
     <input type="hidden" name="action" value="design_settings">
-    <h2 class="font-semibold">🎨 {% trans "Farbe & Schrift" %}</h2>
+    <h2 class="ui-h2">🎨 {% trans "Farbe & Schrift" %}</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <label class="block text-sm">
         <span class="block font-medium mb-1">{% trans "Accent colour" %}</span>
@@ -133,8 +133,8 @@ Look'и; применение POST'ом — сохраняется сразу. �
   {% comment %}STU-12g (4A): «Start» переехал сюда из Студии — шаблоны витрины и
      демо-контент. В канве им было не место: это не настройка страницы, а её замена.{% endcomment %}
   <div class="bg-white rounded-2xl shadow-sm p-5 mb-8">
-    <h2 class="font-semibold mb-1">⚡ {% trans "Quick start" %}</h2>
-    <p class="text-xs text-gray-400 mb-3">{% trans "Your texts are kept — only empty fields are filled." %}</p>
+    <h2 class="ui-h2 mb-1">⚡ {% trans "Quick start" %}</h2>
+    <p class="text-xs ui-muted mb-3">{% trans "Your texts are kept — only empty fields are filled." %}</p>
     <form method="post" class="mb-4">
       {% csrf_token %}
       {% if has_demo %}
@@ -173,7 +173,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
     </div>
   </div>
 
-  <h2 class="font-semibold mb-2">✨ {% trans "Startpaket" %}</h2>
+  <h2 class="ui-h2 mb-2">✨ {% trans "Startpaket" %}</h2>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" id="design-bundles">
     {% for b in bundles %}
       <div class="border {% if b.key == current_bundle %}border-indigo-500 ring-1 ring-indigo-300{% else %}border-gray-200{% endif %} rounded-xl bg-white p-3 flex flex-col">
@@ -203,8 +203,8 @@ Look'и; применение POST'ом — сохраняется сразу. �
     {% endfor %}
   </div>
 
-  <h2 class="font-semibold mb-1">{% trans "Looks" %}</h2>
-  <p class="text-xs text-gray-400 mb-3">{% trans "Nur die Optik (Farben, Schrift, Karten) — deine Seitenstruktur bleibt unverändert." %}</p>
+  <h2 class="ui-h2 mb-1">{% trans "Looks" %}</h2>
+  <p class="text-xs ui-muted mb-3">{% trans "Nur die Optik (Farben, Schrift, Karten) — deine Seitenstruktur bleibt unverändert." %}</p>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="design-looks">
     {% for lk in looks %}
       <div class="border {% if lk.key == current_look %}border-indigo-500 ring-1 ring-indigo-300{% else %}border-gray-200{% endif %} rounded-xl bg-white p-3 flex flex-col">

@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% if service_page %}{{ service_page.name }}{% else %}{% nav_title _("Services") %}{% endif %}</h1>
+  <h1 class="ui-h1">{% if service_page %}{{ service_page.name }}{% else %}{% nav_title _("Services") %}{% endif %}</h1>
   <div class="flex gap-4">
     {# UB3-2: подборки услуг → чипы-фасет на /termin/. #}
     <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
@@ -36,7 +36,7 @@
     <label class="text-xs text-gray-500">{% trans "Anzahlung (€, optional)" %} <input name="amount" type="text" inputmode="decimal" value="{% if no_show_rule.amount %}{{ no_show_rule.amount|floatformat:2 }}{% endif %}" placeholder="20,00" class="w-24 rounded border border-gray-300 px-2 py-1 text-base"></label>
     <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700">{% trans "Speichern" %}</button>
   </form>
-  <p class="mt-1 text-xs text-gray-400">{% trans "Ohne Betrag: die Anzahlung der Leistung, sonst der volle Preis." %}</p>
+  <p class="mt-1 text-xs ui-muted">{% trans "Ohne Betrag: die Anzahlung der Leistung, sonst der volle Preis." %}</p>
   {% else %}
   <p class="mt-2 text-xs text-gray-500">{% trans "Nur Inhaber und Admins können diese Regel ändern." %}</p>
   {% endif %}
@@ -148,7 +148,7 @@
           <div>
             <label class="block text-xs text-gray-500 mb-1">{% trans "Details — one bullet per line" %}</label>
             <textarea name="attributes" rows="3" placeholder="{% trans 'e.g. Towels included' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ s.attributes_text }}</textarea>
-            <p class="text-xs text-gray-400 mt-1">{% trans "Up to 12 bullets are shown." %}</p>
+            <p class="text-xs ui-muted mt-1">{% trans "Up to 12 bullets are shown." %}</p>
             {% for inp in s.attributes_i18n_inputs %}
               <label class="block text-xs text-gray-500 mt-2 mb-1">{% trans "Details" %} ({{ inp.locale|upper }}) — {% trans "line by line, same order" %}</label>
               <textarea name="{{ inp.input_name }}" rows="3" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ inp.value }}</textarea>
@@ -166,7 +166,7 @@
                 {% endfor %}
               </div>
             {% endfor %}
-            <p class="text-xs text-gray-400 mt-1">{% trans "Clearing a question removes it. A new empty pair appears after saving." %}</p>
+            <p class="text-xs ui-muted mt-1">{% trans "Clearing a question removes it. A new empty pair appears after saving." %}</p>
           </div>
         </div>
       </details>
@@ -268,7 +268,7 @@
 <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
   {% csrf_token %}
   <input type="hidden" name="action" value="create">
-  <h2 class="font-semibold">{% trans "New service" %}</h2>
+  <h2 class="ui-h2">{% trans "New service" %}</h2>
   <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   <textarea name="description" rows="2" placeholder="{% trans 'Description — what is included (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
   {# L3d: переводы неосновных локалей (видно только при N>1 языках) #}

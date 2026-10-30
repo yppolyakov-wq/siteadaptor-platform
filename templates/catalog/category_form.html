@@ -9,7 +9,7 @@ main-колонка (языки/название/описание/фото) + п
 видимость/Größentabelle). Инвариант W0 цел — ничего не скрыто.{% endcomment %}
 <div>
   <div class="flex items-center gap-3 flex-wrap mb-4">
-    <h1 class="text-2xl font-bold">
+    <h1 class="ui-h1">
       {% if is_create %}{% trans "New category" %}{% else %}{% trans "Edit category" %}{% endif %}
     </h1>
     <span class="ml-auto">{% include "tenant/_i18n_switch.html" %}</span>
@@ -45,7 +45,7 @@ main-колонка (языки/название/описание/фото) + п
             </div>
           {% endfor %}{% endif %}
         </div>
-        <p class="text-xs text-gray-400 mt-1">{% trans "The photo is shown on the category tile of your storefront." %}</p>
+        <p class="text-xs ui-muted mt-1">{% trans "The photo is shown on the category tile of your storefront." %}</p>
       </div>
 
       {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
@@ -65,7 +65,7 @@ main-колонка (языки/название/описание/фото) + п
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
             {% render_field field class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
-            {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+            {% if field.help_text %}<p class="text-xs ui-muted mt-1">{{ field.help_text }}</p>{% endif %}
             {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
           </div>
         {% endif %}{% endfor %}
@@ -75,7 +75,7 @@ main-колонка (языки/название/описание/фото) + п
         {% for field in form %}{% if field.name == 'page_style' %}
           <div>
             {% include "tenant/_cardform_picker.html" with name="page_style" value=field.value|default:"" items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=field.label %}
-            <p class="text-xs text-gray-400 mt-1">{% trans "Leave on Standard to follow the site-wide setting." %}</p>
+            <p class="text-xs ui-muted mt-1">{% trans "Leave on Standard to follow the site-wide setting." %}</p>
             {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
           </div>
         {% endif %}{% endfor %}
@@ -84,7 +84,7 @@ main-колонка (языки/название/описание/фото) + п
         {% for field in form %}{% if field.name == 'card_style' %}
           <div>
             {% include "tenant/_cardform_picker.html" with name="card_style" value=field.value|default:"" items=category_card_forms title=field.label %}
-            <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
+            <p class="text-xs ui-muted mt-1">{{ field.help_text }}</p>
             {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
           </div>
         {% endif %}{% endfor %}
@@ -109,7 +109,7 @@ main-колонка (языки/название/описание/фото) + п
         {% for field in form %}{% if field.name == 'size_table' %}
           <label class="block text-xs font-medium text-gray-500 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
           {% render_field field class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
-          {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+          {% if field.help_text %}<p class="text-xs ui-muted mt-1">{{ field.help_text }}</p>{% endif %}
           {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
         {% endif %}{% endfor %}
       </div>

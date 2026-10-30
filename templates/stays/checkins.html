@@ -5,7 +5,7 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% nav_title _("Online check-ins (Meldescheine)") %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Online check-ins (Meldescheine)") %}</h1>
   <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
 </div>
 <p class="text-sm text-gray-500 mb-4">{% trans "Digital registration forms completed by guests. Kept for one year after departure, then deleted automatically (DSGVO)." %}</p>
@@ -27,7 +27,7 @@
       <div class="text-xs text-gray-400 mt-1">{% trans "Signed" %}: {{ r.signed_name }} · {{ r.signed_at|date:"d.m.Y H:i" }}</div>
     </div>
   {% empty %}
-    <p class="p-4 text-sm text-gray-400">{% trans "No online check-ins yet." %}</p>
+    <p class="p-4 text-sm ui-muted">{% trans "No online check-ins yet." %}</p>
   {% endfor %}
 </div>
 {% list_pager page %}

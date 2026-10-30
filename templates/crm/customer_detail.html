@@ -5,7 +5,7 @@
 {% block dash_content %}
 <a href="{% url 'crm:customer-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Customers" %}</a>
 <div class="flex flex-wrap items-center gap-2 mt-1 mb-4">
-  <h1 class="text-2xl font-bold">{{ customer }}</h1>
+  <h1 class="ui-h1">{{ customer }}</h1>
   {% if customer.company %}
     <a href="{% url 'crm:company-detail' customer.company.pk %}" class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">🏢 {{ customer.company.name }}</a>
   {% endif %}
@@ -48,7 +48,7 @@
     </form>
 
     <div class="bg-white rounded-2xl shadow-sm p-6">
-      <h2 class="font-semibold mb-3">{% trans "Notes" %}</h2>
+      <h2 class="ui-h2 mb-3">{% trans "Notes" %}</h2>
       <form method="post" action="{% url 'crm:note-add' customer.pk %}" class="mb-4">
         {% csrf_token %}
         <textarea name="text" rows="2" required placeholder="{% trans 'Add a note…' %}"
@@ -57,23 +57,23 @@
       </form>
       {% for n in notes %}
         <div class="border-t border-gray-100 py-3">
-          <p class="text-xs text-gray-400">{{ n.created_at|date:"d.m.Y H:i" }}</p>
+          <p class="text-xs ui-muted">{{ n.created_at|date:"d.m.Y H:i" }}</p>
           <p class="text-sm whitespace-pre-line">{{ n.text }}</p>
         </div>
       {% empty %}
-        <p class="text-sm text-gray-400">{% trans "No notes yet." %}</p>
+        <p class="text-sm ui-muted">{% trans "No notes yet." %}</p>
       {% endfor %}
     </div>
   </div>
 
   <div class="space-y-6">
   <div class="bg-white rounded-2xl shadow-sm p-6">
-    <h2 class="font-semibold mb-3">{% trans "Reservations" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
+    <h2 class="ui-h2 mb-3">{% trans "Reservations" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
     {% for r in reservations %}
       <div class="border-t border-gray-100 py-3 flex items-center justify-between gap-3">
         <div class="min-w-0">
           <p class="text-sm font-medium truncate">{{ r.promotion.title_text }}</p>
-          <p class="text-xs text-gray-400">{{ r.reference_code }} · {{ r.quantity }}× · {{ r.created_at|date:"d.m.Y" }}</p>
+          <p class="text-xs ui-muted">{{ r.reference_code }} · {{ r.quantity }}× · {{ r.created_at|date:"d.m.Y" }}</p>
         </div>
         <span class="text-xs font-medium px-2 py-0.5 rounded-full shrink-0
           {% if r.status == 'fulfilled' %}bg-gray-100 text-gray-600
@@ -82,19 +82,19 @@
           {% else %}bg-red-50 text-red-600{% endif %}">{{ r.status }}</span>
       </div>
     {% empty %}
-      <p class="text-sm text-gray-400">{% trans "No reservations — that's fine, a customer doesn't need one." %}</p>
+      <p class="text-sm ui-muted">{% trans "No reservations — that's fine, a customer doesn't need one." %}</p>
     {% endfor %}
   </div>
 
   {# Заказы Click & Collect (D2b, 360°): ведение — в кабинете Orders. #}
   {% if orders %}
   <div class="bg-white rounded-2xl shadow-sm p-6">
-    <h2 class="font-semibold mb-3">{% trans "Orders" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
+    <h2 class="ui-h2 mb-3">{% trans "Orders" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
     {% for o in orders %}
       <a href="{% url 'orders:order-detail' o.pk %}" class="border-t border-gray-100 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">
         <div class="min-w-0">
           <p class="text-sm font-medium">{{ o.reference_code }} · {{ o.total }} {{ o.currency }}</p>
-          <p class="text-xs text-gray-400 truncate">{% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+          <p class="text-xs ui-muted truncate">{% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
         </div>
         <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 shrink-0">{{ o.get_status_display }}</span>
       </a>
@@ -104,25 +104,25 @@
 
   {# Карты лояльности клиента (D1b, 360°): readonly-справка, начисление — в Loyalty. #}
   <div class="bg-white rounded-2xl shadow-sm p-6">
-    <h2 class="font-semibold mb-3">{% trans "Loyalty" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
+    <h2 class="ui-h2 mb-3">{% trans "Loyalty" %} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
     {% for card in loyalty_cards %}
       <div class="border-t border-gray-100 py-3 flex items-center justify-between gap-3">
         <div class="min-w-0">
           <p class="text-sm font-medium truncate">{{ card.program.label }}</p>
-          <p class="text-xs text-gray-400">{% blocktrans with stamps=card.stamps required=card.program.stamps_required %}{{ stamps }} of {{ required }} stamps{% endblocktrans %}</p>
+          <p class="text-xs ui-muted">{% blocktrans with stamps=card.stamps required=card.program.stamps_required %}{{ stamps }} of {{ required }} stamps{% endblocktrans %}</p>
         </div>
         {% if card.rewards_earned %}
           <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800 shrink-0">🎁 {{ card.rewards_earned }}</span>
         {% endif %}
       </div>
     {% empty %}
-      <p class="text-sm text-gray-400">{% trans "No loyalty cards yet." %}</p>
+      <p class="text-sm ui-muted">{% trans "No loyalty cards yet." %}</p>
     {% endfor %}
   </div>
 
   {# Ваучеры клиента (D1, 360°): список + выдача нового. #}
   <div class="bg-white rounded-2xl shadow-sm p-6">
-    <h2 class="font-semibold mb-3">{% trans "Vouchers" %}</h2>
+    <h2 class="ui-h2 mb-3">{% trans "Vouchers" %}</h2>
     {% for v in vouchers %}
       <div class="border-t border-gray-100 py-3 flex items-center justify-between gap-3 {% if not v.is_redeemable %}opacity-60{% endif %}">
         <div class="min-w-0">
@@ -132,7 +132,7 @@
         <span class="text-xs text-gray-400 shrink-0">{% if v.uses_left == None %}∞{% else %}{{ v.uses_left }}/{{ v.max_uses }}{% endif %}</span>
       </div>
     {% empty %}
-      <p class="text-sm text-gray-400">{% trans "No vouchers yet." %}</p>
+      <p class="text-sm ui-muted">{% trans "No vouchers yet." %}</p>
     {% endfor %}
     <form method="post" class="mt-4 flex flex-wrap items-center gap-2">{% csrf_token %}
       <input type="hidden" name="action" value="issue_voucher">
@@ -145,12 +145,12 @@
   {# CM-8.2/8.3/8.4: остальные разделы 360° — generic readonly-карточки. #}
   {% for s in sections360 %}
   <div class="bg-white rounded-2xl shadow-sm p-6">
-    <h2 class="font-semibold mb-3">{{ s.title }} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
+    <h2 class="ui-h2 mb-3">{{ s.title }} <span class="text-xs text-gray-400 font-normal">({% trans "read-only" %})</span></h2>
     {% for it in s.items %}
       {% if it.url %}<a href="{{ it.url }}" class="border-t border-gray-100 py-3 flex items-center justify-between gap-3 hover:bg-gray-50">{% else %}<div class="border-t border-gray-100 py-3 flex items-center justify-between gap-3">{% endif %}
         <div class="min-w-0">
           <p class="text-sm font-medium truncate">{{ it.title }}</p>
-          {% if it.sub %}<p class="text-xs text-gray-400 truncate">{{ it.sub }}</p>{% endif %}
+          {% if it.sub %}<p class="text-xs ui-muted truncate">{{ it.sub }}</p>{% endif %}
         </div>
         {% if it.status %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 shrink-0">{{ it.status }}</span>{% endif %}
       {% if it.url %}</a>{% else %}</div>{% endif %}

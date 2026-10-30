@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3">
-  <h1 class="text-2xl font-bold">{% nav_title _("Combos") %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Combos") %}</h1>
   <a href="{% url 'catalog:combo-create' %}" class="rounded-lg bg-indigo-600 text-white px-3 py-2 text-sm font-medium hover:bg-indigo-700">+ {% trans "New combo" %}</a>
 </div>
 <p class="text-sm text-gray-500 mb-4">{% trans "Fixed-price meal deals (e.g. Burger + fries + drink). Choice groups let guests pick a drink or side." %}</p>

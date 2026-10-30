@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% nav_title _("Occupancy & revenue") %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Occupancy & revenue") %}</h1>
   <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
     {# 2026-07-30: увидел слабую загрузку — сразу вход в ценовые правила. #}
     <a href="{% url 'stays:units' %}?tab=einstellungen&amp;sec=preise" class="text-sm text-indigo-600 hover:underline">💶 {% trans "Preise & Saison" %} →</a>
@@ -22,8 +22,8 @@
   <div class="bg-white rounded-2xl shadow-sm p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "Occupancy (Belegung)" %}</p>
     <p class="text-2xl font-bold">{{ occupancy_pct }} %</p>
-    <p class="text-xs text-gray-400 mt-1">{{ report.sold_nights }} / {{ report.available_nights }} {% trans "room-nights" %}</p>
-    {% if report.external_nights %}<p class="text-xs text-gray-400" data-external-nights>{% blocktrans with n=report.external_nights %}davon extern (iCal/OTA): {{ n }} Nächte{% endblocktrans %}</p>{% endif %}
+    <p class="text-xs ui-muted mt-1">{{ report.sold_nights }} / {{ report.available_nights }} {% trans "room-nights" %}</p>
+    {% if report.external_nights %}<p class="text-xs ui-muted" data-external-nights>{% blocktrans with n=report.external_nights %}davon extern (iCal/OTA): {{ n }} Nächte{% endblocktrans %}</p>{% endif %}
   </div>
   <div class="bg-white rounded-2xl shadow-sm p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "ADR (Ø rate / night)" %}</p>
@@ -34,7 +34,7 @@
     <p class="text-xs text-gray-500 mb-1">RevPAR</p>
     {% widthratio report.revpar_cents 100 1 as revpar_eur %}
     <p class="text-2xl font-bold">{{ revpar_eur }} €</p>
-    {% if report.external_nights %}<p class="text-xs text-gray-400 mt-1">{% trans "nur eigene Buchungen" %}</p>{% endif %}
+    {% if report.external_nights %}<p class="text-xs ui-muted mt-1">{% trans "nur eigene Buchungen" %}</p>{% endif %}
   </div>
   <div class="bg-white rounded-2xl shadow-sm p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "Room revenue" %}</p>
@@ -54,16 +54,16 @@
   <div class="bg-white rounded-2xl shadow-sm p-5">
     <p class="text-xs text-gray-500 mb-1">{% trans "Avg. length of stay" %}</p>
     <p class="text-2xl font-bold">{{ breakdowns.avg_los|floatformat:1 }}</p>
-    <p class="text-xs text-gray-400 mt-1">{% blocktrans with n=breakdowns.arrivals %}nights · {{ n }} arrivals this month{% endblocktrans %}</p>
+    <p class="text-xs ui-muted mt-1">{% blocktrans with n=breakdowns.arrivals %}nights · {{ n }} arrivals this month{% endblocktrans %}</p>
   </div>
 </div>
-<p class="text-xs text-gray-400 mt-4 max-w-2xl">{% trans "Counts pending/confirmed/fulfilled bookings; revenue across month edges is prorated by nights. Room revenue excludes extras and Kurtaxe." %}</p>
+<p class="text-xs ui-muted mt-4 max-w-2xl">{% trans "Counts pending/confirmed/fulfilled bookings; revenue across month edges is prorated by nights. Room revenue excludes extras and Kurtaxe." %}</p>
 
 {# PMS-C: разрезы месяца — канал / тариф / категория (выручка пропорциональна). #}
 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 max-w-5xl items-start">
   {% if breakdowns.by_channel %}
   <div class="bg-white rounded-2xl shadow-sm p-5">
-    <h2 class="font-semibold mb-2">{% trans "By channel" %}</h2>
+    <h2 class="ui-h2 mb-2">{% trans "By channel" %}</h2>
     <div class="divide-y divide-gray-100 text-sm">
       {% for r in breakdowns.by_channel %}
         <div class="flex items-center justify-between py-1.5 gap-2">
@@ -77,7 +77,7 @@
   {% endif %}
   {% if breakdowns.by_rate %}
   <div class="bg-white rounded-2xl shadow-sm p-5">
-    <h2 class="font-semibold mb-2">{% trans "By rate" %}</h2>
+    <h2 class="ui-h2 mb-2">{% trans "By rate" %}</h2>
     <div class="divide-y divide-gray-100 text-sm">
       {% for r in breakdowns.by_rate %}
         <div class="flex items-center justify-between py-1.5 gap-2">
@@ -91,7 +91,7 @@
   {% endif %}
   {% if breakdowns.by_unit %}
   <div class="bg-white rounded-2xl shadow-sm p-5">
-    <h2 class="font-semibold mb-2">{% trans "By room type" %}</h2>
+    <h2 class="ui-h2 mb-2">{% trans "By room type" %}</h2>
     <div class="divide-y divide-gray-100 text-sm">
       {% for r in breakdowns.by_unit %}
         <div class="flex items-center justify-between py-1.5 gap-2">
@@ -109,7 +109,7 @@
 {% if market %}
 {# CP-1 «Marktposition»: публичные базовые цены отелей платформы в этом городе. #}
 <div class="bg-white rounded-2xl shadow-sm p-5 mt-6 max-w-2xl">
-  <h2 class="font-semibold mb-1">📊 {% trans "Market position" %} · {{ market.city }}</h2>
+  <h2 class="ui-h2 mb-1">📊 {% trans "Market position" %} · {{ market.city }}</h2>
   <p class="text-xs text-gray-500 mb-3">{% blocktrans with p=market.position n=market.total %}Your base price ranks {{ p }} of {{ n }} hotels in your city (platform listings, “from €/night”).{% endblocktrans %}</p>
   <div class="flex items-center gap-4 text-sm mb-3">
     <span>{% trans "min" %}: <b>{{ market.min|floatformat:2 }} €</b></span>
@@ -124,7 +124,7 @@
       </div>
     {% endfor %}
   </div>
-  <p class="text-[11px] text-gray-400 mt-2">{% trans "Public base prices of hotels on this platform in your city — for orientation only." %}</p>
+  <p class="text-[11px] ui-muted mt-2">{% trans "Public base prices of hotels on this platform in your city — for orientation only." %}</p>
 </div>
 {% endif %}
 {% endblock %}

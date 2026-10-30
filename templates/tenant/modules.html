@@ -6,7 +6,7 @@
 {% comment %}VF-24 (фидбэк 2026-08-25): группы тумблеров — в 2 колонки на xl+
 (рекомендованные слева, прочие и премиум справа); одна форма и один Save.{% endcomment %}
 <div>
-  <h1 class="text-2xl font-bold mb-1">{% nav_title _("Modules") %}</h1>
+  <h1 class="ui-h1 mb-1">{% nav_title _("Modules") %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% trans "Switch dashboard blocks on or off. Disabled modules disappear from the menu — your data stays." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
@@ -16,7 +16,7 @@
     <div class="xl:grid xl:grid-cols-2 xl:gap-5 xl:items-start">
     <div class="space-y-3 min-w-0">
     {% comment %}AB2: «Für Ihr Geschäft empfohlen» — core + подходящие вертикали.{% endcomment %}
-    <h2 class="font-semibold">{% trans "Recommended for your business" %}</h2>
+    <h2 class="ui-h2">{% trans "Recommended for your business" %}</h2>
     {% for row in rows %}
       {% include "tenant/_module_row.html" %}
     {% endfor %}
@@ -26,7 +26,7 @@
     {% if other_rows %}
       {% comment %}AB2: универсальные/прочие — доступны, включаются осознанно.{% endcomment %}
       <h2 class="font-semibold pt-3">{% trans "More functions" %}</h2>
-      <p class="text-xs text-gray-400 -mt-2">{% trans "For other business types — you can still enable them." %}</p>
+      <p class="text-xs ui-muted -mt-2">{% trans "For other business types — you can still enable them." %}</p>
       {% for row in other_rows %}
         {% include "tenant/_module_row.html" with untypical=True %}
       {% endfor %}
@@ -35,7 +35,7 @@
     {% if premium_rows %}
       {% comment %}AB2: премиум-функции (бейдж тарифа).{% endcomment %}
       <h2 class="font-semibold pt-3">{% trans "Premium" %}</h2>
-      <p class="text-xs text-gray-400 -mt-2">{% trans "Available with a paid plan." %}</p>
+      <p class="text-xs ui-muted -mt-2">{% trans "Available with a paid plan." %}</p>
       {% for row in premium_rows %}
         {% include "tenant/_module_row.html" with is_premium=True %}
       {% endfor %}

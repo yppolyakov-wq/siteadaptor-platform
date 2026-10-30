@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-1">
-  <h1 class="text-2xl font-bold">{{ event.title }}</h1>
+  <h1 class="ui-h1">{{ event.title }}</h1>
   <div class="flex items-center gap-3">
     {% if event.is_published %}{# D2.4: self-serve продвижение события в агрегаторе #}
       <a href="{% url 'events:feature' event.pk %}" class="text-sm text-amber-600 hover:underline">★ {% trans "Feature" %}</a>
@@ -68,12 +68,12 @@
       </label>
       <button class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Create dates" %}</button>
     </div>
-    {% if event.series_id %}<p class="text-xs text-gray-400 mt-1">{% trans "This event is part of a series." %}</p>{% endif %}
+    {% if event.series_id %}<p class="text-xs ui-muted mt-1">{% trans "This event is part of a series." %}</p>{% endif %}
   </div>
 </form>
 
 <div class="flex items-center justify-between mb-2">
-  <h2 class="text-lg font-semibold">{% trans "Attendees" %}</h2>
+  <h2 class="ui-h2">{% trans "Attendees" %}</h2>
   {% if request.user|cab_can:"kunden.export" %}<a href="{% url 'events:roster-csv' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Export CSV" %}</a>{% endif %}
 </div>
 
@@ -128,13 +128,13 @@
   </table>
 </div>
 {% else %}
-  <p class="text-gray-400 text-sm mb-4">{% trans "No attendees yet." %}</p>
+  <p class="ui-muted text-sm mb-4">{% trans "No attendees yet." %}</p>
 {% endif %}
 
 {# Лист ожидания (R1) #}
 {% if waitlist %}
 <div class="flex items-center justify-between mt-8 mb-2">
-  <h2 class="text-lg font-semibold">{% trans "Waitlist" %} <span class="text-sm font-normal text-gray-400">({{ event.waitlist_pending_count }} {% trans "waiting" %})</span></h2>
+  <h2 class="ui-h2">{% trans "Waitlist" %} <span class="text-sm font-normal text-gray-400">({{ event.waitlist_pending_count }} {% trans "waiting" %})</span></h2>
   <form method="post" action="{% url 'events:waitlist-notify' event.pk %}">
     {% csrf_token %}
     <button class="text-sm text-amber-700 border border-amber-200 rounded-lg px-3 py-1.5 hover:bg-amber-50">{% trans "Notify of free spots" %}</button>
