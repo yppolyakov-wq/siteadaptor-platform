@@ -12,7 +12,7 @@
 
   {% if messages %}
     {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm bg-green-50 text-green-800">{{ m }}</div>
+      <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm bg-green-50 text-green-800">{{ m }}</div>
     {% endfor %}
   {% endif %}
 

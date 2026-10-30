@@ -13,7 +13,7 @@
   {% if preview.rows %}
   <div class="overflow-x-auto">
   <table class="text-xs w-full mb-2">
-    <thead><tr class="text-left text-gray-500"><th class="py-1 pr-2">{% trans "Kategorie" %}</th><th class="py-1 pr-2">{% trans "Datum" %}</th><th class="py-1 pr-2">{% trans "Tagespreis" %}</th><th class="py-1">{% trans "Einschränkungen" %}</th></tr></thead>
+    <thead><tr class="text-left text-gray-500"><th scope="col" class="py-1 pr-2">{% trans "Kategorie" %}</th><th scope="col" class="py-1 pr-2">{% trans "Datum" %}</th><th scope="col" class="py-1 pr-2">{% trans "Tagespreis" %}</th><th scope="col" class="py-1">{% trans "Einschränkungen" %}</th></tr></thead>
     <tbody>
       {% for r in preview.rows %}
       <tr class="border-t border-gray-100">

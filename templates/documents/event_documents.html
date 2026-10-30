@@ -17,8 +17,8 @@
     <table class="w-full text-sm">
       <thead class="text-left text-gray-500">
         <tr class="border-b">
-          <th class="p-3">{% trans "Participant" %}</th>
-          {% for value, label in kinds %}<th class="p-3">{{ label }}</th>{% endfor %}
+          <th scope="col" class="p-3">{% trans "Participant" %}</th>
+          {% for value, label in kinds %}<th scope="col" class="p-3">{{ label }}</th>{% endfor %}
         </tr>
       </thead>
       <tbody>

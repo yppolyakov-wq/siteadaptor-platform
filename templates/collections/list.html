@@ -16,7 +16,7 @@
 
 {% if messages %}
   {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
 
@@ -110,7 +110,7 @@
           <form method="post" class="absolute -top-1.5 -right-1.5">{% csrf_token %}
             <input type="hidden" name="action" value="photo"><input type="hidden" name="collection" value="{{ col.pk }}">
             <input type="hidden" name="remove" value="{{ img.id }}">
-            <button type="submit" title="{% trans 'Delete' %}" class="w-5 h-5 rounded-full bg-white shadow text-xs text-red-600">✕</button>
+            <button aria-label="{% trans 'Delete' %}" type="submit" title="{% trans 'Delete' %}" class="w-5 h-5 rounded-full bg-white shadow text-xs text-red-600">✕</button>
           </form>
         </span>
         {% endfor %}

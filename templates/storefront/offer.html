@@ -6,7 +6,7 @@
 <div class="max-w-2xl mx-auto">
   {% if messages %}
     {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+      <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
     {% endfor %}
   {% endif %}
 
@@ -26,7 +26,7 @@
 
     <table class="w-full text-sm mt-4 mb-4">
       <thead class="text-gray-400 text-left border-b border-gray-100">
-        <tr><th class="py-1">{% trans "Position" %}</th><th class="py-1 text-right">{% trans "Menge" %}</th><th class="py-1 text-right">{% trans "Preis" %}</th></tr>
+        <tr><th scope="col" class="py-1">{% trans "Position" %}</th><th scope="col" class="py-1 text-right">{% trans "Menge" %}</th><th scope="col" class="py-1 text-right">{% trans "Preis" %}</th></tr>
       </thead>
       <tbody>
         {% for ln in lines %}

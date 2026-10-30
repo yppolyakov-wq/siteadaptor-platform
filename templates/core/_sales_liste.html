@@ -29,7 +29,7 @@ section (может быть None).{% endcomment %}
   {% endif %}
   <input type="search" name="q" value="{{ list_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
          class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm w-56 focus:border-indigo-300 focus:outline-none">
-  <button type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+  <button aria-label="{% trans 'Suchen' %}" type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
   {% comment %}KA-12 E2.2: CSV текущего списка (те же фильтры) — только владельцу.{% endcomment %}
   {% if request.user|cab_can:"kunden.export" and active_kind != 'reservation' %}<a href="{% url 'verkaeufe-export' %}{% query_with 'tab' active_kind %}" data-sales-csv class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" title="{% trans 'Liste als CSV herunterladen' %}">⬇ CSV</a>{% endif %}
 </form>

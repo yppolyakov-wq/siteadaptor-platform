@@ -23,7 +23,7 @@
 
 {% if messages %}
   {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
 
@@ -112,11 +112,11 @@
   <table class="min-w-full text-sm">
     <thead class="bg-gray-50 text-left text-xs text-gray-500">
       <tr>
-        <th class="px-4 py-2">{% trans "Date" %}</th>
-        <th class="px-4 py-2">{% trans "Kategorie" %}</th>
-        <th class="px-4 py-2">{% trans "Note" %}</th>
-        <th class="px-4 py-2 text-right">{% trans "Amount" %}</th>
-        <th class="px-4 py-2"></th>
+        <th scope="col" class="px-4 py-2">{% trans "Date" %}</th>
+        <th scope="col" class="px-4 py-2">{% trans "Kategorie" %}</th>
+        <th scope="col" class="px-4 py-2">{% trans "Note" %}</th>
+        <th scope="col" class="px-4 py-2 text-right">{% trans "Amount" %}</th>
+        <th scope="col" class="px-4 py-2"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">

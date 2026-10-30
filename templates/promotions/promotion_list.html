@@ -44,7 +44,7 @@
 
 {% if messages %}
   {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
 
@@ -131,12 +131,12 @@
   <table class="w-full text-sm min-w-[640px]">
     <thead class="text-left text-gray-500 border-b">
       <tr>
-        <th class="py-2">{% trans "Title" %}</th>
-        <th class="py-2">{% trans "Type" %}</th>
-        <th class="py-2">{% trans "Status" %}</th>
-        <th class="py-2">{% trans "Available" %}</th>
-        <th class="py-2">{% trans "Window" %}</th>
-        <th class="py-2"></th>
+        <th scope="col" class="py-2">{% trans "Title" %}</th>
+        <th scope="col" class="py-2">{% trans "Type" %}</th>
+        <th scope="col" class="py-2">{% trans "Status" %}</th>
+        <th scope="col" class="py-2">{% trans "Available" %}</th>
+        <th scope="col" class="py-2">{% trans "Window" %}</th>
+        <th scope="col" class="py-2"></th>
       </tr>
     </thead>
     <tbody>

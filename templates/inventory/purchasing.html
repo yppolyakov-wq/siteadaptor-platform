@@ -9,7 +9,7 @@
 {% if messages %}
   <div class="mb-3 space-y-1">
     {% for m in messages %}
-      <div class="text-sm rounded-lg px-3 py-2 {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">{{ m }}</div>
+      <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="text-sm rounded-lg px-3 py-2 {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">{{ m }}</div>
     {% endfor %}
   </div>
 {% endif %}
@@ -61,11 +61,11 @@
         <table class="w-full text-sm mb-3 min-w-[640px]">
           <thead class="text-xs text-gray-400 uppercase tracking-wide">
             <tr class="border-b border-gray-100">
-              <th class="text-left py-1 pr-3 font-medium">{% trans "Artikel" %}</th>
-              <th class="text-right py-1 px-2 font-medium">{% trans "Menge" %}</th>
-              <th class="text-right py-1 px-2 font-medium">{% trans "EK" %}</th>
-              <th class="text-right py-1 px-2 font-medium">{% trans "Empfangen" %}</th>
-              <th class="text-right py-1 pl-2 font-medium"></th>
+              <th scope="col" class="text-left py-1 pr-3 font-medium">{% trans "Artikel" %}</th>
+              <th scope="col" class="text-right py-1 px-2 font-medium">{% trans "Menge" %}</th>
+              <th scope="col" class="text-right py-1 px-2 font-medium">{% trans "EK" %}</th>
+              <th scope="col" class="text-right py-1 px-2 font-medium">{% trans "Empfangen" %}</th>
+              <th scope="col" class="text-right py-1 pl-2 font-medium"></th>
             </tr>
           </thead>
           <tbody>
@@ -77,7 +77,7 @@
                 <td class="py-1.5 px-2 text-right {% if line.is_fully_received %}text-green-600 font-semibold{% endif %}">{{ line.qty_received }}/{{ line.qty }}{% if line.qty_returned %} <span class="text-amber-600 font-normal" title="{% trans 'Rücksendung Lieferant' %}">↩&nbsp;{{ line.qty_returned }}</span>{% endif %}</td>
                 <td class="py-1.5 pl-2 text-right">
                   {% if current.status == 'draft' %}
-                    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_line"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="line" value="{{ line.pk }}"><button class="text-xs text-gray-400 hover:text-red-600">🗑</button></form>
+                    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_line"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="line" value="{{ line.pk }}"><button aria-label="{% trans 'Entfernen' %}" class="text-xs text-gray-400 hover:text-red-600">🗑</button></form>
                   {% elif current.status == 'ordered' and not line.is_fully_received %}
                     <form method="post" class="flex items-center gap-1.5 justify-end flex-wrap">
                       {% csrf_token %}

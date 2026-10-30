@@ -13,9 +13,9 @@
   <table class="w-full text-sm">
     <thead>
       <tr class="border-b border-gray-100">
-        <th class="text-left p-3 text-gray-400 font-medium w-40">{% trans "Angebot" %}</th>
+        <th scope="col" class="text-left p-3 text-gray-400 font-medium w-40">{% trans "Angebot" %}</th>
         {% for l in items %}
-        <th class="text-left p-3 align-top min-w-[190px]">
+        <th scope="col" class="text-left p-3 align-top min-w-[190px]">
           <a href="{% url 'aggregator-outbound' l.pk %}" rel="nofollow" class="block font-semibold hover:underline">{{ l.title_text }}</a>
           {% if l.image.url %}<img src="{{ l.image.url }}" alt="" loading="lazy" class="mt-2 w-full aspect-[4/3] object-cover rounded-lg">{% endif %}
           <form method="post" action="{% url 'aggregator-shortlist-toggle' %}" class="mt-2">

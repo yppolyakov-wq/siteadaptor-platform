@@ -81,9 +81,9 @@
 <div class="overflow-x-auto bg-white border border-gray-200 rounded-lg">
   <table class="w-full text-sm">
     <thead><tr class="text-left text-gray-400 border-b">
-      <th class="py-2 px-3">{% trans "Code" %}</th><th class="px-3">{% trans "Name" %}</th>
-      <th class="px-3">{% trans "Seats" %}</th><th class="px-3">{% trans "Status" %}</th>
-      <th class="px-3">{% trans "Paid" %}</th><th class="px-3"></th>
+      <th scope="col" class="py-2 px-3">{% trans "Code" %}</th><th scope="col" class="px-3">{% trans "Name" %}</th>
+      <th scope="col" class="px-3">{% trans "Seats" %}</th><th scope="col" class="px-3">{% trans "Status" %}</th>
+      <th scope="col" class="px-3">{% trans "Paid" %}</th><th scope="col" class="px-3"></th>
     </tr></thead>
     <tbody>
       {% for t in tickets %}
@@ -102,7 +102,7 @@
               {% if t.status == 'pending' %}<button name="target" value="confirmed" class="text-xs border rounded px-2 py-1">{% trans "Confirm" %}</button>{% endif %}
               {% if t.status == 'confirmed' %}<button name="target" value="attended" class="text-xs border rounded px-2 py-1">{% trans "Attended" %}</button>{% endif %}
               {% if t.payment_state != 'paid' and t.status != 'cancelled' %}<button name="target" value="paid" class="text-xs border rounded px-2 py-1">{% trans "Paid" %}</button>{% endif %}
-              {% if t.status != 'cancelled' and t.status != 'attended' %}<button name="target" value="cancelled" class="text-xs text-red-600 border border-red-200 rounded px-2 py-1">✕</button>{% endif %}
+              {% if t.status != 'cancelled' and t.status != 'attended' %}<button aria-label="{% trans 'Stornieren' %}" name="target" value="cancelled" class="text-xs text-red-600 border border-red-200 rounded px-2 py-1">✕</button>{% endif %}
             </form>
             {% if edit_extras and t.status != 'cancelled' and t.status != 'attended' %}
             {# 3b: правка допов билета — зеркало MX-3 (снимок пересобирается, итог сам). #}
@@ -143,8 +143,8 @@
 <div class="overflow-x-auto bg-white border border-gray-200 rounded-lg">
   <table class="w-full text-sm">
     <thead><tr class="text-left text-gray-400 border-b">
-      <th class="py-2 px-3">{% trans "Name" %}</th><th class="px-3">{% trans "Email" %}</th>
-      <th class="px-3">{% trans "Phone" %}</th><th class="px-3">{% trans "Seats" %}</th><th class="px-3">{% trans "Notified" %}</th>
+      <th scope="col" class="py-2 px-3">{% trans "Name" %}</th><th scope="col" class="px-3">{% trans "Email" %}</th>
+      <th scope="col" class="px-3">{% trans "Phone" %}</th><th scope="col" class="px-3">{% trans "Seats" %}</th><th scope="col" class="px-3">{% trans "Notified" %}</th>
     </tr></thead>
     <tbody>
       {% for w in waitlist %}

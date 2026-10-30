@@ -65,8 +65,8 @@
   <table class="w-full text-sm">
     <thead>
       <tr class="text-left text-xs text-gray-500">
-        <th class="py-1 pr-3 font-medium">{% trans "Eintrag im Stadtportal" %}</th>
-        {% for f in stats.funnel %}<th class="py-1 px-2 font-medium text-right">{{ f.label }}</th>{% endfor %}
+        <th scope="col" class="py-1 pr-3 font-medium">{% trans "Eintrag im Stadtportal" %}</th>
+        {% for f in stats.funnel %}<th scope="col" class="py-1 px-2 font-medium text-right">{{ f.label }}</th>{% endfor %}
       </tr>
     </thead>
     <tbody>

@@ -12,7 +12,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
 
   {% if messages %}
     {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+      <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
     {% endfor %}
   {% endif %}
 
@@ -82,7 +82,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
               <img src="{{ img.url }}" alt="" class="w-24 h-24 object-cover">
               <div class="flex text-xs">
                 {% if not img.is_primary %}
-                <button type="submit" form="pf-img-main-{{ img.id }}"
+                <button aria-label="{% trans 'Main' %}" type="submit" form="pf-img-main-{{ img.id }}"
                         class="flex-1 py-1 text-indigo-600 hover:bg-indigo-50" title="{% trans 'Main' %}">★</button>
                 {% else %}
                 <span class="flex-1 py-1 text-center text-indigo-600">{% trans "Main" %}</span>

@@ -44,9 +44,9 @@
       {% comment %}UC6-9: Undo/Redo + статус + подсказка правки — в верхней строке (полоса
          над канвой убрана). Те же id → JS не тронут.{% endcomment %}
       <span class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs bg-white shrink-0">
-        <button type="button" id="home-undo" title="{% trans 'Undo' %} (Ctrl+Z)"
+        <button aria-label="{% trans 'Undo' %} (Ctrl+Z)" type="button" id="home-undo" title="{% trans 'Undo' %} (Ctrl+Z)"
                 class="px-2 py-1 text-gray-400 cursor-not-allowed" disabled>↶</button>
-        <button type="button" id="home-redo" title="{% trans 'Redo' %} (Ctrl+Shift+Z)"
+        <button aria-label="{% trans 'Redo' %} (Ctrl+Shift+Z)" type="button" id="home-redo" title="{% trans 'Redo' %} (Ctrl+Shift+Z)"
                 class="px-2 py-1 border-l border-gray-300 text-gray-400 cursor-not-allowed" disabled>↷</button>
       </span>
       <span id="home-prev-status" class="hidden md:inline text-xs text-gray-400 truncate"></span>
@@ -127,7 +127,7 @@
     <div id="bld-flash" role="status" class="fixed top-12 left-1/2 -translate-x-1/2 z-[70] space-y-1 pointer-events-none max-w-[90vw]">
     {% for m in messages %}
       {% comment %}Ошибки: pointer-events-auto — текст можно выделить/скопировать до автоскрытия.{% endcomment %}
-      <div class="rounded-full px-4 py-2 text-sm shadow-lg text-center {% if m.tags == 'error' %}bg-red-600 text-white pointer-events-auto{% else %}bg-gray-900/90 text-white{% endif %}"{% if m.tags == 'error' %} data-flash-error{% endif %}>{{ m }}</div>
+      <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="rounded-full px-4 py-2 text-sm shadow-lg text-center {% if m.tags == 'error' %}bg-red-600 text-white pointer-events-auto{% else %}bg-gray-900/90 text-white{% endif %}"{% if m.tags == 'error' %} data-flash-error{% endif %}>{{ m }}</div>
     {% endfor %}
     </div>
     <script>
@@ -1438,7 +1438,7 @@
         {% for h in history %}
           <div class="flex items-center gap-2 text-sm border border-gray-100 rounded-lg px-3 py-2">
             <span class="flex-1 text-gray-600">{% if h.label %}<span class="font-medium text-gray-800">{{ h.label }}</span> · {% endif %}{{ h.ts|slice:":10" }} {{ h.ts|slice:"11:16" }}{% if not h.ts %}{% trans "Earlier version" %}{% endif %}
-            <button type="submit" name="action" value="label_version:{{ h.idx }}"
+            <button aria-label="{% trans 'Name this version (uses the field above)' %}" type="submit" name="action" value="label_version:{{ h.idx }}"
                     class="text-xs text-gray-400 hover:text-indigo-600" title="{% trans 'Name this version (uses the field above)' %}">✎</button>
             <button type="submit" name="action" value="restore_version:{{ h.idx }}"
                     onclick="return confirm('{% trans "Restore this version? The current one is kept in history." %}')"
@@ -1559,11 +1559,11 @@
             </div>
             <div class="flex items-center gap-2 ml-auto text-base">
               <form method="post">
-        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="up"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move up' %}" {% if forloop.first %}disabled{% endif %}>▲</button></form>
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="up"><button aria-label="{% trans 'Move up' %}" class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move up' %}" {% if forloop.first %}disabled{% endif %}>▲</button></form>
               <form method="post">
-        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="down"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move down' %}" {% if forloop.last %}disabled{% endif %}>▼</button></form>
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="down"><button aria-label="{% trans 'Move down' %}" class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move down' %}" {% if forloop.last %}disabled{% endif %}>▼</button></form>
               <form method="post" onsubmit="return confirm('{% trans "Remove this slide?" %}')">
-        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}<input type="hidden" name="action" value="delete_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><button class="text-red-600 hover:text-red-800 px-1" title="{% trans 'Remove slide' %}">✕</button></form>
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}<input type="hidden" name="action" value="delete_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><button aria-label="{% trans 'Remove slide' %}" class="text-red-600 hover:text-red-800 px-1" title="{% trans 'Remove slide' %}">✕</button></form>
             </div>
           </div>
           <form method="post" enctype="multipart/form-data" class="space-y-2 min-w-0">

@@ -40,7 +40,7 @@ active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛА
   {% endif %}
       <input type="search" name="q" value="{{ order_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm w-56 focus:border-indigo-300 focus:outline-none">
       {% if order_versand %}<input type="hidden" name="versand" value="1">{% endif %}
-      <button type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+      <button aria-label="{% trans 'Suchen' %}" type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
     </form>
     {% comment %}SH-14: чип «только доставка» — тот же фильтр, что у подпункта
     сайдбара «Lieferungen»; активный фильтр обязан быть виден и снимаем.{% endcomment %}

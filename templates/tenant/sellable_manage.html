@@ -31,7 +31,7 @@ Kategorie/Status (паритет умершей /catalog/products/), «Bearbeite
 {% if messages %}
   <div class="mb-3 space-y-1">
     {% for m in messages %}
-      <div class="text-sm rounded-lg px-3 py-2 flex items-center justify-between gap-3 {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+      <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="text-sm rounded-lg px-3 py-2 flex items-center justify-between gap-3 {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
         <span>{{ m }}</span>
         {% if undo and forloop.last %}
           {# KA-M4: одноразовое «Rückgängig» после тумблера видимости #}
@@ -74,7 +74,7 @@ Kategorie/Status (строго товарные — активный фильт�
     <option value="1" {% if sel_active == '1' %}selected{% endif %}>{% trans "Active" %}</option>
     <option value="0" {% if sel_active == '0' %}selected{% endif %}>{% trans "Inactive" %}</option>
   </select>
-  <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+  <button aria-label="{% trans 'Suchen' %}" type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
   {% if filtered %}<a href="{% url 'sellable-manage' %}" class="text-sm text-gray-500 hover:underline">{% trans "Filter zurücksetzen" %}</a>{% endif %}
 </form>
 

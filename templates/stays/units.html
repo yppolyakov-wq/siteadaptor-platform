@@ -19,7 +19,7 @@
 
 {% if messages %}
   {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
 
@@ -200,7 +200,7 @@
             <img src="{{ img.url }}" alt="" class="w-20 h-20 object-cover rounded-lg border border-gray-200">
             <form method="post" class="absolute -top-2 -right-2">{% csrf_token %}
               <input type="hidden" name="action" value="photo_delete"><input type="hidden" name="unit" value="{{ u.pk }}"><input type="hidden" name="image" value="{{ img.id }}">
-              <button title="{% trans 'Remove' %}" class="w-5 h-5 rounded-full bg-red-500 text-white text-xs leading-none">×</button>
+              <button aria-label="{% trans 'Remove' %}" title="{% trans 'Remove' %}" class="w-5 h-5 rounded-full bg-red-500 text-white text-xs leading-none">×</button>
             </form>
           </div>
         {% endfor %}
@@ -215,7 +215,7 @@
           <span class="inline-flex items-center gap-1.5 text-sm text-gray-700 border border-gray-200 rounded-lg px-2 py-1">🚪 {{ r.number }}
             <form method="post" class="inline">{% csrf_token %}
               <input type="hidden" name="action" value="room_delete"><input type="hidden" name="room" value="{{ r.pk }}">
-              <button class="text-red-500 hover:underline text-xs" title="{% trans 'Remove' %}">×</button>
+              <button aria-label="{% trans 'Remove' %}" class="text-red-500 hover:underline text-xs" title="{% trans 'Remove' %}">×</button>
             </form>
           </span>
         {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "None" %}</p>{% endfor %}

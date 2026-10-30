@@ -76,7 +76,7 @@
   <section id="buchen" class="mt-8 bg-white rounded-2xl shadow-sm p-6 md:p-8">
     <h2 class="text-xl font-bold mb-1">{% trans "Reserve your spot" %}</h2>
     {% if messages %}
-      {% for m in messages %}<div class="my-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>{% endfor %}
+      {% for m in messages %}<div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="my-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>{% endfor %}
     {% endif %}
     {% if event.is_sold_out %}
       <p class="text-red-600 font-medium mt-2">{% trans "Sold out" %}</p>

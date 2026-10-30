@@ -10,7 +10,7 @@
 
 {% if messages %}
   {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
 
@@ -33,7 +33,7 @@
   <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
   <table class="w-full text-sm min-w-[640px]">
     <thead class="text-left text-gray-500 border-b">
-      <tr><th class="py-2">{% trans "Code" %}</th><th class="py-2">{% trans "Label" %}</th><th class="py-2">{% trans "Discount" %}</th><th class="py-2">{% trans "Uses" %}</th><th class="py-2">{% trans "Active" %}</th><th class="py-2"></th></tr>
+      <tr><th scope="col" class="py-2">{% trans "Code" %}</th><th scope="col" class="py-2">{% trans "Label" %}</th><th scope="col" class="py-2">{% trans "Discount" %}</th><th scope="col" class="py-2">{% trans "Uses" %}</th><th scope="col" class="py-2">{% trans "Active" %}</th><th scope="col" class="py-2"></th></tr>
     </thead>
     <tbody>
       {% for v in vouchers %}
@@ -63,7 +63,7 @@
   <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
   <table class="w-full text-sm min-w-[640px]">
     <thead class="text-left text-gray-500 border-b">
-      <tr><th class="py-2">{% trans "Date" %}</th><th class="py-2">{% trans "Buyer" %}</th><th class="py-2">{% trans "Recipient" %}</th><th class="py-2">{% trans "Amount" %}</th><th class="py-2">{% trans "Paid" %}</th><th class="py-2">{% trans "Code" %}</th><th class="py-2">{% trans "Redeemed" %}</th></tr>
+      <tr><th scope="col" class="py-2">{% trans "Date" %}</th><th scope="col" class="py-2">{% trans "Buyer" %}</th><th scope="col" class="py-2">{% trans "Recipient" %}</th><th scope="col" class="py-2">{% trans "Amount" %}</th><th scope="col" class="py-2">{% trans "Paid" %}</th><th scope="col" class="py-2">{% trans "Code" %}</th><th scope="col" class="py-2">{% trans "Redeemed" %}</th></tr>
     </thead>
     <tbody>
       {% for g in gift_sales %}

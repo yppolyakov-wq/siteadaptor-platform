@@ -10,7 +10,7 @@
 
   {% if messages %}
     {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+      <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
     {% endfor %}
   {% endif %}
 
@@ -31,7 +31,7 @@
             <div class="flex text-xs">
               {% if not img.is_primary %}
                 <form method="post" action="{% url 'promotions:promotion-image-primary' promotion.pk img.id %}" class="flex-1">
-                  {% csrf_token %}<button class="w-full py-1 text-indigo-600 hover:bg-indigo-50">★</button>
+                  {% csrf_token %}<button aria-label="{% trans 'Main' %}" class="w-full py-1 text-indigo-600 hover:bg-indigo-50">★</button>
                 </form>
               {% else %}
                 <span class="flex-1 py-1 text-center text-indigo-600">{% trans "Main" %}</span>
@@ -263,12 +263,12 @@
           <table class="w-full text-sm min-w-[22rem]">
             <thead class="text-xs text-gray-500">
               <tr>
-                <th class="text-left font-medium py-1 px-1">{% trans "Kanal" %}</th>
-                <th class="text-right font-medium py-1 px-1">{% trans "Aufrufe" %}</th>
-                <th class="text-right font-medium py-1 px-1">{% trans "Zurückgelegt" %}</th>
-                <th class="text-right font-medium py-1 px-1">{% trans "Abgeholt" %}</th>
-                <th class="text-right font-medium py-1 px-1">{% trans "Coupons" %}</th>
-                <th class="text-right font-medium py-1 px-1">{% trans "eingelöst" %}</th>
+                <th scope="col" class="text-left font-medium py-1 px-1">{% trans "Kanal" %}</th>
+                <th scope="col" class="text-right font-medium py-1 px-1">{% trans "Aufrufe" %}</th>
+                <th scope="col" class="text-right font-medium py-1 px-1">{% trans "Zurückgelegt" %}</th>
+                <th scope="col" class="text-right font-medium py-1 px-1">{% trans "Abgeholt" %}</th>
+                <th scope="col" class="text-right font-medium py-1 px-1">{% trans "Coupons" %}</th>
+                <th scope="col" class="text-right font-medium py-1 px-1">{% trans "eingelöst" %}</th>
               </tr>
             </thead>
             <tbody>

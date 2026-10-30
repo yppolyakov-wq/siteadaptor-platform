@@ -46,13 +46,13 @@
     <div class="overflow-x-auto rounded-2xl bg-white shadow-sm mb-4">
       <table class="w-full text-sm">
         <thead class="text-left text-gray-500"><tr class="border-b">
-          <th class="p-3">{% trans "Day" %}</th>
-          <th class="p-3">{% trans "Type" %}</th>
-          <th class="p-3">{% trans "Supplier" %}</th>
-          <th class="p-3">{% trans "Cost" %}</th>
-          <th class="p-3">{% trans "Status" %}</th>
-          <th class="p-3">{% trans "Visible" %}</th>
-          <th class="p-3"></th>
+          <th scope="col" class="p-3">{% trans "Day" %}</th>
+          <th scope="col" class="p-3">{% trans "Type" %}</th>
+          <th scope="col" class="p-3">{% trans "Supplier" %}</th>
+          <th scope="col" class="p-3">{% trans "Cost" %}</th>
+          <th scope="col" class="p-3">{% trans "Status" %}</th>
+          <th scope="col" class="p-3">{% trans "Visible" %}</th>
+          <th scope="col" class="p-3"></th>
         </tr></thead>
         <tbody>
           {% for b in bookings %}
@@ -199,7 +199,7 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="toggle_task">
             <input type="hidden" name="id" value="{{ t.pk }}">
-            <button type="submit" class="text-sm">{% if t.is_done %}✅{% else %}⬜{% endif %}</button>
+            <button aria-label="{% trans 'Erledigt' %}" aria-pressed="{% if t.is_done %}true{% else %}false{% endif %}" type="submit" class="text-sm">{% if t.is_done %}✅{% else %}⬜{% endif %}</button>
             <span class="text-sm {% if t.is_done %}line-through text-gray-400{% endif %}">{{ t.title }}</span>
           </form>
           {% if t.due_date %}

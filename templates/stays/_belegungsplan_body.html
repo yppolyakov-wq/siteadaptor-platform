@@ -17,7 +17,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 </div>
 {% if messages %}
   {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
 
@@ -80,9 +80,9 @@ test_price_nav/test_verkaeufe).{% endcomment %}
   <table class="text-xs border-collapse w-full" id="belegungsplan">
     <thead>
       <tr class="text-gray-400">
-        <th class="sticky left-0 bg-white text-left font-medium px-3 py-2 z-10">{% trans "Unit" %}</th>
+        <th scope="col" class="sticky left-0 bg-white text-left font-medium px-3 py-2 z-10">{% trans "Unit" %}</th>
         {% for d in days %}
-          <th class="px-1 py-2 font-medium text-center min-w-[1.9rem] {% if d == today %}text-indigo-600{% endif %}">{{ d|date:"d" }}<br><span class="text-[10px] text-gray-300">{{ d|date:"D"|slice:":2" }}</span></th>
+          <th scope="col" class="px-1 py-2 font-medium text-center min-w-[1.9rem] {% if d == today %}text-indigo-600{% endif %}">{{ d|date:"d" }}<br><span class="text-[10px] text-gray-300">{{ d|date:"D"|slice:":2" }}</span></th>
         {% endfor %}
       </tr>
     </thead>

@@ -11,7 +11,7 @@
 
 {% if messages %}
   {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
 
@@ -41,7 +41,7 @@
     <option value="">{% trans "Standard-Reihenfolge" %}</option>
     {% for value, label in inv_sort_options %}<option value="{{ value }}" {% if inv_filters.sort == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
   </select>
-  <button type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+  <button aria-label="{% trans 'Suchen' %}" type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
   {% if inv_filters.q or inv_filters.art or inv_filters.von or inv_filters.bis or inv_filters.sort or inv_filters.status %}
     <a href="{% url 'finance:invoices' %}" class="px-2 py-2 text-sm text-gray-500 hover:text-gray-800">{% trans "Filter zurücksetzen" %}</a>
   {% endif %}

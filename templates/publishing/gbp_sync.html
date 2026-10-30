@@ -75,7 +75,7 @@
     {% if hours_diff %}
       <table class="w-full text-sm mb-3" data-hours-diff>
         <thead><tr class="text-left text-xs text-gray-500">
-          <th class="py-1 pr-2"></th><th class="py-1 pr-2">{% trans "Bei uns" %}</th><th class="py-1">{% trans "Bei Google" %}</th>
+          <th scope="col" class="py-1 pr-2"></th><th scope="col" class="py-1 pr-2">{% trans "Bei uns" %}</th><th scope="col" class="py-1">{% trans "Bei Google" %}</th>
         </tr></thead>
         <tbody>
           {% for r in hours_diff.rows %}
