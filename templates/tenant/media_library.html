@@ -8,7 +8,7 @@
 <p class="text-sm text-gray-500 mb-6">{% trans "All uploaded photos in one place — edit alt texts (SEO & accessibility), delete unused files." %}</p>
 
 {% if folders %}
-<nav class="ui-tabs mb-6" aria-label="{% trans "Filter" %}">
+<nav class="ui-tabs mb-6" aria-label="{% trans "Medien" %}">
   <a href="{% url 'media-library' %}" class="ui-tab"{% if not folder %} aria-current="page"{% endif %}>{% trans "All" %}</a>
   {% for f in folders %}
     <a href="{% url 'media-library' %}?ordner={{ f }}" class="ui-tab"{% if folder == f %} aria-current="page"{% endif %}>{{ f }}</a>

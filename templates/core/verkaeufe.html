@@ -31,7 +31,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
 <div class="flex items-center gap-4 mb-3">
 <h1 class="ui-h1 shrink-0">{% if sales_tabs|length == 1 %}{% for t in sales_tabs %}{{ t.label }}{% endfor %}{% else %}{% trans "Verkäufe" %}{% endif %}</h1>
 
-<nav class="ui-tabs items-center flex-nowrap overflow-x-auto md:flex-wrap md:overflow-visible flex-1 py-2 -my-1" aria-label="{% trans "Verkäufe" %}" data-sales-tabs>
+<nav class="ui-tabs items-center flex-nowrap overflow-x-auto md:flex-wrap md:overflow-visible flex-1 py-2 -my-1 px-1 -mx-1" aria-label="{% trans "Verkäufe" %}" data-sales-tabs>
   {% if sales_tabs|length > 1 %}{% for t in sales_tabs %}
     <a href="{% url 'verkaeufe' %}?tab={{ t.kind }}"
        class="ui-tab shrink-0 whitespace-nowrap"{% if t.active %} aria-current="page"{% endif %}>{{ t.label }}{% if t.count %} <span class="ui-tab-count">{{ t.count }}</span>{% endif %}</a>

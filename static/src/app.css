@@ -1648,7 +1648,7 @@ input[type="datetime-local"] {
   --ui-accent-hover: #4338ca;
   --ui-accent-soft: #eef2ff;
   --ui-on-accent: #ffffff;
-  --ui-focus: #818cf8;
+  --ui-focus: #4f46e5;
   --ui-ok: #047857;
   --ui-ok-soft: #ecfdf5;
   --ui-warn: #b45309;
@@ -1705,7 +1705,8 @@ input[type="datetime-local"] {
   .ui-tab[aria-selected="true"], .ui-tab[aria-current="page"] { background: var(--ui-accent); color: var(--ui-on-accent); }
   .ui-tab:focus-visible, .ui-seg > :focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 2px; }
   .ui-tab-count { font-size: .6875rem; padding: 0 .375rem; border-radius: 9999px; background: var(--ui-line); color: var(--ui-fg); }
-  .ui-tab[aria-selected="true"] .ui-tab-count, .ui-tab[aria-current="page"] .ui-tab-count { background: rgba(255, 255, 255, .22); color: inherit; }
+  .ui-tab[aria-selected="true"] .ui-tab-count, .ui-tab[aria-current="page"] .ui-tab-count { background: var(--ui-surface); color: var(--ui-accent); }
+  @media (forced-colors: active) { .ui-tab[aria-selected="true"], .ui-tab[aria-current="page"] { outline: 2px solid CanvasText; outline-offset: -2px; } }
   .ui-seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--ui-surface); border: 1px solid var(--ui-line); border-radius: var(--ui-r-ctl); }
   .ui-seg > * { padding: .375rem .75rem; border-radius: 8px; font-size: .8125rem; font-weight: 600; color: var(--ui-muted); text-decoration: none; }
   .ui-seg > [aria-pressed="true"], .ui-seg > [aria-current="page"] { background: var(--ui-accent-soft); color: var(--ui-accent); }

@@ -23,7 +23,7 @@
 </div>
 {% endif %}
 
-<nav class="ui-tabs mb-4" aria-label="{% trans "Filter" %}">
+<nav class="ui-tabs mb-4" aria-label="{% trans "Bewertungen" %}">
   <a href="?" class="ui-tab"{% if not active_kind and not active_status %} aria-current="page"{% endif %}>{% trans "All" %}</a>
   {% for kind, label in kinds %}
     <a href="?art={{ kind }}" class="ui-tab"{% if active_kind == kind %} aria-current="page"{% endif %}>{{ label }}</a>

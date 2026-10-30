@@ -10,7 +10,7 @@
   ряду действительно есть табы секций.{% endcomment %}
   <div class="flex items-center justify-end gap-3 flex-wrap {% if sections|length > 1 %}border-b border-gray-200 mb-4 justify-between{% else %}mb-1{% endif %}">
     {% if sections|length > 1 %}{# W7c: на Verkäufe секция одна — таб из одной кнопки не рисуем #}
-    <div class="ui-tabs" role="tablist" aria-label="{% trans "Verkäufe" %}">
+    <div class="ui-tabs" role="tablist" aria-label="{% trans "Bereiche" %}">
       {% for s in sections %}
         <button type="button" role="tab" id="board-tab-{{ s.kind }}" aria-controls="board-panel-{{ s.kind }}" data-board-tab="{{ s.kind }}" class="ui-tab board-tab"
           aria-selected="{% if s.kind == active_kind %}true{% else %}false{% endif %}" tabindex="{% if s.kind == active_kind %}0{% else %}-1{% endif %}">
@@ -67,15 +67,17 @@
       });
     });
 
-    // E9: стрелки ←/→ между вкладками (паттерн WAI-ARIA Tabs, ручная активация кликом/Enter).
+    // E9: ←/→ и Home/End между вкладками (WAI-ARIA Tabs, автоматическая активация).
     document.querySelectorAll("[role=tablist]").forEach(function (list) {
       list.addEventListener("keydown", function (e) {
-        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        var keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+        if (keys.indexOf(e.key) < 0) return;
         var tabs = Array.prototype.slice.call(list.querySelectorAll("[data-board-tab]"));
         var i = tabs.indexOf(document.activeElement);
         if (i < 0) return;
         e.preventDefault();
-        var next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+        var next = e.key === "Home" ? tabs[0] : e.key === "End" ? tabs[tabs.length - 1]
+          : tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
         next.focus();
         next.click();
       });

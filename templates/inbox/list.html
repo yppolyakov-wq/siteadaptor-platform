@@ -8,7 +8,7 @@
 {% if avg_reaction %}<p class="text-xs ui-muted mb-2">⌀ {% trans "Reaktionszeit (30 Tage)" %}: {{ avg_reaction }}</p>{% endif %}
 </div>
 
-<nav class="ui-tabs mb-4" aria-label="{% trans "Filter" %}">
+<nav class="ui-tabs mb-4" aria-label="{% trans "Nachrichten" %}">
   <a href="?" class="ui-tab"{% if not active_status %} aria-current="page"{% endif %}>{% trans "All" %}</a>
   {% for value, label in statuses %}
     <a href="?status={{ value }}" class="ui-tab"{% if active_status == value %} aria-current="page"{% endif %}>{{ label }}</a>
