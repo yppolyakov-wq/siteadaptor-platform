@@ -26031,6 +26031,9 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 if kit.stay_promo.get("cents")
                 else None,
                 "max_uses": 0,  # безлимит для демо
+                # Демо-номер с авто-скидкой (LOS/Frühbucher): код должен быть виден в
+                # брони — по правилу «скидки не суммируются» без флага он бы не сработал.
+                "combinable": True,
             },
         )
     if kit.rate_plans and is_active("stays"):  # H1 тарифы (на тенанта)
