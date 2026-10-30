@@ -1,8 +1,10 @@
-/* KA-12 E10.6: общий JS хрома кабинета (был инлайн в tenant/_base_dashboard.html
+/* KA-12 E10.6: общий JS хрома кабинета. Каждый бывший <script> — в своём try/catch: ошибка
+   одного блока не останавливает остальные (как было с отдельными тегами; ревью 661dbfed).
+   Раньше всё это было инлайн в tenant/_base_dashboard.html
    и партиалах core/_*). Один кэшируемый файл; подключается в конце body. */
 // ---- tenant/_base_dashboard.html ----
 // M22b realtime: живой бейдж непрочитанных сообщений в навигации.
-(function () {
+try { (function () {
   // X0: бейджей теперь может быть несколько (якорь Marketing + подпункт
   // «Nachrichten») — один fetch обновляет все.
   var badges = document.querySelectorAll("[data-inbox-badge]");
@@ -22,8 +24,8 @@
   // KA-12 E10: в скрытой вкладке не опрашиваем — догоняем при возврате на неё.
   setInterval(function () { if (!document.hidden) refresh(); }, 20000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
-})();
-(function () {
+})(); } catch (e) { console.error(e); }
+try { (function () {
   var sb = document.getElementById("sidebar");
   var ov = document.getElementById("sidebar-overlay");
   // KA-12 E9.4a (WCAG 2.1.2/2.4.3): мобильное меню ведёт себя как диалог — фокус внутрь
@@ -298,9 +300,9 @@
       else if (e.key === "Escape" && !pal.classList.contains("hidden")) palClose();
     });
   }
-})();
+})(); } catch (e) { console.error(e); }
 // ---- core/_confirm_tap.html ----
-(function () {
+try { (function () {
   document.addEventListener("click", function (e) {
     var btn = e.target.closest && e.target.closest("[data-confirm-tap]");
     if (!btn) return;
@@ -316,9 +318,9 @@
       btn.textContent = btn.dataset.confirmLabel;
     }, 4000);
   }, true);
-})();
+})(); } catch (e) { console.error(e); }
 // ---- core/_danger_confirm.html ----
-(function () {
+try { (function () {
   "use strict";
   if (window.sfDangerConfirm) return;
   var dlg = document.getElementById("danger-confirm");
@@ -374,9 +376,9 @@
       }
     });
   }, true);
-})();
+})(); } catch (e) { console.error(e); }
 // ---- core/_sheet_js.html ----
-(function () {
+try { (function () {
   "use strict";
   if (window.__sheetBound) return;
   window.__sheetBound = true;
@@ -386,9 +388,9 @@
     var details = backdrop.closest("details");
     if (details) details.open = false;
   });
-})();
+})(); } catch (e) { console.error(e); }
 // ---- core/_photo_shrink.html ----
-(function () {
+try { (function () {
   var LIMIT = 4.5 * 1024 * 1024, SIDE = 2560, pending = new WeakMap();
   if (!window.createImageBitmap || !window.DataTransfer) return;
   function shrink(file) {
@@ -433,9 +435,9 @@
       if (e.target.requestSubmit) e.target.requestSubmit(submitter || undefined); else e.target.submit();
     });
   }, true);
-})();
+})(); } catch (e) { console.error(e); }
 // ---- core/_list_kb.html ----
-(function () {
+try { (function () {
   "use strict";
   if (window.__listKbBound) return;
   window.__listKbBound = true;
@@ -512,4 +514,4 @@
   }
   // Списки, подменённые fetch'ем (KAT-5 / box-фрагменты), сообщают об этом событием.
   document.addEventListener("sf:navigated", function () { stackLabels(); });
-})();
+})(); } catch (e) { console.error(e); }

@@ -42,3 +42,10 @@ def test_cabinet_chrome_js_is_one_cached_file():
     assert "<script src=\"{% static 'js/cabinet.js' %}\"></script>" in base
     for gone in ("_confirm_tap", "_sheet_js", "_photo_shrink", "_list_kb"):
         assert not (ROOT / f"templates/core/{gone}.html").exists(), gone
+
+
+def test_cabinet_js_blocks_are_isolated():
+    """Ревью E10.6: бывшие отдельные <script> — каждый в своём try/catch, чтобы ошибка
+    одного блока не гасила остальные (палитру, диалоги, сжатие фото, клавиатуру)."""
+    js = (ROOT / "static/js/cabinet.js").read_text()
+    assert js.count("try { (function () {") == js.count("} catch (e) { console.error(e); }") >= 7
