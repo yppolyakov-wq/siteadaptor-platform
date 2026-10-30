@@ -45,6 +45,8 @@ from .models import (
 from .services import ContactHoldLimit, OutOfStock, ReservationLimitReached, reserve
 
 RL_LIMIT = 5  # попыток (бронь/waitlist на IP+акцию)
+# Прайс-лист каталога — всё меню одной страницей (свой пейджер колонок); потолок от абуза.
+PRICE_LIST_LIMIT = 300
 RL_WINDOW = 600  # за 10 минут
 QR_RL_LIMIT = 60  # QR-вьюх на IP (страница подтверждения рендерит их легитимно)
 TOKEN_TTL = 600
@@ -1746,9 +1748,17 @@ def product_list(request, slug=None):
         # LAY-3c: сколько выводить на странице задаёт владелец («Pro Seite»).
         # Не задал — прежняя формула: кратно числу колонок, иначе каждая страница
         # кончалась бы обрывком ряда.
+        # Фидбэк 2026-10-30 («Mehr anzeigen» в прайс-листе): прайс-лист листает себя
+        # сам (колонки «Seite 1–2 von N»); серверная страница по 24 давала второй пейджер
+        # поверх него, и первая страница меню показывала только последние добавленные
+        # блюда одной категории. Прайс-вид получает всё меню целиком (с потолком).
         limit=(
-            cfg["catalog_layout"].get("page_size")
-            or (20 if cfg["catalog_layout"]["cols"] == 5 else 24)
+            PRICE_LIST_LIMIT
+            if str(cfg["catalog_layout"]["preset"]).startswith("preisliste")
+            else (
+                cfg["catalog_layout"].get("page_size")
+                or (20 if cfg["catalog_layout"]["cols"] == 5 else 24)
+            )
         ),
         cursor=request.GET.get("cursor"),
     )
