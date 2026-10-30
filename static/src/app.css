@@ -1700,13 +1700,13 @@ input[type="datetime-local"] {
   .ui-tone-off { background: var(--ui-off-soft); color: var(--ui-off); }
 
   .ui-tabs { display: flex; flex-wrap: wrap; gap: .25rem; }
-  .ui-tab { display: inline-flex; align-items: center; gap: .375rem; padding: .4375rem .875rem; border-radius: 9999px; font-size: .875rem; font-weight: 600; color: var(--ui-muted); text-decoration: none; }
-  .ui-tab:hover { background: var(--ui-surface); }
-  .ui-tab[aria-selected="true"], .ui-tab[aria-current="page"] { background: var(--ui-accent); color: var(--ui-on-accent); }
+  .ui-tab { display: inline-flex; align-items: center; gap: .375rem; padding: .4375rem .875rem; border-radius: 9999px; font-size: .875rem; font-weight: 600; color: var(--ui-muted); text-decoration: none; cursor: pointer; }
+  .ui-tab:hover { background: var(--ui-accent-soft); color: var(--ui-accent); }
+  .ui-tab[aria-selected="true"], .ui-tab[aria-current="page"], .ui-tab[aria-pressed="true"] { background: var(--ui-accent); color: var(--ui-on-accent); }
   .ui-tab:focus-visible, .ui-seg > :focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 2px; }
   .ui-tab-count { font-size: .6875rem; padding: 0 .375rem; border-radius: 9999px; background: var(--ui-line); color: var(--ui-fg); }
-  .ui-tab[aria-selected="true"] .ui-tab-count, .ui-tab[aria-current="page"] .ui-tab-count { background: var(--ui-surface); color: var(--ui-accent); }
-  @media (forced-colors: active) { .ui-tab[aria-selected="true"], .ui-tab[aria-current="page"] { outline: 2px solid CanvasText; outline-offset: -2px; } }
+  .ui-tab[aria-selected="true"] .ui-tab-count, .ui-tab[aria-current="page"] .ui-tab-count, .ui-tab[aria-pressed="true"] .ui-tab-count { background: var(--ui-surface); color: var(--ui-accent); }
+  @media (forced-colors: active) { .ui-tab[aria-selected="true"], .ui-tab[aria-current="page"], .ui-tab[aria-pressed="true"] { outline: 2px solid CanvasText; outline-offset: -2px; } }
   .ui-seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--ui-surface); border: 1px solid var(--ui-line); border-radius: var(--ui-r-ctl); }
   .ui-seg > * { padding: .375rem .75rem; border-radius: 8px; font-size: .8125rem; font-weight: 600; color: var(--ui-muted); text-decoration: none; }
   .ui-seg > [aria-pressed="true"], .ui-seg > [aria-current="page"] { background: var(--ui-accent-soft); color: var(--ui-accent); }
