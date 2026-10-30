@@ -55,7 +55,7 @@
           </button>
         </form>
       {% elif it.status_label %}
-        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full {% if it.is_visible %}bg-emerald-100 text-emerald-800{% else %}bg-gray-100 text-gray-500{% endif %}">{{ it.status_label }}</span>
+        <span class="ui-badge {% if it.is_visible %}ui-tone-ok{% else %}ui-tone-off{% endif %}">{{ it.status_label }}</span>
       {% endif %}
     </span>
     <span class="w-16 text-left sm:text-right shrink-0">

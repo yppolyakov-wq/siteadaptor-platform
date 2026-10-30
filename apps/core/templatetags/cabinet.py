@@ -225,11 +225,13 @@ def nav_palette(context):
     return {"entries": entries}
 
 
+# E9: стадия → тон детали `.ui-badge` (та же палитра, что `status_tone` по роли:
+# новое — жёлтое, в работе — зелёное, завершено — серое, отмена — красное).
 _STAGE_BADGES = {
-    "intake": "bg-amber-100 text-amber-800",
-    "in_progress": "bg-indigo-100 text-indigo-800",
-    "done": "bg-green-100 text-green-800",
-    "terminal": "bg-gray-100 text-gray-500",
+    "intake": "ui-tone-new",
+    "in_progress": "ui-tone-ok",
+    "done": "ui-tone-done",
+    "terminal": "ui-tone-bad",
 }
 
 
@@ -282,7 +284,7 @@ def stage_badge(stage):
 
     Цвет берём по СТАДИИ (реестр pipeline), а не по литеральному коду статуса —
     иначе кастом-статусы владельца (SM-3) остались бы серыми."""
-    return _STAGE_BADGES.get(stage or "", "bg-gray-100 text-gray-500")
+    return _STAGE_BADGES.get(stage or "", "ui-tone-off")
 
 
 @register.filter

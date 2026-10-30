@@ -11,7 +11,7 @@ detail-панели master-detail. Рендерится СКРЫТЫМ <template
       <p class="text-base font-bold tabular-nums">#{{ tx.reference_code }}</p>
       {% if section.label %}<p class="text-xs text-gray-500">{{ section.label }}</p>{% endif %}
     </div>
-    <span class="text-xs font-medium px-2.5 py-1 rounded-full {{ tx.pipeline_stage|stage_badge }}">{{ tx.status_label }}</span>
+    <span class="ui-badge {{ tx.pipeline_stage|stage_badge }}">{{ tx.status_label }}</span>
   </div>
   {% if tx.has_problem %}
   <p class="text-xs font-medium text-red-600 mb-2">⚠️ {% trans "Problem — Kunde wartet" %}</p>

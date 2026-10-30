@@ -40,7 +40,7 @@
         <span class="font-mono text-lg font-bold">{{ reservation.reference_code }}</span>
         {% comment %}X1: печатался сырой код («pending»/«confirmed»); тег умеет
         reservation и уважает собственные имена статусов владельца (FB-4b).{% endcomment %}
-        <span class="px-2 py-0.5 rounded-full bg-gray-100 text-sm">{% status_label reservation "reservation" %}</span>
+        <span class="ui-badge {% status_tone "reservation" reservation.status %}">{% status_label reservation "reservation" %}</span>
       </div>
       <dl class="mt-4 text-sm space-y-1">
         <div class="flex justify-between"><dt class="text-gray-500">{% trans "Offer" %}</dt><dd class="font-medium text-right">{{ reservation.promotion.title_text }}</dd></div>

@@ -96,7 +96,7 @@
           <p class="text-sm font-medium">{{ o.reference_code }} · {{ o.total }} {{ o.currency }}</p>
           <p class="text-xs ui-muted truncate">{% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
         </div>
-        <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 shrink-0">{{ o.get_status_display }}</span>
+        <span class="ui-badge {% status_tone "order" o.status %} shrink-0">{{ o.get_status_display }}</span>
       </a>
     {% endfor %}
   </div>

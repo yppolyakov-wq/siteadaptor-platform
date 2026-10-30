@@ -115,3 +115,16 @@ def test_every_sidebar_section_has_svg_icon():
     assert not missing, missing
     base = (ROOT / "templates/tenant/_base_dashboard.html").read_text(encoding="utf-8")
     assert "{{ it.icon }}" not in base
+
+
+def test_stage_badge_uses_library_tones():
+    """E9: стадия пайплайна красится той же палитрой, что роль статуса (одна система цветов)."""
+    from apps.core.templatetags.cabinet import stage_badge
+
+    assert stage_badge("intake") == "ui-tone-new"
+    assert stage_badge("in_progress") == "ui-tone-ok"
+    assert stage_badge("done") == "ui-tone-done"
+    assert stage_badge("terminal") == "ui-tone-bad"
+    assert stage_badge("") == "ui-tone-off"
+    menu = (ROOT / "templates/core/_row_status_menu.html").read_text(encoding="utf-8")
+    assert "ui-badge" in menu and "rounded-full" not in menu

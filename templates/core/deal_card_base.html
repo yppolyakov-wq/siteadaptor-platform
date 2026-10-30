@@ -27,7 +27,7 @@
   <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] px-5 py-3 mb-4" data-deal-block="head">
     <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
       <h1 class="ui-h1 tabular-nums">{{ deal.reference_code }}</h1>
-      <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ deal.status_label }}</span>
+      <span class="ui-badge {{ deal.pipeline_stage|stage_badge }}">{{ deal.status_label }}</span>
       {% comment %}DF-5 (владелец 2026-08-26): «вмести в одну строчку дату создания
       с остальными, чтоб сэкономить место» — мета переехала из отдельного абзаца
       сюда; на узком экране переносится вместе с остальными чипами.{% endcomment %}
