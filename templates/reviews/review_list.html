@@ -23,15 +23,15 @@
 </div>
 {% endif %}
 
-<div class="flex flex-wrap gap-2 mb-4 text-sm">
-  <a href="?" class="px-3 py-1.5 rounded-full border {% if not active_kind and not active_status %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "All" %}</a>
+<nav class="ui-tabs mb-4" aria-label="{% trans "Filter" %}">
+  <a href="?" class="ui-tab"{% if not active_kind and not active_status %} aria-current="page"{% endif %}>{% trans "All" %}</a>
   {% for kind, label in kinds %}
-    <a href="?art={{ kind }}" class="px-3 py-1.5 rounded-full border {% if active_kind == kind %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{{ label }}</a>
+    <a href="?art={{ kind }}" class="ui-tab"{% if active_kind == kind %} aria-current="page"{% endif %}>{{ label }}</a>
   {% endfor %}
-  <a href="?status=hidden" class="px-3 py-1.5 rounded-full border {% if active_status == 'hidden' %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Hidden" %}</a>
+  <a href="?status=hidden" class="ui-tab"{% if active_status == 'hidden' %} aria-current="page"{% endif %}>{% trans "Hidden" %}</a>
   {# W11-3: отзывы о бизнесе с портала /entdecken — владелец их раньше не видел #}
-  <a href="?typ=betrieb" class="px-3 py-1.5 rounded-full border {% if betrieb %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Über den Betrieb" %}</a>
-</div>
+  <a href="?typ=betrieb" class="ui-tab"{% if betrieb %} aria-current="page"{% endif %}>{% trans "Über den Betrieb" %}</a>
+</nav>
 
 {% if betrieb %}
 <p class="text-xs ui-muted mb-3">{% trans "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal." %}</p>

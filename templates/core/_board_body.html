@@ -10,11 +10,11 @@
   ряду действительно есть табы секций.{% endcomment %}
   <div class="flex items-center justify-end gap-3 flex-wrap {% if sections|length > 1 %}border-b border-gray-200 mb-4 justify-between{% else %}mb-1{% endif %}">
     {% if sections|length > 1 %}{# W7c: на Verkäufe секция одна — таб из одной кнопки не рисуем #}
-    <div class="flex gap-1 flex-wrap" role="tablist">
+    <div class="ui-tabs" role="tablist" aria-label="{% trans "Verkäufe" %}">
       {% for s in sections %}
-        <button type="button" data-board-tab="{{ s.kind }}"
-          class="board-tab px-3 py-2 text-sm font-medium border-b-2 -mb-px {% if s.kind == active_kind %}border-indigo-600 text-indigo-700{% else %}border-transparent text-gray-500 hover:text-gray-700{% endif %}">
-          {{ s.label }} <span class="text-xs text-gray-400">({{ s.total }})</span>
+        <button type="button" role="tab" id="board-tab-{{ s.kind }}" aria-controls="board-panel-{{ s.kind }}" data-board-tab="{{ s.kind }}" class="ui-tab board-tab"
+          aria-selected="{% if s.kind == active_kind %}true{% else %}false{% endif %}" tabindex="{% if s.kind == active_kind %}0{% else %}-1{% endif %}">
+          {{ s.label }} <span class="ui-tab-count">{{ s.total }}</span>
         </button>
       {% endfor %}
     </div>
@@ -26,7 +26,7 @@
   </div>
 
   {% for s in sections %}
-    <div class="board-panel" data-board-panel="{{ s.kind }}" {% if s.kind != active_kind %}hidden{% endif %}>
+    <div class="board-panel" data-board-panel="{{ s.kind }}" id="board-panel-{{ s.kind }}"{% if sections|length > 1 %} role="tabpanel" aria-labelledby="board-tab-{{ s.kind }}"{% endif %} {% if s.kind != active_kind %}hidden{% endif %}>
       {% comment %}VF-8 (фидбэк владельца 2026-08-24 «если заявок нет — нужно
       писать, что их нет»): пустая доска рисовала голые колонки без единого
       слова. msgid реюзится из Liste (переведён ×5); вид сделки называет
@@ -58,14 +58,26 @@
         var kind = tab.getAttribute("data-board-tab");
         document.querySelectorAll("[data-board-tab]").forEach(function (t) {
           var on = t.getAttribute("data-board-tab") === kind;
-          t.classList.toggle("border-indigo-600", on);
-          t.classList.toggle("text-indigo-700", on);
-          t.classList.toggle("border-transparent", !on);
-          t.classList.toggle("text-gray-500", !on);
+          t.setAttribute("aria-selected", on ? "true" : "false");
+          t.tabIndex = on ? 0 : -1;
         });
         document.querySelectorAll("[data-board-panel]").forEach(function (p) {
           p.hidden = p.getAttribute("data-board-panel") !== kind;
         });
+      });
+    });
+
+    // E9: стрелки ←/→ между вкладками (паттерн WAI-ARIA Tabs, ручная активация кликом/Enter).
+    document.querySelectorAll("[role=tablist]").forEach(function (list) {
+      list.addEventListener("keydown", function (e) {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        var tabs = Array.prototype.slice.call(list.querySelectorAll("[data-board-tab]"));
+        var i = tabs.indexOf(document.activeElement);
+        if (i < 0) return;
+        e.preventDefault();
+        var next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+        next.focus();
+        next.click();
       });
     });
 

@@ -17,9 +17,9 @@
 {% comment %}T-8.30e: касса на телефоне (Mini App) — чипы статуса и карточки с крупными
 кнопками; полный кабинет ниже — прежняя таблица.{% endcomment %}
 <div class="max-w-lg mx-auto space-y-3">
-  <nav class="flex flex-wrap gap-2 text-sm" data-lite-res-chips>
+  <nav class="ui-tabs" aria-label="{% trans "Filter" %}" data-lite-res-chips>
     {% for code, label in lite_chips %}
-      <a href="?status={{ code }}{% if selected_promotion %}&amp;promotion={{ selected_promotion }}{% endif %}" class="px-3 py-1.5 rounded-full {% if status == code %}bg-indigo-600 text-white{% else %}bg-white shadow-sm text-gray-700{% endif %}">{{ label }}</a>
+      <a href="?status={{ code }}{% if selected_promotion %}&amp;promotion={{ selected_promotion }}{% endif %}" class="ui-tab"{% if status == code %} aria-current="page"{% endif %}>{{ label }}</a>
     {% endfor %}
   </nav>
   <a href="{% url 'promotions:redeem' %}" class="ui-card p-0 flex items-center justify-center gap-2 h-12 text-sm font-semibold text-gray-800">📷 {% trans "Code scannen" %}</a>

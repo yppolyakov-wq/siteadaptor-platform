@@ -31,16 +31,16 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
 <div class="flex items-center gap-4 mb-3">
 <h1 class="ui-h1 shrink-0">{% if sales_tabs|length == 1 %}{% for t in sales_tabs %}{{ t.label }}{% endfor %}{% else %}{% trans "Verkäufe" %}{% endif %}</h1>
 
-<div class="flex items-center gap-2 flex-nowrap overflow-x-auto md:flex-wrap md:overflow-visible flex-1 py-2 -my-1" role="tablist" data-sales-tabs>
+<nav class="ui-tabs items-center flex-nowrap overflow-x-auto md:flex-wrap md:overflow-visible flex-1 py-2 -my-1" aria-label="{% trans "Verkäufe" %}" data-sales-tabs>
   {% if sales_tabs|length > 1 %}{% for t in sales_tabs %}
     <a href="{% url 'verkaeufe' %}?tab={{ t.kind }}"
-       class="shrink-0 px-3.5 py-2 rounded-xl text-sm font-medium whitespace-nowrap {% if t.active %}bg-indigo-600 text-white shadow-sm{% else %}bg-white text-gray-600 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50{% endif %}">{{ t.label }}{% if t.count %} <span class="text-[11px] {% if t.active %}bg-white text-indigo-700 rounded-full px-1.5 py-px font-semibold{% else %}text-gray-400{% endif %}">{{ t.count }}</span>{% endif %}</a>
+       class="ui-tab shrink-0 whitespace-nowrap"{% if t.active %} aria-current="page"{% endif %}>{{ t.label }}{% if t.count %} <span class="ui-tab-count">{{ t.count }}</span>{% endif %}</a>
   {% endfor %}{% endif %}
   {% if customers_tab %}
     <a href="{% url 'verkaeufe' %}?tab={{ customers_tab.kind }}" data-kunden-tab
-       class="ml-auto shrink-0 px-3.5 py-2 rounded-xl text-sm font-medium whitespace-nowrap {% if customers_tab.active %}bg-indigo-600 text-white shadow-sm{% else %}bg-white text-gray-600 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50{% endif %}">👥 {{ customers_tab.label }}</a>
+       class="ui-tab ml-auto shrink-0 whitespace-nowrap"{% if customers_tab.active %} aria-current="page"{% endif %}>👥 {{ customers_tab.label }}</a>
   {% endif %}
-</div>
+</nav>
 </div>
 {% else %}
 <h1 class="ui-h1 mb-3">{% for t in sales_tabs %}{{ t.label }}{% empty %}{% trans "Verkäufe" %}{% endfor %}</h1>
