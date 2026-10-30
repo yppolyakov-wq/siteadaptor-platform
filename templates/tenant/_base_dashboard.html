@@ -10,7 +10,7 @@
 {% include "tenant/_icons.html" %}
 {% comment %}R1 (редизайн B, 2026-08-24): фон кабинета — серый холст стиля
 «Karten & Luft»; карточки контента читаются тенями, не бороздами.{% endcomment %}
-<div class="min-h-screen flex bg-[#F2F4F7]">
+<div class="min-h-screen flex ui-canvas">
   {# Фидбэк 2026-07-28: сворачиваемый сайдбар (desktop) — уезжает влево, состояние в localStorage. #}
   {% comment %}SH-17 (фидбэк владельца 2026-08-20 «при сворачивании меню сделать
   пиктограммы видимыми»): свёрнутый сайдбар больше не исчезает — остаётся узкая
@@ -131,7 +131,7 @@
     {% comment %}T-8.30: в Telegram Mini App шапку кабинета прячем — заголовок лёгких
     экранов живёт в теле страницы, закрытие — кнопкой Telegram.{% endcomment %}
     {% block lite_chrome %}{% if not tg_lite %}
-    <header class="h-14 bg-[#F2F4F7]/95 backdrop-blur flex items-center justify-between px-4 md:px-6 sticky top-0 z-10">
+    <header class="h-14 ui-topbar backdrop-blur flex items-center justify-between px-4 md:px-6 sticky top-0 z-10">
       <div class="flex items-center gap-3 min-w-0">
         <button id="sidebar-open" class="md:hidden text-2xl leading-none text-gray-600" aria-label="{% trans 'Open menu' %}">☰</button>
         <span class="font-semibold truncate md:hidden">{% block dash_heading %}{% endblock %}</span>

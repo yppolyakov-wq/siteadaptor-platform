@@ -21,6 +21,10 @@ module.exports = {
     // bar_color) — без safelist purge их вырезал → плашки были без фона.
     "bg-green-200", "text-green-900", "bg-amber-200", "text-amber-900",
     "bg-indigo-200", "text-indigo-900", "bg-gray-200", "text-gray-600",
+    // KA-12 E9.1: библиотека деталей кабинета (@layer components) — экраны
+    // переезжают на неё батчами; без safelist purge вырезал бы ещё не
+    // использованные классы, и первый перевод экрана молча остался бы без стиля.
+    { pattern: /^ui-/ },
   ],
   theme: { extend: {} },
   plugins: [],

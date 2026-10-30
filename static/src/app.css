@@ -1632,3 +1632,92 @@ input[type="datetime-local"] {
   color: #fff !important;
   border-color: #dc2626 !important;
 }
+
+/* ── KA-12 E9.1: библиотека деталей кабинета (стиль B, макет «Kabinett-Bausteine»).
+   Префикс ui-/--ui-: файл общий с витриной/порталом/Mini App — без него детали
+   кабинета перекрасили бы витрину тенанта. Детали в @layer components: утилита на
+   элементе остаётся сильнее. План — docs/ka-12-w5-e9-1-ui-library-plan-2026-10-30.md. */
+:root {
+  --ui-canvas: #F2F4F7;
+  --ui-surface: #ffffff;
+  --ui-fg: #111827;
+  --ui-muted: #4b5563;
+  --ui-subtle: #6b7280;
+  --ui-line: #e5e7eb;
+  --ui-accent: #4f46e5;
+  --ui-accent-hover: #4338ca;
+  --ui-accent-soft: #eef2ff;
+  --ui-on-accent: #ffffff;
+  --ui-focus: #818cf8;
+  --ui-ok: #047857;
+  --ui-ok-soft: #ecfdf5;
+  --ui-warn: #b45309;
+  --ui-warn-soft: #fffbeb;
+  --ui-danger: #e11d48;
+  --ui-danger-soft: #fff1f2;
+  --ui-info: #0369a1;
+  --ui-info-soft: #f0f9ff;
+  --ui-off: #4b5563;
+  --ui-off-soft: #f3f4f6;
+  --ui-r-card: 16px;
+  --ui-r-ctl: 10px;
+  --ui-shadow-card: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .06);
+}
+
+@layer components {
+  .ui-canvas { background: var(--ui-canvas); }
+  .ui-topbar { background: var(--ui-canvas); background: color-mix(in srgb, var(--ui-canvas) 95%, transparent); }
+
+  .ui-h1 { font-size: 1.375rem; line-height: 1.25; font-weight: 700; color: var(--ui-fg); }
+  .ui-h2 { font-size: 1rem; line-height: 1.4; font-weight: 600; color: var(--ui-fg); }
+  .ui-h3 { font-size: .875rem; line-height: 1.4; font-weight: 600; color: var(--ui-fg); }
+  .ui-muted { color: var(--ui-muted); }
+
+  .ui-card { background: var(--ui-surface); border-radius: var(--ui-r-card); box-shadow: var(--ui-shadow-card); padding: 1rem; }
+  .ui-card-row { background: var(--ui-surface); border-radius: 14px; box-shadow: var(--ui-shadow-card); padding: .75rem .875rem; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+
+  .ui-btn { display: inline-flex; align-items: center; justify-content: center; gap: .375rem; min-height: 40px; padding: .5625rem .875rem; border: 1px solid transparent; border-radius: var(--ui-r-ctl); font-size: .875rem; font-weight: 600; line-height: 1.2; text-decoration: none; cursor: pointer; transition: background-color .12s, border-color .12s; }
+  .ui-btn:focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 2px; }
+  .ui-btn[disabled], .ui-btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+  .ui-btn-primary { background: var(--ui-accent); color: var(--ui-on-accent); }
+  .ui-btn-primary:hover { background: var(--ui-accent-hover); }
+  .ui-btn-secondary { background: var(--ui-surface); color: var(--ui-fg); border-color: var(--ui-line); }
+  .ui-btn-secondary:hover { border-color: var(--ui-subtle); }
+  .ui-btn-ghost { background: transparent; color: var(--ui-accent); }
+  .ui-btn-ghost:hover { background: var(--ui-accent-soft); }
+  .ui-btn-danger { background: var(--ui-danger); color: #ffffff; }
+  .ui-btn-danger-outline { background: var(--ui-surface); color: var(--ui-danger); border-color: currentColor; }
+  .ui-btn-sm { min-height: 32px; padding: .375rem .625rem; font-size: .8125rem; }
+  .ui-btn-lg { min-height: 48px; padding: .75rem 1.125rem; font-size: .9375rem; }
+
+  .ui-badge { display: inline-flex; align-items: center; gap: .3125rem; padding: .1875rem .5625rem; border-radius: 9999px; font-size: .75rem; font-weight: 600; line-height: 1.3; white-space: nowrap; }
+  .ui-badge::before { content: ""; width: 6px; height: 6px; border-radius: 9999px; background: currentColor; }
+  .ui-tone-new { background: var(--ui-warn-soft); color: var(--ui-warn); }
+  .ui-tone-ok { background: var(--ui-ok-soft); color: var(--ui-ok); }
+  .ui-tone-run { background: var(--ui-info-soft); color: var(--ui-info); }
+  .ui-tone-done { background: var(--ui-off-soft); color: var(--ui-off); }
+  .ui-tone-bad { background: var(--ui-danger-soft); color: var(--ui-danger); }
+  .ui-tone-off { background: var(--ui-off-soft); color: var(--ui-off); }
+
+  .ui-tabs { display: flex; flex-wrap: wrap; gap: .25rem; }
+  .ui-tab { display: inline-flex; align-items: center; gap: .375rem; padding: .4375rem .875rem; border-radius: 9999px; font-size: .875rem; font-weight: 600; color: var(--ui-muted); text-decoration: none; }
+  .ui-tab:hover { background: var(--ui-surface); }
+  .ui-tab[aria-selected="true"], .ui-tab[aria-current="page"] { background: var(--ui-accent); color: var(--ui-on-accent); }
+  .ui-tab:focus-visible, .ui-seg > :focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 2px; }
+  .ui-tab-count { font-size: .6875rem; padding: 0 .375rem; border-radius: 9999px; background: var(--ui-line); color: var(--ui-fg); }
+  .ui-tab[aria-selected="true"] .ui-tab-count, .ui-tab[aria-current="page"] .ui-tab-count { background: rgba(255, 255, 255, .22); color: inherit; }
+  .ui-seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--ui-surface); border: 1px solid var(--ui-line); border-radius: var(--ui-r-ctl); }
+  .ui-seg > * { padding: .375rem .75rem; border-radius: 8px; font-size: .8125rem; font-weight: 600; color: var(--ui-muted); text-decoration: none; }
+  .ui-seg > [aria-pressed="true"], .ui-seg > [aria-current="page"] { background: var(--ui-accent-soft); color: var(--ui-accent); }
+
+  .ui-field { display: flex; flex-direction: column; gap: .3125rem; min-width: 0; }
+  .ui-label { font-size: .875rem; font-weight: 600; color: var(--ui-fg); }
+  .ui-input { width: 100%; min-height: 44px; padding: .5625rem .75rem; font-size: 16px; color: var(--ui-fg); background: var(--ui-surface); border: 1px solid var(--ui-line); border-radius: var(--ui-r-ctl); }
+  .ui-input:focus { outline: none; border-color: var(--ui-accent); box-shadow: 0 0 0 3px var(--ui-accent-soft); }
+  .ui-input[aria-invalid="true"] { border-color: var(--ui-danger); }
+  .ui-help { font-size: .8125rem; color: var(--ui-muted); }
+  .ui-field-error { font-size: .8125rem; font-weight: 600; color: var(--ui-danger); }
+
+  .ui-empty { display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 1.75rem 1rem; text-align: center; }
+  .ui-empty > svg { width: 40px; height: 40px; color: var(--ui-subtle); }
+}

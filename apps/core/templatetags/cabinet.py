@@ -1,10 +1,13 @@
 """Шаблонные теги кабинета (AB1 язык задач + анти-Битрикс v2 хаб-табы)."""
 
+import logging
+
 from django import template
 
 from apps.core import modules, nav_registry, packages
 
 register = template.Library()
+logger = logging.getLogger(__name__)
 
 
 @register.filter
@@ -20,9 +23,52 @@ def status_label(context, obj, kind="order"):
     """FB-4a: имя статуса в кабинете — своё имя владельца (site_config["status_labels"])
     или дефолт. FB-3 Вариант B Phase 6: для КАСТОМ-статуса дефолт = его label (иначе
     get_status_display вернул бы код). FSM/письма/витрину не трогает."""
+    return _status_label(getattr(context.get("request"), "tenant", None), obj, kind)
+
+
+# KA-12 E9.1: тон бейджа = РОЛЬ статуса (решение владельца по макету «Kabinett-Bausteine»):
+# «Bestätigt» одного цвета у записи, номера и заказа; кастом-статус — тон своей роли.
+# Тон `run` (ui-tone-run) ролям не назначается — его ставят экраны напрямую (info-плашки).
+ROLE_TONES = {"intake": "new", "active": "ok", "done": "done", "cancelled": "bad"}
+
+
+def tone_for(kind, status, tenant=None) -> str:
+    """Тон бейджа (kind, status); неизвестный kind/код — нейтральный `off`, без исключения."""
     from apps.core import status_registry
 
+    try:
+        d = status_registry.resolve(kind, status, tenant)
+    except (AttributeError, TypeError):
+        # Кривой status_defs (не-dict запись) или нехэшируемый код — бейдж нейтральный,
+        # страница не падает; след в логе, чтобы не прятать настоящий баг.
+        logger.debug("status tone fallback for %r/%r", kind, status, exc_info=True)
+        d = None
+    return ROLE_TONES.get(getattr(d, "role", None), "off")
+
+
+@register.simple_tag(takes_context=True)
+def status_tone(context, kind, status):
+    """`{% status_tone "booking" b.status %}` → «ui-tone-ok» (класс для своей разметки)."""
     tenant_obj = getattr(context.get("request"), "tenant", None)
+    return f"ui-tone-{tone_for(kind, status, tenant_obj)}"
+
+
+@register.simple_tag(takes_context=True)
+def status_badge(context, obj, kind="order"):
+    """`{% status_badge b "booking" %}` → готовый бейдж: тон по роли + подпись владельца."""
+    from django.utils.html import format_html
+
+    tenant_obj = getattr(context.get("request"), "tenant", None)
+    return format_html(
+        '<span class="ui-badge ui-tone-{}">{}</span>',
+        tone_for(kind, obj.status, tenant_obj),
+        _status_label(tenant_obj, obj, kind),
+    )
+
+
+def _status_label(tenant_obj, obj, kind):
+    from apps.core import status_registry
+
     d = status_registry.resolve(kind, obj.status, tenant_obj)
     if d is not None and not d.builtin and d.label:
         default = d.label
