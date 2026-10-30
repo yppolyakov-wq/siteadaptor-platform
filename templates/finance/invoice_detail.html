@@ -73,7 +73,7 @@
     <form method="post" class="flex flex-wrap gap-2">
       {% csrf_token %}
       {% if invoice.is_editable %}
-        <button name="action" value="issue" class="text-sm font-medium rounded-lg px-4 py-2 bg-green-600 text-white hover:bg-green-700">{% trans "Rechnung stellen" %}</button>
+        <button name="action" value="issue" class="ui-btn ui-btn-primary">{% trans "Rechnung stellen" %}</button>
         <button name="action" value="delete" class="text-sm font-medium rounded-lg px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50">{% trans "Entwurf löschen" %}</button>
       {% endif %}
       {% if "paid" in allowed %}<button name="action" value="paid" class="ui-btn ui-btn-primary">{% trans "Als bezahlt markieren" %}</button>{% endif %}

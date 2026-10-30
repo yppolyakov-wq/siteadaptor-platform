@@ -42,7 +42,7 @@
   {% csrf_token %}
   <span class="text-sm {% if event.is_published %}text-green-600{% else %}text-gray-400{% endif %}">{{ event.get_status_display }}</span>
   {% if event.status == 'draft' %}
-    <button name="target" value="published" class="text-sm bg-green-600 text-white rounded-lg px-3 py-1.5 hover:bg-green-700">{% trans "Publish" %}</button>
+    <button name="target" value="published" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Publish" %}</button>
   {% elif event.status == 'published' %}
     <button name="target" value="draft" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5">{% trans "Unpublish" %}</button>
     <input type="hidden" name="confirm_cancel" value="">
