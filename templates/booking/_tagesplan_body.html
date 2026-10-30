@@ -98,8 +98,8 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   </div>{% endif %}
   <div class="grid sm:grid-cols-3 gap-4">
     <input name="name" type="text" placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input autocomplete="off" name="phone" type="tel" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input autocomplete="off" name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
   </div>
   <div class="max-w-xs">
     <label for="neu-party" class="block text-sm font-medium mb-1">{% trans "Personen" %}</label>

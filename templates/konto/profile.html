@@ -21,7 +21,7 @@
   </div>
   <div>
     <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
-    <input id="id_phone" name="phone" value="{{ customer.phone }}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+    <input autocomplete="tel" type="tel" id="id_phone" name="phone" value="{{ customer.phone }}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
   </div>
   {# PMS-B2: опциональный ДР — питает Geburtstagsgruß (только при opt-in). #}
   <div>

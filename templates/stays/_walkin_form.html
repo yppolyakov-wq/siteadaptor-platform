@@ -63,8 +63,8 @@
     <input name="kinder" type="number" min="0" value="0" aria-label="{% trans 'Children' %}" placeholder="{% trans 'Children' %}" class="rounded-lg border border-gray-300 px-3 py-2">
   </div>
   <div class="grid sm:grid-cols-2 gap-4">
-    <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input autocomplete="off" name="phone" type="tel" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input autocomplete="off" name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
   </div>
   {% if rate_plans %}
   <div>

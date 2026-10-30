@@ -22,9 +22,9 @@ CARD-4 (владелец 2026-08-26): «убери кнопку Kundendaten bear
            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
     {% if not hide_contacts %}
     {% comment %}E6.7g: без права на контакты поля не показываются, сервер их сохраняет.{% endcomment %}
-    <input type="email" name="email" value="{{ customer.email }}" placeholder="{% trans 'E-Mail' %}"
+    <input autocomplete="off" type="email" name="email" value="{{ customer.email }}" placeholder="{% trans 'E-Mail' %}"
            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    <input type="text" name="phone" value="{{ customer.phone }}" placeholder="{% trans 'Telefon' %}"
+    <input autocomplete="off" type="tel" name="phone" value="{{ customer.phone }}" placeholder="{% trans 'Telefon' %}"
            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
     {% endif %}
     <div class="flex items-center justify-end gap-2 pt-1">

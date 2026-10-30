@@ -30,7 +30,7 @@
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %} *</label>
-          <input id="id_email" name="email" type="email" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <input autocomplete="email" id="id_email" name="email" type="email" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
         </div>
         <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent);">{% trans "Subscribe" %}</button>
         <p class="text-xs text-gray-400">{% trans "By subscribing you agree to receive marketing emails." %}</p>

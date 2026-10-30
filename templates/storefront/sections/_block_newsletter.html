@@ -11,7 +11,7 @@
       <form method="post" action="{% url 'storefront-newsletter' %}" class="flex flex-col sm:flex-row gap-2 justify-center">
         {% csrf_token %}
         <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
-        <input type="email" name="email" required placeholder="{% trans 'Your email' %}" class="w-full sm:w-72 rounded-lg border border-gray-300 px-3 py-2">
+        <input autocomplete="email" type="email" name="email" required placeholder="{% trans 'Your email' %}" class="w-full sm:w-72 rounded-lg border border-gray-300 px-3 py-2">
         <button type="submit" class="text-white rounded-lg px-4 py-2 font-medium" style="background: var(--accent, #4f46e5);">{% if block.button_label %}{{ block.button_label }}{% else %}{% trans "Subscribe" %}{% endif %}</button>
       </form>
       <p class="text-[11px] text-gray-400 mt-2">{% trans "By subscribing you agree to our" %} <a href="{% url 'storefront-privacy' %}" class="underline">{% trans "privacy policy" %}</a>.</p>

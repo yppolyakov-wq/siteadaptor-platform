@@ -127,7 +127,7 @@
         </select>
         {% endif %}
         <input type="text" name="name" required placeholder="{% trans 'Name' %}" aria-label="{% trans 'Name' %}" class="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        <input type="email" name="email" required placeholder="ihre@mail.de" aria-label="E-Mail" class="flex-1 min-w-[160px] rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <input autocomplete="email" type="email" name="email" required placeholder="ihre@mail.de" aria-label="E-Mail" class="flex-1 min-w-[160px] rounded-lg border border-gray-300 px-3 py-2 text-sm">
         <button type="submit" class="rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Reservieren" %}</button>
         {% include "storefront/_privacy_note.html" %}
       </form>
@@ -146,7 +146,7 @@
           {% for v in waitlist_variants %}<option value="{{ v.pk }}">{{ v.label_localized }}</option>{% endfor %}
         </select>
         {% endif %}
-        <input type="email" name="email" required placeholder="ihre@mail.de" aria-label="E-Mail" class="flex-1 min-w-[180px] rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <input autocomplete="email" type="email" name="email" required placeholder="ihre@mail.de" aria-label="E-Mail" class="flex-1 min-w-[180px] rounded-lg border border-gray-300 px-3 py-2 text-sm">
         <button type="submit" class="rounded-lg px-4 py-2 text-sm font-medium text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Benachrichtigen" %}</button>
         {% include "storefront/_privacy_note.html" %}
       </form>

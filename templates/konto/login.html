@@ -17,7 +17,7 @@
   <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
     {% csrf_token %}
     <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
-    <input name="email" type="email" required placeholder="{% trans 'Your e-mail' %}"
+    <input autocomplete="email" name="email" type="email" required placeholder="{% trans 'Your e-mail' %}"
            class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
     <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Send login link" %}</button>
   </form>

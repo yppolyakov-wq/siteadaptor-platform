@@ -48,7 +48,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium mb-1" for="of-email">{% trans "E-Mail" %}</label>
-            <input id="of-email" name="email" type="email" required value="{{ offer.customer_email }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+            <input autocomplete="email" id="of-email" name="email" type="email" required value="{{ offer.customer_email }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
           </div>
         </div>
         {% comment %}SH-24: выбор «Abholung | Lieferung» — тот же партиал, что в

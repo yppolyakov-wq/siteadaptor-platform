@@ -108,11 +108,11 @@ anfrage_cfg (site_config["anfrage"]), jobs_vehicle, has_service_area; POST
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
-      <input id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input autocomplete="email" id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
-      <input id="id_phone" name="phone" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input autocomplete="tel" id="id_phone" name="phone" type="tel" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
   </div>
   <div>

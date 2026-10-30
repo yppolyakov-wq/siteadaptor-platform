@@ -86,8 +86,8 @@
         <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="grid sm:grid-cols-2 gap-3">
           <input name="name" placeholder="{% trans 'Name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-          <input name="email" type="email" required placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-          <input name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          <input autocomplete="email" name="email" type="email" required placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+          <input autocomplete="tel" type="tel" name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
           <label class="block text-sm text-gray-600">{% trans "Seats" %}
             <input name="quantity" type="number" min="1" value="1" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
           </label>
@@ -154,8 +154,8 @@
           <div data-rv1-summary hidden class="rounded-lg bg-gray-50 border border-gray-100 px-3 py-2 text-sm text-gray-600"></div>
           <div class="grid sm:grid-cols-2 gap-3">
             <input name="name" required placeholder="{% trans 'Name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-            <input name="email" type="email" placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
-            <input name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5 sm:col-span-2">
+            <input autocomplete="email" name="email" type="email" placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+            <input autocomplete="tel" type="tel" name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5 sm:col-span-2">
           </div>
           {% comment %}I18N-12: показываем вопрос на локали гостя, но имя поля
           остаётся индексным (q0, q1…) — ключом ответа во вьюхе служит БАЗОВЫЙ

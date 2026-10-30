@@ -34,7 +34,7 @@ PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключе
     <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Name" %}</span>
       <input type="text" name="name" required class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
     <label class="block grow basis-40"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Email" %}</span>
-      <input type="email" name="email" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+      <input autocomplete="email" type="email" name="email" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
     <button type="submit" class="rounded-lg bg-white px-5 py-2 font-semibold" style="color: var(--accent, #4f46e5);">{% trans "Request a quote" %}</button>
     <p class="basis-full text-[11px] text-white/70 m-0">{% trans "Unverbindlich — wir melden uns mit einem Angebot." %}</p>
     {% include "storefront/_privacy_note.html" with privacy_cls="text-white/70 m-0" %}

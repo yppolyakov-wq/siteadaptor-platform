@@ -41,7 +41,7 @@ DL-16.6: вынесено партиалом — тело детали (раск
       <input type="hidden" name="form_token" value="{{ review_form_token }}">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <input name="author_name" type="text" required maxlength="120" placeholder="{% trans 'Your name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-        <input name="email" type="email" required placeholder="{% trans 'E-mail from your order' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+        <input autocomplete="email" name="email" type="email" required placeholder="{% trans 'E-mail from your order' %}" class="rounded-lg border border-gray-300 px-3 py-2">
       </div>
       <div>
         <label class="block text-sm mb-1" for="id_review_rating">{% trans "Rating" %}</label>

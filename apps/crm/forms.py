@@ -33,6 +33,9 @@ class CustomerForm(forms.ModelForm):
         }
         widgets = {
             "note": forms.Textarea(attrs={"rows": 3}),
+            # E9.5: телефонная клавиатура; автозаполнение выкл — владелец вводит ЧУЖИЕ данные.
+            "phone": forms.TextInput(attrs={"type": "tel", "autocomplete": "off"}),
+            "email": forms.EmailInput(attrs={"autocomplete": "off"}),
             # PMS-B2: питает «Geburtstagsgruß»-кампанию.
             "birthday": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }
@@ -106,4 +109,8 @@ class CompanyForm(forms.ModelForm):
             "vat_id": _("Shown on invoices for this company."),
             "discount_percent": _("Groundwork for corporate rates (v2) — shown on the card."),
         }
-        widgets = {"note": forms.Textarea(attrs={"rows": 3})}
+        widgets = {
+            "note": forms.Textarea(attrs={"rows": 3}),
+            "phone": forms.TextInput(attrs={"type": "tel", "autocomplete": "off"}),
+            "email": forms.EmailInput(attrs={"autocomplete": "off"}),
+        }

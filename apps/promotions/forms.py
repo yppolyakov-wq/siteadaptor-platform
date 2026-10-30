@@ -656,8 +656,15 @@ class PublicReservationForm(forms.Form):
     """
 
     name = forms.CharField(label=_("Your name"), max_length=200)
-    email = forms.EmailField(label=_("Email"), required=False)
-    phone = forms.CharField(label=_("Phone"), max_length=40, required=False)
+    email = forms.EmailField(
+        label=_("Email"), required=False, widget=forms.EmailInput(attrs={"autocomplete": "email"})
+    )
+    phone = forms.CharField(
+        label=_("Phone"),
+        max_length=40,
+        required=False,
+        widget=forms.TextInput(attrs={"type": "tel", "autocomplete": "tel"}),
+    )
     quantity = forms.IntegerField(label=_("Quantity"), min_value=1, initial=1)
     website = forms.CharField(required=False, widget=forms.HiddenInput)
     form_token = forms.CharField(required=False, widget=forms.HiddenInput)

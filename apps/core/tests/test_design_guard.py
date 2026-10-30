@@ -37,3 +37,20 @@ def test_no_green_action_buttons():
         if GREEN_ACTION.search(p.read_text(encoding="utf-8"))
     ]
     assert not bad, bad
+
+
+ALL = sorted(ROOT.glob("**/*.html"))
+
+
+def test_phone_and_email_inputs_open_the_right_keyboard():
+    """E9.5: поле телефона — `type="tel"`, e-mail — `type="email"` (клавиатура на телефоне)."""
+    bad = []
+    for p in ALL:
+        src = p.read_text(encoding="utf-8")
+        for tag in re.findall(r'<input\b[^>]*\bname="phone"[^>]*>', src):
+            if 'type="tel"' not in tag and 'type="hidden"' not in tag:
+                bad.append(f"{p.relative_to(ROOT)}: phone")
+        for tag in re.findall(r'<input\b[^>]*\bname="email"[^>]*>', src):
+            if 'type="email"' not in tag and 'type="hidden"' not in tag:
+                bad.append(f"{p.relative_to(ROOT)}: email")
+    assert not bad, bad

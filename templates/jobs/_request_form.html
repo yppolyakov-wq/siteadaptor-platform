@@ -8,8 +8,8 @@ KA-12 A-2 (HW-2/G-4): те же поля, что у /anfrage/ — PLZ, фото,
   <input name="title" type="text" required placeholder="{% trans 'Kurze Bezeichnung' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   <div class="grid sm:grid-cols-3 gap-4">
     <input name="name" type="text" required placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input autocomplete="off" name="phone" type="tel" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input autocomplete="off" name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
   </div>
   <div class="grid sm:grid-cols-3 gap-4">
     <input name="site_address" type="text" placeholder="{% trans 'Job address (optional)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
