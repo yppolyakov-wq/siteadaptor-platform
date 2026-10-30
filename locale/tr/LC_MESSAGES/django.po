@@ -31299,3 +31299,12 @@ msgstr "Ana menü"
 
 msgid "Gefunden: {n}"
 msgstr "Bulunan: {n}"
+
+msgid "Combinable with other discounts"
+msgstr "Diğer indirimlerle birleştirilebilir"
+
+msgid "Off: the code only reduces items that are not already discounted (promotions, quantity deals, automatic room discounts)."
+msgstr "Kapalı: kod yalnızca henüz indirimli olmayan ürünleri düşürür (kampanyalar, adet indirimleri, otomatik oda indirimleri)."
+
+msgid "This code does not apply to items that are already discounted."
+msgstr "Bu kod zaten indirimli ürünlerde geçerli değildir."

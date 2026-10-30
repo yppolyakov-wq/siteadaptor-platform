@@ -69,7 +69,7 @@ class PromoInvalid(Exception):
     """B1.2: промокод/Gutschein задан, но не применим (нет/исчерпан/минимум)."""
 
 
-def _apply_voucher(code, base_cents):
+def _apply_voucher(code, base_cents, discounted_cents=0):
     """(discount_cents, code_snapshot) для кода. Пусто → (0, "").
     Код задан, но не применим → PromoInvalid. Зеркало events._apply_voucher;
     гасит атомарно (used_count += 1) — откатится вместе с транзакцией book."""
@@ -80,7 +80,7 @@ def _apply_voucher(code, base_cents):
 
     # B1.5: расчёт+списание атомарно (единая точка; balance-сертификат — частично).
     try:
-        discount, voucher = spend_voucher(code, base_cents)
+        discount, voucher = spend_voucher(code, base_cents, discounted_cents)
     except VoucherError as exc:
         raise PromoInvalid() from exc
     # KA-12 B2-1: сертификат с остатком — оплата (третий элемент), промокод — Rabatt.
@@ -298,7 +298,11 @@ def book(
 
     # B1.2: скидка на полную стоимость (услуга + Extras); снимок кода/суммы.
     base_cents = int(price_cents or 0) + sum(int(e.get("price_cents", 0)) for e in (extras or []))
-    discount_cents, voucher_snap, voucher_paid = _apply_voucher(voucher_code, base_cents)
+    # Скидки не суммируются (2026-10-30): цена услуги по акции уже снижена — код без
+    # `combinable` действует только на Extras.
+    discount_cents, voucher_snap, voucher_paid = _apply_voucher(
+        voucher_code, base_cents, int(price_cents or 0) if promotion is not None else 0
+    )
 
     # P5: акция — списание лимита кампании внутри той же atomic (OutOfStock →
     # откат брони целиком, фантомного списания нет).

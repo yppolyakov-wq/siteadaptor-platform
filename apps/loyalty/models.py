@@ -50,6 +50,11 @@ class Voucher(I18nMixin, TimestampedModel):
     discount_percent = models.PositiveSmallIntegerField(null=True, blank=True)
     discount_cents = models.PositiveIntegerField(null=True, blank=True)
     min_order_cents = models.PositiveIntegerField(default=0)
+    # Решение владельца 2026-10-30: скидки по умолчанию НЕ суммируются — промокод
+    # уменьшает только позиции без другой скидки (акция, количественная акция, промо-
+    # цена брони, авто-скидка номера). True = код действует на всю сумму поверх них.
+    # Balance-сертификат — оплата, а не скидка: флаг на него не влияет.
+    combinable = models.BooleanField(default=False)
     # B1.5 (решение владельца «а»): денежный сертификат с ОСТАТКОМ
     # (Wertgutschein). null = обычный ваучер/промокод (прежнее поведение).
     # Частичное списание/возврат — promotions.services.spend_voucher /

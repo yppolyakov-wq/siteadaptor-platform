@@ -702,6 +702,15 @@ class VoucherCreateForm(forms.Form):
         required=False,
     )
 
+    combinable = forms.BooleanField(
+        label=_("Combinable with other discounts"),
+        required=False,
+        help_text=_(
+            "Off: the code only reduces items that are not already discounted "
+            "(promotions, quantity deals, automatic room discounts)."
+        ),
+    )
+
     def clean(self):
         cleaned = super().clean()
         if cleaned.get("discount_percent") and cleaned.get("discount_eur"):

@@ -561,8 +561,9 @@ def cart_remove_code(request):
     return redirect("storefront-cart")
 
 
-def _cart_discount(request, subtotal):
-    """(voucher, скидка Decimal) для применённого промокода на subtotal (Decimal)."""
+def _cart_discount(request, subtotal, discounted=0):
+    """(voucher, скидка Decimal) для применённого промокода на subtotal (Decimal).
+    `discounted` — часть subtotal по акции: её код без `combinable` не трогает."""
     from decimal import Decimal
 
     from apps.loyalty.models import Voucher
@@ -576,7 +577,9 @@ def _cart_discount(request, subtotal):
     from apps.promotions.services import preview_discount
 
     # B1.7: превью с тем же потолком, что и списание (иначе итог «прыгнет»).
-    return voucher, Decimal(preview_discount(voucher, int(subtotal * 100))) / 100
+    return voucher, (
+        Decimal(preview_discount(voucher, int(subtotal * 100), int(discounted * 100))) / 100
+    )
 
 
 @require_POST
@@ -823,7 +826,10 @@ def cart_view(request):
         else (combo_rows[0]["combo"].currency if combo_rows else "EUR")
     )
     # A4 промокод: скидка на subtotal (товары+комбо), итог к оплате.
-    voucher, discount = _cart_discount(request, total)
+    promo_part = sum(
+        (r["line_total"] for r in rows if r["is_promo"] or r["deal_promo"]), start=Decimal("0")
+    )
+    voucher, discount = _cart_discount(request, total, promo_part)
     # KA-12 PR-4: подарок от суммы — та же функция, что create_order.
     from apps.promotions import gifts
 
@@ -843,6 +849,15 @@ def cart_view(request):
         "grand_total": total - discount,
         "promo_code": request.session.get(PROMO_SESSION_KEY, ""),
         "promo_min_not_met": bool(voucher and discount == 0 and voucher.min_order_cents),
+        # Скидки не суммируются: код есть, но все позиции уже по акции.
+        "promo_not_combinable": bool(
+            voucher
+            and discount == 0
+            and promo_part > 0
+            and not voucher.combinable
+            and voucher.balance_cents is None
+            and promo_part >= total
+        ),
         "currency": currency,
         # R5: центы для JS-реактивности доставки (итог меняется при выборе).
         "grand_cents": int((total - discount) * 100),

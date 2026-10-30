@@ -31155,3 +31155,12 @@ msgstr "Main menu"
 
 msgid "Gefunden: {n}"
 msgstr "Found: {n}"
+
+msgid "Combinable with other discounts"
+msgstr "Combinable with other discounts"
+
+msgid "Off: the code only reduces items that are not already discounted (promotions, quantity deals, automatic room discounts)."
+msgstr "Off: the code only reduces items that are not already discounted (promotions, quantity deals, automatic room discounts)."
+
+msgid "This code does not apply to items that are already discounted."
+msgstr "This code does not apply to items that are already discounted."

@@ -31247,3 +31247,12 @@ msgstr "Hauptmenü"
 
 msgid "Gefunden: {n}"
 msgstr "Gefunden: {n}"
+
+msgid "Combinable with other discounts"
+msgstr "Mit anderen Rabatten kombinierbar"
+
+msgid "Off: the code only reduces items that are not already discounted (promotions, quantity deals, automatic room discounts)."
+msgstr "Aus: Der Code reduziert nur Artikel, die noch nicht rabattiert sind (Aktionen, Mengenaktionen, automatische Zimmerrabatte)."
+
+msgid "This code does not apply to items that are already discounted."
+msgstr "Dieser Code gilt nicht für bereits reduzierte Artikel."

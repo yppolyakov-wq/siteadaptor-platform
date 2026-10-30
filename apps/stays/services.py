@@ -90,7 +90,7 @@ def _rate_for_booking(booking):
     return None
 
 
-def _apply_voucher(code, base_cents):
+def _apply_voucher(code, base_cents, discounted_cents=0):
     """(discount_cents, code_snapshot) для промокода (H4a). Пусто → (0, "").
     Код задан, но не применим (нет/просрочен/исчерпан/не достигнут мин) → PromoInvalid.
     Гасит ваучер атомарно (used_count += 1) — откатится, если транзакция упадёт."""
@@ -101,7 +101,7 @@ def _apply_voucher(code, base_cents):
 
     # B1.5: расчёт+списание атомарно (единая точка; balance-сертификат — частично).
     try:
-        discount, voucher = spend_voucher(code, base_cents)
+        discount, voucher = spend_voucher(code, base_cents, discounted_cents)
     except VoucherError as exc:
         raise PromoInvalid() from exc
     # KA-12 B2-1: сертификат с остатком — оплата (третий элемент), промокод — Rabatt.
@@ -436,7 +436,13 @@ def book_stay(
         booked_promo = promo_hit[0]
     # H4a: промокод применяется к проживанию (после авто-скидки) + услугам, не к Kurtaxe.
     lodging_cents = room_cents - auto_discount_cents + extras_engine.total_cents(extras_snap)
-    discount_cents, voucher_code_snap, voucher_paid = _apply_voucher(voucher_code, lodging_cents)
+    # Скидки не суммируются (2026-10-30): проживание с авто-скидкой (G4/Lücken/акция)
+    # уже снижено — код без `combinable` действует только на услуги.
+    discount_cents, voucher_code_snap, voucher_paid = _apply_voucher(
+        voucher_code,
+        lodging_cents,
+        room_cents - auto_discount_cents if auto_discount_cents else 0,
+    )
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     booking = StayBooking.objects.create(
         unit=unit,

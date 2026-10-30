@@ -463,6 +463,9 @@ def create_order(
 
     link_deal(order)  # CO-2c: фирма → справочник по USt-IdNr
     total = Decimal("0")
+    # Решение владельца 2026-10-30: часть суммы, уже уменьшенная акцией, — промокод
+    # без флага `combinable` её не трогает (скидки не суммируются).
+    promo_total = Decimal("0")
     for idx, (product, variant, qty, options) in enumerate(norm):
         # DecimalField не приводит атрибут у не перезагруженных из БД
         # инстансов — нормализуем явно. Цена варианта: своя или base_price.
@@ -518,6 +521,8 @@ def create_order(
             promotion=(line_promo[0] if line_promo is not None else None),
             promo_label=(_promo_title(line_promo[0]) if line_promo is not None else ""),
         )
+        if line_promo is not None:
+            promo_total += unit_price * qty
         # U-D3: залогировать списание в склад-леджер (append-only, в той же atomic
         # create_order, что и декремент _reserve_stock). Только учитываемый остаток
         # (stock_quantity != None); идемпотентно по позиции (source_ref=item.pk).
@@ -589,6 +594,8 @@ def create_order(
             promotion=(promo_snap or {}).get("promotion"),
             promo_label=_promo_title((promo_snap or {}).get("promotion")),
         )
+        if (promo_snap or {}).get("promotion") is not None:
+            promo_total += unit_price * qty
         tracked = variant if variant is not None else product
         if tracked is not None and tracked.stock_quantity is not None:
             record_movement(
@@ -614,7 +621,9 @@ def create_order(
 
         # B1.5: расчёт+списание атомарно (единая точка; balance — частично).
         try:
-            disc_cents, voucher = spend_voucher(voucher_code, int(total * 100))
+            disc_cents, voucher = spend_voucher(
+                voucher_code, int(total * 100), int(promo_total * 100)
+            )
             discount = Decimal(disc_cents) / 100
             order.voucher_code = voucher_code[:12]
             order.discount_cents = disc_cents

@@ -179,7 +179,7 @@
           <input name="code" placeholder="{% trans 'Voucher code' %}" class="flex-1 min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm uppercase">
           <button class="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">{% trans "Apply" %}</button>
         </form>
-        {% if promo_min_not_met %}<p class="text-xs text-amber-600">{% trans "This code needs a higher order total." %}</p>{% endif %}
+        {% if promo_not_combinable %}<p class="text-xs text-amber-600">{% trans "This code does not apply to items that are already discounted." %}</p>{% elif promo_min_not_met %}<p class="text-xs text-amber-600">{% trans "This code needs a higher order total." %}</p>{% endif %}
       {% endif %}
 
       {% if delivery_free_gap_cents %}

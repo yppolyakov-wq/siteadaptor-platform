@@ -507,6 +507,7 @@ def generate_vouchers(
     discount_percent=None,
     discount_cents=None,
     min_order_cents=0,
+    combinable=False,
 ):
     """Сгенерировать count ваучеров с уникальными кодами. Вернуть список.
 
@@ -526,6 +527,7 @@ def generate_vouchers(
                 discount_percent=discount_percent or None,
                 discount_cents=discount_cents or None,
                 min_order_cents=min_order_cents or 0,
+                combinable=bool(combinable),
             )
         )
     return created
@@ -744,13 +746,24 @@ def _capped(voucher, discount: int, base_cents: int) -> int:
     return min(discount, int(base_cents) * cap_pct // 100)
 
 
-def preview_discount(voucher, base_cents: int) -> int:
+def eligible_base(voucher, base_cents: int, discounted_cents: int = 0) -> int:
+    """Сумма, на которую действует код (решение владельца 2026-10-30: скидки не
+    суммируются). `discounted_cents` — часть `base_cents`, уже уменьшенная другой
+    скидкой. Сертификат (оплата) и `combinable`-код — на всю сумму."""
+    base = int(base_cents)
+    if voucher.balance_cents is not None or voucher.combinable:
+        return base
+    return max(0, base - max(0, int(discounted_cents or 0)))
+
+
+def preview_discount(voucher, base_cents: int, discounted_cents: int = 0) -> int:
     """Скидка кода для превью (корзина/quote) — ta же логика, что spend_voucher,
     но read-only: с потолком тенанта, без списания."""
-    return _capped(voucher, voucher.discount_for(int(base_cents)), base_cents)
+    base = eligible_base(voucher, base_cents, discounted_cents)
+    return _capped(voucher, voucher.discount_for(base), base)
 
 
-def spend_voucher(code, base_cents: int):
+def spend_voucher(code, base_cents: int, discounted_cents: int = 0):
     """B1.5: атомарно рассчитать И списать скидку кода для суммы base_cents.
 
     ЕДИНАЯ точка чекаутов (orders/booking/stays/events): расчёт и списание под
@@ -768,6 +781,10 @@ def spend_voucher(code, base_cents: int):
         raise VoucherError("inactive")
     if voucher.expires_at and voucher.expires_at < timezone.now():
         raise VoucherError("expired")
+    # Скидки не суммируются: код считается только от позиций без другой скидки.
+    base_cents = eligible_base(voucher, base_cents, discounted_cents)
+    if base_cents <= 0:
+        raise VoucherError("not_combinable")
     if voucher.balance_cents is not None:
         if voucher.balance_cents <= 0:
             raise VoucherError("used_up")

@@ -1748,6 +1748,7 @@ def voucher_list(request):
             discount_percent=form.cleaned_data.get("discount_percent"),
             discount_cents=int(d_eur * 100) if d_eur else None,
             min_order_cents=int(min_eur * 100) if min_eur else 0,
+            combinable=form.cleaned_data.get("combinable", False),
         )
         messages.success(request, _("%(count)d Voucher erstellt.") % {"count": len(created)})
         return redirect("promotions:voucher-list")

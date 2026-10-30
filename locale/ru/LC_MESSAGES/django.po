@@ -31432,3 +31432,12 @@ msgstr "Главное меню"
 
 msgid "Gefunden: {n}"
 msgstr "Найдено: {n}"
+
+msgid "Combinable with other discounts"
+msgstr "Суммируется с другими скидками"
+
+msgid "Off: the code only reduces items that are not already discounted (promotions, quantity deals, automatic room discounts)."
+msgstr "Выключено: код снижает цену только тех позиций, на которые ещё нет скидки (акции, скидки за количество, автоматические скидки на номера)."
+
+msgid "This code does not apply to items that are already discounted."
+msgstr "Этот код не действует на товары, на которые уже есть скидка."
