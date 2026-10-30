@@ -1683,3 +1683,17 @@ def test_dl20_clothing_category_pages_inherit_and_override():
         "accessoires": "",
     }
     assert t.site_config["catalog_page_style"] == "regale"  # DL-21.1: корень — свой ключ
+
+
+def test_retreat_kit_front_desk_seeds_without_max_guests(caplog):
+    """Лог деплоя 2026-10-30: стойка ретрита падала MaxGuests — первый юнит одноместный,
+    а демо-бронь шла на 2 взрослых. Сидер не должен глотать ошибку молча."""
+    import logging
+
+    from apps.stays.models import StayBooking
+
+    tenant = TenantFactory(schema_name="public", slug="rtd", name="RTD", business_type="other")
+    with caplog.at_level(logging.ERROR, logger="apps.tenants.demo_kits"):
+        assert demo_kits.apply_kit(tenant, "retreat") is True
+    assert "front desk seed failed" not in caplog.text
+    assert StayBooking.objects.filter(customer__name="Familie Sommer").exists()

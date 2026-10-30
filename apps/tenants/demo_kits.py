@@ -27198,7 +27198,9 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                         departure=today + timedelta(days=dep),
                         name=name,
                         email=mail,
-                        adults=2,
+                        # Ретрит: без физических номеров берётся первый юнит, а он может
+                        # быть одноместным — 2 взрослых давали MaxGuests (лог деплоя 2026-10-30).
+                        adults=max(1, min(2, desk_unit.max_guests or 1)),
                         auto_confirm=True,
                         source_channel="manual",
                     )
