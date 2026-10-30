@@ -99,3 +99,29 @@ def test_order_checkout_combinable_discounts_everything():
     _code("ALL10", combinable=True)
     order = order_services.create_order(items=[(saft, 1)], name="K", voucher_code="ALL10")
     assert order.discount_cents == 80
+
+
+def test_cart_preview_matches_order_on_quantity_deal():
+    """Ревью: «2. Stück −50 %» — по полной цене остаётся первая штука, она база кода и
+    в корзине, и в заказе (раньше корзина считала скидочной всю строку → «0», а заказ
+    давал скидку)."""
+    from django.utils import timezone
+
+    from apps.orders import public_views
+
+    pizza = Product.objects.create(name={"de": "Pizza"}, base_price=Decimal("10.00"))
+    Promotion.objects.create(
+        product=pizza,
+        title={"de": "Aktion"},
+        status="active",
+        starts_at=timezone.now(),
+        discount_percent=50,
+        metadata={"price_condition": {"kind": "nth", "n": 2}},
+    )
+    voucher = _code("NTH10")
+    deals = public_views._cart_deals([(pizza, None, [], 2)])
+    total, deal = public_views._line_total(pizza, None, [], 2, {}, deals)
+    assert total == Decimal("15.00") and deal[2] == Decimal("5.00")
+    preview = preview_discount(voucher, int(total * 100), int(deal[2] * 100))
+    order = order_services.create_order(items=[(pizza, 2)], name="K", voucher_code="NTH10")
+    assert preview == order.discount_cents == 100  # 10 % от 10 € полной цены

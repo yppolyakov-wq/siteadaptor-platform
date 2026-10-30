@@ -137,7 +137,13 @@ def _line_total(product, variant, options, qty, promo_map=None, deals=None):
             promo, parts = found
             total = sum((price * units for units, price, _d in parts), Decimal("0"))
             total += options_delta(options) * qty
-            return total, (promo, savings(parts, product.base_price))
+            # Третий элемент — сумма ТОЛЬКО скидочных штук (с надбавками опций), как
+            # её посчитает create_order: штуки по полной цене остаются базой промокода.
+            delta = options_delta(options)
+            discounted = sum(
+                ((price + delta) * units for units, price, disc in parts if disc), Decimal("0")
+            )
+            return total, (promo, savings(parts, product.base_price), discounted)
     return unit * qty, None
 
 
@@ -777,6 +783,7 @@ def cart_view(request):
                 # KA-12 PR-3: количественная акция — подпись и выгода строки
                 "deal_promo": deal[0] if deal else None,
                 "deal_savings": deal[1] if deal else None,
+                "deal_discounted": deal[2] if deal else Decimal("0"),
             }
         )
     for r in rows:
@@ -827,7 +834,8 @@ def cart_view(request):
     )
     # A4 промокод: скидка на subtotal (товары+комбо), итог к оплате.
     promo_part = sum(
-        (r["line_total"] for r in rows if r["is_promo"] or r["deal_promo"]), start=Decimal("0")
+        (r["line_total"] if r["is_promo"] else r["deal_discounted"] for r in rows),
+        start=Decimal("0"),
     )
     voucher, discount = _cart_discount(request, total, promo_part)
     # KA-12 PR-4: подарок от суммы — та же функция, что create_order.
