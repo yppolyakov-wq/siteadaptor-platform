@@ -108,25 +108,25 @@
 {% list_pager bills_page %}
 {% endif %}
 
-<div class="overflow-x-auto rounded-xl border border-gray-200">
-  <table class="min-w-full text-sm">
-    <thead class="bg-gray-50 text-left text-xs text-gray-500">
+<div class="ui-card p-0 overflow-x-auto">
+  <table class="ui-table ui-table-stack">
+    <thead>
       <tr>
-        <th scope="col" class="px-4 py-2">{% trans "Date" %}</th>
-        <th scope="col" class="px-4 py-2">{% trans "Kategorie" %}</th>
-        <th scope="col" class="px-4 py-2">{% trans "Note" %}</th>
-        <th scope="col" class="px-4 py-2 text-right">{% trans "Amount" %}</th>
-        <th scope="col" class="px-4 py-2"></th>
+        <th scope="col">{% trans "Date" %}</th>
+        <th scope="col">{% trans "Kategorie" %}</th>
+        <th scope="col">{% trans "Note" %}</th>
+        <th scope="col" class="ui-num">{% trans "Amount" %}</th>
+        <th scope="col"><span class="sr-only">{% trans "Actions" %}</span></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody>
       {% for e in entries %}
       <tr>
-        <td class="px-4 py-2 whitespace-nowrap">{{ e.date|date:"d.m.Y" }}</td>
-        <td class="px-4 py-2">{{ e.get_category_display }}{% if e.source != "manual" %} · <span class="text-xs text-gray-400">{{ e.get_source_display }}</span>{% endif %}</td>
-        <td class="px-4 py-2 text-gray-500">{{ e.note }}{% if e.event %} · {{ e.event.title }}{% endif %}</td>
-        <td class="px-4 py-2 text-right font-medium">−{{ e.amount|floatformat:2 }} €</td>
-        <td class="px-4 py-2 text-right">
+        <td class="whitespace-nowrap" data-cell="primary">{{ e.date|date:"d.m.Y" }}</td>
+        <td>{{ e.get_category_display }}{% if e.source != "manual" %} · <span class="text-xs ui-muted">{{ e.get_source_display }}</span>{% endif %}</td>
+        <td class="ui-muted">{{ e.note }}{% if e.event %} · {{ e.event.title }}{% endif %}</td>
+        <td class="ui-num font-medium">−{{ e.amount|floatformat:2 }} €</td>
+        <td class="text-right" data-cell="actions">
           {% if e.source == "manual" %}
           <form method="post" class="inline">{% csrf_token %}
             <input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="{{ e.pk }}">
@@ -136,7 +136,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">{% trans "Noch keine Ausgaben im Zeitraum." %}</td></tr>
+      <tr><td colspan="5" data-cell="empty" class="py-6 text-center ui-muted">{% trans "Noch keine Ausgaben im Zeitraum." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>

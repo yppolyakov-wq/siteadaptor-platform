@@ -127,37 +127,37 @@
   </div>
   {% else %}
 
-  <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
-  <table class="w-full text-sm min-w-[640px]">
-    <thead class="text-left text-gray-500 border-b">
+  <div class="ui-card p-0 overflow-x-auto" data-kb-list>
+  <table class="ui-table ui-table-stack">
+    <thead>
       <tr>
-        <th scope="col" class="py-2">{% trans "Title" %}</th>
-        <th scope="col" class="py-2">{% trans "Type" %}</th>
-        <th scope="col" class="py-2">{% trans "Status" %}</th>
-        <th scope="col" class="py-2">{% trans "Available" %}</th>
-        <th scope="col" class="py-2">{% trans "Window" %}</th>
-        <th scope="col" class="py-2"></th>
+        <th scope="col">{% trans "Title" %}</th>
+        <th scope="col">{% trans "Type" %}</th>
+        <th scope="col">{% trans "Status" %}</th>
+        <th scope="col">{% trans "Available" %}</th>
+        <th scope="col">{% trans "Window" %}</th>
+        <th scope="col"><span class="sr-only">{% trans "Actions" %}</span></th>
       </tr>
     </thead>
     <tbody>
       {% for p in promotions %}
-        <tr class="border-b last:border-0">
+        <tr>
           {% comment %}VF-21 (фидбэк 2026-08-25): название — ссылка в форму (как
           имя товара в Sortiment); «Edit» в действиях остаётся.{% endcomment %}
-          <td class="py-2"><a href="{% url 'promotions:promotion-edit' p.pk %}" class="font-medium hover:text-indigo-700 hover:underline">{{ p }}</a>
+          <td data-cell="primary"><a href="{% url 'promotions:promotion-edit' p.pk %}" class="font-medium hover:text-indigo-700 hover:underline">{{ p }}</a>
             {# T-8.4: просмотры · отложили · выдано — то, что бизнесу важно при продлении #}
             <span class="block text-[11px] text-gray-400" data-promo-counters>👁 {{ p.views }} · {% trans "zurückgelegt" %} {{ p.n_held }} · {% trans "ausgegeben" %} {{ p.n_handed }}{% if p.n_coupons %} · 🎟 {% blocktrans with n=p.n_coupons m=p.n_coupons_used %}Coupons {{ n }} · eingelöst {{ m }}{% endblocktrans %}{% endif %}</span>
           </td>
-          <td class="py-2">{{ p.get_promo_type_display }}</td>
+          <td>{{ p.get_promo_type_display }}</td>
           {% comment %}X6-3 (ловушка черновика): вместо сырого кода — подпись, а у
           неактивной акции честный бейдж «клиенты её не видят».{% endcomment %}
-          <td class="py-2">
+          <td>
             <span class="ui-badge {% if p.status == 'active' %}ui-tone-ok{% else %}ui-tone-off{% endif %}">{{ p.status_label }}</span>
             {% if p.status != 'active' %}<span class="ml-1 text-[11px] text-amber-700">{% trans "nicht sichtbar" %}</span>{% endif %}
           </td>
-          <td class="py-2">{% if p.available_quantity is None %}∞{% else %}{{ p.available_quantity }}{% endif %}</td>
-          <td class="py-2 text-gray-500">{{ p.starts_at|default:"—" }} → {{ p.ends_at|default:"—" }}</td>
-          <td class="py-2 text-right whitespace-nowrap">
+          <td>{% if p.available_quantity is None %}∞{% else %}{{ p.available_quantity }}{% endif %}</td>
+          <td class="ui-muted">{{ p.starts_at|default:"—" }} → {{ p.ends_at|default:"—" }}</td>
+          <td class="text-right whitespace-nowrap" data-cell="actions">
             {# ST-6b: «Teilen» — экран «во все каналы» (публикации/email/★) #}
             {% if p.status == 'active' %}
               {% if 'promotions:promotion-share'|lite_allowed:request %}<a href="{% url 'promotions:promotion-share' p.pk %}" class="mr-2 text-gray-500 hover:underline">📣 {% trans "Teilen" %}</a>{% endif %}

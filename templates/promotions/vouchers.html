@@ -30,25 +30,25 @@
 </form>
 
 <div class="ui-card p-4">
-  <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
-  <table class="w-full text-sm min-w-[640px]">
-    <thead class="text-left text-gray-500 border-b">
-      <tr><th scope="col" class="py-2">{% trans "Code" %}</th><th scope="col" class="py-2">{% trans "Label" %}</th><th scope="col" class="py-2">{% trans "Discount" %}</th><th scope="col" class="py-2">{% trans "Uses" %}</th><th scope="col" class="py-2">{% trans "Active" %}</th><th scope="col" class="py-2"></th></tr>
+  <div class="-mx-4 overflow-x-auto sm:mx-0">
+  <table class="ui-table ui-table-stack">
+    <thead>
+      <tr><th scope="col">{% trans "Code" %}</th><th scope="col">{% trans "Label" %}</th><th scope="col">{% trans "Discount" %}</th><th scope="col">{% trans "Uses" %}</th><th scope="col">{% trans "Active" %}</th><th scope="col"><span class="sr-only">{% trans "Actions" %}</span></th></tr>
     </thead>
     <tbody>
       {% for v in vouchers %}
-        <tr class="border-b last:border-0">
-          <td class="py-2 font-mono">{{ v.code }}</td>
-          <td class="py-2">{{ v.label }}</td>
-          <td class="py-2">{% if v.discount_percent %}−{{ v.discount_percent }} %{% elif v.discount_cents %}−{{ v.discount_cents|floatformat:0 }} ct{% else %}—{% endif %}{% if v.balance_cents is not None %} <span class="text-xs {% if v.balance_cents %}text-emerald-700{% else %}text-gray-400{% endif %}">Rest {{ v.balance_eur|floatformat:2 }} €</span>{% endif %}{% if v.min_order_cents %} <span class="text-xs text-gray-400">(min {{ v.min_order_cents|floatformat:0 }} ct)</span>{% endif %}{% if v.combinable and v.balance_cents is None %} <span class="text-xs text-indigo-700">{% trans "Combinable with other discounts" %}</span>{% endif %}</td>
-          <td class="py-2">{{ v.used_count }}{% if v.max_uses %}/{{ v.max_uses }}{% else %}/∞{% endif %}</td>
-          <td class="py-2">{% if v.is_redeemable %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}</td>
-          <td class="py-2 text-right">
+        <tr>
+          <td class="font-mono" data-cell="primary">{{ v.code }}</td>
+          <td>{{ v.label }}</td>
+          <td>{% if v.discount_percent %}−{{ v.discount_percent }} %{% elif v.discount_cents %}−{{ v.discount_cents|floatformat:0 }} ct{% else %}—{% endif %}{% if v.balance_cents is not None %} <span class="text-xs {% if v.balance_cents %}text-emerald-700{% else %}text-gray-400{% endif %}">Rest {{ v.balance_eur|floatformat:2 }} €</span>{% endif %}{% if v.min_order_cents %} <span class="text-xs text-gray-400">(min {{ v.min_order_cents|floatformat:0 }} ct)</span>{% endif %}{% if v.combinable and v.balance_cents is None %} <span class="text-xs text-indigo-700">{% trans "Combinable with other discounts" %}</span>{% endif %}</td>
+          <td>{{ v.used_count }}{% if v.max_uses %}/{{ v.max_uses }}{% else %}/∞{% endif %}</td>
+          <td>{% if v.is_redeemable %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}</td>
+          <td class="text-right" data-cell="actions">
             <a href="{% url 'storefront-voucher-qr' v.code %}" download="voucher-{{ v.code }}.svg" class="text-indigo-600 hover:underline">QR ↓</a>
           </td>
         </tr>
       {% empty %}
-        <tr><td colspan="5" class="py-6 text-center text-gray-400">{% trans "No vouchers yet." %}</td></tr>
+        <tr><td colspan="6" data-cell="empty" class="py-6 text-center ui-muted">{% trans "No vouchers yet." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -60,21 +60,21 @@
 {# B1.3: проданные Geschenkgutscheine — оплата и погашение (код = обычный Voucher выше). #}
 <div class="ui-card p-4 mt-6">
   <h2 class="ui-h2 mb-3">🎁 {% trans "Sold gift vouchers" %}</h2>
-  <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
-  <table class="w-full text-sm min-w-[640px]">
-    <thead class="text-left text-gray-500 border-b">
-      <tr><th scope="col" class="py-2">{% trans "Date" %}</th><th scope="col" class="py-2">{% trans "Buyer" %}</th><th scope="col" class="py-2">{% trans "Recipient" %}</th><th scope="col" class="py-2">{% trans "Amount" %}</th><th scope="col" class="py-2">{% trans "Paid" %}</th><th scope="col" class="py-2">{% trans "Code" %}</th><th scope="col" class="py-2">{% trans "Redeemed" %}</th></tr>
+  <div class="-mx-4 overflow-x-auto sm:mx-0">
+  <table class="ui-table ui-table-stack">
+    <thead>
+      <tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Buyer" %}</th><th scope="col">{% trans "Recipient" %}</th><th scope="col" class="ui-num">{% trans "Amount" %}</th><th scope="col">{% trans "Paid" %}</th><th scope="col">{% trans "Code" %}</th><th scope="col">{% trans "Redeemed" %}</th></tr>
     </thead>
     <tbody>
       {% for g in gift_sales %}
-        <tr class="border-b last:border-0">
-          <td class="py-2 text-gray-500">{{ g.created_at|date:"d.m.Y" }}</td>
-          <td class="py-2">{{ g.buyer_name }} <span class="text-xs text-gray-400">{% if hide_contacts %}{{ g.buyer_email|mask_email }}{% else %}{{ g.buyer_email }}{% endif %}</span></td>
-          <td class="py-2">{{ g.recipient_name|default:"—" }}</td>
-          <td class="py-2">{{ g.amount_eur|floatformat:2 }} €</td>
-          <td class="py-2">{% if g.payment_state == "paid" %}<span class="text-green-600">✓</span>{% else %}<span class="text-amber-500">{% trans "open" %}</span>{% endif %}</td>
-          <td class="py-2 font-mono">{{ g.voucher.code|default:"—" }}</td>
-          <td class="py-2">{% if g.voucher and g.voucher.used_count %}<span class="text-green-600">✓</span>{% else %}—{% endif %}</td>
+        <tr>
+          <td class="ui-muted" data-cell="primary">{{ g.created_at|date:"d.m.Y" }}</td>
+          <td>{{ g.buyer_name }} <span class="text-xs text-gray-400">{% if hide_contacts %}{{ g.buyer_email|mask_email }}{% else %}{{ g.buyer_email }}{% endif %}</span></td>
+          <td>{{ g.recipient_name|default:"—" }}</td>
+          <td class="ui-num">{{ g.amount_eur|floatformat:2 }} €</td>
+          <td>{% if g.payment_state == "paid" %}<span class="text-green-600">✓</span>{% else %}<span class="text-amber-500">{% trans "open" %}</span>{% endif %}</td>
+          <td class="font-mono">{{ g.voucher.code|default:"—" }}</td>
+          <td>{% if g.voucher and g.voucher.used_count %}<span class="text-green-600">✓</span>{% else %}—{% endif %}</td>
         </tr>
       {% endfor %}
     </tbody>
