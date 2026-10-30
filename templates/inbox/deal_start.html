@@ -24,7 +24,7 @@
     <form method="post" class="space-y-3">
       {% csrf_token %}
       <textarea name="body" rows="5" required autofocus placeholder="{% trans 'Ihre Nachricht …' %}"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+                class="ui-input"></textarea>
       <button type="submit" class="ui-btn ui-btn-primary">{% trans "Nachricht senden" %}</button>
     </form>
   {% else %}

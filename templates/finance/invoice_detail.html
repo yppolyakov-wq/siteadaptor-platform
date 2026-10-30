@@ -32,7 +32,7 @@
       {% comment %}KA-12 E1.3: у черновика получатель правится (над 250 € нужен адрес).{% endcomment %}
       <form method="post" class="mb-3" data-recipient-form>{% csrf_token %}
         <label class="block text-xs font-medium text-gray-500 mb-1" for="inv-recipient">{% trans "Empfänger (Name und Anschrift)" %}</label>
-        <textarea id="inv-recipient" name="recipient" rows="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ invoice.recipient }}</textarea>
+        <textarea id="inv-recipient" name="recipient" rows="4" class="ui-input">{{ invoice.recipient }}</textarea>
         <button name="action" value="recipient" class="ui-btn ui-btn-secondary ui-btn-sm mt-1">{% trans "Save" %}</button>
       </form>
     {% elif invoice.recipient %}<p class="text-sm text-gray-600 whitespace-pre-line mb-3">{{ invoice.recipient }}</p>{% endif %}
@@ -90,7 +90,7 @@
           <label class="block text-xs text-gray-500" for="credit-amount">{% trans "Betrag (brutto)" %} · {% trans "höchstens" %} {{ credit_form.max_eur|floatformat:2 }} €</label>
           <input id="credit-amount" name="amount" inputmode="decimal" required class="w-40 rounded-lg border border-gray-300 px-3 py-2 text-base sm:text-sm">
           <label class="block text-xs text-gray-500" for="credit-reason">{% trans "Grund" %}</label>
-          <input id="credit-reason" name="reason" maxlength="200" placeholder="{% trans "z. B. Preisminderung" %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base sm:text-sm">
+          <input id="credit-reason" name="reason" maxlength="200" placeholder="{% trans "z. B. Preisminderung" %}" class="ui-input sm:text-sm">
           <p class="text-xs text-gray-500">{% trans "Die Rechnung bleibt unverändert. Es entsteht ein eigenes Dokument mit eigener Nummer; der offene Betrag sinkt. Geld wird dabei nicht erstattet." %}</p>
           <button class="ui-btn ui-btn-secondary">{% trans "Gutschrift erstellen" %}</button>
         </form>

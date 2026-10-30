@@ -28,7 +28,7 @@
   <input type="hidden" name="action" value="create">
   <div class="flex-1 min-w-[14rem]">
     <label class="block text-xs text-gray-500 mb-1" for="id_new_name">{% trans "Name" %}</label>
-    <input id="id_new_name" name="name" required maxlength="120" placeholder="{% trans 'e.g. Damen, Mit Seeblick' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    <input id="id_new_name" name="name" required maxlength="120" placeholder="{% trans 'e.g. Damen, Mit Seeblick' %}" class="ui-input">
   </div>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create" %}</button>
 </form>
@@ -44,7 +44,7 @@
       <div class="flex flex-wrap items-end gap-3">
         <div class="flex-1 min-w-[12rem]">
           <label class="block text-xs text-gray-500 mb-1">{% trans "Name" %}</label>
-          <input name="name" value="{{ col.name }}" maxlength="120" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <input name="name" value="{{ col.name }}" maxlength="120" class="ui-input">
         </div>
         <div>
           <label class="block text-xs text-gray-500 mb-1">{% trans "Order" %}</label>

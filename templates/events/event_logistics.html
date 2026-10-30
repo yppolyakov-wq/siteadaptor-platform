@@ -222,7 +222,7 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="copy_tasks">
       <label class="text-xs text-gray-500 grow">{% trans "Checkliste aus einem anderen Termin übernehmen" %}
-        <select name="source" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <select name="source" class="ui-input">
           {% for e in task_sources %}<option value="{{ e.pk }}">{{ e.title }} · {{ e.starts_at|date:"d.m.Y" }}</option>{% endfor %}
         </select>
       </label>

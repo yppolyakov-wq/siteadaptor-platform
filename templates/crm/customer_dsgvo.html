@@ -30,7 +30,7 @@
       <form method="post" action="{% url 'crm:customer-dsgvo-erase' customer.pk %}" class="space-y-2">
         {% csrf_token %}
         <label class="block text-xs text-gray-500" for="dsgvo-confirm">{% trans "Zur Bestätigung bitte LÖSCHEN eingeben." %}</label>
-        <input id="dsgvo-confirm" name="confirm" autocomplete="off" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
+        <input id="dsgvo-confirm" name="confirm" autocomplete="off" class="ui-input">
         <button class="rounded-lg px-4 py-2 text-sm font-medium bg-red-600 text-white hover:bg-red-700">{% trans "Daten löschen" %}</button>
       </form>
     {% endif %}

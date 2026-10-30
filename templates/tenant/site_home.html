@@ -195,7 +195,7 @@
       <fieldset class="ui-card p-6">
         <legend class="font-semibold mb-1">{% trans "Start page" %}</legend>
         <p class="text-xs ui-muted mb-3">{% trans 'What visitors see first. "Combined homepage" shows the blocks below; or jump straight into one section.' %}</p>
-        <select name="storefront_root" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <select name="storefront_root" class="ui-input">
           {% for o in root_options %}
             <option value="{{ o.key }}" {% if o.key == storefront_root %}selected{% endif %}>{{ o.label }}</option>
           {% endfor %}
@@ -247,7 +247,7 @@
         <div class="stu-page-row mb-4" data-stu-setting="home_hero" data-stu-axis="composition" data-stu-page="home">
           <label class="block text-sm">
             <span class="block font-medium mb-1">{% trans "Banner" %}</span>
-            <select name="hero_style" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <select name="hero_style" class="ui-input">
               {% for key, label in hero_style_options %}
                 <option value="{{ key }}" {% if key == hero_style %}selected{% endif %}>{{ label }}</option>
               {% endfor %}
@@ -295,15 +295,15 @@
                   <div class="w-full space-y-3">
                     <label class="block text-sm">
                       <span class="block font-medium mb-1">{% trans "Banner heading" %}</span>
-                      <input type="text" name="hero_title" value="{{ hero_title }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                      <input type="text" name="hero_title" value="{{ hero_title }}" class="ui-input">
                     </label>
                     <label class="block text-sm">
                       <span class="block font-medium mb-1">{% trans "Banner text" %}</span>
-                      <textarea name="hero_text" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ hero_text }}</textarea>
+                      <textarea name="hero_text" rows="3" class="ui-input">{{ hero_text }}</textarea>
                     </label>
                     <label class="block text-sm">
                       <span class="block font-medium mb-1">{% trans "Banner background image (URL)" %}</span>
-                      <input type="text" name="hero_image" value="{{ config.hero_image }}" placeholder="https://…" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                      <input type="text" name="hero_image" value="{{ config.hero_image }}" placeholder="https://…" class="ui-input">
                     </label>
                     {% comment %}M2/M3: слайды и обложки — мультипарт-формы ВНЕ #home-form (области медиа).{% endcomment %}
                     <div class="flex items-center gap-2 flex-wrap">
@@ -330,9 +330,9 @@
                         </label>
                         <div class="grid sm:grid-cols-2 gap-2">
                           <input type="text" name="arch_label_{{ a.key }}" value="{{ a.label }}" placeholder="{{ a.default_label }}"
-                                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Title' %}">
+                                 class="ui-input" aria-label="{% trans 'Title' %}">
                           <input type="text" name="arch_blurb_{{ a.key }}" value="{{ a.blurb }}" placeholder="{{ a.default_blurb }}"
-                                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Description' %}">
+                                 class="ui-input" aria-label="{% trans 'Description' %}">
                         </div>
                       </div>
                     {% endfor %}
@@ -1570,10 +1570,10 @@
         <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}
             <input type="hidden" name="action" value="save_hero_slide">
             <input type="hidden" name="slide_index" value="{{ forloop.counter0 }}">
-            <input type="text" name="hero_s_title" value="{{ h.title }}" placeholder="{% trans 'Heading' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ h.text }}</textarea>
-            <input type="text" name="hero_s_btn_label" value="{{ h.button_label }}" placeholder="{% trans 'Button text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <input type="text" name="hero_s_btn_url" value="{{ h.button_url }}" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input type="text" name="hero_s_title" value="{{ h.title }}" placeholder="{% trans 'Heading' %}" class="ui-input min-w-0">
+            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="ui-input min-w-0">{{ h.text }}</textarea>
+            <input type="text" name="hero_s_btn_label" value="{{ h.button_label }}" placeholder="{% trans 'Button text' %}" class="ui-input min-w-0">
+            <input type="text" name="hero_s_btn_url" value="{{ h.button_url }}" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="ui-input min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
               <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Save slide" %}</button>
@@ -1588,10 +1588,10 @@
         <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}
             <input type="hidden" name="action" value="save_hero_slide">
             <input type="hidden" name="slide_index" value="">
-            <input type="text" name="hero_s_title" placeholder="{% trans 'Heading' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
-            <input type="text" name="hero_s_btn_label" placeholder="{% trans 'Button text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <input type="text" name="hero_s_btn_url" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input type="text" name="hero_s_title" placeholder="{% trans 'Heading' %}" class="ui-input min-w-0">
+            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="ui-input min-w-0"></textarea>
+            <input type="text" name="hero_s_btn_label" placeholder="{% trans 'Button text' %}" class="ui-input min-w-0">
+            <input type="text" name="hero_s_btn_url" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="ui-input min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
               <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Add slide" %}</button>

@@ -54,11 +54,11 @@
       <input name="label" type="text" required placeholder="{% trans 'Name (e.g. Frühstück)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
-        <input name="price" type="text" placeholder="12" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <input name="price" type="text" placeholder="12" class="ui-input">
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Applies to" %}</label>
-        <select name="scope" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <select name="scope" class="ui-input">
           {% for value, label in scopes %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
         </select>
       </div>
@@ -70,24 +70,24 @@
       {% comment %}MX-2: адресность — опция конкретной сущности (пусто = для всех).{% endcomment %}
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Nur für ein Angebot" %}</label>
-        <select name="entity" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <select name="entity" class="ui-input">
           <option value="">{% trans "Alle passenden Angebote" %}</option>
           {% for value, label in entity_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
         </select>
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Abwicklung" %}</label>
-        <select name="tracker" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <select name="tracker" class="ui-input">
           {% for value, label in trackers %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
         </select>
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Pool-Größe" %}</label>
-        <input name="pool_size" type="number" min="0" max="999" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <input name="pool_size" type="number" min="0" max="999" placeholder="0" class="ui-input">
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Anbieter" %}</label>
-        <select name="supplier" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <select name="supplier" class="ui-input">
           <option value="">—</option>
           {% for sp in suppliers %}<option value="{{ sp.pk }}">{{ sp.name }}</option>{% endfor %}
         </select>
@@ -95,14 +95,14 @@
       {% if stock_products %}
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Lagerartikel (Verbrauch)" %}</label>
-        <select name="stock_product" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <select name="stock_product" class="ui-input">
           <option value="">—</option>
           {% for pr in stock_products %}<option value="{{ pr.pk }}">{{ pr.name_text }}</option>{% endfor %}
         </select>
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Verbrauch je Verkauf" %}</label>
-        <input name="consume_qty" type="number" min="1" max="99" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <input name="consume_qty" type="number" min="1" max="99" value="1" class="ui-input">
       </div>
       {% endif %}
     </div>

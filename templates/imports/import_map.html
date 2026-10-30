@@ -33,7 +33,7 @@
         <tr class="border-t border-gray-100">
           <td class="px-4 py-2 font-mono">{{ header }}</td>
           <td class="px-4 py-2">
-            <select name="map__{{ header }}" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
+            <select name="map__{{ header }}" class="ui-input">
               <option value="">{% trans "— ignore —" %}</option>
               {% for value, label in fields %}
               <option value="{{ value }}">{{ label }}</option>

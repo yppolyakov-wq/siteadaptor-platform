@@ -145,7 +145,7 @@
     <form method="post" class="ui-card p-6 space-y-3">{% csrf_token %}
       <h2 class="ui-h2">{% trans "New resource" %}</h2>
       <input type="hidden" name="action" value="resource">
-      <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Table 1)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Table 1)' %}" class="ui-input">
       <div class="flex gap-3">
         <select name="type" class="flex-1 rounded-lg border border-gray-300 px-3 py-2">
           {% for value, label in types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
@@ -153,7 +153,7 @@
         <input name="capacity" type="number" value="1" min="1" max="100" class="w-24 rounded-lg border border-gray-300 px-3 py-2" aria-label="{% trans 'Capacity' %}">
         <input name="seats" type="number" min="0" max="99" placeholder="{% trans 'Plätze' %}" class="w-24 rounded-lg border border-gray-300 px-3 py-2" aria-label="{% trans 'Plätze' %}">
       </div>
-      <input name="zone" type="text" maxlength="40" placeholder="{% trans 'Bereich (z. B. Terrasse)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="zone" type="text" maxlength="40" placeholder="{% trans 'Bereich (z. B. Terrasse)' %}" class="ui-input">
       <div class="flex items-center gap-3">
         <input name="deposit_eur" type="text" inputmode="decimal" placeholder="{% trans 'Deposit € (0 = none)' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2">
         <label class="text-sm flex items-center gap-1 whitespace-nowrap"><input type="checkbox" name="require_manual_confirm"> {% trans "Manual review" %}</label>

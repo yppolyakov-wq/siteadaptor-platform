@@ -18,25 +18,25 @@
     <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="hidden">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Name" %}</label>
-      <input name="name" value="{{ combo.name|default:'' }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+      <input name="name" value="{{ combo.name|default:'' }}" required class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Description" %}</label>
-      <textarea name="description" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">{{ combo.description|default:'' }}</textarea>
+      <textarea name="description" rows="2" class="ui-input">{{ combo.description|default:'' }}</textarea>
     </div>
     {# L3d: переводы неосновных локалей (видно только при N>1 языках) #}
     {% for inp in combo.i18n_inputs %}
     <div>
       <label class="block text-sm font-medium mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</label>
-      <input name="{{ inp.input_name }}" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+      <input name="{{ inp.input_name }}" value="{{ inp.value }}" class="ui-input">
     </div>
     {% endfor %}
     {% if not combo %}{% for loc in extra_locales %}
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Name" %} ({{ loc|upper }})</label>
-      <input name="name_{{ loc }}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+      <input name="name_{{ loc }}" class="ui-input">
       <label class="block text-sm font-medium mb-1 mt-2">{% trans "Description" %} ({{ loc|upper }})</label>
-      <input name="description_{{ loc }}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+      <input name="description_{{ loc }}" class="ui-input">
     </div>
     {% endfor %}{% endif %}
     <div class="flex flex-wrap gap-4">
@@ -84,7 +84,7 @@
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Occasions" %}</label>
-        <input name="event_types" list="combo-event-types" value="{{ combo.event_types|join:', ' }}" placeholder="Hochzeit, Firmenfeier, Geburtstag" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+        <input name="event_types" list="combo-event-types" value="{{ combo.event_types|join:', ' }}" placeholder="Hochzeit, Firmenfeier, Geburtstag" class="ui-input">
         <datalist id="combo-event-types">
           {% for t in event_type_suggestions %}<option value="{{ t }}"></option>{% endfor %}
         </datalist>

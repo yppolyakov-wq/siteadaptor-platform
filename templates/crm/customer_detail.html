@@ -52,7 +52,7 @@
       <form method="post" action="{% url 'crm:note-add' customer.pk %}" class="mb-4">
         {% csrf_token %}
         <textarea name="text" rows="2" required placeholder="{% trans 'Add a note…' %}"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+                  class="ui-input"></textarea>
         <button type="submit" class="mt-2 text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add note" %}</button>
       </form>
       {% for n in notes %}

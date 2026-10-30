@@ -139,7 +139,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
       {% for inp in origin_i18n_inputs %}
         <div data-i18n-loc="{{ inp.locale }}" class="hidden">
           <label class="block text-sm font-medium mb-1">{% if inp.field == 'origin' %}{% trans "Origin" %}{% else %}{% trans "Ingredients" %}{% endif %} ({{ inp.locale|upper }})</label>
-          <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">
         </div>
       {% endfor %}
     </div>

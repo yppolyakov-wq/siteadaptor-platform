@@ -63,20 +63,20 @@
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Amount (gross)" %}</label>
-      <input name="amount" type="text" inputmode="decimal" required placeholder="12,50" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="amount" type="text" inputmode="decimal" required placeholder="12,50" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "VAT" %}</label>
-      <select name="vat_rate" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <select name="vat_rate" class="ui-input">
         {% for rate in vat_rates %}<option value="{{ rate }}">{{ rate }} %</option>{% endfor %}
       </select>
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Date" %}</label>
-      <input name="date" type="date" value="{{ today|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="date" type="date" value="{{ today|date:'Y-m-d' }}" class="ui-input">
     </div>
   </div>
-  <input name="note" type="text" placeholder="{% trans 'Note (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <input name="note" type="text" placeholder="{% trans 'Note (optional)' %}" class="ui-input">
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add" %}</button>
 </form>
 {% endblock %}

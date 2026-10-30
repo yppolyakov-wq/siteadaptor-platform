@@ -35,20 +35,20 @@ Look'и; применение POST'ом — сохраняется сразу. �
       </label>
       <label class="block text-sm">
         <span class="block font-medium mb-1">{% trans "Font" %}</span>
-        <select name="font" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <select name="font" class="ui-input">
           {% for key, label in font_options %}<option value="{{ key }}" {% if key == font %}selected{% endif %}>{{ label }}</option>{% endfor %}
         </select>
       </label>
       <label class="block text-sm">
         <span class="block font-medium mb-1">{% trans "Headline weight" %}</span>
-        <select name="typo_weight_head" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <select name="typo_weight_head" class="ui-input">
           <option value="0" {% if not typo_weight_head %}selected{% endif %}>{% trans "Default" %}</option>
           {% for w in typo_weight_options %}<option value="{{ w }}" {% if typo_weight_head == w %}selected{% endif %}>{{ w }}</option>{% endfor %}
         </select>
       </label>
       <label class="block text-sm">
         <span class="block font-medium mb-1">{% trans "Line height" %}</span>
-        <select name="typo_line_height" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <select name="typo_line_height" class="ui-input">
           <option value="0" {% if not typo_line_height %}selected{% endif %}>{% trans "Default" %}</option>
           {% for lh in typo_line_height_options %}<option value="{{ lh }}" {% if typo_line_height == lh %}selected{% endif %}>{{ lh }}</option>{% endfor %}
         </select>
@@ -77,7 +77,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
       </label>
       <label class="block text-sm">
         <span class="block font-medium mb-1">{% trans "Card style" %}</span>
-        <select name="sd_card_chrome" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <select name="sd_card_chrome" class="ui-input">
           <option value="" {% if not sd.card_chrome %}selected{% endif %}>{% trans "Standard" %}</option>
           <option value="hairline" {% if sd.card_chrome == "hairline" %}selected{% endif %}>{% trans "Hairline" %}</option>
           <option value="line" {% if sd.card_chrome == "line" %}selected{% endif %}>{% trans "Line" %}</option>
@@ -86,7 +86,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
       </label>
       <label class="block text-sm">
         <span class="block font-medium mb-1">{% trans "Fotoform" %}</span>
-        <select name="sd_media_shape" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <select name="sd_media_shape" class="ui-input">
           <option value="" {% if not sd.media_shape %}selected{% endif %}>{% trans "Standard" %}</option>
           <option value="round" {% if sd.media_shape == "round" %}selected{% endif %}>{% trans "Rund" %}</option>
           <option value="wide" {% if sd.media_shape == "wide" %}selected{% endif %}>{% trans "Breit" %}</option>
@@ -94,7 +94,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
       </label>
       <label class="block text-sm">
         <span class="block font-medium mb-1">{% trans "Varianten" %}</span>
-        <select name="sd_variant_style" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <select name="sd_variant_style" class="ui-input">
           <option value="" {% if not sd.variant_style %}selected{% endif %}>{% trans "Standard" %}</option>
           {% for key, label, hint in variant_style_options %}{% if key %}<option value="{{ key }}" {% if sd.variant_style == key %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}
         </select>

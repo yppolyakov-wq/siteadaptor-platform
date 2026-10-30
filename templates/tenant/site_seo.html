@@ -40,12 +40,12 @@
               <label class="block text-xs font-medium text-gray-500 mb-1" for="title_{{ r.key }}">{% trans "Title template" %}</label>
               <input id="title_{{ r.key }}" name="title_{{ r.key }}" type="text" value="{{ r.title }}"
                      placeholder="{{ r.default_title }}" data-seo-title
-                     class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono">
+                     class="ui-input font-mono">
             </div>
             <div>
               <label class="block text-xs font-medium text-gray-500 mb-1" for="desc_{{ r.key }}">{% trans "Description template" %}</label>
               <textarea id="desc_{{ r.key }}" name="desc_{{ r.key }}" rows="2" placeholder="{{ r.default_desc }}"
-                        data-seo-desc class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono">{{ r.description }}</textarea>
+                        data-seo-desc class="ui-input font-mono">{{ r.description }}</textarea>
             </div>
           </div>
 

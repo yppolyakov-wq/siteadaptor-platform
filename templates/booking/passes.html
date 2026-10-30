@@ -47,25 +47,25 @@
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Customer name" %} *</label>
-      <input name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="name" type="text" required class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Email" %}</label>
-      <input autocomplete="off" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input autocomplete="off" name="email" type="email" class="ui-input">
     </div>
   </div>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Label" %}</label>
-      <input name="label" type="text" placeholder="10er-Karte Yoga" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="label" type="text" placeholder="10er-Karte Yoga" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Visits" %}</label>
-      <input name="credits" type="number" min="1" max="100" value="10" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="credits" type="number" min="1" max="100" value="10" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Valid until (optional)" %}</label>
-      <input name="valid_until" type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="valid_until" type="date" class="ui-input">
     </div>
   </div>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Issue pass" %}</button>
@@ -97,11 +97,11 @@
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Label" %}</label>
-      <input name="label" type="text" placeholder="10er-Karte Yoga" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="label" type="text" placeholder="10er-Karte Yoga" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Bind to service (optional)" %}</label>
-      <select name="service" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <select name="service" class="ui-input">
         <option value="">{% trans "Any service" %}</option>
         {% for s in services %}<option value="{{ s.pk }}">{{ s.name }}</option>{% endfor %}
       </select>
@@ -110,15 +110,15 @@
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Visits" %}</label>
-      <input name="credits" type="number" min="1" max="100" value="10" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="credits" type="number" min="1" max="100" value="10" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
-      <input name="price" type="text" inputmode="decimal" placeholder="99,00" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="price" type="text" inputmode="decimal" placeholder="99,00" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Valid days (0=∞)" %}</label>
-      <input name="valid_days" type="number" min="0" max="3650" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="valid_days" type="number" min="0" max="3650" value="0" class="ui-input">
     </div>
   </div>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add plan" %}</button>

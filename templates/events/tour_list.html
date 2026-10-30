@@ -12,7 +12,7 @@
   {% csrf_token %}
   <label class="grow">
     <span class="block text-sm font-medium mb-1">{% trans "New tour" %}</span>
-    <input type="text" name="title" required maxlength="200" placeholder="{% trans 'e.g. Himalaya: Manali – Leh' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="title" required maxlength="200" placeholder="{% trans 'e.g. Himalaya: Manali – Leh' %}" class="ui-input">
   </label>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create" %}</button>
 </form>

@@ -41,9 +41,9 @@
 <form id="blog-neu" method="post" enctype="multipart/form-data" class="ui-card p-6 max-w-xl space-y-3">
   {% csrf_token %}
   <h2 class="ui-h2">{% trans "New post" %}</h2>
-  <input name="title" type="text" required placeholder="{% trans 'Title' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-  <input name="excerpt" type="text" placeholder="{% trans 'Short summary (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-  <textarea name="body" rows="5" placeholder="{% trans 'Text' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  <input name="title" type="text" required placeholder="{% trans 'Title' %}" class="ui-input">
+  <input name="excerpt" type="text" placeholder="{% trans 'Short summary (optional)' %}" class="ui-input">
+  <textarea name="body" rows="5" placeholder="{% trans 'Text' %}" class="ui-input"></textarea>
   <div>
     <label class="block text-sm font-medium mb-1">{% trans "Cover (optional)" %}</label>
     <input name="cover" type="file" accept="image/*" class="w-full text-sm">

@@ -269,12 +269,12 @@
   {% csrf_token %}
   <input type="hidden" name="action" value="create">
   <h2 class="ui-h2">{% trans "New service" %}</h2>
-  <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-  <textarea name="description" rows="2" placeholder="{% trans 'Description — what is included (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" class="ui-input">
+  <textarea name="description" rows="2" placeholder="{% trans 'Description — what is included (optional)' %}" class="ui-input"></textarea>
   {# L3d: переводы неосновных локалей (видно только при N>1 языках) #}
   {% for loc in extra_locales %}
-    <input name="name_{{ loc }}" type="text" placeholder="Name ({{ loc|upper }})" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    <textarea name="description_{{ loc }}" rows="2" placeholder="{% trans 'Description' %} ({{ loc|upper }})" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+    <input name="name_{{ loc }}" type="text" placeholder="Name ({{ loc|upper }})" class="ui-input">
+    <textarea name="description_{{ loc }}" rows="2" placeholder="{% trans 'Description' %} ({{ loc|upper }})" class="ui-input"></textarea>
   {% endfor %}
   <div>
     <label class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</label>
@@ -290,16 +290,16 @@
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Duration (min)" %}</label>
-      <input name="duration" type="number" min="5" value="30" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="duration" type="number" min="5" value="30" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
-      <input name="price_eur" type="text" placeholder="49" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="price_eur" type="text" placeholder="49" class="ui-input">
     </div>
     {% vat_select "19.00" %}
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</label>
-      <input name="deposit_eur" type="text" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="deposit_eur" type="text" placeholder="0" class="ui-input">
     </div>
   </div>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create service" %}</button>

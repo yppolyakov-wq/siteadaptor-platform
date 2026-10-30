@@ -82,7 +82,7 @@
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Customer" %} ({% trans "optional" %})</label>
-      <select name="customer" class="w-full rounded-lg border border-gray-300 px-3 py-2" data-customer-select>
+      <select name="customer" class="ui-input" data-customer-select>
         <option value="">—</option>
         {% for c in customers %}<option value="{{ c.pk }}"{% if selected_customer and c.pk == selected_customer.pk %} selected{% endif %}>{{ c.pick_label }}</option>{% endfor %}
       </select>
@@ -93,7 +93,7 @@
       {% if small_business %}
         <p class="text-sm text-gray-500 py-2">0 % — § 19 UStG (Kleinunternehmer)</p>
       {% else %}
-        <select name="vat_rate" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <select name="vat_rate" class="ui-input">
           {% for rate in vat_rates %}<option value="{{ rate }}">{{ rate }} %</option>{% endfor %}
         </select>
       {% endif %}
@@ -101,7 +101,7 @@
   </div>
   <div>
     <label class="block text-sm font-medium mb-1">{% trans "Empfänger (Name, Adresse)" %}</label>
-    <textarea name="recipient" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+    <textarea name="recipient" rows="2" class="ui-input"></textarea>
     {# CO-2: пусто + корпоративный гость → реквизиты компании подставятся сами. #}
     <p class="text-xs ui-muted mt-1">{% trans "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen." %}</p>
   </div>
@@ -115,13 +115,13 @@
       </div>
     {% endfor %}
   </div>
-  <input name="note" type="text" placeholder="{% trans 'Note (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <input name="note" type="text" placeholder="{% trans 'Note (optional)' %}" class="ui-input">
   {% if doc_languages|length > 1 %}
     {% comment %}I18N-7b/2: язык счёта выбирается при создании и хранится с
     документом — выставленный счёт неизменяем (GoBD).{% endcomment %}
     <div class="max-w-xs">
       <label class="block text-sm font-medium mb-1">{% trans "Invoice language" %}</label>
-      <select name="language" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <select name="language" class="ui-input">
         {% for lang in doc_languages %}
           <option value="{{ lang.code }}" {% if lang.code == doc_language_default %}selected{% endif %}>{{ lang.label }}</option>
         {% endfor %}

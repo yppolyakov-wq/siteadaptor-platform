@@ -37,7 +37,7 @@
     {% csrf_token %}
     <input type="password" name="token" value=""
            placeholder="{% trans 'Bot token (123456:ABC… )' %}" aria-label="{% trans 'Bot token' %}"
-           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+           class="ui-input">
     <button type="submit" class="ui-btn ui-btn-primary">
       {% if bot.is_active %}{% trans "Update token" %}{% else %}{% trans "Connect" %}{% endif %}
     </button>

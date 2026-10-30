@@ -97,7 +97,7 @@
         <div data-ut-panel="basis" class="grid sm:grid-cols-3 gap-3 items-end">
           <div class="sm:col-span-3">
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</label>
-            <textarea name="description" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea>
+            <textarea name="description" rows="2" class="ui-input" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea>
             {# Ф1: переводы неосновных локалей — свёрнуты по умолчанию (не «все языки сразу»). #}
             {% if u.i18n_inputs %}
             <details class="mt-2">
@@ -105,7 +105,7 @@
               <div class="mt-1 space-y-2">
                 {% for inp in u.i18n_inputs %}
                   <label class="block text-xs font-medium text-gray-500 mb-1">{% if inp.field == 'name' %}Name{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</label>
-                  <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                  <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">
                 {% endfor %}
               </div>
             </details>
@@ -113,11 +113,11 @@
           </div>
           <div class="sm:col-span-2">
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Bed type" %}</label>
-            <input name="bed_type" type="text" value="{{ u.bed_type }}" placeholder="{% trans 'e.g. Doppelbett, 2 Einzelbetten' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input name="bed_type" type="text" value="{{ u.bed_type }}" placeholder="{% trans 'e.g. Doppelbett, 2 Einzelbetten' %}" class="ui-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Area (m², 0 = hide)" %}</label>
-            <input name="area_sqm" type="number" min="0" value="{{ u.area_sqm }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input name="area_sqm" type="number" min="0" value="{{ u.area_sqm }}" class="ui-input">
           </div>
           <div class="sm:col-span-3">
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Amenities" %}</label>
@@ -146,15 +146,15 @@
           </p>
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price / night (€)" %}</label>
-            <input name="price_eur" type="text" value="{{ u.price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input name="price_eur" type="text" value="{{ u.price_eur|stringformat:'.2f' }}" class="ui-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Weekend / night (€, Fr+Sa; 0 = same)" %}</label>
-            <input name="weekend_price_eur" type="text" value="{{ u.weekend_price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input name="weekend_price_eur" type="text" value="{{ u.weekend_price_eur|stringformat:'.2f' }}" class="ui-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€)" %}</label>
-            <input name="deposit_eur" type="text" value="{{ u.deposit_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input name="deposit_eur" type="text" value="{{ u.deposit_eur|stringformat:'.2f' }}" class="ui-input">
           </div>
           {% vat_select u.vat_rate _("Übernachtung 7 %, sonstige Leistungen 19 %.") %}
           {% comment %}Фидбэк 2026-07-30: Lücken-Deal НА ЭТОТ номер — скидка на
@@ -163,26 +163,26 @@
           <input type="hidden" name="gap_present" value="1">
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücken-Deal: max. Nächte (0 = wie allgemein)" %}</label>
-            <input name="gap_max_nights" type="number" min="0" max="14" value="{{ u.gap_max_nights }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input name="gap_max_nights" type="number" min="0" max="14" value="{{ u.gap_max_nights }}" class="ui-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücken-Deal: Rabatt % (0 = wie allgemein)" %}</label>
-            <input name="gap_discount_percent" type="number" min="0" max="70" value="{{ u.gap_discount_percent }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input name="gap_discount_percent" type="number" min="0" max="70" value="{{ u.gap_discount_percent }}" class="ui-input">
           </div>
         </div>
 
         <div data-ut-panel="regeln" class="hidden grid sm:grid-cols-3 gap-3 items-end">
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Quantity (identical units)" %}</label>
-            <input name="quantity" type="number" min="1" value="{{ u.quantity }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input name="quantity" type="number" min="1" value="{{ u.quantity }}" class="ui-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Min. nights" %}</label>
-            <input name="min_nights" type="number" min="1" value="{{ u.min_nights }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input name="min_nights" type="number" min="1" value="{{ u.min_nights }}" class="ui-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Max. guests" %}</label>
-            <input name="max_guests" type="number" min="1" value="{{ u.max_guests }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input name="max_guests" type="number" min="1" value="{{ u.max_guests }}" class="ui-input">
           </div>
           <label class="flex items-center gap-2 text-sm text-gray-600">
             <input type="checkbox" name="require_manual_confirm" {% if u.require_manual_confirm %}checked{% endif %} class="rounded"> {% trans "Manual confirm" %}
@@ -337,38 +337,38 @@
     {% endfor %}
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Type" %}</label>
-      <select name="type" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <select name="type" class="ui-input">
         {% for value, label in types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
       </select>
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Price / night (€)" %}</label>
-      <input name="price_eur" type="text" placeholder="80" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="price_eur" type="text" placeholder="80" class="ui-input">
     </div>
     {% vat_select "7.00" %}
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Quantity (identical units)" %}</label>
-      <input name="quantity" type="number" min="1" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="quantity" type="number" min="1" value="1" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Max. guests" %}</label>
-      <input name="max_guests" type="number" min="1" value="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="max_guests" type="number" min="1" value="2" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Min. nights" %}</label>
-      <input name="min_nights" type="number" min="1" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="min_nights" type="number" min="1" value="1" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</label>
-      <input name="deposit_eur" type="text" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="deposit_eur" type="text" placeholder="0" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Area (m², optional)" %}</label>
-      <input name="area_sqm" type="number" min="0" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="area_sqm" type="number" min="0" placeholder="0" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Bed type (optional)" %}</label>
-      <input name="bed_type" type="text" placeholder="{% trans 'e.g. Doppelbett' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input name="bed_type" type="text" placeholder="{% trans 'e.g. Doppelbett' %}" class="ui-input">
     </div>
     <div class="sm:col-span-2">
       <label class="block text-sm font-medium mb-1">{% trans "Amenities" %}</label>
@@ -450,19 +450,19 @@
     <input type="hidden" name="action" value="rateplan">
     <div class="sm:col-span-2">
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Name" %}</label>
-      <input name="name" type="text" required placeholder="{% trans 'e.g. Nicht erstattbar, Mit Frühstück' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="name" type="text" required placeholder="{% trans 'e.g. Nicht erstattbar, Mit Frühstück' %}" class="ui-input">
     </div>
     <div class="sm:col-span-2">
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Short description (optional)" %}</label>
-      <input name="description" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="description" type="text" class="ui-input">
     </div>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price change (%, e.g. -10)" %}</label>
-      <input name="percent_adjust" type="number" min="-90" max="200" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="percent_adjust" type="number" min="-90" max="200" value="0" class="ui-input">
     </div>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Surcharge / night (€, e.g. breakfast)" %}</label>
-      <input name="surcharge_eur" type="text" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="surcharge_eur" type="text" value="0" class="ui-input">
     </div>
     <div>
       {% comment %}X1: msgid «Board» обслуживал ДВА смысла — вид доски
@@ -470,27 +470,27 @@
       «Verpflegung» (переведён в 5 .po), чтобы перевод одного смысла не ломал
       другой.{% endcomment %}
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Verpflegung" %}</label>
-      <select name="meal_plan" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <select name="meal_plan" class="ui-input">
         {% for value, label in meals %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
       </select>
     </div>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Cancellation" %}</label>
-      <select name="cancellation" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <select name="cancellation" class="ui-input">
         {% for value, label in cancellations %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
       </select>
     </div>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Free cancel until (days before, flexible only)" %}</label>
-      <input name="free_cancel_days" type="number" min="0" max="365" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="free_cancel_days" type="number" min="0" max="365" value="0" class="ui-input">
     </div>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Prepayment (% of total, 0 = none, 100 = full)" %}</label>
-      <input name="prepayment_percent" type="number" min="0" max="100" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="prepayment_percent" type="number" min="0" max="100" value="0" class="ui-input">
     </div>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Sort order" %}</label>
-      <input name="sort_order" type="number" min="0" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="sort_order" type="number" min="0" value="0" class="ui-input">
     </div>
     {% include "stays/_rate_scope_fields.html" with rp=None %}
     <button class="ui-btn ui-btn-primary sm:col-span-2 sm:w-auto">{% trans "Add rate plan" %}</button>
@@ -721,7 +721,7 @@
     </div>
     <div class="w-full">
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "House rules (Hausordnung) — shown as a public page when filled" %}</label>
-      <textarea name="house_rules" rows="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea>
+      <textarea name="house_rules" rows="4" class="ui-input" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea>
     </div>
     <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>

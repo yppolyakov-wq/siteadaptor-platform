@@ -23,11 +23,11 @@
     <h2 class="ui-h2">{% trans "New campaign" %}</h2>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_subject">{% trans "Subject" %}</label>
-      <input id="id_subject" name="subject" type="text" required maxlength="200" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input id="id_subject" name="subject" type="text" required maxlength="200" class="ui-input">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_body">{% trans "Message" %}</label>
-      <textarea id="id_body" name="body" rows="6" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+      <textarea id="id_body" name="body" rows="6" required class="ui-input"></textarea>
     </div>
     <button class="ui-btn ui-btn-primary">{% trans "Save draft" %}</button>
   </form>

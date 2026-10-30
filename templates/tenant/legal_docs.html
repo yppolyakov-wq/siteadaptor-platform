@@ -19,11 +19,11 @@
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium mb-1" for="vat_id">{% trans "USt-IdNr." %}</label>
-          <input id="vat_id" name="vat_id" value="{{ steuer.vat_id }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <input id="vat_id" name="vat_id" value="{{ steuer.vat_id }}" class="ui-input">
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="tax_number">{% trans "Steuernummer" %}</label>
-          <input id="tax_number" name="tax_number" value="{{ steuer.tax_number }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <input id="tax_number" name="tax_number" value="{{ steuer.tax_number }}" class="ui-input">
         </div>
       </div>
       {% comment %}KA-12 B2-8a (T-1): одна радио-группа — когда возникает USt.{% endcomment %}
@@ -38,39 +38,39 @@
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium mb-1" for="legal_form">{% trans "Rechtsform" %}</label>
-          <select id="legal_form" name="legal_form" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select id="legal_form" name="legal_form" class="ui-input">
             <option value="">—</option>
             {% for v, l in legal_forms %}<option value="{{ v }}"{% if steuer.legal_form == v %} selected{% endif %}>{{ l }}</option>{% endfor %}
           </select>
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="legal_representative">{% trans "Vertreten durch (Geschäftsführer/in, Inhaber/in)" %}</label>
-          <input id="legal_representative" name="legal_representative" value="{{ steuer.legal_representative }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <input id="legal_representative" name="legal_representative" value="{{ steuer.legal_representative }}" class="ui-input">
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="register_court">{% trans "Registergericht" %}</label>
-          <input id="register_court" name="register_court" value="{{ steuer.register_court }}" placeholder="Amtsgericht Wuppertal" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <input id="register_court" name="register_court" value="{{ steuer.register_court }}" placeholder="Amtsgericht Wuppertal" class="ui-input">
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="register_number">{% trans "Registernummer" %}</label>
-          <input id="register_number" name="register_number" value="{{ steuer.register_number }}" placeholder="HRB 12345" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <input id="register_number" name="register_number" value="{{ steuer.register_number }}" placeholder="HRB 12345" class="ui-input">
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="chamber">{% trans "Zuständige Kammer (falls vorgeschrieben)" %}</label>
-          <input id="chamber" name="chamber" value="{{ steuer.chamber }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <input id="chamber" name="chamber" value="{{ steuer.chamber }}" class="ui-input">
         </div>
         <div>
           <label class="block text-sm font-medium mb-1" for="profession">{% trans "Berufsbezeichnung (falls reglementiert)" %}</label>
-          <input id="profession" name="profession" value="{{ steuer.profession }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <input id="profession" name="profession" value="{{ steuer.profession }}" class="ui-input">
         </div>
       </div>
       <div>
         <label class="block text-sm font-medium mb-1" for="register_entry">{% trans "Registereintrag (z. B. HRB, Amtsgericht)" %}</label>
-        <input id="register_entry" name="register_entry" value="{{ steuer.register_entry }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <input id="register_entry" name="register_entry" value="{{ steuer.register_entry }}" class="ui-input">
       </div>
       <div>
         <label class="block text-sm font-medium mb-1" for="legal_responsible">{% trans "Inhaltlich verantwortlich (V. i. S. d. P.)" %}</label>
-        <input id="legal_responsible" name="legal_responsible" value="{{ steuer.legal_responsible }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <input id="legal_responsible" name="legal_responsible" value="{{ steuer.legal_responsible }}" class="ui-input">
       </div>
     </fieldset>
     {% for k in kinds %}
@@ -85,7 +85,7 @@
           <div>
             <label class="block text-sm font-medium mb-1" for="doc_{{ k.kind }}_{{ cell.locale }}">{{ cell.locale_label }} <span class="text-gray-400 uppercase text-xs">{{ cell.locale }}</span></label>
             <textarea id="doc_{{ k.kind }}_{{ cell.locale }}" name="doc_{{ k.kind }}_{{ cell.locale }}" rows="6"
-                      class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ cell.text }}</textarea>
+                      class="ui-input">{{ cell.text }}</textarea>
             {% if not cell.text and cell.fallback %}
               <details class="mt-1 text-xs text-gray-400">
                 <summary class="cursor-pointer">{% trans "Preview of the automatic text" %}</summary>
