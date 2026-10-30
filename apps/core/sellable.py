@@ -179,8 +179,12 @@ def _event(obj, locale):
     else:
         price_value = None
     return {
-        "name": obj.get_i18n("title_i18n", locale) or obj.title,
-        "description": obj.get_i18n("description_i18n", locale) or obj.description,
+        # Overlay-семантика: база — плоские поля (у события нет ключа de в оверлее,
+        # `get_i18n` отдавал английский перевод в немецком кабинете «Sortiment»).
+        "name": obj.get_overlay("title", "title_i18n", locale)
+        or obj.get_i18n("title_i18n", locale),
+        "description": obj.get_overlay("description", "description_i18n", locale)
+        or obj.get_i18n("description_i18n", locale),
         "price_display": price,
         "image_url": obj.image_url,
         "gallery": _gallery_urls(obj.images),

@@ -376,12 +376,16 @@ class Event(I18nMixin, TimestampedModel):
     @property
     def title_text(self) -> str:
         """i18n-заголовок для витрины: перевод текущей локали, фолбэк на плоский title."""
-        return self.get_i18n("title_i18n") or self.title
+        # База (de) — плоское `title`: оверлей без ключа de иначе отдавал английский
+        # перевод на немецкой витрине/в кабинете (`get_i18n` падал на «en»).
+        return self.get_overlay("title", "title_i18n") or self.get_i18n("title_i18n")
 
     @property
     def description_text(self) -> str:
         """i18n-описание для витрины: перевод текущей локали, фолбэк на плоское описание."""
-        return self.get_i18n("description_i18n") or self.description
+        return self.get_overlay("description", "description_i18n") or self.get_i18n(
+            "description_i18n"
+        )
 
     @property
     def is_published(self) -> bool:

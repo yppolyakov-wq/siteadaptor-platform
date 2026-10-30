@@ -31,10 +31,12 @@ def test_title_text_uses_locale_overlay():
         assert ev.description_text == "Lecker"
 
 
-def test_unknown_locale_falls_back_to_de():
-    ev = Event(title="X", title_i18n={"de": "Deutsch", "en": "English"})
+def test_unknown_locale_falls_back_to_base_field():
+    # Overlay-семантика (2026-10-30): база — плоское `title`, его правит форма события;
+    # устаревший ключ «de» в оверлее больше не перекрывает переименование.
+    ev = Event(title="Deutsch", title_i18n={"de": "Alt", "en": "English"})
     with translation.override("fr"):
-        assert ev.title_text == "Deutsch"  # фолбэк de
+        assert ev.title_text == "Deutsch"
 
 
 def test_partial_i18n_falls_back_to_flat_field():
