@@ -11,7 +11,7 @@
 <div class="inline-flex items-center gap-0.5 rounded-full bg-white shadow-sm px-1.5 py-1" role="group" aria-label="{% trans 'Editing language' %}" title="{% trans 'You enter data per language' %}">
   <span class="text-sm px-0.5" aria-hidden="true">🌐</span>
   {% for g in i18n_groups %}
-    <button type="button" data-i18n-pill="{{ g.code }}" title="{{ g.label }}" aria-label="{{ g.label }}" aria-pressed="{% if g.is_base %}true{% else %}false{% endif %}" class="i18n-pill{% if g.is_base %} i18n-pill-on{% endif %} text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border border-transparent text-gray-500">{{ g.code }}</button>
+    <button type="button" data-i18n-pill="{{ g.code }}" title="{{ g.label }}" aria-label="{{ g.label }} ({{ g.code }})" aria-pressed="{% if g.is_base %}true{% else %}false{% endif %}" class="i18n-pill{% if g.is_base %} i18n-pill-on{% endif %} text-[11px] font-semibold uppercase px-2 min-h-6 min-w-6 rounded-full border border-transparent text-gray-500">{{ g.code }}</button>
   {% endfor %}
 </div>
 {% endif %}
@@ -48,6 +48,12 @@
   }
   // Табы содержимого: одна панель активна.
   function setTab(t) {
+    // Ревью a11y: ключ без кнопки не трогаем (иначе все вкладки tabindex=-1 и
+    // tablist недостижим с клавиатуры); скрытая кнопка выбранного таба
+    // (Kennzeichnung у не-гастро, открытая из-за ошибки поля) — показываем.
+    var hit = document.querySelector('[data-pf-tab="' + t + '"]');
+    if (!hit) return;
+    hit.classList.remove("hidden");
     document.querySelectorAll("[data-pf-tab]").forEach(function (b) {
       // E9: вкладки — `ui-tab`, состояние несёт aria-selected (стиль из app.css).
       var on = b.getAttribute("data-pf-tab") === t;
@@ -124,6 +130,7 @@
   document.addEventListener("keydown", function (e) {
     var cur = e.target.closest && e.target.closest("[data-pf-tab]");
     if (!cur || ["ArrowLeft", "ArrowRight", "Home", "End"].indexOf(e.key) < 0) return;
+    if (e.altKey || e.ctrlKey || e.metaKey) return;  // Alt+← = «назад» браузера
     var list = cur.closest("[role=tablist]") || document;
     var tabs = Array.prototype.filter.call(list.querySelectorAll("[data-pf-tab]"), function (b) {
       return !b.classList.contains("hidden");

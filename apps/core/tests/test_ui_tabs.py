@@ -82,3 +82,11 @@ def test_tab_script_toggles_aria_not_classes():
     assert ".pf-tab" not in src and "pf-tab-on" not in src
     assert 'setAttribute("aria-selected"' in src and "ArrowRight" in src
     assert 'setAttribute("aria-pressed"' in src  # языковые пилюли
+
+
+def test_tab_script_keeps_one_tab_reachable():
+    """Ревью a11y батча 3: неизвестный ключ не сбрасывает выбор, скрытая кнопка
+    выбранного таба показывается; модификаторы (Alt+←) не перехватываются."""
+    src = (ROOT / "tenant/_i18n_switch.html").read_text()
+    assert "if (!hit) return;" in src and 'hit.classList.remove("hidden")' in src
+    assert "e.altKey || e.ctrlKey || e.metaKey" in src
