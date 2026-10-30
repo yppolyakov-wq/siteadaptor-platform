@@ -26,22 +26,22 @@
 </form>
 
 <div class="ui-card p-4">
-  <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
-  <table class="w-full text-sm min-w-[560px]">
-    <thead class="text-left text-gray-500 border-b">
-      <tr><th scope="col" class="py-2">{% trans "Program" %}</th><th scope="col" class="py-2">{% trans "Stamps" %}</th><th scope="col" class="py-2">{% trans "Reward" %}</th><th scope="col" class="py-2">{% trans "Active" %}</th><th scope="col" class="py-2"></th></tr>
+  <div class="-mx-4 overflow-x-auto sm:mx-0" data-kb-list>
+  <table class="ui-table ui-table-stack">
+    <thead>
+      <tr><th scope="col">{% trans "Program" %}</th><th scope="col">{% trans "Stamps" %}</th><th scope="col">{% trans "Reward" %}</th><th scope="col">{% trans "Active" %}</th><th scope="col"><span class="sr-only">{% trans "Actions" %}</span></th></tr>
     </thead>
     <tbody>
       {% for p in programs %}
-        <tr class="border-b last:border-0">
-          <td class="py-2">{{ p.label }}</td>
-          <td class="py-2">{{ p.stamps_required }}</td>
-          <td class="py-2">{{ p.reward_label }}</td>
-          <td class="py-2">{% if p.is_active %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}</td>
-          <td class="py-2 text-right"><a href="{% url 'promotions:loyalty-stamp' p.pk %}" class="text-indigo-600 hover:underline">{% trans "Add stamp" %}</a></td>
+        <tr>
+          <td data-cell="primary">{{ p.label }}</td>
+          <td>{{ p.stamps_required }}</td>
+          <td>{{ p.reward_label }}</td>
+          <td>{% if p.is_active %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}</td>
+          <td class="text-right" data-cell="actions"><a href="{% url 'promotions:loyalty-stamp' p.pk %}" class="text-indigo-600 hover:underline">{% trans "Add stamp" %}</a></td>
         </tr>
       {% empty %}
-        <tr><td colspan="5" class="py-6 text-center text-gray-400">{% trans "No programs yet." %}</td></tr>
+        <tr><td colspan="5" data-cell="empty" class="py-6 text-center ui-muted">{% trans "No programs yet." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>

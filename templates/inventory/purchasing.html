@@ -57,25 +57,25 @@
 
     <div class="px-4 py-3">
       {% if current.positions.all %}
-        <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
-        <table class="w-full text-sm mb-3 min-w-[640px]">
-          <thead class="text-xs text-gray-400 uppercase tracking-wide">
-            <tr class="border-b border-gray-100">
-              <th scope="col" class="text-left py-1 pr-3 font-medium">{% trans "Artikel" %}</th>
-              <th scope="col" class="text-right py-1 px-2 font-medium">{% trans "Menge" %}</th>
-              <th scope="col" class="text-right py-1 px-2 font-medium">{% trans "EK" %}</th>
-              <th scope="col" class="text-right py-1 px-2 font-medium">{% trans "Empfangen" %}</th>
-              <th scope="col" class="text-right py-1 pl-2 font-medium"></th>
+        <div class="-mx-4 overflow-x-auto sm:mx-0">
+        <table class="ui-table ui-table-stack mb-3">
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Artikel" %}</th>
+              <th scope="col" class="ui-num">{% trans "Menge" %}</th>
+              <th scope="col" class="ui-num">{% trans "EK" %}</th>
+              <th scope="col" class="ui-num">{% trans "Empfangen" %}</th>
+              <th scope="col"><span class="sr-only">{% trans "Actions" %}</span></th>
             </tr>
           </thead>
           <tbody>
             {% for line in current.positions.all %}
-              <tr class="border-b border-gray-50 align-top">
-                <td class="py-1.5 pr-3">{{ line.product }}{% if line.variant %} · {{ line.variant.label }}{% endif %}</td>
-                <td class="py-1.5 px-2 text-right">{{ line.qty }}</td>
-                <td class="py-1.5 px-2 text-right text-gray-500">{{ line.unit_cost|floatformat:2 }} €</td>
+              <tr class="align-top">
+                <td data-cell="primary">{{ line.product }}{% if line.variant %} · {{ line.variant.label }}{% endif %}</td>
+                <td class="ui-num">{{ line.qty }}</td>
+                <td class="ui-num ui-muted">{{ line.unit_cost|floatformat:2 }} €</td>
                 <td class="py-1.5 px-2 text-right {% if line.is_fully_received %}text-green-600 font-semibold{% endif %}">{{ line.qty_received }}/{{ line.qty }}{% if line.qty_returned %} <span class="text-amber-600 font-normal" title="{% trans 'Rücksendung Lieferant' %}">↩&nbsp;{{ line.qty_returned }}</span>{% endif %}</td>
-                <td class="py-1.5 pl-2 text-right">
+                <td class="text-right" data-cell="actions">
                   {% if current.status == 'draft' %}
                     <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_line"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="line" value="{{ line.pk }}"><button aria-label="{% trans 'Entfernen' %}" class="text-xs text-gray-400 hover:text-red-600">🗑</button></form>
                   {% elif current.status == 'ordered' and not line.is_fully_received %}

@@ -24,30 +24,30 @@
   <h2 class="hidden print:block text-lg font-semibold mb-2">{{ day|date:"l, d.m.Y" }}</h2>
 
   {% if rows %}
-  <table class="ui-card p-0 w-full text-sm" data-production-list>
+  <table class="ui-table ui-table-stack ui-card p-0" data-production-list>
     <thead>
-      <tr class="text-left text-gray-500 border-b border-gray-100">
-        <th scope="col" class="px-4 py-2 font-medium">{% trans "Artikel" %}</th>
-        <th scope="col" class="px-4 py-2 font-medium text-right">{% trans "Herstellen" %}</th>
-        <th scope="col" class="px-4 py-2 font-medium text-right">{% trans "Fertig" %}</th>
-        <th scope="col" class="px-4 py-2 font-medium text-right">{% trans "Bestellungen" %}</th>
+      <tr>
+        <th scope="col">{% trans "Artikel" %}</th>
+        <th scope="col" class="ui-num">{% trans "Herstellen" %}</th>
+        <th scope="col" class="ui-num">{% trans "Fertig" %}</th>
+        <th scope="col" class="ui-num">{% trans "Bestellungen" %}</th>
       </tr>
     </thead>
     <tbody>
       {% for r in rows %}
-      <tr class="border-b border-gray-50 last:border-0">
-        <td class="px-4 py-2">{{ r.name }}{% if r.variant_label %} <span class="text-gray-500">· {{ r.variant_label }}</span>{% endif %}{% if r.sku %} <span class="text-xs text-gray-400">{{ r.sku }}</span>{% endif %}</td>
-        <td class="px-4 py-2 text-right text-lg font-bold">{{ r.todo }}</td>
-        <td class="px-4 py-2 text-right text-gray-500">{{ r.done }}</td>
-        <td class="px-4 py-2 text-right text-gray-500">{{ r.orders }}</td>
+      <tr>
+        <td data-cell="primary">{{ r.name }}{% if r.variant_label %} <span class="text-gray-500">· {{ r.variant_label }}</span>{% endif %}{% if r.sku %} <span class="text-xs text-gray-400">{{ r.sku }}</span>{% endif %}</td>
+        <td class="ui-num text-lg font-bold">{{ r.todo }}</td>
+        <td class="ui-num ui-muted">{{ r.done }}</td>
+        <td class="ui-num ui-muted">{{ r.orders }}</td>
       </tr>
       {% endfor %}
     </tbody>
     <tfoot>
-      <tr class="border-t border-gray-200 font-semibold">
-        <th scope="row" class="px-4 py-2 text-left">{% trans "Summe" %}</th>
-        <td class="px-4 py-2 text-right">{{ todo_total }}</td>
-        <td class="px-4 py-2 text-right text-gray-500">{{ done_total }}</td>
+      <tr class="font-semibold">
+        <th scope="row">{% trans "Summe" %}</th>
+        <td class="ui-num">{{ todo_total }}</td>
+        <td class="ui-num ui-muted">{{ done_total }}</td>
         <td></td>
       </tr>
     </tfoot>

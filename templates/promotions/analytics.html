@@ -6,33 +6,33 @@
 {% comment %}SM-4: страница — подпункт «Verkäufe» в сайдбаре (settings-бар снят).{% endcomment %}
 <h1 class="ui-h1 mb-4">{% nav_title _("Promotion analytics") %}</h1>
 
-<div class="ui-card p-4 overflow-x-auto">
-  <table class="w-full text-sm">
-    <thead class="text-left text-gray-500 border-b">
+<div class="ui-card p-0 overflow-x-auto" data-kb-list>
+  <table class="ui-table ui-table-stack">
+    <thead>
       <tr>
-        <th scope="col" class="py-2">{% trans "Promotion" %}</th>
-        <th scope="col" class="py-2">{% trans "Status" %}</th>
-        <th scope="col" class="py-2 text-right">{% trans "Views" %}</th>
+        <th scope="col">{% trans "Promotion" %}</th>
+        <th scope="col">{% trans "Status" %}</th>
+        <th scope="col" class="ui-num">{% trans "Views" %}</th>
         {# P7 «ценовой слой»: сделки стандартных рельсов (заказы/брони) отдельной колонкой. #}
-        <th scope="col" class="py-2 text-right">{% trans "Verkäufe" %}</th>
-        <th scope="col" class="py-2 text-right">{% trans "Reservations" %}</th>
-        <th scope="col" class="py-2 text-right">{% trans "Fulfilled" %}</th>
-        <th scope="col" class="py-2 text-right">{% trans "Conversion" %}</th>
+        <th scope="col" class="ui-num">{% trans "Verkäufe" %}</th>
+        <th scope="col" class="ui-num">{% trans "Reservations" %}</th>
+        <th scope="col" class="ui-num">{% trans "Fulfilled" %}</th>
+        <th scope="col" class="ui-num">{% trans "Conversion" %}</th>
       </tr>
     </thead>
     <tbody>
       {% for r in rows %}
-        <tr class="border-b last:border-0">
-          <td class="py-2"><a href="{% url 'promotions:promotion-edit' r.promo.pk %}" class="text-indigo-600 hover:underline">{{ r.promo.title_text|default:r.promo.pk }}</a></td>
-          <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-gray-100">{{ r.promo.get_status_display }}</span></td>
-          <td class="py-2 text-right">{{ r.views }}</td>
-          <td class="py-2 text-right font-medium">{{ r.n_deals }}</td>
-          <td class="py-2 text-right">{{ r.n_res }}</td>
-          <td class="py-2 text-right">{{ r.n_fulfilled }}</td>
-          <td class="py-2 text-right">{% if r.conversion is not None %}{{ r.conversion }} %{% else %}—{% endif %}</td>
+        <tr>
+          <td data-cell="primary"><a href="{% url 'promotions:promotion-edit' r.promo.pk %}" class="text-indigo-600 hover:underline">{{ r.promo.title_text|default:r.promo.pk }}</a></td>
+          <td><span class="ui-badge {% if r.promo.status == 'active' %}ui-tone-ok{% else %}ui-tone-off{% endif %}">{{ r.promo.get_status_display }}</span></td>
+          <td class="ui-num">{{ r.views }}</td>
+          <td class="ui-num font-medium">{{ r.n_deals }}</td>
+          <td class="ui-num">{{ r.n_res }}</td>
+          <td class="ui-num">{{ r.n_fulfilled }}</td>
+          <td class="ui-num">{% if r.conversion is not None %}{{ r.conversion }} %{% else %}—{% endif %}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="7" class="py-6 text-center text-gray-400">{% trans "No promotions yet." %}</td></tr>
+        <tr><td colspan="7" data-cell="empty" class="py-6 text-center ui-muted">{% trans "No promotions yet." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>

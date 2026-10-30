@@ -17,10 +17,10 @@
         return th.textContent.replace(/\s+/g, " ").trim();
       });
       t.setAttribute("role", "table");
-      t.querySelectorAll("thead, tbody").forEach(function (g) { g.setAttribute("role", "rowgroup"); });
+      t.querySelectorAll("thead, tbody, tfoot").forEach(function (g) { g.setAttribute("role", "rowgroup"); });
       t.querySelectorAll("tr").forEach(function (tr) { tr.setAttribute("role", "row"); });
       t.querySelectorAll("thead th").forEach(function (th) { th.setAttribute("role", "columnheader"); });
-      t.querySelectorAll("tbody tr").forEach(function (tr) {
+      t.querySelectorAll("tbody tr, tfoot tr").forEach(function (tr) {
         var col = 0;
         Array.prototype.forEach.call(tr.children, function (cell) {
           if (cell.tagName === "TH") { cell.setAttribute("role", "rowheader"); }

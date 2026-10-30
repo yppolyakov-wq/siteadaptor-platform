@@ -381,28 +381,28 @@
     </form>
   {% endif %}
   {% if rows %}
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="text-xs text-gray-400 uppercase tracking-wide">
-          <tr class="border-b border-gray-100">
-            <th scope="col" class="text-left px-4 py-2 font-medium">{% trans "Produkt" %}</th>
-            <th scope="col" class="text-right px-4 py-2 font-medium">{% trans "Zähler" %}</th>
-            <th scope="col" class="text-right px-4 py-2 font-medium">{% trans "Ledger" %}</th>
-            <th scope="col" class="text-right px-4 py-2 font-medium">{% trans "Wert" %}</th>
-            <th scope="col" class="text-right px-4 py-2 font-medium">{% trans "Marge" %}</th>
-            <th scope="col" class="text-right px-4 py-2 font-medium">{% trans "Status" %}</th>
+    <div class="overflow-x-auto" data-kb-list>
+      <table class="ui-table ui-table-stack">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Produkt" %}</th>
+            <th scope="col" class="ui-num">{% trans "Zähler" %}</th>
+            <th scope="col" class="ui-num">{% trans "Ledger" %}</th>
+            <th scope="col" class="ui-num">{% trans "Wert" %}</th>
+            <th scope="col" class="ui-num">{% trans "Marge" %}</th>
+            <th scope="col" class="ui-num">{% trans "Status" %}</th>
           </tr>
         </thead>
         <tbody>
           {% for r in rows %}
             {% with entity=r.variant|default:r.product %}
-            <tr class="border-b border-gray-50">
-              <td class="px-4 py-2 truncate"><a href="?history={{ r.value }}" class="hover:text-indigo-700" title="{% trans 'Verlauf anzeigen' %}">{{ r.label }}</a></td>
-              <td class="px-4 py-2 text-right font-semibold">{{ r.counter }}</td>
-              <td class="px-4 py-2 text-right text-gray-500">{{ r.ledger }}</td>
-              <td class="px-4 py-2 text-right text-gray-500">{% if entity.stock_value != None %}{{ entity.stock_value|floatformat:2 }} €{% else %}—{% endif %}</td>
+            <tr>
+              <td class="truncate" data-cell="primary"><a href="?history={{ r.value }}" class="hover:text-indigo-700" title="{% trans 'Verlauf anzeigen' %}">{{ r.label }}</a></td>
+              <td class="ui-num font-semibold">{{ r.counter }}</td>
+              <td class="ui-num ui-muted">{{ r.ledger }}</td>
+              <td class="ui-num ui-muted">{% if entity.stock_value != None %}{{ entity.stock_value|floatformat:2 }} €{% else %}—{% endif %}</td>
               <td class="px-4 py-2 text-right {% if entity.margin_pct != None and entity.margin_pct < 0 %}text-red-600{% else %}text-gray-500{% endif %}">{% if entity.margin_pct != None %}{{ entity.margin_pct }} %{% else %}—{% endif %}</td>
-              <td class="px-4 py-2 text-right">
+              <td class="ui-num">
                 {% if r.ok %}<span class="text-green-600">✓</span>
                 {% else %}<span class="text-red-600">{{ r.diff|stringformat:"+d" }}</span>{% endif %}
               </td>

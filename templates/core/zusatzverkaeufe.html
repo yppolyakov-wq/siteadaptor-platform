@@ -70,28 +70,28 @@
 </div>
 {% endif %}
 
-<div class="overflow-x-auto rounded-xl border border-gray-200">
-  <table class="min-w-full text-sm">
-    <thead class="bg-gray-50 text-left text-xs text-gray-500">
+<div class="ui-card p-0 overflow-x-auto" data-kb-list>
+  <table class="ui-table ui-table-stack">
+    <thead>
       <tr>
-        <th scope="col" class="px-4 py-2">{% trans "Tag" %}</th>
-        <th scope="col" class="px-4 py-2">{% trans "Zusatzleistung" %}</th>
-        <th scope="col" class="px-4 py-2">{% trans "Bereich" %}</th>
-        <th scope="col" class="px-4 py-2">{% trans "Verkauf" %}</th>
-        <th scope="col" class="px-4 py-2 text-right">{% trans "Amount" %}</th>
+        <th scope="col">{% trans "Tag" %}</th>
+        <th scope="col">{% trans "Zusatzleistung" %}</th>
+        <th scope="col">{% trans "Bereich" %}</th>
+        <th scope="col">{% trans "Verkauf" %}</th>
+        <th scope="col" class="ui-num">{% trans "Amount" %}</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody>
       {% for r in rows %}
       <tr>
-        <td class="px-4 py-2 whitespace-nowrap">{{ r.day|date:"d.m.Y" }}</td>
-        <td class="px-4 py-2 font-medium">{{ r.label }}</td>
-        <td class="px-4 py-2 text-gray-500">{{ r.kind_label }}</td>
-        <td class="px-4 py-2"><a href="{{ r.deal_url }}" class="text-indigo-600 hover:underline">{{ r.deal_ref }}</a></td>
-        <td class="px-4 py-2 text-right">{{ r.amount_eur|floatformat:2 }} €</td>
+        <td class="whitespace-nowrap" data-cell="primary">{{ r.day|date:"d.m.Y" }}</td>
+        <td class="font-medium">{{ r.label }}</td>
+        <td class="ui-muted">{{ r.kind_label }}</td>
+        <td><a href="{{ r.deal_url }}" class="text-indigo-600 hover:underline">{{ r.deal_ref }}</a></td>
+        <td class="ui-num">{{ r.amount_eur|floatformat:2 }} €</td>
       </tr>
       {% empty %}
-      <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">{% trans "Keine Zusatzverkäufe im Zeitraum." %}</td></tr>
+      <tr><td colspan="5" data-cell="empty" class="py-6 text-center ui-muted">{% trans "Keine Zusatzverkäufe im Zeitraum." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>

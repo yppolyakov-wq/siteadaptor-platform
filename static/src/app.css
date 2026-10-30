@@ -1736,7 +1736,7 @@ input[type="datetime-local"] {
      (скрипт хрома проставляет data-label); без скрипта — обычная таблица. */
   @media (max-width: 767.98px) {
     .ui-table-stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    .ui-table-stack, .ui-table-stack tbody, .ui-table-stack tr, .ui-table-stack td { display: block; width: 100%; }
+    .ui-table-stack, .ui-table-stack tbody, .ui-table-stack tfoot, .ui-table-stack tr, .ui-table-stack td, .ui-table-stack tbody th, .ui-table-stack tfoot th { display: block; width: 100%; }
     .ui-table-stack tr { padding: .5rem 0; border-bottom: 1px solid var(--ui-line); }
     .ui-table-stack tbody tr:last-child { border-bottom: 0; }
     .ui-table-stack td { border: 0; padding: .1875rem .75rem; display: flex; gap: .75rem; justify-content: space-between; text-align: right; }

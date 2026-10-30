@@ -75,29 +75,29 @@
     </select>
   </form>
 
-  <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
-  <table class="w-full text-sm min-w-[640px]">
-    <thead class="text-left text-gray-500 border-b">
+  <div class="-mx-4 overflow-x-auto sm:mx-0" data-kb-list>
+  <table class="ui-table ui-table-stack">
+    <thead>
       <tr>
-        <th scope="col" class="py-2">{% trans "Code" %}</th>
-        <th scope="col" class="py-2">{% trans "Promotion" %}</th>
-        <th scope="col" class="py-2">{% trans "Customer" %}</th>
-        <th scope="col" class="py-2">{% trans "Qty" %}</th>
-        <th scope="col" class="py-2">{% trans "Status" %}</th>
-        <th scope="col" class="py-2">{% trans "Expires" %}</th>
-        <th scope="col" class="py-2"></th>
+        <th scope="col">{% trans "Code" %}</th>
+        <th scope="col">{% trans "Promotion" %}</th>
+        <th scope="col">{% trans "Customer" %}</th>
+        <th scope="col" class="ui-num">{% trans "Qty" %}</th>
+        <th scope="col">{% trans "Status" %}</th>
+        <th scope="col">{% trans "Expires" %}</th>
+        <th scope="col"><span class="sr-only">{% trans "Actions" %}</span></th>
       </tr>
     </thead>
     <tbody>
       {% for r in reservations %}
-        <tr class="border-b last:border-0">
-          <td class="py-2 font-mono">{{ r.reference_code }}</td>
-          <td class="py-2">{{ r.promotion }}</td>
-          <td class="py-2">{{ r.customer }}<div class="text-xs text-gray-400">{% if hide_contacts %}{{ r.customer.email|mask_email }} {{ r.customer.phone|mask_phone }}{% else %}{{ r.customer.email }} {{ r.customer.phone }}{% endif %}</div></td>
-          <td class="py-2">{{ r.quantity }}</td>
-          <td class="py-2"><span class="ui-badge {% status_tone "reservation" r.status %}">{% status_label r "reservation" %}</span></td>
-          <td class="py-2 text-gray-500">{{ r.expires_at|default:"—" }}</td>
-          <td class="py-2 text-right whitespace-nowrap">
+        <tr>
+          <td class="font-mono" data-cell="primary">{{ r.reference_code }}</td>
+          <td>{{ r.promotion }}</td>
+          <td>{{ r.customer }}<div class="text-xs text-gray-400">{% if hide_contacts %}{{ r.customer.email|mask_email }} {{ r.customer.phone|mask_phone }}{% else %}{{ r.customer.email }} {{ r.customer.phone }}{% endif %}</div></td>
+          <td class="ui-num">{{ r.quantity }}</td>
+          <td><span class="ui-badge {% status_tone "reservation" r.status %}">{% status_label r "reservation" %}</span></td>
+          <td class="ui-muted">{{ r.expires_at|default:"—" }}</td>
+          <td class="text-right whitespace-nowrap" data-cell="actions">
             {% if r.status == 'pending' %}
               <form method="post" action="{% url 'promotions:reservation-action' r.pk %}" class="inline">
                 {% csrf_token %}<input type="hidden" name="action" value="confirm">
@@ -122,7 +122,7 @@
           </td>
         </tr>
       {% empty %}
-        <tr><td colspan="7" class="py-6 text-center text-gray-400">{% trans "No reservations." %}</td></tr>
+        <tr><td colspan="7" data-cell="empty" class="py-6 text-center ui-muted">{% trans "No reservations." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
