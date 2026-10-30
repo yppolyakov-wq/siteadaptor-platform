@@ -1727,8 +1727,7 @@ input[type="datetime-local"] {
   .ui-table th { text-align: left; font-size: .75rem; font-weight: 600; color: var(--ui-muted); padding: .5rem .75rem; border-bottom: 1px solid var(--ui-line); white-space: nowrap; }
   .ui-table td { padding: .5rem .75rem; border-bottom: 1px solid var(--ui-line); vertical-align: middle; }
   .ui-table tbody tr:last-child td { border-bottom: 0; }
-  .ui-table tbody tr:hover, .ui-table tbody tr[data-kb-active] { background: var(--ui-accent-soft); }
-  .ui-table tbody tr:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -2px; }
+  .ui-table tbody tr:hover, .ui-table tbody tr:focus-within { background: var(--ui-accent-soft); }
   .ui-table .ui-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   @media (min-width: 1024px) {
     .ui-table th, .ui-table td { padding: .375rem .75rem; }
@@ -1741,9 +1740,10 @@ input[type="datetime-local"] {
     .ui-table-stack tr { padding: .5rem 0; border-bottom: 1px solid var(--ui-line); }
     .ui-table-stack tbody tr:last-child { border-bottom: 0; }
     .ui-table-stack td { border: 0; padding: .1875rem .75rem; display: flex; gap: .75rem; justify-content: space-between; text-align: right; }
-    .ui-table-stack td[data-label]::before { content: attr(data-label); color: var(--ui-muted); font-size: .75rem; font-weight: 600; text-align: left; flex: 0 0 auto; max-width: 45%; }
+    .ui-table-stack td[data-label]::before { content: attr(data-label); content: attr(data-label) / ""; color: var(--ui-muted); font-size: .75rem; font-weight: 600; text-align: left; flex: 0 0 auto; max-width: 45%; }
     .ui-table-stack td[data-cell="primary"] { font-weight: 600; text-align: left; justify-content: flex-start; }
     .ui-table-stack td[data-cell="primary"]::before, .ui-table-stack td[data-cell="actions"]::before { content: none; }
     .ui-table-stack td[data-cell="actions"] { justify-content: flex-start; flex-wrap: wrap; padding-top: .5rem; }
+    .ui-table-stack td[data-cell="empty"] { justify-content: center; text-align: center; }
   }
 }

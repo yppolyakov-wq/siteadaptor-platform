@@ -2,9 +2,9 @@
 1) Таблицы `.ui-table-stack`: подпись каждой ячейки берётся из <th> её колонки
    (data-label) — на телефоне строка становится карточкой «подпись: значение».
    Явные роли сохраняют семантику таблицы, когда CSS делает ячейки блоками.
-2) Списки `[data-kb-list]`: ↓/↑ и j/k — по строкам, Enter — открыть, Home/End,
-   «/» — фокус в поиск страницы ([data-kb-search]). Клавиши работают ТОЛЬКО при
-   фокусе внутри списка (WCAG 2.1.4: одиночные буквы не перехватываются глобально).{% endcomment %}
+2) Списки `[data-kb-list]`: ↓/↑ и j/k — фокус на ссылку соседней строки, Home/End,
+   «/» — фокус в поиск страницы ([data-kb-search]); Enter — нативный у ссылки. Клавиши
+   работают ТОЛЬКО при фокусе внутри списка (WCAG 2.1.4); строки фокус не получают.{% endcomment %}
 <script>
 (function () {
   "use strict";
@@ -26,8 +26,8 @@
           if (cell.tagName === "TH") { cell.setAttribute("role", "rowheader"); }
           else { cell.setAttribute("role", "cell"); }
           var label = heads[col];
-          if (label && !cell.hasAttribute("data-label") && !cell.hasAttribute("data-cell")) {
-            cell.setAttribute("data-label", label);
+          if (label && !cell.hasAttribute("data-cell")) {
+            cell.setAttribute("data-label", label);  // и после fetch-подмены — свежая
           }
           col += parseInt(cell.getAttribute("colspan") || "1", 10);
         });
@@ -35,23 +35,18 @@
     });
   }
 
+  // Строки списка = строки, в которых есть что открыть (первая ссылка/кнопка).
+  // Сами строки фокус не получают (ревью a11y): стрелки и j/k переводят фокус на
+  // «якорь» соседней строки, Tab ходит как обычно, Enter — нативный у ссылки.
+  function anchorOf(row) {
+    return row.querySelector("a[href], button:not([disabled])");
+  }
   function rowsOf(list) {
     var rows = list.querySelectorAll("[data-kb-row]");
     if (!rows.length) rows = list.querySelectorAll("tbody tr");
-    return Array.prototype.filter.call(rows, function (r) { return r.offsetParent !== null; });
-  }
-  function activate(list, row) {
-    rowsOf(list).forEach(function (r) { r.removeAttribute("data-kb-active"); r.tabIndex = -1; });
-    row.setAttribute("data-kb-active", "");
-    row.tabIndex = 0;
-    row.focus();
-    row.scrollIntoView({ block: "nearest" });
-  }
-  function openRow(row) {
-    var href = row.getAttribute("data-kb-href");
-    if (href) { window.location.href = href; return; }
-    var a = row.querySelector("a[href]");
-    if (a) a.click();
+    return Array.prototype.filter.call(rows, function (r) {
+      return r.offsetParent !== null && anchorOf(r);
+    });
   }
   function isField(el) {
     return el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
@@ -62,20 +57,23 @@
     var t = e.target;
     var list = t && t.closest && t.closest("[data-kb-list]");
     if (!list || isField(t) || document.querySelector("dialog[open]")) return;
+    var k = e.key;
+    if (k === "/") {
+      var s = document.querySelector("[data-kb-search]");
+      if (s) { e.preventDefault(); s.focus(); if (s.select) s.select(); }
+      return;
+    }
+    if (["ArrowDown", "ArrowUp", "j", "k", "Home", "End"].indexOf(k) < 0) return;
     var rows = rowsOf(list);
     if (!rows.length) return;
     var cur = t.closest("[data-kb-row], tbody tr");
     var i = cur ? rows.indexOf(cur) : -1;
-    var k = e.key;
-    if (k === "ArrowDown" || k === "j") { e.preventDefault(); activate(list, rows[Math.min(i + 1, rows.length - 1)]); }
-    else if (k === "ArrowUp" || k === "k") { e.preventDefault(); activate(list, rows[Math.max(i - 1, 0)]); }
-    else if (k === "Home") { e.preventDefault(); activate(list, rows[0]); }
-    else if (k === "End") { e.preventDefault(); activate(list, rows[rows.length - 1]); }
-    else if (k === "Enter" && cur && t === cur) { e.preventDefault(); openRow(cur); }
-    else if (k === "/") {
-      var s = document.querySelector("[data-kb-search]");
-      if (s) { e.preventDefault(); s.focus(); if (s.select) s.select(); }
-    }
+    var next = k === "Home" ? 0 : k === "End" ? rows.length - 1
+      : (k === "ArrowDown" || k === "j") ? Math.min(i + 1, rows.length - 1) : Math.max(i - 1, 0);
+    e.preventDefault();
+    var a = anchorOf(rows[next]);
+    a.focus();
+    rows[next].scrollIntoView({ block: "nearest" });
   });
 
   if (document.readyState === "loading") {

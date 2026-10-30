@@ -34,7 +34,7 @@
         <td class="font-mono text-xs">{% if i.manage_url %}<a href="{{ i.manage_url }}" class="text-indigo-600 hover:underline">{{ i.code }}</a>{% else %}{{ i.code }}{% endif %}</td>
         <td>{{ i.customer|default:"—" }}</td>
         <td class="ui-num font-medium">{{ i.amount|floatformat:2 }} €</td>
-        <td class="ui-num {% if i.age_days > 14 %}text-red-600{% elif i.age_days > 7 %}text-amber-600{% endif %}">{% blocktrans with n=i.age_days %}{{ n }} Tage{% endblocktrans %}{% comment %}SH-23b: срок оплаты — просроченное красным.{% endcomment %}{% if i.due_date %}<span class="block text-xs {% if i.due_date < today %}text-red-600 font-medium{% else %}text-gray-400{% endif %}">{% blocktrans with due=i.due_date|date:"d.m.Y" %}fällig {{ due }}{% endblocktrans %}</span>{% endif %}</td>
+        <td class="ui-num {% if i.age_days > 14 %}text-red-700{% elif i.age_days > 7 %}text-amber-800{% endif %}">{% blocktrans with n=i.age_days %}{{ n }} Tage{% endblocktrans %}{% comment %}SH-23b: срок оплаты — просроченное красным.{% endcomment %}{% if i.due_date %}<span class="block text-xs {% if i.due_date < today %}text-red-700 font-medium{% else %}text-gray-600{% endif %}">{% if i.due_date < today %}<span class="sr-only">{% trans "Überfällig" %}: </span>{% endif %}{% blocktrans with due=i.due_date|date:"d.m.Y" %}fällig {{ due }}{% endblocktrans %}</span>{% endif %}</td>
         <td class="text-right" data-cell="actions">
           {% if i.kind == "invoice" %}
           <form method="post" action="{% url 'finance:invoice-mahnung' i.obj.pk %}" class="inline">{% csrf_token %}
@@ -44,7 +44,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="6" data-cell="primary" class="py-6 text-center ui-muted">{% trans "Keine offenen Posten — alles bezahlt." %}</td></tr>
+      <tr><td colspan="6" data-cell="empty" class="py-6 text-center ui-muted">{% trans "Keine offenen Posten — alles bezahlt." %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
