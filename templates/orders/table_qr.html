@@ -12,9 +12,9 @@
         <label class="text-sm text-gray-600">{% trans "Tables" %}</label>
         <input name="count" type="number" min="1" max="60" value="{{ count }}"
                class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-        <button class="text-sm rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Update" %}</button>
+        <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Update" %}</button>
       </form>
-      <button onclick="window.print()" class="text-sm rounded-lg bg-indigo-600 text-white px-3 py-1.5 hover:bg-indigo-700">🖨 {% trans "Print" %}</button>
+      <button onclick="window.print()" class="ui-btn ui-btn-primary ui-btn-sm">🖨 {% trans "Print" %}</button>
     </div>
   </div>
   <p class="text-sm text-gray-500 mb-6 print:hidden">{% trans "Print, cut out and place a QR code on each table. Guests scan it to open the menu and order — the order is linked to the table." %}</p>

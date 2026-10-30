@@ -24,7 +24,7 @@
       <option value="">{% trans "— Lieferant (optional) —" %}</option>
       {% for s in suppliers %}{% if s.is_active %}<option value="{{ s.pk }}">{{ s.name }}</option>{% endif %}{% endfor %}
     </select>
-    <button class="w-full text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Entwurf anlegen" %}</button>
+    <button class="ui-btn ui-btn-primary ui-btn-sm w-full">{% trans "Entwurf anlegen" %}</button>
   </form>
   <form method="post" class="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
     {% csrf_token %}
@@ -46,7 +46,7 @@
       </div>
       <div class="flex items-center gap-2">
         {% if current.status == 'draft' %}
-          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="set_status"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="status" value="ordered"><button class="text-xs bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Als bestellt markieren" %}</button></form>
+          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="set_status"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="status" value="ordered"><button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Als bestellt markieren" %}</button></form>
         {% endif %}
         {% if current.status == 'draft' or current.status == 'ordered' %}
           <form method="post">{% csrf_token %}<input type="hidden" name="action" value="set_status"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="status" value="cancelled"><button class="text-xs border border-red-300 text-red-700 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Stornieren" %}</button></form>

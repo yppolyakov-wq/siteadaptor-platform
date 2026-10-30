@@ -51,7 +51,7 @@ main-колонка (языки/название/описание/фото) + п
       {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
 
       <div class="flex gap-3 items-center">
-        <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+        <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
         <a href="{% url 'catalog:category-list' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
         {% comment %}SR-4: Delete живёт в форме (список — плитки без действий).{% endcomment %}
         {% if category %}<a href="{% url 'catalog:category-delete' category.pk %}" class="ml-auto px-4 py-2 text-sm text-red-600 hover:underline">{% trans "Delete" %}</a>{% endif %}

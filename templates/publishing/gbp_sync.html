@@ -21,7 +21,7 @@
     {% else %}
       <p class="text-sm text-gray-600 mb-3">{% trans "Noch nicht mit Google verbunden." %}</p>
       <a href="{% url 'channel-oauth-start' 'google_business' %}"
-         class="inline-block bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+         class="ui-btn ui-btn-primary">
         🔗 {% trans "Connect with Google" %}
       </a>
     {% endif %}
@@ -97,7 +97,7 @@
     <div class="flex flex-wrap gap-2">
       <form method="post" action="{% url 'gbp-hours' %}">
         {% csrf_token %}<input type="hidden" name="action" value="preview">
-        <button type="submit" class="border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">{% trans "Vergleichen" %}</button>
+        <button type="submit" class="ui-btn ui-btn-secondary">{% trans "Vergleichen" %}</button>
       </form>
       <form method="post" action="{% url 'gbp-hours' %}">
         {% csrf_token %}<input type="hidden" name="action" value="push">
@@ -115,7 +115,7 @@
             <input type="checkbox" name="confirm" value="pull" required> {% trans "Ja, diese Zeiten übernehmen" %}
           </label>
         {% endif %}
-        <button type="submit" class="border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">{% trans "Von Google übernehmen" %}</button>
+        <button type="submit" class="ui-btn ui-btn-secondary">{% trans "Von Google übernehmen" %}</button>
       </form>
     </div>
   </section>

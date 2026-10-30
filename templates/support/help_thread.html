@@ -35,7 +35,7 @@
 <form method="post" class="bg-white rounded-2xl shadow-sm p-4 max-w-2xl">{% csrf_token %}
   <textarea name="body" rows="3" required placeholder="{% trans 'Write a message…' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
   <div class="text-right mt-2">
-    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Send" %}</button>
+    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Send" %}</button>
   </div>
 </form>
 {% endblock %}

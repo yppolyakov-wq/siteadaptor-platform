@@ -28,7 +28,7 @@
       <div class="flex items-center gap-3">
         <span class="text-sm font-semibold {% if p.credits_left %}text-gray-800{% else %}text-red-600{% endif %}">{{ p.credits_left }}/{{ p.credits_total }} {% trans "left" %}</span>
         <form method="post">{% csrf_token %}<input type="hidden" name="action" value="redeem"><input type="hidden" name="pass" value="{{ p.pk }}">
-          <button {% if not p.is_valid %}disabled{% endif %} class="bg-indigo-600 disabled:opacity-40 text-white rounded-lg px-3 py-1.5 text-sm hover:bg-indigo-700">−1 {% trans "Visit" %}</button>
+          <button {% if not p.is_valid %}disabled{% endif %} class="ui-btn ui-btn-primary ui-btn-sm disabled:opacity-40">−1 {% trans "Visit" %}</button>
         </form>
         <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="pass" value="{{ p.pk }}">
           <button class="text-xs text-gray-500 hover:underline">{% if p.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
@@ -68,7 +68,7 @@
       <input name="valid_until" type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
   </div>
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Issue pass" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Issue pass" %}</button>
 </form>
 
 {# A3: тарифы для онлайн-продажи Mehrfachkarte #}
@@ -121,6 +121,6 @@
       <input name="valid_days" type="number" min="0" max="3650" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
   </div>
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add plan" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add plan" %}</button>
 </form>
 {% endblock %}

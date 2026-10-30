@@ -10,7 +10,7 @@
     соседняя задача — разослать персональные коды; экраны остаются раздельными.{% endcomment %}
     {% if not lite %}
     {% if campaigns_active %}
-      <a href="{% url 'promotions:coupon-campaigns' %}" class="border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50">🎟 {% trans "Kampagnen" %}</a>
+      <a href="{% url 'promotions:coupon-campaigns' %}" class="ui-btn ui-btn-secondary">🎟 {% trans "Kampagnen" %}</a>
     {% endif %}
     {# C2: цель QR-печатки — дропдаун (модуль-неактивные цели сервер вернёт на витрину). #}
     <details class="relative">
@@ -25,9 +25,9 @@
     </details>
     {% comment %}T-8.4: «＋» ведёт в ассистент (три шага с телефона); полная форма
     остаётся рядом («Alle Felder»).{% endcomment %}
-    <a href="{% url 'promotions:promotion-create' %}" class="border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50">{% trans "Alle Felder" %}</a>
+    <a href="{% url 'promotions:promotion-create' %}" class="ui-btn ui-btn-secondary">{% trans "Alle Felder" %}</a>
     {% endif %}
-    <a href="{% url 'promotions:promotion-quick' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700" data-quick-new>
+    <a href="{% url 'promotions:promotion-quick' %}" class="ui-btn ui-btn-primary" data-quick-new>
       ＋ {% trans "Neue Aktion" %}
     </a>
   </div>

@@ -96,8 +96,8 @@ max-w-3xl умерла — карта процесса на всю ширину,
       <h2 class="ui-h2 mb-1">💳 {% trans "Zahlarten & Lieferung" %}</h2>
       <p class="text-xs ui-muted mb-3">{% trans "Zahlarten, Vorkasse-Bankdaten, Versandkosten und Liefergebiet — gelten für alle Bestellungen." %}</p>
       <div class="flex flex-wrap gap-2">
-        <a href="{% url 'payment-settings' %}" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Zahlarten & Lieferung einstellen" %} →</a>
-        <a href="{% url 'notifications-settings' %}" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Benachrichtigungen" %} →</a>
+        <a href="{% url 'payment-settings' %}" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Zahlarten & Lieferung einstellen" %} →</a>
+        <a href="{% url 'notifications-settings' %}" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Benachrichtigungen" %} →</a>
       </div>
     </section>
     {% endif %}

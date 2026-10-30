@@ -51,7 +51,7 @@
 {% if job.status == "previewed" %}
 <form method="post">
   {% csrf_token %}
-  <button type="submit" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700">
+  <button type="submit" class="ui-btn ui-btn-primary">
     {% trans "Run import" %} ({{ job.ok_rows }})
   </button>
 </form>

@@ -96,7 +96,7 @@
       </label>
       <p class="text-xs ui-muted -mt-2">{% trans "Guests pick any dishes of the category at à la carte prices — choice groups below are ignored." %}</p>
     </div>
-    <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>
 
   {% if combo %}
@@ -120,7 +120,7 @@
             {% comment %}MEN-2: фикс-состав — показывается плитками, гость не выбирает.{% endcomment %}
             <label class="flex items-center gap-1 text-sm pb-1.5" title="{% trans 'Shown as part of the set — guests do not choose; cost is in the fixed price.' %}"><input type="checkbox" name="included" {% if g.included %}checked{% endif %} class="rounded border-gray-300">{% trans "In set" %}</label>
             <label class="flex items-center gap-1 text-sm pb-1.5"><input type="checkbox" name="is_active" {% if g.is_active %}checked{% endif %} class="rounded border-gray-300">{% trans "Active" %}</label>
-            <button class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50">{% trans "Save" %}</button>
+            <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Save" %}</button>
           </form>
 
           {# Опции группы #}
@@ -133,7 +133,7 @@
                 <input name="delta" value="{{ o.price_delta }}" class="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm" aria-label="delta"> €
                 <input name="sort" type="number" value="{{ o.sort_order }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1 text-sm" aria-label="sort">
                 <label class="flex items-center gap-1"><input type="checkbox" name="is_active" {% if o.is_active %}checked{% endif %} class="rounded border-gray-300">{% trans "Active" %}</label>
-                <button class="rounded border border-gray-300 px-2 py-1 hover:bg-gray-50">{% trans "Save" %}</button>
+                <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Save" %}</button>
                 <button formaction="{% url 'catalog:combo-option-delete' combo.pk g.pk o.pk %}" class="text-red-500">&times;</button>
               </form>
             {% endfor %}

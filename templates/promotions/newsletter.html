@@ -29,7 +29,7 @@
       <label class="block text-sm font-medium mb-1" for="id_body">{% trans "Message" %}</label>
       <textarea id="id_body" name="body" rows="6" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
     </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save draft" %}</button>
+    <button class="ui-btn ui-btn-primary">{% trans "Save draft" %}</button>
   </form>
 
   {# Список кампаний #}
@@ -49,7 +49,7 @@
           <form method="post" onsubmit="return confirm('{% trans "Send this newsletter to all confirmed guests?" %}');">
             {% csrf_token %}
             <input type="hidden" name="action" value="send"><input type="hidden" name="campaign" value="{{ c.pk }}">
-            <button class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Send" %}</button>
+            <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Send" %}</button>
           </form>
           <form method="post">
             {% csrf_token %}

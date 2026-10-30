@@ -113,7 +113,7 @@
       помещается в верхнюю строку и скрыт — поэтому у кнопки живёт точка: есть
       несохранённые правки (амбер) или всё сохранено (гаснет).{% endcomment %}
       <span class="relative inline-flex shrink-0">
-        <button type="submit" form="home-form" class="bg-indigo-600 text-white rounded-lg px-4 py-1 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+        <button type="submit" form="home-form" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Save" %}</button>
         <span id="bld-save-dot" hidden title="{% trans 'Nicht gespeicherte Änderungen' %}"
               aria-label="{% trans 'Nicht gespeicherte Änderungen' %}"></span>
       </span>
@@ -557,7 +557,7 @@
       {% endif %}
 
       <div class="flex items-center gap-2 flex-wrap">
-        <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+        <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
         {% comment %} SE-4b: сохранить ВСЮ компоновку секций как шаблон страницы. Сабмитит #home-form
            с action=save_page_template (снимок из POST — ловит несохранённые правки). {% endcomment %}
         <input type="text" name="page_tpl_label" placeholder="{% trans 'Page template name' %}"
@@ -1594,7 +1594,7 @@
             <input type="text" name="hero_s_btn_url" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <div class="flex items-center gap-2 flex-wrap">
               <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
-              <button class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add slide" %}</button>
+              <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Add slide" %}</button>
             </div>
           </form>
         </div>

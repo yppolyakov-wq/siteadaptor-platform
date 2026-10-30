@@ -36,7 +36,7 @@ role=anchor — выбранная прикрепляется К ЭТОЙ. По�
     <input type="search" name="q" value="{{ q }}" autofocus
            placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
            class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    <button aria-label="{% trans 'Suchen' %}" type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+    <button aria-label="{% trans 'Suchen' %}" type="submit" class="ui-btn ui-btn-secondary">🔍</button>
   </form>
 
   {% if candidates %}
@@ -54,7 +54,7 @@ role=anchor — выбранная прикрепляется К ЭТОЙ. По�
               <input type="hidden" name="target_kind" value="{{ c.kind }}">
               <input type="hidden" name="target_id" value="{{ c.tx.pk }}">
               <input type="hidden" name="next" value="{{ back }}">
-              <button type="submit" class="text-sm font-medium text-white bg-indigo-600 rounded-lg px-3 py-1.5 hover:bg-indigo-700">🔗 {% trans "Verknüpfen" %}</button>
+              <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">🔗 {% trans "Verknüpfen" %}</button>
             </form>
           {% endif %}
         </div>

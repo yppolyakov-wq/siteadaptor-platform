@@ -35,14 +35,14 @@
     {% comment %}T-8.10h H-3: общий бот платформы — одна кнопка, свой бот не нужен.{% endcomment %}
     <form method="post" action="{% url 'platform-bot-connect' %}" target="_blank" data-platform-connect>
       {% csrf_token %}
-      <button class="inline-block text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Mit Telegram verbinden" %}</button>
+      <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Mit Telegram verbinden" %}</button>
     </form>
     <p class="text-xs ui-muted mt-1">{% trans "Öffnet Telegram — tippen Sie auf Start. Der Link gilt 15 Minuten." %}</p>
     {% if owner_deep_link %}
       <p class="text-xs ui-muted mt-2"><a href="{{ owner_deep_link }}" target="_blank" rel="noopener" class="underline">{% trans "Stattdessen den eigenen Bot verwenden" %}</a></p>
     {% endif %}
   {% elif owner_deep_link %}
-    <a href="{{ owner_deep_link }}" target="_blank" rel="noopener" class="inline-block text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Telegram verbinden" %}</a>
+    <a href="{{ owner_deep_link }}" target="_blank" rel="noopener" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Telegram verbinden" %}</a>
     <p class="text-xs ui-muted mt-1">{% trans "Öffnet Ihren Bot — tippen Sie auf Start, um Ihr Konto zu verknüpfen." %}</p>
   {% else %}
     <p class="text-sm ui-muted">{% trans "Kein aktiver Telegram-Bot. Zuerst unter „Telegram“ verbinden." %}</p>
@@ -72,8 +72,8 @@
   {% if matrix %}
     <div class="mb-3 flex flex-wrap items-center gap-2 text-xs">
       <span class="text-gray-400">{% trans "Schnellauswahl:" %}</span>
-      <button type="button" data-notify-preset="all" class="border border-gray-300 rounded-lg px-2.5 py-1 hover:bg-gray-50">{% trans "Alle Kanäle aktivieren" %}</button>
-      <button type="button" data-notify-preset="email" class="border border-gray-300 rounded-lg px-2.5 py-1 hover:bg-gray-50">{% trans "Nur E-Mail" %}</button>
+      <button type="button" data-notify-preset="all" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Alle Kanäle aktivieren" %}</button>
+      <button type="button" data-notify-preset="email" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Nur E-Mail" %}</button>
       <span class="text-gray-400">{% trans "Setzt die Häkchen unten — dann „Speichern“." %}</span>
     </div>
   {% endif %}
@@ -109,7 +109,7 @@
     <p class="text-sm ui-muted mb-5">{% trans "Keine aktiven Verkaufsmodule." %}</p>
   {% endfor %}
 
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Speichern" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
 </form>
 <script>
   // W9-7: делегирование на document (урок Ф1/M22b — прямой querySelector при раннем

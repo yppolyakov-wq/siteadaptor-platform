@@ -29,8 +29,8 @@
     <input type="file" name="image" accept="image/*" class="mt-1 block text-sm">
   </label>
   <div class="flex flex-wrap gap-2 pt-1">
-    <button type="submit" name="action" value="schedule" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Schedule" %}</button>
-    <button type="submit" name="action" value="now" class="rounded-lg px-4 py-2 text-sm font-medium border border-gray-300 hover:bg-gray-50">{% trans "Send now" %}</button>
+    <button type="submit" name="action" value="schedule" class="ui-btn ui-btn-primary">{% trans "Schedule" %}</button>
+    <button type="submit" name="action" value="now" class="ui-btn ui-btn-secondary">{% trans "Send now" %}</button>
     <button type="submit" name="action" value="draft" class="rounded-lg px-4 py-2 text-sm text-gray-500 border border-gray-200 hover:bg-gray-50">{% trans "Save draft" %}</button>
   </div>
 </form>
@@ -46,7 +46,7 @@
         <p class="text-xs text-indigo-600 mt-1">⏰ {{ p.scheduled_at|date:"d.m.Y H:i" }}</p>
       </div>
       <form method="post" class="flex gap-1">{% csrf_token %}<input type="hidden" name="pk" value="{{ p.pk }}">
-        <button name="action" value="send_now" class="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50">{% trans "Send now" %}</button>
+        <button name="action" value="send_now" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Send now" %}</button>
         <button aria-label="{% trans 'Löschen' %}" name="action" value="delete" class="text-xs px-2 py-1 rounded border border-gray-200 text-red-600 hover:bg-red-50">✕</button>
       </form>
     </div>
@@ -62,7 +62,7 @@
       {% if p.image_url %}<img src="{{ p.image_url }}" alt="" class="w-12 h-12 rounded object-cover">{% endif %}
       <p class="flex-1 min-w-0 text-sm whitespace-pre-line line-clamp-2">{{ p.text }}</p>
       <form method="post" class="flex gap-1">{% csrf_token %}<input type="hidden" name="pk" value="{{ p.pk }}">
-        <button name="action" value="send_now" class="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50">{% trans "Send now" %}</button>
+        <button name="action" value="send_now" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Send now" %}</button>
         <button aria-label="{% trans 'Löschen' %}" name="action" value="delete" class="text-xs px-2 py-1 rounded border border-gray-200 text-red-600 hover:bg-red-50">✕</button>
       </form>
     </div>

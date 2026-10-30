@@ -20,10 +20,10 @@
         {% csrf_token %}
         {% if enabled %}
           <input type="hidden" name="action" value="disable">
-          <button type="submit" class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50">{% trans "Feed ausschalten" %}</button>
+          <button type="submit" class="ui-btn ui-btn-secondary">{% trans "Feed ausschalten" %}</button>
         {% else %}
           <input type="hidden" name="action" value="enable">
-          <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Feed einschalten" %}</button>
+          <button type="submit" class="ui-btn ui-btn-primary">{% trans "Feed einschalten" %}</button>
         {% endif %}
       </form>
       <p class="text-xs ui-muted mt-3">{% trans "Der Feed ist unabhängig von der Google-Verbindung und vom Schalter „Kanal eingeschaltet“ – dieser gilt nur für Aktionen." %}</p>
@@ -58,7 +58,7 @@
           <input type="checkbox" name="confirm" value="rotate" required class="mt-0.5">
           {% trans "Ich weiß: Beide bisherigen Adressen funktionieren danach nicht mehr und müssen in Merchant Center ersetzt werden." %}
         </label>
-        <button type="submit" class="border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">{% trans "Neue Adresse erzeugen" %}</button>
+        <button type="submit" class="ui-btn ui-btn-secondary">{% trans "Neue Adresse erzeugen" %}</button>
       </form>
     </section>
 
@@ -72,7 +72,7 @@
         <div class="flex gap-2">
           <input type="text" id="merchant-store-code" name="store_code" value="{{ store_code }}" maxlength="64"
                  class="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono">
-          <button type="submit" class="shrink-0 border border-gray-300 rounded-lg px-3 py-2 text-sm hover:bg-gray-50">{% trans "Speichern" %}</button>
+          <button type="submit" class="ui-btn ui-btn-secondary shrink-0">{% trans "Speichern" %}</button>
         </div>
       </form>
       {% if gbp_location_set %}

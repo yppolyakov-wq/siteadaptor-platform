@@ -27,7 +27,7 @@
         <input type="checkbox" name="enabled" value="1" {% if finder_enabled %}checked{% endif %} class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
       </label>
       <div class="mt-4 flex items-center gap-4">
-        <button type="submit" class="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700">{% trans "Save" %}</button>
+        <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
         {% if finder_enabled %}
           <a href="/finder/" target="_blank" rel="noopener" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">🌐 {% trans "Finder ansehen" %} →</a>
         {% endif %}
@@ -92,7 +92,7 @@
         {% endfor %}
       </div>
       <div class="mt-4">
-        <button type="submit" name="action" value="save_questions" class="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700">{% trans "Fragen speichern" %}</button>
+        <button type="submit" name="action" value="save_questions" class="ui-btn ui-btn-primary">{% trans "Fragen speichern" %}</button>
       </div>
     </form>
   {% endif %}

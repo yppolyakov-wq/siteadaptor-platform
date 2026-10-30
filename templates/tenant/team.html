@@ -55,7 +55,7 @@ lg+ вместо колонки max-w-3xl; на мобильном — одна 
                 <input type="hidden" name="perms_present" value="1">
                 <input type="hidden" name="perms_state" value="{{ r.perm_form.state }}">
                 {% include "tenant/_perm_fieldsets.html" with groups=r.perm_form.groups field="perm" %}
-                <button type="submit" aria-describedby="who-{{ r.m.pk }}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Rechte speichern" %}</button>
+                <button type="submit" aria-describedby="who-{{ r.m.pk }}" class="ui-btn ui-btn-primary">{% trans "Rechte speichern" %}</button>
                 {% comment %}Шаблоны — ПОСЛЕ «Rechte speichern»: неявная отправка формы берёт первую
                 submit-кнопку, и она не должна быть шаблоном (ревью E6.7f).{% endcomment %}
                 {% if r.perm_form.templates %}
@@ -122,7 +122,7 @@ lg+ вместо колонки max-w-3xl; на мобильном — одна 
           {% endfor %}
         </details>
       {% endif %}
-      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Einladen" %}</button>
+      <button type="submit" class="ui-btn ui-btn-primary">{% trans "Einladen" %}</button>
     </form>
   </div>
   {% endif %}

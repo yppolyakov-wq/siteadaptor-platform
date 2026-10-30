@@ -189,7 +189,7 @@
           </label>
         </div>
 
-        <button class="mt-3 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+        <button class="ui-btn ui-btn-primary mt-3">{% trans "Save" %}</button>
       </form>
 
       {# фото номера: миниатюры + удаление (отдельные формы — не вкладывать в settings) #}
@@ -383,7 +383,7 @@
       <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600">
     </div>
   </div>
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create unit" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create unit" %}</button>
 </form>
 </details>
 {% comment %}Фидбэк 2026-07-28 (№2): глобальные настройки — отдельный таб
@@ -493,7 +493,7 @@
       <input name="sort_order" type="number" min="0" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
     {% include "stays/_rate_scope_fields.html" with rp=None %}
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 sm:col-span-2 sm:w-auto">{% trans "Add rate plan" %}</button>
+    <button class="ui-btn ui-btn-primary sm:col-span-2 sm:w-auto">{% trans "Add rate plan" %}</button>
   </form>
   {% else %}<p class="text-xs text-gray-600 mt-3">{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}</p>{% endif %}
 </details>
@@ -535,7 +535,7 @@
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Discount %" %}</label>
       <input name="percent" type="number" min="1" max="90" value="10" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
+    <button class="ui-btn ui-btn-primary">{% trans "Add rule" %}</button>
   </form>
 </details>
 {# PMS-D: ручные occupancy-правила цены — «занятость ≥ X % → ±Y % на ночь». #}
@@ -568,7 +568,7 @@
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price change (%, e.g. 10 or −15)" %}</label>
       <input name="percent" type="number" min="-50" max="50" value="10" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
+    <button class="ui-btn ui-btn-primary">{% trans "Add rule" %}</button>
   </form>
 </details>
 {# Lücken-Deal: суперскидка на короткие промежутки между бронями. #}
@@ -590,7 +590,7 @@
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Rabatt %" %}</label>
       <input name="gap_discount_percent" type="number" min="1" max="70" value="{{ stay_settings.gap_discount_percent|default:25 }}" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>
 </details>
 </div>
@@ -611,7 +611,7 @@
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "At least … days before arrival (0 = same day)" %}</label>
       <input name="min_advance_days" type="number" min="0" max="90" value="{{ stay_settings.min_advance_days }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>
 
   {% for r in restriction_rules %}
@@ -669,7 +669,7 @@
         {% for d in weekdays %}<label class="inline-flex items-center gap-1 text-xs border border-gray-200 rounded px-1.5 py-1 cursor-pointer"><input type="checkbox" name="no_checkout" value="{{ d.0 }}" class="rounded border-gray-300">{{ d.1 }}</label>{% endfor %}
       </div>
     </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add rule" %}</button>
+    <button class="ui-btn ui-btn-primary">{% trans "Add rule" %}</button>
   </form>
 </details>
 </div>
@@ -723,7 +723,7 @@
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "House rules (Hausordnung) — shown as a public page when filled" %}</label>
       <textarea name="house_rules" rows="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea>
     </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>
 </details>
 {% if can_edit_prices %}
@@ -747,7 +747,7 @@
         {% for h in hour_choices %}<option value="{{ h }}" {% if h == stay_settings.checkout_hour %}selected{% endif %}>{{ h }}:00</option>{% endfor %}
       </select>
     </div>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>
 </details>
 {% endif %}

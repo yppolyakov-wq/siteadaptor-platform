@@ -34,7 +34,7 @@
     <label class="text-xs text-gray-500">{% trans "Ab wie vielen Nichterscheinen" %} <input name="after" type="number" min="1" max="10" inputmode="numeric" value="{{ no_show_rule.after }}" class="w-16 rounded border border-gray-300 px-2 py-1 text-base"></label>
     <label class="text-xs text-gray-500">{% trans "Zeitraum (Tage)" %} <input name="days" type="number" min="30" max="730" inputmode="numeric" value="{{ no_show_rule.days }}" class="w-20 rounded border border-gray-300 px-2 py-1 text-base"></label>
     <label class="text-xs text-gray-500">{% trans "Anzahlung (€, optional)" %} <input name="amount" type="text" inputmode="decimal" value="{% if no_show_rule.amount %}{{ no_show_rule.amount|floatformat:2 }}{% endif %}" placeholder="20,00" class="w-24 rounded border border-gray-300 px-2 py-1 text-base"></label>
-    <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700">{% trans "Speichern" %}</button>
+    <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Speichern" %}</button>
   </form>
   <p class="mt-1 text-xs ui-muted">{% trans "Ohne Betrag: die Anzahlung der Leistung, sonst der volle Preis." %}</p>
   {% else %}
@@ -180,7 +180,7 @@
       </div>
       {% vat_select s.vat_rate %}
       <div class="flex items-center gap-2">
-        <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm hover:bg-indigo-700">{% trans "Save" %}</button>
+        <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Save" %}</button>
         <button name="action" value="toggle" class="text-xs text-gray-500 hover:underline">{% if s.is_active %}{% trans "Off" %}{% else %}{% trans "On" %}{% endif %}</button>
       </div>
     </form>
@@ -302,7 +302,7 @@
       <input name="deposit_eur" type="text" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
   </div>
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create service" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create service" %}</button>
 </form>
 </details>
 {% endif %}

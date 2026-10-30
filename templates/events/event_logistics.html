@@ -128,7 +128,7 @@
                     <label class="text-xs text-gray-500">{% trans "Note" %}
                       <input type="text" name="note" maxlength="300" value="{{ b.note }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
                     </label>
-                    <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Save" %}</button>
+                    <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Save" %}</button>
                   </form>
                 </details>
                 {% if b.status != "paid" %}
@@ -185,7 +185,7 @@
     <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Currency" %}
       <input type="text" name="currency" maxlength="3" placeholder="INR" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
     </label>
-    <button type="submit" class="sm:col-span-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Add" %}</button>
+    <button type="submit" class="ui-btn ui-btn-primary sm:col-span-1">{% trans "Add" %}</button>
   </form>
 </section>
 
@@ -214,7 +214,7 @@
     <input type="hidden" name="action" value="add_task">
     <input type="text" name="title" required maxlength="200" placeholder="{% trans 'e.g. Apply for Inner Line permits' %}" class="grow rounded-lg border border-gray-300 px-3 py-2 text-sm">
     <input type="date" name="due_date" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Add" %}</button>
+    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add" %}</button>
   </form>
   {% if task_sources %}
     {% comment %}KA-12 T-2: чек-лист из прошлого заезда — сроки с тем же отступом от старта.{% endcomment %}

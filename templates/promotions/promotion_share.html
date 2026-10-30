@@ -33,7 +33,7 @@
     {% if promo.status == 'active' %}
     <form method="post" class="mt-4">
       {% csrf_token %}
-      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">📣 {% trans "Jetzt überall veröffentlichen" %}</button>
+      <button type="submit" class="ui-btn ui-btn-primary">📣 {% trans "Jetzt überall veröffentlichen" %}</button>
     </form>
     {% else %}
     <p class="text-xs ui-muted mt-3">{% trans "Nur aktive Aktionen können geteilt werden." %}</p>

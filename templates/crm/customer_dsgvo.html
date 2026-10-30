@@ -16,7 +16,7 @@
   <section class="bg-white rounded-2xl shadow-sm p-6 space-y-3" data-dsgvo-export>
     <h2 class="ui-h2">{% trans "Auskunft und Datenübertragung (Art. 15, 20 DSGVO)" %}</h2>
     <p class="text-sm text-gray-600">{% trans "Alle gespeicherten Daten dieses Kunden als Datei: Bestellungen, Buchungen, Tickets, Aufträge, Angebote, Rechnungen, Nachrichten und Notizen." %}</p>
-    <a href="{% url 'crm:customer-dsgvo-export' customer.pk %}" class="inline-block bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">⬇ {% trans "Daten herunterladen (ZIP)" %}</a>
+    <a href="{% url 'crm:customer-dsgvo-export' customer.pk %}" class="ui-btn ui-btn-primary">⬇ {% trans "Daten herunterladen (ZIP)" %}</a>
   </section>
 
   <section class="bg-white rounded-2xl shadow-sm p-6 space-y-3" data-dsgvo-erase>

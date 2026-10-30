@@ -55,9 +55,9 @@
           подтверждает неподтверждённую бронь); GET страницы ничего не гасит.{% endcomment %}
           <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}" class="w-full" data-once>{% csrf_token %}<input type="hidden" name="action" value="fulfill"><button data-redeem-primary autofocus class="w-full h-14 rounded-2xl bg-indigo-600 text-white text-base font-semibold hover:bg-indigo-700 disabled:opacity-60">{% trans "Hand out" %}</button></form>
           {% if reservation.status == 'pending' %}
-          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}" data-once>{% csrf_token %}<input type="hidden" name="action" value="confirm"><button class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50">{% trans "Confirm" %}</button></form>
+          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}" data-once>{% csrf_token %}<input type="hidden" name="action" value="confirm"><button class="ui-btn ui-btn-secondary">{% trans "Confirm" %}</button></form>
           {% endif %}
-          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}" data-once>{% csrf_token %}<input type="hidden" name="action" value="cancel"><button class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50">{% trans "Cancel" %}</button></form>
+          <form method="post" action="{% url 'promotions:redeem-action' reservation.reference_code %}" data-once>{% csrf_token %}<input type="hidden" name="action" value="cancel"><button class="ui-btn ui-btn-secondary">{% trans "Cancel" %}</button></form>
         {% elif reservation.status == 'fulfilled' %}
           <p class="text-sm text-green-700">✓ {% trans "Already handed out." %}</p>
         {% else %}

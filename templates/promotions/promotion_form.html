@@ -133,7 +133,7 @@
     {% include "promotions/_text_check.html" %}
 
     <div class="flex gap-3">
-      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+      <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
       <a href="{% url 'promotions:promotion-list' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
     </div>
   </form>
@@ -233,12 +233,12 @@
       <div class="flex flex-wrap gap-2">
         {% for ch in preset_channels %}
           <a href="{% url 'storefront-promotion-qr' promotion.pk %}?ch={{ ch }}" download="aktion-{{ promotion.pk }}-{{ ch }}.svg"
-             class="text-xs px-2.5 py-1 rounded-lg border border-gray-300 hover:bg-gray-50">{{ ch }} ↓</a>
+             class="ui-btn ui-btn-secondary ui-btn-sm">{{ ch }} ↓</a>
         {% endfor %}
       </div>
       <div class="flex gap-2 mt-3">
         <input id="ch-input" placeholder="{% trans 'custom channel' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
-        <a id="ch-link" href="#" target="_blank" class="text-xs px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 pointer-events-none opacity-50">{% trans "Open QR" %}</a>
+        <a id="ch-link" href="#" target="_blank" class="ui-btn ui-btn-secondary ui-btn-sm pointer-events-none opacity-50">{% trans "Open QR" %}</a>
       </div>
       <script>
         (function () {

@@ -34,7 +34,7 @@
           </summary>
           {% if can_manage %}
           <a href="{% url 'channel-oauth-start' ch.type %}"
-             class="inline-block mt-3 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+             class="ui-btn ui-btn-primary mt-3">
             🔗 {% trans "Connect with Google" %}
           </a>
           {% endif %}
@@ -64,7 +64,7 @@
           </summary>
           {% if can_manage %}
           <a href="{% url 'channel-oauth-start' 'facebook' %}"
-             class="inline-block mt-3 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+             class="ui-btn ui-btn-primary mt-3">
             🔗 {% trans "Connect with Facebook (also links Instagram)" %}
           </a>
           {% endif %}
@@ -136,7 +136,7 @@
           </summary>
           {% if can_manage %}
           <a href="{% url 'channel-oauth-start' ch.type %}"
-             class="inline-block mt-3 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+             class="ui-btn ui-btn-primary mt-3">
             🔗 {% trans "Connect with Pinterest" %}
           </a>
           {% endif %}

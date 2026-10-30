@@ -5,7 +5,7 @@
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4">
   <h1 class="ui-h1">{% nav_title _("Vouchers") %}</h1>
-  <a href="{% url 'promotions:voucher-redeem' %}" class="text-sm px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50">{% trans "Redeem" %}</a>
+  <a href="{% url 'promotions:voucher-redeem' %}" class="ui-btn ui-btn-secondary">{% trans "Redeem" %}</a>
 </div>
 
 {% if messages %}
@@ -25,7 +25,7 @@
     </div>
   {% endfor %}
   <div class="sm:col-span-2">
-    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Generate" %}</button>
+    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Generate" %}</button>
   </div>
 </form>
 

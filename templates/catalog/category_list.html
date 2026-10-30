@@ -8,7 +8,7 @@
 (Delete переехал в форму — прецедент SR-1). Подкатегории — чипами у родителя.{% endcomment %}
 <div class="flex items-center justify-between mb-4">
   <h1 class="ui-h1">🗂 {% nav_title _("Categories") %}</h1>
-  <a href="{% url 'catalog:category-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
+  <a href="{% url 'catalog:category-create' %}" class="ui-btn ui-btn-primary">
     + {% trans "New category" %}
   </a>
 </div>
@@ -70,7 +70,7 @@
       </div>
     {% endfor %}
   </div>
-  <button type="submit" class="mt-4 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Speichern" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary mt-4">{% trans "Speichern" %}</button>
 </form>
 {% endif %}
 {% else %}

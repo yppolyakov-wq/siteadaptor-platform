@@ -11,7 +11,7 @@
     {# B4.3: вход в купон-кампанию; активный фильтр уходит prefill'ом тега #}
     <a href="{% url 'promotions:coupon-campaigns' %}{% if query %}?tag={{ query|urlencode }}{% endif %}" class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">{% trans "Coupon campaign" %}</a>
     {% if request.user|cab_can:"kunden.export" %}<a href="{% url 'crm:customer-export' %}?{% if query %}q={{ query|urlencode }}&amp;{% endif %}{% if firma %}firma={{ firma.pk }}{% endif %}" class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">{% trans "Export CSV" %}</a>{% endif %}
-    <a href="{% url 'crm:customer-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add customer" %}</a>
+    <a href="{% url 'crm:customer-create' %}" class="ui-btn ui-btn-primary">{% trans "Add customer" %}</a>
   </div>
 </div>
 

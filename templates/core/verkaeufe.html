@@ -51,7 +51,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
 кросс-входы к тому, чего в списке нет (компании, экспорт, кампании).{% endcomment %}
 <div class="flex items-center gap-2 flex-wrap mb-4">
   {% if crm_active %}
-    <a href="{% url 'crm:customer-create' %}" class="text-sm font-medium text-white bg-indigo-600 rounded-xl px-3 py-1.5 shadow-sm hover:bg-indigo-700">＋ {% trans "Add customer" %}</a>
+    <a href="{% url 'crm:customer-create' %}" class="ui-btn ui-btn-primary ui-btn-sm shadow-sm">＋ {% trans "Add customer" %}</a>
     <div class="flex items-center gap-2 ml-auto">
       <a href="{% url 'crm:company-list' %}" class="text-sm font-medium text-gray-600 bg-white rounded-xl px-3 py-1.5 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50">🏢 {% trans "Companies" %}</a>
       {% if request.user|cab_can:"kunden.export" %}<a href="{% url 'crm:customer-export' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="text-sm font-medium text-gray-600 bg-white rounded-xl px-3 py-1.5 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50">{% trans "Export CSV" %}</a>{% endif %}
@@ -81,7 +81,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
     {% if create_target %}
       {# X2c: подпись «＋» по kind — заявка ≠ бронь ≠ запись #}
       {# R3: на мобильном кнопку заменяет FAB внизу (утверждённый макет) #}
-      <a href="{{ create_target }}" class="hidden sm:inline-block text-sm font-medium text-white bg-indigo-600 rounded-xl px-3 py-1.5 shadow-sm hover:bg-indigo-700">＋ {% if active_kind == "stay" %}{% trans "New booking" %}{% elif active_kind == "job" %}{% trans "New request" %}{% else %}{% trans "New appointment" %}{% endif %}</a>
+      <a href="{{ create_target }}" class="ui-btn ui-btn-primary ui-btn-sm hidden sm:inline-block shadow-sm">＋ {% if active_kind == "stay" %}{% trans "New booking" %}{% elif active_kind == "job" %}{% trans "New request" %}{% else %}{% trans "New appointment" %}{% endif %}</a>
     {% endif %}
     {% comment %}Фидбэк владельца 2026-08-20 (п.2): вход в настройки ЭТОГО
     раздела вернулся на страницу. SM-4 увёл «Abläufe» в подпункт сайдбара — и

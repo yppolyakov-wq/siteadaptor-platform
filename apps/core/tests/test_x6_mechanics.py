@@ -140,7 +140,7 @@ def test_promotion_draft_is_marked_and_activation_is_primary():
     assert "Jetzt aktivieren" in html
     # первичная кнопка — именно активация
     idx = html.index("Jetzt aktivieren")
-    assert "bg-indigo-600" in html[max(0, idx - 400) : idx]
+    assert "ui-btn-primary" in html[max(0, idx - 400) : idx]  # E9: кнопки — детали ui-*
 
 
 # --- X6-5: порядок видов ------------------------------------------------------

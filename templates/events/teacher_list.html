@@ -9,7 +9,7 @@
     <h1 class="ui-h1 mb-1">{% nav_title _("Teachers") %}</h1>
     <p class="text-sm text-gray-500">{% trans "Hosts and teachers — shown on retreats and as a filter in the catalog." %}</p>
   </div>
-  <a href="{% url 'events:teacher-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "New teacher" %}</a>
+  <a href="{% url 'events:teacher-create' %}" class="ui-btn ui-btn-primary">{% trans "New teacher" %}</a>
 </div>
 
 {% if teachers %}

@@ -155,7 +155,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
     {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
 
     <div class="flex gap-3 items-center">
-      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+      <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
       <a href="{% if 'sellable-manage'|pkg_allowed:request.tenant %}{% url 'sellable-manage' %}{% else %}{% url 'promotions:promotion-list' %}{% endif %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
       {% comment %}SR-1: единственный вход удаления жил на умершей странице
       товаров — переезжает в форму (confirm-страница прежняя).{% endcomment %}
@@ -282,7 +282,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
         <input name="sku" type="text" placeholder="{% trans 'Art.-Nr.' %}" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Art.-Nr.' %}">
         <input name="gtin" type="text" placeholder="EAN" class="w-32 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="EAN / GTIN">
         <input name="sort" type="number" value="0" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
-        <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add variant" %}</button>
+        <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Add variant" %}</button>
       </form>
     </div>
 
@@ -352,7 +352,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
         <input name="name" type="text" required placeholder="{% trans 'Group (e.g. Size)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
         <label class="text-gray-500">{% trans "min" %} <input name="min" type="number" min="0" value="0" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
         <label class="text-gray-500">{% trans "max" %} <input name="max" type="number" min="0" value="1" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
-        <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add group" %}</button>
+        <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Add group" %}</button>
       </form>
     </div>
   </div>

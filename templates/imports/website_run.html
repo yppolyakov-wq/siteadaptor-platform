@@ -30,7 +30,7 @@
   {% csrf_token %}<input type="hidden" name="action" value="eintrag">
   <h2 class="font-medium mb-2">{% trans "Nur Eintrag statt eigenem Shop?" %}</h2>
   <p class="text-sm text-gray-600 mb-3">{% trans "Ihre Seite bei uns wird zur Visitenkarte mit Öffnungszeiten, Kontakt und Aktionen. Ihre Artikel erscheinen im Stadtkatalog und verlinken direkt auf Ihre Website." %}</p>
-  <button type="submit" class="border border-gray-300 text-sm px-4 py-2 rounded-lg hover:bg-gray-50">{% trans "Visitenkarte aktivieren" %}</button>
+  <button type="submit" class="ui-btn ui-btn-secondary">{% trans "Visitenkarte aktivieren" %}</button>
 </form>
 {% endif %}
 
@@ -105,7 +105,7 @@
     </ul>
   </div>
   {% endif %}
-  <button type="submit" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700">{% trans "Veröffentlichen" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Veröffentlichen" %}</button>
 </form>
 {% else %}
 {% if profile %}

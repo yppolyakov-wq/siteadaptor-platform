@@ -23,7 +23,7 @@
       <form method="post" class="mt-4">
         {% csrf_token %}
         <input type="hidden" name="card_id" value="{{ card.pk }}">
-        <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2.5 font-medium hover:bg-indigo-700">+1 {% trans "Stamp" %}</button>
+        <button type="submit" class="ui-btn ui-btn-primary">+1 {% trans "Stamp" %}</button>
       </form>
       <details class="mt-4">
         <summary class="text-sm text-gray-500 cursor-pointer">{% trans "Customer QR" %}</summary>

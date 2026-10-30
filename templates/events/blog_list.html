@@ -9,8 +9,8 @@
 <div class="flex items-center gap-3 flex-wrap mb-4">
   <h1 class="ui-h1">{% nav_title _("Blog") %}</h1>
   <span class="ml-auto flex items-center gap-2">
-    <a href="{% url 'storefront-blog' %}" target="_blank" rel="noopener" class="text-sm font-medium rounded-xl border border-gray-300 bg-white px-3 py-1.5 hover:bg-gray-50">{% trans "Ansehen auf der Website" %} ↗</a>
-    <a href="#blog-neu" class="text-sm font-medium rounded-xl bg-indigo-600 text-white px-3 py-1.5 hover:bg-indigo-700">＋ {% trans "New post" %}</a>
+    <a href="{% url 'storefront-blog' %}" target="_blank" rel="noopener" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Ansehen auf der Website" %} ↗</a>
+    <a href="#blog-neu" class="ui-btn ui-btn-primary ui-btn-sm">＋ {% trans "New post" %}</a>
   </span>
 </div>
 
@@ -52,6 +52,6 @@
   <label class="block text-sm text-gray-500">{% trans "Publish at (optional)" %}
     <input type="datetime-local" name="publish_at" class="mt-1 rounded-lg border border-gray-300 px-3 py-2 text-sm block">
   </label>
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create post" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create post" %}</button>
 </form>
 {% endblock %}

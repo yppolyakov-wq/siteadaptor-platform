@@ -60,7 +60,7 @@
         <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Label (optional)" %}</label>
         <input name="name" type="text" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
       </div>
-      <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add channel" %}</button>
+      <button class="ui-btn ui-btn-primary">{% trans "Add channel" %}</button>
     </form>
   </div>
 
@@ -104,7 +104,7 @@
         <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Booking reference (optional)" %}</label>
         <input name="external_ref" type="text" placeholder="{% trans 'e.g. Booking.com confirmation number' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
       </div>
-      <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 sm:col-span-2 sm:w-auto">{% trans "Import reservation" %}</button>
+      <button class="ui-btn ui-btn-primary sm:col-span-2 sm:w-auto">{% trans "Import reservation" %}</button>
     </form>
     {% else %}<p class="text-xs ui-muted">{% trans "Create a room first." %}</p>{% endif %}
   </div>

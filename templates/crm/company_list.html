@@ -8,7 +8,7 @@
     <a href="{% url 'crm:customer-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Customers" %}</a>
     <h1 class="ui-h1 mt-1">{% nav_title _("Companies") %}</h1>
   </div>
-  <a href="{% url 'crm:company-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add company" %}</a>
+  <a href="{% url 'crm:company-create' %}" class="ui-btn ui-btn-primary">{% trans "Add company" %}</a>
 </div>
 
 {% if messages %}

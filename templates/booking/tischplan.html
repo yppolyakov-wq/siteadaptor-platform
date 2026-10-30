@@ -82,7 +82,7 @@
           <label class="text-xs text-gray-500 block">{% trans "Name (optional)" %}
             <input type="text" name="name" maxlength="120" class="block w-full rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]"></label>
           <label class="inline-flex items-center gap-2 text-sm text-gray-600 min-h-[44px]"><input type="checkbox" name="override_hours" value="1" class="h-5 w-5"> {% trans "Trotzdem eintragen" %}</label>
-          <button type="submit" aria-label="{% trans 'Eintragen' %} – {{ t.name }}" class="w-full min-h-[44px] rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">{% trans "Eintragen" %}</button>
+          <button type="submit" aria-label="{% trans 'Eintragen' %} – {{ t.name }}" class="ui-btn ui-btn-primary w-full min-h-[44px]">{% trans "Eintragen" %}</button>
         </form>
       </details>
       {% endif %}

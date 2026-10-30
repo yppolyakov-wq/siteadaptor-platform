@@ -33,7 +33,7 @@
       <form method="post" class="mb-3" data-recipient-form>{% csrf_token %}
         <label class="block text-xs font-medium text-gray-500 mb-1" for="inv-recipient">{% trans "Empfänger (Name und Anschrift)" %}</label>
         <textarea id="inv-recipient" name="recipient" rows="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ invoice.recipient }}</textarea>
-        <button name="action" value="recipient" class="mt-1 text-sm rounded-lg border border-gray-300 px-3 py-1 hover:bg-gray-50">{% trans "Save" %}</button>
+        <button name="action" value="recipient" class="ui-btn ui-btn-secondary ui-btn-sm mt-1">{% trans "Save" %}</button>
       </form>
     {% elif invoice.recipient %}<p class="text-sm text-gray-600 whitespace-pre-line mb-3">{{ invoice.recipient }}</p>{% endif %}
     <div class="divide-y divide-gray-100 border-y border-gray-100">
@@ -53,7 +53,7 @@
 
   <div class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
     <a href="{% url 'finance:invoice-pdf' invoice.pk %}" target="_blank"
-       class="inline-block bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Open PDF" %}</a>
+       class="ui-btn ui-btn-primary">{% trans "Open PDF" %}</a>
     {% comment %}I18N-7b/2: у черновика язык ещё можно сменить, у выставленного
     счёта он зафиксирован вместе с номером (GoBD).{% endcomment %}
     {% if invoice.is_editable and doc_languages|length > 1 %}
@@ -65,7 +65,7 @@
             <option value="{{ lang.code }}" {% if lang.code == invoice.language %}selected{% endif %}>{{ lang.label }}</option>
           {% endfor %}
         </select>
-        <button name="action" value="language" class="text-sm rounded-lg border border-gray-300 px-3 py-1 hover:bg-gray-50">{% trans "Save" %}</button>
+        <button name="action" value="language" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Save" %}</button>
       </form>
     {% elif invoice.language %}
       <p class="text-xs text-gray-500">{% trans "Invoice language" %}: <span class="font-medium uppercase">{{ invoice.language }}</span></p>
@@ -76,7 +76,7 @@
         <button name="action" value="issue" class="text-sm font-medium rounded-lg px-4 py-2 bg-green-600 text-white hover:bg-green-700">{% trans "Rechnung stellen" %}</button>
         <button name="action" value="delete" class="text-sm font-medium rounded-lg px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50">{% trans "Entwurf löschen" %}</button>
       {% endif %}
-      {% if "paid" in allowed %}<button name="action" value="paid" class="text-sm font-medium rounded-lg px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700">{% trans "Als bezahlt markieren" %}</button>{% endif %}
+      {% if "paid" in allowed %}<button name="action" value="paid" class="ui-btn ui-btn-primary">{% trans "Als bezahlt markieren" %}</button>{% endif %}
       {% if "cancelled" in allowed %}<button name="action" value="cancelled" class="text-sm font-medium rounded-lg px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50">{% trans "Stornieren" %}</button>{% endif %}
     </form>
     {% if credit_form %}
@@ -92,7 +92,7 @@
           <label class="block text-xs text-gray-500" for="credit-reason">{% trans "Grund" %}</label>
           <input id="credit-reason" name="reason" maxlength="200" placeholder="{% trans "z. B. Preisminderung" %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base sm:text-sm">
           <p class="text-xs text-gray-500">{% trans "Die Rechnung bleibt unverändert. Es entsteht ein eigenes Dokument mit eigener Nummer; der offene Betrag sinkt. Geld wird dabei nicht erstattet." %}</p>
-          <button class="text-sm font-medium rounded-lg px-4 py-2 border border-gray-300 hover:bg-gray-50">{% trans "Gutschrift erstellen" %}</button>
+          <button class="ui-btn ui-btn-secondary">{% trans "Gutschrift erstellen" %}</button>
         </form>
       </details>
     {% endif %}

@@ -44,7 +44,7 @@
       {% for field in form %}
         <div>{% include "crm/_form_field.html" %}</div>
       {% endfor %}
-      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+      <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
     </form>
 
     <div class="bg-white rounded-2xl shadow-sm p-6">
@@ -138,7 +138,7 @@
       <input type="hidden" name="action" value="issue_voucher">
       <input name="label" type="text" required placeholder="{% trans 'e.g. −10 %, free coffee' %}" class="flex-1 min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
       <input name="max_uses" type="number" min="1" value="1" class="w-16 rounded-lg border border-gray-300 px-2 py-2 text-sm" aria-label="{% trans 'Max uses' %}">
-      <button class="bg-indigo-600 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Issue" %}</button>
+      <button class="ui-btn ui-btn-primary">{% trans "Issue" %}</button>
     </form>
   </div>
 
