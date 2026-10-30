@@ -78,25 +78,25 @@
 </div>
 
 {% if tickets %}
-<div class="overflow-x-auto bg-white border border-gray-200 rounded-lg">
-  <table class="w-full text-sm">
-    <thead><tr class="text-left text-gray-400 border-b">
-      <th scope="col" class="py-2 px-3">{% trans "Code" %}</th><th scope="col" class="px-3">{% trans "Name" %}</th>
-      <th scope="col" class="px-3">{% trans "Seats" %}</th><th scope="col" class="px-3">{% trans "Status" %}</th>
-      <th scope="col" class="px-3">{% trans "Paid" %}</th><th scope="col" class="px-3"></th>
+<div class="ui-card p-0 overflow-x-auto" data-kb-list>
+  <table class="ui-table ui-table-stack">
+    <thead><tr>
+      <th scope="col">{% trans "Code" %}</th><th scope="col">{% trans "Name" %}</th>
+      <th scope="col">{% trans "Seats" %}</th><th scope="col">{% trans "Status" %}</th>
+      <th scope="col">{% trans "Paid" %}</th><th scope="col"><span class="sr-only">{% trans "Actions" %}</span></th>
     </tr></thead>
     <tbody>
       {% for t in tickets %}
-        <tr class="border-b border-gray-50">
+        <tr>
           {# DC-7: код билета ведёт на его карточку (раньше билет жил только строкой). #}
-          <td class="py-2 px-3 font-mono text-xs"><a href="{% url 'events:ticket-detail' t.pk %}" class="text-indigo-600 hover:underline">{{ t.reference_code }}</a></td>
-          <td class="px-3">{{ t.customer.name }}<div class="text-xs text-gray-400">{% if hide_contacts %}{{ t.customer.email|mask_email }}{% else %}{{ t.customer.email }}{% endif %}</div></td>
-          <td class="px-3">{{ t.quantity }}</td>
-          <td class="px-3">{% status_label t "ticket" %}</td>
-          <td class="px-3">{% if t.payment_state == 'paid' %}<span class="text-green-600">✓</span>{% else %}{{ t.get_payment_state_display }}{% endif %}
+          <td data-cell="primary" class="font-mono"><a href="{% url 'events:ticket-detail' t.pk %}" class="text-indigo-600 hover:underline">{{ t.reference_code }}</a></td>
+          <td>{{ t.customer.name }}<div class="text-xs text-gray-400">{% if hide_contacts %}{{ t.customer.email|mask_email }}{% else %}{{ t.customer.email }}{% endif %}</div></td>
+          <td>{{ t.quantity }}</td>
+          <td>{% status_label t "ticket" %}</td>
+          <td>{% if t.payment_state == 'paid' %}<span class="text-green-600">✓</span>{% else %}{{ t.get_payment_state_display }}{% endif %}
             {% with p=t.installment_plan %}{% if p %}<div class="text-xs {% if p.status == 'failed' %}text-red-600{% else %}text-gray-400{% endif %}">{% blocktrans with paid=p.paid_count n=p.count %}Rate {{ paid }}/{{ n }}{% endblocktrans %}{% if p.status == 'failed' %} · ⚠{% elif p.status == 'cancelled' %} · ✕{% endif %}</div>{% endif %}{% endwith %}
           </td>
-          <td class="px-3 py-2">
+          <td data-cell="actions">
             <form method="post" action="{% url 'events:ticket-action' event.pk t.pk %}" class="flex flex-wrap gap-1 justify-end">
               {% csrf_token %}
               {% if t.status == 'pending' %}<button name="target" value="confirmed" class="text-xs border rounded px-2 py-1">{% trans "Confirm" %}</button>{% endif %}
@@ -140,20 +140,20 @@
     <button class="text-sm text-amber-700 border border-amber-200 rounded-lg px-3 py-1.5 hover:bg-amber-50">{% trans "Notify of free spots" %}</button>
   </form>
 </div>
-<div class="overflow-x-auto bg-white border border-gray-200 rounded-lg">
-  <table class="w-full text-sm">
-    <thead><tr class="text-left text-gray-400 border-b">
-      <th scope="col" class="py-2 px-3">{% trans "Name" %}</th><th scope="col" class="px-3">{% trans "Email" %}</th>
-      <th scope="col" class="px-3">{% trans "Phone" %}</th><th scope="col" class="px-3">{% trans "Seats" %}</th><th scope="col" class="px-3">{% trans "Notified" %}</th>
+<div class="ui-card p-0 overflow-x-auto" data-kb-list>
+  <table class="ui-table ui-table-stack">
+    <thead><tr>
+      <th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Email" %}</th>
+      <th scope="col">{% trans "Phone" %}</th><th scope="col">{% trans "Seats" %}</th><th scope="col">{% trans "Notified" %}</th>
     </tr></thead>
     <tbody>
       {% for w in waitlist %}
-        <tr class="border-b border-gray-50">
-          <td class="py-2 px-3">{{ w.name|default:"—" }}</td>
-          <td class="px-3">{% if hide_contacts %}{{ w.email|mask_email }}{% else %}{{ w.email }}{% endif %}</td>
-          <td class="px-3">{% if hide_contacts %}{{ w.phone|mask_phone|default:"—" }}{% else %}{{ w.phone|default:"—" }}{% endif %}</td>
-          <td class="px-3">{{ w.party_size }}</td>
-          <td class="px-3">{% if w.notified %}<span class="text-green-600">✓</span>{% else %}—{% endif %}</td>
+        <tr>
+          <td data-cell="primary">{{ w.name|default:"—" }}</td>
+          <td>{% if hide_contacts %}{{ w.email|mask_email }}{% else %}{{ w.email }}{% endif %}</td>
+          <td>{% if hide_contacts %}{{ w.phone|mask_phone|default:"—" }}{% else %}{{ w.phone|default:"—" }}{% endif %}</td>
+          <td>{{ w.party_size }}</td>
+          <td>{% if w.notified %}<span class="text-green-600">✓</span>{% else %}—{% endif %}</td>
         </tr>
       {% endfor %}
     </tbody>

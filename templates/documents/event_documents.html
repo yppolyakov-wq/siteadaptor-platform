@@ -14,22 +14,22 @@
 
 {% if rows %}
   <div class="ui-card p-0 overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead class="text-left text-gray-500">
-        <tr class="border-b">
-          <th scope="col" class="p-3">{% trans "Participant" %}</th>
-          {% for value, label in kinds %}<th scope="col" class="p-3">{{ label }}</th>{% endfor %}
+    <table class="ui-table ui-table-stack">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Participant" %}</th>
+          {% for value, label in kinds %}<th scope="col">{{ label }}</th>{% endfor %}
         </tr>
       </thead>
       <tbody>
         {% for row in rows %}
-          <tr class="border-b last:border-0">
-            <td class="p-3">
+          <tr>
+            <td data-cell="primary">
               <span class="font-medium">{% if row.customer.name or not hide_contacts %}{{ row.customer.name|default:row.customer.email }}{% else %}{{ row.customer.email|mask_email }}{% endif %}</span>
               <span class="block text-xs text-gray-500">{{ row.ticket.reference_code }}</span>
             </td>
             {% for value, label in kinds %}
-              <td class="p-3">
+              <td>
                 {% for doc in row.documents %}{% if doc.kind == value %}
                   <a href="{% url 'account-document-download' doc.pk %}" class="text-indigo-600 hover:underline">✓ {{ doc.size_kb }} KB</a>
                 {% endif %}{% endfor %}

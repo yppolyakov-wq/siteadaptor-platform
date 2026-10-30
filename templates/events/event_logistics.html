@@ -44,24 +44,24 @@
 
   {% if bookings %}
     <div class="ui-card p-0 overflow-x-auto mb-4">
-      <table class="w-full text-sm">
-        <thead class="text-left text-gray-500"><tr class="border-b">
-          <th scope="col" class="p-3">{% trans "Day" %}</th>
-          <th scope="col" class="p-3">{% trans "Type" %}</th>
-          <th scope="col" class="p-3">{% trans "Supplier" %}</th>
-          <th scope="col" class="p-3">{% trans "Cost" %}</th>
-          <th scope="col" class="p-3">{% trans "Status" %}</th>
-          <th scope="col" class="p-3">{% trans "Visible" %}</th>
-          <th scope="col" class="p-3"></th>
+      <table class="ui-table ui-table-stack">
+        <thead><tr>
+          <th scope="col">{% trans "Day" %}</th>
+          <th scope="col">{% trans "Type" %}</th>
+          <th scope="col">{% trans "Supplier" %}</th>
+          <th scope="col">{% trans "Cost" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Visible" %}</th>
+          <th scope="col"><span class="sr-only">{% trans "Actions" %}</span></th>
         </tr></thead>
         <tbody>
           {% for b in bookings %}
-            <tr class="border-b last:border-0">
-              <td class="p-3">{% if b.day %}{{ b.day }}{% endif %}{% if b.stop %} · {{ b.stop }}{% endif %}</td>
-              <td class="p-3">{{ b.get_kind_display }}</td>
-              <td class="p-3">{{ b.supplier_label }}{% if b.confirmation_ref %}<span class="block text-xs text-gray-400">{{ b.confirmation_ref }}</span>{% endif %}</td>
-              <td class="p-3">{{ b.cost_eur|floatformat:2 }} €{% if b.amount_original %}<span class="block text-xs text-gray-400">{{ b.amount_original|floatformat:2 }} {{ b.currency }}</span>{% endif %}</td>
-              <td class="p-3">
+            <tr>
+              <td data-cell="primary">{% if b.day %}{{ b.day }}{% endif %}{% if b.stop %} · {{ b.stop }}{% endif %}</td>
+              <td>{{ b.get_kind_display }}</td>
+              <td>{{ b.supplier_label }}{% if b.confirmation_ref %}<span class="block text-xs text-gray-400">{{ b.confirmation_ref }}</span>{% endif %}</td>
+              <td>{{ b.cost_eur|floatformat:2 }} €{% if b.amount_original %}<span class="block text-xs text-gray-400">{{ b.amount_original|floatformat:2 }} {{ b.currency }}</span>{% endif %}</td>
+              <td>
                 <form method="post" class="flex items-center gap-1">
                   {% csrf_token %}
                   <input type="hidden" name="action" value="booking_status">
@@ -71,7 +71,7 @@
                   </select>
                 </form>
               </td>
-              <td class="p-3">
+              <td>
                 <form method="post">
                   {% csrf_token %}
                   <input type="hidden" name="action" value="booking_visibility">
@@ -81,7 +81,7 @@
                   </button>
                 </form>
               </td>
-              <td class="p-3 text-right whitespace-nowrap">
+              <td class="text-right whitespace-nowrap" data-cell="actions">
                 {% comment %}KA-12 T-2: правка и удаление строки поставщика.{% endcomment %}
                 <details class="inline-block text-left">
                   <summary class="cursor-pointer text-xs text-indigo-600 hover:underline">{% trans "Edit" %}</summary>
