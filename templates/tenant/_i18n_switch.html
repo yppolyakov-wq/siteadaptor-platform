@@ -11,7 +11,7 @@
 <div class="inline-flex items-center gap-0.5 rounded-full bg-white shadow-sm px-1.5 py-1" role="group" aria-label="{% trans 'Editing language' %}" title="{% trans 'You enter data per language' %}">
   <span class="text-sm px-0.5" aria-hidden="true">🌐</span>
   {% for g in i18n_groups %}
-    <button type="button" data-i18n-pill="{{ g.code }}" title="{{ g.label }}" class="i18n-pill{% if g.is_base %} i18n-pill-on{% endif %} text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border border-transparent text-gray-500">{{ g.code }}</button>
+    <button type="button" data-i18n-pill="{{ g.code }}" title="{{ g.label }}" aria-label="{{ g.label }}" aria-pressed="{% if g.is_base %}true{% else %}false{% endif %}" class="i18n-pill{% if g.is_base %} i18n-pill-on{% endif %} text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border border-transparent text-gray-500">{{ g.code }}</button>
   {% endfor %}
 </div>
 {% endif %}
@@ -20,12 +20,6 @@
   .i18n-pill { background:#fff; cursor:pointer; }
   .i18n-pill:hover { border-color:#a5b4fc; }
   .i18n-pill-on { background:#4f46e5; border-color:#4f46e5; color:#fff; }
-  /* R5 (редизайн B): табы форм — пилюли вместо подчёркивания; активная залита
-     индиго. Механика (data-pf-tab/panel, invalid-раскрытие) не тронута. */
-  .pf-tab { cursor:pointer; color:#6b7280; border-radius:9999px; padding:6px 14px; }
-  .pf-tab:hover { background:#f3f4f6; color:#374151; }
-  .pf-tab-on { background:#4f46e5; color:#fff; }
-  .pf-tab-on:hover { background:#4338ca; color:#fff; }
   /* SR-2d: активный таб без правой колонки → грид формы в одну колонку
      (селектор бьёт lg:grid по специфичности; атрибут+класс > один класс). */
   [data-pf-grid].pf-rail-off { display:block; }
@@ -44,7 +38,9 @@
   // Переключатель языка: показываем группы только выбранной локали.
   function setLoc(loc) {
     document.querySelectorAll("[data-i18n-pill]").forEach(function (b) {
-      b.classList.toggle("i18n-pill-on", b.getAttribute("data-i18n-pill") === loc);
+      var on = b.getAttribute("data-i18n-pill") === loc;
+      b.classList.toggle("i18n-pill-on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
     });
     document.querySelectorAll("[data-i18n-loc]").forEach(function (el) {
       el.classList.toggle("hidden", el.getAttribute("data-i18n-loc") !== loc);
@@ -53,7 +49,10 @@
   // Табы содержимого: одна панель активна.
   function setTab(t) {
     document.querySelectorAll("[data-pf-tab]").forEach(function (b) {
-      b.classList.toggle("pf-tab-on", b.getAttribute("data-pf-tab") === t);
+      // E9: вкладки — `ui-tab`, состояние несёт aria-selected (стиль из app.css).
+      var on = b.getAttribute("data-pf-tab") === t;
+      b.setAttribute("aria-selected", on ? "true" : "false");
+      b.tabIndex = on ? 0 : -1;
     });
     document.querySelectorAll("[data-pf-panel]").forEach(function (el) {
       el.classList.toggle("hidden", el.getAttribute("data-pf-panel") !== t);
@@ -120,6 +119,23 @@
     if (rail) { setTab(rail.getAttribute("data-pf-rail")); }
   }
   document.addEventListener("invalid", function (e) { revealField(e.target); }, true);
+
+  // E9: ←/→ и Home/End между видимыми вкладками (WAI-ARIA Tabs, автоактивация).
+  document.addEventListener("keydown", function (e) {
+    var cur = e.target.closest && e.target.closest("[data-pf-tab]");
+    if (!cur || ["ArrowLeft", "ArrowRight", "Home", "End"].indexOf(e.key) < 0) return;
+    var list = cur.closest("[role=tablist]") || document;
+    var tabs = Array.prototype.filter.call(list.querySelectorAll("[data-pf-tab]"), function (b) {
+      return !b.classList.contains("hidden");
+    });
+    var i = tabs.indexOf(cur);
+    if (i < 0) return;
+    e.preventDefault();
+    var next = e.key === "Home" ? tabs[0] : e.key === "End" ? tabs[tabs.length - 1]
+      : tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+    setTab(next.getAttribute("data-pf-tab"));
+    next.focus();
+  });
 
   // Тот же класс со стороны сервера: после невалидного POST ошибка поля
   // рисуется внутри скрытой панели/языковой группы и её никто не открывал.

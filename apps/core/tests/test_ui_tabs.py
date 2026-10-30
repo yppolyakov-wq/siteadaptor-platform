@@ -61,3 +61,24 @@ def test_stays_toggle_tabs_use_ui_tab_and_aria_pressed():
     assert 'classList.toggle("bg-indigo-600"' not in src
     css = (Path(__file__).resolve().parents[3] / "static/src/app.css").read_text()
     assert '.ui-tab[aria-pressed="true"]' in css
+
+
+@pytest.mark.parametrize("name", ["catalog/product_form.html", "promotions/promotion_form.html"])
+def test_form_tabs_are_real_tabs(name):
+    """Батч 3: вкладки форм товара/акции — `ui-tab` с role=tab + aria-selected;
+    старый класс `pf-tab-on` ушёл, tablist владеет ТОЛЬКО вкладками."""
+    src = (ROOT / name).read_text()
+    tabs = re.findall(r"<button[^>]*data-pf-tab=[^>]*>", src)
+    assert tabs
+    for t in tabs:
+        assert 'role="tab"' in t and "aria-selected=" in t and "ui-tab" in t, t
+    assert "pf-tab-on" not in src
+    m = re.search(r'role="tablist"[^>]*>(.*?)</div>', src, re.S)
+    assert m and "_i18n_switch" not in m.group(1)
+
+
+def test_tab_script_toggles_aria_not_classes():
+    src = (ROOT / "tenant/_i18n_switch.html").read_text()
+    assert ".pf-tab" not in src and "pf-tab-on" not in src
+    assert 'setAttribute("aria-selected"' in src and "ArrowRight" in src
+    assert 'setAttribute("aria-pressed"' in src  # языковые пилюли

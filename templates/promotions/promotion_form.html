@@ -66,11 +66,11 @@
 
     {% include "tenant/_i18n_switch.html" %}
 
-    <div class="flex gap-1.5 text-sm font-medium overflow-x-auto" role="tablist">
-      <button type="button" data-pf-tab="grund" class="pf-tab pf-tab-on whitespace-nowrap">{% trans "Basics" %}</button>
-      <button type="button" data-pf-tab="rabatt" class="pf-tab whitespace-nowrap">{% trans "Discount" %}</button>
-      <button type="button" data-pf-tab="zeit" class="pf-tab whitespace-nowrap">{% trans "Quantity & time" %}</button>
-      <button type="button" data-pf-tab="anz" class="pf-tab whitespace-nowrap">{% trans "Display" %}</button>
+    <div class="ui-tabs flex-nowrap overflow-x-auto" role="tablist" aria-label="{% trans "Promotion" %}">
+      <button type="button" data-pf-tab="grund" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="true" tabindex="0">{% trans "Basics" %}</button>
+      <button type="button" data-pf-tab="rabatt" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Discount" %}</button>
+      <button type="button" data-pf-tab="zeit" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Quantity & time" %}</button>
+      <button type="button" data-pf-tab="anz" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Display" %}</button>
     </div>
 
     {# Basics: заголовок/описание (per язык) + товар/раздел + фото #}

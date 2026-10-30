@@ -24,14 +24,16 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
   {% comment %}SR-2: вкладки «Preis & stock» больше нет — цена и наличие живут
   правой колонкой таба «Basics» (SR-2d: только там — у каждой вкладки своя
   раскладка); 🌐-свитчер языков — пиктограммой в углу ряда табов.{% endcomment %}
-  <div class="flex items-center gap-1.5 flex-wrap text-sm font-medium" role="tablist">
-    <button type="button" data-pf-tab="grund" class="pf-tab pf-tab-on">{% trans "Basics" %}</button>
+  <div class="flex items-center gap-1.5 flex-wrap">
+  <div class="ui-tabs" role="tablist" aria-label="{% trans "Product" %}">
+    <button type="button" data-pf-tab="grund" class="ui-tab" role="tab" aria-selected="true" tabindex="0">{% trans "Basics" %}</button>
     {% comment %}FB-1: вкладка «Kennzeichnung» (Allergene/Zusatzstoffe/Zutaten/Herkunft) —
     пищевая, показываем только гастро-архетипам. Панель остаётся в DOM (W0) → Save не стирает.{% endcomment %}
-    <button type="button" data-pf-tab="kennz" class="pf-tab{% if not show_labeling_tab %} hidden{% endif %}">{% trans "Labeling" %}</button>
-    <button type="button" data-pf-tab="markt" class="pf-tab">{% trans "Marketing" %}</button>
+    <button type="button" data-pf-tab="kennz" class="ui-tab{% if not show_labeling_tab %} hidden{% endif %}" role="tab" aria-selected="false" tabindex="-1">{% trans "Labeling" %}</button>
+    <button type="button" data-pf-tab="markt" class="ui-tab" role="tab" aria-selected="false" tabindex="-1">{% trans "Marketing" %}</button>
     {# Варианты/Extras — своя вкладка (только в режиме редактирования: нужен сохранённый товар) #}
-    {% if product %}<button type="button" data-pf-tab="varianten" class="pf-tab">{% trans "Variants & extras" %}</button>{% endif %}
+    {% if product %}<button type="button" data-pf-tab="varianten" class="ui-tab" role="tab" aria-selected="false" tabindex="-1">{% trans "Variants & extras" %}</button>{% endif %}
+  </div>
     <span class="ml-auto">{% include "tenant/_i18n_switch.html" %}</span>
   </div>
 
