@@ -198,3 +198,14 @@ def test_settings_cannot_break_combo_part(combo):
     views.resources(request)
     t3.refresh_from_db()
     assert t3.counts_party_size is False
+
+
+@pytest.mark.django_db(transaction=True)
+def test_set_parts_works_without_caller_transaction():
+    """Лог деплоя 2026-10-30: демо-сидер ресторана падал «select_for_update cannot be used
+    outside of a transaction» — писатель состава брал блокировки, полагаясь на транзакцию
+    вызывающего (вьюха её давала, сидер — нет). Обычные тесты внутри atomic это не ловят."""
+    a, b = _table("T3", 4), _table("T4", 4)
+    combo = _table("T3+4", 8)
+    parts = occupancy.set_parts(combo, [a.pk, b.pk])
+    assert {p.pk for p in parts} == {a.pk, b.pk}

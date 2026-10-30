@@ -9,6 +9,8 @@
 Комбинации действуют только для столов «1 бронь = 1 стол» (`capacity == 1`, не пул):
 у пула мест и ресурса на N броней область — он сам (прежнее поведение)."""
 
+from django.db import transaction
+
 from .models import Resource
 
 
@@ -86,6 +88,7 @@ class ComboInvalid(ValueError):
     """Комбинация собрана неверно (сообщение — для владельца)."""
 
 
+@transaction.atomic  # блокировки lock_scope живут только в транзакции (демо-сидер звал без неё)
 def set_parts(combo, part_ids) -> list:
     """Единственный писатель `parts`: проверяет и сохраняет состав комбинации.
 
