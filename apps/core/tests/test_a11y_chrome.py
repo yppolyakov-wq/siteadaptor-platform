@@ -11,6 +11,8 @@ from django.conf import settings
 
 ROOT = Path(settings.BASE_DIR) / "templates" / "tenant"
 BASE = (ROOT / "_base_dashboard.html").read_text(encoding="utf-8")
+# E10.6: скрипты хрома — в общем файле
+JS = (Path(settings.BASE_DIR) / "static/js/cabinet.js").read_text(encoding="utf-8")
 PALETTE = (ROOT / "_nav_palette.html").read_text(encoding="utf-8")
 
 
@@ -34,7 +36,7 @@ def test_menu_buttons_expose_state():
 
 
 def test_mobile_menu_is_inert_when_closed_and_closes_on_escape():
-    assert "sb.inert" in BASE and '"Escape"' in BASE
+    assert "sb.inert" in JS and '"Escape"' in JS
 
 
 def test_palette_field_has_label_and_visible_focus():

@@ -13,8 +13,8 @@ def test_table_component_in_css():
 
 def test_chrome_includes_list_script():
     base = (ROOT / "templates/tenant/_base_dashboard.html").read_text()
-    assert '{% include "core/_list_kb.html" %}' in base
-    js = (ROOT / "templates/core/_list_kb.html").read_text()
+    assert "{% static 'js/cabinet.js' %}" in base  # E10.6: скрипт — в общем файле хрома
+    js = (ROOT / "static/js/cabinet.js").read_text()
     # подписи из <th>, клавиши только при фокусе в списке, без модификаторов
     assert "data-label" in js and 'closest("[data-kb-list]")' in js
     assert "e.altKey || e.ctrlKey || e.metaKey" in js and "isField(t)" in js
@@ -29,3 +29,16 @@ def test_offene_posten_uses_ui_table():
     assert 'class="ui-table ui-table-stack"' in src and "data-kb-list" in src
     assert 'data-cell="primary"' in src and 'data-cell="actions"' in src
     assert 'colspan="6" data-cell="empty"' in src  # пустая строка на все 6 колонок (было 5)
+
+
+def test_cabinet_chrome_js_is_one_cached_file():
+    """E10.6: хромовые скрипты не возвращаются инлайн в базу кабинета — каждая
+    страница отдавала бы ~26 КБ заново. Разрешены короткие: `sb-min` и тост триала."""
+    import re
+
+    base = (ROOT / "templates/tenant/_base_dashboard.html").read_text()
+    inline = re.findall(r"<script>(.*?)</script>", base, re.S)
+    assert all(len(s) < 600 for s in inline), [len(s) for s in inline]
+    assert "<script src=\"{% static 'js/cabinet.js' %}\"></script>" in base
+    for gone in ("_confirm_tap", "_sheet_js", "_photo_shrink", "_list_kb"):
+        assert not (ROOT / f"templates/core/{gone}.html").exists(), gone

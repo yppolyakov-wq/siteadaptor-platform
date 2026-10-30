@@ -60,8 +60,8 @@ def test_cabinet_shrinks_large_photos_before_upload():
     """E9.5: фото > 4.5 МБ уменьшается в браузере (сервер режет на 5 МБ). Поведение —
     Playwright-стенд; здесь — что скрипт подключён к каждому экрану кабинета."""
     base = (ROOT / "tenant/_base_dashboard.html").read_text(encoding="utf-8")
-    assert '{% include "core/_photo_shrink.html" %}' in base
-    js = (ROOT / "core/_photo_shrink.html").read_text(encoding="utf-8")
+    assert "{% static 'js/cabinet.js' %}" in base  # E10.6: скрипт — в общем файле хрома
+    js = (Path(settings.BASE_DIR) / "static/js/cabinet.js").read_text(encoding="utf-8")
     assert "4.5 * 1024 * 1024" in js and "requestSubmit" in js
 
 

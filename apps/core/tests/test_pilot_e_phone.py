@@ -7,8 +7,10 @@ M2 — денежные поля принимают «12,50» на любом я
 from __future__ import annotations
 
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
+from django.conf import settings
 from django.utils import translation
 
 from apps.core.form_fields import MoneyField, format_money
@@ -315,8 +317,9 @@ def test_photo_delete_is_apart_from_main_star_and_needs_confirm():
         block = src.split(delete, 1)[0][-900:]
         assert "data-confirm-tap" in block and "tap44" in block, rel
         assert "absolute top-1 right-1" in block, rel  # угол фото, а не рядом со ★
-    assert '{% include "core/_confirm_tap.html" %}' in _tpl("tenant/_base_dashboard.html")
-    confirm = _tpl("core/_confirm_tap.html")
+    # E10.6: скрипт подтверждения — в общем static/js/cabinet.js хрома
+    assert "{% static 'js/cabinet.js' %}" in _tpl("tenant/_base_dashboard.html")
+    confirm = (Path(settings.BASE_DIR) / "static/js/cabinet.js").read_text(encoding="utf-8")
     assert "data-confirm-armed" in confirm and "preventDefault" in confirm
 
 
