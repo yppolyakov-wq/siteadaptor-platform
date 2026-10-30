@@ -31407,3 +31407,12 @@ msgstr "Подарунок: %(name)s"
 #, python-format
 msgid "Noch %(eur)s %(c)s bis zum Geschenk: %(name)s"
 msgstr "Ще %(eur)s %(c)s до подарунка: %(name)s"
+
+msgid "Zum Inhalt springen"
+msgstr "Перейти до вмісту"
+
+msgid "Hauptmenü"
+msgstr "Головне меню"
+
+msgid "Gefunden: {n}"
+msgstr "Знайдено: {n}"

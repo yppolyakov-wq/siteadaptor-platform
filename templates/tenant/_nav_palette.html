@@ -6,8 +6,12 @@
 ровно это (ревью 2026-08-19: обещала только разделы).{% endcomment %}
 <div id="navpal" class="hidden fixed inset-0 z-50 bg-black/30 p-4 pt-16 md:pt-24" role="dialog" aria-modal="true" aria-label="{% trans 'Suchen: Bestellung, Kunde, Bereich…' %}">
   <div class="mx-auto max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
+    {# KA-12 E9.4a: настоящая подпись (плейсхолдер исчезает при вводе) + видимая рамка фокуса. #}
+    <label for="navpal-q" class="sr-only">{% trans 'Suchen: Bestellung, Kunde, Bereich…' %}</label>
     <input id="navpal-q" type="search" placeholder="{% trans 'Suchen: Bestellung, Kunde, Bereich…' %}" autocomplete="off"
-           class="w-full px-4 py-3 text-sm border-b border-gray-200 outline-none">
+           class="w-full px-4 py-3 text-base sm:text-sm border-b border-gray-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+    <p id="navpal-status" class="sr-only" role="status" aria-live="polite"
+       data-many="{% trans 'Gefunden: {n}' %}" data-none="{% trans 'Nothing found.' %}"></p>
     {% comment %}X8: результаты по ДАННЫМ (сделки/клиенты/предложения) — над
     пунктами меню: «найти заказ фрау Мюллер» — сценарий №1 микро-владельца.
     Наполняется fetch'ем; без JS/сети остаётся прежний навигационный поиск.{% endcomment %}

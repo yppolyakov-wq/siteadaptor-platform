@@ -31238,3 +31238,12 @@ msgstr "Gratis dazu: %(name)s"
 #, python-format
 msgid "Noch %(eur)s %(c)s bis zum Geschenk: %(name)s"
 msgstr "Noch %(eur)s %(c)s bis zum Geschenk: %(name)s"
+
+msgid "Zum Inhalt springen"
+msgstr "Zum Inhalt springen"
+
+msgid "Hauptmenü"
+msgstr "Hauptmenü"
+
+msgid "Gefunden: {n}"
+msgstr "Gefunden: {n}"

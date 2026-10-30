@@ -31290,3 +31290,12 @@ msgstr "Hediye: %(name)s"
 #, python-format
 msgid "Noch %(eur)s %(c)s bis zum Geschenk: %(name)s"
 msgstr "Hediye için %(eur)s %(c)s daha: %(name)s"
+
+msgid "Zum Inhalt springen"
+msgstr "İçeriğe geç"
+
+msgid "Hauptmenü"
+msgstr "Ana menü"
+
+msgid "Gefunden: {n}"
+msgstr "Bulunan: {n}"

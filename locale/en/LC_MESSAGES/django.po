@@ -31146,3 +31146,12 @@ msgstr "Free gift: %(name)s"
 #, python-format
 msgid "Noch %(eur)s %(c)s bis zum Geschenk: %(name)s"
 msgstr "%(eur)s %(c)s more for the gift: %(name)s"
+
+msgid "Zum Inhalt springen"
+msgstr "Skip to content"
+
+msgid "Hauptmenü"
+msgstr "Main menu"
+
+msgid "Gefunden: {n}"
+msgstr "Found: {n}"
