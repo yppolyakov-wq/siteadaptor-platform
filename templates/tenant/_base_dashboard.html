@@ -6,7 +6,7 @@
 
 {% block body %}
 {# KA-12 E9.4a (WCAG 2.4.1): «к содержимому» — первая фокусируемая ссылка; видна только при фокусе. #}
-<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] ui-btn ui-btn-primary">{% trans "Zum Inhalt springen" %}</a>
+<a href="#main" id="skip-main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] ui-btn ui-btn-primary">{% trans "Zum Inhalt springen" %}</a>
 {% sidebar_anchor as sb_anchor %}
 {# ST-4a: SVG-спрайт иконсета кабинета (иконки хабов главной). #}
 {% include "tenant/_icons.html" %}
@@ -127,7 +127,7 @@
     </nav>
   </aside>
 
-  <div class="flex-1 flex flex-col min-w-0">
+  <div id="cab-col" class="flex-1 flex flex-col min-w-0">
     {% comment %}R1: шапка сливается с холстом (в утверждённом макете нет
     отдельной белой полосы); при скролле — лёгкий blur, чтобы текст читался.{% endcomment %}
     {% comment %}T-8.30: в Telegram Mini App шапку кабинета прячем — заголовок лёгких
@@ -292,8 +292,15 @@ billing.context.subscription) и закрывается кнопкой; пост
       sb.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled])'),
       function (el) { return el.offsetParent !== null; });
   }
+  // Ревью a11y E9.4a: Tab-ловушки мало — виртуальный курсор диктора уходил за затемнение.
+  // Пока мобильное меню открыто, всё, что за ним (колонка страницы, таб-бар, «к содержимому»),
+  // — inert; навигационный landmark у <aside> сохраняется (role=dialog его бы стёр).
+  var sbBehind = [document.getElementById("cab-col"), document.querySelector("[data-tabbar]"),
+                  document.getElementById("skip-main")];
   function sbSync() {
+    var modal = mq.matches && sbIsOpen;
     sb.inert = mq.matches && !sbIsOpen;
+    sbBehind.forEach(function (el) { if (el) el.inert = modal; });
     sbOpeners.forEach(function (b) { if (b) b.setAttribute("aria-expanded", sbIsOpen ? "true" : "false"); });
   }
   function open(e) {
@@ -303,23 +310,30 @@ billing.context.subscription) и закрывается кнопкой; пост
     sbSync();
     var f = sbFocusables()[0]; if (f) f.focus();
   }
-  function close() {
+  function close(noFocus) {
     if (!sbIsOpen) return;
     sbIsOpen = false;
     sb.classList.add("-translate-x-full"); ov.classList.add("hidden");
     sbSync();
-    if (sbOpener && sbOpener.focus) sbOpener.focus();
+    if (noFocus !== true && sbOpener && sbOpener.focus) sbOpener.focus();
   }
-  sb.addEventListener("keydown", function (e) {
+  // На document, а не на <aside>: клик по пустому месту меню уводит фокус в body —
+  // Esc и Tab должны работать и тогда (ревью a11y E9.4a).
+  document.addEventListener("keydown", function (e) {
     if (!sbIsOpen || !mq.matches) return;
     if (e.key === "Escape") { e.preventDefault(); close(); return; }
     if (e.key !== "Tab") return;
     var f = sbFocusables(); if (!f.length) return;
     var first = f[0], last = f[f.length - 1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    if (!sb.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
-  if (mq.addEventListener) mq.addEventListener("change", sbSync);
+  // Поворот/ресайз за 768px: меню на десктопе не модальное — закрываем «открытое» состояние,
+  // иначе при возврате на мобильный оно оставалось бы открытым с устаревшим aria-expanded.
+  if (mq.addEventListener) mq.addEventListener("change", function () {
+    if (!mq.matches && sbIsOpen) close(true); else sbSync();
+  });
   sbSync();
   var so = document.getElementById("sidebar-open");  // T-8.30: в Mini App шапки нет
   if (so) so.addEventListener("click", open);
@@ -444,7 +458,7 @@ billing.context.subscription) и закрывается кнопкой; пост
       if (hit) any = true;
     });
     palSyncEmpty(any);
-    if (q) palAnnounce(); else if (palStatus) palStatus.textContent = "";
+    if (!q && palStatus) palStatus.textContent = "";
   }
   // Ревью 2026-08-19: «Nothing found.» считалось ТОЛЬКО по пунктам меню, а
   // строки данных (X8) в счёт не шли — при находке «заказ фрау Мюллер» палитра
@@ -472,7 +486,7 @@ billing.context.subscription) и закрывается кнопкой; пост
     sections.forEach(function (sec) {
       html += '<p class="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-400">' + palEsc(sec.label) + "</p>";
       sec.items.forEach(function (it) {
-        html += '<a href="' + encodeURI(it.url) + '" class="flex items-center justify-between gap-3 px-4 py-2 text-sm hover:bg-indigo-50">' +
+        html += '<a href="' + encodeURI(it.url) + '" class="flex items-center justify-between gap-3 px-4 py-2 text-sm hover:bg-indigo-50 focus-visible:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500">' +
                 '<span class="truncate">' + palEsc(it.label) + "</span>" +
                 '<span class="text-xs text-gray-400 shrink-0 truncate">' + palEsc(it.sub) + "</span></a>";
       });
@@ -480,21 +494,25 @@ billing.context.subscription) и закрывается кнопкой; пост
     palData.innerHTML = html;
     palData.classList.remove("hidden");
     palSyncEmpty();
-    palAnnounce();
   }
   function palSearchData() {
     if (!palData) return;
     var q = (palQ && palQ.value || "").trim();
     if (palTimer) clearTimeout(palTimer);
-    if (q.length < 2) { palRenderData([]); return; }
+    // Ревью a11y E9.4a: число объявляется ОДИН раз — когда поиск по данным завершился
+    // (или для коротких запросов — сразу), а не на каждую клавишу.
+    if (q.length < 2) { palRenderData([]); if (q) palAnnounce(); return; }
     palTimer = setTimeout(function () {
       if (palAbort) palAbort.abort();
       palAbort = ("AbortController" in window) ? new AbortController() : null;
       fetch(palData.getAttribute("data-url") + "?q=" + encodeURIComponent(q),
             palAbort ? { signal: palAbort.signal } : undefined)
         .then(function (r) { return r.ok ? r.json() : { sections: [] }; })
-        .then(function (d) { palRenderData(d.sections); })
-        .catch(function () { /* сеть/отмена — навигационный поиск остаётся */ });
+        .then(function (d) { palRenderData(d.sections); palAnnounce(); })
+        .catch(function (err) {
+          // сеть упала — навигационный поиск остаётся и объявляется; отмену (новый ввод) молчим
+          if (!err || err.name !== "AbortError") palAnnounce();
+        });
     }, 250);
   }
   var palBtn = document.getElementById("navpal-open");

@@ -19,7 +19,7 @@
     <div id="navpal-list" class="max-h-80 overflow-y-auto">
       {% for e in entries %}
       <a href="{% url e.url_name %}{{ e.query }}" data-pal="{{ e.haystack }}"
-         class="navpal-item flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-indigo-50">
+         class="navpal-item flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-indigo-50 focus-visible:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500">
         <span class="truncate">{{ e.label }}</span>
         {% if e.area %}<span class="text-xs text-gray-400 shrink-0">{{ e.area }}</span>{% endif %}
       </a>
