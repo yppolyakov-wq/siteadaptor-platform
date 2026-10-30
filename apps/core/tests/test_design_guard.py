@@ -72,3 +72,34 @@ def test_variant_row_folds_stock_fields_on_phone():
     for name in ("content", "cost", "reorder_point", "reorder_target", "sku", "gtin", "sort"):
         assert f'name="{name}"' in box, name
     assert 'class="hidden sm:contents"' in src and "data-variant-more-toggle" in src
+
+
+# E9.6/E9.7: таблица кабинета — только общий `ui-table` (новая таблица со своими
+# отступами/рамками краснеет). Сетки, а не списки, — осознанные исключения.
+TABLE_GRIDS = {
+    "inventory/stock.html",  # подсказки пополнения (янтарная плашка) + матрица размер × цвет
+    "tenant/notifications.html",  # матрица событие × канал
+    "publishing/gbp_sync.html",  # сравнение часов «у нас / в Google»
+    "promotions/promotion_form.html",  # каналы и статистика внутри формы
+    "stays/_belegungsplan_body.html",
+    "stays/_price_grid.html",
+    "stays/_price_preview.html",
+    "stays/_stay_amount.html",
+    "stays/booking_detail.html",
+    "imports/import_map.html",
+    "imports/import_preview.html",
+    "imports/import_start.html",
+}
+NOT_CABINET = ("storefront/", "aggregator/", "emails/", "email/", "pdf/", "platform/", "public/")
+
+
+def test_cabinet_tables_use_ui_table():
+    bad = []
+    for p in ROOT.glob("**/*.html"):
+        rel = str(p.relative_to(ROOT))
+        if rel.startswith(NOT_CABINET) or rel in TABLE_GRIDS or "_email" in rel:
+            continue
+        for tag in re.findall(r"<table\b[^>]*>", p.read_text(encoding="utf-8")):
+            if "ui-table" not in tag:
+                bad.append(rel)
+    assert not bad, sorted(set(bad))
