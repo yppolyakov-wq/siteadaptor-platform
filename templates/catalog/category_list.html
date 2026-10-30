@@ -74,9 +74,6 @@
 </form>
 {% endif %}
 {% else %}
-<div class="text-center text-gray-400 py-16 bg-white rounded-2xl shadow-sm">
-  <p class="text-4xl mb-2">🗂</p>
-  <p>{% trans "No categories yet." %}</p>
-</div>
+{% url 'catalog:category-create' as u %}{% trans "No categories yet." as t %}{% trans "New category" as a %}{% include "ui/_empty.html" with title=t icon="ic-nav-sellables" action_url=u action_label=a %}
 {% endif %}
 {% endblock %}

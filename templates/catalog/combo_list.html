@@ -28,6 +28,6 @@
   {% endfor %}
 </div>
 {% else %}
-<p class="text-gray-500">{% trans "No combos yet." %}</p>
+{% url 'catalog:combo-create' as u %}{% trans "No combos yet." as t %}{% trans "New combo" as a %}{% include "ui/_empty.html" with title=t icon="ic-nav-sellables" action_url=u action_label=a %}
 {% endif %}
 {% endblock %}

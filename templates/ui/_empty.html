@@ -1,0 +1,10 @@
+{% load i18n %}
+{% comment %}KA-12 E9.2: одно пустое состояние списка кабинета (VI-7) — вместо ~12 самодельных форм.
+Что здесь появится + первое действие. Параметры include: title (обязателен), text, icon (id символа
+спрайта tenant/_icons.html), action_url + action_label (кнопка только при обоих).{% endcomment %}
+<div class="ui-card ui-empty" data-ui-empty>
+  {% if icon %}<svg aria-hidden="true"><use href="#{{ icon }}"></use></svg>{% endif %}
+  <p class="ui-h2">{{ title }}</p>
+  {% if text %}<p class="ui-muted text-sm max-w-md">{{ text }}</p>{% endif %}
+  {% if action_url and action_label %}<a href="{{ action_url }}" class="ui-btn ui-btn-primary">{{ action_label }}</a>{% endif %}
+</div>
