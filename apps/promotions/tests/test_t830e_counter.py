@@ -81,11 +81,12 @@ def test_lite_list_is_cards_full_list_keeps_table(user):
     lite = views.reservation_list(
         _req("get", "/promotions/reservations/", user, _tenant())
     ).content.decode()
-    assert "data-lite-res-card" in lite and "min-w-[640px]" not in lite
+    # E9.6: полная таблица — общий `ui-table` (раньше маркером был min-w-[640px])
+    assert "data-lite-res-card" in lite and 'class="ui-table' not in lite
     full = views.reservation_list(
         _req("get", "/promotions/reservations/", user, _tenant(lite=False))
     ).content.decode()
-    assert "min-w-[640px]" in full and "data-lite-res-card" not in full
+    assert 'class="ui-table' in full and "data-lite-res-card" not in full
 
 
 @pytest.mark.parametrize("start", ["pending", "confirmed"])
