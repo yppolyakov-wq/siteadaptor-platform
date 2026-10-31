@@ -24,6 +24,23 @@ class Command(BaseCommand):
         parser.add_argument("--apply", action="store_true", help="Записать (иначе отчёт).")
         parser.add_argument("--no-images", action="store_true", help="Без загрузки фото.")
         parser.add_argument("--vat", default="7", help="Ставка НДС товаров (чай — 7).")
+        # M21.3: главная, меню, логотип, цвет, контакты — как на старом сайте.
+        parser.add_argument("--no-design", action="store_true", help="Без главной/меню/лого.")
+        parser.add_argument("--hero-title", default="", help="Заголовок слайдов баннера.")
+        parser.add_argument("--hero-button", default="", help="Подпись кнопки слайдов.")
+        parser.add_argument("--hero-url", default="/sortiment/", help="Ссылка кнопки слайдов.")
+        parser.add_argument(
+            "--skip-banner",
+            type=int,
+            action="append",
+            default=[],
+            help="Номер баннера (с 1), который не переносить; можно повторять.",
+        )
+        parser.add_argument(
+            "--banner-crop",
+            default="",
+            help="Полоса баннера без надписей, доли высоты «верх:низ», напр. 0.30:0.72.",
+        )
 
     def handle(self, *args, **opts):
         schema = opts["schema"]
@@ -38,6 +55,15 @@ class Command(BaseCommand):
             raise CommandError("invalid --vat") from exc
         if vat not in (Decimal("0"), Decimal("7"), Decimal("19")):
             raise CommandError("--vat must be 0, 7 or 19")
+        crop = None
+        if opts["banner_crop"]:
+            try:
+                top, bottom = (float(x) for x in opts["banner_crop"].split(":"))
+            except ValueError as exc:
+                raise CommandError("--banner-crop must look like 0.30:0.72") from exc
+            if not 0 <= top < bottom <= 1:
+                raise CommandError("--banner-crop must satisfy 0 <= top < bottom <= 1")
+            crop = (top, bottom)
         url = opts["url"].strip()
         if not url.startswith(("https://", "http://")):
             raise CommandError("--url must start with http(s)://")
@@ -62,6 +88,20 @@ class Command(BaseCommand):
                 log=self.stdout.write,
             )
             about = cscart.apply_about(tenant, site)
+            design_notes = []
+            if not opts["no_design"]:
+                design_notes = cscart.apply_design(
+                    tenant,
+                    site,
+                    options=cscart.DesignOptions(
+                        hero_title=opts["hero_title"],
+                        hero_button_label=opts["hero_button"],
+                        hero_button_url=opts["hero_url"],
+                        skip_banners=tuple(opts["skip_banner"]),
+                        banner_crop=crop,
+                    ),
+                    with_images=not opts["no_images"],
+                )
         self.stdout.write(
             self.style.SUCCESS(
                 f"done: {stats.categories_created} categories, {stats.products_created} new / "
@@ -70,5 +110,5 @@ class Command(BaseCommand):
                 + (", about text set" if about else "")
             )
         )
-        for note in stats.notes:
+        for note in [*design_notes, *stats.notes]:
             self.stdout.write(f"  - {note}")

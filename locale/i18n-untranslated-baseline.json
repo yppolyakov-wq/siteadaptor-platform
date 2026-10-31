@@ -61,9 +61,6 @@
  "apps/crm/views.py": [
   "LÖSCHEN"
  ],
- "apps/events/forms.py": [
-  "Frühbucher | 79 | 10\nStandard | 99\nKind | 0"
- ],
  "apps/events/landing.py": [
   "Johanna | Köln | Hat mich geerdet. | https://…/foto.jpg | 5"
  ],
@@ -82,14 +79,15 @@
   "Gegenkonto (ohne BU-Schlüssel)",
   "Konto"
  ],
+ "apps/imports/cscart.py": [
+  "Zahlungsarten",
+  "\\b\\d{5}\\s+([A-ZÄÖÜ][\\wäöüß .-]+)$"
+ ],
  "apps/inbox/ai_reply.py": [
   "(?<!ge)n[uü]ss|(?:^|(?<=[rl]))eier|"
  ],
  "apps/inventory/models.py": [
   "Signed: +Zugang / −Abgang"
- ],
- "apps/inventory/views.py": [
-  "Datum"
  ],
  "apps/notifications/adapters.py": [
   "Plattform-Bot nicht aktiv",
@@ -254,7 +252,6 @@
   "8. Telegram-Bot für Geschäftsinhaber",
   "8a. Telegram-Bot der Stadtportale",
   "; hast du den Bot gesperrt, 30 Tage; ohne Abo und Aktivität 180 Tage.",
-  "Datenschutzerklärung",
   "Löschen: jederzeit mit",
   "Speicherdauer: die Verbindung bis zur Trennung, bis zum Befehl",
   "Stand: [Monat Jahr]. Diese Erklärung wird bei Änderungen der Verarbeitung aktualisiert.",

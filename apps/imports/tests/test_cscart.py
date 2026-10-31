@@ -169,6 +169,7 @@ def test_apply_creates_catalog_redirects_and_is_idempotent():
         "/sortiment/assam/"
     )
     assert legacy_redirects.match("/blog/", "").status == LegacyRedirect.STATUS_GONE
+    assert legacy_redirects.match("/blog/afraid-of-zombies/", "").status == 410
     assert legacy_redirects.match("/allgemeine-geschaftsbedienungen/", "").target == "/agb/"
     assert LegalDoc.objects.get(kind="agb", locale="de").text.startswith("1. Geltungsbereich")
 
@@ -300,3 +301,140 @@ def test_variant_image_prefers_longest_id():
     images = {"53000806": "u806", "53000006": "u6"}
     assert cscart._variant_image(images, "806", {"6", "806"}) == "u806"
     assert cscart._variant_image(images, "6", {"6", "806"}) == "u6"
+
+
+# --- M21.3: главная, меню, логотип, контакты ---------------------------------------
+
+
+def test_parse_home_banners_tiles_menu_logo_footer():
+    home = cscart.parse_home(_read("home.html"), BASE)
+    assert home.banners == [
+        BASE + "images/promo/9/b1.jpg",
+        BASE + "images/promo/9/b2.jpg",
+        BASE + "images/promo/9/b3.jpg",
+    ]
+    assert home.tiles == [
+        ("schwarzertee", BASE + "images/promo/9/black.png"),
+        ("grunertee", BASE + "images/promo/9/green.png"),
+    ]
+    assert [label for label, _u in home.menu] == ["Schwarzer", "Grüner", "Assam", "Newest", "Sales"]
+    assert home.logo_url == BASE + "images/logos/8/Logo.jpg"
+    assert "Marktpassage 2" in home.footer_text
+
+
+def test_hours_contacts_and_dangling_text():
+    text = cscart.parse_home(_read("home.html"), BASE).footer_text
+    assert cscart.parse_hours(text) == {
+        **{str(d): ["10:00", "18:00"] for d in range(5)},
+        "5": ["10:00", "14:00"],
+    }
+    assert cscart.parse_contacts(text) == {
+        "address": "Marktpassage 2, 42781 Haan",
+        "city": "Haan",
+        "phone": "02129 54862",
+    }
+    body = cscart.html_to_text(cscart.page_body(_read("versand.html")))
+    assert (
+        cscart.strip_dangling(body) == "Wir versenden mit DHL.\n\nAbholung in der Filiale möglich."
+    )
+
+
+def test_dominant_color_ignores_white_background():
+    buf = io.BytesIO()
+    img = Image.new("RGB", (60, 30), (255, 255, 255))
+    for x in range(20, 50):
+        for y in range(5, 25):
+            img.putpixel((x, y), (40, 50, 140))
+    img.save(buf, "PNG")
+    assert cscart.dominant_color(buf.getvalue()) == "#28328c"
+
+
+def _site_with_home():
+    site = cscart.scrape("https://shop.example", fetch=_fake_fetch_home, pause=0)
+    return site
+
+
+def _fake_fetch_home(url):
+    if url == BASE:
+        return _Got(_read("home.html").encode())
+    if url.endswith("/versand/"):
+        return _Got(_read("versand.html").encode())
+    return _fake_fetch(url)
+
+
+def _logo_png():
+    buf = io.BytesIO()
+    Image.new("RGB", (60, 30), (40, 50, 140)).save(buf, "PNG")
+    return _Got(buf.getvalue())
+
+
+@pytest.mark.django_db
+def test_apply_design_like_old_site_and_keeps_owner_edits_on_rerun():
+    from apps.tenants import siteconfig
+    from apps.tenants.tests.factories import TenantFactory
+
+    site = _site_with_home()
+    assert site.pages["versand_title"] == "Versand"
+
+    def fetch_image(url):
+        return _logo_png() if "logos" in url else _jpeg()
+
+    cscart.apply_site(site, fetch_image=fetch_image)
+    tenant = TenantFactory(
+        schema_name="public", address="", contact_phone="", opening_hours_structured={}
+    )
+    tenant.site_config, tenant.logo_url = {}, ""
+    options = cscart.DesignOptions(
+        hero_title="Die wunderbare Welt des Tees",
+        hero_button_label="Lass mich verzaubern",
+        skip_banners=(3,),
+    )
+    notes = cscart.apply_design(tenant, site, options=options, fetch_image=fetch_image)
+    tenant.refresh_from_db()
+    cfg = siteconfig.normalize(tenant.site_config)
+
+    heroes = cfg["heroes"]
+    assert len(heroes) == 2 and heroes[0]["title"] == "Die wunderbare Welt des Tees"
+    assert heroes[0]["button_url"] == "/sortiment/"
+    order = [s["key"] for s in cfg["sections"] if s.get("enabled")][:4]
+    assert order == ["hero", "categories", "products", "about"]
+    assert Category.objects.get(slug="schwarzertee").images
+    items = cfg["menus"]["top"]["items"]
+    assert [(i["label"], i["type"], i["target"]) for i in items] == [
+        ("Schwarzer", "categories", "schwarzertee"),
+        ("Grüner", "categories", "grunertee"),
+        ("Neu", "url", "/sortiment/?sort=newest"),
+    ]
+    info = cfg["page_blocks"]["info"]
+    assert info[0]["data"]["title"] == "Versand"
+    assert "wie folgt" not in info[0]["data"]["body"]
+    assert tenant.logo_url and tenant.primary_color == "#28328c"
+    assert tenant.address == "Marktpassage 2, 42781 Haan" and tenant.contact_phone == "02129 54862"
+    assert tenant.opening_hours_structured["5"] == ["10:00", "14:00"]
+    assert any("brand color" in n for n in notes)
+
+    # Владелец поменял слайд и цвет — повторный прогон их не трогает и не дублирует блоки.
+    cfg_raw = dict(tenant.site_config)
+    cfg_raw["heroes"] = [{"image": "/own.jpg", "title": "Eigener"}]
+    tenant.site_config, tenant.primary_color = cfg_raw, "#123456"
+    tenant.save(update_fields=["site_config", "primary_color"])
+    cscart.apply_design(tenant, site, options=options, fetch_image=fetch_image)
+    tenant.refresh_from_db()
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["heroes"][0]["title"] == "Eigener" and tenant.primary_color == "#123456"
+    assert len(cfg["page_blocks"]["info"]) == 1
+
+
+def test_save_image_crop_keeps_middle_band(monkeypatch):
+    saved = {}
+
+    def fake_save(upload, **kw):
+        with Image.open(upload) as img:
+            saved["size"] = img.size
+        return {"url": "/x.webp"}
+
+    monkeypatch.setattr("apps.catalog.images.save_product_image", fake_save)
+    buf = io.BytesIO()
+    Image.new("RGB", (90, 125), (10, 120, 40)).save(buf, "JPEG")
+    assert cscart._save_image("u", lambda _u: _Got(buf.getvalue()), crop=(0.3, 0.72))
+    assert saved["size"] == (90, 53)  # 37..90 px
