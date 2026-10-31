@@ -28,8 +28,8 @@
           {% comment %}A5: загрузить/заменить фото — скрытый file-input, авто-сабмит.{% endcomment %}
           <form method="post" enctype="multipart/form-data">{% csrf_token %}
             <input type="hidden" name="action" value="set_image"><input type="hidden" name="extra" value="{{ e.pk }}">
-            <label class="text-xs border border-gray-200 rounded-lg px-2 py-1 hover:bg-gray-50 cursor-pointer whitespace-nowrap">📷 {% if e.image_url %}{% trans "Change" %}{% else %}{% trans "Photo" %}{% endif %}
-              <input type="file" name="image" accept="image/*" class="hidden" onchange="this.form.submit()"></label>
+            <label class="text-xs border border-gray-200 rounded-lg px-2 py-1 hover:bg-gray-50 cursor-pointer whitespace-nowrap focus-within:ring-2 focus-within:ring-indigo-500">📷 {% if e.image_url %}{% trans "Change" %}{% else %}{% trans "Photo" %}{% endif %}
+              <input type="file" name="image" accept="image/*" class="sr-only" onchange="this.form.submit()"></label>
           </form>
           <form method="post">{% csrf_token %}
             <input type="hidden" name="action" value="toggle"><input type="hidden" name="extra" value="{{ e.pk }}">

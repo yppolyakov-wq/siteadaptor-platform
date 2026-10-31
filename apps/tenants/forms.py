@@ -120,6 +120,9 @@ class BusinessSettingsForm(forms.ModelForm):
         widgets = {
             "address": forms.Textarea(attrs={"rows": 2}),
             "opening_hours": forms.Textarea(attrs={"rows": 3}),
+            # E9.5: телефон бизнеса — цифровая клавиатура и автозаполнение владельца.
+            "contact_phone": forms.TextInput(attrs={"type": "tel", "autocomplete": "tel"}),
+            "whatsapp_number": forms.TextInput(attrs={"type": "tel", "autocomplete": "tel"}),
         }
         labels = {
             "name": _("Name"),

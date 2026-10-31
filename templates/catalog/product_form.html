@@ -211,8 +211,8 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
           витрина подменяет им главное фото, но загрузить его было нечем — заполнял
           только демо-кит. Одно фото на вариант; галерея остаётся у товара.{% endcomment %}
           {% if v.image_url %}<img src="{{ v.image_url }}" alt="" class="w-9 h-9 rounded object-cover shrink-0">{% endif %}
-          <label class="text-xs text-gray-500 cursor-pointer" title="{% trans 'Variant photo' %}">📷
-            <input name="image" type="file" accept="image/jpeg,image/png,image/webp" class="hidden">
+          <label class="text-xs text-gray-500 cursor-pointer rounded px-1 focus-within:ring-2 focus-within:ring-indigo-500" title="{% trans 'Variant photo' %}">📷
+            <input name="image" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" aria-label="{% trans 'Variant photo' %}">
           </label>
           {% if v.image_url %}<label class="text-xs text-gray-400" title="{% trans 'Remove photo' %}"><input type="checkbox" name="remove_image" value="1"> 🗑</label>{% endif %}
           <span class="w-24 font-medium truncate" title="{{ v.label }}">{{ v.label }}</span>
@@ -236,7 +236,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
           <input name="reorder_target" type="number" value="{{ v.reorder_target|default_if_none:'' }}" placeholder="{% trans 'Soll' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Sollbestand' %}">
           {# Фидбэк 2026-08-04: артикул варианта — поле было в модели, но не в форме. #}
           <input name="sku" type="text" value="{{ v.sku }}" placeholder="{% trans 'Art.-Nr.' %}" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Art.-Nr.' %}">
-          <input name="gtin" type="text" value="{{ v.gtin }}" placeholder="EAN" class="w-32 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="EAN / GTIN">
+          <input name="gtin" type="text" inputmode="numeric" autocomplete="off" value="{{ v.gtin }}" placeholder="EAN" class="w-32 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="EAN / GTIN">
           <input name="sort" type="number" value="{{ v.sort_order }}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
           </span>
           <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="is_active" {% if v.is_active %}checked{% endif %}> {% trans "Active" %}</label>
@@ -285,22 +285,22 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
 
       <form method="post" enctype="multipart/form-data" action="{% url 'catalog:variant-add' product.pk %}" class="flex flex-wrap items-center gap-2 text-sm mt-3 border-t border-gray-100 pt-3">
         {% csrf_token %}
-        <label class="text-xs text-gray-500 cursor-pointer" title="{% trans 'Variant photo' %}">📷
-          <input name="image" type="file" accept="image/jpeg,image/png,image/webp" class="hidden">
+        <label class="text-xs text-gray-500 cursor-pointer rounded px-1 focus-within:ring-2 focus-within:ring-indigo-500" title="{% trans 'Variant photo' %}">📷
+          <input name="image" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" aria-label="{% trans 'Variant photo' %}">
         </label>
         {% comment %}M4-A: можно завести вариант ОСЯМИ (размер/цвет) — тогда label
         соберётся сам («S · Blau»); либо по-старому одним label.{% endcomment %}
-        <input name="label" type="text" placeholder="{% trans 'Label (e.g. 100 g)' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5">
+        <input name="label" type="text" placeholder="{% trans 'Label (e.g. 100 g)' %}" aria-label="{% trans 'Label (e.g. 100 g)' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5">
         <input name="size" type="text" placeholder="{% trans 'Größe' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Größe' %}">
         <input name="color" type="text" placeholder="{% trans 'Farbe' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Farbe' %}">
-        <input name="price" type="text" inputmode="decimal" placeholder="{% trans 'Price' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5">
-        <input name="content" type="text" inputmode="decimal" placeholder="{% trans 'Content' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5">
-        <input name="stock" type="number" placeholder="{% trans 'Stock' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5">
+        <input name="price" type="text" inputmode="decimal" placeholder="{% trans 'Price' %}" aria-label="{% trans 'Price' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5">
+        <input name="content" type="text" inputmode="decimal" placeholder="{% trans 'Content' %}" aria-label="{% trans 'Content' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5">
+        <input name="stock" type="number" placeholder="{% trans 'Stock' %}" aria-label="{% trans 'Stock' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5">
         <input name="cost" type="text" inputmode="decimal" placeholder="{% trans 'EK' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Einkaufspreis' %}">
         <input name="reorder_point" type="number" placeholder="{% trans 'Meld.' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Meldebestand' %}">
         <input name="reorder_target" type="number" placeholder="{% trans 'Soll' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Sollbestand' %}">
         <input name="sku" type="text" placeholder="{% trans 'Art.-Nr.' %}" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Art.-Nr.' %}">
-        <input name="gtin" type="text" placeholder="EAN" class="w-32 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="EAN / GTIN">
+        <input name="gtin" type="text" inputmode="numeric" autocomplete="off" placeholder="EAN" class="w-32 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="EAN / GTIN">
         <input name="sort" type="number" value="0" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
         <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Add variant" %}</button>
       </form>
@@ -338,8 +338,8 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
                     class="flex flex-wrap items-center gap-2 text-sm {% if not o.is_active %}opacity-50{% endif %}">
                 {% csrf_token %}
                 {% if o.image_url %}<img src="{{ o.image_url }}" alt="" class="w-8 h-8 rounded object-cover shrink-0">{% endif %}
-                <label class="text-xs text-gray-500 cursor-pointer" title="{% trans 'Option photo' %}">📷
-                  <input name="image" type="file" accept="image/jpeg,image/png,image/webp" class="hidden">
+                <label class="text-xs text-gray-500 cursor-pointer rounded px-1 focus-within:ring-2 focus-within:ring-indigo-500" title="{% trans 'Option photo' %}">📷
+                  <input name="image" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" aria-label="{% trans 'Option photo' %}">
                 </label>
                 {% if o.image_url %}<label class="text-xs text-gray-400" title="{% trans 'Remove photo' %}"><input type="checkbox" name="remove_image" value="1"> 🗑</label>{% endif %}
                 <input name="label" type="text" value="{{ o.label }}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Option' %}">

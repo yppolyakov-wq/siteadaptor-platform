@@ -35,11 +35,11 @@
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1" for="id_contact_phone">{% trans "Telefon" %}</label>
-      <input id="id_contact_phone" name="contact_phone" type="text" value="{{ request.tenant.contact_phone }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_contact_phone" name="contact_phone" type="tel" autocomplete="tel" value="{{ request.tenant.contact_phone }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_contact_email">{% trans "E-Mail" %}</label>
-      <input id="id_contact_email" name="contact_email" type="email" value="{{ request.tenant.contact_email }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_contact_email" name="contact_email" type="email" autocomplete="email" value="{{ request.tenant.contact_email }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
   </div>
   {% include "tenant/_setup_buttons.html" %}

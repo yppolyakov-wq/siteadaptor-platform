@@ -353,6 +353,10 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         # живые категории в выпадашке
         self.fields["category"].queryset = Category.objects.all()
+        # E9.5: штрихкод — цифровая клавиатура на телефоне (поле остаётся текстом:
+        # ведущие нули и длина 8/12/13/14 не должны теряться в number-поле).
+        if "gtin" in self.fields:
+            self.fields["gtin"].widget.attrs.update(inputmode="numeric", autocomplete="off")
         # SR-2b (фидбэк «пустота внутри»): правая колонка живёт ВНЕ <form>
         # (панель вариантов с мини-формами должна стоять сразу под main-картой,
         # вложенные <form> недопустимы) — поля рейла привязаны атрибутом form=.
