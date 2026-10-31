@@ -599,7 +599,7 @@ def test_detail_uses_rail_layout():
     # DC-1 (2026-08-25): рейл даёт общий скелет карточки сделки.
     assert "xl:grid-cols-[minmax(0,1fr)_380px]" in body  # рейл-грид (макет: 380px)
     assert "data-deal-rail" in body
-    assert "shadow-[0_6px_18px_rgba(22,24,29,0.05)]" in body  # тень R5
+    assert "ui-card" in body  # карточки — деталь ui-card (E9.8; прежде рукописная тень R5)
     # смета (форма) идёт РАНЬШЕ рейла: на мобильном позиции первыми — как у
     # заказа. Голый "<aside" ловит сайдбар кабинета — якоримся на классах рейла.
     rail_i = body.index("data-deal-rail")
