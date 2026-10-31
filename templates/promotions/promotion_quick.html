@@ -54,7 +54,7 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.title.label }}</span>
         <input type="text" name="title" value="{{ form.title.value|default:'' }}" maxlength="200" required list="quick-title-options"
-               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="off" {% if form.title.errors %}aria-invalid="true" aria-describedby="id_title_errors"{% endif %}>
+               class="ui-input" autocomplete="off" {% if form.title.errors %}aria-invalid="true" aria-describedby="id_title_errors"{% endif %}>
         {% if title_suggestions %}
           <datalist id="quick-title-options">{% for t in title_suggestions %}<option value="{{ t }}">{% endfor %}</datalist>
         {% endif %}
@@ -62,7 +62,7 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
       </label>
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.description.label }}</span>
-        <textarea name="description" rows="2" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm">{{ form.description.value|default:'' }}</textarea>
+        <textarea name="description" rows="2" class="ui-input">{{ form.description.value|default:'' }}</textarea>
       </label>
       {% comment %}T-8.23d: акция всегда от товара. Свой товар — выбрать; иначе товар
       создаётся из этих данных (артикул и категория — по желанию). Поля всегда в DOM.{% endcomment %}
@@ -74,7 +74,7 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
       {% if products %}
       <label class="block" data-quick-product>
         <span class="block text-sm font-medium mb-1">{{ form.product.label }}</span>
-        <select name="product" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base bg-white" {% if form.product.errors %}aria-invalid="true" aria-describedby="id_product_errors"{% endif %}>
+        <select name="product" class="ui-input" {% if form.product.errors %}aria-invalid="true" aria-describedby="id_product_errors"{% endif %}>
           <option value="">＋ {% trans "Neues Produkt aus diesen Angaben" %}</option>
           {% for p in products %}
             <option value="{{ p.pk }}" {% if form.product.value|stringformat:'s' == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name_text|default:p }}{% if p.sku %} · {{ p.sku }}{% endif %}</option>
@@ -87,11 +87,11 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
       <div class="grid grid-cols-2 gap-3" data-quick-new-product>
         <label class="block">
           <span class="block text-sm font-medium mb-1">{{ form.sku.label }}</span>
-          <input type="text" name="sku" value="{{ form.sku.value|default:'' }}" maxlength="100" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base">
+          <input type="text" name="sku" value="{{ form.sku.value|default:'' }}" maxlength="100" class="ui-input">
         </label>
         <label class="block">
           <span class="block text-sm font-medium mb-1">{{ form.category.label }}</span>
-          <select name="category" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base bg-white" data-quick-category>
+          <select name="category" class="ui-input" data-quick-category>
             <option value="">—</option>
             {% for c in form.fields.category.queryset %}
               <option value="{{ c.pk }}" {% if form.category.value|stringformat:'s' == c.pk|stringformat:'s' %}selected{% endif %}>{{ c }}</option>
@@ -101,7 +101,7 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
         </label>
         <label class="block col-span-2{% if not form.new_category.value %} hidden{% endif %}" data-quick-new-category>
           <span class="block text-sm font-medium mb-1">{{ form.new_category.label }}</span>
-          <input type="text" name="new_category" value="{{ form.new_category.value|default:'' }}" maxlength="100" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base">
+          <input type="text" name="new_category" value="{{ form.new_category.value|default:'' }}" maxlength="100" class="ui-input">
         </label>
       </div>
       </div>
@@ -113,13 +113,13 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
         <label class="block">
           <span class="block text-sm font-medium mb-1">{{ form.new_price.label }}</span>
           <input type="text" name="new_price" value="{{ form.new_price.value|money_input }}" inputmode="decimal" autocomplete="off"
-                 class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" {% if form.new_price.errors %}aria-invalid="true" aria-describedby="id_new_price_errors"{% endif %}>
+                 class="ui-input" {% if form.new_price.errors %}aria-invalid="true" aria-describedby="id_new_price_errors"{% endif %}>
           {% if form.new_price.errors %}<span class="block" id="id_new_price_errors">{% for e in form.new_price.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
         </label>
         <label class="block">
           <span class="block text-sm font-medium mb-1">{{ form.old_price.label }}</span>
           <input type="text" name="old_price" value="{{ form.old_price.value|money_input }}" inputmode="decimal" autocomplete="off"
-                 class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" {% if form.old_price.errors %}aria-invalid="true" aria-describedby="id_old_price_errors"{% endif %}>
+                 class="ui-input" {% if form.old_price.errors %}aria-invalid="true" aria-describedby="id_old_price_errors"{% endif %}>
           {% if form.old_price.errors %}<span class="block" id="id_old_price_errors">{% for e in form.old_price.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
         </label>
       </div>
@@ -180,14 +180,14 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
       {% include "promotions/_city_category_fields.html" %}
       {% include "promotions/_text_check.html" %}
       <div class="flex flex-wrap gap-2 pt-2">
-        <button type="submit" name="publish" value="now" class="flex-1 bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700">{% trans "Veröffentlichen" %}</button>
+        <button type="submit" name="publish" value="now" class="ui-btn ui-btn-primary flex-1">{% trans "Veröffentlichen" %}</button>
         <button type="submit" name="publish" value="draft" class="ui-btn ui-btn-secondary">{% trans "Als Entwurf speichern" %}</button>
       </div>
     </section>
 
     <div class="flex justify-between gap-2 hidden" data-quick-nav>
       <button type="button" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm" data-quick-back>← {% trans "Zurück" %}</button>
-      <button type="button" class="rounded-xl bg-gray-900 text-white px-5 py-2.5 text-sm font-medium" data-quick-next>{% trans "Weiter" %} →</button>
+      <button type="button" class="ui-btn ui-btn-primary" data-quick-next>{% trans "Weiter" %} →</button>
     </div>
   </form>
 </div>

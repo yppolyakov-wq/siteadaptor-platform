@@ -33,7 +33,7 @@
     {% csrf_token %}
     <input type="hidden" name="fingerprint" value="{{ preview.fingerprint }}">
     {% for key, values in request.GET.lists %}{% if key != "vorschau" and key != "fingerprint" %}{% for v in values %}<input type="hidden" name="{{ key }}" value="{{ v }}">{% endfor %}{% endif %}{% endfor %}
-    <button type="submit" class="rounded-lg bg-indigo-600 text-white font-medium px-5 py-2.5 min-h-[44px] hover:bg-indigo-700">{% trans "Übernehmen" %}</button>
+    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Übernehmen" %}</button>
     <a href="?von={{ von|date:'Y-m-d' }}&amp;tage={{ tage }}" class="text-sm text-gray-600 hover:underline px-2 min-h-[44px] inline-flex items-center">{% trans "Abbrechen" %}</a>
   </form>
   {% endif %}

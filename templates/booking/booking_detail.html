@@ -76,7 +76,7 @@
             </label>
           {% endfor %}
         </div>
-        <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-700">{% trans "Save" %}</button>
+        <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Save" %}</button>
       </form>
     </details>
   {% endif %}{% endif %}
@@ -110,9 +110,9 @@
       <input type="hidden" name="action" value="service_note">
       <input type="hidden" name="next" value="{{ request.get_full_path }}">
       <label for="svc-note-text" class="block text-xs text-gray-500">{% trans "Notiz zu diesem Termin" %}</label>
-      <textarea id="svc-note-text" name="text" rows="2" maxlength="2000" required aria-describedby="svc-note-hint" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base"></textarea>
+      <textarea id="svc-note-text" name="text" rows="2" maxlength="2000" required aria-describedby="svc-note-hint" class="ui-input"></textarea>
       <p id="svc-note-hint" class="text-xs text-gray-400">{% trans "Nur intern sichtbar. Keine Gesundheitsdaten (z. B. Allergien) ohne ausdrückliche Einwilligung der Kundin oder des Kunden." %} {% trans "Notizen werden 3 Jahre nach dem letzten Termin automatisch gelöscht." %}</p>
-      <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700">＋ {% trans "Notiz speichern" %}</button>
+      <button class="ui-btn ui-btn-primary ui-btn-sm">＋ {% trans "Notiz speichern" %}</button>
     </form>
   </section>
 {% endblock %}
@@ -151,13 +151,13 @@ Rabatt → Netto → MwSt. → Gesamt); свой набор строк у каж
 
 {% block deal_rail_extra %}
   {% if b.status == 'pending' or b.status == 'confirmed' %}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="move">
+    <div class="ui-card p-5" data-deal-block="move">
       <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Termin verschieben" %}</p>
       <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="space-y-2">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <input aria-label="{% trans "Start" %}" type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}"
-               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+               class="ui-input">
         <label class="inline-flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="override_hours" value="1"> {% trans "Trotzdem eintragen" %}</label>
         <button name="action" value="move" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
       </form>

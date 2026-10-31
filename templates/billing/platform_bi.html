@@ -11,7 +11,7 @@
   {% comment %}R5: снимок ключевых метрик. churn/LTV — приблизительные v1 (без
   снапшотов истории), помечены явно.{% endcomment %}
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white rounded-2xl shadow-sm p-5">
+    <div class="ui-card p-5">
       <p class="text-xs uppercase tracking-wide text-gray-400 mb-1">MRR</p>
       <p class="text-3xl font-bold">{{ m.mrr }} €</p>
       <p class="text-xs text-gray-500 mt-1">{{ m.active }} × {{ m.price }} €</p>
@@ -22,17 +22,17 @@
       <p class="text-xs text-gray-400">{% blocktrans with n=m.signups_30 %}{{ n }} signups / 30 days{% endblocktrans %}</p>
       {% endif %}
     </div>
-    <div class="bg-white rounded-2xl shadow-sm p-5">
+    <div class="ui-card p-5">
       <p class="text-xs uppercase tracking-wide text-gray-400 mb-1">ARPA</p>
       <p class="text-3xl font-bold">{{ m.arpa }} €</p>
       <p class="text-xs text-gray-500 mt-1">{% trans "per active account / month" %}</p>
     </div>
-    <div class="bg-white rounded-2xl shadow-sm p-5">
+    <div class="ui-card p-5">
       <p class="text-xs uppercase tracking-wide text-gray-400 mb-1">Churn (30d)*</p>
       <p class="text-3xl font-bold">{{ m.churn_pct }} %</p>
       <p class="text-xs text-gray-500 mt-1">{% blocktrans with n=m.churned_30 %}{{ n }} suspended{% endblocktrans %}</p>
     </div>
-    <div class="bg-white rounded-2xl shadow-sm p-5">
+    <div class="ui-card p-5">
       <p class="text-xs uppercase tracking-wide text-gray-400 mb-1">LTV*</p>
       <p class="text-3xl font-bold">{% if m.ltv %}{{ m.ltv }} €{% else %}—{% endif %}</p>
       <p class="text-xs text-gray-500 mt-1">ARPA / churn</p>
@@ -40,7 +40,7 @@
   </div>
 
   <div class="grid md:grid-cols-2 gap-4">
-    <div class="bg-white rounded-2xl shadow-sm p-5">
+    <div class="ui-card p-5">
       <h2 class="font-semibold mb-3">{% trans "Subscriptions" %}</h2>
       <dl class="text-sm divide-y divide-gray-100">
         <div class="flex justify-between py-2"><dt class="text-gray-500">Trial</dt><dd class="font-medium">{{ m.counts.trial }}</dd></div>
@@ -51,7 +51,7 @@
         <div class="flex justify-between py-2"><dt class="font-medium">{% trans "Total" %}</dt><dd class="font-semibold">{{ m.total }} · {{ m.active_pct }} % {% trans "active" %}</dd></div>
       </dl>
     </div>
-    <div class="bg-white rounded-2xl shadow-sm p-5">
+    <div class="ui-card p-5">
       <h2 class="font-semibold mb-3">{% blocktrans with p=m.period %}Usage fees — {{ p }}{% endblocktrans %}</h2>
       <dl class="text-sm divide-y divide-gray-100">
         <div class="flex justify-between py-2"><dt class="text-gray-500">{% trans "Fees collected" %}</dt><dd class="font-semibold">{{ m.fee_eur }} €</dd></div>

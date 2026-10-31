@@ -3,7 +3,7 @@
 полную карточку CRM, рядом вход в переписку (C1) и правка контакта (SH-5).
 Гейты модулей fail-closed: без CRM/Inbox ссылки не рисуются, а не ведут в 404.
 {% endcomment %}
-<div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="customer">
+<div class="ui-card p-5" data-deal-block="customer">
   <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Kunde" %}</p>
   {% if deal.customer %}
     {% comment %}CARD-4 (владелец 2026-08-26): имя ведёт в карточку клиента CRM,

@@ -5,7 +5,7 @@
 (сделки/клиенты/предложения), Enter открывает их первыми; подпись поля обещает
 ровно это (ревью 2026-08-19: обещала только разделы).{% endcomment %}
 <div id="navpal" class="hidden fixed inset-0 z-50 bg-black/30 p-4 pt-16 md:pt-24" role="dialog" aria-modal="true" aria-label="{% trans 'Suchen: Bestellung, Kunde, Bereich…' %}">
-  <div class="mx-auto max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
+  <div class="ui-card mx-auto max-w-lg shadow-xl overflow-hidden">
     {# KA-12 E9.4a: настоящая подпись (плейсхолдер исчезает при вводе) + видимая рамка фокуса. #}
     <label for="navpal-q" class="sr-only">{% trans 'Suchen: Bestellung, Kunde, Bereich…' %}</label>
     <input id="navpal-q" type="search" placeholder="{% trans 'Suchen: Bestellung, Kunde, Bereich…' %}" autocomplete="off"

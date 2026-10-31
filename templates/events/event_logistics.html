@@ -90,43 +90,43 @@
                     <input type="hidden" name="action" value="edit_booking">
                     <input type="hidden" name="id" value="{{ b.pk }}">
                     <label class="text-xs text-gray-500">{% trans "Type" %}
-                      <select name="kind" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                      <select name="kind" class="ui-input">
                         {% for value, label in kinds %}<option value="{{ value }}"{% if b.kind == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
                       </select>
                     </label>
                     <label class="text-xs text-gray-500">{% trans "Supplier" %}
-                      <select name="supplier" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                      <select name="supplier" class="ui-input">
                         <option value="">—</option>
                         {% if b.supplier and not b.supplier.is_active %}<option value="{{ b.supplier_id }}" selected>{{ b.supplier.name }}</option>{% endif %}
                         {% for s in suppliers %}<option value="{{ s.pk }}"{% if b.supplier_id == s.pk %} selected{% endif %}>{{ s.name }}</option>{% endfor %}
                       </select>
                     </label>
                     <label class="text-xs text-gray-500">{% trans "or name" %}
-                      <input type="text" name="supplier_name" maxlength="200" value="{{ b.supplier_name }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                      <input type="text" name="supplier_name" maxlength="200" value="{{ b.supplier_name }}" class="ui-input">
                     </label>
                     <label class="text-xs text-gray-500">{% trans "Day" %}
-                      <input type="number" min="0" name="day" value="{{ b.day|default_if_none:'' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                      <input type="number" min="0" name="day" value="{{ b.day|default_if_none:'' }}" class="ui-input">
                     </label>
                     <label class="text-xs text-gray-500">{% trans "Date" %}
-                      <input type="date" name="date" value="{{ b.date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                      <input type="date" name="date" value="{{ b.date|date:'Y-m-d' }}" class="ui-input">
                     </label>
                     <label class="text-xs text-gray-500">{% trans "Stop" %}
-                      <input type="text" name="stop" maxlength="200" value="{{ b.stop }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                      <input type="text" name="stop" maxlength="200" value="{{ b.stop }}" class="ui-input">
                     </label>
                     <label class="text-xs text-gray-500">{% trans "Quantity" %}
-                      <input type="number" min="1" name="qty" value="{{ b.qty }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                      <input type="number" min="1" name="qty" value="{{ b.qty }}" class="ui-input">
                     </label>
                     <label class="text-xs text-gray-500">{% trans "Cost (€)" %}
-                      <input type="text" name="cost_eur" inputmode="decimal" value="{{ b.cost_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                      <input type="text" name="cost_eur" inputmode="decimal" value="{{ b.cost_eur|stringformat:'.2f' }}" class="ui-input">
                     </label>
                     <label class="text-xs text-gray-500">{% trans "Original" %}
-                      <input type="text" name="amount_original" inputmode="decimal" value="{{ b.amount_original|default_if_none:''|stringformat:'s' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                      <input type="text" name="amount_original" inputmode="decimal" value="{{ b.amount_original|default_if_none:''|stringformat:'s' }}" class="ui-input">
                     </label>
                     <label class="text-xs text-gray-500">{% trans "Currency" %}
-                      <input type="text" name="currency" maxlength="3" value="{{ b.currency }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                      <input type="text" name="currency" maxlength="3" value="{{ b.currency }}" class="ui-input">
                     </label>
                     <label class="text-xs text-gray-500">{% trans "Note" %}
-                      <input type="text" name="note" maxlength="300" value="{{ b.note }}" class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm">
+                      <input type="text" name="note" maxlength="300" value="{{ b.note }}" class="ui-input">
                     </label>
                     <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Save" %}</button>
                   </form>
@@ -154,36 +154,36 @@
     {% csrf_token %}
     <input type="hidden" name="action" value="add_booking">
     <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Day" %}
-      <input type="number" min="0" name="day" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <input type="number" min="0" name="day" class="ui-input">
     </label>
     <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Type" %}
-      <select name="kind" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <select name="kind" class="ui-input">
         {% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
       </select>
     </label>
     <label class="text-xs text-gray-500 sm:col-span-2">{% trans "Supplier" %}
-      <select name="supplier" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <select name="supplier" class="ui-input">
         <option value="">—</option>
         {% for s in suppliers %}<option value="{{ s.pk }}">{{ s.name }}</option>{% endfor %}
       </select>
     </label>
     <label class="text-xs text-gray-500 sm:col-span-2">{% trans "or name" %}
-      <input type="text" name="supplier_name" maxlength="200" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <input type="text" name="supplier_name" maxlength="200" class="ui-input">
     </label>
     <label class="text-xs text-gray-500 sm:col-span-2">{% trans "Stop" %}
-      <input type="text" name="stop" maxlength="200" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <input type="text" name="stop" maxlength="200" class="ui-input">
     </label>
     <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Date" %}
-      <input type="date" name="date" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <input type="date" name="date" class="ui-input">
     </label>
     <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Cost (€)" %}
-      <input type="text" name="cost_eur" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <input type="text" name="cost_eur" inputmode="decimal" class="ui-input">
     </label>
     <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Original" %}
-      <input type="text" name="amount_original" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <input type="text" name="amount_original" inputmode="decimal" class="ui-input">
     </label>
     <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Currency" %}
-      <input type="text" name="currency" maxlength="3" placeholder="INR" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <input type="text" name="currency" maxlength="3" placeholder="INR" class="ui-input">
     </label>
     <button type="submit" class="ui-btn ui-btn-primary sm:col-span-1">{% trans "Add" %}</button>
   </form>

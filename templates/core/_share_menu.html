@@ -6,7 +6,7 @@ share_all_url (необязательно — «во все включённые
 только для чтения (копируется выделением).{% endcomment %}
 <details class="relative" data-share-menu>
   <summary class="cursor-pointer select-none text-sm text-indigo-600 hover:underline">📣 {% trans "Teilen" %}</summary>
-  <div class="mt-2 w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-lg space-y-1">
+  <div class="ui-card mt-2 w-64 p-3 shadow-lg space-y-1">
     <p class="text-xs text-gray-500">{% trans "Kanal wählen" %}</p>
     {% for t in share_targets %}
       <a href="{{ t.url }}" target="_blank" rel="noopener"
@@ -17,7 +17,7 @@ share_all_url (необязательно — «во все включённые
     {% endif %}
     <label class="block pt-2 text-xs text-gray-500">{% trans "Link" %}
       <input type="text" readonly value="{{ share_url }}" onclick="this.select()"
-             class="mt-1 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-600">
+             class="ui-input mt-1 text-xs text-gray-600">
     </label>
   </div>
 </details>

@@ -5,7 +5,7 @@
 <div class="space-y-2" data-city-category>
   <label class="block">
     <span class="block text-sm font-medium mb-1">{{ form.city_category.label }}</span>
-    <select name="city_category" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base bg-white" data-city-category-select aria-describedby="{{ form.city_category.auto_id }}_helptext{% if form.city_category.errors %} {{ form.city_category.auto_id }}_errors{% endif %}"{% if form.city_category.errors %} aria-invalid="true"{% endif %}>
+    <select name="city_category" class="ui-input" data-city-category-select aria-describedby="{{ form.city_category.auto_id }}_helptext{% if form.city_category.errors %} {{ form.city_category.auto_id }}_errors{% endif %}"{% if form.city_category.errors %} aria-invalid="true"{% endif %}>
       {% with current=form.city_category.value|default_if_none:''|stringformat:'s' %}
         <option value="" {% if not current %}selected{% endif %}>{% trans "Automatisch (nach Art des Geschäfts)" %}</option>
         {% for section_label, items in form.city_category_groups %}

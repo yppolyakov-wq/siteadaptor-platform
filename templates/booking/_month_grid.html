@@ -3,7 +3,7 @@
 на любую дату — клик по дню разворачивает его брони ниже (?tag=, тот же список).
 Число под датой = брони дня; листание месяцев уходит и в историю. Ссылки несут
 tab= (вкладка Verkäufe) — паттерн навигации _tagesplan_body.{% endcomment %}
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-4 max-w-md">
+<div class="ui-card p-4 mb-4 max-w-md">
   <div class="flex items-center justify-between mb-2">
     <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}tag={{ day|date:'Y-m-d' }}&amp;cal={{ bcal_prev|date:'Y-m' }}"
        class="px-2.5 py-1 rounded-lg text-indigo-600 hover:bg-indigo-50" aria-label="{% trans 'Previous month' %}">‹</a>

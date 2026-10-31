@@ -24,7 +24,7 @@
 {% comment %}KA-0 (2026-10-23): голова ВСТРОЕНА сюда, а не подключена {% include %} —
 блок deal_head_badges внутри include дочерние карточки не переопределяют (Django), и бейджи
 «bezahlt»/«Aktion»/номер комнаты молча не выводились. Замок test_template_extends.{% endcomment %}
-  <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] px-5 py-3 mb-4" data-deal-block="head">
+  <div class="ui-card px-5 py-3 mb-4" data-deal-block="head">
     <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
       <h1 class="ui-h1 tabular-nums">{{ deal.reference_code }}</h1>
       <span class="ui-badge {{ deal.pipeline_stage|stage_badge }}">{{ deal.status_label }}</span>
@@ -67,7 +67,7 @@
         заказа»): то, что ПРИСЛАЛ клиент — своим блоком в теле, первым. Раньше
         это жило только в подписи головы (её владелец попросил убрать) и терялось
         при обрезке темы.{% endcomment %}
-        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="request">
+        <section class="ui-card p-5 sm:p-6" data-deal-block="request">
           <h2 class="ui-h2 mb-3">💬 {{ deal_titles.request }}</h2>
           {% block deal_request %}{% endblock %}
         </section>
@@ -79,7 +79,7 @@
         разные»): состав, скидка и суммы — ОДНА карточка, как на артборде.
         Между ними тонкие разделители, «Summen» — подзаголовок, а не заголовок
         отдельной карточки.{% endcomment %}
-        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="items">
+        <section class="ui-card p-5 sm:p-6" data-deal-block="items">
           <div class="flex items-center justify-between gap-3 mb-3">
             <h2 class="ui-h2">{% block deal_items_title %}{{ deal_titles.items }}{% endblock %}</h2>
             {% block deal_items_actions %}{% endblock %}
@@ -102,7 +102,7 @@
       {% endif %}
 
       {% if "payment" in deal_sections %}
-        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="payment">
+        <section class="ui-card p-5 sm:p-6" data-deal-block="payment">
           <h2 class="ui-h2 mb-3">💳 {{ deal_titles.payment }}</h2>
           {% block deal_payment %}{% endblock %}
           {% include "core/_deal_rest_link.html" %}
@@ -115,7 +115,7 @@
         столбец рядом с оплатой, принадлежит к нему». Раньше блок жил в узком
         рейле у заявки; теперь место задаёт скелет, наследник только наполняет.
         {% endcomment %}
-        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="documents">
+        <section class="ui-card p-5 sm:p-6" data-deal-block="documents">
           <h2 class="ui-h2 mb-3">📄 {{ deal_titles.documents }}</h2>
           {% block deal_documents %}{% endblock %}
         </section>
@@ -133,7 +133,7 @@
         клиента — кнопка и сам разговор рядом, а первая колонка остаётся про
         деньги. Гейт модуля inbox — в партиале; якорь тот же, поэтому скролл по
         кнопке (DF-6) продолжает работать.{% endcomment %}
-        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="thread">
+        <section class="ui-card p-5 sm:p-6" data-deal-block="thread">
           <h2 class="ui-h2 mb-3">✉️ {{ deal_titles.thread }}</h2>
           {% include "core/_deal_thread.html" %}
         </section>
@@ -148,7 +148,7 @@
     {% comment %}Владелец 2026-08-25: «если есть календарь — открывается сразу
     ниже сетки». Тот же движок, что на странице продаж (Belegungsplan /
     Tagesplan / Auftragsbuch) — развёрнутым, без клика.{% endcomment %}
-    <section class="mt-5 bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="calendar">
+    <section class="ui-card mt-5 p-5 sm:p-6" data-deal-block="calendar">
       <h2 class="ui-h2 mb-3">📅 {{ deal_titles.calendar }}</h2>
       <div class="overflow-x-auto">{{ deal_calendar_html }}</div>
     </section>

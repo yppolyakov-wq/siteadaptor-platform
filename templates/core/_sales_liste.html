@@ -29,9 +29,9 @@ section (может быть None).{% endcomment %}
   {% endif %}
   <input type="search" name="q" value="{{ list_q }}" aria-label="{% trans 'Suche: Code, Name, E-Mail' %}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
          class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm w-56 focus:border-indigo-300 focus:outline-none">
-  <button aria-label="{% trans 'Suchen' %}" type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+  <button aria-label="{% trans 'Suchen' %}" type="submit" class="ui-card px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
   {% comment %}KA-12 E2.2: CSV текущего списка (те же фильтры) — только владельцу.{% endcomment %}
-  {% if request.user|cab_can:"kunden.export" and active_kind != 'reservation' %}<a href="{% url 'verkaeufe-export' %}{% query_with 'tab' active_kind %}" data-sales-csv class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" title="{% trans 'Liste als CSV herunterladen' %}">⬇ CSV</a>{% endif %}
+  {% if request.user|cab_can:"kunden.export" and active_kind != 'reservation' %}<a href="{% url 'verkaeufe-export' %}{% query_with 'tab' active_kind %}" data-sales-csv class="ui-card px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" title="{% trans 'Liste als CSV herunterladen' %}">⬇ CSV</a>{% endif %}
 </form>
 {% comment %}SH-12/16 (фидбэк 2026-08-20): порядковый номер строки, покупатель
 отдельной строкой и МЕЛЬЧЕ шрифт; SH-11: статус меняется прямо из списка. Строка
@@ -48,7 +48,7 @@ radius 16 с мягкой тенью; порядковый номер (SH-12) и
 <div class="lg:grid lg:grid-cols-[1fr_22rem] lg:gap-4 lg:items-start" data-peek-root>
 <div class="space-y-2">
   {% for tx in section.transactions %}
-    <div class="flex items-center justify-between gap-3 px-4 py-3 bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)] lg:cursor-pointer" data-peek-row>
+    <div class="ui-card flex items-center justify-between gap-3 px-4 py-3 lg:cursor-pointer" data-peek-row>
 {% if bulk_kind %}<input type="checkbox" name="ids" value="{{ tx.pk }}" form="bulk-form" data-bulk-row data-bulk-targets="{% for a in tx.allowed_actions %}{{ a.target }} {% endfor %}" aria-label="{% trans 'Auswählen' %}" class="shrink-0 h-5 w-5 rounded border-gray-300">{% endif %}
       <span class="w-6 shrink-0 text-xs tabular-nums text-gray-300">{% if page %}{{ forloop.counter|add:page.offset }}{% else %}{{ forloop.counter }}{% endif %}</span>
       <div class="min-w-0 flex-1">

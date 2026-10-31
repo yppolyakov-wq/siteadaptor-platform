@@ -24,7 +24,7 @@
         <div class="flex items-center gap-2 flex-wrap">
           <a href="{% url 'purchasing-maengel-pdf' a.pk %}" target="_blank" class="text-xs border border-gray-300 rounded-lg px-2.5 py-1 hover:border-indigo-400">📄 {% trans "PDF" %}</a>
           {% if current.supplier.email %}
-            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="maengel_send"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="anzeige" value="{{ a.pk }}"><button class="text-xs bg-indigo-600 text-white rounded-lg px-2.5 py-1 hover:bg-indigo-700">✉ {% trans "An Lieferanten senden" %}</button></form>
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="maengel_send"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="anzeige" value="{{ a.pk }}"><button class="ui-btn ui-btn-primary ui-btn-sm">✉ {% trans "An Lieferanten senden" %}</button></form>
           {% endif %}
           {% if not a.notified_at %}
             <form method="post">{% csrf_token %}<input type="hidden" name="action" value="maengel_notified"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="anzeige" value="{{ a.pk }}"><button class="text-xs text-gray-500 hover:text-indigo-700 underline">{% trans "Als angezeigt markieren" %}</button></form>
@@ -65,10 +65,10 @@
       <input type="hidden" name="action" value="create_maengel">
       <input type="hidden" name="po" value="{{ current.pk }}">
       <div class="grid gap-2 sm:grid-cols-2">
-        <label class="text-xs text-gray-500">{% trans "Lieferdatum" %}<input type="date" name="delivery_date" class="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-sm"></label>
-        <label class="text-xs text-gray-500">{% trans "Prüfdatum" %}<input type="date" name="inspected_at" class="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-sm"></label>
-        <label class="text-xs text-gray-500">{% trans "Lieferschein-Nr." %}<input type="text" name="delivery_note_ref" maxlength="64" class="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-sm"></label>
-        <label class="text-xs text-gray-500">{% trans "Frachtführer" %}<input type="text" name="carrier" maxlength="150" class="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-sm"></label>
+        <label class="text-xs text-gray-500">{% trans "Lieferdatum" %}<input type="date" name="delivery_date" class="ui-input mt-0.5"></label>
+        <label class="text-xs text-gray-500">{% trans "Prüfdatum" %}<input type="date" name="inspected_at" class="ui-input mt-0.5"></label>
+        <label class="text-xs text-gray-500">{% trans "Lieferschein-Nr." %}<input type="text" name="delivery_note_ref" maxlength="64" class="ui-input mt-0.5"></label>
+        <label class="text-xs text-gray-500">{% trans "Frachtführer" %}<input type="text" name="carrier" maxlength="150" class="ui-input mt-0.5"></label>
       </div>
       <div class="space-y-2">
         {% for line in current.positions.all %}
@@ -80,11 +80,11 @@
                 <label class="inline-flex items-center gap-1 text-xs text-gray-600"><input type="checkbox" name="m_types_{{ line.pk }}" value="{{ code }}" class="h-3 w-3">{{ label }}</label>
               {% endfor %}
             </div>
-            <input type="text" name="m_desc_{{ line.pk }}" maxlength="2000" aria-label="{% trans 'Beschreibung des Mangels' %}" placeholder="{% trans 'Beschreibung des Mangels' %}" class="mt-1.5 w-full rounded border border-gray-300 px-2 py-1 text-xs">
+            <input type="text" name="m_desc_{{ line.pk }}" maxlength="2000" aria-label="{% trans 'Beschreibung des Mangels' %}" placeholder="{% trans 'Beschreibung des Mangels' %}" class="ui-input mt-1.5 text-xs">
           </fieldset>
         {% endfor %}
       </div>
-      <label class="block text-xs text-gray-500">{% trans "Prüfergebnis" %}<textarea name="result" rows="2" class="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-sm"></textarea></label>
+      <label class="block text-xs text-gray-500">{% trans "Prüfergebnis" %}<textarea name="result" rows="2" class="ui-input mt-0.5"></textarea></label>
       <button class="text-sm bg-amber-600 text-white rounded-lg px-3 py-1.5 hover:bg-amber-700">⚠ {% trans "Mängelanzeige anlegen" %}</button>
     </form>
   </details>

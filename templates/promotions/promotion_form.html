@@ -21,7 +21,7 @@
   <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start">
   <div class="min-w-0">
   {# FB-5: ряд фото с плиткой «＋ Foto» ПЕРВОЙ — и при создании, и при правке #}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mb-4">
+    <div class="ui-card p-4 mb-4">
       <p class="text-sm font-medium mb-2">{% trans "Images" %}</p>
       <div class="flex flex-wrap gap-3">
         {% include "catalog/_photo_add_tile.html" %}
@@ -139,7 +139,7 @@
   </form>
 
   {% if promotion and stats %}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
+    <div class="ui-card p-4 mt-4">
       <p class="text-sm font-medium mb-2">{% trans "Statistics" %}</p>
       {# P7 «ценовой слой»: плитка «Verkäufe» — сделки стандартных рельсов (заказы/брони). #}
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
@@ -165,7 +165,7 @@
     клиентам не видна, а статус показывался сырым кодом равнозначными кнопками.
     Теперь — подпись статуса, честное предупреждение и ПЕРВИЧНАЯ кнопка
     «Jetzt aktivieren» (переход тот же, FSM не тронут).{% endcomment %}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mb-4">
+    <div class="ui-card p-4 mb-4">
       <div class="flex items-center gap-2 mb-2 text-sm">
         <span class="text-gray-500">{% trans "Status" %}:</span>
         <span class="ui-badge {% if promotion.status == 'active' %}ui-tone-ok{% else %}ui-tone-off{% endif %}">{{ status_label }}</span>
@@ -189,7 +189,7 @@
 
   {# Платное продвижение в агрегаторе (P2.4b): видно у активных акций, если оплата настроена #}
   {% if promotion and promotion.status == 'active' and featured_enabled %}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mb-4">
+    <div class="ui-card p-4 mb-4">
       <div class="flex items-center justify-between gap-3">
         <div>
           <p class="text-sm font-medium">★ {% trans "Featured in the directory" %}</p>
@@ -208,7 +208,7 @@
   {% endif %}
 
   {% if promotion and waitlist_count %}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
+    <div class="ui-card p-4 mt-4">
       <p class="text-sm font-medium">{% trans "Waitlist" %}: <span class="font-bold">{{ waitlist_count }}</span></p>
       <p class="text-xs ui-muted mt-1">{% trans "Customers waiting for this offer to be back in stock." %}</p>
     </div>
@@ -216,14 +216,14 @@
 
   {# T-8.9: флаер на эту акцию (A4 / A6 / 4×A6) — и для запланированной: её страница уже открыта (Vorschau) #}
   {% if promotion and promotion.status == 'active' or promotion and promotion.status == 'scheduled' %}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
+    <div class="ui-card p-4 mt-4">
       {% include "promotions/_flyer_links.html" %}
     </div>
   {% endif %}
 
   {# QR-код акции для печати + QR по каналам (атрибуция) #}
   {% if promotion and promotion.status == 'active' %}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
+    <div class="ui-card p-4 mt-4">
       <p class="text-sm font-medium mb-2">{% trans "QR code (print for your shop)" %}</p>
       <img src="{% url 'storefront-promotion-qr' promotion.pk %}" width="140" height="140" alt="{% trans 'QR code' %}">
       <a href="{% url 'storefront-promotion-qr' promotion.pk %}" download="aktion-{{ promotion.pk }}.svg" class="block text-xs text-indigo-600 mt-1 hover:underline">{% trans "Download SVG" %}</a>
@@ -254,7 +254,7 @@
     </div>
 
     {# Атрибуция: брони по каналам #}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
+    <div class="ui-card p-4 mt-4">
       {% if channel_funnel %}
         {% comment %}T-8.6: воронка по каналам — откуда пришли и что сделали
         (portal = каталог города, flyer = Aushang, direkt = без метки).{% endcomment %}

@@ -2,10 +2,10 @@
 {% comment %}X2c: форма ручной заявки — экран «＋ Neue Anfrage» (jobs:new).
 KA-12 A-2 (HW-2/G-4): те же поля, что у /anfrage/ — PLZ, фото, событие (по
 конфигу формы), авто (мастерская) — и источник обращения.{% endcomment %}
-<form method="post" action="{% url 'jobs:new' %}" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+<form method="post" action="{% url 'jobs:new' %}" enctype="multipart/form-data" class="ui-card p-6 max-w-xl space-y-4">
   {% csrf_token %}
   <h2 class="font-semibold">{% trans "New request" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
-  <input name="title" type="text" required aria-label="{% trans 'Kurze Bezeichnung' %}" placeholder="{% trans 'Kurze Bezeichnung' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <input name="title" type="text" required aria-label="{% trans 'Kurze Bezeichnung' %}" placeholder="{% trans 'Kurze Bezeichnung' %}" class="ui-input">
   <div class="grid sm:grid-cols-3 gap-4">
     <input name="name" type="text" required aria-label="{% trans 'Name' %}" placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
     <input autocomplete="off" name="phone" type="tel" aria-label="{% trans 'Phone' %}" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
@@ -19,15 +19,15 @@ KA-12 A-2 (HW-2/G-4): те же поля, что у /anfrage/ — PLZ, фото,
     <div class="grid sm:grid-cols-3 gap-4" data-request-event>
       {% if "date" in anfrage_cfg.fields %}
         <label class="block text-xs text-gray-500">{% trans "Wunschdatum" %}
-          <input name="event_date" type="date" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+          <input name="event_date" type="date" class="ui-input mt-1 text-gray-900"></label>
       {% endif %}
       {% if "guests" in anfrage_cfg.fields %}
         <label class="block text-xs text-gray-500">{% trans "Personen" %}
-          <input name="guest_count" type="number" min="1" inputmode="numeric" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+          <input name="guest_count" type="number" min="1" inputmode="numeric" class="ui-input mt-1 text-gray-900"></label>
       {% endif %}
       {% if "event_type" in anfrage_cfg.fields %}
         <label class="block text-xs text-gray-500">{% trans "Art der Veranstaltung" %}
-          <input name="event_type" list="request-event-types" maxlength="100" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900"></label>
+          <input name="event_type" list="request-event-types" maxlength="100" class="ui-input mt-1 text-gray-900"></label>
         <datalist id="request-event-types">{% for t in anfrage_cfg.event_types %}<option value="{{ t }}">{% endfor %}</datalist>
       {% endif %}
     </div>
@@ -42,14 +42,14 @@ KA-12 A-2 (HW-2/G-4): те же поля, что у /anfrage/ — PLZ, фото,
       </div>
     </div>
   {% endif %}
-  <textarea name="description" rows="2" aria-label="{% trans 'Description (optional)' %}" placeholder="{% trans 'Description (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  <textarea name="description" rows="2" aria-label="{% trans 'Description (optional)' %}" placeholder="{% trans 'Description (optional)' %}" class="ui-input"></textarea>
   <div class="grid sm:grid-cols-2 gap-4 items-end">
     <label class="block text-xs text-gray-500">{% trans "Source" %}
-      <select name="source" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900">
+      <select name="source" class="ui-input mt-1 text-gray-900">
         {% for code, label in manual_sources %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
       </select></label>
     <label class="block text-xs text-gray-500">{% blocktrans with n=max_photos %}Fotos (max. {{ n }}){% endblocktrans %}
       <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple class="mt-1 block w-full text-sm"></label>
   </div>
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create request" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create request" %}</button>
 </form>

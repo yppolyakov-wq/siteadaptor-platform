@@ -8,15 +8,15 @@
 </div>
 
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 max-w-xl">
-  <div class="bg-white border border-gray-200 rounded-xl p-4 text-center">
+  <div class="ui-card p-4 text-center">
     <div class="text-2xl font-semibold">{{ job.total_rows }}</div>
     <div class="text-xs text-gray-500">{% trans "Total" %}</div>
   </div>
-  <div class="bg-white border border-gray-200 rounded-xl p-4 text-center">
+  <div class="ui-card p-4 text-center">
     <div class="text-2xl font-semibold text-green-600">{{ job.ok_rows }}</div>
     <div class="text-xs text-gray-500">{% trans "Valid" %}</div>
   </div>
-  <div class="bg-white border border-gray-200 rounded-xl p-4 text-center">
+  <div class="ui-card p-4 text-center">
     <div class="text-2xl font-semibold text-red-600">{{ job.error_rows }}</div>
     <div class="text-xs text-gray-500">{% trans "Errors" %}</div>
   </div>
@@ -28,7 +28,7 @@
 
 {% if error_rows %}
 <h2 class="font-medium mb-3">{% trans "Rows with errors" %}</h2>
-<div class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6">
+<div class="ui-card overflow-hidden mb-6">
   <table class="w-full text-sm">
     <thead class="bg-gray-50 text-gray-500 text-left">
       <tr>

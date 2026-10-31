@@ -15,7 +15,7 @@
 
 {% include "tenant/_settings_messages.html" %}
 
-<div class="bg-white border border-gray-200 rounded-2xl p-4 max-w-2xl">
+<div class="ui-card p-4 max-w-2xl">
   <p class="text-sm mb-3">
     <span class="text-gray-500">{% trans "Kunde" %}:</span>
     {{ customer.name|default:"—" }}{% if customer.email %} · <span class="text-gray-500">{% if hide_contacts %}{{ customer.email|mask_email }}{% else %}{{ customer.email }}{% endif %}</span>{% endif %}

@@ -8,14 +8,14 @@
   <h1 class="ui-h1">{% nav_title _("Von der Website importieren") %}</h1>
 </div>
 
-<div class="bg-white border border-gray-200 rounded-xl p-6 mb-8 max-w-xl">
+<div class="ui-card p-6 mb-8 max-w-xl">
   <p class="text-sm text-gray-600 mb-4">{% trans "Wir lesen bis zu 20 Seiten Ihrer Website und schlagen Ihnen Artikel, Preise, Öffnungszeiten und Kontaktdaten vor. Nichts wird veröffentlicht, bevor Sie es geprüft haben." %}</p>
   <form method="post" class="space-y-4">
     {% csrf_token %}
     {% if error %}<div class="text-sm text-red-600" data-site-import-error>{{ error }}</div>{% endif %}
     <div>
       <label for="site-url" class="block text-sm font-medium mb-1">{% trans "Adresse Ihrer Website" %}</label>
-      <input id="site-url" type="url" name="url" value="{{ url }}" required placeholder="https://" class="block w-full text-sm border border-gray-300 rounded-lg p-2">
+      <input id="site-url" type="url" name="url" value="{{ url }}" required placeholder="https://" class="ui-input block p-2">
     </div>
     <label class="flex items-start gap-2 text-sm">
       <input type="checkbox" name="consent" value="1" required class="mt-1">
@@ -32,7 +32,7 @@
 
 {% if runs %}
 <h2 class="font-medium mb-3">{% trans "Letzte Importe" %}</h2>
-<div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+<div class="ui-card overflow-hidden">
   <ul class="divide-y divide-gray-100">
     {% for run in runs %}
     <li class="p-3 text-sm flex items-center justify-between">

@@ -28,9 +28,9 @@
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         {% if ai_reply_enabled %}{% include "inbox/_ai_reply.html" with conv=deal_thread %}{% endif %}
         <textarea name="body" rows="2" required aria-label="{% trans 'Antwort an den Kunden…' %}" placeholder="{% trans 'Antwort an den Kunden…' %}"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+                  class="ui-input"></textarea>
         <div class="flex flex-wrap items-center gap-3">
-          <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">{% trans "Senden" %}</button>
+          <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Senden" %}</button>
           <a href="{% url 'inbox:thread' deal_thread.pk %}" class="text-sm text-gray-500 hover:underline">{% trans "Ganzen Verlauf öffnen" %} →</a>
         </div>
       </form>
@@ -39,8 +39,8 @@
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <textarea name="body" rows="2" required aria-label="{% trans 'Nachricht an den Kunden…' %}" placeholder="{% trans 'Nachricht an den Kunden…' %}"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
-        <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">{% trans "Senden" %}</button>
+                  class="ui-input"></textarea>
+        <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Senden" %}</button>
       </form>
     {% endif %}
   </div>

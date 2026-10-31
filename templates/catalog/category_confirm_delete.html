@@ -27,7 +27,7 @@
 
     <p class="text-gray-600 mb-3 text-sm">{% trans "Choose how to proceed:" %}</p>
     <div class="space-y-3">
-      <form method="post" class="bg-white border border-gray-200 rounded-xl p-4">
+      <form method="post" class="ui-card p-4">
         {% csrf_token %}
         <input type="hidden" name="strategy" value="reparent">
         <p class="text-sm font-medium">{% trans "Move subcategories up & detach products" %}</p>
@@ -35,7 +35,7 @@
         <button type="submit" class="ui-btn ui-btn-primary">{% trans "Re-parent & delete" %}</button>
       </form>
 
-      <form method="post" class="bg-white border border-gray-200 rounded-xl p-4">
+      <form method="post" class="ui-card p-4">
         {% csrf_token %}
         <input type="hidden" name="strategy" value="cascade">
         <p class="text-sm font-medium">{% trans "Delete the whole branch" %}</p>

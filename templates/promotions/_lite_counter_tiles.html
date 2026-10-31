@@ -5,7 +5,7 @@
   <a href="{% url 'promotions:reservation-list' %}?status=offen" data-lite-counter="reservations" class="rounded-xl border px-3 py-3 text-sm font-medium {% if open_reservations %}border-amber-300 bg-amber-50 text-amber-900{% else %}border-gray-200 bg-white text-gray-700{% endif %}">
     📦 {% trans "Zurückgelegt" %}<span class="block text-xs font-normal">{% blocktrans with n=open_reservations %}{{ n }} offen{% endblocktrans %}</span>
   </a>
-  <a href="{% url 'promotions:redeem' %}" data-lite-counter="scan" class="rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-700" data-lite-redeem>
+  <a href="{% url 'promotions:redeem' %}" data-lite-counter="scan" class="ui-card px-3 py-3 text-sm font-medium text-gray-700" data-lite-redeem>
     📷 {% trans "Code scannen" %}<span class="block text-xs font-normal text-gray-500">{% trans "Abholung & Coupons" %}</span>
   </a>
 </div>

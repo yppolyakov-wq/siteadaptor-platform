@@ -9,7 +9,7 @@
   <a href="{% url 'imports:website' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Neuer Import" %}</a>
 </div>
 
-<div class="bg-white border border-gray-200 rounded-xl p-6 mb-6" data-site-run-status="{{ run.status }}">
+<div class="ui-card p-6 mb-6" data-site-run-status="{{ run.status }}">
   <p class="text-sm font-medium">{% include "imports/_site_run_status.html" with run=run %}</p>
   {% if run.status == "failed" %}
     <p class="text-sm text-gray-600 mt-2">
@@ -26,7 +26,7 @@
 {% if run.stats.partial and run.status == "ready" %}<p class="text-sm text-amber-700 mb-6" data-site-partial>{% trans "Ihre Website konnte nicht vollständig gelesen werden. Artikel, die wir nicht gefunden haben, bleiben unverändert." %}</p>{% endif %}
 
 {% if can_eintrag %}
-<form method="post" class="bg-white border border-gray-200 rounded-xl p-6 mb-6" data-site-eintrag>
+<form method="post" class="ui-card p-6 mb-6" data-site-eintrag>
   {% csrf_token %}<input type="hidden" name="action" value="eintrag">
   <h2 class="font-medium mb-2">{% trans "Nur Eintrag statt eigenem Shop?" %}</h2>
   <p class="text-sm text-gray-600 mb-3">{% trans "Ihre Seite bei uns wird zur Visitenkarte mit Öffnungszeiten, Kontakt und Aktionen. Ihre Artikel erscheinen im Stadtkatalog und verlinken direkt auf Ihre Website." %}</p>
@@ -43,7 +43,7 @@
   {% endif %}
 
   {% if profile_rows %}
-  <div class="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+  <div class="ui-card p-6 mb-6">
     <h2 class="font-medium mb-3">{% trans "Ihr Geschäft" %}</h2>
     <ul class="space-y-2 text-sm">
       {% for row in profile_rows %}
@@ -57,7 +57,7 @@
   {% endif %}
 
   {% if items %}
-  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6">
+  <div class="ui-card overflow-hidden mb-6">
     <ul class="divide-y divide-gray-100">
       {% for item in items %}
       {% if item.diff == "removed" or item.diff == "unchanged" %}
@@ -74,7 +74,7 @@
         <input type="checkbox" name="take_{{ item.pk }}" value="1" checked class="mt-2" aria-label="{% trans 'übernehmen' %}">
         {% if item.data.image_url|slice:":8" == "https://" %}<img src="{{ item.data.image_url }}" alt="" referrerpolicy="no-referrer" loading="lazy" class="w-16 h-16 object-cover rounded-lg">{% endif %}
         <div class="flex-1 space-y-2 text-sm">
-          <input type="text" name="name_{{ item.pk }}" value="{{ item.data.name }}" maxlength="120" class="block w-full border border-gray-300 rounded-lg p-2" aria-label="{% trans 'Name' %}">
+          <input type="text" name="name_{{ item.pk }}" value="{{ item.data.name }}" maxlength="120" class="ui-input block p-2" aria-label="{% trans 'Name' %}">
           <div class="flex flex-wrap gap-2">
             <input type="text" name="price_{{ item.pk }}" value="{{ item.data.price|default_if_none:'' }}" inputmode="decimal" placeholder="{% trans 'Preis in €' %}" class="w-32 border border-gray-300 rounded-lg p-2" aria-label="{% trans 'Preis in €' %}">
             {% if item.kind == "product" %}
@@ -85,7 +85,7 @@
             </select>
             {% endif %}
           </div>
-          <textarea name="desc_{{ item.pk }}" rows="2" maxlength="1500" class="block w-full border border-gray-300 rounded-lg p-2" aria-label="{% trans 'Beschreibung' %}">{{ item.data.description }}</textarea>
+          <textarea name="desc_{{ item.pk }}" rows="2" maxlength="1500" class="ui-input block p-2" aria-label="{% trans 'Beschreibung' %}">{{ item.data.description }}</textarea>
           <p class="text-xs text-gray-500">
             {% if item.ai_generated %}<span class="text-amber-700">{{ ai_label }}</span>{% else %}{% trans "Aus strukturierten Daten Ihrer Website" %}{% endif %}
             {% if item.source_url %} · <a href="{{ item.source_url }}" rel="noopener noreferrer" target="_blank" class="text-indigo-700 hover:underline">{% trans "Original" %}</a>{% endif %}
@@ -109,7 +109,7 @@
 </form>
 {% else %}
 {% if profile %}
-<div class="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+<div class="ui-card p-6 mb-6">
   <h2 class="font-medium mb-3">{% trans "Ihr Geschäft" %}</h2>
   <dl class="text-sm space-y-1">
     {% if profile.name %}<div><dt class="inline text-gray-500">{% trans "Name" %}:</dt> <dd class="inline">{{ profile.name }}</dd></div>{% endif %}
@@ -120,7 +120,7 @@
 {% endif %}
 
 {% if run.status == "ready" or run.status == "applied" %}
-<div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+<div class="ui-card overflow-hidden">
   {% if items %}
   <ul class="divide-y divide-gray-100">
     {% for item in items %}

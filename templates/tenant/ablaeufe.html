@@ -41,7 +41,7 @@ max-w-3xl умерла — карта процесса на всю ширину,
     «а что я тут вообще настраиваю»: колонки доски с их статусами. Строится по тем
     же строкам, что редактор колонок ниже (переименование/скрытие/порядок видны
     сразу), статусы — встроенные ∪ свои.{% endcomment %}
-    <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
+    <section class="ui-card p-4 mb-4">
       <h2 class="ui-h2 mb-1">🗺 {% trans "So läuft ein Verkauf" %} · {{ kind_label }}</h2>
       {% comment %}VS-2b: на доске КАЖДЫЙ статус — своя колонка, а стадии стали
       группами колонок. Карта читается так же, поэтому текст объясняет группу.{% endcomment %}
@@ -64,7 +64,7 @@ max-w-3xl умерла — карта процесса на всю ширину,
     <div class="min-w-0">
     {% comment %}2. Колонки — Trello-стиль (перетаскивание), общие для всех
     направлений: стадии канонические (pipeline.STAGES).{% endcomment %}
-    <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
+    <section class="ui-card p-4 mb-4">
       <h2 class="ui-h2 mb-1">🧱 {% trans "Phasen der Tafel" %}</h2>
       <p class="text-xs ui-muted mb-3">{% trans "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich." %}</p>
       {% include "tenant/_board_columns_panel.html" with rows=board_stage_rows next_path=request.get_full_path %}
@@ -77,7 +77,7 @@ max-w-3xl умерла — карта процесса на всю ширину,
     <div class="min-w-0">
     {% comment %}4. VK-3: редактор СВОИХ статусов — на самой странице (был ссылкой
     внутри свёрнутой панели переходов; владелец его не находил).{% endcomment %}
-    <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
+    <section class="ui-card p-4 mb-4">
       <h2 class="ui-h2 mb-1">🏷️ {% trans "Eigene Status" %}</h2>
       <p class="text-xs ui-muted mb-3">{% trans "Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben unverändert." %}</p>
       {% include "tenant/_status_manager_panel.html" with kind=active_kind next_path=request.get_full_path %}
@@ -92,7 +92,7 @@ max-w-3xl умерла — карта процесса на всю ширину,
     экране настроек. Ссылки, не копия формы: единственный писатель остаётся один
     (урок W9-5), возврат — на ту же вкладку продаж.{% endcomment %}
     {% if active_kind == "order" %}
-    <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
+    <section class="ui-card p-4 mb-4">
       <h2 class="ui-h2 mb-1">💳 {% trans "Zahlarten & Lieferung" %}</h2>
       <p class="text-xs ui-muted mb-3">{% trans "Zahlarten, Vorkasse-Bankdaten, Versandkosten und Liefergebiet — gelten für alle Bestellungen." %}</p>
       <div class="flex flex-wrap gap-2">

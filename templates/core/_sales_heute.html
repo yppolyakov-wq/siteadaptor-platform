@@ -7,7 +7,7 @@ KA-12 Z-5 (Р-9): элемент — блок со ссылкой, бейджа�
 Check-out — с подтверждением общим диалогом кабинета (data-danger).{% endcomment %}
 <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4" data-sales-heute>
   {% for col in heute_columns %}
-    <div class="bg-white rounded-2xl shadow-sm overflow-hidden" data-heute-col="{{ col.key }}">
+    <div class="ui-card overflow-hidden" data-heute-col="{{ col.key }}">
       <div class="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between gap-2">
         <span class="text-sm font-semibold text-gray-700">{{ col.icon }} {{ col.label }}{% if col.hint %} <span class="block text-xs font-normal text-gray-400">{{ col.hint }}</span>{% endif %}</span>
         <span class="text-xs rounded-full px-2 py-0.5 {% if col.items %}bg-indigo-50 text-indigo-700{% else %}bg-gray-100 text-gray-400{% endif %}">{{ col.items|length }}</span>

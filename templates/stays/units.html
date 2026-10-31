@@ -290,7 +290,7 @@
         <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Calendar sync (iCal)" %}</p>
         <div class="text-xs text-gray-600 mb-3">
           <p class="mb-1">{% trans "Export this unit's availability — paste this link into Booking.com / Airbnb / Google:" %}</p>
-          <input aria-label="iCal {% trans "Link" %}" type="text" readonly value="{{ u.ical_export_url }}" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px]">
+          <input aria-label="iCal {% trans "Link" %}" type="text" readonly value="{{ u.ical_export_url }}" onclick="this.select()" class="ui-input font-mono text-[11px]">
         </div>
         {% trans "Import external calendars — booked dates will block this unit:" as import_hint %}
         <p class="text-xs text-gray-500 mb-2">{{ import_hint }}</p>
@@ -691,7 +691,7 @@
         </label>
       {% endfor %}
     </div>
-    <button class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-black">{% trans "Save" %}</button>
+    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>
 </details>
 {# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
@@ -757,13 +757,13 @@
 <details open class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Booking widget for your website" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Paste this code into your existing site to embed the booking search (no header/footer)." %}</p>
-  <textarea aria-label="{% trans "Booking widget for your website" %}" readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Booking"&gt;&lt;/iframe&gt;</textarea>
+  <textarea aria-label="{% trans "Booking widget for your website" %}" readonly rows="3" onclick="this.select()" class="ui-input font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Booking"&gt;&lt;/iframe&gt;</textarea>
 </details>
 {# --- G8: метапоиск / Google Hotel Center фид цен и наличия ------------------ #}
 <details open class="ui-card p-5 mb-3">
   <summary class="cursor-pointer font-semibold">{% trans "Metasearch & Google (rates feed)" %}</summary>
   <p class="text-xs text-gray-500 mb-3">{% trans "Machine-readable availability & prices for metasearch and channel partners. Connect it in Google Hotel Center to get free booking links straight to your direct booking." %}</p>
-  <input aria-label="{% trans "Metasearch & Google (rates feed)" %}" type="text" readonly value="{{ feed_url }}" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 font-mono text-[11px]">
+  <input aria-label="{% trans "Metasearch & Google (rates feed)" %}" type="text" readonly value="{{ feed_url }}" onclick="this.select()" class="ui-input font-mono text-[11px]">
 </details>
 </div>
 </div>

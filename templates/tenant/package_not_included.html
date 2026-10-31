@@ -8,7 +8,7 @@
   <section class="ui-card p-5 space-y-3">
     <h1 class="ui-h1">{% trans "In Ihrem Paket nicht enthalten" %}</h1>
     <p class="text-sm text-gray-600">{% blocktrans with name=package_label %}Diese Funktion gehört nicht zum Paket „{{ name }}“. Ihre Aktionen, Nachrichten und Ihre Sichtbarkeit finden Sie im Start.{% endblocktrans %}</p>
-    <a href="{% url 'dashboard' %}" class="block text-center rounded-xl bg-indigo-600 text-white font-medium py-2.5">{% trans "Zurück zum Start" %}</a>
+    <a href="{% url 'dashboard' %}" class="ui-btn ui-btn-primary block text-center">{% trans "Zurück zum Start" %}</a>
     <p class="text-xs text-gray-500">{% trans "Mehr Funktionen? Sprechen Sie uns an." %}</p>
   </section>
 </div>

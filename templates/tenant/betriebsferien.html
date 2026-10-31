@@ -22,14 +22,14 @@
     <label class="block text-sm">{% trans "Grund (optional, wird auf der Website gezeigt)" %}
       <input type="text" name="reason" maxlength="120" class="mt-1 w-full rounded-lg border-gray-300">
     </label>
-    <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium">{% trans "Schließen" %}</button>
+    <button class="ui-btn ui-btn-primary">{% trans "Schließen" %}</button>
   </form>
 
   <h2 class="ui-h2 mt-8 mb-3">{% trans "Geplante Schließungen" %}</h2>
   {% if ranges %}
   <ul class="space-y-2">
     {% for r in ranges %}
-    <li class="bg-white rounded-xl shadow-sm px-4 py-3 flex items-center justify-between gap-3" data-closure-range>
+    <li class="ui-card px-4 py-3 flex items-center justify-between gap-3" data-closure-range>
       <span class="text-sm">{{ r.von|date:"d.m.Y" }}{% if r.bis != r.von %} – {{ r.bis|date:"d.m.Y" }}{% endif %}{% if r.reason %} · <span class="text-gray-500">{{ r.reason }}</span>{% endif %}</span>
       <form method="post">
         {% csrf_token %}

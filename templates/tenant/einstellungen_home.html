@@ -13,7 +13,7 @@
   {% for g in groups %}
   <div>
     <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2 px-1">{{ g.label }}</p>
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] px-4">
+    <div class="ui-card px-4">
       {% for r in g.rows %}
       <a href="{{ r.url }}" class="flex items-center gap-3 py-3 {% if not forloop.first %}border-t border-gray-100{% endif %} group">
         <span class="min-w-0 flex-1">

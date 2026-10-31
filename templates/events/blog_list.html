@@ -22,7 +22,7 @@
 
 <div class="space-y-2 mb-8">
   {% for row in rows %}
-    <div class="flex items-center justify-between gap-3 bg-white rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-300">
+    <div class="ui-card flex items-center justify-between gap-3 px-4 py-3 hover:border-indigo-300">
       <a href="{% url 'blog-edit' row.post.pk %}" class="font-medium min-w-0 truncate flex-1">{{ row.post.title }}</a>
       {% if row.post.is_published %}
         {% if can_share %}

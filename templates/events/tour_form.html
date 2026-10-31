@@ -56,38 +56,38 @@ MT-1: правка тура. Маршрут — таблица строк (бе�
       {% for stop in stops %}
         <div class="grid gap-2 sm:grid-cols-12 items-start rounded-xl bg-gray-50 p-3">
           <label class="sm:col-span-1 text-xs text-gray-500">{% trans "Day" %}
-            <input type="number" min="1" name="it_day_{{ forloop.counter0 }}" value="{{ stop.day|default_if_none:'' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <input type="number" min="1" name="it_day_{{ forloop.counter0 }}" value="{{ stop.day|default_if_none:'' }}" class="ui-input">
           </label>
           <label class="sm:col-span-2 text-xs text-gray-500">{% trans "Time" %}
             <span class="flex gap-1">
-              <input type="text" name="it_time_from_{{ forloop.counter0 }}" value="{{ stop.time_from|default:'' }}" placeholder="09:00" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-              <input type="text" name="it_time_to_{{ forloop.counter0 }}" value="{{ stop.time_to|default:'' }}" placeholder="13:00" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+              <input type="text" name="it_time_from_{{ forloop.counter0 }}" value="{{ stop.time_from|default:'' }}" placeholder="09:00" class="ui-input">
+              <input type="text" name="it_time_to_{{ forloop.counter0 }}" value="{{ stop.time_to|default:'' }}" placeholder="13:00" class="ui-input">
             </span>
           </label>
           <label class="sm:col-span-3 text-xs text-gray-500">{% trans "Stop" %}
-            <input type="text" name="it_title_{{ forloop.counter0 }}" value="{{ stop.title|default:'' }}" maxlength="200" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <input type="text" name="it_title_{{ forloop.counter0 }}" value="{{ stop.title|default:'' }}" maxlength="200" class="ui-input">
           </label>
           <label class="sm:col-span-1 text-xs text-gray-500">km
-            <input type="number" min="0" name="it_km_{{ forloop.counter0 }}" value="{{ stop.km|default_if_none:'' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <input type="number" min="0" name="it_km_{{ forloop.counter0 }}" value="{{ stop.km|default_if_none:'' }}" class="ui-input">
           </label>
           <label class="sm:col-span-2 text-xs text-gray-500">{% trans "Overnight" %}
-            <input type="text" name="it_overnight_{{ forloop.counter0 }}" value="{{ stop.overnight|default:'' }}" maxlength="200" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <input type="text" name="it_overnight_{{ forloop.counter0 }}" value="{{ stop.overnight|default:'' }}" maxlength="200" class="ui-input">
           </label>
           <label class="sm:col-span-3 text-xs text-gray-500">{% trans "Visible to" %}
-            <select name="it_visibility_{{ forloop.counter0 }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <select name="it_visibility_{{ forloop.counter0 }}" class="ui-input">
               {% for value, label in visibility_choices %}
                 <option value="{{ value }}"{% if stop.visibility == value %} selected{% endif %}>{{ label }}</option>
               {% endfor %}
             </select>
           </label>
           <label class="sm:col-span-8 text-xs text-gray-500">{% trans "Notes" %}
-            <input type="text" name="it_text_{{ forloop.counter0 }}" value="{{ stop.text|default:'' }}" maxlength="2000" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <input type="text" name="it_text_{{ forloop.counter0 }}" value="{{ stop.text|default:'' }}" maxlength="2000" class="ui-input">
           </label>
           <label class="sm:col-span-2 text-xs text-gray-500">{% trans "Latitude" %}
-            <input type="text" name="it_lat_{{ forloop.counter0 }}" value="{{ stop.lat|default:'' }}" placeholder="32.2432" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <input type="text" name="it_lat_{{ forloop.counter0 }}" value="{{ stop.lat|default:'' }}" placeholder="32.2432" class="ui-input">
           </label>
           <label class="sm:col-span-2 text-xs text-gray-500">{% trans "Longitude" %}
-            <input type="text" name="it_lng_{{ forloop.counter0 }}" value="{{ stop.lng|default:'' }}" placeholder="77.1892" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <input type="text" name="it_lng_{{ forloop.counter0 }}" value="{{ stop.lng|default:'' }}" placeholder="77.1892" class="ui-input">
           </label>
         </div>
       {% endfor %}

@@ -16,7 +16,7 @@
     </div>
   </header>
 
-  <a href="{% url 'promotions:promotion-quick' %}" class="flex items-center justify-center gap-2 h-14 rounded-2xl bg-indigo-600 text-white text-base font-semibold shadow-sm hover:bg-indigo-700" data-lite-new-promo>
+  <a href="{% url 'promotions:promotion-quick' %}" class="ui-btn ui-btn-primary flex h-14" data-lite-new-promo>
     <span aria-hidden="true">＋</span> {% trans "Neue Aktion" %}
   </a>
 
@@ -79,7 +79,7 @@
     <section class="rounded-2xl bg-indigo-50 p-4 space-y-2" data-lite-next-step="{{ step.key }}">
       <p class="text-xs font-semibold tracking-wide text-indigo-700">{% trans "NÄCHSTER SCHRITT" %}</p>
       <p class="text-sm text-gray-800">{{ step.text }}</p>
-      <a href="{{ step.url }}" class="inline-block rounded-xl bg-white px-3 py-2 text-sm font-medium text-indigo-700 shadow-sm">{{ step.cta }}</a>
+      <a href="{{ step.url }}" class="ui-card inline-block px-3 py-2 text-sm font-medium text-indigo-700">{{ step.cta }}</a>
     </section>
   {% endif %}
 </div>

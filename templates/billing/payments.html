@@ -18,7 +18,7 @@
   {% endfor %}
 {% endif %}
 
-<div class="bg-white border border-gray-200 rounded-2xl p-5 max-w-xl">
+<div class="ui-card p-5 max-w-xl">
   <p class="text-sm text-gray-700">
     {% trans "Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an (z. B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht direkt an Sie." %}
   </p>
@@ -42,7 +42,7 @@
 </div>
 
 {# W4-3: способы оплаты/Vorkasse/Lieferung сведены в единый экран «Zahlung & Versand». #}
-<div class="bg-white border border-gray-200 rounded-2xl p-5 max-w-xl mt-4 text-sm">
+<div class="ui-card p-5 max-w-xl mt-4 text-sm">
   <p class="text-gray-700">{% trans "Payment methods, bank transfer and delivery are all set in one place now:" %}</p>
   <a href="{% url 'payment-settings' %}" class="inline-flex items-center gap-1 mt-2 font-medium text-indigo-600 hover:underline">💳 {% trans "Payment & shipping" %} →</a>
 </div>

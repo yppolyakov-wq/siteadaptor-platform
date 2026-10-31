@@ -3,24 +3,24 @@
 2026-07-28: вынесена в партиал — живёт на календаре (клик по свободной клетке
 префиллит её) И на отдельной вкладке «＋ Buchung» (stays:stay-new).{% endcomment %}
 {% if units %}
-<form method="post" action="{% url 'stays:stay-create' %}" id="walkin-form" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4 scroll-mt-24">
+<form method="post" action="{% url 'stays:stay-create' %}" id="walkin-form" class="ui-card p-6 max-w-xl space-y-4 scroll-mt-24">
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ request.get_full_path }}">
   <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <div class="sm:col-span-2">
       <label for="walkin-unit" class="block text-sm font-medium mb-1">{% trans "Unit" %}</label>
-      <select name="unit" id="walkin-unit" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <select name="unit" id="walkin-unit" class="ui-input">
         {% for u in units %}<option value="{{ u.pk }}">{{ u.name }}</option>{% endfor %}
       </select>
     </div>
     <div>
       <label for="walkin-arrival" class="block text-sm font-medium mb-1">{% trans "Arrival" %}</label>
-      <input type="date" name="arrival" id="walkin-arrival" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
+      <input type="date" name="arrival" id="walkin-arrival" required class="ui-input min-w-0">
     </div>
     <div>
       <label for="walkin-departure" class="block text-sm font-medium mb-1">{% trans "Departure" %}</label>
-      <input type="date" name="departure" id="walkin-departure" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
+      <input type="date" name="departure" id="walkin-departure" required class="ui-input min-w-0">
     </div>
   </div>
   {% if walkin_rooms %}
@@ -28,7 +28,7 @@
     <label for="walkin-room" class="block text-sm font-medium mb-1">{% trans "Zimmer" %}</label>
     {% comment %}Z-5 Р-2: номер сразу на стойке. data-unit — категория комнаты; JS прячет
     чужие, сервер всё равно проверяет категорию и занятость (откат всей брони).{% endcomment %}
-    <select name="room" id="walkin-room" data-walkin-room class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    <select name="room" id="walkin-room" data-walkin-room class="ui-input">
       <option value="">{% trans "— Zimmer später zuweisen —" %}</option>
       {% for r in walkin_rooms %}<option value="{{ r.pk }}" data-unit="{{ r.unit_id }}">{{ r.number }} · {{ r.unit.name }}</option>{% endfor %}
     </select>
@@ -71,7 +71,7 @@
     <label class="block text-sm font-medium mb-1">{% trans "Rate" %}</label>
     {% comment %}Z-4: тариф — явный выбор; «— ohne Tarif —» = базовая цена. data-units —
     категории тарифа (пусто = все); сервер всё равно отбивает неприменимый.{% endcomment %}
-    <select aria-label="{% trans "Rate" %}" name="rate_plan" data-walkin-rate class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    <select aria-label="{% trans "Rate" %}" name="rate_plan" data-walkin-rate class="ui-input">
       <option value="" selected>{% trans "— ohne Tarif —" %}</option>
       {% for r in rate_plans %}<option value="{{ r.pk }}" data-units="{% if not r.applies_to_all %}{% for u in r.units.all %}{{ u.pk }}{% if not forloop.last %},{% endif %}{% empty %}none{% endfor %}{% endif %}">{{ r.name }}{% if r.meal_included %} · {{ r.get_meal_plan_display }}{% endif %}{% if not r.applies_to_all %} · {% trans "nur:" %} {% for u in r.units.all %}{{ u.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</option>{% endfor %}
     </select>
@@ -117,16 +117,16 @@
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Rooms" %}</span>
-          <input name="rooms" type="number" min="1" max="20" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2"></label>
+          <input name="rooms" type="number" min="1" max="20" value="1" class="ui-input"></label>
         </div>
         <div>
           <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Promo code (optional)" %}</span>
-          <input name="voucher_code" type="text" autocapitalize="characters" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase"></label>
+          <input name="voucher_code" type="text" autocapitalize="characters" class="ui-input uppercase"></label>
         </div>
       </div>
       <div>
         <label for="walkin-payment" class="block text-sm font-medium mb-1">{% trans "Zahlung" %}</label>
-        <select name="payment_method" id="walkin-payment" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <select name="payment_method" id="walkin-payment" class="ui-input">
           <option value="on_site" selected>{% trans "Zahlung vor Ort" %}</option>
           {% if walkin_vorkasse %}<option value="vorkasse">{% trans "Vorkasse (Überweisung)" %}</option>{% endif %}
         </select>
@@ -141,12 +141,12 @@
       </label>
       <div>
         <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Note" %}</span>
-        <textarea name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea></label>
+        <textarea name="note" rows="2" class="ui-input"></textarea></label>
       </div>
     </div>
   </details>
   <div class="flex items-center gap-3 flex-wrap">
-    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add booking" %}</button>
+    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add booking" %}</button>
     {% comment %}Батч C: та же форма блокирует даты (ремонт/своё проживание) —
     mode=block, поле имени = причина; гость/контакты игнорируются.{% endcomment %}
     <button type="submit" name="mode" value="block" formnovalidate class="border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:border-gray-500" onclick="return !!(document.getElementById('walkin-arrival').value && document.getElementById('walkin-departure').value)">✕ {% trans "Block dates" %}</button>

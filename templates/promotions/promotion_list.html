@@ -75,7 +75,7 @@
   ниже (селекты выше отправляют форму сами и несут значение плитки с собой).{% endcomment %}
   <div class="w-full mt-2">
     {% include "tenant/_cardform_picker.html" with name="page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
-    <button type="submit" class="mt-2 rounded-xl bg-gray-900 text-white px-4 py-2 text-sm font-medium">{% trans "Save" %}</button>
+    <button type="submit" class="ui-btn ui-btn-primary mt-2">{% trans "Save" %}</button>
   </div>
   </form>
   {% comment %}PT-5: ящик «Vorlagen der Gruppenseiten» заменён ссылкой на экран
@@ -185,5 +185,5 @@
 </div>
 {# T-8.4: мобильная «＋» над таб-баром (паттерн R3 Verkäufe) — в ассистент #}
 <a href="{% url 'promotions:promotion-quick' %}" aria-label="{% trans 'Neue Aktion' %}"
-   class="sm:hidden fixed right-4 bottom-24 z-30 w-14 h-14 rounded-full bg-indigo-600 text-white text-2xl leading-none flex items-center justify-center shadow-[0_10px_24px_rgba(79,70,229,0.35)] hover:bg-indigo-700" data-quick-fab>＋</a>
+   class="ui-btn ui-btn-primary sm:hidden fixed right-4 bottom-24 z-30 w-14 h-14 rounded-full text-2xl flex" data-quick-fab>＋</a>
 {% endblock %}

@@ -35,7 +35,7 @@ MT-3: пространство поездки — лента объявлени�
         <input type="hidden" name="kind" value="message">
         <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off">
         <input type="text" name="body" required maxlength="4000" aria-label="{% trans 'Write a message…' %}" placeholder="{% trans 'Write a message…' %}" class="grow rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Send" %}</button>
+        <button type="submit" class="ui-btn ui-btn-primary">{% trans "Send" %}</button>
       </form>
     {% endif %}
   {% else %}
@@ -43,10 +43,10 @@ MT-3: пространство поездки — лента объявлени�
       <form method="post" action="{% url 'community-space-post' space.pk %}" enctype="multipart/form-data" class="rounded-2xl border p-4 mb-6 space-y-3">
         {% csrf_token %}
         <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off">
-        <textarea name="body" rows="3" maxlength="4000" aria-label="{% trans 'Share something with the group…' %}" placeholder="{% trans 'Share something with the group…' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+        <textarea name="body" rows="3" maxlength="4000" aria-label="{% trans 'Share something with the group…' %}" placeholder="{% trans 'Share something with the group…' %}" class="ui-input"></textarea>
         <div class="flex flex-wrap items-center justify-between gap-3">
           <input aria-label="{% trans "Fotos" %}" type="file" name="photos" accept="image/*" multiple class="text-sm text-gray-600">
-          <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Post" %}</button>
+          <button type="submit" class="ui-btn ui-btn-primary">{% trans "Post" %}</button>
         </div>
       </form>
     {% elif not space.is_open %}

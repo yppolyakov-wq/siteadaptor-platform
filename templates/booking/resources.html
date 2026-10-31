@@ -23,7 +23,7 @@
 {% if has_tables %}
 {% comment %}KA-12 GA-1: правило онлайн-брони столов. Выключено — как раньше: каждая
 бронь ждёт подтверждения, размер компании не ограничен.{% endcomment %}
-<details class="mb-4 rounded-xl border border-gray-200 bg-white px-4 py-3" data-table-rules{% if table_rule %} open{% endif %}>
+<details class="ui-card mb-4 px-4 py-3" data-table-rules{% if table_rule %} open{% endif %}>
   <summary class="cursor-pointer font-medium">{% trans "Online-Tischreservierung" %}{% if table_rule %} <span class="text-xs text-green-700">· {% trans "aktiv" %}</span>{% endif %}</summary>
   <form method="post" action="{% url 'booking:table-rules' %}" class="mt-3 flex flex-wrap items-end gap-3 text-sm">
     {% csrf_token %}
@@ -127,7 +127,7 @@
             {% if r.photo_url %}<img src="{{ r.photo_url }}" alt="" class="w-12 h-12 rounded-full object-cover shrink-0">{% endif %}
             <input name="title" type="text" value="{{ r.title }}" aria-label="{% trans "Rolle" %}" placeholder="{% trans 'Role (e.g. Stylist, Master)' %}" class="flex-1 rounded-lg border border-gray-300 px-2 py-1.5">
           </div>
-          <textarea name="bio" rows="2" aria-label="{% trans 'Short bio (optional)' %}" placeholder="{% trans 'Short bio (optional)' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5">{{ r.bio }}</textarea>
+          <textarea name="bio" rows="2" aria-label="{% trans 'Short bio (optional)' %}" placeholder="{% trans 'Short bio (optional)' %}" class="ui-input">{{ r.bio }}</textarea>
           <div class="flex flex-wrap items-center gap-3">
             <label class="text-gray-600">{% trans "Photo" %}: <input name="photo" type="file" accept="image/*"></label>
             {% if r.photo_url %}<label class="text-gray-600"><input type="checkbox" name="remove_photo" value="1"> {% trans "Remove photo" %}</label>{% endif %}
@@ -181,7 +181,7 @@
   <details class="ui-card p-4">
     <summary class="cursor-pointer text-sm font-medium">🔗 {% trans "Embed booking widget on your website" %}</summary>
     <p class="text-xs text-gray-500 mt-2 mb-2">{% trans "Paste this code into your existing site to embed the booking form (no header/footer)." %}</p>
-    <textarea aria-label="{% trans "Paste this code into your existing site to embed the booking form (no header/footer)." %}" readonly rows="3" onclick="this.select()" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Termin"&gt;&lt;/iframe&gt;</textarea>
+    <textarea aria-label="{% trans "Paste this code into your existing site to embed the booking form (no header/footer)." %}" readonly rows="3" onclick="this.select()" class="ui-input font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Termin"&gt;&lt;/iframe&gt;</textarea>
   </details>
   {% include "tenant/_status_labels_panel.html" with rows=status_label_rows kind="booking" next_path=request.path %}
   {% include "tenant/_transition_rules_panel.html" with rows=transition_rows kind="booking" next_path=request.path %}

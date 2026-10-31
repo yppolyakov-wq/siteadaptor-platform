@@ -39,7 +39,7 @@ Menge · Summe — количество ПОСЛЕ цены за штуку, н�
             <span class="text-right text-xs text-gray-500 tabular-nums dl-vat">{% if item.vat_rate %}{{ item.vat_rate|floatformat:0 }} %{% else %}—{% endif %}</span>
             <span class="text-right text-gray-500 tabular-nums whitespace-nowrap dl-unit">{% if item.discount_per_unit %}<s class="text-gray-400">{{ item.list_price|floatformat:2 }} €</s><br>{% endif %}{{ item.unit_price|floatformat:2 }} €</span>
             <input type="number" name="qty_{{ item.pk }}" value="{{ item.qty }}" min="0" step="1"
-                   class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm tabular-nums text-right dl-qty"
+                   class="ui-input tabular-nums text-right dl-qty"
                    aria-label="{% trans 'Menge' %}">
             <span class="text-right font-medium tabular-nums whitespace-nowrap dl-sum">{{ item.line_total|floatformat:2 }} €</span>
           </div>
@@ -66,7 +66,7 @@ Menge · Summe — количество ПОСЛЕ цены за штуку, н�
         <label class="text-xs text-gray-500">{% trans "Menge" %}
           <input type="number" name="qty" value="1" min="1" class="block w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         </label>
-        <button type="submit" class="text-sm font-medium rounded-xl bg-indigo-600 text-white px-3 py-1.5 hover:bg-indigo-700">{% trans "Hinzufügen" %}</button>
+        <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Hinzufügen" %}</button>
       </form>
     </details>
   {% else %}
@@ -113,7 +113,7 @@ Netto. Теперь тот же общий партиал, что у остал�
       {% csrf_token %}
       <input type="hidden" name="action" value="payment">
       <label class="block text-xs text-gray-500">{% trans "Zahlart" %}
-        <select name="payment_method" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <select name="payment_method" class="ui-input mt-1 block">
           <option value="">— {% trans "nicht gesetzt" %} —</option>
           {% for value, label in order.PAYMENT_METHODS %}
             <option value="{{ value }}" {% if order.payment_method == value %}selected{% endif %}>{{ label }}</option>
@@ -122,10 +122,10 @@ Netto. Теперь тот же общий партиал, что у остал�
       </label>
       <label class="block text-xs text-gray-500">{% trans "Rechnungsempfänger (falls abweichend)" %}
         <input type="text" name="billing_name" value="{{ order.billing_name }}"
-               class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+               class="ui-input mt-1 block">
       </label>
       <label class="block text-xs text-gray-500">{% trans "Rechnungsadresse" %}
-        <textarea name="billing_address" rows="2" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ order.billing_address }}</textarea>
+        <textarea name="billing_address" rows="2" class="ui-input mt-1 block">{{ order.billing_address }}</textarea>
       </label>
       <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Zahlungsdaten speichern" %}</button>
     </form>
@@ -140,7 +140,7 @@ Netto. Теперь тот же общий партиал, что у остал�
           <button type="submit" class="w-full text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50" {% if not order.customer.email %}title="{% trans 'Der Kunde hat keine E-Mail-Adresse.' %}"{% endif %}>🔗 {% trans "Zahlungslink senden" %}</button>
         </form>
         <input type="text" readonly value="https://{{ request.get_host }}{{ pay_path }}" onclick="this.select()"
-               class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-500"
+               class="ui-input text-xs text-gray-500"
                aria-label="{% trans 'Zahlungslink' %}">
       {% endif %}
     </div>
@@ -150,7 +150,7 @@ Netto. Теперь тот же общий партиал, что у остал�
 {% block deal_rail_extra %}
   {% comment %}SH-6: карточка доставки видна и у самовывоза — способ получения
   сам является настройкой заказа (владелец меняет «Abholung ⇄ Lieferung»).{% endcomment %}
-  <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="delivery">
+  <div class="ui-card p-5" data-deal-block="delivery">
     <p class="text-xs font-medium text-gray-500 mb-2">{% if order.is_delivery %}🚚 {% trans "Delivery" %}{% else %}📍 {% trans "Abholung" %}{% endif %}</p>
     {% if order.pickup_location %}<p class="text-sm text-gray-600">{{ order.pickup_location }}</p>{% endif %}
     {% if order.pickup_slot and not order.is_delivery %}<p class="text-sm font-medium text-gray-800" data-pickup-slot>🕒 {{ order.pickup_slot|date:"D d.m., H:i" }}</p>{% endif %}
@@ -164,13 +164,13 @@ Netto. Теперь тот же общий партиал, что у остал�
         {% csrf_token %}
         <input type="hidden" name="action" value="delivery">
         <label class="block text-xs text-gray-500">{% trans "Art" %}
-          <select name="fulfillment" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select name="fulfillment" class="ui-input mt-1 block">
             <option value="pickup" {% if not order.is_delivery %}selected{% endif %}>{% trans "Abholung" %}</option>
             <option value="delivery" {% if order.is_delivery %}selected{% endif %}>{% trans "Lieferung" %}</option>
           </select>
         </label>
         <label class="block text-xs text-gray-500">{% trans "Lieferadresse" %}
-          <textarea name="shipping_address" rows="3" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ order.shipping_address }}</textarea>
+          <textarea name="shipping_address" rows="3" class="ui-input mt-1 block">{{ order.shipping_address }}</textarea>
         </label>
         <label class="block text-xs text-gray-500">{% trans "Lieferkosten" %} ({{ order.currency }})
           <input type="text" inputmode="decimal" name="shipping" value="{{ shipping_eur_input }}"
@@ -215,7 +215,7 @@ Netto. Теперь тот же общий партиал, что у остал�
 фиксируется сразу; деньги — тем же путём, что «Preisminderung» (только с правом).{% endcomment %}
 {% block deal_main_extra %}
   {% if return_items %}
-  <details class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-order-return>
+  <details class="ui-card p-5" data-order-return>
     <summary class="font-semibold cursor-pointer">↩ {% trans "Rücksendung erfassen" %}</summary>
     <form method="post" action="{% url 'orders:order-return' order.pk %}" class="mt-4 space-y-3">
       {% csrf_token %}

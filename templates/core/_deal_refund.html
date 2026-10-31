@@ -19,7 +19,7 @@
       </fieldset>
       <label class="block text-sm">{% trans "Betrag (€)" %}
         <input type="text" name="amount" inputmode="decimal" required placeholder="0,00"
-               class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
+               class="ui-input mt-1">
       </label>
       <fieldset class="text-sm space-y-1">
         <legend class="font-medium">{% trans "Wie erstatten?" %}</legend>
@@ -32,7 +32,7 @@
       </fieldset>
       {% if deal_refund.card_ok and deal_refund.card_rows|length > 1 %}
         <label class="block text-sm">{% trans "Zahlung" %}
-          <select name="row" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-base">
+          <select name="row" class="ui-input mt-1">
             {% for r in deal_refund.card_rows %}<option value="{{ r.pk }}">{{ r.label|date:"d.m.Y H:i" }} · {{ r.eur|floatformat:2 }} €</option>{% endfor %}
           </select>
         </label>

@@ -4,8 +4,8 @@
 приёмники заказа/сметы не меняются. Текстовый фильтр — по data-search строки. Вход:
 parts (список dict value/label/price/title/sku/image), field_name (дефолт "part").{% endcomment %}
 {% with fname=field_name|default:"part" %}
-<div class="rounded-xl border border-gray-200 bg-white p-2 max-w-md" data-part-picker>
-  <input type="search" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm mb-2" placeholder="{% trans 'Sortiment durchsuchen …' %}" data-part-filter aria-label="{% trans 'Aus dem Sortiment' %}">
+<div class="ui-card p-2 max-w-md" data-part-picker>
+  <input type="search" class="ui-input mb-2" placeholder="{% trans 'Sortiment durchsuchen …' %}" data-part-filter aria-label="{% trans 'Aus dem Sortiment' %}">
   <div class="max-h-56 overflow-y-auto divide-y divide-gray-100" data-part-list>
     <label class="flex items-center gap-2 py-1.5 px-1 text-sm cursor-pointer" data-search="">
       <input type="radio" name="{{ fname }}" value="" checked class="shrink-0">

@@ -28,11 +28,11 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 <form method="get" class="mb-3 flex items-center gap-2 max-w-md">
   {% if active_kind %}<input type="hidden" name="tab" value="{{ active_kind }}">{% endif %}
   <input type="search" name="q" value="{{ search_q }}" aria-label="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}" placeholder="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}"
-         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+         class="ui-input">
   {% if search_q %}<a href="?{% if active_kind %}tab={{ active_kind }}{% endif %}" class="text-sm text-gray-400 hover:text-gray-600 shrink-0" aria-label="{% trans 'Reset' %}">✕</a>{% endif %}
 </form>
 {% if search_q %}
-<div class="mb-4 bg-white rounded-2xl shadow-sm divide-y divide-gray-100 max-w-3xl">
+<div class="ui-card mb-4 divide-y divide-gray-100 max-w-3xl">
   {% for b in search_results %}
     <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}von={{ b.arrival|date:'Y-m-d' }}&amp;buchung={{ b.pk }}" class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
       <span class="min-w-0 truncate"><span class="font-medium">{{ b.customer.name|default:b.customer }}</span> · {{ b.reference_code }}{% if b.customer.email %} · <span class="text-gray-400">{% if hide_contacts %}{{ b.customer.email|mask_email }}{% else %}{{ b.customer.email }}{% endif %}</span>{% endif %}</span>
@@ -53,7 +53,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
     <input type="hidden" name="action" value="gap_deal"><input type="hidden" name="enabled" value="1">
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
     <input type="hidden" name="gap_max_nights" value="3"><input type="hidden" name="gap_discount_percent" value="25">
-    <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Aktivieren (−25 % bis 3 Nächte)" %}</button>
+    <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Aktivieren (−25 % bis 3 Nächte)" %}</button>
   </form>
 </div>
 {% endif %}
@@ -76,7 +76,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 префил формы брони внизу) + дорожки с ПЛАШКАМИ броней «Имя · S-XXXXXX» (цвет =
 статус, клик → карточка FB-11, drag = перенос дат/номера с СОХРАНЕНИЕМ цены) и
 блокировок. Обрезка окном — маркеры ‹ ›.{% endcomment %}
-<div class="bg-white rounded-2xl shadow-sm overflow-x-auto mb-6">
+<div class="ui-card overflow-x-auto mb-6">
   <table class="text-xs border-collapse w-full" id="belegungsplan">
     <thead>
       <tr class="text-gray-400">
@@ -155,7 +155,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 
 {% if dirty_rooms %}
 {# PMS-R4 (хаускипинг-lite): выезды пометили комнаты dirty — список уборки. #}
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-6 max-w-xl">
+<div class="ui-card p-4 mb-6 max-w-xl">
   <h2 class="font-semibold mb-1">🧹 {% trans "Housekeeping" %}</h2>
   <p class="text-xs text-gray-500 mb-2">{% trans "Rooms to clean after check-out." %}</p>
   {% for r in dirty_rooms %}

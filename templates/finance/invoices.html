@@ -41,7 +41,7 @@
     <option value="">{% trans "Standard-Reihenfolge" %}</option>
     {% for value, label in inv_sort_options %}<option value="{{ value }}" {% if inv_filters.sort == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
   </select>
-  <button aria-label="{% trans 'Suchen' %}" type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+  <button aria-label="{% trans 'Suchen' %}" type="submit" class="ui-card px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
   {% if inv_filters.q or inv_filters.art or inv_filters.von or inv_filters.bis or inv_filters.sort or inv_filters.status %}
     <a href="{% url 'finance:invoices' %}" class="px-2 py-2 text-sm text-gray-500 hover:text-gray-800">{% trans "Filter zurücksetzen" %}</a>
   {% endif %}

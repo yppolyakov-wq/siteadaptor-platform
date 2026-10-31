@@ -38,7 +38,7 @@
         <div class="flex gap-2 pt-1">
           <form method="post" action="{% url 'promotions:reservation-action' r.pk %}" class="flex-1">
             {% csrf_token %}<input type="hidden" name="action" value="fulfill"><input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <button class="w-full min-h-[44px] rounded-xl bg-indigo-600 text-white text-sm font-semibold">{% trans "Ausgeben" %}</button>
+            <button class="ui-btn ui-btn-primary w-full">{% trans "Ausgeben" %}</button>
           </form>
         </div>
         {% comment %}Отмена необратима (терминальный статус) — за раскрытием, чтобы не

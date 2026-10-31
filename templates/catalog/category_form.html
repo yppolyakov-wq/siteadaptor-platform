@@ -20,7 +20,7 @@ main-колонка (языки/название/описание/фото) + п
     {# FB-6: файлы для «＋»-плитки; уходят при Save. Скрыт — контрол = плитка ниже. #}
     <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="hidden">
 
-    <div class="space-y-4 bg-white p-6 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)]">
+    <div class="ui-card space-y-4 p-6">
       {% comment %}Ф1: название/описание по языкам (свитчер — в шапке страницы);
       поля всех языков в DOM → Save собирает всё.{% endcomment %}
       {% for g in i18n_groups %}{% include "tenant/_i18n_group.html" %}{% endfor %}
@@ -59,7 +59,7 @@ main-колонка (языки/название/описание/фото) + п
     </div>
 
     <aside class="space-y-4 mt-4 lg:mt-0">
-      <div class="bg-white p-5 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] space-y-3">
+      <div class="ui-card p-5 space-y-3">
         <p class="text-sm font-semibold">🗂 {% trans "Struktur" %}</p>
         {% for field in form %}{% if field.name == 'parent' or field.name == 'slug' or field.name == 'city_category' %}
           <div>
@@ -99,14 +99,14 @@ main-колонка (языки/название/описание/фото) + п
         </div>
       </div>
 
-      <div class="bg-white p-5 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)]">
+      <div class="ui-card p-5">
         {% for field in form %}{% if field.name == 'is_active' or field.name == 'hide_in_city' or field.name == 'hide_in_google' %}
           <label class="flex items-center gap-2 text-sm font-medium">{% render_field field|a11y %} {{ field.label }}</label>
           {% include "core/_field_msgs.html" %}
         {% endif %}{% endfor %}
       </div>
 
-      <div class="bg-white p-5 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)]">
+      <div class="ui-card p-5">
         {% for field in form %}{% if field.name == 'size_table' %}
           <label class="block text-xs font-medium text-gray-500 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
           {% render_field field|a11y class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}

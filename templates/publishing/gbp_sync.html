@@ -14,7 +14,7 @@
     </div>
   {% endif %}
 
-  <section class="bg-white border border-gray-200 rounded-2xl p-5">
+  <section class="ui-card p-5">
     <h2 class="ui-h2 mb-2">{% trans "Verbindung" %}</h2>
     {% if connected %}
       <p class="text-sm text-green-700">✓ {% trans "Mit Google verbunden" %}</p>
@@ -28,7 +28,7 @@
   </section>
 
   {% if connected %}
-  <section class="bg-white border border-gray-200 rounded-2xl p-5">
+  <section class="ui-card p-5">
     <h2 class="ui-h2 mb-2">{% trans "Standort" %}</h2>
     {% if location %}
       <p class="text-sm text-gray-700 mb-3">{% trans "Aktueller Standort:" %} <code class="text-xs">{{ location }}</code></p>
@@ -50,7 +50,7 @@
             </label>
           {% endfor %}
         </fieldset>
-        <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Standort wählen" %}</button>
+        <button type="submit" class="ui-btn ui-btn-primary">{% trans "Standort wählen" %}</button>
       </form>
     {% elif locations is not None %}
       <p class="text-sm text-gray-500">{% trans "Bei Google wurden keine Standorte gefunden." %}</p>
@@ -65,7 +65,7 @@
   {% endif %}
 
   {% if connected and location %}
-  <section class="bg-white border border-gray-200 rounded-2xl p-5" id="zeiten">
+  <section class="ui-card p-5" id="zeiten">
     <h2 class="ui-h2 mb-1">{% trans "Öffnungszeiten" %}</h2>
     <p class="text-xs text-gray-500 mb-3">{% trans "Nichts wird automatisch geändert: erst vergleichen, dann in eine Richtung abgleichen." %}</p>
     {% if hours_synced_at %}
@@ -106,7 +106,7 @@
             <input type="checkbox" name="confirm" value="overwrite" required> {% trans "Ja, bei Google überschreiben" %}
           </label>
         {% endif %}
-        <button type="submit" class="bg-gray-900 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-700">{% trans "An Google senden" %}</button>
+        <button type="submit" class="ui-btn ui-btn-primary">{% trans "An Google senden" %}</button>
       </form>
       <form method="post" action="{% url 'gbp-hours' %}">
         {% csrf_token %}<input type="hidden" name="action" value="pull_apply">
@@ -121,7 +121,7 @@
   </section>
   {% endif %}
 
-  <section class="bg-white border border-gray-200 rounded-2xl p-5">
+  <section class="ui-card p-5">
     <h2 class="ui-h2 mb-1">{% trans "Produkte bei Google" %}</h2>
     <p class="text-sm text-gray-600 mb-2">{% trans "Produkte mit Preis und Verfügbarkeit über Google Merchant Center an Google senden." %}</p>
     <a href="{% url 'gbp-merchant' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Google Merchant Center" %} →</a>

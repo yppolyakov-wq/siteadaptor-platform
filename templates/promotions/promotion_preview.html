@@ -58,21 +58,21 @@
   </section>
 
   <div class="grid grid-cols-3 gap-2 text-sm font-medium" data-promo-actions>
-    <a href="{% url 'promotions:promotion-edit' promo.pk %}" class="h-12 rounded-xl bg-white shadow-sm flex items-center justify-center">{% trans "Bearbeiten" %}</a>
+    <a href="{% url 'promotions:promotion-edit' promo.pk %}" class="ui-card h-12 flex items-center justify-center">{% trans "Bearbeiten" %}</a>
     {% for target in actions %}
       {% if forloop.first %}
         <form method="post" action="{% url 'promotions:promotion-transition' promo.pk %}">
           {% csrf_token %}
           <input type="hidden" name="target" value="{{ target }}">
           <input type="hidden" name="next" value="{{ request.path }}">
-          <button type="submit" class="w-full h-12 rounded-xl bg-white shadow-sm" data-transition="{{ target }}">{% if target == "paused" %}{% trans "Pausieren" %}{% elif target == "active" %}{% trans "Fortsetzen" %}{% endif %}</button>
+          <button type="submit" class="ui-card w-full h-12" data-transition="{{ target }}">{% if target == "paused" %}{% trans "Pausieren" %}{% elif target == "active" %}{% trans "Fortsetzen" %}{% endif %}</button>
         </form>
       {% endif %}
     {% empty %}
       <span></span>
     {% endfor %}
     {% if promo.status == "active" %}
-      <a href="{% url 'promotions:promotion-quick-done' promo.pk %}" class="h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center">{% trans "Teilen" %}</a>
+      <a href="{% url 'promotions:promotion-quick-done' promo.pk %}" class="ui-btn ui-btn-primary h-12 flex">{% trans "Teilen" %}</a>
     {% endif %}
   </div>
   {% if "ended" in actions %}

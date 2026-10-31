@@ -9,7 +9,7 @@
       <button type="submit" class="w-full text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">🔗 {% trans "Zahlungslink senden" %}</button>
     </form>
     <input type="text" readonly value="{{ deal_rest.url }}" onclick="this.select()"
-           class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-500"
+           class="ui-input text-xs text-gray-500"
            aria-label="{% trans 'Zahlungslink' %}">
   </div>
 {% endif %}

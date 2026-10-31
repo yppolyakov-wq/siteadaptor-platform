@@ -28,7 +28,7 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
 {% if bookings %}
 {# KA-12 E4.2b: сетка «ресурс × время» с переносом перетаскиванием (md+); список ниже — путь без мыши. #}
 {% include "booking/_tagesplan_grid.html" %}
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+<div class="ui-card divide-y divide-gray-100 mb-6">
   {% for b in bookings %}
     <div class="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
       <div class="min-w-0">
@@ -69,29 +69,29 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
 <p class="text-gray-500 mb-6">{% trans "No bookings on this day." %}</p>
 {% endif %}
 
-{% if not deal_calendar_compact %}<form method="post" action="{% url 'booking:booking-create' %}" id="neu" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4 scroll-mt-24">
+{% if not deal_calendar_compact %}<form method="post" action="{% url 'booking:booking-create' %}" id="neu" class="ui-card p-6 max-w-xl space-y-4 scroll-mt-24">
   {% csrf_token %}
   <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
       <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Resource" %}</span>
-      <select name="resource" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <select name="resource" class="ui-input">
         {% for r in resources %}<option value="{{ r.pk }}">{{ r.name }}</option>{% endfor %}
       </select></label>
     </div>
     <div>
       <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Start" %}</span>
-      <input aria-label="{% trans "Start" %}" type="datetime-local" name="start" required class="w-full rounded-lg border border-gray-300 px-3 py-2"></label>
+      <input aria-label="{% trans "Start" %}" type="datetime-local" name="start" required class="ui-input"></label>
     </div>
     <div>
       <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Minutes" %}</span>
-      <input type="number" name="minutes" value="" placeholder="60" min="5" max="1440" class="w-full rounded-lg border border-gray-300 px-3 py-2"></label>
+      <input type="number" name="minutes" value="" placeholder="60" min="5" max="1440" class="ui-input"></label>
       <p class="text-xs text-gray-500 mt-1">{% trans "Leer = Dauer der Leistung" %}</p>
     </div>
   </div>
   {% if manual_services %}<div>
     <label for="neu-service" class="block text-sm font-medium mb-1">{% trans "Leistung" %}</label>
-    <select id="neu-service" name="service" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    <select id="neu-service" name="service" class="ui-input">
       <option value="">{% trans "— ohne Leistung (z. B. Tisch) —" %}</option>
       {% for s in manual_services %}<option value="{{ s.pk }}">{{ s.name_localized|default:s.name }}</option>{% for v in s.active_variants %}<option value="{{ s.pk }}:{{ v.pk }}">{{ s.name_localized|default:s.name }} · {{ v.name_localized }}</option>{% endfor %}{% endfor %}
     </select>
@@ -103,12 +103,12 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   </div>
   <div class="max-w-xs">
     <label for="neu-party" class="block text-sm font-medium mb-1">{% trans "Personen" %}</label>
-    <input id="neu-party" type="number" name="party_size" value="1" min="1" max="50" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    <input id="neu-party" type="number" name="party_size" value="1" min="1" max="50" class="ui-input">
   </div>
   <div>
     <label for="neu-note" class="block text-sm font-medium mb-1">{% trans "Notiz" %}</label>
-    <textarea id="neu-note" name="note" rows="2" maxlength="2000" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+    <textarea id="neu-note" name="note" rows="2" maxlength="2000" class="ui-input"></textarea>
   </div>
   <div><label class="inline-flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="override_hours" value="1"> {% trans "Trotzdem eintragen" %}</label></div>
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add booking" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add booking" %}</button>
 </form>{% endif %}

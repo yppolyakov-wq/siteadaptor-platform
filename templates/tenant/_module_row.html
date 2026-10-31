@@ -1,5 +1,5 @@
 {% load i18n %}{# Строка модуля (страница «Module», D0b/гибрид): тумблер + бейджи + «Geeignet für». #}
-<div class="bg-white rounded-2xl shadow-sm px-4 py-3 flex items-start gap-3">
+<div class="ui-card px-4 py-3 flex items-start gap-3">
   <label class="flex items-start gap-3 flex-1 {% if row.spec.core or not row.in_package %}opacity-60{% endif %}">
     <input type="checkbox" name="modules" value="{{ row.spec.key }}"
            {% if row.enabled %}checked{% endif %} {% if row.spec.core or not row.in_package %}disabled{% endif %}

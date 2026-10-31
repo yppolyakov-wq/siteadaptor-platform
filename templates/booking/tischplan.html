@@ -16,7 +16,7 @@
   <div class="mb-3 rounded-xl px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'warning' %}bg-amber-50 text-amber-800{% else %}bg-green-50 text-green-800{% endif %}" role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}">{{ m }}</div>
 {% endfor %}{% endif %}
 
-<form method="get" class="bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)] px-4 py-3 mb-4 flex items-end gap-3 flex-wrap" data-tischplan-time aria-label="{% trans 'Zeit wählen' %}">
+<form method="get" class="ui-card px-4 py-3 mb-4 flex items-end gap-3 flex-wrap" data-tischplan-time aria-label="{% trans 'Zeit wählen' %}">
   <a href="{{ prev_q }}" class="min-h-[44px] inline-flex items-center rounded-xl px-3 text-sm bg-gray-50 hover:bg-gray-100" aria-label="{% trans '30 Minuten früher' %}">← 30</a>
   <label class="text-xs text-gray-500">{% trans "Datum" %}
     <input type="date" name="tag" value="{{ day|date:'Y-m-d' }}" class="block rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]">
@@ -24,7 +24,7 @@
   <label class="text-xs text-gray-500">{% trans "Uhrzeit" %}
     <input type="time" name="zeit" step="900" value="{{ at|time:'H:i' }}" class="block rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]">
   </label>
-  <button type="submit" class="min-h-[44px] rounded-xl bg-gray-900 text-white px-4 text-sm font-medium">{% trans "Anzeigen" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Anzeigen" %}</button>
   <a href="?" class="min-h-[44px] inline-flex items-center rounded-xl px-3 text-sm bg-gray-50 hover:bg-gray-100">{% trans "Jetzt" %}</a>
   <a href="{{ next_q }}" class="min-h-[44px] inline-flex items-center rounded-xl px-3 text-sm bg-gray-50 hover:bg-gray-100" aria-label="{% trans '30 Minuten später' %}">30 →</a>
   <p class="w-full text-sm text-gray-600">{{ day|date:"l, d.m.Y" }} · {{ at|time:"H:i" }} · {% blocktrans with n=free_count %}Freie Tische: {{ n }}{% endblocktrans %}</p>
@@ -75,12 +75,12 @@
           <input type="hidden" name="next" value="{{ here }}">
           <div class="flex gap-2">
             <label class="text-xs text-gray-500 flex-1">{% trans "Gäste" %}
-              <input type="number" name="party_size" min="1" max="50" value="{% if t.seats %}{{ t.seats|stringformat:'d' }}{% else %}2{% endif %}" class="block w-full rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]"></label>
+              <input type="number" name="party_size" min="1" max="50" value="{% if t.seats %}{{ t.seats|stringformat:'d' }}{% else %}2{% endif %}" class="ui-input block min-h-[44px]"></label>
             <label class="text-xs text-gray-500 flex-1">{% trans "Minuten" %}
-              <input type="number" name="minutes" min="15" max="600" step="15" value="90" class="block w-full rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]"></label>
+              <input type="number" name="minutes" min="15" max="600" step="15" value="90" class="ui-input block min-h-[44px]"></label>
           </div>
           <label class="text-xs text-gray-500 block">{% trans "Name (optional)" %}
-            <input type="text" name="name" maxlength="120" class="block w-full rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]"></label>
+            <input type="text" name="name" maxlength="120" class="ui-input block min-h-[44px]"></label>
           <label class="inline-flex items-center gap-2 text-sm text-gray-600 min-h-[44px]"><input type="checkbox" name="override_hours" value="1" class="h-5 w-5"> {% trans "Trotzdem eintragen" %}</label>
           <button type="submit" aria-label="{% trans 'Eintragen' %} – {{ t.name }}" class="ui-btn ui-btn-primary w-full min-h-[44px]">{% trans "Eintragen" %}</button>
         </form>
@@ -103,7 +103,7 @@
               <select id="assign-{{ b.pk }}" name="resource" class="flex-1 rounded-lg border border-gray-300 px-2 py-2 text-base min-h-[44px]">
                 {% for other in tables %}<option value="{{ other.pk }}"{% if other.pk == b.resource_id %} selected{% endif %}>{{ other.name }}{% if other.seats %} ({{ other.seats }}){% endif %}</option>{% endfor %}
               </select>
-              <button name="action" value="move" aria-label="{% trans 'Tisch zuweisen' %}: {{ b.customer }}" class="min-h-[44px] rounded-xl bg-white border border-gray-300 px-3 text-sm hover:border-indigo-400">{% trans "Tisch zuweisen" %}</button>
+              <button name="action" value="move" aria-label="{% trans 'Tisch zuweisen' %}: {{ b.customer }}" class="ui-card min-h-[44px] px-3 text-sm hover:border-indigo-400">{% trans "Tisch zuweisen" %}</button>
             </form>
             {% endif %}
           </li>

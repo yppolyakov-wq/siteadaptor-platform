@@ -9,7 +9,7 @@
   {% if is_owner %}<a href="{% url 'imports:website' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Von der Website importieren" %} →</a>{% endif %}
 </div>
 
-<div class="bg-white border border-gray-200 rounded-xl p-6 mb-8 max-w-xl">
+<div class="ui-card p-6 mb-8 max-w-xl">
   <h2 class="font-medium mb-4">{% trans "Upload a CSV or Excel file" %}</h2>
   <form method="post" enctype="multipart/form-data" class="space-y-4">
     {% csrf_token %}
@@ -18,7 +18,7 @@
     {% endif %}
     <div>
       <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Import type" %}</span>
-      <select name="resource_type" class="block w-full text-sm border border-gray-300 rounded-lg p-2">
+      <select name="resource_type" class="ui-input block p-2">
         {% for value, label in resources %}
           <option value="{{ value }}">{{ label }}</option>
         {% endfor %}
@@ -46,7 +46,7 @@
 </div>
 
 <h2 class="font-medium mb-3">{% trans "Recent imports" %}</h2>
-<div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+<div class="ui-card overflow-hidden">
   <table class="w-full text-sm">
     <thead class="bg-gray-50 text-gray-500 text-left">
       <tr>

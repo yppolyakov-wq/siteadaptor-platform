@@ -61,7 +61,7 @@ next_path (куда вернуться после сохранения).{% endco
     <p class="text-xs text-gray-400">{% trans "Zuerst einen Status anlegen und speichern — danach erscheinen hier die Übergänge." %}</p>
   {% endif %}
 
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Speichern" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
 </form>
 {% if status_preset %}
 <form method="post" action="{% url 'status-manager-save' kind %}" class="mt-3">

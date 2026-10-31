@@ -74,13 +74,13 @@
       <input type="hidden" name="action" value="import_booking">
       <div>
         <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Channel" %}</span>
-        <select name="kind" class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
+        <select name="kind" class="ui-input">
           {% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
         </select></label>
       </div>
       <div>
         <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Room" %}</span>
-        <select name="unit" class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
+        <select name="unit" class="ui-input">
           {% for u in units %}<option value="{{ u.pk }}">{{ u.name }}</option>{% endfor %}
         </select></label>
       </div>

@@ -4,7 +4,7 @@ BarcodeDetector есть в Chrome/Android; на iOS (Safari и окно Telegra
 кадры читает jsQR, загружаемый только по нажатию. Сырой текст QR уходит в
 window.saOnScan(raw), который задаёт страница (разбор кода и POST сканера — её дело).
 Параметр: scan_hint — подпись под кнопкой.{% endcomment %}
-  <div class="bg-white rounded-2xl shadow-sm p-5" data-jsqr-src="{% static 'vendor/jsqr/jsQR.min.js' %}">
+  <div class="ui-card p-5" data-jsqr-src="{% static 'vendor/jsqr/jsQR.min.js' %}">
     <div class="flex items-center justify-between mb-2">
       <span class="text-sm font-medium">{% trans "Scan QR with camera" %}</span>
       <button id="scan-toggle" type="button" class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50">{% trans "Start camera" %}</button>

@@ -2,7 +2,7 @@
 {# Z-3: телефон — по карточке на категорию, дни строками (без горизонтального скролла) #}
 <div class="md:hidden space-y-3 mb-6" data-price-cards>
   {% for row in rows %}
-  <details class="bg-white rounded-2xl shadow-sm" {% if forloop.first %}open{% endif %}>
+  <details class="ui-card" {% if forloop.first %}open{% endif %}>
     <summary class="px-4 py-3 font-semibold cursor-pointer">{{ row.unit.name }}</summary>
     <ul class="divide-y divide-gray-100 border-t border-gray-100">
       {% for c in row.cells %}

@@ -8,7 +8,7 @@
   {% if run %}
   <form method="post">
     {% csrf_token %}<input type="hidden" name="action" value="verify">
-    <button type="submit" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700">{% trans "Jetzt prüfen" %}</button>
+    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Jetzt prüfen" %}</button>
   </form>
   {% else %}
   <p class="text-xs text-gray-500">{% trans "Sie können die Website schon vorher auslesen und das Ergebnis ansehen — veröffentlicht wird erst nach der Bestätigung." %}</p>

@@ -3,7 +3,7 @@
 links (deal_links.for_cards(...)[pk]), next_path. Спутники — самостоятельные
 сделки: у каждой свой статус и своя сумма; итог здесь СПРАВОЧНЫЙ (деньги не
 сливаются — инвариант §4.2 плана).{% endcomment %}
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-6">
+<div class="ui-card p-4 mb-6">
   <div class="flex items-center justify-between gap-3 flex-wrap mb-2">
     <h2 class="font-semibold">🔗 {% trans "Verknüpfte Leistungen" %}</h2>
     <a href="{% url 'deal-link' kind obj_pk %}?role=anchor&amp;next={{ next_path|urlencode }}"

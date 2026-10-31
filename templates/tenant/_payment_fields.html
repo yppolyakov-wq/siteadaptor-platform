@@ -5,7 +5,7 @@
 мастера; должен лежать ВНУТРИ <form method="post"> вызывающего шаблона.{% endcomment %}
 {% comment %}① Online-Zahlung (Stripe Checkout methods) — сентинел sec_stripe{% endcomment %}
 {% if connect_configured %}
-  <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+  <fieldset class="ui-card p-6">
     <input type="hidden" name="sec_stripe" value="1">
     <legend class="font-semibold mb-1">{% trans "Online payment methods (Stripe)" %}</legend>
     <p class="text-xs text-gray-400 mb-3">{% trans "Which methods to offer at online checkout. Empty = Stripe Dashboard default." %}</p>
@@ -22,7 +22,7 @@
 
 {% comment %}② Abholung & Vorkasse — сентинелы sec_prepay + sec_vorkasse{% endcomment %}
 {% if orders_active %}
-  <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+  <fieldset class="ui-card p-6 space-y-4">
     <input type="hidden" name="sec_prepay" value="1">
     <input type="hidden" name="sec_vorkasse" value="1">
     <legend class="font-semibold mb-1">{% trans "Pickup & bank transfer" %}</legend>
@@ -38,15 +38,15 @@
     <div class="grid sm:grid-cols-3 gap-3">
       <div>
         <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Account holder" %}</span>
-        <input name="bank_holder" type="text" value="{{ bank_holder }}" maxlength="120" class="w-full rounded-lg border border-gray-300 px-3 py-2"></label>
+        <input name="bank_holder" type="text" value="{{ bank_holder }}" maxlength="120" class="ui-input"></label>
       </div>
       <div>
         <label class="block"><span class="block text-xs text-gray-500 mb-1">IBAN</span>
-        <input name="bank_iban" type="text" value="{{ bank_iban }}" maxlength="34" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase"></label>
+        <input name="bank_iban" type="text" value="{{ bank_iban }}" maxlength="34" class="ui-input uppercase"></label>
       </div>
       <div>
         <label class="block"><span class="block text-xs text-gray-500 mb-1">BIC</span>
-        <input name="bank_bic" type="text" value="{{ bank_bic }}" maxlength="11" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase"></label>
+        <input name="bank_bic" type="text" value="{{ bank_bic }}" maxlength="11" class="ui-input uppercase"></label>
       </div>
     </div>
     {% else %}
@@ -67,7 +67,7 @@
 {% comment %}SH-23: счёт юрлицу (Kauf auf Rechnung) — сентинел sec_invoice.
 Доступен только фирмам (решение владельца Р-3); срок оплаты по умолчанию 14 дней
 (Р-2), удержание места по Vorkasse — 3 дня (Р-4).{% endcomment %}
-<fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+<fieldset class="ui-card p-6 space-y-3">
   <input type="hidden" name="sec_invoice" value="1">
   <legend class="font-semibold mb-1">{% trans "Invoice for companies" %}</legend>
   <label class="flex items-center gap-2 text-sm font-medium">
@@ -77,10 +77,10 @@
   <p class="text-xs text-gray-500">{% trans "Private customers always pay in advance, online or on site." %}</p>
   <div class="grid sm:grid-cols-2 gap-3">
     <label class="text-sm">{% trans "Payment term (days)" %}
-      <input type="number" name="invoice_terms_days" min="1" max="90" value="{{ invoice_terms_days }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input type="number" name="invoice_terms_days" min="1" max="90" value="{{ invoice_terms_days }}" class="ui-input mt-1">
     </label>
     <label class="text-sm">{% trans "Hold without payment, bank transfer (days)" %}
-      <input type="number" name="vorkasse_hold_days" min="1" max="30" value="{{ vorkasse_hold_days }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input type="number" name="vorkasse_hold_days" min="1" max="30" value="{{ vorkasse_hold_days }}" class="ui-input mt-1">
     </label>
   </div>
 </fieldset>
@@ -89,7 +89,7 @@
 гейтится модулем «orders» — кейтеринг/Handwerker живут на jobs, а доставка нужна
 и им (вопрос «привезём или заберёте» стоит в заявке).{% endcomment %}
 {% if orders_active or jobs_active %}
-  <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
+  <fieldset class="ui-card p-6 space-y-3">
     <input type="hidden" name="sec_delivery" value="1">
     <legend class="font-semibold mb-1">{% trans "Delivery (Versand)" %}</legend>
     <label class="flex items-center gap-2 text-sm font-medium">
@@ -99,28 +99,28 @@
     <div class="grid sm:grid-cols-3 gap-3">
       <div>
         <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Delivery fee (€)" %}</span>
-        <input name="delivery_fee_eur" type="text" value="{{ delivery_fee_eur }}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></label>
+        <input name="delivery_fee_eur" type="text" value="{{ delivery_fee_eur }}" class="ui-input"></label>
       </div>
       <div>
         <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Free from (€, 0=never)" %}</span>
-        <input name="delivery_free_eur" type="text" value="{{ delivery_free_eur }}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></label>
+        <input name="delivery_free_eur" type="text" value="{{ delivery_free_eur }}" class="ui-input"></label>
       </div>
       <div>
         <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Min. order (€, 0=none)" %}</span>
-        <input name="delivery_min_eur" type="text" value="{{ delivery_min_eur }}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></label>
+        <input name="delivery_min_eur" type="text" value="{{ delivery_min_eur }}" class="ui-input"></label>
       </div>
     </div>
     <div>
       <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Delivery area (shown to customers, e.g. PLZ)" %}</span>
-      <input name="delivery_area" type="text" value="{{ delivery_area }}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></label>
+      <input name="delivery_area" type="text" value="{{ delivery_area }}" class="ui-input"></label>
     </div>
     <div>
       <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Min. order for pickup (€, 0=none)" %}</span>
-      <input name="pickup_min_eur" type="text" value="{{ pickup_min_eur }}" class="w-full sm:w-1/3 rounded-lg border border-gray-300 px-3 py-2"></label>
+      <input name="pickup_min_eur" type="text" value="{{ pickup_min_eur }}" class="ui-input sm:w-1/3"></label>
     </div>
     <div>
       <label class="block"><span class="block text-xs text-gray-500 mb-1">📍 {% trans "Pickup points (one per line: Name | Address)" %}</span>
-      <textarea name="pickup_locations" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ pickup_locations_text }}</textarea></label>
+      <textarea name="pickup_locations" rows="3" class="ui-input">{{ pickup_locations_text }}</textarea></label>
       <p class="text-xs text-gray-400 mt-1">{% trans "Leave empty for a single pickup at your address. Several lines = customer chooses in cart." %}</p>
     </div>
     {% comment %}KA-W1: время самовывоза — свой сентинел sec_pickup_slots (запись одного
@@ -136,20 +136,20 @@
       {% endif %}
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
         <label class="text-xs text-gray-500">{% trans "Zeitfenster (Minuten)" %}
-          <select name="pickup_slots_step" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5">
+          <select name="pickup_slots_step" class="ui-input mt-1">
             <option value="15" {% if pickup_slots.cfg.step == 15 %}selected{% endif %}>15</option>
             <option value="30" {% if pickup_slots.cfg.step == 30 %}selected{% endif %}>30</option>
             <option value="60" {% if pickup_slots.cfg.step == 60 %}selected{% endif %}>60</option>
           </select>
         </label>
         <label class="text-xs text-gray-500">{% trans "Max. Bestellungen pro Zeitfenster (0 = unbegrenzt)" %}
-          <input name="pickup_slots_capacity" type="text" inputmode="numeric" value="{{ pickup_slots.cfg.capacity }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5">
+          <input name="pickup_slots_capacity" type="text" inputmode="numeric" value="{{ pickup_slots.cfg.capacity }}" class="ui-input mt-1">
         </label>
         <label class="text-xs text-gray-500">{% trans "Vorlaufzeit (Minuten)" %}
-          <input name="pickup_slots_lead" type="text" inputmode="numeric" value="{{ pickup_slots.cfg.lead }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5">
+          <input name="pickup_slots_lead" type="text" inputmode="numeric" value="{{ pickup_slots.cfg.lead }}" class="ui-input mt-1">
         </label>
         <label class="text-xs text-gray-500">{% trans "Tage im Voraus" %}
-          <input name="pickup_slots_days" type="text" inputmode="numeric" value="{{ pickup_slots.cfg.days }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5">
+          <input name="pickup_slots_days" type="text" inputmode="numeric" value="{{ pickup_slots.cfg.days }}" class="ui-input mt-1">
         </label>
       </div>
     </div>

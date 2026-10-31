@@ -1,7 +1,7 @@
 {% load i18n %}
 <div
   id="import-status-card"
-  class="bg-white border border-gray-200 rounded-xl p-6 max-w-xl"
+  class="ui-card p-6 max-w-xl"
   {% if job.status == "running" %}
     hx-get="{% url 'imports:status' job.pk %}"
     hx-trigger="every 2s"

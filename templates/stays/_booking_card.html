@@ -14,7 +14,7 @@ Belegungsplan (клик по плашке → fetch ?buchung=<pk>&box=1). DC-1: 
 <p class="text-sm text-gray-500 mb-4">{% trans "Eingegangen" %}: {{ b.created_at|date:"d.m.Y H:i" }}{% if b.source_channel %} · {{ b.source_channel }}{% if b.external_ref %} ({{ b.external_ref }}){% endif %}{% endif %}</p>
 
 {# Действия статуса — тот же FSM-путь, что календарь/доска (UD2) #}
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-4 flex items-center justify-between gap-3 flex-wrap">
+<div class="ui-card p-4 mb-4 flex items-center justify-between gap-3 flex-wrap">
   <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="flex items-center gap-2 flex-wrap">
     {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
     {% include "core/_status_actions.html" with kind="stay" obj=b %}
@@ -28,30 +28,30 @@ Belegungsplan (клик по плашке → fetch ?buchung=<pk>&box=1). DC-1: 
 </div>
 
 <div class="grid sm:grid-cols-2 gap-4 mb-4">
-  <div class="bg-white rounded-2xl shadow-sm p-4">
+  <div class="ui-card p-4">
     <h2 class="font-semibold mb-2">👤 {% trans "Gast" %}</h2>
     {% include "stays/_stay_guest.html" %}
   </div>
-  <div class="bg-white rounded-2xl shadow-sm p-4">
+  <div class="ui-card p-4">
     <h2 class="font-semibold mb-2">🛏️ {% trans "Aufenthalt" %}</h2>
     {% include "stays/_stay_stay.html" %}
   </div>
 </div>
 
 {% if b.status == 'pending' or b.status == 'confirmed' %}
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+<div class="ui-card p-4 mb-4">
   <h2 class="font-semibold mb-2">✏️ {% trans "Buchung bearbeiten" %}</h2>
   {% include "stays/_stay_edit.html" %}
 </div>
 {% endif %}
 
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+<div class="ui-card p-4 mb-4">
   <h2 class="font-semibold mb-2">💶 {% trans "Betrag & Zahlung" %}</h2>
   {% include "stays/_stay_amount.html" %}
   {% include "stays/_stay_payment.html" %}
 </div>
 
-<div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+<div class="ui-card p-4 mb-4">
   <h2 class="font-semibold mb-2">🪪 {% trans "Meldeschein" %}</h2>
   {% include "stays/_stay_meldeschein.html" %}
 </div>

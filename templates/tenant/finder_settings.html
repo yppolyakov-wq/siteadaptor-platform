@@ -82,8 +82,8 @@
               </select>
               {% endif %}
               <span class="flex items-center gap-1">
-                <input aria-label="{% trans "Preis ab" %}" type="text" name="q_{{ q.i }}_chip_{{ c.j }}_price_min" value="{{ c.price_min }}" placeholder="€ min" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
-                <input aria-label="{% trans "Preis bis" %}" type="text" name="q_{{ q.i }}_chip_{{ c.j }}_price_max" value="{{ c.price_max }}" placeholder="€ max" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
+                <input aria-label="{% trans "Preis ab" %}" type="text" name="q_{{ q.i }}_chip_{{ c.j }}_price_min" value="{{ c.price_min }}" placeholder="€ min" inputmode="decimal" class="ui-input text-gray-600">
+                <input aria-label="{% trans "Preis bis" %}" type="text" name="q_{{ q.i }}_chip_{{ c.j }}_price_max" value="{{ c.price_max }}" placeholder="€ max" inputmode="decimal" class="ui-input text-gray-600">
               </span>
             </div>
             {% endfor %}

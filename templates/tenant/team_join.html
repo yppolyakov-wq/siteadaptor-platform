@@ -22,14 +22,14 @@
       {% endif %}
       <div>
         <label class="block text-sm font-medium mb-1" for="password1">{% trans "Passwort wählen" %}</label>
-        <input id="password1" type="password" name="password1" minlength="8" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <input id="password1" type="password" name="password1" minlength="8" required class="ui-input">
       </div>
       <div>
         <label class="block text-sm font-medium mb-1" for="password2">{% trans "Passwort wiederholen" %}</label>
-        <input id="password2" type="password" name="password2" minlength="8" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+        <input id="password2" type="password" name="password2" minlength="8" required class="ui-input">
       </div>
     {% endif %}
-    <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Beitreten" %}</button>
+    <button type="submit" class="ui-btn ui-btn-primary w-full">{% trans "Beitreten" %}</button>
   </form>
 {% endif %}
 {% endblock %}

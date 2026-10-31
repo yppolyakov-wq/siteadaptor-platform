@@ -53,8 +53,8 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
   {% if crm_active %}
     <a href="{% url 'crm:customer-create' %}" class="ui-btn ui-btn-primary ui-btn-sm shadow-sm">＋ {% trans "Add customer" %}</a>
     <div class="flex items-center gap-2 ml-auto">
-      <a href="{% url 'crm:company-list' %}" class="text-sm font-medium text-gray-600 bg-white rounded-xl px-3 py-1.5 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50">🏢 {% trans "Companies" %}</a>
-      {% if request.user|cab_can:"kunden.export" %}<a href="{% url 'crm:customer-export' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="text-sm font-medium text-gray-600 bg-white rounded-xl px-3 py-1.5 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50">{% trans "Export CSV" %}</a>{% endif %}
+      <a href="{% url 'crm:company-list' %}" class="ui-card text-sm font-medium text-gray-600 px-3 py-1.5 hover:bg-gray-50">🏢 {% trans "Companies" %}</a>
+      {% if request.user|cab_can:"kunden.export" %}<a href="{% url 'crm:customer-export' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="ui-card text-sm font-medium text-gray-600 px-3 py-1.5 hover:bg-gray-50">{% trans "Export CSV" %}</a>{% endif %}
     </div>
   {% else %}
     {% comment %}SH-15: без модуля CRM список читается, но карточка/теги/заметки/
@@ -76,7 +76,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
     {% endfor %}
   </div>
   <div class="flex items-center gap-2 ml-auto">
-    {% if has_zusatz %}<a href="{% url 'verkaeufe-zusatz' %}" class="px-3 py-1.5 rounded-xl text-sm text-gray-600 bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50">🧾 {% trans "Zusatzverkäufe" %}</a>{% endif %}
+    {% if has_zusatz %}<a href="{% url 'verkaeufe-zusatz' %}" class="ui-card px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">🧾 {% trans "Zusatzverkäufe" %}</a>{% endif %}
     {# W10-3: «＋» из любого вида (цель создания по kind — walk-in/stay-new) #}
     {% if create_target %}
       {# X2c: подпись «＋» по kind — заявка ≠ бронь ≠ запись #}
@@ -88,7 +88,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
     владелец перестал находить настройки доски/статусов. Кнопка несёт активный
     kind и `from=board`: крошка на «Abläufe» вернёт на ту же вкладку (X5-3).{% endcomment %}
     {% if 'ablaeufe'|can_open:request %}<a href="{% url 'ablaeufe' %}?kind={{ active_kind }}&amp;from=board"
-       class="text-sm font-medium text-gray-600 bg-white rounded-xl px-3 py-1.5 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50"
+       class="ui-card text-sm font-medium text-gray-600 px-3 py-1.5 hover:bg-gray-50"
        title="{% trans 'Tafel, Status und Felder dieses Bereichs einstellen' %}">⚙️ <span class="hidden sm:inline">{% trans "Einstellungen" %}</span></a>{% endif %}
   </div>
 </div>
@@ -101,6 +101,6 @@ Verkaeufe.dc). Та же цель create_target, что у десктопной 
 рендерится ПОСЛЕ тела — замок «＋ не в шапке» цел по построению.{% endcomment %}
 {% if create_target and active_kind != "kunden" and active_view != "heute" %}
 <a href="{{ create_target }}" aria-label="{% if active_kind == 'stay' %}{% trans 'New booking' %}{% elif active_kind == 'job' %}{% trans 'New request' %}{% else %}{% trans 'New appointment' %}{% endif %}"
-   class="sm:hidden fixed right-4 bottom-24 z-30 w-14 h-14 rounded-full bg-indigo-600 text-white text-2xl leading-none flex items-center justify-center shadow-[0_10px_24px_rgba(79,70,229,0.35)] hover:bg-indigo-700">＋</a>
+   class="ui-btn ui-btn-primary sm:hidden fixed right-4 bottom-24 z-30 w-14 h-14 rounded-full text-2xl flex">＋</a>
 {% endif %}
 {% endblock %}

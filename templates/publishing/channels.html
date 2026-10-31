@@ -51,7 +51,7 @@
                    placeholder="{% trans 'Refresh token (leave blank to keep current)' %}" aria-label="Refresh token"
                    class="ui-input">
             <div class="flex items-center gap-3">
-              <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Save" %}</button>
+              <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
               <span class="text-xs text-gray-400">{% trans "Setup guide" %}: docs/gbp-setup.md</span>
             </div>
           </form>
@@ -79,7 +79,7 @@
                    placeholder="{% trans 'Page access token (leave blank to keep current)' %}" aria-label="Access token"
                    class="ui-input">
             <div class="flex items-center gap-3">
-              <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Save" %}</button>
+              <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
               <span class="text-xs text-gray-400">{% trans "Setup guide" %}: docs/meta-social-setup.md</span>
             </div>
           </form>
@@ -101,7 +101,7 @@
                    class="ui-input">
             <p class="text-xs ui-muted">{% trans "Instagram posts require a promotion image." %}</p>
             <div class="flex items-center gap-3">
-              <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Save" %}</button>
+              <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
               <span class="text-xs text-gray-400">{% trans "Setup guide" %}: docs/meta-social-setup.md</span>
             </div>
           </form>
@@ -123,7 +123,7 @@
                    class="ui-input">
             <p class="text-xs ui-muted">{% trans "Add the bot as an admin of your channel." %}</p>
             <div class="flex items-center gap-3">
-              <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Save" %}</button>
+              <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
               <span class="text-xs text-gray-400">{% trans "Setup guide" %}: docs/meta-social-setup.md</span>
             </div>
           </form>
@@ -152,7 +152,7 @@
                    class="ui-input">
             <p class="text-xs ui-muted">{% trans "Pins require a promotion image." %}</p>
             <div class="flex items-center gap-3">
-              <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Save" %}</button>
+              <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
               <span class="text-xs text-gray-400">{% trans "Setup guide" %}: docs/meta-social-setup.md</span>
             </div>
           </form>
@@ -171,7 +171,7 @@
 <p class="text-sm text-gray-500 mb-3">{% trans "Wo Kundinnen und Kunden dich direkt erreichen." %}</p>
 <div class="grid sm:grid-cols-2 gap-3 max-w-3xl mb-8">
   {% for c in personal_channels %}
-    <a href="{{ c.url }}" class="flex items-start gap-3 bg-white border border-gray-200 rounded-xl p-4 hover:border-indigo-300">
+    <a href="{{ c.url }}" class="ui-card flex items-start gap-3 p-4 hover:border-indigo-300">
       <span class="text-xl leading-none">{{ c.icon }}</span>
       <span class="min-w-0 flex-1">
         <span class="block font-medium">{{ c.label }}</span>

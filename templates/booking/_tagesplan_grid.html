@@ -4,7 +4,7 @@
 меняет время/мастера (fetch 204/409); клавиатурный путь — форма переноса в списке ниже.
 В карточке сделки (compact) — только показ, без перетаскивания.{% endcomment %}
 {% if grid.columns %}
-<div class="hidden md:block mb-6 bg-white rounded-2xl shadow-sm overflow-auto" style="max-height:70vh"
+<div class="ui-card hidden md:block mb-6 overflow-auto" style="max-height:70vh"
      data-tp-grid data-day="{{ day|date:'Y-m-d' }}" data-step="{{ grid.step }}" data-first="{{ grid.rows.0.1 }}"
      {% if not deal_calendar_compact %}data-tp-dnd data-confirm-hours="{% trans 'Außerhalb der Öffnungszeiten — trotzdem eintragen?' %}" data-error="{% trans 'Verschieben fehlgeschlagen.' %}"{% endif %}
      role="group" aria-label="{% trans 'Tagesplan nach Ressource und Uhrzeit' %}">

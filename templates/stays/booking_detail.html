@@ -70,11 +70,11 @@
 {% endblock %}
 
 {% block deal_rail_extra %}
-  <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="front-desk">
+  <div class="ui-card p-5" data-deal-block="front-desk">
     <p class="text-xs font-medium text-gray-500 mb-2">🛎 {% trans "Anreise / Abreise" %}</p>
     {% include "stays/_stay_front_desk.html" %}
   </div>
-  <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="meldeschein">
+  <div class="ui-card p-5" data-deal-block="meldeschein">
     <p class="text-xs font-medium text-gray-500 mb-2">🪪 {% trans "Meldeschein" %}</p>
     {% include "stays/_stay_meldeschein.html" %}
   </div>

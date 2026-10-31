@@ -30,7 +30,7 @@
         <input name="doc_type" value="{{ registration.doc_type }}" placeholder="{% trans 'Ausweisart' %}" aria-label="{% trans 'Ausweisart' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
         <input name="doc_number" value="{{ registration.doc_number }}" placeholder="{% trans 'Ausweisnummer' %}" aria-label="{% trans 'Ausweisnummer' %}" autocomplete="off" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
         <input name="accompanying" type="number" min="0" max="50" value="{{ registration.accompanying|default:0 }}" aria-label="{% trans 'Mitreisende' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
-        <button type="submit" class="col-span-2 min-h-[44px] rounded-xl bg-gray-900 px-4 text-sm font-medium text-white hover:bg-black">{% trans "Meldeschein speichern" %}</button>
+        <button type="submit" class="ui-btn ui-btn-primary col-span-2">{% trans "Meldeschein speichern" %}</button>
       </form>
     </details>
     {% endif %}

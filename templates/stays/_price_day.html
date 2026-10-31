@@ -22,7 +22,7 @@
     <label class="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" name="no_checkin" value="1" {% if night.no_checkin %}checked{% endif %}> {% trans "Kein Check-in" %}</label>
     <label class="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" name="no_checkout" value="1" {% if night.no_checkout %}checked{% endif %}> {% trans "Kein Check-out" %}</label>
     <div class="flex flex-wrap gap-2">
-      <button type="submit" class="rounded-lg bg-indigo-600 text-white font-medium px-5 py-2.5 min-h-[44px] hover:bg-indigo-700">{% trans "Speichern" %}</button>
+      <button type="submit" class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
       <a href="{% url 'stays:price-calendar' %}?von={{ von|date:'Y-m-d' }}&amp;tage={{ tage }}" data-price-day-close class="text-sm text-gray-600 hover:underline px-2 min-h-[44px] inline-flex items-center">{% trans "Abbrechen" %}</a>
     </div>
   </form>

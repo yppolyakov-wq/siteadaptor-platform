@@ -49,7 +49,7 @@ Aufmerksamkeit» макета (цветная точка · label/hint · зна
 deep-links те же.{% endcomment %}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
   {% for w in widgets %}{% if w.key != "umsatz" and w.key != "finance_off" %}
-    <a href="{% url w.url_name %}{{ w.url_query }}" class="flex items-center gap-3 bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)] px-4 py-3 hover:bg-gray-50">
+    <a href="{% url w.url_name %}{{ w.url_query }}" class="ui-card flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
       <span class="w-2 h-2 shrink-0 rounded-full {% if w.key == 'ready' %}bg-amber-500{% elif w.key == 'stays_today' %}bg-emerald-500{% elif w.key == 'puls' %}bg-indigo-500{% elif w.key == 'reviews' %}bg-amber-400{% else %}bg-gray-300{% endif %}" aria-hidden="true"></span>
       <span class="flex-1 min-w-0">
         <span class="block text-sm font-medium text-gray-800 truncate">{{ w.icon }} {{ w.label }}</span>

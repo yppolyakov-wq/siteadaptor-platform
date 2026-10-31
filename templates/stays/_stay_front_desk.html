@@ -19,7 +19,7 @@ Check-out — штатный переход «Abgereist» (выручка, уб�
     {% if desk.can_check_out %}
     <form method="post" action="{% url 'stays:stay-action' b.pk %}">
       {% csrf_token %}<input type="hidden" name="action" value="check_out"><input type="hidden" name="next" value="{{ next_url|default:request.get_full_path }}">
-      <button type="submit" data-danger="1" class="min-h-[44px] rounded-xl bg-gray-900 px-4 text-sm font-medium text-white hover:bg-black">{% trans "Check-out" %}</button>
+      <button type="submit" data-danger="1" class="ui-btn ui-btn-primary">{% trans "Check-out" %}</button>
     </form>
     {% endif %}
     {% if desk.can_undo %}

@@ -12,7 +12,7 @@
         <p class="text-sm">{{ s.text }}</p>
         <div class="mt-1.5 flex flex-wrap items-center gap-2">
           {% if s.href %}
-            <a href="{{ s.href }}" class="inline-flex rounded-xl bg-indigo-600 text-white px-3 py-1.5 text-xs font-medium hover:bg-indigo-700">{% trans "Aktion vorbereiten" %} →</a>
+            <a href="{{ s.href }}" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Aktion vorbereiten" %} →</a>
           {% endif %}
           {% for t in s.share %}
             <a href="{{ t.url }}" target="_blank" rel="noopener" class="inline-flex rounded-xl border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-50">{{ t.icon }} {{ t.label }}</a>
