@@ -24,7 +24,7 @@ active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛА
   <div class="flex flex-wrap items-center gap-2 mb-3">
     <form method="get" class="flex flex-wrap items-center gap-2">
       <input type="hidden" name="tab" value="order">
-      <select name="status" onchange="this.form.submit()" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
+      <select aria-label="{% trans "Status" %}" name="status" onchange="this.form.submit()" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
         <option value="">{% trans "All statuses" %}</option>
         {% for value, label in order_statuses %}
           <option value="{{ value }}" {% if order_status == value %}selected{% endif %}>{{ label }}</option>
@@ -38,7 +38,7 @@ active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛА
     {% endfor %}
   </select>
   {% endif %}
-      <input type="search" name="q" value="{{ order_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm w-56 focus:border-indigo-300 focus:outline-none">
+      <input type="search" name="q" value="{{ order_q }}" aria-label="{% trans 'Suche: Code, Name, E-Mail' %}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm w-56 focus:border-indigo-300 focus:outline-none">
       {% if order_versand %}<input type="hidden" name="versand" value="1">{% endif %}
       <button aria-label="{% trans 'Suchen' %}" type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
     </form>

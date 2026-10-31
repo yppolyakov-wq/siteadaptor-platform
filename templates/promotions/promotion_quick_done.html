@@ -14,7 +14,7 @@
       <p class="text-sm text-gray-500 mt-1">{{ promotion }}</p>
       <img src="{% url 'storefront-promotion-qr' promotion.pk %}" alt="QR" class="mx-auto mt-4 w-44 h-44" data-promo-qr>
       <div class="mt-4 flex gap-2">
-        <input type="text" readonly value="{{ promo_url }}" class="flex-1 min-w-0 rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-700" data-promo-link>
+        <input aria-label="{% trans "Link" %}" type="text" readonly value="{{ promo_url }}" class="flex-1 min-w-0 rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-700" data-promo-link>
         <button type="button" class="rounded-xl bg-gray-900 text-white px-3 py-2 text-sm" data-copy-link>{% trans "Kopieren" %}</button>
       </div>
       <div class="mt-3 grid grid-cols-2 gap-2" data-share-targets>

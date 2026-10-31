@@ -12,8 +12,8 @@ next_path (куда вернуться после сохранения).{% endco
   {% for r in custom_rows %}
     <div class="flex flex-wrap items-center gap-2">
       <input type="hidden" name="custom_code" value="{{ r.code }}">
-      <input type="text" name="label_{{ r.code }}" value="{{ r.label }}" maxlength="40" class="flex-1 min-w-[12rem] rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
-      <select name="role_{{ r.code }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <input aria-label="{% trans "Name" %}" type="text" name="label_{{ r.code }}" value="{{ r.label }}" maxlength="40" class="flex-1 min-w-[12rem] rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+      <select aria-label="{% trans "Rolle" %}" name="role_{{ r.code }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         {% for code, lbl in roles %}<option value="{{ code }}" {% if code == r.role %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
       </select>
       <label class="flex items-center gap-1 text-xs text-gray-600 whitespace-nowrap" title="{% trans 'Gilt nur für Storno-Status: Die Zahlung wird nicht automatisch erstattet.' %}"><input type="checkbox" name="norefund_{{ r.code }}" {% if r.no_refund %}checked{% endif %}> {% trans "ohne Erstattung" %}</label>
@@ -23,8 +23,8 @@ next_path (куда вернуться после сохранения).{% endco
 
   {# новый статус #}
   <div class="flex flex-wrap items-center gap-2 {% if custom_rows %}pt-3 border-t border-gray-100{% endif %}">
-    <input type="text" name="new_label" placeholder="{% trans 'Neuer Status (Name)' %}" maxlength="40" class="flex-1 min-w-[12rem] rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
-    <select name="new_role" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+    <input type="text" name="new_label" aria-label="{% trans 'Neuer Status (Name)' %}" placeholder="{% trans 'Neuer Status (Name)' %}" maxlength="40" class="flex-1 min-w-[12rem] rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+    <select aria-label="{% trans "Rolle" %}" name="new_role" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
       {% for code, lbl in roles %}<option value="{{ code }}">{{ lbl }}</option>{% endfor %}
     </select>
     <label class="flex items-center gap-1 text-xs text-gray-600 whitespace-nowrap" title="{% trans 'Gilt nur für Storno-Status: Die Zahlung wird nicht automatisch erstattet.' %}"><input type="checkbox" name="new_no_refund"> {% trans "ohne Erstattung" %}</label>

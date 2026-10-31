@@ -12,10 +12,10 @@
     <p class="text-sm text-gray-500">{% trans "Alle verkauften Zusatzleistungen nach Ausführungstag." %}</p>
   </div>
   <form method="get" class="flex flex-wrap items-center gap-2 text-sm">
-    <input type="date" name="von" value="{{ von|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+    <input aria-label="{% trans "Von" %}" type="date" name="von" value="{{ von|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
     <span class="text-gray-400">–</span>
-    <input type="date" name="bis" value="{{ bis|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
-    <select name="kind" class="rounded-lg border border-gray-300 px-2 py-1.5">
+    <input aria-label="{% trans "Bis" %}" type="date" name="bis" value="{{ bis|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+    <select aria-label="{% trans "Art" %}" name="kind" class="rounded-lg border border-gray-300 px-2 py-1.5">
       <option value="">{% trans "Alle Bereiche" %}</option>
       {% for code, label in kind_labels.items %}<option value="{{ code }}" {% if code == active_filter_kind %}selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
@@ -35,7 +35,7 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="bestellen">
       <input type="hidden" name="option" value="{{ s.purchase_option.pk }}">
-      <input type="number" name="qty" min="1" value="{{ s.count }}" class="w-14 rounded border border-gray-300 px-1 py-0.5 text-xs">
+      <input aria-label="{% trans "Menge" %}" type="number" name="qty" min="1" value="{{ s.count }}" class="w-14 rounded border border-gray-300 px-1 py-0.5 text-xs">
       <button class="rounded-lg border border-indigo-200 px-2 py-1 text-xs text-indigo-700 hover:bg-indigo-50">→ {% trans "Beim Anbieter buchen" %}</button>
     </form>
     {% endif %}
@@ -59,7 +59,7 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="sb_status">
         <input type="hidden" name="id" value="{{ sb.pk }}">
-        <select name="status" class="rounded border border-gray-300 px-1 py-0.5 text-xs">
+        <select aria-label="{% trans "Status" %}" name="status" class="rounded border border-gray-300 px-1 py-0.5 text-xs">
           {% for code, label in sb.STATUSES %}<option value="{{ code }}" {% if code == sb.status %}selected{% endif %}>{{ label }}</option>{% endfor %}
         </select>
         <button class="rounded-lg border border-gray-200 px-2 py-1 text-xs hover:bg-gray-50">{% trans "Save" %}</button>

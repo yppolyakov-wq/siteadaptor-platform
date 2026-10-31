@@ -46,26 +46,26 @@
   <h2 class="ui-h2">{% trans "Issue a pass" %}</h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Customer name" %} *</label>
-      <input name="name" type="text" required class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Customer name" %} *</span>
+      <input name="name" type="text" required class="ui-input"></label>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Email" %}</label>
-      <input autocomplete="off" name="email" type="email" class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Email" %}</span>
+      <input autocomplete="off" name="email" type="email" class="ui-input"></label>
     </div>
   </div>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Label" %}</label>
-      <input name="label" type="text" placeholder="10er-Karte Yoga" class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Label" %}</span>
+      <input name="label" type="text" placeholder="10er-Karte Yoga" class="ui-input"></label>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Visits" %}</label>
-      <input name="credits" type="number" min="1" max="100" value="10" class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Visits" %}</span>
+      <input name="credits" type="number" min="1" max="100" value="10" class="ui-input"></label>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Valid until (optional)" %}</label>
-      <input name="valid_until" type="date" class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Valid until (optional)" %}</span>
+      <input name="valid_until" type="date" class="ui-input"></label>
     </div>
   </div>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Issue pass" %}</button>
@@ -96,29 +96,29 @@
   <h3 class="font-semibold">{% trans "Add card plan" %}</h3>
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Label" %}</label>
-      <input name="label" type="text" placeholder="10er-Karte Yoga" class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Label" %}</span>
+      <input name="label" type="text" placeholder="10er-Karte Yoga" class="ui-input"></label>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Bind to service (optional)" %}</label>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Bind to service (optional)" %}</span>
       <select name="service" class="ui-input">
         <option value="">{% trans "Any service" %}</option>
         {% for s in services %}<option value="{{ s.pk }}">{{ s.name }}</option>{% endfor %}
-      </select>
+      </select></label>
     </div>
   </div>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Visits" %}</label>
-      <input name="credits" type="number" min="1" max="100" value="10" class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Visits" %}</span>
+      <input name="credits" type="number" min="1" max="100" value="10" class="ui-input"></label>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
-      <input name="price" type="text" inputmode="decimal" placeholder="99,00" class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</span>
+      <input name="price" type="text" inputmode="decimal" placeholder="99,00" class="ui-input"></label>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Valid days (0=∞)" %}</label>
-      <input name="valid_days" type="number" min="0" max="3650" value="0" class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Valid days (0=∞)" %}</span>
+      <input name="valid_days" type="number" min="0" max="3650" value="0" class="ui-input"></label>
     </div>
   </div>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add plan" %}</button>

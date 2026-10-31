@@ -44,7 +44,7 @@ top layer, поэтому stacking-контекст карточки не важ
         </label>
         {% if refund_choice %}{% include "core/_refund_choice.html" %}{% endif %}
         {% if deal.needs_tracking %}
-          <input type="text" name="tracking_code" placeholder="{% trans 'Sendungsnummer (optional)' %}"
+          <input type="text" name="tracking_code" aria-label="{% trans 'Sendungsnummer (optional)' %}" placeholder="{% trans 'Sendungsnummer (optional)' %}"
                  class="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
         {% endif %}
         <div class="mt-4 flex items-center justify-end gap-2">

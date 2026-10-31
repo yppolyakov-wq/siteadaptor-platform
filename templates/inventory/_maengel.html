@@ -45,10 +45,10 @@
                 <input type="hidden" name="action" value="resolve_mangel">
                 <input type="hidden" name="po" value="{{ current.pk }}">
                 <input type="hidden" name="mangel" value="{{ m.pk }}">
-                <select name="decision" class="rounded border border-gray-300 px-1.5 py-1 text-xs">
+                <select aria-label="{% trans "Entscheiden" %}" name="decision" class="rounded border border-gray-300 px-1.5 py-1 text-xs">
                   {% for code, label in decisions %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
                 </select>
-                <input type="text" name="discount" inputmode="decimal" placeholder="{% trans 'Nachlass €' %}" class="w-24 rounded border border-gray-300 px-1.5 py-1 text-xs">
+                <input type="text" name="discount" inputmode="decimal" aria-label="{% trans 'Nachlass €' %}" placeholder="{% trans 'Nachlass €' %}" class="w-24 rounded border border-gray-300 px-1.5 py-1 text-xs">
                 <button class="text-xs border border-gray-300 rounded-lg px-2.5 py-1 hover:border-indigo-400">{% trans "Entscheiden" %}</button>
               </form>
             {% endif %}
@@ -80,7 +80,7 @@
                 <label class="inline-flex items-center gap-1 text-xs text-gray-600"><input type="checkbox" name="m_types_{{ line.pk }}" value="{{ code }}" class="h-3 w-3">{{ label }}</label>
               {% endfor %}
             </div>
-            <input type="text" name="m_desc_{{ line.pk }}" maxlength="2000" placeholder="{% trans 'Beschreibung des Mangels' %}" class="mt-1.5 w-full rounded border border-gray-300 px-2 py-1 text-xs">
+            <input type="text" name="m_desc_{{ line.pk }}" maxlength="2000" aria-label="{% trans 'Beschreibung des Mangels' %}" placeholder="{% trans 'Beschreibung des Mangels' %}" class="mt-1.5 w-full rounded border border-gray-300 px-2 py-1 text-xs">
           </fieldset>
         {% endfor %}
       </div>

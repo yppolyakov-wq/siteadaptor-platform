@@ -11,12 +11,12 @@
   {% csrf_token %}
 
   <div>
-    <label class="block text-sm font-medium mb-1">{% trans "CSV delimiter" %}</label>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "CSV delimiter" %}</span>
     <select name="delimiter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
       {% for value, label in delimiters %}
       <option value="{{ value }}">{{ label }}</option>
       {% endfor %}
-    </select>
+    </select></label>
     <p class="text-xs ui-muted mt-1">{% trans "CSV only — ignored for Excel files. If columns look wrong, pick the delimiter and reload via Start preview." %}</p>
   </div>
 
@@ -33,7 +33,7 @@
         <tr class="border-t border-gray-100">
           <td class="px-4 py-2 font-mono">{{ header }}</td>
           <td class="px-4 py-2">
-            <select name="map__{{ header }}" class="ui-input">
+            <select aria-label="{{ header }}" name="map__{{ header }}" class="ui-input">
               <option value="">{% trans "— ignore —" %}</option>
               {% for value, label in fields %}
               <option value="{{ value }}">{{ label }}</option>
@@ -54,12 +54,12 @@
   </label>
 
   <div>
-    <label class="block text-sm font-medium mb-1">{% trans "Match existing by" %}</label>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Match existing by" %}</span>
     <select name="match_field" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
       {% for value, label in match_fields %}
       <option value="{{ value }}">{{ label }}</option>
       {% endfor %}
-    </select>
+    </select></label>
     <p class="text-xs ui-muted mt-1">{% trans "Used only when 'Update existing' is on." %}</p>
   </div>
 

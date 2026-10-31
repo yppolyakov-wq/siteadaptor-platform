@@ -48,7 +48,7 @@
     <div>
       <h2 class="ui-h2 mb-1">{% trans "Invite link" %}</h2>
       <p class="text-sm text-gray-600">{% trans "For companions without a ticket (partner, mechanic)." %}</p>
-      <input type="text" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'community-space-join' space.invite_token %}" class="ui-input mt-1 text-xs">
+      <input aria-label="{% trans "For companions without a ticket (partner, mechanic)." %}" type="text" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'community-space-join' space.invite_token %}" class="ui-input mt-1 text-xs">
     </div>
   </div>
 </div>

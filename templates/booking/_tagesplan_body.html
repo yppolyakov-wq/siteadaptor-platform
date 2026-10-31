@@ -55,7 +55,7 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
         {# UD2-1: FSM-Statusaktionen generisch aus allowed_targets (statt hardcodiert) #}
         {% include "core/_status_actions.html" with kind="booking" obj=b %}
         {% if b.status == 'pending' or b.status == 'confirmed' %}
-          <input type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <input aria-label="{% trans "Start" %}" type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           {% if resources|length > 1 %}<label class="inline-flex items-center gap-1 text-xs text-gray-500">{% trans "Resource" %}
             <select name="resource" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">{% for r in resources %}<option value="{{ r.pk }}"{% if r.pk == b.resource_id %} selected{% endif %}>{{ r.name }}</option>{% endfor %}</select></label>{% endif %}
           <label class="inline-flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="override_hours" value="1"> {% trans "Trotzdem eintragen" %}</label>
@@ -74,18 +74,18 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Resource" %}</label>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Resource" %}</span>
       <select name="resource" class="w-full rounded-lg border border-gray-300 px-3 py-2">
         {% for r in resources %}<option value="{{ r.pk }}">{{ r.name }}</option>{% endfor %}
-      </select>
+      </select></label>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Start" %}</label>
-      <input type="datetime-local" name="start" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Start" %}</span>
+      <input aria-label="{% trans "Start" %}" type="datetime-local" name="start" required class="w-full rounded-lg border border-gray-300 px-3 py-2"></label>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Minutes" %}</label>
-      <input type="number" name="minutes" value="" placeholder="60" min="5" max="1440" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Minutes" %}</span>
+      <input type="number" name="minutes" value="" placeholder="60" min="5" max="1440" class="w-full rounded-lg border border-gray-300 px-3 py-2"></label>
       <p class="text-xs text-gray-500 mt-1">{% trans "Leer = Dauer der Leistung" %}</p>
     </div>
   </div>
@@ -97,9 +97,9 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
     </select>
   </div>{% endif %}
   <div class="grid sm:grid-cols-3 gap-4">
-    <input name="name" type="text" placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input autocomplete="off" name="phone" type="tel" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input autocomplete="off" name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input name="name" type="text" aria-label="{% trans 'Name' %}" placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input autocomplete="off" name="phone" type="tel" aria-label="{% trans 'Phone' %}" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input autocomplete="off" name="email" type="email" aria-label="{% trans 'Email' %}" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
   </div>
   <div class="max-w-xs">
     <label for="neu-party" class="block text-sm font-medium mb-1">{% trans "Personen" %}</label>

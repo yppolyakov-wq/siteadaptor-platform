@@ -51,16 +51,16 @@
     <input type="hidden" name="action" value="add">
     <h2 class="ui-h2">{% trans "New extra" %}</h2>
     <div class="grid sm:grid-cols-2 gap-4">
-      <input name="label" type="text" required placeholder="{% trans 'Name (e.g. Frühstück)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+      <input name="label" type="text" required aria-label="{% trans 'Name (e.g. Frühstück)' %}" placeholder="{% trans 'Name (e.g. Frühstück)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
       <div>
-        <label class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
-        <input name="price" type="text" placeholder="12" class="ui-input">
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</span>
+        <input name="price" type="text" placeholder="12" class="ui-input"></label>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">{% trans "Applies to" %}</label>
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Applies to" %}</span>
         <select name="scope" class="ui-input">
           {% for value, label in scopes %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-        </select>
+        </select></label>
       </div>
       {% comment %}VAT-3 (владелец 2026-08-26): ставку допа задать было негде —
       завтрак и парковка облагались как сама бронь (7 %), хотя это отдельные
@@ -69,40 +69,40 @@
       {% vat_select "" _("Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat.") _("wie die Buchung") %}
       {% comment %}MX-2: адресность — опция конкретной сущности (пусто = для всех).{% endcomment %}
       <div>
-        <label class="block text-sm font-medium mb-1">{% trans "Nur für ein Angebot" %}</label>
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Nur für ein Angebot" %}</span>
         <select name="entity" class="ui-input">
           <option value="">{% trans "Alle passenden Angebote" %}</option>
           {% for value, label in entity_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-        </select>
+        </select></label>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">{% trans "Abwicklung" %}</label>
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Abwicklung" %}</span>
         <select name="tracker" class="ui-input">
           {% for value, label in trackers %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-        </select>
+        </select></label>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">{% trans "Pool-Größe" %}</label>
-        <input name="pool_size" type="number" min="0" max="999" placeholder="0" class="ui-input">
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Pool-Größe" %}</span>
+        <input name="pool_size" type="number" min="0" max="999" placeholder="0" class="ui-input"></label>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">{% trans "Anbieter" %}</label>
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Anbieter" %}</span>
         <select name="supplier" class="ui-input">
           <option value="">—</option>
           {% for sp in suppliers %}<option value="{{ sp.pk }}">{{ sp.name }}</option>{% endfor %}
-        </select>
+        </select></label>
       </div>
       {% if stock_products %}
       <div>
-        <label class="block text-sm font-medium mb-1">{% trans "Lagerartikel (Verbrauch)" %}</label>
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Lagerartikel (Verbrauch)" %}</span>
         <select name="stock_product" class="ui-input">
           <option value="">—</option>
           {% for pr in stock_products %}<option value="{{ pr.pk }}">{{ pr.name_text }}</option>{% endfor %}
-        </select>
+        </select></label>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">{% trans "Verbrauch je Verkauf" %}</label>
-        <input name="consume_qty" type="number" min="1" max="99" value="1" class="ui-input">
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Verbrauch je Verkauf" %}</span>
+        <input name="consume_qty" type="number" min="1" max="99" value="1" class="ui-input"></label>
       </div>
       {% endif %}
     </div>
@@ -111,8 +111,8 @@
       {% trans "Price per night (Übernachtung) — otherwise once per booking" %}
     </label>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</label>
-      <input name="image" type="file" accept="image/*" class="w-full text-sm text-gray-600">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</span>
+      <input name="image" type="file" accept="image/*" class="w-full text-sm text-gray-600"></label>
     </div>
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add extra" %}</button>
   </form>

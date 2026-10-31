@@ -59,17 +59,17 @@ Kategorie/Status (паритет умершей /catalog/products/), «Bearbeite
 {% comment %}X6-2: поиск по ВСЕМ продаваемым сущностям сразу; SR-1: + фильтры
 Kategorie/Status (строго товарные — активный фильтр прячет прочие секции).{% endcomment %}
 <form method="get" class="flex items-center gap-2 mb-4 flex-wrap">
-  <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Suche im Sortiment…' %}"
+  <input type="search" name="q" value="{{ q }}" aria-label="{% trans 'Suche im Sortiment…' %}" placeholder="{% trans 'Suche im Sortiment…' %}"
          class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-64">
   {% if catalog_active and categories %}
-  <select name="kategorie" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+  <select aria-label="{% trans "Kategorie" %}" name="kategorie" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
     <option value="">{% trans "All categories" %}</option>
     {% for c in categories %}
       <option value="{{ c.pk }}" {% if sel_category == c.pk|stringformat:'s' %}selected{% endif %}>{{ c }}</option>
     {% endfor %}
   </select>
   {% endif %}
-  <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+  <select aria-label="{% trans "Status" %}" name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
     <option value="">{% trans "Any status" %}</option>
     <option value="1" {% if sel_active == '1' %}selected{% endif %}>{% trans "Active" %}</option>
     <option value="0" {% if sel_active == '0' %}selected{% endif %}>{% trans "Inactive" %}</option>

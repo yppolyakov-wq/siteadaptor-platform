@@ -34,7 +34,7 @@ role=anchor — выбранная прикрепляется К ЭТОЙ. По�
     <input type="hidden" name="role" value="{{ role }}">
     <input type="hidden" name="next" value="{{ back }}">
     <input type="search" name="q" value="{{ q }}" autofocus
-           placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
+           aria-label="{% trans 'Suche: Code, Name, E-Mail' %}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
            class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm">
     <button aria-label="{% trans 'Suchen' %}" type="submit" class="ui-btn ui-btn-secondary">🔍</button>
   </form>

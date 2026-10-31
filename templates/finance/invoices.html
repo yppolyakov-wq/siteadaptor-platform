@@ -34,7 +34,7 @@
     {% for value, label in inv_kinds %}<option value="{{ value }}" {% if inv_filters.art == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
   </select>
   <label class="text-xs text-gray-500">{% trans "von" %}
-    <input type="date" name="von" value="{{ inv_filters.von }}" class="block rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm"></label>
+    <input aria-label="{% trans "Von" %}" type="date" name="von" value="{{ inv_filters.von }}" class="block rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm"></label>
   <label class="text-xs text-gray-500">{% trans "bis" %}
     <input type="date" name="bis" value="{{ inv_filters.bis }}" class="block rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm"></label>
   <select name="sort" onchange="this.form.submit()" aria-label="{% trans 'Sortierung' %}" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
@@ -73,7 +73,7 @@
 
 {# KA-P4b: поиск клиента — отдельная GET-форма (не вложенная в POST-форму: браузер развернул бы вложенный form). #}
 <form method="get" class="max-w-2xl mb-2 flex gap-2" data-customer-search-form>
-  <input type="search" name="kunde_q" value="{{ kunde_q }}" placeholder="{% trans 'Kunde suchen (Name, E-Mail, Telefon)' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm" data-customer-search data-url="{% url 'finance:customer-search' %}" autocomplete="off">
+  <input type="search" name="kunde_q" value="{{ kunde_q }}" aria-label="{% trans 'Kunde suchen (Name, E-Mail, Telefon)' %}" placeholder="{% trans 'Kunde suchen (Name, E-Mail, Telefon)' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm" data-customer-search data-url="{% url 'finance:customer-search' %}" autocomplete="off">
   <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">{% trans "Suchen" %}</button>
 </form>
 <form method="post" class="ui-card p-6 max-w-2xl space-y-4">
@@ -81,11 +81,11 @@
   <h2 class="ui-h2">{% trans "Neue Rechnung (Entwurf)" %}</h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Customer" %} ({% trans "optional" %})</label>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Customer" %} ({% trans "optional" %})</span>
       <select name="customer" class="ui-input" data-customer-select>
         <option value="">—</option>
         {% for c in customers %}<option value="{{ c.pk }}"{% if selected_customer and c.pk == selected_customer.pk %} selected{% endif %}>{{ c.pick_label }}</option>{% endfor %}
-      </select>
+      </select></label>
       <p class="text-xs text-gray-500 mt-1">{% if kunde_q %}{% blocktrans with q=kunde_q %}Treffer für „{{ q }}“.{% endblocktrans %}{% else %}{% trans "Neueste Kunden — andere über die Suche oben." %}{% endif %}</p>
     </div>
     <div>
@@ -93,15 +93,15 @@
       {% if small_business %}
         <p class="text-sm text-gray-500 py-2">0 % — § 19 UStG (Kleinunternehmer)</p>
       {% else %}
-        <select name="vat_rate" class="ui-input">
+        <select aria-label="{% trans "MwSt.-Satz" %}" name="vat_rate" class="ui-input">
           {% for rate in vat_rates %}<option value="{{ rate }}">{{ rate }} %</option>{% endfor %}
         </select>
       {% endif %}
     </div>
   </div>
   <div>
-    <label class="block text-sm font-medium mb-1">{% trans "Empfänger (Name, Adresse)" %}</label>
-    <textarea name="recipient" rows="2" class="ui-input"></textarea>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Empfänger (Name, Adresse)" %}</span>
+    <textarea name="recipient" rows="2" class="ui-input"></textarea></label>
     {# CO-2: пусто + корпоративный гость → реквизиты компании подставятся сами. #}
     <p class="text-xs ui-muted mt-1">{% trans "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen." %}</p>
   </div>
@@ -109,23 +109,23 @@
     <p class="text-sm font-medium">{% trans "Positionen" %} <span class="text-xs text-gray-400 font-normal">{% trans "(Preis netto)" %}</span></p>
     {% for i in "12345"|make_list %}
       <div class="flex gap-2">
-        <input name="line_text_{{ forloop.counter }}" type="text" placeholder="Bezeichnung" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <input aria-label="{% trans "Bezeichnung" %} {{ forloop.counter }}" name="line_text_{{ forloop.counter }}" type="text" placeholder="Bezeichnung" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm">
         <input name="line_qty_{{ forloop.counter }}" type="number" value="1" min="1" class="w-20 rounded-lg border border-gray-300 px-2 py-2 text-sm" aria-label="Menge">
         <input name="line_price_{{ forloop.counter }}" type="text" inputmode="decimal" placeholder="0,00" class="w-28 rounded-lg border border-gray-300 px-2 py-2 text-sm" aria-label="Einzelpreis">
       </div>
     {% endfor %}
   </div>
-  <input name="note" type="text" placeholder="{% trans 'Note (optional)' %}" class="ui-input">
+  <input name="note" type="text" aria-label="{% trans 'Note (optional)' %}" placeholder="{% trans 'Note (optional)' %}" class="ui-input">
   {% if doc_languages|length > 1 %}
     {% comment %}I18N-7b/2: язык счёта выбирается при создании и хранится с
     документом — выставленный счёт неизменяем (GoBD).{% endcomment %}
     <div class="max-w-xs">
-      <label class="block text-sm font-medium mb-1">{% trans "Invoice language" %}</label>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Invoice language" %}</span>
       <select name="language" class="ui-input">
         {% for lang in doc_languages %}
           <option value="{{ lang.code }}" {% if lang.code == doc_language_default %}selected{% endif %}>{{ lang.label }}</option>
         {% endfor %}
-      </select>
+      </select></label>
       <p class="text-xs ui-muted mt-1">{% trans "The invoice is issued in this language — pick the customer's language." %}</p>
     </div>
   {% endif %}

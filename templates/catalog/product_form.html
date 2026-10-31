@@ -99,8 +99,8 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
         </div>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">{% trans "Add images" %}</label>
-        <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-sm">
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Add images" %}</span>
+        <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-sm"></label>
         <p class="text-xs ui-muted mt-1">{% trans "JPEG, PNG or WEBP, max 5 MB each." %}</p>
       </div>
       {% comment %}O-1 (Outlet/B-Ware): марка и состояние — часть описания товара, а не
@@ -140,8 +140,8 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
       </div>
       {% for inp in origin_i18n_inputs %}
         <div data-i18n-loc="{{ inp.locale }}" class="hidden">
-          <label class="block text-sm font-medium mb-1">{% if inp.field == 'origin' %}{% trans "Origin" %}{% else %}{% trans "Ingredients" %}{% endif %} ({{ inp.locale|upper }})</label>
-          <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">
+          <label class="block"><span class="block text-sm font-medium mb-1">{% if inp.field == 'origin' %}{% trans "Origin" %}{% else %}{% trans "Ingredients" %}{% endif %} ({{ inp.locale|upper }})</span>
+          <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input"></label>
         </div>
       {% endfor %}
     </div>
@@ -357,7 +357,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
 
             <form method="post" enctype="multipart/form-data" action="{% url 'catalog:modifier-option-add' product.pk g.pk %}" class="flex flex-wrap items-center gap-2 text-sm pt-1">
               {% csrf_token %}
-              <input name="label" type="text" required placeholder="{% trans 'Option (e.g. Pommes)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
+              <input name="label" type="text" required aria-label="{% trans 'Option (e.g. Pommes)' %}" placeholder="{% trans 'Option (e.g. Pommes)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
               <input name="sku" type="text" placeholder="{% trans 'Art.-Nr.' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Art.-Nr.' %}">
               <span class="text-gray-400">+</span>
               <input name="delta" type="text" inputmode="decimal" placeholder="0" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Surcharge' %}">
@@ -369,7 +369,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
 
       <form method="post" action="{% url 'catalog:modifier-group-add' product.pk %}" class="flex flex-wrap items-center gap-2 text-sm mt-3 border-t border-gray-100 pt-3">
         {% csrf_token %}
-        <input name="name" type="text" required placeholder="{% trans 'Group (e.g. Size)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
+        <input name="name" type="text" required aria-label="{% trans 'Group (e.g. Size)' %}" placeholder="{% trans 'Group (e.g. Size)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
         <label class="text-gray-500">{% trans "min" %} <input name="min" type="number" min="0" value="0" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
         <label class="text-gray-500">{% trans "max" %} <input name="max" type="number" min="0" value="1" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
         <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Add group" %}</button>

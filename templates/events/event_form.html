@@ -27,8 +27,8 @@
   {% endfor %}
 
   <div>
-    <label class="block text-sm font-medium mb-1">{% trans "Photos (venue, past events)" %}</label>
-    <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600">
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Photos (venue, past events)" %}</span>
+    <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600"></label>
     {% if event.images %}
       <div class="mt-2 flex flex-wrap gap-2">
         {% for img in event.images %}

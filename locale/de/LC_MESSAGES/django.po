@@ -31256,3 +31256,7 @@ msgstr "Aus: Der Code reduziert nur Artikel, die noch nicht rabattiert sind (Akt
 
 msgid "This code does not apply to items that are already discounted."
 msgstr "Dieser Code gilt nicht für bereits reduzierte Artikel."
+
+#: templates/inbox/thread.html:51
+msgid "Priorität"
+msgstr "Priorität"

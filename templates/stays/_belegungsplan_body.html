@@ -27,7 +27,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 {# Фидбэк 2026-07-28: поиск по гостю/почте/номеру брони — любая дата и статус. #}
 <form method="get" class="mb-3 flex items-center gap-2 max-w-md">
   {% if active_kind %}<input type="hidden" name="tab" value="{{ active_kind }}">{% endif %}
-  <input type="search" name="q" value="{{ search_q }}" placeholder="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}"
+  <input type="search" name="q" value="{{ search_q }}" aria-label="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}" placeholder="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}"
          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
   {% if search_q %}<a href="?{% if active_kind %}tab={{ active_kind }}{% endif %}" class="text-sm text-gray-400 hover:text-gray-600 shrink-0" aria-label="{% trans 'Reset' %}">✕</a>{% endif %}
 </form>

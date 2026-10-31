@@ -23,7 +23,7 @@ STU-18a (замер панели, план §1-2): три правки вида,
 <div data-output-axis {% if paginates %}data-axis-paginates{% endif %} class="basis-full w-full">
   <div class="stu-row">
     <span class="stu-lb">{% trans "Ausgabe" %}</span>
-    <select name="{{ field }}_mode" data-axis-mode class="stu-ctrl">
+    <select aria-label="{% trans "Ausgabe" %}" name="{{ field }}_mode" data-axis-mode class="stu-ctrl">
       <option value="grid" {% if not layout.scroll %}selected{% endif %}>{% trans "Raster" %}</option>
       <option value="slider" {% if layout.scroll %}selected{% endif %}>{% trans "Slider" %}</option>
     </select>
@@ -51,7 +51,7 @@ STU-18a (замер панели, план §1-2): три правки вида,
   </div>
   <div class="stu-row">
     <span class="stu-lb">{% trans "Letzte Reihe" %}</span>
-    <select name="{{ field }}_tail" class="stu-ctrl">
+    <select aria-label="{% trans "Letzte Reihe" %}" name="{{ field }}_tail" class="stu-ctrl">
       <option value="" {% if not layout.tail %}selected{% endif %}>{% trans "Verteilen" %}</option>
       <option value="show" {% if layout.tail == "show" %}selected{% endif %}>{% trans "Alles zeigen" %}</option>
       {% comment %}STU-18c (Д-5): «по центру» есть у секций главной, а у листингов

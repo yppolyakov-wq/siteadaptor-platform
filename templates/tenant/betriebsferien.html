@@ -13,7 +13,7 @@
     {% csrf_token %}
     <div class="grid sm:grid-cols-2 gap-4">
       <label class="block text-sm">{% trans "Von" %}
-        <input type="date" name="von" required min="{{ today|date:'Y-m-d' }}" class="mt-1 w-full rounded-lg border-gray-300">
+        <input aria-label="{% trans "Von" %}" type="date" name="von" required min="{{ today|date:'Y-m-d' }}" class="mt-1 w-full rounded-lg border-gray-300">
       </label>
       <label class="block text-sm">{% trans "Bis" %}
         <input type="date" name="bis" required min="{{ today|date:'Y-m-d' }}" class="mt-1 w-full rounded-lg border-gray-300">

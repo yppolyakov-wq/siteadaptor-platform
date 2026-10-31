@@ -51,7 +51,7 @@
       <h2 class="ui-h2 mb-3">{% trans "Notes" %}</h2>
       <form method="post" action="{% url 'crm:note-add' customer.pk %}" class="mb-4">
         {% csrf_token %}
-        <textarea name="text" rows="2" required placeholder="{% trans 'Add a note…' %}"
+        <textarea name="text" rows="2" required aria-label="{% trans 'Add a note…' %}" placeholder="{% trans 'Add a note…' %}"
                   class="ui-input"></textarea>
         <button type="submit" class="mt-2 text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add note" %}</button>
       </form>
@@ -136,7 +136,7 @@
     {% endfor %}
     <form method="post" class="mt-4 flex flex-wrap items-center gap-2">{% csrf_token %}
       <input type="hidden" name="action" value="issue_voucher">
-      <input name="label" type="text" required placeholder="{% trans 'e.g. −10 %, free coffee' %}" class="flex-1 min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input aria-label="{% trans "Gutschein" %}" name="label" type="text" required placeholder="{% trans 'e.g. −10 %, free coffee' %}" class="flex-1 min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
       <input name="max_uses" type="number" min="1" value="1" class="w-16 rounded-lg border border-gray-300 px-2 py-2 text-sm" aria-label="{% trans 'Max uses' %}">
       <button class="ui-btn ui-btn-primary">{% trans "Issue" %}</button>
     </form>

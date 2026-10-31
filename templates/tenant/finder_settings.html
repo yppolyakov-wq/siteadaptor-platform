@@ -68,12 +68,12 @@
         <div class="border border-gray-200 rounded-xl p-4">
           <div class="flex items-center gap-2 mb-3">
             <input type="number" name="q_{{ q.i }}_pos" value="{{ forloop.counter }}" min="1" max="9" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Reihenfolge' %}">
-            <input type="text" name="q_{{ q.i }}_label" value="{{ q.label }}" maxlength="120" placeholder="{% trans 'Frage, z. B.: Wofür suchst du?' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium">
+            <input type="text" name="q_{{ q.i }}_label" value="{{ q.label }}" maxlength="120" aria-label="{% trans 'Frage, z. B.: Wofür suchst du?' %}" placeholder="{% trans 'Frage, z. B.: Wofür suchst du?' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium">
           </div>
           <div class="space-y-2">
             {% for c in q.chips %}
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2 items-center text-sm">
-              <input type="text" name="q_{{ q.i }}_chip_{{ c.j }}_label" value="{{ c.label }}" maxlength="80" placeholder="{% trans 'Antwort-Chip' %}" class="md:col-span-2 rounded-lg border border-gray-300 px-2.5 py-1.5">
+              <input type="text" name="q_{{ q.i }}_chip_{{ c.j }}_label" value="{{ c.label }}" maxlength="80" aria-label="{% trans 'Antwort-Chip' %}" placeholder="{% trans 'Antwort-Chip' %}" class="md:col-span-2 rounded-lg border border-gray-300 px-2.5 py-1.5">
               <input type="text" name="q_{{ q.i }}_chip_{{ c.j }}_words" value="{{ c.words }}" placeholder="{% trans 'Wörter, mit Komma' %}" title="{% trans 'Treffer in Name/Beschreibung' %}" class="md:col-span-2 rounded-lg border border-gray-300 px-2.5 py-1.5 text-gray-600">
               {% if finder_slug_field %}
               <select name="q_{{ q.i }}_chip_{{ c.j }}_slug" class="rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600" title="{% if finder_slug_field == 'category' %}{% trans 'Kategorie' %}{% else %}{% trans 'Kollektion' %}{% endif %}">
@@ -82,8 +82,8 @@
               </select>
               {% endif %}
               <span class="flex items-center gap-1">
-                <input type="text" name="q_{{ q.i }}_chip_{{ c.j }}_price_min" value="{{ c.price_min }}" placeholder="€ min" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
-                <input type="text" name="q_{{ q.i }}_chip_{{ c.j }}_price_max" value="{{ c.price_max }}" placeholder="€ max" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
+                <input aria-label="{% trans "Preis ab" %}" type="text" name="q_{{ q.i }}_chip_{{ c.j }}_price_min" value="{{ c.price_min }}" placeholder="€ min" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
+                <input aria-label="{% trans "Preis bis" %}" type="text" name="q_{{ q.i }}_chip_{{ c.j }}_price_max" value="{{ c.price_max }}" placeholder="€ max" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-gray-600">
               </span>
             </div>
             {% endfor %}

@@ -23,7 +23,7 @@
   {% if customer and customer.email %}
     <form method="post" class="space-y-3">
       {% csrf_token %}
-      <textarea name="body" rows="5" required autofocus placeholder="{% trans 'Ihre Nachricht …' %}"
+      <textarea name="body" rows="5" required autofocus aria-label="{% trans 'Ihre Nachricht …' %}" placeholder="{% trans 'Ihre Nachricht …' %}"
                 class="ui-input"></textarea>
       <button type="submit" class="ui-btn ui-btn-primary">{% trans "Nachricht senden" %}</button>
     </form>

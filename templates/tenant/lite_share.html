@@ -9,7 +9,7 @@
   <section class="ui-card p-4">
     <p class="text-sm font-medium mb-2">{% trans "Ihre Seite mit allen Aktionen" %}</p>
     <div class="flex gap-2">
-      <input type="text" readonly value="{{ site_url }}" class="flex-1 min-w-0 rounded-xl border border-gray-300 px-3 py-2.5 text-sm bg-gray-50" data-share-url>
+      <input aria-label="{% trans "Link" %}" type="text" readonly value="{{ site_url }}" class="flex-1 min-w-0 rounded-xl border border-gray-300 px-3 py-2.5 text-sm bg-gray-50" data-share-url>
       <button type="button" class="rounded-xl border border-gray-300 px-3 py-2.5 text-sm" data-copy>{% trans "Kopieren" %}</button>
     </div>
     <div class="mt-4 mx-auto w-48 [&>svg]:w-full [&>svg]:h-auto" data-share-qr>{{ qr_svg|safe }}</div>

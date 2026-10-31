@@ -35,7 +35,7 @@
   </div>
   {% if payment_methods %}
   <input type="hidden" name="state" value="{{ state }}">
-  <select name="method" onchange="this.form.submit()"
+  <select aria-label="{% trans "Zahlungsart" %}" name="method" onchange="this.form.submit()"
           class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
     <option value="">{% trans "Alle Zahlarten" %}</option>
     {% for value, label in payment_methods %}

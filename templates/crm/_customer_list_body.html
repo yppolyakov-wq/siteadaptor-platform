@@ -6,7 +6,7 @@
 {% endcomment %}
 <form method="get" class="mb-4 flex items-center gap-2 flex-wrap">
   {% if firma %}<input type="hidden" name="firma" value="{{ firma.pk }}">{% endif %}
-  <input type="search" name="q" value="{{ query }}" placeholder="{% trans 'Search name, email, phone or tag…' %}"
+  <input type="search" name="q" value="{{ query }}" aria-label="{% trans 'Search name, email, phone or tag…' %}" placeholder="{% trans 'Search name, email, phone or tag…' %}"
          class="w-full max-w-md rounded-lg border border-gray-300 px-3 py-2 text-sm">
   {% if firma %}
     {# CO-2: активный фильтр по компании; × сбрасывает только его. #}

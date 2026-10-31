@@ -43,7 +43,7 @@
       {% if r.comment %}<p class="text-sm mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
       {# 1а: публичный ответ владельца — паттерн CM-6.2 #}
       <form method="post" action="{% url 'reviews:business-reply' r.pk %}" class="mt-2 flex items-start gap-2">{% csrf_token %}
-        <textarea name="reply_text" rows="1" placeholder="{% trans 'Reply publicly…' %}" class="flex-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs">{{ r.reply_text }}</textarea>
+        <textarea name="reply_text" rows="1" aria-label="{% trans 'Reply publicly…' %}" placeholder="{% trans 'Reply publicly…' %}" class="flex-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs">{{ r.reply_text }}</textarea>
         <button class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">{% trans "Reply" %}</button>
       </form>
     </div>
@@ -67,7 +67,7 @@
           {# CM-6.2: ответ владельца — виден на витрине под отзывом. #}
           <form method="post" action="{% url 'reviews:reply' r.pk %}" class="mt-2 flex items-start gap-2">{% csrf_token %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <textarea name="reply_text" rows="1" placeholder="{% trans 'Reply publicly…' %}" class="flex-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs">{{ r.reply_text }}</textarea>
+            <textarea name="reply_text" rows="1" aria-label="{% trans 'Reply publicly…' %}" placeholder="{% trans 'Reply publicly…' %}" class="flex-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs">{{ r.reply_text }}</textarea>
             <button class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">{% trans "Reply" %}</button>
           </form>
         </div>

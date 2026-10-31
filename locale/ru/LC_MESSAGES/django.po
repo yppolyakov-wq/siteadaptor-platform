@@ -31441,3 +31441,7 @@ msgstr "Выключено: код снижает цену только тех �
 
 msgid "This code does not apply to items that are already discounted."
 msgstr "Этот код не действует на товары, на которые уже есть скидка."
+
+#: templates/inbox/thread.html:51
+msgid "Priorität"
+msgstr "Приоритет"

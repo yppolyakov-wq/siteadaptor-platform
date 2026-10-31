@@ -14,7 +14,7 @@ rows=[(status,default,custom)], kind (order|booking|stay), next_path (куда �
     {% for st, default, custom in rows %}
       <div class="flex items-center gap-2 text-sm">
         <span class="w-28 text-xs text-gray-400">{{ default }}</span>
-        <input type="text" name="label_{{ st }}" value="{{ custom }}" placeholder="{{ default }}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5">
+        <input aria-label="{{ default }}" type="text" name="label_{{ st }}" value="{{ custom }}" placeholder="{{ default }}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5">
       </div>
     {% endfor %}
     <button type="submit" class="mt-1 bg-indigo-600 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-indigo-700">{% trans "Save" %}</button>

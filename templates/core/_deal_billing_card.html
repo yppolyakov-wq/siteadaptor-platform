@@ -36,10 +36,10 @@
         <label class="flex items-center gap-1.5"><input type="radio" name="customer_type" value="private"{% if not deal_billing.is_company %} checked{% endif %}> {% trans "Private" %}</label>
         <label class="flex items-center gap-1.5"><input type="radio" name="customer_type" value="company"{% if deal_billing.is_company %} checked{% endif %}> {% trans "Company" %}</label>
       </div>
-      <input type="text" name="billing_company" value="{{ deal_billing.company }}" placeholder="{% trans 'Company name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-      <input type="text" name="billing_vat_id" value="{{ deal_billing.vat_id }}" placeholder="{% trans 'VAT ID (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input type="text" name="billing_company" value="{{ deal_billing.company }}" aria-label="{% trans 'Company name' %}" placeholder="{% trans 'Company name' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input type="text" name="billing_vat_id" value="{{ deal_billing.vat_id }}" aria-label="{% trans 'VAT ID (optional)' %}" placeholder="{% trans 'VAT ID (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
       {% if deal_billing.has_address %}
-        <textarea name="billing_address" rows="2" placeholder="{% trans 'Rechnungsadresse' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ deal_billing.address }}</textarea>
+        <textarea name="billing_address" rows="2" aria-label="{% trans 'Rechnungsadresse' %}" placeholder="{% trans 'Rechnungsadresse' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ deal_billing.address }}</textarea>
       {% endif %}
       <div class="flex items-center justify-end gap-2 pt-1">
         <button type="button" data-billing-cancel class="text-sm rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Abbrechen" %}</button>

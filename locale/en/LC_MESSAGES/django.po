@@ -31164,3 +31164,7 @@ msgstr "Off: the code only reduces items that are not already discounted (promot
 
 msgid "This code does not apply to items that are already discounted."
 msgstr "This code does not apply to items that are already discounted."
+
+#: templates/inbox/thread.html:51
+msgid "Priorität"
+msgstr "Priority"

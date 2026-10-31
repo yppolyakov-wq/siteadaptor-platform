@@ -7,27 +7,27 @@
     {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
     <input type="hidden" name="action" value="update">
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Anreise" %}</label>
-      <input type="date" name="arrival" value="{{ b.arrival|date:'Y-m-d' }}" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Anreise" %}</span>
+      <input type="date" name="arrival" value="{{ b.arrival|date:'Y-m-d' }}" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
     </div>
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Abreise" %}</label>
-      <input type="date" name="departure" value="{{ b.departure|date:'Y-m-d' }}" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Abreise" %}</span>
+      <input type="date" name="departure" value="{{ b.departure|date:'Y-m-d' }}" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
     </div>
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Unit" %}</label>
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Unit" %}</span>
       <select name="unit" class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
         {% for u in units %}<option value="{{ u.pk }}" {% if u.pk == b.unit_id %}selected{% endif %}>{{ u.name }}</option>{% endfor %}
-      </select>
+      </select></label>
     </div>
     {% if free_rooms or b.room %}
     {# PMS-R2: физический номер — только свободные на диапазон комнаты категории #}
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">🚪 {% trans "Zimmer" %}</label>
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">🚪 {% trans "Zimmer" %}</span>
       <select name="room" class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
         <option value="">— {% trans "no room assigned" %}</option>
         {% for r in free_rooms %}<option value="{{ r.pk }}" {% if r.pk == b.room_id %}selected{% endif %}>🚪 {{ r.number }}</option>{% endfor %}
-      </select>
+      </select></label>
     </div>
     {% comment %}KA-12 E4.10b: бронь на N номеров — селекты «Zimmer 2…N»; сентинел
     отличает «снять все доп. номера» от формы без этих полей (W0).{% endcomment %}
@@ -35,28 +35,28 @@
     <input type="hidden" name="room_extra_present" value="1">
     {% for slot in extra_room_slots %}
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">🚪 {% blocktrans with n=slot.n %}Zimmer {{ n }}{% endblocktrans %}</label>
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">🚪 {% blocktrans with n=slot.n %}Zimmer {{ n }}{% endblocktrans %}</span>
       <select name="room_extra" data-room-extra class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
         <option value="">— {% trans "no room assigned" %}</option>
         {% for r in free_rooms %}<option value="{{ r.pk }}" {% if r.pk == slot.room_id %}selected{% endif %}>🚪 {{ r.number }}</option>{% endfor %}
-      </select>
+      </select></label>
     </div>
     {% endfor %}
     {% endif %}
     {% endif %}
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Erwachsene" %}</label>
-        <input type="number" name="adults" min="1" max="50" value="{{ b.adults }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Erwachsene" %}</span>
+        <input type="number" name="adults" min="1" max="50" value="{{ b.adults }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Kinder" %}</label>
-        <input type="number" name="children" min="0" max="50" value="{{ b.children }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Kinder" %}</span>
+        <input type="number" name="children" min="0" max="50" value="{{ b.children }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
       </div>
     </div>
     <div class="sm:col-span-2">
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Note (optional)" %}</label>
-      <textarea name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ b.note }}</textarea>
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Note (optional)" %}</span>
+      <textarea name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ b.note }}</textarea></label>
     </div>
     {% if edit_extras %}
     {# MX-3: правка состава допов; сентинел — форма без блока ничего не стирает (W0). #}

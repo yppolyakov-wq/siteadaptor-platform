@@ -33,8 +33,8 @@
 <form method="post" class="ui-card p-6 max-w-xl space-y-4">
   {% csrf_token %}
   <h2 class="ui-h2">{% trans "New request" %}</h2>
-  <input name="subject" type="text" required placeholder="{% trans 'Subject' %}" class="ui-input">
-  <textarea name="body" rows="4" required placeholder="{% trans 'How can we help?' %}" class="ui-input"></textarea>
+  <input name="subject" type="text" required aria-label="{% trans 'Subject' %}" placeholder="{% trans 'Subject' %}" class="ui-input">
+  <textarea name="body" rows="4" required aria-label="{% trans 'How can we help?' %}" placeholder="{% trans 'How can we help?' %}" class="ui-input"></textarea>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Send to support" %}</button>
 </form>
 {% endblock %}

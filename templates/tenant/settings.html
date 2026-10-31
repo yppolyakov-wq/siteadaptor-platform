@@ -68,9 +68,9 @@
         {% for r in opening_hours_rows %}
           <div class="flex flex-wrap items-center gap-2 sm:gap-3">
             <span class="w-10 text-sm font-medium text-gray-600">{{ r.label }}</span>
-            <input type="time" name="oh_{{ r.wd }}_open" value="{{ r.open }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <input aria-label="{{ r.label }} {% trans "Von" %}" type="time" name="oh_{{ r.wd }}_open" value="{{ r.open }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
             <span class="text-gray-400">–</span>
-            <input type="time" name="oh_{{ r.wd }}_close" value="{{ r.close }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <input aria-label="{{ r.label }} {% trans "Bis" %}" type="time" name="oh_{{ r.wd }}_close" value="{{ r.close }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           </div>
         {% endfor %}
       </div>

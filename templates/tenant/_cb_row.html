@@ -39,14 +39,14 @@ collect()/save работают без переименований. data-cb-id 
     </span>
   </div>
   {% if b.type == "text" or b.type == "image_text" %}
-    <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" placeholder="{% trans 'Title' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" aria-label="{% trans 'Title' %}" placeholder="{% trans 'Title' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
   {% endif %}
   {% if b.type == "button" %}
-    <input type="text" name="cb_{{ b.id }}_label" value="{{ b.data.label }}" placeholder="{% trans 'Button label' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
-    <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" placeholder="/termin/ {% trans 'or' %} https://…" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_label" value="{{ b.data.label }}" aria-label="{% trans 'Button label' %}" placeholder="{% trans 'Button label' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" aria-label="/termin/ {% trans 'or' %} https://…" placeholder="/termin/ {% trans 'or' %} https://…" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
   {% endif %}
   {% if b.type == "text" or b.type == "image_text" %}
-    <textarea name="cb_{{ b.id }}_body" rows="2" placeholder="{% trans 'Text' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.body }}</textarea>
+    <textarea name="cb_{{ b.id }}_body" rows="2" aria-label="{% trans 'Text' %}" placeholder="{% trans 'Text' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.body }}</textarea>
     {% comment %}UC6-2: стиль текста блока — выравнивание/размер/цвет (палитра темы;
        решение владельца 2026-07-06 — без свободного пикера).{% endcomment %}
     {% comment %}UC6-9: каждый параметр — поле с заголовком (в ленте становится блоком).{% endcomment %}
@@ -76,10 +76,10 @@ collect()/save работают без переименований. data-cb-id 
     </div>
   {% endif %}
   {% if b.type == "image" or b.type == "image_text" %}
-    <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" placeholder="{% trans 'Image URL' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" aria-label="{% trans 'Image URL' %}" placeholder="{% trans 'Image URL' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
   {% endif %}
   {% if b.type == "image" %}
-    <input type="text" name="cb_{{ b.id }}_caption" value="{{ b.data.caption }}" placeholder="{% trans 'Caption' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_caption" value="{{ b.data.caption }}" aria-label="{% trans 'Caption' %}" placeholder="{% trans 'Caption' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
   {% endif %}
   {% if b.type == "image" or b.type == "image_text" %}
     {% comment %}UC6-4: скругление фото ("" = стандарт rounded-2xl).{% endcomment %}
@@ -101,7 +101,7 @@ collect()/save работают без переименований. data-cb-id 
   {% endif %}
   {% if b.type == "promo" %}
     {# UE1 (D2=LIVE): промо из БД — цена/остаток/countdown всегда актуальны. #}
-    <select name="cb_{{ b.id }}_promo_pk" class="w-full rounded border border-gray-300 px-2 py-1 text-sm">
+    <select aria-label="{% trans "Promotion" %}" name="cb_{{ b.id }}_promo_pk" class="w-full rounded border border-gray-300 px-2 py-1 text-sm">
       <option value="">{% trans "Choose promotion…" %}</option>
       {% for pk, label in promos_for_blocks %}
         <option value="{{ pk }}" {% if b.data.promo_pk == pk %}selected{% endif %}>{{ label }}</option>
@@ -126,7 +126,7 @@ collect()/save работают без переименований. data-cb-id 
       </label>
       <label class="flex items-center gap-1"><input type="checkbox" name="cb_{{ b.id }}_show_button" {% if b.data.show_button %}checked{% endif %} class="rounded border-gray-300">{% trans "Button" %}</label>
     </div>
-    <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" aria-label="{% trans 'Button label (optional)' %}" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
     {% if promo_style_options %}
       {% comment %}UC6-6f: подсказка стиля скидки блока — действует, пока стиль
          самой акции не задан (источник един — Promotion.discount_style).{% endcomment %}
@@ -155,7 +155,7 @@ collect()/save работают без переименований. data-cb-id 
             <span class="stu-lb">{% trans "Was wird gezeigt" %}</span>
             {% comment %}LB-3d: источники — из реестра, только с включённым модулем; свой
             источник блока остаётся выбранным и тогда, когда модуль выключен (W0).{% endcomment %}
-            <select name="cb_{{ b.id }}_source" data-lb-source class="stu-ctrl">
+            <select aria-label="{% trans "Was wird gezeigt" %}" name="cb_{{ b.id }}_source" data-lb-source class="stu-ctrl">
               {% for key, label in list_sources_for_blocks %}
                 <option value="{{ key }}" {% if key == src %}selected{% endif %}>{{ label }}</option>
               {% empty %}
@@ -166,16 +166,16 @@ collect()/save работают без переименований. data-cb-id 
           </div>
           <div class="stu-row">
             <span class="stu-lb">{% trans "Überschrift" %}</span>
-            <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="120" placeholder="{% trans 'leer = passend zur Auswahl' %}" class="stu-ctrl">
+            <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="120" aria-label="{% trans 'leer = passend zur Auswahl' %}" placeholder="{% trans 'leer = passend zur Auswahl' %}" class="stu-ctrl">
           </div>
           <div class="stu-row">
             <span class="stu-lb">{% trans "Einleitung" %}</span>
-            <textarea name="cb_{{ b.id }}_intro" rows="2" maxlength="300" placeholder="{% trans 'optional' %}" class="w-full rounded border border-gray-300 px-2 py-1 text-sm">{{ b.data.intro }}</textarea>
+            <textarea name="cb_{{ b.id }}_intro" rows="2" maxlength="300" aria-label="{% trans 'optional' %}" placeholder="{% trans 'optional' %}" class="w-full rounded border border-gray-300 px-2 py-1 text-sm">{{ b.data.intro }}</textarea>
           </div>
           <div data-lb-src="promotions" {% if src != "promotions" %}hidden{% endif %}>
             <div class="stu-row">
               <span class="stu-lb">{% trans "Aktionstyp" %}</span>
-              <select name="cb_{{ b.id }}_type" data-lb-type class="stu-ctrl">
+              <select aria-label="{% trans "Aktionstyp" %}" name="cb_{{ b.id }}_type" data-lb-type class="stu-ctrl">
                 <option value="">{% trans "Alle Aktionen" %}</option>
                 {% for key, label in promo_types_for_blocks %}
                   <option value="{{ key }}" {% if b.data.type == key %}selected{% endif %}>{{ label }}</option>
@@ -187,7 +187,7 @@ collect()/save работают без переименований. data-cb-id 
             цели с включённым модулем, значение выключенного остаётся выбранным (W0).{% endcomment %}
             <div class="stu-row">
               <span class="stu-lb">{% trans "Gilt für" %}</span>
-              <select name="cb_{{ b.id }}_ziel" class="stu-ctrl">
+              <select aria-label="{% trans "Gilt für" %}" name="cb_{{ b.id }}_ziel" class="stu-ctrl">
                 <option value="">{% trans "Alle" %}</option>
                 {% for key, label in promo_targets_for_blocks %}
                   <option value="{{ key }}" {% if b.data.ziel == key %}selected{% endif %}>{{ label }}</option>
@@ -226,7 +226,7 @@ collect()/save работают без переименований. data-cb-id 
           <div data-lb-src="products combos categories" {% if src != "products" and src != "combos" and src != "categories" %}hidden{% endif %}>
             <div class="stu-row">
               <span class="stu-lb">{% trans "Kategorie" %}</span>
-              <select name="cb_{{ b.id }}_category" class="stu-ctrl">
+              <select aria-label="{% trans "Kategorie" %}" name="cb_{{ b.id }}_category" class="stu-ctrl">
                 <option value="" data-lb-opt="products combos" {% if src == "categories" %}hidden{% elif not b.data.category %}selected{% endif %}>{% trans "Alle Kategorien" %}</option>
                 <option value="" data-lb-opt="categories" {% if src != "categories" %}hidden{% elif not b.data.category %}selected{% endif %}>{% trans "Hauptkategorien" %}</option>
                 {% for slug, label in list_categories_for_blocks %}
@@ -242,7 +242,7 @@ collect()/save работают без переименований. data-cb-id 
           два значения в POST. Пункты чужого источника скрыты, как у сортировок.{% endcomment %}
           <div class="stu-row" data-lb-src="products services stays" {% if src != "products" and src != "services" and src != "stays" %}hidden{% endif %}>
             <span class="stu-lb">{% trans "Sammlung" %}</span>
-            <select name="cb_{{ b.id }}_collection" class="stu-ctrl">
+            <select aria-label="{% trans "Sammlung" %}" name="cb_{{ b.id }}_collection" class="stu-ctrl">
               <option value="">{% trans "All collections" %}</option>
               {% for slug, label, srcs in list_collections_for_blocks %}
                 <option value="{{ slug }}" data-lb-opt="{{ srcs }}" {% if src not in srcs.split %}hidden{% endif %} {% if b.data.collection == slug %}selected{% endif %}>{{ label }}</option>
@@ -252,7 +252,7 @@ collect()/save работают без переименований. data-cb-id 
           </div>
           <div class="stu-row" data-lb-src="events" {% if src != "events" %}hidden{% endif %}>
             <span class="stu-lb">{% trans "Thema" %}</span>
-            <select name="cb_{{ b.id }}_event_category" class="stu-ctrl">
+            <select aria-label="{% trans "Thema" %}" name="cb_{{ b.id }}_event_category" class="stu-ctrl">
               <option value="">{% trans "Alle Themen" %}</option>
               {% for key, label in event_categories_for_blocks %}
                 <option value="{{ key }}" {% if b.data.event_category == key %}selected{% endif %}>{{ label }}</option>
@@ -264,7 +264,7 @@ collect()/save работают без переименований. data-cb-id 
           страны опубликованных туров; страна блока без туров остаётся выбранной (W0).{% endcomment %}
           <div class="stu-row" data-lb-src="tours" {% if src != "tours" %}hidden{% endif %}>
             <span class="stu-lb">{% trans "Land" %}</span>
-            <select name="cb_{{ b.id }}_country" class="stu-ctrl">
+            <select aria-label="{% trans "Land" %}" name="cb_{{ b.id }}_country" class="stu-ctrl">
               <option value="">{% trans "Alle Länder" %}</option>
               {% for key, label in tour_countries_for_blocks %}
                 <option value="{{ key }}" {% if b.data.country == key %}selected{% endif %}>{{ label }}</option>
@@ -300,7 +300,7 @@ collect()/save работают без переименований. data-cb-id 
           </div>
           <div class="stu-row" data-lb-src="products services events reviews" {% if src != "products" and src != "services" and src != "events" and src != "reviews" %}hidden{% endif %}>
             <span class="stu-lb">{% trans "Auswahl" %}</span>
-            <select name="cb_{{ b.id }}_only" class="stu-ctrl">
+            <select aria-label="{% trans "Auswahl" %}" name="cb_{{ b.id }}_only" class="stu-ctrl">
               <option value="">{% trans "Alle" %}</option>
               <option value="featured" data-lb-opt="products" {% if src != "products" %}hidden{% endif %} {% if b.data.only == "featured" %}selected{% endif %}>{% trans "Nur Empfehlungen" %}</option>
               <option value="sale" data-lb-opt="products" {% if src != "products" %}hidden{% endif %} {% if b.data.only == "sale" %}selected{% endif %}>{% trans "Nur reduzierte" %}</option>
@@ -345,7 +345,7 @@ collect()/save работают без переименований. data-cb-id 
           <div data-lb-src="{{ lh.style_sources }}" {% if src not in lh.style_sources.split %}hidden{% endif %}>
           <div class="stu-row">
             <span class="stu-lb">{% trans "Display style" %}</span>
-            <select name="cb_{{ b.id }}_style" class="stu-ctrl">
+            <select aria-label="{% trans "Display style" %}" name="cb_{{ b.id }}_style" class="stu-ctrl">
               <option value="">{% trans "Standard (grid)" %}</option>
               {% for key, label, srcs in lh.styles %}
                 <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs.split %}hidden{% endif %} {% if b.data.style == key %}selected{% endif %}>{{ label }}</option>
@@ -364,7 +364,7 @@ collect()/save работают без переименований. data-cb-id 
           </div>
           <div class="stu-row">
             <span class="stu-lb">{% trans "Ausgabe" %}</span>
-            <select name="cb_{{ b.id }}_out" data-lb-out data-lb-axis="out" data-inherit-mode="{{ lh.mode_key }}" class="stu-ctrl">
+            <select aria-label="{% trans "Ausgabe" %}" name="cb_{{ b.id }}_out" data-lb-out data-lb-axis="out" data-inherit-mode="{{ lh.mode_key }}" class="stu-ctrl">
               <option value="">{{ lh.layout_from }}: {{ lh.mode }}</option>
               <option value="grid" {% if b.data.out == "grid" %}selected{% endif %}>{% trans "Raster" %}</option>
               <option value="slider" {% if b.data.out == "slider" %}selected{% endif %}>{% trans "Slider" %}</option>
@@ -396,7 +396,7 @@ collect()/save работают без переименований. data-cb-id 
           </div>
           <div class="stu-row" data-lb-src="{{ lh.card_sources }}" {% if src not in lh.card_sources.split %}hidden{% endif %}>
             <span class="stu-lb">{% trans "Kartenform" %}</span>
-            <select name="cb_{{ b.id }}_card" data-lb-axis="card" class="stu-ctrl">
+            <select aria-label="{% trans "Kartenform" %}" name="cb_{{ b.id }}_card" data-lb-axis="card" class="stu-ctrl">
               <option value="">{{ lh.card_from }}: {{ lh.card }}</option>
               {% for key, label, srcs in lh.cards %}
                 <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs.split %}hidden{% endif %} {% if b.data.card == key %}selected{% endif %}>{{ label }}</option>
@@ -410,14 +410,14 @@ collect()/save работают без переименований. data-cb-id 
   {% endif %}
   {% if b.type == "newsletter" %}
     {% comment %}GK-8: все поля опциональны — пусто = дефолтные подписи формы.{% endcomment %}
-    <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="80" placeholder="{% trans 'Title' %} ({% trans 'optional' %})" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
-    <textarea name="cb_{{ b.id }}_body" rows="2" maxlength="200" placeholder="{% trans 'Text' %} ({% trans 'optional' %})" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.body }}</textarea>
-    <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="80" aria-label="{% trans 'Title' %} ({% trans 'optional' %})" placeholder="{% trans 'Title' %} ({% trans 'optional' %})" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <textarea name="cb_{{ b.id }}_body" rows="2" maxlength="200" aria-label="{% trans 'Text' %} ({% trans 'optional' %})" placeholder="{% trans 'Text' %} ({% trans 'optional' %})" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.body }}</textarea>
+    <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" aria-label="{% trans 'Button label (optional)' %}" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
   {% endif %}
   {% if b.type == "stats" %}
     {% comment %}GK-4: полоса цифр — textarea «wert | label» построчно (паттерн
        usp_text); парс в canonical rows — строковая ветка _clean_cblock_data.{% endcomment %}
-    <textarea name="cb_{{ b.id }}_rows" rows="4" placeholder="12 | Jahre Erfahrung&#10;500+ | zufriedene Kunden&#10;4,9 ★ | Bewertung" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.rows|stats_text }}</textarea>
+    <textarea aria-label="{% trans "Zeilen" %}" name="cb_{{ b.id }}_rows" rows="4" placeholder="12 | Jahre Erfahrung&#10;500+ | zufriedene Kunden&#10;4,9 ★ | Bewertung" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.rows|stats_text }}</textarea>
     <p class="text-[11px] text-gray-400">{% trans "One line per figure: value | caption (max 4)" %}</p>
   {% endif %}
   {% if b.type == "spacer" %}
@@ -482,7 +482,7 @@ collect()/save работают без переименований. data-cb-id 
      #home-form с action=save_block_template:<id> (данные блока из POST —
      ловим текущие правки); ранний return в home_builder_view. {% endcomment %}
   <div class="flex items-center gap-2 pt-1">
-    <input type="text" name="tpl_label_{{ b.id }}" placeholder="{% trans 'Template name' %}"
+    <input type="text" name="tpl_label_{{ b.id }}" aria-label="{% trans 'Template name' %}" placeholder="{% trans 'Template name' %}"
            class="flex-1 rounded border border-gray-200 px-2 py-1 text-xs">
     <button type="submit" name="action" value="save_block_template:{{ b.id }}" formnovalidate
             class="text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">💾 {% trans "Save as template" %}</button>

@@ -60,7 +60,7 @@
       <form method="post" class="flex flex-wrap items-center gap-2">
         {% csrf_token %}
         <label class="text-xs text-gray-500">{% trans "Invoice language" %}</label>
-        <select name="language" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+        <select aria-label="{% trans "Invoice language" %}" name="language" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           {% for lang in doc_languages %}
             <option value="{{ lang.code }}" {% if lang.code == invoice.language %}selected{% endif %}>{{ lang.label }}</option>
           {% endfor %}

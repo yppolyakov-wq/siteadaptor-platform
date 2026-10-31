@@ -3,12 +3,12 @@
 правка здесь меняет его у номера, услуги и события сразу (принцип общих блоков).
 Свободного числа нет: опечатка «1,9» стоила бы владельцу неверного счёта.{% endcomment %}
 <div>
-  <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "MwSt.-Satz" %}</label>
+  <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "MwSt.-Satz" %}</span>
   <select name="vat_rate" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
     {% if vat_inherit_label %}<option value=""{% if not vat_current %} selected{% endif %}>{{ vat_inherit_label }}</option>{% endif %}
     {% for rate, label in vat_choices %}
       <option value="{{ rate }}"{% if rate == vat_current %} selected{% endif %}>{{ label }}</option>
     {% endfor %}
-  </select>
+  </select></label>
   {% if vat_hint %}<p class="text-xs text-gray-400 mt-1">{{ vat_hint }}</p>{% endif %}
 </div>

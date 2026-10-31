@@ -44,7 +44,7 @@ transactions.apply_action), поле трек-номера — перед кно
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <input type="text" name="tracking_code" maxlength="100" value="{{ r.order.tracking_code }}"
-               placeholder="{% trans 'Sendungsnummer (optional)' %}"
+               aria-label="{% trans 'Sendungsnummer (optional)' %}" placeholder="{% trans 'Sendungsnummer (optional)' %}"
                class="rounded-xl border border-transparent bg-gray-50 px-3 py-1.5 text-sm w-56 focus:border-indigo-300 focus:outline-none">
         <button type="submit" name="action" value="shipped"
                 class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Mark as shipped" %}</button>

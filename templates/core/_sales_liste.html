@@ -13,7 +13,7 @@ section (может быть None).{% endcomment %}
   <input type="hidden" name="view" value="liste">
   {% comment %}X2c: фильтр статуса — паритет с легаси-страницей заявок (чипы)
   и списком заказов; варианты из реестра, включая кастом-статусы владельца.{% endcomment %}
-  <select name="status" onchange="this.form.submit()" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
+  <select aria-label="{% trans "Status" %}" name="status" onchange="this.form.submit()" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
     <option value="">{% trans "All statuses" %}</option>
     {% for value, label in list_status_options %}
       <option value="{{ value }}" {% if list_status == value %}selected{% endif %}>{{ label }}</option>
@@ -27,7 +27,7 @@ section (может быть None).{% endcomment %}
     {% endfor %}
   </select>
   {% endif %}
-  <input type="search" name="q" value="{{ list_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
+  <input type="search" name="q" value="{{ list_q }}" aria-label="{% trans 'Suche: Code, Name, E-Mail' %}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
          class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm w-56 focus:border-indigo-300 focus:outline-none">
   <button aria-label="{% trans 'Suchen' %}" type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
   {% comment %}KA-12 E2.2: CSV текущего списка (те же фильтры) — только владельцу.{% endcomment %}

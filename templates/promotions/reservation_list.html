@@ -60,14 +60,14 @@
 {% else %}
 <div class="ui-card p-4">
   <form method="get" class="flex flex-wrap gap-3 mb-4">
-    <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <select aria-label="{% trans "Status" %}" name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
       <option value="">{% trans "Any status" %}</option>
       {# X1: вьюха отдаёт пары (код, подпись) — раньше в фильтре стояли сырые коды. #}
       {% for code, label in statuses %}
         <option value="{{ code }}" {% if status == code %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
-    <select name="promotion" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <select aria-label="{% trans "Promotion" %}" name="promotion" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
       <option value="">{% trans "All promotions" %}</option>
       {% for p in promotions %}
         <option value="{{ p.pk }}" {% if selected_promotion == p.pk|stringformat:'s' %}selected{% endif %}>{{ p }}</option>

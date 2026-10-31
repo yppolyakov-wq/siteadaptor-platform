@@ -57,21 +57,21 @@
   </script>
   {% endif %}
   <div class="grid sm:grid-cols-4 gap-4">
-    <input name="name" type="text" placeholder="{% trans 'Name (reason when blocking)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+    <input name="name" type="text" aria-label="{% trans 'Name (reason when blocking)' %}" placeholder="{% trans 'Name (reason when blocking)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
     {# PMS-A1: взрослые/дети как на витрине (Kurtaxe по взрослым). #}
     <input name="erw" type="number" min="1" value="1" aria-label="{% trans 'Adults' %}" placeholder="{% trans 'Adults' %}" class="rounded-lg border border-gray-300 px-3 py-2">
     <input name="kinder" type="number" min="0" value="0" aria-label="{% trans 'Children' %}" placeholder="{% trans 'Children' %}" class="rounded-lg border border-gray-300 px-3 py-2">
   </div>
   <div class="grid sm:grid-cols-2 gap-4">
-    <input autocomplete="off" name="phone" type="tel" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input autocomplete="off" name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input autocomplete="off" name="phone" type="tel" aria-label="{% trans 'Phone' %}" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input autocomplete="off" name="email" type="email" aria-label="{% trans 'Email' %}" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
   </div>
   {% if rate_plans %}
   <div>
     <label class="block text-sm font-medium mb-1">{% trans "Rate" %}</label>
     {% comment %}Z-4: тариф — явный выбор; «— ohne Tarif —» = базовая цена. data-units —
     категории тарифа (пусто = все); сервер всё равно отбивает неприменимый.{% endcomment %}
-    <select name="rate_plan" data-walkin-rate class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    <select aria-label="{% trans "Rate" %}" name="rate_plan" data-walkin-rate class="w-full rounded-lg border border-gray-300 px-3 py-2">
       <option value="" selected>{% trans "— ohne Tarif —" %}</option>
       {% for r in rate_plans %}<option value="{{ r.pk }}" data-units="{% if not r.applies_to_all %}{% for u in r.units.all %}{{ u.pk }}{% if not forloop.last %},{% endif %}{% empty %}none{% endfor %}{% endif %}">{{ r.name }}{% if r.meal_included %} · {{ r.get_meal_plan_display }}{% endif %}{% if not r.applies_to_all %} · {% trans "nur:" %} {% for u in r.units.all %}{{ u.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</option>{% endfor %}
     </select>
@@ -116,12 +116,12 @@
       {% endif %}
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium mb-1">{% trans "Rooms" %}</label>
-          <input name="rooms" type="number" min="1" max="20" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Rooms" %}</span>
+          <input name="rooms" type="number" min="1" max="20" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2"></label>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">{% trans "Promo code (optional)" %}</label>
-          <input name="voucher_code" type="text" autocapitalize="characters" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase">
+          <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Promo code (optional)" %}</span>
+          <input name="voucher_code" type="text" autocapitalize="characters" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase"></label>
         </div>
       </div>
       <div>
@@ -140,8 +140,8 @@
         {% trans "Automatische Rabatte anwenden" %}
       </label>
       <div>
-        <label class="block text-sm font-medium mb-1">{% trans "Note" %}</label>
-        <textarea name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Note" %}</span>
+        <textarea name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea></label>
       </div>
     </div>
   </details>

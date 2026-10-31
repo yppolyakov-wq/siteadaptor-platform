@@ -118,8 +118,8 @@
         </label>
       </div>
       <div class="sm:col-span-5 order-last">
-        <label class="block text-xs text-gray-500 mb-1">{% trans "Description (what's included)" %}</label>
-        <input name="description" type="text" value="{{ s.description }}" placeholder="{% trans 'optional' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Description (what's included)" %}</span>
+        <input name="description" type="text" value="{{ s.description }}" placeholder="{% trans 'optional' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label>
       </div>
       {# Ф1: переводы неосновных локалей — свёрнуты по умолчанию (не все языки сразу). #}
       {% if s.i18n_inputs %}
@@ -128,8 +128,8 @@
         <div class="mt-2 space-y-2">
           {% for inp in s.i18n_inputs %}
           <div>
-            <label class="block text-xs text-gray-500 mb-1">{% if inp.field == 'name' %}Name{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</label>
-            <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <label class="block"><span class="block text-xs text-gray-500 mb-1">{% if inp.field == 'name' %}Name{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</span>
+            <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label>
           </div>
           {% endfor %}
         </div>
@@ -146,23 +146,23 @@
         <input type="hidden" name="faq_present" value="1">
         <div class="mt-2 space-y-3">
           <div>
-            <label class="block text-xs text-gray-500 mb-1">{% trans "Details — one bullet per line" %}</label>
-            <textarea name="attributes" rows="3" placeholder="{% trans 'e.g. Towels included' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ s.attributes_text }}</textarea>
+            <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Details — one bullet per line" %}</span>
+            <textarea name="attributes" rows="3" placeholder="{% trans 'e.g. Towels included' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ s.attributes_text }}</textarea></label>
             <p class="text-xs ui-muted mt-1">{% trans "Up to 12 bullets are shown." %}</p>
             {% for inp in s.attributes_i18n_inputs %}
               <label class="block text-xs text-gray-500 mt-2 mb-1">{% trans "Details" %} ({{ inp.locale|upper }}) — {% trans "line by line, same order" %}</label>
-              <textarea name="{{ inp.input_name }}" rows="3" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ inp.value }}</textarea>
+              <textarea aria-label="{% trans "Details" %} ({{ inp.locale|upper }}) — {% trans "line by line, same order" %}" name="{{ inp.input_name }}" rows="3" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ inp.value }}</textarea>
             {% endfor %}
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">{% trans "Frequently asked questions" %}</label>
             {% for row in s.faq_rows %}
               <div class="border-t border-gray-100 pt-2 mt-2 space-y-1">
-                <input name="{{ row.q_name }}" type="text" value="{{ row.q }}" placeholder="{% trans 'Question' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-                <textarea name="{{ row.a_name }}" rows="2" placeholder="{% trans 'Answer' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ row.a }}</textarea>
+                <input name="{{ row.q_name }}" type="text" value="{{ row.q }}" aria-label="{% trans 'Question' %}" placeholder="{% trans 'Question' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+                <textarea name="{{ row.a_name }}" rows="2" aria-label="{% trans 'Answer' %}" placeholder="{% trans 'Answer' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">{{ row.a }}</textarea>
                 {% for tr in row.i18n %}
-                  <input name="{{ tr.q_name }}" type="text" value="{{ tr.q }}" placeholder="{% trans 'Question' %} ({{ tr.locale|upper }})" class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm">
-                  <textarea name="{{ tr.a_name }}" rows="2" placeholder="{% trans 'Answer' %} ({{ tr.locale|upper }})" class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm">{{ tr.a }}</textarea>
+                  <input name="{{ tr.q_name }}" type="text" value="{{ tr.q }}" aria-label="{% trans 'Question' %} ({{ tr.locale|upper }})" placeholder="{% trans 'Question' %} ({{ tr.locale|upper }})" class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm">
+                  <textarea name="{{ tr.a_name }}" rows="2" aria-label="{% trans 'Answer' %} ({{ tr.locale|upper }})" placeholder="{% trans 'Answer' %} ({{ tr.locale|upper }})" class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm">{{ tr.a }}</textarea>
                 {% endfor %}
               </div>
             {% endfor %}
@@ -171,12 +171,12 @@
         </div>
       </details>
       <div>
-        <label class="block text-xs text-gray-500 mb-1">{% trans "Duration (min)" %}</label>
-        <input name="duration" type="number" min="5" value="{{ s.duration_minutes }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Duration (min)" %}</span>
+        <input name="duration" type="number" min="5" value="{{ s.duration_minutes }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label>
       </div>
       <div>
-        <label class="block text-xs text-gray-500 mb-1">{% trans "Price (€)" %}</label>
-        <input name="price_eur" type="text" value="{{ s.price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Price (€)" %}</span>
+        <input name="price_eur" type="text" value="{{ s.price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label>
       </div>
       {% vat_select s.vat_rate %}
       <div class="flex items-center gap-2">
@@ -203,14 +203,14 @@
         {% csrf_token %}
         <input type="hidden" name="service" value="{{ s.pk }}">
         <input type="hidden" name="action" value="season_add">
-        <div><label class="block text-xs text-gray-500 mb-1">{% trans "From" %}</label>
-          <input name="start_date" type="date" required class="min-w-0 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
-        <div><label class="block text-xs text-gray-500 mb-1">{% trans "To" %}</label>
-          <input name="end_date" type="date" required class="min-w-0 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
-        <div><label class="block text-xs text-gray-500 mb-1">{% trans "Price (€)" %}</label>
-          <input name="price_eur" type="text" inputmode="decimal" placeholder="59" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
-        <div class="flex-1 min-w-[8rem]"><label class="block text-xs text-gray-500 mb-1">{% trans "Label (optional)" %}</label>
-          <input name="label" type="text" placeholder="{% trans 'High season' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
+        <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "From" %}</span>
+          <input name="start_date" type="date" required class="min-w-0 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
+        <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "To" %}</span>
+          <input name="end_date" type="date" required class="min-w-0 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
+        <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Price (€)" %}</span>
+          <input name="price_eur" type="text" inputmode="decimal" placeholder="59" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
+        <div class="flex-1 min-w-[8rem]"><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Label (optional)" %}</span>
+          <input name="label" type="text" placeholder="{% trans 'High season' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
         <button class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400">{% trans "Add" %}</button>
       </form>
     </details>
@@ -224,17 +224,17 @@
           {% csrf_token %}
           <input type="hidden" name="service" value="{{ s.pk }}">
           <input type="hidden" name="variant" value="{{ v.pk }}">
-          <div class="flex-1 min-w-[8rem]"><label class="block text-xs text-gray-500 mb-1">{% trans "Name" %}</label>
-            <input name="name" type="text" value="{{ v.name }}" required maxlength="100" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
-          <div><label class="block text-xs text-gray-500 mb-1">{% trans "Surcharge (€)" %}</label>
-            <input name="price_delta_eur" type="text" inputmode="decimal" value="{{ v.price_delta_eur|stringformat:'.2f' }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
-          <div><label class="block text-xs text-gray-500 mb-1">{% trans "Extra minutes" %}</label>
-            <input name="duration_delta" type="text" inputmode="numeric" value="{{ v.duration_delta_minutes }}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
-          <div><label class="block text-xs text-gray-500 mb-1">{% trans "Sort order" %}</label>
-            <input name="sort_order" type="text" inputmode="numeric" value="{{ v.sort_order }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
+          <div class="flex-1 min-w-[8rem]"><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Name" %}</span>
+            <input name="name" type="text" value="{{ v.name }}" required maxlength="100" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
+          <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Surcharge (€)" %}</span>
+            <input name="price_delta_eur" type="text" inputmode="decimal" value="{{ v.price_delta_eur|stringformat:'.2f' }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
+          <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Extra minutes" %}</span>
+            <input name="duration_delta" type="text" inputmode="numeric" value="{{ v.duration_delta_minutes }}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
+          <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Sort order" %}</span>
+            <input name="sort_order" type="text" inputmode="numeric" value="{{ v.sort_order }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
           {% for inp in v.i18n_inputs %}
-            <div><label class="block text-xs text-gray-500 mb-1">{{ inp.locale|upper }}</label>
-              <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" maxlength="100" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
+            <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{{ inp.locale|upper }}</span>
+              <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" maxlength="100" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
           {% endfor %}
           <button name="action" value="variant_update" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400">{% trans "Save" %}</button>
           <button name="action" value="variant_toggle" class="text-xs text-gray-500 hover:text-gray-900">{% if v.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
@@ -245,12 +245,12 @@
         {% csrf_token %}
         <input type="hidden" name="service" value="{{ s.pk }}">
         <input type="hidden" name="action" value="variant_add">
-        <div class="flex-1 min-w-[8rem]"><label class="block text-xs text-gray-500 mb-1">{% trans "Name" %}</label>
-          <input name="name" type="text" required maxlength="100" placeholder="{% trans 'Long hair' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
-        <div><label class="block text-xs text-gray-500 mb-1">{% trans "Surcharge (€)" %}</label>
-          <input name="price_delta_eur" type="text" inputmode="decimal" placeholder="12" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
-        <div><label class="block text-xs text-gray-500 mb-1">{% trans "Extra minutes" %}</label>
-          <input name="duration_delta" type="text" inputmode="numeric" placeholder="20" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
+        <div class="flex-1 min-w-[8rem]"><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Name" %}</span>
+          <input name="name" type="text" required maxlength="100" placeholder="{% trans 'Long hair' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
+        <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Surcharge (€)" %}</span>
+          <input name="price_delta_eur" type="text" inputmode="decimal" placeholder="12" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
+        <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Extra minutes" %}</span>
+          <input name="duration_delta" type="text" inputmode="numeric" placeholder="20" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
         <button class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400">{% trans "Add" %}</button>
       </form>
     </details>
@@ -269,16 +269,16 @@
   {% csrf_token %}
   <input type="hidden" name="action" value="create">
   <h2 class="ui-h2">{% trans "New service" %}</h2>
-  <input name="name" type="text" required placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" class="ui-input">
-  <textarea name="description" rows="2" placeholder="{% trans 'Description — what is included (optional)' %}" class="ui-input"></textarea>
+  <input name="name" type="text" required aria-label="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" class="ui-input">
+  <textarea name="description" rows="2" aria-label="{% trans 'Description — what is included (optional)' %}" placeholder="{% trans 'Description — what is included (optional)' %}" class="ui-input"></textarea>
   {# L3d: переводы неосновных локалей (видно только при N>1 языках) #}
   {% for loc in extra_locales %}
-    <input name="name_{{ loc }}" type="text" placeholder="Name ({{ loc|upper }})" class="ui-input">
-    <textarea name="description_{{ loc }}" rows="2" placeholder="{% trans 'Description' %} ({{ loc|upper }})" class="ui-input"></textarea>
+    <input aria-label="Name ({{ loc|upper }})" name="name_{{ loc }}" type="text" placeholder="Name ({{ loc|upper }})" class="ui-input">
+    <textarea name="description_{{ loc }}" rows="2" aria-label="{% trans 'Description' %} ({{ loc|upper }})" placeholder="{% trans 'Description' %} ({{ loc|upper }})" class="ui-input"></textarea>
   {% endfor %}
   <div>
-    <label class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</label>
-    <input name="image" type="file" accept="image/*" class="w-full text-sm">
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</span>
+    <input name="image" type="file" accept="image/*" class="w-full text-sm"></label>
   </div>
   <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_video" value="1"> 📹 {% trans "Video-Beratung möglich" %} <span class="text-xs text-gray-400">({% trans "WhatsApp-Link in Bestätigung" %})</span></label>
   <label class="flex items-center gap-2 text-sm">{% trans "Preis gilt" %}
@@ -289,17 +289,17 @@
   </label>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Duration (min)" %}</label>
-      <input name="duration" type="number" min="5" value="30" class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Duration (min)" %}</span>
+      <input name="duration" type="number" min="5" value="30" class="ui-input"></label>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
-      <input name="price_eur" type="text" placeholder="49" class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</span>
+      <input name="price_eur" type="text" placeholder="49" class="ui-input"></label>
     </div>
     {% vat_select "19.00" %}
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</label>
-      <input name="deposit_eur" type="text" placeholder="0" class="ui-input">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</span>
+      <input name="deposit_eur" type="text" placeholder="0" class="ui-input"></label>
     </div>
   </div>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create service" %}</button>

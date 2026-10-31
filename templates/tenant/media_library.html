@@ -29,7 +29,7 @@
         </p>
         <form method="post" class="flex gap-1">{% csrf_token %}
           <input type="hidden" name="pk" value="{{ row.asset.pk }}">
-          <input type="text" name="alt_de" value="{{ row.asset.alt.de|default:'' }}" placeholder="{% trans 'Alt text (what is in the photo?)' %}"
+          <input type="text" name="alt_de" value="{{ row.asset.alt.de|default:'' }}" aria-label="{% trans 'Alt text (what is in the photo?)' %}" placeholder="{% trans 'Alt text (what is in the photo?)' %}"
                  class="flex-1 min-w-0 rounded-lg border border-gray-300 px-2 py-1 text-xs">
           <button aria-label="{% trans 'Speichern' %}" name="action" value="alt" class="ui-btn ui-btn-secondary ui-btn-sm">✓</button>
         </form>

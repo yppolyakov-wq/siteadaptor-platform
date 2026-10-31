@@ -12,7 +12,7 @@ Save, что поля пришли (без него данные строки ц
   {% if src == "promotions" %}
     <div class="stu-row">
       <span class="stu-lb">{% trans "Aktionstyp" %}</span>
-      <select name="{{ pre }}type" class="stu-ctrl">
+      <select aria-label="{% trans "Aktionstyp" %}" name="{{ pre }}type" class="stu-ctrl">
         <option value="">{% trans "Alle Aktionen" %}</option>
         {% for key, label in promo_types_for_blocks %}<option value="{{ key }}" {% if d.type == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
         {% if lh.orphan_type %}<option value="{{ lh.orphan_type.0 }}" selected>{{ lh.orphan_type.1 }}</option>{% endif %}
@@ -20,7 +20,7 @@ Save, что поля пришли (без него данные строки ц
     </div>
     <div class="stu-row">
       <span class="stu-lb">{% trans "Gilt für" %}</span>
-      <select name="{{ pre }}ziel" class="stu-ctrl">
+      <select aria-label="{% trans "Gilt für" %}" name="{{ pre }}ziel" class="stu-ctrl">
         <option value="">{% trans "Alle" %}</option>
         {% for key, label in promo_targets_for_blocks %}<option value="{{ key }}" {% if d.ziel == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
         {% if lh.orphan_target %}<option value="{{ lh.orphan_target.0 }}" selected>{{ lh.orphan_target.1 }}</option>{% endif %}
@@ -48,7 +48,7 @@ Save, что поля пришли (без него данные строки ц
   {% if src == "products" or src == "categories" %}
     <div class="stu-row">
       <span class="stu-lb">{% trans "Kategorie" %}</span>
-      <select name="{{ pre }}category" class="stu-ctrl">
+      <select aria-label="{% trans "Kategorie" %}" name="{{ pre }}category" class="stu-ctrl">
         <option value="">{% if src == "categories" %}{% trans "Hauptkategorien" %}{% else %}{% trans "Alle Kategorien" %}{% endif %}</option>
         {% for slug, label in list_categories_for_blocks %}<option value="{{ slug }}" {% if d.category == slug %}selected{% endif %}>{{ label }}</option>{% endfor %}
         {% if lh.orphan_category %}<option value="{{ lh.orphan_category.0 }}" selected>{{ lh.orphan_category.1 }}</option>{% endif %}
@@ -59,7 +59,7 @@ Save, что поля пришли (без него данные строки ц
   {% if src == "products" or src == "services" or src == "stays" %}
     <div class="stu-row">
       <span class="stu-lb">{% trans "Sammlung" %}</span>
-      <select name="{{ pre }}collection" class="stu-ctrl">
+      <select aria-label="{% trans "Sammlung" %}" name="{{ pre }}collection" class="stu-ctrl">
         <option value="">{% trans "All collections" %}</option>
         {% for slug, label, srcs in list_collections_for_blocks %}{% if src in srcs.split %}<option value="{{ slug }}" {% if d.collection == slug %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}
         {% if lh.orphan_collection %}<option value="{{ lh.orphan_collection.0 }}" selected>{{ lh.orphan_collection.1 }}</option>{% endif %}
@@ -69,7 +69,7 @@ Save, что поля пришли (без него данные строки ц
   {% if src == "events" %}
     <div class="stu-row">
       <span class="stu-lb">{% trans "Thema" %}</span>
-      <select name="{{ pre }}event_category" class="stu-ctrl">
+      <select aria-label="{% trans "Thema" %}" name="{{ pre }}event_category" class="stu-ctrl">
         <option value="">{% trans "Alle Themen" %}</option>
         {% for key, label in event_categories_for_blocks %}<option value="{{ key }}" {% if d.event_category == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
         {% if lh.orphan_theme %}<option value="{{ lh.orphan_theme.0 }}" selected>{{ lh.orphan_theme.1 }}</option>{% endif %}
@@ -79,7 +79,7 @@ Save, что поля пришли (без него данные строки ц
   {% if src == "tours" %}
     <div class="stu-row">
       <span class="stu-lb">{% trans "Land" %}</span>
-      <select name="{{ pre }}country" class="stu-ctrl">
+      <select aria-label="{% trans "Land" %}" name="{{ pre }}country" class="stu-ctrl">
         <option value="">{% trans "Alle Länder" %}</option>
         {% for key, label in tour_countries_for_blocks %}<option value="{{ key }}" {% if d.country == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
         {% if lh.orphan_country %}<option value="{{ lh.orphan_country.0 }}" selected>{{ lh.orphan_country.1 }}</option>{% endif %}
@@ -89,7 +89,7 @@ Save, что поля пришли (без него данные строки ц
   {% if src == "products" or src == "services" or src == "events" %}
     <div class="stu-row">
       <span class="stu-lb">{% trans "Auswahl" %}</span>
-      <select name="{{ pre }}only" class="stu-ctrl">
+      <select aria-label="{% trans "Auswahl" %}" name="{{ pre }}only" class="stu-ctrl">
         <option value="">{% trans "Alle" %}</option>
         {% if src == "products" %}
           <option value="featured" {% if d.only == "featured" %}selected{% endif %}>{% trans "Nur Empfehlungen" %}</option>
@@ -106,7 +106,7 @@ Save, что поля пришли (без него данные строки ц
   {% if s.list_sorts %}
     <div class="stu-row">
       <span class="stu-lb">{% trans "Sortierung" %}</span>
-      <select name="{{ pre }}sort" class="stu-ctrl">
+      <select aria-label="{% trans "Sortierung" %}" name="{{ pre }}sort" class="stu-ctrl">
         {% for key, label in s.list_sorts %}<option value="{{ key }}" {% if d.sort == key or not key and not d.sort %}selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
     </div>
@@ -114,7 +114,7 @@ Save, что поля пришли (без него данные строки ц
   {% if s.list_cards %}
     <div class="stu-row">
       <span class="stu-lb">{% trans "Kartenform" %}</span>
-      <select name="{{ pre }}card" class="stu-ctrl">
+      <select aria-label="{% trans "Kartenform" %}" name="{{ pre }}card" class="stu-ctrl">
         <option value="">{% blocktrans with c=lh.card %}Wie die Website ({{ c }}){% endblocktrans %}</option>
         {% for key, label in s.list_cards %}<option value="{{ key }}" {% if d.card == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>

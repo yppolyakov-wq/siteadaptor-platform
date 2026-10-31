@@ -20,8 +20,8 @@
   {% csrf_token %}
   <input type="hidden" name="action" value="import">
   <div class="grow">
-    <label class="block text-xs text-gray-400 mb-1">{% trans "Kontoauszug (CSV der Bank)" %}</label>
-    <input type="file" name="file" accept=".csv,text/csv" required class="w-full text-sm">
+    <label class="block"><span class="block text-xs text-gray-400 mb-1">{% trans "Kontoauszug (CSV der Bank)" %}</span>
+    <input type="file" name="file" accept=".csv,text/csv" required class="w-full text-sm"></label>
   </div>
   <button class="ui-btn ui-btn-primary">{% trans "Importieren" %}</button>
   <p class="w-full text-xs ui-muted">{% trans "Spalten werden automatisch erkannt (Buchungstag, Betrag, Verwendungszweck). Doppelte Umsätze werden übersprungen." %}</p>

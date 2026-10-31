@@ -41,12 +41,12 @@
 <form id="blog-neu" method="post" enctype="multipart/form-data" class="ui-card p-6 max-w-xl space-y-3">
   {% csrf_token %}
   <h2 class="ui-h2">{% trans "New post" %}</h2>
-  <input name="title" type="text" required placeholder="{% trans 'Title' %}" class="ui-input">
-  <input name="excerpt" type="text" placeholder="{% trans 'Short summary (optional)' %}" class="ui-input">
-  <textarea name="body" rows="5" placeholder="{% trans 'Text' %}" class="ui-input"></textarea>
+  <input name="title" type="text" required aria-label="{% trans 'Title' %}" placeholder="{% trans 'Title' %}" class="ui-input">
+  <input name="excerpt" type="text" aria-label="{% trans 'Short summary (optional)' %}" placeholder="{% trans 'Short summary (optional)' %}" class="ui-input">
+  <textarea name="body" rows="5" aria-label="{% trans 'Text' %}" placeholder="{% trans 'Text' %}" class="ui-input"></textarea>
   <div>
-    <label class="block text-sm font-medium mb-1">{% trans "Cover (optional)" %}</label>
-    <input name="cover" type="file" accept="image/*" class="w-full text-sm">
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Cover (optional)" %}</span>
+    <input name="cover" type="file" accept="image/*" class="w-full text-sm"></label>
   </div>
   <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="publish"> {% trans "Publish now" %}</label>
   <label class="block text-sm text-gray-500">{% trans "Publish at (optional)" %}

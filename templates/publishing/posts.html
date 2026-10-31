@@ -15,7 +15,7 @@
 {# Создание поста: текст + фото + ссылка + время → Planen / Jetzt senden / Entwurf #}
 <form method="post" enctype="multipart/form-data" class="bg-white border border-gray-200 rounded-lg p-4 max-w-xl space-y-3 mb-8">
   {% csrf_token %}
-  <textarea name="text" rows="4" required placeholder="{% trans 'What would you like to share?' %}"
+  <textarea name="text" rows="4" required aria-label="{% trans 'What would you like to share?' %}" placeholder="{% trans 'What would you like to share?' %}"
             class="ui-input">{{ prefill_text }}</textarea>
   <div class="grid sm:grid-cols-2 gap-3">
     <label class="block text-sm text-gray-500">{% trans "Link (optional)" %}

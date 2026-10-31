@@ -40,7 +40,7 @@
         <span class="text-font-subtle-light">· .env: {{ r.env|default:"—" }}{% if r.admin %} · {% trans "aus der Admin" %}{% endif %}</span>
         <div class="flex gap-2 mt-1">
           {% for picked in r.picked %}
-            <select name="AI_ROUTE_{{ tier|upper }}_{{ forloop.counter0 }}" class="border rounded px-2 py-1">
+            <select aria-label="{% trans "Route" %} {{ forloop.counter }}" name="AI_ROUTE_{{ tier|upper }}_{{ forloop.counter0 }}" class="border rounded px-2 py-1">
               <option value="">{% if forloop.first %}{% trans "wie .env" %}{% else %}—{% endif %}</option>
               {% for name, eu in route_choices %}<option value="{{ name }}" {% if r.admin and picked == name %}selected{% endif %}>{{ name }}{% if eu %} (EU){% endif %}</option>{% endfor %}
             </select>

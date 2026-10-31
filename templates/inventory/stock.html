@@ -35,7 +35,7 @@
 
 {# --- R1: Suche per SKU/EAN (scan-to-count) --- #}
 <form method="get" action="{% url 'stock' %}" class="mb-3 flex items-center gap-2">
-  <input type="text" name="code" value="{{ code }}" placeholder="{% trans 'SKU / EAN scannen oder eingeben' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+  <input type="text" name="code" value="{{ code }}" aria-label="{% trans 'SKU / EAN scannen oder eingeben' %}" placeholder="{% trans 'SKU / EAN scannen oder eingeben' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm">
   <button class="text-sm bg-gray-800 text-white rounded-lg px-3 py-2 hover:bg-gray-900">{% trans "Suchen" %}</button>
 </form>
 {% if code and not found %}
@@ -48,8 +48,8 @@
       <form method="post" action="{% url 'stock' %}" class="flex items-center gap-2">
         {% csrf_token %}
         <input type="hidden" name="action" value="stocktake">
-        <input type="hidden" name="entity" value="{{ found.value }}">
-        <input type="number" name="counted" min="0" placeholder="{% trans 'Gezählt' %}" class="w-28 rounded-lg border border-indigo-300 px-2 py-1.5 text-sm">
+        <input aria-label="{% trans "Artikel" %}" type="hidden" name="entity" value="{{ found.value }}">
+        <input type="number" name="counted" min="0" aria-label="{% trans 'Gezählt' %}" placeholder="{% trans 'Gezählt' %}" class="w-28 rounded-lg border border-indigo-300 px-2 py-1.5 text-sm">
         <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Inventur buchen" %}</button>
       </form>
     </div>
@@ -128,7 +128,7 @@
         <form method="post" action="{% url 'stock' %}" class="flex items-center justify-between gap-3 text-sm">
           {% csrf_token %}
           <input type="hidden" name="action" value="reconcile">
-          <input type="hidden" name="entity" value="{{ r.value }}">
+          <input aria-label="{% trans "Artikel" %}" type="hidden" name="entity" value="{{ r.value }}">
           <span class="truncate flex-1">{{ r.label }} · {% trans "Zähler" %} {{ r.counter }} / {% trans "Ledger" %} {{ r.ledger }} <span class="text-red-600">({{ r.diff|stringformat:"+d" }})</span></span>
           <button class="text-xs bg-red-600 text-white rounded-lg px-3 py-1.5 hover:bg-red-700 flex-shrink-0">{% trans "Startbestand buchen" %}</button>
         </form>
@@ -146,13 +146,13 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="receipt">
         <label class="block text-xs font-medium text-gray-500">{% trans "Wareneingang (+)" %}{% if lots_on %} · {% trans "Charge" %}{% endif %}</label>
-        <select name="entity" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <select aria-label="{% trans "Artikel" %}" name="entity" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
         </select>
-        <input type="number" name="qty" min="1" placeholder="{% trans 'Menge' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <input type="number" name="qty" min="1" aria-label="{% trans 'Menge' %}" placeholder="{% trans 'Menge' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         {% if lots_on %}
           <div class="grid grid-cols-2 gap-2">
-            <input type="text" name="lot_code" placeholder="{% trans 'Charge-Nr.' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <input type="text" name="lot_code" aria-label="{% trans 'Charge-Nr.' %}" placeholder="{% trans 'Charge-Nr.' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
             <input type="date" name="lot_mhd" title="{% trans 'MHD' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           </div>
         {% endif %}
@@ -168,13 +168,13 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="adjustment">
         <label class="block text-xs font-medium text-gray-500">{% trans "Korrektur (±)" %}</label>
-        <select name="entity" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <select aria-label="{% trans "Artikel" %}" name="entity" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
         </select>
-        <select name="reason" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <select aria-label="{% trans "Grund" %}" name="reason" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           {% for val, label in reasons %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
         </select>
-        <input type="number" name="delta" placeholder="{% trans 'z. B. -2 oder 3' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <input type="number" name="delta" aria-label="{% trans 'z. B. -2 oder 3' %}" placeholder="{% trans 'z. B. -2 oder 3' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         <button class="w-full text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Korrektur buchen" %}</button>
       </form>
 
@@ -182,10 +182,10 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="stocktake">
         <label class="block text-xs font-medium text-gray-500">{% trans "Inventur (= gezählt)" %}</label>
-        <select name="entity" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <select aria-label="{% trans "Artikel" %}" name="entity" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
         </select>
-        <input type="number" name="counted" min="0" placeholder="{% trans 'Gezählter Bestand' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <input type="number" name="counted" min="0" aria-label="{% trans 'Gezählter Bestand' %}" placeholder="{% trans 'Gezählter Bestand' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         <button class="w-full text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Inventur buchen" %}</button>
       </form>
     </div>
@@ -204,17 +204,17 @@
     <p class="text-xs ui-muted">{% trans "Zutaten werden abgebucht, das Fertigprodukt zugebucht — alles in einer Buchung. Reicht eine Zutat nicht, wird nichts gebucht." %}</p>
     <div class="grid gap-2 sm:grid-cols-2">
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Fertigprodukt" %}</label>
+        <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Fertigprodukt" %}</span>
         <select name="prod_output" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
-        </select>
+        </select></label>
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Menge" %}</label>
-        <input type="number" name="prod_qty" min="1" placeholder="20" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Menge" %}</span>
+        <input type="number" name="prod_qty" min="1" placeholder="20" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label>
       </div>
       {% if lots_on %}
-        <input type="text" name="prod_lot_code" placeholder="{% trans 'Charge-Nr.' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <input type="text" name="prod_lot_code" aria-label="{% trans 'Charge-Nr.' %}" placeholder="{% trans 'Charge-Nr.' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         <input type="date" name="prod_mhd" title="{% trans 'MHD' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
       {% endif %}
     </div>
@@ -222,11 +222,11 @@
       <p class="text-xs font-medium text-gray-500">{% trans "Zutaten (Verbrauch)" %}</p>
       {% for i in "1234" %}
         <div class="grid grid-cols-[1fr_5rem] gap-2">
-          <select name="prod_in_{{ i }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          <select aria-label="{% trans "Zutaten (Verbrauch)" %} {{ i }}" name="prod_in_{{ i }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
             <option value="">—</option>
             {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
           </select>
-          <input type="number" name="prod_in_qty_{{ i }}" min="1" placeholder="{% trans 'Menge' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+          <input type="number" name="prod_in_qty_{{ i }}" min="1" aria-label="{% trans 'Menge' %}" placeholder="{% trans 'Menge' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
         </div>
       {% endfor %}
     </div>
@@ -255,7 +255,7 @@
       {% for e in rows %}
         <div class="flex items-center justify-between gap-3 text-sm">
           <span class="truncate flex-1">{{ e.label }} <span class="text-xs text-gray-400">({% trans "Zähler" %} {{ e.counter }})</span></span>
-          <input type="number" name="count_{{ e.value }}" min="0" placeholder="{{ e.counter }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm flex-shrink-0">
+          <input aria-label="{{ e.label }}" type="number" name="count_{{ e.value }}" min="0" placeholder="{{ e.counter }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm flex-shrink-0">
         </div>
       {% endfor %}
     </div>
@@ -280,7 +280,7 @@
     <form method="post" action="{% url 'stock' %}" class="flex items-center gap-2">
       {% csrf_token %}
       <input type="hidden" name="action" value="location_create">
-      <input type="text" name="name" placeholder="{% trans 'z. B. Lager hinten' %}" class="flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <input type="text" name="name" aria-label="{% trans 'z. B. Lager hinten' %}" placeholder="{% trans 'z. B. Lager hinten' %}" class="flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
       <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">＋ {% trans "Standort" %}</button>
     </form>
     {% if locs_on %}
@@ -288,16 +288,16 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="transfer">
         <span class="text-xs font-medium text-gray-500 w-full">{% trans "Umlagerung (bewegt nur die Verteilung, nicht den Gesamtbestand)" %}</span>
-        <select name="entity" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm flex-1 min-w-40">
+        <select aria-label="{% trans "Artikel" %}" name="entity" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm flex-1 min-w-40">
           {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
         </select>
-        <select name="src" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <select aria-label="{% trans "Quelle" %}" name="src" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           {% for loc in stock_locations %}<option value="{{ loc.pk }}">{% trans "von" %} {{ loc.name }}</option>{% endfor %}
         </select>
-        <select name="dst" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <select aria-label="{% trans "Ziel" %}" name="dst" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           {% for loc in stock_locations %}<option value="{{ loc.pk }}" {% if forloop.counter == 2 %}selected{% endif %}>{% trans "nach" %} {{ loc.name }}</option>{% endfor %}
         </select>
-        <input type="number" name="qty" min="1" placeholder="{% trans 'Menge' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <input type="number" name="qty" min="1" aria-label="{% trans 'Menge' %}" placeholder="{% trans 'Menge' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Umlagern" %}</button>
       </form>
     {% endif %}
@@ -312,7 +312,7 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="threshold">
       <span>{% trans "Meldebestand ≤" %}</span>
-      <input type="number" name="value" min="0" value="{{ threshold }}" class="w-16 rounded border border-gray-300 px-1.5 py-1">
+      <input aria-label="{% trans "Meldebestand ≤" %}" type="number" name="value" min="0" value="{{ threshold }}" class="w-16 rounded border border-gray-300 px-1.5 py-1">
       <button class="rounded border border-gray-300 px-2 py-1 hover:border-indigo-400">{% trans "OK" %}</button>
     </form>
   </div>

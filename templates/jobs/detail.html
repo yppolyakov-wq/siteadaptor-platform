@@ -199,7 +199,7 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
         без поля Save снял бы связь со складом (класс W0).{% endcomment %}
         <input type="hidden" name="line_part_{{ row.i }}" value="{{ row.part_value }}">
         <div class="min-w-0 dl-name">
-          <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" aria-label="{% trans 'Position' %}" placeholder="{% trans 'Position' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           <span data-qt-linked class="mt-0.5 block text-[11px] text-gray-400{% if not row.part_value %} hidden{% endif %}">📦 {% trans "Aus dem Sortiment" %}{% if row.line and row.line.sku %} · {% trans "Art.-Nr." %} {{ row.line.sku }}{% endif %}</span>
         </div>
         {% comment %}Фидбэк владельца 2026-08-20 (п.9 «при указании числа оно
@@ -217,13 +217,13 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
           {% comment %}VAT-1 (владелец 2026-08-26): ставка выбирается В СТРОКЕ.
           Пустое значение = «как весь документ» — так считались все прежние
           сметы, поэтому смена ничего не переписывает задним числом.{% endcomment %}
-          <select name="line_vat_{{ row.i }}" class="w-full rounded-lg border border-gray-300 px-1 py-1.5 text-xs text-right tabular-nums">
+          <select aria-label="{% trans "MwSt.-Satz" %}" name="line_vat_{{ row.i }}" class="w-full rounded-lg border border-gray-300 px-1 py-1.5 text-xs text-right tabular-nums">
             <option value="">{{ job.vat_rate|floatformat:0 }} %</option>
             {% for rate in vat_rates %}<option value="{{ rate }}" {% if row.line and row.line.vat_rate == rate %}selected{% endif %}>{{ rate|floatformat:0 }} %</option>{% endfor %}
           </select>
         </div>
         <div class="dl-unit">
-          <input name="line_price_{{ row.i }}" type="text" data-qt-price value="{% if row.line %}{{ row.line.unit_price|floatformat:2 }}{% endif %}" placeholder="0,00" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+          <input aria-label="{% trans "Preis" %}" name="line_price_{{ row.i }}" type="text" data-qt-price value="{% if row.line %}{{ row.line.unit_price|floatformat:2 }}{% endif %}" placeholder="0,00" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
           {% comment %}ERP-6 → VF-9b (фидбэк «закупка — это раздел ERP»): видимое
           поле EK со страницы продажи убрано; значение едет hidden'ом — иначе
           Save стёр бы введённые ставки (W0). Для строк из каталога снимок EK
@@ -231,7 +231,7 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
           <input type="hidden" name="line_cost_{{ row.i }}" value="{% if row.line.cost_rate is not None %}{{ row.line.cost_rate|floatformat:2 }}{% endif %}">
         </div>
         <div class="dl-qty">
-          <input name="line_qty_{{ row.i }}" type="number" min="0.01" step="0.01" data-qt-qty value="{% if row.line %}{{ row.line.qty|floatformat:'-2u' }}{% else %}1{% endif %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+          <input aria-label="{% trans "Menge" %}" name="line_qty_{{ row.i }}" type="number" min="0.01" step="0.01" data-qt-qty value="{% if row.line %}{{ row.line.qty|floatformat:'-2u' }}{% else %}1{% endif %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
         </div>
         <div class="flex items-center justify-end gap-1 dl-sum">
           <output data-qt-sum class="px-1 py-1.5 text-sm text-right text-gray-600 tabular-nums">{% if row.line %}{{ row.line.line_total|floatformat:2 }} €{% endif %}</output>
@@ -273,13 +273,13 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
     архетипов они были шумом. Гейт сохранён (W0: скрытие не теряет введённое —
     приёмник читает их по presence-guard).{% endcomment %}
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Vehicle / plate" %}</label>
-      <input name="vehicle" type="text" value="{{ job.vehicle }}" placeholder="VW Golf · M-AB 1234" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Vehicle / plate" %}</span>
+      <input name="vehicle" type="text" value="{{ job.vehicle }}" placeholder="VW Golf · M-AB 1234" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
     </div>
     {% comment %}A9: следующий TÜV/Service — beat напомнит клиенту за N дней (ретеншн).{% endcomment %}
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Next TÜV / service" %}</label>
-      <input name="service_due_date" type="date" value="{{ job.service_due_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Next TÜV / service" %}</span>
+      <input name="service_due_date" type="date" value="{{ job.service_due_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
       <p class="text-xs text-gray-400 mt-1">{% trans "We'll remind the customer by email." %}</p>
     </div>
   </div>
@@ -468,9 +468,9 @@ document (партиал может перерисовываться — уро�
   <form method="post" class="flex flex-wrap items-end gap-2">{% csrf_token %}
     <input type="hidden" name="action" value="deposit">
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€, 0=none)" %}</label>
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€, 0=none)" %}</span>
       <input name="deposit_eur" type="text" inputmode="decimal" value="{{ deposit_eur }}"
-             class="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right tabular-nums">
+             class="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right tabular-nums"></label>
     </div>
     <button class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Save" %}</button>
   </form>
@@ -491,7 +491,7 @@ document (партиал может перерисовываться — уро�
   {% if job.status == 'quoted' or job.status == 'accepted' %}
     <div>
       <p class="text-xs text-gray-500 mb-1">{% trans "Angebot-Link für den Kunden" %}{% if job.deposit_cents and payments_enabled %} ({% trans "mit Online-Anzahlung" %}){% endif %}:</p>
-      <input type="text" readonly value="https://{{ request.get_host }}{{ angebot_path }}" onclick="this.select()"
+      <input aria-label="{% trans "Angebot-Link für den Kunden" %}" type="text" readonly value="https://{{ request.get_host }}{{ angebot_path }}" onclick="this.select()"
              class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 text-xs text-gray-600">
     </div>
   {% endif %}
@@ -542,7 +542,7 @@ document (партиал может перерисовываться — уро�
       <form method="post" class="flex flex-wrap items-center gap-2">{% csrf_token %}
         <input type="hidden" name="action" value="link_booking">
         <label class="text-gray-500">📅 {% trans "Link appointment" %}:</label>
-        <select name="booking" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <select aria-label="📅 {% trans "Link appointment" %}:" name="booking" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           {% for b in customer_bookings %}<option value="{{ b.pk }}">{{ b.start|date:"d.m.Y H:i" }} · {{ b.reference_code }}</option>{% endfor %}
         </select>
         <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50">{% trans "Link" %}</button>
@@ -592,8 +592,8 @@ document (партиал может перерисовываться — уро�
       {% csrf_token %}
       <input type="hidden" name="action" value="valid_until">
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Valid until" %}</label>
-        <input name="valid_until" type="date" value="{{ job.valid_until|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Valid until" %}</span>
+        <input name="valid_until" type="date" value="{{ job.valid_until|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
       </div>
       <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">{% trans "Save" %}</button>
     </form>
@@ -618,7 +618,7 @@ document (партиал может перерисовываться — уро�
     {% if doc_languages|length > 1 %}
       <form method="post" class="flex items-center gap-1">
         {% csrf_token %}
-        <select name="language" class="rounded-lg border border-gray-300 px-2 py-1 text-xs">
+        <select aria-label="{% trans "Sprache" %}" name="language" class="rounded-lg border border-gray-300 px-2 py-1 text-xs">
           {% for lang in doc_languages %}
             <option value="{{ lang.code }}" {% if lang.code == job.language %}selected{% endif %}>{{ lang.label }}</option>
           {% endfor %}

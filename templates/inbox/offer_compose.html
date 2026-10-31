@@ -38,7 +38,7 @@
     <h2 class="ui-h2 mb-2">{% trans "Freie Positionen" %}</h2>
     {% for _ in "123" %}
       <div class="flex items-center gap-3 py-1.5">
-        <input type="text" name="free_title" placeholder="{% trans 'Beschreibung' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+        <input type="text" name="free_title" aria-label="{% trans 'Beschreibung' %}" placeholder="{% trans 'Beschreibung' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
         <input type="number" name="free_qty" value="1" min="1" max="99" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right" aria-label="{% trans 'Menge' %}">
         <input type="text" inputmode="decimal" name="free_price" placeholder="0,00" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right" aria-label="{% trans 'Preis' %}"> €
       </div>

@@ -14,14 +14,14 @@
 
 <form method="post" enctype="multipart/form-data" class="ui-card p-6 max-w-xl space-y-3">
   {% csrf_token %}
-  <input name="title" type="text" required value="{{ post.title }}" class="ui-input">
-  <input name="excerpt" type="text" value="{{ post.excerpt }}" placeholder="{% trans 'Short summary (optional)' %}" class="ui-input">
-  <textarea name="body" rows="8" class="ui-input">{{ post.body }}</textarea>
+  <input aria-label="{% trans "Title" %}" name="title" type="text" required value="{{ post.title }}" class="ui-input">
+  <input name="excerpt" type="text" value="{{ post.excerpt }}" aria-label="{% trans 'Short summary (optional)' %}" placeholder="{% trans 'Short summary (optional)' %}" class="ui-input">
+  <textarea aria-label="{% trans "Text" %}" name="body" rows="8" class="ui-input">{{ post.body }}</textarea>
   <div class="flex items-center gap-3">
     {% if post.cover_url %}<img src="{{ post.cover_url }}" alt="" class="w-20 h-14 rounded-lg object-cover shrink-0">{% endif %}
     <div class="flex-1">
-      <label class="block text-sm font-medium mb-1">{% trans "Cover" %}</label>
-      <input name="cover" type="file" accept="image/*" class="w-full text-sm">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Cover" %}</span>
+      <input name="cover" type="file" accept="image/*" class="w-full text-sm"></label>
       {% if post.cover_url %}<label class="text-xs text-gray-500 mt-1 inline-block"><input type="checkbox" name="remove_cover" value="1"> {% trans "Remove cover" %}</label>{% endif %}
     </div>
   </div>

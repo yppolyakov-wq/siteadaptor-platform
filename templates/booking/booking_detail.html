@@ -156,7 +156,7 @@ Rabatt → Netto → MwSt. → Gesamt); свой набор строк у каж
       <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="space-y-2">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <input type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}"
+        <input aria-label="{% trans "Start" %}" type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}"
                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
         <label class="inline-flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="override_hours" value="1"> {% trans "Trotzdem eintragen" %}</label>
         <button name="action" value="move" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>

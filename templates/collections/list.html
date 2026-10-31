@@ -43,12 +43,12 @@
       <input type="hidden" name="collection" value="{{ col.pk }}">
       <div class="flex flex-wrap items-end gap-3">
         <div class="flex-1 min-w-[12rem]">
-          <label class="block text-xs text-gray-500 mb-1">{% trans "Name" %}</label>
-          <input name="name" value="{{ col.name }}" maxlength="120" class="ui-input">
+          <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Name" %}</span>
+          <input name="name" value="{{ col.name }}" maxlength="120" class="ui-input"></label>
         </div>
         <div>
-          <label class="block text-xs text-gray-500 mb-1">{% trans "Order" %}</label>
-          <input name="sort_order" type="number" min="0" max="999" value="{{ col.sort_order }}" class="w-20 rounded-lg border border-gray-300 px-2 py-2">
+          <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Order" %}</span>
+          <input name="sort_order" type="number" min="0" max="999" value="{{ col.sort_order }}" class="w-20 rounded-lg border border-gray-300 px-2 py-2"></label>
         </div>
         <span class="text-xs text-gray-400 pb-2.5" title="{% trans 'Storefront filter parameter' %}">?kollektion={{ col.slug }}</span>
       </div>
@@ -116,7 +116,7 @@
         {% endfor %}
         <form method="post" enctype="multipart/form-data" class="flex items-center gap-2">{% csrf_token %}
           <input type="hidden" name="action" value="photo"><input type="hidden" name="collection" value="{{ col.pk }}">
-          <input type="file" name="photo" accept="image/*" required class="text-xs text-gray-600 w-44">
+          <input aria-label="{% trans "Foto" %}" type="file" name="photo" accept="image/*" required class="text-xs text-gray-600 w-44">
           <button type="submit" class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">＋ {% trans "Foto" %}</button>
         </form>
       </div>

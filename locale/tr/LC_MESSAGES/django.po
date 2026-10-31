@@ -31308,3 +31308,7 @@ msgstr "Kapalı: kod yalnızca henüz indirimli olmayan ürünleri düşürür (
 
 msgid "This code does not apply to items that are already discounted."
 msgstr "Bu kod zaten indirimli ürünlerde geçerli değildir."
+
+#: templates/inbox/thread.html:51
+msgid "Priorität"
+msgstr "Öncelik"
