@@ -7,6 +7,8 @@
 План — ``docs/m21-cscart-migration-plan-2026-10-31.md``.
 """
 
+import re
+import secrets
 from decimal import Decimal, InvalidOperation
 
 from django.core.management.base import BaseCommand, CommandError
@@ -41,14 +43,24 @@ class Command(BaseCommand):
             default="",
             help="Полоса баннера без надписей, доли высоты «верх:низ», напр. 0.30:0.72.",
         )
+        # Создать магазин, если его ещё нет (вместо регистрации на сайте).
+        parser.add_argument("--create", action="store_true", help="Создать бизнес-получатель.")
+        parser.add_argument("--name", default="", help="Название бизнеса (для --create).")
+        parser.add_argument("--owner-email", default="", help="E-Mail владельца (для --create).")
+        parser.add_argument("--city", default="", help="Город (для --create).")
+        parser.add_argument(
+            "--business-type", default="online_shop", help="Тип бизнеса (для --create)."
+        )
 
     def handle(self, *args, **opts):
         schema = opts["schema"]
         if schema == get_public_schema_name():
             raise CommandError("public schema is not a business")
         tenant = get_tenant_model().objects.filter(schema_name=schema).first()
+        if tenant is None and not opts["create"]:
+            raise CommandError(f"schema {schema!r} not found (use --create)")
         if tenant is None:
-            raise CommandError(f"schema {schema!r} not found")
+            self._check_create_args(opts, schema)
         try:
             vat = Decimal(str(opts["vat"]).replace(",", "."))
         except InvalidOperation as exc:
@@ -77,8 +89,12 @@ class Command(BaseCommand):
         for err in site.errors[:30]:
             self.stdout.write(f"  ! {err}")
         if not opts["apply"]:
+            if tenant is None:
+                self.stdout.write(f"would create business {opts['name']!r} ({schema})")
             self.stdout.write("dry-run: nothing written (use --apply)")
             return
+        if tenant is None:
+            tenant = self._create(opts, schema)
 
         with schema_context(schema):
             stats = cscart.apply_site(
@@ -88,9 +104,9 @@ class Command(BaseCommand):
                 log=self.stdout.write,
             )
             about = cscart.apply_about(tenant, site)
-            design_notes = []
+            design_notes = cscart.apply_legal(tenant, site)
             if not opts["no_design"]:
-                design_notes = cscart.apply_design(
+                design_notes += cscart.apply_design(
                     tenant,
                     site,
                     options=cscart.DesignOptions(
@@ -112,3 +128,39 @@ class Command(BaseCommand):
         )
         for note in [*design_notes, *stats.notes]:
             self.stdout.write(f"  - {note}")
+
+    def _check_create_args(self, opts, schema):
+        from django.core.validators import validate_email
+        from django.forms import ValidationError
+
+        from apps.tenants.models import Tenant
+
+        if not opts["name"].strip() or not opts["city"].strip():
+            raise CommandError("--create needs --name and --city")
+        try:
+            validate_email(opts["owner_email"])
+        except ValidationError as exc:
+            raise CommandError("--create needs a valid --owner-email") from exc
+        if not re.fullmatch(r"[a-z][a-z0-9_]{2,62}", schema):
+            raise CommandError("--schema: lowercase letters, digits, underscore")
+        if opts["business_type"] not in dict(Tenant.BUSINESS_TYPES):
+            raise CommandError("unknown --business-type")
+
+    def _create(self, opts, schema):
+        """Бизнес + схема + домен + владелец (как регистрация, синхронно). Пароль
+        случайный: владелец входит ссылкой на почту (/anmelden/link/) или
+        «Passwort vergessen» и задаёт свой."""
+        from apps.tenants import onboarding, services
+
+        tenant, login_url = services.create_business(
+            business_name=opts["name"].strip(),
+            slug=schema.replace("_", "-"),
+            business_type=opts["business_type"],
+            city=opts["city"].strip(),
+            email=opts["owner_email"].strip().lower(),
+            password=secrets.token_urlsafe(24),
+        )
+        onboarding.mark_complete(tenant)  # сайт наполняет импорт — мастер не нужен
+        self.stdout.write(self.style.SUCCESS(f"created business {tenant.name} → {login_url}"))
+        self.stdout.write("  owner login: open the shop, /anmelden/link/ — link by e-mail")
+        return tenant

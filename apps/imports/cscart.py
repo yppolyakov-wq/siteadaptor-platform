@@ -546,6 +546,7 @@ def scrape(base: str, *, fetch=None, pause: float = PAGE_PAUSE_S, log=None) -> S
         ("agb", "allgemeine-geschaftsbedienungen/"),
         ("about", "our-team/"),
         ("versand", "versand/"),
+        ("impressum", "impressum/"),
         ("zahlung", "versand-de/"),
     ):
         html = get(urljoin(base, slug))
@@ -813,6 +814,52 @@ def apply_site(
     if about:
         stats.notes.append("About text found — copied to the profile if it was empty.")
     return stats
+
+
+_VAT_RE = re.compile(r"\b(DE\s?\d{9})\b")
+_MAIL_RE = re.compile(r"(?:E-?Mail|Mail)\s*:\s*([\w.+-]+@[\w-]+(?:\.[\w-]+)+)", re.I)
+_RESPONSIBLE_RE = re.compile(r"Verantwortlich[^:\n]*:\s*([^\n]+)")
+
+
+def parse_impressum(text: str) -> dict:
+    """Структурные поля Impressum старого сайта (только то, что видно однозначно)."""
+    out = {}
+    if m := _VAT_RE.search(text or ""):
+        out["vat_id"] = m.group(1).replace(" ", "")
+    if m := _MAIL_RE.search(text or ""):
+        out["contact_email"] = m.group(1)
+    if m := _RESPONSIBLE_RE.search(text or ""):
+        out["legal_responsible"] = m.group(1).strip()[:200]
+    if re.search(r"\bEinzelunternehmen\b", text or ""):
+        out["legal_form"] = "einzel"
+    return out
+
+
+def apply_legal(tenant, site: ScrapedSite) -> list:
+    """Impressum старого сайта → LegalDoc (если своего нет) + пустые поля бизнеса.
+
+    Текст переносится как есть (с юридическим адресом), контакты магазина остаются
+    отдельными полями — у бизнеса бывают разные адреса Impressum и лавки."""
+    from apps.core.models import LegalDoc
+
+    notes = []
+    text = html_to_text(site.pages.get("impressum", ""))
+    if not text:
+        return notes
+    if not LegalDoc.objects.filter(kind="impressum", locale="de").exclude(text="").exists():
+        LegalDoc.objects.update_or_create(kind="impressum", locale="de", defaults={"text": text})
+        notes.append("Impressum imported into LegalDoc — owner must review")
+    if "ec.europa.eu/consumers/odr" in text:
+        notes.append("Impressum links the EU ODR platform (closed 20.07.2025) — remove that line")
+    fields = []
+    for name, value in parse_impressum(text).items():
+        if value and not getattr(tenant, name):
+            setattr(tenant, name, value)
+            fields.append(name)
+    if fields:
+        tenant.save(update_fields=fields)
+        notes.append(f"legal fields set: {', '.join(fields)}")
+    return notes
 
 
 def apply_about(tenant, site: ScrapedSite) -> bool:

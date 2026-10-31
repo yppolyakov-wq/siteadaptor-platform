@@ -135,3 +135,23 @@
 Повторный прогон не трогает правки владельца: слайдер/секции/цвет — только пока слайдер пуст,
 меню — пока владелец его не собирал, остальное — только пустые поля. Стенд (локальный сервер,
 1366 и 390 px) — главная, меню, «Über uns» проверены глазами.
+
+## 9. Одной командой: создать магазин + перенести всё (2026-10-31)
+
+Запрос владельца «создай сам и внеси все данные». Доступа к серверу у сессии нет, поэтому
+команда умеет создать бизнес сама (`--create`, синхронно, как регистрация; пароль случайный —
+владелец входит ссылкой на почту `/anmelden/link/`; мастер помечен пройденным) и переносит
+Impressum: текст старого сайта → LegalDoc (юридический адрес Wuppertal), USt-IdNr, e-mail,
+правовая форма, ответственный (§ 18 MStV) — только пустые поля; адрес лавки (Haan) остаётся
+в контактах. Ссылка на EU-ODR (платформа закрыта 20.07.2025) — заметкой «убрать строку».
+
+После деплоя (миграция `core/0014`):
+
+```
+docker compose -f docker-compose.prod.yml exec web python manage.py import_cscart \
+  --schema haanerteeladen --url https://haanerteeladen.de --apply \
+  --create --name "Haaner Teeladen" --owner-email shop@haanerteeladen.de --city Haan \
+  --hero-title "Die wunderbare Welt des Tees" --hero-button "Lass mich verzaubern" \
+  --skip-banner 2 --skip-banner 3 --banner-crop 0.30:0.72
+```
+Без `--apply` — пробный прогон (пишет «would create …» и что найдено).

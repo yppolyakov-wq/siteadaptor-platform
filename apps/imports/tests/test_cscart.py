@@ -438,3 +438,76 @@ def test_save_image_crop_keeps_middle_band(monkeypatch):
     Image.new("RGB", (90, 125), (10, 120, 40)).save(buf, "JPEG")
     assert cscart._save_image("u", lambda _u: _Got(buf.getvalue()), crop=(0.3, 0.72))
     assert saved["size"] == (90, 53)  # 37..90 px
+
+
+IMPRESSUM = (
+    "Einzelunternehmen Schweizer Irina\nLuhnstrasse 90,\n42277 Wuppertal\nTelefon: 02129 54862\n"
+    "Mail: shop@haanerteeladen.de\nUmsatzsteuer-Identifikationsnummer(n): DE365326787\n"
+    "Verantwortlich gemäß § 18 MStV: Schweizer Irina\nhttps://ec.europa.eu/consumers/odr/"
+)
+
+
+def test_parse_impressum_fields():
+    assert cscart.parse_impressum(IMPRESSUM) == {
+        "vat_id": "DE365326787",
+        "contact_email": "shop@haanerteeladen.de",
+        "legal_responsible": "Schweizer Irina",
+        "legal_form": "einzel",
+    }
+
+
+@pytest.mark.django_db
+def test_apply_legal_keeps_shop_address_and_own_texts():
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(schema_name="public", vat_id="", contact_email="", address="Haan")
+    site = cscart.ScrapedSite(
+        base=BASE, pages={"impressum": "<p>" + IMPRESSUM.replace("\n", "<br>")}
+    )
+    notes = cscart.apply_legal(tenant, site)
+    tenant.refresh_from_db()
+    assert tenant.vat_id == "DE365326787" and tenant.legal_form == "einzel"
+    assert tenant.address == "Haan"  # адрес лавки не перезаписан юридическим
+    assert "Wuppertal" in LegalDoc.objects.get(kind="impressum", locale="de").text
+    assert any("ODR" in n for n in notes)
+    LegalDoc.objects.filter(kind="impressum").update(text="Eigenes Impressum")
+    cscart.apply_legal(tenant, site)
+    assert LegalDoc.objects.get(kind="impressum").text == "Eigenes Impressum"
+
+
+@pytest.mark.django_db
+def test_command_create_requires_owner_data_and_creates(monkeypatch):
+    from django.core.management import call_command
+    from django.core.management.base import CommandError
+
+    from apps.tenants import services
+    from apps.tenants.tests.factories import TenantFactory
+
+    with pytest.raises(CommandError):
+        call_command("import_cscart", schema="haanerteeladen", url=BASE, create=True)
+
+    monkeypatch.setattr(cscart, "scrape", lambda *a, **k: cscart.ScrapedSite(base=BASE))
+    created = {}
+
+    def fake_create(**kw):
+        created.update(kw)
+        return TenantFactory(schema_name="haanerteeladen", slug=kw["slug"]), "https://x/login/"
+
+    monkeypatch.setattr(services, "create_business", fake_create)
+    monkeypatch.setattr("apps.imports.cscart.apply_design", lambda *a, **k: [])
+    monkeypatch.setattr(
+        "apps.imports.management.commands.import_cscart.schema_context",
+        lambda _s: __import__("contextlib").nullcontext(),
+    )
+    call_command(
+        "import_cscart",
+        schema="haanerteeladen",
+        url=BASE,
+        create=True,
+        apply=True,
+        name="Haaner Teeladen",
+        owner_email="shop@haanerteeladen.de",
+        city="Haan",
+    )
+    assert created["slug"] == "haanerteeladen" and created["business_type"] == "online_shop"
+    assert created["email"] == "shop@haanerteeladen.de" and len(created["password"]) > 20
