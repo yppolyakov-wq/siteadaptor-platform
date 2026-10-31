@@ -18,6 +18,12 @@ from apps.core import health, lite_cabinet, owner_login, tg_login
 from apps.core.demo_switch import demo_design_switch
 from apps.core.design_page import design_view
 from apps.core.media_views import serve_media
+from apps.core.redirects_views import (
+    redirect_delete,
+    redirects_export,
+    redirects_import,
+    redirects_view,
+)
 from apps.core.settings_home import einstellungen_home
 from apps.core.storefront_profile import redirect_if_aktionen as _aktionen
 from apps.core.team import team_join, team_view
@@ -191,6 +197,19 @@ urlpatterns = [
     path("dashboard/site/scope/save/", studio_scope_save, name="site-scope-save"),
     path("dashboard/site/menu/", menu_builder_view, name="site-menu"),
     path("dashboard/site/seo/", seo_settings_view, name="site-seo"),
+    # M21.1: старые адреса после переезда (301/410 на 404 витрины).
+    path("dashboard/site/weiterleitungen/", redirects_view, name="site-redirects"),
+    path("dashboard/site/weiterleitungen/import/", redirects_import, name="site-redirects-import"),
+    path(
+        "dashboard/site/weiterleitungen/export.csv",
+        redirects_export,
+        name="site-redirects-export",
+    ),
+    path(
+        "dashboard/site/weiterleitungen/<uuid:pk>/loeschen/",
+        redirect_delete,
+        name="site-redirect-delete",
+    ),
     path("dashboard/site/sections/", sections_view, name="site-sections"),
     path("dashboard/site/pages/", pages_view, name="site-pages"),
     path("dashboard/site/preview/", site_preview, name="site-preview"),

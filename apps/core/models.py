@@ -416,3 +416,43 @@ class DealPayment(TimestampedModel):
 
     def __str__(self):
         return f"{self.deal_kind}:{self.deal_id} {self.purpose} {self.amount_cents}"
+
+
+class LegacyRedirect(TimestampedModel):
+    """M21.1: переадресация со старого адреса (переезд с другой платформы).
+
+    Работает только там, где витрина ответила 404 (`LegacyRedirectMiddleware`),
+    поэтому существующие страницы перекрыть нельзя и обычные запросы не платят
+    ни одного обращения к БД. ``source_path`` хранится нормализованным (без
+    хвостового «/», кроме корня; percent-decoded); ``source_query`` — канонические
+    параметры, которые обязаны совпасть («» = любой query). Логика —
+    ``apps/core/legacy_redirects.py``.
+    """
+
+    STATUS_MOVED = 301
+    STATUS_GONE = 410
+    STATUS_CHOICES = [
+        (STATUS_MOVED, _("Weiterleiten (301)")),
+        (STATUS_GONE, _("Entfernt (410)")),
+    ]
+    ORIGIN_CHOICES = [("manual", _("Manuell")), ("import", _("Import"))]
+
+    source_path = models.CharField(max_length=500)
+    source_query = models.CharField(max_length=500, blank=True, default="")
+    target = models.CharField(max_length=500, blank=True, default="")
+    status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=STATUS_MOVED)
+    origin = models.CharField(max_length=10, choices=ORIGIN_CHOICES, default="manual")
+    hits = models.PositiveIntegerField(default=0)
+    last_hit_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["source_path", "source_query"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source_path", "source_query"], name="legacyredirect_source_uniq"
+            )
+        ]
+
+    def __str__(self):
+        q = f"?{self.source_query}" if self.source_query else ""
+        return f"{self.source_path}{q} → {self.target or self.status}"

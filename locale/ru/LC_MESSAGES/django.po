@@ -31445,3 +31445,94 @@ msgstr "Этот код не действует на товары, на кото
 #: templates/inbox/thread.html:51
 msgid "Priorität"
 msgstr "Приоритет"
+
+msgid "%(n)s Aufrufe"
+msgstr "%(n)s переходов"
+
+msgid "Alte Adresse"
+msgstr "Старый адрес"
+
+msgid "Neue Adresse"
+msgstr "Новый адрес"
+
+msgid "Alte und neue Adresse sind gleich."
+msgstr "Старый и новый адрес совпадают."
+
+msgid "Bitte eine CSV-Datei wählen."
+msgstr "Выберите CSV-файл."
+
+msgid "CSV importieren"
+msgstr "Импорт CSV"
+
+msgid "Das Ziel muss eine Adresse dieser Website sein, z. B. /sortiment/."
+msgstr "Цель должна быть адресом этого сайта, например /sortiment/."
+
+msgid "Die Adresse ist zu lang."
+msgstr "Адрес слишком длинный."
+
+msgid "Die Datei ist zu groß (max. 1 MB)."
+msgstr "Файл слишком большой (макс. 1 МБ)."
+
+msgid "Entfernt (410)"
+msgstr "Удалено (410)"
+
+msgid "Weiterleiten (301)"
+msgstr "Переадресация (301)"
+
+msgid ""
+"Für den Umzug von einer anderen Website: Wer eine alte Adresse aufruft, "
+"landet auf der neuen Seite. So behalten Sie Ihre Plätze bei Google. Eine "
+"Weiterleitung greift nur, wenn es unter der alten Adresse keine Seite gibt."
+msgstr ""
+"Для переезда с другого сайта: кто откроет старый адрес, попадёт на новую "
+"страницу. Так вы сохраните позиции в Google. Переадресация срабатывает, "
+"только если по старому адресу нет страницы."
+
+msgid "Importiert: %(c)s neu, %(u)s aktualisiert."
+msgstr "Импортировано: новых %(c)s, обновлено %(u)s."
+
+msgid "Noch keine Weiterleitungen."
+msgstr "Переадресаций пока нет."
+
+msgid ""
+"Spalten: alte Adresse; neue Adresse; Status (301 oder 410, leer = 301)."
+msgstr ""
+"Столбцы: старый адрес; новый адрес; статус (301 или 410, пусто = 301)."
+
+msgid "Ungültige alte Adresse."
+msgstr "Неверный старый адрес."
+
+msgid "Ungültiger Status."
+msgstr "Неверный статус."
+
+msgid "Weiterleitung aktualisiert."
+msgstr "Переадресация обновлена."
+
+msgid "Weiterleitung angelegt."
+msgstr "Переадресация создана."
+
+msgid "Weiterleitung gelöscht."
+msgstr "Переадресация удалена."
+
+msgid "Weiterleitungen"
+msgstr "Переадресации"
+
+msgid "Zeile %(n)s: %(msg)s"
+msgstr "Строка %(n)s: %(msg)s"
+
+msgid "Zu viele Zeilen (max. 5000)."
+msgstr "Слишком много строк (макс. 5000)."
+
+msgid ""
+"„Entfernt (410)“ meldet Suchmaschinen, dass es die Seite nicht mehr gibt — "
+"die neue Adresse bleibt dann leer."
+msgstr ""
+"«Удалено (410)» сообщает поисковикам, что страницы больше нет, — новый адрес"
+" тогда оставьте пустым."
+
+msgid "%(n)s Weiterleitung"
+msgid_plural "%(n)s Weiterleitungen"
+msgstr[0] "%(n)s переадресация"
+msgstr[1] "%(n)s переадресации"
+msgstr[2] "%(n)s переадресаций"
+msgstr[3] "%(n)s переадресаций"

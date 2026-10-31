@@ -31168,3 +31168,91 @@ msgstr "This code does not apply to items that are already discounted."
 #: templates/inbox/thread.html:51
 msgid "Priorität"
 msgstr "Priority"
+
+msgid "%(n)s Aufrufe"
+msgstr "%(n)s visits"
+
+msgid "Alte Adresse"
+msgstr "Old address"
+
+msgid "Neue Adresse"
+msgstr "New address"
+
+msgid "Alte und neue Adresse sind gleich."
+msgstr "The old and new address are the same."
+
+msgid "Bitte eine CSV-Datei wählen."
+msgstr "Please choose a CSV file."
+
+msgid "CSV importieren"
+msgstr "Import CSV"
+
+msgid "Das Ziel muss eine Adresse dieser Website sein, z. B. /sortiment/."
+msgstr "The target must be an address on this website, e.g. /sortiment/."
+
+msgid "Die Adresse ist zu lang."
+msgstr "The address is too long."
+
+msgid "Die Datei ist zu groß (max. 1 MB)."
+msgstr "The file is too large (max. 1 MB)."
+
+msgid "Entfernt (410)"
+msgstr "Removed (410)"
+
+msgid "Weiterleiten (301)"
+msgstr "Redirect (301)"
+
+msgid ""
+"Für den Umzug von einer anderen Website: Wer eine alte Adresse aufruft, "
+"landet auf der neuen Seite. So behalten Sie Ihre Plätze bei Google. Eine "
+"Weiterleitung greift nur, wenn es unter der alten Adresse keine Seite gibt."
+msgstr ""
+"For moving from another website: anyone who opens an old address lands on "
+"the new page. This keeps your rankings on Google. A redirect only applies if"
+" there is no page at the old address."
+
+msgid "Importiert: %(c)s neu, %(u)s aktualisiert."
+msgstr "Imported: %(c)s new, %(u)s updated."
+
+msgid "Noch keine Weiterleitungen."
+msgstr "No redirects yet."
+
+msgid ""
+"Spalten: alte Adresse; neue Adresse; Status (301 oder 410, leer = 301)."
+msgstr "Columns: old address; new address; status (301 or 410, empty = 301)."
+
+msgid "Ungültige alte Adresse."
+msgstr "Invalid old address."
+
+msgid "Ungültiger Status."
+msgstr "Invalid status."
+
+msgid "Weiterleitung aktualisiert."
+msgstr "Redirect updated."
+
+msgid "Weiterleitung angelegt."
+msgstr "Redirect created."
+
+msgid "Weiterleitung gelöscht."
+msgstr "Redirect deleted."
+
+msgid "Weiterleitungen"
+msgstr "Redirects"
+
+msgid "Zeile %(n)s: %(msg)s"
+msgstr "Row %(n)s: %(msg)s"
+
+msgid "Zu viele Zeilen (max. 5000)."
+msgstr "Too many rows (max. 5000)."
+
+msgid ""
+"„Entfernt (410)“ meldet Suchmaschinen, dass es die Seite nicht mehr gibt — "
+"die neue Adresse bleibt dann leer."
+msgstr ""
+"“Removed (410)” tells search engines the page no longer exists — leave the "
+"new address empty."
+
+msgid "%(n)s Weiterleitung"
+msgid_plural "%(n)s Weiterleitungen"
+msgstr[0] "%(n)s redirect"
+msgstr[1] "%(n)s redirects"

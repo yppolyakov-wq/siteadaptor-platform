@@ -20661,3 +20661,24 @@ iOS не зумит), основные кнопки → `ui-btn ui-btn-primary[ 
   переводы под базовым полем, `_i18n_row.html`/`_i18n_inline.html` + тег `i18n_inputs` для
   списков, `save_row_translations` (только оверлеи, presence-guard). Ваучеры — осознанно нет.
   Стенд: 5 экранов демо, выпадашка у заголовка переключает поля. +4 замка в `test_lang_switch`.
+
+## 2026-10-31 — M21.1 + M21.2: переезд магазина с CS-Cart (haanerteeladen.de)
+
+Запрос владельца: перенести haanerteeladen.de (CS-Cart) «со всем импортом, страницами и
+переадресациями, без потери индексации». План — `docs/m21-cscart-migration-plan-2026-10-31.md`.
+- **M21.1 (⚠️ миграция `core/0014`, новая таблица):** `core.LegacyRedirect` + сервис
+  `apps/core/legacy_redirects.py` (нормализация, подбор самого специфичного правила по
+  query-параметрам — ловит `index.php?dispatch=…&product_id=N&sl=de`, цель только
+  локальная, CSV импорт/экспорт с нейтрализацией формул) + `LegacyRedirectMiddleware`
+  (только ответ 404 витрины, GET/HEAD; 301 или та же 404-страница со статусом 410;
+  fail-open) + экран «Weiterleitungen» (Website, `/dashboard/site/weiterleitungen/`).
+- **M21.2 (без миграций):** `apps/imports/cscart.py` + команда `import_cscart` (dry-run по
+  умолчанию): дерево категорий из `/sitemap/`, товары из JSON-LD с фасовками (подписи из
+  радио, фото фасовок из `det_img_*`), Grundpreis в граммах, НДС 7 %, описание через
+  `richtext.sanitize`, фото через `safe_fetch`; переадресации товаров/категорий/
+  `index.php`/стандартных путей CS-Cart, мусор демо (блог, `/contacts/`) → 410; AGB → LegalDoc
+  (если пусто), «Über uns» → профиль (если пусто). Идемпотентно.
+- Прогон на живом сайте нашёл: базовая фасовка в JSON-LD с `?variation_id=<product_id>`;
+  13 трав «цена по запросу» (скрываются до цены — PAngV); коллизии слагов → суффикс категории.
+- Замки: `test_legacy_redirects` (16), `test_cscart` (11); осознанно обновлены
+  `test_sidebar_st4b` (новый подпункт Website) и EXPECTED_UNLISTED (`test_x0_x7_locks`).

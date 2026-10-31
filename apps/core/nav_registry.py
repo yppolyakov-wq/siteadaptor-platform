@@ -944,6 +944,16 @@ ENTRIES: tuple[NavEntry, ...] = (
     # DL-7b: переключатель шаблонов (сборки + Look'и) — первым подпунктом Website.
     _e("site", "design", _("Design"), "design", None, False, "vorlage look theme farben schrift"),
     _e("site", "site-seo", _("SEO"), "seo", None, True, "meta titel beschreibung robots"),
+    # M21.1: старые адреса после переезда с другой платформы (301/410).
+    _e(
+        "site",
+        "site-redirects",
+        _("Weiterleitungen"),
+        "redirects",
+        None,
+        True,
+        "umzug alte adressen 301 410 redirect",
+    ),
     _e(
         "site",
         "domains",
@@ -1099,6 +1109,7 @@ UNIVERSAL: dict[str, str] = {
     "support:help": "помощь — у каждого",
     "design": "дизайн сайта — у каждого",
     "site-seo": "SEO сайта — у каждого",
+    "site-redirects": "переадресации старых адресов — у каждого",
     "domains": "домены — у каждого",
     "media-library": "медиатека — у каждого",
     "sellable-manage": "обзор ассортимента — у каждого",
