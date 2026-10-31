@@ -41,7 +41,6 @@ MAX_PRODUCTS = 2000
 # Стандартные адреса CS-Cart → страницы витрины (url-name; None = 410 «удалено»).
 STATIC_ROUTES = {
     "/allgemeine-geschaftsbedienungen": "storefront-agb",
-    "/agb": "storefront-agb",
     "/privacy-policy": "storefront-privacy",
     "/cart": "storefront-cart",
     "/checkout": "storefront-cart",
@@ -722,7 +721,7 @@ def _save_variants(product, p: CsProduct, fetch_image, stats: ApplyStats) -> Non
     from apps.catalog.models import ProductVariant
 
     priced = [v for v in p.variants if v.price > 0]
-    if len(priced) < len(p.variants):
+    if 0 < len(priced) < len(p.variants):  # все без цены — уже отмечено у товара
         stats.notes.append(f"variants without price skipped: {p.sku} {p.name}")
     if len(priced) < 2:
         return
