@@ -229,3 +229,74 @@ def test_same_slug_in_two_categories_gets_category_suffix():
         with_images=False,
     )
     assert set(Product.objects.values_list("slug", flat=True)) == {"chai", "chai-schwarzertee"}
+
+
+def _prod(path, variants, **kw):
+    return cscart.CsProduct(
+        url=BASE + path + "/",
+        path=path,
+        name=kw.pop("name", "Tee"),
+        sku=kw.pop("sku", "HT1"),
+        variants=variants,
+        **kw,
+    )
+
+
+def _v(sku, price, label="", stock=True):
+    return cscart.CsVariant(
+        sku=sku,
+        price=Decimal(price),
+        url=BASE,
+        label=label,
+        grams=cscart.grams_of(label),
+        in_stock=stock,
+    )
+
+
+@pytest.mark.django_db
+def test_zero_price_variant_skipped_and_single_offer_out_of_stock():
+    p = _prod("tee/a", [_v("A", "5", "100g"), _v("A.1", "12", "250g"), _v("A.2", "0", "1kg")])
+    q = _prod("tee/b", [_v("B", "4", stock=False)], sku="B")
+    stats = cscart.apply_site(cscart.ScrapedSite(base=BASE, products=[p, q]), with_images=False)
+    a = Product.objects.get(sku="HT1")
+    assert sorted(a.variants.values_list("sku", flat=True)) == ["A", "A.1"]
+    assert any("without price" in n for n in stats.notes)
+    assert Product.objects.get(sku="B").stock_quantity == 0
+
+
+@pytest.mark.django_db
+def test_rerun_keeps_owner_stock_visibility_and_category():
+    p = _prod("tee/a", [_v("A", "5", "100g"), _v("A.1", "12", "250g")])
+    site = cscart.ScrapedSite(base=BASE, products=[p])
+    cscart.apply_site(site, with_images=False)
+    product = Product.objects.get()
+    other = Category.objects.create(name={"de": "Neu"}, slug="neu")
+    Product.objects.filter(pk=product.pk).update(category=other, vat_rate=Decimal("19"))
+    product.variants.filter(sku="A.1").update(stock_quantity=7, is_active=False, label="Groß")
+    p.variants[1].price = Decimal("13.50")
+    cscart.apply_site(site, with_images=False)
+    product.refresh_from_db()
+    v = product.variants.get(sku="A.1")
+    assert (v.stock_quantity, v.is_active, v.label, v.price) == (7, False, "Groß", Decimal("13.50"))
+    assert product.category == other and product.vat_rate == Decimal("19.00")
+
+
+@pytest.mark.django_db
+def test_variants_without_sku_do_not_collapse():
+    p = _prod("tee/a", [_v("", "5", "100g"), _v("", "12", "250g")])
+    cscart.apply_site(cscart.ScrapedSite(base=BASE, products=[p]), with_images=False)
+    assert Product.objects.get().variants.count() == 2
+
+
+@pytest.mark.django_db
+def test_import_does_not_override_manual_rule():
+    legacy_redirects.upsert("/blog/", "/ueber-uns/")
+    cscart.apply_site(cscart.ScrapedSite(base=BASE), with_images=False)
+    rule = LegacyRedirect.objects.get(source_path="/blog")
+    assert rule.origin == "manual" and rule.target == "/ueber-uns/"
+
+
+def test_variant_image_prefers_longest_id():
+    images = {"53000806": "u806", "53000006": "u6"}
+    assert cscart._variant_image(images, "806", {"6", "806"}) == "u806"
+    assert cscart._variant_image(images, "6", {"6", "806"}) == "u6"

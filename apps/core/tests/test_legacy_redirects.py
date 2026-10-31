@@ -109,3 +109,15 @@ def test_csv_import_and_export_roundtrip():
 def test_csv_formula_cells_neutralized():
     assert lr._safe_cell("=HYPERLINK()") == "'=HYPERLINK()"
     assert lr._safe_cell("/ok/") == "/ok/"
+
+
+def test_encoded_control_chars_and_long_paths_rejected():
+    for bad in ("/a%00b", "/a%0Ab", "/" + "ä" * 300):
+        with pytest.raises(lr.RedirectError):
+            lr.parse_source(bad)
+
+
+def test_two_rule_loop_rejected():
+    lr.upsert("/a/", "/b/")
+    with pytest.raises(lr.RedirectError):
+        lr.upsert("/b/", "/a/")

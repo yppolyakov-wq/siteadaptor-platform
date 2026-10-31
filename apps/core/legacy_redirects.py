@@ -68,7 +68,11 @@ def parse_source(text: str) -> tuple[str, str]:
         raise RedirectError(_("Ungültige alte Adresse."))
     path = normalize_path(parts.path)
     query = canonical_query(parts.query)
-    if len(path) > MAX_LEN or len(query) > MAX_LEN:
+    # После раскодирования: «%00»/«%0a» стали бы управляющими символами (NUL роняет
+    # Postgres); длину меряем в байтах — уникальный индекс btree ограничен по размеру.
+    if not _no_control(path) or "\\" in path:
+        raise RedirectError(_("Ungültige alte Adresse."))
+    if len(path.encode()) > MAX_LEN or len(query.encode()) > MAX_LEN:
         raise RedirectError(_("Die Adresse ist zu lang."))
     return path, query
 
@@ -101,8 +105,14 @@ def upsert(
     else:
         target = clean_target(target)
         tparts = urlsplit(target)
-        if normalize_path(tparts.path) == path and canonical_query(tparts.query) == query:
+        tpath, tquery = normalize_path(tparts.path), canonical_query(tparts.query)
+        if tpath == path and tquery == query:
             raise RedirectError(_("Alte und neue Adresse sind gleich."))
+        # Цикл из двух правил (A → B, B → A) — браузер ушёл бы в бесконечную переадресацию.
+        for back in LegacyRedirect.objects.filter(source_path=tpath, source_query=tquery):
+            bparts = urlsplit(back.target)
+            if normalize_path(bparts.path) == path and canonical_query(bparts.query) == query:
+                raise RedirectError(_("Alte und neue Adresse sind gleich."))
     obj, created = LegacyRedirect.objects.update_or_create(
         source_path=path,
         source_query=query,

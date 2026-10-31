@@ -283,6 +283,7 @@ def parse_product(html: str, url: str) -> CsProduct | None:
             flat.extend(o for o in offer["offers"] if isinstance(o, dict))
         elif isinstance(offer, dict):
             flat.append(offer)
+    vids_all = {_variation_id(html_lib.unescape(str(o.get("url") or ""))) for o in flat} - {""}
     for offer in flat:
         price = _price(offer.get("price", offer.get("lowPrice")))
         if price is None:
@@ -297,7 +298,7 @@ def parse_product(html: str, url: str) -> CsProduct | None:
         image = ""
         if vid:
             product.variation_ids.append(vid)
-            image = next((u for k, u in variant_images.items() if k.endswith(vid) and u), "")
+            image = _variant_image(variant_images, vid, vids_all)
         product.variants.append(
             CsVariant(
                 sku=str(offer.get("sku") or "")[:100],
@@ -313,6 +314,16 @@ def parse_product(html: str, url: str) -> CsProduct | None:
         return None
     product.variants.sort(key=lambda v: (v.grams is None, v.grams or 0, v.price))
     return product
+
+
+def _variant_image(images: dict, vid: str, vids: set) -> str:
+    """Фото блока ``det_img_<префикс><variation_id>``: ключ относим к САМОМУ ДЛИННОМУ id,
+    которым он кончается — иначе id 6 «забирал» бы фото варианта 806."""
+    for key, url in images.items():
+        owners = [v for v in vids if key.endswith(v)]
+        if url and owners and max(owners, key=len) == vid:
+            return url
+    return ""
 
 
 def html_to_text(html: str) -> str:
@@ -389,6 +400,8 @@ def scrape(base: str, *, fetch=None, pause: float = PAGE_PAUSE_S, log=None) -> S
                 break
     log(f"product pages: {len(product_urls)}")
 
+    if len(product_urls) > MAX_PRODUCTS:
+        site.errors.append(f"more than {MAX_PRODUCTS} products — only the first were read")
     for url in sorted(product_urls)[:MAX_PRODUCTS]:
         html = get(url)
         if html is None:
@@ -432,6 +445,15 @@ def _redirect(source: str, target: str | None, stats: ApplyStats) -> None:
     from apps.core.models import LegacyRedirect
 
     status = LegacyRedirect.STATUS_GONE if target is None else LegacyRedirect.STATUS_MOVED
+    try:
+        path, query = legacy_redirects.parse_source(source)
+    except legacy_redirects.RedirectError as exc:
+        stats.notes.append(f"redirect {source}: {exc}")
+        return
+    if LegacyRedirect.objects.filter(
+        source_path=path, source_query=query, origin="manual"
+    ).exists():
+        return  # правило, заданное владельцем вручную, важнее импорта
     try:
         legacy_redirects.upsert(source, target or "", status=status, origin="import")
     except legacy_redirects.RedirectError as exc:
@@ -515,13 +537,9 @@ def _save_product(p: CsProduct, category, vat: Decimal, stats: ApplyStats):
     base_variant = p.variants[0]
     grams = base_variant.grams or name_grams(p.name)
     product = Product.objects.filter(metadata__cscart__url=p.url).first()
-    fields = {
-        "sku": p.sku or base_variant.sku,
-        "category": category,
-        "vat_rate": vat,
-        "unit": "g" if grams else "",
-        "content_amount": grams,
-    }
+    # Повторный прогон синхронизирует только цену и вес (план §7 п.8 — «перед
+    # переключением DNS»); категория, НДС, склад и видимость — уже владельца.
+    fields = {"unit": "g" if grams else "", "content_amount": grams}
     no_price = base_variant.price <= 0
     if not no_price:
         fields["base_price"] = base_variant.price
@@ -531,8 +549,13 @@ def _save_product(p: CsProduct, category, vat: Decimal, stats: ApplyStats):
             description={"de": sanitize(p.description_html)},
             slug=unique_slug(Product, _product_slug_base(p)),
             metadata={"cscart": {"url": p.url, "product_id": p.product_id, "path": p.path}},
+            sku=p.sku or base_variant.sku,
+            category=category,
+            vat_rate=vat,
             **{"base_price": base_variant.price, **fields},
         )
+        if len(p.variants) == 1 and not base_variant.in_stock:
+            product.stock_quantity = 0
         if no_price:
             # CS-Cart: «Kontaktieren Sie uns für den Preis». «0,00 €» на витрине — это
             # неверная цена (PAngV) → товар скрыт до цены от владельца.
@@ -553,18 +576,28 @@ def _save_product(p: CsProduct, category, vat: Decimal, stats: ApplyStats):
 def _save_variants(product, p: CsProduct, fetch_image, stats: ApplyStats) -> None:
     from apps.catalog.models import ProductVariant
 
-    if len(p.variants) < 2:
+    priced = [v for v in p.variants if v.price > 0]
+    if len(priced) < len(p.variants):
+        stats.notes.append(f"variants without price skipped: {p.sku} {p.name}")
+    if len(priced) < 2:
         return
-    for i, v in enumerate(p.variants):
-        variant = ProductVariant.objects.filter(product=product, sku=v.sku).first()
+    for i, v in enumerate(priced):
+        # Без артикула ключ — артикул товара + номер фасовки, иначе фасовки слились бы в одну.
+        sku = v.sku or f"{p.sku or product.pk}.v{i}"
+        variant = ProductVariant.objects.filter(product=product, sku=sku).first()
         if variant is None:
-            variant = ProductVariant(product=product, sku=v.sku)
-        variant.label = v.label or v.sku
+            # Новая фасовка: всё из старого магазина. Повторный прогон обновляет только
+            # цену и вес — склад, видимость и подпись остаются за владельцем.
+            variant = ProductVariant(
+                product=product,
+                sku=sku,
+                label=v.label or sku,
+                stock_quantity=None if v.in_stock else 0,
+                sort_order=i,
+                is_active=True,
+            )
         variant.price = v.price
         variant.content_amount = v.grams
-        variant.stock_quantity = None if v.in_stock else 0
-        variant.sort_order = i
-        variant.is_active = True
         if fetch_image and v.image_url and not variant.images:
             ref = _save_image(v.image_url, fetch_image)
             if ref:
