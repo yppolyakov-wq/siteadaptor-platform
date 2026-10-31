@@ -1363,6 +1363,10 @@ def units(request, pk=None):
             )
             settings_obj.house_rules = request.POST.get("house_rules", "").strip()[:8000]
             fields = ["kurtaxe_cents", "kurtaxe_label", "house_rules", "updated_at"]
+            # E9.10: переводы Hausordnung — в той же форме (выпадашка у заголовка).
+            fields += apply_i18n_overlay(
+                settings_obj, request.POST, getattr(request, "tenant", None), ("house_rules",)
+            )
             # KA-12 Z-6: Kurtaxe детей — presence-guard (снятый чекбокс не приходит).
             if request.POST.get("kurtaxe_children_present"):
                 settings_obj.kurtaxe_children_free = bool(request.POST.get("kurtaxe_children_free"))

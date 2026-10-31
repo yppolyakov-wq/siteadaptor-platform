@@ -5,7 +5,11 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="ui-h1">{% nav_title _("Passes / 10er-Karten") %}</h1>
+  {# E9.10: язык ввода — выпадашка у заголовка; переводы тарифов — под строками. #}
+  <div class="flex items-center gap-3 flex-wrap">
+    <h1 class="ui-h1">{% nav_title _("Passes / 10er-Karten") %}</h1>
+    {% lang_switch %}
+  </div>
   <a href="{% url 'booking:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
 </div>
 
@@ -80,6 +84,7 @@
       <div>
         <span class="font-medium">{{ plan.label }}</span>
         <span class="text-sm text-gray-500 block">{{ plan.credits }}× · {{ plan.price_eur|floatformat:2 }} €{% if plan.service %} · {{ plan.service.name }}{% endif %}{% if plan.valid_days %} · {{ plan.valid_days }} {% trans "days" %}{% endif %}</span>
+        {% include "tenant/_i18n_row.html" with obj=plan fields="label" id_name="plan" id_value=plan.pk action="plan_i18n" %}
       </div>
       <form method="post">{% csrf_token %}<input type="hidden" name="action" value="plan_toggle"><input type="hidden" name="plan" value="{{ plan.pk }}">
         <button class="text-xs text-gray-500 hover:underline">{% if plan.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
@@ -95,9 +100,10 @@
   <input type="hidden" name="action" value="plan_add">
   <h3 class="font-semibold">{% trans "Add card plan" %}</h3>
   <div class="grid sm:grid-cols-2 gap-4">
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Label" %}</span>
+    {% i18n_base_locale as base_loc %}<div>
+      <label class="block" data-i18n-loc="{{ base_loc }}"><span class="block text-sm font-medium mb-1">{% trans "Label" %}</span>
       <input name="label" type="text" placeholder="10er-Karte Yoga" class="ui-input"></label>
+      {% include "tenant/_i18n_inline.html" with obj=None fields="label" %}
     </div>
     <div>
       <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Bind to service (optional)" %}</span>

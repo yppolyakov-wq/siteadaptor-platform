@@ -55,3 +55,18 @@ def i18n_loc(bound_field):
     Пусто у обычных полей: их выпадашка языка не скрывает."""
     field = getattr(bound_field, "field", None)
     return getattr(field, "i18n_loc", "") or ""
+
+
+@register.filter
+def i18n_siblings(bound_field):
+    """E9.10: поля переводов этого базового поля (`OverlayI18nFormMixin`).
+
+    Партиал поля (`catalog/_pf_field.html`) рисует их сразу под базовым, каждое —
+    в своей языковой группе: формы, которые перебирают поля по имени, получают
+    переводы без правки каждого места."""
+    field = getattr(bound_field, "field", None)
+    form = getattr(bound_field, "form", None)
+    names = getattr(field, "i18n_siblings", None) or []
+    if form is None:
+        return []
+    return [form[n] for n in names if n in form.fields]

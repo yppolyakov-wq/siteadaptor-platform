@@ -211,8 +211,17 @@ class OverlayI18nFormMixin:
         from django import forms as dj_forms
 
         base = settings.LANGUAGE_CODE
+        # Повторный вызов (форма знает тенанта точнее, чем соединение) — начинаем
+        # с чистого листа: прежние поля переводов снимаем.
+        for name in getattr(self, "_overlay_added", ()):
+            self.fields.pop(name, None)
+        self._overlay_added = []
         self._overlay_locales = extra_locales(tenant)
         if not self._overlay_locales:
+            for name in self.overlay_i18n_fields:
+                if name in self.fields:
+                    self.fields[name].i18n_loc = ""
+                    self.fields[name].i18n_siblings = []
             return
         ordered = {}
         for name, field in self.fields.items():
@@ -220,6 +229,7 @@ class OverlayI18nFormMixin:
             if name not in self.overlay_i18n_fields:
                 continue
             field.i18n_loc = base
+            field.i18n_siblings = [f"{name}_{loc}" for loc in self._overlay_locales]
             overlay = getattr(self.instance, f"{name}_i18n", None) or {}
             for loc in self._overlay_locales:
                 widget = (
@@ -236,6 +246,7 @@ class OverlayI18nFormMixin:
                 )
                 extra.i18n_loc = loc
                 ordered[f"{name}_{loc}"] = extra
+                self._overlay_added.append(f"{name}_{loc}")
         self.fields = ordered
 
     def _post_clean(self):
@@ -257,3 +268,20 @@ class OverlayI18nFormMixin:
                 else:
                     overlay.pop(loc, None)
             setattr(self.instance, overlay_field, overlay)
+
+
+def save_row_translations(obj, post, tenant, fields) -> bool:
+    """E9.10: сохранить переводы одной строки списка (доп. услуга, тариф карты,
+    программа лояльности, группа набора) из формы «под строкой».
+
+    Только оверлеи: базовые поля строки не трогаем (у таких экранов база
+    правится в другом месте или не правится вовсе). Presence-guard — как у
+    `apply_i18n_overlay`. True — если что-то изменилось."""
+    changed = apply_i18n_overlay(obj, post, tenant, fields=fields)
+    if not changed:
+        return False
+    update = list(changed)
+    if any(f.name == "updated_at" for f in obj._meta.concrete_fields):
+        update.append("updated_at")
+    obj.save(update_fields=update)
+    return True

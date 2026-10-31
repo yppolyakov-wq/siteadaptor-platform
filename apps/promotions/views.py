@@ -1846,6 +1846,16 @@ def voucher_redeem(request):
 
 @login_required
 def loyalty_list(request):
+    if request.method == "POST" and request.POST.get("action") == "i18n":
+        # E9.10: переводы названия/подарка существующей программы — под строкой.
+        from apps.core.i18n_input import save_row_translations
+
+        program = get_object_or_404(LoyaltyProgram, pk=request.POST.get("program"))
+        save_row_translations(
+            program, request.POST, getattr(request, "tenant", None), ("label", "reward_label")
+        )
+        messages.success(request, _("Saved."))
+        return redirect("promotions:loyalty-list")
     form = LoyaltyProgramForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         form.save()

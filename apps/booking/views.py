@@ -31,6 +31,7 @@ from apps.core.i18n_input import (
     apply_seq_overlay,
     extra_locales,
     i18n_inputs_for,
+    save_row_translations,
 )
 
 from . import services, table_rules
@@ -798,7 +799,7 @@ def resources(request):
         if action == "resource":
             name = request.POST.get("name", "").strip()
             if name:
-                Resource.objects.create(
+                resource = Resource(
                     name=name,
                     type=request.POST.get("type", Resource.TYPE_TABLE),
                     capacity=_bounded_int(request.POST.get("capacity"), 1, 1, 100),
@@ -808,7 +809,18 @@ def resources(request):
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
                     require_manual_confirm=bool(request.POST.get("require_manual_confirm")),
                 )
+                # E9.10: переводы названия — до первого save, одной записью.
+                apply_i18n_overlay(
+                    resource, request.POST, getattr(request, "tenant", None), ("name",)
+                )
+                resource.save()
                 messages.success(request, _("Resource created."))
+        elif action == "i18n":  # E9.10: переводы названия стола/зала под строкой
+            resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
+            save_row_translations(
+                resource, request.POST, getattr(request, "tenant", None), ("name",)
+            )
+            messages.success(request, _("Saved."))
         elif action == "rule":
             resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
             try:
@@ -935,6 +947,10 @@ def resources(request):
             resource.title = request.POST.get("title", "").strip()[:120]
             resource.bio = request.POST.get("bio", "").strip()[:2000]
             fields = ["title", "bio", "updated_at"]
+            # E9.10: переводы имени/роли/био мастера — в той же форме профиля.
+            fields += apply_i18n_overlay(
+                resource, request.POST, getattr(request, "tenant", None), ("name", "title", "bio")
+            )
             new_photo = _uploaded_image_ref(request, "photo", "staff")
             if new_photo or request.POST.get("remove_photo"):
                 resource.photo = new_photo or {}
@@ -1658,14 +1674,21 @@ def passes_view(request):
         elif action == "plan_add":  # A3: тариф для онлайн-продажи
             label = request.POST.get("label", "").strip() or "Mehrfachkarte"
             svc = Service.objects.filter(pk=request.POST.get("service") or None).first()
-            PassPlan.objects.create(
+            plan = PassPlan(
                 label=label[:120],
                 credits=_int(request.POST.get("credits"), 10, 1, 100),
                 price_cents=_cents(request.POST.get("price")),
                 valid_days=_int(request.POST.get("valid_days"), 0, 0, 3650),
                 service=svc,
             )
+            # E9.10: переводы названия тарифа (выпадашка языка у заголовка).
+            apply_i18n_overlay(plan, request.POST, getattr(request, "tenant", None), ("label",))
+            plan.save()
             messages.success(request, _("Card plan added."))
+        elif action == "plan_i18n":  # E9.10: переводы названия тарифа под строкой
+            plan = get_object_or_404(PassPlan, pk=request.POST.get("plan"))
+            save_row_translations(plan, request.POST, getattr(request, "tenant", None), ("label",))
+            messages.success(request, _("Saved."))
         elif action == "plan_toggle":
             plan = get_object_or_404(PassPlan, pk=request.POST.get("plan"))
             plan.is_active = not plan.is_active

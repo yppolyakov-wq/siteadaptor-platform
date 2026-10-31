@@ -1,7 +1,20 @@
-{% load i18n widget_tweaks form_a11y %}
-<div>
+{% load i18n widget_tweaks form_a11y cabinet %}
+{% comment %}Поле формы кабинета. E9.10: у переводимого поля (OverlayI18nFormMixin) под ним
+рисуются поля переводов — каждое в своей языковой группе [data-i18n-loc], видна группа
+языка, выбранного в выпадашке у заголовка. Обычные поля — без обёртки.{% endcomment %}
+{% with loc=field|i18n_loc %}
+{% if loc %}{% i18n_base_locale as base_loc %}{% endif %}
+<div{% if loc %} data-i18n-loc="{{ loc }}"{% if loc != base_loc %} class="hidden"{% endif %}{% endif %}>
   <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
   {% render_field field|a11y class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
   {% if field.help_text %}<p class="text-xs text-gray-400 mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
   {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
 </div>
+{% for tr in field|i18n_siblings %}
+<div data-i18n-loc="{{ tr.field.i18n_loc }}" class="hidden">
+  <label class="block text-sm font-medium mb-1" for="{{ tr.id_for_label }}">{{ tr.label }}</label>
+  {% render_field tr|a11y class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
+  {% if tr.errors %}<div id="{{ tr.auto_id }}_errors">{% for err in tr.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
+</div>
+{% endfor %}
+{% endwith %}

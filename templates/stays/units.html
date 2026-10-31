@@ -735,7 +735,8 @@
     </div>
     <div class="w-full">
       <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "House rules (Hausordnung) — shown as a public page when filled" %}</span>
-      <textarea name="house_rules" rows="4" class="ui-input" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea></label>
+{% i18n_base_locale as base_loc %}<div data-i18n-loc="{{ base_loc }}">      <textarea name="house_rules" rows="4" class="ui-input" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea></div></label>
+      {% include "tenant/_i18n_inline.html" with obj=stay_settings fields="house_rules" wrap_class="mt-2 space-y-2" %}
     </div>
     <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>

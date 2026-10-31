@@ -129,8 +129,9 @@
         <div class="border border-gray-200 rounded-xl p-4">
           <form method="post" action="{% url 'catalog:combo-group-update' combo.pk g.pk %}" class="flex flex-wrap items-end gap-2">
             {% csrf_token %}
-            <div><label class="block"><span class="block text-[11px] text-gray-500">{% trans "Group" %}</span>
-              <input name="label" value="{{ g.label }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
+            {% i18n_base_locale as base_loc %}<div data-i18n-loc="{{ base_loc }}"><div><label class="block"><span class="block text-[11px] text-gray-500">{% trans "Group" %}</span>
+              <input name="label" value="{{ g.label }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div></div>
+            {% include "tenant/_i18n_inline.html" with obj=g fields="label" wrap_class="flex flex-wrap gap-2" %}
             <div><label class="block"><span class="block text-[11px] text-gray-500">min</span>
               <input name="min" type="number" value="{{ g.min_select }}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
             <div><label class="block"><span class="block text-[11px] text-gray-500">max</span>

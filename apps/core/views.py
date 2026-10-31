@@ -42,6 +42,7 @@ def extras_view(request):
 
     Один движок на все архетипы (stays/booking/events); scope ограничивает
     применимость. Сейчас на витрине подключены stays."""
+    from apps.core.i18n_input import save_row_translations
     from apps.core.models import Extra
 
     if request.method == "POST":
@@ -113,7 +114,15 @@ def extras_view(request):
                     vat_rate=vat.parse_rate_optional(request.POST.get("vat_rate")),
                 )
                 _set_extra_image(request, extra)  # A5: опц. фото при создании
+                # E9.10: переводы названия (поля языков из выпадашки у заголовка).
+                save_row_translations(
+                    extra, request.POST, getattr(request, "tenant", None), ("label",)
+                )
                 messages.success(request, _("Extra added."))
+        elif action == "i18n":  # E9.10: переводы названия существующей доп. услуги
+            extra = get_object_or_404(Extra, pk=request.POST.get("extra"))
+            save_row_translations(extra, request.POST, getattr(request, "tenant", None), ("label",))
+            messages.success(request, _("Saved."))
         elif action == "set_image":  # A5: загрузить/заменить фото доп-услуги
             extra = get_object_or_404(Extra, pk=request.POST.get("extra"))
             if _set_extra_image(request, extra):

@@ -14,7 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.catalog.models import Product
 from apps.core import card_forms
 from apps.core.form_fields import MoneyField
-from apps.core.i18n_input import DynamicI18nFormMixin, extra_locales
+from apps.core.i18n_input import DynamicI18nFormMixin, OverlayI18nFormMixin, extra_locales
 from apps.loyalty.models import LoyaltyProgram
 
 from . import group_styles
@@ -761,7 +761,10 @@ class CouponCampaignForm(forms.Form):
         return cleaned
 
 
-class LoyaltyProgramForm(forms.ModelForm):
+class LoyaltyProgramForm(OverlayI18nFormMixin, forms.ModelForm):
+    # E9.10: переводы названия программы и подарка — выпадашкой языка у заголовка.
+    overlay_i18n_fields = ("label", "reward_label")
+
     class Meta:
         model = LoyaltyProgram
         fields = ["label", "stamps_required", "reward_label", "is_active"]

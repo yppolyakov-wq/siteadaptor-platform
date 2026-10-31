@@ -29,6 +29,7 @@ _LOCALE_INPUT = re.compile(
     r'name="\w+_\{\{ *(?:loc|inp\.locale|cell\.locale|p\.loc) *\}\}"'
     r"|name=\"\{\{ *inp\.input_name *\}\}\""
     r"|\bi18n_groups\b|overlay_i18n_inputs|\|i18n_loc\b|data-i18n-loc="
+    r"|tenant/_i18n_(?:row|inline)\.html"
 )
 
 
@@ -141,3 +142,61 @@ def test_overlay_mixin_is_inert_for_single_language():
     form = TeacherForm()
     form.init_overlay_i18n(tenant)
     assert not [n for n in form.fields if n.endswith("_en")]
+
+
+# --- E9.10b: переводы оставшихся текстов --------------------------------------
+
+
+@pytest.mark.django_db
+def test_row_translations_save_only_overlays_with_presence_guard():
+    from apps.core.i18n_input import save_row_translations
+    from apps.core.models import Extra
+
+    tenant = TenantFactory.build(enabled_locales=["de", "en", "ru"], default_locale="de")
+    extra = Extra.objects.create(label="Frühstück", price_cents=1200, label_i18n={"ru": "Завтрак"})
+    assert save_row_translations(extra, {"label_en": " Breakfast "}, tenant, ("label",))
+    extra.refresh_from_db()
+    # en записан, ru (нет в POST) не тронут, база не тронута
+    assert extra.label_i18n == {"en": "Breakfast", "ru": "Завтрак"}
+    assert extra.label == "Frühstück"
+    assert not save_row_translations(extra, {}, tenant, ("label",))
+
+
+@pytest.mark.django_db
+def test_product_form_renders_translations_next_to_material():
+    from django.template.loader import render_to_string
+
+    from apps.catalog.forms import ProductForm
+
+    tenant = TenantFactory.build(enabled_locales=["de", "en"], default_locale="de")
+    form = ProductForm(tenant=tenant)
+    assert {"material_en", "care_en", "condition_note_en"} <= set(form.fields)
+    html = render_to_string("catalog/_pf_field.html", {"field": form["material"]})
+    assert 'data-i18n-loc="de"' in html and 'data-i18n-loc="en" class="hidden"' in html
+    assert 'name="material_en"' in html
+
+
+@pytest.mark.django_db
+def test_category_form_size_table_translation_saved():
+    from apps.catalog.forms import CategoryForm
+    from apps.catalog.models import Category
+
+    tenant = TenantFactory.build(enabled_locales=["de", "en"], default_locale="de")
+    cat = Category.objects.create(name={"de": "Hosen"}, size_table="S | 36")
+    form = CategoryForm(instance=cat, tenant=tenant)
+    assert "size_table_en" in form.fields
+
+
+@pytest.mark.django_db
+def test_i18n_inputs_tag_labels_and_multiline():
+    from apps.booking.models import Resource
+
+    tenant = TenantFactory.build(enabled_locales=["de", "en"], default_locale="de")
+    request = RequestFactory().get("/")
+    request.tenant = tenant
+    res = Resource(name="Anna", title="Stylistin", bio="", bio_i18n={"en": "Hi"})
+    html = Template(
+        '{% load cabinet %}{% include "tenant/_i18n_inline.html" with obj=r fields="name,bio" %}'
+    ).render(Context({"request": request, "r": res}))
+    assert 'name="name_en"' in html and 'textarea name="bio_en"' in html and ">Hi<" in html
+    assert 'data-i18n-loc="en" class="hidden' in html

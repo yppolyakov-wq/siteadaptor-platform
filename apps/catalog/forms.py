@@ -12,14 +12,15 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import card_forms
 from apps.core.archetypes import FOOD_BUSINESS_TYPES
 from apps.core.form_fields import MoneyField
-from apps.core.i18n_input import DynamicI18nFormMixin
+from apps.core.i18n_input import DynamicI18nFormMixin, OverlayI18nFormMixin
 
 from .food import ADDITIVES, ALLERGENS, COURSES, DIETS
 from .models import Category, Product
 from .option_styles import VARIANT_STYLES
 
 
-class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
+class CategoryForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
+    overlay_i18n_fields = ("size_table",)  # E9.10
     # L3d.5: база (de) статическая, поля прочих локалей — динамически по
     # active_locales тенанта (без тенанта — весь реестр, паритет).
     name_de = forms.CharField(label=_("Name (DE)"), max_length=200)
@@ -116,6 +117,7 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
             ),
         )
         self.init_i18n_fields(tenant)  # L3d.5: динамика + initial всех локалей
+        self.init_overlay_i18n(tenant)  # E9.10: перевод размерной таблицы
 
         qs = Category.objects.all()
         if self.instance and self.instance.pk:
@@ -177,7 +179,8 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
         return category
 
 
-class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
+class ProductForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
+    overlay_i18n_fields = ("material", "care", "condition_note")  # E9.10
     # SR-2 (фидбэк владельца 2026-08-24): «если нет категории — добавить прямо
     # с карточки товара». Не модельное поле: создаётся при Save и назначается.
     new_category = forms.CharField(
@@ -390,6 +393,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             self.fields["vat_rate"].initial = "7.00"
             self.initial["vat_rate"] = "7.00"  # модельный дефолт 19 перебил бы field.initial
         self.init_i18n_fields(tenant)  # L3d.5
+        self.init_overlay_i18n(tenant)  # E9.10: материал/уход/состояние
         # O-2: вид выбора вариантов — из реестра, с подсказками «когда уместно».
         # Пустой пункт = «как в настройках сайта» (дефолт магазина).
         self.fields["variant_style"] = forms.ChoiceField(

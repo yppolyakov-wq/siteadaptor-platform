@@ -1199,6 +1199,10 @@ def combo_group_update(request, pk, gid):
     group.max_select = _parse_int(request.POST.get("max")) or 0
     group.sort_order = _parse_int(request.POST.get("sort")) or 0
     group.is_active = bool(request.POST.get("is_active"))
+    # E9.10: переводы названия группы — в той же форме (presence-guard).
+    i18n_changed = apply_i18n_overlay(
+        group, request.POST, getattr(request, "tenant", None), fields=("label",)
+    )
     group.save(
         update_fields=[
             "label",
@@ -1208,6 +1212,7 @@ def combo_group_update(request, pk, gid):
             "sort_order",
             "is_active",
             "updated_at",
+            *i18n_changed,
         ]
     )
     messages.success(request, _("Group updated."))

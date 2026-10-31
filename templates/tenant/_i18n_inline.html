@@ -1,0 +1,14 @@
+{% load i18n cabinet %}
+{% comment %}E9.10: поля переводов внутри уже существующей формы. Параметры: obj (None для
+новой записи), fields («label,reward_label»). Каждый язык — своя группа [data-i18n-loc],
+видна выбранная в выпадашке у заголовка страницы; при базовом языке не видно ничего.{% endcomment %}
+{% i18n_inputs obj fields as inps %}
+{% regroup inps by locale as by_loc %}
+{% for grp in by_loc %}
+<div data-i18n-loc="{{ grp.grouper }}" class="hidden {{ wrap_class|default:'space-y-2' }}">
+  {% for inp in grp.list %}
+  <label class="block {{ field_class }}"><span class="block text-xs font-medium text-gray-500 mb-1">{{ inp.label }} ({{ inp.locale|upper }})</span>
+    {% if inp.multiline %}<textarea name="{{ inp.input_name }}" rows="3" class="ui-input">{{ inp.value }}</textarea>{% else %}<input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">{% endif %}</label>
+  {% endfor %}
+</div>
+{% endfor %}

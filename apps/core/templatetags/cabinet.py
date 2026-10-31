@@ -3,6 +3,7 @@
 import logging
 
 from django import template
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import modules, nav_registry, packages
 
@@ -371,6 +372,37 @@ def lang_switch(context):
         for loc in form_locales(tenant)
     ]
     return {"i18n_groups": groups, "i18n_multi": len(groups) > 1}
+
+
+#: E9.10: подписи и вид полей переводов в списках кабинета (один словарь на все
+#: экраны — подпись поля перевода = подпись базового поля + код языка).
+_I18N_FIELD_LABELS = {
+    "name": _("Name"),
+    "label": _("Name"),
+    "title": _("Title"),
+    "bio": _("Description"),
+    "description": _("Description"),
+    "reward_label": _("Reward"),
+    "house_rules": _("House rules"),
+}
+_I18N_MULTILINE = {"bio", "description", "house_rules"}
+
+
+@register.simple_tag(takes_context=True)
+def i18n_inputs(context, obj, fields):
+    """E9.10: поля переводов объекта для форм-строк (`tenant/_i18n_inline.html`).
+
+    `fields` — «label,reward_label». Для новой записи (`obj` = None) поля пустые.
+    Один язык у тенанта — пустой список, партиал ничего не рисует."""
+    from apps.core.i18n_input import i18n_inputs_for
+
+    request = context.get("request")
+    names = tuple(f.strip() for f in str(fields).split(",") if f.strip())
+    out = i18n_inputs_for(obj, getattr(request, "tenant", None), fields=names)
+    for inp in out:
+        inp["label"] = _I18N_FIELD_LABELS.get(inp["field"], inp["field"])
+        inp["multiline"] = inp["field"] in _I18N_MULTILINE
+    return out
 
 
 @register.simple_tag

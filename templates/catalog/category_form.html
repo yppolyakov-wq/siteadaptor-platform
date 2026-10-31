@@ -107,12 +107,8 @@ main-колонка (языки/название/описание/фото) + п
       </div>
 
       <div class="ui-card p-5">
-        {% for field in form %}{% if field.name == 'size_table' %}
-          <label class="block text-xs font-medium text-gray-500 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {% render_field field|a11y class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
-          {% if field.help_text %}<p class="text-xs ui-muted mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
-          {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
-        {% endif %}{% endfor %}
+        {# E9.10: общий партиал поля — с переводами размерной таблицы по языкам. #}
+        {% for field in form %}{% if field.name == 'size_table' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
       </div>
     </aside>
   </form>

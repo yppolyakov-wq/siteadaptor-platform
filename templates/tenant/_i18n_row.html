@@ -1,0 +1,21 @@
+{% load i18n cabinet %}
+{% comment %}E9.10: отдельная маленькая форма переводов под строкой списка (доп. услуга,
+тариф карты, программа лояльности, группа набора). Параметры: obj, fields, id_name/id_value
+(скрытое поле строки), action (по умолчанию «i18n»). Видна только при выбранном языке
+перевода — при базовом языке строка выглядит как раньше.{% endcomment %}
+{% i18n_inputs obj fields as inps %}
+{% if inps %}
+{% regroup inps by locale as by_loc %}
+{% for grp in by_loc %}
+<form method="post" data-i18n-loc="{{ grp.grouper }}" class="hidden mt-2 flex flex-wrap items-end gap-2">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="{{ action|default:'i18n' }}">
+  <input type="hidden" name="{{ id_name }}" value="{{ id_value }}">
+  {% for inp in grp.list %}
+  <label class="block flex-1 min-w-[10rem]"><span class="block text-xs font-medium text-gray-500 mb-1">{{ inp.label }} ({{ inp.locale|upper }})</span>
+    {% if inp.multiline %}<textarea name="{{ inp.input_name }}" rows="2" class="ui-input">{{ inp.value }}</textarea>{% else %}<input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">{% endif %}</label>
+  {% endfor %}
+  <button class="ui-btn ui-btn-sm">{% trans "Save" %}</button>
+</form>
+{% endfor %}
+{% endif %}
