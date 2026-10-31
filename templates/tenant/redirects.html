@@ -49,22 +49,22 @@
 
   {% if page.object_list %}
   <div class="ui-card overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead class="text-left text-gray-500">
+    <table class="ui-table">
+      <thead>
         <tr>
-          <th scope="col" class="px-4 py-2">{% trans "Alte Adresse" %}</th>
-          <th scope="col" class="px-4 py-2">{% trans "Neue Adresse" %}</th>
-          <th scope="col" class="px-4 py-2 text-right">{% trans "Aufrufe" %}</th>
-          <th scope="col" class="px-4 py-2"><span class="sr-only">{% trans "Löschen" %}</span></th>
+          <th scope="col">{% trans "Alte Adresse" %}</th>
+          <th scope="col">{% trans "Neue Adresse" %}</th>
+          <th scope="col" class="text-right">{% trans "Aufrufe" %}</th>
+          <th scope="col"><span class="sr-only">{% trans "Löschen" %}</span></th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-100">
+      <tbody>
         {% for r in page.object_list %}
         <tr data-redirect-row>
-          <td class="px-4 py-2 break-all">{{ r.source_path }}{% if r.source_query %}?{{ r.source_query }}{% endif %}</td>
-          <td class="px-4 py-2 break-all">{% if r.status == 410 %}<span class="text-gray-500">{% trans "Entfernt (410)" %}</span>{% else %}<a href="{{ r.target }}" target="_blank" rel="noopener" class="text-indigo-600 hover:underline">{{ r.target }}</a>{% endif %}</td>
-          <td class="px-4 py-2 text-right tabular-nums">{{ r.hits }}</td>
-          <td class="px-4 py-2 text-right">
+          <td class="break-all">{{ r.source_path }}{% if r.source_query %}?{{ r.source_query }}{% endif %}</td>
+          <td class="break-all">{% if r.status == 410 %}<span class="text-gray-500">{% trans "Entfernt (410)" %}</span>{% else %}<a href="{{ r.target }}" target="_blank" rel="noopener" class="text-indigo-600 hover:underline">{{ r.target }}</a>{% endif %}</td>
+          <td class="text-right tabular-nums">{{ r.hits }}</td>
+          <td class="text-right">
             <form method="post" action="{% url 'site-redirect-delete' r.pk %}">
               {% csrf_token %}
               <button class="text-sm text-red-600 hover:underline">{% trans "Löschen" %}</button>
