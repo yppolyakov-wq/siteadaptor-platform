@@ -60,7 +60,10 @@ def parse_source(text: str) -> tuple[str, str]:
     text = (text or "").strip()
     if not text or not _no_control(text) or "\\" in text:
         raise RedirectError(_("Ungültige alte Adresse."))
-    parts = urlsplit(text)
+    try:
+        parts = urlsplit(text)
+    except ValueError as exc:  # «http://[» — незакрытый IPv6 → не 500, а отказ строки
+        raise RedirectError(_("Ungültige alte Adresse.")) from exc
     if parts.scheme and parts.scheme not in ("http", "https"):
         raise RedirectError(_("Ungültige alte Adresse."))
     path = normalize_path(parts.path)

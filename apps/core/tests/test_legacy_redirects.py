@@ -26,8 +26,9 @@ def test_normalize_and_parse_source():
     assert lr.normalize_path("/") == "/"
     assert lr.normalize_path("/gr%C3%BCner-tee/") == "/grüner-tee"
     assert lr.parse_source("https://haanerteeladen.de/x/?b=2&a=1") == ("/x", "a=1&b=2")
-    with pytest.raises(lr.RedirectError):
-        lr.parse_source("javascript:alert(1)")
+    for bad in ("javascript:alert(1)", "http://[", "//[x"):
+        with pytest.raises(lr.RedirectError):
+            lr.parse_source(bad)
 
 
 @pytest.mark.parametrize(
