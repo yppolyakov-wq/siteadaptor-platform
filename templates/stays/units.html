@@ -3,12 +3,20 @@
 {% block dash_title %}{% trans "Units" %}{% endblock %}
 
 {% block dash_content %}
+{% i18n_base_locale as base_loc %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
   {% if unit_page %}
-    <h1 class="ui-h1">{{ unit_page.name }} <span class="text-sm font-normal text-gray-400">· {{ unit_page.get_type_display }}</span></h1>
+    {# E9.10: язык ввода — одна выпадашка рядом с заголовком. #}
+    <div class="flex items-center gap-3 flex-wrap">
+      <h1 class="ui-h1">{{ unit_page.name }} <span class="text-sm font-normal text-gray-400">· {{ unit_page.get_type_display }}</span></h1>
+      {% lang_switch %}
+    </div>
     <a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Units" %}</a>
   {% else %}
-    <h1 class="ui-h1">{% nav_title _("Units & blocked dates") %}</h1>
+    <div class="flex items-center gap-3 flex-wrap">
+      <h1 class="ui-h1">{% nav_title _("Units & blocked dates") %}</h1>
+      {% lang_switch %}
+    </div>
     <div class="flex gap-4">
       {# UB3-2: подборки номеров → чипы-фасет на /unterkunft/. #}
       <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
@@ -96,20 +104,20 @@
 
         <div data-ut-panel="basis" class="grid sm:grid-cols-3 gap-3 items-end">
           <div class="sm:col-span-3">
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</span>
-            <textarea name="description" rows="2" class="ui-input" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea></label>
-            {# Ф1: переводы неосновных локалей — свёрнуты по умолчанию (не «все языки сразу»). #}
-            {% if u.i18n_inputs %}
-            <details class="mt-2">
-              <summary class="cursor-pointer text-xs text-indigo-600">🌐 {% trans "Translations" %}</summary>
-              <div class="mt-1 space-y-2">
-                {% for inp in u.i18n_inputs %}
-                  <label class="block text-xs font-medium text-gray-500 mb-1">{% if inp.field == 'name' %}Name{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</label>
-                  <input aria-label="{% if inp.field == 'name' %}Name{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})" name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">
-                {% endfor %}
-              </div>
-            </details>
-            {% endif %}
+            <div data-i18n-loc="{{ base_loc }}">
+              <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</span>
+              <textarea name="description" rows="2" class="ui-input" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea></label>
+            </div>
+            {# E9.10: переводы — группой на язык; видна выбранная в выпадашке у заголовка. #}
+            {% regroup u.i18n_inputs by locale as by_loc %}
+            {% for grp in by_loc %}
+            <div data-i18n-loc="{{ grp.grouper }}" class="hidden space-y-2">
+              {% for inp in grp.list %}
+                <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</span>
+                {% if inp.field == 'name' %}<input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">{% else %}<textarea name="{{ inp.input_name }}" rows="2" class="ui-input">{{ inp.value }}</textarea>{% endif %}</label>
+              {% endfor %}
+            </div>
+            {% endfor %}
           </div>
           <div class="sm:col-span-2">
             <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Bed type" %}</span>
@@ -329,12 +337,16 @@
   {% csrf_token %}
   <input type="hidden" name="action" value="unit">
   <div class="grid sm:grid-cols-2 gap-4">
-    <input name="name" type="text" required aria-label="{% trans "Name" %}" placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
-    <textarea name="description" rows="2" aria-label="{% trans 'Description (amenities, view …)' %}" placeholder="{% trans 'Description (amenities, view …)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2"></textarea>
-    {# L3d: переводы неосновных локалей (видно только при N>1 языках) #}
+    <div data-i18n-loc="{{ base_loc }}" class="sm:col-span-2 space-y-4">
+      <input name="name" type="text" required aria-label="{% trans "Name" %}" placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" class="ui-input">
+      <textarea name="description" rows="2" aria-label="{% trans 'Description (amenities, view …)' %}" placeholder="{% trans 'Description (amenities, view …)' %}" class="ui-input"></textarea>
+    </div>
+    {# L3d/E9.10: переводы — группой на язык (выпадашка у заголовка). #}
     {% for loc in extra_locales %}
-      <input aria-label="Name ({{ loc|upper }})" name="name_{{ loc }}" type="text" placeholder="Name ({{ loc|upper }})" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
-      <textarea name="description_{{ loc }}" rows="2" aria-label="{% trans 'Description' %} ({{ loc|upper }})" placeholder="{% trans 'Description' %} ({{ loc|upper }})" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2"></textarea>
+    <div data-i18n-loc="{{ loc }}" class="hidden sm:col-span-2 space-y-4">
+      <input aria-label="{% trans "Name" %} ({{ loc|upper }})" name="name_{{ loc }}" type="text" placeholder="{% trans "Name" %} ({{ loc|upper }})" class="ui-input">
+      <textarea name="description_{{ loc }}" rows="2" aria-label="{% trans 'Description' %} ({{ loc|upper }})" placeholder="{% trans 'Description' %} ({{ loc|upper }})" class="ui-input"></textarea>
+    </div>
     {% endfor %}
     <div>
       <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Type" %}</span>

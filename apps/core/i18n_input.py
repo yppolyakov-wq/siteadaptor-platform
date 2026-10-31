@@ -184,3 +184,76 @@ class DynamicI18nFormMixin:
 
     def collect_i18n(self, f) -> dict:
         return {loc: (self.cleaned_data.get(f"{f}_{loc}") or "") for loc in self._i18n_locales}
+
+
+class OverlayI18nFormMixin:
+    """E9.10: переводы overlay-полей в ModelForm (событие, тур, …).
+
+    База остаётся в плоском поле модели (язык `LANGUAGE_CODE`), переводы — в
+    `<field>_i18n`. Для каждого языка тенанта, кроме базового, рядом с базовым
+    полем добавляется `<field>_<loc>`; всем им ставится атрибут `i18n_loc` —
+    шаблон по нему (фильтр `i18n_loc`) оборачивает поле в `data-i18n-loc`, и
+    выпадашка языка у заголовка показывает поля одного языка.
+
+    Запись: после валидации оверлей переносится в `instance.<field>_i18n`.
+    Presence-guard: поле, которого нет в POST, не трогаем; пустое значение
+    удаляет перевод (витрина покажет базу)."""
+
+    overlay_i18n_fields: tuple = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from django.db import connection
+
+        self.init_overlay_i18n(getattr(connection, "tenant", None))
+
+    def init_overlay_i18n(self, tenant):
+        from django import forms as dj_forms
+
+        base = settings.LANGUAGE_CODE
+        self._overlay_locales = extra_locales(tenant)
+        if not self._overlay_locales:
+            return
+        ordered = {}
+        for name, field in self.fields.items():
+            ordered[name] = field
+            if name not in self.overlay_i18n_fields:
+                continue
+            field.i18n_loc = base
+            overlay = getattr(self.instance, f"{name}_i18n", None) or {}
+            for loc in self._overlay_locales:
+                widget = (
+                    dj_forms.Textarea(attrs=dict(field.widget.attrs))
+                    if isinstance(field.widget, dj_forms.Textarea)
+                    else None
+                )
+                extra = dj_forms.CharField(
+                    label=format_lazy("{base} ({loc})", base=field.label or name, loc=loc.upper()),
+                    max_length=getattr(field, "max_length", None),
+                    required=False,
+                    widget=widget,
+                    initial=overlay.get(loc, "") if isinstance(overlay, dict) else "",
+                )
+                extra.i18n_loc = loc
+                ordered[f"{name}_{loc}"] = extra
+        self.fields = ordered
+
+    def _post_clean(self):
+        super()._post_clean()
+        if not self.is_bound or not getattr(self, "_overlay_locales", None):
+            return
+        for name in self.overlay_i18n_fields:
+            overlay_field = f"{name}_i18n"
+            if not hasattr(self.instance, overlay_field):
+                continue
+            overlay = dict(getattr(self.instance, overlay_field) or {})
+            for loc in self._overlay_locales:
+                key = f"{name}_{loc}"
+                if key not in self.data:
+                    continue
+                val = (self.cleaned_data.get(key) or "").strip()
+                if val:
+                    overlay[loc] = val
+                else:
+                    overlay.pop(loc, None)
+            setattr(self.instance, overlay_field, overlay)

@@ -1589,6 +1589,13 @@ def legal_docs_view(request):
         return redirect("legal-docs")
     docs = {(d.kind, d.locale): d.text for d in LegalDoc.objects.filter(locale__in=locales)}
     lang_names = dict(settings.LANGUAGES)
+    # E9.10: язык ввода — одна выпадашка у заголовка (как у товара/услуги);
+    # видна ячейка одного языка: базового, а если он не включён — первого.
+    shown = settings.LANGUAGE_CODE if settings.LANGUAGE_CODE in locales else locales[0]
+    i18n_groups = [
+        {"code": loc, "label": str(lang_names.get(loc, loc.upper())), "is_base": loc == shown}
+        for loc in locales
+    ]
     kinds = [
         {
             "kind": kind,
@@ -1618,6 +1625,9 @@ def legal_docs_view(request):
             "tax_regime": ustva.regime_of(tenant),
             "legal_forms": tenant.LEGAL_FORMS,
             "impressum_missing": _lite_impressum_missing(tenant),
+            "i18n_groups": i18n_groups,
+            "i18n_multi": len(i18n_groups) > 1,
+            "legal_shown_locale": shown,
         },
     )
 

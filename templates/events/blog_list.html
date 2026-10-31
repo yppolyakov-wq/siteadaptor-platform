@@ -8,6 +8,8 @@
 «📣 Teilen» с выбором канала (префилл в publishing, как на карточке записи).{% endcomment %}
 <div class="flex items-center gap-3 flex-wrap mb-4">
   <h1 class="ui-h1">{% nav_title _("Blog") %}</h1>
+  {# E9.10: язык ввода новой статьи — одна выпадашка рядом с заголовком. #}
+  {% lang_switch %}
   <span class="ml-auto flex items-center gap-2">
     <a href="{% url 'storefront-blog' %}" target="_blank" rel="noopener" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Ansehen auf der Website" %} ↗</a>
     <a href="#blog-neu" class="ui-btn ui-btn-primary ui-btn-sm">＋ {% trans "New post" %}</a>
@@ -41,9 +43,19 @@
 <form id="blog-neu" method="post" enctype="multipart/form-data" class="ui-card p-6 max-w-xl space-y-3">
   {% csrf_token %}
   <h2 class="ui-h2">{% trans "New post" %}</h2>
-  <input name="title" type="text" required aria-label="{% trans 'Title' %}" placeholder="{% trans 'Title' %}" class="ui-input">
-  <input name="excerpt" type="text" aria-label="{% trans 'Short summary (optional)' %}" placeholder="{% trans 'Short summary (optional)' %}" class="ui-input">
-  <textarea name="body" rows="5" aria-label="{% trans 'Text' %}" placeholder="{% trans 'Text' %}" class="ui-input"></textarea>
+  {% i18n_base_locale as base_loc %}
+  <div data-i18n-loc="{{ base_loc }}" class="space-y-3">
+    <input name="title" type="text" required aria-label="{% trans 'Title' %}" placeholder="{% trans 'Title' %}" class="ui-input">
+    <input name="excerpt" type="text" aria-label="{% trans 'Short summary (optional)' %}" placeholder="{% trans 'Short summary (optional)' %}" class="ui-input">
+    <textarea name="body" rows="5" aria-label="{% trans 'Text' %}" placeholder="{% trans 'Text' %}" class="ui-input"></textarea>
+  </div>
+  {% for loc in extra_locales %}
+  <div data-i18n-loc="{{ loc }}" class="hidden space-y-3">
+    <input name="title_{{ loc }}" type="text" aria-label="{% trans 'Title' %} ({{ loc|upper }})" placeholder="{% trans 'Title' %} ({{ loc|upper }})" class="ui-input">
+    <input name="excerpt_{{ loc }}" type="text" aria-label="{% trans 'Short summary (optional)' %} ({{ loc|upper }})" placeholder="{% trans 'Short summary (optional)' %} ({{ loc|upper }})" class="ui-input">
+    <textarea name="body_{{ loc }}" rows="5" aria-label="{% trans 'Text' %} ({{ loc|upper }})" placeholder="{% trans 'Text' %} ({{ loc|upper }})" class="ui-input"></textarea>
+  </div>
+  {% endfor %}
   <div>
     <span class="block text-sm font-medium mb-1">{% trans "Cover (optional)" %}</span>
     {% include "catalog/_photo_add_tile.html" with target="cover" %}

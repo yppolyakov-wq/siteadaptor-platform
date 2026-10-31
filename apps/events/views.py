@@ -569,6 +569,8 @@ def blog_list(request):
     from django.utils import timezone
     from django.utils.text import slugify
 
+    from apps.core.i18n_input import extra_locales
+
     from .models import BlogPost
 
     if request.method == "POST":
@@ -594,6 +596,14 @@ def blog_list(request):
                 is_published=published,
                 published_at=publish_at or (timezone.now() if published else None),
             )
+            # E9.10: переводы заголовка/тизера/текста (выпадашка языка у заголовка).
+            from apps.core.i18n_input import apply_i18n_overlay
+
+            changed = apply_i18n_overlay(
+                post, request.POST, getattr(request, "tenant", None), fields=_BLOG_I18N
+            )
+            if changed:
+                post.save(update_fields=changed)
             if published:
                 # CM-3: опубликован сразу → авто-черновик поста в каналы.
                 from apps.publishing.services import blog_share_draft
@@ -633,12 +643,17 @@ def blog_list(request):
         {
             "nav": "blog",  # W7b: своя вкладка в Marketing-хабе (была "events")
             "posts": posts,
+            "extra_locales": extra_locales(getattr(request, "tenant", None)),
             "rows": rows,
             # CM-3: пункт «во все каналы» виден только при активном модуле publishing.
             "can_share": getattr(request, "tenant", None) is not None
             and request.tenant.is_module_active("publishing"),
         },
     )
+
+
+#: E9.10: переводимые поля статьи блога (overlay: база — плоское поле).
+_BLOG_I18N = ("title", "excerpt", "body")
 
 
 @login_required
@@ -658,6 +673,10 @@ def blog_edit(request, pk):
         post.title = request.POST.get("title", post.title).strip()[:200]
         post.excerpt = request.POST.get("excerpt", "").strip()[:300]
         post.body = request.POST.get("body", "").strip()
+        # E9.10: переводы — presence-guard в apply_i18n_overlay (нет поля — не трогаем).
+        from apps.core.i18n_input import apply_i18n_overlay
+
+        apply_i18n_overlay(post, request.POST, getattr(request, "tenant", None), fields=_BLOG_I18N)
         cover = _uploaded_cover(request)
         if cover or request.POST.get("remove_cover"):
             post.cover = cover
@@ -680,12 +699,17 @@ def blog_edit(request, pk):
             blog_share_draft(post)
         messages.success(request, _("Post saved."))
         return redirect("blog-edit", pk=post.pk)
+    from apps.core.i18n_input import i18n_inputs_for
+
     return render(
         request,
         "events/blog_edit.html",
         {
             "nav": "events",
             "post": post,
+            "i18n_inputs": i18n_inputs_for(
+                post, getattr(request, "tenant", None), fields=_BLOG_I18N
+            ),
             "can_share": getattr(request, "tenant", None) is not None
             and request.tenant.is_module_active("publishing"),
         },

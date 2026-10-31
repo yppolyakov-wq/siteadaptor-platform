@@ -16,6 +16,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
 
+from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
+
 from .models import Collection
 
 
@@ -49,7 +51,10 @@ def collections_view(request):
         if action == "create":
             name = request.POST.get("name", "").strip()
             if name:
-                Collection.objects.create(name=name, slug=_unique_slug(name))
+                collection = Collection(name=name, slug=_unique_slug(name))
+                # E9.10: переводы имени (выпадашка языка у заголовка страницы).
+                apply_i18n_overlay(collection, request.POST, tenant, fields=("name",))
+                collection.save()
                 messages.success(request, _("Collection created."))
         elif action == "update":
             collection = get_object_or_404(Collection, pk=request.POST.get("collection"))
@@ -60,7 +65,8 @@ def collections_view(request):
                 collection.sort_order = max(0, min(int(request.POST.get("sort_order", "0")), 999))
             except (TypeError, ValueError):
                 pass
-            collection.save(update_fields=["name", "sort_order", "updated_at"])
+            changed = apply_i18n_overlay(collection, request.POST, tenant, fields=("name",))
+            collection.save(update_fields=["name", "sort_order", "updated_at", *changed])
             # Состав подборки: перезаписываем только присланные kind'ы (presence-guard).
             if has_booking and request.POST.get("services_present"):
                 from apps.booking.models import Service
@@ -129,12 +135,14 @@ def collections_view(request):
         collection.svc_rows = [(s, s.pk in svc_ids) for s in services]
         collection.unit_rows = [(u, u.pk in unit_ids) for u in units]
         collection.product_rows = [(p, p.pk in prod_ids) for p in products]
+        collection.i18n_inputs = i18n_inputs_for(collection, tenant, fields=("name",))
     return render(
         request,
         "collections/list.html",
         {
             "nav": "collections",
             "collections": collections,
+            "extra_locales": extra_locales(tenant),
             "has_booking": has_booking,
             "has_stays": has_stays,
             "has_catalog": has_catalog,

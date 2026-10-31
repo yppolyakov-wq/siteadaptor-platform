@@ -84,14 +84,14 @@
          #home-form — W0 цел) и возвращает на тот же адрес.{% endcomment %}
       {% comment %}STU-16e: два селектора языка стояли рядом одинаковыми пилюлями «Deutsch»
          и были неотличимы — это и была половина «каши». Теперь каждый подписан своим
-         словом (на широком экране) и своим значком в каждом пункте: 🌐 = язык САЙТА,
-         который правишь, 🗣 = язык самого кабинета.{% endcomment %}
+         словом (на широком экране); язык САЙТА, который правишь, — кодом (de/en/ru — как
+         выпадашка языка ввода на всех экранах, E9.10), язык кабинета — 🗣 + имя.{% endcomment %}
       {% if content_locales|length > 1 %}
       <form method="get" class="shrink-0 flex items-center gap-1" title="{% trans 'Inhaltssprache' %}">
         <span class="hidden 2xl:inline text-[11px] text-gray-400 whitespace-nowrap">{% trans "Inhaltssprache" %}</span>
         <select name="clang" data-lang-content onchange="this.form.submit()" aria-label="{% trans 'Inhaltssprache' %}"
                 class="text-xs bg-white border border-gray-300 rounded-lg px-1.5 py-1 text-gray-600 cursor-pointer">
-          {% for l in content_locales %}<option value="{{ l.code }}"{% if l.code == content_loc %} selected{% endif %}>🌐 {{ l.label }}</option>{% endfor %}
+          {% for l in content_locales %}<option value="{{ l.code }}" title="{{ l.label }}"{% if l.code == content_loc %} selected{% endif %}>{{ l.code }}</option>{% endfor %}
         </select>
       </form>
       {% endif %}

@@ -46,3 +46,12 @@ def a11y(bound_field):
     if ids:
         bound_field.field.widget.attrs["aria-describedby"] = ids
     return bound_field
+
+
+@register.filter
+def i18n_loc(bound_field):
+    """E9.10: язык поля перевода (`OverlayI18nFormMixin`) — для `data-i18n-loc`.
+
+    Пусто у обычных полей: их выпадашка языка не скрывает."""
+    field = getattr(bound_field, "field", None)
+    return getattr(field, "i18n_loc", "") or ""

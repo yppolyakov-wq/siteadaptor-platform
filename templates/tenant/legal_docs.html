@@ -4,7 +4,11 @@
 
 {% block dash_content %}
 <div class="max-w-3xl">
-  <h1 class="ui-h1 mb-1">{% nav_title _("Recht & Steuern") %}</h1>
+  {# E9.10: язык правовых текстов — одна выпадашка рядом с заголовком. #}
+  <div class="flex items-center gap-3 flex-wrap mb-1">
+    <h1 class="ui-h1">{% nav_title _("Recht & Steuern") %}</h1>
+    {% lang_switch %}
+  </div>
   <p class="text-gray-500 mb-4 text-sm">{% trans "Legal pages of your website — per language. Leave a field empty to use the automatic text from your business data." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
@@ -82,7 +86,7 @@
           <p class="text-xs ui-muted mb-2">{% trans "Empty = automatic text generated from your business data (shown below)." %}</p>
         {% endif %}
         {% for cell in k.cells %}
-          <div>
+          <div data-i18n-loc="{{ cell.locale }}"{% if cell.locale != legal_shown_locale %} class="hidden"{% endif %}>
             <label class="block text-sm font-medium mb-1" for="doc_{{ k.kind }}_{{ cell.locale }}">{{ cell.locale_label }} <span class="text-gray-400 uppercase text-xs">{{ cell.locale }}</span></label>
             <textarea id="doc_{{ k.kind }}_{{ cell.locale }}" name="doc_{{ k.kind }}_{{ cell.locale }}" rows="6"
                       class="ui-input">{{ cell.text }}</textarea>

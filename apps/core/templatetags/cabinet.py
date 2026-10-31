@@ -342,6 +342,46 @@ def doc_langs(context, url):
     }
 
 
+@register.inclusion_tag("tenant/_i18n_switch.html", takes_context=True)
+def lang_switch(context):
+    """E9.10: ОДИН переключатель языка ввода для всех экранов с переводами.
+
+    Выпадашка рядом с заголовком страницы показывает поля одного языка
+    (`[data-i18n-loc]`). Формы с полным i18n-словарём (товар/категория/акция)
+    уже кладут `i18n_groups` в контекст — берём их; прочим экранам (набор,
+    услуга, номер, правовые тексты) группы строятся по языкам тенанта.
+    Один язык — ничего не рендерим."""
+    if context.get("i18n_groups") is not None:
+        return {"i18n_groups": context["i18n_groups"], "i18n_multi": context.get("i18n_multi")}
+    from django.conf import settings
+
+    from apps.core.i18n_input import form_locales
+
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    if tenant is None:
+        return {"i18n_groups": [], "i18n_multi": False}
+    names = dict(settings.LANGUAGES)
+    groups = [
+        {
+            "code": loc,
+            "label": str(names.get(loc, loc.upper())),
+            "is_base": loc == settings.LANGUAGE_CODE,
+        }
+        for loc in form_locales(tenant)
+    ]
+    return {"i18n_groups": groups, "i18n_multi": len(groups) > 1}
+
+
+@register.simple_tag
+def i18n_base_locale():
+    """E9.10: код базового языка контента (плоское поле модели) — для
+    `data-i18n-loc` у базовых полей на экранах с overlay-переводами."""
+    from django.conf import settings
+
+    return settings.LANGUAGE_CODE
+
+
 @register.inclusion_tag("tenant/_overlay_i18n_inputs.html", takes_context=True)
 def overlay_i18n_inputs(context, obj, fields, compact=False):
     """I18N-10: per-locale инпуты overlay-переводов объекта (`<field>_<loc>`).

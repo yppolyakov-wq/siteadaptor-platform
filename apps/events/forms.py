@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import vat
 from apps.core.form_fields import MoneyField
+from apps.core.i18n_input import OverlayI18nFormMixin
 
 from . import details as details_mod
 from . import landing, registration, taxonomy
@@ -22,7 +23,10 @@ def _ta(rows=3, ph=""):
     return forms.Textarea(attrs={"rows": rows, "placeholder": ph})
 
 
-class EventForm(forms.ModelForm):
+class EventForm(OverlayI18nFormMixin, forms.ModelForm):
+    # E9.10: переводы заголовка/описания — выпадашкой языка у заголовка страницы.
+    overlay_i18n_fields = ("title", "summary", "description")
+
     price_eur = MoneyField(
         min_value=0, max_digits=8, decimal_places=2, required=False, label=_("Preis je Platz (€)")
     )
@@ -251,10 +255,13 @@ class EventForm(forms.ModelForm):
         return 7 if value in (None, "") else value
 
 
-class TourForm(forms.ModelForm):
+class TourForm(OverlayI18nFormMixin, forms.ModelForm):
     """MT-1: форма тур-продукта. Блоки богатой страницы — тот же редактор, что
     у события (apps/events/landing.py); маршрут редактируется отдельно (строки
     таблицы, парсит `itinerary.from_post`)."""
+
+    # E9.10: переводы текстов тура — выпадашкой языка у заголовка страницы.
+    overlay_i18n_fields = ("title", "summary", "description")
 
     class Meta:
         model = Tour
@@ -330,8 +337,11 @@ def unique_tour_slug(title: str, *, exclude_pk=None) -> str:
     return slug
 
 
-class TeacherForm(forms.ModelForm):
+class TeacherForm(OverlayI18nFormMixin, forms.ModelForm):
     """R3: кабинетная форма преподавателя/ведущего."""
+
+    # E9.10: роль и био переводимы (имя — нет, это имя человека).
+    overlay_i18n_fields = ("title", "bio")
 
     class Meta:
         model = Teacher

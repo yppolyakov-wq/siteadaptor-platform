@@ -6,7 +6,12 @@
 {% comment %}UB3-2: подборки (коллекции) услуг/номеров — на витрине это чипы-фасет
 листинга (?kollektion=). Создание/переименование/состав — простыми POST-формами.{% endcomment %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="ui-h1">{% nav_title _("Collections") %}</h1>
+  {# E9.10: язык ввода — одна выпадашка рядом с заголовком. #}
+  <div class="flex items-center gap-3 flex-wrap">
+    <h1 class="ui-h1">{% nav_title _("Collections") %}</h1>
+    {% lang_switch %}
+  </div>
+  {% i18n_base_locale as base_loc %}
   <div class="flex gap-4">
     {% if has_booking %}<a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Services" %}</a>{% endif %}
     {% if has_stays %}<a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Units" %}</a>{% endif %}
@@ -26,10 +31,16 @@
 <form method="post" class="ui-card p-4 mb-6 flex flex-wrap items-end gap-3">
   {% csrf_token %}
   <input type="hidden" name="action" value="create">
-  <div class="flex-1 min-w-[14rem]">
+  <div class="flex-1 min-w-[14rem]" data-i18n-loc="{{ base_loc }}">
     <label class="block text-xs text-gray-500 mb-1" for="id_new_name">{% trans "Name" %}</label>
     <input id="id_new_name" name="name" required maxlength="120" placeholder="{% trans 'e.g. Damen, Mit Seeblick' %}" class="ui-input">
   </div>
+  {% for loc in extra_locales %}
+  <div class="flex-1 min-w-[14rem] hidden" data-i18n-loc="{{ loc }}">
+    <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Name" %} ({{ loc|upper }})</span>
+    <input name="name_{{ loc }}" maxlength="120" class="ui-input"></label>
+  </div>
+  {% endfor %}
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create" %}</button>
 </form>
 
@@ -42,10 +53,16 @@
       <input type="hidden" name="action" value="update">
       <input type="hidden" name="collection" value="{{ col.pk }}">
       <div class="flex flex-wrap items-end gap-3">
-        <div class="flex-1 min-w-[12rem]">
+        <div class="flex-1 min-w-[12rem]" data-i18n-loc="{{ base_loc }}">
           <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Name" %}</span>
           <input name="name" value="{{ col.name }}" maxlength="120" class="ui-input"></label>
         </div>
+        {% for inp in col.i18n_inputs %}
+        <div class="flex-1 min-w-[12rem] hidden" data-i18n-loc="{{ inp.locale }}">
+          <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Name" %} ({{ inp.locale|upper }})</span>
+          <input name="{{ inp.input_name }}" value="{{ inp.value }}" maxlength="120" class="ui-input"></label>
+        </div>
+        {% endfor %}
         <div>
           <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Order" %}</span>
           <input name="sort_order" type="number" min="0" max="999" value="{{ col.sort_order }}" class="w-20 rounded-lg border border-gray-300 px-2 py-2"></label>

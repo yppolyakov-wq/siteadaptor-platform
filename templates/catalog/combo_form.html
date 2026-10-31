@@ -5,6 +5,11 @@
 {% block dash_content %}
 <div>
   <a href="{% url 'catalog:combo-list' %}" class="text-sm text-gray-500">&larr; {% trans "Combos" %}</a>
+  {# E9.10: язык ввода — одна выпадашка рядом с заголовком, как у товара. #}
+  <div class="flex items-center gap-3 flex-wrap mt-2">
+    <h1 class="ui-h1">{% if combo %}{{ combo.name }}{% else %}{% trans "New combo" %}{% endif %}</h1>
+    {% lang_switch %}
+  </div>
 
   {% comment %}VF-19 (фидбэк 2026-08-25 «страница комбо — как страница товара»):
   форма и группы выбора — широкой колонкой, галерея — рейлом 340px (те же
@@ -16,29 +21,44 @@
   <form method="post" enctype="multipart/form-data" class="ui-card p-6 space-y-4">
     {% csrf_token %}
     <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="hidden">
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Name" %}</span>
-      <input name="name" value="{{ combo.name|default:'' }}" required class="ui-input"></label>
+    {% i18n_base_locale as base_loc %}
+    <div data-i18n-loc="{{ base_loc }}" class="space-y-4">
+      <div>
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Name" %}</span>
+        <input name="name" value="{{ combo.name|default:'' }}" required class="ui-input"></label>
+      </div>
+      <div>
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Description" %}</span>
+        <textarea name="description" rows="2" class="ui-input">{{ combo.description|default:'' }}</textarea></label>
+      </div>
     </div>
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Description" %}</span>
-      <textarea name="description" rows="2" class="ui-input">{{ combo.description|default:'' }}</textarea></label>
-    </div>
-    {# L3d: переводы неосновных локалей (видно только при N>1 языках) #}
-    {% for inp in combo.i18n_inputs %}
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</span>
-      <input name="{{ inp.input_name }}" value="{{ inp.value }}" class="ui-input"></label>
-    </div>
-    {% endfor %}
-    {% if not combo %}{% for loc in extra_locales %}
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Name" %} ({{ loc|upper }})</span>
-      <input name="name_{{ loc }}" class="ui-input"></label>
-      <label class="block text-sm font-medium mb-1 mt-2">{% trans "Description" %} ({{ loc|upper }})</label>
-      <input aria-label="{% trans "Description" %} ({{ loc|upper }})" name="description_{{ loc }}" class="ui-input">
-    </div>
-    {% endfor %}{% endif %}
+    {# L3d/E9.10: переводы — группой на язык, видна та, что выбрана в выпадашке. #}
+    {% if combo %}
+      {% regroup combo.i18n_inputs by locale as by_loc %}
+      {% for grp in by_loc %}
+      <div data-i18n-loc="{{ grp.grouper }}" class="hidden space-y-4">
+        {% for inp in grp.list %}
+        <div>
+          <label class="block"><span class="block text-sm font-medium mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</span>
+          {% if inp.field == 'name' %}<input name="{{ inp.input_name }}" value="{{ inp.value }}" class="ui-input">{% else %}<textarea name="{{ inp.input_name }}" rows="2" class="ui-input">{{ inp.value }}</textarea>{% endif %}</label>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    {% else %}
+      {% for loc in extra_locales %}
+      <div data-i18n-loc="{{ loc }}" class="hidden space-y-4">
+        <div>
+          <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Name" %} ({{ loc|upper }})</span>
+          <input name="name_{{ loc }}" class="ui-input"></label>
+        </div>
+        <div>
+          <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Description" %} ({{ loc|upper }})</span>
+          <textarea name="description_{{ loc }}" rows="2" class="ui-input"></textarea></label>
+        </div>
+      </div>
+      {% endfor %}
+    {% endif %}
     <div class="flex flex-wrap gap-4">
       <div>
         <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Fixed price" %} (€)</span>

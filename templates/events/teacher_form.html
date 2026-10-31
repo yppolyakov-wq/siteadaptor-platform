@@ -1,14 +1,20 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n widget_tweaks form_a11y %}
+{% load i18n widget_tweaks form_a11y cabinet %}
 {% block dash_title %}{% if teacher %}{% trans "Edit teacher" %}{% else %}{% trans "New teacher" %}{% endif %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="ui-h1 mb-6">{% if teacher %}{% trans "Edit teacher" %}{% else %}{% trans "New teacher" %}{% endif %}</h1>
+{# E9.10: язык ввода — одна выпадашка рядом с заголовком. #}
+<div class="flex items-center gap-3 flex-wrap mb-6">
+  <h1 class="ui-h1">{% if teacher %}{% trans "Edit teacher" %}{% else %}{% trans "New teacher" %}{% endif %}</h1>
+  {% lang_switch %}
+</div>
+{% i18n_base_locale as base_loc %}
 
 <form method="post" class="ui-card p-6 max-w-2xl space-y-4">
   {% csrf_token %}
   {% for field in form %}
-    <div>
+    {% with loc=field|i18n_loc %}
+    <div{% if loc %} data-i18n-loc="{{ loc }}"{% if loc != base_loc %} class="hidden"{% endif %}{% endif %}>
       <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
       {% if field.name == 'is_active' %}
         <label class="flex items-center gap-2 text-sm">{{ field }} {% trans "Visible on the website" %}</label>
@@ -17,6 +23,7 @@
       {% endif %}
       {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for e in field.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}</div>{% endif %}
     </div>
+    {% endwith %}
   {% endfor %}
   <div class="flex gap-2">
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
