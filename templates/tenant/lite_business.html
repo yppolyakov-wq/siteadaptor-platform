@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n widget_tweaks cabinet %}
+{% load i18n widget_tweaks cabinet form_a11y %}
 {% block dash_title %}{% trans "Geschäft" %}{% endblock %}
 
 {% block dash_content %}
@@ -17,19 +17,19 @@
       {% if sec.key == "recht" %}<p class="text-xs text-gray-500">{% trans "Pflichtangaben nach § 5 DDG — daraus entsteht Ihr Impressum." %}</p>{% endif %}
       {% for field in sec.fields %}
         {% if field.is_hidden %}{{ field }}{% elif field.field.widget.input_type == "checkbox" %}
-        <label class="flex items-center gap-2 text-sm">{{ field }} {{ field.label }}</label>
+        <div><label class="flex items-center gap-2 text-sm">{% render_field field|a11y %} {{ field.label }}</label>{% include "core/_field_msgs.html" %}</div>
         {% elif field.field.widget.input_type == "radio" %}
-        <fieldset class="space-y-2" data-tax-regime>
+        <fieldset class="space-y-2" data-tax-regime{% if field.errors %} aria-describedby="{{ field.auto_id }}_errors"{% endif %}>
           <legend class="block text-sm font-medium mb-1">{{ field.label }}</legend>
           {% for radio in field %}<label class="flex items-center gap-2 text-sm">{{ radio.tag }} {{ radio.choice_label }}</label>{% endfor %}
-          {% for e in field.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+          {% if field.errors %}<span class="block" id="{{ field.auto_id }}_errors">{% for e in field.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
         </fieldset>
         {% else %}
         <label class="block">
           <span class="block text-sm font-medium mb-1">{{ field.label }}</span>
-          {% render_field field class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" %}
-          {% if field.help_text %}<span class="block text-xs text-gray-500 mt-1">{{ field.help_text }}</span>{% endif %}
-          {% for e in field.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+          {% render_field field|a11y class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" %}
+          {% if field.help_text %}<span class="block text-xs text-gray-500 mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</span>{% endif %}
+          {% if field.errors %}<span class="block" id="{{ field.auto_id }}_errors">{% for e in field.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
         </label>
         {% endif %}
       {% endfor %}

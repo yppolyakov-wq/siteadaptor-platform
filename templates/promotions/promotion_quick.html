@@ -54,11 +54,11 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.title.label }}</span>
         <input type="text" name="title" value="{{ form.title.value|default:'' }}" maxlength="200" required list="quick-title-options"
-               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="off">
+               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="off" {% if form.title.errors %}aria-invalid="true" aria-describedby="id_title_errors"{% endif %}>
         {% if title_suggestions %}
           <datalist id="quick-title-options">{% for t in title_suggestions %}<option value="{{ t }}">{% endfor %}</datalist>
         {% endif %}
-        {% for e in form.title.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        {% if form.title.errors %}<span class="block" id="id_title_errors">{% for e in form.title.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.description.label }}</span>
@@ -74,13 +74,13 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
       {% if products %}
       <label class="block" data-quick-product>
         <span class="block text-sm font-medium mb-1">{{ form.product.label }}</span>
-        <select name="product" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base bg-white">
+        <select name="product" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base bg-white" {% if form.product.errors %}aria-invalid="true" aria-describedby="id_product_errors"{% endif %}>
           <option value="">＋ {% trans "Neues Produkt aus diesen Angaben" %}</option>
           {% for p in products %}
             <option value="{{ p.pk }}" {% if form.product.value|stringformat:'s' == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name_text|default:p }}{% if p.sku %} · {{ p.sku }}{% endif %}</option>
           {% endfor %}
         </select>
-        {% for e in form.product.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        {% if form.product.errors %}<span class="block" id="id_product_errors">{% for e in form.product.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       {% endif %}
       {% endwith %}
@@ -113,21 +113,21 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
         <label class="block">
           <span class="block text-sm font-medium mb-1">{{ form.new_price.label }}</span>
           <input type="text" name="new_price" value="{{ form.new_price.value|money_input }}" inputmode="decimal" autocomplete="off"
-                 class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base">
-          {% for e in form.new_price.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+                 class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" {% if form.new_price.errors %}aria-invalid="true" aria-describedby="id_new_price_errors"{% endif %}>
+          {% if form.new_price.errors %}<span class="block" id="id_new_price_errors">{% for e in form.new_price.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
         </label>
         <label class="block">
           <span class="block text-sm font-medium mb-1">{{ form.old_price.label }}</span>
           <input type="text" name="old_price" value="{{ form.old_price.value|money_input }}" inputmode="decimal" autocomplete="off"
-                 class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base">
-          {% for e in form.old_price.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+                 class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" {% if form.old_price.errors %}aria-invalid="true" aria-describedby="id_old_price_errors"{% endif %}>
+          {% if form.old_price.errors %}<span class="block" id="id_old_price_errors">{% for e in form.old_price.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
         </label>
       </div>
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.percent.label }}</span>
         <input type="number" name="percent" value="{{ form.percent.value|default_if_none:'' }}" min="1" max="99" inputmode="numeric"
-               class="w-28 rounded-xl border border-gray-300 px-3 py-2.5 text-base">
-        {% for e in form.percent.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+               class="w-28 rounded-xl border border-gray-300 px-3 py-2.5 text-base" {% if form.percent.errors %}aria-invalid="true" aria-describedby="id_percent_errors"{% endif %}>
+        {% if form.percent.errors %}<span class="block" id="id_percent_errors">{% for e in form.percent.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       <fieldset>
         <legend class="block text-sm font-medium mb-2">{{ form.term.label }}</legend>
@@ -141,8 +141,8 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
         </div>
         <label class="block mt-2" data-term-date>
           <span class="block text-xs text-gray-500 mb-1">{{ form.until.label }}</span>
-          <input type="date" name="until" value="{{ form.until.value|default_if_none:''|stringformat:'s' }}" class="rounded-xl border border-gray-300 px-3 py-2 text-sm">
-          {% for e in form.until.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+          <input type="date" name="until" value="{{ form.until.value|default_if_none:''|stringformat:'s' }}" class="rounded-xl border border-gray-300 px-3 py-2 text-sm" {% if form.until.errors %}aria-invalid="true" aria-describedby="id_until_errors"{% endif %}>
+          {% if form.until.errors %}<span class="block" id="id_until_errors">{% for e in form.until.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
         </label>
       </fieldset>
       <label class="block">

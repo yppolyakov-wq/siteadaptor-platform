@@ -1,0 +1,4 @@
+{% comment %}KA-12 E9.4c: подсказка и ошибки поля с id, на которые ссылается aria-describedby
+виджета (подсказку связывает Django, ошибки — фильтр form_a11y.a11y).{% endcomment %}
+{% if field.help_text %}<p class="text-xs ui-muted mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+{% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}

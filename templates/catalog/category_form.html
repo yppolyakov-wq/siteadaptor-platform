@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n widget_tweaks %}
+{% load i18n widget_tweaks form_a11y %}
 {% block dash_title %}{% if is_create %}{% trans "New category" %}{% else %}{% trans "Edit category" %}{% endif %}{% endblock %}
 
 {% block dash_content %}
@@ -64,9 +64,9 @@ main-колонка (языки/название/описание/фото) + п
         {% for field in form %}{% if field.name == 'parent' or field.name == 'slug' or field.name == 'city_category' %}
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {% render_field field class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
-            {% if field.help_text %}<p class="text-xs ui-muted mt-1">{{ field.help_text }}</p>{% endif %}
-            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
+            {% render_field field|a11y class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
+            {% if field.help_text %}<p class="text-xs ui-muted mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+            {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
           </div>
         {% endif %}{% endfor %}
         {% comment %}DL-20: шаблон страницы категории — ПЛИТКИ с мини-макетом вместо
@@ -76,7 +76,7 @@ main-колонка (языки/название/описание/фото) + п
           <div>
             {% include "tenant/_cardform_picker.html" with name="page_style" value=field.value|default:"" items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=field.label %}
             <p class="text-xs ui-muted mt-1">{% trans "Leave on Standard to follow the site-wide setting." %}</p>
-            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
+            {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
           </div>
         {% endif %}{% endfor %}
         {% comment %}STU-12j (F9): форма карточек ТОВАРОВ этой категории — слой между
@@ -84,16 +84,16 @@ main-колонка (языки/название/описание/фото) + п
         {% for field in form %}{% if field.name == 'card_style' %}
           <div>
             {% include "tenant/_cardform_picker.html" with name="card_style" value=field.value|default:"" items=category_card_forms title=field.label %}
-            <p class="text-xs ui-muted mt-1">{{ field.help_text }}</p>
-            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
+            <p class="text-xs ui-muted mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>
+            {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
           </div>
         {% endif %}{% endfor %}
         <div class="grid grid-cols-2 gap-3">
           {% for field in form %}{% if field.name == 'icon' or field.name == 'sort_order' %}
             <div>
               <label class="block text-xs font-medium text-gray-500 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-              {% render_field field class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
-              {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
+              {% render_field field|a11y class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
+              {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
             </div>
           {% endif %}{% endfor %}
         </div>
@@ -101,16 +101,17 @@ main-колонка (языки/название/описание/фото) + п
 
       <div class="bg-white p-5 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)]">
         {% for field in form %}{% if field.name == 'is_active' or field.name == 'hide_in_city' or field.name == 'hide_in_google' %}
-          <label class="flex items-center gap-2 text-sm font-medium">{% render_field field %} {{ field.label }}</label>
+          <label class="flex items-center gap-2 text-sm font-medium">{% render_field field|a11y %} {{ field.label }}</label>
+          {% include "core/_field_msgs.html" %}
         {% endif %}{% endfor %}
       </div>
 
       <div class="bg-white p-5 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)]">
         {% for field in form %}{% if field.name == 'size_table' %}
           <label class="block text-xs font-medium text-gray-500 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {% render_field field class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
-          {% if field.help_text %}<p class="text-xs ui-muted mt-1">{{ field.help_text }}</p>{% endif %}
-          {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
+          {% render_field field|a11y class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
+          {% if field.help_text %}<p class="text-xs ui-muted mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+          {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
         {% endif %}{% endfor %}
       </div>
     </aside>

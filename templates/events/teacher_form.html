@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n widget_tweaks %}
+{% load i18n widget_tweaks form_a11y %}
 {% block dash_title %}{% if teacher %}{% trans "Edit teacher" %}{% else %}{% trans "New teacher" %}{% endif %}{% endblock %}
 
 {% block dash_content %}
@@ -13,9 +13,9 @@
       {% if field.name == 'is_active' %}
         <label class="flex items-center gap-2 text-sm">{{ field }} {% trans "Visible on the website" %}</label>
       {% else %}
-        {{ field|add_class:"w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" }}
+        {{ field|a11y|add_class:"w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" }}
       {% endif %}
-      {% for e in field.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
+      {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for e in field.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}</div>{% endif %}
     </div>
   {% endfor %}
   <div class="flex gap-2">

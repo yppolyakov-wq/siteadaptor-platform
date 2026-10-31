@@ -1,11 +1,11 @@
-{% load i18n %}
+{% load i18n form_a11y %}
 {% comment %}T-8.13a: «Kategorie im Stadtkatalog» одной строкой + признаки свёрнуто
 («+ Merkmale»). Один партиал на полную форму, ассистент и /aktion-starten/.
 Поля всегда в DOM (W0): <details> только сворачивает.{% endcomment %}
 <div class="space-y-2" data-city-category>
   <label class="block">
     <span class="block text-sm font-medium mb-1">{{ form.city_category.label }}</span>
-    <select name="city_category" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base bg-white" data-city-category-select>
+    <select name="city_category" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base bg-white" data-city-category-select aria-describedby="{{ form.city_category.auto_id }}_helptext{% if form.city_category.errors %} {{ form.city_category.auto_id }}_errors{% endif %}"{% if form.city_category.errors %} aria-invalid="true"{% endif %}>
       {% with current=form.city_category.value|default_if_none:''|stringformat:'s' %}
         <option value="" {% if not current %}selected{% endif %}>{% trans "Automatisch (nach Art des Geschäfts)" %}</option>
         {% for section_label, items in form.city_category_groups %}
@@ -15,8 +15,8 @@
         {% endfor %}
       {% endwith %}
     </select>
-    <span class="block text-xs text-gray-500 mt-1">{{ form.city_category.help_text }}</span>
-    {% for e in form.city_category.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+    <span class="block text-xs text-gray-500 mt-1" id="{{ form.city_category.auto_id }}_helptext">{{ form.city_category.help_text }}</span>
+    {% if form.city_category.errors %}<span class="block" id="{{ form.city_category.auto_id }}_errors">{% for e in form.city_category.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
   </label>
   <details class="rounded-xl border border-gray-100 p-3" {% if form.city_tags.value %}open{% endif %}>
     <summary class="cursor-pointer text-sm text-indigo-600">＋ {{ form.city_tags.label }}</summary>
@@ -27,7 +27,7 @@
         </label>
       {% endfor %}
     </div>
-    <span class="block text-xs text-gray-500 mt-2">{{ form.city_tags.help_text }}</span>
+    <span class="block text-xs text-gray-500 mt-2" id="{{ form.city_tags.auto_id }}_helptext">{{ form.city_tags.help_text }}</span>
   </details>
   {{ form.city_tag_map|json_script:"city-tag-map" }}
 </div>

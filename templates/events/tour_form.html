@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n widget_tweaks %}
+{% load i18n widget_tweaks form_a11y %}
 {% comment %}
 MT-1: правка тура. Маршрут — таблица строк (без JS: пустые слоты дорастают после
 сохранения, как в редакторе Finder). У каждой остановки свой уровень видимости —
@@ -26,9 +26,9 @@ MT-1: правка тура. Маршрут — таблица строк (бе�
           {% for c in field %}<label class="flex items-center gap-2">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}
         </div>
       {% else %}
-        {{ field|add_class:"w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" }}
+        {{ field|a11y|add_class:"w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" }}
       {% endif %}
-      {% for e in field.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
+      {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for e in field.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}</div>{% endif %}
     </div>
   {% endfor %}
 

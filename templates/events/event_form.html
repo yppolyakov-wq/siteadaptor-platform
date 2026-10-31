@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n widget_tweaks %}
+{% load i18n widget_tweaks form_a11y %}
 {% block dash_title %}{% if event %}{% trans "Edit event" %}{% else %}{% trans "New event" %}{% endif %}{% endblock %}
 
 {% block dash_content %}
@@ -19,10 +19,10 @@
           {% for c in field %}<label class="flex items-center gap-2">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}
         </div>
       {% else %}
-        {{ field|add_class:"w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" }}
+        {{ field|a11y|add_class:"w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" }}
       {% endif %}
-      {% if field.help_text %}<p class="text-xs ui-muted mt-1">{{ field.help_text }}</p>{% endif %}
-      {% for e in field.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
+      {% if field.help_text %}<p class="text-xs ui-muted mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+      {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for e in field.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}</div>{% endif %}
     </div>
   {% endfor %}
 
