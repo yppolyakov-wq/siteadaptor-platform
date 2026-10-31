@@ -125,7 +125,8 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
       <select name="kind" aria-label="{% trans 'Art des Fotos' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         {% for value, label in photo_kinds %}{% if value != "customer" or customer_photo_count < max_photos %}<option value="{{ value }}"{% if value == "after" %} selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}
       </select>
-      <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-label="{% trans 'Fotos hinzufügen' %}" class="text-sm">
+      {% include "catalog/_photo_add_tile.html" with target="photos" small=1 %}
+      <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-label="{% trans 'Fotos hinzufügen' %}" class="hidden">
       <button class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium hover:border-indigo-400">📷 {% trans "Fotos hinzufügen" %}</button>
     </form>
     {% for pf in protocol_forms %}

@@ -48,8 +48,9 @@ KA-12 A-2 (HW-2/G-4): те же поля, что у /anfrage/ — PLZ, фото,
       <select name="source" class="ui-input mt-1 text-gray-900">
         {% for code, label in manual_sources %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
       </select></label>
-    <label class="block text-xs text-gray-500">{% blocktrans with n=max_photos %}Fotos (max. {{ n }}){% endblocktrans %}
-      <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple class="mt-1 block w-full text-sm"></label>
+    <div class="text-xs text-gray-500">{% blocktrans with n=max_photos %}Fotos (max. {{ n }}){% endblocktrans %}
+      <div class="mt-1">{% include "catalog/_photo_add_tile.html" with target="photos" %}</div>
+      <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hidden" aria-label="{% trans 'Fotos hinzufügen' %}"></div>
   </div>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create request" %}</button>
 </form>

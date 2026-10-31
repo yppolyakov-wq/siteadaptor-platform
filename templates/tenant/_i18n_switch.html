@@ -7,13 +7,17 @@
 пиктограммой-группой «🌐 + пилюли-коды» для угла шапки формы (вместо строки с
 пояснением). Механика (data-i18n-pill, radio-переключение) не тронута; в
 пилюлях — короткий КОД локали, полное имя — в title.{% endcomment %}
+{% comment %}E9.9 (фидбэк владельца 2026-10-31): язык — компактной выпадашкой рядом с
+заголовком страницы («Produkt bearbeiten · 🌐 DE ▾»), а не пилюлями в углу формы. Выпадашка
+не отправляется формой (без name) — только переключает видимые группы полей.{% endcomment %}
 {% if i18n_multi %}
-<div class="inline-flex items-center gap-0.5 rounded-full bg-white shadow-sm px-1.5 py-1" role="group" aria-label="{% trans 'Editing language' %}" title="{% trans 'You enter data per language' %}">
-  <span class="text-sm px-0.5" aria-hidden="true">🌐</span>
-  {% for g in i18n_groups %}
-    <button type="button" data-i18n-pill="{{ g.code }}" title="{{ g.label }}" aria-label="{{ g.label }} ({{ g.code }})" aria-pressed="{% if g.is_base %}true{% else %}false{% endif %}" class="i18n-pill{% if g.is_base %} i18n-pill-on{% endif %} text-[11px] font-semibold uppercase px-2 min-h-6 min-w-6 rounded-full border border-transparent text-gray-500">{{ g.code }}</button>
-  {% endfor %}
-</div>
+<label class="inline-flex items-center gap-1 text-sm" title="{% trans 'You enter data per language' %}">
+  <span aria-hidden="true">🌐</span>
+  <span class="sr-only">{% trans 'Editing language' %}</span>
+  <select data-i18n-select class="rounded-lg border border-gray-200 bg-white pl-2 pr-7 py-1 text-sm font-semibold min-h-[32px]">
+    {% for g in i18n_groups %}<option value="{{ g.code }}"{% if g.is_base %} selected{% endif %}>{{ g.code|upper }} · {{ g.label }}</option>{% endfor %}
+  </select>
+</label>
 {% endif %}
 
 <style>
@@ -37,6 +41,9 @@
 
   // Переключатель языка: показываем группы только выбранной локали.
   function setLoc(loc) {
+    document.querySelectorAll("[data-i18n-select]").forEach(function (sel) {
+      if (sel.value !== loc) sel.value = loc;
+    });
     document.querySelectorAll("[data-i18n-pill]").forEach(function (b) {
       var on = b.getAttribute("data-i18n-pill") === loc;
       b.classList.toggle("i18n-pill-on", on);
@@ -86,8 +93,8 @@
     var want = new URLSearchParams(window.location.search).get("sprache") || "";
     if (!/^[a-z]{2,3}$/.test(want)) return;
     var known = Array.prototype.some.call(
-      document.querySelectorAll("[data-i18n-pill]"),
-      function (b) { return b.getAttribute("data-i18n-pill") === want; }
+      document.querySelectorAll("[data-i18n-pill], [data-i18n-select] option"),
+      function (b) { return (b.getAttribute("data-i18n-pill") || b.value) === want; }
     );
     if (known) setLoc(want);
   }
@@ -96,6 +103,9 @@
   } else {
     openFromUrl();
   }
+  document.addEventListener("change", function (e) {
+    if (e.target.matches && e.target.matches("[data-i18n-select]")) setLoc(e.target.value);
+  });
   document.addEventListener("click", function (e) {
     var pill = e.target.closest("[data-i18n-pill]");
     if (pill) { setLoc(pill.getAttribute("data-i18n-pill")); return; }

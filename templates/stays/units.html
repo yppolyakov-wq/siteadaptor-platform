@@ -128,8 +128,9 @@
             </div>
           </div>
           <div class="sm:col-span-2">
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Add photos" %}</span>
-            <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600"></label>
+            <span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Add photos" %}</span>
+            {% include "catalog/_photo_add_tile.html" with target="photos" %}
+            <input type="file" name="photos" accept="image/*" multiple class="hidden" aria-label="{% trans "Add photos" %}">
           </div>
         </div>
 
@@ -379,8 +380,9 @@
       </div>
     </div>
     <div class="sm:col-span-2">
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Photos (optional)" %}</span>
-      <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600"></label>
+      <span class="block text-sm font-medium mb-1">{% trans "Photos (optional)" %}</span>
+      {% include "catalog/_photo_add_tile.html" with target="photos" %}
+      <input type="file" name="photos" accept="image/*" multiple class="hidden" aria-label="{% trans "Photos (optional)" %}">
     </div>
   </div>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create unit" %}</button>

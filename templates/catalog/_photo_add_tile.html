@@ -2,9 +2,11 @@
 {% comment %}FB-5: визуальная плитка «＋ Foto» — В НАЧАЛЕ ряда фото на формах кабинета
 (товар/акция/категория). Проксирует клик в input[name=images] (страница содержит один
 такой input); выбранные файлы уходят при Save — бейдж показывает число выбранных.
-Делегирование на document (партиал парсится раньше input — урок Ф1).{% endcomment %}
-<button type="button" data-photo-add-proxy
-        class="w-24 h-24 shrink-0 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 flex flex-col items-center justify-center hover:border-indigo-400 hover:text-indigo-600 cursor-pointer"
+Делегирование на document (партиал парсится раньше input — урок Ф1).
+E9.9: параметр `target` — имя file-input (дефолт images; у номеров/событий photos, у услуги
+image, у статьи cover). Поиск — в СВОЕЙ форме (на странице бывает несколько форм).{% endcomment %}
+<button type="button" data-photo-add-proxy="{{ target|default:'images' }}"
+        class="{% if small %}w-16 h-16{% else %}w-24 h-24{% endif %} shrink-0 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 flex flex-col items-center justify-center hover:border-indigo-400 hover:text-indigo-600 cursor-pointer"
         title="{% trans 'Add photo' %}" aria-label="{% trans 'Add photo' %}">
   <span class="text-2xl leading-none" aria-hidden="true">＋</span>
   <span class="text-xs mt-0.5">{% trans "Foto" %}</span>
@@ -18,15 +20,23 @@
   document.addEventListener("click", function (e) {
     var b = e.target.closest("[data-photo-add-proxy]");
     if (!b) return;
-    var inp = document.querySelector("input[type=file][name=images]");
+    var name = b.getAttribute("data-photo-add-proxy") || "images";
+    var sel = 'input[type=file][name="' + name + '"]';
+    var form = b.closest("form");
+    var inp = (form && form.querySelector(sel)) || document.querySelector(sel);
     if (inp) inp.click();
   });
   // Бейдж «N ✓» на плитке — файлы выбраны, уйдут при сохранении формы.
   document.addEventListener("change", function (e) {
     var t = e.target;
-    if (!(t && t.matches && t.matches("input[type=file][name=images]"))) return;
+    if (!(t && t.matches && t.matches("input[type=file]"))) return;
     var n = t.files ? t.files.length : 0;
-    document.querySelectorAll("[data-photo-add-count]").forEach(function (el) {
+    // Бейдж — только у плиток той же формы (или вне форм, если плитка снаружи).
+    document.querySelectorAll('[data-photo-add-proxy="' + t.name + '"]').forEach(function (tile) {
+      var tf = tile.closest("form");
+      if (tf && tf !== t.form) return;
+      var el = tile.querySelector("[data-photo-add-count]");
+      if (!el) return;
       el.textContent = n ? n + " ✓" : "";
       el.classList.toggle("hidden", !n);
     });

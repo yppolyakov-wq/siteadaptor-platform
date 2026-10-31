@@ -72,7 +72,7 @@
         {% if service_page %}<span class="font-medium">{{ s.name }}</span>{% else %}<a href="{% url 'booking:service-edit' s.pk %}" class="font-medium hover:text-indigo-700">{{ s.name }}</a>{% endif %}{% if not s.is_active %} <span class="text-xs text-gray-400">· {% trans "inactive" %}</span>{% endif %}
       </div>
       <div class="sm:col-span-5 order-last flex flex-wrap items-center gap-3">
-        <label class="text-xs text-gray-500">{% trans "Photo" %}: <input name="image" type="file" accept="image/*" class="text-sm"></label>
+        {% include "catalog/_photo_add_tile.html" with target="image" small=1 %}<input name="image" type="file" accept="image/*" class="hidden" aria-label="{% trans "Photo" %}">
         {% if s.image_url %}<label class="text-xs text-gray-500"><input type="checkbox" name="remove_image" value="1"> {% trans "Remove photo" %}</label>{% endif %}
         {# LS-1: сентинел — presence-guard (чужой клиент формы без чекбокса не сбросит флаг). #}
         <input type="hidden" name="is_video_present" value="1">
@@ -277,8 +277,9 @@
     <textarea name="description_{{ loc }}" rows="2" aria-label="{% trans 'Description' %} ({{ loc|upper }})" placeholder="{% trans 'Description' %} ({{ loc|upper }})" class="ui-input"></textarea>
   {% endfor %}
   <div>
-    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</span>
-    <input name="image" type="file" accept="image/*" class="w-full text-sm"></label>
+    <span class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</span>
+    {% include "catalog/_photo_add_tile.html" with target="image" %}
+    <input name="image" type="file" accept="image/*" class="hidden" aria-label="{% trans "Photo (optional)" %}">
   </div>
   <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_video" value="1"> 📹 {% trans "Video-Beratung möglich" %} <span class="text-xs text-gray-400">({% trans "WhatsApp-Link in Bestätigung" %})</span></label>
   <label class="flex items-center gap-2 text-sm">{% trans "Preis gilt" %}

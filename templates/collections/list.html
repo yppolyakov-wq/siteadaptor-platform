@@ -116,8 +116,9 @@
         {% endfor %}
         <form method="post" enctype="multipart/form-data" class="flex items-center gap-2">{% csrf_token %}
           <input type="hidden" name="action" value="photo"><input type="hidden" name="collection" value="{{ col.pk }}">
-          <input aria-label="{% trans "Foto" %}" type="file" name="photo" accept="image/*" required class="text-xs text-gray-600 w-44">
-          <button type="submit" class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">＋ {% trans "Foto" %}</button>
+          {# E9.9: плитка «＋ Foto» выбирает файл, выбор сразу отправляет форму. #}
+          {% include "catalog/_photo_add_tile.html" with target="photo" small=1 %}
+          <input aria-label="{% trans "Foto" %}" type="file" name="photo" accept="image/*" class="hidden" onchange="this.form.requestSubmit()">
         </form>
       </div>
     </div>

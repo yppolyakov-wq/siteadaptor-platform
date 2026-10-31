@@ -20,8 +20,9 @@
   <div class="flex items-center gap-3">
     {% if post.cover_url %}<img src="{{ post.cover_url }}" alt="" class="w-20 h-14 rounded-lg object-cover shrink-0">{% endif %}
     <div class="flex-1">
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Cover" %}</span>
-      <input name="cover" type="file" accept="image/*" class="w-full text-sm"></label>
+      <span class="block text-sm font-medium mb-1">{% trans "Cover" %}</span>
+      {% include "catalog/_photo_add_tile.html" with target="cover" %}
+      <input name="cover" type="file" accept="image/*" class="hidden" aria-label="{% trans "Cover" %}">
       {% if post.cover_url %}<label class="text-xs text-gray-500 mt-1 inline-block"><input type="checkbox" name="remove_cover" value="1"> {% trans "Remove cover" %}</label>{% endif %}
     </div>
   </div>

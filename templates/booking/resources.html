@@ -129,7 +129,7 @@
           </div>
           <textarea name="bio" rows="2" aria-label="{% trans 'Short bio (optional)' %}" placeholder="{% trans 'Short bio (optional)' %}" class="ui-input">{{ r.bio }}</textarea>
           <div class="flex flex-wrap items-center gap-3">
-            <label class="text-gray-600">{% trans "Photo" %}: <input name="photo" type="file" accept="image/*"></label>
+            {% include "catalog/_photo_add_tile.html" with target="photo" small=1 %}<input name="photo" type="file" accept="image/*" class="hidden" aria-label="{% trans "Photo" %}">
             {% if r.photo_url %}<label class="text-gray-600"><input type="checkbox" name="remove_photo" value="1"> {% trans "Remove photo" %}</label>{% endif %}
             <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save profile" %}</button>
           </div>

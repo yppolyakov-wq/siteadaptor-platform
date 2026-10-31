@@ -45,8 +45,9 @@
   <input name="excerpt" type="text" aria-label="{% trans 'Short summary (optional)' %}" placeholder="{% trans 'Short summary (optional)' %}" class="ui-input">
   <textarea name="body" rows="5" aria-label="{% trans 'Text' %}" placeholder="{% trans 'Text' %}" class="ui-input"></textarea>
   <div>
-    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Cover (optional)" %}</span>
-    <input name="cover" type="file" accept="image/*" class="w-full text-sm"></label>
+    <span class="block text-sm font-medium mb-1">{% trans "Cover (optional)" %}</span>
+    {% include "catalog/_photo_add_tile.html" with target="cover" %}
+    <input name="cover" type="file" accept="image/*" class="hidden" aria-label="{% trans "Cover (optional)" %}">
   </div>
   <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="publish"> {% trans "Publish now" %}</label>
   <label class="block text-sm text-gray-500">{% trans "Publish at (optional)" %}

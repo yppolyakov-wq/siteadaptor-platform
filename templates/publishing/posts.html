@@ -25,9 +25,10 @@
       <input type="datetime-local" name="scheduled_at" class="ui-input mt-1">
     </label>
   </div>
-  <label class="block text-sm text-gray-500">{% trans "Photo (optional; required for Instagram/Pinterest)" %}
-    <input type="file" name="image" accept="image/*" class="mt-1 block text-sm">
-  </label>
+  <div class="text-sm text-gray-500">{% trans "Photo (optional; required for Instagram/Pinterest)" %}
+    <div class="mt-1">{% include "catalog/_photo_add_tile.html" with target="image" %}</div>
+    <input type="file" name="image" accept="image/*" class="hidden" aria-label="{% trans "Photo (optional; required for Instagram/Pinterest)" %}">
+  </div>
   <div class="flex flex-wrap gap-2 pt-1">
     <button type="submit" name="action" value="schedule" class="ui-btn ui-btn-primary">{% trans "Schedule" %}</button>
     <button type="submit" name="action" value="now" class="ui-btn ui-btn-secondary">{% trans "Send now" %}</button>

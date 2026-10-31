@@ -6,9 +6,12 @@
 {% comment %}SR-2: форма на всю ширину (утверждённый канвас) —
 main-колонка + правая колонка «Preis & Bestand»/«Kategorie»/Sichtbarkeit.{% endcomment %}
 <div>
-  <h1 class="ui-h1 mb-4">
-    {% if is_create %}{% trans "New product" %}{% else %}{% trans "Edit product" %}{% endif %}
-  </h1>
+  <div class="flex items-center gap-3 flex-wrap mb-4">
+    <h1 class="ui-h1">
+      {% if is_create %}{% trans "New product" %}{% else %}{% trans "Edit product" %}{% endif %}
+    </h1>
+    {% include "tenant/_i18n_switch.html" %}
+  </div>
 
   {% if messages %}
     {% for m in messages %}
@@ -34,7 +37,6 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
     {# Варианты/Extras — своя вкладка (только в режиме редактирования: нужен сохранённый товар) #}
     {% if product %}<button type="button" data-pf-tab="varianten" class="ui-tab" role="tab" aria-selected="false" tabindex="-1">{% trans "Variants & extras" %}</button>{% endif %}
   </div>
-    <span class="ml-auto">{% include "tenant/_i18n_switch.html" %}</span>
   </div>
 
 
@@ -98,10 +100,10 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
           {% endfor %}{% endif %}
         </div>
       </div>
+      {# E9.9: второй способ загрузки («Choose Files») убран — файлы выбирает плитка «＋ Foto». #}
       <div>
-        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Add images" %}</span>
-        <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-sm"></label>
-        <p class="text-xs ui-muted mt-1">{% trans "JPEG, PNG or WEBP, max 5 MB each." %}</p>
+        <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="hidden" aria-label="{% trans "Add images" %}">
+        <p class="text-xs ui-muted -mt-2">{% trans "JPEG, PNG or WEBP, max 5 MB each." %}</p>
       </div>
       {% comment %}O-1 (Outlet/B-Ware): марка и состояние — часть описания товара, а не
       маркировки: в аутлете это первое, что смотрит покупатель, и по § 476 Abs. 2 BGB
@@ -278,7 +280,8 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
         {% csrf_token %}
         <label class="text-xs text-gray-500">{% trans "Foto für eine Farbe" %}
           <select name="color" class="block rounded-lg border border-gray-300 px-2 py-2 text-base">{% for c in variant_colors %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></label>
-        <input name="image" type="file" accept="image/jpeg,image/png,image/webp" required class="text-sm" aria-label="{% trans 'Foto' %}">
+        {% include "catalog/_photo_add_tile.html" with target="image" small=1 %}
+        <input name="image" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" aria-label="{% trans 'Foto' %}">
         <button class="ui-card min-h-[44px] px-3 hover:border-indigo-400">{% trans "Für alle Größen setzen" %}</button>
       </form>
       {% endif %}

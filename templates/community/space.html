@@ -45,7 +45,8 @@ MT-3: пространство поездки — лента объявлени�
         <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off">
         <textarea name="body" rows="3" maxlength="4000" aria-label="{% trans 'Share something with the group…' %}" placeholder="{% trans 'Share something with the group…' %}" class="ui-input"></textarea>
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <input aria-label="{% trans "Fotos" %}" type="file" name="photos" accept="image/*" multiple class="text-sm text-gray-600">
+          {% include "catalog/_photo_add_tile.html" with target="photos" small=1 %}
+          <input aria-label="{% trans "Fotos" %}" type="file" name="photos" accept="image/*" multiple class="hidden">
           <button type="submit" class="ui-btn ui-btn-primary">{% trans "Post" %}</button>
         </div>
       </form>

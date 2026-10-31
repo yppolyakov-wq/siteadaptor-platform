@@ -156,7 +156,11 @@ def test_category_form_has_language_switcher(user):
     req = RequestFactory().get("/catalog/categories/new/")
     _attach_session_user(req, user)  # без tenant → фолбэк de+en → свитчер виден
     body = views.category_create(req).content.decode()
-    assert 'data-i18n-pill="de"' in body and 'data-i18n-pill="en"' in body
+    assert (
+        "<select data-i18n-select" in body
+        and '<option value="de"' in body
+        and '<option value="en"' in body
+    )
     assert "id_name_de" in body and "id_name_en" in body  # оба языка в DOM
     assert "id_slug" in body and "id_parent" in body  # прочие поля на месте
 

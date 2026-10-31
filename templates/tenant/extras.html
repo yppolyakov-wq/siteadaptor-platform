@@ -111,8 +111,9 @@
       {% trans "Price per night (Übernachtung) — otherwise once per booking" %}
     </label>
     <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</span>
-      <input name="image" type="file" accept="image/*" class="w-full text-sm text-gray-600"></label>
+      <span class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</span>
+      {% include "catalog/_photo_add_tile.html" with target="image" %}
+      <input name="image" type="file" accept="image/*" class="hidden" aria-label="{% trans "Photo (optional)" %}">
     </div>
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add extra" %}</button>
   </form>

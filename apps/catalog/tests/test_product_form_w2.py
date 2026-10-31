@@ -141,7 +141,11 @@ def test_language_switcher_shown_for_multi_locale(user):
     скрыты (data-i18n-loc), видна только базовая локаль. Все поля остаются (Save)."""
     tenant = TenantFactory(business_type="bakery", enabled_locales=["de", "en"])
     body = _render(user, tenant)
-    assert 'data-i18n-pill="de"' in body and 'data-i18n-pill="en"' in body  # пилюли
+    assert (
+        "<select data-i18n-select" in body
+        and '<option value="de"' in body
+        and '<option value="en"' in body
+    )  # пилюли
     assert "id_name_de" in body and "id_name_en" in body  # оба языка в DOM
     i = body.find('data-i18n-loc="en"')
     assert i != -1 and "hidden" in body[i : i + 60]  # EN по умолчанию скрыт
@@ -153,7 +157,7 @@ def test_language_switcher_shown_for_multi_locale(user):
 def test_no_language_switcher_for_single_locale(user):
     """Один язык → переключателя нет (форма как раньше), поля на месте."""
     body = _render(user, TenantFactory(business_type="bakery", enabled_locales=["de"]))
-    assert 'data-i18n-pill="' not in body  # кнопок-пилюль нет (JS-селектор не считаем)
+    assert "<select data-i18n-select" not in body  # выпадашки языка нет при одном языке
     assert "id_name_de" in body
 
 

@@ -27,8 +27,9 @@
   {% endfor %}
 
   <div>
-    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Photos (venue, past events)" %}</span>
-    <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600"></label>
+    <span class="block text-sm font-medium mb-1">{% trans "Photos (venue, past events)" %}</span>
+    {% include "catalog/_photo_add_tile.html" with target="photos" %}
+    <input type="file" name="photos" accept="image/*" multiple class="hidden" aria-label="{% trans "Photos (venue, past events)" %}">
     {% if event.images %}
       <div class="mt-2 flex flex-wrap gap-2">
         {% for img in event.images %}

@@ -12,7 +12,7 @@ main-колонка (языки/название/описание/фото) + п
     <h1 class="ui-h1">
       {% if is_create %}{% trans "New category" %}{% else %}{% trans "Edit category" %}{% endif %}
     </h1>
-    <span class="ml-auto">{% include "tenant/_i18n_switch.html" %}</span>
+    {% include "tenant/_i18n_switch.html" %}
   </div>
 
   <form method="post" enctype="multipart/form-data" class="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start">
