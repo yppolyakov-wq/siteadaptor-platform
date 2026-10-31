@@ -8,14 +8,13 @@
 пояснением). Механика (data-i18n-pill, radio-переключение) не тронута; в
 пилюлях — короткий КОД локали, полное имя — в title.{% endcomment %}
 {% comment %}E9.9 (фидбэк владельца 2026-10-31): язык — компактной выпадашкой рядом с
-заголовком страницы («Produkt bearbeiten · 🌐 DE ▾»), а не пилюлями в углу формы. Выпадашка
+заголовком страницы («Produkt bearbeiten · de ▾», только код языка — полное имя в title), а не пилюлями в углу формы. Выпадашка
 не отправляется формой (без name) — только переключает видимые группы полей.{% endcomment %}
 {% if i18n_multi %}
 <label class="inline-flex items-center gap-1 text-sm" title="{% trans 'You enter data per language' %}">
-  <span aria-hidden="true">🌐</span>
   <span class="sr-only">{% trans 'Editing language' %}</span>
   <select data-i18n-select class="rounded-lg border border-gray-200 bg-white pl-2 pr-7 py-1 text-sm font-semibold min-h-[32px]">
-    {% for g in i18n_groups %}<option value="{{ g.code }}"{% if g.is_base %} selected{% endif %}>{{ g.code|upper }} · {{ g.label }}</option>{% endfor %}
+    {% for g in i18n_groups %}<option value="{{ g.code }}" title="{{ g.label }}"{% if g.is_base %} selected{% endif %}>{{ g.code }}</option>{% endfor %}
   </select>
 </label>
 {% endif %}
