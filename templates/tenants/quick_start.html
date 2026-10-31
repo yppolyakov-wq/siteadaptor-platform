@@ -42,13 +42,13 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
         <span class="block text-sm font-medium mb-1">{% trans "Was gibt es?" %}</span>
         <input type="text" name="title" value="{{ form.title.value|default:'' }}" maxlength="200" required
                placeholder="{% trans 'z. B. Feierabendtüte für 5 €' %}"
-               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="off">
-        {% for e in form.title.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="off" {% if form.title.errors %}aria-invalid="true" aria-describedby="id_title_errors"{% endif %}>
+        {% if form.title.errors %}<span class="block" id="id_title_errors">{% for e in form.title.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.description.label }}</span>
-        <textarea name="description" rows="2" maxlength="1000" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm">{{ form.description.value|default:'' }}</textarea>
-        {% for e in form.description.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        <textarea name="description" rows="2" maxlength="1000" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm" {% if form.description.errors %}aria-invalid="true" aria-describedby="id_description_errors"{% endif %}>{{ form.description.value|default:'' }}</textarea>
+        {% if form.description.errors %}<span class="block" id="id_description_errors">{% for e in form.description.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       <button type="button" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700 hidden" data-qs-next>{% trans "Weiter" %} →</button>
     </section>
@@ -59,20 +59,20 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
         <label class="block">
           <span class="block text-xs font-medium mb-1">{{ form.new_price.label }}</span>
           <input type="text" name="new_price" value="{{ form.new_price.value|money_input }}" inputmode="decimal" autocomplete="off"
-                 class="w-full rounded-xl border border-gray-300 px-2 py-2.5 text-base">
+                 class="w-full rounded-xl border border-gray-300 px-2 py-2.5 text-base" {% if form.new_price.errors %}aria-invalid="true" aria-describedby="qs-price_errors"{% endif %}>
         </label>
         <label class="block">
           <span class="block text-xs font-medium mb-1">{{ form.old_price.label }}</span>
           <input type="text" name="old_price" value="{{ form.old_price.value|money_input }}" inputmode="decimal" autocomplete="off"
-                 class="w-full rounded-xl border border-gray-300 px-2 py-2.5 text-base">
+                 class="w-full rounded-xl border border-gray-300 px-2 py-2.5 text-base" {% if form.old_price.errors %}aria-invalid="true" aria-describedby="qs-price_errors"{% endif %}>
         </label>
         <label class="block">
           <span class="block text-xs font-medium mb-1">{% trans "oder Rabatt" %} %</span>
           <input type="number" name="percent" value="{{ form.percent.value|default_if_none:'' }}" min="1" max="99" inputmode="numeric"
-                 class="w-full rounded-xl border border-gray-300 px-2 py-2.5 text-base">
+                 class="w-full rounded-xl border border-gray-300 px-2 py-2.5 text-base" {% if form.percent.errors %}aria-invalid="true" aria-describedby="qs-price_errors"{% endif %}>
         </label>
       </div>
-      {% for f in form %}{% if f.name == "new_price" or f.name == "old_price" or f.name == "percent" %}{% for e in f.errors %}<span class="block text-xs text-red-600">{{ e }}</span>{% endfor %}{% endif %}{% endfor %}
+      <div id="qs-price_errors">{% for f in form %}{% if f.name == "new_price" or f.name == "old_price" or f.name == "percent" %}{% for e in f.errors %}<span class="block text-xs text-red-600">{{ e }}</span>{% endfor %}{% endif %}{% endfor %}</div>
       <fieldset>
         <legend class="block text-sm font-medium mb-2">{{ form.term.label }}</legend>
         <div class="flex flex-wrap gap-2">
@@ -85,15 +85,15 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
         </div>
         <label class="mt-2" data-qs-date>
           <span class="block text-xs text-gray-500 mb-1">{{ form.until.label }}</span>
-          <input type="date" name="until" value="{{ form.until.value|default_if_none:''|stringformat:'s' }}" class="rounded-xl border border-gray-300 px-3 py-2 text-sm">
-          {% for e in form.until.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+          <input type="date" name="until" value="{{ form.until.value|default_if_none:''|stringformat:'s' }}" class="rounded-xl border border-gray-300 px-3 py-2 text-sm" {% if form.until.errors %}aria-invalid="true" aria-describedby="id_until_errors"{% endif %}>
+          {% if form.until.errors %}<span class="block" id="id_until_errors">{% for e in form.until.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
         </label>
       </fieldset>
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.quantity.label }}</span>
         <input type="number" name="quantity" value="{{ form.quantity.value|default_if_none:'' }}" min="1" inputmode="numeric"
-               class="w-28 rounded-xl border border-gray-300 px-3 py-2.5 text-base">
-        {% for e in form.quantity.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+               class="w-28 rounded-xl border border-gray-300 px-3 py-2.5 text-base" {% if form.quantity.errors %}aria-invalid="true" aria-describedby="id_quantity_errors"{% endif %}>
+        {% if form.quantity.errors %}<span class="block" id="id_quantity_errors">{% for e in form.quantity.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       <button type="button" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700 hidden" data-qs-next>{% trans "Weiter" %} →</button>
       <button type="button" class="w-full text-sm text-gray-500 hidden" data-qs-back>← {% trans "Zurück" %}</button>
@@ -101,7 +101,7 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
 
     <section class="bg-white rounded-2xl shadow-sm p-4 space-y-4 mt-3" data-qs-step="3">
       <h2 class="font-semibold text-gray-900">3 · {{ form.customer_response.label }}</h2>
-      <fieldset>
+      <fieldset{% if form.customer_response.errors %} aria-describedby="id_customer_response_errors"{% endif %}>
         <legend class="sr-only">{{ form.customer_response.label }}</legend>
         <div class="space-y-2">
           {% for key, label, hint in form.response_options %}
@@ -114,7 +114,7 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
           </label>
           {% endfor %}
         </div>
-        {% for e in form.customer_response.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        {% if form.customer_response.errors %}<span class="block" id="id_customer_response_errors">{% for e in form.customer_response.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </fieldset>
       {% include "promotions/_text_check.html" %}
       <button type="button" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700 hidden" data-qs-next>{% trans "Weiter" %} →</button>
@@ -126,8 +126,8 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.business_name.label }}</span>
         <input type="text" name="business_name" value="{{ form.business_name.value|default:'' }}" maxlength="200" required
-               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="organization">
-        {% for e in form.business_name.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="organization" {% if form.business_name.errors %}aria-invalid="true" aria-describedby="id_business_name_errors"{% endif %}>
+        {% if form.business_name.errors %}<span class="block" id="id_business_name_errors">{% for e in form.business_name.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       <div data-qs-slug>
         <label class="block text-sm font-medium mb-1" for="qs-subdomain">{{ form.subdomain.label }}</label>
@@ -135,13 +135,13 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
           <input type="text" id="qs-subdomain" name="subdomain" value="{{ form.subdomain.value|default:'' }}" maxlength="80"
                  autocapitalize="none" autocomplete="off" spellcheck="false" inputmode="url"
                  placeholder="{% trans 'wird aus dem Namen erstellt' %}"
-                 class="min-w-0 flex-1 px-3 py-2.5 text-base outline-none" data-qs-slug-input>
+                 class="min-w-0 flex-1 px-3 py-2.5 text-base outline-none" data-qs-slug-input {% if form.subdomain.errors %}aria-invalid="true" aria-describedby="id_subdomain_errors"{% endif %}>
           <span class="shrink-0 bg-gray-50 px-2 py-2.5 text-sm text-gray-500 border-l border-gray-200">.{{ domain_base }}</span>
         </div>
         <p class="mt-1 text-xs text-gray-500" data-qs-slug-status aria-live="polite">{% trans "Leer lassen — dann wählen wir eine freie Adresse aus dem Namen." %}</p>
-        {% for e in form.subdomain.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        {% if form.subdomain.errors %}<span class="block" id="id_subdomain_errors">{% for e in form.subdomain.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </div>
-      <fieldset>
+      <fieldset{% if form.business_type.errors %} aria-describedby="id_business_type_errors"{% endif %}>
         <legend class="block text-sm font-medium mb-2">{{ form.business_type.label }}</legend>
         <div class="grid grid-cols-2 gap-2">
           {% for c in type_cards %}
@@ -152,7 +152,7 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
           </label>
           {% endfor %}
         </div>
-        {% for e in form.business_type.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        {% if form.business_type.errors %}<span class="block" id="id_business_type_errors">{% for e in form.business_type.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </fieldset>
       {% if form.perishable %}
       {% comment %}Флажок только для еды: тип выбирается здесь, поэтому он под карточками.
@@ -170,9 +170,9 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.city.label }}</span>
         <input type="text" name="city" value="{{ form.city.value|default:'' }}" maxlength="100" required list="qs-cities"
-               autocomplete="address-level2" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" data-qs-city>
+               autocomplete="address-level2" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" data-qs-city {% if form.city.errors %}aria-invalid="true" aria-describedby="id_city_errors"{% endif %}>
         <datalist id="qs-cities">{% for c in known_cities %}<option value="{{ c }}">{% endfor %}</datalist>
-        {% for e in form.city.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        {% if form.city.errors %}<span class="block" id="id_city_errors">{% for e in form.city.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       {% comment %}T-8.5c: район — после города. Список всех районов реестра сгруппирован
       по городам; скрипт оставляет районы выбранного города и прячет поле, если у города
@@ -197,28 +197,28 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.street.label }}</span>
         <input type="text" name="street" value="{{ form.street.value|default:'' }}" maxlength="150" required autocomplete="address-line1"
-               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base">
-        {% for e in form.street.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" {% if form.street.errors %}aria-invalid="true" aria-describedby="id_street_errors"{% endif %}>
+        {% if form.street.errors %}<span class="block" id="id_street_errors">{% for e in form.street.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.postcode.label }}</span>
         <input type="text" name="postcode" value="{{ form.postcode.value|default:'' }}" maxlength="10" required inputmode="numeric" autocomplete="postal-code"
-               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base">
-        {% for e in form.postcode.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" {% if form.postcode.errors %}aria-invalid="true" aria-describedby="id_postcode_errors"{% endif %}>
+        {% if form.postcode.errors %}<span class="block" id="id_postcode_errors">{% for e in form.postcode.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       </div>
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.phone.label }}</span>
         <input type="tel" name="phone" value="{{ form.phone.value|default:'' }}" maxlength="30" required inputmode="tel" autocomplete="tel"
-               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base">
-        {% for e in form.phone.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" {% if form.phone.errors %}aria-invalid="true" aria-describedby="id_phone_errors"{% endif %}>
+        {% if form.phone.errors %}<span class="block" id="id_phone_errors">{% for e in form.phone.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.email.label }}</span>
         <input type="email" name="email" value="{{ form.email.value|default:'' }}" required inputmode="email" autocomplete="email"
-               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base">
+               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" {% if form.email.errors %}aria-invalid="true" aria-describedby="id_email_errors"{% endif %}>
         <span class="block text-xs text-gray-500 mt-1">{% trans "Kein Passwort nötig — Sie melden sich per Link aus der E-Mail an." %}</span>
-        {% for e in form.email.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        {% if form.email.errors %}<span class="block" id="id_email_errors">{% for e in form.email.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       <p class="text-sm text-gray-600" data-qs-catalog>🏙 {% trans "Ihre aktiven Angebote erscheinen im Stadtportal Ihrer Stadt — erst nachdem Ihre E-Mail-Adresse bestätigt ist." %}</p>
       <button type="submit" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700" data-qs-publish><span data-qs-idle>🚀 {% trans "Veröffentlichen" %}</span><span data-qs-busy hidden>⏳ {% trans "Wird veröffentlicht…" %}</span></button>

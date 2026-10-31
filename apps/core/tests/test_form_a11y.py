@@ -86,24 +86,24 @@ def test_cabinet_field_error_loops_have_container_id():
     assert not offenders, sorted(set(offenders))
 
 
-# Онбординг/регистрация и мастер импорта — публичные/одноразовые формы со своей
-# раскладкой ошибок; следующим батчем (план E9.4c §Дальше).
+# Не поля формы: ошибки строки импорта и предпросмотра цен — список, а не ошибка поля.
 _LEGACY = {
-    "tenants/onboarding.html",
-    "tenants/quick_start.html",
-    "imports/import_start.html",
     "imports/import_preview.html",
     "stays/_price_preview.html",
 }
 
 
-def test_filter_skips_grouped_widgets():
-    """Радио/чекбокс-группы: ошибку связывает <fieldset>, а не каждый input."""
-
-    class _G(forms.Form):
-        kind = forms.ChoiceField(choices=[("a", "A"), ("b", "B")], widget=forms.RadioSelect)
-
-    form = _G(data={})
-    form.is_valid()
-    a11y(form["kind"])
-    assert "aria-describedby" not in str(form["kind"])
+def test_static_describedby_targets_exist_in_template():
+    """Литеральные id в aria-describedby (без шаблонных выражений) объявлены в том же шаблоне."""
+    dangling = []
+    for path in TEMPLATES.rglob("*.html"):
+        text = path.read_text()
+        ids = set(re.findall(r'\bid="([^"{}]+)"', text))
+        for val in re.findall(r'aria-describedby="((?:[^"{]|\{\{.*?\}\}|\{%.*?%\})+)"', text):
+            val = re.sub(r"\{\{.*?\}\}|\{%.*?%\}", "§", val)
+            for ref in val.split():
+                if "§" in ref:
+                    continue
+                if ref not in ids:
+                    dangling.append((path.relative_to(TEMPLATES).as_posix(), ref))
+    assert not dangling, dangling

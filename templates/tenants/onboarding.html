@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n widget_tweaks %}
+{% load i18n widget_tweaks form_a11y %}
 {% block title %}{% trans "Gründe dein Geschäft" %} · SiteAdaptor{% endblock %}
 
 {% block extra_head %}
@@ -106,8 +106,8 @@
         {% else %}
           {# Визуальные карточки (иконка + язык задач + живое демо). #}
           <div>
-            <label class="block text-sm font-medium text-gray-800 mb-2">{{ form.business_type.label }}</label>
-            <div class="grid sm:grid-cols-2 gap-3">
+            <p id="bt-label" class="block text-sm font-medium text-gray-800 mb-2">{{ form.business_type.label }}</p>
+            <div class="grid sm:grid-cols-2 gap-3" role="radiogroup" aria-labelledby="bt-label"{% if form.business_type.errors %} aria-describedby="{{ form.business_type.auto_id }}_errors"{% endif %}>
               {% for bt in business_types %}
                 <label class="bt-card flex items-start gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-300">
                   <input type="radio" name="business_type" value="{{ bt.value }}"
@@ -125,7 +125,7 @@
                 </label>
               {% endfor %}
             </div>
-            {% for err in form.business_type.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+            {% if form.business_type.errors %}<div id="{{ form.business_type.auto_id }}_errors">{% for err in form.business_type.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
           </div>
         {% endif %}
 
@@ -134,15 +134,15 @@
           {% with f=form.business_name %}
           <div>
             <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
-            {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
-            {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+            {% render_field f|a11y class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+            {% if f.errors %}<div id="{{ f.auto_id }}_errors">{% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
           </div>
           {% endwith %}
           {% with f=form.city %}
           <div>
             <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
-            {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
-            {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+            {% render_field f|a11y class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+            {% if f.errors %}<div id="{{ f.auto_id }}_errors">{% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
           </div>
           {% endwith %}
         </div>
@@ -151,9 +151,9 @@
         {% with f=form.slug %}
         <div>
           <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
-          {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
-          {% if f.help_text %}<p class="text-xs text-gray-400 mt-1">{{ f.help_text }}</p>{% endif %}
-          {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          {% render_field f|a11y class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+          {% if f.help_text %}<p class="text-xs text-gray-400 mt-1" id="{{ f.auto_id }}_helptext">{{ f.help_text }}</p>{% endif %}
+          {% if f.errors %}<div id="{{ f.auto_id }}_errors">{% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
         </div>
         {% endwith %}
 
@@ -161,9 +161,9 @@
         {% with f=form.email %}
         <div>
           <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
-          {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
-          {% if f.help_text %}<p class="text-xs text-gray-400 mt-1">{{ f.help_text }}</p>{% endif %}
-          {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          {% render_field f|a11y class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+          {% if f.help_text %}<p class="text-xs text-gray-400 mt-1" id="{{ f.auto_id }}_helptext">{{ f.help_text }}</p>{% endif %}
+          {% if f.errors %}<div id="{{ f.auto_id }}_errors">{% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
         </div>
         {% endwith %}
 
@@ -172,16 +172,16 @@
           {% with f=form.password1 %}
           <div>
             <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
-            {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
-            {% if f.help_text %}<p class="text-xs text-gray-400 mt-1">{{ f.help_text }}</p>{% endif %}
-            {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+            {% render_field f|a11y class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+            {% if f.help_text %}<p class="text-xs text-gray-400 mt-1" id="{{ f.auto_id }}_helptext">{{ f.help_text }}</p>{% endif %}
+            {% if f.errors %}<div id="{{ f.auto_id }}_errors">{% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
           </div>
           {% endwith %}
           {% with f=form.password2 %}
           <div>
             <label class="block text-sm font-medium text-gray-800 mb-1" for="{{ f.id_for_label }}">{{ f.label }}</label>
-            {% render_field f class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
-            {% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+            {% render_field f|a11y class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none" %}
+            {% if f.errors %}<div id="{{ f.auto_id }}_errors">{% for err in f.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
           </div>
           {% endwith %}
         </div>

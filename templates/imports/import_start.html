@@ -25,11 +25,19 @@
       </select></label>
     </div>
     <div>
-      {% render_field form.source_file accept=".csv,.xlsx,.xlsm" class="block w-full text-sm border border-gray-300 rounded-lg p-2" %}
-      <p class="text-xs ui-muted mt-1">{% trans "Supported: .csv, .xlsx, .xlsm" %}</p>
+      <label for="{{ form.source_file.id_for_label }}" class="block text-sm font-medium mb-1">{{ form.source_file.label }}</label>
+      {% comment %}E9.4c: подсказка и ошибка — одним блоком, на который ссылается поле.{% endcomment %}
       {% if form.source_file.errors %}
-        <p class="text-sm text-red-600 mt-1">{{ form.source_file.errors|striptags }}</p>
+        {% render_field form.source_file accept=".csv,.xlsx,.xlsm" aria-describedby="imp-file-hint" aria-invalid="true" class="block w-full text-sm border border-gray-300 rounded-lg p-2" %}
+      {% else %}
+        {% render_field form.source_file accept=".csv,.xlsx,.xlsm" aria-describedby="imp-file-hint" class="block w-full text-sm border border-gray-300 rounded-lg p-2" %}
       {% endif %}
+      <div id="imp-file-hint">
+        <p class="text-xs ui-muted mt-1">{% trans "Supported: .csv, .xlsx, .xlsm" %}</p>
+        {% if form.source_file.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ form.source_file.errors|striptags }}</p>
+        {% endif %}
+      </div>
     </div>
     <button type="submit" class="ui-btn ui-btn-primary">
       {% trans "Upload and continue" %}
