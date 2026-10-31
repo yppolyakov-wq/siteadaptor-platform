@@ -83,7 +83,7 @@ def _builder(tenant):
 
 def _selected(body, name):
     """Значение, которое браузер отправит из `<select name=…>` (выбранный пункт)."""
-    m = re.search(rf'<select name="{re.escape(name)}"[^>]*>(.*?)</select>', body, re.S)
+    m = re.search(rf'<select\b[^>]*\bname="{re.escape(name)}"[^>]*>(.*?)</select>', body, re.S)
     assert m, name
     options = re.findall(r'<option value="([^"]*)"([^>]*)>', m.group(1))
     chosen = [value for value, attrs in options if re.search(r"\bselected\b", attrs)]
