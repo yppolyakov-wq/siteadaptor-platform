@@ -174,7 +174,7 @@
         <select aria-label="{% trans "Grund" %}" name="reason" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           {% for val, label in reasons %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
         </select>
-        <input type="number" name="delta" aria-label="{% trans 'z. B. -2 oder 3' %}" placeholder="{% trans 'z. B. -2 oder 3' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <input type="number" name="delta" aria-label="{% trans "Menge" %}" placeholder="{% trans 'z. B. -2 oder 3' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         <button class="w-full text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Korrektur buchen" %}</button>
       </form>
 
@@ -280,7 +280,7 @@
     <form method="post" action="{% url 'stock' %}" class="flex items-center gap-2">
       {% csrf_token %}
       <input type="hidden" name="action" value="location_create">
-      <input type="text" name="name" aria-label="{% trans 'z. B. Lager hinten' %}" placeholder="{% trans 'z. B. Lager hinten' %}" class="flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <input type="text" name="name" aria-label="{% trans "Name" %}" placeholder="{% trans 'z. B. Lager hinten' %}" class="flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
       <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">＋ {% trans "Standort" %}</button>
     </form>
     {% if locs_on %}

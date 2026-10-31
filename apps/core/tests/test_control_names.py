@@ -15,8 +15,10 @@ from django.conf import settings
 TEMPLATES = Path(settings.BASE_DIR) / "templates"
 SKIP = ("storefront/", "aggregator/", "email", "pdf/", "public/", "platform/", "account/")
 _CONTROL = re.compile(r"<(input|select|textarea)\b[^>]*>")
-_NAMED = re.compile(r'aria-label(ledby)?=|\bid="|\btitle="')
-_NO_NAME_NEEDED = re.compile(r'type="(hidden|submit|checkbox|radio|button|image|reset)"')
+_NAMED = re.compile(r'aria-label(ledby)?=|\btitle="')
+_ID = re.compile(r'\bid="([^"]+)"')
+# Чекбоксы/радио проверяются тоже (ревью a11y): у них имя — обёртка <label> или aria-label.
+_NO_NAME_NEEDED = re.compile(r'type="(hidden|submit|button|image|reset)"')
 # Невидимое: honeypot (class hidden / aria-hidden), инпуты, собираемые строкой в JS.
 _INVISIBLE = re.compile(r'class="(?:[^"]*\s)?hidden(?:\s[^"]*)?"|aria-hidden="true"|\' \+')
 
@@ -34,10 +36,15 @@ def _blank(m):
 
 def unnamed_controls(text):
     text = _COMMENTS.sub(_blank, text)  # теги в комментариях — не разметка
+    # id даёт имя, только если на него ссылается <label for> (или id собирается шаблоном).
+    label_for = set(re.findall(r'\bfor="([^"]+)"', text))
     out = []
     for m in _CONTROL.finditer(text):
         tag = m.group(0)
         if _NO_NAME_NEEDED.search(tag) or _NAMED.search(tag) or _INVISIBLE.search(tag):
+            continue
+        id_m = _ID.search(tag)
+        if id_m and (id_m.group(1) in label_for or "{" in id_m.group(1)):
             continue
         before = text[max(0, m.start() - 1500) : m.start()]
         if before.rfind("<label") > before.rfind("</label>"):
@@ -73,6 +80,9 @@ def test_scanner_sees_unnamed_and_named():
     assert unnamed_controls('<input name="a" placeholder="x">')
     assert not unnamed_controls('<label>A <input name="a"></label>')
     assert not unnamed_controls('<input name="a" aria-label="A">')
+    assert unnamed_controls('<input id="x" name="a">')  # id без <label for>
+    assert not unnamed_controls('<label for="x">A</label><input id="x" name="a">')
+    assert unnamed_controls('<input type="checkbox" name="a">')
     assert not unnamed_controls('<input type="hidden" name="a">')
     assert not unnamed_controls('<input name="website" class="hidden" tabindex="-1">')
     assert unnamed_controls('<input name="a" class="hidden-ish w-1">')

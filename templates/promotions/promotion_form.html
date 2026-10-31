@@ -237,7 +237,7 @@
         {% endfor %}
       </div>
       <div class="flex gap-2 mt-3">
-        <input id="ch-input" placeholder="{% trans 'custom channel' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+        <input id="ch-input" aria-label="{% trans 'custom channel' %}" placeholder="{% trans 'custom channel' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
         <a id="ch-link" href="#" target="_blank" class="ui-btn ui-btn-secondary ui-btn-sm pointer-events-none opacity-50">{% trans "Open QR" %}</a>
       </div>
       <script>

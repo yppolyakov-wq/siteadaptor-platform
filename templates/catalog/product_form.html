@@ -290,7 +290,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
         </label>
         {% comment %}M4-A: можно завести вариант ОСЯМИ (размер/цвет) — тогда label
         соберётся сам («S · Blau»); либо по-старому одним label.{% endcomment %}
-        <input name="label" type="text" placeholder="{% trans 'Label (e.g. 100 g)' %}" aria-label="{% trans 'Label (e.g. 100 g)' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5">
+        <input name="label" type="text" placeholder="{% trans 'Label (e.g. 100 g)' %}" aria-label="{% trans "Label" %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5">
         <input name="size" type="text" placeholder="{% trans 'Größe' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Größe' %}">
         <input name="color" type="text" placeholder="{% trans 'Farbe' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Farbe' %}">
         <input name="price" type="text" inputmode="decimal" placeholder="{% trans 'Price' %}" aria-label="{% trans 'Price' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5">
@@ -357,7 +357,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
 
             <form method="post" enctype="multipart/form-data" action="{% url 'catalog:modifier-option-add' product.pk g.pk %}" class="flex flex-wrap items-center gap-2 text-sm pt-1">
               {% csrf_token %}
-              <input name="label" type="text" required aria-label="{% trans 'Option (e.g. Pommes)' %}" placeholder="{% trans 'Option (e.g. Pommes)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
+              <input name="label" type="text" required aria-label="{% trans "Option" %}" placeholder="{% trans 'Option (e.g. Pommes)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
               <input name="sku" type="text" placeholder="{% trans 'Art.-Nr.' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Art.-Nr.' %}">
               <span class="text-gray-400">+</span>
               <input name="delta" type="text" inputmode="decimal" placeholder="0" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Surcharge' %}">
@@ -369,7 +369,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
 
       <form method="post" action="{% url 'catalog:modifier-group-add' product.pk %}" class="flex flex-wrap items-center gap-2 text-sm mt-3 border-t border-gray-100 pt-3">
         {% csrf_token %}
-        <input name="name" type="text" required aria-label="{% trans 'Group (e.g. Size)' %}" placeholder="{% trans 'Group (e.g. Size)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
+        <input name="name" type="text" required aria-label="{% trans "Group" %}" placeholder="{% trans 'Group (e.g. Size)' %}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5">
         <label class="text-gray-500">{% trans "min" %} <input name="min" type="number" min="0" value="0" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
         <label class="text-gray-500">{% trans "max" %} <input name="max" type="number" min="0" value="1" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
         <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Add group" %}</button>

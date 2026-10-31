@@ -212,7 +212,7 @@
   <form method="post" class="flex flex-wrap gap-2 items-end">
     {% csrf_token %}
     <input type="hidden" name="action" value="add_task">
-    <input type="text" name="title" required maxlength="200" aria-label="{% trans 'e.g. Apply for Inner Line permits' %}" placeholder="{% trans 'e.g. Apply for Inner Line permits' %}" class="grow rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="title" required maxlength="200" aria-label="{% trans "Title" %}" placeholder="{% trans 'e.g. Apply for Inner Line permits' %}" class="grow rounded-lg border border-gray-300 px-3 py-2 text-sm">
     <input aria-label="{% trans "Datum" %}" type="date" name="due_date" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add" %}</button>
   </form>

@@ -233,7 +233,7 @@
           <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Sort order" %}</span>
             <input name="sort_order" type="text" inputmode="numeric" value="{{ v.sort_order }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
           {% for inp in v.i18n_inputs %}
-            <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{{ inp.locale|upper }}</span>
+            <div><label class="block"><span class="block text-xs text-gray-500 mb-1">Name ({{ inp.locale|upper }})</span>
               <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" maxlength="100" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
           {% endfor %}
           <button name="action" value="variant_update" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400">{% trans "Save" %}</button>
@@ -269,7 +269,7 @@
   {% csrf_token %}
   <input type="hidden" name="action" value="create">
   <h2 class="ui-h2">{% trans "New service" %}</h2>
-  <input name="name" type="text" required aria-label="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" class="ui-input">
+  <input name="name" type="text" required aria-label="{% trans "Name" %}" placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" class="ui-input">
   <textarea name="description" rows="2" aria-label="{% trans 'Description — what is included (optional)' %}" placeholder="{% trans 'Description — what is included (optional)' %}" class="ui-input"></textarea>
   {# L3d: переводы неосновных локалей (видно только при N>1 языках) #}
   {% for loc in extra_locales %}

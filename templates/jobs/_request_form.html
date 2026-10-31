@@ -34,7 +34,7 @@ KA-12 A-2 (HW-2/G-4): те же поля, что у /anfrage/ — PLZ, фото,
   {% endif %}
   {% if jobs_vehicle %}
     <div class="grid sm:grid-cols-4 gap-4" data-request-vehicle>
-      <input name="vehicle" type="text" aria-label="{% trans 'Fahrzeug (z. B. VW Golf)' %}" placeholder="{% trans 'Fahrzeug (z. B. VW Golf)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+      <input name="vehicle" type="text" aria-label="{% trans "Fahrzeug" %}" placeholder="{% trans 'Fahrzeug (z. B. VW Golf)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
       <input name="vehicle_plate" type="text" maxlength="15" aria-label="{% trans 'Licence plate' %}" placeholder="{% trans 'Licence plate' %}" class="rounded-lg border border-gray-300 px-3 py-2 uppercase">
       <div class="grid grid-cols-2 gap-2">
         <input aria-label="HSN" name="vehicle_hsn" type="text" maxlength="4" placeholder="HSN" class="rounded-lg border border-gray-300 px-3 py-2 uppercase">

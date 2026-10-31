@@ -26,7 +26,7 @@
   строка — фото и имя, вторая — цена, статус и действие.{% endcomment %}
   <div class="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 {% if not forloop.first %}border-t border-gray-100{% endif %}">
     {% if s.kind == "product" %}
-      <input type="checkbox" name="ids" value="{{ it.pk }}" form="merge-form" class="w-4 h-4 accent-indigo-600 shrink-0">
+      <input type="checkbox" aria-label="{{ it.name }}" name="ids" value="{{ it.pk }}" form="merge-form" class="w-4 h-4 accent-indigo-600 shrink-0">
     {% endif %}
     <a href="{{ it.edit_url|default:'#' }}" class="w-11 h-9 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
       {% if it.image_url %}<img src="{{ it.image_url }}" alt="" class="w-full h-full object-cover" loading="lazy">{% else %}<span class="text-gray-300">🏷️</span>{% endif %}

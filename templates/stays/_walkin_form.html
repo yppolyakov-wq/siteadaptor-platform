@@ -9,17 +9,17 @@
   <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <div class="sm:col-span-2">
-      <label class="block text-sm font-medium mb-1">{% trans "Unit" %}</label>
+      <label for="walkin-unit" class="block text-sm font-medium mb-1">{% trans "Unit" %}</label>
       <select name="unit" id="walkin-unit" class="w-full rounded-lg border border-gray-300 px-3 py-2">
         {% for u in units %}<option value="{{ u.pk }}">{{ u.name }}</option>{% endfor %}
       </select>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Arrival" %}</label>
+      <label for="walkin-arrival" class="block text-sm font-medium mb-1">{% trans "Arrival" %}</label>
       <input type="date" name="arrival" id="walkin-arrival" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">{% trans "Departure" %}</label>
+      <label for="walkin-departure" class="block text-sm font-medium mb-1">{% trans "Departure" %}</label>
       <input type="date" name="departure" id="walkin-departure" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2">
     </div>
   </div>

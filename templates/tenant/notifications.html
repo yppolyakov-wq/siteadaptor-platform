@@ -94,10 +94,10 @@
             <tr class="border-b border-gray-50">
               <td class="px-4 py-2">{{ row.label }}</td>
               <td class="px-3 py-2 text-center">
-                <input type="checkbox" name="c-{{ group.domain }}-{{ row.event }}-email" {% if row.email %}checked{% endif %} class="rounded border-gray-300">
+                <input type="checkbox" aria-label="{{ row.label }} — E-Mail" name="c-{{ group.domain }}-{{ row.event }}-email" {% if row.email %}checked{% endif %} class="rounded border-gray-300">
               </td>
               <td class="px-3 py-2 text-center">
-                <input type="checkbox" name="c-{{ group.domain }}-{{ row.event }}-telegram" {% if row.telegram %}checked{% endif %} class="rounded border-gray-300">
+                <input type="checkbox" aria-label="{{ row.label }} — Telegram" name="c-{{ group.domain }}-{{ row.event }}-telegram" {% if row.telegram %}checked{% endif %} class="rounded border-gray-300">
               </td>
             </tr>
           {% endfor %}

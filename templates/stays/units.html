@@ -328,7 +328,7 @@
   {% csrf_token %}
   <input type="hidden" name="action" value="unit">
   <div class="grid sm:grid-cols-2 gap-4">
-    <input name="name" type="text" required aria-label="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+    <input name="name" type="text" required aria-label="{% trans "Name" %}" placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
     <textarea name="description" rows="2" aria-label="{% trans 'Description (amenities, view …)' %}" placeholder="{% trans 'Description (amenities, view …)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2"></textarea>
     {# L3d: переводы неосновных локалей (видно только при N>1 языках) #}
     {% for loc in extra_locales %}

@@ -159,7 +159,7 @@
       <div class="space-y-2">
         {% for z in delivery_zone_rows %}
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <input name="zone_plz_{{ z.i }}" type="text" value="{{ z.plz }}" aria-label="{% trans 'PLZ e.g. 40, 41' %}" placeholder="{% trans 'PLZ e.g. 40, 41' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+            <input name="zone_plz_{{ z.i }}" type="text" value="{{ z.plz }}" aria-label="{% trans "Postal code" %}" placeholder="{% trans 'PLZ e.g. 40, 41' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
             <input name="zone_fee_{{ z.i }}" type="text" value="{{ z.fee_eur }}" aria-label="{% trans 'Fee €' %}" placeholder="{% trans 'Fee €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
             <input name="zone_free_{{ z.i }}" type="text" value="{{ z.free_eur }}" aria-label="{% trans 'Free from €' %}" placeholder="{% trans 'Free from €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
             <input name="zone_min_{{ z.i }}" type="text" value="{{ z.min_eur }}" aria-label="{% trans 'Min €' %}" placeholder="{% trans 'Min €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">

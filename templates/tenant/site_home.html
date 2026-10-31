@@ -1428,7 +1428,7 @@
       <span class="text-sm font-medium">{% trans "Version history" %}:</span>
       {# A3: именованный снимок ТЕКУЩЕЙ версии — безопасная точка отката перед экспериментами. #}
       <div class="flex items-center gap-2">
-        <input type="text" name="version_label" maxlength="60" aria-label="{% trans 'Version name (e.g. “before redesign”)' %}" placeholder="{% trans 'Version name (e.g. “before redesign”)' %}"
+        <input type="text" name="version_label" maxlength="60" aria-label="{% trans "Name" %}" placeholder="{% trans 'Version name (e.g. “before redesign”)' %}"
                class="flex-1 rounded-lg border border-gray-300 px-2 py-1 text-xs">
         <button type="submit" name="action" value="save_version"
                 class="text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">{% trans "Save version" %}</button>
@@ -1573,7 +1573,7 @@
             <input type="text" name="hero_s_title" value="{{ h.title }}" aria-label="{% trans 'Heading' %}" placeholder="{% trans 'Heading' %}" class="ui-input min-w-0">
             <textarea name="hero_s_text" rows="2" aria-label="{% trans 'Text' %}" placeholder="{% trans 'Text' %}" class="ui-input min-w-0">{{ h.text }}</textarea>
             <input type="text" name="hero_s_btn_label" value="{{ h.button_label }}" aria-label="{% trans 'Button text' %}" placeholder="{% trans 'Button text' %}" class="ui-input min-w-0">
-            <input type="text" name="hero_s_btn_url" value="{{ h.button_url }}" aria-label="{% trans 'Button link (e.g. /sortiment/)' %}" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="ui-input min-w-0">
+            <input type="text" name="hero_s_btn_url" value="{{ h.button_url }}" aria-label="{% trans "Link" %}" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="ui-input min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <input aria-label="{% trans "Foto" %}" type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
               <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Save slide" %}</button>
@@ -1591,7 +1591,7 @@
             <input type="text" name="hero_s_title" aria-label="{% trans 'Heading' %}" placeholder="{% trans 'Heading' %}" class="ui-input min-w-0">
             <textarea name="hero_s_text" rows="2" aria-label="{% trans 'Text' %}" placeholder="{% trans 'Text' %}" class="ui-input min-w-0"></textarea>
             <input type="text" name="hero_s_btn_label" aria-label="{% trans 'Button text' %}" placeholder="{% trans 'Button text' %}" class="ui-input min-w-0">
-            <input type="text" name="hero_s_btn_url" aria-label="{% trans 'Button link (e.g. /sortiment/)' %}" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="ui-input min-w-0">
+            <input type="text" name="hero_s_btn_url" aria-label="{% trans "Link" %}" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="ui-input min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <input aria-label="{% trans "Foto" %}" type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
               <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Add slide" %}</button>
