@@ -10,7 +10,6 @@
 
 import re
 from pathlib import Path
-from unittest import mock
 
 import pytest
 from django.conf import settings
@@ -101,8 +100,8 @@ def test_event_form_adds_translation_fields_and_saves_overlay():
     from apps.events.models import Event
 
     tenant = TenantFactory.build(enabled_locales=["de", "en"], default_locale="de")
-    with mock.patch("django.db.connection.tenant", tenant, create=True):
-        form = EventForm()
+    form = EventForm()
+    form.init_overlay_i18n(tenant)
     assert "title_en" in form.fields and "description_en" in form.fields
     names = list(form.fields)
     # перевод стоит сразу за своим базовым полем
@@ -111,8 +110,8 @@ def test_event_form_adds_translation_fields_and_saves_overlay():
     assert form.fields["title_en"].i18n_loc == "en"
 
     event = Event(title="Yoga", description="", title_i18n={"en": "Old"})
-    with mock.patch("django.db.connection.tenant", tenant, create=True):
-        bound = EventForm(instance=event)
+    bound = EventForm(instance=event)
+    bound.init_overlay_i18n(tenant)
     assert bound.fields["title_en"].initial == "Old"
 
 
@@ -126,9 +125,9 @@ def test_overlay_mixin_presence_guard_and_clear():
         name="Anna", title="Lehrerin", title_i18n={"en": "Teacher"}, bio_i18n={"en": "x"}
     )
     data = {"name": "Anna", "title": "Lehrerin", "title_en": "  ", "is_active": "on"}
-    with mock.patch("django.db.connection.tenant", tenant, create=True):
-        form = TeacherForm(data, instance=teacher)
-        assert form.is_valid(), form.errors
+    form = TeacherForm(data, instance=teacher)
+    form.init_overlay_i18n(tenant)
+    assert form.is_valid(), form.errors
     # пустой перевод удалён, поле не из POST (bio_en) — не тронуто
     assert teacher.title_i18n == {}
     assert teacher.bio_i18n == {"en": "x"}
@@ -139,6 +138,6 @@ def test_overlay_mixin_is_inert_for_single_language():
     from apps.events.forms import TeacherForm
 
     tenant = TenantFactory.build(enabled_locales=["de"], default_locale="de")
-    with mock.patch("django.db.connection.tenant", tenant, create=True):
-        form = TeacherForm()
+    form = TeacherForm()
+    form.init_overlay_i18n(tenant)
     assert not [n for n in form.fields if n.endswith("_en")]

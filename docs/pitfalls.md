@@ -426,3 +426,8 @@
 - **2026-10-31 (E9.4d):** тест-хелперы, ищущие `<select name="x"` / `<input name="x"` регэкспом,
   ломаются, когда перед `name` добавляют атрибут (aria-label). Искать тег без привязки к порядку:
   `<select\b[^>]*\bname="x"`.
+
+- **2026-10-31 · Не подменять `django.db.connection.tenant` через `mock.patch(..., create=True)` в тестах.**
+  `connection` — прокси; при откате патч удаляет атрибут у настоящего соединения, и следующие
+  тесты того же xdist-воркера падают `'DatabaseWrapper' object has no attribute 'tenant'`
+  (локально одиночный прогон зелёный). Тенант в форму передавать явно (`form.init_overlay_i18n(tenant)`).
