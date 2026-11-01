@@ -28,8 +28,11 @@ def validate_image(uploaded) -> str:
         img = Image.open(uploaded, formats=list(_MIME))
         img.verify()  # проверка целостности
         fmt = img.format
+    except UnidentifiedImageError as exc:
+        # С whitelist форматов любой чужой формат (GIF/TIFF/BMP…) не распознаётся —
+        # подсказка про допустимые форматы полезнее, чем «не картинка».
+        raise ValidationError(_("Allowed formats: JPEG, PNG, WEBP.")) from exc
     except (
-        UnidentifiedImageError,
         OSError,
         SyntaxError,
         ValueError,

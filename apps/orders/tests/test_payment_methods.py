@@ -112,8 +112,9 @@ def test_checkout_prepay_sets_stripe(monkeypatch, settings):
     assert Order.objects.get().payment_method == Order.METHOD_STRIPE
 
 
-def test_checkout_stripe_error_falls_back_to_on_site(monkeypatch, settings):
-    """Stripe временно недоступен → заказ остаётся, способ — оплата при получении."""
+def test_checkout_stripe_error_keeps_online_payment(monkeypatch, settings):
+    """Stripe временно недоступен → заказ остаётся ОНЛАЙН-оплатой (кнопка «Jetzt bezahlen»),
+    а не молча «на месте» (аудит безопасности 2026-11-01, тихий сбой)."""
     _configure(settings)
     product = ProductFactory(base_price=Decimal("10.00"))
 
@@ -127,7 +128,8 @@ def test_checkout_stripe_error_falls_back_to_on_site(monkeypatch, settings):
     resp = public_views.checkout(request)
     order = Order.objects.get()
     assert resp.url.endswith(f"/bestellung/{order.reference_code}/")
-    assert order.payment_method == Order.METHOD_ON_SITE
+    assert order.payment_method == Order.METHOD_STRIPE
+    assert order.payment_state != "paid"
 
 
 def _vorkasse_tenant(**over):

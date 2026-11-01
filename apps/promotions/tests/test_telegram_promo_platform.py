@@ -53,7 +53,12 @@ def plat(monkeypatch, settings):
     monkeypatch.setattr(services, "edit_message_reply_markup", lambda *a, **k: None)
     monkeypatch.setattr(services, "tenant_base_url", lambda: "https://shop.test")
     tenant = TenantFactory(schema_name="public", slug="plat-a", name="Bäckerei Alpha")
-    links.bind(USER, tenant)
+    # SEC-A6: связь кабинета знает своего владельца (без пользователя — не владелец).
+    from django.contrib.auth import get_user_model
+
+    owner = get_user_model().objects.create_user(username="plat-owner", password="pw12345678")
+    Membership.objects.create(user=owner, role=Membership.ROLE_OWNER)
+    links.bind(USER, tenant, user_pk=owner.pk)
     tenant.refresh_from_db()
 
     def _confirm_delay(**kw):  # ✅ — тело Celery-задачи сразу
@@ -62,7 +67,13 @@ def plat(monkeypatch, settings):
         state["confirm"] = tp.handle_confirm(**kw)
 
     monkeypatch.setattr("apps.promotions.tasks.telegram_owner_confirm.delay", _confirm_delay)
-    state = {"tenant": tenant, "sent": sent, "answers": answers, "queued": queued}
+    state = {
+        "tenant": tenant,
+        "owner_pk": owner.pk,
+        "sent": sent,
+        "answers": answers,
+        "queued": queued,
+    }
     return state
 
 
@@ -214,7 +225,7 @@ def test_tap_after_switch_confirms_in_preview_schema(plat, monkeypatch):
     """После /geschaeft ✅ старого превью идёт в схему ПРЕВЬЮ (ref), не текущего бизнеса."""
     _p, data = _preview(plat)
     other = TenantFactory(schema_name="zz_other", slug="plat-b", name="Laden B")
-    links.bind(USER, other)  # текущий — B
+    links.bind(USER, other, user_pk=plat["owner_pk"])  # текущий — B
     seen = []
     real = tp.handle_platform_callback
     monkeypatch.setattr(
