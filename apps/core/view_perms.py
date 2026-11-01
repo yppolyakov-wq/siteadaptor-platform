@@ -328,6 +328,7 @@ RULES: dict[str, Rule] = {
     "promotions:voucher-list": _r(M, ME),
     # --- Website ------------------------------------------------------------------
     "design": _r(W, WE),
+    "page-templates-sortiment": _r(W, WE),  # STU-19b
     "media-library": _r(W, WE),
     "site": _r(W, WE),
     "site-home": _r(W, WE),

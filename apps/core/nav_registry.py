@@ -569,6 +569,18 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         direction="waren",
     ),
+    # STU-19b: page template / grid / card form of the catalog pages — moved out of
+    # the Studio panel (plan stu19 §2.2). Same gate as the catalog pages it controls.
+    _e(
+        "sellables",
+        "page-templates-sortiment",
+        _("Seitenvorlage"),
+        "seitenvorlage",
+        "catalog",
+        True,
+        "vorlage layout raster kartenform ansicht seitenvorlage",
+        direction="waren",
+    ),
     _e("sellables", "collections:list", _("Kollektionen"), "collections", None, True, "lookbook"),
     # R2 (редизайн B, утверждённая структура): складская группа — подпункты
     # сайдбара «Sortiment» (ящик «Erweitert» на страницах больше не рендерится,

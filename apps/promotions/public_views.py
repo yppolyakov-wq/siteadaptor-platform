@@ -1410,12 +1410,12 @@ def product_list(request, slug=None):
                 return redirect("storefront-products")
     # M20U-7 (per-page): конфиг витрины. SE-2a-2: при ?preview=1 — черновик из сессии
     # (раскладка/сортировка/фильтры/подкатегории видны на канве сразу).
+    from apps.core import page_settings
     from apps.tenants import siteconfig
 
     is_preview = request.GET.get("preview") == "1"
-    raw_cfg = request.tenant.site_config
-    if is_preview and isinstance(request.session.get("site_preview_draft"), dict):
-        raw_cfg = request.session["site_preview_draft"]
+    # STU-19b: + `?tpl=` — cabinet preview of one page setting (nothing is stored)
+    raw_cfg, _prev = page_settings.preview_raw(request)
     cfg = siteconfig.normalize(raw_cfg)
     # KAT-1/DL-20: шаблон СТРАНИЦЫ категории. Два слоя — своё значение категории
     # побеждает общий дефолт сайта `site_defaults["category_page_style"]`; мусор в
@@ -2097,14 +2097,12 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
         if product.category_id
         else []
     )
+    # При ?preview=1 — черновик из сессии (on-canvas правка видимости секций детальной).
+    # STU-19b: draft or cabinet `?tpl=` override (see page_settings.preview_raw)
+    from apps.core import page_settings
     from apps.tenants import siteconfig
 
-    # При ?preview=1 — черновик из сессии (on-canvas правка видимости секций детальной).
-    _raw = getattr(request.tenant, "site_config", {}) or {}
-    if request.GET.get("preview") == "1" and isinstance(
-        request.session.get("site_preview_draft"), dict
-    ):
-        _raw = request.session["site_preview_draft"]
+    _raw, _prev = page_settings.preview_raw(request)
     _cfg = siteconfig.normalize(_raw)
     related_grid = siteconfig.grid_class_string(_cfg["detail_related_layout"])
     # DL-14: атрибуты «полных рядов» ставит шаблон (spread + авто-колонки по числу).

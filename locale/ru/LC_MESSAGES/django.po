@@ -31445,3 +31445,33 @@ msgstr "Этот код не действует на товары, на кото
 #: templates/inbox/thread.html:51
 msgid "Priorität"
 msgstr "Приоритет"
+
+msgid "Bildschirm"
+msgstr "Экран"
+
+msgid "Diese Einstellung kann hier nicht gespeichert werden."
+msgstr "Эту настройку нельзя сохранить здесь."
+
+msgid "Eigene Vorlage bei"
+msgstr "Свой шаблон у"
+
+msgid "Für diese Seite gibt es keine Einstellungen."
+msgstr "Для этой страницы нет настроек."
+
+msgid "Im Kabinett ändern"
+msgstr "Изменить в кабинете"
+
+msgid "In der Studio ansehen"
+msgstr "Открыть в Студии"
+
+msgid "Noch nichts zu zeigen — legen Sie zuerst ein Produkt in einer Kategorie an."
+msgstr "Пока нечего показать — сначала добавьте товар в категорию."
+
+msgid "Seitentyp"
+msgstr "Тип страницы"
+
+msgid "So zeigt Ihre Website Katalog, Kategorien und Produkte. Eine Kategorie oder ein Produkt mit eigener Vorlage behält diese."
+msgstr "Как сайт показывает каталог, категории и товары. Категория или товар со своим шаблоном сохраняют его."
+
+msgid "Vorschau · noch nicht gespeichert"
+msgstr "Предпросмотр · ещё не сохранено"

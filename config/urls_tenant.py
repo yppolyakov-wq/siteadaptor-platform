@@ -14,7 +14,7 @@ from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
 from apps.community import views as community_views
-from apps.core import health, lite_cabinet, owner_login, tg_login
+from apps.core import health, lite_cabinet, owner_login, page_templates, tg_login
 from apps.core.demo_switch import demo_design_switch
 from apps.core.design_page import design_view
 from apps.core.media_views import serve_media
@@ -184,6 +184,12 @@ urlpatterns = [
     path("dashboard/site/", site_view, name="site"),
     # DL-7b: переключатель шаблонов вне Studio (подпункт Website).
     path("dashboard/design/", design_view, name="design"),
+    # STU-19b: page settings of a section in the cabinet (one writer: page_settings).
+    path(
+        "dashboard/seitenvorlagen/sortiment/",
+        page_templates.page_templates_sortiment,
+        name="page-templates-sortiment",
+    ),
     path("dashboard/site/home/", home_builder_view, name="site-home"),
     # STU-3: точечные чтение/запись объектного уровня настройки (охват «только здесь»)
     # — мимо большой формы билдера, чтобы промах в её контролах не трогал чужие модели.

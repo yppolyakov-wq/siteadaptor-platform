@@ -1991,84 +1991,12 @@ def _design_look_label(config: dict) -> str:
     return key
 
 
+# STU-19a: the gate moved to `page_settings` so the cabinet tab, the Studio and the
+# AI helper read one function; the old name stays for existing callers/tests.
 def _composition_gate(config: dict | None = None) -> dict[str, set[str]]:
-    """Коды композиций, которым на этой ВИТРИНЕ нечего показать.
+    from apps.core import page_settings
 
-    Считаем фактами тенанта: полки и вкладки бессмысленны без под-сущностей,
-    «Sets» — без наборов. Плитки не убираем, а помечаем недоступными (причина в
-    подсказке): исчезнувший выбор владелец читает как поломку, а не как гейт.
-
-    Ограничение v1: факт «есть подкатегории» — общий по витрине, а не по КОНКРЕТНОЙ
-    открытой категории; у тенанта с подкатегориями хотя бы где-то полки предлагаются
-    на любой категории. Точный пер-объектный гейт живёт в канале site-scope-state и
-    делается отдельным шагом.
-    """
-    from apps.catalog.models import Category, Combo
-    from apps.promotions.models import Promotion
-
-    def _safe(qs) -> bool:
-        try:
-            return qs.exists()
-        except Exception:  # noqa: BLE001 — панель обязана открыться и на битых данных
-            return True
-
-    children = _safe(Category.objects.filter(parent__isnull=False))
-    combos = _safe(Combo.objects.all())
-    groups = _safe(Promotion.objects.exclude(group=""))
-
-    # STU-18d: под-сущности девяти листингов — у каждого свои (план §10):
-    # подборки у услуг и номеров, тема у события, страна у поездки, категория у
-    # набора; у лукбука/мерклиста/блога/отзывов таксономии нет вовсе.
-    from apps.booking.models import Service
-    from apps.catalog.models import Combo as _Combo
-    from apps.events.models import Event, Tour
-    from apps.stays.models import StayUnit
-
-    listing_children = {
-        "services": _safe(Service.objects.filter(collections__isnull=False)),
-        "stays": _safe(StayUnit.objects.filter(collections__isnull=False)),
-        "events": _safe(Event.objects.exclude(category="")),
-        "tours": _safe(Tour.objects.exclude(country="")),
-        "combos": _safe(_Combo.objects.filter(category__isnull=False)),
-        # у лукбука, мерклиста, блога и отзывов таксономии нет вовсе — из
-        # композиций им доступна обложка (гейт по фото ниже)
-        "lookbook": False,
-        "wishlist": False,
-        "blog": False,
-        "reviews": False,
-    }
-    # STU-18d: «С обложкой» на листинге показывает ФОТО САЙТА. Нет фото — нет и
-    # композиции: иначе плитка обещала бы то, чего страница не отрисует.
-    cfg = config or {}
-    _heroes = cfg.get("heroes") or []
-    has_photo = bool(
-        cfg.get("hero_image")
-        or (isinstance(_heroes, list) and _heroes and (_heroes[0] or {}).get("image"))
-    )
-
-    out: dict[str, set[str]] = {}
-    for surface, has_children in (
-        ("catalog", children),
-        ("category", children),
-        ("promos", groups),
-        ("promo_group", groups),
-        ("promo", False),
-        *sorted(listing_children.items()),
-    ):
-        offered = {code for code, _l, _h in compositions.styles_for(surface)}
-        ok = {
-            code
-            for code, _l, _h in compositions.available_for(
-                surface,
-                has_children=has_children,
-                has_combos=combos,
-                # фото сайта важно только листингам: у категории «С обложкой»
-                # берёт СВОЁ фото и описание
-                has_photo=has_photo or surface not in compositions.LISTING_SURFACES,
-            )
-        }
-        out[surface] = offered - ok
-    return out
+    return page_settings.composition_gate(config)
 
 
 @login_required
@@ -2930,6 +2858,11 @@ def home_builder_view(request):
         config["history"] = siteconfig.push_history(
             request.tenant.site_config, config.get("history"), timezone.now().isoformat()
         )
+        # STU-19a: settings owned by the cabinet tab are taken from the stored row,
+        # never from this (possibly stale) form — no-op until 19e fills the set.
+        from apps.core import page_settings
+
+        config = page_settings.protect_owned(request.tenant, config)
         request.tenant.site_config = siteconfig.normalize(config)
         request.tenant.save(update_fields=update_fields)
         messages.success(request, _("Gespeichert."))
@@ -3953,6 +3886,10 @@ def site_preview_draft(request):
         cfg.update(siteconfig.parse_content_sections(data.get))
     # LB-1b: «Den ganzen Typ» — та же функция, что у Save билдера (превью = результат).
     list_blocks.apply_type_scope(cfg)
+    # STU-19a: the draft must show cabinet-owned settings as stored (no-op until 19e).
+    from apps.core import page_settings
+
+    cfg = page_settings.protect_owned(request.tenant, cfg)
     draft = siteconfig.normalize(cfg)
     # Акцент — отдельное поле Tenant; кладём override в черновик как `_accent`
     # (валидный hex), читается context-процессором под ?preview=1.

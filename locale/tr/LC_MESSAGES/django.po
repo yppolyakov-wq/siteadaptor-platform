@@ -31312,3 +31312,33 @@ msgstr "Bu kod zaten indirimli ürünlerde geçerli değildir."
 #: templates/inbox/thread.html:51
 msgid "Priorität"
 msgstr "Öncelik"
+
+msgid "Bildschirm"
+msgstr "Ekran"
+
+msgid "Diese Einstellung kann hier nicht gespeichert werden."
+msgstr "Bu ayar burada kaydedilemez."
+
+msgid "Eigene Vorlage bei"
+msgstr "Kendi şablonu olanlar"
+
+msgid "Für diese Seite gibt es keine Einstellungen."
+msgstr "Bu sayfa için ayar yok."
+
+msgid "Im Kabinett ändern"
+msgstr "Panelde değiştir"
+
+msgid "In der Studio ansehen"
+msgstr "Studio'da görüntüle"
+
+msgid "Noch nichts zu zeigen — legen Sie zuerst ein Produkt in einer Kategorie an."
+msgstr "Henüz gösterilecek bir şey yok — önce bir kategoriye ürün ekleyin."
+
+msgid "Seitentyp"
+msgstr "Sayfa türü"
+
+msgid "So zeigt Ihre Website Katalog, Kategorien und Produkte. Eine Kategorie oder ein Produkt mit eigener Vorlage behält diese."
+msgstr "Web sitenizin kataloğu, kategorileri ve ürünleri nasıl gösterdiği. Kendi şablonu olan bir kategori veya ürün onu korur."
+
+msgid "Vorschau · noch nicht gespeichert"
+msgstr "Önizleme · henüz kaydedilmedi"

@@ -299,8 +299,12 @@ def modules_nav(request):
     # (шрифт/hero/акцент) превьюится вживую. Вне превью — сохранённый конфиг.
     _draft = None
     if request.GET.get("preview") == "1" and hasattr(request, "session"):
-        d = request.session.get("site_preview_draft")
-        if isinstance(d, dict):
+        # STU-19b: the same source the views use — Studio draft, or the cabinet's
+        # one-setting `?tpl=` override of the SAVED config (nothing is stored).
+        from apps.core import page_settings
+
+        d, _is_preview = page_settings.preview_raw(request)
+        if _is_preview and isinstance(d, dict):
             _draft = d
 
     # Двуязычная витрина (i18n): обложки разделов/тексты chrome — на текущей локали.

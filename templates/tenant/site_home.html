@@ -613,6 +613,7 @@
           <div class="stu-page-row mt-2" data-stu-setting="category_page_style" data-stu-axis="composition" data-stu-page="category">
             {% include "tenant/_cardform_picker.html" with name="sd_category_page_style" value=category_page_style items=category_page_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.category off_note=comp_off_note title=_("Category page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="category_page_style" %}
+            <a href="{% url 'page-templates-sortiment' %}?typ=category" class="mt-1 inline-block text-xs text-indigo-700 hover:underline" data-stu19-link>{% trans "Im Kabinett ändern" %} →</a>
           </div>
           <div class="stu-page-row mt-4" data-stu-setting="promo_page_style" data-stu-axis="composition" data-stu-page="promos">
             {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.promos off_note=comp_off_note title=_("Aktionsseite: Vorlage") %}
@@ -841,6 +842,7 @@
             категорий сюда не наследуется. Без «Preisliste»: прайс-вид даёт селект выше.{% endcomment %}
             <div class="stu-page-row w-full" data-stu-setting="catalog_page_style" data-stu-axis="composition" data-stu-page="catalog">
               {% include "tenant/_cardform_picker.html" with name="catalog_page_style" value=catalog_page_style items=catalog_root_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.catalog off_note=comp_off_note title=_("Seitenvorlage") %}
+              <a href="{% url 'page-templates-sortiment' %}?typ=catalog" class="mt-1 inline-block text-xs text-indigo-700 hover:underline" data-stu19-link>{% trans "Im Kabinett ändern" %} →</a>
             </div>
           </div>
           {% endif %}
@@ -977,6 +979,7 @@
                   <option value="breit" {% if product_detail_layout == 'breit' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
                 </select>
               </label>
+              <a href="{% url 'page-templates-sortiment' %}?typ=product" class="mt-1 inline-block text-xs text-indigo-700 hover:underline" data-stu19-link>{% trans "Im Kabinett ändern" %} →</a>
             </div>
           </div>
           {% endif %}

@@ -31260,3 +31260,33 @@ msgstr "Dieser Code gilt nicht für bereits reduzierte Artikel."
 #: templates/inbox/thread.html:51
 msgid "Priorität"
 msgstr "Priorität"
+
+msgid "Bildschirm"
+msgstr "Bildschirm"
+
+msgid "Diese Einstellung kann hier nicht gespeichert werden."
+msgstr "Diese Einstellung kann hier nicht gespeichert werden."
+
+msgid "Eigene Vorlage bei"
+msgstr "Eigene Vorlage bei"
+
+msgid "Für diese Seite gibt es keine Einstellungen."
+msgstr "Für diese Seite gibt es keine Einstellungen."
+
+msgid "Im Kabinett ändern"
+msgstr "Im Kabinett ändern"
+
+msgid "In der Studio ansehen"
+msgstr "In der Studio ansehen"
+
+msgid "Noch nichts zu zeigen — legen Sie zuerst ein Produkt in einer Kategorie an."
+msgstr "Noch nichts zu zeigen — legen Sie zuerst ein Produkt in einer Kategorie an."
+
+msgid "Seitentyp"
+msgstr "Seitentyp"
+
+msgid "So zeigt Ihre Website Katalog, Kategorien und Produkte. Eine Kategorie oder ein Produkt mit eigener Vorlage behält diese."
+msgstr "So zeigt Ihre Website Katalog, Kategorien und Produkte. Eine Kategorie oder ein Produkt mit eigener Vorlage behält diese."
+
+msgid "Vorschau · noch nicht gespeichert"
+msgstr "Vorschau · noch nicht gespeichert"
