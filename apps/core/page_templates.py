@@ -247,7 +247,14 @@ def _render(request, section: str):
         try:
             if code not in own:
                 raise page_settings.PageSettingError(code)
-            page_settings.write(tenant, code, request.POST.get("value", ""))
+            # 19f-1: a grid form also carries its output axis (the "out_mode" field is
+            # its sentinel — a form without the block keeps the stored output fields)
+            output = (
+                page_settings.output_payload(request.POST, "out")
+                if "out_mode" in request.POST
+                else None
+            )
+            page_settings.write(tenant, code, request.POST.get("value", ""), output=output)
         except page_settings.PageSettingError:
             messages.error(request, _("Diese Einstellung kann hier nicht gespeichert werden."))
         else:

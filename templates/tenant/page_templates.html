@@ -62,6 +62,7 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
             </div>
           {% endif %}
         </fieldset>
+        {% if s.kind == "layout" %}{% include "tenant/_pt_output.html" with layout=s.layout paginates=s.paginates code=s.code %}{% endif %}
         <div class="mt-3 flex items-center justify-end gap-2">
           <span class="ui-muted text-xs" data-pt-dirty role="status" data-pt-text="{% trans "Vorschau · noch nicht gespeichert" %}"></span>
           <button type="submit" class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
@@ -103,6 +104,17 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
 
 {% endif %}
 <script>
+document.addEventListener('change', function (e) {
+  // 19f-1: rows and speed only where they act (same rule as the Studio output axis)
+  var mode = e.target.closest && e.target.closest('[data-pt-mode]');
+  if (!mode) return;
+  var box = mode.closest('[data-pt-output]');
+  var slider = mode.value === 'slider';
+  var rows = box.querySelector('[data-pt-rows]');
+  var speed = box.querySelector('[data-pt-speed]');
+  if (rows) rows.hidden = !slider && !box.hasAttribute('data-pt-paginates');
+  if (speed) speed.hidden = !slider;
+});
 (function () {
   // Tile click → preview with that one value (?tpl=), nothing is saved.
   var root = document.querySelector('[data-pt-root]');
@@ -111,11 +123,13 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
   var path = root.getAttribute('data-preview-path');
   root.addEventListener('change', function (e) {
     var input = e.target;
-    if (!input || input.name !== 'value') return;
+    var isOutput = input && input.name && input.name.indexOf('out_') === 0;
+    if (!input || (input.name !== 'value' && !isOutput)) return;
     var form = input.closest('[data-pt-setting]');
     if (!form) return;
     var dirty = form.querySelector('[data-pt-dirty]');
     if (dirty && !dirty.textContent) dirty.textContent = dirty.getAttribute('data-pt-text');
+    if (isOutput) return;  // the output axis is previewed after "Speichern" (plan §5c)
     if (frame && path) {
       var tpl = form.getAttribute('data-pt-setting') + ':' + input.value;
       frame.src = path + (path.indexOf('?') < 0 ? '?' : '&') + 'preview=1&tpl=' + encodeURIComponent(tpl);

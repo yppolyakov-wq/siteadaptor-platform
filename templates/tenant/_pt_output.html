@@ -1,0 +1,42 @@
+{% load i18n %}{% comment %}STU-19f-1: тип вывода сетки в кабинете — те же поля, что «Ausgabe» в Студии
+(LAY-3b), разбор общий (`page_settings.output_payload`, префикс «out»). Пустое поле = ключ снят
+(«как раньше»). «Reihen» видны у слайдера и там, где страница пагинирует; «Pro Seite» — только
+на пагинируемых страницах; «Tempo» — только у слайдера (то же правило, что в Студии).{% endcomment %}
+<fieldset class="mt-3 border-t border-gray-100 pt-3" data-pt-output {% if paginates %}data-pt-paginates{% endif %}>
+  <legend class="text-sm font-medium mb-2">{% trans "Ausgabe" %}</legend>
+  <div class="grid grid-cols-2 gap-3">
+    <label class="block text-sm">
+      <span class="ui-muted text-xs">{% trans "Ausgabe" %}</span>
+      <select name="out_mode" class="ui-input mt-1" data-pt-mode>
+        <option value="grid" {% if not layout.scroll %}selected{% endif %}>{% trans "Raster" %}</option>
+        <option value="slider" {% if layout.scroll %}selected{% endif %}>{% trans "Slider" %}</option>
+      </select>
+    </label>
+    <label class="block text-sm">
+      <span class="ui-muted text-xs">{% trans "Letzte Reihe" %}</span>
+      <select name="out_tail" class="ui-input mt-1">
+        <option value="" {% if not layout.tail %}selected{% endif %}>{% trans "Verteilen" %}</option>
+        <option value="show" {% if layout.tail == "show" %}selected{% endif %}>{% trans "Alles zeigen" %}</option>
+        <option value="spread" {% if layout.tail == "spread" %}selected{% endif %}>{% trans "Reihen: zentrieren" %}</option>
+        <option value="fill" {% if layout.tail == "fill" %}selected{% endif %}>{% trans "Volle Reihen" %}</option>
+      </select>
+    </label>
+    <label class="block text-sm" data-pt-rows {% if not paginates and not layout.scroll %}hidden{% endif %}>
+      <span class="ui-muted text-xs">{% trans "Reihen" %}</span>
+      <select name="out_rows" class="ui-input mt-1" title="{% trans 'Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen.' %}">
+        <option value="" {% if not layout.rows %}selected{% endif %}>{% trans "alle" %}</option>
+        {% for n in "123456"|make_list %}<option value="{{ n }}" {% if layout.rows|stringformat:"s" == n %}selected{% endif %}>{{ n }}</option>{% endfor %}
+      </select>
+    </label>
+    {% if paginates %}
+      <label class="block text-sm">
+        <span class="ui-muted text-xs">{% trans "Pro Seite" %}</span>
+        <input type="number" name="out_page_size" min="6" max="96" inputmode="numeric" value="{{ layout.page_size|default_if_none:'' }}" placeholder="{% trans 'Standard' %}" class="ui-input mt-1" title="{% trans 'Wie viele Einträge pro Seite. Leer = wie bisher.' %}">
+      </label>
+    {% endif %}
+    <label class="block text-sm" data-pt-speed {% if not layout.scroll %}hidden{% endif %}>
+      <span class="ui-muted text-xs">{% trans "Tempo (Sek.)" %}</span>
+      <input type="number" name="out_speed" min="3" max="15" inputmode="numeric" value="{{ layout.speed|default_if_none:'' }}" placeholder="{% trans 'aus' %}" class="ui-input mt-1" title="{% trans 'Sekunden zwischen den Folien. Leer = nicht automatisch drehen.' %}">
+    </label>
+  </div>
+</fieldset>

@@ -103,6 +103,10 @@ class SettingState:
     has_object_scope: bool = False
     #: which mini-mockup the tiles get: "card", "page" or "" (text tiles)
     thumb: str = ""
+    #: grid settings only (19f-1): the normalized layout dict (output mode, rows,
+    #: page size, last row, speed) and whether the page paginates (shows "Pro Seite")
+    layout: dict | None = None
+    paginates: bool = False
 
 
 @dataclass(frozen=True)
@@ -170,6 +174,34 @@ _LAYOUT_KEYS = {
     "wishlist_layout": "wishlist_layout",
     "blog_index_layout": "blog_index_layout",
 }
+
+#: Grid settings whose page reads a page size (STU-18f: only catalog and offers paginate).
+PAGINATED_LAYOUTS = frozenset({"catalog_layout", "promo_index_layout"})
+
+#: Output-axis fields of a layout (LAY-3b) — the part of a grid besides the preset.
+OUTPUT_KEYS = ("scroll", "rows", "page_size", "speed", "tail")
+
+
+def output_payload(post, field: str) -> dict:
+    """LAY-3b output axis from a form: slider instead of grid, rows (effective limit =
+    columns × rows), pagination page size, autoplay pause, last row.
+
+    ONE parser for the Studio and the cabinet (19f-1). Only raw strings are collected;
+    `normalize_layout` validates and clamps, so junk from a form never reaches the
+    config. Empty fields are NOT written: for all of them "no key" means "as before".
+    """
+    payload: dict = {}
+    if post.get(f"{field}_mode") == "slider":
+        payload["scroll"] = True
+    for suffix in ("rows", "page_size", "speed"):
+        raw = (post.get(f"{field}_{suffix}") or "").strip()
+        if raw:
+            payload[suffix] = raw
+    tail = post.get(f"{field}_tail", "")
+    if tail:
+        payload["tail"] = tail
+    return payload
+
 
 #: Detail page layouts (all four detail kinds share one axis, STU-15b).
 _DETAIL_LAYOUTS = frozenset(
@@ -455,6 +487,10 @@ def schema(tenant, types: tuple[str, ...] | None = None) -> list[TypeSchema]:
             if not applies(tenant, s):
                 continue
             value, is_set = current_value(raw, s, normalized)
+            layout = None
+            if kind_of(s) == KIND_LAYOUT:
+                layout, _found = _walk(normalized, (_LAYOUT_KEYS[s.code],))
+                layout = dict(layout) if isinstance(layout, dict) else {}
             rows.append(
                 SettingState(
                     code=s.code,
@@ -466,6 +502,8 @@ def schema(tenant, types: tuple[str, ...] | None = None) -> list[TypeSchema]:
                     choices=choices(s, gate),
                     has_object_scope=s.has_object_scope,
                     thumb=_thumb(s),
+                    layout=layout,
+                    paginates=s.code in PAGINATED_LAYOUTS,
                 )
             )
         rows.sort(key=lambda r: axis_order.get(r.axis, 99))
@@ -499,9 +537,12 @@ def _clean(setting: studio_pages.Setting, value, gate: dict, current) -> object:
     return text
 
 
-def apply_override(cfg: dict, code: str, value) -> dict:
+def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> dict:
     """Mutate a COPY of a raw config so that `code` has `value` (no validation of
-    availability — callers validate). Writes one key; everything else is kept."""
+    availability — callers validate). Writes one key; everything else is kept.
+
+    `output` (grid settings only): the output axis from `output_payload`. None keeps
+    the stored output fields; a dict REPLACES them (an empty dict = all "as before")."""
     from apps.tenants import siteconfig
 
     setting = studio_pages.SETTINGS.get(code)
@@ -520,6 +561,10 @@ def apply_override(cfg: dict, code: str, value) -> dict:
             return out
         layout = dict(out.get(key) or {})
         layout["preset"] = value
+        if output is not None:
+            for field_ in OUTPUT_KEYS:
+                layout.pop(field_, None)
+            layout.update({k: v for k, v in output.items() if k in OUTPUT_KEYS})
         extra = siteconfig.PAGE_EXTRA_PRESETS.get(key, ())
         out[key] = siteconfig.normalize_layout(
             layout, siteconfig.PAGE_LAYOUT_DEFAULTS.get(key), extra_presets=extra
@@ -563,7 +608,7 @@ def validate(tenant, code: str, value, gate: dict | None = None):
     return _clean(setting, value, composition_gate(raw) if gate is None else gate, current)
 
 
-def write(tenant, code: str, value) -> object:
+def write(tenant, code: str, value, output: dict | None = None) -> object:
     """The single site-level writer. Returns the stored (cleaned) value."""
     from apps.core.pagecache import bump_storefront_cache
     from apps.tenants.models import Tenant
@@ -573,7 +618,9 @@ def write(tenant, code: str, value) -> object:
     with transaction.atomic():
         locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
         cleaned = validate(locked, code, value, gate)
-        new_cfg = apply_override(locked.site_config or {}, code, cleaned)
+        if output is not None and kind_of(studio_pages.SETTINGS[code]) != KIND_LAYOUT:
+            raise PageSettingError(f"{code} has no output axis")
+        new_cfg = apply_override(locked.site_config or {}, code, cleaned, output)
         # A queryset UPDATE, not instance.save(): django-tenants' save() re-creates a
         # missing schema on every update (TenantMixin.save) and a fresh instance has
         # auto_create_schema=True — a settings write must never trigger that.

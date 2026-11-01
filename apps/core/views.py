@@ -1912,27 +1912,13 @@ def _add_block_fetch_response(request, new_id, host):
 
 
 def _page_layout_payload(post, field, preset):
-    """LAY-3b: раскладка страничного листинга из формы Studio.
+    """LAY-3b: раскладка страничного листинга из формы Studio — пресет + тип вывода.
 
-    Кроме пресета переносим параметры «типа вывода»: слайдер вместо сетки, число
-    рядов (эффективный лимит = колонки × ряды), размер страницы пагинации и паузу
-    автопрокрутки. Валидацию и клампы делает `normalize_layout` — здесь только
-    собираем сырьё, поэтому мусор из формы не может попасть в конфиг.
-
-    Пустые поля НЕ пишутся: у всех трёх параметров «нет ключа» значит «как раньше»
-    (показывать всё, считать размер страницы по-старому, не крутить).
+    Разбор типа вывода — общий с кабинетом (`page_settings.output_payload`, 19f-1).
     """
-    payload = {"preset": preset}
-    if post.get(f"{field}_mode") == "slider":
-        payload["scroll"] = True
-    for suffix in ("rows", "page_size", "speed"):
-        raw = (post.get(f"{field}_{suffix}") or "").strip()
-        if raw:
-            payload[suffix] = raw
-    tail = post.get(f"{field}_tail", "")
-    if tail:
-        payload["tail"] = tail
-    return payload
+    from apps.core import page_settings
+
+    return {"preset": preset, **page_settings.output_payload(post, field)}
 
 
 def retires_legacy_promo_layout(post) -> bool:
