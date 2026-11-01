@@ -400,7 +400,10 @@ def test_calendar_embed_keeps_embed_in_nav():
         {"year": str(D0.year), "month": str(D0.month), "embed": "1"},
     )
     body = public_views.unterkunft_unit_calendar(req, pk=unit.pk).content.decode()
-    assert "month=11&embed=1" in body or "month=11&amp;embed=1" in body  # next + embed
+    # next month + embed. The month is derived from D0 — a literal "11" was a time
+    # bomb: D0 moves with today's date and broke the test from 2026-11-01 on.
+    nxt = D0.month % 12 + 1
+    assert f"month={nxt}&embed=1" in body or f"month={nxt}&amp;embed=1" in body
 
 
 def test_stay_inline_edit_price():
