@@ -177,7 +177,7 @@ def design_view(request):
             # структуре страницы — анализ DL-12, фидбэк «опять всё Fokus»).
             "bundles": [
                 {**b, "composition_label": sitetemplates.composition_label(b)}
-                for b in sitetemplates.bundles_for(tenant.business_type)
+                for b in sitetemplates.bundles_for(tenant.business_type, tenant)
             ],
             "looks": sitetemplates.looks_for(tenant.business_type),
             "current_bundle": current.get("bundle", ""),

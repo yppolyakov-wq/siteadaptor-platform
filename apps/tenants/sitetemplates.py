@@ -136,7 +136,9 @@ TEMPLATES = [
             "Referenzen, Ablauf und unverbindliches Angebot — für Meisterbetrieb, Sanierung und Montage."
         ),
         "recommended_for": ("handwerker",),
-        "sections": ["hero", "before_after", "process", "promotions", "contact"],
+        # Audit 2026-11-01: the request form is the craftsman's sale (jobs); promotions
+        # are off by default for this type, so without "anfrage" the home sold nothing.
+        "sections": ["hero", "before_after", "process", "anfrage", "promotions", "contact"],
         "texts": {
             "hero_title": "Ihr Meisterbetrieb",
             "hero_text": "Schildern Sie Ihr Vorhaben — Sie erhalten ein unverbindliches Angebot.",
@@ -1975,13 +1977,44 @@ def apply_preview_bundle(cfg, key):
     return cfg
 
 
-def bundles_for(business_type) -> list[dict]:
+#: Sections that sell something, and the module that fills them. A bundle whose
+#: selling sections all belong to switched-off modules builds an EMPTY home page.
+_SELLING_SECTIONS = {
+    "promotions": "promotions",
+    "products": "catalog",
+    "services": "booking",
+    "stay_rooms": "stays",
+    "stay_search": "stays",
+    "events": "events",
+    "tours": "events",
+    "anfrage": "jobs",
+}
+
+
+def bundle_works_for(bundle: dict, tenant) -> bool:
+    """Audit 2026-11-01: a bundle is offered only when at least one of its selling
+    sections is live here. A fresh shop (promotions off) was offered the deal bundles
+    first; the wizard applied «Prospekt» and the home showed no product at all."""
+    selling = [s for s in bundle["config"].get("sections_on", ()) if s in _SELLING_SECTIONS]
+    if not selling:
+        return True
+    try:
+        return any(tenant.is_module_active(_SELLING_SECTIONS[s]) for s in selling)
+    except Exception:  # noqa: BLE001 — a broken gate must not hide every template
+        return True
+
+
+def bundles_for(business_type, tenant=None) -> list[dict]:
     """Сборки для архетипа: рекомендованные + универсальные (пустой
     recommended_for = всем). DS-8: у каждого архетипа своя вариация «Fokus» —
-    показывать ЧУЖИЕ было бы шумом (пять одинаковых карточек «Fokus»)."""
+    показывать ЧУЖИЕ было бы шумом (пять одинаковых карточек «Fokus»).
+    С `tenant` — только сборки, чья главная у ЭТОГО бизнеса не выйдет пустой."""
     rec = [b for b in BUNDLES if business_type in b["recommended_for"]]
     universal = [b for b in BUNDLES if not b["recommended_for"]]
-    return rec + [b for b in universal if b not in rec]
+    out = rec + [b for b in universal if b not in rec]
+    if tenant is not None:
+        out = [b for b in out if bundle_works_for(b, tenant)]
+    return out
 
 
 def apply_bundle_config(config: dict, key: str) -> bool:

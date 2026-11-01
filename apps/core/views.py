@@ -3371,7 +3371,9 @@ def home_builder_view(request):
             # ST-1b: Look-карточки архетипа (клик выставляет контролы формы) +
             # текущая тема (hidden-input `theme` — round-trip при Save).
             "looks": sitetemplates.looks_for(request.tenant.business_type),
-            "bundles": sitetemplates.bundles_for(request.tenant.business_type),  # DS-3c
+            "bundles": sitetemplates.bundles_for(
+                request.tenant.business_type, request.tenant
+            ),  # DS-3c
             "theme": config.get("theme", ""),
             # SE-3b: типографика — текущие значения + варианты для селекторов.
             "typo_weight_head": config["typography"]["weight_head"],

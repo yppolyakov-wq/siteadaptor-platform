@@ -395,7 +395,7 @@ def _ctx_template(request):
         "templates": sitetemplates.template_cards(request.tenant.business_type),
         "looks": sitetemplates.looks_for(request.tenant.business_type),
         # DS-3c: сборки (Startpakete) — карточки НАД Look-галереей.
-        "bundles": sitetemplates.bundles_for(request.tenant.business_type),
+        "bundles": sitetemplates.bundles_for(request.tenant.business_type, request.tenant),
     }
 
 
