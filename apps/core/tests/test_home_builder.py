@@ -352,9 +352,10 @@ def test_home_builder_get_renders():
     body = resp.content.decode()
     assert "order_hero" in body  # форма секций отрисована
     assert "arch_visible_catalog" in body  # карточки архетипов
-    # STU-12g: акцент/шрифт переехали на экран «Design des Shops»; в Студии остались
-    # контролы композиции (стиль баннера) и настройки страницы.
-    assert 'name="hero_style"' in body
+    # STU-12g: акцент/шрифт переехали на экран «Design des Shops»; STU-19e-3: стиль
+    # баннера — в кабинете («Seitenvorlagen»), Студия показывает сводку со ссылкой.
+    assert 'name="hero_style"' not in body
+    assert "data-stu19-summary" in body
 
 
 def test_home_builder_get_renders_menu_examples():
@@ -578,7 +579,9 @@ def test_home_builder_saves_design():
     assert resp.status_code == 302
     tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["hero_style"] == "accent"
+    # STU-19e-3: the banner style is set in the cabinet (Seitenvorlagen) — a Studio
+    # POST cannot change it
+    assert cfg["hero_style"] == "plain"
     assert cfg["font"] == "system", "шрифт из POST Студии игнорируется"
     assert tenant.primary_color == "#000000", "акцент правится на экране Design"
 

@@ -115,8 +115,8 @@ def test_builder_save_does_not_touch_legacy_nav_without_menu_area():
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["nav"]["style"] == "minimal"  # не сброшен в classic
-    # STU-12g: шрифт правится на экране «Design des Shops», Студия владеет стилем баннера
-    assert cfg["hero_style"] == "accent"
+    # STU-19e-3: стиль баннера — в кабинете; POST Студии его не меняет
+    assert cfg["hero_style"] == "plain"
 
 
 def test_builder_offers_categories_node_with_readable_targets():

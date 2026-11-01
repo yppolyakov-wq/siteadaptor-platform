@@ -57,7 +57,7 @@ MOVED_FIELDS = (
 
 # поля, которые ОСТАЮТСЯ в Студии (настройки страницы и композиции)
 STUDIO_FIELDS = (
-    "hero_style",
+    # STU-19e-3: hero_style moved on to the cabinet (Seitenvorlagen)
     "sd_card_style",
     "sd_promo_card",
     # STU-19e-2: the two page templates moved on to the cabinet (Seitenvorlage)

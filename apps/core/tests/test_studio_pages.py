@@ -381,7 +381,7 @@ def test_no_control_is_lost_or_duplicated(builder_html):
         "cart_show_upsell",
         # STU-9: ровно те два поля, которые STU-8 переносил между областями, в
         # замке не значились — то есть перенос был не покрыт вовсе.
-        "hero_style",
+        # STU-19e-3: hero_style ушёл в кабинет (Seitenvorlagen).
         "sd_text_width",
         "pb_present",
     ):

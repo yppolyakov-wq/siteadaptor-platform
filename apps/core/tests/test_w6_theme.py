@@ -79,7 +79,8 @@ def test_builder_theme_controls_are_the_single_source():
     )
     tenant.refresh_from_db()
     assert tenant.site_config.get("font") == "rounded", "POST Студии шрифт не меняет"
-    assert tenant.site_config.get("hero_style") == "plain"  # hero_accent не прислан
+    # STU-19e-3: стиль баннера задаётся в кабинете — POST Студии его не трогает
+    assert tenant.site_config.get("hero_style") == "accent"
 
 
 def test_theme_pickers_live_only_in_builder(settings):
@@ -90,5 +91,6 @@ def test_theme_pickers_live_only_in_builder(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(disabled_modules=[])
     html = core_views.home_builder_view(_req("get", _user("w6c"), tenant)).content.decode()
-    assert 'name="hero_style"' in html  # DL-13: селект стиля баннера (был чекбокс)
+    # STU-19e-3: стиль баннера — в кабинете (Seitenvorlagen), в Студии — сводка
+    assert 'name="hero_style"' not in html
     assert 'name="font"' not in html  # STU-12g: шрифт — на /dashboard/design/

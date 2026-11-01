@@ -226,7 +226,9 @@ def test_draft_endpoint_includes_design():
     req.tenant = tenant
     assert views.site_preview_draft(req).status_code == 204
     draft = req.session["site_preview_draft"]
-    assert draft["font"] == "rounded" and draft["hero_style"] == "accent"
+    assert draft["font"] == "rounded"
+    # STU-19e-3: the banner style is cabinet-owned — the Studio draft cannot carry it
+    assert draft.get("hero_style") != "accent"
     assert draft["_accent"] == "#123456"
 
 
