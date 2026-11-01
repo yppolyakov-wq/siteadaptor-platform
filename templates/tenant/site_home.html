@@ -636,7 +636,7 @@
              test_registry_and_panel_agree.{% endcomment %}
           {% for row in listing_composition_rows %}
           <div class="stu-page-row mt-4" data-stu-setting="{{ row.name }}" data-stu-axis="composition" data-stu-page="{{ row.surface }}">
-            {% include "tenant/_cardform_picker.html" with name=row.name value=row.value items=row.items thumb="tenant/_pagelayout_thumb.html" off=row.off off_note=comp_off_note title=_("Seitenvorlage") %}
+            {% include "tenant/_stu19_summary.html" with s=row.summary %}
           </div>
           {% endfor %}
           <div class="stu-page-row mt-4" data-stu-setting="promo_grouping" data-stu-axis="content" data-stu-page="promos">
@@ -941,14 +941,7 @@
             {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
                вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
             <div class="stu-page-row" data-stu-setting="event_detail_layout" data-stu-axis="composition" data-stu-page="event">
-              <label class="block mt-2">
-                <span class="stu-lb">{% trans "Aufbau" %}</span>
-                <select name="ed_layout" class="stu-ctrl">
-                  <option value="">{% trans "Untereinander" %}</option>
-                  <option value="tabs" {% if event_detail_layout == 'tabs' %}selected{% endif %}>{% trans "Tabs" %}</option>
-                  <option value="breit" {% if event_detail_layout == 'breit' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
-                </select>
-              </label>
+              {% include "tenant/_stu19_summary.html" with s=stu19.event_detail_layout %}
             </div>
           </div>
           {% endif %}
@@ -970,16 +963,7 @@
             </ul>
             {# DL-16.6 (D2): раскладка секций детали товара — друг под другом или табами #}
             <div class="stu-page-row" data-stu-setting="product_detail_layout" data-stu-axis="composition" data-stu-page="product">
-              <label class="block mt-2">
-                <span class="stu-lb">{% trans "Aufbau" %}</span>
-                <select name="pd_layout" class="stu-ctrl">
-                  <option value="">{% trans "Untereinander" %}</option>
-                  <option value="tabs" {% if product_detail_layout == 'tabs' %}selected{% endif %}>{% trans "Tabs" %}</option>
-                  {# STU-15b: «breit» читает КАРКАС детали — доступна всем четырём видам. #}
-                  <option value="breit" {% if product_detail_layout == 'breit' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
-                </select>
-              </label>
-              <a href="{% url 'page-templates-sortiment' %}?typ=product" class="mt-1 inline-block text-xs text-indigo-700 hover:underline" data-stu19-link>{% trans "Im Kabinett ändern" %} →</a>
+              {% include "tenant/_stu19_summary.html" with s=stu19.product_detail_layout %}
             </div>
           </div>
           {% endif %}
@@ -1002,14 +986,7 @@
             {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
                вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
             <div class="stu-page-row" data-stu-setting="service_detail_layout" data-stu-axis="composition" data-stu-page="service">
-              <label class="block mt-2">
-                <span class="stu-lb">{% trans "Aufbau" %}</span>
-                <select name="sd_layout" class="stu-ctrl">
-                  <option value="">{% trans "Untereinander" %}</option>
-                  <option value="tabs" {% if service_detail_layout == 'tabs' %}selected{% endif %}>{% trans "Tabs" %}</option>
-                  <option value="breit" {% if service_detail_layout == 'breit' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
-                </select>
-              </label>
+              {% include "tenant/_stu19_summary.html" with s=stu19.service_detail_layout %}
             </div>
           </div>
           {% endif %}
@@ -1031,14 +1008,7 @@
             {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
                вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
             <div class="stu-page-row" data-stu-setting="stay_detail_layout" data-stu-axis="composition" data-stu-page="stay">
-              <label class="block mt-2">
-                <span class="stu-lb">{% trans "Aufbau" %}</span>
-                <select name="std_layout" class="stu-ctrl">
-                  <option value="">{% trans "Untereinander" %}</option>
-                  <option value="tabs" {% if stay_detail_layout == 'tabs' %}selected{% endif %}>{% trans "Tabs" %}</option>
-                  <option value="breit" {% if stay_detail_layout == 'breit' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
-                </select>
-              </label>
+              {% include "tenant/_stu19_summary.html" with s=stu19.stay_detail_layout %}
             </div>
           </div>
           {% endif %}
@@ -2768,17 +2738,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // DL-21.2: шаблон обзорной страницы акций ("" законно — снимает ключ)
     var ppInp = form.querySelector("[name='promo_page_style']");
     if (ppInp) payload.promo_page_style = ppInp.value;
-    // STU-18g: композиция ДЕВЯТИ листингов — один ключ-словарь `page_styles`.
-    // Собираем циклом по строкам панели: девять отдельных веток разъехались бы,
-    // а без черновика выбор был бы виден только после Save (жалоба владельца).
-    var ps = {};
-    form.querySelectorAll("[name$='_page_style']").forEach(function (inp) {
-      var surface = inp.name.replace(/_page_style$/, "");
-      // у каталога и обзора акций СВОИ плоские ключи (см. выше) — в словарь не кладём
-      if (surface === "catalog" || surface === "promo") return;
-      ps[surface] = inp.value;
-    });
-    payload.page_styles = ps;
+    // STU-19e-1: listing templates (`page_styles`) are set in the cabinet only.
     var evSel = form.querySelector("select[name='events_preset']");
     if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
     var stSel = form.querySelector("select[name='stay_preset']");
@@ -2856,9 +2816,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         var vis = form.querySelector("input[name='ed_visible_" + key + "']");
         if (!(vis && vis.checked)) edHidden.push(key);
       });
-      // STU-15b: раскладка страницы — в черновик, иначе выбор виден только после Save.
-      var edLay = form.querySelector("select[name='ed_layout']");
-      payload.event_detail = { order: edOrder, hidden: edHidden, layout: edLay ? edLay.value : "" };
+      // STU-19e-1: the page layout (`layout`) is set in the cabinet only.
+      payload.event_detail = { order: edOrder, hidden: edHidden };
     }
     // Видимость опц. секций детальной товара → в черновик (превью товара ?preview=1).
     var pdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='pd_visible_']"));
@@ -2867,10 +2826,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       pdInputs.forEach(function (inp) {
         if (!inp.checked) pdHidden.push(inp.name.slice(11));  // "pd_visible_".length === 11
       });
-      // DL-17.3: + раскладка секций детали (DL-16.6 «tabs») — иначе табы
-      // появлялись только после Save.
-      var pdLay = form.querySelector("select[name='pd_layout']");
-      payload.product_detail = { hidden: pdHidden, layout: pdLay ? pdLay.value : "" };
+      payload.product_detail = { hidden: pdHidden };
     }
     // UA4-1 slice C: видимость секций детальной услуги/номера → в черновик (превью ?preview=1).
     var sdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='sd_visible_']"));
@@ -2879,8 +2835,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       sdInputs.forEach(function (inp) {
         if (!inp.checked) sdHidden.push(inp.name.slice(11));  // "sd_visible_".length === 11
       });
-      var sdLay = form.querySelector("select[name='sd_layout']");  // STU-15b
-      payload.service_detail = { hidden: sdHidden, layout: sdLay ? sdLay.value : "" };
+      payload.service_detail = { hidden: sdHidden };
     }
     var stdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='std_visible_']"));
     if (stdInputs.length) {
@@ -2888,8 +2843,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       stdInputs.forEach(function (inp) {
         if (!inp.checked) stdHidden.push(inp.name.slice(12));  // "std_visible_".length === 12
       });
-      var stdLay = form.querySelector("select[name='std_layout']");  // STU-15b
-      payload.stay_detail = { hidden: stdHidden, layout: stdLay ? stdLay.value : "" };
+      payload.stay_detail = { hidden: stdHidden };
     }
     // M20d: контент-секции (CTA/FAQ/Testimonials/…) — отдаём как есть, сервер парсит.
     [

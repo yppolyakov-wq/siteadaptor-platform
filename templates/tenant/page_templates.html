@@ -16,6 +16,9 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
 
 {% include "tenant/_settings_messages.html" %}
 
+{% if not types %}
+<div class="ui-empty">{% trans "Ihre Website zeigt in diesem Bereich noch keine Seiten." %}</div>
+{% else %}
 {% if show_ask %}
 {% include "tenant/_setup_ask.html" %}
 {% if plan %}{% include "tenant/_setup_plan.html" %}{% endif %}
@@ -98,6 +101,7 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
   </section>
 </div>
 
+{% endif %}
 <script>
 (function () {
   // Tile click → preview with that one value (?tpl=), nothing is saved.

@@ -1,0 +1,12 @@
+{% load i18n %}
+{% comment %}STU-19e: a setting the cabinet owns — the Studio shows its value and a link.
+Input: s = {label, value, url} from page_settings.summaries (None → nothing).{% endcomment %}
+{% if s %}
+<div class="text-sm" data-stu19-summary>
+  <span class="stu-lb">{{ s.label }}</span>
+  <p class="flex flex-wrap items-baseline gap-x-2">
+    <span class="font-medium">{{ s.value }}</span>
+    <a href="{{ s.url }}" class="text-xs text-indigo-700 hover:underline" data-stu19-link>{% trans "Im Kabinett ändern" %} →</a>
+  </p>
+</div>
+{% endif %}

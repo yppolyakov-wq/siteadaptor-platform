@@ -173,7 +173,9 @@ def test_draft_carries_new_visual_keys():
     products = next(s for s in draft["sections"] if s["key"] == "products")
     assert products["layout"]["tail"] == "fill"
     assert draft["promo_grouping"] == "time"
-    assert siteconfig.product_detail_layout(draft) == "tabs"
+    # STU-19e-1 (deliberate): the detail layout is cabinet-owned — a Studio draft
+    # cannot set it, the stored value (none here) stays
+    assert siteconfig.product_detail_layout(draft) == ""
     sd = draft["site_defaults"]
     assert sd["promo_card"] == "preis"
     assert sd["card_slider"] == "on"
@@ -212,4 +214,5 @@ def test_builder_payload_collects_new_keys():
     # только настройки СТРАНИЦЫ (приёмник мерджит site_defaults, DL-17.3).
     assert "card_slider:" not in body and "variant_style:" not in body
     assert "card_style: sdVal(sdStyle)," in body
-    assert 'layout: pdLay ? pdLay.value : ""' in body
+    # STU-19e-1: the Studio no longer sends the detail layout (cabinet-owned)
+    assert "pdLay" not in body

@@ -31630,3 +31630,6 @@ msgstr "Як сайт показує ваш асортимент: списки, 
 
 msgid "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."
 msgstr "Як сайт показує сторінку акцій, групу акцій і окрему акцію. Тип акції чи акція зі своїм шаблоном його зберігає."
+
+msgid "Ihre Website zeigt in diesem Bereich noch keine Seiten."
+msgstr "У цьому розділі на сайті поки немає сторінок."

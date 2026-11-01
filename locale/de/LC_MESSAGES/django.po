@@ -31457,3 +31457,6 @@ msgstr "So zeigt Ihre Website Ihr Angebot: Listen, Kategorien und Detailseiten. 
 
 msgid "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."
 msgstr "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."
+
+msgid "Ihre Website zeigt in diesem Bereich noch keine Seiten."
+msgstr "Ihre Website zeigt in diesem Bereich noch keine Seiten."

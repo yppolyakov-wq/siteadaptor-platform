@@ -31364,3 +31364,6 @@ msgstr "How your website shows your offer: lists, categories and detail pages. A
 
 msgid "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."
 msgstr "How your website shows the offers page, an offer group and a single offer. An offer type or offer with its own template keeps it."
+
+msgid "Ihre Website zeigt in diesem Bereich noch keine Seiten."
+msgstr "Your website does not show any pages in this area yet."

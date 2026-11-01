@@ -236,9 +236,13 @@ def test_every_form_field_exists_in_the_studio_template(builder_html):
         re.findall(r'name="([a-z_0-9]+)"', source)
     )
 
+    from apps.core.page_settings import CABINET_OWNED
+
     missing = []
     for setting in sp.SETTINGS.values():
         field = setting.form_field
+        if setting.code in CABINET_OWNED:
+            continue  # STU-19e: changed in the cabinet only — see the absence lock
         if field.endswith("*"):
             prefix = field[:-1]
             # динамические поля рисуются в шаблоне через {{ }} — ищем префикс в теле
@@ -376,7 +380,6 @@ def test_no_control_is_lost_or_duplicated(builder_html):
         "sd_promo_group_style",
         "sd_card_style",
         "sd_promo_card",
-        "pd_layout",
         "cart_show_upsell",
         # STU-9: ровно те два поля, которые STU-8 переносил между областями, в
         # замке не значились — то есть перенос был не покрыт вовсе.
@@ -1062,6 +1065,7 @@ def test_every_registry_control_is_unique_in_the_panel(builder_html_all_modules)
     выводим из реестра.
     """
     from apps.core import studio_pages as sp
+    from apps.core.page_settings import CABINET_OWNED
 
     body = builder_html_all_modules
     for setting in sp.SETTINGS.values():
@@ -1069,7 +1073,10 @@ def test_every_registry_control_is_unique_in_the_panel(builder_html_all_modules)
         if not field or "*" in field:
             continue  # шаблонные имена (per-модуль) считаем отдельными замками
         found = len(re.findall(rf'name="{re.escape(field)}"', body))
-        assert found == 1, f"поле {field}: найдено {found} раз (ожидалось ровно одно)"
+        # STU-19e: a cabinet-owned setting has NO control in the Studio — a second
+        # writer would overwrite the cabinet (one writer per setting, plan §0 Р-3)
+        want = 0 if setting.code in CABINET_OWNED else 1
+        assert found == want, f"поле {field}: найдено {found} раз (ожидалось {want})"
 
 
 def test_undo_restores_site_value_in_scope_controls():

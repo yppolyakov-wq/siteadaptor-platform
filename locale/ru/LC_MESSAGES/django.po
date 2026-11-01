@@ -31646,3 +31646,6 @@ msgstr "Как сайт показывает ваш ассортимент: сп
 
 msgid "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."
 msgstr "Как сайт показывает страницу акций, группу акций и отдельную акцию. Тип акции или акция со своим шаблоном его сохраняет."
+
+msgid "Ihre Website zeigt in diesem Bereich noch keine Seiten."
+msgstr "В этом разделе на сайте пока нет страниц."

@@ -62,9 +62,9 @@ def test_studio_shows_a_tile_with_a_preview_for_every_form():
     # STU-18d: девять листингов получили ту же плитку-выборку композиции, и число
     # перестало быть константой — оно ВЫВОДИТСЯ из реестра. Так замок продолжает
     # ловить пропавшую плитку, но не краснеет на каждой новой поверхности.
-    from apps.core import compositions
-
-    assert body.count("data-cardform-picker>") == 7 + len(compositions.LISTING_SURFACES)
+    # STU-19e-1 (deliberate): the nine listing pickers moved to the cabinet — the
+    # Studio row shows a summary + link instead (see test_stu19e_ownership).
+    assert body.count("data-cardform-picker>") == 7
     assert 'name="sd_card_style"' in body and 'name="sd_promo_card"' in body
     for key in card_forms.keys_for("product") | card_forms.keys_for("promo"):
         assert f'data-cf-key="{key}"' in body, key

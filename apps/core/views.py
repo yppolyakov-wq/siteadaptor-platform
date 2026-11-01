@@ -3169,6 +3169,10 @@ def home_builder_view(request):
     # STU-18c/18d: гейт композиций считается ОДИН раз — его читают и плитки
     # каталога/акций (`comp_off`), и строки девяти листингов.
     _comp_gate = _composition_gate(config)
+    # STU-19e: settings the cabinet owns — the Studio shows them as a summary + link
+    from apps.core import page_settings as _ps
+
+    _stu19 = _ps.summaries(request.tenant)
     # LB-1b: селекторы строк C-блоков считаются один раз — список живых типов питает
     # и селектор типа, и карту видов типов для пилюли охвата блока «Liste».
     _row_lists = _cblock_row_lists(request)
@@ -3512,16 +3516,17 @@ def home_builder_view(request):
             # STU-18d: строки композиции девяти листингов — данными, а не девятью
             # почти одинаковыми блоками разметки (они разъехались бы при первой
             # правке). Значение читается из ОДНОГО ключа `page_styles`.
+            # STU-19e-1: these templates are changed in the cabinet only — the row
+            # shows a summary and a link (the registry ⇄ panel lock keeps the row).
             "listing_composition_rows": [
                 {
                     "surface": surface,
                     "name": f"{surface}_page_style",
-                    "value": (config.get("page_styles") or {}).get(surface, ""),
-                    "items": compositions.styles_for(surface),
-                    "off": _comp_gate.get(surface, set()),
+                    "summary": _stu19.get(f"{surface}_page_style"),
                 }
                 for surface in sorted(compositions.LISTING_SURFACES)
             ],
+            "stu19": _stu19,
             "comp_off_note": _("Ohne Unterkategorien oder Sets nicht verfügbar"),
             # STU-18e (Р-3): шрифт и цвет остаются на «Оформлении сайта», но панель
             # показывает, чем оформлен сайт, — иначе владелец правит страницу вслепую.

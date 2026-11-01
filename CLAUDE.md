@@ -3852,7 +3852,8 @@ Python 3.12, менеджер uv.
   (schema/validate/write одного ключа под блокировкой, `protect_owned` пуст до 19e). Дальше 19c ✅
   ИИ-помощник `setup_plan` (правила + ИИ с пост-проверкой, план только для чтения) → 19d ✅ шаблоны всех
   30 типов страниц (Sortiment · Aktionen · Website → Seitenvorlagen; превью на всех витринных вьюхах через
-  `page_settings.raw_config`) → 19e → 19e/19f снять контролы из Студии по осям.
+  `page_settings.raw_config`) → 19e-1 ✅ шаблоны листингов и вид деталей правятся только в кабинете
+  (Студия — сводка + ссылка, `CABINET_OWNED`) → 19e-2/19e-3 → 19e/19f снять контролы из Студии по осям.
 
 - **Самое свежее (2026-10-31): M21.1/M21.2 — переезд магазина с CS-Cart (haanerteeladen.de).**
   Таблица переадресаций `core.LegacyRedirect` (⚠️ `core/0014`) + `LegacyRedirectMiddleware` (только

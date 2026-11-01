@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import re
 import uuid
 
 import pytest
@@ -205,15 +204,16 @@ def test_studio_layout_select_and_save():
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert re.search(r'<select name="pd_layout"[^>]*>\s*<option value="">', body)
-    data = {"order_hero": "1", "enabled_hero": "on", "pd_present": "1", "pd_layout": "tabs"}
+    # STU-19e-1 (deliberate): the layout is set in the cabinet only — the Studio shows
+    # a summary + link and its Save no longer writes the key, even from a stray field.
+    assert 'name="pd_layout"' not in body and "data-stu19-summary" in body
+    from apps.core import page_settings
+
+    page_settings.write(tenant, "product_detail_layout", "tabs")
+    data = {"order_hero": "1", "enabled_hero": "on", "pd_present": "1", "pd_layout": ""}
     for k in siteconfig.PRODUCT_DETAIL_SECTION_KEYS:
         data[f"pd_visible_{k}"] = "on"
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
+    tenant.refresh_from_db()
     assert siteconfig.product_detail_layout(siteconfig.normalize(tenant.site_config)) == "tabs"
-    # повторный Save без селекта-«tabs» → ключ уходит (presence-minimal), hidden цел
-    data["pd_layout"] = ""
-    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
-    cfg = siteconfig.normalize(tenant.site_config)
-    assert siteconfig.product_detail_layout(cfg) == "" and "layout" not in cfg["product_detail"]

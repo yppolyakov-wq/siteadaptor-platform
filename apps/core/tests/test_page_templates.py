@@ -97,10 +97,12 @@ def test_unavailable_tile_is_disabled_with_reason(tenant):
     assert "disabled" in tile and "aria-describedby" in tile
 
 
-def test_hidden_without_catalog_module(tenant, monkeypatch):
+def test_without_any_page_type_the_screen_explains_instead_of_404(tenant, monkeypatch):
+    """STU-19d: the menu entry is universal — a shop without any of the section's pages
+    (e.g. "Nur Aktionen") gets an explanation, not a 404 behind a visible link."""
     monkeypatch.setattr(type(tenant), "is_module_active", lambda self, key: False)
-    with pytest.raises(Http404):
-        page_templates.page_templates_sortiment(_req(tenant))
+    body = page_templates.page_templates_sortiment(_req(tenant)).content.decode()
+    assert 'data-pt-setting="' not in body and "ui-empty" in body
 
 
 def test_menu_entry_and_permission_rule():
@@ -155,8 +157,11 @@ def test_garbage_tpl_is_ignored(category_tree, may_preview):
 
 def test_studio_links_to_the_tab():
     html = (Path(dj_settings.BASE_DIR) / "templates/tenant/site_home.html").read_text()
-    for typ in ("catalog", "category", "product"):
+    for typ in ("catalog", "category"):
         assert f"{{% url 'page-templates-sortiment' %}}?typ={typ}" in html
+    # STU-19e-1: the product page layout is a summary — its link comes from cabinet_url
+    assert "stu19.product_detail_layout" in html
+    assert page_templates.cabinet_url("product").endswith("?typ=product")
 
 
 def test_anonymous_visitor_cannot_use_tpl(category_tree):

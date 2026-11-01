@@ -77,6 +77,15 @@ SECTIONS = {
 }
 
 
+def cabinet_url(type_code: str) -> str:
+    """The cabinet screen that owns this page type's settings (`?typ=` selects it).
+    A section tab beats the "website" screen; the latter shows every type."""
+    for key in ("sortiment", "aktionen", "website"):
+        if type_code in SECTIONS[key]["types"]:
+            return reverse(SECTIONS[key]["url_name"]) + "?" + urlencode({"typ": type_code})
+    return reverse(SECTIONS["website"]["url_name"])
+
+
 def _first(qs):
     try:
         return qs.first()
@@ -220,9 +229,15 @@ def _render(request, section: str):
     if spec["module"] and not tenant.is_module_active(spec["module"]):
         raise Http404
     types = page_settings.active_types(tenant, spec["types"])
-    if not types:
-        raise Http404
     url = reverse(spec["url_name"])
+    if not types:
+        # e.g. a "Nur Aktionen" shop: the menu item exists, its pages do not — say so
+        # instead of a 404 behind a visible menu entry
+        return render(
+            request,
+            "tenant/page_templates.html",
+            {"nav": spec["nav"], "title": spec["title"], "intro": spec["intro"], "types": []},
+        )
 
     if request.method == "POST":
         code = request.POST.get("setting", "")

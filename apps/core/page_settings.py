@@ -656,7 +656,30 @@ def raw_config(request) -> dict:
 #: Settings whose ONLY writer is the cabinet tab. The Studio Save and its live draft
 #: must not change them (plan §3, locks a/b). Filled per axis in STU-19e/19f together
 #: with removing the Studio control; empty in 19a = the mechanism without effect.
-CABINET_OWNED: frozenset[str] = frozenset()
+#: 19e-1: listing templates and detail layouts (no "Nur hier" in the Studio).
+CABINET_OWNED: frozenset[str] = frozenset(
+    {f"{surface}_page_style" for surface in compositions.LISTING_SURFACES} | _DETAIL_LAYOUTS
+)
+
+
+def summaries(tenant, codes=None) -> dict[str, dict]:
+    """What the Studio shows instead of a cabinet-owned control: the setting's
+    current value in words and the cabinet screen that changes it."""
+    from apps.core import page_templates
+
+    codes = set(CABINET_OWNED if codes is None else codes)
+    out: dict[str, dict] = {}
+    for ts in schema(tenant):
+        for st in ts.settings:
+            if st.code not in codes or st.code in out:
+                continue
+            label = next((c.label for c in st.choices if c.value == st.value), st.value)
+            out[st.code] = {
+                "label": st.label,
+                "value": label or _("Standard"),
+                "url": page_templates.cabinet_url(ts.code),
+            }
+    return out
 
 
 def protect_owned(tenant, new_cfg: dict, owned=None) -> dict:
@@ -687,5 +710,8 @@ def protect_owned(tenant, new_cfg: dict, owned=None) -> dict:
             parent[path[1]] = stored
         else:
             parent.pop(path[1], None)
-        out[top] = parent
+        if parent or top != "page_styles":
+            out[top] = parent
+        else:
+            out.pop(top, None)  # presence-minimal, as the Studio Save stores it
     return out

@@ -31508,3 +31508,6 @@ msgstr "Web sitenizin teklifinizi nasıl gösterdiği: listeler, kategoriler ve 
 
 msgid "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."
 msgstr "Web sitenizin kampanya sayfasını, bir kampanya grubunu ve tek bir kampanyayı nasıl gösterdiği. Kendi şablonu olan bir kampanya türü veya kampanya onu korur."
+
+msgid "Ihre Website zeigt in diesem Bereich noch keine Seiten."
+msgstr "Web siteniz bu alanda henüz sayfa göstermiyor."

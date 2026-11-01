@@ -62,13 +62,15 @@ def test_draft_carries_the_promotions_page_template():
     assert "promo_page_style" not in _draft(tenant, {"promo_page_style": "erfunden"})
 
 
-def test_draft_carries_listing_compositions():
-    """STU-18d дал девяти листингам композицию, но не живое превью."""
-    tenant = TenantFactory(schema_name="public", slug="stu18g2")
+def test_draft_keeps_the_cabinet_listing_compositions():
+    """STU-19e-1 (deliberate rewrite of the STU-18g lock): listing templates are set
+    in the cabinet only. A Studio draft that sends `page_styles` cannot change them —
+    the draft keeps the STORED value (its preview lives on the cabinet screen)."""
+    tenant = TenantFactory(
+        schema_name="public", slug="stu18g2", site_config={"page_styles": {"stays": "kopfbild"}}
+    )
     draft = _draft(tenant, {"page_styles": {"services": "tabs", "stays": "regale"}})
-    assert draft.get("page_styles") == {"services": "tabs", "stays": "regale"}
-    # чужая поверхность/код отбрасываются тем же нормализатором, что и на Save
-    assert "page_styles" not in _draft(tenant, {"page_styles": {"blog": "mosaik"}})
+    assert draft.get("page_styles") == {"stays": "kopfbild"}
 
 
 def test_registry_lists_both_page_style_keys():
@@ -79,13 +81,11 @@ def test_registry_lists_both_page_style_keys():
     assert set(siteconfig._PAGE_STYLE_KEYS) == {"catalog_page_style", "promo_page_style"}
 
 
-def test_builder_sends_listing_styles_in_the_draft_payload():
-    """Клиент обязан слать словарь — иначе сервер нечего применять."""
+def test_builder_no_longer_sends_listing_styles():
+    """STU-19e-1: the Studio has no listing-template control any more — sending the
+    key would only invite a second writer."""
     markup = open(BUILDER, encoding="utf-8").read()
-    assert "payload.page_styles" in markup
-    # плоские ключи каталога и акций в словарь не попадают (у них свои поля)
-    block = markup[markup.index("payload.page_styles") - 900 : markup.index("payload.page_styles")]
-    assert 'surface === "catalog"' in block and 'surface === "promo"' in block
+    assert "payload.page_styles" not in markup
 
 
 def test_every_template_picker_in_the_panel_reaches_the_draft():
