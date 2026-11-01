@@ -360,13 +360,16 @@ def test_builder_hero_style_select_saves_split_and_new_styles():
         req._messages = FallbackStorage(req)
         return core_views.home_builder_view(req)
 
+    from apps.core import page_settings
+
+    # STU-19e-3: the banner style is set in the cabinet (Seitenvorlagen); the Studio
+    # shows a summary and its Save cannot change the style (осознанно переписано).
     html = call("get").content.decode()
-    assert 'name="hero_style"' in html and 'value="fullscreen"' in html and 'value="bento"' in html
+    assert 'name="hero_style"' not in html
     for style in ("split", "fullscreen", "bento"):
-        call("post", {"hero_title": "X", "hero_style": style, "font": "system"})
+        page_settings.write(tenant, "home_hero", style)
         tenant.refresh_from_db()
         assert tenant.site_config["hero_style"] == style
-    # легаси-чекбокс (старые формы) — прежняя семантика
-    call("post", {"hero_title": "X", "hero_accent": "on", "font": "system"})
+    call("post", {"hero_title": "X", "hero_style": "accent", "hero_accent": "on", "font": "system"})
     tenant.refresh_from_db()
-    assert tenant.site_config["hero_style"] == "accent"
+    assert tenant.site_config["hero_style"] == "bento"
