@@ -22,8 +22,13 @@ class CoreConfig(AppConfig):
 
         session_schema.connect()
 
+        # STU-19c: the setup helper registers its AI task at import (the Celery worker
+        # and the AI admin list must know it without importing a view first).
         # T-8.30: любой вход снимает ограничение сессии Telegram Mini App.
-        from apps.core import tg_login
+        from apps.core import (
+            setup_assistant,  # noqa: F401
+            tg_login,
+        )
 
         tg_login.connect()
 

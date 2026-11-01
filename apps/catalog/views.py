@@ -169,9 +169,32 @@ def product_list(request):
     return HttpResponseRedirect(url)
 
 
+def _assistant_initial(request, fields: tuple[str, ...], ref_param: str, ref_field: str) -> dict:
+    """STU-19c: prefill from the setup helper's link (GET only, whitelisted fields).
+
+    Values only pre-populate the form; the owner still checks and saves them. A category
+    is referenced by its German name and resolved here — an unknown name is ignored.
+    """
+    if request.method != "GET":
+        return {}
+    initial = {f: request.GET[f][:200] for f in fields if request.GET.get(f)}
+    ref = (request.GET.get(ref_param) or "").strip()[:80]
+    if ref:
+        cat = Category.objects.filter(name__de__iexact=ref).order_by("pk").first()
+        if cat is not None:
+            initial[ref_field] = cat.pk
+    return initial
+
+
 @login_required
 def product_create(request):
-    form = ProductForm(request.POST or None, tenant=getattr(request, "tenant", None))
+    form = ProductForm(
+        request.POST or None,
+        tenant=getattr(request, "tenant", None),
+        initial=_assistant_initial(
+            request, ("name_de", "base_price", "description_de"), "category_name", "category"
+        ),
+    )
     if request.method == "POST" and form.is_valid():
         product = form.save()
         _save_product_overlays(product, request)  # Ф2: переводы origin/ingredients
@@ -781,7 +804,13 @@ def _is_uuid(value) -> bool:
 
 @login_required
 def category_create(request):
-    form = CategoryForm(request.POST or None, tenant=getattr(request, "tenant", None))
+    form = CategoryForm(
+        request.POST or None,
+        tenant=getattr(request, "tenant", None),
+        initial=_assistant_initial(
+            request, ("name_de", "description_de", "page_style"), "parent_name", "parent"
+        ),
+    )
     if request.method == "POST" and form.is_valid():
         category = form.save()
         _handle_uploads(request, category, folder="categories")  # FB-6: фото категории

@@ -31342,3 +31342,65 @@ msgstr "Web sitenizin kataloğu, kategorileri ve ürünleri nasıl gösterdiği.
 
 msgid "Vorschau · noch nicht gespeichert"
 msgstr "Önizleme · henüz kaydedilmedi"
+
+msgid "Dazu habe ich nichts gefunden. Schreiben Sie z. B. „neue Kategorie Brot“ oder „Produkt Roggenbrot 4,50 €“."
+msgstr "Bunun için bir şey bulamadım. Örneğin „yeni kategori Ekmek“ veya „ürün Çavdar ekmeği 4,50 €“ yazın."
+
+msgid "Felder und Vorlagen stammen aus Ihrem Shop. Preise werden nur aus Ihrem Text übernommen, nie geschätzt."
+msgstr "Alanlar ve şablonlar mağazanızdan gelir. Fiyatlar yalnızca metninizden alınır, asla tahmin edilmez."
+
+msgid "Formular öffnen (vorausgefüllt)"
+msgstr "Formu aç (önceden doldurulmuş)"
+
+msgid "Foto der Kategorie — nach dem Anlegen hinzufügen"
+msgstr "Kategori fotoğrafı — oluşturduktan sonra ekleyin"
+
+msgid "Foto — nach dem Anlegen hinzufügen"
+msgstr "Fotoğraf — oluşturduktan sonra ekleyin"
+
+msgid "Ihr Plan"
+msgstr "Planınız"
+
+msgid "Kategorie „%(name)s“ anlegen"
+msgstr "„%(name)s“ kategorisini oluştur"
+
+msgid "Neue Kategorie ohne Unterkategorien: ein großes Foto oben wirkt am besten."
+msgstr "Alt kategorisi olmayan yeni kategori: üstte büyük bir fotoğraf en iyisidir."
+
+msgid "Plan zeigen"
+msgstr "Planı göster"
+
+msgid "Produkt „%(name)s“ anlegen"
+msgstr "„%(name)s“ ürününü oluştur"
+
+msgid "Sie dürfen hier nichts anlegen."
+msgstr "Burada bir şey oluşturma yetkiniz yok."
+
+msgid "Vorlagen der Seiten ansehen"
+msgstr "Sayfa şablonlarını gör"
+
+msgid "Vorschlag der KI"
+msgstr "Yapay zekâ önerisi"
+
+msgid "Vorschlag ohne KI"
+msgstr "Yapay zekâsız öneri"
+
+msgid "Was möchten Sie anlegen?"
+msgstr "Ne oluşturmak istersiniz?"
+
+msgid "Was möchten Sie anlegen? z. B. „neue Kategorie Kuchen, Käsekuchen 3,20 €“"
+msgstr "Ne oluşturmak istersiniz? örn. „yeni kategori Pastalar, Cheesecake 3,20 €“"
+
+msgid "Zu viele Fragen — bitte kurz warten."
+msgstr "Çok fazla soru — lütfen biraz bekleyin."
+
+msgid "fehlt noch"
+msgstr "henüz eksik"
+
+msgid "nichts ist gespeichert"
+msgstr "hiçbir şey kaydedilmedi"
+
+msgid "Ihr Plan: %(n)s Schritt"
+msgid_plural "Ihr Plan: %(n)s Schritte"
+msgstr[0] "Planınız: %(n)s adım"
+msgstr[1] "Planınız: %(n)s adım"

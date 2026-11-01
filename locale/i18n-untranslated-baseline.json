@@ -11,6 +11,7 @@
   "Dublin, Rechenzentren in der EU",
   "Empfänger:",
   "Erkennbare E-Mail-Adressen, Telefon- und Kontonummern entfernen wir vor der Übermittlung aus Texten. Die Inhalte speichern wir nicht; wir protokollieren nur Aufgabe, Umfang und Dauer der Anfrage (",
+  "Hilfe beim Anlegen von Kategorien und Produkten im Kundenbereich: der eingegebene Satz und die Namen der möglichen Felder (keine Kunden- oder Bestelldaten)",
   "Import Ihres Sortiments von Ihrer Website: Text der Seiten Ihrer Website",
   "Jede Antwort wird von unseren Mitarbeitenden geprüft und selbst versendet.",
   "Prüfung des Aktionstexts: Text der Aktion und ihre Angaben (Preis, Vergleichspreis, Rabatt, Laufzeit, Menge)",
@@ -61,9 +62,6 @@
  "apps/crm/views.py": [
   "LÖSCHEN"
  ],
- "apps/events/forms.py": [
-  "Frühbucher | 79 | 10\nStandard | 99\nKind | 0"
- ],
  "apps/events/landing.py": [
   "Johanna | Köln | Hat mich geerdet. | https://…/foto.jpg | 5"
  ],
@@ -87,9 +85,6 @@
  ],
  "apps/inventory/models.py": [
   "Signed: +Zugang / −Abgang"
- ],
- "apps/inventory/views.py": [
-  "Datum"
  ],
  "apps/notifications/adapters.py": [
   "Plattform-Bot nicht aktiv",
@@ -254,7 +249,6 @@
   "8. Telegram-Bot für Geschäftsinhaber",
   "8a. Telegram-Bot der Stadtportale",
   "; hast du den Bot gesperrt, 30 Tage; ohne Abo und Aktivität 180 Tage.",
-  "Datenschutzerklärung",
   "Löschen: jederzeit mit",
   "Speicherdauer: die Verbindung bis zur Trennung, bis zum Befehl",
   "Stand: [Monat Jahr]. Diese Erklärung wird bei Änderungen der Verarbeitung aktualisiert.",

@@ -18,7 +18,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from apps.core import page_settings
+from apps.core import page_settings, ratelimit, setup_assistant
 
 SECTIONS = {
     "sortiment": {
@@ -80,6 +80,20 @@ def _overrides(type_code: str) -> list[dict]:
     return rows
 
 
+PLAN_LIMIT = 20  # questions per user per window (the AI layer has its own daily budget)
+PLAN_WINDOW = 600
+
+
+def _setup_plan(request):
+    """STU-19c: answer of the "Was möchten Sie anlegen?" bar (GET ?frage=)."""
+    text = (request.GET.get("frage") or "").strip()
+    if not text:
+        return None
+    if ratelimit.hit("setup-plan", str(request.user.pk), limit=PLAN_LIMIT, window=PLAN_WINDOW):
+        return setup_assistant.Plan(note=_("Zu viele Fragen — bitte kurz warten."))
+    return setup_assistant.build_plan(text, request.tenant, request.user)
+
+
 def _render(request, section: str):
     spec = SECTIONS[section]
     tenant = request.tenant
@@ -99,6 +113,7 @@ def _render(request, section: str):
         query = urlencode({"typ": typ}) if typ in types else ""
         return redirect(reverse(spec["url_name"]) + (f"?{query}" if query else ""))
 
+    plan = _setup_plan(request)
     active = request.GET.get("typ", "")
     if active not in types:
         active = types[0]
@@ -117,6 +132,8 @@ def _render(request, section: str):
             + (f"?{urlencode({'page': preview_path})}" if preview_path else ""),
             "overrides": _overrides(active),
             "form_url": reverse(spec["url_name"]),
+            "plan": plan,
+            "frage": (request.GET.get("frage") or "")[: setup_assistant.TEXT_MAX],
         },
     )
 

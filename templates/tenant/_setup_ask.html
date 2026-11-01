@@ -1,0 +1,8 @@
+{% load i18n %}
+{% comment %}STU-19c: "Was möchten Sie anlegen?" — the answer is a plan with links; nothing is created here.{% endcomment %}
+<form method="get" action="{% url 'page-templates-sortiment' %}" class="ui-card flex items-center gap-2 p-2 pl-4 mb-4" role="search">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-indigo-600 shrink-0" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"></path></svg>
+  <label for="setup-frage" class="sr-only">{% trans "Was möchten Sie anlegen?" %}</label>
+  <input id="setup-frage" name="frage" type="text" maxlength="400" value="{{ frage|default:'' }}" class="ui-input flex-1 border-0" placeholder="{% trans "Was möchten Sie anlegen? z. B. „neue Kategorie Kuchen, Käsekuchen 3,20 €“" %}">
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Plan zeigen" %}</button>
+</form>

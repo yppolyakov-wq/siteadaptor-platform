@@ -65,6 +65,12 @@ TASK_DATA = {
         "Art. 6 Abs. 1 lit. f DSGVO (passende Suchergebnisse)",
         "public",
     ),
+    "setup_plan": (
+        "Hilfe beim Anlegen von Kategorien und Produkten im Kundenbereich: der eingegebene "
+        "Satz und die Namen der möglichen Felder (keine Kunden- oder Bestelldaten)",
+        "Art. 6 Abs. 1 lit. b DSGVO",
+        "owner",
+    ),
     "inbox_reply_draft": (
         "Antwortvorschläge auf Kundennachrichten: Nachrichten und Angaben zur Bestellung",
         "Art. 6 Abs. 1 lit. b DSGVO",

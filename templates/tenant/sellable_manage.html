@@ -27,6 +27,7 @@ Kategorie/Status (паритет умершей /catalog/products/), «Bearbeite
   </div>
 </div>
 <p class="text-sm text-gray-500 mb-4">{% trans "Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum Bearbeiten öffnen." %}</p>
+{% if setup_ask %}{% include "tenant/_setup_ask.html" %}{% endif %}
 
 {% if messages %}
   <div class="mb-3 space-y-1">
