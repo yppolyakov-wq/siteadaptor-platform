@@ -12,7 +12,7 @@ Locks:
 import pytest
 
 from apps.catalog.models import Category
-from apps.core import page_settings, studio_pages, studio_scope
+from apps.core import page_settings, studio_pages
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -49,18 +49,6 @@ def test_every_supported_setting_has_a_spec():
     for type_code in page_settings.SUPPORTED_TYPES:
         for s in page_settings.cabinet_settings(type_code):
             assert page_settings.choices(s), s.code
-
-
-def test_object_scoped_values_agree_with_studio_scope():
-    """Two validators for one setting must not drift (STU-15 precedent). The Studio
-    also ACCEPTS legacy codes that are no longer offered (reading is wider than
-    offering, LAY Р-2), so the cabinet's offer must be a subset of it."""
-    for type_code in page_settings.SUPPORTED_TYPES:
-        for s in page_settings.cabinet_settings(type_code):
-            if not s.has_object_scope:
-                continue
-            cabinet = {c.value for c in page_settings.choices(s)} - {""}
-            assert cabinet <= set(studio_scope._valid_values(s)), s.code
 
 
 def test_regale_unavailable_without_subcategories_then_available(tenant):

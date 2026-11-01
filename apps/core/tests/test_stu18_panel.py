@@ -64,7 +64,7 @@ def test_speed_is_offered_only_for_the_slider():
 
 @pytest.mark.parametrize(
     "partial",
-    ["_pt_output.html", "_cardform_picker.html", "_scope_pill.html"],
+    ["_pt_output.html", "_cardform_picker.html"],
 )
 def test_panel_partials_have_no_multiline_django_comment(partial):
     """Грабля проекта: многострочный {# #} утекает ТЕКСТОМ на страницу."""

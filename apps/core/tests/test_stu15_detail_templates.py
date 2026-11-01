@@ -105,22 +105,6 @@ def test_studio_registry_declares_the_new_settings():
         assert code in by_page[page], f"{code} не предлагается на типе {page}"
 
 
-def test_every_object_scoped_setting_has_its_own_value_set():
-    """У КАЖДОЙ настройки с охватом «только здесь» — свой набор допустимых значений.
-
-    Адверсариальный замок: пока валидатор Studio выбирал словарь по ВИДУ объекта,
-    вторая настройка на той же модели (у акции — форма карточки и шаблон страницы)
-    получала чужой реестр, и её законное значение отвергалось как мусор.
-    """
-    from apps.core import studio_scope
-
-    for setting in studio_pages.SETTINGS.values():
-        if not setting.has_object_scope:
-            continue
-        values = studio_scope._valid_values(setting)
-        assert values, f"пустой набор значений у настройки {setting.code}"
-
-
 # ── 15c. Дефолт сортировки действует на витрине ──────────────────────────────
 
 

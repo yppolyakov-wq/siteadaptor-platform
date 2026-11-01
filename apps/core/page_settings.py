@@ -18,8 +18,8 @@ and an AI helper will propose them. All three consumers need the same answers:
 * `apply_override(cfg, code, value)` — the same mutation in memory, for the
   stateless cabinet preview (`?preview=1&tpl=<code>:<value>`); nothing is stored.
 
-Object-level overrides (one category's own template) stay with
-`studio_scope.write_value` and the object forms.
+Object-level overrides (one category's own template) live in the object forms
+(category / product / offer) and on the «Aktionstypen» screen (19f-3b).
 
 Settings that are about the ORDER of blocks (`*_sections`) stay in the Studio and
 are not offered here (plan §2.1).

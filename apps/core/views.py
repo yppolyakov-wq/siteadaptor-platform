@@ -23,7 +23,6 @@ from apps.core import (
     permissions,
     presence,
     studio_pages,
-    studio_scope,
     vat,
     view_perms,
 )
@@ -4402,55 +4401,6 @@ def domain_remove(request, pk):
     domains.remove(custom)
     messages.success(request, _("Domain removed."))
     return redirect("domains")
-
-
-@login_required
-def studio_scope_state(request):
-    """STU-3: чем сейчас живёт объект открытой страницы — своим значением или общим.
-
-    Билдер спрашивает это при каждой смене страницы канвы: пилюля «для всех / только
-    здесь» обязана показывать ПРАВДУ, а объект (категория, товар, акция, группа) от
-    страницы к странице разный. Ошибка запроса — пустой ответ, а не 500: редактор
-    должен открываться и там, где объектного уровня нет.
-    """
-    from django.http import JsonResponse
-
-    ref = (request.GET.get("ref") or "").strip()
-    page = (request.GET.get("page") or "").strip()  # STU-12j: тип страницы решает объект
-    out = {}
-    for code in (request.GET.get("settings") or "").split(","):
-        code = code.strip()
-        if not code:
-            continue
-        try:
-            state = studio_scope.read_state(request.tenant, code, ref, page)
-        except studio_scope.ScopeError:
-            continue
-        out[code] = {"own": state.own_value, "site": state.site_value}
-    return JsonResponse({"ref": ref, "settings": out})
-
-
-@login_required
-@require_POST
-def studio_scope_save(request):
-    """STU-3: записать значение ТОЛЬКО для объекта открытой страницы (или снять его).
-
-    Точечная запись мимо большой формы билдера: та пересобирает site_config целиком,
-    и промах в любом её контроле трогал бы чужие модели.
-    """
-    from django.http import JsonResponse
-
-    try:
-        state = studio_scope.write_value(
-            request.tenant,
-            request.POST.get("setting", ""),
-            request.POST.get("ref", ""),
-            request.POST.get("value", ""),
-            request.POST.get("page", ""),
-        )
-    except studio_scope.ScopeError as exc:
-        return JsonResponse({"ok": False, "error": str(exc)}, status=400)
-    return JsonResponse({"ok": True, "own": state.own_value, "site": state.site_value})
 
 
 @login_required

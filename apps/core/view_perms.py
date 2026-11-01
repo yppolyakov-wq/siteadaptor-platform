@@ -347,8 +347,6 @@ RULES: dict[str, Rule] = {
     "site-share-preview": _r(W, WE),
     "site-inline-edit": _r(W, WE),
     "site-cblock-photo-edit": _r(W, WE),
-    "site-scope-save": _r(W, WE),
-    "site-scope-state": _r(W, WE),
     "domains": _r("domains.view", "domains.edit"),
     "domain-add": _r("domains.view", "domains.edit"),
     "domain-verify": _r("domains.view", "domains.edit"),
