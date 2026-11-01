@@ -119,6 +119,12 @@ def category_tree():
     ProductFactory(name={"de": "Roggenbrot"}, category=child)
 
 
+@pytest.fixture
+def may_preview(monkeypatch):
+    """The cabinet user (signed in, website rights) — `?tpl=` is honoured."""
+    monkeypatch.setattr(page_settings, "_may_preview", lambda request: True)
+
+
 def _category_page(query: str, draft: dict | None = None) -> str:
     request = RequestFactory().get(f"/sortiment/brot/{query}")
     SessionMiddleware(lambda r: None).process_request(request)
@@ -129,19 +135,19 @@ def _category_page(query: str, draft: dict | None = None) -> str:
     return public_views.product_list(request, slug="brot").content.decode()
 
 
-def test_preview_tpl_changes_only_the_rendered_page(category_tree):
+def test_preview_tpl_changes_only_the_rendered_page(category_tree, may_preview):
     body = _category_page("?preview=1&tpl=category_page_style:magazin")
     assert 'data-cat-layout="magazin"' in body
     assert 'data-cat-layout="magazin"' not in _category_page("")
 
 
-def test_stale_studio_draft_does_not_leak_into_tpl_preview(category_tree):
+def test_stale_studio_draft_does_not_leak_into_tpl_preview(category_tree, may_preview):
     draft = {"site_defaults": {"category_page_style": "kompakt"}}
     body = _category_page("?preview=1&tpl=category_page_style:magazin", draft)
     assert 'data-cat-layout="magazin"' in body and 'data-cat-layout="kompakt"' not in body
 
 
-def test_garbage_tpl_is_ignored(category_tree):
+def test_garbage_tpl_is_ignored(category_tree, may_preview):
     body = _category_page("?preview=1&tpl=category_page_style:%3Cscript%3E")
     assert "<script>" not in body.split("data-cat-layout", 1)[-1][:40]
 
@@ -150,3 +156,15 @@ def test_studio_links_to_the_tab():
     html = (Path(dj_settings.BASE_DIR) / "templates/tenant/site_home.html").read_text()
     for typ in ("catalog", "category", "product"):
         assert f"{{% url 'page-templates-sortiment' %}}?typ={typ}" in html
+
+
+def test_anonymous_visitor_cannot_use_tpl(category_tree):
+    """Security review: `?tpl=` is a cabinet tool. For anyone else it is ignored —
+    no extra gate queries and no uncached page variants for bots."""
+    body = _category_page("?preview=1&tpl=category_page_style:magazin")
+    assert 'data-cat-layout="magazin"' not in body
+
+
+def test_may_preview_is_fail_closed_for_anonymous():
+    request = RequestFactory().get("/?preview=1&tpl=x:y")
+    assert page_settings._may_preview(request) is False

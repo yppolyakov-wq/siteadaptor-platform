@@ -32,9 +32,9 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
         <fieldset>
           <legend class="ui-h3 mb-2">{{ s.label }}{% if s.is_set %}{% else %} <span class="ui-muted text-xs font-normal">· {% trans "Standard" %}</span>{% endif %}</legend>
           {% if s.kind == "bool" %}
-            <div class="ui-seg" role="radiogroup">
+            <div class="flex gap-2">
               {% for c in s.choices %}
-                <label class="inline-flex items-center gap-2 px-3 py-2 min-h-[44px] cursor-pointer">
+                <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 min-h-[44px] cursor-pointer has-[:checked]:border-indigo-700 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
                   <input type="radio" name="value" value="{{ c.value }}" {% if c.value == "1" and s.value %}checked{% elif c.value == "0" and not s.value %}checked{% endif %}>
                   <span>{{ c.label }}</span>
                 </label>
@@ -43,10 +43,11 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
           {% else %}
             <div class="grid grid-cols-3 gap-2">
               {% for c in s.choices %}
-                <label class="flex flex-col gap-1 rounded-xl border p-2 text-xs min-h-[44px] {% if c.available %}cursor-pointer border-gray-200 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50{% else %}border-dashed border-gray-300 bg-gray-50 text-gray-500{% endif %}"{% if c.hint %} title="{{ c.hint }}"{% endif %}>
+                <label class="flex flex-col gap-1 rounded-xl border p-2 text-xs min-h-[44px] group {% if c.available %}cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600{% else %}border-dashed border-gray-300 bg-gray-50 text-gray-600{% endif %}">
                   <input type="radio" name="value" value="{{ c.value }}" class="sr-only" {% if c.value == s.value %}checked{% endif %}{% if not c.available %} disabled aria-describedby="r-{{ s.code }}-{{ forloop.counter }}"{% endif %}>
                   {% if s.code == "product_card_form" %}{% include "tenant/_cardform_thumb.html" with key=c.value %}{% elif s.axis == "composition" and s.code != "product_detail_layout" %}{% include "tenant/_pagelayout_thumb.html" with key=c.value %}{% endif %}
-                  <span>{{ c.label }}</span>
+                  <span>{{ c.label }}<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
+                  {% if c.hint %}<span class="sr-only">{{ c.hint }}</span>{% endif %}
                   {% if not c.available %}<span id="r-{{ s.code }}-{{ forloop.counter }}" class="text-[11px]">{{ c.reason }}</span>{% endif %}
                 </label>
               {% endfor %}
@@ -54,7 +55,7 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
           {% endif %}
         </fieldset>
         <div class="mt-3 flex items-center justify-end gap-2">
-          <span class="ui-muted text-xs hidden" data-pt-dirty role="status">{% trans "Vorschau · noch nicht gespeichert" %}</span>
+          <span class="ui-muted text-xs" data-pt-dirty role="status" data-pt-text="{% trans "Vorschau · noch nicht gespeichert" %}"></span>
           <button type="submit" class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
         </div>
       </form>
@@ -74,12 +75,12 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
     {% endif %}
   </div>
 
-  <section class="ui-card p-3 flex flex-col gap-2" aria-label="{% trans "Vorschau" %}">
+  <section class="ui-card p-3 flex flex-col gap-2 self-start lg:sticky lg:top-4" aria-label="{% trans "Vorschau" %}">
     <div class="flex items-center justify-between gap-2">
       <span class="ui-muted text-sm">{% trans "Vorschau" %} · {{ active.label }}</span>
       <div class="ui-seg" role="group" aria-label="{% trans "Bildschirm" %}">
-        <button type="button" class="px-3 py-1.5 text-sm" data-pt-width="100%" aria-pressed="true">{% trans "Desktop" %}</button>
-        <button type="button" class="px-3 py-1.5 text-sm" data-pt-width="390px" aria-pressed="false">{% trans "Telefon" %}</button>
+        <button type="button" class="px-3 py-1.5 min-h-[44px] text-sm" data-pt-width="100%" aria-pressed="true">{% trans "Desktop" %}</button>
+        <button type="button" class="px-3 py-1.5 min-h-[44px] text-sm" data-pt-width="390px" aria-pressed="false">{% trans "Telefon" %}</button>
       </div>
     </div>
     {% if preview_path %}
@@ -105,7 +106,7 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
     var form = input.closest('[data-pt-setting]');
     if (!form) return;
     var dirty = form.querySelector('[data-pt-dirty]');
-    if (dirty) dirty.classList.remove('hidden');
+    if (dirty && !dirty.textContent) dirty.textContent = dirty.getAttribute('data-pt-text');
     if (frame && path) {
       var tpl = form.getAttribute('data-pt-setting') + ':' + input.value;
       frame.src = path + '?preview=1&tpl=' + encodeURIComponent(tpl);

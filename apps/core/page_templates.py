@@ -54,7 +54,11 @@ def _overrides(type_code: str) -> list[dict]:
 
     rows = []
     if type_code == "category":
-        for cat in Category.objects.exclude(page_style="").order_by("sort_order", "pk")[:20]:
+        for cat in (
+            Category.objects.exclude(page_style="")
+            .select_related("parent")
+            .order_by("sort_order", "pk")[:20]
+        ):
             rows.append(
                 {
                     "label": str(cat),
@@ -63,7 +67,9 @@ def _overrides(type_code: str) -> list[dict]:
                 }
             )
     if type_code in ("category", "product"):
-        for prod in Product.objects.exclude(card_style="").order_by("pk")[:20]:
+        for prod in (
+            Product.objects.exclude(card_style="").select_related("category").order_by("pk")[:20]
+        ):
             rows.append(
                 {
                     "label": str(prod),

@@ -237,3 +237,24 @@ def test_nothing_is_cabinet_owned_yet():
     """19a ships the mechanism only; the set grows with 19e/19f (Studio control removed
     in the same commit)."""
     assert page_settings.CABINET_OWNED == frozenset()
+
+
+def test_empty_bool_value_is_not_off(tenant):
+    """Review: a lost form field must not switch a setting off."""
+    with pytest.raises(page_settings.PageSettingError):
+        page_settings.write(tenant, "catalog_filters", "")
+
+
+def test_every_setting_can_resave_its_current_value(tenant):
+    """Saving what is already shown must never fail (a stuck setting otherwise)."""
+    for type_code in page_settings.SUPPORTED_TYPES:
+        for s in page_settings.schema(tenant, (type_code,))[0].settings:
+            value = ("1" if s.value else "0") if s.kind == "bool" else s.value
+            page_settings.write(tenant, s.code, value)
+
+
+def test_apply_override_refuses_unknown_codes():
+    with pytest.raises(page_settings.PageSettingError):
+        page_settings.apply_override({}, "nope", "x")
+    with pytest.raises(page_settings.PageSettingError):
+        page_settings.apply_override({}, "product_detail_sections", "x")

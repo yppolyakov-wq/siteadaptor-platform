@@ -316,8 +316,8 @@ def _clean(setting: studio_pages.Setting, value, gate: dict, current) -> object:
         text = str(value or "").strip().lower()
         if text in ("1", "on", "true", "yes"):
             return True
-        if text in ("0", "off", "false", "no", ""):
-            return False
+        if text in ("0", "off", "false", "no"):
+            return False  # an EMPTY value is not "off": a lost field must not switch it off
         raise PageSettingError(f"not a bool for {setting.code}: {value!r}")
     text = str(value or "").strip()
     allowed = {c.value: c for c in choices(setting, gate)}
@@ -336,7 +336,9 @@ def apply_override(cfg: dict, code: str, value) -> dict:
     availability — callers validate). Writes one key; everything else is kept."""
     from apps.tenants import siteconfig
 
-    setting = studio_pages.SETTINGS[code]
+    setting = studio_pages.SETTINGS.get(code)
+    if setting is None or is_studio_only(setting):
+        raise PageSettingError(f"unknown page setting {code!r}")
     out = dict(cfg or {})
     kind = kind_of(setting)
     if kind == KIND_LAYOUT:
@@ -363,7 +365,7 @@ def apply_override(cfg: dict, code: str, value) -> dict:
     return out
 
 
-def validate(tenant, code: str, value):
+def validate(tenant, code: str, value, gate: dict | None = None):
     """Return the cleaned value or raise PageSettingError (shared by write/preview)."""
     setting = studio_pages.SETTINGS.get(code or "")
     if setting is None or is_studio_only(setting):
@@ -374,7 +376,7 @@ def validate(tenant, code: str, value):
         raise PageSettingError(f"setting {code!r} does not apply to this business")
     raw = tenant.site_config or {}
     current, _set = current_value(raw, setting)
-    return _clean(setting, value, composition_gate(raw), current)
+    return _clean(setting, value, composition_gate(raw) if gate is None else gate, current)
 
 
 def write(tenant, code: str, value) -> object:
@@ -382,9 +384,11 @@ def write(tenant, code: str, value) -> object:
     from apps.core.pagecache import bump_storefront_cache
     from apps.tenants.models import Tenant
 
+    # the gate runs ~10 EXISTS queries on tenant tables — outside the row lock
+    gate = composition_gate(tenant.site_config or {})
     with transaction.atomic():
         locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
-        cleaned = validate(locked, code, value)
+        cleaned = validate(locked, code, value, gate)
         new_cfg = apply_override(locked.site_config or {}, code, cleaned)
         # A queryset UPDATE, not instance.save(): django-tenants' save() re-creates a
         # missing schema on every update (TenantMixin.save) and a fresh instance has
@@ -412,6 +416,20 @@ def preview_config(tenant, raw_cfg: dict, tpl: str) -> dict | None:
     return apply_override(raw_cfg or {}, code.strip(), cleaned)
 
 
+def _may_preview(request) -> bool:
+    """`?tpl=` is a cabinet tool: only a signed-in member with website rights. For
+    anyone else it is ignored — no extra queries, no uncached variants for bots."""
+    user = getattr(request, "user", None)
+    if not getattr(user, "is_authenticated", False):
+        return False
+    from apps.core.permissions import has_perm
+
+    try:
+        return has_perm(user, "website.view")
+    except Exception:  # noqa: BLE001 — fail closed (public schema, no membership)
+        return False
+
+
 def preview_raw(request) -> tuple[dict, bool]:
     """Raw config a storefront view should render: (config, is_preview).
 
@@ -425,10 +443,14 @@ def preview_raw(request) -> tuple[dict, bool]:
     if request.GET.get("preview") != "1":
         return saved, False
     tpl = request.GET.get("tpl") or ""
-    if tpl:
-        cfg = preview_config(tenant, saved, tpl[:120])
-        if cfg is not None:
-            return cfg, True
+    if tpl and _may_preview(request):
+        # memoised: the context processor and the view ask for the same thing
+        cached = getattr(request, "_stu19_tpl_cfg", None)
+        if cached is None:
+            cached = preview_config(tenant, saved, tpl[:120]) or {}
+            request._stu19_tpl_cfg = cached
+        if cached:
+            return cached, True
     session = getattr(request, "session", None)
     draft = session.get("site_preview_draft") if session is not None else None
     if isinstance(draft, dict):
