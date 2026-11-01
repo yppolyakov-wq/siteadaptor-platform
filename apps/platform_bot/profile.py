@@ -40,7 +40,7 @@ def _key(uid) -> str:
 
 def _current(uid):
     link = links.active_links(uid).first()
-    if link is None or not links.still_owner(link.tenant):
+    if link is None or not links.still_owner(link.tenant, via=links.OWNER_BOT_PLATFORM):
         return None
     return link.tenant
 

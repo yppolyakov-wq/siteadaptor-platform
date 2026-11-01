@@ -105,7 +105,7 @@ def handoff(link, uid: int, lang: str, issued: list | None = None, grace: str = 
     base = owner_login.tenant_url(tenant)
     with schema_context(tenant.schema_name):
         user_pk = _owner_pk(tenant, link)
-        if user_pk is None or not links.still_owner(tenant):
+        if user_pk is None or not links.still_owner(tenant, via=links.OWNER_BOT_PLATFORM):
             login = base + reverse("owner-login-link", urlconf=TENANT_URLCONF)
             return _error(
                 "no_owner",

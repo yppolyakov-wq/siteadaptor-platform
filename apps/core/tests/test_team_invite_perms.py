@@ -61,7 +61,7 @@ def _join(token, email):
         _req(
             get_user_model()(),
             "post",
-            {"password1": "geheim123", "password2": "geheim123"},
+            {"password1": "Wolke-Zimt-7x9q", "password2": "Wolke-Zimt-7x9q"},
             path=f"/team/beitreten/{token}/",
         ),
         token,

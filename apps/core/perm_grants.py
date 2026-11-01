@@ -321,8 +321,10 @@ def _release_telegram(user_pk) -> None:
         if tenant is not None and getattr(tenant, "pk", None):
             with transaction.atomic():  # savepoint: сбой не отравляет внешнюю транзакцию
                 links.release_user(tenant, user_pk)
-    except Exception:  # noqa: BLE001 — страховка; still_owner закрывает доступ и без неё
-        pass
+    except Exception as exc:  # noqa: BLE001 — страховка; still_owner закрывает доступ и без неё
+        logging.getLogger(__name__).warning(
+            "telegram release for user %s failed: %s", user_pk, type(exc).__name__
+        )
 
 
 def _alert_owner(actor_user, target, keys, new) -> None:

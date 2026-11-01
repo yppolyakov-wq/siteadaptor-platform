@@ -154,14 +154,21 @@ def owner_deep_link(tenant, user=None) -> str:
         or not _owner_link_fresh(node)
         or (user_pk and node.get("owner_link_user_pk") != user_pk)
     ):
+        from django.db import transaction
+
+        from apps.platform_bot import links
+
         token = secrets.token_urlsafe(16)
-        node = {
-            **node,
-            "owner_link_token": token,
-            "owner_link_token_at": int(time.time()),
-            "owner_link_user_pk": user_pk,
-        }
-        _save_notify_node(tenant, node)
+        # Под замком строки бизнеса (ревью: save() всего site_config с объекта запроса
+        # затирал бы параллельную привязку/Save Студии — класс W6).
+        with transaction.atomic():
+            locked = links._lock(tenant.pk)
+            tenant.site_config = links._write_mirror(
+                locked,
+                owner_link_token=token,
+                owner_link_token_at=int(time.time()),
+                owner_link_user_pk=user_pk,
+            )
     return f"https://t.me/{bot.bot_username}?start=owner-{token}"
 
 

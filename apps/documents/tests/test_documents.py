@@ -190,9 +190,12 @@ class TestRetention:
         assert not SecureDocument.objects.filter(pk=document.pk).exists()
         assert not default_storage.exists(path)
 
-    def test_documents_without_expiry_are_kept(self):
+    def test_documents_without_trip_get_retention_from_upload(self):
+        """SEC-G4: без привязанной поездки срок = retention от загрузки (раньше NULL = вечно)."""
         document = _store(_customer())
-        assert document.expires_at is None
+        assert document.expires_at == timezone.localdate() + timezone.timedelta(
+            days=services.retention_days()
+        )
         assert services.purge_expired() == 0
         assert SecureDocument.objects.filter(pk=document.pk).exists()
 

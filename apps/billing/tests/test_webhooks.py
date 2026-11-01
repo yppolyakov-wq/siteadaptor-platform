@@ -165,7 +165,8 @@ def test_subscription_checkout_without_kind_still_activates():
     assert tenant.subscription_status == ACTIVE
 
 
-def test_webhook_view_verifies_dispatches_and_dedupes(monkeypatch):
+def test_webhook_view_verifies_dispatches_and_dedupes(monkeypatch, settings):
+    settings.STRIPE_WEBHOOK_SECRET = "whsec_test"  # SEC-D2: без секрета вебхук отвечает 503
     tenant = TenantFactory(subscription_status=TRIAL, stripe_customer_id="cus_x")
     event = {
         "id": "evt_dedup_unit",

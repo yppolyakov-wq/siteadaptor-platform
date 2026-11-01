@@ -19,7 +19,7 @@ from django.views.decorators.http import require_POST
 
 from apps.tenants.models import Tenant
 
-from . import connect, services
+from . import connect, featured, services
 
 logger = logging.getLogger("billing")
 
@@ -108,7 +108,7 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
     elif account:
         # Платформенные события (подписка, featured, без kind) с connected-аккаунта —
         # подделка metadata: `client_reference_id`/`tenant_id` там выбирает отправитель.
-        logger.error(
+        logger.warning(
             "stripe webhook %s from connected account %s — dropped (platform-only kind %r)",
             event_type,
             account,
@@ -120,8 +120,6 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
     # на сам листинг (public-схема), статус подписки не трогаем. Различаем по
     # metadata.kind, проставленному в create_featured_checkout_session.
     if event_type == "checkout.session.completed" and meta.get("kind") == "featured":
-        from . import featured
-
         # SEC-D1: срок — только из таблицы планов (metadata несёт отправитель).
         try:
             plan = featured.get_plan(int(meta.get("days") or 0))

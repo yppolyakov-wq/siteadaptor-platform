@@ -242,7 +242,7 @@ def test_receipts_are_exempt_from_retention(monkeypatch):
         type("U", (), {"name": "r.png"})(),
         owner=None,
         kind=SecureDocument.KIND_RECEIPT,
-        uploaded_by=None,
+        uploaded_by=SecureDocument.BY_STAFF,
     )
     assert doc.expires_at is None
     services.purge_expired(today=timezone.localdate() + timedelta(days=5000))
@@ -250,11 +250,11 @@ def test_receipts_are_exempt_from_retention(monkeypatch):
 
 
 def test_platform_send_403_marks_blocked_with_sanitized_error(monkeypatch):
+    from django.db import connection
+
     from apps.notifications import adapters
     from apps.notifications.models import Notification
     from apps.telegram import bots, services
-
-    from django.db import connection
 
     tenant = TenantFactory(schema_name=connection.schema_name)  # «текущая» схема теста
     links.bind(UID, tenant, user_pk=_user().pk)

@@ -85,7 +85,7 @@ def test_join_creates_user_membership_and_logs_in():
     req = _req(
         f"/team/beitreten/{token}/",
         "post",
-        {"password1": "geheim123", "password2": "geheim123"},
+        {"password1": "Wolke-Zimt-7x9q", "password2": "Wolke-Zimt-7x9q"},
         user=_user(),  # аноним не нужен — вьюха логинит присоединившегося
         tenant=tenant,
     )

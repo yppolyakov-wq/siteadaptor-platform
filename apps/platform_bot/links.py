@@ -243,11 +243,11 @@ def owner_route(tenant) -> tuple[str, str]:
             or bots.platform_bot() is None
             or not chat.isdigit()
             or not is_owner(int(chat), tenant)
-            or not still_owner(tenant)
+            or not still_owner(tenant, via=OWNER_BOT_PLATFORM)
         ):
             return ("", "")
         return (OWNER_BOT_PLATFORM, chat)
-    if bots.tenant_bot() is None or not still_owner(tenant):
+    if bots.tenant_bot() is None or not still_owner(tenant, via=OWNER_BOT_TENANT):
         return ("", "")  # SEC-A3: пониженный/удалённый владелец не получает уведомления
     return (OWNER_BOT_TENANT, chat)
 
@@ -262,7 +262,7 @@ def link_user_pk(tenant):
     )
 
 
-def still_owner(tenant) -> bool:
+def still_owner(tenant, via: str | None = None) -> bool:
     """Выпустивший ссылку пользователь — всё ещё активный владелец (читается в схеме бизнеса).
     Связь без пользователя кабинета (регистрация через бот, H-5) — по таблице связей.
 
@@ -279,14 +279,17 @@ def still_owner(tenant) -> bool:
         .values("user_pk", "via")
         .first()
     )
-    # Свой бот бизнеса (owner_bot=tenant) помнит выпустившего в зеркале — он и судит путь
-    # своего бота, даже если у другого владельца живёт связь с общим ботом.
-    if node.get("owner_bot") == OWNER_BOT_TENANT and node.get("owner_user_pk"):
-        user_pk = node.get("owner_user_pk")
+    # Какой путь судим: свой бот бизнеса (владельца помнит зеркало `owner_user_pk`) или общий
+    # бот (владельца помнит связь `user_pk`). У бизнеса могут жить ОБА с разными владельцами
+    # (Р-1), поэтому вызывающий называет путь; без него — зеркало своего бота, иначе связь.
+    mirror_pk = node.get("owner_user_pk") if node.get("owner_bot") == OWNER_BOT_TENANT else None
+    link_pk = link["user_pk"] if link else None
+    if via == OWNER_BOT_TENANT:
+        user_pk = mirror_pk or node.get("owner_user_pk") or link_pk
+    elif via == OWNER_BOT_PLATFORM:
+        user_pk = link_pk or node.get("owner_user_pk")
     else:
-        user_pk = link["user_pk"] if link else None
-        if not user_pk:
-            user_pk = node.get("owner_user_pk")
+        user_pk = mirror_pk or link_pk or node.get("owner_user_pk")
     if not user_pk:
         # SEC-A6: связь из КАБИНЕТА обязана знать своего пользователя (ссылку выпускает
         # вошедший владелец, бэкфилл platform_bot/0004) — без него fail-closed. Связь из

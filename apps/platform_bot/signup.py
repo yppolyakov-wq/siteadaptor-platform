@@ -920,7 +920,11 @@ def send_login_link(bot, uid, chat, tenant_ref: str, *, next_path: str = "") -> 
         if tenant_ref.isascii() and tenant_ref.isdigit()
         else None
     )
-    if tenant is None or not links.is_owner(uid, tenant) or not links.still_owner(tenant):
+    if (
+        tenant is None
+        or not links.is_owner(uid, tenant)
+        or not links.still_owner(tenant, via=links.OWNER_BOT_PLATFORM)
+    ):
         _send(bot, chat, _("Nicht verfügbar."))
         return "denied"
     if _rate("tgplat-login-link", uid, 3, 3600):

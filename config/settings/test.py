@@ -59,3 +59,7 @@ AI_FAKE_MODE = "ok"
 AI_PRICES = {}
 ANTHROPIC_API_KEY = OPENAI_API_KEY = AZURE_OPENAI_API_KEY = MISTRAL_API_KEY = ""
 AWS_BEDROCK_ACCESS_KEY_ID = AWS_BEDROCK_SECRET_ACCESS_KEY = ""
+
+# SEC-D2: вебхук без секрета отвечает 503 — тесты вьюхи подменяют construct_event и
+# ждут обработку, поэтому секрет задан (тест на 503 ставит "" сам).
+STRIPE_WEBHOOK_SECRET = "whsec_test"

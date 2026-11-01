@@ -76,7 +76,7 @@ def _send_platform(notification) -> None:
         tenant is None
         or not recipient.isdigit()
         or not links.is_owner(int(recipient), tenant)
-        or not links.still_owner(tenant)
+        or not links.still_owner(tenant, via=links.OWNER_BOT_PLATFORM)
     ):
         raise RuntimeError("Plattform-Bot: Inhaber nicht verbunden")
     from apps.platform_bot import rights

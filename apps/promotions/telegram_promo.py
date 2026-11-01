@@ -89,20 +89,26 @@ def owner_ok(tenant, chat, bot_kind: str = "tenant") -> bool:
         from apps.platform_bot import links
 
         return (
-            str(chat).isdigit() and links.is_owner(int(chat), tenant) and links.still_owner(tenant)
+            str(chat).isdigit()
+            and links.is_owner(int(chat), tenant)
+            and links.still_owner(tenant, via=links.OWNER_BOT_PLATFORM)
         )
     from apps.platform_bot import links
-    from apps.telegram.notify import _notify_node
 
     if str(chat) != owner_chat(tenant):
         return False
+    cfg = getattr(tenant, "site_config", None)
+    node = cfg.get("notify") if isinstance(cfg, dict) else None
+    node = node if isinstance(node, dict) else {}
     # SEC-A3: чат из зеркала — владелец, только пока выпустивший ссылку ещё владелец;
     # зеркало общего бота принимаем через свой бот лишь при живой связи в таблице.
-    if _notify_node(tenant).get("owner_bot") == links.OWNER_BOT_PLATFORM and not (
-        str(chat).isdigit() and links.is_owner(int(chat), tenant)
-    ):
-        return False
-    return links.still_owner(tenant)
+    if node.get("owner_bot") == links.OWNER_BOT_PLATFORM:
+        return (
+            str(chat).isdigit()
+            and links.is_owner(int(chat), tenant)
+            and links.still_owner(tenant, via=links.OWNER_BOT_PLATFORM)
+        )
+    return links.still_owner(tenant, via=links.OWNER_BOT_TENANT)
 
 
 def owner_chat(tenant) -> str:

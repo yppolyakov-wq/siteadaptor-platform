@@ -326,12 +326,17 @@ def test_stale_matrix_save_does_not_resurrect_unbound_chat(on):
 
 
 def test_own_bot_start_takes_over_from_platform(on):
+    import time
+
     from apps.telegram import notify
 
     tenant = _tenant("h3s")
-    links.bind(USER, tenant)
+    links.bind(USER, tenant, user_pk=_owner(tenant).pk)  # SEC-A6: связь кабинета знает владельца
     tenant.refresh_from_db()
-    node = dict(tenant.site_config["notify"], owner_link_token="tok")
+    # SEC-A3: токен живёт 15 минут — тест ставит свежий.
+    node = dict(
+        tenant.site_config["notify"], owner_link_token="tok", owner_link_token_at=int(time.time())
+    )
     tenant.site_config["notify"] = node
     tenant.save()
     assert notify.link_owner_from_start("owner-tok", 555, tenant)
@@ -352,7 +357,7 @@ def test_send_to_owner_routes_platform_and_rechecks_at_delivery(on, monkeypatch)
     from apps.telegram import notify
 
     tenant = _tenant("h3t")
-    links.bind(USER, tenant)
+    links.bind(USER, tenant, user_pk=_owner(tenant).pk)  # SEC-A6: без пользователя — не владелец
     tenant.refresh_from_db()
     notify.send_to_owner(tenant, type="t", dedupe_key="h3t-1", text="Hallo")
     row = Notification.objects.get(dedupe_key="h3t-1")
@@ -420,7 +425,7 @@ def test_network_error_never_puts_bot_token_into_last_error(on, monkeypatch):
     from apps.telegram import notify
 
     tenant = _tenant("h3x")
-    links.bind(USER, tenant)
+    links.bind(USER, tenant, user_pk=_owner(tenant).pk)  # SEC-A6: без пользователя — не владелец
     tenant.refresh_from_db()
     notify.send_to_owner(tenant, type="t", dedupe_key="h3x-1", text="Hallo")
     row = Notification.objects.get(dedupe_key="h3x-1")
