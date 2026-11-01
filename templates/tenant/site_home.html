@@ -668,13 +668,11 @@
              live-draft и клик по Look'у не тронуты (они ищут по name, не по области).{% endcomment %}
           {% if has_catalog %}
           <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-axis="card" data-stu-page="catalog category product services service stays stay events lookbook tours combos wishlist finder cart">
-            {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
-            {% include "tenant/_scope_pill.html" with setting="product_card_form" %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.product_card_form %}
           </div>
           {% endif %}
           <div class="stu-page-row mt-4" data-stu-setting="promo_card_form" data-stu-axis="card" data-stu-page="promos promo_group promo">
-            {% include "tenant/_cardform_picker.html" with name="sd_promo_card" value=promo_card items=card_forms_promo title=_("Aktionskarte") %}
-            {% include "tenant/_scope_pill.html" with setting="promo_card_form" %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.promo_card_form %}
           </div>
           {% comment %}STU-5: перенос со страницы «Pages» — она была ВТОРЫМ писателем
              раскладок и держала три настройки, которых в Студии не было. Сентинел
@@ -2654,30 +2652,13 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // (radius/shadow/padding/card_bg/page_bg/chrome/media_shape/variant_style/slider)
     // переехал на экран «Design des Shops». Приёмник черновика МЕРДЖИТ site_defaults
     // (DL-17.3), поэтому глобальные оси берутся из сохранённого конфига.
-    // ST-7c/DL-19: форма карточки (плитки + hidden sd_card_style; "" = прежняя).
-    var sdStyle = form.querySelector("[name='sd_card_style']");
-    // DL-17.3: карточка акции.
-    var sdPromoCard = form.querySelector("[name='sd_promo_card']");
-    // Гейт перевязан со снесённых sd_card_radius/sd_card_shadow на страничные
-    // контролы: иначе с уходом темы черновик потерял бы и card_style/promo_card/… .
-    if (sdStyle || sdPromoCard) {
+    // STU-19f-3: card forms (product/offer) are set in the cabinet only; the draft
+    // carries just the text width (STU-8).
+    var sdTextWidthEl = form.querySelector("select[name='sd_text_width']");
+    if (sdTextWidthEl) {
       // STU-8: ширина текстовой колонки — в черновик, иначе выбор был бы виден
       // только после Save (грабля DL-17.3: контрол есть, в payload его нет).
-      var sdTextW = form.querySelector("select[name='sd_text_width']");
-      // STU-9 (ревью): у контролов с пилюлей охвата в режиме «только здесь» лежит
-      // значение ОБЪЕКТА — в общий черновик обязано уехать САЙТОВОЕ, иначе превью
-      // покажет выбор одной категории как дефолт всего сайта.
-      var sdVal = function (el) {
-        if (!el) return "";
-        var name = el.getAttribute("name");
-        var site = window.__stuSiteValueFor ? window.__stuSiteValueFor(name) : null;
-        return site !== null && site !== undefined ? site : el.value;
-      };
-      payload.site_defaults = {
-        card_style: sdVal(sdStyle),
-        promo_card: sdVal(sdPromoCard),
-        text_width: sdTextW ? sdTextW.value : "",
-      };
+      payload.site_defaults = { text_width: sdTextWidthEl.value };
     }
     // UC6-7b: C-блоки СТРАНИЦ (pb-строки) → черновик {хост: [entry,…]}. Шлём ВСЕ
     // хосты, присутствующие в форме, включая опустевшие после удаления — иначе
@@ -2774,12 +2755,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         el.value = s[el.name];
       }
     });
-    // STU-11 (ревью): снимок мог быть сделан, когда канва стояла на странице объекта, —
-    // тогда в нём лежит ЗНАЧЕНИЕ ОБЪЕКТА в поле САЙТА (так работает пилюля охвата).
-    // Ctrl+Z возвращает его молча: change не диспатчится, плитки пикера не
-    // перерисовываются, а следующий push() уже шлёт это значение как сайтовое.
-    // Перекрашиваем пилюли: для скрытой (объект неизвестен) это вернёт сайтовое.
-    try { if (window.__stuRepaintScopePills) window.__stuRepaintScopePills(); } catch (e) {}
   }
   var past = [], future = [], present = null, restoring = false;
   var HISTORY_MAX = 20;
@@ -3867,247 +3842,13 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       }
     } catch (eArea) {}
     syncPanelGroups();
-    refreshScopePills();
   }
 
-  // ── STU-3: охват настройки «для всех / только здесь» ────────────────────────
-  // Данные трёхуровневые с DL-19/20/21 (объект → сайт → прежний вид), но объектный
-  // уровень правился только в формах кабинета: чтобы задать шаблон ОДНОЙ категории,
-  // владелец уходил из редактора в список категорий и обратно. Пилюля показывает
-  // текущий охват и пишет объектный уровень ТОЧЕЧНО (site-scope-save), мимо большой
-  // формы: та пересобирает site_config целиком, и промах в любом её контроле трогал
-  // бы чужие модели.
-  function csrfToken() {
-    var f = document.getElementById("home-form");
-    var el = f && f.querySelector("[name=csrfmiddlewaretoken]");
-    return (el && el.value) || "";
-  }
-  var SCOPE_STATE_URL = "{% url 'site-scope-state' %}";
-  var SCOPE_SAVE_URL = "{% url 'site-scope-save' %}";
+  // STU-19f-3: the "for all / only here" scope pill is gone — every setting that had
+  // an object level (templates, card forms) is set in the cabinet now, the object level
+  // in the object's own form or on «Aktionstypen». `curStuRef` (the canvas object) is
+  // still tracked for the canvas.
   var curStuRef = "";
-  var scopeOwn = {};    // код настройки → своё значение объекта ("" = наследует)
-  var scopeSite = {};   // значение уровня «для всех», каким его показывает форма
-  var scopeMode = {};   // "site" | "own" — что сейчас редактирует контрол
-  // LAY-1c: настройки, которые владелец уже поменял, но ещё НЕ сохранил. Уровень
-  // «для всех» живёт только в черновике формы, а `site-scope-state` отвечает из
-  // СОХРАНЁННОГО конфига — без этой пометки ответ сервера (он приходит через ~секунду
-  // после каждой правки, вместе с перерисовкой канвы) возвращал контрол к прежнему
-  // значению. Владелец видел ровно то, на что жаловался: «выбрал одно, вернулось то,
-  // что стояло». Пометка живёт до перезагрузки билдера (Save её и делает).
-  var scopeDirty = {};
-  var scopeProgrammatic = false;  // идёт ли change, который поставил сам редактор
-  var lastScopeRef = null;  // объект, для которого последний раз читали состояние
-
-  function scopePills() { return document.querySelectorAll("[data-stu-scope]"); }
-
-  function scopeControl(box) {
-    // Контрол уровня «для всех» лежит рядом — у пикеров это hidden-инпут с value.
-    var wrap = box.parentElement;
-    return wrap ? wrap.querySelector('input[type="hidden"][name], select[name]') : null;
-  }
-  function scopeBoxFor(el) {
-    // Ближайший предок, у которого есть своя пилюля (пикеры вложены на разную
-    // глубину, поэтому ищем вверх, а не по фиксированной структуре).
-    for (var n = el; n && n !== document; n = n.parentElement) {
-      var box = n.querySelector && n.querySelector(":scope > [data-stu-scope]");
-      if (box) return box;
-    }
-    return null;
-  }
-  function setScopeControl(box, value) {
-    // Пикер рисует плитки по hidden-инпуту; событие change перерисовывает выбор.
-    var ctl = scopeControl(box);
-    if (!ctl) return;
-    if (ctl.value === value) {
-      // LAY-1c: значение совпало — change не шлём (лишняя правка черновика), но
-      // подсветку плиток обновить обязаны: она могла остаться от прежнего рендера.
-      if (window.__cfPickerSync) window.__cfPickerSync(ctl);
-      return;
-    }
-    ctl.value = value;
-    // LAY-1c: событие ПРОГРАММНОЕ — пометка «владелец правил» ставиться не должна,
-    // иначе первая же перерисовка панели объявила бы контрол грязным навсегда.
-    scopeProgrammatic = true;
-    try { ctl.dispatchEvent(new Event("change", { bubbles: true })); }
-    finally { scopeProgrammatic = false; }
-  }
-
-  function paintScopePill(box) {
-    var code = box.getAttribute("data-stu-scope");
-    var known = Object.prototype.hasOwnProperty.call(scopeOwn, code);
-    // Пилюля видна ТОЛЬКО когда объект страницы известен: на списке товаров нет
-    // «этого товара», и предлагать «только здесь» там было бы обманом.
-    box.hidden = !known;
-    if (!known) {
-      scopeMode[code] = "site";
-      // STU-10: состояние объекта сброшено — канва ушла на страницу, где «этого
-      // товара/категории» нет. Контрол при этом ДЕРЖИТ значение объекта, а его
-      // name — поле САЙТА, и restoreSiteValuesForSubmit такую пилюлю пропускает
-      // (она скрыта). Без восстановления следующий Save большой формы делал бы
-      // выбор одной страницы дефолтом всего сайта (класс W6).
-      // Восстанавливаем ТОЛЬКО когда сайтовое значение известно: иначе контрол
-      // ещё держит серверный рендер, и запись "" стёрла бы его.
-      if (Object.prototype.hasOwnProperty.call(scopeSite, code)) {
-        setScopeControl(box, scopeSite[code] || "");
-      }
-      return;
-    }
-    var own = scopeMode[code] === "own";
-    box.querySelectorAll(".stu-scope-btn").forEach(function (b) {
-      var on = (b.getAttribute("data-stu-mode") === "own") === own;
-      b.setAttribute("aria-pressed", on ? "true" : "false");
-      b.classList.toggle("bg-indigo-50", on);
-      b.classList.toggle("border-indigo-300", on);
-      b.classList.toggle("text-indigo-700", on);
-    });
-    var dot = box.querySelector(".stu-scope-dot");
-    if (dot) dot.classList.toggle("hidden", !scopeOwn[code]);
-    var hint = box.querySelector(".stu-scope-hint");
-    if (hint) {
-      hint.textContent = own && !scopeOwn[code]
-        ? "{% trans 'Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite.' %}"
-        : "";
-    }
-    // Контрол показывает то, что редактирует: в режиме «только здесь» — значение
-    // объекта, иначе — общий выбор сайта. Иначе владелец правит одно, а видит другое.
-    // LAY-1c: несохранённый выбор уровня «для всех» — источник истины до Save.
-    if (own || !scopeDirty[code]) {
-      setScopeControl(box, own ? (scopeOwn[code] || "") : (scopeSite[code] || ""));
-    } else if (window.__cfPickerSync) {
-      window.__cfPickerSync(scopeControl(box));
-    }
-  }
-
-  function refreshScopePills() {
-    var codes = [];
-    scopePills().forEach(function (box) {
-      var row = box.closest("[data-stu-page]");
-      if (row && row.classList.contains("hidden")) return;  // настройка не этой страницы
-      var code = box.getAttribute("data-stu-scope");
-      codes.push(code);
-      if (!(code in scopeSite)) {
-        var ctl = scopeControl(box);
-        scopeSite[code] = (ctl && ctl.value) || "";  // запоминаем ДО подмены
-      }
-    });
-    scopeOwn = {};
-    // LAY-1c: режим сбрасываем ТОЛЬКО при смене объекта. Раньше он пересчитывался на
-    // каждом обновлении, поэтому владелец, переключившийся на «для всех», через секунду
-    // снова оказывался в «только здесь» — с чужим значением в контроле.
-    var refChanged = curStuRef !== lastScopeRef;
-    lastScopeRef = curStuRef;
-    if (refChanged) scopeMode = {};
-    if (!curStuRef || !codes.length) { scopePills().forEach(paintScopePill); return; }
-    fetch(SCOPE_STATE_URL + "?ref=" + encodeURIComponent(curStuRef)
-      + "&page=" + encodeURIComponent(curStuPage || "")  // STU-12j: объект зависит от типа
-      + "&settings=" + codes.join(","),
-          { credentials: "same-origin" })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) {
-        if (!d || d.ref !== curStuRef) return;  // канва успела уйти на другую страницу
-        Object.keys(d.settings || {}).forEach(function (k) {
-          scopeOwn[k] = d.settings[k].own || "";
-          // LAY-1c: сохранённое значение сайта НЕ перетирает несохранённый выбор.
-          if (!scopeDirty[k]) scopeSite[k] = d.settings[k].site || "";
-          if (refChanged || !(k in scopeMode)) scopeMode[k] = scopeOwn[k] ? "own" : "site";
-        });
-        scopePills().forEach(paintScopePill);
-      })
-      .catch(function () { scopePills().forEach(paintScopePill); });
-  }
-
-  function scopeSave(code, value, then) {
-    fetch(SCOPE_SAVE_URL, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": csrfToken() },
-      body: new URLSearchParams({ setting: code, ref: curStuRef, value: value, page: curStuPage || "" }).toString(),
-    })
-      .then(function (r) { return r.json(); })
-      .then(function (d) { if (d && d.ok) { scopeOwn[code] = d.own || ""; if (then) then(); } })
-      .catch(function () {});
-  }
-
-  document.addEventListener("click", function (e) {
-    var btn = e.target.closest(".stu-scope-btn");
-    if (!btn) return;
-    var box = btn.closest("[data-stu-scope]");
-    if (!box || box.hidden) return;
-    e.preventDefault();
-    var code = box.getAttribute("data-stu-scope");
-    if (btn.getAttribute("data-stu-mode") === "own") {
-      scopeMode[code] = "own";
-      // Уже выбранный на сайте вариант переносим в объект сразу — так «только здесь»
-      // сразу становится правдой. Пустой выбор перенести нечем: "" в хранении и
-      // значит «наследовать», поэтому просто ждём выбора (подсказка в пилюле).
-      var seed = scopeOwn[code] || scopeSite[code] || "";
-      if (seed && !scopeOwn[code]) {
-        scopeSave(code, seed, function () { paintScopePill(box); hardReloadPreview(); });
-        return;
-      }
-      paintScopePill(box);
-      return;
-    }
-    scopeMode[code] = "site";
-    if (scopeOwn[code]) {
-      scopeSave(code, "", function () { paintScopePill(box); hardReloadPreview(); });
-      return;
-    }
-    paintScopePill(box);
-  });
-
-  // В режиме «только здесь» изменение контрола обязано уходить в объект, а не в сайт:
-  // иначе владелец видит «только здесь» и молча меняет весь сайт.
-  // STU-9 (ревью, класс W6): в режиме «только здесь» контрол показывает значение
-  // ОБЪЕКТА, но его `name` — это поле САЙТА (sd_category_page_style и др.). Save
-  // большой формы отправил бы объектный выбор как общий дефолт, то есть «только для
-  // этой категории» молча становилось бы «для всех». Перед отправкой возвращаем в
-  // такие контролы сайтовое значение — объектное уже сохранено точечным site-scope-save.
-  function restoreSiteValuesForSubmit() {
-    scopePills().forEach(function (box) {
-      var code = box.getAttribute("data-stu-scope");
-      if (box.hidden || scopeMode[code] !== "own") return;
-      var ctl = scopeControl(box);
-      if (ctl) ctl.value = scopeSite[code] || "";
-    });
-  }
-  var scopeForm = document.getElementById("home-form");
-  if (scopeForm) scopeForm.addEventListener("submit", restoreSiteValuesForSubmit);
-  // STU-11: история Undo живёт в СОСЕДНЕМ замыкании — отдаём перекраску наружу
-  // (applySnapshot зовёт её, иначе Ctrl+Z вернул бы значение объекта в поле сайта).
-  window.__stuRepaintScopePills = function () { scopePills().forEach(paintScopePill); };
-  window.__stuSiteValueFor = function (name) {
-    // Живой черновик собирает поля по name — ему тоже нужен САЙТОВЫЙ выбор,
-    // иначе превью показало бы объектное значение как общее.
-    var found = null;
-    scopePills().forEach(function (box) {
-      var code = box.getAttribute("data-stu-scope");
-      if (found !== null || box.hidden || scopeMode[code] !== "own") return;
-      var ctl = scopeControl(box);
-      if (ctl && ctl.getAttribute("name") === name) found = scopeSite[code] || "";
-    });
-    return found;
-  };
-
-  // STU-19f-2: the output axis (grid/slider, rows, speed) lives in the cabinet now.
-
-
-  document.addEventListener("change", function (e) {
-    var box = scopeBoxFor(e.target);
-    if (!box || box.hidden) return;
-    var code = box.getAttribute("data-stu-scope");
-    if (scopeMode[code] !== "own") {
-      // LAY-1c: охват «для всех» — обычный путь через форму, значение живёт в черновике
-      // до Save. Помечаем, чтобы ответ site-scope-state его не откатил.
-      if (scopeProgrammatic) return;
-      scopeDirty[code] = true;
-      scopeSite[code] = (scopeControl(box) || {}).value || "";
-      return;
-    }
-    var ctl = scopeControl(box);
-    if (!ctl) return;
-    scopeSave(code, ctl.value || "", function () { paintScopePill(box); hardReloadPreview(); });
-  });
 
   function applyPageScope(group) {
     // UC6-7b (fix): страница С хостом C-блоков — НЕ главная, даже если её путь

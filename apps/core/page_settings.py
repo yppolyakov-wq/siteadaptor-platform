@@ -739,6 +739,8 @@ CABINET_OWNED: frozenset[str] = frozenset(
     }
     # 19f-2: page grids (preset + output axis) — the cabinet writes them whole (19f-1)
     | set(_LAYOUT_KEYS)
+    # 19f-3: card forms; "only this one" lives in the object forms / offer types
+    | {"product_card_form", "promo_card_form"}
 )
 
 

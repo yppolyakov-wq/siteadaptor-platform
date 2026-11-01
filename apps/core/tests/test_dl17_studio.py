@@ -180,7 +180,8 @@ def test_draft_carries_new_visual_keys():
     # cannot set it, the stored value (none here) stays
     assert siteconfig.product_detail_layout(draft) == ""
     sd = draft["site_defaults"]
-    assert sd["promo_card"] == "preis"
+    # STU-19f-3 (осознанно): форма карточки акции — в кабинете; черновик Студии её не меняет
+    assert sd.get("promo_card", "") != "preis"
     assert sd["card_slider"] == "on"
     assert sd["variant_style"] == "buttons"
     assert sd["card_chrome"] == "line"
@@ -211,11 +212,12 @@ def test_builder_payload_collects_new_keys():
     # LAY-7c: строка `payload.promo_layout` удалена вместе с контролом.
     assert "payload.promo_grouping = pgSel.value" in body
     assert "if (tailSel && tailSel.value) lay.tail = tailSel.value;" in body
-    assert "promo_card: sdVal(sdPromoCard)," in body  # STU-9: sdVal — сайтовое значение
+    # STU-19f-3: card forms are cabinet-owned — the draft no longer carries them
+    assert "promo_card:" not in body
     # STU-12g: card_slider/variant_style — глобальный дизайн, они уехали на экран
     # «Design des Shops» вместе со своими контролами; в черновике Студии остались
     # только настройки СТРАНИЦЫ (приёмник мерджит site_defaults, DL-17.3).
     assert "card_slider:" not in body and "variant_style:" not in body
-    assert "card_style: sdVal(sdStyle)," in body
+    assert "card_style:" not in body
     # STU-19e-1: the Studio no longer sends the detail layout (cabinet-owned)
     assert "pdLay" not in body

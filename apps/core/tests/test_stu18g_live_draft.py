@@ -139,6 +139,9 @@ def test_every_template_picker_in_the_panel_reaches_the_draft():
         )
         checked.append(code)
 
-    # замок не имеет права молча опустеть при переименовании разметки. STU-19e-2: page
-    # templates left the Studio (cabinet-owned); the card-form pickers remain.
-    assert {"product_card_form", "promo_card_form"} <= set(checked), checked
+    # STU-19f-3 (осознанно): все плитки-выборы (шаблоны и формы карточки) ушли в
+    # кабинет — в Студии их нет, и черновик их не обязан принимать. Если в панель
+    # вернётся плитка, цикл выше снова её проверит; принадлежать кабинету она не может.
+    from apps.core import page_settings
+
+    assert set(checked).isdisjoint(page_settings.CABINET_OWNED), checked

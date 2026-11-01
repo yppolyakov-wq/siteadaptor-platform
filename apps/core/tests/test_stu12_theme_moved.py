@@ -58,8 +58,7 @@ MOVED_FIELDS = (
 # поля, которые ОСТАЮТСЯ в Студии (настройки страницы и композиции)
 STUDIO_FIELDS = (
     # STU-19e-3: hero_style moved on to the cabinet (Seitenvorlagen)
-    "sd_card_style",
-    "sd_promo_card",
+    # STU-19f-3: sd_card_style / sd_promo_card moved on to the cabinet too
     # STU-19e-2: the two page templates moved on to the cabinet (Seitenvorlage)
     "sd_text_width",
     "storefront_root",
@@ -162,13 +161,13 @@ def test_studio_still_owns_page_scoped_settings():
         tenant,
         {
             "sd_present": "1",
-            "sd_card_style": "compact",
+            "sd_card_style": "compact",  # STU-19f-3: cabinet-owned — ignored here
             "tw_present": "1",
             "sd_text_width": "narrow",
             "storefront_root": "home",
         },
     )
-    assert cfg["site_defaults"]["card_style"] == "compact"
+    assert cfg["site_defaults"].get("card_style", "") != "compact"
     assert cfg["site_defaults"]["text_width"] == "narrow"
     assert cfg["storefront_root"] == "home"
     # и при этом глобальный дизайн цел
@@ -185,7 +184,7 @@ def test_draft_no_longer_carries_theme_but_still_carries_page_keys():
     # сверяем СЕЛЕКТОРЫ, а не голые имена: имя может законно встретиться в комментарии
     for gone in ("[name=font]", "[name=accent]", "'typo_weight_head'", "'sd_card_radius'"):
         assert gone not in fn, f"collect() не должен читать {gone}"
-    for kept in ("sd_card_style", "sd_promo_card", "sd_text_width"):
+    for kept in ("sd_text_width",):  # STU-19f-3: card forms are cabinet-only
         assert kept in fn, f"{kept} — ключ страницы, черновик обязан его слать"
 
 

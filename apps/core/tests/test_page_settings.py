@@ -257,6 +257,9 @@ def test_cabinet_owned_is_exactly_the_moved_axes():
             "promo_detail_style",
             # 19e-3
             "home_hero",
+            # 19f-3: card forms
+            "product_card_form",
+            "promo_card_form",
             # 19f-2: the twelve page grids
             "catalog_layout",
             "product_related",

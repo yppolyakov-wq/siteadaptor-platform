@@ -17,7 +17,6 @@ from django.views.decorators.http import require_POST
 from apps.catalog import category_styles
 from apps.catalog.option_styles import VARIANT_STYLES
 from apps.core import (
-    card_forms,
     compositions,
     detail_sections,
     list_blocks,
@@ -2647,16 +2646,8 @@ def home_builder_view(request):
         # пересборка стартует с прежнего словаря — иначе Save канвы стирал бы дизайн,
         # выставленный в кабинете (класс W6; раньше словарь собирался с нуля).
         sd = dict(prev_sd)
-        # ST-7c: форма карточки ("" = прежняя; normalize отбрасывает мусор).
-        sd["card_style"] = request.POST.get("sd_card_style", "")
-        # DL-20: шаблон страницы категории на весь сайт ("" = Standard; своё
-        # значение категории его побеждает).
-        sd["category_page_style"] = request.POST.get("sd_category_page_style", "")
-        sd["promo_group_style"] = request.POST.get("sd_promo_group_style", "")
-        # STU-15a: шаблон СТРАНИЦЫ АКЦИИ на весь сайт (своё значение акции сильнее).
-        sd["promo_detail_style"] = request.POST.get("sd_promo_detail_style", "")
-        # DL-16.4: форма карточки акции.
-        sd["promo_card"] = request.POST.get("sd_promo_card", "")
+        # STU-19e-2/19f-3: шаблоны категорий/групп/страницы акции и формы карточки
+        # (товар/акция) пишет только кабинет — Save Студии их не трогает.
         # STU-8: ширина текстовой колонки (панель типа «Текстовая страница»).
         # Сентинел tw_present — контрол живёт в области «Seite»: POST без него
         # (чужая форма) не имеет права уронить выбор владельца (W0).
@@ -3425,7 +3416,6 @@ def home_builder_view(request):
             "card_shadow": config["site_defaults"]["card_shadow"],
             "card_bg": config["site_defaults"]["card_bg"],
             "card_padding": config["site_defaults"]["card_padding"],
-            "card_style": config["site_defaults"].get("card_style", ""),  # ST-7c
             # DL-19: варианты формы карточки для плиток-предпросмотра (реестр)
             # STU-18b: порядок групп панели — из реестра, а не из разметки.
             "studio_axes": studio_pages.AXES,
@@ -3451,8 +3441,6 @@ def home_builder_view(request):
             # STU-18e (Р-3): шрифт и цвет остаются на «Оформлении сайта», но панель
             # показывает, чем оформлен сайт, — иначе владелец правит страницу вслепую.
             "design_look_label": _design_look_label(config),
-            "card_forms_product": card_forms.forms_for(card_forms.PRODUCT),
-            "card_forms_promo": card_forms.forms_for(card_forms.PROMO),
             # DL-20: шаблон страницы категории — префилл + реестр для плиток.
             "category_page_style": config["site_defaults"].get("category_page_style", ""),
             "category_page_styles": category_styles.CATEGORY_PAGE_STYLES,
@@ -3462,7 +3450,6 @@ def home_builder_view(request):
             "promo_detail_style": config["site_defaults"].get("promo_detail_style", ""),
             "promo_detail_styles": group_styles.PROMOTION_DETAIL_STYLES,
             "media_shape": config["site_defaults"].get("media_shape", ""),  # DL-10
-            "promo_card": config["site_defaults"].get("promo_card", ""),  # DL-16.4
             "card_slider": config["site_defaults"].get("card_slider", ""),
             # DL-17.3: страница акций — режим группировки (LAY-7c: «сетка или
             # лента» переехало в общую ось вывода, отдельного контрола больше нет;

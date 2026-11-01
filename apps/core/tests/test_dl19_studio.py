@@ -49,75 +49,70 @@ def _save(tenant, data):
     return siteconfig.normalize(tenant.site_config)
 
 
-# --- Studio ---------------------------------------------------------------------
-def test_studio_shows_a_tile_with_a_preview_for_every_form():
-    tenant = TenantFactory(schema_name="public", slug="dl19s", name="DL19S")
-    body = _body(tenant)
-    # считаем МАРКАП (атрибут с закрывающей скобкой): в партиале есть ещё JS-селекторы
-    # «[data-cardform-picker]» — урок MEN: замок на голый маркер ловит строки скрипта.
-    # DL-20 осознанно добавил две плитки-выборки (шаблоны СТРАНИЦ — категории и
-    # группы акций), DL-21 — ещё две (корневая страница каталога в строке «Katalog»
-    # и обзорная страница акций) тем же партиалом — счётчик обновлён вместе с ними.
-    # STU-15a: седьмая — шаблон страницы ОДНОЙ акции (у детали акции его не было).
-    # STU-18d: девять листингов получили ту же плитку-выборку композиции, и число
-    # перестало быть константой — оно ВЫВОДИТСЯ из реестра. Так замок продолжает
-    # ловить пропавшую плитку, но не краснеет на каждой новой поверхности.
-    # STU-19e-1/2 (deliberate): every PAGE-template picker moved to the cabinet — the
-    # Studio keeps the two card-form pickers; template rows are summaries + links
-    # (test_stu19e_ownership).
-    assert body.count("data-cardform-picker>") == 2
-    assert 'name="sd_card_style"' in body and 'name="sd_promo_card"' in body
-    for key in card_forms.keys_for("product") | card_forms.keys_for("promo"):
-        assert f'data-cf-key="{key}"' in body, key
-    assert 'data-cf-key=""' in body  # «Standard» — тоже плитка, а не пустой пункт
-    # у плитки есть мини-макет (предпросмотр), а не только подпись
-    assert 'aria-hidden="true"' in body
+# --- кабинет (STU-19f-3, осознанно переписано: выбор ушёл из Студии) ------------
+def _cabinet(tenant, typ, method="get", data=None):
+    import uuid
+
+    from django.contrib.auth import get_user_model
+
+    from apps.core import page_templates
+
+    path = "/dashboard/seitenvorlagen/sortiment/"
+    view = page_templates.page_templates_sortiment
+    if typ in ("promos", "promo_group", "promo"):
+        path, view = "/dashboard/seitenvorlagen/aktionen/", page_templates.page_templates_aktionen
+    req = _request(method, path, data if data is not None else {"typ": typ}, tenant)
+    o = uuid.uuid4().hex[:8]
+    req.user = get_user_model().objects.create_user(f"cf-{o}", f"cf-{o}@t.de", "pw12345678")
+    return view(req)
 
 
-def test_card_form_picker_is_not_hidden_behind_expert_mode():
-    """Прецедент W11-5: настройка, спрятанная в expert-блок, в Простом режиме
-    редактора не видна вообще — владелец её не находит. Выбор ФОРМЫ карточки —
-    первичная настройка вида витрины, поэтому он ВНЕ [data-expert]."""
+def test_cabinet_shows_a_tile_with_a_preview_for_every_form():
+    tenant = TenantFactory(
+        schema_name="public", slug="dl19s", name="DL19S", enabled_modules=["catalog", "promotions"]
+    )
+    body = _cabinet(tenant, "catalog").content.decode()
+    form = body.split('data-pt-setting="product_card_form"', 1)[1].split("</form>", 1)[0]
+    for key, _label, _hint in card_forms.forms_for("product"):
+        assert f'value="{key}"' in form, key
+    assert 'aria-hidden="true"' in form  # мини-макет у плитки, а не только подпись
+    promos = _cabinet(tenant, "promos").content.decode()
+    pform = promos.split('data-pt-setting="promo_card_form"', 1)[1].split("</form>", 1)[0]
+    for key, _label, _hint in card_forms.forms_for("promo"):
+        assert f'value="{key}"' in pform, key
+
+
+def test_studio_shows_a_summary_instead_of_the_pickers():
     tenant = TenantFactory(schema_name="public", slug="dl19e", name="DL19E")
     body = _body(tenant)
-    # DL-20/21: шаблоны страниц (категория/группа/корень каталога/обзор акций) —
-    # та же первичная настройка вида, тот же инвариант.
-    # STU-19e-2: the page-template pickers left the Studio (cabinet-owned)
-    for name in (
-        'name="sd_card_style"',
-        'name="sd_promo_card"',
-    ):
-        idx = body.index(name)
-        expert_open = body.rfind('data-expert="1"', 0, idx)
-        assert expert_open != -1  # expert-блоки на странице есть (иначе замок пуст)
-        assert "</div>" in body[expert_open:idx], f"{name} оказался внутри expert-блока"
+    assert body.count("data-cardform-picker>") == 0
+    assert 'name="sd_card_style"' not in body and 'name="sd_promo_card"' not in body
+    row = body.split('data-stu-setting="product_card_form"', 1)[1][:600]
+    assert "data-stu19-summary" in row
 
 
-def test_studio_saves_and_drafts_the_new_forms():
+def test_cabinet_saves_the_forms_and_the_studio_cannot_change_them():
+    from apps.core import page_settings
+
     tenant = TenantFactory(schema_name="public", slug="dl19t", name="DL19T")
-    cfg = _save(
-        tenant, {"sd_card_style": "regal", "sd_promo_card": "coupon", "sd_card_radius": "0"}
-    )
+    page_settings.write(tenant, "product_card_form", "regal")
+    page_settings.write(tenant, "promo_card_form", "coupon")
+    cfg = _save(tenant, {"sd_card_style": "", "sd_promo_card": "", "sd_card_radius": "0"})
     assert cfg["site_defaults"]["card_style"] == "regal"
     assert cfg["site_defaults"]["promo_card"] == "coupon"
     # снятие формы законно (плитка «Standard») → ключа снова нет
-    cfg = _save(tenant, {"sd_card_style": "", "sd_promo_card": "", "sd_card_radius": "0"})
+    page_settings.write(tenant, "product_card_form", "")
+    page_settings.write(tenant, "promo_card_form", "")
+    tenant.refresh_from_db()
+    cfg = siteconfig.normalize(tenant.site_config)
     assert "card_style" not in cfg["site_defaults"]
     assert "promo_card" not in cfg["site_defaults"]
 
 
-def test_live_draft_still_reads_the_same_field_names():
-    """Плитки заменили <select>, но имя поля прежнее — иначе черновик и клик по
-    Look'у молча перестали бы выставлять форму карточки."""
+def test_studio_draft_does_not_carry_card_forms():
     tenant = TenantFactory(schema_name="public", slug="dl19d", name="DL19D")
     body = _body(tenant)
-    assert "form.querySelector(\"[name='sd_card_style']\")" in body
-    assert "form.querySelector(\"[name='sd_promo_card']\")" in body
-    # STU-9: буквальное выражение заменено на sdVal(...) — контрол с пилюлей
-    # охвата в режиме «только здесь» держит значение ОБЪЕКТА, а в общий черновик
-    # обязано уехать сайтовое. Замок держит СМЫСЛ: поле ищется по тому же имени
-    # и ключ по-прежнему уезжает в payload.
-    assert "card_style: sdVal(sdStyle)" in body
+    assert "[name='sd_card_style']" not in body and "[name='sd_promo_card']" not in body
 
 
 # --- кабинет: per-объект --------------------------------------------------------

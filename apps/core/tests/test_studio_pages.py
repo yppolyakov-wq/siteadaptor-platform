@@ -375,8 +375,7 @@ def test_no_control_is_lost_or_duplicated(builder_html):
         # пишет — замок на единственность превратился бы в замок на его
         # существование.
         "promo_grouping",
-        "sd_card_style",
-        "sd_promo_card",
+        # STU-19f-3: sd_card_style / sd_promo_card — cabinet-owned now
         "cart_show_upsell",
         # STU-9: ровно те два поля, которые STU-8 переносил между областями, в
         # замке не значились — то есть перенос был не покрыт вовсе.
@@ -839,30 +838,12 @@ def test_home_settings_live_in_the_home_panel(builder_html_all_modules):
 
 
 @pytest.mark.django_db
-def test_scope_pills_stand_next_to_their_control(builder_html_all_modules):
-    """Пилюля охвата ищет контрол в СВОЁМ родителе (scopeControl): перенос пикера в
-    другую обёртку без пилюли молча превратил бы «только здесь» в no-op."""
-
-    body = builder_html_all_modules
-    # STU-19e-2 (deliberate): category/offer-group templates are cabinet-owned — their
-    # "only here" level lives in the object forms / Aktionstypen screen, not in a pill.
-    for code in (
-        "product_card_form",
-        "promo_card_form",
-    ):
-        setting = sp.SETTINGS[code]
-        assert setting.has_object_scope, code
-        i = body.index(f'data-stu-setting="{code}"')
-        # До закрывающего тега СВОЕЙ строки: пикер внутри содержит вложенные div'ы,
-        # поэтому ищем следующий маркер строки (или конец панели), а не первый </div>.
-        nxt = body.find('data-stu-setting="', i + 1)
-        row = body[i : nxt if nxt != -1 else i + 4000]
-        # Ищем ИМЕННО маркер пилюли. Первая версия замка искала `setting="<код>"` —
-        # а это подстрока самого `data-stu-setting="<код>"`, то есть замок проверял
-        # сам себя и оставался зелёным при полностью удалённой пилюле (STU-9).
-        assert f'data-stu-scope="{code}"' in row, (
-            f"у настройки {code} есть объектный уровень, но пилюли охвата рядом нет"
-        )
+def test_no_scope_pill_is_left_in_the_studio(builder_html_all_modules):
+    """STU-19f-3 (осознанно): последние два объектных уровня (формы карточки) ушли в
+    кабинет — уровень «только здесь» живёт в форме объекта и на «Aktionstypen».
+    Пилюля без настройки рядом была бы обещанием без исполнения."""
+    assert 'data-stu-scope="' not in builder_html_all_modules
+    assert "_scope_pill" not in pathlib.Path("templates/tenant/site_home.html").read_text()
 
 
 # ── STU-9: находки ревью, каждая со своим замком ──────────────────────────────
@@ -909,9 +890,9 @@ def test_level_reglue_does_not_depend_on_aria_pressed():
     """
     body = pathlib.Path("templates/tenant/site_home.html").read_text()
     i = body.index("function applyStuPageScope()")
-    # Только тело applyStuPageScope: дальше идёт секция пилюль охвата, где
-    # aria-pressed используется законно (состояние кнопок «Für alle / Nur hier»).
-    scope = body[i : body.index("STU-3: охват настройки", i)]
+    # Только тело applyStuPageScope (до следующего блока; STU-19f-3: пилюль охвата
+    # больше нет — граница теперь их маркер-заглушка).
+    scope = body[i : body.index('STU-19f-3: the "for all / only here" scope pill', i)]
     # Комментарии не код: в них «aria-pressed» упомянут как объяснение дефекта.
     code_only = "\n".join(line for line in scope.splitlines() if not line.lstrip().startswith("//"))
     assert "aria-pressed" not in code_only, "переклейка снова завязана на aria-pressed"
@@ -926,16 +907,6 @@ def test_level_reglue_does_not_depend_on_aria_pressed():
     )
     assert "__stuClickTab" not in scope, "переключение области не должно идти через тоггл"
     assert "lastStuPage" in scope, "переклейка обязана срабатывать только на СМЕНЕ типа"
-
-
-def test_scope_pill_value_does_not_leak_into_site_save():
-    """В режиме «только здесь» контрол держит значение ОБЪЕКТА, а его `name` —
-    поле САЙТА. Без восстановления перед отправкой Save большой формы превращал
-    выбор одной категории в дефолт всего сайта (класс W6)."""
-    body = pathlib.Path("templates/tenant/site_home.html").read_text()
-    assert "restoreSiteValuesForSubmit" in body
-    assert 'scopeForm.addEventListener("submit", restoreSiteValuesForSubmit)' in body
-    assert "__stuSiteValueFor" in body, "живой черновик тоже обязан слать сайтовое значение"
 
 
 def test_level_this_page_opens_the_home_area_on_home():
@@ -997,29 +968,6 @@ def test_home_own_settings_live_in_the_area_the_level_opens(builder_html_all_mod
         )
 
 
-def test_scope_pill_restores_site_value_when_object_state_resets():
-    """Уход канвы на страницу, где объекта нет, обязан ВЕРНУТЬ контролу сайтовое
-    значение.
-
-    STU-10: фикс STU-9 закрыл только отправку формы (`restoreSiteValuesForSubmit`),
-    а она пропускает скрытые пилюли — и именно скрытой пилюля становится, когда
-    объект неизвестен. Сценарий скептика: канва на странице товара со своим
-    `card_style` → пилюля пишет значение объекта в поле САЙТА `sd_card_style` →
-    владелец уводит канву на главную/список → состояние сбрасывается, пилюля
-    прячется, восстановление на submit её пропускает → Save делает выбор одного
-    товара дефолтом всего сайта (класс W6).
-    """
-    body = pathlib.Path("templates/tenant/site_home.html").read_text()
-    i = body.index("function paintScopePill(box)")
-    branch = body[i : body.index("var own = scopeMode[code]", i)]
-    assert "setScopeControl(box, scopeSite[code]" in branch, (
-        "ветка «объект неизвестен» обязана вернуть контролу сайтовое значение"
-    )
-    assert "hasOwnProperty.call(scopeSite, code)" in branch, (
-        "восстанавливаем только известное сайтовое значение — иначе стёрли бы серверный рендер"
-    )
-
-
 def test_canvas_rebinds_content_after_listing_swap():
     """Своп листинга (KAT-5: fetch + pushState) обязан возвращать новым узлам
     обработчики канвы.
@@ -1076,21 +1024,6 @@ def test_every_registry_control_is_unique_in_the_panel(builder_html_all_modules)
         assert found == want, f"поле {field}: найдено {found} раз (ожидалось {want})"
 
 
-def test_undo_restores_site_value_in_scope_controls():
-    """Ctrl+Z не имеет права вернуть значение ОБЪЕКТА в поле САЙТА.
-
-    STU-11: снимок истории мог быть сделан, когда канва стояла на странице объекта, —
-    тогда в нём лежит значение объекта под именем сайтового поля. applySnapshot
-    возвращает его молча (change не диспатчится, плитки не перерисовываются), и
-    следующий push/Save уходит с ним. Перекрашиваем пилюли после отката.
-    """
-    body = pathlib.Path("templates/tenant/site_home.html").read_text()
-    i = body.index("function applySnapshot(s)")
-    fn = body[i : body.index("var past = [], future = []", i)]
-    assert "__stuRepaintScopePills" in fn, "после отката пилюли обязаны перекраситься"
-    assert "window.__stuRepaintScopePills = function" in body, "перекраска не экспортирована"
-
-
 def test_canvas_click_follows_the_same_resolver_as_the_default_entry():
     """Клик по содержимому канвы обязан вести в ТУ ЖЕ область, что открытие по умолчанию.
 
@@ -1118,7 +1051,7 @@ def test_empty_page_hint_is_not_shown_when_settings_live_elsewhere(builder_html_
     """
     body = builder_html_all_modules
     i = body.index("function applyStuPageScope()")
-    fn = body[i : body.index("refreshScopePills();", i)]
+    fn = body[i : body.index("syncPanelGroups();", i)]
     assert "anywhere" in fn, "нужен счёт строк типа во ВСЕЙ панели"
     assert 'toggle("hidden", shown > 0 || anywhere > 0)' in fn, (
         "подсказка обязана молчать, когда настройки типа есть где-то ещё"
