@@ -56,8 +56,7 @@ def demo_design_switch(request):
         request.session.pop(SESSION_KEY, None)
     elif sitetemplates.get_bundle(tpl) is not None:
         request.session[SESSION_KEY] = tpl
-    nxt = request.GET.get("next", "/")
-    # Только локальный путь (не //host — открытый редирект).
-    if not nxt.startswith("/") or nxt.startswith("//"):
-        nxt = "/"
-    return redirect(nxt)
+    from apps.core.owner_login import safe_next
+
+    # Только локальный путь (SEC-E5: `/\host` браузер читает как `//host` — общая проверка).
+    return redirect(safe_next(request, request.GET.get("next", "/"), "/"))

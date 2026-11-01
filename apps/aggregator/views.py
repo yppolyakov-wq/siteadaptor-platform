@@ -970,10 +970,16 @@ def sitemap_xml(request):
     urls += [(abs_("/ueber-uns/"), None)]
     urls += [(abs_(reverse("aggregator-index")), active.aggregate(m=Max("updated_at"))["m"])]
     cities = active.exclude(city="").values("city").annotate(m=Max("updated_at")).order_by("city")
-    urls += [(abs_(reverse("aggregator-city", args=[row["city"]])), row["m"]) for row in cities]
+    # SEC-F1: город с «/» в названии ломал reverse → 500 всей карты сайта; такой пропускаем.
+    urls += [
+        (abs_(reverse("aggregator-city", args=[row["city"]])), row["m"])
+        for row in cities
+        if "/" not in row["city"]
+    ]
     urls += [
         (abs_(reverse("aggregator-city-type", args=[c, bt])), None)
         for c, bt in active.exclude(city="")
+        .exclude(city__contains="/")
         .exclude(business_type="")
         .values_list("city", "business_type")
         .distinct()
@@ -1064,9 +1070,10 @@ def shortlist_toggle(request):
     from . import shortlist
 
     shortlist.toggle(request, request.POST.get("listing"))
-    nxt = request.POST.get("next") or ""
-    ok = nxt.startswith("/") and not nxt.startswith("//")  # protocol-relative — чужой хост
-    return redirect(nxt if ok else reverse("aggregator-index"))
+    from apps.core.owner_login import safe_next
+
+    # SEC-E5: `/\host` браузер читает как `//host` — общая проверка локального пути.
+    return redirect(safe_next(request, request.POST.get("next", ""), reverse("aggregator-index")))
 
 
 def shortlist_compare(request):

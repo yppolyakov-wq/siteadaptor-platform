@@ -334,6 +334,14 @@ def angebot(request, token):
                     messages.info(request, _("Ihre Entscheidung wurde bereits gespeichert."))
                     return redirect("storefront-angebot", token=token)
                 if action == "accept" and code:
+                    from apps.core import ratelimit
+
+                    # SEC-E4: неверный код оставляет смету в quoted → перебор без предела.
+                    if ratelimit.hit(
+                        "quote_voucher", ratelimit.client_ip(request), limit=10, window=600
+                    ):
+                        messages.error(request, _("This voucher code is not valid."))
+                        return redirect("storefront-angebot", token=token)
                     try:
                         with transaction.atomic():
                             discount, voucher = spend_voucher(code, int(job.gross * 100))

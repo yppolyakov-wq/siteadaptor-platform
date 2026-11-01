@@ -26,12 +26,35 @@ def _link_for(customer) -> TelegramLink:
 
 
 def deep_link(customer) -> str:
-    """t.me-ссылка для привязки клиента к боту. '' если бота нет."""
+    """t.me-ссылка для привязки клиента к боту. '' если бота нет.
+
+    Показывать ТОЛЬКО подтверждённому владельцу карточки (ЛК по magic-link или вход через
+    Telegram) — см. `deep_link_for_page`. Токен один на клиента и привязывает чат к карточке
+    навсегда: страница по коду заказа, которую видит любой, кто оформил покупку с чужим
+    e-mail, его показывать не должна (SEC-A2)."""
     bot = active_bot()
     if bot is None or not bot.bot_username:
         return ""
     token = _link_for(customer).link_token
     return f"https://t.me/{bot.bot_username}?start={token}"
+
+
+def deep_link_for_page(request, customer) -> str:
+    """SEC-A2: deep link на публичной странице подтверждения — только если посетитель вошёл
+    в ЛК этой карточки. Карточки клиентов сопоставляются по e-mail без подтверждения, и
+    атакующий, оформив заказ на чужой e-mail, увидел бы на СВОЁМ подтверждении токен
+    чужой карточки → все дальнейшие уведомления жертвы шли бы в его чат."""
+    if customer is None:
+        return ""
+    try:
+        from apps.account.auth import current_customer
+
+        mine = current_customer(request)
+    except Exception:  # noqa: BLE001 — ЛК выключен/нет сессии → ссылки нет
+        return ""
+    if mine is None or mine.pk != customer.pk:
+        return ""
+    return deep_link(customer)
 
 
 def link_from_start(payload: str, chat_id) -> bool:
@@ -98,19 +121,46 @@ def owner_chat_id(tenant) -> str:
     return _notify_node(tenant).get("owner_chat_id", "") or ""
 
 
-def owner_deep_link(tenant) -> str:
+OWNER_LINK_TTL = 15 * 60  # SEC-A3: как у ссылки общего бота (connect.TTL)
+
+
+def _owner_link_fresh(node: dict) -> bool:
+    import time
+
+    try:
+        return time.time() - float(node.get("owner_link_token_at") or 0) <= OWNER_LINK_TTL
+    except (TypeError, ValueError):
+        return False
+
+
+def owner_deep_link(tenant, user=None) -> str:
     """t.me-ссылка для привязки Telegram ВЛАДЕЛЬЦА к боту бизнеса. '' если бота нет.
 
-    Токен генерится один раз и хранится в site_config (в отличие от клиента —
-    у владельца нет отдельной модели, привязка живёт на тенанте)."""
+    Токен хранится в site_config (у владельца нет отдельной модели, привязка живёт на
+    тенанте). SEC-A3: токен живёт 15 минут (просроченный перевыпускается при показе) и
+    помнит выпустившего пользователя — при привязке он становится `owner_user_pk`, по
+    которому `still_owner` гасит права удалённого/пониженного владельца. Показывать
+    ссылку можно только тому, у кого есть право `kanaele.edit` — это решает вьюха."""
     bot = active_bot()
     if bot is None or not bot.bot_username:
         return ""
+    import time
+
     node = _notify_node(tenant)
     token = node.get("owner_link_token")
-    if not token:
+    user_pk = getattr(user, "pk", None)
+    if (
+        not token
+        or not _owner_link_fresh(node)
+        or (user_pk and node.get("owner_link_user_pk") != user_pk)
+    ):
         token = secrets.token_urlsafe(16)
-        node = {**node, "owner_link_token": token}
+        node = {
+            **node,
+            "owner_link_token": token,
+            "owner_link_token_at": int(time.time()),
+            "owner_link_user_pk": user_pk,
+        }
         _save_notify_node(tenant, node)
     return f"https://t.me/{bot.bot_username}?start=owner-{token}"
 
@@ -121,17 +171,29 @@ def link_owner_from_start(payload: str, chat_id, tenant) -> bool:
     Токен single-use: после успешной привязки ротируем его, чтобы утёкшая
     deep-link-ссылка (скриншот/referrer) не позволяла привязать чужой chat
     повторно. Новую ссылку владелец получит из кабинета (генерится заново)."""
+    import hmac
+
     if not payload.startswith("owner-"):
         return False
     token = payload[len("owner-") :]
     node = _notify_node(tenant)
-    if not token or node.get("owner_link_token") != token:
+    expected = str(node.get("owner_link_token") or "")
+    # SEC-A3: constant-time сравнение + срок жизни токена (просроченная ссылка не привязывает).
+    if not token or not expected or not hmac.compare_digest(token.encode(), expected.encode()):
+        return False
+    if not _owner_link_fresh(node):
         return False
     # T-8.10h H-3: единственный писатель привязки владельца — apps.platform_bot.links
     # (свой бот побеждает: связи общего бота гаснут, owner_bot="tenant").
     from apps.platform_bot import links
 
-    links.claim_for_tenant_bot(tenant, chat_id, rotate_token=secrets.token_urlsafe(16))
+    user_pk = node.get("owner_link_user_pk")
+    links.claim_for_tenant_bot(
+        tenant,
+        chat_id,
+        rotate_token=secrets.token_urlsafe(16),
+        user_pk=user_pk if isinstance(user_pk, int) and not isinstance(user_pk, bool) else None,
+    )
     return True
 
 

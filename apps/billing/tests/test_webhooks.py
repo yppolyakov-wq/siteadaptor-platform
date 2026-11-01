@@ -140,14 +140,18 @@ def test_featured_checkout_missing_listing_is_noop():
 def test_account_updated_sets_payments_enabled():
     """P2.5: вебхук Connect account.updated → Tenant.payments_enabled."""
     tenant = TenantFactory(stripe_connect_id="acct_9", payments_enabled=False)
-    webhooks.handle_event("account.updated", {"id": "acct_9", "charges_enabled": True})
+    webhooks.handle_event(
+        "account.updated", {"id": "acct_9", "charges_enabled": True}, account="acct_9"
+    )
     tenant.refresh_from_db()
     assert tenant.payments_enabled is True
 
 
 def test_account_updated_unknown_account_is_noop():
     # нет арендатора с таким connect-id — не падаем, подписку не трогаем
-    webhooks.handle_event("account.updated", {"id": "acct_none", "charges_enabled": True})
+    webhooks.handle_event(
+        "account.updated", {"id": "acct_none", "charges_enabled": True}, account="acct_none"
+    )
 
 
 def test_subscription_checkout_without_kind_still_activates():

@@ -31500,3 +31500,7 @@ msgstr "Schreiben Sie in einem Satz, was neu dazukommt — Sie bekommen einen Pl
 
 msgid "Mehreres auf einmal anlegen — in einem Satz beschreiben"
 msgstr "Mehreres auf einmal anlegen — in einem Satz beschreiben"
+
+#: apps/promotions/public_views.py
+msgid "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."
+msgstr "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."

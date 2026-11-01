@@ -272,6 +272,8 @@ def set_member_role(actor_user, member_pk, role: str) -> None:
         target.permissions = _delta_for(role, old_eff) if keep else {}
         target.save(update_fields=["role", "permissions", "updated_at"])
         _audit("team.role", target, actor_user, {"role": role, "before": before})
+        if before == OWNER and role != OWNER:
+            _release_telegram(target.user_id)
     P.forget(target.user)
 
 
@@ -306,7 +308,20 @@ def revoke_member(actor_user, member_pk) -> None:
         _audit("team.revoke", target, actor_user, {"role": target.role})
         target_user = target.user
         target.delete()  # User остаётся (история/повторный инвайт)
+        _release_telegram(target_user.pk)
     P.forget(target_user)
+
+
+def _release_telegram(user_pk) -> None:
+    """SEC-A3: удалённый/пониженный владелец теряет Telegram-привязки бизнеса."""
+    try:
+        from apps.platform_bot import links
+
+        tenant = getattr(connection, "tenant", None)
+        if tenant is not None and getattr(tenant, "pk", None):
+            links.release_user(tenant, user_pk)
+    except Exception:  # noqa: BLE001 — страховка; still_owner закрывает доступ и без неё
+        pass
 
 
 def _alert_owner(actor_user, target, keys, new) -> None:

@@ -1831,6 +1831,9 @@ def termin_pay(request, code):
     """B2.2: «Jetzt bezahlen» — перегенерация Stripe Checkout для неоплаченного
     депозита (URL сессии не хранится). Не pending/прошла → назад на подтверждение."""
     _require_booking_active(request)
+    # SEC-E1: подбор кода + Stripe-сессия на каждый GET — лимит на IP.
+    if ratelimit.hit("termin_pay", ratelimit.client_ip(request), limit=20, window=RL_WINDOW):
+        return HttpResponse(status=429)
     booking = get_object_or_404(Booking, reference_code=code)
     tenant = getattr(request, "tenant", None)
     from apps.core import balance_pay
@@ -1875,7 +1878,7 @@ def termin_confirmation(request, code):
     if ratelimit.hit("termin_confirm", ratelimit.client_ip(request), limit=60, window=RL_WINDOW):
         return HttpResponse(status=429)
     booking = get_object_or_404(Booking.objects.select_related("resource"), reference_code=code)
-    from apps.telegram.notify import deep_link
+    from apps.telegram.notify import deep_link_for_page
 
     # HF-6d: бронь на несколько периодов — показываем ВСЕ времена группы. Иначе
     # гость выбрал два времени, а подтверждение называет одно (и он думает, что
@@ -1898,7 +1901,7 @@ def termin_confirmation(request, code):
             "booking": booking,
             "group_bookings": group,
             "group_total_eur": group_total_eur,
-            "telegram_link": deep_link(booking.customer),
+            "telegram_link": deep_link_for_page(request, booking.customer),
         },
         _is_embed(request),
     )

@@ -23,7 +23,9 @@ def validate_image(uploaded) -> str:
     if uploaded.size > MAX_IMAGE_BYTES:
         raise ValidationError(_("Image too large (max 5 MB)."))
     try:
-        img = Image.open(uploaded)
+        # SEC-G2: декодеры прочих форматов (TIFF/EPS/BMP…) к файлу не подпускаем —
+        # большинство CVE Pillow именно там; принимаем только то, что и так разрешено.
+        img = Image.open(uploaded, formats=list(_MIME))
         img.verify()  # проверка целостности
         fmt = img.format
     except (

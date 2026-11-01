@@ -434,6 +434,9 @@ def _installment_offer(event):
 def veranstaltung_memo(request, code):
     """R6: PDF «Teilnehmer-Memo» (памятка участника) по коду билета."""
     _require_events_active(request)
+    # SEC-E1: страница по 6-символьному коду — лимит на IP против перебора (как у заказов).
+    if ratelimit.hit("event_confirm", ratelimit.client_ip(request), limit=60, window=RL_WINDOW):
+        return HttpResponse(status=429)
     ticket = get_object_or_404(
         Ticket.objects.select_related("event", "stay_booking__unit"), reference_code=code
     )
@@ -646,6 +649,9 @@ def ticket_pay(request, code):
     """B2.3: «Jetzt bezahlen» — перегенерация Stripe Checkout для неоплаченного
     билета. Не pending/событие прошло → назад на подтверждение."""
     _require_events_active(request)
+    # SEC-E1: подбор кода + Stripe-сессия на каждый GET — лимит на IP.
+    if ratelimit.hit("ticket_pay", ratelimit.client_ip(request), limit=20, window=RL_WINDOW):
+        return HttpResponse(status=429)
     ticket = get_object_or_404(Ticket.objects.select_related("event"), reference_code=code)
     tenant = getattr(request, "tenant", None)
     from apps.core import balance_pay
@@ -692,10 +698,13 @@ def _participants_url(ticket) -> str:
 
 def veranstaltung_confirmation(request, code):
     _require_events_active(request)
+    # SEC-E1: страница по 6-символьному коду — лимит на IP против перебора (как у заказов).
+    if ratelimit.hit("event_confirm", ratelimit.client_ip(request), limit=60, window=RL_WINDOW):
+        return HttpResponse(status=429)
     ticket = get_object_or_404(
         Ticket.objects.select_related("event", "customer"), reference_code=code
     )
-    from apps.telegram.notify import deep_link
+    from apps.telegram.notify import deep_link_for_page
 
     return render(
         request,
@@ -704,7 +713,7 @@ def veranstaltung_confirmation(request, code):
             "ticket": ticket,
             "event": ticket.event,
             "just_paid": request.GET.get("paid") == "1",
-            "telegram_link": deep_link(ticket.customer),
+            "telegram_link": deep_link_for_page(request, ticket.customer),
             "cancel_state": services.cancellation_state(ticket),
             "cancel_url": cancel_url(ticket),
             # KA-12 T-5: ссылка на данные участников группы / анкету.

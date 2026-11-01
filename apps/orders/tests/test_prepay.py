@@ -118,6 +118,8 @@ def test_mark_order_paid_auto_confirms():
 
 def test_webhook_order_payment_marks_paid():
     order = _order()
+    # SEC-D1: connect-событие принимается только от аккаунта этого бизнеса.
+    TenantFactory(schema_name=connection.schema_name, stripe_connect_id="acct_t")
     webhooks.handle_event(
         "checkout.session.completed",
         {
@@ -128,6 +130,7 @@ def test_webhook_order_payment_marks_paid():
                 "order_id": str(order.id),
             },
         },
+        account="acct_t",
     )
     order.refresh_from_db()
     assert order.payment_state == "paid"

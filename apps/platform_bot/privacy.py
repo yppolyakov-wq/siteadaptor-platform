@@ -7,12 +7,15 @@
 
 from __future__ import annotations
 
+import logging
 import secrets
 
 from django.core.cache import cache
 from django.utils.translation import gettext as _
 
 from . import links
+
+logger = logging.getLogger(__name__)
 
 ERASE_TTL = 10 * 60
 LIMIT_ERASE = 10  # запросов удаления в час на пользователя
@@ -118,7 +121,14 @@ def on_callback(bot, callback: dict) -> str:
         if not expected or data[len("pd:yes:") :] != expected or not cache.delete(_nonce_key(uid)):
             _send(bot, chat, _("Abgelaufen. Bitte /daten_loeschen erneut senden."))
             return "erase_expired"
-        return erase(bot, uid, chat)
+        try:
+            return erase(bot, uid, chat)
+        except Exception:
+            # SEC-A6: сбой удаления не должен молча сжечь подтверждение — nonce возвращаем,
+            # пользователю говорим повторить (та же кнопка снова работает).
+            cache.set(_nonce_key(uid), expected, 600)
+            _send(bot, chat, _("Abgelaufen. Bitte /daten_loeschen erneut senden."))
+            raise
     return "skip"
 
 
@@ -135,10 +145,13 @@ def erase(bot, uid, chat) -> str:
         if not got or cache.get(signup._pending_key(uid)):
             _send(bot, chat, busy)
             return "erase_busy"
-        result = links.erase_user(uid)
+        from django.db import transaction
+
         from . import rights
 
-        rights.erase(uid)  # H-7i: настройки прав — тоже персональные данные
+        with transaction.atomic():  # SEC-A6: связи и права — целиком или никак
+            result = links.erase_user(uid)
+            rights.erase(uid)  # H-7i: настройки прав — тоже персональные данные
         signup.drop(uid)
         cache.delete(f"tgplat:signup-submit:{uid}")
     # Ключи со случайной частью — лучшим усилием; гарантия — TTL ≤ 24 ч и отказ в правах
@@ -149,8 +162,8 @@ def erase(bot, uid, chat) -> str:
             cachescan.delete_matching(f"tgpromo:draft:{schema}:{uid}:*")
             cachescan.delete_matching(f"tgpromo:mg*:{schema}:{uid}:*")
             cache.delete_many([f"tgpromo:last:{schema}:{uid}", f"tgpromo:arm:{schema}:{uid}"])
-    except Exception:  # noqa: BLE001
-        pass
+    except Exception as exc:  # noqa: BLE001 — гарантия удаления черновиков = TTL ≤ 24 ч
+        logger.warning("privacy erase: cache sweep failed: %s", type(exc).__name__)
     _send(
         bot,
         chat,

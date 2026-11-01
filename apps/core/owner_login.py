@@ -64,13 +64,13 @@ def consume_token(schema: str, token: str) -> dict | None:
     """Payload с удалением ДО использования (одноразовость)."""
     key = _key(schema, token)
     payload = cache.get(key)
-    if payload is None:
-        return None
-    cache.delete(key)
+    if payload is None or not cache.delete(key):
+        return None  # SEC-B1: забирает только тот, кто удалил ключ (параллельный POST — нет)
     return payload
 
 
-def safe_next(request, value: str) -> str:
+def safe_next(request, value: str, default: str = DEFAULT_NEXT) -> str:
+    """Локальный путь этого хоста или ``default``. Единственная проверка `next=` на проект."""
     value = (value or "").strip()
     if (
         value.startswith("/")
@@ -82,7 +82,7 @@ def safe_next(request, value: str) -> str:
         and url_has_allowed_host_and_scheme(value, allowed_hosts={request.get_host()})
     ):
         return value
-    return DEFAULT_NEXT
+    return default
 
 
 def local_next(request) -> str:

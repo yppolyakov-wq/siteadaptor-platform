@@ -28,7 +28,15 @@ def idempotent_task(*task_args, lock_timeout: int = DEFAULT_LOCK_TIMEOUT, **task
                 lock = f"job_lock:{dedupe_key}"
                 if not cache.add(lock, "1", timeout=lock_timeout):
                     return {"skipped": True, "reason": "duplicate", "dedupe_key": dedupe_key}
-            return fn(**kwargs)
+            try:
+                return fn(**kwargs)
+            except BaseException:
+                # SEC (аудит 2026-11-01): упавшая задача не должна «съесть» ключ на час —
+                # иначе повтор (retry/ручной) молча вернёт «duplicate», а письмо/публикация/
+                # привязка так и не случатся. Успех держит ключ, сбой — освобождает.
+                if dedupe_key:
+                    cache.delete(lock)
+                raise
 
         return wrapped
 

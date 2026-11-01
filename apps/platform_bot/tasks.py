@@ -8,7 +8,12 @@ def dedupe_key(update_id) -> str:
 
 
 # T-8.10h: апдейт общего бота. Дедуп по update_id (Telegram повторяет доставку); сутки.
-@idempotent_task(lock_timeout=86400)
+@idempotent_task(
+    lock_timeout=86400,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 2},
+)
 def platform_bot_update(*, update):
     from . import handler
 
@@ -35,7 +40,12 @@ def enqueue_connected_email(link, payload: dict) -> None:
     )
 
 
-@idempotent_task(lock_timeout=86400)
+@idempotent_task(
+    lock_timeout=86400,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 3},
+)
 def send_connected_email(*, schema, email, lang=""):
     from django.conf import settings
     from django.core.mail import send_mail
@@ -64,7 +74,9 @@ def send_connected_email(*, schema, email, lang=""):
             "Benachrichtigungen kommen ab jetzt dort an.\n\n"
             "Das waren nicht Sie? Trennen Sie die Verbindung hier:\n%(url)s"
         ) % {"bot": username, "url": url}
-    send_mail(subject, body, None, [email], fail_silently=True)
+    # SEC-A: это письмо — единственная страховка от утёкшей ссылки привязки; сбой почты
+    # обязан всплыть (retry задачи, лог), а не считаться доставкой.
+    send_mail(subject, body, None, [email], fail_silently=False)
     return {"sent": True}
 
 

@@ -76,9 +76,8 @@ def consume_invite(token: str) -> dict | None:
     """Payload с удалением ДО использования (одноразовость — как magic-link)."""
     key = _token_key(token)
     payload = cache.get(key)
-    if payload is None:
-        return None
-    cache.delete(key)
+    if payload is None or not cache.delete(key):
+        return None  # SEC-B1: одноразовость под гонкой — кто удалил ключ, тот принял
     return payload
 
 
@@ -282,11 +281,27 @@ def team_join(request, token):
         ):
             return render(request, "tenant/team_join.html", {"invalid": True}, status=429)
         pw1, pw2 = request.POST.get("password1", ""), request.POST.get("password2", "")
-        if needs_password and (len(pw1) < 8 or pw1 != pw2):
+        pw_errors = []
+        if needs_password:
+            # SEC-B5: та же политика паролей, что у регистрации (AUTH_PASSWORD_VALIDATORS),
+            # а не только длина — admin-аккаунт может держать деньги и возвраты.
+            from django.contrib.auth.password_validation import validate_password
+            from django.core.exceptions import ValidationError
+
+            try:
+                validate_password(pw1)
+            except ValidationError as exc:
+                pw_errors = list(exc.messages)
+        if needs_password and (len(pw1) < 8 or pw1 != pw2 or pw_errors):
             return render(
                 request,
                 "tenant/team_join.html",
-                {"email": payload["email"], "needs_password": True, "pw_error": True},
+                {
+                    "email": payload["email"],
+                    "needs_password": True,
+                    "pw_error": True,
+                    "pw_errors": pw_errors,
+                },
             )
         payload = consume_invite(token)  # одноразовость — расход строго при принятии
         if payload is None:

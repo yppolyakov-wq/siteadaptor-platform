@@ -120,6 +120,7 @@ def login_verify(request):
     payload = auth.consume_magic_link(request.GET.get("t", ""))
     if payload is None:
         return render(request, "konto/link_invalid.html", {}, status=400)
+    request.session.cycle_key()  # SEC-B6: как у входа через Telegram — без фиксации сессии
     auth.login(request, payload["email"])
     return redirect("account-home")
 

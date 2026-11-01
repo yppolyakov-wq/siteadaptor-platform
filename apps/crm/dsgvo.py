@@ -174,6 +174,8 @@ def _email_linked(email):
 
     specs = {
         "reviews.Review": "email",
+        "catalog.ProductReview": "email",  # SEC-G15: отзыв о товаре (имя, e-mail, текст)
+        "catalog.ProductWaitlist": "email",  # SEC-G15: лист ожидания товара
         "loyalty.GiftVoucher": "buyer_email",
         "promotions.WaitlistEntry": "email",
         "events.EventWaitlistEntry": "email",

@@ -117,7 +117,7 @@ def review_reply(request, pk):
     review.replied_at = timezone.now() if text else None
     review.save(update_fields=["reply_text", "replied_at", "updated_at"])
     messages.success(request, _("Reply saved.") if text else _("Reply removed."))
-    return redirect(f"{request.POST.get('next') or 'reviews:list'}")
+    return redirect(_back(request))
 
 
 @login_required
@@ -128,4 +128,13 @@ def review_toggle(request, pk):
     review.is_published = not review.is_published
     review.save(update_fields=["is_published", "updated_at"])
     messages.success(request, _("Review shown.") if review.is_published else _("Review hidden."))
-    return redirect(f"{request.POST.get('next') or 'reviews:list'}")
+    return redirect(_back(request))
+
+
+def _back(request) -> str:
+    """SEC-E5: `next` только локальный (общая проверка), иначе список отзывов."""
+    from django.urls import reverse
+
+    from apps.core.owner_login import safe_next
+
+    return safe_next(request, request.POST.get("next", ""), reverse("reviews:list"))

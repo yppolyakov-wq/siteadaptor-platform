@@ -155,7 +155,7 @@ def resolve(uid: int, init_lang: str = "", issued: list | None = None, grace: st
         issued.append(_ticket_key(raw))
     cache.set(
         _ticket_key(raw),
-        {"uid": uid, "links": [str(link.pk) for link in found], "lang": lang},
+        {"uid": uid, "links": [str(link.pk) for link in found], "lang": lang, "grace": grace},
         TICKET_TTL,
     )
     return _json(
@@ -366,7 +366,11 @@ def app_choose(request):
     link = links.select(uid, link_id)
     if link is None:
         return _error("ticket", _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403)
-    return _with_locale(ticket.get("lang", ""), lambda: handoff(link, uid, ticket.get("lang", "")))
+    # SEC-A: сессия, открытая через выбор бизнеса, тоже гасится повтором initData (grace).
+    return _with_locale(
+        ticket.get("lang", ""),
+        lambda: handoff(link, uid, ticket.get("lang", ""), grace=ticket.get("grace", "")),
+    )
 
 
 @csrf_exempt
@@ -400,6 +404,14 @@ def app_signup(request):
         logger.info("tg mini app signup: init data rejected (%s)", exc.code)
         return _error(exc.code, _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403)
     uid = data["uid"]
+    # SEC-A5: повтор initData здесь — только с адреса первого входа (как в app_auth);
+    # иначе перехваченная строка привязала бы чужой чат владельцем бизнеса атакующего.
+    grace = cache.get(GRACE_PREFIX + data["digest"])
+    ip = hashlib.sha256(ratelimit.client_ip(request).encode()).hexdigest()
+    if data["replay"] and (not isinstance(grace, dict) or grace.get("ip") != ip):
+        return _error("replay", _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403)
+    if ratelimit.hit("tgapp-uid", str(uid), limit=10, window=600):
+        return _error("rate", _("Zu viele Versuche. Bitte gleich noch einmal."), status=429)
     if not web_signup.allowed(uid):
         return _error("signup_closed", "", status=403)
     web_signup.remember(request, uid=uid, lang=data["language_code"], name=data.get("name", ""))

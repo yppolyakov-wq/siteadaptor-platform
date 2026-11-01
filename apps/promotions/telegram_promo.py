@@ -91,7 +91,18 @@ def owner_ok(tenant, chat, bot_kind: str = "tenant") -> bool:
         return (
             str(chat).isdigit() and links.is_owner(int(chat), tenant) and links.still_owner(tenant)
         )
-    return str(chat) == owner_chat(tenant)
+    from apps.platform_bot import links
+    from apps.telegram.notify import _notify_node
+
+    if str(chat) != owner_chat(tenant):
+        return False
+    # SEC-A3: чат из зеркала — владелец, только пока выпустивший ссылку ещё владелец;
+    # зеркало общего бота принимаем через свой бот лишь при живой связи в таблице.
+    if _notify_node(tenant).get("owner_bot") == links.OWNER_BOT_PLATFORM and not (
+        str(chat).isdigit() and links.is_owner(int(chat), tenant)
+    ):
+        return False
+    return links.still_owner(tenant)
 
 
 def owner_chat(tenant) -> str:
@@ -111,6 +122,7 @@ def is_owner_private(message: dict, tenant) -> bool:
         and str(chat.get("id")) == owner
         and str(sender.get("id")) == owner
         and not sender.get("is_bot")
+        and owner_ok(tenant, owner)  # SEC-A3: владелец ещё владелец (still_owner)
     )
 
 
@@ -811,7 +823,12 @@ def handle_callback(bot, callback: dict, tenant) -> str:
     services.answer_callback_query(bot.token, cid)
     with translation.override(bot_locale(sender, tenant)):
         owner = owner_chat(tenant)
-        if not owner or str(sender.get("id")) != owner or chat != owner:
+        if (
+            not owner
+            or str(sender.get("id")) != owner
+            or chat != owner
+            or not owner_ok(tenant, chat)
+        ):
             services.answer_callback_query(bot.token, cid, _("Nicht erlaubt."))
             return "denied"
         return _dispatch_callback(bot, callback, tenant, connection.schema_name)

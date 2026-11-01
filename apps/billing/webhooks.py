@@ -50,20 +50,92 @@ def _tenant_from_object(obj: dict) -> Tenant | None:
     return None
 
 
+# SEC-D1: виды событий, которые приходят ТОЛЬКО с connected-аккаунта бизнеса. Для них
+# `event.account` обязан совпадать со `stripe_connect_id` тенанта из metadata — иначе
+# владелец с подключённым Stripe создал бы Checkout у СЕБЯ с чужой metadata (оплатить
+# чужой заказ «за копейку», выпустить себе Pass, активировать подписку без оплаты).
+CONNECT_KINDS = frozenset(
+    {
+        "booking_deposit",
+        "order_payment",
+        "stay_deposit",
+        "deal_balance",
+        "gift_voucher",
+        "job_deposit",
+        "pass_purchase",
+        "event_ticket",
+        "event_installment",
+    }
+)
+
+
+def _connect_account_ok(meta: dict, account: str) -> bool:
+    schema = str(meta.get("tenant_schema") or "")
+    if not account or not schema:
+        return False
+    connect_id = (
+        Tenant.objects.filter(schema_name=schema)
+        .values_list("stripe_connect_id", flat=True)
+        .first()
+    )
+    return bool(connect_id) and connect_id == account
+
+
 def handle_event(event_type: str, obj: dict, account: str = "") -> None:
-    """Применить эффект события к арендатору (идемпотентно через SM)."""
+    """Применить эффект события к арендатору (идемпотентно через SM).
+
+    SEC-D1: источник события — часть авторизации. Connect-виды принимаются только от
+    аккаунта своего бизнеса; платформенные (подписка, featured) — только без `account`;
+    `account.updated` — только о самом себе. Чужое отбрасывается с логом, без эффекта.
+    """
     meta = obj.get("metadata") or {}
+    kind = str(meta.get("kind") or "")
+
+    if kind in CONNECT_KINDS:
+        if not _connect_account_ok(meta, account):
+            logger.error(
+                "stripe webhook %s/%s: account mismatch (schema=%s, account=%s) — dropped",
+                event_type,
+                kind,
+                meta.get("tenant_schema"),
+                account or "-",
+            )
+            return
+    elif event_type == "account.updated":
+        if not account or str(obj.get("id") or "") != account:
+            logger.error("stripe webhook account.updated: object/account mismatch — dropped")
+            return
+    elif account:
+        # Платформенные события (подписка, featured, без kind) с connected-аккаунта —
+        # подделка metadata: `client_reference_id`/`tenant_id` там выбирает отправитель.
+        logger.error(
+            "stripe webhook %s from connected account %s — dropped (platform-only kind %r)",
+            event_type,
+            account,
+            kind,
+        )
+        return
 
     # Разовый платёж за продвижение листинга (P2.4b) — не подписка: ставим срок
     # на сам листинг (public-схема), статус подписки не трогаем. Различаем по
     # metadata.kind, проставленному в create_featured_checkout_session.
     if event_type == "checkout.session.completed" and meta.get("kind") == "featured":
+        from . import featured
+
+        # SEC-D1: срок — только из таблицы планов (metadata несёт отправитель).
+        try:
+            plan = featured.get_plan(int(meta.get("days") or 0))
+        except (TypeError, ValueError):
+            plan = None
+        if plan is None:
+            logger.error("stripe webhook featured: days %r not a plan — dropped", meta.get("days"))
+            return
         ok = services.apply_featured_purchase(
             tenant_schema=meta.get("tenant_schema", ""),
             promo_uuid=meta.get("promo_uuid", ""),
             listing_kind=meta.get("listing_kind", ""),
             source_ref=meta.get("source_ref", ""),
-            days=meta.get("days", 0),
+            days=plan.days,
             payment_ref=obj.get("payment_intent") or obj.get("id", ""),
         )
         if not ok:
@@ -235,6 +307,11 @@ def stripe_webhook(request):
     """Эндпоинт Stripe-вебхука (public-схема)."""
     payload = request.body
     sig = request.META.get("HTTP_STRIPE_SIGNATURE", "")
+    if not settings.STRIPE_WEBHOOK_SECRET:
+        # SEC-D2: HMAC с пустым ключом вычислит кто угодно — construct_event принял бы
+        # любую подделку. Без секрета вебхук выключен (503 → Stripe повторит после настройки).
+        logger.error("stripe webhook: STRIPE_WEBHOOK_SECRET is not configured")
+        return HttpResponse(status=503)
     try:
         event = stripe.Webhook.construct_event(payload, sig, settings.STRIPE_WEBHOOK_SECRET)
     except ValueError:

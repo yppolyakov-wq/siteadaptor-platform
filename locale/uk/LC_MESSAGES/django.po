@@ -31673,3 +31673,7 @@ msgstr "Напишіть одним реченням, що додається, �
 
 msgid "Mehreres auf einmal anlegen — in einem Satz beschreiben"
 msgstr "Створити кілька позицій одразу — опишіть одним реченням"
+
+#: apps/promotions/public_views.py
+msgid "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."
+msgstr "Не вдалося передати заяву. Спробуйте ще раз або напишіть нам безпосередньо."

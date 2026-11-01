@@ -3,6 +3,7 @@
 from datetime import timedelta
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from apps.core.roles import has_cabinet_access
@@ -16,15 +17,25 @@ def retention_days() -> int:
     return int(getattr(settings, "DOCUMENT_RETENTION_DAYS", 90) or 90)
 
 
+def _default_expiry():
+    """SEC-G4: документ без привязанной поездки живёт retention от загрузки — иначе
+    `expires_at` оставался NULL и паспортные сканы из ЛК хранились вечно."""
+    return timezone.localdate() + timedelta(days=retention_days())
+
+
 def _ticket_expiry(ref_kind: str, ref_id: str):
-    """Дата удаления по привязанной сделке: конец поездки + retention."""
+    """Дата удаления по привязанной сделке: конец поездки + retention; без сделки —
+    retention от загрузки."""
     if ref_kind != "ticket" or not ref_id:
-        return None
+        return _default_expiry()
     from apps.events.models import Ticket
 
-    ticket = Ticket.objects.filter(pk=ref_id).select_related("event").first()
+    try:
+        ticket = Ticket.objects.filter(pk=ref_id).select_related("event").first()
+    except (ValueError, ValidationError):  # мусорный ref_id — не 500 и не «вечно»
+        ticket = None
     if ticket is None:
-        return None
+        return _default_expiry()
     event = ticket.event
     end = event.ends_at or event.starts_at
     return (end + timedelta(days=retention_days())).date()
@@ -84,6 +95,10 @@ def purge(document) -> None:
 def purge_expired(today=None) -> int:
     """Удалить документы с истёкшим сроком. → сколько удалено (для beat/логов)."""
     today = today or timezone.localdate()
+    # Легаси-строки без срока (до SEC-G4) — retention от загрузки.
+    SecureDocument.objects.filter(expires_at__isnull=True).update(
+        expires_at=today + timedelta(days=retention_days())
+    )
     stale = list(SecureDocument.objects.filter(expires_at__lt=today))
     for document in stale:
         purge(document)

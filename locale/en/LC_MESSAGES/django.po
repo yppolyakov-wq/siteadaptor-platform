@@ -31407,3 +31407,7 @@ msgstr "Write in one sentence what is new — you get a plan with prefilled form
 
 msgid "Mehreres auf einmal anlegen — in einem Satz beschreiben"
 msgstr "Create several things at once — describe them in one sentence"
+
+#: apps/promotions/public_views.py
+msgid "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."
+msgstr "Your declaration could not be delivered. Please try again or contact us directly."

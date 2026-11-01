@@ -49,7 +49,16 @@ SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 
 # Sentry
-_SENTRY_SCRUB_PATHS = ("/tg/",)
+_SENTRY_SCRUB_PATHS = ("/tg/", "/start/", "/anmelden/", "/team/beitreten/", "/konto/login/")
+# SEC-A1/G4: токены ботов живут в URL Bot API (текст HTTPError), ключи Stripe/вебхука —
+# в редких исключениях SDK. Вырезаем из текста исключений, логов и breadcrumbs.
+_SENTRY_SECRET_RE = __import__("re").compile(
+    r"bot\d+:[A-Za-z0-9_-]+|sk_(?:live|test)_[A-Za-z0-9]+|whsec_[A-Za-z0-9]+|rk_(?:live|test)_[A-Za-z0-9]+"
+)
+
+
+def _sentry_scrub_text(value):
+    return _SENTRY_SECRET_RE.sub("<secret>", value) if isinstance(value, str) else value
 
 
 def _sentry_tg_path(value) -> bool:
@@ -78,6 +87,25 @@ def _sentry_before_send(event, hint):
         for name in [k for k in headers if k.lower() == "referer"]:
             if _sentry_tg_path(headers[name]):
                 headers.pop(name)
+    for item in (event.get("exception") or {}).get("values") or []:
+        if isinstance(item, dict):
+            item["value"] = _sentry_scrub_text(item.get("value"))
+    entry = event.get("logentry")
+    if isinstance(entry, dict):
+        for key in ("message", "formatted"):
+            entry[key] = _sentry_scrub_text(entry.get(key))
+        params = entry.get("params")
+        if isinstance(params, list):
+            entry["params"] = [_sentry_scrub_text(p) for p in params]
+    for crumb in (event.get("breadcrumbs") or {}).get("values") or []:
+        if isinstance(crumb, dict):
+            crumb["message"] = _sentry_scrub_text(crumb.get("message"))
+    # Аргументы Celery-задач несут e-mail, текст сообщений владельца, хэш пароля
+    # регистрации — Sentry они не нужны (имя задачи остаётся).
+    job = (event.get("extra") or {}).get("celery-job")
+    if isinstance(job, dict):
+        job.pop("args", None)
+        job.pop("kwargs", None)
     return event
 
 
@@ -91,6 +119,8 @@ if SENTRY_DSN:
         # AI-0: локальные переменные кадров несут промпты ИИ и заголовки с ключами
         # провайдеров — в Sentry не отправляем.
         include_local_variables=False,
+        # Тела запросов витрины несут имена, адреса, свободный текст о здоровье (анкеты).
+        max_request_body_size="never",
         before_send=_sentry_before_send,
         before_send_transaction=_sentry_before_send,
         environment=env("SENTRY_ENVIRONMENT", default="production"),

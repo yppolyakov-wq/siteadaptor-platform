@@ -5907,7 +5907,13 @@ def notifications_settings(request):
             "nav": "notifications",
             "matrix": prefs.customer_matrix(tenant),
             "owner": prefs.owner_channels(tenant),
-            "owner_deep_link": owner_deep_link(tenant),
+            # SEC-A3: ссылка «свой бот» — только владельцу канала (sensitive `kanaele.edit`);
+            # сотруднику с einstellungen.view она делала его чатом владельца.
+            "owner_deep_link": (
+                owner_deep_link(tenant, user=request.user)
+                if has_perm(request.user, "kanaele.edit")
+                else ""
+            ),
             "owner_linked": owner_linked,
             "owner_via": owner_via if owner_linked else "",
             # T-8.10h H-3: подключение к общему боту — только владельцу бизнеса.

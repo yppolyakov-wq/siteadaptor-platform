@@ -31551,3 +31551,7 @@ msgstr "Yeni ne ekleneceğini tek cümleyle yazın — önceden doldurulmuş for
 
 msgid "Mehreres auf einmal anlegen — in einem Satz beschreiben"
 msgstr "Birden fazla şeyi tek seferde oluşturun — tek cümleyle anlatın"
+
+#: apps/promotions/public_views.py
+msgid "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."
+msgstr "Beyanınız iletilemedi. Lütfen tekrar deneyin veya doğrudan bize yazın."

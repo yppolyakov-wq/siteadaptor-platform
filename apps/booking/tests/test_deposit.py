@@ -11,6 +11,7 @@ from apps.billing import webhooks
 from apps.booking.models import Booking, Resource
 from apps.booking.payments import mark_deposit_paid
 from apps.promotions.models import Customer
+from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -71,6 +72,8 @@ def test_mark_deposit_paid_unknown_booking():
 
 def test_webhook_booking_deposit_marks_paid():
     b = _booking()
+    # SEC-D1: connect-событие принимается только от аккаунта этого бизнеса.
+    TenantFactory(schema_name=connection.schema_name, stripe_connect_id="acct_t")
     webhooks.handle_event(
         "checkout.session.completed",
         {
@@ -81,6 +84,7 @@ def test_webhook_booking_deposit_marks_paid():
                 "booking_id": str(b.id),
             },
         },
+        account="acct_t",
     )
     b.refresh_from_db()
     assert b.payment_state == Booking.PAYMENT_PAID

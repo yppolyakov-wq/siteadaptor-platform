@@ -1792,6 +1792,12 @@ def voucher_redeem(request):
         expect_used = int(expect) if expect.isascii() and expect.isdigit() else None
         code = (request.POST.get("code") or "").strip().upper()
         back_to_card = f"{reverse('promotions:voucher-redeem')}?{urlencode({'code': code})}"
+        from apps.core import ratelimit
+
+        # SEC-A: перебор кодов ваучеров/сертификатов с прилавка (в т.ч. из Mini App).
+        if ratelimit.hit("voucher-redeem", str(request.user.pk), limit=30, window=600):
+            messages.error(request, _("Zu viele Versuche. Bitte gleich noch einmal."))
+            return redirect("promotions:voucher-redeem")
         is_balance = (
             Voucher.objects.filter(code=code).exclude(balance_cents=None).exists()
             if code

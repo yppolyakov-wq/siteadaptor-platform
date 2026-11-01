@@ -740,7 +740,13 @@ def _erase_callback(bot, uid, arg: str) -> str:
     if not expected or nonce != expected or not cache.delete(_erase_key(bot, uid)):
         send(bot, uid, _("Abgelaufen. Bitte /daten_loeschen erneut senden."))
         return "erase_expired"
-    return erase(bot, uid)
+    try:
+        return erase(bot, uid)
+    except Exception:
+        # SEC-A6: сбой удаления не сжигает подтверждение — nonce обратно, просим повторить.
+        cache.set(_erase_key(bot, uid), expected, 600)
+        send(bot, uid, _("Abgelaufen. Bitte /daten_loeschen erneut senden."))
+        raise
 
 
 def erase(bot, uid) -> str:

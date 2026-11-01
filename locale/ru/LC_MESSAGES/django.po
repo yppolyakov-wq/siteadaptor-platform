@@ -31689,3 +31689,7 @@ msgstr "Напишите одним предложением, что добав�
 
 msgid "Mehreres auf einmal anlegen — in einem Satz beschreiben"
 msgstr "Создать несколько позиций сразу — опишите одним предложением"
+
+#: apps/promotions/public_views.py
+msgid "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."
+msgstr "Не удалось передать заявление. Попробуйте ещё раз или напишите нам напрямую."

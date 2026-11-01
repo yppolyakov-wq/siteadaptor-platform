@@ -47,9 +47,8 @@ def consume_magic_link(token: str) -> dict | None:
     """Payload токена; ключ удаляется ДО использования (одноразовость)."""
     key = _token_key(token)
     payload = cache.get(key)
-    if payload is None:
-        return None
-    cache.delete(key)
+    if payload is None or not cache.delete(key):
+        return None  # SEC-B1: параллельный повтор ссылки не входит дважды
     return payload
 
 

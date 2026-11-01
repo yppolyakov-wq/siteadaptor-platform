@@ -12,6 +12,7 @@ from apps.core.tests.dates import future_month_start
 from apps.promotions.models import Customer
 from apps.stays.models import StayBooking, StayUnit
 from apps.stays.payments import mark_stay_paid
+from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -77,6 +78,8 @@ def test_mark_stay_paid_unknown_booking():
 
 def test_webhook_stay_deposit_marks_paid():
     b = _booking()
+    # SEC-D1: connect-событие принимается только от аккаунта этого бизнеса.
+    TenantFactory(schema_name=connection.schema_name, stripe_connect_id="acct_t")
     webhooks.handle_event(
         "checkout.session.completed",
         {
@@ -87,6 +90,7 @@ def test_webhook_stay_deposit_marks_paid():
                 "booking_id": str(b.id),
             },
         },
+        account="acct_t",
     )
     b.refresh_from_db()
     assert b.payment_state == StayBooking.PAYMENT_PAID

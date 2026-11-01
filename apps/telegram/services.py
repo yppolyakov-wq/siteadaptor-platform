@@ -2,32 +2,75 @@
 
 Внешние вызовы изолированы здесь (в тестах застаблены). Webhook ставится на
 домен арендатора (public-схема), как и публичные ссылки в publishing.adapters.
+
+SEC-A1 (аудит безопасности 2026-11-01): URL каждого вызова содержит токен бота, а текст
+`requests.HTTPError`/`ConnectionError` — этот URL. Поэтому наружу из модуля уходит ТОЛЬКО
+`TelegramAPIError` без URL и без цепочки исключений (`from None`); у ошибки есть `.status`
+и `.response` (объект ответа, его `str()` — `<Response [403]>`). Любой `logger.exception`
+вокруг вызовов Telegram по-прежнему запрещён замком (`test_sec_a_token_leak`).
 """
 
 import json
+import re
 
 import requests
 from django.db import connection
 from django_tenants.utils import schema_context
 
 _API = "https://api.telegram.org"
+_TOKEN_RE = re.compile(r"bot\d+:[A-Za-z0-9_-]+")
+
+
+def scrub(text) -> str:
+    """Замаскировать токен бота в произвольном тексте (логи, last_error, Sentry)."""
+    return _TOKEN_RE.sub("bot<token>", str(text or ""))
+
+
+class TelegramAPIError(requests.RequestException):
+    """Ошибка Bot API без URL (= без токена). `status` — HTTP-код или None (сеть/таймаут)."""
+
+    def __init__(self, method: str, status: int | None = None, kind: str = "", response=None):
+        self.method = method
+        self.status = status
+        self.kind = kind
+        super().__init__(f"telegram {method} failed ({status or kind or 'error'})")
+        # requests.RequestException.__init__ кладёт response/request в атрибуты только из
+        # kwargs; URL в объекте ответа есть, но в текст исключения он не попадает.
+        self.response = response
+        self.request = None
 
 
 def _endpoint(token: str, method: str) -> str:
     return f"{_API}/bot{token}/{method}"
 
 
+def _call(http, token: str, method: str, **kwargs):
+    """HTTP-вызов Bot API; любая ошибка → TelegramAPIError без URL и без контекста."""
+    error = None
+    try:
+        response = http(_endpoint(token, method), **kwargs)
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        error = TelegramAPIError(method, status=status, response=exc.response)
+    except requests.RequestException as exc:
+        error = TelegramAPIError(method, kind=type(exc).__name__)
+    if error is not None:
+        # Поднимаем ВНЕ `except`: иначе Python положит исходное исключение (с URL и
+        # токеном) в `__context__`, и трейсбэк/Sentry всё равно его напечатают.
+        raise error
+    return response
+
+
 def get_me(token: str) -> dict:
-    response = requests.get(_endpoint(token, "getMe"), timeout=15)
-    response.raise_for_status()
-    return response.json().get("result", {})
+    return _call(requests.get, token, "getMe", timeout=15).json().get("result", {})
 
 
 def leave_chat(token: str, chat_id) -> None:
     """T-8.10h: выйти из группы/канала (общий бот работает только в личных чатах).
-    Ошибка не всплывает: в её тексте URL с токеном бота."""
+    Ошибка не всплывает."""
     try:
-        requests.post(_endpoint(token, "leaveChat"), data={"chat_id": chat_id}, timeout=10)
+        _call(requests.post, token, "leaveChat", data={"chat_id": chat_id}, timeout=10)
     except Exception:  # noqa: BLE001
         pass
 
@@ -36,31 +79,16 @@ def send_message(token: str, chat_id, text: str, reply_markup=None) -> dict:
     data = {"chat_id": chat_id, "text": text}
     if reply_markup is not None:
         data["reply_markup"] = json.dumps(reply_markup)
-    response = requests.post(_endpoint(token, "sendMessage"), data=data, timeout=20)
-    response.raise_for_status()
-    return response.json().get("result", {})
-
-
-def get_file_url(token: str, file_id: str) -> str:
-    """Ссылка на скачивание файла из Telegram (MT-3b: фото/документы из группы).
-
-    Bot API отдаёт файлы до 20 МБ; на больший файл вернём "" — вызывающий
-    сохранит запись без вложения, а не потеряет сообщение целиком.
-    """
-    try:
-        response = requests.get(
-            _endpoint(token, "getFile"), params={"file_id": file_id}, timeout=20
-        )
-        response.raise_for_status()
-        path = (response.json().get("result") or {}).get("file_path") or ""
-    except Exception:  # noqa: BLE001 — мост не должен ронять приём апдейта
-        return ""
-    return f"{_API}/file/bot{token}/{path}" if path else ""
+    return (
+        _call(requests.post, token, "sendMessage", data=data, timeout=20).json().get("result", {})
+    )
 
 
 def set_webhook(token: str, url: str, secret_token: str) -> dict:
-    response = requests.post(
-        _endpoint(token, "setWebhook"),
+    return _call(
+        requests.post,
+        token,
+        "setWebhook",
         data={
             "url": url,
             "secret_token": secret_token,
@@ -68,9 +96,7 @@ def set_webhook(token: str, url: str, secret_token: str) -> dict:
             "allowed_updates": '["message", "my_chat_member", "callback_query"]',
         },
         timeout=20,
-    )
-    response.raise_for_status()
-    return response.json()
+    ).json()
 
 
 def answer_callback_query(token: str, callback_id: str, text: str = "") -> None:
@@ -79,7 +105,7 @@ def answer_callback_query(token: str, callback_id: str, text: str = "") -> None:
     if text:
         data["text"] = text[:200]
     try:
-        requests.post(_endpoint(token, "answerCallbackQuery"), data=data, timeout=10)
+        _call(requests.post, token, "answerCallbackQuery", data=data, timeout=10)
     except Exception:  # noqa: BLE001 — нажатие обработаем и без ответа на «часики»
         pass
 
@@ -89,7 +115,7 @@ def edit_message_reply_markup(token: str, chat_id, message_id, reply_markup=None
     data = {"chat_id": chat_id, "message_id": message_id}
     data["reply_markup"] = json.dumps(reply_markup or {"inline_keyboard": []})
     try:
-        requests.post(_endpoint(token, "editMessageReplyMarkup"), data=data, timeout=10)
+        _call(requests.post, token, "editMessageReplyMarkup", data=data, timeout=10)
     except Exception:  # noqa: BLE001 — кнопки останутся, повторное нажатие идемпотентно
         pass
 
@@ -103,13 +129,14 @@ def send_document(token: str, chat_id, filename: str, content: bytes, caption: s
     data = {"chat_id": chat_id}
     if caption:
         data["caption"] = caption[:CAPTION_MAX]
-    response = requests.post(
-        _endpoint(token, "sendDocument"),
+    response = _call(
+        requests.post,
+        token,
+        "sendDocument",
         data=data,
         files={"document": (filename, content, "application/json")},
         timeout=30,
     )
-    response.raise_for_status()
     return response.json().get("result", {})
 
 
@@ -118,9 +145,7 @@ def send_photo(token: str, chat_id, file_id: str, caption: str, reply_markup=Non
     data = {"chat_id": chat_id, "photo": file_id, "caption": caption[:CAPTION_MAX]}
     if reply_markup is not None:
         data["reply_markup"] = json.dumps(reply_markup)
-    response = requests.post(_endpoint(token, "sendPhoto"), data=data, timeout=20)
-    response.raise_for_status()
-    return response.json().get("result", {})
+    return _call(requests.post, token, "sendPhoto", data=data, timeout=20).json().get("result", {})
 
 
 DOWNLOAD_MAX = 10 * 1024 * 1024
@@ -130,8 +155,7 @@ def download_file(token: str, file_id: str, max_bytes: int = DOWNLOAD_MAX) -> by
     """Байты файла из Telegram (фото акции) или None. Хост — константа API (SSRF
     неприменим); URL файла содержит токен бота — в лог его НЕ пишем."""
     try:
-        meta = requests.get(_endpoint(token, "getFile"), params={"file_id": file_id}, timeout=20)
-        meta.raise_for_status()
+        meta = _call(requests.get, token, "getFile", params={"file_id": file_id}, timeout=20)
         result = meta.json().get("result") or {}
         if int(result.get("file_size") or 0) > max_bytes:
             return None
@@ -156,28 +180,27 @@ def set_my_commands(token: str, commands: list[dict], language_code: str = "") -
     data = {"commands": json.dumps(commands)}
     if language_code:
         data["language_code"] = language_code
-    response = requests.post(_endpoint(token, "setMyCommands"), data=data, timeout=5)
-    response.raise_for_status()
+    _call(requests.post, token, "setMyCommands", data=data, timeout=5)
 
 
 def set_chat_menu_button(token: str, *, url: str, text: str) -> None:
     """T-8.30: кнопка меню всех личных чатов бота — открывает Mini App (web_app)."""
     button = {"type": "web_app", "text": text, "web_app": {"url": url}}
-    data = {"menu_button": json.dumps(button)}
-    response = requests.post(_endpoint(token, "setChatMenuButton"), data=data, timeout=5)
-    response.raise_for_status()
+    _call(
+        requests.post,
+        token,
+        "setChatMenuButton",
+        data={"menu_button": json.dumps(button)},
+        timeout=5,
+    )
 
 
 def get_webhook_info(token: str, timeout: int = 15) -> dict:
-    response = requests.get(_endpoint(token, "getWebhookInfo"), timeout=timeout)
-    response.raise_for_status()
-    return response.json().get("result", {})
+    return _call(requests.get, token, "getWebhookInfo", timeout=timeout).json().get("result", {})
 
 
 def delete_webhook(token: str) -> dict:
-    response = requests.post(_endpoint(token, "deleteWebhook"), timeout=20)
-    response.raise_for_status()
-    return response.json()
+    return _call(requests.post, token, "deleteWebhook", timeout=20).json()
 
 
 def tenant_base_url() -> str:

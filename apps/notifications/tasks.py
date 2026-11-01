@@ -29,7 +29,10 @@ def deliver(notification_id) -> str:
     try:
         adapters.send(notification)
     except Exception as exc:  # noqa: BLE001 — ошибку доставки фиксируем в last_error
-        notification.last_error = str(exc)[:500]
+        # SEC-A1: текст ошибки Telegram/почты может нести токен бота в URL — маскируем.
+        from apps.telegram.services import scrub
+
+        notification.last_error = scrub(str(exc))[:500]
         notification.save(update_fields=["attempts", "last_error", "updated_at"])
         sm.apply(notification, FAILED)
         return "failed"

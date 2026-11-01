@@ -6,6 +6,8 @@
 просто нет (404), кнопка на витрине тоже скрыта.
 """
 
+import logging
+
 import stripe
 from django.contrib import messages
 from django.core.exceptions import ValidationError
@@ -26,6 +28,7 @@ from .services import EmptyOrder, OutOfStock, create_order
 CART_SESSION_KEY = "cart"
 RL_LIMIT = 5  # оформлений на IP
 RL_WINDOW = 600  # за 10 минут
+logger = logging.getLogger(__name__)
 # Поиск по короткому reference_code (подтверждение/повтор) — троттлим перебор:
 # щедрый лимит (легитимный клиент открывает свою страницу пару раз), но энумерация
 # 30-битного кода становится непрактичной. MEDIUM-6.
@@ -551,6 +554,11 @@ def cart_apply_code(request):
     from apps.loyalty.models import Voucher
 
     code = (request.POST.get("code") or "").strip().upper()[:12]
+    # SEC-D7: перебор кодов сертификатов (GS-XXXXXX, баланс до 2000 €) — лимит на IP.
+    if ratelimit.hit("cart_code", ratelimit.client_ip(request), limit=10, window=RL_WINDOW):
+        request.session.pop(PROMO_SESSION_KEY, None)
+        messages.error(request, _("This code is invalid or expired."))
+        return redirect("storefront-cart")
     voucher = Voucher.objects.filter(code=code).first() if code else None
     if voucher is None or not voucher.has_order_discount or not voucher.is_redeemable:
         request.session.pop(PROMO_SESSION_KEY, None)
@@ -637,7 +645,11 @@ def wishlist_toggle(request, pk, kind="product"):
     state = wishlist.toggle(request, pk, kind)
     if _is_ajax(request):
         return JsonResponse({"ok": True, "on": state, "count": wishlist.count(request)})
-    return redirect(request.POST.get("next") or "storefront-wishlist")
+    from apps.core.owner_login import safe_next
+
+    return redirect(
+        safe_next(request, request.POST.get("next", ""), reverse("storefront-wishlist"))
+    )
 
 
 def _attach_wish_promos(products):
@@ -1227,8 +1239,8 @@ def checkout(request):
             from apps.finance.services import issue_invoice_for_deal
 
             issue_invoice_for_deal("order", order, tenant)
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as exc:  # noqa: BLE001 — заказ уже создан; владелец выставит счёт кнопкой
+            logger.warning("order %s: B2B invoice failed: %s", order.pk, type(exc).__name__)
 
     # E7-2: маршрутизация по выбранному способу. vorkasse → подтверждение с
     # реквизитами (без Stripe); stripe (P2.5c) → Stripe Checkout на счёт бизнеса;
@@ -1243,10 +1255,11 @@ def checkout(request):
                     order, tenant, success_url=order_url + "?paid=1", cancel_url=order_url
                 )
             )
-        except stripe.error.StripeError:
-            # Оплата временно недоступна — заказ остаётся, оплата при получении.
-            order.payment_method = Order.METHOD_ON_SITE
-            order.save(update_fields=["payment_method", "updated_at"])
+        except stripe.error.StripeError as exc:
+            # SEC (аудит 2026-11-01): Stripe временно недоступен — заказ остаётся ОНЛАЙН-
+            # оплатой (кнопка «Jetzt bezahlen» на подтверждении), а не молча «на месте».
+            logger.warning("order %s: stripe checkout failed: %s", order.pk, type(exc).__name__)
+            messages.error(request, _("Payment could not be started — please try again."))
     elif chosen_method == Order.METHOD_STRIPE:  # total == 0 — платить нечего
         order.payment_method = Order.METHOD_ON_SITE
         order.save(update_fields=["payment_method", "updated_at"])
@@ -1258,6 +1271,9 @@ def order_pay(request, code):
     заказа (URL сессии не хранится, создаётся на лету). Не stripe/уже оплачен/
     не new → назад на подтверждение (без 500)."""
     _require_orders_active(request)
+    # SEC-E1: подбор кода (404 ↔ 302 — оракул) и Stripe-сессия на каждый GET — лимит на IP.
+    if ratelimit.hit("order_pay", ratelimit.client_ip(request), limit=20, window=RL_WINDOW):
+        return HttpResponse(status=429)
     order = get_object_or_404(Order, reference_code=code)
     tenant = request.tenant
     payable = (
@@ -1291,7 +1307,7 @@ def order_confirmation(request, code):
     ):
         return HttpResponse(status=429)
     order = get_object_or_404(Order, reference_code=code)
-    from apps.telegram.notify import deep_link
+    from apps.telegram.notify import deep_link_for_page
 
     return render(
         request,
@@ -1300,7 +1316,7 @@ def order_confirmation(request, code):
             "order": order,
             "just_paid": request.GET.get("paid") == "1",
             # TG3: кнопка привязки к Telegram-боту (пусто, если бот не настроен).
-            "telegram_link": deep_link(order.customer),
+            "telegram_link": deep_link_for_page(request, order.customer),
         },
     )
 

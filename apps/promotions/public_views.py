@@ -2341,7 +2341,11 @@ def set_language(request):
     lang = request.GET.get("lang", "")
     if lang not in allowed:
         lang = fallback
-    resp = redirect(request.GET.get("next") or reverse("storefront-home"))
+    from apps.core.owner_login import safe_next
+
+    # SEC-E5: `next` — только локальный путь этого хоста (был открытый редирект с
+    # доверенного HSTS-домена на любой сайт).
+    resp = redirect(safe_next(request, request.GET.get("next", ""), reverse("storefront-home")))
     resp.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang, max_age=60 * 60 * 24 * 365)
     return resp
 
@@ -3075,13 +3079,25 @@ def withdrawal_form(request):
         if not (data["name"] and data["goods"]):
             messages.error(request, _("Please enter your name and the goods."))
             return render(request, "storefront/withdrawal_form.html", {"data": data})
-        _deliver_withdrawal(request, tenant, data)
+        if not _deliver_withdrawal(request, tenant, data):
+            # SEC (аудит 2026-11-01): заявление §312k не дошло ни одним каналом — честно
+            # говорим об этом, а не показываем «отправлено».
+            messages.error(
+                request,
+                _(
+                    "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es "
+                    "erneut oder schreiben Sie uns direkt."
+                ),
+            )
+            return render(request, "storefront/withdrawal_form.html", {"data": data})
         return render(request, "storefront/withdrawal_form.html", {"sent": True, "data": data})
     return render(request, "storefront/withdrawal_form.html", {"data": {}})
 
 
-def _deliver_withdrawal(request, tenant, data):
-    """Доставить заявление о Widerruf продавцу: inbox-тред (если активен) + email."""
+def _deliver_withdrawal(request, tenant, data) -> bool:
+    """Доставить заявление о Widerruf продавцу: inbox-тред (если активен) + email.
+    → дошло ли хотя бы одним каналом (сбои логируются, не глотаются)."""
+    delivered = False
     decl = (
         "Widerruf eines Kaufvertrags\n\n"
         f"Hiermit widerrufe ich den Vertrag über den Kauf folgender Waren:\n{data['goods']}\n\n"
@@ -3103,8 +3119,9 @@ def _deliver_withdrawal(request, tenant, data):
                 email=data["email"],
                 phone="",
             )
-        except Exception:
-            pass
+            delivered = True
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("widerruf: inbox thread failed: %s", type(exc).__name__)
     # 2) письмо продавцу (фиксирует Widerruf независимо от inbox).
     to = tenant.public_email or tenant.contact_email
     if to:
@@ -3116,10 +3133,12 @@ def _deliver_withdrawal(request, tenant, data):
                 decl,
                 getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
                 [to],
-                fail_silently=True,
+                fail_silently=False,
             )
-        except Exception:
-            pass
+            delivered = True
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("widerruf: mail to merchant failed: %s", type(exc).__name__)
+    return delivered
 
 
 def loyalty_card_qr(request, token):

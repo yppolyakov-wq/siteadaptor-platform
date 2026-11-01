@@ -120,7 +120,7 @@ def push_to_group(post) -> bool:
     text = f"{post.author_label}: {post.body}".strip()
     try:
         send_message(bot.token, space.tg_chat_id, text[:4000])
-    except Exception:  # noqa: BLE001
-        logger.exception("telegram push failed for post %s", post.pk)
+    except Exception as exc:  # noqa: BLE001 — текст ошибки Telegram несёт URL с токеном (SEC-A1)
+        logger.warning("telegram push failed for post %s: %s", post.pk, type(exc).__name__)
         return False
     return True

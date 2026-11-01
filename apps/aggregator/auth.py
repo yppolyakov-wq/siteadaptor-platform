@@ -42,9 +42,8 @@ def consume_magic_link(token: str) -> dict | None:
     """Payload токена; ключ удаляется ДО использования (одноразовость)."""
     key = f"ml_token:{_hash(token)}"
     payload = cache.get(key)
-    if payload is None:
-        return None
-    cache.delete(key)
+    if payload is None or not cache.delete(key):
+        return None  # SEC-B1: одноразовость под гонкой
     return payload
 
 
@@ -53,6 +52,7 @@ def login(request, email: str) -> PortalUser:
     user, _created = PortalUser.objects.get_or_create(email=email.strip().lower())
     user.last_login_at = timezone.now()
     user.save(update_fields=["last_login_at", "updated_at"])
+    request.session.cycle_key()  # SEC-B6: без фиксации сессии
     request.session[SESSION_KEY] = user.pk
     request.session.set_expiry(SESSION_AGE)
     return user

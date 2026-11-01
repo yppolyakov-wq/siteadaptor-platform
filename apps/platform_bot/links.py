@@ -147,22 +147,28 @@ def mark_blocked(tg_user_id: int) -> int:
     ).update(blocked_at=timezone.now(), updated_at=timezone.now())
 
 
-def claim_for_tenant_bot(tenant, chat_id, *, rotate_token: str) -> None:
+def claim_for_tenant_bot(tenant, chat_id, *, rotate_token: str, user_pk=None) -> None:
     """Владелец подключил СВОЙ бот бизнеса (`/start owner-…`): уведомления владельцу
     идут своим ботом, токен deep link ротируется (одноразовый).
 
     T-8.29 (Р-1 владельца): связи общего бота НЕ гаснут — акции через общий бот и
-    Mini App «Mein Laden» продолжают работать; меняется только маршрут уведомлений."""
+    Mini App «Mein Laden» продолжают работать; меняется только маршрут уведомлений.
+    SEC-A3: ``user_pk`` — кто выпустил ссылку (из `owner_deep_link`); пишется в
+    `owner_user_pk`, чтобы `still_owner` гасил права и у чата своего бота."""
     with transaction.atomic():
         locked = _lock(tenant.pk)
-        tenant.site_config = _write_mirror(
-            locked,
-            owner_chat_id=str(chat_id),
-            owner_bot=OWNER_BOT_TENANT,
-            owner_link_token=rotate_token,
-            # owner_user_pk НЕ трогаем (ревью T-8.29, HIGH): связь общего бота остаётся,
-            # а still_owner() по этой метке гасит её у удалённого/пониженного владельца.
-        )
+        changes = {
+            "owner_chat_id": str(chat_id),
+            "owner_bot": OWNER_BOT_TENANT,
+            "owner_link_token": rotate_token,
+            "owner_link_token_at": None,
+            "owner_link_user_pk": None,
+        }
+        if user_pk:
+            changes["owner_user_pk"] = int(user_pk)
+        # Без user_pk owner_user_pk НЕ трогаем (ревью T-8.29, HIGH): связь общего бота
+        # остаётся, а still_owner() по этой метке гасит её у удалённого владельца.
+        tenant.site_config = _write_mirror(locked, **changes)
 
 
 def disconnect(tenant) -> None:
@@ -175,6 +181,25 @@ def disconnect(tenant) -> None:
         tenant.site_config = _write_mirror(
             locked, owner_chat_id=None, owner_bot=None, owner_user_pk=None
         )
+
+
+def release_user(tenant, user_pk) -> bool:
+    """SEC-A3: пользователь перестал быть владельцем (удалён/понижен) — снять его
+    Telegram-привязки (общий бот по `user_pk` связи, свой бот по зеркалу `owner_user_pk`).
+    `still_owner` закрыл бы их и так, но зеркало `owner_chat_id` не должно жить дальше
+    владельца. → снято ли что-то."""
+    if not user_pk or tenant is None:
+        return False
+    cfg = getattr(tenant, "site_config", None)
+    node = cfg.get("notify") if isinstance(cfg, dict) else None
+    mirror_pk = node.get("owner_user_pk") if isinstance(node, dict) else None
+    linked = OwnerTelegramLink.objects.filter(
+        tenant=tenant, is_active=True, user_pk=int(user_pk)
+    ).exists()
+    if not linked and mirror_pk != int(user_pk):
+        return False
+    disconnect(tenant)
+    return True
 
 
 def select(tg_user_id, link_id):
@@ -209,8 +234,8 @@ def owner_route(tenant) -> tuple[str, str]:
         ):
             return ("", "")
         return (OWNER_BOT_PLATFORM, chat)
-    if bots.tenant_bot() is None:
-        return ("", "")
+    if bots.tenant_bot() is None or not still_owner(tenant):
+        return ("", "")  # SEC-A3: пониженный/удалённый владелец не получает уведомления
     return (OWNER_BOT_TENANT, chat)
 
 
@@ -232,13 +257,22 @@ def still_owner(tenant) -> bool:
     легаси-связей без `user_pk` (убрать через релиз, roadmap §Отложено)."""
     from apps.core.models import Membership
 
-    user_pk = link_user_pk(tenant)
+    link = (
+        OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True)
+        .order_by("-selected_at", "-pk")
+        .values("user_pk", "via")
+        .first()
+    )
+    user_pk = link["user_pk"] if link else None
     if not user_pk:
         cfg = getattr(tenant, "site_config", None)
         node = cfg.get("notify") if isinstance(cfg, dict) else None
         user_pk = node.get("owner_user_pk") if isinstance(node, dict) else None
     if not user_pk:
-        return True
+        # SEC-A6: связь из КАБИНЕТА обязана знать своего пользователя (ссылку выпускает
+        # вошедший владелец, бэкфилл platform_bot/0004) — без него fail-closed. Связь из
+        # регистрации в боте (владельца создал сам бот) и легаси свой бот — по таблице.
+        return not (link and link["via"] == OwnerTelegramLink.VIA_CABINET)
     from django_tenants.utils import schema_context
 
     # Membership живёт в схеме бизнеса (core — TENANT_APPS), а вызывают и из вебхука
