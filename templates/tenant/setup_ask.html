@@ -1,0 +1,13 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Was möchten Sie anlegen?" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}STU-19i: the setup helper on its own screen — lite cabinet and Telegram Mini App.{% endcomment %}
+<div class="max-w-lg mx-auto" data-setup-ask-page>
+  <h1 class="ui-h1 mb-1">✨ {% trans "Was möchten Sie anlegen?" %}</h1>
+  <p class="ui-muted mb-4">{% trans "Schreiben Sie in einem Satz, was neu dazukommt — Sie bekommen einen Plan mit vorausgefüllten Formularen. Gespeichert wird erst im Formular." %}</p>
+  {% include "tenant/_setup_ask.html" %}
+  {% if plan %}{% include "tenant/_setup_plan.html" %}{% endif %}
+</div>
+{% endblock %}

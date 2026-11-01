@@ -220,7 +220,8 @@ def _setup_plan(request):
         return None
     if ratelimit.hit("setup-plan", str(request.user.pk), limit=PLAN_LIMIT, window=PLAN_WINDOW):
         return setup_assistant.Plan(note=_("Zu viele Fragen — bitte kurz warten."))
-    return setup_assistant.build_plan(text, request.tenant, request.user)
+    plan = setup_assistant.build_plan(text, request.tenant, request.user)
+    return setup_assistant.for_request(plan, request)
 
 
 def _render(request, section: str):

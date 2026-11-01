@@ -22,7 +22,11 @@
         {% if st.template %}
           <p class="text-sm mt-2"><span class="font-semibold">{% trans "Vorlage" %}: {{ st.template.label }}</span> — {{ st.template.reason }}</p>
         {% endif %}
+        {% if st.reachable %}
         <a href="{{ st.form_url }}" class="ui-btn ui-btn-primary mt-3">{% trans "Formular öffnen (vorausgefüllt)" %}</a>
+        {% else %}
+        <p class="ui-muted text-sm mt-3" data-setup-unreachable>{% trans "Dieses Formular öffnet sich hier nicht — bitte im Kabinett im Browser anlegen." %}</p>
+        {% endif %}
       </li>
     {% empty %}
       {% if not plan.note %}<li class="ui-muted">{% trans "Dazu habe ich nichts gefunden. Schreiben Sie z. B. „neue Kategorie Brot“ oder „Produkt Roggenbrot 4,50 €“." %}</li>{% endif %}

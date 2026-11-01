@@ -220,12 +220,12 @@ def test_palette_offers_create_only_for_creatable_phrase(tenant, monkeypatch):
     assert sa.palette_section(tenant, user, "ab") is None  # too short
 
 
-def test_palette_needs_website_right(tenant, monkeypatch):
-    from apps.core import permissions
-
-    monkeypatch.setattr(permissions, "has_perm", lambda user, key: key != "website.view")
+def test_palette_link_goes_to_the_open_helper_screen(tenant, monkeypatch):
+    """STU-19i: the palette opens the helper's own screen (open to the whole team) —
+    no website.view gate any more."""
     monkeypatch.setattr(sa, "allowed_entities", lambda t, u: [sa.ENTITY_SERVICE])
-    assert sa.palette_section(tenant, SimpleNamespace(pk=1), "neue Leistung Haarschnitt") is None
+    sec = sa.palette_section(tenant, SimpleNamespace(pk=1), "neue Leistung Haarschnitt")
+    assert sec["items"][0]["url"].startswith("/dashboard/anlegen/?frage=")
 
 
 def test_palette_js_does_not_double_encode_urls():

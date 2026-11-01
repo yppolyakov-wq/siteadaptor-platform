@@ -181,6 +181,7 @@ EXPECTED_UNLISTED = frozenset(
         # [OK] служебное
         "inbox:unread-count",  # JSON-счётчик бейджа
         "palette-search",  # X8: JSON-поиск палитры (не страница)
+        "setup-ask",  # STU-19i: вход — плитка главной лёгкого кабинета/Mini App и Ctrl+K
         "setup",  # мастер — собственный хром (_base_setup)
         "site-menu",  # области Studio: вход из рейки билдера, не из сайдбара
         "site-pages",

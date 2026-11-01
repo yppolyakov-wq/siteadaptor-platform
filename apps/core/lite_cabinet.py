@@ -13,6 +13,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
@@ -439,5 +440,25 @@ def lite_requests(request):
             "page": page,
             "statuses": Job.STATUSES,
             "active_status": status,
+        },
+    )
+
+
+@login_required
+def setup_ask(request):
+    """STU-19i: "Was möchten Sie anlegen?" on its own small screen — the lite cabinet and
+    the Telegram Mini App reach it (the Sortiment bar lives on a full-cabinet screen).
+    A plan only, nothing is written; a step whose form does not open here says so."""
+    from apps.core import page_templates, setup_assistant
+
+    plan = page_templates._setup_plan(request)
+    return render(
+        request,
+        "tenant/setup_ask.html",
+        {
+            "nav": "dashboard",
+            "plan": plan,
+            "frage": (request.GET.get("frage") or "")[: setup_assistant.TEXT_MAX],
+            "ask_action": reverse("setup-ask"),
         },
     )

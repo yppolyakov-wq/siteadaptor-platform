@@ -85,6 +85,7 @@ RULES: dict[str, Rule] = {
     "board-settings": _r(A, AE),
     "payments-page": _r(V, E),
     "lite-requests": _r(V, E),
+    "setup-ask": _r(OPEN),  # STU-19i: a plan only; entities are gated by module + right
     "community:event-space": _r(V, E),
     "deal-billing-edit": _r(V, E),
     "deal-customer-edit": _r(V, E),

@@ -128,6 +128,8 @@ urlpatterns = [
     path("dashboard/teilen/", lite_cabinet.lite_share, name="lite-share"),
     path("dashboard/sichtbarkeit/", lite_cabinet.lite_visibility, name="lite-visibility"),
     path("dashboard/anfragen/", lite_cabinet.lite_requests, name="lite-requests"),
+    # STU-19i: the setup helper on its own screen (lite cabinet + Telegram Mini App)
+    path("dashboard/anlegen/", lite_cabinet.setup_ask, name="setup-ask"),
     # UD4-2: кабинет «Benachrichtigungen» — каналы email/Telegram per-событие.
     path(
         "dashboard/settings/notifications/",

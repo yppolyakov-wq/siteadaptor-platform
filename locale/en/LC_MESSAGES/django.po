@@ -31398,3 +31398,9 @@ msgstr "Venue and seats — fill in on the form"
 
 msgid "Wer die Leistung anbietet und Öffnungszeiten — danach prüfen"
 msgstr "Who offers the service and opening hours — check afterwards"
+
+msgid "Dieses Formular öffnet sich hier nicht — bitte im Kabinett im Browser anlegen."
+msgstr "This form does not open here — please create it in the cabinet in your browser."
+
+msgid "Schreiben Sie in einem Satz, was neu dazukommt — Sie bekommen einen Plan mit vorausgefüllten Formularen. Gespeichert wird erst im Formular."
+msgstr "Write in one sentence what is new — you get a plan with prefilled forms. Nothing is saved until you save the form."

@@ -50,7 +50,8 @@ TG_LITE_VIEWS = frozenset(
         "lite-share",
         "lite-visibility",
         "betriebsferien",  # KA-12 О-8
-        "lite-requests",  # KA-12 E8.9: заявки списком (карточка со сметой — вне Telegram)
+        "lite-requests",  # KA-12 E8.9
+        "setup-ask",  # STU-19i: "Was möchten Sie anlegen?" (plan only): заявки списком (карточка со сметой — вне Telegram)
         "owner-confirm-resend",
         "set-cabinet-lang",
         "account_logout",

@@ -60,6 +60,10 @@
   </div>
   {% endif %}
 
+  {# STU-19i: the setup helper — a plan with prefilled forms (Telegram Mini App too) #}
+  <a href="{% url 'setup-ask' %}" class="ui-card p-3 flex items-center gap-2 text-sm font-medium" data-lite-setup-ask>
+    <span aria-hidden="true">✨</span> {% trans "Was möchten Sie anlegen?" %}
+  </a>
   <div class="grid grid-cols-2 gap-3">
     {% if 'sellable-manage'|pkg_allowed:request.tenant %}
     <a href="{% url 'sellable-manage' %}" class="ui-card p-4 min-h-[6rem] flex flex-col gap-1" data-lite-tile="angebot">

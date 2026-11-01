@@ -31542,3 +31542,9 @@ msgstr "Yer ve kontenjan — formda tamamlayın"
 
 msgid "Wer die Leistung anbietet und Öffnungszeiten — danach prüfen"
 msgstr "Hizmeti kimin sunduğu ve çalışma saatleri — sonra kontrol edin"
+
+msgid "Dieses Formular öffnet sich hier nicht — bitte im Kabinett im Browser anlegen."
+msgstr "Bu form burada açılmıyor — lütfen tarayıcıdaki panelde oluşturun."
+
+msgid "Schreiben Sie in einem Satz, was neu dazukommt — Sie bekommen einen Plan mit vorausgefüllten Formularen. Gespeichert wird erst im Formular."
+msgstr "Yeni ne ekleneceğini tek cümleyle yazın — önceden doldurulmuş formlarla bir plan alırsınız. Kayıt yalnızca formda yapılır."

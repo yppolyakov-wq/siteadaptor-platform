@@ -248,6 +248,8 @@ class Step:
     form_url: str
     after: object = ""
     template: TemplateHint | None = None
+    #: STU-19i: False — the form does not open here (Telegram Mini App, a package, rights)
+    reachable: bool = True
 
 
 @dataclass(frozen=True)
@@ -415,23 +417,51 @@ def palette_section(tenant, user, text: str) -> dict | None:
     text = (text or "").strip()[:TEXT_MAX]
     if len(text) < 3:
         return None
-    from apps.core.permissions import has_perm
-
     try:
-        # the answer lives on a website.view screen (same gate as the Sortiment bar)
-        if not has_perm(user, "website.view"):
-            return None
         allowed = allowed_entities(tenant, user)
     except Exception:  # noqa: BLE001 — the palette must never break
         return None
     if not any(_entity_of(seg) in allowed for seg in _SPLIT_RE.split(text) if seg.strip()):
         return None
-    url = reverse("page-templates-sortiment") + "?" + urlencode({"frage": text}) + "#ask"
+    # STU-19i: the helper's own screen (open in the lite cabinet and the Mini App too)
+    url = reverse("setup-ask") + "?" + urlencode({"frage": text})
     return {
         "key": "create",
         "label": _("Anlegen"),
         "items": [{"label": f"✨ {text}", "sub": str(_("Was möchten Sie anlegen?")), "url": url}],
     }
+
+
+def reachable(request, url_name: str) -> bool:
+    """STU-19i: does this screen open for this request? Same three gates as the cabinet:
+    the Telegram Mini App whitelist, the package and the user's rights."""
+    from apps.core import packages, permissions, tg_login, view_perms
+
+    try:
+        if tg_login.is_tg_session(request) and url_name not in tg_login.TG_LITE_VIEWS:
+            return False
+        if not packages.view_allowed(request.tenant, url_name):
+            return False
+        user = getattr(request, "user", None)
+        if user is not None and permissions.is_member(user):
+            return view_perms.allowed_quiet(user, url_name, "GET")
+        return True
+    except Exception:  # noqa: BLE001 — unknown → do not offer a dead link
+        logger.warning("setup helper: reachability check failed for %s", url_name, exc_info=True)
+        return False
+
+
+def for_request(plan: Plan, request) -> Plan:
+    """Mark steps whose form does not open here; drop an unreachable template link."""
+    from dataclasses import replace
+
+    steps = tuple(
+        replace(s, reachable=reachable(request, ENTITIES[s.entity]["url_name"])) for s in plan.steps
+    )
+    link = plan.template_link
+    if link and not reachable(request, "page-templates-sortiment"):
+        link = ""
+    return replace(plan, steps=steps, template_link=link)
 
 
 # ───────────────────────── rules ─────────────────────────

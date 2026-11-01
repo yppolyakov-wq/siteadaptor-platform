@@ -31680,3 +31680,9 @@ msgstr "Место и количество мест — дополнить в ф
 
 msgid "Wer die Leistung anbietet und Öffnungszeiten — danach prüfen"
 msgstr "Кто оказывает услугу и часы работы — проверить после"
+
+msgid "Dieses Formular öffnet sich hier nicht — bitte im Kabinett im Browser anlegen."
+msgstr "Эта форма здесь не открывается — создайте в кабинете в браузере."
+
+msgid "Schreiben Sie in einem Satz, was neu dazukommt — Sie bekommen einen Plan mit vorausgefüllten Formularen. Gespeichert wird erst im Formular."
+msgstr "Напишите одним предложением, что добавляется, — вы получите план с заполненными формами. Сохраняется только в самой форме."
