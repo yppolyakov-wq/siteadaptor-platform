@@ -2,15 +2,14 @@
 
 import django.contrib.postgres.indexes
 import django.db.models.functions.text
-from django.contrib.postgres.operations import AddIndexConcurrently, TrigramExtension
+from django.contrib.postgres.operations import TrigramExtension
 from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    # KA-12 E10.4: CREATE INDEX CONCURRENTLY — no write lock on live tables; it cannot
-    # run inside a transaction.
-    atomic = False
-
+    # KA-12 E10.4: a plain (transactional) CREATE INDEX on purpose — a new tenant's
+    # schema is migrated inside a transaction, where CONCURRENTLY is impossible; the
+    # per-tenant tables are small, the lock lasts milliseconds.
     dependencies = [
         ("crm", "0003_ka12_e6_4_service_notes"),
         ("promotions", "0033_pr2_discount_off"),
@@ -19,11 +18,7 @@ class Migration(migrations.Migration):
     operations = [
         # already installed database-wide by aggregator/0023; a no-op there
         TrigramExtension(),
-        # re-run safe: a failed CONCURRENTLY build leaves an INVALID index behind
-        migrations.RunSQL(
-            "DROP INDEX CONCURRENTLY IF EXISTS customer_name_trgm", migrations.RunSQL.noop
-        ),
-        AddIndexConcurrently(
+        migrations.AddIndex(
             model_name="customer",
             index=django.contrib.postgres.indexes.GinIndex(
                 django.contrib.postgres.indexes.OpClass(
@@ -32,11 +27,7 @@ class Migration(migrations.Migration):
                 name="customer_name_trgm",
             ),
         ),
-        # re-run safe: a failed CONCURRENTLY build leaves an INVALID index behind
-        migrations.RunSQL(
-            "DROP INDEX CONCURRENTLY IF EXISTS customer_email_trgm", migrations.RunSQL.noop
-        ),
-        AddIndexConcurrently(
+        migrations.AddIndex(
             model_name="customer",
             index=django.contrib.postgres.indexes.GinIndex(
                 django.contrib.postgres.indexes.OpClass(
@@ -45,11 +36,7 @@ class Migration(migrations.Migration):
                 name="customer_email_trgm",
             ),
         ),
-        # re-run safe: a failed CONCURRENTLY build leaves an INVALID index behind
-        migrations.RunSQL(
-            "DROP INDEX CONCURRENTLY IF EXISTS customer_phone_trgm", migrations.RunSQL.noop
-        ),
-        AddIndexConcurrently(
+        migrations.AddIndex(
             model_name="customer",
             index=django.contrib.postgres.indexes.GinIndex(
                 django.contrib.postgres.indexes.OpClass(
