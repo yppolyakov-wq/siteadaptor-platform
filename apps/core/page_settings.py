@@ -741,6 +741,21 @@ CABINET_OWNED: frozenset[str] = frozenset(
     | set(_LAYOUT_KEYS)
     # 19f-3: card forms; "only this one" lives in the object forms / offer types
     | {"product_card_form", "promo_card_form"}
+    # 19f-4: page content (sorts, filters, subcategories, menu prices/labels, offer
+    # grouping, cart cross-sell, text width); the Studio keeps block order/visibility
+    | {
+        "catalog_sort",
+        "catalog_filters",
+        "catalog_subcats",
+        "catalog_menu_prices",
+        "catalog_menu_labels",
+        "promo_grouping",
+        "cart_upsell",
+        "services_sort",
+        "stays_sort",
+        "events_sort",
+        "text_width",
+    }
 )
 
 

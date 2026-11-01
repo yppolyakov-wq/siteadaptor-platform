@@ -364,23 +364,8 @@ def test_no_control_is_lost_or_duplicated(builder_html):
     for field in (
         # STU-19e-2: catalog_page_style / promo_page_style / sd_category_page_style /
         # sd_promo_group_style left the Studio (cabinet-owned; absence lock below)
-        "catalog_sort",
-        "catalog_show_filters",
-        "catalog_subcats_first",
-        # LAY-7c: контрол `promo_layout` СНЯТ осознанно (решение владельца
-        # 2026-09-10 «убрать Darstellung der Gruppen»): «сетка или лента» —
-        # это общая ось вывода, а два переключателя на одно и то же и были
-        # той «кашей», ради которой затевалась волна. Ключ остаётся в хранении
-        # (легаси-конфиги, демо-киты, композиция «Regale»), но панель его не
-        # пишет — замок на единственность превратился бы в замок на его
-        # существование.
-        "promo_grouping",
-        # STU-19f-3: sd_card_style / sd_promo_card — cabinet-owned now
-        "cart_show_upsell",
-        # STU-9: ровно те два поля, которые STU-8 переносил между областями, в
-        # замке не значились — то есть перенос был не покрыт вовсе.
-        # STU-19e-3: hero_style ушёл в кабинет (Seitenvorlagen).
-        "sd_text_width",
+        # STU-19f-4: sorts/filters/subcategories/grouping/cross-sell/text width —
+        # cabinet-owned now (summaries; absence lock: test_stu19f_content)
         "pb_present",
     ):
         n = len(re.findall(rf'name="{field}"', builder_html))
@@ -515,39 +500,20 @@ def test_dead_pages_screen_redirects_to_studio(settings):
 
 @pytest.mark.django_db
 def test_settings_moved_from_pages_screen_still_save(settings):
-    """Экран «Pages» был ВТОРЫМ писателем раскладок, но держал три настройки, которых
-    в Студии не было. Схлопнуть его, не перенеся их, значило бы потерять настройки —
-    поэтому замок проверяет именно сохранение из формы Студии."""
-    from types import SimpleNamespace
-
-    from django.contrib.messages.middleware import MessageMiddleware
-    from django.contrib.sessions.middleware import SessionMiddleware
-    from django.test import RequestFactory
-
-    from apps.core import views
+    """Экран «Pages» держал три настройки, которых в Студии не было; их нельзя было
+    потерять. STU-19f-2/19f-4 (осознанно): все три пишет кабинет («Seitenvorlage»)."""
+    from apps.core import page_settings
     from apps.tenants.tests.factories import TenantFactory
 
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(disabled_modules=["orders"], business_type="restaurant")
-    req = RequestFactory().post(
-        "/dashboard/site/home/",
-        {
-            "cl_present": "1",
-            "menu_labels": "on",
-            # чекбокс СНЯТ: ключ presence-minimal и хранится только когда цены скрыты
-            "related_preset": "cols4",
-        },
-    )
-    SessionMiddleware(lambda r: None).process_request(req)
-    MessageMiddleware(lambda r: None).process_request(req)
-    req.user = SimpleNamespace(is_authenticated=True)
-    req.tenant = tenant
-    views.home_builder_view(req)
-
+    page_settings.write(tenant, "catalog_menu_labels", "1")
+    page_settings.write(tenant, "catalog_menu_prices", "0")
+    page_settings.write(tenant, "product_related", "cols4")
     tenant.refresh_from_db()
     cfg = tenant.site_config
     assert cfg.get("menu_labels") is True
-    assert cfg.get("menu_show_prices") is False, "снятый чекбокс обязан скрыть цены"
+    assert cfg.get("menu_show_prices") is False, "снятый выбор обязан скрыть цены"
     assert cfg.get("detail_related_layout", {}).get("preset") == "cols4"
 
 

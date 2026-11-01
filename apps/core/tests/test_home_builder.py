@@ -934,58 +934,68 @@ def test_home_builder_save_without_service_inspector_keeps_service_detail():
 
 
 def test_home_builder_saves_catalog_show_filters():
-    """Тумблер «показывать фильтры» страницы каталога сохраняется (presence-guard cf_present)."""
+    """STU-19f-4 (осознанно): «показывать фильтры» пишет кабинет; Save Студии — даже с
+    прежним сентинелом cf_present — значение не меняет."""
+    from apps.core import page_settings
+
     tenant = TenantFactory(
         schema_name="public", slug="hbcf", name="HBCF", enabled_modules=["catalog"]
     )
+    page_settings.write(tenant, "catalog_filters", "0")
     base = {"order_hero": "1", "enabled_hero": "on", "cf_present": "1"}
-    # без галочки → выключено
-    views.home_builder_view(_request("post", "/dashboard/site/home/", base, tenant))
-    assert siteconfig.normalize(tenant.site_config)["catalog_show_filters"] is False
-    # с галочкой → включено
     views.home_builder_view(
         _request("post", "/dashboard/site/home/", {**base, "catalog_show_filters": "on"}, tenant)
     )
+    tenant.refresh_from_db()
+    assert siteconfig.normalize(tenant.site_config)["catalog_show_filters"] is False
+    page_settings.write(tenant, "catalog_filters", "1")
     assert siteconfig.normalize(tenant.site_config)["catalog_show_filters"] is True
 
 
 def test_home_builder_saves_catalog_sort_and_subcats_first():
-    """Дефолт-сортировка каталога + тумблер подкатегорий-первыми сохраняются (cf_present)."""
+    """STU-19f-4 (осознанно): сортировка и «подкатегории первыми» — в кабинете; мусор отвергается."""
+    from apps.core import page_settings
+
     tenant = TenantFactory(
         schema_name="public", slug="hbcs", name="HBCS", enabled_modules=["catalog"]
     )
-    base = {"order_hero": "1", "enabled_hero": "on", "cf_present": "1"}
-    # сортировка price_desc, подкатегории-первыми сняты
-    views.home_builder_view(
-        _request("post", "/dashboard/site/home/", {**base, "catalog_sort": "price_desc"}, tenant)
-    )
+    page_settings.write(tenant, "catalog_sort", "price_desc")
+    page_settings.write(tenant, "catalog_subcats", "0")
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["catalog_sort"] == "price_desc" and cfg["catalog_subcats_first"] is False
-    # мусорная сортировка игнорируется (остаётся прежняя), галочка включает подкатегории
+    with pytest.raises(page_settings.PageSettingError):
+        page_settings.write(tenant, "catalog_sort", "zzz")
     views.home_builder_view(
         _request(
             "post",
             "/dashboard/site/home/",
-            {**base, "catalog_sort": "zzz", "catalog_subcats_first": "on"},
+            {"cf_present": "1", "catalog_sort": "newest", "catalog_subcats_first": "on"},
             tenant,
         )
     )
+    tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["catalog_sort"] == "price_desc" and cfg["catalog_subcats_first"] is True
+    assert cfg["catalog_sort"] == "price_desc" and cfg["catalog_subcats_first"] is False
 
 
 def test_home_builder_saves_cart_show_upsell():
-    """Тумблер кросс-селла корзины сохраняется (presence-guard cart_present)."""
+    """STU-19f-4 (осознанно): кросс-селл корзины — в кабинете; Save Студии его не трогает."""
+    from apps.core import page_settings
+
     tenant = TenantFactory(
         schema_name="public", slug="hbcu", name="HBCU", enabled_modules=["catalog"]
     )
-    base = {"order_hero": "1", "enabled_hero": "on", "cart_present": "1"}
-    views.home_builder_view(_request("post", "/dashboard/site/home/", base, tenant))
-    assert siteconfig.normalize(tenant.site_config)["cart_show_upsell"] is False
+    page_settings.write(tenant, "cart_upsell", "0")
     views.home_builder_view(
-        _request("post", "/dashboard/site/home/", {**base, "cart_show_upsell": "on"}, tenant)
+        _request(
+            "post",
+            "/dashboard/site/home/",
+            {"order_hero": "1", "cart_present": "1", "cart_show_upsell": "on"},
+            tenant,
+        )
     )
-    assert siteconfig.normalize(tenant.site_config)["cart_show_upsell"] is True
+    tenant.refresh_from_db()
+    assert siteconfig.normalize(tenant.site_config)["cart_show_upsell"] is False
 
 
 def test_home_builder_save_without_pd_inspector_keeps_product_detail():

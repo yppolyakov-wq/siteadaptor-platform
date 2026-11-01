@@ -629,13 +629,7 @@
           </div>
           {% endfor %}
           <div class="stu-page-row mt-4" data-stu-setting="promo_grouping" data-stu-axis="content" data-stu-page="promos">
-            <label class="text-sm block">
-              <span class="stu-lb">{% trans "Aktionsseite: Gruppierung" %}</span>
-              <select name="promo_grouping" class="stu-ctrl">
-                <option value="">{% trans "Nach Gruppen" %}</option>
-                <option value="time" {% if promo_grouping == 'time' %}selected{% endif %}>{% trans "Nach Zeit" %}</option>
-              </select>
-            </label>
+            {% include "tenant/_stu19_summary.html" with s=stu19.promo_grouping %}
           </div>
           {% comment %}LAY-3a-2: ось вывода на страницах, где сетка была зашита в
              шаблоне (план LAY §13). Ключ presence-minimal: «Standard» снимает его и
@@ -680,21 +674,14 @@
              сохранения та же, что и на прежнем экране. Он ВНЕ строк: строка прячется
              CSS-классом, а guard обязан уезжать в POST на любой странице.{% endcomment %}
           {% if has_catalog %}
-          <input type="hidden" name="cl_present" value="1">
           {% if not orders_active_for_prices %}
           <div class="stu-page-row mt-4" data-stu-setting="catalog_menu_prices" data-stu-axis="content" data-stu-page="catalog category">
-            <label class="flex items-center gap-2 text-sm text-gray-600">
-              <input type="checkbox" name="menu_show_prices" {% if menu_prices_on %}checked{% endif %} class="rounded border-gray-300">
-              {% trans "Preise in der Speisekarte anzeigen" %}
-            </label>
+            {% include "tenant/_stu19_summary.html" with s=stu19.catalog_menu_prices %}
           </div>
           {% endif %}
           {% if is_food_type %}
           <div class="stu-page-row mt-2" data-stu-setting="catalog_menu_labels" data-stu-axis="content" data-stu-page="catalog category">
-            <label class="flex items-center gap-2 text-sm text-gray-600">
-              <input type="checkbox" name="menu_labels" {% if menu_labels_on %}checked{% endif %} class="rounded border-gray-300">
-              {% trans "Kennzeichnung in der Speisekarte (Diäten, Allergene)" %}
-            </label>
+            {% include "tenant/_stu19_summary.html" with s=stu19.catalog_menu_labels %}
           </div>
           {% endif %}
           <div class="stu-page-row mt-4" data-stu-setting="product_related" data-stu-axis="grid" data-stu-page="product">
@@ -705,16 +692,7 @@
              Раньше на «О нас», правовых и блоге настраивать было нечего, кроме блоков.
              Ключ presence-minimal: "" = прежняя узкая колонка → golden-эталоны целы.{% endcomment %}
           <div class="stu-page-row mt-4" data-stu-setting="text_width" data-stu-axis="content" data-stu-page="text team gallery reviews legal blog blog_post tours loyalty gift anfrage contact wishlist combos finder lookbook">
-            <input type="hidden" name="tw_present" value="1">
-            <label class="block text-sm">
-              <span class="stu-lb">{% trans "Textbreite" %}</span>
-              <select name="sd_text_width" class="stu-ctrl">
-                <option value="">{% trans "Wie bisher" %}</option>
-                <option value="narrow" {% if text_width == 'narrow' %}selected{% endif %}>{% trans "Schmale Spalte" %}</option>
-                <option value="wide" {% if text_width == 'wide' %}selected{% endif %}>{% trans "Breite Spalte" %}</option>
-                <option value="full" {% if text_width == 'full' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
-              </select>
-            </label>
+            {% include "tenant/_stu19_summary.html" with s=stu19.text_width %}
           </div>
           {% comment %}STU-17 §3.2: у «Команды» и «Галереи» сетку задаёт раскладка
              ОДНОИМЁННОЙ секции главной — страницы переиспользуют её партиал. Второй
@@ -754,28 +732,16 @@
             </div>
             {# Дефолтная сортировка каталога (покупатель может сменить дропдауном на витрине). #}
             <div class="stu-page-row w-full" data-stu-setting="catalog_sort" data-stu-axis="content" data-stu-page="catalog category">
-              <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Default product sorting' %}">
-                {% trans "Sort" %}
-                <select name="catalog_sort" class="stu-ctrl">
-                  <option value="newest" {% if catalog_sort == 'newest' %}selected{% endif %}>{% trans "Newest" %}</option>
-                  <option value="price_asc" {% if catalog_sort == 'price_asc' %}selected{% endif %}>{% trans "Price: low to high" %}</option>
-                  <option value="price_desc" {% if catalog_sort == 'price_desc' %}selected{% endif %}>{% trans "Price: high to low" %}</option>
-                </select>
-              </label>
+              {% include "tenant/_stu19_summary.html" with s=stu19.catalog_sort %}
             </div>
             {% comment %}Показывать фильтры (диеты) + подкатегории-первыми. presence-guard
                cf_present — ВНЕ строк: строка прячется CSS, а guard обязан уезжать в POST
                всегда (инвариант W0).{% endcomment %}
-            <input type="hidden" name="cf_present" value="1">
             <div class="stu-page-row w-full" data-stu-setting="catalog_filters" data-stu-axis="content" data-stu-page="catalog category">
-              <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Show diet filters on the catalog page' %}">
-                <input type="checkbox" name="catalog_show_filters" {% if catalog_show_filters %}checked{% endif %} class="rounded border-gray-300">{% trans "Show filters" %}
-              </label>
+              {% include "tenant/_stu19_summary.html" with s=stu19.catalog_filters %}
             </div>
             <div class="stu-page-row w-full" data-stu-setting="catalog_subcats" data-stu-axis="content" data-stu-page="category">
-              <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Show subcategory cards first' %}">
-                <input type="checkbox" name="catalog_subcats_first" {% if catalog_subcats_first %}checked{% endif %} class="rounded border-gray-300">{% trans "Subcategories first" %}
-              </label>
+              {% include "tenant/_stu19_summary.html" with s=stu19.catalog_subcats %}
             </div>
             {% comment %}DL-21.1: шаблон КОРНЕВОЙ страницы каталога — свой ключ, дефолт
             категорий сюда не наследуется. Без «Preisliste»: прайс-вид даёт селект выше.{% endcomment %}
@@ -792,12 +758,7 @@
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
                его выбор в тулбаре (?sort=) перекрывает этот дефолт.{% endcomment %}
             <div class="stu-page-row w-full mt-2" data-stu-setting="events_sort" data-stu-axis="content" data-stu-page="events">
-              <label class="block">
-                <span class="stu-lb">{% trans "Sortierung" %}</span>
-                <select name="events_sort" class="stu-ctrl">
-                  {% for sk, slabel in event_sort_options %}<option value="{{ sk }}" {% if events_sort == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
-                </select>
-              </label>
+              {% include "tenant/_stu19_summary.html" with s=stu19.events_sort %}
             </div>
           {% endif %}
           {% if has_stays %}
@@ -808,12 +769,7 @@
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
                его выбор в тулбаре (?sort=) перекрывает этот дефолт.{% endcomment %}
             <div class="stu-page-row w-full mt-2" data-stu-setting="stays_sort" data-stu-axis="content" data-stu-page="stays">
-              <label class="block">
-                <span class="stu-lb">{% trans "Sortierung" %}</span>
-                <select name="stays_sort" class="stu-ctrl">
-                  {% for sk, slabel in stay_sort_options %}<option value="{{ sk }}" {% if stays_sort == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
-                </select>
-              </label>
+              {% include "tenant/_stu19_summary.html" with s=stu19.stays_sort %}
             </div>
           {% endif %}
           {% comment %} UB1-1: раскладка листинга услуг /termin/. Пустой выбор «Standard» =
@@ -826,12 +782,7 @@
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
                его выбор в тулбаре (?sort=) перекрывает этот дефолт.{% endcomment %}
             <div class="stu-page-row w-full mt-2" data-stu-setting="services_sort" data-stu-axis="content" data-stu-page="services">
-              <label class="block">
-                <span class="stu-lb">{% trans "Sortierung" %}</span>
-                <select name="services_sort" class="stu-ctrl">
-                  {% for sk, slabel in service_sort_options %}<option value="{{ sk }}" {% if services_sort == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
-                </select>
-              </label>
+              {% include "tenant/_stu19_summary.html" with s=stu19.services_sort %}
             </div>
           {% endif %}
           {# STU-19f-2: grids are set in the cabinet; "apply to the other lists" moves with them (plan §5c) #}
@@ -934,10 +885,7 @@
           {% if has_catalog %}
           <div class="page-block" data-page-key="cart" data-stu-setting="cart_upsell" data-stu-axis="content" data-stu-page="cart">
             <span class="text-sm font-medium block mb-2">{% trans "Cart page" %}</span>
-            <input type="hidden" name="cart_present" value="1">
-            <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Show the “Goes well with this” block in the cart' %}">
-              <input type="checkbox" name="cart_show_upsell" {% if cart_show_upsell %}checked{% endif %} class="rounded border-gray-300">{% trans "Show cross-sell (“Goes well with this”)" %}
-            </label>
+            {% include "tenant/_stu19_summary.html" with s=stu19.cart_upsell %}
           </div>
           {% endif %}
           {% comment %}ST-2: пресеты страницы (реестр page_presets: «Über uns», корзина).
@@ -2628,38 +2576,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // SE-2a-2/SE-2b-1: раскладки лендингов (per-page) → в черновик, чтобы превью
     // соответствующей страницы (?preview=1) показало их сразу.
     // STU-19f-2: grids (`*_layout`) are set in the cabinet only.
-    var cfChk = form.querySelector("input[name='catalog_show_filters']");
-    if (cfChk) payload.catalog_show_filters = cfChk.checked;  // живо вкл/выкл фильтры
-    var scChk = form.querySelector("input[name='catalog_subcats_first']");
-    if (scChk) payload.catalog_subcats_first = scChk.checked;  // живо подкатегории-первыми
-    var csSel = form.querySelector("select[name='catalog_sort']");
-    if (csSel && csSel.value) payload.catalog_sort = csSel.value;  // живо дефолт-сортировка
-    // STU-15c: дефолт сортировки листингов услуг/номеров/событий — тоже в черновик
-    // ("" законно: снимает ключ, порядок возвращается к дефолту вьюхи).
-    ["services_sort", "stays_sort", "events_sort"].forEach(function (k) {
-      var el = form.querySelector("select[name='" + k + "']");
-      if (el) payload[k] = el.value;
-    });
-    // STU-19e-2: page templates of catalog/category/offers are set in the cabinet only.
-    var csChk = form.querySelector("input[name='cart_show_upsell']");
-    if (csChk) payload.cart_show_upsell = csChk.checked;  // живо вкл/выкл кросс-селл корзины
-    // DL-17.3: страница акций — раскладка групп и режим группировки ("" законно:
-    // снимает ключ, поэтому шлём значение как есть, а не «только непустое»).
-    var pgSel = form.querySelector("select[name='promo_grouping']");
-    if (pgSel) payload.promo_grouping = pgSel.value;
-    // STU-19e-1: listing templates (`page_styles`) are set in the cabinet only.
-    // STU-12g: в черновик едут только настройки СТРАНИЦЫ — глобальный дизайн
-    // (radius/shadow/padding/card_bg/page_bg/chrome/media_shape/variant_style/slider)
-    // переехал на экран «Design des Shops». Приёмник черновика МЕРДЖИТ site_defaults
-    // (DL-17.3), поэтому глобальные оси берутся из сохранённого конфига.
-    // STU-19f-3: card forms (product/offer) are set in the cabinet only; the draft
-    // carries just the text width (STU-8).
-    var sdTextWidthEl = form.querySelector("select[name='sd_text_width']");
-    if (sdTextWidthEl) {
-      // STU-8: ширина текстовой колонки — в черновик, иначе выбор был бы виден
-      // только после Save (грабля DL-17.3: контрол есть, в payload его нет).
-      payload.site_defaults = { text_width: sdTextWidthEl.value };
-    }
+    // STU-19f-4: page content settings (sorts, filters, subcategories, grouping,
+    // cross-sell, text width) are set in the cabinet only — the Studio draft carries
+    // block order/visibility and texts.
     // UC6-7b: C-блоки СТРАНИЦ (pb-строки) → черновик {хост: [entry,…]}. Шлём ВСЕ
     // хосты, присутствующие в форме, включая опустевшие после удаления — иначе
     // удаление последнего блока страницы не отражалось бы в live-preview.

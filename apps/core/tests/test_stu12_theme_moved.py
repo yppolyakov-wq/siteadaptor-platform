@@ -60,7 +60,7 @@ STUDIO_FIELDS = (
     # STU-19e-3: hero_style moved on to the cabinet (Seitenvorlagen)
     # STU-19f-3: sd_card_style / sd_promo_card moved on to the cabinet too
     # STU-19e-2: the two page templates moved on to the cabinet (Seitenvorlage)
-    "sd_text_width",
+    # STU-19f-4: sd_text_width moved on to the cabinet too
     "storefront_root",
 )
 
@@ -162,13 +162,13 @@ def test_studio_still_owns_page_scoped_settings():
         {
             "sd_present": "1",
             "sd_card_style": "compact",  # STU-19f-3: cabinet-owned — ignored here
-            "tw_present": "1",
+            "tw_present": "1",  # STU-19f-4: cabinet-owned — ignored here
             "sd_text_width": "narrow",
             "storefront_root": "home",
         },
     )
     assert cfg["site_defaults"].get("card_style", "") != "compact"
-    assert cfg["site_defaults"]["text_width"] == "narrow"
+    assert cfg["site_defaults"].get("text_width", "") != "narrow"
     assert cfg["storefront_root"] == "home"
     # и при этом глобальный дизайн цел
     assert cfg["site_defaults"]["card_radius"] == 20 and cfg["font"] == "editorial"
@@ -184,8 +184,10 @@ def test_draft_no_longer_carries_theme_but_still_carries_page_keys():
     # сверяем СЕЛЕКТОРЫ, а не голые имена: имя может законно встретиться в комментарии
     for gone in ("[name=font]", "[name=accent]", "'typo_weight_head'", "'sd_card_radius'"):
         assert gone not in fn, f"collect() не должен читать {gone}"
-    for kept in ("sd_text_width",):  # STU-19f-3: card forms are cabinet-only
-        assert kept in fn, f"{kept} — ключ страницы, черновик обязан его слать"
+    # STU-19f-3/19f-4: card forms and text width are cabinet-only — the draft no
+    # longer carries any page setting (only block order/visibility and texts)
+    for gone in ("sd_text_width", "sd_card_style", "sd_promo_card"):
+        assert f"name='{gone}'" not in fn, f"{gone} — настройка кабинета"
 
 
 def test_template_and_demo_actions_left_the_studio():

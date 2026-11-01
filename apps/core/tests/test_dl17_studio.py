@@ -61,8 +61,8 @@ def test_builder_renders_missing_visual_controls():
     # это общая ось вывода, а два переключателя на одно и то же и были той «кашей»,
     # ради которой затевалась волна LAY. Ключ остаётся в хранении (легаси-конфиги,
     # демо-киты, композиция «Regale»), но панель его больше не пишет.
-    assert 'name="promo_grouping"' in body
-    assert 'value="time"' in body
+    # STU-19f-4 (осознанно): группировка обзора акций — в кабинете (сводка в Студии)
+    assert 'name="promo_grouping"' not in body
     # STU-19f-2 (осознанно): ось вывода обзора акций (вкл. «добить плиткой») — в кабинете
     assert 'name="promo_index_preset_mode"' not in body
     from apps.core.page_settings import schema
@@ -86,12 +86,16 @@ def test_builder_no_longer_ships_hidden_only_design_keys():
 
 
 def test_save_promo_page_keys():
+    """STU-19f-4 (осознанно): группировку пишет кабинет; "" снимает ключ; Save Студии не трогает."""
+    from apps.core import page_settings
+
     tenant = TenantFactory(schema_name="public", slug="dl17p", name="DL17P")
-    cfg = _save(tenant, {"promo_grouping": "time", "font": "system"})
-    assert cfg["promo_grouping"] == "time"
-    # "" законно снимает ключ (presence-minimal)
+    page_settings.write(tenant, "promo_grouping", "time")
     cfg = _save(tenant, {"promo_grouping": "", "font": "system"})
-    assert "promo_grouping" not in cfg
+    assert cfg["promo_grouping"] == "time"
+    page_settings.write(tenant, "promo_grouping", "")
+    tenant.refresh_from_db()
+    assert "promo_grouping" not in siteconfig.normalize(tenant.site_config)
 
 
 def test_save_ignores_the_removed_promo_layout_control():
@@ -175,7 +179,8 @@ def test_draft_carries_new_visual_keys():
     )
     products = next(s for s in draft["sections"] if s["key"] == "products")
     assert products["layout"]["tail"] == "fill"
-    assert draft["promo_grouping"] == "time"
+    # STU-19f-4 (осознанно): группировка акций — в кабинете; черновик Студии её не ставит
+    assert "promo_grouping" not in draft
     # STU-19e-1 (deliberate): the detail layout is cabinet-owned — a Studio draft
     # cannot set it, the stored value (none here) stays
     assert siteconfig.product_detail_layout(draft) == ""
@@ -192,8 +197,8 @@ def test_draft_carries_new_visual_keys():
 
 
 def test_draft_empty_promo_keys_clear_them():
-    """Пустое значение селекта законно снимает ключ и в черновике (иначе
-    «выключить слайдер» было бы видно только после Save)."""
+    """STU-19f-4 (осознанно): черновик Студии не снимает группировку — её владелец
+    кабинет; сохранённое значение остаётся и в превью."""
     tenant = TenantFactory(
         schema_name="public",
         slug="dl17dc",
@@ -201,7 +206,7 @@ def test_draft_empty_promo_keys_clear_them():
         site_config={"promo_grouping": "time"},
     )
     draft = _draft(tenant, {"promo_grouping": ""})
-    assert "promo_grouping" not in draft
+    assert draft["promo_grouping"] == "time"
 
 
 def test_builder_payload_collects_new_keys():
@@ -210,7 +215,7 @@ def test_builder_payload_collects_new_keys():
     tenant = TenantFactory(schema_name="public", slug="dl17j", name="DL17J")
     body = _builder_body(tenant)
     # LAY-7c: строка `payload.promo_layout` удалена вместе с контролом.
-    assert "payload.promo_grouping = pgSel.value" in body
+    assert "payload.promo_grouping" not in body  # STU-19f-4: cabinet-owned
     assert "if (tailSel && tailSel.value) lay.tail = tailSel.value;" in body
     # STU-19f-3: card forms are cabinet-owned — the draft no longer carries them
     assert "promo_card:" not in body

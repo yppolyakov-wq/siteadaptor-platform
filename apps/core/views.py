@@ -2531,14 +2531,7 @@ def home_builder_view(request):
         # STU-19f-2: page grids (`*_layout`: preset + output axis) are written by the
         # cabinet («Seitenvorlage») only — the Studio Save does not touch them, nor the
         # legacy `promo_layout` ribbon key (the cabinet retires it, LAY-7c).
-        # Категория: фильтры/сортировка/подкатегории — presence-guard (cf_present шлётся
-        # панелью каталога; одним блоком, чтобы частичный POST не сбрасывал настройки).
-        if request.tenant.is_module_active("catalog") and request.POST.get("cf_present"):
-            config["catalog_show_filters"] = request.POST.get("catalog_show_filters") == "on"
-            config["catalog_subcats_first"] = request.POST.get("catalog_subcats_first") == "on"
-            _cs = request.POST.get("catalog_sort", "")
-            if _cs in siteconfig.CATALOG_SORT_KEYS:
-                config["catalog_sort"] = _cs
+        # STU-19f-4: catalog sort/filters/subcategories — cabinet only.
         # DL-21.1: шаблон корневой страницы каталога — presence по самому полю
         # (плитки шлют hidden всегда); "" = снять ключ (Standard).
         if "catalog_page_style" in request.POST:
@@ -2569,17 +2562,7 @@ def home_builder_view(request):
                 config["page_styles"] = _pstyles
             else:
                 config.pop("page_styles", None)
-        # STU-5: три настройки со страницы «Pages» переехали в уровень «эта страница»
-        # Студии (та была ВТОРЫМ писателем раскладок). Семантика — прежняя:
-        # cl_present как сентинел (W0), скрытие цен только у browse-only витрины
-        # (PAngV), маркировка — гейт гастро-типа держит и витрина.
-        if request.tenant.is_module_active("catalog") and request.POST.get("cl_present"):
-            config["menu_labels"] = request.POST.get("menu_labels") == "on"
-            if not request.tenant.is_module_active("orders"):
-                config["menu_show_prices"] = request.POST.get("menu_show_prices") == "on"
-        # Корзина: показывать ли кросс-селл — presence-guard (cart_present шлётся панелью корзины).
-        if request.tenant.is_module_active("catalog") and request.POST.get("cart_present"):
-            config["cart_show_upsell"] = request.POST.get("cart_show_upsell") == "on"
+        # STU-19f-4: menu prices/labels and the cart cross-sell — cabinet only.
         # SE-2b-2: порядок/видимость тематических секций детальной события правятся
         # и на канве (on-canvas инспектор) — раньше только на вкладке «Pages».
         # Presence-guard: пишем, только если инспектор реально прислан (есть ed_order_*),
@@ -2647,27 +2630,9 @@ def home_builder_view(request):
         sd = dict(prev_sd)
         # STU-19e-2/19f-3: шаблоны категорий/групп/страницы акции и формы карточки
         # (товар/акция) пишет только кабинет — Save Студии их не трогает.
-        # STU-8: ширина текстовой колонки (панель типа «Текстовая страница»).
-        # Сентинел tw_present — контрол живёт в области «Seite»: POST без него
-        # (чужая форма) не имеет права уронить выбор владельца (W0).
-        if request.POST.get("tw_present") == "1":
-            sd["text_width"] = request.POST.get("sd_text_width", "")
+        # STU-19f-4: text width — cabinet only.
         config["site_defaults"] = sd
-        # DL-17.3: страница /aktionen/ — раскладка групп (сетка/ленты) и режим
-        # группировки (по группам владельца / по времени). Presence-guard (W0/W7a):
-        # у ключей есть второй писатель (панель на списке акций), и форма билдера
-        # без этих полей не должна ронять уже сохранённый выбор. Пустое значение
-        # законно — normalize (presence-minimal) снимет ключ.
-        # STU-15c: дефолт сортировки листингов услуг/номеров/событий. Presence-guard
-        # (W0): ключ есть у формы билдера, но её POST не должен ронять выбор, если
-        # контрола в разметке не было (чужая форма). Пустое значение законно — снимает.
-        for _sk in siteconfig.LISTING_SORT_KINDS:
-            if _sk in request.POST:
-                config[_sk] = request.POST.get(_sk, "")
-        if "promo_grouping" in request.POST:
-            config["promo_grouping"] = siteconfig.normalize_promo_grouping(
-                request.POST.get("promo_grouping")
-            )
+        # STU-19f-4: listing sorts and offer grouping — cabinet only.
         # DL-21.2: шаблон обзорной страницы акций ("" = Standard → ключа нет).
         if "promo_page_style" in request.POST:
             config["promo_page_style"] = siteconfig.normalize_promo_page_style(

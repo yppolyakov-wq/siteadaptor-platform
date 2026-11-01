@@ -245,3 +245,57 @@ def test_apply_all_names_the_lists_it_skipped():
     page_templates.page_templates_sortiment(req)
     texts = [str(m) for m in get_messages(req)]
     assert any("Nicht übernommen" in m for m in texts), texts
+
+
+# ───────────── 19f-4: page content settings live in the cabinet ─────────────
+
+CONTENT_FIELDS = (
+    "catalog_sort",
+    "catalog_show_filters",
+    "catalog_subcats_first",
+    "menu_show_prices",
+    "menu_labels",
+    "promo_grouping",
+    "cart_show_upsell",
+    "services_sort",
+    "stays_sort",
+    "events_sort",
+    "sd_text_width",
+)
+
+
+def test_studio_has_no_page_content_controls():
+    from apps.core.tests.test_home_builder import _request
+
+    t = TenantFactory(schema_name="public", slug="stu19c", name="STU19c", disabled_modules=[])
+    body = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=t))
+    html = body.content.decode()
+    for field in CONTENT_FIELDS:
+        assert f'name="{field}"' not in html, field
+
+
+def test_studio_save_cannot_change_page_content():
+    from apps.core.tests.test_home_builder import _request
+
+    t = TenantFactory(schema_name="public", slug="stu19c2", name="STU19c2", disabled_modules=[])
+    page_settings.write(t, "catalog_sort", "price_asc")
+    page_settings.write(t, "text_width", "wide")
+    page_settings.write(t, "promo_grouping", "time")
+    views.home_builder_view(
+        _request(
+            "post",
+            "/dashboard/site/home/",
+            {
+                "cf_present": "1",
+                "catalog_sort": "newest",
+                "tw_present": "1",
+                "sd_text_width": "",
+                "promo_grouping": "",
+            },
+            t,
+        )
+    )
+    t.refresh_from_db()
+    assert t.site_config["catalog_sort"] == "price_asc"
+    assert t.site_config["site_defaults"]["text_width"] == "wide"
+    assert t.site_config["promo_grouping"] == "time"

@@ -226,43 +226,12 @@ def test_protect_owned_removes_key_absent_in_store(tenant):
 
 
 def test_cabinet_owned_is_exactly_the_moved_axes():
-    """19e-1: listing templates + detail layouts. The set grows axis by axis (19e-2,
-    19e-3, 19f), always in the same commit that removes the Studio control."""
-    from apps.core import compositions
-
-    assert page_settings.CABINET_OWNED == frozenset(
-        {f"{s}_page_style" for s in compositions.LISTING_SURFACES}
-        | {
-            "product_detail_layout",
-            "service_detail_layout",
-            "stay_detail_layout",
-            "event_detail_layout",
-            # 19e-2
-            "catalog_page_style",
-            "category_page_style",
-            "promo_page_style",
-            "promo_group_style",
-            "promo_detail_style",
-            # 19e-3
-            "home_hero",
-            # 19f-3: card forms
-            "product_card_form",
-            "promo_card_form",
-            # 19f-2: the twelve page grids
-            "catalog_layout",
-            "product_related",
-            "service_layout",
-            "stay_layout",
-            "events_layout",
-            "promo_index_layout",
-            "combos_layout",
-            "tours_layout",
-            "lookbook_layout",
-            "reviews_page_layout",
-            "wishlist_layout",
-            "blog_index_layout",
-        }
-    )
+    """19e-1 → 19f-4: the set grew axis by axis, always in the commit that removed the
+    Studio control. Final state (plan §2.1): the cabinet owns EVERY page setting; the
+    Studio keeps only the order/visibility of blocks (`*_sections`)."""
+    expected = frozenset(code for code in studio_pages.SETTINGS if not code.endswith("_sections"))
+    assert page_settings.CABINET_OWNED == expected
+    assert {"home_sections", "product_detail_sections"} <= set(studio_pages.SETTINGS)
 
 
 def test_empty_bool_value_is_not_off(tenant):
