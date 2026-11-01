@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
-from apps.core import listing_composition, option_trackers, ratelimit
+from apps.core import listing_composition, option_trackers, page_settings, ratelimit
 from apps.stays.services import StayUnavailable
 
 from . import installments, payments, services
@@ -54,7 +54,7 @@ def veranstaltung_index(request):
     # выбора нет). Сырой конфиг — значение клампится реестром сортировок провайдера.
     from apps.tenants import siteconfig as _sc
 
-    _lcfg = getattr(request.tenant, "site_config", {}) or {}
+    _lcfg = page_settings.raw_config(request)
     sort = request.GET.get("sort") or (
         _lcfg.get("events_sort")
         if _lcfg.get("events_sort") in _sc.listing_sort_keys("events_sort")
@@ -76,11 +76,7 @@ def veranstaltung_index(request):
     from apps.tenants import siteconfig
 
     # SE-2b-1: при ?preview=1 берём черновик из сессии (on-canvas правка раскладки).
-    _raw = getattr(request.tenant, "site_config", {}) or {}
-    if request.GET.get("preview") == "1" and isinstance(
-        request.session.get("site_preview_draft"), dict
-    ):
-        _raw = request.session["site_preview_draft"]
+    _raw = page_settings.raw_config(request)
     ev_layout = siteconfig.normalize(_raw)["events_index_layout"]
     events_is_list = ev_layout["preset"] == "list"
     # LAY-3a: раскладка уходит в шаблон целиком (`data-sf-*`), не только классами.
@@ -340,11 +336,7 @@ def veranstaltung_detail(request, pk):
 
     # SE-2b-2: при ?preview=1 берём черновик из сессии (on-canvas правка порядка/
     # видимости тематических секций детальной), иначе — сохранённый site_config.
-    _raw = getattr(tenant, "site_config", {}) or {}
-    if request.GET.get("preview") == "1" and isinstance(
-        request.session.get("site_preview_draft"), dict
-    ):
-        _raw = request.session["site_preview_draft"]
+    _raw = page_settings.raw_config(request)
 
     from apps.core import detail_sections
     from apps.core.sellable import sellable_for
@@ -780,7 +772,7 @@ def _page_layout(request, key: str, name: str) -> dict:
     """LAY-3a-2: контекст раскладки страницы (`<name>_grid` / `<name>_layout`)."""
     from apps.tenants import siteconfig
 
-    cfg = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    cfg = page_settings.raw_config(request)
     return siteconfig.page_layout_ctx(siteconfig.normalize(cfg), key, name)
 
 
@@ -805,10 +797,10 @@ def touren_index(request):
             # STU-18d: у поездок из композиций доступна только обложка — группировку
             # по странам страница делает сама (EXCLUDED_REASONS в реестре).
             **listing_composition.context(
-                getattr(request.tenant, "site_config", {}) or {},
+                page_settings.raw_config(request),
                 "tours",
                 hero=lambda: listing_composition.hero_from_tenant(
-                    request.tenant, getattr(request.tenant, "site_config", {}) or {}
+                    request.tenant, page_settings.raw_config(request)
                 ),
             ),
             # Разбивка по странам имеет смысл только когда стран НЕСКОЛЬКО —
@@ -837,7 +829,6 @@ def tour_detail(request, slug):
 
     audience = route_audience(request, tour)
     stops = tour.route(audience)
-    tenant = getattr(request, "tenant", None)
     return render(
         request,
         "storefront/tour_detail.html",
@@ -853,9 +844,7 @@ def tour_detail(request, slug):
             # темой этого тура (форма jobs); без модуля jobs ссылки нет.
             "private_tour_url": _private_tour_url(request, tour.title_text),
             # Порядок/скрытие тематических блоков — общий с событиями (M20U-4).
-            "event_detail_order": siteconfig.event_detail_order(
-                getattr(tenant, "site_config", {}) or {}
-            ),
+            "event_detail_order": siteconfig.event_detail_order(page_settings.raw_config(request)),
         },
     )
 
@@ -867,7 +856,7 @@ def blog_index(request):
     posts = BlogPost.objects.filter(is_published=True)
     # STU-18d: под-сущностей (рубрик) у блога нет — из реестра доступна только
     # обложка; без фото сайта она проваливается в обычную сетку (NEEDS_PHOTO).
-    _cfg = getattr(request.tenant, "site_config", {}) or {}
+    _cfg = page_settings.raw_config(request)
     ctx = {
         "posts": posts,
         **_page_layout(request, "blog_index_layout", "blog_index"),

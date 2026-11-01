@@ -34,9 +34,44 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import card_forms, compositions, studio_pages
 
-#: Page types the cabinet already shows (19b). 19d extends the tuple; the lock
-#: `test_every_supported_setting_has_a_spec` keeps specs complete for it.
-SUPPORTED_TYPES: tuple[str, ...] = ("catalog", "category", "product")
+#: Module a page type belongs to: the cabinet only offers types whose module is on
+#: (a hotel has no "Termine" page). None = always there (text pages, home).
+TYPE_MODULES: dict[str, str | None] = {
+    "home": None,
+    "catalog": "catalog",
+    "category": "catalog",
+    "product": "catalog",
+    "combos": "catalog",
+    "wishlist": "catalog",
+    "finder": "catalog",
+    "lookbook": "catalog",
+    "cart": "orders",
+    "promos": "promotions",
+    "promo_group": "promotions",
+    "promo": "promotions",
+    "services": "booking",
+    "service": "booking",
+    "stays": "stays",
+    "stay": "stays",
+    "events": "events",
+    "event": "events",
+    "tours": "events",
+    "blog": "blog",
+    "blog_post": "blog",
+    "reviews": "reviews",
+    "loyalty": "loyalty",
+    "gift": "gift",
+    "anfrage": "jobs",
+    "text": None,
+    "team": None,
+    "gallery": None,
+    "contact": None,
+    "legal": None,
+}
+
+#: Every page type of the registry (19d). The lock
+#: `test_every_supported_setting_has_a_spec` keeps the specs complete for them.
+SUPPORTED_TYPES: tuple[str, ...] = tuple(t.code for t in studio_pages.PAGE_TYPES)
 
 KIND_CHOICE = "choice"
 KIND_BOOL = "bool"
@@ -66,6 +101,8 @@ class SettingState:
     is_set: bool
     choices: tuple[Choice, ...] = ()
     has_object_scope: bool = False
+    #: which mini-mockup the tiles get: "card", "page" or "" (text tiles)
+    thumb: str = ""
 
 
 @dataclass(frozen=True)
@@ -105,19 +142,51 @@ BOOL_DEFAULTS = {
     "catalog_subcats": True,
     "catalog_menu_prices": True,
     "catalog_menu_labels": False,
+    "cart_upsell": True,
 }
 
 #: Composition settings → the surface their templates and gates belong to.
 _COMPOSITION_SURFACE = {
     "catalog_page_style": "catalog",
     "category_page_style": "category",
+    "promo_page_style": "promos",
+    "promo_group_style": "promo_group",
+    "promo_detail_style": "promo",
+    **{f"{s}_page_style": s for s in compositions.LISTING_SURFACES},
 }
 
 #: Layout settings: config key of the layout dict + page-specific extra presets.
 _LAYOUT_KEYS = {
     "catalog_layout": "catalog_layout",
     "product_related": "detail_related_layout",
+    "service_layout": "service_index_layout",
+    "stay_layout": "stay_index_layout",
+    "events_layout": "events_index_layout",
+    "promo_index_layout": "promo_index_layout",
+    "combos_layout": "combos_layout",
+    "tours_layout": "tours_layout",
+    "lookbook_layout": "lookbook_layout",
+    "reviews_page_layout": "reviews_page_layout",
+    "wishlist_layout": "wishlist_layout",
+    "blog_index_layout": "blog_index_layout",
 }
+
+#: Detail page layouts (all four detail kinds share one axis, STU-15b).
+_DETAIL_LAYOUTS = frozenset(
+    {"product_detail_layout", "service_detail_layout", "stay_detail_layout", "event_detail_layout"}
+)
+
+#: Listing sorts whose values come from the listing's facet provider (STU-15c).
+_LISTING_SORTS = {"services_sort": "service", "stays_sort": "stay", "events_sort": "event"}
+
+PROMO_GROUPING_OPTIONS = (("", _("Nach Gruppen")), ("time", _("Nach Zeit")))
+
+TEXT_WIDTH_OPTIONS = (
+    ("", _("Wie bisher")),
+    ("narrow", _("Schmale Spalte")),
+    ("wide", _("Breite Spalte")),
+    ("full", _("Volle Breite")),
+)
 
 UNAVAILABLE_REASON = _("Ohne Unterkategorien oder Sets nicht verfügbar")
 
@@ -143,11 +212,23 @@ def applies(tenant, setting: studio_pages.Setting) -> bool:
     return True
 
 
+def _optional_layout(key: str) -> bool:
+    """Layouts normalize does NOT materialise: "Standard" removes the key and the
+    page draws its old classes again (LAY-3a-2)."""
+    from apps.tenants import siteconfig
+
+    return key == "service_index_layout" or key in siteconfig.OPTIONAL_PAGE_LAYOUTS
+
+
 def _layout_presets(code: str) -> tuple[tuple[str, object], ...]:
     from apps.tenants import siteconfig
 
-    extra = siteconfig.PAGE_EXTRA_PRESETS.get(_LAYOUT_KEYS[code], ())
-    return LAYOUT_OPTIONS + tuple((k, siteconfig.SECTION_STYLE_LABELS.get(k, k)) for k in extra)
+    key = _LAYOUT_KEYS[code]
+    extra = siteconfig.PAGE_EXTRA_PRESETS.get(key, ())
+    head = (("", _("Standard")),) if _optional_layout(key) else ()
+    return (
+        head + LAYOUT_OPTIONS + tuple((k, siteconfig.SECTION_STYLE_LABELS.get(k, k)) for k in extra)
+    )
 
 
 def kind_of(setting: studio_pages.Setting) -> str:
@@ -172,12 +253,30 @@ def choices(setting: studio_pages.Setting, gate: dict | None = None) -> tuple[Ch
         )
     if code == "product_card_form":
         return tuple(Choice(k, label, hint) for k, label, hint in card_forms.forms_for())
+    if code == "promo_card_form":
+        return tuple(
+            Choice(k, label, hint) for k, label, hint in card_forms.forms_for(card_forms.PROMO)
+        )
     if code in _LAYOUT_KEYS:
         return tuple(Choice(k, label) for k, label in _layout_presets(code))
     if code == "catalog_sort":
         return tuple(Choice(k, label) for k, label in SORT_OPTIONS)
-    if code == "product_detail_layout":
+    if code in _LISTING_SORTS:
+        from apps.core.facets import provider_for
+
+        return tuple(
+            Choice(k, label) for k, label in provider_for(_LISTING_SORTS[code]).sort_options()
+        )
+    if code in _DETAIL_LAYOUTS:
         return tuple(Choice(k, label) for k, label in DETAIL_LAYOUT_OPTIONS)
+    if code == "home_hero":
+        from apps.tenants import siteconfig
+
+        return tuple(Choice(k, label) for k, label in siteconfig.HERO_STYLE_LABELS)
+    if code == "promo_grouping":
+        return tuple(Choice(k, label) for k, label in PROMO_GROUPING_OPTIONS)
+    if code == "text_width":
+        return tuple(Choice(k, label) for k, label in TEXT_WIDTH_OPTIONS)
     raise PageSettingError(f"no cabinet spec for setting {code!r}")
 
 
@@ -275,13 +374,39 @@ def composition_gate(config: dict | None = None) -> dict[str, set[str]]:
     return out
 
 
+def _thumb(setting: studio_pages.Setting) -> str:
+    if setting.axis == "card":
+        return "card"
+    if setting.code in _COMPOSITION_SURFACE:
+        return "page"
+    return ""
+
+
+def type_active(tenant, type_code: str) -> bool:
+    """A page type is offered only when its module is on (no "Termine" for a hotel)."""
+    module = TYPE_MODULES.get(type_code)
+    return module is None or bool(tenant.is_module_active(module))
+
+
+def active_types(tenant, types: tuple[str, ...] | None = None) -> tuple[str, ...]:
+    """Types of `types` (default: all) that are live and have a cabinet setting."""
+    return tuple(
+        code
+        for code in (types or SUPPORTED_TYPES)
+        if type_active(tenant, code) and any(applies(tenant, s) for s in cabinet_settings(code))
+    )
+
+
 def schema(tenant, types: tuple[str, ...] | None = None) -> list[TypeSchema]:
-    """Machine-readable description for the cabinet tab and the AI helper."""
+    """Machine-readable description for the cabinet tab and the AI helper.
+
+    Types whose module is off are skipped (a passed-in tuple is filtered too).
+    """
     raw = tenant.site_config or {}
     gate = composition_gate(raw)
     out = []
     axis_order = {code: i for i, (code, _label) in enumerate(studio_pages.AXES)}
-    for code in types or SUPPORTED_TYPES:
+    for code in active_types(tenant, types):
         page = studio_pages.page_type(code)
         rows = []
         for s in cabinet_settings(code):
@@ -298,6 +423,7 @@ def schema(tenant, types: tuple[str, ...] | None = None) -> list[TypeSchema]:
                     is_set=is_set,
                     choices=choices(s, gate),
                     has_object_scope=s.has_object_scope,
+                    thumb=_thumb(s),
                 )
             )
         rows.sort(key=lambda r: axis_order.get(r.axis, 99))
@@ -343,10 +469,18 @@ def apply_override(cfg: dict, code: str, value) -> dict:
     kind = kind_of(setting)
     if kind == KIND_LAYOUT:
         key = _LAYOUT_KEYS[code]
+        if key == "promo_index_layout":
+            # the first conscious touch of the axis retires the legacy switch (LAY-7c)
+            out.pop("promo_layout", None)
+        if value == "" and _optional_layout(key):
+            out.pop(key, None)  # "Standard": the page draws its old classes again
+            return out
         layout = dict(out.get(key) or {})
         layout["preset"] = value
         extra = siteconfig.PAGE_EXTRA_PRESETS.get(key, ())
-        out[key] = siteconfig.normalize_layout(layout, extra_presets=extra)
+        out[key] = siteconfig.normalize_layout(
+            layout, siteconfig.PAGE_LAYOUT_DEFAULTS.get(key), extra_presets=extra
+        )
         return out
     path = setting.site_key
     if len(path) == 1:
@@ -361,7 +495,10 @@ def apply_override(cfg: dict, code: str, value) -> dict:
         parent.pop(path[1], None)
     else:
         parent[path[1]] = value
-    out[path[0]] = parent
+    if parent or path[0] != "page_styles":
+        out[path[0]] = parent
+    else:
+        out.pop(path[0], None)  # presence-minimal: no empty `page_styles` (golden)
     return out
 
 
@@ -370,8 +507,12 @@ def validate(tenant, code: str, value, gate: dict | None = None):
     setting = studio_pages.SETTINGS.get(code or "")
     if setting is None or is_studio_only(setting):
         raise PageSettingError(f"unknown page setting {code!r}")
-    if not any(code in {s.code for s in cabinet_settings(t)} for t in SUPPORTED_TYPES):
-        raise PageSettingError(f"setting {code!r} is not offered in the cabinet yet")
+    if not any(
+        code in {s.code for s in cabinet_settings(t)}
+        for t in SUPPORTED_TYPES
+        if type_active(tenant, t)
+    ):
+        raise PageSettingError(f"setting {code!r} is not offered for this business")
     if not applies(tenant, setting):
         raise PageSettingError(f"setting {code!r} does not apply to this business")
     raw = tenant.site_config or {}
@@ -456,6 +597,17 @@ def preview_raw(request) -> tuple[dict, bool]:
     if isinstance(draft, dict):
         return draft, True
     return saved, False
+
+
+def raw_config(request) -> dict:
+    """STU-19d: the raw config a storefront view renders — preview-aware.
+
+    One reader for every storefront page: `?preview=1&tpl=` (cabinet tab), the
+    Studio draft under `?preview=1`, otherwise the saved config. Views used to copy
+    the draft check by hand; pages without it (tours, blog, sets, …) showed the
+    saved state in every preview.
+    """
+    return preview_raw(request)[0]
 
 
 #: Settings whose ONLY writer is the cabinet tab. The Studio Save and its live draft

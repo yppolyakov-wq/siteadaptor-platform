@@ -105,7 +105,8 @@ def test_hidden_without_catalog_module(tenant, monkeypatch):
 
 def test_menu_entry_and_permission_rule():
     entry = next(e for e in nav_registry.ENTRIES if e.url_name == "page-templates-sortiment")
-    assert entry.module_key == "catalog" and entry.hub == "sellables"
+    # STU-19d: the tab covers services/rooms/events too — the screen filters types
+    assert entry.module_key is None and entry.hub == "sellables"
     assert reverse("page-templates-sortiment") == "/dashboard/seitenvorlagen/sortiment/"
     rule = view_perms.RULES["page-templates-sortiment"]
     assert rule.write == "website.edit"
@@ -168,3 +169,81 @@ def test_anonymous_visitor_cannot_use_tpl(category_tree):
 def test_may_preview_is_fail_closed_for_anonymous():
     request = RequestFactory().get("/?preview=1&tpl=x:y")
     assert page_settings._may_preview(request) is False
+
+
+# ── STU-19d: every section, every page type ─────────────────────────────────────
+
+
+def _modules(monkeypatch, tenant, active):
+    monkeypatch.setattr(type(tenant), "is_module_active", lambda self, key: key in active)
+
+
+def test_aktionen_tab_needs_promotions(tenant, monkeypatch):
+    _modules(monkeypatch, tenant, {"catalog"})
+    with pytest.raises(Http404):
+        page_templates.page_templates_aktionen(_req(tenant))
+    _modules(monkeypatch, tenant, {"catalog", "promotions"})
+    body = page_templates.page_templates_aktionen(_req(tenant)).content.decode()
+    assert 'data-pt-setting="promo_page_style"' in body
+    assert 'name="frage"' not in body  # the setup helper creates catalog things only
+
+
+def test_website_screen_lists_text_pages_and_hides_inactive_types(tenant, monkeypatch):
+    _modules(monkeypatch, tenant, {"catalog"})
+    body = page_templates.page_templates_website(_req(tenant)).content.decode()
+    assert "?typ=text" in body and "?typ=catalog" in body
+    assert "?typ=services" not in body and "?typ=stays" not in body
+    body = page_templates.page_templates_website(
+        _req(tenant, data={"typ": "home"})
+    ).content.decode()
+    assert 'data-pt-setting="home_hero"' in body
+
+
+def test_sortiment_shows_services_when_booking_is_on(tenant, monkeypatch):
+    _modules(monkeypatch, tenant, {"catalog", "booking"})
+    body = page_templates.page_templates_sortiment(
+        _req(tenant, data={"typ": "services"})
+    ).content.decode()
+    assert 'data-pt-setting="services_sort"' in body
+
+
+def test_section_writes_only_its_own_settings(tenant, monkeypatch):
+    """The Aktionen tab must not become a back door for unrelated settings."""
+    _modules(monkeypatch, tenant, {"catalog", "promotions"})
+    page_templates.page_templates_aktionen(
+        _req(tenant, "post", {"setting": "catalog_page_style", "value": "magazin"})
+    )
+    tenant.refresh_from_db()
+    assert "catalog_page_style" not in (tenant.site_config or {})
+
+
+def test_preview_query_paths_get_the_right_separator():
+    assert page_templates._with_preview("/aktionen/?gruppe=A", "x:y") == (
+        "/aktionen/?gruppe=A&preview=1&tpl=x%3Ay"
+    )
+    assert page_templates._with_preview("/termin/") == "/termin/?preview=1"
+    assert page_templates._with_preview("") == ""
+
+
+def test_every_type_has_a_preview_strategy():
+    """A type is either reversible without args or handled by `_object_path`."""
+    from django.urls import NoReverseMatch
+
+    from apps.core import studio_pages
+
+    for page in studio_pages.PAGE_TYPES:
+        try:
+            reverse(page.url_names[0])
+            continue
+        except NoReverseMatch:
+            pass
+        assert page.code in {
+            "category",
+            "product",
+            "promo",
+            "service",
+            "stay",
+            "event",
+            "blog_post",
+            "lookbook",
+        }, page.code

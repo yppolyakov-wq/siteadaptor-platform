@@ -16,7 +16,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.catalog.combos import combo_labels
-from apps.core import closures, ratelimit
+from apps.core import closures, page_settings, ratelimit
 
 from . import delivery_choice, pickup_slots
 from . import payments as order_payments
@@ -267,15 +267,16 @@ def _page_layout(request, key: str, name: str) -> dict:
     Пусто, если владелец сетку не задавал — шаблон рисует прежние классы."""
     from apps.tenants import siteconfig
 
-    cfg = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    cfg = page_settings.raw_config(request)
     return siteconfig.page_layout_ctx(siteconfig.normalize(cfg), key, name)
 
 
-def _cover_composition(tenant, surface: str) -> dict:
+def _cover_composition(request, surface: str) -> dict:
     """STU-18d: композиция листинга без под-сущностей — только «С обложкой»."""
     from apps.core import listing_composition
 
-    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    tenant = request.tenant
+    cfg = page_settings.raw_config(request)
     return listing_composition.context(
         cfg,
         surface,
@@ -293,7 +294,7 @@ def _combos_composition(request, combos) -> dict:
     from apps.catalog.combos import active_combos
     from apps.core import listing_composition
 
-    cfg = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    cfg = page_settings.raw_config(request)
     base_url = reverse("storefront-combos")
     current = (request.GET.get("kategorie") or "").strip()
 
@@ -667,7 +668,7 @@ def wishlist_view(request):
             **_page_layout(request, "wishlist_layout", "wishlist"),
             # STU-18d: под-сущностей у страницы нет — из реестра доступна только
             # обложка (без фото сайта она проваливается в обычную сетку).
-            **_cover_composition(request.tenant, "wishlist"),
+            **_cover_composition(request, "wishlist"),
         },
     )
 
@@ -906,9 +907,7 @@ def cart_view(request):
     from apps.tenants import siteconfig
 
     is_preview = request.GET.get("preview") == "1"
-    _raw = getattr(tenant, "site_config", {}) or {}
-    if is_preview and isinstance(request.session.get("site_preview_draft"), dict):
-        _raw = request.session["site_preview_draft"]
+    _raw = page_settings.raw_config(request)
     _cfg = siteconfig.normalize(_raw)
     ctx["cart_title"] = _cfg.get("cart_title", "")
     ctx["cart_note"] = _cfg.get("cart_note", "")

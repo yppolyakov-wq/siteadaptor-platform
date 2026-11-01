@@ -25,7 +25,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from apps.catalog.combos import combo_labels
 from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
-from apps.core import closures, grid_filler, ratelimit
+from apps.core import closures, grid_filler, page_settings, ratelimit
 from apps.core.models import resolve_overlay
 from apps.core.pagecache import cache_storefront_page
 from apps.core.pagination import paginate
@@ -218,9 +218,7 @@ def storefront_home(request):
     # главной) рендерим несохранённое состояние. Только для вошедшего владельца
     # (черновик в его сессии); standalone-редирект в превью пропускаем.
     preview = request.GET.get("preview") == "1"
-    raw = request.tenant.site_config
-    if preview and isinstance(request.session.get("site_preview_draft"), dict):
-        raw = request.session["site_preview_draft"]
+    raw = page_settings.raw_config(request)
     site = siteconfig.normalize(raw)
     # S4: standalone-режим — корень `/` ведёт на лендинг выбранного архетипа
     # (если он активен и имеет публичную страницу), иначе обычная главная.
@@ -462,11 +460,7 @@ def _promo_page_config(request) -> dict:
     """DL-17.3: конфиг страницы акций — с учётом ЧЕРНОВИКА билдера при ?preview=1.
     Без этого правка «Aktionsseite: Aufbau/Gruppierung» в Studio не была видна на
     канве до «Опубликовать», хотя остальные витринные вьюхи черновик читают."""
-    if request.GET.get("preview") == "1" and isinstance(
-        getattr(request, "session", None) and request.session.get("site_preview_draft"), dict
-    ):
-        return request.session["site_preview_draft"]
-    return request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    return page_settings.raw_config(request)
 
 
 def _time_groups(promotions, now):
@@ -1074,7 +1068,9 @@ def about_page(request):
 
     from apps.tenants import siteconfig
 
-    site = siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
+    site = siteconfig.localize(
+        siteconfig.normalize(page_settings.raw_config(request)), get_language()
+    )
     # DL-6: контакт-блок страницы уважает стиль секции contact (split/map_first/…).
     return render(
         request,
@@ -1089,7 +1085,9 @@ def _site_ctx(request):
 
     from apps.tenants import siteconfig
 
-    return siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
+    return siteconfig.localize(
+        siteconfig.normalize(page_settings.raw_config(request)), get_language()
+    )
 
 
 def _section_row(site, key):
@@ -1192,7 +1190,7 @@ def team_page(request):
     )
 
 
-def _cover_composition(tenant, surface: str) -> dict:
+def _cover_composition(request, surface: str) -> dict:
     """STU-18d: композиция листинга без под-сущностей — только «С обложкой».
 
     Под-сущностей (подборок, тем, направлений) у страницы нет, поэтому из реестра
@@ -1201,7 +1199,8 @@ def _cover_composition(tenant, surface: str) -> dict:
     """
     from apps.core import listing_composition
 
-    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    tenant = request.tenant
+    cfg = page_settings.raw_config(request)
     return listing_composition.context(
         cfg,
         surface,
@@ -1237,7 +1236,7 @@ def reviews_page(request):
             "business_rating_value": business_rating(),
             # LAY-3a-2: раскладка сетки отзывов (пусто → прежние классы шаблона).
             **siteconfig.page_layout_ctx(site, "reviews_page_layout", "reviews_page"),
-            **_cover_composition(request.tenant, "reviews"),
+            **_cover_composition(request, "reviews"),
         },
     )
 
@@ -1263,7 +1262,9 @@ def finder_page(request):
             if q_key and chip_key:
                 answers[q_key[:40]] = chip_key[:40]
     state = finder.resolve(request.tenant, answers, get_language())
-    site = siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
+    site = siteconfig.localize(
+        siteconfig.normalize(page_settings.raw_config(request)), get_language()
+    )
     carry = ",".join(f"{k}.{v}" for k, v in sorted(answers.items()))
     ctx = {"site": site, "sections": [], "answers_carry": carry, **state}
     return render(request, "storefront/finder.html", ctx)
@@ -1410,7 +1411,6 @@ def product_list(request, slug=None):
                 return redirect("storefront-products")
     # M20U-7 (per-page): конфиг витрины. SE-2a-2: при ?preview=1 — черновик из сессии
     # (раскладка/сортировка/фильтры/подкатегории видны на канве сразу).
-    from apps.core import page_settings
     from apps.tenants import siteconfig
 
     is_preview = request.GET.get("preview") == "1"
@@ -2099,7 +2099,6 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
     )
     # При ?preview=1 — черновик из сессии (on-canvas правка видимости секций детальной).
     # STU-19b: draft or cabinet `?tpl=` override (see page_settings.preview_raw)
-    from apps.core import page_settings
     from apps.tenants import siteconfig
 
     _raw, _prev = page_settings.preview_raw(request)

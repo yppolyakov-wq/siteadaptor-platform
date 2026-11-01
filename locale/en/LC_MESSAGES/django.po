@@ -31348,3 +31348,19 @@ msgid "%(n)s Weiterleitung"
 msgid_plural "%(n)s Weiterleitungen"
 msgstr[0] "%(n)s redirect"
 msgstr[1] "%(n)s redirects"
+
+msgid "Alle Seiten Ihrer Website an einem Ort: Startseite, Textseiten, Blog und alle Listen. Reihenfolge und Texte der Blöcke ändern Sie in der Studio."
+msgstr "All pages of your website in one place: home page, text pages, blog and all lists. You change the order and texts of the blocks in the Studio."
+
+msgid "Noch nichts zu zeigen — legen Sie zuerst einen Eintrag an, den diese Seite zeigt."
+msgstr "Nothing to show yet — first create an entry this page shows."
+
+
+msgid "Seitenvorlagen"
+msgstr "Page templates"
+
+msgid "So zeigt Ihre Website Ihr Angebot: Listen, Kategorien und Detailseiten. Eine Kategorie oder ein Produkt mit eigener Vorlage behält diese."
+msgstr "How your website shows your offer: lists, categories and detail pages. A category or product with its own template keeps it."
+
+msgid "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."
+msgstr "How your website shows the offers page, an offer group and a single offer. An offer type or offer with its own template keeps it."

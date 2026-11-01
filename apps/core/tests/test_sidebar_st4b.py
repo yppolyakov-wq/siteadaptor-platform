@@ -213,9 +213,11 @@ def test_sidebar_children_composition():
     site = [c["url_name"] for c in by_anchor["site-home"]]
     # DL-7b (осознанное дополнение): «Design» — переключатель шаблонов вне Studio.
     # M21.1: «Weiterleitungen» — подпункт Website сразу после SEO.
+    # STU-19d (осознанно): «Seitenvorlagen» — шаблоны всех страниц, рядом с «Design».
     assert site == [
         "site-home",
         "design",
+        "page-templates-website",
         "site-seo",
         "site-redirects",
         "domains",

@@ -1,7 +1,7 @@
 {% extends "tenant/_base_dashboard.html" %}
 {% load cabinet %}
 {% load i18n %}
-{% block dash_title %}{% trans "Seitenvorlage" %}{% endblock %}
+{% block dash_title %}{{ title }}{% endblock %}
 
 {% block dash_content %}
 {% comment %}STU-19b: page settings of a section's page types (plan stu19 §2.3). Every
@@ -9,17 +9,19 @@ setting is its own small form — one writer per POST (page_settings.write), no 
 form that rebuilds the config. Clicking a tile updates the preview at once through
 the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% endcomment %}
 <div class="flex items-center justify-between gap-3 mb-1 flex-wrap">
-  <h1 class="ui-h1">{% nav_title _("Seitenvorlage") %}</h1>
+  <h1 class="ui-h1">{% nav_title title %}</h1>
   <a href="{{ studio_url }}" class="ui-btn ui-btn-secondary">{% trans "In der Studio ansehen" %} →</a>
 </div>
-<p class="ui-muted mb-4">{% trans "So zeigt Ihre Website Katalog, Kategorien und Produkte. Eine Kategorie oder ein Produkt mit eigener Vorlage behält diese." %}</p>
+<p class="ui-muted mb-4">{{ intro }}</p>
 
 {% include "tenant/_settings_messages.html" %}
 
+{% if show_ask %}
 {% include "tenant/_setup_ask.html" %}
 {% if plan %}{% include "tenant/_setup_plan.html" %}{% endif %}
+{% endif %}
 
-<nav class="ui-tabs mb-4" aria-label="{% trans "Seitentyp" %}">
+<nav class="ui-tabs mb-4 flex-wrap" aria-label="{% trans "Seitentyp" %}">
   {% for t in types %}
     <a href="?typ={{ t.code }}" class="ui-tab"{% if t.code == active.code %} aria-current="page"{% endif %}>{{ t.label }}</a>
   {% endfor %}
@@ -48,7 +50,7 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
               {% for c in s.choices %}
                 <label class="flex flex-col gap-1 rounded-xl border p-2 text-xs min-h-[44px] group {% if c.available %}cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600{% else %}border-dashed border-gray-300 bg-gray-50 text-gray-600{% endif %}">
                   <input type="radio" name="value" value="{{ c.value }}" class="sr-only" {% if c.value == s.value %}checked{% endif %}{% if not c.available %} disabled aria-describedby="r-{{ s.code }}-{{ forloop.counter }}"{% endif %}>
-                  {% if s.code == "product_card_form" %}{% include "tenant/_cardform_thumb.html" with key=c.value %}{% elif s.axis == "composition" and s.code != "product_detail_layout" %}{% include "tenant/_pagelayout_thumb.html" with key=c.value %}{% endif %}
+                  {% if s.thumb == "card" %}{% include "tenant/_cardform_thumb.html" with key=c.value %}{% elif s.thumb == "page" %}{% include "tenant/_pagelayout_thumb.html" with key=c.value %}{% endif %}
                   <span>{{ c.label }}<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
                   {% if c.hint %}<span class="sr-only">{{ c.hint }}</span>{% endif %}
                   {% if not c.available %}<span id="r-{{ s.code }}-{{ forloop.counter }}" class="text-[11px]">{{ c.reason }}</span>{% endif %}
@@ -88,10 +90,10 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
     </div>
     {% if preview_path %}
       <div class="flex justify-center rounded-xl border border-gray-200 bg-gray-50 overflow-hidden">
-        <iframe data-pt-frame src="{{ preview_path }}?preview=1" title="{% trans "Vorschau" %} · {{ active.label }}" class="h-[70vh] w-full bg-white" style="max-width:100%"></iframe>
+        <iframe data-pt-frame src="{{ preview_src }}" title="{% trans "Vorschau" %} · {{ active.label }}" class="h-[70vh] w-full bg-white" style="max-width:100%"></iframe>
       </div>
     {% else %}
-      <div class="ui-empty">{% trans "Noch nichts zu zeigen — legen Sie zuerst ein Produkt in einer Kategorie an." %}</div>
+      <div class="ui-empty">{% trans "Noch nichts zu zeigen — legen Sie zuerst einen Eintrag an, den diese Seite zeigt." %}</div>
     {% endif %}
   </section>
 </div>
@@ -112,7 +114,7 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
     if (dirty && !dirty.textContent) dirty.textContent = dirty.getAttribute('data-pt-text');
     if (frame && path) {
       var tpl = form.getAttribute('data-pt-setting') + ':' + input.value;
-      frame.src = path + '?preview=1&tpl=' + encodeURIComponent(tpl);
+      frame.src = path + (path.indexOf('?') < 0 ? '?' : '&') + 'preview=1&tpl=' + encodeURIComponent(tpl);
     }
   });
   root.addEventListener('click', function (e) {

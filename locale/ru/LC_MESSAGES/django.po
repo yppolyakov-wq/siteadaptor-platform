@@ -31630,3 +31630,19 @@ msgstr[0] "%(n)s переадресация"
 msgstr[1] "%(n)s переадресации"
 msgstr[2] "%(n)s переадресаций"
 msgstr[3] "%(n)s переадресаций"
+
+msgid "Alle Seiten Ihrer Website an einem Ort: Startseite, Textseiten, Blog und alle Listen. Reihenfolge und Texte der Blöcke ändern Sie in der Studio."
+msgstr "Все страницы сайта в одном месте: главная, текстовые страницы, блог и все списки. Порядок и тексты блоков меняются в Студии."
+
+msgid "Noch nichts zu zeigen — legen Sie zuerst einen Eintrag an, den diese Seite zeigt."
+msgstr "Пока нечего показать — сначала создайте запись, которую показывает эта страница."
+
+
+msgid "Seitenvorlagen"
+msgstr "Шаблоны страниц"
+
+msgid "So zeigt Ihre Website Ihr Angebot: Listen, Kategorien und Detailseiten. Eine Kategorie oder ein Produkt mit eigener Vorlage behält diese."
+msgstr "Как сайт показывает ваш ассортимент: списки, категории и страницы позиций. Категория или товар со своим шаблоном его сохраняет."
+
+msgid "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."
+msgstr "Как сайт показывает страницу акций, группу акций и отдельную акцию. Тип акции или акция со своим шаблоном его сохраняет."

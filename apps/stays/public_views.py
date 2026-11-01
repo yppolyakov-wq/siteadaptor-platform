@@ -20,7 +20,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.billing import connect
-from apps.core import attribution, listing_composition, option_trackers, ratelimit
+from apps.core import attribution, listing_composition, option_trackers, page_settings, ratelimit
 from apps.loyalty.public_views import gift_purchase_active as _gift_purchase_active
 
 from . import availability, payments, pricing, restrictions, services
@@ -178,7 +178,7 @@ def unterkunft_index(request):
     # выбора нет). Сырой конфиг — значение клампится реестром сортировок провайдера.
     from apps.tenants import siteconfig as _sc
 
-    _lcfg = getattr(request.tenant, "site_config", {}) or {}
+    _lcfg = page_settings.raw_config(request)
     sort = request.GET.get("sort") or (
         _lcfg.get("stays_sort")
         if _lcfg.get("stays_sort") in _sc.listing_sort_keys("stays_sort")
@@ -248,11 +248,7 @@ def unterkunft_index(request):
     from apps.tenants import siteconfig
 
     # SE-2b-1: при ?preview=1 берём черновик из сессии (on-canvas правка раскладки).
-    _raw = getattr(tenant, "site_config", {}) or {}
-    if request.GET.get("preview") == "1" and isinstance(
-        request.session.get("site_preview_draft"), dict
-    ):
-        _raw = request.session["site_preview_draft"]
+    _raw = page_settings.raw_config(request)
     # LAY-3a: кроме классов отдаём саму раскладку — шаблон эмитит `data-sf-*`,
     # иначе «Verteilen / Volle Reihen» на этом листинге ничего не делают.
     rooms_layout = siteconfig.normalize(_raw)["stay_index_layout"]
@@ -440,11 +436,7 @@ def unterkunft_unit(request, pk):
     from apps.tenants import siteconfig
 
     # UA4-1 slice C: скрытые секции детали номера (билдер) — под ?preview=1 из черновика.
-    _raw = getattr(request.tenant, "site_config", {}) or {}
-    if request.GET.get("preview") == "1" and isinstance(
-        request.session.get("site_preview_draft"), dict
-    ):
-        _raw = request.session["site_preview_draft"]
+    _raw = page_settings.raw_config(request)
     _hidden = siteconfig.detail_section_hidden(_raw, "stays")
     # UA4-2: data-driven секции ТЕЛА детали (description/amenities/reviews) — цикл в шаблоне
     # по реестру (stays), видимость = (контент присутствует) И (не скрыта в билдере).

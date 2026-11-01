@@ -21,7 +21,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.billing import connect
-from apps.core import attribution, listing_composition, option_trackers, ratelimit
+from apps.core import attribution, listing_composition, option_trackers, page_settings, ratelimit
 from apps.core.fsm import IllegalTransition
 from apps.promotions.services import OutOfStock as PromoSoldOut
 
@@ -378,7 +378,7 @@ def termin_index(request):
         # значение клампится реестром сортировок провайдера.
         from apps.tenants import siteconfig as _sc
 
-        _lcfg = getattr(request.tenant, "site_config", {}) or {}
+        _lcfg = page_settings.raw_config(request)
         sort = request.GET.get("sort") or (
             _lcfg.get("services_sort")
             if _lcfg.get("services_sort") in _sc.listing_sort_keys("services_sort")
@@ -396,11 +396,7 @@ def termin_index(request):
         # Ключ не задан → services_grid=None → шаблон держит легаси-грид (max-w-3xl).
         from apps.tenants import siteconfig
 
-        raw_cfg = request.tenant.site_config
-        if request.GET.get("preview") == "1" and isinstance(
-            request.session.get("site_preview_draft"), dict
-        ):
-            raw_cfg = request.session["site_preview_draft"]
+        raw_cfg = page_settings.raw_config(request)
         services_grid = None
         service_preset = ""
         # LAY-3a: раскладка уезжает в шаблон ЦЕЛИКОМ, а не только классами — иначе
@@ -867,11 +863,7 @@ def _service_rich_context(request, service, tenant) -> dict:
     from apps.tenants import siteconfig
 
     # UA4-1 slice C: скрытые секции детали услуги (билдер) — под ?preview=1 из черновика.
-    _raw = getattr(request.tenant, "site_config", {}) or {}
-    if request.GET.get("preview") == "1" and isinstance(
-        request.session.get("site_preview_draft"), dict
-    ):
-        _raw = request.session["site_preview_draft"]
+    _raw = page_settings.raw_config(request)
     _hidden = siteconfig.detail_section_hidden(_raw, "booking")
     # Фидбэк 2026-08-04: пикер «выбор специалиста» и секция «Team» — только когда
     # ресурсы — ЛЮДИ с профилем (фото/должность/био, A3). Технические ресурсы

@@ -196,6 +196,17 @@ urlpatterns = [
         page_templates.page_templates_sortiment,
         name="page-templates-sortiment",
     ),
+    # STU-19d: the same tab for offers, and one screen for every page of the site.
+    path(
+        "dashboard/seitenvorlagen/aktionen/",
+        page_templates.page_templates_aktionen,
+        name="page-templates-aktionen",
+    ),
+    path(
+        "dashboard/seitenvorlagen/",
+        page_templates.page_templates_website,
+        name="page-templates-website",
+    ),
     path("dashboard/site/home/", home_builder_view, name="site-home"),
     # STU-3: точечные чтение/запись объектного уровня настройки (охват «только здесь»)
     # — мимо большой формы билдера, чтобы промах в её контролах не трогал чужие модели.

@@ -31614,3 +31614,19 @@ msgstr[0] "%(n)s переадресація"
 msgstr[1] "%(n)s переадресації"
 msgstr[2] "%(n)s переадресацій"
 msgstr[3] "%(n)s переадресацій"
+
+msgid "Alle Seiten Ihrer Website an einem Ort: Startseite, Textseiten, Blog und alle Listen. Reihenfolge und Texte der Blöcke ändern Sie in der Studio."
+msgstr "Усі сторінки сайту в одному місці: головна, текстові сторінки, блог і всі списки. Порядок і тексти блоків змінюються в Студії."
+
+msgid "Noch nichts zu zeigen — legen Sie zuerst einen Eintrag an, den diese Seite zeigt."
+msgstr "Поки нічого показати — спершу створіть запис, який показує ця сторінка."
+
+
+msgid "Seitenvorlagen"
+msgstr "Шаблони сторінок"
+
+msgid "So zeigt Ihre Website Ihr Angebot: Listen, Kategorien und Detailseiten. Eine Kategorie oder ein Produkt mit eigener Vorlage behält diese."
+msgstr "Як сайт показує ваш асортимент: списки, категорії та сторінки позицій. Категорія чи товар зі своїм шаблоном його зберігає."
+
+msgid "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."
+msgstr "Як сайт показує сторінку акцій, групу акцій і окрему акцію. Тип акції чи акція зі своїм шаблоном його зберігає."

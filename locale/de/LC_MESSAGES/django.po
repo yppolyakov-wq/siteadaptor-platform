@@ -31441,3 +31441,19 @@ msgid "%(n)s Weiterleitung"
 msgid_plural "%(n)s Weiterleitungen"
 msgstr[0] "%(n)s Weiterleitung"
 msgstr[1] "%(n)s Weiterleitungen"
+
+msgid "Alle Seiten Ihrer Website an einem Ort: Startseite, Textseiten, Blog und alle Listen. Reihenfolge und Texte der Blöcke ändern Sie in der Studio."
+msgstr "Alle Seiten Ihrer Website an einem Ort: Startseite, Textseiten, Blog und alle Listen. Reihenfolge und Texte der Blöcke ändern Sie in der Studio."
+
+msgid "Noch nichts zu zeigen — legen Sie zuerst einen Eintrag an, den diese Seite zeigt."
+msgstr "Noch nichts zu zeigen — legen Sie zuerst einen Eintrag an, den diese Seite zeigt."
+
+
+msgid "Seitenvorlagen"
+msgstr "Seitenvorlagen"
+
+msgid "So zeigt Ihre Website Ihr Angebot: Listen, Kategorien und Detailseiten. Eine Kategorie oder ein Produkt mit eigener Vorlage behält diese."
+msgstr "So zeigt Ihre Website Ihr Angebot: Listen, Kategorien und Detailseiten. Eine Kategorie oder ein Produkt mit eigener Vorlage behält diese."
+
+msgid "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."
+msgstr "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."

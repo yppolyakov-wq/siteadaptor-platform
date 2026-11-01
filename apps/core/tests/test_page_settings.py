@@ -144,7 +144,9 @@ def test_empty_value_removes_the_key(tenant):
         ("product_related", "preisliste"),  # extra preset of the catalog only
         ("catalog_filters", "vielleicht"),
         ("product_detail_sections", "x"),  # Studio-only
-        ("promo_page_style", "magazin"),  # not offered in the cabinet yet
+        ("promo_page_style", "erfunden"),
+        ("services_sort", "erfunden"),
+        ("tours_layout", "preisliste"),  # extra preset of the catalog only
         ("nope", "x"),
     ],
 )
@@ -163,7 +165,9 @@ def test_unavailable_template_cannot_be_chosen(tenant):
 
 
 def test_menu_prices_only_for_browse_only_storefront(tenant, monkeypatch):
-    monkeypatch.setattr(type(tenant), "is_module_active", lambda self, key: key == "orders")
+    monkeypatch.setattr(
+        type(tenant), "is_module_active", lambda self, key: key in ("orders", "catalog")
+    )
     codes = _codes(page_settings.schema(tenant, ("catalog",))[0])
     assert "catalog_menu_prices" not in codes
     with pytest.raises(page_settings.PageSettingError):
@@ -258,3 +262,97 @@ def test_apply_override_refuses_unknown_codes():
         page_settings.apply_override({}, "nope", "x")
     with pytest.raises(page_settings.PageSettingError):
         page_settings.apply_override({}, "product_detail_sections", "x")
+
+
+# ── STU-19d: every page type ─────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def all_modules(monkeypatch, tenant):
+    monkeypatch.setattr(type(tenant), "is_module_active", lambda self, key: True)
+    return tenant
+
+
+def test_every_type_has_a_module_entry():
+    """A new page type must say which module it belongs to (or None)."""
+    assert set(page_settings.TYPE_MODULES) == set(page_settings.SUPPORTED_TYPES)
+
+
+def test_types_of_inactive_modules_are_not_offered(tenant, monkeypatch):
+    monkeypatch.setattr(type(tenant), "is_module_active", lambda self, key: key == "catalog")
+    codes = {ts.code for ts in page_settings.schema(tenant)}
+    assert "catalog" in codes and "text" in codes
+    assert not codes & {"services", "stays", "events", "promos", "blog"}
+    with pytest.raises(page_settings.PageSettingError):
+        page_settings.write(tenant, "services_sort", "price_asc")
+
+
+def test_every_offered_value_round_trips(all_modules):
+    """Writing any offered value, then reading it back, gives that value — for all
+    settings of all types (the storage paths of 19d are many and different)."""
+    gate = {k: set() for k in page_settings.composition_gate({})}
+    for ts in page_settings.schema(all_modules):
+        for st in ts.settings:
+            setting = studio_pages.SETTINGS[st.code]
+            for choice in page_settings.choices(setting, gate):
+                stored = choice.value == "1" if st.kind == page_settings.KIND_BOOL else choice.value
+                cfg = page_settings.apply_override({"keep": 1}, st.code, stored)
+                assert cfg["keep"] == 1, st.code
+                value, _set = page_settings.current_value(cfg, setting)
+                if st.kind == page_settings.KIND_BOOL:
+                    assert value is (choice.value == "1"), st.code
+                elif choice.value == "" and st.code == "home_hero":
+                    pass
+                else:
+                    assert value == choice.value, (st.code, choice.value, value)
+
+
+def test_optional_layout_standard_removes_the_key(all_modules):
+    page_settings.write(all_modules, "tours_layout", "cols3")
+    assert all_modules.site_config["tours_layout"]["preset"] == "cols3"
+    page_settings.write(all_modules, "tours_layout", "")
+    assert "tours_layout" not in all_modules.site_config
+
+
+def test_promo_grid_retires_the_legacy_switch(all_modules):
+    all_modules.site_config = {"promo_layout": "slider"}
+    all_modules.save(update_fields=["site_config"])
+    page_settings.write(all_modules, "promo_index_layout", "cols4")
+    assert "promo_layout" not in all_modules.site_config
+
+
+def test_listing_template_is_presence_minimal(all_modules, monkeypatch):
+    monkeypatch.setattr(page_settings, "composition_gate", lambda cfg=None: {"services": set()})
+    page_settings.write(all_modules, "services_page_style", "kompakt")
+    assert all_modules.site_config["page_styles"] == {"services": "kompakt"}
+    page_settings.write(all_modules, "services_page_style", "")
+    assert "page_styles" not in all_modules.site_config
+
+
+def test_detail_layout_and_upsell_are_targeted(all_modules):
+    all_modules.site_config = {"service_detail": {"hidden": ["faq"]}, "x": 1}
+    all_modules.save(update_fields=["site_config"])
+    page_settings.write(all_modules, "service_detail_layout", "tabs")
+    page_settings.write(all_modules, "cart_upsell", "0")
+    cfg = all_modules.site_config
+    assert cfg["service_detail"] == {"hidden": ["faq"], "layout": "tabs"}
+    assert cfg["cart_show_upsell"] is False and cfg["x"] == 1
+
+
+def test_storefront_reader_applies_cabinet_preview_only_for_members(tenant, monkeypatch):
+    """STU-19d: every storefront view reads `raw_config` — the `?tpl=` override for a
+    signed-in member, the saved config for anyone else."""
+    from django.contrib.auth.models import AnonymousUser
+    from django.test import RequestFactory
+
+    monkeypatch.setattr(type(tenant), "is_module_active", lambda self, key: True)
+    tenant.site_config = {"x": 1}
+    tenant.save(update_fields=["site_config"])
+    req = RequestFactory().get("/termin/", {"preview": "1", "tpl": "services_sort:price_asc"})
+    req.tenant, req.session = tenant, {}
+    req.user = AnonymousUser()
+    assert page_settings.raw_config(req) == {"x": 1}
+    monkeypatch.setattr(page_settings, "_may_preview", lambda request: True)
+    req2 = RequestFactory().get("/termin/", {"preview": "1", "tpl": "services_sort:price_asc"})
+    req2.tenant, req2.session = tenant, {}
+    assert page_settings.raw_config(req2) == {"x": 1, "services_sort": "price_asc"}

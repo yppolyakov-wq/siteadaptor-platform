@@ -374,6 +374,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="gruppen rubriken typen mystery vorbestellung",
         group="aktionen",
     ),
+    # STU-19d: page template / grid / card form of the offer pages.
+    _e(
+        "marketing",
+        "page-templates-aktionen",
+        _("Seitenvorlage"),
+        "seitenvorlage-aktionen",
+        "promotions",
+        True,
+        "vorlage layout raster kartenform aktionsseite",
+        group="aktionen",
+    ),
     # T-8.4: ассистент «Schnell-Aktion» — вход из палитры (основной вход — «＋»
     # в списке акций и мобильная плавающая кнопка).
     _e(
@@ -571,15 +582,17 @@ ENTRIES: tuple[NavEntry, ...] = (
     ),
     # STU-19b: page template / grid / card form of the catalog pages — moved out of
     # the Studio panel (plan stu19 §2.2). Same gate as the catalog pages it controls.
+    # STU-19d: the tab covers every page of the offer (catalog, services, rooms,
+    # events, tours) — not only goods, so no "Waren" direction and no module gate:
+    # the screen itself shows only the types whose module is on.
     _e(
         "sellables",
         "page-templates-sortiment",
         _("Seitenvorlage"),
         "seitenvorlage",
-        "catalog",
+        None,
         True,
         "vorlage layout raster kartenform ansicht seitenvorlage",
-        direction="waren",
     ),
     _e("sellables", "collections:list", _("Kollektionen"), "collections", None, True, "lookbook"),
     # R2 (редизайн B, утверждённая структура): складская группа — подпункты
@@ -955,6 +968,16 @@ ENTRIES: tuple[NavEntry, ...] = (
     # Domains переехал из main-табов settings, Medien — из advanced settings.
     # DL-7b: переключатель шаблонов (сборки + Look'и) — первым подпунктом Website.
     _e("site", "design", _("Design"), "design", None, False, "vorlage look theme farben schrift"),
+    # STU-19d: every page of the site in one place (Studio keeps block order/texts).
+    _e(
+        "site",
+        "page-templates-website",
+        _("Seitenvorlagen"),
+        "seitenvorlagen",
+        None,
+        True,
+        "vorlage layout raster kartenform startseite blog textseiten",
+    ),
     _e("site", "site-seo", _("SEO"), "seo", None, True, "meta titel beschreibung robots"),
     # M21.1: старые адреса после переезда с другой платформы (301/410).
     _e(
@@ -1121,6 +1144,9 @@ UNIVERSAL: dict[str, str] = {
     "support:help": "помощь — у каждого",
     "design": "дизайн сайта — у каждого",
     "site-seo": "SEO сайта — у каждого",
+    # STU-19d: the screens show only the page types whose module is on.
+    "page-templates-website": "шаблоны всех страниц сайта — у каждого",
+    "page-templates-sortiment": "шаблоны страниц ассортимента — у каждого (типы по модулям)",
     "site-redirects": "переадресации старых адресов — у каждого",
     "domains": "домены — у каждого",
     "media-library": "медиатека — у каждого",

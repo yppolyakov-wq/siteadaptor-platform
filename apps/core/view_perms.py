@@ -329,6 +329,8 @@ RULES: dict[str, Rule] = {
     # --- Website ------------------------------------------------------------------
     "design": _r(W, WE),
     "page-templates-sortiment": _r(W, WE),  # STU-19b
+    "page-templates-aktionen": _r(W, WE),  # STU-19d
+    "page-templates-website": _r(W, WE),  # STU-19d
     "media-library": _r(W, WE),
     "site": _r(W, WE),
     "site-home": _r(W, WE),

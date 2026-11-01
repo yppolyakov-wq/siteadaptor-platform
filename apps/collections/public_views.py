@@ -11,12 +11,13 @@ from django.shortcuts import render
 from django.utils.translation import get_language
 
 from apps.catalog.models import Product
+from apps.core import page_settings
 from apps.tenants import siteconfig
 
 from .models import Collection
 
 
-def _cover_composition(tenant, surface: str) -> dict:
+def _cover_composition(request, surface: str) -> dict:
     """STU-18d: композиция листинга без под-сущностей — только «С обложкой».
 
     Под-сущностей (подборок, тем, направлений) у страницы нет, поэтому из реестра
@@ -25,7 +26,8 @@ def _cover_composition(tenant, surface: str) -> dict:
     """
     from apps.core import listing_composition
 
-    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    tenant = request.tenant
+    cfg = page_settings.raw_config(request)
     return listing_composition.context(
         cfg,
         surface,
@@ -51,8 +53,10 @@ def lookbook(request, slug):
             "products": products,
             # LAY-3a-2: раскладка сетки товаров образа (пусто → прежние классы).
             **siteconfig.page_layout_ctx(
-                siteconfig.normalize(request.tenant.site_config), "lookbook_layout", "lookbook"
+                siteconfig.normalize(page_settings.raw_config(request)),
+                "lookbook_layout",
+                "lookbook",
             ),
-            **_cover_composition(request.tenant, "lookbook"),
+            **_cover_composition(request, "lookbook"),
         },
     )

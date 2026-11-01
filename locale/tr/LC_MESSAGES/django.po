@@ -31492,3 +31492,19 @@ msgid "%(n)s Weiterleitung"
 msgid_plural "%(n)s Weiterleitungen"
 msgstr[0] "%(n)s yönlendirme"
 msgstr[1] "%(n)s yönlendirme"
+
+msgid "Alle Seiten Ihrer Website an einem Ort: Startseite, Textseiten, Blog und alle Listen. Reihenfolge und Texte der Blöcke ändern Sie in der Studio."
+msgstr "Web sitenizin tüm sayfaları tek yerde: ana sayfa, metin sayfaları, blog ve tüm listeler. Blokların sırasını ve metinlerini Studio'da değiştirirsiniz."
+
+msgid "Noch nichts zu zeigen — legen Sie zuerst einen Eintrag an, den diese Seite zeigt."
+msgstr "Henüz gösterilecek bir şey yok — önce bu sayfanın gösterdiği bir kayıt oluşturun."
+
+
+msgid "Seitenvorlagen"
+msgstr "Sayfa şablonları"
+
+msgid "So zeigt Ihre Website Ihr Angebot: Listen, Kategorien und Detailseiten. Eine Kategorie oder ein Produkt mit eigener Vorlage behält diese."
+msgstr "Web sitenizin teklifinizi nasıl gösterdiği: listeler, kategoriler ve detay sayfaları. Kendi şablonu olan bir kategori veya ürün onu korur."
+
+msgid "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne Aktion. Ein Aktionstyp oder eine Aktion mit eigener Vorlage behält diese."
+msgstr "Web sitenizin kampanya sayfasını, bir kampanya grubunu ve tek bir kampanyayı nasıl gösterdiği. Kendi şablonu olan bir kampanya türü veya kampanya onu korur."
