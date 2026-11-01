@@ -226,3 +226,11 @@ def test_palette_needs_website_right(tenant, monkeypatch):
     monkeypatch.setattr(permissions, "has_perm", lambda user, key: key != "website.view")
     monkeypatch.setattr(sa, "allowed_entities", lambda t, u: [sa.ENTITY_SERVICE])
     assert sa.palette_section(tenant, SimpleNamespace(pk=1), "neue Leistung Haarschnitt") is None
+
+
+def test_palette_js_does_not_double_encode_urls():
+    """The server sends encoded local paths — encodeURI() on top turned "€" in a helper
+    link into the literal text "%E2%82%AC" (found on the Playwright stand)."""
+    js = (Path(dj_settings.BASE_DIR) / "static/js/cabinet.js").read_text(encoding="utf-8")
+    assert "encodeURI(it.url)" not in js
+    assert 'palEsc(u).replace(/"/g, "&quot;")' in js

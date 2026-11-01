@@ -234,7 +234,11 @@ try { (function () {
     sections.forEach(function (sec) {
       html += '<p class="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-400">' + palEsc(sec.label) + "</p>";
       sec.items.forEach(function (it) {
-        html += '<a href="' + encodeURI(it.url) + '" class="flex items-center justify-between gap-3 px-4 py-2 text-sm hover:bg-indigo-50 focus-visible:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500">' +
+        // the server sends ready, already-encoded local paths; encodeURI() on top
+        // double-encoded "%" (STU-19g: «€» in a helper link arrived as "%E2%82%AC")
+        var u = String(it.url || "");
+        if (u.charAt(0) !== "/" || u.charAt(1) === "/" || u.charAt(1) === "\\") return;
+        html += '<a href="' + palEsc(u).replace(/"/g, "&quot;") + '" class="flex items-center justify-between gap-3 px-4 py-2 text-sm hover:bg-indigo-50 focus-visible:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500">' +
                 '<span class="truncate">' + palEsc(it.label) + "</span>" +
                 '<span class="text-xs text-gray-400 shrink-0 truncate">' + palEsc(it.sub) + "</span></a>";
       });
