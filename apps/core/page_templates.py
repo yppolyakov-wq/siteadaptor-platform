@@ -306,6 +306,8 @@ def _render(request, section: str):
             + (f"?{urlencode({'page': preview_path})}" if preview_path else ""),
             "overrides": _overrides(active),
             "form_url": url,
+            # STU-19g: the helper creates services/rooms/events/offers too — but its
+            # answers link back here, so it lives on the Sortiment tab only
             "show_ask": section == "sortiment",
             "plan": plan,
             "frage": (request.GET.get("frage") or "")[: setup_assistant.TEXT_MAX],

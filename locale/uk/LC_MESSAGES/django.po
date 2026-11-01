@@ -31636,3 +31636,31 @@ msgstr "У цьому розділі на сайті поки немає сто�
 
 msgid "Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s"
 msgstr "Не застосовано (такого вигляду там немає): %(lists)s"
+
+#, python-format
+msgid "%(what)s „%(name)s“ anlegen"
+msgstr "Створити: %(what)s «%(name)s»"
+
+msgid "Aktionspreis"
+msgstr "Ціна за акцією"
+
+msgid "Anlegen"
+msgstr "Створити"
+
+msgid "Datum und Uhrzeit"
+msgstr "Дата й час"
+
+msgid "Dauer (Min.)"
+msgstr "Тривалість (хв)"
+
+msgid "Fotos und Ausstattung — nach dem Anlegen hinzufügen"
+msgstr "Фото й оснащення — додати після створення"
+
+msgid "Laufzeit und Foto — im Formular ergänzen"
+msgstr "Термін і фото — доповнити у формі"
+
+msgid "Ort und Plätze — im Formular ergänzen"
+msgstr "Місце й кількість місць — доповнити у формі"
+
+msgid "Wer die Leistung anbietet und Öffnungszeiten — danach prüfen"
+msgstr "Хто надає послугу та години роботи — перевірити після"

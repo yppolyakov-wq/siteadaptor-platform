@@ -78,7 +78,12 @@ def event_list(request):
 
 @login_required
 def event_create(request):
-    form = EventForm(request.POST or None)
+    from apps.core import setup_assistant
+
+    # STU-19g: prefill from the setup helper's link (GET only)
+    initial = setup_assistant.prefill(request, setup_assistant.ENTITY_EVENT)
+    initial.pop("starts_at", None)  # a date is typed by the owner, never prefilled
+    form = EventForm(request.POST or None, initial=initial or None)
     if request.method == "POST" and form.is_valid():
         event = form.save()
         _add_event_photos(event, request.FILES.getlist("photos"))

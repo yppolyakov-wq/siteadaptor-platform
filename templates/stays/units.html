@@ -338,7 +338,7 @@
   <input type="hidden" name="action" value="unit">
   <div class="grid sm:grid-cols-2 gap-4">
     <div data-i18n-loc="{{ base_loc }}" class="sm:col-span-2 space-y-4">
-      <input name="name" type="text" required aria-label="{% trans "Name" %}" placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" class="ui-input">
+      <input name="name" type="text" value="{{ prefill.name|default:'' }}" required aria-label="{% trans "Name" %}" placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" class="ui-input">
       <textarea name="description" rows="2" aria-label="{% trans 'Description (amenities, view …)' %}" placeholder="{% trans 'Description (amenities, view …)' %}" class="ui-input"></textarea>
     </div>
     {# L3d/E9.10: переводы — группой на язык (выпадашка у заголовка). #}
@@ -356,7 +356,7 @@
     </div>
     <div>
       <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price / night (€)" %}</span>
-      <input name="price_eur" type="text" placeholder="80" class="ui-input"></label>
+      <input name="price_eur" type="text" value="{{ prefill.price_eur|default:'' }}" placeholder="80" class="ui-input"></label>
     </div>
     {% vat_select "7.00" %}
     <div>

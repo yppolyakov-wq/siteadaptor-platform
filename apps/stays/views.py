@@ -22,7 +22,7 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import deal_card, deal_links, payment_methods, refunds, vat
+from apps.core import deal_card, deal_links, payment_methods, refunds, setup_assistant, vat
 from apps.core import transactions as core_transactions
 from apps.core.fsm import GuestCheckedIn, IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
@@ -1559,6 +1559,8 @@ def units(request, pk=None):
         {
             "nav": "units",  # X4: номер — сущность раздела «Sortiment» (не операция дня)
             "open_new": request.GET.get("neu") == "1",  # X6-1: ＋ раскрывает форму
+            # STU-19g: values from the setup helper's link
+            "prefill": setup_assistant.prefill(request, setup_assistant.ENTITY_ROOM),
             "units": units,
             "unit_page": unit_page,  # 2026-07-28: страница одного номера
             # Фидбэк №2: активный таб списка (einheiten | einstellungen)

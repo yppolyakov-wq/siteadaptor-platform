@@ -615,6 +615,10 @@ def promotion_create(request):
         for key in ("product", "service", "stay_unit", "combo"):
             if request.GET.get(key):
                 initial[key] = request.GET[key]
+        # STU-19g: title/price from the setup helper's link
+        from apps.core import setup_assistant
+
+        initial.update(setup_assistant.prefill(request, setup_assistant.ENTITY_PROMO))
     form = PromotionForm(
         request.POST or None,
         request.FILES or None,

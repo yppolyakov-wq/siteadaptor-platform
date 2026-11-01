@@ -31463,3 +31463,31 @@ msgstr "Ihre Website zeigt in diesem Bereich noch keine Seiten."
 
 msgid "Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s"
 msgstr "Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s"
+
+#, python-format
+msgid "%(what)s „%(name)s“ anlegen"
+msgstr "%(what)s „%(name)s“ anlegen"
+
+msgid "Aktionspreis"
+msgstr "Aktionspreis"
+
+msgid "Anlegen"
+msgstr "Anlegen"
+
+msgid "Datum und Uhrzeit"
+msgstr "Datum und Uhrzeit"
+
+msgid "Dauer (Min.)"
+msgstr "Dauer (Min.)"
+
+msgid "Fotos und Ausstattung — nach dem Anlegen hinzufügen"
+msgstr "Fotos und Ausstattung — nach dem Anlegen hinzufügen"
+
+msgid "Laufzeit und Foto — im Formular ergänzen"
+msgstr "Laufzeit und Foto — im Formular ergänzen"
+
+msgid "Ort und Plätze — im Formular ergänzen"
+msgstr "Ort und Plätze — im Formular ergänzen"
+
+msgid "Wer die Leistung anbietet und Öffnungszeiten — danach prüfen"
+msgstr "Wer die Leistung anbietet und Öffnungszeiten — danach prüfen"

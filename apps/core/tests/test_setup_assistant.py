@@ -90,6 +90,8 @@ def test_entity_fields_exist_on_forms(tenant):
 
     forms = {"category": CategoryForm, "product": ProductForm}
     for entity, spec in setup_assistant.ENTITIES.items():
+        if entity not in forms:  # STU-19g entities: test_stu19g_setup_v2
+            continue
         names = set(forms[entity](tenant=tenant).fields)
         for fname, _label, _req in spec["fields"]:
             assert fname in names, (entity, fname)

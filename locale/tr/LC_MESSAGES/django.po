@@ -31514,3 +31514,31 @@ msgstr "Web siteniz bu alanda henüz sayfa göstermiyor."
 
 msgid "Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s"
 msgstr "Uygulanmadı (bu görünüm orada yok): %(lists)s"
+
+#, python-format
+msgid "%(what)s „%(name)s“ anlegen"
+msgstr "%(what)s oluştur: “%(name)s”"
+
+msgid "Aktionspreis"
+msgstr "Kampanya fiyatı"
+
+msgid "Anlegen"
+msgstr "Oluştur"
+
+msgid "Datum und Uhrzeit"
+msgstr "Tarih ve saat"
+
+msgid "Dauer (Min.)"
+msgstr "Süre (dk)"
+
+msgid "Fotos und Ausstattung — nach dem Anlegen hinzufügen"
+msgstr "Fotoğraflar ve donanım — oluşturduktan sonra ekleyin"
+
+msgid "Laufzeit und Foto — im Formular ergänzen"
+msgstr "Süre ve fotoğraf — formda tamamlayın"
+
+msgid "Ort und Plätze — im Formular ergänzen"
+msgstr "Yer ve kontenjan — formda tamamlayın"
+
+msgid "Wer die Leistung anbietet und Öffnungszeiten — danach prüfen"
+msgstr "Hizmeti kimin sunduğu ve çalışma saatleri — sonra kontrol edin"

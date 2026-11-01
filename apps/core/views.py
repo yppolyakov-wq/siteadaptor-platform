@@ -6078,12 +6078,16 @@ def palette_search(request):
     from django.http import JsonResponse
 
     from apps.core import palette_search as ps
-    from apps.core import permissions
+    from apps.core import permissions, setup_assistant
 
     perms = permissions.effective(request.user)
     sections = ps.search(
         request.tenant, request.GET.get("q", ""), owner="kunden.kontakte" in perms, perms=perms
     )
+    # STU-19g: "neue Leistung Haarschnitt 25 €" → a jump to the setup helper
+    create = setup_assistant.palette_section(request.tenant, request.user, request.GET.get("q"))
+    if create:
+        sections = [create, *sections]
     return JsonResponse(
         {
             "sections": [

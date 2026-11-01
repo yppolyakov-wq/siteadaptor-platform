@@ -31370,3 +31370,31 @@ msgstr "Your website does not show any pages in this area yet."
 
 msgid "Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s"
 msgstr "Not applied (this view does not exist there): %(lists)s"
+
+#, python-format
+msgid "%(what)s „%(name)s“ anlegen"
+msgstr "Create %(what)s “%(name)s”"
+
+msgid "Aktionspreis"
+msgstr "Offer price"
+
+msgid "Anlegen"
+msgstr "Create"
+
+msgid "Datum und Uhrzeit"
+msgstr "Date and time"
+
+msgid "Dauer (Min.)"
+msgstr "Duration (min)"
+
+msgid "Fotos und Ausstattung — nach dem Anlegen hinzufügen"
+msgstr "Photos and amenities — add after creating"
+
+msgid "Laufzeit und Foto — im Formular ergänzen"
+msgstr "Run time and photo — fill in on the form"
+
+msgid "Ort und Plätze — im Formular ergänzen"
+msgstr "Venue and seats — fill in on the form"
+
+msgid "Wer die Leistung anbietet und Öffnungszeiten — danach prüfen"
+msgstr "Who offers the service and opening hours — check afterwards"

@@ -23,7 +23,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
 
-from apps.core import deal_links, freshness, refunds, vat
+from apps.core import deal_links, freshness, refunds, setup_assistant, vat
 from apps.core import transactions as core_transactions
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import (
@@ -1538,6 +1538,8 @@ def services_view(request, pk=None):
             "nav": "services",
             # X6-1: «＋ Neu» из «Sortiment» раскрывает форму создания.
             "open_new": request.GET.get("neu") == "1",
+            # STU-19g: values from the setup helper's link ("Was möchten Sie anlegen?")
+            "prefill": setup_assistant.prefill(request, setup_assistant.ENTITY_SERVICE),
             "services": services,
             # KA-12 E4.2a: чекбоксы «wer bietet die Leistung an» (навыки).
             "skill_resources": list(Resource.objects.filter(is_active=True).order_by("name")),

@@ -31652,3 +31652,31 @@ msgstr "В этом разделе на сайте пока нет страни�
 
 msgid "Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s"
 msgstr "Не применено (такого вида там нет): %(lists)s"
+
+#, python-format
+msgid "%(what)s „%(name)s“ anlegen"
+msgstr "Создать: %(what)s «%(name)s»"
+
+msgid "Aktionspreis"
+msgstr "Цена по акции"
+
+msgid "Anlegen"
+msgstr "Создать"
+
+msgid "Datum und Uhrzeit"
+msgstr "Дата и время"
+
+msgid "Dauer (Min.)"
+msgstr "Длительность (мин)"
+
+msgid "Fotos und Ausstattung — nach dem Anlegen hinzufügen"
+msgstr "Фото и оснащение — добавить после создания"
+
+msgid "Laufzeit und Foto — im Formular ergänzen"
+msgstr "Срок и фото — дополнить в форме"
+
+msgid "Ort und Plätze — im Formular ergänzen"
+msgstr "Место и количество мест — дополнить в форме"
+
+msgid "Wer die Leistung anbietet und Öffnungszeiten — danach prüfen"
+msgstr "Кто оказывает услугу и часы работы — проверить после"
