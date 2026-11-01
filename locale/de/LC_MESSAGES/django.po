@@ -31352,3 +31352,92 @@ msgid "Ihr Plan: %(n)s Schritt"
 msgid_plural "Ihr Plan: %(n)s Schritte"
 msgstr[0] "Ihr Plan: %(n)s Schritt"
 msgstr[1] "Ihr Plan: %(n)s Schritte"
+
+msgid "%(n)s Aufrufe"
+msgstr "%(n)s Aufrufe"
+
+msgid "Alte Adresse"
+msgstr "Alte Adresse"
+
+msgid "Neue Adresse"
+msgstr "Neue Adresse"
+
+msgid "Alte und neue Adresse sind gleich."
+msgstr "Alte und neue Adresse sind gleich."
+
+msgid "Bitte eine CSV-Datei wählen."
+msgstr "Bitte eine CSV-Datei wählen."
+
+msgid "CSV importieren"
+msgstr "CSV importieren"
+
+msgid "Das Ziel muss eine Adresse dieser Website sein, z. B. /sortiment/."
+msgstr "Das Ziel muss eine Adresse dieser Website sein, z. B. /sortiment/."
+
+msgid "Die Adresse ist zu lang."
+msgstr "Die Adresse ist zu lang."
+
+msgid "Die Datei ist zu groß (max. 1 MB)."
+msgstr "Die Datei ist zu groß (max. 1 MB)."
+
+msgid "Entfernt (410)"
+msgstr "Entfernt (410)"
+
+msgid "Weiterleiten (301)"
+msgstr "Weiterleiten (301)"
+
+msgid ""
+"Für den Umzug von einer anderen Website: Wer eine alte Adresse aufruft, "
+"landet auf der neuen Seite. So behalten Sie Ihre Plätze bei Google. Eine "
+"Weiterleitung greift nur, wenn es unter der alten Adresse keine Seite gibt."
+msgstr ""
+"Für den Umzug von einer anderen Website: Wer eine alte Adresse aufruft, "
+"landet auf der neuen Seite. So behalten Sie Ihre Plätze bei Google. Eine "
+"Weiterleitung greift nur, wenn es unter der alten Adresse keine Seite gibt."
+
+msgid "Importiert: %(c)s neu, %(u)s aktualisiert."
+msgstr "Importiert: %(c)s neu, %(u)s aktualisiert."
+
+msgid "Noch keine Weiterleitungen."
+msgstr "Noch keine Weiterleitungen."
+
+msgid ""
+"Spalten: alte Adresse; neue Adresse; Status (301 oder 410, leer = 301)."
+msgstr ""
+"Spalten: alte Adresse; neue Adresse; Status (301 oder 410, leer = 301)."
+
+msgid "Ungültige alte Adresse."
+msgstr "Ungültige alte Adresse."
+
+msgid "Ungültiger Status."
+msgstr "Ungültiger Status."
+
+msgid "Weiterleitung aktualisiert."
+msgstr "Weiterleitung aktualisiert."
+
+msgid "Weiterleitung angelegt."
+msgstr "Weiterleitung angelegt."
+
+msgid "Weiterleitung gelöscht."
+msgstr "Weiterleitung gelöscht."
+
+msgid "Weiterleitungen"
+msgstr "Weiterleitungen"
+
+msgid "Zeile %(n)s: %(msg)s"
+msgstr "Zeile %(n)s: %(msg)s"
+
+msgid "Zu viele Zeilen (max. 5000)."
+msgstr "Zu viele Zeilen (max. 5000)."
+
+msgid ""
+"„Entfernt (410)“ meldet Suchmaschinen, dass es die Seite nicht mehr gibt — "
+"die neue Adresse bleibt dann leer."
+msgstr ""
+"„Entfernt (410)“ meldet Suchmaschinen, dass es die Seite nicht mehr gibt — "
+"die neue Adresse bleibt dann leer."
+
+msgid "%(n)s Weiterleitung"
+msgid_plural "%(n)s Weiterleitungen"
+msgstr[0] "%(n)s Weiterleitung"
+msgstr[1] "%(n)s Weiterleitungen"

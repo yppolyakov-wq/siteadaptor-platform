@@ -113,6 +113,9 @@ EXPECTED_UNLISTED = frozenset(
         "finance:customer-search",
         "finance:export-csv",
         "finance:export-datev",
+        # M21.1: CSV-приёмник и выгрузка экрана «Weiterleitungen» — кнопки на нём.
+        "site-redirects-export",
+        "site-redirects-import",
         "promotions:promotion-create",
         "promotions:promotion-inline-edit",
         "promotions:promotion-photo-edit",

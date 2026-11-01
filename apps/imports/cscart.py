@@ -1,0 +1,1058 @@
+"""M21.2: перенос магазина с CS-Cart (каталог + фото + старые адреса).
+
+Первый клиент — haanerteeladen.de (план ``docs/m21-cscart-migration-plan-2026-10-31.md``).
+Разбор — чистые функции над HTML (тестируются на фикстурах), сеть — только
+``safe_fetch`` (SSRF-политика проекта), запись — ``apply_site`` в текущей схеме.
+
+Источник правды о товаре — JSON-LD ``Product`` страницы: название, артикул, фото,
+``AggregateOffer.offers[]`` (артикул/цена/наличие/адрес ``?variation_id=N`` каждой
+фасовки). Подпись фасовки («100g») CS-Cart рисует радио-кнопкой с тем же адресом
+в ``data-ca-product-url`` — так фасовки и сопоставляются; фото фасовки лежит в
+блоке ``det_img_…<variation_id>``.
+
+Повторный прогон идемпотентен: товар узнаётся по ``metadata.cscart.url``,
+фасовка — по артикулу, категория — по уже созданной переадресации её старого
+адреса. Существующие фото и тексты владельца не перезаписываются.
+"""
+
+from __future__ import annotations
+
+import html as html_lib
+import io
+import json
+import logging
+import re
+import time
+from dataclasses import dataclass, field
+from decimal import Decimal, InvalidOperation
+from urllib.parse import parse_qs, urljoin, urlsplit
+
+from django.core.files.base import ContentFile
+from django.db import transaction
+from django.urls import NoReverseMatch, reverse
+
+logger = logging.getLogger(__name__)
+
+IMAGE_TYPES = ("image/jpeg", "image/png", "image/webp", "image/gif")
+PAGE_PAUSE_S = 0.4
+MAX_LISTING_PAGES = 30
+MAX_PRODUCTS = 2000
+
+# Стандартные адреса CS-Cart → страницы витрины (url-name; None = 410 «удалено»).
+STATIC_ROUTES = {
+    "/allgemeine-geschaftsbedienungen": "storefront-agb",
+    "/privacy-policy": "storefront-privacy",
+    "/cart": "storefront-cart",
+    "/checkout": "storefront-cart",
+    "/our-team": "storefront-about",
+    "/about-us": "storefront-about",
+    "/contact-us": "storefront-message",
+    "/gift-certificates": "storefront-gutschein",
+    "/wishlist": "storefront-wishlist",
+    "/sitemap": "storefront-products",
+    "/login": "account-login",
+    "/profiles-add": "account-login",
+    "/profiles-update": "account-home",
+    "/orders": "account-home",
+    "/versand": "storefront-about",
+    "/versand-de": "storefront-about",
+    "/blog": None,
+    "/contacts": None,
+    "/compare": None,
+}
+# Списки CS-Cart (`index.php?dispatch=…`) → каталог.
+DISPATCH_TO_CATALOG = (
+    "products.search",
+    "products.newest",
+    "products.bestsellers",
+    "products.on_sale",
+    "product_features.view_all",
+)
+
+
+# --- Разбор ------------------------------------------------------------------
+
+
+@dataclass
+class CsCategory:
+    path: str  # «schwarzertee/klassisch-schwarzertee/assam» — без слэшей по краям
+    name: str
+
+    @property
+    def parent_path(self) -> str:
+        return self.path.rsplit("/", 1)[0] if "/" in self.path else ""
+
+    @property
+    def segment(self) -> str:
+        return self.path.rsplit("/", 1)[-1]
+
+
+@dataclass
+class CsVariant:
+    sku: str
+    price: Decimal
+    url: str
+    label: str = ""
+    grams: Decimal | None = None
+    in_stock: bool = True
+    image_url: str = ""
+
+
+@dataclass
+class CsProduct:
+    url: str
+    path: str
+    name: str
+    sku: str
+    description_html: str = ""
+    image_urls: list = field(default_factory=list)
+    variants: list = field(default_factory=list)
+    product_id: str = ""
+    variation_ids: list = field(default_factory=list)
+
+    @property
+    def category_path(self) -> str:
+        return self.path.rsplit("/", 1)[0] if "/" in self.path else ""
+
+    @property
+    def segment(self) -> str:
+        return self.path.rsplit("/", 1)[-1]
+
+
+def path_of(url: str) -> str:
+    return urlsplit(url).path.strip("/")
+
+
+def nice_name(raw: str) -> str:
+    """«KLASSISCH SCHWARZERTEE» → «Klassisch Schwarzertee»; смешанный регистр не трогаем."""
+    text = html_lib.unescape(raw or "").strip()
+    letters = [c for c in text if c.isalpha()]
+    if letters and all(c.isupper() for c in letters):
+        return text.title()
+    return text
+
+
+_GRAMS_RE = re.compile(r"^\s*(\d+(?:[.,]\d+)?)\s*(kg|g)\s*$", re.I)
+
+
+def grams_of(label: str) -> Decimal | None:
+    m = _GRAMS_RE.match(label or "")
+    if not m:
+        return None
+    value = Decimal(m.group(1).replace(",", "."))
+    return value * 1000 if m.group(2).lower() == "kg" else value
+
+
+_NAME_GRAMS_RE = re.compile(r"(\d+(?:[.,]\d+)?)\s*(kg|g)\b", re.I)
+
+
+def name_grams(name: str) -> Decimal | None:
+    """Вес из названия фасованного товара: «Kamillenblüten ganz, 100g» → 100."""
+    m = _NAME_GRAMS_RE.search(name or "")
+    return grams_of(f"{m.group(1)}{m.group(2)}") if m else None
+
+
+def nice_label(label: str) -> str:
+    m = _GRAMS_RE.match(label or "")
+    if not m:
+        return (label or "").strip()
+    return f"{m.group(1)} {m.group(2).lower()}"
+
+
+def parse_sitemap(html: str, base: str) -> list[CsCategory]:
+    """Дерево категорий со страницы ``/sitemap/`` (блок ``ty-sitemap__tree``)."""
+    out, seen = [], set()
+    host = urlsplit(base).netloc
+    for href, text in re.findall(
+        r'ty-sitemap__tree-list-item[^>]*>\s*<a href="([^"]+)"[^>]*>(.*?)</a>', html, re.S
+    ):
+        url = urljoin(base, html_lib.unescape(href))
+        if urlsplit(url).netloc != host:
+            continue
+        path = path_of(url)
+        if not path or path in seen:
+            continue
+        seen.add(path)
+        out.append(CsCategory(path=path, name=nice_name(re.sub(r"<[^>]+>", "", text))))
+    return out
+
+
+def gone_paths(html: str, base: str) -> list:
+    """Статьи блога CS-Cart (демо-контент «зомби/Nintendo») — переносить нечего, → 410."""
+    host = urlsplit(base).netloc
+    out = []
+    for href in re.findall(r'href="([^"]+)"', html):
+        url = urljoin(base, html_lib.unescape(href))
+        path = path_of(url)
+        if urlsplit(url).netloc == host and path.startswith("blog/") and path not in out:
+            out.append(path)
+    return out
+
+
+def parse_listing(html: str, base: str, known_categories: set) -> tuple[set, bool]:
+    """Адреса товаров на странице категории + есть ли следующая страница.
+
+    Товар — ссылка вида ``/<известная категория>/<слаг>/``, сама не категория."""
+    host = urlsplit(base).netloc
+    found = set()
+    for href in re.findall(r'href="([^"]+)"', html):
+        url = urljoin(base, html_lib.unescape(href))
+        parts = urlsplit(url)
+        if parts.netloc != host or parts.query or not parts.path.endswith("/"):
+            continue
+        path = path_of(url)
+        if "/" not in path or path in known_categories:
+            continue
+        if path.rsplit("/", 1)[0] in known_categories:
+            found.add(f"{parts.scheme}://{host}/{path}/")
+    return found, "ty-pagination__next" in html
+
+
+def _json_ld_product(html: str) -> dict | None:
+    for raw in re.findall(r"<script[^>]+application/ld\+json[^>]*>(.*?)</script>", html, re.S):
+        try:
+            data = json.loads(raw.strip())
+        except ValueError:
+            continue
+        for node in data if isinstance(data, list) else [data]:
+            if isinstance(node, dict) and str(node.get("@type", "")).endswith("Product"):
+                return node
+    return None
+
+
+def _price(value) -> Decimal | None:
+    try:
+        price = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return None
+    return price if Decimal("0") <= price < Decimal("100000") else None
+
+
+def _variation_id(url: str) -> str:
+    return (parse_qs(urlsplit(url).query).get("variation_id") or [""])[0]
+
+
+def _inner_html(html: str, marker: str) -> str:
+    """Внутренний HTML первого ``<div>``, в открывающем теге которого есть marker."""
+    start = html.find(marker)
+    if start < 0:
+        return ""
+    open_end = html.find(">", start)
+    if open_end < 0:
+        return ""
+    depth, pos = 1, open_end + 1
+    for m in re.finditer(r"<(/?)div\b[^>]*>", html[pos:]):
+        depth += -1 if m.group(1) else 1
+        if depth == 0:
+            return html[pos : pos + m.start()].strip()
+    return ""
+
+
+def _detailed_url(base: str, fragment: str) -> str:
+    """Любая миниатюра CS-Cart → оригинал ``/images/detailed/<n>/<файл>``."""
+    m = re.search(r"detailed/(\d+)/([^\"'\s)?]+)", fragment)
+    return urljoin(base, f"/images/detailed/{m.group(1)}/{m.group(2)}") if m else ""
+
+
+def parse_product(html: str, url: str) -> CsProduct | None:
+    node = _json_ld_product(html)
+    if not node or not node.get("name"):
+        return None
+    name = nice_name(str(node["name"]))
+    product = CsProduct(
+        url=url, path=path_of(url), name=name[:200], sku=str(node.get("sku") or "")[:100]
+    )
+    product.description_html = _inner_html(html, "content-description")
+    images = node.get("image") or []
+    for img in images if isinstance(images, list) else [images]:
+        if isinstance(img, str) and img.startswith(("http://", "https://")):
+            full = _detailed_url(url, img) or img
+            if full not in product.image_urls:
+                product.image_urls.append(full)
+    m = re.search(r"product_id=(\d+)", html)
+    product.product_id = m.group(1) if m else ""
+
+    # Подписи фасовок: радио с адресом варианта.
+    labels = {}
+    for inp, label in re.findall(
+        r"(<input[^>]+data-ca-product-url=\"[^\"]+\"[^>]*>)\s*<label[^>]*>(.*?)</label>",
+        html,
+        re.S,
+    ):
+        href = html_lib.unescape(re.search(r'data-ca-product-url="([^"]+)"', inp).group(1))
+        labels[_variation_id(href)] = nice_label(re.sub(r"<[^>]+>", "", label))
+    # Фото фасовок: блок det_img_…<variation_id>.
+    variant_images = {}
+    for m in re.finditer(r'id="det_img_(\d+)"', html):
+        variant_images[m.group(1)] = _detailed_url(url, html[m.end() : m.end() + 800])
+
+    offers = node.get("offers") or []
+    offers = offers if isinstance(offers, list) else [offers]
+    flat = []
+    for offer in offers:
+        if isinstance(offer, dict) and isinstance(offer.get("offers"), list):
+            flat.extend(o for o in offer["offers"] if isinstance(o, dict))
+        elif isinstance(offer, dict):
+            flat.append(offer)
+    vids_all = {_variation_id(html_lib.unescape(str(o.get("url") or ""))) for o in flat} - {""}
+    for offer in flat:
+        price = _price(offer.get("price", offer.get("lowPrice")))
+        if price is None:
+            continue
+        o_url = html_lib.unescape(str(offer.get("url") or url))
+        vid = _variation_id(o_url)
+        label = labels.get(vid, "")
+        if not label and vid and vid == product.product_id:
+            # Базовый оффер CS-Cart несёт ?variation_id=<id товара>, а его радио — адрес
+            # без параметра: подпись базовой фасовки лежит под ключом «».
+            label = labels.get("", "")
+        image = ""
+        if vid:
+            product.variation_ids.append(vid)
+            image = _variant_image(variant_images, vid, vids_all)
+        product.variants.append(
+            CsVariant(
+                sku=str(offer.get("sku") or "")[:100],
+                price=price,
+                url=o_url,
+                label=label,
+                grams=grams_of(label),
+                in_stock="OutOfStock" not in str(offer.get("availability") or ""),
+                image_url=image,
+            )
+        )
+    if not product.variants:
+        return None
+    product.variants.sort(key=lambda v: (v.grams is None, v.grams or 0, v.price))
+    return product
+
+
+def _variant_image(images: dict, vid: str, vids: set) -> str:
+    """Фото блока ``det_img_<префикс><variation_id>``: ключ относим к САМОМУ ДЛИННОМУ id,
+    которым он кончается — иначе id 6 «забирал» бы фото варианта 806."""
+    for key, url in images.items():
+        owners = [v for v in vids if key.endswith(v)]
+        if url and owners and max(owners, key=len) == vid:
+            return url
+    return ""
+
+
+def html_to_text(html: str) -> str:
+    """HTML правовой/текстовой страницы → плоский текст с абзацами."""
+    text = re.sub(r"(?is)<(script|style).*?</\1>", "", html or "")
+    text = re.sub(r"(?i)<br\s*/?>", "\n", text)
+    text = re.sub(r"(?i)</(p|div|li|h[1-6]|tr)>", "\n", text)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = html_lib.unescape(text).replace("\xa0", " ")
+    lines = [re.sub(r"[ \t]+", " ", ln).strip() for ln in text.splitlines()]
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
+
+
+def page_body(html: str) -> str:
+    return _inner_html(html, "ty-mainbox-body")
+
+
+def page_title(html: str) -> str:
+    m = re.search(r"<h1[^>]*>(.*?)</h1>", html, re.S)
+    return html_lib.unescape(re.sub(r"<[^>]+>", "", m.group(1))).strip()[:120] if m else ""
+
+
+# --- M21.3: главная (баннеры, плитки категорий, меню, логотип, подвал) -----------------
+
+
+@dataclass
+class CsHome:
+    banners: list = field(default_factory=list)  # URL картинок слайдера по порядку
+    tiles: list = field(default_factory=list)  # [(путь категории, URL картинки)]
+    menu: list = field(default_factory=list)  # [(подпись, путь или полный URL)]
+    logo_url: str = ""
+    footer_text: str = ""
+
+
+def parse_home(html: str, base: str) -> CsHome:
+    home = CsHome()
+    host = urlsplit(base).netloc
+    for block in re.findall(r'class="ty-banner__image-item[^"]*"[^>]*>(.*?)</div>', html, re.S):
+        m = re.search(r'(?:data-src|src)="([^"]+)"', block)
+        if m:
+            url = urljoin(base, html_lib.unescape(m.group(1)))
+            if url not in home.banners:
+                home.banners.append(url)
+    for href, src in re.findall(
+        r'<a\s+href="([^"]+)"[^>]*>\s*<img[^>]+src="([^"]+/images/promo/[^"]+)"', html
+    ):
+        path = path_of(urljoin(base, html_lib.unescape(href).strip()))
+        if path:
+            home.tiles.append((path, urljoin(base, html_lib.unescape(src))))
+    for href, label in re.findall(
+        r'<a\s+href="([^"]+)"\s+class="ty-menu__item-link"[^>]*>\s*([^<]+?)\s*</a>', html
+    ):
+        url = urljoin(base, html_lib.unescape(href).strip())
+        if urlsplit(url).netloc == host:
+            home.menu.append((nice_name(label), url))
+    m = re.search(r'ty-logo-container__image[^>]+src="([^"]+)"', html) or re.search(
+        r'<img[^>]+src="([^"]+/images/logos/[^"]+\.(?:png|jpe?g|webp|svg))"', html
+    )
+    home.logo_url = urljoin(base, html_lib.unescape(m.group(1))) if m else ""
+    footer = html.find("ty-footer")
+    home.footer_text = html_to_text(html[footer:]) if footer >= 0 else ""
+    return home
+
+
+_DAYS = {"mo": 0, "di": 1, "mi": 2, "do": 3, "fr": 4, "sa": 5, "so": 6}
+_HOURS_RE = re.compile(
+    r"\b(Mo|Di|Mi|Do|Fr|Sa|So)\b\.?\s*(?:[-–]\s*(Mo|Di|Mi|Do|Fr|Sa|So)\b\.?)?\s*[,:]?\s*"
+    r"(\d{1,2})[:.](\d{2})\s*(?:Uhr)?\s*[-–]\s*(\d{1,2})[:.](\d{2})",
+    re.I,
+)
+
+
+def parse_hours(text: str) -> dict:
+    """«Mo-Fr, 10:00 - 18:00 Uhr Sa 10:00 -14:00 Uhr» → {"0": ["10:00","18:00"], …}."""
+    out = {}
+    for d1, d2, h1, m1, h2, m2 in _HOURS_RE.findall(text or ""):
+        a, b = _DAYS[d1.lower()], _DAYS[(d2 or d1).lower()]
+        if b < a:
+            continue
+        span = [f"{int(h1):02d}:{m1}", f"{int(h2):02d}:{m2}"]
+        for day in range(a, b + 1):
+            out.setdefault(str(day), span)
+    return out
+
+
+def parse_contacts(text: str) -> dict:
+    """Адрес и телефон из подвала («Adresse: …», «Tel.: …»)."""
+    out = {}
+    flat = re.sub(r"\s+", " ", text or "")
+    m = re.search(r"Adresse:\s*(.+?)\s*(?:Tel\b|Telefon\b|Mo\b|$)", flat)
+    if m:
+        out["address"] = m.group(1).strip(" ,")[:300]
+        city = re.search(r"\b\d{5}\s+([A-ZÄÖÜ][\wäöüß .-]+)$", out["address"])
+        if city:
+            out["city"] = city.group(1).strip()[:100]
+    m = re.search(r"Tel(?:efon)?\.?:\s*(\+?[\d][\d /()-]{4,})", flat)
+    if m:
+        out["phone"] = m.group(1).strip()[:30]
+    return out
+
+
+def dominant_color(image_bytes: bytes) -> str:
+    """Фирменный цвет из логотипа: среднее «цветных» пикселей (без белого/серого фона)."""
+    from PIL import Image
+
+    with Image.open(io.BytesIO(image_bytes)) as img:
+        img = img.convert("RGB")
+        img.thumbnail((200, 200))
+        pixels = list(img.getdata())
+    picked = [
+        (r, g, b) for r, g, b in pixels if max(r, g, b) - min(r, g, b) > 40 and (r + g + b) < 600
+    ]
+    if len(picked) < 20:
+        return ""
+    n = len(picked)
+    r, g, b = (sum(c[i] for c in picked) // n for i in range(3))
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def strip_dangling(text: str) -> str:
+    """Убрать фразы, обрывающиеся двоеточием без продолжения («…wie folgt:»)."""
+    paragraphs = []
+    for para in (text or "").split("\n\n"):
+        lines = [ln for ln in para.split("\n")]
+        if lines and lines[-1].rstrip().endswith(":"):
+            lines[-1] = re.sub(r"[^.!?\n]*:\s*$", "", lines[-1]).rstrip()
+        para = "\n".join(ln for ln in lines if ln.strip())
+        if para:
+            paragraphs.append(para)
+    return "\n\n".join(paragraphs)
+
+
+# --- Обход сайта ---------------------------------------------------------------
+
+
+@dataclass
+class ScrapedSite:
+    base: str
+    categories: list = field(default_factory=list)
+    products: list = field(default_factory=list)
+    pages: dict = field(default_factory=dict)  # «agb»/«about»/«versand»… → HTML тела
+    errors: list = field(default_factory=list)
+    home: CsHome | None = None  # M21.3: витрина главной (баннеры, плитки, меню, подвал)
+    gone_paths: list = field(default_factory=list)  # демо-мусор CS-Cart (статьи блога) → 410
+
+
+def _default_fetch(url: str, *, accept=("text/html",), max_bytes=4 * 1024 * 1024):
+    from apps.core.ssrf import safe_fetch
+
+    return safe_fetch(url, accept=accept, max_bytes=max_bytes)
+
+
+def scrape(base: str, *, fetch=None, pause: float = PAGE_PAUSE_S, log=None) -> ScrapedSite:
+    """Обойти магазин: /sitemap/ → категории → товары → тексты страниц."""
+    fetch = fetch or _default_fetch
+    log = log or (lambda msg: None)
+    base = base.rstrip("/") + "/"
+    site = ScrapedSite(base=base)
+
+    def get(url):
+        try:
+            got = fetch(url)
+        except Exception as exc:  # noqa: BLE001 — сеть/SSRF: адрес пропускаем, обход идёт
+            site.errors.append(f"{url}: {type(exc).__name__}")
+            return None
+        finally:
+            if pause:
+                time.sleep(pause)
+        if not got.ok:
+            site.errors.append(f"{url}: HTTP {got.status}")
+            return None
+        return got.text()
+
+    sitemap = get(urljoin(base, "sitemap/"))
+    if sitemap is None:
+        return site
+    site.categories = parse_sitemap(sitemap, base)
+    site.gone_paths = gone_paths(sitemap, base)
+    known = {c.path for c in site.categories}
+    log(f"categories: {len(site.categories)}")
+
+    product_urls: set = set()
+    for cat in site.categories:
+        for page in range(1, MAX_LISTING_PAGES + 1):
+            html = get(urljoin(base, f"{cat.path}/?items_per_page=96&page={page}"))
+            if html is None:
+                break
+            found, has_next = parse_listing(html, base, known)
+            new = found - product_urls
+            product_urls |= found
+            if not has_next or not new:
+                break
+    log(f"product pages: {len(product_urls)}")
+
+    if len(product_urls) > MAX_PRODUCTS:
+        site.errors.append(f"more than {MAX_PRODUCTS} products — only the first were read")
+    for url in sorted(product_urls)[:MAX_PRODUCTS]:
+        html = get(url)
+        if html is None:
+            continue
+        product = parse_product(html, url)
+        if product is None:
+            site.errors.append(f"{url}: no product data")
+            continue
+        site.products.append(product)
+
+    for key, slug in (
+        ("agb", "allgemeine-geschaftsbedienungen/"),
+        ("about", "our-team/"),
+        ("versand", "versand/"),
+        ("impressum", "impressum/"),
+        ("zahlung", "versand-de/"),
+    ):
+        html = get(urljoin(base, slug))
+        if html:
+            site.pages[key] = page_body(html)
+            site.pages[key + "_title"] = page_title(html)
+    home = get(base)
+    if home is not None:
+        site.home = parse_home(home, base)
+    return site
+
+
+# --- Запись в схему бизнеса -------------------------------------------------------
+
+
+@dataclass
+class ApplyStats:
+    categories_created: int = 0
+    products_created: int = 0
+    products_updated: int = 0
+    variants: int = 0
+    images: int = 0
+    redirects: int = 0
+    notes: list = field(default_factory=list)
+
+
+def _url_name(name: str) -> str | None:
+    try:
+        return reverse(name)
+    except NoReverseMatch:
+        return None
+
+
+def _redirect(source: str, target: str | None, stats: ApplyStats) -> None:
+    from apps.core import legacy_redirects
+    from apps.core.models import LegacyRedirect
+
+    status = LegacyRedirect.STATUS_GONE if target is None else LegacyRedirect.STATUS_MOVED
+    try:
+        path, query = legacy_redirects.parse_source(source)
+    except legacy_redirects.RedirectError as exc:
+        stats.notes.append(f"redirect {source}: {exc}")
+        return
+    if LegacyRedirect.objects.filter(
+        source_path=path, source_query=query, origin="manual"
+    ).exists():
+        return  # правило, заданное владельцем вручную, важнее импорта
+    try:
+        legacy_redirects.upsert(source, target or "", status=status, origin="import")
+    except legacy_redirects.RedirectError as exc:
+        stats.notes.append(f"redirect {source}: {exc}")
+        return
+    stats.redirects += 1
+
+
+def _category_for(cat: CsCategory, by_path: dict, stats: ApplyStats):
+    """Категория по старому адресу: уже перенесённая (по переадресации) или новая."""
+    from apps.catalog.models import Category
+    from apps.catalog.slugs import unique_slug
+    from apps.core.legacy_redirects import normalize_path
+    from apps.core.models import LegacyRedirect
+
+    rule = LegacyRedirect.objects.filter(
+        source_path=normalize_path(cat.path), source_query="", origin="import"
+    ).first()
+    if rule and rule.target.startswith("/sortiment/"):
+        slug = rule.target.strip("/").split("/")[-1]
+        found = Category.objects.filter(slug=slug).first()
+        if found is not None:
+            return found
+    parent = by_path.get(cat.parent_path)
+    base = cat.segment
+    if Category.objects.filter(slug=base).exists() and parent is not None:
+        base = f"{parent.slug}-{cat.segment}"
+    category = Category.objects.create(
+        name={"de": cat.name},
+        slug=unique_slug(Category, base),
+        parent=parent,
+        sort_order=len(by_path),
+    )
+    stats.categories_created += 1
+    return category
+
+
+def _save_image(url: str, fetch_image, crop: tuple | None = None) -> dict | None:
+    """Скачать → проверить → webp. ``crop`` — (верх, низ) долями высоты: вырезать
+    полосу без нарисованных надписей (баннеры CS-Cart несут текст в самой картинке)."""
+    from PIL import Image
+
+    from apps.catalog.images import save_product_image
+
+    try:
+        got = fetch_image(url)
+        if not got.ok:
+            return None
+        with Image.open(io.BytesIO(got.body)) as img:
+            if img.width * img.height > 25_000_000:
+                return None
+            img.verify()
+        with Image.open(io.BytesIO(got.body)) as img:
+            img = img.convert("RGB")
+            if crop:
+                top, bottom = crop
+                img = img.crop((0, int(img.height * top), img.width, int(img.height * bottom)))
+            img.thumbnail((2000, 2000))
+            buf = io.BytesIO()
+            img.save(buf, "WEBP", quality=85)
+        return save_product_image(ContentFile(buf.getvalue(), name="import.webp"), is_primary=True)
+    except Exception as exc:  # noqa: BLE001 — сеть/битое фото: позиция без фото
+        logger.info("cscart image skipped: %s", type(exc).__name__)
+        return None
+
+
+def _default_fetch_image(url):
+    return _default_fetch(url, accept=IMAGE_TYPES, max_bytes=8 * 1024 * 1024)
+
+
+def _product_slug_base(p: CsProduct) -> str:
+    """Слаг из старого адреса; при коллизии (один слаг в двух категориях CS-Cart) —
+    с сегментом категории («chai-rooibos»), а не безликое «chai-2»."""
+    from apps.catalog.models import Product
+
+    if Product.objects.filter(slug=p.segment).exists() and p.category_path:
+        return f"{p.segment}-{p.category_path.rsplit('/', 1)[-1]}"
+    return p.segment
+
+
+def _save_product(p: CsProduct, category, vat: Decimal, stats: ApplyStats):
+    from apps.catalog.models import Product
+    from apps.catalog.slugs import unique_slug
+    from apps.core.richtext import sanitize
+
+    base_variant = p.variants[0]
+    grams = base_variant.grams or name_grams(p.name)
+    product = Product.objects.filter(metadata__cscart__url=p.url).first()
+    # Повторный прогон синхронизирует только цену и вес (план §7 п.8 — «перед
+    # переключением DNS»); категория, НДС, склад и видимость — уже владельца.
+    fields = {"unit": "g" if grams else "", "content_amount": grams}
+    no_price = base_variant.price <= 0
+    if not no_price:
+        fields["base_price"] = base_variant.price
+    if product is None:
+        product = Product(
+            name={"de": p.name},
+            description={"de": sanitize(p.description_html)},
+            slug=unique_slug(Product, _product_slug_base(p)),
+            metadata={"cscart": {"url": p.url, "product_id": p.product_id, "path": p.path}},
+            sku=p.sku or base_variant.sku,
+            category=category,
+            vat_rate=vat,
+            **{"base_price": base_variant.price, **fields},
+        )
+        if len(p.variants) == 1 and not base_variant.in_stock:
+            product.stock_quantity = 0
+        if no_price:
+            # CS-Cart: «Kontaktieren Sie uns für den Preis». «0,00 €» на витрине — это
+            # неверная цена (PAngV) → товар скрыт до цены от владельца.
+            product.primary_action = "request"
+            product.is_active = False
+        product.save()
+        stats.products_created += 1
+    else:
+        for key, value in fields.items():
+            setattr(product, key, value)
+        product.save()
+        stats.products_updated += 1
+    if no_price:
+        stats.notes.append(f"no price on old site, hidden until priced: {p.sku} {p.name}")
+    return product
+
+
+def _save_variants(product, p: CsProduct, fetch_image, stats: ApplyStats) -> None:
+    from apps.catalog.models import ProductVariant
+
+    priced = [v for v in p.variants if v.price > 0]
+    if 0 < len(priced) < len(p.variants):  # все без цены — уже отмечено у товара
+        stats.notes.append(f"variants without price skipped: {p.sku} {p.name}")
+    if len(priced) < 2:
+        return
+    for i, v in enumerate(priced):
+        # Без артикула ключ — артикул товара + номер фасовки, иначе фасовки слились бы в одну.
+        sku = v.sku or f"{p.sku or product.pk}.v{i}"
+        variant = ProductVariant.objects.filter(product=product, sku=sku).first()
+        if variant is None:
+            # Новая фасовка: всё из старого магазина. Повторный прогон обновляет только
+            # цену и вес — склад, видимость и подпись остаются за владельцем.
+            variant = ProductVariant(
+                product=product,
+                sku=sku,
+                label=v.label or sku,
+                stock_quantity=None if v.in_stock else 0,
+                sort_order=i,
+                is_active=True,
+            )
+        variant.price = v.price
+        variant.content_amount = v.grams
+        if fetch_image and v.image_url and not variant.images:
+            ref = _save_image(v.image_url, fetch_image)
+            if ref:
+                variant.images = [ref]
+                stats.images += 1
+        variant.save()
+        stats.variants += 1
+
+
+def apply_site(
+    site: ScrapedSite,
+    *,
+    vat: Decimal = Decimal("7.00"),
+    with_images: bool = True,
+    fetch_image=None,
+    log=None,
+) -> ApplyStats:
+    """Записать обход в текущую схему (вызывать внутри ``schema_context``)."""
+    from apps.core.models import LegalDoc
+
+    log = log or (lambda msg: None)
+    fetch_image = (fetch_image or _default_fetch_image) if with_images else None
+    stats = ApplyStats()
+
+    by_path: dict = {}
+    with transaction.atomic():
+        for cat in sorted(site.categories, key=lambda c: c.path.count("/")):
+            category = _category_for(cat, by_path, stats)
+            by_path[cat.path] = category
+            _redirect("/" + cat.path + "/", f"/sortiment/{category.slug}/", stats)
+
+    for p in site.products:
+        with transaction.atomic():
+            product = _save_product(p, by_path.get(p.category_path), vat, stats)
+            _save_variants(product, p, fetch_image, stats)
+            target = product.get_absolute_url()
+            _redirect("/" + p.path + "/", target, stats)
+            if p.product_id:
+                _redirect(
+                    f"/index.php?dispatch=products.view&product_id={p.product_id}", target, stats
+                )
+                for vid in p.variation_ids:
+                    _redirect(f"/index.php?dispatch=products.view&product_id={vid}", target, stats)
+        if fetch_image and not product.images and p.image_urls:
+            ref = _save_image(p.image_urls[0], fetch_image)
+            if ref:
+                product.images = [ref]
+                product.save(update_fields=["images", "updated_at"])
+                stats.images += 1
+    log(f"products: {stats.products_created} new, {stats.products_updated} updated")
+
+    with transaction.atomic():
+        for path in site.gone_paths:
+            _redirect("/" + path + "/", None, stats)
+        for source, name in STATIC_ROUTES.items():
+            _redirect(source + "/", None if name is None else _url_name(name) or "/", stats)
+        catalog = _url_name("storefront-products") or "/"
+        for dispatch in DISPATCH_TO_CATALOG:
+            _redirect(f"/index.php?dispatch={dispatch}", catalog, stats)
+        _redirect("/index.php", "/", stats)
+
+    agb = html_to_text(site.pages.get("agb", ""))
+    if agb and not LegalDoc.objects.filter(kind="agb", locale="de").exclude(text="").exists():
+        LegalDoc.objects.update_or_create(kind="agb", locale="de", defaults={"text": agb})
+        stats.notes.append(
+            "AGB imported into LegalDoc — owner must review (payment, shipping, address)."
+        )
+    about = html_to_text(site.pages.get("about", ""))
+    if about:
+        stats.notes.append("About text found — copied to the profile if it was empty.")
+    return stats
+
+
+_VAT_RE = re.compile(r"\b(DE\s?\d{9})\b")
+_MAIL_RE = re.compile(r"(?:E-?Mail|Mail)\s*:\s*([\w.+-]+@[\w-]+(?:\.[\w-]+)+)", re.I)
+_RESPONSIBLE_RE = re.compile(r"Verantwortlich[^:\n]*:\s*([^\n]+)")
+
+
+def parse_impressum(text: str) -> dict:
+    """Структурные поля Impressum старого сайта (только то, что видно однозначно)."""
+    out = {}
+    if m := _VAT_RE.search(text or ""):
+        out["vat_id"] = m.group(1).replace(" ", "")
+    if m := _MAIL_RE.search(text or ""):
+        out["contact_email"] = m.group(1)
+    if m := _RESPONSIBLE_RE.search(text or ""):
+        out["legal_responsible"] = m.group(1).strip()[:200]
+    if re.search(r"\bEinzelunternehmen\b", text or ""):
+        out["legal_form"] = "einzel"
+    return out
+
+
+def apply_legal(tenant, site: ScrapedSite) -> list:
+    """Impressum старого сайта → LegalDoc (если своего нет) + пустые поля бизнеса.
+
+    Текст переносится как есть (с юридическим адресом), контакты магазина остаются
+    отдельными полями — у бизнеса бывают разные адреса Impressum и лавки."""
+    from apps.core.models import LegalDoc
+
+    notes = []
+    text = html_to_text(site.pages.get("impressum", ""))
+    if not text:
+        return notes
+    if not LegalDoc.objects.filter(kind="impressum", locale="de").exclude(text="").exists():
+        LegalDoc.objects.update_or_create(kind="impressum", locale="de", defaults={"text": text})
+        notes.append("Impressum imported into LegalDoc — owner must review")
+    if "ec.europa.eu/consumers/odr" in text:
+        notes.append("Impressum links the EU ODR platform (closed 20.07.2025) — remove that line")
+    fields = []
+    for name, value in parse_impressum(text).items():
+        if value and not getattr(tenant, name):
+            setattr(tenant, name, value)
+            fields.append(name)
+    if fields:
+        tenant.save(update_fields=fields)
+        notes.append(f"legal fields set: {', '.join(fields)}")
+    return notes
+
+
+def apply_about(tenant, site: ScrapedSite) -> bool:
+    """«Über uns» в ``site_config.about_text``, только если у бизнеса пусто."""
+    about = html_to_text(site.pages.get("about", ""))
+    config = dict(tenant.site_config or {})
+    if not about or (config.get("about_text") or "").strip():
+        return False
+    config["about_text"] = about[:5000]
+    tenant.site_config = config
+    tenant.save(update_fields=["site_config"])
+    return True
+
+
+# --- M21.3: перенос главной и визуала --------------------------------------------------
+
+
+@dataclass
+class DesignOptions:
+    hero_title: str = ""
+    hero_button_label: str = ""
+    hero_button_url: str = "/sortiment/"
+    skip_banners: tuple = ()  # 1-based номера баннеров, которые не переносим
+    banner_crop: tuple | None = None  # (верх, низ) долями высоты — полоса без надписей
+
+
+def _category_by_old_path(path: str):
+    """Категория, в которую уехал старый адрес (по переадресации импорта)."""
+    from apps.catalog.models import Category
+    from apps.core.legacy_redirects import match
+
+    rule = match("/" + path.strip("/") + "/", "")
+    if rule is None or not rule.target.startswith("/sortiment/"):
+        return None
+    return Category.objects.filter(slug=rule.target.strip("/").split("/")[-1]).first()
+
+
+def _menu_nodes(home: CsHome) -> list:
+    """Меню старого сайта → узлы конструктора меню (категории — по новым слагам)."""
+    nodes = []
+    for label, url in home.menu:
+        parts = urlsplit(url)
+        dispatch = (parse_qs(parts.query).get("dispatch") or [""])[0]
+        if dispatch == "products.newest":
+            nodes.append({"label": "Neu", "type": "url", "target": "/sortiment/?sort=newest"})
+            continue
+        if dispatch:
+            continue  # bestsellers/on_sale: у старого сайта пусты, у нас — без аналога
+        category = _category_by_old_path(path_of(url))
+        if category is None:
+            continue
+        # Пункт CS-Cart, ведущий в подкатегорию («Weisser» → …/aromatisch), — на весь
+        # раздел с подменю: иначе соседние подкатегории из меню недостижимы.
+        while category.parent_id is not None and category.parent.is_active:
+            category = category.parent
+        if any(n.get("target") == category.slug for n in nodes):
+            continue
+        has_children = category.children.filter(is_active=True).exists()
+        nodes.append(
+            {
+                "label": label,
+                "type": "categories" if has_children else "category",
+                "target": category.slug,
+            }
+        )
+    return nodes
+
+
+def apply_design(
+    tenant, site: ScrapedSite, *, options=None, with_images=True, fetch_image=None
+) -> list:
+    """Главная как на старом сайте: слайдер → плитки направлений → товары → «О нас»;
+    меню, логотип, фирменный цвет, контакты/часы, тексты Versand/Zahlung на «О нас».
+
+    Пишет только пустое/невыбранное: повторный прогон не трогает правки владельца
+    (слайдер, секции и цвет — только пока слайдер пуст, т. е. до первой настройки)."""
+    from apps.catalog.models import Category
+    from apps.tenants import siteconfig
+
+    options = options or DesignOptions()
+    fetch_image = (fetch_image or _default_fetch_image) if with_images else None
+    notes: list = []
+    home = site.home or CsHome()
+    config = dict(tenant.site_config or {})
+    fresh = not siteconfig.normalize_heroes(config.get("heroes"))
+    fields: set = set()
+
+    # 1. Слайдер (только пока у бизнеса нет своих слайдов).
+    if fresh and fetch_image:
+        slides = []
+        for i, url in enumerate(home.banners, start=1):
+            if i in options.skip_banners:
+                continue
+            ref = _save_image(url, fetch_image, crop=options.banner_crop)
+            if ref is None:
+                continue
+            slides.append(
+                {
+                    "image": ref["url"],
+                    "title": options.hero_title,
+                    "text": "",
+                    "button_label": options.hero_button_label,
+                    "button_url": options.hero_button_url if options.hero_button_label else "",
+                }
+            )
+        if slides:
+            config["heroes"] = siteconfig.normalize_heroes(slides)
+            notes.append(f"hero slides: {len(slides)}")
+
+    # 2. Плитки направлений → фото категорий (только у категорий без фото).
+    if fetch_image:
+        for path, url in home.tiles:
+            category = _category_by_old_path(path)
+            if category is None or category.images:
+                continue
+            ref = _save_image(url, fetch_image)
+            if ref:
+                Category.objects.filter(pk=category.pk).update(images=[ref])
+                notes.append(f"category image: {category.slug}")
+
+    # 3. Порядок главной как на старом сайте (только при первом переносе).
+    if fresh and config.get("heroes"):
+        config["sections"] = siteconfig.normalize_sections(
+            [
+                {"key": "hero", "enabled": True},
+                {
+                    # 6 плиток направлений старой главной — 2 полных ряда по 3
+                    # (при 4 колонках неполный ряд прячется правилом «полных рядов»).
+                    "key": "categories",
+                    "enabled": True,
+                    "style": "wide",
+                    "layout": {"preset": "cols3"},
+                },
+                {"key": "products", "enabled": True, "source": "featured_first"},
+                {"key": "about", "enabled": True},
+                # Акций при переезде ещё нет — пустой блок «Keine Angebote» не показываем;
+                # владелец включит его вместе с первой акцией.
+                {"key": "promotions", "enabled": False},
+            ]
+        )
+
+    # 4. Меню (только если владелец своё ещё не собирал).
+    if "menus" not in (tenant.site_config or {}):
+        nodes = _menu_nodes(home)
+        if nodes:
+            nav = siteconfig.normalize(config)["nav"]
+            config["menus"] = siteconfig._normalize_menus(
+                {"top": {"items": nodes}, "bottom": {"enabled": False, "items": []}}, nav
+            )
+            notes.append(f"menu items: {len(nodes)}")
+
+    # 5. Versand / Zahlungsarten — текстовыми блоками на «Über uns».
+    blocks = dict(config.get("page_blocks") or {})
+    info = list(blocks.get("info") or [])
+    titles = {(b.get("data") or {}).get("title") for b in info if isinstance(b, dict)}
+    for key, fallback in (("versand", "Versand"), ("zahlung", "Zahlungsarten")):
+        body = strip_dangling(html_to_text(site.pages.get(key, "")))
+        title = site.pages.get(key + "_title") or fallback
+        if body and title not in titles:
+            info.append({"key": "text", "enabled": True, "data": {"title": title, "body": body}})
+            notes.append(f"page block on about page: {title}")
+    if info:
+        blocks["info"] = info
+        config["page_blocks"] = siteconfig.normalize_page_blocks(blocks)
+
+    # 6. Логотип и фирменный цвет (цвет — из логотипа, только при первом переносе).
+    if fetch_image and home.logo_url and not tenant.logo_url:
+        got = None
+        try:
+            got = fetch_image(home.logo_url)
+        except Exception as exc:  # noqa: BLE001 — сеть: без логотипа
+            logger.info("cscart logo skipped: %s", type(exc).__name__)
+        ref = _save_image(home.logo_url, lambda _u: got) if got is not None and got.ok else None
+        if ref:
+            tenant.logo_url = ref["url"]
+            fields.add("logo_url")
+            color = dominant_color(got.body) if fresh else ""
+            if color:
+                tenant.primary_color = color
+                fields.add("primary_color")
+                notes.append(f"brand color from logo: {color}")
+
+    # 7. Контакты и часы работы из подвала (только пустые поля).
+    contacts = parse_contacts(home.footer_text)
+    for field_name, key in (("address", "address"), ("contact_phone", "phone"), ("city", "city")):
+        if contacts.get(key) and not getattr(tenant, field_name):
+            setattr(tenant, field_name, contacts[key])
+            fields.add(field_name)
+    hours = parse_hours(home.footer_text)
+    if hours and not tenant.opening_hours_structured:
+        tenant.opening_hours_structured = hours
+        fields.add("opening_hours_structured")
+
+    tenant.site_config = config
+    fields.add("site_config")
+    tenant.save(update_fields=sorted(fields))
+    return notes

@@ -437,3 +437,44 @@ class TelegramLiteScopeMiddleware:
             return JsonResponse({"error": "tg_lite"}, status=403)
         url = reverse("tg-lite-info")
         return redirect(f"{url}?grund={reason}" if reason else url)
+
+
+class LegacyRedirectMiddleware:
+    """M21.1: старые адреса после переезда (``core.LegacyRedirect``).
+
+    Смотрит ТОЛЬКО на ответ 404 витрины бизнеса (GET/HEAD): существующие
+    страницы перекрыть нельзя, обычные запросы не платят ни одного запроса к
+    БД. Найдено правило → 301 на локальный путь или 410 (та же страница 404 со
+    статусом «Gone» — поисковик быстрее выбрасывает адрес). Ошибка БД (таблицы
+    ещё нет в схеме, сбой) → исходный 404: переадресация не должна ронять сайт.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if response.status_code != 404 or request.method not in ("GET", "HEAD"):
+            return response
+        from django.db import DatabaseError
+        from django_tenants.utils import get_public_schema_name
+
+        tenant = getattr(request, "tenant", None)
+        if getattr(tenant, "schema_name", None) in (None, get_public_schema_name()):
+            return response
+        from django.http import HttpResponsePermanentRedirect
+
+        from . import legacy_redirects
+
+        try:
+            rule = legacy_redirects.match(request.path, request.META.get("QUERY_STRING", ""))
+            if rule is not None:
+                legacy_redirects.record_hit(rule)
+        except DatabaseError:
+            return response
+        if rule is None:
+            return response
+        if rule.status == rule.STATUS_GONE or not rule.target:
+            response.status_code = 410
+            return response
+        return HttpResponsePermanentRedirect(rule.target)

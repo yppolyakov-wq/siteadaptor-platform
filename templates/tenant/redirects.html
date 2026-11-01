@@ -1,0 +1,89 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Weiterleitungen" %}{% endblock %}
+
+{% block dash_content %}
+<div class="max-w-4xl">
+  <h1 class="ui-h1 mb-1">{% nav_title _("Weiterleitungen") %}</h1>
+  <p class="text-gray-500 mb-4 text-sm">{% trans "Für den Umzug von einer anderen Website: Wer eine alte Adresse aufruft, landet auf der neuen Seite. So behalten Sie Ihre Plätze bei Google. Eine Weiterleitung greift nur, wenn es unter der alten Adresse keine Seite gibt." %}</p>
+
+  {% include "tenant/_settings_messages.html" %}
+
+  <form method="post" class="ui-card p-6 space-y-4" data-redirect-form>
+    {% csrf_token %}
+    <div class="grid sm:grid-cols-2 gap-4">
+      <label class="block text-sm">{% trans "Alte Adresse" %}
+        <input type="text" name="source" required maxlength="1000" placeholder="/alte-seite/" class="ui-input mt-1 w-full">
+      </label>
+      <label class="block text-sm">{% trans "Neue Adresse" %}
+        <input type="text" name="target" maxlength="500" placeholder="/sortiment/" class="ui-input mt-1 w-full">
+      </label>
+    </div>
+    <label class="block text-sm">{% trans "Art" %}
+      <select name="status" class="ui-input mt-1">
+        {% for value, label in status_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <p class="text-xs text-gray-500">{% trans "„Entfernt (410)“ meldet Suchmaschinen, dass es die Seite nicht mehr gibt — die neue Adresse bleibt dann leer." %}</p>
+    <button class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
+  </form>
+
+  <div class="ui-card p-6 mt-4 flex flex-wrap items-center gap-3">
+    <form method="post" action="{% url 'site-redirects-import' %}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
+      {% csrf_token %}
+      <label class="text-sm">{% trans "CSV importieren" %}
+        <input type="file" name="file" accept=".csv,text/csv" required class="ml-2 text-sm">
+      </label>
+      <button class="ui-btn">{% trans "Importieren" %}</button>
+    </form>
+    <a href="{% url 'site-redirects-export' %}" class="ui-btn">{% trans "CSV exportieren" %}</a>
+    <p class="w-full text-xs text-gray-500">{% trans "Spalten: alte Adresse; neue Adresse; Status (301 oder 410, leer = 301)." %}</p>
+  </div>
+
+  <div class="flex flex-wrap items-end justify-between gap-3 mt-8 mb-3">
+    <h2 class="ui-h2">{% blocktrans count n=total %}{{ n }} Weiterleitung{% plural %}{{ n }} Weiterleitungen{% endblocktrans %} · {% blocktrans with n=total_hits %}{{ n }} Aufrufe{% endblocktrans %}</h2>
+    <form method="get" role="search">
+      <input type="search" name="q" value="{{ q }}" aria-label="{% trans "Suchen" %}" placeholder="{% trans "Suchen" %}" class="ui-input">
+    </form>
+  </div>
+
+  {% if page.object_list %}
+  <div class="ui-card overflow-x-auto">
+    <table class="ui-table">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Alte Adresse" %}</th>
+          <th scope="col">{% trans "Neue Adresse" %}</th>
+          <th scope="col" class="text-right">{% trans "Aufrufe" %}</th>
+          <th scope="col"><span class="sr-only">{% trans "Löschen" %}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in page.object_list %}
+        <tr data-redirect-row>
+          <td class="break-all">{{ r.source_path }}{% if r.source_query %}?{{ r.source_query }}{% endif %}</td>
+          <td class="break-all">{% if r.status == 410 %}<span class="text-gray-500">{% trans "Entfernt (410)" %}</span>{% else %}<a href="{{ r.target }}" target="_blank" rel="noopener" class="text-indigo-600 hover:underline">{{ r.target }}</a>{% endif %}</td>
+          <td class="text-right tabular-nums">{{ r.hits }}</td>
+          <td class="text-right">
+            <form method="post" action="{% url 'site-redirect-delete' r.pk %}">
+              {% csrf_token %}
+              <button class="text-sm text-red-600 hover:underline">{% trans "Löschen" %}</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page.has_other_pages %}
+  <nav class="flex gap-3 mt-3 text-sm" aria-label="{% trans "Seiten" %}">
+    {% if page.has_previous %}<a href="?seite={{ page.previous_page_number }}{% if q %}&q={{ q|urlencode }}{% endif %}" class="text-indigo-600">← {% trans "Zurück" %}</a>{% endif %}
+    <span class="text-gray-500">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a href="?seite={{ page.next_page_number }}{% if q %}&q={{ q|urlencode }}{% endif %}" class="text-indigo-600">{% trans "Weiter" %} →</a>{% endif %}
+  </nav>
+  {% endif %}
+  {% else %}
+  <p class="text-sm text-gray-500">{% trans "Noch keine Weiterleitungen." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

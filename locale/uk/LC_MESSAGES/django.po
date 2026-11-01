@@ -31523,3 +31523,94 @@ msgstr[0] "Ваш план: %(n)s крок"
 msgstr[1] "Ваш план: %(n)s кроки"
 msgstr[2] "Ваш план: %(n)s кроків"
 msgstr[3] "Ваш план: %(n)s кроку"
+
+msgid "%(n)s Aufrufe"
+msgstr "%(n)s переходів"
+
+msgid "Alte Adresse"
+msgstr "Стара адреса"
+
+msgid "Neue Adresse"
+msgstr "Нова адреса"
+
+msgid "Alte und neue Adresse sind gleich."
+msgstr "Стара й нова адреси однакові."
+
+msgid "Bitte eine CSV-Datei wählen."
+msgstr "Виберіть CSV-файл."
+
+msgid "CSV importieren"
+msgstr "Імпорт CSV"
+
+msgid "Das Ziel muss eine Adresse dieser Website sein, z. B. /sortiment/."
+msgstr "Ціль має бути адресою цього сайту, наприклад /sortiment/."
+
+msgid "Die Adresse ist zu lang."
+msgstr "Адреса задовга."
+
+msgid "Die Datei ist zu groß (max. 1 MB)."
+msgstr "Файл завеликий (макс. 1 МБ)."
+
+msgid "Entfernt (410)"
+msgstr "Видалено (410)"
+
+msgid "Weiterleiten (301)"
+msgstr "Переадресація (301)"
+
+msgid ""
+"Für den Umzug von einer anderen Website: Wer eine alte Adresse aufruft, "
+"landet auf der neuen Seite. So behalten Sie Ihre Plätze bei Google. Eine "
+"Weiterleitung greift nur, wenn es unter der alten Adresse keine Seite gibt."
+msgstr ""
+"Для переїзду з іншого сайту: хто відкриє стару адресу, потрапить на нову "
+"сторінку. Так ви збережете позиції в Google. Переадресація спрацьовує, лише "
+"якщо за старою адресою немає сторінки."
+
+msgid "Importiert: %(c)s neu, %(u)s aktualisiert."
+msgstr "Імпортовано: нових %(c)s, оновлено %(u)s."
+
+msgid "Noch keine Weiterleitungen."
+msgstr "Переадресацій поки немає."
+
+msgid ""
+"Spalten: alte Adresse; neue Adresse; Status (301 oder 410, leer = 301)."
+msgstr ""
+"Стовпці: стара адреса; нова адреса; статус (301 або 410, порожньо = 301)."
+
+msgid "Ungültige alte Adresse."
+msgstr "Невірна стара адреса."
+
+msgid "Ungültiger Status."
+msgstr "Невірний статус."
+
+msgid "Weiterleitung aktualisiert."
+msgstr "Переадресацію оновлено."
+
+msgid "Weiterleitung angelegt."
+msgstr "Переадресацію створено."
+
+msgid "Weiterleitung gelöscht."
+msgstr "Переадресацію видалено."
+
+msgid "Weiterleitungen"
+msgstr "Переадресації"
+
+msgid "Zeile %(n)s: %(msg)s"
+msgstr "Рядок %(n)s: %(msg)s"
+
+msgid "Zu viele Zeilen (max. 5000)."
+msgstr "Забагато рядків (макс. 5000)."
+
+msgid ""
+"„Entfernt (410)“ meldet Suchmaschinen, dass es die Seite nicht mehr gibt — "
+"die neue Adresse bleibt dann leer."
+msgstr ""
+"«Видалено (410)» повідомляє пошуковикам, що сторінки більше немає, — нову "
+"адресу тоді залиште порожньою."
+
+msgid "%(n)s Weiterleitung"
+msgid_plural "%(n)s Weiterleitungen"
+msgstr[0] "%(n)s переадресація"
+msgstr[1] "%(n)s переадресації"
+msgstr[2] "%(n)s переадресацій"
+msgstr[3] "%(n)s переадресацій"

@@ -80,6 +80,10 @@
   "Gegenkonto (ohne BU-Schlüssel)",
   "Konto"
  ],
+ "apps/imports/cscart.py": [
+  "Zahlungsarten",
+  "\\b\\d{5}\\s+([A-ZÄÖÜ][\\wäöüß .-]+)$"
+ ],
  "apps/inbox/ai_reply.py": [
   "(?<!ge)n[uü]ss|(?:^|(?<=[rl]))eier|"
  ],

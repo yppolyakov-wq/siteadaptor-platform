@@ -180,6 +180,8 @@ MIDDLEWARE = [
     "apps.core.middleware.SessionSchemaGuardMiddleware",
     # T-8.25: свой домен — основной адрес; анонимную витрину с поддомена 301 туда.
     "apps.tenants.middleware.PrimaryDomainRedirectMiddleware",
+    # M21.1: старые адреса после переезда — только на ответ 404 витрины.
+    "apps.core.middleware.LegacyRedirectMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     # Гейтинг подписки: suspended/trial_expired → кабинет read-only (Sprint 5).

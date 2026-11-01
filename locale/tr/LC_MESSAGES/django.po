@@ -31404,3 +31404,91 @@ msgid "Ihr Plan: %(n)s Schritt"
 msgid_plural "Ihr Plan: %(n)s Schritte"
 msgstr[0] "Planınız: %(n)s adım"
 msgstr[1] "Planınız: %(n)s adım"
+
+msgid "%(n)s Aufrufe"
+msgstr "%(n)s ziyaret"
+
+msgid "Alte Adresse"
+msgstr "Eski adres"
+
+msgid "Neue Adresse"
+msgstr "Yeni adres"
+
+msgid "Alte und neue Adresse sind gleich."
+msgstr "Eski ve yeni adres aynı."
+
+msgid "Bitte eine CSV-Datei wählen."
+msgstr "Lütfen bir CSV dosyası seçin."
+
+msgid "CSV importieren"
+msgstr "CSV içe aktar"
+
+msgid "Das Ziel muss eine Adresse dieser Website sein, z. B. /sortiment/."
+msgstr "Hedef bu web sitesindeki bir adres olmalıdır, ör. /sortiment/."
+
+msgid "Die Adresse ist zu lang."
+msgstr "Adres çok uzun."
+
+msgid "Die Datei ist zu groß (max. 1 MB)."
+msgstr "Dosya çok büyük (en fazla 1 MB)."
+
+msgid "Entfernt (410)"
+msgstr "Kaldırıldı (410)"
+
+msgid "Weiterleiten (301)"
+msgstr "Yönlendir (301)"
+
+msgid ""
+"Für den Umzug von einer anderen Website: Wer eine alte Adresse aufruft, "
+"landet auf der neuen Seite. So behalten Sie Ihre Plätze bei Google. Eine "
+"Weiterleitung greift nur, wenn es unter der alten Adresse keine Seite gibt."
+msgstr ""
+"Başka bir web sitesinden taşınırken: eski bir adresi açan herkes yeni "
+"sayfaya ulaşır. Böylece Google'daki sıralamanız korunur. Yönlendirme "
+"yalnızca eski adreste bir sayfa yoksa çalışır."
+
+msgid "Importiert: %(c)s neu, %(u)s aktualisiert."
+msgstr "İçe aktarıldı: %(c)s yeni, %(u)s güncellendi."
+
+msgid "Noch keine Weiterleitungen."
+msgstr "Henüz yönlendirme yok."
+
+msgid ""
+"Spalten: alte Adresse; neue Adresse; Status (301 oder 410, leer = 301)."
+msgstr "Sütunlar: eski adres; yeni adres; durum (301 veya 410, boş = 301)."
+
+msgid "Ungültige alte Adresse."
+msgstr "Geçersiz eski adres."
+
+msgid "Ungültiger Status."
+msgstr "Geçersiz durum."
+
+msgid "Weiterleitung aktualisiert."
+msgstr "Yönlendirme güncellendi."
+
+msgid "Weiterleitung angelegt."
+msgstr "Yönlendirme oluşturuldu."
+
+msgid "Weiterleitung gelöscht."
+msgstr "Yönlendirme silindi."
+
+msgid "Weiterleitungen"
+msgstr "Yönlendirmeler"
+
+msgid "Zeile %(n)s: %(msg)s"
+msgstr "Satır %(n)s: %(msg)s"
+
+msgid "Zu viele Zeilen (max. 5000)."
+msgstr "Çok fazla satır (en fazla 5000)."
+
+msgid ""
+"„Entfernt (410)“ meldet Suchmaschinen, dass es die Seite nicht mehr gibt — "
+"die neue Adresse bleibt dann leer."
+msgstr ""
+"„Kaldırıldı (410)“ arama motorlarına sayfanın artık olmadığını bildirir — "
+"yeni adres boş kalır."
+
+msgid "%(n)s Weiterleitung"
+msgid_plural "%(n)s Weiterleitungen"
+msgstr[0] "%(n)s yönlendirme"
+msgstr[1] "%(n)s yönlendirme"
