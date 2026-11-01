@@ -5902,7 +5902,9 @@ def sellable_manage(request):
             "nav": "sellables",
             "q": q,
             # STU-19c: the setup helper bar answers on the Seitenvorlage tab (catalog only)
-            "setup_ask": tenant.is_module_active("catalog"),
+            # (the bar submits to a website.view screen — no bar without that right)
+            "setup_ask": tenant.is_module_active("catalog")
+            and has_perm(request.user, "website.view"),
             "undo": _pop_sellable_undo(request, sm),
             "sortiment_view": view,
             "sel_category": category,

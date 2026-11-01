@@ -350,6 +350,9 @@ def _words(s: str) -> set[str]:
 
 def _from_ai(data: dict, text: str, tenant, allowed: list[str]) -> Plan:
     words = _words(text)
+    # a price is accepted only when it equals a whole price the owner wrote — a
+    # substring ("20" out of "3,20 €") would turn into a different price
+    prices = {_price_in(m.group(0)) for m in _PRICE_RE.finditer(text)} - {""}
     steps: list[Step] = []
     for raw in (data.get("steps") or [])[:MAX_STEPS]:
         if not isinstance(raw, dict):
@@ -363,8 +366,10 @@ def _from_ai(data: dict, text: str, tenant, allowed: list[str]) -> Plan:
             continue
         price = ""
         price_text = str(raw.get("price_text") or "")
-        if entity == ENTITY_PRODUCT and price_text and price_text in text:
-            price = _price_in(price_text if "€" in price_text else price_text + " €")
+        if entity == ENTITY_PRODUCT and price_text:
+            candidate = _price_in(price_text if "€" in price_text else price_text + " €")
+            if candidate in prices:
+                price = candidate
         parent = _clean_name(str(raw.get("in_category") or ""))
         if parent and not _words(parent) <= words:
             parent = ""
@@ -401,9 +406,12 @@ def build_plan(text: str, tenant, user) -> Plan:
             system=SYSTEM + f" The request is framed by markers containing {marker}.",
             tenant=tenant,
         )
+        ai = _from_ai(result.data or {}, text, tenant, allowed)
     except AIError as exc:
         logger.info("setup plan via AI skipped: %s", exc.code)
         return rules
-    ai = _from_ai(result.data or {}, text, tenant, allowed)
+    except Exception:  # the helper must never break the page — the rules plan stands
+        logger.warning("setup plan via AI failed", exc_info=True)
+        return rules
     # the AI must not do worse than the rules: an empty AI answer keeps the rules
     return ai if ai.steps or ai.template_link else rules

@@ -132,6 +132,29 @@ def test_ai_price_only_from_the_phrase(tenant):
     assert _field(plan.steps[0], "base_price").value == "3,20"
 
 
+@pytest.mark.parametrize("fragment", ["20", "3", "0,20 €"])
+def test_ai_price_substring_is_rejected(tenant, fragment):
+    """'20' occurs in '3,20 €' as text, but it is not a price the owner wrote."""
+    plan = _ai(
+        {"steps": [{"entity": "product", "name": "Käsekuchen", "price_text": fragment}]}, tenant
+    )
+    assert _field(plan.steps[0], "base_price").value == ""
+
+
+def test_build_plan_survives_unexpected_ai_error(tenant, monkeypatch):
+    from apps.ai import api
+
+    monkeypatch.setattr(setup_assistant, "allowed_entities", lambda t, u: ALL)
+    monkeypatch.setattr(api, "is_enabled", lambda task=None: True)
+
+    def boom(*a, **k):
+        raise RuntimeError("provider exploded")
+
+    monkeypatch.setattr(api, "generate", boom)
+    plan = setup_assistant.build_plan(TEXT, tenant, SimpleNamespace(pk=1))
+    assert plan.source == "rules" and len(plan.steps) == 2
+
+
 def test_ai_unknown_entity_is_dropped(tenant):
     plan = _ai({"steps": [{"entity": "promotion", "name": "Kuchen"}]}, tenant)
     assert plan.steps == ()
@@ -213,3 +236,13 @@ def test_create_form_is_prefilled_from_link(tenant):
     assert 'value="3,20"' in body
     kuchen = Category.objects.get(slug="kuchen")
     assert f'value="{kuchen.pk}" selected' in body
+
+
+@pytest.mark.parametrize("allowed", [True, False])
+def test_sortiment_bar_needs_website_right(tenant, monkeypatch, allowed):
+    """The bar submits to a website.view screen — without that right it must not show."""
+    from apps.core import views
+
+    monkeypatch.setattr(views, "has_perm", lambda user, key: allowed)
+    body = views.sellable_manage(_req(tenant, "/dashboard/angebote/")).content.decode()
+    assert ('name="frage"' in body) is allowed
