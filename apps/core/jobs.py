@@ -35,7 +35,10 @@ def idempotent_task(*task_args, lock_timeout: int = DEFAULT_LOCK_TIMEOUT, **task
                 # иначе повтор (retry/ручной) молча вернёт «duplicate», а письмо/публикация/
                 # привязка так и не случатся. Успех держит ключ, сбой — освобождает.
                 if dedupe_key:
-                    cache.delete(lock)
+                    try:
+                        cache.delete(lock)
+                    except Exception:  # noqa: BLE001 — Redis упал: не маскируем исходную ошибку
+                        pass
                 raise
 
         return wrapped

@@ -319,7 +319,8 @@ def _release_telegram(user_pk) -> None:
 
         tenant = getattr(connection, "tenant", None)
         if tenant is not None and getattr(tenant, "pk", None):
-            links.release_user(tenant, user_pk)
+            with transaction.atomic():  # savepoint: сбой не отравляет внешнюю транзакцию
+                links.release_user(tenant, user_pk)
     except Exception:  # noqa: BLE001 — страховка; still_owner закрывает доступ и без неё
         pass
 

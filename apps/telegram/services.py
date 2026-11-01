@@ -12,6 +12,7 @@ SEC-A1 (аудит безопасности 2026-11-01): URL каждого вы
 
 import json
 import re
+from types import SimpleNamespace
 
 import requests
 from django.db import connection
@@ -52,7 +53,10 @@ def _call(http, token: str, method: str, **kwargs):
         response.raise_for_status()
     except requests.HTTPError as exc:
         status = getattr(getattr(exc, "response", None), "status_code", None)
-        error = TelegramAPIError(method, status=status, response=exc.response)
+        # Живой Response несёт URL с токеном (response.url, request.url) — наружу только код.
+        error = TelegramAPIError(
+            method, status=status, response=SimpleNamespace(status_code=status)
+        )
     except requests.RequestException as exc:
         error = TelegramAPIError(method, kind=type(exc).__name__)
     if error is not None:

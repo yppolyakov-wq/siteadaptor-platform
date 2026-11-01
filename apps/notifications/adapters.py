@@ -86,11 +86,15 @@ def _send_platform(notification) -> None:
         raise RuntimeError("Plattform-Bot: Verarbeitung eingeschränkt")
     try:
         tg_services.send_message(bot.token, recipient, notification.payload.get("body", ""))
-    except requests.HTTPError as exc:
-        # Текст исключения содержит URL с токеном общего бота — в last_error только код.
-        status = getattr(getattr(exc, "response", None), "status_code", None)
+    except (tg_services.TelegramAPIError, requests.HTTPError) as exc:
+        # SEC-A1: сервис отдаёт TelegramAPIError (без URL/токена) с `.status`; в last_error — код.
+        status = getattr(exc, "status", None) or getattr(
+            getattr(exc, "response", None), "status_code", None
+        )
         if status == 403:
             links.mark_blocked(int(recipient))
+        if status is None:
+            raise RuntimeError(f"Telegram {getattr(exc, 'kind', '') or 'error'}") from None
         raise RuntimeError(f"Telegram HTTP {status}") from None
     except requests.RequestException as exc:
         raise RuntimeError(f"Telegram {type(exc).__name__}") from None

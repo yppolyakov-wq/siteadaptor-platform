@@ -61,6 +61,26 @@ def _sentry_scrub_text(value):
     return _SENTRY_SECRET_RE.sub("<secret>", value) if isinstance(value, str) else value
 
 
+def _sentry_scrub_obj(value, depth=0):
+    """Рекурсивно вырезать секреты из строк внутри dict/list (breadcrumbs `data.url`,
+    spans `description`/`data` несут URL Bot API с токеном)."""
+    if depth > 6:
+        return value
+    if isinstance(value, str):
+        return _sentry_scrub_text(value)
+    if isinstance(value, dict):
+        for key in list(value):
+            value[key] = _sentry_scrub_obj(value[key], depth + 1)
+        return value
+    if isinstance(value, list):
+        return [_sentry_scrub_obj(item, depth + 1) for item in value]
+    return value
+
+
+def _sentry_before_breadcrumb(crumb, hint):
+    return _sentry_scrub_obj(crumb)
+
+
 def _sentry_tg_path(value) -> bool:
     from urllib.parse import urlsplit
 
@@ -88,18 +108,16 @@ def _sentry_before_send(event, hint):
             if _sentry_tg_path(headers[name]):
                 headers.pop(name)
     for item in (event.get("exception") or {}).get("values") or []:
-        if isinstance(item, dict):
-            item["value"] = _sentry_scrub_text(item.get("value"))
+        if isinstance(item, dict) and "value" in item:
+            item["value"] = _sentry_scrub_text(item["value"])
     entry = event.get("logentry")
     if isinstance(entry, dict):
-        for key in ("message", "formatted"):
-            entry[key] = _sentry_scrub_text(entry.get(key))
-        params = entry.get("params")
-        if isinstance(params, list):
-            entry["params"] = [_sentry_scrub_text(p) for p in params]
-    for crumb in (event.get("breadcrumbs") or {}).get("values") or []:
-        if isinstance(crumb, dict):
-            crumb["message"] = _sentry_scrub_text(crumb.get("message"))
+        _sentry_scrub_obj(entry)
+    crumbs = event.get("breadcrumbs")
+    if isinstance(crumbs, dict):
+        _sentry_scrub_obj(crumbs)
+    if isinstance(event.get("spans"), list):
+        _sentry_scrub_obj(event["spans"])
     # Аргументы Celery-задач несут e-mail, текст сообщений владельца, хэш пароля
     # регистрации — Sentry они не нужны (имя задачи остаётся).
     job = (event.get("extra") or {}).get("celery-job")
@@ -123,5 +141,6 @@ if SENTRY_DSN:
         max_request_body_size="never",
         before_send=_sentry_before_send,
         before_send_transaction=_sentry_before_send,
+        before_breadcrumb=_sentry_before_breadcrumb,
         environment=env("SENTRY_ENVIRONMENT", default="production"),
     )

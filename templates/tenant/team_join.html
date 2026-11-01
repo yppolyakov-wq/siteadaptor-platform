@@ -18,7 +18,7 @@
     {% csrf_token %}
     {% if needs_password %}
       {% if pw_error %}
-        <p class="text-sm bg-red-50 border border-red-200 text-red-700 rounded-lg px-3 py-2">{% trans "Passwörter stimmen nicht überein oder sind kürzer als 8 Zeichen." %}</p>
+        <p class="text-sm bg-red-50 border border-red-200 text-red-700 rounded-lg px-3 py-2">{% trans "Passwörter stimmen nicht überein oder sind kürzer als 8 Zeichen." %}{% for e in pw_errors %} {{ e }}{% endfor %}</p>
       {% endif %}
       <div>
         <label class="block text-sm font-medium mb-1" for="password1">{% trans "Passwort wählen" %}</label>

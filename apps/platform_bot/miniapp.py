@@ -410,7 +410,7 @@ def app_signup(request):
     ip = hashlib.sha256(ratelimit.client_ip(request).encode()).hexdigest()
     if data["replay"] and (not isinstance(grace, dict) or grace.get("ip") != ip):
         return _error("replay", _("Bitte öffnen Sie „Mein Laden“ im Bot erneut."), status=403)
-    if ratelimit.hit("tgapp-uid", str(uid), limit=10, window=600):
+    if ratelimit.hit("tgapp-signup-uid", str(uid), limit=10, window=600):
         return _error("rate", _("Zu viele Versuche. Bitte gleich noch einmal."), status=429)
     if not web_signup.allowed(uid):
         return _error("signup_closed", "", status=403)

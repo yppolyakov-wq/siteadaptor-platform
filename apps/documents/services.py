@@ -56,7 +56,11 @@ def store(uploaded, *, owner, kind, ref_kind="", ref_id="", note="", uploaded_by
         note=note,
         uploaded_by=uploaded_by,
         consent_at=timezone.now(),
-        expires_at=_ticket_expiry(ref_kind, ref_id),
+        # Квитанции/входящие счета (GoBD, 10 лет) ретеншн не трогает — срок только у
+        # документов участников (SEC-G4 + ревью: без этого исключения бэкфилл стёр бы Belege).
+        expires_at=None
+        if kind == SecureDocument.KIND_RECEIPT
+        else _ticket_expiry(ref_kind, ref_id),
     )
 
 
@@ -96,9 +100,9 @@ def purge_expired(today=None) -> int:
     """Удалить документы с истёкшим сроком. → сколько удалено (для beat/логов)."""
     today = today or timezone.localdate()
     # Легаси-строки без срока (до SEC-G4) — retention от загрузки.
-    SecureDocument.objects.filter(expires_at__isnull=True).update(
-        expires_at=today + timedelta(days=retention_days())
-    )
+    SecureDocument.objects.filter(expires_at__isnull=True).exclude(
+        kind=SecureDocument.KIND_RECEIPT
+    ).update(expires_at=today + timedelta(days=retention_days()))
     stale = list(SecureDocument.objects.filter(expires_at__lt=today))
     for document in stale:
         purge(document)

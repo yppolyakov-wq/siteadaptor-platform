@@ -340,7 +340,7 @@ def angebot(request, token):
                     if ratelimit.hit(
                         "quote_voucher", ratelimit.client_ip(request), limit=10, window=600
                     ):
-                        messages.error(request, _("This voucher code is not valid."))
+                        messages.error(request, _("Zu viele Versuche. Bitte gleich noch einmal."))
                         return redirect("storefront-angebot", token=token)
                     try:
                         with transaction.atomic():

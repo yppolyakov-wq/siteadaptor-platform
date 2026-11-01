@@ -8,12 +8,7 @@ def dedupe_key(update_id) -> str:
 
 
 # T-8.10h: апдейт общего бота. Дедуп по update_id (Telegram повторяет доставку); сутки.
-@idempotent_task(
-    lock_timeout=86400,
-    autoretry_for=(Exception,),
-    retry_backoff=True,
-    retry_kwargs={"max_retries": 2},
-)
+@idempotent_task(lock_timeout=86400)
 def platform_bot_update(*, update):
     from . import handler
 

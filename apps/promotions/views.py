@@ -1795,7 +1795,7 @@ def voucher_redeem(request):
         from apps.core import ratelimit
 
         # SEC-A: перебор кодов ваучеров/сертификатов с прилавка (в т.ч. из Mini App).
-        if ratelimit.hit("voucher-redeem", str(request.user.pk), limit=30, window=600):
+        if ratelimit.hit("voucher-redeem", str(request.user.pk), limit=120, window=600):
             messages.error(request, _("Zu viele Versuche. Bitte gleich noch einmal."))
             return redirect("promotions:voucher-redeem")
         is_balance = (

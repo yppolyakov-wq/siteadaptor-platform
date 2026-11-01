@@ -556,8 +556,7 @@ def cart_apply_code(request):
     code = (request.POST.get("code") or "").strip().upper()[:12]
     # SEC-D7: перебор кодов сертификатов (GS-XXXXXX, баланс до 2000 €) — лимит на IP.
     if ratelimit.hit("cart_code", ratelimit.client_ip(request), limit=10, window=RL_WINDOW):
-        request.session.pop(PROMO_SESSION_KEY, None)
-        messages.error(request, _("This code is invalid or expired."))
+        messages.error(request, _("Zu viele Versuche. Bitte gleich noch einmal."))
         return redirect("storefront-cart")
     voucher = Voucher.objects.filter(code=code).first() if code else None
     if voucher is None or not voucher.has_order_discount or not voucher.is_redeemable:

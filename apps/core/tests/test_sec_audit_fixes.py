@@ -226,3 +226,59 @@ def test_document_without_ticket_gets_retention():
         days=services.retention_days()
     )
     assert services._ticket_expiry("ticket", "not-a-uuid") is not None
+
+
+def test_receipts_are_exempt_from_retention(monkeypatch):
+    """GoBD: Beleg/Eingangsrechnung хранится 10 лет — ретеншн документов участников его не трогает."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.documents import services
+    from apps.documents.models import SecureDocument
+
+    monkeypatch.setattr(services, "save_encrypted", lambda uploaded: ("x.enc", "image/png", 3))
+    doc = services.store(
+        type("U", (), {"name": "r.png"})(),
+        owner=None,
+        kind=SecureDocument.KIND_RECEIPT,
+        uploaded_by=None,
+    )
+    assert doc.expires_at is None
+    services.purge_expired(today=timezone.localdate() + timedelta(days=5000))
+    assert SecureDocument.objects.filter(pk=doc.pk).exists()
+
+
+def test_platform_send_403_marks_blocked_with_sanitized_error(monkeypatch):
+    from apps.notifications import adapters
+    from apps.notifications.models import Notification
+    from apps.telegram import bots, services
+
+    from django.db import connection
+
+    tenant = TenantFactory(schema_name=connection.schema_name)  # «текущая» схема теста
+    links.bind(UID, tenant, user_pk=_user().pk)
+    monkeypatch.setattr(bots, "platform_bot", lambda: bots.BotRef(bots.PLATFORM, "t", "b"))
+
+    def boom(*a, **k):
+        raise services.TelegramAPIError("sendMessage", status=403)
+
+    monkeypatch.setattr(services, "send_message", boom)
+    n = Notification(recipient=str(UID), payload={"bot": "platform", "body": "x"})
+    with pytest.raises(RuntimeError, match="403"):
+        adapters._send_platform(n)
+    assert OwnerTelegramLink.objects.get(tg_user_id=UID, tenant=tenant).blocked_at is not None
+
+
+def test_sentry_scrubs_breadcrumb_urls_and_spans():
+    from config.settings import production
+
+    token = "123456:ABC-DEF_ghi"
+    event = {
+        "breadcrumbs": {"values": [{"data": {"url": f"https://api.telegram.org/bot{token}/x"}}]},
+        "spans": [{"description": f"GET https://api.telegram.org/bot{token}/x", "data": {}}],
+    }
+    out = production._sentry_before_send(event, {})
+    assert token not in str(out)
+    crumb = production._sentry_before_breadcrumb({"data": {"url": f"bot{token}"}}, {})
+    assert token not in str(crumb)

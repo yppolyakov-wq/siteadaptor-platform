@@ -193,12 +193,25 @@ def release_user(tenant, user_pk) -> bool:
     cfg = getattr(tenant, "site_config", None)
     node = cfg.get("notify") if isinstance(cfg, dict) else None
     mirror_pk = node.get("owner_user_pk") if isinstance(node, dict) else None
-    linked = OwnerTelegramLink.objects.filter(
-        tenant=tenant, is_active=True, user_pk=int(user_pk)
-    ).exists()
-    if not linked and mirror_pk != int(user_pk):
+    user_pk = int(user_pk)
+    mine = OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True, user_pk=user_pk)
+    linked = mine.exists()
+    if not linked and mirror_pk != user_pk:
         return False
-    disconnect(tenant)
+    with transaction.atomic():
+        locked = _lock(tenant.pk)
+        if linked:
+            mine.update(is_active=False, updated_at=timezone.now())
+        node = (locked.site_config or {}).get("notify") or {}
+        own_bot_of_other = node.get("owner_bot") == OWNER_BOT_TENANT and (
+            node.get("owner_user_pk") not in (None, user_pk)
+        )
+        if own_bot_of_other:
+            tenant.site_config = locked.site_config  # свой бот другого владельца не трогаем
+        else:
+            tenant.site_config = _write_mirror(
+                locked, owner_chat_id=None, owner_bot=None, owner_user_pk=None
+            )
     return True
 
 
@@ -257,17 +270,23 @@ def still_owner(tenant) -> bool:
     легаси-связей без `user_pk` (убрать через релиз, roadmap §Отложено)."""
     from apps.core.models import Membership
 
+    cfg = getattr(tenant, "site_config", None)
+    node = cfg.get("notify") if isinstance(cfg, dict) else None
+    node = node if isinstance(node, dict) else {}
     link = (
         OwnerTelegramLink.objects.filter(tenant=tenant, is_active=True)
         .order_by("-selected_at", "-pk")
         .values("user_pk", "via")
         .first()
     )
-    user_pk = link["user_pk"] if link else None
-    if not user_pk:
-        cfg = getattr(tenant, "site_config", None)
-        node = cfg.get("notify") if isinstance(cfg, dict) else None
-        user_pk = node.get("owner_user_pk") if isinstance(node, dict) else None
+    # Свой бот бизнеса (owner_bot=tenant) помнит выпустившего в зеркале — он и судит путь
+    # своего бота, даже если у другого владельца живёт связь с общим ботом.
+    if node.get("owner_bot") == OWNER_BOT_TENANT and node.get("owner_user_pk"):
+        user_pk = node.get("owner_user_pk")
+    else:
+        user_pk = link["user_pk"] if link else None
+        if not user_pk:
+            user_pk = node.get("owner_user_pk")
     if not user_pk:
         # SEC-A6: связь из КАБИНЕТА обязана знать своего пользователя (ссылку выпускает
         # вошедший владелец, бэкфилл platform_bot/0004) — без него fail-closed. Связь из
