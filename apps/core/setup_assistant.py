@@ -208,8 +208,11 @@ _FILLER = {
     "фото",
 }
 _DURATION_RE = re.compile(
-    r"(\d{1,4})\s*(?:min\b|minuten\b|minutes\b|мин|dk\b|dakika)", re.IGNORECASE
+    r"(\d{1,4})\s*(?:min\b|minuten\b|minutes\b|мин(?:ут\w*|\.)?(?!\w)|dk\b|dakika\b)",
+    re.IGNORECASE,
 )
+#: A keyword stem plus at most this many letters of an inflection ending.
+_MAX_ENDING = 3
 _PRICE_RE = re.compile(r"(\d{1,6}(?:[.,]\d{1,2})?)\s*(?:€|eur\b|euro\b)", re.IGNORECASE)
 _SPLIT_RE = re.compile(r"(?<!\d),|,(?!\d)|[;\n]|\s(?:und|and|и|ve)\s", re.IGNORECASE)
 _QUOTED_RE = re.compile(r"[\"„“«»'‚‘](.+?)[\"“”«»'‘’]")
@@ -303,8 +306,16 @@ def _entity_of(segment: str) -> str:
     low = segment.lower()
     words = re.findall(r"\w+", low)
     for entity, stems in _KEYWORDS.items():
-        # short stems ("oda") only at a word start — "Soda" is not a room
-        if any((s in low) if len(s) > 3 else any(w.startswith(s) for w in words) for s in stems):
+        if entity in (ENTITY_CATEGORY, ENTITY_PRODUCT):
+            hit = any(s in low for s in stems)  # STU-19c behaviour ("Unterkategorie")
+        else:
+            # STU-19g: a stem names the thing only as a whole word with an ending —
+            # "Zimmer/Aktionen/услугу" yes; "Soda", "Zimmerpflanze", "Transaktion",
+            # "Eventuell", "Zimmermann" no
+            hit = any(
+                w.startswith(s) and len(w) <= len(s) + _MAX_ENDING for s in stems for w in words
+            )
+        if hit:
             return entity
     if _PRICE_RE.search(segment):
         return ENTITY_PRODUCT  # "Käsekuchen 3,20 €" — a price means a product

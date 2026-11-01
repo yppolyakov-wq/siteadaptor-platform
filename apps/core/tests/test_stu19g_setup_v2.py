@@ -82,9 +82,34 @@ def test_service_step_carries_name_price_duration(tenant):
     assert "duration=45" in step.form_url
 
 
-def test_short_stem_matches_only_at_word_start(tenant):
-    plan = sa.plan_from_rules("Soda 2 €", tenant, ALL)
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Soda 2 €",
+        "Zimmerpflanze 12 €",
+        "Eventuell Brot 2 €",
+        "Transaktion Gebühr 2 €",
+        "Kundenservice Paket 5 €",
+    ],
+)
+def test_stem_inside_another_word_is_not_an_entity(tenant, text):
+    plan = sa.plan_from_rules(text, tenant, ALL)
     assert [s.entity for s in plan.steps] == [sa.ENTITY_PRODUCT]
+
+
+def test_palette_ignores_names_that_merely_contain_a_stem(tenant, monkeypatch):
+    from apps.core import permissions
+
+    monkeypatch.setattr(permissions, "has_perm", lambda user, key: True)
+    monkeypatch.setattr(sa, "allowed_entities", lambda t, u: ALL)
+    assert sa.palette_section(tenant, SimpleNamespace(pk=1), "Zimmermann") is None
+
+
+def test_minutes_unit_does_not_eat_words(tenant):
+    (step,) = sa.plan_from_rules("Produkt 3 минеральные воды 2 €", tenant, ALL).steps
+    assert "минеральные" in _field(step, "name_de").value
+    assert sa._duration_in("Стрижка 40 мин") == "40"
+    assert sa._duration_in("Стрижка 40 минут") == "40"
 
 
 def test_disallowed_new_entity_is_skipped(tenant):
