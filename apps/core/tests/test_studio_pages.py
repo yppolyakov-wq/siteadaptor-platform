@@ -362,7 +362,6 @@ def test_no_control_is_lost_or_duplicated(builder_html):
     import re
 
     for field in (
-        "catalog_preset",
         # STU-19e-2: catalog_page_style / promo_page_style / sd_category_page_style /
         # sd_promo_group_style left the Studio (cabinet-owned; absence lock below)
         "catalog_sort",

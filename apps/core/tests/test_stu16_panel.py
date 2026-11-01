@@ -49,27 +49,13 @@ def _markup():
 def test_output_axis_takes_the_whole_row():
     """49 px на контрол — это не «узко», это нечитаемо: подписи шире полей.
 
-    Партиал обязан занимать всю ширину строки, а родительская flex-строка —
-    уметь переносить (иначе `basis-full` ничего не даст).
+    STU-19f-2 (осознанно): ось вывода переехала из Студии в кабинет. В Студии её
+    больше нет вовсе; в кабинете блок «Ausgabe» — полная ширина карточки, поля двумя
+    колонками (не флекс, который сжал бы их).
     """
-    axis = open("templates/tenant/_output_axis.html", encoding="utf-8").read()
-    assert "basis-full" in axis, "партиал не занимает всю ширину строки"
-    markup = _markup()
-    rows = [m for m in markup.split("\n") if "_output_axis.html" in m]
-    assert rows, "включений оси не найдено"
-    for row in rows:
-        idx = markup.index(row)
-        head = markup.rfind('<div class="page-block', 0, idx)
-        opening = markup[head : markup.index(">", head) + 1]
-        # STU-18a: механизм сменился — строка больше НЕ флекс, настройки идут
-        # стопкой (подпись сверху, контрол во всю ширину). Инвариант тот же:
-        # ось не должна сжиматься родителем до нечитаемых 49 px. Поэтому флекс
-        # без переноса запрещён, а его отсутствие — норма.
-        if "flex" in opening:
-            assert "flex-wrap" in opening, f"флекс без переноса сожмёт ось: {opening[:120]}"
-
-
-# ── STU-16b: дубль «Header style» ↔ «Examples» ─────────────────────────────
+    assert "_output_axis.html" not in _markup(), "ось вывода вернулась в Студию"
+    cab = open("templates/tenant/_pt_output.html", encoding="utf-8").read()
+    assert "grid grid-cols-2" in cab
 
 
 def test_header_style_has_one_control_and_it_is_the_tiles():

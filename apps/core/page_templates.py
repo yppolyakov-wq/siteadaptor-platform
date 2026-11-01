@@ -254,7 +254,18 @@ def _render(request, section: str):
                 if "out_mode" in request.POST
                 else None
             )
-            page_settings.write(tenant, code, request.POST.get("value", ""), output=output)
+            value = request.POST.get("value", "")
+            page_settings.write(tenant, code, value, output=output)
+            if request.POST.get("apply_all") and code in page_settings.APPLY_ALL_LAYOUTS:
+                # SE-2d-4: the same grid for the other listing pages of this shop; a list
+                # that does not offer this preset (catalog-only price views) is skipped
+                for other in page_settings.APPLY_ALL_LAYOUTS:
+                    if other == code or other not in own:
+                        continue
+                    try:
+                        page_settings.write(tenant, other, value, output=output)
+                    except page_settings.PageSettingError:
+                        continue
         except page_settings.PageSettingError:
             messages.error(request, _("Diese Einstellung kann hier nicht gespeichert werden."))
         else:

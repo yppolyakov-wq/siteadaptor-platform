@@ -62,7 +62,7 @@ the stateless ?preview=1&tpl= override; nothing is stored until "Speichern".{% e
             </div>
           {% endif %}
         </fieldset>
-        {% if s.kind == "layout" %}{% include "tenant/_pt_output.html" with layout=s.layout paginates=s.paginates code=s.code %}{% endif %}
+        {% if s.kind == "layout" %}{% include "tenant/_pt_output.html" with layout=s.layout paginates=s.paginates code=s.code apply_all=s.apply_all %}{% endif %}
         <div class="mt-3 flex items-center justify-end gap-2">
           <span class="ui-muted text-xs" data-pt-dirty role="status" data-pt-text="{% trans "Vorschau · noch nicht gespeichert" %}"></span>
           <button type="submit" class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>

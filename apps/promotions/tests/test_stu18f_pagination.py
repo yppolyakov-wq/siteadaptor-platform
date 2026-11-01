@@ -115,18 +115,16 @@ def test_sections_view_is_not_paginated():
 
 
 def test_panel_offers_page_size_on_the_promotions_page():
-    """STU-9 в обе стороны: страница пагинируется ⇒ «Pro Seite» обязана быть в панели.
+    """STU-9 в обе стороны: страница пагинируется ⇒ «Pro Seite» обязана быть предложена.
 
-    Ключ у обзора и у страницы группы один (`promo_index_layout`), поэтому строка
-    одна — но она обязана нести маркер пагинации, иначе поле скрыто скриптом.
+    STU-19f-2 (осознанно): ось вывода — в кабинете; пагинация помечена реестром
+    `page_settings.PAGINATED_LAYOUTS` (каталог и акции), у прочих поля нет.
     """
-    markup = open("templates/tenant/site_home.html", encoding="utf-8").read()
-    row = markup[markup.index('field="promo_index_preset"') :][:200]
-    assert "paginates=1" in row, "ось акций не помечена как пагинируемая"
-    # у листингов, которые НЕ пагинируются, маркера быть не должно
-    for field in ("combos_preset", "tours_preset", "blog_index_preset", "service_preset"):
-        other = markup[markup.index(f'field="{field}"') :][:200]
-        assert "paginates=1" not in other, f"{field}: обещание пагинации без исполнения"
+    from apps.core import page_settings
+
+    assert page_settings.PAGINATED_LAYOUTS == {"catalog_layout", "promo_index_layout"}
+    for code in ("combos_layout", "tours_layout", "blog_index_layout", "service_layout"):
+        assert code not in page_settings.PAGINATED_LAYOUTS, code
 
 
 def test_group_page_is_paginated():

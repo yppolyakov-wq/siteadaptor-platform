@@ -273,75 +273,82 @@ def test_review_findings_locks():
         assert k in siteconfig.SECTION_STYLE_LABELS, k
 
 
-def test_studio_picker_offers_every_price_view():
+def _cabinet(tenant, typ, method="get", data=None):
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    from apps.core import page_templates
+
+    path = "/dashboard/seitenvorlagen/sortiment/"
+    request = getattr(RequestFactory(), method)(path, data if data is not None else {"typ": typ})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    import uuid
+
+    o = uuid.uuid4().hex[:8]
+    request.user = get_user_model().objects.create_user(
+        username=f"pl-{o}", email=f"pl-{o}@t.de", password="pw12345678"
+    )
+    request.tenant = tenant
+    return page_templates.page_templates_sortiment(request)
+
+
+def test_studio_picker_offers_every_price_view(settings):
     """Ревью MEN-14/16 (HIGH): список опций был захардкожен и отстал от реестра —
     сохранённый вид не совпадал ни с одной опцией, браузер слал первую («list»), и
     Save молча откатывал раскладку каталога.
 
-    STU-5: экран «Pages» умер (был вторым писателем раскладок), гарантия переехала
-    на форму Studio — источник опций тот же реестр."""
+    STU-5 → STU-19f-2 (осознанно): гарантия переехала на экран кабинета «Seitenvorlage»
+    (единственный писатель сеток) — источник опций тот же реестр."""
     import re
-    from types import SimpleNamespace
 
-    from django.contrib.messages.middleware import MessageMiddleware
-    from django.contrib.sessions.middleware import SessionMiddleware
-
-    from apps.core import views
-
-    request = RequestFactory().get("/dashboard/site/home/")
-    SessionMiddleware(lambda r: None).process_request(request)
-    MessageMiddleware(lambda r: None).process_request(request)
-    request.user = SimpleNamespace(is_authenticated=True)
-    request.tenant = TenantFactory(
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(
         schema_name="public",
         slug="pp",
         name="PP",
         site_config={"catalog_layout": {"preset": "preisliste_buch"}},
     )
-    body = views.home_builder_view(request).content.decode()
+    body = _cabinet(tenant, "catalog").content.decode()
+    form = body.split('data-pt-setting="catalog_layout"', 1)[1].split("</form>", 1)[0]
     for key in siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"]:
-        assert f'value="{key}"' in body, key
-    # сохранённый вид отмечен selected — иначе браузер отправит первую опцию
-    assert re.search(r'value="preisliste_buch"[^>]*selected', body)
+        assert f'value="{key}"' in form, key
+    # сохранённый вид отмечен — иначе браузер отправит первую опцию
+    assert re.search(r'value="preisliste_buch"[^>]*checked', form)
 
 
-def test_studio_offers_and_saves_service_layout():
+def test_studio_offers_and_saves_service_layout(settings):
     """MEN-18 («не нашёл, где изменить вид услуг»): листинг услуг настраивается, а
-    пустой выбор «Standard» удаляет ключ (легаси-грид); чужой POST без селекта ключ
-    не трогает (класс W0). STU-5: поле называется `service_preset` в форме Studio."""
-    from types import SimpleNamespace
+    «Standard» удаляет ключ (легаси-грид). STU-19f-2 (осознанно): в кабинете."""
+    import re
 
-    from django.contrib.messages.middleware import MessageMiddleware
-    from django.contrib.sessions.middleware import SessionMiddleware
-
-    from apps.core import views
-
-    def _request(method="get", data=None, tenant=None):
-        request = getattr(RequestFactory(), method)("/dashboard/site/home/", data or {})
-        SessionMiddleware(lambda r: None).process_request(request)
-        MessageMiddleware(lambda r: None).process_request(request)
-        request.user = SimpleNamespace(is_authenticated=True)
-        request.tenant = tenant
-        return request
-
+    settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(
         schema_name="public",
         slug="ps",
         name="PS",
+        enabled_modules=["booking"],
         site_config={"service_index_layout": {"preset": "preisliste_foto"}},
     )
-    body = views.home_builder_view(_request(tenant=tenant)).content.decode()
-    assert 'name="service_preset"' in body
-    import re
-
-    assert re.search(r'value="preisliste_foto"[^>]*selected', body)
-
-    # Save с выбранным видом — ключ пишется
-    views.home_builder_view(
-        _request("post", {"catalog_preset": "cols3", "service_preset": "preisliste_2sp"}, tenant)
+    body = _cabinet(tenant, "services").content.decode()
+    form = body.split('data-pt-setting="service_layout"', 1)[1].split("</form>", 1)[0]
+    assert re.search(r'value="preisliste_foto"[^>]*checked', form)
+    _cabinet(
+        tenant,
+        "services",
+        "post",
+        {"setting": "service_layout", "typ": "services", "value": "preisliste_2sp"},
     )
-    cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["service_index_layout"]["preset"] == "preisliste_2sp"
+    tenant.refresh_from_db()
+    assert siteconfig.normalize(tenant.site_config)["service_index_layout"]["preset"] == (
+        "preisliste_2sp"
+    )
+    _cabinet(
+        tenant, "services", "post", {"setting": "service_layout", "typ": "services", "value": ""}
+    )
+    tenant.refresh_from_db()
+    assert "service_index_layout" not in tenant.site_config
 
 
 def test_visitor_toggle_on_base_views_with_photos_always_in_dom():

@@ -1911,37 +1911,6 @@ def _add_block_fetch_response(request, new_id, host):
     return JsonResponse({"ok": True, "id": new_id, "host": host, "row_html": row_html})
 
 
-def _page_layout_payload(post, field, preset):
-    """LAY-3b: раскладка страничного листинга из формы Studio — пресет + тип вывода.
-
-    Разбор типа вывода — общий с кабинетом (`page_settings.output_payload`, 19f-1).
-    """
-    from apps.core import page_settings
-
-    return {"preset": preset, **page_settings.output_payload(post, field)}
-
-
-def retires_legacy_promo_layout(post) -> bool:
-    """LAY-7c: Save оси вывода отправляет ЛЕГАСИ-ключ `promo_layout` на пенсию.
-
-    Ось — единственный контрол «сетка или лента», и её выбор обязан быть сильнее.
-    Но `scroll` presence-minimal: «Raster» = отсутствие ключа, то есть неотличимо
-    от «не настраивал». Пока рядом лежит легаси-ключ, резолвер честно включал бы
-    ленту, и ВЫКЛЮЧИТЬ её было бы нечем. Поэтому первое же осознанное касание
-    оси (её строка была в панели → поле пришло в POST) снимает легаси-ключ, и
-    дальше решает только ось. До этого касания легаси-ключ работает как раньше.
-    """
-    return "promo_index_preset" in post
-
-
-def _presence_layout_keys():
-    """LAY-3a-2: раскладки, которые normalize НЕ материализует — «Standard» в панели
-    снимает ключ, и страница снова рисуется прежними классами шаблона."""
-    from apps.tenants import siteconfig
-
-    return {"service_index_layout"} | set(siteconfig.OPTIONAL_PAGE_LAYOUTS)
-
-
 def _menu_rows(items, options):
     """STU-16d: строки редактора меню Студии = узел + его ЦЕЛЬ для селекта.
 
@@ -2561,42 +2530,9 @@ def home_builder_view(request):
             if tval:
                 titles[tkey] = tval
         config["section_titles"] = titles
-        # (per-page раскладки номеров/событий — на странице «Pages», pages_view;
-        #  normalize сохраняет их при записи главной без изменений.)
-        # SE-2a-2: раскладка каталога правится и на канве (per-page инспектор) —
-        # сохраняем, если прислан валидный пресет (иначе не трогаем существующую).
-        # LAY-3a-2: к четырём листингам добавились страницы, где сетка была зашита
-        # в шаблоне (реестр siteconfig.OPTIONAL_PAGE_LAYOUTS). Имя поля выводим из
-        # ключа — иначе список пришлось бы держать в двух местах.
-        _layout_fields = [
-            ("catalog_preset", "catalog_layout"),
-            ("events_preset", "events_index_layout"),
-            ("stay_preset", "stay_index_layout"),
-            ("service_preset", "service_index_layout"),
-        ] + [
-            (key.replace("_layout", "") + "_preset", key)
-            for key in siteconfig.OPTIONAL_PAGE_LAYOUTS
-        ]
-        for fld, cfg_key in _layout_fields:
-            preset = request.POST.get(fld, "")
-            if cfg_key == "promo_index_layout" and retires_legacy_promo_layout(request.POST):
-                config.pop("promo_layout", None)
-            # DS-3a: страничные extra-виды (напр. «preisliste» каталога) валидны
-            # только для СВОЕЙ страницы (PAGE_EXTRA_PRESETS).
-            if preset in siteconfig.LAYOUT_PRESETS or preset in siteconfig.PAGE_EXTRA_PRESETS.get(
-                cfg_key, ()
-            ):
-                # LAY-3b: вместе с пресетом сохраняем параметры «типа вывода» —
-                # сетка или слайдер, сколько рядов, сколько на странице, скорость.
-                # Раньше здесь писался ОДИН ключ preset, и всё остальное в
-                # раскладке молча стиралось; поэтому и хвост (`tail`) у страничных
-                # раскладок было невозможно задать из Студии.
-                config[cfg_key] = _page_layout_payload(request.POST, fld, preset)
-            elif fld in request.POST and not preset and cfg_key in _presence_layout_keys():
-                # UB1-1 / LAY-3a-2: «Standard» (пустой выбор) удаляет ключ → страница
-                # рисуется прежними классами шаблона. У материализованных соседей
-                # (каталог, события, номера) пустого выбора нет вовсе.
-                config.pop(cfg_key, None)
+        # STU-19f-2: page grids (`*_layout`: preset + output axis) are written by the
+        # cabinet («Seitenvorlage») only — the Studio Save does not touch them, nor the
+        # legacy `promo_layout` ribbon key (the cabinet retires it, LAY-7c).
         # Категория: фильтры/сортировка/подкатегории — presence-guard (cf_present шлётся
         # панелью каталога; одним блоком, чтобы частичный POST не сбрасывал настройки).
         if request.tenant.is_module_active("catalog") and request.POST.get("cf_present"):
@@ -2643,8 +2579,6 @@ def home_builder_view(request):
             config["menu_labels"] = request.POST.get("menu_labels") == "on"
             if not request.tenant.is_module_active("orders"):
                 config["menu_show_prices"] = request.POST.get("menu_show_prices") == "on"
-        if request.tenant.is_module_active("catalog") and "related_preset" in request.POST:
-            config["detail_related_layout"] = {"preset": request.POST.get("related_preset", "")}
         # Корзина: показывать ли кросс-селл — presence-guard (cart_present шлётся панелью корзины).
         if request.tenant.is_module_active("catalog") and request.POST.get("cart_present"):
             config["cart_show_upsell"] = request.POST.get("cart_show_upsell") == "on"

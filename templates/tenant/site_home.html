@@ -4089,25 +4089,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     return found;
   };
 
-  // ── STU-18a: «Скорость» — только у слайдера ──────────────────────────────────
-  // Для сетки настройка не значит ничего и просто занимала строку у каждой из
-  // одиннадцати поверхностей, показывая «выкл». Делегируем на document (урок Ф1:
-  // инлайн-биндинг в партиале выполняется раньше разметки и на живой странице молчит).
-  function syncAxisSpeed(sel) {
-    var box = sel && sel.closest ? sel.closest("[data-output-axis]") : null;
-    if (!box) return;
-    var slider = sel.value === "slider";
-    var speed = box.querySelector("[data-axis-speed]");
-    if (speed) speed.hidden = !slider;
-    // STU-18c (Д-4): «Рядов» в режиме СЕТКИ ограничивает выдачу только там, где
-    // вьюха читает лимит (сегодня каталог). В слайдере это число строк в слайде и
-    // работает везде — поэтому поле не убрано, а следует за режимом.
-    var rows = box.querySelector("[data-axis-rows]");
-    if (rows) rows.hidden = !slider && !box.hasAttribute("data-axis-paginates");
-  }
-  document.addEventListener("change", function (e) {
-    if (e.target && e.target.matches && e.target.matches("[data-axis-mode]")) syncAxisSpeed(e.target);
-  });
+  // STU-19f-2: the output axis (grid/slider, rows, speed) lives in the cabinet now.
 
 
   document.addEventListener("change", function (e) {

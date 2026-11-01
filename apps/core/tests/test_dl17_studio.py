@@ -62,12 +62,15 @@ def test_builder_renders_missing_visual_controls():
     # ради которой затевалась волна LAY. Ключ остаётся в хранении (легаси-конфиги,
     # демо-киты, композиция «Regale»), но панель его больше не пишет.
     assert 'name="promo_grouping"' in body
-    assert 'name="promo_index_preset_mode"' in body  # ось вывода вместо снятого дубля
     assert 'value="time"' in body
-    # STU-12g: хром карточек и фон страницы — глобальный дизайн, их контролы
-    # переехали на экран «Design des Shops» (round-trip там же, test_stu12_design_screen).
-    # хвост неполного ряда: недостающий вид «добить плиткой-подсказкой»
-    assert 'value="fill"' in body
+    # STU-19f-2 (осознанно): ось вывода обзора акций (вкл. «добить плиткой») — в кабинете
+    assert 'name="promo_index_preset_mode"' not in body
+    from apps.core.page_settings import schema
+
+    ts = {t.code: t for t in schema(tenant, ("promos",))}
+    assert any(s.code == "promo_index_layout" for s in ts["promos"].settings)
+    axis = open("templates/tenant/_pt_output.html", encoding="utf-8").read()
+    assert 'value="fill"' in axis
 
 
 def test_builder_no_longer_ships_hidden_only_design_keys():

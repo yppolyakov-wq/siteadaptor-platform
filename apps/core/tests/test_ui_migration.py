@@ -30,7 +30,6 @@ SKIP_FILES = {
     "tenant/_cb_row.html",
     "tenant/_section_fields.html",
     "tenant/_builtin_list_fields.html",
-    "tenant/_output_axis.html",
 }
 _CLASS = re.compile(r'<(?P<tag>[a-z]+)\b[^>]*?\bclass="(?P<cls>[^"]*)"[^>]*>')
 

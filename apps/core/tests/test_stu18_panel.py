@@ -41,9 +41,10 @@ def test_rows_is_a_choice_not_an_empty_number_field():
     Пустое числовое поле с серым `placeholder` читается как «недоступно», а не как
     «сейчас показываются все» (П-5 разбора).
     """
-    src = _read("_output_axis.html")
-    assert 'name="{{ field }}_rows"' in src
-    rows_block = src.split('name="{{ field }}_rows"')[0].rsplit("<label", 1)[-1]
+    # STU-19f-2: the output axis moved to the cabinet (`_pt_output.html`)
+    src = _read("_pt_output.html")
+    assert 'name="out_rows"' in src
+    rows_block = src.split('name="out_rows"')[0].rsplit("<label", 1)[-1]
     assert "<select" in rows_block, "«Рядов» всё ещё пустое числовое поле, а не выбор значения"
 
 
@@ -53,21 +54,17 @@ def test_speed_is_offered_only_for_the_slider():
     Сегодня поле стоит всегда и пишет «выкл» — настройка, которая для сетки не значит
     ничего, занимает строку у каждой поверхности.
     """
-    src = _read("_output_axis.html")
-    speed = [
-        ln
-        for ln in src.splitlines()
-        if "_speed" in ln and "<label" in ln or "data-axis-speed" in ln
-    ]
-    assert any("data-axis-speed" in ln for ln in src.splitlines()), (
-        "у строки «Скорость» нет маркера data-axis-speed — её нечем скрыть при режиме «Сетка»"
+    src = _read("_pt_output.html")  # STU-19f-2: cabinet
+    speed = [ln for ln in src.splitlines() if "data-pt-speed" in ln]
+    assert any("data-pt-speed" in ln for ln in src.splitlines()), (
+        "у строки «Скорость» нет маркера data-pt-speed — её нечем скрыть при режиме «Сетка»"
     )
     assert speed
 
 
 @pytest.mark.parametrize(
     "partial",
-    ["_output_axis.html", "_cardform_picker.html", "_scope_pill.html"],
+    ["_pt_output.html", "_cardform_picker.html", "_scope_pill.html"],
 )
 def test_panel_partials_have_no_multiline_django_comment(partial):
     """Грабля проекта: многострочный {# #} утекает ТЕКСТОМ на страницу."""

@@ -307,15 +307,25 @@ def test_axis_save_retires_the_legacy_key():
 
     `scroll` presence-minimal: «Raster» = отсутствие ключа, и без выхода на
     пенсию легаси-ключа владелец не смог бы ВЫКЛЮЧИТЬ ленту вообще.
+    STU-19f-2 (осознанно): ось пишет кабинет (`page_settings.write`), он и снимает ключ.
     """
-    from apps.core import views as core_views
+    from apps.core import page_settings
 
-    assert core_views.retires_legacy_promo_layout({"promo_index_preset": "cols4"}) is True
-    assert core_views.retires_legacy_promo_layout({"font": "system"}) is False
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="lay7ret0",
+        name="LAY7RET0",
+        site_config={"promo_layout": "slider"},
+    )
+    page_settings.write(tenant, "promo_index_layout", "cols4", output={})
+    tenant.refresh_from_db()
+    assert "promo_layout" not in tenant.site_config
+    assert tenant.site_config["promo_index_layout"]["preset"] == "cols4"
 
 
 def test_axis_save_really_drops_the_legacy_key_end_to_end():
-    """Предикат сам по себе — обещание; замок держит ПУТЬ СОХРАНЕНИЯ целиком."""
+    """STU-19f-2 (осознанно): Save Студии — даже со старым полем оси (устаревшая вкладка) —
+    легаси-ключ НЕ трогает и сетку не пишет: единственный писатель — кабинет."""
     from types import SimpleNamespace
 
     from django.contrib.messages.middleware import MessageMiddleware
@@ -338,17 +348,5 @@ def test_axis_save_really_drops_the_legacy_key_end_to_end():
     req.tenant = tenant
     assert core_views.home_builder_view(req).status_code == 302
     tenant.refresh_from_db()
-    assert "promo_layout" not in tenant.site_config
-    assert tenant.site_config["promo_index_layout"]["preset"] == "cols4"
-
-    # Чужой Save (без строки оси в панели) легаси-ключ НЕ трогает.
-    tenant.site_config = {"promo_layout": "slider"}
-    tenant.save(update_fields=["site_config"])
-    req2 = RequestFactory().post("/dashboard/site/home/", {"font": "system"})
-    SessionMiddleware(lambda r: None).process_request(req2)
-    MessageMiddleware(lambda r: None).process_request(req2)
-    req2.user = SimpleNamespace(is_authenticated=True)
-    req2.tenant = tenant
-    assert core_views.home_builder_view(req2).status_code == 302
-    tenant.refresh_from_db()
     assert tenant.site_config.get("promo_layout") == "slider"
+    assert "promo_index_layout" not in tenant.site_config

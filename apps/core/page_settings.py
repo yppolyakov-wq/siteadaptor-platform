@@ -108,6 +108,8 @@ class SettingState:
     #: page size, last row, speed) and whether the page paginates (shows "Pro Seite")
     layout: dict | None = None
     paginates: bool = False
+    #: offers "apply this grid to the other listing pages" (catalog/events/stays/services)
+    apply_all: bool = False
 
 
 @dataclass(frozen=True)
@@ -178,6 +180,9 @@ _LAYOUT_KEYS = {
 
 #: Grid settings whose page reads a page size (STU-18f: only catalog and offers paginate).
 PAGINATED_LAYOUTS = frozenset({"catalog_layout", "promo_index_layout"})
+
+#: Listing grids "apply to the other lists" copies between (SE-2d-4 → cabinet, 19f-2).
+APPLY_ALL_LAYOUTS = ("catalog_layout", "events_layout", "stay_layout", "service_layout")
 
 #: Output-axis fields of a layout (LAY-3b) — the part of a grid besides the preset.
 OUTPUT_KEYS = ("scroll", "rows", "page_size", "speed", "tail")
@@ -505,6 +510,7 @@ def schema(tenant, types: tuple[str, ...] | None = None) -> list[TypeSchema]:
                     thumb=_thumb(s),
                     layout=layout,
                     paginates=s.code in PAGINATED_LAYOUTS,
+                    apply_all=s.code in APPLY_ALL_LAYOUTS,
                 )
             )
         rows.sort(key=lambda r: axis_order.get(r.axis, 99))

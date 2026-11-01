@@ -14,7 +14,7 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
-from apps.core import views
+from apps.core import page_settings, views
 from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
 
@@ -45,16 +45,17 @@ def test_dead_screen_redirects_to_studio():
 
 
 def test_studio_saves_per_page_layouts():
+    """STU-19f-2 (осознанно): раскладки страниц пишет кабинет; Save Студии их не меняет."""
     tenant = TenantFactory(schema_name="public", slug="pv1", name="PV1", disabled_modules=[])
+    page_settings.write(tenant, "catalog_layout", "cols2")
+    page_settings.write(tenant, "stay_layout", "cols4")
+    page_settings.write(tenant, "events_layout", "cols3")
     _builder(
         "post",
-        {
-            "catalog_preset": "cols2",
-            "stay_preset": "cols4",
-            "events_preset": "cols3",
-        },
+        {"catalog_preset": "cols5", "stay_preset": "list", "events_preset": "list"},
         tenant,
     )
+    tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["catalog_layout"]["preset"] == "cols2"
     assert cfg["stay_index_layout"]["preset"] == "cols4"
@@ -89,27 +90,32 @@ def test_studio_renders_event_sections_when_events_active():
 
 
 def test_studio_saves_related_layout():
-    """STU-5: сетка «Passt dazu» переехала с умершего экрана в уровень «эта страница»."""
+    """STU-5 → STU-19f-2 (осознанно): сетка «Passt dazu» — в кабинете; Save Студии её не меняет."""
     tenant = TenantFactory(schema_name="public", slug="pvr", name="PVR", disabled_modules=[])
-    _builder("post", {"related_preset": "cols3"}, tenant)
+    page_settings.write(tenant, "product_related", "cols3")
+    _builder("post", {"related_preset": "cols5"}, tenant)
+    tenant.refresh_from_db()
     assert siteconfig.normalize(tenant.site_config)["detail_related_layout"]["preset"] == "cols3"
 
 
 def test_studio_renders_active_pages_only():
-    """Гейт по модулям: у тенанта без номеров и событий их раскладок в форме нет."""
+    """Гейт по модулям: у тенанта без номеров и событий их строк в панели нет
+    (STU-19f-2: строки сеток — сводки, у каталога она есть)."""
     tenant = TenantFactory(
         schema_name="public", slug="pv2", name="PV2", disabled_modules=["stays", "events"]
     )
     body = _builder("get", tenant=tenant).content.decode()
-    assert 'name="catalog_preset"' in body
-    assert 'name="stay_preset"' not in body
-    assert 'name="events_preset"' not in body
+    assert 'data-stu-setting="catalog_layout"' in body
+    assert 'data-stu-setting="stay_layout"' not in body
+    assert 'data-stu-setting="events_layout"' not in body
 
 
 def test_studio_save_preserves_other_config():
     tenant = TenantFactory(
         schema_name="public", slug="pv3", name="PV3", site_config={"hero_title": "Hallo"}
     )
-    _builder("post", {"catalog_preset": "cols2", "hero_title": "Hallo"}, tenant)
+    page_settings.write(tenant, "catalog_layout", "cols2")
+    _builder("post", {"catalog_preset": "cols5", "hero_title": "Hallo"}, tenant)
+    tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["hero_title"] == "Hallo" and cfg["catalog_layout"]["preset"] == "cols2"

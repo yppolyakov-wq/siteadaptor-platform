@@ -718,13 +718,15 @@ def test_home_builder_get_renders_landing_inspectors():
     )
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     body = resp.content.decode()
-    assert 'data-page-key="catalog"' in body and 'name="catalog_preset"' in body
-    assert 'data-page-key="events"' in body and 'name="events_preset"' in body
-    assert 'data-page-key="stay_rooms"' in body and 'name="stay_preset"' in body
+    # STU-19f-2 (осознанно): сетки — в кабинете; в Студии блок страницы + сводка
+    assert 'data-page-key="catalog"' in body and 'name="catalog_preset"' not in body
+    assert 'data-page-key="events"' in body and 'name="events_preset"' not in body
+    assert 'data-page-key="stay_rooms"' in body and 'name="stay_preset"' not in body
+    assert body.count("data-stu19-summary") >= 3
 
 
 def test_home_builder_saves_landing_layouts():
-    """SE-2a-2/SE-2b-1: раскладки лендингов сохраняются из канвы (per-page инспектор)."""
+    """STU-19f-2 (осознанно): Save Студии раскладки лендингов НЕ пишет — их пишет кабинет."""
     tenant = TenantFactory(
         schema_name="public",
         slug="hbcl",
@@ -734,10 +736,11 @@ def test_home_builder_saves_landing_layouts():
     data = {"catalog_preset": "cols2", "events_preset": "cols3", "stay_preset": "cols4"}
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
+    tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["catalog_layout"]["preset"] == "cols2" and cfg["catalog_layout"]["cols"] == 2
-    assert cfg["events_index_layout"]["preset"] == "cols3"
-    assert cfg["stay_index_layout"]["preset"] == "cols4"
+    assert cfg["catalog_layout"]["preset"] != "cols2"
+    assert (cfg.get("events_index_layout") or {}).get("preset") != "cols3"
+    assert (cfg.get("stay_index_layout") or {}).get("preset") != "cols4"
 
 
 def test_home_builder_get_renders_services_landing_inspector():
@@ -747,23 +750,28 @@ def test_home_builder_get_renders_services_landing_inspector():
     )
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     body = resp.content.decode()
-    assert 'data-page-key="services"' in body and 'name="service_preset"' in body
+    assert 'data-page-key="services"' in body and 'name="service_preset"' not in body
     assert 'booking: "services"' in body  # SCOPE_PAGE_KEY: группа /termin/ → его page-block
 
 
 def test_home_builder_saves_and_reverts_service_layout():
-    """UB1-1: пресет услуг сохраняется; пустой выбор «Standard» удаляет ключ (легаси-грид)."""
+    """UB1-1: пресет услуг сохраняется; «Standard» удаляет ключ (легаси-грид).
+
+    STU-19f-2 (осознанно): пишет кабинет (`page_settings.write`); Save Студии ключ не трогает.
+    """
+    from apps.core import page_settings
+
     tenant = TenantFactory(
         schema_name="public", slug="hbsl", name="HBSL", enabled_modules=["booking"]
     )
-    resp = views.home_builder_view(
-        _request("post", "/dashboard/site/home/", {"service_preset": "cols3"}, tenant)
-    )
-    assert resp.status_code == 302
+    page_settings.write(tenant, "service_layout", "cols3")
     assert siteconfig.normalize(tenant.site_config)["service_index_layout"]["preset"] == "cols3"
     views.home_builder_view(
         _request("post", "/dashboard/site/home/", {"service_preset": ""}, tenant)
     )
+    tenant.refresh_from_db()
+    assert tenant.site_config["service_index_layout"]["preset"] == "cols3"
+    page_settings.write(tenant, "service_layout", "")
     assert "service_index_layout" not in siteconfig.normalize(tenant.site_config)
 
 
@@ -1105,7 +1113,9 @@ def test_home_builder_get_renders_micro_templates():
 
 
 def test_home_builder_get_renders_apply_all_landings():
-    """SE-2d-4: действие «применить раскладку ко всем лендингам» отрисовано.
+    """SE-2d-4: действие «применить раскладку ко всем лендингам».
+
+    STU-19f-2 (осознанно): сетки ушли в кабинет — действие снято вместе с ними.
 
     LAY-1c (осознанная переписка): у действия БОЛЬШЕ НЕТ своего селектора пресета —
     он был вторым писателем тех же ключей раскладки, со своим (усечённым) набором
@@ -1121,9 +1131,9 @@ def test_home_builder_get_renders_apply_all_landings():
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert 'id="apply-all-landings"' in body
+    assert 'id="apply-all-landings"' not in body
     assert 'id="apply-all-preset"' not in body, "второй селектор раскладки вернулся"
-    assert 'name="catalog_preset"' in body  # источник значения — контрол страницы
+    assert 'name="catalog_preset"' not in body  # сетка — в кабинете (STU-19f-2)
 
 
 def test_site_url_is_redirect_to_studio_and_touches_nothing():

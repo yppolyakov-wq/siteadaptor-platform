@@ -321,8 +321,8 @@ def test_draft_endpoint_includes_event_detail():
 
 
 def test_draft_endpoint_includes_landing_layouts():
-    """SE-2d-5: пер-страничные раскладки лендингов попадают в черновик (live-preview
-    раскладки каталога/событий/номеров до Save)."""
+    """SE-2d-5 → STU-19f-2 (осознанно): сетки лендингов — настройка кабинета; черновик
+    Студии их не переносит (берёт сохранённые)."""
     tenant = TenantFactory(schema_name="public", slug="dll", name="DLL")
     body = json.dumps(
         {
@@ -341,13 +341,15 @@ def test_draft_endpoint_includes_landing_layouts():
     req.tenant = tenant
     assert views.site_preview_draft(req).status_code == 204
     draft = req.session["site_preview_draft"]
-    assert draft["catalog_layout"]["preset"] == "gallery"
-    assert draft["events_index_layout"]["preset"] == "cols3"
-    assert draft["stay_index_layout"]["preset"] == "cols4"
+    assert (draft.get("catalog_layout") or {}).get("preset") != "gallery"
+    assert (
+        "events_index_layout" not in draft or draft["events_index_layout"].get("preset") != "cols3"
+    )
+    assert "stay_index_layout" not in draft or draft["stay_index_layout"].get("preset") != "cols4"
 
 
 def test_draft_endpoint_includes_service_index_layout():
-    """UB1-1: раскладка листинга услуг попадает в черновик (live-preview /termin/ до Save)."""
+    """UB1-1 → STU-19f-2 (осознанно): сетка услуг не переносится черновиком Студии."""
     tenant = TenantFactory(schema_name="public", slug="dsv", name="DSV")
     body = json.dumps(
         {
@@ -363,7 +365,7 @@ def test_draft_endpoint_includes_service_index_layout():
     req.user = SimpleNamespace(is_authenticated=True)
     req.tenant = tenant
     assert views.site_preview_draft(req).status_code == 204
-    assert req.session["site_preview_draft"]["service_index_layout"]["preset"] == "cols3"
+    assert "service_index_layout" not in req.session["site_preview_draft"]
 
 
 def test_draft_endpoint_includes_site_defaults():

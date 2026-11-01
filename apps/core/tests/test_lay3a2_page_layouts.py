@@ -82,15 +82,14 @@ def test_panel_renders_a_control_for_each_new_setting():
     настройки есть своя строка с селектом пресета и параметрами типа вывода."""
     with open("templates/tenant/site_home.html", encoding="utf-8") as fh:
         panel = fh.read()
+    # STU-19f-2 (осознанно): в панели — строка-сводка, сам выбор и тип вывода в кабинете
     for key in OPTIONAL_KEYS:
-        field = key.replace("_layout", "")
         assert f'data-stu-setting="{key}"' in panel, f"{key}: строки в панели нет"
-        assert f'name="{field}_preset"' in panel, f"{key}: селект раскладки не выведен"
     axis = render_to_string(
-        "tenant/_output_axis.html",
-        {"field": "promo_index", "layout": {"preset": "cols3", "cols": 3}},
+        "tenant/_pt_output.html",
+        {"layout": {"preset": "cols3", "cols": 3}, "paginates": True},
     )
-    assert 'name="promo_index_mode"' in axis
+    assert 'name="out_mode"' in axis and 'name="out_page_size"' in axis
 
 
 @pytest.mark.parametrize(

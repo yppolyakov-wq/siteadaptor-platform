@@ -77,14 +77,10 @@ def test_output_on_a_non_grid_setting_is_refused(tenant):
         page_settings.write(tenant, "catalog_sort", "newest", output={"rows": "2"})
 
 
-def test_studio_and_cabinet_parse_the_axis_with_one_function():
+def test_output_payload_collects_only_filled_fields():
     post = QueryDict(
         "f_mode=slider&f_rows=2&f_page_size=24&f_speed=6&f_tail=spread&junk=1", mutable=False
     )
-    assert views._page_layout_payload(post, "f", "cols4") == {
-        "preset": "cols4",
-        **page_settings.output_payload(post, "f"),
-    }
     assert page_settings.output_payload(post, "f") == {
         "scroll": True,
         "rows": "2",
@@ -92,6 +88,8 @@ def test_studio_and_cabinet_parse_the_axis_with_one_function():
         "speed": "6",
         "tail": "spread",
     }
+    empty = QueryDict("f_mode=grid&f_rows=&f_tail=", mutable=False)
+    assert page_settings.output_payload(empty, "f") == {}
 
 
 def test_cabinet_post_writes_the_output_block(tenant):
@@ -182,3 +180,24 @@ def test_studio_shows_grid_summaries_not_controls():
     assert 'name="related_preset"' not in body
     row = body.split('data-stu-setting="catalog_layout"', 1)[1].split("</div>\n", 2)
     assert "data-stu19-summary" in "".join(row[:2]) and "Slider" in "".join(row[:2])
+
+
+def test_apply_all_copies_the_grid_to_the_other_lists():
+    t = TenantFactory(business_type="bakery", enabled_modules=["catalog", "events", "stays"])
+    page_templates.page_templates_sortiment(
+        _req(
+            t,
+            "post",
+            {
+                "setting": "catalog_layout",
+                "typ": "catalog",
+                "value": "cols4",
+                "out_mode": "slider",
+                "apply_all": "1",
+            },
+        )
+    )
+    t.refresh_from_db()
+    for key in ("catalog_layout", "events_index_layout", "stay_index_layout"):
+        assert t.site_config[key]["preset"] == "cols4", key
+        assert t.site_config[key].get("scroll") is True, key
