@@ -255,6 +255,8 @@ def test_cabinet_owned_is_exactly_the_moved_axes():
             "promo_page_style",
             "promo_group_style",
             "promo_detail_style",
+            # 19e-3
+            "home_hero",
         }
     )
 

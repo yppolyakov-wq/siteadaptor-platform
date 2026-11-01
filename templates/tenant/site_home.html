@@ -245,14 +245,7 @@
         {% comment %}STU-8: «Вид баннера» переехал сюда из уровня «Дизайн сайта» — баннер
            есть только на главной, и артборд PHome ставит его в её панель.{% endcomment %}
         <div class="stu-page-row mb-4" data-stu-setting="home_hero" data-stu-axis="composition" data-stu-page="home">
-          <label class="block text-sm">
-            <span class="block font-medium mb-1">{% trans "Banner" %}</span>
-            <select name="hero_style" class="ui-input">
-              {% for key, label in hero_style_options %}
-                <option value="{{ key }}" {% if key == hero_style %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-          </label>
+          {% include "tenant/_stu19_summary.html" with s=stu19.home_hero %}
         </div>
         <p class="text-xs ui-muted mb-4">{% trans "Drag ⠿ to reorder, or type a number. Untick to hide a block." %}</p>
         {% comment %}SE-9g: в Простом режиме при выбранной версии 📱/▭ показываем настройки этой версии
@@ -2676,8 +2669,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     form.querySelectorAll("input[name^='title_']").forEach(function (inp) {
       if (inp.value) sectionTitles[inp.name.slice(6)] = inp.value;
     });
-    // DL-13: селект стиля баннера (композиция главной — остаётся в Студии).
-    var heroEl = form.querySelector("select[name=hero_style]");
+    // STU-19e-3: the banner style is set in the cabinet only (Website → Seitenvorlagen).
     // SE-8b: Меню (стиль шапки + sticky) и Баннер (заголовок/текст) — в превью, чтобы
     // правки были видны вживую (раньше collect их не слал → видно лишь после Save).
     var navStyleEl = form.querySelector("[name=nav_style]:checked");
@@ -2696,7 +2688,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       sections: sections,
       archetypes: archetypes,
       section_titles: sectionTitles,
-      hero_style: heroEl ? heroEl.value : "plain",
       nav_style: navStyleEl ? navStyleEl.value : undefined,
       nav_sticky: !!(navStickyEl && navStickyEl.checked),
       nav_cta: navCtaEl ? navCtaEl.checked : undefined,

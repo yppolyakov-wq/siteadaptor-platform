@@ -667,6 +667,8 @@ CABINET_OWNED: frozenset[str] = frozenset(
         "promo_page_style",
         "promo_group_style",
         "promo_detail_style",
+        # 19e-3: the home banner style (the Studio Save wrote it unconditionally)
+        "home_hero",
     }
 )
 
