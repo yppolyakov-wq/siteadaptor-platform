@@ -291,12 +291,17 @@ def _walk(node, path):
     return node, True
 
 
-def current_value(raw_cfg: dict, setting: studio_pages.Setting):
-    """(value, is_set): value as the storefront sees it; is_set — key stored."""
+def current_value(raw_cfg: dict, setting: studio_pages.Setting, normalized: dict | None = None):
+    """(value, is_set): value as the storefront sees it; is_set — key stored.
+
+    `normalized` — the already normalized config (a screen with 80 settings must
+    not normalize 80 times)."""
     from apps.tenants import siteconfig
 
     _stored, is_set = _walk(raw_cfg or {}, setting.site_key)
-    value, _found = _walk(siteconfig.normalize(raw_cfg or {}), setting.site_key)
+    if normalized is None:
+        normalized = siteconfig.normalize(raw_cfg or {})
+    value, _found = _walk(normalized, setting.site_key)
     kind = kind_of(setting)
     if kind == KIND_BOOL:
         if value is None:
@@ -382,10 +387,44 @@ def _thumb(setting: studio_pages.Setting) -> str:
     return ""
 
 
+#: Types the storefront hides under the light "Nur Aktionen" profile (urls_tenant
+#: wraps their views in `redirect_if_aktionen`).
+_CATALOG_PAGES = frozenset({"catalog", "category", "product", "cart", "combos", "lookbook"})
+
+
+def _storefront_shows(tenant, type_code: str) -> bool:
+    """The same gates the storefront views use — a type the visitor can never open
+    is not offered (its preview would be a 404 or a redirect)."""
+    if type_code in _CATALOG_PAGES:
+        from apps.core import storefront_profile
+
+        if storefront_profile.is_aktionen(tenant):
+            return False
+    if type_code == "finder":
+        from apps.core import finder
+
+        return bool(finder.enabled(tenant))
+    if type_code == "wishlist":
+        from apps.orders import wishlist
+
+        return bool(wishlist.enabled(tenant))
+    if type_code == "gift":
+        from apps.loyalty.public_views import gift_purchase_active
+
+        return bool(gift_purchase_active(tenant))
+    return True
+
+
 def type_active(tenant, type_code: str) -> bool:
-    """A page type is offered only when its module is on (no "Termine" for a hotel)."""
+    """A page type is offered only when its module is on (no "Termine" for a hotel)
+    and the storefront actually shows it."""
     module = TYPE_MODULES.get(type_code)
-    return module is None or bool(tenant.is_module_active(module))
+    if module is not None and not tenant.is_module_active(module):
+        return False
+    try:
+        return _storefront_shows(tenant, type_code)
+    except Exception:  # noqa: BLE001 — a broken gate must not hide the whole screen
+        return True
 
 
 def active_types(tenant, types: tuple[str, ...] | None = None) -> tuple[str, ...]:
@@ -402,8 +441,11 @@ def schema(tenant, types: tuple[str, ...] | None = None) -> list[TypeSchema]:
 
     Types whose module is off are skipped (a passed-in tuple is filtered too).
     """
+    from apps.tenants import siteconfig
+
     raw = tenant.site_config or {}
     gate = composition_gate(raw)
+    normalized = siteconfig.normalize(raw)
     out = []
     axis_order = {code: i for i, (code, _label) in enumerate(studio_pages.AXES)}
     for code in active_types(tenant, types):
@@ -412,7 +454,7 @@ def schema(tenant, types: tuple[str, ...] | None = None) -> list[TypeSchema]:
         for s in cabinet_settings(code):
             if not applies(tenant, s):
                 continue
-            value, is_set = current_value(raw, s)
+            value, is_set = current_value(raw, s, normalized)
             rows.append(
                 SettingState(
                     code=s.code,
@@ -469,8 +511,9 @@ def apply_override(cfg: dict, code: str, value) -> dict:
     kind = kind_of(setting)
     if kind == KIND_LAYOUT:
         key = _LAYOUT_KEYS[code]
-        if key == "promo_index_layout":
-            # the first conscious touch of the axis retires the legacy switch (LAY-7c)
+        if key == "promo_index_layout" and value != "":
+            # choosing a grid retires the legacy ribbon switch (LAY-7c); "Standard"
+            # keeps it — the legacy ribbon IS what the owner sees as standard there
             out.pop("promo_layout", None)
         if value == "" and _optional_layout(key):
             out.pop(key, None)  # "Standard": the page draws its old classes again

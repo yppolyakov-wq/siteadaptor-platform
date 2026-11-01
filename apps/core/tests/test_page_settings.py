@@ -251,8 +251,8 @@ def test_empty_bool_value_is_not_off(tenant):
 
 def test_every_setting_can_resave_its_current_value(tenant):
     """Saving what is already shown must never fail (a stuck setting otherwise)."""
-    for type_code in page_settings.SUPPORTED_TYPES:
-        for s in page_settings.schema(tenant, (type_code,))[0].settings:
+    for ts in page_settings.schema(tenant):
+        for s in ts.settings:
             value = ("1" if s.value else "0") if s.kind == "bool" else s.value
             page_settings.write(tenant, s.code, value)
 
@@ -319,6 +319,23 @@ def test_promo_grid_retires_the_legacy_switch(all_modules):
     all_modules.save(update_fields=["site_config"])
     page_settings.write(all_modules, "promo_index_layout", "cols4")
     assert "promo_layout" not in all_modules.site_config
+
+
+def test_promo_grid_standard_keeps_the_legacy_ribbon(all_modules):
+    """ "Standard" means "as it is now" — the legacy ribbon must survive it."""
+    all_modules.site_config = {"promo_layout": "slider"}
+    all_modules.save(update_fields=["site_config"])
+    page_settings.write(all_modules, "promo_index_layout", "")
+    assert all_modules.site_config["promo_layout"] == "slider"
+
+
+def test_types_the_storefront_hides_are_not_offered(all_modules):
+    codes = set(page_settings.active_types(all_modules))
+    assert "finder" not in codes  # Finder is an option, off by default
+    all_modules.site_config = {"profile": "aktionen"}
+    codes = set(page_settings.active_types(all_modules))
+    assert not codes & {"catalog", "category", "product", "cart", "combos"}
+    assert "promos" in codes
 
 
 def test_listing_template_is_presence_minimal(all_modules, monkeypatch):
