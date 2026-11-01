@@ -30,6 +30,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from django.db import transaction
+from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import card_forms, compositions, studio_pages
@@ -717,6 +718,8 @@ CABINET_OWNED: frozenset[str] = frozenset(
         # 19e-3: the home banner style (the Studio Save wrote it unconditionally)
         "home_hero",
     }
+    # 19f-2: page grids (preset + output axis) — the cabinet writes them whole (19f-1)
+    | set(_LAYOUT_KEYS)
 )
 
 
@@ -732,9 +735,12 @@ def summaries(tenant, codes=None) -> dict[str, dict]:
             if st.code not in codes or st.code in out:
                 continue
             label = next((c.label for c in st.choices if c.value == st.value), st.value)
+            value = label or _("Standard")
+            if st.layout and st.layout.get("scroll"):
+                value = format_lazy("{} · {}", value, _("Slider"))
             out[st.code] = {
                 "label": st.label,
-                "value": label or _("Standard"),
+                "value": value,
                 "url": page_templates.cabinet_url(ts.code),
             }
     return out

@@ -641,63 +641,25 @@
              шаблоне (план LAY §13). Ключ presence-minimal: «Standard» снимает его и
              страница снова рисуется прежними классами.{% endcomment %}
           <div class="page-block mt-4" data-stu-setting="promo_index_layout" data-stu-axis="grid" data-stu-page="promos promo_group">
-            <span class="stu-lb">{% trans "Aktionen: Raster" %}</span>
-            <select name="promo_index_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
-              <option value="">{% trans "Standard" %}</option>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if promo_index_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-            {% comment %}STU-18f (решение владельца 2026-09-11): обзор акций и страница
-            группы теперь тоже пагинируются — значит «Pro Seite» там не обещание, а
-            настройка. Ключ у обеих страниц один (`promo_index_layout`, STU-17).{% endcomment %}
-            {% include "tenant/_output_axis.html" with field="promo_index_preset" layout=promo_index_layout paginates=1 %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.promo_index_layout %}
           </div>
           <div class="page-block mt-4" data-stu-setting="combos_layout" data-stu-axis="grid" data-stu-page="combos">
-            <span class="stu-lb">{% trans "Kombis: Raster" %}</span>
-            <select name="combos_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
-              <option value="">{% trans "Standard" %}</option>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if combos_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-            {% include "tenant/_output_axis.html" with field="combos_preset" layout=combos_layout %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.combos_layout %}
           </div>
           <div class="page-block mt-4" data-stu-setting="tours_layout" data-stu-axis="grid" data-stu-page="tours">
-            <span class="stu-lb">{% trans "Reisen: Raster" %}</span>
-            <select name="tours_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
-              <option value="">{% trans "Standard" %}</option>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if tours_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-            {% include "tenant/_output_axis.html" with field="tours_preset" layout=tours_layout %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.tours_layout %}
           </div>
           <div class="page-block mt-4" data-stu-setting="lookbook_layout" data-stu-axis="grid" data-stu-page="lookbook">
-            <span class="stu-lb">{% trans "Lookbook: Raster" %}</span>
-            <select name="lookbook_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
-              <option value="">{% trans "Standard" %}</option>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if lookbook_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-            {% include "tenant/_output_axis.html" with field="lookbook_preset" layout=lookbook_layout %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.lookbook_layout %}
           </div>
           <div class="page-block mt-4" data-stu-setting="reviews_page_layout" data-stu-axis="grid" data-stu-page="reviews">
-            <span class="stu-lb">{% trans "Bewertungen: Raster" %}</span>
-            <select name="reviews_page_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
-              <option value="">{% trans "Standard" %}</option>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if reviews_page_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-            {% include "tenant/_output_axis.html" with field="reviews_page_preset" layout=reviews_page_layout %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.reviews_page_layout %}
           </div>
           <div class="page-block mt-4" data-stu-setting="wishlist_layout" data-stu-axis="grid" data-stu-page="wishlist">
-            <span class="stu-lb">{% trans "Merkzettel: Raster" %}</span>
-            <select name="wishlist_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
-              <option value="">{% trans "Standard" %}</option>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if wishlist_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-            {% include "tenant/_output_axis.html" with field="wishlist_preset" layout=wishlist_layout %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.wishlist_layout %}
           </div>
           <div class="page-block mt-4" data-stu-setting="blog_index_layout" data-stu-axis="grid" data-stu-page="blog">
-            <span class="stu-lb">{% trans "Blog: Raster" %}</span>
-            <select name="blog_index_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
-              <option value="">{% trans "Standard" %}</option>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if blog_index_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-            {% include "tenant/_output_axis.html" with field="blog_index_preset" layout=blog_index_layout %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.blog_index_layout %}
           </div>
           {% comment %}ST-7c/DL-19 → STU-8: ФОРМА карточки переехала сюда из уровня
              «Дизайн сайта». Артборды A1/PCat/PPromo ставят её в панель страницы: «Дизайн
@@ -738,13 +700,7 @@
           </div>
           {% endif %}
           <div class="stu-page-row mt-4" data-stu-setting="product_related" data-stu-axis="grid" data-stu-page="product">
-            <label class="block text-sm">
-              <span class="stu-lb">{% trans "Related products grid" %}</span>
-              <span class="block text-xs text-gray-400 mb-1.5">{% trans "“More from this category” on a product page." %}</span>
-              <select name="related_preset" class="stu-ctrl">
-                {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == related_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-              </select>
-            </label>
+            {% include "tenant/_stu19_summary.html" with s=stu19.product_related %}
           </div>
           {% endif %}
           {% comment %}STU-8: ширина текстовой колонки (артборд «Тип: Текстовая страница»).
@@ -796,11 +752,7 @@
           <div class="page-block" data-page-key="catalog" data-stu-page="catalog category">
             <span class="stu-lb">{% trans "Catalog: grid layout" %}</span>
             <div class="stu-page-row w-full" data-stu-setting="catalog_layout" data-stu-axis="grid" data-stu-page="catalog category">
-              <select name="catalog_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
-                {# DS-5c: + прайс-виды — иначе сохранённый preisliste* не матчился и Save откатывал в "list" (W0) #}
-                {% for pk, plabel in catalog_preset_options|default:preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-              </select>
-              {% include "tenant/_output_axis.html" with field="catalog_preset" layout=catalog_layout paginates=1 %}
+              {% include "tenant/_stu19_summary.html" with s=stu19.catalog_layout %}
             </div>
             {# Дефолтная сортировка каталога (покупатель может сменить дропдауном на витрине). #}
             <div class="stu-page-row w-full" data-stu-setting="catalog_sort" data-stu-axis="content" data-stu-page="catalog category">
@@ -836,11 +788,7 @@
           {% endif %}
           {% if has_events %}
           <div class="page-block" data-page-key="events" data-stu-setting="events_layout" data-stu-axis="grid" data-stu-page="events">
-            <span class="stu-lb">{% trans "Events: grid layout" %}</span>
-            <select name="events_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if events_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-            {% include "tenant/_output_axis.html" with field="events_preset" layout=events_layout %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.events_layout %}
           </div>
             {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
@@ -856,11 +804,7 @@
           {% endif %}
           {% if has_stays %}
           <div class="page-block" data-page-key="stay_rooms" data-stu-setting="stay_layout" data-stu-axis="grid" data-stu-page="stays">
-            <span class="stu-lb">{% trans "Rooms: grid layout" %}</span>
-            <select name="stay_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if stay_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-            {% include "tenant/_output_axis.html" with field="stay_preset" layout=stay_layout %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.stay_layout %}
           </div>
             {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
@@ -878,12 +822,7 @@
              ключ не задан → легаси-грид (узкий, max-w-3xl); POST удаляет ключ. {% endcomment %}
           {% if has_booking %}
           <div class="page-block" data-page-key="services" data-stu-setting="service_layout" data-stu-axis="grid" data-stu-page="services">
-            <span class="stu-lb">{% trans "Services: grid layout" %}</span>
-            <select name="service_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
-              <option value="">{% trans "Standard" %}</option>
-              {% for pk, plabel in service_preset_options|default:preset_options %}<option value="{{ pk }}" {% if service_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-            {% include "tenant/_output_axis.html" with field="service_preset" layout=service_layout %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.service_layout %}
           </div>
             {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
@@ -897,15 +836,7 @@
               </label>
             </div>
           {% endif %}
-          {% comment %} SE-2d-4 → LAY-1c: применить раскладку и к остальным спискам.
-             Раньше здесь стоял ВТОРОЙ селектор с собственным набором пресетов — он писал
-             те же ключи, что строка выше, не знал про расширенные пресеты каталога
-             (прайс-вид молча сбрасывался) и не был помечен как настройка. Теперь это
-             ДЕЙСТВИЕ без своего значения: берёт раскладку ОТКРЫТОЙ страницы и копирует
-             её в остальные списки — один источник истины, как просил владелец. {% endcomment %}
-          <div class="stu-page-row flex items-center gap-2 flex-wrap pt-3 border-t border-gray-100" data-stu-page="catalog category events stays services">
-            <button type="button" id="apply-all-landings" class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">{% trans "Apply this layout to the other lists too" %}</button>
-          </div>
+          {# STU-19f-2: grids are set in the cabinet; "apply to the other lists" moves with them (plan §5c) #}
           {% comment %} SE-2b-2: порядок/видимость тематических секций детальной события — клик по
              блоку секций на канве (event detail ?preview=1) переносит этот инспектор сюда. {% endcomment %}
           {% if has_events %}
@@ -2698,8 +2629,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     };
     // SE-2a-2/SE-2b-1: раскладки лендингов (per-page) → в черновик, чтобы превью
     // соответствующей страницы (?preview=1) показало их сразу.
-    var catSel = form.querySelector("select[name='catalog_preset']");
-    if (catSel && catSel.value) payload.catalog_layout = { preset: catSel.value };
+    // STU-19f-2: grids (`*_layout`) are set in the cabinet only.
     var cfChk = form.querySelector("input[name='catalog_show_filters']");
     if (cfChk) payload.catalog_show_filters = cfChk.checked;  // живо вкл/выкл фильтры
     var scChk = form.querySelector("input[name='catalog_subcats_first']");
@@ -2720,14 +2650,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     var pgSel = form.querySelector("select[name='promo_grouping']");
     if (pgSel) payload.promo_grouping = pgSel.value;
     // STU-19e-1: listing templates (`page_styles`) are set in the cabinet only.
-    var evSel = form.querySelector("select[name='events_preset']");
-    if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
-    var stSel = form.querySelector("select[name='stay_preset']");
-    if (stSel && stSel.value) payload.stay_index_layout = { preset: stSel.value };
-    // UB1-1: раскладка листинга услуг ("" = «Standard»/легаси — не шлём, черновик
-    // строится из сохранённого конфига заново → превью само откатится).
-    var svcSel = form.querySelector("select[name='service_preset']");
-    if (svcSel && svcSel.value) payload.service_index_layout = { preset: svcSel.value };
     // STU-12g: в черновик едут только настройки СТРАНИЦЫ — глобальный дизайн
     // (radius/shadow/padding/card_bg/page_bg/chrome/media_shape/variant_style/slider)
     // переехал на экран «Design des Shops». Приёмник черновика МЕРДЖИТ site_defaults
@@ -5363,32 +5285,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     }
   });
 
-  // SE-2d-4: применить одну раскладку ко всем лендингам разом (каталог/события/номера/услуги).
-  var applyAllBtn = document.getElementById("apply-all-landings");
-  // LAY-1c: раскладку берём у ОТКРЫТОЙ страницы (её же контрол выше), а не у второго
-  // селектора: два писателя одного ключа и были той «кашей», на которую жаловался
-  // владелец. Пресет каталога может быть расширенным (прайс-вид) — копируем как есть,
-  // а чужой список молча его не примет (normalize отбросит неизвестный код).
-  var APPLY_ALL_SOURCE = {
-    catalog: "catalog_preset", category: "catalog_preset",
-    events: "events_preset", stays: "stay_preset", services: "service_preset",
-  };
-  if (applyAllBtn) {
-    applyAllBtn.addEventListener("click", function () {
-      var srcName = APPLY_ALL_SOURCE[curStuPage || ""] || "catalog_preset";
-      var sel = form.querySelector("select[name='" + srcName + "']");
-      if (!sel) return;
-      ["catalog_preset", "events_preset", "stay_preset", "service_preset"].forEach(function (n) {
-        var el = form.querySelector("select[name='" + n + "']");
-        // Список, у которого такого пресета нет (расширенные — только у каталога),
-        // ПРОПУСКАЕМ: присвоение несуществующего value обнулило бы его раскладку.
-        if (!el || el === sel || !el.querySelector("option[value='" + sel.value + "']")) return;
-        el.value = sel.value;
-        el.dispatchEvent(new Event("change", { bubbles: true }));  // SE-7b: синхрон миниатюр + превью
-      });
-      schedule();  // пере-сериализация черновика → live-preview (Save сохранит значения)
-    });
-  }
 
   // STU-12g: ползунки радиуса/отступа и «Clear» фона карточек уехали на экран
   // «Design des Shops» вместе со своими контролами.

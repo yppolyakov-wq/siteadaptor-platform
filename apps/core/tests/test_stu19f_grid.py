@@ -136,3 +136,49 @@ def test_screen_shows_the_block_for_grids_and_page_size_only_when_paginated(tena
     related = detail.content.decode().split('data-pt-setting="product_related"', 1)[1]
     related = related.split("</form>", 1)[0]
     assert 'name="out_mode"' in related and 'name="out_page_size"' not in related
+
+
+# ───────────── 19f-2: the Studio no longer writes grids ─────────────
+
+
+def test_studio_save_cannot_change_a_grid():
+    from apps.core.tests.test_home_builder import _request
+
+    stored = {"preset": "cols3", "rows": 2, "scroll": True}
+    t = TenantFactory(
+        schema_name="public",
+        slug="stu19f",
+        name="STU19f",
+        enabled_modules=["catalog", "events"],
+        site_config={"catalog_layout": dict(stored), "events_index_layout": {"preset": "list"}},
+    )
+    data = {
+        "order_hero": "1",
+        "enabled_hero": "on",
+        "catalog_preset": "cols6",
+        "catalog_preset_mode": "grid",
+        "catalog_preset_rows": "",
+        "events_preset": "cols4",
+        "related_preset": "cols2",
+    }
+    views.home_builder_view(_request("post", "/dashboard/site/home/", data, t))
+    t.refresh_from_db()
+    assert t.site_config["catalog_layout"]["preset"] == "cols3"
+    assert t.site_config["catalog_layout"].get("scroll") is True
+    assert t.site_config["events_index_layout"]["preset"] == "list"
+
+
+def test_studio_shows_grid_summaries_not_controls():
+    from apps.core.tests.test_home_builder import _request
+
+    t = TenantFactory(
+        schema_name="public", slug="stu19f2", name="STU19f2", enabled_modules=["catalog"]
+    )
+    page_settings.write(t, "catalog_layout", "cols4", output={"scroll": True})
+    body = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", tenant=t)
+    ).content.decode()
+    assert 'name="catalog_preset"' not in body and 'name="catalog_preset_mode"' not in body
+    assert 'name="related_preset"' not in body
+    row = body.split('data-stu-setting="catalog_layout"', 1)[1].split("</div>\n", 2)
+    assert "data-stu19-summary" in "".join(row[:2]) and "Slider" in "".join(row[:2])

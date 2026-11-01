@@ -257,6 +257,19 @@ def test_cabinet_owned_is_exactly_the_moved_axes():
             "promo_detail_style",
             # 19e-3
             "home_hero",
+            # 19f-2: the twelve page grids
+            "catalog_layout",
+            "product_related",
+            "service_layout",
+            "stay_layout",
+            "events_layout",
+            "promo_index_layout",
+            "combos_layout",
+            "tours_layout",
+            "lookbook_layout",
+            "reviews_page_layout",
+            "wishlist_layout",
+            "blog_index_layout",
         }
     )
 
