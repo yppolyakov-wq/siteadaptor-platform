@@ -752,6 +752,11 @@ class Ticket(TimestampedModel):
         ordering = ["created_at"]
         indexes = [
             models.Index(fields=["event", "status"], name="ticket_event_status_idx"),
+            # KA-12 E10.4: hot lists/search (payments, Offene Posten, sales lists, CRM, inbox)
+            models.Index(
+                fields=["payment_state", "created_at"], name="ticket_paystate_created_idx"
+            ),
+            models.Index(fields=["status", "created_at"], name="ticket_status_created_idx"),
         ]
 
     def __str__(self):

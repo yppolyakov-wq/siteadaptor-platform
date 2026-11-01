@@ -31670,3 +31670,6 @@ msgstr "Ця форма тут не відкривається — створі�
 
 msgid "Schreiben Sie in einem Satz, was neu dazukommt — Sie bekommen einen Plan mit vorausgefüllten Formularen. Gespeichert wird erst im Formular."
 msgstr "Напишіть одним реченням, що додається, — ви отримаєте план із заповненими формами. Зберігається лише в самій формі."
+
+msgid "Mehreres auf einmal anlegen — in einem Satz beschreiben"
+msgstr "Створити кілька позицій одразу — опишіть одним реченням"

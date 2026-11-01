@@ -31686,3 +31686,6 @@ msgstr "Эта форма здесь не открывается — созда�
 
 msgid "Schreiben Sie in einem Satz, was neu dazukommt — Sie bekommen einen Plan mit vorausgefüllten Formularen. Gespeichert wird erst im Formular."
 msgstr "Напишите одним предложением, что добавляется, — вы получите план с заполненными формами. Сохраняется только в самой форме."
+
+msgid "Mehreres auf einmal anlegen — in einem Satz beschreiben"
+msgstr "Создать несколько позиций сразу — опишите одним предложением"

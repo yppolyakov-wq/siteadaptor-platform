@@ -69,6 +69,8 @@ class Conversation(TimestampedModel):
         ordering = ["-last_message_at", "-created_at"]
         indexes = [
             models.Index(fields=["status", "last_message_at"], name="conv_status_last_idx"),
+            # KA-12 E10.4: hot lists/search (payments, Offene Posten, sales lists, CRM, inbox)
+            models.Index(fields=["ref_kind", "ref_id"], name="conv_ref_idx"),
         ]
 
     def __str__(self):

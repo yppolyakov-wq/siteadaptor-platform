@@ -71,6 +71,9 @@ primary-архетипу (товар/услуга/номер/событие) —
     <a href="{% url 'promotions:promotion-create' %}?preset={{ p.key }}"
        class="block bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">{{ p.label }} →</a>
   {% endfor %}
+  {% comment %}STU-19 audit: the setup helper (rules, AI when enabled) — several things in one sentence.{% endcomment %}
+  <a href="{% url 'setup-ask' %}" data-setup-helper-link
+     class="block bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">✨ {% trans "Mehreres auf einmal anlegen — in einem Satz beschreiben" %} →</a>
   {% comment %}W3: CTA по архетипу — «услугу/событие/товар добавить», ведёт в полный редактор.{% endcomment %}
   <a href="{% url offer_url %}"
      class="block bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">{{ offer_label }} {% trans "(alle Felder)" %} →</a>

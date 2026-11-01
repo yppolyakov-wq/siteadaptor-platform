@@ -31497,3 +31497,6 @@ msgstr "Dieses Formular öffnet sich hier nicht — bitte im Kabinett im Browser
 
 msgid "Schreiben Sie in einem Satz, was neu dazukommt — Sie bekommen einen Plan mit vorausgefüllten Formularen. Gespeichert wird erst im Formular."
 msgstr "Schreiben Sie in einem Satz, was neu dazukommt — Sie bekommen einen Plan mit vorausgefüllten Formularen. Gespeichert wird erst im Formular."
+
+msgid "Mehreres auf einmal anlegen — in einem Satz beschreiben"
+msgstr "Mehreres auf einmal anlegen — in einem Satz beschreiben"

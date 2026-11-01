@@ -169,6 +169,9 @@ class Job(I18nMixin, TimestampedModel):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["status", "created_at"], name="job_status_created_idx"),
+            # KA-12 E10.4: hot lists/search (payments, Offene Posten, sales lists, CRM, inbox)
+            models.Index(fields=["payment_state", "created_at"], name="job_paystate_created_idx"),
+            models.Index(fields=["created_at"], name="job_created_idx"),
         ]
 
     def __str__(self):

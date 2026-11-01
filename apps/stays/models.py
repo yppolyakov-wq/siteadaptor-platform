@@ -539,6 +539,9 @@ class StayBooking(TimestampedModel):
             # Поиск пересечений по юниту/дате и календарь загрузки.
             models.Index(fields=["unit", "arrival"], name="stay_unit_arrival_idx"),
             models.Index(fields=["status", "arrival"], name="stay_status_arrival_idx"),
+            # KA-12 E10.4: hot lists/search (payments, Offene Posten, sales lists, CRM, inbox)
+            models.Index(fields=["payment_state", "created_at"], name="stay_paystate_created_idx"),
+            models.Index(fields=["status", "created_at"], name="stay_status_created_idx"),
         ]
 
     def __str__(self):

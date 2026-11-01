@@ -576,6 +576,11 @@ class Booking(TimestampedModel):
             # Поиск пересечений по ресурсу/интервалу и календарь-вид.
             models.Index(fields=["resource", "start"], name="booking_resource_start_idx"),
             models.Index(fields=["status", "start"], name="booking_status_start_idx"),
+            # KA-12 E10.4: hot lists/search (payments, Offene Posten, sales lists, CRM, inbox)
+            models.Index(
+                fields=["payment_state", "created_at"], name="booking_paystate_created_idx"
+            ),
+            models.Index(fields=["status", "created_at"], name="booking_status_created_idx"),
             # KA-12 E4.4a: нижняя граница пересечений `end > start − потолок буфера`.
             models.Index(fields=["resource", "end"], name="booking_resource_end_idx"),
         ]

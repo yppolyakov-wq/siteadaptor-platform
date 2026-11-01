@@ -10,7 +10,9 @@
 import uuid
 from decimal import ROUND_HALF_UP, Decimal
 
+from django.contrib.postgres.indexes import GinIndex, OpClass
 from django.db import models
+from django.db.models.functions import Upper
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -72,6 +74,10 @@ class Customer(TimestampedModel):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["email"], name="customer_email_idx"),
+            # KA-12 E10.4: icontains = UPPER(col) LIKE … → trigram index on UPPER(col)
+            GinIndex(OpClass(Upper("name"), name="gin_trgm_ops"), name="customer_name_trgm"),
+            GinIndex(OpClass(Upper("email"), name="gin_trgm_ops"), name="customer_email_trgm"),
+            GinIndex(OpClass(Upper("phone"), name="gin_trgm_ops"), name="customer_phone_trgm"),
         ]
 
     def __str__(self):
