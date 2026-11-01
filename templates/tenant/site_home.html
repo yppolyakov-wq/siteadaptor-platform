@@ -660,7 +660,7 @@
              сайта» — это Look, цвет и шрифт «на всё», а форма карточки настраивается там,
              где эти карточки видно, и с выбором охвата. Имена полей ПРЕЖНИЕ — save,
              live-draft и клик по Look'у не тронуты (они ищут по name, не по области).{% endcomment %}
-          {% if has_catalog %}
+          {% if has_catalog_pages %}
           <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-axis="card" data-stu-page="catalog category product services service stays stay events lookbook tours combos wishlist finder cart">
             {% include "tenant/_stu19_summary.html" with s=stu19.product_card_form %}
           </div>
@@ -673,7 +673,7 @@
              cl_present сохранён (W0: чужой POST не роняет ключи), поэтому семантика
              сохранения та же, что и на прежнем экране. Он ВНЕ строк: строка прячется
              CSS-классом, а guard обязан уезжать в POST на любой странице.{% endcomment %}
-          {% if has_catalog %}
+          {% if has_catalog_pages %}
           {% if not orders_active_for_prices %}
           <div class="stu-page-row mt-4" data-stu-setting="catalog_menu_prices" data-stu-axis="content" data-stu-page="catalog category">
             {% include "tenant/_stu19_summary.html" with s=stu19.catalog_menu_prices %}
@@ -719,7 +719,7 @@
            из pb_id-строк ниже; без него (старая вкладка) конфиг страниц не трётся.{% endcomment %}
         <input type="hidden" name="pb_present" value="1">
         <div class="space-y-3">
-          {% if has_catalog %}
+          {% if has_catalog_pages %}
           {% comment %}STU-8: строка каталога показывается на корне И в категории (реестр:
              раскладка/фильтры применимы к обеим), но КАЖДАЯ настройка внутри знает свои
              типы: сортировка и шаблон корневой — только корень, «подкатегории первыми» —
@@ -815,7 +815,7 @@
           {% endif %}
           {% comment %}Опц. секции детальной ТОВАРА (показ/скрытие). Клик по детальной товара
              (?preview=1) переносит инспектор сюда; правки — в черновик/Save (live-preview).{% endcomment %}
-          {% if has_catalog %}
+          {% if has_catalog_pages %}
           <div class="page-block" data-page-key="product_detail" data-stu-setting="product_detail_sections" data-stu-axis="content" data-stu-page="product">
             <span class="text-sm font-medium block mb-2">{% trans "Product page: sections" %}</span>
             <input type="hidden" name="pd_present" value="1">
@@ -882,7 +882,7 @@
           {% endif %}
           {% comment %}Настройки страницы КОРЗИНЫ: блок кросс-селла «Passt dazu»
              (показ/скрытие). Заголовок блока правится инлайн на самой странице.{% endcomment %}
-          {% if has_catalog %}
+          {% if has_catalog_pages %}
           <div class="page-block" data-page-key="cart" data-stu-setting="cart_upsell" data-stu-axis="content" data-stu-page="cart">
             <span class="text-sm font-medium block mb-2">{% trans "Cart page" %}</span>
             {% include "tenant/_stu19_summary.html" with s=stu19.cart_upsell %}

@@ -299,3 +299,29 @@ def test_studio_save_cannot_change_page_content():
     assert t.site_config["catalog_sort"] == "price_asc"
     assert t.site_config["site_defaults"]["text_width"] == "wide"
     assert t.site_config["promo_grouping"] == "time"
+
+
+@pytest.mark.parametrize("profile,shown", [("aktionen", False), ("", True)])
+def test_nur_aktionen_studio_has_no_empty_catalog_rows(profile, shown):
+    """A "Nur Aktionen" shop has no catalog/cart pages: their Studio rows would be empty
+    shells with a lone "Cart page" label (STU-19 review)."""
+    import uuid
+
+    from apps.core.tests.test_home_builder import _request
+
+    slug = f"na{uuid.uuid4().hex[:8]}"
+    t = TenantFactory(
+        schema_name="public",
+        slug=slug,
+        name=slug,
+        disabled_modules=[],
+        site_config={"profile": profile} if profile else {},
+    )
+    html = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=t))
+    html = html.content.decode()
+    for marker in (
+        '<div class="page-block" data-page-key="cart"',
+        '<div class="page-block" data-page-key="catalog"',
+        'data-stu-setting="product_card_form"',
+    ):
+        assert (marker in html) is shown, marker

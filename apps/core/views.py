@@ -1825,13 +1825,14 @@ def _page_preset_ui(tenant, config):
     config — уже нормализованный site_config."""
     from apps.core import page_presets
 
+    shop_pages = _catalog_pages_live(tenant)  # «Nur Aktionen»: no catalog/cart pages
     hosts = (
         ("info", True),
-        ("cart", tenant.is_module_active("catalog")),
+        ("cart", shop_pages),
         # LB-3b: страница акций — «Standard» или «Prospekt (Blöcke)»
         ("promos", tenant.is_module_active("promotions")),
         # LB-4d-2: листинги — «Standard» или блоки над/под списком под архетип
-        ("catalog", tenant.is_module_active("catalog")),
+        ("catalog", shop_pages),
         ("services", tenant.is_module_active("booking")),
         ("stay_rooms", tenant.is_module_active("stays")),
         ("events", tenant.is_module_active("events")),
@@ -1950,6 +1951,14 @@ def _composition_gate(config: dict | None = None) -> dict[str, set[str]]:
     from apps.core import page_settings
 
     return page_settings.composition_gate(config)
+
+
+def _catalog_pages_live(tenant) -> bool:
+    """STU-19 review: catalog is a core module, but a "Nur Aktionen" shop has no
+    catalog/cart pages — their Studio rows would be empty shells."""
+    from apps.core.page_settings import type_active
+
+    return type_active(tenant, "catalog")
 
 
 @login_required
@@ -3288,6 +3297,9 @@ def home_builder_view(request):
             ),
             # SE-2a-2/SE-2b-1: per-page инспектор раскладки лендингов (по активным модулям).
             "has_catalog": request.tenant.is_module_active("catalog"),
+            # STU-19 review: catalog is a core module, but a "Nur Aktionen" shop has no
+            # catalog/cart pages — their Studio rows would be empty shells
+            "has_catalog_pages": _catalog_pages_live(request.tenant),
             "catalog_preset": (config.get("catalog_layout") or {}).get("preset", ""),
             # LAY-3b: сами раскладки — для контролов «типа вывода» (сетка/слайдер,
             # ряды, размер страницы, скорость). Пресет остаётся отдельной строкой:
