@@ -157,11 +157,11 @@ def test_garbage_tpl_is_ignored(category_tree, may_preview):
 
 def test_studio_links_to_the_tab():
     html = (Path(dj_settings.BASE_DIR) / "templates/tenant/site_home.html").read_text()
-    for typ in ("catalog", "category"):
-        assert f"{{% url 'page-templates-sortiment' %}}?typ={typ}" in html
-    # STU-19e-1: the product page layout is a summary — its link comes from cabinet_url
-    assert "stu19.product_detail_layout" in html
-    assert page_templates.cabinet_url("product").endswith("?typ=product")
+    # STU-19e: the moved settings are summaries — their links come from cabinet_url
+    for code in ("catalog_page_style", "category_page_style", "product_detail_layout"):
+        assert f"stu19.{code}" in html
+    for typ in ("catalog", "category", "product"):
+        assert page_templates.cabinet_url(typ).endswith(f"?typ={typ}")
 
 
 def test_anonymous_visitor_cannot_use_tpl(category_tree):
@@ -252,3 +252,13 @@ def test_every_type_has_a_preview_strategy():
             "blog_post",
             "lookbook",
         }, page.code
+
+
+def test_every_preview_path_runs(tenant):
+    """Review lesson (STU-19e-2): `_object_path` referenced a constant that does not
+    exist — no test executed it. Run every type's preview path for real."""
+    from apps.core import studio_pages
+
+    for page in studio_pages.PAGE_TYPES:
+        path = page_templates._preview_path(page.code)
+        assert path == "" or path.startswith("/"), (page.code, path)

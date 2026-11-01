@@ -363,11 +363,11 @@ def test_no_control_is_lost_or_duplicated(builder_html):
 
     for field in (
         "catalog_preset",
-        "catalog_page_style",
+        # STU-19e-2: catalog_page_style / promo_page_style / sd_category_page_style /
+        # sd_promo_group_style left the Studio (cabinet-owned; absence lock below)
         "catalog_sort",
         "catalog_show_filters",
         "catalog_subcats_first",
-        "promo_page_style",
         # LAY-7c: контрол `promo_layout` СНЯТ осознанно (решение владельца
         # 2026-09-10 «убрать Darstellung der Gruppen»): «сетка или лента» —
         # это общая ось вывода, а два переключателя на одно и то же и были
@@ -376,8 +376,6 @@ def test_no_control_is_lost_or_duplicated(builder_html):
         # пишет — замок на единственность превратился бы в замок на его
         # существование.
         "promo_grouping",
-        "sd_category_page_style",
-        "sd_promo_group_style",
         "sd_card_style",
         "sd_promo_card",
         "cart_show_upsell",
@@ -847,9 +845,9 @@ def test_scope_pills_stand_next_to_their_control(builder_html_all_modules):
     другую обёртку без пилюли молча превратил бы «только здесь» в no-op."""
 
     body = builder_html_all_modules
+    # STU-19e-2 (deliberate): category/offer-group templates are cabinet-owned — their
+    # "only here" level lives in the object forms / Aktionstypen screen, not in a pill.
     for code in (
-        "category_page_style",
-        "promo_group_style",
         "product_card_form",
         "promo_card_form",
     ):

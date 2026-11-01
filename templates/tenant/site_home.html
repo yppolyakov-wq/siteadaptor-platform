@@ -611,23 +611,19 @@
              (только корень каталога) показывалась и в категории, а «Gruppierung»
              (только обзор акций) — и на странице группы.{% endcomment %}
           <div class="stu-page-row mt-2" data-stu-setting="category_page_style" data-stu-axis="composition" data-stu-page="category">
-            {% include "tenant/_cardform_picker.html" with name="sd_category_page_style" value=category_page_style items=category_page_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.category off_note=comp_off_note title=_("Category page (whole site)") %}
-            {% include "tenant/_scope_pill.html" with setting="category_page_style" %}
-            <a href="{% url 'page-templates-sortiment' %}?typ=category" class="mt-1 inline-block text-xs text-indigo-700 hover:underline" data-stu19-link>{% trans "Im Kabinett ändern" %} →</a>
+            {% include "tenant/_stu19_summary.html" with s=stu19.category_page_style %}
           </div>
           <div class="stu-page-row mt-4" data-stu-setting="promo_page_style" data-stu-axis="composition" data-stu-page="promos">
-            {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.promos off_note=comp_off_note title=_("Aktionsseite: Vorlage") %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.promo_page_style %}
           </div>
           <div class="stu-page-row mt-4" data-stu-setting="promo_group_style" data-stu-axis="composition" data-stu-page="promo_group">
-            {% include "tenant/_cardform_picker.html" with name="sd_promo_group_style" value=promo_group_style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.promo_group off_note=comp_off_note title=_("Offer group page (whole site)") %}
-            {% include "tenant/_scope_pill.html" with setting="promo_group_style" %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.promo_group_style %}
           </div>
-          {% comment %}STU-15a: шаблон страницы ОДНОЙ акции. Пилюля охвата пишет
-             `Promotion.page_style` («только эта акция»), общий контрол —
-             site_defaults.promo_detail_style.{% endcomment %}
+          {% comment %}STU-19e-2: page templates are set in the cabinet. "Only this
+             category/offer" lives in the object's own form, "only this offer type" on
+             the Aktionstypen screen — the Studio scope pills for them are gone.{% endcomment %}
           <div class="stu-page-row mt-4" data-stu-setting="promo_detail_style" data-stu-axis="composition" data-stu-page="promo">
-            {% include "tenant/_cardform_picker.html" with name="sd_promo_detail_style" value=promo_detail_style items=promo_detail_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.promo off_note=comp_off_note title=_("Offer page (whole site)") %}
-            {% include "tenant/_scope_pill.html" with setting="promo_detail_style" %}
+            {% include "tenant/_stu19_summary.html" with s=stu19.promo_detail_style %}
           </div>
           {% comment %}STU-18d (решение владельца Р-2 «все девять сразу»): композиция
              девяти листингов. Строки собираются ЦИКЛОМ из реестра — девять почти
@@ -841,8 +837,7 @@
             {% comment %}DL-21.1: шаблон КОРНЕВОЙ страницы каталога — свой ключ, дефолт
             категорий сюда не наследуется. Без «Preisliste»: прайс-вид даёт селект выше.{% endcomment %}
             <div class="stu-page-row w-full" data-stu-setting="catalog_page_style" data-stu-axis="composition" data-stu-page="catalog">
-              {% include "tenant/_cardform_picker.html" with name="catalog_page_style" value=catalog_page_style items=catalog_root_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.catalog off_note=comp_off_note title=_("Seitenvorlage") %}
-              <a href="{% url 'page-templates-sortiment' %}?typ=catalog" class="mt-1 inline-block text-xs text-indigo-700 hover:underline" data-stu19-link>{% trans "Im Kabinett ändern" %} →</a>
+              {% include "tenant/_stu19_summary.html" with s=stu19.catalog_page_style %}
             </div>
           </div>
           {% endif %}
@@ -2726,18 +2721,13 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var el = form.querySelector("select[name='" + k + "']");
       if (el) payload[k] = el.value;
     });
-    // DL-21.1: шаблон корневой страницы каталога ("" законно — снимает ключ)
-    var cpsInp = form.querySelector("[name='catalog_page_style']");
-    if (cpsInp) payload.catalog_page_style = cpsInp.value;
+    // STU-19e-2: page templates of catalog/category/offers are set in the cabinet only.
     var csChk = form.querySelector("input[name='cart_show_upsell']");
     if (csChk) payload.cart_show_upsell = csChk.checked;  // живо вкл/выкл кросс-селл корзины
     // DL-17.3: страница акций — раскладка групп и режим группировки ("" законно:
     // снимает ключ, поэтому шлём значение как есть, а не «только непустое»).
     var pgSel = form.querySelector("select[name='promo_grouping']");
     if (pgSel) payload.promo_grouping = pgSel.value;
-    // DL-21.2: шаблон обзорной страницы акций ("" законно — снимает ключ)
-    var ppInp = form.querySelector("[name='promo_page_style']");
-    if (ppInp) payload.promo_page_style = ppInp.value;
     // STU-19e-1: listing templates (`page_styles`) are set in the cabinet only.
     var evSel = form.querySelector("select[name='events_preset']");
     if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
@@ -2758,11 +2748,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // Гейт перевязан со снесённых sd_card_radius/sd_card_shadow на страничные
     // контролы: иначе с уходом темы черновик потерял бы и card_style/promo_card/… .
     if (sdStyle || sdPromoCard) {
-      // DL-20: шаблон страницы категории на весь сайт (плитки + hidden).
-      var sdCatPage = form.querySelector("[name='sd_category_page_style']");
-      var sdGrpPage = form.querySelector("[name='sd_promo_group_style']");
-      // STU-15a: шаблон страницы одной акции.
-      var sdPromoDetail = form.querySelector("[name='sd_promo_detail_style']");
       // STU-8: ширина текстовой колонки — в черновик, иначе выбор был бы виден
       // только после Save (грабля DL-17.3: контрол есть, в payload его нет).
       var sdTextW = form.querySelector("select[name='sd_text_width']");
@@ -2777,9 +2762,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       };
       payload.site_defaults = {
         card_style: sdVal(sdStyle),
-        category_page_style: sdVal(sdCatPage),
-        promo_group_style: sdVal(sdGrpPage),
-        promo_detail_style: sdVal(sdPromoDetail),
         promo_card: sdVal(sdPromoCard),
         text_width: sdTextW ? sdTextW.value : "",
       };

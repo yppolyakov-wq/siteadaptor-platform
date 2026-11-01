@@ -60,8 +60,7 @@ STUDIO_FIELDS = (
     "hero_style",
     "sd_card_style",
     "sd_promo_card",
-    "sd_category_page_style",
-    "sd_promo_group_style",
+    # STU-19e-2: the two page templates moved on to the cabinet (Seitenvorlage)
     "sd_text_width",
     "storefront_root",
 )

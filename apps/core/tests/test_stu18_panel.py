@@ -164,16 +164,21 @@ def test_shelves_are_not_offered_without_sub_entities(settings):
     Плитки остаются ВИДНЫ, но помечены недоступными с причиной: молча убрать их
     значило бы оставить владельца гадать, почему выбор исчез.
     """
-    from apps.core.tests.test_studio_pages import _builder_html
+    # STU-19e-2: the catalog template tiles moved to the cabinet tab — same rule there.
+    from apps.core import page_templates
+    from apps.core.tests.test_page_templates import _req
     from apps.tenants.tests.factories import TenantFactory
 
     settings.ROOT_URLCONF = "config.urls_tenant"
-    markup = _builder_html(TenantFactory(business_type="restaurant"))
+    tenant = TenantFactory(business_type="restaurant")
+    markup = page_templates.page_templates_sortiment(
+        _req(tenant, data={"typ": "catalog"})
+    ).content.decode()
 
     for key in ("regale", "tabs", "sets"):
-        tiles = re.findall(r'<button[^>]*data-cf-key="' + key + r'"[^>]*>', markup)
+        tiles = re.findall(r'<input[^>]*name="value" value="' + key + r'"[^>]*>', markup)
         assert tiles, f"плитка {key} вообще не отрендерена"
-        assert all("data-cf-off" in t for t in tiles), (
+        assert all("disabled" in t for t in tiles), (
             f"плитка {key} предлагается как доступная, хотя под-сущностей нет"
         )
 

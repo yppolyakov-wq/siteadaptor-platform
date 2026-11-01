@@ -657,8 +657,17 @@ def raw_config(request) -> dict:
 #: must not change them (plan §3, locks a/b). Filled per axis in STU-19e/19f together
 #: with removing the Studio control; empty in 19a = the mechanism without effect.
 #: 19e-1: listing templates and detail layouts (no "Nur hier" in the Studio).
+#: 19e-2: catalog / category / offer page templates (object level → object forms).
 CABINET_OWNED: frozenset[str] = frozenset(
-    {f"{surface}_page_style" for surface in compositions.LISTING_SURFACES} | _DETAIL_LAYOUTS
+    {f"{surface}_page_style" for surface in compositions.LISTING_SURFACES}
+    | _DETAIL_LAYOUTS
+    | {
+        "catalog_page_style",
+        "category_page_style",
+        "promo_page_style",
+        "promo_group_style",
+        "promo_detail_style",
+    }
 )
 
 

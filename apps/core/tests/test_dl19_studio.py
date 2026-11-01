@@ -62,9 +62,10 @@ def test_studio_shows_a_tile_with_a_preview_for_every_form():
     # STU-18d: девять листингов получили ту же плитку-выборку композиции, и число
     # перестало быть константой — оно ВЫВОДИТСЯ из реестра. Так замок продолжает
     # ловить пропавшую плитку, но не краснеет на каждой новой поверхности.
-    # STU-19e-1 (deliberate): the nine listing pickers moved to the cabinet — the
-    # Studio row shows a summary + link instead (see test_stu19e_ownership).
-    assert body.count("data-cardform-picker>") == 7
+    # STU-19e-1/2 (deliberate): every PAGE-template picker moved to the cabinet — the
+    # Studio keeps the two card-form pickers; template rows are summaries + links
+    # (test_stu19e_ownership).
+    assert body.count("data-cardform-picker>") == 2
     assert 'name="sd_card_style"' in body and 'name="sd_promo_card"' in body
     for key in card_forms.keys_for("product") | card_forms.keys_for("promo"):
         assert f'data-cf-key="{key}"' in body, key
@@ -81,13 +82,10 @@ def test_card_form_picker_is_not_hidden_behind_expert_mode():
     body = _body(tenant)
     # DL-20/21: шаблоны страниц (категория/группа/корень каталога/обзор акций) —
     # та же первичная настройка вида, тот же инвариант.
+    # STU-19e-2: the page-template pickers left the Studio (cabinet-owned)
     for name in (
         'name="sd_card_style"',
         'name="sd_promo_card"',
-        'name="sd_category_page_style"',
-        'name="sd_promo_group_style"',
-        'name="catalog_page_style"',
-        'name="promo_page_style"',
     ):
         idx = body.index(name)
         expert_open = body.rfind('data-expert="1"', 0, idx)

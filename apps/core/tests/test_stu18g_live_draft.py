@@ -52,14 +52,14 @@ def _draft(tenant, payload):
     return req.session["site_preview_draft"]
 
 
-def test_draft_carries_the_promotions_page_template():
-    tenant = TenantFactory(schema_name="public", slug="stu18g1")
-    draft = _draft(tenant, {"promo_page_style": "kompakt"})
-    assert draft.get("promo_page_style") == "kompakt"
-    # "" законно снимает ключ (плитка «Standard»)
-    assert "promo_page_style" not in _draft(tenant, {"promo_page_style": ""})
-    # чужой код не проходит — черновик не должен показывать невозможное
-    assert "promo_page_style" not in _draft(tenant, {"promo_page_style": "erfunden"})
+def test_draft_keeps_the_cabinet_promotions_page_template():
+    """STU-19e-2 (deliberate rewrite): the offers page template is cabinet-owned — a
+    Studio draft cannot set or unset it; the stored value stays."""
+    tenant = TenantFactory(
+        schema_name="public", slug="stu18g1", site_config={"promo_page_style": "magazin"}
+    )
+    assert _draft(tenant, {"promo_page_style": "kompakt"}).get("promo_page_style") == "magazin"
+    assert _draft(tenant, {"promo_page_style": ""}).get("promo_page_style") == "magazin"
 
 
 def test_draft_keeps_the_cabinet_listing_compositions():
@@ -139,6 +139,6 @@ def test_every_template_picker_in_the_panel_reaches_the_draft():
         )
         checked.append(code)
 
-    # замок не имеет права молча опустеть при переименовании разметки
-    assert {"catalog_page_style", "promo_page_style"} <= set(checked), checked
-    assert len(checked) >= 5, f"проверено слишком мало строк: {checked}"
+    # замок не имеет права молча опустеть при переименовании разметки. STU-19e-2: page
+    # templates left the Studio (cabinet-owned); the card-form pickers remain.
+    assert {"product_card_form", "promo_card_form"} <= set(checked), checked

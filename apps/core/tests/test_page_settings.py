@@ -237,7 +237,7 @@ def test_protect_owned_removes_key_absent_in_store(tenant):
     assert "catalog_page_style" not in out
 
 
-def test_cabinet_owned_is_exactly_the_19e1_axis():
+def test_cabinet_owned_is_exactly_the_moved_axes():
     """19e-1: listing templates + detail layouts. The set grows axis by axis (19e-2,
     19e-3, 19f), always in the same commit that removes the Studio control."""
     from apps.core import compositions
@@ -249,6 +249,12 @@ def test_cabinet_owned_is_exactly_the_19e1_axis():
             "service_detail_layout",
             "stay_detail_layout",
             "event_detail_layout",
+            # 19e-2
+            "catalog_page_style",
+            "category_page_style",
+            "promo_page_style",
+            "promo_group_style",
+            "promo_detail_style",
         }
     )
 

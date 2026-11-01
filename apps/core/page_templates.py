@@ -110,7 +110,7 @@ def _object_path(type_code: str) -> str:
     if type_code in ("promo", "promo_group"):
         from apps.promotions.models import Promotion
 
-        qs = Promotion.objects.filter(status=Promotion.STATUS_ACTIVE)
+        qs = Promotion.objects.filter(status="active")
         if type_code == "promo_group":
             promo = _first(qs.exclude(group="").order_by("group"))
             if promo is None:

@@ -50,53 +50,79 @@ def _save(tenant, data):
     return siteconfig.normalize(tenant.site_config)
 
 
-def test_studio_shows_a_tile_with_a_preview_for_every_page_template():
+# STU-19e-2 (deliberate rewrite): the site-wide category / offer-group templates are
+# chosen on the cabinet screen "Seitenvorlage" (one writer: page_settings). The Studio
+# row became a summary + link, and a Studio Save / draft can no longer change them.
+
+
+def _cabinet(tenant, view, typ):
+    from apps.core import page_templates
+
+    resp = getattr(page_templates, view)(
+        _request("get", f"/dashboard/seitenvorlagen/?typ={typ}", {"typ": typ}, tenant)
+    )
+    assert resp.status_code == 200
+    return resp.content.decode()
+
+
+def _tiles(body, code):
+    i = body.index(f'data-pt-setting="{code}"')
+    return body[i : body.index("</form>", i)]
+
+
+def test_cabinet_shows_a_tile_for_every_category_template():
     tenant = TenantFactory(schema_name="public", slug="dl20s", name="DL20S")
-    body = _body(tenant)
-    assert 'name="sd_category_page_style"' in body
+    form = _tiles(_cabinet(tenant, "page_templates_sortiment", "category"), "category_page_style")
     for code, _label, _hint in category_styles.CATEGORY_PAGE_STYLES:
-        assert f'data-cf-key="{code}"' in body, code
+        assert f'name="value" value="{code}"' in form, code
 
 
-def test_page_template_picker_is_not_hidden_behind_expert_mode():
-    """Прецедент W11-5/DL-19: настройка в expert-блоке в Простом режиме не видна."""
+def test_studio_row_is_a_summary_not_a_picker():
     tenant = TenantFactory(schema_name="public", slug="dl20e", name="DL20E")
     body = _body(tenant)
-    idx = body.index('name="sd_category_page_style"')
-    expert_open = body.rfind('data-expert="1"', 0, idx)
-    assert expert_open != -1
-    assert "</div>" in body[expert_open:idx], "плитки шаблона страницы попали в expert-блок"
+    assert 'name="sd_category_page_style"' not in body
+    assert 'name="sd_promo_group_style"' not in body
+    assert "/dashboard/seitenvorlagen/sortiment/?typ=category" in body
 
 
-def test_studio_saves_the_site_wide_page_template():
+def test_cabinet_saves_the_site_wide_page_template():
+    from apps.core import page_settings
+
     tenant = TenantFactory(schema_name="public", slug="dl20v", name="DL20V")
-    cfg = _save(tenant, {"home_form": "1", "sd_category_page_style": "magazin"})
-    assert cfg["site_defaults"]["category_page_style"] == "magazin"
+    page_settings.write(tenant, "category_page_style", "magazin")
+    assert siteconfig.normalize(tenant.site_config)["site_defaults"]["category_page_style"] == (
+        "magazin"
+    )
     # снятие выбора убирает ключ (presence-minimal → golden целы)
-    cfg = _save(tenant, {"home_form": "1", "sd_category_page_style": ""})
-    assert "category_page_style" not in cfg["site_defaults"]
+    page_settings.write(tenant, "category_page_style", "")
+    assert "category_page_style" not in siteconfig.normalize(tenant.site_config)["site_defaults"]
 
 
-def test_draft_channel_carries_the_page_template():
-    """Живой черновик: без этого правка видна только после Save (класс DL-17.3)."""
+def test_studio_save_and_draft_cannot_change_it():
+    from apps.core import page_settings
+
     tenant = TenantFactory(schema_name="public", slug="dl20d", name="DL20D")
-    body = _body(tenant)
-    assert "sd_category_page_style" in body
-    assert "category_page_style: sdVal(sdCatPage)" in body  # STU-9: сайтовое значение
+    page_settings.write(tenant, "category_page_style", "magazin")
+    cfg = _save(tenant, {"home_form": "1", "sd_category_page_style": "kompakt"})
+    assert cfg["site_defaults"]["category_page_style"] == "magazin"
+    assert "sdCatPage" not in _body(tenant)
 
 
-def test_studio_shows_the_group_page_default_too():
-    tenant = TenantFactory(schema_name="public", slug="dl20g2", name="DL20G2")
-    body = _body(tenant)
-    assert 'name="sd_promo_group_style"' in body
+def test_cabinet_shows_and_saves_the_group_page_default():
+    from apps.core import page_settings
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="dl20g2",
+        name="DL20G2",
+        enabled_modules=["catalog", "promotions"],
+    )
+    form = _tiles(_cabinet(tenant, "page_templates_aktionen", "promo_group"), "promo_group_style")
     for code, _label, _hint in group_styles.GROUP_PAGE_STYLES:
-        assert f'data-cf-key="{code}"' in body, code
-
-
-def test_studio_saves_and_drafts_the_group_page_default():
-    tenant = TenantFactory(schema_name="public", slug="dl20g3", name="DL20G3")
-    cfg = _save(tenant, {"home_form": "1", "sd_promo_group_style": "prospekt"})
-    assert cfg["site_defaults"]["promo_group_style"] == "prospekt"
+        assert f'name="value" value="{code}"' in form, code
+    page_settings.write(tenant, "promo_group_style", "prospekt")
+    assert siteconfig.normalize(tenant.site_config)["site_defaults"]["promo_group_style"] == (
+        "prospekt"
+    )
     cfg = _save(tenant, {"home_form": "1", "sd_promo_group_style": ""})
-    assert "promo_group_style" not in cfg["site_defaults"]
-    assert "promo_group_style: sdVal(sdGrpPage)" in _body(tenant)  # STU-9: сайтовое значение
+    assert cfg["site_defaults"]["promo_group_style"] == "prospekt"  # Studio cannot unset it
