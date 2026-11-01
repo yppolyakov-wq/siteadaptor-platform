@@ -256,16 +256,26 @@ def _render(request, section: str):
             )
             value = request.POST.get("value", "")
             page_settings.write(tenant, code, value, output=output)
+            skipped = []
             if request.POST.get("apply_all") and code in page_settings.APPLY_ALL_LAYOUTS:
                 # SE-2d-4: the same grid for the other listing pages of this shop; a list
-                # that does not offer this preset (catalog-only price views) is skipped
+                # that does not offer this preset (catalog-only price views) is skipped —
+                # and named, so the owner knows what did not change
                 for other in page_settings.APPLY_ALL_LAYOUTS:
                     if other == code or other not in own:
                         continue
                     try:
                         page_settings.write(tenant, other, value, output=output)
                     except page_settings.PageSettingError:
-                        continue
+                        skipped.append(
+                            str(studio_pages.page_type(page_settings.APPLY_ALL_TYPES[other]).label)
+                        )
+            if skipped:
+                messages.warning(
+                    request,
+                    _("Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s")
+                    % {"lists": ", ".join(skipped)},
+                )
         except page_settings.PageSettingError:
             messages.error(request, _("Diese Einstellung kann hier nicht gespeichert werden."))
         else:

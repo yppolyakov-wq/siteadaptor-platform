@@ -31633,3 +31633,6 @@ msgstr "Як сайт показує сторінку акцій, групу а�
 
 msgid "Ihre Website zeigt in diesem Bereich noch keine Seiten."
 msgstr "У цьому розділі на сайті поки немає сторінок."
+
+msgid "Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s"
+msgstr "Не застосовано (такого вигляду там немає): %(lists)s"

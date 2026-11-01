@@ -31460,3 +31460,6 @@ msgstr "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einz
 
 msgid "Ihre Website zeigt in diesem Bereich noch keine Seiten."
 msgstr "Ihre Website zeigt in diesem Bereich noch keine Seiten."
+
+msgid "Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s"
+msgstr "Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s"

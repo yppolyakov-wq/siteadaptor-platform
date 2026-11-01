@@ -20792,3 +20792,11 @@ Pro Seite · Letzte Reihe · Tempo; «Pro Seite» только у каталог
 JS удалены. Осознанно переписаны ~40 замков (Studio Save/черновик/разметка → кабинет), по файлам:
 lay3b_ui, home_builder, live_preview, pages_view, lay1_panel, dl17_studio, stu16/18_panel, lay3a2,
 lay7_group_axis, stu18f_pagination, price_list, studio_pages, dl13_primitives.
+
+**Ревью 19f (django-reviewer) — три дефекта закрыты:** (1) смена пресета не меняла колонки —
+`normalize_layout` хранит `cols/mobile/tablet/gap` и читает их ДО пресета, кабинет как единственный
+писатель их не сбрасывал (раньше маскировала полная перезапись из Студии) → сброс при смене пресета;
+(2) «Ausgabe» при «Standard» молча не действовал (ключ снимается) → блок скрыт, пока выбран Standard;
+(3) «на все списки» без отчёта о пропусках → предупреждение со списком страниц, где такого вида нет.
+Стенд Playwright 12/12 нашёл ещё один: класс `block` перебивал атрибут `hidden` («Tempo» было видно у
+сетки) — снят у скрываемых строк.

@@ -31511,3 +31511,6 @@ msgstr "Web sitenizin kampanya sayfasını, bir kampanya grubunu ve tek bir kamp
 
 msgid "Ihre Website zeigt in diesem Bereich noch keine Seiten."
 msgstr "Web siteniz bu alanda henüz sayfa göstermiyor."
+
+msgid "Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s"
+msgstr "Uygulanmadı (bu görünüm orada yok): %(lists)s"

@@ -31649,3 +31649,6 @@ msgstr "Как сайт показывает страницу акций, гру
 
 msgid "Ihre Website zeigt in diesem Bereich noch keine Seiten."
 msgstr "В этом разделе на сайте пока нет страниц."
+
+msgid "Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s"
+msgstr "Не применено (такого вида там нет): %(lists)s"

@@ -201,3 +201,47 @@ def test_apply_all_copies_the_grid_to_the_other_lists():
     for key in ("catalog_layout", "events_index_layout", "stay_index_layout"):
         assert t.site_config[key]["preset"] == "cols4", key
         assert t.site_config[key].get("scroll") is True, key
+
+
+# ───────────── review 19f ─────────────
+
+
+def test_changing_the_preset_really_changes_the_columns(tenant):
+    """normalize stores cols/mobile/tablet/gap and reads them BEFORE the preset — kept,
+    they made "4 per row" after "3 per row" a no-op."""
+    page_settings.write(tenant, "catalog_layout", "cols3")
+    page_settings.write(tenant, "catalog_layout", "cols4")
+    tenant.refresh_from_db()
+    from apps.tenants import siteconfig
+
+    assert siteconfig.normalize(tenant.site_config)["catalog_layout"]["cols"] == 4
+
+
+def test_output_block_is_hidden_while_standard(tenant):
+    t = TenantFactory(business_type="bakery", enabled_modules=["catalog", "booking"])
+    body = page_templates.page_templates_sortiment(_req(t, data={"typ": "services"}))
+    form = body.content.decode().split('data-pt-setting="service_layout"', 1)[1]
+    form = form.split("</form>", 1)[0]
+    i = form.index("<fieldset", form.index("data-pt-output") - 120)
+    opening = form[i : form.index(">", i)]
+    assert "data-pt-output" in opening and " hidden" in opening, opening
+
+
+def test_apply_all_names_the_lists_it_skipped():
+    from django.contrib.messages import get_messages
+
+    t = TenantFactory(business_type="bakery", enabled_modules=["catalog", "events"])
+    req = _req(
+        t,
+        "post",
+        {
+            "setting": "catalog_layout",
+            "typ": "catalog",
+            "value": "preisliste",
+            "out_mode": "grid",
+            "apply_all": "1",
+        },
+    )
+    page_templates.page_templates_sortiment(req)
+    texts = [str(m) for m in get_messages(req)]
+    assert any("Nicht übernommen" in m for m in texts), texts

@@ -183,6 +183,13 @@ PAGINATED_LAYOUTS = frozenset({"catalog_layout", "promo_index_layout"})
 
 #: Listing grids "apply to the other lists" copies between (SE-2d-4 → cabinet, 19f-2).
 APPLY_ALL_LAYOUTS = ("catalog_layout", "events_layout", "stay_layout", "service_layout")
+#: …and the page type that names each of them in messages ("Raster" alone says nothing)
+APPLY_ALL_TYPES = {
+    "catalog_layout": "catalog",
+    "events_layout": "events",
+    "stay_layout": "stays",
+    "service_layout": "services",
+}
 
 #: Output-axis fields of a layout (LAY-3b) — the part of a grid besides the preset.
 OUTPUT_KEYS = ("scroll", "rows", "page_size", "speed", "tail")
@@ -567,6 +574,12 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
             out.pop(key, None)  # "Standard": the page draws its old classes again
             return out
         layout = dict(out.get(key) or {})
+        if layout.get("preset") != value:
+            # normalize stores the preset's grid numbers (cols/mobile/tablet/gap) and
+            # reads them BEFORE the preset — kept, they would override the new preset
+            # (review 19f: "4 per row" after "3 per row" changed nothing)
+            for derived in ("cols", "mobile", "tablet", "gap"):
+                layout.pop(derived, None)
         layout["preset"] = value
         if output is not None:
             for field_ in OUTPUT_KEYS:
