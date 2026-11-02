@@ -38,7 +38,10 @@ def test_post_purchase_sent_once_with_review_links():
     assert n.recipient == "kim@test.de"
     assert "Wie war Ihr Einkauf?" in n.subject
     assert "https://shop.test/sortiment/" in n.payload["body"]  # ссылка «оценить»
-    assert "#bewertungen" in n.payload["body"]
+    # SEC-E-M5: ссылка — на форму отзыва с подписанным токеном (право на «проверенный»
+    # отзыв); GET по ней ведёт на деталь#bewertungen. E-mail в ссылке не читается.
+    assert "/bewerten/?t=" in n.payload["body"]
+    assert "kim@test.de" not in n.payload["body"].split("Keine E-Mails")[0]
     # дедуп: второй прогон ничего не шлёт
     assert tasks.send_due_post_purchases() == 0
     order.refresh_from_db()
