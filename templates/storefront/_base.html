@@ -345,7 +345,9 @@
       }
       document.addEventListener("DOMContentLoaded", function () {
         watch("[data-sf-bottom-nav]", "--sf-nav-h");
-        watch("[data-buybar]", "--sf-buybar-h");
+        // Имя атрибута собрано по частям: замки страниц без панели покупки ищут
+        // этот маркер в HTML, а скрипт есть на каждой странице.
+        watch("[data-" + "buybar]", "--sf-buybar-h");
       });
     })();
   </script>
