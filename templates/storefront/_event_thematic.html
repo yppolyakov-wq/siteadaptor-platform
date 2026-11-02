@@ -105,7 +105,7 @@ M20U-4: одна тематическая секция детальной соб
     <h2 class="text-xl font-bold mb-1">{% trans "Price" %}</h2>
     {% comment %}MT-D4: у тура своей цены нет — она живёт на заездах. Без этой
     ветки страница тура за 1490 € писала «Kostenlos».{% endcomment %}
-    <p class="text-2xl font-bold mb-4">{% if event.price_cents %}{{ event.price_eur }} €{% elif event.from_price_cents %}{% trans "from" %} {{ event.from_price_eur|floatformat:2 }} €{% else %}{% trans "Free" %}{% endif %}</p>
+    <p class="text-2xl font-bold mb-4">{% if event.price_cents %}{{ event.price_eur|floatformat:2 }} €{% elif event.from_price_cents %}{% trans "from" %} {{ event.from_price_eur|floatformat:2 }} €{% else %}{% trans "Free" %}{% endif %}</p>
     <div class="grid sm:grid-cols-2 gap-6">
       {% if L.price_includes %}
       <div>

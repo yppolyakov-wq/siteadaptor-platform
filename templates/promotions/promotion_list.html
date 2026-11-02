@@ -62,9 +62,9 @@
   {% comment %}DL-13 C3: как гл. страница /aktionen/ группирует акции — тематические
   группы владельца (как было) или Prospekt «по времени» (Endet heute/diese Woche…).
   Targeted-write ключа promo_grouping; сборка Retro ставит «по времени» сама.{% endcomment %}
-  <form method="post" action="{% url 'promotions:promotion-page-mode' %}" class="flex items-center gap-2 text-sm" data-promo-page-mode>{% csrf_token %}
+  <form method="post" action="{% url 'promotions:promotion-page-mode' %}" class="flex flex-wrap items-center gap-2 text-sm" data-promo-page-mode>{% csrf_token %}
     <label for="promo-page-mode" class="text-gray-500">{% trans "Aktionsseite gliedern:" %}</label>
-    <select id="promo-page-mode" name="mode" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <select id="promo-page-mode" name="mode" onchange="this.form.submit()" class="w-full sm:w-auto rounded-lg border border-gray-300 px-3 py-2 text-sm">
       <option value="" {% if not promo_grouping %}selected{% endif %}>{% trans "nach Gruppen (Wochenangebote, Räumung …)" %}</option>
       <option value="time" {% if promo_grouping == "time" %}selected{% endif %}>{% trans "nach Zeit (Endet heute, diese Woche …)" %}</option>
     </select>
@@ -156,7 +156,7 @@
             {% if p.status != 'active' %}<span class="ml-1 text-[11px] text-amber-700">{% trans "nicht sichtbar" %}</span>{% endif %}
           </td>
           <td>{% if p.available_quantity is None %}∞{% else %}{{ p.available_quantity }}{% endif %}</td>
-          <td class="ui-muted">{{ p.starts_at|default:"—" }} → {{ p.ends_at|default:"—" }}</td>
+          <td class="ui-muted whitespace-nowrap">{% if p.starts_at %}{{ p.starts_at|date:"d.m.y H:i" }}{% else %}—{% endif %} → {% if p.ends_at %}{{ p.ends_at|date:"d.m.y H:i" }}{% else %}—{% endif %}</td>
           <td class="text-right whitespace-nowrap" data-cell="actions">
             {# ST-6b: «Teilen» — экран «во все каналы» (публикации/email/★) #}
             {% if p.status == 'active' %}

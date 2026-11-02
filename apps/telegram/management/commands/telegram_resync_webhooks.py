@@ -24,7 +24,8 @@ class Command(BaseCommand):
         # Один бот у двух хозяев: вебхук у Telegram один — ставим его первому и
         # показываем дубль, а не перетягиваем адрес туда-сюда (ops 2026-11-02).
         seen: dict[str, str] = {}
-        for tenant in get_tenant_model().objects.exclude(schema_name="public"):
+        # Стабильный порядок: при дубле вебхук всегда получает один и тот же (старший) бизнес.
+        for tenant in get_tenant_model().objects.exclude(schema_name="public").order_by("pk"):
             with schema_context(tenant.schema_name):
                 try:
                     bot = TelegramBot.objects.filter(is_active=True).exclude(token="").first()

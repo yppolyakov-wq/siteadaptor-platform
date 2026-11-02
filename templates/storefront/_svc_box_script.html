@@ -4,6 +4,7 @@
 фрагмент, innerHTML-своп без перезагрузки; выбранное время докручивает к форме.
 Фолбэк при любой ошибке — обычная навигация. Общий для service_slots (услуги)
 и booking_slots (ресурсы: столики/курсы).{% endcomment %}
+<div id="svc-box-live" class="sr-only" role="status" aria-live="polite"></div>
 <script>
 (function () {
   if (window.__svcBoxBound) return;
@@ -18,13 +19,31 @@
       .then(function (html) {
         var box = document.getElementById("svc-box");
         if (!box) throw 0;
+        var href = a.getAttribute("href");
         box.innerHTML = html;
         history.replaceState(null, "", url);
+        // SP-1 a11y (WCAG 2.4.3/4.1.3): нажатая ссылка исчезла вместе со старым
+        // фрагментом — фокус возвращаем на её двойника, а выбранный день озвучиваем.
+        var twin = null;
+        box.querySelectorAll('a[href^="?"]').forEach(function (el) {
+          if (!twin && el.getAttribute("href") === href) twin = el;
+        });
+        if (twin) {
+          twin.focus({ preventScroll: true });
+        } else {
+          // Листание месяца меняет адрес ссылки — двойника нет; фокус остаётся в блоке.
+          box.setAttribute("tabindex", "-1");
+          box.focus({ preventScroll: true });
+        }
+        var live = document.getElementById("svc-box-live");
+        var day = box.querySelector("[data-day-label]");
+        if (live && day) live.textContent = day.textContent;
+        var smooth = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
         if (url.indexOf("slot=") !== -1) {
           // Ревью 2026-07-31: форма переехала в скрытый диалог — докрутка к ней
           // стала no-op. Ведём глаз к кнопке, которая этот диалог открывает.
           var f = box.querySelector("[data-modal-open]") || box.querySelector('form[method="post"]');
-          if (f) f.scrollIntoView({ behavior: "smooth", block: "center" });
+          if (f) f.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "center" });
         }
       })
       .catch(function () { location.href = url; });

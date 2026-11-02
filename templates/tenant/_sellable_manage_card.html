@@ -20,7 +20,7 @@
       </span>
     </p>
   </div>
-  <div class="px-3 pb-3 flex items-center justify-between gap-2">
+  <div class="px-3 pb-3 flex flex-wrap items-center justify-between gap-1.5 [&_button]:whitespace-nowrap">
     {% if it.can_toggle %}
       <form method="post" action="{% url 'sellable-visibility' it.kind it.pk %}">
         {% csrf_token %}

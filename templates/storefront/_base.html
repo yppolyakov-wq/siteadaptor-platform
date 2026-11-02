@@ -330,6 +330,25 @@
   </footer>
 
   {% include "storefront/_action_bar.html" %}
+  {% comment %}SP-1 (ревью): реальные высоты нижних слоёв — подпись кнопки покупки может
+  переноситься, шрифт увеличен, safe-area у iPhone. Без ResizeObserver работают
+  фолбэк-значения из app.css.{% endcomment %}
+  <script>
+    (function () {
+      if (!window.ResizeObserver) return;
+      function watch(sel, name) {
+        var el = document.querySelector(sel);
+        if (!el) return;
+        new ResizeObserver(function () {
+          document.documentElement.style.setProperty(name, el.offsetHeight + "px");
+        }).observe(el);
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        watch("[data-sf-bottom-nav]", "--sf-nav-h");
+        watch("[data-buybar]", "--sf-buybar-h");
+      });
+    })();
+  </script>
 
   {# T2c: контейнер модалки быстрого заказа (наполняется vanilla-fetch'ем). #}
   <div id="quick-modal"></div>
@@ -632,7 +651,7 @@
   {# DL-6: FAB — в акценте тенанта (жёсткий indigo игнорировал Look любого цвета). #}
   <a href="{% url 'storefront-message' %}" data-chat-fab aria-label="{% trans 'Ask us a question' %}"
      class="fixed right-4 bottom-20 sm:bottom-5 z-30 flex items-center gap-2 text-white rounded-full shadow-lg px-4 py-3 hover:opacity-90" style="background: var(--accent);">
-    <span class="text-lg leading-none" aria-hidden="true">💬</span><span class="hidden sm:inline text-sm font-medium">{% trans "Ask us" %}</span>
+    <span class="text-lg leading-none" aria-hidden="true">💬</span><span class="hidden sm:inline lg:sr-only text-sm font-medium">{% trans "Ask us" %}</span>
   </a>
   {% endif %}
   {# Переключатель вида сетки «список ↔ плитка» — общий обработчик для всех страниц. #}

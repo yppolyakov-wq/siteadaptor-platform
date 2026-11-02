@@ -1669,13 +1669,21 @@ input[type="datetime-local"] {
    < sm) — кнопка «Kaufen/Zurücklegen» пряталась за меню; плавающие кнопки чата/
    видеозвонка/«Design testen» ложились на панель, а у конца страницы — на ссылки
    права в подвале. Высоты слоёв — переменные; без панели и меню всё как раньше. */
+/* Переменные — на :root (их читает и scroll-padding у html). Значения ниже —
+   фолбэк; скрипт _base.html меряет реальные высоты (перенос подписи кнопки, крупный
+   шрифт, safe-area) и ставит их инлайном на <html>. */
 @media (max-width: 1023.98px) {
-  body:has([data-buybar]) { --sf-buybar-h: 70px; }
+  :root:has([data-buybar]) { --sf-buybar-h: 70px; }
 }
 @media (max-width: 639.98px) {
-  body:has([data-sf-bottom-nav]) { --sf-nav-h: calc(47px + max(2px, env(safe-area-inset-bottom))); }
-  body:has([data-chat-fab]), body:has([data-demo-design]) { --sf-fab-room: 4.5rem; }
-  body:has([data-sf-presence]) { --sf-fab-room: 8.5rem; }
+  :root:has([data-sf-bottom-nav]) { --sf-nav-h: calc(47px + max(2px, env(safe-area-inset-bottom))); }
+  :root:has([data-chat-fab]), :root:has([data-demo-design]) { --sf-fab-room: 4.5rem; }
+  :root:has([data-sf-presence]) { --sf-fab-room: 8.5rem; }
+}
+/* WCAG 2.4.11: элемент в фокусе не прячется под нижними слоями (Tab докручивает
+   с запасом). Без :has — прежнее поведение. */
+:root:has([data-buybar]), :root:has([data-sf-bottom-nav]) {
+  scroll-padding-bottom: calc(var(--sf-nav-h, 0px) + var(--sf-buybar-h, 0px) + 8px);
 }
 [data-buybar] { bottom: var(--sf-nav-h, 0px); }
 @media (max-width: 1023.98px) {

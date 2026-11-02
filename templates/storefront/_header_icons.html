@@ -55,7 +55,7 @@
 {% endif %}
 {# Бургер: на мобильном всегда, на десктопе — только в стиле minimal. #}
 <button id="sf-nav-toggle" type="button" aria-label="{% trans 'Menu' %}" aria-expanded="false"
-        class="text-2xl leading-none text-gray-700 {% if style != 'minimal' %}sm:hidden{% endif %}">☰</button>
+        class="text-2xl leading-none text-gray-700 inline-flex items-center justify-center min-w-[44px] min-h-[44px] -m-2.5 {% if style != 'minimal' %}sm:hidden{% endif %}">☰</button>
 {% if storefront_nav_cta %}
 {% comment %}DS-3b (Fokus): primary-CTA в шапке — главное действие достижимо с
 любой страницы. Только desktop: на телефоне его несёт акцент-пункт таб-бара.{% endcomment %}

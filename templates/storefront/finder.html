@@ -12,7 +12,7 @@
     <div class="flex flex-wrap gap-3">
       {% for chip in question.chips %}
         <a href="?a={% if answers_carry %}{{ answers_carry|urlencode }},{% endif %}{{ question.key }}.{{ chip.key }}"
-           class="inline-block rounded-full border-2 border-gray-200 bg-white px-5 py-3 text-sm font-semibold hover:border-[var(--sf-accent,#4f46e5)] transition">{{ chip.label }}</a>
+           class="inline-block rounded-full border-2 border-gray-200 bg-white px-5 py-3 text-sm font-semibold hover:border-[var(--accent,#4f46e5)] transition">{{ chip.label }}</a>
       {% endfor %}
     </div>
     {% if answers_carry %}
@@ -28,8 +28,8 @@
     {% if results %}
       <div class="grid sm:grid-cols-3 gap-4 items-start">
         {% for r in results %}
-          <div class="relative {% if r.pick %}sm:-mt-2 rounded-2xl ring-2 ring-[var(--sf-accent,#4f46e5)]{% endif %}">
-            {% if r.pick %}<span class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 whitespace-nowrap rounded-full bg-[var(--sf-accent,#4f46e5)] px-3 py-0.5 text-xs font-bold text-white">{% trans "Unser Vorschlag" %}</span>{% endif %}
+          <div class="relative {% if r.pick %}sm:-mt-2 rounded-2xl ring-2 ring-[var(--accent,#4f46e5)]{% endif %}">
+            {% if r.pick %}<span class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 whitespace-nowrap rounded-full bg-[var(--accent,#4f46e5)] px-3 py-0.5 text-xs font-bold text-white">{% trans "Unser Vorschlag" %}</span>{% endif %}
             {% sellable_card r.kind r.obj cta="purchase" edit=False %}
           </div>
         {% endfor %}
@@ -38,7 +38,7 @@
       <p class="text-gray-600">{% trans "Noch keine Angebote online — schreib uns, wir helfen persönlich weiter." %}</p>
     {% endif %}
     <div class="mt-8 flex flex-wrap items-center gap-4 text-sm">
-      <a href="{% url 'storefront-finder' %}" class="font-medium text-[var(--sf-accent,#4f46e5)] hover:underline">↺ {% trans "Noch mal suchen" %}</a>
+      <a href="{% url 'storefront-finder' %}" class="font-medium text-[var(--accent,#4f46e5)] hover:underline">↺ {% trans "Noch mal suchen" %}</a>
       <a href="/" class="text-gray-500 hover:underline">{% trans "Alle Angebote ansehen" %} →</a>
     </div>
   {% endif %}

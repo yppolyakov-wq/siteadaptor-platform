@@ -27,7 +27,10 @@ AggregateRating из отзывов — из контракта sellable, на �
 
   {# Первый экран: галерея слева + sticky-карточка справа #}
   <div class="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start mt-3">
-    <div>{% block detail_gallery %}{% endblock %}</div>
+    {% comment %}SP-2: липкой становится КОРОТКАЯ колонка — раньше только карточка справа,
+    и при длинной карточке под фото оставалась пустота ~570 px; теперь фото едет
+    рядом, пока читается правая колонка (у более длинной sticky просто не срабатывает).{% endcomment %}
+    <div class="lg:sticky lg:top-20">{% block detail_gallery %}{% endblock %}</div>
     <div class="lg:sticky lg:top-20">{% block detail_aside %}{% endblock %}</div>
   </div>
 

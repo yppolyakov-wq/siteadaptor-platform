@@ -4,7 +4,9 @@
 
 {% comment %}UB1-3: листинг событий на каркасе listing.html. Разметка карточек/фасетов
 перенесена без изменений (замки — apps/events/tests/test_index_parity.py).{% endcomment %}
-{% block listing_width %}max-w-3xl mx-auto{% endblock %}
+{% comment %}SP-2: было max-w-3xl — на десктопе строки событий занимали 768 из 1248 px, справа
+пустота; теперь шире и список в две колонки на lg.{% endcomment %}
+{% block listing_width %}max-w-5xl mx-auto{% endblock %}
 
 {% block listing_header %}
   {% funnel_steps "event" 1 %}
@@ -82,7 +84,7 @@
   {% if events %}
     {% if events_is_list %}
     {% comment %}Список (дефолт): горизонтальные строки.{% endcomment %}
-    <div data-sf-section="events" class="space-y-3">
+    <div data-sf-section="events" class="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
       {% for e in events %}
         <a href="{% url 'storefront-event' e.pk %}" class="sf-card relative flex gap-4 bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
           <span data-photo-edit data-edit-model="event" data-edit-pk="{{ e.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
@@ -99,7 +101,7 @@
             <div class="font-semibold truncate" data-edit-model="event" data-edit-pk="{{ e.pk }}" data-edit-field="title">{{ e.title_text }}</div>
             <div class="text-sm text-gray-500">🗓 {{ e.starts_at|date:"d.m.Y H:i" }}{% if e.is_online %} · 🖥 Online{% elif e.city %} · 📍 {{ e.city }}{% elif e.location %} · 📍 {{ e.location }}{% endif %}</div>
             <div class="mt-1 flex items-center gap-3">
-              <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="{{ e.price_eur|floatformat:2 }}">{{ e.price_eur }} €</span>{% else %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="0">{% trans "Free" %}</span>{% endif %}</span>
+              <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="{{ e.price_eur|floatformat:2 }}">{{ e.price_eur|floatformat:2 }} €</span>{% else %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="0">{% trans "Free" %}</span>{% endif %}</span>
               {% if e.is_sold_out %}<span class="text-xs text-red-600">{% trans "Sold out" %}</span>
               {% elif e.seats_left %}<span class="text-xs text-gray-400">{% blocktrans with n=e.seats_left %}{{ n }} seats left{% endblocktrans %}</span>{% endif %}
             </div>

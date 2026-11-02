@@ -14,7 +14,7 @@ top layer, поэтому stacking-контекст карточки не важ
 `checked`: форма уходит с прежним поведением уведомлений (fail-safe).{% endcomment %}
 {% if deal.allowed_actions %}
   <form method="post" action="{% url 'board-action' deal_kind deal.pk %}"
-        class="flex items-center gap-2 sm:ml-auto" data-deal-status-form="1">
+        class="flex flex-wrap items-center gap-2 sm:ml-auto" data-deal-status-form="1">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
     <input type="hidden" name="notify_form" value="1">

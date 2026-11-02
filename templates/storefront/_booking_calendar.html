@@ -21,7 +21,7 @@ day (выбранный). Дни со слотами кликабельны (?ta
     {% for c in cal_days %}
       {% if c.has_slots %}
         <a href="?tag={{ c.day|date:'Y-m-d' }}{{ cal_qs }}{{ embed_qs }}"
-           class="aspect-square flex items-center justify-center rounded-lg {% if c.day == day %}bg-indigo-600 text-white font-semibold{% else %}bg-emerald-50 text-emerald-800 hover:bg-emerald-100{% endif %}">{{ c.day.day }}</a>
+           class="aspect-square flex items-center justify-center rounded-lg {% if c.day == day %}bg-indigo-600 text-white font-semibold{% else %}bg-emerald-50 text-emerald-800 hover:bg-emerald-100{% endif %}"{% if c.day == day %} aria-current="date"{% endif %}>{{ c.day.day }}</a>
       {% else %}
         <span class="aspect-square flex items-center justify-center rounded-lg {% if c.is_past %}text-gray-300{% else %}text-gray-400{% endif %}">{{ c.day.day }}</span>
       {% endif %}

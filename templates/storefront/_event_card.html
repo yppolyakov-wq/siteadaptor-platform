@@ -25,7 +25,7 @@
     <div class="font-semibold leading-snug line-clamp-2" data-edit-model="event" data-edit-pk="{{ e.pk }}" data-edit-field="title">{{ e.title_text }}</div>
     <div class="text-sm text-gray-500 mt-1">🗓 {{ e.starts_at|date:"d.m.Y" }}{% if e.is_online %} · 🖥 Online{% elif e.city %} · 📍 {{ e.city }}{% elif e.location %} · 📍 {{ e.location }}{% endif %}</div>
     <div class="mt-2 pt-2 flex items-center gap-3 border-t border-gray-50">
-      <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="{{ e.price_eur|floatformat:2 }}">{{ e.price_eur }} €</span>{% else %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="0">{% trans "Free" %}</span>{% endif %}</span>
+      <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="{{ e.price_eur|floatformat:2 }}">{{ e.price_eur|floatformat:2 }} €</span>{% else %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="0">{% trans "Free" %}</span>{% endif %}</span>
       {% if not e.is_sold_out and e.seats_left %}<span class="text-xs text-gray-400">{% blocktrans with n=e.seats_left %}{{ n }} seats left{% endblocktrans %}</span>{% endif %}
     </div>
   </div>

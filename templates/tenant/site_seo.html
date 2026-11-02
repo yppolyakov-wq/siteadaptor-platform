@@ -34,8 +34,8 @@
            data-default-title="{{ r.default_title }}" data-default-desc="{{ r.default_desc }}">
         <p class="font-semibold mb-3">{{ r.label }}</p>
 
-        <div class="grid md:grid-cols-2 gap-4">
-          <div class="space-y-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-3 min-w-0">
             <div>
               <label class="block text-xs font-medium text-gray-500 mb-1" for="title_{{ r.key }}">{% trans "Title template" %}</label>
               <input id="title_{{ r.key }}" name="title_{{ r.key }}" type="text" value="{{ r.title }}"
@@ -50,7 +50,7 @@
           </div>
 
           {# Google-сниппет превью (обновляется на ввод) #}
-          <div>
+          <div class="min-w-0 break-words">
             <span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Preview" %}</span>
             <div class="rounded-lg border border-gray-200 p-3 bg-gray-50">
               <div class="text-[13px] text-gray-500 truncate">{% trans "your-site.de" %}</div>

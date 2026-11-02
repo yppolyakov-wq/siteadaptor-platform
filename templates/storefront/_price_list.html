@@ -102,7 +102,7 @@ MEN-24a: show_labels — маркировка диет/аллергенов (т�
        data-book-pattern="{% blocktrans %}Seite {{ r }} von {{ n }}{% endblocktrans %}">
     <button type="button" data-book-prev aria-label="{% trans 'Zurückblättern' %}"
             class="w-9 h-9 rounded-full border border-gray-300 text-gray-600 disabled:opacity-30">‹</button>
-    <span data-book-status class="text-gray-500" style="font-variant-numeric: tabular-nums;"></span>
+    <span data-book-status aria-live="polite" class="text-gray-500" style="font-variant-numeric: tabular-nums;"></span>
     <button type="button" data-book-next aria-label="{% trans 'Weiterblättern' %}"
             class="w-9 h-9 rounded-full border border-gray-300 text-gray-600 disabled:opacity-30">›</button>
   </div>

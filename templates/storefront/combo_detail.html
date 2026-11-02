@@ -11,7 +11,8 @@
   {% endfor %}
 {% endif %}
 
-<div class="mt-3 grid gap-8 {% if combo.images %}lg:grid-cols-2 items-start{% endif %}">
+{# SP-2: без фото конфигуратор был на всю ширину (кнопка 1087 px) — читаемая колонка. #}
+<div class="mt-3 grid gap-8 {% if combo.images %}lg:grid-cols-2 items-start{% else %}max-w-3xl{% endif %}">
   {% if combo.images %}
     <div>{% include "storefront/_media_gallery.html" with images=combo.images alt=combo.name_localized %}</div>
   {% endif %}

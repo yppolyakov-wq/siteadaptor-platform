@@ -55,7 +55,8 @@ def test_event_index_list_structure_snapshot():
     _event(title="Alpha Retreat", starts_at=timezone.now() + timedelta(days=5), price_cents=2500)
     _event(title="Beta Konzert", starts_at=timezone.now() + timedelta(days=9))
     body = _body()
-    assert 'data-sf-section="events" class="space-y-3"' in body  # list-контейнер
+    # SP-2: список — колонкой на телефоне, двумя колонками на lg (была пустая правая часть)
+    assert 'data-sf-section="events" class="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2' in body
     assert body.index("Retreats") < body.index('data-sf-section="events"')  # header выше грида
     assert "flex gap-4 bg-white rounded-2xl" in body  # горизонтальная строка-карточка
     assert body.index("Alpha Retreat") < body.index("Beta Konzert")  # порядок по дате
@@ -71,7 +72,7 @@ def test_event_index_grid_structure_snapshot():
     tenant = TenantFactory.build()
     tenant.site_config = {"events_index_layout": {"preset": "cols3"}}
     body = _body(tenant=tenant)
-    assert 'data-sf-section="events" class="space-y-3"' not in body  # list-контейнер ушёл
+    assert 'data-sf-section="events" class="space-y-3' not in body  # list-контейнер ушёл
     assert "lg:grid-cols-3" in body and 'data-sf-section="events"' in body
     # обложка aspect-[4/3] + зона оверлей-бейджей (безусловные части грид-карточки;
     # ховер-зум живёт на <img> и требует фото — не ассертим на событии без фото)

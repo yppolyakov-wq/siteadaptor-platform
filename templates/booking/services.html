@@ -10,7 +10,7 @@
     {% lang_switch %}
   </div>
   {% i18n_base_locale as base_loc %}
-  <div class="flex gap-4">
+  <div class="flex flex-wrap gap-x-4 gap-y-1">
     {# UB3-2: подборки услуг → чипы-фасет на /termin/. #}
     <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
     {% comment %}Фидбэк 2026-07-30 («у услуг нет календаря / на сайте пишет: нет

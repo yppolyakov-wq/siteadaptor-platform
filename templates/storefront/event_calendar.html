@@ -28,7 +28,7 @@
                     {% if e.is_sold_out %}· <span class="text-red-600">{% trans "Sold out" %}</span>{% endif %}
                   </div>
                 </div>
-                <div class="text-sm font-medium whitespace-nowrap">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur }} €{% else %}{% trans "Free" %}{% endif %}</div>
+                <div class="text-sm font-medium whitespace-nowrap">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{{ e.price_eur|floatformat:2 }} €{% else %}{% trans "Free" %}{% endif %}</div>
               </a>
             {% endfor %}
           </div>

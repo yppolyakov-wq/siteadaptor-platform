@@ -13,7 +13,7 @@ Telegram отдаёт сообщения бота ровно на ОДИН ад�
 
 import logging
 
-from django.db import transaction
+from django.db import ProgrammingError, transaction
 from django_tenants.utils import get_tenant_model, schema_context
 
 logger = logging.getLogger(__name__)
@@ -51,6 +51,7 @@ def owners_of(token: str, *, exclude: str = "") -> list[str]:
     for schema in (
         get_tenant_model()
         .objects.exclude(schema_name="public")
+        .order_by("pk")
         .values_list("schema_name", flat=True)
     ):
         label = tenant_label(schema)
@@ -65,7 +66,12 @@ def owners_of(token: str, *, exclude: str = "") -> list[str]:
                         .exclude(token="")
                         .values_list("token", flat=True)
                     )
-            except Exception:  # noqa: BLE001 — схема без таблицы бота / недоступна
+            except ProgrammingError:  # схема без таблицы бота (шаблон, недомигрированная)
+                continue
+            except Exception as exc:  # noqa: BLE001 — ревью: не глотать молча
+                # Сбой одной схемы (БД, расшифровка) не должен ронять подключение у
+                # всех, но и тихо пропускать дубль нельзя — в лог с типом ошибки.
+                logger.warning("bot ownership scan failed for %s: %s", schema, type(exc).__name__)
                 continue
         if any(_same(t) for t in tokens):
             found.append(label)

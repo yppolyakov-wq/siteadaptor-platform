@@ -11,9 +11,9 @@
     <div class="flex flex-wrap gap-3">
       {% for chip in fh.question.chips %}
         <a href="{% url 'storefront-finder' %}?a={{ fh.question.key }}.{{ chip.key }}"
-           class="inline-block rounded-full border-2 border-gray-200 bg-white px-5 py-3 text-sm font-semibold hover:border-[var(--sf-accent,#4f46e5)] transition">{{ chip.label }}</a>
+           class="inline-block rounded-full border-2 border-gray-200 bg-white px-5 py-3 text-sm font-semibold hover:border-[var(--accent,#4f46e5)] transition">{{ chip.label }}</a>
       {% endfor %}
-      <a href="{% url 'storefront-finder' %}" class="inline-block px-2 py-3 text-sm font-medium text-[var(--sf-accent,#4f46e5)] hover:underline">{% trans "Alle Fragen" %} →</a>
+      <a href="{% url 'storefront-finder' %}" class="inline-block px-2 py-3 text-sm font-medium text-[var(--accent,#4f46e5)] hover:underline">{% trans "Alle Fragen" %} →</a>
     </div>
   </section>
 {% elif is_preview %}
