@@ -88,12 +88,13 @@ def test_featured_checkout_sets_featured_until():
     webhooks.handle_event(
         "checkout.session.completed",
         {
+            "payment_status": "paid",
             "metadata": {
                 "kind": "featured",
                 "tenant_schema": "shop1",
                 "promo_uuid": str(promo_uuid),
                 "days": "7",
-            }
+            },
         },
     )
     listing.refresh_from_db()

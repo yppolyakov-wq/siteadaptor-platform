@@ -8,6 +8,8 @@ SHARED-приложением; см. patterns/audit-log.md).
 
 from dataclasses import dataclass
 
+from django.db import transaction
+
 
 class IllegalTransition(Exception):
     def __init__(self, model, src, dst):
@@ -62,6 +64,28 @@ class StateMachine:
         return targets
 
     def apply(self, instance, dst: str, *, actor=None, **ctx):
+        # SEC-D4 (аудит 2026-11-01): переход считается от статуса В БД под блокировкой
+        # строки. Иначе две вкладки/двойной клик с одним и тем же устаревшим объектом обе
+        # проходили переход и дважды запускали эффекты (возврат денег, сертификата,
+        # лимита акции, склада, Stornorechnung).
+        with transaction.atomic():
+            self._lock_and_refresh(instance)
+            return self._apply_locked(instance, dst, actor=actor, **ctx)
+
+    def _lock_and_refresh(self, instance):
+        if instance.pk is None or instance._state.adding:
+            return
+        current = (
+            type(instance)
+            ._base_manager.select_for_update()
+            .filter(pk=instance.pk)
+            .values_list(self.field, flat=True)
+            .first()
+        )
+        if current is not None:
+            setattr(instance, self.field, current)
+
+    def _apply_locked(self, instance, dst: str, *, actor=None, **ctx):
         src = getattr(instance, self.field)
         if src == dst:
             return instance  # идемпотентно: повтор того же статуса — no-op

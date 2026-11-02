@@ -54,13 +54,15 @@ def test_missing_tenant_keeps_no_listing():
     assert not AggregatorListing.objects.filter(promo_uuid=promo.id).exists()
 
 
-def test_promotion_sm_active_enqueues_sync(monkeypatch):
+def test_promotion_sm_active_enqueues_sync(monkeypatch, django_capture_on_commit_callbacks):
     calls = []
     monkeypatch.setattr(tasks.sync_aggregator_listing, "delay", lambda **kw: calls.append(kw))
     promo = Promotion.objects.create(status="draft", title={"de": "A"})
-    PromotionSM().apply(promo, "active")
-    assert calls and calls[0]["promotion_id"] == str(promo.id)
-    assert calls[0]["dedupe_key"] == f"agg:{promo.id}:active"
+    with django_capture_on_commit_callbacks(execute=True):
+        PromotionSM().apply(promo, "active")
+        assert calls == []  # SEC-D4b: только после коммита — воркер видит новый статус
+    keys = {c["dedupe_key"] for c in calls if c["promotion_id"] == str(promo.id)}
+    assert f"agg:{promo.id}:active" in keys
 
 
 def test_editing_active_promotion_enqueues_resync(monkeypatch, django_capture_on_commit_callbacks):

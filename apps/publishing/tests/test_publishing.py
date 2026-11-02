@@ -13,13 +13,14 @@ def _boom(publication):
     raise RuntimeError("boom")
 
 
-def test_activate_creates_and_enqueues_publication(monkeypatch):
+def test_activate_creates_and_enqueues_publication(monkeypatch, django_capture_on_commit_callbacks):
     calls = []
     monkeypatch.setattr(tasks.publish_to_channel, "delay", lambda **kw: calls.append(kw))
     Channel.objects.create(type="log", is_enabled=True)
     promo = Promotion.objects.create(status="draft", title={"de": "A"})
 
-    PromotionSM().apply(promo, "active")
+    with django_capture_on_commit_callbacks(execute=True):  # SEC-D4b: после коммита
+        PromotionSM().apply(promo, "active")
 
     pub = Publication.objects.get(promotion=promo)
     assert pub.status == QUEUED
@@ -73,7 +74,7 @@ def test_publish_adapter_error_marks_failed(monkeypatch):
     assert "boom" in pub.last_error
 
 
-def test_ended_enqueues_removal(monkeypatch):
+def test_ended_enqueues_removal(monkeypatch, django_capture_on_commit_callbacks):
     removed = []
     monkeypatch.setattr(tasks.remove_from_channel, "delay", lambda **kw: removed.append(kw))
     monkeypatch.setattr(tasks.publish_to_channel, "delay", lambda **kw: None)
@@ -83,6 +84,7 @@ def test_ended_enqueues_removal(monkeypatch):
         promotion=promo, channel=ch, status="published", dedupe_key=f"publish:{promo.id}:{ch.id}"
     )
 
-    PromotionSM().apply(promo, "ended")
+    with django_capture_on_commit_callbacks(execute=True):  # SEC-D4b: после коммита
+        PromotionSM().apply(promo, "ended")
 
     assert removed and removed[0]["publication_id"]

@@ -84,18 +84,81 @@ ONLINE_HOLD = timedelta(hours=24)
 SESSION_MARGIN = timedelta(minutes=15)
 
 
-def start_online_hold(obj, *, now=None) -> int:
-    """Поставить/продлить срок удержания сделки на время онлайн-оплаты.
+#: Stripe принимает `expires_at` не раньше чем через 30 минут от создания сессии.
+STRIPE_MIN_SESSION = timedelta(minutes=30)
+#: SEC-D3: отложенный способ (SEPA) зачисляется до ~14 дней — держим сделку дольше.
+PROCESSING_HOLD = timedelta(days=14)
 
-    Возвращает `expires_at` для сессии Stripe (unix-время). Более длинное удержание
-    (счёт фирме, Vorkasse) не сокращаем."""
+
+def start_online_hold(obj, *, now=None) -> int | None:
+    """Поставить срок удержания сделки на время онлайн-оплаты.
+
+    Возвращает `expires_at` для сессии Stripe (unix-время) или None — сессия без своего
+    срока (поздняя оплата отменённой сделки вернётся автоматически, `settle_late_payment`).
+
+    SEC-D6 (аудит 2026-11-01): срок ставится один раз и не продлевается. Раньше каждое
+    открытие страницы оплаты сдвигало его на сутки вперёд, и место держалось бессрочно.
+    - Срока ещё нет: сутки от создания сделки; сделка старше (владелец прислал ссылку
+      на оплату позже) — сутки от сейчас.
+    - Срок уже есть (первая сессия, Vorkasse, счёт): не трогаем, сессия живёт до него.
+    """
     now = now or timezone.now()
-    due = now + ONLINE_HOLD
     current = getattr(obj, "payment_due_at", None)
-    if current is None or current < due:
+    if current is None:
+        due = now + ONLINE_HOLD
+        created = getattr(obj, "created_at", None)
+        if (
+            created is not None
+            and created + ONLINE_HOLD >= now + STRIPE_MIN_SESSION + SESSION_MARGIN
+        ):
+            due = created + ONLINE_HOLD
         type(obj).objects.filter(pk=obj.pk).update(payment_due_at=due)
         obj.payment_due_at = due
-    return int((due - SESSION_MARGIN).timestamp())
+    else:
+        due = current
+    expires = min(due, now + ONLINE_HOLD) - SESSION_MARGIN
+    if expires - now < STRIPE_MIN_SESSION:
+        return None
+    return int(expires.timestamp())
+
+
+#: SEC-D3: metadata.kind Checkout → (вид сделки, ключ id в metadata).
+_PROCESSING_KINDS = {
+    "booking_deposit": ("booking", "booking_id"),
+    "stay_deposit": ("stay", "booking_id"),
+    "event_ticket": ("ticket", "ticket_id"),
+    "event_installment": ("ticket", "ticket_id"),
+}
+
+
+def hold_while_processing(meta: dict, *, now=None) -> bool:
+    """SEC-D3: Checkout завершён, а деньги ещё в пути (SEPA). Сделку не снимаем по
+    сроку онлайн-оплаты: срок удержания продлевается до `PROCESSING_HOLD`. Иначе
+    `expire_overdue` отменял бронь через сутки, а пришедшая через три дня оплата
+    возвращалась клиенту. True — сделка найдена и срок продлён."""
+    spec = _PROCESSING_KINDS.get(str(meta.get("kind") or ""))
+    schema = str(meta.get("tenant_schema") or "")
+    if spec is None or not schema:
+        return False
+    kind, key = spec
+    deal_id = str(meta.get(key) or "")
+    model = transactions.model_for(kind)
+    if model is None or not deal_id:
+        return False
+    from django.core.exceptions import ValidationError
+    from django_tenants.utils import schema_context
+
+    due = (now or timezone.now()) + PROCESSING_HOLD
+    try:
+        with schema_context(schema):
+            updated = (
+                model.objects.filter(pk=deal_id, payment_state__in=_UNPAID[kind])
+                .exclude(payment_due_at__gt=due)
+                .update(payment_due_at=due)
+            )
+    except (ValidationError, ValueError):
+        return False
+    return bool(updated)
 
 
 def settle_late_payment(kind: str, obj, *, newly_paid: bool) -> None:

@@ -84,6 +84,7 @@ def test_webhook_stay_deposit_marks_paid():
         "checkout.session.completed",
         {
             "payment_intent": "pi_2",
+            "payment_status": "paid",
             "metadata": {
                 "kind": "stay_deposit",
                 "tenant_schema": connection.schema_name,

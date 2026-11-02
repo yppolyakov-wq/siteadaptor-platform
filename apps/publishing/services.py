@@ -5,11 +5,16 @@
 из PromotionSM.on_transition (в schema_context арендатора).
 """
 
-from django.db import connection
+from django.db import connection, transaction
 
 from .models import Channel, Publication
 from .state_machine import FAILED, QUEUED, REMOVED, PublicationSM
 from .tasks import publish_to_channel, remove_from_channel
+
+
+def _enqueue(task, **kwargs) -> None:
+    """Поставить задачу публикации после коммита (вне транзакции — сразу)."""
+    transaction.on_commit(lambda: task.delay(**kwargs))
 
 
 def on_promotion_transition(promotion, dst: str) -> None:
@@ -34,7 +39,10 @@ def _publish_all(promotion) -> None:
         # повторная активация: вернуть removed/failed в очередь
         if pub.status in (REMOVED, FAILED):
             sm.apply(pub, QUEUED)
-        publish_to_channel.delay(
+        # SEC-D4b: после коммита — статус Publication иначе ещё не виден воркеру
+        # (переход акции идёт в транзакции apply()).
+        _enqueue(
+            publish_to_channel,
             dedupe_key=f"pub:{pub.id}:publish",
             tenant_schema=schema,
             publication_id=str(pub.id),
@@ -69,7 +77,10 @@ def publish_post(post) -> int:
         )
         if pub.status in (REMOVED, FAILED):
             sm.apply(pub, QUEUED)
-        publish_to_channel.delay(
+        # SEC-D4b: после коммита — статус Publication иначе ещё не виден воркеру
+        # (переход акции идёт в транзакции apply()).
+        _enqueue(
+            publish_to_channel,
             dedupe_key=f"pub:{pub.id}:publish",
             tenant_schema=schema,
             publication_id=str(pub.id),
@@ -135,7 +146,10 @@ def event_share_draft(event) -> None:
 def _remove_all(promotion) -> None:
     schema = connection.schema_name
     for pub in Publication.objects.filter(promotion=promotion).exclude(status=REMOVED):
-        remove_from_channel.delay(
+        # SEC-D4b: после коммита — статус Publication иначе ещё не виден воркеру
+        # (переход акции идёт в транзакции apply()).
+        _enqueue(
+            remove_from_channel,
             dedupe_key=f"pub:{pub.id}:remove",
             tenant_schema=schema,
             publication_id=str(pub.id),

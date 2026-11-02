@@ -69,6 +69,10 @@ CONNECT_KINDS = frozenset(
 )
 
 
+#: SEC-D3: сессия Checkout «оплачена» — деньги действительно зачислены.
+PAID_STATUSES = frozenset({"paid", "no_payment_required"})
+
+
 def _connect_account_ok(meta: dict, account: str) -> bool:
     schema = str(meta.get("tenant_schema") or "")
     if not account or not schema:
@@ -115,6 +119,26 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             kind,
         )
         return
+
+    # SEC-D3: отложенные способы (SEPA, Sofort, Klarna) — `completed` приходит ДО
+    # зачисления денег (`payment_status=unpaid`), сами деньги — `async_payment_succeeded`.
+    # `deal_balance` разбирает это сам (mark_balance_paid проверяет payment_status).
+    if kind and kind != "deal_balance" and (kind in CONNECT_KINDS or kind == "featured"):
+        if event_type == "checkout.session.async_payment_succeeded":
+            event_type = "checkout.session.completed"
+        elif event_type == "checkout.session.async_payment_failed":
+            # Деньги не пришли: сделку снимет удержание (expire_overdue), оплату не ставим.
+            logger.warning("stripe webhook %s: async payment failed %s", kind, meta)
+            return
+        elif event_type == "checkout.session.completed" and (
+            obj.get("payment_status") not in PAID_STATUSES
+        ):
+            logger.info("stripe webhook %s: payment pending (%s)", kind, obj.get("payment_status"))
+            # Ревью волны 1 (M3): пока деньги в пути, удержание не снимает сделку.
+            from apps.core.payment_holds import hold_while_processing
+
+            hold_while_processing(meta)
+            return
 
     # Разовый платёж за продвижение листинга (P2.4b) — не подписка: ставим срок
     # на сам листинг (public-схема), статус подписки не трогаем. Различаем по

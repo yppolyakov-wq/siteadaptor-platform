@@ -19,7 +19,9 @@ def _post(**kw):
     return SocialPost.objects.create(**kw)
 
 
-def test_publish_post_creates_publications_for_enabled_channels(monkeypatch):
+def test_publish_post_creates_publications_for_enabled_channels(
+    monkeypatch, django_capture_on_commit_callbacks
+):
     calls = []
     monkeypatch.setattr(tasks.publish_to_channel, "delay", lambda **kw: calls.append(kw))
     ch = Channel.objects.create(type="log", is_enabled=True)
@@ -28,7 +30,8 @@ def test_publish_post_creates_publications_for_enabled_channels(monkeypatch):
 
     from apps.publishing.services import publish_post
 
-    assert publish_post(post) == 1  # только включённый канал
+    with django_capture_on_commit_callbacks(execute=True):  # SEC-D4b: после коммита
+        assert publish_post(post) == 1  # только включённый канал
     pub = Publication.objects.get(post=post)
     assert pub.channel == ch and pub.status == QUEUED
     assert pub.dedupe_key == f"publish:post:{post.id}:{ch.id}"

@@ -39,6 +39,15 @@ def is_editable(order, tenant=None) -> bool:
 
 
 def _require_editable(order, tenant=None):
+    # SEC-D4 (ревью волны 1, M4): заказ блокируется ПЕРВЫМ и статус читается из БД —
+    # тот же порядок, что у OrderSM.apply (заказ → товар). Иначе правка количества и
+    # одновременная отмена брали замки в разном порядке; заодно правка не проходит по
+    # заказу, который только что закрыли в другой вкладке.
+    if order.pk is not None and transaction.get_connection().in_atomic_block:
+        from .models import Order
+
+        if Order.objects.select_for_update().filter(pk=order.pk).exists():
+            order.refresh_from_db(fields=["status"])
     if not is_editable(order, tenant):
         raise OrderLocked(_("Ein abgeschlossener Auftrag kann nicht mehr geändert werden."))
 

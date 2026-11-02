@@ -37,15 +37,18 @@ class PromotionSM(StateMachine):
         # ended/paused/archived → удаление. Через очередь; схема — из текущего
         # соединения (акция живёт в TENANT-схеме). Сам upsert/remove решает задача.
         if t.dst in ("active", "ended", "paused", "archived"):
-            from django.db import connection
+            from django.db import connection, transaction
 
             from apps.aggregator.tasks import sync_aggregator_listing
 
-            sync_aggregator_listing.delay(
-                dedupe_key=f"agg:{instance.id}:{t.dst}",
-                tenant_schema=connection.schema_name,
-                promotion_id=str(instance.id),
-            )
+            # SEC-D4b: после коммита — переход идёт в транзакции apply(), и задача,
+            # взятая воркером раньше коммита, прочла бы старый статус.
+            kwargs = {
+                "dedupe_key": f"agg:{instance.id}:{t.dst}",
+                "tenant_schema": connection.schema_name,
+                "promotion_id": str(instance.id),
+            }
+            transaction.on_commit(lambda: sync_aggregator_listing.delay(**kwargs))
 
             # Каналы публикации (S4.3): active → publish, ended/paused/archived → remove.
             from apps.publishing.services import on_promotion_transition

@@ -78,6 +78,7 @@ def test_webhook_booking_deposit_marks_paid():
         "checkout.session.completed",
         {
             "payment_intent": "pi_2",
+            "payment_status": "paid",
             "metadata": {
                 "kind": "booking_deposit",
                 "tenant_schema": connection.schema_name,

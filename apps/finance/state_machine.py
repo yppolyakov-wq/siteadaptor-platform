@@ -10,6 +10,21 @@ from django.db import transaction
 from apps.core.fsm import IllegalTransition, StateMachine, Transition
 
 
+def _lock_linked_deal(invoice) -> None:
+    """Сделка счёта под блокировкой — всегда раньше самого счёта (advance.lock_deal)."""
+    kind = getattr(invoice, "deal_kind", "") or ""
+    deal_id = getattr(invoice, "deal_id", "") or ""
+    if not kind or not deal_id:
+        return
+    from apps.core import transactions
+
+    if transactions.model_for(kind) is None:
+        return
+    from .advance import lock_deal
+
+    lock_deal(kind, deal_id)
+
+
 class InvoiceSM(StateMachine):
     transitions = [
         Transition("draft", "issued", "invoice.issued"),
@@ -39,12 +54,15 @@ class InvoiceSM(StateMachine):
                 if instance.deal_kind in ("stay", "booking", "job") and instance.deal_id:
                     lock_deal(instance.deal_kind, instance.deal_id)
                 return super().apply(instance, dst, **kw)
-        if dst == "cancelled":
-            # Ревью W1.2 (H1): отмена и Stornorechnung — одно целое; сбой при выпуске
-            # сторно откатывает и статус оригинала (иначе «Storniert» без документа).
-            with transaction.atomic():
-                return super().apply(instance, dst, **kw)
-        return super().apply(instance, dst, **kw)
+        # Ревью W1.2 (H1): отмена и Stornorechnung — одно целое; сбой при выпуске
+        # сторно откатывает и статус оригинала (иначе «Storniert» без документа).
+        # SEC-D4 (ревью волны 1): сделка блокируется РАНЬШЕ строки счёта, которую
+        # теперь берёт базовый apply() — тот же порядок, что у вебхука и банка
+        # (settle_payment: сделка → счёт). Иначе «bezahlt» по счёту и оплата сделки
+        # одновременно взаимно блокировались.
+        with transaction.atomic():
+            _lock_linked_deal(instance)
+            return super().apply(instance, dst, **kw)
 
     def on_transition(self, instance, t, **kw):
         # KA-D2: выручка заявки — при выставлении счёта, сторно — при отмене счёта.

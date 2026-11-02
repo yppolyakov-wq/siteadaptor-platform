@@ -124,6 +124,7 @@ def test_webhook_order_payment_marks_paid():
         "checkout.session.completed",
         {
             "payment_intent": "pi_2",
+            "payment_status": "paid",
             "metadata": {
                 "kind": "order_payment",
                 "tenant_schema": connection.schema_name,

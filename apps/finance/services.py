@@ -615,6 +615,24 @@ def issue_invoice(invoice, *, tenant=None, terms_days=None):
     from .state_machine import InvoiceSM
 
     with transaction.atomic():
+        # SEC-D5 (аудит 2026-11-01): счёт под блокировкой. Второй клик «Rechnung
+        # stellen» с тем же черновиком в памяти иначе брал ещё один номер и переписывал
+        # первый — пропуск в сквозной нумерации (GoBD).
+        from .models import Invoice
+        from .state_machine import _lock_linked_deal
+
+        # Ревью волны 1 (M1): сделка — раньше счёта, как в auto_invoice и advance.
+        _lock_linked_deal(invoice)
+        locked_status = (
+            Invoice.objects.select_for_update()
+            .filter(pk=invoice.pk)
+            .values_list("status", flat=True)
+            .first()
+        )
+        if locked_status is not None and locked_status != Invoice.STATUS_DRAFT:
+            invoice.refresh_from_db()
+            return invoice
+
         # KA-12 B2-8c: предоплата сделки — вычет (оплачена) или сторно (не оплачена).
         from .advance import deducted_cents, settle_for_final
 

@@ -22,15 +22,17 @@ class EventSM(StateMachine):
         # remove. Через очередь; схема — из соединения (событие в TENANT-схеме);
         # сам upsert/remove решает задача (учитывает модуль + будущую дату).
         if t.dst in ("published", "draft", "cancelled"):
-            from django.db import connection
+            from django.db import connection, transaction
 
             from apps.aggregator.tasks import sync_aggregator_event
 
-            sync_aggregator_event.delay(
-                dedupe_key=f"agg-event:{instance.id}:{t.dst}",
-                tenant_schema=connection.schema_name,
-                event_id=str(instance.id),
-            )
+            # SEC-D4b: после коммита (переход идёт в транзакции apply()).
+            kwargs = {
+                "dedupe_key": f"agg-event:{instance.id}:{t.dst}",
+                "tenant_schema": connection.schema_name,
+                "event_id": str(instance.id),
+            }
+            transaction.on_commit(lambda: sync_aggregator_event.delay(**kwargs))
 
         # KA-H8: отмена события → отмена его билетов (возврат, письмо, стоп рассрочки).
         # После коммита, фоном: возврат — сетевой вызов на каждый билет.
