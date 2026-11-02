@@ -72,7 +72,7 @@
               <span class="font-medium text-gray-700 mr-1">{{ g.days }} {{ g.time }} · {{ g.slot }} min</span>
               {% for it in g.rules %}
                 <form method="post" class="inline">{% csrf_token %}
-                  <input type="hidden" name="action" value="rule_delete"><input type="hidden" name="rule" value="{{ it.rule.pk }}">
+                  <input type="hidden" name="action" value="rule_delete"><input type="hidden" name="rule" value="{{ it.rule.pk }}"><input type="hidden" name="resource" value="{{ r.pk }}">
                   <button class="text-xs rounded-full border border-gray-200 px-2 py-0.5 hover:border-red-400 hover:text-red-600" aria-label="{% trans 'Remove' %} {{ it.day }}">{{ it.day }} ✕</button>
                 </form>
               {% endfor %}

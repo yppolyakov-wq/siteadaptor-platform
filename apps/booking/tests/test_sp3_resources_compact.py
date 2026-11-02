@@ -111,3 +111,21 @@ def test_foreign_open_param_is_ignored():
     _resource()
     body = views.resources(_req(data={"open": "<script>x"})).content.decode()
     assert "data-resource-card open" not in body and "<script>x" not in body
+
+
+def test_redirect_uses_canonical_pk_not_raw_post():
+    # Ревью SP-3: UUID-парсер принимает «{…}» — в Location только канонический pk из БД.
+    r = _resource()
+    resp = views.resources(_req("post", {"action": "toggle", "resource": f"{{{r.pk}}}"}))
+    assert resp.url.endswith(f"?open={r.pk}#res-{r.pk}") and "{" not in resp.url
+
+
+def test_rule_delete_keeps_card_open_and_survives_garbage_id():
+    r = _resource(days=[0, 1])
+    rule = r.rules.first()
+    resp = views.resources(
+        _req("post", {"action": "rule_delete", "rule": str(rule.pk), "resource": str(r.pk)})
+    )
+    assert resp.url.endswith(f"#res-{r.pk}") and r.rules.count() == 1
+    resp = views.resources(_req("post", {"action": "rule_delete", "rule": "nope"}))
+    assert resp.status_code == 302

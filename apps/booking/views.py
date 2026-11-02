@@ -797,11 +797,13 @@ def _back_to_resource(request):
     url = reverse("booking:resources")
     pk = request.POST.get("resource", "")
     try:
-        exists = bool(pk) and Resource.objects.filter(pk=pk).exists()
+        # Канонический pk из БД, а не сырая строка POST: UUID-парсер терпит скобки,
+        # "urn:uuid:", пробелы и перевод строки — в Location им не место.
+        found = Resource.objects.filter(pk=pk).values_list("pk", flat=True).first() if pk else None
     except (ValueError, ValidationError):
-        exists = False
-    if exists:
-        return redirect(f"{url}?open={pk}#res-{pk}")
+        found = None
+    if found:
+        return redirect(f"{url}?open={found}#res-{found}")
     return redirect(url)
 
 
@@ -882,7 +884,10 @@ def resources(request):
             else:
                 messages.info(request, _("Keine Öffnungszeiten zum Übernehmen."))
         elif action == "rule_delete":
-            AvailabilityRule.objects.filter(pk=request.POST.get("rule")).delete()
+            try:
+                AvailabilityRule.objects.filter(pk=request.POST.get("rule")).delete()
+            except (ValueError, ValidationError):  # мусорный id — не 500 (ревью SP-3)
+                messages.error(request, _("Invalid input."))
         elif action == "closed":
             from apps.core import closures
 
