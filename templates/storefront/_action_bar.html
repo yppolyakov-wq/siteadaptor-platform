@@ -7,7 +7,7 @@ iOS Safari «подпрыгивание» fixed-бара при инерцион
    вместе с контентом и стабильно держится у нижней кромки.
 Нижний отступ — только безопасная зона (home indicator), сжатая до минимума.
 {% endcomment %}
-<nav aria-label="{% trans 'Menu' %}"
+<nav aria-label="{% trans 'Menu' %}" data-sf-bottom-nav
      class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 flex shadow-[0_-1px_8px_rgba(0,0,0,0.06)]"
      style="padding-bottom: max(2px, env(safe-area-inset-bottom)); transform: translateZ(0); -webkit-transform: translateZ(0); will-change: transform;">
   {% for a in storefront_bottom_nav %}

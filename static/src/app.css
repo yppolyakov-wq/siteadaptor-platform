@@ -1664,6 +1664,27 @@ input[type="datetime-local"] {
   --ui-shadow-card: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .06);
 }
 
+/* ── MA-L (2026-11-02, фидбэк Mini App): нижние слои витрины на телефоне.
+   Панель покупки детали (data-buybar, < lg) стояла bottom-0 ПОД нижним меню (z-40,
+   < sm) — кнопка «Kaufen/Zurücklegen» пряталась за меню; плавающие кнопки чата/
+   видеозвонка/«Design testen» ложились на панель, а у конца страницы — на ссылки
+   права в подвале. Высоты слоёв — переменные; без панели и меню всё как раньше. */
+@media (max-width: 1023.98px) {
+  body:has([data-buybar]) { --sf-buybar-h: 70px; }
+}
+@media (max-width: 639.98px) {
+  body:has([data-sf-bottom-nav]) { --sf-nav-h: calc(47px + max(2px, env(safe-area-inset-bottom))); }
+  body:has([data-chat-fab]), body:has([data-demo-design]) { --sf-fab-room: 4.5rem; }
+  body:has([data-sf-presence]) { --sf-fab-room: 8.5rem; }
+}
+[data-buybar] { bottom: var(--sf-nav-h, 0px); }
+@media (max-width: 1023.98px) {
+  [data-sf-footer-inner] { padding-bottom: calc(1.5rem + var(--sf-buybar-h, 0px) + var(--sf-fab-room, 0px)); }
+  body:has([data-buybar]) [data-chat-fab],
+  body:has([data-buybar]) [data-demo-design] { bottom: calc(var(--sf-nav-h, 0px) + var(--sf-buybar-h) + 16px); }
+  body:has([data-buybar]) [data-sf-presence] { bottom: calc(var(--sf-nav-h, 0px) + var(--sf-buybar-h) + 76px); }
+}
+
 @layer components {
   .ui-canvas { background: var(--ui-canvas); }
   .ui-topbar { background: var(--ui-canvas); background: color-mix(in srgb, var(--ui-canvas) 95%, transparent); }

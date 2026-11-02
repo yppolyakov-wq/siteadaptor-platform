@@ -20938,3 +20938,14 @@ report-only, отписка/DOI кнопкой, compose без общего `.en
 снимает вебхук, если бот активен у другого хозяина; перерегистрация печатает
 `skip (no domain)` / `skip (same bot as …)` и `skipped=N`. Замки `test_bot_ownership.py`,
 `test_resync_command.py`.
+
+**2026-11-02 · MA-L «вёрстка Mini App по скриншотам владельца» (без миграций).** Витрина на
+телефоне: панель покупки детали (`data-buybar`, цена + «Zurücklegen/Kaufen») стояла
+`bottom-0` ПОД нижним меню (z-40) — кнопка покупки была спрятана; плавающие кнопки
+чата/видеозвонка/«Design testen» ложились на панель, у конца страницы — на ссылки права в
+подвале. Высоты слоёв — CSS-переменные в `static/src/app.css` по `body:has(...)`
+(`--sf-nav-h`, `--sf-buybar-h`, `--sf-fab-room`): панель над меню, кнопки над панелью, подвал
+с запасом снизу; без панели/меню всё как раньше. Форма акции: «Artikelnummer»/«Kategorie» —
+поля на одной линии (`items-end`), «Veröffentlichen»/«Als Entwurf speichern» во всю ширину
+стопкой, блок «Vor dem Veröffentlichen prüfen» — заголовок строкой, кнопки без переноса текста.
+Стенд Playwright 390/800 px. Замок `test_mobile_layers.py`.

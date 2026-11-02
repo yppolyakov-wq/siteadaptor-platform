@@ -84,7 +84,7 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
       </label>
       {% endif %}
       {% endwith %}
-      <div class="grid grid-cols-2 gap-3" data-quick-new-product>
+      <div class="grid grid-cols-2 items-end gap-3" data-quick-new-product>
         <label class="block">
           <span class="block text-sm font-medium mb-1">{{ form.sku.label }}</span>
           <input type="text" name="sku" value="{{ form.sku.value|default:'' }}" maxlength="100" class="ui-input">
@@ -179,9 +179,10 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
       </div>
       {% include "promotions/_city_category_fields.html" %}
       {% include "promotions/_text_check.html" %}
-      <div class="flex flex-wrap gap-2 pt-2">
-        <button type="submit" name="publish" value="now" class="ui-btn ui-btn-primary flex-1">{% trans "Veröffentlichen" %}</button>
-        <button type="submit" name="publish" value="draft" class="ui-btn ui-btn-secondary">{% trans "Als Entwurf speichern" %}</button>
+      {# Телефон: обе кнопки во всю ширину стопкой (раньше «Entwurf» переносился узким хвостом). #}
+      <div class="flex flex-col gap-2 pt-2 sm:flex-row">
+        <button type="submit" name="publish" value="now" class="ui-btn ui-btn-primary w-full sm:flex-1">{% trans "Veröffentlichen" %}</button>
+        <button type="submit" name="publish" value="draft" class="ui-btn ui-btn-secondary w-full sm:w-auto">{% trans "Als Entwurf speichern" %}</button>
       </div>
     </section>
 

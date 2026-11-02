@@ -3,11 +3,12 @@
 работают при любых подсказках. Без JS блок показывает серверные подсказки (правка),
 кнопка проверки требует JS. План — docs/d2-ai-text-check-plan-2026-10-17.md §5.{% endcomment %}
 <div class="ui-card p-4 space-y-2" data-text-check data-url="{% if text_check_url %}{{ text_check_url }}{% else %}{% url 'promotions:promotion-text-check' %}{% endif %}" data-error="{% trans 'Die Prüfung ist gerade nicht verfügbar.' %}" data-base="{{ text_check_base|default:'de' }}">
-  <div class="flex items-center justify-between gap-2">
+  {# Узкий экран (Mini App): заголовок строкой, кнопки строкой под ним; кнопки не переносят текст. #}
+  <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
     <p class="text-sm font-semibold">🔎 {% trans "Vor dem Veröffentlichen prüfen" %}</p>
     <div class="flex flex-wrap gap-2">
-      <button type="button" class="rounded-full border border-gray-300 px-3 py-1 text-xs hover:bg-gray-50" data-tc-run>{% trans "Text prüfen" %}</button>
-      {% if text_check_ai %}<button type="button" class="rounded-full border border-indigo-300 bg-indigo-50 px-3 py-1 text-xs text-indigo-800 hover:bg-indigo-100" data-tc-ai data-url="{% url 'promotions:promotion-text-check-ai' %}" data-quota="{% trans 'Das Limit für KI-Prüfungen ist erreicht. Bitte später erneut versuchen.' %}" data-wait="{% trans 'KI prüft den Text …' %}">✨ {% trans "Text prüfen lassen" %}</button>{% endif %}
+      <button type="button" class="whitespace-nowrap rounded-full border border-gray-300 px-3 py-1 text-xs hover:bg-gray-50" data-tc-run>{% trans "Text prüfen" %}</button>
+      {% if text_check_ai %}<button type="button" class="whitespace-nowrap rounded-full border border-indigo-300 bg-indigo-50 px-3 py-1 text-xs text-indigo-800 hover:bg-indigo-100" data-tc-ai data-url="{% url 'promotions:promotion-text-check-ai' %}" data-quota="{% trans 'Das Limit für KI-Prüfungen ist erreicht. Bitte später erneut versuchen.' %}" data-wait="{% trans 'KI prüft den Text …' %}">✨ {% trans "Text prüfen lassen" %}</button>{% endif %}
     </div>
   </div>
   <p class="text-xs text-gray-500">{% trans "Automatische Hinweise – keine Rechtsberatung." %}</p>
