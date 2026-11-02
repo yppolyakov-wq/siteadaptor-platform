@@ -149,3 +149,16 @@ def test_seed_legal_docs_creates_honest_texts():
     assert "Termine" in agb  # booking-кит получает §Termine
     ds = LegalDoc.objects.get(kind="datenschutz", locale="de").text
     assert "Bitte passen Sie diesen Text" not in ds  # без placeholder-хинта
+
+
+def test_sp4_legal_screen_in_tabs_all_fields_stay_in_dom():
+    """SP-4 (аудит пространства 2026-11-02): реквизиты и правовые тексты — вкладками
+    вместо стопки ~2300 px; все поля всех вкладок в DOM (Save отправляет всё, W0)."""
+    body = core_views.legal_docs_view(_cab_req()).content.decode()
+    tabs = body.split("data-legal-tabs")[1].split("</div>")[0]
+    for key in ("steuer", "impressum", "datenschutz", "widerruf", "agb"):
+        assert f'data-pf-tab="{key}"' in tabs
+        assert f'data-pf-panel="{key}"' in body
+    assert 'name="vat_id"' in body and 'name="doc_widerruf_de"' in body
+    assert 'data-pf-panel="impressum"' in body.split('class="ui-card p-6 space-y-3 hidden"')[1][:80]
+    assert "max-w-5xl" in body and "max-w-3xl" not in body.split("data-legal-tabs")[0][-2000:]

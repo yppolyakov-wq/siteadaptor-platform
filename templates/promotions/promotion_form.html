@@ -21,7 +21,8 @@
   раскладка = контент широкой колонкой (фото/пресеты/форма с табами/статистика)
   + рейл 340px (статус и переходы / продвижение / Warteliste / QR / каналы) —
   те же классы грида, что у товара и заявки. Формы и эндпоинты не тронуты.{% endcomment %}
-  <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start">
+  {# SP-5: при создании рейл пуст (статус/QR/каналы — только у сохранённой акции) — без него форма на всю ширину. #}
+  <div class="{% if promotion %}lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start{% else %}max-w-4xl{% endif %}" data-promo-form-grid>
   <div class="min-w-0">
   {# FB-5: ряд фото с плиткой «＋ Foto» ПЕРВОЙ — и при создании, и при правке #}
     <div class="ui-card p-4 mb-4">
@@ -102,20 +103,31 @@
     </div>
 
     {# Rabatt: тип, старая/новая цена, %, стиль отображения, Überraschungstüte #}
+    {% comment %}SP-5 (аудит пространства 2026-11-02): парные поля — в две колонки на sm+
+    (старая/новая цена, % / €, начало/конец, количество/лимит, часы окна); одиночные
+    и флажки — во всю ширину. Набор полей и их name прежние (Save не меняется).{% endcomment %}
     <div data-pf-panel="rabatt" class="space-y-3 pt-2 hidden">
-      {% for field in form %}{% if field.name == 'promo_type' or field.name == 'customer_response' or field.name == 'customer_rule' or field.name == 'gift_min_order' or field.name == 'compare_at_price' or field.name == 'discount_percent' or field.name == 'discount_off' or field.name == 'price_override' or field.name == 'discount_style' or field.name == 'is_surprise' or field.name == 'perishable' or field.name == 'coupon_by_email' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% for field in form %}{% if field.name == 'promo_type' or field.name == 'customer_response' or field.name == 'customer_rule' or field.name == 'gift_min_order' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3 items-start">{% for field in form %}{% if field.name == 'compare_at_price' or field.name == 'price_override' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}</div>
+      <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3 items-start">{% for field in form %}{% if field.name == 'discount_percent' or field.name == 'discount_off' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}</div>
+      {% for field in form %}{% if field.name == 'discount_style' or field.name == 'is_surprise' or field.name == 'perishable' or field.name == 'coupon_by_email' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
       {% if form.perishable %}<input type="hidden" name="perishable_present" value="1">{% endif %}
       <input type="hidden" name="coupon_by_email_present" value="1">
       {% comment %}В2: условие цены — «2. Stück −50 %» вместо ложной цены за штуку.{% endcomment %}
-      {% for field in form %}{% if field.name == 'price_condition_kind' or field.name == 'price_condition_n' or field.name == 'price_condition_pay' or field.name == 'price_condition_note' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% for field in form %}{% if field.name == 'price_condition_kind' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3 items-start">{% for field in form %}{% if field.name == 'price_condition_n' or field.name == 'price_condition_pay' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}</div>
+      {% for field in form %}{% if field.name == 'price_condition_note' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
       <input type="hidden" name="price_condition_present" value="1">
     </div>
 
     {# Menge & Zeit #}
     <div data-pf-panel="zeit" class="space-y-3 pt-2 hidden">
-      {% for field in form %}{% if field.name == 'available_quantity' or field.name == 'max_per_customer' or field.name == 'reservation_ttl_hours' or field.name == 'auto_confirm' or field.name == 'starts_at' or field.name == 'ends_at' or field.name == 'recurrence' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3 items-start">{% for field in form %}{% if field.name == 'starts_at' or field.name == 'ends_at' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}</div>
+      <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3 items-start">{% for field in form %}{% if field.name == 'available_quantity' or field.name == 'max_per_customer' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}</div>
+      {% for field in form %}{% if field.name == 'reservation_ttl_hours' or field.name == 'auto_confirm' or field.name == 'recurrence' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
       {% comment %}KA-12 GA-8: окно действия (дни недели и часы) — Mittagstisch Mo–Fr.{% endcomment %}
-      {% for field in form %}{% if field.name == 'rule_weekdays' or field.name == 'rule_hour_from' or field.name == 'rule_hour_to' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% for field in form %}{% if field.name == 'rule_weekdays' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3 items-start">{% for field in form %}{% if field.name == 'rule_hour_from' or field.name == 'rule_hour_to' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}</div>
       <input type="hidden" name="rules_present" value="1">
     </div>
 

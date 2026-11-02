@@ -791,6 +791,26 @@ def _seats_or_none(raw, current=None):
     return value or None
 
 
+def _back_to_resource(request):
+    """SP-3: после сохранения — обратно к ТОЙ ЖЕ раскрытой карточке ресурса (карточки
+    свёрнуты по умолчанию; без этого сохранение «закрывало» то, что правили)."""
+    url = reverse("booking:resources")
+    pk = request.POST.get("resource", "")
+    try:
+        exists = bool(pk) and Resource.objects.filter(pk=pk).exists()
+    except (ValueError, ValidationError):
+        exists = False
+    if exists:
+        return redirect(f"{url}?open={pk}#res-{pk}")
+    return redirect(url)
+
+
+def _open_resource_param(request, resource_list) -> str:
+    """?open=<pk> — только pk существующего ресурса (в шаблон не попадает чужая строка)."""
+    wanted = request.GET.get("open", "")
+    return next((str(r.pk) for r in resource_list if str(r.pk) == wanted), "")
+
+
 @login_required
 def resources(request):
     """Ресурсы + недельные правила + выходные — простые POST-формы."""
@@ -957,18 +977,30 @@ def resources(request):
                 fields.append("photo")
             resource.save(update_fields=fields)
             messages.success(request, _("Profile saved."))
-        return redirect("booking:resources")
+        return _back_to_resource(request)
 
     from apps.core import status_labels, transition_rules
+
+    from . import hours_summary
+
+    resource_list = list(
+        Resource.objects.prefetch_related("rules", "parts").order_by(
+            "-is_active", "sort_order", "name"
+        )
+    )
+    for r in resource_list:
+        # SP-3: сводка часов в заголовке свёрнутой карточки + группы правил.
+        r.rule_groups = hours_summary.rule_groups(r.rules.all())
+        r.hours_summary = hours_summary.summary(r.rule_groups)
 
     return render(
         request,
         "booking/resources.html",
         {
             "nav": "booking-resources",
-            "resources": Resource.objects.prefetch_related("rules", "parts").order_by(
-                "-is_active", "sort_order", "name"
-            ),
+            "resources": resource_list,
+            # SP-3: какую карточку держать раскрытой после сохранения (только наш pk).
+            "open_resource": _open_resource_param(request, resource_list),
             # KA-12 GA-5: столы, из которых собираются комбинации (сами не комбинации).
             "single_tables": Resource.objects.filter(
                 is_active=True,
