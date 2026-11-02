@@ -14,7 +14,7 @@
     {% for sec in form.sections %}
     <section id="sec-{{ sec.key }}" class="ui-card p-4 space-y-3" data-lite-section="{{ sec.key }}">
       <h2 class="text-sm font-semibold">{{ sec.title }}</h2>
-      {% if sec.key == "recht" %}<p class="text-xs text-gray-500">{% trans "Pflichtangaben nach § 5 DDG — daraus entsteht Ihr Impressum." %}</p>{% endif %}
+      {% if sec.key == "recht" %}<p class="text-xs text-gray-500">{% trans "Pflichtangaben nach § 5 DDG — daraus entsteht Ihr Impressum." %}</p>{% if form.legal_locked %}<p class="text-xs text-gray-500" data-legal-locked>{% trans "Rechtliche und steuerliche Angaben ändern Sie nach der Anmeldung per E-Mail." %}</p>{% endif %}{% endif %}
       {% for field in sec.fields %}
         {% if field.is_hidden %}{{ field }}{% elif field.field.widget.input_type == "checkbox" %}
         <div><label class="flex items-center gap-2 text-sm">{% render_field field|a11y %} {{ field.label }}</label>{% include "core/_field_msgs.html" %}</div>

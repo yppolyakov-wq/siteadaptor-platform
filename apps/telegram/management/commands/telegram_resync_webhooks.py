@@ -40,9 +40,25 @@ class Command(BaseCommand):
                     "telegram-webhook", args=[bot.webhook_secret], urlconf="config.urls_tenant"
                 )
                 try:
-                    services.set_webhook(bot.token, url, bot.webhook_secret)
+                    services.set_webhook(bot.token, url, services.header_secret(bot.webhook_secret))
                 except Exception as exc:  # noqa: BLE001 — токен в URL, печатаем только тип
                     errors += 1
                     self.stdout.write(f"error: {tenant.schema_name}: {type(exc).__name__}")
+        # SEC-A4: боты порталов (public) — тот же производный секрет заголовка.
+        from apps.aggregator.models import PortalBot
+
+        for pbot in (
+            PortalBot.objects.filter(is_active=True).exclude(token="").select_related("portal")
+        ):
+            bots += 1
+            if not apply:
+                self.stdout.write(f"would resync portal bot: {pbot.portal.host}")
+                continue
+            url = f"https://{pbot.portal.host}/tg/{pbot.webhook_secret}/"
+            try:
+                services.set_webhook(pbot.token, url, services.header_secret(pbot.webhook_secret))
+            except Exception as exc:  # noqa: BLE001 — токен в URL, печатаем только тип
+                errors += 1
+                self.stdout.write(f"error: portal {pbot.portal.host}: {type(exc).__name__}")
         mode = "applied" if apply else "dry-run"
         self.stdout.write(f"{mode}: bots={bots} errors={errors}")

@@ -154,3 +154,13 @@ def test_deploy_check_requires_secret_in_live_mode(settings):
     assert [e.id for e in checks.stripe_webhook_secret_set(None)] == ["billing.E001"]
     settings.STRIPE_WEBHOOK_SECRET = "whsec_abc"
     assert checks.stripe_webhook_secret_set(None) == []
+
+
+def test_deploy_check_refuses_console_mail_in_production(settings):
+    from apps.billing import checks
+
+    settings.DEBUG = False
+    settings.EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    assert [e.id for e in checks.email_backend_not_console(None)] == ["billing.E002"]
+    settings.EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+    assert checks.email_backend_not_console(None) == []

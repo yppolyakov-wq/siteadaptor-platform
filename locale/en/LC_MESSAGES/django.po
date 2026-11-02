@@ -31411,3 +31411,41 @@ msgstr "Create several things at once — describe them in one sentence"
 #: apps/promotions/public_views.py
 msgid "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."
 msgstr "Your declaration could not be delivered. Please try again or contact us directly."
+
+msgid ""
+"Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse — danach können Sie "
+"einladen."
+msgstr ""
+"Please confirm your email address first — then you can send invitations."
+
+msgid "Das Passwort stimmt nicht."
+msgstr "The password is incorrect."
+
+msgid ""
+"Du hast dich nicht registriert? Dann ignoriere diese Seite — ohne Passwort "
+"wird nichts angelegt."
+msgstr ""
+"You didn't register? Then ignore this page — nothing is created without the "
+"password."
+
+#, python-format
+msgid ""
+"Gib das Passwort ein, das du bei der Registrierung von „%(name)s“ gewählt "
+"hast."
+msgstr "Enter the password you chose when registering “%(name)s”."
+
+msgid ""
+"Rechtliche und steuerliche Angaben ändern Sie nach der Anmeldung per E-Mail."
+msgstr "You can change legal and tax details after signing in by email."
+
+msgid "Registrierung abschließen"
+msgstr "Complete registration"
+
+msgid "Website anlegen"
+msgstr "Create website"
+
+msgid ""
+"Gerade melden sich sehr viele an. Bitte versuchen Sie es in einer Stunde "
+"erneut."
+msgstr ""
+"A lot of people are signing up right now. Please try again in an hour."

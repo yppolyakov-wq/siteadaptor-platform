@@ -124,20 +124,23 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
     # зачисления денег (`payment_status=unpaid`), сами деньги — `async_payment_succeeded`.
     # `deal_balance` разбирает это сам (mark_balance_paid проверяет payment_status).
     if kind and kind != "deal_balance" and (kind in CONNECT_KINDS or kind == "featured"):
+        from apps.core import payment_holds
+
         if event_type == "checkout.session.async_payment_succeeded":
             event_type = "checkout.session.completed"
+            payment_holds.clear_in_flight(meta)
         elif event_type == "checkout.session.async_payment_failed":
-            # Деньги не пришли: сделку снимет удержание (expire_overdue), оплату не ставим.
+            # Деньги не пришли: место держим ещё час (оплата картой), дальше сделку снимет
+            # удержание (expire_overdue). Оплату не ставим.
             logger.warning("stripe webhook %s: async payment failed %s", kind, meta)
+            payment_holds.release_after_failed(meta)
             return
         elif event_type == "checkout.session.completed" and (
             obj.get("payment_status") not in PAID_STATUSES
         ):
             logger.info("stripe webhook %s: payment pending (%s)", kind, obj.get("payment_status"))
             # Ревью волны 1 (M3): пока деньги в пути, удержание не снимает сделку.
-            from apps.core.payment_holds import hold_while_processing
-
-            hold_while_processing(meta)
+            payment_holds.hold_while_processing(meta)
             return
 
     # Разовый платёж за продвижение листинга (P2.4b) — не подписка: ставим срок
@@ -306,6 +309,11 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
         return
 
     if event_type == "checkout.session.completed":
+        # SEC-D3 (ревью волны 1): подписка по SEPA — после зачисления; включает её
+        # customer.subscription.updated (status=active), а не завершённый Checkout.
+        if obj.get("payment_status") not in PAID_STATUSES:
+            logger.info("stripe webhook subscription: payment pending — waiting")
+            return
         services.activate_subscription(tenant)
     elif event_type == "invoice.payment_failed":
         services.mark_past_due(tenant)

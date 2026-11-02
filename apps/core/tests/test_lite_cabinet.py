@@ -149,3 +149,26 @@ def test_lite_requests_list_shows_jobs_and_hides_without_module(user):
     assert "lite-requests" not in [i["url_name"] for i in modules.sidebar_nav(t)]
     with pytest.raises(Http404):
         lite_cabinet.lite_requests(_req("get", "/dashboard/anfragen/", user, t))
+
+
+def test_telegram_session_cannot_change_tax_or_legal(user, monkeypatch):
+    """SEC-A11: 12-часовая сессия Mini App не меняет налоговый режим и Impressum."""
+    from apps.core import tg_login
+
+    t = _tenant("lc-tg-legal")
+    t.vat_id = "DE111111111"
+    t.save()
+    monkeypatch.setattr(tg_login, "is_tg_session", lambda request: True)
+    data = {
+        "name": "Krume",
+        "address": "Kölner Straße 64, 42651 Solingen",
+        "contact_phone": "0212 123456",
+        "contact_email": "info@krume.example.com",
+        "vat_id": "DE999999999",
+        "tax_choice": "ist",
+    }
+    resp = lite_cabinet.lite_business(_req("post", "/dashboard/geschaeft/", user, t, data))
+    assert resp.status_code == 302
+    t.refresh_from_db()
+    assert t.vat_id == "DE111111111"
+    assert t.address == "Kölner Straße 64, 42651 Solingen"  # контакты — можно

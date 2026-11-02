@@ -31677,3 +31677,42 @@ msgstr "Створити кілька позицій одразу — опиші
 #: apps/promotions/public_views.py
 msgid "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."
 msgstr "Не вдалося передати заяву. Спробуйте ще раз або напишіть нам безпосередньо."
+
+msgid ""
+"Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse — danach können Sie "
+"einladen."
+msgstr ""
+"Спершу підтвердьте адресу електронної пошти — після цього можна запрошувати."
+
+msgid "Das Passwort stimmt nicht."
+msgstr "Неправильний пароль."
+
+msgid ""
+"Du hast dich nicht registriert? Dann ignoriere diese Seite — ohne Passwort "
+"wird nichts angelegt."
+msgstr ""
+"Ви не реєструвалися? Тоді просто закрийте цю сторінку — без пароля нічого не"
+" створюється."
+
+#, python-format
+msgid ""
+"Gib das Passwort ein, das du bei der Registrierung von „%(name)s“ gewählt "
+"hast."
+msgstr "Введіть пароль, який ви обрали під час реєстрації «%(name)s»."
+
+msgid ""
+"Rechtliche und steuerliche Angaben ändern Sie nach der Anmeldung per E-Mail."
+msgstr ""
+"Юридичні та податкові дані змінюються після входу через електронну пошту."
+
+msgid "Registrierung abschließen"
+msgstr "Завершити реєстрацію"
+
+msgid "Website anlegen"
+msgstr "Створити сайт"
+
+msgid ""
+"Gerade melden sich sehr viele an. Bitte versuchen Sie es in einer Stunde "
+"erneut."
+msgstr ""
+"Зараз реєструється дуже багато людей. Спробуйте, будь ласка, за годину."

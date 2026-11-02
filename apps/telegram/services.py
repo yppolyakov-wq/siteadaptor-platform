@@ -41,6 +41,41 @@ class TelegramAPIError(requests.RequestException):
         self.request = None
 
 
+def header_secret(path_secret: str) -> str:
+    """SEC-A4 (аудит 2026-11-01): секрет заголовка X-Telegram-Bot-Api-Secret-Token —
+    производный от секрета пути, а не он сам. Путь вебхука виден в логах прокси/404;
+    раньше этого было достаточно, чтобы подделать запрос от Telegram."""
+    import base64
+    import hashlib
+    import hmac
+
+    from django.conf import settings
+
+    digest = hmac.new(
+        settings.SECRET_KEY.encode("utf-8"),
+        b"tg-webhook-header:" + str(path_secret or "").encode("utf-8"),
+        hashlib.sha256,
+    ).digest()
+    return base64.urlsafe_b64encode(digest).decode("ascii").rstrip("=")
+
+
+def header_ok(header: str, path_secret: str) -> bool:
+    """Заголовок вебхука верен: производный секрет; до перерегистрации вебхуков
+    (`telegram_resync_webhooks --apply`) — и прежний (= путь), пока включён
+    `TELEGRAM_WEBHOOK_LEGACY_HEADER`."""
+    import hmac
+
+    from django.conf import settings
+
+    got = str(header or "").encode("utf-8")
+    if not path_secret or not got:
+        return False
+    if hmac.compare_digest(got, header_secret(path_secret).encode("utf-8")):
+        return True
+    legacy = getattr(settings, "TELEGRAM_WEBHOOK_LEGACY_HEADER", True)
+    return bool(legacy) and hmac.compare_digest(got, str(path_secret).encode("utf-8"))
+
+
 def _endpoint(token: str, method: str) -> str:
     return f"{_API}/bot{token}/{method}"
 

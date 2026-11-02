@@ -31504,3 +31504,37 @@ msgstr "Mehreres auf einmal anlegen — in einem Satz beschreiben"
 #: apps/promotions/public_views.py
 msgid "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."
 msgstr "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."
+
+msgid ""
+"Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse — danach können Sie "
+"einladen."
+msgstr ""
+
+msgid "Das Passwort stimmt nicht."
+msgstr ""
+
+msgid ""
+"Du hast dich nicht registriert? Dann ignoriere diese Seite — ohne Passwort "
+"wird nichts angelegt."
+msgstr ""
+
+#, python-format
+msgid ""
+"Gib das Passwort ein, das du bei der Registrierung von „%(name)s“ gewählt "
+"hast."
+msgstr ""
+
+msgid ""
+"Rechtliche und steuerliche Angaben ändern Sie nach der Anmeldung per E-Mail."
+msgstr ""
+
+msgid "Registrierung abschließen"
+msgstr ""
+
+msgid "Website anlegen"
+msgstr ""
+
+msgid ""
+"Gerade melden sich sehr viele an. Bitte versuchen Sie es in einer Stunde "
+"erneut."
+msgstr ""

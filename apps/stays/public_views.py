@@ -835,7 +835,7 @@ def stay_pay(request, code):
         return HttpResponse(status=429)
     booking = get_object_or_404(StayBooking, reference_code=code)
     tenant = getattr(request, "tenant", None)
-    from apps.core import balance_pay
+    from apps.core import balance_pay, payment_holds
 
     rest = balance_pay.redirect_to_checkout(request, "stay", booking)  # KA-12 E1.11
     if rest is not None:
@@ -844,6 +844,8 @@ def stay_pay(request, code):
         booking.payment_state == StayBooking.PAYMENT_PENDING
         and booking.deposit_cents > 0
         and booking.arrival >= timezone.localdate()
+        # SEC-D3/D6 (ревью волны 1): не отменена и SEPA-оплата не в пути.
+        and payment_holds.payable("stay", booking, tenant)
         and getattr(tenant, "payments_enabled", False)
         and connect.is_connect_configured()
     )
@@ -918,12 +920,26 @@ def unterkunft_cancel(request, token):
     state = services.cancellation_state(booking)
 
     if request.method == "POST" and state["can_cancel"]:
+        from django.db import transaction
+
         from apps.core.fsm import IllegalTransition
 
         from .state_machine import StayBookingSM
 
+        # SEC (ревью волны 1): право на отмену и бесплатность — заново под блокировкой
+        # строки. Иначе гость отменял уже отменённую владельцем бронь («nicht
+        # erstatten»), переход был no-op, а возврат депозита всё равно уходил.
         try:
-            StayBookingSM().apply(booking, "cancelled")
+            with transaction.atomic():
+                booking = (
+                    StayBooking.objects.select_for_update(of=("self",))
+                    .select_related("unit")
+                    .get(pk=booking.pk)
+                )
+                state = services.cancellation_state(booking)
+                if not state["can_cancel"]:
+                    raise IllegalTransition("StayBooking", booking.status, "cancelled")
+                StayBookingSM().apply(booking, "cancelled")
         except IllegalTransition:
             messages.error(request, _("This booking can no longer be cancelled."))
             return redirect(reverse("storefront-stay-cancel", args=[token]))

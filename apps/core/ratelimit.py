@@ -18,6 +18,23 @@ def client_ip(request) -> str:
     return request.META.get("REMOTE_ADDR", "") or ""
 
 
+def client_net(request) -> str:
+    """SEC-B-H1: сеть клиента для лимитов регистрации. IPv6 — префикс /64 (один абонент
+    получает целую /64 и меняет адреса внутри неё бесплатно), IPv4 — сам адрес."""
+    import ipaddress
+
+    raw = client_ip(request)
+    try:
+        addr = ipaddress.ip_address(raw)
+    except ValueError:
+        return raw
+    if addr.version == 6:
+        if addr.ipv4_mapped:
+            return str(addr.ipv4_mapped)
+        return str(ipaddress.ip_network(f"{addr}/64", strict=False))
+    return str(addr)
+
+
 def hit(scope: str, ident: str, *, limit: int, window: int) -> bool:
     """Зарегистрировать попытку; True — лимит превышен (запрос надо отклонить)."""
     key = f"rl:{scope}:{ident}"

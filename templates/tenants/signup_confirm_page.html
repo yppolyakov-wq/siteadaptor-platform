@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Registrierung abschließen" %} · SiteAdaptor{% endblock %}
+
+{% block body %}
+{% comment %}SEC-B-M2: подтверждение регистрации — только по POST с паролем регистрации.{% endcomment %}
+<div class="min-h-screen flex items-center justify-center px-4">
+  <div class="max-w-md w-full bg-white rounded-2xl shadow-sm p-8">
+    <h1 class="text-2xl font-bold mb-2">{% trans "Registrierung abschließen" %}</h1>
+    <p class="text-gray-600 mb-6">{% blocktrans with name=signup.business_name %}Gib das Passwort ein, das du bei der Registrierung von „{{ name }}“ gewählt hast.{% endblocktrans %}</p>
+    {% if error == "password" %}
+      <p class="mb-4 rounded-lg bg-red-50 text-red-700 px-3 py-2 text-sm" role="alert">{% trans "Das Passwort stimmt nicht." %}</p>
+    {% elif error == "ratelimit" %}
+      <p class="mb-4 rounded-lg bg-red-50 text-red-700 px-3 py-2 text-sm" role="alert">{% trans "Zu viele Versuche. Bitte später erneut." %}</p>
+    {% endif %}
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <label class="block text-sm font-medium text-gray-700" for="signup-confirm-password">{% trans "Passwort" %}</label>
+      <input id="signup-confirm-password" type="password" name="password" required autocomplete="current-password" class="block w-full rounded-lg border-gray-300 text-base">
+      <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm hover:bg-indigo-700">{% trans "Website anlegen" %}</button>
+    </form>
+    <p class="mt-6 text-xs text-gray-500">{% trans "Du hast dich nicht registriert? Dann ignoriere diese Seite — ohne Passwort wird nichts angelegt." %}</p>
+  </div>
+</div>
+{% endblock %}

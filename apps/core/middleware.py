@@ -478,3 +478,65 @@ class LegacyRedirectMiddleware:
             response.status_code = 410
             return response
         return HttpResponsePermanentRedirect(rule.target)
+
+
+class AdminGuardMiddleware:
+    """SEC-C-M4 (аудит 2026-11-01): админка платформы `/admin/`.
+
+    - Лимит попыток входа по сети клиента (IPv6 — /64): `ADMIN_LOGIN_RATE` (10 за 15 мин).
+    - Опционально — только из своих сетей: `ADMIN_ALLOWED_NETWORKS` (CIDR через запятую).
+      Вне списка — 404, как будто админки нет. Пусто — без ограничения по сети.
+    Работает только на public-схеме: у бизнесов `/admin/` нет вовсе.
+    """
+
+    LOGIN_PATH = "/admin/login/"
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.path.startswith("/admin/") and _is_public(request):
+            blocked = self._blocked(request)
+            if blocked is not None:
+                return blocked
+        return self.get_response(request)
+
+    def _blocked(self, request):
+        from django.conf import settings
+        from django.http import Http404, HttpResponse
+
+        from apps.core import ratelimit
+
+        if not _ip_allowed(ratelimit.client_ip(request), settings.ADMIN_ALLOWED_NETWORKS):
+            raise Http404
+        if request.method == "POST" and request.path == self.LOGIN_PATH:
+            limit, window = settings.ADMIN_LOGIN_RATE
+            if ratelimit.hit(
+                "admin-login", ratelimit.client_net(request), limit=limit, window=window
+            ):
+                return HttpResponse("Too many attempts", status=429)
+        return None
+
+
+def _is_public(request) -> bool:
+    tenant = getattr(request, "tenant", None)
+    return getattr(tenant, "schema_name", "public") == "public"
+
+
+def _ip_allowed(raw: str, networks) -> bool:
+    import ipaddress
+
+    nets = [n.strip() for n in (networks or []) if n and n.strip()]
+    if not nets:
+        return True
+    try:
+        addr = ipaddress.ip_address(raw)
+    except ValueError:
+        return False
+    for net in nets:
+        try:
+            if addr in ipaddress.ip_network(net, strict=False):
+                return True
+        except ValueError:
+            continue
+    return False

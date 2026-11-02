@@ -119,7 +119,7 @@ def test_processing_payment_extends_hold(calls):
     from apps.billing import webhooks
     from apps.core.payment_holds import PROCESSING_HOLD
 
-    booking = _booking()
+    booking = _future_booking()
     event = _deposit_event(booking, "unpaid")
     event["metadata"]["tenant_schema"] = connection.schema_name
     TenantFactory(schema_name=connection.schema_name, stripe_connect_id="acct_cur")
@@ -127,6 +127,89 @@ def test_processing_payment_extends_hold(calls):
     booking.refresh_from_db()
     assert calls == []
     assert booking.payment_due_at > timezone.now() + PROCESSING_HOLD - timedelta(hours=1)
+
+
+def _future_booking(days=30):
+    from apps.booking.models import Booking
+
+    booking = _booking()
+    start = timezone.now() + timedelta(days=days)
+    Booking.objects.filter(pk=booking.pk).update(start=start, end=start + timedelta(hours=1))
+    booking.refresh_from_db()
+    return booking
+
+
+def _meta(booking):
+    from django.db import connection
+
+    return {
+        "kind": "booking_deposit",
+        "tenant_schema": connection.schema_name,
+        "booking_id": str(booking.id),
+    }
+
+
+def test_processing_hold_is_extended_only_once():
+    """Ревью волны 1: повторная SEPA-сессия / повтор события не продлевает удержание."""
+    from apps.core.payment_holds import hold_while_processing
+
+    booking = _future_booking()
+    now = timezone.now()
+    assert hold_while_processing(_meta(booking), now=now) is True
+    booking.refresh_from_db()
+    first = booking.payment_due_at
+    assert hold_while_processing(_meta(booking), now=now + timedelta(days=5)) is False
+    booking.refresh_from_db()
+    assert booking.payment_due_at == first
+
+
+def test_processing_hold_stops_at_service_start():
+    from apps.core.payment_holds import hold_while_processing
+
+    booking = _future_booking(days=3)
+    hold_while_processing(_meta(booking))
+    booking.refresh_from_db()
+    assert booking.payment_due_at <= booking.start
+
+
+def test_failed_debit_releases_hold_and_reopens_payment():
+    from apps.core import payment_holds
+
+    booking = _future_booking()
+    payment_holds.hold_while_processing(_meta(booking))
+    assert payment_holds.payable("booking", booking) is False  # SEPA в пути
+    payment_holds.release_after_failed(_meta(booking))
+    booking.refresh_from_db()
+    assert booking.payment_due_at <= timezone.now() + payment_holds.FAILED_GRACE
+    assert payment_holds.payable("booking", booking) is True
+
+
+def test_cancelled_deal_is_not_payable():
+    from apps.booking.models import Booking
+    from apps.core import payment_holds
+
+    booking = _future_booking()
+    Booking.objects.filter(pk=booking.pk).update(status=Booking.STATUS_CANCELLED)
+    booking.refresh_from_db()
+    assert payment_holds.payable("booking", booking) is False
+
+
+def test_installment_on_cancelled_ticket_goes_to_late_refund(monkeypatch):
+    """Ревью волны 1: первая доля рассрочки на отменённый билет возвращается."""
+    from django.db import connection
+
+    from apps.events import payments
+    from apps.events.tests.test_b2_6_balance_reminder import _ticket
+
+    ticket = _ticket("pending")
+    seen = []
+    monkeypatch.setattr(
+        payments, "settle_late_payment", lambda kind, obj, newly_paid: seen.append(newly_paid)
+    )
+    schema = connection.schema_name
+    assert payments.create_installment_plan(tenant_schema=schema, ticket_id=str(ticket.id))
+    assert payments.create_installment_plan(tenant_schema=schema, ticket_id=str(ticket.id))
+    assert seen == [True, False]  # повтор вебхука второй раз не возвращает
 
 
 # --- SEC-D3: отложенные способы (SEPA) — оплата только после зачисления ---------------------

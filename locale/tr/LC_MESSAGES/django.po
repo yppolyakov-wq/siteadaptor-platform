@@ -31555,3 +31555,43 @@ msgstr "Birden fazla şeyi tek seferde oluşturun — tek cümleyle anlatın"
 #: apps/promotions/public_views.py
 msgid "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."
 msgstr "Beyanınız iletilemedi. Lütfen tekrar deneyin veya doğrudan bize yazın."
+
+msgid ""
+"Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse — danach können Sie "
+"einladen."
+msgstr ""
+"Lütfen önce e-posta adresinizi onaylayın — ardından davet gönderebilirsiniz."
+
+msgid "Das Passwort stimmt nicht."
+msgstr "Şifre yanlış."
+
+msgid ""
+"Du hast dich nicht registriert? Dann ignoriere diese Seite — ohne Passwort "
+"wird nichts angelegt."
+msgstr ""
+"Kayıt olmadınız mı? O halde bu sayfayı dikkate almayın — şifre olmadan "
+"hiçbir şey oluşturulmaz."
+
+#, python-format
+msgid ""
+"Gib das Passwort ein, das du bei der Registrierung von „%(name)s“ gewählt "
+"hast."
+msgstr "“%(name)s” kaydında seçtiğiniz şifreyi girin."
+
+msgid ""
+"Rechtliche und steuerliche Angaben ändern Sie nach der Anmeldung per E-Mail."
+msgstr ""
+"Yasal ve vergi bilgilerini e-posta ile giriş yaptıktan sonra "
+"değiştirebilirsiniz."
+
+msgid "Registrierung abschließen"
+msgstr "Kaydı tamamla"
+
+msgid "Website anlegen"
+msgstr "Web sitesi oluştur"
+
+msgid ""
+"Gerade melden sich sehr viele an. Bitte versuchen Sie es in einer Stunde "
+"erneut."
+msgstr ""
+"Şu anda çok fazla kişi kayıt oluyor. Lütfen bir saat sonra tekrar deneyin."

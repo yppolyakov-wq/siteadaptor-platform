@@ -68,13 +68,18 @@ class StateMachine:
         # строки. Иначе две вкладки/двойной клик с одним и тем же устаревшим объектом обе
         # проходили переход и дважды запускали эффекты (возврат денег, сертификата,
         # лимита акции, склада, Stornorechnung).
+        if not self._persisted(instance):
+            return self._apply_locked(instance, dst, actor=actor, **ctx)
         with transaction.atomic():
             self._lock_and_refresh(instance)
             return self._apply_locked(instance, dst, actor=actor, **ctx)
 
+    @staticmethod
+    def _persisted(instance) -> bool:
+        state = getattr(instance, "_state", None)
+        return state is not None and not state.adding and getattr(instance, "pk", None) is not None
+
     def _lock_and_refresh(self, instance):
-        if instance.pk is None or instance._state.adding:
-            return
         current = (
             type(instance)
             ._base_manager.select_for_update()

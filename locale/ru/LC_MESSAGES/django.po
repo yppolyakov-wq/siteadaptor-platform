@@ -31693,3 +31693,42 @@ msgstr "Создать несколько позиций сразу — опиш
 #: apps/promotions/public_views.py
 msgid "Die Erklärung konnte nicht übermittelt werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt."
 msgstr "Не удалось передать заявление. Попробуйте ещё раз или напишите нам напрямую."
+
+msgid ""
+"Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse — danach können Sie "
+"einladen."
+msgstr ""
+"Сначала подтвердите адрес электронной почты — после этого можно приглашать."
+
+msgid "Das Passwort stimmt nicht."
+msgstr "Неверный пароль."
+
+msgid ""
+"Du hast dich nicht registriert? Dann ignoriere diese Seite — ohne Passwort "
+"wird nichts angelegt."
+msgstr ""
+"Вы не регистрировались? Тогда просто закройте эту страницу — без пароля "
+"ничего не создаётся."
+
+#, python-format
+msgid ""
+"Gib das Passwort ein, das du bei der Registrierung von „%(name)s“ gewählt "
+"hast."
+msgstr "Введите пароль, который вы выбрали при регистрации «%(name)s»."
+
+msgid ""
+"Rechtliche und steuerliche Angaben ändern Sie nach der Anmeldung per E-Mail."
+msgstr ""
+"Юридические и налоговые данные меняются после входа по электронной почте."
+
+msgid "Registrierung abschließen"
+msgstr "Завершить регистрацию"
+
+msgid "Website anlegen"
+msgstr "Создать сайт"
+
+msgid ""
+"Gerade melden sich sehr viele an. Bitte versuchen Sie es in einer Stunde "
+"erneut."
+msgstr ""
+"Сейчас регистрируется очень много людей. Попробуйте, пожалуйста, через час."

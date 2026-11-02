@@ -1836,7 +1836,7 @@ def termin_pay(request, code):
         return HttpResponse(status=429)
     booking = get_object_or_404(Booking, reference_code=code)
     tenant = getattr(request, "tenant", None)
-    from apps.core import balance_pay
+    from apps.core import balance_pay, payment_holds
 
     rest = balance_pay.redirect_to_checkout(request, "booking", booking)  # KA-12 E1.11
     if rest is not None:
@@ -1845,6 +1845,8 @@ def termin_pay(request, code):
         booking.payment_state == Booking.PAYMENT_PENDING
         and booking.deposit_cents > 0
         and booking.start > timezone.now()
+        # SEC-D3/D6 (ревью волны 1): не отменена и SEPA-оплата не в пути.
+        and payment_holds.payable("booking", booking, tenant)
         and getattr(tenant, "payments_enabled", False)
         and connect.is_connect_configured()
     )

@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
-from django.db import transaction
+from django.db import connection, transaction
 from django.utils import timezone
 
 from apps.core import money_contract, status_registry, transactions
@@ -131,34 +131,147 @@ _PROCESSING_KINDS = {
 }
 
 
-def hold_while_processing(meta: dict, *, now=None) -> bool:
-    """SEC-D3: Checkout завершён, а деньги ещё в пути (SEPA). Сделку не снимаем по
-    сроку онлайн-оплаты: срок удержания продлевается до `PROCESSING_HOLD`. Иначе
-    `expire_overdue` отменял бронь через сутки, а пришедшая через три дня оплата
-    возвращалась клиенту. True — сделка найдена и срок продлён."""
+def _inflight_key(schema: str, kind: str, deal_id: str) -> str:
+    return f"pay-inflight:{schema}:{kind}:{deal_id}"
+
+
+def _processing_target(meta: dict):
     spec = _PROCESSING_KINDS.get(str(meta.get("kind") or ""))
     schema = str(meta.get("tenant_schema") or "")
     if spec is None or not schema:
-        return False
+        return None
     kind, key = spec
     deal_id = str(meta.get(key) or "")
     model = transactions.model_for(kind)
     if model is None or not deal_id:
+        return None
+    return schema, kind, deal_id, model
+
+
+def _service_start(kind: str, obj):
+    """Начало услуги: удержание не держит место дольше, чем есть смысл."""
+    from datetime import datetime, time
+
+    if kind == "stay" and getattr(obj, "arrival", None):
+        return timezone.make_aware(datetime.combine(obj.arrival, time.min))
+    if kind == "booking":
+        return getattr(obj, "start", None)
+    if kind == "ticket":
+        return getattr(getattr(obj, "event", None), "starts_at", None)
+    return None
+
+
+def hold_while_processing(meta: dict, *, now=None) -> bool:
+    """SEC-D3: Checkout завершён, а деньги ещё в пути (SEPA). Сделку не снимаем по
+    сроку онлайн-оплаты: срок продлевается до `PROCESSING_HOLD`, но не дальше начала
+    услуги. Иначе `expire_overdue` отменял бронь через сутки, а пришедшая через три
+    дня оплата возвращалась клиенту.
+
+    Ревью волны 1: продлевается ОДИН раз — только обычное суточное удержание (повторная
+    SEPA-сессия или повтор события Stripe срок не двигают), а пока деньги в пути,
+    повторная оплата закрыта (`payment_in_flight`). True — срок продлён."""
+    target = _processing_target(meta)
+    if target is None:
         return False
+    schema, kind, deal_id, model = target
+    from django.core.cache import cache
     from django.core.exceptions import ValidationError
     from django_tenants.utils import schema_context
 
-    due = (now or timezone.now()) + PROCESSING_HOLD
+    now = now or timezone.now()
+    due = now + PROCESSING_HOLD
+    try:
+        with schema_context(schema), transaction.atomic():
+            obj = (
+                model.objects.select_for_update()
+                .filter(pk=deal_id, payment_state__in=_UNPAID[kind])
+                .first()
+            )
+            if obj is None:
+                return False
+            current = obj.payment_due_at
+            if current is not None and current > now + ONLINE_HOLD + SESSION_MARGIN:
+                return False  # уже продлено (или длинное удержание Vorkasse/счёта)
+            start = _service_start(kind, obj)
+            if start is not None:
+                due = min(due, start)
+            if current is not None and due <= current:
+                return False
+            model.objects.filter(pk=obj.pk).update(payment_due_at=due)
+    except (ValidationError, ValueError):
+        return False
+    try:
+        cache.set(_inflight_key(schema, kind, deal_id), 1, int(PROCESSING_HOLD.total_seconds()))
+    except Exception:  # noqa: BLE001 — кэш недоступен: продление срока уже записано
+        logger.warning("payment-hold: in-flight marker not stored")
+    return True
+
+
+#: SEC-D3: после неудачного SEPA-списания — время на оплату другим способом.
+FAILED_GRACE = timedelta(hours=1)
+
+
+def release_after_failed(meta: dict, *, now=None) -> bool:
+    """SEC-D3 (ревью волны 1): списание не прошло — место больше не держим 14 дней.
+    Срок удержания — через час (клиент успеет заплатить картой), дальше сделку снимает
+    `expire_overdue`."""
+    target = _processing_target(meta)
+    if target is None:
+        return False
+    schema, kind, deal_id, model = target
+    from django.core.cache import cache
+    from django.core.exceptions import ValidationError
+    from django_tenants.utils import schema_context
+
+    due = (now or timezone.now()) + FAILED_GRACE
     try:
         with schema_context(schema):
             updated = (
                 model.objects.filter(pk=deal_id, payment_state__in=_UNPAID[kind])
-                .exclude(payment_due_at__gt=due)
+                .filter(payment_due_at__gt=due)
                 .update(payment_due_at=due)
             )
     except (ValidationError, ValueError):
         return False
+    try:
+        cache.delete(_inflight_key(schema, kind, deal_id))
+    except Exception:  # noqa: BLE001
+        pass
     return bool(updated)
+
+
+def clear_in_flight(meta: dict) -> None:
+    """Деньги пришли (или окончательно нет) — повторная оплата снова доступна."""
+    target = _processing_target(meta)
+    if target is None:
+        return
+    schema, kind, deal_id, _model = target
+    from django.core.cache import cache
+
+    try:
+        cache.delete(_inflight_key(schema, kind, deal_id))
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def payment_in_flight(kind: str, obj) -> bool:
+    """SEC-D3 (ревью волны 1): SEPA-оплата сделки ещё в пути — повторная онлайн-оплата
+    закрыта, иначе клиент платил бы картой второй раз и обе оплаты проходили."""
+    from django.core.cache import cache
+
+    try:
+        return bool(cache.get(_inflight_key(connection.schema_name, kind, str(obj.pk))))
+    except Exception:  # noqa: BLE001 — кэш недоступен: не блокируем оплату
+        return False
+
+
+def payable(kind: str, obj, tenant=None) -> bool:
+    """Сделку можно оплатить онлайн: она не отменена и оплата не в пути (ревью волны 1:
+    страница «Jetzt bezahlen» по отменённой брони создавала сессию Stripe, а
+    автовозврат стоил бизнесу комиссию)."""
+    if getattr(obj, "status", "") in status_registry.cancelled_statuses_for(kind, tenant):
+        return False
+    return not payment_in_flight(kind, obj)
 
 
 def settle_late_payment(kind: str, obj, *, newly_paid: bool) -> None:
@@ -169,18 +282,18 @@ def settle_late_payment(kind: str, obj, *, newly_paid: bool) -> None:
     `newly_paid` — именно этот вебхук перевёл оплату в «оплачено». Повтор вебхука по
     уже оплаченной сделке (Stripe повторяет доставку) НЕ возвращает: владелец мог
     отменить с «nicht erstatten» (KA-D3) — деньги остаются по его решению."""
-    from django.db import connection
-
     from apps.core import refunds
 
     if not newly_paid:
         return
-    # Статус — из БД: снятие удержания могло пройти между загрузкой и сохранением.
-    obj.refresh_from_db(fields=["status"])
-    if getattr(obj, "status", "") not in status_registry.cancelled_statuses_for(kind):
-        return
     from django_tenants.utils import get_tenant_model
 
+    # Ревью волны 1: тенант — ДО проверки статуса, иначе свои статусы отмены (SM-3) под
+    # schema_context не видны и поздняя оплата отменённой сделки оставалась у бизнеса.
     tenant = get_tenant_model().objects.filter(schema_name=connection.schema_name).first()
+    # Статус — из БД: снятие удержания могло пройти между загрузкой и сохранением.
+    obj.refresh_from_db(fields=["status"])
+    if getattr(obj, "status", "") not in status_registry.cancelled_statuses_for(kind, tenant):
+        return
     result = refunds.refund_payment(kind, obj, tenant)
     logger.warning("late payment on cancelled %s %s → %s", kind, obj.pk, result)

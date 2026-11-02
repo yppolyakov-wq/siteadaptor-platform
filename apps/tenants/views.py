@@ -109,7 +109,7 @@ class BusinessSignupView(View):
         if signup.confirmation_enabled():
             # AB5.1: double-opt-in — тенант появится только после клика по ссылке
             # из письма (план signup-confirm-wizard-plan-2026-07-17 §1).
-            if ratelimit.hit("signup", ratelimit.client_ip(request), limit=5, window=3600):
+            if ratelimit.hit("signup", ratelimit.client_net(request), limit=5, window=3600):
                 form.add_error(None, _("Zu viele Versuche. Bitte später erneut."))
                 return render(request, self.template_name, self._context(form, request))
             req = signup.create_request(
@@ -214,11 +214,48 @@ def _signup_error(request, reason, status, signup_req=None):
     )
 
 
+def _confirm_page(request, signup_req, *, error="", status=200):
+    """SEC-B-M2: экран подтверждения регистрации (пароль + кнопка)."""
+    return render(
+        request,
+        "tenants/signup_confirm_page.html",
+        {"signup": signup_req, "error": error, "ui_languages": ui_languages()},
+        status=status,
+    )
+
+
 def signup_confirm(request, token):
     """AB5.1: клик по ссылке из письма — единственная точка, где создаётся бизнес.
 
     Идемпотентно (повторный клик → waiting-страница его тенанта); гонка
-    двойного клика закрыта select_for_update на заявке."""
+    двойного клика закрыта select_for_update на заявке.
+
+    SEC-B-M2 (аудит 2026-11-01): GET бизнес не создаёт — показывает экран «Registrierung
+    abschließen» с полем пароля (сканеры ссылок в почте больше не подтверждают за
+    человека). POST подтверждает только с паролем, заданным при регистрации: так
+    завершить регистрацию может лишь тот, у кого есть и почта, и пароль. Иначе чужой
+    человек регистрировал бизнес на ваш адрес со своим паролем, вы кликали ссылку —
+    и он входил в аккаунт с вашей почтой.
+    SEC-G16: хэш пароля в заявке после подтверждения стирается."""
+    from django.contrib.auth.hashers import check_password
+
+    if request.method != "POST":
+        signup_req = SignupRequest.objects.filter(token=token).first()
+        if signup_req is None:
+            return _signup_error(request, "invalid", 404)
+        if signup_req.is_confirmed:
+            if signup_req.tenant_id:
+                return redirect("signup-waiting", slug=signup_req.tenant.slug)
+            return _signup_error(request, "invalid", 410)
+        if signup_req.is_expired:
+            return _signup_error(request, "expired", 410, signup_req)
+        return _confirm_page(request, signup_req)
+
+    if ratelimit.hit("signup-confirm", token[:64], limit=10, window=600):
+        signup_req = SignupRequest.objects.filter(token=token).first()
+        if signup_req is None:
+            return _signup_error(request, "invalid", 404)
+        return _confirm_page(request, signup_req, error="ratelimit", status=429)
     with transaction.atomic():
         signup_req = SignupRequest.objects.select_for_update().filter(token=token).first()
         if signup_req is None:
@@ -232,6 +269,9 @@ def signup_confirm(request, token):
         # Заявка slug не резервирует — между POST и кликом его могли занять.
         if signup.slug_taken(signup_req.slug):
             return _signup_error(request, "slug_taken", 409, signup_req)
+        password = request.POST.get("password", "")
+        if not signup_req.password_hash or not check_password(password, signup_req.password_hash):
+            return _confirm_page(request, signup_req, error="password", status=403)
         tenant = start_business_provisioning(
             business_name=signup_req.business_name,
             slug=signup_req.slug,
@@ -243,7 +283,8 @@ def signup_confirm(request, token):
         )
         signup_req.confirmed_at = timezone.now()
         signup_req.tenant = tenant
-        signup_req.save(update_fields=["confirmed_at", "tenant"])
+        signup_req.password_hash = ""  # SEC-G16: хэш ушёл в провижининг, хранить незачем
+        signup_req.save(update_fields=["confirmed_at", "tenant", "password_hash"])
     return redirect("signup-waiting", slug=tenant.slug)
 
 

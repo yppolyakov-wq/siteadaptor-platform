@@ -25,3 +25,37 @@ def stripe_webhook_secret_set(app_configs, **kwargs):
             id="billing.E001",
         )
     ]
+
+
+@register(Tags.security, deploy=True)
+def email_backend_not_console(app_configs, **kwargs):
+    """SEC (ревью аудита, SM13): с консольным почтовым бэкендом страница «проверьте
+    почту» показывает ссылку подтверждения прямо в браузере (`signup.show_direct_link`) —
+    в проде так любой подтверждает регистрацию на чужой адрес без доступа к почте."""
+    backend = getattr(settings, "EMAIL_BACKEND", "") or ""
+    if getattr(settings, "DEBUG", False) or "console" not in backend:
+        return []
+    return [
+        Error(
+            "EMAIL_BACKEND — консольный при DEBUG=False.",
+            hint="Задать RESEND_API_KEY (anymail) или SMTP в .env.prod.",
+            id="billing.E002",
+        )
+    ]
+
+
+@register(Tags.security, deploy=True)
+def telegram_legacy_webhook_header(app_configs, **kwargs):
+    """SEC-A4: пока принимается прежний заголовок вебхука (= секрет пути), знание пути
+    из логов позволяет подделать запрос от Telegram. Напоминание для ops."""
+    from django.core.checks import Warning as CheckWarning
+
+    if not getattr(settings, "TELEGRAM_WEBHOOK_LEGACY_HEADER", True):
+        return []
+    return [
+        CheckWarning(
+            "TELEGRAM_WEBHOOK_LEGACY_HEADER=True: Telegram-вебхуки принимают прежний заголовок.",
+            hint="manage.py telegram_resync_webhooks --apply, затем TELEGRAM_WEBHOOK_LEGACY_HEADER=False.",
+            id="billing.W001",
+        )
+    ]

@@ -68,7 +68,7 @@ def connect(request):
     if base:
         url = base + reverse("telegram-webhook", args=[bot.webhook_secret])
         try:
-            services.set_webhook(token, url, bot.webhook_secret)
+            services.set_webhook(token, url, services.header_secret(bot.webhook_secret))
             bot.is_active = True
             bot.save(update_fields=["is_active", "updated_at"])
             messages.success(request, _("Telegram bot connected."))

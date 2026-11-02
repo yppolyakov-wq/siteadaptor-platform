@@ -39,9 +39,35 @@ def _post_signup(data=None, **extra):
     return views.BusinessSignupView.as_view()(request)
 
 
-def _confirm(token):
+def _confirm(token, password=FORM["password1"]):
+    # SEC-B-M2: подтверждает POST с паролем регистрации (GET — только экран).
+    request = RequestFactory().post(f"/registrieren/bestaetigen/{token}/", {"password": password})
+    return views.signup_confirm(request, token=token)
+
+
+def _confirm_get(token):
     request = RequestFactory().get(f"/registrieren/bestaetigen/{token}/")
     return views.signup_confirm(request, token=token)
+
+
+def test_get_shows_confirm_page_without_creating_business():
+    _post_signup()
+    req = SignupRequest.objects.get(email=FORM["email"])
+    response = _confirm_get(req.token)
+    assert response.status_code == 200 and 'name="password"' in response.content.decode()
+    assert not Tenant.objects.filter(slug=FORM["slug"]).exists()
+
+
+def test_wrong_password_does_not_confirm():
+    """SEC-B-M2: чужой зарегистрировал бизнес на ваш адрес со своим паролем — вы его
+    не знаете, подтвердить и тем самым отдать ему аккаунт с вашей почтой нельзя."""
+    _post_signup()
+    req = SignupRequest.objects.get(email=FORM["email"])
+    response = _confirm(req.token, password="falsch")
+    assert response.status_code == 403
+    assert not Tenant.objects.filter(slug=FORM["slug"]).exists()
+    req.refresh_from_db()
+    assert not req.is_confirmed
 
 
 def _cleanup_tenant(slug):
@@ -75,6 +101,7 @@ def test_confirm_provisions_and_is_idempotent():
         assert Domain.objects.filter(tenant=tenant, is_primary=True).exists()
         req.refresh_from_db()
         assert req.is_confirmed and req.tenant_id == tenant.pk
+        assert req.password_hash == ""  # SEC-G16: хэш не хранится после подтверждения
 
         # Повторный клик — идемпотентно: тот же редирект, второго тенанта нет.
         again = _confirm(req.token)

@@ -138,6 +138,13 @@ def team_view(request):
         action = request.POST.get("action", "")
         if "team.edit" not in perms:
             messages.error(request, _("Keine Berechtigung."))
+        elif action == "invite" and getattr(request.tenant, "email_pending", False):
+            # SEC-B-M4: до подтверждения почты владельца приглашения не уходят — иначе
+            # платформенный отправитель (Resend) служил бы каналом спама с чужих адресов.
+            messages.error(
+                request,
+                _("Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse — danach können Sie einladen."),
+            )
         elif action == "invite":
             if ratelimit.hit(
                 "team-invite", connection.schema_name, limit=INVITE_RATE[0], window=INVITE_RATE[1]

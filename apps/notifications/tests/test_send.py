@@ -67,3 +67,59 @@ def test_adapter_error_marks_failed(monkeypatch):
     n.refresh_from_db()
     assert n.status == "failed"
     assert "smtp down" in n.last_error
+
+
+# --- SEC (ревью аудита, SM8): упавшее уведомление повторяется -----------------------
+
+
+def test_failed_notification_is_retried_with_backoff(
+    monkeypatch, django_capture_on_commit_callbacks
+):
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.notifications import tasks as ntasks
+
+    sent = []
+    monkeypatch.setattr(ntasks.send_notification, "delay", lambda **kw: sent.append(kw))
+    n = _notif()
+    Notification.objects.filter(pk=n.pk).update(status="failed", attempts=1, last_error="timeout")
+    assert ntasks.retry_failed() == 0  # пауза ещё не прошла
+    later = timezone.now() + timedelta(minutes=11)
+    with django_capture_on_commit_callbacks(execute=True):
+        assert ntasks.retry_failed(now=later) == 1
+    n.refresh_from_db()
+    assert n.status == "pending" and len(sent) == 1
+
+
+def test_permanent_failure_is_not_retried():
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.notifications import tasks as ntasks
+
+    n = _notif()
+    Notification.objects.filter(pk=n.pk).update(
+        status="failed", attempts=1, last_error="telegram sendMessage failed (403)"
+    )
+    assert ntasks.retry_failed(now=timezone.now() + timedelta(hours=2)) == 0
+
+
+def test_old_failures_are_not_resent_after_deploy():
+    """Ревью волны 2: давно упавшие письма не рассылаются заново первым же проходом."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.notifications import tasks as ntasks
+
+    n = _notif()
+    Notification.objects.filter(pk=n.pk).update(
+        status="failed",
+        attempts=1,
+        last_error="timeout",
+        updated_at=timezone.now() - timedelta(days=30),
+    )
+    assert ntasks.retry_failed() == 0

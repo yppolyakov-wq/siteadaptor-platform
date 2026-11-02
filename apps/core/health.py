@@ -9,9 +9,12 @@
 Caddy спрашивает, можно ли выпускать сертификат для домена.
 """
 
+from datetime import timedelta
+
 from django.core.cache import cache
 from django.db import connection
 from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
 
 # Для TLS автоматически авторизуются только корень (+www); поддомены — СТРОГО
 # по таблице Domain (инцидент 2026-07-06: blanket-allow *.siteadaptor.de давал
@@ -19,6 +22,10 @@ from django.http import HttpResponse, JsonResponse
 # www.1www.whm...baeckerei-test.siteadaptor.de — «refused to connect» у всех
 # НОВЫХ легитимных поддоменов до конца окна лимита).
 _ALLOWED_TLS_ROOT = "siteadaptor.de"
+#: SEC-B-H1: сколько бизнес без подтверждённой почты получает сертификаты. Не меньше
+#: срока жизни ссылки подтверждения (она ведёт на поддомен бизнеса — ревью волны 2):
+#: иначе владелец, кликнувший письмо на второй день, увидел бы ошибку TLS.
+UNCONFIRMED_TLS_GRACE = timedelta(days=31)
 
 
 def liveness(_request):
@@ -66,6 +73,17 @@ def verify_domain(request):
 
     from apps.tenants.models import Domain
 
-    if Domain.objects.filter(domain=domain).exists():
-        return HttpResponse("ok")
-    return HttpResponse(status=404)
+    row = Domain.objects.filter(domain=domain).select_related("tenant").first()
+    if row is None:
+        return HttpResponse(status=404)
+    tenant = row.tenant
+    # SEC-B-H1: бизнес из быстрой регистрации, не подтвердивший почту за сутки, нового
+    # сертификата не получает — иначе боты расходуют квоту Let's Encrypt (класс T-5).
+    if (
+        tenant is not None
+        and getattr(tenant, "email_pending", False)
+        and tenant.created_at
+        and tenant.created_at < timezone.now() - UNCONFIRMED_TLS_GRACE
+    ):
+        return HttpResponse(status=404)
+    return HttpResponse("ok")

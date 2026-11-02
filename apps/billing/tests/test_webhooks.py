@@ -42,7 +42,9 @@ def test_resolve_tenant_by_client_reference_id():
 
 def test_checkout_completed_activates():
     tenant = TenantFactory(subscription_status=TRIAL, stripe_customer_id="cus_x")
-    webhooks.handle_event("checkout.session.completed", {"customer": "cus_x"})
+    webhooks.handle_event(
+        "checkout.session.completed", {"customer": "cus_x", "payment_status": "paid"}
+    )
     tenant.refresh_from_db()
     assert tenant.subscription_status == ACTIVE
 
@@ -160,7 +162,11 @@ def test_subscription_checkout_without_kind_still_activates():
     tenant = TenantFactory(subscription_status=TRIAL, stripe_customer_id="cus_sub")
     webhooks.handle_event(
         "checkout.session.completed",
-        {"customer": "cus_sub", "metadata": {"tenant_id": str(tenant.id)}},
+        {
+            "customer": "cus_sub",
+            "payment_status": "paid",
+            "metadata": {"tenant_id": str(tenant.id)},
+        },
     )
     tenant.refresh_from_db()
     assert tenant.subscription_status == ACTIVE
@@ -172,7 +178,7 @@ def test_webhook_view_verifies_dispatches_and_dedupes(monkeypatch, settings):
     event = {
         "id": "evt_dedup_unit",
         "type": "checkout.session.completed",
-        "data": {"object": {"customer": "cus_x"}},
+        "data": {"object": {"customer": "cus_x", "payment_status": "paid"}},
     }
     cache.delete("stripe_evt:evt_dedup_unit")
     monkeypatch.setattr(stripe.Webhook, "construct_event", lambda payload, sig, secret: event)

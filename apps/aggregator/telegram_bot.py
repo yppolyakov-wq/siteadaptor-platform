@@ -40,7 +40,7 @@ def connect_bot(bot: PortalBot) -> dict:
     me = tg.get_me(bot.token)
     bot.bot_username = me.get("username", "")
     url = f"https://{bot.portal.host}/tg/{bot.webhook_secret}/"
-    tg.set_webhook(bot.token, url, bot.webhook_secret)
+    tg.set_webhook(bot.token, url, tg.header_secret(bot.webhook_secret))
     bot.is_active = True
     bot.save(update_fields=["bot_username", "is_active", "updated_at"])
     set_commands(bot)
@@ -82,7 +82,7 @@ def webhook(request, secret):
     )
     if bot is None or not bot.webhook_secret:
         raise Http404
-    if not hmac.compare_digest(header.encode(), bot.webhook_secret.encode()):
+    if not tg.header_ok(header, bot.webhook_secret):  # SEC-A4: заголовок ≠ путь
         raise Http404
     if not hmac.compare_digest(str(secret).encode(), bot.webhook_secret.encode()):
         raise Http404

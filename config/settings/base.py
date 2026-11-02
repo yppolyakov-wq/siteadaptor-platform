@@ -175,6 +175,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # SEC-C-M4: лимит входа и опц. список сетей для /admin/ (public).
+    "apps.core.middleware.AdminGuardMiddleware",
     # HIGH-10: сессия привязана к схеме логина — кука из чужой схемы сбрасывается
     # (защита от pk-коллизии auth_user при расширении SESSION_COOKIE_DOMAIN).
     "apps.core.middleware.SessionSchemaGuardMiddleware",
@@ -454,6 +456,11 @@ CELERY_TIMEZONE = TIME_ZONE
 # Периодические задачи. DatabaseScheduler синхронизирует это в БД при старте
 # beat'а. Задачи сами проходят по всем схемам арендаторов (см. apps/*/tasks.py).
 CELERY_BEAT_SCHEDULE = {
+    # SEC (ревью аудита, SM8): повтор упавших писем/сообщений (до 3 попыток).
+    "retry-failed-notifications": {
+        "task": "apps.notifications.tasks.retry_failed_notifications",
+        "schedule": 600.0,
+    },
     "expire-reservations": {
         "task": "apps.promotions.tasks.expire_reservations",
         "schedule": 300.0,  # каждые 5 минут — просрочка броней + возврат остатка
@@ -1155,3 +1162,13 @@ UNFOLD = {
         ],
     },
 }
+
+# SEC-C-M4 (аудит 2026-11-01): защита /admin/ платформы.
+ADMIN_ALLOWED_NETWORKS = env.list("ADMIN_ALLOWED_NETWORKS", default=[])
+ADMIN_LOGIN_RATE = (10, 15 * 60)
+# SEC-B-H1: сколько бизнесов в час создаёт быстрая регистрация («Aktion in 3 Klicks»).
+# Каждый — новый сертификат Let's Encrypt (лимит ~50 на домен в неделю).
+QUICK_START_HOURLY_CAP = env.int("QUICK_START_HOURLY_CAP", default=10)
+# SEC-A4: до `telegram_resync_webhooks --apply` Telegram шлёт прежний заголовок (= путь).
+# После перерегистрации всех ботов — выключить: TELEGRAM_WEBHOOK_LEGACY_HEADER=False.
+TELEGRAM_WEBHOOK_LEGACY_HEADER = env.bool("TELEGRAM_WEBHOOK_LEGACY_HEADER", default=True)

@@ -83,12 +83,18 @@ def create_installment_plan(
         ticket = Ticket.objects.filter(id=ticket_id).select_related("event").first()
         if ticket is None:
             return False
+        from .models import InstallmentPlan
+
+        existed = InstallmentPlan.objects.filter(ticket=ticket).exists()
         installments.create_plan(
             ticket,
             payment_intent=payment_intent,
             customer_id=customer_id,
             payment_method_id=payment_method_id,
         )
+        # SEC (ревью волны 1): первая доля пришла на уже отменённый билет (отменили, пока
+        # была открыта вкладка оплаты) — возвращаем, как у депозитов броней.
+        settle_late_payment("ticket", ticket, newly_paid=not existed)
     return True
 
 

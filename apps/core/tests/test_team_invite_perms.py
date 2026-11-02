@@ -210,3 +210,14 @@ def test_unknown_payload_version_is_rejected():
     resp, user = _join(token, "p6@t.de")
     assert resp.status_code == 404 and user is None
     assert AuditEvent.objects.filter(action="team.join_denied").exists()
+
+
+# --- SEC-B-M4: неподтверждённый владелец не рассылает приглашения ---------------------
+def test_unconfirmed_owner_cannot_send_invites():
+    from django.core import mail
+
+    owner = _member(OWNER)
+    req = _req(owner.user, "post", {"action": "invite", "email": "spam@t.de", "role": STAFF})
+    req.tenant.email_pending = True
+    team.team_view(req)
+    assert mail.outbox == []

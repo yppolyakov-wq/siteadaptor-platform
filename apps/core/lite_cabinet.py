@@ -206,7 +206,11 @@ class LiteBusinessForm(forms.ModelForm):
             "whatsapp_number": forms.TextInput(attrs={"type": "tel"}),
         }
 
-    def __init__(self, *args, **kwargs):
+    #: SEC-A11: поля раздела «Rechtliches» (правовые и налоговые данные).
+    #: Ревью волны 2: e-mail для Impressum тоже правовой — печатается в Impressum.
+    LEGAL_FIELDS = (*SECTIONS[2][2], "contact_email")
+
+    def __init__(self, *args, legal_locked=False, **kwargs):
         super().__init__(*args, **kwargs)
         from apps.core import districts
         from apps.finance import ustva
@@ -235,6 +239,12 @@ class LiteBusinessForm(forms.ModelForm):
             )
         else:
             self.fields["district"].widget = forms.HiddenInput()
+        # SEC-A11 (аудит 2026-11-01): из 12-часовой Telegram-сессии налоговый режим и
+        # правовые данные Impressum не меняются — только после входа по e-mail.
+        self.legal_locked = legal_locked
+        if legal_locked:
+            for name in self.LEGAL_FIELDS:
+                self.fields.pop(name, None)
 
     def sections(self):
         return [
@@ -246,7 +256,8 @@ class LiteBusinessForm(forms.ModelForm):
         from apps.finance import ustva
 
         obj = super().save(commit=False)
-        ustva.apply_regime(obj, self.cleaned_data.get("tax_choice", ""))
+        if "tax_choice" in self.fields:
+            ustva.apply_regime(obj, self.cleaned_data.get("tax_choice", ""))
         if commit:
             obj.save()
         return obj
@@ -278,23 +289,20 @@ class LiteBusinessForm(forms.ModelForm):
 @perm_required(view_perms.FLOOR)
 def lite_business(request):
     """«Geschäft»: название, адрес, телефон, WhatsApp, часы работы — одна колонка."""
+    from apps.core import tg_login
     from apps.core.views import _opening_hours_rows, _parse_opening_hours
 
     tenant = request.tenant
-    form = LiteBusinessForm(request.POST or None, instance=tenant)
+    legal_locked = tg_login.is_tg_session(request)
+    form = LiteBusinessForm(request.POST or None, instance=tenant, legal_locked=legal_locked)
     if request.method == "POST" and form.is_valid():
         obj = form.save(commit=False)
         obj.opening_hours_structured = _parse_opening_hours(request)
         # W0/W7a: пишем только поля этого экрана, чужие колонки не трогаем.
-        obj.save(
-            update_fields=[
-                *LiteBusinessForm.Meta.fields,
-                "small_business",
-                "tax_regime",
-                "opening_hours_structured",
-                "updated_at",
-            ]
-        )
+        fields = [f for f in LiteBusinessForm.Meta.fields if f in form.fields]
+        if not legal_locked:
+            fields += ["small_business", "tax_regime"]
+        obj.save(update_fields=[*fields, "opening_hours_structured", "updated_at"])
         from apps.aggregator.tasks import refresh_tenant_fields
 
         refresh_tenant_fields(obj)  # имя/адрес — в листинги каталога города

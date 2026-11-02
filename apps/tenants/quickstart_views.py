@@ -225,16 +225,32 @@ def _publish(request, form):
         except ValidationError as exc:
             form.add_error("photo", "; ".join(exc.messages))
             return page(), None
-    ip = ratelimit.client_ip(request)
-    if ratelimit.hit("quick-start", ip, limit=5, window=3600):
-        logger.info("quick-start limited: ip")
-        form.add_error(
-            None, _("Zu viele Versuche aus diesem Netzwerk. Bitte in einer Stunde erneut.")
-        )
-        # Подпись не обновляем: срок жизни сохранённых фото считается от первой попытки.
-        return page(kept, request.POST.get("photos_kept", "") if kept else ""), None
+    # SEC-B-H1: лимит по СЕТИ (IPv6 — /64), на адрес почты и общий потолок в час.
+    # Каждый новый бизнес — поддомен и сертификат Let's Encrypt (квота домена конечна).
+    ip = ratelimit.client_net(request)
+    email_key = _email_key(cd.get("email") or "")
+    hits = []
+    for scope, ident, limit, window in (
+        ("quick-start", ip, 5, 3600),
+        ("quick-start-email", email_key, 3, 86400),
+        ("quick-start-global", "all", _hourly_cap(), 3600),
+    ):
+        if ratelimit.hit(scope, ident, limit=limit, window=window):
+            _refund(hits + [(scope, ident)])
+            if scope == "quick-start-global":
+                # Ревью волны 2: общий потолок — сигнал владельцу платформы (наплыв или атака).
+                logger.warning("quick-start: global hourly cap reached")
+                msg = _(
+                    "Gerade melden sich sehr viele an. Bitte versuchen Sie es in einer Stunde erneut."
+                )
+            else:
+                logger.info("quick-start limited: %s", scope)
+                msg = _("Zu viele Versuche aus diesem Netzwerk. Bitte in einer Stunde erneut.")
+            form.add_error(None, msg)
+            # Подпись не обновляем: срок жизни сохранённых фото считается от первой попытки.
+            return page(kept, request.POST.get("photos_kept", "") if kept else ""), None
+        hits.append((scope, ident))
     # Дальше любой отказ без побочного эффекта возвращает засчитанные попытки.
-    hits = [("quick-start", ip)]
     if uploads:
         from apps.promotions.quick import save_photos
 
@@ -306,6 +322,19 @@ def _publish(request, form):
     request.session[SESSION_KEY] = handoff
     # Литеральный путь: страницы платформы рендерятся и под tenant-urlconf (тесты).
     return redirect(f"/aktion-starten/{tenant.slug}/"), {"slug": tenant.slug, "entry": entry}
+
+
+def _email_key(email: str) -> str:
+    """Адрес для лимита: регистр и «+метка» не дают обойти потолок на один ящик."""
+    local, _sep, domain = email.strip().lower().partition("@")
+    return f"{local.split('+', 1)[0]}@{domain}"
+
+
+def _hourly_cap() -> int:
+    """SEC-B-H1: сколько бизнесов в час платформа создаёт из быстрой регистрации."""
+    from django.conf import settings
+
+    return int(getattr(settings, "QUICK_START_HOURLY_CAP", 10) or 10)
 
 
 def _refund(hits) -> None:
