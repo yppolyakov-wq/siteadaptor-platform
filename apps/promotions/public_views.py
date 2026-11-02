@@ -22,6 +22,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.catalog.combos import combo_labels
 from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
@@ -2225,12 +2226,17 @@ def product_review_submit(request, pk):
     UA4-4a: пишем в generic `reviews.Review` (`entity_kind='product'`); верификация —
     per-kind адаптер `reviews.services.is_verified_buyer` (fail-closed)."""
     from apps.catalog.models import Product
+    from apps.reviews import links as review_links
     from apps.reviews import services as review_services
     from apps.reviews.models import Review
+    from apps.reviews.submit import PROOF_MESSAGE
 
     product = get_object_or_404(Product, pk=pk, is_active=True)
     detail_url = product.get_absolute_url()  # KAT-3: SEO-URL
     if request.method != "POST":
+        # SEC-E-M5: ссылка из письма «Danke» даёт право на проверенный отзыв.
+        if review_links.grant_from_request(request, "product", product.pk):
+            return redirect(detail_url + "#bewertungen")
         return redirect(detail_url)
     # Рейтлимит на отправку (анти-спам), как в публичных формах акций/заявок.
     if ratelimit.hit("product_review", ratelimit.client_ip(request), limit=10, window=3600):
@@ -2246,6 +2252,11 @@ def product_review_submit(request, pk):
     if not (name and email and 1 <= rating <= 5):
         messages.error(request, _("Bitte Name, E-Mail und Bewertung (1–5) angeben."))
         return redirect(detail_url)
+    proven = review_links.proven_email(request, "product", product.pk)
+    if not proven:
+        messages.error(request, PROOF_MESSAGE)
+        return redirect(detail_url)
+    email = proven  # SEC-E-M5: адрес — из доказательства, не из поля формы
     if not review_services.is_verified_buyer("product", product, email):
         messages.error(
             request,
@@ -2939,9 +2950,21 @@ def reservation_confirmation(request, code):
     return render(request, "storefront/confirmation.html", {"reservation": res})
 
 
+@csrf_exempt
 def unsubscribe(request, token):
-    """Быстрая отписка от писем по токену (one-click, GET и POST)."""
+    """Отписка от писем по токену.
+
+    SEC-E-L1 (аудит 2026-11-01): GET только показывает кнопку — почтовые сканеры
+    (Outlook Safe Links, антиспам) открывают каждую ссылку письма и отписывали людей
+    сами. POST отписывает: кнопка на странице и RFC 8058 one-click из почтового клиента
+    (`List-Unsubscribe-Post`) — поэтому без CSRF: доказательство — сам токен."""
     customer = Customer.objects.filter(unsubscribe_token=token).first()
+    if request.method != "POST":
+        return render(
+            request,
+            "storefront/unsubscribed.html",
+            {"ok": customer is not None, "confirm": customer is not None},
+        )
     if customer is not None and not customer.unsubscribed:
         customer.unsubscribed = True
         customer.save(update_fields=["unsubscribed", "updated_at"])
@@ -2986,11 +3009,14 @@ def newsletter_confirm(request, token):
     from . import newsletter
 
     customer = newsletter.load_doi_token(token)
-    if customer is not None:
-        newsletter.confirm_opt_in(customer)
-    return render(
-        request, "storefront/newsletter.html", {"state": "confirmed" if customer else "error"}
-    )
+    if customer is None:
+        return render(request, "storefront/newsletter.html", {"state": "error"})
+    # SEC-E-L1 / UWG §7: согласие — действие человека. GET (сканер ссылок почты) только
+    # показывает кнопку; подписку подтверждает POST.
+    if request.method != "POST":
+        return render(request, "storefront/newsletter.html", {"state": "confirm_ask"})
+    newsletter.confirm_opt_in(customer)
+    return render(request, "storefront/newsletter.html", {"state": "confirmed"})
 
 
 def _legal_page(request, title, body):

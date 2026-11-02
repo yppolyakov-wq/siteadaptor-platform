@@ -31716,3 +31716,28 @@ msgid ""
 "erneut."
 msgstr ""
 "Зараз реєструється дуже багато людей. Спробуйте, будь ласка, за годину."
+
+msgid ""
+"Bewerten können Sie über den Link in unserer E-Mail nach Ihrem Besuch oder "
+"nach der Anmeldung im Kundenkonto."
+msgstr ""
+"Залишити відгук можна за посиланням із нашого листа після візиту або після "
+"входу в особистий кабінет."
+
+msgid "Confirm subscription"
+msgstr "Підтвердити підписку"
+
+msgid "Confirm your subscription"
+msgstr "Підтвердьте підписку"
+
+msgid "Unsubscribe"
+msgstr "Відписатися"
+
+msgid "Unsubscribe from emails?"
+msgstr "Відписатися від листів?"
+
+msgid "Diese Website ist derzeit pausiert."
+msgstr "Цей сайт тимчасово призупинено."
+
+msgid "Vorübergehend nicht verfügbar"
+msgstr "Тимчасово недоступно"

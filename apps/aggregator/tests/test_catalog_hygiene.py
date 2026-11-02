@@ -164,17 +164,19 @@ def _report_request(listing, ip, **data):
 
 
 @pytest.mark.urls("config.urls_public")
-def test_report_saved_and_three_voices_hide_listing():
+def test_report_saved_and_five_networks_hide_listing():
+    """SEC-F-M3: порог — 5 разных сетей (было 3 адреса)."""
     TenantFactory(schema_name="biz_r", slug="biz-r")
     listing = _listing("biz_r")
-    for n, ip in enumerate(("10.86.0.1", "10.86.0.2"), start=1):
+    ips = ("10.86.0.1", "10.86.0.2", "10.86.0.4", "2a01:4f8:1:2::1", "2a01:4f8:1:2::2")
+    for n, ip in enumerate(ips, start=1):
         body = reports.report_listing(
             _report_request(listing, ip, reason="spam"), pk=listing.pk
         ).content.decode()
         assert "data-report-sent" in body
         assert ListingReport.objects.count() == n
     listing.refresh_from_db()
-    assert listing.hidden_at is None
+    assert listing.hidden_at is None  # 4 сети: два адреса одной /64 — один голос
     reports.report_listing(_report_request(listing, "10.86.0.3", reason="wrong"), pk=listing.pk)
     listing.refresh_from_db()
     assert listing.hidden_at is not None

@@ -31,6 +31,10 @@
 # Главный домен — сертификат по HTTP-01 автоматически.
 siteadaptor.de {
 	encode zstd gzip
+	# SEC-G11: лимит тела запроса (фото/импорт CSV укладываются; гигабайтные POST — нет).
+	request_body {
+		max_size 50MB
+	}
 	# Перезаписываем X-Forwarded-For реальным peer-IP: клиент не может подделать
 	# (rate-limit/Meldeschein-IP берут первый адрес XFF). Единственный хоп — Caddy.
 	reverse_proxy web:8000 {
@@ -42,6 +46,10 @@ siteadaptor.de {
 # сертификат выпускается on-demand при первом запросе (с проверкой через ask).
 https:// {
 	encode zstd gzip
+	# SEC-G11: лимит тела запроса (фото/импорт CSV укладываются; гигабайтные POST — нет).
+	request_body {
+		max_size 50MB
+	}
 	tls {
 		on_demand
 	}

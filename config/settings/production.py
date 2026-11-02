@@ -19,15 +19,27 @@ AI_REQUIRE_EU = env.bool("AI_REQUIRE_EU", default=True)
 # кэширует список на инициализации (динамически, как ALLOWED_HOSTS, дополнить нельзя),
 # поэтому базовые origin'ы жёстко в коде, а env лишь ДОБАВЛЯЕТ (напр. кастомные
 # домены арендаторов, у которых CSRF держится на совпадении Origin==Host).
+#
+# SEC-C-M2 (аудит 2026-11-01): POST на свой же хост Django пропускает сам (Origin ==
+# Host при SECURE_PROXY_SSL_HEADER), поэтому wildcard по всем поддоменам не нужен для
+# форм бизнеса, а вредит: страница ЛЮБОГО поддомена (XSS у одного бизнеса) могла
+# отправлять формы в кабинеты соседей. Включить обратно — CSRF_TRUST_ALL_SUBDOMAINS=1.
 CSRF_TRUSTED_ORIGINS = list(
     dict.fromkeys(
         [
             "https://siteadaptor.de",
-            "https://*.siteadaptor.de",
+            *(
+                ["https://*.siteadaptor.de"]
+                if env.bool("CSRF_TRUST_ALL_SUBDOMAINS", default=False)
+                else []
+            ),
             *env.list("CSRF_TRUSTED_ORIGINS", default=[]),
         ]
     )
 )
+# SEC-C-M2: префикс __Host- — куку нельзя поставить с соседнего поддомена (cookie
+# tossing) и нельзя расширить на домен; требует Secure + Path=/ без Domain.
+CSRF_COOKIE_NAME = "__Host-csrftoken"
 
 # Security
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -41,7 +41,7 @@ from django_tenants.utils import (
 )
 
 from apps.secrets import crypto
-from apps.secrets.fields import EncryptedTextField
+from apps.secrets.fields import EncryptedJSONField, EncryptedTextField
 from apps.secrets.models import PlatformSecret
 
 logger = logging.getLogger(__name__)
@@ -215,7 +215,14 @@ class Command(BaseCommand):
             if fresh is None or not crypto.needs_rotation(fresh):
                 return  # строку удалили или приложение уже переписало её явным ключом
             # update() → get_prep_value поля → шифруется явным ключом.
-            model._default_manager.filter(pk=pk).update(**{field.name: crypto.decrypt(fresh)})
+            plain = crypto.decrypt(fresh)
+            if isinstance(field, EncryptedJSONField):
+                # Ревью волны 3: поле JSON сериализует само — строка дала бы двойной
+                # json.dumps и ответы анкеты превратились бы в str.
+                import json
+
+                plain = json.loads(plain)
+            model._default_manager.filter(pk=pk).update(**{field.name: plain})
 
     def _channel_configs(self, apply: bool, errors: list | None = None) -> int:
         from apps.publishing.models import Channel

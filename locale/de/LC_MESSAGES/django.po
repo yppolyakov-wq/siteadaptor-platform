@@ -31538,3 +31538,26 @@ msgid ""
 "Gerade melden sich sehr viele an. Bitte versuchen Sie es in einer Stunde "
 "erneut."
 msgstr ""
+
+msgid ""
+"Bewerten können Sie über den Link in unserer E-Mail nach Ihrem Besuch oder "
+"nach der Anmeldung im Kundenkonto."
+msgstr ""
+
+msgid "Confirm subscription"
+msgstr "Anmeldung bestätigen"
+
+msgid "Confirm your subscription"
+msgstr "Bestätigen Sie Ihre Anmeldung"
+
+msgid "Unsubscribe"
+msgstr "Abmelden"
+
+msgid "Unsubscribe from emails?"
+msgstr "Von E-Mails abmelden?"
+
+msgid "Diese Website ist derzeit pausiert."
+msgstr ""
+
+msgid "Vorübergehend nicht verfügbar"
+msgstr ""

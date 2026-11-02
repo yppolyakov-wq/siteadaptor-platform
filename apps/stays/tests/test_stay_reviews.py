@@ -9,6 +9,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
 from apps.promotions.models import Customer
+from apps.reviews.links import grant
 from apps.reviews.models import Review
 from apps.stays import public_views
 from apps.stays.models import StayBooking, StayUnit
@@ -140,9 +141,8 @@ def test_submit_creates_review_for_verified_guest():
     u = _unit()
     _stay(u, "gast@test.de")
     data = {"author_name": "Gast", "email": "gast@test.de", "rating": "5", "comment": "Top"}
-    resp = public_views.stay_review_submit(
-        _post_req(f"/unterkunft/{u.pk}/bewerten/", data), pk=u.pk
-    )
+    req = grant(_post_req(f"/unterkunft/{u.pk}/bewerten/", data), "stay", u.pk, "gast@test.de")
+    resp = public_views.stay_review_submit(req, pk=u.pk)
     assert resp.status_code == 302
     r = Review.objects.get(entity_kind="stay", entity_id=u.pk, email="gast@test.de")
     assert r.rating == 5 and r.verified

@@ -31732,3 +31732,28 @@ msgid ""
 "erneut."
 msgstr ""
 "Сейчас регистрируется очень много людей. Попробуйте, пожалуйста, через час."
+
+msgid ""
+"Bewerten können Sie über den Link in unserer E-Mail nach Ihrem Besuch oder "
+"nach der Anmeldung im Kundenkonto."
+msgstr ""
+"Оставить отзыв можно по ссылке из нашего письма после визита или после входа"
+" в личный кабинет."
+
+msgid "Confirm subscription"
+msgstr "Подтвердить подписку"
+
+msgid "Confirm your subscription"
+msgstr "Подтвердите подписку"
+
+msgid "Unsubscribe"
+msgstr "Отписаться"
+
+msgid "Unsubscribe from emails?"
+msgstr "Отписаться от писем?"
+
+msgid "Diese Website ist derzeit pausiert."
+msgstr "Этот сайт временно приостановлен."
+
+msgid "Vorübergehend nicht verfügbar"
+msgstr "Временно недоступно"

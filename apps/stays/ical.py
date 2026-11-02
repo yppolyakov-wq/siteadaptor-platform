@@ -57,6 +57,11 @@ def parse_events(text: str) -> list[tuple[str, date, date]]:
     return events
 
 
+def _booking_uid(booking) -> str:
+    """Стабильный UID брони для iCal без кода брони (pk — UUID, не ключ к странице)."""
+    return f"stay-{booking.pk}"
+
+
 def build_feed(unit, bookings, blocks, *, host: str = "siteadaptor.de") -> str:
     """iCal-текст занятости юнита: брони (эксклюзивный DTEND) + блоки (включительно→+1)."""
     now = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
@@ -82,7 +87,10 @@ def build_feed(unit, bookings, blocks, *, host: str = "siteadaptor.de") -> str:
         )
 
     for b in bookings:
-        event(b.reference_code, b.arrival, b.departure, f"Belegt ({b.reference_code})")
+        # SEC-E-M2 (аудит 2026-11-01): код брони — ключ к странице подтверждения с
+        # данными гостя (/s/<code>/). Во внешние календари (OTA, Google) он не уходит:
+        # UID — стабильный хэш, в заголовке только «Belegt».
+        event(_booking_uid(b), b.arrival, b.departure, "Belegt")
     for bl in blocks:
         from datetime import timedelta
 

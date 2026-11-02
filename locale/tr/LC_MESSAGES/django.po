@@ -31595,3 +31595,28 @@ msgid ""
 "erneut."
 msgstr ""
 "Şu anda çok fazla kişi kayıt oluyor. Lütfen bir saat sonra tekrar deneyin."
+
+msgid ""
+"Bewerten können Sie über den Link in unserer E-Mail nach Ihrem Besuch oder "
+"nach der Anmeldung im Kundenkonto."
+msgstr ""
+"Değerlendirme yapmak için ziyaretinizden sonra gönderdiğimiz e-postadaki "
+"bağlantıyı kullanın veya müşteri hesabınıza giriş yapın."
+
+msgid "Confirm subscription"
+msgstr "Aboneliği onayla"
+
+msgid "Confirm your subscription"
+msgstr "Aboneliğinizi onaylayın"
+
+msgid "Unsubscribe"
+msgstr "Abonelikten çık"
+
+msgid "Unsubscribe from emails?"
+msgstr "E-postalardan çıkılsın mı?"
+
+msgid "Diese Website ist derzeit pausiert."
+msgstr "Bu web sitesi şu anda duraklatıldı."
+
+msgid "Vorübergehend nicht verfügbar"
+msgstr "Geçici olarak kullanılamıyor"

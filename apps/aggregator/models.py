@@ -13,6 +13,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import I18nMixin
+from apps.secrets.fields import EncryptedTextField
 from apps.tenants.models import Tenant
 
 from . import search_index
@@ -365,7 +366,8 @@ class ListingReport(models.Model):
     адресов скрывают карточку до решения модератора (`AUTO_HIDE_AT`).
     """
 
-    AUTO_HIDE_AT = 3
+    # SEC-F-M3: 5 разных сетей (было 3 адреса — хватало трёх телефонов конкурента).
+    AUTO_HIDE_AT = 5
     # D2b (T-8.10e): машинная пометка «Text-Check» — не голос жалоб (в ip_hash).
     AUTO_MARKER = "auto"
 
@@ -646,7 +648,8 @@ class PortalBot(models.Model):
     portal = models.OneToOneField(
         AggregatorPortal, on_delete=models.CASCADE, related_name="telegram_bot"
     )
-    token = models.CharField(max_length=100, blank=True)
+    # SEC-G10: токен бота шифруется at-rest (как у TelegramBot бизнеса).
+    token = EncryptedTextField(blank=True)
     bot_username = models.CharField(max_length=64, blank=True)
     webhook_secret = models.CharField(max_length=48, blank=True)
     is_active = models.BooleanField(default=False)

@@ -3,7 +3,7 @@
 {% trans "vielen Dank für Ihren Besuch bei uns" %}{% if booking.service %} ({{ booking.service_label }}, {{ booking.start|date:"d.m.Y" }}){% endif %}.
 {% trans "Wir hoffen, Sie waren zufrieden!" %}
 {% if review_url %}
-{% trans "Würden Sie uns eine kurze Bewertung hinterlassen?" %} {{ review_url }}
+{% trans "Würden Sie uns eine kurze Bewertung hinterlassen?" %} {{ review_url|safe }}
 {% endif %}
 {% trans "Wir freuen uns auf Ihren nächsten Termin — am besten direkt über unsere Website." %}
 

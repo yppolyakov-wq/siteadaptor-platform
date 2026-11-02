@@ -93,8 +93,16 @@ def enqueue_ticket_email(ticket, event, dedupe_suffix=""):
         # UA4-4b wiring: post-event ведёт на форму отзыва о событии (generic
         # reviews, GET → деталь с формой). Нет домена → письмо без ссылки.
         if event == "post_event":
+            from apps.reviews import links as review_links
+
+            # SEC-E-M5: ссылка с токеном — право на проверенный отзыв.
             ctx["review_url"] = (
-                f"{base}{reverse('storefront-event-review', args=[ticket.event_id])}"
+                review_links.with_token(
+                    f"{base}{reverse('storefront-event-review', args=[ticket.event_id])}",
+                    "event",
+                    ticket.event_id,
+                    customer,
+                )
                 if base
                 else ""
             )

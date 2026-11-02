@@ -177,6 +177,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # SEC-C-M4: лимит входа и опц. список сетей для /admin/ (public).
     "apps.core.middleware.AdminGuardMiddleware",
+    # SEC-C-M3: витрина приостановленного бизнеса — 410 (кабинет и оплата работают).
+    "apps.core.middleware.SuspendedTenantMiddleware",
+    # SEC-E-M3: CSP в режиме отчёта (ничего не блокирует).
+    "apps.core.middleware.CSPReportOnlyMiddleware",
     # HIGH-10: сессия привязана к схеме логина — кука из чужой схемы сбрасывается
     # (защита от pk-коллизии auth_user при расширении SESSION_COOKIE_DOMAIN).
     "apps.core.middleware.SessionSchemaGuardMiddleware",
@@ -456,6 +460,16 @@ CELERY_TIMEZONE = TIME_ZONE
 # Периодические задачи. DatabaseScheduler синхронизирует это в БД при старте
 # beat'а. Задачи сами проходят по всем схемам арендаторов (см. apps/*/tasks.py).
 CELERY_BEAT_SCHEDULE = {
+    # SEC-G7: тела уведомлений (письма, PDF) — 30 дней после отправки.
+    "purge-notification-payloads": {
+        "task": "apps.notifications.tasks.purge_notification_payloads",
+        "schedule": 86400.0,
+    },
+    # SEC-G3: ответы анкеты участников (Art. 9 DSGVO) — 30 дней после события.
+    "purge-participant-answers": {
+        "task": "apps.events.tasks.purge_participant_answers",
+        "schedule": 86400.0,  # раз в сутки
+    },
     # SEC (ревью аудита, SM8): повтор упавших писем/сообщений (до 3 попыток).
     "retry-failed-notifications": {
         "task": "apps.notifications.tasks.retry_failed_notifications",
@@ -1172,3 +1186,24 @@ QUICK_START_HOURLY_CAP = env.int("QUICK_START_HOURLY_CAP", default=10)
 # SEC-A4: до `telegram_resync_webhooks --apply` Telegram шлёт прежний заголовок (= путь).
 # После перерегистрации всех ботов — выключить: TELEGRAM_WEBHOOK_LEGACY_HEADER=False.
 TELEGRAM_WEBHOOK_LEGACY_HEADER = env.bool("TELEGRAM_WEBHOOK_LEGACY_HEADER", default=True)
+# SEC-E-M3: CSP «только отчёт». Сначала собираем нарушения, затем — блокирующий режим.
+# 'unsafe-inline' пока нужен: шаблоны содержат inline-скрипты и style-атрибуты.
+CSP_REPORT_ONLY = env(
+    "CSP_REPORT_ONLY",
+    default=(
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://telegram.org https://js.stripe.com "
+        "https://cdn.jsdelivr.net https://unpkg.com; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: blob: https:; "
+        "font-src 'self' data:; "
+        "connect-src 'self' https://tiles.openfreemap.org https://*.openfreemap.org; "
+        "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com "
+        "https://player.vimeo.com https://js.stripe.com https://www.google.com; "
+        "worker-src 'self' blob:; "
+        "frame-ancestors 'self'; "
+        "base-uri 'self'; "
+        "form-action 'self' https://checkout.stripe.com"
+    ),
+)
+CSP_REPORT_URI = env("CSP_REPORT_URI", default="")

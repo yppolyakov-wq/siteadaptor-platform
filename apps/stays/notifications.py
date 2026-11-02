@@ -73,8 +73,16 @@ def enqueue_stay_email(booking, event):
         # UA4-4b wiring: post-stay ведёт на форму отзыва о номере на витрине
         # (generic reviews, GET → деталь с формой) — раньше вёл в hotel-портал.
         # Нет домена → письмо без ссылки.
+        from apps.reviews import links as review_links
+
+        # SEC-E-M5: ссылка с токеном — право на проверенный отзыв.
         review_link = (
-            f"{base}{reverse('storefront-stay-review', args=[booking.unit_id])}"
+            review_links.with_token(
+                f"{base}{reverse('storefront-stay-review', args=[booking.unit_id])}",
+                "stay",
+                booking.unit_id,
+                customer,
+            )
             if base and event == "post_stay"
             else ""
         )

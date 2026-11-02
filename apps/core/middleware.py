@@ -540,3 +540,75 @@ def _ip_allowed(raw: str, networks) -> bool:
         except ValueError:
             continue
     return False
+
+
+class SuspendedTenantMiddleware:
+    """SEC-C-M3 (аудит 2026-11-01): `Tenant.is_active=False` (приостановка подписки,
+    блокировка оператором) выключает ВИТРИНУ — 410 «vorübergehend nicht verfügbar».
+
+    Кабинет, вход, оплата подписки, вебхуки и служебные пути работают: владелец должен
+    иметь возможность войти и оплатить (SubscriptionSM: «дашборд read-only»). Члены
+    команды витрину видят (предпросмотр)."""
+
+    EXEMPT = (
+        "/accounts/",
+        "/static/",
+        "/media/",
+        "/health/",
+        "/internal/",
+        "/tg/",
+        "/start/",
+        "/anmelden/",
+        "/team/beitreten/",
+        "/stripe/",
+        "/webhooks/",
+        "/billing/",
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        tenant = getattr(request, "tenant", None)
+        if (
+            tenant is not None
+            and getattr(tenant, "schema_name", "public") != "public"
+            and not getattr(tenant, "is_active", True)
+            and not request.path.startswith(CABINET_PREFIXES + self.EXEMPT)
+            and not getattr(getattr(request, "user", None), "is_authenticated", False)
+        ):
+            from django.http import HttpResponse
+            from django.template.loader import render_to_string
+
+            # Без контекст-процессоров: у приостановленного бизнеса витринные данные
+            # (меню, контакты, тема) не показываем вовсе.
+            body = render_to_string("storefront_suspended.html", {"request": request})
+            return HttpResponse(body, status=410)
+        return self.get_response(request)
+
+
+class CSPReportOnlyMiddleware:
+    """SEC-E-M3 (аудит 2026-11-01): Content-Security-Policy в режиме ОТЧЁТА.
+
+    Ничего не блокирует: браузер шлёт нарушения на `CSP_REPORT_URI` (например, адрес
+    security-отчётов Sentry). Месяц сбора → разбор → включение блокирующего режима.
+    Пустой `CSP_REPORT_ONLY` выключает заголовок."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        from django.conf import settings
+
+        response = self.get_response(request)
+        policy = getattr(settings, "CSP_REPORT_ONLY", "") or ""
+        if (
+            policy
+            and "Content-Security-Policy-Report-Only" not in response
+            and response.get("Content-Type", "").startswith("text/html")
+        ):
+            uri = getattr(settings, "CSP_REPORT_URI", "") or ""
+            response["Content-Security-Policy-Report-Only"] = (
+                f"{policy}; report-uri {uri}" if uri else policy
+            )
+        return response

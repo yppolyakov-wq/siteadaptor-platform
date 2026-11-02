@@ -20,7 +20,9 @@ from .models import AggregatorListing, ListingReport
 
 
 def _ip_hash(request) -> str:
-    raw = f"{settings.SECRET_KEY}:{ratelimit.client_ip(request)}"
+    # SEC-F-M3 (аудит 2026-11-01): голос — СЕТЬ (IPv6 /64), а не адрес: иначе один
+    # конкурент с ротацией адресов внутри своей /64 скрывал чужую карточку.
+    raw = f"{settings.SECRET_KEY}:{ratelimit.client_net(request)}"
     return hashlib.sha256(raw.encode()).hexdigest()
 
 

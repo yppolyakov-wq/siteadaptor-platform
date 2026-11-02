@@ -17,6 +17,7 @@ from apps.catalog.models import Combo, ComboGroup, ComboOption
 from apps.catalog.tests.factories import ProductFactory
 from apps.orders import public_views
 from apps.orders.models import Order
+from apps.reviews.links import grant
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -515,12 +516,14 @@ def test_combo_review_submit_buyer_creates_review_stranger_rejected():
     from apps.reviews.models import Review
 
     data = {"author_name": "Käufer", "email": "buyer@test.de", "rating": "5", "comment": "Top"}
-    resp = public_views.combo_review_submit(_req(data=data), pk=combo.pk)
+    req = grant(_req(data=data), "combo", combo.pk, "buyer@test.de")
+    resp = public_views.combo_review_submit(req, pk=combo.pk)
     assert resp.status_code == 302 and resp["Location"].endswith("#bewertungen")
     assert Review.objects.filter(entity_kind="combo", entity_id=combo.pk).count() == 1
 
     stranger = {"author_name": "Fremd", "email": "fremd@test.de", "rating": "4"}
-    public_views.combo_review_submit(_req(data=stranger), pk=combo.pk)
+    req = grant(_req(data=stranger), "combo", combo.pk, "fremd@test.de")
+    public_views.combo_review_submit(req, pk=combo.pk)
     assert Review.objects.filter(entity_kind="combo", entity_id=combo.pk).count() == 1
 
 

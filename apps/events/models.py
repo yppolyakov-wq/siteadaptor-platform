@@ -16,6 +16,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import payment_methods
 from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
+from apps.secrets.fields import EncryptedJSONField
 
 # R8: дефолтный текст отказа от ответственности (если организатор не задал свой).
 DEFAULT_WAIVER_TEXT = (
@@ -682,7 +683,8 @@ class Ticket(TimestampedModel):
     DISCOUNT_SCOPES = [("deal", _("Ganzes Ticket")), ("position", _("Tarif"))]
     discount_scope = models.CharField(max_length=12, choices=DISCOUNT_SCOPES, default="deal")
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_PENDING)
-    answers = models.JSONField(default=dict, blank=True)  # ответы на анкету события
+    # SEC-G3: ответы анкеты (аллергии, медпоказания — Art. 9 DSGVO) — зашифрованы.
+    answers = EncryptedJSONField(default=dict, blank=True)  # ответы на анкету события
     # #7: снимок выбранных Extras [{label, price_cents}] — разово на билет, сумма
     # входит в total_cents (выручку).
     extras = models.JSONField(default=list, blank=True)
@@ -819,7 +821,7 @@ class TicketParticipant(TimestampedModel):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="participants")
     position = models.PositiveSmallIntegerField()
     name = models.CharField(max_length=200, blank=True)
-    answers = models.JSONField(default=dict, blank=True)
+    answers = EncryptedJSONField(default=dict, blank=True)  # SEC-G3: зашифрованы
 
     class Meta:
         ordering = ["position"]

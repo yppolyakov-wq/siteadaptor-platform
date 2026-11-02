@@ -502,3 +502,41 @@ def test_tenant_row_without_a_schema_does_not_make_the_command_unpassable(capsys
             call_command("rotate_secrets", "--apply")  # НЕ бросает
     out = capsys.readouterr().out
     assert "СХЕМЫ ОТСУТСТВУЮТ" in out and "ghost_schema" in out
+
+
+@pytest.mark.django_db
+def test_rotation_keeps_encrypted_json_as_dict(monkeypatch):
+    """Ревью волны 3: ротация не превращает ответы анкеты (EncryptedJSONField) в строку."""
+    from apps.events.models import TicketParticipant
+    from apps.events.tests.test_b2_6_balance_reminder import _ticket
+    from apps.secrets.management.commands.rotate_secrets import Command
+
+    part = TicketParticipant.objects.create(ticket=_ticket("paid"), position=1, answers={"a": "x"})
+    from apps.secrets import crypto
+
+    monkeypatch.setattr(crypto, "needs_rotation", lambda token: True)  # «старый ключ»
+    field = TicketParticipant._meta.get_field("answers")
+    Command()._rotate_field(TicketParticipant, field, part.pk)
+    part.refresh_from_db()
+    assert part.answers == {"a": "x"}
+
+
+@pytest.mark.django_db
+def test_unreadable_json_ciphertext_is_not_overwritten_on_save():
+    from django.db import connection
+
+    from apps.events.models import TicketParticipant
+    from apps.events.tests.test_b2_6_balance_reminder import _ticket
+
+    part = TicketParticipant.objects.create(ticket=_ticket("paid"), position=1, answers={"a": "x"})
+    table = TicketParticipant._meta.db_table
+    foreign = "gAAAAABfakefakefakefakefakefakefakefakefakefakefake=="
+    with connection.cursor() as cur:
+        cur.execute(f'UPDATE "{table}" SET answers = %s WHERE id = %s', [foreign, part.pk])
+    part.refresh_from_db()
+    assert part.answers == {}
+    part.name = "Neu"
+    part.save()
+    with connection.cursor() as cur:
+        cur.execute(f'SELECT answers FROM "{table}" WHERE id = %s', [part.pk])
+        assert cur.fetchone()[0] == foreign  # данные не затёрты пустым значением

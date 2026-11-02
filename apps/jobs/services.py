@@ -325,7 +325,7 @@ def add_job_photos(job, files, *, max_count=MAX_PHOTOS, kind="customer", uploade
 
     from django.core.exceptions import ValidationError
 
-    from apps.catalog.images import validate_image
+    from apps.catalog.images import strip_metadata, validate_image
 
     from .models import JobPhoto
 
@@ -337,7 +337,13 @@ def add_job_photos(job, files, *, max_count=MAX_PHOTOS, kind="customer", uploade
             fmt = validate_image(f)  # Pillow: реальный формат ∈ JPEG/PNG/WEBP + ≤5 МБ
         except ValidationError:
             continue
-        f.name = f"{uuid.uuid4().hex}.{_PHOTO_EXT.get(fmt, 'jpg')}"
+        name = f"{uuid.uuid4().hex}.{_PHOTO_EXT.get(fmt, 'jpg')}"
+        # SEC-G14: без EXIF — в фото клиента с телефона лежат GPS-координаты дома.
+        try:
+            f = strip_metadata(f, fmt)
+        except Exception:  # noqa: BLE001 — не удалось перекодировать: не сохраняем как есть
+            continue
+        f.name = name
         JobPhoto.objects.create(job=job, image=f, kind=kind, uploaded_by=uploaded_by)
         saved += 1
     return saved

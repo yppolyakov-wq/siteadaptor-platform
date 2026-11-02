@@ -130,3 +130,42 @@ def retry_failed_notifications():
         except Exception:  # noqa: BLE001
             log.exception("notification retry failed for schema %s", schema)
     return {"requeued": total}
+
+
+#: SEC-G7: тела писем/сообщений и вложения (PDF счетов) храним 30 дней после отправки.
+PAYLOAD_RETENTION = __import__("datetime").timedelta(days=30)
+
+
+def purge_payloads(*, now=None) -> int:
+    """SEC-G7 (аудит 2026-11-01): стереть содержимое (тело, вложения) отправленных и
+    окончательно упавших уведомлений старше срока — строка остаётся для статистики и
+    дедупа (dedupe_key), персональные данные письма — нет."""
+    from .models import Notification
+
+    cutoff = (now or timezone.now()) - PAYLOAD_RETENTION
+    return (
+        Notification.objects.filter(status__in=[SENT, FAILED], updated_at__lt=cutoff)
+        .exclude(payload={})
+        .update(payload={})
+    )
+
+
+@idempotent_task()
+def purge_notification_payloads():
+    import logging
+
+    from django_tenants.utils import get_tenant_model
+
+    log = logging.getLogger(__name__)
+    total = 0
+    for schema in (
+        get_tenant_model()
+        .objects.exclude(schema_name="public")
+        .values_list("schema_name", flat=True)
+    ):
+        try:
+            with schema_context(schema):
+                total += purge_payloads()
+        except Exception:  # noqa: BLE001
+            log.exception("notification payload purge failed for schema %s", schema)
+    return {"purged": total}

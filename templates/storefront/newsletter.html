@@ -11,6 +11,13 @@
     {% elif state == "confirmed" %}
       <h1 class="text-2xl font-bold mb-2">{% trans "You're subscribed!" %} 🎉</h1>
       <p class="text-gray-600">{% trans "Thank you — you'll now receive our news and offers. You can unsubscribe any time with one click." %}</p>
+    {% elif state == "confirm_ask" %}
+      <h1 class="text-2xl font-bold mb-2">{% trans "Confirm your subscription" %}</h1>
+      <p class="text-gray-600">{% trans "Get our latest news and special offers. We use double opt-in and you can unsubscribe any time." %}</p>
+      <form method="post" class="mt-5">
+        {% csrf_token %}
+        <button type="submit" class="ui-btn ui-btn-primary">{% trans "Confirm subscription" %}</button>
+      </form>
     {% elif state == "already" %}
       <h1 class="text-2xl font-bold mb-2">{% trans "You're already subscribed" %}</h1>
       <p class="text-gray-600">{% trans "This email is already on our newsletter list." %}</p>

@@ -112,8 +112,16 @@ def enqueue_booking_email(booking, event):
         # UA4-4b wiring: post-visit ведёт на форму отзыва об услуге (generic
         # reviews, GET → деталь с формой). Нет услуги/домена → письмо без ссылки.
         if event == "post_visit" and booking.service_id:
+            from apps.reviews import links as review_links
+
+            # SEC-E-M5: ссылка с токеном — право на проверенный отзыв.
             ctx["review_url"] = (
-                f"{base}{reverse('storefront-service-review', args=[booking.service_id])}"
+                review_links.with_token(
+                    f"{base}{reverse('storefront-service-review', args=[booking.service_id])}",
+                    "service",
+                    booking.service_id,
+                    customer,
+                )
                 if base
                 else ""
             )

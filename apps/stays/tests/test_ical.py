@@ -57,6 +57,8 @@ def test_build_feed_round_trips_booking_and_block():
     starts = {(s, e) for _u, s, e in events}
     assert (date(2026, 7, 1), date(2026, 7, 4)) in starts
     assert (date(2026, 8, 1), date(2026, 8, 3)) in starts
+    # SEC-E-M2: код брони (ключ к странице с данными гостя) во внешний календарь не уходит.
+    assert "S-ABC123" not in feed
 
 
 def test_sync_ical_source_creates_inclusive_blocks():

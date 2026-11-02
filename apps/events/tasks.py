@@ -205,3 +205,11 @@ def check_min_participants():
         with schema_context(schema):
             total += check_due_min_participants()
     return total
+
+
+@shared_task
+def purge_participant_answers():
+    """SEC-G3: ответы анкеты (данные здоровья) — 30 дней после события, дальше стёрты."""
+    from .retention import purge_all_tenants
+
+    return {"purged": purge_all_tenants()}

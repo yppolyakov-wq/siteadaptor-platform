@@ -31449,3 +31449,28 @@ msgid ""
 "erneut."
 msgstr ""
 "A lot of people are signing up right now. Please try again in an hour."
+
+msgid ""
+"Bewerten können Sie über den Link in unserer E-Mail nach Ihrem Besuch oder "
+"nach der Anmeldung im Kundenkonto."
+msgstr ""
+"You can leave a review via the link in our email after your visit or after "
+"signing in to your customer account."
+
+msgid "Confirm subscription"
+msgstr ""
+
+msgid "Confirm your subscription"
+msgstr ""
+
+msgid "Unsubscribe"
+msgstr ""
+
+msgid "Unsubscribe from emails?"
+msgstr ""
+
+msgid "Diese Website ist derzeit pausiert."
+msgstr "This website is currently paused."
+
+msgid "Vorübergehend nicht verfügbar"
+msgstr "Temporarily unavailable"

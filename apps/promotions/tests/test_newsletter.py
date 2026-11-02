@@ -50,7 +50,11 @@ def test_signup_already_subscribed_is_neutral_and_no_resend():
 def test_confirm_sets_opt_in():
     c = Customer.objects.create(name="A", email="a@test.de")
     token = newsletter.doi_token(c)
+    # SEC-E-L1: GET (сканер ссылок почты) согласие не ставит — только кнопка (POST).
     public_views.newsletter_confirm(_req(), token)
+    c.refresh_from_db()
+    assert c.marketing_opt_in is False
+    public_views.newsletter_confirm(_req("post"), token)
     c.refresh_from_db()
     assert c.marketing_opt_in is True and c.marketing_opt_in_at is not None
 

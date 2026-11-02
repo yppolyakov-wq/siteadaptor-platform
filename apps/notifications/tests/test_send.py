@@ -123,3 +123,22 @@ def test_old_failures_are_not_resent_after_deploy():
         updated_at=timezone.now() - timedelta(days=30),
     )
     assert ntasks.retry_failed() == 0
+
+
+def test_payload_of_old_sent_notifications_is_purged():
+    """SEC-G7: тело письма и вложения не хранятся вечно."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.notifications import tasks as ntasks
+
+    old, fresh = _notif(), _notif()
+    Notification.objects.filter(pk=old.pk).update(
+        status="sent", updated_at=timezone.now() - timedelta(days=40)
+    )
+    Notification.objects.filter(pk=fresh.pk).update(status="sent")
+    assert ntasks.purge_payloads() == 1
+    old.refresh_from_db()
+    fresh.refresh_from_db()
+    assert old.payload == {} and fresh.payload == {"body": "Text"}

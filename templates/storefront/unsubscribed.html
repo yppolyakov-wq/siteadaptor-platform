@@ -4,7 +4,13 @@
 
 {% block content %}
 <div class="bg-white rounded-2xl shadow-sm p-8 text-center max-w-md mx-auto">
-  {% if ok %}
+  {% if confirm %}
+    <h1 class="text-xl font-bold mb-2">{% trans "Unsubscribe from emails?" %}</h1>
+    <p class="text-gray-600">{% trans "You will no longer receive emails from this shop." %}</p>
+    <form method="post" class="mt-6">
+      <button type="submit" class="ui-btn ui-btn-primary">{% trans "Unsubscribe" %}</button>
+    </form>
+  {% elif ok %}
     <div class="text-4xl mb-3">✅</div>
     <h1 class="text-xl font-bold mb-2">{% trans "You have been unsubscribed" %}</h1>
     <p class="text-gray-600">{% trans "You will no longer receive emails from this shop." %}</p>

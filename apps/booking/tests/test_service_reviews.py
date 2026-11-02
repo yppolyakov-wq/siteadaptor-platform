@@ -13,6 +13,7 @@ from apps.booking import public_views
 from apps.booking.models import Booking, Resource, Service
 from apps.booking.reviews import has_booked
 from apps.promotions.models import Customer
+from apps.reviews.links import grant
 from apps.reviews.models import Review
 from apps.tenants.tests.factories import TenantFactory
 
@@ -159,9 +160,8 @@ def test_submit_creates_review_for_verified_customer():
     s = _service()
     _book(s, "gast@test.de")
     data = {"author_name": "Gast", "email": "gast@test.de", "rating": "4", "comment": "Gut"}
-    resp = public_views.service_review_submit(
-        _req("post", f"/leistung/{s.pk}/bewerten/", data), pk=s.pk
-    )
+    req = grant(_req("post", f"/leistung/{s.pk}/bewerten/", data), "service", s.pk, "gast@test.de")
+    resp = public_views.service_review_submit(req, pk=s.pk)
     assert resp.status_code == 302
     r = Review.objects.get(entity_kind="service", entity_id=s.pk, email="gast@test.de")
     assert r.rating == 4 and r.verified and r.is_published
@@ -183,3 +183,36 @@ def test_submit_invalid_rating_rejected():
     data = {"author_name": "Gast", "email": "gast@test.de", "rating": "9"}
     public_views.service_review_submit(_req("post", f"/leistung/{s.pk}/bewerten/", data), pk=s.pk)
     assert not Review.objects.filter(entity_kind="service", entity_id=s.pk).exists()
+
+
+def test_known_email_without_mail_link_cannot_review_or_overwrite():
+    """SEC-E-M5: знать e-mail клиента мало — нужен токен из письма или вход в ЛК."""
+    s = _service()
+    _book(s, "gast@test.de")
+    Review.objects.create(
+        entity_kind="service", entity_id=s.pk, rating=5, author_name="Gast", email="gast@test.de"
+    )
+    data = {"author_name": "Konkurrent", "email": "gast@test.de", "rating": "1", "comment": "x"}
+    public_views.service_review_submit(_req("post", f"/leistung/{s.pk}/bewerten/", data), pk=s.pk)
+    r = Review.objects.get(entity_kind="service", entity_id=s.pk, email="gast@test.de")
+    assert r.rating == 5 and r.author_name == "Gast"  # настоящий отзыв не переписан
+
+
+def test_mail_link_grants_review_right():
+    from apps.reviews import links
+
+    s = _service()
+    _book(s, "gast@test.de")
+    from apps.promotions.models import Customer
+
+    customer = Customer.objects.get(email="gast@test.de")
+    url = links.with_token(f"/leistung/{s.pk}/bewerten/", "service", s.pk, customer)
+    assert "gast" not in url  # адрес в ссылке не читается
+    from urllib.parse import parse_qs, urlsplit
+
+    token = parse_qs(urlsplit(url).query)["t"][0]
+    req = _req("get", f"/leistung/{s.pk}/bewerten/", {"t": token})
+    resp = public_views.service_review_submit(req, pk=s.pk)
+    assert resp["Location"].endswith("#bewertungen")
+    assert links.proven_email(req, "service", s.pk) == "gast@test.de"
+    assert links.proven_email(req, "service", "other") == ""  # только для своей услуги

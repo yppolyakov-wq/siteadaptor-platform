@@ -10,6 +10,7 @@ from apps.catalog.tests.factories import ProductFactory
 from apps.orders.models import Order, OrderItem
 from apps.promotions import public_views
 from apps.promotions.models import Customer
+from apps.reviews.links import grant
 from apps.reviews.models import Review
 from apps.tenants.tests.factories import TenantFactory
 
@@ -138,9 +139,10 @@ def test_submit_creates_review_for_verified_buyer():
     product = ProductFactory()
     _buy(product, "buyer@test.de")
     data = {"author_name": "Buyer", "email": "buyer@test.de", "rating": "5", "comment": "Top!"}
-    resp = public_views.product_review_submit(
-        _post(f"/sortiment/{product.pk}/bewerten/", data), pk=product.pk
+    req = grant(
+        _post(f"/sortiment/{product.pk}/bewerten/", data), "product", product.pk, "buyer@test.de"
     )
+    resp = public_views.product_review_submit(req, pk=product.pk)
     assert resp.status_code == 302
     r = Review.objects.get(entity_kind="product", entity_id=product.pk, email="buyer@test.de")
     assert r.rating == 5 and r.author_name == "Buyer" and r.is_published and r.verified
@@ -177,9 +179,10 @@ def test_submit_updates_existing_review():
         email="buyer@test.de",
     )
     data = {"author_name": "Buyer", "email": "buyer@test.de", "rating": "5", "comment": "Besser!"}
-    public_views.product_review_submit(
-        _post(f"/sortiment/{product.pk}/bewerten/", data), pk=product.pk
+    req = grant(
+        _post(f"/sortiment/{product.pk}/bewerten/", data), "product", product.pk, "buyer@test.de"
     )
+    public_views.product_review_submit(req, pk=product.pk)
     reviews = Review.objects.filter(
         entity_kind="product", entity_id=product.pk, email="buyer@test.de"
     )

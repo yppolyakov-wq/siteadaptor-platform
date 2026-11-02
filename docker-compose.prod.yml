@@ -17,7 +17,8 @@ services:
   db:
     image: postgres:16-alpine
     profiles: ["single"]
-    env_file: .env.prod
+    # SEC-G11: только свои переменные (раньше env_file отдавал Postgres все ключи
+    # приложения — Stripe, Telegram, SECRET_KEY). Значения подставляет --env-file.
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
@@ -95,13 +96,20 @@ services:
 
   redis:
     image: redis:7-alpine
+    # SEC-G11: пароль Redis — по желанию (REDIS_PASSWORD в .env.prod + тот же пароль в
+    # REDIS_URL/CELERY_BROKER_URL: redis://:<пароль>@redis:6379/0). Пусто — как раньше.
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    command: >-
+      sh -c 'if [ -n "$$REDIS_PASSWORD" ]; then exec redis-server --requirepass "$$REDIS_PASSWORD";
+             else exec redis-server; fi'
     restart: unless-stopped
     volumes:
       - redisdata:/data
 
   caddy:
     build: ./caddy
-    env_file: .env.prod
+    # SEC-G11: Caddy переменные окружения не нужны — секреты приложения ему не отдаём.
     ports:
       - "80:80"
       - "443:443"

@@ -45,7 +45,8 @@ ERASURE_POLICY = {
     "finance.RevenueEntry": ("keep", "money"),
     "finance.Invoice": ("keep", "invoice"),
     "stays.StayBooking": ("clear", ("note", "billing_address")),
-    "jobs.Job": ("clear", ("site_address", "vehicle_plate")),
+    # SEC-G15: описание заявки — текст клиента (адрес, телефон, детали) — тоже стираем.
+    "jobs.Job": ("clear", ("site_address", "vehicle_plate", "description", "description_i18n")),
     # KA-12 A-6: номер и FIN — ПДн; заявки остаются (vehicle_ref → NULL коллектором).
     # Марка/HSN/TSN на заявке не идентифицируют человека без номера — остаются.
     "jobs.Vehicle": ("delete", ()),
@@ -120,9 +121,11 @@ def _value(value):
 
 
 def _is_encrypted(field) -> bool:
-    from apps.secrets.fields import EncryptedTextField
+    from apps.secrets.fields import EncryptedJSONField, EncryptedTextField
 
-    return isinstance(field, EncryptedTextField)
+    # Ревью волны 3: ответы анкеты (EncryptedJSONField) — данные САМОГО субъекта,
+    # Art. 15/20 требует их выдать; маской остаются секреты (токены, номера документов).
+    return isinstance(field, EncryptedTextField) and not isinstance(field, EncryptedJSONField)
 
 
 def _row(obj) -> dict:
@@ -259,7 +262,9 @@ def _anonymize_customer(customer):
 def _clear_value(field):
     if field.null:
         return None
-    if field.get_internal_type() == "JSONField":
+    from apps.secrets.fields import EncryptedJSONField
+
+    if field.get_internal_type() == "JSONField" or isinstance(field, EncryptedJSONField):
         return field.default() if callable(field.default) else {}
     return ""
 

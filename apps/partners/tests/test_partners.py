@@ -217,7 +217,12 @@ def test_signup_ref_survives_email_confirmation(monkeypatch, settings):
     # Клик по письму: реальный confirm → Tenant создан С атрибуцией партнёра.
     from apps.tenants.models import Domain, Tenant
 
-    confirm_req = _req("get", path=f"/registrieren/bestaetigen/{signup_req.token}/")
+    # SEC-B-M2: подтверждение — POST с паролем регистрации (GET лишь показывает экран).
+    confirm_req = _req(
+        "post",
+        path=f"/registrieren/bestaetigen/{signup_req.token}/",
+        data={"password": "pw12345678"},
+    )
     tenant_views.signup_confirm(confirm_req, token=signup_req.token)
     tenant = Tenant.objects.get(slug=signup_req.slug)
     try:

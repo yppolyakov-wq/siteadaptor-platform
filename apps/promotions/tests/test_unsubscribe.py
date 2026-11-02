@@ -28,7 +28,11 @@ def test_unsubscribe_view_sets_flag():
     res = reserve(promo, name="Bob", email="bob@test.de")
     token = res.customer.unsubscribe_token
 
+    # SEC-E-L1: GET (почтовый сканер) не отписывает — только кнопка/one-click POST.
     resp = public_views.unsubscribe(RequestFactory().get(f"/u/{token}/"), token=token)
+    assert resp.status_code == 200
+    assert Customer.objects.get(pk=res.customer_id).unsubscribed is False
+    resp = public_views.unsubscribe(RequestFactory().post(f"/u/{token}/"), token=token)
     assert resp.status_code == 200
     assert Customer.objects.get(pk=res.customer_id).unsubscribed is True
 

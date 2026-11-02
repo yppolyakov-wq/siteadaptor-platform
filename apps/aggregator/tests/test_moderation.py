@@ -100,11 +100,11 @@ def test_moderation_never_hides():
 def test_auto_report_is_not_a_voice():
     listing = _listing(title={"de": "Gratis Kaffee"})
     moderation.moderate(listing)
-    reports.file_report(listing, reason="spam", ip_hash="a")
-    reports.file_report(listing, reason="spam", ip_hash="b")
+    for h in ("a", "b", "c", "d"):
+        reports.file_report(listing, reason="spam", ip_hash=h)
     listing.refresh_from_db()
-    assert listing.hidden_at is None  # 2 человека + машина ≠ 3 голоса
-    reports.file_report(listing, reason="spam", ip_hash="c")
+    assert listing.hidden_at is None  # 4 человека + машина ≠ 5 голосов (SEC-F-M3)
+    reports.file_report(listing, reason="spam", ip_hash="e")
     listing.refresh_from_db()
     assert listing.hidden_at is not None
 
@@ -323,7 +323,7 @@ def test_resolve_keep_on_auto_report_does_not_unhide_or_resolve_human_reports():
     from apps.aggregator.admin import ListingReportAdmin
 
     listing = _listing(title={"de": "Gratis Kaffee"})
-    for h in ("a", "b", "c"):
+    for h in ("a", "b", "c", "d", "e"):
         reports.file_report(listing, reason="spam", ip_hash=h)
     moderation.moderate(listing)
     listing.refresh_from_db()
@@ -336,6 +336,6 @@ def test_resolve_keep_on_auto_report_does_not_unhide_or_resolve_human_reports():
         ListingReport.objects.filter(listing=listing, status="open")
         .exclude(ip_hash=moderation.AUTO_MARKER)
         .count()
-        == 3
+        == 5
     )
     assert not _auto(listing).filter(status="open").exists()

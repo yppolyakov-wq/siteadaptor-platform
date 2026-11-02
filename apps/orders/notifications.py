@@ -90,12 +90,20 @@ def enqueue_order_email(order, event, dedupe_suffix=""):
             )
         # CM-6.4: ссылки «оценить товар» (деталь#bewertungen) — только с base.
         if event == "post_purchase":
+            from apps.reviews import links as review_links
+
             # KAT-3: SEO-URL детали (select_related — без N+1 по товару/категории).
             ctx["review_links"] = (
                 [
                     {
                         "title": item.title_snapshot,
-                        "url": f"{base}{item.product.get_absolute_url()}#bewertungen",
+                        # SEC-E-M5: ссылка с токеном — право на проверенный отзыв.
+                        "url": review_links.with_token(
+                            f"{base}{reverse('storefront-product-review', args=[item.product_id])}",
+                            "product",
+                            item.product_id,
+                            customer,
+                        ),
                     }
                     for item in order.items.select_related("product__category")
                     if item.product_id

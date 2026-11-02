@@ -9,6 +9,8 @@ import secrets
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.secrets.fields import EncryptedTextField
+
 
 def _gen_secret() -> str:
     return secrets.token_hex(32)
@@ -23,7 +25,8 @@ class OutgoingWebhook(models.Model):
     tenant_schema = models.CharField(max_length=100, db_index=True)
     url = models.URLField()
     # секрет для HMAC; генерится при создании, показывается владельцу один раз
-    secret = models.CharField(max_length=64, default=_gen_secret)
+    # SEC-G10: секрет подписи шифруется at-rest.
+    secret = EncryptedTextField(default=_gen_secret)
     event_types = models.JSONField(default=list)  # ['promotion.published', ...]
     is_active = models.BooleanField(default=True)
 

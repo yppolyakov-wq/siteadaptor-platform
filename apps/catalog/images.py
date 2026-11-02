@@ -175,3 +175,35 @@ def apply_gallery_op(images, *, op, image_id, uploaded, folder) -> list:
             return gallery_add(images, uploaded, folder=folder)
         return gallery_replace(images, image_id, uploaded, folder=folder)
     raise ValueError(f"unknown gallery op: {op}")
+
+
+#: SEC-G14: предел пикселей для перекодирования без EXIF.
+MAX_STRIP_PIXELS = 60_000_000
+
+
+def strip_metadata(uploaded, fmt: str):
+    """SEC-G14 (аудит 2026-11-01): перекодировать фото без EXIF/XMP (GPS-координаты,
+    модель телефона, время съёмки). Ориентация из EXIF применяется к пикселям, чтобы
+    фото не легло боком. → ContentFile с тем же именем; формат прежний."""
+    import io
+
+    from django.core.files.base import ContentFile
+    from PIL import ImageOps
+
+    uploaded.seek(0)
+    with Image.open(uploaded, formats=list(_MIME)) as img:
+        # Ревью волны 3: 5 МБ PNG может нести ~170 Мпикс — декодирование съело бы
+        # гигабайт памяти воркера. Фото с телефона — до ~50 Мпикс.
+        width, height = img.size
+        if width * height > MAX_STRIP_PIXELS:
+            raise ValueError("image too large to re-encode")
+        icc = img.info.get("icc_profile")
+        img = ImageOps.exif_transpose(img)
+        if fmt == "JPEG" and img.mode not in ("RGB", "L"):
+            img = img.convert("RGB")
+        out = io.BytesIO()
+        params = {"quality": 90} if fmt in ("JPEG", "WEBP") else {}
+        if icc:
+            params["icc_profile"] = icc  # цвет фото без сдвига на широком охвате
+        img.save(out, format=fmt, **params)
+    return ContentFile(out.getvalue(), name=getattr(uploaded, "name", "photo"))

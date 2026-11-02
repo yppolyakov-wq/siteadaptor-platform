@@ -8,10 +8,17 @@
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.core import ratelimit
 from apps.reviews import services as review_services
 from apps.reviews.models import Review
+
+#: SEC-E-M5: без ссылки из письма / входа в кабинет отзыв не принимаем.
+PROOF_MESSAGE = gettext_lazy(
+    "Bewerten können Sie über den Link in unserer E-Mail nach Ihrem Besuch "
+    "oder nach der Anmeldung im Kundenkonto."
+)
 
 
 def handle_review_submit(request, *, entity_kind, obj, detail_url):
@@ -20,7 +27,12 @@ def handle_review_submit(request, *, entity_kind, obj, detail_url):
     Только верифицированный покупатель (per-kind проверка брони/билета по e-mail).
     Один отзыв на (kind, id, email) — повтор обновляет. Не-POST → редирект на деталь.
     """
+    from apps.reviews import links
+
     if request.method != "POST":
+        # SEC-E-M5: ссылка из письма даёт право на «проверенный» отзыв.
+        if links.grant_from_request(request, entity_kind, obj.pk):
+            return redirect(detail_url + "#bewertungen")
         return redirect(detail_url)
     # Рейтлимит по IP (анти-спам), как в остальных публичных формах.
     if ratelimit.hit(f"review:{entity_kind}", ratelimit.client_ip(request), limit=10, window=3600):
@@ -36,6 +48,11 @@ def handle_review_submit(request, *, entity_kind, obj, detail_url):
     if not (name and email and 1 <= rating <= 5):
         messages.error(request, _("Bitte Name, E-Mail und Bewertung (1–5) angeben."))
         return redirect(detail_url)
+    proven = links.proven_email(request, entity_kind, obj.pk)
+    if not proven:
+        messages.error(request, PROOF_MESSAGE)
+        return redirect(detail_url)
+    email = proven  # SEC-E-M5: адрес — из доказательства, не из поля формы
     if not review_services.is_verified_buyer(entity_kind, obj, email):
         messages.error(
             request,

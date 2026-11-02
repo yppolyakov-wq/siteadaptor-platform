@@ -13,6 +13,7 @@ from apps.events import public_views
 from apps.events.models import Event, Ticket
 from apps.events.reviews import has_ticket
 from apps.promotions.models import Customer
+from apps.reviews.links import grant
 from apps.reviews.models import Review
 from apps.tenants.tests.factories import TenantFactory
 
@@ -107,9 +108,10 @@ def test_submit_creates_review_for_verified_attendee():
     e = _event()
     _ticket(e, "fan@test.de")
     data = {"author_name": "Fan", "email": "fan@test.de", "rating": "4", "comment": "Super"}
-    resp = public_views.event_review_submit(
-        _req("post", f"/veranstaltung/{e.pk}/bewerten/", data), pk=e.pk
+    req = grant(
+        _req("post", f"/veranstaltung/{e.pk}/bewerten/", data), "event", e.pk, "fan@test.de"
     )
+    resp = public_views.event_review_submit(req, pk=e.pk)
     assert resp.status_code == 302
     r = Review.objects.get(entity_kind="event", entity_id=e.pk, email="fan@test.de")
     assert r.rating == 4 and r.verified
