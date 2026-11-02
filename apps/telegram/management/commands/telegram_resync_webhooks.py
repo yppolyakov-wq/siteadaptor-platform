@@ -20,7 +20,7 @@ class Command(BaseCommand):
         from apps.telegram import services
         from apps.telegram.models import TelegramBot
 
-        bots = errors = 0
+        bots = errors = skipped = 0
         for tenant in get_tenant_model().objects.exclude(schema_name="public"):
             with schema_context(tenant.schema_name):
                 try:
@@ -31,6 +31,10 @@ class Command(BaseCommand):
                     continue
                 base = services.tenant_base_url()
                 if not base:
+                    # Без домена вебхуку некуда указывать — пропуск не молчаливый:
+                    # владелец должен видеть, какой бот не перерегистрирован.
+                    skipped += 1
+                    self.stdout.write(f"skip (no domain): {tenant.schema_name}")
                     continue
                 bots += 1
                 if not apply:
@@ -61,4 +65,4 @@ class Command(BaseCommand):
                 errors += 1
                 self.stdout.write(f"error: portal {pbot.portal.host}: {type(exc).__name__}")
         mode = "applied" if apply else "dry-run"
-        self.stdout.write(f"{mode}: bots={bots} errors={errors}")
+        self.stdout.write(f"{mode}: bots={bots} errors={errors} skipped={skipped}")
