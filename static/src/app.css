@@ -1685,6 +1685,12 @@ input[type="datetime-local"] {
   body:has([data-buybar]) [data-sf-presence] { bottom: calc(var(--sf-nav-h, 0px) + var(--sf-buybar-h) + 76px); }
 }
 
+/* SP-1: «карта меню» колонками — пунктирная линия между колонками, как у книги. */
+@media (min-width: 768px) {
+  .sf-pl-rule { column-rule: 1px dashed rgb(209 213 219); }
+  html.dark .sf-pl-rule { column-rule-color: rgb(55 65 81); }
+}
+
 @layer components {
   .ui-canvas { background: var(--ui-canvas); }
   .ui-topbar { background: var(--ui-canvas); background: color-mix(in srgb, var(--ui-canvas) 95%, transparent); }

@@ -609,3 +609,23 @@ def test_additive_numbers_and_legend_match_pdf_scheme():
     assert "data-additive-numbers>1,2</sup>" in html
     assert "data-additive-legend" in html and "1</b> = " in html
     assert food.additive_number_str(codes) == p.additive_numbers_str
+
+
+def test_sp1_karte_and_book_fill_container_width():
+    """SP-1 (фидбэк 2026-11-02 «меню на ширину контейнера»): карта меню — колонками
+    на всю ширину (было max-w-2xl посреди широкой карточки), книга — без max-w-4xl."""
+    _seed_products()
+
+    def block(style):
+        html = _render_home(
+            TenantFactory.build(
+                site_config={"sections": [{"key": "products", "enabled": True, "style": style}]}
+            )
+        )
+        return html.split("data-price-list")[0].rsplit("<div", 1)[-1]
+
+    karte = block("preisliste_karte")
+    assert "max-w-none" in karte and "md:columns-2" in karte and "xl:columns-3" in karte
+    assert "max-w-2xl" not in karte
+    buch = block("preisliste_buch")
+    assert "max-w-none" in buch and "max-w-4xl" not in buch

@@ -165,3 +165,17 @@ def test_settings_min_seats_clamped_and_online_flag():
     views.resources(request)
     table.refresh_from_db()
     assert table.min_seats == 4 and table.bookable_online is False
+
+
+def test_sp1_slots_calendar_left_of_times():
+    """SP-1 (фидбэк 2026-11-02 «выбор даты слева»): на lg+ календарь — левая колонка,
+    день/времена/форма — правая; выбор гостей переносится на телефоне (был за краем)."""
+    _table("Zwei", 2)
+    body = public_views.tisch_slots(
+        _request("get", "/termin/tisch/", {"tag": DAY.isoformat(), "gaeste": "2"})
+    ).content.decode()
+    layout = body.split("data-slots-layout")[0].rsplit("<div", 1)[-1]
+    assert "lg:grid-cols-[22rem_minmax(0,1fr)]" in layout
+    assert body.index("data-slots-calendar") < body.index("data-slots-day")
+    picker = body.split("data-party-picker")[0].rsplit("<div", 1)[-1]
+    assert "flex-wrap" in picker
