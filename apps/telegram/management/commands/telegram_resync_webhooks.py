@@ -17,10 +17,13 @@ class Command(BaseCommand):
         parser.add_argument("--apply", action="store_true", help="Call Telegram setWebhook.")
 
     def handle(self, *args, apply=False, **options):
-        from apps.telegram import services
+        from apps.telegram import ownership, services
         from apps.telegram.models import TelegramBot
 
         bots = errors = skipped = 0
+        # Один бот у двух хозяев: вебхук у Telegram один — ставим его первому и
+        # показываем дубль, а не перетягиваем адрес туда-сюда (ops 2026-11-02).
+        seen: dict[str, str] = {}
         for tenant in get_tenant_model().objects.exclude(schema_name="public"):
             with schema_context(tenant.schema_name):
                 try:
@@ -29,6 +32,11 @@ class Command(BaseCommand):
                     continue
                 if bot is None:
                     continue
+                bid = ownership.bot_id(bot.token)
+                if bid and bid in seen:
+                    skipped += 1
+                    self.stdout.write(f"skip (same bot as {seen[bid]}): {tenant.schema_name}")
+                    continue
                 base = services.tenant_base_url()
                 if not base:
                     # Без домена вебхуку некуда указывать — пропуск не молчаливый:
@@ -36,6 +44,8 @@ class Command(BaseCommand):
                     skipped += 1
                     self.stdout.write(f"skip (no domain): {tenant.schema_name}")
                     continue
+                if bid:
+                    seen[bid] = tenant.schema_name
                 bots += 1
                 if not apply:
                     self.stdout.write(f"would resync: {tenant.schema_name}")
@@ -54,6 +64,13 @@ class Command(BaseCommand):
         for pbot in (
             PortalBot.objects.filter(is_active=True).exclude(token="").select_related("portal")
         ):
+            bid = ownership.bot_id(pbot.token)
+            if bid and bid in seen:
+                skipped += 1
+                self.stdout.write(f"skip (same bot as {seen[bid]}): portal {pbot.portal.host}")
+                continue
+            if bid:
+                seen[bid] = f"portal {pbot.portal.host}"
             bots += 1
             if not apply:
                 self.stdout.write(f"would resync portal bot: {pbot.portal.host}")

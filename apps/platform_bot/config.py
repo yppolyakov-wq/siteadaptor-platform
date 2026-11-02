@@ -136,6 +136,12 @@ def check_token(raw: str) -> str:
         raise ValueError(type(exc).__name__) from None
     if not me.get("is_bot") or not me.get("username"):
         raise ValueError("kein Bot")
+    from apps.telegram import ownership
+
+    others = ownership.owners_of(raw, exclude=ownership.PLATFORM)
+    if others:
+        # Тот же бот у бизнеса/портала: общий бот забрал бы их вебхук (ops 2026-11-02).
+        raise ValueError("bereits verbunden: " + ", ".join(others))
     return str(me["username"])
 
 

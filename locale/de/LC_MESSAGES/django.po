@@ -2610,6 +2610,9 @@ msgstr "Bitte fügen Sie das Bot-Token von @BotFather ein."
 msgid "Could not verify the token. Please check it."
 msgstr "Das Token konnte nicht überprüft werden. Bitte überprüfen Sie es."
 
+msgid "This bot is already connected to another business. Disconnect it there first or create a new bot in @BotFather."
+msgstr "Dieser Bot ist bereits mit einem anderen Geschäft verbunden. Trennen Sie ihn dort zuerst oder legen Sie in @BotFather einen neuen Bot an."
+
 #: apps/telegram/views.py:66
 msgid "Telegram bot connected."
 msgstr "Telegram-Bot verbunden."

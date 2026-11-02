@@ -2585,6 +2585,9 @@ msgstr "Lütfen @BotFather'dan aldığınız bot jetonunu buraya yapıştırın.
 msgid "Could not verify the token. Please check it."
 msgstr "Jeton doğrulanamadı. Lütfen kontrol edin."
 
+msgid "This bot is already connected to another business. Disconnect it there first or create a new bot in @BotFather."
+msgstr "Bu bot zaten başka bir işletmeye bağlı. Önce oradan bağlantısını kesin veya @BotFather'da yeni bir bot oluşturun."
+
 #: apps/telegram/views.py:66
 msgid "Telegram bot connected."
 msgstr "Telegram botu bağlandı."

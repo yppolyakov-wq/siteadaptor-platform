@@ -460,12 +460,18 @@ class PortalBotAdmin(ModelAdmin):
 
     @admin.action(description="Connect bot (verify token + set webhook)")
     def connect_selected(self, request, queryset):
-        from .telegram_bot import connect_bot
+        from .telegram_bot import BotAlreadyConnected, connect_bot
 
         for bot in queryset:
             try:
                 connect_bot(bot)
                 self.message_user(request, f"{bot.portal.host}: connected.", messages.SUCCESS)
+            except BotAlreadyConnected as exc:
+                self.message_user(
+                    request,
+                    f"{bot.portal.host}: bot already connected elsewhere ({exc}).",
+                    messages.ERROR,
+                )
             except Exception as exc:  # noqa: BLE001 — показать ошибку в админке
                 # Текст HTTPError несёт URL с токеном бота — показываем только тип.
                 self.message_user(

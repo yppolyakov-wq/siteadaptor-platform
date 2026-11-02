@@ -35,8 +35,18 @@ def set_commands(bot: PortalBot) -> None:
             logger.warning("portal bot commands failed: %s", type(exc).__name__)
 
 
+class BotAlreadyConnected(ValueError):
+    """Этот бот уже держит вебхук у другого хозяина (ops 2026-11-02)."""
+
+
 def connect_bot(bot: PortalBot) -> dict:
     """Проверить токен (getMe), сохранить username и поставить webhook на хост портала."""
+    from apps.telegram import ownership
+
+    others = ownership.owners_of(bot.token, exclude=ownership.portal_label(bot.portal.host))
+    if others:
+        # Админка платформы — суперпользователю метки хозяев видны (имена схем/хостов).
+        raise BotAlreadyConnected(", ".join(others))
     me = tg.get_me(bot.token)
     bot.bot_username = me.get("username", "")
     url = f"https://{bot.portal.host}/tg/{bot.webhook_secret}/"
@@ -48,7 +58,12 @@ def connect_bot(bot: PortalBot) -> dict:
 
 
 def disconnect_bot(bot: PortalBot) -> None:
-    if bot.token:
+    from apps.telegram import ownership
+
+    shared = bot.token and ownership.owners_of(
+        bot.token, exclude=ownership.portal_label(bot.portal.host)
+    )
+    if bot.token and not shared:
         try:
             tg.delete_webhook(bot.token)
         except Exception:  # noqa: BLE001 — отключение не должно падать

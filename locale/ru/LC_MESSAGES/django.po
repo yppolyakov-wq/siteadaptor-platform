@@ -2597,6 +2597,9 @@ msgstr "Пожалуйста, вставьте токен бота, получе
 msgid "Could not verify the token. Please check it."
 msgstr "Не удалось проверить токен. Пожалуйста, проверьте его."
 
+msgid "This bot is already connected to another business. Disconnect it there first or create a new bot in @BotFather."
+msgstr "Этот бот уже подключён к другому бизнесу. Сначала отключите его там или создайте нового бота в @BotFather."
+
 #: apps/telegram/views.py:66
 msgid "Telegram bot connected."
 msgstr "Подключен бот в Telegram."

@@ -8,12 +8,13 @@ webhook. Под gated-подпиской POST блокирует middleware (rea
 import requests
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import connection
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from . import services
+from . import ownership, services
 from .models import TelegramBot
 
 
@@ -59,6 +60,18 @@ def connect(request):
         messages.error(request, _("Could not verify the token. Please check it."))
         return _back(request)
 
+    # Один бот — один хозяин: иначе подключение молча заберёт вебхук у другого бизнеса
+    # (или у бота портала/платформы). Чей бот — не называем: чужие данные.
+    if ownership.owners_of(token, exclude=ownership.tenant_label(connection.schema_name)):
+        messages.error(
+            request,
+            _(
+                "This bot is already connected to another business. Disconnect it there "
+                "first or create a new bot in @BotFather."
+            ),
+        )
+        return _back(request)
+
     bot = _bot()
     bot.token = token
     bot.bot_username = me.get("username", "")
@@ -84,10 +97,15 @@ def connect(request):
 def disconnect(request):
     bot = TelegramBot.objects.first()
     if bot and bot.token:
-        try:
-            services.delete_webhook(bot.token)
-        except requests.RequestException:
-            pass
+        # Тот же бот активен у другого хозяина (дубль, подключённый до проверки) —
+        # вебхук принадлежит ему, не снимаем.
+        if not ownership.owners_of(
+            bot.token, exclude=ownership.tenant_label(connection.schema_name)
+        ):
+            try:
+                services.delete_webhook(bot.token)
+            except requests.RequestException:
+                pass
         bot.is_active = False
         bot.save(update_fields=["is_active", "updated_at"])
         messages.success(request, _("Telegram bot disconnected."))
