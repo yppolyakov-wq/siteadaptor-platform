@@ -101,3 +101,29 @@ FSM/логика — нет.
 - Контраст `text-gray-400` для информационного текста (легенды аллергенов, «from»,
   «Fortsetzung», дни недели календаря) → gray-500/600.
 - Text-Check: live-region всегда в DOM; кнопки ≥32 px в Mini App.
+
+## 4. ECC-прогоны (обязательный раздел плана)
+
+**До кода, на каждый заход:** скилл `accessibility` (вкладки `role=tab`, `<details>`, группы
+флажков `fieldset/legend`, фокус, контраст, тап-цели); `e2e-testing` (Playwright-стенд
+1440/390 на демо restaurant-demo и ohligser-eck lite); `django-patterns` — только если
+меняется вьюха/тег (SP-3 редирект `?open=`, SP-9 тег `business_card_data`).
+
+**Во время кода:** замок-тест на каждую перестройку (класс раскладки, порядок, поля в DOM —
+W0); перед коммитом `ruff`, `scripts/i18n_quickcheck.py`, `test_template_comments`,
+пересборка `app.css`; после вставки хелпера над вьюхой — `test_orphan_decorators`.
+
+**После кода, до мержа:** `django-reviewer` на каждую партию; `a11y-architect` на новые
+UI-элементы; `security-reviewer` — только при вводе/правах/деньгах; аудиторы плотности
+(2 агента на стенде) — один раз в начале серии; финальный гейт — CI на git.
+
+| Шаг | Статус |
+|---|---|
+| Аудит плотности (2 агента) | ✅ |
+| SP-1…SP-14: код, замки, стенд | ✅ |
+| `code-reviewer` SP-1/2 + MA-L | ✅ (2 средних — исправлены) |
+| `a11y-architect` SP-1/2 + MA-L | ✅ (фокус после свопа, scroll-padding, aria-current, высоты слоёв) |
+| `django-reviewer` SP-3/5, SP-6…9, SP-10…13 | ✅ 5 дефектов — исправлены |
+| `a11y-architect` SP-3…SP-14 | ⏳ |
+| `django-reviewer` SP-14 | ⏳ |
+| Финальная Playwright-сверка всех изменённых экранов 1440/390 (+ru) | ⏳ |
