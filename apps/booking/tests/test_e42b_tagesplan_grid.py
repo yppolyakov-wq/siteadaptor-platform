@@ -358,3 +358,18 @@ def test_closed_dates_read_once_for_grid(django_assert_num_queries):
     rs = list(Resource.objects.prefetch_related("rules"))
     with django_assert_num_queries(1):
         tagesplan.build(rs, day, [])
+
+
+def test_sp12_month_and_new_booking_side_by_side_move_collapsed():
+    """SP-12 (аудит пространства 2026-11-02): на xl месяц слева, форма записи справа;
+    DOM-порядок прежний (форма после списка); ряд переноса свёрнут в <details>."""
+    from pathlib import Path
+
+    from django.conf import settings
+
+    text = (Path(settings.BASE_DIR) / "templates/booking/_tagesplan_body.html").read_text()
+    assert "data-tagesplan-layout" in text
+    assert text.index("{% if bookings %}") < text.index('id="neu"')  # мобильный порядок
+    assert "xl:col-start-2 xl:row-start-1" in text.split('id="neu"')[1].split(">")[0]
+    move = text.split("data-move")[1]
+    assert move.index("</details>") > move.index('value="move"')

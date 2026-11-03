@@ -14,6 +14,11 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   {% endfor %}
 {% endif %}
 
+{% comment %}SP-12 (аудит пространства 2026-11-02): на xl месяц и день — слева, форма
+новой записи — справа вверху (CSS-грид, порядок DOM прежний: на телефоне форма
+остаётся после списка), записи дня — во всю ширину под ними.{% endcomment %}
+<div class="xl:grid xl:grid-cols-[28rem_minmax(0,1fr)] xl:gap-x-6 xl:items-start" data-tagesplan-layout>
+<div class="min-w-0">
 {# Фидбэк 2026-08-04: месячная сетка — клик по дате разворачивает её брони ниже. #}
 {% include "booking/_month_grid.html" %}
 
@@ -25,6 +30,9 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
 
 {% if has_tables %}<p class="mb-3"><a href="{% url 'booking:tischplan' %}?tag={{ day|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline" data-tischplan-link>🪑 {% trans "Tischplan" %} →</a></p>{% endif %}
 
+</div>
+
+<div class="min-w-0 xl:col-span-2 xl:row-start-2">
 {% if bookings %}
 {# KA-12 E4.2b: сетка «ресурс × время» с переносом перетаскиванием (md+); список ниже — путь без мыши. #}
 {% include "booking/_tagesplan_grid.html" %}
@@ -55,11 +63,17 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
         {# UD2-1: FSM-Statusaktionen generisch aus allowed_targets (statt hardcodiert) #}
         {% include "core/_status_actions.html" with kind="booking" obj=b %}
         {% if b.status == 'pending' or b.status == 'confirmed' %}
+          {# SP-12: ряд переноса свёрнут — по строке брони видны только действия статуса. #}
+          <details class="w-full sm:w-auto" data-move>
+          <summary class="cursor-pointer text-sm text-gray-500 hover:text-gray-700">{% trans "Move" %} …</summary>
+          <div class="mt-2 flex items-center gap-2 flex-wrap">
           <input aria-label="{% trans "Start" %}" type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           {% if resources|length > 1 %}<label class="inline-flex items-center gap-1 text-xs text-gray-500">{% trans "Resource" %}
             <select name="resource" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">{% for r in resources %}<option value="{{ r.pk }}"{% if r.pk == b.resource_id %} selected{% endif %}>{{ r.name }}</option>{% endfor %}</select></label>{% endif %}
           <label class="inline-flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="override_hours" value="1"> {% trans "Trotzdem eintragen" %}</label>
           <button name="action" value="move" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
+          </div>
+          </details>
         {% endif %}
       </form>
     </div>
@@ -68,8 +82,9 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
 {% else %}
 <p class="text-gray-500 mb-6">{% trans "No bookings on this day." %}</p>
 {% endif %}
+</div>
 
-{% if not deal_calendar_compact %}<form method="post" action="{% url 'booking:booking-create' %}" id="neu" class="ui-card p-6 max-w-xl space-y-4 scroll-mt-24">
+{% if not deal_calendar_compact %}<form method="post" action="{% url 'booking:booking-create' %}" id="neu" class="ui-card p-6 max-w-xl space-y-4 scroll-mt-24 xl:max-w-none xl:col-start-2 xl:row-start-1 xl:mb-4">
   {% csrf_token %}
   <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
   <div class="grid sm:grid-cols-3 gap-4">
@@ -112,3 +127,4 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   <div><label class="inline-flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="override_hours" value="1"> {% trans "Trotzdem eintragen" %}</label></div>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add booking" %}</button>
 </form>{% endif %}
+</div>
