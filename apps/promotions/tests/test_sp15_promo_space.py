@@ -139,44 +139,32 @@ def _home_tenant(schema):
     return tenant
 
 
-def test_home_categories_without_photo_render_chips():
+def test_home_placeholder_category_is_a_compact_text_tile():
+    """На главной заглушка не рисуется: плитка без настоящего фото — текстовая
+    (≈80 px), имя один раз. Тенанты вовсе без фото — как раньше (эталоны LB-4)."""
     tenant = _home_tenant("sp15home1")
-    for i in range(3):
-        cat = Category.objects.create(
-            name={"de": f"Kat {i}"},
-            slug=f"kat-{i}",
-            is_active=True,
-            images=[{"url": f"/medien/demo.svg?kw=k{i}&cap=Kat"}],
-        )
-        ProductFactory(category=cat)
+    cat = Category.objects.create(
+        name={"de": "Vorspeisen"},
+        slug="vorspeisen",
+        is_active=True,
+        images=[{"url": "/medien/demo.svg?kw=v&cap=Vorspeisen"}],
+    )
+    ProductFactory(category=cat)
     html = _home(tenant)
-    assert "data-category-chips" in html
-    assert 'data-grid="categories"' not in html
-    assert "/medien/demo.svg" not in html.split("data-category-chips", 1)[1].split("</div>", 1)[0]
+    grid = html.split('data-grid="categories"', 1)[1].split("</section>", 1)[0]
+    assert "/medien/demo.svg" not in grid
+    assert "min-h-[5rem]" in grid
 
 
-def test_home_categories_with_real_photo_keep_tiles():
+def test_home_categories_with_real_photo_keep_photo_tiles():
     tenant = _home_tenant("sp15home2")
     cat = Category.objects.create(
         name={"de": "Brot"}, slug="brot", is_active=True, images=[{"url": "/media/brot.jpg"}]
     )
     ProductFactory(category=cat)
     html = _home(tenant)
-    assert 'data-grid="categories"' in html
-    assert "data-category-chips" not in html
-
-
-def test_home_categories_owner_layout_wins_over_chips():
-    """Раскладку секции владелец настроил сам (колонки/лента) — уважаем её."""
-    tenant = TenantFactory(schema_name="sp15home3")
-    tenant.site_config = siteconfig.normalize(
-        {"sections": [{"key": "categories", "enabled": True, "layout": {"tail": "show"}}]}
-    )
-    tenant.save()
-    cat = Category.objects.create(name={"de": "Kat"}, slug="kat", is_active=True)
-    ProductFactory(category=cat)
-    html = _home(tenant)
-    assert 'data-grid="categories"' in html
+    grid = html.split('data-grid="categories"', 1)[1].split("</section>", 1)[0]
+    assert "/media/brot.jpg" in grid
 
 
 def test_sortiment_placeholder_categories_render_chips():

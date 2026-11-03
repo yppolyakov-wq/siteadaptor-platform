@@ -12,7 +12,6 @@
   {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.categories">{{ si }}</p>{% endif %}
   {% comment %}Плитка вынесена в общий партиал (2026-08-07): та же форма на
   главной и на /sortiment/, размер — из стиля секции.{% endcomment %}
-  {% layout_is_default site 'categories' strict=True as cat_layout_default %}
   {% if section_row.style == "compact" %}
   {% comment %}DS-4b (Fokus): направления строками-плитками — фото 46px, имя,
   «ab X €» из самого дешёвого товара категории, стрелка (концепт-макет).{% endcomment %}
@@ -36,25 +35,6 @@
       {% include "storefront/_category_tile.html" with c=r.c cat_aspect=category_tile_aspect cat_img_h=section_row.img_h cat_info=section_row.tile_info cat_min_price=r.min_price cat_count=r.count cat_active=False is_preview=False %}
     {% endfor %}
     {% include "storefront/_grid_more.html" %}
-  </div>
-  {% elif cat_layout_default and not categories|any_tile_photo %}
-  {% comment %}SP-15: ни у одной категории нет настоящего фото и раскладку владелец
-  не трогал — чипы в строку
-  вместо высоких текстовых плиток (у демо была заглушка с той же подписью, имя
-  читалось дважды). Порядок и ссылки — те же.{% endcomment %}
-  <div class="flex flex-wrap gap-2" data-category-chips>
-    {% for c in categories %}
-      {% if is_preview %}
-        {% comment %}Редактор: подпись правится на канве (data-cat-edit не гасит клик,
-        поэтому чип — не ссылка, как и превью-плитка; ✎ — полная правка).{% endcomment %}
-        <span class="sf-card inline-flex items-center gap-1 min-h-[44px] px-4 rounded-full border border-gray-200 bg-white text-sm font-medium">
-          <span data-cat-edit="{{ c.pk }}">{{ c }}</span>
-          <a href="{% url 'catalog:category-edit' c.pk %}" target="_blank" rel="noopener" title="{% trans 'Edit category' %}" class="text-indigo-600 hover:text-indigo-800 text-sm">✎</a>
-        </span>
-      {% else %}
-        <a href="{% url 'storefront-category' c.slug %}" class="sf-card inline-flex items-center min-h-[44px] px-4 rounded-full border border-gray-200 bg-white text-sm font-medium hover:border-gray-400">{{ c }}</a>
-      {% endif %}
-    {% endfor %}
   </div>
   {% else %}
   <div data-grid="categories" class="{% grid_classes site 'categories' %}" {% grid_attrs site 'categories' count=categories|length more=True %}>

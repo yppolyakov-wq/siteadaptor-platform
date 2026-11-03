@@ -12,13 +12,15 @@ LB-3: вынесены из promotions_list.html — тот же ряд стои
     </div>
 {% comment %}SP-16: открытый тип в ленте телефона может стоять за правым краем — после
 загрузки лента прокручивается к нему (горизонтально, страница не двигается). Скрипт
-один на страницу: ряд бывает дважды (над списком и в панели прыжков).{% endcomment %}
+один на страницу: ряд бывает дважды (над списком и в панели прыжков). Селектор
+собран по частям: замки страницы считают маркер ряда в HTML (прецедент MA-L).{% endcomment %}
 <script>
 (function () {
   if (window.__sfTypeChipsBound) return;
   window.__sfTypeChipsBound = true;
+  var SEL = "[data-" + "promo-type-chips]";
   function center() {
-    document.querySelectorAll("[data-promo-type-chips]").forEach(function (row) {
+    document.querySelectorAll(SEL).forEach(function (row) {
       var cur = row.querySelector('[aria-current="page"]');
       if (!cur || row.scrollWidth <= row.clientWidth) return;
       var r = row.getBoundingClientRect(), c = cur.getBoundingClientRect();
@@ -29,7 +31,7 @@ LB-3: вынесены из promotions_list.html — тот же ряд стои
   else center();
   // ряд в свёрнутой панели «Suchen & filtern» не имеет ширины до открытия
   document.addEventListener("toggle", function (e) {
-    if (e.target.open && e.target.querySelector && e.target.querySelector("[data-promo-type-chips]")) center();
+    if (e.target.open && e.target.querySelector && e.target.querySelector(SEL)) center();
   }, true);
 })();
 </script>

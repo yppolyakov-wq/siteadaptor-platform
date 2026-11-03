@@ -165,14 +165,7 @@ def test_home_grids_carry_fill_rows_attrs():
     )
     tenant.save()
     for i in range(5):
-        # SP-15: без настоящего фото секция рисует чипы, а не сетку — замок сетки
-        # держим на категориях с фото (осознанная переписка).
-        cat = Category.objects.create(
-            name={"de": f"Kat {i}"},
-            slug=f"kat-{i}",
-            is_active=True,
-            images=[{"url": f"/media/kat-{i}.jpg"}],
-        )
+        cat = Category.objects.create(name={"de": f"Kat {i}"}, slug=f"kat-{i}", is_active=True)
         ProductFactory(
             category=cat
         )  # LB-4 §4.1: направление без товаров на главной не показывается

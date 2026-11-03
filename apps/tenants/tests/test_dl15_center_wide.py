@@ -143,7 +143,8 @@ def test_ending_soon_is_two_column_grid_of_wide_cards():
     Promotion.objects.create(title={"de": "Lang"}, status="active", discount_percent=30)
     html = _get(public_views.promotion_list, "/aktionen/", tenant)
     m = re.search(
-        r'<div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-ending-grid>(.*?)\n      </div>',
+        # SP-15: сетка несёт data-count (ряд из трёх на lg — правило app.css)
+        r'<div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-ending-grid data-count="\d+">(.*?)\n      </div>',
         html,
         re.S,
     )
