@@ -4,7 +4,6 @@
 показывались «6», и любое сохранение мест/зоны записывало 6,00 €. Мусор в поле молча
 обнулял предоплату."""
 
-import re
 import uuid
 
 import pytest
@@ -50,41 +49,23 @@ def _post(data):
     return resp, [(m.level_tag, str(m)) for m in get_messages(req)]
 
 
-def _settings_form(html, pk):
-    """Поля формы resource_settings ресурса pk — как их отправит браузер."""
-    m = re.search(
-        r'<form[^>]*>(?:(?!</form>).)*?value="resource_settings">'
-        r'<input type="hidden" name="resource" value="' + str(pk) + r'">(.*?)</form>',
-        html,
-        re.S,
-    )
-    assert m, "форма resource_settings не найдена"
-    body = m.group(1)
-    data = {"action": "resource_settings", "resource": str(pk)}
-    for tag in re.findall(r"<input[^>]*>", body):
-        name = re.search(r'name="([^"]+)"', tag)
-        if not name:
-            continue
-        kind = re.search(r'type="([^"]+)"', tag)
-        kind = kind.group(1) if kind else "text"
-        if kind == "checkbox" and "checked" not in tag:
-            continue
-        value = re.search(r'value="([^"]*)"', tag)
-        data[name.group(1)] = value.group(1) if value else "on"
-    return data
-
-
 def test_every_action_has_exactly_one_tab():
     assert set(views_resources.ACTION_TAB) == set(views_resources.HANDLERS)
     assert set(views_resources.ACTION_TAB.values()) <= set(views_resources.RESOURCE_TABS) | {None}
 
 
 def test_deposit_with_cents_survives_saving_seats_unchanged():
+    """D3.0: поле предоплаты — в формате денег (было «6» вместо 5,50 €). Форма — со
+    страницы ресурса (D3.1/D3.2: список стал строками)."""
+    from apps.booking import views_resources as vr
+    from apps.core.tests.form_post import form_post
+
     r = _table(deposit_cents=550)
-    html = views.resources(_req(data={"open": str(r.pk)})).content.decode()
-    data = _settings_form(html, r.pk)
-    assert data.get("deposit_eur") not in ("6", "5")  # не округлено до евро
-    _post(data)
+    html = vr.resource_edit(_req(), pk=r.pk).content.decode()
+    data, _p = form_post(html, "resource-form")
+    assert data["deposit_eur"][0] not in ("6", "5")  # не округлено до евро
+    req = _req("post", data)
+    vr.resource_edit(req, pk=r.pk)
     r.refresh_from_db()
     assert r.deposit_cents == 550
 
@@ -125,10 +106,11 @@ def test_rule_delete_cannot_remove_a_rule_by_bare_pk_of_another_resource():
     assert not AvailabilityRule.objects.filter(pk=rule.pk).exists()
 
 
-def test_legacy_actions_still_redirect_to_the_open_card():
+def test_legacy_actions_redirect_to_the_resource_page():
+    """UX-D D3.2: старые формы (вкладки браузера) ведут на страницу ресурса."""
     r = _table()
     resp, _m = _post({"action": "toggle", "resource": str(r.pk)})
-    assert resp.status_code == 302 and resp.url.endswith(f"?open={r.pk}#res-{r.pk}")
+    assert resp.status_code == 302 and resp.url.endswith(f"/ressourcen/{r.pk}/")
 
 
 def test_garbage_deposit_does_not_discard_other_changes():

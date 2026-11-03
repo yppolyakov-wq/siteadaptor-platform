@@ -809,14 +809,13 @@ def _back_to_resource(request):
     except (ValueError, ValidationError):
         found = None
     if found:
-        return redirect(f"{url}?open={found}#res-{found}")
+        # UX-D D3.2: всё о ресурсе — на его странице; обратно на вкладку действия.
+        from . import views_resources
+
+        resource = Resource.objects.get(pk=found)
+        tab = views_resources.ACTION_TAB.get(request.POST.get("action", ""))
+        return redirect(views_resources.page_url(resource, tab))
     return redirect(url)
-
-
-def _open_resource_param(request, resource_list) -> str:
-    """?open=<pk> — только pk существующего ресурса (в шаблон не попадает чужая строка)."""
-    wanted = request.GET.get("open", "")
-    return next((str(r.pk) for r in resource_list if str(r.pk) == wanted), "")
 
 
 @login_required
@@ -835,9 +834,20 @@ def resources(request):
 
     from . import hours_summary
 
+    # UX-D D3.2: старые ссылки «?open=<pk>» (закладки) → страница ресурса; мусор — список.
+    wanted = request.GET.get("open", "")
+    if wanted:
+        try:
+            found = Resource.objects.filter(pk=wanted).first()
+        except (ValueError, ValidationError):
+            found = None
+        if found is not None:
+            from . import views_resources
+
+            return redirect(views_resources.page_url(found))
     resource_list = list(
-        Resource.objects.prefetch_related("rules", "parts").order_by(
-            "-is_active", "sort_order", "name"
+        Resource.objects.prefetch_related("rules").order_by(
+            "type", "-is_active", "sort_order", "name"
         )
     )
     for r in resource_list:
@@ -851,19 +861,9 @@ def resources(request):
         {
             "nav": "booking-resources",
             "resources": resource_list,
-            # SP-3: какую карточку держать раскрытой после сохранения (только наш pk).
-            "open_resource": _open_resource_param(request, resource_list),
-            # KA-12 GA-5: столы, из которых собираются комбинации (сами не комбинации).
-            "single_tables": Resource.objects.filter(
-                is_active=True,
-                type=Resource.TYPE_TABLE,
-                counts_party_size=False,
-                capacity=1,
-                parts__isnull=True,
-            ).order_by("sort_order", "name"),
+            # UX-D D3.2: при двух и более типах — группы с подзаголовками
+            "resource_types_n": len({r.type for r in resource_list}),
             "closed_dates": ClosedDate.objects.filter(date__gte=timezone.localdate()),
-            "types": Resource.TYPES,
-            "weekdays": AvailabilityRule.WEEKDAYS,
             "business_hours": _business_hours_of(getattr(request, "tenant", None)),
             # Фидбэк 2026-08-03: настройки уехали С календаря СЮДА («настройки —
             # в настройки»): embed-виджет + имена статусов + правила переходов.

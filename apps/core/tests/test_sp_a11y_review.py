@@ -31,5 +31,6 @@ def test_contrast_and_names():
     assert "bg-amber-500 text-white" not in _t("promotions/_text_check_results.html")
     assert 'aria-current="page"' in _t("storefront/promo_page/_type_chips.html")
     assert 'lang="{{ cell.locale }}"' in _t("tenant/legal_docs.html")
-    assert "{{ it.day }} {{ g.time }}" in _t("booking/resources.html")
+    # UX-D D3.1 (осознанная переписка): чипы удаления правил — на странице ресурса
+    assert "{{ it.day }} {{ g.time }}" in _t("booking/resource_page.html")
     assert "data-skip-neu" in _t("booking/_tagesplan_body.html")

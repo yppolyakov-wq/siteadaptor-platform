@@ -6,9 +6,13 @@
 {% block dash_content %}
 <a href="{% url 'booking:calendar' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Booking" %}</a>
 {# E9.10: язык ввода — выпадашка у заголовка; переводы имён — под строками. #}
-<div class="flex items-center gap-3 flex-wrap mt-1 mb-1">
-  <h1 class="ui-h1">{% nav_title _("Resources & hours") %}</h1>
-  {% lang_switch %}
+<div class="flex items-center justify-between gap-3 flex-wrap mt-1 mb-1">
+  <h1 class="ui-h1">{% nav_title _("Resources & hours") %}{% if resources %} <span class="text-base font-normal text-gray-600">· {{ resources|length }}</span>{% endif %}</h1>
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+    {% if has_tables %}<a href="{% url 'booking:tischplan' %}" class="text-sm text-indigo-700 underline">{% trans "Tischplan" %}</a>{% endif %}
+    {# UX-D D3.2: «＋ Neue Ressource» — шторкой (без JS — своя страница) #}
+    <a href="{% url 'booking:resource-new' %}" data-drawer aria-haspopup="dialog" class="ui-btn ui-btn-primary ui-btn-sm"><span aria-hidden="true">＋ </span>{% trans "New resource" %}</a>
+  </div>
 </div>
 {% comment %}X6-4: две разные вещи, которые владелец путает — часы БИЗНЕСА (витрина,
 футер, бейдж «Открыто») и рабочее время РЕСУРСА (из него генерируются слоты).
@@ -43,152 +47,27 @@
 </details>
 {% endif %}
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-  <div class="space-y-3">
-    {% for r in resources %}
-      {% comment %}SP-3 (аудит пространства 2026-11-02): карточка ресурса свёрнута — в
-      заголовке имя, места/зона и сводка часов; формы внутри остаются в DOM (W0). Раскрыта
-      карточка, которую только что сохраняли (?open=), или единственная.{% endcomment %}
-      <details id="res-{{ r.pk }}" class="ui-card !p-0 group scroll-mt-24 {% if not r.is_active %}opacity-60{% endif %}" data-resource-card{% if open_resource == r.pk|stringformat:'s' or resources|length == 1 %} open{% endif %}>
-        <summary class="cursor-pointer list-none flex items-start justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-          <span class="min-w-0">
-            <span class="font-semibold">{{ r.name }}</span> <span class="text-xs text-gray-400 font-normal">{{ r.get_type_display }} · ×{{ r.capacity }}{% if r.seats %} · {% blocktrans with n=r.seats %}{{ n }} Plätze{% endblocktrans %}{% endif %}{% if r.zone %} · {{ r.zone }}{% endif %}</span>
-            {% if not r.is_active %}<span class="ui-badge ui-tone-off ml-1">{% trans "Inactive" %}</span>{% endif %}
-            <span class="block text-xs ui-muted mt-0.5" data-hours-summary>{% if r.hours_summary %}🕒 {{ r.hours_summary }}{% elif business_hours %}{% trans "Keine eigenen Zeiten — gebucht wird in den Öffnungszeiten des Geschäfts." %}{% else %}{% trans "No opening hours yet — not bookable online." %}{% endif %}</span>
-          </span>
-          <span class="shrink-0 text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
-        </summary>
-        <div class="px-4 pb-4 border-t border-gray-100 pt-3">
-        <div class="flex justify-end items-center gap-4">
-          {# UX-D D3.1: всё о ресурсе — на его странице (вкладки); карточка списка — до D3.2 #}
-          <a href="{% url 'booking:resource-edit' r.pk %}" class="text-sm font-medium text-indigo-700 underline" data-resource-page-link>{% trans "Edit" %} <span aria-hidden="true">→</span></a>
-          <form method="post">{% csrf_token %}
-            <input type="hidden" name="action" value="toggle"><input type="hidden" name="resource" value="{{ r.pk }}">
-            <button class="text-xs text-gray-500 hover:underline">{% if r.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
-          </form>
-        </div>
-        {# SP-3: одинаковые окна склеены («Mo–So 11:00–22:00»), удаление — по дню. #}
-        <div class="space-y-1.5" data-rule-groups>
-          {% for g in r.rule_groups %}
-            <div class="flex flex-wrap items-center gap-1.5 text-sm text-gray-600">
-              <span class="font-medium text-gray-700 mr-1">{{ g.days }} {{ g.time }} · {{ g.slot }} min</span>
-              {% for it in g.rules %}
-                <form method="post" class="inline">{% csrf_token %}
-                  <input type="hidden" name="action" value="rule_delete"><input type="hidden" name="rule" value="{{ it.rule.pk }}"><input type="hidden" name="resource" value="{{ r.pk }}">
-                  <button class="text-xs min-h-[24px] rounded-full border border-gray-200 px-2 py-0.5 hover:border-red-400 hover:text-red-600" aria-label="{% trans 'Remove' %} {{ it.day }} {{ g.time }}">{{ it.day }} ✕</button>
-                </form>
-              {% endfor %}
-            </div>
-          {% empty %}
-            <p class="text-sm text-amber-700">{% if business_hours %}{% trans "Keine eigenen Zeiten — gebucht wird in den Öffnungszeiten des Geschäfts." %}{% else %}{% trans "No opening hours yet — not bookable online." %}{% endif %}</p>
-          {% endfor %}
-        </div>
-        {% if business_hours %}
-        <form method="post" class="mt-2 text-sm">{% csrf_token %}
-          <input type="hidden" name="action" value="rules_from_hours"><input type="hidden" name="resource" value="{{ r.pk }}">
-          <button class="text-indigo-700 hover:underline" data-rules-from-hours>{% trans "Aus Öffnungszeiten übernehmen" %}</button>
-        </form>
-        {% endif %}
-        <form method="post" class="mt-3 flex flex-wrap items-center gap-2 text-sm">{% csrf_token %}
-          <input type="hidden" name="action" value="rule"><input type="hidden" name="resource" value="{{ r.pk }}">
-          <select aria-label="{% trans "Tag" %}" name="weekday" class="rounded-lg border border-gray-300 px-2 py-1.5">
-            {% for value, label in weekdays %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-          </select>
-          <input aria-label="{% trans "Von" %}" type="time" name="start_time" value="09:00" class="rounded-lg border border-gray-300 px-2 py-1.5">
-          <input aria-label="{% trans "Bis" %}" type="time" name="end_time" value="18:00" class="rounded-lg border border-gray-300 px-2 py-1.5">
-          <input type="number" name="slot_minutes" value="30" min="5" max="480" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Minutes' %}">
-          <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add" %}</button>
-        </form>
-        {# Депозит за запись (P2.5b) + ручная проверка (анти-фрод) #}
-        <form method="post" class="mt-2 flex flex-wrap items-center gap-2 text-sm border-t border-gray-100 pt-2">{% csrf_token %}
-          <input type="hidden" name="action" value="resource_settings"><input type="hidden" name="resource" value="{{ r.pk }}">
-          <label class="text-gray-600">{% trans "Deposit €" %}
-            <input name="deposit_eur" type="text" inputmode="decimal" value="{{ r.deposit_eur|money_input }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5">
-          </label>
-          <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="require_manual_confirm" {% if r.require_manual_confirm %}checked{% endif %}> {% trans "Manual review" %}</label>
-          <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="counts_party_size" {% if r.counts_party_size %}checked{% endif %}> {% trans "Count per person (group course)" %}</label>
-          {# KA-12 GA-3/GA-4: вместимость, места стола, зона, порядок, онлайн-подбор. #}
-          <input type="hidden" name="seats_present" value="1">
-          <label class="text-gray-600">{% trans "Capacity" %}
-            <input name="capacity" type="number" value="{{ r.capacity }}" min="1" max="100" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5">
-          </label>
-          <label class="text-gray-600">{% trans "Plätze" %}
-            <input name="seats" type="number" value="{{ r.seats|default_if_none:'' }}" min="0" max="99" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" data-table-seats>
-          </label>
-          <label class="text-gray-600">{% trans "Bereich" %}
-            <input name="zone" type="text" maxlength="40" value="{{ r.zone }}" placeholder="{% trans 'z. B. Terrasse' %}" class="w-28 rounded-lg border border-gray-300 px-2 py-1.5">
-          </label>
-          <label class="text-gray-600">{% trans "Online ab Personen" %}
-            <input name="min_seats" type="number" value="{{ r.min_seats }}" min="1" max="99" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5">
-          </label>
-          <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="bookable_online" {% if r.bookable_online %}checked{% endif %}> {% trans "Online buchbar" %}</label>
-          <label class="text-gray-600">{% trans "Reihenfolge" %}
-            <input name="sort_order" type="number" value="{{ r.sort_order }}" min="0" max="999" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5">
-          </label>
-          <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
-        </form>
-        {# KA-12 GA-5: комбинация столов — из каких столов состоит этот («Tisch 3+4»). #}
-        {% if r.type == 'table' and not r.counts_party_size and r.capacity == 1 and single_tables|length >= 2 %}
-        <details class="mt-2 text-sm border-t border-gray-100 pt-2" data-table-combo>
-          <summary class="cursor-pointer text-gray-600">{% trans "Kombination aus Tischen" %}{% if r.parts.all %}: {% for t in r.parts.all %}{{ t.name }}{% if not forloop.last %} + {% endif %}{% endfor %}{% endif %}</summary>
-          <form method="post" class="mt-2 flex flex-wrap items-center gap-3">{% csrf_token %}
-            <input type="hidden" name="action" value="resource_parts"><input type="hidden" name="resource" value="{{ r.pk }}">
-            {% for t in single_tables %}{% if t.pk != r.pk %}
-              <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="part" value="{{ t.pk }}" {% if t in r.parts.all %}checked{% endif %}> {{ t.name }}{% if t.seats %} ({{ t.seats }}){% endif %}</label>
-            {% endif %}{% endfor %}
-            <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save" %}</button>
-          </form>
-          <p class="text-xs ui-muted mt-1">{% trans "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt." %}</p>
-        </details>
-        {% endif %}
-        {% comment %}A3: профиль мастера (должность/био/фото) — только для ресурса-сотрудника.{% endcomment %}
-        {% if r.type == 'staff' %}
-        <form method="post" enctype="multipart/form-data" class="mt-2 space-y-2 text-sm border-t border-gray-100 pt-2">{% csrf_token %}
-          <input type="hidden" name="action" value="resource_profile"><input type="hidden" name="resource" value="{{ r.pk }}">
-          <div class="flex items-center gap-3">
-            {% if r.photo_url %}<img src="{{ r.photo_url }}" alt="" class="w-12 h-12 rounded-full object-cover shrink-0">{% endif %}
-{% i18n_base_locale as base_loc %}<div data-i18n-loc="{{ base_loc }}" class="flex-1 flex">            <input name="title" type="text" value="{{ r.title }}" aria-label="{% trans "Rolle" %}" placeholder="{% trans 'Role (e.g. Stylist, Master)' %}" class="flex-1 rounded-lg border border-gray-300 px-2 py-1.5"></div>
-          </div>
-{% i18n_base_locale as base_loc %}<div data-i18n-loc="{{ base_loc }}">          <textarea name="bio" rows="2" aria-label="{% trans 'Short bio (optional)' %}" placeholder="{% trans 'Short bio (optional)' %}" class="ui-input">{{ r.bio }}</textarea></div>
-          {% include "tenant/_i18n_inline.html" with obj=r fields="name,title,bio" %}
-          <div class="flex flex-wrap items-center gap-3">
-            {% include "catalog/_photo_add_tile.html" with target="photo" small=1 %}<input name="photo" type="file" accept="image/*" class="hidden" aria-label="{% trans "Photo" %}">
-            {% if r.photo_url %}<label class="text-gray-600"><input type="checkbox" name="remove_photo" value="1"> {% trans "Remove photo" %}</label>{% endif %}
-            <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Save profile" %}</button>
-          </div>
-        </form>
-        {% else %}
-        {% include "tenant/_i18n_row.html" with obj=r fields="name" id_name="resource" id_value=r.pk %}
-        {% endif %}
-        </div>
-      </details>
-    {% empty %}
-      <p class="text-gray-500">{% trans "Create your first resource — a table, a staff member or a room." %}</p>
-    {% endfor %}
-  </div>
+{% comment %}UX-D D3.2: список — обзор строками (П1): имя, тип, места/зона или роль, часы,
+статус; всё о ресурсе — на его странице (D3.1); «＋ Neue Ressource» — шторкой.{% endcomment %}
+<div class="ui-card divide-y divide-gray-100 mb-6" data-resources-list>
+  {% for r in resources %}
+    {% ifchanged r.type %}{% if resource_types_n > 1 %}<h2 class="px-5 pt-4 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-600" data-resource-group>{{ r.get_type_display }}</h2>{% endif %}{% endifchanged %}
+    <a href="{% url 'booking:resource-edit' r.pk %}" class="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 {% if not r.is_active %}opacity-70{% endif %}" data-resource-row>
+      {% if r.type == 'staff' and r.photo_url %}<img src="{{ r.photo_url }}" alt="" class="w-10 h-10 rounded-full object-cover shrink-0">
+      {% else %}<span class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-lg shrink-0" aria-hidden="true">{% if r.type == 'table' %}🍽️{% elif r.type == 'staff' %}👤{% else %}🚪{% endif %}</span>{% endif %}
+      <span class="min-w-0 flex-1">
+        <span class="block font-semibold text-gray-900">{{ r.name }}</span>
+        <span class="block text-xs text-gray-600 truncate">{{ r.get_type_display }}{% if r.seats %} · {% blocktrans with n=r.seats %}{{ n }} Plätze{% endblocktrans %}{% endif %}{% if r.zone %} · {{ r.zone }}{% endif %}{% if r.title %} · {{ r.title }}{% endif %} · <span aria-hidden="true">🕒</span> {% if r.hours_summary %}{{ r.hours_summary }}{% elif business_hours %}{% trans "Öffnungszeiten des Betriebs" %}{% else %}{% trans "No opening hours yet — not bookable online." %}{% endif %}</span>
+      </span>
+      <span class="shrink-0 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium {% if r.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}"><span class="w-1.5 h-1.5 rounded-full {% if r.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if r.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</span>
+      <span class="shrink-0 text-gray-500" aria-hidden="true">›</span>
+    </a>
+  {% empty %}
+    {% trans "Create your first resource — a table, a staff member or a room." as t %}{% include "ui/_empty.html" with title=t flat=1 %}
+  {% endfor %}
+</div>
 
-  <div class="space-y-6">
-    <form method="post" class="ui-card p-6 space-y-3">{% csrf_token %}
-      <h2 class="ui-h2">{% trans "New resource" %}</h2>
-      <input type="hidden" name="action" value="resource">
-{% i18n_base_locale as base_loc %}<div data-i18n-loc="{{ base_loc }}">      <input name="name" type="text" required aria-label="{% trans "Name" %}" placeholder="{% trans 'Name (e.g. Table 1)' %}" class="ui-input"></div>
-      {% include "tenant/_i18n_inline.html" with obj=None fields="name" %}
-      <div class="flex gap-3">
-        <select aria-label="{% trans "Type" %}" name="type" class="flex-1 rounded-lg border border-gray-300 px-3 py-2">
-          {% for value, label in types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-        </select>
-        <input name="capacity" type="number" value="1" min="1" max="100" class="w-24 rounded-lg border border-gray-300 px-3 py-2" aria-label="{% trans 'Capacity' %}">
-        <input name="seats" type="number" min="0" max="99" placeholder="{% trans 'Plätze' %}" class="w-24 rounded-lg border border-gray-300 px-3 py-2" aria-label="{% trans 'Plätze' %}">
-      </div>
-      <input name="zone" type="text" maxlength="40" aria-label="{% trans "Bereich" %}" placeholder="{% trans 'Bereich (z. B. Terrasse)' %}" class="ui-input">
-      <div class="flex flex-wrap items-center gap-3">
-        <input name="deposit_eur" type="text" inputmode="decimal" aria-label="{% trans 'Deposit € (0 = none)' %}" placeholder="{% trans 'Deposit € (0 = none)' %}" class="flex-1 min-w-[10rem] rounded-lg border border-gray-300 px-3 py-2">
-        <label class="text-sm flex items-center gap-1 whitespace-nowrap"><input type="checkbox" name="require_manual_confirm"> {% trans "Manual review" %}</label>
-      </div>
-      <label class="text-sm flex items-center gap-1"><input type="checkbox" name="counts_party_size"> {% trans "Count per person (group course — guests use up spots)" %}</label>
-      <button class="ui-btn ui-btn-primary">{% trans "Create" %}</button>
-    </form>
-
+<div class="max-w-xl">
     <form method="post" class="ui-card p-6 space-y-3">{% csrf_token %}
       <h2 class="ui-h2">{% trans "Closed days" %}</h2>
       {% for c in closed_dates %}<p class="text-sm text-gray-600">{{ c.date|date:"d.m.Y" }}{% if c.reason %} — {{ c.reason }}{% endif %}</p>{% endfor %}
@@ -199,7 +78,6 @@
       </div>
       <button class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:border-indigo-400">{% trans "Add" %}</button>
     </form>
-  </div>
 </div>
 
 {% comment %}Фидбэк 2026-08-03: настройки уехали С календаря сюда («настройки — в

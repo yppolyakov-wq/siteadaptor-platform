@@ -72,17 +72,18 @@ def test_non_consecutive_days_listed_short_runs_kept():
     assert hours_summary.rule_groups(r.rules.all())[0]["days"] == "Mo, Tu, Th–Sa"
 
 
-def test_cards_are_collapsed_with_summary_and_forms_stay_in_dom():
+def test_list_rows_show_hours_summary_without_forms():
+    """UX-D D3.2 (осознанная переписка SP-3): вместо свёрнутых карточек с формами —
+    строки-ссылки на страницу ресурса; сводка часов осталась в строке."""
     _resource()
     _resource()
     body = views.resources(_req()).content.decode()
-    assert body.count("data-resource-card") == 2
-    assert "data-resource-card open" not in body  # несколько — свёрнуты
-    assert "Mo–Su 11:00–22:00" in body  # сводка часов в заголовке
-    assert 'value="resource_settings"' in body and "data-table-seats" in body  # W0
+    assert body.count("data-resource-row") == 2
+    assert "Mo–Su 11:00–22:00" in body  # сводка часов в строке
+    assert 'value="resource_settings"' not in body and "data-resource-card" not in body
 
 
-def test_after_save_the_same_card_is_open():
+def test_after_save_the_resource_page_opens_on_the_action_tab():
     r = _resource()
     _resource()
     resp = views.resources(
@@ -99,25 +100,23 @@ def test_after_save_the_same_card_is_open():
             },
         )
     )
-    assert resp.status_code == 302 and resp.url.endswith(f"?open={r.pk}#res-{r.pk}")
-    body = views.resources(_req(data={"open": str(r.pk)})).content.decode()
-    assert f'id="res-{r.pk}"' in body
-    card = body.split(f'id="res-{r.pk}"')[1].split(">")[0]
-    assert "open" in card
+    assert resp.status_code == 302 and resp.url.endswith(f"/ressourcen/{r.pk}/?tab=buchung")
+    old = views.resources(_req(data={"open": str(r.pk)}))  # старая закладка ?open=
+    assert old.status_code == 302 and old.url.endswith(f"/ressourcen/{r.pk}/")
 
 
 def test_foreign_open_param_is_ignored():
     _resource()
     _resource()
     body = views.resources(_req(data={"open": "<script>x"})).content.decode()
-    assert "data-resource-card open" not in body and "<script>x" not in body
+    assert "<script>x" not in body  # мусор — обычный список, не 302 и не 500
 
 
 def test_redirect_uses_canonical_pk_not_raw_post():
     # Ревью SP-3: UUID-парсер принимает «{…}» — в Location только канонический pk из БД.
     r = _resource()
     resp = views.resources(_req("post", {"action": "toggle", "resource": f"{{{r.pk}}}"}))
-    assert resp.url.endswith(f"?open={r.pk}#res-{r.pk}") and "{" not in resp.url
+    assert resp.url.endswith(f"/ressourcen/{r.pk}/") and "{" not in resp.url
 
 
 def test_rule_delete_keeps_card_open_and_survives_garbage_id():
@@ -126,6 +125,6 @@ def test_rule_delete_keeps_card_open_and_survives_garbage_id():
     resp = views.resources(
         _req("post", {"action": "rule_delete", "rule": str(rule.pk), "resource": str(r.pk)})
     )
-    assert resp.url.endswith(f"#res-{r.pk}") and r.rules.count() == 1
+    assert resp.url.endswith(f"/ressourcen/{r.pk}/?tab=zeiten") and r.rules.count() == 1
     resp = views.resources(_req("post", {"action": "rule_delete", "rule": "nope"}))
     assert resp.status_code == 302

@@ -33,7 +33,7 @@
 {% if not tables %}
   <div class="ui-card p-6 text-sm text-gray-600" data-tischplan-empty>
     {% trans "Noch keine Tische angelegt." %}
-    <a href="{% url 'booking:resources' %}" class="text-indigo-600 hover:underline">{% trans "Tische unter „Öffnungszeiten & Ressourcen“ anlegen" %} →</a>
+    <a href="{% url 'booking:resource-new' %}?type=table" data-drawer aria-haspopup="dialog" class="text-indigo-700 underline">{% trans "Tische unter „Öffnungszeiten & Ressourcen“ anlegen" %} →</a>
   </div>
 {% endif %}
 
