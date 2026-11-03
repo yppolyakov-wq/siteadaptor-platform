@@ -21235,3 +21235,12 @@ W0; замок round-trip), часы заезда/выезда, удобства
 всё равно отказывал); замок. Стенд 1600/390: сохранение без правок не меняет Kurtaxe, переключатель
 языка открывает перевод Hausordnung, старая закладка `sec=kurtaxe` → 302. Замки переписаны
 осознанно: `test_cabinet`, `test_z5_hours`, `test_z6_kurtaxe`, `test_sidebar_st4b`.
+
+## 2026-11-03 — UX-D D4.4: виджет бронирования и фид метапоиска — на «Kanal-Manager» (без миграций)
+Под-вкладка «Kanäle & Export» списка номеров (код iframe-виджета для своего сайта и адрес фида цен
+для Google Hotel Center) переехала на `stays:channels` — секция «Website-Widget & Metasuche» рядом с
+каналами продаж. Копирование — кнопкой `data-copy-target` (общий хелпер в `cabinet.js`: Clipboard API,
+без защищённого соединения — выделение поля) вместо `onclick="this.select()"`. На вкладке «Einstellungen»
+списка номеров под-табов больше нет — только карточки-входы: Preise & Verfügbarkeit, Tarife, Preise &
+Regeln, Unterkunft, Kanal-Manager; закладка `sec=kanaele` → 302. Стенд 1600/390: копирование,
+без горизонтальной прокрутки. Замок `test_cabinet` переписан осознанно.
