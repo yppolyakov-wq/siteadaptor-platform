@@ -31849,3 +31849,15 @@ msgstr "Fiyatlar ve kurallar"
 
 msgid "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln"
 msgstr "İndirimler, dinamik fiyatlar, boşluk fırsatı ve satış kuralları"
+
+msgid "Gilt für alle Zimmer: Kurtaxe, Hausordnung, Check-in-Zeiten und was Gäste auf der Zimmerkarte sehen."
+msgstr "Tüm odalar için geçerli: konaklama vergisi, ev kuralları, giriş saatleri ve misafirlerin oda kartında gördükleri."
+
+msgid "Kurtaxe und Check-in-Zeiten ändern nur Inhaber und Admins."
+msgstr "Konaklama vergisini ve giriş saatlerini yalnızca sahipler ve yöneticiler değiştirebilir."
+
+msgid "Kurtaxe, Hausordnung, Check-in-Zeiten und Ausstattung auf der Zimmerkarte"
+msgstr "Konaklama vergisi, ev kuralları, giriş saatleri ve oda kartındaki olanaklar"
+
+msgid "Meldescheine"
+msgstr "Kayıt formları"

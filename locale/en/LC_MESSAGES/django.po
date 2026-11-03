@@ -31703,3 +31703,15 @@ msgstr "Prices & rules"
 
 msgid "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln"
 msgstr "Discounts, dynamic prices, gap deal and sales rules"
+
+msgid "Gilt für alle Zimmer: Kurtaxe, Hausordnung, Check-in-Zeiten und was Gäste auf der Zimmerkarte sehen."
+msgstr "Applies to all rooms: Kurtaxe, house rules, check-in times and what guests see on the room card."
+
+msgid "Kurtaxe und Check-in-Zeiten ändern nur Inhaber und Admins."
+msgstr "Only owners and admins can change Kurtaxe and check-in times."
+
+msgid "Kurtaxe, Hausordnung, Check-in-Zeiten und Ausstattung auf der Zimmerkarte"
+msgstr "Kurtaxe, house rules, check-in times and amenities on the room card"
+
+msgid "Meldescheine"
+msgstr "Registration forms"

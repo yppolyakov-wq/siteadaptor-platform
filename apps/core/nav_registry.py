@@ -955,6 +955,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         "rabatt frühbucher last minute dynamisch lücken mindestaufenthalt anreise",
         group="zimmer",
     ),
+    # UX-D D4.3: Kurtaxe, Hausordnung, часы заезда/выезда, удобства на карточке номера.
+    _e(
+        "settings",
+        "stays:stay-settings",
+        _("Unterkunft"),
+        "stay-settings",
+        "stays",
+        True,
+        "kurtaxe hausordnung check-in check-out anreise abreise ausstattung",
+        group="zimmer",
+    ),
     _e(
         "settings",
         "stays:channels",

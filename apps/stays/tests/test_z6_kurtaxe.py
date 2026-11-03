@@ -221,12 +221,15 @@ def test_desk_entry_without_right_refused():
 
 def test_kurtaxe_form_keeps_rate_and_saves_children():
     _settings(cents=250)
-    request = RequestFactory().get("/dashboard/stays/units/?tab=einstellungen&sec=kurtaxe")
+    # UX-D D4.3 (осознанная переписка): форма Kurtaxe — на экране «Unterkunft»
+    from apps.stays import stay_settings_views
+
+    request = RequestFactory().get("/dashboard/stays/unterkunft/")
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
     request.user = _user()
     request.tenant = TenantFactory.build(disabled_modules=[])
-    body = views.units(request).content.decode()
+    body = stay_settings_views.stay_settings(request).content.decode()
     assert 'name="kurtaxe_eur" type="text" value="2.50"' in body
     post = RequestFactory().post(
         "/dashboard/stays/units/",

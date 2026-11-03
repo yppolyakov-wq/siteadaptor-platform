@@ -47,7 +47,6 @@ from .models import (
     Room,
     SeasonRate,
     StayBooking,
-    StaySettings,
     StayUnit,
     UnitBlock,
 )
@@ -401,7 +400,7 @@ def calendar_context(request):
         **{
             "selected_booking": selected,
             # UX-D D1.3: свободная клетка — ссылка «Neue Buchung» только тому, кто может создать
-            "can_create_stay": can_open(request, "stays:stay-new"),
+            "can_create_stay": can_open("stays:stay-new", request),
             "ohne_zimmer": ohne_zimmer,
             "nav": "stays",
             "start": start,
@@ -1366,6 +1365,8 @@ def units(request, pk=None):
     # UX-D D4.2: правила продаж переехали — старые закладки «sec=regeln» ведут туда.
     if not pk and request.GET.get("sec") == "regeln":
         return redirect(reverse("stays:price-rules") + "?tab=regeln")
+    if not pk and request.GET.get("sec") == "kurtaxe":  # UX-D D4.3
+        return redirect("stays:stay-settings")
     unit_qs = StayUnit.objects.prefetch_related("blocks", "season_rates", "ical_sources", "rooms")
     if pk:
         unit_page = get_object_or_404(unit_qs, pk=pk)
@@ -1379,7 +1380,6 @@ def units(request, pk=None):
         )
         u.i18n_inputs = i18n_inputs_for(u, getattr(request, "tenant", None))  # L3d
         u.season_overlaps = _overlapping_season_ids(u.season_rates.all())  # Z-4
-    stay_settings = StaySettings.load()
     return render(
         request,
         "stays/units.html",
@@ -1392,7 +1392,7 @@ def units(request, pk=None):
             "unit_page": unit_page,  # 2026-07-28: страница одного номера
             # Фидбэк №2: активный таб списка (einheiten | einstellungen)
             "tab": request.GET.get("tab", ""),
-            # Фидбэк №3: активная секция настроек (preise | regeln | kurtaxe | kanaele)
+            # Фидбэк №3: активная секция настроек (preise | kanaele); regeln/kurtaxe — 302
             "sec": request.GET.get("sec", ""),
             "extra_locales": extra_locales(getattr(request, "tenant", None)),
             "types": StayUnit.TYPES,
@@ -1400,15 +1400,8 @@ def units(request, pk=None):
             # UX-D D4.1: тарифы — свой экран; здесь только число на карточке-входе.
             "rate_plans": list(RatePlan.objects.only("pk")),
             "can_edit_prices": has_perm(request.user, "preise.edit"),  # Z-4 Р-7
-            "hour_choices": range(24),
             "amenities": AMENITIES,  # H3 чек-лист удобств
-            # HF-2: выбор удобств, показываемых на карточке номера (пусто = дефолт).
-            "card_amenities": set(
-                (getattr(getattr(request, "tenant", None), "site_config", None) or {}).get(
-                    "stay_card_amenities", []
-                )
-            ),
-            "stay_settings": stay_settings,  # H9 Kurtaxe
+            # UX-D D4.3: Kurtaxe/часы/удобства на карточке — экран «Unterkunft»
             "embed_url": request.build_absolute_uri(reverse("storefront-unterkunft")) + "?embed=1",
             "feed_url": request.build_absolute_uri(reverse("storefront-stay-feed")),  # G8 метапоиск
         },

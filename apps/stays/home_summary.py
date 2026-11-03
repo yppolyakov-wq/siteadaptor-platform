@@ -149,7 +149,7 @@ def summary(request) -> dict:
         "hh_gap": gap,
         "hh_gap_deal_on": gap_deal_on,
         "hh_attention": bool(attention),
-        "hh_can_new": can_open(request, "stays:stay-new"),
+        "hh_can_new": can_open("stays:stay-new", request),
         # кнопки стойки — те же права, что у шторки брони (Check-in/out — «Rezeption»,
         # «Bestätigen»/«Sauber» — правка продаж)
         "hh_can_front_desk": has_perm(request.user, "rezeption.edit"),

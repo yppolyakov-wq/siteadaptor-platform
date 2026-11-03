@@ -31992,3 +31992,15 @@ msgstr "Цены и правила"
 
 msgid "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln"
 msgstr "Скидки, динамические цены, «окна» и правила продаж"
+
+msgid "Gilt für alle Zimmer: Kurtaxe, Hausordnung, Check-in-Zeiten und was Gäste auf der Zimmerkarte sehen."
+msgstr "Для всех номеров: курортный сбор, правила проживания, время заезда и что гости видят на карточке номера."
+
+msgid "Kurtaxe und Check-in-Zeiten ändern nur Inhaber und Admins."
+msgstr "Курортный сбор и время заезда меняют только владелец и администраторы."
+
+msgid "Kurtaxe, Hausordnung, Check-in-Zeiten und Ausstattung auf der Zimmerkarte"
+msgstr "Курортный сбор, правила проживания, время заезда и удобства на карточке номера"
+
+msgid "Meldescheine"
+msgstr "Регистрационные бланки"

@@ -31790,3 +31790,15 @@ msgstr ""
 
 msgid "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln"
 msgstr ""
+
+msgid "Gilt für alle Zimmer: Kurtaxe, Hausordnung, Check-in-Zeiten und was Gäste auf der Zimmerkarte sehen."
+msgstr ""
+
+msgid "Kurtaxe und Check-in-Zeiten ändern nur Inhaber und Admins."
+msgstr ""
+
+msgid "Kurtaxe, Hausordnung, Check-in-Zeiten und Ausstattung auf der Zimmerkarte"
+msgstr ""
+
+msgid "Meldescheine"
+msgstr ""

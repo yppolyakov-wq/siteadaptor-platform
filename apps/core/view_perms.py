@@ -181,6 +181,8 @@ RULES: dict[str, Rule] = {
     # UX-D D4.2: правила цены — права цен (как «Tarife»); раньше их правили на списке
     # номеров с preise.edit, право на «Einstellungen» для этого не требовалось
     "stays:price-rules": _r("preise.view", "preise.edit"),
+    # UX-D D4.3: настройки размещения; Kurtaxe и часы — ещё preise.edit во вьюхе
+    "stays:stay-settings": _r(CFG, CFGE),
     "stays:price-calendar-apply": _r("preise.view", "preise.edit"),
     "stays:price-day": _r("preise.view", "preise.edit"),
     "events:list": _r(S, SE),

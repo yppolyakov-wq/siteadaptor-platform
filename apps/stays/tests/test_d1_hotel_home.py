@@ -254,3 +254,18 @@ def test_clean_from_heute_returns_to_heute():
     req.user = _owner_req(_tenant("hotel")).user
     resp = views.room_clean(req, pk=room.pk)
     assert resp.url == "/dashboard/verkaeufe/?view=heute"
+
+
+def test_new_booking_button_hidden_without_permission(monkeypatch):
+    """Ревью D4.3: can_open вызывался с аргументами наоборот (request, url_name) —
+    проверка всегда давала True, кнопку «Neue Buchung» видели и без права."""
+    from apps.core import view_perms
+
+    real = view_perms.allowed_quiet
+    monkeypatch.setattr(
+        view_perms,
+        "allowed_quiet",
+        lambda user, name, method: False if name == "stays:stay-new" else real(user, name, method),
+    )
+    html = _home()
+    assert 'href="/dashboard/stays/neu/" data-drawer' not in html

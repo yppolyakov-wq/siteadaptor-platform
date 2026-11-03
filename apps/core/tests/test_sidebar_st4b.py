@@ -265,6 +265,7 @@ def test_sidebar_children_composition():
         "booking:booking-rules",  # UX-D D2.1 (осознанное дополнение): правила записи
         "booking:availability",
         "stays:price-rules",  # UX-D D4.2 (осознанное дополнение): правила цены номеров
+        "stays:stay-settings",  # UX-D D4.3 (осознанное дополнение): «Unterkunft»
         "stays:channels",
         "notifications-settings",
         # KA-12 E8.4/E8.6: свой бот — канал; «Integrationen» — секция страницы каналов

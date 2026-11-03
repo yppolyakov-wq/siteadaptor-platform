@@ -31976,3 +31976,15 @@ msgstr "Ціни та правила"
 
 msgid "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln"
 msgstr "Знижки, динамічні ціни, «вікна» та правила продажу"
+
+msgid "Gilt für alle Zimmer: Kurtaxe, Hausordnung, Check-in-Zeiten und was Gäste auf der Zimmerkarte sehen."
+msgstr "Для всіх номерів: курортний збір, правила проживання, час заїзду і що гості бачать на картці номера."
+
+msgid "Kurtaxe und Check-in-Zeiten ändern nur Inhaber und Admins."
+msgstr "Курортний збір і час заїзду змінюють лише власник і адміністратори."
+
+msgid "Kurtaxe, Hausordnung, Check-in-Zeiten und Ausstattung auf der Zimmerkarte"
+msgstr "Курортний збір, правила проживання, час заїзду та зручності на картці номера"
+
+msgid "Meldescheine"
+msgstr "Реєстраційні бланки"

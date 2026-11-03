@@ -282,10 +282,10 @@ HOME: dict[str, tuple[str, str]] = {
     "booking_window": ("stays:price-rules", "tab=regeln"),  # D4.2
     "restriction_add": ("stays:price-rules", "tab=regeln"),  # D4.2
     "restriction_delete": ("stays:price-rules", "tab=regeln"),  # D4.2
-    "kurtaxe": ("stays:units", "tab=einstellungen&sec=kurtaxe"),
-    "stay_hours": ("stays:units", "tab=einstellungen&sec=kurtaxe"),
+    "kurtaxe": ("stays:stay-settings", ""),  # D4.3
+    "stay_hours": ("stays:stay-settings", ""),  # D4.3
     # HF-2: живёт рядом с прочей «подачей» номеров
-    "card_amenities": ("stays:units", "tab=einstellungen&sec=kurtaxe"),
+    "card_amenities": ("stays:stay-settings", ""),  # D4.3
 }
 
 

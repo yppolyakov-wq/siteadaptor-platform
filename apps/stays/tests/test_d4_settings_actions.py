@@ -71,18 +71,21 @@ def test_legacy_post_to_units_still_saves_and_returns_to_its_section():
     s = StaySettings.load()
     assert s.kurtaxe_cents == 250 and s.house_rules == "x"
     assert resp.status_code == 302
-    assert resp.url == "/dashboard/stays/units/?tab=einstellungen&sec=kurtaxe"
+    assert resp.url == "/dashboard/stays/unterkunft/"  # D4.3: экран «Unterkunft»
     assert msgs == ["Einstellungen gespeichert."]
 
 
 @pytest.mark.parametrize(
     "action, sec",
-    [("kurtaxe", "kurtaxe"), ("stay_hours", "kurtaxe"), ("card_amenities", "kurtaxe")],
+    [
+        ("rateplan", "/dashboard/stays/tarife/"),
+        ("gap_deal", "/dashboard/stays/preisregeln/?tab=luecken"),
+        ("kurtaxe", "/dashboard/stays/unterkunft/"),
+    ],
 )
-def test_home_urls_keep_previous_sections(action, sec):
-    """Пока экран не переехал (D4.3) — прежняя под-вкладка; тарифы — D4.1,
-    правила цены — D4.2 (замок `test_d4_price_rules`)."""
-    assert settings_actions.home_url(action).endswith(f"?tab=einstellungen&sec={sec}")
+def test_home_urls_point_to_the_new_screens(action, sec):
+    """D4.1–D4.3: каждое настроечное действие возвращает на свой экран."""
+    assert settings_actions.home_url(action) == sec
     assert settings_actions.home_url("rateplan") == "/dashboard/stays/tarife/"
 
 

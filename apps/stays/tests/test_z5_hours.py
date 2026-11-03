@@ -117,13 +117,16 @@ def test_garbage_hour_is_refused_without_500(bad):
 
 
 def test_units_page_shows_hour_form_only_to_price_editors():
+    """UX-D D4.3 (осознанная переписка): часы — на экране «Unterkunft»."""
+    from apps.stays import stay_settings_views
+
     def _body(role):
-        request = RequestFactory().get("/dashboard/stays/units/?tab=einstellungen&sec=kurtaxe")
+        request = RequestFactory().get("/dashboard/stays/unterkunft/")
         SessionMiddleware(lambda r: None).process_request(request)
         MessageMiddleware(lambda r: None).process_request(request)
         request.user = _user(role)
         request.tenant = TenantFactory.build(disabled_modules=[])
-        return views.units(request).content.decode()
+        return stay_settings_views.stay_settings(request).content.decode()
 
     assert 'value="stay_hours"' in _body(Membership.ROLE_OWNER)
     assert 'value="stay_hours"' not in _body(Membership.ROLE_STAFF)

@@ -1,6 +1,12 @@
 from django.urls import path
 
-from . import price_calendar_views, price_rules_views, rate_plan_views, views
+from . import (
+    price_calendar_views,
+    price_rules_views,
+    rate_plan_views,
+    stay_settings_views,
+    views,
+)
 
 app_name = "stays"
 
@@ -36,6 +42,8 @@ urlpatterns = [
     path("tarife/<uuid:pk>/", rate_plan_views.rate_plan_edit, name="rate-plan-edit"),
     # UX-D D4.2: правила цены и продаж — Einstellungen › Zimmer.
     path("preisregeln/", price_rules_views.price_rules, name="price-rules"),
+    # UX-D D4.3: Kurtaxe, Hausordnung, часы, удобства на карточке — Einstellungen › Zimmer.
+    path("unterkunft/", stay_settings_views.stay_settings, name="stay-settings"),
     path("units/", views.units, name="units"),
     # Фидбэк 2026-07-28: каждый номер редактируется на СВОЕЙ странице.
     path("units/<uuid:pk>/", views.units, name="unit-edit"),

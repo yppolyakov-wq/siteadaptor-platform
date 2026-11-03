@@ -480,16 +480,15 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
     assert (
         # E9: панели — деталь `.ui-card` (было `bg-white …`)
         body_list.count('<details class="ui-card') + body_list.count('<details open class="ui-card')
-        == 5
+        == 2  # D4.3: Kurtaxe/часы/удобства ушли на «Unterkunft»; остались виджет и фид (D4.4)
     )
     # UX-D D4.2: скидки/динамика/Lücken/правила продаж — экран «Preise & Regeln»
     assert "data-rate-plans-link" in body_list and "data-price-rules-link" in body_list
     for field in ('name="free_cancel_days"', 'name="max_advance_days"', 'name="occupancy"'):
         assert field not in body_list, field
-    for field in ('name="kurtaxe_eur"',):  # Kurtaxe — до D4.3
-        assert field in body_list, field
+    assert 'name="kurtaxe_eur"' not in body_list and "data-stay-settings-link" in body_list
     # порядок: номера ВЫШЕ глобальных настроек (страница открывается номерами)
-    assert body_list.index("TabZimmer") < body_list.index('<details class="ui-card')
+    assert body_list.index("TabZimmer") < body_list.index('<details open class="ui-card')
 
 
 def test_units_list_page_tabs_and_settings_groups():
@@ -501,16 +500,20 @@ def test_units_list_page_tabs_and_settings_groups():
     assert 'data-pt-tab="einheiten"' in body and 'data-pt-tab="einstellungen"' in body
     # дефолт: активен список, настройки скрыты (но в DOM — W0)
     assert 'data-pt-panel="einstellungen" class="hidden"' in body
-    assert 'name="kurtaxe_eur"' in body
     # группы настроек — ПОД-ТАБЫ в заданном порядке, все панели в DOM (W0).
     # UX-D D4.2 (осознанная переписка): «Verkaufsregeln» ушли на экран «Preise &
     # Regeln» (Einstellungen › Zimmer); старая закладка sec=regeln — 302 туда.
-    for st in ("preise", "kurtaxe", "kanaele"):
+    # UX-D D4.3: «Kurtaxe & Hausordnung» — экран «Unterkunft»; sec=kurtaxe — 302.
+    for st in ("preise", "kanaele"):
         assert f'data-st-tab="{st}"' in body and f'data-st-panel="{st}"' in body, st
-    assert 'data-st-tab="regeln"' not in body and 'name="max_advance_days"' not in body
-    assert body.index("💶") < body.index("🏛") < body.index("🔗")
+    for st in ("regeln", "kurtaxe"):
+        assert f'data-st-tab="{st}"' not in body, st
+    assert 'name="max_advance_days"' not in body and 'name="kurtaxe_eur"' not in body
+    assert body.index("💶") < body.index("🔗")
     assert "Preise & Rabatte" in body and "Kanäle & Export" in body
-    assert 'data-st-panel="kurtaxe" class="hidden"' in body
+    assert 'data-st-panel="kanaele" class="hidden"' in body
+    resp_kt = views.units(_req(data={"tab": "einstellungen", "sec": "kurtaxe"}))
+    assert resp_kt.status_code == 302 and resp_kt.url.endswith("/unterkunft/")
     resp_sec = views.units(_req(data={"tab": "einstellungen", "sec": "regeln"}))
     assert resp_sec.status_code == 302 and resp_sec.url.endswith("/preisregeln/?tab=regeln")
     # ?tab=einstellungen → активен таб настроек, список скрыт
@@ -522,7 +525,7 @@ def test_units_list_page_tabs_and_settings_groups():
     # UX-D D4.2: Save правила цены возвращает на его вкладку экрана «Preise & Regeln»
     assert resp.status_code == 302 and resp.url.endswith("/preisregeln/?tab=luecken")
     resp_k = views.units(_req("post", data={"action": "kurtaxe", "kurtaxe_eur": "2,00"}))
-    assert resp_k.url.endswith("?tab=einstellungen&sec=kurtaxe")
+    assert resp_k.url.endswith("/unterkunft/")  # UX-D D4.3
     resp_r = views.units(_req("post", data={"action": "booking_window", "max_advance_days": "30"}))
     assert resp_r.url.endswith("/preisregeln/?tab=regeln")  # UX-D D4.2
     # создание юнита — редирект ТОЧНО на страницу нового номера (не на список/таб)

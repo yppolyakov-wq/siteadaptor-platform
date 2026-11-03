@@ -408,11 +408,10 @@
 Активная секция приходит с сервера (?sec= из redirect'а Save), переключение —
 делегированным JS; полоса табов скроллится на мобиле (overflow-x-auto).{% endcomment %}
 <div class="ui-tabs flex-nowrap mb-4 overflow-x-auto py-1 -mx-1 px-1" role="group" aria-label="{% trans "Bereiche" %}">
-  <button type="button" data-st-tab="preise" aria-pressed="{% if sec != 'kurtaxe' and sec != 'kanaele' %}true{% else %}false{% endif %}" class="ui-tab shrink-0 whitespace-nowrap">💶 {% trans "Prices & discounts" %}</button>
-  <button type="button" data-st-tab="kurtaxe" aria-pressed="{% if sec == 'kurtaxe' %}true{% else %}false{% endif %}" class="ui-tab shrink-0 whitespace-nowrap">🏛 {% trans "Kurtaxe & house rules" %}</button>
+  <button type="button" data-st-tab="preise" aria-pressed="{% if sec != 'kanaele' %}true{% else %}false{% endif %}" class="ui-tab shrink-0 whitespace-nowrap">💶 {% trans "Prices & discounts" %}</button>
   <button type="button" data-st-tab="kanaele" aria-pressed="{% if sec == 'kanaele' %}true{% else %}false{% endif %}" class="ui-tab shrink-0 whitespace-nowrap">🔗 {% trans "Channels & export" %}</button>
 </div>
-<div data-st-panel="preise" class="{% if sec == 'kurtaxe' or sec == 'kanaele' %}hidden{% endif %}">
+<div data-st-panel="preise" class="{% if sec == 'kanaele' %}hidden{% endif %}">
 <a href="{% url 'stays:price-calendar' %}" data-price-calendar-link class="flex items-center justify-between gap-3 bg-indigo-50 rounded-2xl px-5 py-3 mb-3 text-sm text-indigo-800 hover:bg-indigo-100">
   <span>📅 <strong>{% trans "Preise & Verfügbarkeit" %}</strong> — {% trans "Tagespreise, Stopp und Mindestaufenthalt im Kalender" %}</span><span aria-hidden="true">→</span>
 </a>
@@ -424,86 +423,10 @@
 <a href="{% url 'stays:price-rules' %}" data-price-rules-link class="flex items-center justify-between gap-3 ui-card px-5 py-3 mb-3 text-sm hover:bg-gray-50">
   <span><strong>{% trans "Preise & Regeln" %}</strong> — {% trans "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln" %}</span><span aria-hidden="true">→</span>
 </a>
-</div>
-<div data-st-panel="kurtaxe" class="{% if sec != 'kurtaxe' %}hidden{% endif %}">
-{% comment %}HF-2 (фидбэк владельца 2026-07-31, п. 5): владелец сам решает, какие
-пиктограммы удобств выносить на карточку номера. Пустой выбор = первые удобства
-самого номера (дефолт), поэтому в конфиг ничего не пишется.{% endcomment %}
-<details class="ui-card p-5 mb-3">
-  <summary class="cursor-pointer font-semibold">{% trans "Amenities on the room card" %}</summary>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Which icons guests see on the room cards (list and home page). Only amenities the room actually has are shown. Leave everything unchecked to show the room's first few amenities." %}</p>
-  <form method="post">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="card_amenities">
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-y-1.5 gap-x-4 text-sm mb-3">
-      {% for key, label, icon in amenities %}
-        <label class="flex items-center gap-2">
-          <input type="checkbox" name="card_amenity" value="{{ key }}" {% if key in card_amenities %}checked{% endif %} class="rounded border-gray-300">
-          <span aria-hidden="true">{{ icon }}</span> {{ label }}
-        </label>
-      {% endfor %}
-    </div>
-    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
-  </form>
-</details>
-{# --- Kurtaxe / курортный сбор (H9) — на тенанта ----------------------------- #}
-<details open class="ui-card p-5 mb-3">
-  <summary class="cursor-pointer font-semibold">{% trans "Kurtaxe & house rules" %}</summary>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Kurtaxe per adult per night, added to every booking (0 = off). Children are free. House rules appear as a public page when filled." %} <a href="{% url 'stays:kurtaxe' %}" class="text-indigo-600 hover:underline">{% trans "Kurtaxe-Meldung" %} →</a></p>
-  <form method="post" class="flex items-end gap-3 flex-wrap">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="kurtaxe">
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Amount / adult / night (€)" %}</span>
-      <input name="kurtaxe_eur" type="text" value="{{ stay_settings.kurtaxe_eur|stringformat:'.2f' }}" class="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Label" %}</span>
-      <input name="kurtaxe_label" type="text" value="{{ stay_settings.kurtaxe_label }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    {% comment %}KA-12 Z-6: Kurtaxe детей. Сентинел — снятый чекбокс браузер не шлёт.{% endcomment %}
-    <input type="hidden" name="kurtaxe_children_present" value="1">
-    <label class="flex items-center gap-2 text-sm self-center">
-      <input type="checkbox" name="kurtaxe_children_free" value="1" {% if stay_settings.kurtaxe_children_free %}checked{% endif %} class="rounded border-gray-300">
-      {% trans "Kinder frei" %}
-    </label>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Betrag / Kind / Nacht (€)" %}</span>
-      <input name="kurtaxe_child_eur" type="text" inputmode="decimal" value="{{ stay_settings.kurtaxe_child_eur|stringformat:'.2f' }}" class="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <div class="w-full">
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "House rules (Hausordnung) — shown as a public page when filled" %}</span>
-{% i18n_base_locale as base_loc %}<div data-i18n-loc="{{ base_loc }}">      <textarea name="house_rules" rows="4" class="ui-input" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea></div></label>
-      {% include "tenant/_i18n_inline.html" with obj=stay_settings fields="house_rules" wrap_class="mt-2 space-y-2" %}
-    </div>
-    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
-  </form>
-</details>
-{% if can_edit_prices %}
-{% comment %}KA-12 Z-5 (Р-8): часы заезда/выезда. Check-out-час задаёт момент, когда
-автоматика закрывает выезд дня (выручка) — поэтому правят только owner/admin.{% endcomment %}
-<details open class="ui-card p-5 mb-3">
-  <summary class="cursor-pointer font-semibold">{% trans "Check-in & Check-out" %}</summary>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Danach schließt das System die Abreise automatisch ab." %}</p>
-  <form method="post" class="flex items-end gap-3 flex-wrap">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="stay_hours">
-    <div>
-      <label for="stay-checkin-hour" class="block text-xs font-medium text-gray-500 mb-1">{% trans "Check-in ab (Uhr)" %}</label>
-      <select id="stay-checkin-hour" name="checkin_hour" class="rounded-lg border border-gray-300 px-3 py-2 text-base sm:text-sm">
-        {% for h in hour_choices %}<option value="{{ h }}" {% if h == stay_settings.checkin_hour %}selected{% endif %}>{{ h }}:00</option>{% endfor %}
-      </select>
-    </div>
-    <div>
-      <label for="stay-checkout-hour" class="block text-xs font-medium text-gray-500 mb-1">{% trans "Check-out bis (Uhr)" %}</label>
-      <select id="stay-checkout-hour" name="checkout_hour" class="rounded-lg border border-gray-300 px-3 py-2 text-base sm:text-sm">
-        {% for h in hour_choices %}<option value="{{ h }}" {% if h == stay_settings.checkout_hour %}selected{% endif %}>{{ h }}:00</option>{% endfor %}
-      </select>
-    </div>
-    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
-  </form>
-</details>
-{% endif %}
+{# UX-D D4.3: Kurtaxe, Hausordnung, часы, удобства на карточке — экран «Unterkunft». #}
+<a href="{% url 'stays:stay-settings' %}" data-stay-settings-link class="flex items-center justify-between gap-3 ui-card px-5 py-3 mb-3 text-sm hover:bg-gray-50">
+  <span><strong>{% trans "Unterkunft" %}</strong> — {% trans "Kurtaxe, Hausordnung, Check-in-Zeiten und Ausstattung auf der Zimmerkarte" %}</span><span aria-hidden="true">→</span>
+</a>
 </div>
 <div data-st-panel="kanaele" class="{% if sec != 'kanaele' %}hidden{% endif %}">
 {# --- G10: виджет бронирования (iframe) для своего сайта --------------------- #}
