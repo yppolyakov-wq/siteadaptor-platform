@@ -31715,3 +31715,6 @@ msgstr "Kurtaxe, house rules, check-in times and amenities on the room card"
 
 msgid "Meldescheine"
 msgstr "Registration forms"
+
+msgid "Kurtaxe, Hausordnung und Check-in-Zeiten ändern nur Inhaber und Admins."
+msgstr "Only owners and admins can change Kurtaxe, house rules and check-in times."

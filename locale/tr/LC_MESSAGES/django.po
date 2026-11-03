@@ -31861,3 +31861,6 @@ msgstr "Konaklama vergisi, ev kuralları, giriş saatleri ve oda kartındaki ola
 
 msgid "Meldescheine"
 msgstr "Kayıt formları"
+
+msgid "Kurtaxe, Hausordnung und Check-in-Zeiten ändern nur Inhaber und Admins."
+msgstr "Konaklama vergisini, ev kurallarını ve giriş saatlerini yalnızca sahipler ve yöneticiler değiştirebilir."

@@ -31988,3 +31988,6 @@ msgstr "Курортний збір, правила проживання, час
 
 msgid "Meldescheine"
 msgstr "Реєстраційні бланки"
+
+msgid "Kurtaxe, Hausordnung und Check-in-Zeiten ändern nur Inhaber und Admins."
+msgstr "Курортний збір, правила проживання і час заїзду змінюють лише власник і адміністратори."

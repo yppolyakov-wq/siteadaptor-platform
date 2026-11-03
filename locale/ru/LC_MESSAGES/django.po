@@ -32004,3 +32004,6 @@ msgstr "Курортный сбор, правила проживания, вре
 
 msgid "Meldescheine"
 msgstr "Регистрационные бланки"
+
+msgid "Kurtaxe, Hausordnung und Check-in-Zeiten ändern nur Inhaber und Admins."
+msgstr "Курортный сбор, правила проживания и время заезда меняют только владелец и администраторы."

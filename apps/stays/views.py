@@ -12,6 +12,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1136,6 +1137,10 @@ def units(request, pk=None):
         if action in RATE_EDIT_ACTIONS and not has_perm(request.user, "preise.edit"):
             messages.error(request, _("Preise und Tarife ändern nur Inhaber und Admins."))
             return redirect("stays:unit-edit", pk=pk) if pk else redirect("stays:units")
+        # UX-D D4.3 (ревью): удобства на карточке — настройка экрана «Unterkunft»
+        # (einstellungen.edit); старый адрес списка номеров (sortiment.edit) не обходит её.
+        if action == "card_amenities" and not has_perm(request.user, "einstellungen.edit"):
+            raise PermissionDenied
         if settings_actions.handle(request, action):
             pass  # UX-D D4.0: тарифы/правила/Kurtaxe — общий модуль действий
         elif action == "unit":

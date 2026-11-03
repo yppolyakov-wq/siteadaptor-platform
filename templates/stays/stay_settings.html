@@ -9,7 +9,7 @@ Zimmer (раньше — под-вкладка списка номеров). Kur
 <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
   <div class="flex items-center gap-3 flex-wrap">
     <h1 class="ui-h1">{% nav_title _("Unterkunft") %}</h1>
-    {% lang_switch %}
+    {% if can_edit_prices %}{% lang_switch %}{% endif %}
   </div>
   <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
     {% if can_checkins %}<a href="{% url 'stays:checkins' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Meldescheine" %} <span aria-hidden="true">→</span></a>{% endif %}
@@ -23,12 +23,12 @@ Zimmer (раньше — под-вкладка списка номеров). Kur
     <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
-{% if not can_edit_prices %}<p class="mb-3 text-sm text-gray-600">{% trans "Kurtaxe und Check-in-Zeiten ändern nur Inhaber und Admins." %}</p>{% endif %}
+{% if not can_edit_prices %}<p class="mb-3 text-sm text-gray-600">{% trans "Kurtaxe, Hausordnung und Check-in-Zeiten ändern nur Inhaber und Admins." %}</p>{% endif %}
 
 <div class="max-w-4xl space-y-4">
 <section id="kurtaxe" class="ui-card p-5" aria-labelledby="us-kurtaxe-h">
   <h2 id="us-kurtaxe-h" class="ui-h2 mb-1">{% trans "Kurtaxe & house rules" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Kurtaxe per adult per night, added to every booking (0 = off). Children are free. House rules appear as a public page when filled." %} {% if can_kurtaxe_report %}<a href="{% url 'stays:kurtaxe' %}" class="text-indigo-600 hover:underline">{% trans "Kurtaxe-Meldung" %} <span aria-hidden="true">→</span></a>{% endif %}</p>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Kurtaxe per adult per night, added to every booking (0 = off). Children are free. House rules appear as a public page when filled." %}</p>
   {% if can_edit_prices %}
   <form method="post" class="flex items-end gap-3 flex-wrap">
     {% csrf_token %}

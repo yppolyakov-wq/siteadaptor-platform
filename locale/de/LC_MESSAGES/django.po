@@ -31802,3 +31802,6 @@ msgstr ""
 
 msgid "Meldescheine"
 msgstr ""
+
+msgid "Kurtaxe, Hausordnung und Check-in-Zeiten ändern nur Inhaber und Admins."
+msgstr ""

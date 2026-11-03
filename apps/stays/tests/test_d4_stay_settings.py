@@ -205,3 +205,29 @@ def test_nav_and_permissions():
 def test_template_has_no_scripts():
     text = (ROOT / "templates/stays/stay_settings.html").read_text()
     assert "<script" not in text and not re.search(r"\son[a-z]+=", text)
+
+
+def test_old_units_url_cannot_bypass_card_amenities_permission(monkeypatch):
+    """Ревью D4.3: удобства на карточке — einstellungen.edit; POST на старый адрес
+    списка номеров (правило sortiment.edit) их не обходит."""
+    from django.core.exceptions import PermissionDenied
+
+    from apps.core import permissions
+
+    real = permissions.has_perm
+    monkeypatch.setattr(
+        views, "has_perm", lambda u, k: False if k == "einstellungen.edit" else real(u, k)
+    )
+    with pytest.raises(PermissionDenied):
+        views.units(
+            _req(
+                "post",
+                {"action": "card_amenities", "card_amenity": ["wifi"]},
+                path="/dashboard/stays/units/",
+            )
+        )
+
+
+def test_read_only_notice_names_house_rules():
+    html = v.stay_settings(_req(role=Membership.ROLE_STAFF)).content.decode()
+    assert "Hausordnung" in html and "nur Inhaber und Admins" in html

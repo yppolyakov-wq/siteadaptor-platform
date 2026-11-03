@@ -51,7 +51,8 @@ def test_settings_actions_live_in_one_place():
     src = pathlib.Path(views.__file__).read_text()
     body = src[src.index("def units(") :]
     body = body[: body.index("        if pk:\n")]
-    own = set(re.findall(r'(?:el)?if action == "([a-z_]+)"', body))
+    # ветки-обработчики (`if action == "x":`), не гарды прав (`… and not has_perm`)
+    own = set(re.findall(r'(?:el)?if action == "([a-z_]+)":', body))
     assert not own & settings_actions.ACTIONS
 
 
