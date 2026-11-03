@@ -44,26 +44,27 @@ def _user():
 
 
 def test_plus_targets_open_create_form():
-    """У услуги/номера своей страницы создания нет — форма на списке, поэтому
-    «＋» обязан вести туда с ?neu=1 (иначе владелец попадал в список и искал
-    форму глазами)."""
+    """«＋» обязан вести в ФОРМУ создания. У номера форма на списке (?neu=1); у
+    услуги — своя страница создания (UX-D D2.2, осознанная переписка: в кабинете
+    она открывается шторкой)."""
     urls = {o["kind"]: o["url"] for o in sellable_manage.add_options(_tenant("hotel"))}
     assert urls["stay"].endswith("?neu=1#neu")
     urls = {o["kind"]: o["url"] for o in sellable_manage.add_options(_tenant("friseur"))}
-    assert urls["service"].endswith("?neu=1#neu")
+    assert urls["service"].endswith("/dashboard/booking/leistungen/neu/")
     # у товара своя страница создания — суффикс не нужен
     assert "?" not in urls["product"]
 
 
-def test_services_list_opens_form_on_neu():
+def test_services_list_neu_link_goes_to_the_create_form():
+    """UX-D D2.2 (осознанная переписка): форма создания больше не живёт на списке —
+    старая ссылка ?neu=1 ведёт на страницу создания (с префиллом)."""
     from apps.booking import views as bviews
 
     t = _tenant("friseur")
     req = RequestFactory().get("/dashboard/booking/leistungen/", {"neu": "1"})
     req.tenant, req.user = t, _user()
-    html = bviews.services_view(req).content.decode()
-    assert 'id="neu"' in html
-    assert 'value="create"' in html  # форма создания в DOM
+    resp = bviews.services_view(req)
+    assert resp.status_code == 302 and resp.url == "/dashboard/booking/leistungen/neu/"
 
 
 # --- X6-2: поиск --------------------------------------------------------------

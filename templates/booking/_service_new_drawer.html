@@ -1,0 +1,5 @@
+{% load i18n %}
+{% comment %}UX-D D2.2: шторка «＋ Leistung» (booking:service-new?box=1).{% endcomment %}
+<div data-drawer-title="{% trans 'New service' %}" class="text-sm">
+  {% include "booking/_service_new_form.html" with in_drawer=1 %}
+</div>

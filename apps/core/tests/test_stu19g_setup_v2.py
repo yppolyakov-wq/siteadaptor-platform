@@ -78,7 +78,8 @@ def test_service_step_carries_name_price_duration(tenant):
     assert _field(step, "name").value == "Haarschnitt"
     assert _field(step, "price_eur").value == "25,00"
     assert _field(step, "duration").value == "45"
-    assert "neu=1" in step.form_url and step.form_url.endswith("#neu")
+    # UX-D D2.2: своя страница создания услуги (без ?neu=1#neu)
+    assert step.form_url.startswith("/dashboard/booking/leistungen/neu/?")
     assert "duration=45" in step.form_url
 
 
@@ -127,7 +128,7 @@ def test_entity_fields_exist_on_forms(tenant):
         sa.ENTITY_PROMO: set(PromotionForm(tenant=tenant).fields),
     }
     inline = {
-        sa.ENTITY_SERVICE: ("booking/services.html", 'value="create"'),
+        sa.ENTITY_SERVICE: ("booking/_service_new_form.html", "<form"),
         sa.ENTITY_ROOM: ("stays/units.html", 'value="unit"'),
     }
     for entity in NEW:
@@ -147,11 +148,11 @@ def test_service_and_room_forms_are_prefilled(tenant):
     from apps.booking import views as booking_views
     from apps.stays import views as stays_views
 
-    body = booking_views.services_view(
+    body = booking_views.service_new(
         _req(
             tenant,
-            "/dashboard/booking/leistungen/",
-            {"neu": "1", "name": "Haarschnitt", "price_eur": "25,00", "duration": "45"},
+            "/dashboard/booking/leistungen/neu/",
+            {"name": "Haarschnitt", "price_eur": "25,00", "duration": "45"},
         )
     ).content.decode()
     assert 'value="Haarschnitt"' in body and 'value="25,00"' in body and 'value="45"' in body

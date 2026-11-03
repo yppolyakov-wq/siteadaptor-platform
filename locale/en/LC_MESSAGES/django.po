@@ -31608,3 +31608,9 @@ msgstr "Rules for all services: deposit after no-shows and free cancellation."
 
 msgid "jederzeit"
 msgstr "any time"
+
+msgid "Bitte einen Namen angeben."
+msgstr "Please enter a name."
+
+msgid "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."
+msgstr "Photo, description and booking rules — on the service page after creating it."

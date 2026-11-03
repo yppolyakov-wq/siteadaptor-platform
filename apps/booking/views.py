@@ -24,6 +24,7 @@ from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
 
 from apps.core import deal_links, freshness, refunds, setup_assistant, vat
+from apps.core import drawer as drawer_mod
 from apps.core import transactions as core_transactions
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import (
@@ -33,6 +34,7 @@ from apps.core.i18n_input import (
     i18n_inputs_for,
     save_row_translations,
 )
+from apps.core.owner_login import local_next
 
 from . import services, table_rules
 from .models import (
@@ -1343,6 +1345,86 @@ def _variant_action_locked(request, action, service) -> None:
     messages.success(request, _("Variant saved."))
 
 
+def _service_from_post(request):
+    """Новая услуга из POST (без сохранения): общий код списка (`action=create`) и
+    шторки «＋ Leistung» (UX-D D2.2). Пустое имя → None."""
+    from .models import Service
+
+    name = request.POST.get("name", "").strip()[:200]
+    if not name:
+        return None
+    service = Service(
+        name=name,
+        description=request.POST.get("description", "").strip(),  # A3
+        image=_uploaded_image_ref(request, "image", "services") or {},  # A3: фото услуги
+        duration_minutes=_int_clamped(request.POST.get("duration"), 30, 5, 1440),
+        price_cents=_eur_to_cents(request.POST.get("price_eur")),
+        # DC-8: ставка НДС услуги (DE — обычно 19 %).
+        vat_rate=vat.parse_rate(request.POST.get("vat_rate"), Decimal("19.00")),
+        deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
+        is_video=bool(request.POST.get("is_video")),  # LS-1
+        # MX-5: режим цены (""=за бронь | per_person).
+        pricing_mode="per_person" if request.POST.get("pricing_mode") == "per_person" else "",
+    )
+    # L3d: переводы неосновных локалей (name_<loc>/description_<loc>)
+    apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
+    return service
+
+
+def _int_clamped(raw, default, lo, hi) -> int:
+    try:
+        return max(lo, min(int(raw), hi))
+    except (TypeError, ValueError):
+        return default
+
+
+@login_required
+@drawer_mod.drawer_aware
+def service_new(request):
+    """UX-D D2.2: «＋ Leistung» — короткая форма (имя, длительность, цена, НДС,
+    предоплата); в кабинете открывается шторкой, без JS — обычная страница. После
+    создания — страница услуги (фото, описание, правила — там). Пустое имя: форма
+    возвращается с введённым и ошибкой у поля."""
+
+    def render_form(values, error=""):
+        ctx = {
+            "nav": "services",
+            "sv": values,
+            "sv_error": error,
+            "next_url": drawer_mod.drawer_next(request, reverse("booking:services")),
+        }
+        if request.method == "POST":
+            ctx["next_url"] = local_next(request) or ctx["next_url"]
+        if drawer_mod.is_drawer(request) or request.GET.get("box") == "1":
+            return drawer_mod.fragment(render(request, "booking/_service_new_drawer.html", ctx))
+        return render(request, "booking/service_new.html", ctx)
+
+    if request.method == "POST":
+        service = _service_from_post(request)
+        if service is None:
+            msg = _("Bitte einen Namen angeben.")
+            messages.error(request, msg)
+            return render_form(_service_values(request.POST), msg)
+        service.save()
+        messages.success(request, _("Service created."))
+        return redirect(reverse("booking:service-edit", args=[service.pk]))
+    return render_form(
+        _service_values(setup_assistant.prefill(request, setup_assistant.ENTITY_SERVICE))
+    )
+
+
+def _service_values(data) -> dict:
+    """Значения формы «＋ Leistung» (префилл помощника или повтор после ошибки)."""
+    return {
+        "name": (data.get("name") or "")[:200],
+        "price_eur": (data.get("price_eur") or "")[:20],
+        "duration": (data.get("duration") or "")[:5],
+        "deposit_eur": (data.get("deposit_eur") or "")[:20],
+        "vat_rate": (data.get("vat_rate") or "")[:6],
+        "pricing_mode": "per_person" if data.get("pricing_mode") == "per_person" else "",
+    }
+
+
 @login_required
 def services_view(request, pk=None):
     """Услуги с ценой+длительностью (G10): CRUD простыми POST-формами.
@@ -1382,29 +1464,17 @@ def services_view(request, pk=None):
         except (TypeError, ValueError):
             return default
 
+    if request.method == "GET" and pk is None and request.GET.get("neu") == "1":
+        # UX-D D2.2: старые ссылки «＋» (?neu=1) — на форму создания, с префиллом
+        params = request.GET.copy()
+        params.pop("neu", None)
+        query = params.urlencode()
+        return redirect(reverse("booking:service-new") + (f"?{query}" if query else ""))
     if request.method == "POST":
         action = request.POST.get("action", "")
         if action == "create":
-            name = request.POST.get("name", "").strip()
-            if name:
-                service = Service(
-                    name=name,
-                    description=request.POST.get("description", "").strip(),  # A3
-                    image=_uploaded_image_ref(request, "image", "services")
-                    or {},  # A3: фото услуги
-                    duration_minutes=_int(request.POST.get("duration"), 30, 5, 1440),
-                    price_cents=_eur_to_cents(request.POST.get("price_eur")),
-                    # DC-8: ставка НДС услуги (DE — обычно 19 %).
-                    vat_rate=vat.parse_rate(request.POST.get("vat_rate"), Decimal("19.00")),
-                    deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
-                    is_video=bool(request.POST.get("is_video")),  # LS-1
-                    # MX-5: режим цены (""=за бронь | per_person).
-                    pricing_mode=(
-                        "per_person" if request.POST.get("pricing_mode") == "per_person" else ""
-                    ),
-                )
-                # L3d: переводы неосновных локалей (name_<loc>/description_<loc>)
-                apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
+            service = _service_from_post(request)
+            if service is not None:
                 _apply_rich(service, getattr(request, "tenant", None))
                 service.save()
                 messages.success(request, _("Service created."))
@@ -1573,10 +1643,6 @@ def services_view(request, pk=None):
             # X4: услуга — ПРОДАВАЕМАЯ СУЩНОСТЬ (раздел «Sortiment»), а не
             # операция дня; свой nav-ключ, иначе сайдбар подсвечивал «Verkäufe».
             "nav": "services",
-            # X6-1: «＋ Neu» из «Sortiment» раскрывает форму создания.
-            "open_new": request.GET.get("neu") == "1",
-            # STU-19g: values from the setup helper's link ("Was möchten Sie anlegen?")
-            "prefill": setup_assistant.prefill(request, setup_assistant.ENTITY_SERVICE),
             "services": services,
             # KA-12 E4.2a: чекбоксы «wer bietet die Leistung an» (навыки).
             "skill_resources": list(Resource.objects.filter(is_active=True).order_by("name")),

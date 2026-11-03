@@ -31695,3 +31695,9 @@ msgstr "Regeln für alle Leistungen: Anzahlung nach Nichterscheinen und kostenlo
 
 msgid "jederzeit"
 msgstr "jederzeit"
+
+msgid "Bitte einen Namen angeben."
+msgstr "Bitte einen Namen angeben."
+
+msgid "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."
+msgstr "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."

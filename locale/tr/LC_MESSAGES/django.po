@@ -31754,3 +31754,9 @@ msgstr "Tüm hizmetler için kurallar: gelmeme sonrası kapora ve ücretsiz ipta
 
 msgid "jederzeit"
 msgstr "her zaman"
+
+msgid "Bitte einen Namen angeben."
+msgstr "Lütfen bir ad girin."
+
+msgid "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."
+msgstr "Fotoğraf, açıklama ve rezervasyon kuralları — oluşturduktan sonra hizmet sayfasında."

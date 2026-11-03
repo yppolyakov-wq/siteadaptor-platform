@@ -31897,3 +31897,9 @@ msgstr "Правила для всех услуг: предоплата посл
 
 msgid "jederzeit"
 msgstr "в любое время"
+
+msgid "Bitte einen Namen angeben."
+msgstr "Укажите название."
+
+msgid "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."
+msgstr "Фото, описание и правила записи — на странице услуги после создания."

@@ -16,6 +16,7 @@
     {% comment %}Фидбэк 2026-07-30 («у услуг нет календаря / на сайте пишет: нет
     доступных»): рабочие часы и ресурсы задаются на ДРУГОМ экране, вход туда был
     только из календаря записей. Даём его там, где владелец правит услугу.{% endcomment %}
+    {% if not service_page %}<a href="{% url 'booking:service-new' %}" data-drawer class="ui-btn ui-btn-primary ui-btn-sm">＋ {% trans "New service" %}</a>{% endif %}
     <a href="{% url 'booking:availability' %}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Availability" %} →</a>
     <a href="{% url 'booking:resources' %}" class="text-sm text-indigo-600 hover:underline">🕒 {% trans "Öffnungszeiten & Ressourcen" %} →</a>
     {% if service_page %}<a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Services" %}</a>{% endif %}
@@ -252,52 +253,5 @@
 {% comment %}X6-1 (конвенция «＋»): форма создания живёт на списке — «＋ Neu»
 из «Sortiment» ведёт сюда с ?neu=1 и раскрывает её (пустой список — раскрыта
 сразу). Разметка формы не тронута.{% endcomment %}
-<details id="neu" class="max-w-xl"{% if not services or open_new %} open{% endif %}>
-<summary class="cursor-pointer select-none inline-flex items-center gap-2 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 mb-3">＋ {% trans "New service" %}</summary>
-<form method="post" enctype="multipart/form-data" class="ui-card p-6 max-w-xl space-y-4">
-  {% csrf_token %}
-  <input type="hidden" name="action" value="create">
-  <h2 class="ui-h2">{% trans "New service" %}</h2>
-  <div data-i18n-loc="{{ base_loc }}" class="space-y-4">
-    <input name="name" type="text" value="{{ prefill.name|default:'' }}" required aria-label="{% trans "Name" %}" placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}" class="ui-input">
-    <textarea name="description" rows="2" aria-label="{% trans 'Description — what is included (optional)' %}" placeholder="{% trans 'Description — what is included (optional)' %}" class="ui-input"></textarea>
-  </div>
-  {# L3d/E9.10: переводы — группой на язык (выпадашка у заголовка). #}
-  {% for loc in extra_locales %}
-  <div data-i18n-loc="{{ loc }}" class="hidden space-y-4">
-    <input aria-label="{% trans "Name" %} ({{ loc|upper }})" name="name_{{ loc }}" type="text" placeholder="{% trans "Name" %} ({{ loc|upper }})" class="ui-input">
-    <textarea name="description_{{ loc }}" rows="2" aria-label="{% trans 'Description' %} ({{ loc|upper }})" placeholder="{% trans 'Description' %} ({{ loc|upper }})" class="ui-input"></textarea>
-  </div>
-  {% endfor %}
-  <div>
-    <span class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</span>
-    {% include "catalog/_photo_add_tile.html" with target="image" %}
-    <input name="image" type="file" accept="image/*" class="hidden" aria-label="{% trans "Photo (optional)" %}">
-  </div>
-  <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_video" value="1"> 📹 {% trans "Video-Beratung möglich" %} <span class="text-xs text-gray-400">({% trans "WhatsApp-Link in Bestätigung" %})</span></label>
-  <label class="flex items-center gap-2 text-sm">{% trans "Preis gilt" %}
-    <select name="pricing_mode" class="rounded border border-gray-300 px-2 py-1 text-sm">
-      <option value="">{% trans "pro Termin" %}</option>
-      <option value="per_person">{% trans "pro Person" %}</option>
-    </select>
-  </label>
-  <div class="grid sm:grid-cols-3 gap-4">
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Duration (min)" %}</span>
-      <input name="duration" type="number" min="5" value="{{ prefill.duration|default:'30' }}" class="ui-input"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</span>
-      <input name="price_eur" type="text" value="{{ prefill.price_eur|default:'' }}" placeholder="49" class="ui-input"></label>
-    </div>
-    {% vat_select "19.00" %}
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</span>
-      <input name="deposit_eur" type="text" placeholder="0" class="ui-input"></label>
-    </div>
-  </div>
-  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create service" %}</button>
-</form>
-</details>
 {% endif %}
 {% endblock %}

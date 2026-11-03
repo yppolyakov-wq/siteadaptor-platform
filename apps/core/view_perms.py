@@ -164,6 +164,7 @@ RULES: dict[str, Rule] = {
     "city-freshness-confirm": _r(S, SE),
     "collections:list": _r(S, SE),
     "booking:services": _r(S, SE),
+    "booking:service-new": _r(S, SE),  # UX-D D2.2: «＋ Leistung» (шторка)
     "booking:service-edit": _r(S, SE),
     "booking:service-inline-edit": _r(S, SE),
     "booking:service-photo-edit": _r(S, SE),

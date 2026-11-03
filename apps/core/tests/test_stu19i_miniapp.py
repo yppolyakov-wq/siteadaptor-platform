@@ -71,12 +71,12 @@ def test_mini_app_hides_links_to_closed_forms(tenant, monkeypatch):
     assert by == {sa.ENTITY_SERVICE: False, sa.ENTITY_PRODUCT: True}
     body = lite_cabinet.setup_ask(request).content.decode()
     assert "data-setup-unreachable" in body
-    assert "leistungen/?" not in body  # no dead link
+    assert "leistungen/neu/" not in body  # no dead link (UX-D D2.2: своя страница создания)
     assert "catalog/products/new/" in body
 
 
 def test_package_gate_hides_link(tenant, monkeypatch):
-    monkeypatch.setattr(packages, "view_allowed", lambda t, name: name != "booking:services")
+    monkeypatch.setattr(packages, "view_allowed", lambda t, name: name != "booking:service-new")
     request = _req(tenant)
     plan = sa.for_request(sa.plan_from_rules("Leistung Haarschnitt 25 €", tenant, ALL), request)
     assert [s.reachable for s in plan.steps] == [False]

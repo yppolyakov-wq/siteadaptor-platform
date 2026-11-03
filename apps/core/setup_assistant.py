@@ -83,9 +83,10 @@ ENTITIES = {
     # (`?neu=1` opens it); its field names are the POST names of that form.
     ENTITY_SERVICE: {
         "label": _("Leistung"),
-        "url_name": "booking:services",
-        "query": {"neu": "1"},
-        "fragment": "neu",
+        # UX-D D2.2: своя страница создания (поля name/price_eur/duration — те же)
+        "url_name": "booking:service-new",
+        "query": {},
+        "fragment": "",
         "module": "booking",
         "perm": "sortiment.edit",
         "fields": (

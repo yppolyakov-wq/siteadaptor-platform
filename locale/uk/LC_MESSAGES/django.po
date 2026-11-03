@@ -31881,3 +31881,9 @@ msgstr "Правила для всіх послуг: передоплата пі
 
 msgid "jederzeit"
 msgstr "будь-коли"
+
+msgid "Bitte einen Namen angeben."
+msgstr "Вкажіть назву."
+
+msgid "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."
+msgstr "Фото, опис і правила запису — на сторінці послуги після створення."
