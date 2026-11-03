@@ -1,0 +1,5 @@
+{% load i18n %}
+{% comment %}UX-D D6.2a: шторка «Buchen» (stock-book?box=1).{% endcomment %}
+<div data-drawer-title="{% trans 'Buchung erfassen' %}" class="text-sm">
+  {% include "inventory/_stock_book_form.html" with in_drawer=1 %}
+</div>

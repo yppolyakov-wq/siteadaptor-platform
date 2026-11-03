@@ -31947,3 +31947,9 @@ msgstr "Tehlikeli bölge"
 
 msgid "Noch keine Zusatzleistungen."
 msgstr "Henüz ek hizmet yok."
+
+msgid "Bitte eine Menge wie -2 oder 3 angeben."
+msgstr "Lütfen -2 veya 3 gibi bir miktar girin."
+
+msgid "Umlagerung"
+msgstr "Transfer"

@@ -32090,3 +32090,9 @@ msgstr "Опасная зона"
 
 msgid "Noch keine Zusatzleistungen."
 msgstr "Дополнительных услуг пока нет."
+
+msgid "Bitte eine Menge wie -2 oder 3 angeben."
+msgstr "Укажите количество, например -2 или 3."
+
+msgid "Umlagerung"
+msgstr "Перемещение"

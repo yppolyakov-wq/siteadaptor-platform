@@ -1,0 +1,100 @@
+{% load i18n %}
+{% comment %}UX-D D6.2a: форма «Buchen» — шторка и страница без JS. Вид операции — вкладки-ссылки
+(сервер рисует нужные поля, скриптов нет). Контекст: art, arts, bv (значения), bv_errors,
+entities, reasons, lots_on, stock_locations, next_url.{% endcomment %}
+<nav class="ui-tabs mb-4" aria-label="{% trans 'Buchung' %}">
+  {% for a in arts %}
+  <a href="{% url 'stock-book' %}?art={{ a }}{% if bv.entity %}&amp;entity={{ bv.entity }}{% endif %}" data-drawer class="ui-tab"{% if a == art %} aria-current="page"{% endif %}>{% if a == "receipt" %}{% trans "Wareneingang (+)" %}{% elif a == "adjustment" %}{% trans "Korrektur (±)" %}{% elif a == "stocktake" %}{% trans "Inventur (= gezählt)" %}{% else %}{% trans "Umlagerung" %}{% endif %}</a>
+  {% endfor %}
+</nav>
+<form method="post" action="{% url 'stock-book' %}" class="space-y-4" data-drawer-form>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <input type="hidden" name="art" value="{{ art }}">
+  <div>
+    <label for="sb-entity" class="block text-sm font-medium mb-1">{% trans "Artikel" %}</label>
+    <select id="sb-entity" name="entity" class="ui-input"{% if bv_errors.entity %} aria-invalid="true" aria-describedby="sb-entity-err" data-drawer-autofocus{% endif %}>
+      <option value="">—</option>
+      {% for e in entities %}<option value="{{ e.value }}"{% if e.value == bv.entity %} selected{% endif %}>{{ e.label }}</option>{% endfor %}
+    </select>
+    {% if bv_errors.entity %}<p id="sb-entity-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.entity }}</p>{% endif %}
+  </div>
+
+  {% if art == "receipt" or art == "transfer" %}
+  <div>
+    <label for="sb-qty" class="block text-sm font-medium mb-1">{% trans "Menge" %}</label>
+    <input id="sb-qty" name="qty" type="text" inputmode="numeric" autocomplete="off" value="{{ bv.qty }}"{% if not bv_errors.entity %} data-drawer-autofocus{% endif %}{% if bv_errors.qty %} aria-invalid="true" aria-describedby="sb-qty-err"{% endif %} class="ui-input">
+    {% if bv_errors.qty %}<p id="sb-qty-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.qty }}</p>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if art == "receipt" %}
+    {% if lots_on %}
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label for="sb-lot" class="block text-sm font-medium mb-1">{% trans "Charge-Nr." %}</label>
+        <input id="sb-lot" name="lot_code" type="text" maxlength="64" value="{{ bv.lot_code }}" class="ui-input">
+      </div>
+      <div>
+        <label for="sb-mhd" class="block text-sm font-medium mb-1">{% trans "MHD" %}</label>
+        <input id="sb-mhd" name="lot_mhd" type="date" value="{{ bv.lot_mhd }}"{% if bv_errors.lot_mhd %} aria-invalid="true" aria-describedby="sb-mhd-err"{% endif %} class="ui-input">
+        {% if bv_errors.lot_mhd %}<p id="sb-mhd-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.lot_mhd }}</p>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+    {% if stock_locations|length > 1 %}
+    <div>
+      <label for="sb-loc" class="block text-sm font-medium mb-1">{% trans "Standort" %}</label>
+      <select id="sb-loc" name="location" class="ui-input">
+        {% for loc in stock_locations %}<option value="{{ loc.pk }}">{{ loc.name }}</option>{% endfor %}
+      </select>
+    </div>
+    {% endif %}
+  {% elif art == "adjustment" %}
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label for="sb-delta" class="block text-sm font-medium mb-1">{% trans "Menge" %}</label>
+      <input id="sb-delta" name="delta" type="text" inputmode="numeric" autocomplete="off" value="{{ bv.delta }}" placeholder="{% trans 'z. B. -2 oder 3' %}"{% if not bv_errors.entity %} data-drawer-autofocus{% endif %}{% if bv_errors.delta %} aria-invalid="true" aria-describedby="sb-delta-err"{% endif %} class="ui-input">
+      {% if bv_errors.delta %}<p id="sb-delta-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.delta }}</p>{% endif %}
+    </div>
+    <div>
+      <label for="sb-reason" class="block text-sm font-medium mb-1">{% trans "Grund" %}</label>
+      <select id="sb-reason" name="reason" class="ui-input">
+        {% for val, label in reasons %}<option value="{{ val }}"{% if val == bv.reason %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  {% elif art == "stocktake" %}
+  <div>
+    <label for="sb-counted" class="block text-sm font-medium mb-1">{% trans "Gezählter Bestand" %}</label>
+    <input id="sb-counted" name="counted" type="text" inputmode="numeric" autocomplete="off" value="{{ bv.counted }}"{% if not bv_errors.entity %} data-drawer-autofocus{% endif %}{% if bv_errors.counted %} aria-invalid="true" aria-describedby="sb-counted-err"{% endif %} class="ui-input">
+    {% if bv_errors.counted %}<p id="sb-counted-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.counted }}</p>{% endif %}
+  </div>
+  {% else %}
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label for="sb-src" class="block text-sm font-medium mb-1">{% trans "von" %}</label>
+      <select id="sb-src" name="src" class="ui-input">
+        {% for loc in stock_locations %}<option value="{{ loc.pk }}"{% if forloop.first %} selected{% endif %}>{{ loc.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="sb-dst" class="block text-sm font-medium mb-1">{% trans "nach" %}</label>
+      <select id="sb-dst" name="dst" class="ui-input"{% if bv_errors.dst %} aria-invalid="true" aria-describedby="sb-dst-err"{% endif %}>
+        {% for loc in stock_locations %}<option value="{{ loc.pk }}"{% if forloop.counter == 2 %} selected{% endif %}>{{ loc.name }}</option>{% endfor %}
+      </select>
+      {% if bv_errors.dst %}<p id="sb-dst-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.dst }}</p>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if art != "stocktake" and art != "transfer" %}
+  <div>
+    <label for="sb-note" class="block text-sm font-medium mb-1">{% trans "Notiz" %}</label>
+    <input id="sb-note" name="note" type="text" maxlength="200" value="{{ bv.note }}" class="ui-input">
+  </div>
+  {% endif %}
+  <div class="flex justify-end gap-2 pt-2{% if in_drawer %} sticky bottom-0 bg-white pb-1{% endif %}">
+    <button class="ui-btn ui-btn-primary">{% if art == "receipt" %}{% trans "Eingang buchen" %}{% elif art == "adjustment" %}{% trans "Korrektur buchen" %}{% elif art == "stocktake" %}{% trans "Inventur buchen" %}{% else %}{% trans "Umlagern" %}{% endif %}</button>
+  </div>
+</form>

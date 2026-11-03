@@ -97,3 +97,26 @@ D6.1–D6.6: в строке нет полей; round-trip; чужой uuid → 
 цен), `core/inline_edit.py`, `core/vat.py`, `core/setup_steps.py`, витрина `loyalty/public_views.py`.
 Плюс: ошибка формы финансов теряет ввод (до 8 строк счёта) — чинится вёрсткой D6.5 (страница
 с повтором ввода); неизвестная ставка НДС в журнале молча = 19 %.
+
+## D6.2 — подплан «Lager» (2026-11-03)
+Разведка (`inventory/views.py:110-451`, `inventory/stock.html` 456 строк): над таблицей — тумблер
+партий, плашка Warenwert, скан-поиск, Bestellvorschläge, MHD, расхождения, ТРИ раскрытые формы
+«Buchung erfassen» (приход/корректировка/инвентура с селектом всех сущностей), Produktion и
+Zählliste в `<details>`, Standorte+Umlagerung, затем таблица (с формой порога в шапке), матрица
+«размер × цвет», движения. `_int` молча делает из мусора 0/дефолт (корректировка «abc» = «Keine
+Änderung», приход — ошибка).
+
+Инкременты:
+- **D6.2a «Buchen» шторкой:** `stock-book` (`/dashboard/stock/buchen/?art=receipt|adjustment|
+  stocktake|transfer&entity=p…|v…`), `drawer_aware`; вкладки-ссылки видов внутри шторки; строгий
+  разбор чисел (ASCII, границы) — ошибка у поля, ничего не пишется; POST — тот же сервисный путь
+  (`apply_manual_movement`/`receive_lot`/`locations.transfer`), общий хелпер `_book()` вместо
+  копии. В строке таблицы, у найденного скан-поиском и в Bestellvorschläge — кнопка «Buchen»
+  (сущность предзаполнена). Три раскрытые формы над таблицей сняты; Umlagerung — вид шторки.
+- **D6.2b настройки:** `stock-settings` (Einstellungen › «Lager»): Meldebestand, Chargen/MHD,
+  Standorte (создание). Формы порога/тумблера/Standorte с рабочей страницы сняты; старые POST
+  `threshold`/`lots_toggle`/`location_create` на `stock` продолжают работать (старые вкладки).
+- Produktion и Zählliste остаются свёрнутыми `<details>` (многострочные формы — не шторка).
+Замки: на странице склада нет раскрытых форм «Buchung»; строка → шторка с сущностью; «abc»/«²»/
+отрицательный приход → ошибка без движения; без JS → 302 на склад; настройки пишут ключ под
+блокировкой (D6.0) и не теряют чужие ключи; права `stock-book` = `stock`, `stock-settings` = `stock`.

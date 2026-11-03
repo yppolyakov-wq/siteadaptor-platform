@@ -31801,3 +31801,9 @@ msgstr "Danger zone"
 
 msgid "Noch keine Zusatzleistungen."
 msgstr "No extras yet."
+
+msgid "Bitte eine Menge wie -2 oder 3 angeben."
+msgstr "Please enter a quantity such as -2 or 3."
+
+msgid "Umlagerung"
+msgstr "Transfer"

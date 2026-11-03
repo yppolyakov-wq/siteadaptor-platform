@@ -81,6 +81,7 @@ EXPECTED_UNLISTED = frozenset(
         "booking:resource-new",  # UX-D D3.2: «＋ Ressource» (кнопка списка, шторка)
         "booking:booking-new",  # UX-D D5.0: «＋ Neuer Termin» (кнопка Tagesplan, шторка)
         "extra-new",  # UX-D D6.1: «＋ Zusatzleistung» (кнопка списка, шторка)
+        "stock-book",  # UX-D D6.2a: «Buchen» (кнопки таблицы склада, шторка)
         "booking:service-inline-edit",
         "booking:service-photo-edit",
         "catalog:category-create",

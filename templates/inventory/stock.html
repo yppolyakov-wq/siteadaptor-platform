@@ -3,7 +3,12 @@
 {% block dash_title %}{% trans "Lager" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="ui-h1 mb-1">📦 {% nav_title _("Lager") %}</h1>
+<div class="flex items-start justify-between gap-3 flex-wrap mb-1">
+  <h1 class="ui-h1">📦 {% nav_title _("Lager") %}</h1>
+  {% comment %}UX-D D6.2a: приход/корректировка/инвентура/перемещение — шторкой «Buchen»
+  (раньше — три раскрытые формы над таблицей); у каждой строки — своя кнопка.{% endcomment %}
+  {% if entities %}<a href="{% url 'stock-book' %}" data-drawer class="ui-btn ui-btn-primary">＋ {% trans "Buchung erfassen" %}</a>{% endif %}
+</div>
 <p class="text-sm text-gray-500 mb-4">{% trans "Wareneingänge, Korrekturen & Inventur — mit Bewegungshistorie und Abgleich gegen den Bestandszähler." %}</p>
 
 {% if messages %}
@@ -14,6 +19,7 @@
   </div>
 {% endif %}
 
+<div id="stock-region" data-drawer-refresh>
 {# --- Склад-2 E1: Chargen/MHD-Tumbler (Haltbarkeit für Lebensmittel) --- #}
 {% if show_lots_toggle %}<form method="post" action="{% url 'stock' %}" class="ui-card mb-4 flex items-center justify-between gap-3 px-4 py-2.5" data-lots-toggle>
   {% csrf_token %}
@@ -68,6 +74,7 @@
             <th scope="col" class="text-right py-1 px-2 font-medium">{% trans "Bestand" %}</th>
             <th scope="col" class="text-right py-1 px-2 font-medium">{% trans "Meldebestand" %}</th>
             <th scope="col" class="text-right py-1 pl-2 font-medium">{% trans "Vorschlag" %}</th>
+            <th scope="col"><span class="sr-only">{% trans "Buchung erfassen" %}</span></th>
           </tr>
         </thead>
         <tbody>
@@ -80,6 +87,7 @@
               <td class="py-1 px-2 text-right font-semibold">{{ r.counter }}</td>
               <td class="py-1 px-2 text-right text-amber-700">{{ r.point }}</td>
               <td class="py-1 pl-2 text-right">{% if r.suggest %}+{{ r.suggest }}{% else %}—{% endif %}</td>
+              <td class="py-1 pl-2 text-right"><a href="{% url 'stock-book' %}?art=receipt&amp;entity={{ r.value }}" data-drawer class="ui-btn ui-btn-secondary ui-btn-sm" aria-label="{% trans 'Wareneingang (+)' %}: {{ r.label }}">{% trans "Wareneingang (+)" %}</a></td>
             </tr>
           {% endfor %}
         </tbody>
@@ -136,63 +144,6 @@
     </div>
   </div>
 {% endif %}
-
-{# --- Buchung erfassen --- #}
-<div class="ui-card mb-6 p-4">
-  <h2 class="text-sm font-semibold text-gray-700 mb-3">{% trans "Buchung erfassen" %}</h2>
-  {% if entities %}
-    <div class="grid gap-4 md:grid-cols-3">
-      <form method="post" action="{% url 'stock' %}" class="space-y-2">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="receipt">
-        <label class="block text-xs font-medium text-gray-500">{% trans "Wareneingang (+)" %}{% if lots_on %} · {% trans "Charge" %}{% endif %}</label>
-        <select aria-label="{% trans "Artikel" %}" name="entity" class="ui-input">
-          {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
-        </select>
-        <input type="number" name="qty" min="1" aria-label="{% trans 'Menge' %}" placeholder="{% trans 'Menge' %}" class="ui-input">
-        {% if lots_on %}
-          <div class="grid grid-cols-2 gap-2">
-            <input type="text" name="lot_code" aria-label="{% trans 'Charge-Nr.' %}" placeholder="{% trans 'Charge-Nr.' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-            <input type="date" name="lot_mhd" title="{% trans 'MHD' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-          </div>
-        {% endif %}
-        {% if locs_on %}
-          <select name="location" title="{% trans 'Standort' %}" class="ui-input">
-            {% for loc in stock_locations %}<option value="{{ loc.pk }}">📍 {{ loc.name }}</option>{% endfor %}
-          </select>
-        {% endif %}
-        <button class="ui-btn ui-btn-primary ui-btn-sm w-full">{% trans "Eingang buchen" %}</button>
-      </form>
-
-      <form method="post" action="{% url 'stock' %}" class="space-y-2">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="adjustment">
-        <label class="block text-xs font-medium text-gray-500">{% trans "Korrektur (±)" %}</label>
-        <select aria-label="{% trans "Artikel" %}" name="entity" class="ui-input">
-          {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
-        </select>
-        <select aria-label="{% trans "Grund" %}" name="reason" class="ui-input">
-          {% for val, label in reasons %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
-        </select>
-        <input type="number" name="delta" aria-label="{% trans "Menge" %}" placeholder="{% trans 'z. B. -2 oder 3' %}" class="ui-input">
-        <button class="w-full text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Korrektur buchen" %}</button>
-      </form>
-
-      <form method="post" action="{% url 'stock' %}" class="space-y-2">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="stocktake">
-        <label class="block text-xs font-medium text-gray-500">{% trans "Inventur (= gezählt)" %}</label>
-        <select aria-label="{% trans "Artikel" %}" name="entity" class="ui-input">
-          {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
-        </select>
-        <input type="number" name="counted" min="0" aria-label="{% trans 'Gezählter Bestand' %}" placeholder="{% trans 'Gezählter Bestand' %}" class="ui-input">
-        <button class="w-full text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Inventur buchen" %}</button>
-      </form>
-    </div>
-  {% else %}
-    <p class="text-sm ui-muted">{% trans "Noch keine Produkte angelegt." %}</p>
-  {% endif %}
-</div>
 
 {# --- ERP-7: Produktion buchen (Zutaten − / Fertigprodukt +, eine Operation) --- #}
 {% if entities %}
@@ -284,22 +235,7 @@
       <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">＋ {% trans "Standort" %}</button>
     </form>
     {% if locs_on %}
-      <form method="post" action="{% url 'stock' %}" class="flex items-center gap-2 flex-wrap border-t border-gray-100 pt-3">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="transfer">
-        <span class="text-xs font-medium text-gray-500 w-full">{% trans "Umlagerung (bewegt nur die Verteilung, nicht den Gesamtbestand)" %}</span>
-        <select aria-label="{% trans "Artikel" %}" name="entity" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm flex-1 min-w-40">
-          {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
-        </select>
-        <select aria-label="{% trans "Quelle" %}" name="src" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-          {% for loc in stock_locations %}<option value="{{ loc.pk }}">{% trans "von" %} {{ loc.name }}</option>{% endfor %}
-        </select>
-        <select aria-label="{% trans "Ziel" %}" name="dst" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-          {% for loc in stock_locations %}<option value="{{ loc.pk }}" {% if forloop.counter == 2 %}selected{% endif %}>{% trans "nach" %} {{ loc.name }}</option>{% endfor %}
-        </select>
-        <input type="number" name="qty" min="1" aria-label="{% trans 'Menge' %}" placeholder="{% trans 'Menge' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-        <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Umlagern" %}</button>
-      </form>
+      <p class="text-xs ui-muted border-t border-gray-100 pt-3">{% trans "Umlagerung (bewegt nur die Verteilung, nicht den Gesamtbestand)" %}: <a href="{% url 'stock-book' %}?art=transfer" data-drawer class="text-indigo-700 hover:underline">{% trans "Umlagern" %}</a></p>
     {% endif %}
   </div>
 </details>
@@ -391,6 +327,7 @@
             <th scope="col" class="ui-num">{% trans "Wert" %}</th>
             <th scope="col" class="ui-num">{% trans "Marge" %}</th>
             <th scope="col" class="ui-num">{% trans "Status" %}</th>
+            <th scope="col"><span class="sr-only">{% trans "Buchung erfassen" %}</span></th>
           </tr>
         </thead>
         <tbody>
@@ -406,6 +343,7 @@
                 {% if r.ok %}<span class="text-green-600">✓</span>
                 {% else %}<span class="text-red-600">{{ r.diff|stringformat:"+d" }}</span>{% endif %}
               </td>
+              <td class="text-right" data-cell="actions"><a href="{% url 'stock-book' %}?entity={{ r.value }}" data-drawer data-drawer-key="sb-{{ r.value }}" class="ui-btn ui-btn-secondary ui-btn-sm" aria-label="{% trans 'Buchen' %}: {{ r.label }}">{% trans "Buchen" %}</a></td>
             </tr>
             {% endwith %}
           {% endfor %}
@@ -452,5 +390,6 @@
   {% else %}
     <p class="text-sm ui-muted">{% trans "Noch keine Bewegungen." %}</p>
   {% endif %}
+</div>
 </div>
 {% endblock %}

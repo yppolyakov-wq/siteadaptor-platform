@@ -32074,3 +32074,9 @@ msgstr "Небезпечна зона"
 
 msgid "Noch keine Zusatzleistungen."
 msgstr "Додаткових послуг поки немає."
+
+msgid "Bitte eine Menge wie -2 oder 3 angeben."
+msgstr "Вкажіть кількість, наприклад -2 або 3."
+
+msgid "Umlagerung"
+msgstr "Переміщення"

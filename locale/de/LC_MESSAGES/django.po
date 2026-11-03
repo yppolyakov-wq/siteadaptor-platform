@@ -31888,3 +31888,9 @@ msgstr "Gefahrenbereich"
 
 msgid "Noch keine Zusatzleistungen."
 msgstr "Noch keine Zusatzleistungen."
+
+msgid "Bitte eine Menge wie -2 oder 3 angeben."
+msgstr "Bitte eine Menge wie -2 oder 3 angeben."
+
+msgid "Umlagerung"
+msgstr "Umlagerung"

@@ -118,8 +118,9 @@ entity_choices, suppliers, stock_products.{% endcomment %}
     <input type="hidden" name="action" value="set_image"><input type="hidden" name="extra" value="{{ x.pk }}">
     <h2 class="ui-h2">{% trans "Photo" %}</h2>
     {% if x.image_url %}<img src="{{ x.image_url }}" alt="" class="w-full max-w-xs rounded-lg object-cover">{% endif %}
-    <label for="extra-image" class="block text-sm font-medium">{% trans "Photo" %}</label>
-    <input id="extra-image" name="image" type="file" accept="image/*" required class="block text-sm rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">
+    {# E9.9: одна плитка «＋ Foto» на все формы кабинета; файл уходит кнопкой «Upload». #}
+    {% include "catalog/_photo_add_tile.html" with target="image" %}
+    <input name="image" type="file" accept="image/*" class="hidden" aria-label="{% trans 'Photo' %}">
     <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Upload" %}</button>
   </form>
 

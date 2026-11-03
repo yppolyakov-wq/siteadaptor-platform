@@ -1,0 +1,11 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Buchung erfassen" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D6.2a: страница «Buchen» без JS (в кабинете — шторка).{% endcomment %}
+<a href="{% url 'stock' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Lager" %}</a>
+<h1 class="ui-h1 mt-1 mb-4">{% trans "Buchung erfassen" %}</h1>
+{% include "tenant/_settings_messages.html" %}
+<div class="ui-card p-6 max-w-xl">{% include "inventory/_stock_book_form.html" %}</div>
+{% endblock %}

@@ -96,6 +96,7 @@ from apps.core.views import (
 from apps.events import public_views as events_public
 from apps.events import views as events_views
 from apps.inbox import public_views as inbox_public
+from apps.inventory.book_views import stock_book as stock_book_view
 from apps.inventory.views import stock as stock_view
 from apps.inventory.views_purchasing import maengel_pdf, purchasing_view
 from apps.jobs import public_views as jobs_public
@@ -296,6 +297,7 @@ urlpatterns = [
     ),
     # U-D3: кабинет склада (приёмки/корректировки/инвентаризация/реконсиляция).
     path("dashboard/stock/", stock_view, name="stock"),
+    path("dashboard/stock/buchen/", stock_book_view, name="stock-book"),  # UX-D D6.2a
     # Склад-2 E3: закупки (Lieferanten/Bestellungen/Wareneingang).
     path("dashboard/purchasing/", purchasing_view, name="purchasing"),
     # ERP-8: PDF-бланк рекламации поставщику (Mängelanzeige)
