@@ -702,7 +702,7 @@ def test_vat_field_is_rendered_on_all_three_forms():
 
     tenant = _tenant("hotel")
     unit = StayUnit.objects.create(name="Suite", price_cents=9000, vat_rate=Decimal("7.00"))
-    Service.objects.create(name="Schnitt", price_cents=4000)
+    svc = Service.objects.create(name="Schnitt", price_cents=4000, vat_rate=Decimal("7.00"))
 
     def _html(view, path, **kwargs):
         req = _req(path, tenant=tenant)
@@ -715,7 +715,13 @@ def test_vat_field_is_rendered_on_all_three_forms():
     assert 'name="vat_rate"' in unit_html
     assert 'value="7.00" selected' in unit_html  # текущая ставка выбрана
 
-    assert 'name="vat_rate"' in _html(services_view, "/dashboard/booking/leistungen/")
+    # UX-D D2.3/D2.4: список услуг — обзор без полей; ставка — на странице услуги
+    # и в форме «＋ Leistung».
+    from apps.booking.views import service_new
+
+    svc_html = _html(services_view, f"/dashboard/booking/leistungen/{svc.pk}/", pk=svc.pk)
+    assert 'name="vat_rate"' in svc_html and 'value="7.00" selected' in svc_html
+    assert 'name="vat_rate"' in _html(service_new, "/dashboard/booking/leistungen/neu/")
 
     # Событие — ModelForm: поле в самой форме (шаблон рендерит поля циклом).
     assert "vat_rate" in EventForm().fields
