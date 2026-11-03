@@ -32108,3 +32108,10 @@ msgstr "Новое число штампов действует со следу�
 
 msgid "Einzelpreis"
 msgstr "Цена за единицу"
+
+msgid "Inhalt"
+msgstr "Состав"
+
+#, python-format
+msgid "Weitere Mitglieder (inaktiv oder nicht in der Liste) bleiben erhalten: %(n)s"
+msgstr "Остальные участники (неактивные или не в списке) сохраняются: %(n)s"

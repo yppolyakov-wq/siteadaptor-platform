@@ -31965,3 +31965,10 @@ msgstr "Yeni damga sayısı bir sonraki damgadan itibaren geçerlidir; toplanan 
 
 msgid "Einzelpreis"
 msgstr "Birim fiyat"
+
+msgid "Inhalt"
+msgstr "İçerik"
+
+#, python-format
+msgid "Weitere Mitglieder (inaktiv oder nicht in der Liste) bleiben erhalten: %(n)s"
+msgstr "Diğer üyeler (pasif veya listede değil) korunur: %(n)s"

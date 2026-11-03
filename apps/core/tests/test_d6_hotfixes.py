@@ -212,12 +212,15 @@ def test_collection_save_ignores_checked_ids_that_were_not_shown():
 
 def test_collection_form_lists_shown_ids_for_each_kind():
     from apps.catalog.tests.factories import ProductFactory
-    from apps.collections import views
     from apps.collections.models import Collection
 
-    Collection.objects.create(name="Herbst", slug="herbst")
+    col = Collection.objects.create(name="Herbst", slug="herbst")
     p = ProductFactory()
-    html = views.collections_view(_req("/dashboard/collections/", method="get")).content.decode()
+    # UX-D D6.3: чекбоксы состава переехали на вкладку «Inhalt» страницы подборки.
+    from apps.collections import pages
+
+    req = _req(f"/dashboard/collections/{col.pk}/?tab=inhalt", method="get")
+    html = pages.collection_edit(req, pk=col.pk).content.decode()
     assert f'name="products_shown" value="{p.pk}"' in html
 
 

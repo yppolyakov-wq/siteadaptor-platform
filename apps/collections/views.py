@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
 from django.utils.translation import gettext as _
 
-from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
+from apps.core.i18n_input import apply_i18n_overlay, extra_locales
 
 from .models import Collection
 
@@ -140,29 +140,30 @@ def collections_view(request):
             messages.success(request, _("Collection deleted."))
         return redirect("collections:list")
 
-    # GET: подборки + пары (сущность, входит?) для чекбоксов состава.
-    services, units, products = [], [], []
+    # GET: есть ли что группировать (подсказка внизу списка).
+    has_entities = False
     if has_booking:
         from apps.booking.models import Service
 
-        services = list(_shown_queryset(Service))
+        has_entities = has_entities or Service.objects.filter(is_active=True).exists()
     if has_stays:
         from apps.stays.models import StayUnit
 
-        units = list(_shown_queryset(StayUnit))
+        has_entities = has_entities or StayUnit.objects.filter(is_active=True).exists()
     if has_catalog:
         from apps.catalog.models import Product
 
-        products = list(_shown_queryset(Product))
-    collections = list(Collection.objects.all())
-    for collection in collections:
-        svc_ids = set(collection.services.values_list("pk", flat=True))
-        unit_ids = set(collection.stay_units.values_list("pk", flat=True))
-        prod_ids = set(collection.products.values_list("pk", flat=True))
-        collection.svc_rows = [(s, s.pk in svc_ids) for s in services]
-        collection.unit_rows = [(u, u.pk in unit_ids) for u in units]
-        collection.product_rows = [(p, p.pk in prod_ids) for p in products]
-        collection.i18n_inputs = i18n_inputs_for(collection, tenant, fields=("name",))
+        has_entities = has_entities or Product.objects.filter(is_active=True).exists()
+    # UX-D D6.3: список — строки с количествами (один запрос), состав/фото/переводы — на
+    # странице подборки (раньше 3 запроса и все чекбоксы на каждую подборку).
+    from .pages import annotated
+
+    collections = list(
+        annotated(
+            Collection.objects.all(),
+            {"has_booking": has_booking, "has_stays": has_stays, "has_catalog": has_catalog},
+        )
+    )
     return render(
         request,
         "collections/list.html",
@@ -173,6 +174,6 @@ def collections_view(request):
             "has_booking": has_booking,
             "has_stays": has_stays,
             "has_catalog": has_catalog,
-            "has_entities": bool(services or units or products),
+            "has_entities": has_entities,
         },
     )

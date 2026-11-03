@@ -1,0 +1,109 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{{ col.name }}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D6.3: страница подборки — вкладки рисует сервер (?tab=), у каждой вкладки своя
+форма. Состав — чекбоксы показанных позиций (+ скрытые `*_shown`; невидимые члены не теряются,
+D6.0). Чужой pk в POST — 404.{% endcomment %}
+{% i18n_base_locale as base_loc %}
+<a href="{% url 'collections:list' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Collections" %}</a>
+<div class="flex items-start justify-between gap-3 flex-wrap mt-1 mb-4">
+  <div class="min-w-0">
+    <div class="flex items-center gap-3 flex-wrap">
+      <h1 class="ui-h1 break-words">{{ col.name }}</h1>
+      {% if active_tab == "basis" %}{% lang_switch %}{% endif %}
+    </div>
+    <p class="text-sm text-gray-600 mt-0.5">?kollektion={{ col.slug }}{% if has_catalog and col.images %} · <a href="{% url 'storefront-lookbook' col.slug %}" target="_blank" rel="noopener" class="text-indigo-700 hover:underline">/lookbook/{{ col.slug }}/ →</a>{% endif %}</p>
+  </div>
+  <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium {% if col.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}"><span class="w-1.5 h-1.5 rounded-full {% if col.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if col.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</span>
+</div>
+{% include "tenant/_settings_messages.html" %}
+
+<nav class="ui-tabs mb-4" aria-label="{% trans 'Bereiche' %}">
+  {% for t in tabs %}
+  <a href="?tab={{ t }}" class="ui-tab"{% if t == active_tab %} aria-current="page"{% endif %}>{% if t == "basis" %}{% trans "Basic data" %}{% elif t == "inhalt" %}{% trans "Inhalt" %}{% else %}{% trans "Lookbook-Fotos" %}{% endif %}</a>
+  {% endfor %}
+</nav>
+
+{% if active_tab == "basis" %}
+<div class="lg:grid lg:grid-cols-3 lg:gap-5 lg:items-start">
+  <form method="post" class="ui-card p-5 space-y-4 lg:col-span-2 mb-5" data-col-basis>
+    {% csrf_token %}
+    <input type="hidden" name="action" value="basis"><input type="hidden" name="collection" value="{{ col.pk }}">
+    <div class="grid sm:grid-cols-3 gap-4">
+      <div class="sm:col-span-2" data-i18n-loc="{{ base_loc }}">
+        <label for="col-name" class="block text-sm font-medium mb-1">{% trans "Name" %}</label>
+        <input id="col-name" name="name" type="text" required maxlength="120" value="{{ col.name }}" class="ui-input">
+      </div>
+      {% for inp in i18n_inputs %}
+      <div class="sm:col-span-2 hidden" data-i18n-loc="{{ inp.locale }}">
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Name" %} ({{ inp.locale|upper }})</span>
+        <input name="{{ inp.input_name }}" value="{{ inp.value }}" maxlength="120" class="ui-input"></label>
+      </div>
+      {% endfor %}
+      <div>
+        <label for="col-order" class="block text-sm font-medium mb-1">{% trans "Order" %}</label>
+        <input id="col-order" name="sort_order" type="text" inputmode="numeric" value="{{ col.sort_order }}" class="ui-input">
+      </div>
+    </div>
+    <div class="flex justify-end"><button class="ui-btn ui-btn-primary">{% trans "Save" %}</button></div>
+  </form>
+  <section class="ui-card p-5 space-y-3" aria-labelledby="col-danger">
+    <h2 id="col-danger" class="ui-h2">{% trans "Gefahrenbereich" %}</h2>
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="action" value="toggle"><input type="hidden" name="collection" value="{{ col.pk }}">
+      <input type="hidden" name="active" value="{% if col.is_active %}0{% else %}1{% endif %}">
+      <button class="ui-btn ui-btn-secondary ui-btn-sm">{% if col.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+    </form>
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="action" value="delete"><input type="hidden" name="collection" value="{{ col.pk }}">
+      <button class="ui-btn ui-btn-secondary ui-btn-sm text-red-700" data-danger="1" aria-label="{% trans 'Delete' %}: {{ col.name }}">{% trans "Delete" %}</button>
+    </form>
+  </section>
+</div>
+{% elif active_tab == "inhalt" %}
+<form method="post" class="ui-card p-5 space-y-5" data-col-members>
+  {% csrf_token %}
+  <input type="hidden" name="action" value="members"><input type="hidden" name="collection" value="{{ col.pk }}">
+  {% for g in groups %}
+  <fieldset>
+    <legend class="ui-h2 mb-2">{{ g.label }}</legend>
+    <input type="hidden" name="{{ g.field }}_present" value="1">
+    {% if g.rows %}
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1">
+      {% for obj, checked in g.rows %}
+      <label class="flex items-center gap-2 text-sm min-h-[24px]">
+        <input type="hidden" name="{{ g.field }}_shown" value="{{ obj.pk }}"><input type="checkbox" name="{{ g.field }}" value="{{ obj.pk }}"{% if checked %} checked{% endif %} class="rounded border-gray-300">{{ obj.name_text|default:obj.name }}
+      </label>
+      {% endfor %}
+    </div>
+    {% else %}<p class="text-sm text-gray-600">—</p>{% endif %}
+    {% if g.hidden %}<p class="text-xs text-gray-600 mt-2">{% blocktrans with n=g.hidden %}Weitere Mitglieder (inaktiv oder nicht in der Liste) bleiben erhalten: {{ n }}{% endblocktrans %}</p>{% endif %}
+  </fieldset>
+  {% endfor %}
+  <div class="flex justify-end"><button class="ui-btn ui-btn-primary">{% trans "Save" %}</button></div>
+</form>
+{% else %}
+<section class="ui-card p-5 space-y-3" data-col-photos>
+  <p class="text-sm text-gray-600">{% if col.images %}<a href="{% url 'storefront-lookbook' col.slug %}" target="_blank" rel="noopener" class="text-indigo-700 hover:underline">/lookbook/{{ col.slug }}/ →</a>{% else %}{% trans "Mit einem Foto bekommt die Kollektion eine eigene Look-Seite." %}{% endif %}</p>
+  <div class="flex flex-wrap items-center gap-3">
+    {% for img in col.images %}
+    <span class="relative inline-block">
+      <img src="{{ img.url }}" alt="" class="w-24 h-32 object-cover rounded-lg">
+      <form method="post" class="absolute -top-2 -right-2">{% csrf_token %}
+        <input type="hidden" name="action" value="photo"><input type="hidden" name="collection" value="{{ col.pk }}">
+        <input type="hidden" name="remove" value="{{ img.id }}">
+        <button aria-label="{% trans 'Delete' %}" type="submit" class="w-7 h-7 rounded-full bg-white shadow text-sm text-red-700">✕</button>
+      </form>
+    </span>
+    {% endfor %}
+    <form method="post" enctype="multipart/form-data" class="flex items-center gap-2">{% csrf_token %}
+      <input type="hidden" name="action" value="photo"><input type="hidden" name="collection" value="{{ col.pk }}">
+      {% include "catalog/_photo_add_tile.html" with target="photo" %}
+      <input aria-label="{% trans "Foto" %}" type="file" name="photo" accept="image/*" class="hidden" onchange="this.form.requestSubmit()">
+    </form>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

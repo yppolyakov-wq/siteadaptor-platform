@@ -215,15 +215,22 @@ def test_cabinet_renders_checkbox_rows_and_gates_modules():
     Service.objects.create(name="Schnitt", price_cents=3000)
     body = views.collections_view(_dash_req()).content.decode()
     assert "?kollektion=damen" in body  # подсказка параметра фасета
-    assert 'name="services"' in body and "Schnitt" in body  # чекбоксы состава
     assert col.name in body
+    # UX-D D6.3 (осознанно): чекбоксы состава — на вкладке «Inhalt» страницы подборки.
+    from apps.collections import pages
+
+    req = _dash_req()
+    req.GET = req.GET.copy()
+    req.GET["tab"] = "inhalt"
+    body = pages.collection_edit(req, pk=col.pk).content.decode()
+    assert 'name="services"' in body and "Schnitt" in body
     # M4-B (2026-07-30): гейт booking/stays СНЯТ ОСОЗНАННО — подборки теперь и для
     # товаров (лукбук бутика), а catalog — core-модуль. Http404 остаётся только
     # если недоступен вообще ни один из трёх.
     body_catalog_only = views.collections_view(
         _dash_req(disabled=["booking", "stays"])
     ).content.decode()
-    assert "Produkte in dieser Kollektion" in body_catalog_only or col.name in body_catalog_only
+    assert col.name in body_catalog_only
     tenant_stub = _dash_req(disabled=["booking", "stays"]).tenant
     with pytest.raises(Http404):
         request = _dash_req(disabled=["booking", "stays"])

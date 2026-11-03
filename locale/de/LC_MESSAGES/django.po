@@ -31906,3 +31906,10 @@ msgstr "Ein neuer Stempel-Wert gilt ab dem nächsten Stempel; gesammelte Stempel
 
 msgid "Einzelpreis"
 msgstr "Einzelpreis"
+
+msgid "Inhalt"
+msgstr "Inhalt"
+
+#, python-format
+msgid "Weitere Mitglieder (inaktiv oder nicht in der Liste) bleiben erhalten: %(n)s"
+msgstr "Weitere Mitglieder (inaktiv oder nicht in der Liste) bleiben erhalten: %(n)s"

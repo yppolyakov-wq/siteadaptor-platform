@@ -142,9 +142,15 @@ def test_cabinet_page_open_for_catalog_only_tenant(settings):
     from apps.collections.views import collections_view
 
     tenant = TenantFactory.build(business_type="mode", disabled_modules=["booking", "stays"])
-    Collection.objects.create(name="Herbst", slug="herbst")
+    col = Collection.objects.create(name="Herbst", slug="herbst")
     _product()
     body = collections_view(_req("/dashboard/collections/", tenant=tenant)).content.decode()
+    assert "Herbst" in body
+    # UX-D D6.3 (осознанно): состав подборки — вкладка «Inhalt» её страницы.
+    from apps.collections.pages import collection_edit
+
+    req = _req(f"/dashboard/collections/{col.pk}/?tab=inhalt", tenant=tenant)
+    body = collection_edit(req, pk=col.pk).content.decode()
     assert "Produkte in dieser Kollektion" in body
     assert "Wollmantel" in body
 

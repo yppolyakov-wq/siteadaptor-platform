@@ -1,0 +1,15 @@
+{% load i18n %}
+{% comment %}UX-D D6.3: «＋ Kollektion» — имя; переводы, состав и фото — на странице подборки.
+Контекст: cv_name, cv_error, next_url.{% endcomment %}
+<form method="post" action="{% url 'collections:new' %}" class="space-y-4" data-drawer-form>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <div>
+    <label for="col-new-name" class="block text-sm font-medium mb-1">{% trans "Name" %} <span aria-hidden="true" class="text-red-700">*</span></label>
+    <input id="col-new-name" name="name" type="text" required maxlength="120" autocomplete="off" value="{{ cv_name }}" placeholder="{% trans 'e.g. Damen, Mit Seeblick' %}" data-drawer-autofocus{% if cv_error %} aria-invalid="true" aria-describedby="col-new-name-err"{% endif %} class="ui-input">
+    {% if cv_error %}<p id="col-new-name-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ cv_error }}</p>{% endif %}
+  </div>
+  <div class="flex justify-end gap-2 pt-2{% if in_drawer %} sticky bottom-0 bg-white pb-1{% endif %}">
+    <button class="ui-btn ui-btn-primary">{% trans "Create" %}</button>
+  </div>
+</form>

@@ -31819,3 +31819,10 @@ msgstr "A new stamp count applies from the next stamp; collected stamps are kept
 
 msgid "Einzelpreis"
 msgstr "Unit price"
+
+msgid "Inhalt"
+msgstr "Contents"
+
+#, python-format
+msgid "Weitere Mitglieder (inaktiv oder nicht in der Liste) bleiben erhalten: %(n)s"
+msgstr "Other members (inactive or not in the list) are kept: %(n)s"
