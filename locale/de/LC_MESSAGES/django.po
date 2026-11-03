@@ -31749,3 +31749,31 @@ msgstr ""
 
 msgid "Die Anzahlung wurde auf den Preis begrenzt."
 msgstr ""
+
+msgid "Basis, nicht erstattbar, mit Frühstück … Gäste wählen beim Buchen."
+msgstr ""
+
+msgid "Bestehende Buchungen behalten ihren Tarif und Preis."
+msgstr ""
+
+msgid "Bitte eine Stornobedingung wählen."
+msgstr ""
+
+msgid "Bitte eine Verpflegung wählen."
+msgstr ""
+
+#, python-format
+msgid "Bitte eine Zahl von %(lo)s bis %(hi)s angeben."
+msgstr ""
+
+msgid "Neuer Tarif"
+msgstr ""
+
+msgid "Tarif löschen"
+msgstr ""
+
+msgid "Tarife"
+msgstr ""
+
+msgid "Übersetzungen — nach dem Anlegen auf der Seite des Tarifs."
+msgstr ""

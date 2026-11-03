@@ -551,6 +551,16 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         "preise kalender verfügbarkeit stopp mindestaufenthalt tagespreis",
     ),
+    # UX-D D4.1: тарифы — свой экран (раньше карточка во вкладке списка номеров).
+    _e(
+        "sellables",
+        "stays:rate-plans",
+        _("Tarife"),
+        "rate-plans",
+        "stays",
+        True,
+        "tarife frühstück halbpension nicht erstattbar rate plan",
+    ),
     # X4 (глоссарий): «Tickets» осталось за вкладкой СДЕЛОК в Verkäufe — сущность
     # зовётся «Veranstaltungen» (событие продаётся билетами, но это не билет).
     _e(

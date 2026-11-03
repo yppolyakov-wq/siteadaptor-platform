@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import price_calendar_views, views
+from . import price_calendar_views, rate_plan_views, views
 
 app_name = "stays"
 
@@ -30,6 +30,10 @@ urlpatterns = [
         name="price-calendar-apply",
     ),
     path("preise/<uuid:pk>/<str:day>/", price_calendar_views.price_day, name="price-day"),
+    # UX-D D4.1: «Tarife» — свой экран (список, «＋ Tarif» шторкой, правка).
+    path("tarife/", rate_plan_views.rate_plans, name="rate-plans"),
+    path("tarife/neu/", rate_plan_views.rate_plan_new, name="rate-plan-new"),
+    path("tarife/<uuid:pk>/", rate_plan_views.rate_plan_edit, name="rate-plan-edit"),
     path("units/", views.units, name="units"),
     # Фидбэк 2026-07-28: каждый номер редактируется на СВОЕЙ странице.
     path("units/<uuid:pk>/", views.units, name="unit-edit"),

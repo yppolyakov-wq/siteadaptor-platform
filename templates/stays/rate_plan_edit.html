@@ -1,0 +1,55 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{{ rp.name }}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D4.1: страница тарифа — одна форма (поля + охват + переводы), раньше
+тариф нельзя было изменить. Вкл/выкл и удаление — свои формы вне главной.{% endcomment %}
+{% i18n_base_locale as base_loc %}
+<a href="{% url 'stays:rate-plans' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Tarife" %}</a>
+<div class="flex items-start justify-between gap-3 flex-wrap mt-1 mb-4">
+  <div class="min-w-0">
+    <div class="flex items-center gap-3 flex-wrap">
+      <h1 class="ui-h1 break-words">{{ rp.name }}</h1>
+      {% lang_switch %}
+    </div>
+    <p class="text-sm text-gray-600 mt-0.5">{% include "stays/_rate_plan_summary.html" with r=rp %}{% if rp.meal_included %} · {{ rp.get_meal_plan_display }}{% endif %} · {{ rp.get_cancellation_display }}</p>
+  </div>
+  <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium {% if rp.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}"><span class="w-1.5 h-1.5 rounded-full {% if rp.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if rp.is_active %}{% trans "Im Verkauf" %}{% else %}{% trans "Aus" %}{% endif %}</span>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<form id="rp-form" method="post" class="ui-card p-5 max-w-3xl space-y-4">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="update">
+  <fieldset class="space-y-4"{% if not can_edit_prices %} disabled{% endif %}>
+  <div data-i18n-loc="{{ base_loc }}" class="space-y-4">
+    {% include "stays/_rate_plan_fields.html" with pfx="rp" %}
+  </div>
+  {% regroup i18n_inputs by locale as by_loc %}
+  {% for grp in by_loc %}
+  <div data-i18n-loc="{{ grp.grouper }}" class="hidden space-y-4">
+    {% for inp in grp.list %}
+    <label class="block"><span class="block text-sm font-medium mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Short description (optional)" %}{% endif %} ({{ inp.locale|upper }})</span>
+    <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" maxlength="{% if inp.field == 'name' %}120{% else %}300{% endif %}" lang="{{ inp.locale }}" class="ui-input"></label>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  </fieldset>
+  {% if can_edit_prices %}
+  <p class="text-xs text-gray-600">{% trans "Bestehende Buchungen behalten ihren Tarif und Preis." %}</p>
+  <div class="sticky bottom-20 md:bottom-4 flex items-center gap-3 flex-wrap bg-white py-2">
+    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
+    <button type="submit" form="rp-toggle" class="ui-btn ui-btn-secondary">{% if rp.is_active %}{% trans "Deaktivieren" %}{% else %}{% trans "Aktivieren" %}{% endif %}</button>
+    <button type="submit" form="rp-delete" data-danger="1" class="ui-btn ui-btn-secondary text-red-700">{% trans "Tarif löschen" %}</button>
+  </div>
+  {% else %}<p class="text-sm text-gray-600">{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}</p>{% endif %}
+</form>
+<form id="rp-toggle" method="post" hidden>{% csrf_token %}<input type="hidden" name="action" value="rateplan_toggle"><input type="hidden" name="rateplan" value="{{ rp.pk }}"></form>
+<form id="rp-delete" method="post" hidden>{% csrf_token %}<input type="hidden" name="action" value="rateplan_delete"><input type="hidden" name="rateplan" value="{{ rp.pk }}"></form>
+{% endblock %}

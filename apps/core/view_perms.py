@@ -174,6 +174,10 @@ RULES: dict[str, Rule] = {
     "stays:stay-inline-edit": _r(S, SE),
     "stays:stay-photo-edit": _r(S, SE),
     "stays:price-calendar": _r("preise.view", "preise.edit"),
+    # UX-D D4.1: тарифы — те же права, что цены по дням
+    "stays:rate-plans": _r("preise.view", "preise.edit"),
+    "stays:rate-plan-new": _r("preise.view", "preise.edit"),
+    "stays:rate-plan-edit": _r("preise.view", "preise.edit"),
     "stays:price-calendar-apply": _r("preise.view", "preise.edit"),
     "stays:price-day": _r("preise.view", "preise.edit"),
     "events:list": _r(S, SE),

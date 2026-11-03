@@ -1,0 +1,5 @@
+{% load i18n %}
+{% comment %}UX-D D4.1: шторка «＋ Tarif» (stays:rate-plan-new?box=1).{% endcomment %}
+<div data-drawer-title="{% trans 'Neuer Tarif' %}" class="text-sm">
+  {% include "stays/_rate_plan_new_form.html" with in_drawer=1 %}
+</div>

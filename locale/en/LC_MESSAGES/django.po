@@ -31662,3 +31662,31 @@ msgstr "Where visible"
 
 msgid "Die Anzahlung wurde auf den Preis begrenzt."
 msgstr "The deposit was limited to the price."
+
+msgid "Basis, nicht erstattbar, mit Frühstück … Gäste wählen beim Buchen."
+msgstr "Standard, non-refundable, with breakfast … guests choose when booking."
+
+msgid "Bestehende Buchungen behalten ihren Tarif und Preis."
+msgstr "Existing bookings keep their rate and price."
+
+msgid "Bitte eine Stornobedingung wählen."
+msgstr "Please choose a cancellation policy."
+
+msgid "Bitte eine Verpflegung wählen."
+msgstr "Please choose a board option."
+
+#, python-format
+msgid "Bitte eine Zahl von %(lo)s bis %(hi)s angeben."
+msgstr "Please enter a number from %(lo)s to %(hi)s."
+
+msgid "Neuer Tarif"
+msgstr "New rate"
+
+msgid "Tarif löschen"
+msgstr "Delete rate"
+
+msgid "Tarife"
+msgstr "Rates"
+
+msgid "Übersetzungen — nach dem Anlegen auf der Seite des Tarifs."
+msgstr "Translations — on the rate's page after creating it."

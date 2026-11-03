@@ -1412,13 +1412,10 @@ def units(request, pk=None):
             "extra_locales": extra_locales(getattr(request, "tenant", None)),
             "types": StayUnit.TYPES,
             "today": timezone.localdate(),
-            # H1/Z-4: тарифы с категориями (подпись «nur: …» без N+1).
-            "rate_plans": list(RatePlan.objects.prefetch_related("units")),
+            # UX-D D4.1: тарифы — свой экран; здесь только число на карточке-входе.
+            "rate_plans": list(RatePlan.objects.only("pk")),
             "can_edit_prices": has_perm(request.user, "preise.edit"),  # Z-4 Р-7
             "hour_choices": range(24),
-            "category_choices": list(StayUnit.objects.only("pk", "name").order_by("name")),
-            "meals": RatePlan.MEALS,
-            "cancellations": RatePlan.CANCELLATIONS,
             "amenities": AMENITIES,  # H3 чек-лист удобств
             # HF-2: выбор удобств, показываемых на карточке номера (пусто = дефолт).
             "card_amenities": set(

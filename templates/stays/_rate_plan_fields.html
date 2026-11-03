@@ -1,0 +1,56 @@
+{% load i18n %}
+{% comment %}UX-D D4.1: поля тарифа — общие для шторки «＋ Tarif» и страницы тарифа.
+Контекст: rv (значения), rv_errors {поле: текст}, scope_error, meals, cancellations,
+category_choices, rp (тариф или None — для охвата), pfx (префикс id).{% endcomment %}
+<div>
+  <label for="{{ pfx }}-name" class="block text-sm font-medium mb-1">{% trans "Name" %} <span aria-hidden="true" class="text-red-700">*</span></label>
+  <input id="{{ pfx }}-name" name="name" type="text" required maxlength="120" autocomplete="off" value="{{ rv.name }}" placeholder="{% trans 'e.g. Nicht erstattbar, Mit Frühstück' %}"{% if in_drawer %} data-drawer-autofocus{% endif %}{% if rv_errors.name %} aria-invalid="true" aria-describedby="{{ pfx }}-name-err"{% endif %} class="ui-input">
+  {% if rv_errors.name %}<p id="{{ pfx }}-name-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.name }}</p>{% endif %}
+</div>
+<div>
+  <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Short description (optional)" %}</span>
+  <input name="description" type="text" maxlength="300" value="{{ rv.description }}" class="ui-input"></label>
+</div>
+<div class="grid sm:grid-cols-2 gap-4">
+  <div>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price change (%, e.g. -10)" %}</span>
+    <input name="percent_adjust" type="text" inputmode="numeric" value="{{ rv.percent_adjust }}"{% if rv_errors.percent_adjust %} aria-invalid="true" aria-describedby="{{ pfx }}-pct-err"{% endif %} class="ui-input"></label>
+    {% if rv_errors.percent_adjust %}<p id="{{ pfx }}-pct-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.percent_adjust }}</p>{% endif %}
+  </div>
+  <div>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Surcharge / night (€, e.g. breakfast)" %}</span>
+    <input name="surcharge_eur" type="text" inputmode="decimal" value="{{ rv.surcharge_eur }}"{% if rv_errors.surcharge_eur %} aria-invalid="true" aria-describedby="{{ pfx }}-sur-err"{% endif %} class="ui-input"></label>
+    {% if rv_errors.surcharge_eur %}<p id="{{ pfx }}-sur-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.surcharge_eur }}</p>{% endif %}
+  </div>
+  <div>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Verpflegung" %}</span>
+    <select name="meal_plan"{% if rv_errors.meal_plan %} aria-invalid="true"{% endif %} class="ui-input">
+      {% for value, label in meals %}<option value="{{ value }}"{% if value == rv.meal_plan %} selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select></label>
+  </div>
+  <div>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Cancellation" %}</span>
+    <select name="cancellation"{% if rv_errors.cancellation %} aria-invalid="true"{% endif %} class="ui-input">
+      {% for value, label in cancellations %}<option value="{{ value }}"{% if value == rv.cancellation %} selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select></label>
+  </div>
+  <div>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Free cancel until (days before, flexible only)" %}</span>
+    <input name="free_cancel_days" type="text" inputmode="numeric" value="{{ rv.free_cancel_days }}"{% if rv_errors.free_cancel_days %} aria-invalid="true" aria-describedby="{{ pfx }}-fcd-err"{% endif %} class="ui-input"></label>
+    {% if rv_errors.free_cancel_days %}<p id="{{ pfx }}-fcd-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.free_cancel_days }}</p>{% endif %}
+  </div>
+  <div>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Prepayment (% of total, 0 = none, 100 = full)" %}</span>
+    <input name="prepayment_percent" type="text" inputmode="numeric" value="{{ rv.prepayment_percent }}"{% if rv_errors.prepayment_percent %} aria-invalid="true" aria-describedby="{{ pfx }}-pre-err"{% endif %} class="ui-input"></label>
+    {% if rv_errors.prepayment_percent %}<p id="{{ pfx }}-pre-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.prepayment_percent }}</p>{% endif %}
+  </div>
+  <div>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Sort order" %}</span>
+    <input name="sort_order" type="text" inputmode="numeric" value="{{ rv.sort_order }}"{% if rv_errors.sort_order %} aria-invalid="true" aria-describedby="{{ pfx }}-sort-err"{% endif %} class="ui-input"></label>
+    {% if rv_errors.sort_order %}<p id="{{ pfx }}-sort-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.sort_order }}</p>{% endif %}
+  </div>
+</div>
+<div class="grid sm:grid-cols-2 gap-x-4">
+  {% include "stays/_rate_scope_fields.html" with rp=rp %}
+</div>
+{% if scope_error %}<p class="-mt-2 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ scope_error }}</p>{% endif %}

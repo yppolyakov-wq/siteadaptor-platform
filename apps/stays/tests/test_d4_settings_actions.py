@@ -77,10 +77,12 @@ def test_legacy_post_to_units_still_saves_and_returns_to_its_section():
 
 @pytest.mark.parametrize(
     "action, sec",
-    [("rateplan", "preise"), ("gap_deal", "preise"), ("booking_window", "regeln")],
+    [("gap_deal", "preise"), ("booking_window", "regeln"), ("kurtaxe", "kurtaxe")],
 )
 def test_home_urls_keep_previous_sections(action, sec):
+    """Пока экран не переехал (D4.2/D4.3) — прежняя под-вкладка; тарифы — D4.1."""
     assert settings_actions.home_url(action).endswith(f"?tab=einstellungen&sec={sec}")
+    assert settings_actions.home_url("rateplan") == "/dashboard/stays/tarife/"
 
 
 def test_staff_cannot_create_rate_plan_through_units():

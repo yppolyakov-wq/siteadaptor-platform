@@ -31808,3 +31808,31 @@ msgstr "Nerede görünür"
 
 msgid "Die Anzahlung wurde auf den Preis begrenzt."
 msgstr "Ön ödeme fiyatla sınırlandırıldı."
+
+msgid "Basis, nicht erstattbar, mit Frühstück … Gäste wählen beim Buchen."
+msgstr "Standart, iade edilmez, kahvaltılı … misafir rezervasyonda seçer."
+
+msgid "Bestehende Buchungen behalten ihren Tarif und Preis."
+msgstr "Mevcut rezervasyonlar tarifelerini ve fiyatlarını korur."
+
+msgid "Bitte eine Stornobedingung wählen."
+msgstr "Lütfen bir iptal koşulu seçin."
+
+msgid "Bitte eine Verpflegung wählen."
+msgstr "Lütfen bir pansiyon türü seçin."
+
+#, python-format
+msgid "Bitte eine Zahl von %(lo)s bis %(hi)s angeben."
+msgstr "Lütfen %(lo)s ile %(hi)s arasında bir sayı girin."
+
+msgid "Neuer Tarif"
+msgstr "Yeni tarife"
+
+msgid "Tarif löschen"
+msgstr "Tarifeyi sil"
+
+msgid "Tarife"
+msgstr "Tarifeler"
+
+msgid "Übersetzungen — nach dem Anlegen auf der Seite des Tarifs."
+msgstr "Çeviriler — oluşturduktan sonra tarife sayfasında."

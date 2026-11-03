@@ -268,10 +268,10 @@ ACTIONS = frozenset(HANDLERS)
 # Куда вернуть после сохранения (url_name, query). Пока экраны D4.1–D4.4 не готовы —
 # прежний адрес: вкладка «Einstellungen» списка номеров и её под-вкладка.
 HOME: dict[str, tuple[str, str]] = {
-    "rateplan": ("stays:units", "tab=einstellungen&sec=preise"),
-    "rateplan_units": ("stays:units", "tab=einstellungen&sec=preise"),
-    "rateplan_toggle": ("stays:units", "tab=einstellungen&sec=preise"),
-    "rateplan_delete": ("stays:units", "tab=einstellungen&sec=preise"),
+    "rateplan": ("stays:rate-plans", ""),  # D4.1: свой экран
+    "rateplan_units": ("stays:rate-plans", ""),  # D4.1: свой экран
+    "rateplan_toggle": ("stays:rate-plans", ""),  # D4.1: свой экран
+    "rateplan_delete": ("stays:rate-plans", ""),  # D4.1: свой экран
     "autodiscount_add": ("stays:units", "tab=einstellungen&sec=preise"),
     "autodiscount_delete": ("stays:units", "tab=einstellungen&sec=preise"),
     "occupancy_add": ("stays:units", "tab=einstellungen&sec=preise"),
@@ -301,3 +301,109 @@ def handle(request, action: str) -> bool:
         return False
     handler(request)
     return True
+
+
+# --- UX-D D4.1: тариф — строгий разбор формы (новый экран «Tarife») ----------------
+#
+# Старое действие ``rateplan`` списка номеров (выше) остаётся прежним: кривой ввод
+# там молча превращался в 0 / неизвестный код. Экран «Tarife» разбирает форму
+# строго: ошибка у поля, введённое сохраняется, тариф не меняется.
+
+RATE_PLAN_TEXT_FIELDS = ("name", "description")
+MAX_SURCHARGE_CENTS = 100_000  # 1 000 € за ночь — потолок надбавки
+
+
+def _strict_int(raw, lo, hi):
+    raw = (raw or "").strip().replace("−", "-")  # типографский минус из копипаста
+    if not raw:
+        return 0
+    try:
+        value = int(raw)
+    except ValueError:
+        return None
+    return value if lo <= value <= hi else None
+
+
+def parse_rate_plan(post) -> tuple[dict, dict]:
+    """Поля формы тарифа → (значения модели, ошибки {поле формы: текст}).
+
+    Охват (`rate_scope`) не входит: его разбирает ``_rateplan_scope`` (None —
+    поля нет, не трогать)."""
+    from apps.core.money import parse_money
+
+    errors: dict[str, str] = {}
+    values: dict = {}
+    name = (post.get("name") or "").strip()
+    if not name:
+        errors["name"] = _("Please enter a rate plan name.")
+    values["name"] = name[:120]
+    values["description"] = (post.get("description") or "").strip()[:300]
+    ints = {
+        "percent_adjust": (-90, 200),
+        "free_cancel_days": (0, 365),
+        "prepayment_percent": (0, 100),
+        "sort_order": (0, 999),
+    }
+    for field, (lo, hi) in ints.items():
+        value = _strict_int(post.get(field), lo, hi)
+        if value is None:
+            errors[field] = _("Bitte eine Zahl von %(lo)s bis %(hi)s angeben.") % {
+                "lo": lo,
+                "hi": hi,
+            }
+        else:
+            values[field] = value
+    try:
+        surcharge = parse_money(post.get("surcharge_eur") or "")
+    except ValueError:
+        surcharge = -1
+    if surcharge is None:
+        surcharge = 0
+    cents = int(round(surcharge * 100)) if surcharge >= 0 else -1
+    if not 0 <= cents <= MAX_SURCHARGE_CENTS:
+        errors["surcharge_eur"] = _("Bitte einen Betrag wie 25,00 angeben.")
+    else:
+        values["surcharge_cents"] = cents
+    meal = post.get("meal_plan") or RatePlan.MEAL_NONE
+    if meal not in dict(RatePlan.MEALS):
+        errors["meal_plan"] = _("Bitte eine Verpflegung wählen.")
+    values["meal_plan"] = meal
+    cancellation = post.get("cancellation") or RatePlan.CANCEL_FLEXIBLE
+    if cancellation not in dict(RatePlan.CANCELLATIONS):
+        errors["cancellation"] = _("Bitte eine Stornobedingung wählen.")
+    values["cancellation"] = cancellation
+    return values, errors
+
+
+def scope_error(post):
+    """Ошибка охвата «nur ausgewählte» без категорий (иначе тариф не продаётся нигде)."""
+    scope = _rateplan_scope(post)
+    if scope is not None and not scope[0] and not scope[1]:
+        return scope, _("Bitte mindestens eine Kategorie wählen.")
+    return scope, None
+
+
+def save_rate_plan(rp: RatePlan | None, values: dict, scope, request) -> RatePlan:
+    """Создать/обновить тариф одной транзакцией (поля + охват + переводы)."""
+    with transaction.atomic():
+        if rp is None:
+            rp = RatePlan(**values)
+            if scope is not None:
+                rp.applies_to_all = scope[0]
+            rp.save()
+        else:
+            for field, value in values.items():
+                setattr(rp, field, value)
+            fields = [*values, "updated_at"]
+            if scope is not None:
+                rp.applies_to_all = scope[0]
+                fields.append("applies_to_all")
+            rp.save(update_fields=fields)
+        if scope is not None:
+            rp.units.set([] if scope[0] else scope[1])
+        i18n = apply_i18n_overlay(
+            rp, request.POST, getattr(request, "tenant", None), RATE_PLAN_TEXT_FIELDS
+        )
+        if i18n:
+            rp.save(update_fields=[*i18n, "updated_at"])
+    return rp

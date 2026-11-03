@@ -31951,3 +31951,31 @@ msgstr "Где видно"
 
 msgid "Die Anzahlung wurde auf den Preis begrenzt."
 msgstr "Предоплата уменьшена до цены."
+
+msgid "Basis, nicht erstattbar, mit Frühstück … Gäste wählen beim Buchen."
+msgstr "Базовый, невозвратный, с завтраком … гость выбирает при бронировании."
+
+msgid "Bestehende Buchungen behalten ihren Tarif und Preis."
+msgstr "Уже сделанные брони сохраняют свой тариф и цену."
+
+msgid "Bitte eine Stornobedingung wählen."
+msgstr "Выберите условия отмены."
+
+msgid "Bitte eine Verpflegung wählen."
+msgstr "Выберите питание."
+
+#, python-format
+msgid "Bitte eine Zahl von %(lo)s bis %(hi)s angeben."
+msgstr "Введите число от %(lo)s до %(hi)s."
+
+msgid "Neuer Tarif"
+msgstr "Новый тариф"
+
+msgid "Tarif löschen"
+msgstr "Удалить тариф"
+
+msgid "Tarife"
+msgstr "Тарифы"
+
+msgid "Übersetzungen — nach dem Anlegen auf der Seite des Tarifs."
+msgstr "Переводы — на странице тарифа после создания."

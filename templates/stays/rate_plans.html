@@ -1,0 +1,58 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Tarife" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D4.1 (план ux-d4-rooms-prices): тарифы — обзор строками, правка — на
+странице тарифа, создание — шторкой. Редактируемых полей в строках нет (замок);
+статус — кнопка-переключатель (только hidden-поля).{% endcomment %}
+<div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
+  <h1 class="ui-h1">{% nav_title _("Tarife") %}</h1>
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+    <a href="{% url 'stays:price-calendar' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Preise & Verfügbarkeit" %} →</a>
+    <a href="{% url 'stays:units' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Zimmer & Preise" %} →</a>
+    {% if can_edit_prices %}<a href="{% url 'stays:rate-plan-new' %}" data-drawer aria-haspopup="dialog" class="ui-btn ui-btn-primary ui-btn-sm"><span aria-hidden="true">＋ </span>{% trans "Neuer Tarif" %}</a>{% endif %}
+  </div>
+</div>
+<p class="text-sm text-gray-600 mb-4">{% trans "Verschiedene Arten, dieselben Zimmer zu verkaufen — Basis, nicht erstattbar, mit Frühstück, Halbpension … Gäste wählen beim Buchen. Ein Tarif gilt für alle Kategorien oder nur für ausgewählte." %}</p>
+
+{% if messages %}
+  {% for m in messages %}
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="ui-card overflow-hidden mb-8" data-rate-plans-list>
+  {% if plans %}<div class="hidden md:grid grid-cols-[minmax(0,2fr)_9rem_8rem_minmax(0,1.5fr)_minmax(0,1.5fr)_7rem_1.5rem] gap-3 px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100" aria-hidden="true">
+    <span>{% trans "Tarif" %}</span><span>{% trans "Preis" %}</span><span>{% trans "Verpflegung" %}</span><span>{% trans "Cancellation" %}</span><span>{% trans "Kategorien" %}</span><span>{% trans "Status" %}</span><span></span>
+  </div>{% endif %}
+  <ul class="divide-y divide-gray-100">
+  {% for r in plans %}
+    <li class="relative grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,2fr)_9rem_8rem_minmax(0,1.5fr)_minmax(0,1.5fr)_7rem_1.5rem] gap-x-3 gap-y-1 items-center px-4 py-3 hover:bg-gray-50{% if not r.is_active %} text-gray-500{% endif %}" data-rate-plan-row>
+      <a href="{% url 'stays:rate-plan-edit' r.pk %}" class="font-medium text-gray-900 hover:underline break-words after:absolute after:inset-0">{{ r.name }}</a>
+      <span class="hidden md:block tabular-nums text-sm">{% include "stays/_rate_plan_summary.html" %}</span>
+      <span class="hidden md:block text-sm">{% if r.meal_included %}{{ r.get_meal_plan_display }}{% else %}—{% endif %}</span>
+      <span class="hidden md:block text-sm text-gray-600">{{ r.get_cancellation_display }}{% if r.cancellation == 'flexible' and r.free_cancel_days %} ({{ r.free_cancel_days }} {% trans "days" %}){% endif %}{% if r.prepayment_percent %} · {% blocktrans with p=r.prepayment_percent %}{{ p }}% prepay{% endblocktrans %}{% endif %}</span>
+      <span class="hidden md:block text-sm text-gray-600 break-words" data-rate-scope-label>{% if r.applies_to_all %}{% trans "für alle Kategorien" %}{% else %}{% for u in r.units.all %}{{ u.name }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "keine Kategorie — wird nicht angeboten" %}{% endfor %}{% endif %}</span>
+      {# мобильная строка — цена · питание под названием #}
+      <span class="md:hidden col-start-1 text-xs text-gray-600">{% include "stays/_rate_plan_summary.html" %}{% if r.meal_included %} · {{ r.get_meal_plan_display }}{% endif %}</span>
+      {% if can_edit_prices %}
+      <form method="post" class="relative z-10 row-start-1 col-start-2 md:row-auto md:col-auto">
+        {% csrf_token %}<input type="hidden" name="action" value="rateplan_toggle"><input type="hidden" name="rateplan" value="{{ r.pk }}">
+        <button type="submit" aria-pressed="{% if r.is_active %}true{% else %}false{% endif %}" aria-label="{% if r.is_active %}{% trans 'Im Verkauf' %}{% else %}{% trans 'Aus' %}{% endif %}: {{ r.name }}"
+                class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium min-h-[1.75rem] {% if r.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}">
+          <span class="w-1.5 h-1.5 rounded-full {% if r.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if r.is_active %}{% trans "Im Verkauf" %}{% else %}{% trans "Aus" %}{% endif %}
+        </button>
+      </form>
+      {% else %}
+      <span class="row-start-1 col-start-2 md:row-auto md:col-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium {% if r.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}"><span class="w-1.5 h-1.5 rounded-full {% if r.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if r.is_active %}{% trans "Im Verkauf" %}{% else %}{% trans "Aus" %}{% endif %}</span>
+      {% endif %}
+      <span class="hidden md:block text-gray-400" aria-hidden="true">›</span>
+    </li>
+  {% empty %}
+    <li class="px-4 py-6 text-gray-500">{% trans "No rate plans yet — guests book at the room's base price." %}{% if can_edit_prices %} <a href="{% url 'stays:rate-plan-new' %}" data-drawer aria-haspopup="dialog" class="text-indigo-700 hover:underline">{% trans "Neuer Tarif" %} →</a>{% endif %}</li>
+  {% endfor %}
+  </ul>
+</div>
+{% if not can_edit_prices %}<p class="text-sm text-gray-600">{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}</p>{% endif %}
+{% endblock %}

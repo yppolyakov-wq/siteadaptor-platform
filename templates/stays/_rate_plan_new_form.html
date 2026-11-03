@@ -1,0 +1,11 @@
+{% load i18n %}
+{% comment %}UX-D D4.1: форма «＋ Tarif» — шторка и страница без JS. Скриптов нет.{% endcomment %}
+<form method="post" action="{% url 'stays:rate-plan-new' %}" class="space-y-4" data-drawer-form>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_url }}">
+  {% include "stays/_rate_plan_fields.html" with pfx="rp-new" %}
+  <p class="text-xs text-gray-600">{% trans "Übersetzungen — nach dem Anlegen auf der Seite des Tarifs." %}</p>
+  <div{% if in_drawer %} class="ui-drawer-foot"{% endif %}>
+    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add rate plan" %}</button>
+  </div>
+</form>
