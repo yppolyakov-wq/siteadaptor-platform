@@ -56,8 +56,11 @@ def test_stays_toggle_tabs_use_ui_tab_and_aria_pressed():
     """Батч 2: JS-вкладки страницы номеров — тот же `ui-tab`; активное состояние
     несёт `aria-pressed`, JS больше не переключает цветовые классы."""
     src = (ROOT / "stays/units.html").read_text()
-    for hook in ("data-pt-tab", "data-ut-tab", "data-st-tab"):
+    # UX-D D4.4/D4.5 (осознанная переписка): вкладки списка (data-pt-tab) и под-вкладки
+    # настроек (data-st-tab) сняты — настройки на своих экранах; остались вкладки номера.
+    for hook in ("data-ut-tab",):
         assert re.search(hook + r'="[^"]+" aria-pressed="[^"]*"[^>]*class="ui-tab', src), hook
+    assert "data-pt-tab" not in src and "data-st-tab" not in src
     assert 'classList.toggle("bg-indigo-600"' not in src
     css = (Path(__file__).resolve().parents[3] / "static/src/app.css").read_text()
     assert '.ui-tab[aria-pressed="true"]' in css
