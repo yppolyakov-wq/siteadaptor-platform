@@ -33,4 +33,6 @@ def test_contrast_and_names():
     assert 'lang="{{ cell.locale }}"' in _t("tenant/legal_docs.html")
     # UX-D D3.1 (осознанная переписка): чипы удаления правил — на странице ресурса
     assert "{{ it.day }} {{ g.time }}" in _t("booking/resource_page.html")
-    assert "data-skip-neu" in _t("booking/_tagesplan_body.html")
+    # UX-D D5.3 (осознанная переписка): мобильный якорь к форме не нужен — формы нет,
+    # «＋ Neuer Termin» у заголовка дня открывает шторку
+    assert 'id="neu"' in _t("booking/_tagesplan_body.html")

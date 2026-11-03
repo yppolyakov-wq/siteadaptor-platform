@@ -99,9 +99,14 @@ def test_tagesplan_offers_variant_options(settings):
     _resource()
     from django.template.loader import render_to_string
 
-    req = _req("get", "/dashboard/booking/")
+    # UX-D D5.3 (осознанная переписка): варианты — в форме шторки «＋ Neuer Termin»
+    from apps.booking import booking_new_views
+
+    req = _req("get", "/dashboard/booking/termin/neu/")
     body = render_to_string(
-        "booking/_tagesplan_body.html", views.calendar_context(req), request=req
+        "booking/_booking_new_form.html",
+        booking_new_views._form_ctx(req, booking_new_views._values({})),
+        request=req,
     )
     assert f'value="{svc.pk}:{lang.pk}"' in body
     assert "Haarschnitt · Langhaar" in body

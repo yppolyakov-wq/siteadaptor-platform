@@ -413,7 +413,11 @@ def test_manual_booking_form_has_party_size_field():
     req.tenant = TenantFactory.build(
         business_type="restaurant", disabled_modules=["events", "stays"]
     )
-    body = _cal(req).content.decode()
+    # UX-D D5.3 (осознанная переписка): форма записи — шторка «＋ Neuer Termin»
+    from apps.booking import booking_new_views
+
+    req.META["HTTP_X_SF_DRAWER"] = "1"
+    body = booking_new_views.booking_new(req).content.decode()
     assert resource.name in body and 'name="party_size"' in body
 
 

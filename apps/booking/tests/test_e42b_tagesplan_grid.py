@@ -361,15 +361,15 @@ def test_closed_dates_read_once_for_grid(django_assert_num_queries):
 
 
 def test_sp12_month_and_new_booking_side_by_side_move_collapsed():
-    """SP-12 (аудит пространства 2026-11-02): на xl месяц слева, форма записи справа;
-    DOM-порядок прежний (форма после списка); ряд переноса свёрнут в <details>."""
+    """SP-12 → UX-D D5.3 (осознанная переписка): на xl месяц слева, справа — день и
+    «＋ Neuer Termin» (шторка; раскрытой формы нет); ряд переноса свёрнут в <details>."""
     from pathlib import Path
 
     from django.conf import settings
 
     text = (Path(settings.BASE_DIR) / "templates/booking/_tagesplan_body.html").read_text()
     assert "data-tagesplan-layout" in text
-    assert text.index("{% if bookings %}") < text.index('id="neu"')  # мобильный порядок
-    assert "xl:col-start-2 xl:row-start-1" in text.split('id="neu"')[1].split(">")[0]
+    assert "booking:booking-create" not in text  # постоянной формы нет
+    assert "data-drawer" in text.split('<a id="neu"')[1].split(">")[0]
     move = text.split("data-move")[1]
     assert move.index("</details>") > move.index('value="move"')

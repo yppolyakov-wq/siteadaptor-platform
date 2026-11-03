@@ -242,7 +242,8 @@ def test_create_button_per_kind():
         disabled_modules=["events", "stays"],
     )
     body = views.verkaeufe(_req(**services_t)).content.decode()
-    assert "?tab=booking&amp;view=kalender#neu" in body or "?tab=booking&view=kalender#neu" in body
+    # UX-D D5.3 (осознанная переписка): «＋» записи — шторка «＋ Neuer Termin»
+    assert "/dashboard/booking/termin/neu/" in body
 
     shop = dict(business_type="shop", disabled_modules=["events", "stays", "booking", "jobs"])
     body = views.verkaeufe(_req(**shop)).content.decode()
