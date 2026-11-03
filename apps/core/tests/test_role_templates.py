@@ -147,6 +147,7 @@ def test_manual_return_to_preset_clears_template_label():
 
 
 def test_template_buttons_come_after_save_button():
-    owner, _staff = _member(OWNER), _member(STAFF)
-    html = team.team_view(_req(owner.user)).content.decode()
+    owner, staff = _member(OWNER), _member(STAFF)
+    # UX-D D6.6 (осознанно): форма прав — на странице участника.
+    html = team.team_member(_req(owner.user), pk=staff.pk).content.decode()
     assert html.index("Rechte speichern") < html.index('name="apply_template"')

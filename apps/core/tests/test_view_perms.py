@@ -25,6 +25,7 @@ STAFF_KEYS = permissions.PRESETS["staff"] | permissions._ADMIN_BY_DEFAULT
 # Сегодня открыты по префиксу, но всё действие закрыто проверкой ВНУТРИ вьюхи
 # (отказ тем же 403/сообщением) — правило честно называет это право.
 INLINE_GATED = {
+    "channel-disconnect": "kanaele.edit — новый POST «Trennen» (UX-D D6.6), как channel-config",
     "deal-advance-invoice": "finanzen.korrektur — PermissionDenied во вьюхе",
     "deal-refund": "geld.korrektur — owner-only префикс /dashboard/erstattung/",
     "stays:price-calendar-apply": "preise.edit — _can_edit во вьюхе",
