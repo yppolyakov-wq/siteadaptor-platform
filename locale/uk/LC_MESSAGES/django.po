@@ -32065,3 +32065,12 @@ msgstr "Послугу не знайдено — виберіть знову."
 
 msgid "Ein bezahlter Gutschein kann nicht deaktiviert werden."
 msgstr "Оплачений подарунковий сертифікат не можна вимкнути."
+
+msgid "Bitte einen Lagerartikel wählen."
+msgstr "Оберіть складський товар."
+
+msgid "Gefahrenbereich"
+msgstr "Небезпечна зона"
+
+msgid "Noch keine Zusatzleistungen."
+msgstr "Додаткових послуг поки немає."

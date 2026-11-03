@@ -31938,3 +31938,12 @@ msgstr "Hizmet bulunamadı – lütfen yeniden seçin."
 
 msgid "Ein bezahlter Gutschein kann nicht deaktiviert werden."
 msgstr "Ödenmiş bir hediye çeki devre dışı bırakılamaz."
+
+msgid "Bitte einen Lagerartikel wählen."
+msgstr "Lütfen bir stok ürünü seçin."
+
+msgid "Gefahrenbereich"
+msgstr "Tehlikeli bölge"
+
+msgid "Noch keine Zusatzleistungen."
+msgstr "Henüz ek hizmet yok."

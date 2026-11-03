@@ -3,128 +3,33 @@
 {% block dash_title %}{% trans "Extras" %}{% endblock %}
 
 {% block dash_content %}
-{% comment %}VF-24 (фидбэк 2026-08-25 «много свободного места; проверь все страницы»):
-раскладка «список слева · форма справа» вместо колонки max-w-2xl. На мобильном —
-одна колонка (список первым, как было). Формы/эндпоинты не тронуты.{% endcomment %}
 <div>
-  {# E9.10: язык ввода — выпадашка у заголовка; переводы названий — под строками. #}
-  <div class="flex items-center gap-3 flex-wrap mb-1">
-    <h1 class="ui-h1">{% nav_title _("Extras") %}</h1>
-    {% lang_switch %}
-  </div>
+  {# UX-D D6.1: переводы названия — на странице допа (там и выпадашка языка). #}
+  <h1 class="ui-h1 mb-1">{% nav_title _("Extras") %}</h1>
   <p class="text-sm text-gray-500 mb-5">{% trans "Optional paid add-ons guests can pick when booking (breakfast, parking, late checkout …). One engine for all booking types; “scope” limits where it applies. Currently shown on Übernachtung." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
 
-  <div class="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
-  <div class="ui-card p-0 divide-y divide-gray-100 mb-6 min-w-0">
-    {% for e in extras %}
-      <div class="flex items-center justify-between gap-3 p-4">
-        <div class="flex items-center gap-3 min-w-0">
-          {% comment %}A5: миниатюра фото доп-услуги (если задано).{% endcomment %}
-          {% if e.image_url %}<img src="{{ e.image_url }}" alt="{{ e.label }}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">{% endif %}
-          <div class="min-w-0">
-            <p class="font-medium truncate {% if not e.is_active %}ui-muted line-through{% endif %}">{{ e.label }}</p>
-            <p class="text-xs ui-muted">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %} · {{ e.get_scope_display }}{% if e.entity_kind %} · 🎯 {{ e.entity_label|default:_("gelöschtes Objekt") }}{% endif %}{% if e.tracker %} · {{ e.get_tracker_display }}{% if e.tracker == "pool" and e.pool_size %} ({{ e.pool_size }}){% endif %}{% endif %}</p>
-            {% include "tenant/_i18n_row.html" with obj=e fields="label" id_name="extra" id_value=e.pk %}
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          {% comment %}A5: загрузить/заменить фото — скрытый file-input, авто-сабмит.{% endcomment %}
-          <form method="post" enctype="multipart/form-data">{% csrf_token %}
-            <input type="hidden" name="action" value="set_image"><input type="hidden" name="extra" value="{{ e.pk }}">
-            <label class="text-xs border border-gray-200 rounded-lg px-2 py-1 hover:bg-gray-50 cursor-pointer whitespace-nowrap focus-within:ring-2 focus-within:ring-indigo-500">📷 {% if e.image_url %}{% trans "Change" %}{% else %}{% trans "Photo" %}{% endif %}
-              <input type="file" name="image" accept="image/*" class="sr-only" onchange="this.form.submit()"></label>
-          </form>
-          <form method="post">{% csrf_token %}
-            <input type="hidden" name="action" value="toggle"><input type="hidden" name="extra" value="{{ e.pk }}">
-            <button class="text-xs border border-gray-200 rounded-lg px-2 py-1 hover:bg-gray-50">{% if e.is_active %}{% trans "Disable" %}{% else %}{% trans "Enable" %}{% endif %}</button>
-          </form>
-          <form method="post" onsubmit="return confirm('{% trans "Remove this extra?" %}');">{% csrf_token %}
-            <input type="hidden" name="action" value="delete"><input type="hidden" name="extra" value="{{ e.pk }}">
-            <button class="text-xs text-red-600 hover:underline">{% trans "Remove" %}</button>
-          </form>
-        </div>
-      </div>
-    {% empty %}
-      <p class="p-4 text-sm ui-muted">{% trans "No extras yet — add your first below." %}</p>
-    {% endfor %}
+  {% comment %}UX-D D6.1: обзор строками (имя, цена, где действует, учёт, статус); всё о допе —
+  на его странице; «＋ Zusatzleistung» — шторкой (без JS — страница).{% endcomment %}
+  <div class="flex justify-end mb-3 max-w-4xl">
+    <a href="{% url 'extra-new' %}" data-drawer class="ui-btn ui-btn-primary">＋ {% trans "Add extra" %}</a>
   </div>
-
-  <form method="post" enctype="multipart/form-data" class="ui-card p-6 space-y-4 min-w-0">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="add">
-    <h2 class="ui-h2">{% trans "New extra" %}</h2>
-    <div class="grid sm:grid-cols-2 gap-4">
-{% i18n_base_locale as base_loc %}<div data-i18n-loc="{{ base_loc }}" class="sm:col-span-2 grid">      <input name="label" type="text" required aria-label="{% trans "Name" %}" placeholder="{% trans 'Name (e.g. Frühstück)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2"></div>
-      <div class="sm:col-span-2">{% include "tenant/_i18n_inline.html" with obj=None fields="label" %}</div>
-      <div>
-        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</span>
-        <input name="price" type="text" placeholder="12" class="ui-input"></label>
-      </div>
-      <div>
-        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Applies to" %}</span>
-        <select name="scope" class="ui-input">
-          {% for value, label in scopes %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-        </select></label>
-      </div>
-      {% comment %}VAT-3 (владелец 2026-08-26): ставку допа задать было негде —
-      завтрак и парковка облагались как сама бронь (7 %), хотя это отдельные
-      услуги по 19 % (Aufteilungsgebot). Пустое значение сохраняет прежнее
-      поведение «как у сделки».{% endcomment %}
-      {# «%» в _() аргумента тега Django ищет как «%%» — trans … as возвращает «%» #}
-      {% trans "Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat." as vat_hint %}
-      {% vat_select "" vat_hint _("wie die Buchung") %}
-      {% comment %}MX-2: адресность — опция конкретной сущности (пусто = для всех).{% endcomment %}
-      <div>
-        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Nur für ein Angebot" %}</span>
-        <select name="entity" class="ui-input">
-          <option value="">{% trans "Alle passenden Angebote" %}</option>
-          {% for value, label in entity_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-        </select></label>
-      </div>
-      <div>
-        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Abwicklung" %}</span>
-        <select name="tracker" class="ui-input">
-          {% for value, label in trackers %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-        </select></label>
-      </div>
-      <div>
-        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Pool-Größe" %}</span>
-        <input name="pool_size" type="number" min="0" max="999" placeholder="0" class="ui-input"></label>
-      </div>
-      <div>
-        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Anbieter" %}</span>
-        <select name="supplier" class="ui-input">
-          <option value="">—</option>
-          {% for sp in suppliers %}<option value="{{ sp.pk }}">{{ sp.name }}</option>{% endfor %}
-        </select></label>
-      </div>
-      {% if stock_products %}
-      <div>
-        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Lagerartikel (Verbrauch)" %}</span>
-        <select name="stock_product" class="ui-input">
-          <option value="">—</option>
-          {% for pr in stock_products %}<option value="{{ pr.pk }}">{{ pr.name_text }}</option>{% endfor %}
-        </select></label>
-      </div>
-      <div>
-        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Verbrauch je Verkauf" %}</span>
-        <input name="consume_qty" type="number" min="1" max="99" value="1" class="ui-input"></label>
-      </div>
-      {% endif %}
-    </div>
-    <label class="flex items-center gap-2 text-sm">
-      <input type="checkbox" name="per_night" class="rounded border-gray-300">
-      {% trans "Price per night (Übernachtung) — otherwise once per booking" %}
-    </label>
-    <div>
-      <span class="block text-sm font-medium mb-1">{% trans "Photo (optional)" %}</span>
-      {% include "catalog/_photo_add_tile.html" with target="image" %}
-      <input name="image" type="file" accept="image/*" class="hidden" aria-label="{% trans "Photo (optional)" %}">
-    </div>
-    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add extra" %}</button>
-  </form>
+  <div class="ui-card divide-y divide-gray-100 mb-6 max-w-4xl" data-extras-list>
+    {% for e in extras %}
+      <a href="{% url 'extra-edit' e.pk %}" class="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 {% if not e.is_active %}opacity-70{% endif %}" data-extra-row>
+        {% if e.image_url %}<img src="{{ e.image_url }}" alt="" class="w-10 h-10 rounded-lg object-cover shrink-0">
+        {% else %}<span class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-lg shrink-0" aria-hidden="true">➕</span>{% endif %}
+        <span class="min-w-0 flex-1">
+          <span class="block font-semibold text-gray-900 truncate">{{ e.label }}</span>
+          <span class="block text-xs text-gray-600 truncate">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %} · {{ e.get_scope_display }}{% if e.entity_kind %} · 🎯 {{ e.entity_label|default:_("gelöschtes Objekt") }}{% endif %}{% if e.tracker %} · {{ e.get_tracker_display }}{% if e.tracker == "pool" and e.pool_size %} ({{ e.pool_size }}){% endif %}{% endif %}</span>
+        </span>
+        <span class="shrink-0 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium {% if e.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}"><span class="w-1.5 h-1.5 rounded-full {% if e.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if e.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</span>
+        <span class="shrink-0 text-gray-500" aria-hidden="true">›</span>
+      </a>
+    {% empty %}
+      {% trans "Noch keine Zusatzleistungen." as t %}{% include "ui/_empty.html" with title=t flat=1 %}
+    {% endfor %}
   </div>
 </div>
 {% endblock %}

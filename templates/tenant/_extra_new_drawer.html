@@ -1,0 +1,5 @@
+{% load i18n %}
+{% comment %}UX-D D6.1: шторка «＋ Zusatzleistung» (extra-new?box=1).{% endcomment %}
+<div data-drawer-title="{% trans 'New extra' %}" class="text-sm">
+  {% include "tenant/_extra_new_form.html" with in_drawer=1 %}
+</div>

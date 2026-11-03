@@ -31792,3 +31792,12 @@ msgstr "Service not found – please choose again."
 
 msgid "Ein bezahlter Gutschein kann nicht deaktiviert werden."
 msgstr "A paid gift voucher cannot be deactivated."
+
+msgid "Bitte einen Lagerartikel wählen."
+msgstr "Please choose a stock item."
+
+msgid "Gefahrenbereich"
+msgstr "Danger zone"
+
+msgid "Noch keine Zusatzleistungen."
+msgstr "No extras yet."

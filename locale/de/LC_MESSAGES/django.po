@@ -31879,3 +31879,12 @@ msgstr "Leistung nicht gefunden – bitte neu wählen."
 
 msgid "Ein bezahlter Gutschein kann nicht deaktiviert werden."
 msgstr "Ein bezahlter Gutschein kann nicht deaktiviert werden."
+
+msgid "Bitte einen Lagerartikel wählen."
+msgstr "Bitte einen Lagerartikel wählen."
+
+msgid "Gefahrenbereich"
+msgstr "Gefahrenbereich"
+
+msgid "Noch keine Zusatzleistungen."
+msgstr "Noch keine Zusatzleistungen."

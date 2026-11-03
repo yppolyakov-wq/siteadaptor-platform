@@ -1,0 +1,33 @@
+{% load i18n %}
+{% comment %}UX-D D6.1: короткая форма «＋ Zusatzleistung» — шторка и страница без JS. Ставка,
+адресность, учёт (пул/склад/закупка), фото и переводы — на странице допа после создания.
+Скриптов нет (шторка). Контекст: xv (значения), xv_errors {поле: текст}, scopes, next_url.{% endcomment %}
+<form method="post" action="{% url 'extra-new' %}" class="space-y-4" data-drawer-form>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <div>
+    <label for="extra-new-label" class="block text-sm font-medium mb-1">{% trans "Name" %} <span aria-hidden="true" class="text-red-700">*</span></label>
+    <input id="extra-new-label" name="label" type="text" required maxlength="120" autocomplete="off" value="{{ xv.label }}" placeholder="{% trans 'Name (e.g. Frühstück)' %}" data-drawer-autofocus{% if xv_errors.label %} aria-invalid="true" aria-describedby="extra-new-label-err"{% endif %} class="ui-input">
+    {% if xv_errors.label %}<p id="extra-new-label-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ xv_errors.label }}</p>{% endif %}
+  </div>
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label for="extra-new-price" class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
+      <input id="extra-new-price" name="price" type="text" inputmode="decimal" autocomplete="off" value="{{ xv.price }}" placeholder="12,00"{% if xv_errors.price %} aria-invalid="true" aria-describedby="extra-new-price-err"{% endif %} class="ui-input">
+      {% if xv_errors.price %}<p id="extra-new-price-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ xv_errors.price }}</p>{% endif %}
+    </div>
+    <div>
+      <label for="extra-new-scope" class="block text-sm font-medium mb-1">{% trans "Applies to" %}</label>
+      <select id="extra-new-scope" name="scope" class="ui-input">
+        {% for value, label in scopes %}<option value="{{ value }}"{% if value == xv.scope %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <label class="flex items-center gap-2 text-sm">
+    <input type="checkbox" name="per_night"{% if xv.per_night %} checked{% endif %} class="rounded border-gray-300">
+    {% trans "Price per night (Übernachtung) — otherwise once per booking" %}
+  </label>
+  <div class="flex justify-end gap-2 pt-2{% if in_drawer %} sticky bottom-0 bg-white pb-1{% endif %}">
+    <button class="ui-btn ui-btn-primary">{% trans "Create" %}</button>
+  </div>
+</form>

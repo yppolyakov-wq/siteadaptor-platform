@@ -32081,3 +32081,12 @@ msgstr "Услуга не найдена — выберите заново."
 
 msgid "Ein bezahlter Gutschein kann nicht deaktiviert werden."
 msgstr "Оплаченный подарочный сертификат нельзя отключить."
+
+msgid "Bitte einen Lagerartikel wählen."
+msgstr "Выберите складской товар."
+
+msgid "Gefahrenbereich"
+msgstr "Опасная зона"
+
+msgid "Noch keine Zusatzleistungen."
+msgstr "Дополнительных услуг пока нет."

@@ -23,7 +23,6 @@ from apps.core import (
     permissions,
     presence,
     studio_pages,
-    vat,
     view_perms,
 )
 from apps.core.permissions import has_perm
@@ -46,79 +45,15 @@ def extras_view(request):
     if request.method == "POST":
         action = request.POST.get("action", "")
         if action == "add":
-            label = request.POST.get("label", "").strip()[:120]
-            from apps.core.money import parse_amount, to_cents
+            # UX-D D6.1: один строгий разбор с шторкой и страницей допа (старые вкладки
+            # до D6.1 ещё шлют сюда полную форму «New extra»).
+            from apps.core.extras_pages import parse
 
-            # UX-D D6.0: «1.234,50»/мусор раньше молча давали 0 € — теперь ошибка без записи.
-            try:
-                price = parse_amount(request.POST.get("price"))
-            except ValueError:
-                price = None
-                if label:
-                    messages.error(request, _("Bitte einen Betrag wie 25,00 angeben."))
-                    label = ""
-            cents = to_cents(price) if price is not None else 0
-            scope = request.POST.get("scope", Extra.SCOPE_ALL)
-            if scope not in dict(Extra.SCOPES):
-                scope = Extra.SCOPE_ALL
-            if label:
-                # MX-2: адресность («kind:pk» из селекта; пусто = scope-wide) +
-                # вид трекера + поставщик закупаемой опции.
-                entity_kind, entity_id = "", ""
-                raw_entity = request.POST.get("entity", "")
-                if ":" in raw_entity:
-                    ek, _sep, eid = raw_entity.partition(":")
-                    if ek in _extra_entity_kinds() and eid:
-                        entity_kind, entity_id = ek, eid[:64]
-                tracker = request.POST.get("tracker", "")
-                if tracker not in dict(Extra.TRACKERS):
-                    tracker = ""
-                supplier = None
-                if tracker == Extra.TRACKER_PURCHASE and request.POST.get("supplier"):
-                    from apps.inventory.models import Lieferant
-
-                    supplier = Lieferant.objects.filter(
-                        pk=request.POST.get("supplier"), is_active=True
-                    ).first()
-                try:
-                    pool_size = max(0, min(int(request.POST.get("pool_size", "0") or 0), 999))
-                except (TypeError, ValueError):
-                    pool_size = 0
-                # v2: складская Вещь + рецепт расхода — без них stock-трекер был
-                # незаводим из кабинета (поле писал только демо-сидер).
-                stock_product = None
-                consume_qty = 1
-                if tracker == Extra.TRACKER_STOCK:
-                    from apps.catalog.models import Product as _Product
-
-                    stock_product = _Product.objects.filter(
-                        pk=request.POST.get("stock_product") or None
-                    ).first()
-                    if stock_product is None:
-                        tracker = ""  # склад без Вещи бессмыслен — честная надбавка
-                    else:
-                        try:
-                            consume_qty = max(
-                                1, min(int(request.POST.get("consume_qty", "1") or 1), 99)
-                            )
-                        except (TypeError, ValueError):
-                            consume_qty = 1
-                extra = Extra.objects.create(
-                    label=label,
-                    price_cents=cents,
-                    scope=scope,
-                    per_night=bool(request.POST.get("per_night")),
-                    entity_kind=entity_kind,
-                    entity_id=entity_id,
-                    tracker=tracker,
-                    pool_size=pool_size if tracker == Extra.TRACKER_POOL else 0,
-                    supplier=supplier,
-                    product=stock_product,
-                    consume_qty=consume_qty,
-                    # VAT-3: своя ставка допа; пусто = «как у сделки» (прежнее
-                    # поведение) — поэтому parse_rate_optional, а не parse_rate.
-                    vat_rate=vat.parse_rate_optional(request.POST.get("vat_rate")),
-                )
+            values, errors = parse(request.POST, full=True)
+            if errors:
+                messages.error(request, next(iter(errors.values())))
+            else:
+                extra = Extra.objects.create(**values)
                 _set_extra_image(request, extra)  # A5: опц. фото при создании
                 # E9.10: переводы названия (поля языков из выпадашки у заголовка).
                 save_row_translations(

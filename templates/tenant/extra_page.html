@@ -1,0 +1,142 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{{ x.label }}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D6.1: страница допа — шапка со сводкой, ОДНА форма всех полей (W0: правка
+одного поля не обнуляет соседние), фото и «Gefahr» — мини-формы вне формы. Чужой pk в POST — 404.
+Контекст: x (Extra), xv (значения формы), xv_errors {поле: текст}, scopes, trackers,
+entity_choices, suppliers, stock_products.{% endcomment %}
+{% i18n_base_locale as base_loc %}
+<div data-extra-page>
+<a href="{% url 'extras' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Extras" %}</a>
+<div class="flex items-start justify-between gap-3 flex-wrap mt-1 mb-4">
+  <div class="min-w-0 flex items-center gap-3">
+    {% if x.image_url %}<img src="{{ x.image_url }}" alt="" class="w-12 h-12 rounded-lg object-cover shrink-0">{% endif %}
+    <div class="min-w-0">
+      <div class="flex items-center gap-3 flex-wrap">
+        <h1 class="ui-h1 break-words">{{ x.label }}</h1>
+        {% lang_switch %}
+      </div>
+      <p class="text-sm text-gray-600 mt-0.5" data-extra-summary>+ {{ x.price_eur|floatformat:2 }} €{% if x.per_night %} / {% trans "night" %}{% endif %} · {{ x.get_scope_display }}{% if x.tracker %} · {{ x.get_tracker_display }}{% endif %}</p>
+    </div>
+  </div>
+  <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium {% if x.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}"><span class="w-1.5 h-1.5 rounded-full {% if x.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if x.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</span>
+</div>
+
+{% include "tenant/_settings_messages.html" %}
+
+<div class="lg:grid lg:grid-cols-3 lg:gap-5 lg:items-start">
+<form id="extra-form" method="post" class="ui-card p-5 space-y-5 lg:col-span-2 min-w-0 mb-5" data-extra-form>
+  {% csrf_token %}
+  <input type="hidden" name="action" value="extra_update"><input type="hidden" name="extra" value="{{ x.pk }}">
+
+  <fieldset class="space-y-4">
+    <legend class="ui-h2 mb-2">{% trans "Basic data" %}</legend>
+    <div data-i18n-loc="{{ base_loc }}">
+      <label for="extra-label" class="block text-sm font-medium mb-1">{% trans "Name" %} <span aria-hidden="true" class="text-red-700">*</span></label>
+      <input id="extra-label" name="label" type="text" required maxlength="120" value="{{ xv.label }}" lang="{{ base_loc }}"{% if xv_errors.label %} aria-invalid="true" aria-describedby="extra-label-err"{% endif %} class="ui-input">
+      {% if xv_errors.label %}<p id="extra-label-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ xv_errors.label }}</p>{% endif %}
+    </div>
+    {% include "tenant/_i18n_inline.html" with obj=x fields="label" %}
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label for="extra-price" class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
+        <input id="extra-price" name="price" type="text" inputmode="decimal" autocomplete="off" value="{{ xv.price }}" placeholder="12,00"{% if xv_errors.price %} aria-invalid="true" aria-describedby="extra-price-err"{% endif %} class="ui-input">
+        {% if xv_errors.price %}<p id="extra-price-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ xv_errors.price }}</p>{% endif %}
+      </div>
+      <div>
+        <label for="extra-scope" class="block text-sm font-medium mb-1">{% trans "Applies to" %}</label>
+        <select id="extra-scope" name="scope" class="ui-input">
+          {% for value, label in scopes %}<option value="{{ value }}"{% if value == xv.scope %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      {# «%» в _() аргумента тега Django ищет как «%%» — trans … as возвращает «%» #}
+      {% trans "Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat." as vat_hint %}
+      {% vat_select xv.vat_rate vat_hint _("wie die Buchung") %}
+      <div>
+        <label for="extra-entity" class="block text-sm font-medium mb-1">{% trans "Nur für ein Angebot" %}</label>
+        <select id="extra-entity" name="entity" class="ui-input">
+          <option value="">{% trans "Alle passenden Angebote" %}</option>
+          {% for value, label in entity_choices %}<option value="{{ value }}"{% if value == xv.entity %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    <label class="flex items-center gap-2 text-sm">
+      <input type="checkbox" name="per_night"{% if xv.per_night %} checked{% endif %} class="rounded border-gray-300">
+      {% trans "Price per night (Übernachtung) — otherwise once per booking" %}
+    </label>
+  </fieldset>
+
+  <fieldset class="space-y-4">
+    <legend class="ui-h2 mb-2">{% trans "Abwicklung" %}</legend>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label for="extra-tracker" class="block text-sm font-medium mb-1">{% trans "Abwicklung" %}</label>
+        <select id="extra-tracker" name="tracker" class="ui-input">
+          {% for value, label in trackers %}<option value="{{ value }}"{% if value == xv.tracker %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="extra-pool" class="block text-sm font-medium mb-1">{% trans "Pool-Größe" %}</label>
+        <input id="extra-pool" name="pool_size" type="text" inputmode="numeric" value="{{ xv.pool_size }}" placeholder="0"{% if xv_errors.pool_size %} aria-invalid="true" aria-describedby="extra-pool-err"{% endif %} class="ui-input">
+        {% if xv_errors.pool_size %}<p id="extra-pool-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ xv_errors.pool_size }}</p>{% endif %}
+      </div>
+      <div>
+        <label for="extra-supplier" class="block text-sm font-medium mb-1">{% trans "Anbieter" %}</label>
+        <select id="extra-supplier" name="supplier" class="ui-input">
+          <option value="">—</option>
+          {% for sp in suppliers %}<option value="{{ sp.pk }}"{% if xv.supplier == sp.pk|stringformat:"s" %} selected{% endif %}>{{ sp.name }}</option>{% endfor %}
+        </select>
+      </div>
+      {% if stock_products %}
+      <div>
+        <label for="extra-product" class="block text-sm font-medium mb-1">{% trans "Lagerartikel (Verbrauch)" %}</label>
+        <select id="extra-product" name="stock_product"{% if xv_errors.stock_product %} aria-invalid="true" aria-describedby="extra-product-err"{% endif %} class="ui-input">
+          <option value="">—</option>
+          {% for pr in stock_products %}<option value="{{ pr.pk }}"{% if xv.stock_product == pr.pk|stringformat:"s" %} selected{% endif %}>{{ pr.name_text }}</option>{% endfor %}
+        </select>
+        {% if xv_errors.stock_product %}<p id="extra-product-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ xv_errors.stock_product }}</p>{% endif %}
+      </div>
+      <div>
+        <label for="extra-consume" class="block text-sm font-medium mb-1">{% trans "Verbrauch je Verkauf" %}</label>
+        <input id="extra-consume" name="consume_qty" type="text" inputmode="numeric" value="{{ xv.consume_qty }}"{% if xv_errors.consume_qty %} aria-invalid="true" aria-describedby="extra-consume-err"{% endif %} class="ui-input">
+        {% if xv_errors.consume_qty %}<p id="extra-consume-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ xv_errors.consume_qty }}</p>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </fieldset>
+
+  <div class="flex justify-end">
+    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
+  </div>
+</form>
+
+<div class="space-y-5 min-w-0">
+  <form method="post" enctype="multipart/form-data" class="ui-card p-5 space-y-3" data-extra-photo>
+    {% csrf_token %}
+    <input type="hidden" name="action" value="set_image"><input type="hidden" name="extra" value="{{ x.pk }}">
+    <h2 class="ui-h2">{% trans "Photo" %}</h2>
+    {% if x.image_url %}<img src="{{ x.image_url }}" alt="{{ x.label }}" class="w-full max-w-xs rounded-lg object-cover">{% endif %}
+    <label for="extra-image" class="block text-sm font-medium">{% if x.image_url %}{% trans "Change" %}{% else %}{% trans "Photo (optional)" %}{% endif %}</label>
+    <input id="extra-image" name="image" type="file" accept="image/*" required class="block text-sm">
+    <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Upload" %}</button>
+  </form>
+
+  <section class="ui-card p-5 space-y-3 border-red-100" aria-labelledby="extra-danger" data-extra-danger>
+    <h2 id="extra-danger" class="ui-h2">{% trans "Gefahrenbereich" %}</h2>
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="action" value="toggle"><input type="hidden" name="extra" value="{{ x.pk }}">
+      <input type="hidden" name="active" value="{% if x.is_active %}0{% else %}1{% endif %}">
+      <button class="ui-btn ui-btn-secondary ui-btn-sm">{% if x.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+    </form>
+    {# Удаление — с подтверждением общей шторкой-диалогом (data-danger, core/_danger_confirm). #}
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="action" value="delete"><input type="hidden" name="extra" value="{{ x.pk }}">
+      <button class="ui-btn ui-btn-sm text-red-700" data-danger="1">{% trans "Remove" %}</button>
+    </form>
+  </section>
+</div>
+</div>
+</div>
+{% endblock %}

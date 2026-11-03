@@ -391,6 +391,8 @@ RULES: dict[str, Rule] = {
     "payment-settings": _r(CFG, CFGE),  # IBAN — Vorbehalt внутри экрана
     "google-reviews-settings": _r(CFG, CFGE),
     "extras": _r(CFG, CFGE),
+    "extra-new": _r(CFG, CFGE),  # UX-D D6.1
+    "extra-edit": _r(CFG, CFGE),  # UX-D D6.1
     "set-presence": _r(CFG, CFGE),
     "booking:resources": _r(CFG, CFGE),
     "booking:resource-edit": _r(CFG, CFGE),  # UX-D D3.1

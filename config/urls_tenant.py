@@ -14,7 +14,7 @@ from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
 from apps.community import views as community_views
-from apps.core import health, lite_cabinet, owner_login, page_templates, tg_login
+from apps.core import extras_pages, health, lite_cabinet, owner_login, page_templates, tg_login
 from apps.core.demo_switch import demo_design_switch
 from apps.core.design_page import design_view
 from apps.core.media_views import serve_media
@@ -186,6 +186,8 @@ urlpatterns = [
     path("start/<str:token>/", owner_login.owner_start, name="owner-start"),
     path("anmelden/link/", owner_login.owner_link_request, name="owner-login-link"),
     path("dashboard/extras/", extras_view, name="extras"),
+    path("dashboard/extras/neu/", extras_pages.extra_new, name="extra-new"),  # UX-D D6.1
+    path("dashboard/extras/<uuid:pk>/", extras_pages.extra_edit, name="extra-edit"),
     # Конструктор витрины v1 (Track C2).
     path("dashboard/site/", site_view, name="site"),
     # DL-7b: переключатель шаблонов вне Studio (подпункт Website).
