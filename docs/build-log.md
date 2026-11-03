@@ -21221,3 +21221,17 @@ Rabatte», «Allgemeine Tarife…» (шахматка, отчёт, цены по
 в EXPECTED_UNLISTED. Стенд Playwright 1600/390: все 4 вкладки, добавление/удаление правила
 возвращает на вкладку, старая закладка. Замки переписаны осознанно: `test_cabinet`,
 `test_occupancy_pricing`, `test_gap_deal`, `test_sidebar_st4b`, `test_price_nav`.
+
+## 2026-11-03 — UX-D D4.3: «Unterkunft» — Kurtaxe, Hausordnung, часы и удобства на карточке в Einstellungen › Zimmer (без миграций)
+Под-вкладка «Kurtaxe & Hausordnung» списка номеров стала экраном `/dashboard/stays/unterkunft/`
+(одна страница, три карточки): Kurtaxe и Hausordnung — одна форма (одно действие пишет оба поля,
+W0; замок round-trip), часы заезда/выезда, удобства на карточке номера; входы «Meldescheine» и
+«Kurtaxe-Meldung» по праву. Права: экран — `einstellungen.view/edit`; Kurtaxe и часы — ещё
+`preise.edit` (как раньше), сотрудник видит их только для чтения с объяснением; удобства на
+карточке теперь `einstellungen.edit` вместо `sortiment.edit` (осознанно, план D4). Ревью закрыло:
+старый адрес списка номеров (правило `sortiment.edit`) мог обойти новое право на удобства — теперь
+отказ. **Попутно найден и исправлен дефект D1.3/D1.4:** `can_open` вызывался с аргументами
+наоборот, проверка всегда давала «можно» — кнопку «Neue Buchung» видели и без права (сервер
+всё равно отказывал); замок. Стенд 1600/390: сохранение без правок не меняет Kurtaxe, переключатель
+языка открывает перевод Hausordnung, старая закладка `sec=kurtaxe` → 302. Замки переписаны
+осознанно: `test_cabinet`, `test_z5_hours`, `test_z6_kurtaxe`, `test_sidebar_st4b`.
