@@ -31771,3 +31771,6 @@ msgstr "Местоположение"
 #: templates/stays/_booking_drawer.html
 msgid "Zur vollständigen Buchung"
 msgstr "Открыть полную карточку брони"
+
+msgid "Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erneut versuchen."
+msgstr "Статус неясен — вид обновлён. Проверьте, прежде чем повторить."

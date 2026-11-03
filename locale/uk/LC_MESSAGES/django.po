@@ -31755,3 +31755,6 @@ msgstr "Розташування"
 #: templates/stays/_booking_drawer.html
 msgid "Zur vollständigen Buchung"
 msgstr "Відкрити повну картку бронювання"
+
+msgid "Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erneut versuchen."
+msgstr "Статус неясний — вигляд оновлено. Перевірте, перш ніж повторити."

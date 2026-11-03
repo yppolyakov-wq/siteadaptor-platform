@@ -31488,3 +31488,6 @@ msgstr "Location"
 #: templates/stays/_booking_drawer.html
 msgid "Zur vollständigen Buchung"
 msgstr "Open full booking"
+
+msgid "Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erneut versuchen."
+msgstr "Status unclear — view refreshed. Please check before trying again."

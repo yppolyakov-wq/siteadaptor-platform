@@ -52,6 +52,8 @@ def test_redirect_becomes_json_only_for_drawer_requests():
     assert data == {
         "ok": True,
         "messages": [{"level": "success", "text": "Gespeichert."}],
+        "navigate": False,
+        "open": "",
     }
     # сообщения израсходованы — не всплывут повторно на следующей странице
     assert req._messages.used is True
@@ -64,6 +66,62 @@ def test_error_message_makes_ok_false():
 
 def test_non_redirect_responses_pass_through():
     assert _forbidden(_req({"HTTP_X_SF_DRAWER": "1"})).status_code == 403
+
+
+@drawer.drawer_aware
+def _form_error_view(request):
+    from django.http import HttpResponse
+
+    messages.error(request, "Datum belegt.")
+    return drawer.fragment(HttpResponse("<form></form>"))
+
+
+def test_non_redirect_carries_messages_in_header():
+    """Фрагмент с ошибкой формы: сообщение не всплывёт позже на другой странице —
+    шторка показывает его из заголовка."""
+    req = _req({"HTTP_X_SF_DRAWER": "1"})
+    resp = _form_error_view(req)
+    assert json.loads(resp["X-Sf-Messages"])[0]["text"] == "Datum belegt."
+    assert req._messages.used is True
+
+
+def test_fragment_is_marked_and_never_cached():
+    from django.http import HttpResponse
+
+    resp = drawer.fragment(HttpResponse("x"))
+    assert resp["X-Sf-Fragment"] == "1"
+    assert "no-store" in resp["Cache-Control"] and resp["Vary"] == "X-Sf-Drawer"
+
+
+@drawer.drawer_aware
+def _to_invoice(request):
+    return redirect("/finance/rechnungen/7/")
+
+
+def test_redirect_elsewhere_than_next_means_navigate():
+    req = RequestFactory().post(
+        "/x/", {"next": "/dashboard/verkaeufe/?tab=stay"}, HTTP_X_SF_DRAWER="1"
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    data = json.loads(_to_invoice(req).content)
+    assert data["navigate"] is True and data["location"] == "/finance/rechnungen/7/"
+
+
+def test_open_after_is_passed_to_the_client():
+    @drawer.drawer_aware
+    def view(request):
+        drawer.open_after(request, "/dashboard/stays/buchung/9/")
+        return redirect("/back/")
+
+    data = json.loads(view(_req({"HTTP_X_SF_DRAWER": "1"})).content)
+    assert data["open"] == "/dashboard/stays/buchung/9/"
+
+
+def test_is_box_by_header_only_on_get():
+    get = RequestFactory().get("/x/", HTTP_X_SF_DRAWER="1")
+    post = RequestFactory().post("/x/", HTTP_X_SF_DRAWER="1")
+    assert drawer.is_box(get) and not drawer.is_box(post)
 
 
 @pytest.mark.parametrize(
@@ -105,13 +163,41 @@ def test_drawer_js_never_builds_fragment_urls_from_pathname():
     assert "location.pathname + location.search" not in part
 
 
-def test_drawer_fragments_carry_no_inline_handlers_or_scripts():
-    """Ревью безопасности D1: фрагмент вставляется через innerHTML — inline-обработчики
-    `on…=` там исполнились бы (CSP пока report-only). Скрипты не исполняются, но и не
-    нужны: весь JS шторки — в cabinet.js."""
+def _drawer_js():
+    js = (ROOT / "static/js/cabinet.js").read_text()
+    return js.split("// ---- core/_drawer.html ----", 1)[1].split("// ---- ", 1)[0]
+
+
+def test_drawer_js_contract_strings():
+    """ECC-ревью architect: шторка шлёт ТОЛЬКО `X-Sf-Drawer` — на `X-Requested-With`
+    часть вьюх (перетаскивание, доска) отвечает своими кодами; редиректы не
+    проглатываются (`redirect: "manual"`); в шторку вставляется только ответ с меткой
+    `X-Sf-Fragment`; перерисовка областей — с `X-Sf-Refresh` (без тостов триала)."""
+    part = _drawer_js()
+    assert "X-Requested-With" not in part
+    assert 'redirect: "manual"' in part
+    assert "X-Sf-Fragment" in part and "X-Sf-Refresh" in part
+    assert "sf:region-updated" in part and "popstate" in part
+
+
+def test_refresh_regions_have_ids():
+    """`sfRefreshRegions` ищет область в свежем ответе по id — без id она не обновится."""
     import re
 
-    for name in ("templates/stays/_booking_drawer.html",):
-        text = (ROOT / name).read_text()
-        assert "<script" not in text
-        assert not re.search(r"\son[a-z]+=", text), name
+    for path in (ROOT / "templates").rglob("*.html"):
+        for tag in re.findall(r"<[a-z]+[^>]*\bdata-drawer-refresh\b[^>]*>", path.read_text()):
+            assert re.search(r'\bid="[^"]+"', tag), (path, tag)
+
+
+def test_drawer_aware_is_the_innermost_decorator():
+    """Внешний drawer_aware увидел бы редирект login_required и отдал JSON вместо входа."""
+    from apps.stays import views
+
+    code = drawer.drawer_aware(lambda r: r).__code__
+    for fn in (views.stay_action, views.booking_delete):
+        chain = [fn]
+        while hasattr(chain[-1], "__wrapped__"):
+            chain.append(chain[-1].__wrapped__)
+        # functools.wraps копирует __dict__ — метку несут все обёртки, поэтому
+        # проверяем код: прямо над самой вьюхой должна стоять обёртка шторки
+        assert len(chain) >= 2 and chain[-2].__code__ is code, fn

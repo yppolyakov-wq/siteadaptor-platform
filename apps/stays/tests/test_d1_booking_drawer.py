@@ -17,7 +17,8 @@ pytestmark = pytest.mark.django_db
 
 
 def _detail(booking, data=None, **kw):
-    req = _req(path=f"/dashboard/stays/buchung/{booking.pk}/", data=data, **kw)
+    req = _req(path=f"/dashboard/stays/buchung/{booking.pk}/", data=data)
+    req.META.update(kw)
     from apps.tenants.tests.factories import TenantFactory
 
     req.tenant = TenantFactory.build(business_type="hotel")
@@ -36,6 +37,15 @@ def test_box_fragment_is_the_drawer_not_the_full_card():
     # формы шторки возвращают на страницу продаж, а не на сам фрагмент
     assert "box=1" not in html.split('name="next"', 1)[1].split(">", 1)[0]
     assert 'name="next" value="/dashboard/verkaeufe/?tab=stay"' in html
+
+
+def test_drawer_get_by_header_is_a_marked_fragment():
+    """Шторка грузит фрагмент заголовком X-Sf-Drawer; ответ помечен X-Sf-Fragment
+    (без метки клиент его не вставит) и не кэшируется."""
+    booking = _book(_unit(), 1, 4)
+    resp = _detail(booking, HTTP_X_SF_DRAWER="1")
+    assert resp["X-Sf-Fragment"] == "1" and "no-store" in resp["Cache-Control"]
+    assert "<html" not in resp.content.decode()
 
 
 def test_box_fragment_rejects_foreign_next():

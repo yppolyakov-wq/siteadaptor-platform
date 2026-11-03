@@ -382,9 +382,11 @@ try { (function () {
   }, true);
 })(); } catch (e) { console.error(e); }
 // ---- core/_drawer.html ----
-// UX-D D1: шторка кабинета. Ссылка a[data-drawer] → fragment (?box=1) в <dialog>;
-// формы [data-drawer-form] → fetch + JSON (apps/core/drawer.drawer_aware); после
-// успеха перерисовываются области [data-drawer-refresh] без перезагрузки страницы.
+// UX-D D1: шторка кабинета (контракт — docs/references/patterns/drawer.md).
+// a[data-drawer] → GET с заголовком X-Sf-Drawer (+ ?box=1) → вставляется ТОЛЬКО ответ с
+// меткой X-Sf-Fragment; формы [data-drawer-form] → POST с X-Sf-Drawer → JSON
+// (apps/core/drawer.drawer_aware) или фрагмент с ошибками формы. Редиректы не
+// следуются (redirect: "manual"): истёкшая сессия = обычный переход, а не вход в шторке.
 // Любой сбой → обычная навигация (ссылка/форма работают и без JS).
 try { (function () {
   "use strict";
@@ -395,22 +397,26 @@ try { (function () {
   var flash = dlg.querySelector("[data-drawer-flash]");
   var alertBox = dlg.querySelector("[data-drawer-alert]");
   var heading = dlg.querySelector("[data-drawer-heading]");
-  var errText = (dlg.querySelector("[data-drawer-error-text]") || {}).textContent || "Error";
+  var errText = dlg.getAttribute("data-drawer-error") || "Error";
+  var unclearText = dlg.getAttribute("data-drawer-unclear") || errText;
   var fallbackTitle = dlg.getAttribute("data-drawer-fallback-title") || "";
-  var src = null;
+  var DRAWER_PARAMS = ["box", "drawer", "buchung"];
+  var src = null;        // адрес текущего фрагмента
+  var pagePath = null;   // путь объекта (для ?drawer= и истории)
+  var pushed = false;    // мы добавили запись в историю
   var opener = null;
   var openerKey = null;
   var seq = 0;
+  var refreshSeq = 0;
   var downOnBackdrop = false;
 
   function pageUrl() {
     var u = new URL(location.href);
-    u.searchParams.delete("box");
-    u.searchParams.delete("buchung");
+    DRAWER_PARAMS.forEach(function (k) { u.searchParams.delete(k); });
     return u.pathname + u.search;
   }
 
-  // Безопасность (ревью D1): шторка открывает только страницы кабинета этого сайта.
+  // Безопасность (ревью D1): только страницы кабинета этого сайта.
   function cabinetUrl(href) {
     try {
       var u = new URL(href, location.href);
@@ -427,12 +433,29 @@ try { (function () {
     return f.pathname + f.search;
   }
 
+  function toast(items) {
+    var box = document.getElementById("sf-toast");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "sf-toast";
+      box.setAttribute("role", "status");
+      box.className = "fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2";
+      document.body.appendChild(box);
+    }
+    (items || []).forEach(function (m) {
+      var p = document.createElement("p");
+      p.className = "rounded-xl px-4 py-2 text-sm shadow-lg " + (m.level === "error" ? "bg-red-700 text-white" : "bg-gray-900 text-white");
+      p.textContent = m.text;
+      box.appendChild(p);
+      setTimeout(function () { p.remove(); }, 6000);
+    });
+  }
+
   function say(items) {
     flash.textContent = "";
     alertBox.textContent = "";
-    // Отдельные области: успех/предупреждение — polite, ошибка — assertive (без двойного
-    // озвучивания). Текст ставится в следующем кадре: синхронная замена «очистить и
-    // вставить то же самое» читалки пропускают.
+    // успех/предупреждение — polite, ошибка — assertive; текст в следующем кадре:
+    // синхронную замену «очистить и вставить то же» читалки пропускают.
     requestAnimationFrame(function () {
       (items || []).forEach(function (m) {
         var err = m.level === "error";
@@ -444,41 +467,64 @@ try { (function () {
     });
   }
 
-  function focusFirst() {
-    var field = body.querySelector("[data-drawer-autofocus]");
-    (field || heading).focus();
+  function headerMessages(r) {
+    try { return JSON.parse(r.headers.get("X-Sf-Messages") || "[]"); } catch (e) { return []; }
   }
 
-  function fill(html) {
+  function fill(html, keep) {
+    // перезагрузка после действия: раскрытые <details> и прокрутка остаются
+    var opened = keep ? Array.prototype.map.call(body.querySelectorAll("details[open]"), function (d) {
+      var s = d.querySelector("summary"); return s ? s.textContent.trim() : "";
+    }) : [];
+    var top = keep ? body.scrollTop : 0;
     body.innerHTML = html;
+    if (opened.length) {
+      Array.prototype.forEach.call(body.querySelectorAll("details"), function (d) {
+        var s = d.querySelector("summary");
+        if (s && opened.indexOf(s.textContent.trim()) !== -1) d.open = true;
+      });
+    }
+    body.scrollTop = top;
     var t = body.querySelector("[data-drawer-title]");
     heading.textContent = (t && t.getAttribute("data-drawer-title")) || fallbackTitle;
     document.dispatchEvent(new CustomEvent("sf:drawer-loaded", { detail: { body: body } }));
   }
 
-  function load(url) {
+  // GET фрагмента. Результат: "ok" | "gone" (404 — объекта больше нет) | "away" (не
+  // фрагмент: сессия истекла, нет прав, пакет — нужна обычная навигация) | "stale".
+  function load(url, keep) {
     var mine = ++seq;
     body.setAttribute("aria-busy", "true");
-    return fetch(url, { credentials: "same-origin", headers: { "X-Requested-With": "fetch" } })
+    return fetch(url, { credentials: "same-origin", redirect: "manual", headers: { "X-Sf-Drawer": "1" } })
       .then(function (r) {
-        if (mine !== seq) return null;  // устаревший ответ (второй клик, закрытие)
-        if (r.status === 404 && dlg.open) { close(); return null; }
-        if (!r.ok || r.redirected) throw new Error(String(r.status));
-        return r.text();
-      })
-      .then(function (html) {
-        if (mine !== seq) return false;
+        if (mine !== seq) return "stale";
         body.removeAttribute("aria-busy");
-        if (html === null) return false;
-        fill(html);
-        return true;
+        if (r.status === 404) return "gone";
+        if (r.type === "opaqueredirect" || !r.ok || r.headers.get("X-Sf-Fragment") !== "1") return "away";
+        return r.text().then(function (html) {
+          if (mine !== seq) return "stale";
+          fill(html, keep);
+          var m = headerMessages(r);
+          if (m.length) say(m);
+          return "ok";
+        });
       }, function (err) {
         body.removeAttribute("aria-busy");
         throw err;
       });
   }
 
-  function open(href, trigger, quiet) {
+  function setUrlParam(path, push) {
+    var u = new URL(location.href);
+    if (path) u.searchParams.set("drawer", path); else u.searchParams.delete("drawer");
+    u.searchParams.delete("buchung");
+    var state = { sfDrawer: path || null };
+    if (push) history.pushState(state, "", u.pathname + u.search + u.hash);
+    else history.replaceState(state, "", u.pathname + u.search + u.hash);
+  }
+
+  function open(href, trigger, opts) {
+    opts = opts || {};
     var u = cabinetUrl(href);
     if (!u) return Promise.resolve(false);
     var url = fragmentUrl(u);
@@ -487,29 +533,46 @@ try { (function () {
       openerKey = opener && opener.getAttribute ? (opener.getAttribute("data-drawer-key") || "") : "";
     }
     say([]);
-    return load(url).then(function (ok) {
-      if (!ok) return false;
+    return load(url).then(function (res) {
+      if (res === "stale") return false;
+      if (res !== "ok") {
+        if (!opts.quiet) location.href = u.pathname + u.search;
+        return false;
+      }
       src = url;
-      if (!dlg.open) dlg.showModal();
-      focusFirst();
+      pagePath = u.pathname;
+      if (!dlg.open) {
+        dlg.showModal();
+        if (opts.fromUrl) { pushed = false; setUrlParam(pagePath, false); }
+        else { pushed = true; setUrlParam(pagePath, true); }
+      } else {
+        setUrlParam(pagePath, false);
+      }
+      var field = body.querySelector("[data-drawer-autofocus]");
+      (field || heading).focus();
       return true;
     }).catch(function () {
-      if (!quiet) location.href = u.pathname + u.search;
+      if (!opts.quiet) location.href = u.pathname + u.search;
     });
   }
 
   function close() {
-    seq++;
-    if (dlg.open) dlg.close();
+    if (!dlg.open) return;
+    if (pushed) { pushed = false; history.back(); return; }  // popstate закроет шторку
+    setUrlParam("", false);
+    dlg.close();
   }
 
   function visible(el) {
     return el && document.contains(el) && el.offsetParent !== null && typeof el.focus === "function";
   }
 
+  dlg.addEventListener("cancel", function (e) { e.preventDefault(); close(); });
   dlg.addEventListener("close", function () {
+    seq++;
     body.innerHTML = "";
     src = null;
+    pagePath = null;
     var back = opener;
     if (!visible(back) && openerKey && window.CSS && CSS.escape) {
       back = document.querySelector('[data-drawer-key="' + CSS.escape(openerKey) + '"]');
@@ -521,6 +584,11 @@ try { (function () {
     if (back) back.focus();
     opener = null;
   });
+  window.addEventListener("popstate", function () {
+    var path = new URL(location.href).searchParams.get("drawer");
+    if (!path && dlg.open) { pushed = false; dlg.close(); }  // «назад» на телефоне закрывает шторку
+    else if (path && !dlg.open) open(path, null, { quiet: true, fromUrl: true });
+  });
   dlg.addEventListener("mousedown", function (e) { downOnBackdrop = e.target === dlg; });
   dlg.addEventListener("click", function (e) {
     if (e.target === dlg && downOnBackdrop) close();  // клик по подложке целиком
@@ -530,27 +598,41 @@ try { (function () {
   window.sfRefreshRegions = function () {
     var regions = document.querySelectorAll("[data-drawer-refresh]");
     if (!regions.length) return Promise.resolve();
+    var mine = ++refreshSeq;
     var y = window.scrollY;
-    return fetch(pageUrl(), { credentials: "same-origin" })
-      .then(function (r) { if (!r.ok || r.redirected) throw new Error(String(r.status)); return r.text(); })
+    return fetch(pageUrl(), { credentials: "same-origin", redirect: "manual", headers: { "X-Sf-Refresh": "1" } })
+      .then(function (r) {
+        if (r.type === "opaqueredirect" || !r.ok) throw new Error(String(r.status));
+        return r.text();
+      })
       .then(function (html) {
+        if (mine !== refreshSeq) return;  // пришёл более свежий ответ
         var doc = new DOMParser().parseFromString(html, "text/html");
+        var missing = false;
         regions.forEach(function (el) {
           var fresh = el.id && doc.getElementById(el.id);
-          if (!fresh) return;
-          var scrollers = Array.prototype.map.call(el.querySelectorAll(".overflow-x-auto"), function (n) { return n.scrollLeft; });
+          if (!fresh) { missing = true; return; }
+          var scroll = {};
+          el.querySelectorAll("[data-scroll-key]").forEach(function (n) { scroll[n.getAttribute("data-scroll-key")] = n.scrollLeft; });
           el.innerHTML = fresh.innerHTML;
-          Array.prototype.forEach.call(el.querySelectorAll(".overflow-x-auto"), function (n, i) {
-            if (scrollers[i] !== undefined) n.scrollLeft = scrollers[i];
+          el.querySelectorAll("[data-scroll-key]").forEach(function (n) {
+            var k = n.getAttribute("data-scroll-key");
+            if (scroll[k] !== undefined) n.scrollLeft = scroll[k];
           });
+          document.dispatchEvent(new CustomEvent("sf:region-updated", { detail: { el: el } }));
         });
+        if (missing) { location.reload(); return; }
         window.scrollTo(0, y);
-        document.dispatchEvent(new CustomEvent("sf:navigated"));
       })
-      .catch(function () { location.reload(); });
+      .catch(function () { if (mine === refreshSeq) location.reload(); });
   };
 
-  window.sfDrawer = { open: open, close: close };
+  window.sfDrawer = {
+    open: open,
+    close: close,
+    reload: function () { return src ? load(src, true) : Promise.resolve("stale"); },
+    toast: toast,
+  };
 
   document.addEventListener("click", function (e) {
     var a = e.target.closest && e.target.closest("a[data-drawer]");
@@ -560,53 +642,70 @@ try { (function () {
     open(a.getAttribute("href"), a);
   });
 
+  function unlock(btn) { if (btn) { btn.disabled = false; btn.removeAttribute("aria-disabled"); } }
+
   // Фаза всплытия + defaultPrevented: подтверждение опасных шагов (_danger_confirm,
   // capture) и сжатие фото успевают первыми.
   document.addEventListener("submit", function (e) {
     var form = e.target;
     if (e.defaultPrevented || !form.closest || !form.closest("[data-drawer-body]") || !form.hasAttribute("data-drawer-form")) return;
     e.preventDefault();
+    if (form.getAttribute("aria-busy") === "true") return;  // без двойной отправки (деньги)
     var btn = e.submitter;
-    if (btn && btn.disabled) return;
     var data = new FormData(form);
     if (btn && btn.name) data.append(btn.name, btn.value);
-    if (btn) { btn.disabled = true; btn.setAttribute("aria-disabled", "true"); }  // без двойной оплаты
-    body.setAttribute("aria-busy", "true");
-    fetch(form.action || location.href, {
-      method: "POST", body: data, credentials: "same-origin",
-      headers: { "X-Sf-Drawer": "1", "X-Requested-With": "fetch" }
+    form.setAttribute("aria-busy", "true");
+    if (btn) { btn.disabled = true; btn.setAttribute("aria-disabled", "true"); }
+    var after = form.getAttribute("data-drawer-after") || "reload";
+    fetch(form.getAttribute("action") || pageUrl(), {
+      method: "POST", body: data, credentials: "same-origin", redirect: "manual",
+      headers: { "X-Sf-Drawer": "1" }
     })
       .then(function (r) {
+        form.removeAttribute("aria-busy");
+        if (r.type === "opaqueredirect") { location.reload(); return; }  // сессия истекла
         var type = r.headers.get("Content-Type") || "";
-        if (!r.ok || type.indexOf("application/json") === -1) throw new Error(String(r.status));
-        return r.json();
-      })
-      .then(function (res) {
-        body.removeAttribute("aria-busy");
-        var after = form.getAttribute("data-drawer-after") || "reload";
-        if (res.ok && after === "close") {
-          close();
-          window.sfRefreshRegions();
-          return;
+        if (r.headers.get("X-Sf-Fragment") === "1") {  // форма с ошибками — введённое цело
+          return r.text().then(function (html) { fill(html, true); say(headerMessages(r)); heading.focus(); });
         }
-        if (res.ok && src) {
-          load(src).then(function () { heading.focus(); say(res.messages); }, function () { say(res.messages); });
-          window.sfRefreshRegions();
-          return;
+        if (type.indexOf("application/json") !== -1 && r.ok) {
+          return r.json().then(function (res) {
+            if (res.navigate && res.location) { location.href = res.location; return; }
+            window.sfRefreshRegions();
+            if (res.open) { open(res.open, null, {}); toast(res.messages); return; }
+            if (res.ok && after === "close") { close(); toast(res.messages); return; }
+            // даже при ошибке часть изменений могла записаться — шторка всегда свежая
+            return load(src, true).then(function (state) {
+              if (state === "gone") { close(); toast(res.messages); return; }
+              heading.focus();
+              say(res.messages && res.messages.length ? res.messages : [{ level: "error", text: errText }]);
+            });
+          });
         }
-        if (btn) { btn.disabled = false; btn.removeAttribute("aria-disabled"); }
-        say(res.messages && res.messages.length ? res.messages : [{ level: "error", text: errText }]);
+        return r.text().then(function (text) {
+          unlock(btn);
+          var short = text && text.length < 200 && text.indexOf("<") === -1 ? text : errText;
+          say([{ level: "error", text: short }]);
+        });
       })
       .catch(function () {
-        body.removeAttribute("aria-busy");
-        if (btn) { btn.disabled = false; btn.removeAttribute("aria-disabled"); }
-        say([{ level: "error", text: errText }]);
+        // Сеть оборвалась после отправки: действие могло пройти (деньги!) — не «повторите»,
+        // а свежее состояние и честное «статус неясен».
+        form.removeAttribute("aria-busy");
+        unlock(btn);
+        window.sfRefreshRegions();
+        (src ? load(src, true) : Promise.resolve()).catch(function () {}).then(function () {
+          say([{ level: "warning", text: unclearText }]);
+        });
       });
   });
 
-  // Автооткрытие: страница несёт адрес шторки (редирект после действия ?buchung=…).
+  // Автооткрытие: ?drawer=<путь> (ссылка, F5, «вперёд») или маркер страницы
+  // (редирект после действия без JS: ?buchung=…).
+  var fromParam = new URL(location.href).searchParams.get("drawer");
   var auto = document.querySelector("[data-drawer-autoopen]");
-  if (auto) open(auto.getAttribute("data-drawer-autoopen"), null, true);
+  var first = fromParam || (auto && auto.getAttribute("data-drawer-autoopen"));
+  if (first) open(first, null, { quiet: true, fromUrl: true });
 })(); } catch (e) { console.error(e); }
 // ---- core/_sheet_js.html ----
 try { (function () {
@@ -744,5 +843,6 @@ try { (function () {
     stackLabels();
   }
   // Списки, подменённые fetch'ем (KAT-5 / box-фрагменты), сообщают об этом событием.
+  document.addEventListener("sf:region-updated", function () { stackLabels(); });
   document.addEventListener("sf:navigated", function () { stackLabels(); });
 })(); } catch (e) { console.error(e); }

@@ -25,7 +25,13 @@ def _is_page_view(request) -> bool:
     user = getattr(request, "user", None)
     if user is None or not user.is_authenticated:
         return False
-    return request.method == "GET" and request.headers.get("X-Requested-With") != "fetch"
+    # UX-D D1: фоновые запросы шторки и перерисовки областей тоже не «показ».
+    return (
+        request.method == "GET"
+        and request.headers.get("X-Requested-With") != "fetch"
+        and request.headers.get("X-Sf-Drawer") != "1"
+        and request.headers.get("X-Sf-Refresh") != "1"
+    )
 
 
 def subscription(request):
