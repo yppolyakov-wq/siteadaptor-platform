@@ -3886,7 +3886,7 @@ msgstr "Noch keine Leistungen."
 
 #: templates/booking/services.html:75
 msgid "New service"
-msgstr "Neuer Service"
+msgstr "Neue Leistung"
 
 #: templates/booking/services.html:76
 msgid "Name (e.g. Ölwechsel, Haarschnitt)"

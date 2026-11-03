@@ -46,9 +46,9 @@
 услуги (›). Редактируемых полей в строках нет (замок); статус — кнопка-переключатель
 (только скрытые поля).{% endcomment %}
 <div class="ui-card overflow-hidden mb-8" data-services-list>
-  <div class="hidden md:grid grid-cols-[3rem_minmax(0,2fr)_6rem_7rem_minmax(0,1.5fr)_7rem_1.5rem] gap-3 px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100" aria-hidden="true">
+  {% if services %}<div class="hidden md:grid grid-cols-[3rem_minmax(0,2fr)_6rem_7rem_minmax(0,1.5fr)_7rem_1.5rem] gap-3 px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100" aria-hidden="true">
     <span></span><span>{% trans "Leistung" %}</span><span>{% trans "Dauer" %}</span><span>{% trans "Preis" %}</span><span>{% trans "Wer bietet an" %}</span><span>{% trans "Status" %}</span><span></span>
-  </div>
+  </div>{% endif %}
   <ul class="divide-y divide-gray-100">
   {% for s in services %}
     <li class="relative grid grid-cols-[3rem_minmax(0,1fr)_auto] md:grid-cols-[3rem_minmax(0,2fr)_6rem_7rem_minmax(0,1.5fr)_7rem_1.5rem] gap-x-3 gap-y-1 items-center px-4 py-3 hover:bg-gray-50{% if not s.is_active %} text-gray-500{% endif %}" data-service-row>
