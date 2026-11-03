@@ -179,8 +179,8 @@
         <input name="seats" type="number" min="0" max="99" placeholder="{% trans 'Plätze' %}" class="w-24 rounded-lg border border-gray-300 px-3 py-2" aria-label="{% trans 'Plätze' %}">
       </div>
       <input name="zone" type="text" maxlength="40" aria-label="{% trans "Bereich" %}" placeholder="{% trans 'Bereich (z. B. Terrasse)' %}" class="ui-input">
-      <div class="flex items-center gap-3">
-        <input name="deposit_eur" type="text" inputmode="decimal" aria-label="{% trans 'Deposit € (0 = none)' %}" placeholder="{% trans 'Deposit € (0 = none)' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2">
+      <div class="flex flex-wrap items-center gap-3">
+        <input name="deposit_eur" type="text" inputmode="decimal" aria-label="{% trans 'Deposit € (0 = none)' %}" placeholder="{% trans 'Deposit € (0 = none)' %}" class="flex-1 min-w-[10rem] rounded-lg border border-gray-300 px-3 py-2">
         <label class="text-sm flex items-center gap-1 whitespace-nowrap"><input type="checkbox" name="require_manual_confirm"> {% trans "Manual review" %}</label>
       </div>
       <label class="text-sm flex items-center gap-1"><input type="checkbox" name="counts_party_size"> {% trans "Count per person (group course — guests use up spots)" %}</label>

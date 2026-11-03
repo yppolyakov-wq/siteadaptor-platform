@@ -13,8 +13,8 @@ rows=[(status,default,custom)], kind (order|booking|stay), next_path (куда �
     <p class="text-xs text-gray-400">{% trans "Eigene Namen für die Status (nur Anzeige im Dashboard). Leer = Standard." %}</p>
     {% for st, default, custom in rows %}
       <div class="flex items-center gap-2 text-sm">
-        <span class="w-28 text-xs text-gray-400">{{ default }}</span>
-        <input aria-label="{{ default }}" type="text" name="label_{{ st }}" value="{{ custom }}" placeholder="{{ default }}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5">
+        <span class="w-28 shrink-0 text-xs text-gray-500">{{ default }}</span>
+        <input aria-label="{{ default }}" type="text" name="label_{{ st }}" value="{{ custom }}" placeholder="{{ default }}" maxlength="40" class="flex-1 min-w-0 rounded-lg border border-gray-300 px-3 py-1.5">
       </div>
     {% endfor %}
     <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm mt-1">{% trans "Save" %}</button>

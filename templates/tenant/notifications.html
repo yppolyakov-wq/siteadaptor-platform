@@ -55,9 +55,9 @@
   {# --- Owner-Kanäle --- #}
   <div class="ui-card mb-6 p-4">
     <h2 class="text-sm font-semibold text-gray-700 mb-3">{% trans "Sie als Inhaber (neue Aufträge/Bestellungen)" %}</h2>
-    <div class="flex gap-6 text-sm">
-      <label class="flex items-center gap-2">
-        <input type="checkbox" name="o-email" {% if owner.email %}checked{% endif %} class="rounded border-gray-300"> {% trans "E-Mail" %}{% if owner_email %} <span class="text-gray-400">({{ owner_email }})</span>{% endif %}
+    <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+      <label class="flex items-center gap-2 min-w-0 flex-wrap">
+        <input type="checkbox" name="o-email" {% if owner.email %}checked{% endif %} class="rounded border-gray-300"> {% trans "E-Mail" %}{% if owner_email %} <span class="text-gray-500 break-all">({{ owner_email }})</span>{% endif %}
       </label>
       <label class="flex items-center gap-2">
         <input type="checkbox" name="o-telegram" {% if owner.telegram %}checked{% endif %} class="rounded border-gray-300"> {% trans "Telegram" %}
