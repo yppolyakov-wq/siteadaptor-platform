@@ -31885,3 +31885,26 @@ msgstr "Yeni oda"
 
 msgid "Noch keine Zimmer."
 msgstr "Henüz oda yok."
+
+#. UX-D D4.6
+msgid "Die übrigen Änderungen sind gespeichert."
+msgstr "Diğer değişiklikleriniz kaydedildi."
+
+msgid "Nicht gefunden."
+msgstr "Bulunamadı."
+
+msgid "Entfernt."
+msgstr "Kaldırıldı."
+
+msgid "Jetzt im Verkauf."
+msgstr "Artık satışta."
+
+msgid "Nicht mehr im Verkauf."
+msgstr "Artık satışta değil."
+
+msgid "Bitte eine Zimmernummer angeben."
+msgstr "Lütfen bir oda numarası girin."
+
+#, python-format
+msgid "Zimmer %(number)s gibt es schon."
+msgstr "%(number)s numaralı oda zaten var."

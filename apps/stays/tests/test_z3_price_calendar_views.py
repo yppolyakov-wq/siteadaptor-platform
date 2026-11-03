@@ -255,8 +255,11 @@ def test_nav_entry_and_entry_links():
     assert "stays:price-calendar" in [e.url_name for e in nav_registry.ENTRIES]
     body = open("templates/stays/_belegungsplan_body.html").read()
     assert "stays:price-calendar" in body
+    # UX-D D4.6 (осознанная переписка): страница номера — свой шаблон unit_page.html
     units_tpl = open("templates/stays/units.html").read()
-    assert units_tpl.count("stays:price-calendar") >= 2 and "?kat={{ u.pk }}" in units_tpl
+    assert "stays:price-calendar" in units_tpl  # список: «Preise & Verfügbarkeit»
+    page_tpl = open("templates/stays/unit_page.html").read()
+    assert "stays:price-calendar" in page_tpl and "?kat={{ u.pk }}" in page_tpl
 
 
 def test_screen_is_behind_stays_module_gate():

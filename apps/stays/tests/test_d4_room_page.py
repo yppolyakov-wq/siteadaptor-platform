@@ -7,6 +7,7 @@
 
 import re
 import uuid
+from datetime import date
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -14,6 +15,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.http import Http404
 from django.test import RequestFactory
 
 from apps.core.models import Membership
@@ -385,3 +387,75 @@ def test_list_renders_rows_only():
     html = views.units(_req()).content.decode()
     assert 'id="unit-form"' not in html and "data-pf-tab" not in html
     assert "data-units-list" in html
+
+
+# --- ревью silent-failure: действия не молчат и трогают только свой номер ---------
+
+
+def _post(unit, data, role=Membership.ROLE_OWNER):
+    from django.contrib.messages import get_messages
+
+    req = _req("post", {"unit": str(unit.pk), **data}, role=role)
+    resp = views.units(req, pk=unit.pk)
+    return resp, [(m.level_tag, str(m)) for m in get_messages(req)]
+
+
+def test_delete_from_room_page_cannot_touch_another_rooms_records():
+    from apps.stays.models import SeasonRate, UnitBlock
+
+    mine, other = _unit(), _unit(name="Anderes Zimmer")
+    rate = SeasonRate.objects.create(
+        unit=other, start_date="2026-12-01", end_date="2026-12-10", price_cents=1000
+    )
+    block = UnitBlock.objects.create(unit=other, start_date="2026-12-11", end_date="2026-12-12")
+    _resp, msgs = _post(mine, {"action": "rate_delete", "rate": str(rate.pk)})
+    assert SeasonRate.objects.filter(pk=rate.pk).exists()
+    assert msgs and msgs[-1][0] == "error"
+    _post(mine, {"action": "block_delete", "block": str(block.pk)})
+    assert UnitBlock.objects.filter(pk=block.pk).exists()
+    room = Room.objects.create(unit=other, number="201")
+    with pytest.raises(Http404):  # чужая комната со страницы номера
+        _post(mine, {"action": "room_delete", "room": str(room.pk)})
+    assert Room.objects.filter(pk=room.pk).exists()
+
+
+def test_own_delete_says_removed():
+    from apps.stays.models import SeasonRate
+
+    unit = _unit()
+    rate = SeasonRate.objects.create(
+        unit=unit, start_date="2026-12-01", end_date="2026-12-10", price_cents=1000
+    )
+    _resp, msgs = _post(unit, {"action": "rate_delete", "rate": str(rate.pk), "tab": "preise"})
+    assert not SeasonRate.objects.filter(pk=rate.pk).exists()
+    assert msgs[-1][0] == "success"
+    _resp, msgs = _post(unit, {"action": "rate_delete", "rate": "not-a-uuid"})
+    assert msgs[-1][0] == "error"
+
+
+def test_toggle_and_room_add_give_feedback():
+    unit = _unit()
+    _resp, msgs = _post(unit, {"action": "toggle"})
+    assert msgs and msgs[-1][0] == "success"
+    _resp, msgs = _post(unit, {"action": "room_add", "number": "   "})
+    assert msgs[-1][0] == "error" and not unit.rooms.exists()
+    _post(unit, {"action": "room_add", "number": "101"})
+    _resp, msgs = _post(unit, {"action": "room_add", "number": "101"})
+    assert msgs[-1][0] == "error" and unit.rooms.count() == 1
+
+
+def test_capacity_refusal_is_one_error_not_saved_plus_error(monkeypatch):
+    from apps.stays import capacity
+
+    unit = _unit()
+
+    def refuse(*a, **k):
+        raise capacity.CapacityBelowSold(day=date(2026, 12, 1), sold=2)
+
+    monkeypatch.setattr(capacity, "set_quantity", refuse)
+    data, _p = _parse(_page(unit))
+    data["description"] = ["Neu"]
+    _resp, msgs = _post(unit, {**data, "quantity": "1"})
+    assert [lvl for lvl, _t in msgs] == ["error"]
+    unit.refresh_from_db()
+    assert unit.description == "Neu"  # остальные поля сохранены

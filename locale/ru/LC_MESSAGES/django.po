@@ -32028,3 +32028,26 @@ msgstr "Новый номер"
 
 msgid "Noch keine Zimmer."
 msgstr "Номеров пока нет."
+
+#. UX-D D4.6
+msgid "Die übrigen Änderungen sind gespeichert."
+msgstr "Остальные изменения сохранены."
+
+msgid "Nicht gefunden."
+msgstr "Не найдено."
+
+msgid "Entfernt."
+msgstr "Удалено."
+
+msgid "Jetzt im Verkauf."
+msgstr "Теперь в продаже."
+
+msgid "Nicht mehr im Verkauf."
+msgstr "Снято с продажи."
+
+msgid "Bitte eine Zimmernummer angeben."
+msgstr "Укажите номер комнаты."
+
+#, python-format
+msgid "Zimmer %(number)s gibt es schon."
+msgstr "Комната %(number)s уже есть."

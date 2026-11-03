@@ -888,12 +888,18 @@ try { (function () {
     if (!btn) return;
     var field = document.getElementById(btn.getAttribute("data-copy-target"));
     if (!field) return;
-    field.focus();
+    // UX-D D4.6 (ревью a11y): фокус остаётся на кнопке, результат — в живой области
+    // [data-copy-status] рядом (если есть), иначе читалка не услышит «Kopiert».
     field.select();
     var label = btn.textContent, done = btn.getAttribute("data-copied") || label;
+    var status = btn.parentNode && btn.parentNode.querySelector("[data-copy-status]");
     function ok() {
       btn.textContent = done;
-      setTimeout(function () { btn.textContent = label; }, 1500);
+      if (status) status.textContent = done;
+      setTimeout(function () {
+        btn.textContent = label;
+        if (status) status.textContent = "";
+      }, 1500);
     }
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(field.value).then(ok, function () {});

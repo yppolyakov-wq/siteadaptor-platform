@@ -12,14 +12,14 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
 форм нет), каждая несёт `tab` и возвращает на свою вкладку.{% endcomment %}
 {% i18n_base_locale as base_loc %}
 <div data-room-page>
-<a href="{% url 'stays:units' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Units" %}</a>
+<a href="{% url 'stays:units' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Units" %}</a>
 <div class="flex items-start justify-between gap-3 flex-wrap mt-1 mb-4">
   <div class="min-w-0">
     <div class="flex items-center gap-3 flex-wrap">
       <h1 class="ui-h1 break-words">{{ u.name }}</h1>
       {% lang_switch %}
     </div>
-    <p class="text-sm text-gray-600 mt-0.5" data-room-summary>{{ u.get_type_display }} · {{ u.price_eur|floatformat:2 }} €/{% trans "night" %} · ×{{ u.quantity }}{% if rooms_n %} · {% blocktrans count n=rooms_n %}{{ n }} Zimmer{% plural %}{{ n }} Zimmer{% endblocktrans %}{% endif %} · {% trans "Max. guests" %} {{ u.max_guests }}</p>
+    <p class="text-sm text-gray-600 mt-0.5" data-room-summary>{{ u.get_type_display }} · {{ u.price_eur|floatformat:2 }} €/{% trans "night" %} · <span aria-hidden="true">×</span><span class="sr-only">{% trans "Quantity" %}</span>{{ u.quantity }}{% if rooms_n %} · {% trans "Rooms" %}: {{ rooms_n }}{% endif %} · {% trans "Max. guests" %} {{ u.max_guests }}</p>
   </div>
   <div class="flex items-center gap-2 flex-wrap">
     <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium {% if u.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}"><span class="w-1.5 h-1.5 rounded-full {% if u.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if u.is_active %}{% trans "Im Verkauf" %}{% else %}{% trans "Aus" %}{% endif %}</span>
@@ -42,11 +42,11 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
   {% endfor %}
 {% endif %}
 
-<div class="ui-tabs mb-4" role="tablist" aria-label="{% trans 'Zimmer' %}">
+<div class="ui-tabs mb-4" role="tablist" aria-label="{% trans 'Bereiche' %}">
   <button type="button" data-pf-tab="basis" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'basis' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'basis' %}0{% else %}-1{% endif %}">{% trans "Basic data" %}</button>
-  <button type="button" data-pf-tab="preise" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'preise' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'preise' %}0{% else %}-1{% endif %}">{% trans "Prices" %}{% if season_n %} <span class="text-gray-500">· {{ season_n }}</span>{% endif %}</button>
+  <button type="button" data-pf-tab="preise" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'preise' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'preise' %}0{% else %}-1{% endif %}">{% trans "Prices" %}{% if season_n %} <span class="text-gray-600">· {{ season_n }}</span>{% endif %}</button>
   <button type="button" data-pf-tab="regeln" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'regeln' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'regeln' %}0{% else %}-1{% endif %}">{% trans "Rules & capacity" %}</button>
-  <button type="button" data-pf-tab="zimmer" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'zimmer' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'zimmer' %}0{% else %}-1{% endif %}">{% trans "Rooms" %}{% if rooms_n %} <span class="text-gray-500">· {{ rooms_n }}</span>{% endif %}</button>
+  <button type="button" data-pf-tab="zimmer" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'zimmer' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'zimmer' %}0{% else %}-1{% endif %}">{% trans "Rooms" %}{% if rooms_n %} <span class="text-gray-600">· {{ rooms_n }}</span>{% endif %}</button>
   <button type="button" data-pf-tab="ical" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'ical' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'ical' %}0{% else %}-1{% endif %}">{% trans "Calendar sync (iCal)" %}</button>
 </div>
 
@@ -58,14 +58,14 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
   {# --- Grunddaten -------------------------------------------------------- #}
   <div data-pf-panel="basis" class="grid sm:grid-cols-3 gap-3 items-end{% if active_tab != 'basis' %} hidden{% endif %}">
     <div class="sm:col-span-3">
-      <div data-i18n-loc="{{ base_loc }}">
+      <div data-i18n-loc="{{ base_loc }}" lang="{{ base_loc }}">
         <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</span>
         <textarea name="description" rows="3" class="ui-input" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea></label>
       </div>
       {# E9.10: переводы — группой на язык; видна выбранная в выпадашке у заголовка. #}
       {% regroup u.i18n_inputs by locale as by_loc %}
       {% for grp in by_loc %}
-      <div data-i18n-loc="{{ grp.grouper }}" class="hidden space-y-2">
+      <div data-i18n-loc="{{ grp.grouper }}" lang="{{ grp.grouper }}" class="hidden space-y-2">
         {% for inp in grp.list %}
           <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</span>
           {% if inp.field == 'name' %}<input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">{% else %}<textarea name="{{ inp.input_name }}" rows="3" class="ui-input">{{ inp.value }}</textarea>{% endif %}</label>
@@ -100,12 +100,13 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
   <div data-pf-panel="preise" class="{% if active_tab != 'preise' %}hidden{% endif %}">
     <p class="text-xs text-gray-600 mb-3">
       {% trans "Saisonpreise für Zeiträume legen Sie weiter unten auf dieser Seite fest." %}
-      <a href="{% url 'stays:price-calendar' %}?kat={{ u.pk }}" class="text-indigo-700 hover:underline ml-1" data-price-calendar-link>{% trans "Preise & Verfügbarkeit" %} <span aria-hidden="true">→</span></a>
-      <a href="{% url 'stays:rate-plans' %}" class="text-indigo-700 hover:underline ml-2" data-rate-plans-link>{% trans "Tarife" %} <span aria-hidden="true">→</span></a>
+      <a href="{% url 'stays:price-calendar' %}?kat={{ u.pk }}" class="text-indigo-700 underline ml-1" data-price-calendar-link>{% trans "Preise & Verfügbarkeit" %} <span aria-hidden="true">→</span></a>
+      <a href="{% url 'stays:rate-plans' %}" class="text-indigo-700 underline ml-2" data-rate-plans-link>{% trans "Tarife" %} <span aria-hidden="true">→</span></a>
     </p>
-    {% if not can_edit_prices %}<p class="text-xs text-gray-600 mb-2" data-prices-readonly>{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}</p>{% endif %}
+    {% if not can_edit_prices %}<p id="unit-prices-ro" class="text-xs text-gray-600 mb-2" data-prices-readonly>{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}</p>{% endif %}
     {# Z-4 Р-7: сотрудник видит цены, но не правит — поля выключены (сервер их и так не пишет) #}
-    <fieldset class="grid sm:grid-cols-3 gap-3 items-end"{% if not can_edit_prices %} disabled{% endif %}>
+    <fieldset class="grid sm:grid-cols-3 gap-3 items-end"{% if not can_edit_prices %} disabled aria-describedby="unit-prices-ro"{% endif %}>
+      <legend class="sr-only">{% trans "Prices" %}</legend>
       <div>
         <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price / night (€)" %}</span>
         <input name="price_eur" type="text" inputmode="decimal" value="{{ u.price_eur|stringformat:'.2f' }}" class="ui-input"></label>
@@ -177,17 +178,17 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
 {% endif %}
 
 {# --- сезонные тарифы (A5a) — вкладка «Preise» --------------------------------- #}
-<section data-pf-panel="preise" class="ui-card p-5 max-w-3xl mt-4{% if active_tab != 'preise' %} hidden{% endif %}" aria-labelledby="room-seasons-h" data-room-seasons>
+<div data-pf-panel="preise" class="ui-card p-5 max-w-3xl mt-4{% if active_tab != 'preise' %} hidden{% endif %}" data-room-seasons>
   <h2 id="room-seasons-h" class="ui-h2 mb-2">{% trans "Season rates (€/night for a date range)" %}</h2>
   {% for r in u.season_rates.all %}
     <div class="flex items-center gap-2 text-sm text-gray-700 mb-1 flex-wrap">
       <span>{{ r.start_date|date:"d.m.Y" }} – {{ r.end_date|date:"d.m.Y" }} · {{ r.price_eur|stringformat:".2f" }} €{% if r.label %} · {{ r.label }}{% endif %}</span>
-      {% if r.pk in u.season_overlaps %}<span data-season-overlap class="text-xs bg-amber-100 text-amber-800 rounded px-1.5 py-0.5" title="{% trans 'Bei Überschneidung gilt die früher beginnende Saison.' %}">⚠ {% trans "Überschneidung" %}<span class="sr-only"> — {% trans "Bei Überschneidung gilt die früher beginnende Saison." %}</span></span>{% endif %}
+      {% if r.pk in u.season_overlaps %}<span data-season-overlap class="text-xs bg-amber-100 text-amber-800 rounded px-1.5 py-0.5" title="{% trans 'Bei Überschneidung gilt die früher beginnende Saison.' %}"><span aria-hidden="true">⚠</span> {% trans "Überschneidung" %}<span class="sr-only"> — {% trans "Bei Überschneidung gilt die früher beginnende Saison." %}</span></span>{% endif %}
       {% if can_edit_prices %}
       <form method="post" class="inline">{% csrf_token %}
         <input type="hidden" name="action" value="rate_delete"><input type="hidden" name="rate" value="{{ r.pk }}">
         <input type="hidden" name="tab" value="preise">
-        <button class="text-red-700 hover:underline text-xs">{% trans "Remove" %}</button>
+        <button aria-label="{% trans 'Remove' %}: {{ r.start_date|date:'d.m.Y' }} – {{ r.end_date|date:'d.m.Y' }}" class="text-red-700 hover:underline text-xs min-h-[24px] px-1">{% trans "Remove" %}</button>
       </form>
       {% endif %}
     </div>
@@ -197,17 +198,17 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
     {% csrf_token %}
     <input type="hidden" name="action" value="rate"><input type="hidden" name="unit" value="{{ u.pk }}">
     <input type="hidden" name="tab" value="preise">
-    <input aria-label="{% trans "From" %}" type="date" name="start_date" required class="ui-input w-auto">
-    <input aria-label="{% trans "To" %}" type="date" name="end_date" required class="ui-input w-auto">
-    <input type="text" name="price_eur" inputmode="decimal" required aria-label="{% trans "€/Nacht" %}" placeholder="{% trans "€/Nacht" %}" class="ui-input w-28">
-    <input type="text" name="label" aria-label="{% trans 'Label' %}" placeholder="{% trans 'Label' %}" class="ui-input w-auto">
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "From" %}</span><input type="date" name="start_date" required class="ui-input w-auto"></label>
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "To" %}</span><input type="date" name="end_date" required class="ui-input w-auto"></label>
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "€/Nacht" %}</span><input type="text" name="price_eur" inputmode="decimal" required placeholder="{% trans "€/Nacht" %}" class="ui-input w-28"></label>
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans 'Label' %}</span><input type="text" name="label" placeholder="{% trans 'Label' %}" class="ui-input w-auto"></label>
     <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Add rate" %}</button>
   </form>
   {% endif %}
-</section>
+</div>
 
 {# --- блокировки дат — вкладка «Regeln & Kapazität» ----------------------------- #}
-<section data-pf-panel="regeln" class="ui-card p-5 max-w-3xl mt-4{% if active_tab != 'regeln' %} hidden{% endif %}" aria-labelledby="room-blocks-h" data-room-blocks>
+<div data-pf-panel="regeln" class="ui-card p-5 max-w-3xl mt-4{% if active_tab != 'regeln' %} hidden{% endif %}" data-room-blocks>
   <h2 id="room-blocks-h" class="ui-h2 mb-2">{% trans "Blocked dates" %}</h2>
   {% for bl in u.blocks.all %}
     <div class="flex items-center gap-2 text-sm text-gray-700 mb-1 flex-wrap">
@@ -215,7 +216,7 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
       <form method="post" class="inline">{% csrf_token %}
         <input type="hidden" name="action" value="block_delete"><input type="hidden" name="block" value="{{ bl.pk }}">
         <input type="hidden" name="tab" value="regeln">
-        <button class="text-red-700 hover:underline text-xs">{% trans "Remove" %}</button>
+        <button aria-label="{% trans 'Remove' %}: {{ bl.start_date|date:'d.m.Y' }} – {{ bl.end_date|date:'d.m.Y' }}" class="text-red-700 hover:underline text-xs min-h-[24px] px-1">{% trans "Remove" %}</button>
       </form>
     </div>
   {% empty %}<p class="text-sm ui-muted mb-1">{% trans "None" %}</p>{% endfor %}
@@ -223,64 +224,65 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
     {% csrf_token %}
     <input type="hidden" name="action" value="block"><input type="hidden" name="unit" value="{{ u.pk }}">
     <input type="hidden" name="tab" value="regeln">
-    <input aria-label="{% trans "From" %}" type="date" name="start_date" required class="ui-input w-auto">
-    <input aria-label="{% trans "To" %}" type="date" name="end_date" required class="ui-input w-auto">
-    <input type="text" name="reason" aria-label="{% trans 'Reason' %}" placeholder="{% trans 'Reason' %}" class="ui-input w-auto">
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "From" %}</span><input type="date" name="start_date" required class="ui-input w-auto"></label>
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "To" %}</span><input type="date" name="end_date" required class="ui-input w-auto"></label>
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans 'Reason' %}</span><input type="text" name="reason" placeholder="{% trans 'Reason' %}" class="ui-input w-auto"></label>
     {% comment %}KA-12 E4.10a: блок одной комнаты (ремонт) — гостю её не назначить.{% endcomment %}
     {% if rooms_n %}
-    <select name="room" aria-label="{% trans 'Zimmer' %}" class="ui-input w-auto">
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans 'Zimmer' %}</span><select name="room" class="ui-input w-auto"></label>
       <option value="">{% trans "Alle Zimmer dieser Kategorie" %}</option>
       {% for r in u.rooms.all %}<option value="{{ r.pk }}">{% trans "Zimmer" %} {{ r.number }}</option>{% endfor %}
     </select>
     {% endif %}
     <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Block" %}</button>
   </form>
-</section>
+</div>
 
 {# --- PMS-R1: физические номера (Zimmer) — разбивка поверх quantity ----------------- #}
-<section data-pf-panel="zimmer" class="ui-card p-5 max-w-3xl{% if active_tab != 'zimmer' %} hidden{% endif %}" aria-labelledby="room-rooms-h" data-room-rooms>
+<div data-pf-panel="zimmer" class="ui-card p-5 max-w-3xl{% if active_tab != 'zimmer' %} hidden{% endif %}" data-room-rooms>
   <h2 id="room-rooms-h" class="ui-h2">{% trans "Rooms (physical numbers)" %}</h2>
   <p class="text-xs text-gray-600 mb-3">{% trans "capacity follows the room count" %}</p>
   <div class="flex items-center gap-2 flex-wrap mb-1">
   {% for r in u.rooms.all %}
-    <span class="inline-flex items-center gap-1.5 text-sm text-gray-700 border border-gray-200 rounded-lg px-2 py-1"><span aria-hidden="true">🚪</span> {{ r.number }}
+    <div class="inline-flex items-center gap-1.5 text-sm text-gray-700 border border-gray-200 rounded-lg px-2 py-1"><span aria-hidden="true">🚪</span> {{ r.number }}
       <form method="post" class="inline">{% csrf_token %}
         <input type="hidden" name="action" value="room_delete"><input type="hidden" name="room" value="{{ r.pk }}">
         <input type="hidden" name="tab" value="zimmer">
         <button aria-label="{% trans 'Remove' %}: {% trans 'Zimmer' %} {{ r.number }}" class="text-red-700 hover:underline text-xs min-w-[24px] min-h-[24px]" title="{% trans 'Remove' %}">×</button>
       </form>
-    </span>
+    </div>
   {% empty %}<p class="text-sm ui-muted mb-1">{% trans "None" %}</p>{% endfor %}
   </div>
   <form method="post" class="flex items-end gap-2 flex-wrap mt-3">
     {% csrf_token %}
     <input type="hidden" name="action" value="room_add"><input type="hidden" name="unit" value="{{ u.pk }}">
     <input type="hidden" name="tab" value="zimmer">
-    <input aria-label="{% trans "Zimmer" %}" type="text" name="number" required placeholder="101" class="ui-input w-28">
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Zimmer" %}</span><input type="text" name="number" required placeholder="101" class="ui-input w-28"></label>
     <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Add room" %}</button>
   </form>
-</section>
+</div>
 
 {# --- iCal-синхронизация (A5b): экспорт занятости + импорт Booking.com/Airbnb ------- #}
-<section data-pf-panel="ical" class="ui-card p-5 max-w-3xl{% if active_tab != 'ical' %} hidden{% endif %}" aria-labelledby="room-ical-h" data-room-ical>
+<div data-pf-panel="ical" class="ui-card p-5 max-w-3xl{% if active_tab != 'ical' %} hidden{% endif %}" data-room-ical>
   <h2 id="room-ical-h" class="ui-h2 mb-2">{% trans "Calendar sync (iCal)" %}</h2>
   <p id="room-ical-hint" class="text-xs text-gray-600 mb-1">{% trans "Export this unit's availability — paste this link into Booking.com / Airbnb / Google:" %}</p>
   {# UX-D D4.6: копирование — кнопкой (data-copy-target, cabinet.js), без inline-обработчиков #}
-  <input id="room-ical-export" aria-label="iCal {% trans "Link" %}" aria-describedby="room-ical-hint" type="text" readonly value="{{ u.ical_export_url }}" class="ui-input font-mono text-[11px]">
+  <input id="room-ical-export" aria-labelledby="room-ical-hint" type="text" readonly value="{{ u.ical_export_url }}" class="ui-input font-mono text-xs">
   <button type="button" data-copy-target="room-ical-export" data-copied="{% trans 'Copied!' %}" class="ui-btn ui-btn-secondary ui-btn-sm mt-2">{% trans "Kopieren" %}</button>
-  <p class="text-xs text-gray-600 mt-4 mb-2">{% trans "Import external calendars — booked dates will block this unit:" %}</p>
+  <span class="sr-only" role="status" data-copy-status></span>
+  <p id="room-ical-import-hint" class="text-xs text-gray-600 mt-4 mb-2">{% trans "Import external calendars — booked dates will block this unit:" %}</p>
   {% for s in u.ical_sources.all %}
     <div class="flex items-center gap-2 text-sm text-gray-700 mb-1 flex-wrap">
       <span>{{ s.label|default:"iCal" }} · <span class="text-xs text-gray-600">{% if s.last_synced_at %}{{ s.last_synced_at|date:"d.m.Y H:i" }} · {{ s.last_status }}{% else %}{% trans "not synced yet" %}{% endif %}</span></span>
       <form method="post" class="inline">{% csrf_token %}
         <input type="hidden" name="action" value="ical_sync"><input type="hidden" name="source" value="{{ s.pk }}">
         <input type="hidden" name="tab" value="ical">
-        <button class="text-indigo-700 hover:underline text-xs">{% trans "Sync now" %}</button>
+        <button aria-label="{% trans 'Sync now' %}: {{ s.label|default:'iCal' }}" class="text-indigo-700 hover:underline text-xs min-h-[24px] px-1">{% trans "Sync now" %}</button>
       </form>
       <form method="post" class="inline">{% csrf_token %}
         <input type="hidden" name="action" value="ical_delete"><input type="hidden" name="source" value="{{ s.pk }}">
         <input type="hidden" name="tab" value="ical">
-        <button class="text-red-700 hover:underline text-xs">{% trans "Remove" %}</button>
+        <button aria-label="{% trans 'Remove' %}: {{ s.label|default:'iCal' }}" class="text-red-700 hover:underline text-xs min-h-[24px] px-1">{% trans "Remove" %}</button>
       </form>
     </div>
   {% empty %}<p class="text-sm ui-muted mb-1">{% trans "None" %}</p>{% endfor %}
@@ -288,10 +290,10 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
     {% csrf_token %}
     <input type="hidden" name="action" value="ical_add"><input type="hidden" name="unit" value="{{ u.pk }}">
     <input type="hidden" name="tab" value="ical">
-    <input aria-label="iCal {% trans "Link" %}" type="url" name="url" required placeholder="https://…/calendar.ics" class="ui-input flex-1 min-w-[16rem]">
-    <input type="text" name="label" aria-label="{% trans 'Booking.com / Airbnb' %}" placeholder="{% trans 'Booking.com / Airbnb' %}" class="ui-input w-auto">
+    <input aria-labelledby="room-ical-import-hint" type="url" name="url" required placeholder="https://…/calendar.ics" class="ui-input min-w-0 w-full sm:w-auto sm:flex-1">
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans 'Booking.com / Airbnb' %}</span><input type="text" name="label" placeholder="{% trans 'Booking.com / Airbnb' %}" class="ui-input w-auto"></label>
     <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Add source" %}</button>
   </form>
-</section>
+</div>
 </div>
 {% endblock %}

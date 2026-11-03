@@ -32012,3 +32012,26 @@ msgstr "Новий номер"
 
 msgid "Noch keine Zimmer."
 msgstr "Номерів поки немає."
+
+#. UX-D D4.6
+msgid "Die übrigen Änderungen sind gespeichert."
+msgstr "Інші зміни збережено."
+
+msgid "Nicht gefunden."
+msgstr "Не знайдено."
+
+msgid "Entfernt."
+msgstr "Видалено."
+
+msgid "Jetzt im Verkauf."
+msgstr "Тепер у продажу."
+
+msgid "Nicht mehr im Verkauf."
+msgstr "Знято з продажу."
+
+msgid "Bitte eine Zimmernummer angeben."
+msgstr "Вкажіть номер кімнати."
+
+#, python-format
+msgid "Zimmer %(number)s gibt es schon."
+msgstr "Кімната %(number)s вже є."

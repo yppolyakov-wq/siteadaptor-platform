@@ -102,13 +102,19 @@
   function wireTabs() {
     document.querySelectorAll("[data-pf-tab]").forEach(function (b) {
       var key = b.getAttribute("data-pf-tab");
-      var panel = document.querySelector('[data-pf-panel="' + key + '"]');
-      if (!panel) return;
+      // UX-D D4.6 (ревью a11y): у вкладки может быть несколько частей (страница номера:
+      // часть общей формы + мини-формы ниже) — роль и подпись получает КАЖДАЯ часть.
+      var panels = document.querySelectorAll('[data-pf-panel="' + key + '"]');
+      if (!panels.length) return;
       if (!b.id) b.id = "pf-tab-" + key;
-      if (!panel.id) panel.id = "pf-panel-" + key;
-      b.setAttribute("aria-controls", panel.id);
-      panel.setAttribute("role", "tabpanel");
-      panel.setAttribute("aria-labelledby", b.id);
+      var ids = [];
+      panels.forEach(function (panel, i) {
+        if (!panel.id) panel.id = "pf-panel-" + key + (i ? "-" + i : "");
+        panel.setAttribute("role", "tabpanel");
+        panel.setAttribute("aria-labelledby", b.id);
+        ids.push(panel.id);
+      });
+      b.setAttribute("aria-controls", ids.join(" "));
     });
   }
   function onReady() { wireTabs(); openFromUrl(); }

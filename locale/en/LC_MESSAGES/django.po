@@ -31739,3 +31739,26 @@ msgstr "New room"
 
 msgid "Noch keine Zimmer."
 msgstr "No rooms yet."
+
+#. UX-D D4.6
+msgid "Die übrigen Änderungen sind gespeichert."
+msgstr "Your other changes were saved."
+
+msgid "Nicht gefunden."
+msgstr "Not found."
+
+msgid "Entfernt."
+msgstr "Removed."
+
+msgid "Jetzt im Verkauf."
+msgstr "Now on sale."
+
+msgid "Nicht mehr im Verkauf."
+msgstr "No longer on sale."
+
+msgid "Bitte eine Zimmernummer angeben."
+msgstr "Please enter a room number."
+
+#, python-format
+msgid "Zimmer %(number)s gibt es schon."
+msgstr "Room %(number)s already exists."

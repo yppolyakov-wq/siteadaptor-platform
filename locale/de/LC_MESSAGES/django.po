@@ -31826,3 +31826,26 @@ msgstr ""
 
 msgid "Noch keine Zimmer."
 msgstr ""
+
+#. UX-D D4.6
+msgid "Die übrigen Änderungen sind gespeichert."
+msgstr "Die übrigen Änderungen sind gespeichert."
+
+msgid "Nicht gefunden."
+msgstr "Nicht gefunden."
+
+msgid "Entfernt."
+msgstr "Entfernt."
+
+msgid "Jetzt im Verkauf."
+msgstr "Jetzt im Verkauf."
+
+msgid "Nicht mehr im Verkauf."
+msgstr "Nicht mehr im Verkauf."
+
+msgid "Bitte eine Zimmernummer angeben."
+msgstr "Bitte eine Zimmernummer angeben."
+
+#, python-format
+msgid "Zimmer %(number)s gibt es schon."
+msgstr "Zimmer %(number)s gibt es schon."

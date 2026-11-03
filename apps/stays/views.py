@@ -12,7 +12,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1124,6 +1124,23 @@ def _season_overlap_msg(conflict):
     return _("Überschneidet sich mit einer Saison (%(start)s – %(end)s).") % params
 
 
+def _scoped(manager, unit_pk):
+    """UX-D D4.6 (ревью): действие со страницы номера трогает только ЕГО записи."""
+    return manager.filter(unit_id=unit_pk) if unit_pk else manager.all()
+
+
+def _removed(request, qs, obj_pk) -> None:
+    """Удалить запись по pk и сказать об этом (раньше — молча, даже если не нашлось)."""
+    try:
+        deleted, _detail = qs.filter(pk=obj_pk).delete()
+    except (ValueError, ValidationError):  # мусорный pk
+        deleted = 0
+    if deleted:
+        messages.success(request, _("Entfernt."))
+    else:
+        messages.error(request, _("Nicht gefunden."))
+
+
 # UX-D D4.6: вкладки страницы номера (белый список) и вкладка по умолчанию для действий
 # старых вкладок браузера без поля `tab` (каждая мини-форма живёт на одной вкладке).
 ROOM_TABS = ("basis", "preise", "regeln", "zimmer", "ical")
@@ -1162,7 +1179,12 @@ def units(request, pk=None):
         # Гейт ДО чтения pk из POST (не различаем существующий/несуществующий pk).
         if action in RATE_EDIT_ACTIONS and not has_perm(request.user, "preise.edit"):
             messages.error(request, _("Preise und Tarife ändern nur Inhaber und Admins."))
-            return redirect("stays:unit-edit", pk=pk) if pk else redirect("stays:units")
+            if pk:  # UX-D D4.6: на вкладку действия (сезоны — «Preise»)
+                tab = request.POST.get("tab")
+                return redirect(
+                    _room_page_url(pk, tab if tab in ROOM_TABS else ROOM_ACTION_TAB.get(action))
+                )
+            return redirect("stays:units")
         # UX-D D4.3 (ревью): удобства на карточке — настройка экрана «Unterkunft»
         # (einstellungen.edit); старый адрес списка номеров (sortiment.edit) не обходит её.
         if action == "card_amenities" and not has_perm(request.user, "einstellungen.edit"):
@@ -1245,7 +1267,7 @@ def units(request, pk=None):
             _uf += apply_i18n_overlay(unit, request.POST, getattr(request, "tenant", None))  # L3d
             unit.save(update_fields=_uf)
             _add_unit_photos(unit, request.FILES.getlist("photos"))
-            messages.success(request, _("Unit saved."))
+            capacity_error = None
             # Z-5 Р-5 (DF-Z3, О-8): ёмкость — отдельно и под локом категории; отказ
             # не теряет остальные поля. PMS-R1: при комнатах ёмкость = их число
             # (ручной ввод игнорируется); W0: без поля quantity не трогаем.
@@ -1259,7 +1281,15 @@ def units(request, pk=None):
                         timezone.localdate(),
                     )
                 except capacity.CapacityBelowSold as exc:
-                    messages.error(request, _capacity_msg(exc))
+                    capacity_error = exc
+            # UX-D D4.6 (ревью): не «сохранено» рядом с ошибкой ёмкости — одно сообщение
+            if capacity_error is None:
+                messages.success(request, _("Unit saved."))
+            else:
+                messages.error(
+                    request,
+                    f"{_capacity_msg(capacity_error)} {_('Die übrigen Änderungen sind gespeichert.')}",
+                )
         elif action == "photo_delete":
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             from apps.catalog.images import delete_stored_image
@@ -1271,8 +1301,12 @@ def units(request, pk=None):
                     delete_stored_image(i)
             if keep and not any(i.get("is_primary") for i in keep):
                 keep[0]["is_primary"] = True  # обложка не должна потеряться
-            unit.images = keep
-            unit.save(update_fields=["images", "updated_at"])
+            if len(keep) == len(unit.images):
+                messages.error(request, _("Nicht gefunden."))  # UX-D D4.6: не молча
+            else:
+                unit.images = keep
+                unit.save(update_fields=["images", "updated_at"])
+                messages.success(request, _("Entfernt."))
         elif action == "rate":  # A5a: сезонный тариф
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             try:
@@ -1293,14 +1327,16 @@ def units(request, pk=None):
             except (TypeError, ValueError):
                 messages.error(request, _("Invalid dates."))
         elif action == "rate_delete":
-            SeasonRate.objects.filter(pk=request.POST.get("rate")).delete()
+            # UX-D D4.6 (ревью): со страницы номера — только сезоны ЭТОГО номера
+            _removed(request, _scoped(SeasonRate.objects, pk), request.POST.get("rate"))
         elif action == "toggle":
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             unit.is_active = not unit.is_active
             unit.save(update_fields=["is_active", "updated_at"])
+            messages.success(
+                request, _("Jetzt im Verkauf.") if unit.is_active else _("Nicht mehr im Verkauf.")
+            )
         elif action == "block":
-            from django.core.exceptions import ValidationError
-
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             try:
                 start_date = date.fromisoformat(request.POST.get("start_date", ""))
@@ -1329,16 +1365,21 @@ def units(request, pk=None):
             except (TypeError, ValueError, ValidationError):
                 messages.error(request, _("Invalid dates."))
         elif action == "block_delete":
-            UnitBlock.objects.filter(pk=request.POST.get("block")).delete()
+            _removed(request, _scoped(UnitBlock.objects, pk), request.POST.get("block"))
         elif action == "room_add":  # PMS-R1: физический номер категории («101»)
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             number = request.POST.get("number", "").strip()[:40]
-            if number:
-                Room.objects.get_or_create(unit=unit, number=number)
+            if not number:
+                messages.error(request, _("Bitte eine Zimmernummer angeben."))
+            elif not Room.objects.get_or_create(unit=unit, number=number)[1]:
+                messages.error(request, _("Zimmer %(number)s gibt es schon.") % {"number": number})
+            else:
                 services.sync_room_quantity(unit)
                 messages.success(request, _("Room added."))
         elif action == "room_delete":  # PMS-R1: удалить комнату + синк ёмкости
-            room = get_object_or_404(Room, pk=rate_plans_mod.parse_uuid(request.POST.get("room")))
+            room = get_object_or_404(
+                _scoped(Room.objects, pk), pk=rate_plans_mod.parse_uuid(request.POST.get("room"))
+            )
             # KA-12 E4.10a (ревью): блок удалённой комнаты стал бы блоком категории
             # и вычитал бы номер второй раз — capacity.delete_room удаляет и его.
             # Z-5 Р-5 (О-8): занятая/проданная комната не удаляется.
@@ -1355,6 +1396,8 @@ def units(request, pk=None):
                 )
             except capacity.CapacityBelowSold as exc:
                 messages.error(request, _capacity_msg(exc))
+            else:
+                messages.success(request, _("Entfernt."))
         elif action == "ical_add":  # A5b: подписка на внешний iCal-фид
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
             url = request.POST.get("url", "").strip()
@@ -1368,13 +1411,16 @@ def units(request, pk=None):
             else:
                 messages.error(request, _("Please enter the calendar URL."))
         elif action == "ical_delete":
-            src = ICalSource.objects.filter(pk=request.POST.get("source")).first()
-            if src is not None:
+            src = _scoped(ICalSource.objects, pk).filter(pk=request.POST.get("source")).first()
+            if src is None:
+                messages.error(request, _("Nicht gefunden."))
+            else:
                 # убрать заведённые им блоки вместе с источником
                 UnitBlock.objects.filter(unit=src.unit, source_id_ref=str(src.pk)).delete()
                 src.delete()
+                messages.success(request, _("Entfernt."))
         elif action == "ical_sync":
-            src = get_object_or_404(ICalSource, pk=request.POST.get("source"))
+            src = get_object_or_404(_scoped(ICalSource.objects, pk), pk=request.POST.get("source"))
             n = services.sync_ical_source(src)
             messages.success(request, _("Synced: %(n)d blocked range(s).") % {"n": n})
         if pk:
