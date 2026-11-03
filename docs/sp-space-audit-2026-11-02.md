@@ -124,6 +124,6 @@ UI-элементы; `security-reviewer` — только при вводе/пр
 | `code-reviewer` SP-1/2 + MA-L | ✅ (2 средних — исправлены) |
 | `a11y-architect` SP-1/2 + MA-L | ✅ (фокус после свопа, scroll-padding, aria-current, высоты слоёв) |
 | `django-reviewer` SP-3/5, SP-6…9, SP-10…13 | ✅ 5 дефектов — исправлены |
-| `a11y-architect` SP-3…SP-14 | ⏳ |
-| `django-reviewer` SP-14 | ⏳ |
+| `a11y-architect` SP-3…SP-14 | ✅ 10 правок внесены; контраст на акценте тенанта — отдельно |
+| `django-reviewer` SP-14 | ✅ (гейт i18n научен msgctxt) |
 | Финальная Playwright-сверка всех изменённых экранов 1440/390 (+ru) | ⏳ |

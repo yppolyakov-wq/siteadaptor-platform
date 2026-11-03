@@ -69,14 +69,14 @@
     {% csrf_token %}
 
     <div class="ui-tabs flex-nowrap overflow-x-auto p-1 -m-1" role="tablist" aria-label="{% trans "Promotion" %}">
-      <button type="button" data-pf-tab="grund" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="true" tabindex="0">{% trans "Basics" %}</button>
-      <button type="button" data-pf-tab="rabatt" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Discount" %}</button>
-      <button type="button" data-pf-tab="zeit" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Quantity & time" %}</button>
-      <button type="button" data-pf-tab="anz" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Display" %}</button>
+      <button type="button" data-pf-tab="grund" id="pf-tab-grund" aria-controls="pf-panel-grund" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="true" tabindex="0">{% trans "Basics" %}</button>
+      <button type="button" data-pf-tab="rabatt" id="pf-tab-rabatt" aria-controls="pf-panel-rabatt" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Discount" %}</button>
+      <button type="button" data-pf-tab="zeit" id="pf-tab-zeit" aria-controls="pf-panel-zeit" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Quantity & time" %}</button>
+      <button type="button" data-pf-tab="anz" id="pf-tab-anz" aria-controls="pf-panel-anz" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Display" %}</button>
     </div>
 
     {# Basics: заголовок/описание (per язык) + товар/раздел + фото #}
-    <div data-pf-panel="grund" class="space-y-4 pt-2">
+    <div data-pf-panel="grund" id="pf-panel-grund" role="tabpanel" aria-labelledby="pf-tab-grund" class="space-y-4 pt-2">
       {% for g in i18n_groups %}{% include "tenant/_i18n_group.html" %}{% endfor %}
       {# W11-4: цели ценового слоя (service/stay_unit/combo) — рядом с товаром #}
       {% for field in form %}{% if field.name == 'product' or field.name == 'service' or field.name == 'stay_unit' or field.name == 'combo' or field.name == 'category' or field.name == 'whole_shop' or field.name == 'group' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
@@ -106,7 +106,7 @@
     {% comment %}SP-5 (аудит пространства 2026-11-02): парные поля — в две колонки на sm+
     (старая/новая цена, % / €, начало/конец, количество/лимит, часы окна); одиночные
     и флажки — во всю ширину. Набор полей и их name прежние (Save не меняется).{% endcomment %}
-    <div data-pf-panel="rabatt" class="space-y-3 pt-2 hidden">
+    <div data-pf-panel="rabatt" id="pf-panel-rabatt" role="tabpanel" aria-labelledby="pf-tab-rabatt" class="space-y-3 pt-2 hidden">
       {% for field in form %}{% if field.name == 'promo_type' or field.name == 'customer_response' or field.name == 'customer_rule' or field.name == 'gift_min_order' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
       <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3 items-start">{% for field in form %}{% if field.name == 'compare_at_price' or field.name == 'price_override' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}</div>
       <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3 items-start">{% for field in form %}{% if field.name == 'discount_percent' or field.name == 'discount_off' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}</div>
@@ -121,7 +121,7 @@
     </div>
 
     {# Menge & Zeit #}
-    <div data-pf-panel="zeit" class="space-y-3 pt-2 hidden">
+    <div data-pf-panel="zeit" id="pf-panel-zeit" role="tabpanel" aria-labelledby="pf-tab-zeit" class="space-y-3 pt-2 hidden">
       <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3 items-start">{% for field in form %}{% if field.name == 'starts_at' or field.name == 'ends_at' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}</div>
       <div class="grid sm:grid-cols-2 gap-x-4 gap-y-3 items-start">{% for field in form %}{% if field.name == 'available_quantity' or field.name == 'max_per_customer' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}</div>
       {% for field in form %}{% if field.name == 'reservation_ttl_hours' or field.name == 'auto_confirm' or field.name == 'recurrence' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
@@ -132,7 +132,7 @@
     </div>
 
     {# Anzeige: перечёркнутая цена, обратный отсчёт, форма карточки (DL-19) #}
-    <div data-pf-panel="anz" class="space-y-3 pt-2 hidden">
+    <div data-pf-panel="anz" id="pf-panel-anz" role="tabpanel" aria-labelledby="pf-tab-anz" class="space-y-3 pt-2 hidden">
       {% for field in form %}{% if field.name == 'strikethrough_old_price' or field.name == 'show_countdown' or field.name == 'card_style' or field.name == 'page_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
     </div>
 

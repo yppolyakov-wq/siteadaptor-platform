@@ -55,7 +55,7 @@ LAY-1b (фидбэк владельца «нельзя отредактиров�
         <details class="py-3 group break-inside-avoid">
           <summary class="cursor-pointer font-medium text-gray-800 flex items-center justify-between">
             <span data-edit="faq.{{ forloop.counter0 }}.q">{{ f.q }}</span>
-            <span class="text-gray-400 group-open:rotate-180 transition">⌄</span>
+            <span class="text-gray-400 group-open:rotate-180 transition" aria-hidden="true">⌄</span>
           </summary>
           <p class="mt-2 text-gray-600 whitespace-pre-line" data-edit="faq.{{ forloop.counter0 }}.a">{{ f.a }}</p>
         </details>

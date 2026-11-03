@@ -28,6 +28,7 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}tag={{ next_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{{ next_day|date:"D d.m." }} →</a>
 </div>
 
+{% if not deal_calendar_compact %}<p class="mb-2 xl:hidden"><a href="#neu" class="text-sm text-indigo-600 hover:underline" data-skip-neu>＋ {% trans "Add booking" %} ↓</a></p>{% endif %}
 {% if has_tables %}<p class="mb-3"><a href="{% url 'booking:tischplan' %}?tag={{ day|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline" data-tischplan-link>🪑 {% trans "Tischplan" %} →</a></p>{% endif %}
 
 </div>
@@ -54,7 +55,7 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
         {% comment %}HF-6d: гость мог записаться сразу на несколько периодов — помечаем,
         что это часть общей брони, иначе владелец видит «двух разных» гостей подряд.{% endcomment %}
         {# Фидбэк 2026-08-05: reference_code → карточка брони (детали + действия). #}
-        <p class="text-xs text-gray-400">{{ b.customer }}{% if b.no_show_n %} <span class="text-amber-800 font-medium" data-no-show><span aria-hidden="true">⚠</span> {% blocktrans count n=b.no_show_n %}{{ n }}× nicht erschienen{% plural %}{{ n }}× nicht erschienen{% endblocktrans %}</span>{% endif %}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "guests" %}{% endif %}{% if b.is_large_party %} · <span class="text-amber-700 font-medium" data-large-party>👥 {% trans "Gruppenanfrage" %}</span>{% endif %} · <a href="{% url 'booking:booking-detail' b.pk %}" class="text-indigo-600 hover:underline">{{ b.reference_code }}</a>{% if b.group_code %} · 🔗 {% trans "Part of a multi-slot booking" %}{% endif %}{% if b.note %} · 📝 {{ b.note|truncatechars:60 }}{% endif %}</p>
+        <p class="text-xs text-gray-500">{{ b.customer }}{% if b.no_show_n %} <span class="text-amber-800 font-medium" data-no-show><span aria-hidden="true">⚠</span> {% blocktrans count n=b.no_show_n %}{{ n }}× nicht erschienen{% plural %}{{ n }}× nicht erschienen{% endblocktrans %}</span>{% endif %}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "guests" %}{% endif %}{% if b.is_large_party %} · <span class="text-amber-700 font-medium" data-large-party>👥 {% trans "Gruppenanfrage" %}</span>{% endif %} · <a href="{% url 'booking:booking-detail' b.pk %}" class="text-indigo-600 hover:underline">{{ b.reference_code }}</a>{% if b.group_code %} · 🔗 {% trans "Part of a multi-slot booking" %}{% endif %}{% if b.note %} · 📝 {{ b.note|truncatechars:60 }}{% endif %}</p>
       </div>
       <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="flex items-center gap-2 flex-wrap">
         {% csrf_token %}
@@ -65,7 +66,7 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
         {% if b.status == 'pending' or b.status == 'confirmed' %}
           {# SP-12: ряд переноса свёрнут — по строке брони видны только действия статуса. #}
           <details class="w-full sm:w-auto" data-move>
-          <summary class="cursor-pointer text-sm text-gray-500 hover:text-gray-700">{% trans "Move" %} …</summary>
+          <summary class="cursor-pointer text-sm text-gray-500 hover:text-gray-700" aria-label="{% trans "Move" %} {{ b.start|time:"H:i" }} {{ b.resource.name }}">{% trans "Move" %} …</summary>
           <div class="mt-2 flex items-center gap-2 flex-wrap">
           <input aria-label="{% trans "Start" %}" type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           {% if resources|length > 1 %}<label class="inline-flex items-center gap-1 text-xs text-gray-500">{% trans "Resource" %}
@@ -86,7 +87,7 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
 
 {% if not deal_calendar_compact %}<form method="post" action="{% url 'booking:booking-create' %}" id="neu" class="ui-card p-6 max-w-xl space-y-4 scroll-mt-24 xl:max-w-none xl:col-start-2 xl:row-start-1 xl:mb-4">
   {% csrf_token %}
-  <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
+  <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-500 font-normal">({% trans "e.g. phone call" %})</span></h2>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
       <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Resource" %}</span>

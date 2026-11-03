@@ -54,7 +54,7 @@
           <span class="min-w-0">
             <span class="font-semibold">{{ r.name }}</span> <span class="text-xs text-gray-400 font-normal">{{ r.get_type_display }} · ×{{ r.capacity }}{% if r.seats %} · {% blocktrans with n=r.seats %}{{ n }} Plätze{% endblocktrans %}{% endif %}{% if r.zone %} · {{ r.zone }}{% endif %}</span>
             {% if not r.is_active %}<span class="ui-badge ui-tone-off ml-1">{% trans "Inactive" %}</span>{% endif %}
-            <span class="block text-xs ui-muted mt-0.5 truncate" data-hours-summary>{% if r.hours_summary %}🕒 {{ r.hours_summary }}{% elif business_hours %}{% trans "Keine eigenen Zeiten — gebucht wird in den Öffnungszeiten des Geschäfts." %}{% else %}{% trans "No opening hours yet — not bookable online." %}{% endif %}</span>
+            <span class="block text-xs ui-muted mt-0.5" data-hours-summary>{% if r.hours_summary %}🕒 {{ r.hours_summary }}{% elif business_hours %}{% trans "Keine eigenen Zeiten — gebucht wird in den Öffnungszeiten des Geschäfts." %}{% else %}{% trans "No opening hours yet — not bookable online." %}{% endif %}</span>
           </span>
           <span class="shrink-0 text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
         </summary>
@@ -73,7 +73,7 @@
               {% for it in g.rules %}
                 <form method="post" class="inline">{% csrf_token %}
                   <input type="hidden" name="action" value="rule_delete"><input type="hidden" name="rule" value="{{ it.rule.pk }}"><input type="hidden" name="resource" value="{{ r.pk }}">
-                  <button class="text-xs rounded-full border border-gray-200 px-2 py-0.5 hover:border-red-400 hover:text-red-600" aria-label="{% trans 'Remove' %} {{ it.day }}">{{ it.day }} ✕</button>
+                  <button class="text-xs min-h-[24px] rounded-full border border-gray-200 px-2 py-0.5 hover:border-red-400 hover:text-red-600" aria-label="{% trans 'Remove' %} {{ it.day }} {{ g.time }}">{{ it.day }} ✕</button>
                 </form>
               {% endfor %}
             </div>

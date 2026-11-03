@@ -21,13 +21,13 @@
   <form method="post" class="space-y-4">
     {% csrf_token %}
     <div class="ui-tabs flex-nowrap overflow-x-auto p-1 -m-1" role="tablist" aria-label="{% trans "Legal" %}" data-legal-tabs>
-      <button type="button" data-pf-tab="steuer" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="true" tabindex="0">{% trans "Steuern & Unternehmensangaben" %}</button>
+      <button type="button" data-pf-tab="steuer" id="lg-tab-steuer" aria-controls="lg-panel-steuer" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="true" tabindex="0">{% trans "Steuern & Unternehmensangaben" %}</button>
       {% for k in kinds %}
-      <button type="button" data-pf-tab="{{ k.kind }}" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{{ k.label }}</button>
+      <button type="button" data-pf-tab="{{ k.kind }}" id="lg-tab-{{ k.kind }}" aria-controls="lg-panel-{{ k.kind }}" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{{ k.label }}</button>
       {% endfor %}
     </div>
     {# W9-5: реквизиты — раньше в «Mein Geschäft»; единственный редактор теперь тут. #}
-    <fieldset class="ui-card p-6 space-y-3" data-pf-panel="steuer">
+    <fieldset class="ui-card p-6 space-y-3" data-pf-panel="steuer" id="lg-panel-steuer" role="tabpanel" aria-labelledby="lg-tab-steuer">
       <legend class="sr-only">{% trans "Steuern & Unternehmensangaben" %}</legend>
       <input type="hidden" name="sec_steuer" value="1">
       <div class="grid sm:grid-cols-2 gap-4">
@@ -88,7 +88,7 @@
       </div>
     </fieldset>
     {% for k in kinds %}
-      <fieldset class="ui-card p-6 space-y-3 hidden" data-pf-panel="{{ k.kind }}">
+      <fieldset class="ui-card p-6 space-y-3 hidden" data-pf-panel="{{ k.kind }}" id="lg-panel-{{ k.kind }}" role="tabpanel" aria-labelledby="lg-tab-{{ k.kind }}">
         <legend class="sr-only">{{ k.label }}</legend>
         {% if k.kind == "agb" %}
           <p class="text-xs ui-muted mb-2">{% trans "Optional. The AGB page and its footer link appear only when a text is set." %}</p>
@@ -97,11 +97,11 @@
         {% endif %}
         {% for cell in k.cells %}
           <div data-i18n-loc="{{ cell.locale }}"{% if cell.locale != legal_shown_locale %} class="hidden"{% endif %}>
-            <label class="block text-sm font-medium mb-1" for="doc_{{ k.kind }}_{{ cell.locale }}">{{ cell.locale_label }} <span class="text-gray-400 uppercase text-xs">{{ cell.locale }}</span></label>
-            <textarea id="doc_{{ k.kind }}_{{ cell.locale }}" name="doc_{{ k.kind }}_{{ cell.locale }}" rows="14"
+            <label class="block text-sm font-medium mb-1" for="doc_{{ k.kind }}_{{ cell.locale }}">{{ cell.locale_label }} <span class="text-gray-500 uppercase text-xs">{{ cell.locale }}</span></label>
+            <textarea id="doc_{{ k.kind }}_{{ cell.locale }}" name="doc_{{ k.kind }}_{{ cell.locale }}" lang="{{ cell.locale }}" rows="14"
                       class="ui-input">{{ cell.text }}</textarea>
             {% if not cell.text and cell.fallback %}
-              <details class="mt-1 text-xs text-gray-400">
+              <details class="mt-1 text-xs text-gray-500">
                 <summary class="cursor-pointer">{% trans "Preview of the automatic text" %}</summary>
                 <pre class="mt-1 whitespace-pre-wrap font-sans text-gray-500 bg-gray-50 rounded-lg p-3">{{ cell.fallback }}</pre>
               </details>

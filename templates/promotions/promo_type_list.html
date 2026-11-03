@@ -34,7 +34,7 @@
           <span class="text-base font-semibold">{{ row.label }}</span>
           {% if row.builtin %}<span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">{% trans "automatisch" %}</span>{% endif %}
           <span class="text-sm text-gray-400">· {% blocktrans count n=row.count %}{{ n }} Aktion{% plural %}{{ n }} Aktionen{% endblocktrans %}</span>
-          <span class="block text-xs ui-muted mt-0.5 truncate" data-type-summary>{% trans "Vorlage der Seite" %}: {{ row.style_label|default:"—" }} · {% trans "Kartenform" %}: {{ row.card_label|default:"—" }}</span>
+          <span class="block text-xs ui-muted mt-0.5" data-type-summary>{% trans "Vorlage der Seite" %}: {{ row.style_label|default:"—" }} · {% trans "Kartenform" %}: {{ row.card_label|default:"—" }}</span>
         </span>
         <span class="shrink-0 text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
       </summary>
