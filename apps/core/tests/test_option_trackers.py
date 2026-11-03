@@ -321,3 +321,38 @@ def test_fefo_lots_consumed_and_restored():
     product.refresh_from_db()
     assert product.stock_quantity == 10
     assert Lot.objects.get(lot_code="B").qty_remaining == 5
+
+
+# --- UX-D D6.1: доп правится после продажи ---------------------------------------
+
+
+@pytest.mark.parametrize("change", ["tracker", "product", "delete"])
+def test_cancel_returns_stock_to_the_sold_product_after_the_extra_was_edited(change):
+    """Страница допа (D6.1) даёт сменить учёт/Lagerartikel или удалить доп после
+    продаж — возврат при отмене идёт по sale-движению, а не по текущей настройке."""
+    product = _product(stock=5)
+    other = _product(stock=9)
+    extra = _stock_extra(product)
+    unit = _unit()
+    arrival = timezone.localdate() + timedelta(days=30)
+    b = stay_services.book_stay(
+        unit,
+        arrival=arrival,
+        departure=arrival + timedelta(days=2),
+        name="G",
+        extras=_snap(extra),
+    )
+    product.refresh_from_db()
+    assert product.stock_quantity == 4
+    if change == "tracker":
+        extra.tracker, extra.product = "", None
+        extra.save(update_fields=["tracker", "product"])
+    elif change == "product":
+        extra.product = other
+        extra.save(update_fields=["product"])
+    else:
+        extra.delete()
+    transactions.apply_action("stay", b, "cancelled")
+    product.refresh_from_db()
+    other.refresh_from_db()
+    assert (product.stock_quantity, other.stock_quantity) == (5, 9)

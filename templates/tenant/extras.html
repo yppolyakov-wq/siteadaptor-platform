@@ -6,7 +6,7 @@
 <div>
   {# UX-D D6.1: переводы названия — на странице допа (там и выпадашка языка). #}
   <h1 class="ui-h1 mb-1">{% nav_title _("Extras") %}</h1>
-  <p class="text-sm text-gray-500 mb-5">{% trans "Optional paid add-ons guests can pick when booking (breakfast, parking, late checkout …). One engine for all booking types; “scope” limits where it applies. Currently shown on Übernachtung." %}</p>
+  <p class="text-sm text-gray-600 mb-5">{% trans "Optional paid add-ons guests can pick when booking (breakfast, parking, late checkout …). One engine for all booking types; “scope” limits where it applies. Currently shown on Übernachtung." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
 
@@ -17,12 +17,12 @@
   </div>
   <div class="ui-card divide-y divide-gray-100 mb-6 max-w-4xl" data-extras-list>
     {% for e in extras %}
-      <a href="{% url 'extra-edit' e.pk %}" class="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 {% if not e.is_active %}opacity-70{% endif %}" data-extra-row>
+      <a href="{% url 'extra-edit' e.pk %}" class="flex items-center gap-4 px-5 py-3 hover:bg-gray-50" data-extra-row>
         {% if e.image_url %}<img src="{{ e.image_url }}" alt="" class="w-10 h-10 rounded-lg object-cover shrink-0">
         {% else %}<span class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-lg shrink-0" aria-hidden="true">➕</span>{% endif %}
         <span class="min-w-0 flex-1">
           <span class="block font-semibold text-gray-900 truncate">{{ e.label }}</span>
-          <span class="block text-xs text-gray-600 truncate">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %} · {{ e.get_scope_display }}{% if e.entity_kind %} · 🎯 {{ e.entity_label|default:_("gelöschtes Objekt") }}{% endif %}{% if e.tracker %} · {{ e.get_tracker_display }}{% if e.tracker == "pool" and e.pool_size %} ({{ e.pool_size }}){% endif %}{% endif %}</span>
+          <span class="block text-xs text-gray-600 truncate">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %} · {{ e.get_scope_display }}{% if e.entity_kind %}  · <span aria-hidden="true">🎯</span> {{ e.entity_label|default:_("gelöschtes Objekt") }}{% endif %}{% if e.tracker %} · {{ e.get_tracker_display }}{% if e.tracker == "pool" and e.pool_size %} ({{ e.pool_size }}){% endif %}{% endif %}</span>
         </span>
         <span class="shrink-0 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium {% if e.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}"><span class="w-1.5 h-1.5 rounded-full {% if e.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if e.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</span>
         <span class="shrink-0 text-gray-500" aria-hidden="true">›</span>

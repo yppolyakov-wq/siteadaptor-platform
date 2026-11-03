@@ -7,13 +7,13 @@
   <input type="hidden" name="next" value="{{ next_url }}">
   <div>
     <label for="extra-new-label" class="block text-sm font-medium mb-1">{% trans "Name" %} <span aria-hidden="true" class="text-red-700">*</span></label>
-    <input id="extra-new-label" name="label" type="text" required maxlength="120" autocomplete="off" value="{{ xv.label }}" placeholder="{% trans 'Name (e.g. Frühstück)' %}" data-drawer-autofocus{% if xv_errors.label %} aria-invalid="true" aria-describedby="extra-new-label-err"{% endif %} class="ui-input">
+    <input id="extra-new-label" name="label" type="text" required maxlength="120" autocomplete="off" value="{{ xv.label }}" placeholder="{% trans 'Name (e.g. Frühstück)' %}"{% if xv_errors.label or not xv_errors.price %} data-drawer-autofocus{% endif %}{% if xv_errors.label %} aria-invalid="true" aria-describedby="extra-new-label-err"{% endif %} class="ui-input">
     {% if xv_errors.label %}<p id="extra-new-label-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ xv_errors.label }}</p>{% endif %}
   </div>
   <div class="grid grid-cols-2 gap-4">
     <div>
       <label for="extra-new-price" class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
-      <input id="extra-new-price" name="price" type="text" inputmode="decimal" autocomplete="off" value="{{ xv.price }}" placeholder="12,00"{% if xv_errors.price %} aria-invalid="true" aria-describedby="extra-new-price-err"{% endif %} class="ui-input">
+      <input id="extra-new-price" name="price" type="text" inputmode="decimal" autocomplete="off" value="{{ xv.price }}" placeholder="12,00"{% if xv_errors.price and not xv_errors.label %} data-drawer-autofocus{% endif %}{% if xv_errors.price %} aria-invalid="true" aria-describedby="extra-new-price-err"{% endif %} class="ui-input">
       {% if xv_errors.price %}<p id="extra-new-price-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ xv_errors.price }}</p>{% endif %}
     </div>
     <div>

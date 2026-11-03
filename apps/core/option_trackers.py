@@ -189,13 +189,17 @@ def _release_stock_option(extra_id, product_id, kind, deal, label=""):
     ref = _movement_ref(kind, deal, extra_id)
     # v2: возврат читает |delta| SALE-движения — точный qty, переживает смену
     # consume_qty/дат после продажи (возвращаем ровно списанное).
-    sold = (
+    # UX-D D6.1 (ревью): товар — из того же sale-движения, а не из текущей настройки
+    # опции: доп теперь правится после продаж (смена Lagerartikel/учёта/удаление допа),
+    # и возврат уходил бы не в тот товар или терялся вовсе.
+    sale = (
         StockMovement.objects.filter(source="option", source_ref=ref, kind="sale")
-        .values_list("delta", flat=True)
+        .values_list("delta", "product_id")
         .first()
     )
-    if sold is None:
+    if sale is None:
         return
+    sold, product_id = sale
     qty = abs(int(sold))
     if qty <= 0:
         return
@@ -265,15 +269,15 @@ def release_options(kind, deal, snap=None):
     """Вернуть stock-опции при отмене сделки. Идемпотентно (двойной вызов из
     builtin-хука и зеркала кастом-статусов безопасен). Пул отдельного возврата
     не требует — занятость считается по НЕотменённым сделкам."""
-    from apps.core.models import Extra
-
     rows = snap if snap is not None else getattr(deal, "extras", None)
     ids = _snap_option_ids(rows)
     if not ids:
         return
     with transaction.atomic():
-        for extra in Extra.objects.filter(pk__in=list(ids), tracker="stock").order_by("pk"):
-            _release_stock_option(str(extra.pk), extra.product_id, kind, deal, extra.label)
+        # UX-D D6.1 (ревью): по снимку сделки, без фильтра по текущему трекеру —
+        # возвращается ровно то, что списало sale-движение (его нет — no-op).
+        for extra_id in sorted(ids):
+            _release_stock_option(extra_id, None, kind, deal)
 
 
 def sync_options(old_snap, new_snap, *, kind, deal):

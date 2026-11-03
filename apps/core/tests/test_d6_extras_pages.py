@@ -200,3 +200,22 @@ def test_delete_button_asks_for_confirmation():
     html = _page(x).content.decode()
     form = html.split('value="delete"', 1)[1].split("</form>", 1)[0]
     assert 'data-danger="1"' in form
+
+
+def test_stock_extra_whose_product_was_deleted_still_saves():
+    """W0: товар складского допа удалили (SET_NULL) — правка названия не блокируется."""
+    x = Extra.objects.create(label="Wein", tracker=Extra.TRACKER_STOCK)
+    data = form_post(_page(x).content.decode(), "extra-form")[0]
+    data["label"] = "Wein (Flasche)"
+    resp = _page(x, method="post", data=data)
+    x.refresh_from_db()
+    assert resp.status_code == 302 and x.label == "Wein (Flasche)"
+
+
+def test_page_error_is_shown_once_at_the_field():
+    x = Extra.objects.create(label="Leihrad", price_cents=1000)
+    data = form_post(_page(x).content.decode(), "extra-form")[0]
+    data["price"] = "abc"
+    html = _page(x, method="post", data=data).content.decode()
+    assert html.count("Bitte einen Betrag wie 25,00 angeben.") == 1
+    assert re.search(r'id="extra-price"[^>]* autofocus aria-invalid="true"', html)

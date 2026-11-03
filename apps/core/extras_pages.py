@@ -61,7 +61,7 @@ def _uuid_or_none(raw):
         return None
 
 
-def parse(post, *, full: bool) -> tuple[dict, dict]:
+def parse(post, *, full: bool, current=None) -> tuple[dict, dict]:
     """Строгий разбор формы допа → (поля модели, ошибки {поле: текст}).
 
     `full=False` — короткая форма шторки: адресность/трекер/ставка не присланы и
@@ -115,7 +115,15 @@ def parse(post, *, full: bool) -> tuple[dict, dict]:
 
         pk = _uuid_or_none(post.get("stock_product"))
         out["product"] = Product.objects.filter(pk=pk).first() if pk else None
-        if out["product"] is None:
+        # Ревью D6.1 (W0): у складского допа товар могли удалить (SET_NULL) — такой доп
+        # сохраняется как был, пока учёт/товар не трогают; новая привязка требует товара.
+        kept = (
+            current is not None
+            and current.tracker == Extra.TRACKER_STOCK
+            and current.product_id is None
+            and not post.get("stock_product")
+        )
+        if out["product"] is None and not kept:
             errors["stock_product"] = _("Bitte einen Lagerartikel wählen.")
         qty = _int(post.get("consume_qty"), 1, 99, 1)
         if qty is None:
@@ -219,7 +227,7 @@ def extra_edit(request, pk):
             else:
                 messages.error(request, _("Couldn't upload the image — please try another file."))
             return redirect(page_url(extra))
-        parsed, errors = parse(request.POST, full=True)
+        parsed, errors = parse(request.POST, full=True, current=extra)
         if not errors:
             for field, value in parsed.items():
                 setattr(extra, field, value)
@@ -227,7 +235,7 @@ def extra_edit(request, pk):
             extra.save(update_fields=[*parsed, *changed, "updated_at"])
             messages.success(request, _("Saved."))
             return redirect(page_url(extra))
-        messages.error(request, next(iter(errors.values())))
+        # Ошибка — у поля (aria-invalid + фокус); flash дублировал бы её на странице.
         values = _values_from_post(request.POST)
 
     entity_choices = core_views._extra_entity_choices(request)
@@ -236,6 +244,9 @@ def extra_edit(request, pk):
         # Адресат снят с продажи/удалён — не теряем привязку молча при следующем Save.
         label = core_views._extra_entity_labels().get(current) or _("gelöschtes Objekt")
         entity_choices = [(current, label), *entity_choices]
+    suppliers = core_views._extra_suppliers()
+    if extra.supplier_id and extra.supplier_id not in {sp.pk for sp in suppliers}:
+        suppliers = [extra.supplier, *suppliers]  # неактивный поставщик не теряется при Save
     stock_products = core_views._extra_stock_products()
     if extra.product_id and extra.product_id not in {p.pk for p in stock_products}:
         stock_products = [extra.product, *stock_products]
@@ -250,7 +261,7 @@ def extra_edit(request, pk):
             "scopes": Extra.SCOPES,
             "trackers": Extra.TRACKERS,
             "entity_choices": entity_choices,
-            "suppliers": core_views._extra_suppliers(),
+            "suppliers": suppliers,
             "stock_products": stock_products,
         },
         status=200,
