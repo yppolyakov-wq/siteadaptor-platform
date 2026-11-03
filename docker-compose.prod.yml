@@ -15,7 +15,7 @@ services:
   # Локальный Postgres — только в режиме single (профиль). На проде с отдельным
   # db-сервером этот сервис не стартует.
   db:
-    image: postgres:16-alpine
+    image: postgres:16.15-alpine  # SEC-G11b: закреплённая версия (обновление — правкой тега)
     profiles: ["single"]
     # SEC-G11: только свои переменные (раньше env_file отдавал Postgres все ключи
     # приложения — Stripe, Telegram, SECRET_KEY). Значения подставляет --env-file.
@@ -95,7 +95,7 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.4.12-alpine  # SEC-G11b: закреплённая версия
     # SEC-G11: пароль Redis — по желанию (REDIS_PASSWORD в .env.prod + тот же пароль в
     # REDIS_URL/CELERY_BROKER_URL: redis://:<пароль>@redis:6379/0). Пусто — как раньше.
     environment:

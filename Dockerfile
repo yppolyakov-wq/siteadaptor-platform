@@ -1,5 +1,5 @@
 # Production image: Django (gunicorn) + Celery worker/beat используют один образ.
-FROM python:3.12-slim AS base
+FROM python:3.12.16-slim AS base
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -37,6 +37,16 @@ RUN uv pip install --system --no-cache --no-deps .
 # через `compose run --rm` → .mo умирали вместе с временным контейнером, и в проде
 # переводы молча не работали. msgfmt settings-free (gettext установлен выше).
 RUN for po in locale/*/LC_MESSAGES/django.po; do msgfmt -o "${po%.po}.mo" "$po"; done
+
+# SEC-G11b: приложение — НЕ под root. Пользователь app (uid/gid 10001 — фиксированный:
+# по нему deploy.sh выравнивает владельца тома media) владеет только тем, куда
+# приложение пишет во время работы: загрузки (media, том) и collectstatic при старте
+# web (staticfiles). Код и site-packages остаются root-owned — процесс их не перезапишет.
+RUN groupadd --system --gid 10001 app \
+    && useradd --system --uid 10001 --gid app --home-dir /app --no-create-home --shell /usr/sbin/nologin app \
+    && mkdir -p /app/media /app/staticfiles \
+    && chown app:app /app/media /app/staticfiles
+USER app
 
 EXPOSE 8000
 

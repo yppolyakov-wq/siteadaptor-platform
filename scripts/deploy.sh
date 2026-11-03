@@ -56,6 +56,20 @@ $COMPOSE build
 # и `$COMPOSE up -d` (latest перезаписывается каждой сборкой).
 docker tag siteadaptor-app:latest "siteadaptor-app:$(git rev-parse --short HEAD)" || true
 
+step "[2b/8] Media volume owner (non-root app)"
+# SEC-G11b: приложение работает под uid 10001, а том media создавался, когда оно было
+# root, — без выравнивания загрузка фото упала бы «Permission denied». Меняем владельца
+# ТОЛЬКО у несовпадающих файлов: первый деплой выравнивает том, следующие находят ноль
+# файлов за секунды. Ошибка здесь останавливает деплой (set -e) — лучше, чем молча
+# запустить приложение, которое не сможет писать загрузки.
+# `set -e` внутри: иначе код возврата sh -c — это последний echo, и ошибка chown
+# проглатывалась бы. `chown -h` меняет сам симлинк, не уходя по нему за пределы тома.
+$COMPOSE run --rm --no-deps --user 0 web sh -c \
+	'set -eu; mkdir -p /app/media; \
+	 n=$(find /app/media \( ! -uid 10001 -o ! -gid 10001 \) -print | wc -l); \
+	 find /app/media \( ! -uid 10001 -o ! -gid 10001 \) -exec chown -h 10001:10001 {} +; \
+	 echo "    media: владелец выровнен у $n файлов"'
+
 if [ "$MODE" = "single" ]; then
 	step "[3/8] Start local Postgres and wait for healthy"
 	$COMPOSE up -d db

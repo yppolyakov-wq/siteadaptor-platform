@@ -2,9 +2,10 @@
 #
 # Если в будущем перейдёшь на wildcard через DNS-01 (напр. Cloudflare), верни
 # сборку через xcaddy с нужным плагином:
-#   FROM caddy:2-builder AS builder
+#   FROM caddy:2.11.7-builder AS builder
 #   RUN xcaddy build --with github.com/caddy-dns/cloudflare
-#   FROM caddy:2
+#   FROM caddy:2.11.7
 #   COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 # Список плагинов: https://github.com/caddy-dns
-FROM caddy:2
+# SEC-G11b: закреплённая версия (обновление — правкой тега в коммите).
+FROM caddy:2.11.7
