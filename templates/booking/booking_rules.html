@@ -46,5 +46,43 @@
     <p class="text-sm text-gray-500">{% trans "Noch keine Leistungen." %} <a href="{% url 'booking:services' %}" class="text-indigo-700 hover:underline">{% trans "Leistungen" %} →</a></p>
     {% endif %}
   </section>
+
+  {% if has_tables %}
+  {% comment %}KA-12 GA-1 / UX-D D3.3: правило онлайн-брони столов — сюда со списка ресурсов.
+  Выключено — как раньше: каждая бронь ждёт подтверждения. Форма — только тем, кто правит
+  правила (preise.edit), сотрудник видит правило текстом (раньше получал 403 на Save).{% endcomment %}
+  <section class="ui-card p-4" aria-labelledby="tables-h" data-table-rules>
+    <h2 id="tables-h" class="font-semibold">{% trans "Online-Tischreservierung" %}{% if table_rule %} <span class="text-xs text-green-700">· {% trans "aktiv" %}</span>{% endif %}</h2>
+    <p class="text-xs text-gray-600 mt-1 mb-3">{% trans "Größere Gruppen bis zur Obergrenze kommen als Anfrage, die Sie bestätigen. Darüber bitten wir die Gäste, anzurufen." %}</p>
+    {% if can_edit_policy %}
+    <form method="post" action="{% url 'booking:table-rules' %}" class="flex flex-wrap items-end gap-3 text-sm">
+      {% csrf_token %}
+      <label class="flex items-center gap-2 w-full"><input type="checkbox" name="enabled" value="1" {% if table_rule %}checked{% endif %} class="rounded"> {% trans "Regel verwenden" %}</label>
+      <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Sofort bestätigen bis (Personen)" %}</span>
+        <input type="text" inputmode="numeric" name="instant_max" value="{{ table_rule.instant_max|default:4 }}" class="ui-input w-28"></label>
+      <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Online buchbar bis (Personen)" %}</span>
+        <input type="text" inputmode="numeric" name="online_max" value="{{ table_rule.online_max|default:12 }}" class="ui-input w-28"></label>
+      <button class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
+    </form>
+    {% else %}
+    <dl class="text-sm grid grid-cols-[auto_1fr] gap-x-4 gap-y-1" data-table-rules-readonly>
+      {% if table_rule %}
+      <dt class="text-gray-600">{% trans "Sofort bestätigen bis (Personen)" %}</dt><dd class="tabular-nums">{{ table_rule.instant_max }}</dd>
+      <dt class="text-gray-600">{% trans "Online buchbar bis (Personen)" %}</dt><dd class="tabular-nums">{{ table_rule.online_max }}</dd>
+      {% else %}<dt class="sr-only">{% trans "Regel verwenden" %}</dt><dd class="col-span-2 ui-muted">{% trans "aus" %}</dd>{% endif %}
+    </dl>
+    {% endif %}
+    {% if table_rule_caveat %}<p class="mt-2 text-xs text-amber-800" data-table-rule-caveat>{% trans "Hinweis: Bei Tischen mit Anzahlung oder aktiver Regel zu Nichterscheinen wird erst nach der Zahlung bestätigt." %}</p>{% endif %}
+  </section>
+  {% endif %}
+
+  {# UX-D D3.3: виджет записи для своего сайта — со списка ресурсов; копирование кнопкой #}
+  <section class="ui-card p-4" aria-labelledby="widget-h" data-booking-widget>
+    <h2 id="widget-h" class="font-semibold">{% trans "Embed booking widget on your website" %}</h2>
+    <p id="widget-hint" class="text-xs text-gray-600 mt-1 mb-2">{% trans "Paste this code into your existing site to embed the booking form (no header/footer)." %}</p>
+    <textarea id="booking-widget-code" aria-labelledby="widget-h" aria-describedby="widget-hint" readonly rows="3" class="ui-input font-mono text-xs">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Termin"&gt;&lt;/iframe&gt;</textarea>
+    <button type="button" data-copy-target="booking-widget-code" data-copied="{% trans 'Copied!' %}" class="ui-btn ui-btn-secondary ui-btn-sm mt-2">{% trans "Kopieren" %}</button>
+    <span class="sr-only" role="status" data-copy-status></span>
+  </section>
 </div>
 {% endblock %}

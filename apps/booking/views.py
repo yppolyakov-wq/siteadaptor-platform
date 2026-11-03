@@ -96,9 +96,8 @@ def calendar_context(request):
         .select_related("resource", "customer", "service")
         .order_by("resource__name", "start")
     )
-    from django.urls import reverse
 
-    from apps.core import status_labels, status_registry, transition_rules
+    from apps.core import status_registry
 
     # KA-12 E6.4a: неявки клиентов дня — одним агрегатом, бейдж «N×» у записи.
     from . import no_shows, tagesplan
@@ -139,16 +138,8 @@ def calendar_context(request):
                 to_attr="active_variants",
             )
         ),
-        # A4: iframe-виджет записи для своего сайта.
-        "embed_url": request.build_absolute_uri(reverse("storefront-termin")) + "?embed=1",
-        # FB-4b: строки панели «Status-Namen» (status, дефолт, своё имя).
-        "status_label_rows": status_labels.label_rows(
-            getattr(request, "tenant", None), "booking", Booking.STATUSES
-        ),
-        # FB-3: строки панели «Statusübergänge» (правила переходов).
-        "transition_rows": transition_rules.editor_rows(
-            getattr(request, "tenant", None), "booking"
-        ),
+        # UX-D D3.4: виджет, имена статусов и правила переходов отсюда не читал ни один
+        # шаблон — виджет на «Buchungsregeln», статусы — на «Abläufe».
     }
 
 
@@ -830,8 +821,6 @@ def resources(request):
             return response
         return _back_to_resource(request)
 
-    from apps.core import status_labels, transition_rules
-
     from . import hours_summary
 
     # UX-D D3.2: старые ссылки «?open=<pk>» (закладки) → страница ресурса; мусор — список.
@@ -863,31 +852,13 @@ def resources(request):
             "resources": resource_list,
             # UX-D D3.2: при двух и более типах — группы с подзаголовками
             "resource_types_n": len({r.type for r in resource_list}),
-            "closed_dates": ClosedDate.objects.filter(date__gte=timezone.localdate()),
+            "closed_dates": ClosedDate.objects.filter(date__gte=timezone.localdate()).order_by(
+                "date"
+            )[:5],
             "business_hours": _business_hours_of(getattr(request, "tenant", None)),
-            # Фидбэк 2026-08-03: настройки уехали С календаря СЮДА («настройки —
-            # в настройки»): embed-виджет + имена статусов + правила переходов.
-            "embed_url": request.build_absolute_uri(reverse("storefront-termin")) + "?embed=1",
-            "status_label_rows": status_labels.label_rows(
-                getattr(request, "tenant", None), "booking", Booking.STATUSES
-            ),
-            "transition_rows": transition_rules.editor_rows(
-                getattr(request, "tenant", None), "booking"
-            ),
-            # KA-12 GA-1: правило онлайн-брони столов (карточка показывается, когда
-            # есть хоть один стол).
-            "table_rule": table_rules.rules(getattr(request, "tenant", None)),
-            "has_tables": Resource.objects.filter(type=Resource.TYPE_TABLE).exists(),
-            # Ревью GA-1: «sofort» не действует при депозите стола или правиле неявок
-            # (их путь подтверждает оплатой) — владелец видит это в карточке.
-            "table_rule_caveat": Resource.objects.filter(
-                type=Resource.TYPE_TABLE, deposit_cents__gt=0
-            ).exists()
-            or bool(
-                (getattr(getattr(request, "tenant", None), "site_config", None) or {})
-                .get("booking", {})
-                .get("no_show_deposit")
-            ),
+            # UX-D D3.3/D3.4: правило столов и виджет — на «Buchungsregeln», статусы — на
+            # «Abläufe»; закрытые дни — только чтение со ссылкой на «Tage blockieren».
+            "has_tables": any(r.type == Resource.TYPE_TABLE for r in resource_list),
         },
     )
 
@@ -939,7 +910,7 @@ def table_rules_save(request):
         )
     request.tenant.site_config = cfg
     messages.success(request, _("Gespeichert."))
-    return redirect("booking:resources")
+    return redirect("booking:booking-rules")  # UX-D D3.3: правило живёт там
 
 
 def _rich_lines(raw) -> list[str]:
@@ -1708,8 +1679,31 @@ def booking_rules_view(request):
             "services": Service.objects.order_by("-is_active", "name").only(
                 "pk", "name", "is_active", "cancel_window_hours", "late_cancel"
             ),
+            # UX-D D3.3: правило онлайн-брони столов и виджет записи — сюда со списка
+            # ресурсов (правило задаётся один раз — место в настройках, П4).
+            **_table_rule_ctx(tenant),
+            "embed_url": request.build_absolute_uri(reverse("storefront-termin")) + "?embed=1",
         },
     )
+
+
+def _table_rule_ctx(tenant) -> dict:
+    """KA-12 GA-1: правило онлайн-брони столов (карточка — когда есть хоть один стол)."""
+    has_tables = Resource.objects.filter(type=Resource.TYPE_TABLE).exists()
+    if not has_tables:
+        return {"has_tables": False}
+    return {
+        "has_tables": True,
+        "table_rule": table_rules.rules(tenant),
+        # Ревью GA-1: «sofort» не действует при депозите стола или правиле неявок
+        # (их путь подтверждает оплатой) — владелец видит это в карточке.
+        "table_rule_caveat": Resource.objects.filter(
+            type=Resource.TYPE_TABLE, deposit_cents__gt=0
+        ).exists()
+        or bool(
+            (getattr(tenant, "site_config", None) or {}).get("booking", {}).get("no_show_deposit")
+        ),
+    }
 
 
 @login_required
