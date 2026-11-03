@@ -154,4 +154,45 @@ def test_stay_create_drawer_aware_is_innermost():
 def test_unknown_unit_uuid_is_ignored():
     _unit()
     html = _get({"unit": str(uuid.uuid4())}).content.decode()
-    assert " selected>" not in html.split('id="walkin-unit"', 1)[1].split("</select>", 1)[0]
+    select = html.split('id="walkin-unit"', 1)[1].split("</select>", 1)[0]
+    assert select.count(" selected>") == 1 and '<option value="" disabled selected>' in select
+
+
+def test_error_is_tied_to_its_field():
+    """ECC a11y D1.3: ошибка сервера подсвечивает поле (aria-invalid + describedby),
+    шторка ставит туда фокус; поле из свёрнутого «Mehr» раскрывает блок."""
+    unit = _unit()
+    room = Room.objects.create(unit=unit, number="7")
+    resp = _post(
+        {
+            "unit": str(unit.pk),
+            "room": str(room.pk),
+            "rooms": "2",
+            "arrival": D0.isoformat(),
+            "departure": (D0 + timedelta(days=1)).isoformat(),
+        }
+    )
+    html = resp.content.decode()
+    assert 'aria-invalid="true" aria-describedby="walkin-rooms-err"' in html
+    assert 'id="walkin-rooms-err"' in html
+    assert re.search(r"<details[^>]*\sopen>", html)
+
+
+def test_stale_unit_in_link_is_not_silently_replaced():
+    """ECC django D1.3: неизвестная категория → пусто (браузер иначе выбрал бы первую)."""
+    unit = _unit()
+    other = _unit()
+    other.is_active = False
+    other.save(update_fields=["is_active"])
+    html = _get({"unit": str(other.pk), "arrival": D0.isoformat()}).content.decode()
+    select = html.split('id="walkin-unit"', 1)[1].split("</select>", 1)[0]
+    assert '<option value="" disabled selected>' in select and str(unit.pk) in select
+    assert f'value="{unit.pk}" selected' not in select
+
+
+def test_danger_confirm_takes_custom_texts_for_discard():
+    from pathlib import Path
+
+    js = (Path(__file__).resolve().parents[3] / "static/js/cabinet.js").read_text()
+    assert "window.sfDangerConfirm = function (label, opts)" in js
+    assert "data-drawer-discard-yes" in js

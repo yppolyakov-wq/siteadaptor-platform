@@ -337,16 +337,31 @@ try { (function () {
     if (cb) cb(ok);
   }
 
-  window.sfDangerConfirm = function (label) {
+  // opts {title, desc, yes, no} — свой текст для неденежных вопросов (UX-D D1.3:
+  // «Eingaben verwerfen?» не должно звучать как «Ja, ausführen»); по умолчанию — прежний.
+  var defaults = dlg ? {
+    title: dlg.querySelector("#danger-confirm-title").textContent,
+    desc: dlg.querySelector("#danger-confirm-desc").innerHTML,
+    yes: dlg.querySelector("[data-danger-yes]").textContent,
+    no: dlg.querySelector("[data-danger-no]").textContent
+  } : null;
+  window.sfDangerConfirm = function (label, opts) {
+    opts = opts || {};
     return new Promise(function (resolve) {
       if (!dlg || typeof dlg.showModal !== "function") {
-        resolve(window.confirm(label));
+        resolve(window.confirm(opts.title || label));
         return;
       }
       pending = resolve;
-      dlg.querySelector("[data-danger-label]").textContent = label || "";
+      var desc = dlg.querySelector("#danger-confirm-desc");
+      desc.innerHTML = defaults.desc;
+      dlg.querySelector("#danger-confirm-title").textContent = opts.title || defaults.title;
+      dlg.querySelector("[data-danger-yes]").textContent = opts.yes || defaults.yes;
+      dlg.querySelector("[data-danger-no]").textContent = opts.no || defaults.no;
+      if (opts.desc) desc.textContent = opts.desc;
+      else dlg.querySelector("[data-danger-label]").textContent = label || "";
       dlg.showModal();
-      dlg.querySelector("[data-danger-no]").focus();
+      dlg.querySelector("[data-danger-no]").focus();  // безопасный выбор — по умолчанию
     });
   };
 
@@ -606,7 +621,12 @@ try { (function () {
     if (!dlg.open) return;
     if (dirty && !force && discardText && window.sfDangerConfirm) {
       // введённое в форме не теряется молча (Esc, ✕, подложка)
-      window.sfDangerConfirm(discardText).then(function (ok) { if (ok) { dirty = false; close(true); } });
+      window.sfDangerConfirm(discardText, {
+        title: discardText,
+        desc: dlg.getAttribute("data-drawer-discard-desc") || "",
+        yes: dlg.getAttribute("data-drawer-discard-yes") || "",
+        no: dlg.getAttribute("data-drawer-discard-no") || ""
+      }).then(function (ok) { if (ok) { dirty = false; close(true); } });
       return;
     }
     dirty = false;

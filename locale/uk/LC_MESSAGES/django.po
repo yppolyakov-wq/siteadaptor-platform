@@ -31761,3 +31761,18 @@ msgstr "Статус неясний — вигляд оновлено. Пере�
 
 msgid "Eingaben verwerfen?"
 msgstr "Скасувати введені дані?"
+
+msgid "frei"
+msgstr "вільно"
+
+msgid "belegt"
+msgstr "зайнято"
+
+msgid "gesperrt"
+msgstr "заблоковано"
+
+msgid "Weiter bearbeiten"
+msgstr "Продовжити введення"
+
+msgid "Ihre Eingaben in diesem Formular gehen verloren."
+msgstr "Введені у формі дані буде втрачено."

@@ -31640,3 +31640,18 @@ msgstr "Durum belirsiz — görünüm yenilendi. Tekrar denemeden önce lütfen 
 
 msgid "Eingaben verwerfen?"
 msgstr "Girdiğiniz bilgiler silinsin mi?"
+
+msgid "frei"
+msgstr "boş"
+
+msgid "belegt"
+msgstr "dolu"
+
+msgid "gesperrt"
+msgstr "kapalı"
+
+msgid "Weiter bearbeiten"
+msgstr "Düzenlemeye devam et"
+
+msgid "Ihre Eingaben in diesem Formular gehen verloren."
+msgstr "Bu formda girdikleriniz kaybolacak."

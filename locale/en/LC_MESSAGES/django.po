@@ -31494,3 +31494,18 @@ msgstr "Status unclear — view refreshed. Please check before trying again."
 
 msgid "Eingaben verwerfen?"
 msgstr "Discard your entries?"
+
+msgid "frei"
+msgstr "free"
+
+msgid "belegt"
+msgstr "booked"
+
+msgid "gesperrt"
+msgstr "blocked"
+
+msgid "Weiter bearbeiten"
+msgstr "Keep editing"
+
+msgid "Ihre Eingaben in diesem Formular gehen verloren."
+msgstr "What you entered in this form will be lost."

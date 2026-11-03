@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from apps.stays import services, views
 from apps.stays.models import RatePlan, StayBooking, StayUnit
+from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -138,7 +139,11 @@ def test_calendar_form_shows_rate_and_extras():
     _unit()
     RatePlan.objects.create(name="Halbpension Plus", surcharge_cents=2500)
     Extra.objects.create(label="Parkplatz", price_cents=700, scope="stays")
-    body = _cal(_req()).content.decode()
+    # UX-D D1.3 (осознанная переписка): форма живёт в шторке «Neue Buchung»
+    # (stays:stay-new?box=1), а не под шахматкой
+    req = _req(data={"box": "1"})
+    req.tenant = TenantFactory.build(disabled_modules=[])
+    body = views.stay_new(req).content.decode()
     assert "Halbpension Plus" in body and "Parkplatz" in body
     assert 'name="erw"' in body and 'name="kinder"' in body and 'name="note"' in body
 

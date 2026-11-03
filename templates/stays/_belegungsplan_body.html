@@ -100,7 +100,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
               {% if c.blocked %}bg-gray-200 text-gray-400
               {% elif c.free == 0 %}bg-red-100 text-red-500
               {% else %}bg-green-50 text-green-700 hover:bg-green-100{% endif %}"
-              title="{{ c.day|date:'d.m.Y' }}">{% if c.blocked %}✕{% elif c.free > 0 %}<a href="{% url 'stays:stay-new' %}?unit={{ unit.pk }}&amp;arrival={{ c.day|date:'Y-m-d' }}" data-drawer data-drawer-key="free-{{ unit.pk }}-{{ c.day|date:'Ymd' }}" aria-label="{% trans 'New booking' %}: {{ unit.name }}, {{ c.day|date:'d.m.Y' }}" class="block px-1 py-1 min-h-[1.75rem] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600">{{ c.free }}</a>{% else %}{{ c.free }}{% endif %}</td>
+              title="{{ c.day|date:'d.m.Y' }}">{% if c.blocked %}<span aria-hidden="true">✕</span><span class="sr-only">{% trans "gesperrt" %}</span>{% elif c.free > 0 and can_create_stay %}<a href="{% url 'stays:stay-new' %}?unit={{ unit.pk }}&amp;arrival={{ c.day|date:'Y-m-d' }}" data-drawer data-drawer-key="free-{{ unit.pk }}-{{ c.day|date:'Ymd' }}" class="block px-1 py-1 min-h-[1.75rem] min-w-[1.75rem] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600">{{ c.free }}<span class="sr-only"> {% trans "frei" %} · {% trans "New booking" %}: {{ unit.name }}, {{ c.day|date:'d.m.Y' }}</span></a>{% else %}{{ c.free }}{% if c.free == 0 %}<span class="sr-only"> {% trans "belegt" %}</span>{% else %}<span class="sr-only"> {% trans "frei" %}</span>{% endif %}{% endif %}</td>
           {% endfor %}
         </tr>
         {% comment %}Багфикс 2026-07-27: data-unit на дорожках — drop плашки

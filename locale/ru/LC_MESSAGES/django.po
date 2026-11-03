@@ -31777,3 +31777,18 @@ msgstr "Статус неясен — вид обновлён. Проверьт�
 
 msgid "Eingaben verwerfen?"
 msgstr "Отменить введённые данные?"
+
+msgid "frei"
+msgstr "свободно"
+
+msgid "belegt"
+msgstr "занято"
+
+msgid "gesperrt"
+msgstr "заблокировано"
+
+msgid "Weiter bearbeiten"
+msgstr "Продолжить ввод"
+
+msgid "Ihre Eingaben in diesem Formular gehen verloren."
+msgstr "Введённые в форме данные будут потеряны."

@@ -12,17 +12,20 @@ _walkin_prefill), скриптов внутри нет — синхрониза�
   <div class="grid sm:grid-cols-2 gap-4">
     <div class="sm:col-span-2">
       <label for="walkin-unit" class="block text-sm font-medium mb-1">{% trans "Unit" %}</label>
-      <select name="unit" id="walkin-unit" class="ui-input">
+      <select name="unit" id="walkin-unit" required class="ui-input">
+        {% if wf.unit_lost %}<option value="" disabled selected>— {% trans "Unit" %} —</option>{% endif %}
         {% for u in units %}<option value="{{ u.pk }}"{% if wf.unit == u.pk|stringformat:"s" %} selected{% endif %}>{{ u.name }}</option>{% endfor %}
       </select>
     </div>
     <div>
       <label for="walkin-arrival" class="block text-sm font-medium mb-1">{% trans "Arrival" %}</label>
-      <input type="date" name="arrival" id="walkin-arrival" required value="{{ wf.arrival }}" class="ui-input min-w-0">
+      <input type="date" name="arrival" id="walkin-arrival" required value="{{ wf.arrival }}"{% if wf.errors.arrival %} aria-invalid="true" aria-describedby="walkin-arrival-err"{% endif %} class="ui-input min-w-0">
+      {% if wf.errors.arrival %}<p id="walkin-arrival-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ wf.errors.arrival }}</p>{% endif %}
     </div>
     <div>
       <label for="walkin-departure" class="block text-sm font-medium mb-1">{% trans "Departure" %}</label>
-      <input type="date" name="departure" id="walkin-departure" required value="{{ wf.departure }}" class="ui-input min-w-0">
+      <input type="date" name="departure" id="walkin-departure" required value="{{ wf.departure }}"{% if wf.errors.departure %} aria-invalid="true" aria-describedby="walkin-departure-err"{% endif %} class="ui-input min-w-0">
+      {% if wf.errors.departure %}<p id="walkin-departure-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ wf.errors.departure }}</p>{% endif %}
     </div>
   </div>
   {% if walkin_rooms %}
@@ -30,34 +33,43 @@ _walkin_prefill), скриптов внутри нет — синхрониза�
     <label for="walkin-room" class="block text-sm font-medium mb-1">{% trans "Zimmer" %}</label>
     {% comment %}Z-5 Р-2: номер сразу на стойке. data-unit — категория комнаты; JS прячет
     чужие, сервер всё равно проверяет категорию и занятость (откат всей брони).{% endcomment %}
-    <select name="room" id="walkin-room" data-walkin-room class="ui-input">
+    <select name="room" id="walkin-room" data-walkin-room{% if wf.errors.room %} aria-invalid="true" aria-describedby="walkin-room-err"{% endif %} class="ui-input">
       <option value="">{% trans "— Zimmer später zuweisen —" %}</option>
       {% for r in walkin_rooms %}<option value="{{ r.pk }}" data-unit="{{ r.unit_id }}"{% if wf.room == r.pk|stringformat:"s" %} selected{% endif %}>{{ r.number }} · {{ r.unit.name }}</option>{% endfor %}
     </select>
+    {% if wf.errors.room %}<p id="walkin-room-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ wf.errors.room }}</p>{% endif %}
   </div>
   {% endif %}
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-    <label class="col-span-2 block"><span class="block text-sm font-medium mb-1">{% trans "Name" %}</span>
-    <input name="name" type="text" value="{{ wf.name }}" data-drawer-autofocus placeholder="{% trans 'Name (reason when blocking)' %}" class="ui-input"></label>
+    <div class="col-span-2">
+    <label for="walkin-name" class="block text-sm font-medium mb-1">{% trans "Name" %}</label>
+    {% comment %}Персонал вводит данные гостя — автозаполнение браузера (свои данные) не к месту.{% endcomment %}
+    <input name="name" id="walkin-name" type="text" value="{{ wf.name }}" autocomplete="off" data-drawer-autofocus aria-describedby="walkin-name-hint" class="ui-input">
+    <p id="walkin-name-hint" class="mt-1 text-xs text-gray-500">{% trans "Name (reason when blocking)" %}</p>
+    </div>
     {# PMS-A1: взрослые/дети как на витрине (Kurtaxe по взрослым). #}
     <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Adults" %}</span>
-    <input name="erw" type="number" min="1" value="{{ wf.erw|default:1 }}" class="ui-input"></label>
+    <input name="erw" type="number" min="1" max="50" value="{{ wf.erw|default:1 }}"{% if wf.errors.erw %} aria-invalid="true" aria-describedby="walkin-erw-err"{% endif %} class="ui-input"></label>
+    {% if wf.errors.erw %}<p id="walkin-erw-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ wf.errors.erw }}</p>{% endif %}
     <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Children" %}</span>
-    <input name="kinder" type="number" min="0" value="{{ wf.kinder|default:0 }}" class="ui-input"></label>
+    <input name="kinder" type="number" min="0" max="50" value="{{ wf.kinder|default:0 }}" class="ui-input"></label>
   </div>
   <div class="grid sm:grid-cols-2 gap-4">
-    <input autocomplete="off" name="phone" type="tel" value="{{ wf.phone }}" aria-label="{% trans 'Phone' %}" placeholder="{% trans 'Phone' %}" class="ui-input">
-    <input autocomplete="off" name="email" type="email" value="{{ wf.email }}" aria-label="{% trans 'Email' %}" placeholder="{% trans 'Email' %}" class="ui-input">
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Phone" %}</span>
+    <input autocomplete="off" name="phone" type="tel" value="{{ wf.phone }}" class="ui-input"></label>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Email" %}</span>
+    <input autocomplete="off" name="email" type="email" value="{{ wf.email }}" class="ui-input"></label>
   </div>
   {% if rate_plans %}
   <div>
-    <label class="block text-sm font-medium mb-1">{% trans "Rate" %}</label>
+    <label for="walkin-rate" class="block text-sm font-medium mb-1">{% trans "Rate" %}</label>
     {% comment %}Z-4: тариф — явный выбор; «— ohne Tarif —» = базовая цена. data-units —
     категории тарифа (пусто = все); сервер всё равно отбивает неприменимый.{% endcomment %}
-    <select aria-label="{% trans "Rate" %}" name="rate_plan" data-walkin-rate class="ui-input">
+    <select id="walkin-rate" name="rate_plan" data-walkin-rate{% if wf.errors.rate_plan %} aria-invalid="true" aria-describedby="walkin-rate_plan-err"{% endif %} class="ui-input">
       <option value=""{% if not wf.rate_plan %} selected{% endif %}>{% trans "— ohne Tarif —" %}</option>
       {% for r in rate_plans %}<option value="{{ r.pk }}"{% if wf.rate_plan == r.pk|stringformat:"s" %} selected{% endif %} data-units="{% if not r.applies_to_all %}{% for u in r.units.all %}{{ u.pk }}{% if not forloop.last %},{% endif %}{% empty %}none{% endfor %}{% endif %}">{{ r.name }}{% if r.meal_included %} · {{ r.get_meal_plan_display }}{% endif %}{% if not r.applies_to_all %} · {% trans "nur:" %} {% for u in r.units.all %}{{ u.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</option>{% endfor %}
     </select>
+    {% if wf.errors.rate_plan %}<p id="walkin-rate_plan-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ wf.errors.rate_plan }}</p>{% endif %}
   </div>
   {% endif %}
   {# PMS-A1: редкие поля стойки — свёрнуты, форма остаётся компактной. #}
@@ -78,11 +90,13 @@ _walkin_prefill), скриптов внутри нет — синхрониза�
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Rooms" %}</span>
-          <input name="rooms" type="number" min="1" max="20" value="{{ wf.rooms|default:1 }}" class="ui-input"></label>
+          <input name="rooms" type="number" min="1" max="20" value="{{ wf.rooms|default:1 }}"{% if wf.errors.rooms %} aria-invalid="true" aria-describedby="walkin-rooms-err"{% endif %} class="ui-input"></label>
+          {% if wf.errors.rooms %}<p id="walkin-rooms-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ wf.errors.rooms }}</p>{% endif %}
         </div>
         <div>
           <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Promo code (optional)" %}</span>
-          <input name="voucher_code" type="text" value="{{ wf.voucher_code }}" autocapitalize="characters" class="ui-input uppercase"></label>
+          <input name="voucher_code" type="text" value="{{ wf.voucher_code }}" autocapitalize="characters"{% if wf.errors.voucher_code %} aria-invalid="true" aria-describedby="walkin-voucher_code-err"{% endif %} class="ui-input uppercase"></label>
+          {% if wf.errors.voucher_code %}<p id="walkin-voucher_code-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ wf.errors.voucher_code }}</p>{% endif %}
         </div>
       </div>
       <div>
@@ -110,7 +124,7 @@ _walkin_prefill), скриптов внутри нет — синхрониза�
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add booking" %}</button>
     {% comment %}Батч C: та же форма блокирует даты (ремонт/своё проживание) —
     mode=block, поле имени = причина; гость/контакты игнорируются.{% endcomment %}
-    <button type="submit" name="mode" value="block" formnovalidate class="border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:border-gray-500">✕ {% trans "Block dates" %}</button>
+    <button type="submit" name="mode" value="block" formnovalidate class="ui-btn ui-btn-secondary"><span aria-hidden="true">✕ </span>{% trans "Block dates" %}</button>
   </div>
 </form>
 {% endif %}

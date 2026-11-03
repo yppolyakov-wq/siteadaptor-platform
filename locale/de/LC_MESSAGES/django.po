@@ -31581,3 +31581,18 @@ msgstr "Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erne
 
 msgid "Eingaben verwerfen?"
 msgstr "Eingaben verwerfen?"
+
+msgid "frei"
+msgstr "frei"
+
+msgid "belegt"
+msgstr "belegt"
+
+msgid "gesperrt"
+msgstr "gesperrt"
+
+msgid "Weiter bearbeiten"
+msgstr "Weiter bearbeiten"
+
+msgid "Ihre Eingaben in diesem Formular gehen verloren."
+msgstr "Ihre Eingaben in diesem Formular gehen verloren."
