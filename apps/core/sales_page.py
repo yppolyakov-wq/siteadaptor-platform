@@ -716,10 +716,19 @@ def create_target(kind: str, customers: bool = False) -> str:
     if kind == "stay":
         return reverse("stays:stay-new")
     if kind == "booking":
-        return reverse("verkaeufe") + "?tab=booking&view=kalender#neu"
+        return reverse("booking:booking-new")  # UX-D D5.3: шторка «＋ Neuer Termin»
     if kind == "job":
         return reverse("jobs:new")  # X2c: ручная заявка (звонок/визит)
     return ""
+
+
+def opens_in_drawer(url: str) -> bool:
+    """UX-D D5.3: «＋» открывает шторку (без JS — страницу формы) — один флаг для тулбара,
+    FAB и таб-бара (раньше проверялась только новая бронь отеля)."""
+    from django.urls import reverse
+
+    path = (url or "").split("?", 1)[0]
+    return path in {reverse("stays:stay-new"), reverse("booking:booking-new")}
 
 
 def tabbar_create_target(tenant, user=None) -> str:

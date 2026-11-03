@@ -1051,3 +1051,16 @@ try { (function () {
   document.addEventListener("sf:region-updated", function () { stackLabels(); });
   document.addEventListener("sf:navigated", function () { stackLabels(); });
 })(); } catch (e) { console.error(e); }
+// ---- booking/_tagesplan_body.html (#neu) ----
+// UX-D D5.3: постоянной формы записи больше нет — старые закладки «…#neu» открывают
+// шторку «＋ Neuer Termin» (кнопка несёт id="neu" и data-drawer).
+try { (function () {
+  "use strict";
+  function openNeu() {
+    if (window.location.hash !== "#neu") return;
+    var btn = document.querySelector("#neu[data-drawer]");
+    if (btn && window.sfDrawer && window.sfDrawer.open) window.sfDrawer.open(btn.href, btn);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", openNeu);
+  else openNeu();
+})(); } catch (e) { console.error(e); }

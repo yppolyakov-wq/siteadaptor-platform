@@ -4490,6 +4490,7 @@ def verkaeufe(request):
         "active_kind": active,
         "active_view": view,
         "create_target": create_target,
+        "create_in_drawer": sales_page.opens_in_drawer(create_target),  # UX-D D5.3
         # MX-2c: вход к сводным доп-продажам — только когда опции заведены.
         "has_zusatz": zusatz_mod.has_any_options(),
     }

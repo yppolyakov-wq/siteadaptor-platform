@@ -185,3 +185,35 @@ def test_drawer_aware_is_innermost_and_permissions_match_create():
         chain.append(chain[-1].__wrapped__)
     assert chain[-2].__code__ is code
     assert view_perms.RULES["booking:booking-new"] == view_perms.RULES["booking:booking-create"]
+
+
+# --- D5.3: постоянной формы записи больше нет ------------------------------------
+
+
+def _body(role=Membership.ROLE_OWNER):
+    from django.template.loader import render_to_string
+
+    from apps.booking import views
+
+    req = _req(drawer=False)
+    Membership.objects.filter(user=req.user).update(role=role)
+    ctx = views.calendar_context(req)
+    return render_to_string("booking/_tagesplan_body.html", ctx, request=req)
+
+
+def test_day_plan_has_no_open_booking_form_but_a_drawer_button():
+    _master()
+    html = _body()
+    assert "/dashboard/booking/new/" not in html  # форма booking-create снята
+    assert "data-skip-neu" not in html
+    btn = re.search(r'<a id="neu" [^>]*>', html).group(0)
+    assert "data-drawer" in btn and "/dashboard/booking/termin/neu/" in btn
+
+
+def test_create_target_and_drawer_flag():
+    from apps.core import sales_page
+
+    url = sales_page.create_target("booking")
+    assert url == "/dashboard/booking/termin/neu/" and sales_page.opens_in_drawer(url)
+    assert sales_page.opens_in_drawer("/dashboard/stays/neu/")
+    assert not sales_page.opens_in_drawer("/dashboard/jobs/neu/")

@@ -14,13 +14,15 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   {% endfor %}
 {% endif %}
 
-{% comment %}SP-12 (аудит пространства 2026-11-02): на xl месяц и день — слева, форма
-новой записи — справа вверху (CSS-грид, порядок DOM прежний: на телефоне форма
-остаётся после списка), записи дня — во всю ширину под ними.{% endcomment %}
+{% comment %}SP-12 → UX-D D5.3: на xl месяц слева, справа — день (←/→), «＋ Neuer Termin»
+(шторка; постоянно раскрытой формы записи больше нет) и Tischplan; записи дня — во всю
+ширину под ними. `id="neu"` у кнопки — старые закладки «#neu» попадают на неё.{% endcomment %}
 <div class="xl:grid xl:grid-cols-[28rem_minmax(0,1fr)] xl:gap-x-6 xl:items-start" data-tagesplan-layout>
 <div class="min-w-0">
 {# Фидбэк 2026-08-04: месячная сетка — клик по дате разворачивает её брони ниже. #}
 {% include "booking/_month_grid.html" %}
+</div>
+<div class="min-w-0">
 
 <div class="flex items-center justify-between mb-4 max-w-md">
   <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}tag={{ prev_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {{ prev_day|date:"D d.m." }}</a>
@@ -28,8 +30,10 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}tag={{ next_day|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{{ next_day|date:"D d.m." }} →</a>
 </div>
 
-{% if not deal_calendar_compact %}<p class="mb-2 xl:hidden"><a href="#neu" class="text-sm text-indigo-600 hover:underline" data-skip-neu>＋ {% trans "Add booking" %} ↓</a></p>{% endif %}
-{% if has_tables %}<p class="mb-3"><a href="{% url 'booking:tischplan' %}?tag={{ day|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline" data-tischplan-link>🪑 {% trans "Tischplan" %} →</a></p>{% endif %}
+<div class="flex flex-wrap items-center gap-3 mb-4">
+  {% if can_create_booking and not deal_calendar_compact %}<a id="neu" href="{% url 'booking:booking-new' %}?tag={{ day|date:'Y-m-d' }}&amp;next={{ request.get_full_path|urlencode }}" data-drawer aria-haspopup="dialog" class="ui-btn ui-btn-primary ui-btn-sm scroll-mt-24" data-new-booking><span aria-hidden="true">＋ </span>{% trans "Neuer Termin" %}</a>{% endif %}
+  {% if has_tables %}<a href="{% url 'booking:tischplan' %}?tag={{ day|date:'Y-m-d' }}" class="text-sm text-indigo-700 underline" data-tischplan-link><span aria-hidden="true">🪑 </span>{% trans "Tischplan" %} <span aria-hidden="true">→</span></a>{% endif %}
+</div>
 
 </div>
 
@@ -85,47 +89,4 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
 {% endif %}
 </div>
 
-{% if not deal_calendar_compact %}<form method="post" action="{% url 'booking:booking-create' %}" id="neu" class="ui-card p-6 max-w-xl space-y-4 scroll-mt-24 xl:max-w-none xl:col-start-2 xl:row-start-1 xl:mb-4">
-  {% csrf_token %}
-  <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-500 font-normal">({% trans "e.g. phone call" %})</span></h2>
-  <div class="grid sm:grid-cols-3 gap-4">
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Resource" %}</span>
-      <select name="resource" class="ui-input">
-        {% for r in resources %}<option value="{{ r.pk }}">{{ r.name }}</option>{% endfor %}
-      </select></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Start" %}</span>
-      <input aria-label="{% trans "Start" %}" type="datetime-local" name="start" required class="ui-input"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Minutes" %}</span>
-      <input type="number" name="minutes" value="" placeholder="60" min="5" max="1440" class="ui-input"></label>
-      <p class="text-xs text-gray-500 mt-1">{% trans "Leer = Dauer der Leistung" %}</p>
-    </div>
-  </div>
-  {% if manual_services %}<div>
-    <label for="neu-service" class="block text-sm font-medium mb-1">{% trans "Leistung" %}</label>
-    <select id="neu-service" name="service" class="ui-input">
-      <option value="">{% trans "— ohne Leistung (z. B. Tisch) —" %}</option>
-      {% for s in manual_services %}<option value="{{ s.pk }}">{{ s.name_localized|default:s.name }}</option>{% for v in s.active_variants %}<option value="{{ s.pk }}:{{ v.pk }}">{{ s.name_localized|default:s.name }} · {{ v.name_localized }}</option>{% endfor %}{% endfor %}
-    </select>
-  </div>{% endif %}
-  <div class="grid sm:grid-cols-3 gap-4">
-    <input name="name" type="text" aria-label="{% trans 'Name' %}" placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input autocomplete="off" name="phone" type="tel" aria-label="{% trans 'Phone' %}" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input autocomplete="off" name="email" type="email" aria-label="{% trans 'Email' %}" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-  </div>
-  <div class="max-w-xs">
-    <label for="neu-party" class="block text-sm font-medium mb-1">{% trans "Personen" %}</label>
-    <input id="neu-party" type="number" name="party_size" value="1" min="1" max="50" class="ui-input">
-  </div>
-  <div>
-    <label for="neu-note" class="block text-sm font-medium mb-1">{% trans "Notiz" %}</label>
-    <textarea id="neu-note" name="note" rows="2" maxlength="2000" class="ui-input"></textarea>
-  </div>
-  <div><label class="inline-flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="override_hours" value="1"> {% trans "Trotzdem eintragen" %}</label></div>
-  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add booking" %}</button>
-</form>{% endif %}
 </div>

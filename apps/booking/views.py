@@ -86,6 +86,15 @@ def calendar(request):
     return legacy_redirect(request, tab="booking", view="kalender")
 
 
+def _can_create_booking(request) -> bool:
+    from apps.core import permissions, view_perms
+
+    user = getattr(request, "user", None)
+    if user is None or not permissions.is_member(user):
+        return True  # не член команды — кабинет его не пускает (прецедент can_open)
+    return view_perms.allowed_quiet(user, "booking:booking-new", "POST")
+
+
 def calendar_context(request):
     day = _parse_day_any(request.GET.get("tag"))
     tz = timezone.get_current_timezone()
@@ -127,6 +136,8 @@ def calendar_context(request):
         "resources": resources,
         # KA-12 GA-6: вход в «Tischplan» — только где есть столы.
         "has_tables": any(r.type == Resource.TYPE_TABLE for r in resources),
+        # UX-D D5.3: «＋ Neuer Termin» — только тем, кто может создать запись
+        "can_create_booking": _can_create_booking(request),
         # KA-H7: услуга в ручной записи (цена/длительность).
         # KA-12 E4.4b: варианты строками «Услуга · Вариант» (значение `<svc>:<variant>`).
         "manual_services": Service.objects.filter(is_active=True)

@@ -81,7 +81,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
     {% if create_target %}
       {# X2c: подпись «＋» по kind — заявка ≠ бронь ≠ запись #}
       {# R3: на мобильном кнопку заменяет FAB внизу (утверждённый макет) #}
-      <a href="{{ create_target }}"{% if active_kind == "stay" %} data-drawer{% endif %} class="ui-btn ui-btn-primary ui-btn-sm hidden sm:inline-block shadow-sm">＋ {% if active_kind == "stay" %}{% trans "New booking" %}{% elif active_kind == "job" %}{% trans "New request" %}{% else %}{% trans "New appointment" %}{% endif %}</a>
+      <a href="{{ create_target }}"{% if create_in_drawer %} data-drawer{% endif %} class="ui-btn ui-btn-primary ui-btn-sm hidden sm:inline-block shadow-sm">＋ {% if active_kind == "stay" %}{% trans "New booking" %}{% elif active_kind == "job" %}{% trans "New request" %}{% else %}{% trans "New appointment" %}{% endif %}</a>
     {% endif %}
     {% comment %}Фидбэк владельца 2026-08-20 (п.2): вход в настройки ЭТОГО
     раздела вернулся на страницу. SM-4 увёл «Abläufe» в подпункт сайдбара — и
@@ -100,7 +100,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
 Verkaeufe.dc). Та же цель create_target, что у десктопной кнопки тулбара;
 рендерится ПОСЛЕ тела — замок «＋ не в шапке» цел по построению.{% endcomment %}
 {% if create_target and active_kind != "kunden" and active_view != "heute" %}
-<a href="{{ create_target }}"{% if active_kind == "stay" %} data-drawer{% endif %} aria-label="{% if active_kind == 'stay' %}{% trans 'New booking' %}{% elif active_kind == 'job' %}{% trans 'New request' %}{% else %}{% trans 'New appointment' %}{% endif %}"
+<a href="{{ create_target }}"{% if create_in_drawer %} data-drawer{% endif %} aria-label="{% if active_kind == 'stay' %}{% trans 'New booking' %}{% elif active_kind == 'job' %}{% trans 'New request' %}{% else %}{% trans 'New appointment' %}{% endif %}"
    class="ui-btn ui-btn-primary sm:hidden fixed right-4 bottom-24 z-30 w-14 h-14 rounded-full text-2xl flex">＋</a>
 {% endif %}
 {% endblock %}
