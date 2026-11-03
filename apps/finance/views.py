@@ -502,8 +502,6 @@ def journal_export_datev(request):
 def invoices(request):
     """Счета (D4b): список + создание черновика (до 8 позиций без JS)."""
 
-    from apps.core.documents import business_language, language_choices
-
     from .models import Invoice
 
     if request.method == "POST":
@@ -543,11 +541,6 @@ def invoices(request):
             ),
             "inv_kinds": Invoice.KINDS,
             "inv_sort_options": invoice_list.sort_options(),
-            **_customer_context(request),
-            "vat_rates": RevenueEntry.VAT_RATES,
-            "small_business": request.tenant.small_business,
-            "doc_languages": language_choices(request.tenant),
-            "doc_language_default": business_language(request.tenant),
         },
     )
 

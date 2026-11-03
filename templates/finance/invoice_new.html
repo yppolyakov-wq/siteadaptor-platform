@@ -24,7 +24,7 @@
         <option value="">—</option>
         {% for c in customers %}<option value="{{ c.pk }}"{% if selected_customer and c.pk == selected_customer.pk %} selected{% endif %}>{{ c.pick_label }}</option>{% endfor %}
       </select>
-      {% include "finance/_field_err.html" with err=fv_errors.customer id="inv-customer" %}
+      {% if fv_errors.customer %}<p id="inv-customer-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ fv_errors.customer }}</p>{% endif %}
       <p class="text-xs text-gray-600 mt-1">{% if kunde_q %}{% blocktrans with q=kunde_q %}Treffer für „{{ q }}“.{% endblocktrans %}{% else %}{% trans "Neueste Kunden — andere über die Suche oben." %}{% endif %}</p>
     </div>
     <div>
@@ -35,7 +35,7 @@
         <select id="inv-vat" name="vat_rate" class="ui-input"{% if fv_errors.vat_rate %} aria-invalid="true" aria-describedby="inv-vat-err"{% endif %}>
           {% for rate in vat_rates %}<option value="{{ rate|stringformat:'s' }}"{% if fv.vat_rate == rate|stringformat:"s" %} selected{% endif %}>{{ rate }} %</option>{% endfor %}
         </select>
-        {% include "finance/_field_err.html" with err=fv_errors.vat_rate id="inv-vat" %}
+        {% if fv_errors.vat_rate %}<p id="inv-vat-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ fv_errors.vat_rate }}</p>{% endif %}
       {% endif %}
     </div>
   </div>

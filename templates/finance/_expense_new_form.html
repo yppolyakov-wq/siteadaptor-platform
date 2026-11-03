@@ -9,14 +9,14 @@ suppliers, next_url.{% endcomment %}
     <div>
       <label for="en-amount" class="block text-sm font-medium mb-1">{% trans "Amount" %}</label>
       <input id="en-amount" name="amount" type="text" inputmode="decimal" autocomplete="off" required value="{{ fv.amount }}" placeholder="0,00" data-drawer-autofocus{% if fv_errors.amount %} aria-invalid="true" aria-describedby="en-amount-err"{% endif %} class="ui-input">
-      {% include "finance/_field_err.html" with err=fv_errors.amount id="en-amount" %}
+      {% if fv_errors.amount %}<p id="en-amount-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ fv_errors.amount }}</p>{% endif %}
     </div>
     <div>
       <label for="en-vat" class="block text-sm font-medium mb-1">{% trans "USt.-Satz" %}</label>
       <select id="en-vat" name="vat_rate" class="ui-input"{% if fv_errors.vat_rate %} aria-invalid="true" aria-describedby="en-vat-err"{% endif %}>
         {% for r in vat_rates %}<option value="{{ r|stringformat:'s' }}"{% if fv.vat_rate == r|stringformat:"s" %} selected{% endif %}>{{ r|floatformat:0 }} %</option>{% endfor %}
       </select>
-      {% include "finance/_field_err.html" with err=fv_errors.vat_rate id="en-vat" %}
+      {% if fv_errors.vat_rate %}<p id="en-vat-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ fv_errors.vat_rate }}</p>{% endif %}
     </div>
     <div>
       <label for="en-cat" class="block text-sm font-medium mb-1">{% trans "Kategorie" %}</label>
@@ -30,17 +30,17 @@ suppliers, next_url.{% endcomment %}
         <option value="">—</option>
         {% for sp in suppliers %}<option value="{{ sp.pk }}"{% if fv.supplier == sp.pk|stringformat:"s" %} selected{% endif %}>{{ sp.name }}</option>{% endfor %}
       </select>
-      {% include "finance/_field_err.html" with err=fv_errors.supplier id="en-supplier" %}
+      {% if fv_errors.supplier %}<p id="en-supplier-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ fv_errors.supplier }}</p>{% endif %}
     </div>
     <div>
       <label for="en-date" class="block text-sm font-medium mb-1">{% trans "Date" %}</label>
       <input id="en-date" name="date" type="date" value="{{ fv.date }}"{% if fv_errors.date %} aria-invalid="true" aria-describedby="en-date-err"{% endif %} class="ui-input">
-      {% include "finance/_field_err.html" with err=fv_errors.date id="en-date" %}
+      {% if fv_errors.date %}<p id="en-date-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ fv_errors.date }}</p>{% endif %}
     </div>
     <div>
       <label for="en-due" class="block text-sm font-medium mb-1">{% trans "Zahlungsziel" %}</label>
       <input id="en-due" name="due_date" type="date" value="{{ fv.due_date }}"{% if fv_errors.due_date %} aria-invalid="true" aria-describedby="en-due-err"{% endif %} class="ui-input">
-      {% include "finance/_field_err.html" with err=fv_errors.due_date id="en-due" %}
+      {% if fv_errors.due_date %}<p id="en-due-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ fv_errors.due_date }}</p>{% endif %}
     </div>
   </div>
   <div>
