@@ -35,15 +35,18 @@ resources, manual_services, show_party, refused (код отказа, котор
     {% endif %}
     <div class="col-span-2">
       <label for="bn-name" class="block text-sm font-medium mb-1">{% trans "Name" %}</label>
-      <input id="bn-name" name="name" type="text" maxlength="200" autocomplete="off" value="{{ bv.name }}" class="ui-input">
+      <input id="bn-name" name="name" type="text" maxlength="200" autocomplete="off" value="{{ bv.name }}" class="ui-input"{% if bv_errors.name %} aria-invalid="true" aria-describedby="bn-name-err"{% endif %}>
+      {% if bv_errors.name %}<p id="bn-name-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.name }}</p>{% endif %}
     </div>
     <div>
       <label for="bn-phone" class="block text-sm font-medium mb-1">{% trans "Phone" %}</label>
-      <input id="bn-phone" name="phone" type="tel" autocomplete="off" value="{{ bv.phone }}" class="ui-input">
+      <input id="bn-phone" name="phone" type="tel" maxlength="40" autocomplete="off" value="{{ bv.phone }}" class="ui-input"{% if bv_errors.phone %} aria-invalid="true" aria-describedby="bn-phone-err"{% endif %}>
+      {% if bv_errors.phone %}<p id="bn-phone-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.phone }}</p>{% endif %}
     </div>
     <div>
       <label for="bn-email" class="block text-sm font-medium mb-1">{% trans "Email" %}</label>
-      <input id="bn-email" name="email" type="email" autocomplete="off" value="{{ bv.email }}" class="ui-input">
+      <input id="bn-email" name="email" type="email" maxlength="254" autocomplete="off" value="{{ bv.email }}" class="ui-input"{% if bv_errors.email %} aria-invalid="true" aria-describedby="bn-email-err"{% endif %}>
+      {% if bv_errors.email %}<p id="bn-email-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.email }}</p>{% endif %}
     </div>
     {% if show_party or bv_errors.party_size %}
     <div>

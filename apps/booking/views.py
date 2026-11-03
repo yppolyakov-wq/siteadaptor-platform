@@ -219,6 +219,27 @@ def booking_detail(request, pk):
     booking = get_object_or_404(
         Booking.objects.select_related("customer", "service", "resource"), pk=pk
     )
+    if drawer_mod.is_box(request):
+        # UX-D D5.2: шторка записи из Tagesplan — без тяжёлой сборки карточки сделки.
+        from . import no_shows as _no_shows
+
+        day = timezone.localtime(booking.start).date().isoformat()
+        return drawer_mod.fragment(
+            render(
+                request,
+                "booking/_booking_drawer.html",
+                {
+                    "b": booking,
+                    "no_show": _no_shows.summary(booking.customer),
+                    "resources": list(
+                        Resource.objects.filter(is_active=True).order_by("type", "name")
+                    ),
+                    "next_url": drawer_mod.drawer_next(
+                        request, f"{reverse('verkaeufe')}?tab=booking&tag={day}"
+                    ),
+                },
+            )
+        )
     # MX-3: правка состава допов — опции услуги (scope-wide + адресные) и
     # выбранные из снимка. Запись без услуги (бронь стола) — только scope-wide.
     from apps.core import extras as extras_engine
@@ -395,6 +416,7 @@ def _service_note_action(request, booking, action, back):
 
 @login_required
 @require_POST
+@drawer_mod.drawer_aware  # UX-D D5.2: действия из шторки записи — JSON шторки
 def booking_action(request, pk):
     booking = get_object_or_404(Booking, pk=pk)
     action = request.POST.get("action", "")

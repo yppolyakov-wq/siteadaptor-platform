@@ -116,6 +116,19 @@ def parse(post) -> tuple[dict, dict]:
             out["variant"] = variant if ok else None
     for f in ("name", "phone", "email", "note"):
         out[f] = vals[f]
+    # Ревью D5.0: длина полей клиента = длина модели (телефон 41+ символов давал 500),
+    # e-mail проверяется на сервере (иначе письма молча не доходят).
+    raw_post = {f: (post.get(f) or "").strip() for f in ("name", "phone", "email")}
+    for f, limit in (("name", 200), ("phone", 40), ("email", 254)):
+        if len(raw_post[f]) > limit:
+            errors[f] = _("Höchstens %(n)s Zeichen.") % {"n": limit}
+    if raw_post["email"] and "email" not in errors:
+        from django.core.validators import validate_email
+
+        try:
+            validate_email(raw_post["email"])
+        except ValidationError:
+            errors["email"] = _("Bitte eine gültige E-Mail angeben.")
     return out, errors
 
 

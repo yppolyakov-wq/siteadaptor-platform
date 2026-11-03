@@ -37,10 +37,12 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
 
 </div>
 
-<div class="min-w-0 xl:col-span-2 xl:row-start-2">
-{% if bookings %}
+{# UX-D D5.2: область дня перерисовывается после действий из шторки (контракт шторки) #}
+<div id="tp-region" data-drawer-refresh class="min-w-0 xl:col-span-2 xl:row-start-2">
 {# KA-12 E4.2b: сетка «ресурс × время» с переносом перетаскиванием (md+); список ниже — путь без мыши. #}
-{% include "booking/_tagesplan_grid.html" %}
+{# UX-D D5.1: сетка рисуется и в пустой день — клик по свободному времени создаёт запись. #}
+{% if bookings or not deal_calendar_compact %}{% include "booking/_tagesplan_grid.html" %}{% endif %}
+{% if bookings %}
 <div class="ui-card divide-y divide-gray-100 mb-6">
   {% for b in bookings %}
     <div class="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
@@ -59,7 +61,7 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
         {% comment %}HF-6d: гость мог записаться сразу на несколько периодов — помечаем,
         что это часть общей брони, иначе владелец видит «двух разных» гостей подряд.{% endcomment %}
         {# Фидбэк 2026-08-05: reference_code → карточка брони (детали + действия). #}
-        <p class="text-xs text-gray-500">{{ b.customer }}{% if b.no_show_n %} <span class="text-amber-800 font-medium" data-no-show><span aria-hidden="true">⚠</span> {% blocktrans count n=b.no_show_n %}{{ n }}× nicht erschienen{% plural %}{{ n }}× nicht erschienen{% endblocktrans %}</span>{% endif %}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "guests" %}{% endif %}{% if b.is_large_party %} · <span class="text-amber-700 font-medium" data-large-party>👥 {% trans "Gruppenanfrage" %}</span>{% endif %} · <a href="{% url 'booking:booking-detail' b.pk %}" class="text-indigo-600 hover:underline">{{ b.reference_code }}</a>{% if b.group_code %} · 🔗 {% trans "Part of a multi-slot booking" %}{% endif %}{% if b.note %} · 📝 {{ b.note|truncatechars:60 }}{% endif %}</p>
+        <p class="text-xs text-gray-500">{{ b.customer }}{% if b.no_show_n %} <span class="text-amber-800 font-medium" data-no-show><span aria-hidden="true">⚠</span> {% blocktrans count n=b.no_show_n %}{{ n }}× nicht erschienen{% plural %}{{ n }}× nicht erschienen{% endblocktrans %}</span>{% endif %}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "guests" %}{% endif %}{% if b.is_large_party %} · <span class="text-amber-700 font-medium" data-large-party>👥 {% trans "Gruppenanfrage" %}</span>{% endif %} · <a href="{% url 'booking:booking-detail' b.pk %}" data-drawer aria-haspopup="dialog" class="text-indigo-700 underline">{{ b.reference_code }}</a>{% if b.group_code %} · 🔗 {% trans "Part of a multi-slot booking" %}{% endif %}{% if b.note %} · 📝 {{ b.note|truncatechars:60 }}{% endif %}</p>
       </div>
       <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="flex items-center gap-2 flex-wrap">
         {% csrf_token %}

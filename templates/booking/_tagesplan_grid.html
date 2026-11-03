@@ -6,6 +6,7 @@
 {% if grid.columns %}
 <div class="ui-card hidden md:block mb-6 overflow-auto" style="max-height:70vh"
      data-tp-grid data-day="{{ day|date:'Y-m-d' }}" data-step="{{ grid.step }}" data-first="{{ grid.rows.0.1 }}"
+     {% if can_create_booking and not deal_calendar_compact %}data-tp-new="{% url 'booking:booking-new' %}"{% endif %}
      {% if not deal_calendar_compact %}data-tp-dnd data-confirm-hours="{% trans 'Außerhalb der Öffnungszeiten — trotzdem eintragen?' %}" data-error="{% trans 'Verschieben fehlgeschlagen.' %}"{% endif %}
      role="group" aria-label="{% trans 'Tagesplan nach Ressource und Uhrzeit' %}">
   {% if not deal_calendar_compact %}{% csrf_token %}{% endif %}
@@ -18,8 +19,12 @@
     </div>
     {% for col in grid.columns %}
     <section class="border-l border-gray-200" aria-labelledby="tp-r{{ col.resource.pk }}">
-      <h3 id="tp-r{{ col.resource.pk }}" class="sticky top-0 z-20 bg-white h-9 px-2 flex items-center text-sm font-semibold border-b border-gray-200 truncate">{{ col.resource.name }}{% if col.closed %} <span class="ml-1 text-xs font-normal text-red-700">· {% trans "geschlossen" %}</span>{% endif %}</h3>
-      <div data-tp-col="{{ col.resource.pk }}" class="relative{% if col.closed %} bg-gray-100{% endif %}"
+      <div class="sticky top-0 z-20 bg-white h-9 px-2 flex items-center justify-between gap-1 border-b border-gray-200">
+        <h3 id="tp-r{{ col.resource.pk }}" class="text-sm font-semibold truncate">{{ col.resource.name }}{% if col.closed %} <span class="ml-1 text-xs font-normal text-red-700">· {% trans "geschlossen" %}</span>{% endif %}</h3>
+        {# UX-D D5.1: «＋» колонки — путь с клавиатуры и без JS к новой записи этого ресурса #}
+        {% if can_create_booking and not deal_calendar_compact and not col.closed %}<a href="{% url 'booking:booking-new' %}?resource={{ col.resource.pk }}&amp;tag={{ day|date:'Y-m-d' }}&amp;next={{ request.get_full_path|urlencode }}" data-drawer aria-haspopup="dialog" aria-label="{% trans 'Neuer Termin' %}: {{ col.resource.name }}" class="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded text-indigo-700 hover:bg-indigo-50" data-tp-col-new><span aria-hidden="true">＋</span></a>{% endif %}
+      </div>
+      <div data-tp-col="{{ col.resource.pk }}" class="relative{% if col.closed %} bg-gray-100{% endif %}{% if can_create_booking and not deal_calendar_compact and not col.closed %} cursor-pointer{% endif %}"{% if col.closed %} data-tp-closed{% endif %}
            style="display:grid;grid-template-rows:repeat({{ grid.rows|length }},1.75rem);grid-template-columns:repeat({{ col.lanes }},minmax(0,1fr))">
         {% for idx, label, full in grid.rows %}<div aria-hidden="true" class="border-t {% if full %}border-gray-200{% else %}border-gray-100{% endif %}{% if idx in col.off_rows %} bg-gray-50{% endif %}" style="grid-row:{{ idx }};grid-column:1 / -1"{% if idx in col.off_rows %} title="{% trans 'Nicht verfügbar' %}"{% endif %}></div>{% endfor %}
         <ul style="display:contents">
@@ -29,7 +34,7 @@
               {% if blk.movable and not deal_calendar_compact %}draggable="true"{% endif %}
               class="relative z-10 m-0.5 rounded-lg border px-2 py-1 text-xs leading-tight overflow-hidden {% if b.status == 'confirmed' %}bg-green-50 border-green-300 text-green-900{% elif b.status == 'pending' %}bg-amber-50 border-amber-300 text-amber-900{% else %}bg-gray-50 border-gray-300 text-gray-700{% endif %}{% if blk.movable and not deal_calendar_compact %} cursor-grab{% endif %}"
               style="grid-row:{{ blk.row }} / span {{ blk.span }};grid-column:{{ blk.lane|add:1 }};min-height:24px">
-            <a href="{% url 'booking:booking-detail' b.pk %}" draggable="false" class="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+            <a href="{% url 'booking:booking-detail' b.pk %}" draggable="false" data-drawer aria-haspopup="dialog" class="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
               <span class="font-semibold">{{ b.start|time:"H:i" }}–{{ b.end|time:"H:i" }}</span>
               {{ b.customer }}{% if b.group_code %} 🔗{% endif %}{% if b.no_show_n %} <span class="font-semibold text-amber-800" data-no-show><span aria-hidden="true">⚠</span>{{ b.no_show_n }}×<span class="sr-only"> {% trans "nicht erschienen" %}</span></span>{% endif %}
               <span class="block truncate">{% if b.service_id %}{{ b.service_label }} · {% endif %}{% status_label b "booking" %}</span>
@@ -135,7 +140,22 @@
     if (String(row) === blk.dataset.row && resource === blk.closest("[data-tp-col]").dataset.tpCol) return;
     send(g, blk, start, resource, false);
   });
+  // UX-D D5.1: клик по свободному месту колонки → шторка «＋ Neuer Termin» с ресурсом и
+  // временем строки. Не по записи, не по закрытой колонке, не сразу после перетаскивания.
+  var draggedAt = 0;
+  document.addEventListener("click", function (e) {
+    var col = e.target.closest && e.target.closest("[data-tp-col]");
+    if (!col || col.hasAttribute("data-tp-closed") || e.target.closest("[data-tp-block]")) return;
+    var g = grid(col);
+    if (!g || !g.dataset.tpNew || Date.now() - draggedAt < 400) return;
+    if (!window.sfDrawer || !window.sfDrawer.open) return;
+    var start = g.dataset.day + "T" + hhmm(g, rowAt(col, e.clientY));
+    var q = new URLSearchParams({resource: col.dataset.tpCol, start: start,
+      next: location.pathname + location.search});
+    window.sfDrawer.open(g.dataset.tpNew + "?" + q.toString(), col);
+  });
   document.addEventListener("dragend", function () {
+    draggedAt = Date.now();
     drag = null;
     document.querySelectorAll("[data-tp-col].ring-2").forEach(function (c) { c.classList.remove("ring-2", "ring-indigo-400"); });
   });

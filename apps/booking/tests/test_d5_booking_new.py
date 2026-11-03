@@ -115,6 +115,8 @@ def test_create_in_drawer_opens_the_booking_without_navigate():
         ({"minutes": "3"}, "minutes"),
         ({"start_time": ""}, "time"),
         ({"service": str(uuid.uuid4())}, "service"),
+        ({"phone": "1" * 41}, "phone"),  # ревью D5.0: раньше 500 (Customer.phone = 40)
+        ({"email": "kein-at-zeichen"}, "email"),
     ],
 )
 def test_errors_are_at_the_field_and_nothing_is_created(extra, field):
@@ -217,3 +219,88 @@ def test_create_target_and_drawer_flag():
     assert url == "/dashboard/booking/termin/neu/" and sales_page.opens_in_drawer(url)
     assert sales_page.opens_in_drawer("/dashboard/stays/neu/")
     assert not sales_page.opens_in_drawer("/dashboard/jobs/neu/")
+
+
+# --- D5.1: клик по свободному времени ----------------------------------------------
+
+
+def test_empty_day_draws_the_grid_with_new_booking_hooks():
+    r = _master()
+    html = _body()
+    assert "data-tp-grid" in html and 'data-tp-new="/dashboard/booking/termin/neu/"' in html
+    plus = re.search(rf'<a href="[^"]*resource={r.pk}[^"]*"[^>]*data-tp-col-new', html)
+    assert plus and "data-drawer" in plus.group(0)
+
+
+def test_staff_without_create_right_gets_no_new_booking_hooks(monkeypatch):
+    from apps.booking import views
+
+    _master()
+    monkeypatch.setattr(views, "_can_create_booking", lambda request: False)
+    html = _body()
+    assert "data-tp-new" not in html and "data-tp-col-new" not in html
+    assert 'id="neu"' not in html
+
+
+# --- D5.2: запись открывается шторкой -------------------------------------------------
+
+
+def _booking():
+    from apps.booking import services
+
+    r = _master()
+    from datetime import datetime
+
+    from django.utils import timezone
+
+    start = timezone.make_aware(datetime.combine(_day(), time(10)))
+    b, _w = services.create_manual(r, start=start, name="Frau Weber")
+    return b
+
+
+def test_booking_opens_as_drawer_fragment():
+    from apps.booking import views
+
+    b = _booking()
+    resp = views.booking_detail(_req(), pk=b.pk)
+    html = resp.content.decode()
+    assert resp["X-Sf-Fragment"] == "1" and "<script" not in html
+    assert "data-drawer-title=" in html and "Frau Weber" in html
+    assert html.count("data-drawer-form") >= 2  # статус + перенос
+    assert f"/dashboard/booking/termin/{b.pk}/" in html  # «Zur vollständigen Buchung»
+
+
+def test_unknown_booking_in_drawer_is_404():
+    from django.http import Http404
+
+    from apps.booking import views
+
+    with pytest.raises(Http404):
+        views.booking_detail(_req(), pk=uuid.uuid4())
+
+
+def test_status_action_from_drawer_returns_drawer_json():
+    from apps.booking import views
+
+    b = _booking()
+    resp = views.booking_action(
+        _req("post", {"action": "fulfilled", "next": "/dashboard/verkaeufe/?tab=booking"}),
+        pk=b.pk,
+    )
+    data = json.loads(resp.content)
+    assert "ok" in data and not data.get("navigate")
+
+
+def test_day_plan_links_open_bookings_in_the_drawer_and_region_refreshes():
+    b = _booking()
+    from django.template.loader import render_to_string
+
+    from apps.booking import views
+
+    req = _req(drawer=False, method="get", data={"tag": _day().isoformat()})
+    html = render_to_string(
+        "booking/_tagesplan_body.html", views.calendar_context(req), request=req
+    )
+    assert 'id="tp-region" data-drawer-refresh' in html
+    link = re.search(rf'<a href="/dashboard/booking/termin/{b.pk}/"[^>]*>', html).group(0)
+    assert "data-drawer" in link

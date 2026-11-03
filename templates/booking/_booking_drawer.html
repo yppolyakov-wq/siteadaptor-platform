@@ -1,0 +1,54 @@
+{% load i18n cabinet %}
+{% comment %}UX-D D5.2: шторка записи (booking:booking-detail?box=1) — открывается из Tagesplan.
+Сводка: время, ресурс, услуга, клиент, неявки, оплата; действия статуса, перенос и «Rest
+kassieren» уходят через fetch (data-drawer-form) и возвращаются в шторку. Допы, заметки
+мастера, связи, документы — на полной карточке. Контекст: booking.views._booking_panel_ctx.{% endcomment %}
+{% blocktrans asvar drawer_title with code=b.reference_code %}Termin {{ code }}{% endblocktrans %}
+<div data-drawer-title="{{ drawer_title }}" class="flex flex-col gap-4 text-sm">
+  <div class="flex items-center justify-between gap-3 flex-wrap">
+    <p class="text-gray-700 font-semibold">{{ b.start|date:"D d.m.Y" }} · {{ b.start|time:"H:i" }}–{{ b.end|time:"H:i" }}</p>
+    {% status_badge b "booking" %}
+  </div>
+  <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
+    <dt class="text-gray-600">{% trans "Resource" %}</dt><dd>{{ b.resource.name }}</dd>
+    {% if b.service_id %}<dt class="text-gray-600">{% trans "Leistung" %}</dt><dd>{{ b.service_label }}</dd>{% endif %}
+    <dt class="text-gray-600">{% trans "Name" %}</dt><dd>{{ b.customer }}{% if no_show.n %} <span class="text-amber-800 font-medium" data-no-show><span aria-hidden="true">⚠</span> {% blocktrans count n=no_show.n %}{{ n }}× nicht erschienen{% plural %}{{ n }}× nicht erschienen{% endblocktrans %}</span>{% endif %}</dd>
+    {% if b.customer.phone %}<dt class="text-gray-600">{% trans "Phone" %}</dt><dd><a href="tel:{{ b.customer.phone }}" class="text-indigo-700 underline">{{ b.customer.phone }}</a></dd>{% endif %}
+    {% if b.party_size > 1 %}<dt class="text-gray-600">{% trans "Personen" %}</dt><dd>{{ b.party_size }}</dd>{% endif %}
+    {% if b.note %}<dt class="text-gray-600">{% trans "Notiz" %}</dt><dd class="break-words">{{ b.note }}</dd>{% endif %}
+    <dt class="text-gray-600">{% trans "Status" %}</dt>
+    <dd>{% if b.payment_state == 'paid' %}{% trans "Paid" %}{% elif b.payment_state == 'deposit' %}{% blocktrans with eur=b.balance_eur|floatformat:2 %}Anzahlung bezahlt · Rest {{ eur }} € offen{% endblocktrans %}{% elif b.payment_state == 'pending' %}{% trans "Deposit pending" %}{% elif b.payment_state == 'refunded' %}{% trans "Refunded" %}{% else %}{% trans "Vor Ort zu zahlen" %}{% endif %}</dd>
+  </dl>
+
+  {% if b.payment_state == 'deposit' and b.status != 'cancelled' %}
+  <form method="post" action="{% url 'booking:booking-action' b.pk %}" data-drawer-form>
+    {% csrf_token %}<input type="hidden" name="next" value="{{ next_url }}">
+    <input type="hidden" name="action" value="mark_paid">
+    <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm">💶 {% blocktrans with eur=b.balance_eur|floatformat:2 %}Restbetrag kassieren ({{ eur }} €){% endblocktrans %}</button>
+  </form>
+  {% endif %}
+
+  {% if b.status == 'pending' or b.status == 'confirmed' %}
+  <details class="rounded-xl border border-gray-200 p-3" data-drawer-move>
+    <summary class="font-semibold cursor-pointer">{% trans "Termin verschieben" %}</summary>
+    <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="mt-3 space-y-2" data-drawer-form>
+      {% csrf_token %}<input type="hidden" name="next" value="{{ next_url }}">
+      <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Start" %}</span>
+        <input type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="ui-input"></label>
+      {% if resources|length > 1 %}<label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Resource" %}</span>
+        <select name="resource" class="ui-input">{% for r in resources %}<option value="{{ r.pk }}"{% if r.pk == b.resource_id %} selected{% endif %}>{{ r.name }}</option>{% endfor %}</select></label>{% endif %}
+      <label class="inline-flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="override_hours" value="1" class="rounded"> {% trans "Trotzdem eintragen" %}</label>
+      <button name="action" value="move" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Move" %}</button>
+    </form>
+  </details>
+  {% endif %}
+
+  <a href="{% url 'booking:booking-detail' b.pk %}" class="ui-drawer-link text-indigo-700 hover:underline">{% trans "Zur vollständigen Buchung" %} <span aria-hidden="true">→</span></a>
+
+  <div class="ui-drawer-foot">
+    <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="flex items-center gap-2 flex-wrap" data-drawer-form>
+      {% csrf_token %}<input type="hidden" name="next" value="{{ next_url }}">
+      {% include "core/_status_actions.html" with kind="booking" obj=b %}
+    </form>
+  </div>
+</div>
