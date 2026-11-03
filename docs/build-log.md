@@ -21357,3 +21357,22 @@ Einstellungen › «Lager» (`stock-settings`). Ревью: неактивный
 1600/390 — 24/24. Замки: `test_d6_hotfixes` (33), `test_d6_extras_pages` (20),
 `test_d6_stock_book` (27), `test_option_trackers` (+3); переписан осознанно
 `test_locations::test_cabinet_renders_standorte_section`.
+
+### 2026-11-03 — UX-D D6.4 / D6.5 / D6.3 «Остальные списки» (часть 2)
+**D6.4:** ваучеры — «＋ Generate» шторкой, скидка и минимальный заказ в € (было «−500 ct»);
+лояльность — «＋ Create program» шторкой → страница программы с правкой (раньше после создания —
+только перевод); ревью: порог штампов 0 молча выключал награды → ≥ 1; общий `create_vouchers`.
+**D6.5:** финансы — `apps/finance/entry_views.py` (`parse_journal`/`parse_expense`/
+`parse_invoice` + `create_*` — один разбор для шторок, страницы и старых форм), шторки
+«＋ Buchung»/«＋ Ausgabe» (Beleg через FormData), страница «＋ Neue Rechnung» (8 строк, поиск
+клиента, ошибка у своей строки, ввод сохраняется — раньше редирект стирал до 8 строк). Ревью
+нашло HIGH: в немецком кабинете `value="{{ rate }}"` рендерилось «19,00», строгий белый список
+отклонял каждую запись (старый мягкий фолбэк молча проводил 7 % как 19 %) → `stringformat:'s'`
++ разбор числом; замок рендерит форму в de/en/ru и отправляет её option-значения; грабля — в
+`docs/pitfalls.md`. **D6.3:** подборки — строки с количествами одним запросом (было 3 запроса и
+все чекбоксы на подборку), «＋ Kollektion» шторкой, страница подборки с вкладками
+Grundlagen · Inhalt · Lookbook-Fotos (состав — `_save_members` D6.0, «остальные N сохраняются»).
+Стенд friseur × 1600/390 — 20/20. Замки: `test_d6_vouchers_loyalty` (10),
+`test_d6_finance_entries` (21), `test_d6_collection_pages` (9); переписаны осознанно
+`test_collections`, `test_lookbook`, `test_d6_hotfixes` (чекбоксы — на вкладке «Inhalt»),
+`test_sidebar_st4b`, `test_wr3_form_noise` (настройки склада).
