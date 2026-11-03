@@ -46,6 +46,9 @@ RUN groupadd --system --gid 10001 app \
     && useradd --system --uid 10001 --gid app --home-dir /app --no-create-home --shell /usr/sbin/nologin app \
     && mkdir -p /app/media /app/staticfiles \
     && chown app:app /app/media /app/staticfiles
+# Домашний каталог /app принадлежит root; библиотеки, кэширующие в ~ (fontconfig и т. п.),
+# пишут во временный каталог, а не падают на правах.
+ENV HOME=/tmp
 USER app
 
 EXPOSE 8000

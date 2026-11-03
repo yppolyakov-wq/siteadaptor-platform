@@ -28,12 +28,29 @@ def test_app_image_runs_as_fixed_non_root_user():
 
 def test_deploy_aligns_media_owner_to_the_same_uid():
     sh = _read("scripts", "deploy.sh")
-    step = sh.split("[2b/8]", 1)[1].split("step ", 1)[0]
+    step = sh.split("[2b/8]", 1)[1].split("\nstep ", 1)[0]
     assert "--user 0" in step and "chown -h 10001:10001" in step
-    # ошибка chown не проглатывается последним echo
-    assert "'set -eu;" in step
+    # ошибка не проглатывается последним echo; остаток после chown — отказ деплоя
+    assert "MEDIA_ALIGN='set -eu;" in step and '[ "$left" -eq 0 ]' in step
+    # проба записи от имени самого app (без --user)
+    assert "run --rm --no-deps web sh -ec 'f=/app/media/.deploy-write-test" in step
     # шаг стоит ДО первой команды приложения под app (миграции, перезапуск)
     assert sh.index("[2b/8]") < sh.index("migrate_schemas --shared")
+    # повторное выравнивание после перезапуска: гонка со старыми root-контейнерами
+    restart = sh.split("[7/8]", 1)[1].split("\nstep ", 1)[0]
+    assert 'exec -T --user 0 web sh -c "$MEDIA_ALIGN"' in restart
+
+
+def test_backup_upload_reads_root_owned_dumps_as_root():
+    """Дампы бэкапа — root, mode 600; без --user 0 выгрузка в S3 под app упала бы."""
+    sh = _read("scripts", "backup.sh")
+    assert '$COMPOSE run --rm -T --user 0 -v "$BACKUP_DIR:/backup:ro" web python' in sh
+    assert "postgres:16-alpine" not in sh
+
+
+def test_home_is_writable_for_the_app_user():
+    df = _read("Dockerfile")
+    assert "ENV HOME=/tmp" in df and df.index("ENV HOME=/tmp") < df.rindex("USER app")
 
 
 def test_no_floating_image_tags():

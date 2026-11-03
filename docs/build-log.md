@@ -21036,3 +21036,14 @@ Text-Check — live-region всегда в дереве доступности, 
 задевают. Ревью нашло пред-существующее: allauth без `ALLAUTH_TRUSTED_PROXY_COUNT` видел IP Caddy —
 лимит неудачных входов был общим на всех; теперь 1 (Caddy перезаписывает X-Forwarded-For — замок
 `test_sec_g2b`). pip-audit: 0. План — `sec-g2b-allauth-oauthlib-plan-2026-11-03.md`.
+
+**2026-11-03 · SEC-G11b — приложение не под root, закреплённые версии образов (без миграций).**
+web/worker/beat работают под `app` (uid/gid 10001), владелец только `/app/media` и
+`/app/staticfiles`; код и site-packages root-owned. Теги: `python:3.12.16-slim`,
+`postgres:16.15-alpine`, `redis:7.4.12-alpine`, `caddy:2.11.7` (проверены по Docker Hub).
+Существующий том media (создан под root) `deploy.sh` выравнивает сам — шаг [2b/8] до миграций
+и повтор после `up -d`, только несовпадающие файлы, `chown -h`, пересчёт остатка, проба записи
+от имени app; ошибка останавливает деплой. По ревью ECC: `backup.sh` выгружал дамп в S3 через
+`run web` — под app не прочитал бы root-файлы 600 → `--user 0`; `HOME=/tmp`. Docker-демона в
+среде нет — образ не собирался, замки держат текст (`test_sec_g11b_containers`). ⚠️ ops: до
+деплоя сверить версию Postgres на сервере (не понижать минорную), после — загрузка фото.

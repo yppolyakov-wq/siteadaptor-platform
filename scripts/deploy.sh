@@ -64,11 +64,15 @@ step "[2b/8] Media volume owner (non-root app)"
 # запустить приложение, которое не сможет писать загрузки.
 # `set -e` внутри: иначе код возврата sh -c — это последний echo, и ошибка chown
 # проглатывалась бы. `chown -h` меняет сам симлинк, не уходя по нему за пределы тома.
-$COMPOSE run --rm --no-deps --user 0 web sh -c \
-	'set -eu; mkdir -p /app/media; \
-	 n=$(find /app/media \( ! -uid 10001 -o ! -gid 10001 \) -print | wc -l); \
-	 find /app/media \( ! -uid 10001 -o ! -gid 10001 \) -exec chown -h 10001:10001 {} +; \
+# Пересчёт после chown ловит ФС, где chown «успешен», но ничего не меняет (NFS
+# root_squash); проба записи от имени app доказывает главное — загрузки будут писаться.
+MEDIA_ALIGN='set -eu; test -d /app/media; \
+	 n=$(find /app/media \( ! -uid 10001 -o ! -gid 10001 \) -exec chown -h 10001:10001 {} + -print | wc -l); \
+	 left=$(find /app/media \( ! -uid 10001 -o ! -gid 10001 \) -print | wc -l); \
+	 [ "$left" -eq 0 ] || { echo "media: $left файлов всё ещё не 10001" >&2; exit 1; }; \
 	 echo "    media: владелец выровнен у $n файлов"'
+$COMPOSE run --rm --no-deps --user 0 web sh -c "$MEDIA_ALIGN"
+$COMPOSE run --rm --no-deps web sh -ec 'f=/app/media/.deploy-write-test; : > "$f"; rm -f "$f"'
 
 if [ "$MODE" = "single" ]; then
 	step "[3/8] Start local Postgres and wait for healthy"
@@ -123,6 +127,10 @@ fi
 
 step "[7/8] Restart services"
 $COMPOSE up -d
+# SEC-G11b: старые контейнеры (на первом деплое — ещё под root) работали всё время
+# миграций и могли создать в томе root-папки (например, media/products/2026/11/).
+# Новые уже под app — выравниваем ещё раз, теперь гонки нет.
+$COMPOSE exec -T --user 0 web sh -c "$MEDIA_ALIGN"
 
 step "[8/8] Deploy checks"
 # Сверка миграций ПО ВСЕМ СХЕМАМ: обычный showmigrations видит только public, из-за

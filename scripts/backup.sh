@@ -55,7 +55,7 @@ if [ "$MODE" = "single" ]; then
 	$COMPOSE exec -T db pg_dump -U "$DB_USER" -d "$DB_NAME" --no-owner | gzip -9 >"$DB_FILE"
 else
 	# В образе приложения pg_dump нет — берём клиент той же major-версии (16).
-	docker run --rm -e PGPASSWORD="$DB_PASSWORD" postgres:16-alpine \
+	docker run --rm -e PGPASSWORD="$DB_PASSWORD" postgres:16.15-alpine \
 		pg_dump -h "$DB_HOST" -p "${DB_PORT:-5432}" -U "$DB_USER" -d "$DB_NAME" --no-owner \
 		| gzip -9 >"$DB_FILE"
 fi
@@ -70,7 +70,8 @@ $COMPOSE run --rm -T web tar -czf - -C /app media >"$MEDIA_FILE"
 
 if [ -n "${BACKUP_S3_BUCKET:-}" ]; then
 	for f in "$DB_FILE" "$MEDIA_FILE"; do
-		$COMPOSE run --rm -T -v "$BACKUP_DIR:/backup:ro" web python - "$(basename "$f")" <<'PY'
+		# SEC-G11b: файлы бэкапа — root, mode 600; приложение в образе теперь под app.
+		$COMPOSE run --rm -T --user 0 -v "$BACKUP_DIR:/backup:ro" web python - "$(basename "$f")" <<'PY'
 import os, sys
 import boto3
 name = sys.argv[1]
