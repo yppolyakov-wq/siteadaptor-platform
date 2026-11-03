@@ -107,3 +107,14 @@ def test_static_describedby_targets_exist_in_template():
                 if ref not in ids:
                     dangling.append((path.relative_to(TEMPLATES).as_posix(), ref))
     assert not dangling, dangling
+
+
+def test_sp11_checkbox_widgets_not_rendered_as_text_inputs():
+    """SP-11: одиночный флажок — слева с подписью, группа — чипами (не w-full-поле)."""
+    from pathlib import Path
+
+    from django.conf import settings
+
+    text = (Path(settings.BASE_DIR) / "templates/catalog/_pf_field.html").read_text()
+    assert 'wt == "checkboxinput"' in text and 'wt == "checkboxselectmultiple"' in text
+    assert "data-check-chips" in text

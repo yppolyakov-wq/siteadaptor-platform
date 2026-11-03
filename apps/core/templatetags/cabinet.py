@@ -535,3 +535,23 @@ def mask_phone(value):
     from apps.core.contact_access import mask_phone as _mask
 
     return _mask(value or "")
+
+
+@register.filter
+def tc_grouped(findings):
+    """SP-11: подсказки «Text-Check» без повторов. Правило срабатывает по каждому полю и
+    языку отдельно, и одно и то же замечание с той же цитатой выходило до 12 раз
+    подряд. Склеиваем по (код, цитата, текст): первое — со своей кнопкой правки,
+    остальные места — подписью «auch in: …» (повторная проверка покажет оставшиеся)."""
+    groups: dict = {}
+    order = []
+    for f in findings or []:
+        key = (getattr(f, "code", ""), getattr(f, "quote", ""), str(getattr(f, "message", "")))
+        if key not in groups:
+            groups[key] = (f, [])
+            order.append(key)
+        else:
+            place = (getattr(f, "locale", "") or "").upper()
+            if place and place not in groups[key][1]:
+                groups[key][1].append(place)
+    return [groups[k] for k in order]

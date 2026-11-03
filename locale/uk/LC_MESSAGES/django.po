@@ -31744,3 +31744,6 @@ msgstr "Цей сайт тимчасово призупинено."
 
 msgid "Vorübergehend nicht verfügbar"
 msgstr "Тимчасово недоступно"
+
+msgid "auch in"
+msgstr "також у"

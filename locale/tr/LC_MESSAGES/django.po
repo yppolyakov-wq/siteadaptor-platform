@@ -31623,3 +31623,6 @@ msgstr "Bu web sitesi şu anda duraklatıldı."
 
 msgid "Vorübergehend nicht verfügbar"
 msgstr "Geçici olarak kullanılamıyor"
+
+msgid "auch in"
+msgstr "ayrıca"

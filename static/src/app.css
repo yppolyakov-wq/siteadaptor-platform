@@ -1709,6 +1709,10 @@ input[type="datetime-local"] {
   .ui-muted { color: var(--ui-muted); }
 
   .ui-card { background: var(--ui-surface); border-radius: var(--ui-r-card); box-shadow: var(--ui-shadow-card); padding: 1rem; }
+  /* SP-10: <legend> карточки-fieldset браузер рисует НА верхней кромке (заголовок «висел»
+     над карточкой). float — штатный способ вернуть его в поток; следующий блок — с новой строки. */
+  fieldset.ui-card > legend:not(.sr-only) { float: left; width: 100%; padding: 0; margin-top: 0 !important; }
+  fieldset.ui-card > legend:not(.sr-only) + * { clear: both; }
   .ui-card-row { background: var(--ui-surface); border-radius: 14px; box-shadow: var(--ui-shadow-card); padding: .75rem .875rem; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 
   .ui-btn { display: inline-flex; align-items: center; justify-content: center; gap: .375rem; min-height: 40px; padding: .5625rem .875rem; border: 1px solid transparent; border-radius: var(--ui-r-ctl); font-size: .875rem; font-weight: 600; line-height: 1.2; text-decoration: none; cursor: pointer; transition: background-color .12s, border-color .12s; }

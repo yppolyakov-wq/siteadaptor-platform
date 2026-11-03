@@ -399,3 +399,17 @@ def test_findings_are_json_serialisable_via_str():
 
     found = tc.run(inp("Gratis Kaffee nur heute", new_price=Decimal("2"), ends_at=_end(5)))
     json.dumps([f.as_dict() for f in found])
+
+
+def test_sp11_findings_grouped_without_repeats():
+    """SP-11: одно замечание с той же цитатой по нескольким языкам — одной строкой."""
+    from apps.core.templatetags.cabinet import tc_grouped
+    from apps.core.text_check import Finding
+
+    def f(locale):
+        return Finding("big", "medium", "title", locale, "−80 %", "Sehr hoher Rabatt", "norm")
+
+    groups = tc_grouped([f("de"), f("en"), f("ru"), Finding("x", "low", "t", "de", "q", "m", "n")])
+    assert len(groups) == 2
+    first, more = groups[0]
+    assert first.locale == "de" and more == ["EN", "RU"]

@@ -48,6 +48,33 @@ main-колонка (языки/название/описание/фото) + п
         <p class="text-xs ui-muted mt-1">{% trans "The photo is shown on the category tile of your storefront." %}</p>
       </div>
 
+      {% comment %}SP-10 (аудит пространства 2026-11-02): шаблон страницы, форма карточек и
+      размерная таблица жили в узком рейле (~1500 px), а основная колонка была короткой —
+      теперь они здесь, пикеры рядом; в рейле осталась структура и флажки.{% endcomment %}
+      <div class="grid gap-4 md:grid-cols-2 pt-2 border-t border-gray-100" data-category-display>
+        {% comment %}DL-20: шаблон страницы категории — ПЛИТКИ с мини-макетом вместо
+           строки селекта (как формы карточки, DL-19). Пустое значение = «как задано для
+           всего сайта» — общий дефолт живёт в Studio, своё значение его побеждает.{% endcomment %}
+        {% for field in form %}{% if field.name == 'page_style' %}
+          <div>
+            {% include "tenant/_cardform_picker.html" with name="page_style" value=field.value|default:"" items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=field.label span="one" %}
+            <p class="text-xs ui-muted mt-1">{% trans "Leave on Standard to follow the site-wide setting." %}</p>
+            {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
+          </div>
+        {% endif %}{% endfor %}
+        {% comment %}STU-12j (F9): форма карточек ТОВАРОВ этой категории — слой между
+           товаром и сайтом. Пустое = как на сайте; своё у товара побеждает.{% endcomment %}
+        {% for field in form %}{% if field.name == 'card_style' %}
+          <div>
+            {% include "tenant/_cardform_picker.html" with name="card_style" value=field.value|default:"" items=category_card_forms title=field.label span="one" %}
+            <p class="text-xs ui-muted mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>
+            {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
+          </div>
+        {% endif %}{% endfor %}
+      </div>
+      {# E9.10: общий партиал поля — с переводами размерной таблицы по языкам. #}
+      {% for field in form %}{% if field.name == 'size_table' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+
       {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
 
       <div class="flex gap-3 items-center">
@@ -69,25 +96,6 @@ main-колонка (языки/название/описание/фото) + п
             {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
           </div>
         {% endif %}{% endfor %}
-        {% comment %}DL-20: шаблон страницы категории — ПЛИТКИ с мини-макетом вместо
-           строки селекта (как формы карточки, DL-19). Пустое значение = «как задано для
-           всего сайта» — общий дефолт живёт в Studio, своё значение его побеждает.{% endcomment %}
-        {% for field in form %}{% if field.name == 'page_style' %}
-          <div>
-            {% include "tenant/_cardform_picker.html" with name="page_style" value=field.value|default:"" items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=field.label %}
-            <p class="text-xs ui-muted mt-1">{% trans "Leave on Standard to follow the site-wide setting." %}</p>
-            {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
-          </div>
-        {% endif %}{% endfor %}
-        {% comment %}STU-12j (F9): форма карточек ТОВАРОВ этой категории — слой между
-           товаром и сайтом. Пустое = как на сайте; своё у товара побеждает.{% endcomment %}
-        {% for field in form %}{% if field.name == 'card_style' %}
-          <div>
-            {% include "tenant/_cardform_picker.html" with name="card_style" value=field.value|default:"" items=category_card_forms title=field.label %}
-            <p class="text-xs ui-muted mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>
-            {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}</div>{% endif %}
-          </div>
-        {% endif %}{% endfor %}
         <div class="grid grid-cols-2 gap-3">
           {% for field in form %}{% if field.name == 'icon' or field.name == 'sort_order' %}
             <div>
@@ -106,10 +114,6 @@ main-колонка (языки/название/описание/фото) + п
         {% endif %}{% endfor %}
       </div>
 
-      <div class="ui-card p-5">
-        {# E9.10: общий партиал поля — с переводами размерной таблицы по языкам. #}
-        {% for field in form %}{% if field.name == 'size_table' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
-      </div>
     </aside>
   </form>
 

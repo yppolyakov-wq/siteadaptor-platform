@@ -3,7 +3,10 @@
 {% block dash_title %}{% trans "Payment & shipping" %}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-2xl">
+{% comment %}SP-10 (аудит пространства 2026-11-02): секции шли колонкой max-w-2xl (справа
+~450 px пусто, ~1770 px высоты) — на xl они встают сеткой в две колонки. Партиал секций
+общий со слайдом мастера и не тронут; сентинелы sec_* те же.{% endcomment %}
+<div class="max-w-2xl xl:max-w-6xl">
   <h1 class="ui-h1 mb-1">{% nav_title _("Payment & shipping") %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% trans "Everything about paying and delivery in one place." %}</p>
 
@@ -14,14 +17,14 @@
   AB6.2-payment). Здесь — обёртка экрана: одна форма, один Save.{% endcomment %}
   {% include "tenant/_payment_connect.html" %}
 
-  <form method="post" class="space-y-4">
+  <form method="post" class="space-y-4 xl:space-y-0 xl:grid xl:grid-cols-2 xl:gap-4 xl:items-start" data-payment-grid>
     {% csrf_token %}
     {% include "tenant/_payment_fields.html" %}
 
     {% if not connect_configured and not orders_active %}
-      <p class="ui-card text-sm text-gray-500 p-6">{% trans "Enable the Orders module to configure delivery and bank transfer." %}</p>
+      <p class="ui-card text-sm text-gray-500 p-6 xl:col-span-2">{% trans "Enable the Orders module to configure delivery and bank transfer." %}</p>
     {% else %}
-      <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
+      <div class="xl:col-span-2"><button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button></div>
     {% endif %}
   </form>
 </div>
