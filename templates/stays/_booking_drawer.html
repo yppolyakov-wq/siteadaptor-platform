@@ -1,0 +1,56 @@
+{% load i18n cabinet %}
+{% comment %}UX-D D1.2: шторка брони (stays:booking-detail?box=1). Сводка по макету —
+даты, гость, суммы, действия; правка/оплата/Meldeschein — те же партиалы
+`stays/_stay_*.html`, что у полной карточки (один источник). Формы уходят через
+fetch (data-drawer-form) и возвращаются в шторку; `next_url` — куда вернуться без JS.
+Контекст: stays.views._booking_panel_ctx.{% endcomment %}
+<div data-drawer-title="{{ b.reference_code }}" class="flex flex-col gap-4 text-sm">
+  <div class="flex items-center justify-between gap-3 flex-wrap">
+    <p class="text-gray-600">{{ b.unit.name }}{% if b.room %} · 🚪{{ b.room.number }}{% endif %}</p>
+    {% status_badge b "stay" %}
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="rounded-xl bg-gray-50 p-3">
+      <p class="text-xs text-gray-600">{% trans "Arrival" %}</p>
+      <p class="font-semibold">{{ b.arrival|date:"D d.m.Y" }}</p>
+    </div>
+    <div class="rounded-xl bg-gray-50 p-3">
+      <p class="text-xs text-gray-600">{% trans "Departure" %}</p>
+      <p class="font-semibold">{{ b.departure|date:"D d.m.Y" }}</p>
+    </div>
+  </div>
+
+  <section aria-label="{% trans 'Gast' %}">
+    {% include "stays/_stay_guest.html" %}
+  </section>
+
+  <section aria-label="{% trans 'Betrag & Zahlung' %}" class="border-t border-gray-100 pt-3">
+    {% include "stays/_stay_amount.html" %}
+  </section>
+
+  {% if b.status == 'pending' or b.status == 'confirmed' %}
+  <details class="rounded-xl border border-gray-200 p-3">
+    <summary class="font-semibold cursor-pointer">✏️ {% trans "Buchung bearbeiten" %}</summary>
+    <div class="mt-3">{% include "stays/_stay_edit.html" %}</div>
+  </details>
+  {% endif %}
+  <details class="rounded-xl border border-gray-200 p-3">
+    <summary class="font-semibold cursor-pointer">💶 {% trans "Betrag & Zahlung" %}</summary>
+    <div class="mt-3">{% include "stays/_stay_payment.html" %}</div>
+  </details>
+  <details class="rounded-xl border border-gray-200 p-3">
+    <summary class="font-semibold cursor-pointer">🪪 {% trans "Meldeschein" %}</summary>
+    <div class="mt-3">{% include "stays/_stay_meldeschein.html" %}</div>
+  </details>
+
+  <a href="{% url 'stays:booking-detail' b.pk %}" class="text-indigo-700 hover:underline">{% trans "Zur vollständigen Buchung" %} →</a>
+
+  <div class="ui-drawer-foot">
+    {% include "stays/_stay_front_desk.html" %}
+    <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="flex items-center gap-2 flex-wrap" data-drawer-form>
+      {% csrf_token %}<input type="hidden" name="next" value="{{ next_url }}">
+      {% include "core/_status_actions.html" with kind="stay" obj=b %}
+    </form>
+  </div>
+</div>

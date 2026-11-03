@@ -31571,3 +31571,7 @@ msgstr "auch in"
 msgctxt "business"
 msgid "Standort"
 msgstr ""
+
+#: templates/stays/_booking_drawer.html
+msgid "Zur vollständigen Buchung"
+msgstr "Zur vollständigen Buchung"

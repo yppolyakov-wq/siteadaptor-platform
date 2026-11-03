@@ -340,21 +340,24 @@ def test_stay_action_update_guest_overflow_rejected():
 
 
 def test_calendar_booking_panel_and_fragment():
+    """UX-D D1.2 (осознанная переписка): бронь — ШТОРКОЙ. На шахматке нет панели под
+    календарём; ?buchung=<pk> — признак автооткрытия шторки; фрагмент — шторка."""
     unit = _unit()
     booking = _book(unit, 1, 4)
     body = _cal(_req(data={"von": D0.isoformat(), "buchung": str(booking.pk)})).content.decode()
-    assert 'id="booking-panel"' in body and booking.reference_code in body
-    assert 'value="update"' in body  # форма «Buchung bearbeiten» в панели
+    assert 'id="booking-panel"' not in body
+    assert f'data-drawer-autoopen="/dashboard/stays/buchung/{booking.pk}/"' in body
+    assert f'data-drawer-key="bar-{booking.pk}"' in body  # плашка открывает шторку
 
     frag = _cal(
         _req(data={"von": D0.isoformat(), "buchung": str(booking.pk), "box": "1"})
     ).content.decode()
     assert booking.reference_code in frag and 'value="update"' in frag
-    assert 'id="belegungsplan"' not in frag  # ТОЛЬКО фрагмент карточки
+    assert 'id="belegungsplan"' not in frag  # ТОЛЬКО фрагмент шторки
 
-    # мусорный pk — страница живёт, панель скрыта
+    # мусорный pk — страница живёт, шторка не открывается
     body = _cal(_req(data={"von": D0.isoformat(), "buchung": "junk"})).content.decode()
-    assert 'id="booking-panel"' in body
+    assert "data-drawer-autoopen" not in body
 
 
 def test_booking_detail_page_has_edit_form():
@@ -682,13 +685,14 @@ def test_calendar_search_by_name_email_and_reference():
     _book(unit, 6, 8, name="Andere Person")
 
     body = _cal(_req(data={"q": "Suchbar", "von": D0.isoformat()})).content.decode()
-    assert "Familie Suchbar" in body and f"buchung={b1.pk}" in body
+    # UX-D D1.2: результат поиска открывает шторку брони (осознанная переписка)
+    assert "Familie Suchbar" in body and f'data-drawer-key="search-{b1.pk}"' in body
     assert "Andere Person" in body  # в сетке остаётся; в панели поиска — нет дубля
 
     body = _cal(_req(data={"q": "such@test.de"})).content.decode()
-    assert f"buchung={b1.pk}" in body
+    assert f'data-drawer-key="search-{b1.pk}"' in body
     body = _cal(_req(data={"q": b1.reference_code})).content.decode()
-    assert f"buchung={b1.pk}" in body
+    assert f'data-drawer-key="search-{b1.pk}"' in body
     body = _cal(_req(data={"q": "gibtsnicht-xyz"})).content.decode()
     assert "Nichts gefunden." in body
 

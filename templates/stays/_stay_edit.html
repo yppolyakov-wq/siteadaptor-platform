@@ -3,8 +3,8 @@
 `core/deal_card_base.html`) и для панели под Belegungsplan (fetch ?buchung=&box=1).
 Один источник: правка здесь меняет обе поверхности.{% endcomment %}
 {# Фидбэк 2026-07-27: правка брони — даты/номер/гости/заметка одним сохранением. #}
-  <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="grid sm:grid-cols-2 gap-3">
-    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <form method="post" action="{% url 'stays:stay-action' b.pk %}" data-drawer-form class="grid sm:grid-cols-2 gap-3">
+    {% csrf_token %}<input type="hidden" name="next" value="{{ next_url|default:request.get_full_path }}">
     <input type="hidden" name="action" value="update">
     <div>
       <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Anreise" %}</span>

@@ -11,19 +11,19 @@ Check-out — штатный переход «Abgereist» (выручка, уб�
   {% if can_front_desk %}
   <div class="flex flex-wrap gap-2">
     {% if desk.can_check_in %}
-    <form method="post" action="{% url 'stays:stay-action' b.pk %}">
+    <form method="post" action="{% url 'stays:stay-action' b.pk %}" data-drawer-form>
       {% csrf_token %}<input type="hidden" name="action" value="check_in"><input type="hidden" name="next" value="{{ next_url|default:request.get_full_path }}">
       <button type="submit" class="min-h-[44px] rounded-xl bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-700">{% trans "Check-in" %}</button>
     </form>
     {% endif %}
     {% if desk.can_check_out %}
-    <form method="post" action="{% url 'stays:stay-action' b.pk %}">
+    <form method="post" action="{% url 'stays:stay-action' b.pk %}" data-drawer-form>
       {% csrf_token %}<input type="hidden" name="action" value="check_out"><input type="hidden" name="next" value="{{ next_url|default:request.get_full_path }}">
       <button type="submit" data-danger="1" class="ui-btn ui-btn-primary">{% trans "Check-out" %}</button>
     </form>
     {% endif %}
     {% if desk.can_undo %}
-    <form method="post" action="{% url 'stays:stay-action' b.pk %}">
+    <form method="post" action="{% url 'stays:stay-action' b.pk %}" data-drawer-form>
       {% csrf_token %}<input type="hidden" name="action" value="check_in_undo"><input type="hidden" name="next" value="{{ next_url|default:request.get_full_path }}">
       <button type="submit" class="min-h-[44px] rounded-xl border border-gray-300 px-4 text-sm text-gray-700 hover:border-gray-500">{% trans "Check-in zurücknehmen" %}</button>
     </form>

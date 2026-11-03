@@ -6,10 +6,10 @@ _base_dashboard): перехват submit в фазе capture на document оп
 в партиалах статусов. Без JS форма уходит как раньше (fail-safe).
 <dialog>, а не confirm(): в Telegram Mini App нативный confirm чужероден.
 `window.sfDangerConfirm(label)` — тот же диалог для перетаскивания на доске.{% endcomment %}
-<dialog id="danger-confirm" class="rounded-2xl p-0 border-0 shadow-xl backdrop:bg-black/40 w-[min(22rem,92vw)]">
+<dialog id="danger-confirm" role="alertdialog" aria-labelledby="danger-confirm-title" aria-describedby="danger-confirm-desc" class="rounded-2xl p-0 border-0 shadow-xl backdrop:bg-black/40 w-[min(22rem,92vw)]">
   <div class="p-5 text-left">
-    <p class="font-semibold mb-1">{% trans "Wirklich ausführen?" %}</p>
-    <p class="text-sm text-gray-600 mb-4"><span class="font-medium" data-danger-label></span> — {% trans "das lässt sich nicht einfach rückgängig machen." %}</p>
+    <p class="font-semibold mb-1" id="danger-confirm-title">{% trans "Wirklich ausführen?" %}</p>
+    <p class="text-sm text-gray-600 mb-4" id="danger-confirm-desc"><span class="font-medium" data-danger-label></span> — {% trans "das lässt sich nicht einfach rückgängig machen." %}</p>
     <div class="flex items-center justify-end gap-2">
       <button type="button" value="no" data-danger-no class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">{% trans "Abbrechen" %}</button>
       <button type="button" value="yes" data-danger-yes class="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700">{% trans "Ja, ausführen" %}</button>

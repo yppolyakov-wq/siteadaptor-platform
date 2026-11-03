@@ -253,6 +253,7 @@ billing.context.subscription) и закрывается кнопкой; пост
 {% endif %}
 
 {% include "core/_danger_confirm.html" %}
+{% include "core/_drawer.html" %}
 {% comment %}KA-12 E10.6: хромовые скрипты кабинета — один кэшируемый файл (раньше инлайн здесь и в
 партиалах core/_confirm_tap, _danger_confirm, _sheet_js, _photo_shrink, _list_kb). Без defer:
 порядок исполнения прежний; разметка диалога выше — скрипт находит её сразу.{% endcomment %}

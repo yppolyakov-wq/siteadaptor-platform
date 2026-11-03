@@ -31751,3 +31751,7 @@ msgstr "також у"
 msgctxt "business"
 msgid "Standort"
 msgstr "Розташування"
+
+#: templates/stays/_booking_drawer.html
+msgid "Zur vollständigen Buchung"
+msgstr "Відкрити повну картку бронювання"

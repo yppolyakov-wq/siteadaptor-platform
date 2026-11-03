@@ -381,6 +381,233 @@ try { (function () {
     });
   }, true);
 })(); } catch (e) { console.error(e); }
+// ---- core/_drawer.html ----
+// UX-D D1: шторка кабинета. Ссылка a[data-drawer] → fragment (?box=1) в <dialog>;
+// формы [data-drawer-form] → fetch + JSON (apps/core/drawer.drawer_aware); после
+// успеха перерисовываются области [data-drawer-refresh] без перезагрузки страницы.
+// Любой сбой → обычная навигация (ссылка/форма работают и без JS).
+try { (function () {
+  "use strict";
+  if (window.sfDrawer) return;
+  var dlg = document.getElementById("sf-drawer");
+  if (!dlg || typeof dlg.showModal !== "function") return;
+  var body = dlg.querySelector("[data-drawer-body]");
+  var flash = dlg.querySelector("[data-drawer-flash]");
+  var alertBox = dlg.querySelector("[data-drawer-alert]");
+  var heading = dlg.querySelector("[data-drawer-heading]");
+  var errText = (dlg.querySelector("[data-drawer-error-text]") || {}).textContent || "Error";
+  var fallbackTitle = dlg.getAttribute("data-drawer-fallback-title") || "";
+  var src = null;
+  var opener = null;
+  var openerKey = null;
+  var seq = 0;
+  var downOnBackdrop = false;
+
+  function pageUrl() {
+    var u = new URL(location.href);
+    u.searchParams.delete("box");
+    u.searchParams.delete("buchung");
+    return u.pathname + u.search;
+  }
+
+  // Безопасность (ревью D1): шторка открывает только страницы кабинета этого сайта.
+  function cabinetUrl(href) {
+    try {
+      var u = new URL(href, location.href);
+      if (u.origin !== location.origin) return null;
+      if (!/^\/(dashboard|promotions|crm|catalog|imports|finance|inventory)\//.test(u.pathname)) return null;
+      return u;
+    } catch (e) { return null; }
+  }
+
+  function fragmentUrl(u) {
+    var f = new URL(u.pathname + u.search, location.href);
+    f.searchParams.set("box", "1");
+    if (!f.searchParams.has("next")) f.searchParams.set("next", pageUrl());
+    return f.pathname + f.search;
+  }
+
+  function say(items) {
+    flash.textContent = "";
+    alertBox.textContent = "";
+    // Отдельные области: успех/предупреждение — polite, ошибка — assertive (без двойного
+    // озвучивания). Текст ставится в следующем кадре: синхронная замена «очистить и
+    // вставить то же самое» читалки пропускают.
+    requestAnimationFrame(function () {
+      (items || []).forEach(function (m) {
+        var err = m.level === "error";
+        var p = document.createElement("p");
+        p.className = "rounded-xl px-3 py-2 " + (err ? "bg-red-50 text-red-800" : (m.level === "warning" ? "bg-amber-50 text-amber-900" : "bg-emerald-50 text-emerald-900"));
+        p.textContent = (err ? "⚠ " : (m.level === "warning" ? "! " : "✓ ")) + m.text;
+        (err ? alertBox : flash).appendChild(p);
+      });
+    });
+  }
+
+  function focusFirst() {
+    var field = body.querySelector("[data-drawer-autofocus]");
+    (field || heading).focus();
+  }
+
+  function fill(html) {
+    body.innerHTML = html;
+    var t = body.querySelector("[data-drawer-title]");
+    heading.textContent = (t && t.getAttribute("data-drawer-title")) || fallbackTitle;
+    document.dispatchEvent(new CustomEvent("sf:drawer-loaded", { detail: { body: body } }));
+  }
+
+  function load(url) {
+    var mine = ++seq;
+    body.setAttribute("aria-busy", "true");
+    return fetch(url, { credentials: "same-origin", headers: { "X-Requested-With": "fetch" } })
+      .then(function (r) {
+        if (mine !== seq) return null;  // устаревший ответ (второй клик, закрытие)
+        if (r.status === 404 && dlg.open) { close(); return null; }
+        if (!r.ok || r.redirected) throw new Error(String(r.status));
+        return r.text();
+      })
+      .then(function (html) {
+        if (mine !== seq) return false;
+        body.removeAttribute("aria-busy");
+        if (html === null) return false;
+        fill(html);
+        return true;
+      }, function (err) {
+        body.removeAttribute("aria-busy");
+        throw err;
+      });
+  }
+
+  function open(href, trigger, quiet) {
+    var u = cabinetUrl(href);
+    if (!u) return Promise.resolve(false);
+    var url = fragmentUrl(u);
+    if (!dlg.open) {  // ссылка внутри шторки не перезаписывает того, кто её открыл
+      opener = trigger || document.activeElement;
+      openerKey = opener && opener.getAttribute ? (opener.getAttribute("data-drawer-key") || "") : "";
+    }
+    say([]);
+    return load(url).then(function (ok) {
+      if (!ok) return false;
+      src = url;
+      if (!dlg.open) dlg.showModal();
+      focusFirst();
+      return true;
+    }).catch(function () {
+      if (!quiet) location.href = u.pathname + u.search;
+    });
+  }
+
+  function close() {
+    seq++;
+    if (dlg.open) dlg.close();
+  }
+
+  function visible(el) {
+    return el && document.contains(el) && el.offsetParent !== null && typeof el.focus === "function";
+  }
+
+  dlg.addEventListener("close", function () {
+    body.innerHTML = "";
+    src = null;
+    var back = opener;
+    if (!visible(back) && openerKey && window.CSS && CSS.escape) {
+      back = document.querySelector('[data-drawer-key="' + CSS.escape(openerKey) + '"]');
+    }
+    if (!visible(back)) {  // плашки больше нет (бронь перенесли/удалили)
+      back = document.querySelector("[data-drawer-refresh]") || document.querySelector("main h1");
+      if (back && !back.hasAttribute("tabindex")) back.setAttribute("tabindex", "-1");
+    }
+    if (back) back.focus();
+    opener = null;
+  });
+  dlg.addEventListener("mousedown", function (e) { downOnBackdrop = e.target === dlg; });
+  dlg.addEventListener("click", function (e) {
+    if (e.target === dlg && downOnBackdrop) close();  // клик по подложке целиком
+    if (e.target.closest("[data-drawer-close]")) close();
+  });
+
+  window.sfRefreshRegions = function () {
+    var regions = document.querySelectorAll("[data-drawer-refresh]");
+    if (!regions.length) return Promise.resolve();
+    var y = window.scrollY;
+    return fetch(pageUrl(), { credentials: "same-origin" })
+      .then(function (r) { if (!r.ok || r.redirected) throw new Error(String(r.status)); return r.text(); })
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, "text/html");
+        regions.forEach(function (el) {
+          var fresh = el.id && doc.getElementById(el.id);
+          if (!fresh) return;
+          var scrollers = Array.prototype.map.call(el.querySelectorAll(".overflow-x-auto"), function (n) { return n.scrollLeft; });
+          el.innerHTML = fresh.innerHTML;
+          Array.prototype.forEach.call(el.querySelectorAll(".overflow-x-auto"), function (n, i) {
+            if (scrollers[i] !== undefined) n.scrollLeft = scrollers[i];
+          });
+        });
+        window.scrollTo(0, y);
+        document.dispatchEvent(new CustomEvent("sf:navigated"));
+      })
+      .catch(function () { location.reload(); });
+  };
+
+  window.sfDrawer = { open: open, close: close };
+
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a[data-drawer]");
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (!cabinetUrl(a.getAttribute("href"))) return;  // чужой адрес — обычная ссылка
+    e.preventDefault();
+    open(a.getAttribute("href"), a);
+  });
+
+  // Фаза всплытия + defaultPrevented: подтверждение опасных шагов (_danger_confirm,
+  // capture) и сжатие фото успевают первыми.
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (e.defaultPrevented || !form.closest || !form.closest("[data-drawer-body]") || !form.hasAttribute("data-drawer-form")) return;
+    e.preventDefault();
+    var btn = e.submitter;
+    if (btn && btn.disabled) return;
+    var data = new FormData(form);
+    if (btn && btn.name) data.append(btn.name, btn.value);
+    if (btn) { btn.disabled = true; btn.setAttribute("aria-disabled", "true"); }  // без двойной оплаты
+    body.setAttribute("aria-busy", "true");
+    fetch(form.action || location.href, {
+      method: "POST", body: data, credentials: "same-origin",
+      headers: { "X-Sf-Drawer": "1", "X-Requested-With": "fetch" }
+    })
+      .then(function (r) {
+        var type = r.headers.get("Content-Type") || "";
+        if (!r.ok || type.indexOf("application/json") === -1) throw new Error(String(r.status));
+        return r.json();
+      })
+      .then(function (res) {
+        body.removeAttribute("aria-busy");
+        var after = form.getAttribute("data-drawer-after") || "reload";
+        if (res.ok && after === "close") {
+          close();
+          window.sfRefreshRegions();
+          return;
+        }
+        if (res.ok && src) {
+          load(src).then(function () { heading.focus(); say(res.messages); }, function () { say(res.messages); });
+          window.sfRefreshRegions();
+          return;
+        }
+        if (btn) { btn.disabled = false; btn.removeAttribute("aria-disabled"); }
+        say(res.messages && res.messages.length ? res.messages : [{ level: "error", text: errText }]);
+      })
+      .catch(function () {
+        body.removeAttribute("aria-busy");
+        if (btn) { btn.disabled = false; btn.removeAttribute("aria-disabled"); }
+        say([{ level: "error", text: errText }]);
+      });
+  });
+
+  // Автооткрытие: страница несёт адрес шторки (редирект после действия ?buchung=…).
+  var auto = document.querySelector("[data-drawer-autoopen]");
+  if (auto) open(auto.getAttribute("data-drawer-autoopen"), null, true);
+})(); } catch (e) { console.error(e); }
 // ---- core/_sheet_js.html ----
 try { (function () {
   "use strict";

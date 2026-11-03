@@ -21,6 +21,8 @@ test_price_nav/test_verkaeufe).{% endcomment %}
   {% endfor %}
 {% endif %}
 
+{% comment %}UX-D D1.2: область, которую шторка перерисовывает после действия (cabinet.js sfRefreshRegions).{% endcomment %}
+<div id="bp-region" data-drawer-refresh>
 {% for unit, nights in overbooking %}
   <div class="mb-3 rounded-lg px-4 py-2 text-sm bg-red-50 text-red-700" data-overbooking>⚠ {% blocktrans with unit=unit.name %}Überbuchung bei {{ unit }}:{% endblocktrans %} {% for n in nights %}{{ n|date:"d.m." }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
 {% endfor %}
@@ -34,7 +36,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 {% if search_q %}
 <div class="ui-card mb-4 divide-y divide-gray-100 max-w-3xl">
   {% for b in search_results %}
-    <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}von={{ b.arrival|date:'Y-m-d' }}&amp;buchung={{ b.pk }}" class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+    <a href="{% url 'stays:booking-detail' b.pk %}" data-drawer data-drawer-key="search-{{ b.pk }}" class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
       <span class="min-w-0 truncate"><span class="font-medium">{{ b.customer.name|default:b.customer }}</span> · {{ b.reference_code }}{% if b.customer.email %} · <span class="text-gray-400">{% if hide_contacts %}{{ b.customer.email|mask_email }}{% else %}{{ b.customer.email }}{% endif %}</span>{% endif %}</span>
       <span class="shrink-0 text-gray-500">{{ b.unit.name }}{% if b.room %} · 🚪{{ b.room.number }}{% endif %} · {{ b.arrival|date:"d.m.y" }}–{{ b.departure|date:"d.m.y" }} · {% status_label b "stay" %}</span>
     </a>
@@ -123,7 +125,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
                      title="{{ item.obj.customer }} · {{ item.obj.arrival|date:'d.m.' }}–{{ item.obj.departure|date:'d.m.Y' }} · {{ item.obj.reference_code }}">
                   {% if item.clip_left %}<span aria-hidden="true">‹</span>{% endif %}
                   {# PMS-R2: назначенный номер видно прямо на плашке #}
-                  <a href="{% url 'stays:booking-detail' item.obj.pk %}" class="truncate hover:underline min-w-0" draggable="false">{% if item.open_room %}<span data-open-room>＋ {% trans "Zimmer offen" %} · </span>{% elif item.obj.room %}🚪{{ item.obj.room.number }} · {% endif %}{{ item.obj.customer }} · {{ item.obj.reference_code }}</a>
+                  <a href="{% url 'stays:booking-detail' item.obj.pk %}" class="truncate hover:underline min-w-0" draggable="false" data-drawer data-drawer-key="bar-{{ item.obj.pk }}">{% if item.open_room %}<span data-open-room>＋ {% trans "Zimmer offen" %} · </span>{% elif item.obj.room %}🚪{{ item.obj.room.number }} · {% endif %}{{ item.obj.customer }} · {{ item.obj.reference_code }}</a>
                   {% if item.clip_right %}<span class="ml-auto" aria-hidden="true">›</span>{% endif %}
                 </div>
               </td>
@@ -146,12 +148,10 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 <p class="text-gray-500 mb-6">{% trans "No units yet." %} <a href="{% url 'stays:units' %}" class="text-indigo-600 hover:underline">{% trans "Create a unit" %} →</a></p>
 {% endif %}
 
-{% comment %}Фидбэк владельца 2026-07-27: клик по плашке открывает карточку брони
-СРАЗУ ПОД календарём (fetch ?buchung=<pk>&box=1 без перезагрузки; фолбэк —
-страница брони). Формы карточки редиректят обратно на календарь.{% endcomment %}
-<div id="booking-panel" class="max-w-2xl scroll-mt-24 mb-6 {% if not selected_booking %}hidden{% endif %}">
-  {% if selected_booking %}{% include "stays/_booking_card.html" %}{% endif %}
 </div>
+{% comment %}UX-D D1.2: бронь открывается шторкой (stays:booking-detail?box=1). ?buchung=<pk>
+(редирект после действия без JS, ссылка извне) — открыть шторку при загрузке.{% endcomment %}
+{% if selected_booking %}<div hidden data-drawer-autoopen="{% url 'stays:booking-detail' selected_booking.pk %}"></div>{% endif %}
 
 {% if dirty_rooms %}
 {# PMS-R4 (хаускипинг-lite): выезды пометили комнаты dirty — список уборки. #}
@@ -284,33 +284,9 @@ test_price_nav/test_verkaeufe).{% endcomment %}
         },
         body: body,
       }).then(function (resp) {
-        if (resp.status === 204) { location.reload(); return; }
+        if (resp.status === 204) { if (window.sfRefreshRegions) window.sfRefreshRegions(); else location.reload(); return; }
         return resp.text().then(function (t2) { toast(t2 || "{% trans 'Move not possible.' %}"); });
       }).catch(function () { toast("{% trans 'Move not possible.' %}"); });
-    });
-
-    // Фидбэк 2026-07-27: клик по плашке → карточка брони ПОД календарём
-    // (fetch-фрагмент; при ошибке — обычный переход на страницу брони).
-    document.addEventListener("click", function (e) {
-      var link = e.target.closest && e.target.closest("[data-bar-pk] a");
-      if (!link || !window.fetch) return;
-      var bar = link.closest("[data-bar-pk]");
-      var pk = bar.getAttribute("data-bar-pk");
-      var panel = document.getElementById("booking-panel");
-      if (!panel) return;
-      e.preventDefault();
-      var url = location.pathname + location.search;
-      url = url.replace(/([?&])buchung=[^&]*/, "$1").replace(/[?&]$/, "");
-      url += (url.indexOf("?") === -1 ? "?" : "&") + "buchung=" + encodeURIComponent(pk);
-      fetch(url + "&box=1", { headers: { "X-Requested-With": "fetch" } })
-        .then(function (r) { if (!r.ok) throw 0; return r.text(); })
-        .then(function (html) {
-          panel.innerHTML = html;
-          panel.classList.remove("hidden");
-          history.replaceState(null, "", url);
-          panel.scrollIntoView({ behavior: "smooth", block: "start" });
-        })
-        .catch(function () { location.href = link.getAttribute("href"); });
     });
 
     // Клик по свободной клетке → префил walk-in формы (юнит + даты) + скролл.

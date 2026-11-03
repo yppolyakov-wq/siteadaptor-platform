@@ -13,8 +13,8 @@
   </p>
   {# PMS-A3: оплата на стойке (наличные/EC) — тот же stay-action, что статусы. #}
   {% if b.payment_state != 'paid' and b.payment_state != 'refunded' and b.status != 'cancelled' %}
-  <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="mt-2">
-    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <form method="post" action="{% url 'stays:stay-action' b.pk %}" data-drawer-form class="mt-2">
+    {% csrf_token %}<input type="hidden" name="next" value="{{ next_url|default:request.get_full_path }}">
     <input type="hidden" name="action" value="mark_paid">
     <button type="submit" class="text-sm border border-emerald-300 text-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-50">💶 {% if b.payment_state == 'deposit' %}{% blocktrans with eur=b.balance_eur|floatformat:2 %}Restbetrag kassieren ({{ eur }} €){% endblocktrans %}{% else %}{% trans "Als bezahlt markieren" %}{% endif %}</button>
   </form>

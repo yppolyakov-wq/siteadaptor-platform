@@ -31630,3 +31630,7 @@ msgstr "ayrıca"
 msgctxt "business"
 msgid "Standort"
 msgstr "Konum"
+
+#: templates/stays/_booking_drawer.html
+msgid "Zur vollständigen Buchung"
+msgstr "Rezervasyonun tamamını aç"

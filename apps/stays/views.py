@@ -23,6 +23,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.core import deal_card, deal_links, payment_methods, refunds, setup_assistant, vat
+from apps.core import drawer as drawer_mod
 from apps.core import transactions as core_transactions
 from apps.core.fsm import GuestCheckedIn, IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
@@ -170,6 +171,41 @@ def _is_uuid(raw) -> bool:
         return False
 
 
+def _booking_panel_ctx(request, booking) -> dict:
+    """Контекст шторки брони (UX-D D1) — те же партиалы `_stay_*`, что у страницы брони.
+
+    `next_url` — куда вернуться формам шторки без JS (POST идёт через fetch, ответ JSON):
+    GET-`next` фрагмента, иначе страница продаж отеля."""
+    try:
+        registration = booking.registration
+    except Exception:  # noqa: BLE001 — OneToOne может отсутствовать
+        registration = None
+    from apps.core import extras as extras_engine
+
+    edit_extras = extras_engine.active_for(
+        "stays", entity_kind="stay", entity_id=str(booking.unit_id)
+    )
+    chosen_extra_ids = {
+        str(e.get("id")) for e in (booking.extras or []) if isinstance(e, dict) and e.get("id")
+    }
+    tenant = getattr(request, "tenant", None)
+    return {
+        "b": booking,
+        "registration": registration,
+        "can_delete": _can_delete_booking(booking),
+        "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
+        "free_rooms": services.free_rooms_for(booking),
+        "extra_room_slots": services.extra_room_slots(booking),
+        "edit_extras": edit_extras,
+        "chosen_extra_ids": chosen_extra_ids,
+        "crm_active": bool(tenant and tenant.is_module_active("crm")),
+        "inbox_active": bool(tenant and tenant.is_module_active("inbox")),
+        "desk": front_desk.state(booking, tenant=tenant),
+        "can_front_desk": has_perm(request.user, "rezeption.edit"),
+        "next_url": drawer_mod.drawer_next(request, f"{reverse('verkaeufe')}?tab=stay"),
+    }
+
+
 @login_required
 def calendar(request):
     """W10-6: легаси-вход Belegungsplan — 302 на вкладку stay единой страницы
@@ -266,63 +302,26 @@ def calendar_context(request):
             .select_related("unit", "customer", "room")
             .order_by("-arrival")[:20]
         )
-    # Фидбэк 2026-07-27: клик по плашке открывает карточку брони СРАЗУ ПОД
-    # календарём (?buchung=<pk>; &box=1 — fetch-фрагмент без перезагрузки).
+    # UX-D D1: бронь открывается ШТОРКОЙ (stays:booking-detail?box=1). ?buchung=<pk> на
+    # шахматке — только признак «открыть шторку при загрузке» (редирект после действия,
+    # ссылка из поиска без JS). Фрагмент ?buchung=&box=1 остаётся для совместимости.
     selected = None
-    sel_registration = None
     sel_pk = request.GET.get("buchung", "")
-    if sel_pk:
+    if sel_pk and _is_uuid(sel_pk):
         selected = (
             StayBooking.objects.select_related("unit", "customer", "rate_plan")
-            .filter(pk__in=[sel_pk] if _is_uuid(sel_pk) else [])
+            .filter(pk=sel_pk)
             .first()
         )
-        if selected is not None:
-            try:
-                sel_registration = selected.registration
-            except Exception:  # noqa: BLE001 — OneToOne может отсутствовать
-                sel_registration = None
-    # MX-3: правка состава допов из карточки — список опций ЦЕЛЕВОГО юнита
-    # (scope-wide + адресные) и уже выбранные id из снимка.
-    edit_extras, chosen_extra_ids = [], set()
-    if selected is not None:
-        from apps.core import extras as extras_engine
-
-        edit_extras = extras_engine.active_for(
-            "stays", entity_kind="stay", entity_id=str(selected.unit_id)
-        )
-        chosen_extra_ids = {
-            str(e.get("id")) for e in (selected.extras or []) if isinstance(e, dict) and e.get("id")
-        }
-    panel_ctx = {
-        "b": selected,
-        "registration": sel_registration,
-        "can_delete": _can_delete_booking(selected) if selected else False,
-        "units": units,
-        # PMS-R2: селект физического номера (пусто = у категории нет комнат).
-        "free_rooms": services.free_rooms_for(selected) if selected else [],
-        "extra_room_slots": services.extra_room_slots(selected) if selected else [],
-        "edit_extras": edit_extras,
-        "chosen_extra_ids": chosen_extra_ids,
-        # Ревью 2026-08-25: тот же партиал рендерится страницей брони, фрагментом
-        # ?box=1 и телом Belegungsplan — без этих гейтов входы «Kundenkarte» и
-        # «Nachricht an den Kunden» молча пропадали на шахматке (основной рабочей
-        # поверхности отеля). fail-closed, как в booking_detail.
-        "crm_active": bool(
-            getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
-        ),
-        "inbox_active": bool(
-            getattr(request, "tenant", None) and request.tenant.is_module_active("inbox")
-        ),
-    }
     if request.GET.get("box") == "1":
         if selected is None:
             return HttpResponse(status=404)
-        return render(request, "stays/_booking_card.html", panel_ctx)
+        return drawer_mod.fragment(
+            render(request, "stays/_booking_drawer.html", _booking_panel_ctx(request, selected))
+        )
     return {
         "overbooking": overbooking,
         **{
-            **panel_ctx,
             "selected_booking": selected,
             "ohne_zimmer": ohne_zimmer,
             # PMS-R4: комнаты к уборке (выезды пометили dirty).
@@ -361,6 +360,7 @@ def calendar_context(request):
 
 @login_required
 @require_POST
+@drawer_mod.drawer_aware
 def stay_action(request, pk):
     booking = get_object_or_404(StayBooking, pk=pk)
     action = request.POST.get("action", "")
@@ -616,6 +616,9 @@ def stay_action(request, pk):
                 )
         # von — по АКТУАЛЬНОМУ заезду (move_stay мог его изменить); панель брони
         # остаётся открытой под календарём (?buchung=).
+        nxt = local_next(request)
+        if nxt:
+            return redirect(drawer_mod.with_param(nxt, "buchung", booking.pk))
         return redirect(
             f"{reverse('stays:calendar')}?von={booking.arrival.isoformat()}&buchung={booking.pk}"
         )
@@ -630,7 +633,7 @@ def stay_action(request, pk):
         money_contract.settle_payment("stay", booking)  # KA-MC: единый путь
         messages.success(request, _("Marked as paid."))
         # Панель брони остаётся открытой (как у action=update).
-        return redirect(f"{back}&buchung={booking.pk}")
+        return redirect(drawer_mod.with_param(back, "buchung", booking.pk))
     if action in ("check_in", "check_in_undo", "check_out"):
         return _front_desk_action(request, booking, action, back)
     if action == "registration":
@@ -653,7 +656,7 @@ def stay_action(request, pk):
             return redirect(back)
         except refunds.RefundNotAllowed:
             messages.error(request, str(refunds.NOT_ALLOWED_MSG))
-            return redirect(f"{back}&buchung={booking.pk}")
+            return redirect(drawer_mod.with_param(back, "buchung", booking.pk))
         except refunds.RefundChoiceRequired:
             messages.error(
                 request,
@@ -662,7 +665,7 @@ def stay_action(request, pk):
                     "erstatten oder nicht erstatten."
                 ),
             )
-            return redirect(f"{back}&buchung={booking.pk}")
+            return redirect(drawer_mod.with_param(back, "buchung", booking.pk))
         messages.success(request, _("Stay updated."))
         # KA-H4: возврат депозита при отмене — в apply_action (одна точка).
         refunds.flash(request, refund, "stay")
@@ -899,6 +902,11 @@ def booking_detail(request, pk):
     booking = get_object_or_404(
         StayBooking.objects.select_related("unit", "customer", "rate_plan"), pk=pk
     )
+    if drawer_mod.is_box(request):
+        # UX-D D1: шторка брони — фрагмент без тяжёлой сборки карточки сделки.
+        return drawer_mod.fragment(
+            render(request, "stays/_booking_drawer.html", _booking_panel_ctx(request, booking))
+        )
     try:
         registration = booking.registration
     except Exception:  # noqa: BLE001 — OneToOne может отсутствовать
@@ -963,6 +971,7 @@ def room_clean(request, pk):
 
 @login_required
 @require_POST
+@drawer_mod.drawer_aware
 def booking_delete(request, pk):
     """Батч C: удалить ручную бронь без денег (гейт _can_delete_booking)."""
     booking = get_object_or_404(StayBooking, pk=pk)
