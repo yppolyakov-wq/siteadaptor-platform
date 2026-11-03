@@ -572,5 +572,11 @@ def resource_new(request):
         messages.success(request, _("Resource created."))
         tab = "profil" if resource.type == Resource.TYPE_STAFF else "zeiten"
         return redirect(page_url(resource, tab))
+    from apps.core.nav_registry import TABLE_TYPES
+
     wanted = request.GET.get("type")
-    return render_form({"type": wanted if wanted in dict(Resource.TYPES) else ""})
+    if wanted not in dict(Resource.TYPES):
+        # Стенд D3.5: салон/мастерская создают мастеров, гастро — столы.
+        business = getattr(getattr(request, "tenant", None), "business_type", "")
+        wanted = Resource.TYPE_TABLE if business in TABLE_TYPES else Resource.TYPE_STAFF
+    return render_form({"type": wanted})

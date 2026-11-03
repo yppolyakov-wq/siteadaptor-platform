@@ -871,8 +871,11 @@ try { (function () {
   document.addEventListener("submit", function (e) {
     var form = e.target;
     // UX-D D4.6: та же механика у страницы номера ([data-room-page] / [data-room-tab]).
-    var page = form && form.closest && form.closest("[data-svc-page], [data-room-page]");
-    var field = page && form.querySelector("[data-svc-tab], [data-room-tab]");
+    // UX-D D3.5: и страница ресурса ([data-resource-page] / [data-resource-tab]).
+    var page = form && form.closest && form.closest(
+      "[data-svc-page], [data-room-page], [data-resource-page]"
+    );
+    var field = page && form.querySelector("[data-svc-tab], [data-room-tab], [data-resource-tab]");
     if (!field) return;
     var cur = page.querySelector('[data-pf-tab][aria-selected="true"]');
     if (cur) field.value = cur.getAttribute("data-pf-tab");

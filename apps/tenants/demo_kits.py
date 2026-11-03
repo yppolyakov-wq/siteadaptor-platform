@@ -10193,7 +10193,9 @@ WERKSTATT = DemoKit(
     resources=[
         {
             "name": "Hebebühne 1",
-            "type": "table",
+            # UX-D D3.5: подъёмник — место (room), не стол: иначе мастерской показывались
+            # правило онлайн-брони столиков и вкладка «Tisch».
+            "type": "room",
             "capacity": 1,
             "start": "08:00",
             "end": "17:00",
@@ -10202,7 +10204,9 @@ WERKSTATT = DemoKit(
         },
         {
             "name": "Hebebühne 2",
-            "type": "table",
+            # UX-D D3.5: подъёмник — место (room), не стол: иначе мастерской показывались
+            # правило онлайн-брони столиков и вкладка «Tisch».
+            "type": "room",
             "capacity": 1,
             "start": "08:00",
             "end": "17:00",

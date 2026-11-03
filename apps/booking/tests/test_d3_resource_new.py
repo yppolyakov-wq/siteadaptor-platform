@@ -58,6 +58,14 @@ def test_type_prefill_from_tischplan():
     assert "&lt;x&gt;" not in html
 
 
+@pytest.mark.parametrize("business, default", [("restaurant", "table"), ("friseur", "staff")])
+def test_default_type_follows_the_business(business, default):
+    req = _req()
+    req.tenant = TenantFactory.build(business_type=business, disabled_modules=[])
+    html = vr.resource_new(req).content.decode()
+    assert re.search(rf'<option value="{default}" selected', html)
+
+
 def test_create_in_drawer_navigates_to_the_resource_page():
     resp = vr.resource_new(
         _req(
