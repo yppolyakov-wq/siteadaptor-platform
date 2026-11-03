@@ -408,3 +408,25 @@ def test_partial_post_does_not_wipe_the_other_axes():
     entry = siteconfig.normalize(t.site_config)["promo_groups"]["Räumung"]
     assert entry["style"] == "countdown" and entry["card"] == "ring"
     assert entry["layout"]["cols"] == 6
+
+
+def test_sp7_screen_types_collapsed_with_summary_and_pickers_side_by_side(settings):
+    """SP-7 (аудит пространства 2026-11-02): тип свёрнут со сводкой текущего выбора,
+    два пикера стоят рядом (партиал больше не растягивает каждый на обе колонки)."""
+    from apps.promotions import views
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    t = _tenant("pt-sp7", promo_groups={"A": "countdown"})
+    for g in ("A", "B", "C"):
+        _promo(f"{g}1", promo_type="discount", discount_percent=10, group=g)
+    body = views.promo_type_list(_cabinet_request("get", "/promotions/typen/", tenant=t))
+    body = body.content.decode()
+    assert body.count("data-promo-type=") == 3
+    card = body.split('data-promo-type="A"')[1].split(">")[0]
+    assert "open" not in card  # больше двух типов — свёрнуты
+    summary = body.split('data-promo-type="A"')[1].split("data-type-summary>")[1][:200]
+    assert "Countdown" in summary or "countdown" in summary.lower()
+    pickers = body.split('data-promo-type="A"')[1].split("</details>")[0]
+    assert pickers.count('<div class="text-sm" data-cardform-picker>') == 2
+    assert 'md:col-span-2" data-cardform-picker' not in pickers
+    assert 'name="style:A"' in body and 'name="rows:C"' in body  # W0: поля всех типов в DOM

@@ -77,6 +77,9 @@
       <span class="text-gray-400">{% trans "Setzt die Häkchen unten — dann „Speichern“." %}</span>
     </div>
   {% endif %}
+  {% comment %}SP-6 (аудит пространства 2026-11-02): матрицы событий шли на всю ширину
+  (название слева, галочки в ~1000 px от него, ~2700 px высоты) — на xl в две колонки.{% endcomment %}
+  <div class="xl:grid xl:grid-cols-2 xl:gap-x-5 xl:items-start" data-notify-matrix>
   {% for group in matrix %}
     <div class="ui-card mb-5 overflow-hidden">
       <div class="px-4 py-2.5 border-b border-gray-100 text-sm font-semibold text-gray-700">{{ group.label }}</div>
@@ -108,6 +111,7 @@
   {% empty %}
     <p class="text-sm ui-muted mb-5">{% trans "Keine aktiven Verkaufsmodule." %}</p>
   {% endfor %}
+  </div>
 
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
 </form>

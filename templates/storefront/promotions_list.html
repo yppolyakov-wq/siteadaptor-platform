@@ -43,8 +43,18 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
   {% elif groups %}
     {% include "storefront/promo_page/_type_chips.html" %}
   {% endif %}
+  {% if promo_page_style == "navigator" %}
   {% include "storefront/promo_page/_system_chips.html" %}
   {% include "storefront/promo_page/_search.html" %}
+  {% else %}
+  {% comment %}SP-8 (аудит пространства 2026-11-02): фильтры и поиск — одной строкой на
+  sm+ (было четыре ряда управления ~230 px до первой карточки); в колонке Navigator —
+  по-прежнему стопкой.{% endcomment %}
+  <div class="sm:flex sm:items-center sm:gap-x-3 mb-4 [&>*]:mb-2 sm:[&>*]:mb-0" data-promo-controls>
+    <div class="min-w-0 sm:flex-1">{% include "storefront/promo_page/_system_chips.html" %}</div>
+    <div class="sm:shrink-0">{% include "storefront/promo_page/_search.html" %}</div>
+  </div>
+  {% endif %}
   {% comment %}DL-20: под шапкой группы число акций уже стоит в ней — второй раз не печатаем.{% endcomment %}
   {% if result_count is not None and not group_label %}
     <p class="text-sm text-gray-500 mb-4" data-result-count>{% blocktrans count n=result_count %}{{ n }} offer{% plural %}{{ n }} offers{% endblocktrans %}</p>

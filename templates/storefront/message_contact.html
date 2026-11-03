@@ -4,7 +4,12 @@
 {% block title %}{% trans "Ask a question" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-xl mx-auto">
+{% comment %}SP-9 (аудит пространства 2026-11-02): форма шла узкой колонкой 576 px посреди
+1248 — на lg справа липкая колонка «So finden Sie uns» (адрес, часы, звонок, WhatsApp).
+Без адреса и телефона — прежняя центрированная колонка.{% endcomment %}
+{% business_card_data as bc %}
+<div class="{% if bc %}max-w-5xl mx-auto lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-8 lg:items-start{% endif %}" data-contact-layout>
+<div class="max-w-xl mx-auto{% if bc %} lg:max-w-none lg:mx-0{% endif %}">
   <h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Ask a question" %}</h1>
   <p class="text-gray-500 mb-6">{% trans "Send us a message — we'll get back to you." %}{% if ref_label %} <span class="text-gray-700">({{ ref_label }})</span>{% endif %}</p>
 
@@ -44,6 +49,8 @@
   </section>
 {% endif %}
 {% include "storefront/_message_form.html" %}
+</div>
+{% if bc %}<aside class="mt-6 lg:mt-0 lg:sticky lg:top-24" data-contact-aside>{% include "storefront/_business_card.html" with aside=1 %}</aside>{% endif %}
 </div>
   {% page_blocks "message" %}
 {% endblock %}

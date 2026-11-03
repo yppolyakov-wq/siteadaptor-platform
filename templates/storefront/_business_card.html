@@ -1,12 +1,13 @@
 {% load i18n %}{% comment %}T-8.1b: «So finden Sie uns» — карточка бизнеса на странице акции.
-Ожидает bc=business_card (apps/core/business_card.py) и request.tenant (часы).{% endcomment %}
+Ожидает bc=business_card (apps/core/business_card.py) и request.tenant (часы).
+SP-9: aside=1 — узкая колонка рядом с формой (без верхнего отступа, в одну колонку).{% endcomment %}
 {% if bc %}
-<section class="mt-6 sf-card bg-white rounded-2xl border border-gray-200 p-5" data-business-card>
+<section class="{% if not aside %}mt-6 {% endif %}sf-card bg-white rounded-2xl border border-gray-200 p-5" data-business-card>
   <div class="flex items-center gap-3 flex-wrap mb-3">
     <h2 class="font-semibold">{% trans "So finden Sie uns" %}</h2>
     {% with st=request.tenant.open_status %}{% include "storefront/_open_badge.html" %}{% endwith %}
   </div>
-  <div class="grid sm:grid-cols-2 gap-4 text-sm text-gray-600">
+  <div class="grid {% if not aside %}sm:grid-cols-2 {% endif %}gap-4 text-sm text-gray-600">
     <div>
       <p class="font-medium text-gray-800">{{ bc.name }}</p>
       {% if bc.address %}<p class="whitespace-pre-line">{{ bc.address }}</p>{% endif %}

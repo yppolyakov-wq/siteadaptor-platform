@@ -4,6 +4,12 @@
 {% block title %}{% trans "Request a quote" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
+{% comment %}SP-9 (аудит пространства 2026-11-02): форма заявки и «Rückruf» шли двумя
+карточками подряд посреди широкой страницы (~1500 px) — на lg форма слева, справа
+липкая колонка: «So finden Sie uns» + обратный звонок.{% endcomment %}
+{% business_card_data as bc %}
+<div class="max-w-5xl mx-auto lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-8 lg:items-start" data-anfrage-layout>
+<div class="min-w-0">
 <h1 class="max-w-2xl mx-auto text-2xl md:text-3xl font-bold mb-1">{% trans "Request a quote" %}</h1>
 <p class="max-w-2xl mx-auto text-gray-500 mb-6">{% trans "Tell us what you need — we'll send you a quote." %}</p>
 
@@ -24,13 +30,16 @@ PLZ; показываем только если бизнес её задал (Ha
 {% endif %}
 
 {% include "storefront/_anfrage_form.html" %}
+</div>
 
+<aside class="mt-4 lg:mt-0 lg:sticky lg:top-24 space-y-4" data-anfrage-aside>
+{% if bc %}{% include "storefront/_business_card.html" with aside=1 %}{% endif %}
 {% comment %}A7: Rückruf-Anfrage — низкопороговая альтернатива «просто перезвоните мне»
 (имя + телефон + опц. удобное время). Отдельная форма → POST /rueckruf/.{% endcomment %}
-<div class="mt-4 bg-white rounded-2xl shadow-sm p-6 max-w-2xl mx-auto">
+<div class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl mx-auto lg:max-w-none" data-callback>
   <h2 class="font-semibold">{% trans "Prefer a callback?" %}</h2>
   <p class="text-sm text-gray-500 mb-3">{% trans "Leave your number — we'll call you back." %}</p>
-  <form method="post" action="{% url 'storefront-rueckruf' %}" class="grid sm:grid-cols-3 gap-3 items-end">
+  <form method="post" action="{% url 'storefront-rueckruf' %}" class="grid sm:grid-cols-3 lg:grid-cols-1 gap-3 items-end">
     {% csrf_token %}{% portal_attribution_fields %}
     <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
     <div>
@@ -45,9 +54,11 @@ PLZ; показываем только если бизнес её задал (Ha
       <label class="block text-sm font-medium mb-1" for="id_rc_time">{% trans "Best time (optional)" %}</label>
       <input id="id_rc_time" name="best_time" type="text" placeholder="{% trans 'e.g. after 17:00' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
-    <button type="submit" class="sm:col-span-3 w-full bg-gray-900 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-gray-700">{% trans "Request callback" %}</button>
+    <button type="submit" class="sm:col-span-3 lg:col-span-1 w-full bg-gray-900 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-gray-700">{% trans "Request callback" %}</button>
     {% include "storefront/_privacy_note.html" %}
   </form>
+</div>
+</aside>
 </div>
 
 {% comment %}A9: schema.org AutoRepair — структурная разметка автосервиса (SEO/Map Pack).{% endcomment %}

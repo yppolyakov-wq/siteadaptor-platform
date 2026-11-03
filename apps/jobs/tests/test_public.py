@@ -613,3 +613,16 @@ def test_anfrage_form_structural_markers():
         "csrfmiddlewaretoken",
     ):
         assert marker in body, marker
+
+
+def test_sp9_anfrage_form_left_contacts_and_callback_right():
+    """SP-9 (аудит пространства 2026-11-02): форма заявки слева, справа колонка
+    «So finden Sie uns» + обратный звонок (было две карточки подряд по центру)."""
+    tenant = _tenant()
+    tenant.address = "Hauptstraße 1, 40721 Hilden"
+    body = public_views.anfrage(_req(tenant=tenant)).content.decode()
+    layout = body.split("data-anfrage-layout")[0].rsplit("<div", 1)[-1]
+    assert "lg:grid-cols-[minmax(0,1fr)_20rem]" in layout
+    aside = body.split("data-anfrage-aside")[1]
+    assert aside.index("data-business-card") < aside.index("data-callback")
+    assert body.index('name="title"') < body.index("data-anfrage-aside")  # форма — слева

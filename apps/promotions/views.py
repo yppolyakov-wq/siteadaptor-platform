@@ -362,6 +362,12 @@ def _promo_type_rows(request):
                 "builtin": True,
             }
         )
+    from apps.core import card_forms
+
+    from .group_styles import GROUP_PAGE_STYLES
+
+    style_labels = {key: label for key, label, _hint in GROUP_PAGE_STYLES}
+    card_labels = {key: label for key, label, _hint in card_forms.forms_for(card_forms.PROMO)}
     for row in rows:
         settings = promo_types.settings_for(saved, row["key"])
         layout = settings.get("layout") or {}
@@ -371,6 +377,9 @@ def _promo_type_rows(request):
         row["cols"] = layout.get("cols") or ""
         row["rows"] = layout.get("rows") or ""
         row["has_layout"] = bool(layout)
+        # SP-7: подписи текущего выбора — для строки-сводки свёрнутого типа.
+        row["style_label"] = style_labels.get(row["style"], "")
+        row["card_label"] = card_labels.get(row["card"], "")
     return rows
 
 

@@ -698,6 +698,16 @@ def price_view_state(style, page_mode=None):
     return _PL_TOGGLE_INITIAL.get(style or "preisliste", "")
 
 
+@register.simple_tag(takes_context=True)
+def business_card_data(context):
+    """SP-9: данные карточки «So finden Sie uns» для колонки рядом с формой сообщения/
+    заявки (`{% business_card_data as bc %}`); None — ни адреса, ни телефона."""
+    from apps.core import business_card
+
+    request = context.get("request")
+    return business_card.card_context(getattr(request, "tenant", None))
+
+
 @register.inclusion_tag("storefront/_presence_fab.html", takes_context=True)
 def presence_fab(context):
     """LS-2: плавающий бейдж «Jetzt erreichbar — Video-Anruf» (wa.me, LS-1).

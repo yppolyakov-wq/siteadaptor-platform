@@ -2,8 +2,9 @@
 форма карточки выбирается ПЛИТКАМИ с мини-макетом, а не строкой селекта. Значение держит
 hidden-инпут с прежним именем поля (`sd_card_style` / `sd_promo_card`) — сохранение и
 живой черновик билдера не меняются. Вход: name, value, items, title; необязательный
-`thumb` — путь к набору мини-макетов (DL-20: у шаблонов СТРАНИЦЫ он свой).{% endcomment %}
-<div class="text-sm md:col-span-2" data-cardform-picker>
+`thumb` — путь к набору мини-макетов (DL-20: у шаблонов СТРАНИЦЫ он свой);
+`span="one"` — занять одну колонку родительской сетки (SP-7: два пикера рядом).{% endcomment %}
+<div class="text-sm{% if span != 'one' %} md:col-span-2{% endif %}" data-cardform-picker>
   <span class="block font-medium mb-1">{{ title }}</span>
   <input type="hidden" name="{{ name }}" value="{{ value }}">
   {% comment %}STU-18a: сетка вместо flex-wrap — ряды плиток выравниваются, а при

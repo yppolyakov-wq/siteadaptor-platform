@@ -32,7 +32,8 @@ pytestmark = pytest.mark.django_db
 
 _N = itertools.count()
 MAIN = {"key": "main"}
-TYPE_CHIPS = '<div class="flex flex-wrap gap-2 mb-3">'
+# SP-8: ряд чипов типов — лентой на телефоне (осознанная переписка замка).
+TYPE_CHIPS = "data-promo-type-chips"
 
 
 @pytest.fixture(autouse=True)

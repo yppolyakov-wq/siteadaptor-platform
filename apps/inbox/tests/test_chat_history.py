@@ -204,3 +204,16 @@ def test_demo_threads_seed_history_with_times():
     assert [m.body for m in msgs] == [m[1] for m in kit.inbox_threads[0]["messages"]]
     assert msgs[0].created_at < msgs[-1].created_at
     assert all(t["email"].endswith("@example.com") for t in kit.inbox_threads)
+
+
+def test_sp9_contact_page_has_business_card_column_when_address_known():
+    """SP-9 (аудит пространства 2026-11-02): на lg рядом с формой — колонка «So finden
+    Sie uns»; без адреса и телефона — прежняя узкая колонка по центру."""
+    req = _pub("get")
+    req.tenant.address = "Hauptstraße 1, 40721 Hilden"
+    body = public_views.contact(req).content.decode()
+    assert "data-contact-aside" in body and "data-business-card" in body
+    layout = body.split("data-contact-layout")[0].rsplit("<div", 1)[-1]
+    assert "lg:grid-cols-[minmax(0,1fr)_20rem]" in layout
+    plain = public_views.contact(_pub("get")).content.decode()
+    assert "data-contact-aside" not in plain

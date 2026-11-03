@@ -158,3 +158,19 @@ def test_panel_saves_layout_presence_minimal(settings):
         tenant.refresh_from_db()
         assert tenant.site_config.get("promo_layout") == "slider", (layout, tenant.site_config)
         assert tenant.site_config.get("seo") == {"x": 1}  # targeted-write
+
+
+def test_sp8_filters_and_search_one_row_type_chips_scroll_on_phone():
+    """SP-8 (аудит пространства 2026-11-02): фильтры и поиск — одной строкой на sm+,
+    чипы типов на телефоне — лентой (было до 5 рядов)."""
+    from pathlib import Path
+
+    from django.conf import settings
+
+    base = Path(settings.BASE_DIR) / "templates/storefront"
+    page = (base / "promotions_list.html").read_text()
+    row = page.split("data-promo-controls")[0].rsplit("<div", 1)[-1]
+    assert "sm:flex" in row
+    chips = (base / "promo_page/_type_chips.html").read_text()
+    head = chips.split("data-promo-type-chips")[0].rsplit("<div", 1)[-1]
+    assert "overflow-x-auto" in head and "sm:flex-wrap" in head
