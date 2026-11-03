@@ -17,7 +17,7 @@
   AB6.2-payment). Здесь — обёртка экрана: одна форма, один Save.{% endcomment %}
   {% include "tenant/_payment_connect.html" %}
 
-  <form method="post" class="space-y-4 xl:space-y-0 xl:grid xl:grid-cols-2 xl:gap-4 xl:items-start" data-payment-grid>
+  <form method="post" class="space-y-4 xl:space-y-0 xl:grid xl:grid-cols-2 xl:gap-4 xl:items-start [&>fieldset]:min-w-0" data-payment-grid>
     {% csrf_token %}
     {% include "tenant/_payment_fields.html" %}
 

@@ -413,3 +413,12 @@ def test_sp11_findings_grouped_without_repeats():
     assert len(groups) == 2
     first, more = groups[0]
     assert first.locale == "de" and more == ["EN", "RU"]
+
+
+def test_sp11_same_quote_in_two_fields_stays_two_findings():
+    from apps.core.templatetags.cabinet import tc_grouped
+    from apps.core.text_check import Finding
+
+    a = Finding("big", "medium", "title", "de", "−80 %", "Sehr hoher Rabatt", "norm")
+    b = Finding("big", "medium", "description", "de", "−80 %", "Sehr hoher Rabatt", "norm")
+    assert len(tc_grouped([a, b])) == 2

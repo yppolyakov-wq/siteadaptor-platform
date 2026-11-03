@@ -546,7 +546,13 @@ def tc_grouped(findings):
     groups: dict = {}
     order = []
     for f in findings or []:
-        key = (getattr(f, "code", ""), getattr(f, "quote", ""), str(getattr(f, "message", "")))
+        # Поле входит в ключ (ревью): одна цитата в заголовке и в описании — два замечания.
+        key = (
+            getattr(f, "code", ""),
+            getattr(f, "field", ""),
+            getattr(f, "quote", ""),
+            str(getattr(f, "message", "")),
+        )
         if key not in groups:
             groups[key] = (f, [])
             order.append(key)

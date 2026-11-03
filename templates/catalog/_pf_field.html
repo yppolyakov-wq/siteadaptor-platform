@@ -12,8 +12,12 @@
   {% if wt == "checkboxinput" %}
   <label class="flex items-start gap-2 text-sm font-medium" for="{{ field.id_for_label }}">{% render_field field|a11y class="mt-0.5 rounded border-gray-300" %}<span>{{ field.label }}</span></label>
   {% elif wt == "checkboxselectmultiple" %}
-  <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {% comment %}Ревью SP-11 (a11y): группа — fieldset/legend (label for= указывал бы на первый
+  флажок), описание и ошибки привязаны к группе через aria-describedby.{% endcomment %}
+  <fieldset{% if field.help_text or field.errors %} aria-describedby="{% if field.help_text %}{{ field.auto_id }}_helptext{% endif %}{% if field.help_text and field.errors %} {% endif %}{% if field.errors %}{{ field.auto_id }}_errors{% endif %}"{% endif %}>
+  <legend class="block text-sm font-medium mb-1">{{ field.label }}</legend>
   <div class="[&>div]:flex [&>div]:flex-wrap [&>div]:gap-2 [&_label]:inline-flex [&_label]:items-center [&_label]:gap-1.5 [&_label]:rounded-full [&_label]:border [&_label]:border-gray-200 [&_label]:px-3 [&_label]:py-1 [&_label]:text-sm [&_label]:cursor-pointer" data-check-chips>{% render_field field|a11y class="rounded border-gray-300" %}</div>
+  </fieldset>
   {% else %}
   <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
   {% render_field field|a11y class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
