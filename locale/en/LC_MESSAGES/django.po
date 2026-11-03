@@ -31509,3 +31509,72 @@ msgstr "Keep editing"
 
 msgid "Ihre Eingaben in diesem Formular gehen verloren."
 msgstr "What you entered in this form will be lost."
+
+msgid "%(n)s von %(total)s"
+msgstr "%(n)s of %(total)s"
+
+msgid "Alle %(n)s anzeigen"
+msgstr "Show all %(n)s"
+
+msgid "Alle Zimmer sauber."
+msgstr "All rooms clean."
+
+msgid "Alles erledigt."
+msgstr "All done."
+
+msgid "Anreisen / Abreisen"
+msgstr "Arrivals / departures"
+
+msgid "Belegt heute"
+msgstr "Occupied today"
+
+msgid "Belegung 7 Tage"
+msgstr "Occupancy, next 7 days"
+
+msgid "Braucht Aufmerksamkeit"
+msgstr "Needs attention"
+
+msgid "Finanzen aktivieren für die Übersicht"
+msgstr "Turn on Finance for the overview"
+
+msgid "Heute in Zahlen"
+msgstr "Today in numbers"
+
+msgid "Keine Abreisen."
+msgstr "No departures."
+
+msgid "Keine Anreisen."
+msgstr "No arrivals."
+
+msgid "Lücke %(start)s–%(end)s frei · %(unit)s"
+msgstr "Gap %(start)s–%(end)s free · %(unit)s"
+
+msgid "Lücken-Rabatt einrichten"
+msgstr "Set up gap discount"
+
+msgid "Nicht bezahlt"
+msgstr "Not paid"
+
+msgid "Zimmer reinigen"
+msgstr "Rooms to clean"
+
+msgid "ausgecheckt"
+msgstr "checked out"
+
+msgid "eingecheckt"
+msgstr "checked in"
+
+msgid "%(n)s Buchung"
+msgid_plural "%(n)s Buchungen"
+msgstr[0] "%(n)s booking"
+msgstr[1] "%(n)s bookings"
+
+msgid "%(n)s Buchung unbestätigt"
+msgid_plural "%(n)s Buchungen unbestätigt"
+msgstr[0] "%(n)s booking unconfirmed"
+msgstr[1] "%(n)s bookings unconfirmed"
+
+msgid "%(n)s Buchung ohne Zimmer"
+msgid_plural "%(n)s Buchungen ohne Zimmer"
+msgstr[0] "%(n)s booking without a room"
+msgstr[1] "%(n)s bookings without a room"

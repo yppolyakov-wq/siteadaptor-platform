@@ -31655,3 +31655,72 @@ msgstr "Düzenlemeye devam et"
 
 msgid "Ihre Eingaben in diesem Formular gehen verloren."
 msgstr "Bu formda girdikleriniz kaybolacak."
+
+msgid "%(n)s von %(total)s"
+msgstr "%(total)s içinden %(n)s"
+
+msgid "Alle %(n)s anzeigen"
+msgstr "Tümünü göster (%(n)s)"
+
+msgid "Alle Zimmer sauber."
+msgstr "Tüm odalar temiz."
+
+msgid "Alles erledigt."
+msgstr "Her şey tamam."
+
+msgid "Anreisen / Abreisen"
+msgstr "Girişler / çıkışlar"
+
+msgid "Belegt heute"
+msgstr "Bugün dolu"
+
+msgid "Belegung 7 Tage"
+msgstr "7 günlük doluluk"
+
+msgid "Braucht Aufmerksamkeit"
+msgstr "İlgi bekliyor"
+
+msgid "Finanzen aktivieren für die Übersicht"
+msgstr "Genel bakış için Finans'ı açın"
+
+msgid "Heute in Zahlen"
+msgstr "Rakamlarla bugün"
+
+msgid "Keine Abreisen."
+msgstr "Çıkış yok."
+
+msgid "Keine Anreisen."
+msgstr "Giriş yok."
+
+msgid "Lücke %(start)s–%(end)s frei · %(unit)s"
+msgstr "%(start)s–%(end)s boşluk · %(unit)s"
+
+msgid "Lücken-Rabatt einrichten"
+msgstr "Boşluk indirimini ayarla"
+
+msgid "Nicht bezahlt"
+msgstr "Ödenmedi"
+
+msgid "Zimmer reinigen"
+msgstr "Temizlenecek odalar"
+
+msgid "ausgecheckt"
+msgstr "çıkış yaptı"
+
+msgid "eingecheckt"
+msgstr "giriş yaptı"
+
+msgid "%(n)s Buchung"
+msgid_plural "%(n)s Buchungen"
+msgstr[0] "%(n)s rezervasyon"
+msgstr[1] "%(n)s rezervasyon"
+
+msgid "%(n)s Buchung unbestätigt"
+msgid_plural "%(n)s Buchungen unbestätigt"
+msgstr[0] "%(n)s rezervasyon onaylanmadı"
+msgstr[1] "%(n)s rezervasyon onaylanmadı"
+
+msgid "%(n)s Buchung ohne Zimmer"
+msgid_plural "%(n)s Buchungen ohne Zimmer"
+msgstr[0] "Odası olmayan %(n)s rezervasyon"
+msgstr[1] "Odası olmayan %(n)s rezervasyon"

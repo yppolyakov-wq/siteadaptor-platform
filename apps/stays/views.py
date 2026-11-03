@@ -1063,7 +1063,8 @@ def room_clean(request, pk):
     room.housekeeping = Room.HK_CLEAN
     room.save(update_fields=["housekeeping", "updated_at"])
     messages.success(request, _("Room marked clean."))
-    return redirect("stays:calendar")
+    # UX-D D1.4: «Sauber» живёт и на главной отеля — возвращаем туда, откуда нажали
+    return redirect(local_next(request) or "stays:calendar")
 
 
 @login_required

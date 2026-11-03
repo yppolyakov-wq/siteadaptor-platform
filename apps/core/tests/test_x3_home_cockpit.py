@@ -74,7 +74,9 @@ def test_verkaeufe_body_renders_expected_engine(business_type, tab, view, marker
 @pytest.mark.parametrize(
     ("business_type", "marker"),
     [
-        ("hotel", "data-unit"),  # шахматка номеров (Belegungsplan)
+        # UX-D D1.4 (осознанная переписка): у отеля работа дня — СВОДКА (заезды/
+        # выезды/уборка/внимание), шахматка — на «Verkäufe»
+        ("hotel", "data-hotel-home"),
         ("friseur", "Tage blockieren"),  # дневной план записей (Tagesplan)
         ("bakery", "Alle Status"),  # очередь заказов списком (рыночный дефолт ритейла)
     ],

@@ -73,30 +73,29 @@ def _stay_booking():
     )
 
 
-def test_dashboard_returns_booking_card_fragment_for_box_request():
-    """Belegungsplan шлёт fetch по ТЕКУЩЕМУ пути, а X3 показывает его и на
-    главной — значит `?buchung=&box=1` обязан вернуть партиал карточки, а не
-    58 КБ кабинета (иначе внутрь панели вставляется вложенный кабинет)."""
+def test_dashboard_hotel_buchung_param_opens_the_booking_drawer():
+    """Ревью 2026-08-19 требовало от главной отдавать fetch-фрагмент брони, пока на ней
+    жила шахматка (X3). UX-D D1.4 (Р-D1-c, осознанная переписка): главная отеля —
+    сводка дня; бронь открывается шторкой (booking-detail?box=1), а ?buchung= на
+    главной — признак «открыть шторку при загрузке». Целый кабинет внутрь шторки не
+    попадёт по построению: клиент вставляет только ответ с меткой X-Sf-Fragment."""
     tenant = _tenant("hotel")
     booking = _stay_booking()
     request = _req(data={"buchung": str(booking.pk), "box": "1"}, tenant=tenant)
-    response = core_views.dashboard(request)
-    body = response.content.decode()
-
-    assert response.status_code == 200
-    assert booking.reference_code in body
-    # признаки ЦЕЛОЙ страницы кабинета — их во фрагменте быть не может
-    assert "navpal" not in body
-    assert "<html" not in body.lower()
+    body = core_views.dashboard(request).content.decode()
+    assert f'data-drawer-autoopen="/dashboard/stays/buchung/{booking.pk}/"' in body
+    assert "data-hotel-home" in body
 
 
-def test_dashboard_box_request_without_booking_is_404_like_sales_page():
+def test_dashboard_unknown_buchung_is_ignored():
     tenant = _tenant("hotel")
     _stay_booking()
     request = _req(
         data={"buchung": "00000000-0000-0000-0000-000000000000", "box": "1"}, tenant=tenant
     )
-    assert core_views.dashboard(request).status_code == 404
+    response = core_views.dashboard(request)
+    assert response.status_code == 200
+    assert "data-drawer-autoopen" not in response.content.decode()
 
 
 # --- главная: не считать то, чего не рисуешь ---------------------------------

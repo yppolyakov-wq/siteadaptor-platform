@@ -31792,3 +31792,78 @@ msgstr "Продолжить ввод"
 
 msgid "Ihre Eingaben in diesem Formular gehen verloren."
 msgstr "Введённые в форме данные будут потеряны."
+
+msgid "%(n)s von %(total)s"
+msgstr "%(n)s из %(total)s"
+
+msgid "Alle %(n)s anzeigen"
+msgstr "Показать все %(n)s"
+
+msgid "Alle Zimmer sauber."
+msgstr "Все номера убраны."
+
+msgid "Alles erledigt."
+msgstr "Всё сделано."
+
+msgid "Anreisen / Abreisen"
+msgstr "Заезды / выезды"
+
+msgid "Belegt heute"
+msgstr "Занято сегодня"
+
+msgid "Belegung 7 Tage"
+msgstr "Загрузка на 7 дней"
+
+msgid "Braucht Aufmerksamkeit"
+msgstr "Требует внимания"
+
+msgid "Finanzen aktivieren für die Übersicht"
+msgstr "Включите «Финансы» для обзора"
+
+msgid "Heute in Zahlen"
+msgstr "Сегодня в цифрах"
+
+msgid "Keine Abreisen."
+msgstr "Выездов нет."
+
+msgid "Keine Anreisen."
+msgstr "Заездов нет."
+
+msgid "Lücke %(start)s–%(end)s frei · %(unit)s"
+msgstr "Окно %(start)s–%(end)s свободно · %(unit)s"
+
+msgid "Lücken-Rabatt einrichten"
+msgstr "Настроить скидку на окна"
+
+msgid "Nicht bezahlt"
+msgstr "Не оплачено"
+
+msgid "Zimmer reinigen"
+msgstr "Уборка"
+
+msgid "ausgecheckt"
+msgstr "выехал"
+
+msgid "eingecheckt"
+msgstr "заселён"
+
+msgid "%(n)s Buchung"
+msgid_plural "%(n)s Buchungen"
+msgstr[0] "%(n)s бронь"
+msgstr[1] "%(n)s брони"
+msgstr[2] "%(n)s броней"
+msgstr[3] "%(n)s брони"
+
+msgid "%(n)s Buchung unbestätigt"
+msgid_plural "%(n)s Buchungen unbestätigt"
+msgstr[0] "%(n)s бронь не подтверждена"
+msgstr[1] "%(n)s брони не подтверждены"
+msgstr[2] "%(n)s броней не подтверждено"
+msgstr[3] "%(n)s брони не подтверждено"
+
+msgid "%(n)s Buchung ohne Zimmer"
+msgid_plural "%(n)s Buchungen ohne Zimmer"
+msgstr[0] "%(n)s бронь без номера"
+msgstr[1] "%(n)s брони без номера"
+msgstr[2] "%(n)s броней без номера"
+msgstr[3] "%(n)s брони без номера"

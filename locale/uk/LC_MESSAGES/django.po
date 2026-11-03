@@ -31776,3 +31776,78 @@ msgstr "Продовжити введення"
 
 msgid "Ihre Eingaben in diesem Formular gehen verloren."
 msgstr "Введені у формі дані буде втрачено."
+
+msgid "%(n)s von %(total)s"
+msgstr "%(n)s з %(total)s"
+
+msgid "Alle %(n)s anzeigen"
+msgstr "Показати всі %(n)s"
+
+msgid "Alle Zimmer sauber."
+msgstr "Усі номери прибрані."
+
+msgid "Alles erledigt."
+msgstr "Усе зроблено."
+
+msgid "Anreisen / Abreisen"
+msgstr "Заїзди / виїзди"
+
+msgid "Belegt heute"
+msgstr "Зайнято сьогодні"
+
+msgid "Belegung 7 Tage"
+msgstr "Завантаження на 7 днів"
+
+msgid "Braucht Aufmerksamkeit"
+msgstr "Потребує уваги"
+
+msgid "Finanzen aktivieren für die Übersicht"
+msgstr "Увімкніть «Фінанси» для огляду"
+
+msgid "Heute in Zahlen"
+msgstr "Сьогодні в цифрах"
+
+msgid "Keine Abreisen."
+msgstr "Виїздів немає."
+
+msgid "Keine Anreisen."
+msgstr "Заїздів немає."
+
+msgid "Lücke %(start)s–%(end)s frei · %(unit)s"
+msgstr "Вікно %(start)s–%(end)s вільне · %(unit)s"
+
+msgid "Lücken-Rabatt einrichten"
+msgstr "Налаштувати знижку на вікна"
+
+msgid "Nicht bezahlt"
+msgstr "Не оплачено"
+
+msgid "Zimmer reinigen"
+msgstr "Прибирання"
+
+msgid "ausgecheckt"
+msgstr "виїхав"
+
+msgid "eingecheckt"
+msgstr "заселений"
+
+msgid "%(n)s Buchung"
+msgid_plural "%(n)s Buchungen"
+msgstr[0] "%(n)s бронювання"
+msgstr[1] "%(n)s бронювання"
+msgstr[2] "%(n)s бронювань"
+msgstr[3] "%(n)s бронювання"
+
+msgid "%(n)s Buchung unbestätigt"
+msgid_plural "%(n)s Buchungen unbestätigt"
+msgstr[0] "%(n)s бронювання не підтверджене"
+msgstr[1] "%(n)s бронювання не підтверджені"
+msgstr[2] "%(n)s бронювань не підтверджено"
+msgstr[3] "%(n)s бронювання не підтверджено"
+
+msgid "%(n)s Buchung ohne Zimmer"
+msgid_plural "%(n)s Buchungen ohne Zimmer"
+msgstr[0] "%(n)s бронювання без номера"
+msgstr[1] "%(n)s бронювання без номера"
+msgstr[2] "%(n)s бронювань без номера"
+msgstr[3] "%(n)s бронювання без номера"

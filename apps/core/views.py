@@ -305,7 +305,14 @@ def dashboard(request):
         loop_kind = ""  # E6.7e: главная открыта всем, петля продаж — по праву раздела
     loop_view = sales_page.resolve_view(tenant, loop_kind) if loop_kind else ""
     loop_ctx = {}
-    if loop_kind:
+    if loop_kind == "stay":
+        # UX-D D1.4 (Р-1): главная отеля — СВОДКА ДНЯ, а не шахматка (она — на
+        # «Verkäufe»). Сквозной ?box=1 шахматки здесь больше не нужен (Р-D1-c):
+        # бронь открывается шторкой (booking-detail), ?buchung= — автооткрытие.
+        from apps.stays import home_summary
+
+        loop_ctx = home_summary.summary(request)
+    elif loop_kind:
         sub = sales_page.body_context(request, loop_kind, loop_view)
         # Ревью 2026-08-19: тело поверхности может вернуть HttpResponse —
         # fetch-фрагмент карточки брони (?box=1). Belegungsplan шлёт fetch по

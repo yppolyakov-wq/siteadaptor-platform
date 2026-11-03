@@ -10,6 +10,11 @@
   <p class="text-xs text-gray-500">{% trans "Heute" %} · {% now "D, j. F" %}</p>
 </div>
 
+{% comment %}UX-D D1.4: у отеля — своя сводка дня (stays/_hotel_home.html), у остальных
+типов полоса виджетов и петля — без изменений.{% endcomment %}
+{% if hotel_home %}
+{% include "stays/_hotel_home.html" %}
+{% else %}
 {% comment %}R4: Umsatz — большая карта (radius 22, hint-пилюля «▲/▼ vs.
 Vorwoche», спарклайн); присутствие LS-2 — карточка рядом. Данные и гейты
 home_widgets не тронуты — только рендер.{% endcomment %}
@@ -28,20 +33,7 @@ home_widgets не тронуты — только рендер.{% endcomment %}
       {% if w.sparkline %}<svg viewBox="0 0 120 32" class="w-full h-7 mt-2 text-emerald-500" aria-hidden="true"><polyline points="{{ w.sparkline }}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{% endif %}
     </a>
   {% endif %}{% endfor %}
-  {% comment %}LS-2: присутствие «Jetzt erreichbar» — та же форма, карточкой.{% endcomment %}
-  <form method="post" action="{% url 'set-presence' %}" class="sm:w-64 bg-white rounded-[22px] shadow-[0_6px_18px_rgba(22,24,29,0.05)] px-4 py-3">
-    {% csrf_token %}
-    <span class="flex items-center gap-2 text-xs text-gray-500">
-      <span class="inline-flex h-2.5 w-2.5 rounded-full {% if presence_now %}bg-green-500{% else %}bg-gray-300{% endif %}" aria-hidden="true"></span>
-      {% if presence_now %}{% trans "Jetzt erreichbar" %}{% else %}{% trans "Gerade nicht erreichbar" %}{% endif %}
-    </span>
-    <span class="flex gap-1 mt-2">
-      <button name="mode" value="auto" class="px-2.5 py-1 rounded-full text-[11px] {% if presence_mode == 'auto' %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "Auto" %}</button>
-      <button name="mode" value="on" data-ui-state class="px-2.5 py-1 rounded-full text-[11px] {% if presence_mode == 'on' %}bg-green-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "An" %}</button>
-      <button name="mode" value="off" class="px-2.5 py-1 rounded-full text-[11px] {% if presence_mode == 'off' %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "Aus" %}</button>
-    </span>
-    {% if not presence_number %}<a href="{% url 'settings' %}" class="block mt-1.5 text-[11px] text-amber-700 hover:underline">{% trans "WhatsApp-Nummer fehlt" %} →</a>{% endif %}
-  </form>
+  {% include "core/_presence_card.html" %}
 </div>
 
 {% comment %}R4: остальные виджеты — строки-карточки в духе «Braucht
@@ -60,6 +52,7 @@ deep-links те же.{% endcomment %}
     </a>
   {% endif %}{% endfor %}
 </div>
+{% endif %}
 
 {% comment %}X2a: ЕДИНАЯ карточка настройки вместо двух конкурирующих механизмов
 (плашка «Setup-Fortschritt N/M» + отдельный readiness-список AB4). Источник один —
@@ -98,7 +91,7 @@ deep-links те же.{% endcomment %}
 тем же телом, что и страница Verkäufe (`core/_sales_body.html`, контекст —
 `sales_page.body_context`). Прежние блоки (отдельная сводка «Heute», CTA-баннер
 календаря и второй канбан «Tasks») поглощены: они показывали те же сделки.{% endcomment %}
-{% if active_kind %}
+{% if hotel_home %}{% elif active_kind %}
 <div class="flex items-baseline justify-between gap-3 mb-3">
   <h2 class="text-lg font-bold">{% if sales_primary_is_stays %}📅 {% trans "Belegungsplan" %}{% else %}🗂️ {% trans "Heute im Betrieb" %}{% endif %}</h2>
   <a href="{% url 'verkaeufe' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Verkäufe" %} →</a>
