@@ -32043,7 +32043,7 @@ msgstr "Їжа зазвичай 7 %%, напої 19 %%."
 
 #, python-format
 msgid "Frühstück und Parkplatz sind 19 %%, auch wenn die Übernachtung 7 %% hat."
-msgstr ""
+msgstr "Сніданок і паркування — 19 %%, навіть якщо проживання обкладається 7 %%."
 
 #, python-format
 msgid "Übernachtung 7 %%, sonstige Leistungen 19 %%."
