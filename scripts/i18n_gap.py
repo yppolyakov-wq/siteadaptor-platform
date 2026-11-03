@@ -34,28 +34,38 @@ ALLOWED_SOURCES = ("apps/tenants/archetype_pages.py",)
 TMP_LOCALE = "xx"
 
 
+CTX_SEP = "\x04"  # как в gettext: ключ записи с контекстом — «контекст\x04msgid»
+
+
 def parse_po(path: Path) -> dict[str, list[str]]:
-    """{msgid: [msgstr, …]} — плоский разбор (без учёта контекстов, их в проекте нет)."""
+    """{msgid: [msgstr, …]}; запись с msgctxt — под ключом «контекст\x04msgid» (SP-14:
+    «Standort» есть и без контекста, и с контекстом «business» — обе проверяются)."""
     entries: dict[str, list[str]] = {}
     msgid: str | None = None
+    ctx: str | None = None
     strs: list[str] = []
     mode: str | None = None
 
     def flush() -> None:
-        nonlocal msgid, strs
+        nonlocal msgid, strs, ctx
         if msgid:
-            entries[msgid] = list(strs)
-        msgid, strs = None, []
+            entries[f"{ctx}{CTX_SEP}{msgid}" if ctx is not None else msgid] = list(strs)
+        msgid, strs, ctx = None, [], None
 
     for raw in path.read_text(encoding="utf-8").splitlines():
         line = raw.rstrip()
         if not line.strip() or line.startswith("#"):
             continue
-        m = re.match(r'^(msgid|msgid_plural|msgstr(?:\[\d+\])?)\s+"(.*)"$', line)
+        m = re.match(r'^(msgctxt|msgid|msgid_plural|msgstr(?:\[\d+\])?)\s+"(.*)"$', line)
         if m:
             key, val = m.group(1), m.group(2)
-            if key == "msgid":
+            if key == "msgctxt":
                 flush()
+                ctx, mode = val, "ctx"
+            elif key == "msgid":
+                pending_ctx = ctx if mode == "ctx" else None
+                flush()
+                ctx = pending_ctx
                 msgid, mode = val, "id"
             elif key == "msgid_plural":
                 mode = "plural"
@@ -65,7 +75,9 @@ def parse_po(path: Path) -> dict[str, list[str]]:
             continue
         cont = re.match(r'^"(.*)"$', line.strip())
         if cont and mode:
-            if mode == "id" and msgid is not None:
+            if mode == "ctx" and ctx is not None:
+                ctx += cont.group(1)
+            elif mode == "id" and msgid is not None:
                 msgid += cont.group(1)
             elif mode == "str" and strs:
                 strs[-1] += cont.group(1)
@@ -78,11 +90,14 @@ def sources_by_msgid(path: Path) -> dict[str, list[str]]:
     out: dict[str, list[str]] = {}
     lines = path.read_text(encoding="utf-8").splitlines()
     locs: list[str] = []
+    ctx: str | None = None
     i = 0
     while i < len(lines):
         line = lines[i]
         if line.startswith("#: "):
             locs += re.findall(r"(\S+?):\d+", line[3:])
+        elif line.startswith("msgctxt "):
+            ctx = re.match(r'^msgctxt "(.*)"$', line).group(1)
         elif line.startswith("msgid "):
             msgid = re.match(r'^msgid "(.*)"$', line).group(1)
             j = i + 1
@@ -90,11 +105,11 @@ def sources_by_msgid(path: Path) -> dict[str, list[str]]:
                 msgid += lines[j].strip()[1:-1]
                 j += 1
             if msgid:
-                out[msgid] = locs
-            locs, i = [], j
+                out[f"{ctx}{CTX_SEP}{msgid}" if ctx is not None else msgid] = locs
+            locs, ctx, i = [], None, j
             continue
         elif not line.strip():
-            locs = []
+            locs, ctx = [], None
         i += 1
     return out
 
