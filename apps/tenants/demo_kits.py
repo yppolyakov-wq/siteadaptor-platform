@@ -27264,7 +27264,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                         arrival=today + timedelta(days=9),
                         departure=today + timedelta(days=11),
                         name="Firma Kessler GmbH",
-                        email="buchung@kessler.example.com",
+                        email="kessler@example.com",
                         adults=1,
                         auto_confirm=True,
                         source_channel="manual",

@@ -260,6 +260,7 @@ def test_sidebar_children_composition():
         "ablaeufe",
         "extras",
         "booking:resources",
+        "booking:booking-rules",  # UX-D D2.1 (осознанное дополнение): правила записи
         "booking:availability",
         "stays:channels",
         "notifications-settings",
