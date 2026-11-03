@@ -31727,3 +31727,30 @@ msgstr[1] "Odası olmayan %(n)s rezervasyon"
 
 msgid "Erreichbarkeit"
 msgstr "Ulaşılabilirlik"
+
+msgid "%(h)s Std. vorher"
+msgstr "%(h)s saat önce"
+
+msgid "Buchungsregeln"
+msgstr "Rezervasyon kuralları"
+
+msgid "Die Frist legen Sie bei jeder Leistung fest — neue Buchungen übernehmen sie."
+msgstr "Süreyi her hizmette ayrı belirlersiniz — yeni rezervasyonlar bunu alır."
+
+msgid "Kostenlos bis"
+msgstr "Ücretsiz iptal"
+
+msgid "Kostenlose Stornierung je Leistung"
+msgstr "Hizmet başına ücretsiz iptal"
+
+msgid "Noch keine Leistungen."
+msgstr "Henüz hizmet yok."
+
+msgid "Regeln für alle Leistungen"
+msgstr "Tüm hizmetler için kurallar"
+
+msgid "Regeln für alle Leistungen: Anzahlung nach Nichterscheinen und kostenlose Stornierung."
+msgstr "Tüm hizmetler için kurallar: gelmeme sonrası kapora ve ücretsiz iptal."
+
+msgid "jederzeit"
+msgstr "her zaman"

@@ -31870,3 +31870,30 @@ msgstr[3] "%(n)s брони без номера"
 
 msgid "Erreichbarkeit"
 msgstr "Доступность"
+
+msgid "%(h)s Std. vorher"
+msgstr "за %(h)s ч"
+
+msgid "Buchungsregeln"
+msgstr "Правила записи"
+
+msgid "Die Frist legen Sie bei jeder Leistung fest — neue Buchungen übernehmen sie."
+msgstr "Срок задаётся у каждой услуги — новые записи берут его себе."
+
+msgid "Kostenlos bis"
+msgstr "Бесплатно до"
+
+msgid "Kostenlose Stornierung je Leistung"
+msgstr "Бесплатная отмена по услугам"
+
+msgid "Noch keine Leistungen."
+msgstr "Услуг пока нет."
+
+msgid "Regeln für alle Leistungen"
+msgstr "Правила для всех услуг"
+
+msgid "Regeln für alle Leistungen: Anzahlung nach Nichterscheinen und kostenlose Stornierung."
+msgstr "Правила для всех услуг: предоплата после неявок и бесплатная отмена."
+
+msgid "jederzeit"
+msgstr "в любое время"

@@ -912,6 +912,18 @@ ENTRIES: tuple[NavEntry, ...] = (
         "zeiten mitarbeiter tische ressourcen slots",
         group="termine",
     ),
+    # UX-D D2.1: правила записи для всех услуг (правило неявок, сроки отмены) — были
+    # свёрнутым блоком над списком услуг.
+    _e(
+        "settings",
+        "booking:booking-rules",
+        _("Buchungsregeln"),
+        "booking-rules",
+        "booking",
+        True,
+        "nichterscheinen anzahlung storno stornofrist no-show regeln",
+        group="termine",
+    ),
     _e(
         "settings",
         "booking:availability",

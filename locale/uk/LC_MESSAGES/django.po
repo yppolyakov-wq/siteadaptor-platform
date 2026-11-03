@@ -31854,3 +31854,30 @@ msgstr[3] "%(n)s бронювання без номера"
 
 msgid "Erreichbarkeit"
 msgstr "Доступність"
+
+msgid "%(h)s Std. vorher"
+msgstr "за %(h)s год"
+
+msgid "Buchungsregeln"
+msgstr "Правила запису"
+
+msgid "Die Frist legen Sie bei jeder Leistung fest — neue Buchungen übernehmen sie."
+msgstr "Строк задається для кожної послуги — нові записи беруть його собі."
+
+msgid "Kostenlos bis"
+msgstr "Безкоштовно до"
+
+msgid "Kostenlose Stornierung je Leistung"
+msgstr "Безкоштовне скасування за послугами"
+
+msgid "Noch keine Leistungen."
+msgstr "Послуг поки немає."
+
+msgid "Regeln für alle Leistungen"
+msgstr "Правила для всіх послуг"
+
+msgid "Regeln für alle Leistungen: Anzahlung nach Nichterscheinen und kostenlose Stornierung."
+msgstr "Правила для всіх послуг: передоплата після неявок і безкоштовне скасування."
+
+msgid "jederzeit"
+msgstr "будь-коли"

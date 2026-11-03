@@ -1,0 +1,50 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Buchungsregeln" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D2.1: правила записи для всех услуг — правило неявок и сроки
+бесплатной отмены. Сроки задаются у каждой услуги (вкладка «Buchungsregeln» её
+страницы), здесь — обзор со ссылками.{% endcomment %}
+<h1 class="ui-h1 mb-1">{% nav_title _("Buchungsregeln") %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans "Regeln für alle Leistungen: Anzahlung nach Nichterscheinen und kostenlose Stornierung." %}</p>
+
+{% if messages %}
+  {% for m in messages %}
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="grid gap-4 xl:grid-cols-2 items-start">
+  <div>{% include "booking/_no_show_rule_card.html" with card_open=1 %}</div>
+
+  <section class="ui-card p-4" aria-labelledby="storno-h">
+    <h2 id="storno-h" class="font-semibold">{% trans "Kostenlose Stornierung je Leistung" %}</h2>
+    <p class="text-xs text-gray-500 mt-1 mb-3">{% trans "Die Frist legen Sie bei jeder Leistung fest — neue Buchungen übernehmen sie." %}</p>
+    {% if services %}
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-xs text-gray-500">
+          <th scope="col" class="py-1.5 font-medium">{% trans "Leistung" %}</th>
+          <th scope="col" class="py-1.5 font-medium">{% trans "Kostenlos bis" %}</th>
+          <th scope="col" class="py-1.5 font-medium">{% trans "Danach" %}</th>
+          <th scope="col" class="py-1.5"><span class="sr-only">{% trans "Bearbeiten" %}</span></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for s in services %}
+        <tr{% if not s.is_active %} class="text-gray-400"{% endif %}>
+          <td class="py-2 pr-2">{{ s.name }}{% if not s.is_active %} · {% trans "aus" %}{% endif %}</td>
+          <td class="py-2 pr-2 tabular-nums whitespace-nowrap">{% if s.cancel_window_hours %}{% blocktrans with h=s.cancel_window_hours %}{{ h }} Std. vorher{% endblocktrans %}{% else %}{% trans "jederzeit" %}{% endif %}</td>
+          <td class="py-2 pr-2">{{ s.get_late_cancel_display }}</td>
+          <td class="py-2 text-right whitespace-nowrap"><a href="{% url 'booking:service-edit' s.pk %}?tab=regeln" class="text-indigo-700 hover:underline" aria-label="{% trans 'Bearbeiten' %}: {{ s.name }}">{% trans "Bearbeiten" %} <span aria-hidden="true">→</span></a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-sm text-gray-500">{% trans "Noch keine Leistungen." %} <a href="{% url 'booking:services' %}" class="text-indigo-700 hover:underline">{% trans "Leistungen" %} →</a></p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

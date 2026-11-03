@@ -1582,8 +1582,6 @@ def services_view(request, pk=None):
             "skill_resources": list(Resource.objects.filter(is_active=True).order_by("name")),
             # KA-12 B6: блок правил отмены — только owner/admin.
             "can_edit_policy": _can_edit_policy(request.user),
-            # KA-12 E6.4c: правило «Anzahlung nach Nichterscheinen».
-            "no_show_rule": _no_show_rule_ctx(getattr(request, "tenant", None)),
             # Фидбэк 2026-07-30 («на сайте пишет: нет доступных»): без рабочих часов
             # слоты не генерируются вообще. Показываем причину ЗДЕСЬ, где владелец
             # правит услугу, — иначе он ищет «календарь услуги», которого нет.
@@ -1618,7 +1616,7 @@ def no_show_rule_save(request):
         amount = Decimal("-1")
     if amount is not None and not (Decimal("0") <= amount <= Decimal("1000")):
         messages.error(request, _("Bitte einen Betrag zwischen 0 und 1000 € angeben."))
-        return redirect("booking:services")
+        return redirect("booking:booking-rules")
     cents = int((amount * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP)) if amount else 0
     rule = normalize_booking(
         {
@@ -1655,7 +1653,31 @@ def no_show_rule_save(request):
         )
     request.tenant.site_config = cfg
     messages.success(request, _("Gespeichert."))
-    return redirect("booking:services")
+    # UX-D D2.1: правило живёт на экране «Buchungsregeln» (Einstellungen)
+    return redirect("booking:booking-rules")
+
+
+@login_required
+def booking_rules_view(request):
+    """UX-D D2.1: «Buchungsregeln» — правила записи для всех услуг в одном месте
+    (раньше — свёрнутый блок над списком услуг): правило неявок и сроки бесплатной
+    отмены каждой услуги (только чтение, правка — на вкладке услуги). Сотрудник
+    видит правила без формы (правят owner/admin, `preise.edit`)."""
+    from .models import Service
+
+    tenant = getattr(request, "tenant", None)
+    return render(
+        request,
+        "booking/booking_rules.html",
+        {
+            "nav": "booking-rules",
+            "no_show_rule": _no_show_rule_ctx(tenant),
+            "can_edit_policy": _can_edit_policy(request.user),
+            "services": Service.objects.order_by("-is_active", "name").only(
+                "pk", "name", "is_active", "cancel_window_hours", "late_cancel"
+            ),
+        },
+    )
 
 
 @login_required

@@ -19,6 +19,7 @@ urlpatterns = [
     path("leistungen/<uuid:pk>/", views.services_view, name="service-edit"),
     path("karten/", views.passes_view, name="passes"),
     path("nichterscheinen/", views.no_show_rule_save, name="no-show-rule"),
+    path("regeln/", views.booking_rules_view, name="booking-rules"),
     # KA-12 GA-6: «Tischplan» — столы по зонам на момент времени.
     path("tische/plan/", views.tischplan, name="tischplan"),
     path("tische/regeln/", views.table_rules_save, name="table-rules"),

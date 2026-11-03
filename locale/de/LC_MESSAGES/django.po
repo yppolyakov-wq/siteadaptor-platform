@@ -31668,3 +31668,30 @@ msgstr[1] "%(n)s Buchungen ohne Zimmer"
 
 msgid "Erreichbarkeit"
 msgstr "Erreichbarkeit"
+
+msgid "%(h)s Std. vorher"
+msgstr "%(h)s Std. vorher"
+
+msgid "Buchungsregeln"
+msgstr "Buchungsregeln"
+
+msgid "Die Frist legen Sie bei jeder Leistung fest — neue Buchungen übernehmen sie."
+msgstr "Die Frist legen Sie bei jeder Leistung fest — neue Buchungen übernehmen sie."
+
+msgid "Kostenlos bis"
+msgstr "Kostenlos bis"
+
+msgid "Kostenlose Stornierung je Leistung"
+msgstr "Kostenlose Stornierung je Leistung"
+
+msgid "Noch keine Leistungen."
+msgstr "Noch keine Leistungen."
+
+msgid "Regeln für alle Leistungen"
+msgstr "Regeln für alle Leistungen"
+
+msgid "Regeln für alle Leistungen: Anzahlung nach Nichterscheinen und kostenlose Stornierung."
+msgstr "Regeln für alle Leistungen: Anzahlung nach Nichterscheinen und kostenlose Stornierung."
+
+msgid "jederzeit"
+msgstr "jederzeit"

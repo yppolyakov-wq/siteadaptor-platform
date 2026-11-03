@@ -72,7 +72,7 @@ EXPECTED_UNLISTED = frozenset(
         "billing-payments-connect",
         "billing-payments-methods",
         "booking:booking-create",
-        "booking:no-show-rule",  # KA-12 E6.4c: POST панели на странице услуг
+        "booking:no-show-rule",  # KA-12 E6.4c: POST карточки на экране «Buchungsregeln» (D2.1)
         "booking:table-rules",  # KA-12 GA-1: POST карточки «Online-Tischreservierung» на ресурсах
         "stays:price-calendar-apply",  # KA-12 Z-3: POST «Übernehmen» массовой правки
         "booking:service-inline-edit",

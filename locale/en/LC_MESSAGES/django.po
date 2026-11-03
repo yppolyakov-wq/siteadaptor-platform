@@ -31581,3 +31581,30 @@ msgstr[1] "%(n)s bookings without a room"
 
 msgid "Erreichbarkeit"
 msgstr "Availability"
+
+msgid "%(h)s Std. vorher"
+msgstr "%(h)s h before"
+
+msgid "Buchungsregeln"
+msgstr "Booking rules"
+
+msgid "Die Frist legen Sie bei jeder Leistung fest — neue Buchungen übernehmen sie."
+msgstr "You set the deadline for each service — new bookings take it over."
+
+msgid "Kostenlos bis"
+msgstr "Free until"
+
+msgid "Kostenlose Stornierung je Leistung"
+msgstr "Free cancellation per service"
+
+msgid "Noch keine Leistungen."
+msgstr "No services yet."
+
+msgid "Regeln für alle Leistungen"
+msgstr "Rules for all services"
+
+msgid "Regeln für alle Leistungen: Anzahlung nach Nichterscheinen und kostenlose Stornierung."
+msgstr "Rules for all services: deposit after no-shows and free cancellation."
+
+msgid "jederzeit"
+msgstr "any time"
