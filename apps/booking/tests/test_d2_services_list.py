@@ -67,12 +67,14 @@ def test_list_query_budget_does_not_grow_with_services(django_assert_max_num_que
         Service.objects.create(name=f"S{i}", duration_minutes=30)
     with CaptureQueriesContext(connection) as small:
         views.services_view(_req())
+    lea = Resource.objects.create(name="Lea")
     for i in range(10):
         s = Service.objects.create(name=f"T{i}", duration_minutes=30)
         ServiceVariant.objects.create(service=s, name="V")
+        s.resources.add(lea)  # без prefetch «resources» — запрос на строку
     with CaptureQueriesContext(connection) as big:
         views.services_view(_req())
-    assert len(big) <= len(small) + 2, (len(small), len(big))
+    assert len(big) <= len(small) + 1, (len(small), len(big))
 
 
 def test_list_links_rules_and_new_service_drawer():

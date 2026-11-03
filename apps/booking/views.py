@@ -1643,14 +1643,16 @@ def services_view(request, pk=None):
         services = list(
             Service.objects.prefetch_related("resources", "variants").order_by("-is_active", "name")
         )
+        from .pricing import variant_price_cents
+
         for svc in services:
-            active_variants = [v for v in svc.variants.all() if v.is_active]
+            active_variants = [v for v in svc.variants.all() if v.is_active]  # prefetch
             svc.has_variants = bool(active_variants)
-            # «ab» — та же формула, что витрина (pricing.variant_price_cents)
-            prices = [svc.price_cents] + [
-                max(0, svc.price_cents + int(v.price_delta_cents or 0)) for v in active_variants
-            ]
-            svc.list_price_eur = Decimal(min(prices)) / 100
+            # «ab» — та же функция, что витрина (apps/core/sellable._service)
+            svc.list_price_eur = (
+                Decimal(min(variant_price_cents(svc, None, v) for v in [None, *active_variants]))
+                / 100
+            )
         return render(
             request,
             "booking/services.html",
