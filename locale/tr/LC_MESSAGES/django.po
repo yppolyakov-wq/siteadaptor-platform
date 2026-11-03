@@ -31962,3 +31962,6 @@ msgstr "Kartlar"
 
 msgid "Ein neuer Stempel-Wert gilt ab dem nächsten Stempel; gesammelte Stempel bleiben erhalten."
 msgstr "Yeni damga sayısı bir sonraki damgadan itibaren geçerlidir; toplanan damgalar korunur."
+
+msgid "Einzelpreis"
+msgstr "Birim fiyat"

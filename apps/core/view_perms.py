@@ -373,11 +373,14 @@ RULES: dict[str, Rule] = {
     "domain-remove": _r("domains.view", "domains.edit"),
     # --- Finanzen -----------------------------------------------------------------
     "finance:journal": _r(FJ, FE),
+    "finance:journal-new": _r(FJ, FE),  # UX-D D6.5
     "finance:invoices": _r(FJ, FE),
+    "finance:invoice-new": _r(FJ, FE),  # UX-D D6.5
     "finance:invoice-detail": _r(FJ, FE),
     "finance:invoice-pdf": _r(FJ),
     "finance:invoice-mahnung": _r(FJ, FE),
     "finance:expenses": _r(FJ, FE),
+    "finance:expense-new": _r(FJ, FE),  # UX-D D6.5
     "finance:ergebnis": _r("finanzen.berichte"),
     "finance:offene": _r("finanzen.berichte", FE),
     "finance:customer-search": _r(FJ),

@@ -1,0 +1,33 @@
+{% load i18n %}
+{% comment %}UX-D D6.5: «＋ Buchung» — ручная выручка; шторка и страница без JS.
+Контекст: fv (значения), fv_errors {поле: текст}, vat_rates, next_url.{% endcomment %}
+<form method="post" action="{% url 'finance:journal-new' %}" class="space-y-4" data-drawer-form data-drawer-after="close">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label for="jn-amount" class="block text-sm font-medium mb-1">{% trans "Amount (gross)" %}</label>
+      <input id="jn-amount" name="amount" type="text" inputmode="decimal" autocomplete="off" required value="{{ fv.amount }}" placeholder="12,50" data-drawer-autofocus{% if fv_errors.amount %} aria-invalid="true" aria-describedby="jn-amount-err"{% endif %} class="ui-input">
+      {% include "finance/_field_err.html" with err=fv_errors.amount id="jn-amount" %}
+    </div>
+    <div>
+      <label for="jn-vat" class="block text-sm font-medium mb-1">{% trans "VAT" %}</label>
+      <select id="jn-vat" name="vat_rate" class="ui-input"{% if fv_errors.vat_rate %} aria-invalid="true" aria-describedby="jn-vat-err"{% endif %}>
+        {% for rate in vat_rates %}<option value="{{ rate }}"{% if fv.vat_rate == rate|stringformat:"s" %} selected{% endif %}>{{ rate }} %</option>{% endfor %}
+      </select>
+      {% include "finance/_field_err.html" with err=fv_errors.vat_rate id="jn-vat" %}
+    </div>
+    <div>
+      <label for="jn-date" class="block text-sm font-medium mb-1">{% trans "Date" %}</label>
+      <input id="jn-date" name="date" type="date" value="{{ fv.date }}"{% if fv_errors.date %} aria-invalid="true" aria-describedby="jn-date-err"{% endif %} class="ui-input">
+      {% include "finance/_field_err.html" with err=fv_errors.date id="jn-date" %}
+    </div>
+    <div>
+      <label for="jn-note" class="block text-sm font-medium mb-1">{% trans "Note (optional)" %}</label>
+      <input id="jn-note" name="note" type="text" maxlength="200" value="{{ fv.note }}" placeholder="{% trans 'e.g. counter sale' %}" class="ui-input">
+    </div>
+  </div>
+  <div class="flex justify-end gap-2 pt-2{% if in_drawer %} sticky bottom-0 bg-white pb-1{% endif %}">
+    <button class="ui-btn ui-btn-primary">{% trans "Add" %}</button>
+  </div>
+</form>

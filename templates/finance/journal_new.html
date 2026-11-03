@@ -1,0 +1,11 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Add entry" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D6.5: «＋ Buchung» без JS (в кабинете — шторка).{% endcomment %}
+<a href="{% url 'finance:journal' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Revenue journal" %}</a>
+<h1 class="ui-h1 mt-1 mb-4">{% trans "Add entry" %}</h1>
+{% include "tenant/_settings_messages.html" %}
+<div class="ui-card p-6 max-w-xl">{% include "finance/_journal_new_form.html" %}</div>
+{% endblock %}

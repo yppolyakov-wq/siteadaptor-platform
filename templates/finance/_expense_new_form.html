@@ -1,0 +1,57 @@
+{% load i18n %}
+{% comment %}UX-D D6.5: «＋ Ausgabe» — расход/входящий счёт с Beleg; шторка и страница без JS.
+Файл уходит fetch'ем шторки (FormData). Контекст: fv, fv_errors, vat_rates, categories,
+suppliers, next_url.{% endcomment %}
+<form method="post" action="{% url 'finance:expense-new' %}" enctype="multipart/form-data" class="space-y-4" data-drawer-form data-drawer-after="close">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label for="en-amount" class="block text-sm font-medium mb-1">{% trans "Amount" %}</label>
+      <input id="en-amount" name="amount" type="text" inputmode="decimal" autocomplete="off" required value="{{ fv.amount }}" placeholder="0,00" data-drawer-autofocus{% if fv_errors.amount %} aria-invalid="true" aria-describedby="en-amount-err"{% endif %} class="ui-input">
+      {% include "finance/_field_err.html" with err=fv_errors.amount id="en-amount" %}
+    </div>
+    <div>
+      <label for="en-vat" class="block text-sm font-medium mb-1">{% trans "USt.-Satz" %}</label>
+      <select id="en-vat" name="vat_rate" class="ui-input"{% if fv_errors.vat_rate %} aria-invalid="true" aria-describedby="en-vat-err"{% endif %}>
+        {% for r in vat_rates %}<option value="{{ r }}"{% if fv.vat_rate == r|stringformat:"s" %} selected{% endif %}>{{ r|floatformat:0 }} %</option>{% endfor %}
+      </select>
+      {% include "finance/_field_err.html" with err=fv_errors.vat_rate id="en-vat" %}
+    </div>
+    <div>
+      <label for="en-cat" class="block text-sm font-medium mb-1">{% trans "Kategorie" %}</label>
+      <select id="en-cat" name="category" class="ui-input">
+        {% for code, label in categories %}<option value="{{ code }}"{% if fv.category == code %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="en-supplier" class="block text-sm font-medium mb-1">{% trans "Anbieter" %}</label>
+      <select id="en-supplier" name="supplier" class="ui-input"{% if fv_errors.supplier %} aria-invalid="true" aria-describedby="en-supplier-err"{% endif %}>
+        <option value="">—</option>
+        {% for sp in suppliers %}<option value="{{ sp.pk }}"{% if fv.supplier == sp.pk|stringformat:"s" %} selected{% endif %}>{{ sp.name }}</option>{% endfor %}
+      </select>
+      {% include "finance/_field_err.html" with err=fv_errors.supplier id="en-supplier" %}
+    </div>
+    <div>
+      <label for="en-date" class="block text-sm font-medium mb-1">{% trans "Date" %}</label>
+      <input id="en-date" name="date" type="date" value="{{ fv.date }}"{% if fv_errors.date %} aria-invalid="true" aria-describedby="en-date-err"{% endif %} class="ui-input">
+      {% include "finance/_field_err.html" with err=fv_errors.date id="en-date" %}
+    </div>
+    <div>
+      <label for="en-due" class="block text-sm font-medium mb-1">{% trans "Zahlungsziel" %}</label>
+      <input id="en-due" name="due_date" type="date" value="{{ fv.due_date }}"{% if fv_errors.due_date %} aria-invalid="true" aria-describedby="en-due-err"{% endif %} class="ui-input">
+      {% include "finance/_field_err.html" with err=fv_errors.due_date id="en-due" %}
+    </div>
+  </div>
+  <div>
+    <label for="en-note" class="block text-sm font-medium mb-1">{% trans "Note" %}</label>
+    <input id="en-note" name="note" type="text" maxlength="200" value="{{ fv.note }}" class="ui-input">
+  </div>
+  <div>
+    <label for="en-beleg" class="block text-sm font-medium mb-1">{% trans "Beleg (Foto/PDF)" %}</label>
+    <input id="en-beleg" name="beleg" type="file" accept="image/*,.pdf" class="block text-sm">
+  </div>
+  <div class="flex justify-end gap-2 pt-2{% if in_drawer %} sticky bottom-0 bg-white pb-1{% endif %}">
+    <button class="ui-btn ui-btn-primary">{% trans "Ausgabe erfassen" %}</button>
+  </div>
+</form>

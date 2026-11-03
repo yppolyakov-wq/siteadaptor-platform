@@ -1,13 +1,15 @@
 from django.urls import path
 
-from . import views
+from . import entry_views, views
 
 app_name = "finance"
 
 urlpatterns = [
     path("", views.journal, name="journal"),
+    path("buchung/neu/", entry_views.journal_new, name="journal-new"),  # UX-D D6.5
     # MX-1: расходы и сводный результат — «Finanzen» больше не только выручка.
     path("ausgaben/", views.expenses, name="expenses"),
+    path("ausgaben/neu/", entry_views.expense_new, name="expense-new"),  # UX-D D6.5
     path("ausgaben/datev.csv", views.expenses_export_datev, name="expenses-datev"),
     # ERP-2: открытые позиции + банковская сверка.
     path("offene/", views.offene_posten, name="offene"),
@@ -19,6 +21,7 @@ urlpatterns = [
     path("datev.csv", views.journal_export_datev, name="export-datev"),
     # Rechnungen (D4b).
     path("rechnungen/", views.invoices, name="invoices"),
+    path("rechnungen/neu/", entry_views.invoice_new, name="invoice-new"),  # UX-D D6.5
     path("kunden-suche/", views.customer_search, name="customer-search"),
     path("rechnungen/<uuid:pk>/", views.invoice_detail, name="invoice-detail"),
     path("rechnungen/<uuid:pk>/pdf/", views.invoice_pdf, name="invoice-pdf"),

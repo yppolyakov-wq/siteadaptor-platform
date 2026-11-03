@@ -1,0 +1,5 @@
+{% load i18n %}
+{% comment %}UX-D D6.5: шторка «＋ Buchung» (finance:journal-new?box=1).{% endcomment %}
+<div data-drawer-title="{% trans 'Add entry' %}" class="text-sm">
+  {% include "finance/_journal_new_form.html" with in_drawer=1 %}
+</div>

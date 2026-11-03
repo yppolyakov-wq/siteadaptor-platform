@@ -5,7 +5,11 @@
 {% block dash_content %}
 <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
   <div>
-    <h1 class="ui-h1">{% nav_title _("Ausgaben") %}</h1>
+    <div class="flex items-center gap-3 flex-wrap">
+      <h1 class="ui-h1">{% nav_title _("Ausgaben") %}</h1>
+      {% comment %}UX-D D6.5: расход — шторкой (раньше строка из 8 полей над списком).{% endcomment %}
+      <a href="{% url 'finance:expense-new' %}" data-drawer class="ui-btn ui-btn-primary ui-btn-sm">＋ {% trans "Ausgabe erfassen" %}</a>
+    </div>
     {% if request.user|cab_can:"finanzen.export" %}<a href="{% url 'finance:expenses-datev' %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline">DATEV</a>{% endif %}
   </div>
   <form method="get" class="flex flex-wrap items-center gap-2 text-sm">
@@ -27,6 +31,7 @@
   {% endfor %}
 {% endif %}
 
+<div id="expense-region" data-drawer-refresh>
 <div class="grid sm:grid-cols-3 gap-4 mb-6 max-w-2xl">
   <div class="rounded-xl border border-gray-200 p-4">
     <p class="text-xs ui-muted">{% trans "Summe" %}</p>
@@ -40,50 +45,7 @@
   {% endfor %}
 </div>
 
-<form method="post" enctype="multipart/form-data" class="mb-6 flex flex-wrap items-end gap-2 rounded-xl border border-gray-200 p-4 text-sm">
-  {% csrf_token %}
-  <div>
-    <label class="block"><span class="block text-xs text-gray-400 mb-1">{% trans "Amount" %}</span>
-    <input name="amount" inputmode="decimal" placeholder="0,00" required class="w-28 rounded-lg border border-gray-300 px-2 py-1.5"></label>
-  </div>
-  <div>
-    <label class="block"><span class="block text-xs text-gray-400 mb-1">{% trans "USt.-Satz" %}</span>
-    <select name="vat_rate" class="rounded-lg border border-gray-300 px-2 py-1.5">
-      <option value="0.00">0 %</option>
-      {% for r in vat_rates %}{% if r %}<option value="{{ r }}">{{ r|floatformat:0 }} %</option>{% endif %}{% endfor %}
-    </select></label>
-  </div>
-  <div>
-    <label class="block"><span class="block text-xs text-gray-400 mb-1">{% trans "Anbieter" %}</span>
-    <select name="supplier" class="rounded-lg border border-gray-300 px-2 py-1.5">
-      <option value="">—</option>
-      {% for sp in suppliers %}<option value="{{ sp.pk }}">{{ sp.name }}</option>{% endfor %}
-    </select></label>
-  </div>
-  <div>
-    <label class="block"><span class="block text-xs text-gray-400 mb-1">{% trans "Zahlungsziel" %}</span>
-    <input type="date" name="due_date" class="rounded-lg border border-gray-300 px-2 py-1.5"></label>
-  </div>
-  <div>
-    <label class="block"><span class="block text-xs text-gray-400 mb-1">{% trans "Beleg (Foto/PDF)" %}</span>
-    <input type="file" name="beleg" accept="image/*,.pdf" class="text-xs"></label>
-  </div>
-  <div>
-    <label class="block"><span class="block text-xs text-gray-400 mb-1">{% trans "Kategorie" %}</span>
-    <select name="category" class="rounded-lg border border-gray-300 px-2 py-1.5">
-      {% for code, label in categories %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
-    </select></label>
-  </div>
-  <div>
-    <label class="block"><span class="block text-xs text-gray-400 mb-1">{% trans "Date" %}</span>
-    <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5"></label>
-  </div>
-  <div class="grow">
-    <label class="block"><span class="block text-xs text-gray-400 mb-1">{% trans "Note" %}</span>
-    <input name="note" maxlength="200" class="ui-input"></label>
-  </div>
-  <button class="ui-btn ui-btn-primary">{% trans "Ausgabe erfassen" %}</button>
-</form>
+
 
 {% if open_bills %}
 {# ERP-3: входящие счета с сроком — вне периода: долг не зависит от фильтра. #}
@@ -142,4 +104,5 @@
   </table>
 </div>
 {% list_pager page %}
+</div>
 {% endblock %}

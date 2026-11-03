@@ -1,0 +1,76 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Neue Rechnung (Entwurf)" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D6.5: «＋ Neue Rechnung» — страница (раньше форма под списком счетов; ошибка
+стирала все строки). 8 строк, поиск клиента (GET-форма вне POST-формы — вложенный form браузер
+разворачивает). Ошибки — у своих полей, ввод сохраняется.{% endcomment %}
+<a href="{% url 'finance:invoices' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Rechnungen" %}</a>
+<h1 class="ui-h1 mt-1 mb-4">{% trans "Neue Rechnung (Entwurf)" %}</h1>
+{% include "tenant/_settings_messages.html" %}
+{% if fv_errors %}<div role="alert" class="mb-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{% trans "Bitte prüfen Sie Ihre Angaben und senden Sie erneut." %}</div>{% endif %}
+
+<form method="get" class="max-w-3xl mb-2 flex gap-2" data-customer-search-form>
+  <input type="search" name="kunde_q" value="{{ kunde_q }}" aria-label="{% trans 'Kunde suchen (Name, E-Mail, Telefon)' %}" placeholder="{% trans 'Kunde suchen (Name, E-Mail, Telefon)' %}" class="flex-1 ui-input" data-customer-search data-url="{% url 'finance:customer-search' %}" autocomplete="off">
+  <button type="submit" class="ui-btn ui-btn-secondary">{% trans "Suchen" %}</button>
+</form>
+<form id="invoice-form" method="post" class="ui-card p-6 max-w-3xl space-y-4" data-invoice-new>
+  {% csrf_token %}
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label for="inv-customer" class="block text-sm font-medium mb-1">{% trans "Customer" %} ({% trans "optional" %})</label>
+      <select id="inv-customer" name="customer" class="ui-input" data-customer-select{% if fv_errors.customer %} aria-invalid="true" aria-describedby="inv-customer-err"{% endif %}>
+        <option value="">—</option>
+        {% for c in customers %}<option value="{{ c.pk }}"{% if selected_customer and c.pk == selected_customer.pk %} selected{% endif %}>{{ c.pick_label }}</option>{% endfor %}
+      </select>
+      {% include "finance/_field_err.html" with err=fv_errors.customer id="inv-customer" %}
+      <p class="text-xs text-gray-600 mt-1">{% if kunde_q %}{% blocktrans with q=kunde_q %}Treffer für „{{ q }}“.{% endblocktrans %}{% else %}{% trans "Neueste Kunden — andere über die Suche oben." %}{% endif %}</p>
+    </div>
+    <div>
+      <label for="inv-vat" class="block text-sm font-medium mb-1">{% trans "VAT" %}</label>
+      {% if small_business %}
+        <p class="text-sm text-gray-600 py-2">0 % — § 19 UStG (Kleinunternehmer)</p>
+      {% else %}
+        <select id="inv-vat" name="vat_rate" class="ui-input"{% if fv_errors.vat_rate %} aria-invalid="true" aria-describedby="inv-vat-err"{% endif %}>
+          {% for rate in vat_rates %}<option value="{{ rate }}"{% if fv.vat_rate == rate|stringformat:"s" %} selected{% endif %}>{{ rate }} %</option>{% endfor %}
+        </select>
+        {% include "finance/_field_err.html" with err=fv_errors.vat_rate id="inv-vat" %}
+      {% endif %}
+    </div>
+  </div>
+  <div>
+    <label for="inv-recipient" class="block text-sm font-medium mb-1">{% trans "Empfänger (Name, Adresse)" %}</label>
+    <textarea id="inv-recipient" name="recipient" rows="2" class="ui-input">{{ fv.recipient }}</textarea>
+    <p class="text-xs text-gray-600 mt-1">{% trans "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen." %}</p>
+  </div>
+  <fieldset class="space-y-2">
+    <legend class="text-sm font-medium">{% trans "Positionen" %} <span class="text-xs text-gray-600 font-normal">{% trans "(Preis netto)" %}</span></legend>
+    {% for r in rows %}
+      <div>
+        <div class="flex gap-2">
+          <input aria-label="{% trans "Bezeichnung" %} {{ r.i }}" name="line_text_{{ r.i }}" type="text" value="{{ r.text }}" placeholder="{% trans 'Bezeichnung' %}"{% if r.err_text %} aria-invalid="true" aria-describedby="inv-l{{ r.i }}-err"{% endif %} class="flex-1 ui-input">
+          <input aria-label="{% trans 'Menge' %} {{ r.i }}" name="line_qty_{{ r.i }}" type="text" inputmode="numeric" value="{{ r.qty }}"{% if r.err_qty %} aria-invalid="true" aria-describedby="inv-l{{ r.i }}-err"{% endif %} class="w-20 ui-input">
+          <input aria-label="{% trans 'Einzelpreis' %} {{ r.i }}" name="line_price_{{ r.i }}" type="text" inputmode="decimal" value="{{ r.price }}" placeholder="0,00"{% if r.err_price %} aria-invalid="true" aria-describedby="inv-l{{ r.i }}-err"{% endif %} class="w-28 ui-input">
+        </div>
+        {% if r.err_text or r.err_qty or r.err_price %}<p id="inv-l{{ r.i }}-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ r.err_text|default:r.err_qty|default:r.err_price }}</p>{% endif %}
+      </div>
+    {% endfor %}
+  </fieldset>
+  <div>
+    <label for="inv-note" class="block text-sm font-medium mb-1">{% trans "Note (optional)" %}</label>
+    <input id="inv-note" name="note" type="text" maxlength="200" value="{{ fv.note }}" class="ui-input">
+  </div>
+  {% if doc_languages|length > 1 %}
+    <div class="max-w-xs">
+      <label for="inv-lang" class="block text-sm font-medium mb-1">{% trans "Invoice language" %}</label>
+      <select id="inv-lang" name="language" class="ui-input">
+        {% for lang in doc_languages %}<option value="{{ lang.code }}"{% if lang.code == fv.language %} selected{% endif %}>{{ lang.label }}</option>{% endfor %}
+      </select>
+      <p class="text-xs text-gray-600 mt-1">{% trans "The invoice is issued in this language — pick the customer's language." %}</p>
+    </div>
+  {% endif %}
+  <div class="flex justify-end"><button type="submit" class="ui-btn ui-btn-primary">{% trans "Entwurf anlegen" %}</button></div>
+</form>
+{% include "finance/_customer_search_script.html" %}
+{% endblock %}

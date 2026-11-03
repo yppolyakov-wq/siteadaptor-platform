@@ -66,28 +66,15 @@ def _post_amount(raw, *, allow_negative=False):
 @login_required
 def journal(request):
     if request.method == "POST":
-        try:
-            amount = _post_amount(request.POST.get("amount"))
-            entry_date = _post_date(request.POST.get("date"), timezone.localdate())
-        except _FormError as exc:
-            messages.error(request, str(exc))
+        # Старая вкладка до UX-D D6.5 (сейчас «＋ Buchung» — шторкой journal-new).
+        from .entry_views import parse_journal
+
+        values, errors = parse_journal(request.POST)
+        if errors:
+            messages.error(request, next(iter(errors.values())))
             return redirect("finance:journal")
-        vat_raw = request.POST.get("vat_rate", "19.00")
-        vat_rate = next(
-            (rate for rate in RevenueEntry.VAT_RATES if str(rate) == vat_raw),
-            Decimal("19.00"),
-        )
-        entry = record_revenue(
-            source=RevenueEntry.SOURCE_MANUAL,
-            amount=amount,
-            vat_rate=vat_rate,
-            date=entry_date,
-            note=request.POST.get("note", "").strip(),
-        )
-        if entry is None:
-            messages.error(request, _("Amount must be positive."))
-        else:
-            messages.success(request, _("Entry added."))
+        record_revenue(source=RevenueEntry.SOURCE_MANUAL, **values)
+        messages.success(request, _("Entry added."))
         return redirect("finance:journal")
 
     von, bis, entries = _period_entries(request)
@@ -157,56 +144,14 @@ def expenses(request):
             ).delete()
             messages.success(request, _("Entry deleted."))
             return redirect("finance:expenses")
-        try:
-            amount = _post_amount(request.POST.get("amount"))
-            entry_date = _post_date(request.POST.get("date"), timezone.localdate())
-            due = _post_date(request.POST.get("due_date"), None)
-        except _FormError as exc:
-            messages.error(request, str(exc))
-            return redirect("finance:expenses")
-        if amount <= 0:
-            messages.error(request, _("Amount must be positive."))
-            return redirect("finance:expenses")
-        category = request.POST.get("category", "")
-        if category not in dict(ExpenseEntry.CATEGORIES):
-            category = ExpenseEntry.CATEGORY_OTHER
-        # ERP-3: расход как документ — ставка (Vorsteuer, ERP-4), поставщик,
-        # срок оплаты, файл счёта (SecureDocument: шифрованный, кабинет-only).
-        vat_raw = request.POST.get("vat_rate", "")
-        vat_rate = next((r for r in RevenueEntry.VAT_RATES if str(r) == vat_raw), Decimal("0.00"))
-        supplier = None
-        if request.POST.get("supplier"):
-            from apps.inventory.models import Lieferant
+        # Старая вкладка до UX-D D6.5 (сейчас «＋ Ausgabe» — шторкой expense-new).
+        from .entry_views import create_expense, parse_expense
 
-            supplier = Lieferant.objects.filter(pk=request.POST.get("supplier")).first()
-        document = None
-        if request.FILES.get("beleg"):
-            from apps.documents import services as doc_services
-            from apps.documents.models import SecureDocument
-
-            try:
-                document = doc_services.store(
-                    request.FILES["beleg"],
-                    owner=None,
-                    kind=SecureDocument.KIND_RECEIPT,
-                    note="Eingangsrechnung",
-                    uploaded_by=str(request.user)[:150],
-                )
-            except Exception:  # noqa: BLE001 — битый файл не роняет запись расхода
-                logger.exception("expense receipt upload failed")
-                messages.warning(request, _("Beleg konnte nicht gespeichert werden."))
-        ExpenseEntry.objects.create(
-            source=ExpenseEntry.SOURCE_MANUAL,
-            amount=amount,
-            category=category,
-            vat_rate=vat_rate,
-            supplier=supplier,
-            due_date=due,
-            paid_at=None if due else timezone.localdate(),
-            document=document,
-            date=entry_date,
-            note=request.POST.get("note", "").strip()[:200],
-        )
+        values, errors = parse_expense(request.POST)
+        if errors:
+            messages.error(request, next(iter(errors.values())))
+            return redirect("finance:expenses")
+        create_expense(request, values)
         messages.success(request, _("Entry added."))
         return redirect("finance:expenses")
 
@@ -556,76 +501,20 @@ def journal_export_datev(request):
 @login_required
 def invoices(request):
     """Счета (D4b): список + создание черновика (до 8 позиций без JS)."""
-    from decimal import Decimal
 
     from apps.core.documents import business_language, language_choices
-    from apps.promotions.models import Customer
 
     from .models import Invoice
-    from .services import compute_totals
 
     if request.method == "POST":
-        lines = []
-        for index in range(1, 9):
-            text = request.POST.get(f"line_text_{index}", "").strip()
-            if not text:
-                continue
-            try:
-                qty = max(1, min(int(request.POST.get(f"line_qty_{index}", "1") or 1), 9999))
-                # UX-D D6.0: строгий разбор; отрицательная строка — законный Rabatt.
-                unit_price = _post_amount(
-                    request.POST.get(f"line_price_{index}") or "0", allow_negative=True
-                )
-            except (_FormError, ValueError):
-                messages.error(request, _("Invalid amount."))
-                return redirect("finance:invoices")
-            lines.append({"text": text[:200], "qty": qty, "unit_price": str(unit_price)})
-        if not lines:
-            messages.error(request, _("Add at least one line."))
+        # Старая вкладка до UX-D D6.5 (сейчас новый счёт — страницей invoice-new).
+        from .entry_views import create_invoice, parse_invoice
+
+        data, errors = parse_invoice(request.POST, request.tenant)
+        if errors:
+            messages.error(request, next(iter(errors.values())))
             return redirect("finance:invoices")
-
-        vat_raw = request.POST.get("vat_rate", "19.00")
-        vat_rate = next(
-            (rate for rate in RevenueEntry.VAT_RATES if str(rate) == vat_raw), Decimal("19.00")
-        )
-        small = request.tenant.small_business
-        net, vat, gross = compute_totals(lines, vat_rate, small_business=small)
-        # KA-P4: мусорный id клиента раньше ронял страницу (pk — UUID).
-        import uuid as _uuid
-
-        try:
-            customer_pk = _uuid.UUID(str(request.POST.get("customer") or ""))
-        except ValueError:
-            customer_pk = None
-        customer = (
-            Customer.objects.select_related("company").filter(pk=customer_pk).first()
-            if customer_pk
-            else None
-        )
-        # CO-2: корпоративный гость без явного получателя → реквизиты компании
-        # (name + адрес + USt-IdNr), а не свободный текст/имя клиента.
-        company_recipient = (
-            customer.company.invoice_recipient if customer and customer.company_id else ""
-        )
-        from apps.core.documents import business_language, clean_language
-
-        invoice = Invoice.objects.create(
-            customer=customer,
-            # I18N-7b/2: язык документа выбирает владелец при создании (дефолт —
-            # язык бизнеса); дальше он живёт со счётом и не зависит от того, кто
-            # и на каком языке кабинета нажал «скачать».
-            language=clean_language(request.POST.get("language"), request.tenant)
-            or business_language(request.tenant),
-            recipient=request.POST.get("recipient", "").strip()[:500]
-            or company_recipient
-            or (str(customer) if customer else ""),
-            lines=lines,
-            vat_rate=Decimal("0") if small else vat_rate,
-            net=net,
-            vat_amount=vat,
-            gross=gross,
-            note=request.POST.get("note", "").strip()[:200],
-        )
+        invoice = create_invoice(request.tenant, data)
         messages.success(request, _("Draft created."))
         return redirect("finance:invoice-detail", pk=invoice.pk)
 

@@ -3,7 +3,11 @@
 {% block dash_title %}{% trans "Rechnungen" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="ui-h1 mb-3">{% nav_title _("Rechnungen") %}</h1>
+<div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+  <h1 class="ui-h1">{% nav_title _("Rechnungen") %}</h1>
+  {% comment %}UX-D D6.5: новый счёт — страницей (раньше форма под списком).{% endcomment %}
+  <a href="{% url 'finance:invoice-new' %}" class="ui-btn ui-btn-primary">＋ {% trans "Neue Rechnung (Entwurf)" %}</a>
+</div>
 {% comment %}VF-4 (фидбэк 2026-08-24 «после нажатия на счета пропадают табы»):
 единственная страница раздела без ряда вкладок Finanzen — ссылка-«назад»
 не заменяет навигацию.{% endcomment %}
@@ -71,101 +75,5 @@
 <p class="ui-card mb-6 px-4 py-6 text-sm text-gray-500" data-invoice-empty>{% trans "Keine Rechnungen für diesen Filter." %}</p>
 {% endif %}
 
-{# KA-P4b: поиск клиента — отдельная GET-форма (не вложенная в POST-форму: браузер развернул бы вложенный form). #}
-<form method="get" class="max-w-2xl mb-2 flex gap-2" data-customer-search-form>
-  <input type="search" name="kunde_q" value="{{ kunde_q }}" aria-label="{% trans 'Kunde suchen (Name, E-Mail, Telefon)' %}" placeholder="{% trans 'Kunde suchen (Name, E-Mail, Telefon)' %}" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm" data-customer-search data-url="{% url 'finance:customer-search' %}" autocomplete="off">
-  <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">{% trans "Suchen" %}</button>
-</form>
-<form method="post" class="ui-card p-6 max-w-2xl space-y-4">
-  {% csrf_token %}
-  <h2 class="ui-h2">{% trans "Neue Rechnung (Entwurf)" %}</h2>
-  <div class="grid sm:grid-cols-2 gap-4">
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Customer" %} ({% trans "optional" %})</span>
-      <select name="customer" class="ui-input" data-customer-select>
-        <option value="">—</option>
-        {% for c in customers %}<option value="{{ c.pk }}"{% if selected_customer and c.pk == selected_customer.pk %} selected{% endif %}>{{ c.pick_label }}</option>{% endfor %}
-      </select></label>
-      <p class="text-xs text-gray-500 mt-1">{% if kunde_q %}{% blocktrans with q=kunde_q %}Treffer für „{{ q }}“.{% endblocktrans %}{% else %}{% trans "Neueste Kunden — andere über die Suche oben." %}{% endif %}</p>
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1">{% trans "VAT" %}</label>
-      {% if small_business %}
-        <p class="text-sm text-gray-500 py-2">0 % — § 19 UStG (Kleinunternehmer)</p>
-      {% else %}
-        <select aria-label="{% trans "MwSt.-Satz" %}" name="vat_rate" class="ui-input">
-          {% for rate in vat_rates %}<option value="{{ rate }}">{{ rate }} %</option>{% endfor %}
-        </select>
-      {% endif %}
-    </div>
-  </div>
-  <div>
-    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Empfänger (Name, Adresse)" %}</span>
-    <textarea name="recipient" rows="2" class="ui-input"></textarea></label>
-    {# CO-2: пусто + корпоративный гость → реквизиты компании подставятся сами. #}
-    <p class="text-xs ui-muted mt-1">{% trans "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen." %}</p>
-  </div>
-  <div class="space-y-2">
-    <p class="text-sm font-medium">{% trans "Positionen" %} <span class="text-xs text-gray-400 font-normal">{% trans "(Preis netto)" %}</span></p>
-    {% for i in "12345"|make_list %}
-      <div class="flex gap-2">
-        <input aria-label="{% trans "Bezeichnung" %} {{ forloop.counter }}" name="line_text_{{ forloop.counter }}" type="text" placeholder="Bezeichnung" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        <input name="line_qty_{{ forloop.counter }}" type="number" value="1" min="1" class="w-20 rounded-lg border border-gray-300 px-2 py-2 text-sm" aria-label="Menge">
-        <input name="line_price_{{ forloop.counter }}" type="text" inputmode="decimal" placeholder="0,00" class="w-28 rounded-lg border border-gray-300 px-2 py-2 text-sm" aria-label="Einzelpreis">
-      </div>
-    {% endfor %}
-  </div>
-  <input name="note" type="text" aria-label="{% trans 'Note (optional)' %}" placeholder="{% trans 'Note (optional)' %}" class="ui-input">
-  {% if doc_languages|length > 1 %}
-    {% comment %}I18N-7b/2: язык счёта выбирается при создании и хранится с
-    документом — выставленный счёт неизменяем (GoBD).{% endcomment %}
-    <div class="max-w-xs">
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Invoice language" %}</span>
-      <select name="language" class="ui-input">
-        {% for lang in doc_languages %}
-          <option value="{{ lang.code }}" {% if lang.code == doc_language_default %}selected{% endif %}>{{ lang.label }}</option>
-        {% endfor %}
-      </select></label>
-      <p class="text-xs ui-muted mt-1">{% trans "The invoice is issued in this language — pick the customer's language." %}</p>
-    </div>
-  {% endif %}
-  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Entwurf anlegen" %}</button>
-</form>
-<script>
-/* KA-P4b: живой поиск клиента — подменяет варианты селекта (без JS работает GET-форма). */
-(function () {
-  var timer = null, ctrl = null;
-  document.addEventListener("input", function (ev) {
-    var input = ev.target.closest && ev.target.closest("[data-customer-search]");
-    if (!input) return;
-    clearTimeout(timer);
-    timer = setTimeout(function () {
-      var q = input.value.trim();
-      var select = document.querySelector("[data-customer-select]");
-      if (!select || q.length < 2) return;
-      if (ctrl) ctrl.abort();
-      ctrl = new AbortController();
-      fetch(input.dataset.url + "?q=" + encodeURIComponent(q), {signal: ctrl.signal, headers: {"Accept": "application/json"}})
-        .then(function (r) { return r.ok ? r.json() : {items: []}; })
-        .then(function (data) {
-          var keep = select.value;
-          var current = select.options[select.selectedIndex];
-          select.length = 1;
-          if (keep && current) select.add(new Option(current.text, keep, true, true));
-          (data.items || []).forEach(function (it) {
-            if (it.id === keep) return;
-            select.add(new Option(it.sub ? it.label + " — " + it.sub : it.label, it.id));
-          });
-        })
-        .catch(function () {});
-    }, 250);
-  });
-  document.addEventListener("submit", function (ev) {
-    if (ev.target.matches("[data-customer-search-form]") && document.querySelector("[data-customer-select]")) {
-      var input = ev.target.querySelector("[data-customer-search]");
-      if (input && input.value.trim().length >= 2) { ev.preventDefault(); input.dispatchEvent(new Event("input", {bubbles: true})); }
-    }
-  });
-})();
-</script>
+
 {% endblock %}

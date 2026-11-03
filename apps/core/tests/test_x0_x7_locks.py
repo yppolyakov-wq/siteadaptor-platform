@@ -84,6 +84,9 @@ EXPECTED_UNLISTED = frozenset(
         "stock-book",  # UX-D D6.2a: «Buchen» (кнопки таблицы склада, шторка)
         "promotions:voucher-new",  # UX-D D6.4: «＋ Gutscheine erzeugen» (кнопка списка, шторка)
         "promotions:loyalty-new",  # UX-D D6.4: «＋ Neues Programm» (кнопка списка, шторка)
+        "finance:journal-new",  # UX-D D6.5: «＋ Buchung» (кнопка журнала, шторка)
+        "finance:expense-new",  # UX-D D6.5: «＋ Ausgabe» (кнопка расходов, шторка)
+        "finance:invoice-new",  # UX-D D6.5: «＋ Neue Rechnung» (кнопка списка счетов)
         "booking:service-inline-edit",
         "booking:service-photo-edit",
         "catalog:category-create",

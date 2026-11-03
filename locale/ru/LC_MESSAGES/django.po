@@ -32105,3 +32105,6 @@ msgstr "Карты"
 
 msgid "Ein neuer Stempel-Wert gilt ab dem nächsten Stempel; gesammelte Stempel bleiben erhalten."
 msgstr "Новое число штампов действует со следующего штампа; накопленные штампы сохраняются."
+
+msgid "Einzelpreis"
+msgstr "Цена за единицу"
