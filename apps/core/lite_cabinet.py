@@ -14,7 +14,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.utils.translation import gettext
+from django.utils.translation import gettext, pgettext_lazy
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import storefront_profile, view_perms
@@ -136,7 +136,8 @@ class LiteBusinessForm(forms.ModelForm):
     # Группы полей формы (шаблон рисует их разделами).
     SECTIONS = (
         ("kontakt", _("Kontakt"), ("name", "contact_phone", "whatsapp_number", "contact_email")),
-        ("standort", _("Standort"), ("address", "city", "district")),
+        # Контекст «business»: тот же msgid на складе значит место хранения («Склад»).
+        ("standort", pgettext_lazy("business", "Standort"), ("address", "city", "district")),
         (
             "recht",
             _("Rechtliches (Impressum)"),

@@ -31480,3 +31480,7 @@ msgstr "Temporarily unavailable"
 
 msgid "auch in"
 msgstr "also in"
+
+msgctxt "business"
+msgid "Standort"
+msgstr "Location"

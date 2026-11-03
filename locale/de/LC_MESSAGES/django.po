@@ -31567,3 +31567,7 @@ msgstr ""
 
 msgid "auch in"
 msgstr "auch in"
+
+msgctxt "business"
+msgid "Standort"
+msgstr ""

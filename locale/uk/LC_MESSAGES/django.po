@@ -31747,3 +31747,7 @@ msgstr "Тимчасово недоступно"
 
 msgid "auch in"
 msgstr "також у"
+
+msgctxt "business"
+msgid "Standort"
+msgstr "Розташування"

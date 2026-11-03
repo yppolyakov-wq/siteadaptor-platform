@@ -31763,3 +31763,7 @@ msgstr "Временно недоступно"
 
 msgid "auch in"
 msgstr "также в"
+
+msgctxt "business"
+msgid "Standort"
+msgstr "Местоположение"

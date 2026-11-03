@@ -31626,3 +31626,7 @@ msgstr "Geçici olarak kullanılamıyor"
 
 msgid "auch in"
 msgstr "ayrıca"
+
+msgctxt "business"
+msgid "Standort"
+msgstr "Konum"

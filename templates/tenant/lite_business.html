@@ -4,12 +4,14 @@
 
 {% block dash_content %}
 {% comment %}T-8.23c: «Geschäft» лёгкого кабинета — то, что видит клиент акции (карточка
-«So finden Sie uns»): название, адрес, телефон, WhatsApp, часы работы. Одна колонка.{% endcomment %}
-<div class="max-w-lg mx-auto" data-lite-business>
+«So finden Sie uns»): название, адрес, телефон, WhatsApp, часы работы. Одна колонка.
+SP-14 (аудит пространства 2026-11-02): на десктопе (lg+) секции встают в две колонки —
+колонка 512 px из 1120 и ~2200 px высоты; телефон и Mini App — без изменений.{% endcomment %}
+<div class="max-w-lg mx-auto lg:max-w-5xl" data-lite-business>
   <h1 class="ui-h1 mb-1">🏪 {% trans "Geschäft" %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% trans "So finden Kundinnen und Kunden Sie — auf jeder Aktion." %}</p>
   {% include "tenant/_impressum_missing.html" with missing=impressum_missing link="#sec-recht" %}
-  <form method="post" class="space-y-3">
+  <form method="post" class="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4 lg:items-start [&>section]:min-w-0">
     {% csrf_token %}
     {% for sec in form.sections %}
     <section id="sec-{{ sec.key }}" class="ui-card p-4 space-y-3" data-lite-section="{{ sec.key }}">
@@ -62,7 +64,7 @@
       <a href="{% url 'betriebsferien' %}" class="inline-block text-sm text-indigo-700 hover:underline mt-3" data-lite-holidays>🏖 {% trans "Betriebsferien" %} →</a>
       {% endif %}
     </section>
-    <button type="submit" class="ui-btn ui-btn-primary w-full">{% trans "Speichern" %}</button>
+    <div class="lg:col-span-2"><button type="submit" class="ui-btn ui-btn-primary w-full lg:w-auto">{% trans "Speichern" %}</button></div>
   </form>
   {% if 'settings'|lite_allowed:request %}
   <a href="{% url 'settings' %}" class="block text-center text-xs text-gray-500 hover:underline mt-4">{% trans "Alle Einstellungen" %} →</a>

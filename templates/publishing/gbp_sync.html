@@ -29,7 +29,7 @@
 
   {% if connected %}
   <section class="ui-card p-5">
-    <h2 class="ui-h2 mb-2">{% trans "Standort" %}</h2>
+    <h2 class="ui-h2 mb-2">{% trans "Standort" context "business" %}</h2>
     {% if location %}
       <p class="text-sm text-gray-700 mb-3">{% trans "Aktueller Standort:" %} <code class="text-xs">{{ location }}</code></p>
     {% else %}
