@@ -32052,3 +32052,13 @@ msgstr "Проживання 7 %%, інші послуги 19 %%."
 #. UX-D D3.1
 msgid "Bitte ein Bild (JPG, PNG, WebP) hochladen."
 msgstr "Завантажте зображення (JPG, PNG, WebP)."
+
+#. UX-D D5.0
+msgid "Bitte eine Ressource wählen."
+msgstr "Виберіть ресурс."
+
+msgid "Bitte Datum und Uhrzeit angeben."
+msgstr "Вкажіть дату й час."
+
+msgid "Leistung nicht gefunden – bitte neu wählen."
+msgstr "Послугу не знайдено — виберіть знову."

@@ -1,12 +1,14 @@
 from django.urls import path
 
-from . import views, views_resources
+from . import booking_new_views, views, views_resources
 
 app_name = "booking"
 
 urlpatterns = [
     path("", views.calendar, name="calendar"),
     path("new/", views.booking_create, name="booking-create"),
+    # UX-D D5.0: «＋ Neuer Termin» шторкой (строгий разбор; booking-create — легаси)
+    path("termin/neu/", booking_new_views.booking_new, name="booking-new"),
     # Фидбэк 2026-08-05: карточка брони услуги (зеркало stays booking-detail).
     path("termin/<uuid:pk>/", views.booking_detail, name="booking-detail"),
     path("<uuid:pk>/action/", views.booking_action, name="booking-action"),

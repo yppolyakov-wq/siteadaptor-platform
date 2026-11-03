@@ -581,11 +581,16 @@ def move(booking, *, start, end, resource=None, override_hours=False):
 class ManualBookingRefused(Exception):
     """KA-12 A-4: ручную запись нельзя поставить — текст причины для владельца.
 
-    ``warnings`` — подсказки, собранные до отказа (навык мастера): показываем и их."""
+    ``warnings`` — подсказки, собранные до отказа (навык мастера): показываем и их.
+    ``code`` (UX-D D5.0) — причина: ``outside_hours``/``seats`` можно обойти «Trotzdem
+    eintragen», ``capacity``/``slot_taken``/``closed`` — нет."""
 
-    def __init__(self, message, warnings=()):
+    OVERRIDABLE = frozenset({"outside_hours", "seats"})
+
+    def __init__(self, message, warnings=(), code=""):
         super().__init__(message)
         self.warnings = list(warnings)
+        self.code = code
 
 
 def create_manual(
@@ -631,11 +636,13 @@ def create_manual(
             price_cents *= party_size
     if not override_hours and not availability.within_hours(resource, start, end):
         raise ManualBookingRefused(
-            _("Außerhalb der Öffnungszeiten. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen.")
+            _("Außerhalb der Öffnungszeiten. Zum Eintragen bitte „Trotzdem eintragen“ ankreuzen."),
+            code="outside_hours",
         )
     if resource.counts_party_size and party_size > resource.capacity:
         raise ManualBookingRefused(
-            _("Mehr Personen als Plätze (%(cap)s).") % {"cap": resource.capacity}
+            _("Mehr Personen als Plätze (%(cap)s).") % {"cap": resource.capacity},
+            code="capacity",
         )
     from apps.booking.table_rules import seats_exceeded
 
@@ -646,7 +653,8 @@ def create_manual(
                 "%(table)s hat nur %(n)s Plätze. Zum Eintragen bitte „Trotzdem eintragen“ "
                 "ankreuzen oder einen größeren Tisch wählen."
             )
-            % {"table": resource.name, "n": seats}
+            % {"table": resource.name, "n": seats},
+            code="seats",
         )
     if service is not None and not availability.has_skill(service, resource):
         warnings.append(
@@ -685,8 +693,11 @@ def create_manual(
                 _("Für %(n)s Personen sind zu dieser Zeit nur %(free)s Plätze frei.")
                 % {"n": party_size, "free": max(0, resource.capacity - taken)},
                 warnings,
+                code="capacity",
             ) from None
-        raise ManualBookingRefused(_("That time is already taken."), warnings) from None
+        raise ManualBookingRefused(
+            _("That time is already taken."), warnings, code="slot_taken"
+        ) from None
     except ResourceClosed:
-        raise ManualBookingRefused(_("Closed on this date."), warnings) from None
+        raise ManualBookingRefused(_("Closed on this date."), warnings, code="closed") from None
     return booking, warnings

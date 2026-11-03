@@ -1,0 +1,17 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Neuer Termin" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D5.0: страница «＋ Neuer Termin» без JS (в кабинете — шторка).{% endcomment %}
+<a href="{% url 'verkaeufe' %}?tab=booking" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Booking" %}</a>
+<h1 class="ui-h1 mt-1 mb-4">{% trans "Neuer Termin" %}</h1>
+{% if messages %}
+  {% for m in messages %}
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% elif m.tags == 'warning' %}bg-amber-50 text-amber-900{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+<div class="ui-card p-6 max-w-xl">
+  {% if resources %}{% include "booking/_booking_new_form.html" %}{% else %}<p class="text-gray-600">{% trans "Create your first resource — a table, a staff member or a room." %}</p>{% endif %}
+</div>
+{% endblock %}

@@ -79,6 +79,7 @@ EXPECTED_UNLISTED = frozenset(
         "stays:rate-plan-new",  # UX-D D4.1: «＋ Neuer Tarif» (кнопка списка, шторка)
         "stays:unit-new",  # UX-D D4.5: «＋ Neues Zimmer» (кнопка списка, шторка)
         "booking:resource-new",  # UX-D D3.2: «＋ Ressource» (кнопка списка, шторка)
+        "booking:booking-new",  # UX-D D5.0: «＋ Neuer Termin» (кнопка Tagesplan, шторка)
         "booking:service-inline-edit",
         "booking:service-photo-edit",
         "catalog:category-create",

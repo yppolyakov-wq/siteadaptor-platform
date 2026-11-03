@@ -1,0 +1,9 @@
+{% load i18n %}
+{% comment %}UX-D D5.0: шторка «＋ Neuer Termin» (booking:booking-new?box=1).{% endcomment %}
+<div data-drawer-title="{% trans 'Neuer Termin' %}" class="text-sm">
+  {% if resources %}
+    {% include "booking/_booking_new_form.html" with in_drawer=1 %}
+  {% else %}
+    <p class="text-gray-600">{% trans "Create your first resource — a table, a staff member or a room." %} <a href="{% url 'booking:resource-new' %}" class="text-indigo-700 underline">{% trans "New resource" %} <span aria-hidden="true">→</span></a></p>
+  {% endif %}
+</div>

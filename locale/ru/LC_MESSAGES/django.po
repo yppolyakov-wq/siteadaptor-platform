@@ -32068,3 +32068,13 @@ msgstr "Проживание 7 %%, прочие услуги 19 %%."
 #. UX-D D3.1
 msgid "Bitte ein Bild (JPG, PNG, WebP) hochladen."
 msgstr "Загрузите изображение (JPG, PNG, WebP)."
+
+#. UX-D D5.0
+msgid "Bitte eine Ressource wählen."
+msgstr "Выберите ресурс."
+
+msgid "Bitte Datum und Uhrzeit angeben."
+msgstr "Укажите дату и время."
+
+msgid "Leistung nicht gefunden – bitte neu wählen."
+msgstr "Услуга не найдена — выберите заново."

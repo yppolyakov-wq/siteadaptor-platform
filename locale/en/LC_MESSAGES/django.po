@@ -31779,3 +31779,13 @@ msgstr "Accommodation 7 %%, other services 19 %%."
 #. UX-D D3.1
 msgid "Bitte ein Bild (JPG, PNG, WebP) hochladen."
 msgstr "Please upload an image (JPG, PNG, WebP)."
+
+#. UX-D D5.0
+msgid "Bitte eine Ressource wählen."
+msgstr "Please choose a resource."
+
+msgid "Bitte Datum und Uhrzeit angeben."
+msgstr "Please enter a date and time."
+
+msgid "Leistung nicht gefunden – bitte neu wählen."
+msgstr "Service not found – please choose again."

@@ -1,0 +1,75 @@
+{% load i18n %}
+{% comment %}UX-D D5.0: форма «＋ Neuer Termin» — шторка и страница без JS (один источник).
+Скриптов нет (шторка). Контекст: bv (значения), bv_errors {поле: текст}, bv_more_open,
+resources, manual_services, show_party, refused (код отказа, который можно обойти), next_url.{% endcomment %}
+<form method="post" action="{% url 'booking:booking-new' %}" class="space-y-4" data-drawer-form>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <div class="grid grid-cols-2 gap-4">
+    <div class="col-span-2">
+      <label for="bn-resource" class="block text-sm font-medium mb-1">{% trans "Resource" %}</label>
+      <select id="bn-resource" name="resource" required class="ui-input"{% if bv_errors.resource %} aria-invalid="true" aria-describedby="bn-resource-err"{% endif %}>
+        {% if not bv.resource %}<option value="">—</option>{% endif %}
+        {% for r in resources %}<option value="{{ r.pk }}"{% if bv.resource == r.pk|stringformat:'s' %} selected{% endif %}>{{ r.name }}</option>{% endfor %}
+      </select>
+      {% if bv_errors.resource %}<p id="bn-resource-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.resource }}</p>{% endif %}
+    </div>
+    <div>
+      <label for="bn-date" class="block text-sm font-medium mb-1">{% trans "Datum" %}</label>
+      <input id="bn-date" name="start_date" type="date" required value="{{ bv.start_date }}" class="ui-input"{% if bv_errors.start_time %} aria-invalid="true" aria-describedby="bn-time-err"{% endif %}>
+    </div>
+    <div>
+      <label for="bn-time" class="block text-sm font-medium mb-1">{% trans "Uhrzeit" %}</label>
+      <input id="bn-time" name="start_time" type="time" required value="{{ bv.start_time }}" class="ui-input" data-drawer-autofocus{% if bv_errors.start_time %} aria-invalid="true" aria-describedby="bn-time-err"{% endif %}>
+    </div>
+    {% if bv_errors.start_time %}<p id="bn-time-err" class="col-span-2 -mt-2 text-xs text-red-700" data-field-error><span aria-hidden="true">⚠ </span>{{ bv_errors.start_time }}</p>{% endif %}
+    {% if manual_services %}
+    <div class="col-span-2">
+      <label for="bn-service" class="block text-sm font-medium mb-1">{% trans "Leistung" %}</label>
+      <select id="bn-service" name="service" class="ui-input"{% if bv_errors.service %} aria-invalid="true" aria-describedby="bn-service-err"{% endif %}>
+        <option value="">{% trans "— ohne Leistung (z. B. Tisch) —" %}</option>
+        {% for s in manual_services %}<option value="{{ s.opt_value }}"{% if bv.service == s.opt_value %} selected{% endif %}>{{ s.name_localized|default:s.name }}</option>{% for v in s.active_variants %}<option value="{{ v.opt_value }}"{% if bv.service == v.opt_value %} selected{% endif %}>{{ s.name_localized|default:s.name }} · {{ v.name_localized }}</option>{% endfor %}{% endfor %}
+      </select>
+      {% if bv_errors.service %}<p id="bn-service-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.service }}</p>{% endif %}
+    </div>
+    {% endif %}
+    <div class="col-span-2">
+      <label for="bn-name" class="block text-sm font-medium mb-1">{% trans "Name" %}</label>
+      <input id="bn-name" name="name" type="text" maxlength="200" autocomplete="off" value="{{ bv.name }}" class="ui-input">
+    </div>
+    <div>
+      <label for="bn-phone" class="block text-sm font-medium mb-1">{% trans "Phone" %}</label>
+      <input id="bn-phone" name="phone" type="tel" autocomplete="off" value="{{ bv.phone }}" class="ui-input">
+    </div>
+    <div>
+      <label for="bn-email" class="block text-sm font-medium mb-1">{% trans "Email" %}</label>
+      <input id="bn-email" name="email" type="email" autocomplete="off" value="{{ bv.email }}" class="ui-input">
+    </div>
+    {% if show_party or bv_errors.party_size %}
+    <div>
+      <label for="bn-party" class="block text-sm font-medium mb-1">{% trans "Personen" %}</label>
+      <input id="bn-party" name="party_size" type="text" inputmode="numeric" value="{{ bv.party_size|default:'1' }}" class="ui-input"{% if bv_errors.party_size %} aria-invalid="true" aria-describedby="bn-party-err"{% endif %}>
+      {% if bv_errors.party_size %}<p id="bn-party-err" class="mt-1 text-xs text-red-700" data-field-error><span aria-hidden="true">⚠ </span>{{ bv_errors.party_size }}</p>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  <details class="rounded-lg border border-gray-200 p-3"{% if bv_more_open %} open{% endif %}>
+    <summary class="cursor-pointer text-sm font-medium">{% trans "Mehr…" %}</summary>
+    <div class="mt-3 space-y-3">
+      <div>
+        <label for="bn-minutes" class="block text-sm font-medium mb-1">{% trans "Minutes" %}</label>
+        <input id="bn-minutes" name="minutes" type="text" inputmode="numeric" value="{{ bv.minutes }}" placeholder="60" aria-describedby="bn-minutes-hint{% if bv_errors.minutes %} bn-minutes-err{% endif %}" class="ui-input w-32"{% if bv_errors.minutes %} aria-invalid="true"{% endif %}>
+        <p id="bn-minutes-hint" class="mt-1 text-xs text-gray-600">{% trans "Leer = Dauer der Leistung" %}</p>
+        {% if bv_errors.minutes %}<p id="bn-minutes-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.minutes }}</p>{% endif %}
+      </div>
+      <div>
+        <label for="bn-note" class="block text-sm font-medium mb-1">{% trans "Notiz" %}</label>
+        <textarea id="bn-note" name="note" rows="2" maxlength="2000" class="ui-input">{{ bv.note }}</textarea>
+      </div>
+    </div>
+  </details>
+  <div class="flex flex-wrap justify-end gap-2 pt-2{% if in_drawer %} sticky bottom-0 bg-white pb-1{% endif %}">
+    {% if refused %}<button name="override_hours" value="1" class="ui-btn ui-btn-secondary" data-override>{% trans "Trotzdem eintragen" %}</button>{% endif %}
+    <button class="ui-btn ui-btn-primary">{% trans "Termin anlegen" %}</button>
+  </div>
+</form>

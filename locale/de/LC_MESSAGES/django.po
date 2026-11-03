@@ -31866,3 +31866,13 @@ msgstr "Übernachtung 7 %%, sonstige Leistungen 19 %%."
 #. UX-D D3.1
 msgid "Bitte ein Bild (JPG, PNG, WebP) hochladen."
 msgstr "Bitte ein Bild (JPG, PNG, WebP) hochladen."
+
+#. UX-D D5.0
+msgid "Bitte eine Ressource wählen."
+msgstr "Bitte eine Ressource wählen."
+
+msgid "Bitte Datum und Uhrzeit angeben."
+msgstr "Bitte Datum und Uhrzeit angeben."
+
+msgid "Leistung nicht gefunden – bitte neu wählen."
+msgstr "Leistung nicht gefunden – bitte neu wählen."
