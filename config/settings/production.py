@@ -43,6 +43,13 @@ CSRF_COOKIE_NAME = "__Host-csrftoken"
 
 # Security
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# SEC-G2b: allauth считает лимиты входа/сброса пароля по IP клиента. Без этой
+# настройки он игнорирует X-Forwarded-For и видел IP самого Caddy — один общий
+# «бакет» на всех: 10 неудачных входов в минуту от кого угодно блокировали вход
+# всем. Caddy (единственный прокси) ПЕРЕЗАПИСЫВАЕТ X-Forwarded-For реальным адресом
+# одним значением (header_up в caddy/Caddyfile, замок test_sec_g2b) — подделать
+# заголовок клиент не может. Больше прокси перед Caddy (CDN) → увеличить.
+ALLAUTH_TRUSTED_PROXY_COUNT = env.int("ALLAUTH_TRUSTED_PROXY_COUNT", default=1)
 SECURE_SSL_REDIRECT = True
 # Внутренние проверки не должны редиректиться на https: Caddy on-demand TLS
 # дёргает /internal/verify-domain по http, а health-проба контейнера — /health/.

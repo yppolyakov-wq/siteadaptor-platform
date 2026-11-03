@@ -42,7 +42,20 @@
 | Когда | Что | Зачем |
 |---|---|---|
 | до кода | скиллы `django-security`, `django-verification`, `deployment-patterns` | чек-лист обновления auth-зависимости, проверки перед деплоем |
-| после `uv lock` | `security-reviewer` | диф `uv.lock` + changelog allauth против наших настроек входа; нет ли новых дефолтов, ослабляющих защиту |
-| после тестов | `django-reviewer` | миграции allauth в TENANT/SHARED-схемах, совместимость адаптера |
+| после `uv lock` ✅ | `security-reviewer` | диф `uv.lock` + changelog allauth против наших настроек входа; нет ли новых дефолтов, ослабляющих защиту |
+| после тестов ✅ | `django-reviewer` | миграции allauth в TENANT/SHARED-схемах, совместимость адаптера |
 | перед мержем | CI на git целиком | финальный гейт |
 | ops | — | деплой `./scripts/deploy.sh single` (миграции allauth, если есть, проходят штатно) |
+
+## 5. Итог (2026-11-03)
+- `uv lock`: django-allauth 65.18.0 → 65.21.1, oauthlib 3.3.1 → 4.0.1, больше ничего не сдвинулось.
+  `check` чистый, миграций allauth нет (account 0001–0009, socialaccount 0001–0006 —
+  те же; allauth только в SHARED_APPS). Повторный pip-audit — **0 уязвимостей**.
+- `security-reviewer` и `django-reviewer` — без CRITICAL/HIGH/MEDIUM: адаптер
+  (`is_open_for_signup`), шаблоны `templates/account/`, URL-имена, сигналы аудита совместимы.
+- **Попутная находка ревью, исправлена:** `ALLAUTH_TRUSTED_PROXY_COUNT` не был задан →
+  allauth брал `REMOTE_ADDR` = адрес Caddy, и лимиты входа/сброса пароля (10 неудачных
+  входов в минуту на IP) действовали на всех пользователей сразу. Теперь в production = 1:
+  безопасно, потому что оба блока Caddy перезаписывают `X-Forwarded-For` одним значением
+  (замок `apps/core/tests/test_sec_g2b.py` держит обе половины условия). Перед Caddy
+  появится CDN — увеличить через env.
