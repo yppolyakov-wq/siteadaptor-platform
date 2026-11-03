@@ -870,8 +870,9 @@ try { (function () {
   "use strict";
   document.addEventListener("submit", function (e) {
     var form = e.target;
-    var page = form && form.closest && form.closest("[data-svc-page]");
-    var field = page && form.querySelector("[data-svc-tab]");
+    // UX-D D4.6: та же механика у страницы номера ([data-room-page] / [data-room-tab]).
+    var page = form && form.closest && form.closest("[data-svc-page], [data-room-page]");
+    var field = page && form.querySelector("[data-svc-tab], [data-room-tab]");
     if (!field) return;
     var cur = page.querySelector('[data-pf-tab][aria-selected="true"]');
     if (cur) field.value = cur.getAttribute("data-pf-tab");

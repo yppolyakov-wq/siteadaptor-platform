@@ -3,17 +3,8 @@
 {% block dash_title %}{% trans "Units" %}{% endblock %}
 
 {% block dash_content %}
-{% i18n_base_locale as base_loc %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  {% if unit_page %}
-    {# E9.10: язык ввода — одна выпадашка рядом с заголовком. #}
-    <div class="flex items-center gap-3 flex-wrap">
-      <h1 class="ui-h1">{{ unit_page.name }} <span class="text-sm font-normal text-gray-400">· {{ unit_page.get_type_display }}</span></h1>
-      {% lang_switch %}
-    </div>
-    <a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Units" %}</a>
-  {% else %}
-    <h1 class="ui-h1">{% nav_title _("Units & blocked dates") %}{% if units %} <span class="text-base font-normal text-gray-500">· {{ units|length }}</span>{% endif %}</h1>
+  <h1 class="ui-h1">{% nav_title _("Units & blocked dates") %}{% if units %} <span class="text-base font-normal text-gray-500">· {{ units|length }}</span>{% endif %}</h1>
     <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
       {# UB3-2: подборки номеров → чипы-фасет на /unterkunft/. #}
       <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} <span aria-hidden="true">→</span></a>
@@ -21,7 +12,6 @@
       {# UX-D D4.5: «＋ Zimmer» — шторкой; номер создаётся с ценой → только с правом на цены #}
       {% if can_edit_prices %}<a href="{% url 'stays:unit-new' %}" data-drawer aria-haspopup="dialog" class="ui-btn ui-btn-primary ui-btn-sm"><span aria-hidden="true">＋ </span>{% trans "Neues Zimmer" %}</a>{% endif %}
     </div>
-  {% endif %}
 </div>
 
 {% if messages %}
@@ -30,7 +20,6 @@
   {% endfor %}
 {% endif %}
 
-{% if not unit_page %}
 {% comment %}Фидбэк 2026-07-28: «это же разные номера, почему на одной странице» — список
 КОМПАКТНЫЙ (строка = номер), всё о номере — на его странице. UX-D D4.5: вкладка
 «Einstellungen» и раскрытая форма «＋ Neue Einheit» убраны — настройки на своих экранах
@@ -57,272 +46,7 @@
     {% trans "Noch keine Zimmer." as t %}{% include "ui/_empty.html" with title=t flat=1 %}
   {% endfor %}
 </div>
-{% endif %}
 
-{% if unit_page %}
-{# --- полная карточка номера (только на его странице) ----------------------- #}
-<div class="space-y-4 mb-8">
-  {% for u in units %}
-    <div data-unit-tabs class="bg-white rounded-2xl shadow-sm p-5 {% if not u.is_active %}opacity-60{% endif %}">
-      <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
-        <h2 class="ui-h2">{{ u.name }} <span class="text-xs text-gray-400">· {{ u.get_type_display }}{% if not u.is_active %} · {% trans "inactive" %}{% endif %}</span></h2>
-        <div class="flex items-center gap-3">
-          {% if u.is_active %}{# D2.4: self-serve продвижение юнита в агрегаторе #}
-            <a href="{% url 'stays:unit-feature' u.pk %}" class="text-sm text-amber-600 hover:underline">★ {% trans "Feature" %}</a>
-          {% endif %}
-          <form method="post" class="inline">{% csrf_token %}
-            <input type="hidden" name="action" value="toggle"><input type="hidden" name="unit" value="{{ u.pk }}">
-            <button class="text-sm text-gray-500 hover:underline">{% if u.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
-          </form>
-        </div>
-      </div>
-
-      {% comment %}Фидбэк 2026-07-28: «портянка» настроек номера → ТАБЫ на ВЕСЬ блок номера
-      (поля + фото + Zimmer + Sperrzeiten + Saisonpreise + iCal), а не только на форму.
-      Инвариант W0: ВСЕ поля остаются в DOM (панели скрываются только CSS-классом hidden) —
-      одна форма, один Save сохраняет всё независимо от активного таба. Панель может
-      принадлежать нескольким табам (список через пробел) — так форма видна на трёх
-      «своих» табах и спрятана на Zimmer/iCal, где Save к ней не относится.{% endcomment %}
-      <div class="ui-tabs mb-3" role="group" aria-label="{% trans "Bereiche" %}">
-        <button type="button" data-ut-tab="basis" aria-pressed="true" class="ui-tab ut-pill">{% trans "Basic data" %}</button>
-        <button type="button" data-ut-tab="preise" aria-pressed="false" class="ui-tab ut-pill">{% trans "Prices" %}</button>
-        <button type="button" data-ut-tab="regeln" aria-pressed="false" class="ui-tab ut-pill">{% trans "Rules & capacity" %}</button>
-        <button type="button" data-ut-tab="zimmer" aria-pressed="false" class="ui-tab ut-pill">🚪 {% trans "Rooms" %}{% if u.rooms.all %} · {{ u.rooms.all|length }}{% endif %}</button>
-        <button type="button" data-ut-tab="ical" aria-pressed="false" class="ui-tab ut-pill">🔗 {% trans "Calendar sync (iCal)" %}</button>
-      </div>
-
-      <form method="post" enctype="multipart/form-data" data-ut-panel="basis preise regeln">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="unit_settings"><input type="hidden" name="unit" value="{{ u.pk }}">
-
-        <div data-ut-panel="basis" class="grid sm:grid-cols-3 gap-3 items-end">
-          <div class="sm:col-span-3">
-            <div data-i18n-loc="{{ base_loc }}">
-              <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</span>
-              <textarea name="description" rows="2" class="ui-input" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea></label>
-            </div>
-            {# E9.10: переводы — группой на язык; видна выбранная в выпадашке у заголовка. #}
-            {% regroup u.i18n_inputs by locale as by_loc %}
-            {% for grp in by_loc %}
-            <div data-i18n-loc="{{ grp.grouper }}" class="hidden space-y-2">
-              {% for inp in grp.list %}
-                <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</span>
-                {% if inp.field == 'name' %}<input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">{% else %}<textarea name="{{ inp.input_name }}" rows="2" class="ui-input">{{ inp.value }}</textarea>{% endif %}</label>
-              {% endfor %}
-            </div>
-            {% endfor %}
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Bed type" %}</span>
-            <input name="bed_type" type="text" value="{{ u.bed_type }}" placeholder="{% trans 'e.g. Doppelbett, 2 Einzelbetten' %}" class="ui-input"></label>
-          </div>
-          <div>
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Area (m², 0 = hide)" %}</span>
-            <input name="area_sqm" type="number" min="0" value="{{ u.area_sqm }}" class="ui-input"></label>
-          </div>
-          <div class="sm:col-span-3">
-            <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Amenities" %}</label>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 text-sm text-gray-700">
-              {% for key, label, icon in amenities %}
-                <label class="flex items-center gap-2"><input type="checkbox" name="amenities" value="{{ key }}" {% if key in u.amenities %}checked{% endif %} class="rounded"> {{ icon }} {{ label }}</label>
-              {% endfor %}
-            </div>
-          </div>
-          <div class="sm:col-span-2">
-            <span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Add photos" %}</span>
-            {% include "catalog/_photo_add_tile.html" with target="photos" %}
-            <input type="file" name="photos" accept="image/*" multiple class="hidden" aria-label="{% trans "Add photos" %}">
-          </div>
-        </div>
-
-        <div data-ut-panel="preise" class="hidden grid sm:grid-cols-3 gap-3 items-end">
-          {% comment %}Фидбэк 2026-07-30 («непонятно, где задаётся календарь цен»):
-          на странице номера видны ТОЛЬКО его цены. Сезоны — ниже на этой же
-          вкладке, тарифы/автоскидки/динамика — в общих настройках. Даём явные
-          входы, иначе владелец о них не узнаёт (подпись «0 = wie allgemein»
-          ссылалась в никуда).{% endcomment %}
-          <p class="sm:col-span-3 text-xs text-gray-500 -mb-1">
-            {% trans "Saisonpreise für Zeiträume legen Sie weiter unten auf dieser Seite fest." %}
-            <a href="{% url 'stays:price-rules' %}" class="text-indigo-600 hover:underline">{% trans "Allgemeine Tarife, Rabatte und dynamische Preise" %} <span aria-hidden="true">→</span></a>
-            <a href="{% url 'stays:price-calendar' %}?kat={{ u.pk }}" class="text-indigo-600 hover:underline ml-2" data-price-calendar-link>📅 {% trans "Preise & Verfügbarkeit" %} →</a>
-          </p>
-          <div>
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price / night (€)" %}</span>
-            <input name="price_eur" type="text" value="{{ u.price_eur|stringformat:'.2f' }}" class="ui-input"></label>
-          </div>
-          <div>
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Weekend / night (€, Fr+Sa; 0 = same)" %}</span>
-            <input name="weekend_price_eur" type="text" value="{{ u.weekend_price_eur|stringformat:'.2f' }}" class="ui-input"></label>
-          </div>
-          <div>
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€)" %}</span>
-            <input name="deposit_eur" type="text" value="{{ u.deposit_eur|stringformat:'.2f' }}" class="ui-input"></label>
-          </div>
-          {% vat_select u.vat_rate _("Übernachtung 7 %, sonstige Leistungen 19 %.") %}
-          {% comment %}Фидбэк 2026-07-30: Lücken-Deal НА ЭТОТ номер — скидка на
-          короткие свободные промежутки между бронями. 0 = как в общих настройках
-          (Einstellungen → Preise). Presence-сентинел защищает от затирания.{% endcomment %}
-          <input type="hidden" name="gap_present" value="1">
-          <div>
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücken-Deal: max. Nächte (0 = wie allgemein)" %}</span>
-            <input name="gap_max_nights" type="number" min="0" max="14" value="{{ u.gap_max_nights }}" class="ui-input"></label>
-          </div>
-          <div>
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücken-Deal: Rabatt % (0 = wie allgemein)" %}</span>
-            <input name="gap_discount_percent" type="number" min="0" max="70" value="{{ u.gap_discount_percent }}" class="ui-input"></label>
-          </div>
-        </div>
-
-        <div data-ut-panel="regeln" class="hidden grid sm:grid-cols-3 gap-3 items-end">
-          <div>
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Quantity (identical units)" %}</span>
-            <input name="quantity" type="number" min="1" value="{{ u.quantity }}" class="ui-input"></label>
-          </div>
-          <div>
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Min. nights" %}</span>
-            <input name="min_nights" type="number" min="1" value="{{ u.min_nights }}" class="ui-input"></label>
-          </div>
-          <div>
-            <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Max. guests" %}</span>
-            <input name="max_guests" type="number" min="1" value="{{ u.max_guests }}" class="ui-input"></label>
-          </div>
-          <label class="flex items-center gap-2 text-sm text-gray-600">
-            <input type="checkbox" name="require_manual_confirm" {% if u.require_manual_confirm %}checked{% endif %} class="rounded"> {% trans "Manual confirm" %}
-          </label>
-        </div>
-
-        <button class="ui-btn ui-btn-primary mt-3">{% trans "Save" %}</button>
-      </form>
-
-      {# фото номера: миниатюры + удаление (отдельные формы — не вкладывать в settings) #}
-      {% if u.images %}
-      <div data-ut-panel="basis" class="mt-3 flex flex-wrap gap-2">
-        {% for img in u.images %}
-          <div class="relative">
-            <img src="{{ img.url }}" alt="" class="w-20 h-20 object-cover rounded-lg border border-gray-200">
-            <form method="post" class="absolute -top-2 -right-2">{% csrf_token %}
-              <input type="hidden" name="action" value="photo_delete"><input type="hidden" name="unit" value="{{ u.pk }}"><input type="hidden" name="image" value="{{ img.id }}">
-              <button aria-label="{% trans 'Remove' %}" title="{% trans 'Remove' %}" class="w-5 h-5 rounded-full bg-red-500 text-white text-xs leading-none">×</button>
-            </form>
-          </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      {# PMS-R1: физические номера (Zimmer) — разбивка поверх quantity #}
-      <div data-ut-panel="zimmer" class="hidden mt-4 pt-4 border-t border-gray-100">
-        <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Rooms (physical numbers)" %} <span class="text-gray-300">· {% trans "capacity follows the room count" %}</span></p>
-        <div class="flex items-center gap-2 flex-wrap mb-1">
-        {% for r in u.rooms.all %}
-          <span class="inline-flex items-center gap-1.5 text-sm text-gray-700 border border-gray-200 rounded-lg px-2 py-1">🚪 {{ r.number }}
-            <form method="post" class="inline">{% csrf_token %}
-              <input type="hidden" name="action" value="room_delete"><input type="hidden" name="room" value="{{ r.pk }}">
-              <button aria-label="{% trans 'Remove' %}" class="text-red-500 hover:underline text-xs" title="{% trans 'Remove' %}">×</button>
-            </form>
-          </span>
-        {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "None" %}</p>{% endfor %}
-        </div>
-        <form method="post" class="flex items-end gap-2 flex-wrap mt-1">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="room_add"><input type="hidden" name="unit" value="{{ u.pk }}">
-          <input aria-label="{% trans "Zimmer" %}" type="text" name="number" required placeholder="101" class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm">
-          <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add room" %}</button>
-        </form>
-      </div>
-
-      {# блокировки дат — таб «Regeln & Kapazität» #}
-      <div data-ut-panel="regeln" class="hidden mt-4 pt-4 border-t border-gray-100">
-        <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Blocked dates" %}</p>
-        {% for bl in u.blocks.all %}
-          <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
-            <span>{{ bl.start_date|date:"d.m.Y" }} – {{ bl.end_date|date:"d.m.Y" }}{% if bl.room %} · {% trans "Zimmer" %} {{ bl.room.number }}{% endif %}{% if bl.reason %} · {{ bl.reason }}{% endif %}</span>
-            <form method="post" class="inline">{% csrf_token %}
-              <input type="hidden" name="action" value="block_delete"><input type="hidden" name="block" value="{{ bl.pk }}">
-              <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
-            </form>
-          </div>
-        {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "None" %}</p>{% endfor %}
-        <form method="post" class="flex items-end gap-2 flex-wrap mt-2">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="block"><input type="hidden" name="unit" value="{{ u.pk }}">
-          <input aria-label="{% trans "From" %}" type="date" name="start_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
-          <input aria-label="{% trans "To" %}" type="date" name="end_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
-          <input type="text" name="reason" aria-label="{% trans 'Reason' %}" placeholder="{% trans 'Reason' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
-          {% comment %}KA-12 E4.10a: блок одной комнаты (ремонт) — гостю её не назначить.{% endcomment %}
-          {% if u.rooms.all %}
-          <select name="room" aria-label="{% trans 'Zimmer' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
-            <option value="">{% trans "Alle Zimmer dieser Kategorie" %}</option>
-            {% for r in u.rooms.all %}<option value="{{ r.pk }}">{% trans "Zimmer" %} {{ r.number }}</option>{% endfor %}
-          </select>
-          {% endif %}
-          <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Block" %}</button>
-        </form>
-      </div>
-
-      {# сезонные тарифы (A5a) — таб «Preise» #}
-      <div data-ut-panel="preise" class="hidden mt-4 pt-4 border-t border-gray-100">
-        <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Season rates (€/night for a date range)" %}</p>
-        {% for r in u.season_rates.all %}
-          <div class="flex items-center gap-2 text-sm text-gray-600 mb-1">
-            <span>{{ r.start_date|date:"d.m.Y" }} – {{ r.end_date|date:"d.m.Y" }} · {{ r.price_eur|stringformat:".2f" }} €{% if r.label %} · {{ r.label }}{% endif %}</span>
-            {% if r.pk in u.season_overlaps %}<span data-season-overlap class="text-xs bg-amber-100 text-amber-800 rounded px-1.5 py-0.5" title="{% trans 'Bei Überschneidung gilt die früher beginnende Saison.' %}">⚠ {% trans "Überschneidung" %}<span class="sr-only"> — {% trans "Bei Überschneidung gilt die früher beginnende Saison." %}</span></span>{% endif %}
-            {% if can_edit_prices %}
-            <form method="post" class="inline">{% csrf_token %}
-              <input type="hidden" name="action" value="rate_delete"><input type="hidden" name="rate" value="{{ r.pk }}">
-              <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
-            </form>
-            {% endif %}
-          </div>
-        {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "None" %}</p>{% endfor %}
-        {% if can_edit_prices %}
-        <form method="post" class="flex items-end gap-2 flex-wrap mt-2">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="rate"><input type="hidden" name="unit" value="{{ u.pk }}">
-          <input aria-label="{% trans "From" %}" type="date" name="start_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
-          <input aria-label="{% trans "To" %}" type="date" name="end_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
-          <input type="text" name="price_eur" required aria-label="{% trans "€/Nacht" %}" placeholder="{% trans "€/Nacht" %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm">
-          <input type="text" name="label" aria-label="{% trans 'Label' %}" placeholder="{% trans 'Label' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
-          <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add rate" %}</button>
-        </form>
-        {% endif %}
-      </div>
-
-      {# iCal-синхронизация (A5b): экспорт занятости + импорт Booking.com/Airbnb #}
-      <div data-ut-panel="ical" class="hidden mt-4 pt-4 border-t border-gray-100">
-        <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Calendar sync (iCal)" %}</p>
-        <div class="text-xs text-gray-600 mb-3">
-          <p class="mb-1">{% trans "Export this unit's availability — paste this link into Booking.com / Airbnb / Google:" %}</p>
-          <input aria-label="iCal {% trans "Link" %}" type="text" readonly value="{{ u.ical_export_url }}" onclick="this.select()" class="ui-input font-mono text-[11px]">
-        </div>
-        {% trans "Import external calendars — booked dates will block this unit:" as import_hint %}
-        <p class="text-xs text-gray-500 mb-2">{{ import_hint }}</p>
-        {% for s in u.ical_sources.all %}
-          <div class="flex items-center gap-2 text-sm text-gray-600 mb-1 flex-wrap">
-            <span>{{ s.label|default:"iCal" }} · <span class="text-xs text-gray-400">{% if s.last_synced_at %}{{ s.last_synced_at|date:"d.m.Y H:i" }} · {{ s.last_status }}{% else %}{% trans "not synced yet" %}{% endif %}</span></span>
-            <form method="post" class="inline">{% csrf_token %}
-              <input type="hidden" name="action" value="ical_sync"><input type="hidden" name="source" value="{{ s.pk }}">
-              <button class="text-indigo-600 hover:underline text-xs">{% trans "Sync now" %}</button>
-            </form>
-            <form method="post" class="inline">{% csrf_token %}
-              <input type="hidden" name="action" value="ical_delete"><input type="hidden" name="source" value="{{ s.pk }}">
-              <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
-            </form>
-          </div>
-        {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "None" %}</p>{% endfor %}
-        <form method="post" class="flex items-end gap-2 flex-wrap mt-2">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="ical_add"><input type="hidden" name="unit" value="{{ u.pk }}">
-          <input aria-label="iCal {% trans "Link" %}" type="url" name="url" required placeholder="https://…/calendar.ics" class="flex-1 min-w-[16rem] rounded-lg border border-gray-300 px-2 py-1 text-sm">
-          <input type="text" name="label" aria-label="{% trans 'Booking.com / Airbnb' %}" placeholder="{% trans 'Booking.com / Airbnb' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
-          <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add source" %}</button>
-        </form>
-      </div>
-    </div>
-  {% endfor %}
-</div>
-{% endif %}
-
-{% if not unit_page %}
 {# UX-D D4.5: общие настройки номеров — на своих экранах (раньше вкладка «Einstellungen»). #}
 <nav class="flex flex-wrap gap-x-5 gap-y-2 text-sm mb-8" aria-label="{% trans "Einstellungen für alle Zimmer" %}" data-units-settings-links>
   <a href="{% url 'stays:price-calendar' %}" class="text-indigo-700 hover:underline" data-price-calendar-link>{% trans "Preise & Verfügbarkeit" %} <span aria-hidden="true">→</span></a>
@@ -331,28 +55,4 @@
   <a href="{% url 'stays:stay-settings' %}" class="text-indigo-700 hover:underline" data-stay-settings-link>{% trans "Unterkunft" %} <span aria-hidden="true">→</span></a>
   <a href="{% url 'stays:channels' %}" class="text-indigo-700 hover:underline" data-channels-link>{% trans "Kanal-Manager" %} <span aria-hidden="true">→</span></a>
 </nav>
-{% endif %}
-{% if unit_page %}
-<script>
-// Фидбэк 2026-07-28: табы формы номера. Делегирование на document (урок Ф1:
-// инлайн-скрипты партиалов могут парситься раньше разметки). Панели скрываются
-// ТОЛЬКО классом hidden — все поля остаются в форме (инвариант W0).
-document.addEventListener("click", function (e) {
-  var btn = e.target.closest("[data-ut-tab]");
-  if (!btn) return;
-  var card = btn.closest("[data-unit-tabs]");
-  if (!card) return;
-  var key = btn.getAttribute("data-ut-tab");
-  card.querySelectorAll("[data-ut-panel]").forEach(function (p) {
-    // Панель может принадлежать нескольким табам: data-ut-panel="basis preise regeln".
-    var keys = p.getAttribute("data-ut-panel").split(/\s+/);
-    p.classList.toggle("hidden", keys.indexOf(key) < 0);
-  });
-  card.querySelectorAll("[data-ut-tab]").forEach(function (b) {
-    var active = b === btn;
-    b.setAttribute("aria-pressed", active ? "true" : "false");
-  });
-});
-</script>
-{% endif %}
 {% endblock %}

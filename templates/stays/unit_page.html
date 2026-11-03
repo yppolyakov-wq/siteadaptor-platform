@@ -1,0 +1,297 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{{ u.name }}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D4.6 (макет RoomEdit): страница номера — шапка со сводкой + вкладки.
+Активную вкладку рисует сервер (?tab=, белый список ROOM_TABS); переключение — общая
+механика вкладок (_i18n_switch через lang_switch, как у страницы услуги D2.4).
+«Grunddaten», «Preise», «Regeln & Kapazität» — ОДНА форма #unit-form (unit_settings пишет
+все поля разом: формы по вкладкам обнулили бы чужие поля, инвариант W0); скрытие — только
+CSS. Фото, сезоны, блокировки, комнаты, iCal — свои мини-формы ВНЕ #unit-form (вложенных
+форм нет), каждая несёт `tab` и возвращает на свою вкладку.{% endcomment %}
+{% i18n_base_locale as base_loc %}
+<div data-room-page>
+<a href="{% url 'stays:units' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Units" %}</a>
+<div class="flex items-start justify-between gap-3 flex-wrap mt-1 mb-4">
+  <div class="min-w-0">
+    <div class="flex items-center gap-3 flex-wrap">
+      <h1 class="ui-h1 break-words">{{ u.name }}</h1>
+      {% lang_switch %}
+    </div>
+    <p class="text-sm text-gray-600 mt-0.5" data-room-summary>{{ u.get_type_display }} · {{ u.price_eur|floatformat:2 }} €/{% trans "night" %} · ×{{ u.quantity }}{% if rooms_n %} · {% blocktrans count n=rooms_n %}{{ n }} Zimmer{% plural %}{{ n }} Zimmer{% endblocktrans %}{% endif %} · {% trans "Max. guests" %} {{ u.max_guests }}</p>
+  </div>
+  <div class="flex items-center gap-2 flex-wrap">
+    <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium {% if u.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}"><span class="w-1.5 h-1.5 rounded-full {% if u.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if u.is_active %}{% trans "Im Verkauf" %}{% else %}{% trans "Aus" %}{% endif %}</span>
+    {% if u.is_active %}
+      <a href="{% url 'storefront-unterkunft-unit' u.pk %}" target="_blank" rel="noopener" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Auf der Website ansehen" %} <span aria-hidden="true">↗</span></a>
+      {# D2.4: self-serve продвижение юнита в агрегаторе #}
+      <a href="{% url 'stays:unit-feature' u.pk %}" class="ui-btn ui-btn-secondary ui-btn-sm"><span aria-hidden="true">★ </span>{% trans "Feature" %}</a>
+    {% endif %}
+    <form method="post" class="inline">{% csrf_token %}
+      <input type="hidden" name="action" value="toggle"><input type="hidden" name="unit" value="{{ u.pk }}">
+      <input type="hidden" name="tab" value="{{ active_tab }}" data-room-tab>
+      <button class="ui-btn ui-btn-secondary ui-btn-sm">{% if u.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+    </form>
+  </div>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="ui-tabs mb-4" role="tablist" aria-label="{% trans 'Zimmer' %}">
+  <button type="button" data-pf-tab="basis" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'basis' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'basis' %}0{% else %}-1{% endif %}">{% trans "Basic data" %}</button>
+  <button type="button" data-pf-tab="preise" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'preise' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'preise' %}0{% else %}-1{% endif %}">{% trans "Prices" %}{% if season_n %} <span class="text-gray-500">· {{ season_n }}</span>{% endif %}</button>
+  <button type="button" data-pf-tab="regeln" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'regeln' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'regeln' %}0{% else %}-1{% endif %}">{% trans "Rules & capacity" %}</button>
+  <button type="button" data-pf-tab="zimmer" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'zimmer' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'zimmer' %}0{% else %}-1{% endif %}">{% trans "Rooms" %}{% if rooms_n %} <span class="text-gray-500">· {{ rooms_n }}</span>{% endif %}</button>
+  <button type="button" data-pf-tab="ical" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'ical' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'ical' %}0{% else %}-1{% endif %}">{% trans "Calendar sync (iCal)" %}</button>
+</div>
+
+<form id="unit-form" method="post" enctype="multipart/form-data" class="ui-card p-5 max-w-3xl [&_:is(input,select,textarea)]:scroll-mb-32{% if active_tab == 'zimmer' or active_tab == 'ical' %} hidden{% endif %}" data-pf-hide-on="zimmer ical">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="unit_settings"><input type="hidden" name="unit" value="{{ u.pk }}">
+  <input type="hidden" name="tab" value="{{ active_tab }}" data-room-tab>
+
+  {# --- Grunddaten -------------------------------------------------------- #}
+  <div data-pf-panel="basis" class="grid sm:grid-cols-3 gap-3 items-end{% if active_tab != 'basis' %} hidden{% endif %}">
+    <div class="sm:col-span-3">
+      <div data-i18n-loc="{{ base_loc }}">
+        <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</span>
+        <textarea name="description" rows="3" class="ui-input" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea></label>
+      </div>
+      {# E9.10: переводы — группой на язык; видна выбранная в выпадашке у заголовка. #}
+      {% regroup u.i18n_inputs by locale as by_loc %}
+      {% for grp in by_loc %}
+      <div data-i18n-loc="{{ grp.grouper }}" class="hidden space-y-2">
+        {% for inp in grp.list %}
+          <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</span>
+          {% if inp.field == 'name' %}<input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">{% else %}<textarea name="{{ inp.input_name }}" rows="3" class="ui-input">{{ inp.value }}</textarea>{% endif %}</label>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="sm:col-span-2">
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Bed type" %}</span>
+      <input name="bed_type" type="text" value="{{ u.bed_type }}" placeholder="{% trans 'e.g. Doppelbett, 2 Einzelbetten' %}" class="ui-input"></label>
+    </div>
+    <div>
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Area (m², 0 = hide)" %}</span>
+      <input name="area_sqm" type="number" min="0" value="{{ u.area_sqm }}" class="ui-input"></label>
+    </div>
+    <fieldset class="sm:col-span-3">
+      <legend class="block text-xs font-medium text-gray-500 mb-1">{% trans "Amenities" %}</legend>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 text-sm text-gray-700">
+        {% for key, label, icon in amenities %}
+          <label class="flex items-center gap-2"><input type="checkbox" name="amenities" value="{{ key }}" {% if key in u.amenities %}checked{% endif %} class="rounded"> <span aria-hidden="true">{{ icon }}</span> {{ label }}</label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <div class="sm:col-span-3">
+      <span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Add photos" %}</span>
+      {% include "catalog/_photo_add_tile.html" with target="photos" %}
+      <input type="file" name="photos" accept="image/*" multiple class="hidden" aria-label="{% trans "Add photos" %}">
+    </div>
+  </div>
+
+  {# --- Preise ------------------------------------------------------------- #}
+  <div data-pf-panel="preise" class="{% if active_tab != 'preise' %}hidden{% endif %}">
+    <p class="text-xs text-gray-600 mb-3">
+      {% trans "Saisonpreise für Zeiträume legen Sie weiter unten auf dieser Seite fest." %}
+      <a href="{% url 'stays:price-calendar' %}?kat={{ u.pk }}" class="text-indigo-700 hover:underline ml-1" data-price-calendar-link>{% trans "Preise & Verfügbarkeit" %} <span aria-hidden="true">→</span></a>
+      <a href="{% url 'stays:rate-plans' %}" class="text-indigo-700 hover:underline ml-2" data-rate-plans-link>{% trans "Tarife" %} <span aria-hidden="true">→</span></a>
+    </p>
+    {% if not can_edit_prices %}<p class="text-xs text-gray-600 mb-2" data-prices-readonly>{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}</p>{% endif %}
+    {# Z-4 Р-7: сотрудник видит цены, но не правит — поля выключены (сервер их и так не пишет) #}
+    <fieldset class="grid sm:grid-cols-3 gap-3 items-end"{% if not can_edit_prices %} disabled{% endif %}>
+      <div>
+        <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price / night (€)" %}</span>
+        <input name="price_eur" type="text" inputmode="decimal" value="{{ u.price_eur|stringformat:'.2f' }}" class="ui-input"></label>
+      </div>
+      <div>
+        <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Weekend / night (€, Fr+Sa; 0 = same)" %}</span>
+        <input name="weekend_price_eur" type="text" inputmode="decimal" value="{{ u.weekend_price_eur|stringformat:'.2f' }}" class="ui-input"></label>
+      </div>
+      <div>
+        <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€)" %}</span>
+        <input name="deposit_eur" type="text" inputmode="decimal" value="{{ u.deposit_eur|stringformat:'.2f' }}" class="ui-input"></label>
+      </div>
+      {% vat_select u.vat_rate _("Übernachtung 7 %, sonstige Leistungen 19 %.") %}
+      {% comment %}Фидбэк 2026-07-30: Lücken-Deal НА ЭТОТ номер (0 = как в общих настройках —
+      экран «Preise & Regeln», вкладка Lücken-Deal). Presence-сентинел защищает от затирания.{% endcomment %}
+      <input type="hidden" name="gap_present" value="1">
+      <div>
+        <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücken-Deal: max. Nächte (0 = wie allgemein)" %}</span>
+        <input name="gap_max_nights" type="number" min="0" max="14" value="{{ u.gap_max_nights }}" class="ui-input"></label>
+      </div>
+      <div>
+        <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücken-Deal: Rabatt % (0 = wie allgemein)" %}</span>
+        <input name="gap_discount_percent" type="number" min="0" max="70" value="{{ u.gap_discount_percent }}" class="ui-input"></label>
+      </div>
+      <p class="sm:col-span-3 text-xs text-gray-600" data-gap-general-link><a href="{% url 'stays:price-rules' %}?tab=luecken" class="text-indigo-700 hover:underline">{% trans "Lücken-Deal" %} <span aria-hidden="true">→</span></a></p>
+    </fieldset>
+  </div>
+
+  {# --- Regeln & Kapazität ------------------------------------------------ #}
+  <div data-pf-panel="regeln" class="grid sm:grid-cols-3 gap-3 items-end{% if active_tab != 'regeln' %} hidden{% endif %}">
+    <div>
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Quantity (identical units)" %}</span>
+      <input name="quantity" type="number" min="1" value="{{ u.quantity }}" class="ui-input"{% if rooms_n %} readonly aria-describedby="unit-qty-rooms"{% endif %}></label>
+      {% if rooms_n %}<p id="unit-qty-rooms" class="text-xs text-gray-600 mt-1">{% trans "capacity follows the room count" %}</p>{% endif %}
+    </div>
+    <div>
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Min. nights" %}</span>
+      <input name="min_nights" type="number" min="1" value="{{ u.min_nights }}" class="ui-input"></label>
+    </div>
+    <div>
+      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Max. guests" %}</span>
+      <input name="max_guests" type="number" min="1" value="{{ u.max_guests }}" class="ui-input"></label>
+    </div>
+    <label class="sm:col-span-3 flex items-center gap-2 text-sm text-gray-700">
+      <input type="checkbox" name="require_manual_confirm" {% if u.require_manual_confirm %}checked{% endif %} class="rounded"> {% trans "Manual confirm" %}
+    </label>
+    <p class="sm:col-span-3 text-xs text-gray-600"><a href="{% url 'stays:price-rules' %}?tab=regeln" class="text-indigo-700 hover:underline">{% trans "Sales rules" %} <span aria-hidden="true">→</span></a></p>
+  </div>
+
+  <div class="sticky bottom-20 md:bottom-0 bg-white pt-3 mt-3 border-t border-gray-100">
+    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
+  </div>
+</form>
+
+{# --- фото номера (вкладка «Grunddaten»): миниатюры + удаление, свои формы -------- #}
+{% if u.images %}
+<div data-pf-panel="basis" class="max-w-3xl mt-3 flex flex-wrap gap-3{% if active_tab != 'basis' %} hidden{% endif %}" data-room-photos>
+  {% for img in u.images %}
+    <div class="relative">
+      <img src="{{ img.url }}" alt="" class="w-20 h-20 object-cover rounded-lg border border-gray-200">
+      <form method="post" class="absolute -top-2 -right-2">{% csrf_token %}
+        <input type="hidden" name="action" value="photo_delete"><input type="hidden" name="unit" value="{{ u.pk }}"><input type="hidden" name="image" value="{{ img.id }}">
+        <input type="hidden" name="tab" value="basis">
+        <button aria-label="{% trans 'Remove photo' %} {{ forloop.counter }}" title="{% trans 'Remove' %}" class="w-6 h-6 rounded-full bg-red-600 text-white text-xs leading-none">×</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{# --- сезонные тарифы (A5a) — вкладка «Preise» --------------------------------- #}
+<section data-pf-panel="preise" class="ui-card p-5 max-w-3xl mt-4{% if active_tab != 'preise' %} hidden{% endif %}" aria-labelledby="room-seasons-h" data-room-seasons>
+  <h2 id="room-seasons-h" class="ui-h2 mb-2">{% trans "Season rates (€/night for a date range)" %}</h2>
+  {% for r in u.season_rates.all %}
+    <div class="flex items-center gap-2 text-sm text-gray-700 mb-1 flex-wrap">
+      <span>{{ r.start_date|date:"d.m.Y" }} – {{ r.end_date|date:"d.m.Y" }} · {{ r.price_eur|stringformat:".2f" }} €{% if r.label %} · {{ r.label }}{% endif %}</span>
+      {% if r.pk in u.season_overlaps %}<span data-season-overlap class="text-xs bg-amber-100 text-amber-800 rounded px-1.5 py-0.5" title="{% trans 'Bei Überschneidung gilt die früher beginnende Saison.' %}">⚠ {% trans "Überschneidung" %}<span class="sr-only"> — {% trans "Bei Überschneidung gilt die früher beginnende Saison." %}</span></span>{% endif %}
+      {% if can_edit_prices %}
+      <form method="post" class="inline">{% csrf_token %}
+        <input type="hidden" name="action" value="rate_delete"><input type="hidden" name="rate" value="{{ r.pk }}">
+        <input type="hidden" name="tab" value="preise">
+        <button class="text-red-700 hover:underline text-xs">{% trans "Remove" %}</button>
+      </form>
+      {% endif %}
+    </div>
+  {% empty %}<p class="text-sm ui-muted mb-1">{% trans "None" %}</p>{% endfor %}
+  {% if can_edit_prices %}
+  <form method="post" class="flex items-end gap-2 flex-wrap mt-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="rate"><input type="hidden" name="unit" value="{{ u.pk }}">
+    <input type="hidden" name="tab" value="preise">
+    <input aria-label="{% trans "From" %}" type="date" name="start_date" required class="ui-input w-auto">
+    <input aria-label="{% trans "To" %}" type="date" name="end_date" required class="ui-input w-auto">
+    <input type="text" name="price_eur" inputmode="decimal" required aria-label="{% trans "€/Nacht" %}" placeholder="{% trans "€/Nacht" %}" class="ui-input w-28">
+    <input type="text" name="label" aria-label="{% trans 'Label' %}" placeholder="{% trans 'Label' %}" class="ui-input w-auto">
+    <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Add rate" %}</button>
+  </form>
+  {% endif %}
+</section>
+
+{# --- блокировки дат — вкладка «Regeln & Kapazität» ----------------------------- #}
+<section data-pf-panel="regeln" class="ui-card p-5 max-w-3xl mt-4{% if active_tab != 'regeln' %} hidden{% endif %}" aria-labelledby="room-blocks-h" data-room-blocks>
+  <h2 id="room-blocks-h" class="ui-h2 mb-2">{% trans "Blocked dates" %}</h2>
+  {% for bl in u.blocks.all %}
+    <div class="flex items-center gap-2 text-sm text-gray-700 mb-1 flex-wrap">
+      <span>{{ bl.start_date|date:"d.m.Y" }} – {{ bl.end_date|date:"d.m.Y" }}{% if bl.room %} · {% trans "Zimmer" %} {{ bl.room.number }}{% endif %}{% if bl.reason %} · {{ bl.reason }}{% endif %}</span>
+      <form method="post" class="inline">{% csrf_token %}
+        <input type="hidden" name="action" value="block_delete"><input type="hidden" name="block" value="{{ bl.pk }}">
+        <input type="hidden" name="tab" value="regeln">
+        <button class="text-red-700 hover:underline text-xs">{% trans "Remove" %}</button>
+      </form>
+    </div>
+  {% empty %}<p class="text-sm ui-muted mb-1">{% trans "None" %}</p>{% endfor %}
+  <form method="post" class="flex items-end gap-2 flex-wrap mt-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="block"><input type="hidden" name="unit" value="{{ u.pk }}">
+    <input type="hidden" name="tab" value="regeln">
+    <input aria-label="{% trans "From" %}" type="date" name="start_date" required class="ui-input w-auto">
+    <input aria-label="{% trans "To" %}" type="date" name="end_date" required class="ui-input w-auto">
+    <input type="text" name="reason" aria-label="{% trans 'Reason' %}" placeholder="{% trans 'Reason' %}" class="ui-input w-auto">
+    {% comment %}KA-12 E4.10a: блок одной комнаты (ремонт) — гостю её не назначить.{% endcomment %}
+    {% if rooms_n %}
+    <select name="room" aria-label="{% trans 'Zimmer' %}" class="ui-input w-auto">
+      <option value="">{% trans "Alle Zimmer dieser Kategorie" %}</option>
+      {% for r in u.rooms.all %}<option value="{{ r.pk }}">{% trans "Zimmer" %} {{ r.number }}</option>{% endfor %}
+    </select>
+    {% endif %}
+    <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Block" %}</button>
+  </form>
+</section>
+
+{# --- PMS-R1: физические номера (Zimmer) — разбивка поверх quantity ----------------- #}
+<section data-pf-panel="zimmer" class="ui-card p-5 max-w-3xl{% if active_tab != 'zimmer' %} hidden{% endif %}" aria-labelledby="room-rooms-h" data-room-rooms>
+  <h2 id="room-rooms-h" class="ui-h2">{% trans "Rooms (physical numbers)" %}</h2>
+  <p class="text-xs text-gray-600 mb-3">{% trans "capacity follows the room count" %}</p>
+  <div class="flex items-center gap-2 flex-wrap mb-1">
+  {% for r in u.rooms.all %}
+    <span class="inline-flex items-center gap-1.5 text-sm text-gray-700 border border-gray-200 rounded-lg px-2 py-1"><span aria-hidden="true">🚪</span> {{ r.number }}
+      <form method="post" class="inline">{% csrf_token %}
+        <input type="hidden" name="action" value="room_delete"><input type="hidden" name="room" value="{{ r.pk }}">
+        <input type="hidden" name="tab" value="zimmer">
+        <button aria-label="{% trans 'Remove' %}: {% trans 'Zimmer' %} {{ r.number }}" class="text-red-700 hover:underline text-xs min-w-[24px] min-h-[24px]" title="{% trans 'Remove' %}">×</button>
+      </form>
+    </span>
+  {% empty %}<p class="text-sm ui-muted mb-1">{% trans "None" %}</p>{% endfor %}
+  </div>
+  <form method="post" class="flex items-end gap-2 flex-wrap mt-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="room_add"><input type="hidden" name="unit" value="{{ u.pk }}">
+    <input type="hidden" name="tab" value="zimmer">
+    <input aria-label="{% trans "Zimmer" %}" type="text" name="number" required placeholder="101" class="ui-input w-28">
+    <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Add room" %}</button>
+  </form>
+</section>
+
+{# --- iCal-синхронизация (A5b): экспорт занятости + импорт Booking.com/Airbnb ------- #}
+<section data-pf-panel="ical" class="ui-card p-5 max-w-3xl{% if active_tab != 'ical' %} hidden{% endif %}" aria-labelledby="room-ical-h" data-room-ical>
+  <h2 id="room-ical-h" class="ui-h2 mb-2">{% trans "Calendar sync (iCal)" %}</h2>
+  <p id="room-ical-hint" class="text-xs text-gray-600 mb-1">{% trans "Export this unit's availability — paste this link into Booking.com / Airbnb / Google:" %}</p>
+  {# UX-D D4.6: копирование — кнопкой (data-copy-target, cabinet.js), без inline-обработчиков #}
+  <input id="room-ical-export" aria-label="iCal {% trans "Link" %}" aria-describedby="room-ical-hint" type="text" readonly value="{{ u.ical_export_url }}" class="ui-input font-mono text-[11px]">
+  <button type="button" data-copy-target="room-ical-export" data-copied="{% trans 'Copied!' %}" class="ui-btn ui-btn-secondary ui-btn-sm mt-2">{% trans "Kopieren" %}</button>
+  <p class="text-xs text-gray-600 mt-4 mb-2">{% trans "Import external calendars — booked dates will block this unit:" %}</p>
+  {% for s in u.ical_sources.all %}
+    <div class="flex items-center gap-2 text-sm text-gray-700 mb-1 flex-wrap">
+      <span>{{ s.label|default:"iCal" }} · <span class="text-xs text-gray-600">{% if s.last_synced_at %}{{ s.last_synced_at|date:"d.m.Y H:i" }} · {{ s.last_status }}{% else %}{% trans "not synced yet" %}{% endif %}</span></span>
+      <form method="post" class="inline">{% csrf_token %}
+        <input type="hidden" name="action" value="ical_sync"><input type="hidden" name="source" value="{{ s.pk }}">
+        <input type="hidden" name="tab" value="ical">
+        <button class="text-indigo-700 hover:underline text-xs">{% trans "Sync now" %}</button>
+      </form>
+      <form method="post" class="inline">{% csrf_token %}
+        <input type="hidden" name="action" value="ical_delete"><input type="hidden" name="source" value="{{ s.pk }}">
+        <input type="hidden" name="tab" value="ical">
+        <button class="text-red-700 hover:underline text-xs">{% trans "Remove" %}</button>
+      </form>
+    </div>
+  {% empty %}<p class="text-sm ui-muted mb-1">{% trans "None" %}</p>{% endfor %}
+  <form method="post" class="flex items-end gap-2 flex-wrap mt-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="ical_add"><input type="hidden" name="unit" value="{{ u.pk }}">
+    <input type="hidden" name="tab" value="ical">
+    <input aria-label="iCal {% trans "Link" %}" type="url" name="url" required placeholder="https://…/calendar.ics" class="ui-input flex-1 min-w-[16rem]">
+    <input type="text" name="label" aria-label="{% trans 'Booking.com / Airbnb' %}" placeholder="{% trans 'Booking.com / Airbnb' %}" class="ui-input w-auto">
+    <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Add source" %}</button>
+  </form>
+</section>
+</div>
+{% endblock %}

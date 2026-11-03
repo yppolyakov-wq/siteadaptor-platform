@@ -1124,6 +1124,33 @@ def _season_overlap_msg(conflict):
     return _("Überschneidet sich mit einer Saison (%(start)s – %(end)s).") % params
 
 
+# UX-D D4.6: вкладки страницы номера (белый список) и вкладка по умолчанию для действий
+# старых вкладок браузера без поля `tab` (каждая мини-форма живёт на одной вкладке).
+ROOM_TABS = ("basis", "preise", "regeln", "zimmer", "ical")
+ROOM_ACTION_TAB = {
+    "unit_settings": "basis",
+    "photo_delete": "basis",
+    "toggle": "basis",
+    "rate": "preise",
+    "rate_delete": "preise",
+    "block": "regeln",
+    "block_delete": "regeln",
+    "room_add": "zimmer",
+    "room_delete": "zimmer",
+    "ical_add": "ical",
+    "ical_sync": "ical",
+    "ical_delete": "ical",
+}
+
+
+def _room_page_url(pk, tab: str | None) -> str:
+    """Адрес страницы номера на вкладке; мусор и первая вкладка — без ``?tab=``."""
+    url = reverse("stays:unit-edit", args=[pk])
+    if tab in ROOM_TABS and tab != ROOM_TABS[0]:
+        url += f"?tab={tab}"
+    return url
+
+
 @login_required
 def units(request, pk=None):
     """Юниты + блокировки дат — POST-формы. Фидбэк 2026-07-28: с pk —
@@ -1351,7 +1378,11 @@ def units(request, pk=None):
             n = services.sync_ical_source(src)
             messages.success(request, _("Synced: %(n)d blocked range(s).") % {"n": n})
         if pk:
-            return redirect("stays:unit-edit", pk=pk)
+            # UX-D D4.6: обратно на вкладку формы (поле `tab`; без него — вкладка действия)
+            tab = request.POST.get("tab")
+            if tab not in ROOM_TABS:
+                tab = ROOM_ACTION_TAB.get(action)
+            return redirect(_room_page_url(pk, tab))
         # Ревью 2026-07-28: кросс-страничные постеры (баннер Lücken-Deal на
         # Belegungsplan) возвращают владельца туда, откуда он пришёл. Только
         # относительный путь — guard от open-redirect (в т.ч. protocol-relative).
@@ -1381,32 +1412,45 @@ def units(request, pk=None):
     # UX-D D4.5: вкладки «Einstellungen» больше нет — цены и правила на своём экране
     if not pk and request.GET.get("tab") == "einstellungen":
         return redirect("stays:price-rules")
-    unit_qs = StayUnit.objects.prefetch_related("blocks", "season_rates", "ical_sources", "rooms")
     if pk:
-        unit_page = get_object_or_404(unit_qs, pk=pk)
-        units = [unit_page]
-    else:
-        unit_page = None
-        units = list(unit_qs.order_by("-is_active", "name"))
-    for u in units:
-        u.ical_export_url = request.build_absolute_uri(
-            reverse("storefront-stay-ical", args=[ical_token(u)])
+        unit_qs = StayUnit.objects.prefetch_related(
+            "blocks__room", "season_rates", "ical_sources", "rooms"
         )
-        u.i18n_inputs = i18n_inputs_for(u, getattr(request, "tenant", None))  # L3d
-        u.season_overlaps = _overlapping_season_ids(u.season_rates.all())  # Z-4
+        return _render_room_page(request, get_object_or_404(unit_qs, pk=pk))
+    # UX-D D4.5: список — строки-обзор; карточка номера целиком — на его странице (D4.6)
+    units = list(StayUnit.objects.prefetch_related("rooms").order_by("-is_active", "name"))
     return render(
         request,
         "stays/units.html",
         {
             "nav": "units",  # X4: номер — сущность раздела «Sortiment» (не операция дня)
             "units": units,
-            "unit_page": unit_page,  # 2026-07-28: страница одного номера
-            "extra_locales": extra_locales(getattr(request, "tenant", None)),
-            "types": StayUnit.TYPES,
-            "today": timezone.localdate(),
+            "can_edit_prices": has_perm(request.user, "preise.edit"),  # Z-4 Р-7
+        },
+    )
+
+
+def _render_room_page(request, unit):
+    """UX-D D4.6: страница одного номера — вкладки рисует сервер (``?tab=``)."""
+    tenant = getattr(request, "tenant", None)
+    unit.ical_export_url = request.build_absolute_uri(
+        reverse("storefront-stay-ical", args=[ical_token(unit)])
+    )
+    unit.i18n_inputs = i18n_inputs_for(unit, tenant)  # L3d
+    unit.season_overlaps = _overlapping_season_ids(unit.season_rates.all())  # Z-4
+    tab = request.GET.get("tab")
+    return render(
+        request,
+        "stays/unit_page.html",
+        {
+            "nav": "units",  # X4: номер — сущность раздела «Sortiment»
+            "u": unit,
+            "active_tab": tab if tab in ROOM_TABS else ROOM_TABS[0],
+            "rooms_n": len(unit.rooms.all()),
+            "season_n": len(unit.season_rates.all()),
+            "extra_locales": extra_locales(tenant),
             "can_edit_prices": has_perm(request.user, "preise.edit"),  # Z-4 Р-7
             "amenities": AMENITIES,  # H3 чек-лист удобств
-            # UX-D D4.3: Kurtaxe/часы/удобства на карточке — экран «Unterkunft»
         },
     )
 

@@ -52,18 +52,19 @@ def test_finance_tabs_render_one_active():
     assert html.count('class="ui-tab"') == 6
 
 
-def test_stays_toggle_tabs_use_ui_tab_and_aria_pressed():
-    """Батч 2: JS-вкладки страницы номеров — тот же `ui-tab`; активное состояние
-    несёт `aria-pressed`, JS больше не переключает цветовые классы."""
-    src = (ROOT / "stays/units.html").read_text()
-    # UX-D D4.4/D4.5 (осознанная переписка): вкладки списка (data-pt-tab) и под-вкладки
-    # настроек (data-st-tab) сняты — настройки на своих экранах; остались вкладки номера.
-    for hook in ("data-ut-tab",):
-        assert re.search(hook + r'="[^"]+" aria-pressed="[^"]*"[^>]*class="ui-tab', src), hook
-    assert "data-pt-tab" not in src and "data-st-tab" not in src
-    assert 'classList.toggle("bg-indigo-600"' not in src
-    css = (Path(__file__).resolve().parents[3] / "static/src/app.css").read_text()
-    assert '.ui-tab[aria-pressed="true"]' in css
+def test_stays_room_tabs_are_real_tabs():
+    """UX-D D4.6 (осознанная переписка): вкладки страницы номера — `ui-tab` с role=tab
+    и aria-selected от сервера (общая механика data-pf-tab); своего скрипта у страниц
+    номеров больше нет."""
+    src = (ROOT / "stays/unit_page.html").read_text()
+    tabs = re.findall(r"<button[^>]*data-pf-tab=[^>]*>", src)
+    assert len(tabs) == 5
+    for t in tabs:
+        assert 'role="tab"' in t and "aria-selected=" in t and "ui-tab" in t, t
+    for name in ("stays/unit_page.html", "stays/units.html"):
+        text = (ROOT / name).read_text()
+        assert "<script" not in text and "data-ut-tab" not in text, name
+        assert "data-pt-tab" not in text and "data-st-tab" not in text, name
 
 
 @pytest.mark.parametrize("name", ["catalog/product_form.html", "promotions/promotion_form.html"])

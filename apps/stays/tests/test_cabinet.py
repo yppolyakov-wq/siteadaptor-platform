@@ -437,7 +437,9 @@ def test_unit_form_tabs_keep_all_fields_in_dom():
     скрыты только CSS) — Save с любого таба сохраняет всё."""
     unit = StayUnit.objects.create(name="TabZimmer", price_cents=9000)
     body = views.units(_req(), pk=unit.pk).content.decode()
-    assert "data-unit-tabs" in body and 'data-ut-tab="preise"' in body
+    # UX-D D4.6 (осознанная переписка): вкладки — общая механика (data-pf-tab/-panel),
+    # активную рисует сервер; страница — свой шаблон unit_page.html.
+    assert "data-room-page" in body and 'data-pf-tab="preise"' in body
     for field in (
         'name="description"',
         'name="price_eur"',
@@ -454,7 +456,7 @@ def test_unit_form_tabs_keep_all_fields_in_dom():
     ):
         assert field in body, field
     # скрытие — только классом hidden на панелях, поля не выпадают из формы
-    assert 'data-ut-panel="preise" class="hidden' in body
+    assert re.search(r'data-pf-panel="preise" class="[^"]*hidden', body)
 
 
 def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
@@ -465,11 +467,11 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
     unit = StayUnit.objects.create(name="TabZimmer", price_cents=9000)
     body = views.units(_req(), pk=unit.pk).content.decode()
     for tab in ("basis", "preise", "regeln", "zimmer", "ical"):
-        assert f'data-ut-tab="{tab}"' in body, tab
-    # форма принадлежит трём табам сразу и прячется на Zimmer/iCal (там свой Save)
-    assert 'data-ut-panel="basis preise regeln"' in body
+        assert f'data-pf-tab="{tab}"' in body, tab
+    # UX-D D4.6: форма одна на трёх вкладках и прячется на Zimmer/iCal (там свой Save)
+    assert 'id="unit-form"' in body and 'data-pf-hide-on="zimmer ical"' in body
     for panel in ("zimmer", "ical"):
-        assert f'data-ut-panel="{panel}" class="hidden' in body, panel
+        assert re.search(rf'data-pf-panel="{panel}" class="[^"]*hidden', body), panel
     # глобальные настройки живут на СПИСКЕ — карточки (часть раскрыта в своих
     # под-табах), поля в DOM (W0). HF-2 добавила «Ausstattung auf der Zimmerkarte»,
     # KA-12 Z-5 — «Check-in & Check-out» (только при праве на цены; _req — владелец).
@@ -534,9 +536,9 @@ def test_units_list_is_compact_and_links_to_unit_page():
     StayUnit.objects.create(name="ZimmerB", price_cents=8000)
     body = views.units(_req()).content.decode()
     assert f"/dashboard/stays/units/{a.pk}/" in body
-    assert "data-unit-tabs" not in body  # полной карточки на списке нет
+    assert "data-room-page" not in body  # полной карточки на списке нет
     page = views.units(_req(), pk=a.pk).content.decode()
-    assert "data-unit-tabs" in page and "ZimmerA" in page
+    assert "data-room-page" in page and "ZimmerA" in page
     assert "ZimmerB" not in page  # только свой номер
     # ловим ОБЕ формы карточки (после под-табов часть рендерится <details open>)
     assert not re.search(r'<details(?: open)? class="ui-card', page)
