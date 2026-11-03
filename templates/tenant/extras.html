@@ -72,7 +72,9 @@
       завтрак и парковка облагались как сама бронь (7 %), хотя это отдельные
       услуги по 19 % (Aufteilungsgebot). Пустое значение сохраняет прежнее
       поведение «как у сделки».{% endcomment %}
-      {% vat_select "" _("Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat.") _("wie die Buchung") %}
+      {# «%» в _() аргумента тега Django ищет как «%%» — trans … as возвращает «%» #}
+      {% trans "Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat." as vat_hint %}
+      {% vat_select "" vat_hint _("wie die Buchung") %}
       {% comment %}MX-2: адресность — опция конкретной сущности (пусто = для всех).{% endcomment %}
       <div>
         <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Nur für ein Angebot" %}</span>

@@ -44,9 +44,9 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
 
 <div class="ui-tabs mb-4" role="tablist" aria-label="{% trans 'Bereiche' %}">
   <button type="button" data-pf-tab="basis" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'basis' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'basis' %}0{% else %}-1{% endif %}">{% trans "Basic data" %}</button>
-  <button type="button" data-pf-tab="preise" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'preise' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'preise' %}0{% else %}-1{% endif %}">{% trans "Prices" %}{% if season_n %} <span class="text-gray-600">· {{ season_n }}</span>{% endif %}</button>
+  <button type="button" data-pf-tab="preise" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'preise' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'preise' %}0{% else %}-1{% endif %}">{% trans "Prices" %}{% if season_n %} <span class="font-normal">· {{ season_n }}</span>{% endif %}</button>
   <button type="button" data-pf-tab="regeln" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'regeln' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'regeln' %}0{% else %}-1{% endif %}">{% trans "Rules & capacity" %}</button>
-  <button type="button" data-pf-tab="zimmer" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'zimmer' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'zimmer' %}0{% else %}-1{% endif %}">{% trans "Rooms" %}{% if rooms_n %} <span class="text-gray-600">· {{ rooms_n }}</span>{% endif %}</button>
+  <button type="button" data-pf-tab="zimmer" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'zimmer' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'zimmer' %}0{% else %}-1{% endif %}">{% trans "Rooms" %}{% if rooms_n %} <span class="font-normal">· {{ rooms_n }}</span>{% endif %}</button>
   <button type="button" data-pf-tab="ical" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'ical' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'ical' %}0{% else %}-1{% endif %}">{% trans "Calendar sync (iCal)" %}</button>
 </div>
 
@@ -119,7 +119,9 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
         <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€)" %}</span>
         <input name="deposit_eur" type="text" inputmode="decimal" value="{{ u.deposit_eur|stringformat:'.2f' }}" class="ui-input"></label>
       </div>
-      {% vat_select u.vat_rate _("Übernachtung 7 %, sonstige Leistungen 19 %.") %}
+      {# «%» в _() аргумента тега Django ищет как «%%» — trans … as возвращает «%» #}
+      {% trans "Übernachtung 7 %, sonstige Leistungen 19 %." as vat_hint %}
+      {% vat_select u.vat_rate vat_hint %}
       {% comment %}Фидбэк 2026-07-30: Lücken-Deal НА ЭТОТ номер (0 = как в общих настройках —
       экран «Preise & Regeln», вкладка Lücken-Deal). Presence-сентинел защищает от затирания.{% endcomment %}
       <input type="hidden" name="gap_present" value="1">

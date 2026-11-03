@@ -459,3 +459,18 @@ def test_capacity_refusal_is_one_error_not_saved_plus_error(monkeypatch):
     assert [lvl for lvl, _t in msgs] == ["error"]
     unit.refresh_from_db()
     assert unit.description == "Neu"  # остальные поля сохранены
+
+
+@pytest.mark.parametrize(
+    "path", ["stays/unit_page.html", "tenant/extras.html", "catalog/combo_form.html"]
+)
+def test_vat_hint_prints_single_percent(path):
+    """Ревью стенда D4.6: `_("7 %")` в аргументе тега Django ищет как «7 %%» и печатает
+    «7 %%» на всех языках; `{% trans … as %}` возвращает «%»."""
+    src = (ROOT / "templates" / path).read_text()
+    assert not re.search(r'_\("[^"]*%[^(][^"]*"\)', src), path
+
+
+def test_vat_hint_renders_without_double_percent():
+    html = _page(_unit(), tab="preise")
+    assert "7 %%" not in html and "19 %%" not in html

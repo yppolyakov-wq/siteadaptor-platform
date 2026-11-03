@@ -31908,3 +31908,16 @@ msgstr "Lütfen bir oda numarası girin."
 #, python-format
 msgid "Zimmer %(number)s gibt es schon."
 msgstr "%(number)s numaralı oda zaten var."
+
+#. «%» в шаблонном {% trans %} — msgid с «%%» (Django удваивает при поиске)
+#, python-format
+msgid "Speisen meist 7 %%, Getränke 19 %%."
+msgstr "Yiyecekler genellikle %%7, içecekler %%19."
+
+#, python-format
+msgid "Frühstück und Parkplatz sind 19 %%, auch wenn die Übernachtung 7 %% hat."
+msgstr "Kahvaltı ve otopark %%19'dur, konaklama %%7 olsa bile."
+
+#, python-format
+msgid "Übernachtung 7 %%, sonstige Leistungen 19 %%."
+msgstr "Konaklama %%7, diğer hizmetler %%19."

@@ -69,7 +69,9 @@
         налога — нужно добавить в настройках». У набора ставки не было вовсе, и
         меню-сет гастро уезжал в документ по 19 % вместо 7 %.{% endcomment %}
         <label class="block text-sm font-medium mb-1">{% trans "VAT" %}</label>
-        {% vat_select combo.vat_rate _("Speisen meist 7 %, Getränke 19 %.") %}
+        {# «%» в _() аргумента тега Django ищет как «%%» — trans … as возвращает «%» #}
+        {% trans "Speisen meist 7 %, Getränke 19 %." as vat_hint %}
+        {% vat_select combo.vat_rate vat_hint %}
       </div>
       <div>
         <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Order" %}</span>

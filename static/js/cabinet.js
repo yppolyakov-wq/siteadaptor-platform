@@ -890,7 +890,6 @@ try { (function () {
     if (!field) return;
     // UX-D D4.6 (ревью a11y): фокус остаётся на кнопке, результат — в живой области
     // [data-copy-status] рядом (если есть), иначе читалка не услышит «Kopiert».
-    field.select();
     var label = btn.textContent, done = btn.getAttribute("data-copied") || label;
     var status = btn.parentNode && btn.parentNode.querySelector("[data-copy-status]");
     function ok() {
@@ -901,8 +900,12 @@ try { (function () {
         if (status) status.textContent = "";
       }, 1500);
     }
+    // Без Clipboard API (http) — поле в фокусе и выделено: копируют вручную (Ctrl+C).
+    function manual() { field.focus(); field.select(); }
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(field.value).then(ok, function () {});
+      navigator.clipboard.writeText(field.value).then(ok, manual);
+    } else {
+      manual();
     }
   });
 })(); } catch (e) { console.error(e); }

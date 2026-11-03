@@ -41,7 +41,7 @@ Varianten» — свои мини-формы, вне #svc-form. Скрытое `
 
 <div class="ui-tabs mb-4" role="tablist" aria-label="{% trans 'Leistung' %}">
   <button type="button" data-pf-tab="grund" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'grund' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'grund' %}0{% else %}-1{% endif %}">{% trans "Grundlagen" %}</button>
-  <button type="button" data-pf-tab="preise" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'preise' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'preise' %}0{% else %}-1{% endif %}">{% trans "Preise & Varianten" %}{% if price_rows_n %} <span class="text-gray-500">· {{ price_rows_n }}</span>{% endif %}</button>
+  <button type="button" data-pf-tab="preise" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'preise' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'preise' %}0{% else %}-1{% endif %}">{% trans "Preise & Varianten" %}{% if price_rows_n %} <span class="font-normal">· {{ price_rows_n }}</span>{% endif %}</button>
   <button type="button" data-pf-tab="regeln" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'regeln' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'regeln' %}0{% else %}-1{% endif %}">{% trans "Buchungsregeln" %}</button>
   <button type="button" data-pf-tab="text" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'text' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'text' %}0{% else %}-1{% endif %}">{% trans "Beschreibung & FAQ" %}</button>
 </div>

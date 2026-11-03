@@ -32051,3 +32051,16 @@ msgstr "Укажите номер комнаты."
 #, python-format
 msgid "Zimmer %(number)s gibt es schon."
 msgstr "Комната %(number)s уже есть."
+
+#. «%» в шаблонном {% trans %} — msgid с «%%» (Django удваивает при поиске)
+#, python-format
+msgid "Speisen meist 7 %%, Getränke 19 %%."
+msgstr "Еда обычно 7 %%, напитки 19 %%."
+
+#, python-format
+msgid "Frühstück und Parkplatz sind 19 %%, auch wenn die Übernachtung 7 %% hat."
+msgstr "Завтрак и парковка — 19 %%, даже если проживание облагается 7 %%."
+
+#, python-format
+msgid "Übernachtung 7 %%, sonstige Leistungen 19 %%."
+msgstr "Проживание 7 %%, прочие услуги 19 %%."
