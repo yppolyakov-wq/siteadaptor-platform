@@ -281,12 +281,14 @@ def test_categories_render_as_tiles_when_photos_exist():
         name={"de": "Vorspeisen"},
         slug="vorspeisen",
         is_active=True,
-        images=[{"id": "c1", "url": "/medien/demo.svg?kw=x", "is_primary": True}],
+        # SP-15 (осознанно): демо-заглушка /medien/demo.svg фото больше не считается —
+        # плитки только при настоящем фото.
+        images=[{"id": "c1", "url": "/media/vorspeisen.jpg", "is_primary": True}],
     )
     ProductFactory(category=cat, is_active=True)
     body = public_views.product_list(_req("/sortiment/")).content.decode()
     assert 'data-grid="categories"' in body, "плитки категорий не отрисовались"
-    assert "/medien/demo.svg?kw=x" in body
+    assert "/media/vorspeisen.jpg" in body
 
 
 def test_categories_fall_back_to_chips_without_photos():

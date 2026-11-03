@@ -67,11 +67,13 @@ def test_hide_buttons_have_unique_names_and_target_size():
 
 def test_status_live_region_is_never_display_none():
     html = render_to_string("promotions/_text_check.html", {"text_findings": []})
-    m = re.search(r'<p class="([^"]*)" data-tc-status role="status" aria-live="polite">', html)
+    m = re.search(r'<p class="([^"]*)" data-tc-status role="status">', html)
     assert m, "live-region пропал или без role=status"
     assert "hidden" not in m.group(1).split()
     assert 'classList.toggle("sr-only", !text)' in html
     assert 'classList.toggle("hidden", !text)' not in html
+    # одинаковый результат не перерисовывается (регион не «болтает»)
+    assert "html !== container._tcHtml" in html
     # кнопки проверки ≥ 32 px
     assert re.search(r'min-h-\[32px\][^"]*" data-tc-run', html)
 
@@ -91,3 +93,13 @@ def test_type_chips_scroll_active_into_view():
     assert "row.scrollLeft" in html and "__sfTypeChipsBound" in html
     # без вертикального прыжка страницы (scrollIntoView двигал бы и окно)
     assert "scrollIntoView" not in html
+    assert 'addEventListener("toggle"' in html
+
+
+def test_chat_fab_name_is_its_visible_label():
+    """WCAG 2.5.3: aria-label «Ask us a question» в de/ru/uk/tr не начинался с
+    видимого «Ask us» — имя теперь сама подпись (sr-only там, где не видна)."""
+    base = (ROOT / "templates" / "storefront" / "_base.html").read_text()
+    fab = base.split("data-chat-fab title=", 1)[1].split("</a>", 1)[0]
+    assert "aria-label" not in fab
+    assert 'class="sr-only sm:not-sr-only lg:sr-only' in fab

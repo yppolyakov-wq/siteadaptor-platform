@@ -1,8 +1,9 @@
 """SP-17 (решение владельца 2026-11-03): подпись на акцент-фоне тенанта читаема.
 
-Кнопки витрины несли жёсткий text-white поверх `background: var(--accent)`; у
-светлого акцента (лайм, янтарь, пастель) белый текст нечитаем. Цвет текста теперь
-берёт `--accent-ink` (DL-5: тёмные чернила для светлого акцента) одним правилом CSS.
+Кнопки на `background: var(--accent)` берут `--accent-ink` (правило DL-5 в _base.html).
+Выбор чернил был по гамма-яркости с порогом 0.62 — средние тона (зелёный, оранжевый,
+голубой) получали белый текст 2.3–2.8:1. Теперь — те чернила, что дают больший контраст
+по формуле WCAG.
 """
 
 from __future__ import annotations
@@ -19,16 +20,34 @@ def test_light_accents_get_dark_ink():
     assert _accent_ink("#fcd34d") == "#111827"  # янтарь
     assert _accent_ink("#4f46e5") == "#ffffff"  # индиго — прежний вид
     assert _accent_ink("not-a-color") == "#ffffff"  # fail-safe
+    assert _accent_ink("#zzzzzz") == "#ffffff"
 
 
-def test_accent_background_takes_ink_after_utilities():
-    built = (ROOT / "static" / "css" / "app.css").read_text()
-    rule = '[style*="background: var(--accent)"]'
-    assert rule in built
-    # правило стоит ПОСЛЕ утилит — иначе равная специфичность отдала бы победу text-white
-    assert built.index(rule) > built.index(".text-white{")
-    tail = built[built.index(rule) :].split("}", 1)[0]
-    assert "var(--accent-ink" in tail
+def _contrast(a, b):
+    from apps.core.context import _rel_luminance
+
+    la, lb = sorted((_rel_luminance(a), _rel_luminance(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
+def test_mid_tone_accents_pick_the_readable_ink():
+    """a11y-ревью: при пороге 0.62 средние тона получали белый текст ~2.5:1."""
+    for accent in ("#22c55e", "#f97316", "#0ea5e9", "#16a34a"):
+        ink = _accent_ink(accent)
+        assert ink == "#111827", accent
+        assert _contrast(accent, ink) >= 4.5, accent
+    # ink всегда не хуже альтернативы
+    for accent in ("#4f46e5", "#15803d", "#b45309", "#7c3aed", "#e11d48"):
+        ink = _accent_ink(accent)
+        other = "#ffffff" if ink == "#111827" else "#111827"
+        assert _contrast(accent, ink) >= _contrast(accent, other), accent
+
+
+def test_accent_background_takes_ink():
+    """Правило DL-5 в _base.html: любой инлайн-фон акцента берёт --accent-ink."""
+    base = (ROOT / "templates" / "storefront" / "_base.html").read_text()
+    assert '[style*="background: var(--accent)"]' in base
+    assert "color: var(--accent-ink, #ffffff) !important" in base
 
 
 def test_storefront_defines_ink_variable():

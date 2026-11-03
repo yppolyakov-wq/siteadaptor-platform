@@ -14,7 +14,7 @@
   <p class="text-xs text-gray-500">{% trans "Automatische Hinweise – keine Rechtsberatung." %}</p>
   {% comment %}SP-16: live-region ВСЕГДА в дереве доступности — скрытый display:none
   регион скринридеры не слушают и первую фразу «KI prüft …» теряли. Пустой — sr-only.{% endcomment %}
-  <p class="sr-only text-xs text-gray-500" data-tc-status role="status" aria-live="polite"></p>
+  <p class="sr-only text-xs text-gray-500" data-tc-status role="status"></p>
   <div data-tc-results aria-live="polite">{% include "promotions/_text_check_results.html" %}</div>
 </div>
 <script>
@@ -45,7 +45,9 @@
       if (!r.ok) throw new Error(String(r.status));
       return r.text();
     }).then(function (html) {
-      out.innerHTML = html;
+      // SP-16 (a11y-ревью): тот же результат не перерисовываем — регион aria-live
+      // иначе зачитывал весь список заново после каждой паузы в наборе.
+      if (html !== container._tcHtml) { out.innerHTML = html; container._tcHtml = html; }
       container.dataset.tcRan = "1";
     }).catch(function (e) {
       if (e && e.name === "AbortError") return;

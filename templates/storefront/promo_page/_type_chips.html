@@ -27,5 +27,9 @@ LB-3: вынесены из promotions_list.html — тот же ряд стои
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", center);
   else center();
+  // ряд в свёрнутой панели «Suchen & filtern» не имеет ширины до открытия
+  document.addEventListener("toggle", function (e) {
+    if (e.target.open && e.target.querySelector && e.target.querySelector("[data-promo-type-chips]")) center();
+  }, true);
 })();
 </script>

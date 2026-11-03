@@ -134,21 +134,39 @@ def _demo_design_ctx(request, tenant):
     }
 
 
-def _accent_ink(accent: str) -> str:
-    """DL-5: цвет текста ПОВЕРХ акцент-фона по яркости акцента.
+_INK_DARK = "#111827"
+_INK_LIGHT = "#ffffff"
 
-    Светлый акцент (лайм neon #c8f542, янтарь warm) с белым текстом нечитаем —
-    отдаём тёмные чернила; тёмный/насыщенный акцент — белые (прежний вид).
-    Не-hex/битое значение → белый (fail-safe, как было всегда)."""
+
+def _rel_luminance(hex_color: str) -> float:
+    """Относительная яркость WCAG 2.x (sRGB линеаризуется по каналам)."""
+
+    def lin(c: int) -> float:
+        v = c / 255
+        return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (int(hex_color[i : i + 2], 16) for i in (1, 3, 5))
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+
+
+def _accent_ink(accent: str) -> str:
+    """DL-5/SP-17: цвет текста ПОВЕРХ акцент-фона — тот, что даёт БОЛЬШИЙ контраст.
+
+    Раньше решала гамма-яркость с порогом 0.62: средние тона (зелёный #22c55e,
+    оранжевый #f97316, голубой #0ea5e9) получали белый текст с контрастом 2.3–2.8:1
+    (WCAG 1.4.3 требует 4.5:1). Теперь считаем контраст обоих чернил по формуле
+    WCAG и берём лучший — без «магического» порога. Тёмные акценты (индиго и т.п.)
+    остаются с белым текстом. Не-hex/битое значение → белый (fail-safe)."""
     accent = (accent or "").strip()
-    if len(accent) == 7 and accent.startswith("#"):
-        try:
-            r, g, b = (int(accent[i : i + 2], 16) for i in (1, 3, 5))
-        except ValueError:
-            return "#ffffff"
-        if (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62:
-            return "#111827"
-    return "#ffffff"
+    if len(accent) != 7 or not accent.startswith("#"):
+        return _INK_LIGHT
+    try:
+        lum = _rel_luminance(accent)
+    except ValueError:
+        return _INK_LIGHT
+    on_white = 1.05 / (lum + 0.05)
+    on_dark = (lum + 0.05) / (_rel_luminance(_INK_DARK) + 0.05)
+    return _INK_DARK if on_dark > on_white else _INK_LIGHT
 
 
 def _storefront_bottom_nav(request, tenant):

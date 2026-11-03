@@ -46,8 +46,11 @@
     {% for c in categories %}
       {% if is_preview %}
         {% comment %}Редактор: подпись правится на канве (data-cat-edit не гасит клик,
-        поэтому чип — не ссылка, как и у плитки).{% endcomment %}
-        <span class="sf-card inline-flex items-center min-h-[44px] px-4 rounded-full border border-gray-200 bg-white text-sm font-medium" data-cat-edit="{{ c.pk }}">{{ c }}</span>
+        поэтому чип — не ссылка, как и превью-плитка; ✎ — полная правка).{% endcomment %}
+        <span class="sf-card inline-flex items-center gap-1 min-h-[44px] px-4 rounded-full border border-gray-200 bg-white text-sm font-medium">
+          <span data-cat-edit="{{ c.pk }}">{{ c }}</span>
+          <a href="{% url 'catalog:category-edit' c.pk %}" target="_blank" rel="noopener" title="{% trans 'Edit category' %}" class="text-indigo-600 hover:text-indigo-800 text-sm">✎</a>
+        </span>
       {% else %}
         <a href="{% url 'storefront-category' c.slug %}" class="sf-card inline-flex items-center min-h-[44px] px-4 rounded-full border border-gray-200 bg-white text-sm font-medium hover:border-gray-400">{{ c }}</a>
       {% endif %}

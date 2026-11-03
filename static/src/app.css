@@ -1714,6 +1714,8 @@ input[type="datetime-local"] {
   [data-demo-design] { position: relative !important; left: auto !important; bottom: auto !important; transform: none !important; display: inline-block; }
   [data-chat-fab], [data-sf-presence] { display: inline-flex; }
   [data-chat-fab], [data-sf-presence], [data-demo-design] { margin: 0.75rem 1rem; }
+  /* список дизайнов — вниз от пилюли и от её левого края (иначе уходил за экран) */
+  [data-demo-design] > div { left: 0 !important; transform: none !important; bottom: auto !important; top: 100%; }
 }
 
 /* SP-1: «карта меню» колонками — пунктирная линия между колонками, как у книги. */
@@ -1810,12 +1812,3 @@ input[type="datetime-local"] {
   }
 }
 
-/* SP-17 (решение владельца 2026-11-03): текст поверх акцент-фона тенанта — по
-   яркости акцента (--accent-ink, DL-5). ~60 кнопок витрины несли жёсткий text-white:
-   у светлого акцента (лайм, янтарь, пастель) белая подпись была нечитаема (WCAG 1.4.3).
-   Одно правило по инлайн-фону вместо правки шаблонов; без --accent-ink (кабинет) —
-   белый, как раньше. Тинты color-mix(…var(--accent) 14%…) и градиенты не совпадают. */
-[style*="background: var(--accent)"],
-[style*="background:var(--accent)"] {
-  color: var(--accent-ink, #fff);
-}

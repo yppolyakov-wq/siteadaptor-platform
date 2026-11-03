@@ -414,8 +414,12 @@ def test_accent_ink_follows_luminance():
     нечитаем на CTA — сервер отдаёт тёмные чернила по яркости акцента."""
     lime = TenantFactory.build(business_type="grocery", primary_color="#c8f542")
     assert "--accent-ink: #111827" in _home(lime)
+    # SP-17 (осознанно): средний зелёный теперь с тёмными чернилами — белый давал
+    # 3.3:1 (ниже WCAG 4.5:1); тёмный акцент сохраняет белый текст.
     green = TenantFactory.build(business_type="grocery", primary_color="#16a34a")
-    assert "--accent-ink: #ffffff" in _home(green)
+    assert "--accent-ink: #111827" in _home(green)
+    dark_green = TenantFactory.build(business_type="grocery", primary_color="#15803d")
+    assert "--accent-ink: #ffffff" in _home(dark_green)
     # Превью neon: акцент лайм → тёмные чернила и без сохранённого цвета.
     plain = TenantFactory.build(business_type="grocery", primary_color="#4f46e5")
     assert "--accent-ink: #111827" in _home(plain, "?preview=1&look=neon")

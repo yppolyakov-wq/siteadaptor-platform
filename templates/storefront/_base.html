@@ -109,7 +109,7 @@
     }
     [data-sf-media="round"] [data-sf-media-box="side"] { width: 78%; margin: 0 auto; }
     /* DL-5: контраст поверх акцент-фона — жёсткий text-white в 36 CTA нечитаем на
-       светлом акценте (лайм neon, янтарь warm); ink считает сервер по яркости. */
+       светлом акценте (лайм neon, янтарь warm); ink выбирает сервер по контрасту WCAG (SP-17). */
     [style*="background: var(--accent)"], [style*="background:var(--accent)"] { color: var(--accent-ink, #ffffff) !important; }
     /* Выразительная типошкала: плотнее трекинг и баланс переносов в заголовках. */
     h1, h2, h3 { letter-spacing: -0.02em; text-wrap: balance; }
@@ -651,9 +651,12 @@
   {% if storefront_inbox_enabled %}
   {# M22b: плавающая кнопка чата — доступна с любой страницы (над таб-баром на мобиле). #}
   {# DL-6: FAB — в акценте тенанта (жёсткий indigo игнорировал Look любого цвета). #}
-  <a href="{% url 'storefront-message' %}" data-chat-fab aria-label="{% trans 'Ask us a question' %}"
+  {% comment %}SP-16 (WCAG 2.5.3): имя кнопки = видимая подпись. aria-label «Ask us a
+  question» в de/ru/uk/tr не начинался с видимого «Fragen Sie uns» — голосовое
+  управление не находило кнопку. Подпись всегда в DOM: видна на sm–lg, иначе sr-only.{% endcomment %}
+  <a href="{% url 'storefront-message' %}" data-chat-fab title="{% trans 'Ask us a question' %}"
      class="fixed right-4 bottom-20 sm:bottom-5 z-30 flex items-center gap-2 text-white rounded-full shadow-lg px-4 py-3 hover:opacity-90" style="background: var(--accent);">
-    <span class="text-lg leading-none" aria-hidden="true">💬</span><span class="hidden sm:inline lg:sr-only text-sm font-medium">{% trans "Ask us" %}</span>
+    <span class="text-lg leading-none" aria-hidden="true">💬</span><span class="sr-only sm:not-sr-only lg:sr-only text-sm font-medium" data-chat-fab-label>{% trans "Ask us" %}</span>
   </a>
   {% endif %}
   {# Переключатель вида сетки «список ↔ плитка» — общий обработчик для всех страниц. #}
