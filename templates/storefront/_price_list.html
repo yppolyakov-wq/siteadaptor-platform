@@ -46,7 +46,7 @@ MEN-24a: show_labels — маркировка диет/аллергенов (т�
     <div class="{% if st == 'preisliste_buch' %}md:px-5{% elif st == 'preisliste_foto_2sp' or st == 'preisliste_foto_3sp' %}{% else %}mt-5 first:mt-0{% endif %}{% if st == 'preisliste_2sp' %} break-inside-avoid{% endif %}"{% if st == 'preisliste_buch' %} data-book-page{% endif %}{% if plv %} data-pl-group{% endif %}>
       {% if st == 'preisliste_karte' or st == 'preisliste_buch' %}
       <div class="text-center mb-2 mt-1 break-after-avoid break-inside-avoid">
-        <div class="text-[11px] font-bold tracking-[0.18em] uppercase" style="color: var(--accent, #4f46e5);">{{ g.name }}{% if g.cont %} <span class="font-normal normal-case tracking-normal text-gray-400">({% trans "Fortsetzung" %})</span>{% endif %}</div>
+        <div class="text-[11px] font-bold tracking-[0.18em] uppercase" style="color: var(--accent, #4f46e5);">{{ g.name }}{% if g.cont %} <span class="font-normal normal-case tracking-normal text-gray-500">({% trans "Fortsetzung" %})</span>{% endif %}</div>
         <div class="mx-auto mt-1.5 w-10 border-b-2" style="border-color: var(--accent, #4f46e5);"></div>
       </div>
       {% else %}
@@ -59,7 +59,7 @@ MEN-24a: show_labels — маркировка диет/аллергенов (т�
             <span class="font-medium group-hover:underline">{{ p }}</span>
             {% if show_labels %}{% include "storefront/_price_row_labels.html" %}{% endif %}
             <span class="flex-1 min-w-4"></span>
-            {% if storefront_orders_active or site.menu_show_prices != False %}<span class="font-bold whitespace-nowrap" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.promo_price|default:p.base_price }}{% endif %} {{ p.currency|cursym }}</span>{% endif %}
+            {% if storefront_orders_active or site.menu_show_prices != False %}<span class="font-bold whitespace-nowrap" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-500">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.promo_price|default:p.base_price }}{% endif %} {{ p.currency|cursym }}</span>{% endif %}
           </span>
           {% with d=p.description_text %}{% if d %}<span class="block text-sm text-gray-500 italic mt-0.5">{{ d|striptags|truncatechars:90 }}</span>{% endif %}{% endwith %}{% include "storefront/_menu_days_badge.html" %}
         </a>
@@ -79,7 +79,7 @@ MEN-24a: show_labels — маркировка диет/аллергенов (т�
             {% if st != 'preisliste_kompakt' %}{% with d=p.description_text %}{% if d %}<span class="text-sm text-gray-500"> — {{ d|striptags|truncatechars:60 }}</span>{% endif %}{% endwith %}{% endif %}{% include "storefront/_menu_days_badge.html" %}
           </span>
           <span class="flex-1 min-w-4"></span>
-          {% if storefront_orders_active or site.menu_show_prices != False %}<span class="font-bold whitespace-nowrap{% if st == 'preisliste_kompakt' %} text-sm{% endif %}" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.promo_price|default:p.base_price }}{% endif %} {{ p.currency|cursym }}</span>{% endif %}
+          {% if storefront_orders_active or site.menu_show_prices != False %}<span class="font-bold whitespace-nowrap{% if st == 'preisliste_kompakt' %} text-sm{% endif %}" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-500">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.promo_price|default:p.base_price }}{% endif %} {{ p.currency|cursym }}</span>{% endif %}
         </a>
         {% endif %}
       {% endfor %}
@@ -112,10 +112,10 @@ MEN-24a: show_labels — маркировка диет/аллергенов (т�
 {% if show_labels %}{% allergen_legend price_groups as al %}{% if al %}
 {% comment %}MEN-24a: легенда сносок — только фактически встреченные аллергены,
 буквы совпадают с PDF-Speisekarte (единый маппинг food.allergen_letters).{% endcomment %}
-<p class="mt-3 text-[11px] leading-relaxed text-gray-400">{% for letter, label in al %}<span class="whitespace-nowrap"><b class="font-semibold">{{ letter }}</b> = {{ label }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+<p class="mt-3 text-[11px] leading-relaxed text-gray-500">{% for letter, label in al %}<span class="whitespace-nowrap"><b class="font-semibold">{{ letter }}</b> = {{ label }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
 {% endif %}{% additive_legend price_groups as adl %}{% if adl %}
 {# KA-12 WR-2: легенда номеров Zusatzstoffe — номера совпадают с PDF-Speisekarte. #}
-<p class="mt-1 text-[11px] leading-relaxed text-gray-400" data-additive-legend>{% for num, label in adl %}<span class="whitespace-nowrap"><b class="font-semibold">{{ num }}</b> = {{ label }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+<p class="mt-1 text-[11px] leading-relaxed text-gray-500" data-additive-legend>{% for num, label in adl %}<span class="whitespace-nowrap"><b class="font-semibold">{{ num }}</b> = {{ label }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
 {% endif %}{% endif %}
 {% if st == 'preisliste_buch' %}{% include "storefront/_price_book_script.html" %}{% endif %}
 {% endwith %}

@@ -9,7 +9,7 @@ day (выбранный). Дни со слотами кликабельны (?ta
     <span class="font-semibold text-sm">{{ cal_first|date:"F Y" }}</span>
     {% if cal_show_next %}<a href="?cal={{ cal_next|date:'Y-m' }}&amp;tag={{ day|date:'Y-m-d' }}{{ cal_qs }}{{ embed_qs }}" class="px-2 py-1 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="{% trans 'Next month' %}">›</a>{% else %}<span class="px-2"></span>{% endif %}
   </div>
-  <div class="grid grid-cols-7 gap-1 text-center text-[11px] text-gray-400 mb-1">
+  <div class="grid grid-cols-7 gap-1 text-center text-[11px] text-gray-500 mb-1">
     {% comment %}I18N: дни недели были зашиты по-немецки — на витрине посетителя это
     единственный немецкий элемент календаря. Msgid — те же, что в календаре номеров
     (_stay_calendar.html), переводы уже есть во всех 5 локалях.{% endcomment %}
@@ -27,5 +27,5 @@ day (выбранный). Дни со слотами кликабельны (?ta
       {% endif %}
     {% endfor %}
   </div>
-  <p class="mt-2 text-[11px] text-gray-400"><span class="inline-block w-2.5 h-2.5 rounded bg-emerald-100 align-middle"></span> {% trans "available" %}</p>
+  <p class="mt-2 text-[11px] text-gray-500"><span class="inline-block w-2.5 h-2.5 rounded bg-emerald-100 align-middle"></span> {% trans "available" %}</p>
 </div>

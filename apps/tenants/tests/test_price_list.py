@@ -629,3 +629,14 @@ def test_sp1_karte_and_book_fill_container_width():
     assert "max-w-2xl" not in karte
     buch = block("preisliste_buch")
     assert "max-w-none" in buch and "max-w-4xl" not in buch
+
+
+def test_sp13_info_text_contrast_not_gray_400():
+    """SP-13 (a11y-ревью): информационный текст прайс-листа («ab», «Fortsetzung», легенды
+    аллергенов/добавок) — не text-gray-400 (≈2.5:1 на белом, ниже AA)."""
+    from pathlib import Path
+
+    from django.conf import settings
+
+    text = (Path(settings.BASE_DIR) / "templates/storefront/_price_list.html").read_text()
+    assert "text-gray-400" not in text

@@ -48,9 +48,11 @@ LAY-1b (фидбэк владельца «нельзя отредактиров�
       {% endfor %}
     </ol>
   {% else %}
-    <div class="divide-y divide-gray-100">
+    {% comment %}SP-13 (аудит пространства 2026-11-02): короткие вопросы шли одной колонкой
+    на всю ширину — с четырёх вопросов на md+ две колонки (вопрос не рвётся между ними).{% endcomment %}
+    <div class="divide-y divide-gray-100{% if site.faq|length >= 4 %} md:columns-2 md:gap-10{% endif %}" data-faq-list>
       {% for f in site.faq %}
-        <details class="py-3 group">
+        <details class="py-3 group break-inside-avoid">
           <summary class="cursor-pointer font-medium text-gray-800 flex items-center justify-between">
             <span data-edit="faq.{{ forloop.counter0 }}.q">{{ f.q }}</span>
             <span class="text-gray-400 group-open:rotate-180 transition">⌄</span>
