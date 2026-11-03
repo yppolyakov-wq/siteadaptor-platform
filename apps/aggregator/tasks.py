@@ -669,13 +669,14 @@ def sync_marketing_opt_out(email: str, opt_out: bool, *, tenants=None) -> int:
     one-click `/u/<token>/`). tenants инжектится в тестах (физических
     схем там нет — как в reconcile_schema).
     """
-    from django_tenants.utils import get_public_schema_name, get_tenant_model
 
+    from apps.core import tenant_iter
     from apps.promotions.models import Customer
 
     if tenants is None:
-        tenants = get_tenant_model().objects.exclude(schema_name=get_public_schema_name())
-    from apps.core import tenant_iter
+        # SM11 (ревью): без бизнесов с неудавшейся регистрацией — у них нет схемы, и
+        # отписка падала бы на них при каждом повторе.
+        tenants = tenant_iter.tenants()
 
     updated = 0
     failed = []

@@ -19,7 +19,12 @@ def _iter_tenant_schemas():
 def purge_expired_documents():
     """Beat (раз в сутки): удалить документы с истёкшим сроком по всем схемам."""
     total = 0
+    failed = []
     for schema in _iter_tenant_schemas():
-        with tenant_iter.isolated(schema, "purge_expired_documents"):
+        with tenant_iter.isolated(schema, "purge_expired_documents") as outcome:
             total += purge_expired()
+        if outcome.failed:
+            failed.append(schema)
+    # SM11 (ревью): срок хранения — обязанность по закону; сбой бизнеса — видимая ошибка.
+    tenant_iter.raise_if_failed(failed, "purge_expired_documents")
     return total

@@ -25,6 +25,7 @@ from __future__ import annotations
 import logging
 from contextlib import contextmanager, nullcontext
 
+from celery.exceptions import SoftTimeLimitExceeded
 from django.db import connection, transaction
 from django_tenants.utils import get_tenant_model, schema_context
 
@@ -34,9 +35,14 @@ logger = logging.getLogger(__name__)
 def _queryset():
     model = get_tenant_model()
     qs = model.objects.exclude(schema_name="public")
-    failed = getattr(model, "PROVISIONING_FAILED", None)
-    if failed and hasattr(model, "provisioning_status"):
-        qs = qs.exclude(provisioning_status=failed)
+    # failed — схемы нет; pending — схема ещё создаётся (ProgrammingError каждый проход).
+    skip = [
+        getattr(model, n)
+        for n in ("PROVISIONING_FAILED", "PROVISIONING_PENDING")
+        if hasattr(model, n)
+    ]
+    if skip:
+        qs = qs.exclude(provisioning_status__in=skip)
     return qs.order_by("pk")
 
 
@@ -69,6 +75,29 @@ def isolated(schema: str, label: str):
     try:
         with schema_context(schema), guard:
             yield outcome
+    except SoftTimeLimitExceeded:
+        raise  # лимит времени задачи — не ошибка бизнеса: обход должен остановиться
     except Exception:  # noqa: BLE001 — изоляция бизнесов; ошибка уходит в лог/Sentry
         outcome.failed = True
+        _tag_sentry(schema, label)
         logger.exception("Фоновая задача %s: ошибка в схеме %s — обход продолжается", label, schema)
+
+
+def _tag_sentry(schema: str, label: str) -> None:
+    """Метки бизнеса и задачи на событии Sentry: «один бизнес сломан 10 дней» отличим
+    от «упали все сегодня». Без SDK (тесты/dev) — тихо ничего."""
+    try:
+        import sentry_sdk
+
+        sentry_sdk.set_tag("tenant_schema", schema)
+        sentry_sdk.set_tag("beat_task", label)
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def raise_if_failed(failed: list[str], label: str) -> None:
+    """Для задач, которые ОБЯЗАНЫ дойти до каждого бизнеса (сроки хранения DSGVO/BMG):
+    после обхода — падение задачи, видимое в Celery/Sentry; остальные бизнесы уже
+    обработаны, повтор идемпотентен."""
+    if failed:
+        raise RuntimeError(f"{label}: не выполнено в схемах {', '.join(failed)}")

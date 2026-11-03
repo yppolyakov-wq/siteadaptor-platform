@@ -95,11 +95,15 @@ def create_usage_invoice_item(
     Customer/карта). Возвращает id позиции.
     """
     customer_id = ensure_stripe_customer(tenant)
+    # SM11 (ревью): позиция создаётся в Stripe ДО записи UsageFeeRecord; сбой между ними
+    # раньше давал вторую позицию на следующем проходе. Ключ идемпотентности на
+    # (бизнес, описание периода) — Stripe вернёт ту же позицию.
     item = _client().InvoiceItem.create(
         customer=customer_id,
         amount=amount_cents,
         currency=currency,
         description=description,
+        idempotency_key=f"usage-fee:{tenant.pk}:{description}",
     )
     return item["id"]
 

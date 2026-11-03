@@ -5,6 +5,8 @@ PublicationSM. Ошибка адаптера → failed + last_error (повто
 в queued). Чистая логика — в _do_publish/_do_remove (их и тестируем напрямую).
 """
 
+import logging
+
 from django_tenants.utils import schema_context
 
 from apps.core import tenant_iter
@@ -12,6 +14,8 @@ from apps.core.jobs import idempotent_task
 
 from . import adapters
 from .state_machine import FAILED, PUBLISHED, QUEUED, REMOVED, PublicationSM
+
+logger = logging.getLogger(__name__)
 
 
 def _do_publish(publication_id) -> str:
@@ -22,9 +26,11 @@ def _do_publish(publication_id) -> str:
     # SM15: строку захватываем под блокировкой — две попытки (повторная доставка,
     # «Jetzt veröffentlichen» во время работы задачи) не опубликуют дважды: вторая
     # дождётся первой и увидит уже не QUEUED.
+    # skip_locked: строку уже держит другая попытка — она и опубликует (воркеры не
+    # выстраиваются в очередь за внешним HTTP-вызовом).
     with transaction.atomic():
         pub = (
-            Publication.objects.select_for_update(of=("self",))
+            Publication.objects.select_for_update(of=("self",), skip_locked=True)
             .filter(id=publication_id)
             .select_related("channel")
             .first()
@@ -32,45 +38,68 @@ def _do_publish(publication_id) -> str:
         if pub is None or pub.status != QUEUED:
             return "skip"  # идемпотентно: публикуем только из queued
         sm = PublicationSM()
+        if not pub.external_ref:
+            try:
+                ref = adapters.publish(pub)
+            except Exception as exc:  # noqa: BLE001 — ошибку адаптера фиксируем в last_error
+                logger.warning("Публикация %s: адаптер отказал", pub.pk, exc_info=True)
+                pub.last_error = str(exc)[:500]
+                pub.save(update_fields=["last_error", "updated_at"])
+                sm.apply(pub, FAILED)
+                return "failed"
+            pub.external_ref = ref
+            pub.last_error = ""
+            pub.save(update_fields=["external_ref", "last_error", "updated_at"])
+        # Пост снаружи уже есть: сбой записи статуса не должен откатить external_ref —
+        # иначе повтор опубликовал бы второй раз. Статус — в своей точке сохранения;
+        # при сбое строка остаётся QUEUED с external_ref, следующая попытка только
+        # допишет статус, не публикуя заново.
         try:
-            ref = adapters.publish(pub)
-        except Exception as exc:  # noqa: BLE001 — ошибку адаптера фиксируем в last_error
-            pub.last_error = str(exc)[:500]
-            pub.save(update_fields=["last_error", "updated_at"])
-            sm.apply(pub, FAILED)
-            return "failed"
-        pub.external_ref = ref
-        pub.last_error = ""
-        pub.save(update_fields=["external_ref", "last_error", "updated_at"])
-        sm.apply(pub, PUBLISHED)
+            with transaction.atomic():
+                sm.apply(pub, PUBLISHED)
+        except Exception:  # noqa: BLE001
+            logger.exception("Публикация %s: пост создан, статус не записан", pub.pk)
+            return "published_unrecorded"
         return "published"
 
 
 def _do_remove(publication_id) -> str:
     from django.db import transaction
 
+    from apps.promotions.models import Promotion
+
     from .models import Publication
 
+    promotion_id = (
+        Publication.objects.filter(id=publication_id).values_list("promotion_id", flat=True).first()
+    )
     with transaction.atomic():
+        # Порядок блокировок как у PromotionSM.apply (акция → публикация): снятие и
+        # «возобновление» идут строго друг за другом, без взаимной блокировки.
+        promo = None
+        if promotion_id:
+            promo = Promotion.objects.select_for_update().filter(pk=promotion_id).first()
         pub = (
-            Publication.objects.select_for_update(of=("self",))
+            Publication.objects.select_for_update(of=("self",), skip_locked=True)
             .filter(id=publication_id)
-            .select_related("channel", "promotion")
+            .select_related("channel")
             .first()
         )
         if pub is None or pub.status == REMOVED:
             return "skip"
         # SM15: «пауза → возобновление» до того, как задача снятия успела выполниться:
         # акция снова активна, публикация ещё висит — снимать её нельзя.
-        promo = getattr(pub, "promotion", None)
         if promo is not None and promo.status == "active":
             return "skip"
         try:
             adapters.remove(pub)
         except Exception as exc:  # noqa: BLE001
+            logger.warning("Снятие публикации %s: адаптер отказал", pub.pk, exc_info=True)
             pub.last_error = str(exc)[:500]
             pub.save(update_fields=["last_error", "updated_at"])
             return "error"
+        pub.external_ref = ""  # снятый пост: повторная активация опубликует заново
+        pub.save(update_fields=["external_ref", "updated_at"])
         PublicationSM().apply(pub, REMOVED)
         return "removed"
 
@@ -81,10 +110,15 @@ def publish_to_channel(*, tenant_schema, publication_id):
         return {"result": _do_publish(publication_id)}
 
 
-@idempotent_task()
+@idempotent_task(autoretry_for=(RuntimeError,), retry_backoff=120, max_retries=8)
 def remove_from_channel(*, tenant_schema, publication_id):
     with schema_context(tenant_schema):
-        return {"result": _do_remove(publication_id)}
+        result = _do_remove(publication_id)
+    if result == "error":
+        # SM15 (ревью): закончившаяся акция не должна висеть в Google/Facebook из-за
+        # одного сбоя канала — повтор с отступом (ключ освобождается при падении).
+        raise RuntimeError(f"Снятие публикации {publication_id} не удалось")
+    return {"result": result}
 
 
 # --- CM-2: отложенный контент (посты календаря + запланированный блог) ----------
@@ -141,13 +175,15 @@ def send_due_content():
     now = timezone.now()
     totals = {"posts": 0, "blog": 0}
     for schema in _iter_tenant_schemas():
+        # SM11 (ревью): всё, что читает итог бизнеса, — ВНУТРИ изоляции; иначе ошибка
+        # оставляла бы переменные неопределёнными или с итогом предыдущего бизнеса.
         with tenant_iter.isolated(schema, "send_due_content"):
             posts = send_due_posts(now)
             blog = publish_due_blog(now)
-        if blog:
-            bump_storefront_cache(schema)
-        totals["posts"] += posts
-        totals["blog"] += blog
+            if blog:
+                bump_storefront_cache(schema)
+            totals["posts"] += posts
+            totals["blog"] += blog
     return totals
 
 

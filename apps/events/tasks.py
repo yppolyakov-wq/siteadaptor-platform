@@ -26,7 +26,7 @@ def _iter_tenant_billing():
         return list(
             get_tenant_model()
             .objects.exclude(schema_name="public")
-            .exclude(provisioning_status="failed")
+            .exclude(provisioning_status=get_tenant_model().PROVISIONING_FAILED)
             .filter(payments_enabled=True)
             .exclude(stripe_connect_id="")
             .values_list("schema_name", "stripe_connect_id")
@@ -110,8 +110,10 @@ def charge_installments():
     totals = {"charged": 0, "failed": 0}
     for schema, connect_id in _iter_tenant_billing():
         r = {"charged": 0, "failed": 0}
-        with tenant_iter.isolated(schema, "charge_installments"):
+        with tenant_iter.isolated(schema, "charge_installments") as outcome:
             r = payments.charge_due_installments(connect_id)
+        if outcome.failed:
+            totals.setdefault("failed_tenants", []).append(schema)
         totals["charged"] += r["charged"]
         totals["failed"] += r["failed"]
     return totals

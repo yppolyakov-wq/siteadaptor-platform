@@ -144,9 +144,14 @@ def purge_due_registrations(today=None) -> int:
 def purge_old_registrations():
     """Beat (раз в сутки): удалять просроченные Meldescheine по всем схемам (G6)."""
     total = 0
+    failed = []
     for schema in _iter_tenant_schemas():
-        with tenant_iter.isolated(schema, "purge_old_registrations"):
+        with tenant_iter.isolated(schema, "purge_old_registrations") as outcome:
             total += purge_due_registrations()
+        if outcome.failed:
+            failed.append(schema)
+    # SM11 (ревью): срок хранения — обязанность по закону; сбой бизнеса — видимая ошибка.
+    tenant_iter.raise_if_failed(failed, "purge_old_registrations")
     return total
 
 
