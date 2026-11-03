@@ -166,3 +166,10 @@ def test_garbage_open_param_shows_the_list():
         _req(data={"open": "nope"}, drawer=False, path="/dashboard/booking/ressourcen/")
     )
     assert resp.status_code == 200
+
+
+@pytest.mark.parametrize("raw", ["²", "٣"])
+def test_non_ascii_digits_in_capacity_are_an_error_not_500(raw):
+    """pitfalls §3: int("²") падает — строгий разбор только ASCII-цифр."""
+    resp = vr.resource_new(_req("post", {"name": "T", "capacity": raw}))
+    assert resp.status_code == 200 and 'id="res-new-cap-err"' in resp.content.decode()

@@ -308,3 +308,18 @@ def test_day_plan_links_open_bookings_in_the_drawer_and_region_refreshes():
     assert 'id="tp-region" data-drawer-refresh' in html
     link = re.search(rf'<a href="/dashboard/booking/termin/{b.pk}/"[^>]*>', html).group(0)
     assert "data-drawer" in link
+
+
+@pytest.mark.parametrize("raw", ["²", "٣", "1²"])
+def test_non_ascii_digits_are_an_error_not_500(raw):
+    """pitfalls §3: int("²") падает — строгий разбор только ASCII-цифр."""
+    r = _master()
+    resp = _post(
+        {
+            "resource": str(r.pk),
+            "start_date": _day().isoformat(),
+            "start_time": "10:00",
+            "minutes": raw,
+        }
+    )
+    assert resp.status_code == 200 and 'id="bn-minutes-err"' in resp.content.decode()

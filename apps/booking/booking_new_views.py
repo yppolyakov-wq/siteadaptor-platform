@@ -9,6 +9,7 @@ eintragen» — вторая кнопка формы после отказа, к
 
 from __future__ import annotations
 
+import re
 from datetime import date, datetime, time
 
 from django.contrib import messages
@@ -43,7 +44,8 @@ _MORE_FIELDS = {"minutes", "note"}
 
 def _int_or_none(raw, lo, hi):
     raw = (raw or "").strip()
-    if not raw.isdigit() or len(raw) > 5:
+    # pitfalls §3: str.isdigit() пускает «²»/«٣», а int("²") падает 500 — только ASCII-цифры
+    if not re.fullmatch(r"[0-9]{1,5}", raw):
         return None
     value = int(raw)
     return value if lo <= value <= hi else None

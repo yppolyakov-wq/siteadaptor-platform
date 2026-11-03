@@ -10,6 +10,8 @@
 
 from __future__ import annotations
 
+import re
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -504,7 +506,8 @@ def _strict_int(raw, lo, hi, default):
     raw = (raw or "").strip()
     if not raw:
         return default
-    if not raw.isdigit() or len(raw) > 4:
+    # pitfalls §3: str.isdigit() пускает «²»/«٣», а int("²") падает 500 — только ASCII-цифры
+    if not re.fullmatch(r"[0-9]{1,4}", raw):
         return None
     value = int(raw)
     return value if lo <= value <= hi else None
