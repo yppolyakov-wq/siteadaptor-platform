@@ -33,7 +33,7 @@
         <p class="text-sm text-gray-600 py-2">0 % — § 19 UStG (Kleinunternehmer)</p>
       {% else %}
         <select id="inv-vat" name="vat_rate" class="ui-input"{% if fv_errors.vat_rate %} aria-invalid="true" aria-describedby="inv-vat-err"{% endif %}>
-          {% for rate in vat_rates %}<option value="{{ rate }}"{% if fv.vat_rate == rate|stringformat:"s" %} selected{% endif %}>{{ rate }} %</option>{% endfor %}
+          {% for rate in vat_rates %}<option value="{{ rate|stringformat:'s' }}"{% if fv.vat_rate == rate|stringformat:"s" %} selected{% endif %}>{{ rate }} %</option>{% endfor %}
         </select>
         {% include "finance/_field_err.html" with err=fv_errors.vat_rate id="inv-vat" %}
       {% endif %}

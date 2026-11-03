@@ -210,3 +210,30 @@ def test_drawers_and_permissions():
     assert r["finance:journal-new"] == r["finance:journal"]
     assert r["finance:expense-new"] == r["finance:expenses"]
     assert r["finance:invoice-new"] == r["finance:invoices"]
+
+
+@pytest.mark.parametrize("lang", ["de", "en", "ru"])
+def test_vat_options_round_trip_in_cabinet_language(lang):
+    """Ревью D6.5 (HIGH): option value локализовался («19,00»), строгий белый список
+    отклонял каждую запись в de/ru/tr/uk. Значение, которое шлёт браузер, — принимается."""
+    from django.utils import translation
+
+    with translation.override(lang):
+        html = ev.journal_new(_req("/dashboard/finance/buchung/neu/", drawer=True)).content.decode()
+        values = re.findall(r'<option value="([^"]+)"', html.split('name="vat_rate"', 1)[1])
+        assert values
+        for value in values:
+            ev.journal_new(
+                _req("/dashboard/finance/buchung/neu/", "post", {"amount": "10", "vat_rate": value})
+            )
+    assert RevenueEntry.objects.count() == len(values)
+    assert {str(e.vat_rate) for e in RevenueEntry.objects.all()} == {
+        str(r) for r in RevenueEntry.VAT_RATES
+    }
+
+
+def test_vat_comma_is_accepted():
+    ev.journal_new(
+        _req("/dashboard/finance/buchung/neu/", "post", {"amount": "10", "vat_rate": "7,00"})
+    )
+    assert RevenueEntry.objects.get().vat_rate == Decimal("7.00")

@@ -14,7 +14,7 @@ suppliers, next_url.{% endcomment %}
     <div>
       <label for="en-vat" class="block text-sm font-medium mb-1">{% trans "USt.-Satz" %}</label>
       <select id="en-vat" name="vat_rate" class="ui-input"{% if fv_errors.vat_rate %} aria-invalid="true" aria-describedby="en-vat-err"{% endif %}>
-        {% for r in vat_rates %}<option value="{{ r }}"{% if fv.vat_rate == r|stringformat:"s" %} selected{% endif %}>{{ r|floatformat:0 }} %</option>{% endfor %}
+        {% for r in vat_rates %}<option value="{{ r|stringformat:'s' }}"{% if fv.vat_rate == r|stringformat:"s" %} selected{% endif %}>{{ r|floatformat:0 }} %</option>{% endfor %}
       </select>
       {% include "finance/_field_err.html" with err=fv_errors.vat_rate id="en-vat" %}
     </div>

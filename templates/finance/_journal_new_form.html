@@ -13,7 +13,7 @@
     <div>
       <label for="jn-vat" class="block text-sm font-medium mb-1">{% trans "VAT" %}</label>
       <select id="jn-vat" name="vat_rate" class="ui-input"{% if fv_errors.vat_rate %} aria-invalid="true" aria-describedby="jn-vat-err"{% endif %}>
-        {% for rate in vat_rates %}<option value="{{ rate }}"{% if fv.vat_rate == rate|stringformat:"s" %} selected{% endif %}>{{ rate }} %</option>{% endfor %}
+        {% for rate in vat_rates %}<option value="{{ rate|stringformat:'s' }}"{% if fv.vat_rate == rate|stringformat:"s" %} selected{% endif %}>{{ rate }} %</option>{% endfor %}
       </select>
       {% include "finance/_field_err.html" with err=fv_errors.vat_rate id="jn-vat" %}
     </div>

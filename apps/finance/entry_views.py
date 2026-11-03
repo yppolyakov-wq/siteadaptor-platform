@@ -30,8 +30,14 @@ INVOICE_LINES = 8
 
 def _vat(raw, default: str):
     """Ставка из белого списка; неизвестная → None (ошибка у поля, а не молча 19 %)."""
-    raw = (raw or default).strip()
-    return next((r for r in RevenueEntry.VAT_RATES if str(r) == raw), None)
+    # Ревью D6.5: значение option локализуется шаблоном («19,00» в de) — сравниваем числом.
+    from apps.core.money import parse_money
+
+    try:
+        value = parse_money((raw or default).strip())
+    except ValueError:
+        return None
+    return next((r for r in RevenueEntry.VAT_RATES if value is not None and r == value), None)
 
 
 def _amount(post, field, errors, *, allow_negative=False, required=True):
