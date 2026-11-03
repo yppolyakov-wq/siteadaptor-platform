@@ -280,7 +280,10 @@ def heute_columns(tenant, user=None) -> list[dict]:
         # тенантов с физическими номерами; «Sauber» — право правки продаж)
         from apps.stays.models import Room
 
-        if _safe("rooms", lambda: Room.objects.filter(is_active=True).exists())[0]:
+        if _safe(
+            "rooms",
+            lambda: Room.objects.filter(is_active=True, unit__is_active=True).exists(),
+        )[0]:
             can_clean = user is not None and has_perm(user, "verkaeufe.edit")
 
             def _dirty():

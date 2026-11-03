@@ -240,3 +240,17 @@ def test_belegungsplan_toolbar_is_full_width_without_housekeeping_and_gap_banner
     # sr-only подписи клеток (position:absolute) иначе вылезают из прокручиваемой
     # сетки и дают горизонтальную прокрутку всей страницы (найдено стендом D1.5)
     assert "ui-card relative overflow-x-auto" in text
+
+
+def test_clean_from_heute_returns_to_heute():
+    """ECC-ревью D1.5: «Sauber» в «Heute» возвращает туда же (local_next), а не на шахматку."""
+    unit = _unit()
+    room = Room.objects.create(unit=unit, number="5", housekeeping=Room.HK_DIRTY)
+    req = RequestFactory().post(
+        "/x/", {"next": "/dashboard/verkaeufe/?view=heute", "action": "clean"}
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _owner_req(_tenant("hotel")).user
+    resp = views.room_clean(req, pk=room.pk)
+    assert resp.url == "/dashboard/verkaeufe/?view=heute"

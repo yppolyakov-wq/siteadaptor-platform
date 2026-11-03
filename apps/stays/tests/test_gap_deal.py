@@ -17,7 +17,7 @@ from apps.stays.models import StaySettings, StayUnit
 
 pytestmark = pytest.mark.django_db
 
-# Дата ОТНОСИТЕЛЬНАЯ: детектор коротких люк (`views._has_short_gaps`) смотрит
+# Дата ОТНОСИТЕЛЬНАЯ: детектор коротких люк (`gaps.short_gaps`) смотрит
 # только вперёд от сегодня — с фиксированной датой замок протухал (CI 2026-09-03).
 D0 = timezone.localdate()
 
