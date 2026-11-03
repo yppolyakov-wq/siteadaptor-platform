@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import views, views_resources
 
 app_name = "booking"
 
@@ -11,6 +11,8 @@ urlpatterns = [
     path("termin/<uuid:pk>/", views.booking_detail, name="booking-detail"),
     path("<uuid:pk>/action/", views.booking_action, name="booking-action"),
     path("ressourcen/", views.resources, name="resources"),
+    # UX-D D3.1: страница ресурса (вкладки рисует сервер, одна форма — W0)
+    path("ressourcen/<uuid:pk>/", views_resources.resource_edit, name="resource-edit"),
     # HF-4: визуальный календарь доступности (закрыть/открыть продажи на день).
     path("verfuegbarkeit/", views.availability_calendar, name="availability"),
     path("leistungen/", views.services_view, name="services"),

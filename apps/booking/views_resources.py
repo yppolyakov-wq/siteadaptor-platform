@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404
@@ -158,13 +159,15 @@ def _settings(request):
     from . import views
 
     resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
+    # Ревью D3.0: мусор в предоплате не отменяет остальные правки — предоплата остаётся
+    # прежней (ошибка сказана), прочие поля сохраняются.
     deposit = _deposit_or_error(request, request.POST.get("deposit_eur"))
-    if deposit is None:
-        return None
-    resource.deposit_cents = deposit
     resource.require_manual_confirm = bool(request.POST.get("require_manual_confirm"))
     resource.counts_party_size = bool(request.POST.get("counts_party_size"))
-    fields = ["deposit_cents", "require_manual_confirm", "counts_party_size", "updated_at"]
+    fields = ["require_manual_confirm", "counts_party_size", "updated_at"]
+    if deposit is not None:
+        resource.deposit_cents = deposit
+        fields.append("deposit_cents")
     # KA-12 GA-3: вместимость/места/зона правятся здесь же (presence-guard W0:
     # старая форма без этих полей их не трогает).
     if request.POST.get("seats_present"):
@@ -195,7 +198,10 @@ def _settings(request):
         )
         return redirect("booking:resources")
     resource.save(update_fields=fields)
-    messages.success(request, _("Deposit settings saved."))
+    if deposit is not None:
+        messages.success(request, _("Deposit settings saved."))
+    else:
+        messages.info(request, _("Die übrigen Änderungen sind gespeichert."))
     return None
 
 
@@ -272,3 +278,190 @@ def dispatch(request, action: str):
     """Выполнить действие; ответ — только если обработчик сам решил, куда вести."""
     handler = HANDLERS.get(action)
     return handler(request) if handler else None
+
+
+# --- UX-D D3.1: страница ресурса ----------------------------------------------------
+#
+# Вкладки рисует сервер (`?tab=`, белый список); «tisch» есть только у стола, «profil» —
+# только у мастера. Всё редактируемое о ресурсе — ОДНА форма `resource_update` (инвариант
+# W0: старые `resource_settings`/`resource_profile` писали поля безусловно, форма по
+# вкладке обнулила бы соседние поля). Сначала проверка всего, потом одна запись.
+# Мини-формы страницы (правила часов, комбинация, вкл/выкл) — прежние действия модуля.
+
+PAGE_ACTIONS = frozenset(
+    {"resource_update", "rule", "rules_from_hours", "rule_delete", "toggle", "resource_parts"}
+)
+
+
+def tabs_for(resource) -> tuple[str, ...]:
+    """Вкладки ресурса по типу (у не-стола нет «tisch», у не-мастера — «profil»)."""
+    return tuple(
+        t
+        for t in RESOURCE_TABS
+        if (t != "tisch" or resource.type == Resource.TYPE_TABLE)
+        and (t != "profil" or resource.type == Resource.TYPE_STAFF)
+    )
+
+
+def page_url(resource, tab: str | None = None) -> str:
+    from django.urls import reverse
+
+    url = reverse("booking:resource-edit", args=[resource.pk])
+    if tab in tabs_for(resource) and tab != RESOURCE_TABS[0]:
+        url += f"?tab={tab}"
+    return url
+
+
+class _Invalid(Exception):
+    def __init__(self, tab: str, message: str):
+        super().__init__(message)
+        self.tab = tab
+        self.message = message
+
+
+def _update(request, resource):
+    """Сохранить единую форму страницы ресурса: всё или ничего (под блокировкой строки)."""
+    from apps.booking import occupancy
+    from apps.core.permissions import has_perm
+
+    from . import views
+
+    post = request.POST
+    tenant = getattr(request, "tenant", None)
+    with transaction.atomic():
+        resource = Resource.objects.select_for_update().get(pk=resource.pk)
+        fields = ["updated_at"]
+        if post.get("basis_present"):
+            name = (post.get("name") or "").strip()[:120]
+            if not name:
+                raise _Invalid("basis", _("Bitte einen Namen angeben."))
+            resource.name = name
+            resource.sort_order = views._bounded_int(
+                post.get("sort_order"), resource.sort_order, 0, 999
+            )
+            fields += ["name", "sort_order"]
+        if post.get("buchung_present"):
+            resource.capacity = views._bounded_int(post.get("capacity"), resource.capacity, 1, 100)
+            resource.counts_party_size = bool(post.get("counts_party_size"))
+            resource.bookable_online = bool(post.get("bookable_online"))
+            fields += ["capacity", "counts_party_size", "bookable_online"]
+            # Решение D3: предоплата и ручная проверка — по праву цен (как у услуги, D2).
+            if has_perm(request.user, "preise.edit"):
+                cents = views._deposit_cents_or_none(post.get("deposit_eur"))
+                if cents is None:
+                    raise _Invalid("buchung", _("Bitte einen Betrag wie 25,00 angeben."))
+                resource.deposit_cents = cents
+                resource.require_manual_confirm = bool(post.get("require_manual_confirm"))
+                fields += ["deposit_cents", "require_manual_confirm"]
+        if post.get("tisch_present") and resource.type == Resource.TYPE_TABLE:
+            resource.seats = views._seats_or_none(post.get("seats"), resource.seats)
+            resource.zone = (post.get("zone") or "").strip()[:40]
+            fields += ["seats", "zone"]
+        if post.get("buchung_present") and resource.type == Resource.TYPE_TABLE:
+            # GA-4: «ab N Personen» онлайн; не больше мест (иначе стол пропал бы из подбора).
+            resource.min_seats = min(
+                views._bounded_int(post.get("min_seats"), resource.min_seats, 1, 99),
+                resource.seats or 99,
+            )
+            fields.append("min_seats")
+        if post.get("profil_present") and resource.type == Resource.TYPE_STAFF:
+            resource.title = (post.get("title") or "").strip()[:120]
+            resource.bio = (post.get("bio") or "").strip()[:2000]
+            fields += ["title", "bio"]
+            new_photo = views._uploaded_image_ref(request, "photo", "staff")
+            if new_photo or post.get("remove_photo"):
+                resource.photo = new_photo or {}
+                fields.append("photo")
+        # GA-5: стол в комбинации обязан остаться «1 бронь = 1 стол».
+        if (
+            resource.parts.exists() or resource.combinations.exists()
+        ) and not occupancy._combinable(resource):
+            raise _Invalid(
+                "buchung",
+                _(
+                    "Dieser Tisch gehört zu einer Kombination: Kapazität 1 und "
+                    "kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
+                ),
+            )
+        i18n_fields = (
+            ("name", "title", "bio") if resource.type == Resource.TYPE_STAFF else ("name",)
+        )
+        fields += apply_i18n_overlay(resource, post, tenant, i18n_fields)
+        resource.save(update_fields=list(dict.fromkeys(fields)))
+    messages.success(request, _("Saved."))
+
+
+@login_required
+def resource_edit(request, pk):
+    """UX-D D3.1: страница ресурса — шапка со сводкой и вкладки."""
+    from django.shortcuts import render
+
+    from apps.core.i18n_input import i18n_inputs_for
+    from apps.core.permissions import has_perm
+
+    from . import hours_summary, views
+    from .models import Service
+
+    resource = get_object_or_404(Resource.objects.prefetch_related("rules", "parts"), pk=pk)
+    tabs = tabs_for(resource)
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        tab = request.POST.get("tab")
+        # Страница правит только СВОЙ ресурс: чужой pk в POST — 404, не тихая правка.
+        if action not in PAGE_ACTIONS or request.POST.get("resource") != str(resource.pk):
+            raise Http404
+        if action == "resource_update":
+            try:
+                _update(request, resource)
+            except _Invalid as exc:
+                messages.error(request, exc.message)
+                tab = exc.tab
+        else:
+            response = dispatch(request, action)
+            if response is not None:  # отказ комбинации и т.п. — обратно на свою вкладку
+                tab = ACTION_TAB.get(action)
+        if tab not in tabs:
+            tab = ACTION_TAB.get(action)
+        return redirect(page_url(resource, tab))
+
+    tab = request.GET.get("tab")
+    rule_groups = hours_summary.rule_groups(resource.rules.all())
+    single_tables = []
+    if resource.type == Resource.TYPE_TABLE:
+        single_tables = [
+            t
+            for t in Resource.objects.filter(
+                is_active=True,
+                type=Resource.TYPE_TABLE,
+                counts_party_size=False,
+                capacity=1,
+                parts__isnull=True,
+            ).order_by("sort_order", "name")
+            if t.pk != resource.pk
+        ]
+    tenant = getattr(request, "tenant", None)
+    return render(
+        request,
+        "booking/resource_page.html",
+        {
+            "nav": "booking-resources",
+            "r": resource,
+            "tabs": tabs,
+            "active_tab": tab if tab in tabs else tabs[0],
+            "rule_groups": rule_groups,
+            "hours_summary": hours_summary.summary(rule_groups),
+            "business_hours": views._business_hours_of(tenant),
+            "weekdays": AvailabilityRule.WEEKDAYS,
+            "single_tables": single_tables,
+            "part_ids": {p.pk for p in resource.parts.all()},
+            "offered": Service.objects.filter(resources=resource).order_by("name")
+            if resource.type == Resource.TYPE_STAFF
+            else [],
+            "i18n_inputs": i18n_inputs_for(
+                resource,
+                tenant,
+                ("name", "title", "bio") if resource.type == Resource.TYPE_STAFF else ("name",),
+            ),
+            "can_edit_prices": has_perm(request.user, "preise.edit"),
+        },
+    )

@@ -129,3 +129,21 @@ def test_legacy_actions_still_redirect_to_the_open_card():
     r = _table()
     resp, _m = _post({"action": "toggle", "resource": str(r.pk)})
     assert resp.status_code == 302 and resp.url.endswith(f"?open={r.pk}#res-{r.pk}")
+
+
+def test_garbage_deposit_does_not_discard_other_changes():
+    r = _table(deposit_cents=1200, zone="Innen")
+    _resp, msgs = _post(
+        {
+            "action": "resource_settings",
+            "resource": str(r.pk),
+            "deposit_eur": "abc",
+            "seats_present": "1",
+            "capacity": "1",
+            "seats": "6",
+            "zone": "Terrasse",
+        }
+    )
+    r.refresh_from_db()
+    assert (r.deposit_cents, r.seats, r.zone) == (1200, 6, "Terrasse")
+    assert [lvl for lvl, _t in msgs] == ["error", "info"]

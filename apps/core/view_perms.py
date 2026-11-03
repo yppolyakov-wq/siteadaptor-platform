@@ -392,6 +392,7 @@ RULES: dict[str, Rule] = {
     "extras": _r(CFG, CFGE),
     "set-presence": _r(CFG, CFGE),
     "booking:resources": _r(CFG, CFGE),
+    "booking:resource-edit": _r(CFG, CFGE),  # UX-D D3.1
     "booking:availability": _r(CFG, CFGE),
     "stays:channels": _r(CFG, CFGE),
     "modules": _r("funktionen.view", "funktionen.edit"),

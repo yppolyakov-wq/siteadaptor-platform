@@ -59,7 +59,9 @@
           <span class="shrink-0 text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
         </summary>
         <div class="px-4 pb-4 border-t border-gray-100 pt-3">
-        <div class="flex justify-end">
+        <div class="flex justify-end items-center gap-4">
+          {# UX-D D3.1: всё о ресурсе — на его странице (вкладки); карточка списка — до D3.2 #}
+          <a href="{% url 'booking:resource-edit' r.pk %}" class="text-sm font-medium text-indigo-700 underline" data-resource-page-link>{% trans "Edit" %} <span aria-hidden="true">→</span></a>
           <form method="post">{% csrf_token %}
             <input type="hidden" name="action" value="toggle"><input type="hidden" name="resource" value="{{ r.pk }}">
             <button class="text-xs text-gray-500 hover:underline">{% if r.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
@@ -101,7 +103,7 @@
         <form method="post" class="mt-2 flex flex-wrap items-center gap-2 text-sm border-t border-gray-100 pt-2">{% csrf_token %}
           <input type="hidden" name="action" value="resource_settings"><input type="hidden" name="resource" value="{{ r.pk }}">
           <label class="text-gray-600">{% trans "Deposit €" %}
-            <input name="deposit_eur" type="text" inputmode="decimal" value="{{ r.deposit_eur|money_input }}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5">
+            <input name="deposit_eur" type="text" inputmode="decimal" value="{{ r.deposit_eur|money_input }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5">
           </label>
           <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="require_manual_confirm" {% if r.require_manual_confirm %}checked{% endif %}> {% trans "Manual review" %}</label>
           <label class="flex items-center gap-1 text-gray-600"><input type="checkbox" name="counts_party_size" {% if r.counts_party_size %}checked{% endif %}> {% trans "Count per person (group course)" %}</label>

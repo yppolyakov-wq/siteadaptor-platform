@@ -1,0 +1,221 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{{ r.name }}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D3.1: страница ресурса (стол / мастер / зал) — шапка со сводкой + вкладки.
+Активную вкладку рисует сервер (?tab=, белый список; «Tisch» — только у стола, «Profil» —
+только у мастера); переключение — общая механика _i18n_switch (через lang_switch).
+Всё редактируемое о ресурсе — ОДНА форма #resource-form (resource_update: старые
+resource_settings/resource_profile писали поля безусловно — форма по вкладке обнулила бы
+соседние поля, инвариант W0). Правила часов и комбинация — мини-формы вне формы, несут `tab`.{% endcomment %}
+{% i18n_base_locale as base_loc %}
+<div data-resource-page>
+<a href="{% url 'booking:resources' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Resources & hours" %}</a>
+<div class="flex items-start justify-between gap-3 flex-wrap mt-1 mb-4">
+  <div class="min-w-0">
+    <div class="flex items-center gap-3 flex-wrap">
+      <h1 class="ui-h1 break-words">{{ r.name }}</h1>
+      {% lang_switch %}
+    </div>
+    <p class="text-sm text-gray-600 mt-0.5" data-resource-summary>{{ r.get_type_display }}{% if r.seats %} · {% blocktrans with n=r.seats %}{{ n }} Plätze{% endblocktrans %}{% endif %}{% if r.zone %} · {{ r.zone }}{% endif %}{% if r.title %} · {{ r.title }}{% endif %} · <span aria-hidden="true">🕒</span> {% if hours_summary %}{{ hours_summary }}{% elif business_hours %}{% trans "Öffnungszeiten des Betriebs" %}{% else %}{% trans "No opening hours yet — not bookable online." %}{% endif %}</p>
+  </div>
+  <div class="flex items-center gap-2 flex-wrap">
+    <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium {% if r.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}"><span class="w-1.5 h-1.5 rounded-full {% if r.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if r.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</span>
+    <form method="post" class="inline">{% csrf_token %}
+      <input type="hidden" name="action" value="toggle"><input type="hidden" name="resource" value="{{ r.pk }}">
+      <input type="hidden" name="tab" value="{{ active_tab }}" data-resource-tab>
+      <button class="ui-btn ui-btn-secondary ui-btn-sm">{% if r.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+    </form>
+  </div>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="ui-tabs mb-4" role="tablist" aria-label="{% trans 'Bereiche' %}">
+  {% for t in tabs %}
+  <button type="button" data-pf-tab="{{ t }}" class="ui-tab" role="tab" aria-selected="{% if active_tab == t %}true{% else %}false{% endif %}" tabindex="{% if active_tab == t %}0{% else %}-1{% endif %}">{% if t == "basis" %}{% trans "Basic data" %}{% elif t == "zeiten" %}{% trans "Öffnungszeiten" %}{% if rule_groups %} <span class="font-normal">· {{ rule_groups|length }}</span>{% endif %}{% elif t == "buchung" %}{% trans "Buchung" %}{% elif t == "tisch" %}{% trans "Tisch" %}{% else %}{% trans "Profil" %}{% endif %}</button>
+  {% endfor %}
+</div>
+
+<form id="resource-form" method="post" enctype="multipart/form-data" class="ui-card p-5 max-w-3xl [&_:is(input,select,textarea)]:scroll-mb-32{% if active_tab == 'zeiten' %} hidden{% endif %}" data-pf-hide-on="zeiten">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="resource_update"><input type="hidden" name="resource" value="{{ r.pk }}">
+  <input type="hidden" name="tab" value="{{ active_tab }}" data-resource-tab>
+
+  {# --- Grunddaten ------------------------------------------------------- #}
+  <div data-pf-panel="basis" class="grid sm:grid-cols-3 gap-3 items-end{% if active_tab != 'basis' %} hidden{% endif %}">
+    <input type="hidden" name="basis_present" value="1">
+    <div class="sm:col-span-2" data-i18n-loc="{{ base_loc }}" lang="{{ base_loc }}">
+      <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Name" %}</span>
+      <input name="name" type="text" required maxlength="120" value="{{ r.name }}" class="ui-input"></label>
+    </div>
+    <div>
+      <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Reihenfolge" %}</span>
+      <input name="sort_order" type="text" inputmode="numeric" value="{{ r.sort_order }}" class="ui-input"></label>
+    </div>
+    {% regroup i18n_inputs by locale as by_loc %}
+    {% for grp in by_loc %}
+    <div data-i18n-loc="{{ grp.grouper }}" lang="{{ grp.grouper }}" class="hidden sm:col-span-3 space-y-2">
+      {% for inp in grp.list %}{% if inp.field == 'name' %}
+        <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Name" %} ({{ inp.locale|upper }})</span>
+        <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input"></label>
+      {% endif %}{% endfor %}
+    </div>
+    {% endfor %}
+    <p class="sm:col-span-3 text-sm text-gray-600">{% trans "Type" %}: {{ r.get_type_display }}</p>
+  </div>
+
+  {# --- Buchung ------------------------------------------------------------ #}
+  <div data-pf-panel="buchung" class="space-y-3{% if active_tab != 'buchung' %} hidden{% endif %}">
+    <input type="hidden" name="buchung_present" value="1">
+    <div class="grid sm:grid-cols-3 gap-3 items-end">
+      <div>
+        <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Capacity" %}</span>
+        <input name="capacity" type="text" inputmode="numeric" value="{{ r.capacity }}" class="ui-input"></label>
+      </div>
+      {% if r.type == 'table' %}
+      <div>
+        <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Online ab Personen" %}</span>
+        <input name="min_seats" type="text" inputmode="numeric" value="{{ r.min_seats }}" class="ui-input"></label>
+      </div>
+      {% endif %}
+    </div>
+    <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-700">
+      <label class="flex items-center gap-2"><input type="checkbox" name="bookable_online" {% if r.bookable_online %}checked{% endif %} class="rounded"> {% trans "Online buchbar" %}</label>
+      <label class="flex items-center gap-2"><input type="checkbox" name="counts_party_size" {% if r.counts_party_size %}checked{% endif %} class="rounded"> {% trans "Count per person (group course)" %}</label>
+    </div>
+    {% if not can_edit_prices %}<p id="res-prices-ro" class="text-xs text-gray-600" data-prices-readonly>{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}</p>{% endif %}
+    {# Решение D3: предоплата и ручная проверка — по праву цен (как у услуги, D2) #}
+    <fieldset class="grid sm:grid-cols-3 gap-3 items-end"{% if not can_edit_prices %} disabled aria-describedby="res-prices-ro"{% endif %}>
+      <legend class="sr-only">{% trans "Deposit €" %}</legend>
+      <div>
+        <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Deposit €" %}</span>
+        <input name="deposit_eur" type="text" inputmode="decimal" value="{{ r.deposit_eur|money_input }}" class="ui-input"></label>
+      </div>
+      <label class="sm:col-span-2 flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="require_manual_confirm" {% if r.require_manual_confirm %}checked{% endif %} class="rounded"> {% trans "Manual review" %}</label>
+    </fieldset>
+  </div>
+
+  {# --- Tisch (только стол) ----------------------------------------------- #}
+  {% if r.type == 'table' %}
+  <div data-pf-panel="tisch" class="grid sm:grid-cols-3 gap-3 items-end{% if active_tab != 'tisch' %} hidden{% endif %}">
+    <input type="hidden" name="tisch_present" value="1">
+    <div>
+      <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Plätze" %}</span>
+      <input name="seats" type="text" inputmode="numeric" value="{{ r.seats|default_if_none:'' }}" class="ui-input" data-table-seats></label>
+    </div>
+    <div class="sm:col-span-2">
+      <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Bereich" %}</span>
+      <input name="zone" type="text" maxlength="40" value="{{ r.zone }}" placeholder="{% trans 'z. B. Terrasse' %}" class="ui-input"></label>
+    </div>
+  </div>
+  {% endif %}
+
+  {# --- Profil (только мастер) ------------------------------------------- #}
+  {% if r.type == 'staff' %}
+  <div data-pf-panel="profil" class="space-y-3{% if active_tab != 'profil' %} hidden{% endif %}">
+    <input type="hidden" name="profil_present" value="1">
+    <div data-i18n-loc="{{ base_loc }}" lang="{{ base_loc }}" class="space-y-3">
+      <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Rolle" %}</span>
+      <input name="title" type="text" maxlength="120" value="{{ r.title }}" placeholder="{% trans 'Role (e.g. Stylist, Master)' %}" class="ui-input"></label>
+      <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Short bio (optional)" %}</span>
+      <textarea name="bio" rows="3" class="ui-input">{{ r.bio }}</textarea></label>
+    </div>
+    {% for grp in by_loc %}
+    <div data-i18n-loc="{{ grp.grouper }}" lang="{{ grp.grouper }}" class="hidden space-y-2">
+      {% for inp in grp.list %}{% if inp.field == 'title' %}
+        <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Rolle" %} ({{ inp.locale|upper }})</span>
+        <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input"></label>
+      {% elif inp.field == 'bio' %}
+        <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Short bio (optional)" %} ({{ inp.locale|upper }})</span>
+        <textarea name="{{ inp.input_name }}" rows="3" class="ui-input">{{ inp.value }}</textarea></label>
+      {% endif %}{% endfor %}
+    </div>
+    {% endfor %}
+    <div class="flex flex-wrap items-center gap-3">
+      {% if r.photo_url %}<img src="{{ r.photo_url }}" alt="" class="w-14 h-14 rounded-full object-cover shrink-0">{% endif %}
+      {% include "catalog/_photo_add_tile.html" with target="photo" small=1 %}<input name="photo" type="file" accept="image/*" class="hidden" aria-label="{% trans "Photo" %}">
+      {% if r.photo_url %}<label class="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="remove_photo" value="1" class="rounded"> {% trans "Remove photo" %}</label>{% endif %}
+    </div>
+    <div class="text-sm" data-resource-offers>
+      <p class="text-xs font-medium text-gray-600 mb-1">{% trans "Leistungen" %}</p>
+      {% for s in offered %}<a href="{% url 'booking:service-edit' s.pk %}?tab=grund" class="inline-block mr-3 text-indigo-700 underline">{{ s.name }}</a>{% empty %}<span class="ui-muted">{% trans "Noch keine Leistungen." %}</span>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="sticky bottom-20 md:bottom-0 bg-white pt-3 mt-4 border-t border-gray-100">
+    <button class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
+  </div>
+</form>
+
+{# --- Öffnungszeiten: правила по дням — свои мини-формы ------------------------ #}
+<div data-pf-panel="zeiten" class="ui-card p-5 max-w-3xl{% if active_tab != 'zeiten' %} hidden{% endif %}" data-resource-hours>
+  <p class="text-xs text-gray-600 mb-3">
+    {% trans "Aus diesen Zeiten entstehen die buchbaren Termin-Slots." %}
+    <a href="{% url 'settings' %}#sec-zeiten" class="text-indigo-700 underline">{% trans "Öffnungszeiten des Betriebs" %} <span aria-hidden="true">→</span></a>
+  </p>
+  {# SP-3: одинаковые окна склеены («Mo–So 11:00–22:00»), удаление — по дню. #}
+  <div class="space-y-1.5" data-rule-groups>
+    {% for g in rule_groups %}
+      <div class="flex flex-wrap items-center gap-1.5 text-sm text-gray-700">
+        <span class="font-medium mr-1">{{ g.days }} {{ g.time }} · {{ g.slot }} min</span>
+        {% for it in g.rules %}
+          <form method="post" class="inline">{% csrf_token %}
+            <input type="hidden" name="action" value="rule_delete"><input type="hidden" name="rule" value="{{ it.rule.pk }}"><input type="hidden" name="resource" value="{{ r.pk }}">
+            <input type="hidden" name="tab" value="zeiten">
+            <button class="text-xs min-h-[24px] rounded-full border border-gray-200 px-2 py-0.5 hover:border-red-400 hover:text-red-700" aria-label="{% trans 'Remove' %} {{ it.day }} {{ g.time }}">{{ it.day }} ✕</button>
+          </form>
+        {% endfor %}
+      </div>
+    {% empty %}
+      <p class="text-sm text-amber-800">{% if business_hours %}{% trans "Keine eigenen Zeiten — gebucht wird in den Öffnungszeiten des Geschäfts." %}{% else %}{% trans "No opening hours yet — not bookable online." %}{% endif %}</p>
+    {% endfor %}
+  </div>
+  {% if business_hours %}
+  <form method="post" class="mt-2 text-sm">{% csrf_token %}
+    <input type="hidden" name="action" value="rules_from_hours"><input type="hidden" name="resource" value="{{ r.pk }}">
+    <input type="hidden" name="tab" value="zeiten">
+    <button class="text-indigo-700 underline min-h-[24px]" data-rules-from-hours>{% trans "Aus Öffnungszeiten übernehmen" %}</button>
+  </form>
+  {% endif %}
+  <form method="post" class="mt-3 flex flex-wrap items-end gap-2 text-sm">{% csrf_token %}
+    <input type="hidden" name="action" value="rule"><input type="hidden" name="resource" value="{{ r.pk }}">
+    <input type="hidden" name="tab" value="zeiten">
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Tag" %}</span>
+    <select name="weekday" class="ui-input w-auto">
+      {% for value, label in weekdays %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+    </select></label>
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Von" %}</span>
+    <input type="time" name="start_time" value="09:00" class="ui-input w-auto"></label>
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Bis" %}</span>
+    <input type="time" name="end_time" value="18:00" class="ui-input w-auto"></label>
+    <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Minutes" %}</span>
+    <input type="text" inputmode="numeric" name="slot_minutes" value="30" class="ui-input w-20"></label>
+    <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Add" %}</button>
+  </form>
+  <p class="text-sm mt-4"><a href="{% url 'booking:availability' %}" class="text-indigo-700 underline">{% trans "Tage blockieren" %} <span aria-hidden="true">→</span></a></p>
+</div>
+
+{# --- KA-12 GA-5: комбинация столов («Tisch 3+4») — вкладка «Tisch» ------------- #}
+{% if r.type == 'table' and not r.counts_party_size and r.capacity == 1 and single_tables|length >= 2 %}
+<div data-pf-panel="tisch" class="ui-card p-5 max-w-3xl mt-4{% if active_tab != 'tisch' %} hidden{% endif %}" data-table-combo>
+  <p class="text-sm font-medium mb-2">{% trans "Kombination aus Tischen" %}{% if r.parts.all %}: {% for t in r.parts.all %}{{ t.name }}{% if not forloop.last %} + {% endif %}{% endfor %}{% endif %}</p>
+  <form method="post" class="flex flex-wrap items-center gap-3 text-sm">{% csrf_token %}
+    <input type="hidden" name="action" value="resource_parts"><input type="hidden" name="resource" value="{{ r.pk }}">
+    <input type="hidden" name="tab" value="tisch">
+    {% for t in single_tables %}
+      <label class="flex items-center gap-2 text-gray-700"><input type="checkbox" name="part" value="{{ t.pk }}" {% if t.pk in part_ids %}checked{% endif %} class="rounded"> {{ t.name }}{% if t.seats %} ({{ t.seats }}){% endif %}</label>
+    {% endfor %}
+    <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Save" %}</button>
+  </form>
+  <p class="text-xs ui-muted mt-2">{% trans "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt." %}</p>
+</div>
+{% endif %}
+</div>
+{% endblock %}
