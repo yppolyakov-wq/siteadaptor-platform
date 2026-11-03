@@ -61,9 +61,15 @@ def _parse_date(value):
 
 def _resolve_entity(value):
     """T2: разобрать значение пикера "p<pk>"/"v<pk>" → (product, variant)."""
+    import uuid as _uuid
+
     from apps.catalog.models import ProductVariant
 
     value = value or ""
+    try:  # ревью D6.2a: мусор вместо UUID давал 500 (ValidationError) — теперь «не найдено»
+        _uuid.UUID(value[1:])
+    except ValueError:
+        return (None, None)
     if value.startswith("v"):
         v = ProductVariant.objects.filter(pk=value[1:]).select_related("product").first()
         return (v.product, v) if v else (None, None)
@@ -215,9 +221,14 @@ def _adjust_note(request):
 
 def _resolve_location(value):
     """E2: id локации из формы → StockLocation | None (пусто/битое = основной склад)."""
+    import uuid as _uuid
+
     from .models import StockLocation
 
-    return StockLocation.objects.filter(pk=value).first() if value else None
+    try:  # ревью D6.2a: мусорный pk давал 500
+        return StockLocation.objects.filter(pk=_uuid.UUID(str(value))).first() if value else None
+    except ValueError:
+        return None
 
 
 def _handle_transfer(request, actor):
@@ -449,3 +460,51 @@ def _handle_post(request):
         mv = services.record_opening_balance(product=product, variant=variant, actor=actor)
         messages.success(request, _("Startbestand gebucht.") if mv else _("Bereits abgeglichen."))
     return redirect("stock")
+
+
+@login_required
+def stock_settings(request):
+    """UX-D D6.2b: настройки склада — Meldebestand, Chargen/MHD, Standorte.
+
+    Раньше — формы над таблицей рабочей страницы склада. Запись ключей site_config —
+    `_write_config_key` (под блокировкой строки тенанта, D6.0)."""
+    from .models import StockLocation
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action == "threshold":
+            raw = (request.POST.get("value") or "").strip()
+            if not raw.isascii() or not raw.isdigit() or int(raw) > 99999:
+                messages.error(
+                    request,
+                    _("Bitte eine Zahl von %(lo)s bis %(hi)s angeben.") % {"lo": 0, "hi": 99999},
+                )
+            else:
+                _write_config_key(request, "low_stock_threshold", int(raw))
+                messages.success(request, _("Meldebestand aktualisiert."))
+        elif action == "lots_toggle":
+            _write_config_key(request, "lots_enabled", request.POST.get("lots_enabled") == "on")
+            messages.success(request, _("Gespeichert."))
+        elif action == "location_create":
+            name = (request.POST.get("name") or "").strip()[:100]
+            if not name:
+                messages.error(request, _("Bitte einen Namen eingeben."))
+            else:
+                StockLocation.objects.create(
+                    name=name, is_default=not StockLocation.objects.exists()
+                )
+                messages.success(request, _("Standort angelegt."))
+        return redirect("stock-settings")
+    lots_on = services.lots_enabled(request.tenant)
+    return render(
+        request,
+        "inventory/stock_settings.html",
+        {
+            "nav": "stock-settings",
+            "threshold": _threshold(request.tenant),
+            "lots_on": lots_on,
+            "show_lots_toggle": lots_on
+            or getattr(request.tenant, "business_type", "") in FOOD_BUSINESS_TYPES,
+            "stock_locations": list(StockLocation.objects.filter(is_active=True)),
+        },
+    )

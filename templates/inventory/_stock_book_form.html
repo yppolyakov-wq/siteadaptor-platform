@@ -7,7 +7,7 @@ entities, reasons, lots_on, stock_locations, next_url.{% endcomment %}
   <a href="{% url 'stock-book' %}?art={{ a }}{% if bv.entity %}&amp;entity={{ bv.entity }}{% endif %}" data-drawer class="ui-tab"{% if a == art %} aria-current="page"{% endif %}>{% if a == "receipt" %}{% trans "Wareneingang (+)" %}{% elif a == "adjustment" %}{% trans "Korrektur (±)" %}{% elif a == "stocktake" %}{% trans "Inventur (= gezählt)" %}{% else %}{% trans "Umlagerung" %}{% endif %}</a>
   {% endfor %}
 </nav>
-<form method="post" action="{% url 'stock-book' %}" class="space-y-4" data-drawer-form>
+<form method="post" action="{% url 'stock-book' %}" class="space-y-4" data-drawer-form data-drawer-after="close">
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ next_url }}">
   <input type="hidden" name="art" value="{{ art }}">
@@ -45,9 +45,10 @@ entities, reasons, lots_on, stock_locations, next_url.{% endcomment %}
     {% if stock_locations|length > 1 %}
     <div>
       <label for="sb-loc" class="block text-sm font-medium mb-1">{% trans "Standort" %}</label>
-      <select id="sb-loc" name="location" class="ui-input">
-        {% for loc in stock_locations %}<option value="{{ loc.pk }}">{{ loc.name }}</option>{% endfor %}
+      <select id="sb-loc" name="location" class="ui-input"{% if bv_errors.location %} aria-invalid="true" aria-describedby="sb-loc-err"{% endif %}>
+        {% for loc in stock_locations %}<option value="{{ loc.pk }}"{% if bv.location == loc.pk|stringformat:"s" %} selected{% endif %}>{{ loc.name }}</option>{% endfor %}
       </select>
+      {% if bv_errors.location %}<p id="sb-loc-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ bv_errors.location }}</p>{% endif %}
     </div>
     {% endif %}
   {% elif art == "adjustment" %}

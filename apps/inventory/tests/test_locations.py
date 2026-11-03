@@ -165,8 +165,12 @@ def test_cabinet_renders_standorte_section(settings):
     from apps.inventory import views
 
     _locs()
+    ProductFactory()
+    # UX-D D6.2: Standorte — в настройках склада, переброс — вид шторки «Buchen».
     html = views.stock(_req()).content.decode()
-    assert "Standorte" in html and "Umlagern" in html  # секция + форма переброса
+    assert "art=transfer" in html and "Umlagern" in html
+    html = views.stock_settings(_req()).content.decode()
+    assert "Standorte" in html
 
 
 def test_ledger_reconciliation_survives_transfers():

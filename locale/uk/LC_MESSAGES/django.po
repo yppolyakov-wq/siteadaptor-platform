@@ -32080,3 +32080,6 @@ msgstr "Вкажіть кількість, наприклад -2 або 3."
 
 msgid "Umlagerung"
 msgstr "Переміщення"
+
+msgid "Zum Lager"
+msgstr "До складу"

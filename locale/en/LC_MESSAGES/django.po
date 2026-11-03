@@ -31807,3 +31807,6 @@ msgstr "Please enter a quantity such as -2 or 3."
 
 msgid "Umlagerung"
 msgstr "Transfer"
+
+msgid "Zum Lager"
+msgstr "Go to stock"

@@ -204,6 +204,7 @@ RULES: dict[str, Rule] = {
     "events:tour-edit": _r(S, SE),
     "stock": _r(L, LE),
     "stock-book": _r(L, LE),  # UX-D D6.2a
+    "stock-settings": _r(L, LE),  # UX-D D6.2b
     "purchasing": _r(L, LE),
     "purchasing-maengel-pdf": _r(L),
     "imports:start": _r(L, LE),

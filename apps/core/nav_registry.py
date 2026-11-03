@@ -822,6 +822,19 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="impressum datenschutz agb widerruf steuer",
         group="geschaeft",
     ),
+    # UX-D D6.2b: настройки склада (Meldebestand, Chargen/MHD, Standorte) — раньше
+    # формы на рабочей странице склада над таблицей.
+    _e(
+        "settings",
+        "stock-settings",
+        _("Lager"),
+        "stock-settings",
+        "catalog",
+        True,
+        "meldebestand chargen mhd standorte lager",
+        group="verkauf",
+        direction="waren",
+    ),
     _e(
         "settings",
         "payment-settings",

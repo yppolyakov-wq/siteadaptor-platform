@@ -7,7 +7,11 @@
   <h1 class="ui-h1">📦 {% nav_title _("Lager") %}</h1>
   {% comment %}UX-D D6.2a: приход/корректировка/инвентура/перемещение — шторкой «Buchen»
   (раньше — три раскрытые формы над таблицей); у каждой строки — своя кнопка.{% endcomment %}
-  {% if entities %}<a href="{% url 'stock-book' %}" data-drawer class="ui-btn ui-btn-primary">＋ {% trans "Buchung erfassen" %}</a>{% endif %}
+  <div class="flex items-center gap-2 flex-wrap">
+    {% if locs_on and entities %}<a href="{% url 'stock-book' %}?art=transfer" data-drawer class="ui-btn ui-btn-secondary">{% trans "Umlagern" %}</a>{% endif %}
+    <a href="{% url 'stock-settings' %}" class="ui-btn ui-btn-secondary"><span aria-hidden="true">⚙️ </span>{% trans "Einstellungen" %}</a>
+    {% if entities %}<a href="{% url 'stock-book' %}" data-drawer class="ui-btn ui-btn-primary">＋ {% trans "Buchung erfassen" %}</a>{% endif %}
+  </div>
 </div>
 <p class="text-sm text-gray-500 mb-4">{% trans "Wareneingänge, Korrekturen & Inventur — mit Bewegungshistorie und Abgleich gegen den Bestandszähler." %}</p>
 
@@ -20,17 +24,6 @@
 {% endif %}
 
 <div id="stock-region" data-drawer-refresh>
-{# --- Склад-2 E1: Chargen/MHD-Tumbler (Haltbarkeit für Lebensmittel) --- #}
-{% if show_lots_toggle %}<form method="post" action="{% url 'stock' %}" class="ui-card mb-4 flex items-center justify-between gap-3 px-4 py-2.5" data-lots-toggle>
-  {% csrf_token %}
-  <input type="hidden" name="action" value="lots_toggle">
-  <label for="lots_enabled" class="text-sm text-gray-600">🗓️ {% trans "Chargen & Haltbarkeit (MHD/FEFO)" %}</label>
-  <span class="flex items-center gap-2">
-    <input type="checkbox" id="lots_enabled" name="lots_enabled" {% if lots_on %}checked{% endif %} onchange="this.form.submit()" class="h-4 w-4">
-    <span class="text-xs text-gray-400">{% trans "für Lebensmittel" %}</span>
-  </span>
-</form>{% endif %}
-
 {# --- T5: Bestandswert (Warenwert = Σ Bestand × Einkaufspreis) --- #}
 {% if warenwert.total %}
   <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex items-baseline justify-between gap-3">
@@ -215,42 +208,11 @@
 </details>
 {% endif %}
 
-{# --- Склад-2 E2: Standorte & Umlagerung (мультисклад; UI активен при >1 локации) --- #}
-<details class="ui-card mb-6" {% if locs_on %}open{% endif %}>
-  <summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-gray-700">📍 {% trans "Standorte" %}{% if stock_locations %} ({{ stock_locations|length }}){% endif %}</summary>
-  <div class="px-4 pb-4 space-y-3">
-    {% if stock_locations %}
-      <ul class="text-sm divide-y divide-gray-50">
-        {% for loc in stock_locations %}
-          <li class="py-1.5 flex items-center gap-2">{{ loc.name }}{% if loc.is_default %}<span class="text-xs rounded-full bg-gray-100 text-gray-500 px-2 py-0.5">{% trans "Hauptlager" %}</span>{% endif %}</li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="text-xs ui-muted">{% trans "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv." %}</p>
-    {% endif %}
-    <form method="post" action="{% url 'stock' %}" class="flex items-center gap-2">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="location_create">
-      <input type="text" name="name" aria-label="{% trans "Name" %}" placeholder="{% trans 'z. B. Lager hinten' %}" class="flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-      <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">＋ {% trans "Standort" %}</button>
-    </form>
-    {% if locs_on %}
-      <p class="text-xs ui-muted border-t border-gray-100 pt-3">{% trans "Umlagerung (bewegt nur die Verteilung, nicht den Gesamtbestand)" %}: <a href="{% url 'stock-book' %}?art=transfer" data-drawer class="text-indigo-700 hover:underline">{% trans "Umlagern" %}</a></p>
-    {% endif %}
-  </div>
-</details>
-
 {# --- Bestandsübersicht --- #}
 <div class="ui-card mb-6 overflow-hidden">
   <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
     <h2 class="text-sm font-semibold text-gray-700">{% trans "Bestand" %}</h2>
-    <form method="post" action="{% url 'stock' %}" class="flex items-center gap-1 text-xs text-gray-500">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="threshold">
-      <span>{% trans "Meldebestand ≤" %}</span>
-      <input aria-label="{% trans "Meldebestand ≤" %}" type="number" name="value" min="0" value="{{ threshold }}" class="w-16 rounded border border-gray-300 px-1.5 py-1">
-      <button class="rounded border border-gray-300 px-2 py-1 hover:border-indigo-400">{% trans "OK" %}</button>
-    </form>
+    <span class="text-xs text-gray-600">{% trans "Meldebestand ≤" %} {{ threshold }}</span>
   </div>
   {% comment %}Матрица «размер × цвет» (2026-08-01): главный рабочий экран одежды.
   Итог строки = «сколько всего этого размера», итог колонки = «сколько всего этого

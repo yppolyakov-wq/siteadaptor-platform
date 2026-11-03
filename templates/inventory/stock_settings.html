@@ -1,0 +1,56 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Lager" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D6.2b: настройки склада — раньше формы над таблицей рабочей страницы.
+Каждая настройка — своя небольшая форма (пишет один ключ под блокировкой, D6.0).{% endcomment %}
+<h1 class="ui-h1 mb-1">{% nav_title _("Lager") %}</h1>
+<p class="text-sm text-gray-600 mb-5">{% trans "Wareneingänge, Korrekturen & Inventur — mit Bewegungshistorie und Abgleich gegen den Bestandszähler." %} <a href="{% url 'stock' %}" class="text-indigo-700 hover:underline">{% trans "Zum Lager" %}</a></p>
+{% include "tenant/_settings_messages.html" %}
+
+<div class="grid gap-5 lg:grid-cols-2 lg:items-start max-w-5xl">
+  <form method="post" class="ui-card p-5 space-y-3" data-stock-threshold>
+    {% csrf_token %}
+    <input type="hidden" name="action" value="threshold">
+    <h2 class="ui-h2">{% trans "Meldebestand" %}</h2>
+    <label for="stock-threshold" class="block text-sm font-medium">{% trans "Meldebestand ≤" %}</label>
+    <input id="stock-threshold" name="value" type="text" inputmode="numeric" value="{{ threshold }}" class="ui-input max-w-[8rem]">
+    <p class="text-xs text-gray-600">{% trans "Vorschlag = Sollbestand − Bestand (Sollbestand am Artikel pflegen)." %}</p>
+    <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Save" %}</button>
+  </form>
+
+  {% if show_lots_toggle %}
+  <form method="post" class="ui-card p-5 space-y-3" data-lots-toggle>
+    {% csrf_token %}
+    <input type="hidden" name="action" value="lots_toggle">
+    <h2 class="ui-h2">{% trans "Chargen & Haltbarkeit (MHD/FEFO)" %}</h2>
+    <label class="flex items-center gap-2 text-sm min-h-[24px]">
+      <input type="checkbox" name="lots_enabled"{% if lots_on %} checked{% endif %} class="rounded border-gray-300">
+      {% trans "für Lebensmittel" %}
+    </label>
+    <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Save" %}</button>
+  </form>
+  {% endif %}
+
+  <section class="ui-card p-5 space-y-3 lg:col-span-2" aria-labelledby="stock-locs" data-stock-locations>
+    <h2 id="stock-locs" class="ui-h2">{% trans "Standorte" %}{% if stock_locations %} <span class="font-normal text-gray-600">({{ stock_locations|length }})</span>{% endif %}</h2>
+    {% if stock_locations %}
+      <ul class="text-sm divide-y divide-gray-100">
+        {% for loc in stock_locations %}
+          <li class="py-1.5 flex items-center gap-2">{{ loc.name }}{% if loc.is_default %}<span class="text-xs rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% trans "Hauptlager" %}</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-sm text-gray-600">{% trans "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv." %}</p>
+    {% endif %}
+    <form method="post" class="flex items-end gap-2 flex-wrap">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="location_create">
+      <label class="block flex-1 min-w-[12rem]"><span class="block text-sm font-medium mb-1">{% trans "Name" %}</span>
+        <input type="text" name="name" maxlength="100" placeholder="{% trans 'z. B. Lager hinten' %}" class="ui-input"></label>
+      <button class="ui-btn ui-btn-secondary">＋ {% trans "Standort" %}</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

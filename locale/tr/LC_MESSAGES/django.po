@@ -31953,3 +31953,6 @@ msgstr "Lütfen -2 veya 3 gibi bir miktar girin."
 
 msgid "Umlagerung"
 msgstr "Transfer"
+
+msgid "Zum Lager"
+msgstr "Depoya git"

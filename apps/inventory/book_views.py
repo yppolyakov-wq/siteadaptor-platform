@@ -28,7 +28,17 @@ from .models import StockLocation, StockMovement
 
 ARTS = ("receipt", "adjustment", "stocktake", "transfer")
 MAX_QTY = 99999
-FIELDS = ("entity", "qty", "delta", "counted", "reason", "note", "lot_code", "lot_mhd")
+FIELDS = (
+    "entity",
+    "qty",
+    "delta",
+    "counted",
+    "reason",
+    "note",
+    "lot_code",
+    "lot_mhd",
+    "location",
+)
 
 
 def _number(raw, *, lo: int, hi: int, signed: bool = False):
@@ -80,6 +90,15 @@ def parse(post, art: str, *, lots_on: bool) -> tuple[dict, dict]:
                 out["lot_mhd"] = date.fromisoformat(raw)
             except ValueError:
                 errors["lot_mhd"] = _("Invalid date.")
+    if art == "receipt":
+        # Ревью D6.2a: неизвестный/неактивный Standort — ошибка, а не тихий «Hauptlager».
+        out["location"] = None
+        raw = post.get("location") or ""
+        if raw:
+            active = {str(loc.pk): loc for loc in StockLocation.objects.filter(is_active=True)}
+            out["location"] = active.get(raw)
+            if out["location"] is None:
+                errors["location"] = _("Umlagerung nicht möglich (Bestand/Standorte prüfen).")
     if art == "transfer":
         ids = {str(loc.pk): loc for loc in StockLocation.objects.filter(is_active=True)}
         out["src"], out["dst"] = ids.get(post.get("src") or ""), ids.get(post.get("dst") or "")
@@ -94,11 +113,7 @@ def _book(request, art: str, v: dict, *, lots_on: bool) -> tuple[bool, str]:
     actor = getattr(request.user, "username", "") or ""
     product, variant = v["product"], v["variant"]
     if art == "receipt":
-        location = None
-        if request.POST.get("location"):
-            location = StockLocation.objects.filter(
-                pk=request.POST.get("location"), is_active=True
-            ).first()
+        location = v["location"]
         if lots_on:
             services.receive_lot(
                 product=product,
@@ -166,7 +181,8 @@ def stock_book(request):
     stock_locations = list(StockLocation.objects.filter(is_active=True))
     arts = _arts(len(stock_locations) > 1)
     art = (request.POST.get("art") if request.method == "POST" else request.GET.get("art")) or ""
-    if art not in arts:
+    posted_art_ok = art in arts
+    if not posted_art_ok:
         art = arts[0]
 
     def render_form(values, errors=None):
@@ -194,6 +210,11 @@ def stock_book(request):
 
     if request.method != "POST":
         return render_form({f: (request.GET.get(f) or "")[:64] for f in ("entity",)})
+    if not posted_art_ok:
+        # Ревью D6.2a: устаревшая форма (перемещение после выключения Standort) не должна
+        # молча стать приходом — ничего не проводим, показываем форму заново.
+        messages.error(request, _("Invalid input."))
+        return render_form({"entity": (request.POST.get("entity") or "")[:64]})
     values, errors = parse(request.POST, art, lots_on=lots_on)
     keep = {f: (request.POST.get(f) or "").strip()[:200] for f in FIELDS}
     if errors:
@@ -202,7 +223,7 @@ def stock_book(request):
         return render_form(keep, errors)
     ok, text = _book(request, art, values, lots_on=lots_on)
     if not ok:
-        messages.error(request, text)
-        return render_form(keep, {"dst": text})
+        messages.error(request, text)  # одно сообщение (без дубля у поля)
+        return render_form(keep)
     messages.success(request, text)
     return redirect(local_next(request) or reverse("stock"))

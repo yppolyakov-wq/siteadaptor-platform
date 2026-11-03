@@ -147,3 +147,79 @@ def test_stock_page_has_no_inline_booking_forms_but_row_buttons():
     btn = re.search(rf'<a href="/dashboard/stock/buchen/\?entity=p{p.pk}"[^>]*>', html).group(0)
     assert "data-drawer" in btn
     assert 'id="stock-region" data-drawer-refresh' in html
+
+
+# --- D6.2b: настройки склада --------------------------------------------------------
+
+
+def _settings_req(method="get", data=None, tenant=None):
+    req = _req(method, data, drawer=False, path="/dashboard/stock/einstellungen/")
+    if tenant is not None:
+        req.tenant = tenant
+    return req
+
+
+def test_stock_page_has_no_settings_forms_and_links_settings():
+    ProductFactory(stock_quantity=3)
+    html = views.stock(_req(drawer=False, path="/dashboard/stock/")).content.decode()
+    for action in ("threshold", "lots_toggle", "location_create"):
+        assert f'name="action" value="{action}"' not in html, action
+    assert 'href="/dashboard/stock/einstellungen/"' in html
+
+
+def test_settings_threshold_writes_key_and_keeps_others():
+    tenant = TenantFactory(site_config={"notify": {"a": 1}})
+    views.stock_settings(_settings_req("post", {"action": "threshold", "value": "7"}, tenant))
+    tenant.refresh_from_db()
+    assert tenant.site_config == {"notify": {"a": 1}, "low_stock_threshold": 7}
+
+
+@pytest.mark.parametrize("raw", ["abc", "-1", "²", ""])
+def test_settings_garbage_threshold_is_an_error_without_write(raw):
+    tenant = TenantFactory(site_config={"low_stock_threshold": 4})
+    req = _settings_req("post", {"action": "threshold", "value": raw}, tenant)
+    views.stock_settings(req)
+    tenant.refresh_from_db()
+    assert tenant.site_config["low_stock_threshold"] == 4
+
+
+def test_settings_location_create_and_permissions():
+    from apps.core import view_perms
+
+    views.stock_settings(_settings_req("post", {"action": "location_create", "name": "Laden"}))
+    assert StockLocation.objects.get().is_default is True
+    assert view_perms.RULES["stock-settings"] == view_perms.RULES["stock"]
+
+
+# --- ревью D6.2a ----------------------------------------------------------------------
+
+
+def test_garbage_entity_is_an_error_not_500():
+    resp = _post({"art": "receipt", "entity": "pXYZ", "qty": "2"})
+    assert resp.status_code == 200 and 'id="sb-entity-err"' in resp.content.decode()
+
+
+def test_unknown_receipt_location_is_an_error_not_main_warehouse():
+    p = ProductFactory(stock_quantity=0)
+    StockLocation.objects.create(name="Laden", is_default=True)
+    StockLocation.objects.create(name="Lager")
+    resp = _post(
+        {"art": "receipt", "entity": f"p{p.pk}", "qty": "2", "location": str(uuid.uuid4())}
+    )
+    assert 'id="sb-loc-err"' in resp.content.decode()
+    p.refresh_from_db()
+    assert p.stock_quantity == 0
+
+
+def test_stale_transfer_form_is_not_booked_as_receipt():
+    p = ProductFactory(stock_quantity=4)
+    StockLocation.objects.create(name="Laden", is_default=True)  # нет второго Standort
+    _post({"art": "transfer", "entity": f"p{p.pk}", "qty": "2"})
+    p.refresh_from_db()
+    assert p.stock_quantity == 4 and not StockMovement.objects.filter(product=p).exists()
+
+
+def test_form_closes_drawer_after_success():
+    ProductFactory()
+    html = book_views.stock_book(_req()).content.decode()
+    assert 'data-drawer-form data-drawer-after="close"' in html
