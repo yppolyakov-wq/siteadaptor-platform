@@ -5,6 +5,7 @@
 (см. apps.finance.services). Гейтинг — модуль «finance» из реестра.
 """
 
+import logging
 from datetime import date
 from decimal import Decimal
 
@@ -21,6 +22,8 @@ from apps.core.view_perms import perm_required
 
 from .models import RevenueEntry
 from .services import record_revenue
+
+logger = logging.getLogger(__name__)
 
 
 def _parse_date(raw, fallback):
@@ -133,6 +136,14 @@ def expenses(request):
     from .expenses import ExpenseEntry
 
     if request.method == "POST":
+        if request.POST.get("action") in ("mark_paid", "delete"):
+            import uuid as _uuid
+
+            try:
+                _uuid.UUID(str(request.POST.get("id") or ""))
+            except ValueError:  # ревью D6.0: мусорный id давал 500
+                messages.error(request, _("Nicht gefunden."))
+                return redirect("finance:expenses")
         if request.POST.get("action") == "mark_paid":
             # ERP-3: входящий счёт оплачен — закрывает строку в «offen».
             ExpenseEntry.objects.filter(pk=request.POST.get("id"), paid_at__isnull=True).update(
@@ -182,6 +193,7 @@ def expenses(request):
                     uploaded_by=str(request.user)[:150],
                 )
             except Exception:  # noqa: BLE001 — битый файл не роняет запись расхода
+                logger.exception("expense receipt upload failed")
                 messages.warning(request, _("Beleg konnte nicht gespeichert werden."))
         ExpenseEntry.objects.create(
             source=ExpenseEntry.SOURCE_MANUAL,

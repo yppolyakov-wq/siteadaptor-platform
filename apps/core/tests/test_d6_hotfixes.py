@@ -251,14 +251,20 @@ def test_voucher_can_be_deactivated_and_is_then_not_redeemable():
 
     v = Voucher.objects.create(code="ABC123", label="−10 %", max_uses=5)
     views.voucher_list(
-        _req("/promotions/vouchers/", {"action": "toggle_active", "voucher": str(v.pk)})
+        _req(
+            "/promotions/vouchers/",
+            {"action": "toggle_active", "voucher": str(v.pk), "active": "0"},
+        )
     )
     v.refresh_from_db()
     assert v.is_active is False and not v.is_redeemable
     with pytest.raises(services.VoucherError):  # у прилавка тот же отказ, что у истёкшего
         services.redeem_voucher("ABC123")
     views.voucher_list(
-        _req("/promotions/vouchers/", {"action": "toggle_active", "voucher": str(v.pk)})
+        _req(
+            "/promotions/vouchers/",
+            {"action": "toggle_active", "voucher": str(v.pk), "active": "1"},
+        )
     )
     v.refresh_from_db()
     assert v.is_active is True
@@ -271,3 +277,75 @@ def test_voucher_list_has_toggle_button_per_code():
     v = Voucher.objects.create(code="XYZ789", label="Gratis Kaffee")
     html = views.voucher_list(_req("/promotions/vouchers/", method="get")).content.decode()
     assert 'name="action" value="toggle_active"' in html and f'value="{v.pk}"' in html
+
+
+def test_voucher_toggle_sets_target_state_so_double_click_does_not_revert():
+    from apps.loyalty.models import Voucher
+    from apps.promotions import views
+
+    v = Voucher.objects.create(code="DBL001", label="x")
+    for _i in range(2):
+        views.voucher_list(
+            _req(
+                "/promotions/vouchers/",
+                {"action": "toggle_active", "voucher": str(v.pk), "active": "0"},
+            )
+        )
+    v.refresh_from_db()
+    assert v.is_active is False
+
+
+def test_paid_gift_certificate_cannot_be_deactivated():
+    from apps.loyalty.models import Voucher
+    from apps.promotions import views
+
+    v = Voucher.objects.create(code="GIFT01", label="50 €", balance_cents=5000, max_uses=0)
+    req = _req(
+        "/promotions/vouchers/", {"action": "toggle_active", "voucher": str(v.pk), "active": "0"}
+    )
+    views.voucher_list(req)
+    v.refresh_from_db()
+    assert v.is_active is True and "error" in _levels(req)
+
+
+def test_garbage_voucher_id_is_404_not_500():
+    from django.http import Http404
+
+    from apps.promotions import views
+
+    with pytest.raises(Http404):
+        views.voucher_list(
+            _req("/promotions/vouchers/", {"action": "toggle_active", "voucher": "x"})
+        )
+
+
+def test_deactivated_code_gives_no_preview_discount():
+    from apps.loyalty.models import Voucher
+    from apps.promotions.services import preview_discount
+
+    v = Voucher.objects.create(code="OFF010", label="-10", discount_percent=10, is_active=False)
+    assert preview_discount(v, 10000) == 0
+
+
+def test_collection_save_from_old_tab_without_shown_still_applies_unchecks():
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.collections import views
+    from apps.collections.models import Collection
+
+    col = Collection.objects.create(name="Herbst", slug="herbst")
+    a, hidden = ProductFactory(), ProductFactory(is_active=False)
+    col.products.add(a, hidden)
+    views.collections_view(
+        _req(
+            "/dashboard/collections/",
+            {"action": "update", "collection": str(col.pk), "name": "H", "products_present": "1"},
+        )
+    )
+    assert set(col.products.all()) == {hidden}
+
+
+def test_expense_garbage_id_is_not_500():
+    from apps.finance import views
+
+    req = _req("/dashboard/finance/ausgaben/", {"action": "delete", "id": "nope"})
+    assert views.expenses(req).status_code == 302 and "error" in _levels(req)

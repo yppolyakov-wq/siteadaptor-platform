@@ -1759,8 +1759,26 @@ def voucher_list(request):
         except ValueError:
             raise Http404 from None
         voucher = get_object_or_404(Voucher, pk=voucher_pk)
-        voucher.is_active = not voucher.is_active
-        voucher.save(update_fields=["is_active", "updated_at"])
+        if voucher.balance_cents is not None:
+            # Ревью D6.0: оплаченный сертификат с остатком — деньги клиента; одним кликом
+            # его не блокируем (возврат/спор — через продажу сертификата).
+            messages.error(request, _("Ein bezahlter Gutschein kann nicht deaktiviert werden."))
+            return redirect("promotions:voucher-list")
+        # Ревью D6.0: целевое состояние приходит явно — двойной клик или старая вкладка
+        # не переключает обратно.
+        target = request.POST.get("active") == "1"
+        if voucher.is_active != target:
+            voucher.is_active = target
+            voucher.save(update_fields=["is_active", "updated_at"])
+            from apps.core.audit import audit_event
+
+            audit_event(
+                action="voucher.activated" if target else "voucher.deactivated",
+                resource_type="voucher",
+                resource_id=str(voucher.pk),
+                actor=request.user,
+                changes={"is_active": target},
+            )
         messages.success(request, _("Saved."))
         return redirect("promotions:voucher-list")
     form = VoucherCreateForm(request.POST or None)

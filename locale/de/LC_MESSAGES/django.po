@@ -31876,3 +31876,6 @@ msgstr "Bitte Datum und Uhrzeit angeben."
 
 msgid "Leistung nicht gefunden – bitte neu wählen."
 msgstr "Leistung nicht gefunden – bitte neu wählen."
+
+msgid "Ein bezahlter Gutschein kann nicht deaktiviert werden."
+msgstr "Ein bezahlter Gutschein kann nicht deaktiviert werden."

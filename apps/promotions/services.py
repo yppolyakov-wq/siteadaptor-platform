@@ -758,7 +758,12 @@ def eligible_base(voucher, base_cents: int, discounted_cents: int = 0) -> int:
 
 def preview_discount(voucher, base_cents: int, discounted_cents: int = 0) -> int:
     """Скидка кода для превью (корзина/quote) — ta же логика, что spend_voucher,
-    но read-only: с потолком тенанта, без списания."""
+    но read-only: с потолком тенанта, без списания.
+
+    Ревью D6.0: отключённый/истёкший/исчерпанный код — 0. Раньше корзина показывала
+    скидку кода, отключённого после применения, а заказ создавался без неё."""
+    if not voucher.is_redeemable:
+        return 0
     base = eligible_base(voucher, base_cents, discounted_cents)
     return _capped(voucher, voucher.discount_for(base), base)
 

@@ -46,6 +46,14 @@ def _clean_pks(values) -> set:
     return out
 
 
+def _shown_queryset(model):
+    """Что форма показывает для выбора состава (то же, что GET ниже)."""
+    qs = model.objects.filter(is_active=True)
+    if model._meta.model_name == "product":
+        qs = qs.order_by("name")[:200]
+    return qs
+
+
 def _save_members(request, relation, field: str) -> None:
     """UX-D D6.0: новый состав = (отмеченные ∩ показанные) ∪ (текущие − показанные).
 
@@ -54,6 +62,10 @@ def _save_members(request, relation, field: str) -> None:
     форма такого не рисовала."""
     model = relation.model
     shown = _clean_pks(request.POST.getlist(f"{field}_shown"))
+    if not shown:
+        # Старая вкладка (до D6.0) не присылает `*_shown` — считаем показанным то, что
+        # рисует форма сейчас, иначе снятые галочки молча не сохранились бы.
+        shown = {str(pk) for pk in _shown_queryset(model).values_list("pk", flat=True)}
     checked = _clean_pks(request.POST.getlist(field)) & shown
     current = {str(pk) for pk in relation.values_list("pk", flat=True)}
     keep = checked | (current - shown)
@@ -133,15 +145,15 @@ def collections_view(request):
     if has_booking:
         from apps.booking.models import Service
 
-        services = list(Service.objects.filter(is_active=True))
+        services = list(_shown_queryset(Service))
     if has_stays:
         from apps.stays.models import StayUnit
 
-        units = list(StayUnit.objects.filter(is_active=True))
+        units = list(_shown_queryset(StayUnit))
     if has_catalog:
         from apps.catalog.models import Product
 
-        products = list(Product.objects.filter(is_active=True).order_by("name")[:200])
+        products = list(_shown_queryset(Product))
     collections = list(Collection.objects.all())
     for collection in collections:
         svc_ids = set(collection.services.values_list("pk", flat=True))

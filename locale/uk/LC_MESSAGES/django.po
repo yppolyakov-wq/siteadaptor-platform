@@ -32062,3 +32062,6 @@ msgstr "Вкажіть дату й час."
 
 msgid "Leistung nicht gefunden – bitte neu wählen."
 msgstr "Послугу не знайдено — виберіть знову."
+
+msgid "Ein bezahlter Gutschein kann nicht deaktiviert werden."
+msgstr "Оплачений подарунковий сертифікат не можна вимкнути."

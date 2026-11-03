@@ -586,7 +586,8 @@ def _cart_discount(request, subtotal, discounted=0):
     if not code:
         return None, Decimal("0")
     voucher = Voucher.objects.filter(code=code).first()
-    if voucher is None or not voucher.has_order_discount:
+    if voucher is None or not voucher.has_order_discount or not voucher.is_redeemable:
+        # Ревью D6.0: код отключили после применения — корзина больше не обещает скидку.
         return None, Decimal("0")
     from apps.promotions.services import preview_discount
 

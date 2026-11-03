@@ -45,11 +45,14 @@
           <td>{% if v.is_redeemable %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}</td>
           <td class="text-right" data-cell="actions">
             <a href="{% url 'storefront-voucher-qr' v.code %}" download="voucher-{{ v.code }}.svg" class="text-indigo-600 hover:underline">QR ↓</a>
+            {% if v.balance_cents is None %}
             <form method="post" class="inline ml-2">{% csrf_token %}
               <input type="hidden" name="action" value="toggle_active">
               <input type="hidden" name="voucher" value="{{ v.pk }}">
+              <input type="hidden" name="active" value="{% if v.is_active %}0{% else %}1{% endif %}">
               <button type="submit" class="ui-btn ui-btn-sm" aria-label="{% if v.is_active %}{% trans 'Deactivate' %}{% else %}{% trans 'Activate' %}{% endif %} {{ v.code }}">{% if v.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
             </form>
+            {% endif %}
           </td>
         </tr>
       {% empty %}

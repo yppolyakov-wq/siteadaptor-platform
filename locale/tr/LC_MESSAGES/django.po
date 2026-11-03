@@ -31935,3 +31935,6 @@ msgstr "Lütfen tarih ve saat girin."
 
 msgid "Leistung nicht gefunden – bitte neu wählen."
 msgstr "Hizmet bulunamadı – lütfen yeniden seçin."
+
+msgid "Ein bezahlter Gutschein kann nicht deaktiviert werden."
+msgstr "Ödenmiş bir hediye çeki devre dışı bırakılamaz."

@@ -32078,3 +32078,6 @@ msgstr "Укажите дату и время."
 
 msgid "Leistung nicht gefunden – bitte neu wählen."
 msgstr "Услуга не найдена — выберите заново."
+
+msgid "Ein bezahlter Gutschein kann nicht deaktiviert werden."
+msgstr "Оплаченный подарочный сертификат нельзя отключить."

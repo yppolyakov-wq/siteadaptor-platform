@@ -80,3 +80,20 @@ D6.1–D6.6: в строке нет полей; round-trip; чужой uuid → 
 по контракту; старые POST принимаются до конца волны; `Tenant.select_for_update().save()` пытается
 создать схему (pitfalls §6) — писать через `update()`/`update_fields`; «Kontaktdaten sehen» (E6.7g)
 маскирует e-mail и на странице участника.
+
+## D6.0 — итог и остаток (2026-11-03)
+Сделано: `core.money.parse_amount`/`to_cents`; допы (цена/scope), финансы (журнал/расходы/строки
+счёта: суммы, даты, мусорный id расхода), подборки (`_save_members` + `*_shown`, старая вкладка без
+`*_shown` → показанное = то, что рисует форма), склад (`_write_config_key` под блокировкой),
+ваучеры («Deaktivieren/Aktivieren» с явным целевым состоянием и аудитом; оплаченный сертификат с
+остатком не отключается — решение по рекомендации ревью, владелец может поменять). Ревью
+(silent-failure-hunter) нашло H1: корзина показывала скидку кода, отключённого после применения, а
+заказ создавался без неё → `preview_discount`/`_cart_discount` проверяют `is_redeemable`.
+
+**D6.0b (отдельным инкрементом, найдено ревью):** те же `float(…replace(",", "."))`/`Decimal(…)`
+в формах кабинета: `jobs/views.py` (смета: цена/кол-во/ставка), `orders/views.py` (правка заказа:
+цена/скидка/доставка), `booking/views.py`, `stays/form_input.py`, `events/views.py`/`details.py`/
+`itinerary.py`, `inventory/views_purchasing.py`, `catalog/views.py`, `core/views.py` (скидка, чипы
+цен), `core/inline_edit.py`, `core/vat.py`, `core/setup_steps.py`, витрина `loyalty/public_views.py`.
+Плюс: ошибка формы финансов теряет ввод (до 8 строк счёта) — чинится вёрсткой D6.5 (страница
+с повтором ввода); неизвестная ставка НДС в журнале молча = 19 %.

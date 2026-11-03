@@ -31789,3 +31789,6 @@ msgstr "Please enter a date and time."
 
 msgid "Leistung nicht gefunden – bitte neu wählen."
 msgstr "Service not found – please choose again."
+
+msgid "Ein bezahlter Gutschein kann nicht deaktiviert werden."
+msgstr "A paid gift voucher cannot be deactivated."
