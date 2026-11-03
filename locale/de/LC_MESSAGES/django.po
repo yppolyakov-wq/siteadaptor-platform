@@ -31710,3 +31710,15 @@ msgstr "Bitte einen Betrag zwischen 0 und 100.000 € angeben."
 
 msgid "Die Anzahlung darf nicht höher als der Preis sein."
 msgstr "Die Anzahlung darf nicht höher als der Preis sein."
+
+msgid "Dauer"
+msgstr "Dauer"
+
+msgid "Im Verkauf"
+msgstr "Im Verkauf"
+
+msgid "Wer bietet an"
+msgstr "Wer bietet an"
+
+msgid "ab"
+msgstr "ab"

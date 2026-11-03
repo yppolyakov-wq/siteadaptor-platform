@@ -160,7 +160,7 @@ def test_blank_translation_falls_back_to_base():
 
 def test_form_renders_inputs_with_existing_content():
     tenant = _tenant("rich6", ("de", "en"))
-    Service.objects.create(
+    svc = Service.objects.create(
         name="X",
         duration_minutes=30,
         attributes=["Eins"],
@@ -168,10 +168,11 @@ def test_form_renders_inputs_with_existing_content():
         faq=[{"q": "A?", "a": "a"}],
         faq_i18n={"en": [{"q": "A-en?", "a": "a-en"}]},
     )
-    req = RequestFactory().get("/dashboard/booking/services/")
+    # UX-D D2.3 (осознанная переписка): правка — на странице услуги, список — обзор
+    req = RequestFactory().get(f"/dashboard/booking/leistungen/{svc.pk}/")
     req.tenant = tenant
     req.user = get_user_model()(username="o", is_active=True)
-    body = views.services_view(req).content.decode()
+    body = views.services_view(req, pk=svc.pk).content.decode()
     assert 'name="attributes_present"' in body and 'name="faq_present"' in body
     assert "Eins" in body and "One" in body
     assert 'name="faq_q_0"' in body and "A-en?" in body
@@ -180,9 +181,10 @@ def test_form_renders_inputs_with_existing_content():
 
 def test_single_locale_tenant_gets_no_translation_inputs():
     tenant = _tenant("rich7")
-    Service.objects.create(name="X", duration_minutes=30, attributes=["Eins"])
-    req = RequestFactory().get("/dashboard/booking/services/")
+    svc = Service.objects.create(name="X", duration_minutes=30, attributes=["Eins"])
+    req = RequestFactory().get(f"/dashboard/booking/leistungen/{svc.pk}/")
     req.tenant = tenant
     req.user = get_user_model()(username="o", is_active=True)
-    body = views.services_view(req).content.decode()
+    body = views.services_view(req, pk=svc.pk).content.decode()
+    assert 'name="attributes_present"' in body  # страница услуги, поля на месте
     assert 'name="attributes_en"' not in body

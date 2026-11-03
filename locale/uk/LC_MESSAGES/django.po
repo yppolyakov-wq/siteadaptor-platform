@@ -31896,3 +31896,15 @@ msgstr "Вкажіть суму від 0 до 100 000 €."
 
 msgid "Die Anzahlung darf nicht höher als der Preis sein."
 msgstr "Передоплата не може бути більшою за ціну."
+
+msgid "Dauer"
+msgstr "Тривалість"
+
+msgid "Im Verkauf"
+msgstr "У продажу"
+
+msgid "Wer bietet an"
+msgstr "Хто надає"
+
+msgid "ab"
+msgstr "від"

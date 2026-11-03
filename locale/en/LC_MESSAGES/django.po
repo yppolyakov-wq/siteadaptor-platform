@@ -31623,3 +31623,15 @@ msgstr "Please enter an amount between 0 and €100,000."
 
 msgid "Die Anzahlung darf nicht höher als der Preis sein."
 msgstr "The deposit cannot be higher than the price."
+
+msgid "Dauer"
+msgstr "Duration"
+
+msgid "Im Verkauf"
+msgstr "On sale"
+
+msgid "Wer bietet an"
+msgstr "Provided by"
+
+msgid "ab"
+msgstr "from"

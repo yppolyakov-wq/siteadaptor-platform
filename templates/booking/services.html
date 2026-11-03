@@ -7,7 +7,7 @@
   {# E9.10: язык ввода — одна выпадашка рядом с заголовком (как у товара/акции). #}
   <div class="flex items-center gap-3 flex-wrap">
     <h1 class="ui-h1">{% if service_page %}{{ service_page.name }}{% else %}{% nav_title _("Services") %}{% endif %}</h1>
-    {% lang_switch %}
+    {% if service_page %}{% lang_switch %}{% endif %}
   </div>
   {% i18n_base_locale as base_loc %}
   <div class="flex flex-wrap gap-x-4 gap-y-1">
@@ -46,6 +46,7 @@
   {# UX-D D2.1: правило неявок и сроки отмены — на экране «Buchungsregeln» (Einstellungen) #}
   <a href="{% url 'booking:booking-rules' %}" class="text-indigo-600 hover:underline">{% trans "Regeln für alle Leistungen" %} →</a></p>{% endif %}
 
+{% if service_page %}
 <div class="space-y-3 mb-8">
   {% for s in services %}
     <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-4 grid sm:grid-cols-5 gap-3 items-end {% if not s.is_active %}opacity-60{% endif %}">
@@ -248,10 +249,38 @@
     <p class="text-gray-500">{% trans "No services yet." %}</p>
   {% endfor %}
 </div>
-
-{% if not service_page %}
-{% comment %}X6-1 (конвенция «＋»): форма создания живёт на списке — «＋ Neu»
-из «Sortiment» ведёт сюда с ?neu=1 и раскрывает её (пустой список — раскрыта
-сразу). Разметка формы не тронута.{% endcomment %}
+{% else %}
+{% comment %}UX-D D2.3 (макет Services): список — ОБЗОР строками; правка — на странице
+услуги (›). Редактируемых полей в строках нет (замок); статус — кнопка-переключатель
+(только скрытые поля).{% endcomment %}
+<div class="ui-card overflow-hidden mb-8" data-services-list>
+  <div class="hidden md:grid grid-cols-[3rem_minmax(0,2fr)_6rem_7rem_minmax(0,1.5fr)_7rem_1.5rem] gap-3 px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100" aria-hidden="true">
+    <span></span><span>{% trans "Leistung" %}</span><span>{% trans "Dauer" %}</span><span>{% trans "Preis" %}</span><span>{% trans "Wer bietet an" %}</span><span>{% trans "Status" %}</span><span></span>
+  </div>
+  <ul class="divide-y divide-gray-100">
+  {% for s in services %}
+    <li class="relative grid grid-cols-[3rem_minmax(0,1fr)_auto] md:grid-cols-[3rem_minmax(0,2fr)_6rem_7rem_minmax(0,1.5fr)_7rem_1.5rem] gap-x-3 gap-y-1 items-center px-4 py-3 hover:bg-gray-50{% if not s.is_active %} text-gray-500{% endif %}" data-service-row>
+      <span class="row-span-2 md:row-span-1 w-12 h-12 rounded-lg bg-gray-100 overflow-hidden grid place-items-center" aria-hidden="true">{% if s.image_url %}<img src="{{ s.image_url }}" alt="" class="w-full h-full object-cover" loading="lazy">{% else %}🗓{% endif %}</span>
+      <a href="{% url 'booking:service-edit' s.pk %}" class="font-medium text-gray-900 hover:underline break-words after:absolute after:inset-0">{{ s.name }}</a>
+      <span class="hidden md:block tabular-nums">{{ s.duration_minutes }} {% trans "Min." %}</span>
+      <span class="hidden md:block tabular-nums">{% if s.has_variants %}{% trans "ab" %} {% endif %}{{ s.list_price_eur|floatformat:2 }} €{% if s.pricing_mode == "per_person" %} <span class="text-xs text-gray-500">/ {% trans "Person" %}</span>{% endif %}</span>
+      <span class="hidden md:block text-sm text-gray-600 break-words">{% for r in s.resources.all %}{{ r.name }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "alle" %}{% endfor %}</span>
+      {# мобильная строка — длительность · цена под названием #}
+      <span class="md:hidden col-start-2 text-xs text-gray-600">{{ s.duration_minutes }} {% trans "Min." %} · {% if s.has_variants %}{% trans "ab" %} {% endif %}{{ s.list_price_eur|floatformat:2 }} €</span>
+      <form method="post" class="relative z-10 row-start-1 col-start-3 md:row-auto md:col-auto">
+        {% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="service" value="{{ s.pk }}">
+        <button type="submit" aria-pressed="{% if s.is_active %}true{% else %}false{% endif %}" aria-label="{% if s.is_active %}{% trans 'Im Verkauf' %}{% else %}{% trans 'Aus' %}{% endif %}: {{ s.name }}"
+                class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium min-h-[1.75rem] {% if s.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}">
+          <span class="w-1.5 h-1.5 rounded-full {% if s.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if s.is_active %}{% trans "Im Verkauf" %}{% else %}{% trans "Aus" %}{% endif %}
+        </button>
+      </form>
+      <span class="hidden md:block text-gray-400" aria-hidden="true">›</span>
+    </li>
+  {% empty %}
+    <li class="px-4 py-6 text-gray-500">{% trans "No services yet." %} <a href="{% url 'booking:service-new' %}" data-drawer aria-haspopup="dialog" class="text-indigo-700 hover:underline">{% trans "New service" %} →</a></li>
+  {% endfor %}
+  </ul>
+</div>
 {% endif %}
+
 {% endblock %}

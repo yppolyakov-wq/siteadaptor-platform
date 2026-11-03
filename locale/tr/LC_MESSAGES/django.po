@@ -31769,3 +31769,15 @@ msgstr "Lütfen 0 ile 100.000 € arasında bir tutar girin."
 
 msgid "Die Anzahlung darf nicht höher als der Preis sein."
 msgstr "Kapora fiyattan yüksek olamaz."
+
+msgid "Dauer"
+msgstr "Süre"
+
+msgid "Im Verkauf"
+msgstr "Satışta"
+
+msgid "Wer bietet an"
+msgstr "Kim sunuyor"
+
+msgid "ab"
+msgstr "başlangıç"

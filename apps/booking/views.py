@@ -1638,14 +1638,32 @@ def services_view(request, pk=None):
             return redirect("booking:service-edit", pk=pk)
         return redirect("booking:services")
 
-    if pk:
-        service_page = get_object_or_404(Service, pk=pk)
-        services = [service_page]
-    else:
-        service_page = None
+    if not pk:
+        # UX-D D2.3: список — обзор строками; per-locale инпуты/FAQ/сезоны не строим
         services = list(
             Service.objects.prefetch_related("resources", "variants").order_by("-is_active", "name")
         )
+        for svc in services:
+            active_variants = [v for v in svc.variants.all() if v.is_active]
+            svc.has_variants = bool(active_variants)
+            # «ab» — та же формула, что витрина (pricing.variant_price_cents)
+            prices = [svc.price_cents] + [
+                max(0, svc.price_cents + int(v.price_delta_cents or 0)) for v in active_variants
+            ]
+            svc.list_price_eur = Decimal(min(prices)) / 100
+        return render(
+            request,
+            "booking/services.html",
+            {
+                "service_page": None,
+                "nav": "services",
+                "services": services,
+                "has_hours": AvailabilityRule.objects.exists()
+                or bool(_business_hours_of(getattr(request, "tenant", None))),
+            },
+        )
+    service_page = get_object_or_404(Service, pk=pk)
+    services = [service_page]
     locales = extra_locales(getattr(request, "tenant", None))
     for svc in services:  # L3d: данные per-locale инпутов готовим в Python
         svc.i18n_inputs = i18n_inputs_for(svc, getattr(request, "tenant", None))

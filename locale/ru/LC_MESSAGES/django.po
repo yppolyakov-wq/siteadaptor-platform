@@ -31912,3 +31912,15 @@ msgstr "Укажите сумму от 0 до 100 000 €."
 
 msgid "Die Anzahlung darf nicht höher als der Preis sein."
 msgstr "Предоплата не может быть больше цены."
+
+msgid "Dauer"
+msgstr "Длительность"
+
+msgid "Im Verkauf"
+msgstr "В продаже"
+
+msgid "Wer bietet an"
+msgstr "Кто оказывает"
+
+msgid "ab"
+msgstr "от"
