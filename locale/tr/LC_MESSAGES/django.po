@@ -31864,3 +31864,9 @@ msgstr "Kayıt formları"
 
 msgid "Kurtaxe, Hausordnung und Check-in-Zeiten ändern nur Inhaber und Admins."
 msgstr "Konaklama vergisini, ev kurallarını ve giriş saatlerini yalnızca sahipler ve yöneticiler değiştirebilir."
+
+msgid "Buchungskanäle, Website-Widget und Metasuche"
+msgstr "Rezervasyon kanalları, web sitesi widget'ı ve meta arama"
+
+msgid "Website-Widget & Metasuche"
+msgstr "Web sitesi widget'ı ve meta arama"

@@ -112,6 +112,20 @@
   </div>
 
   <div class="min-w-0">
+  {% comment %}UX-D D4.4: виджет бронирования для своего сайта и фид цен для метапоиска —
+  раньше под-вкладка «Kanäle & Export» списка номеров. Копирование — кнопкой
+  (data-copy-target, cabinet.js), без inline-обработчиков.{% endcomment %}
+  <section class="ui-card p-5 mb-6" aria-labelledby="ch-export-h" data-embed-feed>
+    <h2 id="ch-export-h" class="ui-h2 mb-3">{% trans "Website-Widget & Metasuche" %}</h2>
+    <h3 class="text-sm font-medium">{% trans "Booking widget for your website" %}</h3>
+    <p id="ch-embed-hint" class="text-xs text-gray-600 mb-2">{% trans "Paste this code into your existing site to embed the booking search (no header/footer)." %}</p>
+    <textarea id="ch-embed" readonly rows="3" aria-describedby="ch-embed-hint" aria-label="{% trans "Booking widget for your website" %}" class="ui-input font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Booking"&gt;&lt;/iframe&gt;</textarea>
+    <button type="button" data-copy-target="ch-embed" data-copied="{% trans 'Copied!' %}" class="ui-btn ui-btn-secondary ui-btn-sm mt-2">{% trans "Kopieren" %}</button>
+    <h3 class="text-sm font-medium mt-5">{% trans "Metasearch & Google (rates feed)" %}</h3>
+    <p id="ch-feed-hint" class="text-xs text-gray-600 mb-2">{% trans "Machine-readable availability & prices for metasearch and channel partners. Connect it in Google Hotel Center to get free booking links straight to your direct booking." %}</p>
+    <input id="ch-feed" type="text" readonly value="{{ feed_url }}" aria-describedby="ch-feed-hint" aria-label="{% trans "Metasearch & Google (rates feed)" %}" class="ui-input font-mono text-[11px]">
+    <button type="button" data-copy-target="ch-feed" data-copied="{% trans 'Copied!' %}" class="ui-btn ui-btn-secondary ui-btn-sm mt-2">{% trans "Kopieren" %}</button>
+  </section>
   {# Импортированные брони #}
   {% if imported %}
   <div class="ui-card p-5">

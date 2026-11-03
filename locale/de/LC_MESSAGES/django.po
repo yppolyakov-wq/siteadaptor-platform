@@ -31805,3 +31805,9 @@ msgstr ""
 
 msgid "Kurtaxe, Hausordnung und Check-in-Zeiten ändern nur Inhaber und Admins."
 msgstr ""
+
+msgid "Buchungskanäle, Website-Widget und Metasuche"
+msgstr ""
+
+msgid "Website-Widget & Metasuche"
+msgstr ""

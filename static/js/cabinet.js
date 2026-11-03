@@ -877,6 +877,28 @@ try { (function () {
     if (cur) field.value = cur.getAttribute("data-pf-tab");
   }, true);
 })(); } catch (e) { console.error(e); }
+// ---- stays/channels.html (copy) ----
+// UX-D D4.4: «Kopieren» у поля только-для-чтения: кнопка [data-copy-target="<id>"].
+// Без Clipboard API (http, старый браузер) — поле выделяется, текст копируют вручную.
+try { (function () {
+  "use strict";
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("[data-copy-target]");
+    if (!btn) return;
+    var field = document.getElementById(btn.getAttribute("data-copy-target"));
+    if (!field) return;
+    field.focus();
+    field.select();
+    var label = btn.textContent, done = btn.getAttribute("data-copied") || label;
+    function ok() {
+      btn.textContent = done;
+      setTimeout(function () { btn.textContent = label; }, 1500);
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(field.value).then(ok, function () {});
+    }
+  });
+})(); } catch (e) { console.error(e); }
 // ---- core/_sheet_js.html ----
 try { (function () {
   "use strict";

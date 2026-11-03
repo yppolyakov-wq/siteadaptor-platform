@@ -1372,6 +1372,8 @@ def units(request, pk=None):
         return redirect(reverse("stays:price-rules") + "?tab=regeln")
     if not pk and request.GET.get("sec") == "kurtaxe":  # UX-D D4.3
         return redirect("stays:stay-settings")
+    if not pk and request.GET.get("sec") == "kanaele":  # UX-D D4.4
+        return redirect("stays:channels")
     unit_qs = StayUnit.objects.prefetch_related("blocks", "season_rates", "ical_sources", "rooms")
     if pk:
         unit_page = get_object_or_404(unit_qs, pk=pk)
@@ -1407,8 +1409,6 @@ def units(request, pk=None):
             "can_edit_prices": has_perm(request.user, "preise.edit"),  # Z-4 Р-7
             "amenities": AMENITIES,  # H3 чек-лист удобств
             # UX-D D4.3: Kurtaxe/часы/удобства на карточке — экран «Unterkunft»
-            "embed_url": request.build_absolute_uri(reverse("storefront-unterkunft")) + "?embed=1",
-            "feed_url": request.build_absolute_uri(reverse("storefront-stay-feed")),  # G8 метапоиск
         },
     )
 
@@ -1652,6 +1652,9 @@ def channels(request):
         "stays/channels.html",
         {
             "nav": "channel-manager",
+            # UX-D D4.4: виджет бронирования и фид метапоиска — здесь, среди каналов
+            "embed_url": request.build_absolute_uri(reverse("storefront-unterkunft")) + "?embed=1",
+            "feed_url": request.build_absolute_uri(reverse("storefront-stay-feed")),
             "channels": list(Channel.objects.all()),
             "kinds": Channel.KINDS,
             "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),

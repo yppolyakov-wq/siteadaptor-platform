@@ -480,7 +480,7 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
     assert (
         # E9: панели — деталь `.ui-card` (было `bg-white …`)
         body_list.count('<details class="ui-card') + body_list.count('<details open class="ui-card')
-        == 2  # D4.3: Kurtaxe/часы/удобства ушли на «Unterkunft»; остались виджет и фид (D4.4)
+        == 0  # D4.3/D4.4: настроек на списке нет — только карточки-входы на свои экраны
     )
     # UX-D D4.2: скидки/динамика/Lücken/правила продаж — экран «Preise & Regeln»
     assert "data-rate-plans-link" in body_list and "data-price-rules-link" in body_list
@@ -488,7 +488,7 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
         assert field not in body_list, field
     assert 'name="kurtaxe_eur"' not in body_list and "data-stay-settings-link" in body_list
     # порядок: номера ВЫШЕ глобальных настроек (страница открывается номерами)
-    assert body_list.index("TabZimmer") < body_list.index('<details open class="ui-card')
+    assert body_list.index("TabZimmer") < body_list.index("data-rate-plans-link")
 
 
 def test_units_list_page_tabs_and_settings_groups():
@@ -504,14 +504,17 @@ def test_units_list_page_tabs_and_settings_groups():
     # UX-D D4.2 (осознанная переписка): «Verkaufsregeln» ушли на экран «Preise &
     # Regeln» (Einstellungen › Zimmer); старая закладка sec=regeln — 302 туда.
     # UX-D D4.3: «Kurtaxe & Hausordnung» — экран «Unterkunft»; sec=kurtaxe — 302.
-    for st in ("preise", "kanaele"):
-        assert f'data-st-tab="{st}"' in body and f'data-st-panel="{st}"' in body, st
-    for st in ("regeln", "kurtaxe"):
+    # UX-D D4.4: «Kanäle & Export» — на «Kanal-Manager»; под-табов не осталось.
+    for st in ("regeln", "kurtaxe", "kanaele", "preise"):
         assert f'data-st-tab="{st}"' not in body, st
     assert 'name="max_advance_days"' not in body and 'name="kurtaxe_eur"' not in body
-    assert body.index("💶") < body.index("🔗")
-    assert "Preise & Rabatte" in body and "Kanäle & Export" in body
-    assert 'data-st-panel="kanaele" class="hidden"' in body
+    for link in (
+        "data-rate-plans-link",
+        "data-price-rules-link",
+        "data-stay-settings-link",
+        "data-channels-link",
+    ):
+        assert link in body, link
     resp_kt = views.units(_req(data={"tab": "einstellungen", "sec": "kurtaxe"}))
     assert resp_kt.status_code == 302 and resp_kt.url.endswith("/unterkunft/")
     resp_sec = views.units(_req(data={"tab": "einstellungen", "sec": "regeln"}))

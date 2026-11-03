@@ -407,11 +407,7 @@
 {% comment %}Фидбэк 2026-07-28 (№3): группы настроек — ПОД-ТАБЫ (не заголовки подряд).
 Активная секция приходит с сервера (?sec= из redirect'а Save), переключение —
 делегированным JS; полоса табов скроллится на мобиле (overflow-x-auto).{% endcomment %}
-<div class="ui-tabs flex-nowrap mb-4 overflow-x-auto py-1 -mx-1 px-1" role="group" aria-label="{% trans "Bereiche" %}">
-  <button type="button" data-st-tab="preise" aria-pressed="{% if sec != 'kanaele' %}true{% else %}false{% endif %}" class="ui-tab shrink-0 whitespace-nowrap">💶 {% trans "Prices & discounts" %}</button>
-  <button type="button" data-st-tab="kanaele" aria-pressed="{% if sec == 'kanaele' %}true{% else %}false{% endif %}" class="ui-tab shrink-0 whitespace-nowrap">🔗 {% trans "Channels & export" %}</button>
-</div>
-<div data-st-panel="preise" class="{% if sec == 'kanaele' %}hidden{% endif %}">
+<div data-st-panel="preise">
 <a href="{% url 'stays:price-calendar' %}" data-price-calendar-link class="flex items-center justify-between gap-3 bg-indigo-50 rounded-2xl px-5 py-3 mb-3 text-sm text-indigo-800 hover:bg-indigo-100">
   <span>📅 <strong>{% trans "Preise & Verfügbarkeit" %}</strong> — {% trans "Tagespreise, Stopp und Mindestaufenthalt im Kalender" %}</span><span aria-hidden="true">→</span>
 </a>
@@ -423,24 +419,13 @@
 <a href="{% url 'stays:price-rules' %}" data-price-rules-link class="flex items-center justify-between gap-3 ui-card px-5 py-3 mb-3 text-sm hover:bg-gray-50">
   <span><strong>{% trans "Preise & Regeln" %}</strong> — {% trans "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln" %}</span><span aria-hidden="true">→</span>
 </a>
-{# UX-D D4.3: Kurtaxe, Hausordnung, часы, удобства на карточке — экран «Unterkunft». #}
+{# UX-D D4.3/D4.4: «Unterkunft»; виджет и метапоиск — на «Kanal-Manager». #}
 <a href="{% url 'stays:stay-settings' %}" data-stay-settings-link class="flex items-center justify-between gap-3 ui-card px-5 py-3 mb-3 text-sm hover:bg-gray-50">
   <span><strong>{% trans "Unterkunft" %}</strong> — {% trans "Kurtaxe, Hausordnung, Check-in-Zeiten und Ausstattung auf der Zimmerkarte" %}</span><span aria-hidden="true">→</span>
 </a>
-</div>
-<div data-st-panel="kanaele" class="{% if sec != 'kanaele' %}hidden{% endif %}">
-{# --- G10: виджет бронирования (iframe) для своего сайта --------------------- #}
-<details open class="ui-card p-5 mb-3">
-  <summary class="cursor-pointer font-semibold">{% trans "Booking widget for your website" %}</summary>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Paste this code into your existing site to embed the booking search (no header/footer)." %}</p>
-  <textarea aria-label="{% trans "Booking widget for your website" %}" readonly rows="3" onclick="this.select()" class="ui-input font-mono text-[11px]">&lt;iframe src="{{ embed_url }}" style="width:100%;min-height:720px;border:0" loading="lazy" title="Booking"&gt;&lt;/iframe&gt;</textarea>
-</details>
-{# --- G8: метапоиск / Google Hotel Center фид цен и наличия ------------------ #}
-<details open class="ui-card p-5 mb-3">
-  <summary class="cursor-pointer font-semibold">{% trans "Metasearch & Google (rates feed)" %}</summary>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Machine-readable availability & prices for metasearch and channel partners. Connect it in Google Hotel Center to get free booking links straight to your direct booking." %}</p>
-  <input aria-label="{% trans "Metasearch & Google (rates feed)" %}" type="text" readonly value="{{ feed_url }}" onclick="this.select()" class="ui-input font-mono text-[11px]">
-</details>
+<a href="{% url 'stays:channels' %}" data-channels-link class="flex items-center justify-between gap-3 ui-card px-5 py-3 mb-3 text-sm hover:bg-gray-50">
+  <span><strong>{% trans "Kanal-Manager" %}</strong> — {% trans "Buchungskanäle, Website-Widget und Metasuche" %}</span><span aria-hidden="true">→</span>
+</a>
 </div>
 </div>
 <script>
@@ -458,26 +443,8 @@ document.addEventListener("click", function (e) {
     var active = b === btn;
     b.setAttribute("aria-pressed", active ? "true" : "false");
   });
-  // Ревью 2026-07-28: сохраняем и активный под-таб, иначе F5 сбрасывает секцию.
-  var st = document.querySelector('[data-st-tab][aria-pressed="true"]');
-  var url = key === "einstellungen"
-    ? "?tab=einstellungen" + (st ? "&sec=" + st.getAttribute("data-st-tab") : "")
-    : location.pathname;
+  var url = key === "einstellungen" ? "?tab=einstellungen" : location.pathname;
   try { history.replaceState(null, "", url); } catch (err) {}
-});
-// Под-табы внутри «Einstellungen» (💶 / 📅 / 🏛 / 🔗).
-document.addEventListener("click", function (e) {
-  var btn = e.target.closest("[data-st-tab]");
-  if (!btn) return;
-  var key = btn.getAttribute("data-st-tab");
-  document.querySelectorAll("[data-st-panel]").forEach(function (p) {
-    p.classList.toggle("hidden", p.getAttribute("data-st-panel") !== key);
-  });
-  document.querySelectorAll("[data-st-tab]").forEach(function (b) {
-    var active = b === btn;
-    b.setAttribute("aria-pressed", active ? "true" : "false");
-  });
-  try { history.replaceState(null, "", "?tab=einstellungen&sec=" + key); } catch (err) {}
 });
 </script>
 {% endif %}

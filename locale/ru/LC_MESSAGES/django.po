@@ -32007,3 +32007,9 @@ msgstr "Регистрационные бланки"
 
 msgid "Kurtaxe, Hausordnung und Check-in-Zeiten ändern nur Inhaber und Admins."
 msgstr "Курортный сбор, правила проживания и время заезда меняют только владелец и администраторы."
+
+msgid "Buchungskanäle, Website-Widget und Metasuche"
+msgstr "Каналы продаж, виджет для сайта и метапоиск"
+
+msgid "Website-Widget & Metasuche"
+msgstr "Виджет для сайта и метапоиск"

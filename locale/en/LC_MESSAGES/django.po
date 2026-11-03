@@ -31718,3 +31718,9 @@ msgstr "Registration forms"
 
 msgid "Kurtaxe, Hausordnung und Check-in-Zeiten ändern nur Inhaber und Admins."
 msgstr "Only owners and admins can change Kurtaxe, house rules and check-in times."
+
+msgid "Buchungskanäle, Website-Widget und Metasuche"
+msgstr "Booking channels, website widget and metasearch"
+
+msgid "Website-Widget & Metasuche"
+msgstr "Website widget & metasearch"
