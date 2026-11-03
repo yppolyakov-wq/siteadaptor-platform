@@ -6,7 +6,6 @@ confirmed), управление юнитами (тип/цена/min_nights/max_
 блокировками дат. Гейтинг — модуль «stays» из реестра (ModuleGatingMiddleware).
 """
 
-import re
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
@@ -33,9 +32,13 @@ from apps.core.roles import audit_export
 from apps.core.templatetags.cabinet import can_open
 from apps.core.view_perms import perm_required
 
-from . import availability, capacity, front_desk, pricing, services
+from . import availability, capacity, front_desk, pricing, services, settings_actions
 from . import rate_plans as rate_plans_mod
 from . import restrictions as stay_restrictions
+from .form_input import (  # D4.0: общие разборы полей форм кабинета номеров
+    _eur_to_cents,
+    _int,
+)
 from .models import (
     _AMENITY_KEYS,
     AMENITIES,
@@ -51,21 +54,6 @@ from .models import (
 from .public_views import ical_token
 
 HORIZON_DAYS = 30  # ширина окна календаря загрузки
-
-
-def _int(raw, default, lo, hi) -> int:
-    try:
-        return max(lo, min(int(raw), hi))
-    except (TypeError, ValueError):
-        return default
-
-
-def _eur_to_cents(raw) -> int:
-    """«80» / «79,50» → центы (анти-кривой ввод → 0)."""
-    try:
-        return max(0, round(float(str(raw or "0").replace(",", ".")) * 100))
-    except (TypeError, ValueError):
-        return 0
 
 
 @login_required
@@ -1111,35 +1099,6 @@ def _capacity_msg(exc) -> str:
     }
 
 
-_HOUR_RE = re.compile(r"[0-9]{1,2}")
-
-
-def _parse_hour(raw):
-    """Z-5: час 0..23 строго ASCII-цифрами (``"٣".isdigit()`` — True); иначе None."""
-    raw = (raw or "").strip()
-    if not _HOUR_RE.fullmatch(raw):
-        return None
-    hour = int(raw)
-    return hour if 0 <= hour <= 23 else None
-
-
-def _rateplan_pk(post):
-    """pk тарифа из формы — строгий UUID; мусор → None (404/ничего), не 500."""
-    return rate_plans_mod.parse_uuid(post.get("rateplan"))
-
-
-def _rateplan_scope(post):
-    """Охват тарифа из формы: None — поля нет (не трогать); (True, []) — все
-    категории; (False, [StayUnit…]) — выбранные (только существующие pk)."""
-    scope = post.get("rate_scope")
-    if scope == "all":
-        return (True, [])
-    if scope != "some":
-        return None
-    pks = rate_plans_mod.parse_pks(post.getlist("units"))
-    return (False, list(StayUnit.objects.filter(pk__in=pks)))
-
-
 def _overlapping_season_ids(rates) -> set:
     """Z-4: pk сезонов, пересекающихся с другим сезоном той же категории (старые
     данные до гарда) — для бейджа «Überschneidung». В памяти, без запросов."""
@@ -1178,7 +1137,9 @@ def units(request, pk=None):
         if action in RATE_EDIT_ACTIONS and not has_perm(request.user, "preise.edit"):
             messages.error(request, _("Preise und Tarife ändern nur Inhaber und Admins."))
             return redirect("stays:unit-edit", pk=pk) if pk else redirect("stays:units")
-        if action == "unit":
+        if settings_actions.handle(request, action):
+            pass  # UX-D D4.0: тарифы/правила/Kurtaxe — общий модуль действий
+        elif action == "unit":
             name = request.POST.get("name", "").strip()
             if name:
                 unit = StayUnit.objects.create(
@@ -1386,197 +1347,6 @@ def units(request, pk=None):
             src = get_object_or_404(ICalSource, pk=request.POST.get("source"))
             n = services.sync_ical_source(src)
             messages.success(request, _("Synced: %(n)d blocked range(s).") % {"n": n})
-        elif action == "rateplan":  # H1: тариф; Z-4 — для всех или выбранных категорий
-            name = request.POST.get("name", "").strip()
-            scope = _rateplan_scope(request.POST)
-            if name and scope is not None and not scope[0] and not scope[1]:
-                messages.error(request, _("Bitte mindestens eine Kategorie wählen."))
-            elif name:
-                rp = RatePlan.objects.create(
-                    name=name[:120],
-                    description=request.POST.get("description", "").strip()[:300],
-                    percent_adjust=_int(request.POST.get("percent_adjust", "0"), 0, -90, 200),
-                    surcharge_cents=_eur_to_cents(request.POST.get("surcharge_eur")),
-                    meal_plan=request.POST.get("meal_plan", RatePlan.MEAL_NONE),
-                    cancellation=request.POST.get("cancellation", RatePlan.CANCEL_FLEXIBLE),
-                    free_cancel_days=_int(request.POST.get("free_cancel_days", "0"), 0, 0, 365),
-                    prepayment_percent=_int(request.POST.get("prepayment_percent", "0"), 0, 0, 100),
-                    sort_order=_int(request.POST.get("sort_order", "0"), 0, 0, 999),
-                    applies_to_all=scope is None or scope[0],
-                )
-                if scope is not None and not scope[0]:
-                    rp.units.set(scope[1])
-                messages.success(request, _("Rate plan added."))
-            else:
-                messages.error(request, _("Please enter a rate plan name."))
-        elif action == "rateplan_units":  # Z-4: правка категорий тарифа
-            rp = get_object_or_404(RatePlan, pk=_rateplan_pk(request.POST))
-            scope = _rateplan_scope(request.POST)
-            if scope is None:
-                pass  # W0: формы без поля охвата набор не трогают
-            elif not scope[0] and not scope[1]:
-                messages.error(request, _("Bitte mindestens eine Kategorie wählen."))
-            else:
-                with transaction.atomic():
-                    rp.applies_to_all = scope[0]
-                    rp.save(update_fields=["applies_to_all", "updated_at"])
-                    rp.units.set([] if scope[0] else scope[1])
-                messages.success(request, _("Settings saved."))
-        elif action == "rateplan_toggle":
-            rp = get_object_or_404(RatePlan, pk=_rateplan_pk(request.POST))
-            rp.is_active = not rp.is_active
-            rp.save(update_fields=["is_active", "updated_at"])
-            messages.success(request, _("Settings saved."))
-        elif action == "rateplan_delete":
-            RatePlan.objects.filter(pk=_rateplan_pk(request.POST)).delete()
-            messages.success(request, _("Settings saved."))
-        elif action == "card_amenities":  # HF-2: пиктограммы удобств на карточке номера
-            from apps.tenants import siteconfig
-
-            tenant = request.tenant
-            keys = siteconfig.normalize_card_amenities(request.POST.getlist("card_amenity"))
-            # Targeted-write (как board_settings): прочие ключи site_config целы.
-            cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
-            if keys:
-                cfg["stay_card_amenities"] = keys
-            else:
-                cfg.pop("stay_card_amenities", None)  # пусто = дефолт, ключ не храним
-            tenant.site_config = cfg
-            tenant.save(update_fields=["site_config", "updated_at"])
-            messages.success(request, _("Settings saved."))
-        elif action == "kurtaxe":  # H9 Kurtaxe + H6 Hausordnung
-            settings_obj = StaySettings.load()
-            settings_obj.kurtaxe_cents = _eur_to_cents(request.POST.get("kurtaxe_eur"))
-            settings_obj.kurtaxe_label = (
-                request.POST.get("kurtaxe_label", "").strip()[:80] or "Kurtaxe"
-            )
-            settings_obj.house_rules = request.POST.get("house_rules", "").strip()[:8000]
-            fields = ["kurtaxe_cents", "kurtaxe_label", "house_rules", "updated_at"]
-            # E9.10: переводы Hausordnung — в той же форме (выпадашка у заголовка).
-            fields += apply_i18n_overlay(
-                settings_obj, request.POST, getattr(request, "tenant", None), ("house_rules",)
-            )
-            # KA-12 Z-6: Kurtaxe детей — presence-guard (снятый чекбокс не приходит).
-            if request.POST.get("kurtaxe_children_present"):
-                settings_obj.kurtaxe_children_free = bool(request.POST.get("kurtaxe_children_free"))
-                settings_obj.kurtaxe_child_cents = _eur_to_cents(
-                    request.POST.get("kurtaxe_child_eur")
-                )
-                fields += ["kurtaxe_children_free", "kurtaxe_child_cents"]
-            settings_obj.save(update_fields=fields)
-            messages.success(request, _("Settings saved."))
-        elif action == "stay_hours":  # Z-5 Р-8: часы заезда/выезда
-            checkin = _parse_hour(request.POST.get("checkin_hour"))
-            checkout = _parse_hour(request.POST.get("checkout_hour"))
-            if checkin is None or checkout is None:
-                messages.error(request, _("Bitte eine Stunde von 0 bis 23 angeben."))
-            else:
-                settings_obj = StaySettings.load()
-                settings_obj.checkin_hour, settings_obj.checkout_hour = checkin, checkout
-                settings_obj.save(update_fields=["checkin_hour", "checkout_hour", "updated_at"])
-                messages.success(request, _("Settings saved."))
-        elif action == "autodiscount_add":  # G4: добавить правило авто-скидки
-            settings_obj = StaySettings.load()
-            kind = request.POST.get("kind", "")
-            valid_kinds = {k for k, _ in StaySettings.AUTO_DISCOUNT_KINDS}
-            threshold = _int(request.POST.get("threshold", "0"), 0, 1, 365)
-            percent = _int(request.POST.get("percent", "0"), 0, 1, 90)
-            if kind in valid_kinds and threshold and percent:
-                rules = settings_obj.clean_auto_rules()
-                rules.append({"kind": kind, "threshold": threshold, "percent": percent})
-                settings_obj.auto_discount_rules = rules
-                settings_obj.save(update_fields=["auto_discount_rules", "updated_at"])
-                messages.success(request, _("Discount rule added."))
-            else:
-                messages.error(request, _("Please fill in the discount rule."))
-        elif action == "autodiscount_delete":  # G4: удалить правило по индексу
-            settings_obj = StaySettings.load()
-            rules = settings_obj.clean_auto_rules()
-            idx = _int(request.POST.get("index", "-1"), -1, 0, len(rules) - 1)
-            if 0 <= idx < len(rules):
-                rules.pop(idx)
-                settings_obj.auto_discount_rules = rules
-                settings_obj.save(update_fields=["auto_discount_rules", "updated_at"])
-                messages.success(request, _("Settings saved."))
-        elif action == "booking_window":  # G12: окно бронирования (глубина + мин. срок)
-            settings_obj = StaySettings.load()
-            settings_obj.max_advance_days = _int(
-                request.POST.get("max_advance_days", "0"), 0, 0, 365
-            )
-            settings_obj.min_advance_days = _int(
-                request.POST.get("min_advance_days", "0"), 0, 0, 90
-            )
-            settings_obj.save(update_fields=["max_advance_days", "min_advance_days", "updated_at"])
-            messages.success(request, _("Settings saved."))
-        elif action == "restriction_add":  # G12: правило продаж (Verkaufsregel)
-            settings_obj = StaySettings.load()
-            rule = {
-                "start": request.POST.get("start", "").strip()[:10],
-                "end": request.POST.get("end", "").strip()[:10],
-                "unit": request.POST.get("unit", "").strip()[:40],
-                "min_nights": _int(request.POST.get("min_nights", "0"), 0, 0, 365),
-                "max_nights": _int(request.POST.get("max_nights", "0"), 0, 0, 365),
-                "no_checkin": request.POST.getlist("no_checkin"),
-                "no_checkout": request.POST.getlist("no_checkout"),
-            }
-            rules = settings_obj.clean_restriction_rules()
-            rules.append(rule)
-            settings_obj.restriction_rules = rules
-            cleaned = settings_obj.clean_restriction_rules()
-            if len(cleaned) > len(rules) - 1:  # правило не пустое → сохранилось
-                settings_obj.restriction_rules = cleaned
-                settings_obj.save(update_fields=["restriction_rules", "updated_at"])
-                messages.success(request, _("Sales rule added."))
-            else:
-                messages.error(request, _("Please fill in at least one restriction."))
-        elif action == "restriction_delete":  # G12: удалить правило по индексу
-            settings_obj = StaySettings.load()
-            rules = settings_obj.clean_restriction_rules()
-            idx = _int(request.POST.get("index", "-1"), -1, 0, len(rules) - 1)
-            if 0 <= idx < len(rules):
-                rules.pop(idx)
-                settings_obj.restriction_rules = rules
-                settings_obj.save(update_fields=["restriction_rules", "updated_at"])
-                messages.success(request, _("Settings saved."))
-        elif action == "occupancy_add":  # PMS-D: правило «занятость ≥ X % → ±Y %»
-            settings_obj = StaySettings.load()
-            rules = settings_obj.clean_occupancy_rules()
-            rules.append(
-                {
-                    "occupancy": _int(request.POST.get("occupancy", "0"), 0, 0, 100),
-                    "percent": _int(request.POST.get("percent", "0"), 0, -50, 50),
-                }
-            )
-            settings_obj.occupancy_rules = rules
-            cleaned = settings_obj.clean_occupancy_rules()
-            if len(cleaned) > len(rules) - 1:  # правило валидное → сохранилось
-                settings_obj.occupancy_rules = cleaned
-                settings_obj.save(update_fields=["occupancy_rules", "updated_at"])
-                messages.success(request, _("Settings saved."))
-            else:
-                messages.error(request, _("Please fill in at least one restriction."))
-        elif action == "occupancy_delete":  # PMS-D: удалить правило по индексу
-            settings_obj = StaySettings.load()
-            rules = settings_obj.clean_occupancy_rules()
-            idx = _int(request.POST.get("index", "-1"), -1, 0, len(rules) - 1)
-            if 0 <= idx < len(rules):
-                rules.pop(idx)
-                settings_obj.occupancy_rules = rules
-                settings_obj.save(update_fields=["occupancy_rules", "updated_at"])
-                messages.success(request, _("Settings saved."))
-        elif action == "gap_deal":  # Lücken-Deal: скидка на короткие промежутки
-            settings_obj = StaySettings.load()
-            enabled = bool(request.POST.get("enabled"))
-            settings_obj.gap_max_nights = (
-                _int(request.POST.get("gap_max_nights", "3"), 3, 1, 14) if enabled else 0
-            )
-            settings_obj.gap_discount_percent = _int(
-                request.POST.get("gap_discount_percent", "25"), 25, 1, 70
-            )
-            settings_obj.save(
-                update_fields=["gap_max_nights", "gap_discount_percent", "updated_at"]
-            )
-            messages.success(request, _("Settings saved."))
         if pk:
             return redirect("stays:unit-edit", pk=pk)
         # Ревью 2026-07-28: кросс-страничные постеры (баннер Lücken-Deal на
@@ -1587,27 +1357,10 @@ def units(request, pk=None):
             return redirect(nxt)
         # Фидбэк 2026-07-28 (№2/№3): Save глобальной настройки возвращает на её
         # таб И на её ПОД-ТАБ (секцию), чтобы владелец не искал место заново.
-        _settings_sections = {
-            "rateplan": "preise",
-            "rateplan_toggle": "preise",
-            "rateplan_units": "preise",
-            "rate": "preise",
-            "rateplan_delete": "preise",
-            "autodiscount_add": "preise",
-            "autodiscount_delete": "preise",
-            "occupancy_add": "preise",
-            "occupancy_delete": "preise",
-            "gap_deal": "preise",
-            "booking_window": "regeln",
-            "restriction_add": "regeln",
-            "restriction_delete": "regeln",
-            "kurtaxe": "kurtaxe",
-            "stay_hours": "kurtaxe",
-            "card_amenities": "kurtaxe",  # HF-2: живёт рядом с прочей «подачей» номеров
-        }
-        sec = _settings_sections.get(action)
-        if sec:
-            return redirect(reverse("stays:units") + f"?tab=einstellungen&sec={sec}")
+        if action in settings_actions.ACTIONS:
+            return redirect(settings_actions.home_url(action))
+        if action == "rate":  # сезон без pk (старые формы списка) — к ценам
+            return redirect(reverse("stays:units") + "?tab=einstellungen&sec=preise")
         return redirect("stays:units")
 
     unit_qs = StayUnit.objects.prefetch_related("blocks", "season_rates", "ical_sources", "rooms")

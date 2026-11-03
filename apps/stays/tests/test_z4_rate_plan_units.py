@@ -430,17 +430,27 @@ def test_garbage_rateplan_pk_is_not_500(action):
 
 
 def test_rate_edit_actions_constant_covers_price_writers():
-    """Каждый action диспетчера units(), пишущий RatePlan/SeasonRate, — в RATE_EDIT_ACTIONS."""
+    """Каждый action, пишущий RatePlan/SeasonRate, — в RATE_EDIT_ACTIONS.
+
+    UX-D D4.0: настроечные действия переехали из ``units()`` в модуль
+    ``settings_actions`` — сканируем оба места (осознанная переписка замка)."""
+    import inspect
+
+    from apps.stays import settings_actions
+
+    pattern = r"(RatePlan|SeasonRate)\.objects|add_season_rate|rp\.units|rp\.save"
     src = pathlib.Path(views.__file__).read_text()
     body = src[src.index("def units(") :]
     body = body[: body.index("        if pk:\n")]  # только POST-диспетчер
     blocks = re.split(r'\n        (?:el)?if action == "', body)[1:]
-    writers = {
-        b.split('"', 1)[0]
-        for b in blocks
-        if re.search(r"(RatePlan|SeasonRate)\.objects|add_season_rate|rp\.units|rp\.save", b)
+    writers = {b.split('"', 1)[0] for b in blocks if re.search(pattern, b)}
+    writers |= {
+        action
+        for action, handler in settings_actions.HANDLERS.items()
+        if re.search(pattern, inspect.getsource(handler))
     }
-    assert writers and writers <= views.RATE_EDIT_ACTIONS
+    assert {"rate", "rateplan", "rateplan_units"} <= writers
+    assert writers <= views.RATE_EDIT_ACTIONS
 
 
 def test_list_label_without_n_plus_one(django_assert_max_num_queries):
