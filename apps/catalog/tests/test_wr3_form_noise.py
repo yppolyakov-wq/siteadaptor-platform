@@ -27,5 +27,6 @@ def test_template_keeps_fields_in_dom_and_shows_filled_values():
     src = Path("templates/catalog/product_form.html").read_text()
     assert "data-retail-fields" in src and "not form.instance.brand" in src
     assert "data-list-price" in src and "not form.instance.list_price" in src
-    stock = Path("templates/inventory/stock.html").read_text()
+    # UX-D D6.2b: тумблер партий переехал в настройки склада (Einstellungen › «Lager»).
+    stock = Path("templates/inventory/stock_settings.html").read_text()
     assert "{% if show_lots_toggle %}" in stock

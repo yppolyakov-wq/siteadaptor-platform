@@ -258,6 +258,7 @@ def test_sidebar_children_composition():
         "betriebsferien",  # KA-12 E4.1a: закрытие бизнеса — у каждого
         "legal-docs",
         "team",
+        "stock-settings",  # UX-D D6.2b (осознанное дополнение): настройки склада
         "payment-settings",
         "ablaeufe",
         "extras",
