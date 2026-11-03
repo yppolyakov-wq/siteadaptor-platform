@@ -1743,15 +1743,22 @@ input[type="datetime-local"] {
   .ui-drawer-close { width: 2.75rem; height: 2.75rem; flex: none; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 0.75rem; background: #F3F4F6; color: #374151; cursor: pointer; }
   .ui-drawer-close:hover { background: #E5E7EB; }
   .ui-drawer-close:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
-  .ui-drawer-flash:empty { display: none; }
+  /* живые области не прячем display:none (вне дерева доступности — объявление теряется) */
   .ui-drawer-flash { padding: 0.75rem 1.25rem 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; }
-  .ui-drawer-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-bottom: 6rem; padding: 1rem 1.25rem 1.25rem; }
+  .ui-drawer-flash:empty { padding: 0; }
+  .ui-drawer-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-bottom: calc(var(--drawer-foot-h, 6rem) + 0.5rem); padding: 1rem 1.25rem 1.25rem; }
   .ui-drawer-body[aria-busy="true"] { opacity: 0.6; }
   .ui-drawer-foot { position: sticky; bottom: -1.25rem; margin: 1rem -1.25rem -1.25rem; padding: 0.875rem 1.25rem; background: var(--ui-surface); border-top: 1px solid #E5E7EB; display: flex; flex-wrap: wrap; gap: 0.5rem; }
   @media (max-width: 639.98px) {
     .ui-drawer { width: 100vw; border-radius: 0; padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); }
     .ui-drawer-foot { padding-bottom: calc(0.875rem + env(safe-area-inset-bottom)); }
-    .ui-drawer-body button, .ui-drawer-body .ui-btn, .ui-drawer-foot button { min-height: 2.75rem; }
+    .ui-drawer-body button, .ui-drawer-body .ui-btn, .ui-drawer-foot button, .ui-drawer-body summary { min-height: 2.75rem; }
+    .ui-drawer-body summary { display: flex; align-items: center; }
+    .ui-drawer-body a.ui-drawer-link { display: inline-flex; align-items: center; min-height: 2.75rem; }
+  }
+  /* низкий экран / зум: липкий подвал не съедает видимую область и не закрывает фокус */
+  @media (max-height: 32rem) {
+    .ui-drawer-foot { position: static; }
   }
   @media (prefers-reduced-motion: no-preference) {
     .ui-drawer[open] { animation: ui-drawer-in 160ms ease-out; }
@@ -1838,3 +1845,8 @@ input[type="datetime-local"] {
 
 /* UX-D D1: фон под открытой шторкой не прокручивается. */
 html:has(dialog.ui-drawer[open]) { overflow: hidden; }
+/* UX-D D1: плашка брони целиком — цель ссылки (>= 24px), фокус не обрезается truncate */
+[data-bar-pk] { position: relative; }
+[data-bar-pk] > a[data-drawer]::after { content: ""; position: absolute; inset: 0; }
+[data-bar-pk] > a[data-drawer]:focus-visible { outline: none; }
+[data-bar-pk]:has(> a[data-drawer]:focus-visible) { outline: 2px solid var(--ui-focus); outline-offset: -2px; }

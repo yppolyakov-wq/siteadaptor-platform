@@ -369,8 +369,12 @@ try { (function () {
     window.sfDangerConfirm(btn.textContent.trim()).then(function (ok) {
       if (!ok) return;
       form.dataset.dangerConfirmed = "1";
-      if (typeof form.requestSubmit === "function") form.requestSubmit(btn);
-      else {
+      if (typeof form.requestSubmit === "function") {
+        form.requestSubmit(btn);
+        // submit-событие идёт синхронно; если браузер его не дал (невалидное поле) —
+        // флаг не должен пропустить следующий опасный клик без подтверждения
+        delete form.dataset.dangerConfirmed;
+      } else {
         var keep = document.createElement("input");
         keep.type = "hidden";
         keep.name = btn.name;
@@ -409,6 +413,10 @@ try { (function () {
   var seq = 0;
   var refreshSeq = 0;
   var downOnBackdrop = false;
+  var busy = false;           // одна отправка из шторки за раз (деньги: оплата + отмена)
+  var afterClose = [];        // сообщения для тоста после закрытия (под модальным окном не видны)
+  var pendingSay = [];        // сообщения фрагмента до showModal (скрытый диалог их бы потерял)
+  var CARRY = "sfDrawerCarry";
 
   function pageUrl() {
     var u = new URL(location.href);
@@ -433,23 +441,40 @@ try { (function () {
     return f.pathname + f.search;
   }
 
+  // Живая область тоста создаётся ПУСТОЙ заранее: область, рождённая вместе с текстом,
+  // читалками часто не объявляется (ECC a11y-ревью D1).
+  var toastBox = document.getElementById("sf-toast");
+  if (!toastBox) {
+    toastBox = document.createElement("div");
+    toastBox.id = "sf-toast";
+    toastBox.setAttribute("role", "status");
+    toastBox.className = "fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2";
+    document.body.appendChild(toastBox);
+  }
+
   function toast(items) {
-    var box = document.getElementById("sf-toast");
-    if (!box) {
-      box = document.createElement("div");
-      box.id = "sf-toast";
-      box.setAttribute("role", "status");
-      box.className = "fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2";
-      document.body.appendChild(box);
-    }
-    (items || []).forEach(function (m) {
-      var p = document.createElement("p");
-      p.className = "rounded-xl px-4 py-2 text-sm shadow-lg " + (m.level === "error" ? "bg-red-700 text-white" : "bg-gray-900 text-white");
-      p.textContent = m.text;
-      box.appendChild(p);
-      setTimeout(function () { p.remove(); }, 6000);
+    if (dlg.open) { afterClose = afterClose.concat(items || []); return; }  // покажем после закрытия
+    requestAnimationFrame(function () {
+      (items || []).forEach(function (m) {
+        var p = document.createElement("p");
+        var tone = m.level === "error" ? "bg-red-700 text-white" : (m.level === "warning" ? "bg-amber-100 text-amber-950 ring-1 ring-amber-300" : "bg-gray-900 text-white");
+        p.className = "rounded-xl px-4 py-2 text-sm shadow-lg " + tone;
+        p.textContent = m.text;
+        toastBox.appendChild(p);
+        setTimeout(function () { p.remove(); }, m.level === "success" || m.level === "info" ? 6000 : 12000);
+      });
     });
   }
+
+  // Сообщения, которые должны пережить перезагрузку страницы (область не обновилась).
+  function carry(items) {
+    try { if (items && items.length) sessionStorage.setItem(CARRY, JSON.stringify(items)); } catch (e) { /* приватный режим */ }
+  }
+  try {
+    var carried = JSON.parse(sessionStorage.getItem(CARRY) || "[]");
+    sessionStorage.removeItem(CARRY);
+    if (carried.length) toast(carried);
+  } catch (e) { /* нет sessionStorage */ }
 
   function say(items) {
     flash.textContent = "";
@@ -461,7 +486,11 @@ try { (function () {
         var err = m.level === "error";
         var p = document.createElement("p");
         p.className = "rounded-xl px-3 py-2 " + (err ? "bg-red-50 text-red-800" : (m.level === "warning" ? "bg-amber-50 text-amber-900" : "bg-emerald-50 text-emerald-900"));
-        p.textContent = (err ? "⚠ " : (m.level === "warning" ? "! " : "✓ ")) + m.text;
+        var g = document.createElement("span");
+        g.setAttribute("aria-hidden", "true");
+        g.textContent = err ? "⚠ " : (m.level === "warning" ? "! " : "✓ ");
+        p.appendChild(g);
+        p.appendChild(document.createTextNode(m.text));
         (err ? alertBox : flash).appendChild(p);
       });
     });
@@ -469,6 +498,18 @@ try { (function () {
 
   function headerMessages(r) {
     try { return JSON.parse(r.headers.get("X-Sf-Messages") || "[]"); } catch (e) { return []; }
+  }
+
+  // Высота липкого подвала → отступ прокрутки тела: фокус не прячется под кнопками
+  // (WCAG 2.4.11; на телефоне кнопки статуса переносятся в 2–3 ряда).
+  var footObserver = window.ResizeObserver ? new ResizeObserver(function (entries) {
+    entries.forEach(function (en) { body.style.setProperty("--drawer-foot-h", Math.ceil(en.target.getBoundingClientRect().height) + "px"); });
+  }) : null;
+  function watchFoot() {
+    if (!footObserver) return;
+    footObserver.disconnect();
+    var foot = body.querySelector(".ui-drawer-foot");
+    if (foot) footObserver.observe(foot); else body.style.removeProperty("--drawer-foot-h");
   }
 
   function fill(html, keep) {
@@ -485,6 +526,7 @@ try { (function () {
       });
     }
     body.scrollTop = top;
+    watchFoot();
     var t = body.querySelector("[data-drawer-title]");
     heading.textContent = (t && t.getAttribute("data-drawer-title")) || fallbackTitle;
     document.dispatchEvent(new CustomEvent("sf:drawer-loaded", { detail: { body: body } }));
@@ -505,7 +547,7 @@ try { (function () {
           if (mine !== seq) return "stale";
           fill(html, keep);
           var m = headerMessages(r);
-          if (m.length) say(m);
+          if (dlg.open) { if (m.length) say(m); } else pendingSay = m;
           return "ok";
         });
       }, function (err) {
@@ -550,6 +592,7 @@ try { (function () {
       }
       var field = body.querySelector("[data-drawer-autofocus]");
       (field || heading).focus();
+      if (pendingSay.length) { say(pendingSay); pendingSay = []; }
       return true;
     }).catch(function () {
       if (!opts.quiet) location.href = u.pathname + u.search;
@@ -578,11 +621,14 @@ try { (function () {
       back = document.querySelector('[data-drawer-key="' + CSS.escape(openerKey) + '"]');
     }
     if (!visible(back)) {  // плашки больше нет (бронь перенесли/удалили)
-      back = document.querySelector("[data-drawer-refresh]") || document.querySelector("main h1");
+      back = document.querySelector("main h1") || document.querySelector("[data-drawer-refresh]");
       if (back && !back.hasAttribute("tabindex")) back.setAttribute("tabindex", "-1");
     }
     if (back) back.focus();
     opener = null;
+    var queued = afterClose;
+    afterClose = [];
+    if (queued.length) toast(queued);
   });
   window.addEventListener("popstate", function () {
     var path = new URL(location.href).searchParams.get("drawer");
@@ -595,7 +641,7 @@ try { (function () {
     if (e.target.closest("[data-drawer-close]")) close();
   });
 
-  window.sfRefreshRegions = function () {
+  window.sfRefreshRegions = function (keepMsgs) {
     var regions = document.querySelectorAll("[data-drawer-refresh]");
     if (!regions.length) return Promise.resolve();
     var mine = ++refreshSeq;
@@ -621,10 +667,10 @@ try { (function () {
           });
           document.dispatchEvent(new CustomEvent("sf:region-updated", { detail: { el: el } }));
         });
-        if (missing) { location.reload(); return; }
+        if (missing) { carry(keepMsgs); location.reload(); return; }
         window.scrollTo(0, y);
       })
-      .catch(function () { if (mine === refreshSeq) location.reload(); });
+      .catch(function () { if (mine === refreshSeq) { carry(keepMsgs); location.reload(); } });
   };
 
   window.sfDrawer = {
@@ -644,59 +690,98 @@ try { (function () {
 
   function unlock(btn) { if (btn) { btn.disabled = false; btn.removeAttribute("aria-disabled"); } }
 
+  function firstInvalid() {
+    return body.querySelector("[aria-invalid='true'], .errorlist + input, .errorlist + select, .errorlist + textarea");
+  }
+
+  // Шторку перезагружаем после КАЖДОГО ответа на действие (часть изменений могла
+  // записаться и при ошибке). Сбой перезагрузки не превращается в «неясно» для
+  // действия, которое сервер подтвердил: его сообщения показываются всегда.
+  function reloadAfter(msgs, okFocus) {
+    var url = src;
+    if (!url || !dlg.open) { toast(msgs); return Promise.resolve(); }  // шторку закрыли на лету
+    return load(url, true).catch(function () { return "error"; }).then(function (state) {
+      if (state === "ok") {
+        heading.focus();  // кнопка, на которой был фокус, пересоздана
+        say(msgs);
+        return;
+      }
+      if (state === "stale") { toast(msgs); return; }  // открыт уже другой объект
+      // gone / away / error: объект исчез или шторка больше не может его показать
+      close();
+      toast(msgs);
+      if (state !== "gone") window.sfRefreshRegions(msgs);
+    });
+  }
+
+  function unclear(btn) {
+    unlock(btn);
+    var msgs = [{ level: "warning", text: unclearText }];
+    window.sfRefreshRegions(msgs);
+    return reloadAfter(msgs);
+  }
+
   // Фаза всплытия + defaultPrevented: подтверждение опасных шагов (_danger_confirm,
   // capture) и сжатие фото успевают первыми.
   document.addEventListener("submit", function (e) {
     var form = e.target;
     if (e.defaultPrevented || !form.closest || !form.closest("[data-drawer-body]") || !form.hasAttribute("data-drawer-form")) return;
     e.preventDefault();
-    if (form.getAttribute("aria-busy") === "true") return;  // без двойной отправки (деньги)
+    if (busy) return;  // без двойной отправки — и той же формы, и соседней (деньги)
+    busy = true;
     var btn = e.submitter;
     var data = new FormData(form);
     if (btn && btn.name) data.append(btn.name, btn.value);
     form.setAttribute("aria-busy", "true");
     if (btn) { btn.disabled = true; btn.setAttribute("aria-disabled", "true"); }
     var after = form.getAttribute("data-drawer-after") || "reload";
+    function done() { busy = false; form.removeAttribute("aria-busy"); }
     fetch(form.getAttribute("action") || pageUrl(), {
       method: "POST", body: data, credentials: "same-origin", redirect: "manual",
       headers: { "X-Sf-Drawer": "1" }
     })
       .then(function (r) {
-        form.removeAttribute("aria-busy");
+        done();
         if (r.type === "opaqueredirect") { location.reload(); return; }  // сессия истекла
         var type = r.headers.get("Content-Type") || "";
         if (r.headers.get("X-Sf-Fragment") === "1") {  // форма с ошибками — введённое цело
-          return r.text().then(function (html) { fill(html, true); say(headerMessages(r)); heading.focus(); });
+          return r.text().then(function (html) {
+            fill(html, true);
+            var f = firstInvalid();
+            if (f) f.focus(); else { alertBox.setAttribute("tabindex", "-1"); alertBox.focus(); }
+            say(headerMessages(r));
+          });
         }
         if (type.indexOf("application/json") !== -1 && r.ok) {
           return r.json().then(function (res) {
-            if (res.navigate && res.location) { location.href = res.location; return; }
-            window.sfRefreshRegions();
-            if (res.open) { open(res.open, null, {}); toast(res.messages); return; }
-            if (res.ok && after === "close") { close(); toast(res.messages); return; }
-            // даже при ошибке часть изменений могла записаться — шторка всегда свежая
-            return load(src, true).then(function (state) {
-              if (state === "gone") { close(); toast(res.messages); return; }
-              heading.focus();
-              say(res.messages && res.messages.length ? res.messages : [{ level: "error", text: errText }]);
-            });
+            var msgs = res.messages || [];
+            if (res.navigate && res.location) { location.href = res.location; return; }  // сообщения покажет та страница
+            window.sfRefreshRegions(msgs);
+            if (res.open) {  // показать созданный объект, сообщение — в нём
+              return open(res.open, null, {}).then(function (shown) { if (shown) say(msgs); else toast(msgs); });
+            }
+            var calm = msgs.every(function (m) { return m.level !== "error" && m.level !== "warning"; });
+            if (res.ok && calm && after === "close") { close(); toast(msgs); return; }
+            return reloadAfter(msgs.length ? msgs : (res.ok ? [] : [{ level: "error", text: errText }]));
           });
         }
+        if (r.status >= 500) return unclear(btn);  // сбой ПОСЛЕ записи возможен — не «ничего не было»
+        // 403/404/409 вьюхи (сообщения — в заголовке) или 403 middleware пакета (JSON)
         return r.text().then(function (text) {
           unlock(btn);
-          var short = text && text.length < 200 && text.indexOf("<") === -1 ? text : errText;
-          say([{ level: "error", text: short }]);
+          var msgs = headerMessages(r);
+          if (!msgs.length) {
+            var plain = text && text.length < 200 && text.indexOf("<") === -1 && text.charAt(0) !== "{";
+            msgs = [{ level: "error", text: plain ? text : errText }];
+          }
+          return reloadAfter(msgs);
         });
       })
       .catch(function () {
         // Сеть оборвалась после отправки: действие могло пройти (деньги!) — не «повторите»,
         // а свежее состояние и честное «статус неясен».
-        form.removeAttribute("aria-busy");
-        unlock(btn);
-        window.sfRefreshRegions();
-        (src ? load(src, true) : Promise.resolve()).catch(function () {}).then(function () {
-          say([{ level: "warning", text: unclearText }]);
-        });
+        done();
+        return unclear(btn);
       });
   });
 

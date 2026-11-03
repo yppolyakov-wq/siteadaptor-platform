@@ -201,3 +201,70 @@ def test_drawer_aware_is_the_innermost_decorator():
         # functools.wraps копирует __dict__ — метку несут все обёртки, поэтому
         # проверяем код: прямо над самой вьюхой должна стоять обёртка шторки
         assert len(chain) >= 2 and chain[-2].__code__ is code, fn
+
+
+def _post(data):
+    req = RequestFactory().post("/x/", data, HTTP_X_SF_DRAWER="1", HTTP_HOST="hotel.example")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    return req
+
+
+@pytest.mark.parametrize("bad", ["//[", "//[x/", "http://[::1", "/\\evil"])
+def test_malformed_next_never_500s_after_the_action(bad):
+    """ECC django-review D1: urlsplit(«//[») бросал ValueError ПОСЛЕ записи действия."""
+    resp = _ok_view(_post({"next": bad}))
+    data = json.loads(resp.content)
+    assert data["ok"] is True and data["navigate"] is False
+
+
+def test_navigate_reflashes_messages_for_the_target_page():
+    """ECC silent-failure D1: при переходе на другую страницу сообщение (отказ
+    удаления) не должно пропасть — его показывает страница назначения."""
+
+    @drawer.drawer_aware
+    def refuse(request):
+        messages.error(request, "Bezahlte Buchung nicht löschbar.")
+        return redirect("/dashboard/stays/buchung/1/")
+
+    req2 = _post({"next": "/dashboard/verkaeufe/?tab=stay"})
+    data2 = json.loads(refuse(req2).content)
+    assert data2["navigate"] is True and data2["ok"] is False
+    assert [str(m) for m in req2._messages._queued_messages] == ["Bezahlte Buchung nicht löschbar."]
+
+
+def test_message_header_is_capped():
+    @drawer.drawer_aware
+    def noisy(request):
+        from django.http import HttpResponse
+
+        for i in range(30):
+            messages.warning(request, "x" * 1000 + str(i))
+        return HttpResponse(status=409)
+
+    resp = noisy(_req({"HTTP_X_SF_DRAWER": "1"}))
+    items = json.loads(resp["X-Sf-Messages"])
+    assert len(items) == drawer.MAX_HEADER_MESSAGES
+    assert all(len(m["text"]) <= drawer.MAX_MESSAGE_CHARS for m in items)
+
+
+def test_drawer_js_silent_failure_guards():
+    """ECC silent-failure/a11y D1: сообщения переживают перезагрузку (carry), тост под
+    модальным окном откладывается до закрытия, 5xx — «статус неясен», одна отправка
+    за раз на всю шторку, флаг подтверждения не залипает."""
+    js = (ROOT / "static/js/cabinet.js").read_text()
+    part = _drawer_js()
+    assert "carry(keepMsgs)" in part and "sessionStorage" in part
+    assert "afterClose" in part and "if (dlg.open) { afterClose" in part
+    assert "r.status >= 500" in part and "unclear(btn)" in part
+    assert "if (busy) return;" in part
+    danger = js.split("// ---- core/_danger_confirm.html ----", 1)[1].split("// ---- ", 1)[0]
+    assert (
+        "form.requestSubmit(btn);\n        // " in danger
+        or "delete form.dataset.dangerConfirmed;" in danger.split("requestSubmit(btn);", 1)[1][:400]
+    )
+
+
+def test_live_regions_are_never_display_none():
+    css = (ROOT / "static/src/app.css").read_text()
+    assert ".ui-drawer-flash:empty { display: none" not in css

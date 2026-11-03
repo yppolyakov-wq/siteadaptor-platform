@@ -31,7 +31,7 @@ def test_box_fragment_is_the_drawer_not_the_full_card():
         booking, data={"box": "1", "next": "/dashboard/verkaeufe/?tab=stay"}
     ).content.decode()
     assert "<html" not in html and "navpal" not in html
-    assert f'data-drawer-title="{booking.reference_code}"' in html
+    assert f'data-drawer-title="Buchung {booking.reference_code}"' in html
     assert 'value="update"' in html and "data-drawer-form" in html
     assert f'href="/dashboard/stays/buchung/{booking.pk}/"' in html  # полная карточка
     # формы шторки возвращают на страницу продаж, а не на сам фрагмент

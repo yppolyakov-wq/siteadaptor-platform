@@ -16,10 +16,16 @@ from urllib.parse import urlencode, urlsplit, urlunsplit
 
 from django.contrib import messages
 from django.http import JsonResponse, QueryDict
+from django.utils.cache import patch_vary_headers
 
 from apps.core.owner_login import safe_next
 
 HEADER = "HTTP_X_SF_DRAWER"
+
+# Сообщения в заголовке X-Sf-Messages: не больше стольких и не длиннее — заголовок
+# сверх лимита прокси дал бы 502 на уже выполненном действии (ECC-ревью D1).
+MAX_HEADER_MESSAGES = 10
+MAX_MESSAGE_CHARS = 300
 
 
 # Параметры шторки в адресе страницы: убираются при перерисовке областей и возврате.
@@ -76,7 +82,7 @@ def fragment(response):
     (браузер/прокси/назад-вперёд показали бы голый кусок страницы)."""
     response["X-Sf-Fragment"] = "1"
     response["Cache-Control"] = "private, no-store"
-    response["Vary"] = "X-Sf-Drawer"
+    patch_vary_headers(response, ("X-Sf-Drawer",))
     return response
 
 
@@ -96,14 +102,21 @@ def drawer_aware(view):
         response = view(request, *args, **kwargs)
         if not is_drawer(request):
             return response
-        items = [{"level": m.level_tag, "text": str(m)} for m in messages.get_messages(request)]
+        drained = list(messages.get_messages(request))
+        items = [{"level": m.level_tag, "text": str(m)} for m in drained]
         if response.status_code not in (301, 302, 303):
             if items:
-                response["X-Sf-Messages"] = json.dumps(items, ensure_ascii=True)
+                short = [
+                    {"level": m["level"], "text": m["text"][:MAX_MESSAGE_CHARS]}
+                    for m in items[-MAX_HEADER_MESSAGES:]
+                ]
+                response["X-Sf-Messages"] = json.dumps(short, ensure_ascii=True)
             return response
-        target = urlsplit(response.url)
-        nxt = (request.POST.get("next") or "").strip()
-        navigate = bool(nxt) and urlsplit(nxt).path != target.path
+        # `next` сначала через safe_next: сырой `//[` ронял urlsplit (ValueError) → 500
+        # на действии, которое уже записалось (ECC-ревью D1, класс STU-7).
+        nxt = safe_next(request, (request.POST.get("next") or "").strip(), default="")
+        location = safe_next(request, response.url, default="")
+        navigate = bool(nxt and location) and urlsplit(nxt).path != urlsplit(location).path
         payload = {
             "ok": not any(m["level"] == "error" for m in items),
             "messages": items,
@@ -111,8 +124,11 @@ def drawer_aware(view):
             "open": getattr(request, "_drawer_open", ""),
         }
         if navigate:
-            payload["location"] = safe_next(request, response.url, default="")
-            payload["navigate"] = bool(payload["location"])
+            payload["location"] = location
+            # браузер уходит на другую страницу — сообщения показывает она (иначе отказ
+            # «оплаченную бронь не удалить» пропадал бы молча)
+            for m in drained:
+                messages.add_message(request, m.level, m.message, extra_tags=m.extra_tags)
         return JsonResponse(payload)
 
     wrapped.drawer_aware = True

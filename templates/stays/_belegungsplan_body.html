@@ -78,7 +78,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 префил формы брони внизу) + дорожки с ПЛАШКАМИ броней «Имя · S-XXXXXX» (цвет =
 статус, клик → карточка FB-11, drag = перенос дат/номера с СОХРАНЕНИЕМ цены) и
 блокировок. Обрезка окном — маркеры ‹ ›.{% endcomment %}
-<div class="ui-card overflow-x-auto mb-6" data-scroll-key="bp-grid">
+<div class="ui-card overflow-x-auto mb-6 [scroll-padding-inline-start:9rem]" data-scroll-key="bp-grid">
   <table class="text-xs border-collapse w-full" id="belegungsplan">
     <thead>
       <tr class="text-gray-400">
@@ -125,7 +125,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
                      title="{{ item.obj.customer }} · {{ item.obj.arrival|date:'d.m.' }}–{{ item.obj.departure|date:'d.m.Y' }} · {{ item.obj.reference_code }}">
                   {% if item.clip_left %}<span aria-hidden="true">‹</span>{% endif %}
                   {# PMS-R2: назначенный номер видно прямо на плашке #}
-                  <a href="{% url 'stays:booking-detail' item.obj.pk %}" class="truncate hover:underline min-w-0" draggable="false" data-drawer data-drawer-key="bar-{{ item.obj.pk }}">{% if item.open_room %}<span data-open-room>＋ {% trans "Zimmer offen" %} · </span>{% elif item.obj.room %}🚪{{ item.obj.room.number }} · {% endif %}{{ item.obj.customer }} · {{ item.obj.reference_code }}</a>
+                  <a href="{% url 'stays:booking-detail' item.obj.pk %}" class="truncate hover:underline min-w-0" draggable="false" data-drawer data-drawer-key="bar-{{ item.obj.pk }}" aria-label="{{ item.obj.customer }}, {{ item.obj.arrival|date:'d.m.' }}–{{ item.obj.departure|date:'d.m.Y' }}, {{ unit.name }}{% if item.open_room %}, {% trans 'Zimmer offen' %}{% elif item.obj.room %}, {% trans 'Zimmer' %} {{ item.obj.room.number }}{% endif %}, {{ item.obj.reference_code }}">{% if item.open_room %}<span data-open-room>＋ {% trans "Zimmer offen" %} · </span>{% elif item.obj.room %}<span aria-hidden="true">🚪</span>{{ item.obj.room.number }} · {% endif %}{{ item.obj.customer }} · {{ item.obj.reference_code }}</a>
                   {% if item.clip_right %}<span class="ml-auto" aria-hidden="true">›</span>{% endif %}
                 </div>
               </td>

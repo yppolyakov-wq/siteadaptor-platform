@@ -4,7 +4,8 @@
 `stays/_stay_*.html`, что у полной карточки (один источник). Формы уходят через
 fetch (data-drawer-form) и возвращаются в шторку; `next_url` — куда вернуться без JS.
 Контекст: stays.views._booking_panel_ctx.{% endcomment %}
-<div data-drawer-title="{{ b.reference_code }}" class="flex flex-col gap-4 text-sm">
+{% blocktrans asvar drawer_title with code=b.reference_code %}Buchung {{ code }}{% endblocktrans %}
+<div data-drawer-title="{{ drawer_title }}" class="flex flex-col gap-4 text-sm">
   <div class="flex items-center justify-between gap-3 flex-wrap">
     <p class="text-gray-600">{{ b.unit.name }}{% if b.room %} · 🚪{{ b.room.number }}{% endif %}</p>
     {% status_badge b "stay" %}
@@ -44,7 +45,7 @@ fetch (data-drawer-form) и возвращаются в шторку; `next_url`
     <div class="mt-3">{% include "stays/_stay_meldeschein.html" %}</div>
   </details>
 
-  <a href="{% url 'stays:booking-detail' b.pk %}" class="text-indigo-700 hover:underline">{% trans "Zur vollständigen Buchung" %} →</a>
+  <a href="{% url 'stays:booking-detail' b.pk %}" class="ui-drawer-link text-indigo-700 hover:underline">{% trans "Zur vollständigen Buchung" %} →</a>
 
   <div class="ui-drawer-foot">
     {% include "stays/_stay_front_desk.html" %}
