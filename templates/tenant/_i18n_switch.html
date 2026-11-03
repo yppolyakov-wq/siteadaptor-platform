@@ -97,10 +97,25 @@
     );
     if (known) setLoc(want);
   }
+  // Ревью a11y D2.4: связь вкладка ↔ панель (aria-controls / role=tabpanel /
+  // aria-labelledby) выводится из data-атрибутов — для всех форм с вкладками.
+  function wireTabs() {
+    document.querySelectorAll("[data-pf-tab]").forEach(function (b) {
+      var key = b.getAttribute("data-pf-tab");
+      var panel = document.querySelector('[data-pf-panel="' + key + '"]');
+      if (!panel) return;
+      if (!b.id) b.id = "pf-tab-" + key;
+      if (!panel.id) panel.id = "pf-panel-" + key;
+      b.setAttribute("aria-controls", panel.id);
+      panel.setAttribute("role", "tabpanel");
+      panel.setAttribute("aria-labelledby", b.id);
+    });
+  }
+  function onReady() { wireTabs(); openFromUrl(); }
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", openFromUrl);
+    document.addEventListener("DOMContentLoaded", onReady);
   } else {
-    openFromUrl();
+    onReady();
   }
   document.addEventListener("change", function (e) {
     if (e.target.matches && e.target.matches("[data-i18n-select]")) setLoc(e.target.value);

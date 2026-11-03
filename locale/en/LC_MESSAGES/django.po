@@ -31635,3 +31635,30 @@ msgstr "Provided by"
 
 msgid "ab"
 msgstr "from"
+
+msgid "Alle Leistungen"
+msgstr "All services"
+
+msgid "Auf der Website ansehen"
+msgstr "View on the website"
+
+msgid "Beschreibung & FAQ"
+msgstr "Description & FAQ"
+
+msgid "Deaktivieren"
+msgstr "Deactivate"
+
+msgid "Grundlagen"
+msgstr "Basics"
+
+msgid "Neue Buchungen übernehmen Frist und Anzahlung — bestehende Termine bleiben unverändert."
+msgstr "New bookings take over the deadline and deposit — existing appointments stay unchanged."
+
+msgid "Preise & Varianten"
+msgstr "Prices & variants"
+
+msgid "Wo sichtbar"
+msgstr "Where visible"
+
+msgid "Die Anzahlung wurde auf den Preis begrenzt."
+msgstr "The deposit was limited to the price."

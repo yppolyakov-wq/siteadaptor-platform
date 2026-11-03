@@ -863,6 +863,20 @@ try { (function () {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sync);
   else sync();
 })(); } catch (e) { console.error(e); }
+// ---- booking/service_page.html ----
+// UX-D D2.4: скрытое `tab` формы = выбранная вкладка в момент отправки — Save
+// возвращает на ту же вкладку (без JS остаётся вкладка, с которой страница открылась).
+try { (function () {
+  "use strict";
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    var page = form && form.closest && form.closest("[data-svc-page]");
+    var field = page && form.querySelector("[data-svc-tab]");
+    if (!field) return;
+    var cur = page.querySelector('[data-pf-tab][aria-selected="true"]');
+    if (cur) field.value = cur.getAttribute("data-pf-tab");
+  }, true);
+})(); } catch (e) { console.error(e); }
 // ---- core/_sheet_js.html ----
 try { (function () {
   "use strict";

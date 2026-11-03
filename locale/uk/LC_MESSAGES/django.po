@@ -31908,3 +31908,30 @@ msgstr "Хто надає"
 
 msgid "ab"
 msgstr "від"
+
+msgid "Alle Leistungen"
+msgstr "Усі послуги"
+
+msgid "Auf der Website ansehen"
+msgstr "Переглянути на сайті"
+
+msgid "Beschreibung & FAQ"
+msgstr "Опис і запитання"
+
+msgid "Deaktivieren"
+msgstr "Вимкнути"
+
+msgid "Grundlagen"
+msgstr "Основне"
+
+msgid "Neue Buchungen übernehmen Frist und Anzahlung — bestehende Termine bleiben unverändert."
+msgstr "Нові записи отримують цей строк і передоплату — уже зроблені записи не змінюються."
+
+msgid "Preise & Varianten"
+msgstr "Ціни та варіанти"
+
+msgid "Wo sichtbar"
+msgstr "Де видно"
+
+msgid "Die Anzahlung wurde auf den Preis begrenzt."
+msgstr "Передоплату зменшено до ціни."

@@ -31924,3 +31924,30 @@ msgstr "Кто оказывает"
 
 msgid "ab"
 msgstr "от"
+
+msgid "Alle Leistungen"
+msgstr "Все услуги"
+
+msgid "Auf der Website ansehen"
+msgstr "Посмотреть на сайте"
+
+msgid "Beschreibung & FAQ"
+msgstr "Описание и вопросы"
+
+msgid "Deaktivieren"
+msgstr "Выключить"
+
+msgid "Grundlagen"
+msgstr "Основное"
+
+msgid "Neue Buchungen übernehmen Frist und Anzahlung — bestehende Termine bleiben unverändert."
+msgstr "Новые записи получают этот срок и предоплату — уже сделанные записи не меняются."
+
+msgid "Preise & Varianten"
+msgstr "Цены и варианты"
+
+msgid "Wo sichtbar"
+msgstr "Где видно"
+
+msgid "Die Anzahlung wurde auf den Preis begrenzt."
+msgstr "Предоплата уменьшена до цены."

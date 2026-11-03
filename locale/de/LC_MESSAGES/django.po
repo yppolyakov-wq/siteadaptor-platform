@@ -31722,3 +31722,30 @@ msgstr "Wer bietet an"
 
 msgid "ab"
 msgstr "ab"
+
+msgid "Alle Leistungen"
+msgstr ""
+
+msgid "Auf der Website ansehen"
+msgstr ""
+
+msgid "Beschreibung & FAQ"
+msgstr ""
+
+msgid "Deaktivieren"
+msgstr ""
+
+msgid "Grundlagen"
+msgstr ""
+
+msgid "Neue Buchungen übernehmen Frist und Anzahlung — bestehende Termine bleiben unverändert."
+msgstr ""
+
+msgid "Preise & Varianten"
+msgstr ""
+
+msgid "Wo sichtbar"
+msgstr ""
+
+msgid "Die Anzahlung wurde auf den Preis begrenzt."
+msgstr ""

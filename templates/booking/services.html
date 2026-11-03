@@ -4,22 +4,18 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  {# E9.10: язык ввода — одна выпадашка рядом с заголовком (как у товара/акции). #}
   <div class="flex items-center gap-3 flex-wrap">
-    <h1 class="ui-h1">{% if service_page %}{{ service_page.name }}{% else %}{% nav_title _("Services") %}{% endif %}</h1>
-    {% if service_page %}{% lang_switch %}{% endif %}
+    <h1 class="ui-h1">{% nav_title _("Services") %}</h1>
   </div>
-  {% i18n_base_locale as base_loc %}
   <div class="flex flex-wrap gap-x-4 gap-y-1">
     {# UB3-2: подборки услуг → чипы-фасет на /termin/. #}
     <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
     {% comment %}Фидбэк 2026-07-30 («у услуг нет календаря / на сайте пишет: нет
     доступных»): рабочие часы и ресурсы задаются на ДРУГОМ экране, вход туда был
     только из календаря записей. Даём его там, где владелец правит услугу.{% endcomment %}
-    {% if not service_page %}<a href="{% url 'booking:service-new' %}" data-drawer aria-haspopup="dialog" class="ui-btn ui-btn-primary ui-btn-sm"><span aria-hidden="true">＋ </span>{% trans "New service" %}</a>{% endif %}
+    <a href="{% url 'booking:service-new' %}" data-drawer aria-haspopup="dialog" class="ui-btn ui-btn-primary ui-btn-sm"><span aria-hidden="true">＋ </span>{% trans "New service" %}</a>
     <a href="{% url 'booking:availability' %}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Availability" %} →</a>
     <a href="{% url 'booking:resources' %}" class="text-sm text-indigo-600 hover:underline">🕒 {% trans "Öffnungszeiten & Ressourcen" %} →</a>
-    {% if service_page %}<a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Services" %}</a>{% endif %}
     <a href="{% url 'booking:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
   </div>
 </div>
@@ -42,214 +38,10 @@
 </div>
 {% endif %}
 
-{% if not service_page %}<p class="text-sm text-gray-500 mb-4">{% trans "Bookable services with price and duration — customers pick a service and a time on /termin/." %}
+<p class="text-sm text-gray-500 mb-4">{% trans "Bookable services with price and duration — customers pick a service and a time on /termin/." %}
   {# UX-D D2.1: правило неявок и сроки отмены — на экране «Buchungsregeln» (Einstellungen) #}
-  <a href="{% url 'booking:booking-rules' %}" class="text-indigo-600 hover:underline">{% trans "Regeln für alle Leistungen" %} →</a></p>{% endif %}
+  <a href="{% url 'booking:booking-rules' %}" class="text-indigo-600 hover:underline">{% trans "Regeln für alle Leistungen" %} →</a></p>
 
-{% if service_page %}
-<div class="space-y-3 mb-8">
-  {% for s in services %}
-    <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-4 grid sm:grid-cols-5 gap-3 items-end {% if not s.is_active %}opacity-60{% endif %}">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="update"><input type="hidden" name="service" value="{{ s.pk }}">
-      <div class="sm:col-span-2 flex items-center gap-3">
-        {% if s.image_url %}<img src="{{ s.image_url }}" alt="" class="w-12 h-12 rounded-lg object-cover shrink-0">{% endif %}
-        {% if service_page %}<span class="font-medium">{{ s.name }}</span>{% else %}<a href="{% url 'booking:service-edit' s.pk %}" class="font-medium hover:text-indigo-700">{{ s.name }}</a>{% endif %}{% if not s.is_active %} <span class="text-xs text-gray-400">· {% trans "inactive" %}</span>{% endif %}
-      </div>
-      <div class="sm:col-span-5 order-last flex flex-wrap items-center gap-3">
-        {% include "catalog/_photo_add_tile.html" with target="image" small=1 %}<input name="image" type="file" accept="image/*" class="hidden" aria-label="{% trans "Photo" %}">
-        {% if s.image_url %}<label class="text-xs text-gray-500"><input type="checkbox" name="remove_image" value="1"> {% trans "Remove photo" %}</label>{% endif %}
-        {# LS-1: сентинел — presence-guard (чужой клиент формы без чекбокса не сбросит флаг). #}
-        <input type="hidden" name="is_video_present" value="1">
-        <label class="text-xs text-gray-500"><input type="checkbox" name="is_video" value="1" {% if s.is_video %}checked{% endif %}> 📹 {% trans "Video-Beratung möglich" %}</label>
-        {# T-8.11: услуга вне каталога города (сентинел — как у видео). #}
-        <input type="hidden" name="hide_in_city_present" value="1">
-        <label class="text-xs text-gray-500"><input type="checkbox" name="hide_in_city" value="1" {% if s.hide_in_city %}checked{% endif %}> {% trans "Nicht im Stadtkatalog zeigen" %}</label>
-        {# MX-5: режим цены — за бронь или за человека (групповая экскурсия/класс). #}
-        {% comment %}KA-12 E4.2a: кто оказывает услугу (ничего не отмечено = любой мастер).{% endcomment %}
-        {% if skill_resources|length > 1 %}
-        <input type="hidden" name="resources_present" value="1">
-        <span class="text-xs text-gray-500" data-service-skills>{% trans "Wer bietet die Leistung an?" %}
-          {% for r in skill_resources %}<label class="ml-2 whitespace-nowrap"><input type="checkbox" name="resources" value="{{ r.pk }}" {% if r in s.resources.all %}checked{% endif %}> {{ r.name }}</label>{% endfor %}
-          <span class="ml-1 text-gray-400">{% trans "(nichts angehakt = alle)" %}</span>
-        </span>
-        {% endif %}
-        {% comment %}KA-12 E4.4a: буфер после визита, минимальный срок и горизонт записи (витрина).{% endcomment %}
-        <input type="hidden" name="booking_rules_present" value="1">
-        <span class="text-xs text-gray-500" data-service-rules>
-          <label class="whitespace-nowrap">{% trans "Puffer danach" %} <input name="buffer_after_minutes" type="number" min="0" max="480" inputmode="numeric" value="{{ s.buffer_after_minutes }}" class="w-16 rounded border border-gray-300 px-1 py-0.5 text-xs"> {% trans "Min." %}</label>
-          <label class="ml-2 whitespace-nowrap">{% trans "Buchbar ab" %} <input name="min_lead_hours" type="number" min="0" max="720" inputmode="numeric" value="{% widthratio s.min_lead_minutes 60 1 %}" class="w-16 rounded border border-gray-300 px-1 py-0.5 text-xs"> {% trans "Std. vorher" %}</label>
-          <label class="ml-2 whitespace-nowrap">{% trans "bis" %} <input name="max_days_ahead" type="number" min="1" max="365" inputmode="numeric" value="{{ s.max_days_ahead|default_if_none:'' }}" placeholder="30" class="w-16 rounded border border-gray-300 px-1 py-0.5 text-xs"> {% trans "Tage im Voraus" %}</label>
-        </span>
-        {% comment %}KA-12 B6: правила отмены/самопереноса гостем — только owner/admin.{% endcomment %}
-        {% if can_edit_policy %}
-        <input type="hidden" name="cancel_policy_present" value="1">
-        <span class="text-xs text-gray-500" data-service-cancel>
-          <label class="whitespace-nowrap">{% trans "Kostenlos stornierbar bis" %} <input name="cancel_window_hours" type="number" min="0" max="720" inputmode="numeric" value="{{ s.cancel_window_hours }}" class="w-16 rounded border border-gray-300 px-1 py-0.5 text-xs"> {% trans "Std. vorher" %}</label>
-          <label class="ml-2 whitespace-nowrap">{% trans "Danach" %}
-            <select name="late_cancel" class="ml-1 rounded border border-gray-300 px-1 py-0.5 text-xs">
-              <option value="keep_deposit" {% if s.late_cancel == "keep_deposit" %}selected{% endif %}>{% trans "Anzahlung einbehalten" %}</option>
-              <option value="refund" {% if s.late_cancel == "refund" %}selected{% endif %}>{% trans "Immer erstatten" %}</option>
-            </select>
-          </label>
-        </span>
-        {% endif %}
-        <input type="hidden" name="pricing_mode_present" value="1">
-        <label class="text-xs text-gray-500">{% trans "Preis gilt" %}
-          <select name="pricing_mode" class="ml-1 rounded border border-gray-300 px-1 py-0.5 text-xs">
-            <option value="" {% if not s.pricing_mode %}selected{% endif %}>{% trans "pro Termin" %}</option>
-            <option value="per_person" {% if s.pricing_mode == "per_person" %}selected{% endif %}>{% trans "pro Person" %}</option>
-          </select>
-        </label>
-      </div>
-      <div class="sm:col-span-5 order-last" data-i18n-loc="{{ base_loc }}">
-        <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Description (what's included)" %}</span>
-        <input name="description" type="text" value="{{ s.description }}" placeholder="{% trans 'optional' %}" class="ui-input"></label>
-      </div>
-      {# E9.10: переводы — группой на язык; видна выбранная в выпадашке у заголовка. #}
-      {% regroup s.i18n_inputs by locale as by_loc %}
-      {% for grp in by_loc %}
-      <div class="sm:col-span-5 order-last hidden space-y-2" data-i18n-loc="{{ grp.grouper }}">
-        {% for inp in grp.list %}
-        <div>
-          <label class="block"><span class="block text-xs text-gray-500 mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Description (what's included)" %}{% endif %} ({{ inp.locale|upper }})</span>
-          <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input"></label>
-        </div>
-        {% endfor %}
-      </div>
-      {% endfor %}
-      {% comment %}UA4-3-ввод (2026-08-01): секции «Details» и FAQ детальной страницы
-      услуги. Раньше их заполняли только демо-киты — владелец видел богатую карточку
-      на демо и не мог повторить её у себя. Оба блока пишутся только при сентинелах
-      *_present: `action=update` шлётся и из компактной строки списка, где этих полей
-      нет, и без guard'а такой Save стирал бы наполнение (инвариант W0).{% endcomment %}
-      <details class="sm:col-span-5 order-last">
-        <summary class="cursor-pointer text-xs text-indigo-600">✨ {% trans "Details & FAQ on the service page" %}{% if s.attributes_list or s.faq_list %} <span class="text-gray-400">· {{ s.attributes_list|length }}/{{ s.faq_list|length }}</span>{% endif %}</summary>
-        <input type="hidden" name="attributes_present" value="1">
-        <input type="hidden" name="faq_present" value="1">
-        <div class="mt-2 space-y-3">
-          <div>
-            <div data-i18n-loc="{{ base_loc }}">
-              <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Details — one bullet per line" %}</span>
-              <textarea name="attributes" rows="3" placeholder="{% trans 'e.g. Towels included' %}" class="ui-input">{{ s.attributes_text }}</textarea></label>
-              <p class="text-xs ui-muted mt-1">{% trans "Up to 12 bullets are shown." %}</p>
-            </div>
-            {% for inp in s.attributes_i18n_inputs %}
-            <div data-i18n-loc="{{ inp.locale }}" class="hidden">
-              <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Details" %} ({{ inp.locale|upper }}) — {% trans "line by line, same order" %}</span>
-              <textarea name="{{ inp.input_name }}" rows="3" class="ui-input">{{ inp.value }}</textarea></label>
-            </div>
-            {% endfor %}
-          </div>
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">{% trans "Frequently asked questions" %}</label>
-            {% for row in s.faq_rows %}
-              <div class="border-t border-gray-100 pt-2 mt-2 space-y-1">
-                <div data-i18n-loc="{{ base_loc }}" class="space-y-1">
-                  <input name="{{ row.q_name }}" type="text" value="{{ row.q }}" aria-label="{% trans 'Question' %}" placeholder="{% trans 'Question' %}" class="ui-input">
-                  <textarea name="{{ row.a_name }}" rows="2" aria-label="{% trans 'Answer' %}" placeholder="{% trans 'Answer' %}" class="ui-input">{{ row.a }}</textarea>
-                </div>
-                {% for tr in row.i18n %}
-                <div data-i18n-loc="{{ tr.locale }}" class="hidden space-y-1">
-                  <input name="{{ tr.q_name }}" type="text" value="{{ tr.q }}" aria-label="{% trans 'Question' %} ({{ tr.locale|upper }})" placeholder="{% trans 'Question' %} ({{ tr.locale|upper }})" class="ui-input">
-                  <textarea name="{{ tr.a_name }}" rows="2" aria-label="{% trans 'Answer' %} ({{ tr.locale|upper }})" placeholder="{% trans 'Answer' %} ({{ tr.locale|upper }})" class="ui-input">{{ tr.a }}</textarea>
-                </div>
-                {% endfor %}
-              </div>
-            {% endfor %}
-            <p class="text-xs ui-muted mt-1">{% trans "Clearing a question removes it. A new empty pair appears after saving." %}</p>
-          </div>
-        </div>
-      </details>
-      <div>
-        <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Duration (min)" %}</span>
-        <input name="duration" type="number" min="5" value="{{ s.duration_minutes }}" class="ui-input"></label>
-      </div>
-      <div>
-        <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Price (€)" %}</span>
-        <input name="price_eur" type="text" value="{{ s.price_eur|stringformat:'.2f' }}" class="ui-input"></label>
-      </div>
-      {% vat_select s.vat_rate %}
-      <div class="flex items-center gap-2">
-        <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Save" %}</button>
-        <button name="action" value="toggle" class="text-xs text-gray-500 hover:underline">{% if s.is_active %}{% trans "Off" %}{% else %}{% trans "On" %}{% endif %}</button>
-      </div>
-    </form>
-
-    {% comment %}HF-5 (фидбэк владельца 2026-07-31, п. 2): цена услуги на диапазон дат —
-    зеркало сезонных тарифов номера. Перебивает базовую цену на эти дни; считается
-    одним резолвером и на витрине, и при приёме брони.{% endcomment %}
-    <details class="border-t border-gray-100 mt-3 pt-3 text-sm">
-      <summary class="cursor-pointer text-gray-600 hover:text-gray-900">💶 {% trans "Prices for date ranges" %}{% if s.seasons %} <span class="text-xs text-gray-400">· {{ s.seasons|length }}</span>{% endif %}</summary>
-      {% for r in s.seasons %}
-        <form method="post" class="flex items-center justify-between gap-2 border-t border-gray-100 py-1.5">
-          {% csrf_token %}
-          <span>{{ r.start_date|date:"d.m.Y" }} – {{ r.end_date|date:"d.m.Y" }}{% if r.label %} · {{ r.label }}{% endif %}
-            <span class="font-medium">{{ r.price_eur|stringformat:".2f" }} €</span></span>
-          <input type="hidden" name="season" value="{{ r.pk }}">
-          <button name="action" value="season_delete" class="text-xs text-gray-400 hover:text-red-600">{% trans "Delete" %}</button>
-        </form>
-      {% endfor %}
-      <form method="post" class="flex flex-wrap items-end gap-2 mt-2">
-        {% csrf_token %}
-        <input type="hidden" name="service" value="{{ s.pk }}">
-        <input type="hidden" name="action" value="season_add">
-        <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "From" %}</span>
-          <input name="start_date" type="date" required class="min-w-0 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
-        <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "To" %}</span>
-          <input name="end_date" type="date" required class="min-w-0 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
-        <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Price (€)" %}</span>
-          <input name="price_eur" type="text" inputmode="decimal" placeholder="59" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
-        <div class="flex-1 min-w-[8rem]"><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Label (optional)" %}</span>
-          <input name="label" type="text" placeholder="{% trans 'High season' %}" class="ui-input"></label></div>
-        <button class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400">{% trans "Add" %}</button>
-      </form>
-    </details>
-    {% comment %}KA-12 E4.4b: варианты услуги — дельты к цене и длительности; свои мини-формы,
-    главный Save услуги их не трогает.{% endcomment %}
-    <details class="border-t border-gray-100 mt-3 pt-3 text-sm" data-service-variants>
-      <summary class="cursor-pointer text-gray-600 hover:text-gray-900">🎚 {% trans "Variants" %}{% if s.variant_rows %} <span class="text-xs text-gray-400">· {{ s.variant_rows|length }}</span>{% endif %}</summary>
-      <p class="text-xs text-gray-500 mt-1">{% trans "e.g. short / long hair: surcharge and extra minutes on top of this service." %}</p>
-      {% for v in s.variant_rows %}
-        <form method="post" class="flex flex-wrap items-end gap-2 border-t border-gray-100 py-2{% if not v.is_active %} opacity-60{% endif %}">
-          {% csrf_token %}
-          <input type="hidden" name="service" value="{{ s.pk }}">
-          <input type="hidden" name="variant" value="{{ v.pk }}">
-          <div class="flex-1 min-w-[8rem]" data-i18n-loc="{{ base_loc }}"><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Name" %}</span>
-            <input name="name" type="text" value="{{ v.name }}" required maxlength="100" class="ui-input"></label></div>
-          {% for inp in v.i18n_inputs %}
-            <div class="flex-1 min-w-[8rem] hidden" data-i18n-loc="{{ inp.locale }}"><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Name" %} ({{ inp.locale|upper }})</span>
-              <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" maxlength="100" class="ui-input"></label></div>
-          {% endfor %}
-          <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Surcharge (€)" %}</span>
-            <input name="price_delta_eur" type="text" inputmode="decimal" value="{{ v.price_delta_eur|stringformat:'.2f' }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
-          <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Extra minutes" %}</span>
-            <input name="duration_delta" type="text" inputmode="numeric" value="{{ v.duration_delta_minutes }}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
-          <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Sort order" %}</span>
-            <input name="sort_order" type="text" inputmode="numeric" value="{{ v.sort_order }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
-          <button name="action" value="variant_update" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400">{% trans "Save" %}</button>
-          <button name="action" value="variant_toggle" class="text-xs text-gray-500 hover:text-gray-900">{% if v.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
-          <button name="action" value="variant_delete" class="text-xs text-gray-400 hover:text-red-600">{% trans "Delete" %}</button>
-        </form>
-      {% endfor %}
-      <form method="post" class="flex flex-wrap items-end gap-2 mt-2">
-        {% csrf_token %}
-        <input type="hidden" name="service" value="{{ s.pk }}">
-        <input type="hidden" name="action" value="variant_add">
-        <div class="flex-1 min-w-[8rem]"><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Name" %}</span>
-          <input name="name" type="text" required maxlength="100" placeholder="{% trans 'Long hair' %}" class="ui-input"></label></div>
-        <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Surcharge (€)" %}</span>
-          <input name="price_delta_eur" type="text" inputmode="decimal" placeholder="12" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
-        <div><label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Extra minutes" %}</span>
-          <input name="duration_delta" type="text" inputmode="numeric" placeholder="20" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></label></div>
-        <button class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400">{% trans "Add" %}</button>
-      </form>
-    </details>
-  {% empty %}
-    <p class="text-gray-500">{% trans "No services yet." %}</p>
-  {% endfor %}
-</div>
-{% else %}
 {% comment %}UX-D D2.3 (макет Services): список — ОБЗОР строками; правка — на странице
 услуги (›). Редактируемых полей в строках нет (замок); статус — кнопка-переключатель
 (только скрытые поля).{% endcomment %}
@@ -281,6 +73,5 @@
   {% endfor %}
   </ul>
 </div>
-{% endif %}
 
 {% endblock %}

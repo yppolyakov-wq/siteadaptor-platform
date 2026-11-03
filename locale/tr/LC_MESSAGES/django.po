@@ -31781,3 +31781,30 @@ msgstr "Kim sunuyor"
 
 msgid "ab"
 msgstr "başlangıç"
+
+msgid "Alle Leistungen"
+msgstr "Tüm hizmetler"
+
+msgid "Auf der Website ansehen"
+msgstr "Web sitesinde görüntüle"
+
+msgid "Beschreibung & FAQ"
+msgstr "Açıklama ve SSS"
+
+msgid "Deaktivieren"
+msgstr "Devre dışı bırak"
+
+msgid "Grundlagen"
+msgstr "Temel bilgiler"
+
+msgid "Neue Buchungen übernehmen Frist und Anzahlung — bestehende Termine bleiben unverändert."
+msgstr "Yeni rezervasyonlar bu süreyi ve ön ödemeyi alır — mevcut randevular değişmez."
+
+msgid "Preise & Varianten"
+msgstr "Fiyatlar ve varyantlar"
+
+msgid "Wo sichtbar"
+msgstr "Nerede görünür"
+
+msgid "Die Anzahlung wurde auf den Preis begrenzt."
+msgstr "Ön ödeme fiyatla sınırlandırıldı."

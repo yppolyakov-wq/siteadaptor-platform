@@ -1448,6 +1448,26 @@ def _service_new_errors(data) -> dict:
     return errors
 
 
+# UX-D D2.4: вкладки страницы услуги (первая — по умолчанию)
+SERVICE_TABS = ("grund", "preise", "regeln", "text")
+
+
+def _deposit_cents_or_none(raw) -> int | None:
+    """Сумма формы (цена/предоплата) в центах; пусто → 0, мусор/отрицательное/сверх
+    кэпа → None (вызывающий показывает ошибку и оставляет прежнее значение)."""
+    from apps.core.money import parse_money
+
+    try:
+        value = parse_money(raw or "")
+    except ValueError:
+        return None
+    if value is None:
+        return 0
+    if not (0 <= value <= MAX_CENTS / 100):
+        return None
+    return int((value * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
 def _service_values(data) -> dict:
     """Значения формы «＋ Leistung» (префилл помощника или повтор после ошибки)."""
     return {
@@ -1513,10 +1533,18 @@ def services_view(request, pk=None):
                 _apply_rich(service, getattr(request, "tenant", None))
                 service.save()
                 messages.success(request, _("Service created."))
-        elif action == "update":  # инлайн: длительность + цена + описание (депозит — при создании)
+        elif action == "update":  # длительность + цена + описание (+ предоплата — D2.4)
             service = get_object_or_404(Service, pk=request.POST.get("service"))
+            save_error = False  # ошибка поля — без зелёного «gespeichert» рядом
             service.duration_minutes = _int(request.POST.get("duration"), 30, 5, 1440)
-            service.price_cents = _eur_to_cents(request.POST.get("price_eur"))
+            # Ревью D2.4: кривая цена («12,50 €», «abc») раньше молча делала услугу
+            # бесплатной — теперь ошибка у владельца и прежняя цена (пусто = 0, как было).
+            price = _deposit_cents_or_none(request.POST.get("price_eur"))
+            if price is None:
+                save_error = True
+                messages.error(request, _("Bitte einen Betrag wie 25,00 angeben."))
+            else:
+                service.price_cents = price
             # DC-8: ставка НДС — presence-guard (поле есть только в форме услуги).
             if request.POST.get("vat_rate") is not None:
                 service.vat_rate = vat.parse_rate(request.POST.get("vat_rate"), service.vat_rate)
@@ -1557,6 +1585,7 @@ def services_view(request, pk=None):
                 elif horizon.isdigit() and int(horizon) > 0:
                     service.max_days_ahead = min(int(horizon), 365)
                 else:  # мусор не превращаем молча в «1 день» — оставляем как было
+                    save_error = True
                     messages.error(request, _("Bitte den Buchungszeitraum in Tagen angeben."))
                 fields += ["buffer_after_minutes", "min_lead_minutes", "max_days_ahead"]
             # KA-12 B6: правила отмены — сентинел + роль owner/admin; поля от staff
@@ -1572,6 +1601,24 @@ def services_view(request, pk=None):
                     if late in (LATE_CANCEL_KEEP, LATE_CANCEL_REFUND):
                         service.late_cancel = late
                     fields += ["cancel_window_hours", "late_cancel"]
+            # UX-D D2.4: предоплата правится на вкладке «Buchungsregeln» — та же
+            # роль (решение владельца: `preise.edit`), не выше цены; снимок на
+            # уже сделанных записях не меняется (Booking.deposit_cents свой).
+            if request.POST.get("deposit_present") and _can_edit_policy(request.user):
+                deposit = _deposit_cents_or_none(request.POST.get("deposit_eur"))
+                if deposit is None:
+                    save_error = True
+                    messages.error(request, _("Bitte einen Betrag wie 25,00 angeben."))
+                else:
+                    service.deposit_cents = deposit
+                    fields.append("deposit_cents")
+            # Предоплата не выше цены — и когда цену снизили (в т.ч. сотрудник без права
+            # на предоплату): иначе карточка услуги показывала бы предоплату > цены.
+            if service.deposit_cents > service.price_cents:
+                service.deposit_cents = service.price_cents
+                if "deposit_cents" not in fields:
+                    fields.append("deposit_cents")
+                messages.warning(request, _("Die Anzahlung wurde auf den Preis begrenzt."))
             # MX-5: режим цены — по сентинелу (W0: чужая форма без селекта не трогает).
             if request.POST.get("pricing_mode_present"):
                 service.pricing_mode = (
@@ -1580,9 +1627,14 @@ def services_view(request, pk=None):
                 fields.append("pricing_mode")
             # KA-12 E4.2a: навыки (какие мастера оказывают услугу) — по сентинелу,
             # иначе компактная строка без чекбоксов стёрла бы связи (W0).
+            picked_resources = None
             if request.POST.get("resources_present"):
                 picked = [p for p in request.POST.getlist("resources") if _is_uuid(p)]
-                service.resources.set(Resource.objects.filter(pk__in=picked))
+                # чекбоксы — только у активных мастеров; связь с выключенным мастером
+                # формой не видна и не должна теряться при Save (вернётся с ним)
+                picked_resources = Resource.objects.filter(pk__in=picked) | (
+                    service.resources.filter(is_active=False)
+                )
             fields += apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
             fields += _apply_rich(service, getattr(request, "tenant", None))
             # A3: новое фото заменяет старое; чекбокс «удалить» очищает.
@@ -1590,7 +1642,10 @@ def services_view(request, pk=None):
             if new_image or request.POST.get("remove_image"):
                 service.image = new_image or {}
                 fields.append("image")
-            service.save(update_fields=fields)
+            with transaction.atomic():
+                service.save(update_fields=fields)
+                if picked_resources is not None:  # M2M — после save, в одной транзакции
+                    service.resources.set(picked_resources.distinct())
             if request.POST.get("booking_rules_present") and buffer_changed:
                 overlaps = resync_occupancy(service)
                 if overlaps:
@@ -1599,7 +1654,8 @@ def services_view(request, pk=None):
                         _("Termine mit Überschneidung nach dem neuen Puffer: %(n)s")
                         % {"n": overlaps},
                     )
-            messages.success(request, _("Service saved."))
+            if not save_error:
+                messages.success(request, _("Service saved."))
         elif action == "toggle":
             service = get_object_or_404(Service, pk=request.POST.get("service"))
             service.is_active = not service.is_active
@@ -1635,7 +1691,12 @@ def services_view(request, pk=None):
         elif action in ("variant_add", "variant_update", "variant_toggle", "variant_delete"):
             _variant_action(request, action)  # KA-12 E4.4b: варианты услуги
         if pk:
-            return redirect("booking:service-edit", pk=pk)
+            # UX-D D2.4: обратно на ту же вкладку (белый список — мусор не в адрес)
+            url = reverse("booking:service-edit", args=[pk])
+            tab = request.POST.get("tab")
+            if tab in SERVICE_TABS and tab != SERVICE_TABS[0]:
+                url += f"?tab={tab}"
+            return redirect(url)
         return redirect("booking:services")
 
     if not pk:
@@ -1657,14 +1718,15 @@ def services_view(request, pk=None):
             request,
             "booking/services.html",
             {
-                "service_page": None,
                 "nav": "services",
                 "services": services,
                 "has_hours": AvailabilityRule.objects.exists()
                 or bool(_business_hours_of(getattr(request, "tenant", None))),
             },
         )
-    service_page = get_object_or_404(Service, pk=pk)
+    service_page = get_object_or_404(Service.objects.prefetch_related("resources"), pk=pk)
+    # навыки — множеством id: `r in s.resources.all` в цикле давал запрос на мастера
+    service_page.selected_resource_ids = {r.pk for r in service_page.resources.all()}
     services = [service_page]
     locales = extra_locales(getattr(request, "tenant", None))
     for svc in services:  # L3d: данные per-locale инпутов готовим в Python
@@ -1690,11 +1752,19 @@ def services_view(request, pk=None):
         # FAQ — пары полей: разделитель внутри свободного текста ломался бы на
         # первом же ответе с переносом строки. Одна пустая пара — чтобы добавить.
         svc.faq_rows = _faq_rows(svc, locales)
+    tab = request.GET.get("tab")
     return render(
         request,
-        "booking/services.html",
+        "booking/service_page.html",
         {
-            "service_page": service_page,
+            "s": service_page,
+            "active_tab": tab if tab in SERVICE_TABS else SERVICE_TABS[0],
+            "price_rows_n": len(service_page.seasons) + len(service_page.variant_rows),
+            # значение поля предоплаты: формат цены ("12.50"), пусто = без предоплаты
+            "deposit_input": (
+                f"{service_page.deposit_cents / 100:.2f}" if service_page.deposit_cents else ""
+            ),
+            "deposit_amount": Decimal(service_page.deposit_cents) / 100,
             # X4: услуга — ПРОДАВАЕМАЯ СУЩНОСТЬ (раздел «Sortiment»), а не
             # операция дня; свой nav-ключ, иначе сайдбар подсвечивал «Verkäufe».
             "nav": "services",

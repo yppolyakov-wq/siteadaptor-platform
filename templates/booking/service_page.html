@@ -1,0 +1,263 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{{ s.name }}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D2.4 (макет ServiceEdit): страница услуги — шапка + вкладки.
+Вкладки «Grundlagen», «Buchungsregeln», «Beschreibung & FAQ» — ОДНА форма #svc-form
+(action=update всегда пишет цену/длительность/описание: формы по вкладкам обнулили бы
+чужие поля, инвариант W0). Скрытие вкладок — только CSS, все поля в DOM. «Preise &
+Varianten» — свои мини-формы, вне #svc-form. Скрытое `tab` возвращает на ту же вкладку.{% endcomment %}
+{% i18n_base_locale as base_loc %}
+<div data-svc-page>
+<a href="{% url 'booking:services' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Alle Leistungen" %}</a>
+<div class="flex items-start justify-between gap-3 flex-wrap mt-1 mb-4">
+  <div class="min-w-0">
+    <div class="flex items-center gap-3 flex-wrap">
+      <h1 class="ui-h1 break-words">{{ s.name }}</h1>
+      {% lang_switch %}
+    </div>
+    <p class="text-sm text-gray-600 mt-0.5">{{ s.price_eur|floatformat:2 }} €{% if s.pricing_mode == "per_person" %} / {% trans "Person" %}{% endif %} · {{ s.duration_minutes }} {% trans "Min." %} · {% for r in s.resources.all %}{{ r.name }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "alle" %}{% endfor %}</p>
+  </div>
+  <div class="flex items-center gap-2 flex-wrap">
+    <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium {% if s.is_active %}bg-emerald-50 text-emerald-800{% else %}bg-gray-100 text-gray-600{% endif %}"><span class="w-1.5 h-1.5 rounded-full {% if s.is_active %}bg-emerald-500{% else %}bg-gray-400{% endif %}" aria-hidden="true"></span>{% if s.is_active %}{% trans "Im Verkauf" %}{% else %}{% trans "Aus" %}{% endif %}</span>
+    {% if s.is_active %}<a href="{% url 'storefront-service-detail' s.pk %}" target="_blank" rel="noopener" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Auf der Website ansehen" %} <span aria-hidden="true">↗</span></a>{% endif %}
+  </div>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+{% if not has_hours %}
+<div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900">
+  <strong>{% trans "Noch keine Öffnungszeiten hinterlegt." %}</strong>
+  {% trans "Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von der Leistung." %}
+  <a href="{% url 'booking:resources' %}" class="font-medium underline">{% trans "Öffnungszeiten festlegen" %} →</a>
+</div>
+{% endif %}
+
+<div class="ui-tabs mb-4" role="tablist" aria-label="{% trans 'Leistung' %}">
+  <button type="button" data-pf-tab="grund" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'grund' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'grund' %}0{% else %}-1{% endif %}">{% trans "Grundlagen" %}</button>
+  <button type="button" data-pf-tab="preise" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'preise' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'preise' %}0{% else %}-1{% endif %}">{% trans "Preise & Varianten" %}{% if price_rows_n %} <span class="text-gray-500">· {{ price_rows_n }}</span>{% endif %}</button>
+  <button type="button" data-pf-tab="regeln" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'regeln' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'regeln' %}0{% else %}-1{% endif %}">{% trans "Buchungsregeln" %}</button>
+  <button type="button" data-pf-tab="text" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'text' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'text' %}0{% else %}-1{% endif %}">{% trans "Beschreibung & FAQ" %}</button>
+</div>
+
+<form id="svc-form" method="post" enctype="multipart/form-data" class="ui-card p-5 max-w-3xl [&_:is(input,select,textarea)]:scroll-mb-32{% if active_tab == 'preise' %} hidden{% endif %}" data-pf-hide-on="preise">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="update"><input type="hidden" name="service" value="{{ s.pk }}">
+  <input type="hidden" name="tab" value="{{ active_tab }}" data-svc-tab>
+
+  {# --- Grundlagen ------------------------------------------------------- #}
+  <div data-pf-panel="grund" class="space-y-4{% if active_tab != 'grund' %} hidden{% endif %}">
+    <div data-i18n-loc="{{ base_loc }}">
+      <label for="svc-name" class="block text-sm font-medium mb-1">{% trans "Name" %}</label>
+      <input id="svc-name" name="name" type="text" required maxlength="120" value="{{ s.name }}" class="ui-input">
+    </div>
+    {% for inp in s.i18n_inputs %}{% if inp.field == 'name' %}
+    <div data-i18n-loc="{{ inp.locale }}" class="hidden">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Name" %} ({{ inp.locale|upper }})</span>
+      <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" maxlength="120" lang="{{ inp.locale }}" class="ui-input"></label>
+    </div>
+    {% endif %}{% endfor %}
+    <div class="grid sm:grid-cols-2 gap-4">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</span>
+        <input name="price_eur" type="text" inputmode="decimal" value="{{ s.price_eur|stringformat:'.2f' }}" class="ui-input"></label>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Duration (min)" %}</span>
+        <input name="duration" type="number" min="5" max="1440" value="{{ s.duration_minutes }}" class="ui-input"></label>
+      {% vat_select s.vat_rate %}
+      <input type="hidden" name="pricing_mode_present" value="1">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Preis gilt" %}</span>
+        <select name="pricing_mode" class="ui-input">
+          <option value=""{% if not s.pricing_mode %} selected{% endif %}>{% trans "pro Termin" %}</option>
+          <option value="per_person"{% if s.pricing_mode == "per_person" %} selected{% endif %}>{% trans "pro Person" %}</option>
+        </select></label>
+    </div>
+    {% if skill_resources|length > 1 %}
+    <fieldset data-service-skills>
+      <legend class="text-sm font-medium mb-1">{% trans "Wer bietet die Leistung an?" %} <span class="font-normal text-gray-500">{% trans "(nichts angehakt = alle)" %}</span></legend>
+      <input type="hidden" name="resources_present" value="1">
+      <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+        {% for r in skill_resources %}<label class="inline-flex items-center gap-2"><input type="checkbox" name="resources" value="{{ r.pk }}"{% if r.pk in s.selected_resource_ids %} checked{% endif %}> {{ r.name }}</label>{% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+    <div>
+      <span class="block text-sm font-medium mb-1">{% trans "Photo" %}</span>
+      <div class="flex items-center gap-3 flex-wrap">
+        {% if s.image_url %}<img src="{{ s.image_url }}" alt="" class="w-16 h-16 rounded-lg object-cover">{% endif %}
+        {% include "catalog/_photo_add_tile.html" with target="image" small=1 %}<input name="image" type="file" accept="image/*" class="hidden" aria-label="{% trans "Photo" %}">
+        {% if s.image_url %}<label class="text-sm text-gray-600"><input type="checkbox" name="remove_image" value="1"> {% trans "Remove photo" %}</label>{% endif %}
+      </div>
+    </div>
+    <fieldset>
+      <legend class="text-sm font-medium mb-1">{% trans "Wo sichtbar" %}</legend>
+      <input type="hidden" name="is_video_present" value="1"><input type="hidden" name="hide_in_city_present" value="1">
+      <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        <label class="inline-flex items-center gap-2"><input type="checkbox" name="hide_in_city" value="1"{% if s.hide_in_city %} checked{% endif %}> {% trans "Nicht im Stadtkatalog zeigen" %}</label>
+        <label class="inline-flex items-center gap-2"><input type="checkbox" name="is_video" value="1"{% if s.is_video %} checked{% endif %}> <span aria-hidden="true">📹</span> {% trans "Video-Beratung möglich" %}</label>
+      </div>
+    </fieldset>
+  </div>
+
+  {# --- Buchungsregeln ---------------------------------------------------- #}
+  <div data-pf-panel="regeln" class="space-y-4{% if active_tab != 'regeln' %} hidden{% endif %}">
+    <input type="hidden" name="booking_rules_present" value="1">
+    <div class="grid sm:grid-cols-3 gap-4" data-service-rules>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Puffer danach" %} ({% trans "Min." %})</span>
+        <input name="buffer_after_minutes" type="number" min="0" max="480" inputmode="numeric" value="{{ s.buffer_after_minutes }}" class="ui-input"></label>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Buchbar ab" %} ({% trans "Std. vorher" %})</span>
+        <input name="min_lead_hours" type="number" min="0" max="720" inputmode="numeric" value="{% widthratio s.min_lead_minutes 60 1 %}" class="ui-input"></label>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "bis" %} … {% trans "Tage im Voraus" %}</span>
+        <input name="max_days_ahead" type="number" min="1" max="365" inputmode="numeric" value="{{ s.max_days_ahead|default_if_none:'' }}" placeholder="30" class="ui-input"></label>
+    </div>
+    {% if can_edit_policy %}
+    <input type="hidden" name="cancel_policy_present" value="1">
+    <input type="hidden" name="deposit_present" value="1">
+    <div class="grid sm:grid-cols-3 gap-4" data-service-cancel>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Kostenlos stornierbar bis" %} ({% trans "Std. vorher" %})</span>
+        <input name="cancel_window_hours" type="number" min="0" max="720" inputmode="numeric" value="{{ s.cancel_window_hours }}" class="ui-input"></label>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Danach" %}</span>
+        <select name="late_cancel" class="ui-input">
+          <option value="keep_deposit"{% if s.late_cancel == "keep_deposit" %} selected{% endif %}>{% trans "Anzahlung einbehalten" %}</option>
+          <option value="refund"{% if s.late_cancel == "refund" %} selected{% endif %}>{% trans "Immer erstatten" %}</option>
+        </select></label>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</span>
+        <input name="deposit_eur" type="text" inputmode="decimal" value="{{ deposit_input }}" placeholder="0" aria-describedby="svc-deposit-hint" class="ui-input"></label>
+    </div>
+    <p id="svc-deposit-hint" class="text-xs text-gray-600">{% trans "Neue Buchungen übernehmen Frist und Anzahlung — bestehende Termine bleiben unverändert." %}</p>
+    {% else %}
+    <p class="text-sm text-gray-600" data-service-cancel-readonly>
+      {% trans "Kostenlos stornierbar bis" %}: {% if s.cancel_window_hours %}{% blocktrans with h=s.cancel_window_hours %}{{ h }} Std. vorher{% endblocktrans %}{% else %}{% trans "jederzeit" %}{% endif %} · {% trans "Danach" %}: {{ s.get_late_cancel_display }}{% if s.deposit_cents %} · {% trans "Anzahlung" %}: {{ deposit_amount|floatformat:2 }} €{% endif %}<br>
+      <span class="text-xs">{% trans "Nur Inhaber und Admins können diese Regel ändern." %}</span>
+    </p>
+    {% endif %}
+    <p class="text-xs text-gray-600">{% trans "Regeln für alle Leistungen" %}: <a href="{% url 'booking:booking-rules' %}" class="text-indigo-700 hover:underline">{% trans "Buchungsregeln" %} →</a></p>
+  </div>
+
+  {# --- Beschreibung & FAQ ------------------------------------------------ #}
+  <div data-pf-panel="text" class="space-y-4{% if active_tab != 'text' %} hidden{% endif %}">
+    <div data-i18n-loc="{{ base_loc }}">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Description (what's included)" %}</span>
+      <textarea name="description" rows="3" class="ui-input">{{ s.description }}</textarea></label>
+    </div>
+    {% for inp in s.i18n_inputs %}{% if inp.field != 'name' %}
+    <div data-i18n-loc="{{ inp.locale }}" class="hidden">
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Description (what's included)" %} ({{ inp.locale|upper }})</span>
+      <textarea name="{{ inp.input_name }}" rows="3" lang="{{ inp.locale }}" class="ui-input">{{ inp.value }}</textarea></label>
+    </div>
+    {% endif %}{% endfor %}
+    <input type="hidden" name="attributes_present" value="1">
+    <input type="hidden" name="faq_present" value="1">
+    <div>
+      <div data-i18n-loc="{{ base_loc }}">
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Details — one bullet per line" %}</span>
+        <textarea name="attributes" rows="4" placeholder="{% trans 'e.g. Towels included' %}" class="ui-input">{{ s.attributes_text }}</textarea></label>
+        <p class="text-xs ui-muted mt-1">{% trans "Up to 12 bullets are shown." %}</p>
+      </div>
+      {% for inp in s.attributes_i18n_inputs %}
+      <div data-i18n-loc="{{ inp.locale }}" class="hidden">
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Details" %} ({{ inp.locale|upper }}) — {% trans "line by line, same order" %}</span>
+        <textarea name="{{ inp.input_name }}" rows="4" lang="{{ inp.locale }}" class="ui-input">{{ inp.value }}</textarea></label>
+      </div>
+      {% endfor %}
+    </div>
+    <fieldset>
+      <legend class="text-sm font-medium mb-1">{% trans "Frequently asked questions" %}</legend>
+      {% for row in s.faq_rows %}
+        <div class="border-t border-gray-100 pt-2 mt-2 space-y-1">
+          <div data-i18n-loc="{{ base_loc }}" class="space-y-1">
+            <input name="{{ row.q_name }}" type="text" value="{{ row.q }}" aria-label="{% trans 'Question' %} {{ forloop.counter }}" placeholder="{% trans 'Question' %}" class="ui-input">
+            <textarea name="{{ row.a_name }}" rows="2" aria-label="{% trans 'Answer' %} {{ forloop.counter }}" placeholder="{% trans 'Answer' %}" class="ui-input">{{ row.a }}</textarea>
+          </div>
+          {% for tr in row.i18n %}
+          <div data-i18n-loc="{{ tr.locale }}" class="hidden space-y-1">
+            <input name="{{ tr.q_name }}" type="text" value="{{ tr.q }}" lang="{{ tr.locale }}" aria-label="{% trans 'Question' %} ({{ tr.locale|upper }})" placeholder="{% trans 'Question' %} ({{ tr.locale|upper }})" class="ui-input">
+            <textarea name="{{ tr.a_name }}" rows="2" lang="{{ tr.locale }}" aria-label="{% trans 'Answer' %} ({{ tr.locale|upper }})" placeholder="{% trans 'Answer' %} ({{ tr.locale|upper }})" class="ui-input">{{ tr.a }}</textarea>
+          </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <p class="text-xs ui-muted mt-1">{% trans "Clearing a question removes it. A new empty pair appears after saving." %}</p>
+    </fieldset>
+  </div>
+
+  <div class="sticky bottom-20 md:bottom-4 mt-5 flex items-center gap-3 flex-wrap bg-white py-2">
+    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
+    <button type="submit" form="svc-toggle" class="ui-btn ui-btn-secondary">{% if s.is_active %}{% trans "Deaktivieren" %}{% else %}{% trans "Aktivieren" %}{% endif %}</button>
+  </div>
+</form>
+<form id="svc-toggle" method="post" hidden>
+  {% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="service" value="{{ s.pk }}">
+  <input type="hidden" name="tab" value="{{ active_tab }}" data-svc-tab>
+</form>
+
+{# --- Preise & Varianten — свои мини-формы, вне #svc-form ------------------- #}
+<div data-pf-panel="preise" class="space-y-4 max-w-3xl{% if active_tab != 'preise' %} hidden{% endif %}">
+  <section class="ui-card p-5" aria-labelledby="svc-seasons-h">
+    <h2 id="svc-seasons-h" class="font-semibold">{% trans "Prices for date ranges" %}</h2>
+    {% for r in s.seasons %}
+      <form method="post" class="flex items-center justify-between gap-2 border-t border-gray-100 py-2 mt-2 text-sm">
+        {% csrf_token %}<input type="hidden" name="tab" value="preise">
+        <span>{{ r.start_date|date:"d.m.Y" }} – {{ r.end_date|date:"d.m.Y" }}{% if r.label %} · {{ r.label }}{% endif %}
+          <span class="font-medium">{{ r.price_eur|stringformat:".2f" }} €</span></span>
+        <input type="hidden" name="season" value="{{ r.pk }}">
+        <button name="action" value="season_delete" aria-label="{% trans "Delete" %}: {{ r.start_date|date:"d.m.Y" }} – {{ r.end_date|date:"d.m.Y" }}" class="inline-flex items-center min-h-[2rem] px-2 rounded text-sm text-gray-600 hover:text-red-700">{% trans "Delete" %}</button>
+      </form>
+    {% endfor %}
+    <form method="post" class="flex flex-wrap items-end gap-2 mt-3 text-sm">
+      {% csrf_token %}<input type="hidden" name="tab" value="preise">
+      <input type="hidden" name="service" value="{{ s.pk }}"><input type="hidden" name="action" value="season_add">
+      <label class="block"><span class="block text-xs text-gray-600 mb-1">{% trans "From" %}</span>
+        <input name="start_date" type="date" required class="ui-input min-w-0"></label>
+      <label class="block"><span class="block text-xs text-gray-600 mb-1">{% trans "To" %}</span>
+        <input name="end_date" type="date" required class="ui-input min-w-0"></label>
+      <label class="block"><span class="block text-xs text-gray-600 mb-1">{% trans "Price (€)" %}</span>
+        <input name="price_eur" type="text" inputmode="decimal" placeholder="59" class="ui-input w-24"></label>
+      <label class="block flex-1 min-w-[8rem]"><span class="block text-xs text-gray-600 mb-1">{% trans "Label (optional)" %}</span>
+        <input name="label" type="text" placeholder="{% trans 'High season' %}" class="ui-input"></label>
+      <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Add" %}</button>
+    </form>
+  </section>
+  <section class="ui-card p-5" aria-labelledby="svc-variants-h" data-service-variants>
+    <h2 id="svc-variants-h" class="font-semibold">{% trans "Variants" %}</h2>
+    <p class="text-xs text-gray-600 mt-1">{% trans "e.g. short / long hair: surcharge and extra minutes on top of this service." %}</p>
+    {% for v in s.variant_rows %}
+      <form method="post" class="flex flex-wrap items-end gap-2 border-t border-gray-100 py-2 mt-2 text-sm">
+        {% csrf_token %}<input type="hidden" name="tab" value="preise">
+        <input type="hidden" name="service" value="{{ s.pk }}"><input type="hidden" name="variant" value="{{ v.pk }}">
+        <div class="flex-1 min-w-[8rem]" data-i18n-loc="{{ base_loc }}"><label class="block"><span class="block text-xs text-gray-600 mb-1">{% trans "Name" %}{% if not v.is_active %} <span class="ml-1 rounded bg-gray-100 px-1.5 text-gray-700">{% trans "inactive" %}</span>{% endif %}</span>
+          <input name="name" type="text" value="{{ v.name }}" required maxlength="100" class="ui-input"></label></div>
+        {% for inp in v.i18n_inputs %}
+          <div class="flex-1 min-w-[8rem] hidden" data-i18n-loc="{{ inp.locale }}"><label class="block"><span class="block text-xs text-gray-600 mb-1">{% trans "Name" %} ({{ inp.locale|upper }})</span>
+            <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" maxlength="100" lang="{{ inp.locale }}" class="ui-input"></label></div>
+        {% endfor %}
+        <label class="block"><span class="block text-xs text-gray-600 mb-1">{% trans "Surcharge (€)" %}</span>
+          <input name="price_delta_eur" type="text" inputmode="decimal" value="{{ v.price_delta_eur|stringformat:'.2f' }}" class="ui-input w-24"></label>
+        <label class="block"><span class="block text-xs text-gray-600 mb-1">{% trans "Extra minutes" %}</span>
+          <input name="duration_delta" type="text" inputmode="numeric" value="{{ v.duration_delta_minutes }}" class="ui-input w-20"></label>
+        <label class="block"><span class="block text-xs text-gray-600 mb-1">{% trans "Sort order" %}</span>
+          <input name="sort_order" type="text" inputmode="numeric" value="{{ v.sort_order }}" class="ui-input w-16"></label>
+        <button name="action" value="variant_update" aria-label="{% trans "Save" %}: {{ v.name }}" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Save" %}</button>
+        <button name="action" value="variant_toggle" aria-label="{% if v.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}: {{ v.name }}" class="inline-flex items-center min-h-[2rem] px-2 rounded text-sm text-gray-600 hover:text-gray-900">{% if v.is_active %}{% trans "Deactivate" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+        <button name="action" value="variant_delete" aria-label="{% trans "Delete" %}: {{ v.name }}" class="inline-flex items-center min-h-[2rem] px-2 rounded text-sm text-gray-600 hover:text-red-700">{% trans "Delete" %}</button>
+      </form>
+    {% endfor %}
+    <form method="post" class="flex flex-wrap items-end gap-2 mt-3 text-sm">
+      {% csrf_token %}<input type="hidden" name="tab" value="preise">
+      <input type="hidden" name="service" value="{{ s.pk }}"><input type="hidden" name="action" value="variant_add">
+      <label class="block flex-1 min-w-[8rem]"><span class="block text-xs text-gray-600 mb-1">{% trans "Name" %}</span>
+        <input name="name" type="text" required maxlength="100" placeholder="{% trans 'Long hair' %}" class="ui-input"></label>
+      <label class="block"><span class="block text-xs text-gray-600 mb-1">{% trans "Surcharge (€)" %}</span>
+        <input name="price_delta_eur" type="text" inputmode="decimal" placeholder="12" class="ui-input w-24"></label>
+      <label class="block"><span class="block text-xs text-gray-600 mb-1">{% trans "Extra minutes" %}</span>
+        <input name="duration_delta" type="text" inputmode="numeric" placeholder="20" class="ui-input w-20"></label>
+      <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Add" %}</button>
+    </form>
+  </section>
+</div>
+</div>
+{% endblock %}
