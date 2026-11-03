@@ -39,6 +39,8 @@ INLINE_GATED = {
     "stays:rate-plan-new": "preise.edit на запись — новый экран, правило в view_perms",
     "stays:rate-plan-edit": "preise.edit на запись — новый экран, правило в view_perms",
     "stays:price-rules": "preise.edit на запись — новый экран, правило в view_perms",
+    # UX-D D4.5: номер создаётся с ценой (как гейт действия unit в units())
+    "stays:unit-new": "preise.edit на запись — новый экран, правило в view_perms",
 }
 
 

@@ -129,7 +129,8 @@ def test_entity_fields_exist_on_forms(tenant):
     }
     inline = {
         sa.ENTITY_SERVICE: ("booking/_service_new_form.html", "<form"),
-        sa.ENTITY_ROOM: ("stays/units.html", 'value="unit"'),
+        # UX-D D4.5 (осознанная переписка): «＋ Zimmer» — короткая форма шторкой
+        sa.ENTITY_ROOM: ("stays/_unit_new_form.html", "<form"),
     }
     for entity in NEW:
         names = [f for f, _l, _r in sa.ENTITIES[entity]["fields"]]
@@ -157,8 +158,15 @@ def test_service_and_room_forms_are_prefilled(tenant):
     ).content.decode()
     assert 'value="Haarschnitt"' in body and 'value="25,00"' in body and 'value="45"' in body
 
-    body = stays_views.units(
+    # UX-D D4.5: старая ссылка ?neu=1 — 302 на форму «＋ Zimmer» с теми же значениями
+    resp = stays_views.units(
         _req(tenant, "/dashboard/stays/units/", {"neu": "1", "name": "Seeblick", "price_eur": "95"})
+    )
+    assert resp.status_code == 302 and resp.url.startswith("/dashboard/stays/units/neu/")
+    from apps.stays import unit_new_views
+
+    body = unit_new_views.unit_new(
+        _req(tenant, "/dashboard/stays/units/neu/", {"name": "Seeblick", "price_eur": "95"})
     ).content.decode()
     assert 'value="Seeblick"' in body and 'value="95"' in body
 

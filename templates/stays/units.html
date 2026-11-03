@@ -35,7 +35,7 @@
 КОМПАКТНЫЙ (строка = номер), всё о номере — на его странице. UX-D D4.5: вкладка
 «Einstellungen» и раскрытая форма «＋ Neue Einheit» убраны — настройки на своих экранах
 (ссылки ниже), создание — шторкой «＋ Neues Zimmer».{% endcomment %}
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6" data-units-list>
+<div class="ui-card divide-y divide-gray-100 mb-6" data-units-list>
   {% for u in units %}
     <div class="flex items-center gap-4 px-5 py-3 {% if not u.is_active %}opacity-60{% endif %}">
       {% if u.images %}<img src="{{ u.images.0.url }}" alt="" class="w-14 h-14 object-cover rounded-lg shrink-0">

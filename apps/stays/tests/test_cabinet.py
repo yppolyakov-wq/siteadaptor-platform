@@ -492,21 +492,12 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
 
 
 def test_units_list_page_tabs_and_settings_groups():
-    """Фидбэк 2026-07-28 (№2): список разделён табами «Einheiten» (список +
-    кнопка «＋ Neue Einheit») / «Einstellungen» (4 группы). W0: обе панели в
-    DOM, скрытие только CSS; Save настройки возвращает на таб настроек."""
+    """Фидбэк 2026-07-28 (№2): список и настройки разделены. UX-D D4.5 (осознанная
+    переписка): вкладок «Einheiten / Einstellungen» больше нет — список строками,
+    общие настройки — на своих экранах (ссылки под списком), старые адреса — 302."""
     StayUnit.objects.create(name="TabZimmer", price_cents=9000)
     body = views.units(_req()).content.decode()
-    assert 'data-pt-tab="einheiten"' in body and 'data-pt-tab="einstellungen"' in body
-    # дефолт: активен список, настройки скрыты (но в DOM — W0)
-    assert 'data-pt-panel="einstellungen" class="hidden"' in body
-    # группы настроек — ПОД-ТАБЫ в заданном порядке, все панели в DOM (W0).
-    # UX-D D4.2 (осознанная переписка): «Verkaufsregeln» ушли на экран «Preise &
-    # Regeln» (Einstellungen › Zimmer); старая закладка sec=regeln — 302 туда.
-    # UX-D D4.3: «Kurtaxe & Hausordnung» — экран «Unterkunft»; sec=kurtaxe — 302.
-    # UX-D D4.4: «Kanäle & Export» — на «Kanal-Manager»; под-табов не осталось.
-    for st in ("regeln", "kurtaxe", "kanaele", "preise"):
-        assert f'data-st-tab="{st}"' not in body, st
+    assert "data-pt-tab" not in body and "data-st-tab" not in body
     assert 'name="max_advance_days"' not in body and 'name="kurtaxe_eur"' not in body
     for link in (
         "data-rate-plans-link",
@@ -519,10 +510,8 @@ def test_units_list_page_tabs_and_settings_groups():
     assert resp_kt.status_code == 302 and resp_kt.url.endswith("/unterkunft/")
     resp_sec = views.units(_req(data={"tab": "einstellungen", "sec": "regeln"}))
     assert resp_sec.status_code == 302 and resp_sec.url.endswith("/preisregeln/?tab=regeln")
-    # ?tab=einstellungen → активен таб настроек, список скрыт
-    body2 = views.units(_req(data={"tab": "einstellungen"})).content.decode()
-    assert 'data-pt-panel="einstellungen" class="hidden"' not in body2
-    assert 'data-pt-panel="einheiten" class="hidden ' in body2
+    resp_tab = views.units(_req(data={"tab": "einstellungen"}))
+    assert resp_tab.status_code == 302 and resp_tab.url.endswith("/preisregeln/")
     # Save настройки редиректит на её таб И под-таб (секцию)
     resp = views.units(_req("post", data={"action": "gap_deal", "gap_discount_percent": "25"}))
     # UX-D D4.2: Save правила цены возвращает на его вкладку экрана «Preise & Regeln»

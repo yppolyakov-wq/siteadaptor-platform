@@ -175,7 +175,7 @@ def test_completeness_offer_is_archetype_aware(settings):
     hotel = _offer("stays")
     # Подпись переводится (ревью 2026-08-19) — сверяем смысл через gettext,
     # а не английским словом в немецком рендере.
-    assert hotel["url_name"] == "stays:units"
+    assert hotel["url_name"] == "stays:unit-new"  # UX-D D4.5: сразу форма «＋ Zimmer»
     assert str(hotel["label"]) == gettext("Add your first room")
     assert reverse(hotel["url_name"])  # резолвится в urls_tenant → нет NoReverseMatch
 
