@@ -10,17 +10,14 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django_tenants.utils import get_tenant_model, schema_context
 
+from apps.core import tenant_iter
+
 from .models import Event, Ticket
 from .notifications import enqueue_ticket_email
 
 
 def _iter_tenant_schemas():
-    with schema_context("public"):
-        return list(
-            get_tenant_model()
-            .objects.exclude(schema_name="public")
-            .values_list("schema_name", flat=True)
-        )
+    return tenant_iter.schemas()
 
 
 def _iter_tenant_billing():
@@ -29,6 +26,7 @@ def _iter_tenant_billing():
         return list(
             get_tenant_model()
             .objects.exclude(schema_name="public")
+            .exclude(provisioning_status="failed")
             .filter(payments_enabled=True)
             .exclude(stripe_connect_id="")
             .values_list("schema_name", "stripe_connect_id")
@@ -86,7 +84,7 @@ def send_event_reminders():
     """Beat (раз в сутки): pre-event напоминания по всем схемам арендаторов."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "send_event_reminders"):
             total += send_due_event_reminders()
     return total
 
@@ -96,7 +94,7 @@ def send_event_post_event():
     """Beat (раз в сутки): post-event письма по всем схемам арендаторов."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "send_event_post_event"):
             total += send_due_post_event()
     return total
 
@@ -111,7 +109,8 @@ def charge_installments():
 
     totals = {"charged": 0, "failed": 0}
     for schema, connect_id in _iter_tenant_billing():
-        with schema_context(schema):
+        r = {"charged": 0, "failed": 0}
+        with tenant_iter.isolated(schema, "charge_installments"):
             r = payments.charge_due_installments(connect_id)
         totals["charged"] += r["charged"]
         totals["failed"] += r["failed"]
@@ -146,7 +145,7 @@ def send_ticket_payment_reminders():
     """Beat (раз в час): напоминания о неоплаченном билете по всем схемам."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "send_ticket_payment_reminders"):
             total += send_due_payment_reminders()
     return total
 
@@ -202,7 +201,7 @@ def check_min_participants():
     """Beat (раз в сутки): минимум участников по всем схемам арендаторов."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "check_min_participants"):
             total += check_due_min_participants()
     return total
 

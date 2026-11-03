@@ -11,14 +11,12 @@ from zoneinfo import ZoneInfo
 
 from celery import shared_task
 from django.utils import timezone
-from django_tenants.utils import get_tenant_model, schema_context
 
-from apps.core import digest
+from apps.core import digest, tenant_iter
 
 
 def _iter_tenants():
-    with schema_context("public"):
-        return list(get_tenant_model().objects.exclude(schema_name="public"))
+    return tenant_iter.tenants()
 
 
 def _is_digest_monday(local_now) -> bool:
@@ -76,11 +74,8 @@ def expire_payment_holds() -> int:
 
     total = 0
     for tenant in _iter_tenants():
-        with schema_context(tenant.schema_name):
-            try:
-                total += payment_holds.expire_overdue(tenant)
-            except Exception:  # noqa: BLE001 — один тенант не валит обход
-                continue
+        with tenant_iter.isolated(tenant.schema_name, "expire_payment_holds"):
+            total += payment_holds.expire_overdue(tenant)
     return total
 
 
@@ -89,12 +84,9 @@ def send_owner_digests() -> int:
     """Beat (раз в час): дайджест всем тенантам, у кого сейчас утро."""
     sent = 0
     for tenant in _iter_tenants():
-        with schema_context(tenant.schema_name):
-            try:
-                if send_digest_for_tenant(tenant):
-                    sent += 1
-            except Exception:  # noqa: BLE001 — один тенант не валит обход
-                continue
+        with tenant_iter.isolated(tenant.schema_name, "send_owner_digests"):
+            if send_digest_for_tenant(tenant):
+                sent += 1
     return sent
 
 
@@ -134,10 +126,7 @@ def warn_city_freshness() -> int:
     """Beat (раз в сутки): предупреждения «срок свежести» по всем схемам."""
     sent = 0
     for tenant in _iter_tenants():
-        with schema_context(tenant.schema_name):
-            try:
-                if warn_freshness_for_tenant(tenant):
-                    sent += 1
-            except Exception:  # noqa: BLE001 — один тенант не валит обход
-                continue
+        with tenant_iter.isolated(tenant.schema_name, "warn_city_freshness"):
+            if warn_freshness_for_tenant(tenant):
+                sent += 1
     return sent

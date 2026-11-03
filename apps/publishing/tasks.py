@@ -7,6 +7,7 @@ PublicationSM. Ошибка адаптера → failed + last_error (повто
 
 from django_tenants.utils import schema_context
 
+from apps.core import tenant_iter
 from apps.core.jobs import idempotent_task
 
 from . import adapters
@@ -14,40 +15,64 @@ from .state_machine import FAILED, PUBLISHED, QUEUED, REMOVED, PublicationSM
 
 
 def _do_publish(publication_id) -> str:
+    from django.db import transaction
+
     from .models import Publication
 
-    pub = Publication.objects.filter(id=publication_id).select_related("channel").first()
-    if pub is None or pub.status != QUEUED:
-        return "skip"  # идемпотентно: публикуем только из queued
-    sm = PublicationSM()
-    try:
-        ref = adapters.publish(pub)
-    except Exception as exc:  # noqa: BLE001 — ошибку адаптера фиксируем в last_error
-        pub.last_error = str(exc)[:500]
-        pub.save(update_fields=["last_error", "updated_at"])
-        sm.apply(pub, FAILED)
-        return "failed"
-    pub.external_ref = ref
-    pub.last_error = ""
-    pub.save(update_fields=["external_ref", "last_error", "updated_at"])
-    sm.apply(pub, PUBLISHED)
-    return "published"
+    # SM15: строку захватываем под блокировкой — две попытки (повторная доставка,
+    # «Jetzt veröffentlichen» во время работы задачи) не опубликуют дважды: вторая
+    # дождётся первой и увидит уже не QUEUED.
+    with transaction.atomic():
+        pub = (
+            Publication.objects.select_for_update(of=("self",))
+            .filter(id=publication_id)
+            .select_related("channel")
+            .first()
+        )
+        if pub is None or pub.status != QUEUED:
+            return "skip"  # идемпотентно: публикуем только из queued
+        sm = PublicationSM()
+        try:
+            ref = adapters.publish(pub)
+        except Exception as exc:  # noqa: BLE001 — ошибку адаптера фиксируем в last_error
+            pub.last_error = str(exc)[:500]
+            pub.save(update_fields=["last_error", "updated_at"])
+            sm.apply(pub, FAILED)
+            return "failed"
+        pub.external_ref = ref
+        pub.last_error = ""
+        pub.save(update_fields=["external_ref", "last_error", "updated_at"])
+        sm.apply(pub, PUBLISHED)
+        return "published"
 
 
 def _do_remove(publication_id) -> str:
+    from django.db import transaction
+
     from .models import Publication
 
-    pub = Publication.objects.filter(id=publication_id).select_related("channel").first()
-    if pub is None or pub.status == REMOVED:
-        return "skip"
-    try:
-        adapters.remove(pub)
-    except Exception as exc:  # noqa: BLE001
-        pub.last_error = str(exc)[:500]
-        pub.save(update_fields=["last_error", "updated_at"])
-        return "error"
-    PublicationSM().apply(pub, REMOVED)
-    return "removed"
+    with transaction.atomic():
+        pub = (
+            Publication.objects.select_for_update(of=("self",))
+            .filter(id=publication_id)
+            .select_related("channel", "promotion")
+            .first()
+        )
+        if pub is None or pub.status == REMOVED:
+            return "skip"
+        # SM15: «пауза → возобновление» до того, как задача снятия успела выполниться:
+        # акция снова активна, публикация ещё висит — снимать её нельзя.
+        promo = getattr(pub, "promotion", None)
+        if promo is not None and promo.status == "active":
+            return "skip"
+        try:
+            adapters.remove(pub)
+        except Exception as exc:  # noqa: BLE001
+            pub.last_error = str(exc)[:500]
+            pub.save(update_fields=["last_error", "updated_at"])
+            return "error"
+        PublicationSM().apply(pub, REMOVED)
+        return "removed"
 
 
 @idempotent_task()
@@ -116,7 +141,7 @@ def send_due_content():
     now = timezone.now()
     totals = {"posts": 0, "blog": 0}
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "send_due_content"):
             posts = send_due_posts(now)
             blog = publish_due_blog(now)
         if blog:
@@ -127,6 +152,4 @@ def send_due_content():
 
 
 def _iter_tenant_schemas():
-    from apps.tenants.models import Tenant
-
-    return list(Tenant.objects.exclude(schema_name="public").values_list("schema_name", flat=True))
+    return tenant_iter.schemas()

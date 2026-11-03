@@ -15,8 +15,9 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.utils import timezone
-from django_tenants.utils import get_tenant_model, schema_context, tenant_context
+from django_tenants.utils import get_tenant_model, tenant_context
 
+from apps.core import tenant_iter
 from apps.core.jobs import idempotent_task
 
 from .models import Customer, Promotion, Reservation
@@ -30,8 +31,7 @@ _ANONYMIZED_NAME = "—"
 
 
 def _iter_tenant_schemas():
-    for tenant in get_tenant_model().objects.exclude(schema_name="public"):
-        yield tenant.schema_name
+    return tenant_iter.schemas()
 
 
 def expire_due_reservations(now=None) -> int:
@@ -115,7 +115,7 @@ def expire_reservations():
     now = timezone.now()
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "expire_reservations"):
             total += expire_due_reservations(now)
     return {"expired": total}
 
@@ -126,7 +126,7 @@ def roll_promotion_statuses():
     now = timezone.now()
     activated = ended = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "roll_promotion_statuses"):
             res = roll_due_promotions(now)
             activated += res["activated"]
             ended += res["ended"]
@@ -261,7 +261,7 @@ def roll_recurring_promotions():
     now = timezone.now()
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "roll_recurring_promotions"):
             total += roll_due_recurring(now)
     return {"spawned": total}
 
@@ -498,7 +498,7 @@ def send_winback_coupons():
     total = 0
     now = timezone.now()
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "send_winback_coupons"):
             total += send_due_winback_coupons(now)
     return {"sent": total}
 
@@ -550,7 +550,7 @@ def send_birthday_coupons():
     """Beat (раз в сутки): поздравления именинников по всем схемам арендаторов."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "send_birthday_coupons"):
             total += send_due_birthday_coupons()
     return {"sent": total}
 
@@ -596,7 +596,7 @@ def auto_tag_customers():
     """Beat (раз в сутки): авто-теги клиентов по всем схемам арендаторов."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "auto_tag_customers"):
             total += tag_regular_customers()
     return {"tagged": total}
 

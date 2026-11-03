@@ -675,14 +675,23 @@ def sync_marketing_opt_out(email: str, opt_out: bool, *, tenants=None) -> int:
 
     if tenants is None:
         tenants = get_tenant_model().objects.exclude(schema_name=get_public_schema_name())
+    from apps.core import tenant_iter
+
     updated = 0
+    failed = []
     for tenant in tenants:
-        with schema_context(tenant.schema_name):
+        with tenant_iter.isolated(tenant.schema_name, "apply_marketing_opt_out") as outcome:
             updated += Customer.objects.filter(email__iexact=email).update(unsubscribed=opt_out)
+        if outcome.failed:
+            failed.append(tenant.schema_name)
+    if failed:
+        # SM11 (UWG §7): отписка обязана дойти до КАЖДОГО бизнеса. Остальные уже
+        # обновлены; задача падает в конце → Celery повторит (идемпотентно).
+        raise RuntimeError(f"Отписка не применена в схемах: {', '.join(failed)}")
     return updated
 
 
-@idempotent_task()
+@idempotent_task(autoretry_for=(RuntimeError,), retry_backoff=60, max_retries=6)
 def apply_marketing_opt_out(*, email, opt_out):
     """Celery: применить выбор клиента из /konto/ ко всем бизнесам."""
     return {"updated": sync_marketing_opt_out(email, opt_out)}

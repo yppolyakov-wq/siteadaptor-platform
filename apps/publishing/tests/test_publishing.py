@@ -52,7 +52,8 @@ def test_publish_task_marks_published():
 
 def test_remove_task_marks_removed():
     ch = Channel.objects.create(type="log", is_enabled=True)
-    promo = Promotion.objects.create(status="active", title={"de": "A"})
+    # SM15 (осознанно): снятие идёт после ended/paused; у активной акции — пропуск
+    promo = Promotion.objects.create(status="ended", title={"de": "A"})
     pub = Publication.objects.create(
         promotion=promo, channel=ch, status="published", dedupe_key=f"publish:{promo.id}:{ch.id}"
     )

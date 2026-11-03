@@ -5,18 +5,14 @@
 """
 
 from celery import shared_task
-from django_tenants.utils import get_tenant_model, schema_context
+
+from apps.core import tenant_iter
 
 from .services import purge_expired
 
 
 def _iter_tenant_schemas():
-    with schema_context("public"):
-        return list(
-            get_tenant_model()
-            .objects.exclude(schema_name="public")
-            .values_list("schema_name", flat=True)
-        )
+    return tenant_iter.schemas()
 
 
 @shared_task
@@ -24,6 +20,6 @@ def purge_expired_documents():
     """Beat (раз в сутки): удалить документы с истёкшим сроком по всем схемам."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "purge_expired_documents"):
             total += purge_expired()
     return total

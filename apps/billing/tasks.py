@@ -6,6 +6,7 @@ Tenant — SHARED (public-схема), поэтому задача работа�
 вынесена в roll_subscription_lifecycle / enqueue_trial_reminders — их и тестируем.
 """
 
+import logging
 from datetime import timedelta
 
 from django.conf import settings
@@ -17,8 +18,21 @@ from apps.tenants.models import Tenant
 
 from .state_machine import PAST_DUE, SUSPENDED, TRIAL, TRIAL_EXPIRED, SubscriptionSM
 
+logger = logging.getLogger(__name__)
+
 # Дни до конца триала, когда шлём напоминание (триал 14д → дни 11/13/14).
 _REMINDER_DAYS = (3, 1, 0)
+
+
+def _apply_safely(sm, tenant, dst) -> bool:
+    """SM11: ошибка перехода у одного бизнеса пишется в лог и не останавливает обход
+    (просрочки/блокировки остальных и напоминания о триале)."""
+    try:
+        sm.apply(tenant, dst)
+    except Exception:  # noqa: BLE001
+        logger.exception("Подписка %s → %s: ошибка", tenant.schema_name, dst)
+        return False
+    return True
 
 
 def roll_subscription_lifecycle(now=None) -> dict:
@@ -32,8 +46,8 @@ def roll_subscription_lifecycle(now=None) -> dict:
     for tenant in Tenant.objects.filter(
         subscription_status=TRIAL, trial_ends_at__isnull=False, trial_ends_at__lte=now
     ):
-        sm.apply(tenant, TRIAL_EXPIRED)
-        trial_expired += 1
+        if _apply_safely(sm, tenant, TRIAL_EXPIRED):
+            trial_expired += 1
 
     # trial_expired без оплаты дольше grace → suspended (день 21).
     for tenant in Tenant.objects.filter(
@@ -41,8 +55,8 @@ def roll_subscription_lifecycle(now=None) -> dict:
         trial_ends_at__isnull=False,
         trial_ends_at__lte=now - grace,
     ):
-        sm.apply(tenant, SUSPENDED)
-        suspended += 1
+        if _apply_safely(sm, tenant, SUSPENDED):
+            suspended += 1
 
     # past_due дольше grace → suspended.
     for tenant in Tenant.objects.filter(
@@ -50,8 +64,8 @@ def roll_subscription_lifecycle(now=None) -> dict:
         subscription_ends_at__isnull=False,
         subscription_ends_at__lte=now - grace,
     ):
-        sm.apply(tenant, SUSPENDED)
-        suspended += 1
+        if _apply_safely(sm, tenant, SUSPENDED):
+            suspended += 1
 
     return {"trial_expired": trial_expired, "suspended": suspended}
 
@@ -126,6 +140,9 @@ def bill_usage_fees():
     for tenant in Tenant.objects.filter(subscription_status=ACTIVE).exclude(
         schema_name=get_public_schema_name()
     ):
-        if bill_tenant(tenant, period) == "billed":
-            billed += 1
+        try:
+            if bill_tenant(tenant, period) == "billed":
+                billed += 1
+        except Exception:  # noqa: BLE001 — SM11: один бизнес не останавливает биллинг остальных
+            logger.exception("Биллинг использования: ошибка у %s", tenant.schema_name)
     return {"period": period, "billed": billed}

@@ -5,6 +5,8 @@
 из PromotionSM.on_transition (в schema_context арендатора).
 """
 
+import uuid
+
 from django.db import connection, transaction
 
 from .models import Channel, Publication
@@ -15,6 +17,18 @@ from .tasks import publish_to_channel, remove_from_channel
 def _enqueue(task, **kwargs) -> None:
     """Поставить задачу публикации после коммита (вне транзакции — сразу)."""
     transaction.on_commit(lambda: task.delay(**kwargs))
+
+
+def _attempt_key(pub, action: str) -> str:
+    """SM15: ключ дедупа — на ПОПЫТКУ, а не на всю жизнь строки.
+
+    Раньше `pub:{id}:publish` жил час: адаптер упал (ошибку задача глотает → замок не
+    снимается), владелец починил канал и нажал «Jetzt überall veröffentlichen» —
+    повтор молча отбрасывался как дубль, публикация навсегда висела в QUEUED. То же с
+    «пауза → возобновление» и повторным снятием в течение часа (закончившаяся акция
+    оставалась в Google/Facebook). От двойной публикации теперь защищает захват
+    строки в `tasks._do_publish/_do_remove` (select_for_update + проверка статуса)."""
+    return f"pub:{pub.id}:{action}:{uuid.uuid4().hex[:12]}"
 
 
 def on_promotion_transition(promotion, dst: str) -> None:
@@ -43,7 +57,7 @@ def _publish_all(promotion) -> None:
         # (переход акции идёт в транзакции apply()).
         _enqueue(
             publish_to_channel,
-            dedupe_key=f"pub:{pub.id}:publish",
+            dedupe_key=_attempt_key(pub, "publish"),
             tenant_schema=schema,
             publication_id=str(pub.id),
         )
@@ -81,7 +95,7 @@ def publish_post(post) -> int:
         # (переход акции идёт в транзакции apply()).
         _enqueue(
             publish_to_channel,
-            dedupe_key=f"pub:{pub.id}:publish",
+            dedupe_key=_attempt_key(pub, "publish"),
             tenant_schema=schema,
             publication_id=str(pub.id),
         )
@@ -150,7 +164,7 @@ def _remove_all(promotion) -> None:
         # (переход акции идёт в транзакции apply()).
         _enqueue(
             remove_from_channel,
-            dedupe_key=f"pub:{pub.id}:remove",
+            dedupe_key=_attempt_key(pub, "remove"),
             tenant_schema=schema,
             publication_id=str(pub.id),
         )

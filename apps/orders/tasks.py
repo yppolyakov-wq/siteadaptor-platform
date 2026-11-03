@@ -10,7 +10,8 @@ import logging
 from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
-from django_tenants.utils import get_tenant_model, schema_context
+
+from apps.core import tenant_iter
 
 from .models import Order
 from .notifications import enqueue_order_email
@@ -19,12 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def _iter_tenant_schemas():
-    with schema_context("public"):
-        return list(
-            get_tenant_model()
-            .objects.exclude(schema_name="public")
-            .values_list("schema_name", flat=True)
-        )
+    return tenant_iter.schemas()
 
 
 def send_due_post_purchases(now=None) -> int:
@@ -53,7 +49,7 @@ def send_order_post_purchases():
     """Beat (раз в сутки): post-purchase письма по всем схемам арендаторов."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "send_order_post_purchases"):
             total += send_due_post_purchases()
     return total
 
@@ -88,7 +84,7 @@ def send_order_payment_reminders():
     """Beat (раз в час): напоминания о незавершённой оплате по всем схемам."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "send_order_payment_reminders"):
             total += send_due_payment_reminders()
     return total
 
@@ -143,6 +139,6 @@ def expire_anprobe_reservations():
     now = timezone.now()
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "expire_anprobe_reservations"):
             total += expire_due_anprobe(now)
     return {"expired": total}

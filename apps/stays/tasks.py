@@ -7,19 +7,16 @@ Notification). Дата-гранулярность → достаточно еж
 from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
-from django_tenants.utils import get_tenant_model, schema_context
+from django_tenants.utils import schema_context
+
+from apps.core import tenant_iter
 
 from .models import StayBooking, StaySettings
 from .notifications import enqueue_stay_email
 
 
 def _iter_tenant_schemas():
-    with schema_context("public"):
-        return list(
-            get_tenant_model()
-            .objects.exclude(schema_name="public")
-            .values_list("schema_name", flat=True)
-        )
+    return tenant_iter.schemas()
 
 
 def send_due_stay_reminders(today=None) -> int:
@@ -46,7 +43,7 @@ def send_stay_reminders():
     """Beat (раз в сутки): напоминания о заезде по всем схемам арендаторов."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "send_stay_reminders"):
             total += send_due_stay_reminders()
     return total
 
@@ -95,7 +92,7 @@ def auto_fulfil_stays():
     выезда — только после AUTO_CHECKOUT_HOUR."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "auto_fulfil_stays"):
             total += auto_fulfil_departed()
     return {"fulfilled": total}
 
@@ -127,7 +124,7 @@ def send_stay_post_stay():
     """Beat (раз в сутки): post-stay письма по всем схемам арендаторов (G2)."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "send_stay_post_stay"):
             total += send_due_post_stay()
     return total
 
@@ -148,7 +145,7 @@ def purge_old_registrations():
     """Beat (раз в сутки): удалять просроченные Meldescheine по всем схемам (G6)."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "purge_old_registrations"):
             total += purge_due_registrations()
     return total
 
@@ -193,7 +190,7 @@ def sync_ical_sources():
 
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "sync_ical_sources"):
             for source in ICalSource.objects.filter(is_active=True):
                 total += sync_ical_source(source)
     return total
@@ -227,6 +224,6 @@ def send_stay_payment_reminders():
     """Beat (раз в час): напоминания о неоплаченном депозите по всем схемам."""
     total = 0
     for schema in _iter_tenant_schemas():
-        with schema_context(schema):
+        with tenant_iter.isolated(schema, "send_stay_payment_reminders"):
             total += send_due_payment_reminders()
     return total
