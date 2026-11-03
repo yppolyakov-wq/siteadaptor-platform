@@ -735,7 +735,18 @@ def _cabinet_tabbar(tenant, compact, user=None) -> list[dict]:
     except Exception:  # noqa: BLE001 — хром кабинета не падает из-за «＋»
         plus = ""
     if plus:
-        out.append({"kind": "create", "url": plus, "nav_key": "plus", "label": _("Neu")})
+        from django.urls import reverse as _rev
+
+        out.append(
+            {
+                "kind": "create",
+                "url": plus,
+                "nav_key": "plus",
+                "label": _("Neu"),
+                # UX-D D1.3: новая бронь отеля — шторкой (без JS — страница формы)
+                "drawer": plus.split("?", 1)[0] == _rev("stays:stay-new"),
+            }
+        )
     inbox = None
     for it in compact:
         for c in it.get("children", ()):

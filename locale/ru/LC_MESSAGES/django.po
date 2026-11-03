@@ -31774,3 +31774,6 @@ msgstr "Открыть полную карточку брони"
 
 msgid "Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erneut versuchen."
 msgstr "Статус неясен — вид обновлён. Проверьте, прежде чем повторить."
+
+msgid "Eingaben verwerfen?"
+msgstr "Отменить введённые данные?"

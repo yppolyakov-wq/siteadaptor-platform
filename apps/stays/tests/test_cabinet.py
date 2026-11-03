@@ -84,35 +84,42 @@ def test_calendar_renders_grid_and_booking():
 
 def test_calendar_transition_rule_hides_action_button():
     """FB-3: скрытие перехода pending→confirmed убирает КНОПКУ действия в карточке
-    брони под календарём (фидбэк 2026-07-28: список броней и панели статусов с
-    календаря убраны — дубль доски). FSM не трогаем — apply разрешает переход."""
+    брони (фидбэк 2026-07-28: список броней и панели статусов с календаря убраны —
+    дубль доски). FSM не трогаем — apply разрешает переход. UX-D D1.2 (осознанная
+    переписка): карточка брони — шторка (booking-detail?box=1), а не панель под
+    шахматкой; правило действует там же."""
     unit = _unit()
     b = _book(unit, 1, 4)  # pending → есть кнопка «Bestätigen» (value=confirmed)
-    req = _req(data={"von": D0.isoformat(), "buchung": str(b.pk)})
-    req.tenant = TenantFactory(site_config={})
-    assert 'value="confirmed"' in _cal(req).content.decode()  # дефолт: кнопка есть
-    req2 = _req(data={"von": D0.isoformat(), "buchung": str(b.pk)})
-    req2.tenant = TenantFactory(site_config={"transitions": {"stay": {"pending": []}}})
-    body2 = _cal(req2).content.decode()
+
+    def drawer(site_config):
+        req = _req(path=f"/dashboard/stays/buchung/{b.pk}/", data={"box": "1"})
+        req.tenant = TenantFactory(site_config=site_config)
+        return views.booking_detail(req, pk=b.pk).content.decode()
+
+    assert 'value="confirmed"' in drawer({})  # дефолт: кнопка есть
+    body2 = drawer({"transitions": {"stay": {"pending": []}}})
     assert 'value="confirmed"' not in body2  # переход скрыт → кнопки нет
     # панелей статусов/списка броней на календаре больше нет (они на доске)
-    assert "Statusübergänge" not in body2
+    page = _cal(_req(data={"von": D0.isoformat()})).content.decode()
+    assert "Statusübergänge" not in page
     assert "Bookings in this period" not in body2
 
 
-def test_calendar_is_lean_but_keeps_walkin_and_booking_panel():
-    """Фидбэк 2026-07-28: календарь = шахматка + карточка брони по клику +
-    walk-in форма (добавить бронь / заблокировать даты). Списка броней и
-    hub-табов нет; «＋ Buchung» — своя страница только с формой."""
+def test_calendar_is_lean_new_booking_opens_in_the_drawer():
+    """Фидбэк 2026-07-28: календарь = шахматка; списка броней и hub-табов нет.
+    UX-D D1.3 (осознанная переписка): walk-in форма под шахматкой снята — свободная
+    клетка открывает «Neue Buchung» шторкой (без JS — страница stay-new с датами);
+    «＋ Buchung» — своя страница только с формой (бронь + блокировка)."""
     unit = _unit()
     _book(unit, 1, 4)
     body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
-    assert 'id="walkin-form"' in body and 'value="block"' in body  # бронь + блокировка
-    assert 'id="booking-panel"' in body
+    assert 'id="walkin-form"' not in body and 'id="booking-panel"' not in body
+    assert f'href="/dashboard/stays/neu/?unit={unit.pk}&amp;arrival=' in body
     assert "Bookings in this period" not in body
     # отдельная страница добавления: только форма
     page = views.stay_new(_req(path="/dashboard/stays/neu/")).content.decode()
     assert 'id="walkin-form"' in page and 'id="belegungsplan"' not in page
+    assert 'value="block"' in page  # бронь + блокировка
 
 
 # --- действия по FSM + перенос ----------------------------------------------------

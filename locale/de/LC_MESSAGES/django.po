@@ -31578,3 +31578,6 @@ msgstr "Zur vollständigen Buchung"
 
 msgid "Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erneut versuchen."
 msgstr "Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erneut versuchen."
+
+msgid "Eingaben verwerfen?"
+msgstr "Eingaben verwerfen?"

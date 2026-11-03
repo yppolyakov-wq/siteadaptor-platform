@@ -417,6 +417,8 @@ try { (function () {
   var afterClose = [];        // сообщения для тоста после закрытия (под модальным окном не видны)
   var pendingSay = [];        // сообщения фрагмента до showModal (скрытый диалог их бы потерял)
   var CARRY = "sfDrawerCarry";
+  var dirty = false;          // в форме шторки есть несохранённый ввод
+  var discardText = dlg.getAttribute("data-drawer-discard") || "";
 
   function pageUrl() {
     var u = new URL(location.href);
@@ -519,6 +521,7 @@ try { (function () {
     }) : [];
     var top = keep ? body.scrollTop : 0;
     body.innerHTML = html;
+    dirty = false;
     if (opened.length) {
       Array.prototype.forEach.call(body.querySelectorAll("details"), function (d) {
         var s = d.querySelector("summary");
@@ -599,8 +602,14 @@ try { (function () {
     });
   }
 
-  function close() {
+  function close(force) {
     if (!dlg.open) return;
+    if (dirty && !force && discardText && window.sfDangerConfirm) {
+      // введённое в форме не теряется молча (Esc, ✕, подложка)
+      window.sfDangerConfirm(discardText).then(function (ok) { if (ok) { dirty = false; close(true); } });
+      return;
+    }
+    dirty = false;
     if (pushed) { pushed = false; history.back(); return; }  // popstate закроет шторку
     setUrlParam("", false);
     dlg.close();
@@ -611,6 +620,12 @@ try { (function () {
   }
 
   dlg.addEventListener("cancel", function (e) { e.preventDefault(); close(); });
+  function markDirty(e) {
+    var f = e.target && e.target.form;
+    if (f && f.hasAttribute("data-drawer-form") && body.contains(f)) dirty = true;
+  }
+  body.addEventListener("input", markDirty);
+  body.addEventListener("change", markDirty);
   dlg.addEventListener("close", function () {
     seq++;
     body.innerHTML = "";
@@ -761,7 +776,8 @@ try { (function () {
               return open(res.open, null, {}).then(function (shown) { if (shown) say(msgs); else toast(msgs); });
             }
             var calm = msgs.every(function (m) { return m.level !== "error" && m.level !== "warning"; });
-            if (res.ok && calm && after === "close") { close(); toast(msgs); return; }
+            dirty = false;  // сервер принял — введённое сохранено
+            if (res.ok && calm && after === "close") { close(true); toast(msgs); return; }
             return reloadAfter(msgs.length ? msgs : (res.ok ? [] : [{ level: "error", text: errText }]));
           });
         }
@@ -791,6 +807,41 @@ try { (function () {
   var auto = document.querySelector("[data-drawer-autoopen]");
   var first = fromParam || (auto && auto.getAttribute("data-drawer-autoopen"));
   if (first) open(first, null, { quiet: true, fromUrl: true });
+})(); } catch (e) { console.error(e); }
+// ---- stays/_walkin_form.html ----
+// UX-D D1.3: walk-in форма (страница stay-new и шторка «Neue Buchung») — номера и тарифы
+// другой категории скрыты; сервер всё равно проверяет. Скриптов во фрагменте нет.
+try { (function () {
+  "use strict";
+  if (window.__walkinBound) return;
+  window.__walkinBound = true;
+  function filter(sel, ok) {
+    if (!sel) return;
+    Array.prototype.forEach.call(sel.options, function (o) {
+      var show = ok(o);
+      o.hidden = !show;
+      o.disabled = !show;
+    });
+    if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = "";
+  }
+  function sync() {
+    var unit = document.getElementById("walkin-unit");
+    if (!unit) return;
+    filter(document.querySelector("[data-walkin-room]"), function (o) {
+      var u = o.getAttribute("data-unit");
+      return !u || u === unit.value;
+    });
+    filter(document.querySelector("[data-walkin-rate]"), function (o) {
+      var ids = o.getAttribute("data-units");
+      return !ids || ids.split(",").indexOf(unit.value) >= 0;
+    });
+  }
+  document.addEventListener("change", function (e) {
+    if (e.target && e.target.id === "walkin-unit") sync();
+  });
+  document.addEventListener("sf:drawer-loaded", sync);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sync);
+  else sync();
 })(); } catch (e) { console.error(e); }
 // ---- core/_sheet_js.html ----
 try { (function () {

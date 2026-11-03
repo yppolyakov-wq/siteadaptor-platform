@@ -1,0 +1,11 @@
+{% load i18n %}
+{% comment %}UX-D D1.3: шторка «Neue Buchung» (stays:stay-new?box=1) — та же walk-in форма,
+что на странице stay-new (один источник). Ошибка сохранения возвращает этот же фрагмент
+с введёнными данными; успех открывает созданную бронь (drawer.open_after).{% endcomment %}
+<div data-drawer-title="{% trans 'New booking' %}" class="text-sm">
+  {% if units %}
+    {% include "stays/_walkin_form.html" %}
+  {% else %}
+    <p class="text-gray-500">{% trans "No units yet." %} <a href="{% url 'stays:units' %}" class="text-indigo-600 hover:underline">{% trans "Create a unit" %} →</a></p>
+  {% endif %}
+</div>

@@ -31758,3 +31758,6 @@ msgstr "Відкрити повну картку бронювання"
 
 msgid "Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erneut versuchen."
 msgstr "Статус неясний — вигляд оновлено. Перевірте, перш ніж повторити."
+
+msgid "Eingaben verwerfen?"
+msgstr "Скасувати введені дані?"

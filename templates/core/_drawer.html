@@ -4,7 +4,7 @@
 фрагмента с `data-drawer-form` уходят через fetch, ответ — JSON с сообщениями
 (apps/core/drawer.drawer_aware). Без JS ссылка ведёт на обычную страницу.
 Модальный <dialog>: фокус внутри, Esc закрывает, фокус возвращается к ссылке.{% endcomment %}
-<dialog id="sf-drawer" class="ui-drawer" aria-labelledby="sf-drawer-title" data-drawer-dialog data-drawer-fallback-title="{% trans 'Details' %}" data-drawer-error="{% trans 'Something went wrong. Please try again.' %}" data-drawer-unclear="{% trans 'Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erneut versuchen.' %}">
+<dialog id="sf-drawer" class="ui-drawer" aria-labelledby="sf-drawer-title" data-drawer-dialog data-drawer-fallback-title="{% trans 'Details' %}" data-drawer-error="{% trans 'Something went wrong. Please try again.' %}" data-drawer-unclear="{% trans 'Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erneut versuchen.' %}" data-drawer-discard="{% trans 'Eingaben verwerfen?' %}">
   <div class="ui-drawer-head">
     <h2 id="sf-drawer-title" class="ui-drawer-title" tabindex="-1" data-drawer-heading></h2>
     <button type="button" class="ui-drawer-close" data-drawer-close aria-label="{% trans 'Close' %}">

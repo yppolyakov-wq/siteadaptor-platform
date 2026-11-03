@@ -71,18 +71,88 @@ def _eur_to_cents(raw) -> int:
 def stay_new(request):
     """Фидбэк 2026-07-28: «＋ Buchung» — отдельная вкладка раздела «Verkäufe»,
     ТОЛЬКО форма добавления брони/блокировки (та же walk-in форма партиалом;
-    POST идёт в stay-create, бронь появляется на календаре)."""
+    POST идёт в stay-create, бронь появляется на календаре).
+
+    UX-D D1.3: `?box=1`/заголовок шторки → фрагмент «Neue Buchung» для шторки;
+    GET `unit/arrival/departure/room` предзаполняют форму (клик по свободной клетке)."""
+    if drawer_mod.is_box(request):
+        return _new_booking_fragment(request, _walkin_prefill(request.GET))
     return render(
         request,
         "stays/stay_new.html",
-        {
-            "nav": "stays",
-            "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
-            "rate_plans": rate_plans_mod.active_plans(),  # Z-4: с категориями (data-units)
-            "walkin_extras": _extras_for_walkin(),
-            **_walkin_desk(request),
-        },
+        {**_walkin_ctx(request), "wf": _walkin_prefill(request.GET)},
     )
+
+
+def _walkin_ctx(request) -> dict:
+    return {
+        "nav": "stays",
+        "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
+        "rate_plans": rate_plans_mod.active_plans(),  # Z-4: с категориями (data-units)
+        "walkin_extras": _extras_for_walkin(),
+        **_walkin_desk(request),
+    }
+
+
+def _iso_date(raw):
+    try:
+        return date.fromisoformat((raw or "").strip())
+    except ValueError:
+        return None
+
+
+def _walkin_prefill(data) -> dict:
+    """UX-D D1.3: значения walk-in формы — из GET (клетка шахматки) или из POST (ошибка
+    в шторке: введённое не теряется). Идентификаторы — только UUID (мусор → пусто),
+    даты — только ISO; текст экранирует шаблон. Сервер всё равно проверяет всё заново."""
+    arrival = _iso_date(data.get("arrival"))
+    departure = _iso_date(data.get("departure"))
+    if arrival and (departure is None or departure <= arrival) and "departure" not in data:
+        departure = arrival + timedelta(days=1)
+    unit = rate_plans_mod.parse_uuid(data.get("unit"))
+    room = rate_plans_mod.parse_uuid(data.get("room"))
+    rate = rate_plans_mod.parse_uuid(data.get("rate_plan"))
+    posted = "auto_rabatt_present" in data
+    wf = {
+        "unit": str(unit) if unit else "",
+        "room": str(room) if room else "",
+        "arrival": arrival.isoformat() if arrival else "",
+        "departure": departure.isoformat() if departure else "",
+        "name": (data.get("name") or "")[:200],
+        "erw": _int(data.get("erw", ""), 1, 1, 50),
+        "kinder": _int(data.get("kinder", ""), 0, 0, 50),
+        "phone": (data.get("phone") or "")[:50],
+        "email": (data.get("email") or "")[:254],
+        "rate_plan": str(rate) if rate else "",
+        "extras": [x for x in data.getlist("extra") if 0 < len(x) <= 36],
+        "rooms": _int(data.get("rooms", ""), 1, 1, 20),
+        "voucher_code": (data.get("voucher_code") or "")[:40],
+        "payment_method": "vorkasse" if data.get("payment_method") == "vorkasse" else "on_site",
+        "auto_rabatt": (not posted) or bool(data.get("auto_rabatt")),
+        "note": (data.get("note") or "")[:2000],
+    }
+    wf["more_open"] = bool(
+        wf["extras"]
+        or wf["rooms"] > 1
+        or wf["voucher_code"]
+        or wf["note"]
+        or wf["payment_method"] != "on_site"
+        or not wf["auto_rabatt"]
+    )
+    return wf
+
+
+def _new_booking_fragment(request, wf):
+    """Фрагмент шторки «Neue Buchung» — та же walk-in форма, что на странице stay-new."""
+    ctx = {
+        **_walkin_ctx(request),
+        "wf": wf,
+        "in_drawer": True,
+        "next_url": drawer_mod.drawer_next(request, f"{reverse('verkaeufe')}?tab=stay"),
+    }
+    if request.method == "POST":  # ошибка: вернуться туда же, куда вела форма
+        ctx["next_url"] = local_next(request) or ctx["next_url"]
+    return drawer_mod.fragment(render(request, "stays/_new_booking_drawer.html", ctx))
 
 
 def _warn_rate_mismatch(request, booking):
@@ -732,6 +802,7 @@ def _front_desk_action(request, booking, action, back):
 
 @login_required
 @require_POST
+@drawer_mod.drawer_aware
 def stay_create(request):
     """Ручное добавление (телефонная/личная бронь): сразу confirmed.
 
@@ -744,12 +815,19 @@ def stay_create(request):
     # W7c: walk-in-форма встроена и в Verkäufe — next= возвращает туда же
     # (только внутренние пути этого хоста; Z-5: `/\\host`, таб/CR/LF — отказ).
     back = local_next(request) or None
+
+    def fail(msg):
+        # UX-D D1.3: в шторке — та же форма с введённым и сообщением (не «всё заново»)
+        messages.error(request, msg)
+        if drawer_mod.is_drawer(request):
+            return _new_booking_fragment(request, _walkin_prefill(request.POST))
+        return redirect(back or "stays:calendar")
+
     try:
         arrival = date.fromisoformat(request.POST.get("arrival", ""))
         departure = date.fromisoformat(request.POST.get("departure", ""))
     except ValueError:
-        messages.error(request, _("Invalid dates."))
-        return redirect(back or "stays:calendar")
+        return fail(_("Invalid dates."))
     # Z-5 Р-2: физический номер — строго UUID и только своей активной категории.
     room = None
     if (request.POST.get("room") or "").strip():
@@ -757,12 +835,10 @@ def stay_create(request):
             pk=rate_plans_mod.parse_uuid(request.POST.get("room")), unit=unit, is_active=True
         ).first()
         if room is None:
-            messages.error(request, _("Dieses Zimmer gehört nicht zur gewählten Kategorie."))
-            return redirect(back or "stays:calendar")
+            return fail(_("Dieses Zimmer gehört nicht zur gewählten Kategorie."))
     if request.POST.get("mode") == "block":
         if departure <= arrival:
-            messages.error(request, _("Invalid dates."))
-            return redirect(back or "stays:calendar")
+            return fail(_("Invalid dates."))
         # Z-5 Р-4: блок — только через сервис (лок категории + ёмкость + комната).
         try:
             services.create_block(
@@ -773,14 +849,12 @@ def stay_create(request):
                 room=room,
             )
         except (services.NoCapacity, services.RoomConflict) as exc:
-            messages.error(request, _block_error_msg(exc))
-            return redirect(back or "stays:calendar")
+            return fail(_block_error_msg(exc))
         messages.success(request, _("Dates blocked."))
         return redirect(back or f"{reverse('stays:calendar')}?von={arrival.isoformat()}")
     rooms_count = _int(request.POST.get("rooms", "1"), 1, 1, 20)
     if room is not None and rooms_count > 1:
-        messages.error(request, _("Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."))
-        return redirect(back or "stays:calendar")
+        return fail(_("Mehrere Zimmer — bitte die Zimmer in der Buchung zuweisen."))
     name = request.POST.get("name", "").strip() or _("Walk-in")
     # PMS-A1: паритет со витриной — взрослые/дети (Kurtaxe по взрослым!), тариф,
     # extras, несколько номеров, промокод. Легаси-поле guests остаётся фолбэком
@@ -797,8 +871,7 @@ def stay_create(request):
             empty="none",
         )
     except rate_plans_mod.RatePlanInvalid:
-        messages.error(request, _("Dieser Tarif gilt nicht für die gewählte Kategorie."))
-        return redirect(back or "stays:calendar")
+        return fail(_("Dieser Tarif gilt nicht für die gewählte Kategorie."))
     from apps.core import extras as extras_engine
 
     extras_snap = extras_engine.snapshot(
@@ -838,28 +911,23 @@ def stay_create(request):
             if room is not None:
                 services.assign_room(booking, room)
     except services.RoomConflict:  # Z-5 Р-2: откат всей брони (atomic выше)
-        messages.error(request, _("Dieses Zimmer ist in diesem Zeitraum belegt."))
-        return redirect(back or "stays:calendar")
+        return fail(_("Dieses Zimmer ist in diesem Zeitraum belegt."))
     except services.RatePlanInvalid:  # Z-4: тариф изменили между формой и POST
-        messages.error(request, _("Dieser Tarif gilt nicht für die gewählte Kategorie."))
-        return redirect(back or "stays:calendar")
+        return fail(_("Dieser Tarif gilt nicht für die gewählte Kategorie."))
     except services.MinStay:
-        messages.error(request, _("Below the minimum number of nights."))
-        return redirect(back or "stays:calendar")
+        return fail(_("Below the minimum number of nights."))
     except services.MaxGuests:
-        messages.error(request, _("Too many guests for this unit."))
-        return redirect(back or "stays:calendar")
+        return fail(_("Too many guests for this unit."))
     except services.StayUnavailable:
-        messages.error(request, _("Those dates are no longer available."))
-        return redirect(back or "stays:calendar")
+        return fail(_("Those dates are no longer available."))
     except services.PromoInvalid:
         # Раньше неверный промокод на стойке ронял 500 — теперь честная ошибка.
-        messages.error(request, _("This promo code is not valid for this booking."))
-        return redirect(back or "stays:calendar")
+        return fail(_("This promo code is not valid for this booking."))
     except ValueError:
-        messages.error(request, _("Invalid dates."))
-        return redirect(back or "stays:calendar")
+        return fail(_("Invalid dates."))
     messages.success(request, _("Stay created."))
+    # UX-D D1.3: в шторке сразу открывается созданная бронь
+    drawer_mod.open_after(request, reverse("stays:booking-detail", args=[booking.pk]))
     # Z-5 (О-2): правила продаж стойку не ограничивают, но нарушение видно сразу.
     hit = stay_restrictions.violation(unit, arrival, departure)
     if hit is not None:

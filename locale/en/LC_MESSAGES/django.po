@@ -31491,3 +31491,6 @@ msgstr "Open full booking"
 
 msgid "Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erneut versuchen."
 msgstr "Status unclear — view refreshed. Please check before trying again."
+
+msgid "Eingaben verwerfen?"
+msgstr "Discard your entries?"

@@ -1,26 +1,28 @@
 {% load i18n %}
 {% comment %}Walk-in форма стойки (PMS-A1 + Батч C «Block dates»). Фидбэк
 2026-07-28: вынесена в партиал — живёт на календаре (клик по свободной клетке
-префиллит её) И на отдельной вкладке «＋ Buchung» (stays:stay-new).{% endcomment %}
+префиллит её) И на отдельной вкладке «＋ Buchung» (stays:stay-new). UX-D D1.3: живёт в
+шторке «Neue Buchung» (stays/_new_booking_drawer.html); значения — `wf` (stays.views.
+_walkin_prefill), скриптов внутри нет — синхронизация номеров/тарифов в cabinet.js.{% endcomment %}
 {% if units %}
-<form method="post" action="{% url 'stays:stay-create' %}" id="walkin-form" class="ui-card p-6 max-w-xl space-y-4 scroll-mt-24">
+<form method="post" action="{% url 'stays:stay-create' %}" id="walkin-form" class="{% if in_drawer %}{% else %}ui-card p-6 max-w-xl {% endif %}space-y-4 scroll-mt-24"{% if in_drawer %} data-drawer-form data-drawer-after="close"{% endif %}>
   {% csrf_token %}
-  <input type="hidden" name="next" value="{{ request.get_full_path }}">
-  <h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
+  <input type="hidden" name="next" value="{% firstof next_url request.get_full_path %}">
+  {% if not in_drawer %}<h2 class="font-semibold">{% trans "Add booking" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>{% endif %}
   <div class="grid sm:grid-cols-2 gap-4">
     <div class="sm:col-span-2">
       <label for="walkin-unit" class="block text-sm font-medium mb-1">{% trans "Unit" %}</label>
       <select name="unit" id="walkin-unit" class="ui-input">
-        {% for u in units %}<option value="{{ u.pk }}">{{ u.name }}</option>{% endfor %}
+        {% for u in units %}<option value="{{ u.pk }}"{% if wf.unit == u.pk|stringformat:"s" %} selected{% endif %}>{{ u.name }}</option>{% endfor %}
       </select>
     </div>
     <div>
       <label for="walkin-arrival" class="block text-sm font-medium mb-1">{% trans "Arrival" %}</label>
-      <input type="date" name="arrival" id="walkin-arrival" required class="ui-input min-w-0">
+      <input type="date" name="arrival" id="walkin-arrival" required value="{{ wf.arrival }}" class="ui-input min-w-0">
     </div>
     <div>
       <label for="walkin-departure" class="block text-sm font-medium mb-1">{% trans "Departure" %}</label>
-      <input type="date" name="departure" id="walkin-departure" required class="ui-input min-w-0">
+      <input type="date" name="departure" id="walkin-departure" required value="{{ wf.departure }}" class="ui-input min-w-0">
     </div>
   </div>
   {% if walkin_rooms %}
@@ -30,41 +32,22 @@
     чужие, сервер всё равно проверяет категорию и занятость (откат всей брони).{% endcomment %}
     <select name="room" id="walkin-room" data-walkin-room class="ui-input">
       <option value="">{% trans "— Zimmer später zuweisen —" %}</option>
-      {% for r in walkin_rooms %}<option value="{{ r.pk }}" data-unit="{{ r.unit_id }}">{{ r.number }} · {{ r.unit.name }}</option>{% endfor %}
+      {% for r in walkin_rooms %}<option value="{{ r.pk }}" data-unit="{{ r.unit_id }}"{% if wf.room == r.pk|stringformat:"s" %} selected{% endif %}>{{ r.number }} · {{ r.unit.name }}</option>{% endfor %}
     </select>
   </div>
-  <script>
-  (function () {
-    if (window.__walkinRoomBound) return;
-    window.__walkinRoomBound = true;
-    function syncRooms() {
-      var unit = document.getElementById('walkin-unit');
-      var sel = document.querySelector('[data-walkin-room]');
-      if (!unit || !sel) return;
-      Array.prototype.forEach.call(sel.options, function (o) {
-        var u = o.getAttribute('data-unit');
-        var ok = !u || u === unit.value;
-        o.hidden = !ok;
-        o.disabled = !ok;
-      });
-      if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = '';
-    }
-    document.addEventListener('change', function (e) {
-      if (e.target && e.target.id === 'walkin-unit') syncRooms();
-    });
-    syncRooms();
-  })();
-  </script>
   {% endif %}
-  <div class="grid sm:grid-cols-4 gap-4">
-    <input name="name" type="text" aria-label="{% trans 'Name (reason when blocking)' %}" placeholder="{% trans 'Name (reason when blocking)' %}" class="sm:col-span-2 rounded-lg border border-gray-300 px-3 py-2">
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <label class="col-span-2 block"><span class="block text-sm font-medium mb-1">{% trans "Name" %}</span>
+    <input name="name" type="text" value="{{ wf.name }}" data-drawer-autofocus placeholder="{% trans 'Name (reason when blocking)' %}" class="ui-input"></label>
     {# PMS-A1: взрослые/дети как на витрине (Kurtaxe по взрослым). #}
-    <input name="erw" type="number" min="1" value="1" aria-label="{% trans 'Adults' %}" placeholder="{% trans 'Adults' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input name="kinder" type="number" min="0" value="0" aria-label="{% trans 'Children' %}" placeholder="{% trans 'Children' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Adults" %}</span>
+    <input name="erw" type="number" min="1" value="{{ wf.erw|default:1 }}" class="ui-input"></label>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Children" %}</span>
+    <input name="kinder" type="number" min="0" value="{{ wf.kinder|default:0 }}" class="ui-input"></label>
   </div>
   <div class="grid sm:grid-cols-2 gap-4">
-    <input autocomplete="off" name="phone" type="tel" aria-label="{% trans 'Phone' %}" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-    <input autocomplete="off" name="email" type="email" aria-label="{% trans 'Email' %}" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input autocomplete="off" name="phone" type="tel" value="{{ wf.phone }}" aria-label="{% trans 'Phone' %}" placeholder="{% trans 'Phone' %}" class="ui-input">
+    <input autocomplete="off" name="email" type="email" value="{{ wf.email }}" aria-label="{% trans 'Email' %}" placeholder="{% trans 'Email' %}" class="ui-input">
   </div>
   {% if rate_plans %}
   <div>
@@ -72,35 +55,13 @@
     {% comment %}Z-4: тариф — явный выбор; «— ohne Tarif —» = базовая цена. data-units —
     категории тарифа (пусто = все); сервер всё равно отбивает неприменимый.{% endcomment %}
     <select aria-label="{% trans "Rate" %}" name="rate_plan" data-walkin-rate class="ui-input">
-      <option value="" selected>{% trans "— ohne Tarif —" %}</option>
-      {% for r in rate_plans %}<option value="{{ r.pk }}" data-units="{% if not r.applies_to_all %}{% for u in r.units.all %}{{ u.pk }}{% if not forloop.last %},{% endif %}{% empty %}none{% endfor %}{% endif %}">{{ r.name }}{% if r.meal_included %} · {{ r.get_meal_plan_display }}{% endif %}{% if not r.applies_to_all %} · {% trans "nur:" %} {% for u in r.units.all %}{{ u.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</option>{% endfor %}
+      <option value=""{% if not wf.rate_plan %} selected{% endif %}>{% trans "— ohne Tarif —" %}</option>
+      {% for r in rate_plans %}<option value="{{ r.pk }}"{% if wf.rate_plan == r.pk|stringformat:"s" %} selected{% endif %} data-units="{% if not r.applies_to_all %}{% for u in r.units.all %}{{ u.pk }}{% if not forloop.last %},{% endif %}{% empty %}none{% endfor %}{% endif %}">{{ r.name }}{% if r.meal_included %} · {{ r.get_meal_plan_display }}{% endif %}{% if not r.applies_to_all %} · {% trans "nur:" %} {% for u in r.units.all %}{{ u.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</option>{% endfor %}
     </select>
   </div>
-  <script>
-  (function () {
-    if (window.__walkinRateBound) return;
-    window.__walkinRateBound = true;
-    function sync() {
-      var unit = document.getElementById('walkin-unit');
-      var sel = document.querySelector('[data-walkin-rate]');
-      if (!unit || !sel) return;
-      Array.prototype.forEach.call(sel.options, function (o) {
-        var ids = o.getAttribute('data-units');
-        var ok = !ids || ids.split(',').indexOf(unit.value) >= 0;
-        o.hidden = !ok;
-        o.disabled = !ok;
-      });
-      if (sel.selectedOptions[0] && sel.selectedOptions[0].disabled) sel.value = '';
-    }
-    document.addEventListener('change', function (e) {
-      if (e.target && e.target.id === 'walkin-unit') sync();
-    });
-    sync();
-  })();
-  </script>
   {% endif %}
   {# PMS-A1: редкие поля стойки — свёрнуты, форма остаётся компактной. #}
-  <details class="rounded-lg border border-gray-200 p-3">
+  <details class="rounded-lg border border-gray-200 p-3"{% if wf.more_open %} open{% endif %}>
     <summary class="text-sm font-medium cursor-pointer select-none">{% trans "More options" %}</summary>
     <div class="mt-3 space-y-3">
       {% if walkin_extras %}
@@ -108,7 +69,7 @@
         <legend class="text-sm font-medium mb-1">{% trans "Extras (optional)" %}</legend>
         {% for e in walkin_extras %}
           <label class="flex items-center justify-between gap-3 text-sm">
-            <span class="flex items-center gap-2"><input type="checkbox" name="extra" value="{{ e.pk }}" class="rounded border-gray-300"> {{ e.label }}</span>
+            <span class="flex items-center gap-2"><input type="checkbox" name="extra" value="{{ e.pk }}"{% if e.pk|stringformat:"s" in wf.extras %} checked{% endif %} class="rounded border-gray-300"> {{ e.label }}</span>
             <span class="text-gray-500 whitespace-nowrap">+ {{ e.price_eur|floatformat:2 }} €{% if e.per_night %} / {% trans "night" %}{% endif %}</span>
           </label>
         {% endfor %}
@@ -117,18 +78,18 @@
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Rooms" %}</span>
-          <input name="rooms" type="number" min="1" max="20" value="1" class="ui-input"></label>
+          <input name="rooms" type="number" min="1" max="20" value="{{ wf.rooms|default:1 }}" class="ui-input"></label>
         </div>
         <div>
           <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Promo code (optional)" %}</span>
-          <input name="voucher_code" type="text" autocapitalize="characters" class="ui-input uppercase"></label>
+          <input name="voucher_code" type="text" value="{{ wf.voucher_code }}" autocapitalize="characters" class="ui-input uppercase"></label>
         </div>
       </div>
       <div>
         <label for="walkin-payment" class="block text-sm font-medium mb-1">{% trans "Zahlung" %}</label>
         <select name="payment_method" id="walkin-payment" class="ui-input">
-          <option value="on_site" selected>{% trans "Zahlung vor Ort" %}</option>
-          {% if walkin_vorkasse %}<option value="vorkasse">{% trans "Vorkasse (Überweisung)" %}</option>{% endif %}
+          <option value="on_site"{% if wf.payment_method != "vorkasse" %} selected{% endif %}>{% trans "Zahlung vor Ort" %}</option>
+          {% if walkin_vorkasse %}<option value="vorkasse"{% if wf.payment_method == "vorkasse" %} selected{% endif %}>{% trans "Vorkasse (Überweisung)" %}</option>{% endif %}
         </select>
         <p class="text-xs text-gray-500 mt-1">{% trans "Rechnung an eine Firma — in der Buchung unter „Rechnungsempfänger“." %}</p>
       </div>
@@ -136,20 +97,20 @@
       вкл. Сентинел нужен: снятый чекбокс браузер не отправляет.{% endcomment %}
       <input type="hidden" name="auto_rabatt_present" value="1">
       <label class="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="auto_rabatt" value="1" checked class="rounded border-gray-300">
+        <input type="checkbox" name="auto_rabatt" value="1"{% if wf.auto_rabatt is not False %} checked{% endif %} class="rounded border-gray-300">
         {% trans "Automatische Rabatte anwenden" %}
       </label>
       <div>
         <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Note" %}</span>
-        <textarea name="note" rows="2" class="ui-input"></textarea></label>
+        <textarea name="note" rows="2" class="ui-input">{{ wf.note }}</textarea></label>
       </div>
     </div>
   </details>
-  <div class="flex items-center gap-3 flex-wrap">
+  <div class="flex items-center gap-3 flex-wrap{% if in_drawer %} ui-drawer-foot{% endif %}">
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Add booking" %}</button>
     {% comment %}Батч C: та же форма блокирует даты (ремонт/своё проживание) —
     mode=block, поле имени = причина; гость/контакты игнорируются.{% endcomment %}
-    <button type="submit" name="mode" value="block" formnovalidate class="border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:border-gray-500" onclick="return !!(document.getElementById('walkin-arrival').value && document.getElementById('walkin-departure').value)">✕ {% trans "Block dates" %}</button>
+    <button type="submit" name="mode" value="block" formnovalidate class="border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:border-gray-500">✕ {% trans "Block dates" %}</button>
   </div>
 </form>
 {% endif %}

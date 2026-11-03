@@ -18,7 +18,7 @@
       <summary class="cursor-pointer text-sm text-indigo-600">✏️ {% trans "Meldeschein erfassen" %}</summary>
       <form method="post" action="{% url 'stays:stay-action' b.pk %}" data-drawer-form class="mt-2 grid grid-cols-2 gap-2 text-sm">
         {% csrf_token %}
-        <input type="hidden" name="action" value="registration"><input type="hidden" name="next" value="{{ next_url|default:request.get_full_path }}">
+        <input type="hidden" name="action" value="registration"><input type="hidden" name="next" value="{% firstof next_url request.get_full_path %}">
         <input name="first_name" value="{{ registration.first_name }}" placeholder="{% trans 'Vorname' %}" aria-label="{% trans 'Vorname' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
         <input name="last_name" required value="{{ registration.last_name }}" placeholder="{% trans 'Nachname' %}" aria-label="{% trans 'Nachname' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">
         <input name="birth_date" type="date" value="{{ registration.birth_date|date:'Y-m-d' }}" aria-label="{% trans 'Geburtsdatum' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-base sm:text-sm">

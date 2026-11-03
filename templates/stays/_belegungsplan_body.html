@@ -93,12 +93,14 @@ test_price_nav/test_verkaeufe).{% endcomment %}
         <tr class="border-t border-gray-100">
           <td class="sticky left-0 bg-white px-3 py-1.5 font-medium whitespace-nowrap z-10">{{ unit.name }}{% if unit.quantity > 1 %} <span class="text-gray-400">×{{ unit.quantity }}</span>{% endif %}</td>
           {% for c in cells %}
-            <td data-unit="{{ unit.pk }}" data-date="{{ c.day|date:'Y-m-d' }}"{% if not c.blocked and c.free > 0 %} data-free="1" role="button" tabindex="0" aria-label="{{ unit.name }} · {{ c.day|date:'d.m.Y' }}"{% endif %}
-              class="px-1 py-1 text-center align-middle
+            {% comment %}UX-D D1.3: свободная клетка — ссылка «Neue Buchung» (шторка; без JS — страница
+            stay-new с предзаполнением). Enter/Space — нативно у ссылки.{% endcomment %}
+            <td data-unit="{{ unit.pk }}" data-date="{{ c.day|date:'Y-m-d' }}"{% if not c.blocked and c.free > 0 %} data-free="1"{% endif %}
+              class="{% if not c.blocked and c.free > 0 %}p-0{% else %}px-1 py-1{% endif %} text-center align-middle
               {% if c.blocked %}bg-gray-200 text-gray-400
               {% elif c.free == 0 %}bg-red-100 text-red-500
-              {% else %}bg-green-50 text-green-700 cursor-pointer hover:bg-green-100{% endif %}"
-              title="{{ c.day|date:'d.m.Y' }}">{% if c.blocked %}✕{% else %}{{ c.free }}{% endif %}</td>
+              {% else %}bg-green-50 text-green-700 hover:bg-green-100{% endif %}"
+              title="{{ c.day|date:'d.m.Y' }}">{% if c.blocked %}✕{% elif c.free > 0 %}<a href="{% url 'stays:stay-new' %}?unit={{ unit.pk }}&amp;arrival={{ c.day|date:'Y-m-d' }}" data-drawer data-drawer-key="free-{{ unit.pk }}-{{ c.day|date:'Ymd' }}" aria-label="{% trans 'New booking' %}: {{ unit.name }}, {{ c.day|date:'d.m.Y' }}" class="block px-1 py-1 min-h-[1.75rem] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600">{{ c.free }}</a>{% else %}{{ c.free }}{% endif %}</td>
           {% endfor %}
         </tr>
         {% comment %}Багфикс 2026-07-27: data-unit на дорожках — drop плашки
@@ -169,7 +171,6 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 </div>
 {% endif %}
 
-{% if not deal_calendar_compact %}{% include "stays/_walkin_form.html" %}{% endif %}
 
 <div id="cal-toast" class="fixed bottom-20 md:bottom-5 left-1/2 -translate-x-1/2 z-50 hidden rounded-lg bg-gray-900 text-white text-sm px-4 py-2 shadow-lg"></div>
 <script>
@@ -289,22 +290,5 @@ test_price_nav/test_verkaeufe).{% endcomment %}
       }).catch(function () { toast("{% trans 'Move not possible.' %}"); });
     });
 
-    // Клик по свободной клетке → префил walk-in формы (юнит + даты) + скролл.
-    document.addEventListener("click", function (e) {
-      var td = e.target.closest && e.target.closest("td[data-free]");
-      if (!td) return;
-      var form = document.getElementById("walkin-form");
-      if (!form) return;
-      var unitSel = document.getElementById("walkin-unit");
-      if (unitSel) unitSel.value = td.getAttribute("data-unit");
-      var a = document.getElementById("walkin-arrival");
-      var d = document.getElementById("walkin-departure");
-      var day = td.getAttribute("data-date");
-      if (a) a.value = day;
-      if (d) d.value = addDays(day, 1);
-      form.scrollIntoView({ behavior: "smooth", block: "center" });
-      form.classList.add("ring-2", "ring-indigo-300");
-      setTimeout(function () { form.classList.remove("ring-2", "ring-indigo-300"); }, 1200);
-    });
   })();
 </script>

@@ -31637,3 +31637,6 @@ msgstr "Rezervasyonun tamamını aç"
 
 msgid "Status unklar — Ansicht aktualisiert. Bitte prüfen, bevor Sie es erneut versuchen."
 msgstr "Durum belirsiz — görünüm yenilendi. Tekrar denemeden önce lütfen kontrol edin."
+
+msgid "Eingaben verwerfen?"
+msgstr "Girdiğiniz bilgiler silinsin mi?"
