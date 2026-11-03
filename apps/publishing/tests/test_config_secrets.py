@@ -64,3 +64,15 @@ def test_blank_secret_keeps_existing_encrypted():
     assert channel.config["access_token"] == enc  # тот же шифротекст
     assert channel.config["board_id"] == "b2"
     assert decrypted_config(channel)["access_token"] == "tok1"
+
+
+def test_channel_disconnect_removes_access_keys_and_disables():
+    """UX-D D6.6: «Trennen» — ключи подключения сняты, канал выключен, прочее цело."""
+    channel, _created = Channel.objects.get_or_create(type="facebook")
+    channel.is_enabled = True
+    channel.config = {"page_id": "123", "access_token": "x", "merchant": {"keep": 1}}
+    channel.save()
+    views.channel_disconnect(_post({"type": "facebook"}))
+    channel.refresh_from_db()
+    assert channel.is_enabled is False
+    assert channel.config == {"merchant": {"keep": 1}}

@@ -103,11 +103,13 @@ def test_admin_cannot_revoke_sensitive_preset_key_it_lacks():
 
 
 def test_screen_renders_checkboxes_with_reasons():
-    owner, _staff = _member(OWNER), _member(STAFF)
-    html = team.team_view(_req(owner.user)).content.decode()
+    owner, staff = _member(OWNER), _member(STAFF)
+    # UX-D D6.6 (осознанно): права участника — на его странице, приглашение — своя страница.
+    html = team.team_member(_req(owner.user), pk=staff.pk).content.decode()
     assert 'name="perms_present" value="1"' in html
     assert 'name="perm" value="kunden.view"' in html
     assert "aria-describedby=" in html  # team.edit у staff — недоступен с причиной
+    html = team.team_invite(_req(owner.user)).content.decode()
     assert 'name="perm_staff"' in html and 'name="perms_present_staff"' in html
 
 
@@ -306,9 +308,11 @@ def test_page_query_count_does_not_grow_with_members(django_assert_max_num_queri
 
 
 def test_admin_sees_note_on_other_admin_and_no_invite_without_rights():
-    admin, _other = _admin_with_team(), _member(ADMIN)
-    html = team.team_view(_req(admin.user)).content.decode()
+    admin, other = _admin_with_team(), _member(ADMIN)
+    html = team.team_member(_req(admin.user), pk=other.pk).content.decode()
     assert "Rechte dieser Person ändert nur der Inhaber." in html
     staff = _member(STAFF, {"add": ["team.view"]})
     html = team.team_view(_req(staff.user)).content.decode()
+    assert 'href="/dashboard/settings/team/einladen/"' not in html
+    html = team.team_invite(_req(staff.user)).content.decode()
     assert 'name="email"' not in html

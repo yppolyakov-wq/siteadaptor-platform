@@ -88,6 +88,7 @@ EXPECTED_UNLISTED = frozenset(
         "finance:expense-new",  # UX-D D6.5: «＋ Ausgabe» (кнопка расходов, шторка)
         "finance:invoice-new",  # UX-D D6.5: «＋ Neue Rechnung» (кнопка списка счетов)
         "collections:new",  # UX-D D6.3: «＋ Kollektion» (кнопка списка, шторка)
+        "team-invite",  # UX-D D6.6: «＋ Mitarbeiter einladen» (кнопка списка Team)
         "booking:service-inline-edit",
         "booking:service-photo-edit",
         "catalog:category-create",

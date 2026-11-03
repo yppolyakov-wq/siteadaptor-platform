@@ -26,6 +26,15 @@
           </button>
         </form>
       </div>
+      {% comment %}UX-D D6.6: «Trennen» — снять ключи подключения (пустое поле формы их не
+      затирает). Подтверждение — общий диалог data-danger.{% endcomment %}
+      {% if ch.config.access_token or ch.config.refresh_token or ch.config.bot_token %}
+        <form method="post" action="{% url 'channel-disconnect' %}" class="mt-2">
+          {% csrf_token %}
+          <input type="hidden" name="type" value="{{ ch.type }}">
+          <button type="submit" data-danger="1" class="ui-btn ui-btn-secondary ui-btn-sm text-red-700" aria-label="{% trans 'Trennen' %}: {{ ch.get_type_display }}">{% trans "Trennen" %}</button>
+        </form>
+      {% endif %}
       {% if ch.type == 'google_business' %}
         <details class="mt-3 border-t border-gray-100 pt-3">
           <summary class="text-sm text-gray-500 cursor-pointer select-none">

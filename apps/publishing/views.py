@@ -90,6 +90,32 @@ def channel_config(request):
     return redirect("channels")
 
 
+@login_required
+@require_POST
+def channel_disconnect(request):
+    """UX-D D6.6: «Trennen» — снять ключи доступа канала и выключить его.
+
+    Раньше отключить канал было нельзя: пустое поле формы не затирает сохранённое (так
+    задумано — секреты не показываются), а другой кнопки не было. Снимаем только ключи
+    подключения (`_CONFIG_FIELDS`), прочие настройки канала (фид Merchant и т. п.) целы."""
+    from apps.core.audit import audit_event
+
+    channel = Channel.objects.filter(type=request.POST.get("type", "")).first()
+    fields = _CONFIG_FIELDS.get(channel.type) if channel else None
+    if channel is not None and fields:
+        Channel.update_config(channel.pk, lambda config: [config.pop(key, None) for key in fields])
+        Channel.objects.filter(pk=channel.pk).update(is_enabled=False)
+        audit_event(
+            action="channel.disconnect",
+            resource_type="channel",
+            resource_id=str(channel.pk),
+            actor=request.user,
+            changes={"type": channel.type},
+        )
+        messages.success(request, _("Channel updated."))
+    return redirect("channels")
+
+
 # --- In-app OAuth подключение каналов (OAuth-A) ------------------------------
 
 

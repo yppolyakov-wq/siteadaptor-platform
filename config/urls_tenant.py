@@ -26,7 +26,7 @@ from apps.core.redirects_views import (
 )
 from apps.core.settings_home import einstellungen_home
 from apps.core.storefront_profile import redirect_if_aktionen as _aktionen
-from apps.core.team import team_join, team_view
+from apps.core.team import team_invite, team_join, team_member, team_view
 from apps.core.views import (
     ablaeufe_view,
     betriebsferien_view,
@@ -172,6 +172,8 @@ urlpatterns = [
     # W12-1: «Ansicht» — режим кабинета (Einfach/Experte + что скрыто).
     # W9-10: «Team & Zugriff» (owner-only через middleware) + публичное принятие инвайта.
     path("dashboard/settings/team/", team_view, name="team"),
+    path("dashboard/settings/team/einladen/", team_invite, name="team-invite"),  # UX-D D6.6
+    path("dashboard/settings/team/<uuid:pk>/", team_member, name="team-member"),
     path("team/beitreten/<str:token>/", team_join, name="team-join"),
     # T-8.5: вход владельца без пароля + подтверждение почты «Aktion in 3 Klicks».
     path(
@@ -454,6 +456,11 @@ urlpatterns = [
     path("dashboard/reviews/", include("apps.reviews.urls")),
     path("dashboard/channels/toggle/", publishing_views.channel_toggle, name="channel-toggle"),
     path("dashboard/channels/config/", publishing_views.channel_config, name="channel-config"),
+    path(
+        "dashboard/channels/trennen/",
+        publishing_views.channel_disconnect,
+        name="channel-disconnect",
+    ),  # UX-D D6.6
     # Д3: Google-Profil — Standort, Öffnungszeiten, Angebote (Owner-only).
     path("dashboard/channels/google/", publishing_views.gbp_sync, name="gbp-sync"),
     path(

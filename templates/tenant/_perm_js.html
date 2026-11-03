@@ -1,0 +1,39 @@
+{% comment %}E6.7d: подсказка зависимостей прав и видимость блока роли приглашения (вынесено из team.html, UX-D D6.6; без JS сервер — источник истины).{% endcomment %}
+<script>
+(function () {
+  // E6.7d: зависимости прав (сервер — источник истины; это лишь подсказка в форме).
+  document.addEventListener("change", function (e) {
+    var box = e.target;
+    if (!box.matches || !box.matches("[data-perm]")) return;
+    var set = box.closest("[data-perm-set]");
+    if (!set) return;
+    function byKey(k) { return set.querySelector('[data-perm="' + k + '"]'); }
+    if (box.checked) {
+      (box.dataset.requires || "").split(",").forEach(function (k) {
+        var dep = k && byKey(k);
+        if (dep && !dep.disabled && !dep.checked) { dep.checked = true; dep.dispatchEvent(new Event("change", {bubbles: true})); }
+      });
+    } else {
+      set.querySelectorAll("[data-requires]").forEach(function (other) {
+        if (other.checked && !other.disabled && other.dataset.requires.split(",").indexOf(box.value) >= 0) {
+          other.checked = false; other.dispatchEvent(new Event("change", {bubbles: true}));
+        }
+      });
+    }
+  });
+  // Инвайт: видимы права только выбранной роли (без JS видны все блоки — сервер берёт блок роли).
+  var sel = document.getElementById("inv-role");
+  function syncRole() {
+    if (!sel) return;
+    document.querySelectorAll("[data-invite-role]").forEach(function (b) {
+      b.hidden = b.dataset.inviteRole !== sel.value;
+    });
+  }
+  if (sel) { sel.addEventListener("change", syncRole); syncRole(); }
+  // После сохранения/отказа — вернуть раскрытой форму участника из якоря.
+  var m = location.hash.match(/^#m-([0-9a-f-]{36})$/);
+  var row = m && document.getElementById("m-" + m[1]);
+  var det = row && row.querySelector("[data-perm-details]");
+  if (det) det.open = true;
+})();
+</script>

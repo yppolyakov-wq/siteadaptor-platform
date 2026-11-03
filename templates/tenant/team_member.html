@@ -1,0 +1,85 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{{ r.email }}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D6.6: страница участника. Роль — кнопками (раньше select с автосабмитом onchange —
+WCAG 3.2.2), права — форма E6.7d, удаление — в «Gefahrenbereich» с подтверждением. Все
+изменения — perm_grants (права и цель проверяются там); чужой id в POST — 404.{% endcomment %}
+<a href="{% url 'team' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Team & Zugriff" %}</a>
+<div class="flex items-start justify-between gap-3 flex-wrap mt-1 mb-4">
+  <div class="min-w-0">
+    <h1 id="who-{{ r.m.pk }}" class="ui-h1 break-words">{{ r.email }}</h1>
+    <p class="text-sm text-gray-600 mt-0.5">{{ r.m.get_role_display }}{% if r.is_last_owner %} · {% trans "letzter Inhaber" %}{% endif %}{% if r.perm_form %} · {% blocktrans with n=r.perm_form.count %}Rechte ({{ n }}){% endblocktrans %}{% endif %}</p>
+  </div>
+</div>
+{% include "tenant/_settings_messages.html" %}
+
+<div class="lg:grid lg:grid-cols-3 lg:gap-5 lg:items-start">
+<div class="lg:col-span-2 space-y-5 min-w-0 mb-5">
+  {% if r.can_role %}
+  <form method="post" class="ui-card p-5" data-member-role>
+    {% csrf_token %}
+    <input type="hidden" name="action" value="role"><input type="hidden" name="membership_id" value="{{ r.m.pk }}">
+    <fieldset>
+      <legend class="ui-h2 mb-2">{% trans "Rolle" %}</legend>
+      <div class="flex flex-wrap gap-2">
+        {% for value, label in roles %}
+        <button type="submit" name="role" value="{{ value }}" class="ui-btn {% if r.m.role == value %}ui-btn-primary{% else %}ui-btn-secondary{% endif %}"{% if r.m.role == value %} aria-pressed="true" disabled{% else %} aria-pressed="false"{% endif %}>{{ label }}</button>
+        {% endfor %}
+      </div>
+    </fieldset>
+  </form>
+  {% endif %}
+
+  {% if r.perm_form %}
+  <form method="post" class="ui-card p-5 space-y-3" aria-labelledby="who-{{ r.m.pk }}" data-member-perms>
+    {% csrf_token %}
+    <input type="hidden" name="action" value="perms"><input type="hidden" name="membership_id" value="{{ r.m.pk }}">
+    <input type="hidden" name="perms_present" value="1">
+    <input type="hidden" name="perms_state" value="{{ r.perm_form.state }}">
+    <h2 class="ui-h2">{% blocktrans with n=r.perm_form.count %}Rechte ({{ n }}){% endblocktrans %}</h2>
+    {% include "tenant/_perm_fieldsets.html" with groups=r.perm_form.groups field="perm" %}
+    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Rechte speichern" %}</button>
+    {% comment %}Шаблоны — ПОСЛЕ «Rechte speichern»: неявная отправка формы берёт первую
+    submit-кнопку, и она не должна быть шаблоном (ревью E6.7f).{% endcomment %}
+    {% if r.perm_form.templates %}
+      <fieldset class="rounded-lg border border-gray-100 p-3">
+        <legend class="px-1 text-xs font-semibold text-gray-700">{% trans "Vorlage" %}{% if r.perm_form.template_label %} · <span data-template-label>{{ r.perm_form.template_label }}</span>{% endif %}</legend>
+        <div class="grid gap-2 sm:grid-cols-2">
+          {% for t in r.perm_form.templates %}
+            <div>
+              <button type="submit" name="apply_template" value="{{ t.key }}" data-template="{{ t.key }}"
+                      class="w-full text-left rounded-lg border px-3 py-2 text-sm {% if t.active %}border-indigo-500 bg-indigo-50{% else %}border-gray-200 hover:border-indigo-300{% endif %} disabled:opacity-60"
+                      {% if t.disabled %}disabled aria-describedby="tpl-{{ r.m.pk }}-{{ t.key }}-why"{% endif %}
+                      {% if t.active %}aria-current="true"{% endif %}>
+                <span class="block font-medium text-gray-800">{{ t.label }}</span>
+                <span class="block text-xs text-gray-600">{{ t.hint }}</span>
+              </button>
+              {% if t.disabled %}<p id="tpl-{{ r.m.pk }}-{{ t.key }}-why" class="mt-0.5 text-xs text-gray-600">{{ t.reason }}</p>{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </fieldset>
+    {% endif %}
+  </form>
+  {% elif r.m.role == "owner" %}
+    <p class="ui-card p-5 text-sm text-gray-600">{% trans "Inhaber — alle Rechte." %}</p>
+  {% elif r.is_self and can_edit %}
+    <p class="ui-card p-5 text-sm text-gray-600">{% trans "Eigene Rechte kann nur der Inhaber ändern." %}</p>
+  {% elif can_edit %}
+    <p class="ui-card p-5 text-sm text-gray-600">{% trans "Rechte dieser Person ändert nur der Inhaber." %}</p>
+  {% endif %}
+</div>
+{% if r.can_revoke %}
+<section class="ui-card p-5 space-y-3" aria-labelledby="member-danger">
+  <h2 id="member-danger" class="ui-h2">{% trans "Gefahrenbereich" %}</h2>
+  <form method="post">{% csrf_token %}
+    <input type="hidden" name="action" value="revoke"><input type="hidden" name="membership_id" value="{{ r.m.pk }}">
+    <button class="ui-btn ui-btn-secondary ui-btn-sm text-red-700" data-danger="1" aria-label="{% trans 'Entfernen' %}: {{ r.email }}">{% trans "Entfernen" %}</button>
+  </form>
+</section>
+{% endif %}
+</div>
+{% include "tenant/_perm_js.html" %}
+{% endblock %}

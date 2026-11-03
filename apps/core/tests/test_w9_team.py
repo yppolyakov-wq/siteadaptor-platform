@@ -171,5 +171,10 @@ def test_team_page_renders_members_and_invite_form():
     owner = _user(Membership.ROLE_OWNER)
     body = team.team_view(_req(user=owner)).content.decode()
     assert owner.email in body
-    assert 'name="action" value="invite"' in body
     assert "letzter Inhaber" in body  # единственный owner защищён и помечен
+    # UX-D D6.6 (осознанно): приглашение — своя страница, со списка — кнопка.
+    assert 'href="/dashboard/settings/team/einladen/"' in body
+    body = team.team_invite(
+        _req(path="/dashboard/settings/team/einladen/", user=owner)
+    ).content.decode()
+    assert 'name="action" value="invite"' in body

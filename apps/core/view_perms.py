@@ -295,6 +295,7 @@ RULES: dict[str, Rule] = {
     "portal-stats": _r("stadtportal.view"),
     "channels": _r("kanaele.view", ME),
     "channel-config": _r("kanaele.edit"),
+    "channel-disconnect": _r("kanaele.edit"),  # UX-D D6.6
     "channel-oauth-start": _r("kanaele.edit"),
     "channel-toggle": _r("kanaele.edit"),
     "gbp-sync": _r("kanaele.edit"),
@@ -412,6 +413,8 @@ RULES: dict[str, Rule] = {
     "modules": _r("funktionen.view", "funktionen.edit"),
     "betriebsferien": _r("betriebsferien.ganz"),
     "team": _r("team.view", "team.edit"),
+    "team-invite": _r("team.view", "team.edit"),  # UX-D D6.6
+    "team-member": _r("team.view", "team.edit"),  # UX-D D6.6
 }
 
 

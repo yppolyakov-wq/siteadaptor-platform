@@ -146,32 +146,7 @@ def team_view(request):
                 _("Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse — danach können Sie einladen."),
             )
         elif action == "invite":
-            if ratelimit.hit(
-                "team-invite", connection.schema_name, limit=INVITE_RATE[0], window=INVITE_RATE[1]
-            ):
-                messages.error(request, _("Zu viele Einladungen heute — bitte morgen erneut."))
-                return redirect("team")
-            role = request.POST.get("role", "")
-            perms_in = None
-            if role in INVITE_ROLES and request.POST.get(f"perms_present_{role}") == "1":
-                perms_in = request.POST.getlist(f"perm_{role}")
-            token = issue_invite(
-                request.POST.get("email"), role, inviter=request.user, perms=perms_in
-            )
-            if token is None:
-                ratelimit.refund("team-invite", connection.schema_name)
-                messages.error(request, _("E-Mail oder Rolle ungültig."))
-            else:
-                link = request.build_absolute_uri(reverse("team-join", args=[token]))
-                _send_invite_mail(request, link)
-                audit_event(
-                    action="team.invite",
-                    resource_type="membership",
-                    resource_id="",
-                    actor=request.user,
-                )
-                hint = _("Einladung erstellt — Link ist 7 Tage gültig (einmalig):")
-                messages.success(request, f"{hint} {link}")
+            _handle_invite(request)
         elif action in ("role", "revoke", "perms"):
             _member_action(request, action)
             anchor = perm_grants.parse_member_pk(request.POST.get("membership_id"))
@@ -193,6 +168,103 @@ def team_view(request):
             "roles": Membership.ROLES,
             "invite_roles": [(f["role"], f["label"]) for f in invite_forms],
         },
+    )
+
+
+def _handle_invite(request) -> bool:
+    """Приглашение: лимит, выдача одноразового токена, письмо, аудит. True — создано.
+
+    Проверку `team.edit` и подтверждённой почты делает вызывающий (список и страница
+    приглашения — одна логика)."""
+    if ratelimit.hit(
+        "team-invite", connection.schema_name, limit=INVITE_RATE[0], window=INVITE_RATE[1]
+    ):
+        messages.error(request, _("Zu viele Einladungen heute — bitte morgen erneut."))
+        return False
+    role = request.POST.get("role", "")
+    perms_in = None
+    if role in INVITE_ROLES and request.POST.get(f"perms_present_{role}") == "1":
+        perms_in = request.POST.getlist(f"perm_{role}")
+    token = issue_invite(request.POST.get("email"), role, inviter=request.user, perms=perms_in)
+    if token is None:
+        ratelimit.refund("team-invite", connection.schema_name)
+        messages.error(request, _("E-Mail oder Rolle ungültig."))
+        return False
+    link = request.build_absolute_uri(reverse("team-join", args=[token]))
+    _send_invite_mail(request, link)
+    audit_event(
+        action="team.invite", resource_type="membership", resource_id="", actor=request.user
+    )
+    hint = _("Einladung erstellt — Link ist 7 Tage gültig (einmalig):")
+    messages.success(request, f"{hint} {link}")
+    return True
+
+
+def _invite_blocked(request, perms) -> bool:
+    if "team.edit" not in perms:
+        messages.error(request, _("Keine Berechtigung."))
+        return True
+    if getattr(request.tenant, "email_pending", False):
+        messages.error(
+            request,
+            _("Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse — danach können Sie einladen."),
+        )
+        return True
+    return False
+
+
+@login_required
+def team_invite(request):
+    """UX-D D6.6: «＋ Mitarbeiter einladen» — своя страница (раньше форма висела рядом со
+    списком). Та же логика, что прежняя форма списка (`_handle_invite`)."""
+    perms = P.effective(request.user)
+    if request.method == "POST":
+        if not _invite_blocked(request, perms) and _handle_invite(request):
+            return redirect("team")
+        return redirect("team-invite")
+    actor = Membership.objects.filter(user=request.user).first()
+    invite_forms = perm_ui.invite_forms(actor) if "team.edit" in perms else []
+    return render(
+        request,
+        "tenant/team_invite.html",
+        {
+            "nav": "team",
+            "invite_forms": invite_forms,
+            "invite_roles": [(f["role"], f["label"]) for f in invite_forms],
+        },
+    )
+
+
+@login_required
+def team_member(request, pk):
+    """UX-D D6.6: страница участника — роль кнопками (без автосабмита select, WCAG 3.2.2),
+    права формой E6.7d, удаление в «Gefahrenbereich». Все изменения — `perm_grants`
+    (проверка прав и цели внутри); чужой id в POST — 404."""
+    from django.http import Http404
+
+    perms = P.effective(request.user)
+    can_edit = "team.edit" in perms
+    if request.method == "POST":
+        if request.POST.get("membership_id") != str(pk):
+            raise Http404
+        action = request.POST.get("action", "")
+        if not can_edit:
+            messages.error(request, _("Keine Berechtigung."))
+        elif action in ("role", "revoke", "perms"):
+            _member_action(request, action)
+            if action == "revoke" and not Membership.objects.filter(pk=pk).exists():
+                return redirect("team")
+        return redirect("team-member", pk=pk)
+    actor = Membership.objects.filter(user=request.user).first()
+    row = next(
+        (r for r in _member_rows(can_edit, actor if can_edit else None) if r["m"].pk == pk), None
+    )
+    if row is None:
+        raise Http404
+    return render(
+        request,
+        "tenant/team_member.html",
+        {"nav": "team", "r": row, "roles": Membership.ROLES, "can_edit": can_edit},
     )
 
 

@@ -3,167 +3,26 @@
 {% block dash_title %}{% trans "Team & Zugriff" %}{% endblock %}
 
 {% block dash_content %}
-{% comment %}VF-24 (фидбэк 2026-08-25): «участники | приглашение» в 2 колонки на
-lg+ вместо колонки max-w-3xl; на мобильном — одна колонка прежним порядком.{% endcomment %}
+{% comment %}UX-D D6.6: список — строки (имя, роль, число прав); роль, права и удаление — на
+странице участника (team-member); приглашение — своя страница (team-invite).{% endcomment %}
 <div>
   <h1 class="ui-h1 mb-1">👥 {% nav_title _("Team & Zugriff") %}</h1>
-  <p class="text-sm text-gray-500 mb-4">{% trans "Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese Seite bleiben dem Inhaber vorbehalten." %}</p>
+  <p class="text-sm text-gray-600 mb-4">{% trans "Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese Seite bleiben dem Inhaber vorbehalten." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
 
-  <div class="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
-  <div class="ui-card mb-5 overflow-hidden min-w-0">
-    <div class="px-4 py-2.5 border-b border-gray-100 text-sm font-semibold text-gray-700">{% trans "Mitglieder" %}</div>
-    <div class="divide-y divide-gray-50">
-      {% for r in rows %}
-        <div id="m-{{ r.m.pk }}" class="px-4 py-3 text-sm">
-          <div class="flex flex-wrap items-center gap-3">
-            <span id="who-{{ r.m.pk }}" class="flex-1 min-w-[12rem] font-medium text-gray-800">{{ r.email }}</span>
-            {% if r.is_last_owner %}
-              <span class="text-xs text-gray-500">{{ r.m.get_role_display }} · {% trans "letzter Inhaber" %}</span>
-            {% elif r.can_role %}
-              <form method="post" class="flex items-center gap-2">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="role">
-                <input type="hidden" name="membership_id" value="{{ r.m.pk }}">
-                <label class="sr-only" for="role-{{ r.m.pk }}">{% trans "Rolle" %}</label>
-                <select id="role-{{ r.m.pk }}" name="role" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-2 py-1.5 text-xs">
-                  {% for value, label in roles %}
-                    <option value="{{ value }}" {% if r.m.role == value %}selected{% endif %}>{{ label }}</option>
-                  {% endfor %}
-                </select>
-              </form>
-            {% else %}
-              <span class="text-xs text-gray-500">{{ r.m.get_role_display }}</span>
-            {% endif %}
-            {% if r.can_revoke %}
-              <form method="post" onsubmit="return confirm('{% filter escapejs %}{% trans "Zugriff wirklich entziehen?" %}{% endfilter %}')">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="revoke">
-                <input type="hidden" name="membership_id" value="{{ r.m.pk }}">
-                <button class="text-xs border border-red-200 text-red-600 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Entfernen" %}</button>
-              </form>
-            {% endif %}
-          </div>
-          {% if r.perm_form %}
-            <details class="mt-2" data-perm-details>
-              <summary aria-describedby="who-{{ r.m.pk }}" class="cursor-pointer text-xs font-medium text-indigo-700 py-1">{% blocktrans with n=r.perm_form.count %}Rechte ({{ n }}){% endblocktrans %}</summary>
-              <form method="post" class="mt-2 space-y-3" aria-labelledby="who-{{ r.m.pk }}">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="perms">
-                <input type="hidden" name="membership_id" value="{{ r.m.pk }}">
-                <input type="hidden" name="perms_present" value="1">
-                <input type="hidden" name="perms_state" value="{{ r.perm_form.state }}">
-                {% include "tenant/_perm_fieldsets.html" with groups=r.perm_form.groups field="perm" %}
-                <button type="submit" aria-describedby="who-{{ r.m.pk }}" class="ui-btn ui-btn-primary">{% trans "Rechte speichern" %}</button>
-                {% comment %}Шаблоны — ПОСЛЕ «Rechte speichern»: неявная отправка формы берёт первую
-                submit-кнопку, и она не должна быть шаблоном (ревью E6.7f).{% endcomment %}
-                {% if r.perm_form.templates %}
-                  <fieldset class="rounded-lg border border-gray-100 p-3">
-                    <legend class="px-1 text-xs font-semibold text-gray-700">{% trans "Vorlage" %}{% if r.perm_form.template_label %} · <span data-template-label>{{ r.perm_form.template_label }}</span>{% endif %}</legend>
-                    <div class="grid gap-2 sm:grid-cols-2">
-                      {% for t in r.perm_form.templates %}
-                        <div>
-                          <button type="submit" name="apply_template" value="{{ t.key }}" data-template="{{ t.key }}"
-                                  class="w-full text-left rounded-lg border px-3 py-2 text-sm {% if t.active %}border-indigo-500 bg-indigo-50{% else %}border-gray-200 hover:border-indigo-300{% endif %} disabled:opacity-60"
-                                  {% if t.disabled %}disabled aria-describedby="tpl-{{ r.m.pk }}-{{ t.key }}-why"{% endif %}
-                                  {% if t.active %}aria-current="true"{% endif %}>
-                            <span class="block font-medium text-gray-800">{{ t.label }}</span>
-                            <span class="block text-xs text-gray-500">{{ t.hint }}</span>
-                          </button>
-                          {% if t.disabled %}<p id="tpl-{{ r.m.pk }}-{{ t.key }}-why" class="mt-0.5 text-xs text-gray-500">{{ t.reason }}</p>{% endif %}
-                        </div>
-                      {% endfor %}
-                    </div>
-                  </fieldset>
-                {% endif %}
-              </form>
-            </details>
-          {% elif r.m.role == "owner" %}
-            <p class="mt-1 text-xs text-gray-500">{% trans "Inhaber — alle Rechte." %}</p>
-          {% elif r.is_self and can_edit %}
-            <p class="mt-1 text-xs text-gray-500">{% trans "Eigene Rechte kann nur der Inhaber ändern." %}</p>
-          {% elif can_edit %}
-            <p class="mt-1 text-xs text-gray-500">{% trans "Rechte dieser Person ändert nur der Inhaber." %}</p>
-          {% endif %}
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  {% if invite_roles %}
-  <div class="ui-card p-4 min-w-0">
-    <h2 class="text-sm font-semibold text-gray-700 mb-2">{% trans "Mitarbeiter einladen" %}</h2>
-    <p class="text-xs text-gray-500 mb-3">{% trans "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Rechte lassen sich pro Person anpassen; Abo und Recht & Steuern bleiben dem Inhaber vorbehalten." %}</p>
-    <form method="post" class="flex flex-wrap items-end gap-3">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="invite">
-      <div>
-        <label class="block text-xs font-medium mb-1" for="inv-email">{% trans "E-Mail" %}</label>
-        <input autocomplete="off" id="inv-email" type="email" name="email" required class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-64">
-      </div>
-      <div>
-        <label class="block text-xs font-medium mb-1" for="inv-role">{% trans "Rolle" %}</label>
-        <select id="inv-role" name="role" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          {% for value, label in invite_roles %}
-            <option value="{{ value }}">{{ label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      {% if invite_forms %}
-        <details class="w-full" data-perm-details>
-          <summary class="cursor-pointer text-xs font-medium text-indigo-700 py-1">{% trans "Rechte anpassen (optional)" %}</summary>
-          {% for f in invite_forms %}
-            <div class="mt-2" data-invite-role="{{ f.role }}">
-              <p class="text-xs font-semibold text-gray-700 mb-1">{% blocktrans with role=f.label %}Rechte für die Rolle „{{ role }}“{% endblocktrans %}</p>
-              <input type="hidden" name="perms_present_{{ f.role }}" value="1">
-              {% include "tenant/_perm_fieldsets.html" with groups=f.groups field="perm_"|add:f.role %}
-            </div>
-          {% endfor %}
-        </details>
-      {% endif %}
-      <button type="submit" class="ui-btn ui-btn-primary">{% trans "Einladen" %}</button>
-    </form>
-  </div>
-  {% endif %}
+  {% if invite_roles %}<div class="flex justify-end mb-3 max-w-4xl"><a href="{% url 'team-invite' %}" class="ui-btn ui-btn-primary">＋ {% trans "Mitarbeiter einladen" %}</a></div>{% endif %}
+  <div class="ui-card divide-y divide-gray-100 max-w-4xl" data-team-list>
+    {% for r in rows %}
+      <a id="m-{{ r.m.pk }}" href="{% url 'team-member' r.m.pk %}" class="flex items-center gap-4 px-5 py-3 hover:bg-gray-50" data-member-row>
+        <span class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-700 shrink-0" aria-hidden="true">{{ r.email|slice:":1"|upper }}</span>
+        <span class="min-w-0 flex-1">
+          <span class="block font-semibold text-gray-900 truncate">{{ r.email }}</span>
+          <span class="block text-xs text-gray-600 truncate">{{ r.m.get_role_display }}{% if r.is_last_owner %} · {% trans "letzter Inhaber" %}{% endif %}{% if r.perm_form %} · {% blocktrans with n=r.perm_form.count %}Rechte ({{ n }}){% endblocktrans %}{% endif %}{% if r.is_self %} · {% trans "Sie" %}{% endif %}</span>
+        </span>
+        <span class="shrink-0 text-gray-500" aria-hidden="true">›</span>
+      </a>
+    {% endfor %}
   </div>
 </div>
-<script>
-(function () {
-  // E6.7d: зависимости прав (сервер — источник истины; это лишь подсказка в форме).
-  document.addEventListener("change", function (e) {
-    var box = e.target;
-    if (!box.matches || !box.matches("[data-perm]")) return;
-    var set = box.closest("[data-perm-set]");
-    if (!set) return;
-    function byKey(k) { return set.querySelector('[data-perm="' + k + '"]'); }
-    if (box.checked) {
-      (box.dataset.requires || "").split(",").forEach(function (k) {
-        var dep = k && byKey(k);
-        if (dep && !dep.disabled && !dep.checked) { dep.checked = true; dep.dispatchEvent(new Event("change", {bubbles: true})); }
-      });
-    } else {
-      set.querySelectorAll("[data-requires]").forEach(function (other) {
-        if (other.checked && !other.disabled && other.dataset.requires.split(",").indexOf(box.value) >= 0) {
-          other.checked = false; other.dispatchEvent(new Event("change", {bubbles: true}));
-        }
-      });
-    }
-  });
-  // Инвайт: видимы права только выбранной роли (без JS видны все блоки — сервер берёт блок роли).
-  var sel = document.getElementById("inv-role");
-  function syncRole() {
-    if (!sel) return;
-    document.querySelectorAll("[data-invite-role]").forEach(function (b) {
-      b.hidden = b.dataset.inviteRole !== sel.value;
-    });
-  }
-  if (sel) { sel.addEventListener("change", syncRole); syncRole(); }
-  // После сохранения/отказа — вернуть раскрытой форму участника из якоря.
-  var m = location.hash.match(/^#m-([0-9a-f-]{36})$/);
-  var row = m && document.getElementById("m-" + m[1]);
-  var det = row && row.querySelector("[data-perm-details]");
-  if (det) det.open = true;
-})();
-</script>
 {% endblock %}

@@ -1,0 +1,41 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Mitarbeiter einladen" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D6.6: «＋ Mitarbeiter einladen» — своя страница (раньше форма рядом со списком).
+Права выбранной роли — блоками под ролью (без JS видны все; сервер берёт блок роли).{% endcomment %}
+<a href="{% url 'team' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Team & Zugriff" %}</a>
+<h1 class="ui-h1 mt-1 mb-1">{% trans "Mitarbeiter einladen" %}</h1>
+<p class="text-sm text-gray-600 mb-4">{% trans "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Rechte lassen sich pro Person anpassen; Abo und Recht & Steuern bleiben dem Inhaber vorbehalten." %}</p>
+{% include "tenant/_settings_messages.html" %}
+{% if invite_roles %}
+<form method="post" class="ui-card p-5 space-y-4 max-w-3xl" data-team-invite>
+  {% csrf_token %}
+  <input type="hidden" name="action" value="invite">
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="inv-email">{% trans "E-Mail" %}</label>
+      <input autocomplete="off" id="inv-email" type="email" name="email" required class="ui-input">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="inv-role">{% trans "Rolle" %}</label>
+      <select id="inv-role" name="role" class="ui-input">
+        {% for value, label in invite_roles %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  {% for f in invite_forms %}
+    <div data-invite-role="{{ f.role }}">
+      <p class="text-sm font-semibold text-gray-700 mb-1">{% blocktrans with role=f.label %}Rechte für die Rolle „{{ role }}“{% endblocktrans %}</p>
+      <input type="hidden" name="perms_present_{{ f.role }}" value="1">
+      {% include "tenant/_perm_fieldsets.html" with groups=f.groups field="perm_"|add:f.role %}
+    </div>
+  {% endfor %}
+  <div class="flex justify-end"><button type="submit" class="ui-btn ui-btn-primary">{% trans "Einladen" %}</button></div>
+</form>
+{% else %}
+<p class="ui-card p-5 text-sm text-gray-600">{% trans "Keine Berechtigung." %}</p>
+{% endif %}
+{% include "tenant/_perm_js.html" %}
+{% endblock %}
