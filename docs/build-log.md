@@ -21376,3 +21376,17 @@ Grundlagen · Inhalt · Lookbook-Fotos (состав — `_save_members` D6.0, �
 `test_d6_finance_entries` (21), `test_d6_collection_pages` (9); переписаны осознанно
 `test_collections`, `test_lookbook`, `test_d6_hotfixes` (чекбоксы — на вкладке «Inhalt»),
 `test_sidebar_st4b`, `test_wr3_form_noise` (настройки склада).
+
+### 2026-11-03 — UX-D D6.6 / D6.7 — волна D6 закрыта
+**D6.6:** Team — список строками (имя, роль, число прав) → страница участника `team-member`
+(роль кнопками — раньше select с автосабмитом onchange, WCAG 3.2.2; права формой E6.7d;
+удаление в «Gefahrenbereich» с подтверждением; чужой id в POST — 404; изменения — только
+`perm_grants`); приглашение — своя страница `team-invite` (общий `_handle_invite` /
+`_invite_blocked`). Каналы — «Trennen» (`channel-disconnect`): снимает ключи подключения и
+выключает канал (раньше отключить было нельзя — пустое поле не затирает секрет); фид Merchant
+не трогается — у него свой выключатель (решение по ревью безопасности). Ревью безопасности:
+без CRITICAL/HIGH. **D6.7:** стенды D6.1–D6.6 (hotel/werkstatt/friseur × 1600/390) — 24/24,
+20/20, 10/10. Замки: `test_d6_team_pages` (9) + `test_config_secrets` (+1); переписаны
+осознанно `test_w9_team`, `test_team_perms_ui`, `test_list_pager` (выбор клиента — на
+«Neue Rechnung»). Миграций в волне D6 нет. Остаток — D6.0b (мягкий разбор сумм ещё в ~15 местах
+кабинета) и D6.5-хвосты (Beleg-сбой не откатывает расход; двойной клик на страницах без JS).
