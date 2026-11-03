@@ -1,12 +1,15 @@
 {% load i18n widget_tweaks form_a11y cabinet %}
 {% comment %}UX-D D6.4: поля Django-формы (ваучеры/лояльность) — общий рендер для шторки и
 страниц. Поля переводов (OverlayI18nFormMixin) оборачиваются в data-i18n-loc; ошибки — у поля
-(form_a11y ставит aria-invalid/aria-describedby). Первое ошибочное поле получает фокус шторки.{% endcomment %}
+(form_a11y ставит aria-invalid/aria-describedby). Первое ошибочное поле получает фокус шторки.
+`no_translations` — форма создания: переводы вводятся на странице объекта (без выпадашки языка
+скрытое поле с ошибкой было бы невидимо).{% endcomment %}
 {% i18n_base_locale as base_loc %}
 {% if form.non_field_errors %}<div role="alert" class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{% for err in form.non_field_errors %}<p>{{ err }}</p>{% endfor %}</div>{% endif %}
 <div class="grid sm:grid-cols-2 gap-4">
   {% for field in form %}
     {% with loc=field|i18n_loc %}
+    {% if no_translations and loc and loc != base_loc %}{% else %}
     <div{% if loc %} data-i18n-loc="{{ loc }}"{% if loc != base_loc %} class="hidden"{% endif %}{% endif %}>
       {% if field.field.widget.input_type == "checkbox" %}
         <label class="flex items-center gap-2 text-sm min-h-[24px] mt-6" for="{{ field.id_for_label }}">{% render_field field|a11y class="rounded border-gray-300" %} {{ field.label }}</label>
@@ -17,6 +20,7 @@
       {% if field.help_text %}<p class="text-xs text-gray-600 mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
       {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-700 mt-1"><span aria-hidden="true">⚠ </span>{{ err }}</p>{% endfor %}</div>{% endif %}
     </div>
+    {% endif %}
     {% endwith %}
   {% endfor %}
 </div>

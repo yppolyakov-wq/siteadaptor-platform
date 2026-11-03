@@ -35,6 +35,22 @@ def _render(request, form, *, drawer_tpl, page_tpl, nav, back):
     return render(request, page_tpl, ctx)
 
 
+def create_vouchers(form):
+    """Пачка кодов из валидной VoucherCreateForm (одна точка для шторки и старой формы)."""
+    d_eur = form.cleaned_data.get("discount_eur")
+    min_eur = form.cleaned_data.get("min_order_eur")
+    return services.generate_vouchers(
+        label=form.cleaned_data["label"],
+        count=form.cleaned_data["count"],
+        max_uses=form.cleaned_data["max_uses"],
+        expires_at=form.cleaned_data.get("expires_at"),
+        discount_percent=form.cleaned_data.get("discount_percent"),
+        discount_cents=int(d_eur * 100) if d_eur else None,
+        min_order_cents=int(min_eur * 100) if min_eur else 0,
+        combinable=form.cleaned_data.get("combinable", False),
+    )
+
+
 @login_required
 @drawer_mod.drawer_aware
 def voucher_new(request):
@@ -42,18 +58,7 @@ def voucher_new(request):
     form = VoucherCreateForm(request.POST or None)
     if request.method == "POST":
         if form.is_valid():
-            d_eur = form.cleaned_data.get("discount_eur")
-            min_eur = form.cleaned_data.get("min_order_eur")
-            created = services.generate_vouchers(
-                label=form.cleaned_data["label"],
-                count=form.cleaned_data["count"],
-                max_uses=form.cleaned_data["max_uses"],
-                expires_at=form.cleaned_data.get("expires_at"),
-                discount_percent=form.cleaned_data.get("discount_percent"),
-                discount_cents=int(d_eur * 100) if d_eur else None,
-                min_order_cents=int(min_eur * 100) if min_eur else 0,
-                combinable=form.cleaned_data.get("combinable", False),
-            )
+            created = create_vouchers(form)
             messages.success(request, _("%(count)d Voucher erstellt.") % {"count": len(created)})
             return redirect(local_next(request) or reverse("promotions:voucher-list"))
         if drawer_mod.is_drawer(request):

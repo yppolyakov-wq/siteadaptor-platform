@@ -1783,18 +1783,10 @@ def voucher_list(request):
         return redirect("promotions:voucher-list")
     form = VoucherCreateForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        d_eur = form.cleaned_data.get("discount_eur")
-        min_eur = form.cleaned_data.get("min_order_eur")
-        created = services.generate_vouchers(
-            label=form.cleaned_data["label"],
-            count=form.cleaned_data["count"],
-            max_uses=form.cleaned_data["max_uses"],
-            expires_at=form.cleaned_data.get("expires_at"),
-            discount_percent=form.cleaned_data.get("discount_percent"),
-            discount_cents=int(d_eur * 100) if d_eur else None,
-            min_order_cents=int(min_eur * 100) if min_eur else 0,
-            combinable=form.cleaned_data.get("combinable", False),
-        )
+        # Старая вкладка до UX-D D6.4 (сейчас генерация — шторкой voucher-new).
+        from .list_pages import create_vouchers
+
+        created = create_vouchers(form)
         messages.success(request, _("%(count)d Voucher erstellt.") % {"count": len(created)})
         return redirect("promotions:voucher-list")
     # B1.3: проданные Geschenkgutscheine (движок G1) — покупатель/номинал/

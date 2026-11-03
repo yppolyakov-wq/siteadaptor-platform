@@ -3,7 +3,7 @@
 <form method="post" action="{% url 'promotions:loyalty-new' %}" class="space-y-4" data-drawer-form>
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ next_url }}">
-  {% include "promotions/_list_form_fields.html" %}
+  {% include "promotions/_list_form_fields.html" with no_translations=1 %}
   <div class="flex justify-end gap-2 pt-2{% if in_drawer %} sticky bottom-0 bg-white pb-1{% endif %}">
     <button class="ui-btn ui-btn-primary">{% trans "Create program" %}</button>
   </div>

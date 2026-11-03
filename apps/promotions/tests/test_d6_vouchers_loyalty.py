@@ -175,3 +175,11 @@ def test_drawers_and_permissions():
     assert (
         r["promotions:loyalty-new"] == r["promotions:loyalty-edit"] == r["promotions:loyalty-list"]
     )
+
+
+def test_loyalty_stamps_required_zero_is_rejected():
+    p = LoyaltyProgram.objects.create(label="A", reward_label="B", stamps_required=10)
+    data = {"program": str(p.pk), "label": "A", "stamps_required": "0", "reward_label": "B"}
+    resp = list_pages.loyalty_edit(_req(f"/promotions/loyalty/{p.pk}/", "post", data), pk=p.pk)
+    p.refresh_from_db()
+    assert resp.status_code == 200 and p.stamps_required == 10

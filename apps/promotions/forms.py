@@ -774,3 +774,12 @@ class LoyaltyProgramForm(OverlayI18nFormMixin, forms.ModelForm):
             "stamps_required": _("Stamps required"),
             "reward_label": _("Reward"),
         }
+
+    def clean_stamps_required(self):
+        # Ревью D6.4: 0 молча выключал все награды (`add_stamp` проверяет `if required`).
+        value = self.cleaned_data.get("stamps_required")
+        if value is not None and value < 1:
+            raise forms.ValidationError(
+                _("Bitte eine Zahl von %(lo)s bis %(hi)s angeben.") % {"lo": 1, "hi": 999}
+            )
+        return value
