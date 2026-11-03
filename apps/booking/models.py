@@ -113,6 +113,13 @@ class Resource(I18nMixin, TimestampedModel):
         """A3: URL фото мастера (или ''), безопасно к не-dict значению."""
         return self.photo.get("url", "") if isinstance(self.photo, dict) else ""
 
+    @property
+    def deposit_eur(self):
+        """UX-D D3.0: предоплата в евро (Decimal) — для денежного поля («5,50», не «6»)."""
+        from decimal import Decimal
+
+        return Decimal(self.deposit_cents or 0) / 100
+
 
 class Service(I18nMixin, TimestampedModel):
     """Услуга с ценой и длительностью (G10): «Ölwechsel — 30 мин, 49 €».
