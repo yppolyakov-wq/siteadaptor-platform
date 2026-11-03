@@ -96,6 +96,16 @@ python manage.py seed_demo_tenants --kit hotel --recreate
 
 ## 4. Кабинет (владелец) — управление
 
+- **`/dashboard/` — главная отеля = сводка дня (UX-D D1.4–D1.6).** Цифры дня (выручка, «Belegt
+  heute N von M», заезды/выезды, «Nicht bezahlt» — те же строки, что Offene Posten); «Heute» —
+  заезд Familie Sommer (уже заселена), выезд Herr Wagner с «Check-out», номер 101 к уборке со
+  «Sauber»; «Braucht Aufmerksamkeit» — неподтверждённая бронь (Frau Neumann), брони без номера,
+  непрочитанный вопрос гостя («später Check-in»), окно между бронями Ferienwohnung (+ ссылка
+  «Lücken-Rabatt einrichten»), Vorkasse Firma Kessler без оплаты; загрузка на 7 дней. Брони и
+  «＋ Neue Buchung» открываются **шторкой справа** (на телефоне — на весь экран).
+- **«Verkäufe → Übernachtungen → Kalender»** — шахматка во всю ширину: клик по брони → шторка
+  (правка, оплата, Meldeschein, стойка), клик по свободной клетке → шторка «Neue Buchung» с
+  категорией и датой. Уборка — колонкой «Zimmer reinigen» в виде «Heute».
 - **`/dashboard/stays/`** — календарь загрузки (номера × ночи: свободно/занято/блок),
   список броней, действия по FSM (bestätigen/erledigt/no-show/stornieren), перенос дат,
   ручная бронь (телефон/стойка → сразу confirmed), «Rechnung erstellen».

@@ -21122,3 +21122,13 @@ Aufmerksamkeit». Из `calendar_context` убраны `dirty_rooms`/`gap_hint` 
 потому что её контейнер не был позиционирован → `relative` + замок. Замки уборки/Lücken
 переписаны осознанно (`test_belegungsplan`, `test_gap_deal`, `test_gaps`); ECC django-review —
 только LOW, закрыты.
+
+## 2026-11-03 — UX-D D1.6: демо отеля под новую главную + доки (без миграций)
+Демо «Pension Seeblick» получило по примеру на каждый блок сводки дня: номер 101 к уборке, бронь
+ждёт подтверждения (Frau Neumann), Vorkasse без оплаты (Firma Kessler GmbH), окно в 2 ночи между
+бронями Ferienwohnung (длина брони — по `min_nights`, иначе MinStay; поймано замком) и
+непрочитанный вопрос гостя (`inbox_threads` кита). Ветка сидера — только у кита `hotel`
+(общий код стойки у ретрита не трогается). `SEEDER_VERSION` 12 → 13. Замок
+`test_demo_hotel_home.py`: после засева каждый блок главной непуст. Демо-гид
+`docs/hotel-demo.md` §4 описывает главную, шторку и «Zimmer reinigen». **Волна D1 закрыта.**
+⚠️ ops: после деплоя `seed_demo_tenants --group all --changed` (или `--kit hotel --recreate`).

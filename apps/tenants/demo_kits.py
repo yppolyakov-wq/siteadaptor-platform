@@ -3419,6 +3419,24 @@ HOTEL = DemoKit(
     enable_archetypes_section=False,
     storefront_root="home",
     seed_records=True,
+    # UX-D D1.6: непрочитанный вопрос гостя — пункт «Braucht Aufmerksamkeit» на главной
+    inbox_threads=[
+        {
+            "subject": "Anreise am Freitag erst gegen 22 Uhr",
+            "name": "Familie Roth",
+            "email": "roth@example.com",
+            "status": "open",
+            "unread": True,
+            "messages": [
+                (
+                    "customer",
+                    "Guten Tag, wir kommen am Freitag leider erst gegen 22 Uhr an. "
+                    "Ist ein später Check-in möglich?",
+                    35,
+                ),
+            ],
+        },
+    ],
     menus=HOTEL_MENUS,
     hide_archetypes=["catalog", "booking"],  # пустые у отеля — скрыть из «Bereiche»
     archetype_covers={
@@ -27220,6 +27238,59 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                 import logging
 
                 logging.getLogger(__name__).exception("demo: hotel front desk seed failed")
+
+            # UX-D D1.6: главная отеля — сводка дня; у каждого блока есть пример:
+            # уборка после вчерашнего выезда, бронь ждёт подтверждения, Vorkasse ещё
+            # не оплачена, короткое свободное окно (кандидат на Lücken-Rabatt).
+            if kit.key == "hotel":
+                try:
+                    from apps.stays.models import Room as _Room
+
+                    dirty = _Room.objects.filter(unit=desk_unit).order_by("number").first()
+                    if dirty is not None:
+                        _Room.objects.filter(pk=dirty.pk).update(housekeeping=_Room.HK_DIRTY)
+                    book_stay(
+                        desk_unit,
+                        arrival=today + timedelta(days=2),
+                        departure=today + timedelta(days=4),
+                        name="Frau Neumann",
+                        email="neumann@example.com",
+                        adults=1,
+                        auto_confirm=False,  # ждёт подтверждения
+                        source_channel="manual",
+                    )
+                    book_stay(
+                        desk_unit,
+                        arrival=today + timedelta(days=9),
+                        departure=today + timedelta(days=11),
+                        name="Firma Kessler GmbH",
+                        email="buchung@kessler.example.com",
+                        adults=1,
+                        auto_confirm=True,
+                        source_channel="manual",
+                        payment_method="vorkasse",  # перевод ещё не пришёл
+                    )
+                    solo = next((u for u in units if u.quantity == 1), None)
+                    if solo is not None:
+                        # окно в 2 ночи между двумя бронями (длина брони — не меньше
+                        # min_nights категории, иначе MinStay)
+                        n = max(2, solo.min_nights or 1)
+                        first = 34
+                        second = first + n + 2
+                        for arr, name in ((first, "Familie Roth"), (second, "Herr Brandt")):
+                            book_stay(
+                                solo,
+                                arrival=today + timedelta(days=arr),
+                                departure=today + timedelta(days=arr + n),
+                                name=name,
+                                adults=max(1, min(2, solo.max_guests or 1)),
+                                auto_confirm=True,
+                                source_channel="manual",
+                            )
+                except Exception:
+                    import logging
+
+                    logging.getLogger(__name__).exception("demo: hotel home seed failed")
 
             # G11: каналы продаж (Booking/Airbnb) + импортированная бронь из канала.
             from apps.stays.models import Channel
