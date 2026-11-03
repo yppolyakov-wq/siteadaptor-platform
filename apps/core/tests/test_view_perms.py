@@ -34,6 +34,11 @@ INLINE_GATED = {
     "stays:meldescheine-export": "kunden.export — новый экран, правило в view_perms",
     # KA-12 WR-6: массовая правка цен — сразу по праву цен (как price-calendar отеля).
     "catalog:products-bulk-price": "preise.edit — новый экран, правило в view_perms",
+    # UX-D D4.1/D4.2: тарифы и правила цены — свои экраны с правом цен (как price-calendar)
+    "stays:rate-plans": "preise.edit на запись — новый экран, правило в view_perms",
+    "stays:rate-plan-new": "preise.edit на запись — новый экран, правило в view_perms",
+    "stays:rate-plan-edit": "preise.edit на запись — новый экран, правило в view_perms",
+    "stays:price-rules": "preise.edit на запись — новый экран, правило в view_perms",
 }
 
 
