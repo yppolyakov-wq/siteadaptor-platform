@@ -32013,3 +32013,18 @@ msgstr "Каналы продаж, виджет для сайта и метап�
 
 msgid "Website-Widget & Metasuche"
 msgstr "Виджет для сайта и метапоиск"
+
+msgid "Einstellungen für alle Zimmer"
+msgstr "Настройки для всех номеров"
+
+msgid "Fotos, Beschreibung, Ausstattung und Zimmernummern — nach dem Anlegen auf der Seite des Zimmers."
+msgstr "Фото, описание, удобства и номера комнат — на странице номера после создания."
+
+msgid "Mehr…"
+msgstr "Ещё…"
+
+msgid "Neues Zimmer"
+msgstr "Новый номер"
+
+msgid "Noch keine Zimmer."
+msgstr "Номеров пока нет."

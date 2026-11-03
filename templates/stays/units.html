@@ -13,14 +13,13 @@
     </div>
     <a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Units" %}</a>
   {% else %}
-    <div class="flex items-center gap-3 flex-wrap">
-      <h1 class="ui-h1">{% nav_title _("Units & blocked dates") %}</h1>
-      {% lang_switch %}
-    </div>
-    <div class="flex gap-4">
+    <h1 class="ui-h1">{% nav_title _("Units & blocked dates") %}{% if units %} <span class="text-base font-normal text-gray-500">· {{ units|length }}</span>{% endif %}</h1>
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
       {# UB3-2: подборки номеров → чипы-фасет на /unterkunft/. #}
-      <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} →</a>
-      <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
+      <a href="{% url 'collections:list' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Collections" %} <span aria-hidden="true">→</span></a>
+      <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Calendar" %}</a>
+      {# UX-D D4.5: «＋ Zimmer» — шторкой; номер создаётся с ценой → только с правом на цены #}
+      {% if can_edit_prices %}<a href="{% url 'stays:unit-new' %}" data-drawer aria-haspopup="dialog" class="ui-btn ui-btn-primary ui-btn-sm"><span aria-hidden="true">＋ </span>{% trans "Neues Zimmer" %}</a>{% endif %}
     </div>
   {% endif %}
 </div>
@@ -32,17 +31,11 @@
 {% endif %}
 
 {% if not unit_page %}
-{% comment %}Фидбэк 2026-07-28: «это же разные номера, почему на одной странице» —
-список стал КОМПАКТНЫМ (строка = номер, «Bearbeiten» ведёт на его страницу);
-вся портянка настроек номера живёт на /units/<pk>/. Фидбэк №2: страница списка
-разделена ТАБАМИ «Einheiten» (список + «＋ Neue Einheit») / «Einstellungen»
-(глобальные настройки 4 группами). Инвариант W0: панели скрываются только CSS,
-все поля в DOM; активный таб приходит с сервера (?tab= из redirect'а Save).{% endcomment %}
-<div class="ui-tabs mb-4" role="group" aria-label="{% trans "Bereiche" %}">
-  <button type="button" data-pt-tab="einheiten" aria-pressed="{% if tab != 'einstellungen' %}true{% else %}false{% endif %}" class="ui-tab pt-pill">🛏 {% trans "Units" %}</button>
-  <button type="button" data-pt-tab="einstellungen" aria-pressed="{% if tab == 'einstellungen' %}true{% else %}false{% endif %}" class="ui-tab pt-pill">⚙️ {% trans "Settings" %}</button>
-</div>
-<div data-pt-panel="einheiten" class="{% if tab == 'einstellungen' %}hidden {% endif %}bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+{% comment %}Фидбэк 2026-07-28: «это же разные номера, почему на одной странице» — список
+КОМПАКТНЫЙ (строка = номер), всё о номере — на его странице. UX-D D4.5: вкладка
+«Einstellungen» и раскрытая форма «＋ Neue Einheit» убраны — настройки на своих экранах
+(ссылки ниже), создание — шторкой «＋ Neues Zimmer».{% endcomment %}
+<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6" data-units-list>
   {% for u in units %}
     <div class="flex items-center gap-4 px-5 py-3 {% if not u.is_active %}opacity-60{% endif %}">
       {% if u.images %}<img src="{{ u.images.0.url }}" alt="" class="w-14 h-14 object-cover rounded-lg shrink-0">
@@ -61,7 +54,7 @@
       </div>
     </div>
   {% empty %}
-    {% trans "No units yet — create your first below." as t %}{% include "ui/_empty.html" with title=t flat=1 %}
+    {% trans "Noch keine Zimmer." as t %}{% include "ui/_empty.html" with title=t flat=1 %}
   {% endfor %}
 </div>
 {% endif %}
@@ -330,123 +323,14 @@
 {% endif %}
 
 {% if not unit_page %}
-{# --- новый юнит: кнопка «＋» раскрывает форму (пустой список — раскрыта) ---- #}
-<details id="neu" data-pt-panel="einheiten" class="{% if tab == 'einstellungen' %}hidden {% endif %}max-w-2xl mb-8"{% if not units or open_new %} open{% endif %}>
-  <summary class="cursor-pointer select-none inline-flex items-center gap-2 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">＋ {% trans "New unit" %}</summary>
-<form method="post" enctype="multipart/form-data" class="ui-card mt-3 p-6 max-w-2xl space-y-4">
-  {% csrf_token %}
-  <input type="hidden" name="action" value="unit">
-  <div class="grid sm:grid-cols-2 gap-4">
-    <div data-i18n-loc="{{ base_loc }}" class="sm:col-span-2 space-y-4">
-      <input name="name" type="text" value="{{ prefill.name|default:'' }}" required aria-label="{% trans "Name" %}" placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" class="ui-input">
-      <textarea name="description" rows="2" aria-label="{% trans 'Description (amenities, view …)' %}" placeholder="{% trans 'Description (amenities, view …)' %}" class="ui-input"></textarea>
-    </div>
-    {# L3d/E9.10: переводы — группой на язык (выпадашка у заголовка). #}
-    {% for loc in extra_locales %}
-    <div data-i18n-loc="{{ loc }}" class="hidden sm:col-span-2 space-y-4">
-      <input aria-label="{% trans "Name" %} ({{ loc|upper }})" name="name_{{ loc }}" type="text" placeholder="{% trans "Name" %} ({{ loc|upper }})" class="ui-input">
-      <textarea name="description_{{ loc }}" rows="2" aria-label="{% trans 'Description' %} ({{ loc|upper }})" placeholder="{% trans 'Description' %} ({{ loc|upper }})" class="ui-input"></textarea>
-    </div>
-    {% endfor %}
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Type" %}</span>
-      <select name="type" class="ui-input">
-        {% for value, label in types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-      </select></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price / night (€)" %}</span>
-      <input name="price_eur" type="text" value="{{ prefill.price_eur|default:'' }}" placeholder="80" class="ui-input"></label>
-    </div>
-    {% vat_select "7.00" %}
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Quantity (identical units)" %}</span>
-      <input name="quantity" type="number" min="1" value="1" class="ui-input"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Max. guests" %}</span>
-      <input name="max_guests" type="number" min="1" value="2" class="ui-input"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Min. nights" %}</span>
-      <input name="min_nights" type="number" min="1" value="1" class="ui-input"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</span>
-      <input name="deposit_eur" type="text" placeholder="0" class="ui-input"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Area (m², optional)" %}</span>
-      <input name="area_sqm" type="number" min="0" placeholder="0" class="ui-input"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Bed type (optional)" %}</span>
-      <input name="bed_type" type="text" placeholder="{% trans 'e.g. Doppelbett' %}" class="ui-input"></label>
-    </div>
-    <div class="sm:col-span-2">
-      <label class="block text-sm font-medium mb-1">{% trans "Amenities" %}</label>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-1 text-sm text-gray-700">
-        {% for key, label, icon in amenities %}
-          <label class="flex items-center gap-2"><input type="checkbox" name="amenities" value="{{ key }}" class="rounded"> {{ icon }} {{ label }}</label>
-        {% endfor %}
-      </div>
-    </div>
-    <div class="sm:col-span-2">
-      <span class="block text-sm font-medium mb-1">{% trans "Photos (optional)" %}</span>
-      {% include "catalog/_photo_add_tile.html" with target="photos" %}
-      <input type="file" name="photos" accept="image/*" multiple class="hidden" aria-label="{% trans "Photos (optional)" %}">
-    </div>
-  </div>
-  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create unit" %}</button>
-</form>
-</details>
-{% comment %}Фидбэк 2026-07-28 (№2): глобальные настройки — отдельный таб
-«Einstellungen», 4 смысловые группы (цены → правила продаж → Kurtaxe →
-каналы/экспорт), внутри — прежние свёрнутые details.{% endcomment %}
-<div data-pt-panel="einstellungen" class="{% if tab != 'einstellungen' %}hidden{% endif %}">
-{% comment %}Фидбэк 2026-07-28 (№3): группы настроек — ПОД-ТАБЫ (не заголовки подряд).
-Активная секция приходит с сервера (?sec= из redirect'а Save), переключение —
-делегированным JS; полоса табов скроллится на мобиле (overflow-x-auto).{% endcomment %}
-<div data-st-panel="preise">
-<a href="{% url 'stays:price-calendar' %}" data-price-calendar-link class="flex items-center justify-between gap-3 bg-indigo-50 rounded-2xl px-5 py-3 mb-3 text-sm text-indigo-800 hover:bg-indigo-100">
-  <span>📅 <strong>{% trans "Preise & Verfügbarkeit" %}</strong> — {% trans "Tagespreise, Stopp und Mindestaufenthalt im Kalender" %}</span><span aria-hidden="true">→</span>
-</a>
-{# UX-D D4.1: тарифы — свой экран «Tarife» (список, «＋ Tarif», правка). #}
-<a href="{% url 'stays:rate-plans' %}" data-rate-plans-link class="flex items-center justify-between gap-3 ui-card px-5 py-3 mb-3 text-sm hover:bg-gray-50">
-  <span><strong>{% trans "Tarife" %}</strong>{% if rate_plans %} · {{ rate_plans|length }}{% endif %} — {% trans "Basis, nicht erstattbar, mit Frühstück … Gäste wählen beim Buchen." %}</span><span aria-hidden="true">→</span>
-</a>
-{# UX-D D4.2: авто-скидки, динамика, Lücken-Deal и правила продаж — экран «Preise & Regeln». #}
-<a href="{% url 'stays:price-rules' %}" data-price-rules-link class="flex items-center justify-between gap-3 ui-card px-5 py-3 mb-3 text-sm hover:bg-gray-50">
-  <span><strong>{% trans "Preise & Regeln" %}</strong> — {% trans "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln" %}</span><span aria-hidden="true">→</span>
-</a>
-{# UX-D D4.3/D4.4: «Unterkunft»; виджет и метапоиск — на «Kanal-Manager». #}
-<a href="{% url 'stays:stay-settings' %}" data-stay-settings-link class="flex items-center justify-between gap-3 ui-card px-5 py-3 mb-3 text-sm hover:bg-gray-50">
-  <span><strong>{% trans "Unterkunft" %}</strong> — {% trans "Kurtaxe, Hausordnung, Check-in-Zeiten und Ausstattung auf der Zimmerkarte" %}</span><span aria-hidden="true">→</span>
-</a>
-<a href="{% url 'stays:channels' %}" data-channels-link class="flex items-center justify-between gap-3 ui-card px-5 py-3 mb-3 text-sm hover:bg-gray-50">
-  <span><strong>{% trans "Kanal-Manager" %}</strong> — {% trans "Buchungskanäle, Website-Widget und Metasuche" %}</span><span aria-hidden="true">→</span>
-</a>
-</div>
-</div>
-<script>
-// Фидбэк 2026-07-28 (№2): табы страницы списка «Einheiten / Einstellungen».
-// Делегирование на document (урок Ф1); панели скрываются только классом hidden
-// (инвариант W0); начальное состояние рендерит сервер (?tab= из redirect'а).
-document.addEventListener("click", function (e) {
-  var btn = e.target.closest("[data-pt-tab]");
-  if (!btn) return;
-  var key = btn.getAttribute("data-pt-tab");
-  document.querySelectorAll("[data-pt-panel]").forEach(function (p) {
-    p.classList.toggle("hidden", p.getAttribute("data-pt-panel") !== key);
-  });
-  document.querySelectorAll("[data-pt-tab]").forEach(function (b) {
-    var active = b === btn;
-    b.setAttribute("aria-pressed", active ? "true" : "false");
-  });
-  var url = key === "einstellungen" ? "?tab=einstellungen" : location.pathname;
-  try { history.replaceState(null, "", url); } catch (err) {}
-});
-</script>
+{# UX-D D4.5: общие настройки номеров — на своих экранах (раньше вкладка «Einstellungen»). #}
+<nav class="flex flex-wrap gap-x-5 gap-y-2 text-sm mb-8" aria-label="{% trans "Einstellungen für alle Zimmer" %}" data-units-settings-links>
+  <a href="{% url 'stays:price-calendar' %}" class="text-indigo-700 hover:underline" data-price-calendar-link>{% trans "Preise & Verfügbarkeit" %} <span aria-hidden="true">→</span></a>
+  <a href="{% url 'stays:rate-plans' %}" class="text-indigo-700 hover:underline" data-rate-plans-link>{% trans "Tarife" %} <span aria-hidden="true">→</span></a>
+  <a href="{% url 'stays:price-rules' %}" class="text-indigo-700 hover:underline" data-price-rules-link>{% trans "Preise & Regeln" %} <span aria-hidden="true">→</span></a>
+  <a href="{% url 'stays:stay-settings' %}" class="text-indigo-700 hover:underline" data-stay-settings-link>{% trans "Unterkunft" %} <span aria-hidden="true">→</span></a>
+  <a href="{% url 'stays:channels' %}" class="text-indigo-700 hover:underline" data-channels-link>{% trans "Kanal-Manager" %} <span aria-hidden="true">→</span></a>
+</nav>
 {% endif %}
 {% if unit_page %}
 <script>

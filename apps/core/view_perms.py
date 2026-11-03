@@ -183,6 +183,8 @@ RULES: dict[str, Rule] = {
     "stays:price-rules": _r("preise.view", "preise.edit"),
     # UX-D D4.3: настройки размещения; Kurtaxe и часы — ещё preise.edit во вьюхе
     "stays:stay-settings": _r(CFG, CFGE),
+    # UX-D D4.5: номер создаётся с ценой → запись по праву цен (как гейт действия unit)
+    "stays:unit-new": _r(S, "preise.edit"),
     "stays:price-calendar-apply": _r("preise.view", "preise.edit"),
     "stays:price-day": _r("preise.view", "preise.edit"),
     "events:list": _r(S, SE),

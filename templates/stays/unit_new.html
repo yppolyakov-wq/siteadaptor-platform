@@ -1,0 +1,15 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Neues Zimmer" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D4.5: страница «＋ Zimmer» без JS (в кабинете — шторка).{% endcomment %}
+<a href="{% url 'stays:units' %}" class="text-sm text-gray-500 hover:underline"><span aria-hidden="true">← </span>{% trans "Units" %}</a>
+<h1 class="ui-h1 mt-1 mb-4">{% trans "Neues Zimmer" %}</h1>
+{% if messages %}
+  {% for m in messages %}
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+<div class="ui-card p-6 max-w-xl">{% include "stays/_unit_new_form.html" %}</div>
+{% endblock %}

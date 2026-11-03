@@ -31997,3 +31997,18 @@ msgstr "Канали продажу, віджет для сайту та мет�
 
 msgid "Website-Widget & Metasuche"
 msgstr "Віджет для сайту та метапошук"
+
+msgid "Einstellungen für alle Zimmer"
+msgstr "Налаштування для всіх номерів"
+
+msgid "Fotos, Beschreibung, Ausstattung und Zimmernummern — nach dem Anlegen auf der Seite des Zimmers."
+msgstr "Фото, опис, зручності та номери кімнат — на сторінці номера після створення."
+
+msgid "Mehr…"
+msgstr "Ще…"
+
+msgid "Neues Zimmer"
+msgstr "Новий номер"
+
+msgid "Noch keine Zimmer."
+msgstr "Номерів поки немає."

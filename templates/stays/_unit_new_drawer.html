@@ -1,0 +1,5 @@
+{% load i18n %}
+{% comment %}UX-D D4.5: шторка «＋ Zimmer» (stays:unit-new?box=1).{% endcomment %}
+<div data-drawer-title="{% trans 'Neues Zimmer' %}" class="text-sm">
+  {% include "stays/_unit_new_form.html" with in_drawer=1 %}
+</div>

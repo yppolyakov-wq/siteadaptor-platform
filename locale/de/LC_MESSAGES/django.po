@@ -31811,3 +31811,18 @@ msgstr ""
 
 msgid "Website-Widget & Metasuche"
 msgstr ""
+
+msgid "Einstellungen für alle Zimmer"
+msgstr ""
+
+msgid "Fotos, Beschreibung, Ausstattung und Zimmernummern — nach dem Anlegen auf der Seite des Zimmers."
+msgstr ""
+
+msgid "Mehr…"
+msgstr ""
+
+msgid "Neues Zimmer"
+msgstr ""
+
+msgid "Noch keine Zimmer."
+msgstr ""

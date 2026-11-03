@@ -53,7 +53,7 @@ _MANAGE = {
         # Фидбэк 2026-07-30: «Bearbeiten» вёл на СПИСОК номеров — у юнита есть
         # своя страница (stays:unit-edit, per-pk).
         "edit": ("stays:unit-edit", True),
-        "add": ("stays:units", False),
+        "add": ("stays:unit-new", False),  # UX-D D4.5: форма «＋ Zimmer»
         "add_query": "?neu=1#neu",  # X6-1: ＋ раскрывает форму нового номера
         "toggle": True,
     },

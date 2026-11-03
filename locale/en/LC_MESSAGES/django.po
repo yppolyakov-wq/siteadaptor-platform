@@ -31724,3 +31724,18 @@ msgstr "Booking channels, website widget and metasearch"
 
 msgid "Website-Widget & Metasuche"
 msgstr "Website widget & metasearch"
+
+msgid "Einstellungen für alle Zimmer"
+msgstr "Settings for all rooms"
+
+msgid "Fotos, Beschreibung, Ausstattung und Zimmernummern — nach dem Anlegen auf der Seite des Zimmers."
+msgstr "Photos, description, amenities and room numbers — on the room's page after creating it."
+
+msgid "Mehr…"
+msgstr "More…"
+
+msgid "Neues Zimmer"
+msgstr "New room"
+
+msgid "Noch keine Zimmer."
+msgstr "No rooms yet."

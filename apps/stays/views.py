@@ -22,7 +22,7 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import deal_card, deal_links, payment_methods, refunds, setup_assistant, vat
+from apps.core import deal_card, deal_links, payment_methods, refunds, vat
 from apps.core import drawer as drawer_mod
 from apps.core import transactions as core_transactions
 from apps.core.fsm import GuestCheckedIn, IllegalTransition
@@ -44,7 +44,6 @@ from .models import (
     _AMENITY_KEYS,
     AMENITIES,
     ICalSource,
-    RatePlan,
     Room,
     SeasonRate,
     StayBooking,
@@ -1363,10 +1362,15 @@ def units(request, pk=None):
         # таб И на её ПОД-ТАБ (секцию), чтобы владелец не искал место заново.
         if action in settings_actions.ACTIONS:
             return redirect(settings_actions.home_url(action))
-        if action == "rate":  # сезон без pk (старые формы списка) — к ценам
-            return redirect(reverse("stays:units") + "?tab=einstellungen&sec=preise")
         return redirect("stays:units")
 
+    # UX-D D4.5: «＋ Neue Einheit» — короткая форма шторкой; старые ссылки ?neu=1 → туда
+    # (значения помощника создания едут дальше в GET).
+    if not pk and request.GET.get("neu") == "1":
+        params = request.GET.copy()
+        params.pop("neu", None)
+        query = params.urlencode()
+        return redirect(reverse("stays:unit-new") + (f"?{query}" if query else ""))
     # UX-D D4.2: правила продаж переехали — старые закладки «sec=regeln» ведут туда.
     if not pk and request.GET.get("sec") == "regeln":
         return redirect(reverse("stays:price-rules") + "?tab=regeln")
@@ -1374,6 +1378,9 @@ def units(request, pk=None):
         return redirect("stays:stay-settings")
     if not pk and request.GET.get("sec") == "kanaele":  # UX-D D4.4
         return redirect("stays:channels")
+    # UX-D D4.5: вкладки «Einstellungen» больше нет — цены и правила на своём экране
+    if not pk and request.GET.get("tab") == "einstellungen":
+        return redirect("stays:price-rules")
     unit_qs = StayUnit.objects.prefetch_related("blocks", "season_rates", "ical_sources", "rooms")
     if pk:
         unit_page = get_object_or_404(unit_qs, pk=pk)
@@ -1392,20 +1399,11 @@ def units(request, pk=None):
         "stays/units.html",
         {
             "nav": "units",  # X4: номер — сущность раздела «Sortiment» (не операция дня)
-            "open_new": request.GET.get("neu") == "1",  # X6-1: ＋ раскрывает форму
-            # STU-19g: values from the setup helper's link
-            "prefill": setup_assistant.prefill(request, setup_assistant.ENTITY_ROOM),
             "units": units,
             "unit_page": unit_page,  # 2026-07-28: страница одного номера
-            # Фидбэк №2: активный таб списка (einheiten | einstellungen)
-            "tab": request.GET.get("tab", ""),
-            # Фидбэк №3: активная секция настроек (preise | kanaele); regeln/kurtaxe — 302
-            "sec": request.GET.get("sec", ""),
             "extra_locales": extra_locales(getattr(request, "tenant", None)),
             "types": StayUnit.TYPES,
             "today": timezone.localdate(),
-            # UX-D D4.1: тарифы — свой экран; здесь только число на карточке-входе.
-            "rate_plans": list(RatePlan.objects.only("pk")),
             "can_edit_prices": has_perm(request.user, "preise.edit"),  # Z-4 Р-7
             "amenities": AMENITIES,  # H3 чек-лист удобств
             # UX-D D4.3: Kurtaxe/часы/удобства на карточке — экран «Unterkunft»

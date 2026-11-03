@@ -5,6 +5,7 @@ from . import (
     price_rules_views,
     rate_plan_views,
     stay_settings_views,
+    unit_new_views,
     views,
 )
 
@@ -45,6 +46,8 @@ urlpatterns = [
     # UX-D D4.3: Kurtaxe, Hausordnung, часы, удобства на карточке — Einstellungen › Zimmer.
     path("unterkunft/", stay_settings_views.stay_settings, name="stay-settings"),
     path("units/", views.units, name="units"),
+    # UX-D D4.5: «＋ Zimmer» — короткая форма шторкой (без JS — своя страница).
+    path("units/neu/", unit_new_views.unit_new, name="unit-new"),
     # Фидбэк 2026-07-28: каждый номер редактируется на СВОЕЙ странице.
     path("units/<uuid:pk>/", views.units, name="unit-edit"),
     # D2.4: self-serve продвижение юнита в агрегаторе.

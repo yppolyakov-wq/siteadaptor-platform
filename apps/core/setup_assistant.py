@@ -98,11 +98,10 @@ ENTITIES = {
     },
     ENTITY_ROOM: {
         "label": _("Zimmer"),
-        "url_name": "stays:units",
-        "query": {"neu": "1"},
-        "fragment": "neu",
+        # UX-D D4.5: короткая форма «＋ Zimmer» (шторкой); создание — с ценой
+        "url_name": "stays:unit-new",
         "module": "stays",
-        "perm": "sortiment.edit",
+        "perm": "preise.edit",
         "fields": (
             ("name", _("Name"), True),
             ("price_eur", _("Preis pro Nacht"), True),

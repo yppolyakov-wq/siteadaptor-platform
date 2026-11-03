@@ -1,0 +1,54 @@
+{% load i18n cabinet %}
+{% comment %}UX-D D4.5: короткая форма «＋ Zimmer» — шторка и страница без JS. Только то, без
+чего номер не продать; фото, описание, удобства, комнаты, сезоны — на странице номера.
+Скриптов нет (шторка). Контекст: uv (значения), uv_errors {поле: текст}, types, next_url.{% endcomment %}
+<form method="post" action="{% url 'stays:unit-new' %}" class="space-y-4" data-drawer-form>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <div>
+    <label for="unit-new-name" class="block text-sm font-medium mb-1">{% trans "Name" %} <span aria-hidden="true" class="text-red-700">*</span></label>
+    <input id="unit-new-name" name="name" type="text" required maxlength="120" autocomplete="off" value="{{ uv.name }}" placeholder="{% trans 'Name (e.g. Doppelzimmer, Ferienwohnung Süd)' %}" data-drawer-autofocus{% if uv_errors.name %} aria-invalid="true" aria-describedby="unit-new-name-err"{% endif %} class="ui-input">
+    {% if uv_errors.name %}<p id="unit-new-name-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ uv_errors.name }}</p>{% endif %}
+  </div>
+  <div class="grid grid-cols-2 gap-4">
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Type" %}</span>
+      <select name="type" class="ui-input">
+        {% for value, label in types %}<option value="{{ value }}"{% if value == uv.type %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select></label>
+    <div>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price / night (€)" %}</span>
+        <input name="price_eur" type="text" inputmode="decimal" value="{{ uv.price_eur }}" placeholder="80"{% if uv_errors.price_eur %} aria-invalid="true" aria-describedby="unit-new-price-err"{% endif %} class="ui-input"></label>
+      {% if uv_errors.price_eur %}<p id="unit-new-price-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ uv_errors.price_eur }}</p>{% endif %}
+    </div>
+    {% vat_select uv.vat_rate|default:"7.00" %}
+    <div>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Quantity (identical units)" %}</span>
+        <input name="quantity" type="text" inputmode="numeric" value="{{ uv.quantity|default:'1' }}"{% if uv_errors.quantity %} aria-invalid="true" aria-describedby="unit-new-qty-err"{% endif %} class="ui-input"></label>
+      {% if uv_errors.quantity %}<p id="unit-new-qty-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ uv_errors.quantity }}</p>{% endif %}
+    </div>
+    <div>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Max. guests" %}</span>
+        <input name="max_guests" type="text" inputmode="numeric" value="{{ uv.max_guests|default:'2' }}"{% if uv_errors.max_guests %} aria-invalid="true" aria-describedby="unit-new-guests-err"{% endif %} class="ui-input"></label>
+      {% if uv_errors.max_guests %}<p id="unit-new-guests-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ uv_errors.max_guests }}</p>{% endif %}
+    </div>
+  </div>
+  <details{% if uv_errors.min_nights or uv_errors.deposit_eur or uv.min_nights or uv.deposit_eur %} open{% endif %}>
+    <summary class="cursor-pointer text-sm text-indigo-700">{% trans "Mehr…" %}</summary>
+    <div class="grid grid-cols-2 gap-4 mt-3">
+      <div>
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Min. nights" %}</span>
+          <input name="min_nights" type="text" inputmode="numeric" value="{{ uv.min_nights }}" placeholder="1"{% if uv_errors.min_nights %} aria-invalid="true" aria-describedby="unit-new-min-err"{% endif %} class="ui-input"></label>
+        {% if uv_errors.min_nights %}<p id="unit-new-min-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ uv_errors.min_nights }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</span>
+          <input name="deposit_eur" type="text" inputmode="decimal" value="{{ uv.deposit_eur }}" placeholder="0"{% if uv_errors.deposit_eur %} aria-invalid="true" aria-describedby="unit-new-dep-err"{% endif %} class="ui-input"></label>
+        {% if uv_errors.deposit_eur %}<p id="unit-new-dep-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ uv_errors.deposit_eur }}</p>{% endif %}
+      </div>
+    </div>
+  </details>
+  <p class="text-xs text-gray-600">{% trans "Fotos, Beschreibung, Ausstattung und Zimmernummern — nach dem Anlegen auf der Seite des Zimmers." %}</p>
+  <div{% if in_drawer %} class="ui-drawer-foot"{% endif %}>
+    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create unit" %}</button>
+  </div>
+</form>

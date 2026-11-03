@@ -31870,3 +31870,18 @@ msgstr "Rezervasyon kanalları, web sitesi widget'ı ve meta arama"
 
 msgid "Website-Widget & Metasuche"
 msgstr "Web sitesi widget'ı ve meta arama"
+
+msgid "Einstellungen für alle Zimmer"
+msgstr "Tüm odalar için ayarlar"
+
+msgid "Fotos, Beschreibung, Ausstattung und Zimmernummern — nach dem Anlegen auf der Seite des Zimmers."
+msgstr "Fotoğraflar, açıklama, olanaklar ve oda numaraları — oluşturduktan sonra oda sayfasında."
+
+msgid "Mehr…"
+msgstr "Daha fazla…"
+
+msgid "Neues Zimmer"
+msgstr "Yeni oda"
+
+msgid "Noch keine Zimmer."
+msgstr "Henüz oda yok."

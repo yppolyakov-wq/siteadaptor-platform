@@ -486,7 +486,7 @@ _OFFER_CTA = {
     # SR-1: страница товаров умерла (302 на Sortiment) — CTA ведёт сразу в
     # форму создания (X6-1: «первое действие» открывает форму).
     "catalog": (_("Add your first product"), "catalog:product-create"),
-    "stays": (_("Add your first room"), "stays:units"),
+    "stays": (_("Add your first room"), "stays:unit-new"),  # UX-D D4.5
     "events": (_("Add your first event"), "events:list"),
     "booking": (_("Add your first service"), "booking:services"),
     # W7b: Handwerker (primary=jobs) вёл в чужой каталог товаров — фолбэк
