@@ -141,6 +141,10 @@ def rate_plan_edit(request, pk):
             messages.error(request, scope_err or next(iter(errors.values())))
             values = _posted_values(request.POST)
         elif action in LIST_ACTIONS:
+            # ревью D4.1 (F2): страница действует только на СВОЙ тариф, а не на pk из формы
+            post = request.POST.copy()
+            post["rateplan"] = str(rp.pk)
+            request.POST = post
             settings_actions.handle(request, action)
             if action == "rateplan_delete":
                 return redirect("stays:rate-plans")

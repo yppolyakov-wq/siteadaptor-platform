@@ -10,6 +10,8 @@ Kurtaxe, часы, подача карточки.
 
 from __future__ import annotations
 
+import re
+
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -313,14 +315,17 @@ RATE_PLAN_TEXT_FIELDS = ("name", "description")
 MAX_SURCHARGE_CENTS = 100_000  # 1 000 € за ночь — потолок надбавки
 
 
+_INT_RE = re.compile(r"-?[0-9]{1,4}")
+
+
 def _strict_int(raw, lo, hi):
+    """Целое ASCII-цифрами («1_0», «٣» и пр. — ошибка), в диапазоне; пусто → 0."""
     raw = (raw or "").strip().replace("−", "-")  # типографский минус из копипаста
     if not raw:
         return 0
-    try:
-        value = int(raw)
-    except ValueError:
+    if not _INT_RE.fullmatch(raw):
         return None
+    value = int(raw)
     return value if lo <= value <= hi else None
 
 
@@ -404,6 +409,10 @@ def save_rate_plan(rp: RatePlan | None, values: dict, scope, request) -> RatePla
         i18n = apply_i18n_overlay(
             rp, request.POST, getattr(request, "tenant", None), RATE_PLAN_TEXT_FIELDS
         )
+        # ревью D4.1 (F3): переводы режутся как база (maxlength — только в браузере)
+        for field, cap in (("name_i18n", 120), ("description_i18n", 300)):
+            overlay = getattr(rp, field) or {}
+            setattr(rp, field, {k: str(v)[:cap] for k, v in overlay.items()})
         if i18n:
             rp.save(update_fields=[*i18n, "updated_at"])
     return rp

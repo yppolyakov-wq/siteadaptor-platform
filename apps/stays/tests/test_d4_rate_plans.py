@@ -310,3 +310,63 @@ def test_templates_have_no_inline_scripts():
     for name in ("rate_plans.html", "rate_plan_edit.html", "_rate_plan_fields.html"):
         text = (ROOT / "templates/stays" / name).read_text()
         assert "<script" not in text and not re.search(r"\son[a-z]+=", text)
+
+
+def test_editing_the_plan_does_not_reprice_old_booking_on_move():
+    """Ревью D4.1 (F1): пересчёт при переносе брал ЖИВОЙ тариф — правка тарифа
+    меняла цену старой брони при «Neu berechnen». Теперь — снимок брони."""
+    unit = _unit()
+    rp = _plan(percent_adjust=-10, surcharge_cents=0)
+    start = date.today() + timedelta(days=20)
+    booking = services.book_stay(
+        unit, arrival=start, departure=start + timedelta(days=2), name="Gast", rate_plan=rp
+    )
+    before = booking.total_cents
+    _edit(rp, "post", {"action": "update", "name": "Teuer", "percent_adjust": "50"})
+    booking.refresh_from_db()
+    services.move_stay(
+        booking,
+        arrival=start + timedelta(days=1),
+        departure=start + timedelta(days=3),
+        reprice=True,
+    )
+    booking.refresh_from_db()
+    assert booking.total_cents == before  # те же 2 ночи по той же базовой цене, −10 %
+
+
+def test_snapshot_carries_prepayment_percent():
+    rp = _plan(prepayment_percent=30)
+    assert services._rate_snapshot(rp)["prepayment_percent"] == 30
+
+
+def test_edit_page_toggles_only_its_own_plan():
+    """Ревью D4.1 (F2): подделанный pk в форме не трогает чужой тариф."""
+    mine, other = _plan(name="A"), _plan(name="B")
+    _edit(mine, "post", {"action": "rateplan_toggle", "rateplan": str(other.pk)})
+    mine.refresh_from_db(), other.refresh_from_db()
+    assert not mine.is_active and other.is_active
+
+
+def test_translations_are_capped_server_side():
+    """Ревью D4.1 (F3): maxlength — только в браузере; сервер режет как базу."""
+    from apps.stays import settings_actions
+
+    rp = _plan()
+    req = _req("post", {"name_en": "x" * 500, "description_en": "y" * 900})
+    req.tenant.enabled_locales = ["de", "en"]
+    settings_actions.save_rate_plan(rp, {"name": "A"}, None, req)
+    rp.refresh_from_db()
+    assert 0 < len(rp.name_i18n.get("en", "")) <= 120
+    assert 0 < len(rp.description_i18n.get("en", "")) <= 300
+
+
+@pytest.mark.parametrize("raw", ["1_0", "٣", "10.5", "1e3"])
+def test_strict_int_rejects_python_flavoured_numbers(raw):
+    from apps.stays.settings_actions import _strict_int
+
+    assert _strict_int(raw, -90, 200) is None
+
+
+def test_summary_uses_true_minus():
+    html = v.rate_plans(_req()).content.decode() if _plan(percent_adjust=-10) else ""
+    assert "−10" in html

@@ -72,22 +72,32 @@ def _rate_snapshot(rate_plan) -> dict:
         "free_cancel_days": rate_plan.free_cancel_days,
         "percent_adjust": rate_plan.percent_adjust,
         "surcharge_cents": rate_plan.surcharge_cents,
+        # UX-D D4.1: предоплата тоже снимком — тариф теперь правится
+        "prepayment_percent": rate_plan.prepayment_percent,
     }
 
 
 def _rate_for_booking(booking):
-    """Тариф для пересчёта брони: живой RatePlan, иначе duck-объект из снимка."""
-    if booking.rate_plan_id and booking.rate_plan:
-        return booking.rate_plan
-    snap = booking.rate_snapshot or {}
-    if snap:
-        from types import SimpleNamespace
+    """Тариф для пересчёта брони — СНИМОК брони, а не живой RatePlan.
 
-        return SimpleNamespace(
-            percent_adjust=snap.get("percent_adjust", 0),
-            surcharge_cents=snap.get("surcharge_cents", 0),
-        )
-    return None
+    UX-D D4.1 (ревью F1): тариф стал редактируемым; пересчёт при переносе брал живой
+    тариф, и правка «−10 % → +50 %» меняла цену уже согласованной брони. Живой тариф —
+    только у легаси-брони без снимка; предоплата легаси-снимка (без ключа) — с живого.
+    """
+    from types import SimpleNamespace
+
+    snap = booking.rate_snapshot or {}
+    live = booking.rate_plan if booking.rate_plan_id else None
+    if "percent_adjust" not in snap:
+        return live
+    prepay = snap.get("prepayment_percent")
+    if prepay is None:
+        prepay = getattr(live, "prepayment_percent", 0) or 0
+    return SimpleNamespace(
+        percent_adjust=snap.get("percent_adjust", 0),
+        surcharge_cents=snap.get("surcharge_cents", 0),
+        prepayment_percent=prepay,
+    )
 
 
 def _apply_voucher(code, base_cents, discounted_cents=0):

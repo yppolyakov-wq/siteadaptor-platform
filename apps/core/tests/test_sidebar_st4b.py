@@ -230,6 +230,8 @@ def test_sidebar_children_composition():
         "stays:units",
         # KA-12 Z-3 (О-9, осознанное дополнение): цены и ограничения по дням
         "stays:price-calendar",
+        # UX-D D4.1 (осознанное дополнение): тарифы — свой экран
+        "stays:rate-plans",
         "events:list",
         "events:tour-list",
         "catalog:category-list",

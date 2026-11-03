@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 {% comment %}UX-D D4.1: страница «＋ Tarif» без JS (в кабинете — шторка).{% endcomment %}
-<a href="{% url 'stays:rate-plans' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Tarife" %}</a>
+<a href="{% url 'stays:rate-plans' %}" class="text-sm text-gray-500 hover:underline"><span aria-hidden="true">← </span>{% trans "Tarife" %}</a>
 <h1 class="ui-h1 mt-1 mb-4">{% trans "Neuer Tarif" %}</h1>
 {% if messages %}
   {% for m in messages %}

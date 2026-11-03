@@ -14,7 +14,7 @@ category_choices, rp (тариф или None — для охвата), pfx (пр
 <div class="grid sm:grid-cols-2 gap-4">
   <div>
     <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price change (%, e.g. -10)" %}</span>
-    <input name="percent_adjust" type="text" inputmode="numeric" value="{{ rv.percent_adjust }}"{% if rv_errors.percent_adjust %} aria-invalid="true" aria-describedby="{{ pfx }}-pct-err"{% endif %} class="ui-input"></label>
+    <input name="percent_adjust" type="text" value="{{ rv.percent_adjust }}"{% if rv_errors.percent_adjust %} aria-invalid="true" aria-describedby="{{ pfx }}-pct-err"{% endif %} class="ui-input"></label>
     {% if rv_errors.percent_adjust %}<p id="{{ pfx }}-pct-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.percent_adjust }}</p>{% endif %}
   </div>
   <div>
@@ -24,15 +24,17 @@ category_choices, rp (тариф или None — для охвата), pfx (пр
   </div>
   <div>
     <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Verpflegung" %}</span>
-    <select name="meal_plan"{% if rv_errors.meal_plan %} aria-invalid="true"{% endif %} class="ui-input">
+    <select name="meal_plan"{% if rv_errors.meal_plan %} aria-invalid="true" aria-describedby="{{ pfx }}-meal-err"{% endif %} class="ui-input">
       {% for value, label in meals %}<option value="{{ value }}"{% if value == rv.meal_plan %} selected{% endif %}>{{ label }}</option>{% endfor %}
     </select></label>
+    {% if rv_errors.meal_plan %}<p id="{{ pfx }}-meal-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.meal_plan }}</p>{% endif %}
   </div>
   <div>
     <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Cancellation" %}</span>
-    <select name="cancellation"{% if rv_errors.cancellation %} aria-invalid="true"{% endif %} class="ui-input">
+    <select name="cancellation"{% if rv_errors.cancellation %} aria-invalid="true" aria-describedby="{{ pfx }}-canc-err"{% endif %} class="ui-input">
       {% for value, label in cancellations %}<option value="{{ value }}"{% if value == rv.cancellation %} selected{% endif %}>{{ label }}</option>{% endfor %}
     </select></label>
+    {% if rv_errors.cancellation %}<p id="{{ pfx }}-canc-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.cancellation }}</p>{% endif %}
   </div>
   <div>
     <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Free cancel until (days before, flexible only)" %}</span>
@@ -53,4 +55,3 @@ category_choices, rp (тариф или None — для охвата), pfx (пр
 <div class="grid sm:grid-cols-2 gap-x-4">
   {% include "stays/_rate_scope_fields.html" with rp=rp %}
 </div>
-{% if scope_error %}<p class="-mt-2 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ scope_error }}</p>{% endif %}

@@ -9,8 +9,8 @@
 <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
   <h1 class="ui-h1">{% nav_title _("Tarife") %}</h1>
   <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-    <a href="{% url 'stays:price-calendar' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Preise & Verfügbarkeit" %} →</a>
-    <a href="{% url 'stays:units' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Zimmer & Preise" %} →</a>
+    <a href="{% url 'stays:price-calendar' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Preise & Verfügbarkeit" %} <span aria-hidden="true">→</span></a>
+    <a href="{% url 'stays:units' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Zimmer & Preise" %} <span aria-hidden="true">→</span></a>
     {% if can_edit_prices %}<a href="{% url 'stays:rate-plan-new' %}" data-drawer aria-haspopup="dialog" class="ui-btn ui-btn-primary ui-btn-sm"><span aria-hidden="true">＋ </span>{% trans "Neuer Tarif" %}</a>{% endif %}
   </div>
 </div>
@@ -50,9 +50,9 @@
       <span class="hidden md:block text-gray-400" aria-hidden="true">›</span>
     </li>
   {% empty %}
-    <li class="px-4 py-6 text-gray-500">{% trans "No rate plans yet — guests book at the room's base price." %}{% if can_edit_prices %} <a href="{% url 'stays:rate-plan-new' %}" data-drawer aria-haspopup="dialog" class="text-indigo-700 hover:underline">{% trans "Neuer Tarif" %} →</a>{% endif %}</li>
+    <li class="px-4 py-6 text-gray-500">{% trans "No rate plans yet — guests book at the room's base price." %}{% if can_edit_prices %} <a href="{% url 'stays:rate-plan-new' %}" data-drawer aria-haspopup="dialog" class="text-indigo-700 hover:underline">{% trans "Neuer Tarif" %} <span aria-hidden="true">→</span></a>{% else %}<br>{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}{% endif %}</li>
   {% endfor %}
   </ul>
 </div>
-{% if not can_edit_prices %}<p class="text-sm text-gray-600">{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}</p>{% endif %}
+{% if not can_edit_prices and plans %}<p class="text-sm text-gray-600">{% trans "Preise und Tarife ändern nur Inhaber und Admins." %}</p>{% endif %}
 {% endblock %}

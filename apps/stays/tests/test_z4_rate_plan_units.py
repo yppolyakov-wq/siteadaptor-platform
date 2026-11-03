@@ -454,15 +454,19 @@ def test_rate_edit_actions_constant_covers_price_writers():
 
 
 def test_list_label_without_n_plus_one(django_assert_max_num_queries):
+    """UX-D D4.1 (осознанная переписка): подписи охвата тарифов — на экране «Tarife»
+    (раньше — вкладка «Einstellungen» списка номеров). Категории — одним prefetch."""
+    from apps.stays import rate_plan_views
+
     units = [_unit() for _ in range(3)]
     for i in range(5):
         _plan(f"P{i}", units=units[:2])
-    request = _with_mw(RequestFactory().get("/dashboard/stays/units/", {"tab": "einstellungen"}))
+    request = _with_mw(RequestFactory().get("/dashboard/stays/tarife/"))
     request.user = _user()
     request.tenant = TenantFactory.build(disabled_modules=[])
-    with django_assert_max_num_queries(40):
-        body = views.units(request).content.decode()
-    assert "nur:" in body
+    with django_assert_max_num_queries(25):
+        body = rate_plan_views.rate_plans(request).content.decode()
+    assert units[0].name in body
 
 
 def test_move_warns_when_plan_does_not_fit():

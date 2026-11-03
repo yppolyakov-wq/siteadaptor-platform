@@ -470,21 +470,24 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
     assert 'data-ut-panel="basis preise regeln"' in body
     for panel in ("zimmer", "ical"):
         assert f'data-ut-panel="{panel}" class="hidden' in body, panel
-    # глобальные настройки живут на СПИСКЕ — 9 карточек (часть раскрыта в своих
+    # глобальные настройки живут на СПИСКЕ — карточки (часть раскрыта в своих
     # под-табах), поля в DOM (W0). HF-2 добавила «Ausstattung auf der Zimmerkarte»,
     # KA-12 Z-5 — «Check-in & Check-out» (только при праве на цены; _req — владелец).
+    # UX-D D4.1 (осознанная переписка): «Rate plans» ушли на свой экран «Tarife» —
+    # на списке карточка-ссылка вместо формы; карточек настроек 9, а не 10. Дальше
+    # волна D4 уносит остальные (D4.2/D4.3/D4.4), замок переписывается вместе с ними.
     body_list = views.units(_req()).content.decode()
     assert (
         # E9: панели — деталь `.ui-card` (было `bg-white …`)
         body_list.count('<details class="ui-card') + body_list.count('<details open class="ui-card')
-        == 10
+        == 9
     )
+    assert "data-rate-plans-link" in body_list and 'name="free_cancel_days"' not in body_list
     for field in (
         'name="kurtaxe_eur"',  # Kurtaxe
         'name="max_advance_days"',  # Verkaufsregeln
         'name="occupancy"',  # PMS-D
         'name="gap_max_nights"',  # Lücken-Deal
-        'name="free_cancel_days"',  # Ratenpläne
         'name="threshold"',  # Automatik-Rabatte
     ):
         assert field in body_list, field
