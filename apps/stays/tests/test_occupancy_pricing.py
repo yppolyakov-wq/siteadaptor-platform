@@ -171,7 +171,10 @@ def test_units_page_occupancy_rule_add_delete():
     assert resp.status_code == 302
     assert StaySettings.load().clean_occupancy_rules() == [{"occupancy": 80, "percent": 12}]
 
-    body = views.units(_req()).content.decode()
+    # UX-D D4.2 (осознанная переписка): правила видны на экране «Preise & Regeln»
+    from apps.stays import price_rules_views
+
+    body = price_rules_views.price_rules(_req(data={"tab": "dynamik"})).content.decode()
     assert "Dynamische Preise" in body and "80" in body
 
     resp = views.units(_req("post", {"action": "occupancy_delete", "index": "0"}))

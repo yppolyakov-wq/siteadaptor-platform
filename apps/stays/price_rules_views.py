@@ -4,9 +4,8 @@
 `docs/ux-d4-rooms-prices-plan-2026-11-03.md`, П4: «настройки — в Настройках»).
 Вкладки — ссылки (`?tab=`), каждая карточка — свои мини-формы «список + добавить»;
 обработчики — те же, что раньше (`settings_actions`), поэтому поведение прежнее.
-Права: экран — `einstellungen.view/edit` (view_perms), сами правила пишут цену →
-дополнительно `preise.edit` (как гейт `RATE_EDIT_ACTIONS` в `units()`); сотрудник
-без него видит правила без форм.
+Права: `preise.view/edit` (view_perms, как «Tarife»); проверка `preise.edit` во вьюхе
+оставлена страховкой. Сотрудник с правом смотреть цены видит правила без форм.
 """
 
 from __future__ import annotations
@@ -49,7 +48,8 @@ def rules_context() -> dict:
     """Правила цены и продаж с подписями для кабинета (то, что раньше строил units())."""
     stay_settings = StaySettings.load()
     unit_names = {
-        str(pk): name for pk, name in StayUnit.objects.order_by("name").values_list("pk", "name")
+        str(pk): name
+        for pk, name in StayUnit.objects.order_by("-is_active", "name").values_list("pk", "name")
     }
     kind_labels = dict(StaySettings.AUTO_DISCOUNT_KINDS)
     return {

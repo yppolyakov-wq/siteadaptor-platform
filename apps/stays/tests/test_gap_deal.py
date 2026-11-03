@@ -217,7 +217,8 @@ def test_gap_deal_banner_returns_to_calendar():
     resp2 = views.units(
         _req("post", {"action": "gap_deal", "enabled": "1", "next": "//evil.example"})
     )
-    assert resp2.url.endswith("?tab=einstellungen&sec=preise")
+    # UX-D D4.2: обычный маршрут — вкладка Lücken-Deal экрана «Preise & Regeln»
+    assert resp2.url.endswith("/preisregeln/?tab=luecken")
 
 
 def test_gap_deal_per_unit_overrides_global_settings():

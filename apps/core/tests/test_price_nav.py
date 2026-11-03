@@ -17,7 +17,8 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
-PRICE_SETTINGS_HREF = "?tab=einstellungen&amp;sec=preise"
+# UX-D D4.2 (осознанная переписка): правила цены — свой экран «Preise & Regeln»
+PRICE_SETTINGS_HREF = "/dashboard/stays/preisregeln/"
 
 
 def _req(path="/dashboard/", business_type="hotel"):

@@ -171,10 +171,21 @@ def test_screen_is_in_settings_zimmer_group_and_permissions():
     entry = next(e for e in nav_registry.ENTRIES if e.url_name == "stays:price-rules")
     assert entry.hub == "settings" and entry.group == "zimmer" and entry.module_key == "stays"
     rule = view_perms.RULES["stays:price-rules"]
-    assert (rule.read, rule.write) == ("einstellungen.view", "einstellungen.edit")
+    assert (rule.read, rule.write) == ("preise.view", "preise.edit")
 
 
 def test_template_has_no_scripts():
     text = (ROOT / "templates/stays/price_rules.html").read_text()
     assert "<script" not in text and not re.search(r"\son[a-z]+=", text)
     assert reverse("stays:price-rules") == URL
+
+
+def test_hotel_home_gap_link_goes_straight_to_the_tab():
+    text = (ROOT / "templates/stays/_hotel_home.html").read_text()
+    assert "'stays:price-rules'|can_open:request" in text
+    assert "{% url 'stays:price-rules' %}?tab=luecken" in text
+
+
+def test_no_template_points_to_the_old_price_section():
+    for path in (ROOT / "templates").rglob("*.html"):
+        assert "sec=preise" not in path.read_text(), path

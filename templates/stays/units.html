@@ -150,7 +150,7 @@
           ссылалась в никуда).{% endcomment %}
           <p class="sm:col-span-3 text-xs text-gray-500 -mb-1">
             {% trans "Saisonpreise für Zeiträume legen Sie weiter unten auf dieser Seite fest." %}
-            <a href="{% url 'stays:units' %}?tab=einstellungen&amp;sec=preise" class="text-indigo-600 hover:underline">{% trans "Allgemeine Tarife, Rabatte und dynamische Preise" %} →</a>
+            <a href="{% url 'stays:price-rules' %}" class="text-indigo-600 hover:underline">{% trans "Allgemeine Tarife, Rabatte und dynamische Preise" %} <span aria-hidden="true">→</span></a>
             <a href="{% url 'stays:price-calendar' %}?kat={{ u.pk }}" class="text-indigo-600 hover:underline ml-2" data-price-calendar-link>📅 {% trans "Preise & Verfügbarkeit" %} →</a>
           </p>
           <div>

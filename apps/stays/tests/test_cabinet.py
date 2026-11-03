@@ -480,16 +480,13 @@ def test_unit_tabs_cover_whole_card_and_settings_are_collapsed():
     assert (
         # E9: панели — деталь `.ui-card` (было `bg-white …`)
         body_list.count('<details class="ui-card') + body_list.count('<details open class="ui-card')
-        == 9
+        == 5
     )
-    assert "data-rate-plans-link" in body_list and 'name="free_cancel_days"' not in body_list
-    for field in (
-        'name="kurtaxe_eur"',  # Kurtaxe
-        'name="max_advance_days"',  # Verkaufsregeln
-        'name="occupancy"',  # PMS-D
-        'name="gap_max_nights"',  # Lücken-Deal
-        'name="threshold"',  # Automatik-Rabatte
-    ):
+    # UX-D D4.2: скидки/динамика/Lücken/правила продаж — экран «Preise & Regeln»
+    assert "data-rate-plans-link" in body_list and "data-price-rules-link" in body_list
+    for field in ('name="free_cancel_days"', 'name="max_advance_days"', 'name="occupancy"'):
+        assert field not in body_list, field
+    for field in ('name="kurtaxe_eur"',):  # Kurtaxe — до D4.3
         assert field in body_list, field
     # порядок: номера ВЫШЕ глобальных настроек (страница открывается номерами)
     assert body_list.index("TabZimmer") < body_list.index('<details class="ui-card')
@@ -505,29 +502,29 @@ def test_units_list_page_tabs_and_settings_groups():
     # дефолт: активен список, настройки скрыты (но в DOM — W0)
     assert 'data-pt-panel="einstellungen" class="hidden"' in body
     assert 'name="kurtaxe_eur"' in body
-    # группы настроек — ПОД-ТАБЫ в заданном порядке, все панели в DOM (W0)
-    for st in ("preise", "regeln", "kurtaxe", "kanaele"):
+    # группы настроек — ПОД-ТАБЫ в заданном порядке, все панели в DOM (W0).
+    # UX-D D4.2 (осознанная переписка): «Verkaufsregeln» ушли на экран «Preise &
+    # Regeln» (Einstellungen › Zimmer); старая закладка sec=regeln — 302 туда.
+    for st in ("preise", "kurtaxe", "kanaele"):
         assert f'data-st-tab="{st}"' in body and f'data-st-panel="{st}"' in body, st
-    assert body.index("💶") < body.index("📅") < body.index("🏛") < body.index("🔗")
+    assert 'data-st-tab="regeln"' not in body and 'name="max_advance_days"' not in body
+    assert body.index("💶") < body.index("🏛") < body.index("🔗")
     assert "Preise & Rabatte" in body and "Kanäle & Export" in body
-    # дефолт: активна секция «Preise», остальные скрыты только CSS
-    assert 'data-st-panel="regeln" class="hidden"' in body
-    assert 'name="max_advance_days"' in body  # но поля скрытой секции в DOM
-    # ?sec=regeln → активна её панель
-    body_sec = views.units(_req(data={"tab": "einstellungen", "sec": "regeln"})).content.decode()
-    assert 'data-st-panel="regeln" class="hidden"' not in body_sec
-    assert 'data-st-panel="preise" class="hidden"' in body_sec
+    assert 'data-st-panel="kurtaxe" class="hidden"' in body
+    resp_sec = views.units(_req(data={"tab": "einstellungen", "sec": "regeln"}))
+    assert resp_sec.status_code == 302 and resp_sec.url.endswith("/preisregeln/?tab=regeln")
     # ?tab=einstellungen → активен таб настроек, список скрыт
     body2 = views.units(_req(data={"tab": "einstellungen"})).content.decode()
     assert 'data-pt-panel="einstellungen" class="hidden"' not in body2
     assert 'data-pt-panel="einheiten" class="hidden ' in body2
     # Save настройки редиректит на её таб И под-таб (секцию)
     resp = views.units(_req("post", data={"action": "gap_deal", "gap_discount_percent": "25"}))
-    assert resp.status_code == 302 and resp.url.endswith("?tab=einstellungen&sec=preise")
+    # UX-D D4.2: Save правила цены возвращает на его вкладку экрана «Preise & Regeln»
+    assert resp.status_code == 302 and resp.url.endswith("/preisregeln/?tab=luecken")
     resp_k = views.units(_req("post", data={"action": "kurtaxe", "kurtaxe_eur": "2,00"}))
     assert resp_k.url.endswith("?tab=einstellungen&sec=kurtaxe")
     resp_r = views.units(_req("post", data={"action": "booking_window", "max_advance_days": "30"}))
-    assert resp_r.url.endswith("?tab=einstellungen&sec=regeln")
+    assert resp_r.url.endswith("/preisregeln/?tab=regeln")  # UX-D D4.2
     # создание юнита — редирект ТОЧНО на страницу нового номера (не на список/таб)
     resp2 = views.units(_req("post", data={"action": "unit", "name": "Neu Z", "type": "room"}))
     neu = StayUnit.objects.get(name="Neu Z")
