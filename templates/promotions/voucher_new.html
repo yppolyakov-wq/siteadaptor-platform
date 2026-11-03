@@ -1,0 +1,11 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Vouchers" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D6.4: страница генерации без JS (в кабинете — шторка).{% endcomment %}
+<a href="{% url 'promotions:voucher-list' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Vouchers" %}</a>
+<h1 class="ui-h1 mt-1 mb-4">{% trans "Vouchers" %}</h1>
+{% include "tenant/_settings_messages.html" %}
+<div class="ui-card p-6 max-w-2xl">{% include "promotions/_voucher_new_form.html" %}</div>
+{% endblock %}

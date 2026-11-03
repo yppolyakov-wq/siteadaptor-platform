@@ -1,0 +1,5 @@
+{% load i18n %}
+{% comment %}UX-D D6.4: шторка «＋ Neues Programm» (loyalty-new?box=1).{% endcomment %}
+<div data-drawer-title="{% trans 'Create program' %}" class="text-sm">
+  {% include "promotions/_loyalty_new_form.html" with in_drawer=1 %}
+</div>

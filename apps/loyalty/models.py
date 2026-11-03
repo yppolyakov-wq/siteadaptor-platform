@@ -113,6 +113,19 @@ class Voucher(I18nMixin, TimestampedModel):
         return not (self.max_uses and self.used_count >= self.max_uses)
 
     @property
+    def discount_eur(self):
+        """UX-D D6.4: скидка кода в евро для показа (раньше список печатал «−500 ct»)."""
+        from decimal import Decimal
+
+        return Decimal(self.discount_cents or 0) / 100
+
+    @property
+    def min_order_eur(self):
+        from decimal import Decimal
+
+        return Decimal(self.min_order_cents or 0) / 100
+
+    @property
     def balance_eur(self):
         """B1.5: остаток сертификата в евро (0 для обычных ваучеров)."""
         return (self.balance_cents or 0) / 100

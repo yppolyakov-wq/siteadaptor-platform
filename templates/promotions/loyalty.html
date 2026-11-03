@@ -3,12 +3,11 @@
 {% block dash_title %}{% trans "Loyalty" %}{% endblock %}
 
 {% block dash_content %}
-{# E9.10: язык ввода — выпадашка у заголовка; переводы программ — под названием. #}
-<div class="flex items-center gap-3 flex-wrap mb-4">
+<div class="flex items-center justify-between gap-3 flex-wrap mb-4">
   <h1 class="ui-h1">{% nav_title _("Loyalty programs") %}</h1>
-  {% lang_switch %}
+  {% comment %}UX-D D6.4: создание — шторкой, правка и переводы — на странице программы.{% endcomment %}
+  <a href="{% url 'promotions:loyalty-new' %}" data-drawer class="ui-btn ui-btn-primary">＋ {% trans "Create program" %}</a>
 </div>
-{% i18n_base_locale as base_loc %}
 
 {% if messages %}
   {% for m in messages %}
@@ -16,21 +15,7 @@
   {% endfor %}
 {% endif %}
 
-<form method="post" class="ui-card p-5 mb-6 grid sm:grid-cols-2 gap-4 max-w-2xl">
-  {% csrf_token %}
-  {% for field in form %}
-    {% with loc=field|i18n_loc %}
-    <div{% if loc %} data-i18n-loc="{{ loc }}"{% if loc != base_loc %} class="hidden"{% endif %}{% endif %}>
-      <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {% render_field field|a11y class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-      {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
-    </div>
-    {% endwith %}
-  {% endfor %}
-  <div class="sm:col-span-2">
-    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create program" %}</button>
-  </div>
-</form>
+
 
 <div class="ui-card p-4">
   <div class="-mx-4 overflow-x-auto sm:mx-0" data-kb-list>
@@ -41,7 +26,7 @@
     <tbody>
       {% for p in programs %}
         <tr>
-          <td data-cell="primary">{{ p.label }}{% include "tenant/_i18n_row.html" with obj=p fields="label,reward_label" id_name="program" id_value=p.pk %}</td>
+          <td data-cell="primary"><a href="{% url 'promotions:loyalty-edit' p.pk %}" class="font-medium text-gray-900 hover:text-indigo-700 hover:underline">{{ p.label }}</a></td>
           <td>{{ p.stamps_required }}</td>
           <td>{{ p.reward_label }}</td>
           <td>{% if p.is_active %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}</td>

@@ -5,7 +5,11 @@
 {% block dash_content %}
 <div class="flex items-center justify-between mb-4">
   <h1 class="ui-h1">{% nav_title _("Vouchers") %}</h1>
-  <a href="{% url 'promotions:voucher-redeem' %}" class="ui-btn ui-btn-secondary">{% trans "Redeem" %}</a>
+  <div class="flex items-center gap-2 flex-wrap">
+    <a href="{% url 'promotions:voucher-redeem' %}" class="ui-btn ui-btn-secondary">{% trans "Redeem" %}</a>
+    {% comment %}UX-D D6.4: генерация кодов — шторкой (раньше форма всегда раскрыта над списком).{% endcomment %}
+    <a href="{% url 'promotions:voucher-new' %}" data-drawer class="ui-btn ui-btn-primary">＋ {% trans "Generate" %}</a>
+  </div>
 </div>
 
 {% if messages %}
@@ -14,21 +18,9 @@
   {% endfor %}
 {% endif %}
 
-<form method="post" class="ui-card p-5 mb-6 grid sm:grid-cols-2 gap-4 max-w-2xl">
-  {% csrf_token %}
-  {% for field in form %}
-    <div>
-      <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {% render_field field|a11y class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
-      {% if field.help_text %}<p class="text-xs ui-muted mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
-      {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
-    </div>
-  {% endfor %}
-  <div class="sm:col-span-2">
-    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Generate" %}</button>
-  </div>
-</form>
 
+
+<div id="voucher-region" data-drawer-refresh>
 <div class="ui-card p-4">
   <div class="-mx-4 overflow-x-auto sm:mx-0">
   <table class="ui-table ui-table-stack">
@@ -40,7 +32,7 @@
         <tr>
           <td class="font-mono" data-cell="primary">{{ v.code }}</td>
           <td>{{ v.label }}</td>
-          <td>{% if v.discount_percent %}−{{ v.discount_percent }} %{% elif v.discount_cents %}−{{ v.discount_cents|floatformat:0 }} ct{% else %}—{% endif %}{% if v.balance_cents is not None %} <span class="text-xs {% if v.balance_cents %}text-emerald-700{% else %}text-gray-400{% endif %}">Rest {{ v.balance_eur|floatformat:2 }} €</span>{% endif %}{% if v.min_order_cents %} <span class="text-xs text-gray-400">(min {{ v.min_order_cents|floatformat:0 }} ct)</span>{% endif %}{% if v.combinable and v.balance_cents is None %} <span class="text-xs text-indigo-700">{% trans "Combinable with other discounts" %}</span>{% endif %}</td>
+          <td>{% if v.discount_percent %}−{{ v.discount_percent }} %{% elif v.discount_cents %}−{{ v.discount_eur|floatformat:2 }} €{% else %}—{% endif %}{% if v.balance_cents is not None %} <span class="text-xs {% if v.balance_cents %}text-emerald-700{% else %}text-gray-400{% endif %}">Rest {{ v.balance_eur|floatformat:2 }} €</span>{% endif %}{% if v.min_order_cents %} <span class="text-xs text-gray-600">(min {{ v.min_order_eur|floatformat:2 }} €)</span>{% endif %}{% if v.combinable and v.balance_cents is None %} <span class="text-xs text-indigo-700">{% trans "Combinable with other discounts" %}</span>{% endif %}</td>
           <td>{{ v.used_count }}{% if v.max_uses %}/{{ v.max_uses }}{% else %}/∞{% endif %}</td>
           <td>{% if v.is_redeemable %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}</td>
           <td class="text-right" data-cell="actions">
@@ -63,6 +55,7 @@
   </div>
 </div>
 {% list_pager page %}
+</div>
 
 {% if gift_sales %}
 {# B1.3: проданные Geschenkgutscheine — оплата и погашение (код = обычный Voucher выше). #}

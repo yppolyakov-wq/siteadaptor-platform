@@ -316,6 +316,8 @@ RULES: dict[str, Rule] = {
     # Акции
     "promotions:coupon-campaigns": _r(M, ME),
     "promotions:loyalty-list": _r(M, ME),
+    "promotions:loyalty-new": _r(M, ME),  # UX-D D6.4
+    "promotions:loyalty-edit": _r(M, ME),  # UX-D D6.4
     "promotions:newsletter": _r(M, ME),
     "promotions:promo-type-list": _r(M, ME),
     "promotions:promo-type-save": _r(M, ME),
@@ -343,6 +345,7 @@ RULES: dict[str, Rule] = {
     "promotions:shop-poster": _r(M, ME),
     "promotions:today-dismiss": _r(M, ME),
     "promotions:voucher-list": _r(M, ME),
+    "promotions:voucher-new": _r(M, ME),  # UX-D D6.4
     # --- Website ------------------------------------------------------------------
     "design": _r(W, WE),
     "page-templates-sortiment": _r(W, WE),  # STU-19b

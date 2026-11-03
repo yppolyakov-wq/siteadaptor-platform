@@ -1,0 +1,27 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{{ program.label }}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D6.4: страница программы лояльности — раньше после создания править было нельзя.
+Одна форма всех полей (ModelForm: название, штампы, награда, активность + переводы).{% endcomment %}
+<a href="{% url 'promotions:loyalty-list' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Loyalty programs" %}</a>
+<div class="flex items-start justify-between gap-3 flex-wrap mt-1 mb-4">
+  <div class="min-w-0">
+    <div class="flex items-center gap-3 flex-wrap">
+      <h1 class="ui-h1 break-words">{{ program.label }}</h1>
+      {% lang_switch %}
+    </div>
+    <p class="text-sm text-gray-600 mt-0.5" data-loyalty-summary>{{ program.stamps_required }} {% trans "Stamps" %} → {{ program.reward_label }} · {{ cards }} {% trans "Cards" %}</p>
+  </div>
+  <a href="{% url 'promotions:loyalty-stamp' program.pk %}" class="ui-btn ui-btn-secondary">{% trans "Add stamp" %}</a>
+</div>
+{% include "tenant/_settings_messages.html" %}
+<form id="loyalty-form" method="post" class="ui-card p-5 space-y-4 max-w-2xl">
+  {% csrf_token %}
+  <input type="hidden" name="program" value="{{ program.pk }}">
+  {% include "promotions/_list_form_fields.html" %}
+  <p class="text-xs text-gray-600">{% trans "Ein neuer Stempel-Wert gilt ab dem nächsten Stempel; gesammelte Stempel bleiben erhalten." %}</p>
+  <div class="flex justify-end"><button class="ui-btn ui-btn-primary">{% trans "Save" %}</button></div>
+</form>
+{% endblock %}

@@ -31897,3 +31897,9 @@ msgstr "Umlagerung"
 
 msgid "Zum Lager"
 msgstr "Zum Lager"
+
+msgid "Cards"
+msgstr "Karten"
+
+msgid "Ein neuer Stempel-Wert gilt ab dem nächsten Stempel; gesammelte Stempel bleiben erhalten."
+msgstr "Ein neuer Stempel-Wert gilt ab dem nächsten Stempel; gesammelte Stempel bleiben erhalten."

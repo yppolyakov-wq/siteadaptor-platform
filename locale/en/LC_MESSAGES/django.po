@@ -31810,3 +31810,9 @@ msgstr "Transfer"
 
 msgid "Zum Lager"
 msgstr "Go to stock"
+
+msgid "Cards"
+msgstr "Cards"
+
+msgid "Ein neuer Stempel-Wert gilt ab dem nächsten Stempel; gesammelte Stempel bleiben erhalten."
+msgstr "A new stamp count applies from the next stamp; collected stamps are kept."

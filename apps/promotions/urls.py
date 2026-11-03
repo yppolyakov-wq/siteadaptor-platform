@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import lite_views, views
+from . import list_pages, lite_views, views
 
 app_name = "promotions"
 
@@ -68,7 +68,10 @@ urlpatterns = [
     path("redeem/<str:code>/action/", views.redeem_action, name="redeem-action"),
     path("vouchers/", views.voucher_list, name="voucher-list"),
     path("vouchers/redeem/", views.voucher_redeem, name="voucher-redeem"),
+    path("vouchers/neu/", list_pages.voucher_new, name="voucher-new"),  # UX-D D6.4
     path("loyalty/", views.loyalty_list, name="loyalty-list"),
+    path("loyalty/neu/", list_pages.loyalty_new, name="loyalty-new"),  # UX-D D6.4
+    path("loyalty/<uuid:pk>/", list_pages.loyalty_edit, name="loyalty-edit"),
     path("loyalty/<uuid:program_id>/stamp/", views.loyalty_stamp, name="loyalty-stamp"),
     path("newsletter/", views.newsletter_campaigns, name="newsletter"),
     path("kampagnen/", views.coupon_campaigns, name="coupon-campaigns"),

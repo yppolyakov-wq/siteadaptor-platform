@@ -32083,3 +32083,9 @@ msgstr "Переміщення"
 
 msgid "Zum Lager"
 msgstr "До складу"
+
+msgid "Cards"
+msgstr "Картки"
+
+msgid "Ein neuer Stempel-Wert gilt ab dem nächsten Stempel; gesammelte Stempel bleiben erhalten."
+msgstr "Нова кількість штампів діє з наступного штампа; зібрані штампи зберігаються."
