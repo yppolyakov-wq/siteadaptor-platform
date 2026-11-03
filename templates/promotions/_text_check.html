@@ -7,12 +7,14 @@
   <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
     <p class="text-sm font-semibold">🔎 {% trans "Vor dem Veröffentlichen prüfen" %}</p>
     <div class="flex flex-wrap gap-2">
-      <button type="button" class="whitespace-nowrap rounded-full border border-gray-300 px-3 py-1 text-xs hover:bg-gray-50" data-tc-run>{% trans "Text prüfen" %}</button>
-      {% if text_check_ai %}<button type="button" class="whitespace-nowrap rounded-full border border-indigo-300 bg-indigo-50 px-3 py-1 text-xs text-indigo-800 hover:bg-indigo-100" data-tc-ai data-url="{% url 'promotions:promotion-text-check-ai' %}" data-quota="{% trans 'Das Limit für KI-Prüfungen ist erreicht. Bitte später erneut versuchen.' %}" data-wait="{% trans 'KI prüft den Text …' %}">✨ {% trans "Text prüfen lassen" %}</button>{% endif %}
+      <button type="button" class="inline-flex items-center min-h-[32px] whitespace-nowrap rounded-full border border-gray-300 px-3 py-1 text-xs hover:bg-gray-50" data-tc-run>{% trans "Text prüfen" %}</button>
+      {% if text_check_ai %}<button type="button" class="inline-flex items-center min-h-[32px] whitespace-nowrap rounded-full border border-indigo-300 bg-indigo-50 px-3 py-1 text-xs text-indigo-800 hover:bg-indigo-100" data-tc-ai data-url="{% url 'promotions:promotion-text-check-ai' %}" data-quota="{% trans 'Das Limit für KI-Prüfungen ist erreicht. Bitte später erneut versuchen.' %}" data-wait="{% trans 'KI prüft den Text …' %}">✨ {% trans "Text prüfen lassen" %}</button>{% endif %}
     </div>
   </div>
   <p class="text-xs text-gray-500">{% trans "Automatische Hinweise – keine Rechtsberatung." %}</p>
-  <p class="hidden text-xs text-gray-500" data-tc-status aria-live="polite"></p>
+  {% comment %}SP-16: live-region ВСЕГДА в дереве доступности — скрытый display:none
+  регион скринридеры не слушают и первую фразу «KI prüft …» теряли. Пустой — sr-only.{% endcomment %}
+  <p class="sr-only text-xs text-gray-500" data-tc-status role="status" aria-live="polite"></p>
   <div data-tc-results aria-live="polite">{% include "promotions/_text_check_results.html" %}</div>
 </div>
 <script>
@@ -61,7 +63,7 @@
     var el = container.querySelector("[data-tc-status]");
     if (!el) return;
     el.textContent = text || "";
-    el.classList.toggle("hidden", !text);
+    el.classList.toggle("sr-only", !text);
   }
   function runAi(btn) {
     var container = box(btn);
@@ -112,7 +114,19 @@
     if (aiBtn) { runAi(aiBtn); return; }
     if (t.closest("[data-tc-run]")) { run(box(t), true); return; }
     var hide = t.closest("[data-tc-hide]");
-    if (hide) { var item = hide.closest("[data-tc-item]"); if (item) item.remove(); return; }
+    if (hide) {
+      // SP-16: фокус не теряется на <body> — к следующему замечанию, иначе к
+      // предыдущему, иначе к кнопке «Text prüfen».
+      var item = hide.closest("[data-tc-item]");
+      if (!item) return;
+      var hc = box(hide);
+      var near = item.nextElementSibling || item.previousElementSibling;
+      item.remove();
+      var target = (near && near.querySelector("[data-tc-hide]")) ||
+        (hc && hc.querySelector("[data-tc-run]"));
+      if (target) target.focus();
+      return;
+    }
     var apply = t.closest("[data-tc-apply]");
     if (apply) {
       var container = box(apply);

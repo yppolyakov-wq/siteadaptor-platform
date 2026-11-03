@@ -837,6 +837,17 @@ def promotion_list(request):
             and {p.pk for p in promotions} <= {p.pk for p in ending_soon}
         ):
             ending_soon = []
+        # SP-15 (решение владельца 2026-11-03): полоса — выделение, а не отдельный
+        # список. Акция, уже показанная в «Endet bald», не повторяется в общем
+        # остатке «Weitere Angebote» (безгрупповая секция). Тематические секции
+        # не трогаем — там акция стоит по смыслу своей рубрики.
+        if ending_soon and grouped and promo_grouping != "time":
+            _shown = {p.pk for p in ending_soon}
+            grouped = [
+                (k, lbl, [p for p in items if p.pk not in _shown] if not k else items, more, out)
+                for k, lbl, items, more, out in grouped
+            ]
+            grouped = [g for g in grouped if g[2]]
 
     # DL-17.4 (A1): «Vorschau» — акции в статусе `scheduled` с будущим стартом.
     # Отдельным запросом (не в `base`): активные и будущие нельзя мешать в одной
@@ -1510,7 +1521,7 @@ def product_list(request, slug=None):
     # Фидбэк 2026-08-07: плитки с фото — только когда фото ЕСТЬ; иначе прежние
     # чипы (у большинства тенантов Category.images пуст, сетка серых
     # прямоугольников была бы хуже текста).
-    categories_have_images = any(c.image_url for c in categories)
+    categories_have_images = any(c.tile_image_url for c in categories)
     # M20U-3: подкатегории выбранной категории — выводим карточками первыми.
     subcategories = (
         list(category.children.filter(is_active=True).order_by("sort_order", "slug"))
@@ -1522,7 +1533,7 @@ def product_list(request, slug=None):
     # с шестью Gängen (pranasy/catering) это шесть серых прямоугольников. Гейт
     # тот же, что у верхнего списка: есть фото — плитки, нет ни у одной —
     # прежняя текстовая сетка байт-в-байт (у большинства тенантов images пуст).
-    subcategories_have_images = any(c.image_url for c in subcategories)
+    subcategories_have_images = any(c.tile_image_url for c in subcategories)
     # DL-16.5 (K2 «Regale»): у направления с подкатегориями каждая подкатегория —
     # лента ≤ 8 товаров со слайдером (16.1) + «Alle anzeigen»; прямые товары — сеткой ниже.
     shelves = []

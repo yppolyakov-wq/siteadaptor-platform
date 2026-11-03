@@ -1326,6 +1326,11 @@ input[type="datetime-local"] {
 @media (min-width: 640px) {
   [data-ending-grid] > :nth-child(odd):last-child { grid-column: 1 / -1; }
 }
+/* SP-15: три акции на десктопе — ровный ряд из трёх (было 2 + одна во всю ширину). */
+@media (min-width: 1024px) {
+  [data-ending-grid][data-count="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  [data-ending-grid][data-count="3"] > :last-child { grid-column: auto; }
+}
 
 /* DL-20: шаблоны СТРАНИЦЫ категории, которым нужна раскладка, а не разметка.
 
@@ -1692,6 +1697,24 @@ input[type="datetime-local"] {
   body:has([data-buybar]) [data-demo-design] { bottom: calc(var(--sf-nav-h, 0px) + var(--sf-buybar-h) + 16px); }
   body:has([data-buybar]) [data-sf-presence] { bottom: calc(var(--sf-nav-h, 0px) + var(--sf-buybar-h) + 76px); }
 }
+/* SP-16 (WCAG 1.4.10 Reflow): низкий экран — телефон боком, 400 % масштаб. Нижние
+   слои отъедали половину высоты окна и закрывали контент — здесь они встают в
+   поток страницы (меню после подвала, панель покупки на своём месте). Переменные
+   обнуляются с !important: скрипт _base.html ставит высоты инлайном. */
+@media (max-height: 480px) {
+  :root {
+    --sf-nav-h: 0px !important;
+    --sf-buybar-h: 0px !important;
+    --sf-fab-room: 0px !important;
+  }
+  [data-sf-bottom-nav], [data-buybar], [data-chat-fab], [data-sf-presence] {
+    position: static !important;
+  }
+  /* выпадающий список «Design testen» позиционируется от самой пилюли */
+  [data-demo-design] { position: relative !important; left: auto !important; bottom: auto !important; transform: none !important; display: inline-block; }
+  [data-chat-fab], [data-sf-presence] { display: inline-flex; }
+  [data-chat-fab], [data-sf-presence], [data-demo-design] { margin: 0.75rem 1rem; }
+}
 
 /* SP-1: «карта меню» колонками — пунктирная линия между колонками, как у книги. */
 @media (min-width: 768px) {
@@ -1785,4 +1808,14 @@ input[type="datetime-local"] {
     .ui-table-stack td[data-cell="actions"] { justify-content: flex-start; flex-wrap: wrap; padding-top: .5rem; }
     .ui-table-stack td[data-cell="empty"] { justify-content: center; text-align: center; }
   }
+}
+
+/* SP-17 (решение владельца 2026-11-03): текст поверх акцент-фона тенанта — по
+   яркости акцента (--accent-ink, DL-5). ~60 кнопок витрины несли жёсткий text-white:
+   у светлого акцента (лайм, янтарь, пастель) белая подпись была нечитаема (WCAG 1.4.3).
+   Одно правило по инлайн-фону вместо правки шаблонов; без --accent-ink (кабинет) —
+   белый, как раньше. Тинты color-mix(…var(--accent) 14%…) и градиенты не совпадают. */
+[style*="background: var(--accent)"],
+[style*="background:var(--accent)"] {
+  color: var(--accent-ink, #fff);
 }

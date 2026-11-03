@@ -11,10 +11,10 @@
     {% if f.quote %}<p class="mt-1 text-xs text-gray-600">„{{ f.quote }}“{% if more %} <span class="text-gray-500" data-tc-more>· {% trans "auch in" %}: {{ more|join:", " }}</span>{% endif %}</p>{% endif %}
     <div class="mt-2 flex flex-wrap items-center gap-3 text-xs">
       {% if not tc_readonly and f.quote and f.suggestion is not None %}
-        <button type="button" class="rounded-full border border-indigo-300 bg-white px-3 py-1 text-indigo-700 hover:bg-indigo-50" data-tc-apply data-field="{{ f.field }}" data-locale="{{ f.locale }}" data-quote="{{ f.quote }}" data-replace="{{ f.suggestion }}">{% if f.suggestion %}{% trans "Vorschlag übernehmen" %}: „{{ f.suggestion }}“{% else %}{% trans "Wort entfernen" %}{% endif %}</button>
+        <button type="button" class="inline-flex items-center min-h-[32px] rounded-full border border-indigo-300 bg-white px-3 py-1 text-indigo-700 hover:bg-indigo-50" data-tc-apply data-field="{{ f.field }}" data-locale="{{ f.locale }}" data-quote="{{ f.quote }}" data-replace="{{ f.suggestion }}">{% if f.suggestion %}{% trans "Vorschlag übernehmen" %}: „{{ f.suggestion }}“{% else %}{% trans "Wort entfernen" %}{% endif %}</button>
       {% endif %}
       {% if f.source == "ai" %}<span class="text-indigo-700" data-tc-ai-label>✨ {{ f.norm }}</span>{% else %}<details><summary class="cursor-pointer text-gray-500">{% trans "Warum?" %}</summary><span class="text-gray-500">{{ f.norm }}</span></details>{% endif %}
-      {% if not tc_readonly %}<button type="button" class="text-gray-500 hover:underline" data-tc-hide>{% trans "Ausblenden" %}</button>{% endif %}
+      {% if not tc_readonly %}<button type="button" class="inline-flex items-center min-h-[32px] px-1 text-gray-500 hover:underline" data-tc-hide aria-label="{% trans 'Ausblenden' %}: {{ f.message|truncatechars:80 }}">{% trans "Ausblenden" %}</button>{% endif %}
     </div>
   </li>
   {% endfor %}

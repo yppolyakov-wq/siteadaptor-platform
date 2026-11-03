@@ -102,6 +102,19 @@ class Category(SoftDeleteMixin, I18nMixin):
         return img.get("url", "") if img else ""
 
     @property
+    def tile_image_url(self) -> str:
+        """SP-15: фото для ПЛИТКИ категории — только настоящее.
+
+        Демо-заглушка (`/medien/demo.svg`) рисует эмодзи и ПОДПИСЬ категории, а
+        плитка печатает ту же подпись ниже — имя повторялось дважды на 268 px
+        высоты. Без настоящего фото плитка становится текстовой, а список —
+        чипами (тот же гейт, что у тенанта без фото)."""
+        from apps.tenants.demo_images import is_placeholder
+
+        url = self.image_url
+        return "" if is_placeholder(url) else url
+
+    @property
     def landing_ready(self) -> bool:
         """KAT-1: есть ли КОНТЕНТ ШАПКИ страницы категории (описание или фото).
 

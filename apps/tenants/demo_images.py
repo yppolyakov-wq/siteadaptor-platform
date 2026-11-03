@@ -18,6 +18,12 @@ from urllib.parse import urlencode
 # URL на этапе сидинга, без request/reverse.
 DEMO_IMAGE_PATH = "/medien/demo.svg"
 
+
+def is_placeholder(url: str) -> bool:
+    """SP-15: URL ведёт на сгенерированную заглушку (эмодзи + подпись), а не на фото."""
+    return bool(url) and url.split("?", 1)[0] == DEMO_IMAGE_PATH
+
+
 # Кэш списка файлов демо-фото по корню каталога (см. _photo_index): ключ —
 # найденный путь, иначе смена STATICFILES_DIRS (тесты) отдавала бы старый список.
 _PHOTO_INDEX: dict[str, list[str]] = {}

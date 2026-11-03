@@ -80,6 +80,15 @@ CBLOCK_TEMPLATES = {
 }
 
 
+@register.filter(name="any_tile_photo")
+def any_tile_photo(categories) -> bool:
+    """SP-15: есть ли у списка категорий хоть одно НАСТОЯЩЕЕ фото плитки.
+
+    Нет → секция «Kategorien» рисует чипы, а не сетку текстовых плиток (тот же
+    гейт, что `categories_have_images` у /sortiment/)."""
+    return any(getattr(c, "tile_image_url", "") for c in categories or ())
+
+
 @register.filter(name="stars")
 def stars_filter(n):
     """GK-6: 1..5 → «★★★★☆»; мусор/вне диапазона → '' (конфиг не раздуваем —
@@ -553,12 +562,17 @@ def sf_slider_attrs(layout=None):
 
 
 @register.simple_tag(name="layout_is_default")
-def layout_is_default(site, key):
+def layout_is_default(site, key, strict=False):
     """DL-11: раскладка секции не тронута (равна дефолту секции)? Стили с жёсткой
     сеткой (categories compact) держат прежние классы, пока владелец/кит не
-    настроил колонки — тогда сетка берётся из движка."""
+    настроил колонки — тогда сетка берётся из движка.
+
+    strict=True (SP-15): учитывается и «последняя строка» (`tail`) — любой
+    выбор владельца в Studio значит, что он хочет сетку, а не чипы."""
     default = siteconfig.normalize_layout(None, siteconfig.GRID_SECTION_DEFAULTS.get(key))
     current = siteconfig.section_layout(site, key)
+    if strict:
+        return current == default
     return {k: v for k, v in current.items() if k != "tail"} == default
 
 

@@ -104,7 +104,7 @@ show_listing_toolbar). Строка остаётся только над тем,
       {% comment %}Фидбэк 2026-09-02 «карточки поплыли по высоте»: обёртка — flex, карточка
       растягивается на высоту ряда (без flex обёртка тянулась, карточка внутри — нет).{% endcomment %}
       {# DL-14: на десктопе 4 карточки фикс-ширины распределяются по ширине #}
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-ending-grid>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-ending-grid data-count="{{ ending_soon|length }}">
         {% for p in ending_soon %}{% include "storefront/_promo_card.html" with wide=True %}{% endfor %}
       </div>
     </section>

@@ -10,3 +10,22 @@ LB-3: вынесены из promotions_list.html — тот же ряд стои
            class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-sm border {% if g == selected_group %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}"{% if g == selected_group %} aria-current="page"{% endif %}>{{ g_label }}</a>
       {% endfor %}
     </div>
+{% comment %}SP-16: открытый тип в ленте телефона может стоять за правым краем — после
+загрузки лента прокручивается к нему (горизонтально, страница не двигается). Скрипт
+один на страницу: ряд бывает дважды (над списком и в панели прыжков).{% endcomment %}
+<script>
+(function () {
+  if (window.__sfTypeChipsBound) return;
+  window.__sfTypeChipsBound = true;
+  function center() {
+    document.querySelectorAll("[data-promo-type-chips]").forEach(function (row) {
+      var cur = row.querySelector('[aria-current="page"]');
+      if (!cur || row.scrollWidth <= row.clientWidth) return;
+      var r = row.getBoundingClientRect(), c = cur.getBoundingClientRect();
+      row.scrollLeft += (c.left - r.left) - (row.clientWidth - c.width) / 2;
+    });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", center);
+  else center();
+})();
+</script>
