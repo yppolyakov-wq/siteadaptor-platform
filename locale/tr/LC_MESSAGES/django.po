@@ -31724,3 +31724,6 @@ msgid "%(n)s Buchung ohne Zimmer"
 msgid_plural "%(n)s Buchungen ohne Zimmer"
 msgstr[0] "Odası olmayan %(n)s rezervasyon"
 msgstr[1] "Odası olmayan %(n)s rezervasyon"
+
+msgid "Erreichbarkeit"
+msgstr "Ulaşılabilirlik"

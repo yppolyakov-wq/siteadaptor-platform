@@ -42,18 +42,14 @@ def _week(units, today) -> list[dict]:
     return out
 
 
-def _unpaid() -> dict:
-    """«Ждём денег» — то же правило, что Offene Posten (оплата на месте — не долг)."""
-    from apps.core import money_contract, status_registry
+def _unpaid(tenant) -> dict:
+    """«Ждём денег» — РОВНО строки экрана Offene Posten по броням номеров
+    (finance.bank.deal_open_items: оплата на месте — не долг, сделка со счётом —
+    позиция счёта, платёжная книга — одним запросом на список)."""
+    from apps.finance import bank
 
-    from .models import StayBooking
-
-    qs = StayBooking.objects.filter(money_contract.open_q("stay")).exclude(
-        status__in=status_registry.cancelled_statuses_for("stay", None)
-    )
-    count = qs.count()
-    amount = sum((money_contract.due("stay", b) for b in qs.order_by("arrival")[:50]), Decimal("0"))
-    return {"count": count, "amount": amount}
+    rows = bank.deal_open_items(tenant, "stay")
+    return {"count": len(rows), "amount": sum((r["amount"] for r in rows), Decimal("0"))}
 
 
 def _gap(units) -> dict | None:
@@ -69,6 +65,7 @@ def _gap(units) -> dict | None:
 
 def summary(request) -> dict:
     """Контекст `stays/_hotel_home.html`. Без побочных эффектов."""
+    from apps.core import drawer
     from apps.core.permissions import has_perm
     from apps.core.templatetags.cabinet import can_open
 
@@ -113,9 +110,14 @@ def summary(request) -> dict:
         ).count(),
         0,
     )
-    unconfirmed = _safe(
-        lambda: StayBooking.objects.filter(status="pending", departure__gt=today).count(), 0
-    )
+
+    # «unbestätigt» — как у стойки (front_desk.state): активна, но ещё не допускает
+    # Check-in (роль intake, вкл. свои статусы владельца), а не литерал "pending"
+    def _unconfirmed():
+        waiting = set(front_desk._active(tenant)) - set(front_desk.checkin_allowed_statuses(tenant))
+        return StayBooking.objects.filter(status__in=waiting, departure__gt=today).count()
+
+    unconfirmed = _safe(_unconfirmed, 0)
     unread = 0
     if tenant.is_module_active("inbox"):
 
@@ -139,7 +141,7 @@ def summary(request) -> dict:
         "hh_departures": departures,
         "hh_departures_n": departures_n,
         "hh_dirty": dirty,
-        "hh_unpaid": _safe(_unpaid, {"count": 0, "amount": Decimal("0")}),
+        "hh_unpaid": _safe(lambda: _unpaid(tenant), {"count": 0, "amount": Decimal("0")}),
         "hh_finance": tenant.is_module_active("finance"),
         "hh_no_room": no_room,
         "hh_unconfirmed": unconfirmed,
@@ -152,7 +154,9 @@ def summary(request) -> dict:
         # «Bestätigen»/«Sauber» — правка продаж)
         "hh_can_front_desk": has_perm(request.user, "rezeption.edit"),
         "hh_can_edit": has_perm(request.user, "verkaeufe.edit"),
-        "hh_next": request.get_full_path(),
+        # после кнопки — обратно к спискам, без ?buchung= (иначе шторка открылась бы снова)
+        "hh_next": drawer.without_params(request.get_full_path(), *drawer.DRAWER_PARAMS)
+        + "#hh-today",
         "hh_autoopen": _autoopen(request),
     }
 

@@ -94,7 +94,7 @@ def test_dirty_room_has_clean_button_that_returns_home():
     room = Room.objects.create(unit=unit, number="101", housekeeping=Room.HK_DIRTY)
     html = _home()
     assert f'action="/dashboard/stays/zimmer/{room.pk}/sauber/"' in html
-    assert 'name="next" value="/dashboard/"' in html
+    assert 'name="next" value="/dashboard/#hh-today"' in html
 
 
 def test_room_clean_respects_local_next_only():
@@ -168,3 +168,46 @@ def test_cancelled_booking_is_not_counted_as_arrival():
     StayBooking.objects.filter(pk=b.pk).update(status="cancelled")
     html = _home()
     assert "Storniert" not in html
+
+
+def test_unpaid_query_count_does_not_grow_with_open_bookings():
+    """ECC django-review D1.4: due() на каждую бронь читал платёжную книгу отдельным
+    запросом; теперь строки — те же, что Offene Posten (folio.prefetch одним запросом)."""
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    tenant = _tenant("hotel")
+    unit = _unit(quantity=40)
+    for i in range(2):
+        _book(unit, 5 + i, name=f"V{i}", payment_method="vorkasse")
+    with CaptureQueriesContext(connection) as small:
+        core_views.dashboard(_owner_req(tenant))
+    for i in range(12):
+        _book(unit, 8 + i, name=f"W{i}", payment_method="vorkasse")
+    with CaptureQueriesContext(connection) as big:
+        html = core_views.dashboard(_owner_req(tenant)).content.decode()
+    assert len(big) <= len(small) + 2, (len(small), len(big))
+    assert "14 Buchungen" in html
+
+
+def test_unpaid_kpi_matches_offene_posten_rows():
+    from decimal import Decimal
+
+    from apps.finance import bank
+    from apps.stays import home_summary
+
+    tenant = _tenant("hotel")
+    unit = _unit()
+    _book(unit, 5, name="Vorkasse", payment_method="vorkasse")
+    rows = [r for r in bank.open_items(tenant) if r["kind"] == "stay"]
+    got = home_summary._unpaid(tenant)
+    assert got["count"] == len(rows) == 1
+    assert got["amount"] == sum((r["amount"] for r in rows), Decimal("0"))
+
+
+def test_buttons_name_the_guest_and_return_to_the_list():
+    unit = _unit()
+    _book(unit, 0, name="Familie Kühn")
+    html = _home()
+    assert 'aria-label="Check-in: Familie Kühn"' in html
+    assert 'name="next" value="/dashboard/#hh-today"' in html

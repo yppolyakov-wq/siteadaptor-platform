@@ -31578,3 +31578,6 @@ msgid "%(n)s Buchung ohne Zimmer"
 msgid_plural "%(n)s Buchungen ohne Zimmer"
 msgstr[0] "%(n)s booking without a room"
 msgstr[1] "%(n)s bookings without a room"
+
+msgid "Erreichbarkeit"
+msgstr "Availability"

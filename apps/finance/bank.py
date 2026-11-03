@@ -241,61 +241,7 @@ def open_items(tenant) -> list[dict]:
     for kind in _OPEN_PAYMENT_STATES:
         if not tenant.is_module_active(transactions.KIND_MODULE[kind]):
             continue
-        model = transactions.model_for(kind)
-        qs = (
-            model.objects.filter(money_contract.open_q(kind))
-            .exclude(status__in=status_registry.cancelled_statuses_for(kind, tenant))
-            # KA-12 E10: клиент и связи заголовка — без запроса на строку.
-            .select_related(*transactions._SELECT_RELATED.get(kind, ()))
-            .order_by("created_at")[:200]
-        )
-        qs = list(qs)
-        from apps.core import folio
-
-        folio.prefetch(kind, qs)  # KA-12 B2-3: due() без запроса на строку
-        # KA-MC X3: какие из кандидатов уже выставлены счётом (запрос — только по ним).
-        codes = [str(o.reference_code) for o in qs]
-        invoiced = set(
-            billed.filter(deal_kind=kind, deal_id__in=codes).values_list("deal_kind", "deal_id")
-        )
-        advanced = _advanced(kind, codes)
-        inv_ids = [o.invoice_id for o in qs if getattr(o, "invoice_id", None)]
-        invoiced_ids = set(billed.filter(pk__in=inv_ids).values_list("pk", flat=True))
-        for obj in qs:
-            # KA-MC X3: у сделки с выставленным счётом открытая позиция — САМ счёт
-            # (одна строка, его ждёт Mahnwesen), иначе сумма считалась бы дважды.
-            if (
-                (kind, str(obj.reference_code)) in invoiced
-                or (getattr(obj, "invoice_id", None) in invoiced_ids)
-                or str(obj.reference_code) in advanced
-            ):
-                continue
-            t = transactions.transaction_for(kind, obj)
-            # KA-MC X4: «ждём» из денежного контракта — к оплате после ваучера и
-            # за вычетом Anzahlung (KA-H6), одним правилом для всех видов.
-            amount = money_contract.due(kind, obj)
-            if not amount:
-                continue
-            out.append(
-                {
-                    "kind": kind,
-                    "kind_label": transactions.KIND_LABEL.get(kind, kind),
-                    "obj": obj,
-                    "code": getattr(obj, "reference_code", str(obj.pk)),
-                    "title": t.title,
-                    "amount": amount,
-                    "customer": getattr(obj, "customer", None),
-                    "age_days": (today - obj.created_at.date()).days,
-                    "manage_url": t.manage_url,
-                    # SH-23b: срок оплаты сделки (Р-2/Р-4) — просроченное видно
-                    # сразу, а не по возрасту записи.
-                    "due_date": (
-                        getattr(obj, "payment_due_at", None).date()
-                        if getattr(obj, "payment_due_at", None)
-                        else None
-                    ),
-                }
-            )
+        out += deal_open_items(tenant, kind, today=today, billed=billed)
     out += _job_deposit_items(tenant, today)
     # KA-12 E1.1: Stornorechnung ничего не ждёт — не открытая позиция.
     from .models import with_credited
@@ -378,3 +324,71 @@ def apply_match(tx, kind: str, obj) -> bool:
     tx.matched_at = timezone.now()
     tx.save(update_fields=["matched_kind", "matched_id", "matched_at", "updated_at"])
     return True
+
+
+def deal_open_items(tenant, kind: str, *, today=None, billed=None) -> list[dict]:
+    """Открытые позиции ОДНОГО вида сделок — то же правило, что экран Offene Posten
+    (UX-D D1.4: главная отеля показывает ровно эти строки, числа не расходятся).
+    Сделка со счётом — не здесь: её открытая позиция — сам счёт."""
+    from .models import Invoice
+
+    today = today or timezone.localdate()
+    if billed is None:
+        billed = Invoice.objects.filter(status__in=("issued", "paid"), kind=Invoice.KIND_INVOICE)
+    out = []
+    model = transactions.model_for(kind)
+    qs = (
+        model.objects.filter(money_contract.open_q(kind))
+        .exclude(status__in=status_registry.cancelled_statuses_for(kind, tenant))
+        # KA-12 E10: клиент и связи заголовка — без запроса на строку.
+        .select_related(*transactions._SELECT_RELATED.get(kind, ()))
+        .order_by("created_at")[:200]
+    )
+    qs = list(qs)
+    from apps.core import folio
+
+    folio.prefetch(kind, qs)  # KA-12 B2-3: due() без запроса на строку
+    # KA-MC X3: какие из кандидатов уже выставлены счётом (запрос — только по ним).
+    codes = [str(o.reference_code) for o in qs]
+    invoiced = set(
+        billed.filter(deal_kind=kind, deal_id__in=codes).values_list("deal_kind", "deal_id")
+    )
+    advanced = _advanced(kind, codes)
+    inv_ids = [o.invoice_id for o in qs if getattr(o, "invoice_id", None)]
+    invoiced_ids = set(billed.filter(pk__in=inv_ids).values_list("pk", flat=True))
+    for obj in qs:
+        # KA-MC X3: у сделки с выставленным счётом открытая позиция — САМ счёт
+        # (одна строка, его ждёт Mahnwesen), иначе сумма считалась бы дважды.
+        if (
+            (kind, str(obj.reference_code)) in invoiced
+            or (getattr(obj, "invoice_id", None) in invoiced_ids)
+            or str(obj.reference_code) in advanced
+        ):
+            continue
+        t = transactions.transaction_for(kind, obj)
+        # KA-MC X4: «ждём» из денежного контракта — к оплате после ваучера и
+        # за вычетом Anzahlung (KA-H6), одним правилом для всех видов.
+        amount = money_contract.due(kind, obj)
+        if not amount:
+            continue
+        out.append(
+            {
+                "kind": kind,
+                "kind_label": transactions.KIND_LABEL.get(kind, kind),
+                "obj": obj,
+                "code": getattr(obj, "reference_code", str(obj.pk)),
+                "title": t.title,
+                "amount": amount,
+                "customer": getattr(obj, "customer", None),
+                "age_days": (today - obj.created_at.date()).days,
+                "manage_url": t.manage_url,
+                # SH-23b: срок оплаты сделки (Р-2/Р-4) — просроченное видно
+                # сразу, а не по возрасту записи.
+                "due_date": (
+                    getattr(obj, "payment_due_at", None).date()
+                    if getattr(obj, "payment_due_at", None)
+                    else None
+                ),
+            }
+        )
+    return out

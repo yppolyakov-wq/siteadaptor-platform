@@ -6,10 +6,10 @@
       <span class="inline-flex h-2.5 w-2.5 rounded-full {% if presence_now %}bg-green-500{% else %}bg-gray-300{% endif %}" aria-hidden="true"></span>
       {% if presence_now %}{% trans "Jetzt erreichbar" %}{% else %}{% trans "Gerade nicht erreichbar" %}{% endif %}
     </span>
-    <span class="flex gap-1 mt-2">
-      <button name="mode" value="auto" class="px-2.5 py-1 rounded-full text-[11px] {% if presence_mode == 'auto' %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "Auto" %}</button>
-      <button name="mode" value="on" data-ui-state class="px-2.5 py-1 rounded-full text-[11px] {% if presence_mode == 'on' %}bg-green-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "An" %}</button>
-      <button name="mode" value="off" class="px-2.5 py-1 rounded-full text-[11px] {% if presence_mode == 'off' %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "Aus" %}</button>
+    <span class="flex gap-1 mt-2" role="group" aria-label="{% trans 'Erreichbarkeit' %}">
+      <button type="submit" name="mode" value="auto" aria-pressed="{% if presence_mode == 'auto' %}true{% else %}false{% endif %}" class="min-h-[24px] px-2.5 py-1 rounded-full text-xs {% if presence_mode == 'auto' %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "Auto" %}</button>
+      <button type="submit" name="mode" value="on" aria-pressed="{% if presence_mode == 'on' %}true{% else %}false{% endif %}" data-ui-state class="min-h-[24px] px-2.5 py-1 rounded-full text-xs {% if presence_mode == 'on' %}bg-green-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "An" %}</button>
+      <button type="submit" name="mode" value="off" aria-pressed="{% if presence_mode == 'off' %}true{% else %}false{% endif %}" class="min-h-[24px] px-2.5 py-1 rounded-full text-xs {% if presence_mode == 'off' %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "Aus" %}</button>
     </span>
     {% if not presence_number %}<a href="{% url 'settings' %}" class="block mt-1.5 text-[11px] text-amber-700 hover:underline">{% trans "WhatsApp-Nummer fehlt" %} →</a>{% endif %}
   </form>

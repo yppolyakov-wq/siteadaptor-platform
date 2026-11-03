@@ -17,31 +17,31 @@ apps/stays/home_summary.summary (префикс hh_); выручка — вид�
       <a href="{% url w.url_name %}{{ w.url_query }}" class="ui-card block p-4 hover:bg-gray-50">
         <span class="block text-xs text-gray-500">{{ w.label }}</span>
         <span class="block text-2xl font-bold tracking-tight mt-0.5 tabular-nums">{{ w.value }}</span>
-        <span class="block text-[11px] {% if '▲' in w.hint %}text-emerald-700{% elif '▼' in w.hint %}text-rose-700{% else %}text-gray-500{% endif %} mt-1">{{ w.hint }}</span>
+        <span class="block text-xs {% if '▲' in w.hint %}text-emerald-700{% elif '▼' in w.hint %}text-rose-700{% else %}text-gray-500{% endif %} mt-1">{{ w.hint }}</span>
       </a>
     {% endif %}{% endfor %}
     <a href="{% url 'verkaeufe' %}?tab=stay&amp;view=kalender" class="ui-card block p-4 hover:bg-gray-50">
       <span class="block text-xs text-gray-500">{% trans "Belegt heute" %}</span>
       <span class="block text-2xl font-bold tracking-tight mt-0.5 tabular-nums">{% if hh_today_occ %}{% blocktrans with n=hh_today_occ.occupied total=hh_today_occ.total %}{{ n }} von {{ total }}{% endblocktrans %}{% else %}—{% endif %}</span>
-      <span class="block text-[11px] text-gray-500 mt-1">{% trans "Zimmer" %}</span>
+      <span class="block text-xs text-gray-500 mt-1">{% trans "Zimmer" %}</span>
     </a>
     <a href="{% url 'verkaeufe' %}?view=heute" class="ui-card block p-4 hover:bg-gray-50">
       <span class="block text-xs text-gray-500">{% trans "Anreisen / Abreisen" %}</span>
       <span class="block text-2xl font-bold tracking-tight mt-0.5 tabular-nums">{{ hh_arrivals_n }} / {{ hh_departures_n }}</span>
-      <span class="block text-[11px] text-gray-500 mt-1">{% trans "heute" %}</span>
+      <span class="block text-xs text-gray-500 mt-1">{% trans "heute" %}</span>
     </a>
     {% comment %}Р-D1-a: без модуля «Finanzen» — без ссылки (экрана Offene Posten нет), с подсказкой.{% endcomment %}
     {% if hh_finance %}<a href="{% url 'finance:offene' %}" class="ui-card block p-4 hover:bg-gray-50">{% else %}<div class="ui-card p-4">{% endif %}
       <span class="block text-xs text-gray-500">{% trans "Nicht bezahlt" %}</span>
       <span class="block text-2xl font-bold tracking-tight mt-0.5 tabular-nums">{{ hh_unpaid.amount|floatformat:2 }} €</span>
-      <span class="block text-[11px] text-gray-500 mt-1">{% blocktrans count n=hh_unpaid.count %}{{ n }} Buchung{% plural %}{{ n }} Buchungen{% endblocktrans %}{% if not hh_finance %} · {% trans "Finanzen aktivieren für die Übersicht" %}{% endif %}</span>
+      <span class="block text-xs text-gray-500 mt-1">{% blocktrans count n=hh_unpaid.count %}{{ n }} Buchung{% plural %}{{ n }} Buchungen{% endblocktrans %}{% if not hh_finance %} · {% trans "Finanzen aktivieren für die Übersicht" %}{% endif %}</span>
     {% if hh_finance %}</a>{% else %}</div>{% endif %}
   </div>
 </section>
 
 <div class="grid lg:grid-cols-3 gap-4 mb-6">
   <section aria-labelledby="hh-today" class="ui-card p-4 lg:col-span-2 lg:self-start">
-    <h2 id="hh-today" class="font-semibold mb-3">{% trans "Heute" %}</h2>
+    <h2 id="hh-today" tabindex="-1" class="font-semibold mb-3 scroll-mt-24">{% trans "Heute" %}</h2>
     <div class="grid sm:grid-cols-3 gap-4">
       <div>
         <h3 class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">{% trans "Anreisen" %}</h3>
@@ -49,18 +49,18 @@ apps/stays/home_summary.summary (префикс hh_); выручка — вид�
         {% for b in hh_arrivals %}
           <li class="flex items-center justify-between gap-2 text-sm">
             <a href="{% url 'stays:booking-detail' b.pk %}" data-drawer data-drawer-key="hh-a-{{ b.pk }}" class="min-w-0 hover:underline">
-              <span class="block truncate font-medium">{{ b.customer }}</span>
-              <span class="block text-[11px] text-gray-500 truncate">{% if b.room %}{{ b.room.number }} · {% endif %}{{ b.unit.name }}{% if b.desk.unconfirmed %} · <span class="text-amber-700">{% trans "unbestätigt" %}</span>{% elif b.desk.checked_in_at %} · ✓ {% trans "eingecheckt" %}{% endif %}</span>
+              <span class="block break-words font-medium">{{ b.customer }}</span>
+              <span class="block text-xs text-gray-500 break-words">{% if b.room %}{{ b.room.number }} · {% endif %}{{ b.unit.name }}{% if b.desk.unconfirmed %} · <span class="text-amber-700">{% trans "unbestätigt" %}</span>{% elif b.desk.checked_in_at %} · ✓ {% trans "eingecheckt" %}{% endif %}</span>
             </a>
             {% if b.desk.unconfirmed and hh_can_edit %}
               {% status_actions "stay" b as acts %}{% for a in acts %}{% if a.target == "confirmed" %}
               <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="shrink-0">{% csrf_token %}<input type="hidden" name="next" value="{{ hh_next }}">
-                <button type="submit" name="action" value="confirmed" class="ui-btn ui-btn-secondary ui-btn-sm">{{ a.label }}</button>
+                <button type="submit" name="action" value="confirmed" aria-label="{{ a.label }}: {{ b.customer }}" class="ui-btn ui-btn-secondary ui-btn-sm">{{ a.label }}</button>
               </form>
               {% endif %}{% endfor %}
             {% elif b.desk.can_check_in and hh_can_front_desk %}
               <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="shrink-0">{% csrf_token %}<input type="hidden" name="action" value="check_in"><input type="hidden" name="next" value="{{ hh_next }}">
-                <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Check-in" %}</button>
+                <button type="submit" aria-label="{% trans 'Check-in' %}: {{ b.customer }}" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Check-in" %}</button>
               </form>
             {% endif %}
           </li>
@@ -68,7 +68,7 @@ apps/stays/home_summary.summary (префикс hh_); выручка — вид�
           <li class="text-sm text-gray-500">{% trans "Keine Anreisen." %}</li>
         {% endfor %}
         </ul>
-        {% if hh_arrivals_n > hh_arrivals|length %}<a href="{% url 'verkaeufe' %}?view=heute" class="block mt-2 text-xs text-indigo-700 hover:underline">{% blocktrans with n=hh_arrivals_n %}Alle {{ n }} anzeigen{% endblocktrans %} →</a>{% endif %}
+        {% if hh_arrivals_n > hh_arrivals|length %}<a href="{% url 'verkaeufe' %}?view=heute" class="block mt-2 text-xs text-indigo-700 hover:underline">{% blocktrans with n=hh_arrivals_n %}Alle {{ n }} anzeigen{% endblocktrans %} <span aria-hidden="true">→</span></a>{% endif %}
       </div>
       <div>
         <h3 class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">{% trans "Abreisen" %}</h3>
@@ -76,12 +76,12 @@ apps/stays/home_summary.summary (префикс hh_); выручка — вид�
         {% for b in hh_departures %}
           <li class="flex items-center justify-between gap-2 text-sm">
             <a href="{% url 'stays:booking-detail' b.pk %}" data-drawer data-drawer-key="hh-d-{{ b.pk }}" class="min-w-0 hover:underline">
-              <span class="block truncate font-medium">{{ b.customer }}</span>
-              <span class="block text-[11px] text-gray-500 truncate">{% if b.room %}{{ b.room.number }} · {% endif %}{{ b.unit.name }}{% if b.desk.checked_out_at %} · ✓ {% trans "ausgecheckt" %}{% endif %}</span>
+              <span class="block break-words font-medium">{{ b.customer }}</span>
+              <span class="block text-xs text-gray-500 break-words">{% if b.room %}{{ b.room.number }} · {% endif %}{{ b.unit.name }}{% if b.desk.checked_out_at %} · ✓ {% trans "ausgecheckt" %}{% endif %}</span>
             </a>
             {% if b.desk.can_check_out and hh_can_front_desk %}
               <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="shrink-0">{% csrf_token %}<input type="hidden" name="action" value="check_out"><input type="hidden" name="next" value="{{ hh_next }}">
-                <button type="submit" data-danger="1" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Check-out" %}</button>
+                <button type="submit" data-danger="1" aria-label="{% trans 'Check-out' %}: {{ b.customer }}" class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Check-out" %}</button>
               </form>
             {% endif %}
           </li>
@@ -89,17 +89,17 @@ apps/stays/home_summary.summary (префикс hh_); выручка — вид�
           <li class="text-sm text-gray-500">{% trans "Keine Abreisen." %}</li>
         {% endfor %}
         </ul>
-        {% if hh_departures_n > hh_departures|length %}<a href="{% url 'verkaeufe' %}?view=heute" class="block mt-2 text-xs text-indigo-700 hover:underline">{% blocktrans with n=hh_departures_n %}Alle {{ n }} anzeigen{% endblocktrans %} →</a>{% endif %}
+        {% if hh_departures_n > hh_departures|length %}<a href="{% url 'verkaeufe' %}?view=heute" class="block mt-2 text-xs text-indigo-700 hover:underline">{% blocktrans with n=hh_departures_n %}Alle {{ n }} anzeigen{% endblocktrans %} <span aria-hidden="true">→</span></a>{% endif %}
       </div>
       <div>
         <h3 class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mb-2">{% trans "Zimmer reinigen" %}</h3>
         <ul class="space-y-2">
         {% for r in hh_dirty %}
           <li class="flex items-center justify-between gap-2 text-sm">
-            <span class="min-w-0 truncate">{{ r.number }} · {{ r.unit.name }}</span>
+            <span class="min-w-0 break-words">{{ r.number }} · {{ r.unit.name }}</span>
             {% if hh_can_edit %}
             <form method="post" action="{% url 'stays:room-clean' r.pk %}" class="shrink-0">{% csrf_token %}<input type="hidden" name="next" value="{{ hh_next }}">
-              <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm">✓ {% trans "Sauber" %}</button>
+              <button type="submit" aria-label="{% trans 'Sauber' %}: {{ r.number }}" class="ui-btn ui-btn-secondary ui-btn-sm"><span aria-hidden="true">✓ </span>{% trans "Sauber" %}</button>
             </form>
             {% endif %}
           </li>
@@ -116,7 +116,7 @@ apps/stays/home_summary.summary (префикс hh_); выручка — вид�
       <h2 id="hh-attention" class="font-semibold mb-3">{% trans "Braucht Aufmerksamkeit" %}</h2>
       {% if hh_attention %}
       <ul class="space-y-2 text-sm">
-        {% if hh_unconfirmed %}<li><a href="{% url 'verkaeufe' %}?tab=stay&amp;view=liste&amp;status=pending" class="flex items-center justify-between gap-2 hover:underline"><span><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5" aria-hidden="true"></span>{% blocktrans count n=hh_unconfirmed %}{{ n }} Buchung unbestätigt{% plural %}{{ n }} Buchungen unbestätigt{% endblocktrans %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
+        {% if hh_unconfirmed %}<li><a href="{% url 'verkaeufe' %}?tab=stay&amp;view=liste" class="flex items-center justify-between gap-2 hover:underline"><span><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5" aria-hidden="true"></span>{% blocktrans count n=hh_unconfirmed %}{{ n }} Buchung unbestätigt{% plural %}{{ n }} Buchungen unbestätigt{% endblocktrans %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
         {% if hh_no_room %}<li><a href="{% url 'verkaeufe' %}?tab=stay&amp;view=kalender" class="flex items-center justify-between gap-2 hover:underline"><span><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5" aria-hidden="true"></span>{% blocktrans count n=hh_no_room %}{{ n }} Buchung ohne Zimmer{% plural %}{{ n }} Buchungen ohne Zimmer{% endblocktrans %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
         {% if hh_unread %}<li><a href="{% url 'inbox:list' %}" class="flex items-center justify-between gap-2 hover:underline"><span><span class="inline-block w-2 h-2 rounded-full bg-indigo-500 mr-1.5" aria-hidden="true"></span>{% blocktrans count n=hh_unread %}{{ n }} ungelesene Nachricht{% plural %}{{ n }} ungelesene Nachrichten{% endblocktrans %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
         {% if hh_gap %}<li><a href="{% url 'verkaeufe' %}?tab=stay&amp;view=kalender&amp;von={{ hh_gap.start|date:'Y-m-d' }}" class="flex items-center justify-between gap-2 hover:underline"><span><span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1.5" aria-hidden="true"></span>{% blocktrans with start=hh_gap.start|date:"d.m." end=hh_gap.end|date:"d.m." unit=hh_gap.unit.name %}Lücke {{ start }}–{{ end }} frei · {{ unit }}{% endblocktrans %}</span><span aria-hidden="true">→</span></a>
@@ -132,13 +132,13 @@ apps/stays/home_summary.summary (префикс hh_); выручка — вид�
     {% if hh_week %}
     <section aria-labelledby="hh-week" class="ui-card p-4">
       <h2 id="hh-week" class="font-semibold mb-3">{% trans "Belegung 7 Tage" %}</h2>
-      <ol class="grid grid-cols-7 gap-1.5 items-end h-28">
+      <ol aria-labelledby="hh-week" class="grid grid-cols-7 gap-1.5 items-end h-28">
         {% for d in hh_week %}
         <li class="flex flex-col items-center gap-1 h-full justify-end">
-          <span class="sr-only">{{ d.day|date:"l, d.m." }}: {% blocktrans with n=d.occupied total=d.total %}{{ n }} von {{ total }}{% endblocktrans %}</span>
-          <span class="text-[10px] text-gray-500 tabular-nums" aria-hidden="true">{{ d.pct }}%</span>
+          <span class="sr-only">{{ d.day|date:"l, d.m." }}: {% blocktrans with n=d.occupied total=d.total %}{{ n }} von {{ total }}{% endblocktrans %}, {{ d.pct }} %</span>
+          <span class="text-xs text-gray-500 tabular-nums" aria-hidden="true">{{ d.pct }}%</span>
           <span class="w-full rounded-md bg-gray-100 flex-1 flex items-end overflow-hidden" aria-hidden="true"><span class="block w-full {% if d.pct >= 80 %}bg-emerald-500{% elif d.pct >= 40 %}bg-emerald-300{% else %}bg-amber-300{% endif %}" style="height: {{ d.pct }}%"></span></span>
-          <span class="text-[10px] text-gray-600" aria-hidden="true">{{ d.day|date:"D" }}</span>
+          <span class="text-xs text-gray-600" aria-hidden="true">{{ d.day|date:"D" }}</span>
         </li>
         {% endfor %}
       </ol>

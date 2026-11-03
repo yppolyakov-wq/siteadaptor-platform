@@ -31867,3 +31867,6 @@ msgstr[0] "%(n)s бронь без номера"
 msgstr[1] "%(n)s брони без номера"
 msgstr[2] "%(n)s броней без номера"
 msgstr[3] "%(n)s брони без номера"
+
+msgid "Erreichbarkeit"
+msgstr "Доступность"
