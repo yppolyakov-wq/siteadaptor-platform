@@ -31760,3 +31760,12 @@ msgstr "Lütfen bir ad girin."
 
 msgid "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."
 msgstr "Fotoğraf, açıklama ve rezervasyon kuralları — oluşturduktan sonra hizmet sayfasında."
+
+msgid "Bitte einen Betrag wie 25,00 angeben."
+msgstr "Lütfen 25,00 gibi bir tutar girin."
+
+msgid "Bitte einen Betrag zwischen 0 und 100.000 € angeben."
+msgstr "Lütfen 0 ile 100.000 € arasında bir tutar girin."
+
+msgid "Die Anzahlung darf nicht höher als der Preis sein."
+msgstr "Kapora fiyattan yüksek olamaz."

@@ -31887,3 +31887,12 @@ msgstr "Вкажіть назву."
 
 msgid "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."
 msgstr "Фото, опис і правила запису — на сторінці послуги після створення."
+
+msgid "Bitte einen Betrag wie 25,00 angeben."
+msgstr "Вкажіть суму, наприклад 25,00."
+
+msgid "Bitte einen Betrag zwischen 0 und 100.000 € angeben."
+msgstr "Вкажіть суму від 0 до 100 000 €."
+
+msgid "Die Anzahlung darf nicht höher als der Preis sein."
+msgstr "Передоплата не може бути більшою за ціну."

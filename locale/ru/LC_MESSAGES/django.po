@@ -31903,3 +31903,12 @@ msgstr "Укажите название."
 
 msgid "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."
 msgstr "Фото, описание и правила записи — на странице услуги после создания."
+
+msgid "Bitte einen Betrag wie 25,00 angeben."
+msgstr "Укажите сумму, например 25,00."
+
+msgid "Bitte einen Betrag zwischen 0 und 100.000 € angeben."
+msgstr "Укажите сумму от 0 до 100 000 €."
+
+msgid "Die Anzahlung darf nicht höher als der Preis sein."
+msgstr "Предоплата не может быть больше цены."

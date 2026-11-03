@@ -31701,3 +31701,12 @@ msgstr "Bitte einen Namen angeben."
 
 msgid "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."
 msgstr "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."
+
+msgid "Bitte einen Betrag wie 25,00 angeben."
+msgstr "Bitte einen Betrag wie 25,00 angeben."
+
+msgid "Bitte einen Betrag zwischen 0 und 100.000 € angeben."
+msgstr "Bitte einen Betrag zwischen 0 und 100.000 € angeben."
+
+msgid "Die Anzahlung darf nicht höher als der Preis sein."
+msgstr "Die Anzahlung darf nicht höher als der Preis sein."

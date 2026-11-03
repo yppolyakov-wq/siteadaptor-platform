@@ -31614,3 +31614,12 @@ msgstr "Please enter a name."
 
 msgid "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung."
 msgstr "Photo, description and booking rules — on the service page after creating it."
+
+msgid "Bitte einen Betrag wie 25,00 angeben."
+msgstr "Please enter an amount such as 25.00."
+
+msgid "Bitte einen Betrag zwischen 0 und 100.000 € angeben."
+msgstr "Please enter an amount between 0 and €100,000."
+
+msgid "Die Anzahlung darf nicht höher als der Preis sein."
+msgstr "The deposit cannot be higher than the price."

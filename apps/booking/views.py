@@ -48,12 +48,16 @@ from .models import (
 )
 from .services import MAX_BUFFER_MINUTES, resync_occupancy
 
+# PositiveIntegerField (int32) — потолок суммы в центах; «1e999»/«1e10» не роняют
+# сохранение (ECC security-review D2.2).
+MAX_CENTS = 10_000_000  # 100 000 €
+
 
 def _eur_to_cents(raw) -> int:
-    """«5» / «5,50» → центы (анти-кривой ввод → 0)."""
+    """«5» / «5,50» → центы (анти-кривой ввод → 0, потолок MAX_CENTS)."""
     try:
-        return max(0, round(float(str(raw or "0").replace(",", ".")) * 100))
-    except (TypeError, ValueError):
+        return min(MAX_CENTS, max(0, round(float(str(raw or "0").replace(",", ".")) * 100)))
+    except (TypeError, ValueError, OverflowError):
         return 0
 
 
@@ -1350,7 +1354,7 @@ def _service_from_post(request):
     шторки «＋ Leistung» (UX-D D2.2). Пустое имя → None."""
     from .models import Service
 
-    name = request.POST.get("name", "").strip()[:200]
+    name = request.POST.get("name", "").strip()[:120]  # Service.name max_length
     if not name:
         return None
     service = Service(
@@ -1386,11 +1390,11 @@ def service_new(request):
     создания — страница услуги (фото, описание, правила — там). Пустое имя: форма
     возвращается с введённым и ошибкой у поля."""
 
-    def render_form(values, error=""):
+    def render_form(values, errors=None):
         ctx = {
             "nav": "services",
             "sv": values,
-            "sv_error": error,
+            "sv_errors": errors or {},
             "next_url": drawer_mod.drawer_next(request, reverse("booking:services")),
         }
         if request.method == "POST":
@@ -1400,11 +1404,13 @@ def service_new(request):
         return render(request, "booking/service_new.html", ctx)
 
     if request.method == "POST":
-        service = _service_from_post(request)
+        errors = _service_new_errors(request.POST)
+        service = None if errors else _service_from_post(request)
         if service is None:
-            msg = _("Bitte einen Namen angeben.")
-            messages.error(request, msg)
-            return render_form(_service_values(request.POST), msg)
+            errors = errors or {"name": _("Bitte einen Namen angeben.")}
+            if drawer_mod.is_drawer(request):  # шторка показывает его в role=alert
+                messages.error(request, next(iter(errors.values())))
+            return render_form(_service_values(request.POST), errors)
         service.save()
         messages.success(request, _("Service created."))
         return redirect(reverse("booking:service-edit", args=[service.pk]))
@@ -1413,10 +1419,39 @@ def service_new(request):
     )
 
 
+def _service_new_errors(data) -> dict:
+    """Ошибки у полей короткой формы: имя, цена/предоплата — числом и в разумных
+    пределах, предоплата не больше цены (иначе бронь считалась бы полной оплатой).
+    Старый `action=create` списка остаётся прежним (кривой ввод → 0)."""
+    from apps.core.money import parse_money
+
+    errors = {}
+    if not (data.get("name") or "").strip():
+        errors["name"] = _("Bitte einen Namen angeben.")
+    amounts = {}
+    for field in ("price_eur", "deposit_eur"):
+        try:
+            value = parse_money(data.get(field, ""))
+        except ValueError:
+            errors[field] = _("Bitte einen Betrag wie 25,00 angeben.")
+            continue
+        if value is not None and not (0 <= value <= MAX_CENTS / 100):
+            errors[field] = _("Bitte einen Betrag zwischen 0 und 100.000 € angeben.")
+            continue
+        amounts[field] = value or 0
+    if (
+        "price_eur" in amounts
+        and "deposit_eur" in amounts
+        and amounts["deposit_eur"] > amounts["price_eur"]
+    ):
+        errors["deposit_eur"] = _("Die Anzahlung darf nicht höher als der Preis sein.")
+    return errors
+
+
 def _service_values(data) -> dict:
     """Значения формы «＋ Leistung» (префилл помощника или повтор после ошибки)."""
     return {
-        "name": (data.get("name") or "")[:200],
+        "name": (data.get("name") or "")[:120],
         "price_eur": (data.get("price_eur") or "")[:20],
         "duration": (data.get("duration") or "")[:5],
         "deposit_eur": (data.get("deposit_eur") or "")[:20],

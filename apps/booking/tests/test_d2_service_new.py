@@ -132,3 +132,46 @@ def test_permissions_match_the_services_list():
     from apps.core import view_perms
 
     assert view_perms.RULES["booking:service-new"] == view_perms.RULES["booking:services"]
+
+
+def test_long_name_is_clamped_not_500():
+    """ECC security-review D2.2: Service.name — 120 символов; длиннее ронял save()."""
+    views.service_new(_req("post", {"name": "x" * 150}, drawer=False))
+    assert len(Service.objects.get().name) == 120
+
+
+@pytest.mark.parametrize(
+    "data, field",
+    [
+        ({"name": "A", "price_eur": "abc"}, "price_eur"),
+        ({"name": "A", "price_eur": "1e999"}, "price_eur"),
+        ({"name": "A", "price_eur": "200000"}, "price_eur"),
+        ({"name": "A", "price_eur": "20", "deposit_eur": "30"}, "deposit_eur"),
+    ],
+)
+def test_money_input_errors_are_shown_at_the_field(data, field):
+    resp = views.service_new(_req("post", data))
+    html = resp.content.decode()
+    assert resp["X-Sf-Fragment"] == "1"
+    assert 'aria-invalid="true"' in html and not Service.objects.exists()
+    marker = {"price_eur": "svc-new-price-err", "deposit_eur": "svc-new-deposit-err"}[field]
+    assert f'id="{marker}"' in html
+
+
+def test_old_inline_create_survives_overflowing_price():
+    resp = views.services_view(
+        _req(
+            "post",
+            {"action": "create", "name": "Alt", "price_eur": "1e999"},
+            drawer=False,
+            path="/dashboard/booking/leistungen/",
+        )
+    )
+    assert resp.status_code in (200, 302)
+    assert Service.objects.get(name="Alt").price_cents == 0
+
+
+def test_error_without_js_is_shown_once():
+    resp = views.service_new(_req("post", {"name": " "}, drawer=False))
+    html = resp.content.decode()
+    assert html.count("Bitte einen Namen angeben") == 1

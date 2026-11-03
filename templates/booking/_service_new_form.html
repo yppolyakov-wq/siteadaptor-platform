@@ -2,21 +2,23 @@
 {% comment %}UX-D D2.2: короткая форма «＋ Leistung» — общая для шторки и страницы
 service-new. Только то, без чего услугу не продать; фото, описание, правила и
 переводы — на странице услуги после создания. Скриптов нет (шторка). Контекст:
-sv (значения), sv_error, next_url.{% endcomment %}
+sv (значения), sv_errors {поле: текст}, next_url.{% endcomment %}
 <form method="post" action="{% url 'booking:service-new' %}" class="space-y-4" data-drawer-form>
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ next_url }}">
   <div>
-    <label for="svc-new-name" class="block text-sm font-medium mb-1">{% trans "Name" %}</label>
-    <input id="svc-new-name" name="name" type="text" required maxlength="200" value="{{ sv.name }}" data-drawer-autofocus
-           placeholder="{% trans 'Name (e.g. Ölwechsel, Haarschnitt)' %}"{% if sv_error %} aria-invalid="true" aria-describedby="svc-new-name-err"{% endif %} class="ui-input">
-    {% if sv_error %}<p id="svc-new-name-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ sv_error }}</p>{% endif %}
+    <label for="svc-new-name" class="block text-sm font-medium mb-1">{% trans "Name" %} <span aria-hidden="true" class="text-red-700">*</span></label>
+    <input id="svc-new-name" name="name" type="text" required maxlength="120" autocomplete="off" value="{{ sv.name }}" data-drawer-autofocus
+           aria-describedby="svc-new-name-hint{% if sv_errors.name %} svc-new-name-err{% endif %}"{% if sv_errors.name %} aria-invalid="true"{% endif %} class="ui-input">
+    <p id="svc-new-name-hint" class="mt-1 text-xs text-gray-600">{% trans "Name (e.g. Ölwechsel, Haarschnitt)" %}</p>
+    {% if sv_errors.name %}<p id="svc-new-name-err"{% if not in_drawer %} role="alert"{% endif %} class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ sv_errors.name }}</p>{% endif %}
   </div>
   <div class="grid grid-cols-2 gap-4">
     <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Duration (min)" %}</span>
       <input name="duration" type="number" min="5" max="1440" value="{{ sv.duration|default:'30' }}" class="ui-input"></label>
     <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</span>
-      <input name="price_eur" type="text" inputmode="decimal" value="{{ sv.price_eur }}" placeholder="49" class="ui-input"></label>
+      <input name="price_eur" type="text" inputmode="decimal" value="{{ sv.price_eur }}" placeholder="49"{% if sv_errors.price_eur %} aria-invalid="true" aria-describedby="svc-new-price-err"{% endif %} class="ui-input"></label>
+    {% if sv_errors.price_eur %}<p id="svc-new-price-err"{% if not in_drawer %} role="alert"{% endif %} class="col-span-2 -mt-2 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ sv_errors.price_eur }}</p>{% endif %}
   </div>
   <div class="grid grid-cols-2 gap-4">
     {% vat_select sv.vat_rate|default:"19.00" %}
@@ -27,8 +29,9 @@ sv (значения), sv_error, next_url.{% endcomment %}
       </select></label>
   </div>
   <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</span>
-    <input name="deposit_eur" type="text" inputmode="decimal" value="{{ sv.deposit_eur }}" placeholder="0" class="ui-input"></label>
-  <p class="text-xs text-gray-500">{% trans "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung." %}</p>
+    <input name="deposit_eur" type="text" inputmode="decimal" value="{{ sv.deposit_eur }}" placeholder="0"{% if sv_errors.deposit_eur %} aria-invalid="true" aria-describedby="svc-new-deposit-err"{% endif %} class="ui-input"></label>
+  {% if sv_errors.deposit_eur %}<p id="svc-new-deposit-err"{% if not in_drawer %} role="alert"{% endif %} class="-mt-2 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ sv_errors.deposit_eur }}</p>{% endif %}
+  <p class="text-xs text-gray-600">{% trans "Foto, Beschreibung und Buchungsregeln — nach dem Anlegen auf der Seite der Leistung." %}</p>
   <div{% if in_drawer %} class="ui-drawer-foot"{% endif %}>
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create service" %}</button>
   </div>
