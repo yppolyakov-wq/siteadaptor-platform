@@ -1,0 +1,5 @@
+{% load i18n %}
+{% comment %}UX-D D3.2: шторка «＋ Ressource» (booking:resource-new?box=1).{% endcomment %}
+<div data-drawer-title="{% trans 'New resource' %}" class="text-sm">
+  {% include "booking/_resource_new_form.html" with in_drawer=1 %}
+</div>

@@ -18,6 +18,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import gettext as _
 
+from apps.core import drawer as drawer_mod
 from apps.core.i18n_input import apply_i18n_overlay, save_row_translations
 
 from .models import AvailabilityRule, Resource
@@ -70,17 +71,25 @@ def _i18n(request):  # E9.10: переводы названия стола/за�
 
 
 def _rule(request):
+    from datetime import time
+
     resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
     try:
+        weekday = int(request.POST.get("weekday", "0"))
+        if not 0 <= weekday <= 6:
+            raise ValueError(weekday)
+        # Ревью D3.1: мусорное время давало ValidationError → 500 (ловили только int()).
+        start = time.fromisoformat(request.POST.get("start_time") or "09:00")
+        end = time.fromisoformat(request.POST.get("end_time") or "18:00")
         AvailabilityRule.objects.create(
             resource=resource,
-            weekday=int(request.POST.get("weekday", "0")),
-            start_time=request.POST.get("start_time") or "09:00",
-            end_time=request.POST.get("end_time") or "18:00",
+            weekday=weekday,
+            start_time=start,
+            end_time=end,
             slot_minutes=max(5, min(int(request.POST.get("slot_minutes", "30")), 480)),
         )
         messages.success(request, _("Opening hours added."))
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, ValidationError):
         messages.error(request, _("Invalid input."))
     return None
 
@@ -147,9 +156,12 @@ def _closed(request):
 
 
 def _toggle(request):
-    resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
-    resource.is_active = not resource.is_active
-    resource.save(update_fields=["is_active", "updated_at"])
+    with transaction.atomic():  # ревью D3.1: двойной клик не переключает «мимо»
+        resource = get_object_or_404(
+            Resource.objects.select_for_update(), pk=request.POST.get("resource")
+        )
+        resource.is_active = not resource.is_active
+        resource.save(update_fields=["is_active", "updated_at"])
     return None
 
 
@@ -161,11 +173,17 @@ def _settings(request):
     resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
     # Ревью D3.0: мусор в предоплате не отменяет остальные правки — предоплата остаётся
     # прежней (ошибка сказана), прочие поля сохраняются.
-    deposit = _deposit_or_error(request, request.POST.get("deposit_eur"))
-    resource.require_manual_confirm = bool(request.POST.get("require_manual_confirm"))
+    from apps.core.permissions import has_perm
+
     resource.counts_party_size = bool(request.POST.get("counts_party_size"))
-    fields = ["require_manual_confirm", "counts_party_size", "updated_at"]
-    if deposit is not None:
+    fields = ["counts_party_size", "updated_at"]
+    # Решение D3 (ревью D3.1): предоплата и ручная проверка — по праву цен и здесь.
+    can_price = has_perm(request.user, "preise.edit")
+    deposit = _deposit_or_error(request, request.POST.get("deposit_eur")) if can_price else 0
+    if can_price:
+        resource.require_manual_confirm = bool(request.POST.get("require_manual_confirm"))
+        fields.append("require_manual_confirm")
+    if can_price and deposit is not None:
         resource.deposit_cents = deposit
         fields.append("deposit_cents")
     # KA-12 GA-3: вместимость/места/зона правятся здесь же (presence-guard W0:
@@ -329,7 +347,7 @@ def _update(request, resource):
     post = request.POST
     tenant = getattr(request, "tenant", None)
     with transaction.atomic():
-        resource = Resource.objects.select_for_update().get(pk=resource.pk)
+        resource = get_object_or_404(Resource.objects.select_for_update(), pk=resource.pk)
         fields = ["updated_at"]
         if post.get("basis_present"):
             name = (post.get("name") or "").strip()[:120]
@@ -368,10 +386,6 @@ def _update(request, resource):
             resource.title = (post.get("title") or "").strip()[:120]
             resource.bio = (post.get("bio") or "").strip()[:2000]
             fields += ["title", "bio"]
-            new_photo = views._uploaded_image_ref(request, "photo", "staff")
-            if new_photo or post.get("remove_photo"):
-                resource.photo = new_photo or {}
-                fields.append("photo")
         # GA-5: стол в комбинации обязан остаться «1 бронь = 1 стол».
         if (
             resource.parts.exists() or resource.combinations.exists()
@@ -383,6 +397,18 @@ def _update(request, resource):
                     "kein Platz-Pool sind nötig. Bitte zuerst die Kombination auflösen."
                 ),
             )
+        # Фото — ПОСЛЕ всех проверок (ревью D3.1: файл не остаётся сиротой при отказе);
+        # негодный файл — ошибка, а не тихое «Saved.».
+        if post.get("profil_present") and resource.type == Resource.TYPE_STAFF:
+            if request.FILES.get("photo"):
+                new_photo = views._uploaded_image_ref(request, "photo", "staff")
+                if not new_photo:
+                    raise _Invalid("profil", _("Bitte ein Bild (JPG, PNG, WebP) hochladen."))
+                resource.photo = new_photo
+                fields.append("photo")
+            elif post.get("remove_photo"):
+                resource.photo = {}
+                fields.append("photo")
         i18n_fields = (
             ("name", "title", "bio") if resource.type == Resource.TYPE_STAFF else ("name",)
         )
@@ -417,9 +443,7 @@ def resource_edit(request, pk):
                 messages.error(request, exc.message)
                 tab = exc.tab
         else:
-            response = dispatch(request, action)
-            if response is not None:  # отказ комбинации и т.п. — обратно на свою вкладку
-                tab = ACTION_TAB.get(action)
+            dispatch(request, action)  # действия страницы сами ответ не выбирают
         if tab not in tabs:
             tab = ACTION_TAB.get(action)
         return redirect(page_url(resource, tab))
@@ -465,3 +489,88 @@ def resource_edit(request, pk):
             "can_edit_prices": has_perm(request.user, "preise.edit"),
         },
     )
+
+
+# --- UX-D D3.2: «＋ Ressource» шторкой ----------------------------------------------
+#
+# Короткая форма (имя, тип, вместимость; у стола — места и зона). Часы, предоплата,
+# профиль мастера, комбинации — на странице ресурса после создания. Ввод строгий:
+# ошибка у поля, введённое сохраняется (прецедент D2.2/D4.5).
+
+NEW_FIELDS = ("name", "type", "capacity", "seats", "zone")
+
+
+def _strict_int(raw, lo, hi, default):
+    raw = (raw or "").strip()
+    if not raw:
+        return default
+    if not raw.isdigit() or len(raw) > 4:
+        return None
+    value = int(raw)
+    return value if lo <= value <= hi else None
+
+
+def parse_new(post) -> tuple[dict, dict]:
+    """Поля «＋ Ressource» → (значения Resource, ошибки {поле: текст})."""
+    errors, values = {}, {}
+    name = (post.get("name") or "").strip()
+    if not name:
+        errors["name"] = _("Bitte einen Namen angeben.")
+    values["name"] = name[:120]
+    kind = post.get("type") or Resource.TYPE_TABLE
+    values["type"] = kind if kind in dict(Resource.TYPES) else Resource.TYPE_TABLE
+    capacity = _strict_int(post.get("capacity"), 1, 100, 1)
+    if capacity is None:
+        errors["capacity"] = _("Bitte eine Zahl von %(lo)s bis %(hi)s angeben.") % {
+            "lo": 1,
+            "hi": 100,
+        }
+    else:
+        values["capacity"] = capacity
+    if values["type"] == Resource.TYPE_TABLE:
+        seats = _strict_int(post.get("seats"), 0, 99, 0)
+        if seats is None:
+            errors["seats"] = _("Bitte eine Zahl von %(lo)s bis %(hi)s angeben.") % {
+                "lo": 0,
+                "hi": 99,
+            }
+        else:
+            values["seats"] = seats or None
+        values["zone"] = (post.get("zone") or "").strip()[:40]
+    return values, errors
+
+
+@login_required
+@drawer_mod.drawer_aware
+def resource_new(request):
+    from django.shortcuts import render
+    from django.urls import reverse
+
+    from apps.core.owner_login import local_next
+
+    def render_form(values, errors=None):
+        ctx = {
+            "nav": "booking-resources",
+            "rv": values,
+            "rv_errors": errors or {},
+            "types": Resource.TYPES,
+            "next_url": drawer_mod.drawer_next(request, reverse("booking:resources")),
+        }
+        if request.method == "POST":
+            ctx["next_url"] = local_next(request) or ctx["next_url"]
+        if drawer_mod.is_drawer(request) or request.GET.get("box") == "1":
+            return drawer_mod.fragment(render(request, "booking/_resource_new_drawer.html", ctx))
+        return render(request, "booking/resource_new.html", ctx)
+
+    if request.method == "POST":
+        values, errors = parse_new(request.POST)
+        if errors:
+            if drawer_mod.is_drawer(request):  # шторка показывает его в role=alert
+                messages.error(request, next(iter(errors.values())))
+            return render_form({f: (request.POST.get(f) or "")[:120] for f in NEW_FIELDS}, errors)
+        resource = Resource.objects.create(**values)
+        messages.success(request, _("Resource created."))
+        tab = "profil" if resource.type == Resource.TYPE_STAFF else "zeiten"
+        return redirect(page_url(resource, tab))
+    wanted = request.GET.get("type")
+    return render_form({"type": wanted if wanted in dict(Resource.TYPES) else ""})

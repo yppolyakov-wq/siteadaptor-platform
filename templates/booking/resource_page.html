@@ -50,9 +50,9 @@ resource_settings/resource_profile писали поля безусловно �
   {# --- Grunddaten ------------------------------------------------------- #}
   <div data-pf-panel="basis" class="grid sm:grid-cols-3 gap-3 items-end{% if active_tab != 'basis' %} hidden{% endif %}">
     <input type="hidden" name="basis_present" value="1">
-    <div class="sm:col-span-2" data-i18n-loc="{{ base_loc }}" lang="{{ base_loc }}">
+    <div class="sm:col-span-2" data-i18n-loc="{{ base_loc }}">
       <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Name" %}</span>
-      <input name="name" type="text" required maxlength="120" value="{{ r.name }}" class="ui-input"></label>
+      <input name="name" type="text" required maxlength="120" value="{{ r.name }}" lang="{{ base_loc }}" class="ui-input"></label>
     </div>
     <div>
       <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Reihenfolge" %}</span>
@@ -60,10 +60,10 @@ resource_settings/resource_profile писали поля безусловно �
     </div>
     {% regroup i18n_inputs by locale as by_loc %}
     {% for grp in by_loc %}
-    <div data-i18n-loc="{{ grp.grouper }}" lang="{{ grp.grouper }}" class="hidden sm:col-span-3 space-y-2">
+    <div data-i18n-loc="{{ grp.grouper }}" class="hidden sm:col-span-3 space-y-2">
       {% for inp in grp.list %}{% if inp.field == 'name' %}
         <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Name" %} ({{ inp.locale|upper }})</span>
-        <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input"></label>
+        <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" lang="{{ inp.locale }}" class="ui-input"></label>
       {% endif %}{% endfor %}
     </div>
     {% endfor %}
@@ -120,20 +120,20 @@ resource_settings/resource_profile писали поля безусловно �
   {% if r.type == 'staff' %}
   <div data-pf-panel="profil" class="space-y-3{% if active_tab != 'profil' %} hidden{% endif %}">
     <input type="hidden" name="profil_present" value="1">
-    <div data-i18n-loc="{{ base_loc }}" lang="{{ base_loc }}" class="space-y-3">
+    <div data-i18n-loc="{{ base_loc }}" class="space-y-3">
       <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Rolle" %}</span>
-      <input name="title" type="text" maxlength="120" value="{{ r.title }}" placeholder="{% trans 'Role (e.g. Stylist, Master)' %}" class="ui-input"></label>
+      <input name="title" type="text" maxlength="120" value="{{ r.title }}" lang="{{ base_loc }}" placeholder="{% trans 'Role (e.g. Stylist, Master)' %}" class="ui-input"></label>
       <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Short bio (optional)" %}</span>
-      <textarea name="bio" rows="3" class="ui-input">{{ r.bio }}</textarea></label>
+      <textarea name="bio" rows="3" lang="{{ base_loc }}" class="ui-input">{{ r.bio }}</textarea></label>
     </div>
     {% for grp in by_loc %}
-    <div data-i18n-loc="{{ grp.grouper }}" lang="{{ grp.grouper }}" class="hidden space-y-2">
+    <div data-i18n-loc="{{ grp.grouper }}" class="hidden space-y-2">
       {% for inp in grp.list %}{% if inp.field == 'title' %}
         <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Rolle" %} ({{ inp.locale|upper }})</span>
-        <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input"></label>
+        <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" lang="{{ inp.locale }}" class="ui-input"></label>
       {% elif inp.field == 'bio' %}
         <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Short bio (optional)" %} ({{ inp.locale|upper }})</span>
-        <textarea name="{{ inp.input_name }}" rows="3" class="ui-input">{{ inp.value }}</textarea></label>
+        <textarea name="{{ inp.input_name }}" rows="3" lang="{{ inp.locale }}" class="ui-input">{{ inp.value }}</textarea></label>
       {% endif %}{% endfor %}
     </div>
     {% endfor %}
@@ -143,8 +143,8 @@ resource_settings/resource_profile писали поля безусловно �
       {% if r.photo_url %}<label class="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="remove_photo" value="1" class="rounded"> {% trans "Remove photo" %}</label>{% endif %}
     </div>
     <div class="text-sm" data-resource-offers>
-      <p class="text-xs font-medium text-gray-600 mb-1">{% trans "Leistungen" %}</p>
-      {% for s in offered %}<a href="{% url 'booking:service-edit' s.pk %}?tab=grund" class="inline-block mr-3 text-indigo-700 underline">{{ s.name }}</a>{% empty %}<span class="ui-muted">{% trans "Noch keine Leistungen." %}</span>{% endfor %}
+      <h2 id="res-offers-h" class="text-xs font-medium text-gray-600 mb-1">{% trans "Leistungen" %}</h2>
+      {% if offered %}<ul role="list" aria-labelledby="res-offers-h" class="flex flex-wrap gap-x-3 gap-y-1">{% for s in offered %}<li><a href="{% url 'booking:service-edit' s.pk %}?tab=grund" class="text-indigo-700 underline">{{ s.name }}</a></li>{% endfor %}</ul>{% else %}<p class="ui-muted">{% trans "Noch keine Leistungen." %}</p>{% endif %}
     </div>
   </div>
   {% endif %}
@@ -156,6 +156,7 @@ resource_settings/resource_profile писали поля безусловно �
 
 {# --- Öffnungszeiten: правила по дням — свои мини-формы ------------------------ #}
 <div data-pf-panel="zeiten" class="ui-card p-5 max-w-3xl{% if active_tab != 'zeiten' %} hidden{% endif %}" data-resource-hours>
+  <h2 class="ui-h2 mb-1">{% trans "Öffnungszeiten" %}</h2>
   <p class="text-xs text-gray-600 mb-3">
     {% trans "Aus diesen Zeiten entstehen die buchbaren Termin-Slots." %}
     <a href="{% url 'settings' %}#sec-zeiten" class="text-indigo-700 underline">{% trans "Öffnungszeiten des Betriebs" %} <span aria-hidden="true">→</span></a>
@@ -169,7 +170,7 @@ resource_settings/resource_profile писали поля безусловно �
           <form method="post" class="inline">{% csrf_token %}
             <input type="hidden" name="action" value="rule_delete"><input type="hidden" name="rule" value="{{ it.rule.pk }}"><input type="hidden" name="resource" value="{{ r.pk }}">
             <input type="hidden" name="tab" value="zeiten">
-            <button class="text-xs min-h-[24px] rounded-full border border-gray-200 px-2 py-0.5 hover:border-red-400 hover:text-red-700" aria-label="{% trans 'Remove' %} {{ it.day }} {{ g.time }}">{{ it.day }} ✕</button>
+            <button class="text-xs min-h-[24px] rounded-full border border-gray-200 px-2 py-0.5 hover:border-red-400 hover:text-red-700" type="submit" aria-label="{% trans 'Remove' %} {{ it.day }} {{ g.time }}">{{ it.day }} <span aria-hidden="true">✕</span></button>
           </form>
         {% endfor %}
       </div>
@@ -205,13 +206,15 @@ resource_settings/resource_profile писали поля безусловно �
 {# --- KA-12 GA-5: комбинация столов («Tisch 3+4») — вкладка «Tisch» ------------- #}
 {% if r.type == 'table' and not r.counts_party_size and r.capacity == 1 and single_tables|length >= 2 %}
 <div data-pf-panel="tisch" class="ui-card p-5 max-w-3xl mt-4{% if active_tab != 'tisch' %} hidden{% endif %}" data-table-combo>
-  <p class="text-sm font-medium mb-2">{% trans "Kombination aus Tischen" %}{% if r.parts.all %}: {% for t in r.parts.all %}{{ t.name }}{% if not forloop.last %} + {% endif %}{% endfor %}{% endif %}</p>
+  <h2 id="res-combo-h" class="ui-h2 mb-2">{% trans "Kombination aus Tischen" %}{% if r.parts.all %}: {% for t in r.parts.all %}{{ t.name }}{% if not forloop.last %} + {% endif %}{% endfor %}{% endif %}</h2>
   <form method="post" class="flex flex-wrap items-center gap-3 text-sm">{% csrf_token %}
     <input type="hidden" name="action" value="resource_parts"><input type="hidden" name="resource" value="{{ r.pk }}">
     <input type="hidden" name="tab" value="tisch">
+    <fieldset class="flex flex-wrap items-center gap-3" aria-labelledby="res-combo-h">
     {% for t in single_tables %}
       <label class="flex items-center gap-2 text-gray-700"><input type="checkbox" name="part" value="{{ t.pk }}" {% if t.pk in part_ids %}checked{% endif %} class="rounded"> {{ t.name }}{% if t.seats %} ({{ t.seats }}){% endif %}</label>
     {% endfor %}
+    </fieldset>
     <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Save" %}</button>
   </form>
   <p class="text-xs ui-muted mt-2">{% trans "Ist die Kombination gebucht, sind ihre Tische belegt — und umgekehrt." %}</p>

@@ -32064,3 +32064,7 @@ msgstr "Завтрак и парковка — 19 %%, даже если прож
 #, python-format
 msgid "Übernachtung 7 %%, sonstige Leistungen 19 %%."
 msgstr "Проживание 7 %%, прочие услуги 19 %%."
+
+#. UX-D D3.1
+msgid "Bitte ein Bild (JPG, PNG, WebP) hochladen."
+msgstr "Загрузите изображение (JPG, PNG, WebP)."

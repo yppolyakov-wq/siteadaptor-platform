@@ -31775,3 +31775,7 @@ msgstr "Breakfast and parking are 19 %%, even when the room is taxed at 7 %%."
 #, python-format
 msgid "Übernachtung 7 %%, sonstige Leistungen 19 %%."
 msgstr "Accommodation 7 %%, other services 19 %%."
+
+#. UX-D D3.1
+msgid "Bitte ein Bild (JPG, PNG, WebP) hochladen."
+msgstr "Please upload an image (JPG, PNG, WebP)."

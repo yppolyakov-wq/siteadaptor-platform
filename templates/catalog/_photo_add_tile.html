@@ -6,7 +6,7 @@
 E9.9: параметр `target` — имя file-input (дефолт images; у номеров/событий photos, у услуги
 image, у статьи cover). Поиск — в СВОЕЙ форме (на странице бывает несколько форм).{% endcomment %}
 <button type="button" data-photo-add-proxy="{{ target|default:'images' }}"
-        class="{% if small %}w-16 h-16{% else %}w-24 h-24{% endif %} shrink-0 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 flex flex-col items-center justify-center hover:border-indigo-400 hover:text-indigo-600 cursor-pointer"
+        class="{% if small %}w-16 h-16{% else %}w-24 h-24{% endif %} shrink-0 rounded-lg border-2 border-dashed border-gray-500 text-gray-600 flex flex-col items-center justify-center hover:border-indigo-400 hover:text-indigo-600 cursor-pointer"
         title="{% trans 'Add photo' %}" aria-label="{% trans 'Add photo' %}">
   <span class="text-2xl leading-none" aria-hidden="true">＋</span>
   <span class="text-xs mt-0.5">{% trans "Foto" %}</span>

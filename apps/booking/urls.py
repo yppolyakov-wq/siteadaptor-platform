@@ -11,6 +11,8 @@ urlpatterns = [
     path("termin/<uuid:pk>/", views.booking_detail, name="booking-detail"),
     path("<uuid:pk>/action/", views.booking_action, name="booking-action"),
     path("ressourcen/", views.resources, name="resources"),
+    # UX-D D3.2: «＋ Ressource» шторкой (до <uuid:pk>/)
+    path("ressourcen/neu/", views_resources.resource_new, name="resource-new"),
     # UX-D D3.1: страница ресурса (вкладки рисует сервер, одна форма — W0)
     path("ressourcen/<uuid:pk>/", views_resources.resource_edit, name="resource-edit"),
     # HF-4: визуальный календарь доступности (закрыть/открыть продажи на день).

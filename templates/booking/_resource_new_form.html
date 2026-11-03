@@ -1,0 +1,34 @@
+{% load i18n %}
+{% comment %}UX-D D3.2: короткая форма «＋ Ressource» — шторка и страница без JS. Часы, предоплата,
+профиль мастера, комбинации — на странице ресурса после создания. Скриптов нет (шторка).
+Контекст: rv (значения), rv_errors {поле: текст}, types, next_url.{% endcomment %}
+<form method="post" action="{% url 'booking:resource-new' %}" class="space-y-4" data-drawer-form>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <div>
+    <label for="res-new-name" class="block text-sm font-medium mb-1">{% trans "Name" %} <span aria-hidden="true" class="text-red-700">*</span></label>
+    <input id="res-new-name" name="name" type="text" required maxlength="120" autocomplete="off" value="{{ rv.name }}" placeholder="{% trans 'Name (e.g. Table 1)' %}" data-drawer-autofocus{% if rv_errors.name %} aria-invalid="true" aria-describedby="res-new-name-err"{% endif %} class="ui-input">
+    {% if rv_errors.name %}<p id="res-new-name-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.name }}</p>{% endif %}
+  </div>
+  <div class="grid grid-cols-2 gap-4">
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Type" %}</span>
+      <select name="type" class="ui-input">
+        {% for value, label in types %}<option value="{{ value }}"{% if value == rv.type %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select></label>
+    <div>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Capacity" %}</span>
+        <input name="capacity" type="text" inputmode="numeric" value="{{ rv.capacity|default:'1' }}"{% if rv_errors.capacity %} aria-invalid="true" aria-describedby="res-new-cap-err"{% endif %} class="ui-input"></label>
+      {% if rv_errors.capacity %}<p id="res-new-cap-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.capacity }}</p>{% endif %}
+    </div>
+    <div>
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Plätze" %} <span class="font-normal text-gray-600">({% trans "Tisch" %})</span></span>
+        <input name="seats" type="text" inputmode="numeric" value="{{ rv.seats }}"{% if rv_errors.seats %} aria-invalid="true" aria-describedby="res-new-seats-err"{% endif %} class="ui-input"></label>
+      {% if rv_errors.seats %}<p id="res-new-seats-err" class="mt-1 text-xs text-red-700"><span aria-hidden="true">⚠ </span>{{ rv_errors.seats }}</p>{% endif %}
+    </div>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Bereich" %} <span class="font-normal text-gray-600">({% trans "Tisch" %})</span></span>
+      <input name="zone" type="text" maxlength="40" value="{{ rv.zone }}" placeholder="{% trans 'z. B. Terrasse' %}" class="ui-input"></label>
+  </div>
+  <div class="flex justify-end gap-2 pt-2{% if in_drawer %} sticky bottom-0 bg-white pb-1{% endif %}">
+    <button class="ui-btn ui-btn-primary">{% trans "Create" %}</button>
+  </div>
+</form>

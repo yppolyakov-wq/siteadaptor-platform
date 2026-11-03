@@ -249,3 +249,58 @@ def test_permissions_match_the_resources_screen():
     from apps.core import view_perms
 
     assert view_perms.RULES["booking:resource-edit"] == view_perms.RULES["booking:resources"]
+
+
+# --- ревью D3.1 ---------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "extra", [{"start_time": "abc"}, {"weekday": "9"}, {"weekday": "-1"}, {"end_time": "25:99"}]
+)
+def test_garbage_hours_rule_is_an_error_not_500(extra):
+    r = _table()
+    data = {"action": "rule", "resource": str(r.pk), "tab": "zeiten", **extra}
+    resp, msgs = _post(r, data)
+    assert resp.status_code == 302 and msgs[0][0] == "error"
+    assert not r.rules.exists()
+
+
+def test_invalid_photo_is_an_error_and_saves_nothing():
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    r = _staff()
+    data, _p = form_post(_page(r), "resource-form")
+    data["title"] = ["Neu"]
+    data["photo"] = SimpleUploadedFile("x.jpg", b"not an image", content_type="image/jpeg")
+    resp, msgs = _post(r, data)
+    r.refresh_from_db()
+    assert r.title == "Stylistin" and msgs[0][0] == "error"
+    assert resp.url.endswith("?tab=profil")
+
+
+def test_legacy_list_form_does_not_let_staff_change_deposit():
+    from apps.booking import views
+
+    r = _table(deposit_cents=1500, require_manual_confirm=True)
+    req = _req(
+        "post",
+        {
+            "action": "resource_settings",
+            "resource": str(r.pk),
+            "deposit_eur": "0",
+            "counts_party_size": "on",
+        },
+        role=Membership.ROLE_STAFF,
+    )
+    views.resources(req)
+    r.refresh_from_db()
+    assert (r.deposit_cents, r.require_manual_confirm, r.counts_party_size) == (1500, True, True)
+
+
+def test_page_has_section_headings_and_combo_group_name():
+    a, b = _table(name="T3"), _table(name="T4")
+    _table(name="T5")
+    html = _page(a, tab="tisch")
+    assert 'id="res-combo-h"' in html and 'aria-labelledby="res-combo-h"' in html
+    assert html.count("<h2") >= 2  # «Öffnungszeiten» и «Kombination aus Tischen»
+    assert b.name in html
