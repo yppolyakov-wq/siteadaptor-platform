@@ -178,6 +178,8 @@ RULES: dict[str, Rule] = {
     "stays:rate-plans": _r("preise.view", "preise.edit"),
     "stays:rate-plan-new": _r("preise.view", "preise.edit"),
     "stays:rate-plan-edit": _r("preise.view", "preise.edit"),
+    # UX-D D4.2: экран настроек; запись правил цены — ещё и preise.edit внутри вьюхи
+    "stays:price-rules": _r(CFG, CFGE),
     "stays:price-calendar-apply": _r("preise.view", "preise.edit"),
     "stays:price-day": _r("preise.view", "preise.edit"),
     "events:list": _r(S, SE),

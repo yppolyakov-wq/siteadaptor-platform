@@ -31979,3 +31979,16 @@ msgstr "Тарифы"
 
 msgid "Übersetzungen — nach dem Anlegen auf der Seite des Tarifs."
 msgstr "Переводы — на странице тарифа после создания."
+
+#, python-format
+msgid "Aktiv: Lücken bis %(n)s Nächte, −%(p)s %%"
+msgstr "Вкл.: окна до %(n)s ночей, −%(p)s %%"
+
+msgid "Diese Regeln gelten für ONLINE-Buchungen aller Zimmer. Eigene Buchungen im Kalender sind nicht betroffen."
+msgstr "Эти правила действуют для ОНЛАЙН-броней всех номеров. Ваши брони в календаре они не затрагивают."
+
+msgid "Preise & Regeln"
+msgstr "Цены и правила"
+
+msgid "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln"
+msgstr "Скидки, динамические цены, «окна» и правила продаж"

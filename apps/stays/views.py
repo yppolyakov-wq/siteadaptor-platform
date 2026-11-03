@@ -1363,6 +1363,9 @@ def units(request, pk=None):
             return redirect(reverse("stays:units") + "?tab=einstellungen&sec=preise")
         return redirect("stays:units")
 
+    # UX-D D4.2: правила продаж переехали — старые закладки «sec=regeln» ведут туда.
+    if not pk and request.GET.get("sec") == "regeln":
+        return redirect(reverse("stays:price-rules") + "?tab=regeln")
     unit_qs = StayUnit.objects.prefetch_related("blocks", "season_rates", "ical_sources", "rooms")
     if pk:
         unit_page = get_object_or_404(unit_qs, pk=pk)
@@ -1377,24 +1380,6 @@ def units(request, pk=None):
         u.i18n_inputs = i18n_inputs_for(u, getattr(request, "tenant", None))  # L3d
         u.season_overlaps = _overlapping_season_ids(u.season_rates.all())  # Z-4
     stay_settings = StaySettings.load()
-    # G12: правила продаж (Verkaufsregeln) — индекс для удаления + имя номера.
-    _unit_names = {str(u.pk): u.name for u in units}
-    restriction_rules = [
-        {**r, "index": i, "unit_name": _unit_names.get(r["unit"], "")}
-        for i, r in enumerate(stay_settings.clean_restriction_rules())
-    ]
-    # G4: правила авто-скидок с человекочитаемым описанием для кабинета.
-    _kind_labels = dict(StaySettings.AUTO_DISCOUNT_KINDS)
-    auto_rules = [
-        {
-            "index": i,
-            "kind": r["kind"],
-            "kind_label": _kind_labels.get(r["kind"], r["kind"]),
-            "threshold": r["threshold"],
-            "percent": r["percent"],
-        }
-        for i, r in enumerate(stay_settings.clean_auto_rules())
-    ]
     return render(
         request,
         "stays/units.html",
@@ -1424,23 +1409,6 @@ def units(request, pk=None):
                 )
             ),
             "stay_settings": stay_settings,  # H9 Kurtaxe
-            "auto_rules": auto_rules,  # G4 правила авто-скидок
-            "auto_kinds": StaySettings.AUTO_DISCOUNT_KINDS,
-            # G12: правила продаж + дни недели для чекбоксов CTA/CTD.
-            "restriction_rules": restriction_rules,
-            # PMS-D: occupancy-правила цены (ручной revenue-management).
-            "occupancy_rules": [
-                {**r, "index": i} for i, r in enumerate(stay_settings.clean_occupancy_rules())
-            ],
-            "weekdays": [
-                (0, _("Mo")),
-                (1, _("Tu")),
-                (2, _("We")),
-                (3, _("Th")),
-                (4, _("Fr")),
-                (5, _("Sa")),
-                (6, _("Su")),
-            ],
             "embed_url": request.build_absolute_uri(reverse("storefront-unterkunft")) + "?embed=1",
             "feed_url": request.build_absolute_uri(reverse("storefront-stay-feed")),  # G8 метапоиск
         },

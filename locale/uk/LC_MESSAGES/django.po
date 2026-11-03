@@ -31963,3 +31963,16 @@ msgstr "Тарифи"
 
 msgid "Übersetzungen — nach dem Anlegen auf der Seite des Tarifs."
 msgstr "Переклади — на сторінці тарифу після створення."
+
+#, python-format
+msgid "Aktiv: Lücken bis %(n)s Nächte, −%(p)s %%"
+msgstr "Увімк.: проміжки до %(n)s ночей, −%(p)s %%"
+
+msgid "Diese Regeln gelten für ONLINE-Buchungen aller Zimmer. Eigene Buchungen im Kalender sind nicht betroffen."
+msgstr "Ці правила діють для ОНЛАЙН-бронювань усіх номерів. Ваші бронювання в календарі вони не зачіпають."
+
+msgid "Preise & Regeln"
+msgstr "Ціни та правила"
+
+msgid "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln"
+msgstr "Знижки, динамічні ціни, «вікна» та правила продажу"

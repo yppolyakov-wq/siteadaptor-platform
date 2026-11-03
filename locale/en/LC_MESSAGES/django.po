@@ -31690,3 +31690,16 @@ msgstr "Rates"
 
 msgid "Übersetzungen — nach dem Anlegen auf der Seite des Tarifs."
 msgstr "Translations — on the rate's page after creating it."
+
+#, python-format
+msgid "Aktiv: Lücken bis %(n)s Nächte, −%(p)s %%"
+msgstr "On: gaps up to %(n)s nights, −%(p)s %%"
+
+msgid "Diese Regeln gelten für ONLINE-Buchungen aller Zimmer. Eigene Buchungen im Kalender sind nicht betroffen."
+msgstr "These rules apply to ONLINE bookings of all rooms. Your own bookings in the calendar are not affected."
+
+msgid "Preise & Regeln"
+msgstr "Prices & rules"
+
+msgid "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln"
+msgstr "Discounts, dynamic prices, gap deal and sales rules"

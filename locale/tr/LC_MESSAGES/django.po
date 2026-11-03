@@ -31836,3 +31836,16 @@ msgstr "Tarifeler"
 
 msgid "Übersetzungen — nach dem Anlegen auf der Seite des Tarifs."
 msgstr "Çeviriler — oluşturduktan sonra tarife sayfasında."
+
+#, python-format
+msgid "Aktiv: Lücken bis %(n)s Nächte, −%(p)s %%"
+msgstr "Açık: %(n)s geceye kadar boşluklar, −%(p)s %%"
+
+msgid "Diese Regeln gelten für ONLINE-Buchungen aller Zimmer. Eigene Buchungen im Kalender sind nicht betroffen."
+msgstr "Bu kurallar tüm odaların ÇEVRİMİÇİ rezervasyonları için geçerlidir. Takvimdeki kendi rezervasyonlarınız etkilenmez."
+
+msgid "Preise & Regeln"
+msgstr "Fiyatlar ve kurallar"
+
+msgid "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln"
+msgstr "İndirimler, dinamik fiyatlar, boşluk fırsatı ve satış kuralları"

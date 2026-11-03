@@ -31777,3 +31777,16 @@ msgstr ""
 
 msgid "Übersetzungen — nach dem Anlegen auf der Seite des Tarifs."
 msgstr ""
+
+#, python-format
+msgid "Aktiv: Lücken bis %(n)s Nächte, −%(p)s %%"
+msgstr ""
+
+msgid "Diese Regeln gelten für ONLINE-Buchungen aller Zimmer. Eigene Buchungen im Kalender sind nicht betroffen."
+msgstr ""
+
+msgid "Preise & Regeln"
+msgstr ""
+
+msgid "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln"
+msgstr ""

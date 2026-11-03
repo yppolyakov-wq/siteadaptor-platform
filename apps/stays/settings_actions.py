@@ -274,14 +274,14 @@ HOME: dict[str, tuple[str, str]] = {
     "rateplan_units": ("stays:rate-plans", ""),  # D4.1: свой экран
     "rateplan_toggle": ("stays:rate-plans", ""),  # D4.1: свой экран
     "rateplan_delete": ("stays:rate-plans", ""),  # D4.1: свой экран
-    "autodiscount_add": ("stays:units", "tab=einstellungen&sec=preise"),
-    "autodiscount_delete": ("stays:units", "tab=einstellungen&sec=preise"),
-    "occupancy_add": ("stays:units", "tab=einstellungen&sec=preise"),
-    "occupancy_delete": ("stays:units", "tab=einstellungen&sec=preise"),
-    "gap_deal": ("stays:units", "tab=einstellungen&sec=preise"),
-    "booking_window": ("stays:units", "tab=einstellungen&sec=regeln"),
-    "restriction_add": ("stays:units", "tab=einstellungen&sec=regeln"),
-    "restriction_delete": ("stays:units", "tab=einstellungen&sec=regeln"),
+    "autodiscount_add": ("stays:price-rules", "tab=rabatte"),  # D4.2
+    "autodiscount_delete": ("stays:price-rules", "tab=rabatte"),  # D4.2
+    "occupancy_add": ("stays:price-rules", "tab=dynamik"),  # D4.2
+    "occupancy_delete": ("stays:price-rules", "tab=dynamik"),  # D4.2
+    "gap_deal": ("stays:price-rules", "tab=luecken"),  # D4.2
+    "booking_window": ("stays:price-rules", "tab=regeln"),  # D4.2
+    "restriction_add": ("stays:price-rules", "tab=regeln"),  # D4.2
+    "restriction_delete": ("stays:price-rules", "tab=regeln"),  # D4.2
     "kurtaxe": ("stays:units", "tab=einstellungen&sec=kurtaxe"),
     "stay_hours": ("stays:units", "tab=einstellungen&sec=kurtaxe"),
     # HF-2: живёт рядом с прочей «подачей» номеров

@@ -944,6 +944,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         "urlaub feiertag sperren verfügbarkeit",
         group="termine",
     ),
+    # UX-D D4.2: правила цены и продаж номеров — из вкладки списка номеров (П4).
+    _e(
+        "settings",
+        "stays:price-rules",
+        _("Preise & Regeln"),
+        "price-rules",
+        "stays",
+        True,
+        "rabatt frühbucher last minute dynamisch lücken mindestaufenthalt anreise",
+        group="zimmer",
+    ),
     _e(
         "settings",
         "stays:channels",

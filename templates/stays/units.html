@@ -408,12 +408,11 @@
 Активная секция приходит с сервера (?sec= из redirect'а Save), переключение —
 делегированным JS; полоса табов скроллится на мобиле (overflow-x-auto).{% endcomment %}
 <div class="ui-tabs flex-nowrap mb-4 overflow-x-auto py-1 -mx-1 px-1" role="group" aria-label="{% trans "Bereiche" %}">
-  <button type="button" data-st-tab="preise" aria-pressed="{% if sec != 'regeln' and sec != 'kurtaxe' and sec != 'kanaele' %}true{% else %}false{% endif %}" class="ui-tab shrink-0 whitespace-nowrap">💶 {% trans "Prices & discounts" %}</button>
-  <button type="button" data-st-tab="regeln" aria-pressed="{% if sec == 'regeln' %}true{% else %}false{% endif %}" class="ui-tab shrink-0 whitespace-nowrap">📅 {% trans "Sales rules" %}</button>
+  <button type="button" data-st-tab="preise" aria-pressed="{% if sec != 'kurtaxe' and sec != 'kanaele' %}true{% else %}false{% endif %}" class="ui-tab shrink-0 whitespace-nowrap">💶 {% trans "Prices & discounts" %}</button>
   <button type="button" data-st-tab="kurtaxe" aria-pressed="{% if sec == 'kurtaxe' %}true{% else %}false{% endif %}" class="ui-tab shrink-0 whitespace-nowrap">🏛 {% trans "Kurtaxe & house rules" %}</button>
   <button type="button" data-st-tab="kanaele" aria-pressed="{% if sec == 'kanaele' %}true{% else %}false{% endif %}" class="ui-tab shrink-0 whitespace-nowrap">🔗 {% trans "Channels & export" %}</button>
 </div>
-<div data-st-panel="preise" class="{% if sec == 'regeln' or sec == 'kurtaxe' or sec == 'kanaele' %}hidden{% endif %}">
+<div data-st-panel="preise" class="{% if sec == 'kurtaxe' or sec == 'kanaele' %}hidden{% endif %}">
 <a href="{% url 'stays:price-calendar' %}" data-price-calendar-link class="flex items-center justify-between gap-3 bg-indigo-50 rounded-2xl px-5 py-3 mb-3 text-sm text-indigo-800 hover:bg-indigo-100">
   <span>📅 <strong>{% trans "Preise & Verfügbarkeit" %}</strong> — {% trans "Tagespreise, Stopp und Mindestaufenthalt im Kalender" %}</span><span aria-hidden="true">→</span>
 </a>
@@ -421,181 +420,10 @@
 <a href="{% url 'stays:rate-plans' %}" data-rate-plans-link class="flex items-center justify-between gap-3 ui-card px-5 py-3 mb-3 text-sm hover:bg-gray-50">
   <span><strong>{% trans "Tarife" %}</strong>{% if rate_plans %} · {{ rate_plans|length }}{% endif %} — {% trans "Basis, nicht erstattbar, mit Frühstück … Gäste wählen beim Buchen." %}</span><span aria-hidden="true">→</span>
 </a>
-{# G4: авто-скидки на проживание — список правил (несколько на тип) ----------- #}
-<details class="ui-card p-5 mb-3">
-  <summary class="cursor-pointer font-semibold">{% trans "Automatic discounts" %} <span class="text-xs font-normal text-gray-400">{% if auto_rules %}· {{ auto_rules|length }}{% endif %}</span></summary>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Applied to the room price (not extras/Kurtaxe). Add several rules — if more than one applies, the highest discount wins." %}</p>
-  {% for r in auto_rules %}
-    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
-      <span>
-        <span class="font-medium">{{ r.kind_label }}</span>
-        <span class="text-gray-500">·
-          {% if r.kind == 'los' %}{% blocktrans with n=r.threshold %}from {{ n }} nights{% endblocktrans %}
-          {% elif r.kind == 'early_bird' %}{% blocktrans with n=r.threshold %}{{ n }}+ days ahead{% endblocktrans %}
-          {% else %}{% blocktrans with n=r.threshold %}within {{ n }} days{% endblocktrans %}{% endif %}
-          → −{{ r.percent }} %</span>
-      </span>
-      <form method="post">{% csrf_token %}
-        <input type="hidden" name="action" value="autodiscount_delete"><input type="hidden" name="index" value="{{ r.index }}">
-        <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
-      </form>
-    </div>
-  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No automatic discounts yet." %}</p>{% endfor %}
-
-  <form method="post" class="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-gray-100">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="autodiscount_add">
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Type" %}</span>
-      <select name="kind" class="rounded-lg border border-gray-300 px-2 py-2 text-sm">
-        {% for value, label in auto_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
-      </select></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Threshold (nights / days)" %}</span>
-      <input name="threshold" type="number" min="1" max="365" value="7" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Discount %" %}</span>
-      <input name="percent" type="number" min="1" max="90" value="10" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <button class="ui-btn ui-btn-primary">{% trans "Add rule" %}</button>
-  </form>
-</details>
-{# PMS-D: ручные occupancy-правила цены — «занятость ≥ X % → ±Y % на ночь». #}
-<details class="ui-card p-5 mb-3">
-  <summary class="cursor-pointer font-semibold">📈 {% trans "Dynamic prices" %} <span class="text-xs font-normal text-gray-400">{% if occupancy_rules %}· {{ occupancy_rules|length }}{% endif %}</span></summary>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Nights in demand cost more, empty nights less: when a night's occupancy reaches the threshold, its ONLINE price changes by the given percent. Your own bookings at the desk keep the base price. The strictest matching rule wins." %}</p>
-
-  {% for r in occupancy_rules %}
-    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
-      <span>
-        {# % — вне blocktrans: литеральный % в python-format msgid ломает msgfmt. #}
-        <span class="font-medium">{% blocktrans with n=r.occupancy %}Occupancy ≥ {{ n }}{% endblocktrans %} %</span>
-        <span class="{% if r.percent > 0 %}text-emerald-700{% else %}text-rose-700{% endif %}">→ {% if r.percent > 0 %}+{% endif %}{{ r.percent }} %</span>
-      </span>
-      <form method="post">{% csrf_token %}
-        <input type="hidden" name="action" value="occupancy_delete"><input type="hidden" name="index" value="{{ r.index }}">
-        <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
-      </form>
-    </div>
-  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No dynamic price rules yet — online prices always match the base price." %}</p>{% endfor %}
-
-  <form method="post" class="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-gray-100">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="occupancy_add">
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Occupancy from (%)" %}</span>
-      <input name="occupancy" type="number" min="1" max="100" value="80" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Price change (%, e.g. 10 or −15)" %}</span>
-      <input name="percent" type="number" min="-50" max="50" value="10" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <button class="ui-btn ui-btn-primary">{% trans "Add rule" %}</button>
-  </form>
-</details>
-{# Lücken-Deal: суперскидка на короткие промежутки между бронями. #}
-<details class="ui-card p-5 mb-3">
-  <summary class="cursor-pointer font-semibold">💥 {% trans "Lücken-Deal" %}</summary>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten gewinnt die beste Ermäßigung (wird nicht addiert)." %}</p>
-  <form method="post" class="flex items-end gap-3 flex-wrap">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="gap_deal">
-    <label class="flex items-center gap-2 text-sm">
-      <input type="checkbox" name="enabled" value="1" {% if stay_settings.gap_max_nights %}checked{% endif %} class="rounded border-gray-300">
-      {% trans "Enabled" %}
-    </label>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Lücke bis … Nächte" %}</span>
-      <input name="gap_max_nights" type="number" min="1" max="14" value="{{ stay_settings.gap_max_nights|default:3 }}" class="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Rabatt %" %}</span>
-      <input name="gap_discount_percent" type="number" min="1" max="70" value="{{ stay_settings.gap_discount_percent|default:25 }}" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
-  </form>
-</details>
-</div>
-<div data-st-panel="regeln" class="{% if sec != 'regeln' %}hidden{% endif %}">
-{# G12: правила продаж (Verkaufsregeln) — сезонный min/max-stay, CTA/CTD, окно #}
-<details open class="ui-card p-5 mb-3">
-  <summary class="cursor-pointer font-semibold">{% trans "Sales rules" %} <span class="text-xs font-normal text-gray-400">{% if restriction_rules %}· {{ restriction_rules|length }}{% endif %}</span></summary>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Limit ONLINE bookings: seasonal minimum/maximum stay, no-check-in/no-check-out weekdays, booking window. Your own bookings in the calendar are never limited." %}</p>
-
-  <form method="post" class="flex items-end gap-3 flex-wrap mb-4">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="booking_window">
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Bookable up to … days ahead (0 = no limit)" %}</span>
-      <input name="max_advance_days" type="number" min="0" max="365" value="{{ stay_settings.max_advance_days }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "At least … days before arrival (0 = same day)" %}</span>
-      <input name="min_advance_days" type="number" min="0" max="90" value="{{ stay_settings.min_advance_days }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
-  </form>
-
-  {% for r in restriction_rules %}
-    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
-      <span>
-        <span class="font-medium">{% if r.start or r.end %}{{ r.start|default:"…" }} – {{ r.end|default:"…" }}{% else %}{% trans "Always" %}{% endif %}</span>
-        <span class="text-gray-500">· {% if r.unit_name %}{{ r.unit_name }}{% else %}{% trans "All units" %}{% endif %}
-          {% if r.min_nights %}· {% blocktrans with n=r.min_nights %}min. {{ n }} nights{% endblocktrans %}{% endif %}
-          {% if r.max_nights %}· {% blocktrans with n=r.max_nights %}max. {{ n }} nights{% endblocktrans %}{% endif %}
-          {% if r.no_checkin %}· {% trans "no check-in:" %} {% for d in weekdays %}{% if d.0 in r.no_checkin %}{{ d.1 }} {% endif %}{% endfor %}{% endif %}
-          {% if r.no_checkout %}· {% trans "no check-out:" %} {% for d in weekdays %}{% if d.0 in r.no_checkout %}{{ d.1 }} {% endif %}{% endfor %}{% endif %}</span>
-      </span>
-      <form method="post">{% csrf_token %}
-        <input type="hidden" name="action" value="restriction_delete"><input type="hidden" name="index" value="{{ r.index }}">
-        <button class="text-red-500 hover:underline text-xs">{% trans "Remove" %}</button>
-      </form>
-    </div>
-  {% empty %}<p class="text-xs text-gray-300 mb-1">{% trans "No sales rules yet." %}</p>{% endfor %}
-
-  <form method="post" class="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-gray-100">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="restriction_add">
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "From (optional)" %}</span>
-      <input name="start" type="date" class="rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Until (optional)" %}</span>
-      <input name="end" type="date" class="rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Unit" %}</span>
-      <select name="unit" class="rounded-lg border border-gray-300 px-2 py-2 text-sm">
-        <option value="">{% trans "All units" %}</option>
-        {% for u in units %}<option value="{{ u.pk }}">{{ u.name }}</option>{% endfor %}
-      </select></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Min. nights" %}</span>
-      <input name="min_nights" type="number" min="0" max="365" value="0" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <div>
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Max. nights" %}</span>
-      <input name="max_nights" type="number" min="0" max="365" value="0" class="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-    </div>
-    <div>
-      <span class="block text-xs font-medium text-gray-500 mb-1">{% trans "No check-in on" %}</span>
-      <div class="flex gap-1.5 flex-wrap">
-        {% for d in weekdays %}<label class="inline-flex items-center gap-1 text-xs border border-gray-200 rounded px-1.5 py-1 cursor-pointer"><input type="checkbox" name="no_checkin" value="{{ d.0 }}" class="rounded border-gray-300">{{ d.1 }}</label>{% endfor %}
-      </div>
-    </div>
-    <div>
-      <span class="block text-xs font-medium text-gray-500 mb-1">{% trans "No check-out on" %}</span>
-      <div class="flex gap-1.5 flex-wrap">
-        {% for d in weekdays %}<label class="inline-flex items-center gap-1 text-xs border border-gray-200 rounded px-1.5 py-1 cursor-pointer"><input type="checkbox" name="no_checkout" value="{{ d.0 }}" class="rounded border-gray-300">{{ d.1 }}</label>{% endfor %}
-      </div>
-    </div>
-    <button class="ui-btn ui-btn-primary">{% trans "Add rule" %}</button>
-  </form>
-</details>
+{# UX-D D4.2: авто-скидки, динамика, Lücken-Deal и правила продаж — экран «Preise & Regeln». #}
+<a href="{% url 'stays:price-rules' %}" data-price-rules-link class="flex items-center justify-between gap-3 ui-card px-5 py-3 mb-3 text-sm hover:bg-gray-50">
+  <span><strong>{% trans "Preise & Regeln" %}</strong> — {% trans "Rabatte, dynamische Preise, Lücken-Deal und Verkaufsregeln" %}</span><span aria-hidden="true">→</span>
+</a>
 </div>
 <div data-st-panel="kurtaxe" class="{% if sec != 'kurtaxe' %}hidden{% endif %}">
 {% comment %}HF-2 (фидбэк владельца 2026-07-31, п. 5): владелец сам решает, какие
