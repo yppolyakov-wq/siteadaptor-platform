@@ -89,6 +89,7 @@ EXPECTED_UNLISTED = frozenset(
         "finance:invoice-new",  # UX-D D6.5: «＋ Neue Rechnung» (кнопка списка счетов)
         "collections:new",  # UX-D D6.3: «＋ Kollektion» (кнопка списка, шторка)
         "team-invite",  # UX-D D6.6: «＋ Mitarbeiter einladen» (кнопка списка Team)
+        "channel-disconnect",  # UX-D D6.6: POST «Trennen» на странице каналов
         "booking:service-inline-edit",
         "booking:service-photo-edit",
         "catalog:category-create",
