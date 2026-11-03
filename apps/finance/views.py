@@ -6,7 +6,7 @@
 """
 
 from datetime import date
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -30,13 +30,44 @@ def _parse_date(raw, fallback):
         return fallback
 
 
+class _FormError(ValueError):
+    """UX-D D6.0: ошибка поля формы — показать человеку, ничего не записывать."""
+
+
+def _post_date(raw, default):
+    """Дата из POST: пусто → `default`; мусор → _FormError (раньше молча «сегодня» —
+    проводка уходила не в тот день, GoBD)."""
+    raw = (raw or "").strip()
+    if not raw:
+        return default
+    try:
+        return date.fromisoformat(raw)
+    except ValueError:
+        raise _FormError(_("Invalid date.")) from None
+
+
+def _post_amount(raw, *, allow_negative=False):
+    """Сумма из POST строгим разбором (`core.money.parse_amount`); пусто или мусор →
+    _FormError (раньше «1.234» = 1,234 €, а `NaN`/`Infinity` роняли страницу)."""
+    from apps.core.money import parse_amount
+
+    try:
+        value = parse_amount(raw, allow_negative=allow_negative)
+    except ValueError:
+        value = None
+    if value is None:
+        raise _FormError(_("Invalid amount."))
+    return value
+
+
 @login_required
 def journal(request):
     if request.method == "POST":
         try:
-            amount = Decimal(str(request.POST.get("amount", "")).replace(",", "."))
-        except (InvalidOperation, ValueError):
-            messages.error(request, _("Invalid amount."))
+            amount = _post_amount(request.POST.get("amount"))
+            entry_date = _post_date(request.POST.get("date"), timezone.localdate())
+        except _FormError as exc:
+            messages.error(request, str(exc))
             return redirect("finance:journal")
         vat_raw = request.POST.get("vat_rate", "19.00")
         vat_rate = next(
@@ -47,7 +78,7 @@ def journal(request):
             source=RevenueEntry.SOURCE_MANUAL,
             amount=amount,
             vat_rate=vat_rate,
-            date=_parse_date(request.POST.get("date"), timezone.localdate()),
+            date=entry_date,
             note=request.POST.get("note", "").strip(),
         )
         if entry is None:
@@ -116,9 +147,11 @@ def expenses(request):
             messages.success(request, _("Entry deleted."))
             return redirect("finance:expenses")
         try:
-            amount = Decimal(str(request.POST.get("amount", "")).replace(",", "."))
-        except (InvalidOperation, ValueError):
-            messages.error(request, _("Invalid amount."))
+            amount = _post_amount(request.POST.get("amount"))
+            entry_date = _post_date(request.POST.get("date"), timezone.localdate())
+            due = _post_date(request.POST.get("due_date"), None)
+        except _FormError as exc:
+            messages.error(request, str(exc))
             return redirect("finance:expenses")
         if amount <= 0:
             messages.error(request, _("Amount must be positive."))
@@ -135,11 +168,6 @@ def expenses(request):
             from apps.inventory.models import Lieferant
 
             supplier = Lieferant.objects.filter(pk=request.POST.get("supplier")).first()
-        due = (
-            _parse_date(request.POST.get("due_date"), None)
-            if request.POST.get("due_date")
-            else None
-        )
         document = None
         if request.FILES.get("beleg"):
             from apps.documents import services as doc_services
@@ -164,7 +192,7 @@ def expenses(request):
             due_date=due,
             paid_at=None if due else timezone.localdate(),
             document=document,
-            date=_parse_date(request.POST.get("date"), timezone.localdate()),
+            date=entry_date,
             note=request.POST.get("note", "").strip()[:200],
         )
         messages.success(request, _("Entry added."))
@@ -516,7 +544,7 @@ def journal_export_datev(request):
 @login_required
 def invoices(request):
     """Счета (D4b): список + создание черновика (до 8 позиций без JS)."""
-    from decimal import Decimal, InvalidOperation
+    from decimal import Decimal
 
     from apps.core.documents import business_language, language_choices
     from apps.promotions.models import Customer
@@ -532,10 +560,11 @@ def invoices(request):
                 continue
             try:
                 qty = max(1, min(int(request.POST.get(f"line_qty_{index}", "1") or 1), 9999))
-                unit_price = Decimal(
-                    str(request.POST.get(f"line_price_{index}", "0")).replace(",", ".")
+                # UX-D D6.0: строгий разбор; отрицательная строка — законный Rabatt.
+                unit_price = _post_amount(
+                    request.POST.get(f"line_price_{index}") or "0", allow_negative=True
                 )
-            except (InvalidOperation, ValueError):
+            except (_FormError, ValueError):
                 messages.error(request, _("Invalid amount."))
                 return redirect("finance:invoices")
             lines.append({"text": text[:200], "qty": qty, "unit_price": str(unit_price)})

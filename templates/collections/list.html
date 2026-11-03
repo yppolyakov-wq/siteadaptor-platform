@@ -76,7 +76,7 @@
         <div class="flex flex-wrap gap-x-4 gap-y-1">
           {% for s, checked in col.svc_rows %}
           <label class="flex items-center gap-1.5 text-sm text-gray-700">
-            <input type="checkbox" name="services" value="{{ s.pk }}" {% if checked %}checked{% endif %} class="rounded border-gray-300">{{ s.name }}
+            <input type="hidden" name="services_shown" value="{{ s.pk }}"><input type="checkbox" name="services" value="{{ s.pk }}" {% if checked %}checked{% endif %} class="rounded border-gray-300">{{ s.name }}
           </label>
           {% endfor %}
         </div>
@@ -91,7 +91,7 @@
         <div class="flex flex-wrap gap-x-4 gap-y-1 max-h-48 overflow-y-auto">
           {% for p, checked in col.product_rows %}
           <label class="flex items-center gap-1.5 text-sm text-gray-700">
-            <input type="checkbox" name="products" value="{{ p.pk }}" {% if checked %}checked{% endif %} class="rounded border-gray-300">{{ p.name }}
+            <input type="hidden" name="products_shown" value="{{ p.pk }}"><input type="checkbox" name="products" value="{{ p.pk }}" {% if checked %}checked{% endif %} class="rounded border-gray-300">{{ p.name }}
           </label>
           {% endfor %}
         </div>
@@ -104,7 +104,7 @@
         <div class="flex flex-wrap gap-x-4 gap-y-1">
           {% for u, checked in col.unit_rows %}
           <label class="flex items-center gap-1.5 text-sm text-gray-700">
-            <input type="checkbox" name="units" value="{{ u.pk }}" {% if checked %}checked{% endif %} class="rounded border-gray-300">{{ u.name }}
+            <input type="hidden" name="units_shown" value="{{ u.pk }}"><input type="checkbox" name="units" value="{{ u.pk }}" {% if checked %}checked{% endif %} class="rounded border-gray-300">{{ u.name }}
           </label>
           {% endfor %}
         </div>

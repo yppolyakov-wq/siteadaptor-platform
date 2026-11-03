@@ -8,6 +8,8 @@
 связи другого kind.
 """
 
+import uuid
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -31,6 +33,31 @@ def _unique_slug(name: str) -> str:
         slug = f"{base}-{n}"
         n += 1
     return slug
+
+
+def _clean_pks(values) -> set:
+    """Присланные pk → множество UUID-строк (мусор отбрасывается, не роняет запрос)."""
+    out = set()
+    for raw in values:
+        try:
+            out.add(str(uuid.UUID(str(raw))))
+        except ValueError:
+            continue
+    return out
+
+
+def _save_members(request, relation, field: str) -> None:
+    """UX-D D6.0: новый состав = (отмеченные ∩ показанные) ∪ (текущие − показанные).
+
+    Форма показывает не всё (неактивные товары, товары после 200-го) — раньше `.set()` из
+    присланного молча стирал их членство. Отмеченное, но не показанное, тоже не берём:
+    форма такого не рисовала."""
+    model = relation.model
+    shown = _clean_pks(request.POST.getlist(f"{field}_shown"))
+    checked = _clean_pks(request.POST.getlist(field)) & shown
+    current = {str(pk) for pk in relation.values_list("pk", flat=True)}
+    keep = checked | (current - shown)
+    relation.set(model.objects.filter(pk__in=keep))
 
 
 @login_required
@@ -69,23 +96,11 @@ def collections_view(request):
             collection.save(update_fields=["name", "sort_order", "updated_at", *changed])
             # Состав подборки: перезаписываем только присланные kind'ы (presence-guard).
             if has_booking and request.POST.get("services_present"):
-                from apps.booking.models import Service
-
-                collection.services.set(
-                    Service.objects.filter(pk__in=request.POST.getlist("services"))
-                )
+                _save_members(request, collection.services, "services")
             if has_stays and request.POST.get("units_present"):
-                from apps.stays.models import StayUnit
-
-                collection.stay_units.set(
-                    StayUnit.objects.filter(pk__in=request.POST.getlist("units"))
-                )
+                _save_members(request, collection.stay_units, "units")
             if has_catalog and request.POST.get("products_present"):
-                from apps.catalog.models import Product
-
-                collection.products.set(
-                    Product.objects.filter(pk__in=request.POST.getlist("products"))
-                )
+                _save_members(request, collection.products, "products")
             messages.success(request, _("Collection saved."))
         elif action == "photo":  # M4-B: фото образа (лукбук) — добавить/удалить
             from apps.catalog.images import apply_gallery_op

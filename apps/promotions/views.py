@@ -1749,6 +1749,20 @@ def _parse_eur_cents(raw):
 
 @login_required
 def voucher_list(request):
+    if request.method == "POST" and request.POST.get("action") == "toggle_active":
+        # UX-D D6.0: код можно отключить (утёк, раздали по ошибке) и включить обратно.
+        # `is_active` проверяют и касса (redeem), и чекауты (spend_voucher).
+        import uuid as _uuid
+
+        try:
+            voucher_pk = _uuid.UUID(str(request.POST.get("voucher") or ""))
+        except ValueError:
+            raise Http404 from None
+        voucher = get_object_or_404(Voucher, pk=voucher_pk)
+        voucher.is_active = not voucher.is_active
+        voucher.save(update_fields=["is_active", "updated_at"])
+        messages.success(request, _("Saved."))
+        return redirect("promotions:voucher-list")
     form = VoucherCreateForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         d_eur = form.cleaned_data.get("discount_eur")

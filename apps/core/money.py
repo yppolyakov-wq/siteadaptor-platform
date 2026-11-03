@@ -55,3 +55,31 @@ def parse_money(raw) -> Decimal | None:
         return Decimal(s)
     except InvalidOperation as exc:  # pragma: no cover — regex уже отсёк
         raise ValueError(raw) from exc
+
+
+# UX-D D6.0: верхняя граница суммы формы кабинета (цена допа, проводка журнала, строка
+# счёта). Больше — почти наверняка ошибка ввода («123450» вместо «1234,50»).
+MAX_FORM_AMOUNT = Decimal("1000000")
+
+
+def parse_amount(raw, *, max_value=MAX_FORM_AMOUNT, allow_negative=False) -> Decimal | None:
+    """Сумма формы кабинета: не больше двух знаков после запятой, конечная, в пределах.
+
+    Пусто → None; иначе ValueError — вызывающий показывает ошибку и НЕ пишет запись.
+    Раньше формы читали `float(…replace(",", "."))` / `Decimal(…)`: «1.234,50» и мусор
+    молча давали 0 €, «1,234» — 1,234 €, а `NaN`/`Infinity` роняли страницу."""
+    value = parse_money(raw)
+    if value is None:
+        return None
+    if -value.as_tuple().exponent > 2:
+        raise ValueError(raw)  # «1,234» / «1.500»: тысячи или дробь — спросим человека
+    if value < 0 and not allow_negative:
+        raise ValueError(raw)
+    if abs(value) > max_value:
+        raise ValueError(raw)
+    return value
+
+
+def to_cents(value: Decimal) -> int:
+    """Сумма с ≤ 2 знаками → центы (без округления: знаки уже проверены)."""
+    return int((value * 100).to_integral_value())

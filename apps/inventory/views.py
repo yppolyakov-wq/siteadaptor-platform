@@ -321,26 +321,43 @@ def _handle_production(request, actor):
     return redirect("stock")
 
 
+def _write_config_key(request, key: str, value) -> None:
+    """UX-D D6.0: один ключ `site_config` под блокировкой строки тенанта (класс W6).
+
+    Раньше вьюха писала свой снимок конфига целиком — правка, сделанная в другой вкладке
+    между открытием склада и Save (SEO, уведомления), молча откатывалась.
+    `auto_create_schema = False`: save() заблокированной копии иначе пытается создать схему
+    (pitfalls §6)."""
+    from django.db import transaction
+
+    from apps.tenants.models import Tenant
+
+    with transaction.atomic():
+        locked = Tenant.objects.select_for_update().get(pk=request.tenant.pk)
+        locked.auto_create_schema = False
+        cfg = dict(locked.site_config) if isinstance(locked.site_config, dict) else {}
+        cfg[key] = value
+        locked.site_config = cfg
+        locked.save(update_fields=["site_config"])
+    request.tenant.site_config = cfg
+
+
 @require_POST
 def _handle_post(request):
     action = request.POST.get("action", "")
     actor = getattr(request.user, "username", "") or ""
 
     if action == "threshold":
-        tenant = request.tenant
-        cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
-        cfg["low_stock_threshold"] = max(0, _int(request.POST.get("value"), DEFAULT_THRESHOLD))
-        tenant.site_config = cfg
-        tenant.save(update_fields=["site_config"])
+        _write_config_key(
+            request,
+            "low_stock_threshold",
+            max(0, _int(request.POST.get("value"), DEFAULT_THRESHOLD)),
+        )
         messages.success(request, _("Meldebestand aktualisiert."))
         return redirect("stock")
 
     if action == "lots_toggle":  # E1: вкл/выкл учёт партий (Chargen/MHD)
-        tenant = request.tenant
-        cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
-        cfg["lots_enabled"] = request.POST.get("lots_enabled") == "on"
-        tenant.site_config = cfg
-        tenant.save(update_fields=["site_config"])
+        _write_config_key(request, "lots_enabled", request.POST.get("lots_enabled") == "on")
         messages.success(request, _("Gespeichert."))
         return redirect("stock")
 

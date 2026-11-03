@@ -47,13 +47,21 @@ def extras_view(request):
         action = request.POST.get("action", "")
         if action == "add":
             label = request.POST.get("label", "").strip()[:120]
+            from apps.core.money import parse_amount, to_cents
+
+            # UX-D D6.0: «1.234,50»/мусор раньше молча давали 0 € — теперь ошибка без записи.
+            try:
+                price = parse_amount(request.POST.get("price"))
+            except ValueError:
+                price = None
+                if label:
+                    messages.error(request, _("Bitte einen Betrag wie 25,00 angeben."))
+                    label = ""
+            cents = to_cents(price) if price is not None else 0
+            scope = request.POST.get("scope", Extra.SCOPE_ALL)
+            if scope not in dict(Extra.SCOPES):
+                scope = Extra.SCOPE_ALL
             if label:
-                try:
-                    cents = max(
-                        0, round(float(request.POST.get("price", "0").replace(",", ".")) * 100)
-                    )
-                except (TypeError, ValueError):
-                    cents = 0
                 # MX-2: адресность («kind:pk» из селекта; пусто = scope-wide) +
                 # вид трекера + поставщик закупаемой опции.
                 entity_kind, entity_id = "", ""
@@ -98,7 +106,7 @@ def extras_view(request):
                 extra = Extra.objects.create(
                     label=label,
                     price_cents=cents,
-                    scope=request.POST.get("scope", Extra.SCOPE_ALL),
+                    scope=scope,
                     per_night=bool(request.POST.get("per_night")),
                     entity_kind=entity_kind,
                     entity_id=entity_id,
