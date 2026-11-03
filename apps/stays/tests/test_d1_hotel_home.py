@@ -211,3 +211,32 @@ def test_buttons_name_the_guest_and_return_to_the_list():
     html = _home()
     assert 'aria-label="Check-in: Familie Kühn"' in html
     assert 'name="next" value="/dashboard/#hh-today"' in html
+
+
+def test_heute_view_has_rooms_to_clean_column():
+    """UX-D D1.5: уборка ушла с шахматки — колонка «Zimmer reinigen» в «Heute»."""
+    from apps.core import sales_page
+
+    tenant = _tenant("hotel")
+    req = _owner_req(tenant)
+    assert "reinigen" not in [c["key"] for c in sales_page.heute_columns(tenant, req.user)]
+    unit = _unit()
+    room = Room.objects.create(unit=unit, number="12", housekeeping=Room.HK_DIRTY)
+    cols = {c["key"]: c for c in sales_page.heute_columns(tenant, req.user)}
+    items = cols["reinigen"]["items"]
+    assert items[0]["title"].endswith("12")
+    assert items[0]["action_url"] == f"/dashboard/stays/zimmer/{room.pk}/sauber/"
+    assert items[0]["actions"]  # владелец может отметить «Sauber»
+
+
+def test_belegungsplan_toolbar_is_full_width_without_housekeeping_and_gap_banner():
+    from pathlib import Path
+
+    text = (
+        Path(__file__).resolve().parents[3] / "templates/stays/_belegungsplan_body.html"
+    ).read_text()
+    assert "gap_hint" not in text and "dirty_rooms" not in text
+    assert "max-w-md" not in text and "max-w-3xl" not in text
+    # sr-only подписи клеток (position:absolute) иначе вылезают из прокручиваемой
+    # сетки и дают горизонтальную прокрутку всей страницы (найдено стендом D1.5)
+    assert "ui-card relative overflow-x-auto" in text

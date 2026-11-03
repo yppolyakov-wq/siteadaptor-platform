@@ -166,19 +166,28 @@ def test_units_action_and_calendar_hint():
     views.units(_req("post", {"action": "gap_deal", "gap_discount_percent": "25"}))
     assert StaySettings.load().gap_max_nights == 0
 
-    # Автопредложение на календаре: фича выключена + короткая люка есть.
+    # Автопредложение: фича выключена + короткая люка есть. UX-D D1.5 (осознанная
+    # переписка): баннер ушёл с шахматки — подсказка «Lücken-Rabatt einrichten» живёт
+    # в «Braucht Aufmerksamkeit» главной отеля.
+    from apps.core import views as core_views
+    from apps.stays.tests.test_d1_hotel_home import _owner_req, _tenant
+
     services.book_stay(
         unit, arrival=D0 + timedelta(days=1), departure=D0 + timedelta(days=3), name="L"
     )
     services.book_stay(
         unit, arrival=D0 + timedelta(days=5), departure=D0 + timedelta(days=7), name="R"
     )
-    body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
-    assert "Lücken-Rabatt aktivieren" in body
-    # Включили → подсказка исчезает.
+    assert (
+        "Lücken-Rabatt aktivieren" not in _cal(_req(data={"von": D0.isoformat()})).content.decode()
+    )
+    tenant = _tenant("hotel")
+    home = core_views.dashboard(_owner_req(tenant)).content.decode()
+    assert "Lücken-Rabatt einrichten" in home
+    # Включили → подсказка исчезает (окно остаётся видно как «Lücke … frei»).
     _settings(nights=3)
-    body = _cal(_req(data={"von": D0.isoformat()})).content.decode()
-    assert "Lücken-Rabatt aktivieren" not in body
+    home = core_views.dashboard(_owner_req(tenant)).content.decode()
+    assert "Lücken-Rabatt einrichten" not in home
 
 
 def test_wizard_offer_checkbox_enables_gap_deal():

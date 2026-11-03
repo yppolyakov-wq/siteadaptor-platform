@@ -276,6 +276,37 @@ def heute_columns(tenant, user=None) -> list[dict]:
         )
         # W10-6: паритет со stays:today — «Im Haus» (живут сейчас).
         cols.append(_col("im_haus", "🏠", _("Im Haus"), lambda: _stay_col("in_house")))
+        # UX-D D1.5: уборка ушла с шахматки — сюда и на главную отеля (только у
+        # тенантов с физическими номерами; «Sauber» — право правки продаж)
+        from apps.stays.models import Room
+
+        if _safe("rooms", lambda: Room.objects.filter(is_active=True).exists())[0]:
+            can_clean = user is not None and has_perm(user, "verkaeufe.edit")
+
+            def _dirty():
+                from django.urls import reverse
+
+                return [
+                    {
+                        "title": f"{_('Zimmer')} {r.number}",
+                        "subtitle": str(r.unit),
+                        "url": reverse("verkaeufe") + "?tab=stay&view=kalender",
+                        "badges": [],
+                        "actions": (
+                            [{"label": _("Sauber"), "action": "clean", "danger": False}]
+                            if can_clean
+                            else []
+                        ),
+                        "action_url": reverse("stays:room-clean", args=[r.pk]),
+                    }
+                    for r in Room.objects.filter(
+                        is_active=True, unit__is_active=True, housekeeping=Room.HK_DIRTY
+                    )
+                    .select_related("unit")
+                    .order_by("unit__name", "number")[: front_desk.LIST_LIMIT]
+                ]
+
+            cols.append(_col("reinigen", "🧹", _("Zimmer reinigen"), _dirty))
     if tenant.is_module_active("booking"):
         from apps.booking.models import Booking
 

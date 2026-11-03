@@ -219,14 +219,6 @@ def _walkin_desk(request) -> dict:
     }
 
 
-def _has_short_gaps(units, *, max_nights=3, horizon=60) -> bool:
-    """Lücken-Deal: есть ли впереди короткие свободные промежутки между
-    занятыми ночами (кандидаты на скидку) — для автопредложения владельцу."""
-    from .gaps import short_gaps
-
-    return bool(short_gaps(units, max_nights=max_nights, horizon=horizon, first_only=True))
-
-
 def _finance_active(request) -> bool:
     tenant = getattr(request, "tenant", None)
     return bool(tenant is not None and tenant.is_module_active("finance"))
@@ -423,10 +415,6 @@ def calendar_context(request):
             # UX-D D1.3: свободная клетка — ссылка «Neue Buchung» только тому, кто может создать
             "can_create_stay": can_open(request, "stays:stay-new"),
             "ohne_zimmer": ohne_zimmer,
-            # PMS-R4: комнаты к уборке (выезды пометили dirty).
-            "dirty_rooms": Room.objects.filter(
-                unit__in=units, is_active=True, housekeeping=Room.HK_DIRTY
-            ).select_related("unit"),
             "nav": "stays",
             "start": start,
             "prev": start - timedelta(days=HORIZON_DAYS),
@@ -441,12 +429,6 @@ def calendar_context(request):
             # Фидбэк 2026-07-28: поиск броней.
             "search_q": search_q,
             "search_results": search_results,
-            # Lücken-Deal: автопредложение, когда фича выключена, а люки есть.
-            "gap_hint": (
-                StaySettings.load().gap_max_nights == 0
-                and bool(bookings)
-                and _has_short_gaps(units)
-            ),
             # PMS-A1: паритет walk-in формы с витриной — тарифы и доп-услуги.
             "rate_plans": rate_plans_mod.active_plans(),  # Z-4: с категориями (data-units)
             "walkin_extras": _extras_for_walkin(),

@@ -617,7 +617,10 @@ def test_checkout_marks_room_dirty_and_clean_action():
     assert room.housekeeping == Room.HK_DIRTY  # выезд пометил к уборке
 
     body = _cal(_req(data={"von": (D0 - timedelta(days=5)).isoformat()})).content.decode()
-    assert "🧹" in body and "Housekeeping" in body  # бейдж + панель уборки
+    assert "🧹" in body  # бейдж уборки на шахматке остаётся
+    # UX-D D1.5 (осознанная переписка): список уборки ушёл с шахматки — на главную
+    # отеля и в колонку «Zimmer reinigen» вида «Heute»
+    assert "Housekeeping" not in body
 
     resp = views.room_clean(_req("post"), pk=room.pk)
     assert resp.status_code == 302

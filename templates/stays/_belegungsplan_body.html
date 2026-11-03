@@ -26,15 +26,28 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 {% for unit, nights in overbooking %}
   <div class="mb-3 rounded-lg px-4 py-2 text-sm bg-red-50 text-red-700" data-overbooking>⚠ {% blocktrans with unit=unit.name %}Überbuchung bei {{ unit }}:{% endblocktrans %} {% for n in nights %}{{ n|date:"d.m." }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
 {% endfor %}
-{# Фидбэк 2026-07-28: поиск по гостю/почте/номеру брони — любая дата и статус. #}
-<form method="get" class="mb-3 flex items-center gap-2 max-w-md">
-  {% if active_kind %}<input type="hidden" name="tab" value="{{ active_kind }}">{% endif %}
-  <input type="search" name="q" value="{{ search_q }}" aria-label="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}" placeholder="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}"
-         class="ui-input">
-  {% if search_q %}<a href="?{% if active_kind %}tab={{ active_kind }}{% endif %}" class="text-sm text-gray-400 hover:text-gray-600 shrink-0" aria-label="{% trans 'Reset' %}">✕</a>{% endif %}
-</form>
+
+
+
+{# --- Belegungskalender: юниты × ночи --------------------------------------- #}
+{% comment %}UX-D D1.5 (макет Main): одна строка инструментов на всю ширину — период,
+поиск, «без номера»; уборка и Lücken-Deal ушли на главную отеля и в «Heute».{% endcomment %}
+<div class="flex flex-wrap items-center gap-x-4 gap-y-2 mb-3">
+  <div class="flex items-center gap-3 text-sm">
+    <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}von={{ prev|date:'Y-m-d' }}" class="text-indigo-600 hover:underline">← {% trans "Previous" %}</a>
+    <span class="font-semibold whitespace-nowrap">{{ start|date:"d.m.Y" }} – {{ days|last|date:"d.m.Y" }}</span>
+    <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}von={{ next|date:'Y-m-d' }}" class="text-indigo-600 hover:underline">{% trans "Next" %} →</a>
+  </div>
+  {% if ohne_zimmer %}<span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1 text-xs">⚠️ {% blocktrans with n=ohne_zimmer %}{{ n }} bookings without an assigned room — click a booking to assign one.{% endblocktrans %}</span>{% endif %}
+  <form method="get" class="flex items-center gap-2 flex-1 min-w-[14rem] sm:max-w-sm sm:ml-auto" role="search">
+    {% if active_kind %}<input type="hidden" name="tab" value="{{ active_kind }}">{% endif %}
+    <input type="search" name="q" value="{{ search_q }}" aria-label="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}" placeholder="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}"
+           class="ui-input">
+    {% if search_q %}<a href="?{% if active_kind %}tab={{ active_kind }}{% endif %}" class="text-sm text-gray-400 hover:text-gray-600 shrink-0" aria-label="{% trans 'Reset' %}">✕</a>{% endif %}
+  </form>
+</div>
 {% if search_q %}
-<div class="ui-card mb-4 divide-y divide-gray-100 max-w-3xl">
+<div class="ui-card mb-4 divide-y divide-gray-100">
   {% for b in search_results %}
     <a href="{% url 'stays:booking-detail' b.pk %}" data-drawer data-drawer-key="search-{{ b.pk }}" class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
       <span class="min-w-0 truncate"><span class="font-medium">{{ b.customer.name|default:b.customer }}</span> · {{ b.reference_code }}{% if b.customer.email %} · <span class="text-gray-400">{% if hide_contacts %}{{ b.customer.email|mask_email }}{% else %}{{ b.customer.email }}{% endif %}</span>{% endif %}</span>
@@ -46,39 +59,13 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 </div>
 {% endif %}
 
-{% if gap_hint %}
-{# Lücken-Deal: автопредложение — короткие люки между бронями найдены, фича выключена. #}
-<div class="mb-3 flex items-center justify-between gap-3 flex-wrap rounded-2xl bg-indigo-50 border border-indigo-200 px-4 py-3">
-  <p class="text-sm text-indigo-900">💥 {% trans "Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen sich schwer. Lücken-Rabatt aktivieren?" %}</p>
-  <form method="post" action="{% url 'stays:units' %}" class="shrink-0">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="gap_deal"><input type="hidden" name="enabled" value="1">
-    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-    <input type="hidden" name="gap_max_nights" value="3"><input type="hidden" name="gap_discount_percent" value="25">
-    <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Aktivieren (−25 % bis 3 Nächte)" %}</button>
-  </form>
-</div>
-{% endif %}
-
-{% if ohne_zimmer %}
-{# PMS-R2: брони без назначенного номера (категория с комнатами) #}
-<p class="mb-3 inline-flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1.5 text-sm">⚠️ {% blocktrans with n=ohne_zimmer %}{{ n }} bookings without an assigned room — click a booking to assign one.{% endblocktrans %}</p>
-{% endif %}
-
-{# --- Belegungskalender: юниты × ночи --------------------------------------- #}
-<div class="flex items-center justify-between mb-3 max-w-md">
-  <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}von={{ prev|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">← {% trans "Previous" %}</a>
-  <span class="font-semibold text-sm">{{ start|date:"d.m.Y" }} – {{ days|last|date:"d.m.Y" }}</span>
-  <a href="?{% if active_kind %}tab={{ active_kind }}&amp;{% endif %}von={{ next|date:'Y-m-d' }}" class="text-indigo-600 hover:underline text-sm">{% trans "Next" %} →</a>
-</div>
-
 {% if rows %}
 {% comment %}Батч C (Belegungsplan, концепт 2026-07-27): tape chart — на юнит:
 строка счётчиков свободного (drop-цель drag'а; свободная клетка кликабельна →
 префил формы брони внизу) + дорожки с ПЛАШКАМИ броней «Имя · S-XXXXXX» (цвет =
 статус, клик → карточка FB-11, drag = перенос дат/номера с СОХРАНЕНИЕМ цены) и
 блокировок. Обрезка окном — маркеры ‹ ›.{% endcomment %}
-<div class="ui-card overflow-x-auto mb-6 [scroll-padding-inline-start:9rem]" data-scroll-key="bp-grid">
+<div class="ui-card relative overflow-x-auto mb-6 [scroll-padding-inline-start:9rem]" data-scroll-key="bp-grid">
   <table class="text-xs border-collapse w-full" id="belegungsplan">
     <thead>
       <tr class="text-gray-400">
@@ -155,21 +142,6 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 (редирект после действия без JS, ссылка извне) — открыть шторку при загрузке.{% endcomment %}
 {% if selected_booking %}<div hidden data-drawer-autoopen="{% url 'stays:booking-detail' selected_booking.pk %}"></div>{% endif %}
 
-{% if dirty_rooms %}
-{# PMS-R4 (хаускипинг-lite): выезды пометили комнаты dirty — список уборки. #}
-<div class="ui-card p-4 mb-6 max-w-xl">
-  <h2 class="font-semibold mb-1">🧹 {% trans "Housekeeping" %}</h2>
-  <p class="text-xs text-gray-500 mb-2">{% trans "Rooms to clean after check-out." %}</p>
-  {% for r in dirty_rooms %}
-    <div class="flex items-center justify-between gap-3 text-sm border-t border-gray-100 py-2">
-      <span>🚪{{ r.number }} · {{ r.unit.name }}</span>
-      <form method="post" action="{% url 'stays:room-clean' r.pk %}">{% csrf_token %}
-        <button class="text-sm border border-emerald-300 text-emerald-700 rounded-lg px-3 py-1 hover:bg-emerald-50">✓ {% trans "Sauber" %}</button>
-      </form>
-    </div>
-  {% endfor %}
-</div>
-{% endif %}
 
 
 <div id="cal-toast" class="fixed bottom-20 md:bottom-5 left-1/2 -translate-x-1/2 z-50 hidden rounded-lg bg-gray-900 text-white text-sm px-4 py-2 shadow-lg"></div>
