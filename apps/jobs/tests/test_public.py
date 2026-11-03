@@ -626,3 +626,11 @@ def test_sp9_anfrage_form_left_contacts_and_callback_right():
     aside = body.split("data-anfrage-aside")[1]
     assert aside.index("data-business-card") < aside.index("data-callback")
     assert body.index('name="title"') < body.index("data-anfrage-aside")  # форма — слева
+
+
+def test_sp9_anfrage_without_contacts_keeps_centered_layout():
+    """Ревью SP-9: без адреса и телефона колонки справа нет — прежняя раскладка."""
+    body = public_views.anfrage(_req(tenant=_tenant())).content.decode()
+    layout = body.split("data-anfrage-layout")[0].rsplit("<div", 1)[-1]
+    assert "lg:grid-cols" not in layout and "data-business-card" not in body
+    assert "lg:col-span-1" not in body.split("data-callback")[1].split("</form>")[0]

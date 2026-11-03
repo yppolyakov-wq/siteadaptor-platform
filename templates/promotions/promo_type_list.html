@@ -79,6 +79,14 @@
       <span class="text-xs text-gray-400">{% trans "Leer = wie auf der Aktionsseite insgesamt." %}</span>
     </div>
   </form>
+  <script>
+    // SP-7: поле с ошибкой в свёрнутом типе — раскрыть тип, иначе браузер молча
+    // отменит отправку (поле не видно). Capture: invalid не всплывает.
+    document.addEventListener("invalid", function (e) {
+      var d = e.target.closest && e.target.closest("details[data-promo-type]");
+      if (d) d.open = true;
+    }, true);
+  </script>
   {% else %}
   <p class="rounded-2xl border border-dashed border-gray-300 p-6 text-sm text-gray-500">
     {% trans "Noch keine Aktionstypen: Typen entstehen aus den Aktionen selbst — tragen Sie bei einer Aktion eine Gruppe ein oder legen Sie eine Mystery- bzw. Vorbestell-Aktion an." %}
