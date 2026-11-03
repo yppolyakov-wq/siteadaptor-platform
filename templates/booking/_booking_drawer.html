@@ -16,7 +16,7 @@ kassieren» уходят через fetch (data-drawer-form) и возвраща
     {% if b.customer.phone %}<dt class="text-gray-600">{% trans "Phone" %}</dt><dd><a href="tel:{{ b.customer.phone }}" class="text-indigo-700 underline">{{ b.customer.phone }}</a></dd>{% endif %}
     {% if b.party_size > 1 %}<dt class="text-gray-600">{% trans "Personen" %}</dt><dd>{{ b.party_size }}</dd>{% endif %}
     {% if b.note %}<dt class="text-gray-600">{% trans "Notiz" %}</dt><dd class="break-words">{{ b.note }}</dd>{% endif %}
-    <dt class="text-gray-600">{% trans "Status" %}</dt>
+    <dt class="text-gray-600">{% trans "Zahlung" %}</dt>
     <dd>{% if b.payment_state == 'paid' %}{% trans "Paid" %}{% elif b.payment_state == 'deposit' %}{% blocktrans with eur=b.balance_eur|floatformat:2 %}Anzahlung bezahlt · Rest {{ eur }} € offen{% endblocktrans %}{% elif b.payment_state == 'pending' %}{% trans "Deposit pending" %}{% elif b.payment_state == 'refunded' %}{% trans "Refunded" %}{% else %}{% trans "Vor Ort zu zahlen" %}{% endif %}</dd>
   </dl>
 

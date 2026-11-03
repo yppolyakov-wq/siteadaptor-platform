@@ -148,6 +148,10 @@ def test_outside_hours_offers_override_and_override_creates():
     html = _post(data).content.decode()
     assert 'name="override_hours"' in html and "data-override" in html
     assert not Booking.objects.exists()
+    # ревью a11y D5: Enter в поле = первая кнопка формы — это «Termin anlegen», не обход
+    form = html.split("data-drawer-form", 1)[1]
+    assert form.index("ui-btn-primary") < form.index("data-override")
+    assert 'aria-describedby="bn-time-err" data-override' in html
     _post({**data, "override_hours": "1"})
     assert Booking.objects.filter(customer__name="Spät").exists()
 
@@ -238,7 +242,7 @@ def test_staff_without_create_right_gets_no_new_booking_hooks(monkeypatch):
     _master()
     monkeypatch.setattr(views, "_can_create_booking", lambda request: False)
     html = _body()
-    assert "data-tp-new" not in html and "data-tp-col-new" not in html
+    assert "data-tp-new=" not in html and "data-tp-col-new>" not in html
     assert 'id="neu"' not in html
 
 

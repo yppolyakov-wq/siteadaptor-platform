@@ -37,6 +37,8 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
 
 </div>
 
+{# Ревью a11y D5: live-регион сетки — вне перерисовываемой области (иначе пересоздаётся). #}
+<div id="tp-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 {# UX-D D5.2: область дня перерисовывается после действий из шторки (контракт шторки) #}
 <div id="tp-region" data-drawer-refresh class="min-w-0 xl:col-span-2 xl:row-start-2">
 {# KA-12 E4.2b: сетка «ресурс × время» с переносом перетаскиванием (md+); список ниже — путь без мыши. #}

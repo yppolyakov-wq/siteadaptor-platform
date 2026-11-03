@@ -8,7 +8,7 @@ resources, manual_services, show_party, refused (код отказа, котор
   <div class="grid grid-cols-2 gap-4">
     <div class="col-span-2">
       <label for="bn-resource" class="block text-sm font-medium mb-1">{% trans "Resource" %}</label>
-      <select id="bn-resource" name="resource" required class="ui-input"{% if bv_errors.resource %} aria-invalid="true" aria-describedby="bn-resource-err"{% endif %}>
+      <select id="bn-resource" name="resource" required class="ui-input"{% if not bv.resource %} data-drawer-autofocus{% endif %}{% if bv_errors.resource %} aria-invalid="true" aria-describedby="bn-resource-err"{% endif %}>
         {% if not bv.resource %}<option value="">—</option>{% endif %}
         {% for r in resources %}<option value="{{ r.pk }}"{% if bv.resource == r.pk|stringformat:'s' %} selected{% endif %}>{{ r.name }}</option>{% endfor %}
       </select>
@@ -16,11 +16,11 @@ resources, manual_services, show_party, refused (код отказа, котор
     </div>
     <div>
       <label for="bn-date" class="block text-sm font-medium mb-1">{% trans "Datum" %}</label>
-      <input id="bn-date" name="start_date" type="date" required value="{{ bv.start_date }}" class="ui-input"{% if bv_errors.start_time %} aria-invalid="true" aria-describedby="bn-time-err"{% endif %}>
+      <input id="bn-date" name="start_date" type="date" required value="{{ bv.start_date }}" class="ui-input"{% if bv_errors.start_time %} aria-describedby="bn-time-err"{% endif %}>
     </div>
     <div>
       <label for="bn-time" class="block text-sm font-medium mb-1">{% trans "Uhrzeit" %}</label>
-      <input id="bn-time" name="start_time" type="time" required value="{{ bv.start_time }}" class="ui-input" data-drawer-autofocus{% if bv_errors.start_time %} aria-invalid="true" aria-describedby="bn-time-err"{% endif %}>
+      <input id="bn-time" name="start_time" type="time" required value="{{ bv.start_time }}" class="ui-input"{% if bv.resource %} data-drawer-autofocus{% endif %}{% if bv_errors.start_time %} aria-invalid="true" aria-describedby="bn-time-err"{% endif %}>
     </div>
     {% if bv_errors.start_time %}<p id="bn-time-err" class="col-span-2 -mt-2 text-xs text-red-700" data-field-error><span aria-hidden="true">⚠ </span>{{ bv_errors.start_time }}</p>{% endif %}
     {% if manual_services %}
@@ -71,8 +71,10 @@ resources, manual_services, show_party, refused (код отказа, котор
       </div>
     </div>
   </details>
-  <div class="flex flex-wrap justify-end gap-2 pt-2{% if in_drawer %} sticky bottom-0 bg-white pb-1{% endif %}">
-    {% if refused %}<button name="override_hours" value="1" class="ui-btn ui-btn-secondary" data-override>{% trans "Trotzdem eintragen" %}</button>{% endif %}
+  {% comment %}Ревью a11y D5: основная кнопка — ПЕРВАЯ в DOM (Enter в поле = «Termin anlegen»,
+  а не обход проверки часов); «Trotzdem eintragen» описана причиной отказа.{% endcomment %}
+  <div class="flex flex-wrap flex-row-reverse justify-start gap-2 pt-2{% if in_drawer %} sticky bottom-0 bg-white pb-1{% endif %}">
     <button class="ui-btn ui-btn-primary">{% trans "Termin anlegen" %}</button>
+    {% if refused %}<button name="override_hours" value="1" class="ui-btn ui-btn-secondary" aria-describedby="{% if refused == 'seats' %}bn-party-err{% else %}bn-time-err{% endif %}" data-override>{% trans "Trotzdem eintragen" %}</button>{% endif %}
   </div>
 </form>
